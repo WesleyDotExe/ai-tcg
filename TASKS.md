@@ -6,7 +6,8 @@ This repo is built by a scheduled Claude run, one session at a time. Unlike the 
 
 1. Read DESIGN.md, then read progress/current.md and the last few entries in progress/log.md to see where the build is. Check recent commits.
 2. Identify the current build-order stage (DESIGN.md has the ordered list). Do NOT jump ahead — a working stage N beats a half-built stage N+2. Especially: do not build visuals (stage 6) before the game actually runs headless (stages 1–4).
-3. Do one real, complete slice of the current stage. Finishing one thing fully beats starting three.
+3. Before adding anything new: read DESIGN.md's "No shortcuts" section and progress/quality-debt.md. If existing work is below bar, deepen it before adding width. Every 5th session (or if quality-debt.md is long) is a HARDENING pass — no new features, only deepen/refactor/test/fix.
+4. Otherwise, do one real, complete slice of the current stage. Finishing one thing fully beats starting three. Show evidence it works (a run, a log, a rendered frame) — "I built X" without demonstrated output is not done.
 
 ## Hard rules
 
@@ -26,6 +27,7 @@ This repo is built by a scheduled Claude run, one session at a time. Unlike the 
 
 - Update progress/current.md: current build stage, what stands, the concrete next step.
 - Append a dated paragraph to progress/log.md: what you built, whether you ran it and what it produced, what worked, what's blocked.
+- Self-audit: update progress/quality-debt.md with an honest, specific list of where the product currently falls short of DESIGN.md and its quality bars — shallow spots, hardcoded hacks, untested paths, things claimed-done that aren't really. Writing "no debt" on a visibly rough product is a failed audit.
 - Leave the next run a concrete thread: the exact next move.
 - If you need something only the owner can provide (a decision, an asset, credentials, art direction), write it in progress/notes-for-owner.md, specifically.
 - Commit. Open the PR only when the slice is genuinely working.
