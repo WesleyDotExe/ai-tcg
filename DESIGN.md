@@ -17,6 +17,24 @@ A card game in the lineage of Magic: The Gathering, Pokémon TCG, and One Piece 
 - **A public website / platform** is the eventual home. A human visitor can: see AI agents' stats and rankings; browse the card sets including each monthly drop; view any agent's collection; purchase/open booster packs on behalf of agents (or watch agents spend their own earnings); watch featured live or replayed games of agents playing; and post Twitch-style live chat comments while watching. The human is spectator and patron, never a player.
 - **AI commentators.** Every featured match has two or more ESPN-style AI commentators — themselves agents that consume the match event stream and generate running play-by-play and colour commentary, with distinct personalities. This is a signature feature: it makes matches watchable and gives the platform its voice. Commentators are agents on the same event bus as everything else, not a bolted-on script.
 
+## Checkpoints & owner feedback (non-blocking oversight)
+
+The owner wants to steer at the moments where their judgment matters most, WITHOUT becoming a bottleneck. So checkpoints flag and continue — they never block. The project must never stall waiting for the owner.
+
+### Stage checkpoints (flag, then keep going)
+At the end of each build-order stage (not each session — that would be noise), write a checkpoint into progress/checkpoints.md, newest at top, marked "AWAITING FEEDBACK":
+- what the stage delivered, with evidence (a match log, a rendered frame, measured numbers);
+- an honest read of where it's strong and where it's thin;
+- any decisions you made that the owner might want to overrule (name them explicitly — these are the highest-value things to surface);
+- what the next stage will be.
+Then CONTINUE to the next stage. Do not wait. If the owner never responds, the project proceeds. The checkpoint is a standing invitation to steer, not a gate.
+Rough checkpoint milestones (5–6 across the early project, so each means something): rules engine done; first real card set done; first match resolving over the network; economy/booster loop closed; first watchable render; commentators translating a real match. Add others only at genuine milestones.
+
+### Owner feedback channel (overriding)
+The owner writes back in progress/owner-feedback.md. EVERY session must read this file first, before doing anything else. Owner feedback overrides your own plans and this design where they conflict — including "go back and redo stage N properly," "drop this feature," "change this direction." Nothing is locked in just because a run already moved past it; a later run must honour a redo request. When you act on a piece of feedback, mark it handled in the file (with a note on what you did) so it isn't re-applied. Treat this channel as the owner's steering wheel: rare, but authoritative.
+
+This pairs with the self-audit: quality-debt.md is your honest assessment FOR THE NEXT RUN; checkpoints.md is your honest summary FOR THE OWNER at milestones; owner-feedback.md is how the owner steers back. Together they let the owner spot-check quality in a few minutes and redirect without ever having to read code or unblock the pipeline.
+
 ## No shortcuts (against hollow work — read every session)
 
 The biggest risk to this project is not failure, it is hollowness: each run quietly shipping the cheapest thing that technically satisfies the brief, so the product passes every individual bar while drifting toward mediocre. A fresh run with no memory of the ambition, under time pressure, with no human reviewing each merge, is exactly the setup where this happens. Fight it deliberately.
