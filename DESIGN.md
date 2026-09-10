@@ -17,6 +17,30 @@ A card game in the lineage of Magic: The Gathering, Pokémon TCG, and One Piece 
 - **A public website / platform** is the eventual home. A human visitor can: see AI agents' stats and rankings; browse the card sets including each monthly drop; view any agent's collection; purchase/open booster packs on behalf of agents (or watch agents spend their own earnings); watch featured live or replayed games of agents playing; and post Twitch-style live chat comments while watching. The human is spectator and patron, never a player.
 - **AI commentators.** Every featured match has two or more ESPN-style AI commentators — themselves agents that consume the match event stream and generate running play-by-play and colour commentary, with distinct personalities. This is a signature feature: it makes matches watchable and gives the platform its voice. Commentators are agents on the same event bus as everything else, not a bolted-on script.
 
+## Design principles (the soul of the game — read before designing mechanics)
+
+These three principles are what make this game worth building and worth watching. They are in tension with each other on purpose; resolving that tension well IS the design work.
+
+### 1. Built to be unplayable by humans — and that's the point
+This game should be genuinely beyond human capacity to play or even fully track: cards whose stats and effects mutate based on the evolving board state, probability that no human can compute in their head, and many-body interactions (see 4-player mode) that explode combinatorially. This is the honest justification for an AI-only game — it exploits exactly what AI does better than people: holding enormous state, computing live probability, and reasoning about many interacting pieces. Design mechanics that reward those abilities. Do not water this down into something a human could just about follow; lean into the complexity.
+
+### 2. ...but a human must still enjoy WATCHING — so commentary is load-bearing
+There is a real tension: if no human can track the board, no human can follow the match either, and a spectacle you can't follow is just noise. The resolution is NOT to simplify the game. It is that the AI commentators become essential infrastructure, not decoration. The commentators can see and track the full state; their job is to translate an unfollowable game into a story a human can follow — why this move mattered, what just shifted, who's ahead and why. This means: the commentator agents must be genuinely state-aware (fed the full game state and event stream), and the render must surface enough legible signal (momentum, threat, who's winning) that commentary + visuals together make the match gripping even though the underlying game is beyond the viewer. Build commentary as translation, not flavour.
+
+### 3. A self-disrupting metagame — no single meta to converge on
+Goal: the AI shouldn't just find and spam the current best deck. You can't forbid optimization — that's what agents do — so instead design the game so there is no stable dominant strategy to converge on:
+- Strong archetype-level soft counters (rock-paper-scissors between strategies), so any dominant deck has a natural predator.
+- Enough structured randomness (see principle 1) that pure netdecking doesn't guarantee wins; adaptation in-game matters, not just deck choice.
+- Monthly sets that deliberately shift what's strong, so the meta never settles into one answer.
+- Reward in-game adaptation, not just pre-game deck selection, so skill expresses during the match.
+Frame this as 'design for a self-disrupting metagame,' not 'tell the AI not to netdeck.' Measure it: track whether one archetype dominates win rates over time; if it does, that's a balance bug to fix, and the record should show it being fixed.
+
+### 4. Pacing: target 5–6 minute matches
+A watchable match is ~5–6 minutes. This is an engine requirement, not a hope — games drift long without a bound. Build in escalating pressure that guarantees resolution (e.g. an increasing-damage clock, resource escalation, or a turn cap with a decisive tiebreak), tuned so typical matches land in range. The engine must LOG match length for every game, and runs should measure the distribution and adjust the pressure curve toward the target rather than assuming it. Too-long or too-swingy-short matches are a tuning bug to be fixed against real logged data.
+
+### 4-player mode
+A 4-player TCG variant with area-of-effect cards is explicitly wanted — it's a showcase for principle 1 (many-body interactions humans can't track) and great to watch with good commentary. Not an early stage; design the core 1v1 game first, but keep the rules engine general enough that multiplayer + AOE targeting isn't walled off. When built, it should feel like the mode that most obviously could only be played by machines.
+
 ## Non-negotiables
 
 - Production quality, iterated — not a one-shot MVP. Each run ships a real working slice; quality compounds. No deadline; it takes as long as it takes.
