@@ -17,6 +17,34 @@ A card game in the lineage of Magic: The Gathering, Pokémon TCG, and One Piece 
 - **A public website / platform** is the eventual home. A human visitor can: see AI agents' stats and rankings; browse the card sets including each monthly drop; view any agent's collection; purchase/open booster packs on behalf of agents (or watch agents spend their own earnings); watch featured live or replayed games of agents playing; and post Twitch-style live chat comments while watching. The human is spectator and patron, never a player.
 - **AI commentators.** Every featured match has two or more ESPN-style AI commentators — themselves agents that consume the match event stream and generate running play-by-play and colour commentary, with distinct personalities. This is a signature feature: it makes matches watchable and gives the platform its voice. Commentators are agents on the same event bus as everything else, not a bolted-on script.
 
+## No shortcuts (against hollow work — read every session)
+
+The biggest risk to this project is not failure, it is hollowness: each run quietly shipping the cheapest thing that technically satisfies the brief, so the product passes every individual bar while drifting toward mediocre. A fresh run with no memory of the ambition, under time pressure, with no human reviewing each merge, is exactly the setup where this happens. Fight it deliberately.
+
+### Named cheap-outs that are FAILURES, not progress
+These are the specific lazy versions. Shipping one is a failure to be undone, not a step forward:
+- A rules engine that can't express a real range of mechanic types (target: keywords, triggered, activated, static/continuous, targeted, AOE, conditional, state-mutating). Three hardcoded effects is a failure.
+- Card 'effects' as a pile of if-card-name-equals special cases instead of a data-driven ability system.
+- Cards rendered as an emoji/glyph/letter on a flat background (see art section — explicitly banned).
+- An arena that is coloured rectangles with numbers. 'Functional but flat' is not done.
+- A 'match' that doesn't actually resolve end to end, or that you did not RUN and show output for.
+- Commentary that is generic filler ('a big play!') rather than genuinely state-aware translation.
+- A card set too small or too samey to make real deck-building or a real metagame.
+- Claiming a stage complete when it only handles the happy path and falls over on real cases.
+If you catch yourself reaching for one of these to 'finish' in the time you have: don't finish. Ship less, but real. A smaller genuinely-good slice beats a larger hollow one every time.
+
+### Depth before breadth (anti-regression)
+Before adding any new feature or surface area, assess the current build against this design and the quality bars. If an existing piece is below bar (shallow, hardcoded, untested, happy-path-only), you may NOT add new width — deepen the existing thing first. The effect system being three if-statements blocks starting the arena. This directly fights the drift toward broad-and-shallow.
+
+### Show evidence, not claims
+'I built X' is never acceptable on its own. Every claimed deliverable must come with committed evidence that it actually does the thing: a real match log, measured match-length distributions, the effect system resolving a multi-card combo, a rendered frame, a sample of generated commentary on a real game. If you can't show it working, it isn't done. Committed artifacts that demonstrate behaviour are the currency here.
+
+### Self-audit every session (honest debt list)
+End every session by writing an honest assessment into progress/quality-debt.md: where does the current product fall SHORT of this design and its bars right now? Be specific and unflattering — shallow spots, hardcoded hacks, untested paths, things claimed-done that aren't really. This is not optional and it is not the same as the log. It creates a visible, inherited debt list so hollowness is documented instead of hidden, and points the next run straight at what needs deepening. A run that writes 'no debt, all good' while the product is visibly rough has failed the audit.
+
+### Hardening passes (dedicated depth time)
+Every 5th session (or whenever quality-debt.md is getting long) is a HARDENING pass: no new features at all. Only deepen, refactor, test, fix, and raise existing work to bar, working down quality-debt.md. This guarantees depth gets its own protected time instead of always losing to the next shiny feature. Log it as a hardening pass and record what got raised.
+
 ## Design principles (the soul of the game — read before designing mechanics)
 
 These three principles are what make this game worth building and worth watching. They are in tension with each other on purpose; resolving that tension well IS the design work.
