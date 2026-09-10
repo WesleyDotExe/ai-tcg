@@ -24,6 +24,22 @@ A card game in the lineage of Magic: The Gathering, Pokémon TCG, and One Piece 
 - Spectator experience is a first-class goal, not an afterthought — but it comes after the game actually runs.
 - AI-themed throughout (factions, card art direction, flavour) — not a reskin of an existing IP. Do not reproduce Magic/Pokémon/One Piece card names, art, or copyrighted text; take *structural* inspiration only.
 
+## Quality bars (explicit — do not shortcut these)
+
+These are the requirements most likely to be satisfied lazily. A run that meets the letter but not the spirit has failed. None of these are stage 1 work — they belong to their build-order stages — but they are written here so no run can quietly downgrade them.
+
+### Card art — never emoji-on-black
+Every card must have real, distinct visual art derived from the card itself (its name, faction, type, rarity, flavour). An emoji or glyph on a flat background is explicitly forbidden as a finished state. Two-track approach:
+- **Build the real pipeline (track A).** A system that derives an image prompt from a card's attributes, calls an image-generation API, stores the result, and displays it. This produces genuine AI-generated art per card. It requires an image-model API key, which only the owner can provide and which costs money per image — so gate it behind a key/config and note in progress/notes-for-owner.md exactly what key/service to add and the expected cost. Do NOT hardcode or invent a key; do NOT commit secrets.
+- **Ship a strong free fallback (track B), default until a key exists.** Procedural/generative art produced in code (SVG or canvas), unique per card and driven by its attributes — faction palette, type-based motifs, rarity framing, a seed from the card id so each card is distinct and stable. This must look genuinely good (generative-art quality, not a coloured rectangle), because it is what ships until track A is funded. The game is never blocked on art and never ugly.
+The seam between A and B must be clean: flip from fallback to real art by supplying a key, no rewrite.
+
+### Card effects — a real effect system
+Cards have mechanical effects in the tradition of Magic/Pokémon: keywords, triggered abilities ("when this enters play…"), activated abilities (pay a cost, get an effect), targeting, status effects, modifiers. This means a real, data-driven effect/ability system the rules engine resolves — not a handful of hardcoded special-cases. Design it early (in the rules-engine stage) even if the first card set uses only a few effect types, so the system can grow to hundreds of cards without rewrites. Original mechanics and names — structural inspiration only, no copied keywords-as-text from existing games.
+
+### Arena — visually interesting to watch
+The match render (and later the spectator platform) is for humans watching AI play, so the arena is a core deliverable, not a board of rectangles. It should have genuine visual interest: a themed play space, animated card plays and attacks, visible health/energy, clear turn/phase state, and enough motion and readability that a human enjoys watching without playing. AI-themed art direction throughout. "Functional but flat" is not done. (Belongs to the spectator-render stage — playable first — but hold this bar when you get there.)
+
 ## Build order (resist doing this out of sequence)
 
 The tension in this project: "high quality, not MVP" vs. "2-hour runs." Resolution: each run finishes one real slice; the pretty stuff comes only after the game is actually playable. A beautiful client that can't resolve a match is worse than an ugly one that can.
