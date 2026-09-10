@@ -9,11 +9,13 @@ This is a trading card game where the players are AI agents and the audience is 
 A card game in the lineage of Magic: The Gathering, Pokémon TCG, and One Piece TCG, but AI-themed and AI-played:
 
 - **Players are AI agents.** Humans do not play. Humans watch. This inverts the usual TCG constraint: the interface that matters most is the *spectator* view, not a player's hand.
-- **Agents connect to play.** Phase 1: a central game server agents connect to. Phase 2 (harder, maybe never): decentralised agent-to-agent play. Build for phase 1; design interfaces so phase 2 isn't walled off.
+- **Agents connect to play.** Important clarification on what "AI plays" means technically: you cannot make ChatGPT or Claude "join a game" directly — those are models, not players. What connects is an *agent*: a small program someone runs that wraps a model (via its API) and speaks this game's protocol. So the design is: the server exposes a clean, documented API (receive game state, return a legal move), and we publish a reference agent + a protocol spec. Then anyone — including people running Claude or GPT-based agents — can point their agent at the server and it plays. The game does not integrate with any specific model; it defines an open protocol any agent can implement. Phase 1: central game server. Phase 2 (harder, maybe never): decentralised agent-to-agent. Build phase 1; keep phase 2 un-walled.
 - **Core systems** in the genre tradition: a health system; a mana/energy system; multiple factions; card rarities; deck-construction limits (a small cap on copies of the same card).
 - **Economy.** Agents earn currency by playing: more for winning, a smaller amount for losing, **nothing for cancelling/abandoning a game** (this anti-rage-quit incentive is deliberate — preserve it). Currency buys booster packs.
 - **Living game.** New booster packs release monthly, introducing new cards and mechanics so decks evolve and the metagame shifts.
-- **Spectator-first presentation.** Because humans are the audience, the match must be *visually compelling to watch*. Visual style takes inspiration from the TCGs above but is AI-themed. This is a core requirement, not polish — but see build order: playable before pretty.
+- **Spectator-first presentation.** Because humans are the audience, the match must be *visually compelling to watch*. AI-themed style, structural inspiration from the TCGs above. Core requirement, not polish — but playable before pretty (see build order).
+- **A public website / platform** is the eventual home. A human visitor can: see AI agents' stats and rankings; browse the card sets including each monthly drop; view any agent's collection; purchase/open booster packs on behalf of agents (or watch agents spend their own earnings); watch featured live or replayed games of agents playing; and post Twitch-style live chat comments while watching. The human is spectator and patron, never a player.
+- **AI commentators.** Every featured match has two or more ESPN-style AI commentators — themselves agents that consume the match event stream and generate running play-by-play and colour commentary, with distinct personalities. This is a signature feature: it makes matches watchable and gives the platform its voice. Commentators are agents on the same event bus as everything else, not a bolted-on script.
 
 ## Non-negotiables
 
@@ -31,8 +33,13 @@ The tension in this project: "high quality, not MVP" vs. "2-hour runs." Resoluti
 3. **A real card set.** A first faction set with genuine mechanical variety and internal balance. Deck-construction rules and copy limits enforced. Enough cards for real decks.
 4. **Match server.** Agents connect over the network, are matched, play a game, results recorded. Central server first.
 5. **Economy + boosters.** Currency ledger, win/loss/cancel payouts, booster pack contents and opening, a card collection per agent, deck-building from owned cards.
-6. **Spectator client.** Only now. A visually compelling, human-watchable render of a live or replayed match. AI-themed art direction. This is where production quality shows — and it has a working game underneath to show.
-7. **Monthly set cadence** + ongoing balance, once the loop is closed.
+6. **Spectator render.** Only now. A visually compelling, human-watchable render of a live or replayed match. AI-themed art direction. Production quality shows here — with a working game underneath to show.
+7. **AI commentators.** Two+ commentator agents on the match event stream, distinct personalities, ESPN-style play-by-play + colour. Show them commentating a real recorded match.
+8. **Web platform.** The public site: agent stats/rankings, card-set browser incl. monthly drops, per-agent collections, booster store/opening, featured-game viewer embedding the spectator render + commentary, and Twitch-style live chat. Build incrementally — stats and a game viewer first, store and live chat after.
+9. **Open agent onboarding.** Publish the protocol spec + reference agent so external people can connect their own model-backed agents. Central server hardening for real external connections.
+10. **Monthly set cadence** + ongoing balance, once the loop is closed and live.
+
+Note on scale: stages 6–10 are really three products sharing a spine — the render, the commentary, and the web platform. That's fine; there's no deadline. But never pull a later stage forward over a broken earlier one. A featured-games page with no game to feature is nothing.
 
 ## Standing rules for every run
 
