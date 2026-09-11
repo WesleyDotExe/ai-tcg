@@ -1,7 +1,7 @@
-import type { GameState, PlayerId, UnitInstance, DirectiveInstance } from "../state/types.js";
+import type { GameState, PlayerId, StackItem, UnitInstance, DirectiveInstance } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
 import { MAX_ENERGY_CAP } from "../state/init.js";
-import { currentAttack, allUnits } from "../state/queries.js";
+import { currentAttack, allUnits, findUnit } from "../state/queries.js";
 import type { Rng } from "../state/rng.js";
 import type { Move } from "./moves.js";
 import {
@@ -16,23 +16,35 @@ import type { Ability } from "../cards/types.js";
 
 /** Applies one legal move (as produced by getLegalMoves) to the state,
  * mutating it in place. The caller is responsible for only ever passing a
- * move that came from getLegalMoves for the current state. */
+ * move that came from getLegalMoves for the current state.
+ *
+ * The actor is whoever currently holds priority (`state.priority`), not
+ * necessarily `state.activePlayer` — that's what lets the non-active player
+ * act during their opponent's turn. Playing a Command, activating an
+ * ability, or declaring an attack puts something on the stack instead of
+ * resolving it immediately (Units/Directives are the one exception — see
+ * playCard below); passPriority is what actually resolves the stack or
+ * advances the turn, via the priority algorithm in passPriority(). */
 export function applyMove(state: GameState, move: Move, rng: Rng): void {
-  const pid = state.activePlayer;
+  const pid = state.priority;
   switch (move.type) {
     case "playCard":
       playCard(state, pid, move.handIndex, move.target, rng);
       break;
     case "attack":
-      resolveAttack(state, pid, move.attackerInstanceId, move.target, rng);
+      declareAttack(state, pid, move.attackerInstanceId, move.target, rng);
       break;
     case "activateAbility":
       activateAbility(state, pid, move.sourceInstanceId, move.abilityId, move.target, rng);
       break;
-    case "endTurn":
-      advanceTurn(state, rng);
-      return; // advanceTurn already runs its own cleanup passes
+    case "passPriority":
+      passPriority(state, rng);
+      return; // passPriority manages its own cleanup/turn-advance
   }
+  // Any non-pass action means the opponent hasn't yet had a chance to
+  // respond to *this* — the pass counter starts over, but priority itself
+  // stays with the actor (they may keep acting, or pass, next).
+  state.passes = 0;
   processDeaths(state, rng);
   checkGameOver(state);
 }
@@ -44,8 +56,18 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
   player.hand.splice(handIndex, 1);
   player.energy -= card.cost;
 
-  const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
+  if (card.type === "Command") {
+    // Every Command uses the stack, Instant or Sorcery alike — speed only
+    // gates *when* it was legal to cast it (see getLegalMoves). Its onPlay
+    // ability doesn't resolve until this item comes off the stack, which
+    // is what gives an opponent a real window to respond to it.
+    const instanceId = `c${state.nextInstanceId++}`;
+    state.stack.push({ kind: "command", instanceId, controller: pid, card, chosen: target });
+    state.log.push({ type: "cast", player: pid, card: card.name, speed: card.speed });
+    return;
+  }
 
+  const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
   if (card.type === "Unit") {
     const instanceId = `u${state.nextInstanceId++}`;
     const unit: UnitInstance = {
@@ -71,7 +93,9 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
         rng,
       });
     }
-  } else if (card.type === "Directive") {
+  } else {
+    // Directive: a non-unit permanent, played and resolved immediately —
+    // see the module doc comment for why permanents skip the stack.
     const instanceId = `d${state.nextInstanceId++}`;
     const directive: DirectiveInstance = { instanceId, card, controller: pid };
     player.directives.push(directive);
@@ -86,21 +110,18 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
         rng,
       });
     }
-  } else {
-    // Command: one-shot effect, then straight to the graveyard.
-    state.log.push({ type: "play", player: pid, card: card.name });
-    if (onPlay) {
-      resolveAbility({ state, ability: onPlay, controller: pid, source: { kind: "command", cardName: card.name }, chosen: target, rng });
-    }
-    player.graveyard.push(card);
   }
 }
 
-function resolveAttack(state: GameState, pid: PlayerId, attackerInstanceId: string, target: TargetRef, rng: Rng): void {
+function declareAttack(state: GameState, pid: PlayerId, attackerInstanceId: string, target: TargetRef, rng: Rng): void {
   const attacker = state.players[pid].board.find((u) => u.instanceId === attackerInstanceId);
   if (!attacker) throw new Error(`attack: no unit ${attackerInstanceId} on attacker's board`);
   attacker.hasAttackedThisTurn = true;
 
+  // onAttack fires immediately on declaration (not deferred to the stack —
+  // see quality-debt.md on the scope this simplifies away); the damage
+  // itself is what waits for priority to pass, so a response can still
+  // change how much damage actually lands.
   const onAttack = attacker.card.abilities.find((a) => a.trigger === "onAttack");
   if (onAttack) {
     resolveAbility({
@@ -112,24 +133,21 @@ function resolveAttack(state: GameState, pid: PlayerId, attackerInstanceId: stri
     });
   }
 
-  // Snapshot attack values before either side takes damage so combat is
-  // simultaneous, not sequential (a lethal hit doesn't dodge a trade).
-  const attackerPower = currentAttack(state, attacker);
-  const defenderBefore =
-    target.kind === "unit" ? state.players[otherPlayer(pid)].board.find((u) => u.instanceId === target.instanceId) : undefined;
-  const defenderName = target.kind === "player" ? state.players[target.playerId].name : (defenderBefore?.card.name ?? target.instanceId);
+  const defenderName =
+    target.kind === "player"
+      ? state.players[target.playerId].name
+      : (state.players[otherPlayer(pid)].board.find((u) => u.instanceId === target.instanceId)?.card.name ?? target.instanceId);
   state.log.push({ type: "attack", attacker: attacker.card.name, defender: defenderName, defenderKind: target.kind });
 
-  if (target.kind === "player") {
-    applyDamage(state, target, attackerPower, attacker.card.name, rng);
-    return;
-  }
-
-  const defenderPower = defenderBefore ? currentAttack(state, defenderBefore) : 0;
-  applyDamage(state, target, attackerPower, attacker.card.name, rng);
-  if (defenderBefore) {
-    applyDamage(state, { kind: "unit", instanceId: attacker.instanceId }, defenderPower, defenderBefore.card.name, rng);
-  }
+  const stackInstanceId = `k${state.nextInstanceId++}`;
+  state.stack.push({
+    kind: "combatDamage",
+    instanceId: stackInstanceId,
+    controller: pid,
+    attackerInstanceId: attacker.instanceId,
+    attackerName: attacker.card.name,
+    target,
+  });
 }
 
 function activateAbility(
@@ -150,14 +168,115 @@ function activateAbility(
 
   player.energy -= ability.cost?.energy ?? 0;
   const sourceKind = unitSource ? "unit" : "directive";
-  resolveAbility({
-    state,
-    ability,
+  const stackInstanceId = `a${state.nextInstanceId++}`;
+  state.stack.push({
+    kind: "ability",
+    instanceId: stackInstanceId,
     controller: pid,
+    ability,
     source: { kind: sourceKind, instanceId: sourceInstanceId, cardName: card.name },
     chosen: target,
-    rng,
   });
+  state.log.push({ type: "cast", player: pid, card: `${card.name} — ${ability.text}`, speed: ability.speed ?? "Sorcery" });
+}
+
+/** The priority algorithm: the core of Magic-style reactivity. Passing
+ * hands priority to the other player; a *second* consecutive pass with
+ * nothing acted on in between means neither player has anything left to do
+ * right now, so something happens — the top of the stack resolves if it's
+ * non-empty, or, with an empty stack, the active player's turn ends. Either
+ * way the active player receives priority first afterwards (the standard
+ * Magic rule), which is why turn-advance and stack-resolution both end by
+ * setting state.priority = state.activePlayer / the new active player. */
+function passPriority(state: GameState, rng: Rng): void {
+  state.log.push({ type: "priorityPass", player: state.priority });
+  state.passes += 1;
+  if (state.passes < 2) {
+    state.priority = otherPlayer(state.priority);
+    return;
+  }
+  state.passes = 0;
+  if (state.stack.length > 0) {
+    resolveTopOfStack(state, rng);
+    if (state.winner) return;
+    state.priority = state.activePlayer;
+    return;
+  }
+  advanceTurn(state, rng);
+}
+
+function resolveTopOfStack(state: GameState, rng: Rng): void {
+  const item = state.stack.pop();
+  if (!item) return;
+  state.log.push({ type: "stackResolve", description: describeStackItem(item) });
+  switch (item.kind) {
+    case "command": {
+      const onPlay = item.card.abilities.find((a) => a.trigger === "onPlay");
+      if (onPlay) {
+        resolveAbility({
+          state,
+          ability: onPlay,
+          controller: item.controller,
+          source: { kind: "command", cardName: item.card.name },
+          chosen: item.chosen,
+          rng,
+        });
+      }
+      state.players[item.controller].graveyard.push(item.card);
+      break;
+    }
+    case "ability":
+      resolveAbility({ state, ability: item.ability, controller: item.controller, source: item.source, chosen: item.chosen, rng });
+      break;
+    case "combatDamage":
+      resolveCombatDamage(state, item, rng);
+      break;
+  }
+  processDeaths(state, rng);
+  checkGameOver(state);
+}
+
+function describeStackItem(item: StackItem): string {
+  switch (item.kind) {
+    case "command":
+      return item.card.name;
+    case "ability":
+      return `${item.source.cardName} — ${item.ability.text}`;
+    case "combatDamage":
+      return `${item.attackerName}'s attack`;
+  }
+}
+
+/** Combat damage is computed live, at resolution time — never snapshotted
+ * when the attack was declared — so an instant-speed response that buffs,
+ * heals, or kills either combatant before this resolves genuinely changes
+ * the outcome, not just the flavour text. If the attacker (or a unit
+ * target) is gone by the time this resolves, the attack fizzles instead of
+ * crashing or dealing damage from nothing. */
+function resolveCombatDamage(state: GameState, item: Extract<StackItem, { kind: "combatDamage" }>, rng: Rng): void {
+  const attacker = state.players[item.controller].board.find((u) => u.instanceId === item.attackerInstanceId);
+  if (!attacker) {
+    state.log.push({ type: "fizzle", reason: `${item.attackerName}'s attack fizzles — the attacker is no longer in play` });
+    return;
+  }
+  const attackerPower = currentAttack(state, attacker);
+  if (item.target.kind === "player") {
+    applyDamage(state, item.target, attackerPower, attacker.card.name, rng);
+    return;
+  }
+  const defenderFound = findUnit(state, item.target.instanceId);
+  if (!defenderFound) {
+    state.log.push({ type: "fizzle", reason: `${attacker.card.name}'s attack fizzles — its target is no longer in play` });
+    return;
+  }
+  const defenderPower = currentAttack(state, defenderFound.unit);
+  applyDamage(state, item.target, attackerPower, attacker.card.name, rng);
+  // Re-check the attacker is still standing (a response could have killed
+  // it as part of resolving the defender's side first) before it takes the
+  // defender's return damage.
+  if (findUnit(state, attacker.instanceId)) {
+    applyDamage(state, { kind: "unit", instanceId: attacker.instanceId }, defenderPower, defenderFound.unit.card.name, rng);
+  }
 }
 
 function advanceTurn(state: GameState, rng: Rng): void {
@@ -181,14 +300,16 @@ function advanceTurn(state: GameState, rng: Rng): void {
 }
 
 /** Runs start-of-turn processing for `pid`: energy refill, attack-flag
- * reset, draw, and onTurnStart triggers. Exported so match setup can start
- * the very first turn the same way the engine starts every later one
- * (minus the opening draw, by convention — see match.ts). */
+ * reset, draw, priority reset, and onTurnStart triggers. Exported so match
+ * setup can start the very first turn the same way the engine starts every
+ * later one (minus the opening draw, by convention — see match.ts). */
 export function beginTurn(state: GameState, pid: PlayerId, rng: Rng, options: { draw: boolean } = { draw: true }): void {
   const player = state.players[pid];
   player.maxEnergy = Math.min(MAX_ENERGY_CAP, player.maxEnergy + 1);
   player.energy = player.maxEnergy;
   for (const unit of player.board) unit.hasAttackedThisTurn = false;
+  state.priority = pid;
+  state.passes = 0;
   if (options.draw) drawCardsForPlayer(state, pid, 1);
   state.log.push({ type: "turnStart", turn: state.turnNumber, player: pid });
   fireTurnAbilities(state, pid, "onTurnStart", rng);

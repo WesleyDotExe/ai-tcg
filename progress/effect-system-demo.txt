@@ -10,5 +10,7 @@ AI-TCG effect system demo — deterministic mechanic-by-mechanic proof
   PASS  [8] Static aura buffs live units with no explicit recompute call
   PASS  [9] Unit stats mutate live with board state, both attack- and health-scaling
   PASS  [10] A multi-card combo: onDamaged triggers an AOE that kills a unit, cascading into its onDeath
+  PASS  [11] Priority passes correctly between players, and a same-window instant-speed response resolves before (and changes the outcome of) the spell it responded to
+  PASS  [12] An instant-speed combat trick resolves before combat damage and changes who survives the trade
 
-All 10 effect-system scenarios passed.
+All 12 effect-system scenarios passed.

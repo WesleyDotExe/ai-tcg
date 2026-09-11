@@ -1,4 +1,10 @@
-import type { Card, DirectiveCard, StatusEffect, UnitCard } from "../cards/types.js";
+import type { Ability, Card, CommandCard, DirectiveCard, Speed, StatusEffect, UnitCard } from "../cards/types.js";
+// These are type-only imports from modules that themselves only import
+// *types* from this file (see effects/targeting.ts, effects/resolver.ts) —
+// there is no runtime cycle, only a type-level one, which `import type`
+// erases at compile time.
+import type { TargetRef } from "../effects/targeting.js";
+import type { AbilitySource } from "../effects/resolver.js";
 
 export type PlayerId = "p1" | "p2";
 
@@ -27,6 +33,27 @@ export interface DirectiveInstance {
   card: DirectiveCard;
   controller: PlayerId;
 }
+
+/** A spell or ability waiting to resolve, in Magic-style last-in-first-out
+ * order (see GameState.stack). Units and Directives never appear here —
+ * they resolve immediately when played (see engine/engine.ts) — this is
+ * for Commands, activated abilities, and pending combat damage, the three
+ * things a player can hold priority to respond to before they resolve. */
+export type StackItem =
+  | { kind: "command"; instanceId: string; controller: PlayerId; card: CommandCard; chosen?: TargetRef }
+  | { kind: "ability"; instanceId: string; controller: PlayerId; ability: Ability; source: AbilitySource; chosen?: TargetRef }
+  | {
+      kind: "combatDamage";
+      instanceId: string;
+      controller: PlayerId;
+      attackerInstanceId: string;
+      /** Display-only snapshot for the log; the actual damage math is
+       * always recomputed live at resolution time (see resolveCombatDamage)
+       * so a response that buffs/kills either side before it resolves
+       * genuinely changes the outcome, not just the flavour text. */
+      attackerName: string;
+      target: TargetRef;
+    };
 
 export interface PlayerState {
   id: PlayerId;
@@ -57,6 +84,10 @@ export type GameEvent =
   | { type: "death"; unit: string; controller: PlayerId }
   | { type: "attack"; attacker: string; defender: string; defenderKind: "unit" | "player" }
   | { type: "gainEnergy"; player: PlayerId; amount: number; source: string }
+  | { type: "cast"; player: PlayerId; card: string; speed: Speed }
+  | { type: "priorityPass"; player: PlayerId }
+  | { type: "stackResolve"; description: string }
+  | { type: "fizzle"; reason: string }
   | { type: "gameOver"; winner: PlayerId | "draw"; reason: string };
 
 export interface GameState {
@@ -66,8 +97,23 @@ export interface GameState {
   log: GameEvent[];
   winner?: PlayerId | "draw";
   turnCap: number;
-  /** Monotonic counter for unit/directive instance ids. */
+  /** Monotonic counter for unit/directive/stack-item instance ids. */
   nextInstanceId: number;
+  /** Pending spells/abilities/combat damage, resolved last-in-first-out.
+   * Public information — both players can always see it, same as Magic's
+   * stack. */
+  stack: StackItem[];
+  /** Whoever currently holds priority: the player entitled to act next
+   * (play an instant, activate an instant ability, or pass). Not the same
+   * as `activePlayer` — the non-active player receives priority windows of
+   * their own any time the active player passes, which is what makes
+   * instant-speed responses possible. */
+  priority: PlayerId;
+  /** Consecutive priority passes with no action in between. Reaching 2
+   * means both players passed in a row: the stack's top item resolves (if
+   * any), or, if the stack is empty, the active player's turn ends. Reset
+   * to 0 by any non-pass action. */
+  passes: number;
 }
 
 export function otherPlayer(id: PlayerId): PlayerId {

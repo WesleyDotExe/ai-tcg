@@ -35,9 +35,9 @@ export function runMatch(deckA: DeckSpec, deckB: DeckSpec, agentA: Agent, agentB
   let movesPlayed = 0;
   while (!state.winner && movesPlayed < MAX_MOVES_SAFETY) {
     const legalMoves = getLegalMoves(state);
-    if (legalMoves.length === 0) break; // endTurn is always legal; this would be an engine bug
-    const agent = agents[state.activePlayer];
-    const view = buildPlayerView(state, state.activePlayer);
+    if (legalMoves.length === 0) break; // passPriority is always legal; this would be an engine bug
+    const agent = agents[state.priority];
+    const view = buildPlayerView(state, state.priority);
     const move = agent.decideMove(view, legalMoves);
     applyMove(state, move, rng);
     movesPlayed++;

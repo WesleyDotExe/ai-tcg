@@ -10,7 +10,7 @@ it did) so the same feedback isn't re-applied by the next run.
 
 ---
 
-## 2026-09-11 — Owner feedback on Stage 1 checkpoint (UNHANDLED)
+## 2026-09-11 — Owner feedback on Stage 1 checkpoint (HANDLED 2026-09-11, same-day follow-up session)
 
 Responses to the four decisions flagged in checkpoints.md:
 
@@ -21,3 +21,12 @@ Responses to the four decisions flagged in checkpoints.md:
 **3. Pacing / turn cap — a turn cap is fine.** Keep a hard turn cap as the backstop so games always end. Continue tuning overall pacing toward the 5–6 minute target against logged match lengths as the game matures; the cap is the safety net, not the primary pacing tool.
 
 **4. Faction names / art direction — lean HARD into AI-themed content, with cyberpunk + 1990s retro-futurism flair.** No specific faction names mandated — invent good ones in that spirit. Direction: heavily AI/machine-intelligence themed throughout (factions, card names, flavour, later art direction), styled with a blend of cyberpunk aesthetics and 1990s retro-futurism (chrome, CRT/terminal vibes, the optimistic-yet-synthetic 'future as imagined in the 90s'). Let this flavour identity run through the whole game's presentation, not just card names.
+
+---
+
+**Handled, this session:**
+
+1. No change made (already TypeScript/Node) — confirmed, nothing to do.
+2. Done as a proper foundational rebuild, not a bolt-on: `engine/src/engine/engine.ts` now implements a real Magic-style priority-passing algorithm (`GameState.stack` / `priority` / `passes`), Commands and activated abilities go on the stack instead of resolving immediately, combat damage is a stack item computed live at resolution time (not snapshotted at declaration), and cards/abilities now carry a `speed: "Instant" | "Sorcery"` that `getLegalMoves` enforces. Re-proven to the stage-1 evidence standard: `progress/sample-match-002-reactive.txt` is a real match log with genuine cross-turn instant-speed responses and a fizzled attack (target removed mid-stack); `progress/effect-system-demo.txt` scenarios 11–12 assert priority passing, LIFO stack resolution, and a reactive combat trick changing a fight's outcome. A resource curve supporting ~5–6 min games was kept (same energy climb/refill as before; instants just spend from the same pool, held or not, whenever their controller has priority). Full writeup: `progress/checkpoints.md` (new checkpoint) and `progress/log.md`.
+3. No change made — turn cap kept as the pacing backstop, unaffected by the priority rebuild (a turn only ends once both players pass with an empty stack; the cap still applies on top of that).
+4. Partially addressed: the two new Instant-speed cards added to prove reactivity (Interrupt Handler, Reflex Spike) already fit the cyberpunk/terminal register the existing Cortex/Swarm pool uses. The cyberpunk + 1990s-retro-futurism direction (chrome, CRT vibes) is otherwise a card-set/art-direction concern that belongs to stage 3 (real card set) and the later art pass, not this stage-1 engine session — flagging here as read and *intended to be carried forward*, not fully executed yet, so a future run doing stage 3 or the art pass should treat this as binding direction rather than re-deriving faction flavour from scratch.

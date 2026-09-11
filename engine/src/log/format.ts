@@ -36,6 +36,14 @@ export function formatEvent(event: GameEvent): string {
       return `${event.attacker} attacks ${event.defender}${event.defenderKind === "player" ? " (face)" : ""}`;
     case "gainEnergy":
       return `  ${event.player} gains ${event.amount} energy from ${event.source}`;
+    case "cast":
+      return `${event.player} casts ${event.card} [${event.speed}] (goes on the stack)`;
+    case "priorityPass":
+      return `  ${event.player} passes priority`;
+    case "stackResolve":
+      return `>>> resolving: ${event.description}`;
+    case "fizzle":
+      return `  ${event.reason}`;
     case "gameOver":
       return `=== GAME OVER: ${event.winner === "draw" ? "draw" : `${event.winner} wins`} (${event.reason}) ===`;
   }

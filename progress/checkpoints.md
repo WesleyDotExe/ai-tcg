@@ -5,6 +5,84 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Stage 1 redo: Magic-style priority/reactivity (2026-09-11)
+
+Not a new build-order stage — this is a follow-up to the checkpoint below,
+acting on the owner's response to it. Flagging anyway because it reverses
+a named decision at real cost (a foundational rebuild of the turn core),
+which is exactly the kind of thing worth a fast checkpoint rather than
+going quiet until stage 2 lands.
+
+**What changed:** the turn/priority core was rebuilt around a real Magic-
+style priority-passing algorithm — `GameState.stack`/`priority`/`passes`,
+`Speed: "Instant" | "Sorcery"` on Commands and activated abilities,
+combat damage computed live at resolution time instead of snapshotted at
+declaration, and `getLegalMoves`/`applyMove` keyed off whoever currently
+holds priority rather than always the active player. Full technical
+writeup: `progress/current.md` and `progress/log.md`.
+
+**Evidence, not claims:**
+- `progress/effect-system-demo.txt` scenarios 11–12: priority passes
+  correctly between players, the stack resolves last-in-first-out (a
+  unit's own Instant repair, cast in response to a lethal removal spell
+  already on the stack, saves it by resolving first), and an Instant
+  combat trick cast in response to a declared attack changes who survives
+  the trade.
+- `progress/sample-match-002-reactive.txt`: a real, unscripted match
+  (seed 48) where an Instant kill fired in response to a declared attack,
+  correctly fizzling the now-targetless pending attack.
+- A 60-seed stress run measured how often this shows up in normal
+  (non-scripted) play, not just whether the mechanic can work in a
+  controlled test: **16 of 60 matches (27%) had a genuine cross-turn
+  instant-speed response.** Zero crashes; turn lengths still comfortably
+  under the 40-turn cap (mean 16.2).
+
+**Where it's strong:** the algorithm is the real thing, not an
+approximation — two consecutive passes resolve the stack LIFO or end the
+turn exactly per the standard Magic rule, and combat damage genuinely
+recomputes live (a response can change who dies), not just cosmetically.
+Both dummy agents exercise it without being scripted to: RandomAgent
+needed only a rename, and it still produces real reactive lines; the one
+new heuristic given to AggressiveAgent (save a unit from lethal combat
+damage if a legal instant can) is intentionally narrow, not padded out.
+
+**Where it's thin:** two scope cuts, both named honestly in
+`quality-debt.md` rather than hidden — (1) Units/Directives still resolve
+immediately when played, skipping the stack entirely, so you can respond
+to spells/abilities/attacks but not to a creature entering play; (2)
+triggered abilities (onPlay/onAttack/onDamaged/onDeath/turn triggers)
+still resolve immediately when they fire rather than getting their own
+priority window — only the deliberate action that caused them (a cast, an
+activation, a declared attack) is responder-facing. Both are real
+simplifications of the full Magic model, not bugs, and both are visible
+follow-ups if the owner wants the deeper version later.
+
+**Decisions the owner might want to overrule:**
+1. **Permanents (Units/Directives) don't use the stack.** Scoped this way
+   specifically to keep the rebuild bounded to what the feedback asked for
+   (instant-speed *responses*, priority *passing*, held resources) without
+   also redesigning how creatures enter play. If stage 3's real card set
+   wants "counter target creature" effects, this will need revisiting.
+2. **Triggered abilities resolve immediately, not via the stack.** Same
+   reasoning — the feedback's examples (instant-speed responses, reactive
+   triggers) are satisfied by making the things a *player* does
+   responder-facing; making automatic triggers responder-facing too is a
+   bigger, separate design question (what does it even mean to "counter"
+   an onDeath trigger?) that wasn't asked for here.
+3. **Two new Instant cards were added (Interrupt Handler, Reflex Spike),
+   plus Cortex Engineer's ability upgraded to Instant**, specifically so
+   the dummy agents would have something real to react with. These are
+   test-pool cards, same as the rest of the stage-1 pool — not intended to
+   survive into stage 3's real set as-is.
+
+**What's next:** stage 2 (agent interface), unchanged in scope from the
+previous checkpoint's plan — see `progress/current.md` for what the
+priority rebuild adds to that protocol's requirements (it now needs to
+carry priority windows and the public stack, not just "your turn, pick a
+move").
+
+---
+
 ## AWAITING FEEDBACK — Stage 1: Rules engine, headless (2026-09-11)
 
 **What it delivers:** a working headless TCG rules engine in

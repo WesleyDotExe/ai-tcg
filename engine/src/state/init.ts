@@ -49,5 +49,8 @@ export function createInitialState(deckA: DeckSpec, deckB: DeckSpec, rng: Rng): 
     log: [],
     turnCap: TURN_CAP,
     nextInstanceId: 1,
+    stack: [],
+    priority: "p1",
+    passes: 0,
   };
 }

@@ -34,8 +34,25 @@ import {
   recursiveConstruct,
   overclockBeast,
   retaliationNode,
+  interruptHandler,
+  reflexSpike,
 } from "../data/cards.js";
 import type { UnitCard } from "../cards/types.js";
+
+/** Casting a Command or activating an ability now only queues it on the
+ * stack (see engine/engine.ts) — it takes two consecutive passPriority
+ * moves per stack item to actually resolve it. This drains the whole
+ * stack the same way a real match's priority loop would when nobody has
+ * anything left to respond with, so scenarios that don't care about
+ * priority itself (4, 5, 6, 7) can still assert on the resolved effect. */
+function drainStack(state: GameState, rng: Rng): void {
+  let guard = 0;
+  while (state.stack.length > 0 && guard++ < 20) {
+    applyMove(state, { type: "passPriority" }, rng);
+    applyMove(state, { type: "passPriority" }, rng);
+  }
+  assert.ok(guard < 20, "drainStack: stack never emptied — possible infinite loop in the priority algorithm");
+}
 
 let scenarioCount = 0;
 
@@ -124,7 +141,9 @@ scenario("Triggered onPlay ability resolves a targeted effect", () => {
   state.players.p1.energy = 1;
   state.players.p1.maxEnergy = 1;
   applyMove(state, { type: "playCard", handIndex: 0, target: { kind: "unit", instanceId: target.instanceId } }, rng);
-  assert.equal(currentHealth(state, target), target.card.health - 2, "Diagnostic Pulse should deal exactly 2 targeted damage");
+  assert.equal(currentHealth(state, target), target.card.health, "a cast Command should sit on the stack, not resolve immediately");
+  drainStack(state, rng);
+  assert.equal(currentHealth(state, target), target.card.health - 2, "Diagnostic Pulse should deal exactly 2 targeted damage once it resolves off the stack");
 });
 
 // --- 5. AOE ------------------------------------------------------------------
@@ -138,6 +157,7 @@ scenario("AOE effect hits every legal target, not just one", () => {
   state.players.p1.energy = 4;
   state.players.p1.maxEnergy = 4;
   applyMove(state, { type: "playCard", handIndex: 0 }, rng);
+  drainStack(state, rng);
   assert.equal(currentHealth(state, enemyA), enemyA.card.health - 2, "enemy A should take AOE damage");
   assert.equal(currentHealth(state, enemyB), enemyB.card.health - 2, "enemy B should take AOE damage");
   assert.equal(currentHealth(state, ally), ally.card.health, "ally on the caster's own side must be untouched (filter side=opponent)");
@@ -157,6 +177,7 @@ scenario("Conditional effect branches on live game state (both directions)", () 
   lowHealthState.players.p1.maxEnergy = 2;
   const handBefore = lowHealthState.players.p1.hand.length; // includes the card about to be cast
   applyMove(lowHealthState, { type: "playCard", handIndex: 0 }, rng1);
+  drainStack(lowHealthState, rng1);
   assert.equal(lowHealthState.players.p1.health, 9, "Backup Protocol should heal 3 (6 -> 9)");
   assert.equal(lowHealthState.players.p1.hand.length, handBefore, "at <=10 post-heal health the conditional draw should replace the cast card");
 
@@ -168,6 +189,7 @@ scenario("Conditional effect branches on live game state (both directions)", () 
   fullHealthState.players.p1.maxEnergy = 2;
   const handBefore2 = fullHealthState.players.p1.hand.length;
   applyMove(fullHealthState, { type: "playCard", handIndex: 0 }, rng2);
+  drainStack(fullHealthState, rng2);
   assert.equal(fullHealthState.players.p1.hand.length, handBefore2 - 1, "above the threshold, no draw — hand should just shrink by the cast card");
 });
 
@@ -182,8 +204,9 @@ scenario("Activated ability spends energy and applies its effect", () => {
   const activate = legal.find((m) => m.type === "activateAbility" && m.sourceInstanceId === engineer.instanceId);
   assert.ok(activate, "activated ability should be legal with enough energy");
   applyMove(state, activate!, rng);
-  assert.equal(state.players.p1.energy, 0, "activating should spend its energy cost");
-  assert.equal(currentHealth(state, engineer), engineer.card.health, "healed back to full (2 damage - 2 heal)");
+  assert.equal(state.players.p1.energy, 0, "activating should spend its energy cost immediately, even before it resolves");
+  drainStack(state, rng);
+  assert.equal(currentHealth(state, engineer), engineer.card.health, "healed back to full (2 damage - 2 heal) once the ability resolves off the stack");
 });
 
 // --- 8. Static / continuous aura ---------------------------------------------
@@ -232,6 +255,124 @@ scenario("A multi-card combo: onDamaged triggers an AOE that kills a unit, casca
   assert.equal(state.players.p2.hand.length, drawsBefore + 1, "its onDeath should have drawn its controller a card");
   assert.ok(findUnit(state, sturdyBystander.instanceId), "the 5-health Sentinel should have survived the same AOE tick");
   assert.equal(currentHealth(state, sturdyBystander), sturdyBystander.card.health - 1, "and still shows the 1 damage it took");
+});
+
+// --- 11. Priority + LIFO stack resolution: a real instant-speed response ---
+scenario(
+  "Priority passes correctly between players, and a same-window instant-speed response resolves before (and changes the outcome of) the spell it responded to",
+  () => {
+    const state = emptyState();
+    const rng = new Rng(9);
+    const engineer = putUnit(state, "p1", cortexEngineer, 1); // 3 base health, 1 damage taken -> 2 current health
+    state.players.p2.hand.push(interruptHandler); // Instant, 1 cost, 2 damage to target enemy unit
+    state.players.p2.energy = 1;
+    state.players.p2.maxEnergy = 1;
+    state.players.p1.energy = 1; // for the engineer's own Instant repair ability (cost 1)
+    state.players.p1.maxEnergy = 1;
+
+    // Hand priority to p2 first (even though it's p1's default turn/active
+    // player) to prove priority is a real, independent thing an agent can
+    // hold and act on, not just a synonym for "whose turn is it."
+    state.priority = "p2";
+    applyMove(
+      state,
+      { type: "playCard", handIndex: 0, target: { kind: "unit", instanceId: engineer.instanceId } },
+      rng,
+    );
+    assert.equal(state.stack.length, 1, "the removal spell should be queued on the stack, not resolved immediately");
+    assert.equal(currentHealth(state, engineer), 2, "no damage should land until the spell actually resolves");
+
+    applyMove(state, { type: "passPriority" }, rng); // p2 passes, opening a real response window
+    assert.equal(state.priority, "p1", "p1 should now hold priority, with a chance to respond before the spell resolves");
+
+    const legal = getLegalMoves(state);
+    const repair = legal.find((m) => m.type === "activateAbility" && m.sourceInstanceId === engineer.instanceId);
+    assert.ok(repair, "p1 should have a legal Instant-speed response available, not just a forced pass");
+    applyMove(state, repair!, rng); // p1 responds with the engineer's own instant repair, on top of the removal spell
+    assert.equal(state.stack.length, 2, "both the removal spell and the response should now be stacked");
+
+    applyMove(state, { type: "passPriority" }, rng); // p1 passes back...
+    applyMove(state, { type: "passPriority" }, rng); // ...and p2 has nothing left to add: the TOP of the stack resolves
+    assert.equal(state.stack.length, 1, "only the response should have resolved — the removal spell is still waiting underneath");
+    assert.equal(
+      currentHealth(state, engineer),
+      3,
+      "the response (last on, first resolved — LIFO) should heal the engineer to full BEFORE the removal spell hits",
+    );
+
+    applyMove(state, { type: "passPriority" }, rng);
+    applyMove(state, { type: "passPriority" }, rng); // now the removal spell resolves
+    assert.equal(state.stack.length, 0, "the stack should be empty now");
+    assert.equal(
+      currentHealth(state, engineer),
+      1,
+      "3 (post-heal max) - 2 (the removal spell, resolving after the heal) = 1: the reactive play kept the unit alive",
+    );
+  },
+);
+
+// --- 12. Instant-speed combat trick changes a fight's outcome -------------
+scenario("An instant-speed combat trick resolves before combat damage and changes who survives the trade", () => {
+  const state = emptyState();
+  const rng = new Rng(10);
+  const testAttacker: UnitCard = {
+    id: "test-atk",
+    name: "Test Attacker",
+    faction: "Swarm",
+    rarity: "Common",
+    cost: 1,
+    type: "Unit",
+    attack: 2,
+    health: 2,
+    keywords: [],
+    art: "placeholder",
+    flavor: "",
+    abilities: [],
+  };
+  const testDefender: UnitCard = {
+    id: "test-def",
+    name: "Test Defender",
+    faction: "Cortex",
+    rarity: "Common",
+    cost: 1,
+    type: "Unit",
+    attack: 2,
+    health: 2,
+    keywords: [],
+    art: "placeholder",
+    flavor: "",
+    abilities: [],
+  };
+  const attacker = putUnit(state, "p1", testAttacker);
+  const defender = putUnit(state, "p2", testDefender);
+  state.players.p2.hand.push(reflexSpike); // Instant, +0/+3 to target friendly unit
+  state.players.p2.energy = 1;
+  state.players.p2.maxEnergy = 1;
+
+  applyMove(state, { type: "attack", attackerInstanceId: attacker.instanceId, target: { kind: "unit", instanceId: defender.instanceId } }, rng);
+  assert.equal(state.stack.length, 1, "combat damage should be pending on the stack, not applied on declaration");
+  assert.equal(currentHealth(state, defender), 2, "no damage should have landed yet");
+
+  applyMove(state, { type: "passPriority" }, rng); // p1 (holding priority after declaring) passes
+  assert.equal(state.priority, "p2", "the defending player gets a real window to respond before damage resolves");
+
+  const legal = getLegalMoves(state);
+  const trick = legal.find((m) => m.type === "playCard");
+  assert.ok(trick, "p2 should have a legal Instant-speed trick available in response to the attack");
+  applyMove(state, trick!, rng); // p2 casts Reflex Spike on their own defender — now on top of the pending combat damage
+  applyMove(state, { type: "passPriority" }, rng);
+  applyMove(state, { type: "passPriority" }, rng); // top of stack resolves first (LIFO): the trick, not the combat damage yet
+  assert.equal(currentHealth(state, defender), 5, "the trick should resolve before combat damage: 2 base + 3 buff, 0 damage taken yet");
+
+  applyMove(state, { type: "passPriority" }, rng);
+  applyMove(state, { type: "passPriority" }, rng); // now combat damage resolves, computed live against the now-buffed defender
+
+  assert.equal(
+    currentHealth(state, defender),
+    3,
+    "2 base health + 3 from the trick - 2 combat damage = 3: the trick saved a unit that would otherwise have died",
+  );
+  assert.ok(!findUnit(state, attacker.instanceId), "the attacker should still have died to the (unbuffed) defender's own return damage");
 });
 
 console.log(`\nAll ${scenarioCount} effect-system scenarios passed.`);
