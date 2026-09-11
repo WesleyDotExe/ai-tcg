@@ -1,0 +1,183 @@
+// Card schema and the data-driven ability/effect system.
+//
+// Nothing in this file is card-specific. Every card's behaviour is expressed
+// as data (Ability / EffectSpec / Condition / TargetSpec trees) that the
+// engine's effect resolver interprets generically. There must never be a
+// "if (card.id === 'x')" special case anywhere in the engine — new mechanics
+// are added by extending these unions and teaching the resolver the new
+// variant, not by special-casing individual cards.
+
+export type Faction = "Cortex" | "Aegis" | "Swarm" | "Null";
+
+export type Rarity = "Common" | "Uncommon" | "Rare" | "Mythic";
+
+export type CardType = "Unit" | "Command" | "Directive";
+
+/** Static combat keywords. Each keyword is interpreted generically by the
+ * engine (combat resolution, legal-move generation) rather than expanded
+ * into ad-hoc per-card flags. */
+export type Keyword =
+  /** Can attack the turn it is played (bypasses summoning sickness). */
+  | "Rush"
+  /** Enemy units must attack this unit before attacking anything else on
+   * this controller's board (a taunt-style forced-target keyword). */
+  | "Guard"
+  /** Absorbs the next instance of damage this unit would take, then is
+   * consumed. Represented in-state as a status, granted at play by this
+   * keyword. */
+  | "Barrier";
+
+/** A status effect currently applied to a unit. Statuses are the
+ * general-purpose "this unit is temporarily modified" mechanism used by
+ * keywords (Barrier) and by effects (applyStatus). */
+export type StatusKind = "Barrier" | "Stasis" | "Overload";
+
+export interface StatusEffect {
+  kind: StatusKind;
+  /** Turns remaining, or "permanent"/"untilConsumed" for statuses that end
+   * via an event (e.g. Barrier ends when it absorbs a hit) rather than a
+   * timer. */
+  duration: number | "untilConsumed";
+  /** Extra numeric payload, e.g. Overload's end-of-turn damage amount. */
+  amount?: number;
+}
+
+/** A quantity that can either be a flat number or scale off live board
+ * state — the mechanism behind "cards whose stats mutate based on the
+ * evolving board state" (design principle 1). */
+export type ScalingAmount =
+  | { mode: "flat"; value: number }
+  | {
+      mode: "scaling";
+      base: number;
+      multiplier: number;
+      per: ScalingSource;
+    };
+
+export type ScalingSource =
+  | "controllerUnitsInPlay"
+  | "opponentUnitsInPlay"
+  | "controllerHandSize"
+  | "controllerGraveyardSize"
+  | "turnNumber";
+
+export function resolveAmount(amount: ScalingAmount, ctx: ScalingContext): number {
+  if (amount.mode === "flat") return amount.value;
+  const sample = ctx.sample(amount.per);
+  return amount.base + amount.multiplier * sample;
+}
+
+export interface ScalingContext {
+  sample(source: ScalingSource): number;
+}
+
+/** Who/what a condition or target filter evaluates relative to. */
+export type Side = "controller" | "opponent" | "any";
+
+export type Condition =
+  | { kind: "always" }
+  | { kind: "not"; condition: Condition }
+  | { kind: "healthAtMost"; side: Exclude<Side, "any">; threshold: number }
+  | { kind: "healthAtLeast"; side: Exclude<Side, "any">; threshold: number }
+  | { kind: "unitsInPlayAtLeast"; side: Exclude<Side, "any">; count: number }
+  | { kind: "handSizeAtLeast"; side: Exclude<Side, "any">; count: number }
+  | { kind: "controllerFactionInPlay"; faction: Faction };
+
+export interface TargetFilter {
+  side: Side;
+  /** "unit" = board units only, "player" = players only, "any" = either. */
+  kind: "unit" | "player" | "any";
+}
+
+export type TargetSpec =
+  | { scope: "none" }
+  | { scope: "self" }
+  /** Player chooses one legal target matching the filter at cast/activation
+   * time. Used for single-target removal/burn/buffs. */
+  | { scope: "chosen"; filter: TargetFilter }
+  /** Every legal target matching the filter — the AOE case. */
+  | { scope: "all"; filter: TargetFilter }
+  /** `count` random legal targets matching the filter. */
+  | { scope: "random"; filter: TargetFilter; count: number };
+
+export type EffectSpec =
+  | { kind: "damage"; amount: ScalingAmount }
+  | { kind: "heal"; amount: ScalingAmount }
+  | { kind: "buff"; attack: number; health: number; duration: "permanent" | "turn" }
+  | { kind: "drawCard"; count: number }
+  | { kind: "gainEnergy"; amount: number }
+  | { kind: "destroy" }
+  | { kind: "applyStatus"; status: StatusKind; duration: number | "untilConsumed"; amount?: number }
+  | { kind: "conditional"; condition: Condition; then: EffectSpec[]; else?: EffectSpec[] };
+
+export type TriggerKind =
+  | "onPlay"
+  | "onAttack"
+  | "onDamaged"
+  | "onDeath"
+  | "onTurnStart"
+  | "onTurnEnd"
+  /** Always-on continuous modifier recomputed on every state change; has no
+   * `effects` timeline, only a `staticEffect` payload. */
+  | "static"
+  /** Player-activated during their main phase, may have a cost. */
+  | "activated";
+
+export type StaticEffectSpec =
+  | { kind: "buffAllies"; attack: number; health: number; filter: TargetFilter }
+  /** Overrides the source unit's own attack/health with a live-computed
+   * value every time it's read, instead of adding a flat bonus. This is
+   * the "stats mutate with board state" mechanic from design principle 1. */
+  | { kind: "selfStatFromScaling"; attack?: ScalingAmount; health?: ScalingAmount };
+
+export interface Ability {
+  id: string;
+  trigger: TriggerKind;
+  /** Human-readable text. Not used by the resolver — kept so future
+   * commentator agents and the spectator UI have real text to work from
+   * instead of inventing flavour at render time. */
+  text: string;
+  /** Gates whether the ability fires/can be activated at all. */
+  condition?: Condition;
+  /** Only meaningful for trigger "activated": what the controller pays. */
+  cost?: { energy: number };
+  /** How targets are selected for `effects`. Omit for untargeted abilities. */
+  targeting?: TargetSpec;
+  /** Ordered effects applied when the ability resolves. Required for every
+   * trigger except "static". */
+  effects?: EffectSpec[];
+  /** Only meaningful for trigger "static". */
+  staticEffect?: StaticEffectSpec;
+}
+
+interface CardBase {
+  id: string;
+  name: string;
+  faction: Faction;
+  rarity: Rarity;
+  cost: number;
+  type: CardType;
+  /** Art reference. In this stage-1 build this is a placeholder id resolved
+   * by the (future) spectator client to a generative placeholder frame —
+   * see DESIGN.md's art section. Never a rendered image at this stage. */
+  art: string;
+  flavor: string;
+  abilities: Ability[];
+}
+
+export interface UnitCard extends CardBase {
+  type: "Unit";
+  attack: number;
+  health: number;
+  keywords: Keyword[];
+}
+
+export interface CommandCard extends CardBase {
+  type: "Command";
+}
+
+export interface DirectiveCard extends CardBase {
+  type: "Directive";
+}
+
+export type Card = UnitCard | CommandCard | DirectiveCard;
