@@ -16,9 +16,9 @@ export class RandomAgent implements Agent {
   }
 
   decideMove(_view: PlayerView, legalMoves: Move[]): Move {
-    const nonEndTurn = legalMoves.filter((m) => m.type !== "endTurn");
-    if (nonEndTurn.length > 0 && this.rng.next() < 0.85) {
-      return this.rng.pick(nonEndTurn);
+    const nonPass = legalMoves.filter((m) => m.type !== "passPriority");
+    if (nonPass.length > 0 && this.rng.next() < 0.85) {
+      return this.rng.pick(nonPass);
     }
     return this.rng.pick(legalMoves);
   }

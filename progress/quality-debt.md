@@ -1,7 +1,63 @@
 # Quality debt (honest, specific — read before adding anything new)
 
-Written at the end of session 1. This is not "no debt, all good" — the
-product is real and the evidence is real, but here is where it's thin.
+Written at the end of session 1, updated at the end of the stage-1 redo
+session (priority/reactivity rebuild). This is not "no debt, all good" —
+the product is real and the evidence is real, but here is where it's thin.
+
+## New debt from the priority/reactivity rebuild (this session)
+
+- **Only Commands, activated abilities, and combat damage use the stack.**
+  Units and Directives are deliberately still sorcery-speed-only and
+  resolve immediately when played, skipping the stack entirely — a
+  scoping decision to keep this session's rebuild bounded, not something
+  DESIGN.md asked for explicitly. The practical effect: you cannot
+  currently respond to a creature/permanent *entering* play, only to
+  spells, abilities, and attacks. If the real card set (stage 3) wants
+  "counter target creature spell"-style effects, permanents will need to
+  start using the stack too — a real (if mechanical) follow-up, not a
+  redesign.
+- **Triggered abilities (onPlay/onAttack/onDamaged/onDeath/onTurnStart/
+  onTurnEnd) still resolve immediately when they fire, not through the
+  stack.** Only the *effect a player deliberately casts/activates* — a
+  Command, an activated ability, or a declared attack's damage — gets a
+  priority window before it resolves. A triggered ability firing off one
+  of those (e.g. Watchtower Relay's onTurnStart energy gain) cannot itself
+  be responded to. This mirrors a simplification a lot of digital TCGs
+  make, but it is a real simplification versus paper Magic, not the full
+  model, and should be named as a decision if the owner reviews it.
+- **Nothing can target or interact with the stack itself.** There is no
+  "counter target spell" effect kind yet — TargetSpec/EffectSpec have no
+  way to reference a StackItem. Natural next step once the effect system
+  needs it; not attempted this session (would need real design work on
+  what "counter" means for abilities/combat damage, not just spells).
+- **`fizzle` logging only covers combat damage.** A spell/ability whose
+  chosen target vanishes before it resolves off the stack still silently
+  no-ops (via the existing `findUnit`-returns-undefined guards in
+  effects/resolver.ts) exactly as it did before this rebuild — it just
+  couldn't happen pre-rebuild since nothing was deferred. This is
+  survivable (no crash, no wrong damage) but not narrated in the log the
+  way a genuine fizzle is for combat.
+- **AggressiveAgent's reactive heuristic is narrow.** It only recognizes
+  one shape of "worth responding to": a pending combat-damage stack item
+  that would kill one of its own units, at which point it looks for a
+  legal instant that targets either the threatened unit or the attacker.
+  It does not evaluate whether a *spell* targeting its board is worth
+  responding to (only combat), does not hold instants up proactively for
+  value, and — like the original heuristic — has no lookahead. RandomAgent
+  needed no changes here: picking uniformly among legal moves already
+  produces genuine, unscripted reactive lines (confirmed in the 60-seed
+  stress run — see progress/current.md).
+- **Move-count roughly doubled** (mean ~162 vs. the pre-rebuild ~100) purely
+  from explicit pass-priority bookkeeping — every single resolution now
+  takes two passPriority moves. This is expected and not a balance signal,
+  but anything that used `movesPlayed` as a rough proxy metric elsewhere
+  should be aware the scale changed.
+- **New scenarios (11–12) cover the core algorithm but not its edges.**
+  Untested: a stack three or more items deep, both players responding
+  more than once in the same window, or an Instant cast mid-resolution of
+  another Instant on the *same* player's own main phase interacting with
+  sorcery-timing legality at the boundary. The core LIFO-resolution and
+  cross-turn-response paths are proven; deeper interleavings are not.
 
 ## Architectural gaps
 

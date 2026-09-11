@@ -3,7 +3,10 @@
 // part of the effect system: keywords, triggered abilities (onPlay/onAttack
 // /onDamaged/onDeath/onTurnStart/onTurnEnd), activated abilities,
 // static/continuous auras, targeted effects, AOE, conditionals, and
-// state-mutating (board-scaling) stats.
+// state-mutating (board-scaling) stats — plus, per the owner's stage-1
+// checkpoint feedback, real Instant-speed cards/abilities (Interrupt
+// Handler, Reflex Spike, Cortex Engineer's repair) that exercise the
+// priority-passing reactive core in engine/engine.ts.
 //
 // This is deliberately not a "real card set" (that's build-order stage 3) —
 // it exists to prove the rules engine can express the full range, and to
@@ -74,6 +77,7 @@ export const diagnosticPulse: CommandCard = {
   rarity: "Common",
   cost: 1,
   type: "Command",
+  speed: "Sorcery",
   art: "placeholder:cortex/diagnostic-pulse",
   flavor: "A focused ping, sent to find the weak point.",
   abilities: [
@@ -94,6 +98,7 @@ export const cascadePurge: CommandCard = {
   rarity: "Uncommon",
   cost: 4,
   type: "Command",
+  speed: "Sorcery",
   art: "placeholder:cortex/cascade-purge",
   flavor: "Every open connection, closed at once.",
   abilities: [
@@ -114,6 +119,7 @@ export const backupProtocol: CommandCard = {
   rarity: "Uncommon",
   cost: 2,
   type: "Command",
+  speed: "Sorcery",
   art: "placeholder:cortex/backup-protocol",
   flavor: "Restore from the last known good state.",
   abilities: [
@@ -191,7 +197,8 @@ export const cortexEngineer: UnitCard = {
     {
       id: "cortex-engineer-repair",
       trigger: "activated",
-      text: "Pay 1 energy: restore 2 health to this unit.",
+      text: "Pay 1 energy: restore 2 health to this unit. Instant speed.",
+      speed: "Instant",
       cost: { energy: 1 },
       targeting: { scope: "self" },
       effects: [{ kind: "heal", amount: { mode: "flat", value: 2 } }],
@@ -290,6 +297,27 @@ export const retaliationNode: UnitCard = {
   ],
 };
 
+export const interruptHandler: CommandCard = {
+  id: "CX-014",
+  name: "Interrupt Handler",
+  faction: "Cortex",
+  rarity: "Uncommon",
+  cost: 1,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:cortex/interrupt-handler",
+  flavor: "Catches the exception before it can propagate.",
+  abilities: [
+    {
+      id: "interrupt-handler-cast",
+      trigger: "onPlay",
+      text: "Deal 2 damage to target enemy unit. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
+      effects: [{ kind: "damage", amount: { mode: "flat", value: 2 } }],
+    },
+  ],
+};
+
 export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard; copies: number }[] = [
   { card: signalDrone, copies: 3 },
   { card: firewallSentinel, copies: 3 },
@@ -304,6 +332,7 @@ export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard; copie
   { card: overloadCapacitor, copies: 1 },
   { card: diagnosticLoop, copies: 2 },
   { card: retaliationNode, copies: 1 },
+  { card: interruptHandler, copies: 3 },
 ];
 
 // --- Swarm faction ---------------------------------------------------------
@@ -359,6 +388,7 @@ export const rallyCry: CommandCard = {
   rarity: "Uncommon",
   cost: 2,
   type: "Command",
+  speed: "Sorcery",
   art: "placeholder:swarm/rally-cry",
   flavor: "One voice, then all of them.",
   abilities: [
@@ -486,6 +516,27 @@ export const barrierNode: UnitCard = {
   abilities: [],
 };
 
+export const reflexSpike: CommandCard = {
+  id: "SW-009",
+  name: "Reflex Spike",
+  faction: "Swarm",
+  rarity: "Uncommon",
+  cost: 1,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:swarm/reflex-spike",
+  flavor: "The swarm doesn't wait for its turn to brace for impact.",
+  abilities: [
+    {
+      id: "reflex-spike-cast",
+      trigger: "onPlay",
+      text: "Give target friendly unit +0/+3 this turn. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "controller", kind: "unit" } },
+      effects: [{ kind: "buff", attack: 0, health: 3, duration: "turn" }],
+    },
+  ],
+};
+
 export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard; copies: number }[] = [
   { card: swarmLarva, copies: 3 },
   { card: broodcaller, copies: 3 },
@@ -495,4 +546,5 @@ export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard; copies
   { card: hiveMother, copies: 1 },
   { card: sporeCluster, copies: 3 },
   { card: barrierNode, copies: 3 },
+  { card: reflexSpike, copies: 3 },
 ];

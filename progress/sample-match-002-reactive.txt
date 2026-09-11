@@ -1,0 +1,836 @@
+# Stage 1 REDO evidence — Magic-style priority/reactivity core.
+#
+# This supersedes sample-match-001.txt (which predates the owner's stage-1
+# checkpoint feedback to rebuild the turn model around instant-speed
+# responses and priority passing — see progress/owner-feedback.md and
+# progress/checkpoints.md). Generated with `npx tsx src/cli.ts 48` from
+# engine/, unedited below this header.
+#
+# What to look for: every "X passes priority" / ">>> resolving: ..." pair is
+# the real priority algorithm running, not a scripted log line. Turn 7 is
+# the clearest instant-speed moment: p1 declares an attack with Watchtower
+# Relay on the enemy Swarm Larva (pushing pending combat damage onto the
+# stack), then — before that damage resolves — casts Interrupt Handler
+# (an Instant) to kill the Swarm Larva outright. The pending attack then
+# correctly *fizzles* ("its target is no longer in play") instead of
+# crashing or dealing damage into nothing, because combat damage is always
+# recomputed live at resolution time, never snapshotted at declaration.
+# Later in the match, Cortex Engineer's own Instant-speed repair ability
+# fires in the middle of a priority exchange too. Across the 60-seed stress
+# run this log was picked from, 16/60 matches showed a genuine cross-turn
+# instant-speed response (one player acting with priority during the
+# other's turn) — see progress/current.md for the full stress-run numbers.
+
+AI-TCG sample match — seed 48
+Random-Cortex (Cortex, p1) vs Aggressive-Swarm (Swarm, p2)
+Deck sizes: p1=32, p2=23
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Swarm Larva
+--- Turn 2 (p2) ---
+p2 plays Swarm Larva (u1)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Diagnostic Pulse
+--- Turn 3 (p1) ---
+p1 plays Fail-safe Unit (u2)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Spore Cluster
+--- Turn 4 (p2) ---
+p2 plays Corrosive Spitter (u3)
+Swarm Larva attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Random-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Firewall Sentinel
+--- Turn 5 (p1) ---
+Fail-safe Unit attacks Corrosive Spitter
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Corrosive Spitter (unit)
+  Corrosive Spitter deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p1) dies
+  Corrosive Spitter (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Interrupt Handler
+p1 plays Watchtower Relay (u6)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Barrier Node
+--- Turn 6 (p2) ---
+p2 plays Broodcaller (u7)
+  ability: Broodcaller — broodcaller-play (onPlay)
+Swarm Larva attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Random-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Diagnostic Pulse
+--- Turn 7 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Swarm Larva
+p1 casts Interrupt Handler [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Swarm Larva (unit)
+  Swarm Larva (p2) dies
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay's attack fizzles — its target is no longer in play
+p1 plays Mainframe Core (d11)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Hive Mother
+--- Turn 8 (p2) ---
+p2 plays Corrosive Spitter (u12)
+p2 plays Barrier Node (u13)
+Broodcaller attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Broodcaller's attack
+  Broodcaller deals 3 damage to Random-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Cortex Engineer
+--- Turn 9 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p1 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Broodcaller (unit)
+Watchtower Relay attacks Broodcaller
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 3 damage to Broodcaller (unit)
+  Broodcaller deals 3 damage to Watchtower Relay (unit)
+  Broodcaller (p2) dies
+p1 plays Firewall Sentinel (u17)
+p1 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Corrosive Spitter (unit)
+  Corrosive Spitter (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Broodcaller
+--- Turn 10 (p2) ---
+p2 plays Hive Mother (u19)
+Barrier Node attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Barrier Node's attack
+  Barrier Node deals 2 damage to Firewall Sentinel (unit)
+  Barrier Node's Barrier absorbs the hit from Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Signal Drone
+--- Turn 11 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Hive Mother
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 3 damage to Hive Mother (unit)
+  Hive Mother deals 4 damage to Watchtower Relay (unit)
+  Watchtower Relay (p1) dies
+Firewall Sentinel attacks Barrier Node
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 3 damage to Barrier Node (unit)
+  Barrier Node deals 2 damage to Firewall Sentinel (unit)
+  Barrier Node (p2) dies
+p1 plays Signal Drone (u23)
+Signal Drone attacks Hive Mother
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 2 damage to Hive Mother (unit)
+  Hive Mother deals 4 damage to Signal Drone (unit)
+  Signal Drone (p1) dies
+p1 plays Cortex Engineer (u25)
+p1 plays Firewall Sentinel (u26)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Broodcaller
+--- Turn 12 (p2) ---
+p2 plays Broodcaller (u27)
+  ability: Broodcaller — broodcaller-play (onPlay)
+p2 plays Broodcaller (u28)
+  ability: Broodcaller — broodcaller-play (onPlay)
+p2 draws Spore Cluster
+Hive Mother attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Hive Mother's attack
+  Hive Mother deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 3 damage to Hive Mother (unit)
+  Firewall Sentinel (p1) dies
+  Hive Mother (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Backup Protocol
+--- Turn 13 (p1) ---
+Cortex Engineer attacks Broodcaller
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 2 damage to Broodcaller (unit)
+  Broodcaller deals 3 damage to Cortex Engineer (unit)
+Firewall Sentinel attacks Broodcaller
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 2 health to Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 3 damage to Broodcaller (unit)
+  Broodcaller deals 3 damage to Firewall Sentinel (unit)
+  Broodcaller (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Barrier Node
+--- Turn 14 (p2) ---
+p2 plays Barrier Node (u39)
+p2 casts Reflex Spike [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Reflex Spike
+  ability: Reflex Spike — reflex-spike-cast (onPlay)
+  Reflex Spike grants Broodcaller +0/+3
+p2 plays Spore Cluster (u41)
+p2 plays Spore Cluster (u42)
+Broodcaller attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Broodcaller's attack
+  Broodcaller deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 3 damage to Broodcaller (unit)
+  Firewall Sentinel (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+  Broodcaller (p2) dies
+p1 draws Diagnostic Loop
+--- Turn 15 (p1) ---
+Cortex Engineer attacks Barrier Node
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Barrier Node's Barrier absorbs the hit from Cortex Engineer
+  Barrier Node deals 1 damage to Cortex Engineer (unit)
+p1 plays Diagnostic Loop (u45)
+p1 casts Backup Protocol [Sorcery] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 3 health to Random-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p2 draws Reflex Spike
+--- Turn 16 (p2) ---
+p2 casts Reflex Spike [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Reflex Spike
+  ability: Reflex Spike — reflex-spike-cast (onPlay)
+  Reflex Spike grants Barrier Node +0/+3
+Barrier Node attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Barrier Node's attack
+  Barrier Node deals 1 damage to Random-Cortex
+Spore Cluster attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Spore Cluster's attack
+Spore Cluster attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Spore Cluster's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+p1 draws Retaliation Node
+--- Turn 17 (p1) ---
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+Cortex Engineer attacks Barrier Node
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 2 damage to Barrier Node (unit)
+  Barrier Node deals 1 damage to Cortex Engineer (unit)
+  Barrier Node (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p2 draws Swarm Larva
+--- Turn 18 (p2) ---
+p2 plays Swarm Larva (u65)
+Spore Cluster attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Spore Cluster's attack
+Spore Cluster attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Spore Cluster's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 18 for p2]
+p1 draws Overload Capacitor
+--- Turn 19 (p1) ---
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+Diagnostic Loop attacks Aggressive-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 2 damage to Aggressive-Swarm
+Cortex Engineer attacks Spore Cluster
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 2 damage to Spore Cluster (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 19 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p2 draws Overclock Beast
+--- Turn 20 (p2) ---
+p2 plays Overclock Beast (u80)
+Spore Cluster attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Spore Cluster's attack
+Spore Cluster attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Spore Cluster's attack
+Swarm Larva attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Random-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 20 for p2]
+p1 draws Interrupt Handler
+--- Turn 21 (p1) ---
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Interrupt Handler [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Overclock Beast (unit)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+Diagnostic Loop attacks Spore Cluster
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 2 damage to Spore Cluster (unit)
+  Spore Cluster (p2) dies
+  ability: Spore Cluster — spore-cluster-death (onDeath)
+  Spore Cluster deals 1 damage to Cortex Engineer (unit)
+  Spore Cluster deals 1 damage to Diagnostic Loop (unit)
+Cortex Engineer attacks Spore Cluster
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 2 damage to Spore Cluster (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 21 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p2 draws Swarm Larva
+--- Turn 22 (p2) ---
+p2 plays Swarm Larva (u96)
+Spore Cluster attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Spore Cluster's attack
+Swarm Larva attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Random-Cortex
+Overclock Beast attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 4 damage to Random-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 22 for p2]
+p1 draws Backup Protocol
+--- Turn 23 (p1) ---
+p1 casts Backup Protocol [Sorcery] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 3 health to Random-Cortex
+Diagnostic Loop attacks Swarm Larva
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 2 damage to Swarm Larva (unit)
+  Swarm Larva deals 1 damage to Diagnostic Loop (unit)
+  Swarm Larva (p2) dies
+Cortex Engineer attacks Spore Cluster
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 2 damage to Spore Cluster (unit)
+  Spore Cluster (p2) dies
+  ability: Spore Cluster — spore-cluster-death (onDeath)
+  Spore Cluster deals 1 damage to Cortex Engineer (unit)
+  Spore Cluster deals 1 damage to Diagnostic Loop (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 23 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p2 draws Reflex Spike
+--- Turn 24 (p2) ---
+p2 casts Reflex Spike [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Reflex Spike
+  ability: Reflex Spike — reflex-spike-cast (onPlay)
+  Reflex Spike grants Swarm Larva +0/+3
+Swarm Larva attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Random-Cortex
+Overclock Beast attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 4 damage to Random-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 24 for p2]
+p1 draws Cortex Engineer
+--- Turn 25 (p1) ---
+p1 plays Retaliation Node (u114)
+Diagnostic Loop attacks Aggressive-Swarm (face)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 2 damage to Aggressive-Swarm
+Cortex Engineer attacks Swarm Larva
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 2 damage to Swarm Larva (unit)
+  Swarm Larva deals 1 damage to Cortex Engineer (unit)
+  Swarm Larva (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 25 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p2 draws Rally Cry
+--- Turn 26 (p2) ---
+p2 casts Rally Cry [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Rally Cry
+  ability: Rally Cry — rally-cry-cast (onPlay)
+  Rally Cry grants Overclock Beast +1/+0
+Overclock Beast attacks Random-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 5 damage to Random-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 26 for p2]
+p1 draws Interrupt Handler
+--- Turn 27 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 27 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p2 draws Corrosive Spitter
+--- Turn 28 (p2) ---
+p2 plays Corrosive Spitter (u127)
+Overclock Beast attacks Random-Cortex (face)
+  p2 passes priority
+p1 casts Interrupt Handler [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Corrosive Spitter (unit)
+  Corrosive Spitter (p2) dies
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 4 damage to Random-Cortex
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+--- Summary ---
+Winner: p2
+Turns played: 28
+Moves applied: 421
+Final health — p1 (Random-Cortex): 0, p2 (Aggressive-Swarm): 16
+p1 board size: 3, p2 board size: 1
+p1 graveyard: 12, p2 graveyard: 18

@@ -1,4 +1,4 @@
-import type { GameState, PlayerId, PlayerState } from "../state/types.js";
+import type { GameState, PlayerId, PlayerState, StackItem } from "../state/types.js";
 import type { Move } from "../engine/moves.js";
 import type { Card } from "../cards/types.js";
 
@@ -7,11 +7,20 @@ import type { Card } from "../cards/types.js";
  * opponent's hand and deck order, the way a real protocol boundary must —
  * so that swapping the in-process call below for a network call later
  * (build-order stage 2) changes nothing about what information an agent
- * can use to decide. */
+ * can use to decide.
+ *
+ * The stack is included in full: it's public information in this game
+ * (Magic's stack is visible to both players too), and an agent can't make
+ * a real instant-speed decision — "is this worth responding to?" — without
+ * seeing what it would be responding to. */
 export interface PlayerView {
   self: PlayerId;
   turnNumber: number;
   activePlayer: PlayerId;
+  /** Whoever currently holds priority — i.e. who is being asked to move.
+   * Equal to `self` whenever this view's owner is the one deciding. */
+  priority: PlayerId;
+  stack: StackItem[];
   me: PlayerState;
   opponent: Omit<PlayerState, "hand" | "deck"> & { handSize: number; deckSize: number };
 }
@@ -24,6 +33,8 @@ export function buildPlayerView(state: GameState, self: PlayerId): PlayerView {
     self,
     turnNumber: state.turnNumber,
     activePlayer: state.activePlayer,
+    priority: state.priority,
+    stack: state.stack,
     me: state.players[self],
     opponent: { ...rest, handSize: hand.length, deckSize: deck.length },
   };

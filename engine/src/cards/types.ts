@@ -13,6 +13,17 @@ export type Rarity = "Common" | "Uncommon" | "Rare" | "Mythic";
 
 export type CardType = "Unit" | "Command" | "Directive";
 
+/** When a Command or an activated ability may be played/activated.
+ * "Sorcery" = only during the active player's own priority window with an
+ * empty stack (their "main phase"). "Instant" = any time its controller
+ * holds priority, including during the opponent's turn or in response to
+ * something already on the stack — this is the mechanism behind Magic-style
+ * reactivity (see DESIGN.md's owner feedback on the turn/priority model).
+ * Units and Directives have no speed of their own: they are permanents,
+ * always sorcery-speed timing, and always resolve immediately rather than
+ * using the stack (see engine/engine.ts). */
+export type Speed = "Instant" | "Sorcery";
+
 /** Static combat keywords. Each keyword is interpreted generically by the
  * engine (combat resolution, legal-move generation) rather than expanded
  * into ad-hoc per-card flags. */
@@ -141,6 +152,10 @@ export interface Ability {
   condition?: Condition;
   /** Only meaningful for trigger "activated": what the controller pays. */
   cost?: { energy: number };
+  /** Only meaningful for trigger "activated": when this may be activated.
+   * Defaults to "Sorcery" (active player, empty stack) when omitted, so
+   * every ability written before this field existed keeps its old timing. */
+  speed?: Speed;
   /** How targets are selected for `effects`. Omit for untargeted abilities. */
   targeting?: TargetSpec;
   /** Ordered effects applied when the ability resolves. Required for every
@@ -174,6 +189,9 @@ export interface UnitCard extends CardBase {
 
 export interface CommandCard extends CardBase {
   type: "Command";
+  /** Every Command uses the stack when cast (see engine/engine.ts); this
+   * only gates *when* it may legally be cast — see the Speed doc comment. */
+  speed: Speed;
 }
 
 export interface DirectiveCard extends CardBase {
