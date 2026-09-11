@@ -1,0 +1,269 @@
+AI-TCG sample match — seed 1
+Random-Cortex (Cortex, p1) vs Aggressive-Swarm (Swarm, p2)
+Deck sizes: p1=29, p2=20
+
+--- Turn 1 (p1) ---
+[end of turn 1 for p1]
+p2 draws Rally Cry
+--- Turn 2 (p2) ---
+p2 plays Spore Cluster (u1)
+[end of turn 2 for p2]
+p1 draws Firewall Sentinel
+--- Turn 3 (p1) ---
+p1 plays Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Spore Cluster (unit)
+p1 plays Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Spore Cluster (unit)
+  Spore Cluster (p2) dies
+  ability: Spore Cluster — spore-cluster-death (onDeath)
+[end of turn 3 for p1]
+p2 draws Swarm Larva
+--- Turn 4 (p2) ---
+p2 plays Barrier Node (u2)
+[end of turn 4 for p2]
+p1 draws Fail-safe Unit
+--- Turn 5 (p1) ---
+p1 plays Fail-safe Unit (u3)
+[end of turn 5 for p1]
+p2 draws Overclock Beast
+--- Turn 6 (p2) ---
+p2 plays Broodcaller (u4)
+  ability: Broodcaller — broodcaller-play (onPlay)
+Barrier Node attacks Random-Cortex (face)
+  Barrier Node deals 1 damage to Random-Cortex
+[end of turn 6 for p2]
+p1 draws Cascade Purge
+--- Turn 7 (p1) ---
+p1 plays Firewall Sentinel (u5)
+Fail-safe Unit attacks Barrier Node
+  Barrier Node's Barrier absorbs the hit from Fail-safe Unit
+  Barrier Node deals 1 damage to Fail-safe Unit (unit)
+[end of turn 7 for p1]
+p2 draws Spore Cluster
+--- Turn 8 (p2) ---
+p2 plays Overclock Beast (u6)
+Barrier Node attacks Firewall Sentinel
+  Barrier Node deals 1 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Barrier Node (unit)
+  Barrier Node (p2) dies
+Broodcaller attacks Firewall Sentinel
+  Broodcaller deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Broodcaller (unit)
+[end of turn 8 for p2]
+p1 draws Signal Drone
+--- Turn 9 (p1) ---
+p1 plays Cortex Engineer (u7)
+p1 plays Signal Drone (u8)
+Signal Drone attacks Overclock Beast
+  Signal Drone deals 1 damage to Overclock Beast (unit)
+  Overclock Beast deals 4 damage to Signal Drone (unit)
+  Signal Drone (p1) dies
+Fail-safe Unit attacks Overclock Beast
+  Fail-safe Unit deals 2 damage to Overclock Beast (unit)
+  Overclock Beast deals 4 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p1) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Backup Protocol
+Firewall Sentinel attacks Overclock Beast
+  Firewall Sentinel deals 2 damage to Overclock Beast (unit)
+  Overclock Beast deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel (p1) dies
+  Overclock Beast (p2) dies
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+[end of turn 9 for p1]
+p2 draws Spore Cluster
+--- Turn 10 (p2) ---
+p2 plays Broodcaller (u9)
+  ability: Broodcaller — broodcaller-play (onPlay)
+p2 plays Rally Cry
+  ability: Rally Cry — rally-cry-cast (onPlay)
+  Rally Cry grants Broodcaller +1/+0
+  Rally Cry grants Broodcaller +1/+0
+Broodcaller attacks Random-Cortex (face)
+  Broodcaller deals 4 damage to Random-Cortex
+[end of turn 10 for p2]
+p1 draws Recursive Construct
+--- Turn 11 (p1) ---
+Cortex Engineer attacks Aggressive-Swarm (face)
+  Cortex Engineer deals 1 damage to Aggressive-Swarm
+p1 plays Recursive Construct (u10)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+[end of turn 11 for p1]
+p2 draws Swarm Larva
+--- Turn 12 (p2) ---
+p2 plays Swarm Larva (u11)
+p2 plays Spore Cluster (u12)
+p2 plays Spore Cluster (u13)
+p2 plays Swarm Larva (u14)
+Broodcaller attacks Random-Cortex (face)
+  Broodcaller deals 3 damage to Random-Cortex
+Broodcaller attacks Random-Cortex (face)
+  Broodcaller deals 3 damage to Random-Cortex
+[end of turn 12 for p2]
+p1 draws Firewall Sentinel
+--- Turn 13 (p1) ---
+p1 plays Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 3 health to Random-Cortex
+Cortex Engineer attacks Spore Cluster
+  Cortex Engineer deals 1 damage to Spore Cluster (unit)
+p1 plays Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Broodcaller (unit)
+  Cascade Purge deals 2 damage to Broodcaller (unit)
+  Cascade Purge deals 2 damage to Swarm Larva (unit)
+  Cascade Purge deals 2 damage to Spore Cluster (unit)
+  Cascade Purge deals 2 damage to Spore Cluster (unit)
+  Cascade Purge deals 2 damage to Swarm Larva (unit)
+  Broodcaller (p2) dies
+  Swarm Larva (p2) dies
+  Spore Cluster (p2) dies
+  Swarm Larva (p2) dies
+  ability: Spore Cluster — spore-cluster-death (onDeath)
+  Spore Cluster deals 1 damage to Cortex Engineer (unit)
+  Spore Cluster deals 1 damage to Recursive Construct (unit)
+Recursive Construct attacks Aggressive-Swarm (face)
+  Recursive Construct deals 2 damage to Aggressive-Swarm
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+[end of turn 13 for p1]
+p2 draws Overclock Beast
+--- Turn 14 (p2) ---
+p2 plays Overclock Beast (u15)
+Broodcaller attacks Random-Cortex (face)
+  Broodcaller deals 3 damage to Random-Cortex
+Spore Cluster attacks Random-Cortex (face)
+[end of turn 14 for p2]
+p1 draws Diagnostic Loop
+--- Turn 15 (p1) ---
+Recursive Construct attacks Aggressive-Swarm (face)
+  Recursive Construct deals 2 damage to Aggressive-Swarm
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+Cortex Engineer attacks Broodcaller
+  Cortex Engineer deals 1 damage to Broodcaller (unit)
+  Broodcaller deals 3 damage to Cortex Engineer (unit)
+  Cortex Engineer (p1) dies
+  Broodcaller (p2) dies
+p1 plays Diagnostic Loop (u16)
+p1 plays Firewall Sentinel (u17)
+[end of turn 15 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p2 draws Swarm Larva
+--- Turn 16 (p2) ---
+p2 plays Swarm Larva (u18)
+Spore Cluster attacks Firewall Sentinel
+  Firewall Sentinel deals 2 damage to Spore Cluster (unit)
+  Spore Cluster (p2) dies
+  ability: Spore Cluster — spore-cluster-death (onDeath)
+  Spore Cluster deals 1 damage to Recursive Construct (unit)
+  Spore Cluster deals 1 damage to Diagnostic Loop (unit)
+  Spore Cluster deals 1 damage to Firewall Sentinel (unit)
+Overclock Beast attacks Firewall Sentinel
+  Overclock Beast deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Overclock Beast (unit)
+  Firewall Sentinel (p1) dies
+[end of turn 16 for p2]
+p1 draws Cortex Engineer
+--- Turn 17 (p1) ---
+Diagnostic Loop attacks Swarm Larva
+  Diagnostic Loop deals 1 damage to Swarm Larva (unit)
+  Swarm Larva deals 1 damage to Diagnostic Loop (unit)
+  Swarm Larva (p2) dies
+[end of turn 17 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p2 draws Corrosive Spitter
+--- Turn 18 (p2) ---
+p2 plays Corrosive Spitter (u19)
+Overclock Beast attacks Random-Cortex (face)
+  Overclock Beast deals 4 damage to Random-Cortex
+[end of turn 18 for p2]
+p1 draws Mainframe Core
+--- Turn 19 (p1) ---
+Diagnostic Loop attacks Corrosive Spitter
+  Diagnostic Loop deals 1 damage to Corrosive Spitter (unit)
+  Corrosive Spitter deals 2 damage to Diagnostic Loop (unit)
+  Diagnostic Loop (p1) dies
+  Corrosive Spitter (p2) dies
+Recursive Construct attacks Aggressive-Swarm (face)
+  Recursive Construct deals 1 damage to Aggressive-Swarm
+p1 plays Mainframe Core (d20)
+p1 plays Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Overclock Beast (unit)
+  Overclock Beast (p2) dies
+p1 plays Cortex Engineer (u21)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+[end of turn 19 for p1]
+p2 draws Barrier Node
+--- Turn 20 (p2) ---
+p2 plays Barrier Node (u22)
+[end of turn 20 for p2]
+p1 draws Firewall Sentinel
+--- Turn 21 (p1) ---
+p1 plays Firewall Sentinel (u23)
+Recursive Construct attacks Aggressive-Swarm (face)
+  Recursive Construct deals 3 damage to Aggressive-Swarm
+Cortex Engineer attacks Aggressive-Swarm (face)
+  Cortex Engineer deals 2 damage to Aggressive-Swarm
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+[end of turn 21 for p1]
+p2 draws Rally Cry
+--- Turn 22 (p2) ---
+p2 plays Rally Cry
+  ability: Rally Cry — rally-cry-cast (onPlay)
+  Rally Cry grants Barrier Node +1/+0
+Barrier Node attacks Firewall Sentinel
+  Barrier Node deals 2 damage to Firewall Sentinel (unit)
+  Barrier Node's Barrier absorbs the hit from Firewall Sentinel
+[end of turn 22 for p2]
+p1 draws Watchtower Relay
+--- Turn 23 (p1) ---
+Recursive Construct attacks Aggressive-Swarm (face)
+  Recursive Construct deals 3 damage to Aggressive-Swarm
+Firewall Sentinel attacks Barrier Node
+  Firewall Sentinel deals 3 damage to Barrier Node (unit)
+  Barrier Node deals 1 damage to Firewall Sentinel (unit)
+  Barrier Node (p2) dies
+Cortex Engineer attacks Aggressive-Swarm (face)
+  Cortex Engineer deals 2 damage to Aggressive-Swarm
+p1 plays Watchtower Relay (u24)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+[end of turn 23 for p1]
+p2 draws Corrosive Spitter
+--- Turn 24 (p2) ---
+p2 plays Corrosive Spitter (u25)
+[end of turn 24 for p2]
+p1 draws Signal Drone
+--- Turn 25 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p1 plays Signal Drone (u26)
+Cortex Engineer attacks Corrosive Spitter
+  Cortex Engineer deals 2 damage to Corrosive Spitter (unit)
+  Corrosive Spitter deals 2 damage to Cortex Engineer (unit)
+  Corrosive Spitter (p2) dies
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 2 health to Cortex Engineer
+Firewall Sentinel attacks Aggressive-Swarm (face)
+  Firewall Sentinel deals 3 damage to Aggressive-Swarm
+Signal Drone attacks Aggressive-Swarm (face)
+  Signal Drone deals 2 damage to Aggressive-Swarm
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+--- Summary ---
+Winner: p1
+Turns played: 25
+Moves applied: 105
+Final health — p1 (Random-Cortex): 5, p2 (Aggressive-Swarm): -1
+p1 board size: 5, p2 board size: 0
+p1 graveyard: 11, p2 graveyard: 16

@@ -1,0 +1,17 @@
+{
+  "name": "@ai-tcg/engine",
+  "version": "0.1.0",
+  "description": "Headless rules engine for AI-TCG: card schema, game state, turn structure, effect resolution, dummy agents.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "match": "tsx src/cli.ts",
+    "demo": "tsx src/dev/effectSystemDemo.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}
