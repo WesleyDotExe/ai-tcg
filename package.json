@@ -1,0 +1,12 @@
+{
+  "name": "ai-tcg",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-TCG monorepo: headless rules engine, wire protocol, match server, and reference agents.",
+  "workspaces": [
+    "engine",
+    "protocol",
+    "server",
+    "agents"
+  ]
+}

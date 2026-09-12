@@ -14,12 +14,29 @@ export interface MatchResult {
   movesPlayed: number;
 }
 
+export interface MatchHooks {
+  /** Called once the initial state is fully set up (decks shuffled, turn 1
+   * begun) but before the first move is requested. Lets a caller that needs
+   * to observe the pre-move state — e.g. `@ai-tcg/server` sending its
+   * `matchStart` message with the real initial `PlayerView` — do so without
+   * reconstructing state itself (which would risk drifting from what this
+   * function actually built). */
+  onMatchStart?(state: GameState): void;
+}
+
 // A hard safety valve against an engine bug producing an infinite inner
 // loop (e.g. a move that never reduces to endTurn). Real matches finish in
 // a small fraction of this.
 const MAX_MOVES_SAFETY = 5000;
 
-export function runMatch(deckA: DeckSpec, deckB: DeckSpec, agentA: Agent, agentB: Agent, seed: number): MatchResult {
+export async function runMatch(
+  deckA: DeckSpec,
+  deckB: DeckSpec,
+  agentA: Agent,
+  agentB: Agent,
+  seed: number,
+  hooks: MatchHooks = {},
+): Promise<MatchResult> {
   const rng = new Rng(seed);
   const state = createInitialState(deckA, deckB, rng);
   // Players are agents (see DESIGN.md) — display names follow the agent,
@@ -30,6 +47,7 @@ export function runMatch(deckA: DeckSpec, deckB: DeckSpec, agentA: Agent, agentB
   state.activePlayer = "p1";
   // By convention the player going first does not draw on turn 1.
   beginTurn(state, "p1", rng, { draw: false });
+  hooks.onMatchStart?.(state);
 
   const agents: Record<GameState["activePlayer"], Agent> = { p1: agentA, p2: agentB };
   let movesPlayed = 0;
@@ -38,7 +56,7 @@ export function runMatch(deckA: DeckSpec, deckB: DeckSpec, agentA: Agent, agentB
     if (legalMoves.length === 0) break; // passPriority is always legal; this would be an engine bug
     const agent = agents[state.priority];
     const view = buildPlayerView(state, state.priority);
-    const move = agent.decideMove(view, legalMoves);
+    const move = await agent.decideMove(view, legalMoves);
     applyMove(state, move, rng);
     movesPlayed++;
   }

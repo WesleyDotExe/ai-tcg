@@ -1,0 +1,22 @@
+{
+  "name": "@ai-tcg/server",
+  "version": "0.1.0",
+  "description": "AI-TCG match server: pairs connecting agents over WebSocket, drives a real match end to end through the engine, records the log. Build-order stage 4 (network matches) starts here; stage 2's job is just proving the protocol boundary with a single hosted match.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "serve": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ai-tcg/engine": "*",
+    "@ai-tcg/protocol": "*",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}

@@ -5,6 +5,79 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Stage 2: Agent interface (2026-09-12)
+
+**What it delivers:** a real network protocol between the match server and
+player agents, replacing the in-process `Agent.decideMove` call stage 1
+used. `protocol/PROTOCOL.md` is the language-agnostic wire spec (WebSocket,
+JSON, `hello`/`matchStart`/`requestMove`/`move`/`matchEnd`/`error`,
+including a named "Faults" section and an honest "Not yet covered"
+section). Four workspace packages now exist: `engine` (unchanged game
+logic, plus a public barrel and an async-capable `Agent`/`runMatch`),
+`protocol` (the wire types), `server` (a real `ws`-based match server that
+drives the unmodified engine `runMatch` with a `RemoteAgent` standing in
+for `Agent`), and `agents` (reference client processes with **zero runtime
+dependency on `@ai-tcg/engine`** — the actual proof the seam is real).
+
+**Evidence, not claims:**
+- `progress/sample-match-003-networked.txt` — a full real match (seed 48,
+  28 turns, 421 moves) played by three separate OS processes (the server,
+  and two agent clients) communicating only over a WebSocket, with a
+  genuine cross-player, cross-turn instant-speed response (turn 28)
+  actually crossing the process boundary — the stage-1 reactive core,
+  now proven over the network, not just in-process.
+- Both documented fault paths (illegal move, 15s timeout) were live-tested
+  with throwaway clients and confirmed to forfeit the offending agent
+  correctly, observed end-to-end from all sides' logs — see
+  `progress/log.md` for the specific transcripts.
+- All four packages typecheck clean; the engine's existing stage-1
+  evidence (12-scenario effect demo, in-process CLI match) was re-run
+  after the `Agent`/`runMatch` async change and matched prior behavior
+  exactly — the protocol work did not regress stage 1.
+
+**Where it's strong:** `agents/` importing nothing from `@ai-tcg/engine`
+is the real test of whether "clean seams" was actually achieved rather
+than just claimed — a Python or any other external agent implementing
+`PROTOCOL.md` from scratch would be in exactly the same position as
+`@ai-tcg/agents` is. The server doesn't reimplement match logic; it's the
+same authoritative `runMatch` the in-process version uses, with only the
+`Agent` implementation swapped for one that crosses a socket.
+
+**Where it's thin (named, not hidden):** the server hosts exactly one
+match then exits — no matchmaking, no concurrent matches, no persistence.
+No authentication, reconnection, or spectator feed yet (all explicit in
+PROTOCOL.md's "Not yet covered"). Fixed test decks; no deck-selection
+protocol yet (correctly deferred to stage 5). The fault-path tests were
+real but manual, not a committed automated regression test. Full list:
+`progress/quality-debt.md`.
+
+**Decisions the owner might want to overrule:**
+1. **WebSocket over raw HTTP request/response.** Chosen because the
+   protocol needs the server to *push* a `requestMove` at an arbitrary
+   time (whenever priority changes, not on a client-initiated poll) — a
+   long-lived connection fits that better than repeated HTTP polling.
+   Easy to revisit; PROTOCOL.md's message shapes don't depend on the
+   transport being WebSocket specifically.
+2. **A protocol fault ends the match immediately (full forfeit)** rather
+   than trying to keep the game running (e.g. substituting a
+   `passPriority` on the offending agent's behalf and continuing). Chosen
+   for simplicity and to keep the economy-rule mirroring unambiguous
+   (dropping out or breaking the protocol is never rewarded); a more
+   forgiving recovery path is a plausible future refinement, not
+   attempted here.
+3. **`agents/` deliberately duplicates the engine's small RNG
+   implementation** rather than importing it, to keep the zero-dependency
+   property real. This is a few lines of duplicated code in exchange for
+   an architectural guarantee; flagging it in case the owner would rather
+   share a tiny `@ai-tcg/rng`-style package instead.
+
+**What's next:** stage 3, a real card set — see `progress/current.md` for
+what the still-unhandled 2026-09-12 owner design-directive batch means for
+how that card schema should be shaped (board-development system, leader
+cards, rarity ladder) without building any of it prematurely.
+
+---
+
 ## AWAITING FEEDBACK — Stage 1 redo: Magic-style priority/reactivity (2026-09-11)
 
 Not a new build-order stage — this is a follow-up to the checkpoint below,
