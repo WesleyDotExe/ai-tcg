@@ -1,5 +1,109 @@
 # Build log
 
+## 2026-09-12 — Session 3 (stage 2: agent interface / real network protocol)
+
+Read `progress/owner-feedback.md` first. The 2026-09-11 checkpoint feedback
+is marked handled (no new action needed). A large 2026-09-12 design-directive
+batch is present and UNHANDLED, but it explicitly scopes itself to stage 3+
+(card systems, onboarding, economy, rarity) and stage 8 (platform) — not
+stage 2 — so per its own "do NOT pull forward" instruction this session did
+not act on it, beyond reading it so `progress/current.md`'s next-step note
+can flag it for the run that starts stage 3. `progress/current.md` said the
+concrete next step was stage 2 (agent interface); that's what this session
+built.
+
+**What I built, in order:**
+
+1. **`protocol/PROTOCOL.md` first, before any code.** A language-agnostic
+   WebSocket/JSON wire spec: `hello` → `matchStart` → repeated
+   `requestMove`/`move` → `matchEnd`, plus a named "Faults" section
+   (timeout, illegal move, malformed JSON, disconnect → immediate
+   forfeit) and an honest "Not yet covered" section (matchmaking,
+   reconnection, auth, spectators, 4-player mode — real gaps, not hidden).
+   Writing the spec first, then a TypeScript mirror of it
+   (`protocol/src/messages.ts`), rather than reverse-documenting whatever
+   the code happened to do, was deliberate — PROTOCOL.md is what a future
+   external agent implementer (stage 9) actually needs, and it has to be
+   the source of truth, not an afterthought.
+2. **Turned the repo into an npm workspace monorepo** (root
+   `package.json`/`package-lock.json`, `workspaces: [engine, protocol,
+   server, agents]`) so the new packages could depend on each other and on
+   `@ai-tcg/engine` through real `node_modules` resolution rather than
+   relative-path hacks across packages. Gave `engine/` a public barrel
+   (`src/index.ts`) and an `exports` field so it's actually importable as
+   `@ai-tcg/engine` — this only worked because `tsx` transpiles TypeScript
+   on the fly even through workspace-symlinked `node_modules`, which I
+   verified by running `npx tsc --noEmit` in all four packages, not just
+   assuming it. Removed `engine/package-lock.json` (now redundant —
+   confirmed the root lockfile actually contains engine's deps before
+   deleting it, not just assuming workspaces would cover it).
+3. **The one real behavioural change to the engine itself:**
+   `Agent.decideMove` can now return `Move | Promise<Move>`, and
+   `engine/src/engine/match.ts`'s `runMatch` is `async` and awaits it —
+   because a real remote agent's move now takes an actual network round
+   trip. `runMatch` also gained an optional `hooks.onMatchStart(state)`
+   callback so a caller (the server) can observe the real initial state
+   without reconstructing it separately and risking drift. Re-ran the
+   engine's own stage-1 evidence after this change — `effectSystemDemo.ts`
+   (all 12 scenarios) and `cli.ts` (seed 48) — to confirm the async change
+   didn't regress anything; both matched prior behavior exactly.
+4. **`server/` (`@ai-tcg/server`)**: a real `ws`-based WebSocket server.
+   `RemoteAgent` implements the engine's `Agent` interface by sending
+   `requestMove` over a socket and awaiting a `move` reply, validating it
+   with a real structural deep-equal (not string comparison, so reply key
+   order can't cause a false-positive fault) against the `legalMoves` list
+   it just sent, with a 15s timeout. `cli.ts` pairs the first two
+   connecting agents, assigns fixed Cortex/Swarm test decks, and drives
+   the match through the engine's own (unmodified-in-logic) `runMatch` —
+   the server does not reimplement the match loop.
+5. **`agents/` (`@ai-tcg/agents`)** — the package that actually proves the
+   seam is real: it has zero dependency on `@ai-tcg/engine`, in
+   `package.json` or at runtime. `client.ts` is a generic WS harness;
+   `randomAgentClient.ts` and `aggressiveAgentClient.ts` port the engine's
+   `RandomAgent`/`AggressiveAgent` decision logic (which already only
+   touched `PlayerView`/`Move`, never raw `GameState` — stage 1 built them
+   that way on purpose) into standalone functions typed against
+   `@ai-tcg/protocol` alone. Each is a runnable CLI — an actual separate
+   OS process, not a simulated one.
+
+**Then I proved it, the way TASKS.md requires — ran it, not just built it:**
+
+- Started the server as a background process, then launched
+  `randomAgentClient.ts` and `aggressiveAgentClient.ts` as two more
+  separate `tsx` processes pointed at `ws://localhost:8080`. Captured
+  stdout from all three processes. Result: a full real match, seed 48, 28
+  turns, 421 moves, resolving cleanly to a p2 win — and both agent
+  processes independently reported the identical winner/turn/move count
+  the server did, confirming the wire round trip actually carried the
+  real result, not just that the server thought it did.
+  Committed as `progress/sample-match-003-networked.txt`.
+- Specifically checked for a genuine instant-speed response crossing the
+  process boundary (not just "the mechanic exists somewhere in a huge
+  log") — found one at turn 28: Aggressive-Client (p2) declares an attack,
+  passes priority, and Random-Client (p1), a separate process, receives a
+  live `requestMove` mid-opponent's-turn and casts an Instant plus several
+  activated abilities in response. This is the stage-1 reactive core,
+  now proven over a real network round trip, not just in-process.
+- **Live-tested both fault paths**, not just written them: a throwaway
+  test client (not committed) that replies to `requestMove` with a
+  structurally bogus move correctly triggered an `error` + forfeit, with
+  the other client declared the winner; a second test where one client
+  never replies correctly triggered the documented 15s timeout fault, same
+  forfeit behavior. Watched both end-to-end from all sides' logs before
+  concluding the fault-handling code actually works, rather than trusting
+  that it compiled.
+
+**What's blocked:** nothing. Stage 3 (a real card set) can start next; see
+`progress/current.md` for what the unhandled 2026-09-12 owner feedback
+batch means for how that card schema should be designed.
+
+**Honest gaps:** see the new top section of `progress/quality-debt.md`.
+The two biggest: the server hosts exactly one match then exits (no
+matchmaking, no long-lived multi-match service — correctly deferred to
+stage 4), and there is no automated regression test for the protocol layer
+(the fault-path verification above was real but manual and not
+committed as a repeatable script).
+
 ## 2026-09-11 — Session 2 (stage-1 redo: Magic-style priority/reactivity)
 
 Read `progress/owner-feedback.md` first, as required. The owner responded

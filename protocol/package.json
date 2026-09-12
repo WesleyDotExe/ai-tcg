@@ -1,0 +1,19 @@
+{
+  "name": "@ai-tcg/protocol",
+  "version": "0.1.0",
+  "description": "Wire message types for the AI-TCG agent protocol. See PROTOCOL.md for the authoritative spec — these types are a TypeScript mirror of it, kept for the project's own TS server/agents.",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@ai-tcg/engine": "*",
+    "@types/node": "^22.20.2",
+    "typescript": "^7.0.2"
+  }
+}

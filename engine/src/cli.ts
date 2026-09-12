@@ -11,7 +11,7 @@ const deckB = buildSwarmDeck("p2", "Swarm Deck");
 const agentA = new RandomAgent("Random-Cortex", seed);
 const agentB = new AggressiveAgent("Aggressive-Swarm");
 
-const { state, movesPlayed } = runMatch(deckA, deckB, agentA, agentB, seed);
+const { state, movesPlayed } = await runMatch(deckA, deckB, agentA, agentB, seed);
 
 console.log(`AI-TCG sample match — seed ${seed}`);
 console.log(`${agentA.name} (Cortex, p1) vs ${agentB.name} (Swarm, p2)`);

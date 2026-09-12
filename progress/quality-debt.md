@@ -1,10 +1,60 @@
 # Quality debt (honest, specific — read before adding anything new)
 
 Written at the end of session 1, updated at the end of the stage-1 redo
-session (priority/reactivity rebuild). This is not "no debt, all good" —
-the product is real and the evidence is real, but here is where it's thin.
+session (priority/reactivity rebuild) and again at the end of the stage-2
+(agent interface) session. This is not "no debt, all good" — the product
+is real and the evidence is real, but here is where it's thin.
 
-## New debt from the priority/reactivity rebuild (this session)
+## New debt from stage 2 (agent interface / network protocol)
+
+- **The server hosts exactly one match then exits.** `server/src/cli.ts`
+  pairs the first two connections, plays one match, and closes. There is
+  no matchmaking queue, no way to host multiple concurrent matches, and no
+  persistence of results anywhere — all correctly deferred to stage 4
+  (match server), but worth naming so nobody mistakes the current
+  `server/` package for more than a stage-2 protocol proof.
+- **No automated protocol test.** The fault-path verification (illegal
+  move → forfeit, 15s timeout → forfeit) described in `progress/log.md`
+  was real and observed end-to-end, but it was a manual, throwaway test
+  client, not a committed, repeatable script. Unlike `effectSystemDemo.ts`
+  for the engine, there is no `protocolDemo.ts`-equivalent a future run
+  can re-run to confirm the fault paths still work after a change. This
+  should graduate to a real committed test before the protocol gets more
+  complex (e.g. once matchmaking or reconnection are added in stage 4).
+- **Fixed test decks, no deck selection in the protocol.** `cli.ts`
+  hardcodes Cortex-for-p1/Swarm-for-p2 regardless of which agent connects
+  first. `hello` carries only an `agentName`. Real deck submission (an
+  agent should be able to say what deck it's playing, or the server should
+  look one up from a collection) is stage 5 (economy/boosters) work, named
+  in PROTOCOL.md's "Not yet covered" rather than silently assumed away.
+- **No authentication, no reconnection, no spectator feed.** All three
+  are named explicitly in PROTOCOL.md's "Not yet covered" section. Anyone
+  who can reach the server's port can connect as any `agentName`; a
+  dropped connection is a hard fault, not a resumable pause; the event log
+  the server already produces isn't exposed to anything but the two
+  playing agents. None of these block stage 3 (card set), but stage 9
+  (open agent onboarding) cannot ship without at least authentication.
+- **`RemoteAgent`'s illegal-move detection is structural (deep-equal) but
+  only checks against the exact `legalMoves` list from the *matching*
+  `requestId`.** A client that replies to a stale/superseded `requestId`
+  (from a previous `requestMove` it already answered, or one that was
+  never sent) is silently ignored rather than treated as a fault — this
+  was a deliberate choice (see `remoteAgent.ts`'s comment: "stale or
+  unsolicited reply — ignored, not a fault") on the theory that a
+  confused-but-not-malicious client shouldn't be forfeited for a stale
+  message, but it also means a client could send garbage on old
+  `requestId`s indefinitely without consequence. Not exploitable to affect
+  the actual match (the server only ever acts on a reply matching the
+  live pending request), but worth flagging as an asymmetry: the "ignore
+  vs. fault" line was drawn without owner input.
+- **`agents/src/rng.ts` duplicates `engine/src/state/rng.ts` byte-for-byte**
+  (same mulberry32 implementation). This was a deliberate architectural
+  choice (a real external agent would bring its own RNG, not import ours;
+  `agents/` has zero runtime dependency on `@ai-tcg/engine` on purpose) —
+  named here so it reads as an intentional decision, not an oversight, if
+  the two ever need to change independently and drift.
+
+## Debt from the priority/reactivity rebuild (session 2)
 
 - **Only Commands, activated abilities, and combat damage use the stack.**
   Units and Directives are deliberately still sorcery-speed-only and

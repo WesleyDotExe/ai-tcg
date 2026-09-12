@@ -4,6 +4,10 @@
   "description": "Headless rules engine for AI-TCG: card schema, game state, turn structure, effect resolution, dummy agents.",
   "type": "module",
   "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "match": "tsx src/cli.ts",
     "demo": "tsx src/dev/effectSystemDemo.ts",

@@ -43,11 +43,11 @@ export function buildPlayerView(state: GameState, self: PlayerId): PlayerView {
 export interface Agent {
   name: string;
   /** Chooses one move from the supplied legal-move list. Must not consult
-   * `state` for anything the `view` doesn't expose — dummy agents in this
-   * stage are trusted to follow that rule since they run in-process, but
-   * the shape here is exactly the request/response pair build-order stage
-   * 2 turns into a real network protocol. */
-  decideMove(view: PlayerView, legalMoves: Move[]): Move;
+   * `state` for anything the `view` doesn't expose. May return a `Move`
+   * directly (in-process dummy agents) or a `Promise<Move>` (build-order
+   * stage 2's `RemoteAgent`, which sends `view`/`legalMoves` over a real
+   * process boundary and awaits the response) — `runMatch` awaits either. */
+  decideMove(view: PlayerView, legalMoves: Move[]): Move | Promise<Move>;
 }
 
 export function cardInHand(view: PlayerView, handIndex: number): Card | undefined {
