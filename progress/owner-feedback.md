@@ -110,3 +110,18 @@ All three flagged decisions are APPROVED as-is. Proceed to Stage 3.
 Proceed to Stage 3 (real card set), shaping the card schema per the design-directive batch above (board-development system, leader cards, rarity ladder) to support those without building them prematurely.
 
 **Handled, this session:** no code change was requested by this entry (pure approval) — proceeded straight to Stage 3 as directed. See the new checkpoint in `progress/checkpoints.md` for what Stage 3 delivered: the unified board-development system (finite face-up board slots, telegraphed threats, evolution cards, tool/attachment cards) plus a new third faction (Aegis) built to exercise it. The 2026-09-12 design-directive batch below is still only PARTIALLY handled — see that entry's own updated status.
+
+
+---
+
+## 2026-09-13 — Owner feedback on Stage 3 checkpoint (UNHANDLED)
+
+1. Strict evolution — APPROVED as-is. Keep exact-base-card requirement; the deck-building puzzle it creates is desirable. Loose tier-based can be a later follow-up only if strict proves too rigid.
+2. BOARD_SLOTS = 6, shared between Units and Directives — APPROVED as a starting value. Shared pool is the right design (forces the unit-vs-directive opportunity cost). Revisit the number once the card pool is larger.
+3. Telegraph delay = 1 turn — APPROVED as the default, but a 1-turn fuse is short. Try delay = 2 on some telegraph cards and compare how the "see it coming, answer it" window feels. Keep delay as a per-card value so a mix is possible.
+4. Same-turn play-and-evolve — OVERRULE toward RESTRICTING. A unit should NOT be evolvable the same turn it enters play; require it to have survived to a later turn before evolving. Reason: this protects the "answer it early while it's weak" exposure window the directive batch specifically wanted — if a base can be summoned and evolved in one turn, the opponent never gets to answer the weak form, which undercuts the whole mechanic. The fast "commit hard" combo is not worth losing that drama.
+5. Deck size range [20,40] — APPROVED as-is. Pragmatic; a tighter target can come later as the pool matures.
+
+Process: ENDORSE the run's own instinct — build the automated test runner NEXT, before adding more width. The "no automated test runner" debt has survived two stage-scale sessions and is now the priority; hand-written demo scripts won't scale and untested mechanics is where hollow work hides. Backfilling Cortex/Swarm with the new mechanics and adding faction width come AFTER the test runner exists.
+
+Owner question to answer next run — DOCUMENT the energy/mana model clearly (in DESIGN.md or a progress note): is energy a collective per-turn pool all cards draw from during that turn (expected, given the Magic-style choice), or applied to individual cards before play? Confirm how it works now — does the pool escalate each turn, does unused energy carry over or empty, and is the same pool used for playing cards, activating abilities, AND paying for reactive/instant responses? A core resource system should be explicitly written down; right now it isn't clearly documented for the owner.
