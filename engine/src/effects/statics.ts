@@ -27,7 +27,11 @@ export function staticModifiersFor(state: GameState, unit: UnitInstance): Static
   for (const pid of ["p1", "p2"] as const) {
     const player = state.players[pid];
     const sources: StaticSource[] = [
-      ...player.board.map((u): StaticSource => ({ controller: pid, instanceId: u.instanceId, abilities: u.card.abilities })),
+      // A pending (not-yet-armed) telegraphed unit is dormant — it
+      // projects no static aura until it arms (see UnitCard.telegraph).
+      ...player.board
+        .filter((u) => !u.pending)
+        .map((u): StaticSource => ({ controller: pid, instanceId: u.instanceId, abilities: u.card.abilities })),
       ...player.directives.map((d): StaticSource => ({ controller: pid, abilities: d.card.abilities })),
     ];
 

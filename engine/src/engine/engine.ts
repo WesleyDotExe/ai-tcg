@@ -12,7 +12,7 @@ import {
   checkGameOver,
 } from "../effects/resolver.js";
 import type { TargetRef } from "../effects/targeting.js";
-import type { Ability } from "../cards/types.js";
+import type { Ability, ToolCard, UnitCard } from "../cards/types.js";
 
 /** Applies one legal move (as produced by getLegalMoves) to the state,
  * mutating it in place. The caller is responsible for only ever passing a
@@ -56,6 +56,18 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
   player.hand.splice(handIndex, 1);
   player.energy -= card.cost;
 
+  if (card.type === "Tool") {
+    if (!target || target.kind !== "unit") throw new Error(`playCard: Tool ${card.name} requires a unit target`);
+    attachTool(state, pid, card, target.instanceId);
+    return;
+  }
+
+  if (card.type === "Unit" && card.evolvesFrom) {
+    if (!target || target.kind !== "unit") throw new Error(`playCard: evolution ${card.name} requires a unit target`);
+    evolveUnit(state, pid, card, target.instanceId, rng);
+    return;
+  }
+
   if (card.type === "Command") {
     // Every Command uses the stack, Instant or Sorcery alike — speed only
     // gates *when* it was legal to cast it (see getLegalMoves). Its onPlay
@@ -70,6 +82,7 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
   const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
   if (card.type === "Unit") {
     const instanceId = `u${state.nextInstanceId++}`;
+    const isTelegraphed = card.telegraph !== undefined && card.telegraph > 0;
     const unit: UnitInstance = {
       instanceId,
       card,
@@ -80,10 +93,16 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
       statuses: card.keywords.includes("Barrier") ? [{ kind: "Barrier", duration: "untilConsumed" }] : [],
       enteredTurn: state.turnNumber,
       hasAttackedThisTurn: false,
+      tools: [],
+      ...(isTelegraphed ? { pending: true, armTurn: computeArmTurn(state, card.telegraph!) } : {}),
     };
     player.board.push(unit);
     state.log.push({ type: "play", player: pid, card: card.name, instanceId });
-    if (onPlay) {
+    if (isTelegraphed) {
+      // Dormant on arrival — see UnitCard.telegraph: its onPlay ability
+      // (if any) is deferred to processTelegraphArming, not fired here.
+      state.log.push({ type: "telegraphPlaced", unit: card.name, armIn: card.telegraph! });
+    } else if (onPlay) {
       resolveAbility({
         state,
         ability: onPlay,
@@ -111,6 +130,61 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
       });
     }
   }
+}
+
+/** Board-development system: how many single-player turnNumber ticks from
+ * now a telegraphed unit arms. `telegraph` counts the controller's own
+ * turns (a "round"), and turnNumber advances once per single player's turn
+ * (see advanceTurn), so one controller-round is 2 ticks — this lands
+ * processTelegraphArming's `turnNumber >= armTurn` check exactly on the
+ * controller's own turn, `telegraph` of their turns later. */
+function computeArmTurn(state: GameState, telegraph: number): number {
+  return state.turnNumber + 2 * telegraph;
+}
+
+/** Board-development system: evolves `targetInstanceId` in place — same
+ * instanceId, same accumulated damage/buffs/statuses/attached tools —
+ * mutating only its `card` to the evolved form. The consumed base card
+ * goes to the graveyard (evolution spends it, mirroring the copy-limit
+ * economy: a base-tier card is a real resource, not a free upgrade
+ * trigger). Never costs a board slot: the board array's length is
+ * unchanged. Only legal at Sorcery timing (see moves.ts), so the stack is
+ * always empty here — no stack reference to the old card identity can be
+ * left dangling. */
+function evolveUnit(state: GameState, pid: PlayerId, card: UnitCard, targetInstanceId: string, rng: Rng): void {
+  const player = state.players[pid];
+  const unit = player.board.find((u) => u.instanceId === targetInstanceId);
+  if (!unit) throw new Error(`evolveUnit: no unit ${targetInstanceId} on ${pid}'s board`);
+  const fromName = unit.card.name;
+  player.graveyard.push(unit.card);
+  unit.card = card;
+  state.log.push({ type: "evolve", from: fromName, to: card.name });
+  const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
+  if (onPlay) {
+    resolveAbility({
+      state,
+      ability: onPlay,
+      controller: pid,
+      source: { kind: "unit", instanceId: unit.instanceId, cardName: card.name },
+      rng,
+    });
+  }
+}
+
+/** Board-development system: attaches a Tool to an existing board unit —
+ * see ToolCard. A Tool that grants Barrier applies the actual consumable
+ * status immediately (mirroring how the Barrier *keyword* grants it at
+ * creation time in playCard above), since Barrier's behaviour lives in
+ * `statuses`, not in a live keyword check. */
+function attachTool(state: GameState, pid: PlayerId, card: ToolCard, targetInstanceId: string): void {
+  const player = state.players[pid];
+  const unit = player.board.find((u) => u.instanceId === targetInstanceId);
+  if (!unit) throw new Error(`attachTool: no unit ${targetInstanceId} on ${pid}'s board`);
+  unit.tools.push(card);
+  if (card.grantedKeywords.includes("Barrier") && !unit.statuses.some((s) => s.kind === "Barrier")) {
+    unit.statuses.push({ kind: "Barrier", duration: "untilConsumed" });
+  }
+  state.log.push({ type: "toolAttached", tool: card.name, unit: unit.card.name });
 }
 
 function declareAttack(state: GameState, pid: PlayerId, attackerInstanceId: string, target: TargetRef, rng: Rng): void {
@@ -312,9 +386,33 @@ export function beginTurn(state: GameState, pid: PlayerId, rng: Rng, options: { 
   state.passes = 0;
   if (options.draw) drawCardsForPlayer(state, pid, 1);
   state.log.push({ type: "turnStart", turn: state.turnNumber, player: pid });
+  processTelegraphArming(state, pid, rng);
   fireTurnAbilities(state, pid, "onTurnStart", rng);
   processDeaths(state, rng);
   checkGameOver(state);
+}
+
+/** Board-development system: arms every telegraphed unit of `pid`'s whose
+ * countdown has elapsed (see UnitCard.telegraph/computeArmTurn), firing
+ * its onPlay ability now that it's finally live. Runs before this turn's
+ * onTurnStart triggers so a freshly-armed unit's own onTurnStart (if any)
+ * fires in the same batch as everything else this turn. */
+function processTelegraphArming(state: GameState, pid: PlayerId, rng: Rng): void {
+  for (const unit of state.players[pid].board) {
+    if (!unit.pending || unit.armTurn === undefined || state.turnNumber < unit.armTurn) continue;
+    unit.pending = false;
+    state.log.push({ type: "telegraphArmed", unit: unit.card.name });
+    const onPlay = unit.card.abilities.find((a) => a.trigger === "onPlay");
+    if (onPlay) {
+      resolveAbility({
+        state,
+        ability: onPlay,
+        controller: pid,
+        source: { kind: "unit", instanceId: unit.instanceId, cardName: unit.card.name },
+        rng,
+      });
+    }
+  }
 }
 
 interface TurnAbilitySource {

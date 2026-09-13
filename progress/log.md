@@ -1,5 +1,92 @@
 # Build log
 
+## 2026-09-13 — Session 4 (stage 3: real card set + unified board-development system)
+
+Read `progress/owner-feedback.md` first. Two entries needed action: the
+2026-09-13 stage-2-checkpoint approval (pure "proceed to stage 3," no code
+change required — marked handled) and the 2026-09-12 design-directive
+batch, which was UNHANDLED and explicitly scopes its section B (the unified
+board-development system) to stage 3 — exactly the stage this session
+builds. Read it in full before writing any card schema, per its own
+instruction.
+
+**What I built, in order:**
+
+1. **The board-development system in the engine**, as one interacting
+   system rather than three separate features, per the directive's
+   explicit instruction: finite face-up board slots (`BOARD_SLOTS`,
+   shared between Units and Directives, proposed default 6), telegraphed
+   threats (`UnitCard.telegraph` — a unit enters `pending`, fully visible
+   and targetable but dormant, and arms `telegraph` of its controller's
+   turns later, at which point its deferred `onPlay` fires), evolution
+   (`UnitCard.evolvesFrom` — strict base-card-id requirement; mutates the
+   target unit **in place**, same instanceId, so damage/statuses/attached
+   tools all carry forward and no board slot is spent), and Tool cards
+   (new `Tool` CardType — attaches to a friendly unit, live stat bonus
+   plus optionally-granted keywords, no slot of its own). Full detail in
+   `progress/current.md` and `progress/owner-feedback.md`'s updated
+   2026-09-12 entry.
+
+2. **A new faction, Aegis** (`engine/src/data/aegisCards.ts`) — 14 unique
+   cards, a 34-card deck — built specifically to exercise the new system:
+   an evolution line (Aegis Cadet → Aegis Sentinel → Aegis Warden), two
+   telegraphed units (Perimeter Turret, Latent Ward), three Tool cards
+   (Plating Module, Guard Directive Chip, Barrier Shim — the last granting
+   an actual Barrier status on attach, not just a live keyword flag), plus
+   enough ordinary variety (Guard keyword, an onDamaged self-heal, a static
+   aura Directive, an AOE stun Command, and a conditional draw effect using
+   `not` + the previously-unused `handSizeAtLeast` condition kind) that
+   it's a real faction, not a mechanics showcase with nothing else in it.
+   Themed per the owner's cyberpunk/90s-retro-futurism direction from the
+   2026-09-11 feedback. Cortex and Swarm were left as-is.
+
+3. **Deck-size enforcement** (`MIN_DECK_SIZE`=20/`MAX_DECK_SIZE`=40 in
+   `decks.ts`) — closing a gap `quality-debt.md` had named since stage 2
+   ("no minimum/maximum deck size rule"). Chose numbers that don't force
+   churn on the existing Cortex (32 cards) / Swarm (23 cards) test pools.
+
+**Did I run it?**
+
+- `npx tsc --noEmit` clean in all four packages (`engine`, `protocol`,
+  `server`, `agents`).
+- `effectSystemDemo.ts`: all 16 scenarios pass (12 pre-existing, unchanged
+  and still green; 4 new — telegraph dormancy+arming, evolution
+  carry-forward, Tool attach+keyword-grant+Barrier-grant, board-slot cap).
+  Output re-captured to `progress/effect-system-demo.txt`.
+- Wrote `engine/src/dev/aegisMatchDemo.ts` — a committed script (not
+  throwaway) that plays real Aegis matches and searches seeds for one that
+  exercises telegraph-arming, evolution, and tool-attachment all in the
+  same game. Seed 3 (vs Aggressive-Cortex) does: a Perimeter Turret tanks
+  2 AOE damage while dormant, arms on turn 9, and immediately kills an
+  attacker with its arm-time ability; a Plating Module attaches to Prime
+  Aegis on turn 13; an Aegis Cadet is played and evolved into an Aegis
+  Sentinel in the same turn (turn 15) — a legitimate emergent combo (the
+  rules never required the base to have survived a prior turn), not a bug,
+  flagged as a ruling in `quality-debt.md`. Committed as
+  `progress/sample-match-004-boarddev.txt`. Match resolves cleanly at 16
+  turns.
+- Ran a 300-game stress test (Aegis vs Cortex and Aegis vs Swarm, 150
+  seeds each, RandomAgent vs AggressiveAgent) via a throwaway script (not
+  committed, described here for the record like the stage-2 fault-path
+  tests): zero crashes, mean ~17 turns, telegraph armed in ~78% of games,
+  evolution in ~34%, a tool attached in ~96% — the new mechanics fire
+  routinely in unscripted play, not just in the cherry-picked demo seed.
+  Win rates skew hard toward the Aggressive heuristic, exactly the
+  "greedy beats blind random" pattern already documented for stage 2 — not
+  a faction-balance signal.
+- Re-ran the original `cli.ts` (Cortex vs Swarm) after all changes: plays
+  identically, confirming the board-slot cap and deck-size rule didn't
+  regress the existing test pools.
+
+**What's blocked / what I'd do with more time:** see
+`progress/quality-debt.md` (new stage-3 section) and `progress/current.md`'s
+next-step note — the honest top pick is that verification is still all
+hand-written demo scripts with no real test runner, and that's now overdue
+given two stage-scale sessions in a row have added engine surface without
+adding regression-test infrastructure to match.
+
+---
+
 ## 2026-09-12 — Session 3 (stage 2: agent interface / real network protocol)
 
 Read `progress/owner-feedback.md` first. The 2026-09-11 checkpoint feedback

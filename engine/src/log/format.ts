@@ -44,6 +44,14 @@ export function formatEvent(event: GameEvent): string {
       return `>>> resolving: ${event.description}`;
     case "fizzle":
       return `  ${event.reason}`;
+    case "telegraphPlaced":
+      return `  ${event.unit} deploys, dormant — arms in ${event.armIn} of its controller's turn(s)`;
+    case "telegraphArmed":
+      return `  ${event.unit} arms`;
+    case "evolve":
+      return `  ${event.from} evolves into ${event.to}`;
+    case "toolAttached":
+      return `  ${event.tool} attaches to ${event.unit}`;
     case "gameOver":
       return `=== GAME OVER: ${event.winner === "draw" ? "draw" : `${event.winner} wins`} (${event.reason}) ===`;
   }

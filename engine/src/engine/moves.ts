@@ -1,9 +1,10 @@
 import type { Ability, Speed } from "../cards/types.js";
-import type { GameState, PlayerId } from "../state/types.js";
+import type { GameState, PlayerId, PlayerState } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
-import { isAlive } from "../state/queries.js";
+import { isAlive, hasKeyword } from "../state/queries.js";
 import { enumerateTargets, type TargetRef } from "../effects/targeting.js";
 import { evaluateCondition } from "../effects/conditions.js";
+import { BOARD_SLOTS } from "../state/init.js";
 
 export type Move =
   | { type: "playCard"; handIndex: number; target?: TargetRef }
@@ -45,12 +46,45 @@ export function getLegalMoves(state: GameState): Move[] {
   return moves;
 }
 
+/** Board-development system: Units (new, non-evolving ones) and Directives
+ * are the two card types that claim a fresh board slot — they share one
+ * finite per-player pool (see BOARD_SLOTS). Evolving a Unit and attaching
+ * a Tool both act on an *existing* occupant, so neither counts here. */
+function boardSlotsUsed(player: PlayerState): number {
+  return player.board.length + player.directives.length;
+}
+
 function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorceryTiming: boolean): void {
   const player = state.players[pid];
   player.hand.forEach((card, handIndex) => {
     if (card.cost > player.energy) return;
     const speed: Speed = card.type === "Command" ? card.speed : "Sorcery";
     if (speed === "Sorcery" && !sorceryTiming) return;
+
+    if (card.type === "Unit" && card.evolvesFrom) {
+      // Evolution targets an existing, already-armed unit on the board
+      // matching the required base card id — no target, no legal play.
+      const bases = player.board.filter((u) => !u.pending && u.card.id === card.evolvesFrom);
+      for (const base of bases) {
+        moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
+      }
+      return;
+    }
+
+    if (card.type === "Tool") {
+      // A Tool attaches to any friendly board unit (pending or armed —
+      // tooling up a telegraphed threat before it arms is legal and
+      // meaningful: it makes the eventual payoff bigger).
+      for (const unit of player.board) {
+        moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: unit.instanceId } });
+      }
+      return;
+    }
+
+    if ((card.type === "Unit" || card.type === "Directive") && boardSlotsUsed(player) >= BOARD_SLOTS) {
+      return; // no free board slot — this card cannot be played right now
+    }
+
     const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
     if (onPlay?.targeting && onPlay.targeting.scope === "chosen") {
       const options = enumerateTargets(onPlay.targeting.filter, pid, state);
@@ -66,7 +100,9 @@ function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorce
 function pushAttackMoves(state: GameState, pid: PlayerId, moves: Move[]): void {
   const enemyId = otherPlayer(pid);
   const enemy = state.players[enemyId];
-  const guards = enemy.board.filter((u) => u.card.keywords.includes("Guard") && isAlive(state, u));
+  // A pending (unarmed) telegraphed unit is dormant and cannot force
+  // attacks onto itself via Guard, same as it cannot attack itself.
+  const guards = enemy.board.filter((u) => !u.pending && hasKeyword(u, "Guard") && isAlive(state, u));
   const enemyTargets: TargetRef[] =
     guards.length > 0
       ? guards.map((u) => ({ kind: "unit", instanceId: u.instanceId }))
@@ -76,9 +112,10 @@ function pushAttackMoves(state: GameState, pid: PlayerId, moves: Move[]): void {
         ];
 
   for (const unit of state.players[pid].board) {
+    if (unit.pending) continue; // dormant — cannot attack until it arms
     if (unit.hasAttackedThisTurn) continue;
     if (unit.statuses.some((s) => s.kind === "Stasis")) continue;
-    const canAct = unit.enteredTurn < state.turnNumber || unit.card.keywords.includes("Rush");
+    const canAct = unit.enteredTurn < state.turnNumber || hasKeyword(unit, "Rush");
     if (!canAct) continue;
     for (const target of enemyTargets) {
       moves.push({ type: "attack", attackerInstanceId: unit.instanceId, target });
@@ -89,7 +126,9 @@ function pushAttackMoves(state: GameState, pid: PlayerId, moves: Move[]): void {
 function pushActivatedAbilityMoves(state: GameState, pid: PlayerId, moves: Move[], sorceryTiming: boolean): void {
   const player = state.players[pid];
   const sources = [
-    ...player.board.map((u) => ({ instanceId: u.instanceId, abilities: u.card.abilities })),
+    // A pending (unarmed) telegraphed unit is dormant — it cannot activate
+    // abilities until it arms.
+    ...player.board.filter((u) => !u.pending).map((u) => ({ instanceId: u.instanceId, abilities: u.card.abilities })),
     ...player.directives.map((d) => ({ instanceId: d.instanceId, abilities: d.card.abilities })),
   ];
   for (const src of sources) {

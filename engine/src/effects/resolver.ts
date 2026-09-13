@@ -241,6 +241,8 @@ export function processDeaths(state: GameState, rng: Rng): void {
       if (idx === -1) continue;
       player.board.splice(idx, 1);
       player.graveyard.push(unit.card);
+      // Attached Tools (see ToolCard) go down with the unit they were on.
+      for (const tool of unit.tools) player.graveyard.push(tool);
       state.log.push({ type: "death", unit: unit.card.name, controller: unit.controller });
     }
     for (const unit of round) {

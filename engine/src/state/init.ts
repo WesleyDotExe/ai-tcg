@@ -6,8 +6,17 @@ const STARTING_HEALTH = 20;
 const MAX_ENERGY_CAP = 10;
 const OPENING_HAND_SIZE = 4;
 const TURN_CAP = 40;
+/** Board-development system (owner design-directive batch, 2026-09-12):
+ * the finite number of face-up board slots each player has. Units and
+ * Directives share this one pool per player — both are "meaningful
+ * commitments to the board" per the design note, so both compete for the
+ * same scarce space. Evolving a unit or attaching a Tool never consumes an
+ * additional slot (see moves.ts/engine.ts). 6 is a first proposed number,
+ * not a playtested one — flagged as an open parameter at the stage-3
+ * checkpoint for the owner to weigh in on. */
+const BOARD_SLOTS = 6;
 
-export { MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP };
+export { MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP, BOARD_SLOTS };
 
 export interface DeckSpec {
   id: PlayerId;

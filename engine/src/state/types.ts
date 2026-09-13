@@ -1,4 +1,4 @@
-import type { Ability, Card, CommandCard, DirectiveCard, Speed, StatusEffect, UnitCard } from "../cards/types.js";
+import type { Ability, Card, CommandCard, DirectiveCard, Speed, StatusEffect, ToolCard, UnitCard } from "../cards/types.js";
 // These are type-only imports from modules that themselves only import
 // *types* from this file (see effects/targeting.ts, effects/resolver.ts) —
 // there is no runtime cycle, only a type-level one, which `import type`
@@ -26,6 +26,21 @@ export interface UnitInstance {
    * it has Rush. */
   enteredTurn: number;
   hasAttackedThisTurn: boolean;
+  /** Board-development system. `pending` is set while a telegraphed threat
+   * (UnitCard.telegraph) is still "arming": true from the moment it's
+   * played until `armTurn` is reached, at which point engine.ts's
+   * processTelegraphArming clears it and fires the card's onPlay ability.
+   * A pending unit is still a fully real, targetable board occupant — it
+   * just can't attack, activate abilities, or project static auras yet
+   * (see moves.ts/statics.ts). Absent entirely for non-telegraphed units. */
+  pending?: boolean;
+  armTurn?: number;
+  /** Tool cards attached to this unit (see ToolCard) — always present,
+   * empty for a unit with nothing attached. Their stat bonuses/granted
+   * keywords are read live by state/queries.ts, and they travel with the
+   * unit across an evolution (see engine.ts's evolveUnit) since evolution
+   * mutates this same instance rather than replacing it. */
+  tools: ToolCard[];
 }
 
 export interface DirectiveInstance {
@@ -88,6 +103,10 @@ export type GameEvent =
   | { type: "priorityPass"; player: PlayerId }
   | { type: "stackResolve"; description: string }
   | { type: "fizzle"; reason: string }
+  | { type: "telegraphPlaced"; unit: string; armIn: number }
+  | { type: "telegraphArmed"; unit: string }
+  | { type: "evolve"; from: string; to: string }
+  | { type: "toolAttached"; tool: string; unit: string }
   | { type: "gameOver"; winner: PlayerId | "draw"; reason: string };
 
 export interface GameState {

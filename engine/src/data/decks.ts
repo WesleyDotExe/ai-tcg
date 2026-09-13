@@ -1,6 +1,7 @@
 import type { Card, Rarity } from "../cards/types.js";
 import type { DeckSpec } from "../state/init.js";
 import { CORTEX_CARDS, SWARM_CARDS } from "./cards.js";
+import { AEGIS_CARDS } from "./aegisCards.js";
 
 /** Copy-limit rule: a small cap on how many copies of one card a deck may
  * run, tighter at higher rarity. This is deck-construction, not just a
@@ -15,6 +16,19 @@ const COPY_LIMITS: Record<Rarity, number> = {
   Mythic: 1,
 };
 
+/** Deck-size rule (new for stage 3 — this was named debt in
+ * progress/quality-debt.md: "no minimum/maximum deck size rule"). A
+ * genuine, enforced floor and ceiling, not just the copy limit. Chosen
+ * conservatively so the existing Cortex (32 cards) and Swarm (23 cards)
+ * *test* pools — never meant to be tightly tuned decks, see data/cards.ts's
+ * own header comment — still build without churning their tested card
+ * lists; the freshly-designed Aegis deck (34 cards) sits comfortably
+ * inside the range too. These numbers are a first proposal, not a
+ * playtested target — flagged as an open parameter at the stage-3
+ * checkpoint alongside BOARD_SLOTS. */
+const MIN_DECK_SIZE = 20;
+const MAX_DECK_SIZE = 40;
+
 export function buildDeck(id: DeckSpec["id"], name: string, pool: { card: Card; copies: number }[]): DeckSpec {
   const cards: Card[] = [];
   for (const { card, copies } of pool) {
@@ -26,6 +40,11 @@ export function buildDeck(id: DeckSpec["id"], name: string, pool: { card: Card; 
     }
     for (let i = 0; i < copies; i++) cards.push(card);
   }
+  if (cards.length < MIN_DECK_SIZE || cards.length > MAX_DECK_SIZE) {
+    throw new Error(
+      `Deck ${name}: ${cards.length} cards is outside the legal deck size range [${MIN_DECK_SIZE}, ${MAX_DECK_SIZE}]`,
+    );
+  }
   return { id, name, cards };
 }
 
@@ -35,4 +54,8 @@ export function buildCortexDeck(id: DeckSpec["id"], name: string): DeckSpec {
 
 export function buildSwarmDeck(id: DeckSpec["id"], name: string): DeckSpec {
   return buildDeck(id, name, SWARM_CARDS);
+}
+
+export function buildAegisDeck(id: DeckSpec["id"], name: string): DeckSpec {
+  return buildDeck(id, name, AEGIS_CARDS);
 }
