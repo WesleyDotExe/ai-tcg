@@ -5,6 +5,107 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Stage 3: A real card set (2026-09-13)
+
+**Milestone:** this is DESIGN.md's "first real card set done" checkpoint.
+
+**What it delivers:** the unified board-development system the owner's
+2026-09-12 design-directive batch called for, built directly into the
+rules engine as one interacting system, plus a new third faction (Aegis)
+built specifically to exercise it:
+
+- **Finite face-up board slots** (`BOARD_SLOTS`, proposed default 6),
+  shared between Units and Directives per player — both are "meaningful
+  board commitments," so both compete for the same scarce space.
+- **Telegraphed threats** (`UnitCard.telegraph`): a unit enters play fully
+  visible and targetable but dormant (can't attack, activate abilities, or
+  project static auras), then "arms" — its deferred `onPlay` finally
+  fires — at the start of its controller's turn N rounds later. The
+  opponent gets a real, visible window to answer it before the payoff.
+- **Evolution** (`UnitCard.evolvesFrom`, strict base-card-id requirement):
+  mutates the target unit **in place** (same instanceId), so damage,
+  statuses, and attached Tools all carry forward onto the evolved form,
+  and no board slot is spent evolving.
+- **Tool/attachment cards** (new `Tool` CardType): attach to any friendly
+  board unit, a flat stat bonus plus optionally-granted keywords, no slot
+  of their own.
+- **The interaction, not three isolated features:** a telegraphed unit can
+  be tooled up before it arms; an evolution base sitting in play is
+  exactly the same "answer it now or let it grow" tension as a telegraph,
+  for free, from the instance model; the shared slot pool is what makes
+  any of this a real opportunity cost rather than a free add-on.
+
+**Evidence, not claims:**
+- `progress/sample-match-004-boarddev.txt` — a real, unscripted match
+  (Random-Aegis vs Aggressive-Cortex, seed 3) where all three new
+  mechanics fire: a Perimeter Turret survives 2 AOE damage while dormant,
+  arms on turn 9, and immediately kills an attacker; a Plating Module
+  attaches to Prime Aegis; an Aegis Cadet evolves into an Aegis Sentinel.
+  Resolves cleanly in 16 turns.
+- `progress/effect-system-demo.txt` scenarios 13–16 — deterministic,
+  assertion-based proof of telegraph dormancy+arming, evolution
+  carry-forward (instanceId, damage, a pre-attached tool), Tool
+  attachment (stat bonus, granted keyword, granted Barrier applying the
+  real status), and the board-slot cap (blocks Units/Directives, never
+  Tools).
+- A 300-game stress run (not committed, described in `progress/log.md`)
+  across two matchups found zero crashes, mean ~17 turns (consistent with
+  pre-stage-3 numbers, comfortably under the 40-turn cap), telegraph
+  arming in ~78% of games, evolution in ~34%, a Tool attaching in ~96% —
+  the mechanics are exercised routinely, not just in a cherry-picked demo.
+- All four packages typecheck clean; the pre-existing stage-1/2 evidence
+  (12 original effect scenarios, the Cortex-vs-Swarm CLI match) still
+  passes/plays identically — this session's changes (the board-slot cap,
+  the deck-size rule) did not regress the existing card pool.
+
+**Where it's strong:** the "evolve in place" implementation is simpler and
+more powerful than it first looks — because it mutates the same
+`UnitInstance` rather than replacing it, damage/statuses/tools carrying
+forward and the zero-slot-cost property both fall out of the existing
+instance model for free, with no special-case bookkeeping. The three
+mechanics are genuinely coupled through the shared slot pool and the
+instance model, not three parallel if-branches.
+
+**Where it's thin:** Aegis is 14 unique cards — a real faction, not yet a
+rich one; Cortex and Swarm don't use the new system at all yet; Tool cards
+have no ability timeline beyond a flat bonus; verification is still
+entirely hand-written demo scripts with no automated test runner (now the
+most overdue item in `progress/quality-debt.md`, having survived two
+stage-scale sessions). Full list in `progress/quality-debt.md`'s new
+stage-3 section.
+
+**Decisions made this session the owner might want to overrule:**
+1. **Evolution is strict, not loose** — requires the exact base card id,
+   not a looser tier-based condition. The design-directive batch named
+   this an explicitly open question; this session picked strict for a
+   first implementation rather than building both. A loose (tier-number)
+   requirement is a real but bounded follow-up if preferred.
+2. **`BOARD_SLOTS` = 6, shared between Units and Directives** (not
+   separate pools). Both numbers and the shared-vs-separate choice are
+   named as open parameters in the directive batch; this is a first
+   proposal, not a playtested one.
+3. **Telegraph delay = 1 controller-turn** by default (both Aegis
+   telegraph cards use it). Untested at other values.
+4. **Nothing stops playing a base unit and evolving it the same turn** —
+   observed as a real line in the committed match log. This could be seen
+   as a legitimate "commit hard, one turn" play, or as undercutting the
+   "answer it early while it's weak" drama the directive described (the
+   base is never actually exposed to the opponent in that line). Left as
+   emergent rather than restricted; flagged rather than decided.
+5. **Deck size range set to [20, 40]** — chosen to avoid forcing churn on
+   the existing Cortex (32)/Swarm (23) test pools rather than picking a
+   single target number (e.g. 30) and rebuilding those pools to match.
+
+**What's next:** per `progress/current.md`, the leading candidate for the
+next session is closing out the "no automated test runner" debt (now the
+most-repeated item in `quality-debt.md`) before adding further width;
+continuing stage 3 (a fourth faction, or backfilling Cortex/Swarm with the
+new mechanics) is the alternative and also legitimate. Either way, stage 4
+(match-server hardening) stays correctly blocked until there's an economy
+that needs it.
+
+---
+
 ## AWAITING FEEDBACK — Stage 2: Agent interface (2026-09-12)
 
 **What it delivers:** a real network protocol between the match server and

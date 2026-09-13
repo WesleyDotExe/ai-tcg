@@ -17,7 +17,7 @@ import { createInitialState } from "../state/init.js";
 import { Rng } from "../state/rng.js";
 import type { GameState, PlayerId, UnitInstance } from "../state/types.js";
 import { currentAttack, currentHealth, findUnit } from "../state/queries.js";
-import { applyMove } from "../engine/engine.js";
+import { applyMove, beginTurn } from "../engine/engine.js";
 import { getLegalMoves } from "../engine/moves.js";
 import { applyDamage } from "../effects/resolver.js";
 import {
@@ -37,7 +37,17 @@ import {
   interruptHandler,
   reflexSpike,
 } from "../data/cards.js";
+import {
+  aegisCadet,
+  aegisSentinel,
+  perimeterTurret,
+  platingModule,
+  guardDirectiveChip,
+  barrierShim,
+} from "../data/aegisCards.js";
 import type { UnitCard } from "../cards/types.js";
+import { BOARD_SLOTS } from "../state/init.js";
+import { hasKeyword } from "../state/queries.js";
 
 /** Casting a Command or activating an ability now only queues it on the
  * stack (see engine/engine.ts) — it takes two consecutive passPriority
@@ -80,6 +90,7 @@ function putUnit(state: GameState, controller: PlayerId, card: UnitCard, damageT
     statuses: card.keywords.includes("Barrier") ? [{ kind: "Barrier", duration: "untilConsumed" }] : [],
     enteredTurn: state.turnNumber,
     hasAttackedThisTurn: false,
+    tools: [],
   };
   state.players[controller].board.push(unit);
   return unit;
@@ -373,6 +384,115 @@ scenario("An instant-speed combat trick resolves before combat damage and change
     "2 base health + 3 from the trick - 2 combat damage = 3: the trick saved a unit that would otherwise have died",
   );
   assert.ok(!findUnit(state, attacker.instanceId), "the attacker should still have died to the (unbuffed) defender's own return damage");
+});
+
+// --- 13. Board-development: telegraphed threat is dormant, then arms -------
+scenario("A telegraphed unit is dormant on arrival and only fires its ability once armed", () => {
+  const state = emptyState();
+  const rng = new Rng(11);
+  const victim = putUnit(state, "p2", swarmLarva); // 1 health — the turret's arm-time ability will kill it
+  state.players.p1.hand.push(perimeterTurret); // cost 2, telegraph 1
+  state.players.p1.energy = 2;
+  state.players.p1.maxEnergy = 2;
+
+  applyMove(state, { type: "playCard", handIndex: 0 }, rng);
+  const turret = state.players.p1.board[0]!;
+  assert.equal(turret.pending, true, "a telegraphed unit should enter pending, not active");
+  assert.equal(currentHealth(state, victim), 1, "the turret's damage effect must not fire while still dormant");
+  const legalWhilePending = getLegalMoves(state);
+  assert.ok(
+    !legalWhilePending.some((m) => m.type === "attack" && m.attackerInstanceId === turret.instanceId),
+    "a pending unit must not have a legal attack move",
+  );
+
+  // Simulate one full round elapsing (turnNumber advances by 2: the
+  // opponent's turn, then back to p1's own) and start p1's next turn, the
+  // same call beginTurn makes at every real turn boundary.
+  state.turnNumber += 2;
+  beginTurn(state, "p1", rng, { draw: false });
+
+  assert.equal(turret.pending, false, "the turret should have armed once its controller's next turn began");
+  assert.equal(currentHealth(state, victim), 1 - 3, "the turret's arm-time ability should now have fired its 3 damage");
+});
+
+// --- 14. Board-development: evolution mutates in place, carries state forward
+scenario("Evolving a unit keeps its instance identity and carries damage/tools forward, and spends the base card", () => {
+  const state = emptyState();
+  const rng = new Rng(12);
+  const cadet = putUnit(state, "p1", aegisCadet, 1); // 1 damage already taken
+  cadet.tools.push(platingModule); // simulate a tool attached before evolving
+  const cadetInstanceId = cadet.instanceId;
+  state.players.p1.hand.push(aegisSentinel); // evolvesFrom AG-001 (Aegis Cadet), cost 3, onPlay: gain 1 energy
+  state.players.p1.energy = 3;
+  state.players.p1.maxEnergy = 3;
+
+  const legal = getLegalMoves(state);
+  const evolve = legal.find((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === cadetInstanceId);
+  assert.ok(evolve, "evolving into Aegis Sentinel should be offered, targeting the Aegis Cadet already in play");
+  applyMove(state, evolve!, rng);
+
+  const evolved = state.players.p1.board.find((u) => u.instanceId === cadetInstanceId);
+  assert.ok(evolved, "evolution must mutate the existing board unit in place, not remove and replace it");
+  assert.equal(evolved!.card.id, aegisSentinel.id, "the instance should now be the evolved card");
+  assert.equal(state.players.p1.board.length, 1, "evolving must not consume an extra board slot");
+  assert.equal(evolved!.damageTaken, 1, "accumulated damage should carry forward onto the evolved form");
+  assert.ok(evolved!.tools.includes(platingModule), "an attached tool should carry forward onto the evolved form");
+  assert.ok(
+    state.players.p1.graveyard.some((c) => c.id === aegisCadet.id),
+    "the consumed base card should go to the graveyard",
+  );
+  assert.equal(state.players.p1.energy, 1, "the evolved card's own onPlay (gain 1 energy) should have fired: 3 - 3 (cost) + 1 = 1");
+});
+
+// --- 15. Board-development: a Tool attaches, boosting stats and granting a keyword
+scenario("A Tool attaches to a friendly unit, boosting its live stats and granting a keyword", () => {
+  const state = emptyState();
+  const rng = new Rng(13);
+  const drone = putUnit(state, "p1", aegisCadet); // 1/2, no keywords
+  assert.equal(hasKeyword(drone, "Guard"), false, "baseline: no Guard");
+  state.players.p1.hand.push(guardDirectiveChip); // Tool: +1/+1, grants Guard
+  state.players.p1.energy = 2;
+  state.players.p1.maxEnergy = 2;
+
+  const legal = getLegalMoves(state);
+  const attach = legal.find((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === drone.instanceId);
+  assert.ok(attach, "attaching the Tool to the friendly unit should be a legal move");
+  applyMove(state, attach!, rng);
+
+  assert.equal(currentAttack(state, drone), 2, "1 base + 1 tool bonus");
+  assert.equal(currentHealth(state, drone), 3, "2 base + 1 tool bonus");
+  assert.ok(hasKeyword(drone, "Guard"), "the Tool's granted keyword should now apply, live, with no card change");
+  assert.equal(drone.tools.length, 1, "the tool should be recorded as attached");
+
+  // A Tool granting Barrier should apply the actual consumable status, not
+  // just a live keyword flag — Barrier's behaviour lives in `statuses`.
+  const shieldTarget = putUnit(state, "p1", aegisCadet);
+  state.players.p1.hand.push(barrierShim);
+  state.players.p1.energy = 2;
+  const legal2 = getLegalMoves(state);
+  const attachShim = legal2.find(
+    (m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === shieldTarget.instanceId,
+  );
+  assert.ok(attachShim, "attaching Barrier Shim should be legal");
+  applyMove(state, attachShim!, rng);
+  assert.ok(shieldTarget.statuses.some((s) => s.kind === "Barrier"), "Barrier Shim should grant an actual Barrier status on attach");
+});
+
+// --- 16. Board-development: the finite board-slot cap is real ---------------
+scenario("The board-slot cap blocks new Units/Directives once full, but never blocks Tools", () => {
+  const state = emptyState();
+  const rng = new Rng(14);
+  for (let i = 0; i < BOARD_SLOTS; i++) putUnit(state, "p1", swarmLarva);
+  assert.equal(state.players.p1.board.length, BOARD_SLOTS, "board should be at capacity");
+
+  state.players.p1.hand.push(aegisCadet); // a plain new Unit — should be unplayable, no free slot
+  state.players.p1.hand.push(platingModule); // a Tool — should still be playable, it doesn't need a slot
+  state.players.p1.energy = 3;
+  state.players.p1.maxEnergy = 3;
+
+  const legal = getLegalMoves(state);
+  assert.ok(!legal.some((m) => m.type === "playCard" && m.handIndex === 0), "a full board must block playing a new Unit");
+  assert.ok(legal.some((m) => m.type === "playCard" && m.handIndex === 1), "a full board must NOT block attaching a Tool");
 });
 
 console.log(`\nAll ${scenarioCount} effect-system scenarios passed.`);

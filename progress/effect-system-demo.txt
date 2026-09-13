@@ -12,5 +12,9 @@ AI-TCG effect system demo — deterministic mechanic-by-mechanic proof
   PASS  [10] A multi-card combo: onDamaged triggers an AOE that kills a unit, cascading into its onDeath
   PASS  [11] Priority passes correctly between players, and a same-window instant-speed response resolves before (and changes the outcome of) the spell it responded to
   PASS  [12] An instant-speed combat trick resolves before combat damage and changes who survives the trade
+  PASS  [13] A telegraphed unit is dormant on arrival and only fires its ability once armed
+  PASS  [14] Evolving a unit keeps its instance identity and carries damage/tools forward, and spends the base card
+  PASS  [15] A Tool attaches to a friendly unit, boosting its live stats and granting a keyword
+  PASS  [16] The board-slot cap blocks new Units/Directives once full, but never blocks Tools
 
-All 12 effect-system scenarios passed.
+All 16 effect-system scenarios passed.

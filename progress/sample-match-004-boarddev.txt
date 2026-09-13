@@ -1,0 +1,304 @@
+AI-TCG Stage 3 evidence — Aegis faction real match — demonstrating seed 3
+Random-Aegis (Aegis, p1) vs Aggressive-Cortex (Cortex, p2)
+Deck sizes: p1=34, p2=32
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Firewall Sentinel
+--- Turn 2 (p2) ---
+p2 plays Signal Drone (u1)
+Signal Drone attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Barrier Drone
+--- Turn 3 (p1) ---
+p1 plays Barrier Drone (u3)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Cascade Purge
+--- Turn 4 (p2) ---
+p2 plays Cortex Engineer (u4)
+Signal Drone attacks Barrier Drone
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Barrier Drone (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Diagnostic Ward
+--- Turn 5 (p1) ---
+Barrier Drone attacks Signal Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+  Signal Drone deals 1 damage to Barrier Drone (unit)
+p1 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+  Diagnostic Ward restores 1 health to Random-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Mainframe Core
+--- Turn 6 (p2) ---
+p2 plays Firewall Sentinel (u8)
+Signal Drone attacks Barrier Drone
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Barrier Drone (unit)
+  Barrier Drone (p1) dies
+Cortex Engineer attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Aegis Sentinel
+--- Turn 7 (p1) ---
+p1 plays Perimeter Turret (u11)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Diagnostic Pulse
+--- Turn 8 (p2) ---
+p2 casts Cascade Purge [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Perimeter Turret (unit)
+Signal Drone attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Random-Aegis
+Cortex Engineer attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Random-Aegis
+Firewall Sentinel attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Prime Aegis
+--- Turn 9 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Signal Drone (unit)
+  Signal Drone (p2) dies
+Perimeter Turret attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Perimeter Turret (unit)
+  Perimeter Turret (p1) dies
+p1 casts Lockdown Field [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Lockdown Field
+  ability: Lockdown Field — lockdown-field-cast (onPlay)
+  Lockdown Field applies Stasis to Cortex Engineer
+  Lockdown Field applies Stasis to Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Watchtower Relay
+--- Turn 10 (p2) ---
+p2 plays Firewall Sentinel (u18)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Lockdown Field
+--- Turn 11 (p1) ---
+p1 plays Prime Aegis (u21)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Recursive Construct
+--- Turn 12 (p2) ---
+p2 plays Mainframe Core (d22)
+p2 plays Watchtower Relay (u23)
+Cortex Engineer attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Random-Aegis
+Firewall Sentinel attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Random-Aegis
+Firewall Sentinel attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Plating Module
+--- Turn 13 (p1) ---
+Prime Aegis attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Prime Aegis (unit)
+  Firewall Sentinel (p2) dies
+p1 casts Lockdown Field [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Lockdown Field
+  ability: Lockdown Field — lockdown-field-cast (onPlay)
+  Lockdown Field applies Stasis to Cortex Engineer
+  Lockdown Field applies Stasis to Firewall Sentinel
+  Lockdown Field applies Stasis to Watchtower Relay
+  Plating Module attaches to Prime Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Diagnostic Loop
+--- Turn 14 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Recursive Construct (u29)
+p2 plays Diagnostic Loop (u30)
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Prime Aegis (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Aegis Cadet
+--- Turn 15 (p1) ---
+Prime Aegis attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Prime Aegis (unit)
+p1 plays Aegis Cadet (u35)
+  Aegis Cadet evolves into Aegis Sentinel
+  ability: Aegis Sentinel — aegis-sentinel-evolve (onPlay)
+  p1 gains 1 energy from Aegis Sentinel
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Firewall Sentinel
+--- Turn 16 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Prime Aegis (unit)
+Cortex Engineer attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Random-Aegis
+Firewall Sentinel attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Random-Aegis
+Watchtower Relay attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Random-Aegis
+Recursive Construct attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 5 damage to Random-Aegis
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+--- Summary ---
+Winner: p2
+Turns played: 16
+Moves applied: 149
+Final health — p1 (Random-Aegis): 0, p2 (Aggressive-Cortex): 20
+p1 board size: 2, p2 board size: 5
+p1 graveyard: 6, p2 graveyard: 5
+Board-development events — telegraphed: 1 (armed: 1), evolutions: 1, tools attached: 1

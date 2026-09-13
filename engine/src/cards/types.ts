@@ -11,7 +11,7 @@ export type Faction = "Cortex" | "Aegis" | "Swarm" | "Null";
 
 export type Rarity = "Common" | "Uncommon" | "Rare" | "Mythic";
 
-export type CardType = "Unit" | "Command" | "Directive";
+export type CardType = "Unit" | "Command" | "Directive" | "Tool";
 
 /** When a Command or an activated ability may be played/activated.
  * "Sorcery" = only during the active player's own priority window with an
@@ -185,6 +185,27 @@ export interface UnitCard extends CardBase {
   attack: number;
   health: number;
   keywords: Keyword[];
+  /** Board-development system (owner design-directive batch, 2026-09-12):
+   * the id of the Unit card this one evolves from. Playing this card
+   * requires an *active* (non-pending) unit with that exact card id
+   * already on the controller's board — see getLegalMoves' evolution
+   * targeting and engine.ts's evolveUnit. The requirement is strict
+   * (exact card id, not "any lower tier") for this first implementation;
+   * a looser requirement is an open question left for a future checkpoint.
+   * Evolving mutates the existing board unit in place (same instanceId,
+   * same accumulated damage/buffs/statuses/attached tools) rather than
+   * replacing it, so it never costs an extra board slot. */
+  evolvesFrom?: string;
+  /** Board-development system: a telegraphed threat. When played, this
+   * unit occupies a board slot face-up immediately (fully visible, a
+   * legal removal target) but is "pending" — it cannot attack, cannot
+   * activate abilities, contributes no static aura, and its onPlay
+   * ability does not fire yet. It "arms" (pending clears, onPlay fires)
+   * at the start of its controller's turn `telegraph` of their own turns
+   * later — see engine.ts's computeArmTurn/processTelegraphArming. This
+   * gives the opponent a real window, visible on the board, to answer it
+   * before its impact lands. */
+  telegraph?: number;
 }
 
 export interface CommandCard extends CardBase {
@@ -198,4 +219,17 @@ export interface DirectiveCard extends CardBase {
   type: "Directive";
 }
 
-export type Card = UnitCard | CommandCard | DirectiveCard;
+/** Board-development system: a Tool attaches to a friendly unit already in
+ * play (chosen as the playCard move's target) rather than occupying a
+ * board slot of its own — it amplifies an existing occupant instead of
+ * competing with it for space. Deliberately simple for this first
+ * implementation: a flat stat bonus plus optionally-granted keywords, no
+ * independent ability timeline. See UnitInstance.tools. */
+export interface ToolCard extends CardBase {
+  type: "Tool";
+  attackBonus: number;
+  healthBonus: number;
+  grantedKeywords: Keyword[];
+}
+
+export type Card = UnitCard | CommandCard | DirectiveCard | ToolCard;

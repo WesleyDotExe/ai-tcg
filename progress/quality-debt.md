@@ -1,9 +1,84 @@
 # Quality debt (honest, specific — read before adding anything new)
 
 Written at the end of session 1, updated at the end of the stage-1 redo
-session (priority/reactivity rebuild) and again at the end of the stage-2
-(agent interface) session. This is not "no debt, all good" — the product
-is real and the evidence is real, but here is where it's thin.
+session (priority/reactivity rebuild), the stage-2 (agent interface)
+session, and now the stage-3 (real card set / board-development system)
+session. This is not "no debt, all good" — the product is real and the
+evidence is real, but here is where it's thin.
+
+## New debt from stage 3 (board-development system / Aegis card set)
+
+- **Verification is still all hand-written demo scripts, no real test
+  runner.** This was already named as debt at the end of stage 2
+  ("should graduate to real automated tests soon, certainly before stage
+  3's larger card pool makes manual verification impractical") and this
+  session added a third mechanism-proving script (`aegisMatchDemo.ts`) on
+  top of `effectSystemDemo.ts` and `cli.ts` instead of fixing it. There is
+  still no `vitest`/etc., no CI, and no regression protection — a future
+  change could silently break scenario 9 while adding scenario 20 and
+  nobody would notice without a full manual re-run. This is the single
+  most overdue item in this file; the next session should treat it as the
+  default next move unless there's a stronger reason not to (see
+  `progress/current.md`).
+- **Evolution strict-vs-loose was decided unilaterally for this first
+  implementation**, even though `owner-feedback.md`'s design-directive
+  batch explicitly named it an open question to propose, not resolve.
+  Only strict (exact base card id) is built; a looser tier-based
+  requirement would need real schema work (a tier number rather than a
+  specific id) if the owner prefers it. Flagged at the new checkpoint.
+- **Nothing stops evolving a unit the same turn it was played.** Observed
+  as a real emergent line in `sample-match-004-boarddev.txt` (an Aegis
+  Cadet played and evolved into an Aegis Sentinel in one turn). This may
+  be exactly the intended tension ("commit big in one turn") or it may
+  undercut the "answer it early while it's weak" drama the directive
+  described, since the base is never actually exposed on the board for an
+  opponent to react to in that line. Not fixed because it's a genuine
+  design call, not a bug — flagged for the owner rather than decided.
+- **Telegraphed units keep full stats and are fully targetable while
+  pending, but their `onDamaged`/`onDeath` triggers still fire normally if
+  killed while dormant.** A pending unit is meant to be "not yet really
+  here," but if a card ever wants "this ability shouldn't fire while
+  dormant" (e.g. an onDeath draw effect), there's no gate for that —
+  every ability except the deferred `onPlay` behaves as if the unit were
+  fully active. No current Aegis card exposes this gap (none of the
+  telegraphed units have onDamaged/onDeath abilities), so it's untested
+  and unresolved rather than incorrect-and-shipped.
+- **Tool cards have no ability timeline of their own** — only a flat stat
+  bonus and granted keywords (`ToolCard.attackBonus`/`healthBonus`/
+  `grantedKeywords`). A Tool that wants an onPlay-style "when attached,
+  also do X" effect, or a triggered ability of its own once attached,
+  needs new schema work; this was a deliberate scope cut for the first
+  implementation, not an oversight, but it does mean Tools are mechanically
+  the shallowest of the three new card types.
+- **The evolution/Tool structural target and a card's own "chosen"
+  ability-target share nothing** — `playCard`'s single `target` field is
+  used for the evolution base / Tool host, so no evolution or Tool card in
+  this set can *also* have an onPlay effect that needs a separately-chosen
+  target (e.g. "when this evolves in, deal damage to target enemy unit").
+  Every Aegis evolution/Tool onPlay effect was deliberately written as
+  untargeted or self-targeting to avoid this gap. Extending `Move`/
+  `playCard` to carry two independent target refs is the real fix, not
+  attempted this session.
+- **`BOARD_SLOTS` (6, shared between Units and Directives) and `telegraph`
+  timing (1 controller-turn) are first proposals, not playtested
+  numbers.** The 300-game stress run (see `progress/current.md`) confirms
+  they don't break pacing (mean ~17 turns, well under the 40-turn cap,
+  consistent with pre-stage-3 numbers) but says nothing about whether 6
+  slots feels right strategically — that needs real play, not a stress
+  run of two dummy agents.
+- **Aegis (14 unique cards) is a real faction, not yet a rich one.** It
+  covers the new system plus baseline variety, but has less internal
+  depth than Cortex (14 unique, but built to prove every effect-system
+  category individually) or genre norms for "a set." No archetype-level
+  soft-counter relationship between Aegis and Cortex/Swarm has been
+  designed or measured yet (design principle 3) — three factions now
+  exist, which is the minimum for a real rock-paper-scissors triangle, but
+  nobody has checked whether one actually forms.
+- **Cortex and Swarm don't use telegraph/evolution/tools.** Deliberate
+  scoping for this session (see `progress/current.md`), not an oversight,
+  but it means the new system is currently Aegis-exclusive rather than a
+  cross-faction mechanic, which is a real gap if a future session wants to
+  build cross-faction evolution chains or Tool cards usable by any faction.
 
 ## New debt from stage 2 (agent interface / network protocol)
 
