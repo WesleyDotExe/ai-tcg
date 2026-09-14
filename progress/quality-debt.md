@@ -3,11 +3,67 @@
 Written at the end of session 1, updated at the end of the stage-1 redo
 session (priority/reactivity rebuild), the stage-2 (agent interface)
 session, the stage-3 (real card set / board-development system) session,
-and now the session-5 hardening pass (checkpoint feedback + automated test
-runner). This is not "no debt, all good" — the product is real and the
-evidence is real, but here is where it's thin.
+the session-5 hardening pass (checkpoint feedback + automated test runner),
+and now session 6 (backfilling Cortex/Swarm with board-development cards).
+This is not "no debt, all good" — the product is real and the evidence is
+real, but here is where it's thin.
 
-## Resolved this session (session 5, hardening pass)
+## Resolved this session (session 6)
+
+- **"Cortex and Swarm don't use telegraph/evolution/tools" — resolved,
+  with a caveat.** Both factions now have one evolution line, one
+  telegraph card, and one Tool card each (`engine/src/data/cards.ts`),
+  proven live in `progress/sample-match-006-backfill.txt` and covered by
+  `engine/test/boardDevelopmentBackfill.test.ts`. The caveat: this proves
+  the system is genuinely cross-faction, not that Cortex/Swarm now match
+  Aegis's *density* of board-development cards (Aegis has two telegraphed
+  units and three Tools each) — see "New debt from session 6" below.
+- **Stale "No CI wiring" claim in the Testing section, below — fixed.**
+  Session 5 added `.github/workflows/test.yml` but the debt file was never
+  updated to say so, leaving a self-contradicting claim next to
+  `progress/current.md`/`progress/log.md`'s session-5 entries, which
+  correctly described the workflow as already existing. Confirmed the
+  workflow file is real (it runs `npm run typecheck --workspaces
+  --if-present` and `npm test` on every push/PR against `main`) before
+  correcting the claim.
+
+## New debt from session 6
+
+- **Cortex's deck is now exactly at the enforced 40-card ceiling**
+  (`decks.ts`'s `MAX_DECK_SIZE`). Any further Cortex card needs either a
+  cut elsewhere in the pool or that constant (itself an untuned first
+  proposal from session 4) to move — a real constraint on the "raise
+  Cortex/Swarm's board-development density toward Aegis's" option named as
+  a next step.
+- **Cortex/Swarm board-development density is well below Aegis's.** One
+  evolution line / one telegraph / one Tool each, versus Aegis's one
+  evolution line (3 cards deep: Cadet→Sentinel→Warden), two telegraphs, and
+  three Tools. The mechanic is proven cross-faction now; it is not yet
+  *rich* cross-faction. Not a hidden gap — named as the leading option for
+  the next session's own next-step note.
+- **Molted Stalker evolving from Swarm Larva gives that card two
+  competing roles** (a disposable 1-drop played 3x, and evolution fodder a
+  deck might want to hold back instead) with zero playtesting or agent
+  heuristic awareness of the tension — `RandomAgent`/`AggressiveAgent` have
+  no concept of "hold this back to evolve later," so nothing in current
+  play actually exercises that decision meaningfully; it's only provable
+  mechanically (the whitebox test), not yet observed as a real strategic
+  choice in unscripted play.
+- **Dormant Exploit's 2-turn Stasis duration and Overclock Shunt's Rush
+  grant are both first-guess numbers/interactions, not playtested.** In
+  particular, Tool-granted Rush is a new *kind* of interaction (a Tool
+  changing legal-move generation, not just live stats/combat) — mechanically
+  correct and tested, but its power level (a 1-cost tool turning any unit
+  into a same-turn attacker) hasn't been weighed against the rest of the
+  Cortex curve.
+- **No archetype-level soft-counter analysis exists between the three
+  factions** (Cortex/Aegis/Swarm), despite three factions having existed
+  since session 4 — design principle 3 names this explicitly and nothing
+  has measured or designed for it yet. Not this session's scope, but it's
+  aging: every session that adds card-set width without touching this makes
+  a future balance pass larger.
+
+## Resolved in session 5 (hardening pass)
 
 - **"No real test runner" — fixed.** `vitest` is now wired up
   (`engine/test/`, `npm test`), replacing `effectSystemDemo.ts` (deleted)
@@ -103,11 +159,11 @@ evidence is real, but here is where it's thin.
   designed or measured yet (design principle 3) — three factions now
   exist, which is the minimum for a real rock-paper-scissors triangle, but
   nobody has checked whether one actually forms.
-- **Cortex and Swarm don't use telegraph/evolution/tools.** Deliberate
-  scoping for this session (see `progress/current.md`), not an oversight,
-  but it means the new system is currently Aegis-exclusive rather than a
-  cross-faction mechanic, which is a real gap if a future session wants to
-  build cross-faction evolution chains or Tool cards usable by any faction.
+- **Cortex and Swarm don't use telegraph/evolution/tools — RESOLVED,
+  session 6.** See this file's "Resolved this session (session 6)" section
+  at the top and `progress/current.md`. Left here, struck through in
+  spirit rather than deleted, so the historical record of what stage 3
+  actually shipped stays intact.
 
 ## New debt from stage 2 (agent interface / network protocol)
 
@@ -272,14 +328,16 @@ evidence is real, but here is where it's thin.
 - **Updated, session 5:** there is now a real automated test runner
   (`vitest`, `engine/test/`, 20 tests, `npm test`) — the rest of this
   entry is what's still missing, not a restatement of the old "no runner
-  at all" gap. `cli.ts` and `aegisMatchDemo.ts` remain manual/eyeballed
-  real-match evidence generators (that's their job — narrated human-
-  readable logs, not assertions), not a substitute for the assertion
-  suite anymore.
-- **No CI wiring.** `npm test` has to be run by hand each session; nothing
-  runs it automatically on push/PR. Genuine remaining gap — `vitest`
-  existing doesn't by itself catch a regression nobody chose to run it
-  against.
+  at all" gap. `cli.ts` and `aegisMatchDemo.ts`/`backfillMatchDemo.ts`
+  remain manual/eyeballed real-match evidence generators (that's their
+  job — narrated human-readable logs, not assertions), not a substitute
+  for the assertion suite anymore.
+- **CI wiring — fixed, session 5** (`.github/workflows/test.yml`, added
+  same session as the test runner itself; this line previously and
+  incorrectly still said "no CI wiring" — corrected in session 6 after
+  confirming the workflow file is real). `npm run typecheck --workspaces
+  --if-present` and `npm test` now run on every push/PR against `main`,
+  and `auto-merge.yml` waits on it by name.
 - **`server`/`protocol`/`agents` have zero automated tests** (see this
   session's new debt section above) — only `engine` was covered.
 - Untested paths I know of: simultaneous lethal (both players' health

@@ -13,7 +13,7 @@
 // give the dummy agents a real game to play. Original names/flavour only;
 // no reproduction of existing TCGs' keywords-as-text or card identities.
 
-import type { UnitCard, CommandCard, DirectiveCard } from "../cards/types.js";
+import type { UnitCard, CommandCard, DirectiveCard, ToolCard } from "../cards/types.js";
 
 export const signalDrone: UnitCard = {
   id: "CX-001",
@@ -318,7 +318,101 @@ export const interruptHandler: CommandCard = {
   ],
 };
 
-export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard; copies: number }[] = [
+// --- Board-development system backfill (stage-3 debt: the system was
+// Aegis-exclusive; see progress/quality-debt.md's "Cortex and Swarm don't
+// use telegraph/evolution/tools" entry) -------------------------------------
+//
+// An evolution line, a telegraphed threat, and a Tool card, each written to
+// fit Cortex's networked-intelligence/process-compilation identity and to
+// exercise a combination the Aegis set didn't: Compiled Daemon's evolve
+// effect is damage rather than energy/heal (Aegis's two evolve effects), and
+// Dormant Exploit's arm-time effect applies Stasis rather than damage or
+// Barrier (Aegis's two telegraph effects) — a telegraph-triggered status
+// application, not a new pattern reused from Aegis. Overclock Shunt grants
+// Rush via a Tool, a genuinely new interaction: no existing Tool card grants
+// a keyword that changes attack-legality (Guard/Barrier don't), so this is
+// the first tool-granted-keyword path that actually changes what a unit can
+// do on the turn it's attached, not just how attacks resolve against it.
+
+export const initDaemon: UnitCard = {
+  id: "CX-015",
+  name: "Init Daemon",
+  faction: "Cortex",
+  rarity: "Common",
+  cost: 1,
+  type: "Unit",
+  attack: 1,
+  health: 2,
+  keywords: [],
+  art: "placeholder:cortex/init-daemon",
+  flavor: "Runs once, quietly, waiting for something worth compiling into.",
+  abilities: [],
+};
+
+export const compiledDaemon: UnitCard = {
+  id: "CX-016",
+  name: "Compiled Daemon",
+  faction: "Cortex",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Unit",
+  attack: 3,
+  health: 3,
+  keywords: [],
+  evolvesFrom: "CX-015",
+  art: "placeholder:cortex/compiled-daemon",
+  flavor: "Every optimization pass it survived is still in the binary.",
+  abilities: [
+    {
+      id: "compiled-daemon-evolve",
+      trigger: "onPlay",
+      text: "When this evolves in, deal 2 damage to a random enemy unit.",
+      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+      effects: [{ kind: "damage", amount: { mode: "flat", value: 2 } }],
+    },
+  ],
+};
+
+export const dormantExploit: UnitCard = {
+  id: "CX-017",
+  name: "Dormant Exploit",
+  faction: "Cortex",
+  rarity: "Rare",
+  cost: 2,
+  type: "Unit",
+  attack: 1,
+  health: 3,
+  keywords: [],
+  telegraph: 1,
+  art: "placeholder:cortex/dormant-exploit",
+  flavor: "Sits in the logs, unpatched, until the day it finally executes.",
+  abilities: [
+    {
+      id: "dormant-exploit-arm",
+      trigger: "onPlay",
+      text: "When this arms, stun a random enemy unit for 2 turns.",
+      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+      effects: [{ kind: "applyStatus", status: "Stasis", duration: 2 }],
+    },
+  ],
+};
+
+export const overclockShunt: ToolCard = {
+  id: "CX-018",
+  name: "Overclock Shunt",
+  faction: "Cortex",
+  rarity: "Uncommon",
+  cost: 1,
+  type: "Tool",
+  attackBonus: 1,
+  healthBonus: 0,
+  grantedKeywords: ["Rush"],
+  art: "placeholder:cortex/overclock-shunt",
+  flavor: "Skips the warm-up cycle. Runs hot from the first tick.",
+  abilities: [],
+};
+
+export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: signalDrone, copies: 3 },
   { card: firewallSentinel, copies: 3 },
   { card: recursiveConstruct, copies: 2 },
@@ -333,6 +427,10 @@ export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard; copie
   { card: diagnosticLoop, copies: 2 },
   { card: retaliationNode, copies: 1 },
   { card: interruptHandler, copies: 3 },
+  { card: initDaemon, copies: 2 },
+  { card: compiledDaemon, copies: 2 },
+  { card: dormantExploit, copies: 2 },
+  { card: overclockShunt, copies: 2 },
 ];
 
 // --- Swarm faction ---------------------------------------------------------
@@ -537,7 +635,81 @@ export const reflexSpike: CommandCard = {
   ],
 };
 
-export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard; copies: number }[] = [
+// --- Board-development system backfill (same debt as Cortex, above) --------
+//
+// Molted Stalker deliberately evolves from Swarm Larva (SW-001), an
+// existing stage-1 card, rather than a new purpose-built base — proving the
+// system works retroactively on a card that was never designed with
+// evolution in mind, not just on bases built for it (Aegis Cadet). Its
+// evolve effect (draw a card) is a third distinct evolve payload, next to
+// Aegis's energy-gain/heal+Barrier and Cortex's damage above. Dormant Egg
+// Sac reuses the damage-on-arm shape (like Perimeter Turret) scaled to
+// Swarm's more aggressive stat line, rather than inventing a fourth telegraph
+// payload where a straightforward one already fits the faction's identity.
+
+export const dormantEggSac: UnitCard = {
+  id: "SW-010",
+  name: "Dormant Egg Sac",
+  faction: "Swarm",
+  rarity: "Rare",
+  cost: 2,
+  type: "Unit",
+  attack: 0,
+  health: 4,
+  keywords: [],
+  telegraph: 1,
+  art: "placeholder:swarm/dormant-egg-sac",
+  flavor: "Doesn't move. Doesn't need to, yet.",
+  abilities: [
+    {
+      id: "dormant-egg-sac-hatch",
+      trigger: "onPlay",
+      text: "When this hatches, deal 3 damage to a random enemy unit.",
+      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+      effects: [{ kind: "damage", amount: { mode: "flat", value: 3 } }],
+    },
+  ],
+};
+
+export const moltedStalker: UnitCard = {
+  id: "SW-011",
+  name: "Molted Stalker",
+  faction: "Swarm",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Unit",
+  attack: 4,
+  health: 3,
+  keywords: [],
+  evolvesFrom: "SW-001",
+  art: "placeholder:swarm/molted-stalker",
+  flavor: "Sheds the shell it grew too big for and keeps every tooth from it.",
+  abilities: [
+    {
+      id: "molted-stalker-evolve",
+      trigger: "onPlay",
+      text: "When this evolves in, draw a card.",
+      effects: [{ kind: "drawCard", count: 1 }],
+    },
+  ],
+};
+
+export const chitinPlating: ToolCard = {
+  id: "SW-012",
+  name: "Chitin Plating",
+  faction: "Swarm",
+  rarity: "Common",
+  cost: 1,
+  type: "Tool",
+  attackBonus: 0,
+  healthBonus: 3,
+  grantedKeywords: [],
+  art: "placeholder:swarm/chitin-plating",
+  flavor: "Grown, not built. Just as hard to get through.",
+  abilities: [],
+};
+
+export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: swarmLarva, copies: 3 },
   { card: broodcaller, copies: 3 },
   { card: rallyCry, copies: 2 },
@@ -547,4 +719,7 @@ export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard; copies
   { card: sporeCluster, copies: 3 },
   { card: barrierNode, copies: 3 },
   { card: reflexSpike, copies: 3 },
+  { card: dormantEggSac, copies: 2 },
+  { card: moltedStalker, copies: 2 },
+  { card: chitinPlating, copies: 3 },
 ];

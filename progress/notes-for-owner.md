@@ -1,5 +1,16 @@
 # Notes for the owner
 
+Nothing is blocking right now (updated 2026-09-14, session 6). Backfilling
+Cortex and Swarm with one telegraph/evolution/Tool card each (closing the
+"board-development system is Aegis-only" gap) didn't need any decision,
+asset, or credential only the owner can provide — see the new session in
+`progress/log.md` and `progress/current.md` for what shipped and what's
+flagged as an overrulable judgment call (mainly: Cortex/Swarm got matching
+*variety*, not matching *density*, with Aegis; and Cortex's deck now sits
+exactly at the enforced 40-card ceiling). Feel free to weigh in via
+`progress/owner-feedback.md`; if not, the project proceeds on the choices
+made.
+
 Nothing is blocking right now (updated 2026-09-14, hardening-pass session).
 The telegraph delay=2 trial (Latent Ward) this session asked for is
 mechanically in place and fires correctly in real play, but "compare how

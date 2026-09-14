@@ -1,115 +1,129 @@
 # Current status
 
-**Build-order stage: 3 (A real card set) — still current.** This session
-was a scheduled HARDENING pass (session 5 — see TASKS.md's every-5th-session
-rule), not a new stage. It answered the owner's 2026-09-13 stage-3
-checkpoint feedback in full: a rule fix (no more same-turn play-and-evolve),
-a per-card telegraph-timing trial, energy-model documentation, and —
-the main deliverable — a real automated test runner, replacing the
-hand-written demo-script verification that `quality-debt.md` had flagged
-as overdue across three prior sessions.
+**Build-order stage: 3 (A real card set) — still current.** Session 6, a
+normal (non-hardening) session — it picked option 1 from session 5's
+concrete-next-step note: backfill Cortex and Swarm with the board-development
+system (telegraph, evolution, Tool cards) that stage 3 had built but left
+Aegis-exclusive. `progress/owner-feedback.md` had no new unhandled entries
+this session (the last entry was already marked HANDLED by session 5).
 
-## What stands (changes from this session; stage-3 content otherwise
-## unchanged — see the prior entry in `progress/log.md` for that)
+## What stands (changes from this session; everything from sessions 1-5
+## otherwise unchanged — see prior `progress/log.md` entries for that)
 
-- **`engine/src/engine/moves.ts`** — evolution targeting now requires
-  `u.enteredTurn < state.turnNumber`: a base must have survived to a turn
-  later than the one it was played on before it's a legal evolve target.
-  Closes the same-turn "commit hard" line the owner overruled.
-- **`engine/src/data/aegisCards.ts`** — `Latent Ward`'s `telegraph` is now
-  2 (was 1); `Perimeter Turret` stays at 1 — a real per-card mix, per the
-  owner's request to try a longer fuse on some telegraph cards.
-- **`DESIGN.md`** — new `## Resource model — energy (as built)` section,
-  directly answering the owner's stage-3-checkpoint question about how the
-  energy pool works (one collective pool per player, escalates and fully
-  refills only on your own turn, no carryover, undifferentiated by speed).
-- **`engine/test/`** (new) — the automated test runner. `vitest` is now an
-  `engine` devDependency; `npm test` (repo root or `engine/`) runs it.
-  - `helpers.ts` — shared whitebox setup (`emptyState`, `putUnit`,
-    `drainStack`), factored out of the old demo script.
-  - `effectSystem.test.ts` — 12 tests: every mechanic category DESIGN.md's
-    "no shortcuts" section names (keywords, triggered, activated, static,
-    AOE, conditional, state-mutating stats, cross-card cascade), plus the
-    priority/stack algorithm (LIFO resolution, a real cross-turn
-    instant-speed response, an instant-speed combat trick).
-  - `boardDevelopment.test.ts` — 5 tests: telegraph dormancy+arming,
-    evolution carry-forward, **the new same-turn-evolve restriction**
-    (regression test for this session's rule fix), Tool attach (stat bonus
-    + granted keyword + Barrier-grant), and the board-slot cap.
-  - `matchSmoke.test.ts` — 3 tests: 15 seeds × 3 faction matchups
-    (Cortex/Swarm/Aegis, all pairings), each asserting the match resolves
-    to a winner/draw at or under the turn cap and never hits the engine's
-    runaway-loop safety valve. Alternates which side plays Random vs
-    Aggressive across seeds. This is the automated, always-run replacement
-    for the 300-game manual stress run Session 4 described but never
-    committed as a script.
-  - `engine/src/dev/effectSystemDemo.ts` **retired** — its 16 scenarios are
-    now the vitest tests above, individually reported instead of a
-    printout. `engine/src/dev/aegisMatchDemo.ts` (real played-match
-    evidence generator, not an assertion script) is unchanged and still
-    the tool for that kind of evidence.
-- **`.github/workflows/test.yml`** (new) — runs `npm run typecheck
-  --workspaces --if-present` and `npm test` on every push/PR against
-  `main`. Without this, the existing `auto-merge.yml` (which waits for any
-  check whose name contains "test"/"build"/"deploy" before merging) had
-  nothing to actually wait on — the new vitest suite provided no real
-  protection against a regression being auto-merged until this existed.
-  Named `test` so `auto-merge.yml`'s substring match picks it up.
-- **`progress/sample-match-005-boarddev-fixed.txt`** (new) — a fresh real
-  match log (seed 4 of 500 searched, via the unchanged `aegisMatchDemo.ts`)
-  regenerated with the same-turn-evolve fix in place: the evolved Aegis
-  Cadet instance was played two turns before it evolves, while a
-  same-turn, same-named Cadet instance that died in combat was correctly
-  never offered as an evolve target. Also exercises both telegraph delays
-  (1 and 2) in the same game. `progress/sample-match-004-boarddev.txt`
-  (the original stage-3 evidence, which happens to show the now-illegal
-  same-turn line) is annotated, not edited, to keep the historical record
-  honest about what stage 3 actually shipped at the time.
+- **`engine/src/data/cards.ts`** — four new Cortex cards and three new
+  Swarm cards, each exercising a mechanic combination the Aegis set didn't:
+  - **Cortex evolution line:** Init Daemon (CX-015, 1/2 vanilla) evolves
+    into Compiled Daemon (CX-016, 3/3, evolve-in deals 2 damage to a random
+    enemy — a damage evolve payoff, next to Aegis's energy-gain/heal+Barrier
+    ones).
+  - **Cortex telegraph:** Dormant Exploit (CX-017, 1/3, telegraph 1) arms
+    into a 2-turn Stasis stun on a random enemy — a telegraph arm effect
+    that applies a *status*, not damage (Perimeter Turret) or Barrier
+    (Latent Ward).
+  - **Cortex Tool:** Overclock Shunt (CX-018, +1/+0, grants Rush) — the
+    first Tool-granted keyword that changes what a unit can legally *do*
+    (attack the turn it's played) rather than just how attacks resolve
+    against it (Guard/Barrier).
+  - **Swarm evolution line:** Molted Stalker (SW-011, 4/3, evolve-in draws a
+    card) evolves from **Swarm Larva (SW-001)**, an existing stage-1 card
+    never designed with evolution in mind — proving the system retrofits
+    onto old cards, not just purpose-built bases.
+  - **Swarm telegraph:** Dormant Egg Sac (SW-010, 0/4, telegraph 1) arms
+    into 3 damage to a random enemy (the same shape as Perimeter Turret,
+    scaled up — a deliberate reuse where a straightforward effect already
+    fit, not every card needs a novel payload).
+  - **Swarm Tool:** Chitin Plating (SW-012, +0/+3, no keyword) — a plain
+    stat-bonus Tool, Swarm's analogue to Aegis's Plating Module.
+  - Deck totals: Cortex 32 → 40 cards, Swarm 23 → 30 cards — both still
+    inside `decks.ts`'s enforced [20, 40] range (Cortex now sits exactly at
+    the ceiling; re-check this range if a future session wants to add more
+    Cortex cards).
+- **`engine/test/boardDevelopmentBackfill.test.ts`** (new, 5 tests) —
+  whitebox tests for all six new cards' mechanics: Compiled Daemon's
+  evolve-in damage, Dormant Exploit's telegraph-then-Stasis, Overclock
+  Shunt's Rush grant actually letting a same-turn unit attack (not just
+  flipping the keyword flag), Molted Stalker evolving from the pre-existing
+  Swarm Larva and drawing a card, and Dormant Egg Sac's telegraph damage +
+  Chitin Plating's stat bonus. `matchSmoke.test.ts` (unchanged) already
+  covers the enlarged decks for free, since it builds decks from
+  `CORTEX_CARDS`/`SWARM_CARDS` directly.
+- **`engine/src/dev/backfillMatchDemo.ts`** (new) — searches real
+  Cortex-vs-Swarm games (same approach as `aegisMatchDemo.ts`) for one where
+  **both** sides' new telegraph/evolve/tool cards fire in the same
+  unscripted game. Found on **seed 8** (of up to 3000 searched — hit on the
+  first handful, not a long tail). Committed as
+  `progress/sample-match-006-backfill.txt`.
+- **`progress/quality-debt.md`** — marked the "Cortex and Swarm don't use
+  telegraph/evolution/tools" stage-3 debt item resolved (with the caveat
+  below), fixed a stale claim in the Testing section ("no CI wiring" — the
+  CI workflow was actually added in session 5; the debt file just never got
+  updated to say so), and logged this session's new debt.
 
 ## Evidence committed
 
-- `npm test`: **20/20 vitest tests pass** (~650ms).
-- `npx tsc --noEmit` clean in all four packages after every change.
-- `progress/sample-match-005-boarddev-fixed.txt` — see above.
-- Manual trace confirming the evolve-restriction regression test actually
-  exercises the fix (verified against the pre-fix code path during
-  development, not just that the post-fix test happens to pass).
+- `npm test`: **25/25 vitest tests pass** (20 pre-existing + 5 new), ~1s.
+- `npx tsc --noEmit` clean in all four packages (`engine`, `protocol`,
+  `server`, `agents`).
+- `progress/sample-match-006-backfill.txt` — a real, unscripted
+  Cortex-vs-Swarm match (seed 8) where Dormant Exploit and Dormant Egg Sac
+  both telegraph and arm, Compiled Daemon and Molted Stalker both evolve in,
+  and Overclock Shunt and Chitin Plating both attach — all six new-card
+  mechanics firing on both sides in one game. The match ran to the 41-turn
+  cap (health tiebreak) rather than a typical ~16-turn resolution; see the
+  pacing check below for why that's not treated as a regression.
+- **Pacing re-check after enlarging the decks** (Cortex 32→40 cards, Swarm
+  23→30): ran a 200-seed, throwaway (not committed) Cortex-vs-Swarm stress
+  script after the change. Mean 16.3 turns, median 15, only 1/200 (0.5%)
+  reached the turn cap — consistent with the pre-backfill ~16-17 turn mean
+  reported since session 1. Enlarging the decks by ~25% did not
+  meaningfully shift pacing; the one demo-log game that did hit the cap is
+  within that same ~0.5% baseline rate, not a sign the backfill slowed
+  games down.
 
 ## Decisions made this session the owner might want to overrule
 
-- Same-turn evolve restriction is implemented as a strict turn-boundary
-  check (`enteredTurn < turnNumber`), with no Rush-style keyword to bypass
-  it (unlike attacking). If a future card wants a "can evolve immediately"
-  exception, that would need a new keyword or a per-card flag — not built,
-  since nothing asked for it yet.
-- Telegraph delay=2 was tried on `Latent Ward` specifically (the bigger,
-  board-wide-Barrier payoff of the two telegraphed Aegis units) rather
-  than an arbitrary pick — a judgment call, not a coin flip, but still a
-  first trial with no real playtesting behind the choice of *which* card.
-- The old `effectSystemDemo.ts` was deleted outright rather than kept
-  alongside the new vitest tests — judged that keeping both would create
-  exactly the "two places to update" duplication-debt the test-runner
-  request was trying to eliminate. If the owner specifically wants a
-  human-readable narrated run (distinct from `npm test`'s pass/fail
-  output) preserved as its own thing, that's recoverable from git history.
-- `matchSmoke.test.ts` uses 15 seeds per matchup (45 total games) rather
-  than the 300 games Session 4 ran manually, traded off for keeping
-  `npm test` fast enough to run on every change rather than being its own
-  separate slow step nobody runs. If deeper stress coverage is wanted, it
-  should probably be a separate, explicitly-invoked script rather than
-  folded into the default test run.
+- **Cortex and Swarm each got exactly one evolution line, one telegraph
+  card, and one Tool** — matching variety, not matching Aegis's *volume*
+  (Aegis has two telegraphed units and three Tools). This was a deliberate
+  "prove the system is cross-faction" scope, not a "give every faction
+  equal depth" one; if the owner wants Cortex/Swarm brought up to Aegis's
+  level of board-development density, that's a further, larger backfill.
+- **Molted Stalker evolves from Swarm Larva**, an existing stage-1 vanilla
+  card already played as a generic 1-drop in 3 copies, rather than a new
+  dedicated base card (the Aegis Cadet pattern). This was a deliberate
+  choice to prove the system retrofits onto pre-existing cards, but it
+  means Swarm Larva now has two roles (disposable 1-drop, evolution fodder)
+  that a deck-builder has to weigh against each other — untested as a real
+  deck-building tension, just noted as intentional.
+- **Cortex's deck is now exactly at the 40-card ceiling.** Any future
+  Cortex addition needs either a cut elsewhere in the pool or the
+  `MAX_DECK_SIZE` constant (currently 40, itself a first proposal per
+  session 4) to move.
+- **Dormant Exploit's arm effect is a 2-turn Stasis stun**, not the
+  1-turn duration Corrosive Spitter's onAttack stun uses elsewhere in the
+  Cortex pool — chosen so the telegraph payoff (something you had to see
+  coming and could have answered) reads as meaningfully bigger than a cheap
+  incidental stun, not because 2 turns is a tuned number.
 
 ## Concrete next step
 
-The owner-feedback entry this session answers is now fully HANDLED.
-Per Session 4's own next-step note (still valid, un-acted-on), the next
-non-hardening session should pick between:
-1. **Backfill Cortex and/or Swarm** with a few telegraph/evolution/tool
-   cards so the board-development system isn't Aegis-exclusive.
-2. **Continue stage-3 width/depth** — a fourth faction, or a second
-   evolution line / more telegraph-tool interactions within Aegis.
+No unhandled owner feedback remains. Legitimate options for the next
+session, per the same reasoning as session 5's note:
+1. **Bring Cortex/Swarm's board-development density up toward Aegis's**
+   (more telegraph/evolution/tool cards per faction) — now blocked by
+   Cortex's deck sitting at the 40-card ceiling unless something is cut or
+   `MAX_DECK_SIZE` is revisited.
+2. **A fourth faction** (Null is reserved in the `Faction` type but unused).
+3. **Start measuring design principle 3** (archetype-level soft counters) —
+   three factions have existed since session 4 with zero balance/counter
+   analysis done between them; this is genuine debt, not urgent, but it's
+   the kind of thing that gets harder to fix the more card-set width piles
+   up without it.
+4. **Non-engine testing debt** — `server`/`protocol`/`agents` still have
+   zero automated tests (named since session 3); the vitest infrastructure
+   now exists and extending it to those packages is comparatively cheap.
 
-Either is legitimate; both should now come with real vitest coverage for
-any new mechanic, not a new hand-written demo script — the infrastructure
-exists, use it. Stage 4 (match server hardening) stays blocked until a
-richer economy needs it, per DESIGN.md's build order.
+Any of these is legitimate; whichever is picked, new mechanics should keep
+getting real vitest coverage (as this session did), not a new demo script.
+Stage 4 (match server hardening) stays correctly blocked until a richer
+economy needs it.
