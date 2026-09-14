@@ -1,0 +1,1037 @@
+[Regenerated 2026-09-14 after the owner's 2026-09-13 stage-3 checkpoint
+overrule (item 4): a Unit can no longer be evolved the same turn it was
+played, it must survive to a later turn first (see
+engine/src/engine/moves.ts's evolution-targeting filter and
+engine/test/boardDevelopment.test.ts's regression test). This log's
+evolution (turn 7) targets an Aegis Cadet instance played two turns
+earlier (turn 5, instance u10) — a different same-named Cadet instance
+(u7), played the same turn, died in combat and was correctly NOT a legal
+evolve target while it was still summoning-sick. Also exercises the
+telegraph=2 trial on Latent Ward alongside Perimeter Turret's telegraph=1,
+per checkpoint item 3.]
+
+AI-TCG Stage 3 evidence — Aegis faction real match — demonstrating seed 4
+Random-Aegis (Aegis, p1) vs Aggressive-Cortex (Cortex, p2)
+Deck sizes: p1=34, p2=32
+
+--- Turn 1 (p1) ---
+p1 plays Barrier Drone (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Cortex Engineer
+--- Turn 2 (p2) ---
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Barrier Drone (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Aegis Cadet
+--- Turn 3 (p1) ---
+p1 plays Failover Custodian (u3)
+Barrier Drone attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Backup Protocol
+--- Turn 4 (p2) ---
+p2 plays Diagnostic Loop (u5)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Aegis Sentinel
+--- Turn 5 (p1) ---
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+p1 plays Aegis Cadet (u7)
+Barrier Drone attacks Diagnostic Loop
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+  Diagnostic Loop deals 1 damage to Barrier Drone (unit)
+  Barrier Drone (p1) dies
+p1 plays Barrier Drone (u9)
+p1 plays Aegis Cadet (u10)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Diagnostic Pulse
+--- Turn 6 (p2) ---
+p2 plays Watchtower Relay (u11)
+Diagnostic Loop attacks Barrier Drone
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Barrier Drone (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Diagnostic Ward
+--- Turn 7 (p1) ---
+Aegis Cadet attacks Diagnostic Loop
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Diagnostic Loop (unit)
+  Diagnostic Loop deals 1 damage to Aegis Cadet (unit)
+Barrier Drone attacks Diagnostic Loop
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+  Diagnostic Loop deals 1 damage to Barrier Drone (unit)
+Aegis Cadet attacks Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Watchtower Relay (unit)
+  Watchtower Relay deals 2 damage to Aegis Cadet (unit)
+  Aegis Cadet (p1) dies
+Failover Custodian attacks Diagnostic Loop
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Diagnostic Loop (unit)
+  Diagnostic Loop deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Aegis Cadet evolves into Aegis Sentinel
+  ability: Aegis Sentinel — aegis-sentinel-evolve (onPlay)
+  p1 gains 1 energy from Aegis Sentinel
+p1 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+p1 draws Guard Directive Chip
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Firewall Sentinel
+--- Turn 8 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Firewall Sentinel (u18)
+p2 plays Signal Drone (u19)
+Diagnostic Loop attacks Barrier Drone
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Barrier Drone (unit)
+  Barrier Drone (p1) dies
+Watchtower Relay attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Random-Aegis
+Signal Drone attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p1 draws Perimeter Turret
+--- Turn 9 (p1) ---
+  Guard Directive Chip attaches to Failover Custodian
+Aegis Sentinel attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Sentinel's attack
+  Aegis Sentinel deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Aegis Sentinel (unit)
+Failover Custodian attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Firewall Sentinel (p2) dies
+p1 plays Perimeter Turret (u25)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Fail-safe Unit
+--- Turn 10 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Cortex Engineer (u26)
+p2 casts Backup Protocol [Sorcery] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 1 health to Aggressive-Cortex
+Diagnostic Loop attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Diagnostic Loop (unit)
+  Diagnostic Loop (p2) dies
+Watchtower Relay attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Watchtower Relay (unit)
+Signal Drone attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Signal Drone (unit)
+  Signal Drone (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Latent Ward
+--- Turn 11 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Watchtower Relay (unit)
+  Watchtower Relay (p2) dies
+Perimeter Turret attacks Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Cortex Engineer (unit)
+  Cortex Engineer deals 1 damage to Perimeter Turret (unit)
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 2 damage to Aggressive-Cortex
+Aegis Sentinel attacks Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Sentinel's attack
+  Aegis Sentinel deals 3 damage to Cortex Engineer (unit)
+  Cortex Engineer deals 1 damage to Aegis Sentinel (unit)
+  Aegis Sentinel (p1) dies
+  Cortex Engineer (p2) dies
+p1 plays Latent Ward (u35)
+  Latent Ward deploys, dormant — arms in 2 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Retaliation Node
+--- Turn 12 (p2) ---
+p2 plays Fail-safe Unit (u36)
+p2 plays Retaliation Node (u37)
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Static Ward Beacon
+--- Turn 13 (p1) ---
+Perimeter Turret attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Aggressive-Cortex
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 2 damage to Aggressive-Cortex
+p1 plays Static Ward Beacon (d41)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Firewall Sentinel
+--- Turn 14 (p2) ---
+p2 plays Firewall Sentinel (u42)
+Fail-safe Unit attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Signal Drone
+p2 plays Signal Drone (u44)
+Retaliation Node attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Retaliation Node deals 1 damage to Perimeter Turret (unit)
+  Retaliation Node deals 1 damage to Latent Ward (unit)
+Signal Drone attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Signal Drone (unit)
+  Signal Drone (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Barrier Drone
+--- Turn 15 (p1) ---
+  Latent Ward arms
+  ability: Latent Ward — latent-ward-arm (onPlay)
+  Latent Ward applies Barrier to Failover Custodian
+  Latent Ward applies Barrier to Perimeter Turret
+  Latent Ward applies Barrier to Latent Ward
+Perimeter Turret attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Firewall Sentinel (unit)
+  Perimeter Turret's Barrier absorbs the hit from Firewall Sentinel
+Latent Ward attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Firewall Sentinel (unit)
+  Latent Ward's Barrier absorbs the hit from Firewall Sentinel
+Failover Custodian attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 2 damage to Firewall Sentinel (unit)
+  Failover Custodian's Barrier absorbs the hit from Firewall Sentinel
+  Firewall Sentinel (p2) dies
+p1 plays Barrier Drone (u50)
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Interrupt Handler
+--- Turn 16 (p2) ---
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian (p1) dies
+Retaliation Node attacks Barrier Drone
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Barrier Drone (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+p1 draws Plating Module
+--- Turn 17 (p1) ---
+  Plating Module attaches to Latent Ward
+Barrier Drone attacks Retaliation Node
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+  Retaliation Node deals 1 damage to Barrier Drone (unit)
+Latent Ward attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Aggressive-Cortex
+Perimeter Turret attacks Retaliation Node
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Perimeter Turret (unit)
+  Retaliation Node deals 1 damage to Latent Ward (unit)
+  Retaliation Node deals 1 damage to Barrier Drone (unit)
+  Retaliation Node (p2) dies
+  Retaliation Node deals 1 damage to Perimeter Turret (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+p2 draws Diagnostic Pulse
+--- Turn 18 (p2) ---
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Perimeter Turret (unit)
+  Perimeter Turret (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 18 for p2]
+p1 draws Static Ward Beacon
+--- Turn 19 (p1) ---
+Barrier Drone attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+p1 plays Static Ward Beacon (d58)
+Latent Ward attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Aggressive-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 19 for p1]
+p2 draws Diagnostic Loop
+--- Turn 20 (p2) ---
+p2 plays Diagnostic Loop (u60)
+  p2 passes priority
+  p1 passes priority
+[end of turn 20 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Perimeter Turret
+--- Turn 21 (p1) ---
+p1 plays Perimeter Turret (u61)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+Latent Ward attacks Diagnostic Loop
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Diagnostic Loop (unit)
+  Diagnostic Loop deals 1 damage to Latent Ward (unit)
+Barrier Drone attacks Diagnostic Loop
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+  Diagnostic Loop deals 1 damage to Barrier Drone (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 21 for p1]
+p2 draws Recursive Construct
+--- Turn 22 (p2) ---
+p2 plays Recursive Construct (u64)
+Diagnostic Loop attacks Barrier Drone
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Barrier Drone (unit)
+  Barrier Drone (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 22 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p1 draws Diagnostic Ward
+--- Turn 23 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Diagnostic Loop (unit)
+  Diagnostic Loop (p2) dies
+Perimeter Turret attacks Recursive Construct
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Recursive Construct (unit)
+  Recursive Construct deals 1 damage to Perimeter Turret (unit)
+p1 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+  Diagnostic Ward restores 2 health to Random-Aegis
+p1 draws Failover Custodian
+Latent Ward attacks Recursive Construct
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Recursive Construct (unit)
+  Recursive Construct deals 1 damage to Latent Ward (unit)
+p1 plays Failover Custodian (u69)
+  p1 passes priority
+  p2 passes priority
+[end of turn 23 for p1]
+p2 draws Cascade Purge
+--- Turn 24 (p2) ---
+p2 casts Cascade Purge [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Latent Ward (unit)
+  Cascade Purge deals 2 damage to Perimeter Turret (unit)
+  Cascade Purge deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+Recursive Construct attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 1 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 24 for p2]
+p1 draws Lockdown Field
+--- Turn 25 (p1) ---
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+Latent Ward attacks Recursive Construct
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Recursive Construct (unit)
+  Recursive Construct deals 1 damage to Latent Ward (unit)
+  Recursive Construct (p2) dies
+p1 casts Lockdown Field [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Lockdown Field
+  ability: Lockdown Field — lockdown-field-cast (onPlay)
+  p1 passes priority
+  p2 passes priority
+[end of turn 25 for p1]
+p2 draws Cortex Engineer
+--- Turn 26 (p2) ---
+p2 plays Cortex Engineer (u75)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+[end of turn 26 for p2]
+p1 draws Latent Ward
+--- Turn 27 (p1) ---
+Perimeter Turret attacks Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Cortex Engineer (unit)
+  Cortex Engineer deals 1 damage to Perimeter Turret (unit)
+Failover Custodian attacks Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Cortex Engineer (unit)
+  Cortex Engineer deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Cortex Engineer (p2) dies
+Latent Ward attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Aggressive-Cortex
+p1 plays Latent Ward (u87)
+  Latent Ward deploys, dormant — arms in 2 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 27 for p1]
+p2 draws Watchtower Relay
+--- Turn 28 (p2) ---
+p2 plays Watchtower Relay (u88)
+  p2 passes priority
+  p1 passes priority
+[end of turn 28 for p2]
+p1 draws Aegis Warden
+--- Turn 29 (p1) ---
+Latent Ward attacks Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Watchtower Relay (unit)
+  Watchtower Relay deals 2 damage to Latent Ward (unit)
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+Perimeter Turret attacks Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Watchtower Relay (unit)
+  Watchtower Relay deals 2 damage to Perimeter Turret (unit)
+  Perimeter Turret (p1) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 29 for p1]
+p2 draws Fail-safe Unit
+--- Turn 30 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Fail-safe Unit (u92)
+Watchtower Relay attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 30 for p2]
+p1 draws Failover Custodian
+--- Turn 31 (p1) ---
+  Latent Ward arms
+  ability: Latent Ward — latent-ward-arm (onPlay)
+  Latent Ward applies Barrier to Latent Ward
+  Latent Ward applies Barrier to Failover Custodian
+  Latent Ward applies Barrier to Latent Ward
+Latent Ward attacks Fail-safe Unit
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Fail-safe Unit (unit)
+  Latent Ward's Barrier absorbs the hit from Fail-safe Unit
+Failover Custodian attacks Fail-safe Unit
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Fail-safe Unit (unit)
+  Failover Custodian's Barrier absorbs the hit from Fail-safe Unit
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Fail-safe Unit
+  p1 passes priority
+  p2 passes priority
+[end of turn 31 for p1]
+p2 draws Cortex Engineer
+--- Turn 32 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Fail-safe Unit (u96)
+p2 plays Cortex Engineer (u97)
+Watchtower Relay attacks Random-Aegis (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 32 for p2]
+p1 draws Barrier Shim
+--- Turn 33 (p1) ---
+Latent Ward attacks Fail-safe Unit
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Fail-safe Unit (unit)
+  Fail-safe Unit deals 2 damage to Latent Ward (unit)
+Latent Ward attacks Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Watchtower Relay (unit)
+  Latent Ward's Barrier absorbs the hit from Watchtower Relay
+  Watchtower Relay (p2) dies
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+  Barrier Shim attaches to Latent Ward
+p1 plays Failover Custodian (u108)
+  p1 passes priority
+  p2 passes priority
+[end of turn 33 for p1]
+p2 draws Interrupt Handler
+--- Turn 34 (p2) ---
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Latent Ward (unit)
+  Latent Ward (p1) dies
+Fail-safe Unit attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Random-Aegis
+Cortex Engineer attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 34 for p2]
+p1 draws Plating Module
+--- Turn 35 (p1) ---
+  Plating Module attaches to Failover Custodian
+Latent Ward attacks Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Cortex Engineer (unit)
+  Latent Ward's Barrier absorbs the hit from Cortex Engineer
+Failover Custodian attacks Fail-safe Unit
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Fail-safe Unit (unit)
+  Fail-safe Unit deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Backup Protocol
+  p1 passes priority
+  p2 passes priority
+[end of turn 35 for p1]
+p2 draws Recursive Construct
+--- Turn 36 (p2) ---
+p2 casts Backup Protocol [Sorcery] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 3 health to Aggressive-Cortex
+Cortex Engineer attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 36 for p2]
+p1 draws Aegis Sentinel
+--- Turn 37 (p1) ---
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+Latent Ward attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Aggressive-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 37 for p1]
+p2 draws Mainframe Core
+--- Turn 38 (p2) ---
+p2 plays Mainframe Core (d136)
+p2 plays Recursive Construct (u137)
+Cortex Engineer attacks Random-Aegis (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 2 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 38 for p2]
+p1 draws Aegis Sentinel
+--- Turn 39 (p1) ---
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+Latent Ward attacks Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Cortex Engineer (unit)
+  Cortex Engineer deals 2 damage to Latent Ward (unit)
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 39 for p1]
+p2 draws Signal Drone
+--- Turn 40 (p2) ---
+p2 plays Signal Drone (u147)
+Cortex Engineer attacks Random-Aegis (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 2 damage to Random-Aegis
+Recursive Construct attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 3 damage to Random-Aegis
+Signal Drone attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 2 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 40 for p2]
+=== GAME OVER: p2 wins (turn cap reached, ahead on health) ===
+
+--- Summary ---
+Winner: p2
+Turns played: 41
+Moves applied: 496
+Final health — p1 (Random-Aegis): 1, p2 (Aggressive-Cortex): 6
+p1 board size: 3, p2 board size: 3
+p1 graveyard: 15, p2 graveyard: 23
+Board-development events — telegraphed: 4 (armed: 4), evolutions: 1, tools attached: 4

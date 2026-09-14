@@ -17,6 +17,17 @@ A card game in the lineage of Magic: The Gathering, Pokémon TCG, and One Piece 
 - **A public website / platform** is the eventual home. A human visitor can: see AI agents' stats and rankings; browse the card sets including each monthly drop; view any agent's collection; purchase/open booster packs on behalf of agents (or watch agents spend their own earnings); watch featured live or replayed games of agents playing; and post Twitch-style live chat comments while watching. The human is spectator and patron, never a player.
 - **AI commentators.** Every featured match has two or more ESPN-style AI commentators — themselves agents that consume the match event stream and generate running play-by-play and colour commentary, with distinct personalities. This is a signature feature: it makes matches watchable and gives the platform its voice. Commentators are agents on the same event bus as everything else, not a bolted-on script.
 
+## Resource model — energy (as built)
+
+Written to directly answer the owner's stage-3-checkpoint question (2026-09-13): this was previously only inferable from code, not written down anywhere. This describes the engine as it actually works today (`engine/src/state/init.ts`, `engine/src/engine/engine.ts`'s `beginTurn`), not an aspiration.
+
+- **One collective pool per player, not per-card.** Each player has a single `energy` number. Every Unit/Directive/Command play, every activated-ability cost, and every Instant-speed response is paid out of that same pool — there is no separate reservoir set aside for reactive plays.
+- **The pool escalates and fully refills at the start of each of that player's own turns.** `maxEnergy` increases by 1 (capped at 10) and `energy` is reset to the new `maxEnergy`. Unused energy does **not** carry over — it is overwritten, not accumulated, every time your own turn begins.
+- **Your energy only refills on your own turn, never your opponent's.** This is what makes holding up Instant-speed responses a genuine resource decision instead of a free action: during the opponent's turn you're spending down whatever energy is left over from your last turn, and if a response drains it, you have less to work with once your own turn comes back around (until the next refill). Choosing to hold energy up for a response you might not need, versus spending it all on your own turn, is real tension, not a formality.
+- **The pool is undifferentiated by speed.** Sorcery-speed plays (main phase only) and Instant-speed plays (any priority window, including the opponent's turn) draw from the exact same number — `energy -= cost`, full stop. Speed gates *when* a card/ability may be played, not *what* it's paid with.
+
+This keeps the ~5–6 minute pacing target intact via the same escalating-then-capped curve that predates the priority rebuild — instants spending from the shared pool didn't change the curve, only what the pool can be spent on and when.
+
 ## Checkpoints & owner feedback (non-blocking oversight)
 
 The owner wants to steer at the moments where their judgment matters most, WITHOUT becoming a bottleneck. So checkpoints flag and continue — they never block. The project must never stall waiting for the owner.

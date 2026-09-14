@@ -64,7 +64,17 @@ function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorce
     if (card.type === "Unit" && card.evolvesFrom) {
       // Evolution targets an existing, already-armed unit on the board
       // matching the required base card id — no target, no legal play.
-      const bases = player.board.filter((u) => !u.pending && u.card.id === card.evolvesFrom);
+      // It must also have survived to a LATER turn than the one it was
+      // played on (owner overrule, 2026-09-13 stage-3 checkpoint feedback,
+      // item 4): same-turn play-and-evolve let a base skip the "answer it
+      // early while it's weak" exposure window entirely, which undercut the
+      // whole point of the mechanic. `enteredTurn < state.turnNumber` is
+      // the same "has this unit actually lived through a turn boundary"
+      // check summoning sickness uses in pushAttackMoves below — evolution
+      // gets no Rush-style bypass, unlike attacking.
+      const bases = player.board.filter(
+        (u) => !u.pending && u.card.id === card.evolvesFrom && u.enteredTurn < state.turnNumber,
+      );
       for (const base of bases) {
         moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
       }

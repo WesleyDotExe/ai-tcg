@@ -123,7 +123,14 @@ export const latentWard: UnitCard = {
   attack: 1,
   health: 5,
   keywords: [],
-  telegraph: 1,
+  // telegraph=2, not 1: the owner's stage-3 checkpoint feedback (item 3)
+  // asked for a longer fuse tried on some telegraph cards, kept per-card so
+  // a mix is possible — Perimeter Turret below stays at 1 as the other half
+  // of that comparison. A 2-turn-fuse, board-wide Barrier payoff is also
+  // the natural fit: it's the bigger swing of the two telegraphed units, so
+  // it earning a longer "see it coming, answer it" window before it fires
+  // reads right thematically, not just as an arbitrary A/B split.
+  telegraph: 2,
   art: "placeholder:aegis/latent-ward",
   flavor: "Sits dark on the grid until the moment it lights every board at once.",
   abilities: [

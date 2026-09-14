@@ -10,12 +10,13 @@
   },
   "scripts": {
     "match": "tsx src/cli.ts",
-    "demo": "tsx src/dev/effectSystemDemo.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^22.20.2",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
   }
 }

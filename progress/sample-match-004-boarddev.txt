@@ -1,3 +1,14 @@
+[HISTORICAL NOTE, added 2026-09-14: this log predates the owner's 2026-09-13
+stage-3 checkpoint overrule restricting same-turn play-and-evolve. The
+Aegis Cadet -> Aegis Sentinel evolution below happens on the SAME turn the
+Cadet was played (turn 15) — that specific line is no longer legal in the
+current engine (see engine/test/boardDevelopment.test.ts's dedicated
+regression test and progress/sample-match-005-boarddev-fixed.txt for a
+fresh match log proving the corrected behaviour). Everything else in this
+log — telegraph arming, tool attachment, the board-slot cap — is unaffected
+and still accurate. Kept as-is rather than edited, as the historical record
+of what stage 3 actually shipped at the time.]
+
 AI-TCG Stage 3 evidence — Aegis faction real match — demonstrating seed 3
 Random-Aegis (Aegis, p1) vs Aggressive-Cortex (Cortex, p2)
 Deck sizes: p1=34, p2=32
