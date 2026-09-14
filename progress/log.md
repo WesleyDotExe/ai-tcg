@@ -1,5 +1,95 @@
 # Build log
 
+## 2026-09-14 — Session 5 (HARDENING pass: stage-3 checkpoint feedback + automated test runner)
+
+Read `progress/owner-feedback.md` first, per TASKS.md. One entry was
+UNHANDLED: the owner's 2026-09-13 feedback on the Stage 3 checkpoint, with
+four numbered decisions plus an endorsed process instruction (build the
+automated test runner next) and an open question (document the energy
+model). This is also, by TASKS.md's own rule, the project's 5th session —
+a scheduled HARDENING pass, no new features — which lines up exactly with
+what this feedback entry actually asked for: a rule fix, test
+infrastructure, and documentation, not new card-set width. Checked
+`progress/quality-debt.md` per the "no shortcuts" section before doing
+anything else, per usual.
+
+**What I did, in order:**
+
+1. **Restricted same-turn play-and-evolve** (owner overrule, item 4).
+   `engine/src/engine/moves.ts`'s evolution-targeting filter now also
+   requires `u.enteredTurn < state.turnNumber` — a base must have survived
+   to a turn later than the one it was played on before it can be
+   evolved, closing the "commit hard in one turn" line that skipped the
+   "answer it early while it's weak" exposure window the board-development
+   directive was designed around. Updated the stale doc comment on
+   `UnitCard.evolvesFrom` to match.
+2. **Tried telegraph delay=2 on one card** (item 3): `Latent Ward`'s
+   `telegraph` is now 2, while `Perimeter Turret` stays at 1 — a real
+   per-card mix, not a global change, as asked. This is a first trial, not
+   a tuned conclusion; judging whether the longer fuse actually "feels"
+   different needs a render/real spectating, which doesn't exist yet.
+3. **Documented the energy/mana model** (owner question): a new `##
+   Resource model — energy (as built)` section in `DESIGN.md`, answering
+   directly: one collective pool per player, not per-card; it escalates
+   (+1 maxEnergy/turn, cap 10) and *fully* refills — no carryover — only
+   at the start of each of that player's own turns (so holding Instant
+   responses up during the opponent's turn is a real trade-off against
+   what you'll have left when your own turn returns); and the pool is
+   undifferentiated by speed — the same number pays for sorcery-speed
+   plays, activated abilities, and Instant-speed responses alike.
+4. **Built the automated test runner** (endorsed process instruction, and
+   the single most-repeated item in `quality-debt.md` across three
+   sessions). Added `vitest` as an `engine` devDependency (`npm test` at
+   the repo root or inside `engine/`). Retired
+   `engine/src/dev/effectSystemDemo.ts` — the manually-run assertion
+   script that debt entry named by example — and ported its 16 scenarios
+   into `engine/test/effectSystem.test.ts` (12: keywords, triggered,
+   activated, static, AOE, conditional, state-mutating stats, cross-card
+   cascade, priority/stack LIFO resolution, an instant-speed combat trick)
+   and `engine/test/boardDevelopment.test.ts` (4: telegraph arm/dormancy,
+   evolution carry-forward, Tool attach, board-slot cap), each scenario
+   now its own individually-reported vitest test instead of a printout.
+   Added one new regression test in the latter file for item 1 above.
+   Also added `engine/test/matchSmoke.test.ts`, a small (15-seed × 3
+   matchup) automated version of the 300-game stress run Session 4
+   described running but never committed — asserts every match resolves
+   to a winner/draw under the turn cap across all three faction pairings,
+   alternating which side plays Random vs Aggressive. **20/20 tests pass.**
+
+**Did I run it?**
+
+- `npm test` (vitest): 20/20 pass, ~650ms.
+- `npx tsc --noEmit` clean in all four packages (`engine`, `protocol`,
+  `server`, `agents`) — confirms the moves.ts/aegisCards.ts/types.ts
+  changes didn't regress anything elsewhere.
+- Regenerated `engine/src/dev/aegisMatchDemo.ts`'s real-match evidence
+  with the fix in place (it's reusable tooling, unchanged) — seed 4 (out of
+  500 searched) exercises telegraph arming at BOTH delays (Perimeter
+  Turret at 1, Latent Ward at 2), evolution, and tool attachment, all in
+  one real unscripted game. Committed as
+  `progress/sample-match-005-boarddev-fixed.txt`. Verified by hand that
+  the evolved Aegis Cadet instance (u10) was played two turns before it
+  evolves (turn 5 → turn 7), while a different, same-named Cadet instance
+  played the same turn (u7) died in combat that turn and was correctly
+  never offered as a legal evolve target. Annotated
+  `progress/sample-match-004-boarddev.txt` (the original stage-3 evidence,
+  which happens to show the now-illegal same-turn line) with a note
+  pointing at the new log, rather than editing history.
+- `npm run match` (the plain Cortex-vs-Swarm CLI match) still plays
+  identically — the rule change and new deck (n/a here) don't touch that
+  pool.
+
+**What's blocked / next:** nothing structurally. The owner-feedback entry
+this session answers is now fully marked HANDLED (see
+`progress/owner-feedback.md`). Per TASKS.md's own build-order guidance and
+Session 4's honest next-step note, the next non-hardening session should
+pick between: (a) backfilling Cortex/Swarm with a few telegraph/
+evolution/tool cards so the board-development system isn't Aegis-exclusive,
+or (b) more stage-3 depth/width (a fourth faction, or deepening Aegis).
+Either is legitimate. A real automated test runner now exists for whoever
+picks either — new mechanics should get a vitest test alongside their card
+data from here on, not a new demo script.
+
 ## 2026-09-13 — Session 4 (stage 3: real card set + unified board-development system)
 
 Read `progress/owner-feedback.md` first. Two entries needed action: the

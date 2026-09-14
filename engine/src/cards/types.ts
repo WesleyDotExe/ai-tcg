@@ -188,12 +188,16 @@ export interface UnitCard extends CardBase {
   /** Board-development system (owner design-directive batch, 2026-09-12):
    * the id of the Unit card this one evolves from. Playing this card
    * requires an *active* (non-pending) unit with that exact card id
-   * already on the controller's board — see getLegalMoves' evolution
-   * targeting and engine.ts's evolveUnit. The requirement is strict
-   * (exact card id, not "any lower tier") for this first implementation;
-   * a looser requirement is an open question left for a future checkpoint.
-   * Evolving mutates the existing board unit in place (same instanceId,
-   * same accumulated damage/buffs/statuses/attached tools) rather than
+   * already on the controller's board, AND that unit must have survived to
+   * a turn later than the one it was played on (owner overrule, 2026-09-13
+   * stage-3 checkpoint feedback, item 4 — same-turn play-and-evolve was
+   * letting a base skip the "answer it early while it's weak" exposure
+   * window entirely) — see getLegalMoves' evolution targeting and
+   * engine.ts's evolveUnit. The base-id requirement itself is strict (exact
+   * card id, not "any lower tier") for this first implementation; a looser
+   * requirement is an open question left for a future checkpoint. Evolving
+   * mutates the existing board unit in place (same instanceId, same
+   * accumulated damage/buffs/statuses/attached tools) rather than
    * replacing it, so it never costs an extra board slot. */
   evolvesFrom?: string;
   /** Board-development system: a telegraphed threat. When played, this

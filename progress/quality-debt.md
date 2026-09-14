@@ -2,38 +2,67 @@
 
 Written at the end of session 1, updated at the end of the stage-1 redo
 session (priority/reactivity rebuild), the stage-2 (agent interface)
-session, and now the stage-3 (real card set / board-development system)
-session. This is not "no debt, all good" — the product is real and the
+session, the stage-3 (real card set / board-development system) session,
+and now the session-5 hardening pass (checkpoint feedback + automated test
+runner). This is not "no debt, all good" — the product is real and the
 evidence is real, but here is where it's thin.
 
-## New debt from stage 3 (board-development system / Aegis card set)
+## Resolved this session (session 5, hardening pass)
 
-- **Verification is still all hand-written demo scripts, no real test
-  runner.** This was already named as debt at the end of stage 2
-  ("should graduate to real automated tests soon, certainly before stage
-  3's larger card pool makes manual verification impractical") and this
-  session added a third mechanism-proving script (`aegisMatchDemo.ts`) on
-  top of `effectSystemDemo.ts` and `cli.ts` instead of fixing it. There is
-  still no `vitest`/etc., no CI, and no regression protection — a future
-  change could silently break scenario 9 while adding scenario 20 and
-  nobody would notice without a full manual re-run. This is the single
-  most overdue item in this file; the next session should treat it as the
-  default next move unless there's a stronger reason not to (see
-  `progress/current.md`).
+- **"No real test runner" — fixed.** `vitest` is now wired up
+  (`engine/test/`, `npm test`), replacing `effectSystemDemo.ts` (deleted)
+  with 20 individually-reported tests, including a new match-smoke suite.
+  See `progress/current.md`/`progress/log.md` for detail. This was the
+  single most-repeated item in this file across three sessions — resolved,
+  not just re-flagged again.
+- **"Nothing stops evolving a unit the same turn it was played" — fixed**
+  per the owner's explicit overrule (2026-09-13 stage-3 checkpoint
+  feedback, item 4). `moves.ts` now requires `enteredTurn < turnNumber`.
+  Regression-tested and re-proven in real play (see
+  `progress/sample-match-005-boarddev-fixed.txt`).
+
+## New debt from session 5 (hardening pass)
+
+- **`matchSmoke.test.ts`'s 15-seeds-per-matchup sample is much smaller than
+  the 300-game manual stress run session 4 ran** (traded off deliberately
+  for keeping `npm test` fast — see `progress/current.md`'s "decisions the
+  owner might want to overrule"). It's real, automated, always-run
+  coverage that didn't exist before, but it's a smoke test, not a
+  statistically deep balance/crash-rate measurement; a genuine "300+ games,
+  measure the distribution" pass is still something that would need to be
+  its own explicitly-invoked script (or a much slower CI-only test) if the
+  owner wants that rigor as a standing, repeatable artifact rather than a
+  one-off manual run.
+- **The vitest suite covers only `engine`.** `server`'s protocol layer
+  (fault paths: illegal move → forfeit, timeout → forfeit) and `agents`
+  still have zero automated tests — the exact gap already named below
+  under "New debt from stage 2." The test-runner infrastructure now exists
+  to fix this cheaply (vitest could be added to those packages the same
+  way), but it wasn't done this session, which stayed scoped to what the
+  owner's feedback entry actually asked for (engine-focused: the rule fix,
+  the energy docs, and "the" test runner, which in context clearly meant
+  the engine's hand-written demo scripts specifically).
+- **Telegraph delay=2's card choice (Latent Ward) is a judgment call, not
+  a playtested or owner-confirmed one.** The owner asked to "try delay=2
+  on some telegraph cards and compare how the window feels" — this session
+  changed the data and confirmed it still fires correctly in real play,
+  but there's no render or spectator experience yet to actually judge
+  "how it feels," so the comparison the owner asked for is only
+  mechanically possible right now, not yet meaningfully answered.
+- **No exception path for "evolve immediately despite entering this
+  turn."** The same-turn-evolve fix has no keyword/flag equivalent to
+  Rush's summoning-sickness bypass — if a future card wants that as a
+  deliberate payoff, it needs new schema work, not just a data flag on
+  the existing field.
+
+## Older debt from stage 3 (board-development system / Aegis card set)
+
 - **Evolution strict-vs-loose was decided unilaterally for this first
   implementation**, even though `owner-feedback.md`'s design-directive
   batch explicitly named it an open question to propose, not resolve.
   Only strict (exact base card id) is built; a looser tier-based
   requirement would need real schema work (a tier number rather than a
   specific id) if the owner prefers it. Flagged at the new checkpoint.
-- **Nothing stops evolving a unit the same turn it was played.** Observed
-  as a real emergent line in `sample-match-004-boarddev.txt` (an Aegis
-  Cadet played and evolved into an Aegis Sentinel in one turn). This may
-  be exactly the intended tension ("commit big in one turn") or it may
-  undercut the "answer it early while it's weak" drama the directive
-  described, since the base is never actually exposed on the board for an
-  opponent to react to in that line. Not fixed because it's a genuine
-  design call, not a bug — flagged for the owner rather than decided.
 - **Telegraphed units keep full stats and are fully targetable while
   pending, but their `onDamaged`/`onDeath` triggers still fire normally if
   killed while dormant.** A pending unit is meant to be "not yet really
@@ -240,18 +269,26 @@ evidence is real, but here is where it's thin.
 
 ## Testing
 
-- All verification is two hand-written scripts (`cli.ts` for a real match,
-  `effectSystemDemo.ts` for 10 assertion-based mechanic scenarios), run
-  manually. There is no test runner (vitest/etc.), no CI wiring, and no
-  regression protection — a future change could silently break a scenario
-  that isn't in the current 10 without anyone noticing until a manual
-  re-run. This should graduate to real automated tests soon, certainly
-  before stage 3's larger card pool makes manual verification impractical.
+- **Updated, session 5:** there is now a real automated test runner
+  (`vitest`, `engine/test/`, 20 tests, `npm test`) — the rest of this
+  entry is what's still missing, not a restatement of the old "no runner
+  at all" gap. `cli.ts` and `aegisMatchDemo.ts` remain manual/eyeballed
+  real-match evidence generators (that's their job — narrated human-
+  readable logs, not assertions), not a substitute for the assertion
+  suite anymore.
+- **No CI wiring.** `npm test` has to be run by hand each session; nothing
+  runs it automatically on push/PR. Genuine remaining gap — `vitest`
+  existing doesn't by itself catch a regression nobody chose to run it
+  against.
+- **`server`/`protocol`/`agents` have zero automated tests** (see this
+  session's new debt section above) — only `engine` was covered.
 - Untested paths I know of: simultaneous lethal (both players' health
   reaching 0 on the same resolution → draw) has code
-  (`checkGameOver`) but no scenario exercising it; a unit carrying two
-  statuses at once (e.g. Overload + Stasis) has no scenario proving they
-  don't interfere with each other's duration bookkeeping.
+  (`checkGameOver`) but no test exercising it; a unit carrying two
+  statuses at once (e.g. Overload + Stasis) has no test proving they
+  don't interfere with each other's duration bookkeeping; a stack three or
+  more items deep (named below under the priority-rebuild debt) also has
+  no test.
 
 ## Pacing
 

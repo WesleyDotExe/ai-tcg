@@ -1,5 +1,5 @@
 // Stage-3 evidence: a REAL played match (not a whitebox scenario — see
-// effectSystemDemo.ts for that) using the new Aegis faction deck, searched
+// test/boardDevelopment.test.ts for that) using the new Aegis faction deck, searched
 // over seeds for one where all three new board-development mechanics
 // (telegraph arming, evolution, tool attachment) actually fire during real
 // play, the same "search real games for a demonstrating seed" approach the

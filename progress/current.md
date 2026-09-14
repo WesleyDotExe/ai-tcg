@@ -1,137 +1,108 @@
 # Current status
 
-**Build-order stage: 3 (A real card set) — COMPLETE.**
+**Build-order stage: 3 (A real card set) — still current.** This session
+was a scheduled HARDENING pass (session 5 — see TASKS.md's every-5th-session
+rule), not a new stage. It answered the owner's 2026-09-13 stage-3
+checkpoint feedback in full: a rule fix (no more same-turn play-and-evolve),
+a per-card telegraph-timing trial, energy-model documentation, and —
+the main deliverable — a real automated test runner, replacing the
+hand-written demo-script verification that `quality-debt.md` had flagged
+as overdue across three prior sessions.
 
-Stage 2 (agent interface / network protocol) was already done. This session
-built the unified board-development system the owner's 2026-09-12
-design-directive batch called for (finite face-up board slots, telegraphed
-threats, evolution cards, tool/attachment cards, built as one interacting
-system) directly into the rules engine, then built a genuinely new third
-faction — Aegis — to exercise it as a real, playable card set.
+## What stands (changes from this session; stage-3 content otherwise
+## unchanged — see the prior entry in `progress/log.md` for that)
 
-## What stands
-
-- **`engine/src/cards/types.ts`** — new `Tool` CardType and `ToolCard`
-  interface (flat attack/health bonus + granted keywords), and two new
-  optional `UnitCard` fields: `evolvesFrom` (base card id, strict
-  requirement) and `telegraph` (arm delay in the controller's own turns).
-- **`engine/src/state/types.ts`** — `UnitInstance` gained `pending`/`armTurn`
-  (telegraph state) and `tools: ToolCard[]` (always present, empty by
-  default). Four new `GameEvent` kinds (`telegraphPlaced`, `telegraphArmed`,
-  `evolve`, `toolAttached`) so the log — which the future spectator client
-  and commentator agents will consume — narrates the new mechanics as
-  first-class events, not side effects of `damage`/`buff`.
-- **`engine/src/state/init.ts`** — `BOARD_SLOTS` (proposed default: 6), the
-  finite per-player pool Units and Directives share (see below).
-- **`engine/src/state/queries.ts`** — `currentAttack`/`currentMaxHealth` now
-  fold in attached Tools' bonuses; `hasKeyword` now checks Tool-granted
-  keywords too, and every call site that used to read `unit.card.keywords`
-  directly (Guard-forces-attack, Rush-bypasses-sickness in `moves.ts`) now
-  goes through `hasKeyword` so a Tool-granted keyword is honoured
-  everywhere a printed one would be.
-- **`engine/src/effects/statics.ts`** — a pending (unarmed) telegraphed
-  unit projects no static aura, including its own `selfStatFromScaling`.
-- **`engine/src/engine/moves.ts`** — `boardSlotsUsed` (board.length +
-  directives.length) gates new Unit/Directive plays against `BOARD_SLOTS`;
-  evolution and Tool cards get their own targeting logic (evolution targets
-  an armed friendly unit with the required base card id; Tools target any
-  friendly unit); pending units are excluded from attack and
-  activated-ability legal moves.
-- **`engine/src/engine/engine.ts`** — `playCard` branches for Tool
-  (`attachTool`) and evolution (`evolveUnit`) before the normal Unit path;
-  a telegraphed Unit enters `pending` and defers its `onPlay` instead of
-  firing it immediately; `beginTurn` now calls `processTelegraphArming`
-  before turn-start triggers, which arms any of the controller's telegraphed
-  units whose countdown has elapsed and fires their `onPlay` then.
-  `evolveUnit` mutates the target unit **in place** (same instanceId), so
-  accumulated damage, statuses, and attached tools all carry forward onto
-  the evolved form for free, and evolving never costs a board slot.
-- **`engine/src/effects/resolver.ts`** — `processDeaths` now sends a dead
-  unit's attached Tools to the graveyard along with its own card.
-- **`engine/src/data/decks.ts`** — real, enforced `MIN_DECK_SIZE`/
-  `MAX_DECK_SIZE` (20/40), closing a gap `quality-debt.md` had named; plus
-  `buildAegisDeck`.
-- **`engine/src/data/aegisCards.ts`** — the stage-3 card set: 14 unique
-  Aegis cards (34-card deck respecting copy limits), covering the full new
-  system (an evolution line Cadet→Sentinel→Warden; two telegraphed units;
-  three Tool cards) plus enough ordinary variety (keywords, a triggered
-  onDamaged self-heal, a static aura, an AOE stun Command, a
-  conditional-and-`not`-composed draw effect using the previously-untested
-  `handSizeAtLeast` condition) to be a real, distinct faction rather than a
-  showcase of only the new mechanics. Themed per the owner's 2026-09-11
-  cyberpunk/90s-retro-futurism direction (chrome plating, CRT diagnostics),
-  distinct from Cortex (networked intelligence) and Swarm (biological
-  mass) — the game now has three factions, which matters for the
-  self-disrupting-metagame principle (archetype variety needs ≥3 to have
-  real soft-counter triangles, not just a single mirror axis).
-- Cortex and Swarm (the stage-1/2 test pools) are untouched — they don't
-  use telegraph/evolution/tools yet. Deliberately not backfilled this
-  session; noted as natural, not required, follow-up.
+- **`engine/src/engine/moves.ts`** — evolution targeting now requires
+  `u.enteredTurn < state.turnNumber`: a base must have survived to a turn
+  later than the one it was played on before it's a legal evolve target.
+  Closes the same-turn "commit hard" line the owner overruled.
+- **`engine/src/data/aegisCards.ts`** — `Latent Ward`'s `telegraph` is now
+  2 (was 1); `Perimeter Turret` stays at 1 — a real per-card mix, per the
+  owner's request to try a longer fuse on some telegraph cards.
+- **`DESIGN.md`** — new `## Resource model — energy (as built)` section,
+  directly answering the owner's stage-3-checkpoint question about how the
+  energy pool works (one collective pool per player, escalates and fully
+  refills only on your own turn, no carryover, undifferentiated by speed).
+- **`engine/test/`** (new) — the automated test runner. `vitest` is now an
+  `engine` devDependency; `npm test` (repo root or `engine/`) runs it.
+  - `helpers.ts` — shared whitebox setup (`emptyState`, `putUnit`,
+    `drainStack`), factored out of the old demo script.
+  - `effectSystem.test.ts` — 12 tests: every mechanic category DESIGN.md's
+    "no shortcuts" section names (keywords, triggered, activated, static,
+    AOE, conditional, state-mutating stats, cross-card cascade), plus the
+    priority/stack algorithm (LIFO resolution, a real cross-turn
+    instant-speed response, an instant-speed combat trick).
+  - `boardDevelopment.test.ts` — 5 tests: telegraph dormancy+arming,
+    evolution carry-forward, **the new same-turn-evolve restriction**
+    (regression test for this session's rule fix), Tool attach (stat bonus
+    + granted keyword + Barrier-grant), and the board-slot cap.
+  - `matchSmoke.test.ts` — 3 tests: 15 seeds × 3 faction matchups
+    (Cortex/Swarm/Aegis, all pairings), each asserting the match resolves
+    to a winner/draw at or under the turn cap and never hits the engine's
+    runaway-loop safety valve. Alternates which side plays Random vs
+    Aggressive across seeds. This is the automated, always-run replacement
+    for the 300-game manual stress run Session 4 described but never
+    committed as a script.
+  - `engine/src/dev/effectSystemDemo.ts` **retired** — its 16 scenarios are
+    now the vitest tests above, individually reported instead of a
+    printout. `engine/src/dev/aegisMatchDemo.ts` (real played-match
+    evidence generator, not an assertion script) is unchanged and still
+    the tool for that kind of evidence.
+- **`progress/sample-match-005-boarddev-fixed.txt`** (new) — a fresh real
+  match log (seed 4 of 500 searched, via the unchanged `aegisMatchDemo.ts`)
+  regenerated with the same-turn-evolve fix in place: the evolved Aegis
+  Cadet instance was played two turns before it evolves, while a
+  same-turn, same-named Cadet instance that died in combat was correctly
+  never offered as an evolve target. Also exercises both telegraph delays
+  (1 and 2) in the same game. `progress/sample-match-004-boarddev.txt`
+  (the original stage-3 evidence, which happens to show the now-illegal
+  same-turn line) is annotated, not edited, to keep the historical record
+  honest about what stage 3 actually shipped at the time.
 
 ## Evidence committed
 
-- `progress/effect-system-demo.txt` — regenerated; scenarios 13–16 are new,
-  deterministic, assertion-based proofs of telegraph arming (a unit is
-  dormant, can't attack, projects no aura, then arms and its ability
-  fires), evolution (same instanceId, damage and a pre-attached tool carry
-  forward, base card graveyarded, the evolved card's own `onPlay` fires),
-  Tool attachment (live stat bonus, a granted keyword, and a Tool that
-  grants Barrier applying the actual status), and the board-slot cap (blocks
-  a new Unit/Directive at capacity, never blocks a Tool). All 16 scenarios
-  pass.
-- `progress/sample-match-004-boarddev.txt` — **new, this session's stage-3
-  evidence.** A full real match (seed 3, `engine/src/dev/aegisMatchDemo.ts`,
-  a script that searches seeds for one exercising all three new mechanics
-  and is committed as reusable evidence-generation tooling, not a
-  throwaway) between Random-Aegis and Aggressive-Cortex. All three new
-  mechanics fire in real, unscripted play: a Perimeter Turret survives 2
-  AOE damage while dormant, then arms and kills an attacker on the turn it
-  wakes up (turn 7→9); an Aegis Cadet evolves into an Aegis Sentinel,
-  gaining its evolve-in energy bonus (turn 15); a Plating Module attaches
-  to Prime Aegis (turn 13). The match resolves cleanly in 16 turns, well
-  under the 40-turn cap.
-- A 300-game stress run across two matchups (Aegis vs Cortex, Aegis vs
-  Swarm; RandomAgent vs AggressiveAgent, 150 seeds each — not committed as
-  a script, described here for the record like the stage-2 fault-path
-  tests) produced zero crashes, mean ~17 turns (consistent with the
-  stage-2 figures, still comfortably under the cap), telegraph arming in
-  ~78% of games, evolution in ~34%, and a Tool attaching in ~96% — real
-  variety, not a cherry-picked seed. Win rates skewed heavily toward the
-  Aggressive heuristic over Random, as expected (see quality-debt.md — this
-  says nothing about faction balance, same caveat as the stage-2 numbers).
-- All four packages (`engine`, `protocol`, `server`, `agents`) typecheck
-  clean; the stage-1/2 evidence (the original 12 effect scenarios, the
-  Cortex-vs-Swarm CLI match) was re-run after this session's changes and
-  still passes/plays identically — the board-slot cap and deck-size rule
-  did not regress the existing test pools.
+- `npm test`: **20/20 vitest tests pass** (~650ms).
+- `npx tsc --noEmit` clean in all four packages after every change.
+- `progress/sample-match-005-boarddev-fixed.txt` — see above.
+- Manual trace confirming the evolve-restriction regression test actually
+  exercises the fix (verified against the pre-fix code path during
+  development, not just that the post-fix test happens to pass).
 
 ## Decisions made this session the owner might want to overrule
 
-Written up in full in the new checkpoint (`progress/checkpoints.md`) and in
-`progress/owner-feedback.md`'s 2026-09-12 entry (now marked "section B
-done"): board slots default to 6 and are shared between Units and
-Directives; evolution requires the *exact* base card id (strict, not
-loose); telegraph delay defaults to 1 controller-turn; nothing stops
-playing a base unit and evolving it the same turn (an emergent same-turn
-combo observed in real play); deck size is enforced at [20, 40].
+- Same-turn evolve restriction is implemented as a strict turn-boundary
+  check (`enteredTurn < turnNumber`), with no Rush-style keyword to bypass
+  it (unlike attacking). If a future card wants a "can evolve immediately"
+  exception, that would need a new keyword or a per-card flag — not built,
+  since nothing asked for it yet.
+- Telegraph delay=2 was tried on `Latent Ward` specifically (the bigger,
+  board-wide-Barrier payoff of the two telegraphed Aegis units) rather
+  than an arbitrary pick — a judgment call, not a coin flip, but still a
+  first trial with no real playtesting behind the choice of *which* card.
+- The old `effectSystemDemo.ts` was deleted outright rather than kept
+  alongside the new vitest tests — judged that keeping both would create
+  exactly the "two places to update" duplication-debt the test-runner
+  request was trying to eliminate. If the owner specifically wants a
+  human-readable narrated run (distinct from `npm test`'s pass/fail
+  output) preserved as its own thing, that's recoverable from git history.
+- `matchSmoke.test.ts` uses 15 seeds per matchup (45 total games) rather
+  than the 300 games Session 4 ran manually, traded off for keeping
+  `npm test` fast enough to run on every change rather than being its own
+  separate slow step nobody runs. If deeper stress coverage is wanted, it
+  should probably be a separate, explicitly-invoked script rather than
+  folded into the default test run.
 
 ## Concrete next step
 
-Options for the next session, per DESIGN.md's build order (stage 4 is match
-server hardening — matchmaking, persistence — and stays blocked until a
-richer economy needs it; do not jump there over stage-3 depth work):
-1. **Depth on stage 3:** backfill Cortex and/or Swarm with a few
-   telegraph/evolution/tool cards so the new system isn't Aegis-exclusive,
-   and/or add a real automated test runner (vitest) — `quality-debt.md`
-   has flagged "no test runner, all verification is manual scripts" since
-   stage 2; this is now overdue given the card pool and mechanic surface
-   have both grown again.
-2. **Continue stage 3 width:** a fourth faction, or deepen Aegis with a
-   second evolution line / more telegraph-tool interactions, before
-   calling the card-set stage fully "done" in the sense of "enough for a
-   real metagame" (14 unique cards in one new faction is a real set, not
-   yet a rich one).
-Either is legitimate; this session leans toward (1) — hardening the
-verification story — given this is the second stage-3-scale session in a
-row to add real engine surface without adding automated regression
-coverage beyond hand-written demo scripts.
+The owner-feedback entry this session answers is now fully HANDLED.
+Per Session 4's own next-step note (still valid, un-acted-on), the next
+non-hardening session should pick between:
+1. **Backfill Cortex and/or Swarm** with a few telegraph/evolution/tool
+   cards so the board-development system isn't Aegis-exclusive.
+2. **Continue stage-3 width/depth** — a fourth faction, or a second
+   evolution line / more telegraph-tool interactions within Aegis.
+
+Either is legitimate; both should now come with real vitest coverage for
+any new mechanic, not a new hand-written demo script — the infrastructure
+exists, use it. Stage 4 (match server hardening) stays blocked until a
+richer economy needs it, per DESIGN.md's build order.

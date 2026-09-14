@@ -26,10 +26,19 @@ how sessions on this repo work.
   exercise every mechanic category, not to be a balanced "real" set (stage
   3 is that).
 - `src/cli.ts` — runs one full match, prints a readable log.
-- `src/dev/effectSystemDemo.ts` — deterministic, assertion-based proof that
-  every required mechanic category (keywords, triggered, activated,
-  static/continuous, targeted, AOE, conditional, state-mutating, plus a
-  cross-card cascade) actually resolves correctly.
+- `test/` — the automated vitest suite: deterministic, assertion-based
+  proof that every required mechanic category (keywords, triggered,
+  activated, static/continuous, targeted, AOE, conditional, state-mutating,
+  plus cross-card cascades), the priority/stack algorithm, and the
+  board-development system (telegraph, evolution, tools, board slots) all
+  actually resolve correctly — plus a match-smoke suite that runs real
+  matches across every faction matchup and asserts none of them crash or
+  exceed the turn cap. Runs on every `npm test`, not just when someone
+  remembers to run a script by hand (see `progress/quality-debt.md`'s
+  history on this).
+- `src/dev/aegisMatchDemo.ts` — a real, human-readable played match (not a
+  whitebox test) used to generate committed match-log evidence for the
+  board-development system; see `progress/sample-match-004-boarddev.txt`.
 
 ## Running it
 
@@ -37,5 +46,5 @@ how sessions on this repo work.
 npm install
 npm run typecheck        # tsc --noEmit
 npm run match [seed]     # play one full match, print the log (default seed 1)
-npm run demo             # run the effect-system proof scenarios
+npm test                 # run the automated vitest suite
 ```

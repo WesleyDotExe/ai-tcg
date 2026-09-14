@@ -1,5 +1,12 @@
 # Notes for the owner
 
+Nothing is blocking right now (updated 2026-09-14, hardening-pass session).
+The telegraph delay=2 trial (Latent Ward) this session asked for is
+mechanically in place and fires correctly in real play, but "compare how
+the window feels" genuinely can't be judged yet — there's no render/
+spectator experience to watch it in. Worth re-asking once stage 6
+(spectator render) exists; not a blocker now.
+
 Nothing is blocking right now — stage 3 (real card set + unified
 board-development system) didn't need any decision, asset, or credential
 only the owner can provide. The open numeric parameters it introduced
