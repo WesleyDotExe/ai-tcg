@@ -1,5 +1,105 @@
 # Build log
 
+## 2026-09-14 — Session 6 (stage 3: backfill Cortex/Swarm with board-development cards)
+
+Read `progress/owner-feedback.md` first, per TASKS.md. No new entries since
+session 5 — the most recent one (2026-09-13 stage-3 checkpoint feedback) was
+already marked HANDLED. Checked `progress/quality-debt.md` next, per the
+"no shortcuts"/depth-before-breadth rule: the most-repeated remaining
+stage-3 item was "Cortex and Swarm don't use telegraph/evolution/tools" —
+the board-development system built in session 4 was exercised only by the
+purpose-built Aegis faction, a real cross-faction gap named across two
+prior sessions' debt lists. This is also exactly option 1 from session 5's
+own concrete-next-step note, so that's what this session built. Not a
+hardening pass (session 6, not a multiple of 5).
+
+**What I built, in order:**
+
+1. **Four new Cortex cards** (`engine/src/data/cards.ts`): Init Daemon
+   (CX-015, 1-cost 1/2 vanilla) evolving into Compiled Daemon (CX-016,
+   3-cost 3/3, evolve-in deals 2 damage to a random enemy unit); Dormant
+   Exploit (CX-017, 2-cost 1/3, telegraph 1) arming into a 2-turn Stasis
+   stun on a random enemy; Overclock Shunt (CX-018, a Tool, +1/+0 and
+   grants Rush). Deliberately chose effect combinations Aegis's set didn't
+   already cover — a damage evolve-payoff (Aegis's two evolves are
+   energy-gain and heal+Barrier), a status-application telegraph-arm effect
+   (Aegis's two telegraphs are damage and Barrier-grant), and a
+   Tool-granted keyword that changes legal moves (Rush bypasses summoning
+   sickness) rather than just combat resolution (Guard/Barrier, Aegis's
+   three Tools).
+2. **Three new Swarm cards**: Dormant Egg Sac (SW-010, 2-cost 0/4, telegraph
+   1, arms for 3 damage to a random enemy — reusing Perimeter Turret's
+   shape, scaled up, since a straightforward effect already suited the
+   faction rather than forcing artificial novelty); Molted Stalker (SW-011,
+   3-cost 4/3, evolve-in draws a card) evolving from **Swarm Larva
+   (SW-001)** — an existing stage-1 vanilla card, not a new purpose-built
+   base like every other evolution line so far (Aegis Cadet, Init Daemon)
+   — specifically to prove the system retrofits onto a card nobody designed
+   with evolution in mind; Chitin Plating (SW-012, a Tool, +0/+3, Swarm's
+   analogue to Plating Module).
+3. **Updated `CORTEX_CARDS`/`SWARM_CARDS`** with copy counts respecting the
+   existing rarity copy-limits: Cortex 32 → 40 cards (now exactly at
+   `decks.ts`'s 40-card ceiling), Swarm 23 → 30 cards. Both still validate
+   against `buildDeck()`'s enforced [20, 40] range without needing to touch
+   that constant.
+4. **`engine/test/boardDevelopmentBackfill.test.ts`** (new, 5 tests) — real
+   vitest coverage for every new mechanic, per the endorsed "new mechanics
+   get vitest tests, not a demo script" process from session 5: Compiled
+   Daemon's evolve-in damage actually killing a 1-health target;
+   Dormant Exploit staying dormant (no premature Stasis, no premature
+   damage) then arming into Stasis on schedule; Overclock Shunt's granted
+   Rush not just flipping `hasKeyword` but actually appearing in
+   `getLegalMoves`' attack list for a unit played that same turn (the thing
+   that would matter if the keyword-grant plumbing were subtly wrong);
+   Molted Stalker evolving from the pre-existing Swarm Larva instance and
+   drawing a card; Dormant Egg Sac's arm damage plus Chitin Plating's stat
+   bonus.
+5. **`engine/src/dev/backfillMatchDemo.ts`** (new, committed tool, not
+   throwaway) — same "search real games for a seed that demonstrates every
+   mechanic" approach `aegisMatchDemo.ts` used, but for Cortex vs Swarm and
+   requiring BOTH sides' three new mechanics each (six conditions total,
+   not three) in one game.
+
+**Did I run it?**
+
+- `npm test`: **25/25 vitest tests pass** (20 pre-existing + 5 new), ~1s.
+- `npx tsc --noEmit` clean in all four packages after every change.
+- Ran `backfillMatchDemo.ts` (max seed 3000): found a fully-demonstrating
+  game on **seed 8** — Dormant Exploit and Dormant Egg Sac both telegraph
+  and arm, Compiled Daemon and Molted Stalker both evolve in, Overclock
+  Shunt and Chitin Plating both attach, all in one real, unscripted
+  Random-Cortex vs Aggressive-Swarm match. Committed as
+  `progress/sample-match-006-backfill.txt`.
+- That demonstrating game happened to run to the 41-turn cap (health
+  tiebreak) rather than the typical ~16-turn resolution, so I checked
+  whether enlarging the decks by ~25% (Cortex 32→40, Swarm 23→30) shifted
+  pacing before trusting that log as representative: a 200-seed,
+  Cortex-vs-Swarm-only stress script (throwaway, not committed) gave mean
+  16.3 turns, median 15, only 1/200 (0.5%) hitting the cap — matching the
+  pre-backfill baseline reported since session 1. The demo-log game hitting
+  the cap is within that same ~0.5% rate, not a sign the new cards slowed
+  games down generally.
+- Re-ran the plain `npm run match` CLI (Cortex vs Swarm, unrelated seed)
+  and the unchanged `aegisMatchDemo.ts` (Aegis vs Cortex) — both still play
+  and resolve identically to before, confirming the new cards/tests didn't
+  regress the existing pools or the Aegis-specific evidence.
+
+**Housekeeping:** while reading `quality-debt.md` for the depth-before-
+breadth check, noticed its Testing section still said "No CI wiring" even
+though session 5's own log/current.md say `.github/workflows/test.yml` was
+added that same session — confirmed the workflow file is real and correct
+(`git log`/`cat`), and fixed the stale claim rather than leaving a
+self-contradicting debt file for the next run to trip over.
+
+**What's blocked / next:** nothing structurally. See `progress/current.md`'s
+concrete next step for the legitimate options (raising Cortex/Swarm's
+board-development density further — now capped by Cortex's deck sitting
+exactly at the 40-card ceiling; a fourth faction; starting real
+archetype-balance measurement across the three existing factions, which has
+had zero attention since Aegis shipped in session 4; or extending the
+vitest infrastructure to `server`/`protocol`/`agents`, which still have no
+automated tests at all).
+
 ## 2026-09-14 — Session 5 (HARDENING pass: stage-3 checkpoint feedback + automated test runner)
 
 Read `progress/owner-feedback.md` first, per TASKS.md. One entry was
