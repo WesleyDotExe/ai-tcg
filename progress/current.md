@@ -48,6 +48,13 @@ as overdue across three prior sessions.
     printout. `engine/src/dev/aegisMatchDemo.ts` (real played-match
     evidence generator, not an assertion script) is unchanged and still
     the tool for that kind of evidence.
+- **`.github/workflows/test.yml`** (new) — runs `npm run typecheck
+  --workspaces --if-present` and `npm test` on every push/PR against
+  `main`. Without this, the existing `auto-merge.yml` (which waits for any
+  check whose name contains "test"/"build"/"deploy" before merging) had
+  nothing to actually wait on — the new vitest suite provided no real
+  protection against a regression being auto-merged until this existed.
+  Named `test` so `auto-merge.yml`'s substring match picks it up.
 - **`progress/sample-match-005-boarddev-fixed.txt`** (new) — a fresh real
   match log (seed 4 of 500 searched, via the unchanged `aegisMatchDemo.ts`)
   regenerated with the same-turn-evolve fix in place: the evolved Aegis

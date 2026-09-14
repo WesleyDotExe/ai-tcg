@@ -1,0 +1,29 @@
+name: test
+
+# Gives the auto-merge workflow (auto-merge.yml) something real to wait on:
+# it only merges once every check whose name contains "test"/"build"/
+# "deploy" on the PR's head commit has completed successfully, and until
+# this workflow existed there was no such check, so PRs merged without any
+# automated verification actually running. Runs the same things a
+# contributor runs locally (typecheck across every workspace, engine's
+# vitest suite) on every push and PR against main.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: typecheck (all workspaces)
+        run: npm run typecheck --workspaces --if-present
+      - name: engine test suite (vitest)
+        run: npm test
