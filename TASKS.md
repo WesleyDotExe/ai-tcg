@@ -36,3 +36,10 @@ This repo is built by a scheduled Claude run, one session at a time. Unlike the 
 ## First session ever
 
 Stage 1. Don't scaffold the whole project. Build the headless rules engine: card schema, game state, turn structure, health + energy, win/loss detection, and two hardcoded dummy agents that make legal moves. Success condition: run a full match in the terminal and commit the match log to the repo (e.g. progress/sample-match-001.txt). Create progress/current.md, progress/log.md, progress/notes-for-owner.md, progress/quality-debt.md, progress/checkpoints.md, and progress/owner-feedback.md (the last seeded with a note that the owner writes here and runs read it first). Then leave the next run its thread.
+
+## Choosing next work
+When owner-feedback.md has no unhandled entries, consult progress/roadmap.md
+and work the highest unfinished, unblocked item. Fix any CRITICAL quality-debt
+item first regardless of roadmap order. For items marked [OWNER CHECK-IN], do
+the work but write a checkpoint and pause for owner steering on the taste-heavy
+decisions before finalizing.
