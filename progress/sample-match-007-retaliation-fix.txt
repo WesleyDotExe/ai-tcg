@@ -1,0 +1,357 @@
+AI-TCG session-7 evidence — mutual Retaliation Node fix, real Cortex-mirror match — demonstrating seed 2
+Random-Cortex-A (p1) vs Aggressive-Cortex-B (p2), both real 40/40-card Cortex decks
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Retaliation Node
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Retaliation Node
+--- Turn 3 (p1) ---
+p1 casts Backup Protocol [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Overclock Shunt
+--- Turn 4 (p2) ---
+p2 plays Cortex Engineer (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Recursive Construct
+--- Turn 5 (p1) ---
+p1 plays Retaliation Node (u3)
+p1 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Cortex Engineer (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Diagnostic Pulse
+--- Turn 6 (p2) ---
+p2 plays Watchtower Relay (u5)
+Cortex Engineer attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Random-Cortex-A
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Overclock Shunt
+--- Turn 7 (p1) ---
+Retaliation Node attacks Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Cortex Engineer (unit)
+  Cortex Engineer deals 1 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Cortex Engineer (unit)
+  Retaliation Node deals 1 damage to Watchtower Relay (unit)
+  Cortex Engineer (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Diagnostic Loop
+--- Turn 8 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Fail-safe Unit (u8)
+p2 plays Retaliation Node (u9)
+Watchtower Relay attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Random-Cortex-A
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Compiled Daemon
+--- Turn 9 (p1) ---
+p1 plays Dormant Exploit (u11)
+  Dormant Exploit deploys, dormant — arms in 1 of its controller's turn(s)
+Retaliation Node attacks Aggressive-Cortex-B (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Aggressive-Cortex-B
+  Overclock Shunt attaches to Dormant Exploit
+p1 plays Dormant Exploit (u13)
+  Dormant Exploit deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Compiled Daemon
+--- Turn 10 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Diagnostic Loop (u14)
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Retaliation Node (unit)
+  Retaliation Node (p1) dies
+  Overclock Shunt attaches to Watchtower Relay
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Dormant Exploit (unit)
+Watchtower Relay attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 3 damage to Random-Cortex-A
+Fail-safe Unit attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Random-Cortex-A
+Retaliation Node attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Random-Cortex-A
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Overclock Shunt
+--- Turn 11 (p1) ---
+  Dormant Exploit arms
+  ability: Dormant Exploit — dormant-exploit-arm (onPlay)
+  Dormant Exploit applies Stasis to Diagnostic Loop
+  Dormant Exploit arms
+  ability: Dormant Exploit — dormant-exploit-arm (onPlay)
+  Dormant Exploit applies Stasis to Watchtower Relay
+Dormant Exploit attacks Aggressive-Cortex-B (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Dormant Exploit's attack
+  Dormant Exploit deals 1 damage to Aggressive-Cortex-B
+Dormant Exploit attacks Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Dormant Exploit's attack
+  Dormant Exploit deals 2 damage to Watchtower Relay (unit)
+  Watchtower Relay deals 3 damage to Dormant Exploit (unit)
+  Dormant Exploit (p1) dies
+p1 plays Recursive Construct (u22)
+  Overclock Shunt attaches to Recursive Construct
+Recursive Construct attacks Retaliation Node
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 2 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Dormant Exploit (unit)
+  Retaliation Node deals 1 damage to Recursive Construct (unit)
+  Retaliation Node deals 1 damage to Recursive Construct (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Interrupt Handler
+--- Turn 12 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Dormant Exploit (unit)
+  Dormant Exploit (p1) dies
+Fail-safe Unit attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Random-Cortex-A
+Retaliation Node attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Random-Cortex-A
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Firewall Sentinel
+--- Turn 13 (p1) ---
+p1 plays Firewall Sentinel (u27)
+Recursive Construct attacks Aggressive-Cortex-B (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 2 damage to Aggressive-Cortex-B
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Firewall Sentinel
+--- Turn 14 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Firewall Sentinel (u29)
+Fail-safe Unit attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Cascade Purge
+p2 casts Cascade Purge [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Recursive Construct (unit)
+  Cascade Purge deals 2 damage to Firewall Sentinel (unit)
+  Recursive Construct (p1) dies
+Retaliation Node attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Retaliation Node (unit)
+  Firewall Sentinel (p1) dies
+  Retaliation Node (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Fail-safe Unit
+--- Turn 15 (p1) ---
+p1 plays Fail-safe Unit (u33)
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Cortex Engineer
+--- Turn 16 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Cortex Engineer (u34)
+Watchtower Relay attacks Random-Cortex-A (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 3 damage to Random-Cortex-A
+Diagnostic Loop attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Random-Cortex-A
+Firewall Sentinel attacks Random-Cortex-A (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Random-Cortex-A
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Diagnostic Loop
+--- Turn 17 (p1) ---
+p1 plays Diagnostic Loop (u44)
+Fail-safe Unit attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p1) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Diagnostic Loop
+p1 plays Diagnostic Loop (u46)
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p2 draws Firewall Sentinel
+--- Turn 18 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Firewall Sentinel (u47)
+Watchtower Relay attacks Random-Cortex-A (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 3 damage to Random-Cortex-A
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+--- Summary ---
+Winner: p2
+Turns played: 18
+Moves applied: 167
+Final health — p1 (Random-Cortex-A): -1, p2 (Aggressive-Cortex-B): 16
+Retaliation Node damage events: 4 (the match resolved cleanly instead of recursing forever, per session-7's fix)

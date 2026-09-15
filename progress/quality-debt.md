@@ -4,9 +4,65 @@ Written at the end of session 1, updated at the end of the stage-1 redo
 session (priority/reactivity rebuild), the stage-2 (agent interface)
 session, the stage-3 (real card set / board-development system) session,
 the session-5 hardening pass (checkpoint feedback + automated test runner),
-and now session 6 (backfilling Cortex/Swarm with board-development cards).
+session 6 (backfilling Cortex/Swarm with board-development cards), and now
+session 7 (first cross-faction balance measurement + a real crash fix).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 7
+
+- **The balance measurement is a one-off script, not a standing regression
+  gate.** `matchSmoke.test.ts` runs on every `npm test` and would catch a
+  future crash-class bug the same way it would have caught this session's
+  Retaliation Node stack overflow if it had been running enough seeds to
+  hit it (it wasn't — 15 seeds/matchup, alternating agents, never happened
+  to put two Retaliation Nodes on opposite boards). `balanceReport.ts` has
+  to be run by hand (`npm run balance --workspace=engine`); nothing
+  re-runs it in CI or flags a *new* balance regression automatically if a
+  future card addition reintroduces a dominant archetype. Worth turning
+  into a slow/opt-in CI job once the card pool is bigger and balance
+  regressions become a real ongoing risk, not urgent yet with 3 factions.
+- **Balance tuning stopped at "no double-flagged pairing," not a specific
+  target.** Cortex-vs-Aegis (Aggressive, 70.0%) and Cortex-vs-Swarm
+  (Random, 72.0%) still individually exceed the 60% flag threshold after
+  this session's fix — see `progress/balance-report-001.txt`'s "honest
+  read" section. This is real, partial progress, explicitly not a claim
+  that the three factions are balanced now.
+- **Swarm-vs-Aegis (61.3% Swarm, both before and after) was measured but
+  not investigated or acted on this session** — it wasn't touched by
+  either of the two card changes made, and finding its root cause is
+  unstarted work, not a false claim of being fixed.
+- **The stat-outlier/removal-density root-cause read for Cortex's
+  dominance is a plausible, evidence-consistent explanation (the fix that
+  followed from it worked, measurably), not a rigorously isolated proof.**
+  Overload Capacitor and Interrupt Handler were changed together in one
+  pass; a controlled experiment (change one, re-measure, then the other)
+  was not run, so the report can't say how much of the improvement came
+  from which change.
+- **Two other onDamaged-AOE cards exist that weren't audited for the same
+  mutual-recursion class of bug** as Retaliation Node: Cascade Purge and
+  Diagnostic Pulse deal damage via `onPlay`, not `onDamaged`, so they don't
+  self-trigger the same way — but this was reasoned about after the fact,
+  not verified by grepping every `onDamaged` ability in the pool for "does
+  its effect deal damage to something that could itself have `onDamaged`
+  with a damaging effect." Retaliation Node (Cortex) is the only current
+  card with that exact shape, but a future card with an `onDamaged` effect
+  that deals damage should be checked against this class of bug
+  specifically, not just trusted because the engine-level fix (checking
+  `isAlive()`) happens to generalize correctly — it does generalize (the
+  fix is in the shared `applyDamage` choke point, not per-card), but no
+  test proves a *three*-unit or *self-damaging* mutual-retaliation chain
+  behaves correctly, only the two-unit case this session found.
+- **AggressiveAgent was observed spamming a repeatable Instant-speed
+  activated ability (Cortex Engineer's heal) many times in a single
+  priority window even near full health**, visible in
+  `sample-match-007-retaliation-fix.txt`'s turn 18 (six consecutive
+  activations). Harmless (energy-gated, no infinite loop, no crash) but a
+  real agent-quality gap: the heuristic has no "is this actually useful
+  right now" check for its one reactive rule, just "if any playCard/
+  activateAbility move exists here, use it." Not fixed this session
+  (agent-quality tuning, out of scope for a balance-measurement session),
+  named here so it isn't rediscovered as a surprise.
 
 ## Resolved this session (session 6)
 
