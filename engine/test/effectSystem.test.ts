@@ -217,9 +217,9 @@ test(
     const state = emptyState();
     const rng = new Rng(9);
     const engineer = putUnit(state, "p1", cortexEngineer, 1); // 3 base health, 1 damage taken -> 2 current health
-    state.players.p2.hand.push(interruptHandler); // Instant, 1 cost, 2 damage to target enemy unit
-    state.players.p2.energy = 1;
-    state.players.p2.maxEnergy = 1;
+    state.players.p2.hand.push(interruptHandler); // Instant, 2 cost, 2 damage to target enemy unit
+    state.players.p2.energy = 2;
+    state.players.p2.maxEnergy = 2;
     state.players.p1.energy = 1; // for the engineer's own Instant repair ability (cost 1)
     state.players.p1.maxEnergy = 1;
 

@@ -127,6 +127,18 @@ export function applyDamage(state: GameState, target: TargetRef, amount: number,
   }
   unit.damageTaken += amount;
   state.log.push({ type: "damage", target: unit.card.name, targetKind: "unit", amount, source: sourceLabel });
+  // A unit whose health has already dropped to 0 or below is dead in
+  // substance even though processDeaths (which actually removes it from
+  // the board and fires onDeath) only runs once the outer resolveAbility
+  // call finishes cascading — see processDeaths's own comment on why
+  // death handling is deferred to a fixed-point pass rather than done
+  // inline here. Without this guard, two units that each retaliate against
+  // damage by damaging the other (e.g. two copies of a card whose
+  // onDamaged deals damage to all enemy units) recurse forever: each hit
+  // re-triggers the other's onDamaged before either is ever removed from
+  // the board, which is a real stack overflow reproduced by
+  // dev/balanceReport.ts's Cortex-mirror matchup, not a hypothetical.
+  if (!isAlive(state, unit)) return;
   for (const ability of unit.card.abilities) {
     if (ability.trigger === "onDamaged") {
       resolveAbility({

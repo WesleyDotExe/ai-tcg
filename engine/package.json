@@ -10,6 +10,7 @@
   },
   "scripts": {
     "match": "tsx src/cli.ts",
+    "balance": "tsx src/dev/balanceReport.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

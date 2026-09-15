@@ -1,5 +1,113 @@
 # Build log
 
+## 2026-09-15 — Session 7 (design principle 3: first cross-faction balance measurement, plus a real crash fix)
+
+Read `progress/owner-feedback.md` first, per TASKS.md — no unhandled
+entries (the last one, 2026-09-13's stage-3 checkpoint feedback, was
+already marked HANDLED by session 6). Not a hardening pass (session 7,
+not a multiple of 5; session 5 was the last one). `progress/current.md`
+named four legitimate next-step options; picked "start measuring design
+principle 3 (archetype-level soft counters)" — three factions have existed
+since session 4 with zero balance measurement between them, named as
+aging debt across sessions 5 and 6, and unlike option 1 (Cortex/Swarm
+density) it wasn't blocked by the 40-card deck ceiling, and unlike option
+2 (a fourth faction) it's depth on existing work rather than new width —
+the right call per DESIGN.md's "depth before breadth" rule.
+
+**What I built, in order:**
+
+1. **`engine/src/dev/balanceReport.ts`** — a real measurement tool for
+   DESIGN.md's design principle 3 ("track whether one archetype dominates
+   win rates over time"). Runs N seeded games (default 300) per
+   cross-faction pairing (Cortex/Swarm/Aegis) AND per mirror pairing, using
+   the SAME agent policy on both sides of each game (AggressiveAgent-vs-
+   itself, then a separate pass with RandomAgent-vs-itself) so agent skill
+   never confounds a faction-balance signal, and alternating which faction
+   plays first by seed so a real first-player-advantage effect (measured
+   directly via the mirror matchups) doesn't leak into the cross-faction
+   numbers either. A pairing flagged (>=60% win rate for one side) under
+   BOTH agent policies is treated as strong evidence of a genuinely
+   dominant archetype, not an agent-heuristic quirk. Added as
+   `npm run balance --workspace=engine`.
+
+2. **Ran it — and it immediately crashed with a stack overflow**, in the
+   very first Cortex-mirror game it reached. Investigated rather than
+   working around it: `effects/resolver.ts`'s `applyDamage` fires a unit's
+   `onDamaged` trigger every time it takes damage, with no check that the
+   unit is still alive first. Two copies of Retaliation Node (CX-013,
+   "whenever this unit is damaged, deal 1 damage to all enemy units") on
+   opposite sides of the board retaliate against each other forever: A's
+   Node takes damage, hits B's Node, which takes damage and hits A's Node
+   back, recursing before either unit is ever actually removed from the
+   board (removal is deferred to `processDeaths`, which only runs once the
+   whole cascade unwinds — see that function's own comment on why). This
+   is a real bug a real match could hit, not a synthetic edge case; it's
+   exactly the "untested paths" quality-debt.md already flagged in the
+   abstract ("a stack three or more items deep... also has no test") made
+   concrete by an actual measurement run.
+   - **Fix:** `applyDamage` now checks `isAlive(state, unit)` before firing
+     `onDamaged`, so a unit that's already dead in substance (health <= 0)
+     stops reacting even though it isn't physically removed from the board
+     until the cascade's outer call finishes — consistent with the
+     existing "deaths resolve to a fixed point after effects complete"
+     architecture, not a new model.
+   - **Regression test:** `engine/test/mutualRetaliation.test.ts` — calls
+     `applyDamage` on two board-placed Retaliation Nodes directly and
+     asserts it returns instead of throwing. Confirmed this test actually
+     catches the regression: reverted the fix, re-ran the test, watched it
+     fail with the real `RangeError: Maximum call stack size exceeded`
+     stack trace, then restored the fix and watched it pass.
+   - **Real-match evidence, not just whitebox:** `engine/src/dev/
+     retaliationMatchDemo.ts` searches real Cortex-mirror games (both
+     agents drawing from the actual 40-card Cortex deck) for one where both
+     players' Retaliation Node actually fight each other in unscripted
+     play. Found on seed 2 (of up to 3000 searched). Committed as
+     `progress/sample-match-007-retaliation-fix.txt` — the match resolves
+     cleanly to a winner at turn 18 with 4 real Retaliation Node damage
+     events logged, instead of hanging/crashing.
+   - All 26 vitest tests pass (25 pre-existing + 1 new); `tsc --noEmit`
+     clean across all four workspaces.
+
+3. **Used the (now-working) measurement to find and fix a real balance
+   bug**, per design principle 3's explicit instruction ("if it does,
+   that's a balance bug to fix, and the record should show it being
+   fixed"). The initial 300-seed measurement showed Cortex beating BOTH
+   other factions under BOTH agent policies (Cortex 63.7%/71.3% vs
+   Swarm/Aegis under Aggressive; 74.0%/60.3% under Random) — a real,
+   double-confirmed dominant-archetype signal, not noise (the mirror
+   matchups sat at 46-52% throughout, ruling out first-player advantage as
+   the explanation). Read the Cortex card pool for a cause rather than
+   guessing at a fix: Overload Capacitor (CX-011) is a clear stat outlier
+   (5/5 for cost 3 versus a ~6-7-combined-stat curve baseline elsewhere at
+   that cost), and Interrupt Handler (CX-014) duplicates Diagnostic Pulse's
+   exact effect (2 damage to a chosen enemy unit) at the same 1-mana cost,
+   giving Cortex 6 copies of "1 mana, 2 damage, precise target" between the
+   two cards plus 2 more of a 4-mana AOE — a removal density neither Swarm
+   nor Aegis has an equivalent of. Applied two minimal, targeted changes
+   (no new mechanic, a tuning pass): Overload Capacitor 5/5 -> 4/4; Interrupt
+   Handler cost 1 -> 2. Re-ran the same 300-seed measurement after the
+   change: the double-flag (Cortex beating both other factions under both
+   policies) is gone — Cortex-vs-Swarm (Aggressive) dropped from 63.7% to
+   58.0%, Cortex-vs-Aegis (Random) dropped from 60.3% to 54.7%. Full
+   before/after numbers and an honest read of what this does and doesn't
+   prove: `progress/balance-report-001.txt`.
+
+**What's still open, named honestly rather than claimed fixed:**
+Cortex-vs-Aegis (Aggressive, 70.0%) and Cortex-vs-Swarm (Random, 72.0%)
+still individually clear the 60% flag — just not both at once anymore,
+which is the weaker single-policy signal the double-check exists to
+distinguish from a real dominant archetype. Swarm-vs-Aegis sits at 61.3%
+Swarm both before and after (neither changed card is in either deck) and
+was not investigated this session. This was one bounded measure-then-fix
+cycle, not a claim that the three factions are now balanced — see
+`progress/quality-debt.md` for the honest continuation of this.
+
+**Blocked / not attempted:** the other three next-step options from
+session 6 (Cortex/Swarm board-development density, a fourth faction,
+non-engine test coverage) are untouched — correctly out of scope for a
+session that found a crash bug mid-task and followed it to a real fix
+rather than treating the balance measurement as a quick, isolated add.
+
 ## 2026-09-14 — Session 6 (stage 3: backfill Cortex/Swarm with board-development cards)
 
 Read `progress/owner-feedback.md` first, per TASKS.md. No new entries since
