@@ -134,3 +134,16 @@ Owner question to answer next run — DOCUMENT the energy/mana model clearly (in
 4. **Automated test runner — built, per the endorsed process instruction.** `vitest` added as an engine devDependency (`npm test` at the repo root or in `engine/`). The old `engine/src/dev/effectSystemDemo.ts` (a manually-run assertion script — exactly the debt this instruction called out) was retired; its 16 scenarios were ported into three real vitest files under `engine/test/` (`effectSystem.test.ts`, `boardDevelopment.test.ts`), each scenario now its own individually-reported test, plus one new regression test for item 1 above. A new `matchSmoke.test.ts` also converts the previously-uncommitted "run N seeds, confirm no crashes" stress run (named as a gap in `quality-debt.md`) into a small, fast, always-run suite across all three faction matchups. All 20 tests pass; full writeup in `progress/log.md` and `progress/quality-debt.md`.
 
 Backfilling Cortex/Swarm with telegraph/evolution/tools and further faction width are still open, correctly deferred — this session was scoped to exactly what this entry asked for (the four checkpoint decisions plus the test-runner priority), not new card-set width.
+
+
+---
+
+## 2026-09-15 — Owner: Session 7 balance decisions confirmed (HANDLED — for the record)
+
+Recording that the three decisions Session 7 flagged were all reviewed and APPROVED. No action needed; logged for the record. Next-work direction is now governed by progress/roadmap.md, not this entry.
+
+1. Stopping after one measure-then-fix cycle rather than chasing an exact balance target — approved. Serious balance tuning belongs later, once the card set is more complete.
+2. Changing Overload Capacitor and Interrupt Handler together (improvement not attributed to each individually) — approved; isolating each wasn't worth doubling the measurement cost at this stage.
+3. Leaving Swarm-vs-Aegis (61.3%) named as debt but uninvestigated — approved; correct to flag and defer.
+
+The balanceReport.ts instrument and the measure-then-fix pattern are endorsed — keep using it (not guesswork) for any future balance change.
