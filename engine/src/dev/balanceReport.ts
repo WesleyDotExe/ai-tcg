@@ -1,10 +1,10 @@
 // Design principle 3 ("A self-disrupting metagame") says explicitly:
 // "Measure it: track whether one archetype dominates win rates over time;
 // if it does, that's a balance bug to fix, and the record should show it
-// being fixed." Three factions (Cortex, Swarm, Aegis) have existed since
-// session 4 with zero balance measurement between them — named as aging
-// debt in quality-debt.md across sessions 5 and 6. This script is that
-// first measurement.
+// being fixed." This script was first written (session 7) to measure the
+// three factions that existed then (Cortex, Swarm, Aegis); it now also
+// covers Null, the fourth faction (session 8) — see progress/roadmap.md's
+// "Finish and harden the card game" item 1.
 //
 // Design of the measurement, and why: matchSmoke.test.ts already proves
 // matches resolve cleanly, but it alternates RandomAgent/AggressiveAgent
@@ -23,7 +23,7 @@
 // A faction that wins disproportionately under BOTH agent policies is a
 // much stronger balance signal than either alone.
 
-import { buildCortexDeck, buildSwarmDeck, buildAegisDeck } from "../data/decks.js";
+import { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
 import { AggressiveAgent } from "../agents/aggressiveAgent.js";
 import { RandomAgent } from "../agents/randomAgent.js";
 import { runMatch } from "../engine/match.js";
@@ -31,13 +31,14 @@ import { TURN_CAP } from "../state/init.js";
 import type { Agent } from "../agents/agent.js";
 import type { DeckSpec } from "../state/init.js";
 
-const FACTIONS = ["Cortex", "Swarm", "Aegis"] as const;
+const FACTIONS = ["Cortex", "Swarm", "Aegis", "Null"] as const;
 type Faction = (typeof FACTIONS)[number];
 
 const deckBuilders: Record<Faction, (id: DeckSpec["id"], name: string) => DeckSpec> = {
   Cortex: buildCortexDeck,
   Swarm: buildSwarmDeck,
   Aegis: buildAegisDeck,
+  Null: buildNullDeck,
 };
 
 const SEEDS_PER_MATCHUP = Number(process.argv[2] ?? 300);

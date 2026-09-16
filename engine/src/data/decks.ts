@@ -2,6 +2,7 @@ import type { Card, Rarity } from "../cards/types.js";
 import type { DeckSpec } from "../state/init.js";
 import { CORTEX_CARDS, SWARM_CARDS } from "./cards.js";
 import { AEGIS_CARDS } from "./aegisCards.js";
+import { NULL_CARDS } from "./nullCards.js";
 
 /** Copy-limit rule: a small cap on how many copies of one card a deck may
  * run, tighter at higher rarity. This is deck-construction, not just a
@@ -58,4 +59,8 @@ export function buildSwarmDeck(id: DeckSpec["id"], name: string): DeckSpec {
 
 export function buildAegisDeck(id: DeckSpec["id"], name: string): DeckSpec {
   return buildDeck(id, name, AEGIS_CARDS);
+}
+
+export function buildNullDeck(id: DeckSpec["id"], name: string): DeckSpec {
+  return buildDeck(id, name, NULL_CARDS);
 }

@@ -1,5 +1,123 @@
 # Build log
 
+## 2026-09-16 — Session 8 (the fourth faction: Null)
+
+Read `progress/owner-feedback.md` first, per TASKS.md — no unhandled
+entries (the last one, 2026-09-15's balance-decisions record, was already
+marked HANDLED). Not a hardening pass (session 8, not a multiple of 5).
+No CRITICAL quality-debt item outstanding, so followed
+`progress/roadmap.md`'s standing order and worked item 1: the fourth
+faction, Null (reserved in `cards/types.ts`'s `Faction` union since stage
+3 but never built) — the highest unfinished, unblocked roadmap item.
+
+**What I built, in order:**
+
+1. **`engine/src/data/nullCards.ts`** — 14 unique cards, 34-card deck
+   (`buildNullDeck`), matching Aegis's board-development density exactly
+   (1 evolution line, 2 telegraphs, 3 tools) so the fourth faction isn't
+   thinner than the third. Faction identity: corruption/deletion/entropy
+   — kernel panics, segfaults, fork bombs, bit rot — a distinct register
+   from Aegis's chrome-guardian and Cortex's networked-intelligence
+   angles, still within the cyberpunk + 1990s-retro-futurism direction.
+   Deliberately built to introduce mechanics no earlier card had used:
+   the `destroy` effect kind (Kernel Panic's evolve payoff — unconditional
+   removal, bypassing Barrier and stat buffs alike), a *negative*
+   permanent `buff` (Deprecated Routine's telegraph-arm -2/-2 decay —
+   every prior `buff` effect in the pool only ever added stats), and
+   `controllerGraveyardSize` as a live scaling source for a unit's own
+   stats (Entropy Harvester — "grows stronger from what's already died").
+   Propagating Exploit adds a genuinely new shape too: a unit that
+   permanently gains +1/+0 every time it attacks, uncapped.
+
+2. **Hit the documented "triggered abilities can't use chosen targeting"
+   architectural gap immediately, not eventually.** Kernel Panic's evolve-
+   destroy and Deprecated Routine's telegraph-arm decay were both first
+   written with `scope: "chosen"` (a natural choice for single-target
+   removal/debuff). Before running anything, I traced `evolveUnit` and
+   `processTelegraphArming` in `engine/engine.ts` and confirmed neither
+   ever supplies a `chosen` ref to `resolveAbility` — exactly the gap
+   `quality-debt.md` named after the priority rebuild ("I avoided this in
+   every card I wrote... but there is no type-level or data-validation
+   check stopping a future card... from only discovering the crash when
+   that trigger actually fires in a game"). Caught it by reading the
+   engine code rather than by hitting the crash, and changed both
+   abilities to `scope: "random"` instead — every existing evolve/
+   telegraph-arm effect in the pool already worked around this the same
+   way, so this isn't a new pattern, just Null's own instance of it.
+
+3. **`engine/test/nullFaction.test.ts`** (5 new tests) — proves each new
+   mechanic actually does what it claims, not just that the generic
+   telegraph/evolve/tool plumbing accepts the new cards: `destroy` kills a
+   unit despite a +50 permanent health buff AND an active, unconsumed
+   Barrier (both must fail to save it); the -2/-2 debuff genuinely lowers
+   max health (verified by combining it with pre-existing damage to
+   produce a kill that a same-sized flat-damage effect couldn't have, since
+   max health is floored at 1 by the engine — a real "sanity" bug I caught
+   in my first draft of this test, which wrongly assumed a fresh 1-health
+   unit would die outright); Fork Bomb's arm-time AOE kills every enemy
+   unit present, not just one; Entropy Harvester's attack recomputes live
+   as the graveyard grows (not snapshotted at play time); Propagating
+   Exploit's growth persists and stacks across two separate turns' worth of
+   attacks.
+
+4. **Ran a real match and searched for a demonstrating seed**, same
+   approach as `aegisMatchDemo.ts`, but tightened to search specifically
+   for NULL's own telegraph/evolve/tool events firing (by card name),
+   not just any faction's — the first, looser check found a seed where
+   only Aegis's mechanics fired. `engine/src/dev/nullMatchDemo.ts` found
+   seed 3 within the default 500-seed search window: Fork Bomb telegraphs
+   and AOE-damages both of Aegis's units on arming, the full evolution
+   chain plays out (Glitch Seed -> Corrupted Process -> Kernel Panic), and
+   Kernel Panic's evolve-in destroy kills Aegis's own armed Latent Ward
+   with no damage log line preceding it — clean, legible evidence in the
+   committed log that it's really the unconditional `destroy` effect
+   firing, not disguised lethal damage. Committed as
+   `progress/sample-match-008-null.txt`.
+
+5. **Measured Null against the existing three factions with
+   `balanceReport.ts`** (extended to include Null in its faction list;
+   no logic changes needed) — per the roadmap item's own instruction to
+   measure before calling it done. First result: Null beat ALL THREE other
+   factions under BOTH agent policies (66.3-91.7% win rate) — a stronger,
+   broader dominance signal than session 7's Cortex fix (which was 2 of 2
+   matchups, not 3 of 3). Root-caused to three specific outliers versus
+   the curve precedent Cortex/Swarm/Aegis had already established (not a
+   single bad card, closer to a genuine density problem across the pool):
+   Fork Bomb's AOE damage (2 to every enemy unit, at the same cost/
+   telegraph other factions spend on a single random target), Null Shell's
+   health bonus (+4 for 1 mana, versus the established +3-for-1 precedent
+   from Aegis's Plating Module and Swarm's Chitin Plating), and Propagating
+   Exploit's uncapped permanent growth coming online one turn earlier than
+   its power level could bear. Applied all three as one minimal tuning
+   pass (Fork Bomb damage 2->1, Null Shell health bonus 4->3, Propagating
+   Exploit cost 2->3) and re-measured: Cortex-vs-Null and Swarm-vs-Null
+   both dropped out of the double-flag; Aegis-vs-Null did not move
+   (75-81%, still double-flagged, still the single worst pairing measured
+   across both balance sessions) since none of the three changed cards
+   touch anything Aegis-specific. Full before/after, root-cause reasoning,
+   and an honest read of what this does and doesn't prove:
+   `progress/balance-report-002-null.txt`.
+
+6. **Extended `matchSmoke.test.ts`** with the three new cross-faction
+   pairings (Cortex/Swarm/Aegis each vs Null) so the always-run crash-
+   safety suite covers all six pairings now that a fourth faction exists,
+   not just the original three.
+
+**Verified before calling it done:** `npm test` — 34/34 vitest tests pass
+(29 pre-existing + 5 new); `npx tsc --noEmit` clean across all four
+workspace packages; the match demo and balance report were both actually
+run, not just written (see committed outputs above).
+
+**Stopped after one measure-then-fix cycle**, following the owner's
+2026-09-15 approval of session 7 doing the same thing — Aegis-vs-Null is
+left open as debt (see `progress/quality-debt.md`) rather than iterated on
+further, to keep this session's slice bounded to "ship the fourth faction,
+measured and with one real fix," not "achieve full four-faction balance."
+
+Updated `progress/roadmap.md` (item 1 marked done, item 3 updated to name
+the specific pairings still open) and `progress/quality-debt.md` (new
+debt section below).
+
 ## 2026-09-15 — Session 7 (design principle 3: first cross-faction balance measurement, plus a real crash fix)
 
 Read `progress/owner-feedback.md` first, per TASKS.md — no unhandled

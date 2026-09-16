@@ -1,5 +1,18 @@
 # Notes for the owner
 
+Nothing is blocking right now (updated 2026-09-16, session 8 — the fourth
+faction, Null). Didn't need any decision, asset, or credential only the
+owner can provide. One thing worth a glance if you have a spare minute:
+Aegis-vs-Null is measuring at 75-81% in Null's favour (see
+`progress/balance-report-002-null.txt`) — a plausible read is that it's
+Kernel Panic's unconditional `destroy` landing on Aegis's whole
+stacking-value identity (evolved/tooled-up units), which may be closer to
+a hard counter than the "soft counter" design principle 3 asks for. Not
+blocking (it's on the roadmap as the next balance item), but flagging in
+case you'd rather steer the fix direction (e.g. "make destroy require a
+condition" vs. "just keep tuning Null's stats down") before a future
+session picks one unilaterally.
+
 Nothing is blocking right now (updated 2026-09-14, session 6). Backfilling
 Cortex and Swarm with one telegraph/evolution/Tool card each (closing the
 "board-development system is Aegis-only" gap) didn't need any decision,
