@@ -1,0 +1,382 @@
+AI-TCG fourth-faction evidence — Null faction real match — demonstrating seed 3
+Random-Null (Null, p1) vs Aggressive-Aegis (Aegis, p2)
+Deck sizes: p1=34, p2=34
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Barrier Drone
+--- Turn 2 (p2) ---
+p2 plays Aegis Cadet (u1)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Stray Fragment
+--- Turn 3 (p1) ---
+p1 plays Fork Bomb (u2)
+  Fork Bomb deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Diagnostic Ward
+--- Turn 4 (p2) ---
+p2 plays Failover Custodian (u3)
+Aegis Cadet attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Random-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Segfault Handler
+--- Turn 5 (p1) ---
+  Fork Bomb arms
+  ability: Fork Bomb — fork-bomb-arm (onPlay)
+  Fork Bomb deals 2 damage to Aegis Cadet (unit)
+  Fork Bomb deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Aegis Cadet (p2) dies
+  Null Shell attaches to Fork Bomb
+  Null Shell attaches to Fork Bomb
+Fork Bomb attacks Aggressive-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Aggressive-Aegis
+p1 plays Stray Fragment (u6)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Barrier Drone
+--- Turn 6 (p2) ---
+p2 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+  Diagnostic Ward restores 1 health to Aggressive-Aegis
+  Plating Module attaches to Failover Custodian
+Failover Custodian attacks Stray Fragment
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Corrupted Process
+--- Turn 7 (p1) ---
+Stray Fragment attacks Failover Custodian
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Stray Fragment's attack
+  Stray Fragment deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 1 damage to Stray Fragment (unit)
+  Stray Fragment (p1) dies
+Fork Bomb attacks Aggressive-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Aggressive-Aegis
+p1 casts Segfault Handler [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Segfault Handler
+  ability: Segfault Handler — segfault-handler-cast (onPlay)
+  Segfault Handler deals 3 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Aegis Sentinel
+--- Turn 8 (p2) ---
+p2 plays Barrier Drone (u12)
+p2 plays Barrier Drone (u13)
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Random-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Null Singularity
+--- Turn 9 (p1) ---
+p1 plays Segmentation Fault (d15)
+Fork Bomb attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Barrier Drone (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Plating Module
+--- Turn 10 (p2) ---
+  Plating Module attaches to Failover Custodian
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+Barrier Drone attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Barrier Drone's attack
+Barrier Drone attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Barrier Drone's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Segmentation Fault
+--- Turn 11 (p1) ---
+p1 plays Segmentation Fault (d20)
+Fork Bomb attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Barrier Drone (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Perimeter Turret
+--- Turn 12 (p2) ---
+p2 plays Perimeter Turret (u22)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+Barrier Drone attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Barrier Drone's attack
+Barrier Drone attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Barrier Drone's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Corruption Patch
+--- Turn 13 (p1) ---
+  Corruption Patch attaches to Fork Bomb
+Fork Bomb attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 2 damage to Barrier Drone (unit)
+  Barrier Drone (p2) dies
+p1 plays Null Singularity (u27)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Barrier Shim
+--- Turn 14 (p2) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Null Singularity (unit)
+  Barrier Shim attaches to Failover Custodian
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+Barrier Drone attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Barrier Drone's attack
+Perimeter Turret attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Perimeter Turret's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Glitch Seed
+--- Turn 15 (p1) ---
+Fork Bomb attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 3 damage to Barrier Drone (unit)
+  Barrier Drone (p2) dies
+Null Singularity attacks Perimeter Turret
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Singularity's attack
+  Null Singularity deals 4 damage to Perimeter Turret (unit)
+  Perimeter Turret (p2) dies
+p1 plays Glitch Seed (u33)
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Latent Ward
+--- Turn 16 (p2) ---
+p2 plays Latent Ward (u34)
+  Latent Ward deploys, dormant — arms in 2 of its controller's turn(s)
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+p1 draws Decay Ward
+--- Turn 17 (p1) ---
+Glitch Seed attacks Aggressive-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 2 damage to Aggressive-Aegis
+Null Singularity attacks Failover Custodian
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Singularity's attack
+  Failover Custodian's Barrier absorbs the hit from Null Singularity
+  Decay Ward attaches to Fork Bomb
+Fork Bomb attacks Aggressive-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 3 damage to Aggressive-Aegis
+  Glitch Seed evolves into Corrupted Process
+  ability: Corrupted Process — corrupted-process-evolve (onPlay)
+  Corrupted Process deals 3 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+p2 draws Static Ward Beacon
+--- Turn 18 (p2) ---
+p2 plays Static Ward Beacon (d39)
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 18 for p2]
+p1 draws Kernel Panic
+--- Turn 19 (p1) ---
+Corrupted Process attacks Failover Custodian
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 3 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+Null Singularity attacks Aggressive-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Singularity's attack
+  Null Singularity deals 4 damage to Aggressive-Aegis
+  Corrupted Process evolves into Kernel Panic
+  ability: Kernel Panic — kernel-panic-evolve (onPlay)
+  Latent Ward (p2) dies
+Fork Bomb attacks Aggressive-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 3 damage to Aggressive-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 19 for p1]
+p2 draws Barrier Drone
+--- Turn 20 (p2) ---
+p2 plays Barrier Drone (u44)
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 20 for p2]
+p1 draws Corruption Patch
+--- Turn 21 (p1) ---
+  Corruption Patch attaches to Kernel Panic
+  p1 passes priority
+  p2 passes priority
+[end of turn 21 for p1]
+p2 draws Static Ward Beacon
+--- Turn 22 (p2) ---
+p2 plays Static Ward Beacon (d46)
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+Barrier Drone attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Barrier Drone's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 22 for p2]
+p1 draws Propagating Exploit
+--- Turn 23 (p1) ---
+Fork Bomb attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 3 damage to Barrier Drone (unit)
+p1 plays Propagating Exploit (u50)
+Kernel Panic attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kernel Panic's attack
+  Kernel Panic deals 6 damage to Barrier Drone (unit)
+  Barrier Drone (p2) dies
+Null Singularity attacks Aggressive-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Singularity's attack
+  Null Singularity deals 4 damage to Aggressive-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 23 for p1]
+p2 draws Guard Directive Chip
+--- Turn 24 (p2) ---
+  Guard Directive Chip attaches to Failover Custodian
+Failover Custodian attacks Random-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 24 for p2]
+p1 draws Deprecated Routine
+--- Turn 25 (p1) ---
+Kernel Panic attacks Failover Custodian
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kernel Panic's attack
+  Kernel Panic deals 6 damage to Failover Custodian (unit)
+  Failover Custodian (p2) dies
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)
+  Propagating Exploit grants Propagating Exploit +1/+0
+Propagating Exploit attacks Aggressive-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Propagating Exploit's attack
+  Propagating Exploit deals 4 damage to Aggressive-Aegis
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+--- Summary ---
+Winner: p1
+Turns played: 25
+Moves applied: 192
+Final health — p1 (Random-Null): 18, p2 (Aggressive-Aegis): -1
+p1 board size: 4, p2 board size: 0
+p1 graveyard: 4, p2 graveyard: 12
+Board-development events — telegraphed: 3 (armed: 2), evolutions: 2, tools attached: 9
+Deaths this match: 8 (Null's identity leans on removal/decay, not just combat — see progress/log.md for which cards fired)

@@ -3,11 +3,11 @@
 // progress/current.md's stage-3 entry described running manually (300
 // games) but never committed as a script — named as a gap in
 // progress/quality-debt.md. This runs a much smaller sample (fast enough
-// for every `npm test`) across all three factions' matchups, but for real,
+// for every `npm test`) across all four factions' matchups, but for real,
 // every time, not just when someone remembers to run it by hand.
 
 import { test, expect } from "vitest";
-import { buildCortexDeck, buildSwarmDeck, buildAegisDeck } from "../src/data/decks.js";
+import { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../src/data/decks.js";
 import { RandomAgent } from "../src/agents/randomAgent.js";
 import { AggressiveAgent } from "../src/agents/aggressiveAgent.js";
 import { runMatch } from "../src/engine/match.js";
@@ -20,12 +20,16 @@ const deckBuilders: Record<string, (id: DeckSpec["id"], name: string) => DeckSpe
   Cortex: buildCortexDeck,
   Swarm: buildSwarmDeck,
   Aegis: buildAegisDeck,
+  Null: buildNullDeck,
 };
 
 const matchups: [keyof typeof deckBuilders, keyof typeof deckBuilders][] = [
   ["Cortex", "Swarm"],
   ["Cortex", "Aegis"],
   ["Swarm", "Aegis"],
+  ["Cortex", "Null"],
+  ["Swarm", "Null"],
+  ["Aegis", "Null"],
 ];
 
 for (const [factionA, factionB] of matchups) {

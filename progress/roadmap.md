@@ -21,16 +21,20 @@ building around them; don't block the whole project waiting.
 ## The order
 
 ### Finish and harden the card game (Stage 3)
-1. Fourth faction (Null — reserved in the Faction type, unused). Use the
-   board-development mechanics (telegraph / evolution / tools) like the other
-   factions. Carry the cyberpunk + 1990s retro-futurism flavour direction.
-   Measure it against the existing three with balanceReport.ts before calling
-   it done.
+1. DONE (session 8). Fourth faction (Null) built: 14 unique cards
+   (engine/src/data/nullCards.ts), 34-card deck, full board-development
+   coverage (evolution line, 2 telegraphs, 3 tools), cyberpunk/glitch-decay
+   flavour. Measured with balanceReport.ts, one real fix cycle applied (see
+   progress/balance-report-002-null.txt) — Null still double-flagged
+   against Aegis specifically and above-50%-but-under-60% vs Cortex/Swarm
+   under Random play; carried into item 3 below rather than re-opening this
+   item.
 2. Non-engine test coverage: server / protocol / agents have had zero
    automated tests since session 3. Add real coverage.
 3. Balance pass across all four factions: resolve remaining flagged pairings
-   (incl. Swarm-vs-Aegis and the single-flagged Cortex pairings) using the
-   measure-then-fix pattern (balanceReport.ts, not guesswork).
+   (Aegis-vs-Null [worst, 75-81%], Swarm-vs-Aegis, the single-flagged Cortex
+   pairings, and Null's remaining edge over Cortex/Swarm under Random play)
+   using the measure-then-fix pattern (balanceReport.ts, not guesswork).
 4. Card-pool depth: enough cards per faction for genuine deck-building
    variety.
 

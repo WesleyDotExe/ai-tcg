@@ -4,10 +4,69 @@ Written at the end of session 1, updated at the end of the stage-1 redo
 session (priority/reactivity rebuild), the stage-2 (agent interface)
 session, the stage-3 (real card set / board-development system) session,
 the session-5 hardening pass (checkpoint feedback + automated test runner),
-session 6 (backfilling Cortex/Swarm with board-development cards), and now
-session 7 (first cross-faction balance measurement + a real crash fix).
-This is not "no debt, all good" — the product is real and the evidence is
-real, but here is where it's thin.
+session 6 (backfilling Cortex/Swarm with board-development cards), session
+7 (first cross-faction balance measurement + a real crash fix), and now
+session 8 (the fourth faction, Null). This is not "no debt, all good" —
+the product is real and the evidence is real, but here is where it's thin.
+
+## New debt from session 8
+
+- **Aegis vs Null (75-81% win rate for Null, both agent policies) remains
+  double-flagged after this session's one fix cycle** — the single worst
+  cross-faction number measured across both balance sessions so far
+  (worse than session 7's original Cortex dominance). Named explicitly,
+  not silently left in `progress/balance-report-002-null.txt` only: the
+  fix applied this session (Fork Bomb/Null Shell/Propagating Exploit)
+  didn't touch anything Aegis-specific, so this pairing is genuinely
+  unresolved, not "probably fine now." A plausible-but-unverified read is
+  in the balance report; isolating the real driver (Kernel Panic's
+  destroy specifically vs. Null's several stat-decay effects in
+  aggregate vs. something else) is unstarted work.
+- **Null still beats Cortex and Swarm at an above-50%-but-under-60% rate
+  under RandomAgent specifically** (66.7% and 87.3%) even after the fix
+  dropped both out of the double-flag (which requires BOTH policies).
+  This is the same category of "real, partial progress, not balance"
+  debt session 7 left for its own leftover single-flags — worth watching
+  as the card pool grows, not necessarily an emergency at 4 factions.
+- **Null's fix pass changed three cards together, not isolated one at a
+  time** (Fork Bomb, Null Shell, Propagating Exploit) — same tradeoff
+  session 7 made with Overload Capacitor/Interrupt Handler. The report
+  can't say how much of the Cortex/Swarm improvement came from which of
+  the three; a future session could isolate them if that matters more
+  than it did here.
+- **Kernel Panic's `destroy` and Deprecated Routine's decay debuff had to
+  be redesigned from "chosen" to "random" targeting before they worked at
+  all**, because of the pre-existing "triggered abilities can't use
+  chosen targeting" architectural gap (named below, under "Architectural
+  gaps," since the priority rebuild). This means both cards are less
+  precise/strategic than originally designed — a Null player (agent) has
+  no way to choose which enemy unit Kernel Panic destroys or which one
+  Deprecated Routine decays, only "hope the random pick is a good one."
+  If that architectural gap is ever closed generally (extending `Move`/
+  `playCard` to carry an independent ability-target alongside the
+  evolution-base/telegraph-arm structural reference), these two cards are
+  natural candidates to upgrade to `chosen` and would likely need a
+  re-measurement afterward since a controlled kill is strictly better
+  than a random one.
+- **`nullMatchDemo.ts`'s "does Null's own stuff fire" search is
+  string-matching card names inside serialized log events**
+  (`JSON.stringify(e).includes("Fork Bomb")` etc.), not a structural
+  check against card ids. This works today because no two cards across
+  any faction share a name, but it's a soft convention, not an enforced
+  invariant — a future card with a name collision (unlikely, but not
+  impossible as the pool grows past ~60 cards) could make this kind of
+  demo-seed search silently pass or fail for the wrong reason. Fine for a
+  one-off dev script; would need a real fix (filtering by `controller` /
+  card id instead of name-matching log text) if this pattern gets reused
+  more broadly.
+- **Null's 14-card pool has not been played by a human or judged for
+  "genre feel," only measured by two dummy heuristics.** Its identity
+  (attrition/removal/decay) is coherent on paper and distinct from the
+  other three factions', but whether it's *fun* to play against — as
+  opposed to just mechanically distinct and (before the fix) oppressively
+  efficient — is not something either dummy agent's win-rate numbers can
+  tell you. Same caveat DESIGN.md already names for the pacing metric:
+  real judgment needs real play, which doesn't exist yet.
 
 ## New debt from session 7
 
