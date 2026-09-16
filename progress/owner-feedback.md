@@ -147,3 +147,14 @@ Recording that the three decisions Session 7 flagged were all reviewed and APPRO
 3. Leaving Swarm-vs-Aegis (61.3%) named as debt but uninvestigated — approved; correct to flag and defer.
 
 The balanceReport.ts instrument and the measure-then-fix pattern are endorsed — keep using it (not guesswork) for any future balance change.
+
+---
+
+## 2026-09-17 — Owner: Aegis-vs-Null fix direction (Session 8 flag)
+
+Fix Aegis-vs-Null (75–81%) by adding a **condition to Kernel Panic's destroy**, not by just lowering Null's numbers. A destroy that ignores all protection and can hit any unit works as a hard counter to Aegis's build-up style. Design principle 3 calls for soft counters.
+
+- The destroy should only hit **some** units, and Aegis's evolved or upgraded units should be able to escape it at least some of the time. For example: only units below a set attack or health; only units that haven't evolved; or a destroy for small targets and plain damage for large ones. Pick one, explain why, and propose any numbers at a checkpoint.
+- Keep "destroy ignores Barrier and stat buffs" as a mechanic. The problem is that nothing restricts what it can target.
+- Measure before and after with `balanceReport.ts`. If Aegis-vs-Null is still flagged after this change, adjust Null's numbers as a second step, and only then.
+- Keep the roadmap order: do this when the item 3 balance pass comes up, not before item 2.
