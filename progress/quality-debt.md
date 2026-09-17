@@ -5,9 +5,58 @@ session (priority/reactivity rebuild), the stage-2 (agent interface)
 session, the stage-3 (real card set / board-development system) session,
 the session-5 hardening pass (checkpoint feedback + automated test runner),
 session 6 (backfilling Cortex/Swarm with board-development cards), session
-7 (first cross-faction balance measurement + a real crash fix), and now
-session 8 (the fourth faction, Null). This is not "no debt, all good" —
-the product is real and the evidence is real, but here is where it's thin.
+7 (first cross-faction balance measurement + a real crash fix), session 8
+(the fourth faction, Null), and now session 9 (non-engine test coverage).
+This is not "no debt, all good" — the product is real and the evidence is
+real, but here is where it's thin.
+
+## New debt from session 9
+
+- **Aegis-vs-Null is still unresolved** — this session deliberately did not
+  touch it, per the owner's own 2026-09-17 instruction to do that work when
+  roadmap item 3 comes up, not before item 2. Restating it here so it
+  doesn't read as forgotten: still the single worst cross-faction pairing
+  measured (75-81%, Null favoured), a specific fix direction is written down
+  in `owner-feedback.md`, and it is genuinely the next thing to build.
+- **The server integration tests are real but only exercise the happy-path
+  network shape** (a full match, an illegal-move fault, a third-connection
+  close, an OS-assigned port). Not covered: the hello-handshake timeout path
+  (`awaitHello`'s 10s timeout — same "would make the test slow" tradeoff
+  that motivated making `RemoteAgent`'s timeout configurable; `awaitHello`
+  itself has no equivalent override, so this path is still only reachable by
+  waiting 10 real seconds), a malformed/garbage `hello` message, and two
+  legitimate clients connecting but the *second* one disconnecting before
+  the match starts. None of these are exotic — they're realistic client
+  bugs a real external agent (stage 9) could actually hit — just not this
+  session's scope.
+- **`aggressiveDecision.test.ts`'s fixtures are hand-built `PlayerView`
+  objects, not ones produced by the real engine.** This proves the ported
+  decision logic does what it claims against inputs shaped like the real
+  wire format, but it's a different kind of evidence than "the engine
+  produced this exact view and the agent chose sensibly" — a future session
+  could strengthen this by wiring engine-produced `PlayerView`s (via
+  `buildPlayerView`) into the `agents/` test fixtures, though that would
+  reintroduce a devDependency on `@ai-tcg/engine` purely for tests, a
+  tradeoff not made this session.
+- **`server/test/integration.test.ts` uses real OS network sockets and real
+  `setTimeout`-based waits** (the third-connection test waits 50ms for
+  pairing to "settle" before connecting a third socket) — this is
+  inherently a little more timing-sensitive than the rest of the suite,
+  even though three repeated runs showed no flakiness this session. Worth
+  watching if it ever proves flaky in CI (a different, possibly slower,
+  environment than this session's sandbox).
+- **No coverage yet for `server/src/cli.ts` itself** (the two-line argv
+  wrapper) — only `startServer` (which now holds all the real logic) is
+  tested directly. This is a deliberate, low-risk gap (argv parsing is
+  trivial and was unchanged by the refactor, verified instead by the manual
+  subprocess regression check described in `progress/log.md`), not an
+  oversight, but named for completeness.
+- **`agents/`'s new barrel (`src/index.ts`) is consumed by `server/`'s
+  tests but not by `randomAgentClient.ts`/`aggressiveAgentClient.ts`
+  themselves**, which still import directly from sibling files
+  (`./client.js`, `./randomDecision.js`) rather than through the barrel.
+  Harmless (both work, no duplication), just an inconsistency worth
+  normalizing if the barrel gets more consumers later.
 
 ## New debt from session 8
 
@@ -288,14 +337,12 @@ the product is real and the evidence is real, but here is where it's thin.
   persistence of results anywhere — all correctly deferred to stage 4
   (match server), but worth naming so nobody mistakes the current
   `server/` package for more than a stage-2 protocol proof.
-- **No automated protocol test.** The fault-path verification (illegal
-  move → forfeit, 15s timeout → forfeit) described in `progress/log.md`
-  was real and observed end-to-end, but it was a manual, throwaway test
-  client, not a committed, repeatable script. Unlike `effectSystemDemo.ts`
-  for the engine, there is no `protocolDemo.ts`-equivalent a future run
-  can re-run to confirm the fault paths still work after a change. This
-  should graduate to a real committed test before the protocol gets more
-  complex (e.g. once matchmaking or reconnection are added in stage 4).
+- **No automated protocol test — RESOLVED, session 9.** The fault-path
+  verification described here was real but manual when this was written;
+  `server/test/remoteAgent.test.ts` (fake-socket, all fault paths) and
+  `server/test/integration.test.ts` (real sockets, real reference clients)
+  are now the committed, repeatable scripts this entry asked for. Left here
+  rather than deleted, per this file's own convention for resolved entries.
 - **Fixed test decks, no deck selection in the protocol.** `cli.ts`
   hardcodes Cortex-for-p1/Swarm-for-p2 regardless of which agent connects
   first. `hello` carries only an `agentName`. Real deck submission (an
@@ -453,8 +500,12 @@ the product is real and the evidence is real, but here is where it's thin.
   confirming the workflow file is real). `npm run typecheck --workspaces
   --if-present` and `npm test` now run on every push/PR against `main`,
   and `auto-merge.yml` waits on it by name.
-- **`server`/`protocol`/`agents` have zero automated tests** (see this
-  session's new debt section above) — only `engine` was covered.
+- **`server`/`protocol`/`agents` having zero automated tests — RESOLVED,
+  session 9.** See this file's "New debt from session 9" section above and
+  `progress/current.md`/`progress/log.md` for what shipped (81/81 tests
+  across all four packages). Left here, struck through in spirit rather than
+  deleted, so the historical record of what was missing stays intact — same
+  convention session 6 used for the Cortex/Swarm board-development backfill.
 - Untested paths I know of: simultaneous lethal (both players' health
   reaching 0 on the same resolution → draw) has code
   (`checkGameOver`) but no test exercising it; a unit carrying two

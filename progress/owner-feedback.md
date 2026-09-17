@@ -158,3 +158,12 @@ Fix Aegis-vs-Null (75–81%) by adding a **condition to Kernel Panic's destroy**
 - Keep "destroy ignores Barrier and stat buffs" as a mechanic. The problem is that nothing restricts what it can target.
 - Measure before and after with `balanceReport.ts`. If Aegis-vs-Null is still flagged after this change, adjust Null's numbers as a second step, and only then.
 - Keep the roadmap order: do this when the item 3 balance pass comes up, not before item 2.
+
+**Read, session 9 (2026-09-17) — correctly deferred, not yet acted on.** Per
+this entry's own last line, item 2 (non-engine test coverage) was worked
+this session, not this fix — see `progress/current.md`/`progress/log.md`.
+Left UNHANDLED on purpose: the actual Kernel Panic condition change,
+numbers proposal, and before/after `balanceReport.ts` measurement this entry
+asks for are still unstarted work for whichever future session picks up
+roadmap item 3. Do not mark this handled until that fix is actually built
+and measured.
