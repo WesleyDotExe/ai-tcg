@@ -37,12 +37,17 @@ interface PendingMove {
 export class RemoteAgent implements Agent {
   readonly name: string;
   private readonly socket: WebSocket;
+  private readonly timeoutMs: number;
   private nextRequestId = 0;
   private pending: PendingMove | null = null;
 
-  constructor(name: string, socket: WebSocket) {
+  /** `timeoutMs` defaults to the real 15s protocol timeout; tests override it
+   * to a few milliseconds so the timeout fault path doesn't make the suite
+   * slow. */
+  constructor(name: string, socket: WebSocket, options?: { timeoutMs?: number }) {
     this.name = name;
     this.socket = socket;
+    this.timeoutMs = options?.timeoutMs ?? MOVE_TIMEOUT_MS;
     socket.on("message", (data) => this.handleMessage(data));
     socket.on("close", () => this.fault("connection closed while a move was outstanding"));
   }
@@ -59,8 +64,8 @@ export class RemoteAgent implements Agent {
     const message: ServerMessage = { type: "requestMove", requestId, view, legalMoves };
     return new Promise<Move>((resolve, reject) => {
       const timer = setTimeout(() => {
-        this.fault(`did not reply within ${MOVE_TIMEOUT_MS}ms`);
-      }, MOVE_TIMEOUT_MS);
+        this.fault(`did not reply within ${this.timeoutMs}ms`);
+      }, this.timeoutMs);
       this.pending = {
         requestId,
         legalMoves,

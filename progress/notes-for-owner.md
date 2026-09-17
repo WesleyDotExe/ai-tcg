@@ -1,5 +1,14 @@
 # Notes for the owner
 
+Nothing is blocking right now (updated 2026-09-17, session 9 — non-engine
+test coverage). Your 2026-09-17 feedback on the Aegis-vs-Null fix direction
+was read this session but deliberately NOT acted on yet — it explicitly says
+to do that work "when the item 3 balance pass comes up, not before item 2,"
+and item 2 (server/protocol/agents having zero automated tests) was the
+roadmap's next unblocked item, so this session built that instead. The
+Kernel Panic condition fix is still queued, correctly, for whichever future
+session works roadmap item 3 next.
+
 Nothing is blocking right now (updated 2026-09-16, session 8 — the fourth
 faction, Null). Didn't need any decision, asset, or credential only the
 owner can provide. One thing worth a glance if you have a spare minute:

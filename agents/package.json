@@ -4,10 +4,15 @@
   "description": "Reference agent clients for the AI-TCG protocol (see protocol/PROTOCOL.md). Deliberately independent of @ai-tcg/engine at runtime — these processes see only what PROTOCOL.md defines, the same as a real external agent in any language would.",
   "type": "module",
   "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "random": "tsx src/randomAgentClient.ts",
     "aggressive": "tsx src/aggressiveAgentClient.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-tcg/protocol": "*",
@@ -16,6 +21,7 @@
   "devDependencies": {
     "@types/node": "^22.20.2",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
   }
 }

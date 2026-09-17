@@ -10,6 +10,6 @@
     "agents"
   ],
   "scripts": {
-    "test": "npm run test --workspace=engine"
+    "test": "npm run test --workspaces --if-present"
   }
 }

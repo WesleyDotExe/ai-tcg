@@ -1,5 +1,133 @@
 # Build log
 
+## 2026-09-17 — Session 9 (non-engine test coverage: server/protocol/agents)
+
+Read `progress/owner-feedback.md` first, per TASKS.md. One entry was
+unhandled: 2026-09-17's "Aegis-vs-Null fix direction" (a response to the
+Aegis-vs-Null flag left in `progress/notes-for-owner.md`), giving a specific
+design for the balance fix — but its own last line says "keep the roadmap
+order: do this when the item 3 balance pass comes up, not before item 2."
+No CRITICAL quality-debt item was outstanding. Following that instruction
+literally: read it in full, annotated it in `owner-feedback.md` as
+deliberately deferred (not marked handled — the actual fix is still
+unstarted work), and worked `progress/roadmap.md` item 2 instead — the
+highest unfinished, unblocked item once item-3 work is correctly held back.
+Item 2 was "non-engine test coverage: server / protocol / agents have had
+zero automated tests since session 3," a gap named in `quality-debt.md`
+across five sessions running (stage 2, session 5, session 6, plus this
+session's own re-confirmation).
+
+**What I built, in order:**
+
+1. **`protocol/test/messages.test.ts`** (7 tests) — `isClientMessage`, the
+   only real runtime logic in a types-only package, tested against every
+   shape it needs to discriminate: valid hello/move, a server-only message
+   type sent by a client (must be rejected — a client should never be able
+   to claim `matchStart`), unrecognized types, no `type` field, non-object
+   values, and the empty object a `JSON.parse` of garbage can produce.
+
+2. **Made `server/src/cli.ts` testable without spawning a process.** It was
+   a script with import-time side effects (binds a port from `process.argv`
+   the instant it's loaded) — there was no way to drive the real server
+   logic from a test at all, which is exactly why the stage-2 protocol
+   fault-path verification stayed a manual, uncommitted exercise (per
+   `quality-debt.md`'s own explanation of why). Split it into
+   `server/src/server.ts` — the actual logic, refactored into an exported
+   `startServer(options): Promise<RunningServer>` (returns the actually-bound
+   `port`, useful for `port: 0`/OS-assigned-port tests, and a
+   `matchEnded: Promise<MatchOutcome>` a test can assert on) — and a
+   two-line `cli.ts` that just parses argv and calls it. Behaviour-preserving:
+   same console output, same messages sent over the wire, same close timing;
+   confirmed by re-running the real `cli.ts` as an actual subprocess against
+   two separate `tsx` agent-client processes over real localhost sockets
+   after the refactor (p2 wins, 102 moves, 12 turns, log file written
+   correctly) — a regression check, not new stage evidence, so not committed
+   as a new sample-match file.
+
+3. **Gave `RemoteAgent` a configurable timeout** (`constructor(name, socket,
+   { timeoutMs })`, defaulting to the real 15s) — the one source change
+   needed to actually test the timeout-fault path without a 15-second-long
+   test. `server.ts` never passes the option, so production behaviour is
+   byte-for-byte unchanged.
+
+4. **`server/test/remoteAgent.test.ts`** (12 tests) — drives the real
+   `RemoteAgent` class against a minimal fake socket (`EventEmitter`
+   exposing only `on`/`send`/`close`/`readyState`/`OPEN`, the subset the
+   class actually touches), covering every fault path `PROTOCOL.md` names:
+   illegal move, malformed JSON, an unrecognized message type, a stale
+   `requestId` correctly ignored (not faulted) while the real reply still
+   resolves afterward, a late `hello` ignored, socket closed mid-request,
+   `decideMove` called while one's already pending (throws synchronously —
+   an engine/server bug, not a client fault, per the existing code comment),
+   and the reply timeout.
+
+5. **`agents/src/index.ts`** (new barrel) + `main`/`exports` added to
+   `agents/package.json`, mirroring the pattern `engine/` and `protocol/`
+   already use — so `@ai-tcg/agents`' real reference client
+   (`runAgentClient`) and decision policies (`makeRandomDecision`,
+   `aggressiveDecision`) are importable as a package, not just runnable as
+   standalone CLI scripts. This is what let `server/test/integration.test.ts`
+   drive real reference clients instead of a test-only duplicate of the
+   client logic — and it's a genuinely useful seam for future work too
+   (stage 9's open-agent-onboarding docs can point at this package).
+
+6. **`server/test/integration.test.ts`** (4 tests) — the real gap named
+   since stage 2: an automated, repeatable protocol test over real sockets.
+   Real `ws` connections, the real (now-importable) `@ai-tcg/agents`
+   reference clients, the real `startServer`. Covers: a full match resolving
+   end-to-end between two independent client instances (asserts a real
+   winner/turns/movesPlayed came back, not just "didn't crash"); `port: 0`
+   actually producing a reachable, OS-assigned port; a client that always
+   replies with an illegal move getting forfeited over a genuine network
+   round trip (the same fault `remoteAgent.test.ts` proves against a fake
+   socket, now proven against a real one too); and a third connecting
+   socket being closed rather than queued (this server hosts exactly one
+   match — `quality-debt.md`'s "no matchmaking queue" entry, now at least
+   covered by a test that says what current behaviour actually is).
+
+7. **`protocol/src/messages.ts`** now also re-exports `Card`/`UnitCard` from
+   `@ai-tcg/engine` (type-only, erased at compile time — same pattern as the
+   pre-existing `Move`/`PlayerView`/etc. re-exports), because
+   `agents/test/aggressiveDecision.test.ts` needed to build realistic
+   `UnitCard` fixtures by hand without giving `agents/` a real dependency on
+   `@ai-tcg/engine`.
+
+8. **`agents/test/rng.test.ts`** (6), **`randomDecision.test.ts`** (4),
+   **`aggressiveDecision.test.ts`** (7) — the client-side reference decision
+   policies, tested against hand-built `@ai-tcg/protocol`-typed fixtures
+   (exactly what a real remote agent receives over the wire — no engine
+   dependency in the test either). Seed determinism, "only ever picks a
+   move from the supplied legal-move list," the biggest-affordable-card /
+   face-over-unit-attack / lowest-health-target heuristics, and the one
+   genuine reactive rule (save a unit from a pending lethal combat hit
+   outside the main phase).
+
+9. **Root `package.json`'s `test` script changed** from
+   `npm run test --workspace=engine` to `npm run test --workspaces
+   --if-present`, so `npm test` (and CI, which just calls `npm test`) now
+   runs all four packages' suites, not only engine's.
+
+**Did I run it?**
+
+- `npm test` (root): **81/81 tests pass** across all four packages (34
+  engine + 7 protocol + 23 server + 17 agents), ~1.8s total.
+- `npx tsc --noEmit` clean in all four packages.
+- Ran the server suite three times in a row specifically to check for
+  flakiness in the real-socket integration tests (timing-sensitive by
+  construction, unlike everything else in the suite) — 23/23 passed
+  identically every time.
+- The manual `cli.ts`-subprocess regression check described in point 2
+  above — genuinely run, output inspected, then discarded (not new stage
+  evidence, a refactor sanity check).
+
+**What's blocked / next:** nothing structurally. Per `progress/roadmap.md`,
+item 3 (the balance pass, starting with Aegis-vs-Null per the owner's
+2026-09-17 direction — condition Kernel Panic's `destroy`, measure with
+`balanceReport.ts`) is next. See `progress/current.md`'s concrete next step
+and the still-unhandled `owner-feedback.md` entry (left unhandled on
+purpose — the fix itself is still unstarted work for whoever picks up item
+3 next).
+
 ## 2026-09-16 — Session 8 (the fourth faction: Null)
 
 Read `progress/owner-feedback.md` first, per TASKS.md — no unhandled

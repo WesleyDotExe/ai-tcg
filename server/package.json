@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "serve": "tsx src/cli.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-tcg/engine": "*",
@@ -14,9 +15,11 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@ai-tcg/agents": "*",
     "@types/node": "^22.20.2",
     "@types/ws": "^8.5.13",
     "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
   }
 }

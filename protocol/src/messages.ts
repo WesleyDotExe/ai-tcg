@@ -1,4 +1,4 @@
-import type { Move, PlayerId, PlayerView, StackItem, TargetRef, UnitInstance } from "@ai-tcg/engine";
+import type { Card, Move, PlayerId, PlayerView, StackItem, TargetRef, UnitCard, UnitInstance } from "@ai-tcg/engine";
 
 // Re-exported so a TypeScript reference agent (see agents/) can be typed
 // against these shapes by depending on @ai-tcg/protocol alone — it never
@@ -6,7 +6,7 @@ import type { Move, PlayerId, PlayerView, StackItem, TargetRef, UnitInstance } f
 // are fully erased at compile time: nothing about this file causes the
 // engine's actual code to be loaded at runtime by anything that imports
 // only @ai-tcg/protocol.
-export type { Move, PlayerId, PlayerView, StackItem, TargetRef, UnitInstance };
+export type { Card, Move, PlayerId, PlayerView, StackItem, TargetRef, UnitCard, UnitInstance };
 
 // TypeScript mirror of PROTOCOL.md — that file is the source of truth (it's
 // language-agnostic; anything speaking JSON over a WebSocket can implement

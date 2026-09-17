@@ -1,115 +1,140 @@
 # Current status
 
-**Build-order stage: 3 (A real card set) — still current.** Session 8, a
-normal (non-hardening) session. `progress/owner-feedback.md` had no new
-unhandled entries. Followed `progress/roadmap.md`: with no CRITICAL
-quality-debt item outstanding, worked item 1, the highest unfinished,
-unblocked roadmap item — the fourth faction (Null, reserved in the
-`Faction` type since stage 3 but never built).
+**Build-order stage: 3 (A real card set) — still current.** Session 9. One
+unhandled `progress/owner-feedback.md` entry existed (2026-09-17, the
+Aegis-vs-Null fix direction), but it explicitly instructs "do this when the
+item 3 balance pass comes up, not before item 2" — so it was read, annotated
+in owner-feedback.md as intentionally deferred (not marked handled), and
+`progress/roadmap.md` item 2 was worked instead: the highest unfinished,
+unblocked roadmap item once that entry's own instruction is honoured. No
+CRITICAL quality-debt item was outstanding.
 
-## What stands (changes from this session; everything from sessions 1-7
+## What stands (changes from this session; everything from sessions 1-8
 ## otherwise unchanged — see prior `progress/log.md` entries for that)
 
-- **`engine/src/data/nullCards.ts`** (new) — the fourth faction, Null.
-  14 unique cards / 34-card deck (`buildNullDeck` in `data/decks.ts`),
-  built to the same board-development bar as Aegis: a 3-tier evolution
-  line (Glitch Seed -> Corrupted Process -> Kernel Panic), two telegraphed
-  threats (Fork Bomb, telegraph 1; Deprecated Routine, telegraph 2), and
-  three Tools (Corruption Patch, Null Shell, Decay Ward). Faction identity
-  is corruption/deletion/entropy (kernel panics, segfaults, fork bombs —
-  cyberpunk + glitch-terminal register, per the standing flavour
-  direction), and it introduces three mechanics no earlier card
-  exercised: the `destroy` effect kind (unconditional removal, ignoring
-  stats/Barrier — Kernel Panic's evolve payoff), a *negative* permanent
-  `buff` (Deprecated Routine's -2/-2 decay debuff — every prior `buff`
-  effect only ever added stats), and `controllerGraveyardSize` as a live
-  scaling source for a unit's own stats (Entropy Harvester). Propagating
-  Exploit is also new *shape*: a unit that permanently grows +1/+0 every
-  time it attacks, with no existing precedent for uncapped permanent
-  self-growth.
-- **Architectural constraint discovered and worked around, not hit at
-  runtime:** the pre-existing "triggered abilities can't use chosen
-  targeting" gap (named in quality-debt.md since the priority rebuild)
-  applies to evolve-in and telegraph-arm effects too — `evolveUnit` and
-  `processTelegraphArming` never supply a `chosen` ref. Kernel Panic's
-  destroy and Deprecated Routine's decay were both originally written
-  with `scope: "chosen"` and had to be changed to `scope: "random"`
-  before they'd work at all (caught by the whitebox tests below, not
-  discovered by a future crash — see `engine/src/data/nullCards.ts`'s
-  inline comments on both abilities for the reasoning).
-- **`engine/test/nullFaction.test.ts`** (new, 5 tests) — proves each of
-  the three new mechanics actually works: `destroy` kills a unit despite
-  a +50 permanent health buff AND an active Barrier (bypasses both); the
-  -2/-2 decay debuff lowers max health (not a disguised damage effect)
-  and can finish off an already-damaged unit once max health drops below
-  damage already taken; Fork Bomb's telegraph-arm AOE kills every enemy
-  unit, not just one; Entropy Harvester's attack is recomputed live as
-  the controller's graveyard grows; Propagating Exploit accumulates
-  permanent attack across two separate turns' attacks.
-- **`engine/src/dev/nullMatchDemo.ts`** (new) — found a real, unscripted
-  match (seed 3) exercising Null's own telegraph-arm, full evolution
-  chain (including the destroy effect actually killing an armed Aegis
-  Latent Ward with no damage log preceding it — clean evidence it's
-  `destroy`, not disguised damage), and tool attachment, committed as
-  `progress/sample-match-008-null.txt`.
-- **`engine/test/matchSmoke.test.ts`** extended with three more matchups
-  (Cortex/Swarm/Aegis each vs Null) so the crash-safety smoke suite covers
-  all six cross-faction pairings, not just the original three.
-- **`engine/src/dev/balanceReport.ts`** extended to include Null in its
-  faction list and deck-builder map — no logic changes, the script already
-  generalizes over `FACTIONS`.
-- **One real balance measurement + fix cycle**, same pattern session 7
-  established: Null as first shipped beat ALL THREE other factions under
-  BOTH agent policies (66-91% win rate) — a stronger dominance signal than
-  session 7's Cortex fix. Root-caused to three specific stat/cost
-  outliers (Fork Bomb's AOE damage, Null Shell's health bonus, Propagating
-  Exploit's cost) versus the curve precedent the other three factions had
-  already established, applied the fix, re-measured: two of the three
-  double-flagged pairings dropped out (Cortex-vs-Null, Swarm-vs-Null).
-  Aegis-vs-Null remains double-flagged (75-81%) — the fix didn't touch
-  anything Aegis-specific. Full before/after: `progress/balance-report-
-  002-null.txt`.
+Roadmap item 2 — non-engine test coverage — is done. `server`, `protocol`,
+and `agents` had zero automated tests since session 3 (named as debt across
+five sessions running); all three now have real vitest suites, and `npm
+test` at the repo root runs all four packages' suites (`npm run test
+--workspaces --if-present`, changed from the old engine-only script).
+
+- **`protocol/test/messages.test.ts`** (7 tests) — `isClientMessage` is the
+  only runtime logic this package has (everything else is types, erased at
+  compile time); tests cover valid hello/move, a server-only message type
+  sent by a client, unrecognized types, missing `type`, non-object values,
+  and the empty-object case a JSON parse of garbage input can produce.
+- **`server/test/deepEqual.test.ts`** (7 tests) — the pure structural-equality
+  function `RemoteAgent` uses to match a client's reply against the
+  `legalMoves` it sent: primitives, key-order independence, mismatches at
+  depth, missing/extra keys, arrays vs. objects, null vs. `{}`.
+- **`server/test/remoteAgent.test.ts`** (12 tests) — drives the real
+  `RemoteAgent` class against a minimal fake socket (an `EventEmitter`
+  exposing just the `on`/`send`/`close`/`readyState`/`OPEN` subset it
+  actually uses), covering every fault path named in `PROTOCOL.md`'s
+  "Faults" section: illegal move, malformed JSON, an unrecognized message
+  type, a stale `requestId` being ignored (not faulted) while the real reply
+  still resolves, a late `hello` being ignored, closing the socket while a
+  move is outstanding, calling `decideMove` while one is already pending
+  (throws synchronously — an engine/server bug, not a client fault), and a
+  reply timeout. Required one small, real (not test-only-hack) source
+  change: `RemoteAgent`'s constructor now takes an optional `{ timeoutMs }`
+  — production code (`server.ts`) never passes it, so the real 15s default
+  is unchanged; tests use a few milliseconds so the timeout-fault test
+  doesn't slow the suite down.
+- **`server/test/integration.test.ts`** (4 tests) — the actual gap named
+  since stage 2 (`quality-debt.md`: "no automated protocol test... should
+  graduate to a real committed test"). Real `ws` WebSocket connections, the
+  real `@ai-tcg/agents` reference clients (`runAgentClient` +
+  `makeRandomDecision`), and the real server — no process spawning, but no
+  mocking of the protocol boundary either. Covers: a full match resolving
+  end-to-end between two independent client instances; `port: 0` (OS-assigned
+  port) actually being reachable; a client that always replies with an
+  illegal move getting forfeited over a real socket round trip (not just the
+  fake-socket path `remoteAgent.test.ts` already covers); and a third
+  connecting socket being closed rather than queued, since this server hosts
+  exactly one match.
+- **`agents/test/rng.test.ts`** (6 tests), **`randomDecision.test.ts`**
+  (4 tests), **`aggressiveDecision.test.ts`** (7 tests) — the reference
+  client-side decision policies, tested against `@ai-tcg/protocol`-typed
+  fixtures built by hand (exactly what a real remote agent receives over the
+  wire): seed determinism, always choosing from the supplied legal-move list,
+  biggest-affordable-card / face-over-unit / lowest-health-target heuristics,
+  and the one genuine reactive rule (saving a unit from a pending lethal
+  combat hit outside the main phase).
+
+**Two small, deliberate refactors, both behaviour-preserving, made purely to
+enable this testing (not scope creep — without them the protocol layer
+stays structurally untestable):**
+- `server/src/cli.ts` was a top-level script with side effects at import
+  (binds a port from `process.argv` the moment it's loaded) — impossible to
+  drive from a test. Split into `server/src/server.ts` (the actual server
+  logic, now an exported `startServer(options)` returning a `RunningServer`
+  with a `matchEnded: Promise<MatchOutcome>` and the actually-bound `port`)
+  and a thin `cli.ts` that just parses argv and calls it. Re-verified this
+  didn't regress the real, process-spawned path (not just trusting the
+  refactor): ran the actual `cli.ts` as a subprocess against two separate
+  `tsx` agent-client processes over real localhost sockets — resolved
+  cleanly (p2 wins, 102 moves, 12 turns), log file written correctly. Not
+  committed as new sample-match evidence (sample-match-003-networked.txt
+  already establishes this path; this was a regression check, not a new
+  milestone) — just confirmed and cleaned up.
+- `agents/` gained a barrel (`agents/src/index.ts`, plus `main`/`exports` in
+  its `package.json`, mirroring `engine/`'s and `protocol/`'s existing
+  pattern) so `server/`'s integration tests can import `@ai-tcg/agents`'
+  real reference client instead of hand-rolling a duplicate one just for
+  tests. `agents/`'s zero-*runtime*-dependency-on-`@ai-tcg/engine` guarantee
+  is untouched — this only makes the package's own client/decision code
+  importable, it doesn't add a new dependency.
+- `protocol/src/messages.ts` now also re-exports `Card`/`UnitCard` from
+  `@ai-tcg/engine` (type-only, erased at compile time, same pattern as the
+  existing `Move`/`PlayerView`/etc. re-exports) — needed so
+  `agents/test/aggressiveDecision.test.ts` can build realistic `UnitCard`
+  fixtures without `agents/` taking a real dependency on `@ai-tcg/engine`.
 
 ## Evidence committed
 
-- `npm test` (engine): **34/34 vitest tests pass** (29 pre-existing + 5
-  new), <1s.
-- `npx tsc --noEmit` clean in all four packages (`engine`, `protocol`,
-  `server`, `agents`).
-- `progress/sample-match-008-null.txt` — a real, unscripted Null-vs-Aegis
-  match (seed 3) where Null's telegraph, full evolution chain (with a
-  clean `destroy` kill), and tool attachment all fire in genuine play.
-- `progress/balance-report-002-null.txt` — the full before/after 300-seed
-  measurement (both agent policies, all 3 Null cross-pairings + its
-  mirror), with root-cause analysis and an honest read of what the fix
-  does and doesn't prove.
+- `npm test` (root, all four workspaces): **81/81 tests pass** (34 engine +
+  7 protocol + 23 server + 17 agents), ~1.8s total.
+- `npx tsc --noEmit` clean in all four packages (test files are excluded
+  from each package's `tsconfig.json` `include: ["src"]`, matching the
+  pre-existing `engine/test/` convention — vitest transforms them, `tsc`
+  doesn't type-check them).
+- Ran the server's suite three times in a row to check for flakiness in the
+  real-socket integration tests (timing-sensitive by nature) — 23/23 passed
+  identically each time.
+- The manual `cli.ts`-as-subprocess regression check described above (not a
+  new committed sample-match file; a targeted re-verification of the
+  refactor, output inspected and discarded).
 
 ## Decisions made this session the owner might want to overrule
 
-- **Kernel Panic's and Deprecated Routine's targeting had to be changed
-  from "chosen" to "random"** because of the pre-existing chosen-targeting
-  gap on triggered abilities (see above) — this was a mechanical necessity,
-  not a design preference; both cards would be more precise/strategic (and
-  arguably a bit weaker per-copy, since a random pick isn't always the
-  best pick) as "chosen" if that architectural gap is ever closed. Worth
-  revisiting if/when that gap gets fixed generally.
-- **Stopped after one measure-then-fix cycle again**, following the
-  owner's explicit approval of that same choice for session 7
-  (2026-09-15 entry in owner-feedback.md). Aegis-vs-Null (75-81%, the
-  single worst pairing measured to date across both sessions) is left
-  open rather than iterated on further this session.
-- **Fork Bomb/Null Shell/Propagating Exploit were changed together in one
-  pass**, same as session 7's Overload Capacitor/Interrupt Handler change
-  — the report can't isolate which of the three contributed how much to
-  the improvement.
+- **Left the 2026-09-17 owner-feedback entry (Aegis-vs-Null fix direction)
+  formally unhandled**, per its own explicit "do this when item 3 comes up,
+  not before item 2" instruction — annotated in `owner-feedback.md` as read
+  and intentionally deferred, not marked done, so a future session doesn't
+  mistake it for already-applied. If the owner actually meant "do this
+  next regardless of the stated order," that reading was not taken; say so
+  in `owner-feedback.md` if so.
+- **`RemoteAgent` gained a constructor option (`timeoutMs`) purely for
+  testability.** Production behaviour is unchanged (server.ts never passes
+  it, so the real 15s timeout still applies) — flagging the API surface
+  change itself as a small, deliberate one, not something the owner asked
+  for.
+- **`startServer`'s `MatchOutcome` type is new API surface** (`resolved` /
+  `fault` / `error` union) that `cli.ts` doesn't consume (it just awaits the
+  promise and lets the process exit) — added because the integration tests
+  need to assert on the match result without scraping console output, but
+  it's a reasonable foundation for stage 4 (match server hardening) to build
+  on rather than a one-off test hook.
 
 ## Concrete next step
 
-No unhandled owner feedback remains. Per `progress/roadmap.md`, item 1
-(fourth faction) is now done; the highest unfinished, unblocked item is
-item 2 (non-engine test coverage: `server`/`protocol`/`agents` have had
-zero automated tests since session 3) or item 3 (continue the balance
-cycle, starting with Aegis-vs-Null specifically, per the "next step" note
-at the end of `progress/balance-report-002-null.txt`). Either is
-legitimate; whichever is picked, keep using `balanceReport.ts` for any
-future balance change, not guesswork.
+Per `progress/roadmap.md`, item 3 (balance pass across all four factions) is
+next, starting with Aegis-vs-Null specifically per the owner's 2026-09-17
+feedback: add a condition to Kernel Panic's `destroy` (own units below a
+set attack/health threshold, or non-evolved units only, or destroy-for-small
+plus damage-for-large — pick one, explain why, propose numbers at a
+checkpoint), keep "ignores Barrier/stat buffs" as-is, measure before/after
+with `balanceReport.ts`, and only touch Null's own numbers as a second step
+if the pairing is still flagged after that. Mark the owner-feedback entry
+handled once that's actually done and measured, not before.

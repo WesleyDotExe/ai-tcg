@@ -29,12 +29,20 @@ building around them; don't block the whole project waiting.
    against Aegis specifically and above-50%-but-under-60% vs Cortex/Swarm
    under Random play; carried into item 3 below rather than re-opening this
    item.
-2. Non-engine test coverage: server / protocol / agents have had zero
-   automated tests since session 3. Add real coverage.
+2. DONE (session 9). Non-engine test coverage: `protocol` (7 tests),
+   `server` (23 tests: pure `deepEqual`, a fake-socket `RemoteAgent` fault-path
+   suite, and a real-socket integration suite driving the actual server
+   against real `@ai-tcg/agents` reference clients), and `agents` (17 tests:
+   `Rng`, `makeRandomDecision`, `aggressiveDecision`) all now have real
+   vitest coverage — 81/81 tests pass across all four packages. See
+   `progress/current.md` for what shipped and where it's still thin.
 3. Balance pass across all four factions: resolve remaining flagged pairings
-   (Aegis-vs-Null [worst, 75-81%], Swarm-vs-Aegis, the single-flagged Cortex
-   pairings, and Null's remaining edge over Cortex/Swarm under Random play)
-   using the measure-then-fix pattern (balanceReport.ts, not guesswork).
+   (Aegis-vs-Null [worst, 75-81%] — the owner's 2026-09-17 feedback gives a
+   specific fix direction for this one: condition Kernel Panic's `destroy`
+   rather than just tuning Null's numbers, see owner-feedback.md — plus
+   Swarm-vs-Aegis, the single-flagged Cortex pairings, and Null's remaining
+   edge over Cortex/Swarm under Random play) using the measure-then-fix
+   pattern (balanceReport.ts, not guesswork).
 4. Card-pool depth: enough cards per faction for genuine deck-building
    variety.
 
