@@ -2,6 +2,7 @@ import type { Side, TargetFilter, TargetSpec } from "../cards/types.js";
 import type { GameState, PlayerId } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
 import type { Rng } from "../state/rng.js";
+import { currentMaxHealth } from "../state/queries.js";
 
 export type TargetRef =
   | { kind: "unit"; instanceId: string }
@@ -25,6 +26,13 @@ export function enumerateTargets(filter: TargetFilter, controller: PlayerId, sta
   for (const pid of sides) {
     if (filter.kind === "unit" || filter.kind === "any") {
       for (const unit of state.players[pid].board) {
+        // Checked against total (derived) max health, not remaining health
+        // after damage: this is a "how big was this unit built to be"
+        // eligibility gate (tools/permanent buffs count, matching genre
+        // convention for a toughness-gated removal effect), not a
+        // finish-off-the-wounded effect — a unit already chipped down
+        // doesn't become newly vulnerable just because it took damage.
+        if (filter.maxHealth !== undefined && currentMaxHealth(state, unit) > filter.maxHealth) continue;
         refs.push({ kind: "unit", instanceId: unit.instanceId });
       }
     }

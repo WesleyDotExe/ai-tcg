@@ -1,5 +1,25 @@
 # Notes for the owner
 
+Nothing is blocking right now (updated 2026-09-18, session 10 — the
+Aegis-vs-Null fix you asked for). Did exactly the two-step process from
+your 2026-09-17 feedback (condition Kernel Panic's destroy, then adjust a
+Null number since it was still flagged) and measured both steps
+separately — see `progress/balance-report-003-null-fix.txt`. Honest
+result: the pairing is still double-flagged (74.7%/79.0%, down slightly
+from 75.0%/81.3%) — a small real improvement, not a fix. An instrumentation
+pass found no single card explains the gap. The most likely real driver:
+Aegis's own card pool has almost no independent interaction/removal
+(Perimeter Turret's telegraphed random 3-damage hit and Lockdown Field's
+1-turn stasis are close to its whole answer suite) — a deck built purely
+around stacking value into a few units with barely any way to interact
+with the opponent's board. Fixing that means adding real interaction to
+Aegis's own kit, which is a card-set-design change that reshapes Aegis's
+balance against ALL factions, not just Null — flagging it here rather than
+building it unilaterally in case you'd rather steer that direction (e.g.
+what kind of interaction fits Aegis's "hardened guardian" identity) before
+a future session does. Not blocking either way; the roadmap can proceed to
+the rest of item 3 (Swarm-vs-Aegis, the Cortex pairings) in the meantime.
+
 Nothing is blocking right now (updated 2026-09-17, session 9 — non-engine
 test coverage). Your 2026-09-17 feedback on the Aegis-vs-Null fix direction
 was read this session but deliberately NOT acted on yet — it explicitly says

@@ -21,18 +21,24 @@ import {
   entropyHarvester,
   propagatingExploit,
   glitchSeed,
+  nullSingularity,
 } from "../src/data/nullCards.js";
 import { swarmLarva } from "../src/data/cards.js";
-import { barrierDrone } from "../src/data/aegisCards.js";
+import { barrierDrone, aegisWarden, aegisCadet } from "../src/data/aegisCards.js";
 import { emptyState, putUnit } from "./helpers.js";
 
-test("Kernel Panic (Null) evolves from Corrupted Process and destroys its target outright, ignoring stats and Barrier", () => {
+test("Kernel Panic (Null) evolves from Corrupted Process and destroys a small target outright, ignoring stat buffs and Barrier", () => {
   const state = emptyState();
   const rng = new Rng(31);
   const process = putUnit(state, "p1", corruptedProcess);
   const processInstanceId = process.instanceId;
   const victim = putUnit(state, "p2", swarmLarva);
-  victim.permanentBuff.health = 50; // even a huge stat buff must not save it from `destroy`
+  // +3 health keeps it at 4 total max health, under Kernel Panic's
+  // maxHealth:5 eligibility cap (see the card's own comment) — still
+  // proving destroy ignores the buff to kill it, without also tripping
+  // the new targeting restriction this session added (see the next test
+  // for that).
+  victim.permanentBuff.health = 3;
   victim.statuses.push({ kind: "Barrier", duration: "untilConsumed" }); // and Barrier must not absorb it either
   state.turnNumber += 1; // let the base survive to a later turn, required to evolve
   state.players.p1.hand.push(kernelPanic);
@@ -44,14 +50,39 @@ test("Kernel Panic (Null) evolves from Corrupted Process and destroys its target
   expect(evolve, "evolving into Kernel Panic should target the Corrupted Process already in play").toBeTruthy();
   // Kernel Panic's destroy effect targets a random enemy unit, not a chosen
   // one: evolveUnit's onPlay resolution never supplies a `chosen` ref (see
-  // the card's own comment), so with only one enemy unit on the board the
-  // random pick is deterministically that unit.
+  // the card's own comment), so with only one *eligible* enemy unit on the
+  // board the random pick is deterministically that unit.
   applyMove(state, evolve!, rng);
 
   const evolved = state.players.p1.board.find((u) => u.instanceId === processInstanceId);
   expect(evolved?.card.id, "the instance should now be the evolved card, same instanceId").toBe(kernelPanic.id);
-  expect(isAlive(state, victim), "destroy must kill regardless of the +50 health buff").toBe(false);
+  expect(isAlive(state, victim), "destroy must kill regardless of the health buff").toBe(false);
   expect(victim.statuses.some((s) => s.kind === "Barrier"), "destroy bypasses Barrier rather than being consumed by it").toBe(true);
+});
+
+test("Kernel Panic (Null) cannot target a unit built bigger than its 5-health cap — the Aegis-vs-Null soft-counter fix", () => {
+  // 2026-09-17 owner feedback: Kernel Panic's unconditional destroy was a
+  // hard counter to Aegis's stacking identity (Aegis-vs-Null measured
+  // 75-81% for Null, the worst pairing in progress/balance-report-002-null.txt).
+  // Aegis Warden (7 max health, and it evolves in already fully healed via
+  // its own onPlay — see aegisCards.ts) is exactly the kind of "evolved,
+  // stacked" unit the fix direction named as something that should escape.
+  const state = emptyState();
+  const rng = new Rng(35);
+  const process = putUnit(state, "p1", corruptedProcess);
+  const processInstanceId = process.instanceId;
+  const warden = putUnit(state, "p2", aegisWarden); // 7 max health, over the cap
+  state.turnNumber += 1;
+  state.players.p1.hand.push(kernelPanic);
+  state.players.p1.energy = 5;
+  state.players.p1.maxEnergy = 5;
+
+  const legal = getLegalMoves(state);
+  const evolve = legal.find((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === processInstanceId);
+  applyMove(state, evolve!, rng);
+
+  expect(isAlive(state, warden), "a unit above the maxHealth cap must never be a legal destroy target, even as the only enemy unit in play").toBe(true);
+  expect(warden.damageTaken, "the ineligible unit should be completely untouched, not partially damaged").toBe(0);
 });
 
 test("Deprecated Routine (Null) telegraph arms and applies a permanent -2/-2 decay debuff, not damage", () => {
@@ -115,6 +146,19 @@ test("Entropy Harvester (Null) attack scales live with the controller's graveyar
 
   state.players.p1.graveyard.push(glitchSeed);
   expect(currentAttack(state, harvester), "the stat is recomputed live, not snapshotted at play time").toBe(5);
+});
+
+test("Null Singularity's enemy aura debuffs attack only, not health (session-10 Aegis-vs-Null fix)", () => {
+  // 2026-09-17 owner feedback: Null Singularity was the only card in the
+  // pool applying a persistent, un-cleansable enemy-health reduction
+  // (see nullCards.ts's own comment on this ability for the full
+  // reasoning and its Prime Aegis/Segmentation Fault precedent). This
+  // pins the fix so the health component can't silently regress.
+  const state = emptyState();
+  putUnit(state, "p1", nullSingularity);
+  const enemy = putUnit(state, "p2", aegisCadet); // 1/2
+  expect(currentAttack(state, enemy), "enemy attack should drop by 1 from the aura").toBe(0);
+  expect(currentHealth(state, enemy), "enemy health must NOT be reduced by this aura anymore").toBe(2);
 });
 
 test("Propagating Exploit (Null) permanently grows +1/+0 every time it attacks, across turns", () => {

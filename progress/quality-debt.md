@@ -6,10 +6,52 @@ session, the stage-3 (real card set / board-development system) session,
 the session-5 hardening pass (checkpoint feedback + automated test runner),
 session 6 (backfilling Cortex/Swarm with board-development cards), session
 7 (first cross-faction balance measurement + a real crash fix), session 8
-(the fourth faction, Null), and now session 9 (non-engine test coverage).
-This is not "no debt, all good" — the product is real and the evidence is
-real, but here is where it's thin.
+(the fourth faction, Null), session 9 (non-engine test coverage), and now
+session 10 (the owner-directed Aegis-vs-Null fix attempt). This is not "no
+debt, all good" — the product is real and the evidence is real, but here is
+where it's thin.
 
+## New debt from session 10
+
+- **Aegis-vs-Null is STILL double-flagged (74.7%/79.0% Null-favoured)**
+  after both owner-directed fix steps (Kernel Panic's destroy gained a
+  `maxHealth:5` targeting condition; Null Singularity's enemy aura lost its
+  health component). Both changes are real, principled, individually
+  defensible fixes — not reverted — but neither meaningfully closed the
+  gap. Full measurement and reasoning: `progress/balance-report-003-null-fix.txt`.
+  Do not re-attempt this exact pairing with another single-card Null nerf
+  without reading that file's "honest read" section first — the
+  instrumentation there found no single card explains the gap, and the
+  more likely real cause (named, not yet acted on) is that Aegis's own
+  card pool has too little independent interaction/removal for a deck built
+  around stacking value into a few units — a card-set-design change to
+  Aegis, not a Null-numbers change.
+- **The new `TargetFilter.maxHealth` mechanism has exactly one user**
+  (Kernel Panic) and one direct unit test pair (nullFaction.test.ts) plus
+  the real-play evidence in sample-match-009. It has not been exercised
+  with `scope: "chosen"` (only "random", Kernel Panic's own scope) — a
+  future card wanting a player-chosen small-unit-only removal spell would
+  be the first to prove that path, and `getLegalMoves`' chosen-target
+  enumeration (wherever it surfaces choices to an agent) was not
+  specifically audited for this filter beyond confirming the existing
+  tests still pass.
+- **`maxHealth` is checked against a unit's derived total max health, not
+  remaining health after damage — a deliberate design choice (see
+  targeting.ts's own comment), not verified against real player/owner
+  taste.** A unit chipped down to near-death is just as immune as a full-
+  health one if its total max health is above the cap; whether that reads
+  right ("big units survive because they're big, not because of how much
+  damage they've already soaked") versus the alternative ("a nearly-dead
+  big unit should be finishable") is a genre-feel judgment call made
+  unilaterally this session, not owner-confirmed.
+- **The scratch instrumentation used to investigate Aegis-vs-Null (tallying
+  which cards/effects correlate with wins across 60-150 seeds) was
+  throwaway, not committed.** The correlational findings are written up in
+  balance-report-003-null-fix.txt in prose, but the actual scripts that
+  produced them don't exist in the repo — a future session wanting to
+  re-run or extend that specific analysis has to rebuild it from scratch,
+  unlike `balanceReport.ts` itself which is a real, reusable, committed
+  tool.
 ## New debt from session 9
 
 - **Aegis-vs-Null is still unresolved** — this session deliberately did not
