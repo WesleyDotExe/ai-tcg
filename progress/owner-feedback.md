@@ -218,3 +218,19 @@ numbers in `progress/balance-report-003-null-fix.txt`):
    here rather than attempted unilaterally. Full detail in
    `progress/balance-report-003-null-fix.txt` and
    `progress/quality-debt.md`.
+
+---
+
+## 2026-09-19 — Owner: Aegis interaction direction + fix the chosen-targeting gap (Session 10 flag)
+
+**1. Aegis gets defensive answers, not removal.** Session 10's read is accepted: Aegis's problem is that it has almost no way to interact with the opponent's board. Fix it with interaction that fits the hardened-guardian identity — intercepting or redirecting attacks, damage reflection, blunting or taxing what the opponent commits — **not** outright removal. Aegis should be able to survive a threat it can't answer, and still not be able to delete it. Its identity stays "outlast them"; don't turn it into a control deck.
+
+- Propose the specific cards and numbers at a checkpoint before finalising.
+- Re-measure Aegis against **all four** factions with `balanceReport.ts`, not just Null. This change is expected to move its other matchups too, and Swarm-vs-Aegis (~61%) is already flagged.
+- If defensive answers alone don't bring Aegis-vs-Null under the flag threshold, say so honestly and leave it flagged rather than quietly adding removal. Come back to the owner instead.
+
+**2. Fix the chosen-targeting gap before roadmap item 4 (card depth).** `evolveUnit` and `processTelegraphArming` never supply a chosen ref, so triggered effects can't use `scope: "chosen"` at all. Close it generally in the engine, before the card-depth pass designs more cards around the limitation.
+
+- Once it's fixed, revert Kernel Panic and Deprecated Routine to `scope: "chosen"`, which is what both were originally written as. Kernel Panic keeps its 5-health cap from session 10.
+- Chosen targets are stronger than random ones, so re-measure after the revert.
+- Order: finish the current balance pass (item 3), then this, then item 4.
