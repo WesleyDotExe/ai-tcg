@@ -98,6 +98,16 @@ export interface TargetFilter {
   side: Side;
   /** "unit" = board units only, "player" = players only, "any" = either. */
   kind: "unit" | "player" | "any";
+  /** Only matches units whose total (derived) max health — base stat plus
+   * tools and permanent buffs, but NOT reduced by damage already taken;
+   * see state/queries.ts's currentMaxHealth — is at most this value.
+   * Ignored for "player" targets. A generic stat-threshold filter, not
+   * tied to any one card — the mechanism for "a removal effect that only
+   * threatens small/mid units, not a faction's biggest stacked
+   * investments" (see Kernel Panic in data/nullCards.ts for the first
+   * user, and progress/owner-feedback.md's 2026-09-17 entry for why this
+   * exists). */
+  maxHealth?: number;
 }
 
 export type TargetSpec =

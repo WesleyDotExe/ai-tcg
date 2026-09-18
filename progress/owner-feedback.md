@@ -150,7 +150,7 @@ The balanceReport.ts instrument and the measure-then-fix pattern are endorsed �
 
 ---
 
-## 2026-09-17 — Owner: Aegis-vs-Null fix direction (Session 8 flag)
+## 2026-09-17 — Owner: Aegis-vs-Null fix direction (Session 8 flag) (HANDLED 2026-09-18, session 10)
 
 Fix Aegis-vs-Null (75–81%) by adding a **condition to Kernel Panic's destroy**, not by just lowering Null's numbers. A destroy that ignores all protection and can hit any unit works as a hard counter to Aegis's build-up style. Design principle 3 calls for soft counters.
 
@@ -167,3 +167,54 @@ numbers proposal, and before/after `balanceReport.ts` measurement this entry
 asks for are still unstarted work for whichever future session picks up
 roadmap item 3. Do not mark this handled until that fix is actually built
 and measured.
+
+**Handled, session 10 (2026-09-18).** Did exactly the two-step process this
+entry asked for, in order, measuring after each step (full detail and raw
+numbers in `progress/balance-report-003-null-fix.txt`):
+
+1. **Condition added to Kernel Panic's destroy**, per this entry's first
+   option ("only units below a set attack or health"): a new generic
+   `TargetFilter.maxHealth` field (`engine/src/cards/types.ts`, checked in
+   `engine/src/effects/targeting.ts` against a unit's derived total max
+   health — tools/permanent buffs count, damage taken does not) restricts
+   Kernel Panic's evolve-in destroy to enemy units with 5 or less total
+   health. "Destroy ignores Barrier and stat buffs" is unchanged exactly as
+   instructed — only what can be *selected* changed, not what happens once
+   destroy connects. Re-measured (300 seeds): Aegis-vs-Null moved from
+   75.0%/81.3% to 74.7%/81.0% (AggressiveAgent/RandomAgent respectively,
+   Null-favoured both ways) — essentially no change. Real-play evidence
+   this actually works, not just a number: `progress/sample-match-009-kernelpanic-fix.txt`
+   (a live match where Kernel Panic's destroy whiffs against an Aegis unit
+   pushed just over the cap by its own Directive's aura) and a new unit
+   test in `engine/test/nullFaction.test.ts` (Aegis Warden, 7 health, is
+   never selected and is left completely undamaged).
+2. **Since still flagged, adjusted a Null number as step 2**, per this
+   entry's explicit instruction. Investigated first with scratch
+   instrumentation (not guessing): no single card explained the gap, but
+   Null Singularity was the only card in the whole pool applying a
+   persistent, un-cleansable enemy-HEALTH reduction (its faction-mirror
+   counterpart, Prime Aegis, and Null's own other enemy-aura card,
+   Segmentation Fault, both debuff attack only, never health) — a genuine,
+   comparison-based outlier, not a guess. Changed its enemy aura from
+   `-1/-1` to `-1/-0` to match that precedent. Re-measured (300 seeds):
+   Aegis-vs-Null moved to 74.7%/79.0% — a small real improvement in the
+   RandomAgent number (81.3% -> 79.0%), still double-flagged.
+3. **Honest result: Aegis-vs-Null remains double-flagged after both
+   owner-directed steps.** Per this project's own established precedent
+   (2026-09-15 feedback approving "stop after one measure-then-fix cycle
+   rather than chasing an exact target"), and having now done the specific
+   two-step process this entry asked for rather than continuing to guess
+   at more Null nerfs, this session stops here on this pairing. The
+   instrumentation pass turned up a more useful finding than either single
+   fix: Null's win rate correlates with having ANY persistent enemy-debuff
+   aura in play (~84% vs ~60% without one) but no single card explains the
+   75-81% number, and further Null nerfs have diminishing and sometimes
+   off-target effects (the Null Singularity change moved Cortex-vs-Null
+   more than the Aegis-vs-Null pairing it targeted). The honest read this
+   session leaves for whoever picks this up next: the real fix is more
+   likely to be giving Aegis's own kit more independent interaction (not
+   just more health to stack) than further Null-side tuning — a card-set-
+   design change, out of scope for "adjust Null's numbers," so proposed
+   here rather than attempted unilaterally. Full detail in
+   `progress/balance-report-003-null-fix.txt` and
+   `progress/quality-debt.md`.

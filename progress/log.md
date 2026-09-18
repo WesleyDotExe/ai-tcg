@@ -918,3 +918,89 @@ stage 2 (agent interface / real protocol) per `progress/current.md`.
 
 **Honest gaps:** see `progress/quality-debt.md` — written before stopping,
 not as an afterthought.
+
+## 2026-09-18 — Session 10: Aegis-vs-Null fix attempt (roadmap item 3, owner-directed)
+
+Read owner-feedback.md first, per procedure. One unhandled entry existed
+(2026-09-17: fix Aegis-vs-Null by conditioning Kernel Panic's destroy, then
+adjusting Null's numbers only if still flagged) — its own last line said
+"do this when the item 3 balance pass comes up, not before item 2," and
+item 2 (non-engine test coverage) was completed in session 9, so this
+entry's own condition for action was now satisfied. No CRITICAL
+quality-debt item existed. Worked exactly this entry, in the two-step order
+it specified.
+
+**Step 1.** Added a new generic targeting constraint, `TargetFilter.
+maxHealth` (`engine/src/cards/types.ts`), checked in `engine/src/effects/
+targeting.ts` against a unit's derived total max health (base + tools +
+permanent buffs, not reduced by damage taken). Applied it to Kernel Panic's
+evolve-in destroy (`engine/src/data/nullCards.ts`): `{ side: "opponent",
+kind: "unit", maxHealth: 5 }`, chosen so Aegis's two heaviest single-unit
+investments (Aegis Warden, 7 health, evolves in already healed to full;
+Prime Aegis, 8 health) reliably escape while everything at or under Latent
+Ward's 5 remains a real target. Kept "destroy ignores Barrier and stat
+buffs" exactly as instructed — verified this is still true by regression-
+testing the existing Kernel Panic test (adjusted so its own +50 health
+buff, which would now make the victim untargetable, was reduced to +3, a
+value that stays under the new cap while still proving buffs can't save a
+selected target) and adding a new test proving the opposite case: Aegis
+Warden, over the cap, is never selected even as the only enemy unit
+present. Measured before/after (300 seeds via `balanceReport.ts`):
+75.0%/81.3% -> 74.7%/81.0% — essentially no aggregate change, though the
+mechanism itself is proven correct (both by the new unit test and by a
+freshly generated real match, `progress/sample-match-009-kernelpanic-fix.txt`,
+where Kernel Panic's destroy genuinely whiffs against an Aegis unit pushed
+over the cap by its own Directive's aura — a live demonstration, not an
+inference from the win-rate number alone).
+
+**Step 2.** Since still double-flagged, spent a short scratch-instrumentation
+pass (throwaway `npx tsx` scripts, not committed — tallying which Null
+cards/effects correlate with wins across 60-150 seeds of Aegis-vs-Null)
+before touching any more numbers. No single card explained the gap on its
+own. One real, comparison-based outlier did turn up: Null Singularity was
+the only card in the entire pool applying a persistent, un-cleansable
+enemy-HEALTH reduction (-1/-1) — its own faction's other enemy-aura card
+(Segmentation Fault) and its cross-faction Mythic mirror (Prime Aegis) both
+debuff attack only, never health, and there is no way anywhere in the
+current card pool to remove a Directive or cleanse a debuff, making a
+persistent health-drain a structural hard counter against a health-stacking
+archetype specifically. Changed Null Singularity's enemy aura to `-1/-0` to
+match that precedent, added a dedicated unit test pinning the fix (attack
+drops, health doesn't). Re-measured: 74.7%/81.0% -> 74.7%/79.0% — a small
+real improvement (mainly the RandomAgent number), still double-flagged.
+Also noticeably improved Cortex-vs-Null in the process (54.7%->52.3%
+Aggressive, well clear of the flag threshold) — a useful side effect, not
+the target of the change.
+
+**Stopped there, honestly.** Aegis-vs-Null remains double-flagged
+(74.7%/79.0%) after doing exactly what the owner's feedback asked, in
+order, measuring each step. Per this project's own established precedent
+(2026-09-15 feedback approving "stop after one measure-then-fix cycle
+rather than chasing an exact target"), and having genuinely run out of
+single-card-Null-nerf ideas backed by real evidence (the instrumentation
+found the gap doesn't reduce to one or two numbers), this session stops
+here rather than guessing at a third change. The instrumentation's most
+useful finding is written up as a proposal, not executed: Aegis's own card
+pool has very little independent interaction (Perimeter Turret's
+telegraphed random 3-damage hit and Lockdown Field's 1-turn stasis are
+close to its entire answer suite) — a deck built entirely around stacking
+value into a few units with almost no way to interact with what the
+opponent does is plausibly the real structural problem, not a Null number.
+That's a card-set-design change to Aegis, out of scope for "adjust Null's
+numbers," so it's named in `progress/current.md` and
+`progress/balance-report-003-null-fix.txt` for a future session/checkpoint
+rather than attempted unilaterally.
+
+Marked the 2026-09-17 owner-feedback entry HANDLED with the full writeup.
+Ran the complete verification pass before stopping: `npx tsc --noEmit`
+clean across all four packages, `npm test --workspaces --if-present`
+83/83 passing (36 engine, up from 34 — two new Kernel Panic tests plus the
+new Null Singularity aura test).
+
+**What's blocked:** nothing structurally. The rest of roadmap item 3
+(Swarm-vs-Aegis, single-flagged Cortex pairings, Null's Random-only edge
+over Cortex/Swarm) is unblocked and next per the roadmap, though whoever
+picks it up should read this session's honest read on Aegis vs Null first.
+
+**Honest gaps:** see `progress/quality-debt.md`'s new session-10 section —
+written before stopping, not as an afterthought.

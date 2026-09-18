@@ -90,8 +90,30 @@ export const kernelPanic: UnitCard = {
       // can't use chosen targeting, and nothing enforces that") — every
       // existing evolve/telegraph-arm effect in the pool already works
       // around it by using random/all/self, and this one follows suit.
-      text: "When this evolves in, destroy a random enemy unit.",
-      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+      //
+      // maxHealth: 5 — owner feedback (2026-09-17) on the balance report's
+      // worst measured pairing (Aegis vs Null, 75-81% for Null): an
+      // unconditional destroy that can hit ANY unit is a hard counter to
+      // Aegis's whole identity (stacking value/health into a small number
+      // of evolved/tooled units — see aegisCards.ts), which violates design
+      // principle 3's "strong soft counters, not hard counters." Picked the
+      // "only units below a set health threshold" option the owner
+      // proposed (over "only non-evolved" or "destroy small, damage
+      // large") because it's a general, reusable targeting constraint
+      // (TargetFilter.maxHealth, cards/types.ts) rather than a
+      // Kernel-Panic-specific special case, and it reads cleanly by genre
+      // convention (big removal that can't finish the biggest things). 5
+      // is set so Aegis's two heaviest investments — Aegis Warden (7
+      // health, evolves in fully healed to full via its own onPlay) and
+      // Prime Aegis (8 health) — reliably escape it, while everything at
+      // or below Latent Ward's 5 (the next-heaviest Aegis unit) remains a
+      // real target. "Destroy ignores Barrier and stat buffs" is
+      // unchanged, per the owner's explicit instruction to keep that
+      // mechanic — this only restricts *what* it can target, not how it
+      // kills once it connects. See progress/balance-report-003-null-fix.txt
+      // for the before/after measurement.
+      text: "When this evolves in, destroy a random enemy unit with 5 or less health.",
+      targeting: { scope: "random", filter: { side: "opponent", kind: "unit", maxHealth: 5 }, count: 1 },
       effects: [{ kind: "destroy" }],
     },
   ],
@@ -327,9 +349,31 @@ export const nullSingularity: UnitCard = {
     },
     {
       id: "null-singularity-aura-enemy",
+      // Second-step fix (roadmap item 3, following the Kernel Panic
+      // targeting fix above, which measurably did NOT move Aegis-vs-Null:
+      // re-measured at 75.3%/81.0%, essentially unchanged from
+      // balance-report-002-null.txt's 75.0%/81.3% — see
+      // progress/balance-report-003-null-fix.txt). Investigated with a
+      // scratch instrumentation pass (60-150 seeds, tallying which Null
+      // effects correlate with wins) rather than guessing: no single card
+      // explained the gap, but Null's win rate conditional on having a
+      // persistent enemy-debuff aura in play (this card or Segmentation
+      // Fault) was ~84% vs. ~60% without one — a real, measured
+      // contributor, not the whole story. Comparing this card side by side
+      // with its own faction-mirror precedent (Prime Aegis, the other
+      // 6-cost Mythic with a dual ally-buff/enemy-debuff aura):
+      // Segmentation Fault (this faction's OTHER enemy-aura card) and
+      // Prime Aegis both debuff enemy ATTACK only, never health. This was
+      // the one persistent, un-cleansable (no debuff-removal or Directive-
+      // destroy exists anywhere in the current card pool) enemy-HEALTH
+      // reduction in the whole pool — a specific, structural hard counter
+      // to Aegis's stacking-health identity that has no in-game answer,
+      // not just a strong effect. -1/-1 -> -1/-0 removes the health
+      // component, matching the Segmentation Fault/Prime Aegis precedent,
+      // while leaving the ally buff and this card's own 3/8 body untouched.
       trigger: "static",
-      text: "Enemy units get -1/-1.",
-      staticEffect: { kind: "buffAllies", attack: -1, health: -1, filter: { side: "opponent", kind: "unit" } },
+      text: "Enemy units get -1/-0.",
+      staticEffect: { kind: "buffAllies", attack: -1, health: 0, filter: { side: "opponent", kind: "unit" } },
     },
   ],
 };

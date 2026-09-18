@@ -36,13 +36,20 @@ building around them; don't block the whole project waiting.
    `Rng`, `makeRandomDecision`, `aggressiveDecision`) all now have real
    vitest coverage — 81/81 tests pass across all four packages. See
    `progress/current.md` for what shipped and where it's still thin.
-3. Balance pass across all four factions: resolve remaining flagged pairings
-   (Aegis-vs-Null [worst, 75-81%] — the owner's 2026-09-17 feedback gives a
-   specific fix direction for this one: condition Kernel Panic's `destroy`
-   rather than just tuning Null's numbers, see owner-feedback.md — plus
+3. Balance pass across all four factions: IN PROGRESS (session 10).
+   Aegis-vs-Null [worst, was 75-81%] — the owner's 2026-09-17 fix direction
+   (condition Kernel Panic's `destroy`, then adjust Null's numbers only if
+   still flagged) was followed exactly, both steps measured separately —
+   see progress/balance-report-003-null-fix.txt. Result: now 74.7%/79.0%,
+   a small real improvement but STILL double-flagged; the investigation
+   found no single-card fix resolves it and named the likely real cause
+   (Aegis's kit lacks independent interaction, not a Null number) as a
+   card-set-design follow-up, not further Null tuning. Still open:
    Swarm-vs-Aegis, the single-flagged Cortex pairings, and Null's remaining
-   edge over Cortex/Swarm under Random play) using the measure-then-fix
-   pattern (balanceReport.ts, not guesswork).
+   edge over Cortex/Swarm under Random play — none touched this session
+   (scoped to exactly the owner's Aegis-vs-Null direction). Next session
+   picking this item back up should read balance-report-003's "honest
+   read" section before continuing.
 4. Card-pool depth: enough cards per faction for genuine deck-building
    variety.
 
