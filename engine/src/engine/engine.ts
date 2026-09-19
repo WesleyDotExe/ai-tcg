@@ -1,7 +1,7 @@
 import type { GameState, PlayerId, StackItem, UnitInstance, DirectiveInstance } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
 import { MAX_ENERGY_CAP } from "../state/init.js";
-import { currentAttack, allUnits, findUnit } from "../state/queries.js";
+import { currentAttack, allUnits, findUnit, effectiveCardCost } from "../state/queries.js";
 import type { Rng } from "../state/rng.js";
 import type { Move } from "./moves.js";
 import {
@@ -29,7 +29,7 @@ export function applyMove(state: GameState, move: Move, rng: Rng): void {
   const pid = state.priority;
   switch (move.type) {
     case "playCard":
-      playCard(state, pid, move.handIndex, move.target, rng);
+      playCard(state, pid, move.handIndex, move.target, move.abilityTarget, rng);
       break;
     case "attack":
       declareAttack(state, pid, move.attackerInstanceId, move.target, rng);
@@ -49,12 +49,19 @@ export function applyMove(state: GameState, move: Move, rng: Rng): void {
   checkGameOver(state);
 }
 
-function playCard(state: GameState, pid: PlayerId, handIndex: number, target: TargetRef | undefined, rng: Rng): void {
+function playCard(
+  state: GameState,
+  pid: PlayerId,
+  handIndex: number,
+  target: TargetRef | undefined,
+  abilityTarget: TargetRef | undefined,
+  rng: Rng,
+): void {
   const player = state.players[pid];
   const card = player.hand[handIndex];
   if (!card) throw new Error(`playCard: no card at hand index ${handIndex}`);
   player.hand.splice(handIndex, 1);
-  player.energy -= card.cost;
+  player.energy -= effectiveCardCost(state, pid, card);
 
   if (card.type === "Tool") {
     if (!target || target.kind !== "unit") throw new Error(`playCard: Tool ${card.name} requires a unit target`);
@@ -64,7 +71,7 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
 
   if (card.type === "Unit" && card.evolvesFrom) {
     if (!target || target.kind !== "unit") throw new Error(`playCard: evolution ${card.name} requires a unit target`);
-    evolveUnit(state, pid, card, target.instanceId, rng);
+    evolveUnit(state, pid, card, target.instanceId, abilityTarget, rng);
     return;
   }
 
@@ -94,7 +101,13 @@ function playCard(state: GameState, pid: PlayerId, handIndex: number, target: Ta
       enteredTurn: state.turnNumber,
       hasAttackedThisTurn: false,
       tools: [],
-      ...(isTelegraphed ? { pending: true, armTurn: computeArmTurn(state, card.telegraph!) } : {}),
+      // `target` doubles as this unit's onPlay ability's own chosen target
+      // when it isn't spoken for by a structural reference (see the Move
+      // type's doc comment) — for a telegraphed unit, that ability doesn't
+      // fire until processTelegraphArming, turns from now, with no agent
+      // decision point of its own, so the choice made *now* is captured
+      // here and replayed then (see UnitInstance.armChosenTarget).
+      ...(isTelegraphed ? { pending: true, armTurn: computeArmTurn(state, card.telegraph!), armChosenTarget: target } : {}),
     };
     player.board.push(unit);
     state.log.push({ type: "play", player: pid, card: card.name, instanceId });
@@ -151,7 +164,14 @@ function computeArmTurn(state: GameState, telegraph: number): number {
  * unchanged. Only legal at Sorcery timing (see moves.ts), so the stack is
  * always empty here — no stack reference to the old card identity can be
  * left dangling. */
-function evolveUnit(state: GameState, pid: PlayerId, card: UnitCard, targetInstanceId: string, rng: Rng): void {
+function evolveUnit(
+  state: GameState,
+  pid: PlayerId,
+  card: UnitCard,
+  targetInstanceId: string,
+  abilityTarget: TargetRef | undefined,
+  rng: Rng,
+): void {
   const player = state.players[pid];
   const unit = player.board.find((u) => u.instanceId === targetInstanceId);
   if (!unit) throw new Error(`evolveUnit: no unit ${targetInstanceId} on ${pid}'s board`);
@@ -166,6 +186,7 @@ function evolveUnit(state: GameState, pid: PlayerId, card: UnitCard, targetInsta
       ability: onPlay,
       controller: pid,
       source: { kind: "unit", instanceId: unit.instanceId, cardName: card.name },
+      chosen: abilityTarget,
       rng,
     });
   }
@@ -409,6 +430,7 @@ function processTelegraphArming(state: GameState, pid: PlayerId, rng: Rng): void
         ability: onPlay,
         controller: pid,
         source: { kind: "unit", instanceId: unit.instanceId, cardName: unit.card.name },
+        chosen: unit.armChosenTarget,
         rng,
       });
     }

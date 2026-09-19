@@ -35,6 +35,18 @@ export interface UnitInstance {
    * (see moves.ts/statics.ts). Absent entirely for non-telegraphed units. */
   pending?: boolean;
   armTurn?: number;
+  /** The target the controller chose, at play time, for this unit's
+   * deferred arm-time onPlay ability (only meaningful when that ability's
+   * targeting scope is "chosen" — see UnitCard.telegraph and engine.ts's
+   * processTelegraphArming). Telegraph arming happens automatically at a
+   * later turn boundary with no agent decision point of its own, so a
+   * "chosen" target has to be captured now, when the card is played, and
+   * replayed later — the general fix for the "triggered abilities can't
+   * use chosen targeting" architectural gap (progress/quality-debt.md,
+   * 2026-09-19 owner feedback). If the chosen target is no longer on the
+   * board by arm time, the effect no-ops harmlessly, same as any other
+   * effect whose target has already vanished. */
+  armChosenTarget?: TargetRef;
   /** Tool cards attached to this unit (see ToolCard) — always present,
    * empty for a unit with nothing attached. Their stat bonuses/granted
    * keywords are read live by state/queries.ts, and they travel with the
@@ -107,6 +119,7 @@ export type GameEvent =
   | { type: "telegraphArmed"; unit: string }
   | { type: "evolve"; from: string; to: string }
   | { type: "toolAttached"; tool: string; unit: string }
+  | { type: "attackRedirected"; source: string; attacker: string; from: string; to: string }
   | { type: "gameOver"; winner: PlayerId | "draw"; reason: string };
 
 export interface GameState {

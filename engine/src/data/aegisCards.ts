@@ -327,6 +327,111 @@ export const primeAegis: UnitCard = {
   ],
 };
 
+// --- Defensive interaction (2026-09-19 owner feedback: "Aegis gets defensive
+// answers, not removal") -----------------------------------------------------
+//
+// Session 10's balance investigation found Aegis's real problem wasn't that
+// Null (or anyone) hits too hard — it's that Aegis's own kit has almost no
+// independent interaction at all (Perimeter Turret's telegraphed random
+// 3-damage hit and Lockdown Field's 1-turn AOE stun were close to its whole
+// answer suite). The owner's direction: fix that with interaction that fits
+// the hardened-guardian identity — intercepting/redirecting attacks, damage
+// reflection, blunting or taxing what the opponent commits — explicitly NOT
+// outright removal. Aegis should be able to survive a threat it can't
+// answer, and still not be able to delete it; "outlast them," not "control
+// them." Three cards below, each a genuinely different mechanic, none of
+// them destroy/remove:
+
+export const interceptRoutine: CommandCard = {
+  id: "AG-015",
+  name: "Intercept Routine",
+  faction: "Aegis",
+  rarity: "Uncommon",
+  cost: 1,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:aegis/intercept-routine",
+  flavor: "The hit was already routed. This just changes where it lands.",
+  abilities: [
+    {
+      id: "intercept-routine-cast",
+      trigger: "onPlay",
+      // The headline "intercepting/redirecting attacks" answer. A new
+      // generic effect kind, redirectAttack (cards/types.ts,
+      // effects/resolver.ts's redirectTopAttack): cast at Instant speed in
+      // response to a declared attack (a pending combatDamage stack item —
+      // see engine.ts's declareAttack), it retargets that attack to a unit
+      // you control instead. Nothing is destroyed or countered — the
+      // attack still resolves in full, including the attacker taking
+      // return damage from whoever it now hits — this is a Guard-style
+      // interception made reactive instead of a standing keyword, not
+      // removal by another name.
+      text: "Instant. Redirect a pending attack to target unit you control.",
+      targeting: { scope: "chosen", filter: { side: "controller", kind: "unit" } },
+      effects: [{ kind: "redirectAttack" }],
+    },
+  ],
+};
+
+export const tariffField: DirectiveCard = {
+  id: "AG-016",
+  name: "Tariff Field",
+  faction: "Aegis",
+  rarity: "Rare",
+  cost: 3,
+  type: "Directive",
+  art: "placeholder:aegis/tariff-field",
+  flavor: "Every packet that crosses the line pays a toll first.",
+  abilities: [
+    {
+      id: "tariff-field-aura",
+      trigger: "static",
+      // The "taxing what the opponent commits" answer. A new generic
+      // static-effect kind, cardCostModifier (cards/types.ts,
+      // state/queries.ts's effectiveCardCost): every card the opponent
+      // plays costs 1 more energy while this is in play. Doesn't stop
+      // anything outright — a determined opponent can still pay it — but
+      // it blunts their curve and makes their board development slower and
+      // more constrained turn over turn, a genuinely different pressure
+      // than damage or stat debuffs.
+      text: "Enemy cards cost 1 more to play.",
+      staticEffect: { kind: "cardCostModifier", side: "opponent", amount: 1 },
+    },
+  ],
+};
+
+export const feedbackPlating: UnitCard = {
+  id: "AG-017",
+  name: "Feedback Plating",
+  faction: "Aegis",
+  rarity: "Uncommon",
+  cost: 2,
+  type: "Unit",
+  attack: 1,
+  health: 4,
+  keywords: [],
+  art: "placeholder:aegis/feedback-plating",
+  flavor: "Every impact bleeds current back down the line — just enough to hurt.",
+  abilities: [
+    {
+      id: "feedback-plating-damaged",
+      trigger: "onDamaged",
+      // The "blunting" answer: every hit this unit takes saps the
+      // opponent's whole board's offense for the rest of the turn — real
+      // pressure back on whoever commits to attacking it, without killing
+      // or permanently maiming anything. Untargeted (onDamaged has no
+      // agent decision point to supply a chosen target — see
+      // quality-debt.md's architectural-gaps note, unaffected by this
+      // session's evolve/telegraph-specific chosen-targeting fix), so it
+      // hits the whole enemy board rather than just the attacker, same
+      // pattern as every other automatic-trigger effect in the pool.
+      text: "Whenever this is damaged, enemy units get -1/-0 until end of turn.",
+      targeting: { scope: "all", filter: { side: "opponent", kind: "unit" } },
+      effects: [{ kind: "buff", attack: -1, health: 0, duration: "turn" }],
+    },
+  ],
+};
+
 export const AEGIS_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: aegisCadet, copies: 3 },
   { card: barrierDrone, copies: 3 },
@@ -342,4 +447,7 @@ export const AEGIS_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   { card: lockdownField, copies: 2 },
   { card: aegisWarden, copies: 2 },
   { card: primeAegis, copies: 1 },
+  { card: interceptRoutine, copies: 1 },
+  { card: tariffField, copies: 1 },
+  { card: feedbackPlating, copies: 1 },
 ];

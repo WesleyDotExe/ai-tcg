@@ -1004,3 +1004,106 @@ picks it up should read this session's honest read on Aegis vs Null first.
 
 **Honest gaps:** see `progress/quality-debt.md`'s new session-10 section —
 written before stopping, not as an afterthought.
+
+## 2026-09-19 — Session 11: Aegis defensive interaction + the chosen-targeting gap fix (owner-directed)
+
+Read owner-feedback.md first, per procedure. One unhandled entry (2026-09-19):
+give Aegis defensive interaction (intercept/redirect, taxing, blunting — not
+removal) and re-measure against all four factions; separately, close the
+"chosen-targeting gap" (`evolveUnit`/`processTelegraphArming` never supplied
+a `chosen` ref, so triggered abilities couldn't use `scope: "chosen"`) before
+the card-depth pass, then revert Kernel Panic and Deprecated Routine to
+`chosen` (their original design) and re-measure. No CRITICAL quality-debt
+item was outstanding. Worked both parts, in the order the entry specified.
+
+**Chosen-targeting fix.** Extended `Move`'s `playCard` variant with an
+`abilityTarget` field, independent of `target` (which stays the structural
+reference — an evolution's base unit, a Tool's attach host). `engine/
+moves.ts`'s evolution branch now enumerates the evolved form's own "chosen"
+onPlay target and cross-products it with which base is evolving; if the
+ability needs a chosen target but none is currently eligible, evolving is
+still offered (the base's upgrade isn't conditional on the bonus ability
+having somewhere to point) with no ability target, and `effects/
+resolver.ts`'s `resolveAbility` now treats that as "no legal target
+existed" and skips the ability rather than throwing. For a telegraphed
+unit, whose deferred arm-time ability fires automatically at a turn
+boundary with no agent decision point of its own, the target is chosen when
+the card is *played* and captured on a new `UnitInstance.armChosenTarget`
+field for `processTelegraphArming` to replay later; if that target is gone
+by arm time, the effect no-ops harmlessly (a real consequence of choosing 2
+turns in advance, not a bug — regression-tested). Reverted Kernel Panic and
+Deprecated Routine to `scope: "chosen"`, Kernel Panic keeping its
+`maxHealth: 5` cap from session 10. Rewrote the two `nullFaction.test.ts`
+tests that previously relied on hand-crafted moves bypassing
+`getLegalMoves` (which no longer reflects real play under `chosen`
+targeting) and added two new tests that prove the choice is real: with two
+eligible enemy units in play, the controller can pick exactly one and the
+other is provably left untouched — impossible to guarantee under the old
+"random" workaround. Real-play evidence:
+`progress/sample-match-011-chosen-targeting.txt` (Kernel Panic evolves in
+and its destroy visibly kills the one eligible enemy unit, unscripted
+AggressiveAgent-vs-RandomAgent play). Measured in isolation (200 seeds,
+scratch instrumentation, an Aegis deck WITHOUT this session's new cards so
+the two changes don't get conflated): the revert alone is neutral to mildly
+*positive* for Aegis (Null's win rate drops ~1.5-2 points either way) — not
+the cause of the regression described below.
+
+**Aegis defensive interaction.** Three new cards (`data/aegisCards.ts`):
+Intercept Routine (Instant, cost 1) redirects a pending attack onto a unit
+you control, via a new generic `redirectAttack` effect kind that mutates
+the nearest pending combat-damage stack item — the first effect to target
+the stack itself, not just units/players. Tariff Field (Directive, cost 3)
+taxes the opponent's card-play cost by 1, via a new generic
+`cardCostModifier` static-effect kind and `state/queries.ts`'s
+`effectiveCardCost`, now the single choke point both legality checking
+(`moves.ts`) and energy deduction (`engine.ts`) go through. Feedback Plating
+(Unit, 1/4, cost 2) blunts the whole enemy board's attack by 1 for the turn
+whenever it's damaged. None destroy or remove — all three fit the
+"hardened guardian, outlast them" identity the owner named. Unit-tested
+(`engine/test/aegisInteraction.test.ts`, 4 tests) and each proven firing in
+real unscripted play
+(`progress/sample-match-010-aegis-interception.txt`).
+
+**The first attempt (2 copies of each) measured clearly worse, and was not
+shipped.** Run through the full `balanceReport.ts` (300 seeds/matchup, both
+agent policies), every Aegis matchup got worse, not just Null — Cortex-vs-
+Aegis and Swarm-vs-Aegis both newly double-flagged, Aegis-vs-Null itself
+worse (83.0%/79.3% Null vs. 74.7%/79.0% going in). Investigated instead of
+reverting blind: isolated that the targeting revert isn't the cause (above);
+decomposed the three cards individually and in pairs (200-seed scratch
+runs) — each card alone measured neutral-to-positive, every combination
+measured worse, non-monotonically, which reads as real sampling noise from
+full-deck reshuffling under a small sample rather than a clean single-card
+diagnosis. The most plausible real driver, reasoned from the agents' own
+code: `AggressiveAgent`'s `pickBiggestCard` heuristic always plays the
+highest-cost affordable card with no sense of whether it's useful right
+now (an already-named quality-debt gap) — a reactive card with zero
+immediate board impact sometimes wins that slot over a real tempo play, in
+a 6-slot board where that's a real cost. Shipped a smaller dose (1 copy of
+each, 37-card pool) and re-measured with the full instrument:
+Aegis-vs-Null remains double-flagged, roughly at the pre-session baseline
+(79.3%/83.0% vs. 74.7%/79.0%). **Per the owner's own explicit instruction —
+"if defensive answers alone don't bring Aegis-vs-Null under the flag
+threshold, say so honestly and leave it flagged rather than quietly adding
+removal" — this is left flagged, not force-fixed.** One real improvement:
+Swarm-vs-Aegis, double-flagged going in, no longer is. Cortex-vs-Aegis got
+mildly worse (now double-flagged, was Aggressive-only). Full numbers and
+method: `progress/balance-report-004-aegis-defense.txt`.
+
+Flagged, not acted on unilaterally: the structural question of whether
+dummy-agent balance measurement can fairly value reactive/situational
+cards at all, given what the regression investigation found —
+`progress/notes-for-owner.md`.
+
+Ran the complete verification pass before stopping: `npx tsc --noEmit`
+clean across all four packages, `npm test --workspaces --if-present`
+89/89 passing (42 engine, up from 36 — 4 new Aegis-interaction tests, 2
+new Null chosen-targeting tests, 2 rewritten to reflect real
+`getLegalMoves`-driven play).
+
+**What's blocked:** nothing structurally. Roadmap item 3's remaining items
+(the single-flagged Cortex-vs-Swarm pairing, Null's Random-only edge over
+Cortex/Swarm) and item 4 (card-pool depth) are both unblocked next steps.
+
+**Honest gaps:** see `progress/quality-debt.md`'s new session-11 section —
+written before stopping, not as an afterthought.

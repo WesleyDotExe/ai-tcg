@@ -84,36 +84,32 @@ export const kernelPanic: UnitCard = {
     {
       id: "kernel-panic-evolve",
       trigger: "onPlay",
-      // "chosen" targeting isn't available here: evolveUnit's onPlay
-      // resolution (engine.ts) never supplies a `chosen` ref, the same
-      // architectural gap named in quality-debt.md ("triggered abilities
-      // can't use chosen targeting, and nothing enforces that") — every
-      // existing evolve/telegraph-arm effect in the pool already works
-      // around it by using random/all/self, and this one follows suit.
+      // "chosen" targeting, as originally written — restored 2026-09-19.
+      // It was built as "random" instead because evolveUnit's onPlay
+      // resolution never supplied a `chosen` ref (the "triggered abilities
+      // can't use chosen targeting" architectural gap, quality-debt.md).
+      // That gap is now closed generally (engine/moves.ts's evolution
+      // branch enumerates the ability's own chosen target alongside which
+      // base is evolving, carried in Move.abilityTarget; engine.ts's
+      // evolveUnit threads it through to resolveAbility) — see the
+      // 2026-09-19 owner-feedback entry. A controlled kill is strictly
+      // stronger than a random one among the same eligible pool, so this
+      // was re-measured, not assumed safe — see
+      // progress/balance-report-004-chosen-targeting.txt.
       //
-      // maxHealth: 5 — owner feedback (2026-09-17) on the balance report's
-      // worst measured pairing (Aegis vs Null, 75-81% for Null): an
-      // unconditional destroy that can hit ANY unit is a hard counter to
-      // Aegis's whole identity (stacking value/health into a small number
-      // of evolved/tooled units — see aegisCards.ts), which violates design
-      // principle 3's "strong soft counters, not hard counters." Picked the
-      // "only units below a set health threshold" option the owner
-      // proposed (over "only non-evolved" or "destroy small, damage
-      // large") because it's a general, reusable targeting constraint
-      // (TargetFilter.maxHealth, cards/types.ts) rather than a
-      // Kernel-Panic-specific special case, and it reads cleanly by genre
-      // convention (big removal that can't finish the biggest things). 5
-      // is set so Aegis's two heaviest investments — Aegis Warden (7
-      // health, evolves in fully healed to full via its own onPlay) and
-      // Prime Aegis (8 health) — reliably escape it, while everything at
-      // or below Latent Ward's 5 (the next-heaviest Aegis unit) remains a
-      // real target. "Destroy ignores Barrier and stat buffs" is
-      // unchanged, per the owner's explicit instruction to keep that
-      // mechanic — this only restricts *what* it can target, not how it
-      // kills once it connects. See progress/balance-report-003-null-fix.txt
-      // for the before/after measurement.
-      text: "When this evolves in, destroy a random enemy unit with 5 or less health.",
-      targeting: { scope: "random", filter: { side: "opponent", kind: "unit", maxHealth: 5 }, count: 1 },
+      // maxHealth: 5 — kept exactly as session 10 set it (owner's explicit
+      // instruction, 2026-09-19 entry): an unconditional destroy that can
+      // hit ANY unit was a hard counter to Aegis's whole identity (stacking
+      // value/health into a small number of evolved/tooled units — see
+      // aegisCards.ts), which violates design principle 3's "strong soft
+      // counters, not hard counters." 5 is set so Aegis's two heaviest
+      // investments — Aegis Warden (7 health, evolves in fully healed) and
+      // Prime Aegis (8 health) — reliably escape it, while everything at or
+      // below Latent Ward's 5 remains a real target. "Destroy ignores
+      // Barrier and stat buffs" is unchanged — this only restricts *what*
+      // it can target, not how it kills once it connects.
+      text: "When this evolves in, destroy target enemy unit with 5 or less health.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit", maxHealth: 5 } },
       effects: [{ kind: "destroy" }],
     },
   ],
@@ -166,11 +162,19 @@ export const deprecatedRoutine: UnitCard = {
     {
       id: "deprecated-routine-arm",
       trigger: "onPlay",
-      // Same reason as Kernel Panic's evolve effect: processTelegraphArming
-      // fires this automatically with no `chosen` ref available, so the
-      // target has to be random/all/self, not chosen.
-      text: "When this arms, a random enemy unit gets -2/-2 permanently.",
-      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+      // "chosen" targeting, as originally written — restored 2026-09-19,
+      // same fix as Kernel Panic above. processTelegraphArming fires this
+      // automatically, turns after the card was played, with no agent
+      // decision point of its own — the target is chosen when this card is
+      // *played* (telegraph placement) and captured on the unit instance
+      // (UnitInstance.armChosenTarget) for engine.ts's
+      // processTelegraphArming to replay when it actually fires. If the
+      // chosen unit is no longer on the board by arm time, this no-ops
+      // harmlessly rather than picking a substitute — a deliberate
+      // consequence of choosing 2 turns in advance, not a bug; see
+      // progress/quality-debt.md.
+      text: "When this arms, target enemy unit chosen when this was deployed gets -2/-2 permanently.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
       effects: [{ kind: "buff", attack: -2, health: -2, duration: "permanent" }],
     },
   ],

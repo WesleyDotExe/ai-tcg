@@ -49,6 +49,15 @@ export function resolveAbility(params: ResolveAbilityParams): void {
   if (ability.trigger === "static") return; // static abilities have no timeline
   if (ability.condition && !evaluateCondition(ability.condition, state, controller)) return;
   if (!ability.effects) return;
+  // A "chosen"-scope ability fired with no target supplied means there was
+  // no legal target for it when it was played/triggered (see engine/
+  // moves.ts's evolution branch, and UnitInstance.armChosenTarget for the
+  // telegraph-arm case) — skip it rather than crash. resolveTargets still
+  // throws on this combination for every other caller, which is correct:
+  // getLegalMoves never offers a plain unit/Command/activated-ability move
+  // whose chosen target doesn't exist, so reaching this path any other way
+  // would be a real bug worth surfacing loudly, not silently swallowing.
+  if (ability.targeting?.scope === "chosen" && chosen === undefined) return;
 
   const selfRef: TargetRef | undefined =
     source.kind === "unit" ? { kind: "unit", instanceId: source.instanceId } : { kind: "player", playerId: controller };
@@ -102,7 +111,44 @@ function applyOneEffect(effect: EffectSpec, targets: TargetRef[], ctx: EffectCon
       if (branch) applyEffects(branch, targets, ctx);
       return;
     }
+    case "redirectAttack": {
+      for (const t of targets) redirectTopAttack(ctx.state, t, ctx.sourceLabel);
+      return;
+    }
   }
+}
+
+function describeTargetRef(state: GameState, ref: TargetRef): string {
+  if (ref.kind === "player") return state.players[ref.playerId].name;
+  const found = findUnit(state, ref.instanceId);
+  return found ? found.unit.card.name : ref.instanceId;
+}
+
+/** Redirects the nearest pending combat-damage stack item (searched from the
+ * top down, since that's almost always the one this Instant was cast in
+ * response to) to `newTarget` — the "intercept" mechanic: an Aegis unit
+ * steps in front of an attack aimed at something else. The attack still
+ * resolves in full once it comes off the stack, computed live against
+ * whoever is now the target, exactly like any other combat damage; nothing
+ * is destroyed or countered. No-ops (logged, not silent) if there's nothing
+ * pending to redirect — same convention as any other effect whose target
+ * has already vanished. See Aegis's Intercept Routine, data/aegisCards.ts. */
+function redirectTopAttack(state: GameState, newTarget: TargetRef, sourceLabel: string): void {
+  for (let i = state.stack.length - 1; i >= 0; i--) {
+    const item = state.stack[i]!;
+    if (item.kind !== "combatDamage") continue;
+    const from = describeTargetRef(state, item.target);
+    item.target = newTarget;
+    state.log.push({
+      type: "attackRedirected",
+      source: sourceLabel,
+      attacker: item.attackerName,
+      from,
+      to: describeTargetRef(state, newTarget),
+    });
+    return;
+  }
+  state.log.push({ type: "fizzle", reason: `${sourceLabel} finds no pending attack to redirect` });
 }
 
 /** The single choke point for all damage to a unit or player — combat

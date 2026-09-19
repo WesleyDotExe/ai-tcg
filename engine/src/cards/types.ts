@@ -129,7 +129,14 @@ export type EffectSpec =
   | { kind: "gainEnergy"; amount: number }
   | { kind: "destroy" }
   | { kind: "applyStatus"; status: StatusKind; duration: number | "untilConsumed"; amount?: number }
-  | { kind: "conditional"; condition: Condition; then: EffectSpec[]; else?: EffectSpec[] };
+  | { kind: "conditional"; condition: Condition; then: EffectSpec[]; else?: EffectSpec[] }
+  /** Redirects the nearest pending combat-damage stack item to a new
+   * target — an "intercept," not removal: nothing is destroyed, the attack
+   * still lands in full, just against whoever now stands in the way. See
+   * Aegis's Intercept Routine (data/aegisCards.ts) for the first user and
+   * effects/resolver.ts's redirectTopAttack for the mechanism. No-ops
+   * harmlessly if nothing is currently pending to redirect. */
+  | { kind: "redirectAttack" };
 
 export type TriggerKind =
   | "onPlay"
@@ -149,7 +156,13 @@ export type StaticEffectSpec =
   /** Overrides the source unit's own attack/health with a live-computed
    * value every time it's read, instead of adding a flat bonus. This is
    * the "stats mutate with board state" mechanic from design principle 1. */
-  | { kind: "selfStatFromScaling"; attack?: ScalingAmount; health?: ScalingAmount };
+  | { kind: "selfStatFromScaling"; attack?: ScalingAmount; health?: ScalingAmount }
+  /** Modifies the energy cost of cards `side` plays (positive = costs more,
+   * negative = a discount) — a taxing/blunting aura, not removal. See
+   * Aegis's Tariff Field (data/aegisCards.ts) and
+   * state/queries.ts's effectiveCardCost, the generic mechanism this
+   * plugs into. */
+  | { kind: "cardCostModifier"; side: Side; amount: number };
 
 export interface Ability {
   id: string;

@@ -234,3 +234,89 @@ numbers in `progress/balance-report-003-null-fix.txt`):
 - Once it's fixed, revert Kernel Panic and Deprecated Routine to `scope: "chosen"`, which is what both were originally written as. Kernel Panic keeps its 5-health cap from session 10.
 - Chosen targets are stronger than random ones, so re-measure after the revert.
 - Order: finish the current balance pass (item 3), then this, then item 4.
+
+---
+
+**Handled, session 11 (2026-09-19).** Both parts done, in the order asked
+(item 2's engine fix first since item 1's re-measurement needed it to be
+trustworthy either way, then item 1, matching "finish item 3, then this"
+since item 1 IS the rest of item 3's balance pass):
+
+**2. Chosen-targeting gap — closed generally.** `engine/moves.ts`'s
+evolution branch now enumerates an evolved form's own "chosen" onPlay
+target alongside which base is evolving (`Move.abilityTarget`, since
+`target` is already the structural base reference); `engine.ts`'s
+`evolveUnit` threads it through. For a telegraphed unit, there's no agent
+decision point left once the telegraph actually arms (turns later,
+automatically) — the target is chosen when the card is *played* and
+captured on the unit instance (`UnitInstance.armChosenTarget`) for
+`processTelegraphArming` to replay. `resolveAbility` now treats a
+"chosen"-scope ability fired with no target supplied as "no legal target
+existed" and skips it rather than throwing, which is what lets evolving
+stay legal even when the bonus ability has zero eligible targets right now.
+Kernel Panic and Deprecated Routine reverted to `scope: "chosen"` exactly as
+instructed, Kernel Panic keeping its `maxHealth: 5` cap. Proven three ways:
+new unit tests where two eligible enemy units exist and the controller
+provably picks one, leaving the other completely untouched (impossible
+under the old "random" workaround) — `engine/test/nullFaction.test.ts`; a
+real unscripted match, `progress/sample-match-011-chosen-targeting.txt`; and
+re-measured per the instruction — isolated at 200 seeds against a control
+Aegis deck (i.e. without item 1's new cards), the revert alone is neutral to
+mildly *positive* for Aegis (Null's win rate drops ~1.5-2 points), so it is
+not the cause of anything below. Full detail:
+`progress/balance-report-004-aegis-defense.txt`.
+
+**1. Aegis defensive interaction — built, tested, real-play-proven, but did
+NOT fix Aegis-vs-Null, and the honest journey to get here matters.** Three
+new cards (`data/aegisCards.ts`), each a genuinely different non-removal
+mechanic: Intercept Routine (Instant, redirects a pending attack onto a unit
+you control — a new generic `redirectAttack` effect kind that mutates the
+nearest pending combat-damage stack item, the "intercepting/redirecting"
+answer), Tariff Field (Directive, taxes the opponent's card-play cost by 1 —
+a new generic `cardCostModifier` static-effect kind, the "taxing" answer),
+and Feedback Plating (Unit, blunts the whole enemy board's attack by 1 for
+the turn whenever it's damaged — the "blunting" answer). None destroy or
+remove anything. A first attempt shipped 2 copies of each and, measured with
+the full `balanceReport.ts` (300 seeds/matchup, both agent policies),
+**measured WORSE than the pre-session baseline across every Aegis matchup**,
+not just Null — Cortex-vs-Aegis and Swarm-vs-Aegis both newly double-flagged,
+Aegis-vs-Null itself worse (83.0%/79.3% Null vs the 74.7%/79.0% baseline).
+This was NOT shipped as-is. Investigated rather than guessed: isolated that
+the chosen-targeting revert (above) is not the cause; decomposed the three
+cards individually (each measures neutral-to-positive alone at 200 seeds)
+and in combination (every combination measures worse, non-monotonically —
+read as real sampling noise from full-deck reshuffling under a small-sample
+scratch method, not as cleanly isolating a single bad card). The full,
+trusted 300-seed/both-policy measurement is unambiguous, though: a real
+regression, most plausibly driven by `AggressiveAgent`'s already-documented
+"no sense of whether a card is useful right now" heuristic gap
+(quality-debt.md) — a reactive/utility card with zero immediate board impact
+sometimes wins its "play the biggest affordable card" slot over a real
+tempo play, in a 6-slot board where that opportunity cost is real.
+**Shipped configuration: 1 copy of each new card** (37-card Aegis pool,
+within the [20,40] range), re-measured with the full instrument:
+Aegis-vs-Null remains double-flagged, roughly at the pre-session baseline
+(79.3%/83.0% vs 74.7%/79.0% — essentially unchanged under Aggressive, a few
+points worse under Random, within this session's own measured noise floor).
+**Per this entry's own explicit instruction, this is left flagged rather
+than adding removal or guessing at further numbers.** One real, measured
+improvement: Swarm-vs-Aegis, double-flagged going in, is no longer
+double-flagged. Cortex-vs-Aegis is now double-flagged (was Aggressive-only
+before this session) — a real, if modest, regression on a pairing this
+change wasn't specifically aimed at, named honestly rather than glossed
+over. Full numbers, the isolation/decomposition method, and the reasoning:
+`progress/balance-report-004-aegis-defense.txt`. Real-play evidence of the
+cards actually firing (not just passing a whitebox test):
+`progress/sample-match-010-aegis-interception.txt` (Intercept Routine
+genuinely redirects an attack away from a player's face onto a unit;
+Feedback Plating's blunt fires from real combat) plus
+`engine/test/aegisInteraction.test.ts`'s four dedicated tests (redirect,
+its no-op-when-nothing-pending case, Tariff Field's tax in both cost math
+and legal-move gating, Feedback Plating's board-wide blunt).
+
+**Flagging back to the owner, as the entry's own instruction anticipated:**
+Aegis-vs-Null is still flagged, and this session's honest read is that the
+current dummy-agent-based balance measurement may be structurally unable to
+value reactive/situational cards like these fairly — see
+`progress/notes-for-owner.md` for the specific question this raises before
+any further Aegis-vs-Null work.
