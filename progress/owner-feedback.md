@@ -320,3 +320,41 @@ current dummy-agent-based balance measurement may be structurally unable to
 value reactive/situational cards like these fairly — see
 `progress/notes-for-owner.md` for the specific question this raises before
 any further Aegis-vs-Null work.
+
+---
+
+## 2026-09-20 — Owner: balance is a systems problem; fix the loop, then expand the pool (supersedes further card-by-card tuning)
+
+Stop tuning individual cards for balance. Three factions were built as mechanic test pools and Null was built as a tuned deck; the gap is structural (removal density predicts the standings almost exactly; permanent -1/-0 auras switch off the two 1-attack factions with no answer possible; Aegis has no clock or card flow; Swarm has no way to rebuild after board-wide damage). Work in this order. Each item is done when it's built, tested and measured, not before.
+
+**Phase 1 — Fix the instrument (before any further balance change)**
+
+1. Add a third reference agent that values board state, not card cost: one-step lookahead, holds Instants for a target, never plays a reactive card with nothing to react to. `balanceReport.ts` runs all three policies; a pairing is flagged only when all three agree.
+2. Commit the per-card "win rate when played / when drawn" instrumentation from session 10 as a standing part of `balanceReport.ts`. Every future balance change starts from that table.
+
+**Phase 2 — Engine gaps that create hard counters**
+
+3. Directives must be removable: add a "destroy directive" effect kind (or give auras a duration), and give every faction one answer.
+4. Add a "summon" (token) effect kind so wide decks can rebuild after board-wide damage.
+5. Keep the "base must survive a turn" evolution rule, but let bases carry a small protection while unevolved (propose the mechanism at a checkpoint).
+
+**Phase 3 — Pool construction rules, enforced at load time**
+
+6. Add a card-pool lint that fails to load a deck that breaks a rule. First rules, tune at a checkpoint: removal/debuff cards <= 25% of a deck; no targeted damage above cost+1 under 3 mana; no permanent enemy-stat aura under 4 mana; every faction pool has both a clock (win condition) and card flow. Balance rules should be checkable, like everything else in this project.
+
+**Phase 4 — Define the intended triangle, then measure against it**
+
+7. Propose an explicit counter cycle at a checkpoint (e.g. Null attrition beats Aegis stacking; Aegis walls beat Swarm width; Swarm width beats Null's single-target removal; Cortex flexible in the middle). Targets: 55-60% for the intended edge, 45-55% elsewhere, under all three policies. Balance means matching the triangle, not 50% everywhere.
+
+**Phase 5 — Card pool expansion (roadmap item 4, redefined)**
+
+8. Copy limits stay as built (Common 3 / Uncommon 3 / Rare 2 / Mythic 1), deck size stays 40. Each faction pool grows to 30-40 unique cards so a deck is a real selection, not the whole pool.
+9. Variation rule: each effect archetype gets 2-4 cards at different cost/power points or with different conditions. No two cards in a pool may be identical apart from name and art. Alt-art versions of a card belong in the rarity ladder, not the pool.
+10. Add a neutral pool any faction can run (Pokemon trainer/energy-style shared toolkit), sized so hybrid decks are possible. Faction cards carry identity; neutral cards carry utility.
+11. Every card gets its own art slot from day one (placeholder now), so the art pass never has to split shared art.
+
+**Phase 6 — Economy tie-in (when roadmap item 5 arrives)**
+
+12. The copy limit is enforced against ownership: an agent runs 3 copies only if it owns 3. Pack scarcity is what makes the limit meaningful.
+
+Phases 1-4 come before any further balance work on Aegis-vs-Null; leave it flagged until then. Update `progress/roadmap.md` to reflect this order.
