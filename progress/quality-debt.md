@@ -6,10 +6,75 @@ session, the stage-3 (real card set / board-development system) session,
 the session-5 hardening pass (checkpoint feedback + automated test runner),
 session 6 (backfilling Cortex/Swarm with board-development cards), session
 7 (first cross-faction balance measurement + a real crash fix), session 8
-(the fourth faction, Null), session 9 (non-engine test coverage), and now
-session 10 (the owner-directed Aegis-vs-Null fix attempt). This is not "no
-debt, all good" — the product is real and the evidence is real, but here is
-where it's thin.
+(the fourth faction, Null), session 9 (non-engine test coverage), session 10
+(the owner-directed Aegis-vs-Null fix attempt), and now session 11 (Aegis
+defensive interaction + the chosen-targeting fix). This is not "no debt, all
+good" — the product is real and the evidence is real, but here is where
+it's thin.
+
+## New debt from session 11
+
+- **Aegis-vs-Null is STILL double-flagged (79.3%/83.0%, roughly the
+  pre-session baseline) after adding real defensive interaction to Aegis's
+  kit**, per the owner's explicit 2026-09-19 instruction to leave it flagged
+  rather than guess at more fixes. Full detail:
+  `progress/balance-report-004-aegis-defense.txt`. The honest structural
+  read (not acted on, flagged to the owner in `notes-for-owner.md`): the
+  dummy reference agents this project measures balance with may be
+  structurally unable to fairly value reactive/situational cards, which
+  makes any *future* card of this shape (not just this session's three) a
+  measurement risk worth knowing about before adding more.
+- **Cortex-vs-Aegis is now double-flagged (72.3%/60.0%) — it was
+  Aggressive-only before this session (~70.0%).** A real, if modest,
+  regression on a pairing this session's changes weren't aimed at. Not
+  investigated further this session (out of the explicit scope the owner's
+  feedback entry asked for); worth revisiting when card-pool depth (roadmap
+  item 4) or a future balance pass comes up.
+- **The first attempt at Aegis's new cards (2 copies each) measured clearly
+  worse across every Aegis matchup and was not shipped** — a real
+  regression this session caught and backed out of, not silently avoided.
+  The decomposition experiments used to investigate it (200 seeds,
+  individual and paired card combinations) were throwaway scratch scripts,
+  not committed, and produced noisy, non-monotonic results (each card alone
+  measured neutral-to-positive; every combination measured worse) that
+  don't cleanly isolate a single causal mechanism — read honestly as
+  small-sample noise from full-deck reshuffling, not as a precise diagnosis.
+  A future session wanting to re-run or extend that analysis has to rebuild
+  it from scratch, same caveat session 10's scratch instrumentation left.
+- **Copy counts (1 each for Intercept Routine/Tariff Field/Feedback
+  Plating) are a first, defensively-chosen number to limit exposure to the
+  dilution/misplay problem above, not a playtested or owner-confirmed
+  target.** Whether 1 copy is enough for these mechanics to be a *reliable*
+  part of Aegis's identity in real play (as opposed to "rarely drawn, rarely
+  seen"), versus whether asymmetric copy counts (e.g. more Feedback Plating,
+  which showed the strongest solo signal in the decomposition, fewer of the
+  others) would do better, is unstarted, evidence-light follow-up.
+- **Tariff Field's `cardCostModifier` effect has exactly one user and no
+  event log entry of its own** (state/queries.ts's `effectiveCardCost` is
+  silent — the tax is only visible as "a card that should have been
+  affordable wasn't," never narrated). Proven correct by a direct unit test
+  (`effectiveCardCost` assertions plus legal-move gating,
+  `engine/test/aegisInteraction.test.ts`), and shown being *played* in real
+  match evidence, but not shown *mattering* in a real match's log the way
+  `redirectAttack`'s new `attackRedirected` event does for Intercept
+  Routine — a future commentator agent would have nothing to narrate for
+  this specific mechanic beyond "a card was played." Worth a log event if
+  Tariff Field or a future cost-tax card becomes commentary-relevant.
+- **Intercept Routine's `redirectAttack` effect always retargets the
+  *nearest* (topmost) pending combat-damage stack item, with no way to
+  choose among several if more than one is pending at once** (a real, if
+  rare, situation once multiple attacks are declared before either
+  resolves). Not exercised by any test or observed in real play this
+  session — the single-pending-attack case is the overwhelmingly common one
+  — but worth naming as an edge the mechanism hasn't been proven against.
+- **`resolveAbility`'s new "chosen scope with no target = skip silently"
+  guard (effects/resolver.ts) is deliberately permissive**: it can't
+  distinguish "no legal target existed when this was offered" (the intended
+  case) from a hypothetical future bug that fails to supply a chosen ref it
+  should have. Every other caller of a "chosen"-scope ability still throws
+  hard on this, which was judged the right balance (the intended case needs
+  graceful handling; a real bug elsewhere should still be loud) but is
+  itself an unenforced convention, not something the type system checks.
 
 ## New debt from session 10
 

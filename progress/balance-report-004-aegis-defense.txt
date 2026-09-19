@@ -1,0 +1,180 @@
+AI-TCG — Aegis defensive interaction + chosen-targeting fix (2026-09-19 owner feedback)
+
+This session answered two things from progress/owner-feedback.md's 2026-09-19
+entry: (1) give Aegis defensive interaction, not removal, and re-measure
+against all four factions; (2) close the "chosen-targeting gap" so triggered
+abilities fired by evolveUnit/processTelegraphArming can use scope:"chosen",
+then revert Kernel Panic and Deprecated Routine to chosen (as originally
+written) and re-measure. Both changes landed together, so this report
+isolates their effects before drawing conclusions — measure, don't guess, per
+this project's own established practice (see balance-report-001/002/003).
+
+Baseline going in (carried over from balance-report-003-null-fix.txt, session
+10's end state):
+  Aegis vs Null:    Aggressive 74.7% Null / Random 79.0% Null  <-- FLAG (both)
+  Cortex vs Aegis:  Aggressive ~70.0% Cortex                    <-- FLAG (Aggressive only)
+  Swarm vs Aegis:   ~61.3% Swarm (both policies, not conclusively double-flagged)
+
+=== STEP 1: engine fix for the chosen-targeting gap (no card changes) ===
+
+engine/moves.ts's evolution branch now enumerates the onPlay ability's own
+"chosen" target alongside which base is evolving (Move.abilityTarget);
+engine.ts's evolveUnit threads it through. For a telegraphed unit, the
+choice is made when the card is *played* (there's no agent decision point
+left once the telegraph actually arms) and captured on the unit instance
+(UnitInstance.armChosenTarget) for processTelegraphArming to replay later.
+resolveAbility now treats a "chosen" ability fired with no target supplied
+as "no legal target existed" and skips it, rather than throwing — needed so
+evolving is still legal even when an evolved form's bonus ability has zero
+eligible targets right now (see engine/moves.ts's own comment).
+
+Kernel Panic and Deprecated Routine were reverted from "random" back to
+"chosen" (their original design, forced to "random" by this exact gap — see
+their own comments in data/nullCards.ts). Real play evidence:
+progress/sample-match-011-chosen-targeting.txt (turn 19: Corrupted Process
+evolves into Kernel Panic, its onPlay fires, and the log shows the
+consequence — Perimeter Turret, the eligible target, dies — in unscripted
+AggressiveAgent-vs-RandomAgent play, not a scripted test). New unit tests
+proving the choice is REAL, not just legal syntax: "Kernel Panic (Null)
+chosen targeting lets the controller pick WHICH eligible enemy unit dies,
+not a random one" (two eligible enemy units in play, the controller picks
+one and the other is provably untouched — impossible to guarantee under the
+old "random" workaround) and the equivalent test for Deprecated Routine
+(engine/test/nullFaction.test.ts).
+
+Isolated effect on balance (scratch instrumentation, 200 seeds, AegisOld
+deck — i.e. WITHOUT any of the new Aegis cards below — against Null with
+old vs. new targeting, to isolate this change alone):
+  Aggressive: AegisOld vs NullOld(random)   25.5% / 74.5%
+  Aggressive: AegisOld vs NullNew(chosen)   27.0% / 73.0%
+  Random:     AegisOld vs NullOld(random)   24.0% / 76.0%
+  Random:     AegisOld vs NullNew(chosen)   26.0% / 74.0%
+Conclusion: the chosen-targeting revert is NOT the cause of anything below —
+it is neutral to mildly *positive* for Aegis on its own (Null's win rate
+drops ~1.5-2 points either way). This makes sense: Kernel Panic can now only
+guarantee a kill against whichever unit the (still-simple) dummy heuristic
+happens to enumerate first, which is no better on average than a uniform
+random pick against a dumb, non-optimizing defender.
+
+=== STEP 2: first attempt at Aegis defensive cards — MEASURED WORSE, not shipped as-is ===
+
+Three new cards (data/aegisCards.ts), each a different non-removal defensive
+mechanic per the owner's list:
+  - Intercept Routine (Instant Command, cost 1): a new generic effect kind,
+    redirectAttack, retargets the nearest pending combat-damage stack item
+    to a unit you control — "intercepting/redirecting attacks," reactive,
+    built on the existing priority/stack system rather than a new one.
+  - Tariff Field (Directive, cost 3): a new generic static-effect kind,
+    cardCostModifier, taxes the opponent's card-play cost by 1 — "taxing
+    what the opponent commits."
+  - Feedback Plating (Unit, 1/4, cost 2): onDamaged, blunts the whole enemy
+    board's attack by 1 until end of turn — "blunting."
+All three are real, data-driven (no card-name special-casing), unit-tested
+individually (engine/test/aegisInteraction.test.ts) and proven once each in
+real unscripted play (progress/sample-match-010-aegis-interception.txt:
+Intercept Routine genuinely redirects an attack away from a player's face
+onto a unit, and Feedback Plating's blunt fires from real combat).
+
+First attempt shipped 2 copies of each (34-card Aegis pool -> 40, the
+enforced ceiling). Full balanceReport.ts run (300 seeds/matchup, both agent
+policies) measured WORSE than the baseline above, across EVERY Aegis
+matchup, not just Null:
+  Aggressive: Cortex vs Aegis  77.7% / 22.3%  <-- FLAG (was ~70.0%)
+  Aggressive: Swarm vs Aegis   71.7% / 28.3%  <-- FLAG (was ~61.3%)
+  Aggressive: Aegis vs Null    17.0% / 83.0%  <-- FLAG (was 74.7%/79.0% Null-favoured — WORSE)
+  Random:     Cortex vs Aegis  65.7% / 34.3%  <-- FLAG (new)
+  Random:     Swarm vs Aegis   61.0% / 38.7%  <-- FLAG (new)
+  Random:     Aegis vs Null    15.7% / 84.0%  <-- FLAG (worse)
+  Double-flagged: Cortex-vs-Aegis, Swarm-vs-Aegis, Aegis-vs-Null — three
+  pairings, worse than the one (Aegis-vs-Null) going in.
+
+This was not shipped — a regression across the board is a real problem, not
+"didn't fully fix Null" (which the owner's feedback explicitly said was an
+acceptable outcome to report honestly). Investigated before deciding what to
+do about it, rather than guessing:
+
+Decomposition (scratch instrumentation, 200 seeds each, AegisOld+1 new card
+at 2 copies, vs Cortex, AggressiveAgent):
+  AegisOld alone           29.0% Aegis
+  + Intercept only         29.5% Aegis  (~neutral)
+  + Tariff only             33.0% Aegis  (+4, helps)
+  + Feedback only            36.0% Aegis  (+7, helps most)
+  + Tariff + Feedback        20.0% Aegis  (much worse combined)
+  + Intercept + Feedback      19.5% Aegis  (much worse combined)
+  + Intercept + Tariff         17.5% Aegis  (much worse combined)
+  All three (2 copies each)   23.5% Aegis  (worse than baseline, though
+                                             better than any pair — noisy)
+Each card individually measures neutral-to-positive at 200 seeds; every
+combination measures worse, non-monotonically (a pair is worse than all
+three together, which doesn't fit a clean "more dilution = more harm"
+story). Read honestly: this is more consistent with high sampling variance
+at 200 seeds under a full deck reshuffle per change (changing pool
+composition reshuffles the ENTIRE deck for a given seed, not just the new
+cards, so these piecewise comparisons carry real noise) than with a single
+clean causal mechanism — the numbers should not be read as precisely
+locating "which card is the problem." What IS robust: the FULL 300-seed,
+both-policy balanceReport.ts run above showed a real, consistent regression
+across three separate opponents under both agent policies — six independent
+worse-than-baseline signals, not plausibly pure noise.
+
+The most likely real driver, reasoned from the agents' own code rather than
+guessed: AggressiveAgent's main-phase heuristic (`pickBiggestCard`,
+agents/aggressiveAgent.ts) always plays the highest-cost card it can afford,
+with no sense of "is this actually useful right now" — an already-named gap
+in quality-debt.md ("AggressiveAgent's reactive heuristic is narrow... has
+no lookahead"). Tariff Field (cost 3) and Intercept Routine (cost 1) both
+have zero immediate board impact; when they compete with a real
+board-development play at the same cost tier, the dumb heuristic sometimes
+picks the reactive/utility card over the tempo play, for no benefit that
+turn, in a board-slot-scarce game (BOARD_SLOTS=6) where every slot and every
+turn's play matters. RandomAgent has the same problem from a different
+angle — it will spend a turn's mana and priority on a reactive card with
+nothing to react to, uniformly at random. This is a genuine measurement
+blind spot for skill-expressive/reactive cards, not obviously a flaw in the
+cards' own design — flagged explicitly for the owner below.
+
+=== STEP 3: shipped configuration — 1 copy of each new card ===
+
+Reduced to 1 copy each (34-card pool -> 37, still within [20,40]) to shrink
+the dilution/misplay exposure while keeping all three mechanics real and
+observable, then re-measured with the full, trusted instrument (300 seeds,
+both policies) rather than more small-sample spot checks:
+
+  Aggressive vs Aggressive:
+    Cortex vs Aegis   72.3% / 27.7%  <-- FLAG
+    Swarm vs Aegis     73.7% / 26.3%  <-- FLAG
+    Aegis vs Null       20.7% / 79.3%  <-- FLAG (Null)
+  Random vs Random:
+    Cortex vs Aegis    60.0% / 40.0%  <-- FLAG (borderline)
+    Swarm vs Aegis      56.7% / 43.3%  (NOT flagged — was flagged going in)
+    Aegis vs Null        17.0% / 83.0%  <-- FLAG (Null)
+  Double-flagged (both policies): Cortex-vs-Aegis, Aegis-vs-Null — two
+  pairings, down from three at 2 copies, but Aegis-vs-Null is still
+  double-flagged and Cortex-vs-Aegis newly crosses into double-flagged
+  territory (was Aggressive-only before this session).
+
+Honest read against the owner's own explicit instruction ("if defensive
+answers alone don't bring Aegis-vs-Null under the flag threshold, say so
+honestly and leave it flagged rather than quietly adding removal"):
+Aegis-vs-Null remains flagged, roughly at the pre-session baseline under
+Aggressive (79.3% vs 79.0% — essentially unchanged) and about the same under
+Random (83.0% vs 79.0% — a few points worse, within the range this session's
+own noise measurements suggest isn't reliably distinguishable from baseline
+at 300 seeds). Defensive answers alone did NOT fix Aegis-vs-Null. Per the
+owner's instruction, this is left flagged rather than adding removal or
+guessing at more numbers — see progress/notes-for-owner.md.
+
+Genuine improvement: Swarm-vs-Aegis, flagged under both policies going in,
+is no longer double-flagged (Random dropped from ~61% to 56.7%; Aggressive
+alone got worse, 73.7%, which is itself worth watching). Cortex-vs-Aegis got
+mildly worse under Random (crossed 60%) while Aggressive stayed roughly
+where it was.
+
+Stopped iterating here — three full 300-seed/both-policy balanceReport runs
+plus targeted isolation/decomposition experiments is a real measure-then-fix
+cycle, consistent with this project's own established precedent (2026-09-15
+feedback: "stop after one measure-then-fix cycle rather than chasing an
+exact target"). Further tuning (asymmetric copy counts, cost changes,
+teaching AggressiveAgent to value reactive cards situationally) is real,
+identified follow-up work, not attempted unilaterally this session — see
+progress/quality-debt.md and progress/notes-for-owner.md.

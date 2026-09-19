@@ -46,18 +46,60 @@ test("Kernel Panic (Null) evolves from Corrupted Process and destroys a small ta
   state.players.p1.maxEnergy = 5;
 
   const legal = getLegalMoves(state);
-  const evolve = legal.find((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === processInstanceId);
-  expect(evolve, "evolving into Kernel Panic should target the Corrupted Process already in play").toBeTruthy();
-  // Kernel Panic's destroy effect targets a random enemy unit, not a chosen
-  // one: evolveUnit's onPlay resolution never supplies a `chosen` ref (see
-  // the card's own comment), so with only one *eligible* enemy unit on the
-  // board the random pick is deterministically that unit.
+  const evolve = legal.find(
+    (m) =>
+      m.type === "playCard" &&
+      m.target?.kind === "unit" &&
+      m.target.instanceId === processInstanceId &&
+      m.abilityTarget?.kind === "unit" &&
+      m.abilityTarget.instanceId === victim.instanceId,
+  );
+  expect(evolve, "evolving into Kernel Panic, choosing the eligible victim as the destroy target, should be offered").toBeTruthy();
+  // "chosen" targeting, as originally written — restored 2026-09-19 (the
+  // architectural gap that forced this to "random" is now closed
+  // generally, see engine/moves.ts's evolution branch and
+  // engine/engine.ts's evolveUnit). getLegalMoves offers one move per
+  // (base, eligible ability target) combination; this picks the specific
+  // one whose abilityTarget is the victim, rather than relying on there
+  // happening to be only one option.
   applyMove(state, evolve!, rng);
 
   const evolved = state.players.p1.board.find((u) => u.instanceId === processInstanceId);
   expect(evolved?.card.id, "the instance should now be the evolved card, same instanceId").toBe(kernelPanic.id);
   expect(isAlive(state, victim), "destroy must kill regardless of the health buff").toBe(false);
   expect(victim.statuses.some((s) => s.kind === "Barrier"), "destroy bypasses Barrier rather than being consumed by it").toBe(true);
+});
+
+test("Kernel Panic (Null) chosen targeting lets the controller pick WHICH eligible enemy unit dies, not a random one", () => {
+  // The real proof the 2026-09-19 chosen-targeting fix works: with two
+  // eligible (under-cap) enemy units in play, the controller can choose
+  // exactly one to destroy and leave the other alone — impossible to
+  // guarantee under the old "random" workaround.
+  const state = emptyState();
+  const rng = new Rng(36);
+  const process = putUnit(state, "p1", corruptedProcess);
+  const processInstanceId = process.instanceId;
+  const spare = putUnit(state, "p2", swarmLarva); // 1 health, eligible, should survive
+  const spareInstanceId = spare.instanceId;
+  const chosenVictim = putUnit(state, "p2", swarmLarva); // 1 health, eligible, the one we pick
+  const chosenVictimInstanceId = chosenVictim.instanceId;
+  state.turnNumber += 1;
+  state.players.p1.hand.push(kernelPanic);
+  state.players.p1.energy = 5;
+  state.players.p1.maxEnergy = 5;
+
+  const legal = getLegalMoves(state);
+  const evolveOptions = legal.filter((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === processInstanceId);
+  expect(evolveOptions.length, "one legal evolve move per eligible destroy target — two enemy units, two options").toBe(2);
+  const pick = evolveOptions.find((m) => m.type === "playCard" && m.abilityTarget?.kind === "unit" && m.abilityTarget.instanceId === chosenVictimInstanceId);
+  expect(pick, "the controller must be able to choose the specific eligible target to destroy").toBeTruthy();
+
+  applyMove(state, pick!, rng);
+
+  expect(isAlive(state, chosenVictim), "the chosen target should be destroyed").toBe(false);
+  const spareStillThere = state.players.p2.board.find((u) => u.instanceId === spareInstanceId);
+  expect(spareStillThere, "the unchosen eligible unit must be left completely alone, not caught by a random pick").toBeTruthy();
+  expect(spareStillThere?.damageTaken, "the unchosen unit should be untouched").toBe(0);
 });
 
 test("Kernel Panic (Null) cannot target a unit built bigger than its 5-health cap — the Aegis-vs-Null soft-counter fix", () => {
@@ -78,42 +120,94 @@ test("Kernel Panic (Null) cannot target a unit built bigger than its 5-health ca
   state.players.p1.maxEnergy = 5;
 
   const legal = getLegalMoves(state);
-  const evolve = legal.find((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === processInstanceId);
-  applyMove(state, evolve!, rng);
+  const evolveOptions = legal.filter((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === processInstanceId);
+  // Evolving is still legal even though the bonus destroy has zero eligible
+  // targets — the base's upgrade isn't conditional on the ability having
+  // somewhere to point (see moves.ts's evolution branch) — but exactly one
+  // option is offered, with no ability target, since Warden is the only
+  // enemy unit and it's ineligible.
+  expect(evolveOptions.length, "evolving must still be offered with zero eligible destroy targets").toBe(1);
+  expect(evolveOptions[0]!.type === "playCard" && evolveOptions[0]!.abilityTarget, "no ability target should be offered when nothing is eligible").toBeUndefined();
+  applyMove(state, evolveOptions[0]!, rng);
 
+  const evolved = state.players.p1.board.find((u) => u.instanceId === processInstanceId);
+  expect(evolved?.card.id, "evolution itself must still go through").toBe(kernelPanic.id);
   expect(isAlive(state, warden), "a unit above the maxHealth cap must never be a legal destroy target, even as the only enemy unit in play").toBe(true);
   expect(warden.damageTaken, "the ineligible unit should be completely untouched, not partially damaged").toBe(0);
 });
 
-test("Deprecated Routine (Null) telegraph arms and applies a permanent -2/-2 decay debuff, not damage", () => {
+test("Deprecated Routine (Null) telegraph arms and applies a permanent -2/-2 decay debuff, chosen at deploy time, not damage", () => {
   const state = emptyState();
   const rng = new Rng(32);
-  // barrierDrone is 0/3; pre-damaged for 2 so it's at 1 current health —
-  // enough headroom to show the debuff lowers max health (not just dealing
-  // damage) while also proving decay can finish off an already-weakened
-  // unit once its max health drops below what it's already taken.
+  // Two enemy units in play at deploy time, so choosing one over the other
+  // is a real, provable decision — not just "the only eligible target
+  // happened to be this one." barrierDrone is 0/3; pre-damaged for 2 so
+  // it's at 1 current health — enough headroom to show the debuff lowers
+  // max health (not just dealing damage) while also proving decay can
+  // finish off an already-weakened unit once its max health drops below
+  // what it's already taken.
   const target = putUnit(state, "p2", barrierDrone, 2);
+  const targetInstanceId = target.instanceId;
+  const spare = putUnit(state, "p2", barrierDrone);
+  const spareInstanceId = spare.instanceId;
   expect(currentHealth(state, target), "sanity: 3 max health - 2 damage taken").toBe(1);
   state.players.p1.hand.push(deprecatedRoutine); // cost 3, telegraph 2
   state.players.p1.energy = 3;
   state.players.p1.maxEnergy = 3;
-  applyMove(state, { type: "playCard", handIndex: 0 }, rng);
+
+  // "chosen" targeting, as originally written — restored 2026-09-19. The
+  // choice is made now, at deploy time (there's no agent decision point
+  // left once the telegraph actually arms, turns later — see
+  // UnitInstance.armChosenTarget), by picking the legal playCard move whose
+  // target is specifically the intended victim, not the spare.
+  const legalAtDeploy = getLegalMoves(state);
+  const deploy = legalAtDeploy.find((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === targetInstanceId);
+  expect(deploy, "deploying Deprecated Routine, choosing the intended victim, should be offered").toBeTruthy();
+  applyMove(state, deploy!, rng);
   const routine = state.players.p1.board[0]!;
   expect(routine.pending, "should enter pending, not active").toBe(true);
+  expect(routine.armChosenTarget?.kind === "unit" && routine.armChosenTarget.instanceId, "the chosen target should be captured on the unit for later").toBe(targetInstanceId);
   expect(target.permanentBuff.attack, "the debuff must not apply before the telegraph arms").toBe(0);
 
   state.turnNumber += 4; // telegraph=2 => armTurn = turnNumber + 2*2 (see computeArmTurn)
   beginTurn(state, "p1", rng, { draw: false });
 
   expect(routine.pending, "should have armed after 2 of p1's own turns").toBe(false);
-  expect(target.permanentBuff.attack, "arming should apply the permanent -2 attack debuff").toBe(-2);
-  expect(target.permanentBuff.health, "arming should apply the permanent -2 health debuff").toBe(-2);
+  expect(target.permanentBuff.attack, "arming should apply the permanent -2 attack debuff to the chosen target").toBe(-2);
+  expect(target.permanentBuff.health, "arming should apply the permanent -2 health debuff to the chosen target").toBe(-2);
+  const spareStillThere = state.players.p2.board.find((u) => u.instanceId === spareInstanceId);
+  expect(spareStillThere?.permanentBuff.attack, "the unchosen enemy unit must be completely untouched").toBe(0);
+  expect(spareStillThere?.permanentBuff.health, "the unchosen enemy unit must be completely untouched").toBe(0);
   // Max health drops from 3 to 1 (the engine floors max health at 1, never
   // lower), and 1 max health minus the 2 damage already taken is lethal —
   // this is decay, working through the same damageTaken bookkeeping as
   // everything else, not a disguised damage effect.
   expect(isAlive(state, target), "reducing max health below already-taken damage should kill the unit").toBe(false);
   expect(currentAttack(state, target), "attack should be clamped at 0, not negative").toBe(0);
+});
+
+test("Deprecated Routine (Null) no-ops harmlessly if its chosen target is gone by the time the telegraph arms", () => {
+  const state = emptyState();
+  const rng = new Rng(37);
+  const victim = putUnit(state, "p2", barrierDrone);
+  const victimInstanceId = victim.instanceId;
+  state.players.p1.hand.push(deprecatedRoutine);
+  state.players.p1.energy = 3;
+  state.players.p1.maxEnergy = 3;
+  const legal = getLegalMoves(state);
+  const deploy = legal.find((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === victimInstanceId);
+  applyMove(state, deploy!, rng);
+  const routine = state.players.p1.board[0]!;
+
+  // The chosen target dies (of something else entirely) before the
+  // telegraph arms — a real consequence of choosing 2 turns in advance
+  // (see quality-debt.md), not a bug.
+  state.players.p2.board = state.players.p2.board.filter((u) => u.instanceId !== victimInstanceId);
+  state.players.p2.graveyard.push(victim.card);
+
+  state.turnNumber += 4;
+  expect(() => beginTurn(state, "p1", rng, { draw: false })).not.toThrow();
+  expect(routine.pending, "should still arm on schedule even though its target is gone").toBe(false);
 });
 
 test("Fork Bomb (Null) telegraph arms and deals AOE damage to every enemy unit, not just one", () => {

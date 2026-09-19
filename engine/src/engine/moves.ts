@@ -1,13 +1,28 @@
 import type { Ability, Speed } from "../cards/types.js";
 import type { GameState, PlayerId, PlayerState } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
-import { isAlive, hasKeyword } from "../state/queries.js";
+import { isAlive, hasKeyword, effectiveCardCost } from "../state/queries.js";
 import { enumerateTargets, type TargetRef } from "../effects/targeting.js";
 import { evaluateCondition } from "../effects/conditions.js";
 import { BOARD_SLOTS } from "../state/init.js";
 
 export type Move =
-  | { type: "playCard"; handIndex: number; target?: TargetRef }
+  | {
+      type: "playCard";
+      handIndex: number;
+      /** The structural target: an evolution's base unit to mutate, a
+       * Tool's attach host, or — for a plain Unit/Directive/Command with a
+       * "chosen"-scope onPlay ability — that ability's own chosen target
+       * (there's no structural target competing for the slot in that
+       * case). */
+      target?: TargetRef;
+      /** Only used for an evolution Unit whose onPlay ability *also* needs
+       * a "chosen" target, independent of `target` (which is already
+       * spoken for by the evolution base). See engine.ts's evolveUnit and
+       * the 2026-09-19 owner-feedback entry ("the chosen-targeting gap")
+       * this field closes. */
+      abilityTarget?: TargetRef;
+    }
   | { type: "attack"; attackerInstanceId: string; target: TargetRef }
   | { type: "activateAbility"; sourceInstanceId: string; abilityId: string; target?: TargetRef }
   /** Passes priority. Legal for whoever currently holds it, always. Two
@@ -57,7 +72,7 @@ function boardSlotsUsed(player: PlayerState): number {
 function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorceryTiming: boolean): void {
   const player = state.players[pid];
   player.hand.forEach((card, handIndex) => {
-    if (card.cost > player.energy) return;
+    if (effectiveCardCost(state, pid, card) > player.energy) return;
     const speed: Speed = card.type === "Command" ? card.speed : "Sorcery";
     if (speed === "Sorcery" && !sorceryTiming) return;
 
@@ -75,8 +90,37 @@ function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorce
       const bases = player.board.filter(
         (u) => !u.pending && u.card.id === card.evolvesFrom && u.enteredTurn < state.turnNumber,
       );
+      const onEvolve = card.abilities.find((a) => a.trigger === "onPlay");
       for (const base of bases) {
-        moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
+        // If the evolved form's onPlay ability itself needs a "chosen"
+        // target (e.g. Kernel Panic's destroy, data/nullCards.ts), that
+        // target is independent of which base is evolving — enumerate it
+        // separately and cross it with each base, carried in
+        // `abilityTarget` since `target` is already the base reference
+        // (see the Move type's own doc comment; this is the fix for the
+        // 2026-09-19 owner-feedback "chosen-targeting gap"). A card whose
+        // ability has no legal target right now offers no move for that
+        // base at all, mirroring the existing convention for a plain
+        // card's own chosen-target onPlay ability below.
+        if (onEvolve?.targeting && onEvolve.targeting.scope === "chosen") {
+          const abilityOptions = enumerateTargets(onEvolve.targeting.filter, pid, state);
+          if (abilityOptions.length > 0) {
+            for (const abilityTarget of abilityOptions) {
+              moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId }, abilityTarget });
+            }
+          } else {
+            // No legal target for the bonus ability right now — evolving
+            // is still legal (the base's upgrade isn't conditional on it),
+            // the ability just doesn't fire; see resolveAbility's matching
+            // guard. Unlike a plain new unit's own chosen-target onPlay
+            // (which blocks the whole play with no legal target), evolving
+            // has a structural target of its own that doesn't depend on
+            // the bonus ability having anywhere to point.
+            moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
+          }
+        } else {
+          moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
+        }
       }
       return;
     }

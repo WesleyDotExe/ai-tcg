@@ -1,0 +1,357 @@
+AI-TCG 2026-09-19 owner-feedback evidence — Aegis defensive interaction + chosen-targeting fix — seed 6 (best of up to 3000 searched)
+Random-Aegis (Aegis, p1) vs Aggressive-Cortex (Cortex, p2)
+Deck sizes: p1=37, p2=40
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Firewall Sentinel
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Prime Aegis
+--- Turn 3 (p1) ---
+p1 plays Failover Custodian (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Cascade Purge
+--- Turn 4 (p2) ---
+p2 casts Backup Protocol [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Static Ward Beacon
+--- Turn 5 (p1) ---
+p1 plays Perimeter Turret (u3)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+Failover Custodian attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Aggressive-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Signal Drone
+--- Turn 6 (p2) ---
+p2 plays Firewall Sentinel (u5)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Intercept Routine
+--- Turn 7 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Firewall Sentinel (unit)
+Perimeter Turret attacks Firewall Sentinel
+p1 casts Intercept Routine [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Intercept Routine
+  ability: Intercept Routine — intercept-routine-cast (onPlay)
+  Intercept Routine redirects Perimeter Turret's attack from Firewall Sentinel to Failover Custodian
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 1 damage to Perimeter Turret (unit)
+p1 plays Static Ward Beacon (d8)
+Failover Custodian attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Diagnostic Pulse
+--- Turn 8 (p2) ---
+p2 casts Cascade Purge [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Failover Custodian (unit)
+  Cascade Purge deals 2 damage to Perimeter Turret (unit)
+  Failover Custodian (p1) dies
+Firewall Sentinel attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Failover Custodian
+--- Turn 9 (p1) ---
+p1 plays Failover Custodian (u12)
+Perimeter Turret attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Perimeter Turret (unit)
+  Perimeter Turret (p1) dies
+  Firewall Sentinel (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Firewall Sentinel
+--- Turn 10 (p2) ---
+p2 plays Firewall Sentinel (u14)
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Plating Module
+--- Turn 11 (p1) ---
+Failover Custodian attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+p1 plays Prime Aegis (u17)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Interrupt Handler
+--- Turn 12 (p2) ---
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Overclock Shunt attaches to Firewall Sentinel
+p2 plays Signal Drone (u19)
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Failover Custodian (unit)
+  Failover Custodian (p1) dies
+Firewall Sentinel attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Random-Aegis
+Signal Drone attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Feedback Plating
+--- Turn 13 (p1) ---
+Prime Aegis attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Prime Aegis (unit)
+  Firewall Sentinel (p2) dies
+p1 casts Lockdown Field [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Lockdown Field
+  ability: Lockdown Field — lockdown-field-cast (onPlay)
+  Lockdown Field applies Stasis to Signal Drone
+  Plating Module attaches to Prime Aegis
+p1 plays Feedback Plating (u25)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Diagnostic Loop
+--- Turn 14 (p2) ---
+p2 plays Diagnostic Loop (u26)
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Aegis Sentinel
+--- Turn 15 (p1) ---
+Prime Aegis attacks Diagnostic Loop
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Diagnostic Loop (unit)
+  Diagnostic Loop (p2) dies
+Feedback Plating attacks Signal Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Feedback Plating's attack
+  Feedback Plating deals 2 damage to Signal Drone (unit)
+  Signal Drone (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Fail-safe Unit
+--- Turn 16 (p2) ---
+p2 plays Fail-safe Unit (u29)
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+p1 draws Perimeter Turret
+--- Turn 17 (p1) ---
+p1 plays Perimeter Turret (u30)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+Prime Aegis attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Aggressive-Cortex
+Feedback Plating attacks Fail-safe Unit
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Feedback Plating's attack
+  Feedback Plating deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit deals 1 damage to Feedback Plating (unit)
+  ability: Feedback Plating — feedback-plating-damaged (onDamaged)
+  Feedback Plating grants Fail-safe Unit +-1/+0
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Mainframe Core
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+p2 draws Dormant Exploit
+--- Turn 18 (p2) ---
+p2 plays Mainframe Core (d33)
+p2 plays Dormant Exploit (u34)
+  Dormant Exploit deploys, dormant — arms in 1 of its controller's turn(s)
+  p2 passes priority
+  p1 passes priority
+[end of turn 18 for p2]
+p1 draws Diagnostic Ward
+--- Turn 19 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Dormant Exploit (unit)
+Prime Aegis attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Aggressive-Cortex
+Feedback Plating attacks Dormant Exploit
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Feedback Plating's attack
+  Feedback Plating deals 2 damage to Dormant Exploit (unit)
+  Dormant Exploit deals 1 damage to Feedback Plating (unit)
+  ability: Feedback Plating — feedback-plating-damaged (onDamaged)
+  Feedback Plating grants Dormant Exploit +-1/+0
+  Dormant Exploit (p2) dies
+p1 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+  Diagnostic Ward restores 2 health to Random-Aegis
+Perimeter Turret attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 3 damage to Aggressive-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 19 for p1]
+p2 draws Backup Protocol
+--- Turn 20 (p2) ---
+p2 casts Backup Protocol [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 3 health to Aggressive-Cortex
+p2 draws Overload Capacitor
+p2 plays Overload Capacitor (u40)
+  ability: Overload Capacitor — overload-capacitor-play (onPlay)
+  Overload Capacitor applies Overload to Overload Capacitor
+  p2 passes priority
+  p1 passes priority
+[end of turn 20 for p2]
+  Overload deals 1 damage to Overload Capacitor (unit)
+p1 draws Static Ward Beacon
+--- Turn 21 (p1) ---
+p1 plays Static Ward Beacon (d41)
+Perimeter Turret attacks Overload Capacitor
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 3 damage to Overload Capacitor (unit)
+  Overload Capacitor deals 4 damage to Perimeter Turret (unit)
+Prime Aegis attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Aggressive-Cortex
+Feedback Plating attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Feedback Plating's attack
+  Feedback Plating deals 2 damage to Aggressive-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 21 for p1]
+p2 draws Compiled Daemon
+--- Turn 22 (p2) ---
+Overload Capacitor attacks Random-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overload Capacitor's attack
+  Overload Capacitor deals 4 damage to Random-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 22 for p2]
+  Overload deals 1 damage to Overload Capacitor (unit)
+  Overload Capacitor (p2) dies
+p1 draws Barrier Drone
+--- Turn 23 (p1) ---
+p1 plays Barrier Drone (u46)
+Prime Aegis attacks Aggressive-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Aggressive-Cortex
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+--- Summary ---
+Winner: p1
+Turns played: 23
+Moves applied: 153
+Final health — p1 (Random-Aegis): 14, p2 (Aggressive-Cortex): -3
+
+--- Which of this session's mechanics fired in THIS real match ---
+Intercept Routine redirected a pending attack: true
+Feedback Plating's blunting trigger fired: true
+Tariff Field was played (tax aura live — see effects/statics behaviour, not independently visible in the log): false
+Null's chosen-targeting fix fired (Kernel Panic evolve or Deprecated Routine arm): false
+
+Any mechanic not hit in this particular match is proven instead by its dedicated unit test
+(engine/test/aegisInteraction.test.ts, engine/test/nullFaction.test.ts) — see progress/log.md.

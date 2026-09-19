@@ -36,20 +36,29 @@ building around them; don't block the whole project waiting.
    `Rng`, `makeRandomDecision`, `aggressiveDecision`) all now have real
    vitest coverage — 81/81 tests pass across all four packages. See
    `progress/current.md` for what shipped and where it's still thin.
-3. Balance pass across all four factions: IN PROGRESS (session 10).
-   Aegis-vs-Null [worst, was 75-81%] — the owner's 2026-09-17 fix direction
-   (condition Kernel Panic's `destroy`, then adjust Null's numbers only if
-   still flagged) was followed exactly, both steps measured separately —
-   see progress/balance-report-003-null-fix.txt. Result: now 74.7%/79.0%,
-   a small real improvement but STILL double-flagged; the investigation
-   found no single-card fix resolves it and named the likely real cause
-   (Aegis's kit lacks independent interaction, not a Null number) as a
-   card-set-design follow-up, not further Null tuning. Still open:
-   Swarm-vs-Aegis, the single-flagged Cortex pairings, and Null's remaining
-   edge over Cortex/Swarm under Random play — none touched this session
-   (scoped to exactly the owner's Aegis-vs-Null direction). Next session
-   picking this item back up should read balance-report-003's "honest
-   read" section before continuing.
+3. Balance pass across all four factions: IN PROGRESS (session 11).
+   Session 10 conditioned Kernel Panic's destroy and adjusted a Null
+   number per the owner's 2026-09-17 direction (74.7%/79.0%, still
+   double-flagged) and named "Aegis's kit lacks independent interaction"
+   as the likely real cause. Session 11 acted on that: three new
+   non-removal defensive Aegis cards (intercept/redirect, cost tax,
+   damage-blunt — data/aegisCards.ts) plus a general engine fix for the
+   "chosen-targeting gap" (Kernel Panic/Deprecated Routine reverted to
+   their original chosen-target design). Result, honestly: Aegis-vs-Null
+   remains double-flagged (79.3%/83.0%, ~the same as going in) — per the
+   owner's own explicit instruction, left flagged rather than adding
+   removal or guessing further. Swarm-vs-Aegis IS newly resolved (was
+   double-flagged, now isn't). Cortex-vs-Aegis got mildly worse (now
+   double-flagged, was Aggressive-only). Full journey, including a first
+   attempt that measured clearly worse and was not shipped, and the
+   structural finding that dummy-agent balance measurement may
+   undervalue reactive/situational cards: progress/balance-report-004-aegis-defense.txt
+   and progress/owner-feedback.md's 2026-09-19 entry. Still open, none
+   touched this session: the single-flagged Cortex-vs-Swarm pairing, and
+   Null's remaining edge over Cortex/Swarm under Random play. Next session
+   picking this back up should read balance-report-004's full writeup
+   first, and progress/notes-for-owner.md for the open question to the
+   owner before spending more effort on Aegis-vs-Null specifically.
 4. Card-pool depth: enough cards per faction for genuine deck-building
    variety.
 

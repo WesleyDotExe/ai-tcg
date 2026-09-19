@@ -1,5 +1,40 @@
 # Notes for the owner
 
+**Worth a read when you have a spare minute (updated 2026-09-19, session
+11 — Aegis defensive interaction + the chosen-targeting fix).** Not
+blocking — the roadmap can proceed either way — but two things worth your
+steer:
+
+1. **Aegis-vs-Null is still flagged after adding real, tested, non-removal
+   defensive interaction to Aegis's kit** (intercept/redirect, a cost tax,
+   and a damage-blunt — see `progress/balance-report-004-aegis-defense.txt`
+   for the full journey). Per your own 2026-09-19 instruction, this is left
+   flagged rather than adding removal or guessing at more numbers. Your
+   call on what's next: (a) leave it as documented, known debt for now and
+   move to card-pool depth (roadmap item 4); (b) point at a specific
+   further direction for Aegis or Null; or (c) something else.
+2. **A more structural question the investigation surfaced:** the first
+   attempt at these cards (2 copies each) measured WORSE across every Aegis
+   matchup, not just Null — a real regression I did not ship. Isolating why,
+   the most plausible driver is that the dummy reference agents
+   (`AggressiveAgent`/`RandomAgent`) have no way to value a reactive or
+   situational card correctly — `AggressiveAgent` always plays the
+   highest-cost card it can afford, with no sense of "is this useful right
+   now," so a card like Intercept Routine (does nothing without a pending
+   attack to redirect) or Tariff Field (no immediate board impact) sometimes
+   wins that slot over a real tempo play, for nothing. I shipped a smaller
+   dose (1 copy each) to reduce the exposure, but the deeper issue is that
+   `balanceReport.ts`'s whole method — pit dumb heuristic agents against
+   each other, measure win rate — may be structurally unable to fairly
+   value exactly the kind of skill-expressive, situational cards design
+   principle 3 asks for more of. This isn't blocking (stage 2+ real agents
+   will eventually supersede the dummies), but it's worth knowing before
+   more "defensive"/reactive-style cards get added and keep reading as
+   worse than they are. No action needed from you unless you want to steer
+   whether to invest in a smarter reference agent sooner than the current
+   roadmap implies, purely to make balance measurement trustworthy for this
+   class of card.
+
 Nothing is blocking right now (updated 2026-09-18, session 10 — the
 Aegis-vs-Null fix you asked for). Did exactly the two-step process from
 your 2026-09-17 feedback (condition Kernel Panic's destroy, then adjust a
