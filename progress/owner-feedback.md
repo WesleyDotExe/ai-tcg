@@ -486,3 +486,9 @@ For the record, with the fixed instrument (session 12): Null beats every faction
 Expectation: Phases 2–4 of the entry above should reduce this on their own (directive removal answers Segmentation Fault; summon lets Swarm rebuild after Fork Bomb; the pool lint forces Null's removal share down from 47%). Note that the lint will require cutting or redesigning Null cards to make the deck load. That's intended.
 
 Backstop: after the Phase 4 re-measure, if Null still wins 60%+ against any faction under all three policies, nerf its **abilities**, not just its stats. Candidates in priority order: redesign Segmentation Fault so its effect is conditional or temporary; reduce Fork Bomb, Segfault Handler and Corrupted Process to 2 copies; make Entropy Harvester scale off the enemy graveyard; then cost increases. Measure after each step and stop when Null matches the triangle, not at 50% everywhere. Report the before/after in a balance report as usual.
+
+---
+
+## 2026-09-20 — Owner: session 13 question
+
+Keep phase order. Do not detour to Cortex-vs-Swarm; the Phase 3 lint will change Cortex's pool again, so tuning it now is wasted work. Finish Phase 2 (summon, base protection), then Phase 3. Cortex-vs-Swarm gets picked up at the Phase 4 re-measure with everything else.
