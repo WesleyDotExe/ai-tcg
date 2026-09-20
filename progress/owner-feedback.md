@@ -576,3 +576,14 @@ Backstop: after the Phase 4 re-measure, if Null still wins 60%+ against any fact
 Keep phase order. Do not detour to Cortex-vs-Swarm; the Phase 3 lint will change Cortex's pool again, so tuning it now is wasted work. Finish Phase 2 (summon, base protection), then Phase 3. Cortex-vs-Swarm gets picked up at the Phase 4 re-measure with everything else.
 
 **Followed exactly, session 14.** Finished Phase 2 (items 4-5, both — see this file's own session-14 entry above), did not detour to tune Cortex-vs-Swarm despite it moving further out of range in this session's own re-measurement (60.7% -> 66.0% Cortex-favoured after item 4). Phase 3 is next, per this entry's own order.
+
+---
+
+## 2026-09-21 — Owner: base armor = 1 approved; write checkpoints when you say you did
+
+Phase 2 is complete — approved as shipped.
+
+1. **baseArmor = 1 is confirmed** as the finalized value (was flagged as a proposal in session 14). It's the smallest value that changes anything, and 2 would make evolution bases nearly immune to cheap removal, which we don't want. Keep it at 1 across all base cards.
+2. **Process reminder, not a redo:** session 14 said it "flagged baseArmor at a checkpoint" but no checkpoint entry was written and notes-for-owner wasn't updated — it lived only in the PR body and owner-feedback. When a session says it's surfacing a decision for the owner, write it into progress/checkpoints.md (or notes-for-owner.md) as the process defines, so decisions aren't buried in PR descriptions. No rework needed for session 14; just don't let the pattern drift.
+
+Proceed to Phase 3 (the load-time pool lint). Expect it to require cutting Null's removal density to make its deck load — that's intended, per the 2026-09-20 entries.
