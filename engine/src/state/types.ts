@@ -117,8 +117,8 @@ export type GameEvent =
   | { type: "fizzle"; reason: string }
   | { type: "telegraphPlaced"; unit: string; armIn: number }
   | { type: "telegraphArmed"; unit: string }
-  | { type: "evolve"; from: string; to: string }
-  | { type: "toolAttached"; tool: string; unit: string }
+  | { type: "evolve"; player: PlayerId; from: string; to: string }
+  | { type: "toolAttached"; player: PlayerId; tool: string; unit: string }
   | { type: "attackRedirected"; source: string; attacker: string; from: string; to: string }
   | { type: "gameOver"; winner: PlayerId | "draw"; reason: string };
 

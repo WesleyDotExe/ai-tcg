@@ -1,5 +1,32 @@
 # Notes for the owner
 
+**Updated 2026-09-20, session 12 (Phase 1 of your "fix the loop" plan).**
+Nothing blocking. Two follow-ups to the notes below, both from your own
+2026-09-20 direction, not new asks:
+
+- **The structural agent-measurement question below (the old item 2) has
+  now been acted on**, exactly as your 2026-09-20 feedback's Phase 1 item 1
+  asked: a third reference agent (`LookaheadAgent`) that values board state
+  instead of raw card cost now runs alongside the other two in
+  `balanceReport.ts`, and a pairing is only flagged when all three agree.
+  Building it carefully paid off immediately: it caught its own real bug
+  (five Commands scoring zero forever due to an "all"/"self" targeting
+  gap) before that bug could ever reach a balance report — see
+  `progress/log.md`'s session-12 entry if you want the detail. No
+  additional steer needed from you here unless you want to weigh in on the
+  approximations named in `progress/quality-debt.md`'s new session-12
+  section.
+- **Aegis-vs-Null (the old item 1) is still open, and correctly untouched
+  this session** — your 2026-09-20 feedback is explicit that Phases 1-4
+  come before resuming that pairing specifically. With the fixed
+  instrument, it's joined by Cortex-vs-Aegis, now confirmed flagged under
+  all three policies (previously only under Aggressive). Both wait on
+  Phase 2 (engine gaps: directive removal, a summon/token effect kind, base
+  protection while unevolved) before any further tuning — no action needed
+  from you unless you want to steer that order.
+
+---
+
 **Worth a read when you have a spare minute (updated 2026-09-19, session
 11 — Aegis defensive interaction + the chosen-targeting fix).** Not
 blocking — the roadmap can proceed either way — but two things worth your

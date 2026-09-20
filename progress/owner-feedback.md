@@ -323,7 +323,7 @@ any further Aegis-vs-Null work.
 
 ---
 
-## 2026-09-20 — Owner: balance is a systems problem; fix the loop, then expand the pool (supersedes further card-by-card tuning)
+## 2026-09-20 — Owner: balance is a systems problem; fix the loop, then expand the pool (supersedes further card-by-card tuning) (PARTIALLY HANDLED — Phase 1 done 2026-09-20, session 12; Phases 2-6 still open)
 
 Stop tuning individual cards for balance. Three factions were built as mechanic test pools and Null was built as a tuned deck; the gap is structural (removal density predicts the standings almost exactly; permanent -1/-0 auras switch off the two 1-attack factions with no answer possible; Aegis has no clock or card flow; Swarm has no way to rebuild after board-wide damage). Work in this order. Each item is done when it's built, tested and measured, not before.
 
@@ -358,3 +358,48 @@ Stop tuning individual cards for balance. Three factions were built as mechanic 
 12. The copy limit is enforced against ownership: an agent runs 3 copies only if it owns 3. Pack scarcity is what makes the limit meaningful.
 
 Phases 1-4 come before any further balance work on Aegis-vs-Null; leave it flagged until then. Update `progress/roadmap.md` to reflect this order.
+
+---
+
+**Handled, session 12 (2026-09-20) — Phase 1 only, both items, in order:**
+
+1. **Third reference agent — built.** `engine/src/agents/lookaheadAgent.ts`
+   (`LookaheadAgent`): scores every legal move by resolving its ability's
+   real target list from the same `TargetSpec` union the resolver
+   interprets and summing a generic per-effect-kind value estimate over
+   those targets — no card-name special-casing. Wired into
+   `balanceReport.ts` as a third policy; a pairing is now flagged only when
+   all three policies agree (previously two — Aggressive+Random). Both
+   named sub-requirements proven with dedicated tests, not just design
+   reasoning: "holds Instants for a target" and "never plays a reactive
+   card with nothing to react to" (`engine/test/lookaheadAgent.test.ts`).
+   A real bug the design itself caught before shipping (not a request from
+   this entry, but directly relevant to trusting the instrument): the
+   first version scored every `"all"`/`"self"`-scope ability at zero
+   forever (five real Commands, 0 played across 700+ drawn games) —
+   root-caused and fixed by resolving targets from the ability's own
+   `TargetSpec` instead of `Move.target` alone. Full detail:
+   `progress/log.md`'s session-12 entry, `progress/quality-debt.md`'s new
+   session-12 section (the approximations this agent makes, named
+   honestly), `progress/sample-match-012-lookahead.txt` (real unscripted
+   play evidence of the fix firing).
+2. **Per-card win-rate-when-drawn/played instrumentation — committed as a
+   standing part of `balanceReport.ts`**, replacing session 10's scratch,
+   uncommitted version. Full 300-seed, three-policy report with the
+   complete per-card table for all four factions:
+   `progress/balance-report-005-instrument.txt`.
+
+**Result of the fixed instrument:** the triple-policy cross-check flags
+Cortex-vs-Aegis (newly confirmed under all three policies — was
+Aggressive-only through session 11) and Aegis-vs-Null (unchanged in kind).
+**Neither was touched this session**, per this entry's own explicit order
+("Phases 1-4 come before any further balance work on Aegis-vs-Null") — Phase
+1 was scoped to fixing the instrument, not re-tuning anything with it yet.
+
+**Not attempted this session, left open on purpose:** Phases 2 (directive
+removal, a summon/token effect kind, base protection while unevolved), 3
+(pool-construction lint), 4 (the intended counter triangle), 5 (pool
+expansion), and 6 (economy tie-in). This entry stays PARTIALLY HANDLED —
+do not treat Phase 1's completion as license to skip ahead to Phase 3+; the
+next session should pick up Phase 2 in order, per this entry's own
+instruction.
