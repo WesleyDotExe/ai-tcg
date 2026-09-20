@@ -88,7 +88,12 @@ describe("keywords", () => {
 test("triggered onPlay ability resolves a targeted effect", () => {
   const state = emptyState();
   const rng = new Rng(3);
-  const target = putUnit(state, "p2", swarmLarva);
+  // signalDrone, not swarmLarva: a plain damage target with no baseArmor
+  // (see cards/types.ts's UnitCard.baseArmor, added 2026-09-20 Phase 2 item
+  // 5) — this test is about the targeted-damage mechanism, not about
+  // Swarm Larva's own new mitigation, which would otherwise eat into the
+  // exact damage amount asserted below.
+  const target = putUnit(state, "p2", signalDrone);
   state.players.p1.hand.push(diagnosticPulse);
   state.players.p1.energy = 1;
   state.players.p1.maxEnergy = 1;
@@ -103,9 +108,12 @@ test("triggered onPlay ability resolves a targeted effect", () => {
 test("AOE effect hits every legal target, not just one", () => {
   const state = emptyState();
   const rng = new Rng(4);
-  const enemyA = putUnit(state, "p2", swarmLarva);
-  const enemyB = putUnit(state, "p2", swarmLarva);
-  const ally = putUnit(state, "p1", swarmLarva);
+  // signalDrone, not swarmLarva — same reasoning as the targeted-damage test
+  // above: this test is about AOE reaching every target, not about Swarm
+  // Larva's baseArmor.
+  const enemyA = putUnit(state, "p2", signalDrone);
+  const enemyB = putUnit(state, "p2", signalDrone);
+  const ally = putUnit(state, "p1", signalDrone);
   state.players.p1.hand.push(cascadePurge);
   state.players.p1.energy = 4;
   state.players.p1.maxEnergy = 4;

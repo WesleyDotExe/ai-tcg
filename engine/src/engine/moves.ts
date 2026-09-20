@@ -1,7 +1,7 @@
 import type { Ability, Speed } from "../cards/types.js";
-import type { GameState, PlayerId, PlayerState } from "../state/types.js";
+import type { GameState, PlayerId } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
-import { isAlive, hasKeyword, effectiveCardCost } from "../state/queries.js";
+import { isAlive, hasKeyword, effectiveCardCost, boardSlotsUsed } from "../state/queries.js";
 import { enumerateTargets, type TargetRef } from "../effects/targeting.js";
 import { evaluateCondition } from "../effects/conditions.js";
 import { BOARD_SLOTS } from "../state/init.js";
@@ -59,14 +59,6 @@ export function getLegalMoves(state: GameState): Move[] {
   pushActivatedAbilityMoves(state, actor, moves, sorceryTiming);
 
   return moves;
-}
-
-/** Board-development system: Units (new, non-evolving ones) and Directives
- * are the two card types that claim a fresh board slot — they share one
- * finite per-player pool (see BOARD_SLOTS). Evolving a Unit and attaching
- * a Tool both act on an *existing* occupant, so neither counts here. */
-function boardSlotsUsed(player: PlayerState): number {
-  return player.board.length + player.directives.length;
 }
 
 function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorceryTiming: boolean): void {

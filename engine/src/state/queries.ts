@@ -1,4 +1,4 @@
-import type { GameState, PlayerId, UnitInstance, DirectiveInstance } from "./types.js";
+import type { GameState, PlayerId, PlayerState, UnitInstance, DirectiveInstance } from "./types.js";
 import { otherPlayer } from "./types.js";
 import type { Ability, Card, Keyword } from "../cards/types.js";
 import { staticModifiersFor } from "../effects/statics.js";
@@ -17,6 +17,16 @@ export function allUnits(state: GameState): UnitInstance[] {
 
 export function allDirectives(state: GameState): DirectiveInstance[] {
   return [...state.players.p1.directives, ...state.players.p2.directives];
+}
+
+/** Board-development system: Units and Directives share one finite per-player
+ * pool of face-up board slots (see state/init.ts's BOARD_SLOTS) — both are
+ * "meaningful board commitments" per the design directive that introduced
+ * this. Shared by moves.ts's legal-move gating (a hand card can't be played
+ * with no free slot) and effects/resolver.ts's summonTokens (a summon effect
+ * is bound by the same cap a normal play would be, not an exception to it). */
+export function boardSlotsUsed(player: PlayerState): number {
+  return player.board.length + player.directives.length;
 }
 
 export function findDirective(state: GameState, instanceId: string): { directive: DirectiveInstance; owner: PlayerId } | undefined {

@@ -289,6 +289,19 @@ export class LookaheadAgent implements Agent {
         return effect.count * CARD_ADVANTAGE_WEIGHT;
       case "gainEnergy":
         return effect.amount * ENERGY_WEIGHT * 1.5;
+      case "summon":
+        // Flat, like drawCard/gainEnergy above — a summon always benefits
+        // its own controller and has no TargetSpec to resolve (see
+        // cards/types.ts's doc comment on why), so there's no `targets`
+        // list to dispatch against in the first place. Valued the same way
+        // a freshly-played unit's own body is valued in scorePlayCard
+        // (attack + health, no extra weight) times how many the effect
+        // creates — a named approximation that doesn't discount for the
+        // board-slot cap a full board would impose (see
+        // effects/resolver.ts's summonTokens), the same category of
+        // unmeasured simplification as this file's other heuristic
+        // constants (see quality-debt.md).
+        return effect.count * (effect.token.attack + effect.token.health);
       case "conditional": {
         // A full condition check (evaluateCondition) reads GameState-only
         // facts an agent's redacted PlayerView doesn't carry (e.g. exact

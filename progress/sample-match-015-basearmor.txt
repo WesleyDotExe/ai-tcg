@@ -1,0 +1,399 @@
+AI-TCG base-armor evidence (2026-09-20 owner feedback, Phase 2 item 5) — demonstrating seed 1, Cortex vs Aegis
+Lookahead-Cortex Deck (p1) vs Lookahead-Aegis Deck (p2)
+Deck sizes: p1=40, p2=39
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Perimeter Turret
+--- Turn 2 (p2) ---
+p2 plays Aegis Cadet (u1)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Mainframe Core
+--- Turn 3 (p1) ---
+p1 plays Retaliation Node (u2)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Diagnostic Ward
+--- Turn 4 (p2) ---
+p2 plays Failover Custodian (u3)
+Aegis Cadet attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex Deck
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Interrupt Handler
+--- Turn 5 (p1) ---
+p1 plays Fail-safe Unit (u5)
+Retaliation Node attacks Lookahead-Aegis Deck (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Aegis Deck
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Aegis Warden
+--- Turn 6 (p2) ---
+Failover Custodian attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Cortex Deck
+Aegis Cadet attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex Deck
+p2 plays Perimeter Turret (u9)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Fail-safe Unit
+--- Turn 7 (p1) ---
+Fail-safe Unit attacks Lookahead-Aegis Deck (face)
+p1 casts Interrupt Handler [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Aegis Cadet's base armor reduces 2 damage from Interrupt Handler to 1
+  Interrupt Handler deals 1 damage to Aegis Cadet (unit)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Aegis Deck
+p1 plays Cortex Engineer (u12)
+Retaliation Node attacks Aegis Cadet
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Retaliation Node's attack
+  Aegis Cadet's base armor reduces 1 damage from Retaliation Node to 0
+  Aegis Cadet deals 1 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Aegis Cadet's base armor reduces 1 damage from Retaliation Node to 0
+  Retaliation Node deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Retaliation Node deals 1 damage to Perimeter Turret (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Guard Directive Chip
+--- Turn 8 (p2) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Retaliation Node (unit)
+  Retaliation Node (p1) dies
+Perimeter Turret attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Lookahead-Cortex Deck
+  Guard Directive Chip attaches to Aegis Cadet
+Aegis Cadet attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 2 damage to Lookahead-Cortex Deck
+Failover Custodian attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Cortex Deck
+p2 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+  Diagnostic Ward restores 2 health to Lookahead-Aegis Deck
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Cortex Engineer
+--- Turn 9 (p1) ---
+p1 plays Fail-safe Unit (u18)
+p1 plays Cortex Engineer (u19)
+Cortex Engineer attacks Aegis Cadet
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Aegis Cadet's base armor reduces 1 damage from Cortex Engineer to 0
+  Aegis Cadet deals 2 damage to Cortex Engineer (unit)
+Fail-safe Unit attacks Aegis Cadet
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Aegis Cadet's base armor reduces 2 damage from Fail-safe Unit to 1
+  Fail-safe Unit deals 1 damage to Aegis Cadet (unit)
+  Aegis Cadet deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p1) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Latent Ward
+--- Turn 10 (p2) ---
+Perimeter Turret attacks Fail-safe Unit
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit deals 2 damage to Perimeter Turret (unit)
+  Fail-safe Unit (p1) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Interrupt Handler
+Failover Custodian attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Cortex Deck
+Aegis Cadet attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 2 damage to Lookahead-Cortex Deck
+p2 plays Latent Ward (u26)
+  Latent Ward deploys, dormant — arms in 2 of its controller's turn(s)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Force Quit
+--- Turn 11 (p1) ---
+p1 plays Watchtower Relay (u27)
+p1 casts Interrupt Handler [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 2 health to Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Perimeter Turret (unit)
+  Perimeter Turret (p2) dies
+Cortex Engineer attacks Aegis Cadet
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Aegis Cadet's base armor reduces 1 damage from Cortex Engineer to 0
+  Aegis Cadet deals 2 damage to Cortex Engineer (unit)
+Cortex Engineer attacks Aegis Cadet
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Aegis Cadet's base armor reduces 1 damage from Cortex Engineer to 0
+  Aegis Cadet deals 2 damage to Cortex Engineer (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Feedback Plating
+--- Turn 12 (p2) ---
+p2 plays Feedback Plating (u32)
+Failover Custodian attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Cortex Deck
+Aegis Cadet attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 2 damage to Lookahead-Cortex Deck
+p2 plays Static Ward Beacon (d35)
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Compiled Daemon
+--- Turn 13 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p1 casts Force Quit [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 2 health to Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 2 health to Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Force Quit
+  ability: Force Quit — force-quit-cast (onPlay)
+  Force Quit destroys Static Ward Beacon (p2)
+Watchtower Relay attacks Aegis Cadet
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Aegis Cadet's base armor reduces 2 damage from Watchtower Relay to 1
+  Watchtower Relay deals 1 damage to Aegis Cadet (unit)
+  Aegis Cadet deals 2 damage to Watchtower Relay (unit)
+  Aegis Cadet (p2) dies
+Cortex Engineer attacks Lookahead-Aegis Deck (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Aegis Deck
+Cortex Engineer attacks Lookahead-Aegis Deck (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Aegis Deck
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Tariff Field
+--- Turn 14 (p2) ---
+  Latent Ward arms
+  ability: Latent Ward — latent-ward-arm (onPlay)
+  Latent Ward applies Barrier to Failover Custodian
+  Latent Ward applies Barrier to Latent Ward
+  Latent Ward applies Barrier to Feedback Plating
+Latent Ward attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Lookahead-Cortex Deck
+Failover Custodian attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Cortex Deck
+Feedback Plating attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Feedback Plating's attack
+  Feedback Plating deals 1 damage to Lookahead-Cortex Deck
+p2 plays Tariff Field (d48)
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Signal Drone
+--- Turn 15 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Lookahead-Aegis Deck (face)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Aegis Deck
+Cortex Engineer attacks Lookahead-Aegis Deck (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Aegis Deck
+Cortex Engineer attacks Lookahead-Aegis Deck (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Aegis Deck
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Failover Custodian
+--- Turn 16 (p2) ---
+p2 plays Failover Custodian (u60)
+Feedback Plating attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Feedback Plating's attack
+  Feedback Plating deals 1 damage to Lookahead-Cortex Deck
+Latent Ward attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Lookahead-Cortex Deck
+Failover Custodian attacks Lookahead-Cortex Deck (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Cortex Deck
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+--- Summary ---
+Winner: p2
+Turns played: 16
+Moves applied: 192
+Base-armor reduction(s) this match: 8
+  - Aegis Cadet reduced 2 damage from Interrupt Handler to 1
+  - Aegis Cadet reduced 1 damage from Retaliation Node to 0
+  - Aegis Cadet reduced 1 damage from Retaliation Node to 0
+  - Aegis Cadet reduced 1 damage from Cortex Engineer to 0
+  - Aegis Cadet reduced 2 damage from Fail-safe Unit to 1
+  - Aegis Cadet reduced 1 damage from Cortex Engineer to 0
+  - Aegis Cadet reduced 1 damage from Cortex Engineer to 0
+  - Aegis Cadet reduced 2 damage from Watchtower Relay to 1

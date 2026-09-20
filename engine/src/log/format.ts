@@ -56,6 +56,12 @@ export function formatEvent(event: GameEvent): string {
       return `  ${event.source} redirects ${event.attacker}'s attack from ${event.from} to ${event.to}`;
     case "directiveDestroyed":
       return `  ${event.source} destroys ${event.directive} (${event.controller})`;
+    case "summon":
+      return `  ${event.source} summons ${event.token} for ${event.player} (${event.instanceId})`;
+    case "summonFizzle":
+      return `  ${event.source} finds no room to summon another ${event.token} for ${event.player} — the board is full`;
+    case "baseArmorReduced":
+      return `  ${event.unit}'s base armor reduces ${event.rawAmount} damage from ${event.source} to ${event.reducedTo}`;
     case "gameOver":
       return `=== GAME OVER: ${event.winner === "draw" ? "draw" : `${event.winner} wins`} (${event.reason}) ===`;
   }

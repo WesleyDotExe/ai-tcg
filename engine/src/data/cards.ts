@@ -344,6 +344,9 @@ export const initDaemon: UnitCard = {
   attack: 1,
   health: 2,
   keywords: [],
+  // Phase 2 item 5 (2026-09-20 owner-feedback entry) — see
+  // cards/types.ts's UnitCard.baseArmor: a base for compiledDaemon below.
+  baseArmor: 1,
   art: "placeholder:cortex/init-daemon",
   flavor: "Runs once, quietly, waiting for something worth compiling into.",
   abilities: [],
@@ -488,6 +491,12 @@ export const swarmLarva: UnitCard = {
   attack: 1,
   health: 1,
   keywords: [],
+  // Phase 2 item 5 (2026-09-20 owner-feedback entry) — see
+  // cards/types.ts's UnitCard.baseArmor: a base for moltedStalker below.
+  // The Brood Reserves *token* below (Phase 2 item 4) is a separate card
+  // object with its own id and no baseArmor — this field belongs to the
+  // real, deck-drawn SW-001 only.
+  baseArmor: 1,
   art: "placeholder:swarm/swarm-larva",
   flavor: "One of ten thousand. Ten thousand more where it came from.",
   abilities: [],
@@ -777,6 +786,53 @@ export const boreSwarm: CommandCard = {
   ],
 };
 
+// --- Rebuild after board-wide damage (2026-09-20 owner-feedback entry,
+// Phase 2 item 4: "Add a 'summon' (token) effect kind so wide decks can
+// rebuild after board-wide damage" — the entry names Swarm specifically as
+// the faction with no way to recover after a sweep, e.g. its own Spore
+// Cluster/Cortex's AOE cards clearing its board). Brood Reserves is the
+// first card in the pool to use the new engine mechanism: it doesn't touch
+// anything already on the board, it just puts fresh bodies down, which is
+// exactly the "wide decks rebuild wide" identity a token effect is for. The
+// summoned token reuses Swarm Larva's exact name/stats/flavor rather than
+// inventing a new throwaway identity — "One of ten thousand. Ten thousand
+// more where it came from" was already true before this card existed; this
+// just makes it mechanically literal.
+
+export const broodReserves: CommandCard = {
+  id: "SW-014",
+  name: "Brood Reserves",
+  faction: "Swarm",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Command",
+  speed: "Sorcery",
+  art: "placeholder:swarm/brood-reserves",
+  flavor: "The mass doesn't grieve. It replaces.",
+  abilities: [
+    {
+      id: "brood-reserves-cast",
+      trigger: "onPlay",
+      text: "Summon two 1/1 Swarm Larvae.",
+      effects: [
+        {
+          kind: "summon",
+          count: 2,
+          token: {
+            name: "Swarm Larva",
+            faction: "Swarm",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:swarm/swarm-larva",
+            flavor: "One of ten thousand. Ten thousand more where it came from.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
 export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: swarmLarva, copies: 3 },
   { card: broodcaller, copies: 3 },
@@ -791,4 +847,5 @@ export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   { card: moltedStalker, copies: 2 },
   { card: chitinPlating, copies: 3 },
   { card: boreSwarm, copies: 2 },
+  { card: broodReserves, copies: 3 },
 ];

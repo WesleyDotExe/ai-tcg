@@ -23,7 +23,7 @@ import {
   glitchSeed,
   nullSingularity,
 } from "../src/data/nullCards.js";
-import { swarmLarva } from "../src/data/cards.js";
+import { swarmLarva, signalDrone } from "../src/data/cards.js";
 import { barrierDrone, aegisWarden, aegisCadet } from "../src/data/aegisCards.js";
 import { emptyState, putUnit } from "./helpers.js";
 
@@ -213,8 +213,12 @@ test("Deprecated Routine (Null) no-ops harmlessly if its chosen target is gone b
 test("Fork Bomb (Null) telegraph arms and deals AOE damage to every enemy unit, not just one", () => {
   const state = emptyState();
   const rng = new Rng(33);
-  const victimA = putUnit(state, "p2", swarmLarva); // 1 health
-  const victimB = putUnit(state, "p2", swarmLarva); // 1 health
+  // signalDrone, not swarmLarva: a plain 1-health damage target with no
+  // baseArmor (see cards/types.ts's UnitCard.baseArmor, 2026-09-20 Phase 2
+  // item 5) — this test is about Fork Bomb's AOE reaching every unit, not
+  // Swarm Larva's own new mitigation, which would otherwise blunt the hit.
+  const victimA = putUnit(state, "p2", signalDrone); // 1 health
+  const victimB = putUnit(state, "p2", signalDrone); // 1 health
   state.players.p1.hand.push(forkBomb); // cost 2, telegraph 1
   state.players.p1.energy = 2;
   state.players.p1.maxEnergy = 2;
