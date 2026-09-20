@@ -432,6 +432,39 @@ export const feedbackPlating: UnitCard = {
   ],
 };
 
+// --- Directive removal (2026-09-20 owner-feedback entry, Phase 2 item 3:
+// "Directives must be removable ... give every faction one answer") --------
+//
+// This does NOT reopen the 2026-09-19 "Aegis gets defensive answers, not
+// removal" direction: that entry is about Aegis having no way to interact
+// with the opponent's UNITS, and its identity stays "outlast them," never
+// "delete their board." A Directive is not a unit — it's a standing aura
+// with no health or combat presence of its own — so dismantling one reads
+// as clearing an obstacle to survive by, not stacking removal onto Aegis's
+// kit. Every faction needs this specific answer per the entry above; Aegis's
+// take on it is a controlled demolition, not a strike.
+
+export const breachCharge: CommandCard = {
+  id: "AG-018",
+  name: "Breach Charge",
+  faction: "Aegis",
+  rarity: "Uncommon",
+  cost: 2,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:aegis/breach-charge",
+  flavor: "Not aimed at anything that bleeds. Just the wall it's bolted to.",
+  abilities: [
+    {
+      id: "breach-charge-cast",
+      trigger: "onPlay",
+      text: "Destroy target enemy directive. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "directive" } },
+      effects: [{ kind: "destroy" }],
+    },
+  ],
+};
+
 export const AEGIS_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: aegisCadet, copies: 3 },
   { card: barrierDrone, copies: 3 },
@@ -450,4 +483,5 @@ export const AEGIS_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   { card: interceptRoutine, copies: 1 },
   { card: tariffField, copies: 1 },
   { card: feedbackPlating, copies: 1 },
+  { card: breachCharge, copies: 2 },
 ];

@@ -120,6 +120,7 @@ export type GameEvent =
   | { type: "evolve"; player: PlayerId; from: string; to: string }
   | { type: "toolAttached"; player: PlayerId; tool: string; unit: string }
   | { type: "attackRedirected"; source: string; attacker: string; from: string; to: string }
+  | { type: "directiveDestroyed"; directive: string; controller: PlayerId; source: string }
   | { type: "gameOver"; winner: PlayerId | "draw"; reason: string };
 
 export interface GameState {

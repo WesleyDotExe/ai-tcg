@@ -1,7 +1,7 @@
 import type { Agent, PlayerView } from "./agent.js";
 import type { Move } from "../engine/moves.js";
 import type { TargetRef } from "../effects/targeting.js";
-import type { PlayerId, StackItem, UnitInstance } from "../state/types.js";
+import type { DirectiveInstance, PlayerId, StackItem, UnitInstance } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
 import type { Ability, EffectSpec, ScalingContext, ScalingSource, StaticEffectSpec, TargetFilter, TargetSpec } from "../cards/types.js";
 import { resolveAmount } from "../cards/types.js";
@@ -245,9 +245,9 @@ export class LookaheadAgent implements Agent {
     const refs: TargetRef[] = [];
     const includeMine = filter.side !== "opponent";
     const includeTheirs = filter.side !== "controller";
-    const sides: { units: UnitInstance[]; playerId: PlayerId }[] = [];
-    if (includeMine) sides.push({ units: view.me.board, playerId: view.self });
-    if (includeTheirs) sides.push({ units: view.opponent.board, playerId: otherPlayer(view.self) });
+    const sides: { units: UnitInstance[]; directives: DirectiveInstance[]; playerId: PlayerId }[] = [];
+    if (includeMine) sides.push({ units: view.me.board, directives: view.me.directives, playerId: view.self });
+    if (includeTheirs) sides.push({ units: view.opponent.board, directives: view.opponent.directives, playerId: otherPlayer(view.self) });
 
     for (const side of sides) {
       if (filter.kind === "unit" || filter.kind === "any") {
@@ -262,6 +262,9 @@ export class LookaheadAgent implements Agent {
       }
       if (filter.kind === "player" || filter.kind === "any") {
         refs.push({ kind: "player", playerId: side.playerId });
+      }
+      if (filter.kind === "directive") {
+        for (const directive of side.directives) refs.push({ kind: "directive", instanceId: directive.instanceId });
       }
     }
     return refs;
@@ -348,11 +351,25 @@ export class LookaheadAgent implements Agent {
         return (found.mine ? magnitude : -magnitude) * durationScale;
       }
       case "destroy": {
-        if (target.kind !== "unit") return 0;
-        const found = this.findUnit(view, target.instanceId);
-        if (!found.unit) return 0;
-        const value = unitValue(found.unit);
-        return found.mine ? -value : value;
+        if (target.kind === "unit") {
+          const found = this.findUnit(view, target.instanceId);
+          if (!found.unit) return 0;
+          const value = unitValue(found.unit);
+          return found.mine ? -value : value;
+        }
+        if (target.kind === "directive") {
+          // A Directive has no attack/health for unitValue's shape to read
+          // — its only visible signal in a PlayerView is its own cost, the
+          // same proxy the rest of this file already leans on elsewhere
+          // (e.g. this class's own -card.cost * ENERGY_WEIGHT play cost).
+          // Named, not silent: an ongoing aura's real value depends on how
+          // long it has left to matter, which a one-shot estimate can't see.
+          const found = this.findDirective(view, target.instanceId);
+          if (!found.directive) return 0;
+          const value = found.directive.card.cost * 2;
+          return found.mine ? -value : value;
+        }
+        return 0;
       }
       case "applyStatus": {
         if (target.kind !== "unit") return 0;
@@ -409,6 +426,14 @@ export class LookaheadAgent implements Agent {
     if (mine) return { unit: mine, mine: true };
     const theirs = view.opponent.board.find((u) => u.instanceId === instanceId);
     if (theirs) return { unit: theirs, mine: false };
+    return { mine: false };
+  }
+
+  private findDirective(view: PlayerView, instanceId: string): { directive?: DirectiveInstance; mine: boolean } {
+    const mine = view.me.directives.find((d) => d.instanceId === instanceId);
+    if (mine) return { directive: mine, mine: true };
+    const theirs = view.opponent.directives.find((d) => d.instanceId === instanceId);
+    if (theirs) return { directive: theirs, mine: false };
     return { mine: false };
   }
 

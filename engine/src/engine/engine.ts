@@ -228,11 +228,17 @@ function declareAttack(state: GameState, pid: PlayerId, attackerInstanceId: stri
     });
   }
 
+  // An attack's target is always a unit or a player — getLegalMoves never
+  // offers a Directive as an attack target (a Directive has no combat
+  // presence) — so this narrows safely even though TargetRef now has a
+  // third "directive" variant (2026-09-20 owner-feedback entry, Phase 2
+  // item 3).
   const defenderName =
     target.kind === "player"
       ? state.players[target.playerId].name
       : (state.players[otherPlayer(pid)].board.find((u) => u.instanceId === target.instanceId)?.card.name ?? target.instanceId);
-  state.log.push({ type: "attack", attacker: attacker.card.name, defender: defenderName, defenderKind: target.kind });
+  const defenderKind: "unit" | "player" = target.kind === "player" ? "player" : "unit";
+  state.log.push({ type: "attack", attacker: attacker.card.name, defender: defenderName, defenderKind });
 
   const stackInstanceId = `k${state.nextInstanceId++}`;
   state.stack.push({

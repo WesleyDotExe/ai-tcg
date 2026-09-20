@@ -6,7 +6,11 @@ import { currentMaxHealth } from "../state/queries.js";
 
 export type TargetRef =
   | { kind: "unit"; instanceId: string }
-  | { kind: "player"; playerId: PlayerId };
+  | { kind: "player"; playerId: PlayerId }
+  /** A board Directive (see DirectiveInstance) — a non-unit permanent, the
+   * target of a "destroy target directive"-style effect (2026-09-20
+   * owner-feedback entry, Phase 2 item 3). */
+  | { kind: "directive"; instanceId: string };
 
 export function sideToPlayerId(side: Exclude<Side, "any">, controller: PlayerId): PlayerId {
   return side === "controller" ? controller : otherPlayer(controller);
@@ -38,6 +42,11 @@ export function enumerateTargets(filter: TargetFilter, controller: PlayerId, sta
     }
     if (filter.kind === "player" || filter.kind === "any") {
       refs.push({ kind: "player", playerId: pid });
+    }
+    if (filter.kind === "directive") {
+      for (const directive of state.players[pid].directives) {
+        refs.push({ kind: "directive", instanceId: directive.instanceId });
+      }
     }
   }
   return refs;

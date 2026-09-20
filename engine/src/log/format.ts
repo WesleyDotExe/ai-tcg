@@ -54,6 +54,8 @@ export function formatEvent(event: GameEvent): string {
       return `  ${event.tool} attaches to ${event.unit}`;
     case "attackRedirected":
       return `  ${event.source} redirects ${event.attacker}'s attack from ${event.from} to ${event.to}`;
+    case "directiveDestroyed":
+      return `  ${event.source} destroys ${event.directive} (${event.controller})`;
     case "gameOver":
       return `=== GAME OVER: ${event.winner === "draw" ? "draw" : `${event.winner} wins`} (${event.reason}) ===`;
   }
