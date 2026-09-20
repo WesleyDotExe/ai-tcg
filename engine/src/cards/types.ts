@@ -96,8 +96,12 @@ export type Condition =
 
 export interface TargetFilter {
   side: Side;
-  /** "unit" = board units only, "player" = players only, "any" = either. */
-  kind: "unit" | "player" | "any";
+  /** "unit" = board units only, "player" = players only, "directive" = board
+   * Directives only (see DirectiveInstance — a non-unit permanent), "any" =
+   * unit or player (directives were never part of "any"'s meaning and stay
+   * out of it now — a card written before "directive" existed must keep
+   * seeing exactly what it always saw). */
+  kind: "unit" | "player" | "directive" | "any";
   /** Only matches units whose total (derived) max health — base stat plus
    * tools and permanent buffs, but NOT reduced by damage already taken;
    * see state/queries.ts's currentMaxHealth — is at most this value.
@@ -127,6 +131,12 @@ export type EffectSpec =
   | { kind: "buff"; attack: number; health: number; duration: "permanent" | "turn" }
   | { kind: "drawCard"; count: number }
   | { kind: "gainEnergy"; amount: number }
+  /** Unconditional removal, ignoring stats entirely. Works on a unit (see
+   * Null's Kernel Panic) or, since the 2026-09-20 owner-feedback entry
+   * ("Directives must be removable"), a Directive (see targeting.ts's
+   * TargetRef and effects/resolver.ts's applyDestroy) — the same effect
+   * kind, dispatched on the resolved target's own kind, not two separate
+   * mechanics. */
   | { kind: "destroy" }
   | { kind: "applyStatus"; status: StatusKind; duration: number | "untilConsumed"; amount?: number }
   | { kind: "conditional"; condition: Condition; then: EffectSpec[]; else?: EffectSpec[] }

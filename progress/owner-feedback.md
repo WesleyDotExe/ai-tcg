@@ -323,7 +323,7 @@ any further Aegis-vs-Null work.
 
 ---
 
-## 2026-09-20 — Owner: balance is a systems problem; fix the loop, then expand the pool (supersedes further card-by-card tuning) (PARTIALLY HANDLED — Phase 1 done 2026-09-20, session 12; Phases 2-6 still open)
+## 2026-09-20 — Owner: balance is a systems problem; fix the loop, then expand the pool (supersedes further card-by-card tuning) (PARTIALLY HANDLED — Phase 1 done session 12; Phase 2 item 3 done session 13; items 4-5 and Phases 3-6 still open)
 
 Stop tuning individual cards for balance. Three factions were built as mechanic test pools and Null was built as a tuned deck; the gap is structural (removal density predicts the standings almost exactly; permanent -1/-0 auras switch off the two 1-attack factions with no answer possible; Aegis has no clock or card flow; Swarm has no way to rebuild after board-wide damage). Work in this order. Each item is done when it's built, tested and measured, not before.
 
@@ -403,6 +403,79 @@ expansion), and 6 (economy tie-in). This entry stays PARTIALLY HANDLED —
 do not treat Phase 1's completion as license to skip ahead to Phase 3+; the
 next session should pick up Phase 2 in order, per this entry's own
 instruction.
+
+---
+
+**Handled, session 13 (2026-09-20) — Phase 2 item 3 only, in order.**
+
+**"Directives must be removable" — a real, generic engine mechanism, not a
+one-off card hack.** `cards/types.ts`'s `TargetFilter.kind` gained a
+`"directive"` option (alongside `"unit"`/`"player"`/`"any"`, which
+deliberately does NOT include directives — a card written before this
+existed must keep seeing exactly what it always saw); `effects/targeting.ts`'s
+`TargetRef`/`enumerateTargets` grew a matching `"directive"` variant; the
+existing `"destroy"` effect kind (previously unit-only) now dispatches on the
+resolved target's own kind (`effects/resolver.ts`'s `applyDestroy` ->
+`destroyDirective`, a direct board-to-graveyard removal with its own log
+event, `directiveDestroyed`, since a Directive has no health/death-processing
+model to route through) — one mechanism, not two. `LookaheadAgent` was
+updated in the same pass (`enumerateViewTargets` + `estimateEffect`'s
+`"destroy"` case) so it values a directive-destroy card by the target
+directive's own cost, rather than repeating the exact "silently scores zero
+forever" bug class session 12 found and fixed for `"all"`/`"self"` scopes —
+proven, not assumed: `engine/test/directiveDestroy.test.ts` has a dedicated
+test asserting `LookaheadAgent` actually plays a directive-destroy card
+against a real enemy aura rather than passing.
+
+**One answer per faction, as asked, each a genuinely different flavour take
+on the same mechanic:** Cortex's Force Quit (a killed process), Swarm's Bore
+Swarm (the mass eating through infrastructure), Null's Null Pointer (a
+dereferenced crash), and Aegis's Breach Charge — Aegis's take is explicitly
+NOT a reopening of the 2026-09-19 "defensive answers, not removal" direction
+(see `data/aegisCards.ts`'s own header comment on this card: a Directive
+isn't a unit, so dismantling one doesn't put removal into Aegis's kit against
+the opponent's board). All four are Instant-speed, cost 2, Uncommon, 2
+copies. Cortex's pool was already sitting exactly at the enforced 40-card
+ceiling (named as anticipated debt back in session 6), so 2 copies each of
+Diagnostic Pulse and Diagnostic Loop were trimmed to make room — a "make
+room" cut, not a nerf, chosen from the pool's least distinctive filler,
+named honestly in `data/cards.ts`'s own comment rather than silently done.
+
+**Proven working, not just wired up:** `engine/test/directiveDestroy.test.ts`
+(8 new tests: real removal + graveyard placement + log event, the "directive"
+filter never offering the controller's own directives, no legal play at all
+with nothing to target, all four factions' cards destroying a directive for
+real, and the two `LookaheadAgent` behaviours above) plus a real, unscripted,
+seed-found match — `progress/sample-match-013-directive-destroy.txt`
+(LookaheadAgent-vs-LookaheadAgent, Cortex vs Aegis, seed 1 — Force Quit
+destroys Static Ward Beacon during real play, not a staged scenario).
+Re-measured with the full instrument (`progress/balance-report-006-directive-removal.txt`,
+300 seeds/matchup, all three policies): all four new cards show real,
+substantial "played" counts (166-607 games each across policies) — not the
+always-zero pattern that would mean they were silently mis-scored.
+
+**Honest read of what the re-measurement found, not chased further this
+session (per this entry's own order — Phase 2 continues before any of this
+gets tuned):** Cortex-vs-Aegis, triple-flagged going in (72.3%/60.0%/61.3%),
+is no longer triple-flagged (71.0%/56.7%/57.3% — Random and Lookahead both
+dropped below the 60% threshold) — a real, if incidental, improvement,
+plausibly Aegis now being able to destroy Cortex's Mainframe Core aura.
+Cortex-vs-Swarm, previously flagged under 2 of 3 policies (58.0%/72.0%/62.3%,
+Aggressive under threshold), is now newly triple-flagged (60.7%/64.0%/66.0%)
+— a real, if modest, regression on a pairing this session's change wasn't
+aimed at, most plausibly from Cortex's own two-card trim changing its curve
+against Swarm specifically. Aegis-vs-Null is essentially unchanged in kind
+(still clearly double-and-triple-flagged; the three policies moved in mixed
+directions by a few points each, netting out close to where they started) —
+expected, since neither this session's change nor Phase 2 items 4-5 target
+that pairing directly. None of this was tuned further this session, per the
+entry's explicit order (Phase 2 continues in sequence; card-by-card chasing
+is exactly what this entry superseded). Full numbers:
+`progress/balance-report-006-directive-removal.txt`.
+
+**Not attempted this session, left open on purpose:** Phase 2 items 4 (a
+"summon"/token effect kind) and 5 (bases carry a small protection while
+unevolved), and Phases 3-6 entirely. This entry stays PARTIALLY HANDLED.
 
 ---
 

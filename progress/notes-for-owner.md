@@ -1,5 +1,27 @@
 # Notes for the owner
 
+**Updated 2026-09-20, session 13 (Phase 2 item 3 of your "fix the loop"
+plan — directives are now removable).** Nothing blocking. One thing worth a
+glance: re-measuring after giving every faction a directive-destroy answer
+moved two matchups in opposite directions, neither of them the pairing this
+work targeted. Cortex-vs-Aegis is no longer triple-flagged (plausibly Aegis
+can now destroy Cortex's Mainframe Core aura) — good news, not acted on
+further. Cortex-vs-Swarm is newly triple-flagged (60.7%/64.0%/66.0%) — a
+real but modest side effect, most likely from trimming 2 Cortex cards to
+make room for its new answer card under the 40-card cap, not from the
+directive-removal mechanic itself. Per your own 2026-09-20 instruction to
+stop chasing individual numbers and work the phases in order, neither was
+tuned this session — both are just honestly reported here and in
+`progress/balance-report-006-directive-removal.txt`. Aegis-vs-Null (the
+long-standing pairing) is essentially unchanged, as expected since this
+session's work didn't target it. No action needed from you unless you want
+to steer priority between finishing Phase 2 (items 4-5: a summon/token
+effect kind, base protection while unevolved) versus jumping to look at
+Cortex-vs-Swarm specifically — the roadmap default is to keep going in
+phase order.
+
+---
+
 **Updated 2026-09-20, session 12 (Phase 1 of your "fix the loop" plan).**
 Nothing blocking. Two follow-ups to the notes below, both from your own
 2026-09-20 direction, not new asks:

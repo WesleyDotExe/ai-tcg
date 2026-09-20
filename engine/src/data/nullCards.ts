@@ -382,6 +382,30 @@ export const nullSingularity: UnitCard = {
   ],
 };
 
+// --- Directive removal (2026-09-20 owner-feedback entry, Phase 2 item 3:
+// "Directives must be removable ... give every faction one answer") --------
+
+export const nullPointer: CommandCard = {
+  id: "NL-015",
+  name: "Null Pointer",
+  faction: "Null",
+  rarity: "Uncommon",
+  cost: 2,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:null/null-pointer",
+  flavor: "It dereferences whatever's still standing at that address.",
+  abilities: [
+    {
+      id: "null-pointer-cast",
+      trigger: "onPlay",
+      text: "Destroy target enemy directive. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "directive" } },
+      effects: [{ kind: "destroy" }],
+    },
+  ],
+};
+
 export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: glitchSeed, copies: 3 },
   { card: strayFragment, copies: 3 },
@@ -397,4 +421,5 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
   { card: segmentationFault, copies: 2 },
   { card: kernelPanic, copies: 2 },
   { card: nullSingularity, copies: 1 },
+  { card: nullPointer, copies: 2 },
 ];

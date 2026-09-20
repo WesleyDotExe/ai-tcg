@@ -2,7 +2,7 @@ import { resolveAmount } from "../cards/types.js";
 import type { Ability, EffectSpec, StatusKind } from "../cards/types.js";
 import type { GameState, PlayerId } from "../state/types.js";
 import type { Rng } from "../state/rng.js";
-import { findUnit, allUnits, isAlive, currentMaxHealth } from "../state/queries.js";
+import { findUnit, findDirective, allUnits, isAlive, currentMaxHealth } from "../state/queries.js";
 import { evaluateCondition } from "./conditions.js";
 import { resolveTargets, type TargetRef } from "./targeting.js";
 import { buildScalingContext } from "./scaling.js";
@@ -100,7 +100,7 @@ function applyOneEffect(effect: EffectSpec, targets: TargetRef[], ctx: EffectCon
       gainEnergyEffect(ctx, ctx.controller, effect.amount);
       return;
     case "destroy":
-      for (const t of targets) destroyUnit(ctx, t);
+      for (const t of targets) applyDestroy(ctx, t);
       return;
     case "applyStatus":
       for (const t of targets) applyStatusToUnit(ctx, t, effect.status, effect.duration, effect.amount);
@@ -268,13 +268,42 @@ function applyStatusToUnit(
   ctx.state.log.push({ type: "statusApplied", target: found.unit.card.name, status, source: ctx.sourceLabel });
 }
 
-function destroyUnit(ctx: EffectContext, target: TargetRef): void {
-  if (target.kind !== "unit") return;
-  const found = findUnit(ctx.state, target.instanceId);
+/** Unconditional removal, dispatched on the resolved target's own kind — a
+ * unit (the original, pre-2026-09-20 behaviour) or a Directive (the new
+ * "Directives must be removable" engine gap, 2026-09-20 owner-feedback
+ * entry, Phase 2 item 3). A player target never reaches here: no filter
+ * kind that resolves to "destroy" enumerates players. */
+function applyDestroy(ctx: EffectContext, target: TargetRef): void {
+  if (target.kind === "unit") {
+    const found = findUnit(ctx.state, target.instanceId);
+    if (!found) return;
+    // Destroy bypasses Barrier (it isn't damage) and guarantees lethal
+    // regardless of any buffs applied earlier this tick.
+    found.unit.damageTaken = currentMaxHealth(ctx.state, found.unit) + 1;
+  } else if (target.kind === "directive") {
+    destroyDirective(ctx, target.instanceId);
+  }
+}
+
+/** Removes a Directive from its controller's board straight to the
+ * graveyard — Directives have no health/damage model (see DirectiveInstance:
+ * no `damageTaken`, no death-processing pass), so unlike a unit this can't
+ * route through processDeaths; it's a direct, immediate removal, logged with
+ * its own event so a future commentator has something to narrate beyond "a
+ * card was played" (the same gap named for Tariff Field in
+ * progress/quality-debt.md, avoided here from the start). No-ops harmlessly
+ * (same convention as every other effect whose target has already vanished)
+ * if the directive is already gone. */
+function destroyDirective(ctx: EffectContext, instanceId: string): void {
+  const found = findDirective(ctx.state, instanceId);
   if (!found) return;
-  // Destroy bypasses Barrier (it isn't damage) and guarantees lethal
-  // regardless of any buffs applied earlier this tick.
-  found.unit.damageTaken = currentMaxHealth(ctx.state, found.unit) + 1;
+  const { directive, owner } = found;
+  const player = ctx.state.players[owner];
+  const idx = player.directives.findIndex((d) => d.instanceId === instanceId);
+  if (idx === -1) return;
+  player.directives.splice(idx, 1);
+  player.graveyard.push(directive.card);
+  ctx.state.log.push({ type: "directiveDestroyed", directive: directive.card.name, controller: owner, source: ctx.sourceLabel });
 }
 
 function gainEnergyEffect(ctx: EffectContext, playerId: PlayerId, amount: number): void {

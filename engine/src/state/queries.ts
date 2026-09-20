@@ -19,6 +19,14 @@ export function allDirectives(state: GameState): DirectiveInstance[] {
   return [...state.players.p1.directives, ...state.players.p2.directives];
 }
 
+export function findDirective(state: GameState, instanceId: string): { directive: DirectiveInstance; owner: PlayerId } | undefined {
+  for (const pid of ["p1", "p2"] as const) {
+    const directive = state.players[pid].directives.find((d) => d.instanceId === instanceId);
+    if (directive) return { directive, owner: pid };
+  }
+  return undefined;
+}
+
 function toolAttackBonus(unit: UnitInstance): number {
   return unit.tools.reduce((sum, t) => sum + t.attackBonus, 0);
 }

@@ -412,11 +412,53 @@ export const overclockShunt: ToolCard = {
   abilities: [],
 };
 
+// --- Directive removal (2026-09-20 owner-feedback entry, Phase 2 item 3:
+// "Directives must be removable ... give every faction one answer") --------
+//
+// Every faction gets exactly one card that can destroy an enemy Directive —
+// a new generic TargetFilter.kind ("directive") and the "destroy" effect now
+// dispatching on the resolved target's own kind (effects/resolver.ts's
+// applyDestroy), not a card-specific mechanism. Cortex's identity (networked
+// intelligence, process control) reads naturally as "kill the other side's
+// running process."
+
+export const forceQuit: CommandCard = {
+  id: "CX-019",
+  name: "Force Quit",
+  faction: "Cortex",
+  rarity: "Uncommon",
+  cost: 2,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:cortex/force-quit",
+  flavor: "SIGKILL doesn't ask the process to finish what it was doing.",
+  abilities: [
+    {
+      id: "force-quit-cast",
+      trigger: "onPlay",
+      text: "Destroy target enemy directive. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "directive" } },
+      effects: [{ kind: "destroy" }],
+    },
+  ],
+};
+
 export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: signalDrone, copies: 3 },
   { card: firewallSentinel, copies: 3 },
   { card: recursiveConstruct, copies: 2 },
-  { card: diagnosticPulse, copies: 3 },
+  // Trimmed by 1 each (3->2, 2->1) to make room for Force Quit below without
+  // exceeding the enforced 40-card ceiling (decks.ts's MAX_DECK_SIZE) — this
+  // pool has sat exactly at that ceiling since session 6 (see
+  // progress/quality-debt.md's "Cortex's deck is now exactly at the enforced
+  // 40-card ceiling" entry, which named this exact tradeoff as the next
+  // session's option). Diagnostic Pulse and Diagnostic Loop were picked
+  // because they're the pool's least distinctive removal/filler pieces, not
+  // because of any measured weakness — an ordinary "make room" cut, not a
+  // balance nerf, and it also nudges Cortex's removal density down, which
+  // happens to point the same direction Phase 3's future removal-density
+  // lint rule will want anyway.
+  { card: diagnosticPulse, copies: 2 },
   { card: cascadePurge, copies: 2 },
   { card: backupProtocol, copies: 2 },
   { card: mainframeCore, copies: 2 },
@@ -424,13 +466,14 @@ export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard | Tool
   { card: cortexEngineer, copies: 3 },
   { card: watchtowerRelay, copies: 2 },
   { card: overloadCapacitor, copies: 1 },
-  { card: diagnosticLoop, copies: 2 },
+  { card: diagnosticLoop, copies: 1 },
   { card: retaliationNode, copies: 1 },
   { card: interruptHandler, copies: 3 },
   { card: initDaemon, copies: 2 },
   { card: compiledDaemon, copies: 2 },
   { card: dormantExploit, copies: 2 },
   { card: overclockShunt, copies: 2 },
+  { card: forceQuit, copies: 2 },
 ];
 
 // --- Swarm faction ---------------------------------------------------------
@@ -709,6 +752,31 @@ export const chitinPlating: ToolCard = {
   abilities: [],
 };
 
+// --- Directive removal (same 2026-09-20 entry as Cortex's Force Quit,
+// above) — Swarm's answer reads as the mass simply chewing through
+// standing infrastructure rather than a single precise strike. -------------
+
+export const boreSwarm: CommandCard = {
+  id: "SW-013",
+  name: "Bore Swarm",
+  faction: "Swarm",
+  rarity: "Uncommon",
+  cost: 2,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:swarm/bore-swarm",
+  flavor: "Nothing standing still is anything but slower food.",
+  abilities: [
+    {
+      id: "bore-swarm-cast",
+      trigger: "onPlay",
+      text: "Destroy target enemy directive. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "directive" } },
+      effects: [{ kind: "destroy" }],
+    },
+  ],
+};
+
 export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: swarmLarva, copies: 3 },
   { card: broodcaller, copies: 3 },
@@ -722,4 +790,5 @@ export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   { card: dormantEggSac, copies: 2 },
   { card: moltedStalker, copies: 2 },
   { card: chitinPlating, copies: 3 },
+  { card: boreSwarm, copies: 2 },
 ];

@@ -8,10 +8,65 @@ session 6 (backfilling Cortex/Swarm with board-development cards), session
 7 (first cross-faction balance measurement + a real crash fix), session 8
 (the fourth faction, Null), session 9 (non-engine test coverage), session 10
 (the owner-directed Aegis-vs-Null fix attempt), session 11 (Aegis
-defensive interaction + the chosen-targeting fix), and now session 12
-(Phase 1 of the 2026-09-20 owner-feedback entry — fixing the balance
-instrument). This is not "no debt, all good" — the product is real and the
-evidence is real, but here is where it's thin.
+defensive interaction + the chosen-targeting fix), session 12 (Phase 1 of
+the 2026-09-20 owner-feedback entry — fixing the balance instrument), and
+now session 13 (Phase 2 item 3 of the same entry — directive removal).
+This is not "no debt, all good" — the product is real and the evidence is
+real, but here is where it's thin.
+
+## New debt from session 13
+
+- **Cortex-vs-Swarm is now newly triple-flagged (60.7%/64.0%/66.0%,
+  Cortex-favoured)** — it was flagged under only 2 of 3 policies before
+  this session (58.0%/72.0%/62.3%, Aggressive under the 60% threshold).
+  This session's change wasn't aimed at this pairing at all; the most
+  plausible cause is Cortex's own two-card trim (Diagnostic Pulse 3->2,
+  Diagnostic Loop 2->1, made to fit Force Quit under the 40-card ceiling)
+  shifting its curve specifically against Swarm. Not investigated further
+  or fixed this session — per the owner's own 2026-09-20 instruction, this
+  kind of card-by-card chasing off a single measurement is exactly what
+  that entry superseded; Phase 2 items 4-5 and Phase 3-4 come first. Full
+  numbers: `progress/balance-report-006-directive-removal.txt`.
+- **Cortex-vs-Aegis's improvement (72.3%/60.0%/61.3% -> 71.0%/56.7%/57.3%,
+  no longer triple-flagged) is plausible but not proven causally** — the
+  reasoning ("Aegis can now destroy Cortex's Mainframe Core aura") is
+  consistent with the direction of the change but wasn't isolated (e.g. by
+  measuring with Breach Charge removed from the Aegis deck to confirm the
+  delta comes from it specifically, the way session 7/8 sometimes did for
+  single-card changes). Read as a real, welcome side effect, not a
+  rigorously isolated one.
+- **The four new directive-destroy cards' numbers (cost 2, Uncommon, 2
+  copies, Instant speed, uniform across all four factions) are a first
+  proposal, not playtested or owner-confirmed.** In particular, a flat
+  cost-2 answer is proportionate to typical Directive costs (3 for
+  Cortex/Swarm/Null, 2-3 for Aegis) but wasn't measured against a
+  faction-specific alternative; if a faction's directive density or curve
+  changes later (Phase 5 pool expansion), this number should be revisited
+  rather than assumed still right.
+- **`LookaheadAgent`'s directive-destroy valuation (`card.cost * 2`, no
+  attack/health signal to read since a Directive has neither) is a named,
+  unmeasured approximation** — same category of judgment call as the
+  agent's other heuristic constants (see session 12's entries below), not
+  validated against how much an ongoing aura is actually worth in a real
+  game at the point it gets destroyed (early vs. late, already-paid-off
+  vs. brand new).
+- **Cortex's trim (Diagnostic Pulse, Diagnostic Loop) was picked by
+  judgment ("least distinctive filler"), not by measurement** — no
+  per-card win-rate comparison was run before choosing which two cards to
+  cut; the per-card instrumentation this session's report re-confirms
+  (session 12's own standing feature) could have informed this choice but
+  wasn't consulted for it specifically.
+- **Phase 2 items 4 (a "summon"/token effect kind) and 5 (bases carry a
+  small protection while unevolved) are unstarted**, correctly so per the
+  entry's own explicit order, but restating here so it isn't mistaken for
+  forgotten. Phases 3 (pool-construction lint), 4 (the intended counter
+  triangle), 5 (pool expansion), and 6 (economy tie-in) remain entirely
+  untouched.
+- **`destroyDirective`'s no-op-when-already-gone path (mirroring every
+  other effect's "target vanished before this resolved" convention) has no
+  dedicated test** — plausible today (nothing in the current pool can
+  remove a Directive twice in the same resolution chain), same category of
+  untested-but-reasoned-about edge as several entries below.
 
 ## New debt from session 12
 
