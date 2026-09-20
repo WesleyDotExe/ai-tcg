@@ -1,0 +1,321 @@
+AI-TCG summon/token evidence (2026-09-20 owner feedback, Phase 2 item 4) — demonstrating seed 1, Swarm vs Cortex
+Lookahead-Swarm (p1) vs Lookahead-Cortex (p2)
+Deck sizes: p1=35, p2=40
+
+--- Turn 1 (p1) ---
+p1 plays Spore Cluster (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Cortex Engineer
+--- Turn 2 (p2) ---
+p2 plays Init Daemon (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Dormant Egg Sac
+--- Turn 3 (p1) ---
+p1 plays Corrosive Spitter (u3)
+Spore Cluster attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Watchtower Relay
+--- Turn 4 (p2) ---
+p2 plays Cortex Engineer (u5)
+Init Daemon attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Barrier Node
+--- Turn 5 (p1) ---
+  ability: Corrosive Spitter — corrosive-spitter-attack (onAttack)
+  Corrosive Spitter applies Stasis to Init Daemon
+Corrosive Spitter attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrosive Spitter's attack
+  Corrosive Spitter deals 2 damage to Lookahead-Cortex
+p1 casts Brood Reserves [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Brood Reserves
+  ability: Brood Reserves — brood-reserves-cast (onPlay)
+  Brood Reserves summons Swarm Larva for p1 (u9)
+  Brood Reserves summons Swarm Larva for p1 (u10)
+Spore Cluster attacks Init Daemon
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  Init Daemon deals 1 damage to Spore Cluster (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Overclock Shunt
+--- Turn 6 (p2) ---
+p2 plays Watchtower Relay (u12)
+Cortex Engineer attacks Corrosive Spitter
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Corrosive Spitter (unit)
+  Corrosive Spitter deals 2 damage to Cortex Engineer (unit)
+  Corrosive Spitter (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Spore Cluster
+--- Turn 7 (p1) ---
+p1 plays Spore Cluster (u14)
+p1 plays Barrier Node (u15)
+Swarm Larva attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Cortex
+Swarm Larva attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Cortex
+Spore Cluster attacks Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  Cortex Engineer deals 1 damage to Spore Cluster (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Interrupt Handler
+--- Turn 8 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 casts Cascade Purge [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Spore Cluster (unit)
+  Cascade Purge deals 2 damage to Swarm Larva (unit)
+  Cascade Purge deals 2 damage to Swarm Larva (unit)
+  Cascade Purge deals 2 damage to Spore Cluster (unit)
+  Barrier Node's Barrier absorbs the hit from Cascade Purge
+  Spore Cluster (p1) dies
+  Swarm Larva (p1) dies
+  Swarm Larva (p1) dies
+  ability: Spore Cluster — spore-cluster-death (onDeath)
+  Spore Cluster deals 1 damage to Init Daemon (unit)
+  Spore Cluster deals 1 damage to Cortex Engineer (unit)
+  Spore Cluster deals 1 damage to Watchtower Relay (unit)
+  Cortex Engineer (p2) dies
+Watchtower Relay attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Swarm
+Init Daemon attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Chitin Plating
+--- Turn 9 (p1) ---
+  Chitin Plating attaches to Spore Cluster
+p1 plays Barrier Node (u22)
+Barrier Node attacks Init Daemon
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Node's attack
+  Barrier Node deals 1 damage to Init Daemon (unit)
+  Init Daemon deals 1 damage to Barrier Node (unit)
+  Init Daemon (p2) dies
+p1 plays Dormant Egg Sac (u24)
+  Dormant Egg Sac deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Signal Drone
+--- Turn 10 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Lookahead-Swarm (face)
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Barrier Node's Barrier absorbs the hit from Interrupt Handler
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Swarm
+  Overclock Shunt attaches to Watchtower Relay
+  Overclock Shunt attaches to Watchtower Relay
+p2 plays Signal Drone (u27)
+Signal Drone attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Hive Mother
+--- Turn 11 (p1) ---
+  Dormant Egg Sac arms
+  ability: Dormant Egg Sac — dormant-egg-sac-hatch (onPlay)
+  Dormant Egg Sac deals 3 damage to Signal Drone (unit)
+  Signal Drone (p2) dies
+p1 plays Hive Mother (u29)
+Barrier Node attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Node's attack
+  Barrier Node deals 2 damage to Lookahead-Cortex
+Barrier Node attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Node's attack
+  Barrier Node deals 2 damage to Lookahead-Cortex
+Spore Cluster attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  Spore Cluster deals 1 damage to Lookahead-Cortex
+Dormant Egg Sac attacks Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Dormant Egg Sac's attack
+  Dormant Egg Sac deals 1 damage to Watchtower Relay (unit)
+  Watchtower Relay deals 4 damage to Dormant Egg Sac (unit)
+  Dormant Egg Sac (p1) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Cortex Engineer
+--- Turn 12 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 4 damage to Lookahead-Swarm
+p2 plays Cortex Engineer (u35)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Rally Cry
+--- Turn 13 (p1) ---
+Hive Mother attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hive Mother's attack
+  Hive Mother deals 4 damage to Lookahead-Cortex
+Barrier Node attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Node's attack
+  Barrier Node deals 2 damage to Lookahead-Cortex
+Barrier Node attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Node's attack
+  Barrier Node deals 2 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Signal Drone
+--- Turn 14 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Lookahead-Swarm (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 4 damage to Lookahead-Swarm
+Cortex Engineer attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Spore Cluster
+--- Turn 15 (p1) ---
+Hive Mother attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hive Mother's attack
+  Hive Mother deals 4 damage to Lookahead-Cortex
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+--- Summary ---
+Winner: p1
+Turns played: 15
+Moves applied: 157
+Token(s) summoned this match: 2
+  - Brood Reserves summoned Swarm Larva (u9) for p1
+  - Brood Reserves summoned Swarm Larva (u10) for p1

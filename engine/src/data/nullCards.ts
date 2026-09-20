@@ -38,6 +38,10 @@ export const glitchSeed: UnitCard = {
   attack: 1,
   health: 2,
   keywords: [],
+  // Phase 2 item 5 (2026-09-20 owner-feedback entry) — see
+  // cards/types.ts's UnitCard.baseArmor and data/aegisCards.ts's matching
+  // note: a base for corruptedProcess below.
+  baseArmor: 1,
   art: "placeholder:null/glitch-seed",
   flavor: "A single flipped bit, and the whole process forgets what it was doing.",
   abilities: [],
@@ -53,6 +57,9 @@ export const corruptedProcess: UnitCard = {
   attack: 2,
   health: 4,
   keywords: [],
+  // Also a base (for kernelPanic below), even though it's Glitch Seed's own
+  // evolved form — same rule as Aegis Sentinel above.
+  baseArmor: 1,
   evolvesFrom: "NL-001",
   art: "placeholder:null/corrupted-process",
   flavor: "It kept running. It just stopped running the program it was given.",

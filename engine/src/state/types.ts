@@ -121,6 +121,9 @@ export type GameEvent =
   | { type: "toolAttached"; player: PlayerId; tool: string; unit: string }
   | { type: "attackRedirected"; source: string; attacker: string; from: string; to: string }
   | { type: "directiveDestroyed"; directive: string; controller: PlayerId; source: string }
+  | { type: "summon"; player: PlayerId; token: string; instanceId: string; source: string }
+  | { type: "summonFizzle"; player: PlayerId; token: string; source: string }
+  | { type: "baseArmorReduced"; unit: string; source: string; rawAmount: number; reducedTo: number }
   | { type: "gameOver"; winner: PlayerId | "draw"; reason: string };
 
 export interface GameState {

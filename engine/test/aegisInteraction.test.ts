@@ -41,8 +41,11 @@ test("Intercept Routine redirects a pending attack away from the player, onto a 
   // Unit-vs-unit combat is mutual (see engine.ts's resolveCombatDamage) —
   // stepping in front of an attack means the interceptor fights back too,
   // an emergent, thematically fitting consequence of redirecting onto a
-  // unit rather than a purpose-built "block" mechanic.
-  expect(attacker.damageTaken, "the attacker should take the guardian's return damage in exchange").toBe(5);
+  // unit rather than a purpose-built "block" mechanic. The attacker here is
+  // an Aegis Sentinel, itself a base (for Aegis Warden) — its own baseArmor
+  // (cards/types.ts's UnitCard.baseArmor, 2026-09-20 Phase 2 item 5) shaves
+  // 1 off Warden's 5-power return hit, landing 4, not 5.
+  expect(attacker.damageTaken, "the attacker should take the guardian's return damage, reduced by its own baseArmor").toBe(4);
 });
 
 test("Intercept Routine no-ops harmlessly (logged, not silent) when there's nothing pending to redirect", () => {

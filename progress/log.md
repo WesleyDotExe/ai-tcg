@@ -1335,3 +1335,92 @@ explicit order — not Aegis-vs-Null or Cortex-vs-Swarm tuning directly.
 
 **Honest gaps:** see `progress/quality-debt.md`'s new session-13 section —
 written before stopping, not as an afterthought.
+
+## 2026-09-20 — Session 14 (Phase 2 items 4-5: summon/token effect kind, base armor)
+
+Read `progress/owner-feedback.md` first. No unhandled entries — the last
+one (2026-09-20, "session 13 question") explicitly says "finish Phase 2
+(summon, base protection), then Phase 3," which matches `current.md`'s own
+concrete-next-step note from session 13. No CRITICAL quality-debt item was
+outstanding. Worked Phase 2 items 4 and 5 of the big 2026-09-20 "balance is
+a systems problem" entry, in order, both to completion.
+
+**Item 4 (summon/token effect kind):** added `EffectSpec`'s `"summon"`
+variant and a self-contained `TokenSpec` (cards/types.ts), implemented in
+`effects/resolver.ts`'s new `summonTokens` — creates real `UnitInstance`s
+bound by the same `BOARD_SLOTS` cap a normal play respects, logging a
+`summonFizzle` for any that don't fit rather than silently dropping them.
+Pulled `boardSlotsUsed` out of `moves.ts` into a shared, exported
+`state/queries.ts` helper so the cap logic isn't duplicated between legal-move
+gating and the new summon path. Gave Swarm its first card using it: Brood
+Reserves (Command, cost 3, Uncommon, 3 copies) summons two 1/1 Swarm Larva
+tokens — directly answering the entry's named motivation ("Swarm has no way
+to rebuild after board-wide damage"). Updated `LookaheadAgent`'s
+`effectValueOverTargets` with a `"summon"` case in the same pass, having
+learned from sessions 12/13's repeated "a new effect/target kind silently
+scores zero forever until the agent is taught about it" bug class — verified
+directly with a dedicated test, not just trusted by inspection.
+
+**Item 5 (base armor while unevolved):** added `UnitCard.baseArmor?: number`
+— a flat, per-card damage reduction read straight off `unit.card` inside
+`effects/resolver.ts`'s `applyDamage` (the single choke point for both
+combat and effect damage, so one mechanism covers both). Because evolving
+mutates the same instance's `card` to the evolved form, which carries no
+`baseArmor` of its own past the tier this protects, the protection ends
+automatically the moment a unit evolves — genuinely "while unevolved," with
+no extra per-instance state needed. Applied a first-proposed value of 1 to
+every current base card in the pool: Aegis Cadet/Sentinel, Null Glitch
+Seed/Corrupted Process, Cortex Init Daemon, Swarm Larva (six cards, one per
+evolution-line tier that is itself a base for something else) — explicitly
+flagged in `current.md`/`quality-debt.md` as a checkpoint proposal per the
+entry's own instruction, not a finalised number.
+
+**A real ripple effect, found and fixed, not glossed over:** giving
+`swarmLarva` and `aegisSentinel` new mechanical behaviour broke 5
+pre-existing tests across 4 files that had incidentally been using those
+cards as generic "cheap 1-health damage target" fixtures, unrelated to
+their own evolution-line mechanics. Root-caused each one (not just patched
+the assertion blindly): three were swapped to `signalDrone` (a plain,
+unarmored 1/1 already imported in most of those files) since the tests were
+genuinely about a different mechanic (telegraph arming, AOE reach, targeted
+damage) and shouldn't have been coupled to Swarm Larva's own new behaviour
+in the first place; one (`aegisInteraction.test.ts`) was a real, correct
+behaviour change (an Aegis Sentinel's own baseArmor reducing the return
+damage it takes in combat) and got its expected value corrected with a
+comment explaining why, not just silently bumped.
+
+**Evidence, run and shown:** `engine/test/summon.test.ts` (5 tests) and
+`engine/test/baseArmor.test.ts` (8 tests) are new; `npm test` across all
+four workspaces is **115/115 passing** (68 engine, up from 55 — the 13 new
+plus zero regressions once the 5 ripple-effect fixes above landed). Real,
+unscripted, seed-found `LookaheadAgent`-vs-`LookaheadAgent` matches were
+generated for both mechanisms (found on the first seed tried, both times):
+`progress/sample-match-014-summon.txt` (Brood Reserves actually summons two
+tokens in real play) and `progress/sample-match-015-basearmor.txt` (Aegis
+Cadet's armor reduces real damage 8 separate times in one match, against
+five different Cortex sources). `npx tsc --noEmit` clean across all four
+packages.
+
+**Measured, not just built:** ran the full `balanceReport.ts` (300
+seeds/matchup, all three policies) after each item separately, so each
+one's own effect on the cross-faction numbers is visible rather than
+conflated — `progress/balance-report-007-summon.txt` and
+`progress/balance-report-008-basearmor.txt`. Honest results: item 4 (summon)
+did not help — Brood Reserves itself measures below average under every
+policy and Cortex-vs-Swarm got measurably worse for Swarm, most plausibly
+because none of the three dummy policies understands "hold this for after a
+wipe" timing (the same category of gap the project has already named for
+reactive/situational cards). Item 5 (base armor) shifted several pairings
+noticeably — most visibly a real policy flip in Cortex-vs-Aegis under
+Random play (Cortex-favoured to Aegis-favoured) — without changing which
+two pairings cross-check-flag (still exactly Cortex-vs-Swarm and
+Aegis-vs-Null, unchanged in kind). Neither result was chased or tuned
+further this session, per the owner's own explicit "Phases 1-4 come before
+any further balance work on these pairings" instruction — full honest
+write-up in `current.md` and `quality-debt.md`'s new session-14 sections.
+
+**What's blocked:** nothing structurally. Phase 2 is now fully complete
+(items 3, 4, 5 all done across sessions 13-14). Phase 3 (a card-pool lint
+enforced at load time) is next, per the entry's own explicit order — not
+Aegis-vs-Null or Cortex-vs-Swarm tuning directly, which wait for Phase 4's
+combined re-measure.

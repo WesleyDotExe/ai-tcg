@@ -146,7 +146,41 @@ export type EffectSpec =
    * Aegis's Intercept Routine (data/aegisCards.ts) for the first user and
    * effects/resolver.ts's redirectTopAttack for the mechanism. No-ops
    * harmlessly if nothing is currently pending to redirect. */
-  | { kind: "redirectAttack" };
+  | { kind: "redirectAttack" }
+  /** Creates `count` fresh token Unit(s) directly on the controller's board
+   * — not drawn from hand or deck, generated on the fly from `token`'s own
+   * stat block (2026-09-20 owner-feedback entry, Phase 2 item 4: "so wide
+   * decks can rebuild after board-wide damage" — this is the rebuild
+   * mechanism the entry names Swarm as lacking). Untargeted, like drawCard/
+   * gainEnergy — a summon always benefits its own controller, never the
+   * opponent, so it needs no TargetSpec. Respects the same shared board-slot
+   * cap (state/init.ts's BOARD_SLOTS) every other Unit/Directive entering
+   * play does: if there isn't room for every token, as many as fit are
+   * created and the rest fizzle (logged, not silently dropped) — see
+   * effects/resolver.ts's summonTokens. A token has no abilities of its own
+   * and never sits in a hand/deck; once on the board it behaves exactly like
+   * any other unit (can be buffed, evolved onto, attached to, killed, and
+   * goes to the graveyard on death). */
+  | { kind: "summon"; token: TokenSpec; count: number };
+
+/** The self-contained stat block for a "summon" effect's token — deliberately
+ * shaped like CardBase's own fields (not a reference to some other card)
+ * because a token has no printed card of its own to point at; the effect
+ * that creates it fully describes what it is. `faction` is written explicitly
+ * per token rather than inferred from the summoning card's controller, since
+ * nothing elsewhere in the engine tracks "which faction is this player
+ * playing" as live state (only the deck's card list does) — the card author
+ * supplies it directly, the same way every other card's own faction is
+ * authored, not derived. */
+export interface TokenSpec {
+  name: string;
+  faction: Faction;
+  attack: number;
+  health: number;
+  keywords: Keyword[];
+  art: string;
+  flavor: string;
+}
 
 export type TriggerKind =
   | "onPlay"
@@ -243,6 +277,31 @@ export interface UnitCard extends CardBase {
    * gives the opponent a real window, visible on the board, to answer it
    * before its impact lands. */
   telegraph?: number;
+  /** Board-development system (2026-09-20 owner-feedback entry, Phase 2
+   * item 5): "bases carry a small protection while unevolved." A base card
+   * — one some *other* card's `evolvesFrom` points at, whether or not this
+   * card is itself also an evolved form of something earlier (e.g. Aegis's
+   * middle tier, Sentinel, is both AG-001's evolution *and* AG-013's own
+   * base) — reduces every incoming point of damage against it by this flat
+   * amount (floor 0; see effects/resolver.ts's applyDamage). This exists
+   * specifically to protect the "answer it early while it's weak" exposure
+   * window the 2026-09-13 checkpoint feedback built same-turn-evolve
+   * restriction around: without it, a 1-2 health base sits fully targetable
+   * for a whole turn boundary with no defence at all, so a throwaway 1-damage
+   * ping (common at low cost across every faction) can snipe it before its
+   * controller ever gets a real choice about evolving it. A *small*
+   * protection, not durability: still not a Barrier-style full absorb (see
+   * StatusKind), so a real removal/burn effect above the threshold still
+   * gets through, just for less. Read directly off `unit.card` — no separate
+   * per-instance state is needed, since evolving mutates the same instance's
+   * `card` to the evolved form (engine.ts's evolveUnit), which has no
+   * `baseArmor` of its own once it's past the tier this protects — the
+   * moment a unit evolves, this protection ends automatically, which is
+   * exactly "while unevolved." A first proposed value (1, applied to every
+   * current base — see data/*.ts), not owner-confirmed; flagged as a
+   * checkpoint decision per the entry's own instruction to propose the
+   * mechanism rather than finalise it unilaterally. */
+  baseArmor?: number;
 }
 
 export interface CommandCard extends CardBase {

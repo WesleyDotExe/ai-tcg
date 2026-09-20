@@ -1,102 +1,142 @@
 # Current status
 
-**Build-order stage: 3 (A real card set) — still current.** Session 13.
+**Build-order stage: 3 (A real card set) — still current.** Session 14.
 
 The 2026-09-20 owner-feedback entry ("balance is a systems problem; fix the
 loop, then expand the pool") lays out six phases, explicit order, each done
-before the next. Session 12 did Phase 1 (fix the instrument). This session
-did **Phase 2 item 3 only** ("Directives must be removable ... give every
-faction one answer") — completely, with real evidence — and stopped there
-rather than starting item 4 half-scoped. The entry stays PARTIALLY HANDLED;
-Phase 2 items 4-5 and Phases 3-6 are unstarted.
+before the next. Session 12 did Phase 1 (fix the instrument). Session 13
+did Phase 2 item 3 (directive removal). **This session did Phase 2 items 4
+and 5 — completing Phase 2 in full** — and stopped there rather than
+starting Phase 3 half-scoped.
 
-## What stands (this session's work — everything from sessions 1-12
+## What stands (this session's work — everything from sessions 1-13
 ## otherwise unchanged, see prior `progress/log.md` entries)
 
-**A real, generic "destroy a Directive" mechanism, not a one-off card
-hack.** Before this session, `quality-debt.md`'s "Architectural gaps"
-section named this explicitly: "Directives can never leave play." Fixed
-generically: `TargetFilter.kind` gained `"directive"`; `TargetRef`/
-`enumerateTargets` (`effects/targeting.ts`) grew a matching variant; the
-existing `"destroy"` effect kind (previously unit-only) now dispatches on
-the resolved target's own kind (`effects/resolver.ts`'s `applyDestroy` ->
-`destroyDirective`, a direct board-to-graveyard removal with its own log
-event, `directiveDestroyed`, since a Directive has no health/death-
-processing model to route through, unlike a unit). `LookaheadAgent` was
-updated in the same pass so it values a directive-destroy card by the
-target's own cost, deliberately avoiding a repeat of session 12's
-"silently scores zero forever" bug class for a new target kind.
+**Item 4 — a real, generic "summon" (token) effect kind.** Before this
+session, `quality-debt.md`'s "Architectural gaps" section named this
+explicitly: "No 'summon' effect kind. Can't create token units." Fixed
+generically: `EffectSpec` gained a `"summon"` variant carrying a
+self-contained `TokenSpec` (name/faction/attack/health/keywords/art/flavor
+— a token has no printed card of its own to reference) and a `count`;
+`effects/resolver.ts`'s new `summonTokens` creates real `UnitInstance`s
+directly on the controller's board, respecting the same shared
+`BOARD_SLOTS` cap (`state/queries.ts`'s new exported `boardSlotsUsed`, also
+now shared with `moves.ts` instead of duplicated) every other Unit/Directive
+entering play respects — if there isn't room for every token, as many as
+fit are created and the rest fizzle, logged (`summonFizzle`), not silently
+dropped. A token behaves exactly like any other unit from the moment it
+lands (buffable, evolvable-onto, attachable, dies to the graveyard).
+**Swarm's Brood Reserves** (Command, cost 3, Uncommon, 3 copies) is the
+first card to use it — summons two 1/1 Swarm Larva tokens, directly
+answering the entry's named motivation ("Swarm has no way to rebuild after
+board-wide damage"). `LookaheadAgent` was updated in the same pass
+(`effectValueOverTargets`'s new `"summon"` case) so it doesn't repeat
+session 12/13's "silently scores zero forever" bug class for the new kind.
 
-**One answer per faction, per the entry's explicit instruction, each a
-different flavour take on the same mechanic:** Force Quit (Cortex), Bore
-Swarm (Swarm), Null Pointer (Null), Breach Charge (Aegis) — all Instant,
-cost 2, Uncommon, 2 copies. Aegis's card is deliberately NOT a reopening of
-the 2026-09-19 "defensive answers, not removal" direction: a Directive
-isn't a unit, so this doesn't put board-removal into Aegis's kit (see
-`data/aegisCards.ts`'s header comment on the reasoning). Cortex's pool was
-already at the enforced 40-card ceiling (anticipated debt since session 6),
-so 2 copies each of Diagnostic Pulse/Diagnostic Loop were trimmed to make
-room — named honestly as a "make room" cut, not a nerf.
+**Item 5 — bases carry a small protection while unevolved, proposed and
+built as instructed.** `UnitCard` gained an optional `baseArmor: number`
+field: a flat reduction to incoming damage (floored at 0), read directly off
+`unit.card` in `effects/resolver.ts`'s `applyDamage` — the single choke
+point for both effect damage and combat damage, so both are covered by one
+mechanism. Because evolving mutates the same instance's `card` to the
+evolved form (which carries no `baseArmor` of its own once past the tier
+this protects), the protection ends automatically the instant a unit
+evolves — no separate per-instance bookkeeping needed. **Proposed value: 1,
+applied to every current evolution-line base** (Aegis Cadet + Sentinel,
+Null Glitch Seed + Corrupted Process, Cortex Init Daemon, Swarm Larva) — a
+first proposal, explicitly flagged below as not owner-confirmed, per the
+entry's own instruction to propose the mechanism at a checkpoint rather
+than finalise it unilaterally.
 
 ## Evidence committed
 
-- `engine/test/directiveDestroy.test.ts` — 8 new tests: real removal +
-  graveyard + log event, the filter never offering the controller's own
-  directives, no legal play with nothing to target, all four factions'
-  cards destroying a directive for real, and both `LookaheadAgent`
-  behaviours (plays it when worth it, never offered a fizzle to prefer).
-- `progress/sample-match-013-directive-destroy.txt` — a real, unscripted,
-  seed-found LookaheadAgent-vs-LookaheadAgent match (Cortex vs Aegis) where
-  Force Quit destroys Static Ward Beacon during actual play.
-- `progress/balance-report-006-directive-removal.txt` — full 300-seed,
-  three-policy re-measurement. All four new cards show real, substantial
-  "played" counts (166-607 games each across policies) confirming they're
-  genuinely exercised, not silently dead cards.
-- `npm test` (root, all four workspaces): **102/102 tests pass** (55 engine
-  + 7 protocol + 23 server + 17 agents).
+- `engine/test/summon.test.ts` — 5 new tests: real token creation with
+  correct stats, a token behaving exactly like any other unit (attacks,
+  takes damage, dies to the graveyard), the board-slot cap partially and
+  fully blocking a summon with a logged fizzle, and `LookaheadAgent`
+  correctly preferring the play over passing.
+- `engine/test/baseArmor.test.ts` — 8 new tests: every current base/top-tier
+  card's `baseArmor` value is correct, damage is reduced and floored at 0
+  with the reduction logged, a fully-absorbed hit doesn't fire onDamaged or
+  consume Barrier, evolving ends the protection on the very next hit (proven
+  through two real evolution steps: Cadet -> Sentinel keeps armor, Sentinel
+  -> Warden loses it), and combat damage is mitigated the same as effect
+  damage (same `applyDamage` choke point).
+- `progress/sample-match-014-summon.txt` / `progress/sample-match-015-basearmor.txt`
+  — real, unscripted, seed-found `LookaheadAgent`-vs-`LookaheadAgent`
+  matches (found on the first seed tried, both) where Brood Reserves
+  actually summons tokens and Aegis Cadet's armor actually absorbs/reduces
+  real damage 8 times in one match.
+- `progress/balance-report-007-summon.txt` / `progress/balance-report-008-basearmor.txt`
+  — full 300-seed, three-policy re-measurements after each item, run
+  separately so each item's own effect on the numbers is visible.
+- `npm test` (root, all four workspaces): **115/115 tests pass** (68 engine
+  — up from 55 — + 7 protocol + 23 server + 17 agents).
 - `npx tsc --noEmit` clean in all four packages.
 
-## Honest read on what the re-measurement found
+## Honest read on what the re-measurements found
 
-Cortex-vs-Aegis (triple-flagged going in: 72.3%/60.0%/61.3%) is **no
-longer** triple-flagged (71.0%/56.7%/57.3% — Random and Lookahead both
-dropped below the 60% threshold), plausibly because Aegis can now destroy
-Cortex's Mainframe Core aura. Cortex-vs-Swarm (flagged under 2/3 before:
-58.0%/72.0%/62.3%) is **newly** triple-flagged (60.7%/64.0%/66.0%) — a
-real, modest, unaimed-at regression, most plausibly from Cortex's own
-two-card trim. Aegis-vs-Null is essentially unchanged in kind (still
-clearly flagged; the three policies moved a few points each way, netting
-out close to where they started) — expected, since neither this change nor
-Phase 2 items 4-5 target that pairing. None of this was chased further
-this session — per the owner's own explicit order, card-by-card tuning off
-these numbers is exactly what the 2026-09-20 entry superseded; Phase 2
-continues in sequence before any of it gets touched again.
+**Item 4 (summon):** did not help Swarm's flagged pairings. Brood Reserves
+itself measures below average under all three policies (46.5%/41.2%/43.4%,
+versus other Swarm cards clustering 50-55%), and Cortex-vs-Swarm got
+measurably worse for Swarm (60.7% -> 66.0% under Aggressive). Read as the
+dummy policies not understanding "hold this for after a wipe" timing — see
+`quality-debt.md`'s new session-14 entry for the full reasoning. **Not
+tuned or reverted this session** — per the owner's own explicit
+"Phases 1-4 come before any further balance work on Cortex-vs-Swarm/
+Aegis-vs-Null" instruction, and because the mechanism itself (the actual
+Phase 2 item 4 ask) is correctly built and proven; a below-average first
+card is a card-tuning question for Phase 5, not a reason to touch the
+engine mechanism.
+
+**Item 5 (base armor):** a real, broader shift than item 4's, since it
+touches a base card in every faction at once. Cross-check result unchanged
+in kind (still exactly Cortex-vs-Swarm and Aegis-vs-Null, the same two
+pairings as before this session) — no new pairing was pushed over the flag
+threshold and neither existing one dropped below it. Underneath that,
+individual numbers moved, most visibly Cortex-vs-Aegis: 71.0% -> 63.7%
+Aggressive (still flagged, but less dominant), and a real flip under Random
+from 56.7% Cortex-favoured to 57.3% *Aegis*-favoured — plausible and
+thematically fitting (Aegis is the faction whose defensive "hardened
+guardian" identity most directly benefits from a damage-mitigation
+mechanic, and it has 2 of the 6 armored cards), not chased or verified by
+isolation this session. Aegis-vs-Null improved a few points under Lookahead
+(30.0% -> 35.3% Aegis) but remains clearly double/triple-flagged. None of
+this was tuned further — per the owner's own order, Phase 3/4 comes next,
+not more card-by-card response to these numbers.
 
 ## Decisions made this session the owner might want to overrule
 
-- **All four new cards were made Instant-speed**, not Sorcery — a judgment
-  call (the entry didn't specify), reasoned from "an answer should be
-  castable in response," matching the project's existing convention for
-  reactive/utility cards (Interrupt Handler, Reflex Spike, Intercept
-  Routine). Not playtested against a Sorcery-speed alternative.
-- **Cost 2 / Uncommon / 2 copies, uniformly across all four factions** — a
-  first proposal for symmetry, not a playtested or owner-confirmed number.
-  A Directive's own cost curve varies faction to faction (Cortex/Swarm/Null
-  directives sit at cost 3, Aegis's at cost 2-3), so a flat cost-2 answer is
-  proportionate but not measured against each faction's actual directive
-  density.
-- **Cortex's trim picked Diagnostic Pulse and Diagnostic Loop specifically**
-  — reasoned as "least distinctive, and nudges removal density down ahead
-  of Phase 3's future lint rule," not measured against alternative cuts.
+- **Brood Reserves was made Sorcery-speed, cost 3, Uncommon, 3 copies** — a
+  first proposal (the entry didn't specify numbers). Sorcery rather than
+  Instant was a judgment call: this is a "take your turn back" rebuild play,
+  not a reactive insurance card like Aegis's Instant-speed defensive kit, so
+  it didn't need Instant timing the way those did.
+- **`baseArmor: 1` was applied uniformly to every current base card, not
+  varied per faction or per specific card** — per the entry's own explicit
+  instruction to propose the mechanism at a checkpoint, this is exactly
+  that proposal, not a finalised, owner-confirmed number. Whether it should
+  vary (e.g. Aegis's defensive identity earning a higher value, or a
+  faction like Cortex earning a lower one to preserve its glass-cannon
+  curve) is open.
+- **A base's own evolved-form-that-is-also-a-base (Aegis Sentinel, Null
+  Corrupted Process) keeps `baseArmor` too, not just the tier-1 card** — read
+  as the correct interpretation of "while unevolved" (a mid-tier card is
+  just as unevolved-past-its-own-tier as a tier-1 card is), not explicitly
+  spelled out in the entry, so flagging the interpretation explicitly in
+  case the owner meant something narrower (tier-1 bases only).
 
 ## Concrete next step
 
-Phase 2 items 4 and 5 of the 2026-09-20 owner-feedback entry, in order:
-item 4 (a "summon"/token effect kind, so wide decks can rebuild after
-board-wide damage — named motivation: Swarm has no way to recover after a
-sweep), then item 5 (bases carry a small protection while unevolved —
-propose the mechanism at a checkpoint, per the entry's own instruction).
-Read the full entry in `progress/owner-feedback.md` before starting. Do
-not resume Aegis-vs-Null or Cortex-vs-Swarm tuning directly — Phases 1-4
-come first, per the entry's explicit order; both pairings are re-measured
-and honestly reported above, not silently dropped.
+Phase 3 of the 2026-09-20 owner-feedback entry: a card-pool lint that fails
+to load a deck breaking a rule (removal/debuff cards <= 25% of a deck; no
+targeted damage above cost+1 under 3 mana; no permanent enemy-stat aura
+under 4 mana; every faction pool has both a clock and card flow) —
+"tune at a checkpoint" per the entry's own instruction, so propose the
+specific thresholds there rather than guessing silently. Read the full
+entry in `progress/owner-feedback.md` before starting; note the lint is
+expected to force cuts/redesigns in Null's pool specifically (named in the
+entry's Null-dominance follow-up as intended). Do not resume Aegis-vs-Null
+or Cortex-vs-Swarm tuning directly — Phase 4's re-measure is where both get
+addressed together, per the entry's own explicit order, and both are
+honestly re-reported above, not silently dropped.

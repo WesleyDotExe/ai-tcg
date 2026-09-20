@@ -9,10 +9,79 @@ session 6 (backfilling Cortex/Swarm with board-development cards), session
 (the fourth faction, Null), session 9 (non-engine test coverage), session 10
 (the owner-directed Aegis-vs-Null fix attempt), session 11 (Aegis
 defensive interaction + the chosen-targeting fix), session 12 (Phase 1 of
-the 2026-09-20 owner-feedback entry — fixing the balance instrument), and
-now session 13 (Phase 2 item 3 of the same entry — directive removal).
+the 2026-09-20 owner-feedback entry — fixing the balance instrument),
+session 13 (Phase 2 item 3 of the same entry — directive removal), and now
+session 14 (Phase 2 items 4-5 — summon/token effect kind, base armor).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 14
+
+- **Brood Reserves (Swarm's new summon card) measures BELOW average across
+  all three agent policies (46.5% Aggressive, 41.2% Random, 43.4%
+  Lookahead — every other Swarm card in the pool clusters closer to
+  50-55%).** Named honestly, not shipped as a claimed improvement: adding it
+  did not help Swarm's flagged pairings and Cortex-vs-Swarm got measurably
+  *worse* for Swarm (60.7% -> 66.0% under Aggressive) after this session's
+  changes — see `progress/balance-report-007-summon.txt`. The most likely
+  read, consistent with this project's own established pattern for
+  reactive/situational cards (see session 11's Aegis defensive-card entry
+  below): none of the three dummy policies understands "hold this for after
+  a board wipe" timing — Aggressive/Random will cast it any time it's the
+  biggest/only affordable play, often when the board isn't actually empty,
+  which wastes tokens against the BOARD_SLOTS cap and dilutes the deck with
+  a below-curve draw. **Not chased or tuned this session** — per the
+  2026-09-20 owner-feedback entry's own explicit instruction ("Phases 1-4
+  come before any further balance work on Aegis-vs-Null" and the follow-up
+  "do not detour to Cortex-vs-Swarter" entry), card-by-card tuning off this
+  number is exactly what's superseded until Phase 3/4. Flagging clearly so
+  a future balance pass starts from this number, not from "summon seemed
+  like a good idea so it must be fine."
+- **LookaheadAgent's damage-effect valuation does not know about baseArmor.**
+  `estimateEffect`'s "damage" case (agents/lookaheadAgent.ts) still assumes
+  the full nominal `amount` lands, exactly as before this session — it has
+  no way to read a target's `card.baseArmor` and discount the estimate
+  accordingly. This means the agent can overvalue a small damage effect
+  against one of the six armored base cards (e.g. scoring a 1-damage ping
+  as lethal against a 1-health Aegis Cadet, when in the real engine it's
+  fully absorbed and nothing happens) — the same category of named,
+  unmeasured approximation as this file's other agent-heuristic gaps (e.g.
+  session 12's `maxHealth` tool-bonus omission), not a new kind of problem,
+  but a new instance of it worth tracking since it's the first stat the
+  *card* itself carries that the agent's damage math doesn't read at all.
+- **baseArmor's value (1, applied uniformly to all six current base cards)
+  is a first proposal, explicitly flagged as not owner-confirmed** — per
+  the entry's own instruction to propose the mechanism at a checkpoint
+  rather than finalise it unilaterally. Whether 1 is the right number across
+  every faction (Aegis's two armored bases, being genre-appropriate for a
+  defensive identity, benefited the most in this session's re-measurement —
+  see `progress/balance-report-008-basearmor.txt`'s Cortex-vs-Aegis swing
+  under Random, 56.7% Cortex-favoured -> 57.3% *Aegis*-favoured) versus a
+  smaller/larger or faction-varying value is unstarted, evidence-light
+  follow-up.
+- **Adding baseArmor to `swarmLarva`/`aegisSentinel` (both reused
+  extensively across the test suite as generic low-cost damage-target
+  fixtures, not just in their own evolution-line tests) broke 5 pre-existing
+  tests in 4 files** (`boardDevelopment.test.ts`, `nullFaction.test.ts`,
+  `effectSystem.test.ts` x2, `aegisInteraction.test.ts`) whose assertions
+  had incidentally depended on those cards dealing/taking damage with no
+  mitigation. Fixed by swapping the fixture to `signalDrone` (a plain,
+  unarmored 1/1) in the three tests that were purely about an unrelated
+  mechanic (telegraph arming, AOE reach, targeted damage), and by updating
+  the one assertion (`aegisInteraction.test.ts`) that was correctly
+  exercising an armored card's own real behaviour. Named here as a pattern
+  worth watching: reusing a real, mechanically-live gameplay card as a
+  generic test fixture couples unrelated tests to that card's future
+  changes — a future card-data change should expect to hit this again
+  unless test authors start preferring a small set of deliberately
+  "inert" cards (no keywords, no abilities, no baseArmor) for pure fixture
+  use. Not fixed structurally this session (would mean auditing/changing
+  fixture conventions project-wide, out of scope for this entry).
+- **Phase 2 (items 4-5) is now complete, correctly so per the entry's own
+  order** — Phase 3 (pool-construction lint), 4 (the intended counter
+  triangle), 5 (pool expansion), and 6 (economy tie-in) remain entirely
+  untouched. Restating here so it isn't mistaken for forgotten, matching
+  this file's own convention from session 12/13's equivalent notes.
 
 ## New debt from session 13
 

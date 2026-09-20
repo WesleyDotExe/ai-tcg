@@ -32,6 +32,12 @@ export const aegisCadet: UnitCard = {
   attack: 1,
   health: 2,
   keywords: [],
+  // Phase 2 item 5 (2026-09-20 owner-feedback entry): a base for
+  // aegisSentinel below — see UnitCard.baseArmor's doc comment for what this
+  // is and why. Every current evolution-line base in the pool gets the same
+  // proposed value (1); this file's own header note on that first-proposal
+  // status applies here too.
+  baseArmor: 1,
   art: "placeholder:aegis/aegis-cadet",
   flavor: "Boots up green on a chrome shell three sizes too big.",
   abilities: [],
@@ -47,6 +53,10 @@ export const aegisSentinel: UnitCard = {
   attack: 3,
   health: 4,
   keywords: [],
+  // Also a base (for aegisWarden below), even though it's itself Cadet's
+  // evolved form — baseArmor cares about "is some other card's evolvesFrom
+  // pointing at this one," not tier position.
+  baseArmor: 1,
   evolvesFrom: "AG-001",
   art: "placeholder:aegis/aegis-sentinel",
   flavor: "The plating thickens. So does the resolve.",

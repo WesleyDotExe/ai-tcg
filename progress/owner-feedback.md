@@ -323,7 +323,7 @@ any further Aegis-vs-Null work.
 
 ---
 
-## 2026-09-20 — Owner: balance is a systems problem; fix the loop, then expand the pool (supersedes further card-by-card tuning) (PARTIALLY HANDLED — Phase 1 done session 12; Phase 2 item 3 done session 13; items 4-5 and Phases 3-6 still open)
+## 2026-09-20 — Owner: balance is a systems problem; fix the loop, then expand the pool (supersedes further card-by-card tuning) (PARTIALLY HANDLED — Phase 1 done session 12; Phase 2 done in full (item 3 session 13, items 4-5 session 14); Phases 3-6 still open)
 
 Stop tuning individual cards for balance. Three factions were built as mechanic test pools and Null was built as a tuned deck; the gap is structural (removal density predicts the standings almost exactly; permanent -1/-0 auras switch off the two 1-attack factions with no answer possible; Aegis has no clock or card flow; Swarm has no way to rebuild after board-wide damage). Work in this order. Each item is done when it's built, tested and measured, not before.
 
@@ -479,6 +479,88 @@ unevolved), and Phases 3-6 entirely. This entry stays PARTIALLY HANDLED.
 
 ---
 
+**Handled, session 14 (2026-09-20) — Phase 2 items 4 and 5, both, in order,
+closing Phase 2 in full.**
+
+**4. "Summon" (token) effect kind — built, real, generic.** `EffectSpec`
+gained a `"summon"` variant carrying a self-contained `TokenSpec`
+(name/faction/attack/health/keywords/art/flavor — a token has no printed
+card of its own, so the effect fully describes what it creates) and a
+`count`. `effects/resolver.ts`'s new `summonTokens` creates real
+`UnitInstance`s directly on the controller's board, bound by the exact same
+shared `BOARD_SLOTS` cap a normal play respects (pulled the cap-check logic,
+`boardSlotsUsed`, out of `moves.ts` into a shared `state/queries.ts` export
+rather than duplicating it) — if there isn't room for every token, as many
+as fit are created and the rest fizzle, logged (`summonFizzle`), not
+silently dropped. A token behaves exactly like any other unit from the
+moment it lands. Swarm's new Brood Reserves (Command, cost 3, Uncommon, 3
+copies) is the first card to use it, directly answering this item's named
+motivation ("Swarm has no way to rebuild after board-wide damage").
+`LookaheadAgent` was updated in the same pass so it doesn't repeat sessions
+12/13's "new kind silently scores zero forever" bug class. Proven: 5 new
+tests (`engine/test/summon.test.ts`) plus a real, unscripted, seed-found
+match (`progress/sample-match-014-summon.txt`, found on the first seed
+tried). Re-measured (`progress/balance-report-007-summon.txt`, 300
+seeds/matchup, all three policies): **honest result — it did not help.**
+Brood Reserves itself measures below average under all three policies
+(46.5%/41.2%/43.4%, versus other Swarm cards clustering 50-55%), and
+Cortex-vs-Swarm got measurably worse for Swarm (60.7% -> 66.0% under
+Aggressive). Most likely cause, consistent with this project's own
+established pattern for reactive/situational cards: none of the three dummy
+policies understands "hold this for after a wipe" timing. Not tuned or
+reverted — the mechanism itself (this item's actual ask) is correctly built
+and proven; a below-average first card is Phase 5 tuning work, not a reason
+to touch the engine mechanism, and card-by-card chasing is exactly what the
+parent entry supersedes until Phase 3/4.
+
+**5. Base armor while unevolved — proposed and built, as instructed.**
+`UnitCard.baseArmor?: number`: a flat reduction to incoming damage (floored
+at 0), read directly off `unit.card` inside `effects/resolver.ts`'s
+`applyDamage` — the single choke point for both combat and effect damage,
+so one mechanism covers both, with no separate per-instance bookkeeping:
+because evolving mutates the same instance's `card` to the evolved form
+(which carries no `baseArmor` of its own past the protected tier), the
+protection ends automatically the instant a unit evolves. **Proposed value:
+1, applied to every current base card** (Aegis Cadet + Sentinel, Null Glitch
+Seed + Corrupted Process, Cortex Init Daemon, Swarm Larva — six cards, since
+a faction's mid-tier card that is itself a base for a third tier gets it
+too, not just the tier-1 card; flagged explicitly in case the owner meant
+tier-1 only). This is a checkpoint proposal, per this item's own explicit
+instruction, not a finalised number — the owner's steer on the value itself,
+and on whether mid-tier-that-is-also-a-base should count, is genuinely
+wanted here. Proven: 8 new tests (`engine/test/baseArmor.test.ts` — damage
+reduction and its floor, no onDamaged/Barrier interaction on a fully-absorbed
+hit, the protection ending through two real evolution steps, combat damage
+mitigated the same as effect damage) plus a real, unscripted, seed-found
+match (`progress/sample-match-015-basearmor.txt`, found on the first seed
+tried — Aegis Cadet's armor reduces real damage 8 times against 5 different
+Cortex sources). Re-measured (`progress/balance-report-008-basearmor.txt`):
+cross-check result unchanged in kind (still exactly Cortex-vs-Swarm and
+Aegis-vs-Null flagged, same two pairings as before this session), but real
+movement underneath — most visibly Cortex-vs-Aegis flipping from
+Cortex-favoured to Aegis-favoured under Random play (56.7% -> 41.7% Cortex),
+plausible and thematically fitting since Aegis's defensive identity most
+directly benefits from a damage-mitigation mechanic and holds 2 of the 6
+armored cards, but not isolated or verified by controlled experiment this
+session. Not tuned further, per the parent entry's order.
+
+**A real, honestly-handled side effect:** giving `swarmLarva`/`aegisSentinel`
+new mechanical behaviour broke 5 pre-existing tests across 4 files that had
+incidentally used those cards as generic damage-target fixtures unrelated to
+their own mechanics — root-caused and fixed (3 swapped to an unarmored
+fixture card since the tests were about something else entirely; 1 was a
+real behaviour change, given a corrected expected value and a comment
+explaining why), not silently patched. Full detail: `progress/quality-debt.md`'s
+new session-14 section, `progress/log.md`'s session-14 entry.
+
+**Not attempted this session, correctly deferred:** Phases 3 (pool-
+construction lint), 4 (the intended counter triangle — this is where
+Aegis-vs-Null and Cortex-vs-Swarm get addressed together, per the parent
+entry's own order), 5 (pool expansion), and 6 (economy tie-in). Phase 2 is
+now closed in full; this entry's remaining open scope is Phases 3-6 only.
+
+---
+
 ## 2026-09-20 — Owner: Null dominance is on record; nerf its abilities if it survives Phases 2–4
 
 For the record, with the fixed instrument (session 12): Null beats every faction under all three policies (Lookahead: 67% vs Aegis, 75% vs Swarm, 62% vs Cortex). This is the dominant archetype design principle 3 says must not exist.
@@ -489,6 +571,8 @@ Backstop: after the Phase 4 re-measure, if Null still wins 60%+ against any fact
 
 ---
 
-## 2026-09-20 — Owner: session 13 question
+## 2026-09-20 — Owner: session 13 question (HANDLED 2026-09-20, session 14)
 
 Keep phase order. Do not detour to Cortex-vs-Swarm; the Phase 3 lint will change Cortex's pool again, so tuning it now is wasted work. Finish Phase 2 (summon, base protection), then Phase 3. Cortex-vs-Swarm gets picked up at the Phase 4 re-measure with everything else.
+
+**Followed exactly, session 14.** Finished Phase 2 (items 4-5, both — see this file's own session-14 entry above), did not detour to tune Cortex-vs-Swarm despite it moving further out of range in this session's own re-measurement (60.7% -> 66.0% Cortex-favoured after item 4). Phase 3 is next, per this entry's own order.

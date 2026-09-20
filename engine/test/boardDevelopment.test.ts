@@ -11,7 +11,7 @@ import { Rng } from "../src/state/rng.js";
 import { currentAttack, currentHealth, hasKeyword } from "../src/state/queries.js";
 import { applyMove, beginTurn } from "../src/engine/engine.js";
 import { getLegalMoves } from "../src/engine/moves.js";
-import { swarmLarva } from "../src/data/cards.js";
+import { swarmLarva, signalDrone } from "../src/data/cards.js";
 import { aegisCadet, aegisSentinel, perimeterTurret, platingModule, guardDirectiveChip, barrierShim } from "../src/data/aegisCards.js";
 import { BOARD_SLOTS } from "../src/state/init.js";
 import { emptyState, putUnit } from "./helpers.js";
@@ -19,7 +19,11 @@ import { emptyState, putUnit } from "./helpers.js";
 test("a telegraphed unit is dormant on arrival and only fires its ability once armed", () => {
   const state = emptyState();
   const rng = new Rng(11);
-  const victim = putUnit(state, "p2", swarmLarva); // 1 health — the turret's arm-time ability will kill it
+  // signalDrone, not swarmLarva: a plain 1-health damage target with no
+  // baseArmor (see cards/types.ts's UnitCard.baseArmor, 2026-09-20 Phase 2
+  // item 5) — this test is about telegraph arming, not Swarm Larva's own
+  // new mitigation, which would otherwise eat into the turret's damage.
+  const victim = putUnit(state, "p2", signalDrone); // 1 health — the turret's arm-time ability will kill it
   state.players.p1.hand.push(perimeterTurret); // cost 2, telegraph 1
   state.players.p1.energy = 2;
   state.players.p1.maxEnergy = 2;

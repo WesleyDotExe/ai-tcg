@@ -1,11 +1,12 @@
 import { resolveAmount } from "../cards/types.js";
-import type { Ability, EffectSpec, StatusKind } from "../cards/types.js";
-import type { GameState, PlayerId } from "../state/types.js";
+import type { Ability, EffectSpec, StatusKind, TokenSpec, UnitCard } from "../cards/types.js";
+import type { GameState, PlayerId, UnitInstance } from "../state/types.js";
 import type { Rng } from "../state/rng.js";
-import { findUnit, findDirective, allUnits, isAlive, currentMaxHealth } from "../state/queries.js";
+import { findUnit, findDirective, allUnits, isAlive, currentMaxHealth, boardSlotsUsed } from "../state/queries.js";
 import { evaluateCondition } from "./conditions.js";
 import { resolveTargets, type TargetRef } from "./targeting.js";
 import { buildScalingContext } from "./scaling.js";
+import { BOARD_SLOTS } from "../state/init.js";
 
 /** Where an ability's owner lives, i.e. what "self" targeting means for it.
  * A Unit's "self" is the unit itself on the board; a Command has no board
@@ -115,6 +116,9 @@ function applyOneEffect(effect: EffectSpec, targets: TargetRef[], ctx: EffectCon
       for (const t of targets) redirectTopAttack(ctx.state, t, ctx.sourceLabel);
       return;
     }
+    case "summon":
+      summonTokens(ctx, effect.token, effect.count);
+      return;
   }
 }
 
@@ -165,14 +169,27 @@ export function applyDamage(state: GameState, target: TargetRef, amount: number,
   const found = findUnit(state, target.instanceId);
   if (!found) return; // already dead earlier in this resolution
   const { unit } = found;
+  // Board-development system, Phase 2 item 5 (2026-09-20 owner-feedback
+  // entry): a base card's flat baseArmor reduces incoming damage before
+  // anything else sees it — read straight off unit.card, so the moment
+  // evolveUnit mutates this instance's card to the evolved form (which has
+  // no baseArmor of its own), the protection is simply gone, no separate
+  // bookkeeping needed. A hit fully absorbed by armor never reaches Barrier
+  // or onDamaged — nothing actually happened to the unit.
+  const armor = unit.card.baseArmor ?? 0;
+  const effectiveAmount = armor > 0 ? Math.max(0, amount - armor) : amount;
+  if (armor > 0 && effectiveAmount !== amount) {
+    state.log.push({ type: "baseArmorReduced", unit: unit.card.name, source: sourceLabel, rawAmount: amount, reducedTo: effectiveAmount });
+  }
+  if (effectiveAmount <= 0) return;
   const barrierIdx = unit.statuses.findIndex((s) => s.kind === "Barrier");
   if (barrierIdx !== -1) {
     unit.statuses.splice(barrierIdx, 1);
     state.log.push({ type: "barrierAbsorbed", unit: unit.card.name, source: sourceLabel });
     return;
   }
-  unit.damageTaken += amount;
-  state.log.push({ type: "damage", target: unit.card.name, targetKind: "unit", amount, source: sourceLabel });
+  unit.damageTaken += effectiveAmount;
+  state.log.push({ type: "damage", target: unit.card.name, targetKind: "unit", amount: effectiveAmount, source: sourceLabel });
   // A unit whose health has already dropped to 0 or below is dead in
   // substance even though processDeaths (which actually removes it from
   // the board and fires onDeath) only runs once the outer resolveAbility
@@ -304,6 +321,60 @@ function destroyDirective(ctx: EffectContext, instanceId: string): void {
   player.directives.splice(idx, 1);
   player.graveyard.push(directive.card);
   ctx.state.log.push({ type: "directiveDestroyed", directive: directive.card.name, controller: owner, source: ctx.sourceLabel });
+}
+
+/** Creates up to `count` fresh token units on the controller's board — the
+ * "summon" effect kind (2026-09-20 owner-feedback entry, Phase 2 item 4).
+ * Deliberately mirrors engine.ts's playCard Unit branch (same UnitInstance
+ * shape, same board-slot accounting) rather than inventing a parallel
+ * creation path, so a token behaves identically to a drawn-and-played unit
+ * from the moment it lands: it can be buffed, evolved onto (its `id` is a
+ * real, stable string so a future evolvesFrom could target it), attached to,
+ * and goes to the graveyard on death exactly like any other unit. Bound by
+ * the same BOARD_SLOTS cap a normal play would be — a wide board that's
+ * already full gets no benefit from a summon effect, same as it couldn't
+ * play another Unit from hand either; if there isn't room for every token
+ * asked for, as many as fit are created and the rest fizzle, logged rather
+ * than silently dropped (mirroring the project's existing fizzle
+ * convention — see redirectTopAttack above). */
+function summonTokens(ctx: EffectContext, token: TokenSpec, count: number): void {
+  const player = ctx.state.players[ctx.controller];
+  const cardId = `token-${token.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  const card: UnitCard = {
+    id: cardId,
+    name: token.name,
+    faction: token.faction,
+    rarity: "Common",
+    cost: 0,
+    type: "Unit",
+    art: token.art,
+    flavor: token.flavor,
+    abilities: [],
+    attack: token.attack,
+    health: token.health,
+    keywords: token.keywords,
+  };
+  for (let i = 0; i < count; i++) {
+    if (boardSlotsUsed(player) >= BOARD_SLOTS) {
+      ctx.state.log.push({ type: "summonFizzle", player: ctx.controller, token: token.name, source: ctx.sourceLabel });
+      continue;
+    }
+    const instanceId = `u${ctx.state.nextInstanceId++}`;
+    const unit: UnitInstance = {
+      instanceId,
+      card,
+      controller: ctx.controller,
+      permanentBuff: { attack: 0, health: 0 },
+      turnBuff: { attack: 0, health: 0 },
+      damageTaken: 0,
+      statuses: card.keywords.includes("Barrier") ? [{ kind: "Barrier", duration: "untilConsumed" }] : [],
+      enteredTurn: ctx.state.turnNumber,
+      hasAttackedThisTurn: false,
+      tools: [],
+    };
+    player.board.push(unit);
+    ctx.state.log.push({ type: "summon", player: ctx.controller, token: token.name, instanceId, source: ctx.sourceLabel });
+  }
 }
 
 function gainEnergyEffect(ctx: EffectContext, playerId: PlayerId, amount: number): void {
