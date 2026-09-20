@@ -1107,3 +1107,103 @@ Cortex/Swarm) and item 4 (card-pool depth) are both unblocked next steps.
 
 **Honest gaps:** see `progress/quality-debt.md`'s new session-11 section —
 written before stopping, not as an afterthought.
+
+## 2026-09-20 — Session 12: fix the instrument (Phase 1 of the 2026-09-20 owner-feedback entry)
+
+Read owner-feedback.md first, per procedure. One unhandled entry
+(2026-09-20, "balance is a systems problem; fix the loop, then expand the
+pool"), explicitly ordered into six phases with the instruction "each item
+is done when it's built, tested and measured, not before." Scoped this
+session to Phase 1 only — both items, completed fully with real evidence —
+rather than starting Phase 2 half-finished. No CRITICAL quality-debt item
+was outstanding.
+
+**Item 1: a third reference agent.** Read `engine/src/agents/
+aggressiveAgent.ts` and `randomAgent.ts` plus `agent.ts`'s `PlayerView`
+contract before writing anything, to keep the same "only ever sees a
+redacted view" discipline real agents (and eventually external ones) must
+also honour. Built `LookaheadAgent`: scores every legal move by resolving
+its ability's real target list from the same `TargetSpec` union the
+resolver interprets (`resolveViewTargets`/`enumerateViewTargets`, reading
+`PlayerView`'s public board state) and summing a generic per-effect-kind
+value estimate (`effectValueOverTargets`/`estimateEffect`) over those
+targets — no card-name special-casing anywhere in the file. Wired into
+`balanceReport.ts` as a third policy; the cross-check now requires all
+three policies to agree before flagging a pairing (previously two).
+
+**A real bug the design itself caught before shipping, not after.** The
+first full 300-seed run showed Cascade Purge, Backup Protocol, Rally Cry,
+Lockdown Field, and Diagnostic Ward at **exactly zero** "played" games each,
+despite being drawn 700-1000+ times. Investigated rather than shipped:
+all five share `targeting.scope` of `"all"` or `"self"`, and
+`engine/moves.ts` only ever populates `Move.target` for a `"chosen"`-scope
+ability — the first version of `estimateEffects` took a single `target:
+TargetRef | undefined` parameter and returned 0 whenever it was undefined,
+which is every "all"/"self" ability, always. Rewrote the targeting layer
+properly instead of patching around the five known cases: `estimateAbility`
+now resolves the ability's actual target list from its `TargetSpec` (mirror
+of `effects/targeting.ts`'s real `resolveTargets`), handling `"none"`,
+`"self"` (using a `selfRef` the caller derives — the controlling player for
+a Command/Directive, the unit's own instance for a Unit/activated ability,
+correctly `undefined`/scored-0 for a brand-new non-evolving unit's own
+onPlay whose instance doesn't exist in the view yet — a named, not silent,
+gap), `"chosen"` (unchanged), `"all"`, and `"random"` (scored via linearity
+of expectation — sum every match, scale by `min(count, n)/n` — an exact
+equivalence, not an approximation). Re-measured: all five cards now show
+700-1000+ real played games. Regression-tested directly:
+`engine/test/lookaheadAgent.test.ts`'s "plays an AOE sweep" (Cascade Purge)
+and "plays a self-targeting Command" (Backup Protocol) tests, plus real
+unscripted-play evidence — `engine/src/dev/lookaheadMatchDemo.ts` searches
+seeds for one where a fixed card actually casts; seed 1 does, and
+`progress/sample-match-012-lookahead.txt` shows both Cascade Purge and
+Lockdown Field connecting for real damage in the same match, zero fizzles.
+
+Also proved, with dedicated tests (not just design reasoning), the two
+behavioural requirements the owner's entry named explicitly: "holds
+Instants for a target" and "never plays a reactive card with nothing to
+react to." Both fall out of the same generic scoring (a card whose effect
+resolves to nothing useful scores at or below `passPriority`'s flat 0), so
+no special-casing was needed — but two of the five tests build a real
+engine state via `getLegalMoves`/`buildPlayerView` (not hand-built
+fixtures — deliberately avoiding the exact gap `aggressiveDecision.test.ts`
+left as debt) proving Intercept Routine is held with nothing pending and
+played when something real is on `view.stack`.
+
+**Item 2: per-card win-rate instrumentation, committed as a standing part
+of `balanceReport.ts`.** Session 10's version was scratch, uncommitted `npx
+tsx` one-offs — named debt for exactly this reason. Built `CardStatsTracker`:
+accumulates, per faction, every card's "drawn" (opening hand, captured via
+`runMatch`'s existing `onMatchStart` hook, plus every `draw` event) and
+"played" (`play`/`cast`/`toolAttached`/`evolve` events) counts and win
+rates, printed as a table after each policy's matchups. Needed one small,
+additive engine change: `evolve` and `toolAttached` `GameEvent`s didn't
+carry a `player` field, so their resulting card couldn't be attributed to
+whoever played it — added it to both (nothing destructures the old event
+shape positionally, so this is safe; also a real observability improvement
+independent of this instrumentation — a future commentator agent needs the
+same attribution). Caught and fixed one bug before shipping this too: an
+activated ability's `cast` event logs `${card.name} — ${ability.text}`, not
+a bare card name (see `engine.ts`'s `activateAbility`) — counting it as a
+"played card" was producing a phantom pseudo-card entry in the table (e.g.
+"Cortex Engineer — Pay 1 energy: ..." showing up as its own row). Filtered
+out with the real mechanism named in a code comment, not silently dropped.
+
+Full 300-seed, three-policy report with the complete per-card table for all
+four factions: `progress/balance-report-005-instrument.txt`. The triple-
+policy cross-check flags exactly two pairings — Cortex-vs-Aegis (confirmed
+under all three policies now, was Aggressive-only through session 11) and
+Aegis-vs-Null (unchanged) — expected and correct, since Phase 1's job was
+fixing the instrument, not re-tuning anything; per the entry's own explicit
+order, neither pairing was touched this session.
+
+Ran the complete verification pass before stopping: `npx tsc --noEmit`
+clean across all four packages, `npm test --workspaces --if-present`
+94/94 passing (47 engine, up from 45 — 5 new LookaheadAgent tests).
+
+**What's blocked:** nothing structurally. Phase 2 of the 2026-09-20 entry
+(directive removal, a summon/token effect kind, base protection while
+unevolved) is next per the entry's own explicit order — not Aegis-vs-Null
+tuning directly, which the entry says waits for Phases 1-4.
+
+**Honest gaps:** see `progress/quality-debt.md`'s new session-12 section —
+written before stopping, not as an afterthought.

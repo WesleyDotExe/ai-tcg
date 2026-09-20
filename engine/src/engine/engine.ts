@@ -178,7 +178,7 @@ function evolveUnit(
   const fromName = unit.card.name;
   player.graveyard.push(unit.card);
   unit.card = card;
-  state.log.push({ type: "evolve", from: fromName, to: card.name });
+  state.log.push({ type: "evolve", player: pid, from: fromName, to: card.name });
   const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
   if (onPlay) {
     resolveAbility({
@@ -205,7 +205,7 @@ function attachTool(state: GameState, pid: PlayerId, card: ToolCard, targetInsta
   if (card.grantedKeywords.includes("Barrier") && !unit.statuses.some((s) => s.kind === "Barrier")) {
     unit.statuses.push({ kind: "Barrier", duration: "untilConsumed" });
   }
-  state.log.push({ type: "toolAttached", tool: card.name, unit: unit.card.name });
+  state.log.push({ type: "toolAttached", player: pid, tool: card.name, unit: unit.card.name });
 }
 
 function declareAttack(state: GameState, pid: PlayerId, attackerInstanceId: string, target: TargetRef, rng: Rng): void {

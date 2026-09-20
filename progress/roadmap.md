@@ -36,7 +36,21 @@ building around them; don't block the whole project waiting.
    `Rng`, `makeRandomDecision`, `aggressiveDecision`) all now have real
    vitest coverage — 81/81 tests pass across all four packages. See
    `progress/current.md` for what shipped and where it's still thin.
-3. Balance pass across all four factions: IN PROGRESS (session 11).
+3. Balance pass across all four factions: IN PROGRESS (session 12). The
+   2026-09-20 owner-feedback entry supersedes further card-by-card tuning
+   with a six-phase plan (fix the instrument; engine gaps that create hard
+   counters; pool-construction lint; the intended counter triangle; pool
+   expansion; economy tie-in). Session 12 completed Phase 1 only (a third,
+   board-state-aware reference agent — LookaheadAgent — plus committing the
+   per-card win-rate-when-drawn/played instrumentation as a standing part of
+   `balanceReport.ts`; see progress/balance-report-005-instrument.txt and
+   progress/log.md's session-12 entry). The triple-policy cross-check now
+   flags Cortex-vs-Aegis (newly confirmed under all three policies) and
+   Aegis-vs-Null (unchanged) — untouched per the entry's explicit order
+   ("Phases 1-4 come before any further balance work on Aegis-vs-Null").
+   Phase 2 (directive removal, a summon/token effect kind, base protection
+   while unevolved) is next.
+3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still
    double-flagged) and named "Aegis's kit lacks independent interaction"

@@ -7,10 +7,75 @@ the session-5 hardening pass (checkpoint feedback + automated test runner),
 session 6 (backfilling Cortex/Swarm with board-development cards), session
 7 (first cross-faction balance measurement + a real crash fix), session 8
 (the fourth faction, Null), session 9 (non-engine test coverage), session 10
-(the owner-directed Aegis-vs-Null fix attempt), and now session 11 (Aegis
-defensive interaction + the chosen-targeting fix). This is not "no debt, all
-good" — the product is real and the evidence is real, but here is where
-it's thin.
+(the owner-directed Aegis-vs-Null fix attempt), session 11 (Aegis
+defensive interaction + the chosen-targeting fix), and now session 12
+(Phase 1 of the 2026-09-20 owner-feedback entry — fixing the balance
+instrument). This is not "no debt, all good" — the product is real and the
+evidence is real, but here is where it's thin.
+
+## New debt from session 12
+
+- **LookaheadAgent's approximations, named honestly (all inherited from or
+  parallel to AggressiveAgent's own documented tradeoffs, not new
+  carelessness):** attack/health are read from visible instance fields
+  (`card.attack/health` + buffs), not the full static-aura-aware
+  `state/queries.ts` (a real agent only ever sees a `PlayerView`, which
+  can't run those queries — same reasoning AggressiveAgent's own doc
+  comment gives). A `maxHealth` target filter is checked against this same
+  approximation, which omits tool bonuses that the real `enumerateTargets`
+  includes — a small, named inaccuracy, not a silent one, but it means a
+  unit exactly at the `maxHealth` boundary because of an attached Tool
+  could be mis-scored as eligible/ineligible when the real engine would
+  disagree.
+- **A `"conditional"` effect's branch is valued with a flat 0.5 discount
+  on the "then" branch, never resolving the actual condition or considering
+  "else".** A full `evaluateCondition` needs `GameState`-only facts (e.g.
+  `controllerFactionInPlay`, exact hand-size thresholds beyond what a
+  `PlayerView` states directly) that aren't cleanly re-derivable from a
+  redacted view for every condition kind. This is a real accuracy gap: a
+  conditional effect that's *certainly* true or *certainly* false right now
+  (fully determinable from public information) still gets the same flat
+  discount as one that's genuinely uncertain.
+- **A brand-new (non-evolving) Unit's own `"self"`-scoped onPlay effect
+  scores 0**, because the unit's own instance doesn't exist in the
+  `PlayerView` yet at scoring time (it's created by the very move being
+  scored) — there's no real `selfRef` to resolve against. This under-values
+  any future card shaped like "this unit enters with a shield/buff on
+  itself." Evolution's onPlay (which mutates an *existing* instance) is not
+  affected — only a plain new unit's own self-targeting is. Not exercised
+  by the current card pool as far as this session found; worth revisiting
+  if/when such a card is added.
+- **`"random"` scope's expected-value scoring (sum all matches, scale by
+  `min(count,n)/n`) is mathematically exact for the total, but treats every
+  matching target as interchangeable when computing *which* one to imagine
+  hit** — it can't express "this random effect is likely to hit the biggest
+  threat" vs. "likely to hit a throwaway unit" the way a real single random
+  draw would; only the aggregate expectation is exact, not the
+  scenario-by-scenario shape.
+- **`applyStatus`'s "denial" value (`approxAttack(unit) * 0.6`) and
+  `redirectAttack`'s "prevented damage" value (`approxAttack(attacker) *
+  1.2`) are hand-picked constants, not measured or owner-confirmed** — same
+  category of judgment call as AggressiveAgent's own heuristic weights,
+  named here rather than presented as principled.
+- **Phase 1 was the only phase of the 2026-09-20 owner-feedback entry
+  attempted this session.** Phases 2 (directive removal, a summon/token
+  effect kind, base protection while unevolved), 3 (pool-construction lint
+  rules), 4 (the intended counter triangle), 5 (pool expansion), and 6
+  (economy tie-in) are entirely unstarted — correctly so per the entry's
+  own explicit ordering, but restating here so it isn't mistaken for
+  forgotten. In particular, Aegis-vs-Null (and now confirmed,
+  triple-policy-flagged Cortex-vs-Aegis) remain flagged and untouched;
+  the entry is explicit that Phases 1-4 come before resuming that work.
+- **The per-card instrumentation's "played" tally has one known, named
+  gap of its own:** a Tool attach or an evolution's resulting card is
+  counted via `toolAttached`/`evolve` events, which needed a new `player`
+  field added this session — correct going forward, but any *historical*
+  match log committed before this session (the `progress/sample-match-*.txt`
+  files predating this one) still lacks that field on those two event
+  types, so re-analysing an old log with this same method would silently
+  undercount Tool/evolution attribution for those older matches. Not an
+  issue for `balanceReport.ts` itself (it always plays fresh matches), only
+  for anyone re-mining an old committed log.
 
 ## New debt from session 11
 
