@@ -1424,3 +1424,116 @@ write-up in `current.md` and `quality-debt.md`'s new session-14 sections.
 enforced at load time) is next, per the entry's own explicit order — not
 Aegis-vs-Null or Cortex-vs-Swarm tuning directly, which wait for Phase 4's
 combined re-measure.
+
+## 2026-09-21 — Session 15 (Phase 3: card-pool lint, enforced at load time)
+
+Read `progress/owner-feedback.md` first. The last entry (2026-09-21)
+confirmed baseArmor=1 as final, reminded the process for writing checkpoints
+when a session says it's surfacing a decision, and explicitly said "Proceed
+to Phase 3 (the load-time pool lint)." No unhandled entries beyond that; no
+CRITICAL quality-debt item outstanding. Worked Phase 3 of the 2026-09-20
+"balance is a systems problem" entry to completion, in full.
+
+**The lint itself: `engine/src/cards/poolLint.ts`, generic and data-driven
+(no card-id special-casing anywhere, per DESIGN.md), wired into
+`data/decks.ts`'s `buildDeck`** so it's genuinely enforced every time any
+deck is built — a real match, a test, `balanceReport.ts` — not an optional
+script someone has to remember to run. Four rules, matching the entry's own
+numbers exactly: removal/debuff cards <=25% of a deck; no targeted (chosen/
+random-scope) damage above cost+1 under 3 mana; no permanent enemy-stat
+aura under 4 mana; every faction pool has a clock and card flow. The
+"removal/debuff card" classifier (rule 1 needs one; the entry names the
+rule but not its definition) is this session's own first-cut
+formalisation — walks `Ability`/`EffectSpec`/`StaticEffectSpec` generically,
+counting `destroy`/opponent-targeted `damage`/negative `buff`/opponent
+`Stasis`-or-`Overload`/a negative `buffAllies` aura/a `cardCostModifier` tax
+on `onPlay`/`static`/`activated` triggers only — reactive triggers
+(`onAttack`/`onDamaged`/`onDeath`/`onTurnStart`/`onTurnEnd`) are excluded on
+the judgment that a card's secondary "it happens to graze the opponent"
+effect isn't the same deck-building commitment as a Command or a standing
+aura. Flagged as a checkpoint-style proposal in `notes-for-owner.md`, per
+the owner's own 2026-09-21 process reminder about writing these down rather
+than letting them live only in a PR body.
+
+**Measured against the real pools before touching anything, per this
+project's own established discipline.** Cortex: 32.5% removal density
+(13/40 copies), over the cap. Swarm: 11.4% (4/35) — passes cleanly, no
+changes needed. Aegis: 23.1% (9/39) — passes cleanly, no changes needed.
+Null: 50.0% (18/36) — the exact outcome the 2026-09-20 entry's own
+follow-up predicted ("the lint will require cutting or redesigning Null
+cards to make the deck load ... that's intended"), plus two more failures
+of its own: Segmentation Fault's static enemy aura at cost 3 (rule 3) and
+zero `drawCard` anywhere in the whole pool (rule 4).
+
+**Fixed both violating pools, each with an approach suited to how far over
+the line it was:**
+- **Cortex** — a pure copy-count rebalance, no ability changes needed:
+  trimmed Cascade Purge/Interrupt Handler/Dormant Exploit by 1 copy each
+  (-3), backfilled the same +3 onto Watchtower Relay/Init Daemon/Overclock
+  Shunt (each sitting below their own rarity's copy cap already), keeping
+  the pool at exactly 40 cards, the same "make room" pattern session 13
+  used for Force Quit. Now 25.0% (10/40).
+- **Null** — real card redesigns, per the entry's own explicit sanction of
+  "cutting *or* redesigning": Corrupted Process's evolve effect changed
+  from "deal 3 damage to a random enemy unit" to "draw a card" (mirrors
+  Swarm's existing Molted Stalker) — one change that both removes a
+  removal effect from the density count and fixes the card-flow failure at
+  the same time, not a coincidence. Fork Bomb's arm effect changed from AOE
+  damage to "create two 1/1 Fork Child tokens" — genuinely truer to what a
+  fork bomb actually is (a process that spawns copies of itself) than
+  damage ever was, and it gives Null a rebuild tool it never had. Segfault
+  Handler/Deprecated Routine trimmed to 1 copy each; Segmentation Fault
+  trimmed to 1 copy AND its cost raised 3->4 (fixing rule 3 directly, text
+  untouched). Kernel Panic (the evolution finisher), Null Singularity (the
+  Mythic capstone), and Null Pointer (the structurally-required per-faction
+  directive-destroy answer from Phase 2 item 3) were deliberately left at
+  their original counts — cutting those specific three further would have
+  gutted Null's actual identity, not just its oversaturation. Now 25.0%
+  (8/32) exactly, with real card flow and no cheap aura.
+
+**Proven working, not just claimed:** `engine/test/poolLint.test.ts` (9 new
+tests) proves each rule fires on a minimal synthetic pool built just for
+that rule, that reactive triggers and redirectAttack/heal/draw never
+misclassify as removal, that `buildDeck` itself (not just `lintCardPool`
+called directly) enforces it, and that all four real faction pools now
+build clean. `engine/test/nullFaction.test.ts`'s old Fork Bomb AOE-damage
+assertion was replaced (not deleted) with one proving the new summon fires
+correctly. A real, unscripted match was searched for and found on the third
+seed tried: `progress/sample-match-016-poollint.txt`
+(`LookaheadAgent`-vs-`LookaheadAgent`, Null vs Cortex, seed 3) shows *both*
+redesigned effects firing for real in the same match — Fork Bomb arms and
+creates two Fork Child tokens, and Glitch Seed later evolves into Corrupted
+Process and actually draws a card (which itself evolves into Kernel Panic
+later in the same match). Full verification: `npx tsc --noEmit` clean
+across all four packages; `npm test --workspaces --if-present`
+**124/124 passing** (77 engine, up from 68; 7 protocol; 23 server; 17
+agents). One server integration test flaked under a full concurrent run but
+passed reliably 3/3 alone — pre-existing, named debt (session 9) about that
+test's real-socket timing sensitivity, not a regression from this session
+(server/ wasn't touched).
+
+**Re-measured with the full instrument, honestly, not cherry-picked:**
+`progress/balance-report-009-poollint.txt` (300 seeds/matchup, all three
+policies) against `balance-report-008-basearmor.txt`'s baseline. Cross-check
+result unchanged in kind — still exactly Cortex-vs-Swarm and Aegis-vs-Null
+triple-flagged. The honest surprise: most individual numbers for those two
+pairings (and Swarm-vs-Null) moved the WRONG direction — Null got a bit
+*stronger*, not weaker, most plausibly because Corrupted Process's new
+draw made its deck find its remaining strongest, untouched cards (Kernel
+Panic, Null Singularity, Null Pointer, Segmentation Fault) more reliably,
+even after cutting several weaker removal copies. Not a universal
+regression: Cortex-vs-Null actually improved (Lookahead dropped from 60.7%
+Null to 55.0%, no longer flagged there). Not tuned or reverted this
+session — the entry's own "Null dominance" follow-up explicitly reserves
+ability nerfs for *after* the Phase 4 re-measure, not before, and Phase 3's
+own job (the lint itself, real and enforced) is done and correct regardless
+of this particular pairing's number. Full detail:
+`progress/balance-report-009-poollint.txt`, `progress/current.md`,
+`progress/quality-debt.md`'s new session-15 section.
+
+**What's blocked:** nothing structurally. Phase 3 is complete. Phase 4 (the
+intended counter triangle, proposed at a checkpoint then measured against)
+is next, per the entry's own explicit order — this is where Cortex-vs-Swarm
+and Aegis-vs-Null both finally get addressed together, and where the
+standing "nerf Null's abilities" backstop becomes live if it's still
+winning 60%+ against anyone after that re-measure.

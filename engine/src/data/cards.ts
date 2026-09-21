@@ -446,36 +446,38 @@ export const forceQuit: CommandCard = {
   ],
 };
 
+// Phase 3 pool lint (cards/poolLint.ts): this pool measured at 32.5% (13/40
+// copies) removal/debuff density, over the lint's 25% cap — see
+// progress/checkpoints.md's Phase 3 entry for the full numbers. Fixed with a
+// copy-count rebalance, not a redesign (unlike Null's — see nullCards.ts —
+// Cortex's removal cards are each individually reasonable, there's just too
+// much of it in aggregate): Cascade Purge, Interrupt Handler, and Dormant
+// Exploit each trimmed by 1 copy (-3 total), backfilled by giving Watchtower
+// Relay/Init Daemon/Overclock Shunt (each sitting below their own rarity's
+// copy cap) +1 copy so the pool stays at exactly 40, the same "make room"
+// pattern session 13 used for Force Quit. Diagnostic Pulse and Compiled
+// Daemon's own damage effects were left untouched (they're the pool's
+// cheapest, most central removal, and the density cap only needed a partial
+// trim, not zeroing anything out).
 export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: signalDrone, copies: 3 },
   { card: firewallSentinel, copies: 3 },
   { card: recursiveConstruct, copies: 2 },
-  // Trimmed by 1 each (3->2, 2->1) to make room for Force Quit below without
-  // exceeding the enforced 40-card ceiling (decks.ts's MAX_DECK_SIZE) — this
-  // pool has sat exactly at that ceiling since session 6 (see
-  // progress/quality-debt.md's "Cortex's deck is now exactly at the enforced
-  // 40-card ceiling" entry, which named this exact tradeoff as the next
-  // session's option). Diagnostic Pulse and Diagnostic Loop were picked
-  // because they're the pool's least distinctive removal/filler pieces, not
-  // because of any measured weakness — an ordinary "make room" cut, not a
-  // balance nerf, and it also nudges Cortex's removal density down, which
-  // happens to point the same direction Phase 3's future removal-density
-  // lint rule will want anyway.
   { card: diagnosticPulse, copies: 2 },
-  { card: cascadePurge, copies: 2 },
+  { card: cascadePurge, copies: 1 },
   { card: backupProtocol, copies: 2 },
   { card: mainframeCore, copies: 2 },
   { card: failsafeUnit, copies: 3 },
   { card: cortexEngineer, copies: 3 },
-  { card: watchtowerRelay, copies: 2 },
+  { card: watchtowerRelay, copies: 3 },
   { card: overloadCapacitor, copies: 1 },
   { card: diagnosticLoop, copies: 1 },
   { card: retaliationNode, copies: 1 },
-  { card: interruptHandler, copies: 3 },
-  { card: initDaemon, copies: 2 },
+  { card: interruptHandler, copies: 2 },
+  { card: initDaemon, copies: 3 },
   { card: compiledDaemon, copies: 2 },
-  { card: dormantExploit, copies: 2 },
-  { card: overclockShunt, copies: 2 },
+  { card: dormantExploit, copies: 1 },
+  { card: overclockShunt, copies: 3 },
   { card: forceQuit, copies: 2 },
 ];
 

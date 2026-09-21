@@ -62,14 +62,26 @@ export const corruptedProcess: UnitCard = {
   baseArmor: 1,
   evolvesFrom: "NL-001",
   art: "placeholder:null/corrupted-process",
-  flavor: "It kept running. It just stopped running the program it was given.",
+  flavor: "It kept running. It just stopped running the program it was given. What it recovers from the wreck is anyone's guess.",
   abilities: [
+    // Phase 3 pool lint (cards/poolLint.ts): redesigned from "deal 3 damage
+    // to a random enemy unit" — the whole Null pool measured at 50%
+    // removal/debuff density (18/36 copies), double the lint's 25% cap, and
+    // this faction had zero card-flow (no drawCard anywhere), a separate
+    // lint failure of its own. Converting this card's evolve payload from
+    // damage to a draw fixes both at once: it's one fewer removal effect in
+    // the density count, and it's the card-flow Null was missing entirely.
+    // Not an arbitrary dodge — the same "middle-evolution-tier card draws a
+    // card" shape already exists in the pool (Swarm's Molted Stalker,
+    // data/cards.ts), so this reuses an established pattern rather than
+    // inventing a new one, and "a crashed process spits out whatever
+    // fragment of data it still had queued" is a reasonable read of
+    // "corrupted" that doesn't require inventing new flavour.
     {
       id: "corrupted-process-evolve",
       trigger: "onPlay",
-      text: "When this evolves in, deal 3 damage to a random enemy unit.",
-      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
-      effects: [{ kind: "damage", amount: { mode: "flat", value: 3 } }],
+      text: "When this evolves in, draw a card.",
+      effects: [{ kind: "drawCard", count: 1 }],
     },
   ],
 };
@@ -136,14 +148,38 @@ export const forkBomb: UnitCard = {
   keywords: [],
   telegraph: 1,
   art: "placeholder:null/fork-bomb",
-  flavor: ":(){ :|:& };: — it never stops calling itself, and now it's calling everything else too.",
+  flavor: ":(){ :|:& };: — it never stops calling itself, and now there are two of it.",
   abilities: [
+    // Phase 3 pool lint (cards/poolLint.ts): redesigned from "deal 1 damage
+    // to all enemy units" as part of bringing Null's pool-wide removal/
+    // debuff density down from 50% to the lint's 25% cap (see
+    // corruptedProcess above for the other half of that fix). This one is a
+    // flavour upgrade, not just a density dodge: a fork bomb's actual
+    // mechanism is a process that spawns copies of itself until the system
+    // is overwhelmed — "creates tokens" is a more literal reading of "fork
+    // bomb" than "deals damage" ever was. Mechanically this also gives Null
+    // a genuine rebuild tool (the 2026-09-20 entry's own Phase 2 item 4
+    // motivation, "so wide decks can rebuild after board-wide damage") that
+    // its own AOE-heavy identity had never given it.
     {
       id: "fork-bomb-arm",
       trigger: "onPlay",
-      text: "When this arms, deal 1 damage to all enemy units.",
-      targeting: { scope: "all", filter: { side: "opponent", kind: "unit" } },
-      effects: [{ kind: "damage", amount: { mode: "flat", value: 1 } }],
+      text: "When this arms, create two 1/1 Fork Child tokens.",
+      effects: [
+        {
+          kind: "summon",
+          count: 2,
+          token: {
+            name: "Fork Child",
+            faction: "Null",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:null/fork-child",
+            flavor: "Another copy, spawned before the last one finished spawning.",
+          },
+        },
+      ],
     },
   ],
 };
@@ -325,7 +361,13 @@ export const segmentationFault: DirectiveCard = {
   name: "Segmentation Fault",
   faction: "Null",
   rarity: "Rare",
-  cost: 3,
+  // Cost raised 3 -> 4: Phase 3 pool lint (cards/poolLint.ts) rule 3 ("no
+  // permanent enemy-stat aura under 4 mana") flagged this card directly —
+  // it's exactly what the rule describes, a continuous static enemy-debuff
+  // aura, at cost 3. Raising the cost (rather than making the aura
+  // temporary or conditional) keeps the card's identity and text
+  // completely intact; only its price changes.
+  cost: 4,
   type: "Directive",
   art: "placeholder:null/segmentation-fault",
   flavor: "A standing violation nobody on the far side can clear.",
@@ -413,19 +455,34 @@ export const nullPointer: CommandCard = {
   ],
 };
 
+// Phase 3 pool lint (cards/poolLint.ts): this pool measured at 50% (18/36
+// copies) removal/debuff density, double the lint's 25% cap, plus zero card
+// flow — the exact outcome the 2026-09-20 owner-feedback entry predicted
+// ("the lint will require cutting or redesigning Null cards to make the
+// deck load ... that's intended"). Fixed with both tools the entry
+// mentions, not just one: corruptedProcess and forkBomb above were
+// redesigned off damage entirely (fixing card flow as a side effect, not a
+// coincidence — see their own comments), and the remaining removal cards
+// (Segfault Handler, Deprecated Routine, Segmentation Fault) were trimmed
+// to the copy counts below. Kernel Panic (the evolution line's finisher),
+// Null Singularity (the Mythic capstone), and Null Pointer (the
+// structurally-required per-faction directive-destroy answer from Phase 2
+// item 3) were left at their original counts — cutting those specific three
+// further would have gutted Null's actual identity rather than just its
+// oversaturation. Result: 8/32 = 25.0%, exactly at the cap.
 export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: glitchSeed, copies: 3 },
   { card: strayFragment, copies: 3 },
   { card: corruptionPatch, copies: 3 },
-  { card: segfaultHandler, copies: 3 },
+  { card: segfaultHandler, copies: 1 },
   { card: forkBomb, copies: 3 },
   { card: corruptedProcess, copies: 3 },
   { card: nullShell, copies: 2 },
   { card: propagatingExploit, copies: 3 },
-  { card: deprecatedRoutine, copies: 2 },
+  { card: deprecatedRoutine, copies: 1 },
   { card: decayWard, copies: 2 },
   { card: entropyHarvester, copies: 2 },
-  { card: segmentationFault, copies: 2 },
+  { card: segmentationFault, copies: 1 },
   { card: kernelPanic, copies: 2 },
   { card: nullSingularity, copies: 1 },
   { card: nullPointer, copies: 2 },

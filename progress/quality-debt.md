@@ -10,10 +10,72 @@ session 6 (backfilling Cortex/Swarm with board-development cards), session
 (the owner-directed Aegis-vs-Null fix attempt), session 11 (Aegis
 defensive interaction + the chosen-targeting fix), session 12 (Phase 1 of
 the 2026-09-20 owner-feedback entry — fixing the balance instrument),
-session 13 (Phase 2 item 3 of the same entry — directive removal), and now
-session 14 (Phase 2 items 4-5 — summon/token effect kind, base armor).
+session 13 (Phase 2 item 3 of the same entry — directive removal), session
+14 (Phase 2 items 4-5 — summon/token effect kind, base armor), and now
+session 15 (Phase 3 — the load-time card-pool lint).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 15
+
+- **The "removal/debuff card" classifier (cards/poolLint.ts) is this
+  session's own first-cut formalisation, not something the 2026-09-20 entry
+  spelled out.** It excludes reactive triggers (onAttack/onDamaged/onDeath/
+  onTurnStart/onTurnEnd) from the density count on the judgment that a
+  card's secondary "it happens to graze the opponent" effect isn't the same
+  deck-building commitment as a Command or a standing aura — a real,
+  defensible, but genuinely debatable call, not derived from anything the
+  owner wrote. Flagged in `notes-for-owner.md` as a checkpoint-style
+  proposal; a future session or the owner may want it wider (count reactive
+  triggers too) or narrower.
+- **The Aegis-vs-Null and Swarm-vs-Null pairings got measurably WORSE, not
+  better, after this session's changes** (see `progress/current.md`'s
+  "Honest read" section and `progress/balance-report-009-poollint.txt` for
+  the full numbers). The plausible driver: Corrupted Process's new draw
+  effect made Null's deck more consistent at finding its remaining
+  strongest, untouched cards, even while several weaker removal copies were
+  cut. Not chased or reverted this session — the 2026-09-20 "Null
+  dominance" entry explicitly reserves ability nerfs for after the Phase 4
+  triangle re-measure, not before — but it's a real regression on the two
+  worst-standing pairings, worth knowing before Phase 4 starts from these
+  numbers rather than session 14's.
+- **Rule 2 (targeted damage <= cost+1 under 3 mana) and the "clock" half of
+  rule 4 are untested against the real pool** in the sense that no current
+  card violates either — every existing targeted-damage card already sits
+  at or under the cost+1 line, and every faction has attacking units. This
+  means the lint's enforcement of those two specific rules is only proven
+  by `poolLint.test.ts`'s synthetic cases, not by having actually caught
+  and fixed a real violation the way rules 1 and 3 were. Fine for now
+  (nothing needed fixing), but a future card author should not assume
+  "the lint didn't complain" proves these two paths were ever exercised
+  against real data.
+- **`findExcessiveTargetedDamage` only checks `ScalingAmount`s with
+  `mode: "flat"`** — a future targeted-damage card using `mode: "scaling"`
+  (e.g. scaling off graveyard size, like Entropy Harvester's attack) would
+  silently skip rule 2 entirely rather than being conservatively estimated
+  against its base value. Not exercised by the current pool (no targeted
+  damage effect currently scales), so untested, and named here rather than
+  silently left as an edge nobody thought about.
+- **Fork Bomb's redesign changes its board impact shape, not just its
+  flavour** — the old version was instant, guaranteed AOE damage that could
+  matter even into an empty board; the new version creates two 1/1 bodies
+  that only matter if they survive to attack, and are capped by
+  BOARD_SLOTS like anything else (a full board fizzles the tokens the same
+  way Brood Reserves' do). This is a real mechanical identity shift for the
+  card, not a reskin — whether the new version is stronger, weaker, or just
+  different in the situations that matter (an empty vs. crowded board) has
+  not been isolated or specifically measured; it's folded into this
+  session's aggregate Null re-measurement above, not separated out.
+- **Corrupted Process no longer deals any damage on evolve** — Null now has
+  one fewer unconditional removal-adjacent tool on its evolution line
+  itself (Kernel Panic, the top tier, still does). Whether this changes how
+  the evolution line plays against a board full of small units (previously
+  Corrupted Process's 3-damage evolve-in could clear a 1-2 health blocker
+  on the way up; now it can't) is a real mechanical change with no
+  dedicated before/after isolation, same caveat as Fork Bomb above.
+- **Phase 3 is done; Phases 4-6 remain entirely untouched** — the counter
+  triangle, pool expansion, and the economy tie-in. Restating here per this
+  file's own convention so it isn't mistaken for forgotten.
 
 ## New debt from session 14
 

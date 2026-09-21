@@ -579,7 +579,7 @@ Keep phase order. Do not detour to Cortex-vs-Swarm; the Phase 3 lint will change
 
 ---
 
-## 2026-09-21 — Owner: base armor = 1 approved; write checkpoints when you say you did
+## 2026-09-21 — Owner: base armor = 1 approved; write checkpoints when you say you did (HANDLED 2026-09-21, session 15)
 
 Phase 2 is complete — approved as shipped.
 
@@ -587,3 +587,38 @@ Phase 2 is complete — approved as shipped.
 2. **Process reminder, not a redo:** session 14 said it "flagged baseArmor at a checkpoint" but no checkpoint entry was written and notes-for-owner wasn't updated — it lived only in the PR body and owner-feedback. When a session says it's surfacing a decision for the owner, write it into progress/checkpoints.md (or notes-for-owner.md) as the process defines, so decisions aren't buried in PR descriptions. No rework needed for session 14; just don't let the pattern drift.
 
 Proceed to Phase 3 (the load-time pool lint). Expect it to require cutting Null's removal density to make its deck load — that's intended, per the 2026-09-20 entries.
+
+**Handled, session 15 (2026-09-21).**
+
+1. No code change needed — baseArmor was already 1 across all six base
+   cards from session 14; this entry just confirmed it as final. Nothing to
+   redo.
+2. **Process followed this time, not just acknowledged:** this session's
+   own judgment call (the "removal/debuff card" classifier's precise
+   definition — the 2026-09-20 entry names the four rules but not what
+   counts as a removal/debuff card for rule 1) is written into
+   `progress/notes-for-owner.md` directly, not left to be inferred from the
+   PR body. Same for the honest "Null got stronger, not weaker" balance
+   finding below.
+
+Phase 3 (the load-time pool lint) is now done in full — see
+`progress/current.md`/`progress/log.md`'s session-15 entries and
+`progress/roadmap.md`'s updated item 3 for what shipped. As this entry
+anticipated, Null's pool did need real work to load (50% removal density
+going in, well over the 25% cap, plus a cheap permanent aura and zero card
+flow) — fixed with a mix of redesign (Corrupted Process's evolve effect
+changed from damage to a draw, Fork Bomb's arm effect changed from AOE
+damage to summoning two tokens) and copy trims, per the entry's own
+explicit "cutting or redesigning ... that's intended." Cortex also turned
+out to violate the density rule (32.5%, nothing this entry specifically
+named) — fixed with a pure copy-count rebalance, no redesign needed.
+Swarm and Aegis already passed cleanly.
+
+**One thing worth flagging honestly:** re-measuring after the pool changes
+found Aegis-vs-Null and Swarm-vs-Null got measurably *worse* for Aegis/Swarm,
+not better — most plausibly Corrupted Process's new draw effect making
+Null's deck find its remaining strongest cards more reliably. Not tuned or
+reverted this session, per the parent 2026-09-20 "Null dominance" entry's
+own explicit order (ability nerfs come after the Phase 4 triangle
+re-measure, not before) — full numbers in
+`progress/balance-report-009-poollint.txt` and `progress/notes-for-owner.md`.

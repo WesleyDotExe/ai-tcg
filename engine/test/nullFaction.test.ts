@@ -23,7 +23,7 @@ import {
   glitchSeed,
   nullSingularity,
 } from "../src/data/nullCards.js";
-import { swarmLarva, signalDrone } from "../src/data/cards.js";
+import { swarmLarva } from "../src/data/cards.js";
 import { barrierDrone, aegisWarden, aegisCadet } from "../src/data/aegisCards.js";
 import { emptyState, putUnit } from "./helpers.js";
 
@@ -210,28 +210,34 @@ test("Deprecated Routine (Null) no-ops harmlessly if its chosen target is gone b
   expect(routine.pending, "should still arm on schedule even though its target is gone").toBe(false);
 });
 
-test("Fork Bomb (Null) telegraph arms and deals AOE damage to every enemy unit, not just one", () => {
+test("Fork Bomb (Null) telegraph arms and creates two Fork Child tokens on the controller's board", () => {
+  // Phase 3 pool lint (cards/poolLint.ts): Fork Bomb's arm effect was
+  // redesigned from AOE damage to a summon (see data/nullCards.ts's own
+  // comment on the card — it both cut Null's removal/debuff density and
+  // gave the AOE-damage flavour a more literal "forks copies of itself"
+  // reading). This test replaces the old AOE-damage assertion below with
+  // one proving the new summon effect actually fires on arm, the same way
+  // summon.test.ts proves it for Brood Reserves.
   const state = emptyState();
   const rng = new Rng(33);
-  // signalDrone, not swarmLarva: a plain 1-health damage target with no
-  // baseArmor (see cards/types.ts's UnitCard.baseArmor, 2026-09-20 Phase 2
-  // item 5) — this test is about Fork Bomb's AOE reaching every unit, not
-  // Swarm Larva's own new mitigation, which would otherwise blunt the hit.
-  const victimA = putUnit(state, "p2", signalDrone); // 1 health
-  const victimB = putUnit(state, "p2", signalDrone); // 1 health
   state.players.p1.hand.push(forkBomb); // cost 2, telegraph 1
   state.players.p1.energy = 2;
   state.players.p1.maxEnergy = 2;
   applyMove(state, { type: "playCard", handIndex: 0 }, rng);
   const bomb = state.players.p1.board[0]!;
   expect(bomb.pending).toBe(true);
+  expect(state.players.p1.board).toHaveLength(1);
 
   state.turnNumber += 2;
   beginTurn(state, "p1", rng, { draw: false });
 
   expect(bomb.pending, "should arm on p1's next turn (telegraph=1)").toBe(false);
-  expect(isAlive(state, victimA), "arming's 2-damage AOE should kill both 1-health enemy units").toBe(false);
-  expect(isAlive(state, victimB), "AOE must hit every enemy unit, not just the first").toBe(false);
+  const tokens = state.players.p1.board.filter((u) => u.card.name === "Fork Child");
+  expect(tokens, "arming should create two 1/1 Fork Child tokens").toHaveLength(2);
+  for (const token of tokens) {
+    expect(currentAttack(state, token)).toBe(1);
+    expect(currentHealth(state, token)).toBe(1);
+  }
 });
 
 test("Entropy Harvester (Null) attack scales live with the controller's graveyard size", () => {

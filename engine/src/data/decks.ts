@@ -1,5 +1,6 @@
 import type { Card, Rarity } from "../cards/types.js";
 import type { DeckSpec } from "../state/init.js";
+import { lintCardPool } from "../cards/poolLint.js";
 import { CORTEX_CARDS, SWARM_CARDS } from "./cards.js";
 import { AEGIS_CARDS } from "./aegisCards.js";
 import { NULL_CARDS } from "./nullCards.js";
@@ -31,6 +32,13 @@ const MIN_DECK_SIZE = 20;
 const MAX_DECK_SIZE = 40;
 
 export function buildDeck(id: DeckSpec["id"], name: string, pool: { card: Card; copies: number }[]): DeckSpec {
+  // Phase 3 (2026-09-20 owner-feedback entry): the card-pool lint, enforced
+  // at load time exactly like the copy-limit/deck-size checks below — a
+  // pool-construction rule violation fails to build a deck at all, not
+  // something a future card author has to remember. See
+  // cards/poolLint.ts for the four rules and their reasoning.
+  lintCardPool(pool, pool[0]?.card.faction ?? name);
+
   const cards: Card[] = [];
   for (const { card, copies } of pool) {
     const limit = COPY_LIMITS[card.rarity];

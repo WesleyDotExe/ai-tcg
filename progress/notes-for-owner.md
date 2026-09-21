@@ -1,5 +1,49 @@
 # Notes for the owner
 
+**Updated 2026-09-21, session 15 (Phase 3 of your "fix the loop" plan — the
+load-time card-pool lint).** Nothing blocking, but two things worth a
+steer, written here directly per your own 2026-09-21 process reminder
+rather than left in the PR body:
+
+1. **The "removal/debuff card" classifier is my own first-cut call, not
+   something your 2026-09-20 entry defined.** The entry names the rule
+   ("removal/debuff cards <=25% of a deck") but not what counts as one. I
+   defined it as: an `onPlay`/`static`/`activated` ability that destroys,
+   damages, or negatively affects the opponent, or a standing aura/tax that
+   debuffs them — and deliberately EXCLUDED reactive triggers
+   (onAttack/onDamaged/onDeath/onTurnStart/onTurnEnd), on the reasoning
+   that a card's secondary "it happens to graze the opponent when it dies"
+   effect isn't the same deck-building commitment as a Command you cast
+   specifically to answer the board. This is a real judgment call, not a
+   derivation — with it, Cortex (32.5%) and Null (50%) needed fixes and
+   Swarm/Aegis already passed; without the reactive-trigger exclusion, all
+   four factions would have needed cuts, including ones that only have a
+   reactive damage trigger as basically incidental flavour on a creature.
+   Your call whether the current definition is right, too narrow, or too
+   wide — `engine/src/cards/poolLint.ts`'s own header comment has the full
+   reasoning if you want to look at the code directly.
+2. **Fixing Null's pool to pass the lint made Aegis-vs-Null and
+   Swarm-vs-Null measurably WORSE, not better** (see
+   `progress/balance-report-009-poollint.txt` against session 14's
+   baseline). The likely cause: I gave Corrupted Process a real draw effect
+   (both to cut its removal-density contribution and to fix Null's total
+   lack of card flow — the lint's rule 4), and even after cutting several
+   of Null's weaker removal cards, the extra card advantage seems to have
+   made its deck more consistent at finding its remaining strongest,
+   untouched cards (Kernel Panic, Null Singularity, Null Pointer,
+   Segmentation Fault). Per your own 2026-09-20 "Null dominance" entry,
+   I've deliberately NOT nerfed anything in response to this — that entry
+   reserves ability nerfs for after the Phase 4 triangle re-measure, not
+   before, and the lint itself (this session's actual job) is real, tested,
+   and correct regardless of this particular number. Flagging now so Phase
+   4 starts from an accurate picture rather than being surprised by it.
+
+No decision, asset, or credential only you can provide is needed to
+proceed — the roadmap default is to move to Phase 4 (propose the intended
+counter triangle at a checkpoint, then measure against it) next.
+
+---
+
 **Updated 2026-09-20, session 13 (Phase 2 item 3 of your "fix the loop"
 plan — directives are now removable).** Nothing blocking. One thing worth a
 glance: re-measuring after giving every faction a directive-destroy answer
