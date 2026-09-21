@@ -1,0 +1,291 @@
+AI-TCG pool-lint redesign evidence (Phase 3, 2026-09-20 owner feedback) — seed 3, Null vs Cortex
+Lookahead-Null (p1) vs Lookahead-Cortex (p2)
+Deck sizes: p1=32, p2=40
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Firewall Sentinel
+--- Turn 2 (p2) ---
+p2 plays Signal Drone (u1)
+Signal Drone attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Stray Fragment
+--- Turn 3 (p1) ---
+p1 plays Stray Fragment (u3)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Firewall Sentinel
+--- Turn 4 (p2) ---
+p2 plays Dormant Exploit (u4)
+  Dormant Exploit deploys, dormant — arms in 1 of its controller's turn(s)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Null Shell
+--- Turn 5 (p1) ---
+p1 plays Propagating Exploit (u5)
+Stray Fragment attacks Signal Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Stray Fragment's attack
+  Stray Fragment deals 1 damage to Signal Drone (unit)
+  Signal Drone deals 1 damage to Stray Fragment (unit)
+  Signal Drone (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Overload Capacitor
+--- Turn 6 (p2) ---
+  Dormant Exploit arms
+  ability: Dormant Exploit — dormant-exploit-arm (onPlay)
+  Dormant Exploit applies Stasis to Stray Fragment
+p2 plays Overload Capacitor (u7)
+  ability: Overload Capacitor — overload-capacitor-play (onPlay)
+  Overload Capacitor applies Overload to Overload Capacitor
+Dormant Exploit attacks Stray Fragment
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Dormant Exploit's attack
+  Dormant Exploit deals 1 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Dormant Exploit (unit)
+  Stray Fragment (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+  Overload deals 1 damage to Overload Capacitor (unit)
+p1 draws Kernel Panic
+--- Turn 7 (p1) ---
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)
+  Propagating Exploit grants Propagating Exploit +1/+0
+Propagating Exploit attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Propagating Exploit's attack
+  Propagating Exploit deals 3 damage to Lookahead-Cortex
+  Null Shell attaches to Propagating Exploit
+p1 plays Fork Bomb (u10)
+  Fork Bomb deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Overclock Shunt
+--- Turn 8 (p2) ---
+Overload Capacitor attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overload Capacitor's attack
+  Overload Capacitor deals 4 damage to Lookahead-Null
+p2 plays Firewall Sentinel (u12)
+  Overclock Shunt attaches to Firewall Sentinel
+Firewall Sentinel attacks Propagating Exploit
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 3 damage to Propagating Exploit (unit)
+  Propagating Exploit deals 3 damage to Firewall Sentinel (unit)
+Dormant Exploit attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Dormant Exploit's attack
+  Dormant Exploit deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+  Overload deals 1 damage to Overload Capacitor (unit)
+p1 draws Corruption Patch
+--- Turn 9 (p1) ---
+  Fork Bomb arms
+  ability: Fork Bomb — fork-bomb-arm (onPlay)
+  Fork Bomb summons Fork Child for p1 (u15)
+  Fork Bomb summons Fork Child for p1 (u16)
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)
+  Propagating Exploit grants Propagating Exploit +1/+0
+Propagating Exploit attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Propagating Exploit's attack
+  Propagating Exploit deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 3 damage to Propagating Exploit (unit)
+  Propagating Exploit (p1) dies
+  Firewall Sentinel (p2) dies
+Fork Bomb attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Lookahead-Cortex
+  Corruption Patch attaches to Fork Bomb
+  Decay Ward attaches to Fork Child
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Retaliation Node
+--- Turn 10 (p2) ---
+Overload Capacitor attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overload Capacitor's attack
+  Overload Capacitor deals 4 damage to Lookahead-Null
+p2 plays Firewall Sentinel (u20)
+p2 plays Retaliation Node (u21)
+Dormant Exploit attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Dormant Exploit's attack
+  Dormant Exploit deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+  Overload deals 1 damage to Overload Capacitor (unit)
+p1 draws Glitch Seed
+--- Turn 11 (p1) ---
+p1 plays Null Singularity (u23)
+Fork Bomb attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 1 damage to Fork Bomb (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Diagnostic Pulse
+--- Turn 12 (p2) ---
+Overload Capacitor attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overload Capacitor's attack
+  Overload Capacitor deals 3 damage to Lookahead-Null
+p2 plays Firewall Sentinel (u26)
+Firewall Sentinel attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 1 damage to Lookahead-Null
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Fork Bomb (unit)
+Retaliation Node attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+Dormant Exploit attacks Fork Child
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Dormant Exploit's attack
+  Fork Child deals 2 damage to Dormant Exploit (unit)
+  Dormant Exploit (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Corrupted Process
+--- Turn 13 (p1) ---
+Null Singularity attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Singularity's attack
+  Null Singularity deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 1 damage to Null Singularity (unit)
+  Firewall Sentinel (p2) dies
+p1 plays Glitch Seed (u32)
+Fork Bomb attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 1 damage to Fork Bomb (unit)
+  Fork Bomb (p1) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Recursive Construct
+--- Turn 14 (p2) ---
+Overload Capacitor attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overload Capacitor's attack
+  Overload Capacitor deals 3 damage to Lookahead-Null
+Firewall Sentinel attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 1 damage to Lookahead-Null
+p2 plays Recursive Construct (u36)
+Retaliation Node attacks Fork Child
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Fork Child deals 2 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Fork Child (unit)
+  Fork Child's Barrier absorbs the hit from Retaliation Node
+  Retaliation Node deals 1 damage to Null Singularity (unit)
+  Glitch Seed's base armor reduces 1 damage from Retaliation Node to 0
+  Fork Child (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Propagating Exploit
+--- Turn 15 (p1) ---
+Null Singularity attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Singularity's attack
+  Null Singularity deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 1 damage to Null Singularity (unit)
+  Firewall Sentinel (p2) dies
+  Glitch Seed evolves into Corrupted Process
+  ability: Corrupted Process — corrupted-process-evolve (onPlay)
+p1 draws Null Pointer
+  Corrupted Process evolves into Kernel Panic
+  ability: Kernel Panic — kernel-panic-evolve (onPlay)
+  Overload Capacitor (p2) dies
+Kernel Panic attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kernel Panic's attack
+  Kernel Panic deals 5 damage to Lookahead-Cortex
+Fork Child attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 2 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Diagnostic Pulse
+--- Turn 16 (p2) ---
+Retaliation Node attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Null Singularity (unit)
+Recursive Construct attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 2 damage to Lookahead-Null
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+--- Summary ---
+Winner: p2
+Turns played: 16
+Moves applied: 133
+Corrupted Process evolve-draws this match: 1
+Fork Bomb tokens summoned this match: 2

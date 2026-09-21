@@ -58,8 +58,25 @@ building around them; don't block the whole project waiting.
    (item 5) shifted several pairings (most visibly a real policy flip in
    Cortex-vs-Aegis under Random play) without changing which two pairings
    cross-check-flag (still exactly Cortex-vs-Swarm and Aegis-vs-Null).
-   Neither was tuned further, per the entry's own order. **Phase 3 (a
-   card-pool lint enforced at load time) is next.**
+   Neither was tuned further, per the entry's own order. **Session 15
+   completed Phase 3:** a real, generic, data-driven card-pool lint
+   (engine/src/cards/poolLint.ts), enforced at load time via
+   data/decks.ts's buildDeck, covering all four of the entry's rules
+   (removal/debuff <=25%, targeted damage <=cost+1 under 3 mana, no
+   permanent enemy-stat aura under 4 mana, clock+card flow per pool).
+   Measured against the real pools before touching anything: Cortex
+   (32.5% removal density) and Null (50%, plus a cheap aura and zero card
+   flow) both violated it; Swarm and Aegis already passed. Fixed Cortex
+   with a pure copy-count rebalance; fixed Null with real redesigns
+   (Corrupted Process's evolve: damage -> draw, fixing card flow too; Fork
+   Bomb's arm: AOE damage -> summon two tokens, truer to the card's own
+   name) plus copy trims and Segmentation Fault's cost 3->4. Honest
+   re-measurement result: the cross-check flags the same two pairings as
+   before (Cortex-vs-Swarm, Aegis-vs-Null) — Null actually got a bit
+   *stronger* against Aegis/Swarm, not weaker, plausibly from Corrupted
+   Process's new card draw making its deck more consistent. See
+   progress/balance-report-009-poollint.txt and progress/current.md.
+   **Phase 4 (the intended counter triangle) is next.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still
