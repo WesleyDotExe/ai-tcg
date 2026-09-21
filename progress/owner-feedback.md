@@ -622,3 +622,15 @@ reverted this session, per the parent 2026-09-20 "Null dominance" entry's
 own explicit order (ability nerfs come after the Phase 4 triangle
 re-measure, not before) — full numbers in
 `progress/balance-report-009-poollint.txt` and `progress/notes-for-owner.md`.
+
+---
+
+## 2026-09-22 — Owner: session 15 steers (removal classifier + the Null-got-stronger result)
+
+Both of session 15's notes-for-owner items, answered:
+
+1. **Removal classifier — confirmed as-is.** Excluding incidental reactive triggers (onAttack/onDamaged/onDeath/onTurnStart/onTurnEnd) from the 25% removal cap is the right line. The cap exists to stop a faction being *built around* dedicated removal (what Null was); a creature that grazes the board when it dies is a body played for other reasons, not a removal spell. One refinement, not a rule change: watch for a card whose reactive trigger is clearly its whole point (e.g. a 0/1 that pings the entire enemy board every time it's damaged) — that's removal in a creature's coat. Flag those case by case rather than widening the rule to catch incidental flavour.
+
+2. **Null getting stronger after the pool fix — expected, no action now.** The structural work (Phases 2–3) was always about removing hard counters and arming the other factions, not about making Null lose; a temporary uptick from Corrupted Process's new draw making Null's deck more consistent is fine. The 2026-09-20 backstop stands: if Null is still 60%+ under all three policies after the Phase 4 re-measure, nerf its abilities. It clearly will be, so that nerf is coming. Add one thing to that nerf's scope: Corrupted Process's draw is now part of Null's power — it's on the table alongside the removal cards, not untouchable just because the lint added it.
+
+Proceed to Phase 4 (define the triangle, then re-measure against it).
