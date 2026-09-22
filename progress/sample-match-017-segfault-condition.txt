@@ -1,0 +1,670 @@
+AI-TCG Segmentation Fault conditional-aura evidence (2026-09-22 Phase 4 backstop, step 1) — seed 31, Null vs Cortex
+Both sides played by LookaheadAgent. 162 samples taken (one per move after Segmentation Fault entered play, while an enemy unit existed).
+
+--- Samples (move #, Null's own unit count, whether the aura's condition should be active, observed enemy attack vs base) ---
+  move  104: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  105: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  106: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  107: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  108: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  109: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  110: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  111: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  112: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  113: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  114: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  115: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  116: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  117: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  118: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  119: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  120: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  121: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  122: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  123: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  124: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  125: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  126: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  127: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  128: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  129: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  130: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  131: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  132: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  133: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  134: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  135: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  136: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  137: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  138: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  139: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  140: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  141: Null controls 1 unit(s), condition inactive -> enemy attack 1 (base 1)
+  move  142: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  143: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  144: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  145: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  146: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  147: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  148: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  149: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  150: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  151: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  152: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  153: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  154: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  155: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  156: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  157: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  158: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  159: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  160: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  161: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  162: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  163: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  164: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  165: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  166: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  167: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  168: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  169: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  170: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  171: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  172: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  173: Null controls 2 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  174: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  175: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  176: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  177: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  178: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  179: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  180: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  181: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  182: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  183: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  184: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  185: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  186: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  187: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  188: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  189: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  190: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  191: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  192: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  193: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  194: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  195: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  196: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  197: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  198: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  199: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  200: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  201: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  202: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  203: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  204: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  205: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  206: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  207: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  208: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  209: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  210: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  211: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  212: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  213: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  214: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  215: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  216: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  217: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  218: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 0 (base 1)  [debuffed]
+  move  219: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  220: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  221: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  222: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  223: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  224: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  225: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  226: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  227: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  228: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  229: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  230: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  231: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  232: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  233: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  234: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  235: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  236: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  237: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  238: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  239: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  240: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  241: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  242: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  243: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  244: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  245: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  246: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  247: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  248: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  249: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  250: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  251: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  252: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  253: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  254: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  255: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  256: Null controls 4 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  257: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  258: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  259: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  260: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  261: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  262: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  263: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  264: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+  move  265: Null controls 5 unit(s), condition ACTIVE   -> enemy attack 1 (base 2)  [debuffed]
+
+Aura observed ACTIVE (debuff applied) at least once: true
+Aura observed INACTIVE while Segmentation Fault was still in play (Null's board thinned below 2): true
+
+--- Full match log ---
+--- Turn 1 (p1) ---
+p1 plays Stray Fragment (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Overclock Shunt
+--- Turn 2 (p2) ---
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Stray Fragment (unit)
+  Stray Fragment (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Null Shell
+--- Turn 3 (p1) ---
+p1 plays Glitch Seed (u3)
+  Null Shell attaches to Glitch Seed
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Cortex Engineer
+--- Turn 4 (p2) ---
+p2 plays Retaliation Node (u4)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Null Shell
+--- Turn 5 (p1) ---
+  Null Shell attaches to Glitch Seed
+Glitch Seed attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 1 damage to Lookahead-Cortex
+  Corruption Patch attaches to Glitch Seed
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Backup Protocol
+--- Turn 6 (p2) ---
+p2 plays Firewall Sentinel (u6)
+Retaliation Node attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Stray Fragment
+--- Turn 7 (p1) ---
+p1 plays Stray Fragment (u8)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Fail-safe Unit
+--- Turn 8 (p2) ---
+p2 plays Fail-safe Unit (u9)
+p2 plays Cortex Engineer (u10)
+Firewall Sentinel attacks Stray Fragment
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Firewall Sentinel (unit)
+  Stray Fragment (p1) dies
+Retaliation Node attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Propagating Exploit
+--- Turn 9 (p1) ---
+p1 plays Propagating Exploit (u13)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Recursive Construct
+--- Turn 10 (p2) ---
+Firewall Sentinel attacks Propagating Exploit
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Propagating Exploit (unit)
+  Propagating Exploit deals 2 damage to Firewall Sentinel (unit)
+  Propagating Exploit (p1) dies
+Fail-safe Unit attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Null
+Cortex Engineer attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Null
+Retaliation Node attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Corrupted Process
+--- Turn 11 (p1) ---
+  Glitch Seed evolves into Corrupted Process
+  ability: Corrupted Process — corrupted-process-evolve (onPlay)
+p1 draws Null Pointer
+Corrupted Process attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 3 damage to Firewall Sentinel (unit)
+  Corrupted Process's base armor reduces 2 damage from Firewall Sentinel to 1
+  Firewall Sentinel deals 1 damage to Corrupted Process (unit)
+  Firewall Sentinel (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Firewall Sentinel
+--- Turn 12 (p2) ---
+p2 plays Firewall Sentinel (u24)
+Fail-safe Unit attacks Lookahead-Null (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Null
+Cortex Engineer attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Null
+Retaliation Node attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Segmentation Fault
+--- Turn 13 (p1) ---
+Corrupted Process attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 3 damage to Firewall Sentinel (unit)
+  Corrupted Process's base armor reduces 2 damage from Firewall Sentinel to 1
+  Firewall Sentinel deals 1 damage to Corrupted Process (unit)
+p1 plays Segmentation Fault (d32)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Diagnostic Pulse
+--- Turn 14 (p2) ---
+Firewall Sentinel attacks Lookahead-Null (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Lookahead-Null
+Fail-safe Unit attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Null
+Retaliation Node attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Null
+Cortex Engineer attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Fork Bomb
+--- Turn 15 (p1) ---
+p1 plays Fork Bomb (u44)
+  Fork Bomb deploys, dormant — arms in 1 of its controller's turn(s)
+Corrupted Process attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 3 damage to Firewall Sentinel (unit)
+  Corrupted Process's base armor reduces 1 damage from Firewall Sentinel to 0
+  Firewall Sentinel (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Firewall Sentinel
+--- Turn 16 (p2) ---
+p2 plays Firewall Sentinel (u46)
+Fail-safe Unit attacks Lookahead-Null (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 1 damage to Lookahead-Null
+Retaliation Node attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+Cortex Engineer attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+p1 draws Stray Fragment
+--- Turn 17 (p1) ---
+  Fork Bomb arms
+  ability: Fork Bomb — fork-bomb-arm (onPlay)
+  Fork Bomb summons Fork Child for p1 (u55)
+  Fork Bomb summons Fork Child for p1 (u56)
+p1 plays Stray Fragment (u57)
+Fork Bomb attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 1 damage to Fork Bomb (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+p2 draws Mainframe Core
+--- Turn 18 (p2) ---
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Corrupted Process's base armor reduces 2 damage from Diagnostic Pulse to 1
+  Diagnostic Pulse deals 1 damage to Corrupted Process (unit)
+Firewall Sentinel attacks Stray Fragment
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 1 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Firewall Sentinel (unit)
+Cortex Engineer attacks Stray Fragment
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Stray Fragment deals 1 damage to Cortex Engineer (unit)
+Fail-safe Unit attacks Stray Fragment
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 1 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Fail-safe Unit (unit)
+  Stray Fragment (p1) dies
+Retaliation Node attacks Corrupted Process
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Corrupted Process deals 3 damage to Retaliation Node (unit)
+  Retaliation Node (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 18 for p2]
+p1 draws Corrupted Process
+--- Turn 19 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 19 for p1]
+p2 draws Watchtower Relay
+--- Turn 20 (p2) ---
+p2 plays Watchtower Relay (u72)
+Firewall Sentinel attacks Lookahead-Null (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 1 damage to Lookahead-Null
+Fail-safe Unit attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 1 damage to Lookahead-Null
+Cortex Engineer attacks Corrupted Process
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Corrupted Process deals 3 damage to Cortex Engineer (unit)
+  Cortex Engineer (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 20 for p2]
+p1 draws Propagating Exploit
+--- Turn 21 (p1) ---
+p1 plays Propagating Exploit (u83)
+  p1 passes priority
+  p2 passes priority
+[end of turn 21 for p1]
+p2 draws Cortex Engineer
+--- Turn 22 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Propagating Exploit
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 1 damage to Propagating Exploit (unit)
+  Propagating Exploit deals 2 damage to Watchtower Relay (unit)
+Fail-safe Unit attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 1 damage to Lookahead-Null
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+--- Summary ---
+Winner: p2
+Turns played: 22

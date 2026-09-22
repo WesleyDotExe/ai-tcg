@@ -3,6 +3,7 @@ import type { Ability } from "../cards/types.js";
 import type { GameState, PlayerId, UnitInstance } from "../state/types.js";
 import { matchesSide } from "./targeting.js";
 import { buildScalingContext } from "./scaling.js";
+import { evaluateCondition } from "./conditions.js";
 
 interface StaticSource {
   controller: PlayerId;
@@ -38,6 +39,18 @@ export function staticModifiersFor(state: GameState, unit: UnitInstance): Static
     for (const src of sources) {
       for (const ability of src.abilities) {
         if (ability.trigger !== "static" || !ability.staticEffect) continue;
+        // Ability.condition was already a general "gates whether this
+        // ability fires/can be activated" field (see cards/types.ts), but
+        // nothing ever read it for a "static" trigger — every static aura
+        // built so far was unconditional. Wiring it in here (rather than a
+        // one-off flag on StaticEffectSpec) is what lets a future static
+        // ability be genuinely conditional/temporary using the SAME
+        // Condition union onPlay/activated abilities already use, evaluated
+        // fresh against live GameState on every read, same as the rest of
+        // this function. First user: Null's Segmentation Fault (2026-09-22
+        // owner-feedback backstop, step 1 — "redesign Segmentation Fault so
+        // its effect is conditional or temporary").
+        if (ability.condition && !evaluateCondition(ability.condition, state, src.controller)) continue;
         const se = ability.staticEffect;
         if (se.kind === "buffAllies") {
           if (matchesSide(se.filter, src.controller, unit.controller)) {

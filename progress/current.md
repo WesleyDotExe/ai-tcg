@@ -1,146 +1,107 @@
 # Current status
 
-**Build-order stage: 3 (A real card set) — still current.** Session 15.
+**Build-order stage: 3 (A real card set) — still current.** Session 16.
 
 The 2026-09-20 owner-feedback entry ("balance is a systems problem; fix the
 loop, then expand the pool") lays out six phases, explicit order, each done
-before the next. Session 12 did Phase 1 (fix the instrument). Sessions 13-14
-did Phase 2 in full (directive removal, summon effect kind, base armor).
-**This session did Phase 3 — the load-time card-pool lint — in full**, per
-the owner's 2026-09-21 explicit direction to proceed to it.
+before the next. Session 12 did Phase 1. Sessions 13-14 did Phase 2 in
+full. Session 15 did Phase 3 (the load-time pool lint). **This session did
+Phase 4 — propose the intended counter triangle, then measure the real pool
+against it — plus 3 of the 4 steps in the pre-authorized Null backstop the
+2026-09-20 entry's re-measurement condition unlocked.**
 
-## What stands (this session's work — everything from sessions 1-14
+## What stands (this session's work — everything from sessions 1-15
 ## otherwise unchanged, see prior `progress/log.md` entries)
 
-**A real, generic, data-driven pool lint (`engine/src/cards/poolLint.ts`),
-enforced at load time.** Wired into `data/decks.ts`'s `buildDeck` — every
-deck any part of the engine builds (a real match, a test, `balanceReport.ts`)
-now runs the lint first and throws with a specific, itemised message if a
-rule is broken, exactly like the existing copy-limit/deck-size checks it
-sits next to. Four rules, matching the entry's own numbers exactly (25%,
-cost+1, cost 4):
+**The counter triangle, proposed and measured.** Adopted the owner's own
+2026-09-20 example (Null attrition beats Aegis stacking; Aegis walls beat
+Swarm width; Swarm width beats Null's single-target removal; Cortex
+flexible in the middle) and translated its 55-60%/45-55% targets onto each
+of the six cross-faction pairings. Measured the real pool (as it stood at
+the start of this session, identical to `balance-report-009`) against it:
+**none of the six pairings meet the triangle.** Two distinct problems:
+Cortex is too strong (triple-flagged vs Swarm, Aggressive-flagged vs
+Aegis) rather than flexible; and Null's side of the cycle is backwards on
+one edge (Swarm should beat Null, loses to it 55-81%) and overshoots on the
+other (should beat Aegis 55-60%, wins by up to 78%). Full table and
+reasoning: `progress/balance-report-010-phase4-triangle.txt` Parts 1-2.
 
-1. **Removal/debuff cards <= 25% of a deck.** "Removal/debuff card" is this
-   session's own first-cut formalisation (the entry names the rule but not
-   the classifier) — an `onPlay`/`static`/`activated` ability whose effect
-   destroys, damages, or negatively-buffs the opponent, or a static aura/tax
-   that debuffs them. Reactive triggers (`onAttack`/`onDamaged`/`onDeath`/
-   `onTurnStart`/`onTurnEnd`) are deliberately excluded — a unit's secondary
-   "it happens to graze the opponent when it dies" effect is not the same
-   deck-building commitment as a Command or a standing aura. Flagged as a
-   checkpoint-style proposal in `notes-for-owner.md`, not treated as settled.
-2. **No targeted (chosen/random-scope) damage above cost+1 under 3 mana.**
-   No card in the current pool violated this one — nothing needed to change
-   for it, it's enforced going forward.
-3. **No permanent enemy-stat aura under 4 mana.** Caught exactly one card:
-   Null's Segmentation Fault (cost 3, a continuous -1/-0 enemy aura) —
-   fixed by raising its cost to 4, text/identity untouched.
-4. **Every faction pool has both a clock (can pressure the opponent's
-   health) and card flow (can draw cards).** Caught Null specifically: its
-   14-card pool (before this session) had zero `drawCard` anywhere.
+**The pre-authorized Null backstop — 3 of 4 steps executed, honestly
+small effect.** The 2026-09-20 "Null dominance" entry pre-authorizes
+nerfing Null's abilities, in a specific priority order, once it's winning
+60%+ against any faction under all three policies — already true for
+Aegis-vs-Null going into this session, so this was executed without a new
+ask:
 
-**Measured against the real pools, not guessed:** Cortex measured at 32.5%
-removal density (over the cap) and Null at 50% (over the cap, plus the aura
-and card-flow failures above) — Swarm (11.4%) and Aegis (23.1%) already
-passed cleanly with no changes. Fixed both:
+1. **Segmentation Fault redesigned from an unconditional permanent aura to
+   a conditional one** ("While you control 2 or more units, enemy units get
+   -1/-0"). Needed one small, genuinely generic engine addition:
+   `effects/statics.ts`'s `staticModifiersFor` now reads `Ability.condition`
+   for the `"static"` trigger (it already existed for
+   onPlay/activated/etc., just was never wired up for statics). Real,
+   unscripted-play evidence the toggle fires both ways:
+   `progress/sample-match-017-segfault-condition.txt`.
+2. **Corrupted Process cut 3 -> 2 copies** (the card the 2026-09-22
+   owner-feedback entry itself named as fair game). Fork Bomb was NOT also
+   cut — the pool was sitting exactly at the Phase 3 lint's 25%
+   removal/debuff cap, and Null Shell (the only card anywhere in the pool
+   under its rarity's copy cap) absorbed the one backfill this required;
+   that headroom is now used up.
+3. **Entropy Harvester's scaling source changed from the controller's own
+   graveyard to the opponent's** (new generic `opponentGraveyardSize`
+   `ScalingSource`, added to `cards/types.ts`/`effects/scaling.ts`/
+   `agents/lookaheadAgent.ts` — both graveyards are public zones, no new
+   redaction work needed).
 
-- **Cortex** — a copy-count rebalance only, no ability changes: Cascade
-  Purge/Interrupt Handler/Dormant Exploit trimmed by 1 copy each, backfilled
-  onto Watchtower Relay/Init Daemon/Overclock Shunt (each below their own
-  rarity's copy cap) so the pool stays at exactly 40 cards. Now 25.0%.
-- **Null** — real redesign, not just cuts, per the entry's own "cutting or
-  redesigning ... that's intended": **Corrupted Process**'s evolve effect
-  changed from "deal 3 damage to a random enemy unit" to "draw a card" —
-  this single change both removes a removal effect from the density count
-  *and* fixes rule 4's card-flow failure at once (mirrors Swarm's Molted
-  Stalker, an existing evolve-and-draw card). **Fork Bomb**'s arm effect
-  changed from "deal 1 damage to all enemy units" to "create two 1/1 Fork
-  Child tokens" — a genuine flavour upgrade (a fork bomb's real mechanism is
-  spawning copies of itself, which "creates tokens" reads more literally
-  than "deals damage" ever did), and it gives Null a rebuild tool it had
-  never had. Segfault Handler/Deprecated Routine/Segmentation Fault trimmed
-  to 1 copy each; Kernel Panic/Null Singularity/Null Pointer (the evolution
-  finisher, the Mythic capstone, and the structurally-required per-faction
-  directive-answer) were left untouched rather than cut further. Now 25.0%,
-  exactly at the cap, with real card flow and no cheap aura.
+Measured after each step. Cumulative result: Aegis-vs-Null moved from
+78.3%/78.3%/67.7% to 78.0%/72.0%/67.7% (Aggressive/Random/Lookahead) — a
+real drop under Random, essentially flat under the other two. **Both
+Aegis-vs-Null and Cortex-vs-Swarm remain triple-flagged after this
+session.** Step 4 (cost increases) was named but not attempted — the two
+outlier cards (Kernel Panic, Null Singularity) already cost exactly what
+their faction-mirror equivalents cost, so raising them further is a
+cross-faction curve decision flagged to the owner rather than made
+unilaterally. Cortex-vs-Swarm has no pre-authorized fix mechanism and was
+measured, not touched. See `progress/checkpoints.md`'s new Phase 4 entry
+and `progress/notes-for-owner.md` for the specific steers requested.
 
 ## Evidence committed
 
-- `engine/test/poolLint.test.ts` — 9 new tests: each of the four rules
-  fires on a minimal synthetic pool built just for that rule (so a failure
-  points at exactly which rule broke), the reactive-trigger exclusion and
-  the redirectAttack/heal/draw non-classification are pinned directly,
-  `buildDeck` itself (not just `lintCardPool` in isolation) is proven to
-  enforce it, and all four real faction pools are asserted to build clean.
-- `engine/test/nullFaction.test.ts` — the old Fork Bomb AOE-damage test was
-  replaced with one asserting the new summon (two real Fork Child tokens,
-  correct stats) — the mechanic changed, so the test needed to change with
-  it, not just be deleted.
-- `progress/sample-match-016-poollint.txt` — a real, unscripted, seed-found
-  `LookaheadAgent`-vs-`LookaheadAgent` match (Null vs Cortex, seed 3, found
-  on the third seed tried) where **both** redesigned Null effects fire for
-  real: Fork Bomb arms and summons two Fork Child tokens, and later Glitch
-  Seed evolves into Corrupted Process and actually draws a card (which then
-  itself evolves into Kernel Panic later in the same match).
-- `npm test` (root, all four workspaces): **124/124 passing** (77 engine —
-  up from 68 — + 7 protocol + 23 server + 17 agents). `npx tsc --noEmit`
-  clean in all four packages. (One server integration test —
-  `closes a third connecting socket...` — is flaky under a full concurrent
-  run but passes reliably alone; this is `server/`, untouched this session,
-  and matches session 9's own named debt about that test's timing
-  sensitivity, not a regression from this session's changes.)
-- `progress/balance-report-009-poollint.txt` — full 300-seed, three-policy
-  re-measurement after the pool changes, for comparison against
-  `balance-report-008-basearmor.txt` (the pre-session baseline).
-
-## Honest read on what the re-measurement found
-
-**Structural goal met; raw balance did not improve — if anything, Null got
-stronger, not weaker.** The cross-check result is unchanged in kind: still
-exactly Cortex-vs-Swarm and Aegis-vs-Null triple-flagged, same two pairings
-as every session since 12. Underneath that, most individual numbers moved
-the WRONG direction for the factions Null was already beating:
-Aegis-vs-Null went from 76.0%/73.7%/64.7% to 78.3%/78.3%/67.7%
-(Aggressive/Random/Lookahead), and Swarm-vs-Null from 55.3%/74.0%/62.7% to
-55.3%/80.7%/67.3% — both worse under Random and Lookahead specifically. The
-plausible read: giving Corrupted Process real card draw, even while cutting
-several of Null's weaker removal copies, made its deck *more consistent* at
-finding its remaining strongest cards (Kernel Panic, Null Singularity, Null
-Pointer, Segmentation Fault — none of which were touched), and card
-advantage is generically powerful regardless of which faction holds it. Not
-a universal regression, though: Cortex-vs-Null actually *improved* —
-Lookahead dropped from 60.7% Null to 55.0% Null, no longer single-flagged
-there, plausibly Cortex's own Force Quit/Init Daemon copy changes helping
-it find directive-removal/board presence more often.
-
-**Not chased or tuned further this session, correctly so.** This result is
-exactly what the 2026-09-20 "Null dominance" owner-feedback entry
-anticipated and pre-authorized a response for — *after* the Phase 4
-re-measure, not before, and via ability nerfs, not more pool-shape changes.
-Phase 3's job was the load-time lint itself, which is real, tested, and
-enforced; Phase 4 (the intended counter triangle, defined and measured
-against) is next, and is where this Null number gets addressed together
-with Cortex-vs-Swarm, per the entry's own explicit order.
+- `progress/balance-report-010-phase4-triangle.txt` — the triangle
+  proposal, the before/after measurement through all 3 backstop steps, and
+  the full final 300-seed/3-policy raw report.
+- `progress/sample-match-017-segfault-condition.txt` — a real, unscripted
+  LookaheadAgent-vs-LookaheadAgent match (seed 31, Null vs Cortex) where
+  Segmentation Fault's aura is observed toggling INACTIVE (Null at 1 unit)
+  then ACTIVE (Null back at 2 units), with the affected enemy unit's live
+  attack value moving accordingly both times.
+- `engine/test/nullFaction.test.ts` — updated: a dedicated test for
+  Segmentation Fault's condition toggle (via the existing whitebox harness)
+  and a corrected Entropy Harvester test (now asserts the controller's own
+  graveyard does NOT move its attack, only the opponent's does).
+- `npm test` (root, all four workspaces): 124/124 passing (77 engine + 7
+  protocol + 23 server + 17 agents, same counts as session 15 — this
+  session updated existing tests rather than adding new ones, since the
+  mechanism it added generic support for, condition-gated statics, was
+  proven via the existing test plus the real-match demo rather than a
+  wholly new test file). `npx tsc --noEmit` clean in all four packages.
 
 ## Decisions made this session the owner might want to overrule
 
-See `progress/notes-for-owner.md` for the full write-up — flagged there,
-not just here, per the owner's own 2026-09-21 process reminder. In short:
-the removal/debuff classifier's own definition (which triggers/effect kinds
-count) is a first-cut formalisation, not something the entry itself spelled
-out, and the honest "Null got stronger, not weaker" balance finding above.
+See `progress/checkpoints.md`'s new Phase 4 entry (the full write-up) and
+`progress/notes-for-owner.md` (the short version). In short: the specific
+per-pairing percentage-band translation of the triangle's targets; which
+Null card to cut (Corrupted Process, not Fork Bomb, for lint-headroom
+reasons); and the decision NOT to attempt step 4 (cost increases) or any
+Cortex/Swarm-side fix unilaterally.
 
 ## Concrete next step
 
-Phase 4 of the 2026-09-20 owner-feedback entry: propose an explicit counter
-triangle at a checkpoint (e.g. Null attrition beats Aegis stacking; Aegis
-walls beat Swarm width; Swarm width beats Null's single-target removal;
-Cortex flexible in the middle), then measure the real pool against it.
-Targets: 55-60% for the intended edge, 45-55% elsewhere, under all three
-policies — balance means matching the triangle, not 50% everywhere. This is
-also where Cortex-vs-Swarm and Aegis-vs-Null (both still triple-flagged,
-per this session's honest re-measurement above) finally get addressed
-together, and where the standing "nerf Null's abilities" backstop
-(2026-09-20 owner-feedback entry) becomes live if Null is still winning
-60%+ against anyone after the triangle re-measure. Read
-`progress/balance-report-009-poollint.txt` in full before starting.
+No single obviously-next action — this is a genuine steering fork, written
+up for the owner in `checkpoints.md`/`notes-for-owner.md`. If no owner
+response arrives before the next session, the default (per this session's
+own stated instinct, not yet acted on) is: look at Swarm's own kit to fix
+the Swarm-vs-Null inversion (currently the single most structurally wrong
+result against the triangle — worse than "right direction, too strong"),
+rather than continuing to only nerf Null or touching Cortex unilaterally.
+Read `progress/balance-report-010-phase4-triangle.txt` in full first.

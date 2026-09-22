@@ -1537,3 +1537,122 @@ is next, per the entry's own explicit order — this is where Cortex-vs-Swarm
 and Aegis-vs-Null both finally get addressed together, and where the
 standing "nerf Null's abilities" backstop becomes live if it's still
 winning 60%+ against anyone after that re-measure.
+
+## 2026-09-22 — Session 16 (Phase 4: the counter triangle, proposed and measured; the Null backstop executed)
+
+Read `progress/owner-feedback.md` first, per TASKS.md. The most recent entry
+(2026-09-22, "session 15 steers") was already substantively handled by prior
+sessions — its own live instruction was "proceed to Phase 4" of the
+2026-09-20 "balance is a systems problem" entry (define the intended counter
+triangle, measure the real pool against it). No CRITICAL quality-debt item
+was outstanding, so this was the correctly-ordered next work.
+
+**Part 1: proposed the triangle.** Adopted the owner's own 2026-09-20 example
+as-is (Null attrition beats Aegis stacking; Aegis walls beat Swarm width;
+Swarm width beats Null's single-target removal; Cortex flexible in the
+middle) rather than inventing a different one, and translated its own
+"55-60% for the intended edge, 45-55% elsewhere" rule onto each of the six
+cross-faction pairings — the one piece of genuine first-cut judgment in this
+part, flagged as such.
+
+**Part 2: measured the real pool against it.** Re-ran `balanceReport.ts`
+(300 seeds, 3 policies) — numbers identical to session 15's
+`balance-report-009` since nothing had changed yet. Result: none of the six
+pairings meet the triangle. Two distinct problems: Cortex measures as the
+strongest faction overall (triple-flagged vs Swarm, Aggressive-flagged vs
+Aegis) rather than "flexible in the middle"; and Null's side of the
+triangle's cycle is backwards on one edge (Swarm is supposed to beat Null,
+loses to it 55-81% depending on policy) while overshooting on the other
+(should beat Aegis by 55-60%, currently wins by up to 78%).
+
+**Part 3: the pre-authorized Null backstop.** The 2026-09-20 "Null
+dominance" entry pre-authorizes a specific, priority-ordered nerf sequence
+once Null is winning 60%+ against any faction under all three policies —
+already true for Aegis-vs-Null before this session started (it's been
+triple-flagged since session 12's instrument fix), so this was executed as
+already-authorized work, not a new ask. Three of its four steps, in order,
+measuring after each:
+
+1. **Segmentation Fault: unconditional -> conditional.** Needed one small,
+   genuinely generic engine addition, not a card-only hack:
+   `effects/statics.ts`'s `staticModifiersFor` now reads `Ability.condition`
+   for the `"static"` trigger — that field already existed and already
+   gated onPlay/activated abilities, it had just never been wired up for
+   statics. Segmentation Fault's aura is now "While you control 2 or more
+   units, enemy units get -1/-0" instead of unconditional. Proven two ways:
+   a dedicated whitebox test in `nullFaction.test.ts`, and real,
+   unscripted-play evidence — wrote a new dev script
+   (`engine/src/dev/segfaultConditionMatchDemo.ts`, following this
+   project's existing search-over-seeds pattern) that steps a real
+   LookaheadAgent-vs-LookaheadAgent match move-by-move (re-driving
+   `runMatch`'s own loop, since `runMatch` has no per-move hook) and
+   samples the aura's live state. Found a seed on the first search (seed
+   31, Null vs Cortex, `progress/sample-match-017-segfault-condition.txt`)
+   where Null's board genuinely drops to 1 unit (aura observably INACTIVE,
+   enemy attack at full base value) and later rebuilds to 2 (aura
+   observably ACTIVE, the same enemy unit's live attack reads 1 lower) —
+   both transitions, in real unscripted play, not a staged scenario.
+   Measured effect: tiny (Aegis-vs-Null 78.3/78.3/67.7 -> 76.7/77.0/67.7).
+2. **Corrupted Process: 3 -> 2 copies.** Hit a real constraint and worked
+   through it rather than around it: the Null pool was sitting exactly at
+   the Phase 3 lint's 25% removal/debuff cap (8/32 copies), so cutting a
+   non-removal card's copy without backfilling immediately fails the lint
+   (confirmed by actually running the suite and reading the failure before
+   fixing it). Null Shell (the only card anywhere in the pool with headroom
+   under its rarity's copy cap) absorbed the one backfill needed. That
+   headroom is now fully used — Fork Bomb, also named in this step, was
+   NOT also cut, honestly left undone rather than force-fit. Measured
+   effect (cumulative): Aegis-vs-Null to 76.7/75.7/67.0; Swarm-vs-Null
+   (Lookahead) moved from 67.3% to 63.7% Null, the largest single-step
+   movement found.
+3. **Entropy Harvester: controller's graveyard -> opponent's.** Added a new,
+   genuinely generic `ScalingSource` (`opponentGraveyardSize` —
+   `cards/types.ts`, `effects/scaling.ts`, and `agents/lookaheadAgent.ts`'s
+   own scaling context; both graveyards are public zones, no redaction work
+   needed) rather than a one-off card-specific hack. Corrected the existing
+   whitebox test rather than deleting it (now asserts the controller's own
+   graveyard filling up does NOT move the card's attack, only the
+   opponent's does). Measured effect (cumulative): Aegis-vs-Null to
+   78.0/72.0/67.7 — the single largest movement toward target this session
+   found (Random: 75.7% -> 72.0%), though Aggressive/Lookahead both
+   essentially reverted to their pre-step numbers.
+
+**Cumulative, honest result:** Aegis-vs-Null moved from 78.3%/78.3%/67.7% to
+78.0%/72.0%/67.7% — real under Random, flat under the other two policies.
+Swarm-vs-Null barely moved net (55.3/80.7/67.3 -> 56.0/79.0/67.3). **Both
+pairings remain triple-flagged.** This matches the exact pattern sessions
+8/10/11 already found for this matchup: individual Null nerfs move
+Random-policy numbers but barely touch Aggressive/Lookahead. The per-card
+instrumentation (already standing in every balance report) now points more
+specifically than before at WHY: Kernel Panic and Null Singularity are
+extreme played-win-rate outliers (up to 88.7% and 82.9%) against a pool that
+otherwise clusters 45-60%, and neither was touched this session.
+
+**Step 4 (cost increases) and Cortex-vs-Swarm — deliberately not attempted.**
+Kernel Panic and Null Singularity already cost exactly what their
+faction-mirror equivalents cost (Aegis Warden 5, Prime Aegis 6) — raising
+either further makes Null's top end the first in the pool to cost strictly
+more than its peers, a cross-faction curve decision flagged to the owner
+(`checkpoints.md`, `notes-for-owner.md`) rather than made unilaterally.
+Cortex-vs-Swarm was measured (still triple-flagged, unchanged — nothing this
+session touched Cortex or Swarm) but has no owner-pre-authorized fix
+mechanism the way Null's backstop does, so it's named and flagged, not
+guessed at.
+
+**Evidence committed:** `progress/balance-report-010-phase4-triangle.txt`
+(the triangle proposal, the full before/after-each-step measurement, and the
+final raw 300-seed/3-policy report); `progress/sample-match-017-segfault-condition.txt`;
+updated `engine/test/nullFaction.test.ts`. `npm test`: 124/124 passing across
+all four workspaces (same count as session 15 — existing tests updated for
+the two redesigned cards, no wholly new test file needed since both
+mechanisms plugged into already-tested generic systems). `npx tsc --noEmit`
+clean in all four packages.
+
+**What's next:** a genuine steering fork, written up in `checkpoints.md` and
+`notes-for-owner.md` — step 4 (Null cost increases) vs. looking at
+Aegis's/Swarm's own kits instead, and who/what to touch for Cortex-vs-Swarm.
+This session's own stated instinct, not yet acted on: the Swarm-vs-Null
+inversion (Swarm should win, currently loses) looks like the most
+structurally wrong result on the board right now and hasn't been
+specifically targeted by anything yet — a future session should consider
+Swarm's own kit before further Null-only nerfs.

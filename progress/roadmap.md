@@ -76,7 +76,24 @@ building around them; don't block the whole project waiting.
    *stronger* against Aegis/Swarm, not weaker, plausibly from Corrupted
    Process's new card draw making its deck more consistent. See
    progress/balance-report-009-poollint.txt and progress/current.md.
-   **Phase 4 (the intended counter triangle) is next.**
+   **Session 16 did Phase 4: proposed the intended counter triangle**
+   (adopted the owner's own 2026-09-20 example: Null beats Aegis, Aegis
+   beats Swarm, Swarm beats Null, Cortex flexible; targets 55-60%/45-55%),
+   **measured the real pool against it (none of the six pairings pass —
+   Cortex too strong vs Swarm/Aegis; Null's cycle edge backwards vs Swarm,
+   overshooting vs Aegis), and executed 3 of the 4 steps in the
+   pre-authorized "Null dominance" backstop** (already triggered going in —
+   Segmentation Fault redesigned to a conditional aura via a new generic
+   engine mechanism; Corrupted Process cut a copy; Entropy Harvester's
+   scaling moved to the opponent's graveyard). Honest result: real but
+   small movement, both Aegis-vs-Null and Cortex-vs-Swarm remain
+   triple-flagged. Step 4 (cost increases) and any Cortex/Swarm-side fix
+   were flagged to the owner rather than done unilaterally — see
+   progress/balance-report-010-phase4-triangle.txt,
+   progress/checkpoints.md, and progress/notes-for-owner.md.
+   **Next: owner steer on step 4/Cortex-Swarm, or — if none arrives —
+   Swarm's own kit against the inverted Swarm-vs-Null edge, the most
+   structurally wrong result against the triangle right now.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

@@ -18,6 +18,8 @@ export function buildScalingContext(state: GameState, forPlayer: PlayerId): Scal
           return state.players[forPlayer].hand.length;
         case "controllerGraveyardSize":
           return state.players[forPlayer].graveyard.length;
+        case "opponentGraveyardSize":
+          return state.players[opponent].graveyard.length;
         case "turnNumber":
           return state.turnNumber;
       }

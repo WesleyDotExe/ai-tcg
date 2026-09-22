@@ -1,5 +1,57 @@
 # Notes for the owner
 
+**Updated 2026-09-22, session 16 (Phase 4 — the counter triangle, proposed
+and measured; the Null backstop executed).** Nothing blocking, but real
+steers wanted — see `progress/checkpoints.md`'s new Phase 4 entry for the
+full write-up (this is the short version, per your own 2026-09-21 process
+reminder to write checkpoint-worthy decisions here/there, not just in a PR
+body):
+
+1. **The triangle proposal itself needs your confirmation, not just a
+   read.** I adopted your own 2026-09-20 example as-is (Null beats Aegis,
+   Aegis beats Swarm, Swarm beats Null, Cortex flexible) and translated
+   "55-60%/45-55%" onto each of the six pairings myself — that specific
+   translation is my own first pass, not something you spelled out
+   pairing-by-pairing.
+2. **Measured against it: none of the six pairings pass yet.** Two
+   different problems, not one — Cortex is too strong against Swarm (and,
+   under one policy, Aegis), which contradicts "flexible in the middle";
+   and Null's side of the cycle is actively backwards on one edge (Swarm is
+   supposed to beat Null, currently loses to it 55-81%) as well as
+   overshooting on the other (should beat Aegis by 55-60%, currently wins
+   by up to 78%).
+3. **I executed your pre-authorized Null backstop (3 of its 4 steps)
+   without asking first**, since its own trigger condition (Null winning
+   60%+ against Aegis under all three policies) was already true going in —
+   that's what "pre-authorized" means, so I didn't treat it as a new
+   decision needing sign-off. Segmentation Fault is now a conditional aura
+   (a small, genuinely generic engine addition, not a card-only hack);
+   Corrupted Process lost a copy; Entropy Harvester now scales off the
+   enemy's graveyard instead of Null's own. Honest result: measurable but
+   small movement, both pairings still flagged.
+4. **Step 4 (cost increases) — I stopped and I'm asking, not guessing.**
+   The data points at Kernel Panic and Null Singularity specifically (both
+   extreme played-win-rate outliers), but both already cost exactly what
+   their faction-mirror equivalents cost elsewhere (Aegis Warden 5, Prime
+   Aegis 6) — pushing them higher would be the first time any faction's
+   top end costs strictly more than its peers, a cross-faction curve call I
+   didn't think was mine to make alone. Want me to do it anyway, or look at
+   Aegis's/Swarm's own kits instead?
+5. **Cortex-vs-Swarm — measured, still not fixed, and there's no
+   pre-authorized mechanism for it the way there is for Null.** Should
+   Cortex be nerfed, or Swarm/Aegis buffed? I didn't pick a faction to touch
+   unilaterally here.
+
+My own instinct if you'd rather I just proceed with a default: the
+Swarm-vs-Null inversion looks like the most structurally wrong result on
+the board (worse than "right direction, too strong" or "wrong faction
+strong") and hasn't been targeted by anything yet — I'd look at giving
+Swarm's own kit more staying power against Null next, rather than
+continuing to only nerf Null. But I've held off doing that unilaterally
+since it's a card-set-design call on a faction this session didn't touch.
+
+---
+
 **Updated 2026-09-21, session 15 (Phase 3 of your "fix the loop" plan — the
 load-time card-pool lint).** Nothing blocking, but two things worth a
 steer, written here directly per your own 2026-09-21 process reminder

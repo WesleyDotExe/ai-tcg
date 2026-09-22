@@ -70,6 +70,14 @@ export type ScalingSource =
   | "opponentUnitsInPlay"
   | "controllerHandSize"
   | "controllerGraveyardSize"
+  /** The opponent's graveyard size — a unit that scales off what the
+   * OPPONENT has lost rather than what its own controller has (contrast
+   * controllerGraveyardSize). First user: Null's Entropy Harvester
+   * (2026-09-22, Phase 4 backstop step 3 — see data/nullCards.ts's own
+   * comment on why). Both graveyards are public zones (state/types.ts),
+   * so this is exposed to PlayerView the same as any other opponent-facing
+   * count and needs no new redaction rule. */
+  | "opponentGraveyardSize"
   | "turnNumber";
 
 export function resolveAmount(amount: ScalingAmount, ctx: ScalingContext): number {

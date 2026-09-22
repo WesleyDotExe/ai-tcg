@@ -625,7 +625,7 @@ re-measure, not before) — full numbers in
 
 ---
 
-## 2026-09-22 — Owner: session 15 steers (removal classifier + the Null-got-stronger result)
+## 2026-09-22 — Owner: session 15 steers (removal classifier + the Null-got-stronger result) (HANDLED 2026-09-22, session 16)
 
 Both of session 15's notes-for-owner items, answered:
 
@@ -634,3 +634,22 @@ Both of session 15's notes-for-owner items, answered:
 2. **Null getting stronger after the pool fix — expected, no action now.** The structural work (Phases 2–3) was always about removing hard counters and arming the other factions, not about making Null lose; a temporary uptick from Corrupted Process's new draw making Null's deck more consistent is fine. The 2026-09-20 backstop stands: if Null is still 60%+ under all three policies after the Phase 4 re-measure, nerf its abilities. It clearly will be, so that nerf is coming. Add one thing to that nerf's scope: Corrupted Process's draw is now part of Null's power — it's on the table alongside the removal cards, not untouchable just because the lint added it.
 
 Proceed to Phase 4 (define the triangle, then re-measure against it).
+
+**Handled, session 16 (2026-09-22).** Both of this entry's own items were
+already actioned by prior sessions (the classifier confirmed as-is, no code
+change needed; the Null-got-stronger result already understood as expected)
+— this entry's live instruction was "proceed to Phase 4," which this
+session did in full: proposed the explicit counter triangle (adopting the
+owner's own 2026-09-20 example), measured the real pool against it (none of
+the six pairings pass yet), and — since Phase 4's own re-measure confirmed
+Null still triple-flags against Aegis, exactly the condition the
+2026-09-20 "Null dominance" entry's backstop names — executed 3 of that
+backstop's 4 priority-ordered steps (Segmentation Fault redesigned to a
+conditional aura via a new generic engine mechanism; Corrupted Process cut
+a copy; Entropy Harvester's scaling source moved to the opponent's
+graveyard), measuring after each. Honest result: real but small movement,
+both Aegis-vs-Null and Cortex-vs-Swarm remain triple-flagged. Step 4 (cost
+increases) and any Cortex/Swarm-side fix were deliberately NOT attempted
+unilaterally — both are named as explicit steers wanted in
+`progress/notes-for-owner.md` and `progress/checkpoints.md`'s new Phase 4
+entry, not guessed at. Full detail: `progress/balance-report-010-phase4-triangle.txt`.
