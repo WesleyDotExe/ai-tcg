@@ -653,3 +653,25 @@ increases) and any Cortex/Swarm-side fix were deliberately NOT attempted
 unilaterally — both are named as explicit steers wanted in
 `progress/notes-for-owner.md` and `progress/checkpoints.md`'s new Phase 4
 entry, not guessed at. Full detail: `progress/balance-report-010-phase4-triangle.txt`.
+
+---
+
+## 2026-09-23 — Owner: Phase 4 decisions (four-faction counter-cycle, Null step 4, buff Swarm)
+
+This SUPERSEDES the "Cortex flexible in the middle" triangle. The current state is a ladder (Null beats everyone, Aegis/Swarm lose to everyone), which is the unhealthy shape to kill before the deck expands.
+
+1. **The target is a four-faction counter-cycle (ring), not a triangle-plus-flexible-Cortex.** Every faction beats exactly one, loses to exactly one, and is roughly even against the one "across" the ring — so no faction is a strictly bad blind pick.
+   - Ring: **Null > Aegis > Cortex > Swarm > Null.**
+     - Null beats Aegis (attrition beats stacking)
+     - Aegis beats Cortex (walls outlast removal)
+     - Cortex beats Swarm (removal beats go-wide)
+     - Swarm beats Null (too many bodies for single-target removal) — currently BACKWARDS, the main fix
+   - The two "across" matchups target ~even (45–55%): **Null vs Cortex, Aegis vs Swarm.**
+   - Edge magnitude: 55–60% for the intended winner on each ring edge; edges need NOT be uniform — a 60/40 hard counter and a 55/45 soft edge in the same ring is fine and preferable to four identical numbers.
+   - Measure the whole board against this ring, all three policies.
+
+2. **Null step 4 — yes, raise costs.** Increase Kernel Panic and Null Singularity (the two played-win-rate outliers). It's fine for them to cost more than other factions' top cards; Null is the attrition faction, so a premium on its best pieces is on-identity, not a curve violation. Measure after; if Null vs Aegis lands in 55–60%, stop.
+
+3. **Swarm-vs-Null (and Cortex-vs-Swarm) — buff Swarm, do not nerf Cortex.** Swarm loses to Cortex AND loses to Null when the ring says it should beat Null — it's the weak faction, failing at its designed job of punishing single-target removal with width. Fix the faction, not its opponents: give Swarm's kit real go-wide resilience so width answers removal (its role vs Null) and holds up vs Cortex. Propose the specific cards at a checkpoint. Cortex was the dominant faction in the very first balance report and isn't newly strong — only revisit it if it still beats Aegis once Swarm is fixed (in the ring Aegis is supposed to beat Cortex, so some Cortex-vs-Aegis softening is on-target, not a problem).
+
+Order: do 2 and 3, re-measure the whole ring, checkpoint the result. This is the last balance pass before Phase 5 (card expansion) — do NOT start expansion until the ring is within band, since a wrong ring bakes in once the pools grow.
