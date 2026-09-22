@@ -240,15 +240,20 @@ test("Fork Bomb (Null) telegraph arms and creates two Fork Child tokens on the c
   }
 });
 
-test("Entropy Harvester (Null) attack scales live with the controller's graveyard size", () => {
+test("Entropy Harvester (Null) attack scales live with the ENEMY graveyard size (2026-09-22 Phase 4 backstop: was the controller's own)", () => {
   const state = emptyState();
   const harvester = putUnit(state, "p1", entropyHarvester);
-  expect(currentAttack(state, harvester), "base case: empty graveyard, base 1 + 1*0").toBe(1);
+  expect(currentAttack(state, harvester), "base case: empty enemy graveyard, base 1 + 1*0").toBe(1);
 
+  // The controller's OWN graveyard filling up must NOT move this anymore —
+  // that's exactly the old behaviour this session's redesign removed.
   state.players.p1.graveyard.push(glitchSeed, glitchSeed, glitchSeed);
-  expect(currentAttack(state, harvester), "3 cards in the graveyard should push attack to 1 + 1*3").toBe(4);
+  expect(currentAttack(state, harvester), "the controller's own graveyard is no longer this card's scaling source").toBe(1);
 
-  state.players.p1.graveyard.push(glitchSeed);
+  state.players.p2.graveyard.push(glitchSeed, glitchSeed, glitchSeed);
+  expect(currentAttack(state, harvester), "3 cards in the ENEMY graveyard should push attack to 1 + 1*3").toBe(4);
+
+  state.players.p2.graveyard.push(glitchSeed);
   expect(currentAttack(state, harvester), "the stat is recomputed live, not snapshotted at play time").toBe(5);
 });
 

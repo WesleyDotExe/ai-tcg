@@ -5,6 +5,94 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Stage 3 balance pass, Phase 4: the counter triangle (2026-09-22, session 16)
+
+Not a full build-order stage completion (roadmap item 3's Phases 5-6 are
+still open) — flagged per the owner's own 2026-09-21 process reminder
+("when a session says it's surfacing a decision for the owner, write it
+into checkpoints.md ... as the process defines") because Phase 4 item 7
+explicitly asks to "propose an explicit counter cycle at a checkpoint," and
+because this session made one real design decision (Segmentation Fault's
+redesign) and left one real gap (Cortex-vs-Swarm) that the owner should see
+named plainly rather than buried in a PR body.
+
+**1. The triangle proposal — please confirm or steer.** Adopted the owner's
+own 2026-09-20 example as-is: Null attrition beats Aegis stacking; Aegis
+walls beat Swarm width; Swarm width beats Null's single-target removal;
+Cortex flexible in the middle (no fixed favoured matchup, 45-55% vs
+everyone). Targets: 55-60% for the intended edge, 45-55% elsewhere, under
+all three agent policies. Full detail and the measured gap against it:
+`progress/balance-report-010-phase4-triangle.txt` Parts 1-2. **Nothing here
+was invented beyond what the owner already wrote** — this is a
+confirmation checkpoint, not a new proposal, but the specific per-pairing
+percentage bands (translating "55-60% for the intended edge" onto each of
+the six pairings) are this session's own first application of that rule and
+worth a look.
+
+**2. What's actually true against that triangle right now, measured, not
+guessed:** none of the six pairings meet it yet. Two distinct problems:
+Cortex is too strong (against Swarm under all 3 policies, against Aegis
+under Aggressive) rather than "flexible"; and the Null side of the cycle is
+inverted on one edge (Swarm should beat Null, currently loses to it 55-81%)
+and far overshoots on the other (Null should beat Aegis by 55-60%, currently
+wins by up to 78%). Full table: `balance-report-010-phase4-triangle.txt`
+Part 2.
+
+**3. The pre-authorized Null backstop — executed, 3 of 4 steps, honestly
+inconclusive.** The 2026-09-20 "Null dominance" entry's condition
+("still wins 60%+ against any faction under all three policies") was
+already met for Aegis-vs-Null, so its priority-ordered nerf list was
+executed without waiting for further sign-off, exactly as that entry
+pre-authorized: (1) Segmentation Fault redesigned from an unconditional
+permanent aura to a conditional one (new generic engine mechanism:
+`Ability.condition` now gates "static" triggers, not just
+onPlay/activated); (2) Corrupted Process cut 3->2 copies (Fork Bomb was
+NOT cut — the pool was sitting exactly at the Phase 3 lint's 25% cap, and
+only one copy of backfill headroom exists anywhere in the pool, already
+spent on this cut); (3) Entropy Harvester's scaling source changed from the
+controller's own graveyard to the opponent's (new generic
+`opponentGraveyardSize` ScalingSource). Measured after each step. Result:
+real but small movement (Aegis-vs-Null's Random-policy number improved
+78.3% -> 72.0%; Aggressive and Lookahead barely moved). Both flagged
+pairings remain triple-flagged. Full step-by-step numbers and reasoning:
+`balance-report-010-phase4-triangle.txt` Part 3.
+
+**4. Decision NOT made, flagged instead — step 4, cost increases.** The
+per-card instrumentation (already a standing part of every balance report)
+points at Kernel Panic and Null Singularity specifically — both far
+outlier played-win-rates (up to 88.7% and 82.9% respectively) against a
+pool that otherwise clusters 45-60%. Both already cost exactly what their
+faction-mirror equivalents cost (Aegis Warden 5, Prime Aegis 6) — raising
+either further would make Null's top end the first in the pool to cost more
+than its equivalent-tier peers elsewhere, a cross-faction curve decision
+this session did not think it should make unilaterally in the same pass as
+an already-authorized nerf. Flagging it as the most concrete, data-backed
+next lever rather than guessing at it. **Owner steer wanted:** is a
+Null-only cost premium on its top two cards an acceptable way to close this
+gap, or should the next attempt look at Aegis's own kit instead (as
+sessions 10/11 already tried once) or at Swarm's kit (needed regardless,
+to fix the inverted Swarm-vs-Null edge)?
+
+**5. Cortex-vs-Swarm — measured, explicitly NOT fixed this session.**
+Triple-flagged, unchanged by anything this session did (nothing here
+touched Cortex or Swarm). No owner-pre-authorized mechanism exists for this
+pairing the way the Null backstop does. **Owner steer wanted:** should
+Cortex be nerfed, or Swarm/Aegis buffed, to bring this in line with
+"flexible in the middle"? This session did not decide unilaterally which
+faction's identity to touch.
+
+**What's next regardless of the answers above:** the Swarm-vs-Null edge is
+currently inverted (Null wins, should lose) — this is arguably the most
+structurally wrong result on the board relative to the proposed triangle,
+worse than "too extreme in the right direction" (Aegis-vs-Null) or "wrong
+faction too strong" (Cortex-vs-Swarm), and hasn't been specifically
+targeted by any fix yet. A future session should look at Swarm's own kit
+(rebuild tools, board presence against Null's attrition) rather than only
+continuing to nerf Null, since Null nerfs this session moved Aegis-vs-Null
+more than Swarm-vs-Null.
+
+---
+
 ## AWAITING FEEDBACK — Stage 3: A real card set (2026-09-13)
 
 **Milestone:** this is DESIGN.md's "first real card set done" checkpoint.

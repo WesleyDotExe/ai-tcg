@@ -462,6 +462,8 @@ export class LookaheadAgent implements Agent {
             return view.me.hand.length;
           case "controllerGraveyardSize":
             return view.me.graveyard.length;
+          case "opponentGraveyardSize":
+            return view.opponent.graveyard.length;
           case "turnNumber":
             return view.turnNumber;
         }

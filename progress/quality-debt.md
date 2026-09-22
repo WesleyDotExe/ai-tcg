@@ -16,6 +16,80 @@ session 15 (Phase 3 — the load-time card-pool lint).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
+## New debt from session 16
+
+- **The triangle is proposed and measured against, but the pool doesn't
+  match it on any of the six pairings.** This is the headline honest
+  finding of this session, not a side note — see
+  `progress/balance-report-010-phase4-triangle.txt` Part 2. Cortex is too
+  strong (should be "flexible," measures as the strongest faction against
+  two of the other three); the Swarm-vs-Null edge is inverted (Swarm should
+  win, loses 55-81%); Aegis-vs-Null overshoots its intended edge by a wide
+  margin. None of this is new information in aggregate (Cortex-vs-Swarm and
+  Aegis-vs-Null have been flagged since session 12-13), but this session is
+  the first time it's been checked against an explicit, numeric target
+  rather than just "is it triple-flagged" — and by that stricter standard,
+  the balance pass (roadmap item 3) is further from done than the
+  triple-flag framing alone suggested.
+- **The Null backstop's step 2 (copy cuts) hit a real structural ceiling:
+  the pool has exactly ONE unit of legal backfill headroom left anywhere**
+  (Null Shell, Uncommon, was 2/3 copies, now at its cap). Any future copy
+  cut to a non-removal Null card will immediately fail the Phase 3 lint
+  without either shrinking the deck, trimming one of the three cards the
+  original Phase 3 pass explicitly protected as core identity (Kernel
+  Panic/Null Singularity/Null Pointer), or growing the pool with a genuinely
+  new card (Phase 5 territory, not attempted this session). Fork Bomb was
+  named in the backstop's step 2 but NOT cut, for exactly this reason — a
+  real, incomplete execution of that step, not silently skipped.
+- **Segmentation Fault's new condition (`unitsInPlayAtLeast side:controller
+  count:2`) rarely deactivates in practice.** The real-match evidence
+  (`sample-match-017-segfault-condition.txt`) does show a genuine OFF->ON
+  transition, but only because that specific seed happened to catch Null
+  early, before it had rebuilt board presence. Across the full 300-seed
+  balance run, the measured effect was tiny (Aegis-vs-Null barely moved
+  after this step alone) — Null's kit is wide enough (Fork Bomb's tokens,
+  cheap 1-drops) that it holds 2+ units on the board for most of a typical
+  game once established, so the condition is usually true exactly when it
+  would matter most. The mechanism is real and correctly built (a genuine
+  soft counter, not a fake one), but it is a much weaker lever than "made
+  it conditional" might suggest on its own — named honestly here rather
+  than overclaimed as "fixed."
+- **`LookaheadAgent`'s static-effect valuation does not know about
+  `Ability.condition` at all** (`estimateStaticEffect`, line ~165-170 of
+  `lookaheadAgent.ts`) — it scores a Directive's static aura by its nominal
+  magnitude regardless of whether the ability's condition is currently
+  true, false, or even checkable from a `PlayerView`. This means the agent
+  still slightly overvalues playing Segmentation Fault in a board state
+  where its condition wouldn't hold (e.g. an empty board) — the exact same
+  category of named, unmeasured approximation as this file's other
+  `LookaheadAgent` gaps (session 12's conditional-effect discount, etc.),
+  now with a second instance. Not fixed this session (would mean either
+  evaluating `Condition` against a `PlayerView`'s public-only information,
+  which not every `Condition` kind can currently do, or a documented
+  fallback approximation) — flagged rather than silently left.
+- **`opponentGraveyardSize` has exactly one user (Entropy Harvester) and no
+  dedicated real-match-log demo of its own** — proven correct by a
+  whitebox unit test (`nullFaction.test.ts`) and exercised in real games
+  via every balance-report run this session made (766-876 "drawn" instances
+  per policy in the final report), but unlike Segmentation Fault's
+  condition toggle, no dedicated `progress/sample-match-*.txt` isolates and
+  narrates this specific mechanism firing in a human-readable log. A
+  smaller, deliberate scoping choice this session made to fit the work in —
+  named here rather than silently skipped.
+- **Step 4 of the Null backstop (cost increases) and any Cortex/Swarm-side
+  fix for Cortex-vs-Swarm are both unstarted, on purpose** — see
+  `progress/checkpoints.md`'s Phase 4 entry for the specific reasoning
+  (both are cross-faction curve/identity decisions this session flagged to
+  the owner rather than making unilaterally). Restating here per this
+  file's own convention so it isn't mistaken for forgotten.
+- **The per-pairing percentage-band translation of the triangle's
+  "55-60%/45-55%" targets (`balance-report-010-phase4-triangle.txt` Part
+  1) is this session's own first application, not something the
+  2026-09-20 entry spelled out pairing-by-pairing.** A reasonable, direct
+  reading of that entry's own words, but flagged (also in
+  `checkpoints.md`) as a real judgment call the owner should see, same
+  category as session 15's removal/debuff classifier.
+
 ## New debt from session 15
 
 - **The "removal/debuff card" classifier (cards/poolLint.ts) is this

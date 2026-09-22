@@ -342,15 +342,28 @@ export const entropyHarvester: UnitCard = {
   health: 4,
   keywords: [],
   art: "placeholder:null/entropy-harvester",
-  flavor: "It doesn't grow. It just collects what everything else stopped needing.",
+  flavor: "It doesn't grow on its own losses. It grows on everyone else's.",
   abilities: [
+    // 2026-09-22 (Phase 4 backstop, step 3 of the owner's priority list,
+    // after steps 1-2 above both measurably failed to move Aegis-vs-Null):
+    // "make Entropy Harvester scale off the enemy graveyard." Was
+    // controllerGraveyardSize — Null's OWN graveyard fills fast as a direct
+    // side effect of its normal attritional play (trading units, cycling
+    // through its own losses), so the old version snowballed for free off
+    // exactly the thing Null was already doing every game, no matter how
+    // the match was going. opponentGraveyardSize (new generic ScalingSource,
+    // cards/types.ts/effects/scaling.ts — the opponent's graveyard is a
+    // public zone, so this needed no new redaction rule) ties its growth to
+    // actually having killed the OPPONENT's stuff instead, which is slower
+    // early and denies the free ramp entirely in a match Null is losing the
+    // attrition race — a real power reduction, not just a reflavor.
     {
       id: "entropy-harvester-static",
       trigger: "static",
-      text: "This unit's attack equals 1 plus the number of cards in your graveyard.",
+      text: "This unit's attack equals 1 plus the number of cards in the enemy graveyard.",
       staticEffect: {
         kind: "selfStatFromScaling",
-        attack: { mode: "scaling", base: 1, multiplier: 1, per: "controllerGraveyardSize" },
+        attack: { mode: "scaling", base: 1, multiplier: 1, per: "opponentGraveyardSize" },
       },
     },
   ],
@@ -361,21 +374,34 @@ export const segmentationFault: DirectiveCard = {
   name: "Segmentation Fault",
   faction: "Null",
   rarity: "Rare",
-  // Cost raised 3 -> 4: Phase 3 pool lint (cards/poolLint.ts) rule 3 ("no
-  // permanent enemy-stat aura under 4 mana") flagged this card directly —
-  // it's exactly what the rule describes, a continuous static enemy-debuff
-  // aura, at cost 3. Raising the cost (rather than making the aura
-  // temporary or conditional) keeps the card's identity and text
-  // completely intact; only its price changes.
+  // Cost raised 3 -> 4 in the Phase 3 pool lint pass (cards/poolLint.ts
+  // rule 3, "no permanent enemy-stat aura under 4 mana"). Left at 4 here —
+  // this session's change (2026-09-22 owner-feedback backstop, step 1 of
+  // the priority list: "redesign Segmentation Fault so its effect is
+  // conditional or temporary") is a genuine nerf, not a price cut to
+  // compensate for it.
   cost: 4,
   type: "Directive",
   art: "placeholder:null/segmentation-fault",
-  flavor: "A standing violation nobody on the far side can clear.",
+  flavor: "A standing violation, live only while the process that wrote it keeps running.",
   abilities: [
     {
       id: "segmentation-fault-aura",
       trigger: "static",
-      text: "Enemy units get -1/-0.",
+      // Redesigned from an unconditional permanent aura to a conditional
+      // one: it only debuffs the opponent's units while Null itself
+      // controls 2+ units. This is the "conditional" half of the owner's
+      // instruction, not "temporary" (a duration-based flicker didn't fit a
+      // Directive's always-recomputed static model without new schema
+      // work) — and it's a genuine soft counter, not just a weaker number:
+      // clearing Null's board (already something every faction can do
+      // through ordinary combat/removal, not a new mechanic) turns this off
+      // without needing the one directive-destroy answer specifically. Uses
+      // the effects/statics.ts condition-gate this session also added
+      // generically (Ability.condition now applies to "static" triggers,
+      // not just onPlay/activated) — the first user of it, not a one-off.
+      text: "While you control 2 or more units, enemy units get -1/-0.",
+      condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 2 },
       staticEffect: { kind: "buffAllies", attack: -1, health: 0, filter: { side: "opponent", kind: "unit" } },
     },
   ],
@@ -469,15 +495,35 @@ export const nullPointer: CommandCard = {
 // structurally-required per-faction directive-destroy answer from Phase 2
 // item 3) were left at their original counts — cutting those specific three
 // further would have gutted Null's actual identity rather than just its
-// oversaturation. Result: 8/32 = 25.0%, exactly at the cap.
+// oversaturation. Result at the time: 8/32 = 25.0%, exactly at the cap.
+//
+// 2026-09-22 (Phase 4 backstop, step 2 of the owner's priority list, after
+// step 1 — Segmentation Fault's own conditional redesign above — measurably
+// failed to move Aegis-vs-Null): the entry named three cards to cut to 2
+// copies (Fork Bomb, Segfault Handler, Corrupted Process); Segfault Handler
+// was already at 1, below that, so nothing to do there. Of the other two,
+// only Corrupted Process is cut this round (3 -> 2) — the pool was already
+// sitting exactly at the Phase 3 lint's 25% removal/debuff cap (8/32), so
+// cutting a non-removal copy without backfill immediately fails the lint
+// (fewer total copies, same removal numerator, higher percentage); Null
+// Shell is the only card in the pool under its rarity's copy cap
+// (Uncommon, 2 -> 3) and absorbs exactly one cut, keeping the pool at 32
+// total / 8 removal copies / 25.0%, unchanged and still passing. That
+// headroom is now used up: a second cut (Fork Bomb) has no legal backfill
+// left without either shrinking the deck below its current size or
+// trimming a removal card the original Phase 3 pass explicitly protected
+// (Kernel Panic/Null Singularity/Null Pointer) — left as a named option for
+// a future session, not attempted here. The 2026-09-22 owner-feedback entry
+// also named Corrupted Process's draw specifically as "on the table," which
+// is exactly what this cut targets.
 export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: glitchSeed, copies: 3 },
   { card: strayFragment, copies: 3 },
   { card: corruptionPatch, copies: 3 },
   { card: segfaultHandler, copies: 1 },
   { card: forkBomb, copies: 3 },
-  { card: corruptedProcess, copies: 3 },
-  { card: nullShell, copies: 2 },
+  { card: corruptedProcess, copies: 2 },
+  { card: nullShell, copies: 3 },
   { card: propagatingExploit, copies: 3 },
   { card: deprecatedRoutine, copies: 1 },
   { card: decayWard, copies: 2 },
