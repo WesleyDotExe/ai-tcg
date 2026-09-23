@@ -706,3 +706,19 @@ gate ("do NOT start expansion until the ring is within band"), Phase 5 was
 NOT started. Open questions left for the owner (Cortex-vs-Swarm has no
 assigned fix; whether to go past cost on Kernel Panic/Null Singularity) are
 in `progress/notes-for-owner.md`'s new entry rather than guessed at.
+
+---
+
+## 2026-09-23 — Owner: Phase 4 session 17 follow-ups (fix the ring labels, nerf Null power, fix Aegis-vs-Cortex)
+
+Real progress last session (Aegis-vs-Null moved down under all three policies for the first time; Swarm-vs-Null no longer triple-flagged), but three corrections/decisions for the next run:
+
+1. **Correct the ring target labels — session 17 mislabelled two edges.** The ring is Null > Aegis > Cortex > Swarm > Null. That makes BOTH of these decisive ring edges, NOT "even": **Cortex should beat Swarm 55-60%**, and **Aegis should beat Cortex 55-60%**. Only two matchups are the ~even (45-55%) "across" pairings: **Null vs Cortex** and **Aegis vs Swarm**. Re-map balanceReport.ts / the checkpoint targets accordingly before judging what is in band.
+
+2. **Cortex vs Swarm is NOT a problem to assign a fixer to.** Under the corrected label Cortex is supposed to win it; it is just winning slightly too much (60-70% vs a 55-60% target), and Phase 5 wider pools will likely settle it. Do not add a card or nerf anyone specifically for this pairing.
+
+3. **The genuinely off Cortex edge is Aegis vs Cortex.** Aegis is supposed to beat Cortex (ring edge) but currently loses to it under Aggressive and Lookahead. Fix it by giving AEGIS a small edge in that matchup — an Aegis buff, not a Cortex nerf (consistent with the standing "don't nerf Cortex" rule). Propose the card(s) at a checkpoint.
+
+4. **Null step 4 — go past cost to power.** Raising Kernel Panic (6) and Null Singularity (7) changed how OFTEN they land, not how strong they are: both still win ~79-86% of games they are actually played in, and Aegis-vs-Null is still triple-flagged. Now reduce their impact (stats/effect), not just cost — e.g. Kernel Panic's body or destroy reach, Null Singularity's aura/stats. Measure after each change; stop when Aegis-vs-Null sits in the 55-60% band.
+
+Order unchanged: get the whole ring within band (all six pairings, all three policies, against the corrected targets) BEFORE starting Phase 5 (pool expansion).
