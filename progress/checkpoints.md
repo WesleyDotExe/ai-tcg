@@ -5,6 +5,88 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Stage 3 balance pass: the ring after Null step 4 + Swarm buff (2026-09-23, session 17)
+
+Not a full build-order stage completion — flagged because the 2026-09-23
+owner-feedback entry ("Phase 4 decisions") explicitly asked for the whole
+ring to be re-measured and the result checkpointed after doing its two
+authorized changes, and because this session made several real, unassigned
+judgment calls the owner should see before Phase 5 (pool expansion) opens.
+
+**What this session delivered, with evidence:**
+
+1. Raised Kernel Panic (5->6) and Null Singularity (6->7) — the entry's own
+   step 4, the two played-win-rate outliers session 16 flagged but declined
+   to touch unilaterally. `engine/src/data/nullCards.ts`.
+2. Gave Swarm two new cards for real go-wide resilience: Colony Broodling
+   (cost 1, dies -> summons a replacement Swarm Larva if 2+ other units
+   survive it) and Overgrown Carapace (cost 3, health scales live with the
+   controller's own unit count). Both reuse only already-generic engine
+   mechanisms. `engine/src/data/cards.ts`.
+3. Re-measured the whole ring (300 seeds/matchup, 3 policies):
+   `progress/balance-report-011-phase4-decisions.txt`.
+
+**Honest result: no pairing is within the ring's band yet, but both changes
+moved the numbers in the places they targeted, not noise.** Aegis-vs-Null
+moved down under ALL THREE policies for the first time in this project's
+history (78.0/72.0/67.7 -> 75.7/70.0/65.3) — still triple-flagged, did not
+reach the entry's own "stop at 55-60%" condition. Swarm-vs-Null stopped
+being triple-flagged entirely (was Null 56.0/79.0/67.3, all >=60%; now only
+Random remains flagged at 75.7%, Aggressive is dead even, Lookahead is
+56.7%) — real, multi-policy movement on the ring's single most
+structurally-wrong edge. Cortex-vs-Swarm, untouched by either change, is
+unchanged in kind (still triple-flagged). Full before/after table and honest
+read: `progress/balance-report-011-phase4-decisions.txt`.
+
+**Real-play evidence, not just aggregate numbers:**
+`progress/sample-match-018-swarm-resilience.txt` (a real, unscripted
+LookaheadAgent-vs-LookaheadAgent Swarm-vs-Null match, found on the first
+seed searched, where Colony Broodling's death genuinely triggers a
+replacement summon and Overgrown Carapace's live health matches "1 + board
+count" exactly across 6 different board sizes — Swarm wins) plus 4 new
+whitebox tests (`engine/test/swarmResilience.test.ts`).
+
+**Decisions this session made that the owner might want to overrule:**
+
+1. **Stopped at exactly the two authorized changes rather than iterating
+   further toward the band.** Aegis-vs-Null didn't land in 55-60% (the
+   entry's own stated "stop" condition), but nothing beyond step 4 was
+   pre-authorized, so nothing further was attempted — consistent with this
+   project's established "measure, report, don't chase" pattern, but a real
+   choice to stop short of the target rather than guess at a next step
+   (e.g. touching Kernel Panic/Null Singularity's stats instead of their
+   cost — see below).
+2. **Cortex-vs-Swarm remains completely unassigned.** The entry forbids
+   touching Cortex and doesn't name a Swarm/Aegis-side fix for this specific
+   pairing (unlike Swarm-vs-Null, which it explicitly diagnosed and
+   directed). This session did not guess at one. Should Swarm get a THIRD
+   card aimed specifically at this pairing, should Aegis be touched instead
+   (it's not part of this edge), or is this pairing meant to wait for Phase
+   5's wider pool to dilute it? Genuinely open.
+3. **Kernel Panic/Null Singularity's played-win-rate is still extreme
+   (up to 86.4%/78.7%) even at the new cost.** The cost increase changed how
+   OFTEN they land, not how strong they are once they do — if the owner
+   wants Aegis-vs-Null actually inside the band rather than just closer to
+   it, the per-card table suggests these two cards' raw stats/effects are
+   the next lever, not a further cost hike. Not attempted (out of this
+   entry's authorized scope) — flagging the lever rather than pulling it.
+4. **Colony Broodling/Overgrown Carapace's specific numbers are a first
+   proposal.** Cost 1/1-attack/1-health with a 2-other-units summon gate;
+   cost 3/2-attack/1-base scaling health; 3 and 2 copies respectively. Not
+   playtested beyond this session's own balance report and one real match.
+5. **A new, unchased single-policy flag: Cortex-vs-Null under Aggressive
+   only (55.7% -> 60.7%)**, plausibly from Null's weaker early game after
+   the cost increase. Named, not acted on (single-policy, not a cross-check
+   flag).
+
+**Per the entry's own explicit gate, Phase 5 (pool expansion) was NOT
+started** — "do NOT start expansion until the ring is within band," and it
+isn't, on any of the six pairings. This checkpoint is the flag; the project
+continues per `progress/current.md`'s "concrete next step" rather than
+waiting.
+
+---
+
 ## AWAITING FEEDBACK — Stage 3 balance pass, Phase 4: the counter triangle (2026-09-22, session 16)
 
 Not a full build-order stage completion (roadmap item 3's Phases 5-6 are

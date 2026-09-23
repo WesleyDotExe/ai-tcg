@@ -1656,3 +1656,116 @@ inversion (Swarm should win, currently loses) looks like the most
 structurally wrong result on the board right now and hasn't been
 specifically targeted by anything yet — a future session should consider
 Swarm's own kit before further Null-only nerfs.
+
+## 2026-09-23 — Session 17 (Phase 4 decisions: the four-faction ring, Null step 4, buff Swarm)
+
+Read `progress/owner-feedback.md` first, per TASKS.md. The most recent entry
+(2026-09-23, "Phase 4 decisions") explicitly superseded session 16's
+proposed "Cortex flexible in the middle" triangle with a four-faction
+counter-cycle ring and ordered two specific changes, in order: raise Null's
+two outlier cards' costs (the pre-authorized backstop's step 4), then buff
+Swarm's own kit with real go-wide resilience rather than nerf Cortex. Then
+re-measure the whole ring and checkpoint. No CRITICAL quality-debt item was
+outstanding, so this was the correctly-ordered next work — this session did
+exactly what the entry asked, in the order it asked.
+
+**Step 1: Null cost increases.** `engine/src/data/nullCards.ts`'s Kernel
+Panic (5 -> 6) and Null Singularity (6 -> 7) — both commented with the
+owner's own reasoning for why this is on-identity rather than a
+cross-faction curve violation. Three `engine/test/nullFaction.test.ts`
+fixtures that hardcoded `p1.energy = 5` to afford Kernel Panic needed
+bumping to 6; all other tests were unaffected. `npm test`/`tsc --noEmit`
+clean before moving on.
+
+**Step 2: buff Swarm, two new cards.** Read through Swarm's existing pool
+(`engine/src/data/cards.ts`) and the project's own diagnosis of why
+Brood Reserves (the prior "rebuild" attempt) measured below average
+(quality-debt.md: the dummy policies don't understand "hold this for after
+a wipe" timing) before designing these — the goal was mechanisms that help
+passively, every turn, with no timing judgment required of the agent
+playing them, unlike a reactive summon:
+
+- **Colony Broodling** (cost 1, 1/1): `onDeath`, gated by
+  `Ability.condition: unitsInPlayAtLeast side:controller count:2`, summons a
+  replacement 1/1 Swarm Larva. Since `processDeaths` removes a dying unit
+  from its board *before* firing its onDeath triggers (confirmed by reading
+  `effects/resolver.ts` directly, not assumed), the count genuinely reads
+  "2+ OTHER units survive you" — this turns single-target removal into a
+  wash for the removing player, the exact mechanical shape the ring's own
+  stated reasoning wants ("Swarm width beats Null's single-target
+  removal").
+- **Overgrown Carapace** (cost 3, 2 attack): `selfStatFromScaling` health =
+  `1 + controllerUnitsInPlay` (mirrors Overclock Beast's existing shape,
+  which already scales off the OPPONENT's board — this is the first card to
+  read the CONTROLLER's own board instead). A body that gets steadily
+  harder for a fixed-damage removal spell to two-shot as Swarm's board
+  grows, on every turn, no card-specific agent heuristic needed to use it
+  well.
+
+Both compile only from already-generic engine mechanisms that earlier
+sessions built for other cards (`summon`, `Ability.condition` gating,
+`selfStatFromScaling`) — confirmed `LookaheadAgent` already values both
+kinds generically (grep for the relevant `estimateEffect`/
+`estimateStaticEffect` cases) before writing either card, so this needed no
+"new kind silently scores zero forever" agent-side fix, unlike several
+Phase 2 additions. 3+2 copies exactly fill the pool's remaining headroom
+under the 40-card cap (35 -> 40) — no existing card was cut or touched,
+Cortex's or Swarm's own. Pool lint passes (enforced automatically at
+`buildSwarmDeck` — neither card is removal/debuff, so it doesn't even touch
+that rule).
+
+**Real-play evidence, not just whitebox.** Wrote
+`engine/src/dev/swarmResilienceMatchDemo.ts` (mirrors the existing
+`segfaultConditionMatchDemo.ts` shape: re-drives `runMatch`'s own loop to
+sample live state after every move) and ran it against a Swarm-vs-Null
+seed search — found both mechanisms firing for real on the very first seed
+tried (seed 11): Colony Broodling's death genuinely triggers a logged
+summon event, and Overgrown Carapace's live health, sampled at every move
+it's in play, matches "1 + board count" exactly across 6 different board
+sizes as the game evolves (3 through 6 units). Swarm wins this match.
+Committed as `progress/sample-match-018-swarm-resilience.txt`. Also added
+`engine/test/swarmResilience.test.ts` (4 tests): the replacement fires
+correctly with 2+ other units, is correctly gated off with exactly 1 other
+unit and with 0 (dying alone), and Overgrown Carapace's health tracks the
+board live including shrinking after a real ally death and still taking
+real combat damage on top of the scaled total.
+
+**Step 3: whole-ring re-measurement.** Ran the full `balanceReport.ts` (300
+seeds/matchup, all three policies) and wrote up a before/after table against
+session 16's own final numbers (`progress/balance-report-011-phase4-decisions.txt`).
+Honest result: no pairing is within the ring's band yet, but both authorized
+changes produced real, multi-policy movement exactly where aimed —
+Aegis-vs-Null moved down under all three policies for the first time in this
+project's whole balance history (most prior single-card Null nerfs mostly
+moved only the Random-policy number); Swarm-vs-Null stopped being
+triple-flagged entirely (Aggressive now dead even, Lookahead down to 56.7%
+Null, only Random remains flagged). Cortex-vs-Swarm, untouched by either
+change, is unchanged in kind. One honest, unintended side effect named
+rather than hidden: Cortex-vs-Null picked up a new single-policy flag under
+Aggressive (55.7% -> 60.7%) — not chased, since it's a single-policy signal,
+not a cross-check flag, and reverting an just-authorized change over one
+number is exactly the card-by-card chasing this project's history warns
+against.
+
+Per the entry's own explicit instruction ("this is the last balance pass
+before Phase 5 ... do NOT start expansion until the ring is within band"),
+Phase 5 (pool expansion) was correctly NOT started this session — the ring
+isn't within band on any of the six pairings. Wrote up the genuine steering
+fork this leaves (Cortex-vs-Swarm has no assigned faction to fix; whether to
+go past cost alone on Kernel Panic/Null Singularity, which remain extreme
+win-rate outliers when actually played) in `progress/checkpoints.md` and
+`progress/notes-for-owner.md`, per DESIGN.md's checkpoint process, rather
+than only in this log or a PR body.
+
+`npm test` (root, all four workspaces): 128/128 passing (81 engine, up from
+77; 7 protocol; 23 server; 17 agents). One server integration test flaked
+once under a full concurrent run (a pre-existing, already-documented
+real-socket timing sensitivity named in quality-debt.md since session 9,
+confirmed by re-running it alone 1/1 clean immediately after — server/ was
+not touched this session). `npx tsc --noEmit` clean in all four packages.
+
+**Not attempted this session, correctly deferred:** any further Null nerf
+beyond cost (the entry's own "stop" condition wasn't met, but nothing past
+step 4 was authorized); any Cortex-side change (explicitly forbidden by this
+entry); Phase 5 (pool expansion, explicitly gated on the ring being in
+band, which it isn't).

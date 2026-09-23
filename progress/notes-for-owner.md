@@ -1,5 +1,36 @@
 # Notes for the owner
 
+**Updated 2026-09-23, session 17 (Phase 4 decisions executed — Null step 4,
+buff Swarm; whole ring re-measured).** Nothing blocking, but real steers
+wanted — full detail in `progress/checkpoints.md`'s new entry, short version
+here:
+
+1. **Did exactly what you asked, in order** (Kernel Panic 5->6, Null
+   Singularity 6->7, then two new Swarm cards — Colony Broodling replaces
+   itself on death if 2+ other units survive, Overgrown Carapace's own
+   health scales with your board width), then re-measured the whole ring.
+   Neither Cortex nor any other faction was nerfed.
+2. **Real movement, not there yet.** Aegis-vs-Null moved down under all
+   three policies for the first time ever in this project (was
+   78.0/72.0/67.7, now 75.7/70.0/65.3) but didn't reach your stated "stop at
+   55-60%" line. Swarm-vs-Null stopped being triple-flagged (only Random
+   still flags it) — the ring's most backwards edge is now much closer to
+   fixed. Cortex-vs-Swarm, which I wasn't authorized to touch on either
+   side, is unchanged.
+3. **I stopped rather than guess at a next step**, per your own "if it
+   lands in band, stop" phrasing implying otherwise I should hold — happy
+   to be told to keep going and what with. Two live questions: (a)
+   Cortex-vs-Swarm has nobody assigned to fix it — should Swarm get a third,
+   more targeted card, or is this meant to wait for Phase 5's wider pool?
+   (b) Kernel Panic and Null Singularity are still extreme win-rate outliers
+   *when played* (up to 86.4%/78.7%) — the cost hike changed how often they
+   land, not how strong they are. Want me to touch their stats/effects next,
+   or leave cost as the only lever for now?
+4. **Per your own instruction, I did NOT start Phase 5** (pool expansion) —
+   the ring isn't in band on any of the six pairings yet.
+
+---
+
 **Updated 2026-09-22, session 16 (Phase 4 — the counter triangle, proposed
 and measured; the Null backstop executed).** Nothing blocking, but real
 steers wanted — see `progress/checkpoints.md`'s new Phase 4 entry for the

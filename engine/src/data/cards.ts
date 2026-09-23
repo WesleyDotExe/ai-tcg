@@ -835,6 +835,99 @@ export const broodReserves: CommandCard = {
   ],
 };
 
+// --- Go-wide resilience (2026-09-23 owner-feedback entry, Phase 4
+// decisions, item 3: "Swarm-vs-Null (and Cortex-vs-Swarm) — buff Swarm, do
+// not nerf Cortex... give Swarm's kit real go-wide resilience so width
+// answers removal (its role vs Null) and holds up vs Cortex." Brood
+// Reserves (above) already tried "rebuild after a wipe" and measured below
+// average — quality-debt.md's read is that a reactive/situational summon
+// isn't enough on its own, the dummy policies don't value "hold this for
+// later" timing. These two cards instead make width matter passively,
+// every turn, with no timing judgment required of the agent playing them:
+// one turns a single-target kill into a replacement (directly punishing
+// Null's single-target-removal identity — the ring's own stated reason
+// Swarm should beat Null), the other makes an individual body harder to
+// two-shot the wider the board already is (resilient against Cortex's
+// removal too, not just Null's). Both reuse only existing, already-generic
+// engine mechanisms (summon, conditional, selfStatFromScaling) — no new
+// engine work needed, unlike the Phase 2 items that came before this.
+
+export const colonyBroodling: UnitCard = {
+  id: "SW-015",
+  name: "Colony Broodling",
+  faction: "Swarm",
+  rarity: "Common",
+  cost: 1,
+  type: "Unit",
+  attack: 1,
+  health: 1,
+  keywords: [],
+  art: "placeholder:swarm/colony-broodling",
+  flavor: "Killing one changes nothing the mass hasn't already budgeted for.",
+  abilities: [
+    {
+      id: "colony-broodling-death",
+      trigger: "onDeath",
+      // onDeath fires post-removal (effects/resolver.ts) — this unit is
+      // already off the board by the time unitsInPlayAtLeast is sampled,
+      // so "count: 2" genuinely reads as "2 or more OTHER units survive
+      // you," not "2 including yourself." A single-target removal spell
+      // that kills this for tempo hands Swarm the body straight back
+      // whenever the board wasn't already nearly empty.
+      text: "When this dies, if you control 2 or more other units, summon a 1/1 Swarm Larva.",
+      condition: { kind: "unitsInPlayAtLeast", side: "controller", count: 2 },
+      effects: [
+        {
+          kind: "summon",
+          count: 1,
+          token: {
+            name: "Swarm Larva",
+            faction: "Swarm",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:swarm/swarm-larva",
+            flavor: "One of ten thousand. Ten thousand more where it came from.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
+export const overgrownCarapace: UnitCard = {
+  id: "SW-016",
+  name: "Overgrown Carapace",
+  faction: "Swarm",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Unit",
+  attack: 2,
+  health: 1,
+  keywords: [],
+  art: "placeholder:swarm/overgrown-carapace",
+  flavor: "The mass doesn't grow one shell. It grows this one, out of all the others.",
+  abilities: [
+    {
+      id: "overgrown-carapace-static",
+      trigger: "static",
+      // Mirrors Overclock Beast's shape above (selfStatFromScaling) but
+      // reads off the CONTROLLER's own board, not the opponent's — a wide
+      // Swarm board makes this specific body steadily harder for a
+      // fixed-damage single-target spell to answer, the direct mechanical
+      // counter to Null's identity (see the ring: "Swarm width beats
+      // Null's single-target removal"). Counts itself, same as any other
+      // "how many units do you control" read elsewhere in the engine
+      // (effects/scaling.ts's controllerUnitsInPlay).
+      text: "This unit's health equals 1 plus the number of units you control.",
+      staticEffect: {
+        kind: "selfStatFromScaling",
+        health: { mode: "scaling", base: 1, multiplier: 1, per: "controllerUnitsInPlay" },
+      },
+    },
+  ],
+};
+
 export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: swarmLarva, copies: 3 },
   { card: broodcaller, copies: 3 },
@@ -850,4 +943,6 @@ export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   { card: chitinPlating, copies: 3 },
   { card: boreSwarm, copies: 2 },
   { card: broodReserves, copies: 3 },
+  { card: colonyBroodling, copies: 3 },
+  { card: overgrownCarapace, copies: 2 },
 ];

@@ -42,8 +42,8 @@ test("Kernel Panic (Null) evolves from Corrupted Process and destroys a small ta
   victim.statuses.push({ kind: "Barrier", duration: "untilConsumed" }); // and Barrier must not absorb it either
   state.turnNumber += 1; // let the base survive to a later turn, required to evolve
   state.players.p1.hand.push(kernelPanic);
-  state.players.p1.energy = 5;
-  state.players.p1.maxEnergy = 5;
+  state.players.p1.energy = 6;
+  state.players.p1.maxEnergy = 6;
 
   const legal = getLegalMoves(state);
   const evolve = legal.find(
@@ -85,8 +85,8 @@ test("Kernel Panic (Null) chosen targeting lets the controller pick WHICH eligib
   const chosenVictimInstanceId = chosenVictim.instanceId;
   state.turnNumber += 1;
   state.players.p1.hand.push(kernelPanic);
-  state.players.p1.energy = 5;
-  state.players.p1.maxEnergy = 5;
+  state.players.p1.energy = 6;
+  state.players.p1.maxEnergy = 6;
 
   const legal = getLegalMoves(state);
   const evolveOptions = legal.filter((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === processInstanceId);
@@ -116,8 +116,8 @@ test("Kernel Panic (Null) cannot target a unit built bigger than its 5-health ca
   const warden = putUnit(state, "p2", aegisWarden); // 7 max health, over the cap
   state.turnNumber += 1;
   state.players.p1.hand.push(kernelPanic);
-  state.players.p1.energy = 5;
-  state.players.p1.maxEnergy = 5;
+  state.players.p1.energy = 6;
+  state.players.p1.maxEnergy = 6;
 
   const legal = getLegalMoves(state);
   const evolveOptions = legal.filter((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === processInstanceId);

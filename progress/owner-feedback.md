@@ -675,3 +675,34 @@ This SUPERSEDES the "Cortex flexible in the middle" triangle. The current state 
 3. **Swarm-vs-Null (and Cortex-vs-Swarm) — buff Swarm, do not nerf Cortex.** Swarm loses to Cortex AND loses to Null when the ring says it should beat Null — it's the weak faction, failing at its designed job of punishing single-target removal with width. Fix the faction, not its opponents: give Swarm's kit real go-wide resilience so width answers removal (its role vs Null) and holds up vs Cortex. Propose the specific cards at a checkpoint. Cortex was the dominant faction in the very first balance report and isn't newly strong — only revisit it if it still beats Aegis once Swarm is fixed (in the ring Aegis is supposed to beat Cortex, so some Cortex-vs-Aegis softening is on-target, not a problem).
 
 Order: do 2 and 3, re-measure the whole ring, checkpoint the result. This is the last balance pass before Phase 5 (card expansion) — do NOT start expansion until the ring is within band, since a wrong ring bakes in once the pools grow.
+
+---
+
+**Handled, session 17 (2026-09-23).** Both items done, in the order asked,
+then the whole ring re-measured and checkpointed, exactly as instructed:
+
+1. No change needed — Cortex was not touched, per this entry's explicit
+   "do not nerf Cortex."
+2. **Null step 4 — done.** Kernel Panic 5->6, Null Singularity 6->7
+   (`engine/src/data/nullCards.ts`). Measured after: Aegis-vs-Null did NOT
+   land in 55-60% (moved to 75.7%/70.0%/65.3%, still triple-flagged), so per
+   this entry's own "if it lands in band, stop" phrasing, nothing further
+   was attempted — no additional Null nerfs.
+3. **Swarm buff — done, two new cards, Cortex untouched.** Colony Broodling
+   (dies with 2+ other units surviving -> summons a replacement Swarm
+   Larva, directly punishing single-target removal) and Overgrown Carapace
+   (health scales live with controller's own board width). Both real-play-
+   proven (`progress/sample-match-018-swarm-resilience.txt`) and whitebox-
+   tested (`engine/test/swarmResilience.test.ts`). Result: Swarm-vs-Null is
+   no longer triple-flagged (real movement toward the target on all three
+   policies); Cortex-vs-Swarm, not specifically targeted, is unchanged in
+   kind, per this entry's own note that it may need a Swarm/Aegis-side fix
+   later, not addressed this session.
+
+**Whole-ring re-measurement — done and checkpointed**
+(`progress/checkpoints.md`'s new entry, `progress/balance-report-011-phase4-decisions.txt`).
+Honest result: no pairing is within band yet. Per this entry's own explicit
+gate ("do NOT start expansion until the ring is within band"), Phase 5 was
+NOT started. Open questions left for the owner (Cortex-vs-Swarm has no
+assigned fix; whether to go past cost on Kernel Panic/Null Singularity) are
+in `progress/notes-for-owner.md`'s new entry rather than guessed at.
