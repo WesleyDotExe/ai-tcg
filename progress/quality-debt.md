@@ -11,10 +11,77 @@ session 6 (backfilling Cortex/Swarm with board-development cards), session
 defensive interaction + the chosen-targeting fix), session 12 (Phase 1 of
 the 2026-09-20 owner-feedback entry — fixing the balance instrument),
 session 13 (Phase 2 item 3 of the same entry — directive removal), session
-14 (Phase 2 items 4-5 — summon/token effect kind, base armor), and now
-session 15 (Phase 3 — the load-time card-pool lint).
+14 (Phase 2 items 4-5 — summon/token effect kind, base armor), session 15
+(Phase 3 — the load-time card-pool lint), session 16 (Phase 4 — the counter
+triangle, proposed and measured), and now session 17 (the owner's Phase 4
+decisions: the four-faction ring, Null step 4, buff Swarm).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 17
+
+- **None of the six ring pairings are within band yet.** This is the
+  headline honest finding, not a side note — see
+  `progress/balance-report-011-phase4-decisions.txt`'s "honest read"
+  section. Both authorized changes (Null cost increases, the two new Swarm
+  cards) moved the numbers in the right direction, but Aegis-vs-Null and
+  Cortex-vs-Swarm both remain triple-flagged, and the four "should be even"
+  pairings are mostly outside the 45-55% band too (Cortex-vs-Aegis 43.7-
+  67.7% depending on policy; Swarm-vs-Aegis now 43.7-64.7%). The ring is a
+  real target, not yet a real result.
+- **Cortex-vs-Swarm has no assigned owner.** Nothing in the 2026-09-23 entry
+  authorizes touching Cortex (explicitly forbidden) or names a specific
+  Swarm/Aegis fix for this specific pairing the way it did for
+  Swarm-vs-Null. It was measured, unchanged in kind, and left exactly as
+  flagged — a genuine gap in who's supposed to fix it, not an oversight.
+- **Kernel Panic and Null Singularity's cost increases didn't reduce their
+  per-instance power, only how often they get played** — both remain
+  extreme win-rate-when-played outliers (up to 86.4%/78.7% under Random).
+  If Aegis-vs-Null needs to actually reach the 55-60% band, the per-card
+  table in `balance-report-011` points at these two cards' raw
+  stats/effects as the next lever, not their cost — unstarted, out of this
+  session's authorized scope, named here so it isn't lost.
+- **A new, unchased single-policy flag: Cortex-vs-Null under Aggressive
+  (55.7% -> 60.7%).** Real, honestly reported, plausibly a side effect of
+  Null's cost increases weakening its early-to-mid game specifically
+  against Cortex's efficient curve. Not a cross-check flag (only one of
+  three policies), not chased — see `balance-report-011`'s honest-read item
+  3 for the full reasoning on why reverting over one policy's number would
+  itself be the card-by-card chasing this project's history warns against.
+- **Colony Broodling and Overgrown Carapace's numbers (cost 1/1/1 summon
+  gated at 2+ other units; cost 3/2-attack/1-base-scaling-health; 3+2
+  copies) are this session's own first proposal, not playtested or
+  owner-confirmed** — same category of checkpoint-proposal debt as every
+  other numeric first-guess in this project's history (baseArmor=1, board
+  slots=6, telegraph timing, etc.). Flagged in `checkpoints.md`/
+  `notes-for-owner.md` per the entry's own instruction to propose specific
+  cards rather than finalize them unilaterally.
+- **Both new Swarm cards help Swarm's OTHER matchups too, not just
+  Null** — Swarm-vs-Aegis (an "across," should-stay-even pairing) moved
+  further Swarm-favoured under Aggressive (61.7% -> 64.7%), a known,
+  accepted side effect of a systemic fix rather than a Null-only patch, but
+  worth tracking if a future measurement finds Swarm-vs-Aegis has drifted
+  out of band in the other direction.
+- **`swarmResilienceMatchDemo.ts`'s Overgrown Carapace sampling only checks
+  the FIRST unit on `p1`'s board named "Overgrown Carapace"** (via `.find`)
+  — correct for the current pool (copy count 2, and the script only needs
+  one live instance to prove the mechanism), but would silently only track
+  one instance if two copies were ever simultaneously in play in the same
+  demo run. Not exercised this session (the found seed only ever had one
+  copy on the board at a time), named as a scripting simplification rather
+  than a proven-correct multi-instance path.
+- **Phase 5 (pool expansion) remains correctly unstarted**, per the
+  2026-09-23 entry's own explicit gate ("do NOT start expansion until the
+  ring is within band"). Restating here per this file's own convention so
+  it isn't mistaken for forgotten.
+- **The server integration test's known flakiness (session 9's debt) looks
+  worse than previously recorded.** This session observed it fail on 2 of 4
+  runs, including standalone (not just under a full concurrent `npm test`),
+  whereas session 16 only saw it flake once under a full run and pass
+  reliably 3/3 alone. `server/` was not touched this session, so this isn't
+  a regression from anything here, but the failure rate this session
+  actually measured (~50%) is real new information a future hardening pass
+  should have, not just "worth watching."
 
 ## New debt from session 16
 

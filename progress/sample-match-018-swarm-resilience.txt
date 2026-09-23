@@ -1,0 +1,260 @@
+AI-TCG Swarm go-wide resilience evidence (2026-09-23 Phase 4 decisions, item 3) — seed 11, Swarm vs Null
+Both sides played by LookaheadAgent.
+
+--- Colony Broodling: onDeath replacement ---
+  {"type":"summon","player":"p1","token":"Swarm Larva","instanceId":"u18","source":"Colony Broodling"}
+Replacement observed at least once: true
+
+--- Overgrown Carapace: live health scaling with board width ---
+  (move #, Swarm's own unit count, observed live health, expected = 1 + count - damage taken)
+  move   24: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   25: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   26: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   27: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   28: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   29: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   30: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   31: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   32: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   33: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   34: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   35: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   36: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   37: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   38: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   39: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   40: Swarm controls 3 unit(s) -> health 4 (expected 4) [OK]
+  move   41: Swarm controls 4 unit(s) -> health 5 (expected 5) [OK]
+  move   42: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   43: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   44: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   45: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   46: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   47: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   48: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   49: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   50: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   51: Swarm controls 5 unit(s) -> health 6 (expected 6) [OK]
+  move   52: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   53: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   54: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   55: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   56: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   57: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   58: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   59: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   60: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   61: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   62: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   63: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   64: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   65: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   66: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   67: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   68: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   69: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   70: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   71: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   72: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   73: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   74: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   75: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   76: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   77: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   78: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   79: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   80: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   81: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   82: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   83: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   84: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   85: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   86: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   87: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   88: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   89: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   90: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   91: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+  move   92: Swarm controls 6 unit(s) -> health 7 (expected 7) [OK]
+Health value changed at least once as board width changed: true
+
+--- Full match log ---
+--- Turn 1 (p1) ---
+p1 plays Colony Broodling (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Null Shell
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Colony Broodling
+--- Turn 3 (p1) ---
+  Chitin Plating attaches to Colony Broodling
+Colony Broodling attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Null
+p1 plays Colony Broodling (u3)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Null Singularity
+--- Turn 4 (p2) ---
+p2 casts Segfault Handler [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Segfault Handler
+  ability: Segfault Handler — segfault-handler-cast (onPlay)
+  Segfault Handler deals 3 damage to Colony Broodling (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Swarm Larva
+--- Turn 5 (p1) ---
+Colony Broodling attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Null
+Colony Broodling attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Null
+p1 plays Overgrown Carapace (u7)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Glitch Seed
+--- Turn 6 (p2) ---
+p2 plays Glitch Seed (u8)
+  Null Shell attaches to Glitch Seed
+  Corruption Patch attaches to Glitch Seed
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Molted Stalker
+--- Turn 7 (p1) ---
+Overgrown Carapace attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overgrown Carapace's attack
+  Overgrown Carapace deals 2 damage to Lookahead-Null
+Colony Broodling attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Null
+Colony Broodling attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Null
+p1 plays Swarm Larva (u12)
+p1 plays Colony Broodling (u13)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Null Shell
+--- Turn 8 (p2) ---
+  Glitch Seed evolves into Corrupted Process
+  ability: Corrupted Process — corrupted-process-evolve (onPlay)
+p2 draws Null Shell
+Corrupted Process attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 3 damage to Lookahead-Swarm
+  Null Shell attaches to Corrupted Process
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Broodcaller
+--- Turn 9 (p1) ---
+p1 plays Broodcaller (u15)
+  ability: Broodcaller — broodcaller-play (onPlay)
+p1 draws Swarm Larva
+Overgrown Carapace attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overgrown Carapace's attack
+  Overgrown Carapace deals 2 damage to Lookahead-Null
+Colony Broodling attacks Corrupted Process
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Corrupted Process's base armor reduces 1 damage from Colony Broodling to 0
+  Corrupted Process deals 3 damage to Colony Broodling (unit)
+  Colony Broodling (p1) dies
+  ability: Colony Broodling — colony-broodling-death (onDeath)
+  Colony Broodling summons Swarm Larva for p1 (u18)
+Colony Broodling attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Null
+Colony Broodling attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Null
+Swarm Larva attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Null
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Stray Fragment
+--- Turn 10 (p2) ---
+Corrupted Process attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 3 damage to Lookahead-Swarm
+  Null Shell attaches to Corrupted Process
+p2 plays Stray Fragment (u23)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Molted Stalker
+--- Turn 11 (p1) ---
+  Swarm Larva evolves into Molted Stalker
+  ability: Molted Stalker — molted-stalker-evolve (onPlay)
+p1 draws Spore Cluster
+Broodcaller attacks Stray Fragment
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Broodcaller's attack
+  Broodcaller deals 3 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Broodcaller (unit)
+  Stray Fragment (p2) dies
+Molted Stalker attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Molted Stalker's attack
+  Molted Stalker deals 4 damage to Lookahead-Null
+Overgrown Carapace attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overgrown Carapace's attack
+  Overgrown Carapace deals 2 damage to Lookahead-Null
+Colony Broodling attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Null
+Swarm Larva attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Null
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+--- Summary ---
+Winner: p1
+Turns played: 11

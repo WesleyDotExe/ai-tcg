@@ -91,9 +91,29 @@ building around them; don't block the whole project waiting.
    were flagged to the owner rather than done unilaterally — see
    progress/balance-report-010-phase4-triangle.txt,
    progress/checkpoints.md, and progress/notes-for-owner.md.
-   **Next: owner steer on step 4/Cortex-Swarm, or — if none arrives —
-   Swarm's own kit against the inverted Swarm-vs-Null edge, the most
-   structurally wrong result against the triangle right now.**
+   **Session 17 executed the owner's Phase 4 decisions** (which superseded
+   the triangle above with an explicit four-faction ring: Null > Aegis >
+   Cortex > Swarm > Null): raised Kernel Panic (5->6) and Null Singularity
+   (6->7) per the pre-authorized Null step 4, then gave Swarm two new
+   go-wide-resilience cards (Colony Broodling: dies with 2+ other units
+   surviving -> summons a replacement; Overgrown Carapace: health scales
+   live with the controller's own board width) — Cortex was not touched, per
+   the entry's explicit instruction. Re-measured the whole ring (300
+   seeds/matchup, 3 policies): honest result, no pairing is within band yet,
+   but real multi-policy movement in both targeted places — Aegis-vs-Null
+   moved down on all three policies for the first time in this project's
+   history (still triple-flagged, didn't reach the 55-60% "stop" line);
+   Swarm-vs-Null is no longer triple-flagged (the ring's most structurally
+   wrong edge, now only single-flagged under Random). Cortex-vs-Swarm,
+   untouched by either change, remains triple-flagged with no assigned fix.
+   See progress/balance-report-011-phase4-decisions.txt,
+   progress/checkpoints.md, and progress/notes-for-owner.md.
+   **Per the entry's own explicit gate, Phase 5 (pool expansion) was NOT
+   started — the ring isn't within band on any pairing. Next: owner steer on
+   Cortex-vs-Swarm (nobody's assigned to fix it) and whether to push past
+   cost on Kernel Panic/Null Singularity, or — if none arrives — read
+   balance-report-011 in full and pick the most conservative next move
+   consistent with "don't nerf Cortex" and "don't chase unilaterally."**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

@@ -91,7 +91,17 @@ export const kernelPanic: UnitCard = {
   name: "Kernel Panic",
   faction: "Null",
   rarity: "Rare",
-  cost: 5,
+  // Cost 5 -> 6 (2026-09-23 owner-feedback entry, Phase 4 decisions, item
+  // 2: "Null step 4 — yes, raise costs" — the played-win-rate outlier the
+  // 2026-09-20 backstop named but session 16 declined to touch unilaterally
+  // since it already cost exactly what its faction-mirror equivalent
+  // (Aegis Warden) costs. The owner's own steer resolves that: "it's fine
+  // for them to cost more than other factions' top cards; Null is the
+  // attrition faction, so a premium on its best pieces is on-identity, not
+  // a curve violation." This is now the first cost-6 Rare in the pool
+  // (every other faction's top-end premium sits at Mythic) — a deliberate
+  // consequence of that steer, not an oversight.
+  cost: 6,
   type: "Unit",
   attack: 4,
   health: 6,
@@ -412,7 +422,13 @@ export const nullSingularity: UnitCard = {
   name: "Null Singularity",
   faction: "Null",
   rarity: "Mythic",
-  cost: 6,
+  // Cost 6 -> 7 (2026-09-23 owner-feedback entry, Phase 4 decisions, item
+  // 2 — same steer and reasoning as Kernel Panic above: the other
+  // played-win-rate outlier the 2026-09-20 backstop named, raised now that
+  // the owner has confirmed a Null-top-end premium is on-identity. Energy
+  // caps at 10 (see this file's own comment on the resource model in
+  // DESIGN.md), so 7 is still reachable mid-to-late game, not a dead card.
+  cost: 7,
   type: "Unit",
   attack: 3,
   health: 8,
