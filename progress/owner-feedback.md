@@ -722,3 +722,15 @@ Real progress last session (Aegis-vs-Null moved down under all three policies fo
 4. **Null step 4 — go past cost to power.** Raising Kernel Panic (6) and Null Singularity (7) changed how OFTEN they land, not how strong they are: both still win ~79-86% of games they are actually played in, and Aegis-vs-Null is still triple-flagged. Now reduce their impact (stats/effect), not just cost — e.g. Kernel Panic's body or destroy reach, Null Singularity's aura/stats. Measure after each change; stop when Aegis-vs-Null sits in the 55-60% band.
 
 Order unchanged: get the whole ring within band (all six pairings, all three policies, against the corrected targets) BEFORE starting Phase 5 (pool expansion).
+
+---
+
+## 2026-09-24 — Owner: fold the render lane into THIS task (alternating sessions)
+
+The separate render schedule could not get private-repo push access, so the spectator render now runs inside THIS task instead of a second one. Two rules:
+
+1. **Render is authorized OUT of build order.** DESIGN's "no stage 6 (visuals) before the game runs headless" is explicitly overridden for a carved-out render track — it may proceed now, alongside the balance/ring work. Render follows RENDER.md, keeps ALL its work under render/ and progress/render/, and must NOT modify any balance/engine/card-pool/agent file or the shared progress files (so balance measurements and logs stay clean).
+
+2. **Alternate — one focused slice per session.** At the start of each session check the most recent merged PR: if it was a balance/card slice, THIS session does one render slice per RENDER.md; if it was a render slice, THIS session does the normal balance/roadmap priority. Prefix render PR titles with "Render:" so the alternation signal is unambiguous. On balance sessions, owner-feedback + roadmap govern as normal; on render sessions, RENDER.md governs.
+
+Net effect: the balance ring work continues (every other session, so a bit slower in wall-clock) and the render finally starts moving. This alternation persists after the ring reaches band and Phase 5 begins, unless changed here.
