@@ -734,3 +734,13 @@ The separate render schedule could not get private-repo push access, so the spec
 2. **Alternate — one focused slice per session.** At the start of each session check the most recent merged PR: if it was a balance/card slice, THIS session does one render slice per RENDER.md; if it was a render slice, THIS session does the normal balance/roadmap priority. Prefix render PR titles with "Render:" so the alternation signal is unambiguous. On balance sessions, owner-feedback + roadmap govern as normal; on render sessions, RENDER.md governs.
 
 Net effect: the balance ring work continues (every other session, so a bit slower in wall-clock) and the render finally starts moving. This alternation persists after the ring reaches band and Phase 5 begins, unless changed here.
+
+---
+
+## 2026-09-25 — Owner: render pacing approved; design commentary for adaptive pacing
+
+Reviewed the first spectator replay (render session 1). Two things:
+
+1. **Visual pacing is owner-approved as a baseline to protect.** The turn-by-turn rhythm keeps the match engaging to watch. Future render and pacing-related balance work should not regress it.
+
+2. **Fixed-speed playback will fight audio commentary (stage 7) — design for adaptive pacing.** Moves currently advance fast; that is fine for the eye but spoken commentary has a ~2-3 words/sec ceiling and cannot narrate a pivotal moment if several moves pass before the call lands. When commentary is built, pacing must be driven by move SIGNIFICANCE, not a fixed clock: trivial moves flash by, pivotal ones slow down or the replay briefly holds so the call can land. The render already computes the natural significance signal — the momentum gauge and its per-turn "why" reasons — so reuse that to drive pacing rather than inventing a new one. Flag the exact pacing model at a checkpoint when stage 7 arrives.
