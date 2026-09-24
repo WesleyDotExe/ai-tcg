@@ -1,0 +1,21 @@
+{
+  "name": "@ai-tcg/render",
+  "version": "0.1.0",
+  "description": "Spectator render lane (DESIGN.md stage 6, carved out to run in parallel per RENDER.md): turns a played-out match into a self-contained, turn-by-turn watchable HTML replay. Reads the engine's public state/event shapes; never modifies engine, agent, or card-pool files.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "replay": "tsx src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ai-tcg/engine": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  }
+}

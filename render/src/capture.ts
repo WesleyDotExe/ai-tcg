@@ -1,0 +1,192 @@
+// Runs a real match through the public engine API — createInitialState,
+// getLegalMoves, applyMove, beginTurn, buildPlayerView, exactly what
+// engine/src/engine/match.ts's runMatch itself calls — but, unlike
+// runMatch (whose only hook is onMatchStart), takes a full board snapshot
+// after *every* move, which is what lets the replay page step turn by turn
+// instead of only showing the final result. This duplicates runMatch's loop
+// body rather than modifying match.ts to add a hook, per RENDER.md's "never
+// modify an engine file" guardrail — the loop itself is ~10 lines, entirely
+// public API calls, so the duplication is small and honest, not a shortcut.
+import {
+  createInitialState,
+  getLegalMoves,
+  applyMove,
+  beginTurn,
+  buildPlayerView,
+  Rng,
+  formatEvent,
+  otherPlayer,
+} from "@ai-tcg/engine";
+import type { Agent, DeckSpec, GameState, PlayerId, Card, UnitInstance } from "@ai-tcg/engine";
+import {
+  currentAttack,
+  currentHealth,
+  currentMaxHealth,
+  boardSlotsUsed,
+  hasKeyword,
+  effectiveCardCost,
+} from "./engineInternal.js";
+import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
+import { computeMomentum } from "./momentum.js";
+import type { CardRef, DirectiveSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "./types.js";
+
+const MAX_MOVES_SAFETY = 5000;
+
+function toCardRef(state: GameState, pid: PlayerId, card: Card): CardRef {
+  return {
+    cardId: card.id,
+    name: card.name,
+    faction: card.faction,
+    rarity: card.rarity,
+    type: card.type,
+    cost: effectiveCardCost(state, pid, card),
+    flavor: card.flavor,
+    visualSeed: visualSeedFor(card.id),
+    visualPattern: visualPatternFor(card.id),
+  };
+}
+
+function toUnitSnapshot(state: GameState, unit: UnitInstance): UnitSnapshot {
+  return {
+    instanceId: unit.instanceId,
+    cardId: unit.card.id,
+    name: unit.card.name,
+    faction: unit.card.faction,
+    rarity: unit.card.rarity,
+    flavor: unit.card.flavor,
+    attack: currentAttack(state, unit),
+    health: Math.max(0, currentHealth(state, unit)),
+    maxHealth: currentMaxHealth(state, unit),
+    keywords: (["Rush", "Guard", "Barrier"] as const).filter((k) => hasKeyword(unit, k)),
+    pending: unit.pending === true,
+    armTurn: unit.armTurn,
+    isEvolved: unit.card.evolvesFrom !== undefined,
+    canAttackThisTurn: !unit.pending && !unit.hasAttackedThisTurn,
+    tools: unit.tools.map((t) => ({
+      name: t.name,
+      attackBonus: t.attackBonus,
+      healthBonus: t.healthBonus,
+      grantedKeywords: t.grantedKeywords,
+    })),
+    statuses: unit.statuses.map((s) => ({ kind: s.kind, duration: s.duration })),
+    visualSeed: visualSeedFor(unit.card.id),
+    visualPattern: visualPatternFor(unit.card.id),
+  };
+}
+
+function toDirectiveSnapshot(d: { instanceId: string; card: Card }): DirectiveSnapshot {
+  return {
+    instanceId: d.instanceId,
+    cardId: d.card.id,
+    name: d.card.name,
+    faction: d.card.faction,
+    rarity: d.card.rarity,
+    flavor: d.card.flavor,
+    visualSeed: visualSeedFor(d.card.id),
+    visualPattern: visualPatternFor(d.card.id),
+  };
+}
+
+function toPlayerSnapshot(state: GameState, pid: PlayerId, slotsMax: number): PlayerSnapshot {
+  const p = state.players[pid];
+  return {
+    id: pid,
+    name: p.name,
+    faction: p.board[0]?.card.faction ?? p.hand[0]?.faction ?? p.deck[0]?.faction ?? "Cortex",
+    health: Math.max(0, p.health),
+    maxHealth: p.maxHealth,
+    energy: p.energy,
+    maxEnergy: p.maxEnergy,
+    hand: p.hand.map((c) => toCardRef(state, pid, c)),
+    deckSize: p.deck.length,
+    graveyardSize: p.graveyard.length,
+    board: p.board.map((u) => toUnitSnapshot(state, u)),
+    directives: p.directives.map(toDirectiveSnapshot),
+    slotsUsed: boardSlotsUsed(p),
+    slotsMax,
+  };
+}
+
+function describeStackItem(item: GameState["stack"][number]): StackItemSnapshot {
+  if (item.kind === "command") {
+    return { kind: "command", description: item.card.name, controller: item.controller };
+  }
+  if (item.kind === "ability") {
+    return { kind: "ability", description: `${item.source.cardName} — ${item.ability.text}`, controller: item.controller };
+  }
+  return { kind: "combatDamage", description: `${item.attackerName}'s attack`, controller: item.controller };
+}
+
+function buildFrame(state: GameState, index: number, slotsMax: number, newEvents: GameState["log"]): Frame {
+  const players = {
+    p1: toPlayerSnapshot(state, "p1", slotsMax),
+    p2: toPlayerSnapshot(state, "p2", slotsMax),
+  };
+  return {
+    index,
+    turnNumber: state.turnNumber,
+    activePlayer: state.activePlayer,
+    priority: state.priority,
+    winner: state.winner,
+    stack: state.stack.map(describeStackItem),
+    players,
+    newEvents: newEvents.map((event) => ({ event, text: formatEvent(event) })),
+    momentum: computeMomentum(players.p1, players.p2),
+  };
+}
+
+export interface CaptureOptions {
+  title: string;
+  seed: number;
+  deckA: DeckSpec;
+  deckB: DeckSpec;
+  agentA: Agent;
+  agentB: Agent;
+  /** Shared board-slot cap (state/init.ts's BOARD_SLOTS) — passed in rather
+   * than hardcoded so a future engine change to the constant can't silently
+   * desync the render's "slots used / N" display. */
+  boardSlots: number;
+}
+
+export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
+  const rng = new Rng(opts.seed);
+  const state = createInitialState(opts.deckA, opts.deckB, rng);
+  state.players.p1.name = opts.agentA.name;
+  state.players.p2.name = opts.agentB.name;
+  state.turnNumber = 1;
+  state.activePlayer = "p1";
+  beginTurn(state, "p1", rng, { draw: false });
+
+  const frames: Frame[] = [buildFrame(state, 0, opts.boardSlots, state.log)];
+  const agents: Record<PlayerId, Agent> = { p1: opts.agentA, p2: opts.agentB };
+  let movesPlayed = 0;
+  let lastLogLength = state.log.length;
+
+  while (!state.winner && movesPlayed < MAX_MOVES_SAFETY) {
+    const legalMoves = getLegalMoves(state);
+    if (legalMoves.length === 0) break;
+    const view = buildPlayerView(state, state.priority);
+    const move = await agents[state.priority].decideMove(view, legalMoves);
+    applyMove(state, move, rng);
+    movesPlayed++;
+    const newEvents = state.log.slice(lastLogLength);
+    lastLogLength = state.log.length;
+    frames.push(buildFrame(state, movesPlayed, opts.boardSlots, newEvents));
+  }
+
+  const factionOf = (pid: PlayerId): PlayerSnapshot["faction"] => frames[frames.length - 1]!.players[pid].faction;
+
+  return {
+    title: opts.title,
+    seed: opts.seed,
+    agentNames: { p1: opts.agentA.name, p2: opts.agentB.name },
+    factions: { p1: factionOf("p1"), p2: factionOf("p2") },
+    movesPlayed,
+    turnCap: state.turnCap,
+    frames,
+  };
+}
+
+// Re-exported so callers (cli.ts) don't need a second import line just for
+// the one helper they need alongside captureMatch.
+export { otherPlayer };
