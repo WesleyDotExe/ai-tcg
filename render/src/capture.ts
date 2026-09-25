@@ -62,6 +62,8 @@ function toUnitSnapshot(state: GameState, unit: UnitInstance): UnitSnapshot {
     armTurn: unit.armTurn,
     isEvolved: unit.card.evolvesFrom !== undefined,
     canAttackThisTurn: !unit.pending && !unit.hasAttackedThisTurn,
+    baseArmor: unit.card.baseArmor ?? 0,
+    barrierActive: unit.statuses.some((s) => s.kind === "Barrier"),
     tools: unit.tools.map((t) => ({
       name: t.name,
       attackBonus: t.attackBonus,

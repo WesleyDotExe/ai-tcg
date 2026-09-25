@@ -422,3 +422,182 @@ open — (a) a fixed-slot board layout so units don't visually reflow when a
 neighbour dies mid-row, or (b) the momentum-weight pass. This session adds a
 third real candidate: the stacked-floating-number layering fix named above.
 All three are legitimate; left open per RENDER.md's own practice.
+
+---
+
+## 2026-09-26 — Session 4: defence/shield primitives (EFFECTS.md slice 1)
+
+Per the 2026-09-24 alternation rule: the most recently merged PR before this
+session was session 19's balance slice (Phase 5 slice 1, Aegis pool growth) —
+the four commits after it in `git log` (EFFECTS.md itself, RENDER.md's
+pointer to it, and the player-identity feedback entry) are the owner pushing
+directly to `progress/owner-feedback.md`/`RENDER.md`/`render/EFFECTS.md`,
+not a session PR, so they don't flip the alternation. This is the render
+lane's turn, and `render/EFFECTS.md`'s own build order is explicit: "Next
+render session: start slice 1 (defence/shields)." Took that literally rather
+than picking from the open candidates session 3 left (fixed-slot layout,
+momentum retune, floating-number stacking) — EFFECTS.md is the owner's own
+named next step, dated one day after those.
+
+**What EFFECTS.md's slice 1 asked for, verbatim:** "interpose + absorb +
+shatter on Barrier; a persistent shield badge on Guard units; a small
+deflect on base-armor damage reduction... No pairing dependency — do this
+FIRST." Built exactly that, across every faction via one shared mechanism
+each (not three separate per-faction builds — Barrier/Guard/baseArmor are
+card-level traits any faction's cards can carry, so faction skin (item 5 in
+the build order) rides the existing palette variables for free, no
+per-faction work needed this slice).
+
+**Two new UnitSnapshot fields, read straight off real engine state**
+(`render/src/capture.ts`, `render/src/types.ts`): `baseArmor` (off
+`unit.card.baseArmor ?? 0` — the same field `engine/src/effects/
+resolver.ts`'s own damage-reduction code reads) and `barrierActive` (off
+`unit.statuses.some(s => s.kind === "Barrier")` — the *live* status, not
+the static `keywords` list). That second field mattered for a real,
+pre-existing minor inaccuracy this session found and fixed in the same
+pass: the existing card-tag rendering showed a "BARRIER" text pill whenever
+a card's `keywords` included Barrier, which stays true FOREVER after the
+card is played even once its shield has already been consumed — misleading
+by design, not by bug, since `keywords` only ever meant "this card grants
+Barrier on play." Removed Barrier (and Guard, now redundant with its own
+badge below) from that generic tag loop and replaced both with the new,
+accurate, live-state shield badges.
+
+**Three FX primitives built, each proven with real match evidence, not
+just wired up:**
+
+1. **Barrier interpose + absorb + shatter.** The actual gap this closes:
+   when Barrier fully absorbs a hit, the unit's health doesn't change at
+   all, so session 2/3's existing hit-flash logic (keyed off a health
+   delta) produces **zero visual** for a hit that genuinely happened and
+   was blocked — confirmed by reading `engine/src/effects/resolver.ts`'s
+   `applyDamage` (Barrier returns early before any health change once it
+   absorbs). Fixed with a diff check independent of health: `barrierActive`
+   true in the previous frame, false in this one, on a unit that's still
+   alive, fires a new `fx-shatter` CSS class (a cyan flash distinct from
+   the hit-flash's red, since this is a defensive event, not a damage one)
+   plus a floating "BLOCKED" label — the first non-numeric floating-text FX
+   this lane has built. Tiered by a new `barrierBreakScore(rarity)` in
+   `render/src/fxMagnitude.ts` (4 new tests), same shape as the existing
+   `armedScore` — a Common's shield breaking is at least `normal`-tier (a
+   hit that did nothing still deserves a legible beat), a Mythic's is
+   `spectacle`. No pairing/attacker data needed at all, exactly as
+   EFFECTS.md predicted for this slice — the instanceId diff alone is
+   sufficient.
+2. **A persistent shield badge on Guard units**, and a matching one — live,
+   not static — for an active Barrier. Small badge icons in each card's
+   top-right corner (tags/EVOLVED stay top-left), steel-grey and steady for
+   Guard, shield-cyan with a slow idle pulse for Barrier (distinguishing
+   "permanent trait" from "temporary, about to be tested" at a glance,
+   without any animation timing implications — the pulse is a pure CSS
+   loop, independent of the move-driven FX system, so it can't regress the
+   owner's protected `normal`-tier baseline pacing).
+3. **A small, deliberately un-scaled deflect spark on base-armor damage
+   reduction.** Any health-reducing hit on a unit with `baseArmor > 0`
+   spawns a small steel-grey ring (`fx-deflect-ring`) alongside the
+   ordinary hit flash — "small" is the spec's own word, so unlike the other
+   two primitives this one does NOT go through the magnitude-tier system;
+   it's a constant, minor flourish layered on top of whatever tier the hit
+   itself is. Named limitation, not fixed this session: a hit small enough
+   to be *fully* absorbed by armor (a real, printed AG-001/AG-013/NL-*/CT-*
+   baseArmor:1 vs. a 1-damage ping) leaves health unchanged and so isn't
+   caught by this health-delta-gated check — closing that needs per-hit
+   instance-keyed event data the engine doesn't emit yet (the same
+   instance-ID gap notes-for-owner.md item 4 already names, still open on
+   the balance lane's side).
+
+**A real bug found and fixed before shipping, not shipped and left for
+someone else to catch.** The first badge implementation used a shield emoji
+(U+1F6E1) as the icon. Screenshotting it in this environment's real headless
+Chromium (not assumed, not single-stepped-and-eyeballed only) showed
+**nothing at all** — not even the badge's own background pill — at the
+card's top-right corner where the DOM inspector confirmed the element was
+present and correctly populated. Root-caused by checking computed style
+directly rather than guessing: this sandboxed headless Chromium has no
+colour-emoji font installed, so the glyph fell back to the ambient inherited
+text colour (`.card`'s own near-black `#0a0e18`, meant for text on top of a
+bright faction-coloured card) with no icon shape to carry it, rendering
+functionally invisible against the badge's own dark translucent background.
+Fixed by switching to plain capital-letter glyphs ("G"/"B") in a monospace
+badge — not a workaround, a better match for this project's own existing
+convention (the rarity badge is already a single capital letter, `c.rarity[0]`)
+that also happens to be guaranteed to render everywhere Courier New does.
+Re-screenshotted after the fix to confirm the badges are now actually
+visible, not just re-run the same blind check that missed it the first time.
+
+**Evidence — both committed replays regenerated against the current pool
+and re-verified, not reused from session 3.** Session 3's committed seeds
+(`aegis-vs-swarm-seed1.html`, `aegis-vs-cortex-seed24.html`) weren't picked
+for this slice's mechanics and didn't reliably exercise all three together,
+so this session re-scanned
+(`npm run replay -w @ai-tcg/render`, a scratch seed scan over 60 seeds each
+matchup, not committed) for seeds hitting `baseArmorReduced` + `barrierAbsorbed`
++ a Guard unit on board in the SAME match, and replaced the committed files:
+- `render/output/aegis-vs-swarm-seed16.html` (152 moves, 13 turns) —
+  5 base-armor reductions, 3 Barrier absorbs, Guard units present.
+- `render/output/aegis-vs-cortex-seed20.html` (136 moves, 15 turns) —
+  12 base-armor reductions, 1 Barrier absorb, Guard units present.
+Both driven in real headless Chromium (this environment's pre-installed
+build, via the globally-installed `playwright` package — not a project
+dependency, same as sessions 2/3) in the same two-pass style session 3
+established: single-stepped through every move with a MutationObserver
+tallying which FX/badges actually landed on real DOM nodes (shield badges:
+49-171 renders; `fx-shatter`: 2-6; the deflect ring: 4 in the Cortex match,
+where base armor is more active), zero console errors across every frame in
+both files; then a separate full-speed ("fast" preset) autoplay pass to the
+end of the match, also zero console errors — the "verify at PLAY speed, not
+just single-step" bar session 3 first satisfied, re-checked here since this
+session's changes plug into the same adaptive-pacing tier system (a
+spectacle-tier shatter now also earns an autoplay hold, for free, via the
+existing `tiers.push(...)`/`maxTierOf` machinery — nothing new to build
+there). Two real screenshots committed as evidence are NOT checked in
+(matching this lane's existing practice of not committing screenshots, the
+HTML itself being the real evidence) but were taken and inspected: one shows
+"BLOCKED" floating in shield-cyan over Latent Ward the exact move its
+Barrier absorbs a hit from Corrosive Spitter (matches the event log line
+underneath it word for word), the other shows a Guard badge legible on
+Barrier Drone's card.
+
+**Tests.** `render/test/fxMagnitude.test.ts`: 4 new tests for
+`barrierBreakScore` (clears the subtle floor even at Common, scales
+monotonically, Mythic is spectacle). `render/test/defenceSnapshot.test.ts`
+(new file): 3 whitebox tests proving `capture.ts` reads the two new fields
+off real match state correctly — `baseArmor: 1` shows up on a real Aegis
+Cadet (AG-001) across a seed scan, non-base units correctly report 0, and
+`barrierActive` flips true the moment a real Barrier Node (SW-008, a Swarm
+card with the Barrier keyword) enters play — not synthetic fixtures, real
+engine matches via `captureMatch`, the same seed-scan style the balance
+lane's own dev-demo scripts use. `npm test` (root, all five workspaces):
+engine 86/86, protocol 7/7, server 23/23, agents 17/17, render 40/40 (was
+34 + 6 new = 40). `npx tsc --noEmit` clean in all five workspaces.
+
+**Named honestly, not fixed this session:**
+- The base-armor-fully-absorbed-with-zero-visible-hit case (above) — needs
+  the engine's own instance-ID event-log gap closed first.
+- Session 2/3's already-named thin spots (stacked floating numbers
+  overlapping when two FX land on one card the same move; no fixed-slot
+  board layout; momentum weights untouched) are all still open, untouched
+  this session — none were this slice's job.
+- The shield badges are a NEW small UI element added to every card that has
+  Guard or active Barrier; this session did not re-verify overall card
+  layout/legibility at very small viewport sizes with the badge present
+  (existing `.tags`/`.arm-count` elements already share the small-card
+  layout budget) — no overlap was observed in the screenshots taken, but
+  this wasn't stress-tested against, say, a 4/4 evolved Rare with tools,
+  tags, AND both badges at once in the same match.
+- `render/EFFECTS.md`'s own dependency note ("attack `travel` and defence
+  `interpose` need... instance IDs... until it lands, infer pairing from
+  the frame diff") didn't end up mattering for this slice specifically —
+  Barrier/Guard/baseArmor are all per-instance traits with no
+  attacker-pairing question at all, exactly as the build order predicted
+  by putting this slice first, before attack travel+impact (slice 4, which
+  DOES need the pairing fix).
+
+**Next render-lane slice:** per `render/EFFECTS.md`'s own build order,
+slice 2 is next — buff (rise) and penalty (sink) grammar, tier-scaled and
+faction-tinted (the fx-buff flash session 2 already built is the raw
+material; this would be about the rise/sink MOTION primitive EFFECTS.md
+specifies, not just a colour flash). Slice 3 (power/ability cast flourish)
+is also open and has no dependency on slice 2. Slice 4 (attack travel +
+impact) still explicitly waits on the balance lane's instance-ID event-log
+fix (owner-feedback.md, 2026-09-25) — not yet landed as of this session.

@@ -78,6 +78,16 @@ export function armedScore(rarity: Rarity): number {
   return { Common: 1.0, Uncommon: 1.2, Rare: 1.9, Mythic: 2.5 }[rarity];
 }
 
+/** A unit's Barrier status breaking — it interposed on a hit and absorbed
+ * it (EFFECTS.md slice 1's "interpose + absorb + shatter"). Same shape as
+ * armedScore: a rarer unit's shield breaking reads as more significant, but
+ * even a Common's shatter clears the subtle floor, since "a hit that did
+ * nothing" still deserves a legible beat — the whole point of this slice is
+ * that a fully-absorbed hit currently gets NO visual at all. */
+export function barrierBreakScore(rarity: Rarity): number {
+  return { Common: 1.1, Uncommon: 1.4, Rare: 2.0, Mythic: 2.6 }[rarity];
+}
+
 /** How far the momentum gauge swung this move, independent of any single
  * card event — a quiet-looking move can still be a big swing (e.g. a card
  * drawn into an empty hand), and this lets pacing/the gauge itself react to

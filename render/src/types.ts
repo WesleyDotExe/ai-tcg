@@ -20,6 +20,18 @@ export interface UnitSnapshot {
   armTurn?: number;
   isEvolved: boolean;
   canAttackThisTurn: boolean;
+  /** Board-development system's flat per-hit damage reduction (base cards
+   * only, see engine/src/cards/types.ts's UnitCard.baseArmor) — 0 when the
+   * unit carries none. Drives the render's "deflect" flourish (EFFECTS.md
+   * slice 1); read straight off the card like the engine itself does, so it
+   * disappears the instant a unit evolves past it, same as the mechanic. */
+  baseArmor: number;
+  /** Whether this unit currently holds an unconsumed Barrier status — NOT
+   * the same as `keywords.includes("Barrier")`, which only says the card
+   * *grants* Barrier when played and stays true even after it's been
+   * consumed. This is the live, per-frame signal EFFECTS.md slice 1's
+   * interpose/absorb/shatter animation and shield badge key off. */
+  barrierActive: boolean;
   tools: { name: string; attackBonus: number; healthBonus: number; grantedKeywords: Keyword[] }[];
   statuses: { kind: string; duration: number | "untilConsumed" }[];
   visualSeed: number;

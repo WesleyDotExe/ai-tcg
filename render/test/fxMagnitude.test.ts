@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   armedScore,
+  barrierBreakScore,
   buffScore,
   deathScore,
   enterScore,
@@ -80,6 +81,20 @@ describe("evolveScore / armedScore", () => {
   it("a Mythic arming is spectacle but a Common arming is not", () => {
     expect(tierFromScore(armedScore("Mythic"))).toBe("spectacle");
     expect(tierFromScore(armedScore("Common"))).not.toBe("spectacle");
+  });
+});
+
+describe("barrierBreakScore — EFFECTS.md slice 1 (defence/shield)", () => {
+  it("even a Common's shield breaking clears the subtle floor (a fully-absorbed hit still gets a beat)", () => {
+    expect(tierFromScore(barrierBreakScore("Common"))).not.toBe("subtle");
+  });
+  it("a Mythic's shield breaking is spectacle", () => {
+    expect(tierFromScore(barrierBreakScore("Mythic"))).toBe("spectacle");
+  });
+  it("scales monotonically with rarity, same shape as armedScore", () => {
+    expect(barrierBreakScore("Uncommon")).toBeGreaterThan(barrierBreakScore("Common"));
+    expect(barrierBreakScore("Rare")).toBeGreaterThan(barrierBreakScore("Uncommon"));
+    expect(barrierBreakScore("Mythic")).toBeGreaterThan(barrierBreakScore("Rare"));
   });
 });
 
