@@ -14,18 +14,78 @@ session 13 (Phase 2 item 3 of the same entry — directive removal), session
 14 (Phase 2 items 4-5 — summon/token effect kind, base armor), session 15
 (Phase 3 — the load-time card-pool lint), session 16 (Phase 4 — the counter
 triangle, proposed and measured), session 17 (the owner's Phase 4
-decisions: the four-faction ring, Null step 4, buff Swarm), and now session
-18 (Phase 4 session 17 follow-ups: ring labels corrected, Aegis-vs-Cortex
-fix, Null past-cost nerf).
+decisions: the four-faction ring, Null step 4, buff Swarm), session 18
+(Phase 4 session 17 follow-ups: ring labels corrected, Aegis-vs-Cortex
+fix, Null past-cost nerf), and now session 19 (Phase 5 slice 1: Aegis pool
+grown 18 -> 22 unique cards).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
+## New debt from session 19
+
+- **Aegis-vs-Swarm drifted out of its "even" 45-55% target band**
+  (57.7/71.0/70.7% Aegis across the three policies) as a side effect of
+  this session's Aegis-vs-Cortex fix — not triple-flagged (Aggressive stays
+  at 57.7%, under the independent 60% threshold) so not an emergency by
+  this project's own pass/fail bar, but a real, named, untuned gap. Left
+  open on purpose (this slice's scope was Aegis-vs-Cortex specifically) —
+  see `progress/notes-for-owner.md` and `progress/checkpoints.md`.
+- **The exact shipped stat lines for the four new cards are a single-pass
+  calibration, not an iterated tuning.** They were checked against the full
+  balance report exactly once after the "scale back to match existing
+  cards" correction and landed the target pairing in/near band on the first
+  re-measure — genuinely lucky in how cleanly that landed, not the result
+  of multiple tuning rounds the way, e.g., session 20's Kernel Panic nerf
+  went through two explicit steps. A future session revisiting Aegis should
+  treat these four cards' numbers as a reasonable first cut, not a settled
+  target.
+- **Salvage Reflex's onDeath ability is the only piece of new *behaviour*
+  this session added; the other three new cards are pure stat lines with no
+  ability at all.** That's a deliberate response to item 3's "NOT
+  zero-tempo utility" instruction (a body's own stats are the safest kind
+  of "immediate impact"), but it does mean this slice adds less genuine
+  mechanical variety to the pool than a session that designed new triggered
+  effects would — worth knowing if "variety" (not just "unique card count")
+  is being tracked as its own quality bar for Phase 5.
+- **Which existing cards absorbed this session's copy trims was chosen by
+  lowest measured win rate alone, with no check for whether a trimmed
+  card's *low copy count* itself explains part of its low win rate**
+  (a card seen in fewer games has a noisier win-rate estimate, and several
+  of the trimmed cards — Static Ward Beacon, Barrier Shim, Latent Ward,
+  Lockdown Field — already had the pool's lower "drawn" counts before this
+  session's trim went from 2 copies to 1, which will make their signal
+  noisier still in the next report). Not incorrect, but worth remembering
+  before treating any single one of their numbers as a settled verdict.
+- **Aegis Line Trooper (2/1, cost 1, no ability) is a fragile stat line
+  that hasn't been checked for a specific failure mode:** whether it's
+  simply too weak to ever be worth its slot once Cortex's cheap removal
+  (Diagnostic Pulse, 1 mana) can 2-for-1 it before it attacks even once.
+  Its 64.3% played win rate in this session's own report suggests it's
+  fine in practice, but that number is an average across all four
+  matchups, not specifically checked against Cortex, the matchup it exists
+  to help.
+
+## Resolved this session (session 19)
+
+- **Aegis-vs-Cortex is still out of band on every policy — RESOLVED.** The
+  session-18 debt item immediately below described the pairing as out of
+  band on all three policies after that session's own fix. This session's
+  change lands Random (58.7%) and Lookahead (59.3%) IN the 55-60% target
+  band and brings the pairing out of the triple-flag cross-check entirely
+  — Aggressive alone remains out of band (47.0%, a real but much smaller
+  gap than the 64.3% going into this session). Left here rather than
+  deleted, per this file's own convention for resolved entries, so the
+  historical record of what session 18 actually left open stays intact.
+
 ## New debt from session 18
 
-- **Aegis-vs-Cortex is still out of band on every policy** after this
+- ~~**Aegis-vs-Cortex is still out of band on every policy** after this
   session's fix (Guard Directive Chip 2->3 copies) — the headline honest
   finding, not a side note. Worst on Aggressive (Cortex still wins 64.3%,
-  only down from 67.7%). This session's own read is that the gap may be
+  only down from 67.7%).~~ RESOLVED, session 19 — see above. The rest of
+  this item (the untested agent-heuristic hypothesis) is still open and
+  worth a future session's attention if there's spare budget: This
+  session's own read is that the gap may be
   partly agent-heuristic (AggressiveAgent may simply play Cortex's
   removal-heavy kit more efficiently than it plays Aegis's defensive kit —
   see the existing "Agent quality" section below), not purely a

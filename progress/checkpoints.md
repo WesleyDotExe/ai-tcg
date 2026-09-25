@@ -5,6 +5,78 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Phase 5 slice 1: Aegis pool grown 18 -> 22, Aegis-vs-Cortex no longer triple-flagged (2026-09-25, session 19)
+
+Not a full build-order stage completion — flagged because this is the first
+Phase 5 (pool expansion) slice, it fixes a pairing two prior sessions
+couldn't, it required scaling back an overtuned first attempt before
+shipping (a judgment call the owner should see), and it leaves a new
+collateral watch item open.
+
+**What this session delivered, with evidence:**
+
+1. **Aegis grown from 18 to 22 unique cards**
+   (`engine/src/data/aegisCards.ts`): Bulwark Chassis (stat-only wall),
+   Reinforced Bastion (a second, higher-cost Guard-wall print), Salvage
+   Reflex (new archetype — onDeath, converts removal spent on it into
+   Barrier for a random ally), Aegis Line Trooper (the pool's first 1-drop
+   with real attack pressure). Funded by trimming the pool's own measured
+   weakest cards (balance-report-012's per-card table), not guesses; no
+   existing card cut entirely; deck stays at its 40-card cap.
+2. **The first stat line was overtuned — caught by this session's own
+   re-measurement, not shipped.** Bulwark Chassis 1/5 + Reinforced Bastion
+   2/6 Guard (strictly better than Cortex's Firewall Sentinel at the same
+   cost) made Aegis generically stronger against everyone, not specifically
+   better against Cortex — Aegis-vs-Swarm and Aegis-vs-Null both moved
+   sharply out of band too. Rewritten to explicitly match existing
+   same-cost cards' precedent (Bulwark Chassis -> Cortex Engineer's 1/3;
+   Reinforced Bastion -> at/below Firewall Sentinel's 2/5 Guard; Aegis Line
+   Trooper -> even combat math with Signal Drone's 1/1) and re-measured.
+3. Re-measured the whole ring after the correction (300 seeds/matchup, 3
+   policies): `progress/balance-report-013-phase5-slice1.txt`.
+
+**Honest result: Aegis-vs-Cortex is no longer triple-flagged** — Random
+58.7% and Lookahead 59.3% both land IN the 55-60% target band; Aggressive
+sits at 47.0% (out of band, Cortex-favoured, not extreme). This is the
+first session of three that have tried (11, 18, 19) to land this pairing
+by the project's actual pass/fail bar. Cortex-vs-Swarm remains the sole
+triple-flagged pairing, untouched per the standing instruction not to
+assign it a fixer.
+
+**New watch item, not chased further this session:** Aegis-vs-Swarm (a
+45-55% "even" target) drifted to 57.7/71.0/70.7% Aegis — real collateral
+movement, not triple-flagged, but worth the owner's attention before it's
+treated as settled. Aegis-vs-Null's Lookahead number also sits a bit below
+its post-session-18 shape (38.0% Null) without being triple-flagged either
+way.
+
+**Decisions the owner might want to overrule:**
+
+- The exact shipped stat lines (Bulwark Chassis 1/3, Reinforced Bastion
+  2/4 Guard, Aegis Line Trooper 2/1, Salvage Reflex 2/3) are this session's
+  own evidence-led calibration against existing same-cost cards, checked
+  against the full balance report exactly once after the correction — not
+  iterated further once they landed the pairing in/near band. A future
+  session could push further (e.g. try to also land Aggressive in band) or
+  leave it, since the project's established bar is the triple-flag
+  cross-check, not every individual policy.
+- Which existing cards absorbed the copy trims was picked purely by lowest
+  measured played-win-rate, not by design/flavour intent — e.g. Latent
+  Ward (the telegraph=2 trial from the 2026-09-13 checkpoint) lost a copy
+  for measurement reasons unrelated to that trial's own still-open
+  question.
+- Scoping this slice to Aegis alone, rather than attempting some growth
+  across all four factions in one session — chosen to keep this "one real,
+  complete slice" per TASKS.md rather than four half-finished ones.
+
+**What's next:** Cortex, Swarm, or Null's own Phase 5 growth (Swarm is a
+natural pick — it's now named in both open watch items, Cortex-vs-Swarm and
+the new Aegis-vs-Swarm drift). The owner's "hard gate" whole-ring
+re-measure (2026-09-25 entry, item 4) is not due yet — that's once every
+faction has had at least one Phase 5 pass, not after Aegis alone.
+
+---
+
 ## AWAITING FEEDBACK — Stage 3 balance pass: ring labels corrected, Aegis-vs-Cortex fix, Null past-cost nerf (2026-09-25, session 18)
 
 Not a full build-order stage completion — flagged because this session made

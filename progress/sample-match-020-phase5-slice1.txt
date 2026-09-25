@@ -1,0 +1,556 @@
+AI-TCG Phase 5 slice 1 evidence (2026-09-25 "start Phase 5" entry, item 3)
+Both sides played by LookaheadAgent, Aegis vs Cortex.
+
+--- Salvage Reflex: dying grants a random ally Barrier ---
+  Found at seed 6: Salvage Reflex granted Barrier to "Perimeter Turret".
+
+--- Bulwark Chassis / Reinforced Bastion surviving a Cortex point-removal spell ---
+  Found at seed 8: "Bulwark Chassis" took a Cortex removal spell and stayed on the board.
+
+=== Full match log: Salvage Reflex evidence ===
+--- Turn 1 (p1) ---
+p1 plays Barrier Drone (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Fail-safe Unit
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Aegis Line Trooper
+--- Turn 3 (p1) ---
+p1 plays Bulwark Chassis (u2)
+Barrier Drone attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Mainframe Core
+--- Turn 4 (p2) ---
+p2 plays Fail-safe Unit (u4)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Salvage Reflex
+--- Turn 5 (p1) ---
+p1 plays Salvage Reflex (u5)
+  Plating Module attaches to Barrier Drone
+Bulwark Chassis attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Init Daemon
+--- Turn 6 (p2) ---
+p2 plays Firewall Sentinel (u7)
+Fail-safe Unit attacks Barrier Drone
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Barrier Drone (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Lockdown Field
+--- Turn 7 (p1) ---
+p1 plays Aegis Line Trooper (u9)
+Salvage Reflex attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Salvage Reflex (unit)
+Bulwark Chassis attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Bulwark Chassis (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Init Daemon
+--- Turn 8 (p2) ---
+p2 plays Firewall Sentinel (u12)
+p2 plays Init Daemon (u13)
+Firewall Sentinel attacks Barrier Drone
+  p2 passes priority
+p1 casts Intercept Routine [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Intercept Routine
+  ability: Intercept Routine — intercept-routine-cast (onPlay)
+  Intercept Routine redirects Firewall Sentinel's attack from Barrier Drone to Aegis Line Trooper
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Aegis Line Trooper (unit)
+  Aegis Line Trooper deals 2 damage to Firewall Sentinel (unit)
+  Aegis Line Trooper (p1) dies
+  Firewall Sentinel (p2) dies
+Fail-safe Unit attacks Barrier Drone
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Barrier Drone (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Prime Aegis
+--- Turn 9 (p1) ---
+p1 casts Lockdown Field [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Lockdown Field
+  ability: Lockdown Field — lockdown-field-cast (onPlay)
+  Lockdown Field applies Stasis to Fail-safe Unit
+  Lockdown Field applies Stasis to Firewall Sentinel
+  Lockdown Field applies Stasis to Init Daemon
+Barrier Drone attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Barrier Drone's attack
+  Firewall Sentinel deals 2 damage to Barrier Drone (unit)
+  Barrier Drone (p1) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Dormant Exploit
+--- Turn 10 (p2) ---
+p2 plays Fail-safe Unit (u19)
+p2 plays Mainframe Core (d20)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Static Ward Beacon
+--- Turn 11 (p1) ---
+p1 plays Prime Aegis (u21)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Signal Drone
+--- Turn 12 (p2) ---
+Firewall Sentinel attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Lookahead-Aegis
+Fail-safe Unit attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Aegis
+Fail-safe Unit attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Aegis
+p2 plays Init Daemon (u25)
+Init Daemon attacks Bulwark Chassis
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 1 damage to Bulwark Chassis (unit)
+  Init Daemon's base armor reduces 2 damage from Bulwark Chassis to 1
+  Bulwark Chassis deals 1 damage to Init Daemon (unit)
+p2 casts Backup Protocol [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 1 health to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Reinforced Bastion
+--- Turn 13 (p1) ---
+p1 plays Reinforced Bastion (u28)
+Prime Aegis attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Prime Aegis (unit)
+Bulwark Chassis attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Bulwark Chassis (unit)
+  Bulwark Chassis (p1) dies
+  Firewall Sentinel (p2) dies
+Salvage Reflex attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 3 damage to Lookahead-Cortex
+p1 plays Static Ward Beacon (d32)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Mainframe Core
+--- Turn 14 (p2) ---
+p2 plays Mainframe Core (d33)
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Perimeter Turret
+--- Turn 15 (p1) ---
+Prime Aegis attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Lookahead-Cortex
+Reinforced Bastion attacks Fail-safe Unit
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Reinforced Bastion's attack
+  Reinforced Bastion deals 3 damage to Fail-safe Unit (unit)
+  Fail-safe Unit deals 3 damage to Reinforced Bastion (unit)
+Salvage Reflex attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 3 damage to Lookahead-Cortex
+p1 plays Perimeter Turret (u37)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Firewall Sentinel
+--- Turn 16 (p2) ---
+Fail-safe Unit attacks Reinforced Bastion
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 3 damage to Reinforced Bastion (unit)
+  Reinforced Bastion deals 3 damage to Fail-safe Unit (unit)
+  Reinforced Bastion (p1) dies
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Interrupt Handler
+p2 plays Firewall Sentinel (u39)
+Fail-safe Unit attacks Lookahead-Aegis (face)
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Salvage Reflex (unit)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 3 damage to Lookahead-Aegis
+Init Daemon attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 2 damage to Lookahead-Aegis
+Init Daemon attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 2 damage to Lookahead-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+p1 draws Latent Ward
+--- Turn 17 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Init Daemon's base armor reduces 3 damage from Perimeter Turret to 2
+  Perimeter Turret deals 2 damage to Init Daemon (unit)
+Prime Aegis attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Prime Aegis's attack
+  Prime Aegis deals 5 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 3 damage to Prime Aegis (unit)
+Perimeter Turret attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 3 damage to Perimeter Turret (unit)
+  Firewall Sentinel (p2) dies
+Salvage Reflex attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 3 damage to Lookahead-Cortex
+p1 plays Latent Ward (u47)
+  Latent Ward deploys, dormant — arms in 2 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+p2 draws Force Quit
+--- Turn 18 (p2) ---
+p2 casts Force Quit [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Force Quit
+  ability: Force Quit — force-quit-cast (onPlay)
+  Force Quit destroys Static Ward Beacon (p1)
+  Salvage Reflex (p1) dies
+  ability: Salvage Reflex — salvage-reflex-death (onDeath)
+  Salvage Reflex applies Barrier to Perimeter Turret
+Fail-safe Unit attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 3 damage to Lookahead-Aegis
+Init Daemon attacks Perimeter Turret
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Perimeter Turret's Barrier absorbs the hit from Init Daemon
+  Init Daemon's base armor reduces 3 damage from Perimeter Turret to 2
+  Perimeter Turret deals 2 damage to Init Daemon (unit)
+  Init Daemon (p2) dies
+Init Daemon attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 2 damage to Lookahead-Aegis
+p2 plays Signal Drone (u52)
+Signal Drone attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 2 damage to Lookahead-Aegis
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+Winner: p2, turns: 18
+
+=== Full match log: removal-survival evidence ===
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Retaliation Node
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Static Ward Beacon
+--- Turn 3 (p1) ---
+p1 plays Salvage Reflex (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Diagnostic Loop
+--- Turn 4 (p2) ---
+p2 plays Diagnostic Loop (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Guard Directive Chip
+--- Turn 5 (p1) ---
+Salvage Reflex attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Lookahead-Cortex
+p1 plays Bulwark Chassis (u4)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Force Quit
+--- Turn 6 (p2) ---
+p2 plays Retaliation Node (u5)
+Diagnostic Loop attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Lookahead-Aegis
+p2 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Bulwark Chassis (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Perimeter Turret
+--- Turn 7 (p1) ---
+Salvage Reflex attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Lookahead-Cortex
+p1 plays Failover Custodian (u9)
+  Guard Directive Chip attaches to Failover Custodian
+Bulwark Chassis attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Interrupt Handler
+--- Turn 8 (p2) ---
+p2 plays Fail-safe Unit (u11)
+p2 plays Recursive Construct (u12)
+Retaliation Node attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Salvage Reflex (unit)
+  Retaliation Node deals 1 damage to Bulwark Chassis (unit)
+  Retaliation Node deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Bulwark Chassis (p1) dies
+Diagnostic Loop attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Diagnostic Loop (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p1 draws Reinforced Bastion
+--- Turn 9 (p1) ---
+p1 plays Reinforced Bastion (u15)
+Salvage Reflex attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Lookahead-Cortex
+Failover Custodian attacks Retaliation Node
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 2 damage to Retaliation Node (unit)
+  Retaliation Node deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Retaliation Node (p2) dies
+p1 plays Perimeter Turret (u18)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Cortex Engineer
+--- Turn 10 (p2) ---
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Salvage Reflex (unit)
+  Salvage Reflex (p1) dies
+  ability: Salvage Reflex — salvage-reflex-death (onDeath)
+  Salvage Reflex applies Barrier to Perimeter Turret
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+Fail-safe Unit attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Watchtower Relay
+Diagnostic Loop attacks Failover Custodian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Failover Custodian deals 2 damage to Diagnostic Loop (unit)
+  Diagnostic Loop (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Bulwark Chassis
+--- Turn 11 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Recursive Construct (unit)
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Lookahead-Cortex
+Reinforced Bastion attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Reinforced Bastion's attack
+  Reinforced Bastion deals 2 damage to Lookahead-Cortex
+p1 plays Bulwark Chassis (u25)
+Failover Custodian attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 2 damage to Lookahead-Cortex
+p1 plays Perimeter Turret (u27)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Fail-safe Unit
+--- Turn 12 (p2) ---
+p2 plays Watchtower Relay (u28)
+p2 plays Fail-safe Unit (u29)
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Breach Charge
+--- Turn 13 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Force Quit
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Lookahead-Cortex
+Reinforced Bastion attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Reinforced Bastion's attack
+  Reinforced Bastion deals 2 damage to Lookahead-Cortex
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Lookahead-Cortex
+Failover Custodian attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 2 damage to Lookahead-Cortex
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Winner: p1, turns: 13
