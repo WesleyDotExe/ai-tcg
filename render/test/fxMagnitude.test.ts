@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   armedScore,
   barrierBreakScore,
-  buffScore,
   deathScore,
   enterScore,
   evolveScore,
@@ -11,6 +10,7 @@ import {
   maxTier,
   momentumSwingScore,
   playerHitScore,
+  statShiftScore,
   tierFromScore,
 } from "../src/fxMagnitude.js";
 
@@ -98,14 +98,42 @@ describe("barrierBreakScore — EFFECTS.md slice 1 (defence/shield)", () => {
   });
 });
 
-describe("healScore / buffScore", () => {
-  it("small heals and buffs are subtle", () => {
+describe("healScore", () => {
+  it("small heals are subtle, large heals are not", () => {
     expect(tierFromScore(healScore(1))).toBe("subtle");
-    expect(tierFromScore(buffScore(1))).toBe("subtle");
-  });
-  it("large heals and buffs are not subtle", () => {
     expect(tierFromScore(healScore(6))).not.toBe("subtle");
-    expect(tierFromScore(buffScore(4))).not.toBe("subtle");
+  });
+});
+
+describe("statShiftScore (EFFECTS.md slice 2 rise/sink)", () => {
+  it("a single +1 or -1 on one unit is subtle — a busy board must not shout", () => {
+    expect(tierFromScore(statShiftScore("buff", 1, 0, 1))).toBe("subtle");
+    expect(tierFromScore(statShiftScore("penalty", 1, 0, 1))).toBe("subtle");
+  });
+  it("a -2/-2 (Null's permanent shrink) is normal, not subtle", () => {
+    expect(tierFromScore(statShiftScore("penalty", 4, 0, 1))).toBe("normal");
+  });
+  it("a routine -1 sap across the whole board is visible (normal) but not a spectacle hold", () => {
+    expect(tierFromScore(statShiftScore("penalty", 1, 0, 3))).toBe("normal");
+    expect(tierFromScore(statShiftScore("penalty", 1, 0, 5))).toBe("normal");
+    expect(tierFromScore(statShiftScore("penalty", 1, 0, 2))).toBe("normal");
+  });
+  it("a real board-wide shift (2+ points per unit on three or more units) is spectacle", () => {
+    expect(tierFromScore(statShiftScore("penalty", 2, 0, 3))).toBe("spectacle");
+    expect(tierFromScore(statShiftScore("buff", 2, 0, 4))).toBe("spectacle");
+  });
+  it("a newly applied penalty status outweighs a -1 (Stasis alone is normal)", () => {
+    expect(tierFromScore(statShiftScore("penalty", 0, 1, 1))).toBe("normal");
+  });
+  it("a huge single-unit swing is spectacle", () => {
+    expect(tierFromScore(statShiftScore("buff", 6, 0, 1))).toBe("spectacle");
+  });
+  it("a temporary buff wearing off is always subtle, however large or wide", () => {
+    expect(tierFromScore(statShiftScore("expire", 6, 0, 5))).toBe("subtle");
+  });
+  it("scales monotonically with stat size and with breadth", () => {
+    expect(statShiftScore("buff", 3, 0, 1)).toBeGreaterThan(statShiftScore("buff", 1, 0, 1));
+    expect(statShiftScore("buff", 1, 0, 3)).toBeGreaterThan(statShiftScore("buff", 1, 0, 2));
   });
 });
 

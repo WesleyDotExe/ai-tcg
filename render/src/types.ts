@@ -32,6 +32,16 @@ export interface UnitSnapshot {
    * consumed. This is the live, per-frame signal EFFECTS.md slice 1's
    * interpose/absorb/shatter animation and shield badge key off. */
   barrierActive: boolean;
+  /** Printed (card) attack/health — the live stats above are compared
+   * against these to show a persistent above/below-printed marker on the
+   * stat numbers (EFFECTS.md slice 2: the rise/sink animation says "it just
+   * changed", the marker keeps saying "it is still changed"). */
+  printedAttack: number;
+  printedHealth: number;
+  /** This-turn-only buff totals (engine UnitInstance.turnBuff) — what lets
+   * render/src/statFx.ts tell a temporary buff wearing off at end of turn
+   * apart from a real penalty landing. */
+  turnBuff: { attack: number; health: number };
   tools: { name: string; attackBonus: number; healthBonus: number; grantedKeywords: Keyword[] }[];
   statuses: { kind: string; duration: number | "untilConsumed" }[];
   visualSeed: number;
@@ -105,10 +115,30 @@ export interface Frame {
   momentum: MomentumReading;
 }
 
+/** Render-side player identity (owner-feedback 2026-09-26): each AI player
+ * gets a username AND a profile/avatar image, so spectators and commentators
+ * can tell the two apart at a glance. `avatarUrl` is the drop-in slot for a
+ * real image (the platform/onboarding stage's account model will supply
+ * one); until then `avatarSvg` is a deterministic username-seeded
+ * placeholder from render/src/avatar.ts. Render-only data — the engine
+ * knows nothing about avatars. */
+export interface PlayerIdentity {
+  username: string;
+  avatarUrl?: string;
+  avatarSvg: string;
+}
+
 export interface MatchReplay {
   title: string;
   seed: number;
   agentNames: Record<PlayerId, string>;
+  identities: Record<PlayerId, PlayerIdentity>;
+  /** Card/token name -> faction, for every card either deck contains and
+   * every token that appeared on board. Lets the replay tint a buff/penalty
+   * by its SOURCE card's faction when the event log names it (EFFECTS.md
+   * axis 2). A name->faction lookup is unambiguous even in a mirror match —
+   * it never has to say which instance, only which faction. */
+  cardFactions: Record<string, Faction>;
   factions: Record<PlayerId, Faction>;
   movesPlayed: number;
   turnCap: number;

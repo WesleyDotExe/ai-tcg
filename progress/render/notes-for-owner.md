@@ -142,3 +142,34 @@ separate from the shared `progress/notes-for-owner.md`).
     single-slice one, but the concrete failure mode (screenshot to verify
     ANY new glyph choice; a DOM-presence check alone is not enough) is
     flagged here for whoever hits it next.
+
+---
+
+## 2026-09-26 — Session 5 (buff/penalty grammar, EFFECTS.md slice 2; avatars)
+
+1. **Player avatars are in.** Each player now has a username-seeded
+   placeholder avatar (HUD and match bar). `MatchReplay.identities[pid]`
+   has an `avatarUrl` slot, and the page uses a real image there when one
+   is provided. Nothing for you to do until the platform/onboarding stage
+   supplies real profile images. The replay CLI now suffixes `-A`/`-B` on
+   mirror matches so the two sides get distinct usernames, and therefore
+   distinct avatars.
+
+2. **A card interaction worth knowing about (balance lane's call, not
+   this lane's).** Found by this session's real-match tests: Reflex Spike's
+   +0/+3 buff on Overclock Beast (SW-004) does nothing visible. Overclock
+   Beast's health comes from a stat-scaling override, which swallows the
+   buff. The engine logs "grants +0/+3", but the board doesn't change, so
+   the render correctly shows nothing. If that's intended, fine. If not,
+   it's a wasted card that agents may keep playing.
+
+3. **Small engine log cosmetic:** negative buffs format as "+-1/+0" in the
+   event log (e.g. "Feedback Plating grants Aegis Cadet +-1/+0"). That's
+   `engine/src/log/format.ts`, so it's off-limits to this lane. Commentators
+   (stage 7) will read this text, so it's worth a one-line fix on a balance
+   session.
+
+4. **Still open from before:** slice 4 (attack travel + impact) needs
+   instance IDs on attack/damage/buff events. As of this session only
+   `play` and `summon` carry `instanceId`.
+

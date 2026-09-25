@@ -31,8 +31,11 @@ async function main() {
 
   const deckA = DECK_BUILDERS[factionA]!("p1", `${factionA} Deck`);
   const deckB = DECK_BUILDERS[factionB]!("p2", `${factionB} Deck`);
-  const agentA = new LookaheadAgent(`Lookahead-${factionA}`, seed * 2 + 1);
-  const agentB = new LookaheadAgent(`Lookahead-${factionB}`, seed * 2 + 2);
+  // Usernames are the player-identity key (the avatar is seeded from them),
+  // so a mirror match must not give both sides the same one.
+  const mirror = factionA === factionB;
+  const agentA = new LookaheadAgent(`Lookahead-${factionA}${mirror ? "-A" : ""}`, seed * 2 + 1);
+  const agentB = new LookaheadAgent(`Lookahead-${factionB}${mirror ? "-B" : ""}`, seed * 2 + 2);
 
   const replay = await captureMatch({
     title: `${factionA} vs ${factionB} (seed ${seed})`,

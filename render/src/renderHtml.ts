@@ -92,6 +92,7 @@ const CSS = `
   --null: #d565ff;
   --shield: #6fe3ff;
   --armor: #9fb4c9;
+  --penalty: #b3bbd6;
   font-size: 15px;
 }
 * { box-sizing: border-box; }
@@ -119,6 +120,16 @@ html, body {
 .hud-row { display: grid; grid-template-columns: 1fr 220px 1fr; gap: 10px; align-items: stretch; margin-bottom: 8px; }
 .hud { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; }
 .hud .name { font-weight: bold; letter-spacing: 0.05em; display: flex; justify-content: space-between; }
+.hud .ident { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.hud .ident .uname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Player identity (owner-feedback 2026-09-26): name + avatar + faction
+ * colour together. The avatar box takes a real image (identity.avatarUrl)
+ * when one exists; until then a username-seeded SVG placeholder whose body
+ * paints in the faction colour (currentColor). */
+.avatar { width: 38px; height: 38px; flex-shrink: 0; border-radius: 8px; color: var(--fc); box-shadow: 0 0 0 1px var(--fc), 0 0 10px -2px var(--fc); overflow: hidden; display: block; }
+.avatar svg, .avatar img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.matchup .avatar { width: 20px; height: 20px; border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.hud .name { align-items: center; }
 .hud .faction-tag { font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; border: 1px solid currentColor; }
 .bar-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.78rem; }
 .bar-track { flex: 1; height: 9px; background: #050810; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
@@ -156,6 +167,14 @@ html, body {
 .card .stats { display: flex; justify-content: space-between; padding: 3px 5px; font-size: 0.72rem; font-weight: bold; background: rgba(0,0,0,0.42); color: #fff; }
 .card .stats .atk::before { content: "\\2694 "; }
 .card .stats .hp::before { content: "\\2665 "; }
+/* Persistent buff/penalty state (EFFECTS.md slice 2): the rise/sink
+ * animation says "it just changed"; these keep saying "it is still above /
+ * below its printed stat" for as long as that's true. Health compares MAX
+ * health to printed, so ordinary damage never reads as a debuff. */
+.card .stats .up { color: #ffd76a; text-shadow: 0 0 6px rgba(255,215,106,0.55); }
+.card .stats .down { color: var(--penalty); }
+.card .stats .up::after { content: "\\25B2"; font-size: 0.5rem; vertical-align: 2px; margin-left: 1px; }
+.card .stats .down::after { content: "\\25BC"; font-size: 0.5rem; vertical-align: 1px; margin-left: 1px; }
 .card .tags { position: absolute; top: 2px; left: 2px; display: flex; flex-direction: column; gap: 2px; z-index: 2; }
 .card .tag { font-size: 0.52rem; padding: 1px 3px; border-radius: 2px; background: rgba(0,0,0,0.55); color: #fff; letter-spacing: 0.03em; }
 
@@ -171,6 +190,10 @@ html, body {
 .shield-badge.shield-guard { color: #cfd8e3; box-shadow: 0 0 0 1px rgba(207,216,227,0.7) inset; }
 .shield-badge.shield-barrier { color: var(--shield); box-shadow: 0 0 5px var(--shield), 0 0 0 1px var(--shield) inset; animation: shield-idle-pulse 1.8s ease-in-out infinite; }
 @keyframes shield-idle-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+/* Penalty statuses share the badge column with the shields but read as the
+ * opposite: dim, desaturated, dashed — "something is wrong with this unit". */
+.shield-badge.status-penalty { color: var(--penalty); background: rgba(20,20,28,0.8); box-shadow: 0 0 0 1px var(--penalty) inset; border: 1px dashed transparent; }
+.card.has-stasis .art { filter: grayscale(0.7); }
 .card.pending { filter: grayscale(0.55) brightness(0.75); }
 .card.pending::after { content: "ARMING"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   font-size: 0.6rem; letter-spacing: 0.15em; color: var(--neutral); background: repeating-linear-gradient(45deg, rgba(0,0,0,0.55) 0 6px, rgba(0,0,0,0.7) 6px 12px); z-index: 1; }
@@ -246,11 +269,6 @@ html, body {
   0% { box-shadow: 0 0 0 3px var(--good) inset, 0 0 16px var(--good); }
   100% { box-shadow: none; }
 }
-.card.fx-buff { animation: fx-buff-flash 450ms ease; }
-@keyframes fx-buff-flash {
-  0% { box-shadow: 0 0 0 3px var(--neutral) inset, 0 0 16px var(--neutral); }
-  100% { box-shadow: none; }
-}
 .card.fx-armed { animation: fx-armed-flash 550ms ease; }
 @keyframes fx-armed-flash {
   0% { box-shadow: 0 0 0 3px var(--neutral) inset, 0 0 18px var(--neutral); filter: brightness(1); }
@@ -292,11 +310,56 @@ html, body {
 .fx-number.dmg { color: var(--bad); }
 .fx-number.heal { color: var(--good); }
 .fx-number.buff { color: var(--neutral); }
+.fx-number.penalty { color: var(--penalty); animation-name: fx-float-down; }
+.fx-number.expire { color: var(--ink-dim); font-size: 0.7rem; }
 @keyframes fx-float {
   0% { opacity: 0; transform: translateY(0); }
   15% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-38px); }
 }
+@keyframes fx-float-down {
+  0% { opacity: 0; transform: translateY(0); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(38px); }
+}
+
+/* Buff (rise) and penalty (sink) grammar — EFFECTS.md slice 2. The motion
+ * direction IS the meaning and never changes: a buff lifts the card, brightens
+ * it and sends motes UP; a penalty presses it down, drains its colour and
+ * sends motes DOWN. Faction only picks the tint (--fx-tint, set per effect
+ * from the source card's faction), and the fx-mag-* tier only scales it.
+ * A temporary buff wearing off gets a deliberately quiet "settle" instead —
+ * it is not a penalty and must not read like one. */
+.card.fx-rise { animation: fx-rise 520ms ease-out; }
+@keyframes fx-rise {
+  0%, 100% { transform: translateY(0); filter: none; }
+  40% { transform: translateY(-7px); filter: brightness(1.45) saturate(1.35); box-shadow: 0 0 14px 2px var(--fx-tint), 0 0 0 2px var(--fx-tint) inset; }
+}
+.card.fx-sink { animation: fx-sink 560ms ease-in-out; }
+@keyframes fx-sink {
+  0%, 100% { transform: translateY(0); filter: none; }
+  45% { transform: translateY(7px) scale(0.97); filter: grayscale(0.85) brightness(0.6); box-shadow: inset 0 0 20px 6px rgba(0,0,0,0.65), 0 0 9px 1px var(--fx-tint); }
+}
+.card.fx-settle { animation: fx-settle 300ms ease; }
+@keyframes fx-settle { 50% { filter: brightness(0.88); } }
+.fx-mag-spectacle.fx-rise { animation-name: fx-rise-big; }
+@keyframes fx-rise-big {
+  0%, 100% { transform: translateY(0) scale(1); filter: none; }
+  35% { transform: translateY(-15px) scale(1.07); filter: brightness(1.7) saturate(1.5); box-shadow: 0 0 26px 7px var(--fx-tint), 0 0 0 3px var(--fx-tint) inset; }
+  70% { transform: translateY(-9px) scale(1.04); filter: brightness(1.3); }
+}
+.fx-mag-spectacle.fx-sink { animation-name: fx-sink-big; }
+@keyframes fx-sink-big {
+  0%, 100% { transform: translateY(0) scale(1); filter: none; }
+  35% { transform: translateY(15px) scale(0.92); filter: grayscale(1) brightness(0.45); box-shadow: inset 0 0 30px 10px rgba(0,0,0,0.75), 0 0 16px 3px var(--fx-tint); }
+  70% { transform: translateY(10px) scale(0.95); filter: grayscale(0.8) brightness(0.6); }
+}
+.fx-mote { position: fixed; width: 7px; height: 7px; margin-left: -3.5px; background: var(--fx-tint); opacity: 0; }
+.fx-mote.up { clip-path: polygon(50% 0, 100% 100%, 0 100%); animation: fx-mote-up var(--mote-ms) ease-out forwards; }
+.fx-mote.down { clip-path: polygon(0 0, 100% 0, 50% 100%); filter: saturate(0.3) brightness(0.8); animation: fx-mote-down var(--mote-ms) ease-in forwards; }
+.fx-mote.mag-spectacle { width: 10px; height: 10px; margin-left: -5px; }
+@keyframes fx-mote-up { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--mote-dist)); } }
+@keyframes fx-mote-down { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--mote-dist)); } }
 
 /* Magnitude scaling (RENDER.md render-lane session 3, per owner feedback
  * 2026-09-25 "scale animation magnitude to event magnitude"): every FX class
@@ -310,7 +373,7 @@ html, body {
  * identity (that stays the instanceId diff, per session 2's own guardrail
  * reasoning). */
 .fx-mag-subtle { animation-duration: 260ms !important; }
-.fx-mag-subtle.fx-hit, .fx-mag-subtle.fx-heal, .fx-mag-subtle.fx-buff, .fx-mag-subtle.fx-shatter { box-shadow: none !important; filter: brightness(1.12); }
+.fx-mag-subtle.fx-hit, .fx-mag-subtle.fx-heal, .fx-mag-subtle.fx-rise, .fx-mag-subtle.fx-shatter { box-shadow: none !important; filter: brightness(1.12); }
 .fx-mag-spectacle { animation-duration: 900ms !important; }
 
 .fx-number.mag-subtle { font-size: 0.7rem; opacity: 0.85; animation-duration: 550ms; }
@@ -326,12 +389,6 @@ html, body {
 @keyframes fx-heal-flash-big {
   0% { box-shadow: 0 0 0 5px var(--good) inset, 0 0 34px 6px var(--good); }
   100% { box-shadow: none; }
-}
-.fx-mag-spectacle.fx-buff { animation-name: fx-buff-flash-big; }
-@keyframes fx-buff-flash-big {
-  0% { box-shadow: 0 0 0 5px var(--neutral) inset, 0 0 34px 6px var(--neutral); transform: scale(1); }
-  35% { transform: scale(1.08); }
-  100% { box-shadow: none; transform: scale(1); }
 }
 .fx-mag-spectacle.fx-shatter { animation-name: fx-shatter-flash-big; }
 @keyframes fx-shatter-flash-big {
@@ -398,10 +455,20 @@ const JS = `
   let playing = false;
   let timer = null;
 
+  // Player identity (owner-feedback 2026-09-26): a real image when the
+  // identity carries one, else the username-seeded SVG placeholder
+  // generated at capture time (render/src/avatar.ts — our own markup, never
+  // user input, so it is safe to inline).
+  function avatarHtml(pid) {
+    const id = replay.identities[pid];
+    const inner = id.avatarUrl ? '<img alt="" src="' + escapeHtml(id.avatarUrl) + '">' : id.avatarSvg;
+    return '<span class="avatar" title="' + escapeHtml(id.username) + '">' + inner + '</span>';
+  }
+
   document.getElementById('matchup').innerHTML =
-    '<span class="faction-' + replay.factions.p1 + '" style="color:var(--fc)">' + escapeHtml(replay.agentNames.p1) + ' [' + replay.factions.p1 + ']</span>' +
+    '<span class="faction-' + replay.factions.p1 + '" style="color:var(--fc)">' + avatarHtml('p1') + escapeHtml(replay.identities.p1.username) + ' [' + replay.factions.p1 + ']</span>' +
     '<span class="vs">vs</span>' +
-    '<span class="faction-' + replay.factions.p2 + '" style="color:var(--fc)">' + escapeHtml(replay.agentNames.p2) + ' [' + replay.factions.p2 + ']</span>';
+    '<span class="faction-' + replay.factions.p2 + '" style="color:var(--fc)">' + avatarHtml('p2') + escapeHtml(replay.identities.p2.username) + ' [' + replay.factions.p2 + ']</span>';
 
   const scrubber = document.getElementById('scrubber');
   scrubber.max = String(frames.length - 1);
@@ -439,7 +506,13 @@ const JS = `
     return delta <= 1 ? 0.8 : delta <= 3 ? 1.6 : delta <= 5 ? 2.3 : 3.0;
   }
   function healScore(amount) { const d = Math.abs(amount); return d <= 1 ? 0.5 : d <= 4 ? 1.2 : 2.8; }
-  function buffScore(atkDelta) { const d = Math.abs(atkDelta); return d <= 1 ? 0.6 : d <= 3 ? 1.3 : 2.6; }
+  function statShiftScore(kind, statTotal, statusCount, unitsAffected) {
+    if (kind === 'expire') return 0.4;
+    const m = Math.abs(statTotal) + 1.5 * statusCount;
+    const base = m <= 1 ? 0.6 : m <= 3 ? 1.3 : m <= 5 ? 2.0 : 2.8;
+    const wide = unitsAffected >= 3 ? (m >= 2 ? 1.8 : 1.0) : unitsAffected === 2 ? 0.5 : 0;
+    return base + wide;
+  }
   function evolveScore() { return 2.8; }
   function armedScore(rarity) { return { Common: 1.0, Uncommon: 1.2, Rare: 1.9, Mythic: 2.5 }[rarity]; }
   function barrierBreakScore(rarity) { return { Common: 1.1, Uncommon: 1.4, Rare: 2.0, Mythic: 2.6 }[rarity]; }
@@ -447,6 +520,46 @@ const JS = `
     const d = Math.abs(newScore - prevScore);
     return d <= 6 ? 0 : d <= 15 ? 1.2 : d <= 25 ? 2.0 : 3.2;
   }
+  // BEGIN statFx mirror — hand-mirrors render/src/statFx.ts (EFFECTS.md
+  // slice 2). render/test/statFx.test.ts extracts this exact block from
+  // the generated page and runs it against the TS module on the same
+  // cases, so drift between the two fails a test instead of shipping.
+  const PENALTY_STATUSES = ['Stasis', 'Overload'];
+  function signedNum(n) { return (n > 0 ? '+' : '') + n; }
+  function statLabel(attack, health) {
+    if (attack !== 0 && health === 0) return signedNum(attack) + ' ATK';
+    if (attack === 0 && health !== 0) return signedNum(health) + ' HP';
+    return signedNum(attack) + '/' + signedNum(health);
+  }
+  function classifyStatShift(prev, next) {
+    const atkDelta = next.attack - prev.attack;
+    const maxDelta = next.maxHealth - prev.maxHealth;
+    const expAtk = prev.turnBuffAttack !== 0 && next.turnBuffAttack === 0 ? -prev.turnBuffAttack : 0;
+    const expHp = prev.turnBuffHealth !== 0 && next.turnBuffHealth === 0 ? -prev.turnBuffHealth : 0;
+    let actAtk = atkDelta - expAtk;
+    let actHp = maxDelta - expHp;
+    if (expAtk !== 0 && (prev.attack === 0 || next.attack === 0) && Math.sign(actAtk) !== Math.sign(atkDelta)) actAtk = 0;
+    if (expHp !== 0 && (prev.maxHealth === 1 || next.maxHealth === 1) && Math.sign(actHp) !== Math.sign(maxDelta)) actHp = 0;
+    const newStatuses = next.statuses.filter(function (st) { return PENALTY_STATUSES.indexOf(st) !== -1 && prev.statuses.indexOf(st) === -1; });
+    if (actAtk === 0 && actHp === 0 && newStatuses.length === 0) {
+      if (expAtk === 0 && expHp === 0) return null;
+      if (atkDelta === 0 && maxDelta === 0) return null;
+      return { kind: 'expire', attack: atkDelta, health: maxDelta, newStatuses: [], label: statLabel(atkDelta, maxDelta) };
+    }
+    const net = actAtk + actHp;
+    const kind = newStatuses.length > 0 || net < 0 || (net === 0 && actAtk < 0) ? 'penalty' : 'buff';
+    const parts = [];
+    if (actAtk !== 0 || actHp !== 0) parts.push(statLabel(actAtk, actHp));
+    newStatuses.forEach(function (st) { parts.push(st.toUpperCase()); });
+    return { kind: kind, attack: actAtk, health: actHp, newStatuses: newStatuses, label: parts.join(' ') };
+  }
+  function healthResidual(prevHealth, nextHealth, prevMax, nextMax) { return nextHealth - prevHealth - (nextMax - prevMax); }
+  function tintFaction(kind, ownerFaction, opponentFaction, sourceFaction) {
+    if (sourceFaction) return sourceFaction;
+    return kind === 'penalty' ? opponentFaction : ownerFaction;
+  }
+  // END statFx mirror
+
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
 
@@ -498,19 +611,25 @@ const JS = `
     const shields = [];
     if (opts.guard) shields.push('guard');
     if (opts.barrierActive) shields.push('barrier');
+    const penalties = (opts.statuses || []).filter(function (st) { return PENALTY_STATUSES.indexOf(st.kind) !== -1; });
+    if (penalties.some(function (st) { return st.kind === 'Stasis'; })) div.classList.add('has-stasis');
+    function markCls(live, printed) { return printed === undefined || live === printed ? '' : live > printed ? ' up' : ' down'; }
     div.innerHTML =
       '<div class="head"><span>' + rarity[0] + '</span><span class="cost">' + c.cost + '</span></div>' +
       '<div class="art" style="' + cardArtStyle(c.faction, c.visualSeed, c.visualPattern) + '"><span class="glyph">' + glyphFor(c.type) + '</span></div>' +
       '<div class="name">' + escapeHtml(c.name) + '</div>' +
       (opts.tools && opts.tools.length ? '<div class="tools">' + opts.tools.map(function (t) { return '<span class="tool-chip">' + escapeHtml(t.name) + '</span>'; }).join('') + '</div>' : '') +
-      (opts.stats ? '<div class="stats"><span class="atk">' + opts.stats.attack + '</span><span class="hp">' + opts.stats.health + '</span></div>' : '') +
+      (opts.stats ? '<div class="stats"><span class="atk' + markCls(opts.stats.attack, opts.stats.printedAttack) + '">' + opts.stats.attack + '</span><span class="hp' + markCls(opts.stats.maxHealth, opts.stats.printedHealth) + '">' + opts.stats.health + '</span></div>' : '') +
       (tags.length ? '<div class="tags">' + tags.map(function (t) { return '<span class="tag">' + t + '</span>'; }).join('') + '</div>' : '') +
       // Plain letter glyphs, not a shield emoji — this environment's headless
       // Chromium has no colour-emoji font, so U+1F6E1 rendered as an
       // invisible zero-metric glyph (found and fixed via a real screenshot,
       // not assumed). Matches the rarity badge's own single-letter
       // convention (c.rarity[0] above) rather than inventing a new one.
-      (shields.length ? '<div class="shields">' + shields.map(function (s) { return '<span class="shield-badge shield-' + s + '" title="' + (s === 'guard' ? 'Guard' : 'Barrier active') + '">' + (s === 'guard' ? 'G' : 'B') + '</span>'; }).join('') + '</div>' : '') +
+      (shields.length || penalties.length ? '<div class="shields">' +
+        shields.map(function (s) { return '<span class="shield-badge shield-' + s + '" title="' + (s === 'guard' ? 'Guard' : 'Barrier active') + '">' + (s === 'guard' ? 'G' : 'B') + '</span>'; }).join('') +
+        penalties.map(function (st) { return '<span class="shield-badge status-penalty" title="' + st.kind + (typeof st.duration === 'number' ? ' (' + st.duration + ' turn' + (st.duration === 1 ? '' : 's') + ')' : '') + '">' + st.kind[0] + '</span>'; }).join('') +
+        '</div>' : '') +
       (opts.armTurn !== undefined ? '<div class="arm-count">T' + opts.armTurn + '</div>' : '');
     return div;
   }
@@ -518,7 +637,7 @@ const JS = `
   function renderUnitSlot(u, owner) {
     return renderCardEl(
       { name: u.name, faction: u.faction, rarity: u.rarity, cost: 0, type: 'Unit', flavor: u.flavor, visualSeed: u.visualSeed, visualPattern: u.visualPattern },
-      { stats: { attack: u.attack, health: u.health }, pending: u.pending, armTurn: u.pending ? u.armTurn : undefined, isEvolved: u.isEvolved, keywords: u.keywords, tools: u.tools, instanceId: u.instanceId, owner: owner, guard: u.keywords.indexOf('Guard') !== -1, barrierActive: u.barrierActive },
+      { stats: { attack: u.attack, health: u.health, maxHealth: u.maxHealth, printedAttack: u.printedAttack, printedHealth: u.printedHealth }, statuses: u.statuses, pending: u.pending, armTurn: u.pending ? u.armTurn : undefined, isEvolved: u.isEvolved, keywords: u.keywords, tools: u.tools, instanceId: u.instanceId, owner: owner, guard: u.keywords.indexOf('Guard') !== -1, barrierActive: u.barrierActive },
     );
   }
 
@@ -553,7 +672,7 @@ const JS = `
     if (hudBuilt[pid]) return;
     const el = document.getElementById(elId);
     el.innerHTML =
-      '<div class="name"><span id="' + elId + '-name"></span><span class="faction-tag" id="' + elId + '-faction" style="color:var(--fc)"></span></div>' +
+      '<div class="name"><span class="ident">' + avatarHtml(pid) + '<span class="uname" id="' + elId + '-name"></span></span><span class="faction-tag" id="' + elId + '-faction" style="color:var(--fc)"></span></div>' +
       '<div class="bar-row"><span>HP</span><div class="bar-track"><div class="bar-fill health" id="' + elId + '-hp-fill"></div></div><span id="' + elId + '-hp-text"></span></div>' +
       '<div class="bar-row"><span>EN</span><div class="bar-track"><div class="bar-fill energy" id="' + elId + '-en-fill"></div></div><span id="' + elId + '-en-text"></span></div>' +
       '<div class="meta" id="' + elId + '-meta"></div>';
@@ -714,14 +833,15 @@ const JS = `
     setTimeout(function () { cardEl.remove(); }, GHOST_MS[tier] || GHOST_MS.normal);
   }
 
-  function spawnNumber(rect, text, cls, tier) {
+  function spawnNumber(rect, text, cls, tier, yOffset) {
     if (!rect) return;
     const el = document.createElement('div');
     el.className = 'fx-number ' + cls + (tier ? ' mag-' + tier : '');
     el.textContent = tier === 'spectacle' ? text + '!' : text;
     el.style.left = (rect.left + rect.width / 2 - 16) + 'px';
-    el.style.top = (rect.top + 6) + 'px';
+    el.style.top = (rect.top + 6 + (yOffset || 0)) + 'px';
     fxLayer.appendChild(el);
+    return el;
     setTimeout(function () { el.remove(); }, NUMBER_MS[tier] || NUMBER_MS.normal);
   }
 
@@ -744,6 +864,80 @@ const JS = `
     el.style.top = (rect.top + rect.height / 2) + 'px';
     fxLayer.appendChild(el);
     setTimeout(function () { el.remove(); }, 420);
+  }
+
+  // rise / sink primitives (EFFECTS.md slice 2). One function, parameterised
+  // by direction (the meaning), tint (the faction skin) and tier (the size)
+  // — never a per-faction or per-tier copy.
+  const MOTE_COUNT = { subtle: 3, normal: 6, spectacle: 12 };
+  const MOTE_MS = { subtle: 450, normal: 750, spectacle: 1150 };
+  function spawnMotes(rect, dir, tint, tier) {
+    if (!rect) return;
+    const n = MOTE_COUNT[tier] || MOTE_COUNT.normal;
+    const ms = MOTE_MS[tier] || MOTE_MS.normal;
+    const travel = rect.height * (tier === 'spectacle' ? 0.95 : tier === 'subtle' ? 0.45 : 0.7);
+    for (let k = 0; k < n; k++) {
+      const el = document.createElement('div');
+      el.className = 'fx-mote ' + dir + ' mag-' + tier;
+      el.style.setProperty('--fx-tint', 'var(--' + tint.toLowerCase() + ')');
+      el.style.setProperty('--mote-ms', ms + 'ms');
+      el.style.setProperty('--mote-dist', (dir === 'up' ? -travel : travel) + 'px');
+      // Evenly spread across the card's width with a deterministic jitter
+      // (no Math.random — replaying the same move looks the same).
+      const x = rect.left + rect.width * ((k + 0.5) / n) + ((k * 7) % 5 - 2);
+      const y = dir === 'up' ? rect.top + rect.height * 0.8 : rect.top + rect.height * 0.15;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.animationDelay = ((k % 4) * ms * 0.06) + 'ms';
+      fxLayer.appendChild(el);
+      setTimeout(function () { el.remove(); }, ms * 1.25);
+    }
+  }
+
+  // Stat labels ("+1/+1", "-1 ATK OVERLOAD") are much wider than a damage
+  // number, so they're centred on the card with the independent CSS
+  // "translate" property (composes with the float keyframes' transform)
+  // instead of the fixed -16px nudge — otherwise they spill onto the
+  // neighbouring card on a board-wide effect.
+  function centreOn(el, rect) {
+    if (!el) return;
+    el.style.left = (rect.left + rect.width / 2) + 'px';
+    el.style.translate = '-50% 0';
+  }
+
+  function applyStatShift(el, shift, tint, tier) {
+    el.style.setProperty('--fx-tint', 'var(--' + tint.toLowerCase() + ')');
+    const rect = el.getBoundingClientRect();
+    if (shift.kind === 'expire') {
+      flashClass(el, 'fx-settle', 'subtle');
+      centreOn(spawnNumber(rect, shift.label, 'expire', 'subtle', 40), rect);
+      return;
+    }
+    const up = shift.kind === 'buff';
+    flashClass(el, up ? 'fx-rise' : 'fx-sink', tier);
+    spawnMotes(rect, up ? 'up' : 'down', tint, tier);
+    // Buff labels start low and float up; penalty labels start high and
+    // sink — and both sit clear of the damage/heal number's own spot at the
+    // top of the card, so a hit + a debuff on the same move don't stack.
+    centreOn(spawnNumber(rect, shift.label, up ? 'buff' : 'penalty', tier, up ? 70 : 28), rect);
+    if (tier === 'spectacle') spawnBurst(rect, 'var(--' + tint.toLowerCase() + ')');
+  }
+
+  // Which faction's card caused this unit's buff/penalty, when the move's
+  // events name a source we know. A name->faction lookup (cardFactions) is
+  // safe even with the event log's name-only identity gap: it only needs to
+  // know WHICH FACTION the source card belongs to, never which instance.
+  function sourceFactionFor(unitName, frame) {
+    for (let k = 0; k < frame.newEvents.length; k++) {
+      const ev = frame.newEvents[k].event;
+      if ((ev.type === 'buff' || ev.type === 'statusApplied') && ev.target === unitName && replay.cardFactions[ev.source]) return replay.cardFactions[ev.source];
+      if (ev.type === 'toolAttached' && ev.unit === unitName && replay.cardFactions[ev.tool]) return replay.cardFactions[ev.tool];
+    }
+    return undefined;
+  }
+
+  function statSideOf(u) {
+    return { attack: u.attack, maxHealth: u.maxHealth, turnBuffAttack: u.turnBuff.attack, turnBuffHealth: u.turnBuff.health, statuses: u.statuses.map(function (st) { return st.kind; }) };
   }
 
   function flashClass(el, cls, tier) {
@@ -777,6 +971,7 @@ const JS = `
     const hasAttackEvent = newFrame.newEvents.some(function (e) { return e.event.type === 'attack'; });
     const aoeCount = newFrame.newEvents.filter(function (e) { return e.event.type === 'damage' && e.event.targetKind === 'unit'; }).length;
     const justEnded = !prevFrame.winner && !!newFrame.winner;
+    const shifts = [];
 
     Object.keys(prevBoard).forEach(function (id) {
       if (!newBoard[id]) {
@@ -797,8 +992,9 @@ const JS = `
       }
       if (newBoard[id].kind !== 'unit') return;
       const pv = prevBoard[id].v, nv = newBoard[id].v;
+      const evolved = pv.cardId !== nv.cardId;
       if (pv.pending && !nv.pending) { const t = tierFromScore(armedScore(nv.rarity)); tiers.push(t); flashClass(el, 'fx-armed', t); }
-      if (pv.cardId !== nv.cardId) { const t = tierFromScore(evolveScore()); tiers.push(t); flashClass(el, 'fx-evolve', t); }
+      if (evolved) { const t = tierFromScore(evolveScore()); tiers.push(t); flashClass(el, 'fx-evolve', t); }
       if (nv.canAttackThisTurn === false && pv.canAttackThisTurn === true) flashClass(el, 'fx-attack', 'normal');
       // Barrier interpose + absorb + shatter (EFFECTS.md slice 1): the
       // status vanishing is the whole signal — no pairing/attacker info
@@ -811,7 +1007,10 @@ const JS = `
         flashClass(el, 'fx-shatter', t);
         spawnNumber(el.getBoundingClientRect(), 'BLOCKED', 'shield', t);
       }
-      const hpDelta = nv.health - pv.health;
+      // Damage/heal is only the part of the health change that ISN'T a
+      // maxHealth (stat) change — a +0/+2 buff used to read as a heal, and
+      // Null's -2/-2 as a hit. See render/src/statFx.ts's header.
+      const residual = healthResidual(pv.health, nv.health, pv.maxHealth, nv.maxHealth);
       // Base-armor deflect (EFFECTS.md slice 1): a small, always-subtle
       // spark layered alongside the ordinary hit flash below — baseArmor
       // reduces every hit it takes (see engine/src/effects/resolver.ts),
@@ -819,25 +1018,39 @@ const JS = `
       // A hit small enough to be fully absorbed leaves health unchanged and
       // so isn't caught here — that needs per-hit instance-keyed event data
       // the engine doesn't emit yet (progress/render/notes-for-owner.md).
-      if (hpDelta < 0 && nv.baseArmor > 0) spawnDeflect(el.getBoundingClientRect());
-      if (hpDelta < 0) {
-        const t = tierFromScore(hitScore(hpDelta, aoeCount));
+      if (residual < 0 && nv.baseArmor > 0) spawnDeflect(el.getBoundingClientRect());
+      if (residual < 0) {
+        const t = tierFromScore(hitScore(residual, aoeCount));
         tiers.push(t);
         flashClass(el, 'fx-hit', t);
-        spawnNumber(el.getBoundingClientRect(), String(hpDelta), 'dmg', t);
-      } else if (hpDelta > 0) {
-        const t = tierFromScore(healScore(hpDelta));
+        spawnNumber(el.getBoundingClientRect(), String(residual), 'dmg', t);
+      } else if (residual > 0) {
+        const t = tierFromScore(healScore(residual));
         tiers.push(t);
         flashClass(el, 'fx-heal', t);
-        spawnNumber(el.getBoundingClientRect(), '+' + hpDelta, 'heal', t);
+        spawnNumber(el.getBoundingClientRect(), '+' + residual, 'heal', t);
       }
-      const atkDelta = nv.attack - pv.attack;
-      if (atkDelta !== 0 && hpDelta === 0) {
-        const t = tierFromScore(buffScore(atkDelta));
-        tiers.push(t);
-        flashClass(el, 'fx-buff', t);
-        spawnNumber(el.getBoundingClientRect(), (atkDelta > 0 ? '+' : '') + atkDelta + ' ATK', 'buff', t);
+      // An evolution changes the printed stats wholesale — the evolve pulse
+      // already tells that story; a rise/sink on top would misreport it.
+      if (!evolved) {
+        const shift = classifyStatShift(statSideOf(pv), statSideOf(nv));
+        if (shift) shifts.push({ el: el, shift: shift, owner: newBoard[id].owner, name: nv.name });
       }
+    });
+
+    // Buffs/penalties are applied after the per-unit pass so each one knows
+    // how many units took the same kind of shift this move — a -1 aura
+    // landing on the whole board is one board-wide spectacle, not five
+    // unrelated subtle dips.
+    const shiftCounts = { buff: 0, penalty: 0, expire: 0 };
+    shifts.forEach(function (x) { shiftCounts[x.shift.kind]++; });
+    shifts.forEach(function (x) {
+      const s = x.shift;
+      const t = tierFromScore(statShiftScore(s.kind, Math.abs(s.attack) + Math.abs(s.health), s.newStatuses.length, shiftCounts[s.kind]));
+      tiers.push(t);
+      const opp = x.owner === 'p1' ? 'p2' : 'p1';
+      const tint = tintFaction(s.kind, newFrame.players[x.owner].faction, newFrame.players[opp].faction, sourceFactionFor(x.name, newFrame));
+      applyStatShift(x.el, s, tint, t);
     });
 
     ['p1', 'p2'].forEach(function (pid) {
