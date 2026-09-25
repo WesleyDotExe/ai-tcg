@@ -952,3 +952,15 @@ The render effects-language spec is live at render/EFFECTS.md and is now referen
 Build order (one slice per render turn, each built across ALL factions via the primitive): (1) defence/shield — Barrier interpose+shatter, a Guard shield badge, a base-armor deflect (do FIRST, no pairing dependency, makes Aegis legible); (2) buff/penalty grammar; (3) power/ability cast flourish; (4) attack travel+impact (after the instance-ID event-log fix); (5) per-faction skinning. Placeholder visuals now, real art in the later art pass.
 
 Next render session: start slice 1 (defence/shields).
+
+---
+
+## 2026-09-26 — Owner: reserve player identity (username + profile/character image) for both AI players
+
+The finished game is two AI agents playing each other; a spectator and the commentators must tell them apart instantly. Make player identity first-class for EACH of the two players: a username (already shown in the render HUD — keep it) AND a profile / character / avatar image slot.
+
+Render lane (now, no engine change needed): add a visible avatar slot beside each player’s name and faction colour in the spectator HUD, filled with a deterministic placeholder generated from the username (same approach as the card frames, and the same username-seeded generation the planned 1-of-1 leader art will use). Structure it so a real image can drop in later. The two sides must be unmistakable at a glance via name + avatar + faction colour together. Keep this in the render’s own player-identity data; do not touch the engine.
+
+Platform / onboarding stage (later): the account/player model carries username + profileImage as first-class fields (the image can reuse the username-seeded generation used for the 1-of-1 leader card), and passes the real image into the render. Until then the render’s username-seeded placeholder stands.
+
+This is identity/layout, not animation — it sits alongside render/EFFECTS.md, not inside it. A render session can fold the avatar slot into its current slice or do it as a small standalone one.
