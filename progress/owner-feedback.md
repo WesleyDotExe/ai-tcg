@@ -842,3 +842,17 @@ Render lane continues to alternate as before, unaffected by this.
 Render session 2 found that the engine event log identifies units/players by NAME, not instance ID, so it cannot say which specific copy an effect hit when two share a name (a card mirror, or same-named agents like Lookahead-vs-Lookahead — the standard balance-test shape). The render worked around it by diffing board snapshots; correctly did not edit the engine.
 
 On a BALANCE session (not render — this is an engine change), when convenient during Phase 5, add instance IDs to the relevant event-log entries (attacker/target/unit/etc.) alongside the existing display names. Not blocking or urgent, but do it before stage 7: AI commentators will need to reference specific units ("which Aegis Cadet died"), and name-only entries make that impossible. Keep the display names too — this is additive. Re-run the engine tests after; touch nothing balance-affecting.
+
+---
+
+## 2026-09-25 — Owner: scale animation magnitude to event magnitude (render lane)
+
+Watched the session-2 animated replay (seed 24). The animations are there and fine in principle — confirmed by stepping through moves 25 (evolution) and 70 (Mythic Prime Aegis) — but at play speed the big moments do not STAND OUT. Fix is proportionality, not "make everything bigger":
+
+1. **Small/routine events stay subtle** — a 1-damage ping, a small unit entering, a minor buff. A busy board should not constantly shout.
+2. **Large events and powers get large, supporting animations** — an unconditional destroy (Kernel Panic), an evolution, a Mythic entering (or later a leader power), a board-wide effect, a lethal blow, a big momentum swing. These should be unmistakable spectacle. Right now a Mythic entering uses the same modest fade as a common unit — that is the gap.
+3. **Judge magnitude from the effect and the swing:** the effect's own weight (destroy vs 1 damage, AOE vs single, rarity/Mythic, lethal) and/or the momentum-delta the gauge already computes.
+4. **A big animation needs a beat.** Hold or slow the frame so large effects complete and land (first concrete use of the adaptive-pacing note); routine moves still skip past fast. Note the current collision: at 700ms/move some effects (floating numbers 900ms, death/evolve 650ms) already overrun the frame, so big effects especially need the frame to wait for them.
+5. **Verify at PLAY speed, not just single-step** — session 2 was validated by single-stepping, which is why the under-emphasis was not caught.
+
+Goal: watching at normal speed, a person clearly feels the big plays without being told where to look, while the small stuff stays understated.
