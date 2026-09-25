@@ -124,3 +124,138 @@ biggest gap against DESIGN's "animated card plays and attacks" arena bar),
 and/or a momentum-weight pass once there's more output to eyeball it
 against. Either is a legitimate next vertical slice; RENDER.md leaves the
 choice open.
+
+---
+
+## 2026-09-25 — Session 2: animated per-move transitions (the thread session 1 left)
+
+Per the 2026-09-24 alternation rule: the most recently merged PR before this
+session was session 18's balance slice (#20, "ring labels corrected"), so
+this session does the render lane's turn. Picked up session 1's own named
+leading candidate: animated frame transitions, the biggest gap against
+DESIGN's arena bar ("animated card plays and attacks... enough motion and
+readability that a human enjoys watching without playing").
+
+**What I built:** the board no longer snaps to the next frame — a full,
+diff-driven transition layer in `render/src/renderHtml.ts`'s inline script,
+with eight distinct, purpose-built animations, none of them a generic
+fade-the-whole-board crossfade (the cheap-out this session deliberately
+avoided):
+- **Card enter** (fade + rise + scale) when a unit or directive is newly
+  played or summoned.
+- **Card exit** (a ghost clone that fades, shrinks, and drops, positioned at
+  the real DOM rect the dying card occupied a moment before) when a unit
+  dies or a directive is destroyed — the ghost is spawned from the *real*
+  card-rendering function fed the last-known snapshot, not a placeholder box.
+- **Attack lunge** (a directional nudge toward the opponent, up for P1's row,
+  down for P2's) on the attacking unit.
+- **Hit flash + a floating "-N"** on whatever took damage — a unit or a
+  player's own HUD panel.
+- **Heal flash + a floating "+N"** the same way, in the opposite colour.
+- **A gold "armed" pulse** when a telegraphed unit's dormant window ends and
+  it fires for real — this is also the answer to RENDER.md's own parked
+  question (below).
+- **An evolve pulse** (scale + brightness/saturation pop) the instant a base
+  mutates into its evolved form.
+- **A buff flash + floating "+N ATK"** when a unit's attack changes without
+  a matching health change (tool attach, a static aura shifting).
+- The HP/energy bars and the momentum gauge also stopped being
+  rebuilt-from-scratch every frame — their DOM nodes are now built once and
+  updated in place, so their own width/position changes are real CSS
+  transitions, not instant jumps hidden inside a full re-render.
+
+**The harder design decision, and why it matters:** the obvious approach —
+parse each frame's `newEvents` (the engine's own formatted event log, e.g.
+`{type:"attack", attacker, defender}`) to drive the animations — turns out
+to be unsafe to build on. Checked the engine source
+(`engine/src/engine/engine.ts`, `engine/src/effects/resolver.ts`) rather
+than assuming: `attacker`/`defender`/`target`/`unit` on these events are
+**card or player NAMES**, not instance IDs (`attacker: attacker.card.name`,
+`target: player.name`, etc.). That's fine for a scrolling text log (which
+already carries this limitation) but wrong for an animation engine, which
+would then misattribute an effect onto the wrong copy of a card, or the
+wrong player's HUD, in the extremely common case of a mirror match (both
+committed sample matches, and most of this project's own balance-report
+methodology, run the *same agent policy on both sides* — e.g.
+Lookahead-vs-Lookahead — so `target: player.name` genuinely cannot tell P1
+from P2 by name alone). So this session did NOT parse event text for FX.
+Instead, every animation is driven by a diff between the already-precise,
+instanceId-keyed board snapshot this lane captures each frame (`collectBoard`
+in the new JS) — comparing frame N-1 to frame N by instanceId and by exact
+numeric deltas (health, attack, `pending`, `canAttackThisTurn`, `cardId` for
+evolution). This is exact regardless of naming collisions, and it's also
+simpler: no string parsing, no controller inference, just "did this specific
+instance's health drop" / "did this exact unit's `canAttackThisTurn` flip
+true-to-false" (the precise, unambiguous signal that it just attacked).
+Per RENDER.md's guardrail 2 ("if you need an engine change, STOP, write the
+need down"), this is a real per-card-name-collision instance-identity gap in
+the event log format — flagged in `progress/render/notes-for-owner.md`
+rather than worked around by editing the engine.
+
+**Animation only runs on genuine single-step playback** (Next/spacebar/the
+play loop/ArrowRight) — a jump (scrubber drag, First/Last, or any
+non-adjacent step) does a plain instant re-render, which is the right call
+for a jump: there's no real "in between" to animate through, and trying to
+diff a 40-frame jump into one coherent animation would be incoherent, not a
+missing feature.
+
+**Proven working, not just wired up:** typecheck clean across all 5
+workspaces; the pre-existing 14 render-lane tests still pass unmodified
+(they test `capture`/`momentum`/`cardVisual`, none of which this session
+touched). Real, unscripted evidence — driven with the environment's
+pre-installed headless Chromium via a scratch Playwright script (not a
+project dependency, same as session 1), stepping every single move of a
+real captured match and recording which FX classes actually got applied to
+real DOM nodes (a `MutationObserver`, not a visual guess):
+- `render/output/aegis-vs-swarm-seed1.html` (regenerated against the current
+  card pool — session 1's original had 182 moves against a card pool that
+  has since gone through 5+ balance sessions; this is the same seed,
+  current pool, 79 moves/15 turns): `fx-enter` 36×, `fx-attack` 30×,
+  `fx-heal` 21×, `fx-hit` 27×, `fx-armed` 6×, `fx-ghost` 2× — zero console
+  errors across all 79 single-stepped frames.
+- `render/output/aegis-vs-cortex-seed24.html` (session 1's old `-seed1`
+  file for this matchup is superseded/removed — regenerating against the
+  current pool changed its move count enough that the old seed no longer
+  exercised the same mechanics, so a fresh scan of seeds 1-40 via a scratch
+  script found seed 24 as a short, real match that fires *every* one of the
+  eight FX types, including the two seed1-Swarm didn't reach): `fx-enter`
+  36×, `fx-attack` 54×, `fx-hit` 63×, `fx-buff` 24×, `fx-armed` 3×,
+  `fx-ghost` 5×, `fx-heal` 23×, `fx-evolve` 5× — zero console errors across
+  all 100 single-stepped frames.
+- A mid-match screenshot (not committed, just used to verify by eye) caught
+  a real in-flight moment: a "-2" floating over the P1 HUD, a "+1 ATK" over
+  Recursive Construct, a "-3" over Firewall Sentinel mid-combat, and a
+  "-1" over an EVOLVED Aegis Sentinel — all legible, correctly positioned,
+  no layout breakage.
+
+**RENDER.md's parked question, now genuinely answerable with motion, not
+just a static dormant-state screenshot:** both committed matches show a
+telegraphed unit's `pending` state actually SWITCH OFF live — the card
+visibly pulses gold the instant it arms, not just "sits there with a
+countdown" the way session 1's static frame-stepping showed it. Noted in
+`progress/render/notes-for-owner.md`.
+
+**What's genuinely thin, named honestly:**
+- The `fx-buff`/`fx-hit`/`fx-heal` box-shadow flashes on the same element in
+  the same frame can visually stack/overwrite each other if more than one
+  fires on one card in one step (e.g. a unit both takes damage and gets
+  buffed the same move) — CSS animation cascade just picks one, not a
+  layered effect. Rare in practice (checked: didn't observe it in either
+  committed match) and not a crash, just a missed flourish in an edge case.
+- No animation for token summons specifically beyond the generic card-enter
+  (a "summon" event doesn't get a distinct visual from "played from hand") —
+  a reasonable next micro-slice, not attempted this session.
+- Still 1v1 only, still frame-by-frame board layout (no persistent per-slot
+  DOM identity across a mid-array compaction when a unit dies elsewhere on
+  the board) — a card can visually "jump" a slot position on the same step
+  its neighbour dies, which reads a little abrupt next to the enter/exit
+  animations. A genuinely fixed-slot-identity board layout would fix this
+  but is a bigger structural change than this slice's scope.
+- Momentum's weights are still session 1's first guess, untouched this
+  session — its width/position now animate smoothly, but the *values*
+  weren't revisited.
+
+**Next render-lane slice:** either (a) a fixed-slot board layout so units
+don't visually reflow when a neighbour dies mid-row, or (b) the momentum-
+weight pass session 1 also left open. Both legitimate; left open per
+RENDER.md's own practice of not over-prescribing the next session's choice.
