@@ -834,3 +834,11 @@ Session 18 cleared the ladder: Null is de-fanged, Swarm can rebuild, directives 
 4. **Hard gate:** at the end of Phase 5's first full pass, re-measure the whole ring (300 seeds, all three policies) against the corrected targets. If any ring edge is still out of band UNDER LOOKAHEAD, return to targeted tuning then, with Lookahead as the arbiter. Do not let Phase 5 bury an unresolved ring — the re-measure is mandatory, and its result goes in a checkpoint.
 
 Render lane continues to alternate as before, unaffected by this.
+
+---
+
+## 2026-09-25 — Owner: give the event log instance IDs (small engine improvement, when convenient)
+
+Render session 2 found that the engine event log identifies units/players by NAME, not instance ID, so it cannot say which specific copy an effect hit when two share a name (a card mirror, or same-named agents like Lookahead-vs-Lookahead — the standard balance-test shape). The render worked around it by diffing board snapshots; correctly did not edit the engine.
+
+On a BALANCE session (not render — this is an engine change), when convenient during Phase 5, add instance IDs to the relevant event-log entries (attacker/target/unit/etc.) alongside the existing display names. Not blocking or urgent, but do it before stage 7: AI commentators will need to reference specific units ("which Aegis Cadet died"), and name-only entries make that impossible. Keep the display names too — this is additive. Re-run the engine tests after; touch nothing balance-affecting.
