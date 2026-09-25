@@ -964,3 +964,17 @@ Render lane (now, no engine change needed): add a visible avatar slot beside eac
 Platform / onboarding stage (later): the account/player model carries username + profileImage as first-class fields (the image can reuse the username-seeded generation used for the 1-of-1 leader card), and passes the real image into the render. Until then the render’s username-seeded placeholder stands.
 
 This is identity/layout, not animation — it sits alongside render/EFFECTS.md, not inside it. A render session can fold the avatar slot into its current slice or do it as a small standalone one.
+
+---
+
+## 2026-09-26 — Owner: session 20 confirmations + next Phase 5 slice (Null, depth pass)
+
+Phase 5 slice 2 (Swarm 16->20) reviewed and accepted. The ring is now healthy — zero triple-flagged pairings for the first time. Responses:
+
+1. **Cortex-vs-Swarm overshoot — accepted as a watch item, do NOT chase now.** It is no longer triple-flagged; it slid slightly past even into mild Swarm favour (Lookahead ~55.7% Swarm) when the ring wants Cortex to win that edge. Leave it; the mandatory end-of-Phase-5 full-ring re-measure is where it gets judged, and a later slice (Cortex’s, or a small Swarm trim) can nudge it back if it is still off then.
+2. **Methodology lesson endorsed:** when benchmarking a new card’s stat line against a precedent card, confirm the precedent itself measured as AVERAGE, not strong — copying a strong card’s numbers spikes the whole deck. Keep re-measuring before shipping. No action.
+3. **Swarm-vs-Null — accepted under the Lookahead-arbiter rule.** Lookahead now favours Swarm, which IS the ring’s intended edge (Swarm beats Null); the Random-agent disagreement is discounted as dumb-agent noise, same standing rule as elsewhere. Tracked, not chased.
+
+**Next Phase 5 slice: Null — as a DEPTH / VARIETY pass, not a power buff.** Grow Null toward the 30-40 unique-card target with variety (the variation rule, inside the lint), NOT by raising its power — it must not reopen the Null dominance removed earlier. Re-measure after; if Null’s win rates climb back up under Lookahead, pull the additions back. A Null slice may also help settle the Swarm-vs-Null Random split. After Null: Cortex’s slice, then the neutral pool, then the mandatory full-ring re-measure gate.
+
+The balance fight is essentially done; Phase 5 from here is mainly card variety, with the re-measure as the safety net.
