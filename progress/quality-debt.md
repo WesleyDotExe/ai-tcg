@@ -16,10 +16,73 @@ session 13 (Phase 2 item 3 of the same entry — directive removal), session
 triangle, proposed and measured), session 17 (the owner's Phase 4
 decisions: the four-faction ring, Null step 4, buff Swarm), session 18
 (Phase 4 session 17 follow-ups: ring labels corrected, Aegis-vs-Cortex
-fix, Null past-cost nerf), and now session 19 (Phase 5 slice 1: Aegis pool
-grown 18 -> 22 unique cards).
+fix, Null past-cost nerf), session 19 (Phase 5 slice 1: Aegis pool
+grown 18 -> 22 unique cards), and now session 20 (Phase 5 slice 2: Swarm
+pool grown 16 -> 20 unique cards).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 20
+
+- **Cortex-vs-Swarm overshot past even into mild Swarm-favour, rather than
+  landing at the ring's actual 55-60%-Cortex target.** The headline honest
+  finding, not a side note: this session's broad Swarm buff resolved the
+  project's sole standing triple-flag, but the result is a new,
+  small-but-real reverse imbalance (Lookahead 55.7% Swarm, Random 53.0%
+  Swarm, Aggressive 53.7% Cortex — not triple-flagged either direction) on
+  a pairing the owner explicitly said not to chase card-by-card
+  (2026-09-23 entry: "Phase 5 wider pools will likely settle it... do not
+  add a card or nerf anyone specifically for this pairing"). This session
+  followed that instruction to the letter (no card or number was aimed at
+  this pairing specifically) and the pool-wide settle it predicted did
+  happen — just past the target rather than onto it. Not chased further
+  this session, per the same standing instruction; a future session
+  (Cortex or Null's own Phase 5 growth, or the owner steering directly)
+  should treat this as live, not resolved.
+- **Swarm-vs-Null remains unresolved, now with the opposite policy split
+  from before.** Before this session: Aggressive/Lookahead roughly even,
+  Random badly Null-favoured. After: Aggressive (61.3%) and Lookahead
+  (64.3%) now favour SWARM, above its own 55-60% target band on the
+  winning side, while Random (36.0% Swarm, i.e. 64.0% Null) still favours
+  Null. Real, measured movement in the right direction overall (Random's
+  Null number dropped from 75.7% in the original baseline to 64.0%), but
+  the pairing has gone from "policies roughly agree Null wins too much" to
+  "policies actively disagree," which is its own kind of unsettled — worth
+  a future session reading `progress/balance-report-014-phase5-swarm-slice.txt`
+  before assuming this is close to done.
+- **The exact shipped stat lines for the four new Swarm cards are a
+  single-pass calibration, not an iterated tuning** — same category of
+  debt session 19 named for Aegis's four cards. They were checked against
+  the full balance report exactly once after the "scale back below the
+  original benchmark" correction and landed the headline result (no
+  triple-flag) on that one re-measure. A future session revisiting Swarm
+  should treat these numbers as a reasonable first cut, not a settled
+  target.
+- **The uniform, whole-deck win-rate spike from the first (overtuned) cut
+  is itself a finding worth remembering, not just a mistake that got
+  caught:** benchmarking a new card's stats directly against another
+  faction's *already-above-average-performing* card (Aegis Line Trooper,
+  Bulwark Chassis, Reinforced Bastion were themselves 58-63% drawn win
+  rate in their own pool, not neutral baselines) transmits that card's own
+  above-average power into the new pool, amplified by how far below
+  average the receiving pool started. This wasn't isolated or measured
+  precisely (no controlled experiment separating "which of the four new
+  cards drove how much of the spike"), just diagnosed by inspection and
+  corrected in aggregate — a future card-design session copying a
+  cross-faction stat-line precedent should sanity-check whether the
+  source card itself tested as strong or average before treating its
+  numbers as a safe baseline.
+- **Which existing Swarm cards absorbed this session's copy trims was
+  chosen by lowest measured win rate alone**, same known limitation
+  session 19 named for Aegis's trims (a card seen in fewer games has a
+  noisier win-rate estimate) — not re-litigated here, just restated so it
+  isn't read as a new, different methodology.
+- **Warren Guardian and Bloodswarm Alpha's exact numeric relationship to
+  their cross-faction Guard/summon benchmarks (Firewall Sentinel,
+  Reinforced Bastion, Overclock Beast) is this session's own judgment
+  call, not owner-confirmed** — flagged in `progress/checkpoints.md` and
+  `progress/notes-for-owner.md` per this project's standing convention for
+  first-cut numeric proposals.
 
 ## New debt from session 19
 

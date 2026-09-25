@@ -5,6 +5,89 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Phase 5 slice 2: Swarm pool grown 16 -> 20, no pairing triple-flagged at all (2026-09-26, session 20)
+
+Not a full build-order stage completion — flagged because this is the
+second Phase 5 slice, it resolves the project's sole standing
+cross-faction triple-flag (Cortex-vs-Swarm), it required the same
+scale-back-an-overtuned-first-cut journey as session 19 (a judgment call
+worth the owner's eyes again), and it leaves two named watch items open in
+new shapes rather than fully settled.
+
+**What this session delivered, with evidence:**
+
+1. **Swarm grown from 16 to 20 unique cards** (`engine/src/data/cards.ts`):
+   Brood Skitterer (a real cross-faction-median 1-drop), Carapace Grunt
+   (Swarm's first plain cost-2 stat body), Warren Guardian (Swarm's first
+   Guard unit), Bloodswarm Alpha (a real cost-4 body that also summons a
+   token on play, unlike the measurably-weaker pure-summon Brood
+   Reserves). Funded by trimming the pool's own measured weakest cards
+   (this session's own baseline report), not guesses; no existing card cut
+   entirely; deck stays at its 40-card cap.
+2. **The first stat line was overtuned — caught by this session's own
+   re-measurement, not shipped, same pattern as session 19.** The first
+   cut matched Aegis's OWN new cards (Aegis Line Trooper, Bulwark Chassis,
+   Reinforced Bastion) stat-for-stat — but those cards were themselves
+   among Aegis's stronger-testing cards (58-63% drawn win rate in their
+   own pool), not neutral baselines. Copying them onto a Swarm pool that
+   started well below 50% average spiked EVERY Swarm card's win rate
+   uniformly (even untouched ones), and flipped Cortex-vs-Swarm from
+   Cortex-dominant to Swarm-dominant. Scaled every new card back below its
+   original benchmark and re-measured.
+3. Re-measured the whole ring after the correction (300 seeds/matchup, 3
+   policies): `progress/balance-report-014-phase5-swarm-slice.txt`.
+
+**Honest result: no cross-faction pairing is triple-flagged at all.**
+Cortex-vs-Swarm, the project's sole standing triple-flag going in, is
+resolved — but it overshot past even into mild Swarm-favour (Lookahead
+55.7% Swarm) rather than landing on the ring's actual 55-60%-Cortex
+target. Per the owner's own 2026-09-23 instruction for this exact pairing
+("Phase 5 wider pools will likely settle it... do not add a card or nerf
+anyone specifically for this pairing"), this session made no
+pairing-specific change and the predicted settle did happen — just past
+the target, not onto it. Left as-is, not chased, per that same
+instruction — flagging back in case the owner wants it pulled closer with
+a future slice.
+
+**Two watch items, both moved but not resolved, worth the owner's
+attention specifically:**
+
+- **Aegis-vs-Swarm** (session 19's own open item) is back in the 45-55%
+  "even" band on 2 of 3 policies, including Lookahead (53.0%, the trusted
+  arbiter) and Aggressive (47.7%); Random sits just outside (56.7%). Read
+  as effectively addressed by this slice, consistent with how session
+  19/the owner treated single-policy near-misses elsewhere.
+- **Swarm-vs-Null** remains unresolved, but the shape flipped: Aggressive
+  and Lookahead now favour SWARM (61.3%/64.3%, both above their own target
+  band on the winning side), while Random still favours Null (64.0%, down
+  from the original baseline's 75.7%). Real overall movement, but the
+  three policies now actively disagree on this pairing rather than
+  roughly agreeing Null wins too much — a genuinely different open
+  question than before this session, not a smaller version of the same
+  one.
+
+**Judgment calls the owner might want to weigh in on:**
+
+- Whether Cortex-vs-Swarm's overshoot (Swarm now mildly favoured instead
+  of Cortex) should be pulled back toward the ring's target with a future
+  Cortex-side slice, or left as "close enough, Phase 5 isn't finished
+  yet, revisit at the hard-gate re-measure."
+- Whether Swarm-vs-Null's Random-favours-Null-but-others-favour-Swarm
+  split should be treated as "trust Lookahead, done for now" (the
+  project's own standing practice since the 2026-09-25 "accept the ring"
+  entry) or as a case specifically worth digging into given how starkly
+  the three policies now disagree.
+- The exact new stat lines (Brood Skitterer 1/2, Carapace Grunt 2/2,
+  Warren Guardian 2/3 Guard, Bloodswarm Alpha 3/3 + summon) are this
+  session's own scaled-back first cut, checked against the full report
+  exactly once after correction — not an iterated tuning.
+
+Full detail: `progress/log.md`'s session-20 entry, `progress/current.md`,
+`progress/quality-debt.md`'s new session-20 section,
+`progress/notes-for-owner.md`.
+
+---
+
 ## AWAITING FEEDBACK — Phase 5 slice 1: Aegis pool grown 18 -> 22, Aegis-vs-Cortex no longer triple-flagged (2026-09-25, session 19)
 
 Not a full build-order stage completion — flagged because this is the first

@@ -141,10 +141,30 @@ building around them; don't block the whole project waiting.
    Aegis-vs-Swarm newly drifted out of its "even" band as a named,
    untouched side effect. Full detail:
    `progress/balance-report-013-phase5-slice1.txt`, `progress/checkpoints.md`,
-   `progress/notes-for-owner.md`. **Phase 5 continues — Cortex, Swarm, and
-   Null still need their own growth pass; the owner's hard-gate whole-ring
-   re-measure (item 4 below) is due once every faction has had at least one
-   Phase 5 pass, not yet.**
+   `progress/notes-for-owner.md`. **Session 20 continued Phase 5 with
+   Swarm's own slice**, scoped as a general power-level pass rather than
+   one pairing (Swarm was the baseline-worst faction across three of its
+   four matchups, not just one — the owner's 2026-09-26 "session 19
+   confirmations" entry named Swarm next). Grew Swarm from 16 to 20 unique
+   cards (Brood Skitterer, Carapace Grunt, Warren Guardian, Bloodswarm
+   Alpha — all real, immediate-board-stat cards), funded by data-driven
+   trims of the pool's own weakest cards. Same honest
+   overtuned-first-cut-then-corrected journey as session 19: a first cut
+   benchmarked directly against Aegis's own above-average-testing cards
+   spiked the whole Swarm deck's win rates uniformly; caught and scaled
+   back before shipping. **Result: no cross-faction pairing is
+   triple-flagged at all** — Cortex-vs-Swarm, the sole standing
+   triple-flag going in, is resolved (though it overshot past even into
+   mild Swarm-favour rather than landing on target — named honestly, not
+   chased, per the owner's standing "don't fix this pairing specifically"
+   instruction); Aegis-vs-Swarm is back in band on 2 of 3 policies
+   including Lookahead. Swarm-vs-Null remains unresolved in a new shape
+   (policy disagreement rather than Null-dominant-on-all-three). Full
+   detail: `progress/balance-report-014-phase5-swarm-slice.txt`,
+   `progress/checkpoints.md`, `progress/notes-for-owner.md`. **Phase 5
+   continues — Cortex and Null still need their own growth pass; the
+   owner's hard-gate whole-ring re-measure (item 4 below) is due once
+   every faction has had at least one Phase 5 pass, not yet.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

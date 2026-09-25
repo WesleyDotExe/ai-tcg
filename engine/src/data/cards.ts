@@ -928,21 +928,155 @@ export const overgrownCarapace: UnitCard = {
   ],
 };
 
+// --- Phase 5 pool expansion, Swarm slice (2026-09-25/26 owner-feedback
+// entries: "Swarm next would help both its own weak matchups and the
+// Aegis-vs-Swarm drift" — unlike Aegis's slice, which aimed at one named
+// pairing, Swarm is this session's baseline-worst faction across THREE of
+// its four matchups (loses to Cortex, loses/ties Null when the ring says it
+// should win, loses hard to Aegis when the ring says it should be even), so
+// this slice is a general power-level pass, not a single-pairing aim. All
+// four cards are real, immediate board stats (not reactive/zero-tempo
+// utility) per the established failure pattern (Brood Reserves, session 11's
+// Aegis defensive batch) that the dummy agent policies undervalue "hold this
+// for the right moment" cards. Funded by data-driven trims of the pool's own
+// measured weakest cards (baseline balance report, this session), same
+// method as session 19's Aegis slice. -------------------------------------
+
+export const broodSkitterer: UnitCard = {
+  id: "SW-017",
+  name: "Brood Skitterer",
+  faction: "Swarm",
+  rarity: "Common",
+  cost: 1,
+  type: "Unit",
+  // First cut matched Aegis Line Trooper (2/1) exactly and, together with
+  // the other three new cards, measured badly overtuned — see this file's
+  // own note above SWARM_CARDS and progress/notes-for-owner.md: the whole
+  // deck's per-card win rates jumped uniformly (even untouched cards like
+  // Swarm Larva rose from 47.6% to 63.0% played), so the new cards were
+  // simply too strong, not just this one. Scaled back to Init Daemon/Glitch
+  // Seed's more conservative 1/2 (the actual cross-faction median for a
+  // cost-1 vanilla body, not the strongest outlier) and re-measured.
+  attack: 1,
+  health: 2,
+  keywords: [],
+  art: "placeholder:swarm/brood-skitterer",
+  flavor: "First out of the nest. First into everything.",
+  abilities: [],
+};
+
+export const carapaceGrunt: UnitCard = {
+  id: "SW-018",
+  name: "Carapace Grunt",
+  faction: "Swarm",
+  rarity: "Common",
+  cost: 2,
+  type: "Unit",
+  // First cut (3/1, Bulwark Chassis's total redistributed toward attack)
+  // measured overtuned alongside the other three new cards — see the note
+  // above SWARM_CARDS. Scaled back to Fail-safe Unit's 2/2 (a plain,
+  // no-upside cost-2 vanilla stat line, the actual conservative benchmark;
+  // Bulwark Chassis was itself one of Aegis's stronger-testing cards, not a
+  // neutral baseline to copy from). Still fills the real gap this card
+  // exists for — Swarm had no plain cost-2 stat body at all, every existing
+  // one carries an ability.
+  attack: 2,
+  health: 2,
+  keywords: [],
+  art: "placeholder:swarm/carapace-grunt",
+  flavor: "Doesn't dig in. Doesn't need to — there's another one behind it.",
+  abilities: [],
+};
+
+export const warrenGuardian: UnitCard = {
+  id: "SW-019",
+  name: "Warren Guardian",
+  faction: "Swarm",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Unit",
+  // Swarm's first Guard unit — it had zero front-line protection for the
+  // rest of a wide board (Barrier Node's "Barrier" keyword is a one-hit
+  // shield on itself, not a Guard that redirects attacks). First cut (3/3,
+  // matching Reinforced Bastion's total stats redistributed toward attack)
+  // measured overtuned alongside the other three new cards — see the note
+  // above SWARM_CARDS. Scaled back below BOTH established cost-3 Guard
+  // benchmarks (Firewall Sentinel 2/5, Reinforced Bastion 2/4): Swarm's
+  // identity is numbers, not individual toughness, so a single Guard body
+  // deliberately costs less than either faction that's actually built
+  // around walling.
+  attack: 2,
+  health: 3,
+  keywords: ["Guard"],
+  art: "placeholder:swarm/warren-guardian",
+  flavor: "It doesn't wall the nest off. It meets whatever's coming halfway.",
+  abilities: [],
+};
+
+export const bloodswarmAlpha: UnitCard = {
+  id: "SW-020",
+  name: "Bloodswarm Alpha",
+  faction: "Swarm",
+  rarity: "Rare",
+  cost: 4,
+  type: "Unit",
+  attack: 3,
+  health: 3,
+  keywords: [],
+  art: "placeholder:swarm/bloodswarm-alpha",
+  flavor: "It doesn't lead the mass. It just makes more of it, wherever it stands.",
+  abilities: [
+    {
+      id: "bloodswarm-alpha-play",
+      trigger: "onPlay",
+      // Immediate width the moment it lands, not a reactive "hold for a
+      // wipe" ask like Brood Reserves — a real body that ALSO advances the
+      // "go-wide" plan the instant it's played, so a dummy policy scoring
+      // "play the biggest affordable thing" values it correctly, unlike a
+      // pure summon spell with no board presence of its own. First cut
+      // (4/4 body, i.e. Overclock Beast's stats PLUS a free token) measured
+      // overtuned alongside the other three new cards — see the note above
+      // SWARM_CARDS. Scaled to 3/3: the summoned Larva is the real payoff
+      // for the cost, not a bonus on top of an already-on-curve body.
+      text: "When this enters play, summon a 1/1 Swarm Larva.",
+      effects: [
+        {
+          kind: "summon",
+          count: 1,
+          token: {
+            name: "Swarm Larva",
+            faction: "Swarm",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:swarm/swarm-larva",
+            flavor: "One of ten thousand. Ten thousand more where it came from.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
 export const SWARM_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: swarmLarva, copies: 3 },
   { card: broodcaller, copies: 3 },
-  { card: rallyCry, copies: 2 },
+  { card: rallyCry, copies: 1 },
   { card: overclockBeast, copies: 2 },
   { card: corrosiveSpitter, copies: 3 },
   { card: hiveMother, copies: 1 },
-  { card: sporeCluster, copies: 3 },
-  { card: barrierNode, copies: 3 },
-  { card: reflexSpike, copies: 3 },
-  { card: dormantEggSac, copies: 2 },
+  { card: sporeCluster, copies: 2 },
+  { card: barrierNode, copies: 1 },
+  { card: reflexSpike, copies: 2 },
+  { card: dormantEggSac, copies: 1 },
   { card: moltedStalker, copies: 2 },
-  { card: chitinPlating, copies: 3 },
+  { card: chitinPlating, copies: 1 },
   { card: boreSwarm, copies: 2 },
-  { card: broodReserves, copies: 3 },
+  { card: broodReserves, copies: 1 },
   { card: colonyBroodling, copies: 3 },
   { card: overgrownCarapace, copies: 2 },
+  { card: broodSkitterer, copies: 3 },
+  { card: carapaceGrunt, copies: 3 },
+  { card: warrenGuardian, copies: 2 },
+  { card: bloodswarmAlpha, copies: 2 },
 ];

@@ -1,5 +1,51 @@
 # Notes for the owner
 
+**Updated 2026-09-26, session 20 (Phase 5 slice 2 — Swarm grown 16 -> 20
+unique cards, general power-level pass).** Full detail in
+`progress/checkpoints.md`'s new entry, short version here:
+
+1. **Cortex-vs-Swarm — the project's last standing triple-flagged pairing
+   — is resolved, but overshot.** It's no longer triple-flagged in any
+   direction, but it moved past even into mild Swarm-favour (Lookahead
+   55.7% Swarm) instead of landing on the ring's actual target (Cortex
+   should win 55-60%). Per your own 2026-09-23 instruction for this exact
+   pairing, I didn't touch it specifically this session — a broad Swarm
+   buff was exactly the "wider pool" action you predicted would settle it,
+   and it did settle, just slightly past the mark. Say if you want a
+   future slice to pull it back toward Cortex, or if "no longer
+   triple-flagged, close enough" is fine for now.
+2. **Same honest pattern as session 19: I designed a first cut, caught it
+   overtuned myself, and shipped a corrected version — not the first
+   design.** This time the mistake was benchmarking Swarm's new cards
+   directly against Aegis's OWN new cards from last session (Aegis Line
+   Trooper, Bulwark Chassis, Reinforced Bastion), without checking that
+   those cards were themselves among Aegis's stronger performers (58-63%
+   win rate in their own pool), not a neutral stat-line baseline. The
+   first cut spiked Swarm's entire deck's win rates uniformly — worth
+   knowing as a real methodology lesson for future Phase 5 slices, not
+   just this session's mistake: copying a precedent card's exact numbers
+   only works if the precedent card itself measured as average, not
+   strong.
+3. **Swarm-vs-Null didn't resolve — it changed shape.** Before this
+   session, Random/Aggressive/Lookahead roughly agreed Null won too often.
+   Now Aggressive and Lookahead favour Swarm instead, while Random still
+   favours Null. I read this as real progress under this project's own
+   standing rule (Lookahead is the trusted arbiter since the 2026-09-25
+   "accept the ring" entry, and Lookahead now favours Swarm, which is the
+   ring's actual intent) — but I want you to see the raw split rather
+   than have me quietly decide it's fine, since Random disagreeing this
+   starkly is a bigger gap than most of this project's other
+   single-policy holdouts.
+4. **Which faction should get the next Phase 5 slice?** I'd pick Null over
+   Cortex — Cortex hasn't been named a problem since the ring correction,
+   while Null still has the open Swarm-vs-Null question above that a
+   Null-side slice could help settle alongside its own growth toward
+   30-40 cards. Say if you'd rather see Cortex next, or want me to
+   address item 1 (Cortex-vs-Swarm's overshoot) before growing either
+   pool further.
+
+---
+
 **Updated 2026-09-25, session 19 (Phase 5 slice 1 — Aegis grown 18 -> 22
 unique cards, aimed at the Aegis-vs-Cortex pairing).** Full detail in
 `progress/checkpoints.md`'s new entry, short version here:
