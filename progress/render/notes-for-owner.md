@@ -118,3 +118,27 @@ separate from the shared `progress/notes-for-owner.md`).
    problem, so out of scope for this session's slice; a real next
    micro-slice (offset each subsequent number spawned on the same card
    within a move) whenever picked up.
+
+## 2026-09-26 — Session 4 (defence/shield primitives, EFFECTS.md slice 1)
+
+10. **This dev/CI environment's headless Chromium has no colour-emoji font,
+    and an unsupported codepoint can render as fully invisible rather than a
+    visible "tofu" fallback box.** Found by screenshotting a real shield-emoji
+    badge (U+1F6E1) and seeing nothing at all — not even the badge's own
+    background — where the DOM inspector confirmed the element was present
+    and correctly populated. Root cause: with no colour-emoji glyph
+    available, the browser fell back to an ambient inherited text colour
+    that happened to be near-black-on-near-black for this specific badge,
+    so there was no visible fallback shape at all to notice as "broken." A
+    real trap for any FUTURE render session tempted to reach for an emoji
+    as a cheap placeholder icon (EFFECTS.md's build order has several
+    upcoming slices — buff/penalty, cast flourish — where that's tempting).
+    This session's fix: plain ASCII letter glyphs in a small badge (matches
+    the existing single-letter rarity badge convention already in
+    `renderCardEl`) instead of emoji, which render identically everywhere
+    Courier New does. Worth a standing rule in `render/EFFECTS.md` or a
+    comment near `renderCardEl` if this keeps coming up — not added
+    unilaterally by this session since it's a style-guide-level call, not a
+    single-slice one, but the concrete failure mode (screenshot to verify
+    ANY new glyph choice; a DOM-presence check alone is not enough) is
+    flagged here for whoever hits it next.

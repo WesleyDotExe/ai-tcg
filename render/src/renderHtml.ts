@@ -90,6 +90,8 @@ const CSS = `
   --aegis: #9fd8d0;
   --swarm: #8bff5c;
   --null: #d565ff;
+  --shield: #6fe3ff;
+  --armor: #9fb4c9;
   font-size: 15px;
 }
 * { box-sizing: border-box; }
@@ -156,6 +158,19 @@ html, body {
 .card .stats .hp::before { content: "\\2665 "; }
 .card .tags { position: absolute; top: 2px; left: 2px; display: flex; flex-direction: column; gap: 2px; z-index: 2; }
 .card .tag { font-size: 0.52rem; padding: 1px 3px; border-radius: 2px; background: rgba(0,0,0,0.55); color: #fff; letter-spacing: 0.03em; }
+
+/* Defence/shield primitives (EFFECTS.md slice 1, render-lane session 4):
+ * persistent badges for the two defensive traits that are true of a unit
+ * for as long as it holds them, not just for one animated instant — Guard
+ * (always true while the keyword's held) and an active Barrier (true only
+ * until it's consumed; driven by the live barrierActive snapshot field,
+ * not the static keywords list, so the badge correctly disappears the
+ * moment the shield breaks instead of lying about a spent shield). */
+.card .shields { position: absolute; top: 2px; right: 2px; display: flex; flex-direction: column; gap: 2px; z-index: 2; }
+.shield-badge { font-size: 0.6rem; font-weight: bold; line-height: 1; width: 13px; height: 13px; display: flex; align-items: center; justify-content: center; border-radius: 3px; background: rgba(0,0,0,0.55); }
+.shield-badge.shield-guard { color: #cfd8e3; box-shadow: 0 0 0 1px rgba(207,216,227,0.7) inset; }
+.shield-badge.shield-barrier { color: var(--shield); box-shadow: 0 0 5px var(--shield), 0 0 0 1px var(--shield) inset; animation: shield-idle-pulse 1.8s ease-in-out infinite; }
+@keyframes shield-idle-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
 .card.pending { filter: grayscale(0.55) brightness(0.75); }
 .card.pending::after { content: "ARMING"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   font-size: 0.6rem; letter-spacing: 0.15em; color: var(--neutral); background: repeating-linear-gradient(45deg, rgba(0,0,0,0.55) 0 6px, rgba(0,0,0,0.7) 6px 12px); z-index: 1; }
@@ -249,6 +264,29 @@ html, body {
   100% { transform: scale(1); filter: brightness(1); }
 }
 
+/* Barrier interpose + absorb + shatter (EFFECTS.md slice 1): the moment a
+ * unit's Barrier status is consumed. Distinct from fx-hit on purpose — a
+ * fully-absorbed hit does zero health damage, so without this the unit gets
+ * NO visual at all despite genuinely blocking something. Shield-cyan, not
+ * the hit-flash red, since this is a defensive event, not a damage one. */
+.card.fx-shatter { animation: fx-shatter-flash 500ms ease; }
+@keyframes fx-shatter-flash {
+  0% { box-shadow: 0 0 0 3px var(--shield) inset, 0 0 20px var(--shield); filter: brightness(1); }
+  40% { filter: brightness(1.6); }
+  100% { box-shadow: none; filter: brightness(1); }
+}
+.fx-number.shield { color: var(--shield); }
+
+/* Base-armor deflect (EFFECTS.md slice 1): a small, deliberately UN-scaled
+ * spark alongside the ordinary hit flash when a unit with baseArmor > 0
+ * takes damage — "small" is the point (per the spec's own wording), so this
+ * does not go through the magnitude-tier system the way fx-hit/fx-shatter
+ * do. Steel-grey, distinct from both the hit-red and the shield-cyan. */
+.fx-deflect-ring { position: fixed; width: 34px; height: 34px; margin-left: -17px; margin-top: -17px;
+  border-radius: 50%; border: 2px solid var(--armor); pointer-events: none;
+  animation: fx-deflect-ring 380ms ease-out forwards; }
+@keyframes fx-deflect-ring { 0% { opacity: 0.85; transform: scale(0.3); } 100% { opacity: 0; transform: scale(1.5); } }
+
 .fx-number { position: fixed; font-weight: bold; font-size: 0.95rem; letter-spacing: 0.02em;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; animation: fx-float 900ms ease forwards; }
 .fx-number.dmg { color: var(--bad); }
@@ -272,7 +310,7 @@ html, body {
  * identity (that stays the instanceId diff, per session 2's own guardrail
  * reasoning). */
 .fx-mag-subtle { animation-duration: 260ms !important; }
-.fx-mag-subtle.fx-hit, .fx-mag-subtle.fx-heal, .fx-mag-subtle.fx-buff { box-shadow: none !important; filter: brightness(1.12); }
+.fx-mag-subtle.fx-hit, .fx-mag-subtle.fx-heal, .fx-mag-subtle.fx-buff, .fx-mag-subtle.fx-shatter { box-shadow: none !important; filter: brightness(1.12); }
 .fx-mag-spectacle { animation-duration: 900ms !important; }
 
 .fx-number.mag-subtle { font-size: 0.7rem; opacity: 0.85; animation-duration: 550ms; }
@@ -294,6 +332,12 @@ html, body {
   0% { box-shadow: 0 0 0 5px var(--neutral) inset, 0 0 34px 6px var(--neutral); transform: scale(1); }
   35% { transform: scale(1.08); }
   100% { box-shadow: none; transform: scale(1); }
+}
+.fx-mag-spectacle.fx-shatter { animation-name: fx-shatter-flash-big; }
+@keyframes fx-shatter-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--shield) inset, 0 0 36px 6px var(--shield); transform: scale(1); filter: brightness(1); }
+  35% { transform: scale(1.1); filter: brightness(1.9); }
+  100% { box-shadow: none; transform: scale(1); filter: brightness(1); }
 }
 .fx-mag-spectacle.fx-enter { animation: fx-enter-big 900ms cubic-bezier(.22,.9,.32,1.1); }
 @keyframes fx-enter-big {
@@ -398,6 +442,7 @@ const JS = `
   function buffScore(atkDelta) { const d = Math.abs(atkDelta); return d <= 1 ? 0.6 : d <= 3 ? 1.3 : 2.6; }
   function evolveScore() { return 2.8; }
   function armedScore(rarity) { return { Common: 1.0, Uncommon: 1.2, Rare: 1.9, Mythic: 2.5 }[rarity]; }
+  function barrierBreakScore(rarity) { return { Common: 1.1, Uncommon: 1.4, Rare: 2.0, Mythic: 2.6 }[rarity]; }
   function momentumSwingScore(prevScore, newScore) {
     const d = Math.abs(newScore - prevScore);
     return d <= 6 ? 0 : d <= 15 ? 1.2 : d <= 25 ? 2.0 : 3.2;
@@ -444,7 +489,15 @@ const JS = `
     if (opts.owner) div.setAttribute('data-owner', opts.owner);
     const tags = [];
     if (opts.isEvolved) tags.push('EVOLVED');
-    if (opts.keywords) opts.keywords.forEach(function (k) { tags.push(k.toUpperCase()); });
+    // Guard and Barrier get their own persistent shield badges (below) —
+    // Barrier especially, since the plain-text tag used to fire off the
+    // static "this card grants Barrier" keyword and stayed lit even after
+    // the shield had already been consumed. Rush has no badge, so it still
+    // shows here.
+    if (opts.keywords) opts.keywords.forEach(function (k) { if (k !== 'Guard' && k !== 'Barrier') tags.push(k.toUpperCase()); });
+    const shields = [];
+    if (opts.guard) shields.push('guard');
+    if (opts.barrierActive) shields.push('barrier');
     div.innerHTML =
       '<div class="head"><span>' + rarity[0] + '</span><span class="cost">' + c.cost + '</span></div>' +
       '<div class="art" style="' + cardArtStyle(c.faction, c.visualSeed, c.visualPattern) + '"><span class="glyph">' + glyphFor(c.type) + '</span></div>' +
@@ -452,6 +505,12 @@ const JS = `
       (opts.tools && opts.tools.length ? '<div class="tools">' + opts.tools.map(function (t) { return '<span class="tool-chip">' + escapeHtml(t.name) + '</span>'; }).join('') + '</div>' : '') +
       (opts.stats ? '<div class="stats"><span class="atk">' + opts.stats.attack + '</span><span class="hp">' + opts.stats.health + '</span></div>' : '') +
       (tags.length ? '<div class="tags">' + tags.map(function (t) { return '<span class="tag">' + t + '</span>'; }).join('') + '</div>' : '') +
+      // Plain letter glyphs, not a shield emoji — this environment's headless
+      // Chromium has no colour-emoji font, so U+1F6E1 rendered as an
+      // invisible zero-metric glyph (found and fixed via a real screenshot,
+      // not assumed). Matches the rarity badge's own single-letter
+      // convention (c.rarity[0] above) rather than inventing a new one.
+      (shields.length ? '<div class="shields">' + shields.map(function (s) { return '<span class="shield-badge shield-' + s + '" title="' + (s === 'guard' ? 'Guard' : 'Barrier active') + '">' + (s === 'guard' ? 'G' : 'B') + '</span>'; }).join('') + '</div>' : '') +
       (opts.armTurn !== undefined ? '<div class="arm-count">T' + opts.armTurn + '</div>' : '');
     return div;
   }
@@ -459,7 +518,7 @@ const JS = `
   function renderUnitSlot(u, owner) {
     return renderCardEl(
       { name: u.name, faction: u.faction, rarity: u.rarity, cost: 0, type: 'Unit', flavor: u.flavor, visualSeed: u.visualSeed, visualPattern: u.visualPattern },
-      { stats: { attack: u.attack, health: u.health }, pending: u.pending, armTurn: u.pending ? u.armTurn : undefined, isEvolved: u.isEvolved, keywords: u.keywords, tools: u.tools, instanceId: u.instanceId, owner: owner },
+      { stats: { attack: u.attack, health: u.health }, pending: u.pending, armTurn: u.pending ? u.armTurn : undefined, isEvolved: u.isEvolved, keywords: u.keywords, tools: u.tools, instanceId: u.instanceId, owner: owner, guard: u.keywords.indexOf('Guard') !== -1, barrierActive: u.barrierActive },
     );
   }
 
@@ -677,14 +736,24 @@ const JS = `
     setTimeout(function () { el.remove(); }, 750);
   }
 
+  function spawnDeflect(rect) {
+    if (!rect) return;
+    const el = document.createElement('div');
+    el.className = 'fx-deflect-ring';
+    el.style.left = (rect.left + rect.width / 2) + 'px';
+    el.style.top = (rect.top + rect.height / 2) + 'px';
+    fxLayer.appendChild(el);
+    setTimeout(function () { el.remove(); }, 420);
+  }
+
   function flashClass(el, cls, tier) {
     if (!el) return;
     const magCls = 'fx-mag-' + tier;
     el.classList.remove(cls, 'fx-mag-subtle', 'fx-mag-normal', 'fx-mag-spectacle');
     void el.offsetWidth; // force reflow so re-adding the class retriggers the keyframe
     el.classList.add(cls, magCls);
-    if (tier === 'spectacle' && (cls === 'fx-evolve' || cls === 'fx-enter' || cls === 'fx-armed')) {
-      spawnBurst(el.getBoundingClientRect(), cls === 'fx-evolve' ? 'var(--good)' : 'var(--neutral)');
+    if (tier === 'spectacle' && (cls === 'fx-evolve' || cls === 'fx-enter' || cls === 'fx-armed' || cls === 'fx-shatter')) {
+      spawnBurst(el.getBoundingClientRect(), cls === 'fx-evolve' ? 'var(--good)' : cls === 'fx-shatter' ? 'var(--shield)' : 'var(--neutral)');
     }
     setTimeout(function () { el.classList.remove(cls, magCls); }, FLASH_MS[tier] || FLASH_MS.normal);
   }
@@ -731,7 +800,26 @@ const JS = `
       if (pv.pending && !nv.pending) { const t = tierFromScore(armedScore(nv.rarity)); tiers.push(t); flashClass(el, 'fx-armed', t); }
       if (pv.cardId !== nv.cardId) { const t = tierFromScore(evolveScore()); tiers.push(t); flashClass(el, 'fx-evolve', t); }
       if (nv.canAttackThisTurn === false && pv.canAttackThisTurn === true) flashClass(el, 'fx-attack', 'normal');
+      // Barrier interpose + absorb + shatter (EFFECTS.md slice 1): the
+      // status vanishing is the whole signal — no pairing/attacker info
+      // needed. This is the ONLY visual a fully-absorbed hit gets today
+      // (health is unchanged, so the hpDelta branch below never fires for
+      // it), which is exactly the gap this slice exists to close.
+      if (pv.barrierActive && !nv.barrierActive) {
+        const t = tierFromScore(barrierBreakScore(nv.rarity));
+        tiers.push(t);
+        flashClass(el, 'fx-shatter', t);
+        spawnNumber(el.getBoundingClientRect(), 'BLOCKED', 'shield', t);
+      }
       const hpDelta = nv.health - pv.health;
+      // Base-armor deflect (EFFECTS.md slice 1): a small, always-subtle
+      // spark layered alongside the ordinary hit flash below — baseArmor
+      // reduces every hit it takes (see engine/src/effects/resolver.ts),
+      // so any health-reducing hit on such a unit was partially deflected.
+      // A hit small enough to be fully absorbed leaves health unchanged and
+      // so isn't caught here — that needs per-hit instance-keyed event data
+      // the engine doesn't emit yet (progress/render/notes-for-owner.md).
+      if (hpDelta < 0 && nv.baseArmor > 0) spawnDeflect(el.getBoundingClientRect());
       if (hpDelta < 0) {
         const t = tierFromScore(hitScore(hpDelta, aoeCount));
         tiers.push(t);

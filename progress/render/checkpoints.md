@@ -7,6 +7,90 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-09-26 — Defence/shield primitives (EFFECTS.md slice 1) — AWAITING FEEDBACK
+
+**What this delivers:** the first slice of `render/EFFECTS.md`'s build
+order — the standing visual-language spec the owner set up two sessions
+ago. Three defence/shield primitives, built once and shared across every
+faction (no per-faction work needed, since Barrier/Guard/baseArmor are
+card-level traits, not faction-specific mechanics): Barrier's interpose +
+absorb + shatter (a cyan flash + floating "BLOCKED" label the moment a
+unit's Barrier status is consumed — closing a real gap where a
+fully-absorbed hit previously got NO visual at all, since health doesn't
+change when Barrier eats the whole hit), a persistent shield badge on Guard
+units (plus a matching *live* one for an active Barrier, replacing a
+pre-existing minor inaccuracy where the old text tag stayed lit forever
+after the shield was already spent), and a small, deliberately un-scaled
+deflect spark whenever a unit with base armor takes damage. Full detail:
+`progress/render/log.md`'s session-4 entry.
+
+**Evidence:** two new `UnitSnapshot` fields (`baseArmor`, `barrierActive`)
+read straight off real engine state, proven with 3 new whitebox tests
+(`render/test/defenceSnapshot.test.ts`) against real matches via
+`captureMatch`, not synthetic fixtures — a real Aegis Cadet reports
+`baseArmor: 1`, a real Barrier Node's `barrierActive` flips true the moment
+it's played. The tier scoring for Barrier's shatter is a 4th pure, tested
+function alongside session 3's existing `fxMagnitude.ts` module. Both
+committed replays were re-scanned and regenerated (`aegis-vs-swarm-seed16`,
+`aegis-vs-cortex-seed20`) specifically to exercise all three mechanics in
+one match, then verified in real headless Chromium both single-stepped
+(shield badges rendered dozens of times, the shatter flourish fired
+multiple times, zero console errors) and at full autoplay speed (reached
+the end, zero console errors) — session 3's own "verify at play speed, not
+just single-step" bar, re-checked because this session's new tier
+(`barrierBreakScore`) plugs into the same adaptive-pacing machinery.
+`npm test`: engine 86/86, protocol 7/7, server 23/23, agents 17/17, render
+40/40 (34 + 6 new). `npx tsc --noEmit` clean in all five workspaces.
+
+**Where it's strong:** a real bug was found and fixed before shipping, not
+after — the first badge implementation used a shield emoji that rendered
+completely invisible in this environment's real headless Chromium (no
+colour-emoji font installed), caught by actually screenshotting it rather
+than trusting the DOM/mutation-count evidence alone, and fixed by switching
+to plain capital-letter badges that match this codebase's own existing
+single-letter rarity-badge convention. The Barrier fix specifically closes
+a real, named legibility gap (a fully-absorbed hit previously had zero
+visual feedback at all), not just a cosmetic addition.
+
+**Where it's thin, named honestly:** a hit small enough to be *fully*
+absorbed by base armor (health unchanged) doesn't trigger the deflect spark
+— that needs the same instance-keyed event data the balance lane's
+still-open instance-ID gap (2026-09-25 owner-feedback) would provide. The
+new shield badges weren't stress-tested against a worst-case crowded card
+(evolved, tooled, tagged, AND badged all at once). Session 2/3's own
+already-named thin spots (floating-number stacking, no fixed-slot board
+layout, untuned momentum weights) are all still open, untouched this
+session.
+
+**Decisions the owner might want to overrule:**
+1. **Barrier's shield badge is LIVE (tracks `barrierActive`, disappears the
+   instant it's consumed), not a static "this card can have Barrier"
+   indicator** — a deliberate accuracy call, and it also meant removing the
+   pre-existing "BARRIER" text tag (which stayed lit forever, inaccurately)
+   from the generic keyword-tag list. If the owner would rather a unit's
+   Barrier-*capability* stay visible even once spent (e.g. for a
+   Tool-granted Barrier that could be re-triggered), that's a different,
+   easy-to-build indicator — this session built the "is it live right now"
+   read instead, reasoning that's what a spectator actually needs to judge
+   an upcoming attack.
+2. **The base-armor deflect spark is intentionally NOT tier-scaled** — the
+   spec's own word "small" was read as "always small," not "small unless
+   the hit is big." Easy to make it participate in the tier system instead
+   if that reads as under-selling a big deflected hit.
+3. **Guard's persistent badge and Barrier's persistent badge use the SAME
+   shield-family visual (steel vs. cyan-pulsing)** rather than two visually
+   unrelated icons, reasoning they're both "defence" in the same grammar
+   family even though they're mechanically different (taunt vs. one-shot
+   absorb). If that reads as conflating two different mechanics rather than
+   a coherent shared language, they're easy to differentiate further.
+
+**What's next:** per `render/EFFECTS.md`'s own build order, slice 2 (buff
+rise / penalty sink grammar) or slice 3 (power/ability cast flourish) are
+both unblocked and open; slice 4 (attack travel + impact) still explicitly
+waits on the balance lane's instance-ID event-log fix, not yet landed.
+
+---
+
 ## 2026-09-26 — Scale animation magnitude to event magnitude — AWAITING FEEDBACK
 
 **What this delivers:** direct response to the owner's 2026-09-25 "scale
