@@ -2021,3 +2021,147 @@ first full pass," not after one faction); the small event-log
 instance-IDs engine task and the render-lane animation-magnitude task from
 the other two 2026-09-25 owner-feedback entries (neither in this session's
 scope).
+
+## 2026-09-26 — Session 20 (Phase 5 pool expansion, Swarm slice)
+
+Read `progress/owner-feedback.md` first, per TASKS.md — no unhandled entries
+(everything through the 2026-09-26 "reserve player identity" entry is either
+HANDLED or a render-lane item, and the most recently merged PR (#24,
+"Render: defence/shield primitives") was a render slice, so per the
+2026-09-24 alternation rule this session took the normal balance/roadmap
+priority instead of a render slice). No CRITICAL quality-debt item exists
+(checked `progress/quality-debt.md` for the word explicitly — none found).
+Consulted `progress/roadmap.md`: item 3 (the balance pass) is IN PROGRESS,
+inside Phase 5 (pool expansion); session 19 grew Aegis and named Swarm as
+the natural next pick, since it's the faction named in two open watch items
+(Cortex-vs-Swarm pre-existing, Aegis-vs-Swarm newly drifted) — the owner's
+own 2026-09-26 "session 19 confirmations" entry endorsed exactly this
+("Swarm next would help both its own weak matchups and the Aegis-vs-Swarm
+drift"). This session did that: Swarm's Phase 5 slice.
+
+**Baseline, measured before touching anything**
+(`npm run balance` from a clean `main`, 300 seeds/matchup, 3 policies):
+Cortex-vs-Swarm was the sole triple-flagged pairing (Cortex 60.3-70.0%
+across all three policies — clearly out of its 55-60% target band on the
+wrong side, too dominant); Aegis-vs-Swarm (an "even" 45-55% target pairing)
+sat at 57.7/71.0/70.7% Aegis, real and untouched since session 19; and
+Swarm-vs-Null (a decisive [W] edge Swarm should win 55-60%) was wildly
+policy-dependent (49.7% Aggressive/even, 24.3% Random/badly Null-favoured,
+43.3% Lookahead/Null-favoured) — Swarm was this session's baseline-worst
+faction across three of its four matchups, which is why this slice is a
+general power-level pass, not a single-pairing aim the way Aegis's was.
+
+**Grew Swarm from 16 to 20 unique cards** (`engine/src/data/cards.ts`).
+Four new cards, all real, immediate board stats — per the established
+failure pattern (Brood Reserves, session 11's Aegis defensive batch) that
+the dummy agent policies undervalue reactive/"hold this for later" cards,
+none of the four ask for timing judgment:
+- **Brood Skitterer** (Common, cost 1, 1/2, no ability) — Swarm's cheapest
+  bodies (Swarm Larva 1/1, Colony Broodling 1/1, Spore Cluster 0/3) were
+  all below the cross-faction median for a vanilla 1-drop; this fills that
+  specific gap.
+- **Carapace Grunt** (Common, cost 2, 2/2, no ability) — Swarm had zero
+  plain cost-2 stat body; every existing one carries an ability.
+- **Warren Guardian** (Uncommon, cost 3, 2/3, Guard) — Swarm's first Guard
+  unit; it had no front-line protection for the rest of a wide board
+  (Barrier Node's Barrier keyword is a one-hit self-shield, not a Guard).
+  Printed below both established cost-3 Guard benchmarks (Firewall
+  Sentinel 2/5, Reinforced Bastion 2/4) on purpose — Swarm's identity is
+  numbers, not individual toughness.
+- **Bloodswarm Alpha** (Rare, cost 4, 3/3, onPlay: summon a 1/1 Swarm
+  Larva) — a real body that ALSO advances the go-wide plan the instant
+  it's played, unlike a pure summon spell with no board presence of its
+  own (Brood Reserves' own measured weakness).
+
+Funded by data-driven trims of the pool's own measured weakest cards from
+this session's baseline report (not guesses): Rally Cry, Barrier Node,
+Reflex Spike, Dormant Egg Sac, Chitin Plating, Spore Cluster, and Brood
+Reserves each lost 1-2 copies — no existing card removed from the deck
+entirely. Deck stays at exactly its 40-card cap (16 unique cards' copies
+trimmed by 10 total, 4 new cards added at 10 copies total); pool lint,
+copy limits, and deck size all still pass (a new committed test asserts
+this).
+
+**Honest journey — the first cut was overtuned, caught by this session's
+own re-measurement, and corrected before shipping, same pattern as session
+19's Aegis slice.** The first stat line (Brood Skitterer 2/1; Carapace
+Grunt 3/1, matching Aegis Line Trooper/Bulwark Chassis's exact stat lines;
+Warren Guardian 3/3 Guard; Bloodswarm Alpha 4/4 + summon) measured badly
+overtuned: EVERY Swarm card's played win rate jumped uniformly (even
+completely untouched cards — Swarm Larva 47.6% -> 63.0%, Corrosive Spitter
+45.2% -> 67.0%), and Cortex-vs-Swarm flipped from Cortex dominant (60-70%)
+to Swarm dominant (57-66% Swarm across all three policies) — the whole deck
+got generically too strong, not specifically better in its weak matchups.
+Not shipped. Root cause: this session's benchmark cards (Aegis Line
+Trooper, Bulwark Chassis, Reinforced Bastion) were themselves among Aegis's
+stronger-testing cards (58-63% drawn win rate in their own pool), not a
+neutral baseline — copying their exact stat lines onto a Swarm pool that
+started well below 50% average created a much bigger jump than intended.
+Scaled every new card back below its original benchmark (Brood Skitterer
+-> Init Daemon/Glitch Seed's 1/2; Carapace Grunt -> Fail-safe Unit's 2/2;
+Warren Guardian -> below both established Guard benchmarks at 2/3;
+Bloodswarm Alpha's body -> 3/3, with the summoned token as the real payoff
+rather than a bonus on top of an already-on-curve body), then re-measured.
+
+**Result after the correction: no cross-faction pairing is triple-flagged
+at all** — Cortex-vs-Swarm, the project's sole standing triple-flag, is
+resolved (Lookahead 44.3% Cortex, i.e. Swarm now slightly favoured — see
+the honest "overshot" note below) — and Aegis-vs-Swarm is back in band on
+2 of 3 policies (Aggressive 47.7% IN BAND, Lookahead 53.0% IN BAND — the
+trusted arbiter policy — Random 56.7%, just outside). Per-card win rates
+across the whole Swarm pool now cluster sanely around 48-56% (Hive Mother's
+Mythic capstone and Molted Stalker's evolution payoff the expected
+outliers), instead of the first cut's uniform 55-65%+ spike. Full
+before/after: `progress/balance-report-014-phase5-swarm-slice.txt`.
+
+**Named honestly, not chased further this session — two real, opposite-
+direction overshoots from the same broad buff:**
+- **Cortex-vs-Swarm swung past even into Swarm-favoured** (Lookahead 55.7%
+  Swarm, Random 53.0% Swarm, Aggressive 53.7% Cortex — mixed, not
+  triple-flagged either way) rather than landing at the ring's actual
+  target (Cortex should win 55-60%). This is squarely inside what the
+  owner's 2026-09-23 entry anticipated for this pairing ("Phase 5 wider
+  pools will likely settle it... do not add a card or nerf anyone
+  specifically for this pairing") — a broad Swarm buff is exactly a
+  "wider pool" action, not a pairing-specific one — but the result is a
+  new, mild reverse-imbalance rather than a settle-to-band, worth the
+  owner's eyes.
+- **Swarm-vs-Null remains genuinely unresolved, now in a different shape.**
+  The cross-check reports "three independent >=60% signals but NOT the
+  same winner" (Aggressive and Lookahead now favour Swarm at 61.3%/64.3%,
+  Random still favours Null at 64.0%) — real movement (Random was 75.7%
+  Null in the baseline), but policy disagreement, not a resolved pairing.
+  Not chased further this session — per this project's own standing
+  practice (2026-09-25 "accept the ring as directionally done" entry),
+  Lookahead is the trusted arbiter and Lookahead now favours Swarm
+  (64.3%, above its own 55-60% target band on the winning side) — but
+  Random's persistent Null-favoured read on this specific pairing is a
+  genuine, named open question, not silently resolved.
+
+**Real-play evidence, not just the aggregate numbers.**
+`engine/src/dev/swarmPoolExpansionMatchDemo.ts` (mirrors
+phase5Slice1MatchDemo.ts's seed-search shape) found BOTH new mechanisms in
+a single real, unscripted LookaheadAgent-vs-LookaheadAgent Swarm-vs-Null
+game on the first seed tried: Bloodswarm Alpha's onPlay summoning a Swarm
+Larva token, and Warren Guardian's Guard keyword forcing Null's Fork Bomb
+token to attack into it instead of a softer target. Full match log
+committed: `progress/sample-match-021-phase5-swarm-slice.txt`.
+
+**Tests.** `engine/test/swarmPoolExpansion.test.ts`, 3 new tests: Warren
+Guardian's Guard keyword actually forces every legal attack onto it (same
+assertion shape as the existing generic Guard test); Bloodswarm Alpha's
+onPlay creates a real, fully-functional 1/1 token alongside itself (not
+just a log line); and the pool still builds a legal 40-card deck (lint +
+copy limits + size) at its new 20-unique-card count. `npm test` (root, all
+five workspaces): 89/89 engine (was 86), 176/176 total. `npx tsc --noEmit`
+clean in all five packages.
+
+**Not attempted this session, correctly left open:** Cortex/Null's own
+Phase 5 growth (each is its own future session); the neutral shared-toolkit
+pool (roadmap item 10); the owner's Phase 5 "hard gate" whole-ring
+re-measure (item 4 — Cortex and Null still haven't had a Phase 5 pass, so
+this still isn't "the end of Phase 5's first full pass"); the small
+event-log instance-IDs engine task and the render-lane items from the
+2026-09-25/26 owner-feedback entries (none in this session's scope, though
+the instance-IDs task remains a good pickup "when convenient during Phase
+5" for a future balance session with spare budget).

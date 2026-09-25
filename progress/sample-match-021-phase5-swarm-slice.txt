@@ -1,0 +1,281 @@
+AI-TCG Phase 5 Swarm slice evidence (2026-09-25/26 "start Phase 5" entries)
+Both sides played by LookaheadAgent, Swarm vs Null.
+
+--- Bloodswarm Alpha: onPlay summons a Swarm Larva token ---
+  Found at seed 2: Bloodswarm Alpha summoned "Swarm Larva".
+
+--- Warren Guardian: Guard forces the attack onto it ---
+  Found at seed 2: Fork Bomb attacked into Warren Guardian instead of a softer target.
+
+=== Full match log: Bloodswarm Alpha summon evidence ===
+--- Turn 1 (p1) ---
+p1 plays Spore Cluster (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Segmentation Fault
+--- Turn 2 (p2) ---
+p2 plays Stray Fragment (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Overgrown Carapace
+--- Turn 3 (p1) ---
+p1 plays Corrosive Spitter (u3)
+Spore Cluster attacks Stray Fragment
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  Stray Fragment deals 1 damage to Spore Cluster (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Null Pointer
+--- Turn 4 (p2) ---
+Stray Fragment attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Stray Fragment's attack
+  Stray Fragment deals 1 damage to Lookahead-Swarm
+p2 plays Fork Bomb (u6)
+  Fork Bomb deploys, dormant — arms in 1 of its controller's turn(s)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Overclock Beast
+--- Turn 5 (p1) ---
+p1 plays Warren Guardian (u7)
+  ability: Corrosive Spitter — corrosive-spitter-attack (onAttack)
+  Corrosive Spitter applies Stasis to Fork Bomb
+Corrosive Spitter attacks Stray Fragment
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrosive Spitter's attack
+  Corrosive Spitter deals 2 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Corrosive Spitter (unit)
+  Corrosive Spitter (p1) dies
+  Stray Fragment (p2) dies
+Spore Cluster attacks Fork Bomb
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  Fork Bomb deals 1 damage to Spore Cluster (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Decay Ward
+--- Turn 6 (p2) ---
+  Fork Bomb arms
+  ability: Fork Bomb — fork-bomb-arm (onPlay)
+  Fork Bomb summons Fork Child for p2 (u10)
+  Fork Bomb summons Fork Child for p2 (u11)
+p2 plays Propagating Exploit (u12)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Bloodswarm Alpha
+--- Turn 7 (p1) ---
+p1 plays Bloodswarm Alpha (u13)
+  ability: Bloodswarm Alpha — bloodswarm-alpha-play (onPlay)
+  Bloodswarm Alpha summons Swarm Larva for p1 (u14)
+Warren Guardian attacks Propagating Exploit
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Warren Guardian's attack
+  Warren Guardian deals 2 damage to Propagating Exploit (unit)
+  Propagating Exploit deals 2 damage to Warren Guardian (unit)
+  Propagating Exploit (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Null Shell
+--- Turn 8 (p2) ---
+Fork Bomb attacks Warren Guardian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Warren Guardian (unit)
+  Warren Guardian deals 2 damage to Fork Bomb (unit)
+  Warren Guardian (p1) dies
+  Null Shell attaches to Fork Bomb
+Fork Child attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Lookahead-Swarm
+Fork Child attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Lookahead-Swarm
+  Decay Ward attaches to Fork Bomb
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Carapace Grunt
+--- Turn 9 (p1) ---
+Bloodswarm Alpha attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 3 damage to Lookahead-Null
+p1 plays Overclock Beast (u20)
+Swarm Larva attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Null
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Corruption Patch
+--- Turn 10 (p2) ---
+Fork Child attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Lookahead-Swarm
+Fork Bomb attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Lookahead-Swarm
+Fork Child attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Lookahead-Swarm
+  Corruption Patch attaches to Fork Bomb
+p2 plays Segmentation Fault (d25)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Bloodswarm Alpha
+--- Turn 11 (p1) ---
+Overclock Beast attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 3 damage to Lookahead-Null
+p1 plays Bloodswarm Alpha (u27)
+  ability: Bloodswarm Alpha — bloodswarm-alpha-play (onPlay)
+  Bloodswarm Alpha summons Swarm Larva for p1 (u28)
+Bloodswarm Alpha attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 2 damage to Lookahead-Null
+Swarm Larva attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+Spore Cluster attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Stray Fragment
+--- Turn 12 (p2) ---
+p2 plays Stray Fragment (u32)
+Fork Child attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Lookahead-Swarm
+Fork Child attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Lookahead-Swarm
+Fork Bomb attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 2 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Broodcaller
+--- Turn 13 (p1) ---
+Bloodswarm Alpha attacks Stray Fragment
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 2 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Bloodswarm Alpha (unit)
+  Stray Fragment (p2) dies
+Overclock Beast attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 3 damage to Lookahead-Null
+Bloodswarm Alpha attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 2 damage to Lookahead-Null
+Swarm Larva attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+Swarm Larva attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+Spore Cluster attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Corruption Patch
+--- Turn 14 (p2) ---
+Fork Child attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Lookahead-Swarm
+Fork Child attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Lookahead-Swarm
+Fork Bomb attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 2 damage to Lookahead-Swarm
+  Corruption Patch attaches to Fork Bomb
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Reflex Spike
+--- Turn 15 (p1) ---
+Overclock Beast attacks Lookahead-Null (face)
+p1 casts Reflex Spike [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Reflex Spike
+  ability: Reflex Spike — reflex-spike-cast (onPlay)
+  Reflex Spike grants Spore Cluster +0/+3
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 3 damage to Lookahead-Null
+Bloodswarm Alpha attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 2 damage to Lookahead-Null
+Bloodswarm Alpha attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 2 damage to Lookahead-Null
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Winner: p1, turns: 15
+
