@@ -1,5 +1,48 @@
 # Notes for the owner
 
+**Updated 2026-09-25, session 19 (Phase 5 slice 1 — Aegis grown 18 -> 22
+unique cards, aimed at the Aegis-vs-Cortex pairing).** Full detail in
+`progress/checkpoints.md`'s new entry, short version here:
+
+1. **Aegis-vs-Cortex is no longer triple-flagged** — the project's actual
+   pass/fail bar — for the first time across three sessions that tried (11,
+   18, 19). Random and Lookahead both land in the 55-60% target band;
+   Aggressive is a bit out of band (47.0%, Cortex-favoured) but not extreme.
+   If you want Aggressive in band too, not just the triple-check clear, say
+   so; otherwise this is treated as done, matching how session 18's
+   Aegis-vs-Null result was treated.
+2. **A judgment call worth your eyes: the first design attempt was
+   overtuned and I caught it myself, not you.** I originally shipped Bulwark
+   Chassis as a 1/5 and Reinforced Bastion as a 2/6 Guard (both, on
+   reflection, printed above the pool's existing curve — Reinforced Bastion
+   in particular was strictly better than Cortex's own Firewall Sentinel at
+   the same cost). Re-measuring before committing showed it made Aegis
+   generically too strong, not specifically better against Cortex — it also
+   swung Aegis-vs-Swarm and Aegis-vs-Null hard out of band. I scaled both
+   cards back to explicitly match existing same-cost cards' stat lines
+   before shipping. Flagging this because it's exactly the kind of mistake
+   a card-design pass can make silently if nobody re-measures — I did
+   re-measure, and it's what caught it, but you should know the first
+   instinct was wrong and by how much (details in
+   `progress/log.md`'s session-19 entry).
+3. **New watch item: Aegis-vs-Swarm drifted out of its "even" band.**
+   57.7-78.7% Aegis-favoured (not triple-flagged, so not an emergency, but a
+   real move worth tracking) — collateral from Aegis getting generically
+   stronger this session, not a Swarm-specific problem. I didn't chase this
+   further inside this session (it wasn't this slice's target and Swarm has
+   its own Phase 5 growth coming), but wanted you to see it named rather
+   than only surface in a future report with no context.
+4. **Which existing cards absorbed the copy trims that funded the new
+   cards was picked by lowest measured win rate, not design intent.** One
+   casualty: Latent Ward (the telegraph=2 trial from your 2026-09-13
+   feedback) lost a copy (2->1) for measurement reasons unconnected to
+   that trial's still-open "does a longer fuse feel different" question —
+   it's still in the deck, just at minimum copies now. Say so if you'd
+   rather that trial stay at full representation while it's still being
+   judged.
+
+---
+
 **Updated 2026-09-25, session 18 (Phase 4 session 17 follow-ups executed —
 ring labels corrected, Aegis-vs-Cortex fix, Null past-cost nerf).** Nothing
 blocking, but two real steers wanted — full detail in

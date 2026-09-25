@@ -475,11 +475,138 @@ export const breachCharge: CommandCard = {
   ],
 };
 
+// --- Phase 5, slice 1 (2026-09-25 owner-feedback entry: "accept the ring as
+// directionally done; start Phase 5, carrying the two open pairings as watch
+// items"): grow the pool toward the 30-40 unique-card target (roadmap item
+// 8), with "some of Aegis's new cards... aimed at its Cortex matchup —
+// immediate-board-impact cards, NOT zero-tempo utility" (item 3's explicit
+// instruction, after two prior zero-tempo attempts — session 11's defensive
+// batch and session 18's Barrier Tool — both measured worse, not better, for
+// exactly that reason). All four below carry real stats/board presence the
+// instant they land; none are reactive-only utility. -----------------------
+
+export const bulwarkChassis: UnitCard = {
+  id: "AG-019",
+  name: "Bulwark Chassis",
+  faction: "Aegis",
+  rarity: "Common",
+  cost: 2,
+  type: "Unit",
+  // A stat-only wall: 3 health at cost 2 survives a single Cortex
+  // point-removal spell (Diagnostic Pulse/Interrupt Handler both deal
+  // exactly 2) with a point to spare, though not two in a row — the same
+  // stat line as Cortex Engineer (CX-009, 1/3 cost 2) by design, a fair
+  // print rather than a strict outlier. No ability: the immediate impact IS
+  // the stat line, not a delayed payoff. (First cut, 1/5, measured badly
+  // overtuned in this session's own balance re-run — see aegisCards.ts's
+  // header note and progress/notes-for-owner.md; scaled back before
+  // shipping, not left in.)
+  attack: 1,
+  health: 3,
+  keywords: [],
+  art: "placeholder:aegis/bulwark-chassis",
+  flavor: "Nothing about it moves fast. Nothing about it falls over, either.",
+  abilities: [],
+};
+
+export const reinforcedBastion: UnitCard = {
+  id: "AG-020",
+  name: "Reinforced Bastion",
+  faction: "Aegis",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Unit",
+  // A second, higher power-point on the "Guard wall" archetype Barrier
+  // Drone (1-cost 0/3 Guard) started — the variation rule (2026-09-20 entry,
+  // Phase 5 item 9) asks for 2-4 cards per archetype at different cost/power
+  // points, not one card repeated. Deliberately printed at or below Cortex's
+  // own Firewall Sentinel (CX-002, 2/5 Guard, cost 3) rather than above it —
+  // same attack, 1 less health — so Aegis gets a second Guard-wall option
+  // without a straight power-level outlier. (First cut, 2/6 — strictly
+  // better than Firewall Sentinel — measured badly overtuned in this
+  // session's own balance re-run, pushing Aegis over-strong against every
+  // faction, not just Cortex; scaled back before shipping. See
+  // progress/notes-for-owner.md.)
+  attack: 2,
+  health: 4,
+  keywords: ["Guard"],
+  art: "placeholder:aegis/reinforced-bastion",
+  flavor: "It doesn't ask to be hit first. It just always is.",
+  abilities: [],
+};
+
+export const salvageReflex: UnitCard = {
+  id: "AG-021",
+  name: "Salvage Reflex",
+  faction: "Aegis",
+  rarity: "Uncommon",
+  cost: 2,
+  type: "Unit",
+  attack: 2,
+  health: 3,
+  keywords: [],
+  art: "placeholder:aegis/salvage-reflex",
+  flavor: "Strip it for parts and the parts go somewhere useful.",
+  abilities: [
+    {
+      id: "salvage-reflex-death",
+      trigger: "onDeath",
+      // A genuinely new archetype for this pool: value-on-death defense,
+      // not removal or a static wall. Converts a Cortex point-removal spell
+      // spent on this into protection for a different ally — the same
+      // "on-identity, not control" answer the 2026-09-19 direction asked
+      // for, aimed squarely at a removal-heavy opponent. Fires after
+      // processDeaths has already removed this unit from the board (see
+      // resolver.ts's processDeaths), so "a random ally" can never target
+      // itself, and a lone death with no allies left simply has zero legal
+      // targets and no-ops (targeting.ts's enumerateTargets/resolveTargets).
+      text: "When this dies, a random ally unit gains Barrier.",
+      targeting: { scope: "random", filter: { side: "controller", kind: "unit" }, count: 1 },
+      effects: [{ kind: "applyStatus", status: "Barrier", duration: "untilConsumed" }],
+    },
+  ],
+};
+
+export const aegisLineTrooper: UnitCard = {
+  id: "AG-022",
+  name: "Aegis Line Trooper",
+  faction: "Aegis",
+  rarity: "Common",
+  cost: 1,
+  type: "Unit",
+  // Aegis's existing 1-drops (Aegis Cadet 1/2, Barrier Drone 0/3 Guard) are
+  // both passive/defensive — this is the pool's first 1-drop with real
+  // attack pressure, giving Aegis an early proactive clock so a match
+  // doesn't stall out while a removal-heavy opponent assembles its plan.
+  // Costed as a genuine risk/reward pick (dies to any 1 damage, unlike the
+  // sturdier Cadet) rather than a strictly-better 1-drop: matches Cortex's
+  // own Signal Drone (CX-001, 1/1 Rush, cost 1) in raw combat math without
+  // duplicating its Rush keyword.
+  attack: 2,
+  health: 1,
+  keywords: [],
+  art: "placeholder:aegis/aegis-line-trooper",
+  flavor: "First one through the door. Replaceable, and it knows it.",
+  abilities: [],
+};
+
 export const AEGIS_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: aegisCadet, copies: 3 },
-  { card: barrierDrone, copies: 3 },
+  // 3 -> 2 (Phase 5 slice 1, below): played win rate 39.1-47.7% across the
+  // three policies (progress/balance-report-012-ring-followups.txt), the
+  // pool's weakest Guard body now that Reinforced Bastion exists at a
+  // higher power point on the same archetype. Not cut to 1 — Guard's
+  // cheap/early copy still matters on curve.
+  { card: barrierDrone, copies: 2 },
   { card: platingModule, copies: 3 },
-  { card: diagnosticWard, copies: 3 },
+  // 3 -> 1 (Phase 5 slice 1): the pool's single weakest card by played win
+  // rate in every one of the three balance-report-012 sections
+  // (37.2-46.4%) — a slow self-heal-plus-conditional-draw Command with no
+  // board impact, the exact "zero-tempo utility" pattern item 3 named as
+  // already-failed against Cortex. Kept at 1, not cut entirely: it's still
+  // the pool's only non-conditional self-heal and the deck's card-flow
+  // source the pool lint's clock/card-flow check relies on.
+  { card: diagnosticWard, copies: 1 },
   { card: perimeterTurret, copies: 3 },
   // 2 -> 3 (2026-09-23 "Phase 4 session 17 follow-ups" entry, item 3: fix
   // Aegis-vs-Cortex with an Aegis buff, never a Cortex nerf). A first
@@ -503,15 +630,47 @@ export const AEGIS_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   // cut needed) — a smaller, evidence-led bet than a new untested card.
   { card: guardDirectiveChip, copies: 3 },
   { card: aegisSentinel, copies: 3 },
-  { card: staticWardBeacon, copies: 2 },
-  { card: failoverCustodian, copies: 3 },
-  { card: barrierShim, copies: 2 },
-  { card: latentWard, copies: 2 },
-  { card: lockdownField, copies: 2 },
+  // 2 -> 1 (Phase 5 slice 1): 37.8-38.1% played win rate, the pool's
+  // weakest static aura (Prime Aegis's later +1/+1 aura, at Mythic, is the
+  // pool's real payoff at that archetype). Kept at 1, not cut: still the
+  // only non-Mythic ally-buff aura in the deck.
+  { card: staticWardBeacon, copies: 1 },
+  // 3 -> 2 (Phase 5 slice 1): 40.3-49.2% played win rate, middling — freed
+  // headroom for the new immediate-impact bodies below without touching
+  // anything measured as strong.
+  { card: failoverCustodian, copies: 2 },
+  // 2 -> 1 (Phase 5 slice 1): 38.6-39.6% played win rate, weakest of the
+  // three Tools. Kept at 1 — still the pool's only stand-alone Barrier
+  // grant a controller can hold for a specific moment.
+  { card: barrierShim, copies: 1 },
+  // 2 -> 1 (Phase 5 slice 1): 39.1-39.3% played win rate. The telegraph=2
+  // trial (2026-09-13 checkpoint feedback) stays represented at 1 copy
+  // rather than being reverted or cut outright — the "does a longer fuse
+  // feel different" question is still genuinely open per that entry, and
+  // this session's own scope is pool growth, not re-litigating it.
+  { card: latentWard, copies: 1 },
+  // 2 -> 1 (Phase 5 slice 1): 38.3-38.6% played win rate, and a 4-mana
+  // board-wide stun is exactly the kind of high-commitment answer Cortex's
+  // own cheap removal punishes on tempo. Kept at 1 as the pool's only
+  // AOE-stun effect.
+  { card: lockdownField, copies: 1 },
   { card: aegisWarden, copies: 2 },
   { card: primeAegis, copies: 1 },
   { card: interceptRoutine, copies: 1 },
   { card: tariffField, copies: 1 },
   { card: feedbackPlating, copies: 1 },
-  { card: breachCharge, copies: 2 },
+  // 2 -> 1 (Phase 5 slice 1): 40.9% played win rate and the pool's only
+  // directive-destroy answer, which stays a dead card in most games (no
+  // enemy directive to hit) — kept at 1 as the required per-faction answer
+  // (2026-09-20 entry, Phase 2 item 3), not cut, but no longer worth a
+  // second copy competing with cards that have board impact every game.
+  { card: breachCharge, copies: 1 },
+  // --- New this session (Phase 5 slice 1): immediate-board-impact bodies
+  // aimed at the still-open Aegis-vs-Cortex pairing (see header comment
+  // above and progress/checkpoints.md's new entry). Uses the exact 9 copies
+  // of headroom the trims above freed, keeping the deck at its 40-card cap.
+  { card: bulwarkChassis, copies: 3 },
+  { card: reinforcedBastion, copies: 2 },
+  { card: salvageReflex, copies: 2 },
+  { card: aegisLineTrooper, copies: 2 },
 ];

@@ -1899,3 +1899,125 @@ Cortex-vs-Swarm and Aegis-vs-Cortex remain the two open pairings, and
 whether to keep chasing them card-by-card or let Phase 5's wider pool
 settle them is an open question for the owner, not decided unilaterally
 this session.
+
+## Session 19 (2026-09-25) — Phase 5 slice 1: Aegis pool growth (18 -> 22 unique cards)
+
+Balance session per the render/balance alternation rule (most recently
+merged PR, #21, was a render slice). Acted on owner-feedback.md's
+2026-09-25 "accept the ring as directionally done; start Phase 5" entry —
+the highest-priority unhandled feedback, and the first genuinely unhandled
+entry since the render-lane items also dated 2026-09-25 (which are out of
+scope for a balance session).
+
+Scoped this slice to **one faction** (Aegis), not all four — growing every
+faction to the roadmap's 30-40-unique-card target in a single session would
+not be "one real, complete slice" (TASKS.md); other factions' own Phase 5
+growth is left for future sessions, named explicitly in the concrete-next-
+step note.
+
+**What got built.** Four new Aegis cards
+(`engine/src/data/aegisCards.ts`), chosen to satisfy this entry's specific
+item 3 instruction — "aim some of Aegis's new cards at its Cortex matchup —
+immediate-board-impact cards, NOT zero-tempo utility" (after two prior
+zero-tempo attempts, sessions 11 and 18, both measured no better or worse):
+
+- Bulwark Chassis (Common, cost 2): a stat-only wall, no ability at all —
+  the immediate impact IS the stat line.
+- Reinforced Bastion (Uncommon, cost 3, Guard): a second power-point on the
+  Guard-wall archetype Barrier Drone started, per the variation rule
+  (2026-09-20 entry, Phase 5 item 9 — 2-4 cards per archetype at different
+  cost/power points).
+- Salvage Reflex (Uncommon, cost 2): a genuinely new archetype for this
+  pool — onDeath, converts a removal spell spent on it into Barrier for a
+  random ally, directly punishing a removal-heavy opponent rather than just
+  surviving longer.
+- Aegis Line Trooper (Common, cost 1): the pool's first 1-drop with real
+  attack pressure (existing 1-drops, Aegis Cadet and Barrier Drone, are
+  both passive/defensive) — a proactive clock so games don't stall out
+  while a removal deck assembles its plan.
+
+Funded by trimming the pool's own measured weakest cards
+(balance-report-012's per-card win-rate table), not guesses: Diagnostic
+Ward (37.2-46.4% played, the pool's worst by a clear margin) 3->1;
+Static Ward Beacon, Barrier Shim, Latent Ward, Lockdown Field each 2->1;
+Barrier Drone and Failover Custodian each 3->2; Breach Charge 2->1. No
+existing card was cut from the deck entirely — every mechanic the pool
+already had stays represented at least once. Net: still exactly 40 copies,
+the deck-size cap, with 4 more unique cards than before.
+
+**The overtuned first cut — caught and corrected before shipping, not
+shipped and left for the owner to catch.** The first stat line (Bulwark
+Chassis 1/5; Reinforced Bastion 2/6 Guard — strictly better in health than
+Cortex's own Firewall Sentinel, 2/5 Guard, at the same cost) was designed
+by "big health survives Cortex's flat 2-damage removal" reasoning alone,
+without benchmarking against the existing curve. Re-measuring it with
+`balanceReport.ts` (300 seeds, 3 policies) showed why that reasoning wasn't
+enough on its own: Aegis-vs-Cortex flipped hard toward Aegis (59.3-70.3%
+Aegis across the three policies) but so did Aegis-vs-Swarm (57.7-78.7%
+Aegis) and Aegis-vs-Null (Null cut to 29.7-58.3%, badly out of its own
+55-60% target band on the LOSING side) — the fix made Aegis generically
+stronger, not specifically better against Cortex, which is exactly the kind
+of collateral damage this project's "measure, then fix" discipline exists
+to catch. Not shipped. Rewrote the two stat lines to explicitly match an
+existing card's precedent at the same cost (Bulwark Chassis -> Cortex
+Engineer's 1/3; Reinforced Bastion -> at/below Firewall Sentinel's 2/5
+Guard; Aegis Line Trooper -> even combat math with Signal Drone's 1/1
+rather than a strict upgrade), then re-ran the full report again.
+
+**Result after the correction, measured for real:**
+`progress/balance-report-013-phase5-slice1.txt` (300 seeds/matchup, 3
+policies). **Aegis-vs-Cortex is no longer triple-flagged** — the project's
+actual pass/fail bar, per the 2026-09-25 accept-the-ring entry's own
+precedent for Aegis-vs-Null/Swarm-vs-Null. Random (58.7%) and Lookahead
+(59.3%) both land IN the 55-60% target band; Aggressive sits at 47.0%
+(Cortex slightly favoured, out of band but not extreme — Aggressive is this
+project's least-trusted policy per multiple prior sessions' notes).
+Cortex-vs-Swarm remains the sole triple-flagged pairing, untouched, exactly
+per the owner's standing "not a problem to assign a fixer to" instruction.
+
+**Honestly named, not chased further this session:** Aegis-vs-Swarm (a
+45-55% "even" target pairing) moved to 57.7/71.0/70.7% Aegis — real
+collateral drift, not triple-flagged (Aggressive's 57.7% stays under the
+independent 60% flag threshold so the three policies don't all
+independently clear it), but a genuine new watch item. This is the second
+faction pairing this slice's own change measurably moved without being
+aimed at it (the first being the earlier-caught Aegis-vs-Null wobble, which
+the correction brought back close to its pre-session shape: Random 58.3%
+IN BAND, Aggressive 49.7% near-band, Lookahead 38.0% — a real remaining
+gap on Lookahead specifically, not triple-flagged either way, left as-is
+per this session's Aegis-vs-Cortex scope). Flagged in
+`progress/notes-for-owner.md` and `progress/checkpoints.md` rather than
+unilaterally re-tuned again — this slice's job was Aegis-vs-Cortex
+specifically, and a third tuning pass in one session risks the same
+whack-a-mole pattern session 11's three-card batch and session 16-17's
+triangle work already warned against.
+
+**Real-play evidence, not just the aggregate numbers.**
+`engine/src/dev/phase5Slice1MatchDemo.ts` (mirrors ring2609MatchDemo.ts's
+seed-search shape) found, in real unscripted LookaheadAgent-vs-LookaheadAgent
+Aegis-vs-Cortex play: Salvage Reflex granting Barrier to a random ally on
+death (seed 6) and Bulwark Chassis surviving a real Cortex point-removal
+spell and staying on the board (seed 8). Both full match logs committed:
+`progress/sample-match-020-phase5-slice1.txt`.
+
+**Tests.** `engine/test/aegisPoolExpansion.test.ts`, 4 new tests: Salvage
+Reflex grants Barrier with an ally present; no-ops cleanly (no throw, empty
+board) dying completely alone; with 2 allies present, exactly one (never
+the dying unit itself) gains Barrier — proving the "never targets itself"
+property the trigger-ordering comment claims, not just asserting it; and
+the pool still builds a legal 40-card deck (lint + copy limits + size) at
+its new 22-unique-card count. `npm test` (root, all five workspaces):
+86/86 engine (was 82), 147/147 total. `npx tsc --noEmit` clean in all five
+packages.
+
+**Not attempted this session, correctly left open:** Cortex/Swarm/Null's
+own Phase 5 growth (each is its own future session); the neutral
+shared-toolkit pool (roadmap item 10); per-card art slots beyond the
+existing placeholder convention (item 11 — already satisfied by the
+existing `placeholder:aegis/<slug>` pattern, extended to the 4 new cards,
+so no separate work was needed here); the owner's Phase 5 "hard gate"
+whole-ring re-measure (item 4 — explicitly scoped to "the end of Phase 5's
+first full pass," not after one faction); the small event-log
+instance-IDs engine task and the render-lane animation-magnitude task from
+the other two 2026-09-25 owner-feedback entries (neither in this session's
+scope).

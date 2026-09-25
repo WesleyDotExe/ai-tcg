@@ -123,12 +123,28 @@ building around them; don't block the whole project waiting.
    Aegis-vs-Cortex moved real but not into band (worst under Aggressive,
    likely partly agent-heuristic-driven — see quality-debt.md). Full detail:
    `progress/balance-report-012-ring-followups.txt`,
-   `progress/checkpoints.md`, `progress/notes-for-owner.md`. **Phase 5
-   (pool expansion) still NOT started — Cortex-vs-Swarm and Aegis-vs-Cortex
-   are the two open pairings; next session should read
-   balance-report-012 and notes-for-owner.md for the open question before
-   deciding whether to keep tuning Aegis-vs-Cortex or treat Phase 5's wider
-   pool as the intended next lever for both remaining pairings.**
+   `progress/checkpoints.md`, `progress/notes-for-owner.md`.
+   **Session 19 started Phase 5 (pool expansion), scoped to one faction:**
+   the owner's 2026-09-25 "accept the ring as directionally done; start
+   Phase 5" entry authorized growth toward each faction's 30-40-unique-card
+   target (item 8) while naming Aegis-vs-Cortex as the pairing to aim new
+   Aegis cards at specifically (item 3). Grew Aegis from 18 to 22 unique
+   cards (Bulwark Chassis, Reinforced Bastion, Salvage Reflex, Aegis Line
+   Trooper — all real, immediate-board-stat cards, funded by data-driven
+   trims of the pool's own measured weakest cards). A first stat-line
+   attempt measured badly overtuned (made Aegis generically too strong, not
+   specifically better vs Cortex) and was caught and corrected by this
+   session's own re-measurement before shipping. **Result: Aegis-vs-Cortex
+   is no longer triple-flagged** — Random and Lookahead both land in the
+   55-60% band, Aggressive is close (47.0%). Cortex-vs-Swarm remains the
+   sole triple-flagged pairing, untouched per standing instruction.
+   Aegis-vs-Swarm newly drifted out of its "even" band as a named,
+   untouched side effect. Full detail:
+   `progress/balance-report-013-phase5-slice1.txt`, `progress/checkpoints.md`,
+   `progress/notes-for-owner.md`. **Phase 5 continues — Cortex, Swarm, and
+   Null still need their own growth pass; the owner's hard-gate whole-ring
+   re-measure (item 4 below) is due once every faction has had at least one
+   Phase 5 pass, not yet.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

@@ -837,6 +837,79 @@ Render lane continues to alternate as before, unaffected by this.
 
 ---
 
+**Handled, session 19 (2026-09-25) — Phase 5 slice 1: Aegis only, item 3's
+specific ask.** Per the alternation rule (the most recently merged PR, #21,
+was a render slice, so this session takes the normal balance/roadmap
+priority) and this entry's item 3, this is the first Phase 5 slice, scoped
+to one faction (Aegis) rather than all four at once — growing every faction
+to 30-40 unique cards in one session isn't "one real, complete slice"
+(TASKS.md); other factions' own Phase 5 growth is left for future sessions.
+
+**Grew Aegis from 18 to 22 unique cards** (`engine/src/data/aegisCards.ts`),
+four new cards all with real, immediate board stats (not reactive/utility) —
+Bulwark Chassis and Aegis Line Trooper (stat-only bodies), Reinforced
+Bastion (a second, higher-cost print on the existing Guard-wall archetype,
+per the variation rule), and Salvage Reflex (a genuinely new archetype:
+onDeath, converts a removal spell spent on it into Barrier for a random
+ally). Funded by data-driven trims (not guesses) of the pool's own measured
+weakest cards per balance-report-012's per-card table (Diagnostic Ward,
+Static Ward Beacon, Barrier Shim, Latent Ward, Lockdown Field, Barrier
+Drone, Failover Custodian, Breach Charge — each cut by 1-2 copies, none
+removed from the deck entirely), keeping the deck at exactly its 40-card
+cap. Pool lint, copy limits, and deck size all still pass (a new committed
+test asserts this).
+
+**Honest journey, not a straight line — the first cut was shipped-then-caught,
+not shipped as designed.** The first stat line (Bulwark Chassis 1/5 cost 2;
+Reinforced Bastion 2/6 Guard cost 3 — strictly better than Cortex's own
+Firewall Sentinel at the same cost) measured badly overtuned when re-run
+through `balanceReport.ts`: Aegis-vs-Cortex flipped hard toward Aegis
+(59.3-70.3% Aegis depending on policy) but so did Aegis-vs-Swarm (57.7-78.7%
+Aegis) and Aegis-vs-Null (Null cut to 29.7-50.3%) — Aegis became generically
+too strong, not specifically better against Cortex. Caught before shipping
+by this session's own re-measurement (not by the owner), scaled back to fair
+stat lines explicitly benchmarked against existing cards at the same cost
+(Bulwark Chassis now matches Cortex Engineer's 1/3; Reinforced Bastion now
+sits at or below Firewall Sentinel's 2/5 Guard; Aegis Line Trooper now
+trades combat math evenly with Signal Drone's 1/1 instead of strictly
+beating it), and re-measured again.
+
+**Result after the correction: Aegis-vs-Cortex is no longer triple-flagged**
+— the project's actual pass/fail bar — for the first time across three
+sessions that have tried (11, 18, this one): Random 58.7% and Lookahead
+59.3% both land IN the 55-60% target band; Aggressive sits at 47.0% (Cortex
+now slightly favoured under that one policy, out of band but not extreme,
+and consistent with this project's standing read that Aggressive is the
+least trustworthy of the three policies). Cortex-vs-Swarm remains the only
+triple-flagged pairing, untouched this session exactly as the owner's
+2026-09-23 entry instructed ("not a problem to assign a fixer to").
+
+**Named honestly, not chased further this session:** Aegis-vs-Swarm (an
+"even" 45-55% target pairing) moved to 57.7/71.0/70.7% Aegis — real
+collateral drift from Aegis getting generically stronger, not
+triple-flagged (Aggressive stays under the 60% independent-flag threshold)
+but a genuine new watch item. Per this entry's own scoping ("one real
+complete slice" per TASKS.md, and Swarm/Cortex's own Phase 5 growth is still
+to come), this was not tuned further this session — flagged in
+`progress/notes-for-owner.md` and `progress/checkpoints.md`'s new entry.
+Full before/after: `progress/balance-report-013-phase5-slice1.txt`.
+Real-play evidence of both new mechanisms firing in unscripted
+LookaheadAgent-vs-LookaheadAgent play: `progress/sample-match-020-phase5-slice1.txt`.
+4 new whitebox tests: `engine/test/aegisPoolExpansion.test.ts`. `npm test`:
+86/86 in engine (was 82), 147/147 across all five workspaces; `tsc --noEmit`
+clean in all five.
+
+**Not attempted this session, correctly left open:** Cortex/Swarm/Null's own
+Phase 5 growth (each needs its own session); the neutral shared-toolkit pool
+(item 10); the hard-gate whole-ring re-measure this entry's item 4 requires
+(explicitly scoped to "the end of Phase 5's first full pass" — one faction
+grown is not a full pass); the small "instance IDs in the event log" engine
+task and the render-lane "scale animation magnitude" task from the other two
+2026-09-25 entries below (neither is this session's scope; both still open
+for a future session).
+
+---
+
 ## 2026-09-25 — Owner: give the event log instance IDs (small engine improvement, when convenient)
 
 Render session 2 found that the engine event log identifies units/players by NAME, not instance ID, so it cannot say which specific copy an effect hit when two share a name (a card mirror, or same-named agents like Lookahead-vs-Lookahead — the standard balance-test shape). The render worked around it by diffing board snapshots; correctly did not edit the engine.
