@@ -942,3 +942,13 @@ Phase 5 slice 1 (Aegis 18->22, Aegis-vs-Cortex) reviewed and accepted. Four resp
 4. **Latent Ward trim (2->1) stands.** The telegraph=2 fuse trial is judgeable from the render at any copy count, so 1 copy is fine; no need to protect its representation.
 
 Continue Phase 5: each faction gets its expansion slice (Swarm next would help both its own weak matchups and the Aegis-vs-Swarm drift above), all inside the lint, then the mandatory full-ring re-measure under all three policies with Lookahead as arbiter.
+
+---
+
+## 2026-09-26 — Owner: build the render toward a full effects language (render/EFFECTS.md)
+
+The render effects-language spec is live at render/EFFECTS.md and is now referenced from RENDER.md. Render sessions build against it: one coherent visual system across three axes — event category (the meaning-carrying grammar), faction (skin only), and the existing magnitude tier — composed from a small set of parameterised primitives, never a hand-authored per-combination matrix. The one invariant: meaning stays constant across factions and tiers (a debuff always reads as a debuff); faction and tier change flavour and scale, never meaning.
+
+Build order (one slice per render turn, each built across ALL factions via the primitive): (1) defence/shield — Barrier interpose+shatter, a Guard shield badge, a base-armor deflect (do FIRST, no pairing dependency, makes Aegis legible); (2) buff/penalty grammar; (3) power/ability cast flourish; (4) attack travel+impact (after the instance-ID event-log fix); (5) per-faction skinning. Placeholder visuals now, real art in the later art pass.
+
+Next render session: start slice 1 (defence/shields).
