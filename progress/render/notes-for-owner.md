@@ -45,7 +45,38 @@ separate from the shared `progress/notes-for-owner.md`).
    bar. Both are cheap to change or remove later; flagged in
    `progress/render/checkpoints.md`'s "decisions to overrule" section too.
 
-4. **Match replays are fairly large committed files** (`render/output/
+4. **The event log's `attacker`/`defender`/`target`/`unit` fields are card or
+   player NAMES, not instance IDs — a real identity gap, found while
+   building session 2's animations, not fixed (this lane can't touch engine
+   files).** `engine/src/engine/engine.ts` (`attacker: attacker.card.name`)
+   and `engine/src/effects/resolver.ts` (`target: player.name`,
+   `target: unit.card.name`) confirm this directly in the source, not
+   inferred. Consequence: whenever two units on the board share a card name,
+   or (this project's own standard balance-testing shape) both players run
+   the same agent name — e.g. Lookahead-vs-Lookahead, exactly what both
+   committed sample replays use — the event log genuinely cannot say WHICH
+   copy or WHICH player an effect applied to by name alone. This was already
+   true of the plain scrolling text log (session 1 reused `formatEvent`
+   as-is), just not previously named as an identity gap; session 2 avoided
+   building on it for animation (used the frame snapshots' own instanceId
+   diff instead, which is exact) specifically because of this. If the
+   balance lane or a future engine session ever wants the log itself to be
+   unambiguous (e.g. for a future commentator agent reading the event
+   stream, per DESIGN's stage 7 — commentary needs to say WHICH unit, not
+   just "a unit"), the fix is adding an optional instanceId alongside the
+   existing name fields on the relevant `GameEvent` variants — not a
+   breaking change, since `formatEvent` can keep using the name for prose.
+   Flagged, not built, since it's an engine-file change this lane cannot
+   make.
+5. **The telegraph-arming question RENDER.md parked is now watchable in
+   motion, not just inferable from a static frame.** Both committed replays
+   show a telegraphed unit's dormant state end live — the card pulses gold
+   the instant `pending` flips off — rather than session 1's "sits there
+   with a countdown, no visual event when it actually arms." Still not
+   judging the 1-vs-2-turn fuse question myself; flagging that it's now
+   even more directly watchable than session 1 already made it.
+
+6. **Match replays are fairly large committed files** (`render/output/
    *.html` run 580-640KB each — mostly the embedded per-move JSON snapshot
    for a 150-180-move match). Fine at this scale; worth knowing before this
    lane accumulates dozens of committed sample replays, in case the owner

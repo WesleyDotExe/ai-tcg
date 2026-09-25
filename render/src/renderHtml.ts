@@ -120,7 +120,7 @@ html, body {
 .hud .faction-tag { font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; border: 1px solid currentColor; }
 .bar-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.78rem; }
 .bar-track { flex: 1; height: 9px; background: #050810; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
-.bar-fill { height: 100%; }
+.bar-fill { height: 100%; transition: width 420ms ease; }
 .bar-fill.health { background: linear-gradient(90deg, #ff4d6d, #ff8a5c); }
 .bar-fill.energy { background: linear-gradient(90deg, #35c9ff, #7de3ff); }
 .hud .meta { display: flex; gap: 10px; margin-top: 6px; font-size: 0.72rem; color: var(--ink-dim); }
@@ -129,7 +129,7 @@ html, body {
 .momentum .label { font-size: 0.62rem; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 5px; }
 .momentum .gauge { width: 100%; height: 10px; background: #050810; border: 1px solid var(--line); border-radius: 5px; position: relative; overflow: hidden; }
 .momentum .gauge .mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--line); }
-.momentum .gauge .fill { position: absolute; top: 0; bottom: 0; background: var(--neutral); }
+.momentum .gauge .fill { position: absolute; top: 0; bottom: 0; background: var(--neutral); transition: left 420ms ease, width 420ms ease, background 420ms ease; }
 .momentum .why { font-size: 0.66rem; color: var(--ink-dim); margin-top: 6px; min-height: 2.4em; }
 
 .turnbar { text-align: center; padding: 6px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink-dim); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px; }
@@ -194,6 +194,71 @@ html, body {
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
 .speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
+
+/* Per-move transitions (RENDER.md render-lane session 2): the board no
+ * longer just snaps to the next frame — plays, deaths, attacks, damage/heal,
+ * telegraph arming, evolution, and stat buffs each get a distinct, brief,
+ * readable animation. Driven entirely off frame-to-frame diffs keyed by
+ * instanceId (see the JS's runFx), not by parsing event text, so it stays
+ * correct even in a mirror match where both players run the same card/agent
+ * name. */
+.fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+
+.fx-ghost { animation: fx-exit 650ms ease forwards; }
+@keyframes fx-exit {
+  0% { opacity: 1; transform: translateY(0) scale(1); filter: none; }
+  100% { opacity: 0; transform: translateY(18px) scale(0.7); filter: grayscale(1) brightness(0.55); }
+}
+
+.card.fx-enter { animation: fx-enter 480ms cubic-bezier(.22,.9,.32,1.1); }
+@keyframes fx-enter {
+  0% { opacity: 0; transform: translateY(24px) scale(0.85); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.board-row#board-p1 .card.fx-attack { animation: fx-lunge-up 380ms ease; }
+.board-row#board-p2 .card.fx-attack { animation: fx-lunge-down 380ms ease; }
+@keyframes fx-lunge-up { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-14px) scale(1.05); } }
+@keyframes fx-lunge-down { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(14px) scale(1.05); } }
+
+.card.fx-hit, .hud.fx-hit { animation: fx-hit-flash 420ms ease; }
+@keyframes fx-hit-flash {
+  0% { box-shadow: 0 0 0 3px var(--bad) inset, 0 0 16px var(--bad); }
+  100% { box-shadow: none; }
+}
+.card.fx-heal, .hud.fx-heal { animation: fx-heal-flash 420ms ease; }
+@keyframes fx-heal-flash {
+  0% { box-shadow: 0 0 0 3px var(--good) inset, 0 0 16px var(--good); }
+  100% { box-shadow: none; }
+}
+.card.fx-buff { animation: fx-buff-flash 450ms ease; }
+@keyframes fx-buff-flash {
+  0% { box-shadow: 0 0 0 3px var(--neutral) inset, 0 0 16px var(--neutral); }
+  100% { box-shadow: none; }
+}
+.card.fx-armed { animation: fx-armed-flash 550ms ease; }
+@keyframes fx-armed-flash {
+  0% { box-shadow: 0 0 0 3px var(--neutral) inset, 0 0 18px var(--neutral); filter: brightness(1); }
+  50% { filter: brightness(1.55); }
+  100% { box-shadow: none; filter: brightness(1); }
+}
+.card.fx-evolve { animation: fx-evolve-pulse 650ms ease; }
+@keyframes fx-evolve-pulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  40% { transform: scale(1.12); filter: brightness(1.6) saturate(1.4); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.fx-number { position: fixed; font-weight: bold; font-size: 0.95rem; letter-spacing: 0.02em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; animation: fx-float 900ms ease forwards; }
+.fx-number.dmg { color: var(--bad); }
+.fx-number.heal { color: var(--good); }
+.fx-number.buff { color: var(--neutral); }
+@keyframes fx-float {
+  0% { opacity: 0; transform: translateY(0); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-38px); }
+}
 `;
 
 const JS = `
@@ -211,6 +276,10 @@ const JS = `
 
   const scrubber = document.getElementById('scrubber');
   scrubber.max = String(frames.length - 1);
+
+  const fxLayer = document.createElement('div');
+  fxLayer.className = 'fx-layer';
+  document.body.appendChild(fxLayer);
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -239,6 +308,9 @@ const JS = `
     const div = document.createElement('div');
     div.className = 'card faction-' + c.faction + ' rarity-' + rarity + (opts.pending ? ' pending' : '');
     div.title = c.name + ' — ' + c.flavor;
+    div.setAttribute('data-name', c.name);
+    if (opts.instanceId) div.setAttribute('data-iid', opts.instanceId);
+    if (opts.owner) div.setAttribute('data-owner', opts.owner);
     const tags = [];
     if (opts.isEvolved) tags.push('EVOLVED');
     if (opts.keywords) opts.keywords.forEach(function (k) { tags.push(k.toUpperCase()); });
@@ -253,15 +325,15 @@ const JS = `
     return div;
   }
 
-  function renderUnitSlot(u) {
+  function renderUnitSlot(u, owner) {
     return renderCardEl(
       { name: u.name, faction: u.faction, rarity: u.rarity, cost: 0, type: 'Unit', flavor: u.flavor, visualSeed: u.visualSeed, visualPattern: u.visualPattern },
-      { stats: { attack: u.attack, health: u.health }, pending: u.pending, armTurn: u.pending ? u.armTurn : undefined, isEvolved: u.isEvolved, keywords: u.keywords, tools: u.tools },
+      { stats: { attack: u.attack, health: u.health }, pending: u.pending, armTurn: u.pending ? u.armTurn : undefined, isEvolved: u.isEvolved, keywords: u.keywords, tools: u.tools, instanceId: u.instanceId, owner: owner },
     );
   }
 
-  function renderDirectiveSlot(d) {
-    return renderCardEl({ name: d.name, faction: d.faction, rarity: d.rarity, cost: 0, type: 'Directive', flavor: d.flavor, visualSeed: d.visualSeed, visualPattern: d.visualPattern }, {});
+  function renderDirectiveSlot(d, owner) {
+    return renderCardEl({ name: d.name, faction: d.faction, rarity: d.rarity, cost: 0, type: 'Directive', flavor: d.flavor, visualSeed: d.visualSeed, visualPattern: d.visualPattern }, { instanceId: d.instanceId, owner: owner });
   }
 
   function renderBoard(elId, snapshot) {
@@ -277,21 +349,41 @@ const JS = `
         el.appendChild(empty);
         continue;
       }
-      const cardEl = occ.kind === 'unit' ? renderUnitSlot(occ.v) : renderDirectiveSlot(occ.v);
+      const cardEl = occ.kind === 'unit' ? renderUnitSlot(occ.v, snapshot.id) : renderDirectiveSlot(occ.v, snapshot.id);
       el.appendChild(cardEl);
     }
   }
 
+  // HUD/momentum DOM is built ONCE and updated in place on every later
+  // frame (rather than innerHTML-replaced) specifically so the health/energy
+  // bar widths and the momentum gauge are real CSS transitions on the same
+  // element, not an instant snap hidden inside a full rebuild.
+  const hudBuilt = {};
+  function ensureHud(elId, pid) {
+    if (hudBuilt[pid]) return;
+    const el = document.getElementById(elId);
+    el.innerHTML =
+      '<div class="name"><span id="' + elId + '-name"></span><span class="faction-tag" id="' + elId + '-faction" style="color:var(--fc)"></span></div>' +
+      '<div class="bar-row"><span>HP</span><div class="bar-track"><div class="bar-fill health" id="' + elId + '-hp-fill"></div></div><span id="' + elId + '-hp-text"></span></div>' +
+      '<div class="bar-row"><span>EN</span><div class="bar-track"><div class="bar-fill energy" id="' + elId + '-en-fill"></div></div><span id="' + elId + '-en-text"></span></div>' +
+      '<div class="meta" id="' + elId + '-meta"></div>';
+    hudBuilt[pid] = true;
+  }
+
   function renderHud(elId, snapshot) {
+    ensureHud(elId, snapshot.id);
     const el = document.getElementById(elId);
     const hpPct = Math.max(0, Math.min(100, (snapshot.health / snapshot.maxHealth) * 100));
     const enPct = snapshot.maxEnergy ? Math.max(0, Math.min(100, (snapshot.energy / snapshot.maxEnergy) * 100)) : 0;
     el.className = 'hud faction-' + snapshot.faction;
-    el.innerHTML =
-      '<div class="name"><span>' + escapeHtml(snapshot.name) + '</span><span class="faction-tag" style="color:var(--fc)">' + snapshot.faction + '</span></div>' +
-      '<div class="bar-row"><span>HP</span><div class="bar-track"><div class="bar-fill health" style="width:' + hpPct + '%"></div></div><span>' + snapshot.health + '/' + snapshot.maxHealth + '</span></div>' +
-      '<div class="bar-row"><span>EN</span><div class="bar-track"><div class="bar-fill energy" style="width:' + enPct + '%"></div></div><span>' + snapshot.energy + '/' + snapshot.maxEnergy + '</span></div>' +
-      '<div class="meta"><span>hand ' + snapshot.hand.length + '</span><span>deck ' + snapshot.deckSize + '</span><span>grave ' + snapshot.graveyardSize + '</span><span>slots ' + snapshot.slotsUsed + '/' + snapshot.slotsMax + '</span></div>';
+    document.getElementById(elId + '-name').textContent = snapshot.name;
+    document.getElementById(elId + '-faction').textContent = snapshot.faction;
+    document.getElementById(elId + '-hp-fill').style.width = hpPct + '%';
+    document.getElementById(elId + '-hp-text').textContent = snapshot.health + '/' + snapshot.maxHealth;
+    document.getElementById(elId + '-en-fill').style.width = enPct + '%';
+    document.getElementById(elId + '-en-text').textContent = snapshot.energy + '/' + snapshot.maxEnergy;
+    document.getElementById(elId + '-meta').innerHTML =
+      '<span>hand ' + snapshot.hand.length + '</span><span>deck ' + snapshot.deckSize + '</span><span>grave ' + snapshot.graveyardSize + '</span><span>slots ' + snapshot.slotsUsed + '/' + snapshot.slotsMax + '</span>';
   }
 
   function renderHand(elId, snapshot, label) {
@@ -305,16 +397,28 @@ const JS = `
     });
   }
 
+  let momentumBuilt = false;
+  function ensureMomentum() {
+    if (momentumBuilt) return;
+    document.getElementById('momentum').innerHTML =
+      '<div class="label">MOMENTUM</div>' +
+      '<div class="gauge"><div class="mid"></div><div class="fill" id="momentum-fill"></div></div>' +
+      '<div class="why" id="momentum-why"></div>';
+    momentumBuilt = true;
+  }
+
   function renderMomentum(m) {
-    const el = document.getElementById('momentum');
+    ensureMomentum();
     const pct = (m.score + 100) / 2;
     const color = m.leader === 'even' ? 'var(--neutral)' : 'var(--' + replay.factions[m.leader].toLowerCase() + ')';
     let fillLeft, fillWidth;
     if (m.score >= 0) { fillLeft = 50; fillWidth = pct - 50; } else { fillLeft = pct; fillWidth = 50 - pct; }
-    el.innerHTML =
-      '<div class="label">MOMENTUM</div>' +
-      '<div class="gauge"><div class="mid"></div><div class="fill" style="left:' + fillLeft + '%;width:' + fillWidth + '%;background:' + color + '"></div></div>' +
-      '<div class="why">' + (m.leader === 'even' ? 'EVEN' : (m.leader.toUpperCase() + ' AHEAD')) + '<br>' + escapeHtml(m.reasons.join(' \\u00b7 ')) + '</div>';
+    const fillEl = document.getElementById('momentum-fill');
+    fillEl.style.left = fillLeft + '%';
+    fillEl.style.width = fillWidth + '%';
+    fillEl.style.background = color;
+    document.getElementById('momentum-why').innerHTML =
+      (m.leader === 'even' ? 'EVEN' : (m.leader.toUpperCase() + ' AHEAD')) + '<br>' + escapeHtml(m.reasons.join(' \\u00b7 '));
   }
 
   function renderStack(stack) {
@@ -372,9 +476,113 @@ const JS = `
     document.getElementById('framecount').textContent = 'move ' + i + ' / ' + (frames.length - 1);
   }
 
+  // Per-move animation (render-lane session 2): a diff between the frame
+  // being left and the frame being entered, keyed by instanceId (exact,
+  // never ambiguous — unlike the event log's own attacker/target fields,
+  // which are card/player NAMES and can collide in a mirror match). Only
+  // runs on a genuine single-step advance (Next/spacebar/play/ArrowRight);
+  // jumps (scrubber, First/Last, multi-step) re-render statically, which is
+  // the right call for a jump anyway — there is no meaningful "in between"
+  // to animate through.
+  function collectBoard(frame) {
+    const out = {};
+    ['p1', 'p2'].forEach(function (pid) {
+      frame.players[pid].board.forEach(function (u) { out[u.instanceId] = { kind: 'unit', v: u, owner: pid }; });
+      frame.players[pid].directives.forEach(function (d) { out[d.instanceId] = { kind: 'dir', v: d, owner: pid }; });
+    });
+    return out;
+  }
+
+  function currentRectsByIid() {
+    const map = {};
+    document.querySelectorAll('[data-iid]').forEach(function (el) {
+      const iid = el.getAttribute('data-iid');
+      if (iid) map[iid] = el.getBoundingClientRect();
+    });
+    return map;
+  }
+
+  function hudRect(pid) { return document.getElementById('hud-' + pid).getBoundingClientRect(); }
+  function liveCardEl(iid) { return document.querySelector('.card[data-iid="' + iid + '"]'); }
+
+  function spawnGhost(entry, rect) {
+    if (!rect || (rect.width === 0 && rect.height === 0)) return;
+    const cardEl = entry.kind === 'unit' ? renderUnitSlot(entry.v, entry.owner) : renderDirectiveSlot(entry.v, entry.owner);
+    cardEl.classList.add('fx-ghost');
+    cardEl.style.position = 'fixed';
+    cardEl.style.left = rect.left + 'px';
+    cardEl.style.top = rect.top + 'px';
+    cardEl.style.width = rect.width + 'px';
+    cardEl.style.height = rect.height + 'px';
+    cardEl.style.margin = '0';
+    fxLayer.appendChild(cardEl);
+    setTimeout(function () { cardEl.remove(); }, 700);
+  }
+
+  function spawnNumber(rect, text, cls) {
+    if (!rect) return;
+    const el = document.createElement('div');
+    el.className = 'fx-number ' + cls;
+    el.textContent = text;
+    el.style.left = (rect.left + rect.width / 2 - 16) + 'px';
+    el.style.top = (rect.top + 6) + 'px';
+    fxLayer.appendChild(el);
+    setTimeout(function () { el.remove(); }, 950);
+  }
+
+  function flashClass(el, cls) {
+    if (!el) return;
+    el.classList.remove(cls);
+    void el.offsetWidth; // force reflow so re-adding the class retriggers the keyframe
+    el.classList.add(cls);
+    setTimeout(function () { el.classList.remove(cls); }, 500);
+  }
+
+  function runFx(prevFrame, prevBoard, prevRects, prevHudRects, newFrame) {
+    const newBoard = collectBoard(newFrame);
+
+    Object.keys(prevBoard).forEach(function (id) {
+      if (!newBoard[id]) spawnGhost(prevBoard[id], prevRects[id]);
+    });
+
+    Object.keys(newBoard).forEach(function (id) {
+      const el = liveCardEl(id);
+      if (!el) return;
+      if (!prevBoard[id]) { flashClass(el, 'fx-enter'); return; }
+      if (newBoard[id].kind !== 'unit') return;
+      const pv = prevBoard[id].v, nv = newBoard[id].v;
+      if (pv.pending && !nv.pending) flashClass(el, 'fx-armed');
+      if (pv.cardId !== nv.cardId) flashClass(el, 'fx-evolve');
+      if (nv.canAttackThisTurn === false && pv.canAttackThisTurn === true) flashClass(el, 'fx-attack');
+      const hpDelta = nv.health - pv.health;
+      if (hpDelta < 0) { flashClass(el, 'fx-hit'); spawnNumber(el.getBoundingClientRect(), String(hpDelta), 'dmg'); }
+      else if (hpDelta > 0) { flashClass(el, 'fx-heal'); spawnNumber(el.getBoundingClientRect(), '+' + hpDelta, 'heal'); }
+      const atkDelta = nv.attack - pv.attack;
+      if (atkDelta !== 0 && hpDelta === 0) { flashClass(el, 'fx-buff'); spawnNumber(el.getBoundingClientRect(), (atkDelta > 0 ? '+' : '') + atkDelta + ' ATK', 'buff'); }
+    });
+
+    ['p1', 'p2'].forEach(function (pid) {
+      const delta = newFrame.players[pid].health - prevFrame.players[pid].health;
+      const hudEl = document.getElementById('hud-' + pid);
+      if (delta < 0) { flashClass(hudEl, 'fx-hit'); spawnNumber(prevHudRects[pid], String(delta), 'dmg'); }
+      else if (delta > 0) { flashClass(hudEl, 'fx-heal'); spawnNumber(prevHudRects[pid], '+' + delta, 'heal'); }
+    });
+  }
+
   function goTo(n) {
-    i = Math.max(0, Math.min(frames.length - 1, n));
-    renderFrame();
+    const target = Math.max(0, Math.min(frames.length - 1, n));
+    if (target === i + 1) {
+      const prevFrame = frames[i];
+      const prevBoard = collectBoard(prevFrame);
+      const prevRects = currentRectsByIid();
+      const prevHudRects = { p1: hudRect('p1'), p2: hudRect('p2') };
+      i = target;
+      renderFrame();
+      runFx(prevFrame, prevBoard, prevRects, prevHudRects, frames[i]);
+    } else {
+      i = target;
+      renderFrame();
+    }
     if (i === frames.length - 1) stop();
   }
 
