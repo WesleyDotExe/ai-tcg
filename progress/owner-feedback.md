@@ -815,3 +815,22 @@ Reviewed the first spectator replay (render session 1). Two things:
 **Noted, session 18 (2026-09-25, balance session per the alternation rule — the most recently merged PR before this one was a render slice, #19).** No action due now: item 1 is a standing constraint on future render work (nothing to build); item 2 is explicitly deferred to "when stage 7 arrives," which it hasn't. Not marked HANDLED (there's nothing to mark done), just acknowledged so a future render session picks up both constraints rather than re-reading this as brand new. This session did the normal balance/roadmap priority per the 2026-09-24 entry's alternation rule — see this file's own new 2026-09-23 "Phase 4 session 17 follow-ups" handled-entry above.
 
 ---
+
+---
+
+## 2026-09-25 — Owner: accept the ring as directionally done; start Phase 5, carry the two open pairings as watch items
+
+Session 18 cleared the ladder: Null is de-fanged, Swarm can rebuild, directives are answerable, every faction has tools, and under the trusted Lookahead policy both remaining problem pairings are near even. Card-by-card tuning on 14-card pools is into diminishing returns. Decisions:
+
+1. **Aegis-vs-Null / Swarm-vs-Null — accept triple-flag-clear as the bar. Done for now.** Do NOT keep nerfing Null to drag the two dumb-agent policies (Aggressive/Random) under 60%. Lookahead is the trusted policy and the same-winner triple-check (now fixed) is the gate; residual Aggressive/Random gaps are treated as agent-heuristic artifact, not a card problem.
+
+2. **Stop card-by-card tuning of Aegis-vs-Cortex.** Two attempts is enough. Under Lookahead it is ~even (48%); the loud Aggressive gap (Cortex 64%) is most likely a dumb-agent artifact. It becomes a Phase 5 watch item, not a third patch.
+
+3. **Start Phase 5 (pool expansion) now, carrying the two open pairings as named watch items** (Aegis-vs-Cortex and Cortex-vs-Swarm). Phase 5 should:
+   - Grow each faction pool toward 30-40 unique cards per the 2026-09-20 plan (variation rule, neutral pool, copy limits stay 3/3/2/1), and
+   - Specifically aim some of Aegis's new cards at its Cortex matchup — immediate-board-impact cards, NOT zero-tempo utility (two zero-impact attempts have already failed to move it), and
+   - Keep every new card inside the load-time pool lint (removal <=25%, no cheap permanent auras, etc.).
+
+4. **Hard gate:** at the end of Phase 5's first full pass, re-measure the whole ring (300 seeds, all three policies) against the corrected targets. If any ring edge is still out of band UNDER LOOKAHEAD, return to targeted tuning then, with Lookahead as the arbiter. Do not let Phase 5 bury an unresolved ring — the re-measure is mandatory, and its result goes in a checkpoint.
+
+Render lane continues to alternate as before, unaffected by this.
