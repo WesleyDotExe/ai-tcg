@@ -24,7 +24,7 @@ import {
   nullSingularity,
 } from "../src/data/nullCards.js";
 import { swarmLarva } from "../src/data/cards.js";
-import { barrierDrone, aegisWarden, aegisCadet } from "../src/data/aegisCards.js";
+import { barrierDrone, aegisWarden, aegisCadet, latentWard } from "../src/data/aegisCards.js";
 import { emptyState, putUnit } from "./helpers.js";
 
 test("Kernel Panic (Null) evolves from Corrupted Process and destroys a small target outright, ignoring stat buffs and Barrier", () => {
@@ -134,6 +134,34 @@ test("Kernel Panic (Null) cannot target a unit built bigger than its 5-health ca
   expect(evolved?.card.id, "evolution itself must still go through").toBe(kernelPanic.id);
   expect(isAlive(state, warden), "a unit above the maxHealth cap must never be a legal destroy target, even as the only enemy unit in play").toBe(true);
   expect(warden.damageTaken, "the ineligible unit should be completely untouched, not partially damaged").toBe(0);
+});
+
+test("Kernel Panic (Null)'s destroy reach was tightened from 5 to 4 health — a 5-health unit that used to be a legal target no longer is", () => {
+  // 2026-09-23 owner-feedback entry ("Phase 4 session 17 follow-ups", item
+  // 4: "Null step 4 — go past cost to power ... Kernel Panic's ... destroy
+  // reach"). Latent Ward (Aegis, 5 max health — data/aegisCards.ts) is
+  // exactly the card this narrower cap is meant to pull out of reach: it
+  // sat right on the old maxHealth:5 boundary, so this pins the real
+  // behavioural change rather than just re-asserting the existing "over cap
+  // stays safe" test above with a different number.
+  const state = emptyState();
+  const rng = new Rng(37);
+  const process = putUnit(state, "p1", corruptedProcess);
+  const processInstanceId = process.instanceId;
+  const ward = putUnit(state, "p2", latentWard); // 5 max health — legal under the old cap, not under the new one
+  state.turnNumber += 1;
+  state.players.p1.hand.push(kernelPanic);
+  state.players.p1.energy = 6;
+  state.players.p1.maxEnergy = 6;
+
+  const legal = getLegalMoves(state);
+  const evolveOptions = legal.filter((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === processInstanceId);
+  expect(evolveOptions.length, "evolving must still be offered with zero eligible destroy targets").toBe(1);
+  expect(evolveOptions[0]!.type === "playCard" && evolveOptions[0]!.abilityTarget, "a 5-health unit must no longer be offered as a destroy target").toBeUndefined();
+  applyMove(state, evolveOptions[0]!, rng);
+
+  expect(isAlive(state, ward), "a 5-health unit must survive Kernel Panic's evolve-in destroy under the tightened cap").toBe(true);
+  expect(ward.damageTaken, "the now-ineligible unit should be completely untouched").toBe(0);
 });
 
 test("Deprecated Routine (Null) telegraph arms and applies a permanent -2/-2 decay debuff, chosen at deploy time, not damage", () => {

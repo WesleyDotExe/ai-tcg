@@ -323,17 +323,97 @@ for (const ar of aggressiveResults) {
   const aggressiveFlag = Math.max(ar.aWins, ar.bWins) / ar.gamesPlayed >= FLAG_THRESHOLD;
   const randomFlag = Math.max(rr.aWins, rr.bWins) / rr.gamesPlayed >= FLAG_THRESHOLD;
   const lookaheadFlag = Math.max(lr.aWins, lr.bWins) / lr.gamesPlayed >= FLAG_THRESHOLD;
-  if (aggressiveFlag && randomFlag && lookaheadFlag) {
-    const aggWinner = ar.aWins > ar.bWins ? ar.factionA : ar.factionB;
-    const randWinner = rr.aWins > rr.bWins ? rr.factionA : rr.factionB;
-    const lookWinner = lr.aWins > lr.bWins ? lr.factionA : lr.factionB;
+  const aggWinner = ar.aWins > ar.bWins ? ar.factionA : ar.factionB;
+  const randWinner = rr.aWins > rr.bWins ? rr.factionA : rr.factionB;
+  const lookWinner = lr.aWins > lr.bWins ? lr.factionA : lr.factionB;
+  // Bug fix (2026-09-23 owner-feedback entry, "Phase 4 session 17
+  // follow-ups", found while re-mapping this report to the corrected ring
+  // labels below): this check used to flag a pairing whenever all three
+  // policies independently cleared the >=60% threshold, WITHOUT checking
+  // they cleared it for the SAME side. That let a pairing where e.g.
+  // Aggressive favours faction A at 65% and Random/Lookahead favour faction
+  // B at 60%+ print as "FLAGGED" — three real signals pointing in two
+  // different directions is not "a dominant archetype," it's disagreement,
+  // and disagreement is exactly what a genuine soft-countered, healthy
+  // matchup looks like policy-to-policy. Requiring the SAME winner across
+  // all three is what "all three agree" (the 2026-09-20 entry's own phrase
+  // introducing this cross-check) actually means.
+  if (aggressiveFlag && randomFlag && lookaheadFlag && aggWinner === randWinner && randWinner === lookWinner) {
     console.log(
       `  ${ar.factionA} vs ${ar.factionB}: FLAGGED under all three policies ` +
-        `(Aggressive favors ${aggWinner}, Random favors ${randWinner}, Lookahead favors ${lookWinner})`,
+        `(all three favor ${aggWinner}: Aggressive ${aggWinner}, Random ${randWinner}, Lookahead ${lookWinner})`,
     );
     anyTripleFlag = true;
+  } else if (aggressiveFlag && randomFlag && lookaheadFlag) {
+    console.log(
+      `  ${ar.factionA} vs ${ar.factionB}: three independent >=${FLAG_THRESHOLD * 100}% signals but NOT the same winner ` +
+        `(Aggressive favors ${aggWinner}, Random favors ${randWinner}, Lookahead favors ${lookWinner}) — not flagged; this is policy disagreement, not a dominant archetype`,
+    );
   }
 }
 if (!anyTripleFlag) {
-  console.log(`  None. No cross-faction pairing shows a >=${FLAG_THRESHOLD * 100}% win rate under all three agent policies — no strong evidence of a dominant archetype from this measurement.`);
+  console.log(`  None. No cross-faction pairing shows the SAME side winning >=${FLAG_THRESHOLD * 100}% under all three agent policies — no strong evidence of a dominant archetype from this measurement.`);
+}
+
+// --- Ring-target report (2026-09-23 owner-feedback entries: "Phase 4
+// decisions" proposed the four-faction counter-cycle ring, and "Phase 4
+// session 17 follow-ups" corrected two mislabelled edges — see this
+// constant's own comment for the corrected shape). Previously the ring's
+// target bands lived only in prose (checkpoints.md/notes-for-owner.md/log
+// entries), hand-computed against this report's raw numbers after the
+// fact — exactly how the mislabelling happened in the first place (session
+// 17 wrote "Cortex vs Swarm [E]" and "Cortex vs Aegis [E]" in
+// balance-report-011's table when the ring actually calls both of those
+// decisive [W] edges). Encoding the ring here, once, as data the report
+// itself checks every run, is the same "fix the instrument, don't
+// hand-recompute it each time" instinct Phase 1 already applied to the
+// agent-policy cross-check above.
+type RingEdge = { winner: Faction; loser: Faction; band: [number, number] };
+const RING_DECISIVE: RingEdge[] = [
+  { winner: "Null", loser: "Aegis", band: [0.55, 0.6] },
+  { winner: "Aegis", loser: "Cortex", band: [0.55, 0.6] },
+  { winner: "Cortex", loser: "Swarm", band: [0.55, 0.6] },
+  { winner: "Swarm", loser: "Null", band: [0.55, 0.6] },
+];
+const RING_EVEN: [Faction, Faction, [number, number]][] = [
+  ["Null", "Cortex", [0.45, 0.55]],
+  ["Aegis", "Swarm", [0.45, 0.55]],
+];
+
+function ringStatusFor(results: MatchupResult[], a: Faction, b: Faction): { label: string; rate: number; band: [number, number]; inBand: boolean } | undefined {
+  const r = results.find((x) => (x.factionA === a && x.factionB === b) || (x.factionA === b && x.factionB === a));
+  if (!r) return undefined;
+  const decisive = RING_DECISIVE.find((e) => e.winner === a && e.loser === b);
+  if (decisive) {
+    const winnerRate = r.factionA === a ? r.aWins / r.gamesPlayed : r.bWins / r.gamesPlayed;
+    return { label: `${a} should beat ${b}`, rate: winnerRate, band: decisive.band, inBand: winnerRate >= decisive.band[0] && winnerRate <= decisive.band[1] };
+  }
+  const even = RING_EVEN.find(([x, y]) => (x === a && y === b) || (x === b && y === a));
+  if (even) {
+    const aRate = r.factionA === a ? r.aWins / r.gamesPlayed : r.bWins / r.gamesPlayed;
+    return { label: `${a} vs ${b} should be ~even`, rate: aRate, band: even[2], inBand: aRate >= even[2][0] && aRate <= even[2][1] };
+  }
+  return undefined;
+}
+
+console.log(`\n=== Ring targets: Null > Aegis > Cortex > Swarm > Null ===`);
+console.log(`(Decisive edges [W] target 55-60% for the named winner; the two "across" pairings [E] target 45-55% even.`);
+console.log(` Corrected 2026-09-23 — Cortex-vs-Swarm and Aegis-vs-Cortex are BOTH decisive [W] edges, not "even":`);
+console.log(` only Null-vs-Cortex and Aegis-vs-Swarm are the ~even pairings.)`);
+for (const [policyLabel, results] of [
+  ["Aggressive", aggressiveResults],
+  ["Random", randomResults],
+  ["Lookahead", lookaheadResults],
+] as const) {
+  console.log(`  --- ${policyLabel} ---`);
+  for (const edge of RING_DECISIVE) {
+    const s = ringStatusFor(results, edge.winner, edge.loser);
+    if (!s) continue;
+    console.log(`    [W] ${s.label}: ${(s.rate * 100).toFixed(1)}% (target ${s.band[0] * 100}-${s.band[1] * 100}%) ${s.inBand ? "IN BAND" : "out of band"}`);
+  }
+  for (const [x, y, band] of RING_EVEN) {
+    const s = ringStatusFor(results, x, y);
+    if (!s) continue;
+    console.log(`    [E] ${s.label}: ${x} ${(s.rate * 100).toFixed(1)}% (target ${band[0] * 100}-${band[1] * 100}%) ${s.inBand ? "IN BAND" : "out of band"}`);
+  }
 }

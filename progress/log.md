@@ -1769,3 +1769,133 @@ beyond cost (the entry's own "stop" condition wasn't met, but nothing past
 step 4 was authorized); any Cortex-side change (explicitly forbidden by this
 entry); Phase 5 (pool expansion, explicitly gated on the ring being in
 band, which it isn't).
+
+## Session 18 (2026-09-25)
+
+Balance session per the alternation rule (owner-feedback.md's 2026-09-24
+entry): the most recently merged PR (#19) was a render slice, so this
+session did the normal balance/roadmap priority rather than RENDER.md. The
+highest-priority unhandled item was owner-feedback.md's 2026-09-23 "Phase 4
+session 17 follow-ups" entry, acted on in full — see `progress/current.md`
+for the complete writeup; summarized here.
+
+**Item 1: corrected the two mislabelled ring edges, and fixed the
+instrument rather than just the prose.** Session 17's own checkpoint/report
+called Cortex-vs-Swarm and Aegis-vs-Cortex "even" [E] pairings; the ring
+(Null > Aegis > Cortex > Swarm > Null) actually makes both decisive [W]
+55-60% edges — only Null-vs-Cortex and Aegis-vs-Swarm are the ~even [E]
+45-55% pairings. Rather than just re-writing the labels in a text file
+(exactly the process that produced the mislabelling in the first place),
+`engine/src/dev/balanceReport.ts` now encodes the ring as real data
+(`RING_DECISIVE`/`RING_EVEN` constants) and prints a per-policy "in band?"
+line for all six pairings automatically. While doing this, found a second,
+independent bug in the existing "flagged under all three policies"
+cross-check: it fired whenever each of the three policies independently
+cleared the 60% threshold, without checking whether they agreed on WHICH
+faction won. balance-report-011 had reported Swarm-vs-Aegis as
+triple-flagged for exactly this reason (Aggressive favoured Swarm 64.7%,
+Random and Lookahead both favoured Aegis at 56.3%/50.0% — three real
+signals pointing two different directions, not one dominant archetype).
+Fixed to require the same winner across all three policies; re-running
+confirmed Swarm-vs-Aegis correctly drops off the flagged list under the
+fix.
+
+**Item 2: Cortex-vs-Swarm left alone**, exactly as instructed.
+
+**Item 3: Aegis-vs-Cortex, an honest two-attempt journey.** First attempt:
+a brand-new Aegis Tool, "Redundant Barrier Coil" (0/0 stats, grants
+Barrier, same mechanism as the existing Barrier Shim but at Uncommon
+rarity for more copies) — reasoned as reusing a proven mechanism (Barrier
+already fully absorbs Cortex's flat-damage removal, its main answer suite)
+without any new engine work. Measured at 1 and 2 copies: BOTH measured
+WORSE for Aegis-vs-Cortex than the pre-session baseline under every single
+policy (2 copies: Aggressive 67.7% -> 73.7% Cortex; 1 copy: still 73.7%
+under Aggressive, 51.7%->? no material improvement under Random/Lookahead
+either). Investigated rather than shipped anyway: this is the exact
+"reactive/zero-immediate-impact card has negative opportunity cost under a
+heuristic agent" failure mode session 11's original Aegis defensive-card
+batch already discovered and documented (owner-feedback.md's 2026-09-19
+entry) — a Tool with no visible stat bump reads as worthless to
+AggressiveAgent's cost/stat heuristic, so more copies just means more turns
+wasted on a weak play instead of real tempo. Reverted entirely, both the
+card and its pool-list entry.
+
+Second attempt, evidence-led instead of design-first: read this pool's own
+per-card win-rate table (which this project has kept as standing
+instrumentation since Phase 1) and found Guard Directive Chip already the
+single best-performing Aegis card by played win rate (~53-56% across every
+policy, well ahead of the rest of the pool) — a Tool with a real stat bonus
+(+1/+1) AND the Guard keyword, which forces the opponent to attack it
+first. That's exactly the mechanism that blunts Cortex's kit, which is
+almost entirely flat 2-damage removal (Diagnostic Pulse, Interrupt
+Handler, Cascade Purge, Compiled Daemon's evolve). Bumped its copies 2 -> 3
+(its Uncommon rarity ceiling), using the pool's exact remaining headroom
+(39 -> 40 cards) — no new card, no cut, zero new engine work. Result,
+measured at 300 seeds/policy: real movement under Aggressive (32.3% ->
+35.7% Aegis, the worst-outlier policy going in) and essentially flat under
+Random (56.3% -> 54.3%) and Lookahead (50.0% -> 48.3%). **Honest
+conclusion: NOT in the 55-60% band on any policy.** The remaining
+Aggressive-policy gap (Cortex still wins 64.3%) is large enough, and
+Random/Lookahead's near-miss-but-flat numbers different enough in
+character, that this reads at least partly as an agent-heuristic artifact
+(AggressiveAgent's documented "no sense of whether a card is useful right
+now" gap cuts both ways — it may also just play Cortex's removal-heavy kit
+more efficiently than it plays Aegis's defensive kit) rather than a single
+remaining card-level fix. Not chased with a third attempt this session —
+flagged to the owner instead, per this project's "measure, report, don't
+guess indefinitely" pattern.
+
+**Item 4: Null step 4, past cost to power.** Per the entry's own two named
+candidate axes for each card: Kernel Panic's destroy reach tightened
+(`maxHealth: 5` -> `maxHealth: 4` in its ability's targeting filter) —
+picked over touching its body stats because "destroy reach" is a more
+legible, directly-testable lever, and it specifically closes the exact
+boundary case the original 2026-09-17 fix left exposed (Latent Ward, 5
+health, sat right on the old cap). Null Singularity's health cut 8 -> 7 —
+picked over touching either of its two static auras because both auras are
+its entire identity as the pool's Mythic capstone (the enemy-aura's health
+component was already removed in an earlier session specifically to
+protect Aegis; cutting the ally aura too would gut the design rather than
+trim it), so the body took the cut instead. Measured after: **Aegis-vs-Null
+is no longer triple-flagged.** Lookahead moved from 67.7% Null down to
+58.0% — landing IN the 55-60% band outright, the exact "stop" condition the
+2026-09-20 backstop and this entry both name. Aggressive (78.0% -> 72.0%)
+and Random (72.0% -> 72.3%, essentially flat) haven't individually reached
+band, but the project's actual pass/fail bar has always been the
+triple-policy cross-check, and that's now clear — so, per "stop when it
+lands in band," nothing further was attempted on Null this session.
+
+**Real-play evidence, not just aggregate numbers.** Wrote
+`engine/src/dev/ring2609MatchDemo.ts` (mirrors
+`segfaultConditionMatchDemo.ts`'s re-drive-the-move-loop shape) and ran a
+seed search for both shipped mechanisms in real, unscripted
+LookaheadAgent-vs-LookaheadAgent play: found on the first search range
+tried (seeds 1-400) — Guard Directive Chip forcing an attack onto its own
+equipped unit (Aegis vs Cortex, seed 1), and Kernel Panic's tightened reach
+leaving a 5-health Latent Ward with zero eligible destroy targets, which
+then survives (Null vs Aegis, seed 16). Committed as
+`progress/sample-match-019-ring-fixes.txt`. Added
+`engine/test/nullFaction.test.ts`'s new whitebox test pinning the tightened
+reach against a synthetic fixture, alongside the pre-existing "way over
+cap" test so both the old and new boundary are covered.
+
+**Whole-ring re-measurement.** 300 seeds/matchup, all three policies,
+against the corrected ring:
+`progress/balance-report-012-ring-followups.txt` has the full before/after
+table (vs balance-report-011) and the honest read. Headline: Aegis-vs-Null
+and Swarm-vs-Null are both now clear of the triple-flag; Cortex-vs-Swarm
+remains triple-flagged (untouched, per instruction); Aegis-vs-Cortex is
+real-but-partial progress, not yet in band on any policy. No pairing newly
+regressed into a triple-flag that wasn't one before.
+
+`npm test` (root, all four workspaces): 82/82 in engine (81 previously + 1
+new test), unchanged in protocol/server/agents (not touched this session).
+`npx tsc --noEmit` clean in engine.
+
+**Not attempted this session, correctly deferred:** a third Aegis-vs-Cortex
+lever (flagged to the owner instead, per notes-for-owner.md); any
+Cortex-side change (forbidden by this entry); Phase 5 (pool expansion) —
+Cortex-vs-Swarm and Aegis-vs-Cortex remain the two open pairings, and
+whether to keep chasing them card-by-card or let Phase 5's wider pool
+settle them is an open question for the owner, not decided unilaterally
+this session.

@@ -725,6 +725,71 @@ Order unchanged: get the whole ring within band (all six pairings, all three pol
 
 ---
 
+**Handled, session 18 (2026-09-25).** All four items done, in order:
+
+1. **Ring labels corrected — and encoded as data, not just prose.**
+   `engine/src/dev/balanceReport.ts` now carries `RING_DECISIVE`/`RING_EVEN`
+   constants with the corrected shape (Cortex-vs-Swarm and Aegis-vs-Cortex
+   are both [W] 55-60% edges; only Null-vs-Cortex and Aegis-vs-Swarm are
+   [E] 45-55%) and prints a per-policy "in band?" line for all six pairings
+   every run — the report checks itself against the ring now, rather than
+   a future session hand-recomputing it into a text file again (exactly how
+   session 17's own mislabelling happened). While rewriting the cross-check
+   for this, found and fixed a real, separate pre-existing bug: it flagged
+   a pairing whenever all three policies independently cleared 60%, without
+   checking they agreed on WHICH side — Swarm-vs-Aegis was reported as
+   triple-flagged in balance-report-011 for exactly this reason (Aggressive
+   favoured Swarm, Random/Lookahead favoured Aegis). Now requires the same
+   winner across all three, matching what "all three agree" (the
+   2026-09-20 entry's own phrase) actually means.
+2. **Cortex-vs-Swarm — not touched**, exactly as instructed.
+3. **Aegis-vs-Cortex — an Aegis buff, Cortex untouched.** Honest journey:
+   a first attempt (a new Barrier-granting Tool, 1-2 copies) measured
+   WORSE for this pairing under every policy — the same
+   zero-immediate-impact-card opportunity-cost trap session 11's Aegis
+   defensive-card batch already hit (owner-feedback.md's 2026-09-19 entry).
+   Not shipped. Shipped instead: bumped the pool's own best-performing
+   card by played win rate, Guard Directive Chip, from 2 to 3 copies (its
+   Uncommon ceiling) — real stats plus Guard is exactly the mechanism that
+   blunts Cortex's flat-damage removal kit. Result, honestly: real
+   movement under Aggressive (32.3% -> 35.7% Aegis, the worst-outlier
+   policy), essentially flat under Random/Lookahead (56.3%->54.3%,
+   50.0%->48.3%) — NOT in the 55-60% band on any policy. Not chased
+   further unilaterally this session; the Aggressive-policy gap in
+   particular looks agent-heuristic-driven (quality-debt.md's standing
+   AggressiveAgent note), not purely a card problem. Open question for the
+   owner in `progress/notes-for-owner.md`.
+4. **Null step 4, past cost to power.** Kernel Panic's destroy reach
+   tightened maxHealth 5 -> 4 (pulls Latent Ward, 5 health, out of reach);
+   Null Singularity's health cut 8 -> 7 (both auras kept — cutting either
+   would gut its identity as the Mythic capstone, so the body took the cut
+   instead). Measured after: **Aegis-vs-Null is no longer triple-flagged**
+   — Lookahead now sits IN the 55-60% band (58.0%), the "stop" condition
+   this entry's own item 4 named, even though Aggressive/Random haven't
+   individually reached it yet (both moved the right direction: 74.7%->72.0%,
+   66.7%->72.3% — Random's number is noisy/roughly flat, Aggressive real).
+   Per "stop when Aegis-vs-Null sits in the 55-60% band," and since the
+   triple-flag (the actual pass/fail bar this whole project uses) is now
+   clear, nothing further was attempted on Null this session.
+
+Real-play evidence for both shipped mechanism changes (Guard Directive
+Chip forcing an attack onto itself; Kernel Panic's tightened reach sparing
+a 5-health Latent Ward), in real unscripted LookaheadAgent-vs-LookaheadAgent
+play: `progress/sample-match-019-ring-fixes.txt`. Whitebox test for the
+tightened reach: `engine/test/nullFaction.test.ts`'s new test. Full
+before/after numbers and honest read: `progress/balance-report-012-ring-followups.txt`.
+
+**Whole-ring status after this session:** Aegis-vs-Null and Swarm-vs-Null
+are now clear (not triple-flagged); Cortex-vs-Swarm remains triple-flagged
+(untouched, per instruction); Aegis-vs-Cortex is real-but-partial progress,
+not yet in band on any policy. Per the standing gate ("do NOT start Phase 5
+until the ring is within band"), Phase 5 (pool expansion) was NOT started —
+Cortex-vs-Swarm and Aegis-vs-Cortex are both still open. See
+`progress/checkpoints.md`'s new entry and `progress/notes-for-owner.md` for
+what's flagged back to the owner.
+
+---
+
 ## 2026-09-24 — Owner: fold the render lane into THIS task (alternating sessions)
 
 The separate render schedule could not get private-repo push access, so the spectator render now runs inside THIS task instead of a second one. Two rules:
@@ -744,3 +809,9 @@ Reviewed the first spectator replay (render session 1). Two things:
 1. **Visual pacing is owner-approved as a baseline to protect.** The turn-by-turn rhythm keeps the match engaging to watch. Future render and pacing-related balance work should not regress it.
 
 2. **Fixed-speed playback will fight audio commentary (stage 7) — design for adaptive pacing.** Moves currently advance fast; that is fine for the eye but spoken commentary has a ~2-3 words/sec ceiling and cannot narrate a pivotal moment if several moves pass before the call lands. When commentary is built, pacing must be driven by move SIGNIFICANCE, not a fixed clock: trivial moves flash by, pivotal ones slow down or the replay briefly holds so the call can land. The render already computes the natural significance signal — the momentum gauge and its per-turn "why" reasons — so reuse that to drive pacing rather than inventing a new one. Flag the exact pacing model at a checkpoint when stage 7 arrives.
+
+---
+
+**Noted, session 18 (2026-09-25, balance session per the alternation rule — the most recently merged PR before this one was a render slice, #19).** No action due now: item 1 is a standing constraint on future render work (nothing to build); item 2 is explicitly deferred to "when stage 7 arrives," which it hasn't. Not marked HANDLED (there's nothing to mark done), just acknowledged so a future render session picks up both constraints rather than re-reading this as brand new. This session did the normal balance/roadmap priority per the 2026-09-24 entry's alternation rule — see this file's own new 2026-09-23 "Phase 4 session 17 follow-ups" handled-entry above.
+
+---

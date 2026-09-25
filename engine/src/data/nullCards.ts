@@ -126,19 +126,24 @@ export const kernelPanic: UnitCard = {
       // was re-measured, not assumed safe — see
       // progress/balance-report-004-chosen-targeting.txt.
       //
-      // maxHealth: 5 — kept exactly as session 10 set it (owner's explicit
-      // instruction, 2026-09-19 entry): an unconditional destroy that can
-      // hit ANY unit was a hard counter to Aegis's whole identity (stacking
-      // value/health into a small number of evolved/tooled units — see
-      // aegisCards.ts), which violates design principle 3's "strong soft
-      // counters, not hard counters." 5 is set so Aegis's two heaviest
-      // investments — Aegis Warden (7 health, evolves in fully healed) and
-      // Prime Aegis (8 health) — reliably escape it, while everything at or
-      // below Latent Ward's 5 remains a real target. "Destroy ignores
-      // Barrier and stat buffs" is unchanged — this only restricts *what*
-      // it can target, not how it kills once it connects.
-      text: "When this evolves in, destroy target enemy unit with 5 or less health.",
-      targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit", maxHealth: 5 } },
+      // maxHealth: 5 -> 4 (2026-09-23 owner-feedback entry, "Phase 4 session
+      // 17 follow-ups", item 4: "Null step 4 — go past cost to power ...
+      // reduce their impact (stats/effect), not just cost ... e.g. Kernel
+      // Panic's ... destroy reach." Session 17's cost raise (5->6) changed
+      // how OFTEN this lands, not how strong it is once it does (still
+      // ~86% win rate when played, per balance-report-011) — this narrows
+      // WHAT it can kill instead. Session 10 originally set the cap at 5 so
+      // only Aegis Warden/Prime Aegis reliably escaped it; that left Latent
+      // Ward (5 health, Aegis's own board-wide Barrier payoff) exactly on
+      // the eligible edge. Tightening to 4 pulls Latent Ward out of reach
+      // too, a real reduction in what this card answers, targeted at the
+      // exact Aegis-vs-Null pairing this backstop step is scoped to — not a
+      // blanket rewrite of the soft-counter shape session 10/19 already
+      // settled. "Destroy ignores Barrier and stat buffs" is unchanged —
+      // this only restricts *what* it can target, not how it kills once it
+      // connects.
+      text: "When this evolves in, destroy target enemy unit with 4 or less health.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit", maxHealth: 4 } },
       effects: [{ kind: "destroy" }],
     },
   ],
@@ -428,10 +433,23 @@ export const nullSingularity: UnitCard = {
   // the owner has confirmed a Null-top-end premium is on-identity. Energy
   // caps at 10 (see this file's own comment on the resource model in
   // DESIGN.md), so 7 is still reachable mid-to-late game, not a dead card.
+  //
+  // Health 8 -> 7 (2026-09-23 "Phase 4 session 17 follow-ups" entry, item 4:
+  // "Null step 4 — go past cost to power ... Null Singularity's aura/stats
+  // ... measure after each." The cost raise alone didn't move its
+  // played-win-rate (still ~79% per balance-report-011) — this is a direct
+  // "stats" cut, the other of the two candidate axes the entry names,
+  // deliberately picked over touching either aura: both auras are this
+  // card's whole point as the Mythic capstone (and the enemy-aura's health
+  // component was already removed in an earlier session specifically to
+  // protect Aegis's stacking identity — cutting the ally aura too would
+  // gut the design rather than trim it). One fewer point of health means
+  // one less turn of the auras surviving an attacker that couldn't quite
+  // finish it before, without changing what it does once it's out.
   cost: 7,
   type: "Unit",
   attack: 3,
-  health: 8,
+  health: 7,
   keywords: [],
   art: "placeholder:null/null-singularity",
   flavor: "Not a process anymore. Just the address where every dangling pointer eventually leads.",

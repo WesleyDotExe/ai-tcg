@@ -481,7 +481,27 @@ export const AEGIS_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   { card: platingModule, copies: 3 },
   { card: diagnosticWard, copies: 3 },
   { card: perimeterTurret, copies: 3 },
-  { card: guardDirectiveChip, copies: 2 },
+  // 2 -> 3 (2026-09-23 "Phase 4 session 17 follow-ups" entry, item 3: fix
+  // Aegis-vs-Cortex with an Aegis buff, never a Cortex nerf). A first
+  // attempt at this fix (a brand-new 0/0-stat Barrier-granting Tool,
+  // AG-019, at 1-2 copies) measured WORSE for Aegis-vs-Cortex under every
+  // policy (Aggressive 73.7% Cortex, up from 67.7% going in) — the same
+  // "reactive/zero-immediate-impact card crowds out real tempo plays"
+  // failure mode session 11's Aegis defensive-card batch already discovered
+  // (owner-feedback.md's 2026-09-19 entry), so it was not shipped. This
+  // pool's own per-card table already names its single best-performing
+  // card by played win rate: Guard Directive Chip (55.3%, well ahead of
+  // every other Aegis card) — a Tool with a real stat bonus (+1/+1) AND
+  // Guard (forces the equipped unit to be attacked first), which is exactly
+  // the mechanism that blunts Cortex's flat-damage removal kit (Diagnostic
+  // Pulse/Interrupt Handler/Cascade Purge all deal exactly 2): Guard lets
+  // Aegis choose which body eats the removal, and a Guard unit built with
+  // this Tool's own +1 health has real odds of surviving a 2-damage hit
+  // outright. Rather than design an unproven new mechanic, this bumps the
+  // pool's one card already evidenced to work up to its Uncommon copy
+  // ceiling (3), using the pool's exact remaining headroom (39 -> 40, no
+  // cut needed) — a smaller, evidence-led bet than a new untested card.
+  { card: guardDirectiveChip, copies: 3 },
   { card: aegisSentinel, copies: 3 },
   { card: staticWardBeacon, copies: 2 },
   { card: failoverCustodian, copies: 3 },
