@@ -30,3 +30,8 @@ A match player that ingests a committed progress/sample-match-*.txt log (or the 
 ## A parked question this lane unblocks
 
 Telegraph delay feel (1 vs 2 turns) has been unanswerable twice — nothing to watch it in. Once a render can play back a telegraph arming, note in progress/render/notes-for-owner.md that it is now judgeable; do not force it, just flag the win.
+
+
+## Effects language (read before touching any FX)
+
+render/EFFECTS.md is the standing spec for the render visual language — the three-axis model (event category = the meaning-carrying grammar; faction = skin; magnitude tier = size), the small set of parameterised primitives, the one invariant (meaning stays constant across factions and tiers), and the slice-by-slice build order. Build every animation against it and compose from the primitives rather than hand-authoring per-combination effects. Update it if the model itself changes.
