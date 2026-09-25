@@ -108,12 +108,27 @@ building around them; don't block the whole project waiting.
    untouched by either change, remains triple-flagged with no assigned fix.
    See progress/balance-report-011-phase4-decisions.txt,
    progress/checkpoints.md, and progress/notes-for-owner.md.
-   **Per the entry's own explicit gate, Phase 5 (pool expansion) was NOT
-   started — the ring isn't within band on any pairing. Next: owner steer on
-   Cortex-vs-Swarm (nobody's assigned to fix it) and whether to push past
-   cost on Kernel Panic/Null Singularity, or — if none arrives — read
-   balance-report-011 in full and pick the most conservative next move
-   consistent with "don't nerf Cortex" and "don't chase unilaterally."**
+   **Session 18 acted on the owner's "Phase 4 session 17 follow-ups" entry**
+   (correcting two mislabelled ring edges, fixing Aegis-vs-Cortex with an
+   Aegis buff, and pushing Null step 4 past cost to power): re-mapped
+   `balanceReport.ts` to the corrected ring as real data (`RING_DECISIVE`/
+   `RING_EVEN`), found and fixed a real pre-existing cross-check bug in the
+   same pass (it didn't check all three policies agreed on the WINNER, just
+   that each cleared 60% independently); bumped Guard Directive Chip 2->3
+   copies for Aegis-vs-Cortex after a first attempt (a new Barrier Tool)
+   measured worse and was reverted; tightened Kernel Panic's destroy reach
+   (maxHealth 5->4) and cut Null Singularity's health 8->7. **Result:
+   Aegis-vs-Null and Swarm-vs-Null are no longer triple-flagged** (only
+   Cortex-vs-Swarm remains, exactly as the entry said to leave it).
+   Aegis-vs-Cortex moved real but not into band (worst under Aggressive,
+   likely partly agent-heuristic-driven — see quality-debt.md). Full detail:
+   `progress/balance-report-012-ring-followups.txt`,
+   `progress/checkpoints.md`, `progress/notes-for-owner.md`. **Phase 5
+   (pool expansion) still NOT started — Cortex-vs-Swarm and Aegis-vs-Cortex
+   are the two open pairings; next session should read
+   balance-report-012 and notes-for-owner.md for the open question before
+   deciding whether to keep tuning Aegis-vs-Cortex or treat Phase 5's wider
+   pool as the intended next lever for both remaining pairings.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

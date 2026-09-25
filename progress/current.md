@@ -1,137 +1,121 @@
 # Current status
 
-**Build-order stage: 3 (A real card set) — still current.** Session 17.
+**Build-order stage: 3 (A real card set) — still current.** Session 18
+(balance session — the alternation rule in owner-feedback.md's 2026-09-24
+entry means this session did the normal balance/roadmap priority, since the
+most recently merged PR (#19) was a render slice).
 
-The 2026-09-23 owner-feedback entry ("Phase 4 decisions") superseded
-session 16's proposed triangle with an explicit four-faction counter-cycle
-ring (Null > Aegis > Cortex > Swarm > Null) and ordered two specific
-changes: raise Null's two outlier cards' costs (step 4 of the pre-existing
-backstop), and buff Swarm's own kit with real go-wide resilience (not nerf
-Cortex). This session did both, in order, then re-measured the whole ring
-and wrote a checkpoint, exactly as instructed. Per the entry's own words
-("this is the last balance pass before Phase 5 — do NOT start expansion
-until the ring is within band"), Phase 5 (pool expansion) was NOT started —
-the ring is not yet within band on any pairing.
+This session acted on owner-feedback.md's 2026-09-23 "Phase 4 session 17
+follow-ups" entry, the highest-priority unhandled feedback: (1) correct two
+mislabelled ring-target edges, (2) leave Cortex-vs-Swarm alone, (3) fix
+Aegis-vs-Cortex with an Aegis buff, (4) push Null step 4 past cost to power.
+All four are done — see below for what shipped and the honest result.
 
-## What stands (this session's work — everything from sessions 1-16
+## What stands (this session's work — everything from sessions 1-17
 ## otherwise unchanged, see prior `progress/log.md` entries)
 
-**1. Null step 4 — done.** Kernel Panic's cost raised 5 -> 6 and Null
-Singularity's raised 6 -> 7 (`engine/src/data/nullCards.ts`). These are now
-the first cards in the pool costing strictly more than their faction-mirror
-equivalents (Aegis Warden 5, Prime Aegis 6) — the owner's own steer
-resolves the cross-faction-curve concern session 16 flagged rather than
-acted on: "it's fine for them to cost more... a premium on its best pieces
-is on-identity." Three whitebox test fixtures in
-`engine/test/nullFaction.test.ts` that hardcoded `energy = 5` for Kernel
-Panic were updated to 6 to match.
+**1. Ring labels corrected, and encoded as data, not just prose.**
+`engine/src/dev/balanceReport.ts` now carries `RING_DECISIVE`/`RING_EVEN`
+constants with the corrected ring shape (Null > Aegis > Cortex > Swarm >
+Null; Cortex-vs-Swarm and Aegis-vs-Cortex are BOTH decisive [W] 55-60%
+edges, not "even" as session 17 mislabelled them; only Null-vs-Cortex and
+Aegis-vs-Swarm are the ~even [E] 45-55% pairings), and prints a per-policy
+"in band?" line for all six pairings every run. While rewriting the
+cross-check section for this, found and fixed a real, separate bug: the
+"flagged under all three policies" check used to fire whenever each policy
+independently cleared the 60% threshold, without checking they agreed on
+WHICH side won — balance-report-011 reported Swarm-vs-Aegis as
+triple-flagged for exactly this reason (Aggressive favoured Swarm,
+Random/Lookahead favoured Aegis, three real but disagreeing signals). The
+cross-check now requires the same winner across all three policies.
 
-**2. Buff Swarm — two new cards, both proven real, not nerfing Cortex.**
-`engine/src/data/cards.ts` gained Colony Broodling (cost 1 Unit: dying with
-2+ other units surviving summons a replacement 1/1 Swarm Larva — directly
-punishes single-target removal, the exact ring-stated reason Swarm should
-beat Null) and Overgrown Carapace (cost 3 Unit: its own health scales live
-with the controller's unit count — a body that gets steadily harder for
-fixed-damage removal to answer as Swarm's board grows). Both reuse only
-already-generic engine mechanisms (`summon`, `Ability.condition`,
-`selfStatFromScaling`) — no new engine work was needed, unlike the Phase 2
-items that preceded this. 5 copies total (3+2), filling the pool's exact
-remaining headroom under the 40-card cap; no existing card, Cortex's or
-Swarm's, was touched or cut. Real-play evidence:
-`progress/sample-match-018-swarm-resilience.txt` (found on the first seed
-searched — a real, unscripted LookaheadAgent-vs-LookaheadAgent Swarm-vs-Null
-match where Colony Broodling's death genuinely summons a replacement and
-Overgrown Carapace's live health is sampled matching "1 + board count"
-across 6 different board sizes; Swarm wins). Whitebox proof:
-`engine/test/swarmResilience.test.ts` (4 new tests: the replacement fires
-with 2+ other units and is correctly gated off with fewer/zero; the health
-scaling tracks the board live, including shrinking after a real ally death
-and still taking real combat damage on top).
+**2. Cortex-vs-Swarm — not touched**, exactly as the entry instructed
+("not a problem to assign a fixer to ... Phase 5 wider pools will likely
+settle it").
 
-**3. Whole-ring re-measurement — done, honest result: no pairing is in band
-yet, but real, multi-policy movement in both targeted places.**
-`progress/balance-report-011-phase4-decisions.txt` (300 seeds/matchup, all
-three policies) has the full before/after table and honest read. Headline
-findings:
-- **Aegis-vs-Null moved down under all three policies** (78.0/72.0/67.7 ->
-  75.7/70.0/65.3) — the first Null fix in this project's whole history to
-  move all three policies at once rather than mostly just Random. Still
-  triple-flagged; did not land in the 55-60% band the entry's "stop"
-  condition names.
-- **Swarm-vs-Null is no longer triple-flagged** — was triple-flagged going
-  in (Null 56.0/79.0/67.3), now only Random remains >=60% (Aggressive is
-  dead even, Lookahead down to 56.7% Null). The single most
-  structurally-wrong ring edge moved the most, in the right direction, on
-  every policy.
-- **Cortex-vs-Swarm is unchanged in kind** (still triple-flagged) — neither
-  authorized change targeted it, and none was expected to.
-- **One honest, unintended side effect:** Cortex-vs-Null is now
-  single-flagged under Aggressive only (55.7% -> 60.7%), plausibly Null's
-  weaker early game (from the cost increases) mattering more against
-  Cortex's efficient curve specifically. Not chased (single-policy, not a
-  cross-check flag).
-- **Kernel Panic and Null Singularity remain extreme win-rate outliers WHEN
-  PLAYED** even after the cost increase (up to 86.4%/78.7% respectively
-  under Random) — the cost increase reduced how OFTEN they land, not how
-  strong they are once they do. Named as the likely next lever if Aegis-vs-
-  Null needs further work, but not attempted this session (out of this
-  entry's authorized scope).
+**3. Aegis-vs-Cortex — an Aegis buff, Cortex never touched.** Honest
+journey, not a straight line: a first attempt (`engine/src/data/aegisCards.ts`,
+a new 0/0-stat Barrier-granting Tool at 1-2 copies) measured WORSE for this
+exact pairing under every policy (Aggressive 67.7% -> 73.7% Cortex) — the
+same "reactive/zero-immediate-impact card crowds out real tempo plays"
+opportunity-cost trap session 11's original Aegis defensive-card batch
+already discovered (owner-feedback.md's 2026-09-19 entry). Not shipped.
+Shipped instead: Guard Directive Chip — already the pool's single
+best-performing card by played win rate (~53-56%, real stats plus the
+Guard keyword, which forces removal onto a body built to take it) — bumped
+from 2 to 3 copies, its Uncommon rarity ceiling, using the pool's exact
+remaining headroom (39 -> 40 cards, no cut needed). Result, honestly: real
+movement under Aggressive (the worst-outlier policy, 32.3% -> 35.7%
+Aegis), essentially flat under Random (56.3% -> 54.3%) and Lookahead
+(50.0% -> 48.3%). **Not in the 55-60% band on any policy.** Not chased
+further unilaterally — the Aggressive-policy gap in particular looks at
+least partly agent-heuristic-driven (quality-debt.md's standing note on
+AggressiveAgent's blind spots), not purely a card-design problem, and
+closing a ~25-point gap from one copy-count change was never a realistic
+bar for a single session. Open question in `progress/notes-for-owner.md`.
 
-Per the entry's own explicit instruction, Phase 5 (pool expansion) was NOT
-started — the ring is not within band. See `progress/checkpoints.md`'s new
-entry and `progress/notes-for-owner.md` for the specific open questions this
-leaves.
+**4. Null step 4, past cost to power (`engine/src/data/nullCards.ts`).**
+Kernel Panic's destroy reach tightened from `maxHealth: 5` to `maxHealth: 4`
+(pulls Aegis's Latent Ward, 5 health, out of reach — it sat exactly on the
+old boundary). Null Singularity's health cut 8 -> 7 (both of its static
+auras kept untouched — they're its whole identity as the Mythic capstone,
+so the body absorbed the cut instead of an aura). Measured after: **Aegis-vs-Null
+is no longer triple-flagged** — Lookahead now sits IN the 55-60% band
+(58.0%), the exact "stop" condition the parent 2026-09-20/2026-09-23
+entries named, even though Aggressive (72.0%) and Random (72.3%) haven't
+individually reached band yet. Since the project's actual pass/fail bar is
+the triple-flag cross-check, and that's now clear, nothing further was
+attempted on Null this session.
 
 ## Evidence committed
 
-- `progress/balance-report-011-phase4-decisions.txt` — the ring proposal
-  recap, the full before/after table across all 6 pairings x 3 policies, the
-  honest read, and the full raw 300-seed/3-policy report with per-card
-  instrumentation.
-- `progress/sample-match-018-swarm-resilience.txt` — real, unscripted
-  LookaheadAgent-vs-LookaheadAgent match (seed 11, Swarm vs Null) proving
-  both new Swarm mechanisms fire live.
-- `engine/test/swarmResilience.test.ts` — 4 new whitebox tests.
-- `engine/src/dev/swarmResilienceMatchDemo.ts` — the seed-search script that
-  produced the sample match log (mirrors the existing
-  `segfaultConditionMatchDemo.ts` pattern).
-- `npm test` (root, all four workspaces): 128/128 passing (81 engine, up
-  from 77; 7 protocol; 23 server; 17 agents). Engine/protocol/agents are
-  100% deterministic and passed every run. One server integration test
-  ("closes a third connecting socket...") flaked on 2 of 4 runs this
-  session, including standalone — confirmed pre-existing (server/ was not
-  touched by this session at all; this is the exact real-socket timing
-  sensitivity named in quality-debt.md since session 9, previously observed
-  flaking once in session 16 too) rather than a new problem, but flakier
-  than previously observed — worth a closer look in a future hardening
-  pass rather than left purely as "worth watching." `npx tsc --noEmit`
-  clean in all four packages.
+- `progress/balance-report-012-ring-followups.txt` — full before/after
+  table (vs balance-report-011) across all six pairings x three policies,
+  the corrected ring-target report, the fixed cross-check output, and the
+  honest read of what moved and what didn't.
+- `progress/sample-match-019-ring-fixes.txt` — two real, unscripted
+  LookaheadAgent-vs-LookaheadAgent matches: one where Guard Directive Chip
+  forces an attack onto the unit it's attached to (Aegis vs Cortex, seed
+  1), one where Kernel Panic's tightened destroy reach leaves a 5-health
+  Latent Ward with no legal target and it survives (Null vs Aegis, seed
+  16). Found via `engine/src/dev/ring2609MatchDemo.ts` (mirrors
+  `segfaultConditionMatchDemo.ts`'s seed-search shape).
+- `engine/test/nullFaction.test.ts` — 1 new whitebox test pinning the
+  tightened destroy-reach behaviour against a synthetic 5-health fixture
+  (Latent Ward), alongside the pre-existing test that pins the old
+  destroy-reach's still-correct "way over cap" case (Aegis Warden, 7
+  health) so both boundaries stay covered.
+- `npm test` (root, all four workspaces): 82/82 in engine (up from 81; one
+  new test), unchanged elsewhere. `npx tsc --noEmit` clean in engine.
 
 ## Decisions made this session the owner might want to overrule
 
-See `progress/checkpoints.md`'s new entry and `progress/notes-for-owner.md`
-(short version). In short: Kernel Panic/Null Singularity's exact new costs
-(6/7, a first guess at "enough" rather than a measured target); Colony
-Broodling/Overgrown Carapace's specific numbers (1-cost 1/1 summon-on-death,
-3-cost 1-base scaling-health) and copy counts (3/2); and the decision to
-stop at exactly the two authorized changes rather than iterating further
-toward the band unilaterally, since neither pairing landed in band and nothing
-further was pre-authorized.
+See `progress/checkpoints.md`'s new entry and `progress/notes-for-owner.md`.
+In short: Guard Directive Chip's exact new copy count (3, its rarity
+ceiling — an untested-beyond-this-report guess at "enough," not a measured
+target); Kernel Panic/Null Singularity's exact new numbers (maxHealth 4,
+health 7); and the decision to stop at "no longer triple-flagged" for
+Aegis-vs-Null rather than chase every individual policy into band, and to
+stop at one copy-count change for Aegis-vs-Cortex rather than attempt a
+second lever this session.
 
 ## Concrete next step
 
-No single obviously-next action — this is another genuine steering fork,
-written up in `checkpoints.md`/`notes-for-owner.md`. If no owner response
-arrives before the next session, the roadmap default is: do NOT start Phase
-5 (pool expansion) per the entry's own explicit gate ("do NOT start
-expansion until the ring is within band"). Instead, the next session should
-either (a) get owner steering on the two open, unassigned problems this
-report leaves (Cortex-vs-Swarm, which nothing has been authorized to touch;
-and whether to go a step further on Aegis-vs-Null, e.g. touching Kernel
-Panic/Null Singularity's stats/effects now that cost alone didn't land it in
-band), or (b) if no response, read `progress/balance-report-011-phase4-decisions.txt`
-in full and pick the most conservative next move consistent with "do not
-nerf Cortex" and "do not chase further unilaterally" — most likely a second,
-smaller Cortex-vs-Swarm-specific Swarm card, since Swarm is the entry's own
-named target faction and that pairing is the only remaining triple-flag with
-no assigned owner.
+Two open pairings, neither fully in band: **Aegis-vs-Cortex** (real but
+partial progress; the Aggressive-policy gap may need either a second,
+different Aegis lever or may resolve on its own once Phase 5 widens the
+pool) and **Cortex-vs-Swarm** (explicitly left for Phase 5 to settle, per
+the owner's own instruction). If owner steering arrives, follow it. If not,
+the roadmap default is: since this is the second consecutive session where
+a card-level lever alone couldn't fully close a gap (this session's
+Aegis-vs-Cortex, following session 17's Aegis-vs-Null needing two
+mechanisms), and the two remaining open pairings are both ones the owner
+has already pointed at Phase 5 (Cortex-vs-Swarm explicitly, Aegis-vs-Cortex
+plausibly), the next balance session should consider whether the ring is
+"close enough" to start Phase 5 (pool expansion) with these two named as
+carried-forward watch items, rather than a third consecutive session
+chasing the same two pairings with diminishing unilateral moves — but this
+is a genuine judgment call for the owner or a future session to make
+explicitly, not decided here. Per RENDER.md's alternation rule, the next
+session should be a render slice (this session's own PR is the "balance"
+slice the rule alternates against).

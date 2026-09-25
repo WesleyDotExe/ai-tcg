@@ -13,10 +13,57 @@ the 2026-09-20 owner-feedback entry — fixing the balance instrument),
 session 13 (Phase 2 item 3 of the same entry — directive removal), session
 14 (Phase 2 items 4-5 — summon/token effect kind, base armor), session 15
 (Phase 3 — the load-time card-pool lint), session 16 (Phase 4 — the counter
-triangle, proposed and measured), and now session 17 (the owner's Phase 4
-decisions: the four-faction ring, Null step 4, buff Swarm).
+triangle, proposed and measured), session 17 (the owner's Phase 4
+decisions: the four-faction ring, Null step 4, buff Swarm), and now session
+18 (Phase 4 session 17 follow-ups: ring labels corrected, Aegis-vs-Cortex
+fix, Null past-cost nerf).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 18
+
+- **Aegis-vs-Cortex is still out of band on every policy** after this
+  session's fix (Guard Directive Chip 2->3 copies) — the headline honest
+  finding, not a side note. Worst on Aggressive (Cortex still wins 64.3%,
+  only down from 67.7%). This session's own read is that the gap may be
+  partly agent-heuristic (AggressiveAgent may simply play Cortex's
+  removal-heavy kit more efficiently than it plays Aegis's defensive kit —
+  see the existing "Agent quality" section below), not purely a
+  card-balance problem, but that's an untested hypothesis, not a finding —
+  nobody has actually isolated agent-skill from card-power for this
+  specific pairing. A future session with spare budget could test it
+  directly: run Aegis-vs-Cortex under LookaheadAgent-vs-AggressiveAgent
+  (mixed policy, not matched) and see whether Aegis performs closer to band
+  when it isn't the one being played by the weaker heuristic — this would
+  at least separate "the deck is behind" from "the policy misplays this
+  deck," which the current same-policy-both-sides methodology cannot do by
+  construction (see this file's Testing/Card-pool sections for the existing
+  note on that methodology's own known blind spots).
+- **A first Aegis-vs-Cortex attempt (a new Barrier-granting Tool,
+  "Redundant Barrier Coil") was designed, measured, found worse, and fully
+  reverted this session** — no trace left in the shipped card pool, but the
+  investigation itself (why a mechanically-sound-seeming card measured
+  worse) wasn't pushed further than "this matches session 11's already-
+  documented failure mode" — it's a pattern match, not a controlled
+  isolation of the actual cause the way session 11's own investigation
+  decomposed its three cards individually. If a future session wants to
+  design another new (non-copy-bump) Aegis card, this pattern-matched
+  conclusion is worth re-verifying rather than treated as fully proven.
+- **The balanceReport.ts cross-check bug this session found and fixed (it
+  didn't verify all three policies agreed on the winning side) may have
+  affected the flag status judgment calls made in EARLIER sessions' own
+  reports** (balance-report-004 through balance-report-011) — none of those
+  historical documents have been re-audited under the corrected logic, only
+  balance-report-012 (this session's own) uses it. Re-reading old reports'
+  "triple-flagged" claims with the old, buggy logic in mind is worth doing
+  once, opportunistically, rather than assuming every historical "FLAGGED"
+  call in this project's paper trail was actually a genuine same-side
+  agreement (this session spot-checked only balance-report-011's own
+  Swarm-vs-Aegis claim, not the full history).
+- **Kernel Panic's maxHealth cut to 4 and Null Singularity's health cut to
+  7 are first-guess numbers**, same category of checkpoint-proposal debt as
+  every other numeric first-guess in this project's history — not
+  playtested beyond this session's own 300-seed report.
 
 ## New debt from session 17
 

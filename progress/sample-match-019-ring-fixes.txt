@@ -1,0 +1,415 @@
+AI-TCG ring-fix evidence (2026-09-23 "Phase 4 session 17 follow-ups")
+Both sides played by LookaheadAgent in every match below.
+
+--- Item 3: Guard Directive Chip forces an attack onto the equipped unit (Aegis vs Cortex) ---
+  Found at seed 1: Guard Directive Chip attached to "Perimeter Turret", which was then the forced attack target.
+
+--- Item 4: Kernel Panic's tightened destroy reach spares a 5-health unit (Null vs Aegis) ---
+  Found at seed 16: "Latent Ward" (5 max health) had no legal destroy target offered when Corrupted Process evolved, and survived.
+
+=== Full match log: Guard Directive Chip evidence ===
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Watchtower Relay
+--- Turn 2 (p2) ---
+p2 plays Signal Drone (u1)
+Signal Drone attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Lookahead-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Guard Directive Chip
+--- Turn 3 (p1) ---
+p1 plays Perimeter Turret (u3)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Overclock Shunt
+--- Turn 4 (p2) ---
+  Overclock Shunt attaches to Signal Drone
+  Overclock Shunt attaches to Signal Drone
+Signal Drone attacks Lookahead-Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 3 damage to Lookahead-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Latent Ward
+--- Turn 5 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Signal Drone (unit)
+  Signal Drone (p2) dies
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Lookahead-Cortex
+  Guard Directive Chip attaches to Perimeter Turret
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Force Quit
+--- Turn 6 (p2) ---
+p2 plays Firewall Sentinel (u6)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Aegis Sentinel
+--- Turn 7 (p1) ---
+  Guard Directive Chip attaches to Perimeter Turret
+Perimeter Turret attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Perimeter Turret (unit)
+  Barrier Shim attaches to Perimeter Turret
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Overclock Shunt
+--- Turn 8 (p2) ---
+p2 plays Watchtower Relay (u8)
+  Overclock Shunt attaches to Watchtower Relay
+Watchtower Relay attacks Perimeter Turret
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Perimeter Turret's Barrier absorbs the hit from Watchtower Relay
+  Perimeter Turret deals 4 damage to Watchtower Relay (unit)
+  Watchtower Relay (p2) dies
+Firewall Sentinel attacks Perimeter Turret
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Perimeter Turret (unit)
+  Perimeter Turret deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Aegis Sentinel
+--- Turn 9 (p1) ---
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 4 damage to Lookahead-Cortex
+p1 plays Latent Ward (u12)
+  Latent Ward deploys, dormant — arms in 2 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Fail-safe Unit
+--- Turn 10 (p2) ---
+p2 plays Fail-safe Unit (u13)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Static Ward Beacon
+--- Turn 11 (p1) ---
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 4 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Overload Capacitor
+--- Turn 12 (p2) ---
+p2 plays Overload Capacitor (u15)
+  ability: Overload Capacitor — overload-capacitor-play (onPlay)
+  Overload Capacitor applies Overload to Overload Capacitor
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+  Overload deals 1 damage to Overload Capacitor (unit)
+p1 draws Latent Ward
+--- Turn 13 (p1) ---
+  Latent Ward arms
+  ability: Latent Ward — latent-ward-arm (onPlay)
+  Latent Ward applies Barrier to Perimeter Turret
+  Latent Ward applies Barrier to Latent Ward
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 4 damage to Lookahead-Cortex
+Latent Ward attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Lookahead-Cortex
+p1 plays Latent Ward (u18)
+  Latent Ward deploys, dormant — arms in 2 of its controller's turn(s)
+p1 plays Static Ward Beacon (d19)
+  p1 passes priority
+p2 casts Force Quit [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Force Quit
+  ability: Force Quit — force-quit-cast (onPlay)
+  Force Quit destroys Static Ward Beacon (p1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Init Daemon
+--- Turn 14 (p2) ---
+p2 plays Init Daemon (u21)
+Overload Capacitor attacks Perimeter Turret
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overload Capacitor's attack
+  Perimeter Turret's Barrier absorbs the hit from Overload Capacitor
+  Perimeter Turret deals 4 damage to Overload Capacitor (unit)
+  Overload Capacitor (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Breach Charge
+--- Turn 15 (p1) ---
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 4 damage to Lookahead-Cortex
+Latent Ward attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 1 damage to Lookahead-Cortex
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Winner: p1, turns: 15
+
+=== Full match log: Kernel Panic tightened-reach evidence ===
+--- Turn 1 (p1) ---
+p1 plays Glitch Seed (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Diagnostic Ward
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Corrupted Process
+--- Turn 3 (p1) ---
+  Null Shell attaches to Glitch Seed
+Glitch Seed attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 1 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Barrier Shim
+--- Turn 4 (p2) ---
+p2 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+  Diagnostic Ward restores 1 health to Lookahead-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Decay Ward
+--- Turn 5 (p1) ---
+p1 plays Entropy Harvester (u4)
+Glitch Seed attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 1 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Plating Module
+--- Turn 6 (p2) ---
+p2 plays Latent Ward (u6)
+  Latent Ward deploys, dormant — arms in 2 of its controller's turn(s)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Propagating Exploit
+--- Turn 7 (p1) ---
+  Glitch Seed evolves into Corrupted Process
+  ability: Corrupted Process — corrupted-process-evolve (onPlay)
+p1 draws Null Shell
+Corrupted Process attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 2 damage to Lookahead-Aegis
+  Null Shell attaches to Corrupted Process
+Entropy Harvester attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Entropy Harvester's attack
+  Entropy Harvester deals 2 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Guard Directive Chip
+--- Turn 8 (p2) ---
+  Guard Directive Chip attaches to Latent Ward
+  Guard Directive Chip attaches to Latent Ward
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Kernel Panic
+--- Turn 9 (p1) ---
+Corrupted Process attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 2 damage to Lookahead-Aegis
+p1 plays Propagating Exploit (u10)
+Entropy Harvester attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Entropy Harvester's attack
+  Entropy Harvester deals 2 damage to Lookahead-Aegis
+  Decay Ward attaches to Propagating Exploit
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Aegis Cadet
+--- Turn 10 (p2) ---
+  Latent Ward arms
+  ability: Latent Ward — latent-ward-arm (onPlay)
+  Latent Ward applies Barrier to Latent Ward
+p2 plays Aegis Cadet (u12)
+  Plating Module attaches to Aegis Cadet
+Latent Ward attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 3 damage to Lookahead-Null
+  Barrier Shim attaches to Latent Ward
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Null Shell
+--- Turn 11 (p1) ---
+  Null Shell attaches to Corrupted Process
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)
+  Propagating Exploit grants Propagating Exploit +1/+0
+Propagating Exploit attacks Latent Ward
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Propagating Exploit's attack
+  Latent Ward's Barrier absorbs the hit from Propagating Exploit
+  Propagating Exploit's Barrier absorbs the hit from Latent Ward
+Corrupted Process attacks Latent Ward
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 2 damage to Latent Ward (unit)
+  Corrupted Process's base armor reduces 3 damage from Latent Ward to 2
+  Latent Ward deals 2 damage to Corrupted Process (unit)
+Entropy Harvester attacks Latent Ward
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Entropy Harvester's attack
+  Entropy Harvester deals 2 damage to Latent Ward (unit)
+  Latent Ward deals 3 damage to Entropy Harvester (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Aegis Warden
+--- Turn 12 (p2) ---
+  Aegis Cadet evolves into Aegis Sentinel
+  ability: Aegis Sentinel — aegis-sentinel-evolve (onPlay)
+  p2 gains 1 energy from Aegis Sentinel
+Aegis Sentinel attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Sentinel's attack
+  Aegis Sentinel deals 3 damage to Lookahead-Null
+Latent Ward attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 3 damage to Lookahead-Null
+p2 casts Lockdown Field [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Lockdown Field
+  ability: Lockdown Field — lockdown-field-cast (onPlay)
+  Lockdown Field applies Stasis to Corrupted Process
+  Lockdown Field applies Stasis to Entropy Harvester
+  Lockdown Field applies Stasis to Propagating Exploit
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Stray Fragment
+--- Turn 13 (p1) ---
+  Corrupted Process evolves into Kernel Panic
+p1 plays Stray Fragment (u20)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Diagnostic Ward
+--- Turn 14 (p2) ---
+  Aegis Sentinel evolves into Aegis Warden
+  ability: Aegis Warden — aegis-warden-evolve (onPlay)
+  Aegis Warden applies Barrier to Aegis Warden
+Aegis Warden attacks Stray Fragment
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Warden's attack
+  Aegis Warden deals 5 damage to Stray Fragment (unit)
+  Aegis Warden's Barrier absorbs the hit from Stray Fragment
+  Stray Fragment (p1) dies
+Latent Ward attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Latent Ward's attack
+  Latent Ward deals 3 damage to Lookahead-Null
+p2 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+  Diagnostic Ward restores 2 health to Lookahead-Aegis
+p2 draws Plating Module
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Corruption Patch
+--- Turn 15 (p1) ---
+Kernel Panic attacks Latent Ward
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kernel Panic's attack
+  Kernel Panic deals 4 damage to Latent Ward (unit)
+  Latent Ward deals 3 damage to Kernel Panic (unit)
+  Latent Ward (p2) dies
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)
+  Propagating Exploit grants Propagating Exploit +1/+0
+Propagating Exploit attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Propagating Exploit's attack
+  Propagating Exploit deals 4 damage to Lookahead-Aegis
+Entropy Harvester attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Entropy Harvester's attack
+  Entropy Harvester deals 10 damage to Lookahead-Aegis
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Winner: p1, turns: 15

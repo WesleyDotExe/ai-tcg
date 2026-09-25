@@ -1,5 +1,42 @@
 # Notes for the owner
 
+**Updated 2026-09-25, session 18 (Phase 4 session 17 follow-ups executed —
+ring labels corrected, Aegis-vs-Cortex fix, Null past-cost nerf).** Nothing
+blocking, but two real steers wanted — full detail in
+`progress/checkpoints.md`'s new entry, short version here:
+
+1. **Aegis-vs-Null and Swarm-vs-Null are both now clear of the triple-flag**
+   (the Null step-4-past-cost nerf: Kernel Panic's destroy reach tightened
+   maxHealth 5->4, Null Singularity's health cut 8->7). Aggressive (72.0%)
+   and Random (72.3%) are both still individually above 60% for Null in the
+   Aegis matchup even though the cross-check is clear — if you want those
+   two policies in band too, not just the triple-check clear, say so and
+   a future session can push further; otherwise this is left as-is per
+   "stop when it lands in band," reading that as the triple-flag clearing.
+2. **Aegis-vs-Cortex: genuinely open, two attempts behind it now.** A first
+   attempt (a new Barrier-granting Tool) measured worse and was reverted —
+   full honesty on why in `progress/log.md`'s session-18 entry. A second
+   attempt (Guard Directive Chip 2->3 copies, its own best-performing card)
+   moved the numbers in the right direction but landed on NO policy's
+   55-60% band (Aggressive 35.7%, Random 54.3%, Lookahead 48.3% Aegis).
+   The remaining Aggressive-policy gap in particular (Cortex still wins
+   64.3%) looks to this session like it may be partly an agent-heuristic
+   artifact rather than a pure card problem — but that's a read, not a
+   certainty. Genuinely open: try a second, differently-shaped Aegis card
+   (something with immediate board impact) before Phase 5, or let Phase 5's
+   wider pool settle this pairing the same way it's expected to settle
+   Cortex-vs-Swarm? Your call.
+3. **Phase 5 (pool expansion) is still not started.** Two pairings remain
+   open (Cortex-vs-Swarm, explicitly left for Phase 5 per your own
+   instruction; Aegis-vs-Cortex, now with two attempts behind it and still
+   out of band). If you'd rather treat "two open pairings, both plausibly
+   Phase-5 territory" as good enough to start pool expansion with these
+   named as carried-forward watch items, rather than a third consecutive
+   session chasing Aegis-vs-Cortex card-by-card, say so — this session
+   didn't decide that unilaterally.
+
+---
+
 **Updated 2026-09-23, session 17 (Phase 4 decisions executed — Null step 4,
 buff Swarm; whole ring re-measured).** Nothing blocking, but real steers
 wanted — full detail in `progress/checkpoints.md`'s new entry, short version
