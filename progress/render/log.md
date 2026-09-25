@@ -259,3 +259,166 @@ countdown" the way session 1's static frame-stepping showed it. Noted in
 don't visually reflow when a neighbour dies mid-row, or (b) the momentum-
 weight pass session 1 also left open. Both legitimate; left open per
 RENDER.md's own practice of not over-prescribing the next session's choice.
+
+---
+
+## 2026-09-26 — Session 3: scale animation magnitude to event magnitude (owner feedback, 2026-09-25)
+
+Per the 2026-09-24 alternation rule: the most recently merged PR before this
+session was session 19's balance slice (#22, "Phase 5 slice 1 — grow Aegis
+pool"), so this is the render lane's turn. Picked up the owner's own named,
+already-scoped directive rather than session 2's open "next slice" menu —
+it's a direct, specific ask with a five-point spec, so it takes priority
+over the two open-ended candidates (fixed-slot layout, momentum-weight
+tuning) session 2 left on the table; both are still open for whichever
+session picks this lane back up next.
+
+**The problem, in the owner's own words:** the eight FX classes session 2
+built all play at one fixed size/duration regardless of what happened — "a
+Mythic entering uses the same modest fade as a common unit." Fix asked for:
+subtle stays subtle, big stays big, judged from the effect's own weight
+and/or the momentum gauge's delta, and — the part session 2 explicitly
+didn't verify — checked at PLAY speed, not just single-step.
+
+**What I built, in two layers:**
+
+1. **A pure, unit-tested magnitude-scoring module**
+   (`render/src/fxMagnitude.ts`, 20 new tests in
+   `render/test/fxMagnitude.test.ts`, all passing). Every FX class gets a
+   0-3ish numeric score, bucketed into three tiers (subtle / normal /
+   spectacle):
+   - **Enter**: by rarity alone — Common is subtle, Mythic is spectacle
+     (session 2's own named gap, tested directly).
+   - **Death**: by rarity, plus a bonus when the unit died in a move with no
+     `attack` event of its own — i.e. an effect/removal kill (Kernel Panic's
+     unconditional destroy is the owner's own example) reads louder than an
+     ordinary combat death at the same rarity. A Mythic dying is spectacle
+     either way.
+   - **Hit** (unit or player): by damage amount, plus a bonus when 3+ units
+     took damage in the same move (AOE / board-wide effect) — a 1-damage
+     ping alone is subtle; the same 1-2 damage landing on three bodies at
+     once is spectacle, per the owner's own "board-wide effect" example.
+   - **Player hit**: the same shape, but the killing blow (game just ended,
+     this player's health drop caused it) always maxes out to spectacle —
+     the owner's named "lethal blow" example.
+   - **Heal / buff**: by amount, same subtle-at-1 shape.
+   - **Evolve**: always spectacle — an explicit owner example, not
+     conditional on anything.
+   - **Armed** (telegraph firing): by rarity — a Mythic's telegraph landing
+     is spectacle, an ordinary one is normal.
+   - **Momentum swing**: the delta between this move's and the last move's
+     gauge score, independent of any single card event, feeding pacing (not
+     a per-card FX) — the owner's own "or the momentum-delta the gauge
+     already computes" alternative signal.
+   All of this only reads event *types* and *counts* in aggregate (was there
+   an `attack` event this move, how many `damage` events), never
+   attacker/target/unit *names* — the render lane's own known identity gap
+   (notes-for-owner.md item 4) stays correctly unused; which specific
+   instance got which FX is still decided by the exact instanceId diff
+   session 2 already built, not by this scoring.
+
+2. **Wiring the tiers into `renderHtml.ts`'s inline JS/CSS** (this part
+   necessarily hand-mirrors the module above — the whole file is a
+   template-literal `<script>` with no bundler to import a real module into
+   the page, the same reason `cardArtStyle` already reimplements
+   `cardVisual.ts`'s logic inline; kept in sync by hand, flagged as a
+   maintenance note in both files):
+   - Every existing FX class (`fx-hit`, `fx-heal`, `fx-buff`, `fx-enter`,
+     `fx-armed`, `fx-evolve`, `fx-ghost`, floating numbers) now carries a
+     `fx-mag-subtle|normal|spectacle` modifier class. `normal` intentionally
+     keeps the exact pre-existing look/duration (the owner's 2026-09-25
+     pacing note calls the current rhythm an approved baseline to protect),
+     so nothing changes for the common case — only the outliers move.
+     Subtle: shorter duration, softer/no glow. Spectacle: longer duration
+     (900ms, matched to the floating-number/death/evolve durations that
+     were previously overrunning the frame — the "collision" the owner
+     named directly), bigger scale/brightness swing, and an added **burst
+     ring** (a new, third visual language, not just "bigger fade") spawned
+     at the element's screen position for enters, evolves, armings, and
+     deaths that land as spectacle.
+   - **A dedicated full-screen flash for the lethal blow** (`fx-lethal-overlay`,
+     a radial pulse), separate from the per-card hit flash — the single
+     most significant event any match has gets a beat no card-level
+     animation alone would give it.
+   - **Adaptive pacing during autoplay** — the owner's item 4 ("a big
+     animation needs a beat... hold or slow the frame") and the literal
+     first concrete use of the same day's separate adaptive-pacing design
+     note ("pacing must be driven by move SIGNIFICANCE, not a fixed
+     clock"). `goTo`'s per-move `runFx` now returns the loudest tier that
+     fired during that move (including the momentum-swing and
+     game-just-ended checks), and the autoplay loop (rewritten from a fixed
+     `setInterval` to a `setTimeout` chain so the delay can vary per tick)
+     reads it to pick the NEXT tick's wait: spectacle holds for
+     `speed + 900ms` so its animation actually completes before the next
+     move starts overwriting it; subtle moves advance at `0.55x` speed (floor
+     120ms) so routine moves genuinely flash by; normal moves are unchanged.
+     Single-step (arrow keys / Next / Prev / scrubber) is untouched — pacing
+     only applies to autoplay, where the owner's own "verify at PLAY speed"
+     point actually matters.
+
+**Proven working, not just wired up — this time including the exact check
+session 2 admittedly skipped.** Both committed replays were regenerated
+against the current card pool first (session 19, merged since session 2's
+originals were captured, grew Aegis 18->22 — move counts shifted from
+79/100 to 100/133 moves, the same kind of pool-drift regeneration session 2
+already documented needing) via `npm run replay -w @ai-tcg/render`, then
+driven with the environment's pre-installed headless Chromium through a
+scratch Playwright script (not a project dependency) in TWO passes per
+file, not one:
+- **Single-stepped through every move**, tallying which FX/magnitude
+  classes actually landed on real DOM nodes: both files exercised all three
+  tiers (subtle/normal/spectacle) and the new burst effect (23 bursts on
+  the Swarm match, 62 on the Cortex match, which has more removal/evolve
+  traffic). Zero console errors across 101 and 134 frames respectively.
+- **Played at the "fast" (250ms) speed preset**, the actual autoplay path,
+  polling the frame counter and timing the real gaps between moves: gaps
+  ranged 118ms-1158ms (vs a flat 250ms before this session), with the
+  >900ms holds landing specifically on the moves the tally marked
+  spectacle — the adaptive pacing is real, not just computed and discarded.
+  Zero console errors during autoplay either.
+- A screenshot at a live spectacle moment (an effect-kill on Retaliation
+  Node from Salvage Reflex's damage-redirect, mid-match in the Cortex
+  replay) confirms the burst ring, the scaled hit flash, and the
+  already-known thin spot from session 2 (stacked floating numbers on a
+  card taking two effects the same move) is still present and still just a
+  missed flourish, not a bug — not fixed this session, out of scope for a
+  magnitude pass specifically.
+
+**Named honestly, not fixed this session:**
+- The stacked-floating-number cosmetic overlap session 2 already flagged as
+  thin is still there (confirmed again in this session's own screenshot
+  evidence) — a layering fix, not a magnitude-scaling one, left for
+  whichever session does the general FX-polish pass.
+- Attack lunges (`fx-attack`) were deliberately left at a flat `normal`
+  tier — the owner's five-point spec names entering/dying/hitting/evolving/
+  arming/momentum as the magnitude inputs, not the lunge motion itself, and
+  scaling it would have meant guessing at a signal the owner didn't ask for.
+- The lethal-blow full-screen flash fires on ANY game-ending move (a draw
+  or a turn-cap/move-cap ending included, not only an actual killing hit) —
+  reads as "the match just ended," which is still the single most
+  significant beat of the whole replay, but isn't literally a "lethal
+  blow" red flash in those cases. Not narrowed to true kills only, since a
+  turn-cap ending deserves its own beat just as much; flagged in case the
+  colour/framing should differ by ending type.
+- `render/test/capture.test.ts` fails when run directly inside `render/`
+  (a pre-existing workspace-resolution quirk, not caused by this session —
+  `@ai-tcg/engine` only resolves via the root's npm workspace symlinks);
+  running from the repo root (`npm test` / `npm run test -w @ai-tcg/render`)
+  is unaffected and all 34 render tests (14 pre-existing + this session's
+  20 new `fxMagnitude` tests) pass.
+- `server`'s pre-existing `integration.test.ts` "closes a third connecting
+  socket" test fails/flakes on this environment regardless of this
+  session's changes (confirmed: this session touched nothing under
+  `server/`, `git status` on that directory is clean, and the failure
+  reproduces identically re-run in isolation) — named for the record, not
+  this lane's file to fix (RENDER.md guardrail 1).
+
+**Result: `npm test` (root, all five workspaces) — engine 86/86, protocol
+7/7, agents 17/17, render 34/34 all pass; server 22/23 (the one pre-existing,
+unrelated flake above). `npx tsc --noEmit` clean in all five workspaces.**
+
+**Next render-lane slice:** session 2's two open candidates are still both
+open — (a) a fixed-slot board layout so units don't visually reflow when a
+neighbour dies mid-row, or (b) the momentum-weight pass. This session adds a
+third real candidate: the stacked-floating-number layering fix named above.
+All three are legitimate; left open per RENDER.md's own practice.

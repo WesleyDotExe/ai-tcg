@@ -7,6 +7,93 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-09-26 — Scale animation magnitude to event magnitude — AWAITING FEEDBACK
+
+**What this delivers:** direct response to the owner's 2026-09-25 "scale
+animation magnitude to event magnitude" feedback — session 2's eight FX
+classes all played at one fixed size regardless of what happened; a
+1-damage ping looked as loud as a Mythic entering. Every FX class now
+carries a subtle/normal/spectacle tier, scored from the effect's own weight
+(rarity, damage amount, AOE/board-wide count, unconditional-destroy vs
+combat death) and/or the momentum gauge's swing, per the owner's own
+five-point spec. `normal` is deliberately unchanged from session 2's
+existing look (the owner's same-day pacing note calls the current rhythm an
+approved baseline) — only the outliers move: subtle events are quicker and
+quieter, spectacle events are longer, bigger, and get a new "burst ring"
+visual plus a dedicated full-screen flash for the lethal blow. Autoplay
+pacing is now adaptive too — the loudest tier in a move decides how long the
+NEXT move waits (spectacle holds ~900ms extra so its animation actually
+completes; subtle moves advance ~45% faster) — the "first concrete use of
+the adaptive-pacing note" the owner's other 2026-09-25 entry asked for when
+stage 7 arrives; this is earlier than that, scoped narrowly to what this
+feedback asked for (magnitude-driven autoplay pacing), not full commentary
+pacing. Full detail: `progress/render/log.md`'s session-3 entry.
+
+**Evidence:** the scoring logic itself is a pure, unit-tested module
+(`render/src/fxMagnitude.ts`, 20 new tests) — not just eyeballed thresholds.
+Both committed replays were regenerated against the current card pool
+(session 19 grew Aegis's pool since session 2's originals were captured) and
+driven in real headless Chromium in TWO passes, closing the exact gap the
+owner named ("verify at PLAY speed, not just single-step," item 5 — session
+2 only single-stepped): single-step tallied real FX/tier classes landing on
+DOM nodes across all 101/134 frames (zero console errors), and a SEPARATE
+autoplay pass at the "fast" preset measured the actual gaps between moves
+(118-1158ms, versus a flat 250ms before this session), confirming the >900ms
+holds land specifically on the moves flagged spectacle — the pacing is
+real, not just computed and discarded. A screenshot at a live spectacle
+moment (an effect-kill mid-match) confirms the burst ring and scaled flash
+render correctly. `npm test`: engine 86/86, protocol 7/7, agents 17/17,
+render 34/34 (14 pre-existing + 20 new); the one server test failure is a
+pre-existing, unrelated socket-timing flake (this session touched nothing
+under `server/`). `npx tsc --noEmit` clean in all five workspaces.
+
+**Where it's strong:** the magnitude model is data-driven and tested, not
+just "make some things bigger" — a Mythic entering, an unconditional
+destroy, a board-wide effect, and the lethal blow are all independently
+provably spectacle-tier by their own scoring rules, matching all five of the
+owner's named examples. The "normal" tier is byte-for-byte the same
+animations session 2 shipped, so nothing regresses for the common case.
+
+**Where it's thin, named honestly:** the browser-side scoring logic can't be
+imported from the tested module (this file has no bundler, it's a
+template-literal `<script>`) — it's hand-mirrored, a real (if small)
+duplication-drift risk flagged in both files' own comments. Attack lunges
+weren't given a magnitude tier (the owner's spec didn't name them as an
+input). The lethal-blow full-screen flash fires on any game-ending move,
+including a turn-cap/move-cap ending, not literally only a killing hit — it
+reads as "the match just ended" rather than strictly "lethal," which may or
+may not be the intended framing. Session 2's own already-named thin spot
+(floating numbers stacking illegibly when two FX land on one card the same
+move) is still present, confirmed again by this session's screenshot, and
+still not fixed — it's a layering bug, not a magnitude-scaling one.
+
+**Decisions the owner might want to overrule:**
+1. **The tier thresholds and per-effect score weights** (`render/src/
+   fxMagnitude.ts`'s constants) are this session's own reasoned first
+   proposal, tuned against the five named examples and the two committed
+   replays' own real numbers — not owner-set. Easy to retune if a tier feels
+   wrong once there's more to eyeball it against.
+2. **Adaptive autoplay pacing was scoped to this feedback's own ask**
+   (hold on spectacle, speed past subtle) rather than building the full
+   momentum/significance-driven commentary pacing the OTHER 2026-09-25 entry
+   describes for stage 7 — that entry explicitly said "flag the exact
+   pacing model at a checkpoint when stage 7 arrives," so this session did
+   not treat this as that checkpoint. If the owner would rather this WAS
+   that model, say so and it can be extended rather than redone.
+3. **The lethal-blow flash applies to any game-ending move**, not narrowed
+   to an actual killing blow only (see "where it's thin" above) — a
+   deliberate choice to give every match's ending a beat, open to being
+   narrowed if that reads wrong.
+
+**What's next:** per RENDER.md's alternation rule, the next session goes
+back to the balance/roadmap track. When the render lane comes back around,
+session 2's two open candidates (fixed-slot board layout; a momentum-weight
+retune) plus this session's own newly-flagged floating-number stacking fix
+are all legitimate next picks — left open per this lane's own practice of
+not over-prescribing.
+
+---
+
 ## 2026-09-25 — Animated per-move transitions — AWAITING FEEDBACK
 
 **What this delivers:** the render's biggest named gap against DESIGN's
