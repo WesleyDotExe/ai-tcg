@@ -929,3 +929,16 @@ Watched the session-2 animated replay (seed 24). The animations are there and fi
 5. **Verify at PLAY speed, not just single-step** — session 2 was validated by single-stepping, which is why the under-emphasis was not caught.
 
 Goal: watching at normal speed, a person clearly feels the big plays without being told where to look, while the small stuff stays understated.
+
+---
+
+## 2026-09-26 — Owner: session 19 confirmations (Phase 5 slice 1)
+
+Phase 5 slice 1 (Aegis 18->22, Aegis-vs-Cortex) reviewed and accepted. Four responses:
+
+1. **Aegis-vs-Cortex — accepted as done.** Triple-flag clear (Random 58.7%, Lookahead 59.3% in band) is the bar, same as Aegis-vs-Null. Do NOT keep tuning it to drag the Aggressive policy (47%) into band — Aggressive is the weakest agent; Lookahead + the triple-check govern.
+2. **The overtuned-first-cut catch is noted and endorsed** — re-measuring before shipping is exactly right; keep doing it on every card-design pass. No action.
+3. **Aegis-vs-Swarm drift accepted as a tracked watch item, not fixed now.** It is an "even" pairing that drifted Aegis-favoured as collateral from Aegis getting stronger. Leave it for SWARM's own Phase 5 slice to pull back (Swarm buffs vs Null should also help here), and let the mandatory end-of-Phase-5 full-ring re-measure catch it. Do not nerf Aegis to chase it mid-expansion.
+4. **Latent Ward trim (2->1) stands.** The telegraph=2 fuse trial is judgeable from the render at any copy count, so 1 copy is fine; no need to protect its representation.
+
+Continue Phase 5: each faction gets its expansion slice (Swarm next would help both its own weak matchups and the Aegis-vs-Swarm drift above), all inside the lint, then the mandatory full-ring re-measure under all three policies with Lookahead as arbiter.
