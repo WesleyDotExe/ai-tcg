@@ -259,6 +259,91 @@ html, body {
   15% { opacity: 1; }
   100% { opacity: 0; transform: translateY(-38px); }
 }
+
+/* Magnitude scaling (RENDER.md render-lane session 3, per owner feedback
+ * 2026-09-25 "scale animation magnitude to event magnitude"): every FX class
+ * above is the NORMAL tier. Subtle/spectacle modifier classes retune the
+ * same animation's duration/size/glow rather than invent new motion, so a
+ * 1-damage ping and a lethal blow use the same visual language at very
+ * different volumes. Applied together with the base class, e.g.
+ * class="card fx-hit fx-mag-spectacle". Tier is computed in JS (magnitudeOf
+ * section below) from the effect's own weight (rarity, amount, AOE count,
+ * unconditional-destroy) and/or the momentum swing — never from event text
+ * identity (that stays the instanceId diff, per session 2's own guardrail
+ * reasoning). */
+.fx-mag-subtle { animation-duration: 260ms !important; }
+.fx-mag-subtle.fx-hit, .fx-mag-subtle.fx-heal, .fx-mag-subtle.fx-buff { box-shadow: none !important; filter: brightness(1.12); }
+.fx-mag-spectacle { animation-duration: 900ms !important; }
+
+.fx-number.mag-subtle { font-size: 0.7rem; opacity: 0.85; animation-duration: 550ms; }
+.fx-number.mag-spectacle { font-size: 1.55rem; animation-duration: 1300ms; text-shadow: 0 0 10px currentColor, 0 1px 3px rgba(0,0,0,0.9); }
+
+.fx-mag-spectacle.fx-hit, .fx-mag-spectacle.hud.fx-hit { animation-name: fx-hit-flash-big; }
+@keyframes fx-hit-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--bad) inset, 0 0 34px 6px var(--bad); transform: scale(1); }
+  30% { transform: scale(1.06); }
+  100% { box-shadow: none; transform: scale(1); }
+}
+.fx-mag-spectacle.fx-heal, .fx-mag-spectacle.hud.fx-heal { animation-name: fx-heal-flash-big; }
+@keyframes fx-heal-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--good) inset, 0 0 34px 6px var(--good); }
+  100% { box-shadow: none; }
+}
+.fx-mag-spectacle.fx-buff { animation-name: fx-buff-flash-big; }
+@keyframes fx-buff-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--neutral) inset, 0 0 34px 6px var(--neutral); transform: scale(1); }
+  35% { transform: scale(1.08); }
+  100% { box-shadow: none; transform: scale(1); }
+}
+.fx-mag-spectacle.fx-enter { animation: fx-enter-big 900ms cubic-bezier(.22,.9,.32,1.1); }
+@keyframes fx-enter-big {
+  0% { opacity: 0; transform: translateY(30px) scale(0.6) rotate(-4deg); filter: brightness(2); }
+  60% { opacity: 1; transform: translateY(-6px) scale(1.08) rotate(1deg); filter: brightness(1.5); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); filter: brightness(1); }
+}
+.fx-mag-spectacle.fx-armed { animation: fx-armed-flash-big 900ms ease; }
+@keyframes fx-armed-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--neutral) inset, 0 0 30px var(--neutral); filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(1.9); transform: scale(1.1); }
+  100% { box-shadow: none; filter: brightness(1); transform: scale(1); }
+}
+.fx-mag-spectacle.fx-evolve { animation: fx-evolve-pulse-big 900ms ease; }
+@keyframes fx-evolve-pulse-big {
+  0% { transform: scale(1); filter: brightness(1); }
+  45% { transform: scale(1.28); filter: brightness(2) saturate(1.7); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.fx-ghost.fx-mag-subtle { animation: fx-exit-subtle 300ms ease forwards; }
+@keyframes fx-exit-subtle { 0% { opacity: 1; } 100% { opacity: 0; transform: translateY(8px) scale(0.9); } }
+.fx-ghost.fx-mag-spectacle { animation: fx-exit-big 900ms ease forwards; }
+@keyframes fx-exit-big {
+  0% { opacity: 1; transform: translateY(0) scale(1) rotate(0); filter: none; }
+  35% { opacity: 1; transform: translateY(-6px) scale(1.15) rotate(-3deg); filter: brightness(2.2) saturate(0); }
+  100% { opacity: 0; transform: translateY(30px) scale(0.35) rotate(10deg); filter: grayscale(1) brightness(0.3); }
+}
+
+/* A brief expanding ring, spawned only for spectacle-tier moments (a Mythic
+ * entering, an evolution, an effect-killed Rare/Mythic) — the "unmistakable
+ * spectacle, not just bigger" cue the routine-vs-pivotal moments need. */
+.fx-burst { position: fixed; width: 64px; height: 64px; margin-left: -32px; margin-top: -32px;
+  border-radius: 50%; border: 3px solid var(--burst-color, var(--neutral)); pointer-events: none;
+  animation: fx-burst-ring 700ms ease-out forwards; }
+@keyframes fx-burst-ring {
+  0% { opacity: 0.9; transform: scale(0.2); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+/* The lethal blow — game-ending damage — gets a full-screen beat, not just
+ * a bigger card-level flash, since it is the single most significant event
+ * any match has. */
+.fx-lethal-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 95;
+  background: radial-gradient(circle, rgba(255,77,109,0.35) 0%, rgba(255,77,109,0) 70%);
+  animation: fx-lethal-flash 1200ms ease-out forwards; }
+@keyframes fx-lethal-flash {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; }
+}
 `;
 
 const JS = `
@@ -280,6 +365,52 @@ const JS = `
   const fxLayer = document.createElement('div');
   fxLayer.className = 'fx-layer';
   document.body.appendChild(fxLayer);
+
+  // Magnitude scoring (render-lane session 3): hand-mirrors
+  // render/src/fxMagnitude.ts's pure, unit-tested logic. It has to be
+  // reimplemented here rather than imported — this whole file is a
+  // template-literal <script> that runs unbundled in the browser, the same
+  // reason cardArtStyle below reimplements cardVisual.ts's placeholder-art
+  // logic instead of importing it. Keep the two in sync by hand; the tiers
+  // and thresholds are the same numbers as fxMagnitude.ts.
+  const RARITY_WEIGHT = { Common: 1.0, Uncommon: 1.3, Rare: 1.8, Mythic: 2.6 };
+  const SUBTLE_MAX = 0.9;
+  const SPECTACLE_MIN = 2.4;
+  function tierFromScore(score) {
+    if (score >= SPECTACLE_MIN) return 'spectacle';
+    if (score <= SUBTLE_MAX) return 'subtle';
+    return 'normal';
+  }
+  function enterScore(rarity) { return { Common: 0.6, Uncommon: 1.4, Rare: 1.8, Mythic: 2.6 }[rarity]; }
+  function deathScore(rarity, wasEffectKill) { return RARITY_WEIGHT[rarity] + (wasEffectKill ? 0.9 : 0); }
+  function hitScore(amount, aoeCount) {
+    const delta = Math.abs(amount);
+    const base = delta <= 1 ? 0.5 : delta <= 3 ? 1.3 : delta <= 5 ? 2.0 : 3.0;
+    const aoeBonus = aoeCount >= 3 ? 1.3 : aoeCount === 2 ? 0.5 : 0;
+    return base + aoeBonus;
+  }
+  function playerHitScore(amount, isLethal) {
+    if (isLethal) return SPECTACLE_MIN + 2;
+    const delta = Math.abs(amount);
+    return delta <= 1 ? 0.8 : delta <= 3 ? 1.6 : delta <= 5 ? 2.3 : 3.0;
+  }
+  function healScore(amount) { const d = Math.abs(amount); return d <= 1 ? 0.5 : d <= 4 ? 1.2 : 2.8; }
+  function buffScore(atkDelta) { const d = Math.abs(atkDelta); return d <= 1 ? 0.6 : d <= 3 ? 1.3 : 2.6; }
+  function evolveScore() { return 2.8; }
+  function armedScore(rarity) { return { Common: 1.0, Uncommon: 1.2, Rare: 1.9, Mythic: 2.5 }[rarity]; }
+  function momentumSwingScore(prevScore, newScore) {
+    const d = Math.abs(newScore - prevScore);
+    return d <= 6 ? 0 : d <= 15 ? 1.2 : d <= 25 ? 2.0 : 3.2;
+  }
+  const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
+  function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
+
+  // Adaptive pacing (owner feedback 2026-09-25 item 4: "a big animation
+  // needs a beat... big effects especially need the frame to wait for
+  // them"). Tracks the loudest tier seen in the transition just shown, so
+  // the play loop can hold longer on a spectacle moment and breeze past a
+  // subtle one, instead of every move getting the same fixed delay.
+  let lastTransitionTier = 'normal';
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -505,10 +636,14 @@ const JS = `
   function hudRect(pid) { return document.getElementById('hud-' + pid).getBoundingClientRect(); }
   function liveCardEl(iid) { return document.querySelector('.card[data-iid="' + iid + '"]'); }
 
-  function spawnGhost(entry, rect) {
+  const GHOST_MS = { subtle: 320, normal: 700, spectacle: 950 };
+  const NUMBER_MS = { subtle: 550, normal: 950, spectacle: 1300 };
+  const FLASH_MS = { subtle: 260, normal: 500, spectacle: 900 };
+
+  function spawnGhost(entry, rect, tier) {
     if (!rect || (rect.width === 0 && rect.height === 0)) return;
     const cardEl = entry.kind === 'unit' ? renderUnitSlot(entry.v, entry.owner) : renderDirectiveSlot(entry.v, entry.owner);
-    cardEl.classList.add('fx-ghost');
+    cardEl.classList.add('fx-ghost', 'fx-mag-' + tier);
     cardEl.style.position = 'fixed';
     cardEl.style.left = rect.left + 'px';
     cardEl.style.top = rect.top + 'px';
@@ -516,57 +651,128 @@ const JS = `
     cardEl.style.height = rect.height + 'px';
     cardEl.style.margin = '0';
     fxLayer.appendChild(cardEl);
-    setTimeout(function () { cardEl.remove(); }, 700);
+    if (tier === 'spectacle') spawnBurst(rect, 'var(--bad)');
+    setTimeout(function () { cardEl.remove(); }, GHOST_MS[tier] || GHOST_MS.normal);
   }
 
-  function spawnNumber(rect, text, cls) {
+  function spawnNumber(rect, text, cls, tier) {
     if (!rect) return;
     const el = document.createElement('div');
-    el.className = 'fx-number ' + cls;
-    el.textContent = text;
+    el.className = 'fx-number ' + cls + (tier ? ' mag-' + tier : '');
+    el.textContent = tier === 'spectacle' ? text + '!' : text;
     el.style.left = (rect.left + rect.width / 2 - 16) + 'px';
     el.style.top = (rect.top + 6) + 'px';
     fxLayer.appendChild(el);
-    setTimeout(function () { el.remove(); }, 950);
+    setTimeout(function () { el.remove(); }, NUMBER_MS[tier] || NUMBER_MS.normal);
   }
 
-  function flashClass(el, cls) {
+  function spawnBurst(rect, color) {
+    if (!rect) return;
+    const el = document.createElement('div');
+    el.className = 'fx-burst';
+    el.style.setProperty('--burst-color', color);
+    el.style.left = (rect.left + rect.width / 2) + 'px';
+    el.style.top = (rect.top + rect.height / 2) + 'px';
+    fxLayer.appendChild(el);
+    setTimeout(function () { el.remove(); }, 750);
+  }
+
+  function flashClass(el, cls, tier) {
     if (!el) return;
-    el.classList.remove(cls);
+    const magCls = 'fx-mag-' + tier;
+    el.classList.remove(cls, 'fx-mag-subtle', 'fx-mag-normal', 'fx-mag-spectacle');
     void el.offsetWidth; // force reflow so re-adding the class retriggers the keyframe
-    el.classList.add(cls);
-    setTimeout(function () { el.classList.remove(cls); }, 500);
+    el.classList.add(cls, magCls);
+    if (tier === 'spectacle' && (cls === 'fx-evolve' || cls === 'fx-enter' || cls === 'fx-armed')) {
+      spawnBurst(el.getBoundingClientRect(), cls === 'fx-evolve' ? 'var(--good)' : 'var(--neutral)');
+    }
+    setTimeout(function () { el.classList.remove(cls, magCls); }, FLASH_MS[tier] || FLASH_MS.normal);
+  }
+
+  function showLethalFlash() {
+    const el = document.createElement('div');
+    el.className = 'fx-lethal-overlay';
+    document.body.appendChild(el);
+    setTimeout(function () { el.remove(); }, 1200);
   }
 
   function runFx(prevFrame, prevBoard, prevRects, prevHudRects, newFrame) {
     const newBoard = collectBoard(newFrame);
+    const tiers = [];
+    // Coarse, aggregate-only reads of newEvents (event TYPES and counts,
+    // never attacker/target/unit NAME fields) — safe despite the event
+    // log's known name-collision identity gap (progress/render/
+    // notes-for-owner.md item 4), because nothing here attributes an event
+    // to a specific instance by name; the instanceId diff above already did
+    // that precisely. This only asks "how many, how loud, of what kind".
+    const hasAttackEvent = newFrame.newEvents.some(function (e) { return e.event.type === 'attack'; });
+    const aoeCount = newFrame.newEvents.filter(function (e) { return e.event.type === 'damage' && e.event.targetKind === 'unit'; }).length;
+    const justEnded = !prevFrame.winner && !!newFrame.winner;
 
     Object.keys(prevBoard).forEach(function (id) {
-      if (!newBoard[id]) spawnGhost(prevBoard[id], prevRects[id]);
+      if (!newBoard[id]) {
+        const tier = tierFromScore(deathScore(prevBoard[id].v.rarity, !hasAttackEvent));
+        tiers.push(tier);
+        spawnGhost(prevBoard[id], prevRects[id], tier);
+      }
     });
 
     Object.keys(newBoard).forEach(function (id) {
       const el = liveCardEl(id);
       if (!el) return;
-      if (!prevBoard[id]) { flashClass(el, 'fx-enter'); return; }
+      if (!prevBoard[id]) {
+        const tier = tierFromScore(enterScore(newBoard[id].v.rarity));
+        tiers.push(tier);
+        flashClass(el, 'fx-enter', tier);
+        return;
+      }
       if (newBoard[id].kind !== 'unit') return;
       const pv = prevBoard[id].v, nv = newBoard[id].v;
-      if (pv.pending && !nv.pending) flashClass(el, 'fx-armed');
-      if (pv.cardId !== nv.cardId) flashClass(el, 'fx-evolve');
-      if (nv.canAttackThisTurn === false && pv.canAttackThisTurn === true) flashClass(el, 'fx-attack');
+      if (pv.pending && !nv.pending) { const t = tierFromScore(armedScore(nv.rarity)); tiers.push(t); flashClass(el, 'fx-armed', t); }
+      if (pv.cardId !== nv.cardId) { const t = tierFromScore(evolveScore()); tiers.push(t); flashClass(el, 'fx-evolve', t); }
+      if (nv.canAttackThisTurn === false && pv.canAttackThisTurn === true) flashClass(el, 'fx-attack', 'normal');
       const hpDelta = nv.health - pv.health;
-      if (hpDelta < 0) { flashClass(el, 'fx-hit'); spawnNumber(el.getBoundingClientRect(), String(hpDelta), 'dmg'); }
-      else if (hpDelta > 0) { flashClass(el, 'fx-heal'); spawnNumber(el.getBoundingClientRect(), '+' + hpDelta, 'heal'); }
+      if (hpDelta < 0) {
+        const t = tierFromScore(hitScore(hpDelta, aoeCount));
+        tiers.push(t);
+        flashClass(el, 'fx-hit', t);
+        spawnNumber(el.getBoundingClientRect(), String(hpDelta), 'dmg', t);
+      } else if (hpDelta > 0) {
+        const t = tierFromScore(healScore(hpDelta));
+        tiers.push(t);
+        flashClass(el, 'fx-heal', t);
+        spawnNumber(el.getBoundingClientRect(), '+' + hpDelta, 'heal', t);
+      }
       const atkDelta = nv.attack - pv.attack;
-      if (atkDelta !== 0 && hpDelta === 0) { flashClass(el, 'fx-buff'); spawnNumber(el.getBoundingClientRect(), (atkDelta > 0 ? '+' : '') + atkDelta + ' ATK', 'buff'); }
+      if (atkDelta !== 0 && hpDelta === 0) {
+        const t = tierFromScore(buffScore(atkDelta));
+        tiers.push(t);
+        flashClass(el, 'fx-buff', t);
+        spawnNumber(el.getBoundingClientRect(), (atkDelta > 0 ? '+' : '') + atkDelta + ' ATK', 'buff', t);
+      }
     });
 
     ['p1', 'p2'].forEach(function (pid) {
       const delta = newFrame.players[pid].health - prevFrame.players[pid].health;
       const hudEl = document.getElementById('hud-' + pid);
-      if (delta < 0) { flashClass(hudEl, 'fx-hit'); spawnNumber(prevHudRects[pid], String(delta), 'dmg'); }
-      else if (delta > 0) { flashClass(hudEl, 'fx-heal'); spawnNumber(prevHudRects[pid], '+' + delta, 'heal'); }
+      const isLethal = justEnded && newFrame.winner !== pid && newFrame.winner !== 'draw' && delta < 0;
+      if (delta < 0) {
+        const t = tierFromScore(playerHitScore(delta, isLethal));
+        tiers.push(t);
+        flashClass(hudEl, 'fx-hit', t);
+        spawnNumber(prevHudRects[pid], String(delta), 'dmg', t);
+      } else if (delta > 0) {
+        const t = tierFromScore(playerHitScore(delta, false));
+        tiers.push(t);
+        flashClass(hudEl, 'fx-heal', t);
+        spawnNumber(prevHudRects[pid], '+' + delta, 'heal', t);
+      }
     });
+
+    tiers.push(tierFromScore(momentumSwingScore(prevFrame.momentum.score, newFrame.momentum.score)));
+    if (justEnded) { tiers.push('spectacle'); showLethalFlash(); }
+
+    return maxTierOf(tiers);
   }
 
   function goTo(n) {
@@ -578,25 +784,46 @@ const JS = `
       const prevHudRects = { p1: hudRect('p1'), p2: hudRect('p2') };
       i = target;
       renderFrame();
-      runFx(prevFrame, prevBoard, prevRects, prevHudRects, frames[i]);
+      lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevHudRects, frames[i]);
     } else {
       i = target;
       renderFrame();
+      lastTransitionTier = 'normal'; // a jump has no "in between" to weigh, so pacing falls back to normal
     }
     if (i === frames.length - 1) stop();
   }
 
-  function stop() { playing = false; clearInterval(timer); document.getElementById('btn-play').textContent = '\\u25B6'; }
+  function stop() { playing = false; clearTimeout(timer); document.getElementById('btn-play').textContent = '\\u25B6'; }
+
+  // Adaptive pacing (owner feedback 2026-09-25, item 4): a fixed-interval
+  // timer gives a lethal blow and a 1-damage ping the same amount of screen
+  // time. Instead, each tick's wait is chosen from the tier of the move
+  // that was JUST shown — a spectacle moment holds so its animation (up to
+  // 900-1300ms) actually lands before the next move starts overwriting it;
+  // a subtle move breezes past faster, since DESIGN's watchability bar
+  // wants routine moves to flash by, not pad out the runtime.
+  function nextDelay(baseSpeed) {
+    if (lastTransitionTier === 'spectacle') return baseSpeed + 900;
+    if (lastTransitionTier === 'subtle') return Math.max(120, Math.round(baseSpeed * 0.55));
+    return baseSpeed;
+  }
+
+  function scheduleTick() {
+    const speed = Number(document.getElementById('speed').value);
+    timer = setTimeout(function () {
+      if (i >= frames.length - 1) { stop(); return; }
+      goTo(i + 1);
+      if (playing) scheduleTick();
+    }, nextDelay(speed));
+  }
+
   function play() {
     if (i >= frames.length - 1) i = 0;
     playing = true;
+    lastTransitionTier = 'normal';
     document.getElementById('btn-play').textContent = '\\u23F8';
-    const speed = Number(document.getElementById('speed').value);
-    clearInterval(timer);
-    timer = setInterval(function () {
-      if (i >= frames.length - 1) { stop(); return; }
-      goTo(i + 1);
-    }, speed);
+    clearTimeout(timer);
+    scheduleTick();
   }
 
   document.getElementById('btn-first').onclick = function () { stop(); goTo(0); };

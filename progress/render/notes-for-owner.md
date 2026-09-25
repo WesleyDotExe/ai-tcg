@@ -84,3 +84,37 @@ separate from the shared `progress/notes-for-owner.md`).
    regenerate on demand instead of accumulating a growing binary-ish history
    the way `progress/sample-match-*.txt` does. Not changing the convention
    unilaterally — flagging the tradeoff.
+
+## 2026-09-26 — Session 3 (scale animation magnitude to event magnitude)
+
+7. **The browser-side magnitude-scoring logic is hand-duplicated, not
+   imported, from its tested source.** `render/src/fxMagnitude.ts` is a
+   real, unit-tested module (20 tests) — but `renderHtml.ts`'s inline
+   `<script>` can't `import` it, since the replay page is a single
+   dependency-free HTML file with no bundler in this lane's toolchain. The
+   scoring logic (rarity weights, tier thresholds, per-effect formulas) is
+   copied by hand into the template-literal JS, with a comment in both
+   files pointing at the other. This is the same shape as the pre-existing
+   `cardArtStyle`/`cardVisual.ts` split, just a second instance of it now —
+   real drift risk if one side changes without the other, flagged rather
+   than silently accepted. A bundler step for this lane's inline script
+   would remove the risk entirely but is a real toolchain addition, not a
+   small one — not taken unilaterally.
+
+8. **The lethal-blow full-screen flash fires on any game-ending move, not
+   only an actual killing hit** — a turn-cap or move-cap ending gets the
+   same dramatic radial flash as a real lethal blow, since "the match just
+   ended" is still arguably the single biggest beat of a replay either way.
+   If a turn-cap ending should read differently (a duller "time's up" cue
+   instead of the same red "lethal" flash), that's a small, easy follow-up
+   — not done this session since the owner's feedback named "a lethal blow"
+   specifically and didn't address non-lethal endings.
+
+9. **Session 2's stacked-floating-number thin spot is still open, confirmed
+   again.** When two FX land on the same card in the same move (e.g. a hit
+   and a buff together), their floating numbers can visually overlap — seen
+   again in this session's own screenshot evidence
+   (`progress/render/log.md`'s session-3 entry). Not a magnitude-scaling
+   problem, so out of scope for this session's slice; a real next
+   micro-slice (offset each subsequent number spawned on the same card
+   within a move) whenever picked up.
