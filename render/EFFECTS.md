@@ -14,6 +14,7 @@ The grammar is CONSTANT across every faction and tier — a viewer learns it onc
 - defence / block → interpose (a shield comes between the hit and the unit), absorb, and shatter when it breaks
 - buff (positive) → rise + brighten, moving upward
 - penalty / debuff (negative) → sink + desaturate, moving downward
+- a temporary buff/debuff merely wearing off → a quiet settle (neither rise nor sink — it is not a new buff or penalty and must not read like one); always subtle
 - power / ability activation → a cast flourish emanating from the source card
 - enter / summon → materialise in
 - death / destroy → exit (existing ghost); an unconditional destroy is louder than an ordinary combat death
@@ -58,8 +59,8 @@ Adding a faction = a palette + a particle style. Adding an effect type = one pri
 
 ## Build order (one slice per render-lane turn; build each across ALL factions via the primitive, not one faction at a time)
 
-1. Defence / shield: interpose + absorb + shatter on Barrier; a persistent shield badge on Guard units; a small deflect on base-armor damage reduction. No pairing dependency — do this FIRST; it immediately makes Aegis’s defensive identity legible.
-2. Buff (rise) and penalty (sink) grammar, tier-scaled and faction-tinted.
+1. Defence / shield — built render session 4: interpose + absorb + shatter on Barrier; a persistent shield badge on Guard units; a small deflect on base-armor damage reduction. No pairing dependency — do this FIRST; it immediately makes Aegis’s defensive identity legible.
+2. Buff (rise) and penalty (sink) grammar, tier-scaled and faction-tinted. — built render session 5 (render/src/statFx.ts; persistent above/below-printed stat markers and penalty-status badges ride along).
 3. Power / ability cast flourish.
 4. Attack travel + impact (after the instance-ID event-log fix lands).
 5. Faction skinning pass: give each primitive its per-faction particle character (still placeholder art; real art later).

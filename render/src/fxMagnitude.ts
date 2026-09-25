@@ -62,9 +62,25 @@ export function healScore(amount: number): number {
   return delta <= 1 ? 0.5 : delta <= 4 ? 1.2 : 2.8;
 }
 
-export function buffScore(atkDelta: number): number {
-  const delta = Math.abs(atkDelta);
-  return delta <= 1 ? 0.6 : delta <= 3 ? 1.3 : 2.6;
+/** A buff or penalty landing on a unit (EFFECTS.md slice 2's rise/sink).
+ * `statTotal` is |attack| + |health| moved; each newly applied penalty
+ * status (Stasis/Overload) counts like 1.5 stat points, since "can't
+ * attack" / "takes damage every turn" outweighs a -1. `unitsAffected` is
+ * how many units took the SAME kind of shift this move. Breadth is
+ * magnitude-aware: a real board-wide shift (2+ stat points, or a status,
+ * on three-plus units) is the "board-wide effect" the owner named as
+ * spectacle (2026-09-25), but the pool's most COMMON penalty is a recurring
+ * -1 ATK sap on every enemy unit (Aegis, onDamaged) — measured at play
+ * speed in render session 5, scoring every one of those as spectacle held
+ * the replay on a routine -1 several times a match. That's `normal` now:
+ * visible, not shouting. A temporary buff merely wearing off is always
+ * subtle. */
+export function statShiftScore(kind: "buff" | "penalty" | "expire", statTotal: number, statusCount: number, unitsAffected: number): number {
+  if (kind === "expire") return 0.4;
+  const m = Math.abs(statTotal) + 1.5 * statusCount;
+  const base = m <= 1 ? 0.6 : m <= 3 ? 1.3 : m <= 5 ? 2.0 : 2.8;
+  const wide = unitsAffected >= 3 ? (m >= 2 ? 1.8 : 1.0) : unitsAffected === 2 ? 0.5 : 0;
+  return base + wide;
 }
 
 /** An evolution completing is always a spectacle beat — named explicitly by

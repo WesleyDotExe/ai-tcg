@@ -601,3 +601,156 @@ specifies, not just a colour flash). Slice 3 (power/ability cast flourish)
 is also open and has no dependency on slice 2. Slice 4 (attack travel +
 impact) still explicitly waits on the balance lane's instance-ID event-log
 fix (owner-feedback.md, 2026-09-25) — not yet landed as of this session.
+
+---
+
+## 2026-09-26 — Session 5: buff (rise) / penalty (sink) grammar (EFFECTS.md slice 2) + player avatars
+
+**Why this session is a render session:** the most recently merged PR
+before this one was #25 (Session 20, a balance/card slice), so per the
+owner's 2026-09-24 alternation rule this session does one render slice per
+RENDER.md. Per `render/EFFECTS.md`'s build order that's slice 2. The
+owner's 2026-09-26 "reserve player identity" entry explicitly allows a
+render session to fold the avatar slot into its current slice, so this one
+does.
+
+**1. A real legibility bug, measured before fixing.** The pre-existing
+"buff" flash keyed off a raw attack delta and the heal flash off a raw
+health delta. Scanning 48 real Lookahead-vs-Lookahead matches (12 seeds ×
+Null/Aegis, Aegis/Null, Cortex/Swarm, Aegis/Cortex) with the new
+classifier showed the old render misread three common cases, every match:
+- **debuffs drawn as buffs** — a -1 ATK sap or aura flashed in the same
+  gold as a buff (up to 15 times in one match, Aegis-vs-Null seed 8). That
+  breaks EFFECTS.md's one invariant (a debuff always reads as a debuff);
+- **+HP buffs drawn as heals** (3–14 per match) — maxHealth and health rise
+  together, and the old code only saw "health went up";
+- **Null's -2/-2 shrink drawn as a hit** (up to 5 per match) — a red
+  damage number for something that wasn't damage.
+
+**2. The fix is an exact decomposition, not a heuristic.** The engine's
+health model is `currentHealth = currentMaxHealth - damageTaken`
+(`engine/src/state/queries.ts`), so a maxHealth change is a stat shift and
+whatever health change is left over is precisely damage or heal.
+`render/src/statFx.ts` (new, pure) classifies each surviving, non-evolving
+unit's frame-to-frame change as `buff` / `penalty` / `expire` / nothing:
+- stat deltas net positive → buff; net negative, or any newly applied
+  Stasis/Overload status → penalty;
+- a temporary (`turnBuff`) buff or debuff wearing off at end of turn is
+  its own kind, `expire` — neither a buff nor a penalty, rendered as a
+  quiet always-subtle "settle". This needed a new `turnBuff` snapshot
+  field (read-only from engine state in `capture.ts`);
+- live stats are clamped (attack ≥ 0, maxHealth ≥ 1), so an expiry on a
+  clamped unit can't just be subtracted — the test suite caught the
+  classifier misreading "a -1 debuff on a 0-attack unit wears off" as a
+  fresh -1 penalty; fixed with a clamp guard.
+
+**3. The rise/sink primitives** (`renderHtml.ts`), one function each,
+parameterised by direction (meaning), tint (faction skin), tier (size):
+- **rise**: card lifts and brightens, faction-tinted glow, triangle motes
+  float UP off the card, gold label floats up;
+- **sink**: card is pressed down, desaturated and darkened, desaturated
+  motes fall DOWN, a slate label sinks;
+- **tint** = the source card's faction when the event log names a source
+  we know (a new `cardFactions` name→faction map; a name lookup is safe
+  despite the name-only event log, since it only has to say which
+  *faction*, never which *instance*), else the side that normally causes
+  it (buff → own, penalty → opponent);
+- **tier** = new `statShiftScore` in `fxMagnitude.ts`: stat size +
+  statuses + how many units took the same shift this move.
+- **Persistent state** so the viewer isn't relying on catching the
+  animation: ATK/HP numbers go gold with ▲ when above printed, slate with
+  ▼ when below (HP compares *max* health, so ordinary damage never reads as
+  a debuff), and Stasis/Overload get dashed "S"/"O" badges in the badge
+  column (a Stasis'd unit's art is also greyed).
+
+**4. Tuning caught at play speed, not in theory.** The first breadth rule
+(any shift on 3+ units = spectacle) made nearly every penalty in the
+Aegis matches a spectacle hold, because the pool's most common penalty is
+Aegis's recurring "-1 ATK to every enemy unit until end of turn" (Feedback
+Plating, onDamaged). That's exactly the "busy board shouting" the owner's
+2026-09-25 feedback warned against. The breadth bonus is now
+magnitude-aware: a -1 across the board is `normal` (visible, no hold); 2+
+points per unit on 3+ units (e.g. Cortex's Mainframe Core +1/+1 to every
+ally) stays spectacle. After re-tuning, across the three committed replays:
+every penalty lands `normal`, 9 buff labels reach spectacle (all from one
+Mainframe Core aura move in the Cortex match), expiries all subtle.
+
+**5. Player identity (owner-feedback 2026-09-26).** New `render/src/avatar.ts`:
+a deterministic, username-seeded SVG placeholder (5×5 mirrored cell body in
+`currentColor` = the faction colour, plus a frame shape — circle / hex /
+diamond / square — and an accent-ring hue from the same seed). No glyphs or
+emoji (the slice-1 headless-Chromium emoji lesson). Shown in both HUDs
+(38px, beside name + faction tag) and the match bar. `MatchReplay` now
+carries `identities: { username, avatarUrl?, avatarSvg }` per player —
+`avatarUrl` is the drop-in slot for a real image; the page uses it when
+present. The CLI now suffixes `-A`/`-B` on mirror matches, since usernames
+key the avatar and "Lookahead-Aegis" vs "Lookahead-Aegis" would otherwise
+be two identical players (`aegis-vs-aegis-seed1.html` shows the two
+visibly different avatars side by side).
+
+**Evidence.**
+- Replays regenerated for this slice's mechanics (the session-4 files were
+  replaced, as each session has done; both new Aegis files still exercise
+  Guard/Barrier/base-armor too):
+  `render/output/aegis-vs-null-seed3.html` (136 moves; 15 buffs, 12
+  penalties incl. the -2/-2 shrinks),
+  `render/output/aegis-vs-cortex-seed6.html` (157 moves; 14 buffs incl. a
+  board-wide spectacle, 13 penalties, 3 Stasis/Overload badges live at once),
+  `render/output/aegis-vs-aegis-seed1.html` (105 moves; mirror-match
+  avatars, 7 expiry settles, 12 penalties).
+- Driven in real headless Chromium (pre-installed build, global
+  `playwright`, not a project dependency — same as sessions 2–4): every
+  move single-stepped with a MutationObserver tallying FX, then a separate
+  full-speed ("fast") autoplay to the end. **Zero console errors in all
+  three**, and the full-speed pass produced exactly the same FX tally as
+  single-stepping in every file. Screenshots inspected (not committed, per
+  lane practice): a sink on Null units under Feedback Plating's sap; the
+  Mainframe Core board-wide rise; a quiet expiry settle; mirror-match
+  avatars. The screenshots caught one real flaw — wide labels ("+1/+1!")
+  were left-anchored and spilled onto the neighbouring card — fixed by
+  centring stat labels, re-shot to confirm.
+- Tests: `render/test/statFx.test.ts` (new) — 16 hand-built classifier
+  cases; a **parity test that extracts the hand-mirrored inline-JS block
+  from a real generated page and runs it against the TS module** on every
+  case, plus the full `statShiftScore` input grid (this lane has mirrored
+  logic by hand since session 3 with no drift check — now it has one for
+  the new code); and a real-match test using the engine's own event log as
+  referee (46 buffs, 23 penalties, 21 status applications, 37 expiries,
+  685 plain hits checked across 48 RandomAgent matches — each path must be
+  exercised, not vacuously pass). `render/test/avatar.test.ts` (new, 5).
+  `fxMagnitude.test.ts`: `buffScore` tests replaced by 8 `statShiftScore`
+  tests. `npm test`: engine 89/89, protocol 7/7, server 23/23, agents
+  17/17, render 81/81 (was 40). `tsc --noEmit` clean in all five.
+
+**Named honestly, not fixed this session:**
+- A unit hit AND buffed/debuffed on the same move only plays ONE of the two
+  card animations (both set the CSS `animation` property; the later class
+  wins). Both floating labels and the motes still show, so the information
+  isn't lost, but the motion is.
+- A penalty *lifting* (a Null -1 aura's source dies, so the victims' ATK
+  goes back up) renders as a rise tinted in the owner's colour. The
+  direction is honest (the stat went up), but it reads as "buffed", not
+  "freed". Telling those apart needs aura-source data the snapshot doesn't
+  carry.
+- Faction tint is palette-only; per-faction particle *character* (Cortex
+  packets, Swarm spores, Null glitch) is slice 5's job. Motes are the same
+  triangle for everyone right now.
+- A buff swallowed entirely by a stat-scaling override (real case found by
+  the tests: Reflex Spike's +0/+3 on Overclock Beast, SW-004) gets no
+  animation, because the board genuinely doesn't change. That's the
+  truthful render, but a viewer reading the event log sees a buff with no
+  visual. Noted for the owner as a possible card-interaction question.
+- The older fxMagnitude functions (enter/death/hit/…) are still hand-mirrored
+  without a parity test; only the new code has one. Extending the
+  extraction test to them is cheap and should happen.
+- Session 2–4 thin spots still open: overlapping floating numbers on busy
+  moves (reduced, not solved, by offsetting stat labels), no fixed-slot
+  board layout, momentum weights untouched.
+
+**Next render-lane slice:** EFFECTS.md slice 3 — power/ability cast
+flourish (`cast(source)`). No dependency. `abilityTrigger` events carry the
+source card NAME only, so pick the source instance the same way this slice
+picks tint: by name, falling back to a non-attributed flourish when the
+name is ambiguous (a mirror). Slice 4 (attack travel + impact) is still
+waiting on the balance lane's instance-ID event-log work — only `play` and
+`summon` events carry `instanceId` so far, not attack/damage/buff.

@@ -28,7 +28,9 @@ import {
 } from "./engineInternal.js";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 import { computeMomentum } from "./momentum.js";
-import type { CardRef, DirectiveSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "./types.js";
+import { avatarSvg } from "./avatar.js";
+import type { Faction } from "./engineInternal.js";
+import type { CardRef, PlayerIdentity, DirectiveSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "./types.js";
 
 const MAX_MOVES_SAFETY = 5000;
 
@@ -64,6 +66,9 @@ function toUnitSnapshot(state: GameState, unit: UnitInstance): UnitSnapshot {
     canAttackThisTurn: !unit.pending && !unit.hasAttackedThisTurn,
     baseArmor: unit.card.baseArmor ?? 0,
     barrierActive: unit.statuses.some((s) => s.kind === "Barrier"),
+    printedAttack: unit.card.attack,
+    printedHealth: unit.card.health,
+    turnBuff: { attack: unit.turnBuff.attack, health: unit.turnBuff.health },
     tools: unit.tools.map((t) => ({
       name: t.name,
       attackBonus: t.attackBonus,
@@ -178,10 +183,22 @@ export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
 
   const factionOf = (pid: PlayerId): PlayerSnapshot["faction"] => frames[frames.length - 1]!.players[pid].faction;
 
+  const cardFactions: Record<string, Faction> = {};
+  for (const card of [...opts.deckA.cards, ...opts.deckB.cards]) cardFactions[card.name] = card.faction;
+  for (const frame of frames) {
+    for (const pid of ["p1", "p2"] as const) {
+      for (const u of frame.players[pid].board) cardFactions[u.name] ??= u.faction;
+    }
+  }
+
+  const identityFor = (name: string): PlayerIdentity => ({ username: name, avatarSvg: avatarSvg(name) });
+
   return {
     title: opts.title,
     seed: opts.seed,
     agentNames: { p1: opts.agentA.name, p2: opts.agentB.name },
+    identities: { p1: identityFor(opts.agentA.name), p2: identityFor(opts.agentB.name) },
+    cardFactions,
     factions: { p1: factionOf("p1"), p2: factionOf("p2") },
     movesPlayed,
     turnCap: state.turnCap,

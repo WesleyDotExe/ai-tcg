@@ -7,6 +7,56 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-09-26 — Buff/penalty grammar (EFFECTS.md slice 2) + player avatars — AWAITING FEEDBACK
+
+**What this delivers:** EFFECTS.md slice 2 — buffs **rise** (lift, brighten,
+motes float up, gold label) and penalties **sink** (press down, desaturate,
+motes fall, slate label), faction-tinted and tier-scaled, plus persistent
+state (▲/▼ stat markers vs printed, dashed Stasis/Overload badges). A
+temporary buff wearing off gets a quiet "settle" instead of either. Also the
+owner's avatar slot: a username-seeded SVG placeholder beside each player's
+name in the HUD and match bar, with an `avatarUrl` slot ready for real
+images. Full detail: `progress/render/log.md`, session 5.
+
+**Evidence:** it fixes three misreads the old render made in every match
+measured — debuffs flashing as gold buffs (up to 15 per match), +HP buffs
+drawn as heals (3–14), Null's -2/-2 drawn as a hit (up to 5). The fix is
+exact rather than a guess, because it uses the engine's own
+health = maxHealth − damage model. Three new replays in `render/output/`.
+Verified in real headless Chromium, single-stepped and at full speed: zero
+console errors, and both passes gave the same FX tally. Render tests went
+from 40 to 81, including a parity test that runs the page's hand-mirrored
+inline JS against the TS module. Before this, drift between the two was
+only checked by eye.
+
+**Decisions the owner may want to overrule (taste calls):**
+1. **What counts as "big".** Every penalty in the committed replays lands
+   `normal`, not spectacle. The pool's most common penalty is Aegis's
+   recurring -1 ATK sap on the whole enemy board, and treating that as
+   spectacle meant several holds per match on a routine -1. Only 2+ points
+   per unit across 3+ units (e.g. Mainframe Core's +1/+1 to all) reaches
+   spectacle. Say so if you want board-wide saps louder.
+2. **Tint source.** A buff/penalty is tinted by the *source card's* faction
+   where the event log names it (Feedback Plating's sap on Null units is
+   Aegis-tinted), otherwise by the side that usually causes it. The
+   alternative is to always tint by the *affected* unit's faction.
+3. **Label colours carry meaning; motes carry faction.** Buff labels are
+   always gold and penalty labels always slate, whatever the faction, so the
+   invariant holds even for a viewer who ignores the particles.
+4. **The avatar look.** It's a symmetric 5×5 "circuit face" in faction
+   colour with a hue-seeded frame ring, and the same username always gives
+   the same avatar. It's a placeholder by design, but it's the seed the
+   1-of-1 leader art is meant to reuse, so the look is worth a glance.
+
+**Where it's thin:** a unit hit and debuffed on the same move shows only one
+card animation, though both labels still appear. A penalty *lifting* reads
+as a buff. Particle character is the same triangle for every faction until
+slice 5.
+
+**Next:** slice 3, the power/ability cast flourish.
+
+---
+
 ## 2026-09-26 — Defence/shield primitives (EFFECTS.md slice 1) — AWAITING FEEDBACK
 
 **What this delivers:** the first slice of `render/EFFECTS.md`'s build
