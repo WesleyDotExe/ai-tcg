@@ -978,3 +978,18 @@ Phase 5 slice 2 (Swarm 16->20) reviewed and accepted. The ring is now healthy �
 **Next Phase 5 slice: Null — as a DEPTH / VARIETY pass, not a power buff.** Grow Null toward the 30-40 unique-card target with variety (the variation rule, inside the lint), NOT by raising its power — it must not reopen the Null dominance removed earlier. Re-measure after; if Null’s win rates climb back up under Lookahead, pull the additions back. A Null slice may also help settle the Swarm-vs-Null Random split. After Null: Cortex’s slice, then the neutral pool, then the mandatory full-ring re-measure gate.
 
 The balance fight is essentially done; Phase 5 from here is mainly card variety, with the re-measure as the safety net.
+
+
+---
+
+## 2026-09-26 — Owner: render slice 2 (buff/penalty) review — three taste calls settled
+
+Reviewed the session-5 render output (PR #26: buff/penalty rise-sink grammar + player avatars). The three non-blocking taste calls from progress/render/checkpoints.md are decided:
+
+1. **Penalty magnitude — a multi-unit penalty SHOULD feel like a big play.** Board-wide saps (a penalty hitting multiple units) escalate to the spectacle tier, not "normal". Single-unit penalties stay at their proportional tier per the adaptive/magnitude rules. Consistent with the proportionality principle: a wide swing across the board reads big; a lone small penalty stays subtle.
+
+2. **Effect tint — tint by the SOURCE card's faction, not the affected unit's faction.** When a faction's card buffs or penalises a unit, the motes wear the source faction's colour ("who did this"), so every play stays legible as which agent is acting. Pairs cleanly with the slice-4 attack-travel effect, whose motes already originate from the acting card.
+
+3. **Label vs particle colour — KEEP THE SPLIT.** The numeric stat label carries MEANING and is faction-independent (gold = buff, slate = penalty, always); the particle motes carry FACTION colour. Faction colour must not override the label. This is the cleanest expression of the EFFECTS.md invariant (meaning constant across factions) and keeps a play readable to a first-time viewer and to future audio commentary without memorising the four faction colours.
+
+**Render-lane note (from the mirror replay, aegis-vs-aegis seed 1):** Feedback Plating emitted a "grant" with a negative value (-1/+0) through the buff event at moves 29 and 40. Confirm the render classifies a negative-delta "buff" as a SINK (penalty grammar), not a rise — the SIGN of the delta decides rise vs sink, never the event name. This is the "penalty reads as a buff" thin spot the checkpoint already flagged; the three decisions above set how it should resolve.
