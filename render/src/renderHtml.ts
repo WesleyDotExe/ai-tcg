@@ -1,4 +1,5 @@
 import type { MatchReplay } from "./types.js";
+import { CAST_FX_SOURCE } from "./castFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -93,6 +94,7 @@ const CSS = `
   --shield: #6fe3ff;
   --armor: #9fb4c9;
   --penalty: #b3bbd6;
+  --cast: #d9c8ff;
   font-size: 15px;
 }
 * { box-sizing: border-box; }
@@ -445,6 +447,54 @@ html, body {
   15% { opacity: 1; }
   100% { opacity: 0; }
 }
+
+/* Power / ability cast flourish — EFFECTS.md slice 3, cast(source). Plays
+ * FROM the card whose ability fired (or the casting player's avatar, for a
+ * Command, which never sits on the board). One primitive, three inputs:
+ *   meaning (constant): an expanding ring + a spinning diamond sigil + rays
+ *     thrown outward, and a trigger tag in the fixed "power" colour
+ *     (--cast) saying WHICH kind of power it was: ON PLAY, ON DEATH,
+ *     ACTIVATE, TURN END, CAST, RESPONSE...;
+ *   faction (skin): ring/sigil/rays wear the SOURCE card's faction colour
+ *     (--fx-tint), same "who did this" rule as slice 2's motes;
+ *   tier (size): --cast-ms / --cast-scale / ray count.
+ * The tag's colour never follows the faction (slice 2's label/particle split,
+ * owner-approved 2026-09-26): a first-time viewer learns "lilac tag = a card
+ * used a power" once. */
+.fx-cast-ring, .fx-cast-sigil, .fx-cast-ray { position: fixed; pointer-events: none; opacity: 0; }
+.fx-cast-ring { width: 72px; height: 72px; margin-left: -36px; margin-top: -36px; border-radius: 50%;
+  border: 2px solid var(--fx-tint); box-shadow: 0 0 12px var(--fx-tint), 0 0 6px var(--fx-tint) inset;
+  animation: fx-cast-ring var(--cast-ms) ease-out forwards; }
+@keyframes fx-cast-ring { 0% { opacity: 0.95; transform: scale(0.15); } 100% { opacity: 0; transform: scale(var(--cast-scale)); } }
+.fx-cast-sigil { width: 30px; height: 30px; margin-left: -15px; margin-top: -15px;
+  border: 2px solid var(--fx-tint); box-shadow: 0 0 8px var(--fx-tint);
+  animation: fx-cast-sigil var(--cast-ms) ease-out forwards; }
+@keyframes fx-cast-sigil {
+  0% { opacity: 0; transform: rotate(45deg) scale(0.3); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(225deg) scale(calc(var(--cast-scale) * 0.8)); }
+}
+.fx-cast-ray { width: 3px; height: 16px; margin-left: -1.5px; margin-top: -8px; border-radius: 2px;
+  background: linear-gradient(to top, transparent, var(--fx-tint));
+  animation: fx-cast-ray var(--cast-ms) ease-out forwards; }
+@keyframes fx-cast-ray {
+  0% { opacity: 0; transform: rotate(var(--ray-a)) translateY(-10px); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--ray-a)) translateY(calc(-26px * var(--cast-scale))); }
+}
+.fx-cast-tag { position: fixed; pointer-events: none; white-space: nowrap; translate: -50% 0;
+  font-size: 0.6rem; font-weight: bold; letter-spacing: 0.12em; color: var(--cast);
+  background: rgba(10,8,24,0.88); border: 1px solid var(--cast); border-radius: 3px; padding: 1px 6px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.6), -3px 0 0 0 var(--fx-tint);
+  animation: fx-cast-tag var(--cast-tag-ms) ease forwards; }
+.fx-cast-tag .src { color: #fff; letter-spacing: 0.04em; margin-right: 6px; }
+.fx-cast-tag.mag-subtle { font-size: 0.52rem; opacity: 0.85; }
+.fx-cast-tag.mag-spectacle { font-size: 0.78rem; padding: 2px 8px; box-shadow: 0 0 12px var(--cast), -4px 0 0 0 var(--fx-tint); }
+/* A RESPONSE (an Instant cast on the opponent's turn) is the reactive play
+ * DESIGN names as a core pillar; it keeps the power colour but gets a
+ * double rule so it can't be mistaken for an ordinary on-turn cast. */
+.fx-cast-tag.response { border-style: double; border-width: 3px; }
+@keyframes fx-cast-tag { 0% { opacity: 0; transform: translateY(4px); } 12% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
 `;
 
 const JS = `
@@ -484,6 +534,9 @@ const JS = `
   // reason cardArtStyle below reimplements cardVisual.ts's placeholder-art
   // logic instead of importing it. Keep the two in sync by hand; the tiers
   // and thresholds are the same numbers as fxMagnitude.ts.
+  // BEGIN fxMagnitude mirror — render/test/fxMagnitude.test.ts extracts
+  // this block from a generated page and checks every function against the
+  // TS module over its input grid, so drift fails a test.
   const RARITY_WEIGHT = { Common: 1.0, Uncommon: 1.3, Rare: 1.8, Mythic: 2.6 };
   const SUBTLE_MAX = 0.9;
   const SPECTACLE_MIN = 2.4;
@@ -511,6 +564,7 @@ const JS = `
     const m = Math.abs(statTotal) + 1.5 * statusCount;
     const base = m <= 1 ? 0.6 : m <= 3 ? 1.3 : m <= 5 ? 2.0 : 2.8;
     const wide = unitsAffected >= 3 ? (m >= 2 ? 1.8 : 1.0) : unitsAffected === 2 ? 0.5 : 0;
+    if (kind === 'penalty' && unitsAffected >= 2) return Math.max(base + wide, SPECTACLE_MIN);
     return base + wide;
   }
   function evolveScore() { return 2.8; }
@@ -520,6 +574,7 @@ const JS = `
     const d = Math.abs(newScore - prevScore);
     return d <= 6 ? 0 : d <= 15 ? 1.2 : d <= 25 ? 2.0 : 3.2;
   }
+  // END fxMagnitude mirror
   // BEGIN statFx mirror — hand-mirrors render/src/statFx.ts (EFFECTS.md
   // slice 2). render/test/statFx.test.ts extracts this exact block from
   // the generated page and runs it against the TS module on the same
@@ -559,6 +614,10 @@ const JS = `
     return kind === 'penalty' ? opponentFaction : ownerFaction;
   }
   // END statFx mirror
+
+  // cast(source) attribution — render/src/castFx.ts's CAST_FX_SOURCE,
+  // embedded verbatim (one copy, no hand mirror; see that file's header).
+${CAST_FX_SOURCE}
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -841,8 +900,12 @@ const JS = `
     el.style.left = (rect.left + rect.width / 2 - 16) + 'px';
     el.style.top = (rect.top + 6 + (yOffset || 0)) + 'px';
     fxLayer.appendChild(el);
+    // Removal must be scheduled BEFORE returning (it used to sit after the
+    // return and never ran, so every floating number stayed in the DOM for
+    // the rest of the replay — found in render session 6). The longest
+    // floating-number animation (1300ms) is well inside NUMBER_MS + 400.
+    setTimeout(function () { el.remove(); }, (NUMBER_MS[tier] || NUMBER_MS.normal) + 400);
     return el;
-    setTimeout(function () { el.remove(); }, NUMBER_MS[tier] || NUMBER_MS.normal);
   }
 
   function spawnBurst(rect, color) {
@@ -950,6 +1013,86 @@ const JS = `
       spawnBurst(el.getBoundingClientRect(), cls === 'fx-evolve' ? 'var(--good)' : cls === 'fx-shatter' ? 'var(--shield)' : 'var(--neutral)');
     }
     setTimeout(function () { el.classList.remove(cls, magCls); }, FLASH_MS[tier] || FLASH_MS.normal);
+  }
+
+  // cast(source) primitive — EFFECTS.md slice 3. One function for every
+  // faction and tier: faction only picks --fx-tint, tier only picks
+  // duration/size/ray count. Anchors: the exact card (or where it stood,
+  // if the power was its death), the casting player's avatar for a
+  // Command, or — when the name-only event log leaves it genuinely
+  // ambiguous — a banner beside that side's board rather than a guess.
+  const CAST_MS = { subtle: 420, normal: 650, spectacle: 1000 };
+  const CAST_SCALE = { subtle: 1.0, normal: 1.4, spectacle: 2.1 };
+  const CAST_RAYS = { subtle: 0, normal: 6, spectacle: 10 };
+  const CAST_TAG_MS = { subtle: 700, normal: 1100, spectacle: 1500 };
+  function castAnchorRect(fx, prevRects) {
+    if (fx.anchor === 'card') {
+      const live = fx.departed ? null : liveCardEl(fx.iid);
+      return live ? live.getBoundingClientRect() : prevRects[fx.iid];
+    }
+    if (fx.anchor === 'hud') {
+      const av = document.querySelector('#hud-' + fx.owner + ' .avatar');
+      return av ? av.getBoundingClientRect() : hudRect(fx.owner);
+    }
+    const row = fx.owner ? document.getElementById('board-' + fx.owner) : document.getElementById('stackzone');
+    const r = row.getBoundingClientRect();
+    return { left: r.left + r.width / 2 - 40, top: fx.owner === 'p2' ? r.bottom - 30 : r.top + (fx.owner ? 10 : 0), width: 80, height: 20 };
+  }
+  function spawnCast(fx, prevRects, stackIndex) {
+    const rect = castAnchorRect(fx, prevRects);
+    if (!rect || (rect.width === 0 && rect.height === 0)) return;
+    const tier = fx.tier;
+    const tint = fx.faction ? 'var(--' + fx.faction.toLowerCase() + ')' : 'var(--cast)';
+    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    const ms = CAST_MS[tier] || CAST_MS.normal;
+    function place(el) {
+      el.style.setProperty('--fx-tint', tint);
+      el.style.setProperty('--cast-ms', ms + 'ms');
+      el.style.setProperty('--cast-scale', String(CAST_SCALE[tier] || 1.4));
+      el.style.left = cx + 'px';
+      el.style.top = cy + 'px';
+      fxLayer.appendChild(el);
+      setTimeout(function () { el.remove(); }, ms + 150);
+      return el;
+    }
+    if (fx.anchor !== 'banner') {
+      const ring = document.createElement('div'); ring.className = 'fx-cast-ring'; place(ring);
+      const sigil = document.createElement('div'); sigil.className = 'fx-cast-sigil'; place(sigil);
+      const rays = CAST_RAYS[tier] || 0;
+      for (let k = 0; k < rays; k++) {
+        const ray = document.createElement('div');
+        ray.className = 'fx-cast-ray';
+        ray.style.setProperty('--ray-a', Math.round((360 / rays) * k + (rays === 6 ? 30 : 0)) + 'deg');
+        place(ray);
+      }
+      if (tier === 'spectacle') spawnBurst(rect, tint);
+    }
+    const tag = document.createElement('div');
+    tag.className = 'fx-cast-tag mag-' + tier + (fx.trigger === 'response' ? ' response' : '');
+    // The card name is already on the card itself; off-card anchors (a
+    // Command from the avatar, an ambiguous banner) name the source.
+    tag.innerHTML = (fx.anchor === 'card' ? '' : '<span class="src">' + escapeHtml(fx.source) + '</span>') + escapeHtml(fx.label);
+    tag.style.setProperty('--fx-tint', tint);
+    const tagMs = CAST_TAG_MS[tier] || CAST_TAG_MS.normal;
+    tag.style.setProperty('--cast-tag-ms', tagMs + 'ms');
+    // Card: tucked just under the card's name strip, clear of the damage
+    // number (top) and buff/penalty labels (upper-middle); stacked downward
+    // when one card fires several powers in one move. HUD (a Command): the
+    // sigil plays on the caster's avatar, but the tag goes in the stack row
+    // between the boards — where the Command itself is shown — on the
+    // caster's side (p1 left, p2 right, matching the HUD panels), since
+    // under the avatar it covered the HP bar.
+    let tagX = cx, baseTop = fx.anchor === 'card' ? rect.top + rect.height * 0.62 : rect.top;
+    if (fx.anchor === 'hud') {
+      const row = document.getElementById('board-p1').getBoundingClientRect();
+      const lane = document.getElementById('stackzone').getBoundingClientRect();
+      tagX = fx.owner === 'p1' ? row.left + row.width * 0.14 : row.right - row.width * 0.14;
+      baseTop = lane.top + 1;
+    }
+    tag.style.left = Math.max(80, Math.min(window.innerWidth - 80, tagX)) + 'px';
+    tag.style.top = (baseTop + stackIndex * 15) + 'px';
+    fxLayer.appendChild(tag);
+    setTimeout(function () { tag.remove(); }, tagMs + 100);
   }
 
   function showLethalFlash() {
@@ -1068,6 +1211,15 @@ const JS = `
         flashClass(hudEl, 'fx-heal', t);
         spawnNumber(prevHudRects[pid], '+' + delta, 'heal', t);
       }
+    });
+
+    // Power / ability cast flourishes (EFFECTS.md slice 3), in event order.
+    const castCount = {};
+    resolveCasts(prevFrame, newFrame, replay.cardFactions, replay.cardRarities || {}).forEach(function (fx) {
+      const key = fx.anchor + ':' + (fx.iid || fx.owner || 'mid');
+      castCount[key] = (castCount[key] || 0) + 1;
+      tiers.push(fx.tier);
+      spawnCast(fx, prevRects, castCount[key] - 1);
     });
 
     tiers.push(tierFromScore(momentumSwingScore(prevFrame.momentum.score, newFrame.momentum.score)));

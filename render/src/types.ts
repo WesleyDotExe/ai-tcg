@@ -92,6 +92,11 @@ export interface StackItemSnapshot {
   kind: StackItem["kind"];
   description: string;
   controller: PlayerId;
+  /** For an activated-ability item: the exact instance whose ability it is
+   * (engine StackItem.source.instanceId, read-only). The event log names
+   * the source by card name only; this is what lets the cast flourish
+   * (EFFECTS.md slice 3) land on the right copy when two share a board. */
+  sourceInstanceId?: string;
 }
 
 /** One step of the replay: the board state *after* one engine move was
@@ -139,6 +144,10 @@ export interface MatchReplay {
    * axis 2). A name->faction lookup is unambiguous even in a mirror match —
    * it never has to say which instance, only which faction. */
   cardFactions: Record<string, Faction>;
+  /** Card/token name -> rarity, same coverage as cardFactions. Sizes a
+   * Command's cast flourish (EFFECTS.md slice 3) — a Command never sits on
+   * the board, so there is no unit snapshot to read its rarity from. */
+  cardRarities: Record<string, Rarity>;
   factions: Record<PlayerId, Faction>;
   movesPlayed: number;
   turnCap: number;

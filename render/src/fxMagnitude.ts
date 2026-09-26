@@ -72,14 +72,19 @@ export function healScore(amount: number): number {
  * spectacle (2026-09-25), but the pool's most COMMON penalty is a recurring
  * -1 ATK sap on every enemy unit (Aegis, onDamaged) — measured at play
  * speed in render session 5, scoring every one of those as spectacle held
- * the replay on a routine -1 several times a match. That's `normal` now:
- * visible, not shouting. A temporary buff merely wearing off is always
+ * the replay on a routine -1 several times a match, so session 5 made it
+ * `normal`. The owner overruled that (2026-09-26, render slice 2 review,
+ * taste call 1): a penalty landing on MULTIPLE units is a big play and
+ * escalates to spectacle, however small each unit's share; a lone small
+ * penalty stays proportional. Buff breadth is unchanged (the ruling was
+ * about penalties). A temporary buff merely wearing off is always
  * subtle. */
 export function statShiftScore(kind: "buff" | "penalty" | "expire", statTotal: number, statusCount: number, unitsAffected: number): number {
   if (kind === "expire") return 0.4;
   const m = Math.abs(statTotal) + 1.5 * statusCount;
   const base = m <= 1 ? 0.6 : m <= 3 ? 1.3 : m <= 5 ? 2.0 : 2.8;
   const wide = unitsAffected >= 3 ? (m >= 2 ? 1.8 : 1.0) : unitsAffected === 2 ? 0.5 : 0;
+  if (kind === "penalty" && unitsAffected >= 2) return Math.max(base + wide, SPECTACLE_MIN);
   return base + wide;
 }
 

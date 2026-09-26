@@ -13,7 +13,7 @@ import type { GameEvent } from "@ai-tcg/engine";
 import { buildNullDeck } from "../src/engineInternal.js";
 import { captureMatch } from "../src/capture.js";
 import { renderMatchHtml } from "../src/renderHtml.js";
-import { statShiftScore } from "../src/fxMagnitude.js";
+import { statShiftScore, tierFromScore } from "../src/fxMagnitude.js";
 import { classifyStatShift, healthResidual, statLabel, tintFaction } from "../src/statFx.js";
 import type { StatSide } from "../src/statFx.js";
 import type { MatchReplay, UnitSnapshot } from "../src/types.js";
@@ -114,8 +114,7 @@ describe("inline-script mirror parity", () => {
     });
   }
   it("statShiftScore matches fxMagnitude.ts across its whole input grid", () => {
-    const from = html.indexOf("function statShiftScore");
-    const src = html.slice(from, html.indexOf("\n  }\n", from) + 4);
+    const src = html.slice(html.indexOf("// BEGIN fxMagnitude mirror"), html.indexOf("// END fxMagnitude mirror"));
     const inline = new Function(`${src}; return statShiftScore;`)() as typeof statShiftScore;
     for (const kind of ["buff", "penalty", "expire"] as const)
       for (let total = 0; total <= 7; total++)
@@ -224,4 +223,34 @@ describe("real matches (engine event log is the referee)", () => {
     expect(tally.residualHits).toBeGreaterThan(0);
     console.log("statFx real-match tally", tally);
   }, 120_000);
+});
+
+describe("owner's render note (2026-09-26): a negative 'grant' is a sink, never a rise", () => {
+  // The exact replay the owner watched: render/output/aegis-vs-aegis-seed1.html,
+  // same decks, agents and seeds as the CLI. Feedback Plating's onDamaged
+  // sap goes through the engine's `buff` event with a negative value
+  // ("grants Aegis Cadet +-1/+0") at moves 29 and 40.
+  it("moves 29 and 40 classify every affected unit as a penalty, and the multi-unit sap is spectacle", async () => {
+    const { LookaheadAgent } = await import("../src/engineInternal.js");
+    const replay = await captureMatch({
+      title: "aegis mirror", seed: 1,
+      deckA: buildAegisDeck("p1", "a"), deckB: buildAegisDeck("p2", "b"),
+      agentA: new LookaheadAgent("Lookahead-Aegis-A", 3), agentB: new LookaheadAgent("Lookahead-Aegis-B", 4),
+      boardSlots: BOARD_SLOTS,
+    });
+    for (const move of [29, 40]) {
+      const prev = replay.frames[move - 1]!;
+      const next = replay.frames[move]!;
+      const grants = next.newEvents.map((e) => e.event).filter((e) => e.type === "buff" && e.source === "Feedback Plating" && e.attack < 0);
+      expect(grants.length).toBeGreaterThanOrEqual(3);
+      const prevUnits = new Map([...prev.players.p1.board, ...prev.players.p2.board].map((u) => [u.instanceId, u]));
+      const kinds = [...next.players.p1.board, ...next.players.p2.board]
+        .filter((u) => prevUnits.has(u.instanceId))
+        .map((u) => classifyStatShift(sideOf(prevUnits.get(u.instanceId)!), sideOf(u))?.kind)
+        .filter((k) => k !== undefined);
+      expect(kinds.length).toBeGreaterThanOrEqual(3);
+      expect(kinds.every((k) => k === "penalty")).toBe(true);
+      expect(tierFromScore(statShiftScore("penalty", 1, 0, kinds.length))).toBe("spectacle");
+    }
+  }, 60_000);
 });

@@ -29,7 +29,7 @@ import {
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 import { computeMomentum } from "./momentum.js";
 import { avatarSvg } from "./avatar.js";
-import type { Faction } from "./engineInternal.js";
+import type { Faction, Rarity } from "./engineInternal.js";
 import type { CardRef, PlayerIdentity, DirectiveSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "./types.js";
 
 const MAX_MOVES_SAFETY = 5000;
@@ -119,7 +119,9 @@ function describeStackItem(item: GameState["stack"][number]): StackItemSnapshot 
     return { kind: "command", description: item.card.name, controller: item.controller };
   }
   if (item.kind === "ability") {
-    return { kind: "ability", description: `${item.source.cardName} — ${item.ability.text}`, controller: item.controller };
+    const snap: StackItemSnapshot = { kind: "ability", description: `${item.source.cardName} — ${item.ability.text}`, controller: item.controller };
+    if ("instanceId" in item.source) snap.sourceInstanceId = item.source.instanceId;
+    return snap;
   }
   return { kind: "combatDamage", description: `${item.attackerName}'s attack`, controller: item.controller };
 }
@@ -184,10 +186,17 @@ export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
   const factionOf = (pid: PlayerId): PlayerSnapshot["faction"] => frames[frames.length - 1]!.players[pid].faction;
 
   const cardFactions: Record<string, Faction> = {};
-  for (const card of [...opts.deckA.cards, ...opts.deckB.cards]) cardFactions[card.name] = card.faction;
+  const cardRarities: Record<string, Rarity> = {};
+  for (const card of [...opts.deckA.cards, ...opts.deckB.cards]) {
+    cardFactions[card.name] = card.faction;
+    cardRarities[card.name] = card.rarity;
+  }
   for (const frame of frames) {
     for (const pid of ["p1", "p2"] as const) {
-      for (const u of frame.players[pid].board) cardFactions[u.name] ??= u.faction;
+      for (const u of frame.players[pid].board) {
+        cardFactions[u.name] ??= u.faction;
+        cardRarities[u.name] ??= u.rarity;
+      }
     }
   }
 
@@ -199,6 +208,7 @@ export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
     agentNames: { p1: opts.agentA.name, p2: opts.agentB.name },
     identities: { p1: identityFor(opts.agentA.name), p2: identityFor(opts.agentB.name) },
     cardFactions,
+    cardRarities,
     factions: { p1: factionOf("p1"), p2: factionOf("p2") },
     movesPlayed,
     turnCap: state.turnCap,
