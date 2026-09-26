@@ -61,8 +61,8 @@ Adding a faction = a palette + a particle style. Adding an effect type = one pri
 
 1. Defence / shield — built render session 4: interpose + absorb + shatter on Barrier; a persistent shield badge on Guard units; a small deflect on base-armor damage reduction. No pairing dependency — do this FIRST; it immediately makes Aegis’s defensive identity legible.
 2. Buff (rise) and penalty (sink) grammar, tier-scaled and faction-tinted. — built render session 5 (render/src/statFx.ts; persistent above/below-printed stat markers and penalty-status badges ride along).
-3. Power / ability cast flourish.
-4. Attack travel + impact (after the instance-ID event-log fix lands).
+3. Power / ability cast flourish — built render session 6 (render/src/castFx.ts attributes each fired power to its exact source instance; the page draws ring + sigil + rays in the source's faction tint, plus a fixed-colour trigger tag — ON PLAY / ON DEATH / ACTIVATE / CAST / RESPONSE ...).
+4. Attack travel + impact. Found in session 6: this may NOT need to wait for the event-log fix. The engine's combatDamage stack item already carries `attackerInstanceId` and an instance-exact `target`, and the capture can read it off the stack snapshot, the same way slice 3 reads an activated ability's source.
 5. Faction skinning pass: give each primitive its per-faction particle character (still placeholder art; real art later).
 
 Each slice: pick one item, build it for all factions via the primitive + palette, keep it inside the tier system, prove it at play speed, and checkpoint. Update this file if the model itself changes.

@@ -173,3 +173,28 @@ separate from the shared `progress/notes-for-owner.md`).
    instance IDs on attack/damage/buff events. As of this session only
    `play` and `summon` carry `instanceId`.
 
+
+---
+
+## 2026-09-26 — Session 6 (cast flourish, EFFECTS.md slice 3; slice-2 taste calls)
+
+1. **Your three slice-2 taste calls and the negative-"grant" note are all
+   done** (this lane records it here, not in owner-feedback.md, per
+   RENDER.md guardrail 4). Multi-unit penalties are now spectacle.
+   Source-faction tint and the label/particle split were already shipped,
+   and the new cast flourish follows both. Feedback Plating's `+-1/+0` at
+   aegis-vs-aegis seed 1 moves 29/40 sinks, since the stat delta's sign
+   decides, never the event name. There's a regression test on that exact
+   match.
+
+2. **Slice 4 (attack travel) may no longer be blocked on the balance
+   lane.** The engine's `combatDamage` stack item already carries
+   `attackerInstanceId` and an instance-exact `target`, and the render can
+   read those read-only, the same way this session reads an activated
+   ability's source. The event-log instance-ID work is still worth doing
+   for commentators (stage 7), but the render may not need to wait for it.
+
+3. **Four taste calls on the cast flourish** are in
+   `progress/render/checkpoints.md`: cause/effect stagger, tag wording,
+   response loudness, and where a Command casts from. None of them block
+   anything.

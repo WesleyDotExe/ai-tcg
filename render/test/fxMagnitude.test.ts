@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { renderMatchHtml } from "../src/renderHtml.js";
+import type { MatchReplay } from "../src/types.js";
 import {
   armedScore,
   barrierBreakScore,
@@ -113,10 +115,15 @@ describe("statShiftScore (EFFECTS.md slice 2 rise/sink)", () => {
   it("a -2/-2 (Null's permanent shrink) is normal, not subtle", () => {
     expect(tierFromScore(statShiftScore("penalty", 4, 0, 1))).toBe("normal");
   });
-  it("a routine -1 sap across the whole board is visible (normal) but not a spectacle hold", () => {
-    expect(tierFromScore(statShiftScore("penalty", 1, 0, 3))).toBe("normal");
-    expect(tierFromScore(statShiftScore("penalty", 1, 0, 5))).toBe("normal");
-    expect(tierFromScore(statShiftScore("penalty", 1, 0, 2))).toBe("normal");
+  it("a penalty on multiple units is spectacle, even a -1 sap (owner ruling 2026-09-26)", () => {
+    expect(tierFromScore(statShiftScore("penalty", 1, 0, 2))).toBe("spectacle");
+    expect(tierFromScore(statShiftScore("penalty", 1, 0, 3))).toBe("spectacle");
+    expect(tierFromScore(statShiftScore("penalty", 1, 0, 5))).toBe("spectacle");
+  });
+  it("a lone small penalty stays proportional, and buff breadth is unchanged", () => {
+    expect(tierFromScore(statShiftScore("penalty", 1, 0, 1))).toBe("subtle");
+    expect(tierFromScore(statShiftScore("buff", 1, 0, 3))).toBe("normal");
+    expect(tierFromScore(statShiftScore("buff", 1, 0, 2))).toBe("normal");
   });
   it("a real board-wide shift (2+ points per unit on three or more units) is spectacle", () => {
     expect(tierFromScore(statShiftScore("penalty", 2, 0, 3))).toBe("spectacle");
@@ -151,5 +158,33 @@ describe("maxTier", () => {
     expect(maxTier(["subtle", "normal", "subtle"])).toBe("normal");
     expect(maxTier(["subtle", "spectacle", "normal"])).toBe("spectacle");
     expect(maxTier([])).toBe("subtle");
+  });
+});
+
+describe("inline-script mirror parity (every magnitude function)", () => {
+  // Before render session 6 only statShiftScore had a drift check; the
+  // older functions were mirrored by hand and compared by eye.
+  const html = renderMatchHtml({ title: "t", seed: 0, frames: [] } as unknown as MatchReplay);
+  const block = html.slice(html.indexOf("// BEGIN fxMagnitude mirror"), html.indexOf("// END fxMagnitude mirror"));
+  const m = new Function(
+    `${block}; return { tierFromScore, enterScore, deathScore, hitScore, playerHitScore, healScore, statShiftScore, evolveScore, armedScore, barrierBreakScore, momentumSwingScore };`,
+  )();
+  const rarities = ["Common", "Uncommon", "Rare", "Mythic"] as const;
+  it("found the block", () => expect(block.length).toBeGreaterThan(500));
+  it("matches fxMagnitude.ts on every input", () => {
+    for (let s = -1; s <= 6; s += 0.1) expect(m.tierFromScore(s)).toBe(tierFromScore(s));
+    for (const r of rarities) {
+      expect(m.enterScore(r)).toBe(enterScore(r));
+      expect(m.armedScore(r)).toBe(armedScore(r));
+      expect(m.barrierBreakScore(r)).toBe(barrierBreakScore(r));
+      for (const k of [true, false]) expect(m.deathScore(r, k)).toBe(deathScore(r, k));
+    }
+    for (let a = -8; a <= 8; a++) {
+      for (let n = 0; n <= 5; n++) expect(m.hitScore(a, n)).toBe(hitScore(a, n));
+      for (const l of [true, false]) expect(m.playerHitScore(a, l)).toBe(playerHitScore(a, l));
+      expect(m.healScore(a)).toBe(healScore(a));
+    }
+    expect(m.evolveScore()).toBe(evolveScore());
+    for (let p = -40; p <= 40; p += 3) for (let q = -40; q <= 40; q += 3) expect(m.momentumSwingScore(p, q)).toBe(momentumSwingScore(p, q));
   });
 });

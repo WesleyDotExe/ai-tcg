@@ -7,6 +7,64 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-09-26 — Power / ability cast flourish (EFFECTS.md slice 3) — AWAITING FEEDBACK
+
+**What this delivers:** every time a card uses a power, the replay now
+shows *which card did it*. It draws a faction-tinted ring, spinning sigil
+and rays on that exact card (on the caster's avatar for a Command). A tag
+in one fixed "power" colour says which kind of power it was: ON PLAY,
+ON DEATH, ON HIT, TURN END, ACTIVATE, CAST, RESOLVE, and **RESPONSE** for
+an Instant cast on the opponent's turn. Before this, the render showed a
+power's *effects* (hits, sinks) but never its *source*, and gave
+reactivity nothing beyond a stack chip. Your three slice-2 taste calls are
+in too. Multi-unit penalties are now spectacle, which adds 0-3 holds per
+match, all from Aegis's Feedback Plating sap. Source-faction tint and the
+label/particle colour split were already how it worked, and the new
+flourish follows both. Full detail is in `progress/render/log.md`,
+session 6.
+
+**Evidence:** the event log names a power's source by card name only, so
+two copies on the board are ambiguous. This slice pins each power to the
+exact copy using instance-exact facts from the same move. A test checks
+that against the engine's own truth, recorded by a test-only wrapper
+around the engine's ability resolver. Over 48 real matches (all 16
+pairings, mirrors included) there were 819 powers and 385 exact-card
+checks, with **zero wrong**. 91 of those needed disambiguating, and 6 were
+left as honest "somewhere on this side" banners instead of a guess. There
+are five replays in `render/output/`, including two new ones picked for
+power variety (`cortex-vs-null-seed5`, `null-vs-swarm-seed2`). Each was
+verified in headless Chromium single-stepped and at full speed: zero
+console errors and identical FX tallies in both passes. I also found and
+fixed a leak where floating numbers were never removed from the page
+(since session 3).
+
+**Decisions the owner may want to overrule:**
+1. **Cause and effect are simultaneous.** The sigil and the hit/sink it
+   caused start together. A ~150ms stagger (cast first, then effect)
+   would read more causally but slows every power move a little and
+   changes the approved `normal` pacing. Say if you want it.
+2. **The tag names the trigger kind, not the effect.** "ON DEATH" rather
+   than "ON DEATH: +Barrier to an ally". Full ability text doesn't fit on
+   a card, and explaining *what* it did feels like commentary's job.
+3. **How loud a response is.** A Common/Uncommon response is `normal`
+   with a double-ruled tag, and a Rare+ response is spectacle. You could
+   make every response a spectacle hold, since it's the reactive pillar.
+4. **Commands cast from the avatar.** The sigil plays on the casting
+   player's avatar, and the tag sits in the stack row on their side. The
+   alternative is to draw a Command as a card flying onto the stack
+   (bigger build).
+
+**Where it's thin:** particle shapes are still the same for every faction
+(slice 5). The truth check can't see onDeath/onDamaged powers, which
+the engine fires from inside its resolver. Those are checked for
+consistency only.
+
+**Next:** slice 4 (attack travel + impact). It may be unblocked now,
+because the engine's combat stack item already carries exact attacker
+and target instance IDs.
+
+---
+
 ## 2026-09-26 — Buff/penalty grammar (EFFECTS.md slice 2) + player avatars — AWAITING FEEDBACK
 
 **What this delivers:** EFFECTS.md slice 2 — buffs **rise** (lift, brighten,

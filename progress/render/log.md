@@ -754,3 +754,144 @@ picks tint: by name, falling back to a non-attributed flourish when the
 name is ambiguous (a mirror). Slice 4 (attack travel + impact) is still
 waiting on the balance lane's instance-ID event-log work — only `play` and
 `summon` events carry `instanceId` so far, not attack/damage/buff.
+
+## 2026-09-26 — Session 6 (power/ability cast flourish, EFFECTS.md slice 3; owner's slice-2 taste calls)
+
+Render session under the alternation rule: the last merged PR (#27) was a
+balance slice. Owner feedback had two render entries to act on. The first
+was the slice-2 review (2026-09-26), with three taste calls and a note on
+negative "grants". The second was the standing EFFECTS.md build order,
+whose next item is slice 3. Per RENDER.md guardrail 4 this lane doesn't
+write to the shared `owner-feedback.md`, so the handling is recorded here.
+
+**Owner's slice-2 taste calls, handled:**
+1. *A multi-unit penalty is spectacle.* `statShiftScore` now returns at
+   least the spectacle threshold for a penalty on 2+ units, whatever each
+   unit's share. A lone small penalty stays proportional, and buff breadth
+   is unchanged because the ruling was about penalties. This is changed in
+   `fxMagnitude.ts` and in the page's mirror, with tests. In the five
+   committed replays it adds 0-3 spectacle holds per match, all from
+   Aegis's Feedback Plating sap.
+2. *Tint by source faction.* This was already the shipped behaviour, so
+   nothing changed. The new cast flourish follows the same rule.
+3. *Keep the label/particle colour split.* Also already shipped. The cast
+   flourish follows it too: the trigger tag is always the fixed "power"
+   lilac (`--cast`), and only the ring, sigil and rays wear faction colour.
+4. *The negative-"grant" note (aegis-vs-aegis seed 1, moves 29/40).* I
+   confirmed the classifier already decides by the sign of the stat delta,
+   never by the event name. Every unit Feedback Plating's `+-1/+0` hits at
+   both moves classifies as a penalty (sink), and under ruling 1 it's now a
+   spectacle. There's a new regression test in `statFx.test.ts` that
+   replays that exact match with the CLI's agents and seeds.
+
+**Slice 3 — `cast(source)`, built.**
+- `render/src/castFx.ts` (new) turns one move into a list of "which card
+  just used a power, and where is it on screen". The event log names a
+  source by card NAME only, so each trigger is narrowed by instance-exact
+  facts from the same move:
+  - onPlay: the `play` event's instanceId, or the unit that evolved, or
+    the unit whose telegraph armed.
+  - onAttack: the unit that just spent its attack.
+  - onDeath: a unit that left the board.
+  - onDamaged: a unit that actually lost health.
+  - Turn triggers: the turn owner's side only, with copies paired to
+    events in board order when every copy logged.
+  - Commands: they come from the controller of the stack item.
+  - Activated abilities: the capture now reads the exact source instance
+    off the engine's `StackItem.source` (new
+    `StackItemSnapshot.sourceInstanceId`, read-only).
+
+  Whatever is still ambiguous after narrowing becomes an honest banner
+  beside that side's board, never a guess.
+- **One copy of the logic, not a hand mirror.** The module's logic is a JS
+  source string that the page embeds verbatim and Node evaluates for tests
+  and callers. That rules out drift by construction, unlike the older
+  TS-plus-hand-mirror pattern. The trade-off is no type-checking inside
+  the string; the tests cover that.
+- **Primitive** (`renderHtml.ts`, `spawnCast`): one function for every
+  faction and tier. It draws an expanding ring, a spinning diamond sigil
+  and rays thrown outward, all in the source card's faction tint. A
+  trigger tag in the fixed power colour names the kind of power: ON PLAY,
+  ON ATTACK, ON HIT, ON DEATH, TURN START/END, ACTIVATE, CAST, RESOLVE,
+  RESPONSE. Anchors:
+  - card: on the exact card, or where it stood if the power was its death;
+  - Command: the sigil plays on the caster's avatar, and the tag sits in
+    the stack row on the caster's side;
+  - banner: for the ambiguous cases.
+- **RESPONSE.** An Instant cast on the opponent's turn gets a double-ruled
+  tag and a louder tier. DESIGN names reactivity as a core pillar, and
+  before this slice the render gave it nothing beyond a stack chip.
+- **Tier** (`castScore`): the source card's rarity sets the base. An
+  activated ability or a Command adds a little, a response adds more, and
+  recurring triggers (turn start/end, on hit, on attack) are damped so a
+  busy board doesn't shout. The tier thresholds are fxMagnitude's (a test
+  pins that).
+- **Bug found and fixed on the way:** `spawnNumber` had `return el;`
+  *before* its cleanup `setTimeout`, so since session 3 every floating
+  number stayed in the DOM for the rest of the replay. After the fix, the
+  FX layer drains to 0 elements within 2 s of the last move in all five
+  replays.
+
+**Evidence.**
+- `render/test/castFx.test.ts` (new, 12 tests):
+  - magnitude cases;
+  - seven hand-built attribution cases (mirror onPlay, onDeath, paired
+    turn triggers, unpairable-so-banner, activated via stack, Command +
+    RESPONSE, Command resolve);
+  - a check that the page embeds the source verbatim;
+  - a **real-match oracle test**. It wraps the engine's `resolveAbility`
+    in a test-only `vi.mock` (no engine file touched) to record the true
+    source instance of every logged trigger. It then runs 48
+    LookaheadAgent matches (all 16 faction pairings × 3 seeds, including
+    mirrors): 819 powers, every trigger and cast accounted for, **385
+    card attributions checked against the oracle with zero wrong**. 91 of
+    them needed narrowing because 2+ same-named copies were on board. 6
+    were honest banners.
+- `fxMagnitude.test.ts`: every magnitude function now has a parity test
+  against the page's inline mirror (was statShiftScore only, named debt
+  from session 5). The penalty-breadth tests were rewritten for the
+  owner's ruling.
+- Replays regenerated (`render/output/`). There are two new ones picked
+  for power variety: `cortex-vs-null-seed5.html` (20 cast flourishes:
+  activations, a response, deaths, turn ends) and
+  `null-vs-swarm-seed2.html` (18: Bit Rot as a RESPONSE, Garbage
+  Collector activations with two copies on board). The three older
+  replays were regenerated too. `aegis-vs-null-seed3` is now 114 moves,
+  because the Null pool changed in session 21.
+- Driven in real headless Chromium. Each replay was single-stepped with a
+  MutationObserver tallying the cast FX, then autoplayed at full speed
+  ("fast"). All five had **zero console errors**, gave **identical cast
+  tallies in both passes**, and left 0 FX-layer elements after 2 s.
+  Screenshots were inspected (not committed, per lane practice), and they
+  caught one real flaw. A Command's tag, placed under the avatar, covered
+  the HP bar and clipped at the window edge. I moved it into the stack row
+  on the caster's side and re-shot to confirm.
+- `npm test`: engine 97, protocol 7, server 23, agents 17, render 97 (was
+  81). `tsc --noEmit` is clean in all five.
+
+**Named honestly, not fixed:**
+- The oracle can't see triggers the resolver fires internally (onDeath,
+  onDamaged), because the mock only wraps calls coming from `engine.ts`.
+  For those, the test checks consistency instead (the named unit left the
+  board or was hit), not ground truth.
+- Cause and effect play at the same instant. The cast sigil and the
+  effect it caused (a hit, a sink) start together, so "this caused that"
+  relies on proximity and the tag, not sequencing. A short stagger would
+  read better but would change the approved `normal` timing, so it's
+  flagged for the owner, not done.
+- The trigger tag says WHICH kind of power fired, not WHAT it does. The
+  ability text exists (on the stack item and in the card data) but
+  doesn't fit on a 118px card. That's arguably the commentators' job
+  (stage 7).
+- Particle character is still the same for every faction (slice 5).
+- Still open from sessions 2-5: a hit plus a stat shift on the same move
+  shows only one card animation; a penalty *lifting* reads as a buff;
+  there's no fixed-slot board layout.
+
+**Next render-lane slice:** EFFECTS.md slice 4, attack travel + impact.
+It may not need the balance lane's event-log instance-ID work after all.
+The engine's `combatDamage` stack item already carries
+`attackerInstanceId` plus an instance-exact `target`. Extending
+`StackItemSnapshot` to carry both (read-only, like this session's
+`sourceInstanceId`) gives exact attacker→target pairing, including in
+mirrors.
