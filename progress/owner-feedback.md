@@ -1043,3 +1043,22 @@ Reviewed Session 21 (Phase 5 slice 3: Null grown 15 -> 20 unique cards, deck fil
 4. **Agent heuristic constant (Directive turn-trigger valued at 2 expected firings) — accepted as a named guess.** Leave it; sanity-check the arbiter's weights at the end-of-Phase-5 full-ring re-measure, not before.
 
 Alternation stands: next is a render slice (it picks up the 2026-09-26 render taste calls), then Cortex's Phase 5 slice, the neutral pool, then the mandatory full-ring re-measure gate. The Null consistency trim above can be folded into Null's next slice whenever it comes back around.
+
+
+---
+
+## 2026-09-26 — Owner: session 6 render (cast flourish, EFFECTS.md slice 3) — four taste calls + slice 4 unblocked
+
+Reviewed the render cast-flourish slice (every power now shows which exact card cast it — faction-tinted ring/sigil/rays + a fixed-colour trigger-kind tag: ON PLAY / ON DEATH / ON HIT / TURN END / ACTIVATE / CAST / RESOLVE / RESPONSE). Slice-2 taste calls confirmed applied, instance-exactness proven (819 powers / 385 exact checks / zero wrong across 48 matches). Responses to the four cast-flourish taste calls in progress/render/checkpoints.md:
+
+1. **Cause/effect stagger — YES, but only on spectacle-tier casts.** Add the ~150ms "cast, then effect" beat only for spectacle-magnitude powers; keep routine powers simultaneous so the approved `normal` pacing is untouched. Same proportionality principle as the magnitude work: only the big/signature moments earn the extra causal beat.
+
+2. **Tag wording (trigger KIND, not effect) — keep as-is.** "ON DEATH" not "ON DEATH: +Barrier to an ally". The render already shows the effect visually; spelling out what the ability did is commentary's job (stage 7). Endorsed.
+
+3. **Response loudness — keep the rarity scaling; do NOT blanket-spectacle every response.** Common/Uncommon response stays `normal` with the double-ruled RESPONSE tag; Rare+ stays spectacle. Making every response a spectacle hold would flatten the magnitude language just built. The always-distinct RESPONSE tag already guarantees a viewer notices reactivity happened, even at normal tier; reserve the full hold for Rare+.
+
+4. **Commands cast from the avatar — keep for now; revisit at slice 4.** The avatar-cast version is fine as a placeholder. The richer "card flies onto the stack" version is better for commentary (viewer sees the actual card), but it is a bigger build — fold it into slice 4 (attack travel), which builds the card-movement machinery anyway, rather than doing it as a standalone now.
+
+**Slice 4 (attack travel + impact) is unblocked — proceed.** The render found it does NOT need to wait on the balance lane's event-log instance-ID fix: the engine's combat stack item already carries `attackerInstanceId` and an instance-exact target, which the render can read read-only (same way this session read an ability's source). So slice 4 is the next render slice. The event-log instance-ID work is still worth doing later for commentators (stage 7), but it no longer gates the render.
+
+Thin spots noted, no action: particle shapes are still identical per faction (that is slice 5's job), and the truth-check can't see onDeath/onDamaged powers the engine fires from inside its resolver (consistency-checked only) — both acceptable.
