@@ -1094,3 +1094,22 @@ Reviewed Session 22 (Phase 5 slice 4: Cortex 19 -> 24 unique cards; Cortex-vs-Sw
 3. **Accept the Cortex-vs-Null drift (57.9 -> 61.1 over 900) for now — do NOT drop Quorum Arbiter yet.** The finding that Cortex's rate vs Null and vs Swarm move ~1:1 (no copy-mix holds both) is accepted, and the read is endorsed: this edge follows Null's overall weakness, so the Null consistency-trim in item 2 is the correct lever — lifting Null should also pull Cortex-vs-Null back toward band as a side effect. Re-check at the 900-seed gate after the Null trim. If Cortex-vs-Null is still out of band there, THEN drop Quorum Arbiter (the identified ~-6-vs-both lever). Don't pre-emptively nerf Cortex now.
 
 Net: the Null trim is doing double duty (fixes Null's weakness AND the Cortex-vs-Null overshoot), which is why it goes before the neutral pool and before any Cortex nerf. Everything gets judged at the 900-seed gate.
+
+
+---
+
+## 2026-09-26 — Owner: cross-project — AI TCG balance is claude-tools' first real caller (two-proportion significance for in/out-of-band)
+
+A direction connecting the two autonomous projects (recorded here so the balance lane sees it; matching enable-side items are in the claude-tools wishlist).
+
+Session 22's finding that 300-seed reports carry ~2.9 points of standard error means in/out-of-band calls should be significance-tested, not read off raw point estimates. The right instrument already exists: claude-tools' `discrete-probability.compare_two_proportions` (two-proportion z-test, Wilson CIs per group, Newcombe CI for the difference, plain verdict) — which was literally built for this project's win-rate-gap question but has never actually been called by it.
+
+Adopt it for balance judgments:
+
+1. **Significance-test the band calls.** When deciding whether a pairing is in-band / out-of-band or "fixed", use a two-proportion test with a confidence interval on the win-rate gap, not just the point estimate vs the band. Treat a pairing as out-of-band only when the CI excludes the band, not when a noisy point estimate lands outside it. This directly addresses the "300-seed reports were noisier than we treated them" finding, and pairs with the 900-seed standard already adopted.
+
+2. **Use claude-tools as the instrument; calling it is the goal, not porting it.** Reference implementation is claude-tools' `compare_two_proportions`. Preferred: once claude-tools exposes a callable path (being set up on that side), call that MCP server directly so the calls register as real usage and the two projects compound. Acceptable interim only if a live cross-repo call isn't feasible in-session: port the same method (Wilson/Newcombe CIs) into the balance harness — but keep the live call as the target.
+
+3. **Do NOT block the Phase 5 roadmap on this.** Order stays Null trim -> neutral pool -> 900-seed gate. Fold the significance test into the 900-seed gate's in/out-of-band logic when convenient; it is an accuracy upgrade to the gate, not a new phase.
+
+This makes AI TCG the first named external caller of the claude-tools collection, closing that project's "is anything actually using these tools" gap from the consuming side.
