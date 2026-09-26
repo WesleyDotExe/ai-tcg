@@ -1,0 +1,320 @@
+AI-TCG Phase 5 Null slice evidence (2026-09-26 "Null — as a DEPTH / VARIETY pass" entry)
+Both sides played by LookaheadAgent; Null (p2) against Cortex, Swarm and Aegis in turn.
+
+--- Zombie Process onDeath ---
+  Found at seed 1 vs Cortex: turn 7: Zombie Process died and left a Orphaned Thread behind.
+--- Dangling Pointer Rush ---
+  Found at seed 1 vs Cortex: turn 8: Dangling Pointer attacked the same turn it was played (Rush).
+--- Bit Rot instant ---
+  Found at seed 10 vs Aegis: turn 3: Null cast Bit Rot at Instant speed during Aegis's turn.
+--- Watchdog Timer draw ---
+  Found at seed 1 vs Cortex: turn 12: Null ended its turn with an empty hand and Watchdog Timer drew Null Singularity.
+--- Garbage Collector heal ---
+  Found at seed 1 vs Cortex: turn 10: Garbage Collector restored 2 health to Garbage Collector.
+
+=== Full match log: seed 1, Cortex vs Null — 4/5 new mechanisms in one game ===
+  * Zombie Process onDeath: turn 7: Zombie Process died and left a Orphaned Thread behind
+  * Dangling Pointer Rush: turn 8: Dangling Pointer attacked the same turn it was played (Rush)
+  * Garbage Collector heal: turn 10: Garbage Collector restored 2 health to Garbage Collector
+  * Watchdog Timer draw: turn 12: Null ended its turn with an empty hand and Watchdog Timer drew Null Singularity
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Decay Ward
+--- Turn 2 (p2) ---
+p2 plays Glitch Seed (u1)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Fail-safe Unit
+--- Turn 3 (p1) ---
+p1 plays Fail-safe Unit (u2)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Dangling Pointer
+--- Turn 4 (p2) ---
+p2 plays Zombie Process (u3)
+Glitch Seed attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Init Daemon
+--- Turn 5 (p1) ---
+p1 plays Watchtower Relay (u5)
+Fail-safe Unit attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Null
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Garbage Collector
+--- Turn 6 (p2) ---
+p2 plays Garbage Collector (u7)
+Zombie Process attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Zombie Process's attack
+  Zombie Process deals 2 damage to Lookahead-Cortex
+Glitch Seed attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Cortex Engineer
+--- Turn 7 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Zombie Process
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Zombie Process (unit)
+  Zombie Process deals 2 damage to Watchtower Relay (unit)
+  Zombie Process (p2) dies
+  ability: Zombie Process — zombie-process-death (onDeath)
+  Zombie Process summons Orphaned Thread for p2 (u11)
+Fail-safe Unit attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Null
+p1 plays Retaliation Node (u13)
+p1 plays Fail-safe Unit (u14)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Bit Rot
+--- Turn 8 (p2) ---
+Garbage Collector attacks Fail-safe Unit
+p2 casts Bit Rot [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bit Rot
+  ability: Bit Rot — bit-rot-cast (onPlay)
+  Bit Rot grants Fail-safe Unit +-3/+0
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Garbage Collector's attack
+  Garbage Collector deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit deals 2 damage to Garbage Collector (unit)
+  Fail-safe Unit (p1) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Cortex Engineer
+p2 plays Stray Fragment (u17)
+p2 plays Dangling Pointer (u18)
+Dangling Pointer attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Dangling Pointer's attack
+  Dangling Pointer deals 2 damage to Lookahead-Cortex
+Orphaned Thread attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Orphaned Thread's attack
+  Orphaned Thread deals 1 damage to Lookahead-Cortex
+Glitch Seed attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Watchtower Relay
+--- Turn 9 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p1 plays Watchtower Relay (u22)
+p1 plays Cortex Engineer (u23)
+Fail-safe Unit attacks Stray Fragment
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Fail-safe Unit (unit)
+  Stray Fragment (p2) dies
+Watchtower Relay attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Null
+Retaliation Node attacks Dangling Pointer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Dangling Pointer (unit)
+  Dangling Pointer deals 2 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Glitch Seed's base armor reduces 1 damage from Retaliation Node to 0
+  Retaliation Node deals 1 damage to Garbage Collector (unit)
+  Retaliation Node deals 1 damage to Orphaned Thread (unit)
+  Retaliation Node deals 1 damage to Dangling Pointer (unit)
+  Orphaned Thread (p2) dies
+  Dangling Pointer (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Null Shell
+--- Turn 10 (p2) ---
+Garbage Collector attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Garbage Collector's attack
+  Garbage Collector deals 2 damage to Lookahead-Cortex
+  Null Shell attaches to Glitch Seed
+Glitch Seed attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 1 damage to Lookahead-Cortex
+  Decay Ward attaches to Garbage Collector
+p2 casts Garbage Collector — Pay 2 energy: restore 2 health to target friendly unit. [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Garbage Collector — Pay 2 energy: restore 2 health to target friendly unit.
+  ability: Garbage Collector — garbage-collector-sweep (activated)
+  Garbage Collector restores 2 health to Garbage Collector
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Interrupt Handler
+--- Turn 11 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Lookahead-Null (face)
+p1 casts Interrupt Handler [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Glitch Seed's base armor reduces 2 damage from Interrupt Handler to 1
+  Interrupt Handler deals 1 damage to Glitch Seed (unit)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Null
+Watchtower Relay attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Null
+Fail-safe Unit attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Null
+Cortex Engineer attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Null
+Retaliation Node attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Null
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Entropy Harvester
+--- Turn 12 (p2) ---
+Garbage Collector attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Garbage Collector's attack
+  Garbage Collector deals 2 damage to Lookahead-Cortex
+p2 plays Entropy Harvester (u41)
+Glitch Seed attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 1 damage to Lookahead-Cortex
+p2 plays Watchdog Timer (d43)
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+  ability: Watchdog Timer — watchdog-timer-tick (onTurnEnd)
+p2 draws Null Singularity
+p1 draws Force Quit
+--- Turn 13 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p1 casts Force Quit [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Force Quit
+  ability: Force Quit — force-quit-cast (onPlay)
+  Force Quit destroys Watchdog Timer (p2)
+Watchtower Relay attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Null
+Fail-safe Unit attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Null
+Watchtower Relay attacks Lookahead-Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Null
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Winner: p1, turns: 13

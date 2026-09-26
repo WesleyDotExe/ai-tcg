@@ -1,0 +1,370 @@
+AI-TCG balance report 015 — Phase 5 slice 3: Null depth/variety pass (15 -> 20 unique cards)
+Session 21, 2026-09-26. Command: (cd engine && npx tsx src/dev/balanceReport.ts 300)
+
+Owner constraint (2026-09-26 entry): "a DEPTH / VARIETY pass, not a power buff ... if Null's win
+rates climb back up under Lookahead, pull the additions back."
+
+Null's win rate per pairing, BASELINE (session start, = report 014's shipped state) -> SHIPPED
+(300 seeds each; one standard error at 300 games is ~2.9 points):
+
+                     Aggressive        Random            Lookahead (arbiter)
+  Null vs Cortex     39.3 -> 38.7      70.0 -> 70.0      46.3 -> 45.0   (even edge: stays IN BAND)
+  Null vs Swarm      38.7 -> 38.3      63.7 -> 59.7      35.7 -> 36.3
+  Null vs Aegis      49.7 -> 56.0      58.3 -> 59.7      38.0 -> 45.0   (ring wants Null 55-60%)
+  Lookahead mean     -                 -                 40.0 -> 42.1
+
+  Read: power-neutral against Cortex and Swarm (every move inside one standard error), a real
+  move TOWARD the ring's intended Null>Aegis edge (Aggressive and Random now IN BAND, Lookahead
+  +7 but still out). Null is still the lowest-winning faction under Lookahead; no pairing flagged
+  under all three policies. The Swarm-vs-Null three-policy disagreement from report 014 is gone
+  (Random now 59.7% Null, under the 60% signal threshold).
+
+Journey (three measured iterations; only the last shipped):
+  Cut 1: Zombie Process 1/2, Bit Rot -2/-0, Garbage Collector cost 4, Watchdog Timer "fewer than
+         2 units". Null Lookahead: vs Cortex 39.7, vs Swarm 33.0, vs Aegis 39.0 — a NERF, and it
+         knocked the in-band Null-vs-Cortex even edge out of band. New cards 36-46% played; the
+         Watchdog Timer was played 0 times in 900 Lookahead games (agent blind spot: a Directive's
+         onTurnStart/onTurnEnd abilities were never valued, so it always scored below passing).
+  Cut 2: LookaheadAgent now values Directive turn triggers (no Directive before this slice had
+         one, so no earlier measurement moves); Zombie Process 2/2 (vanilla cost-2 line), Bit Rot
+         -3/-0, Garbage Collector cost 3 (Watchtower Relay's cost/body). Near-neutral, but
+         Watchdog Timer — now played 250 times — never once drew: the agent only affords it with
+         a developed board (2-4 units at every check), so "fewer than 2 units" was never live.
+  Cut 3 (shipped): Watchdog Timer's condition changed to "if your hand is empty" — the state it
+         is actually played into. Numbers above.
+
+Side effect named honestly: filling the deck 32 -> 40 with no trims dilutes Null's evolution line.
+Kernel Panic played-count under Lookahead fell 206 -> 105 games (Corrupted Process 529 -> ~370).
+Its played win rate is unchanged-to-higher (65.5% -> 76.2%): it's rarer, not weaker.
+
+================ Full shipped report (cut 3) ================
+AI-TCG balance report — design principle 3 measurement
+300 seeds per matchup, 6 cross-faction pairings + 4 mirror matchups per agent policy.
+
+=== AggressiveAgent vs AggressiveAgent (same policy both sides) ===
+  Cortex 161-139 Swarm  (Cortex 53.7% / Swarm 46.3%, 0 draws, avg 12.4 turns, 0.0% hit turn cap)
+  Cortex 159-141 Aegis  (Cortex 53.0% / Aegis 47.0%, 0 draws, avg 14.5 turns, 0.0% hit turn cap)
+  Cortex 184-116 Null  (Cortex 61.3% / Null 38.7%, 0 draws, avg 12.7 turns, 0.0% hit turn cap)  <-- FLAG: >=60% win rate
+  Swarm 157-143 Aegis  (Swarm 52.3% / Aegis 47.7%, 0 draws, avg 13.3 turns, 0.0% hit turn cap)
+  Swarm 185-115 Null  (Swarm 61.7% / Null 38.3%, 0 draws, avg 11.8 turns, 0.0% hit turn cap)  <-- FLAG: >=60% win rate
+  Aegis 132-168 Null  (Aegis 44.0% / Null 56.0%, 0 draws, avg 14.3 turns, 0.0% hit turn cap)
+  --- mirror matches (first-player-advantage baseline) ---
+  Cortex mirror: first-player 151-149 second-player (first-player win rate 50.3%, 0 draws, avg 14.0 turns)
+  Swarm mirror: first-player 148-152 second-player (first-player win rate 49.3%, 0 draws, avg 11.3 turns)
+  Aegis mirror: first-player 132-168 second-player (first-player win rate 44.0%, 0 draws, avg 15.9 turns)
+  Null mirror: first-player 148-152 second-player (first-player win rate 49.3%, 0 draws, avg 12.2 turns)
+  --- per-card win-rate instrumentation (drawn vs. played), accumulated across all of the above ---
+  --- Cortex per-card win rates ---
+    Firewall Sentinel            drawn  961 games (61.6% win)  played  933 games (62.3% win)
+    Cortex Engineer              drawn  940 games (51.1% win)  played  904 games (51.1% win)
+    Overclock Shunt              drawn  937 games (54.9% win)  played  900 games (56.4% win)
+    Watchtower Relay             drawn  864 games (53.5% win)  played  857 games (53.7% win)
+    Init Daemon                  drawn  880 games (59.1% win)  played  816 games (60.4% win)
+    Signal Drone                 drawn  886 games (56.2% win)  played  816 games (56.9% win)
+    Fail-safe Unit               drawn  807 games (54.8% win)  played  779 games (54.4% win)
+    Mainframe Core               drawn  746 games (55.2% win)  played  737 games (55.5% win)
+    Backup Protocol              drawn  722 games (46.1% win)  played  692 games (46.8% win)
+    Interrupt Handler            drawn  721 games (51.3% win)  played  690 games (52.8% win)
+    Diagnostic Pulse             drawn  697 games (49.2% win)  played  657 games (49.9% win)
+    Recursive Construct          drawn  647 games (59.4% win)  played  609 games (60.9% win)
+    Dormant Exploit              drawn  437 games (54.7% win)  played  413 games (56.2% win)
+    Overload Capacitor           drawn  405 games (59.5% win)  played  398 games (59.5% win)
+    Cascade Purge                drawn  393 games (51.4% win)  played  391 games (51.7% win)
+    Diagnostic Loop              drawn  396 games (53.8% win)  played  382 games (54.5% win)
+    Retaliation Node             drawn  375 games (55.2% win)  played  346 games (55.5% win)
+    Compiled Daemon              drawn  709 games (53.6% win)  played  313 games (71.2% win)
+    Force Quit                   drawn  679 games (48.3% win)  played  218 games (61.0% win)
+  --- Swarm per-card win rates ---
+    Broodcaller                  drawn  944 games (53.1% win)  played  837 games (53.6% win)
+    Carapace Grunt               drawn  924 games (52.2% win)  played  751 games (52.5% win)
+    Colony Broodling             drawn  888 games (52.8% win)  played  687 games (51.4% win)
+    Corrosive Spitter            drawn  862 games (59.9% win)  played  668 games (65.0% win)
+    Swarm Larva                  drawn  854 games (54.2% win)  played  664 games (55.1% win)
+    Brood Skitterer              drawn  889 games (55.7% win)  played  641 games (51.6% win)
+    Overclock Beast              drawn  695 games (52.4% win)  played  641 games (52.3% win)
+    Bloodswarm Alpha             drawn  686 games (51.5% win)  played  627 games (52.3% win)
+    Spore Cluster                drawn  720 games (52.1% win)  played  565 games (49.9% win)
+    Reflex Spike                 drawn  610 games (47.7% win)  played  547 games (49.7% win)
+    Warren Guardian              drawn  664 games (55.4% win)  played  532 games (55.3% win)
+    Overgrown Carapace           drawn  640 games (49.2% win)  played  514 games (49.2% win)
+    Hive Mother                  drawn  443 games (65.9% win)  played  393 games (69.7% win)
+    Brood Reserves               drawn  377 games (46.7% win)  played  323 games (50.2% win)
+    Chitin Plating               drawn  371 games (48.8% win)  played  315 games (51.1% win)
+    Rally Cry                    drawn  354 games (48.9% win)  played  312 games (51.3% win)
+    Dormant Egg Sac              drawn  386 games (51.8% win)  played  310 games (50.0% win)
+    Barrier Node                 drawn  318 games (49.4% win)  played  254 games (42.9% win)
+    Molted Stalker               drawn  685 games (52.3% win)  played  213 games (66.7% win)
+    Bore Swarm                   drawn  587 games (52.5% win)  played  134 games (62.7% win)
+  --- Aegis per-card win rates ---
+    Bulwark Chassis              drawn  970 games (49.3% win)  played  944 games (48.9% win)
+    Guard Directive Chip         drawn  944 games (54.4% win)  played  933 games (54.9% win)
+    Perimeter Turret             drawn  932 games (53.0% win)  played  912 games (53.4% win)
+    Aegis Cadet                  drawn  919 games (53.2% win)  played  895 games (53.1% win)
+    Plating Module               drawn  897 games (45.8% win)  played  873 games (46.6% win)
+    Barrier Drone                drawn  799 games (43.3% win)  played  766 games (42.7% win)
+    Failover Custodian           drawn  754 games (42.8% win)  played  735 games (42.7% win)
+    Reinforced Bastion           drawn  742 games (51.8% win)  played  732 games (51.8% win)
+    Aegis Line Trooper           drawn  741 games (51.0% win)  played  702 games (51.0% win)
+    Salvage Reflex               drawn  724 games (49.2% win)  played  699 games (49.1% win)
+    Aegis Sentinel               drawn  845 games (50.9% win)  played  430 games (64.4% win)
+    Diagnostic Ward              drawn  436 games (39.9% win)  played  428 games (40.7% win)
+    Intercept Routine            drawn  427 games (41.2% win)  played  416 games (42.1% win)
+    Static Ward Beacon           drawn  416 games (41.8% win)  played  408 games (41.9% win)
+    Barrier Shim                 drawn  415 games (42.4% win)  played  403 games (43.2% win)
+    Latent Ward                  drawn  409 games (49.4% win)  played  399 games (48.6% win)
+    Feedback Plating             drawn  408 games (46.1% win)  played  393 games (46.1% win)
+    Tariff Field                 drawn  373 games (38.6% win)  played  366 games (37.4% win)
+    Lockdown Field               drawn  332 games (45.2% win)  played  332 games (45.2% win)
+    Prime Aegis                  drawn  376 games (68.1% win)  played  331 games (75.2% win)
+    Aegis Warden                 drawn  709 games (45.4% win)  played  172 games (69.8% win)
+    Breach Charge                drawn  395 games (42.3% win)  played  165 games (45.5% win)
+  --- Null per-card win rates ---
+    Fork Bomb                    drawn  957 games (48.7% win)  played  922 games (49.6% win)
+    Propagating Exploit          drawn  913 games (50.6% win)  played  853 games (49.8% win)
+    Corruption Patch             drawn  878 games (47.9% win)  played  839 games (49.0% win)
+    Stray Fragment               drawn  955 games (50.5% win)  played  831 games (50.4% win)
+    Glitch Seed                  drawn  854 games (50.2% win)  played  774 games (51.0% win)
+    Null Shell                   drawn  764 games (44.9% win)  played  726 games (47.0% win)
+    Garbage Collector            drawn  698 games (48.0% win)  played  642 games (47.5% win)
+    Dangling Pointer             drawn  739 games (49.4% win)  played  622 games (48.6% win)
+    Zombie Process               drawn  705 games (46.0% win)  played  612 games (45.6% win)
+    Entropy Harvester            drawn  644 games (51.9% win)  played  590 games (51.9% win)
+    Decay Ward                   drawn  613 games (41.8% win)  played  575 games (43.5% win)
+    Bit Rot                      drawn  376 games (44.9% win)  played  374 games (45.2% win)
+    Watchdog Timer               drawn  412 games (39.8% win)  played  368 games (37.0% win)
+    Deprecated Routine           drawn  365 games (43.0% win)  played  338 games (42.3% win)
+    Segfault Handler             drawn  347 games (52.4% win)  played  331 games (52.9% win)
+    Segmentation Fault           drawn  337 games (48.7% win)  played  323 games (47.4% win)
+    Corrupted Process            drawn  672 games (48.5% win)  played  321 games (57.0% win)
+    Null Pointer                 drawn  646 games (47.8% win)  played  221 games (59.3% win)
+    Null Singularity             drawn  375 games (44.3% win)  played  108 games (78.7% win)
+    Kernel Panic                 drawn  635 games (49.4% win)  played   82 games (75.6% win)
+
+=== RandomAgent vs RandomAgent (same policy both sides) ===
+  Cortex 141-159 Swarm  (Cortex 47.0% / Swarm 53.0%, 0 draws, avg 24.6 turns, 5.7% hit turn cap)
+  Cortex 124-176 Aegis  (Cortex 41.3% / Aegis 58.7%, 0 draws, avg 23.9 turns, 5.0% hit turn cap)
+  Cortex 90-210 Null  (Cortex 30.0% / Null 70.0%, 0 draws, avg 21.9 turns, 1.3% hit turn cap)  <-- FLAG: >=60% win rate
+  Swarm 130-170 Aegis  (Swarm 43.3% / Aegis 56.7%, 0 draws, avg 23.2 turns, 1.7% hit turn cap)
+  Swarm 121-179 Null  (Swarm 40.3% / Null 59.7%, 0 draws, avg 21.4 turns, 1.7% hit turn cap)
+  Aegis 121-179 Null  (Aegis 40.3% / Null 59.7%, 0 draws, avg 22.2 turns, 1.0% hit turn cap)
+  --- mirror matches (first-player-advantage baseline) ---
+  Cortex mirror: first-player 144-155 second-player (first-player win rate 48.0%, 1 draws, avg 26.5 turns)
+  Swarm mirror: first-player 155-145 second-player (first-player win rate 51.7%, 0 draws, avg 24.3 turns)
+  Aegis mirror: first-player 138-160 second-player (first-player win rate 46.0%, 2 draws, avg 23.7 turns)
+  Null mirror: first-player 144-156 second-player (first-player win rate 48.0%, 0 draws, avg 21.0 turns)
+  --- per-card win-rate instrumentation (drawn vs. played), accumulated across all of the above ---
+  --- Cortex per-card win rates ---
+    Cortex Engineer              drawn 1202 games (41.7% win)  played 1185 games (41.1% win)
+    Signal Drone                 drawn 1218 games (42.8% win)  played 1176 games (41.9% win)
+    Firewall Sentinel            drawn 1214 games (47.0% win)  played 1157 games (47.2% win)
+    Init Daemon                  drawn 1175 games (47.5% win)  played 1149 games (47.3% win)
+    Overclock Shunt              drawn 1199 games (42.8% win)  played 1144 games (44.1% win)
+    Watchtower Relay             drawn 1155 games (44.8% win)  played 1115 games (44.8% win)
+    Fail-safe Unit               drawn 1103 games (47.1% win)  played 1079 games (47.0% win)
+    Interrupt Handler            drawn 1025 games (41.1% win)  played 1013 games (40.7% win)
+    Mainframe Core               drawn 1020 games (48.9% win)  played  980 games (49.1% win)
+    Backup Protocol              drawn  997 games (39.8% win)  played  967 games (39.0% win)
+    Diagnostic Pulse             drawn  969 games (41.6% win)  played  931 games (39.6% win)
+    Recursive Construct          drawn  940 games (47.4% win)  played  907 games (47.0% win)
+    Dormant Exploit              drawn  672 games (43.2% win)  played  630 games (41.9% win)
+    Overload Capacitor           drawn  631 games (46.6% win)  played  609 games (45.6% win)
+    Diagnostic Loop              drawn  639 games (44.3% win)  played  609 games (42.7% win)
+    Retaliation Node             drawn  626 games (47.6% win)  played  597 games (46.4% win)
+    Cascade Purge                drawn  619 games (46.4% win)  played  573 games (46.1% win)
+    Force Quit                   drawn  982 games (43.2% win)  played  490 games (47.6% win)
+    Compiled Daemon              drawn 1006 games (42.0% win)  played  396 games (61.9% win)
+  --- Swarm per-card win rates ---
+    Colony Broodling             drawn 1214 games (46.3% win)  played 1197 games (45.9% win)
+    Swarm Larva                  drawn 1192 games (48.4% win)  played 1168 games (47.8% win)
+    Brood Skitterer              drawn 1192 games (48.7% win)  played 1160 games (47.6% win)
+    Broodcaller                  drawn 1187 games (50.5% win)  played 1159 games (50.3% win)
+    Carapace Grunt               drawn 1170 games (47.3% win)  played 1141 games (46.3% win)
+    Corrosive Spitter            drawn 1157 games (47.7% win)  played 1131 games (46.6% win)
+    Spore Cluster                drawn  960 games (48.1% win)  played  946 games (47.5% win)
+    Bloodswarm Alpha             drawn  976 games (51.9% win)  played  945 games (51.6% win)
+    Overclock Beast              drawn  955 games (51.2% win)  played  921 games (50.5% win)
+    Reflex Spike                 drawn  932 games (43.9% win)  played  917 games (44.6% win)
+    Overgrown Carapace           drawn  938 games (47.2% win)  played  904 games (46.0% win)
+    Warren Guardian              drawn  922 games (50.1% win)  played  887 games (49.0% win)
+    Hive Mother                  drawn  668 games (64.4% win)  played  643 games (64.4% win)
+    Dormant Egg Sac              drawn  630 games (49.0% win)  played  602 games (47.3% win)
+    Brood Reserves               drawn  599 games (49.9% win)  played  584 games (49.1% win)
+    Chitin Plating               drawn  600 games (46.8% win)  played  575 games (47.5% win)
+    Barrier Node                 drawn  521 games (44.5% win)  played  507 games (43.6% win)
+    Rally Cry                    drawn  526 games (45.8% win)  played  507 games (44.6% win)
+    Molted Stalker               drawn  993 games (45.4% win)  played  348 games (68.4% win)
+    Bore Swarm                   drawn  896 games (46.8% win)  played  323 games (49.8% win)
+  --- Aegis per-card win rates ---
+    Aegis Cadet                  drawn 1159 games (55.9% win)  played 1138 games (55.4% win)
+    Guard Directive Chip         drawn 1175 games (52.2% win)  played 1132 games (53.4% win)
+    Bulwark Chassis              drawn 1155 games (50.6% win)  played 1124 games (49.6% win)
+    Perimeter Turret             drawn 1137 games (52.6% win)  played 1113 games (52.1% win)
+    Plating Module               drawn 1096 games (49.8% win)  played 1057 games (51.3% win)
+    Barrier Drone                drawn  996 games (47.0% win)  played  970 games (45.8% win)
+    Failover Custodian           drawn  973 games (49.1% win)  played  949 games (48.1% win)
+    Reinforced Bastion           drawn  966 games (54.3% win)  played  937 games (53.0% win)
+    Aegis Line Trooper           drawn  930 games (50.1% win)  played  905 games (49.0% win)
+    Salvage Reflex               drawn  902 games (52.2% win)  played  871 games (51.1% win)
+    Intercept Routine            drawn  610 games (38.5% win)  played  592 games (39.7% win)
+    Static Ward Beacon           drawn  596 games (48.8% win)  played  580 games (48.1% win)
+    Diagnostic Ward              drawn  582 games (46.6% win)  played  574 games (46.2% win)
+    Feedback Plating             drawn  578 games (55.4% win)  played  566 games (54.4% win)
+    Latent Ward                  drawn  572 games (53.5% win)  played  555 games (52.3% win)
+    Aegis Sentinel               drawn 1101 games (52.5% win)  played  551 games (75.0% win)
+    Barrier Shim                 drawn  571 games (49.2% win)  played  541 games (50.6% win)
+    Prime Aegis                  drawn  565 games (77.9% win)  played  533 games (79.9% win)
+    Tariff Field                 drawn  531 games (44.1% win)  played  515 games (42.7% win)
+    Lockdown Field               drawn  507 games (49.7% win)  played  490 games (48.6% win)
+    Aegis Warden                 drawn  933 games (46.5% win)  played  271 games (78.2% win)
+    Breach Charge                drawn  534 games (52.1% win)  played  257 games (53.3% win)
+  --- Null per-card win rates ---
+    Fork Bomb                    drawn 1169 games (58.3% win)  played 1140 games (57.7% win)
+    Stray Fragment               drawn 1158 games (56.7% win)  played 1133 games (56.0% win)
+    Propagating Exploit          drawn 1170 games (58.5% win)  played 1115 games (57.0% win)
+    Glitch Seed                  drawn 1107 games (62.7% win)  played 1075 games (62.2% win)
+    Corruption Patch             drawn 1096 games (59.1% win)  played 1068 games (60.0% win)
+    Null Shell                   drawn 1048 games (57.5% win)  played  995 games (59.3% win)
+    Dangling Pointer             drawn  959 games (58.4% win)  played  912 games (56.9% win)
+    Zombie Process               drawn  933 games (58.8% win)  played  897 games (57.2% win)
+    Entropy Harvester            drawn  916 games (66.2% win)  played  882 games (65.4% win)
+    Garbage Collector            drawn  904 games (61.1% win)  played  857 games (59.7% win)
+    Decay Ward                   drawn  852 games (55.8% win)  played  809 games (57.2% win)
+    Bit Rot                      drawn  556 games (56.7% win)  played  538 games (55.2% win)
+    Watchdog Timer               drawn  561 games (54.2% win)  played  529 games (52.2% win)
+    Null Singularity             drawn  576 games (73.8% win)  played  488 games (75.6% win)
+    Deprecated Routine           drawn  533 games (60.6% win)  played  476 games (55.9% win)
+    Segfault Handler             drawn  512 games (60.7% win)  played  475 games (57.7% win)
+    Segmentation Fault           drawn  513 games (57.7% win)  played  473 games (55.8% win)
+    Corrupted Process            drawn  911 games (57.8% win)  played  437 games (78.5% win)
+    Null Pointer                 drawn  869 games (59.0% win)  played  405 games (61.0% win)
+    Kernel Panic                 drawn  899 games (56.0% win)  played  184 games (79.9% win)
+
+=== LookaheadAgent vs LookaheadAgent (same policy both sides) — the board-state-aware third policy, Phase 1 item 1 ===
+  Cortex 133-167 Swarm  (Cortex 44.3% / Swarm 55.7%, 0 draws, avg 13.8 turns, 0.0% hit turn cap)
+  Cortex 122-178 Aegis  (Cortex 40.7% / Aegis 59.3%, 0 draws, avg 16.3 turns, 0.0% hit turn cap)
+  Cortex 165-135 Null  (Cortex 55.0% / Null 45.0%, 0 draws, avg 14.5 turns, 0.0% hit turn cap)
+  Swarm 141-159 Aegis  (Swarm 47.0% / Aegis 53.0%, 0 draws, avg 14.0 turns, 0.0% hit turn cap)
+  Swarm 191-109 Null  (Swarm 63.7% / Null 36.3%, 0 draws, avg 12.3 turns, 0.0% hit turn cap)  <-- FLAG: >=60% win rate
+  Aegis 165-135 Null  (Aegis 55.0% / Null 45.0%, 0 draws, avg 15.1 turns, 0.0% hit turn cap)
+  --- mirror matches (first-player-advantage baseline) ---
+  Cortex mirror: first-player 138-162 second-player (first-player win rate 46.0%, 0 draws, avg 16.7 turns)
+  Swarm mirror: first-player 137-163 second-player (first-player win rate 45.7%, 0 draws, avg 11.5 turns)
+  Aegis mirror: first-player 145-155 second-player (first-player win rate 48.3%, 0 draws, avg 16.9 turns)
+  Null mirror: first-player 144-156 second-player (first-player win rate 48.0%, 0 draws, avg 13.1 turns)
+  --- per-card win-rate instrumentation (drawn vs. played), accumulated across all of the above ---
+  --- Cortex per-card win rates ---
+    Firewall Sentinel            drawn 1026 games (55.8% win)  played  999 games (55.8% win)
+    Cortex Engineer              drawn  998 games (42.4% win)  played  959 games (40.7% win)
+    Watchtower Relay             drawn  919 games (49.9% win)  played  898 games (49.6% win)
+    Init Daemon                  drawn  960 games (54.3% win)  played  870 games (54.6% win)
+    Overclock Shunt              drawn  990 games (48.5% win)  played  861 games (49.5% win)
+    Fail-safe Unit               drawn  865 games (50.1% win)  played  800 games (49.5% win)
+    Interrupt Handler            drawn  779 games (46.0% win)  played  775 games (46.1% win)
+    Signal Drone                 drawn  951 games (49.5% win)  played  775 games (48.9% win)
+    Diagnostic Pulse             drawn  746 games (44.6% win)  played  684 games (43.7% win)
+    Recursive Construct          drawn  699 games (50.4% win)  played  625 games (51.2% win)
+    Mainframe Core               drawn  780 games (49.2% win)  played  540 games (56.5% win)
+    Backup Protocol              drawn  801 games (43.8% win)  played  534 games (41.8% win)
+    Overload Capacitor           drawn  438 games (48.6% win)  played  435 games (48.3% win)
+    Cascade Purge                drawn  438 games (52.3% win)  played  424 games (51.9% win)
+    Diagnostic Loop              drawn  440 games (48.2% win)  played  409 games (47.4% win)
+    Retaliation Node             drawn  423 games (54.6% win)  played  379 games (54.9% win)
+    Compiled Daemon              drawn  783 games (48.0% win)  played  364 games (64.0% win)
+    Dormant Exploit              drawn  482 games (46.7% win)  played  277 games (46.6% win)
+    Force Quit                   drawn  742 games (43.8% win)  played  201 games (48.3% win)
+  --- Swarm per-card win rates ---
+    Broodcaller                  drawn  973 games (55.7% win)  played  928 games (54.6% win)
+    Carapace Grunt               drawn  938 games (52.0% win)  played  851 games (49.9% win)
+    Brood Skitterer              drawn  911 games (54.7% win)  played  787 games (51.5% win)
+    Colony Broodling             drawn  915 games (54.0% win)  played  711 games (50.4% win)
+    Swarm Larva                  drawn  866 games (57.7% win)  played  701 games (57.1% win)
+    Bloodswarm Alpha             drawn  694 games (53.9% win)  played  661 games (53.6% win)
+    Spore Cluster                drawn  735 games (51.3% win)  played  647 games (47.8% win)
+    Corrosive Spitter            drawn  879 games (57.8% win)  played  627 games (58.9% win)
+    Reflex Spike                 drawn  625 games (48.8% win)  played  606 games (50.2% win)
+    Overclock Beast              drawn  714 games (57.8% win)  played  561 games (58.1% win)
+    Warren Guardian              drawn  689 games (57.5% win)  played  560 games (57.7% win)
+    Hive Mother                  drawn  466 games (60.5% win)  played  419 games (63.2% win)
+    Chitin Plating               drawn  393 games (52.4% win)  played  348 games (48.9% win)
+    Overgrown Carapace           drawn  658 games (53.0% win)  played  285 games (42.5% win)
+    Brood Reserves               drawn  401 games (50.6% win)  played  270 games (44.8% win)
+    Molted Stalker               drawn  715 games (54.3% win)  played  254 games (70.9% win)
+    Barrier Node                 drawn  321 games (50.2% win)  played  238 games (43.7% win)
+    Dormant Egg Sac              drawn  404 games (50.5% win)  played  166 games (37.3% win)
+    Rally Cry                    drawn  353 games (54.4% win)  played  161 games (52.8% win)
+    Bore Swarm                   drawn  610 games (52.8% win)  played  111 games (55.0% win)
+  --- Aegis per-card win rates ---
+    Bulwark Chassis              drawn 1009 games (52.7% win)  played  972 games (50.9% win)
+    Guard Directive Chip         drawn  974 games (57.2% win)  played  940 games (56.1% win)
+    Aegis Cadet                  drawn  962 games (59.5% win)  played  934 games (58.5% win)
+    Perimeter Turret             drawn  956 games (57.6% win)  played  911 games (56.5% win)
+    Plating Module               drawn  919 games (49.8% win)  played  896 games (48.9% win)
+    Barrier Drone                drawn  836 games (46.8% win)  played  796 games (44.7% win)
+    Reinforced Bastion           drawn  775 games (59.2% win)  played  764 games (58.8% win)
+    Failover Custodian           drawn  795 games (50.2% win)  played  743 games (47.1% win)
+    Salvage Reflex               drawn  753 games (56.8% win)  played  734 games (56.1% win)
+    Aegis Line Trooper           drawn  763 games (51.9% win)  played  732 games (50.0% win)
+    Aegis Sentinel               drawn  894 games (55.8% win)  played  473 games (69.8% win)
+    Diagnostic Ward              drawn  460 games (49.6% win)  played  413 games (46.5% win)
+    Feedback Plating             drawn  425 games (54.6% win)  played  409 games (53.3% win)
+    Intercept Routine            drawn  446 games (46.9% win)  played  405 games (42.0% win)
+    Prime Aegis                  drawn  406 games (75.6% win)  played  379 games (78.6% win)
+    Barrier Shim                 drawn  426 games (53.1% win)  played  378 games (49.5% win)
+    Latent Ward                  drawn  436 games (55.0% win)  played  376 games (49.7% win)
+    Tariff Field                 drawn  395 games (41.5% win)  played  326 games (35.9% win)
+    Lockdown Field               drawn  360 games (52.8% win)  played  293 games (45.4% win)
+    Static Ward Beacon           drawn  446 games (48.2% win)  played  292 games (51.4% win)
+    Aegis Warden                 drawn  757 games (50.9% win)  played  206 games (73.3% win)
+    Breach Charge                drawn  414 games (49.0% win)  played  131 games (49.6% win)
+  --- Null per-card win rates ---
+    Stray Fragment               drawn  982 games (47.4% win)  played  953 games (46.5% win)
+    Propagating Exploit          drawn  962 games (47.6% win)  played  889 games (46.3% win)
+    Corruption Patch             drawn  905 games (46.4% win)  played  871 games (45.2% win)
+    Fork Bomb                    drawn  980 games (46.2% win)  played  862 games (43.9% win)
+    Glitch Seed                  drawn  887 games (49.8% win)  played  846 games (48.5% win)
+    Null Shell                   drawn  792 games (44.7% win)  played  770 games (43.8% win)
+    Dangling Pointer             drawn  767 games (49.2% win)  played  695 games (48.2% win)
+    Zombie Process               drawn  733 games (47.9% win)  played  693 games (46.0% win)
+    Garbage Collector            drawn  712 games (47.2% win)  played  692 games (46.1% win)
+    Entropy Harvester            drawn  677 games (51.4% win)  played  641 games (49.8% win)
+    Decay Ward                   drawn  643 games (43.7% win)  played  539 games (41.4% win)
+    Bit Rot                      drawn  392 games (42.3% win)  played  390 games (42.3% win)
+    Corrupted Process            drawn  704 games (48.3% win)  played  370 games (54.6% win)
+    Segfault Handler             drawn  365 games (47.7% win)  played  351 games (45.9% win)
+    Deprecated Routine           drawn  388 games (44.1% win)  played  296 games (40.2% win)
+    Watchdog Timer               drawn  437 games (45.8% win)  played  251 games (37.1% win)
+    Null Singularity             drawn  411 games (47.7% win)  played  191 games (69.1% win)
+    Null Pointer                 drawn  674 games (43.8% win)  played  168 games (54.8% win)
+    Segmentation Fault           drawn  359 games (44.6% win)  played  125 games (35.2% win)
+    Kernel Panic                 drawn  655 games (46.1% win)  played  105 games (76.2% win)
+
+=== Cross-check: flagged under ALL THREE agent policies? ===
+(Previously this checked Aggressive+Random only. Per the 2026-09-20 owner feedback, LookaheadAgent
+ now has to agree too — a strictly higher bar, by design, than the two-policy check it replaces.)
+  None. No cross-faction pairing shows the SAME side winning >=60% under all three agent policies — no strong evidence of a dominant archetype from this measurement.
+
+=== Ring targets: Null > Aegis > Cortex > Swarm > Null ===
+(Decisive edges [W] target 55-60% for the named winner; the two "across" pairings [E] target 45-55% even.
+ Corrected 2026-09-23 — Cortex-vs-Swarm and Aegis-vs-Cortex are BOTH decisive [W] edges, not "even":
+ only Null-vs-Cortex and Aegis-vs-Swarm are the ~even pairings.)
+  --- Aggressive ---
+    [W] Null should beat Aegis: 56.0% (target 55.00000000000001-60%) IN BAND
+    [W] Aegis should beat Cortex: 47.0% (target 55.00000000000001-60%) out of band
+    [W] Cortex should beat Swarm: 53.7% (target 55.00000000000001-60%) out of band
+    [W] Swarm should beat Null: 61.7% (target 55.00000000000001-60%) out of band
+    [E] Null vs Cortex should be ~even: Null 38.7% (target 45-55.00000000000001%) out of band
+    [E] Aegis vs Swarm should be ~even: Aegis 47.7% (target 45-55.00000000000001%) IN BAND
+  --- Random ---
+    [W] Null should beat Aegis: 59.7% (target 55.00000000000001-60%) IN BAND
+    [W] Aegis should beat Cortex: 58.7% (target 55.00000000000001-60%) IN BAND
+    [W] Cortex should beat Swarm: 47.0% (target 55.00000000000001-60%) out of band
+    [W] Swarm should beat Null: 40.3% (target 55.00000000000001-60%) out of band
+    [E] Null vs Cortex should be ~even: Null 70.0% (target 45-55.00000000000001%) out of band
+    [E] Aegis vs Swarm should be ~even: Aegis 56.7% (target 45-55.00000000000001%) out of band
+  --- Lookahead ---
+    [W] Null should beat Aegis: 45.0% (target 55.00000000000001-60%) out of band
+    [W] Aegis should beat Cortex: 59.3% (target 55.00000000000001-60%) IN BAND
+    [W] Cortex should beat Swarm: 44.3% (target 55.00000000000001-60%) out of band
+    [W] Swarm should beat Null: 63.7% (target 55.00000000000001-60%) out of band
+    [E] Null vs Cortex should be ~even: Null 45.0% (target 45-55.00000000000001%) IN BAND
+    [E] Aegis vs Swarm should be ~even: Aegis 53.0% (target 45-55.00000000000001%) IN BAND

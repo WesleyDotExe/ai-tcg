@@ -515,6 +515,187 @@ export const nullPointer: CommandCard = {
   ],
 };
 
+// --- Phase 5 pool expansion, Null slice (2026-09-26 owner-feedback entry,
+// "session 20 confirmations + next Phase 5 slice (Null, depth pass)"):
+// "Grow Null toward the 30-40 unique-card target with variety ... NOT by
+// raising its power — it must not reopen the Null dominance removed
+// earlier." Null is the faction with the most history of being nerfed, so
+// this batch is aimed at *mechanical breadth*, not stats: each of the five
+// cards below exercises a trigger or keyword the Null pool had never used
+// before this slice (onDeath, Rush, an Instant-speed combat trick, a
+// Directive with a turn trigger, an activated ability), measured against
+// the pool as it stood at session start:
+//
+//   Null triggers before: onPlay, onAttack, static only.
+//   Null keywords before: Guard (+ Barrier via a Tool) only.
+//
+// Stat lines are benchmarked against AVERAGE-measuring precedents only (the
+// owner's session-20 methodology note: "confirm the precedent itself
+// measured as AVERAGE, not strong") — see each card's own comment. The
+// five cards fill the deck from 32 to its 40-card cap WITHOUT trimming any
+// existing Null card, which also dilutes the density of Null's measured
+// top-end (Kernel Panic, Null Singularity) — deliberately power-neutral to
+// slightly-negative, per the entry's "not a power buff" constraint.
+
+export const zombieProcess: UnitCard = {
+  id: "NL-016",
+  name: "Zombie Process",
+  faction: "Null",
+  rarity: "Common",
+  cost: 2,
+  type: "Unit",
+  // 2/2 matches Fail-safe Unit/Carapace Grunt (the cost-2 vanilla line,
+  // both ~52-54% played — average, not strong). First cut was 1/2 and
+  // measured 36.3% played under Lookahead, well under even Null's own
+  // average, so the body was raised back to the vanilla line and the
+  // death token is the only premium. Null's first onDeath card.
+  attack: 2,
+  health: 2,
+  keywords: [],
+  art: "placeholder:null/zombie-process",
+  flavor: "Its parent exited long ago. Nobody reaped it, so it lingers in the table, still holding a slot.",
+  abilities: [
+    {
+      id: "zombie-process-death",
+      trigger: "onDeath",
+      text: "When this dies, create a 1/1 Orphaned Thread token.",
+      effects: [
+        {
+          kind: "summon",
+          count: 1,
+          token: {
+            name: "Orphaned Thread",
+            faction: "Null",
+            attack: 1,
+            health: 1,
+            keywords: [],
+            art: "placeholder:null/orphaned-thread",
+            flavor: "Still running. Still waiting for a join that will never come.",
+          },
+        },
+      ],
+    },
+  ],
+};
+
+export const danglingPointer: UnitCard = {
+  id: "NL-017",
+  name: "Dangling Pointer",
+  faction: "Null",
+  rarity: "Common",
+  cost: 2,
+  type: "Unit",
+  // Null's first Rush unit. Benchmarked against Cortex's Signal Drone
+  // (1/1 Rush, cost 1): +1 attack for +1 cost, and still dies to any 1
+  // damage — a tempo poke, not a durable threat.
+  attack: 2,
+  health: 1,
+  keywords: ["Rush"],
+  art: "placeholder:null/dangling-pointer",
+  flavor: "It still points where something used to be. Dereference it and find out what lives there now.",
+  abilities: [],
+};
+
+export const bitRot: CommandCard = {
+  id: "NL-018",
+  name: "Bit Rot",
+  faction: "Null",
+  rarity: "Uncommon",
+  cost: 1,
+  type: "Command",
+  // Null's first Instant-speed combat trick (Null Pointer is Instant but
+  // only ever answers a Directive). The mirror of Swarm's Reflex Spike
+  // (+0/+3 this turn, cost 1, ~50% played) — a temporary shrink rather
+  // than a temporary pump, so it plays into the priority system during
+  // the OPPONENT's combat. Temporary on purpose: every permanent enemy
+  // debuff Null has had has been at the centre of a nerf. Counts as
+  // removal/debuff under the Phase 3 lint (1 copy; see NULL_CARDS).
+  speed: "Instant",
+  art: "placeholder:null/bit-rot",
+  flavor: "Nothing hit it. The bits just quietly stopped meaning what they used to.",
+  abilities: [
+    {
+      id: "bit-rot-cast",
+      trigger: "onPlay",
+      text: "Target enemy unit gets -3/-0 this turn. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
+      // -2 -> -3 after the first measurement (38.4% played under
+      // Lookahead): -2 rarely changed a combat outcome against the cost-3+
+      // bodies it is cast into; -3 blanks most of them for the turn.
+      effects: [{ kind: "buff", attack: -3, health: 0, duration: "turn" }],
+    },
+  ],
+};
+
+export const watchdogTimer: DirectiveCard = {
+  id: "NL-019",
+  name: "Watchdog Timer",
+  faction: "Null",
+  rarity: "Rare",
+  cost: 3,
+  type: "Directive",
+  // Null's first Directive with a turn trigger, and a catch-up card by
+  // construction: it only draws when Null's hand is EMPTY — it has run out
+  // of gas — and does nothing while Null still holds cards. A refuel, not
+  // a snowball: it can't stack extra cards on top of a full hand the way
+  // the old snowball effects (Entropy Harvester's original own-graveyard
+  // scaling) rewarded Null for already winning. It is also a Directive, so
+  // every faction's directive-destroy answer can remove it.
+  //
+  // First cut gated on "fewer than 2 units" instead. Measured: played 250
+  // times under Lookahead but the condition was never live once — the
+  // agent only has spare energy for a 3-cost Directive once its board is
+  // developed (2-4 units every time it was checked), so the card was dead
+  // in practice. An empty hand is the state it actually gets played into.
+  art: "placeholder:null/watchdog-timer",
+  flavor: "If nothing has checked in by the time it hits zero, it assumes the worst and reboots something.",
+  abilities: [
+    {
+      id: "watchdog-timer-tick",
+      trigger: "onTurnEnd",
+      text: "At the end of your turn, if your hand is empty, draw a card.",
+      effects: [
+        {
+          kind: "conditional",
+          condition: { kind: "not", condition: { kind: "handSizeAtLeast", side: "controller", count: 1 } },
+          then: [{ kind: "drawCard", count: 1 }],
+        },
+      ],
+    },
+  ],
+};
+
+export const garbageCollector: UnitCard = {
+  id: "NL-020",
+  name: "Garbage Collector",
+  faction: "Null",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Unit",
+  // Null's first activated ability. Benchmarked on Cortex's Watchtower
+  // Relay (cost 3, 2/4, heals itself 1 each turn end for free; 52.7%
+  // played — average): same body and cost, but the heal costs 2 energy
+  // and competes with Null's own spells for the same single energy pool
+  // (DESIGN.md's resource model), so it is a real spending decision, not
+  // free value. First cut was cost 4 and measured 40.5% played.
+  attack: 2,
+  health: 4,
+  keywords: [],
+  art: "placeholder:null/garbage-collector",
+  flavor: "It sweeps the heap for anything unreferenced and hands the space back to whoever is still running.",
+  abilities: [
+    {
+      id: "garbage-collector-sweep",
+      trigger: "activated",
+      text: "Pay 2 energy: restore 2 health to target friendly unit.",
+      speed: "Sorcery",
+      cost: { energy: 2 },
+      targeting: { scope: "chosen", filter: { side: "controller", kind: "unit" } },
+      effects: [{ kind: "heal", amount: { mode: "flat", value: 2 } }],
+    },
+  ],
+};
+
 // Phase 3 pool lint (cards/poolLint.ts): this pool measured at 50% (18/36
 // copies) removal/debuff density, double the lint's 25% cap, plus zero card
 // flow — the exact outcome the 2026-09-20 owner-feedback entry predicted
@@ -566,4 +747,13 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
   { card: kernelPanic, copies: 2 },
   { card: nullSingularity, copies: 1 },
   { card: nullPointer, copies: 2 },
+  // Phase 5 Null slice (see the block above zombieProcess): 8 new copies,
+  // filling 32 -> 40 with no trims. Removal/debuff density: 9/40 = 22.5%
+  // (was 8/32 = 25.0%, exactly at the cap) — Bit Rot is the only new
+  // removal-classified card, so the pool moves AWAY from the cap.
+  { card: zombieProcess, copies: 2 },
+  { card: danglingPointer, copies: 2 },
+  { card: bitRot, copies: 1 },
+  { card: watchdogTimer, copies: 1 },
+  { card: garbageCollector, copies: 2 },
 ];

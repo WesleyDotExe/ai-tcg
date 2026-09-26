@@ -979,6 +979,39 @@ Phase 5 slice 2 (Swarm 16->20) reviewed and accepted. The ring is now healthy �
 
 The balance fight is essentially done; Phase 5 from here is mainly card variety, with the re-measure as the safety net.
 
+---
+
+**Handled, session 21 (2026-09-26) — Phase 5 slice 3: Null depth/variety
+pass.** Items 1-3 needed no action (acknowledged; Cortex-vs-Swarm and
+Swarm-vs-Null left untouched as instructed). The "next slice" ask is done:
+Null grown 15 -> 20 unique cards, each new card exercising a trigger or
+keyword Null had never used (Zombie Process — onDeath token; Dangling
+Pointer — Rush; Bit Rot — Instant -3/-0 combat trick; Watchdog Timer — a
+Directive with an onTurnEnd draw that only fires on an empty hand; Garbage
+Collector — an activated heal). Deck filled 32 -> 40 with no trims;
+removal/debuff density moved AWAY from the lint cap (25.0% -> 22.5%).
+
+Re-measured as asked. Null did NOT climb back up under Lookahead in any
+worrying way: mean 40.0% -> 42.1%; vs Cortex 46.3 -> 45.0, vs Swarm 35.7 ->
+36.3 (both inside one standard error), vs Aegis 38.0 -> 45.0 — a move
+toward the ring's own intended Null>Aegis edge, not toward dominance. No
+pairing flagged under all three policies. So nothing was pulled back. The
+Swarm-vs-Null Random split you hoped a Null slice might settle did shift:
+Random is now 59.7% Null (was 63.7%), under the 60% signal threshold.
+
+Honest journey: three measured cuts, not one. The first cut was a real
+NERF (Null Lookahead vs Cortex fell to 39.7%, out of its even band) and
+exposed a LookaheadAgent blind spot — it never valued a Directive's turn
+triggers, so it never played Watchdog Timer (0 plays in 900 games). Fixed
+generically in the agent (no earlier Directive had a turn trigger, so no
+earlier measurement moves). The second cut showed Watchdog Timer's first
+condition ("fewer than 2 units") was never live in real play; the shipped
+version gates on an empty hand instead. Full detail:
+`progress/balance-report-015-phase5-null-slice.txt`; real-play evidence of
+all five mechanisms: `progress/sample-match-022-phase5-null-slice.txt`.
+Next per this entry: Cortex's slice, then the neutral pool, then the
+mandatory full-ring re-measure.
+
 
 ---
 
