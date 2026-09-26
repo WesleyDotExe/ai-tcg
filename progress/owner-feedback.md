@@ -1026,3 +1026,20 @@ Reviewed the session-5 render output (PR #26: buff/penalty rise-sink grammar + p
 3. **Label vs particle colour — KEEP THE SPLIT.** The numeric stat label carries MEANING and is faction-independent (gold = buff, slate = penalty, always); the particle motes carry FACTION colour. Faction colour must not override the label. This is the cleanest expression of the EFFECTS.md invariant (meaning constant across factions) and keeps a play readable to a first-time viewer and to future audio commentary without memorising the four faction colours.
 
 **Render-lane note (from the mirror replay, aegis-vs-aegis seed 1):** Feedback Plating emitted a "grant" with a negative value (-1/+0) through the buff event at moves 29 and 40. Confirm the render classifies a negative-delta "buff" as a SINK (penalty grammar), not a rise — the SIGN of the delta decides rise vs sink, never the event name. This is the "penalty reads as a buff" thin spot the checkpoint already flagged; the three decisions above set how it should resolve.
+
+
+---
+
+## 2026-09-26 — Owner: session 21 (Null depth/variety pass) confirmations + next Null slice = consistency, not stat buff
+
+Reviewed Session 21 (Phase 5 slice 3: Null grown 15 -> 20 unique cards, deck filled 32 -> 40 with no trims, power-neutral). The five new cards each add a trigger/keyword Null lacked (onDeath token, Rush, Instant trick, empty-hand Directive draw, activated heal); the LookaheadAgent fix that now values Directive turn-triggers is endorsed as a real instrument fix. Nothing triple-flagged; the "no power buff" constraint held. Responses to the three steers:
+
+1. **Kernel Panic frequency (now ~half as common, ~105 of ~900 games) and Null being the weakest faction (42% under Lookahead, edge-over-Aegis at 45% vs the 55-60% target) are the SAME lever — fix them together on Null's NEXT slice.** Both are consequences of diluting the deck to 40 with weak filler. The next Null pass should trim back toward ~36 by cutting Null's measured-weakest filler, which raises Kernel Panic's visibility (matters for a spectator game — a signature arc in ~12% of matches is too thin) AND nudges Null's consistency/power up toward its ring target. This is the sanctioned way to buff Null: consistency/density, NOT stronger individual card stats.
+
+2. **Reframe the standing Null constraint:** "no power buff" now means "no STAT buff / no power-creep on individual cards" — it does NOT forbid raising Null via consistency (trimming filler, tightening the curve). Null is now the underpowered faction, so lifting it toward its intended edges is wanted; do it through deck density, not bigger cards, so Null dominance does not reopen. Re-measure after any trim; pull back if Null overshoots.
+
+3. **Watchdog Timer's empty-hand condition — accepted as shipped.** The "fewer than 2 units" version never fired in real play; the empty-hand refuel version (1 copy, Directive-removable) is fine. No change.
+
+4. **Agent heuristic constant (Directive turn-trigger valued at 2 expected firings) — accepted as a named guess.** Leave it; sanity-check the arbiter's weights at the end-of-Phase-5 full-ring re-measure, not before.
+
+Alternation stands: next is a render slice (it picks up the 2026-09-26 render taste calls), then Cortex's Phase 5 slice, the neutral pool, then the mandatory full-ring re-measure gate. The Null consistency trim above can be folded into Null's next slice whenever it comes back around.
