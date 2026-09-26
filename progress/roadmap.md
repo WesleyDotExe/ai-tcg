@@ -175,8 +175,19 @@ building around them; don't block the whole project waiting.
    power-neutral (Lookahead Null mean 40.0% -> 42.1%, every Cortex/Swarm
    move inside one standard error) and a move toward the ring's
    Null>Aegis edge. `progress/balance-report-015-phase5-null-slice.txt`.
-   **Remaining before the hard gate: Cortex's slice, then the neutral
-   pool (item 10), then the mandatory full-ring re-measure.**
+   **Session 22 did Cortex's slice**, the last per-faction one. Cortex 19 ->
+   24 unique cards (Rate Limiter, Load Balancer, Hotfix, Deadlock Detector,
+   Quorum Arbiter: a Directive turn trigger, onAttack, an Instant friendly
+   trick, opponent-board conditions, opponent-scaled attack, Cortex's first
+   Mythic), aimed at Swarm's width. Cortex-vs-Swarm under Lookahead 44.3 ->
+   58.7 (300 seeds; 46.7 -> 54.1 over 900). Aegis-vs-Cortex held in band.
+   Null-vs-Cortex moved toward Cortex, and it turned out to be already out
+   of band over 900 seeds: Null is below 45% against every faction.
+   `progress/balance-report-016-phase5-cortex-slice.txt`; new tool
+   `engine/src/dev/lookaheadEdgeCheck.ts` for 900-seed checks.
+   **Remaining before the hard gate: the neutral pool (item 10), then the
+   mandatory full-ring re-measure (run it at 900+ seeds, see report 016's
+   noise finding). Null's consistency trim can come before the gate.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

@@ -2214,3 +2214,51 @@ under Lookahead, and its ring edge over Aegis is still out of band under
 Lookahead (45%). Watchdog Timer's 37% played win rate is selection bias: it
 only fires when Null is out of cards. **Blocked:** nothing.
 `npm test` 225/225, `tsc` clean in all five packages.
+
+## 2026-09-26 — Session 22 (Phase 5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards)
+
+Balance session under the alternation rule (the last merged PR, #28, was
+render). The owner's 2026-09-26 "session 21 confirmations" entry put Cortex's
+Phase 5 slice next. That entry also flagged watching Cortex-vs-Swarm, where
+Lookahead had Cortex at 44.3% against a 55-60% target. The newest owner entry
+(session 6 render review) is render-lane only, so I acknowledged it for the
+next render session. Not a hardening session. Quality-debt is long, but no
+item is CRITICAL, and the owner's explicit order governs, as in sessions
+20-21.
+
+**Built:** five Cortex cards aimed at Swarm's width, each a shape Cortex
+never had: Rate Limiter (Directive, onTurnStart sweep when the enemy has 3+
+units), Load Balancer (onAttack ping), Hotfix (Instant friendly +1/+2),
+Deadlock Detector (onPlay stun when the enemy has 3+ units) and Quorum
+Arbiter (Mythic, attack = 1 + enemy units). Funded by trimming one copy each
+of the seven weakest Lookahead cards. I also added
+`engine/src/dev/lookaheadEdgeCheck.ts`, a Lookahead-only edge check on any
+seed range.
+
+**Ran it, many times.**
+- Cut 1: Swarm 56.0 (in band), but Aegis-vs-Cortex was just out (60.7
+  Aegis) and Null-vs-Cortex went to 60.3 Cortex.
+- Cut 2 (shipped): Rate Limiter at threshold 3 x2, fewer Hotfix/Deadlock,
+  Watchtower kept. Lookahead 300: Swarm 58.7, Aegis 43.3, Null 63.7.
+- Ablation (one card out at a time) showed Rate Limiter is the only truly
+  Swarm-selective card. Card-design variants (thresholds, max-health
+  filters, Quorum stat lines) all moved within noise.
+- A 150-mix copy search on seeds 1-300 never found Swarm >= 55 and Null <= 55
+  together. Its best mixes regressed on held-out seeds 301-900, which is a
+  seed-fit. Cut 2 held out best.
+- The held-out run surfaced the main finding: the BASELINE reads 59.3%
+  Cortex-vs-Null on seeds 301-900, against 55.0% on 1-300. Over 900 seeds,
+  Null is 42.1 / 36.6 / 37.3% against Cortex / Swarm / Aegis. The
+  300-seed reports had been hiding how weak Null is.
+- Final over 900 seeds: Cortex-vs-Swarm 46.7 -> 54.1, Aegis-vs-Cortex held
+  (Aegis 58.4), Null-vs-Cortex 57.9 -> 61.1 Cortex.
+- Demo: all five mechanisms found in real Lookahead play, three in one game.
+  Hotfix is almost never cast reactively (2 of 262 casts). Reflex Spike
+  shows the same agent blind spot (0 of 150).
+
+**Worked:** the targeted edge moved a lot, the variety claim is real and
+tested, and the lint held. **Named, not fixed:** Null-vs-Cortex drifted
+further out of band, and I flagged that to the owner as an overrulable call.
+Random policy now has Cortex over Swarm at 73%. Hotfix's Instant identity is
+invisible to the trusted agent. **Blocked:** nothing. `npm test` 249/249,
+`tsc` clean in all five.

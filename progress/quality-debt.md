@@ -18,10 +18,51 @@ decisions: the four-faction ring, Null step 4, buff Swarm), session 18
 (Phase 4 session 17 follow-ups: ring labels corrected, Aegis-vs-Cortex
 fix, Null past-cost nerf), session 19 (Phase 5 slice 1: Aegis pool
 grown 18 -> 22 unique cards), session 20 (Phase 5 slice 2: Swarm
-pool grown 16 -> 20 unique cards), and now session 21 (Phase 5 slice 3:
-Null depth/variety pass, 15 -> 20 unique cards).
+pool grown 16 -> 20 unique cards), session 21 (Phase 5 slice 3:
+Null depth/variety pass, 15 -> 20 unique cards), and now session 22 (Phase
+5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 22
+
+- **The standard balance report is too small a sample for the calls we make
+  with it.** 300 seeds is about a 2.9-point standard error, and the ring
+  bands are only 5-10 points wide. The baseline Null-vs-Cortex edge read
+  55.0% on seeds 1-300 and 59.3% on 301-900. Every earlier "IN BAND" verdict
+  within about 3 points of a band edge should be treated as unconfirmed.
+  `lookaheadEdgeCheck.ts` gives 900-seed Lookahead numbers, but
+  balanceReport.ts itself still defaults to 300. Changing the default (or
+  the end-of-Phase-5 gate) is proposed to the owner, not done.
+- **Null is the weakest faction by more than the reports said:** 42.1 /
+  36.6 / 37.3% against Cortex / Swarm / Aegis over 900 seeds. All three of
+  its ring edges are out of band in the "Null too weak" direction,
+  including the one it should win (vs Aegis). This slice moved
+  Null-vs-Cortex a further 3.2 points toward Cortex (57.9 -> 61.1), and that
+  was a deliberate, flagged tradeoff.
+- **Cortex-vs-Swarm is not quite closed.** 54.1% over 900 seeds against a
+  55% floor. It reads in band on 300 seeds (58.7%), but see the noise item
+  above.
+- **Random policy now shows Cortex over Swarm at 73.0%**, and Aegis-vs-Cortex
+  out of band under Random (46.0% Aegis). Both are discounted under the
+  Lookahead-arbiter rule, but the swing is large. Rate Limiter and Deadlock
+  Detector need no judgement to work, so Random gets full value from them.
+- **LookaheadAgent spends temporary friendly buffs immediately.** It values
+  "+X/+Y this turn" the moment it has a target, not when combat is pending.
+  So Hotfix is cast on the opponent's turn 2 times out of 262, and Swarm's
+  Reflex Spike 0 of 150. The Instant speed of both cards is effectively
+  unmeasured. The fix is an agent change (value a turn buff only against
+  pending combat on the stack), and it would move Swarm's numbers. It
+  belongs in a deliberate instrument pass, not a card slice.
+- **Rate Limiter's 41.7% played win rate looks like a weak card but isn't
+  one.** It idles against narrow boards (Aegis/Null) by design. Ablation
+  shows it carries most of the Swarm-specific gain, and the per-card table
+  can't show per-matchup value. Same instrument limit as Watchdog Timer's
+  selection bias (session 21), now on a second card.
+- **My ablation and search scripts were scratch files, not committed.** Only
+  the edge-check tool was promoted into `engine/src/dev/`. A per-matchup
+  per-card table and a copy-mix ablation tool would make the next faction
+  tuning pass much faster. Not built.
 
 ## New debt from session 21
 
