@@ -10,6 +10,9 @@ import { Rng } from "../state/rng.js";
 const FACE_DAMAGE_WEIGHT = 2;
 const CARD_ADVANTAGE_WEIGHT = 1.5;
 const ENERGY_WEIGHT = 0.4;
+/** Expected number of times a Directive's recurring turn trigger fires
+ * before the match ends or the Directive is removed — see scorePlayCard. */
+const DIRECTIVE_TURN_TRIGGER_HORIZON = 2;
 
 /** Dummy agent #3 (2026-09-20 owner feedback, "fix the instrument before any
  * further balance change"): the other two dummy agents both value a move by
@@ -168,6 +171,18 @@ export class LookaheadAgent implements Agent {
       if (onPlay) value += this.estimateAbility(view, onPlay, move.target, selfRef);
       const staticAbility = card.abilities.find((a) => a.trigger === "static");
       if (staticAbility?.staticEffect) value += this.estimateStaticEffect(view, staticAbility.staticEffect);
+      // A Directive whose value comes from a recurring turn trigger
+      // (onTurnStart/onTurnEnd) used to score only its cost here — i.e.
+      // always below passPriority's 0, so this policy could never play one
+      // (found by the Phase 5 Null slice: Watchdog Timer measured 0 plays
+      // in 900 Lookahead games). Each such trigger is valued as one firing
+      // estimated against the current board, times a short expected
+      // lifetime — a named heuristic constant, same category as this
+      // file's other weights. No Directive before that slice had a turn
+      // trigger, so this changes no earlier measurement.
+      for (const turnAbility of card.abilities.filter((a) => a.trigger === "onTurnStart" || a.trigger === "onTurnEnd")) {
+        value += this.estimateAbility(view, turnAbility, undefined, selfRef) * DIRECTIVE_TURN_TRIGGER_HORIZON;
+      }
       return value;
     }
 

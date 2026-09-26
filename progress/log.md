@@ -2165,3 +2165,52 @@ event-log instance-IDs engine task and the render-lane items from the
 2026-09-25/26 owner-feedback entries (none in this session's scope, though
 the instance-IDs task remains a good pickup "when convenient during Phase
 5" for a future balance session with spare budget).
+
+## 2026-09-26 — Session 21 (Phase 5 slice 3: Null depth/variety pass, 15 -> 20 unique cards)
+
+Balance session under the alternation rule (the last merged PR, #26, was
+render). Owner feedback had one actionable entry: the 2026-09-26 "session 20
+confirmations" entry named Null as the next Phase 5 slice, "a DEPTH /
+VARIETY pass, not a power buff", with a pull-back clause if Null climbed
+under Lookahead. Not a hardening session: quality-debt is long, but the
+owner's explicit steer overrides the cadence, and this slice deepens the
+card pool rather than adding surface.
+
+**Built:** five Null cards, each using a trigger or keyword Null never had.
+They are Zombie Process (onDeath token), Dangling Pointer (Rush), Bit Rot
+(Instant -3/-0 trick), Watchdog Timer (Directive, onTurnEnd draw on an empty
+hand) and Garbage Collector (activated heal). The deck went 32 -> 40 with no
+trims. Removal density fell from 25.0% to 22.5%. I also fixed a LookaheadAgent
+blind spot: Directive turn triggers were never valued.
+
+**Ran it, three times.** Baseline and each cut used the full 300-seed,
+three-policy balanceReport.
+- Cut 1 was a NERF. Null's Lookahead rate vs Cortex fell 46.3 -> 39.7, which
+  pushed an in-band even edge out of band. The new cards measured 36-46% when
+  played, and Watchdog Timer was played 0 times in 900 Lookahead games. The
+  cause was an agent blind spot, not the card.
+- Cut 2 fixed the agent and brought three cards up to average precedents:
+  Zombie Process to the vanilla 2/2 line, Bit Rot to -3, and Garbage
+  Collector to Watchtower Relay's cost 3. Numbers were near neutral. But a
+  scratch trace showed Watchdog Timer never drew once. The agent only affords
+  it with 2-4 units already on board, so "fewer than 2 units" was never live.
+- Cut 3 (shipped) re-gated Watchdog Timer on an empty hand. In this cut the
+  Lookahead Null mean is 42.1%, up from 40.0%. Vs Cortex went 45.0, vs Swarm
+  36.3 and vs Aegis 45.0, up from 38.0. No pairing is triple-flagged. Every
+  non-Null pairing is byte-identical to report 014, which confirms the agent
+  fix moved nothing else.
+- `nullPoolExpansionMatchDemo.ts` found all five mechanisms in real
+  unscripted Lookahead play. Four of them fire in one game (seed 1, Cortex vs
+  Null), committed as `sample-match-022`.
+- The demo's first Watchdog detector was itself wrong. It looked for a draw
+  directly after turnEnd, but an abilityTrigger entry sits between them.
+  Fixed before the evidence was committed.
+
+**Worked:** the variety claim is real and proven per card, and the power
+constraint held. **Named, not fixed:** filling the deck to 40 dilutes Null's
+evolution line. Kernel Panic's Lookahead played-count halved (206 -> 105),
+though its played win rate held. Null is still the lowest-winning faction
+under Lookahead, and its ring edge over Aegis is still out of band under
+Lookahead (45%). Watchdog Timer's 37% played win rate is selection bias: it
+only fires when Null is out of cards. **Blocked:** nothing.
+`npm test` 225/225, `tsc` clean in all five packages.

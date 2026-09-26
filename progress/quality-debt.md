@@ -17,10 +17,47 @@ triangle, proposed and measured), session 17 (the owner's Phase 4
 decisions: the four-faction ring, Null step 4, buff Swarm), session 18
 (Phase 4 session 17 follow-ups: ring labels corrected, Aegis-vs-Cortex
 fix, Null past-cost nerf), session 19 (Phase 5 slice 1: Aegis pool
-grown 18 -> 22 unique cards), and now session 20 (Phase 5 slice 2: Swarm
-pool grown 16 -> 20 unique cards).
+grown 18 -> 22 unique cards), session 20 (Phase 5 slice 2: Swarm
+pool grown 16 -> 20 unique cards), and now session 21 (Phase 5 slice 3:
+Null depth/variety pass, 15 -> 20 unique cards).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 21
+
+- **Null's evolution line is diluted.** The deck went 32 -> 40 with no
+  trims, which was deliberate for power-neutrality. As a result, Kernel Panic is played in about
+  half as many Lookahead games (206 -> 105) and Corrupted Process drops
+  from 529 to 370. Null's signature "answer it early or respect it later"
+  arc now shows up much less often, which matters for spectator
+  drama as well as balance. The fix, if the owner wants the arc back, is
+  trimming some new or old copies back toward ~36 cards and re-measuring. This session
+  did not try it.
+- **Null is still the weakest faction under the trusted policy.** Its Lookahead
+  mean is 42.1%, and the ring's intended Null>Aegis edge sits at 45.0% Null under
+  Lookahead, against a 55-60% target. This slice was scoped as "not a power buff" on purpose, so it
+  is not a bug in this slice. But the end-of-Phase-5 re-measure will almost
+  certainly have to deal with it.
+- **LookaheadAgent still ignores several things a card can be worth.**
+  This session fixed one blind spot: Directive turn triggers. Still unvalued:
+  keywords on a played unit (Rush, Guard, Barrier), a unit's own
+  onDeath/onTurnStart/onTurnEnd abilities, and any condition the view could
+  actually evaluate. Conditionals are always discounted to 0.5 even when
+  the condition is public board state. As a result, Dangling Pointer's Rush and
+  Zombie Process's death token are only "valued" as their raw bodies.
+  Fixing this generally would move every faction's numbers, so it belongs in
+  a deliberate instrument pass (the owner's "fix the instrument" framing),
+  not inside a card slice.
+- **Watchdog Timer's measured 37% played win rate is selection bias, not a
+  verdict.** It only does anything when Null's hand is empty, a state
+  correlated with losing. The per-card table cannot separate "this card is
+  weak" from "this card is played while behind". This is a known limit of the
+  instrument, and it now applies to a real card.
+- **The first cut shipped a dead card that only a trace caught.** The
+  balance report showed Watchdog Timer "played 250 times", which looked
+  healthy, while its effect had fired zero times. The per-card table
+  counts plays, not effect firings. A per-ability firing count in
+  balanceReport.ts would catch this class of problem automatically. Not built.
 
 ## New debt from session 20
 

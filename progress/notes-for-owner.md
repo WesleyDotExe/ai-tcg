@@ -1,5 +1,24 @@
 # Notes for the owner
 
+**Updated 2026-09-26, session 21 (Phase 5 slice 3: Null depth/variety
+pass, 15 -> 20 unique cards).** Nothing is blocking. Three quick steers
+would help, and the full detail is in `progress/checkpoints.md`'s newest entry:
+
+1. **Kernel Panic now shows up about half as often.** I filled Null's deck
+   from 32 to 40 without trimming anything, to keep it from getting
+   stronger. The side effect is that its evolution finisher appears in
+   roughly half as many games. Is that fine, or should a later slice trim
+   back toward ~36 so the arc stays visible to viewers?
+2. **Watchdog Timer draws only when Null's hand is empty.** My first
+   version drew when Null had fewer than 2 units, but it never fired
+   once in real play. The empty-hand version is the one that ships.
+3. **Null is still the weakest faction under Lookahead, at 42% on
+   average.** Its intended edge over Aegis sits at 45%, below the
+   55-60% target. You asked for no power buff, so I left it. Expect the
+   end-of-Phase-5 re-measure to flag it.
+
+---
+
 **Updated 2026-09-26, session 20 (Phase 5 slice 2 — Swarm grown 16 -> 20
 unique cards, general power-level pass).** Full detail in
 `progress/checkpoints.md`'s new entry, short version here:

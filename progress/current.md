@@ -1,119 +1,78 @@
 # Current status
 
-**Build-order stage: 3 (A real card set) — still current, now inside Phase 5
-(pool expansion).** Session 20 (balance session — the alternation rule in
-owner-feedback.md's 2026-09-24 entry means this session did the normal
-balance/roadmap priority, since the most recently merged PR (#24) was a
-render slice).
+**Build-order stage: 3 (A real card set) — still current, inside Phase 5
+(pool expansion).** Session 21 was a balance session: under the
+alternation rule (owner-feedback.md, 2026-09-24) the most recently merged
+PR (#26) was a render slice, so this session did the normal
+balance/roadmap priority. The owner's 2026-09-26 "session 20 confirmations"
+entry named the slice exactly: **Null, as a depth/variety pass, not a
+power buff.** That is what shipped.
 
-No unhandled owner feedback and no CRITICAL quality-debt item at session
-start. Consulted `progress/roadmap.md` (item 3, the balance pass, IN
-PROGRESS inside Phase 5) and the owner's own 2026-09-26 "session 19
-confirmations" entry, which named Swarm as the natural next Phase 5 pick.
-This session did that: Phase 5 slice 2 — grew Swarm's pool from 16 to 20
-unique cards, a general power-level pass (not a single-pairing aim, since
-Swarm was the baseline-worst faction across three of its four matchups).
+## What stands (this session's work — sessions 1-20 otherwise unchanged)
 
-## What stands (this session's work — everything from sessions 1-19
-## otherwise unchanged, see prior `progress/log.md` entries)
+**Null pool grown 15 -> 20 unique cards** (`engine/src/data/nullCards.ts`).
+Each new card uses a trigger or keyword the Null pool had never used:
 
-**Swarm pool grown 16 -> 20 unique cards** (`engine/src/data/cards.ts`).
-Four new cards, all real, immediate board stats (not reactive utility):
-- **Brood Skitterer** (Common, cost 1, 1/2, no ability) — fills the gap for
-  a cross-faction-median vanilla 1-drop; Swarm's existing cheap bodies were
-  all below it.
-- **Carapace Grunt** (Common, cost 2, 2/2, no ability) — Swarm's first
-  plain cost-2 stat body; every existing one carried an ability.
-- **Warren Guardian** (Uncommon, cost 3, 2/3, Guard) — Swarm's first Guard
-  unit, printed below both established cost-3 Guard benchmarks on purpose
-  (numbers, not individual toughness, is the faction's identity).
-- **Bloodswarm Alpha** (Rare, cost 4, 3/3, onPlay: summon a 1/1 Swarm
-  Larva) — real board presence plus immediate width, unlike Brood
-  Reserves' pure (and measurably weaker) summon spell.
+| Card | Cost | Shape | New for Null |
+|---|---|---|---|
+| Zombie Process (C) | 2 | 2/2, onDeath: create a 1/1 Orphaned Thread | onDeath |
+| Dangling Pointer (C) | 2 | 2/1 Rush | Rush |
+| Bit Rot (U) | 1 | Instant Command: enemy unit -3/-0 this turn | Instant combat trick |
+| Watchdog Timer (R) | 3 | Directive: end of your turn, if your hand is empty, draw | Directive turn trigger |
+| Garbage Collector (U) | 3 | 2/4, pay 2: restore 2 health to a friendly unit | activated ability |
 
-Funded by data-driven trims of the pool's own measured weakest cards (this
-session's own baseline report), not guesses — Rally Cry, Barrier Node,
-Reflex Spike, Dormant Egg Sac, Chitin Plating, Spore Cluster, and Brood
-Reserves each lost 1-2 copies, none removed from the deck entirely. Deck
-stays at exactly its 40-card cap; pool lint, copy limits, and deck size all
-still pass.
+Deck 32 -> 40 (its cap) with no trims to existing cards. Removal/debuff
+density moved away from the lint cap: 8/32 (25.0%) -> 9/40 (22.5%).
 
-**Honest journey: the first stat line was overtuned, caught by this
-session's own re-measurement, and corrected before shipping — same pattern
-as session 19.** The first cut (Brood Skitterer 2/1, Carapace Grunt 3/1,
-Warren Guardian 3/3 Guard, Bloodswarm Alpha 4/4+summon — matching Aegis's
-own strongest-testing cards stat-for-stat) made the whole Swarm deck
-generically too strong: every card's win rate jumped uniformly, and
-Cortex-vs-Swarm flipped from Cortex-dominant (60-70%) to Swarm-dominant
-(57-66%). Not shipped. Scaled every new card back below its original
-benchmark, then re-measured again.
+**LookaheadAgent fix** (`engine/src/agents/lookaheadAgent.ts`): a Directive's
+onTurnStart/onTurnEnd abilities are now valued (one estimated firing x a
+horizon of 2). Before, such a Directive always scored below passing and
+the trusted policy never played it. No earlier Directive had a turn
+trigger, so this does not move any earlier measurement (confirmed: every
+non-Null pairing in report 015 is identical to report 014).
 
-**Result: no cross-faction pairing is triple-flagged at all** — the
-project's sole standing triple-flag, Cortex-vs-Swarm, is resolved. Per-card
-win rates across the whole Swarm pool now cluster sanely around 48-56%
-instead of the first cut's uniform 55-65%+ spike. Aegis-vs-Swarm (the
-watch item session 19 left open) is back in band on 2 of 3 policies,
-including Lookahead, the trusted arbiter.
+**Measured result (300 seeds, all three policies):** roughly power-neutral,
+as the owner asked. Lookahead Null mean 40.0% -> 42.1%. Vs Cortex 46.3 ->
+45.0 and vs Swarm 35.7 -> 36.3 (inside one standard error); vs Aegis
+38.0 -> 45.0, a move toward the ring's intended Null>Aegis edge
+(Aggressive 56.0% and Random 59.7% now IN BAND for that edge). No pairing
+flagged under all three policies. Swarm-vs-Null's Random-policy split has
+shifted: Random is now 59.7% Null, under the 60% threshold.
 
-**Named honestly, not fully resolved:**
-- **Cortex-vs-Swarm overshot past even into mild Swarm-favour** rather than
-  landing at the ring's actual target (Cortex should win 55-60%) — squarely
-  inside what the owner's 2026-09-23 entry anticipated ("Phase 5 wider
-  pools will likely settle it... do not add a card or nerf anyone
-  specifically for this pairing"), but a new watch item, not a clean
-  settle.
-- **Swarm-vs-Null remains unresolved, in a new shape:** Aggressive and
-  Lookahead now favour Swarm (61-64%), Random still favours Null (64.0%,
-  down from 75.7% baseline) — real movement, but policy disagreement, not
-  a resolved pairing.
+**It took three measured cuts** (the first was a real nerf; the second had a
+dead card). Details in `progress/balance-report-015-phase5-null-slice.txt`'s
+header and this session's log entry.
 
 ## Evidence committed
 
-- `progress/balance-report-014-phase5-swarm-slice.txt` — full 300-seed,
-  3-policy report: the overtuned first cut is NOT in this file (never
-  committed, caught pre-ship); this is the corrected, shipped result.
-- `progress/sample-match-021-phase5-swarm-slice.txt` — a real, unscripted
-  LookaheadAgent-vs-LookaheadAgent Swarm-vs-Null match where BOTH new
-  mechanisms fire: Bloodswarm Alpha's onPlay summon, and Warren Guardian's
-  Guard forcing an attack onto it. Found on the first seed tried via
-  `engine/src/dev/swarmPoolExpansionMatchDemo.ts`.
-- `engine/test/swarmPoolExpansion.test.ts` — 3 new whitebox tests: Guard
-  actually redirects attacks, the summon creates a real functional token,
-  and the pool still builds a legal 40-card deck at 20 unique cards.
-- `npm test` (root, all five workspaces): 89/89 engine (was 86), 176/176
-  total. `npx tsc --noEmit` clean in all five packages.
-
-## Decisions made this session the owner might want to overrule
-
-See `progress/checkpoints.md`'s new entry and `progress/notes-for-owner.md`.
-In short: the exact new stat lines and copy counts (an evidence-led guess,
-scaled back once but not iterated further after landing in band); which
-existing cards absorbed the copy trims (picked by lowest measured win rate,
-same method as session 19); and choosing a broad power-level pass over
-aiming at one specific pairing, since Swarm was weak against three of its
-four opponents at once.
+- `progress/balance-report-015-phase5-null-slice.txt`: before/after
+  summary table, the three-cut history, then the full shipped report.
+- `progress/sample-match-022-phase5-null-slice.txt`: a real unscripted
+  LookaheadAgent game (Cortex vs Null, seed 1) where 4 of the 5 new
+  mechanisms fire. The fifth (Bit Rot cast on the opponent's turn) is
+  found at seed 10. Generated by `engine/src/dev/nullPoolExpansionMatchDemo.ts`.
+- `engine/test/nullPoolExpansion.test.ts`: 8 new tests. Each new card's
+  mechanism, the agent fix, the legal 40-card deck plus lint, and the variety claim.
+- `npm test` at the root: 225/225 across all five workspaces (engine 97, was 89).
+  `tsc --noEmit` is clean in all five.
 
 ## Concrete next step
 
-Phase 5 continues: Cortex and Null still need their own growth pass before
-the owner's "hard gate" whole-ring re-measure (item 4) is due — that's
-explicitly scoped to "the end of Phase 5's first full pass" (every faction
-grown at least once), which this session does not complete on its own.
-Null is the more natural next pick over Cortex: Cortex hasn't been named
-as a problem faction since the ring correction, while Null still has an
-open, named watch item (Swarm-vs-Null's Random-vs-other-policies
-disagreement, above) that a Null-side Phase 5 slice could help settle
-alongside its own growth. A future session should read this file's "named
-honestly" section above before touching either Cortex-vs-Swarm or
-Swarm-vs-Null again — both are real but not yet owner-steered.
+Next session is a **render** slice, per the alternation rule (this PR is
+a balance slice). The render lane has its own queue: RENDER.md, EFFECTS.md
+slice 3 (power/ability cast flourish), and the owner's 2026-09-26 render
+note about negative-delta "buff" events.
 
-Two small, explicitly-optional items are still open from other 2026-09-25
-owner-feedback entries and can be picked up whenever convenient on a future
-balance session: adding instance IDs to the event log (a small, additive
-engine change; not blocking, but "before stage 7"), and — render-lane only,
-not for a balance session — nothing else outstanding there as of this
-session (see `progress/render/` for the render lane's own status).
+After that, the next balance session should take **Phase 5's Cortex
+slice**. It is the last faction without one. The order the owner set is
+Cortex, then the neutral pool (roadmap item 10), then the mandatory full-ring
+re-measure under all three policies with Lookahead as arbiter. Cortex's
+slice should be a variety pass sized like this one (~5 cards). Keep watching
+Cortex-vs-Swarm, where the ring wants Cortex at 55-60% and Lookahead has it at 44.3%. A
+Cortex slice that is slightly positive would naturally help there. Re-measure
+each cut before shipping, and benchmark only against precedents that
+measured AVERAGE.
 
-Per RENDER.md's alternation rule, the next session should be a render
-slice (this session's own PR is the "balance" slice the rule alternates
-against).
+A small optional engine task is still open for any balance session with
+spare budget: instance IDs in the event log (2026-09-25 owner entry,
+"before stage 7").

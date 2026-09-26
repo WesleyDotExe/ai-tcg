@@ -5,6 +5,58 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Phase 5 slice 3: Null depth/variety pass, 15 -> 20 unique cards (2026-09-26, session 21)
+
+This does not complete a build-order stage. It is flagged because it is the third Phase
+5 slice, the owner set a specific constraint on it ("not a power buff;
+pull back if Null climbs"), and it contains three taste calls worth
+steering.
+
+**Delivered, with evidence:**
+1. Five Null cards, each using a trigger or keyword Null never had before:
+   Zombie Process (onDeath token), Dangling Pointer (Rush), Bit Rot
+   (Instant -3/-0 trick), Watchdog Timer (Directive: draw at end of turn on
+   an empty hand), and Garbage Collector (activated 2-energy heal). Each has
+   a whitebox test (`engine/test/nullPoolExpansion.test.ts`), and all five
+   fire in real Lookahead play (`progress/sample-match-022-phase5-null-slice.txt`).
+2. A LookaheadAgent fix: Directive turn triggers are now valued. Before
+   the fix, the trusted policy never played such a card. All non-Null pairings are
+   identical to report 014, so no earlier measurement moved.
+3. A re-measure (`progress/balance-report-015-phase5-null-slice.txt`). The
+   Lookahead Null mean went 40.0% -> 42.1%. Cortex and Swarm moved within
+   one standard error, and vs Aegis went 38.0 -> 45.0, toward the ring's intended
+   Null>Aegis edge. Nothing is triple-flagged. The constraint held, so nothing was pulled
+   back.
+
+**Strong:** the variety is real and proven card by card. The slice honoured the
+power constraint, and it found and fixed a genuine instrument blind spot.
+
+**Thin:** it took three measured cuts. The first was a real nerf, and the
+second had a card whose effect never fired. Null is still the weakest
+faction under Lookahead. The evolution line is diluted, as covered in item 2 below.
+
+**Decisions you might want to overrule:**
+1. **Fill to 40 with no trims.** I chose this for power-neutrality and to take
+   removal density off the cap. The alternative was trimming weak existing
+   Null cards, as the Aegis and Swarm slices did.
+2. **The consequence: the Kernel Panic evolution arc is about half as common.**
+   Kernel Panic is played in 105 of about 900 Lookahead games, down from 206.
+   If you want Null's signature
+   arc to show up in watched matches more often, say so. A future slice can trim
+   the deck back toward ~36 and re-measure.
+3. **Watchdog Timer's condition, "hand is empty".** The first version,
+   "fewer than 2 units", was the more thematic catch-up clause, but it was never
+   live in real play. The empty-hand version is a refuel card, and it is the
+   only Null card that can generate card advantage turn after turn. It is
+   capped at 1 copy and is Directive-removable.
+4. **The agent heuristic constant.** A Directive turn trigger is valued at
+   2 expected firings. This is a named guess, in the same category as the agent's other weights.
+
+**Next:** a render slice (alternation). Then Cortex's Phase 5 slice, the
+neutral pool, and the mandatory full-ring re-measure.
+
+---
+
 ## AWAITING FEEDBACK — Phase 5 slice 2: Swarm pool grown 16 -> 20, no pairing triple-flagged at all (2026-09-26, session 20)
 
 Not a full build-order stage completion — flagged because this is the

@@ -165,6 +165,18 @@ building around them; don't block the whole project waiting.
    continues — Cortex and Null still need their own growth pass; the
    owner's hard-gate whole-ring re-measure (item 4 below) is due once
    every faction has had at least one Phase 5 pass, not yet.**
+   **Session 21 did Null's slice** as the owner's 2026-09-26 entry asked —
+   a depth/variety pass, not a power buff. Null 15 -> 20 unique cards
+   (Zombie Process, Dangling Pointer, Bit Rot, Watchdog Timer, Garbage
+   Collector), each exercising a trigger/keyword Null never had (onDeath,
+   Rush, an Instant combat trick, a Directive turn trigger, an activated
+   ability); deck 32 -> 40 with no trims. Also fixed a LookaheadAgent blind
+   spot (Directive turn triggers were never valued). Measured roughly
+   power-neutral (Lookahead Null mean 40.0% -> 42.1%, every Cortex/Swarm
+   move inside one standard error) and a move toward the ring's
+   Null>Aegis edge. `progress/balance-report-015-phase5-null-slice.txt`.
+   **Remaining before the hard gate: Cortex's slice, then the neutral
+   pool (item 10), then the mandatory full-ring re-measure.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still
