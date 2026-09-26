@@ -1,0 +1,231 @@
+AI-TCG Phase 5 Cortex slice evidence (the last per-faction Phase 5 slice)
+Both sides played by LookaheadAgent; Cortex (p1) against Swarm, Aegis and Null in turn.
+
+--- Rate Limiter sweep ---
+  Found at seed 4 vs Swarm: turn 8: Rate Limiter fired at Cortex's turn start and hit 4 enemy units for 1 each.
+--- Load Balancer onAttack ---
+  Found at seed 2 vs Swarm: turn 9: Load Balancer attacked and its onAttack pinged Swarm Larva for 1.
+--- Hotfix instant ---
+  Found at seed 102 vs Aegis: turn 12: Cortex cast Hotfix at Instant speed during Aegis's turn.
+--- Deadlock Detector stun ---
+  Found at seed 2 vs Swarm: turn 9: Deadlock Detector entered against a 3+ unit board and stunned Swarm Larva.
+--- Quorum Arbiter scaling ---
+  Found at seed 2 vs Swarm: turn 13: Quorum Arbiter attacked with 7 attack (printed 3) into a 6-unit enemy board.
+
+=== Full match log: seed 2, Cortex vs Swarm — 3/5 new mechanisms in one game ===
+  * Load Balancer onAttack: turn 9: Load Balancer attacked and its onAttack pinged Swarm Larva for 1
+  * Deadlock Detector stun: turn 9: Deadlock Detector entered against a 3+ unit board and stunned Swarm Larva
+  * Quorum Arbiter scaling: turn 13: Quorum Arbiter attacked with 7 attack (printed 3) into a 6-unit enemy board
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Overgrown Carapace
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Dormant Exploit
+--- Turn 3 (p1) ---
+p1 plays Fail-safe Unit (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Bloodswarm Alpha
+--- Turn 4 (p2) ---
+p2 plays Corrosive Spitter (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Diagnostic Pulse
+--- Turn 5 (p1) ---
+Fail-safe Unit attacks Lookahead-Swarm (face)
+p1 casts Hotfix [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hotfix
+  ability: Hotfix — hotfix-cast (onPlay)
+  Hotfix grants Fail-safe Unit +1/+2
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 3 damage to Lookahead-Swarm
+p1 casts Diagnostic Pulse [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Pulse
+  ability: Diagnostic Pulse — diagnostic-pulse-cast (onPlay)
+  Diagnostic Pulse deals 2 damage to Corrosive Spitter (unit)
+  Corrosive Spitter (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Overclock Beast
+--- Turn 6 (p2) ---
+p2 casts Brood Reserves [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Brood Reserves
+  ability: Brood Reserves — brood-reserves-cast (onPlay)
+  Brood Reserves summons Swarm Larva for p2 (u7)
+  Brood Reserves summons Swarm Larva for p2 (u8)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Deadlock Detector
+--- Turn 7 (p1) ---
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+p1 plays Load Balancer (u10)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Colony Broodling
+--- Turn 8 (p2) ---
+p2 plays Bloodswarm Alpha (u11)
+  ability: Bloodswarm Alpha — bloodswarm-alpha-play (onPlay)
+  Bloodswarm Alpha summons Swarm Larva for p2 (u12)
+Swarm Larva attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Cortex
+Swarm Larva attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Load Balancer
+--- Turn 9 (p1) ---
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Swarm Larva (unit)
+  Swarm Larva (p2) dies
+Load Balancer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+p1 plays Load Balancer (u17)
+p1 plays Deadlock Detector (u18)
+  ability: Deadlock Detector — deadlock-detector-play (onPlay)
+  Deadlock Detector applies Stasis to Swarm Larva
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Carapace Grunt
+--- Turn 10 (p2) ---
+Bloodswarm Alpha attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 3 damage to Lookahead-Cortex
+p2 plays Overclock Beast (u20)
+Swarm Larva attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Cortex
+p2 plays Colony Broodling (u22)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Quorum Arbiter
+--- Turn 11 (p1) ---
+p1 plays Quorum Arbiter (u23)
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Swarm Larva (unit)
+  Swarm Larva (p2) dies
+Load Balancer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Bloodswarm Alpha (unit)
+Load Balancer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+Deadlock Detector attacks Swarm Larva
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Deadlock Detector's attack
+  Deadlock Detector deals 1 damage to Swarm Larva (unit)
+  Swarm Larva deals 1 damage to Deadlock Detector (unit)
+  Swarm Larva (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Brood Skitterer
+--- Turn 12 (p2) ---
+Overclock Beast attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 4 damage to Lookahead-Cortex
+Bloodswarm Alpha attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 3 damage to Lookahead-Cortex
+p2 plays Carapace Grunt (u30)
+p2 plays Brood Skitterer (u31)
+Colony Broodling attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Cortex
+p2 plays Overgrown Carapace (u33)
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Firewall Sentinel
+--- Turn 13 (p1) ---
+Quorum Arbiter attacks Overclock Beast
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Quorum Arbiter's attack
+  Quorum Arbiter deals 7 damage to Overclock Beast (unit)
+  Overclock Beast deals 4 damage to Quorum Arbiter (unit)
+  Overclock Beast (p2) dies
+p1 plays Firewall Sentinel (u35)
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Carapace Grunt (unit)
+Load Balancer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Bloodswarm Alpha (unit)
+Load Balancer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Winner: p1, turns: 13

@@ -1044,6 +1044,16 @@ Reviewed Session 21 (Phase 5 slice 3: Null grown 15 -> 20 unique cards, deck fil
 
 Alternation stands: next is a render slice (it picks up the 2026-09-26 render taste calls), then Cortex's Phase 5 slice, the neutral pool, then the mandatory full-ring re-measure gate. The Null consistency trim above can be folded into Null's next slice whenever it comes back around.
 
+**Handled (the Cortex step), session 22 (2026-09-26, balance session: the last merged PR, #28,
+was render).** Cortex's Phase 5 slice is done: 19 -> 24 unique cards, a variety pass aimed at
+the out-of-band Cortex-vs-Swarm edge. Under Lookahead, Cortex-vs-Swarm went 44.3 -> 58.7 on 300
+seeds and 46.7 -> 54.1 on 900. Aegis-vs-Cortex held in band. Null-vs-Cortex moved toward Cortex
+(57.9 -> 61.1 on 900 seeds). It was already out of band on 900 seeds before this slice, and no
+tested mix could hold it while fixing Swarm. The Null consistency trim from item 1 is the lever
+for it and has not been started. Details and the decision to overrule, if you want to:
+`progress/balance-report-016-phase5-cortex-slice.txt`, `progress/notes-for-owner.md`. Next per
+this entry: the neutral pool, then the mandatory full-ring re-measure.
+
 
 ---
 
@@ -1062,3 +1072,10 @@ Reviewed the render cast-flourish slice (every power now shows which exact card 
 **Slice 4 (attack travel + impact) is unblocked — proceed.** The render found it does NOT need to wait on the balance lane's event-log instance-ID fix: the engine's combat stack item already carries `attackerInstanceId` and an instance-exact target, which the render can read read-only (same way this session read an ability's source). So slice 4 is the next render slice. The event-log instance-ID work is still worth doing later for commentators (stage 7), but it no longer gates the render.
 
 Thin spots noted, no action: particle shapes are still identical per faction (that is slice 5's job), and the truth-check can't see onDeath/onDamaged powers the engine fires from inside its resolver (consistency-checked only) — both acceptable.
+
+**Noted, session 22 (2026-09-26, balance session).** No action from a balance session: every
+item here is render-lane work (the spectacle-tier cast stagger, slice 4 attack travel). Left
+unmarked for the next render session. One thing that session should know: this balance slice
+added five Cortex cards (Rate Limiter, Load Balancer, Hotfix, Deadlock Detector, Quorum
+Arbiter). Rate Limiter is a Directive whose onTurnStart ability is sourced from a Directive
+rather than a unit, and Quorum Arbiter's attack changes live with the enemy board.

@@ -446,6 +446,151 @@ export const forceQuit: CommandCard = {
   ],
 };
 
+// --- Phase 5 slice 4: Cortex depth/variety pass (19 -> 24 unique cards) ---
+//
+// The last faction to get its Phase 5 slice (2026-09-26 owner entries). Two
+// jobs at once, both measured in progress/balance-report-016:
+// - Variety: each card uses a shape Cortex never had — a Directive turn
+//   trigger, an onAttack trigger, an Instant friendly combat trick, a
+//   condition read off the OPPONENT's board, opponent-scaled attack, and
+//   Cortex's first Mythic.
+// - Aim at the ring edge Cortex was furthest out of band on: Cortex should
+//   beat Swarm (Lookahead had it at 44.3% over 300 seeds, 46.7% over 900).
+//   Swarm's identity is width: tokens, many 1-health bodies, boards of 4-6
+//   units. Rate Limiter and Deadlock Detector only switch on against a wide
+//   board, Quorum Arbiter's attack grows with it, and Load Balancer's ping
+//   kills small bodies. Rate Limiter was the most Swarm-selective in
+//   ablation (removing it cost ~9 points vs Swarm, ~0 vs Aegis/Null).
+//
+// Honest limit, measured: no card here was selective enough to leave the
+// Cortex-vs-Null edge alone. Across every copy mix tried, Cortex's rate vs
+// Null tracks its rate vs Swarm almost 1:1, because Null is currently the
+// weakest faction overall. See the report's header.
+
+export const rateLimiter: DirectiveCard = {
+  id: "CX-020",
+  name: "Rate Limiter",
+  faction: "Cortex",
+  rarity: "Rare",
+  cost: 3,
+  type: "Directive",
+  art: "placeholder:cortex/rate-limiter",
+  flavor: "Past a certain number of connections, every new one pays a toll.",
+  abilities: [
+    {
+      id: "rate-limiter-tick",
+      trigger: "onTurnStart",
+      text: "At the start of your turn, if the enemy controls 3 or more units, deal 1 damage to all enemy units.",
+      targeting: { scope: "all", filter: { side: "opponent", kind: "unit" } },
+      effects: [
+        {
+          kind: "conditional",
+          condition: { kind: "unitsInPlayAtLeast", side: "opponent", count: 3 },
+          then: [{ kind: "damage", amount: { mode: "flat", value: 1 } }],
+        },
+      ],
+    },
+  ],
+};
+
+export const loadBalancer: UnitCard = {
+  id: "CX-021",
+  name: "Load Balancer",
+  faction: "Cortex",
+  rarity: "Uncommon",
+  cost: 3,
+  type: "Unit",
+  attack: 2,
+  health: 3,
+  keywords: [],
+  art: "placeholder:cortex/load-balancer",
+  flavor: "Never sends the whole request to one place.",
+  abilities: [
+    {
+      id: "load-balancer-attack",
+      trigger: "onAttack",
+      text: "Whenever this attacks, deal 1 damage to a random enemy unit.",
+      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+      effects: [{ kind: "damage", amount: { mode: "flat", value: 1 } }],
+    },
+  ],
+};
+
+export const hotfix: CommandCard = {
+  id: "CX-022",
+  name: "Hotfix",
+  faction: "Cortex",
+  rarity: "Common",
+  cost: 1,
+  type: "Command",
+  speed: "Instant",
+  art: "placeholder:cortex/hotfix",
+  flavor: "Deployed to production mid-incident. Reviewed later. Maybe.",
+  abilities: [
+    {
+      id: "hotfix-cast",
+      trigger: "onPlay",
+      text: "Give target friendly unit +1/+2 this turn. Instant speed.",
+      targeting: { scope: "chosen", filter: { side: "controller", kind: "unit" } },
+      effects: [{ kind: "buff", attack: 1, health: 2, duration: "turn" }],
+    },
+  ],
+};
+
+export const deadlockDetector: UnitCard = {
+  id: "CX-023",
+  name: "Deadlock Detector",
+  faction: "Cortex",
+  rarity: "Common",
+  cost: 2,
+  type: "Unit",
+  attack: 1,
+  health: 3,
+  keywords: [],
+  art: "placeholder:cortex/deadlock-detector",
+  flavor: "Too many threads waiting on each other. It picks one and freezes it.",
+  abilities: [
+    {
+      id: "deadlock-detector-play",
+      trigger: "onPlay",
+      text: "If the enemy controls 3 or more units, stun a random enemy unit for 1 turn.",
+      targeting: { scope: "random", filter: { side: "opponent", kind: "unit" }, count: 1 },
+      effects: [
+        {
+          kind: "conditional",
+          condition: { kind: "unitsInPlayAtLeast", side: "opponent", count: 3 },
+          then: [{ kind: "applyStatus", status: "Stasis", duration: 1 }],
+        },
+      ],
+    },
+  ],
+};
+
+export const quorumArbiter: UnitCard = {
+  id: "CX-024",
+  name: "Quorum Arbiter",
+  faction: "Cortex",
+  rarity: "Mythic",
+  cost: 5,
+  type: "Unit",
+  attack: 3,
+  health: 6,
+  keywords: [],
+  art: "placeholder:cortex/quorum-arbiter",
+  flavor: "It waits until everyone has spoken. Then it answers all of them.",
+  abilities: [
+    {
+      id: "quorum-arbiter-static",
+      trigger: "static",
+      text: "This unit's attack equals 1 plus the number of enemy units in play.",
+      staticEffect: {
+        kind: "selfStatFromScaling",
+        attack: { mode: "scaling", base: 1, multiplier: 1, per: "opponentUnitsInPlay" },
+      },
+    },
+  ],
+};
+
 // Phase 3 pool lint (cards/poolLint.ts): this pool measured at 32.5% (13/40
 // copies) removal/debuff density, over the lint's 25% cap — see
 // progress/checkpoints.md's Phase 3 entry for the full numbers. Fixed with a
@@ -459,26 +604,38 @@ export const forceQuit: CommandCard = {
 // Daemon's own damage effects were left untouched (they're the pool's
 // cheapest, most central removal, and the density cap only needed a partial
 // trim, not zeroing anything out).
+// Phase 5 slice 4 (2026-09-26): the 7 copies of the five new cards are
+// funded by trimming one copy each of the pool's seven measured-weakest
+// cards under Lookahead (report 015's per-card table: Cortex Engineer 40.7%
+// played, Backup Protocol 41.8%, Diagnostic Pulse 43.7%, Interrupt Handler
+// 46.1%, Signal Drone 48.9%, Overclock Shunt 49.5%, Fail-safe Unit 49.5%).
+// No card left the deck. Two of the trims were removal, so removal/debuff
+// density fell from 10/40 to 9/40 (22.5%) even with Deadlock Detector in.
 export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
-  { card: signalDrone, copies: 3 },
+  { card: signalDrone, copies: 2 },
   { card: firewallSentinel, copies: 3 },
   { card: recursiveConstruct, copies: 2 },
-  { card: diagnosticPulse, copies: 2 },
+  { card: diagnosticPulse, copies: 1 },
   { card: cascadePurge, copies: 1 },
-  { card: backupProtocol, copies: 2 },
+  { card: backupProtocol, copies: 1 },
   { card: mainframeCore, copies: 2 },
-  { card: failsafeUnit, copies: 3 },
-  { card: cortexEngineer, copies: 3 },
+  { card: failsafeUnit, copies: 2 },
+  { card: cortexEngineer, copies: 2 },
   { card: watchtowerRelay, copies: 3 },
   { card: overloadCapacitor, copies: 1 },
   { card: diagnosticLoop, copies: 1 },
   { card: retaliationNode, copies: 1 },
-  { card: interruptHandler, copies: 2 },
+  { card: interruptHandler, copies: 1 },
   { card: initDaemon, copies: 3 },
   { card: compiledDaemon, copies: 2 },
   { card: dormantExploit, copies: 1 },
-  { card: overclockShunt, copies: 3 },
+  { card: overclockShunt, copies: 2 },
   { card: forceQuit, copies: 2 },
+  { card: rateLimiter, copies: 2 },
+  { card: loadBalancer, copies: 2 },
+  { card: hotfix, copies: 1 },
+  { card: deadlockDetector, copies: 1 },
+  { card: quorumArbiter, copies: 1 },
 ];
 
 // --- Swarm faction ---------------------------------------------------------

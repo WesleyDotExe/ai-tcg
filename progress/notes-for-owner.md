@@ -1,5 +1,40 @@
 # Notes for the owner
 
+**Updated 2026-09-26, session 22 (Phase 5 slice 4: Cortex depth/variety
+pass, 19 -> 24 unique cards).** Nothing is blocking. Three things worth a
+look (full numbers: `progress/balance-report-016-phase5-cortex-slice.txt`):
+
+1. **Cortex-vs-Swarm is fixed or nearly fixed.** Under Lookahead it went from
+   44.3% to 58.7% Cortex on the standard 300-seed report (in band). Over 900
+   seeds it went from 46.7% to 54.1%, just under the 55% floor.
+   Aegis-vs-Cortex stayed in band.
+2. **The 300-seed reports have been noisier than we treated them.** One
+   standard error is about 2.9 points. Over 900 seeds, the baseline
+   Null-vs-Cortex edge was already out of band (57.9% Cortex, not 55.0%).
+   More importantly, Null is below 45% against every faction, including
+   Aegis (37.3%), which the ring says Null should beat. Null is weaker than
+   the reports showed. **Proposal:** run the mandatory end-of-Phase-5 ring
+   re-measure at 900 seeds. The full three-policy report takes about 11
+   seconds at 300 seeds, so 900 is roughly 35 seconds. The new `engine/src/dev/lookaheadEdgeCheck.ts` already does this
+   for Lookahead.
+3. **Decision you may want to overrule: I let Cortex-vs-Null drift further
+   toward Cortex (57.9 -> 61.1 over 900 seeds) to fix Cortex-vs-Swarm.** I
+   measured whether both could be held at once. Across 150 copy mixes and
+   several card-design variants, Cortex's rate against Null moved almost
+   1:1 with its rate against Swarm. No mix achieved both. My read is that
+   this edge follows Null's overall weakness, and the fix you already
+   sanctioned (trim Null back toward ~36 cards for consistency) is the right
+   lever. If you'd rather Cortex give some of the Swarm gain back instead,
+   dropping Quorum Arbiter is the single cleanest lever (about -6 against
+   both Swarm and Null).
+4. **Order question:** your stated order is the neutral pool next, then
+   the re-measure gate. Null's consistency trim has no fixed slot. Given
+   item 2, I'd do Null's trim before the neutral pool so the gate measures
+   a ring where every faction has had a fair shot. Next balance session
+   follows your stated order unless you say otherwise here.
+
+---
+
 **Updated 2026-09-26, session 21 (Phase 5 slice 3: Null depth/variety
 pass, 15 -> 20 unique cards).** Nothing is blocking. Three quick steers
 would help, and the full detail is in `progress/checkpoints.md`'s newest entry:
