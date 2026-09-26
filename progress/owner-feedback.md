@@ -1079,3 +1079,18 @@ unmarked for the next render session. One thing that session should know: this b
 added five Cortex cards (Rate Limiter, Load Balancer, Hotfix, Deadlock Detector, Quorum
 Arbiter). Rate Limiter is a Directive whose onTurnStart ability is sourced from a Directive
 rather than a unit, and Quorum Arbiter's attack changes live with the enemy board.
+
+
+---
+
+## 2026-09-26 — Owner: session 22 (Cortex depth pass) confirmations + 900-seed standard + revised Phase 5 order
+
+Reviewed Session 22 (Phase 5 slice 4: Cortex 19 -> 24 unique cards; Cortex-vs-Swarm fixed, 44.3 -> 58.7% Cortex under Lookahead). Three decisions:
+
+1. **Adopt 900 seeds as the re-measure standard.** The finding that 300-seed reports carry ~2.9 points of standard error — enough to move a pairing in/out of band — is accepted. The mandatory end-of-Phase-5 full-ring re-measure runs at 900 seeds (all three policies, Lookahead as arbiter), using the new `engine/src/dev/lookaheadEdgeCheck.ts`. The ~35s cost is fine. Going forward, judge in-band / out-of-band and any "is this pairing fixed" call at 900 seeds, not 300; 300-seed runs are a fast pre-check only, never the pass/fail gate.
+
+2. **Revised Phase 5 order: Null consistency-trim FIRST, then the neutral pool, then the full-ring re-measure gate.** Per the session's own recommendation and the item-2 finding that Null is below 45% against every faction (incl. 37.3% vs Aegis). Do the sanctioned Null trim (toward ~36 cards, cutting measured-weakest filler — consistency, NOT stat buffs) before the neutral pool, so the final gate measures a ring where every faction has had its fair shot. So: (i) Null trim, (ii) neutral pool, (iii) mandatory 900-seed full-ring re-measure.
+
+3. **Accept the Cortex-vs-Null drift (57.9 -> 61.1 over 900) for now — do NOT drop Quorum Arbiter yet.** The finding that Cortex's rate vs Null and vs Swarm move ~1:1 (no copy-mix holds both) is accepted, and the read is endorsed: this edge follows Null's overall weakness, so the Null consistency-trim in item 2 is the correct lever — lifting Null should also pull Cortex-vs-Null back toward band as a side effect. Re-check at the 900-seed gate after the Null trim. If Cortex-vs-Null is still out of band there, THEN drop Quorum Arbiter (the identified ~-6-vs-both lever). Don't pre-emptively nerf Cortex now.
+
+Net: the Null trim is doing double duty (fixes Null's weakness AND the Cortex-vs-Null overshoot), which is why it goes before the neutral pool and before any Cortex nerf. Everything gets judged at the 900-seed gate.
