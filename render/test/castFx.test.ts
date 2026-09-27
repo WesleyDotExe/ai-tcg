@@ -111,24 +111,24 @@ describe("resolveCasts on hand-built frames", () => {
   });
   it("a resolving activated ability lands on the exact source the stack item named", () => {
     const board = [unit("u1", "Sentry"), unit("u3", "Sentry")];
-    const prev = frame(board, [], [], { stack: [{ kind: "ability", description: "Sentry — do a thing", controller: "p1", sourceInstanceId: "u3" }] });
+    const prev = frame(board, [], [], { stack: [{ kind: "ability", stackId: "a1", description: "Sentry — do a thing", controller: "p1", sourceInstanceId: "u3" }] });
     const next = frame(board, [], [trig("Sentry", "activated")]);
     expect(resolveCasts(prev, next, F, R)[0]).toMatchObject({ anchor: "card", iid: "u3", label: "ACTIVATE" });
   });
-  it("a Command casts from its player's HUD, and an off-turn Instant reads as a RESPONSE", () => {
+  it("a Command casts from its own stack entry, and an off-turn Instant reads as a RESPONSE", () => {
     const prev = frame([], [], []);
     const next = frame([], [], [{ type: "cast", player: "p2", card: "Purge", speed: "Instant" }], {
-      stack: [{ kind: "command", description: "Purge", controller: "p2" }],
+      stack: [{ kind: "command", stackId: "c9", description: "Purge", controller: "p2" }],
     });
     const [fx] = resolveCasts(prev, next, F, R);
-    expect(fx).toMatchObject({ kind: "announce", anchor: "hud", owner: "p2", label: "RESPONSE", faction: "Null", rarity: "Rare", tier: "spectacle" });
+    expect(fx).toMatchObject({ kind: "announce", anchor: "stack", stackId: "c9", owner: "p2", label: "RESPONSE", faction: "Null", rarity: "Rare", tier: "spectacle" });
     const onTurn = frame([], [], [{ type: "cast", player: "p1", card: "Purge", speed: "Instant" }]);
     expect(resolveCasts(prev, onTurn, F, R)[0]).toMatchObject({ label: "CAST", tier: "normal" });
   });
-  it("the Command resolving comes from the controller of the stack's top item", () => {
-    const prev = frame([], [], [], { stack: [{ kind: "command", description: "Purge", controller: "p2" }] });
+  it("the Command resolving plays on the stack entry it resolved from", () => {
+    const prev = frame([], [], [], { stack: [{ kind: "command", stackId: "c9", description: "Purge", controller: "p2" }] });
     const next = frame([], [], [{ type: "stackResolve", description: "Purge" }, trig("Purge", "onPlay")]);
-    expect(resolveCasts(prev, next, F, R)[0]).toMatchObject({ kind: "trigger", anchor: "hud", owner: "p2", label: "RESOLVE" });
+    expect(resolveCasts(prev, next, F, R)[0]).toMatchObject({ kind: "trigger", anchor: "stack", stackId: "c9", owner: "p2", label: "RESOLVE" });
   });
 });
 
@@ -143,7 +143,7 @@ describe("real matches (oracle: the engine's own resolveAbility source)", () => 
   it("never pins a flourish on the wrong instance, and accounts for every trigger and cast", async () => {
     const builders = { Cortex: buildCortexDeck, Aegis: buildAegisDeck, Swarm: buildSwarmDeck, Null: buildNullDeck };
     const factions = Object.keys(builders) as (keyof typeof builders)[];
-    const tally = { triggers: 0, casts: 0, fx: 0, oracleChecked: 0, oracleNarrowed: 0, banners: 0, hud: 0, departedChecked: 0 };
+    const tally = { triggers: 0, casts: 0, fx: 0, oracleChecked: 0, oracleNarrowed: 0, banners: 0, stack: 0, stackMissingId: 0, departedChecked: 0 };
     for (const a of factions) {
       for (const b of factions) {
         for (const seed of [1, 2, 3]) {
@@ -168,7 +168,7 @@ describe("real matches (oracle: the engine's own resolveAbility source)", () => 
             triggerFx.forEach((fx, k) => {
               const ev = triggers[k]!;
               if (fx.anchor === "banner") tally.banners++;
-              if (fx.anchor === "hud") tally.hud++;
+              if (fx.anchor === "stack") { tally.stack++; if (!fx.stackId) tally.stackMissingId++; }
               const real = truth.get(ev);
               if (real !== undefined && fx.anchor === "card") {
                 expect(fx.iid).toBe(real);
@@ -188,7 +188,9 @@ describe("real matches (oracle: the engine's own resolveAbility source)", () => 
     expect(tally.fx).toBe(tally.triggers + tally.casts);
     expect(tally.oracleChecked).toBeGreaterThan(100);
     expect(tally.oracleNarrowed).toBeGreaterThan(10);
-    expect(tally.hud).toBeGreaterThan(0);
+    expect(tally.stack).toBeGreaterThan(0);
+    // Every Command flourish found its exact stack entry.
+    expect(tally.stackMissingId).toBe(0);
     expect(tally.departedChecked).toBeGreaterThan(0);
     console.log("castFx real-match tally", tally);
   }, 300_000);

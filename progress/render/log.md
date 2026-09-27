@@ -895,3 +895,115 @@ The engine's `combatDamage` stack item already carries
 `StackItemSnapshot` to carry both (read-only, like this session's
 `sourceInstanceId`) gives exact attacker→target pairing, including in
 mirrors.
+
+## 2026-09-27 — Session 7: attack travel + impact (EFFECTS.md slice 4); the owner's four cast-flourish calls
+
+**Why this slice.** Under the alternation rule the most recently merged PR
+was balance (#29), so this was a render session. The owner's 2026-09-26
+render entry queued two things: the cast-flourish taste calls (the stagger
+on spectacle casts only, and a Command's card flying onto the stack folded
+into slice 4), then slice 4 itself.
+
+**Built.**
+- **Capture** (`capture.ts`, `types.ts`). Every `StackItemSnapshot` now
+  carries the engine's own `stackId`. A combatDamage item also carries
+  `attackerInstanceId` and `target`. All three are read-only, and no
+  engine file was touched.
+- **`render/src/attackFx.ts`** (new). It uses the castFx single-source
+  pattern: the JS source is embedded in the page verbatim and evaluated
+  in Node. It follows each stack item by id:
+  - declare: a new combat item;
+  - redirect: same item, new target;
+  - strike: the item left. The engine's only pop is resolution, so an
+    item leaving means it resolved. It records outcome hit /
+    fizzle-attacker / fizzle-target using the engine's own two fizzle
+    rules against the pre-move board, the attacker's power, and whether
+    there's a counter;
+  - command: a new Command item.
+
+  `pendingAttacks(frame)` lists the attacks still waiting.
+- **Page** (`renderHtml.ts`):
+  - *Aim.* An SVG layer redrawn on every render, plus on resize and
+    scroll, draws a marching dashed arc and arrowhead in the attacker's
+    faction colour, with a spinning reticle on the target unit or avatar.
+    It persists through the whole response window and fades in when
+    fresh. On a redirect the old arc fades out in shield colour, with a
+    REDIRECTED label.
+  - *Travel.* `spawnBolt` sends a tier-sized bolt with a trail along the
+    same arc, using the Web Animations API. Flight time is 30% of the
+    speed setting, clamped to 70-240ms, then scaled by tier (so 168-283ms
+    at normal). It never changes the tick.
+  - *Impact.* A burst lands with the bolt, sized by tier. A defender with
+    attack returns a smaller bolt in its own colour.
+  - *Timeline.* `later(ms, fn)` defers FX. Stepping to the next move
+    flushes anything still waiting, so move N never paints on move N+1's
+    board, and a jump cancels it. On a strike move, every consequence
+    waits for the bolt: hits, numbers, shatter, deflect, stat shifts,
+    HUD hits, casts, the lethal flash, and ghosts. Ghosts now take a
+    delay, holding at full strength via animation-delay with fill
+    `both`. The attacker's own hit and ghost wait for the return bolt.
+  - *Stagger (owner call 1).* On a non-strike move with a spectacle-tier
+    cast, effects wait 150ms. Cause-type FX (enter, evolve, arm) stay
+    immediate.
+  - *Command flight (owner call 4).* The card is rendered from the
+    caster's previous-frame hand entry. It flies from the hand chip up to
+    full size, holds for about 40% of the flight, then shrinks into its
+    stack entry. The CAST sigil starts as it lands. castFx's Command
+    anchor changed from `hud` to `stack` (with `stackId`); RESOLVE plays
+    where the entry was.
+  - Calls 2 and 3 were kept as-is, per the owner.
+
+**Evidence.**
+- `test/attackFx.test.ts` (8 tests): hand-built cases for every phase,
+  both fizzle rules, a redirect and strike-before-declare ordering; the
+  single-source embed check; and a **real-match oracle**. Agents are
+  wrapped to record the exact move they submitted, over 48 Lookahead
+  matches (16 pairings × 3 seeds):
+  - 950/950 attack moves produce exactly one declaration, from that
+    move's `attackerInstanceId` to its exact `target`. 239 of them had a
+    same-named card on the board;
+  - every declaration strikes exactly once;
+  - each strike's hit/fizzle matches the engine's fizzle log (949 hits,
+    1 real fizzle, 186 counters);
+  - redirects equal `attackRedirected` events (4);
+  - 99/99 Command casts produce a flight.
+- castFx tests updated for the stack anchor. The real-match scan also
+  asserts every Command flourish found its stack id.
+- `npm test`: engine 105, protocol 7, server 23, agents 17, render 105
+  (was 97). `tsc --noEmit` is clean in all five workspaces.
+- Driven in headless Chromium across all six replays in three passes:
+  single-step, normal and fast. All passes had zero errors, identical FX
+  tallies, and an FX layer that drained to 0.
+  - Single-step timing: the first hit number/mote appears **168-285ms
+    after the bolt** (n=103 strikes).
+  - 162 bolts in total, 13 Command flights, 124 fresh aim lines, 2
+    redirects.
+  - Screenshots were inspected (not committed): an aim line held through
+    three stacked responses (aegis-vs-cortex moves 70-81), a redirect,
+    a bolt mid-flight, a counter bolt, and a Command card mid-flight.
+    They caught two flaws, both fixed: the reticle sat on the avatar's own
+    frame, and the flying card was full-size for only ~65ms, now ~40% of
+    the flight.
+- **The stagger finding.** No real move qualified: 0 spectacle casts on
+  non-strike moves in 72 matches. I proved it on a scratch fixture (a
+  replay with four Commands' rarity set to Mythic). The effect lands at
+  +149ms after the sigil and ghosts hold 150ms; the unmodified replay has
+  the same moves at +0. Flagged to the owner.
+- New replay `render/output/swarm-vs-aegis-seed8.html` (67 moves: a
+  redirect, a counter-kill, 2 flights). The other five were regenerated.
+
+**Named honestly, not fixed:**
+- **No fixed-slot layout.** A ghost held for bolt flight overlaps the
+  card that slid into its slot.
+- **Tokens summoned by a spectacle Command enter immediately.** They are
+  not staggered, because enter is treated as a cause.
+- **Effect damage from powers has no travel.** It needs per-hit event
+  pairing.
+- **Bolts are identical per faction apart from colour.** That's slice 5.
+- **Hand chips are matched by name.** Two copies of a Command in hand fly
+  from the first chip; both look the same, so it's harmless.
+
+**Next render-lane slice:** EFFECTS.md slice 5, the faction skinning pass.
+Give bolt, cast, mote and burst a per-faction particle character: Cortex
+packets, Swarm scatter, Aegis chrome, Null glitch. Consider fixed-slot
+board layout first if the owner flags the ghost overlap.

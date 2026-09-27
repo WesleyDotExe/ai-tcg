@@ -198,3 +198,49 @@ separate from the shared `progress/notes-for-owner.md`).
    `progress/render/checkpoints.md`: cause/effect stagger, tag wording,
    response loudness, and where a Command casts from. None of them block
    anything.
+
+## 2026-09-27 — Session 7 (attack travel + impact, EFFECTS.md slice 4; your four cast-flourish calls)
+
+1. **Your four cast-flourish taste calls are all applied.** Recorded here,
+   not in owner-feedback.md (RENDER.md guardrail 4).
+   - Call 1: the ~150ms "cast, then effect" beat now plays only on moves
+     where a spectacle-tier power fired. Routine powers stay simultaneous,
+     and the tick itself is unchanged.
+   - Calls 2 and 3: tag wording and response loudness are kept as they
+     were.
+   - Call 4: a Command's card now flies from its caster's hand onto the
+     stack, and its CAST/RESOLVE sigil plays on its stack entry, not the
+     avatar. Your 2026-09-26 render entry can be marked handled whenever
+     you next edit that file.
+
+2. **Slice 4 needed no engine change, confirmed.** The capture now copies
+   three read-only fields from each stack item: its engine id, plus a
+   combat item's `attackerInstanceId` and `target`. The render follows
+   each attack from declaration through any redirect to resolution by
+   that id. The event-log instance-ID work is still worth doing for
+   commentators, and for pairing *effect* damage (which card's power hit
+   which unit). Attacks no longer need it.
+
+3. **Taste calls for this slice** are in `progress/render/checkpoints.md`.
+   Briefly:
+   - the aim line stays up for the whole response window;
+   - the bolt's flight comes out of the start of the move's own time;
+   - a defender with attack sends a return bolt in its own colour;
+   - on a strike move, *everything* (deaths, onDamaged/onDeath powers)
+     waits for the bolt.
+   None of these block anything.
+
+4. **One existing thin spot got slightly more visible.** The board has no
+   fixed slots, so when a unit dies the cards to its right slide left
+   straight away. A dying unit's ghost now stays in place until the bolt
+   that kills it lands (~200ms at normal speed), so for that moment it
+   sits on top of the card that slid into its spot. It reads acceptably:
+   the ghost is what's being hit. Fixed-slot layout is the real fix and is
+   on the render debt list.
+
+5. **The spectacle-only cast stagger (your call 1) almost never fires in
+   real play.** No power reached spectacle tier on a move without a strike
+   in 72 real matches. The behaviour is proven on a fixture: +150ms on
+   spectacle, simultaneous otherwise. If you want the beat seen more
+   often, lower the bar for a power to count as spectacle. That's your
+   decision to make, not mine.

@@ -116,14 +116,23 @@ function toPlayerSnapshot(state: GameState, pid: PlayerId, slotsMax: number): Pl
 
 function describeStackItem(item: GameState["stack"][number]): StackItemSnapshot {
   if (item.kind === "command") {
-    return { kind: "command", description: item.card.name, controller: item.controller };
+    return { kind: "command", stackId: item.instanceId, description: item.card.name, controller: item.controller };
   }
   if (item.kind === "ability") {
-    const snap: StackItemSnapshot = { kind: "ability", description: `${item.source.cardName} — ${item.ability.text}`, controller: item.controller };
+    const snap: StackItemSnapshot = { kind: "ability", stackId: item.instanceId, description: `${item.source.cardName} — ${item.ability.text}`, controller: item.controller };
     if ("instanceId" in item.source) snap.sourceInstanceId = item.source.instanceId;
     return snap;
   }
-  return { kind: "combatDamage", description: `${item.attackerName}'s attack`, controller: item.controller };
+  const snap: StackItemSnapshot = {
+    kind: "combatDamage",
+    stackId: item.instanceId,
+    description: `${item.attackerName}'s attack`,
+    controller: item.controller,
+    attackerInstanceId: item.attackerInstanceId,
+  };
+  if (item.target.kind === "unit") snap.target = { kind: "unit", instanceId: item.target.instanceId };
+  else if (item.target.kind === "player") snap.target = { kind: "player", playerId: item.target.playerId };
+  return snap;
 }
 
 function buildFrame(state: GameState, index: number, slotsMax: number, newEvents: GameState["log"]): Frame {
