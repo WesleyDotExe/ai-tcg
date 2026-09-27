@@ -52,7 +52,7 @@ Adding a faction = a palette + a particle style. Adding an effect type = one pri
 
 ## Dependencies & guardrails
 
-- attack `travel` and defence `interpose` need reliable attacker→target / who-blocked pairing → this depends on the engine event log carrying instance IDs (already queued for the balance lane, 2026-09-25 owner-feedback). Until it lands, infer pairing from the frame diff and accept ambiguity only in simultaneous / mirror cases.
+- attack `travel` needed reliable attacker→target pairing. Resolved in render session 7 without the event-log change: the combatDamage stack item carries the exact attacker and target, captured read-only. (Per-hit pairing for effect damage — which card's ability hit which unit — still needs the event-log instance-ID work.)
 - All work stays under render/ and progress/render/ per RENDER.md. No engine / balance / card-pool / agent file edits.
 - Verify at PLAY speed, not just single-step (2026-09-25 pacing feedback).
 - Keep the `normal` tier visually stable so the approved baseline pacing is not regressed.
@@ -62,7 +62,7 @@ Adding a faction = a palette + a particle style. Adding an effect type = one pri
 1. Defence / shield — built render session 4: interpose + absorb + shatter on Barrier; a persistent shield badge on Guard units; a small deflect on base-armor damage reduction. No pairing dependency — do this FIRST; it immediately makes Aegis’s defensive identity legible.
 2. Buff (rise) and penalty (sink) grammar, tier-scaled and faction-tinted. — built render session 5 (render/src/statFx.ts; persistent above/below-printed stat markers and penalty-status badges ride along).
 3. Power / ability cast flourish — built render session 6 (render/src/castFx.ts attributes each fired power to its exact source instance; the page draws ring + sigil + rays in the source's faction tint, plus a fixed-colour trigger tag — ON PLAY / ON DEATH / ACTIVATE / CAST / RESPONSE ...).
-4. Attack travel + impact. Found in session 6: this may NOT need to wait for the event-log fix. The engine's combatDamage stack item already carries `attackerInstanceId` and an instance-exact `target`, and the capture can read it off the stack snapshot, the same way slice 3 reads an activated ability's source.
+4. Attack travel + impact — built render session 7 (render/src/attackFx.ts follows each combatDamage stack item by its engine id: declare -> an aim line + reticle that persists through the whole response window; redirect -> the old line fades in shield colour; resolve -> a bolt flies the same arc and the hit, burst, deaths and any triggered powers land when it does; a defender with attack returns a smaller bolt in its own colour; a fizzle says FIZZLED). No event-log change was needed. The same session added a Command's card flying from its caster's hand onto the stack (owner taste call 4) and the ~150ms "cast, then effect" beat for spectacle-tier powers only (taste call 1).
 5. Faction skinning pass: give each primitive its per-faction particle character (still placeholder art; real art later).
 
 Each slice: pick one item, build it for all factions via the primitive + palette, keep it inside the tier system, prove it at play speed, and checkpoint. Update this file if the model itself changes.

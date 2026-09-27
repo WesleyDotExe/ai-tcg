@@ -88,10 +88,28 @@ export interface PlayerSnapshot {
   slotsMax: number;
 }
 
+/** Where a pending attack is aimed — a unit (exact instance) or a player.
+ * Mirrors the engine's TargetRef minus its "directive" variant, which an
+ * attack can never carry (getLegalMoves never offers a Directive as an
+ * attack target). */
+export type AttackTargetSnapshot = { kind: "unit"; instanceId: string } | { kind: "player"; playerId: PlayerId };
+
 export interface StackItemSnapshot {
   kind: StackItem["kind"];
+  /** The engine's own stack-item instance id (StackItem.instanceId). Lets
+   * the render follow ONE item across frames: see it pushed, see its target
+   * change (a redirect), and see it leave (it resolved — nothing else ever
+   * pops the engine's stack). */
+  stackId: string;
   description: string;
   controller: PlayerId;
+  /** For a combatDamage item: the exact attacking instance and its current
+   * target (engine StackItem.attackerInstanceId / .target, read-only). The
+   * event log's `attack` event names both by card NAME only; these are what
+   * let attack travel (EFFECTS.md slice 4) fly from the right card to the
+   * right card, mirror matches included. */
+  attackerInstanceId?: string;
+  target?: AttackTargetSnapshot;
   /** For an activated-ability item: the exact instance whose ability it is
    * (engine StackItem.source.instanceId, read-only). The event log names
    * the source by card name only; this is what lets the cast flourish

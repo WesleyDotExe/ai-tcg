@@ -7,6 +7,88 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-09-27 — Attack travel + impact (EFFECTS.md slice 4) + Command card flight — AWAITING FEEDBACK
+
+**What this delivers:** an attack is now something you can watch move.
+- **Declare.** A dashed, marching aim line in the attacker's faction colour
+  runs from the attacking card to its target (a unit or the player's
+  avatar), and a spinning lock-on reticle sits on the target. The line
+  stays up for as long as the attack waits on the stack. That is the
+  response window, so a viewer can see what a RESPONSE is answering. In
+  `aegis-vs-cortex-seed6` the line holds through three stacked Cortex
+  Engineer responses (moves 70-81).
+- **Redirect.** When Aegis's Intercept Routine moves an attack, the old
+  line fades out in shield colour, the new one fades in, and REDIRECTED
+  shows on the new target.
+- **Resolve.** A bolt flies along the same arc, and the hit lands when the
+  bolt does: the flash, the number, an impact burst, deaths, and any
+  onDamaged/onDeath powers. A defender with attack sends a smaller return
+  bolt in its own colour, and the attacker takes its hit when that lands.
+  An attack that fizzles says FIZZLED.
+- **Your four cast-flourish calls, applied.** Spectacle-tier powers now
+  get the ~150ms "cast, then effect" beat; routine powers stay
+  simultaneous. Tag wording and response loudness are unchanged. A
+  Command's card flies from its caster's hand onto the stack, holding at
+  full size for about 40% of the flight so it can be read, and its sigil
+  plays on its stack entry.
+
+**Evidence:** no engine change was needed. The capture copies each stack
+item's engine id plus a combat item's exact attacker and target, and the
+new `render/src/attackFx.ts` follows each attack by that id. A test
+records the exact move every agent submitted across 48 real matches (all
+16 pairings, mirrors included, 3 seeds each). It found:
+- **950/950 attacks** drawn from the exact attacker to the exact target;
+  239 of them had a same-named card on the board, where the name-only
+  event log is ambiguous;
+- every declaration struck exactly once;
+- every hit or fizzle agreed with the engine's own log, including 1 real
+  fizzle, 4 redirects and 186 counter-strikes;
+- 99/99 Commands flew.
+
+Six replays are in `render/output/`, including a new short one,
+`swarm-vs-aegis-seed8` (67 moves), which has a redirect, a counter-kill
+and two Command flights. All six were driven in headless Chromium
+single-stepped, at normal speed and at fast speed. Measured numbers are in
+the session 7 log.
+
+**Decisions you may want to overrule:**
+1. **The aim line persists through the whole response window.** That
+   makes reactivity legible. The alternative is showing it only on the
+   declaring move, which is quieter but hides what responses are aimed
+   at.
+2. **The bolt's flight comes out of the start of the move's own time.** It
+   takes about 30% of the tick (~210ms at normal, ~75ms at fast), so the
+   approved pacing is unchanged and the hit lands that much later inside
+   the move.
+3. **Return strikes are drawn as a second bolt** in the defender's
+   colour. You could instead show only both hits landing together.
+4. **On a strike move everything waits for the bolt**, including deaths,
+   onDamaged/onDeath powers and a token summoned from a death. That's
+   causally right, but it means nothing on that move happens before
+   impact.
+5. **The cast stagger applies to the whole move's effects**, not effect by
+   effect. The event log can't say which effect came from which power.
+
+**Worth knowing about your call 1:** the stagger is built and proven in
+the browser, but real play almost never triggers it. Across 72 real
+matches (every non-mirror pairing, seeds 1-6), **no** power reached
+spectacle tier on a move without a strike. The page was checked on a
+fixture copy of a replay with one Command raised to Mythic: the effect
+lands 150ms after the sigil, and dying cards hold 150ms. On the same moves
+at their real (routine) tier, everything is simultaneous. If you want the
+beat seen more often, the lever is castScore's thresholds (e.g. let Rare
+activations or all responses qualify). That's your call; I didn't change
+it.
+
+**Where it's thin:**
+- The board has no fixed slots. A dying card's ghost now holds its spot
+  until the bolt lands, briefly covering the card that slid into that
+  spot.
+- Bolts look the same for every faction apart from colour; that's
+  slice 5 (faction skinning).
+- Effect damage from powers still has no travel. It needs per-hit
+  source/target pairing, which is the event-log instance-ID work.
+
 ## 2026-09-26 — Power / ability cast flourish (EFFECTS.md slice 3) — AWAITING FEEDBACK
 
 **What this delivers:** every time a card uses a power, the replay now

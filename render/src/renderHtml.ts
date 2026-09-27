@@ -1,5 +1,6 @@
 import type { MatchReplay } from "./types.js";
 import { CAST_FX_SOURCE } from "./castFx.js";
+import { ATTACK_FX_SOURCE } from "./attackFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -449,8 +450,8 @@ html, body {
 }
 
 /* Power / ability cast flourish — EFFECTS.md slice 3, cast(source). Plays
- * FROM the card whose ability fired (or the casting player's avatar, for a
- * Command, which never sits on the board). One primitive, three inputs:
+ * FROM the card whose ability fired (or, for a Command, which never sits on
+ * the board, from its own stack entry — where its card just flew to). One primitive, three inputs:
  *   meaning (constant): an expanding ring + a spinning diamond sigil + rays
  *     thrown outward, and a trigger tag in the fixed "power" colour
  *     (--cast) saying WHICH kind of power it was: ON PLAY, ON DEATH,
@@ -495,6 +496,44 @@ html, body {
  * double rule so it can't be mistaken for an ordinary on-turn cast. */
 .fx-cast-tag.response { border-style: double; border-width: 3px; }
 @keyframes fx-cast-tag { 0% { opacity: 0; transform: translateY(4px); } 12% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Attack travel + impact — EFFECTS.md slice 4. Three pieces, one grammar:
+ *   aim (declare -> resolve): while an attack waits on the stack, a dashed,
+ *     marching line runs from the exact attacker to its exact target, with
+ *     a lock-on reticle on the target. This is the response window made
+ *     visible: a viewer sees what a RESPONSE is responding to.
+ *   travel (resolve): a bolt flies along the same arc...
+ *   impact (landing): ...and the hit (flash, number, burst) lands when the
+ *     bolt does, not before. A defender with attack strikes back with a
+ *     smaller return bolt.
+ * Faction (skin) = the attacker's colour on line, reticle and bolt; tier
+ * (size) = bolt size, trail and burst, from the same hitScore/playerHitScore
+ * as the damage itself. A redirect (Intercept Routine) leaves a fading
+ * shield-coloured ghost of the old line. */
+.fx-aim-layer { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 88; overflow: visible; }
+.fx-aim-line { fill: none; stroke: var(--fx-tint); stroke-width: 2.2; stroke-dasharray: 8 6; stroke-linecap: round;
+  filter: drop-shadow(0 0 3px var(--fx-tint)); opacity: 0.9; animation: fx-aim-march 650ms linear infinite; }
+.fx-aim-head { fill: var(--fx-tint); filter: drop-shadow(0 0 3px var(--fx-tint)); }
+.fx-aim-reticle { fill: none; stroke: var(--fx-tint); stroke-width: 2; stroke-dasharray: 10 6; opacity: 0.95;
+  transform-box: fill-box; transform-origin: center; animation: fx-aim-spin 2.4s linear infinite; }
+.fx-aim.fresh { animation: fx-aim-in 360ms ease-out; }
+.fx-aim.fading { animation: fx-aim-out 650ms ease-in forwards; }
+.fx-aim.fading .fx-aim-line { stroke: var(--shield); }
+@keyframes fx-aim-march { to { stroke-dashoffset: -28; } }
+@keyframes fx-aim-spin { to { transform: rotate(360deg); } }
+@keyframes fx-aim-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes fx-aim-out { 0% { opacity: 1; } 100% { opacity: 0; } }
+.fx-bolt { position: fixed; left: 0; top: 0; pointer-events: none; border-radius: 50%;
+  width: var(--bolt-size); height: var(--bolt-size); margin-left: calc(var(--bolt-size) / -2); margin-top: calc(var(--bolt-size) / -2);
+  background: radial-gradient(circle, #fff 0 22%, var(--fx-tint) 50%, transparent 72%);
+  box-shadow: 0 0 10px var(--fx-tint), 0 0 22px var(--fx-tint); }
+.fx-bolt.trail { opacity: 0.4; box-shadow: 0 0 6px var(--fx-tint); }
+.fx-number.fizzle { color: var(--ink-dim); font-size: 0.72rem; letter-spacing: 0.12em; }
+.fx-number.redirect { color: var(--shield); font-size: 0.72rem; letter-spacing: 0.12em; }
+/* A Command flying from its caster's hand onto the stack (owner taste call
+ * 4, 2026-09-26): the viewer sees the actual card, not just a sigil. */
+.card.fx-flycard { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
+  box-shadow: 0 0 18px var(--fx-tint), 0 0 0 2px var(--fx-tint); }
 `;
 
 const JS = `
@@ -526,6 +565,11 @@ const JS = `
   const fxLayer = document.createElement('div');
   fxLayer.className = 'fx-layer';
   document.body.appendChild(fxLayer);
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const aimLayer = document.createElementNS(SVG_NS, 'svg');
+  aimLayer.setAttribute('class', 'fx-aim-layer');
+  aimLayer.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(aimLayer);
 
   // Magnitude scoring (render-lane session 3): hand-mirrors
   // render/src/fxMagnitude.ts's pure, unit-tested logic. It has to be
@@ -618,6 +662,9 @@ const JS = `
   // cast(source) attribution — render/src/castFx.ts's CAST_FX_SOURCE,
   // embedded verbatim (one copy, no hand mirror; see that file's header).
 ${CAST_FX_SOURCE}
+  // Attack travel + Command flight — render/src/attackFx.ts's
+  // ATTACK_FX_SOURCE, embedded verbatim (same single-source rule).
+${ATTACK_FX_SOURCE}
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -760,6 +807,7 @@ ${CAST_FX_SOURCE}
     snapshot.hand.forEach(function (c) {
       const chip = document.createElement('div');
       chip.className = 'minicard faction-' + c.faction;
+      chip.setAttribute('data-name', c.name);
       chip.innerHTML = '<b>' + c.cost + '</b> ' + escapeHtml(c.name);
       el.appendChild(chip);
     });
@@ -795,6 +843,7 @@ ${CAST_FX_SOURCE}
     stack.slice().reverse().forEach(function (item, idx) {
       const div = document.createElement('div');
       div.className = 'stackitem';
+      div.setAttribute('data-sid', item.stackId);
       div.textContent = (idx === 0 ? '\\u25B2 TOP: ' : '') + item.controller + ': ' + item.description;
       el.appendChild(div);
     });
@@ -840,6 +889,7 @@ ${CAST_FX_SOURCE}
     renderHand('hand-p1', frame.players.p1, 'P1 HAND');
     renderHand('hand-p2', frame.players.p2, 'P2 HAND');
     renderEventLog(i);
+    drawAimLines(frame, {});
     scrubber.value = String(i);
     document.getElementById('framecount').textContent = 'move ' + i + ' / ' + (frames.length - 1);
   }
@@ -877,8 +927,13 @@ ${CAST_FX_SOURCE}
   const NUMBER_MS = { subtle: 550, normal: 950, spectacle: 1300 };
   const FLASH_MS = { subtle: 260, normal: 500, spectacle: 900 };
 
-  function spawnGhost(entry, rect, tier) {
+  // delay > 0 (an attack's bolt still in flight, or a spectacle cast's
+  // stagger): the ghost stands in the card's old spot at full strength and
+  // only starts its exit when the hit lands, so a card never blinks out
+  // before whatever killed it arrives.
+  function spawnGhost(entry, rect, tier, delay) {
     if (!rect || (rect.width === 0 && rect.height === 0)) return;
+    delay = delay || 0;
     const cardEl = entry.kind === 'unit' ? renderUnitSlot(entry.v, entry.owner) : renderDirectiveSlot(entry.v, entry.owner);
     cardEl.classList.add('fx-ghost', 'fx-mag-' + tier);
     cardEl.style.position = 'fixed';
@@ -887,9 +942,10 @@ ${CAST_FX_SOURCE}
     cardEl.style.width = rect.width + 'px';
     cardEl.style.height = rect.height + 'px';
     cardEl.style.margin = '0';
+    if (delay > 0) { cardEl.style.animationDelay = delay + 'ms'; cardEl.style.animationFillMode = 'both'; }
     fxLayer.appendChild(cardEl);
-    if (tier === 'spectacle') spawnBurst(rect, 'var(--bad)');
-    setTimeout(function () { cardEl.remove(); }, GHOST_MS[tier] || GHOST_MS.normal);
+    if (tier === 'spectacle') later(delay, function () { spawnBurst(rect, 'var(--bad)'); });
+    setTimeout(function () { cardEl.remove(); }, (GHOST_MS[tier] || GHOST_MS.normal) + delay);
   }
 
   function spawnNumber(rect, text, cls, tier, yOffset) {
@@ -908,10 +964,11 @@ ${CAST_FX_SOURCE}
     return el;
   }
 
-  function spawnBurst(rect, color) {
+  function spawnBurst(rect, color, scale) {
     if (!rect) return;
     const el = document.createElement('div');
     el.className = 'fx-burst';
+    if (scale && scale !== 1) el.style.scale = String(scale);
     el.style.setProperty('--burst-color', color);
     el.style.left = (rect.left + rect.width / 2) + 'px';
     el.style.top = (rect.top + rect.height / 2) + 'px';
@@ -1025,12 +1082,18 @@ ${CAST_FX_SOURCE}
   const CAST_SCALE = { subtle: 1.0, normal: 1.4, spectacle: 2.1 };
   const CAST_RAYS = { subtle: 0, normal: 6, spectacle: 10 };
   const CAST_TAG_MS = { subtle: 700, normal: 1100, spectacle: 1500 };
-  function castAnchorRect(fx, prevRects) {
+  function castAnchorRect(fx, prevRects, prevStackRects) {
     if (fx.anchor === 'card') {
       const live = fx.departed ? null : liveCardEl(fx.iid);
       return live ? live.getBoundingClientRect() : prevRects[fx.iid];
     }
-    if (fx.anchor === 'hud') {
+    if (fx.anchor === 'stack') {
+      // A Command: on its own stack entry — the live one when it was just
+      // cast, the one it left from when it resolved — else, if the entry
+      // somehow isn't on screen, its caster's avatar.
+      const live = fx.stackId ? document.querySelector('.stackitem[data-sid="' + fx.stackId + '"]') : null;
+      if (live) return live.getBoundingClientRect();
+      if (fx.stackId && prevStackRects[fx.stackId]) return prevStackRects[fx.stackId];
       const av = document.querySelector('#hud-' + fx.owner + ' .avatar');
       return av ? av.getBoundingClientRect() : hudRect(fx.owner);
     }
@@ -1038,8 +1101,8 @@ ${CAST_FX_SOURCE}
     const r = row.getBoundingClientRect();
     return { left: r.left + r.width / 2 - 40, top: fx.owner === 'p2' ? r.bottom - 30 : r.top + (fx.owner ? 10 : 0), width: 80, height: 20 };
   }
-  function spawnCast(fx, prevRects, stackIndex) {
-    const rect = castAnchorRect(fx, prevRects);
+  function spawnCast(fx, prevRects, prevStackRects, stackIndex) {
+    const rect = castAnchorRect(fx, prevRects, prevStackRects);
     if (!rect || (rect.width === 0 && rect.height === 0)) return;
     const tier = fx.tier;
     const tint = fx.faction ? 'var(--' + fx.faction.toLowerCase() + ')' : 'var(--cast)';
@@ -1077,13 +1140,12 @@ ${CAST_FX_SOURCE}
     tag.style.setProperty('--cast-tag-ms', tagMs + 'ms');
     // Card: tucked just under the card's name strip, clear of the damage
     // number (top) and buff/penalty labels (upper-middle); stacked downward
-    // when one card fires several powers in one move. HUD (a Command): the
-    // sigil plays on the caster's avatar, but the tag goes in the stack row
-    // between the boards — where the Command itself is shown — on the
-    // caster's side (p1 left, p2 right, matching the HUD panels), since
-    // under the avatar it covered the HP bar.
+    // when one card fires several powers in one move. Stack (a Command):
+    // the sigil plays on the Command's stack entry, and the tag sits in the
+    // same lane on the caster's side (p1 left, p2 right, matching the HUD
+    // panels) so it never covers the entry it is labelling.
     let tagX = cx, baseTop = fx.anchor === 'card' ? rect.top + rect.height * 0.62 : rect.top;
-    if (fx.anchor === 'hud') {
+    if (fx.anchor === 'stack') {
       const row = document.getElementById('board-p1').getBoundingClientRect();
       const lane = document.getElementById('stackzone').getBoundingClientRect();
       tagX = fx.owner === 'p1' ? row.left + row.width * 0.14 : row.right - row.width * 0.14;
@@ -1095,6 +1157,167 @@ ${CAST_FX_SOURCE}
     setTimeout(function () { tag.remove(); }, tagMs + 100);
   }
 
+  // ---- move timeline (render session 7) ---------------------------------
+  // Some FX must wait: an attack's hit lands when its bolt arrives, and a
+  // spectacle-tier power gets a short "cast, then effect" beat (owner taste
+  // call 1, 2026-09-26). Waiting FX go through later(); stepping to the next
+  // move first flushes anything still waiting (so nothing from move N ever
+  // plays on top of move N+1's board), and a jump cancels it outright.
+  let pendingFx = [];
+  function later(ms, fn) {
+    if (!(ms > 0)) { fn(); return; }
+    const entry = { fn: fn, id: 0 };
+    entry.id = setTimeout(function () { pendingFx = pendingFx.filter(function (e) { return e !== entry; }); fn(); }, ms);
+    pendingFx.push(entry);
+  }
+  function flushFx() {
+    const list = pendingFx; pendingFx = [];
+    list.forEach(function (e) { clearTimeout(e.id); e.fn(); });
+  }
+  function cancelFx() {
+    pendingFx.forEach(function (e) { clearTimeout(e.id); });
+    pendingFx = [];
+  }
+  function speedMs() { return Number(document.getElementById('speed').value) || 700; }
+  // The owner-approved per-move pacing (the tick itself) is untouched: the
+  // bolt's flight is carved out of the start of the move's own window and
+  // scales with the chosen speed, so it always lands well before the next
+  // move (normal: ~210ms of a 700ms tick; fast: ~75ms of 250ms).
+  const TRAVEL_SCALE = { subtle: 0.8, normal: 1, spectacle: 1.35 };
+  function travelMs(tier) {
+    const base = Math.min(240, Math.max(70, Math.round(speedMs() * 0.3)));
+    return Math.round(base * (TRAVEL_SCALE[tier] || 1));
+  }
+  const CAST_STAGGER_MS = 150;
+
+  function centreOf(rect) { return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
+  function targetEl(target) {
+    if (!target) return null;
+    if (target.kind === 'unit') return liveCardEl(target.instanceId);
+    return document.querySelector('#hud-' + target.playerId + ' .avatar') || document.getElementById('hud-' + target.playerId);
+  }
+  function factionOfUnit(frame, iid) {
+    let f = null;
+    ['p1', 'p2'].forEach(function (pid) { frame.players[pid].board.forEach(function (u) { if (u.instanceId === iid) f = u.faction; }); });
+    return f;
+  }
+  // The arc every attack uses — the aim line, and later the bolt, follow
+  // the same curve so "this is where it will go" and "there it goes" match.
+  function arcBetween(a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    const bend = Math.min(60, len * 0.14);
+    return { a: a, b: b, c: { x: (a.x + b.x) / 2 - (dy / len) * bend, y: (a.y + b.y) / 2 + (dx / len) * bend } };
+  }
+  function arcPoint(arc, t) {
+    const u = 1 - t;
+    return { x: u * u * arc.a.x + 2 * u * t * arc.c.x + t * t * arc.b.x, y: u * u * arc.a.y + 2 * u * t * arc.c.y + t * t * arc.b.y };
+  }
+  function svgEl(tag, attrs) {
+    const el = document.createElementNS(SVG_NS, tag);
+    Object.keys(attrs).forEach(function (k) { el.setAttribute(k, attrs[k]); });
+    return el;
+  }
+  function aimGroup(fromRect, toRect, tint, cls) {
+    const arc = arcBetween(centreOf(fromRect), centreOf(toRect));
+    // The reticle rings the target: a card at ~a third of its size, a small
+    // avatar with room to spare so it doesn't sit on the avatar's own frame.
+    const small = toRect.width < 60;
+    const r = Math.max(22, Math.min(toRect.width, toRect.height) * (small ? 0.5 : 0.36) + (small ? 9 : 0));
+    // Start/stop short of the centres (by pixels, not a fraction of the
+    // length, so a long line and a short one both stop AT the reticle) so
+    // the line reads as leaving one card and arriving at the other.
+    const len = Math.hypot(arc.b.x - arc.a.x, arc.b.y - arc.a.y) || 1;
+    const t0 = Math.min(0.3, 34 / len), t1 = 1 - Math.min(0.3, (r + 12) / len);
+    const s = arcPoint(arc, t0), e = arcPoint(arc, t1), pre = arcPoint(arc, t1 - 0.04);
+    const g = svgEl('g', { class: 'fx-aim' + (cls ? ' ' + cls : '') });
+    g.style.setProperty('--fx-tint', tint);
+    g.appendChild(svgEl('path', { class: 'fx-aim-line', d: 'M' + s.x + ' ' + s.y + ' Q' + arc.c.x + ' ' + arc.c.y + ' ' + e.x + ' ' + e.y }));
+    const ang = Math.atan2(e.y - pre.y, e.x - pre.x);
+    const hx = e.x + Math.cos(ang) * 9, hy = e.y + Math.sin(ang) * 9;
+    const lx = e.x + Math.cos(ang + 2.5) * 8, ly = e.y + Math.sin(ang + 2.5) * 8;
+    const rx = e.x + Math.cos(ang - 2.5) * 8, ry = e.y + Math.sin(ang - 2.5) * 8;
+    g.appendChild(svgEl('polygon', { class: 'fx-aim-head', points: hx + ',' + hy + ' ' + lx + ',' + ly + ' ' + rx + ',' + ry }));
+    const t = centreOf(toRect);
+    g.appendChild(svgEl('circle', { class: 'fx-aim-reticle', cx: t.x, cy: t.y, r: r }));
+    return g;
+  }
+  // Persistent aim lines: one per attack still waiting on the stack. Redrawn
+  // from scratch on every frame render (so jumps and resizes are always
+  // right); 'fresh' marks the ones this move just declared/redirected, which
+  // fade in instead of simply being there.
+  function drawAimLines(frame, fresh) {
+    while (aimLayer.firstChild) aimLayer.removeChild(aimLayer.firstChild);
+    pendingAttacks(frame).forEach(function (pa) {
+      const from = liveCardEl(pa.attackerIid), to = targetEl(pa.target);
+      // An attacker already killed by a response has nothing to aim from;
+      // its attack will fizzle on resolution, and the strike says so then.
+      if (!from || !to) return;
+      const f = factionOfUnit(frame, pa.attackerIid) || frame.players[pa.owner].faction;
+      aimLayer.appendChild(aimGroup(from.getBoundingClientRect(), to.getBoundingClientRect(), 'var(--' + f.toLowerCase() + ')', fresh[pa.stackId] ? 'fresh' : ''));
+    });
+  }
+  function fadeOldAim(fromRect, toRect, tint) {
+    if (!fromRect || !toRect) return;
+    const g = aimGroup(fromRect, toRect, tint, 'fading');
+    aimLayer.appendChild(g);
+    setTimeout(function () { g.remove(); }, 700);
+  }
+
+  // travel(from, to) primitive: a bolt along the attack arc, landing at
+  // 'ms'. Tier sets size and trail; faction sets --fx-tint.
+  const BOLT_SIZE = { subtle: 9, normal: 13, spectacle: 19 };
+  const BOLT_TRAIL = { subtle: 0, normal: 2, spectacle: 4 };
+  function spawnBolt(fromRect, toRect, tint, tier, ms, small) {
+    if (!fromRect || !toRect) return;
+    const arc = arcBetween(centreOf(fromRect), centreOf(toRect));
+    const kf = [];
+    for (let k = 0; k <= 10; k++) {
+      const p = arcPoint(arc, k / 10);
+      kf.push({ transform: 'translate(' + p.x + 'px,' + p.y + 'px) scale(' + (0.7 + 0.5 * Math.sin(Math.PI * k / 10)) + ')' });
+    }
+    const size = Math.round((BOLT_SIZE[tier] || 13) * (small ? 0.65 : 1));
+    const trail = small ? 0 : (BOLT_TRAIL[tier] || 0);
+    for (let k = trail; k >= 0; k--) {
+      const el = document.createElement('div');
+      el.className = 'fx-bolt' + (k > 0 ? ' trail' : '');
+      el.style.setProperty('--fx-tint', tint);
+      el.style.setProperty('--bolt-size', Math.max(4, size - k * 2) + 'px');
+      el.style.transform = kf[0].transform;
+      fxLayer.appendChild(el);
+      const lag = k * Math.round(ms * 0.07);
+      if (el.animate) el.animate(kf, { duration: ms, delay: lag, easing: 'cubic-bezier(.45,0,.75,1)', fill: 'both' });
+      setTimeout(function () { el.remove(); }, ms + lag + 30);
+    }
+  }
+
+  // A Command's card flies from its caster's hand onto the stack (owner
+  // taste call 4). Rises out of the hand to full size, then shrinks into
+  // its stack entry. Returns when it lands, so the cast sigil can start
+  // there.
+  function flyCommandCard(fx, prevFrame, prevHandRects) {
+    const ref = prevFrame.players[fx.owner].hand.filter(function (c) { return c.name === fx.card; })[0];
+    const dest = document.querySelector('.stackitem[data-sid="' + fx.stackId + '"]');
+    if (!ref || !dest) return 0;
+    const av = document.querySelector('#hud-' + fx.owner + ' .avatar');
+    const src = (prevHandRects[fx.owner] || {})[fx.card] || (av ? av.getBoundingClientRect() : hudRect(fx.owner));
+    const card = renderCardEl(ref);
+    card.classList.add('fx-flycard');
+    card.style.setProperty('--fx-tint', 'var(--' + ref.faction.toLowerCase() + ')');
+    fxLayer.appendChild(card);
+    const w = card.offsetWidth || 118, h = card.offsetHeight || 158;
+    const a = centreOf(src), b = centreOf(dest.getBoundingClientRect());
+    const mid = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 20 + (b.y - a.y) * 0.35 };
+    // Holds at full size for ~40% of the flight — long enough to read the
+    // card — and still lands inside the move's own window at every speed.
+    const ms = Math.min(560, Math.max(150, Math.round(speedMs() * 0.6)));
+    function at(p, sc, op) { return { transform: 'translate(' + (p.x - w / 2) + 'px,' + (p.y - h / 2) + 'px) scale(' + sc + ')', opacity: op }; }
+    card.style.transform = at(a, 0.35, 0).transform;
+    if (card.animate) card.animate([at(a, 0.35, 0), Object.assign(at(mid, 1, 1), { offset: 0.3 }), Object.assign(at(mid, 1, 1), { offset: 0.72 }), at(b, 0.28, 0.15)], { duration: ms, easing: 'ease-in-out', fill: 'both' });
+    setTimeout(function () { card.remove(); }, ms + 30);
+    return Math.round(ms * 0.9);
+  }
+
   function showLethalFlash() {
     const el = document.createElement('div');
     el.className = 'fx-lethal-overlay';
@@ -1102,7 +1325,7 @@ ${CAST_FX_SOURCE}
     setTimeout(function () { el.remove(); }, 1200);
   }
 
-  function runFx(prevFrame, prevBoard, prevRects, prevHudRects, newFrame) {
+  function runFx(prevFrame, prevBoard, prevRects, prevHudRects, prevStackRects, prevHandRects, newFrame) {
     const newBoard = collectBoard(newFrame);
     const tiers = [];
     // Coarse, aggregate-only reads of newEvents (event TYPES and counts,
@@ -1116,11 +1339,94 @@ ${CAST_FX_SOURCE}
     const justEnded = !prevFrame.winner && !!newFrame.winner;
     const shifts = [];
 
+    // ---- timeline: when does each part of this move land? -------------
+    // Stack movement (attackFx.ts, instance-exact): at most one strike per
+    // move (the engine resolves one stack item per pass pair).
+    const attacks = resolveAttacks(prevFrame, newFrame);
+    const casts = resolveCasts(prevFrame, newFrame, replay.cardFactions, replay.cardRarities || {});
+    const strike = attacks.filter(function (a) { return a.phase === 'strike' && a.outcome === 'hit'; })[0];
+    // Everything a strike move shows is a CONSEQUENCE of the strike (the
+    // damage, deaths, onDamaged/onDeath powers, a summon from a death), so
+    // it all waits for the bolt. A strike resolves nothing else, so no cast
+    // stagger applies there.
+    let strikeT = 0, counterT = 0, strikeTier = 'normal';
+    if (strike) {
+      const lethalHere = justEnded && strike.target.kind === 'player' && newFrame.winner !== strike.target.playerId && newFrame.winner !== 'draw';
+      strikeTier = strike.target.kind === 'player' ? tierFromScore(playerHitScore(strike.power, lethalHere)) : tierFromScore(hitScore(strike.power, 0));
+      strikeT = travelMs(strikeTier);
+      if (strike.counter) counterT = strikeT + Math.round(travelMs(tierFromScore(hitScore(strike.counterPower, 0))) * 0.7);
+    }
+    // "Cast, then effect" (owner taste call 1, 2026-09-26): only when a
+    // spectacle-tier power fired this move; routine powers stay simultaneous
+    // so the approved normal pacing is untouched. The event log can't say
+    // which effect came from which power, so the beat applies to the move's
+    // effects as a whole — the cast leads, everything it could have caused
+    // follows.
+    const stagger = !strike && casts.some(function (fx) { return fx.tier === 'spectacle'; }) ? CAST_STAGGER_MS : 0;
+    // Command flight (owner taste call 4): the card flies hand -> stack and
+    // its CAST sigil starts as it lands.
+    const flights = {};
+    attacks.forEach(function (a) {
+      if (a.phase === 'command') flights[a.stackId] = flyCommandCard(a, prevFrame, prevHandRects);
+    });
+    const effectT = strike ? strikeT : stagger;
+    const causeT = strike ? strikeT : 0;
+    function unitT(iid) {
+      if (strike && strike.counter && iid === strike.attackerIid) return counterT;
+      return effectT;
+    }
+    function hudT() { return effectT; }
+
+    // ---- stack movement: aim lines, bolts, fizzles, redirects ----------
+    const freshAim = {};
+    attacks.forEach(function (a) {
+      if (a.phase === 'declare' || a.phase === 'redirect') freshAim[a.stackId] = true;
+      if (a.phase === 'redirect') {
+        const f = factionOfUnit(newFrame, a.attackerIid) || newFrame.players[a.owner].faction;
+        const fromEl = liveCardEl(a.attackerIid);
+        const oldTo = a.from.kind === 'unit' ? prevRects[a.from.instanceId] : prevHudRects[a.from.playerId];
+        if (fromEl) fadeOldAim(fromEl.getBoundingClientRect(), oldTo, 'var(--' + f.toLowerCase() + ')');
+        const newTo = targetEl(a.target);
+        if (newTo) { const r = newTo.getBoundingClientRect(); centreOn(spawnNumber(r, 'REDIRECTED', 'redirect', 'normal', 36), r); }
+      }
+      if (a.phase === 'strike' && a.outcome !== 'hit') {
+        // The engine's own two fizzle rules: the attacker, or its unit
+        // target, was gone before the damage could resolve.
+        const r = a.outcome === 'fizzle-attacker'
+          ? (a.target.kind === 'unit' ? (prevRects[a.target.instanceId] || prevRects[a.attackerIid]) : prevHudRects[a.target.playerId])
+          : prevRects[a.attackerIid];
+        if (r) { tiers.push('subtle'); centreOn(spawnNumber(r, 'FIZZLED', 'fizzle', 'subtle', 40), r); }
+      }
+    });
+    if (Object.keys(freshAim).length) drawAimLines(newFrame, freshAim);
+    if (strike) {
+      const f = factionOfUnit(prevFrame, strike.attackerIid) || prevFrame.players[strike.owner].faction;
+      const tint = 'var(--' + f.toLowerCase() + ')';
+      const liveAtk = liveCardEl(strike.attackerIid);
+      const fromR = liveAtk ? liveAtk.getBoundingClientRect() : prevRects[strike.attackerIid];
+      const liveTo = targetEl(strike.target);
+      const toR = strike.target.kind === 'unit'
+        ? (liveTo ? liveTo.getBoundingClientRect() : prevRects[strike.target.instanceId])
+        : (liveTo ? liveTo.getBoundingClientRect() : prevHudRects[strike.target.playerId]);
+      if (liveAtk) flashClass(liveAtk, 'fx-attack', 'normal');
+      spawnBolt(fromR, toR, tint, strikeTier, strikeT, false);
+      // impact(target): the burst lands with the bolt.
+      if (strikeTier !== 'subtle') later(strikeT, function () { spawnBurst(toR, tint, strikeTier === 'spectacle' ? 1.35 : 0.8); });
+      if (strike.counter) {
+        // The return bolt wears the DEFENDER's colour: it is their hit.
+        const df = factionOfUnit(prevFrame, strike.target.instanceId) || f;
+        const ctint = 'var(--' + df.toLowerCase() + ')';
+        const cTier = tierFromScore(hitScore(strike.counterPower, 0));
+        later(strikeT, function () { spawnBolt(toR, fromR, ctint, cTier, counterT - strikeT, true); });
+      }
+    }
+
+    // ---- board diff (unchanged meaning; now on the timeline) -----------
     Object.keys(prevBoard).forEach(function (id) {
       if (!newBoard[id]) {
         const tier = tierFromScore(deathScore(prevBoard[id].v.rarity, !hasAttackEvent));
         tiers.push(tier);
-        spawnGhost(prevBoard[id], prevRects[id], tier);
+        spawnGhost(prevBoard[id], prevRects[id], tier, unitT(id));
       }
     });
 
@@ -1130,15 +1436,17 @@ ${CAST_FX_SOURCE}
       if (!prevBoard[id]) {
         const tier = tierFromScore(enterScore(newBoard[id].v.rarity));
         tiers.push(tier);
-        flashClass(el, 'fx-enter', tier);
+        if (causeT > 0) { el.style.opacity = '0'; later(causeT, function () { el.style.opacity = ''; flashClass(el, 'fx-enter', tier); }); }
+        else flashClass(el, 'fx-enter', tier);
         return;
       }
       if (newBoard[id].kind !== 'unit') return;
       const pv = prevBoard[id].v, nv = newBoard[id].v;
       const evolved = pv.cardId !== nv.cardId;
-      if (pv.pending && !nv.pending) { const t = tierFromScore(armedScore(nv.rarity)); tiers.push(t); flashClass(el, 'fx-armed', t); }
-      if (evolved) { const t = tierFromScore(evolveScore()); tiers.push(t); flashClass(el, 'fx-evolve', t); }
+      if (pv.pending && !nv.pending) { const t = tierFromScore(armedScore(nv.rarity)); tiers.push(t); later(causeT, function () { flashClass(el, 'fx-armed', t); }); }
+      if (evolved) { const t = tierFromScore(evolveScore()); tiers.push(t); later(causeT, function () { flashClass(el, 'fx-evolve', t); }); }
       if (nv.canAttackThisTurn === false && pv.canAttackThisTurn === true) flashClass(el, 'fx-attack', 'normal');
+      const at = unitT(id);
       // Barrier interpose + absorb + shatter (EFFECTS.md slice 1): the
       // status vanishing is the whole signal — no pairing/attacker info
       // needed. This is the ONLY visual a fully-absorbed hit gets today
@@ -1147,8 +1455,10 @@ ${CAST_FX_SOURCE}
       if (pv.barrierActive && !nv.barrierActive) {
         const t = tierFromScore(barrierBreakScore(nv.rarity));
         tiers.push(t);
-        flashClass(el, 'fx-shatter', t);
-        spawnNumber(el.getBoundingClientRect(), 'BLOCKED', 'shield', t);
+        later(at, function () {
+          flashClass(el, 'fx-shatter', t);
+          spawnNumber(el.getBoundingClientRect(), 'BLOCKED', 'shield', t);
+        });
       }
       // Damage/heal is only the part of the health change that ISN'T a
       // maxHealth (stat) change — a +0/+2 buff used to read as a heal, and
@@ -1161,23 +1471,27 @@ ${CAST_FX_SOURCE}
       // A hit small enough to be fully absorbed leaves health unchanged and
       // so isn't caught here — that needs per-hit instance-keyed event data
       // the engine doesn't emit yet (progress/render/notes-for-owner.md).
-      if (residual < 0 && nv.baseArmor > 0) spawnDeflect(el.getBoundingClientRect());
       if (residual < 0) {
         const t = tierFromScore(hitScore(residual, aoeCount));
         tiers.push(t);
-        flashClass(el, 'fx-hit', t);
-        spawnNumber(el.getBoundingClientRect(), String(residual), 'dmg', t);
+        later(at, function () {
+          if (nv.baseArmor > 0) spawnDeflect(el.getBoundingClientRect());
+          flashClass(el, 'fx-hit', t);
+          spawnNumber(el.getBoundingClientRect(), String(residual), 'dmg', t);
+        });
       } else if (residual > 0) {
         const t = tierFromScore(healScore(residual));
         tiers.push(t);
-        flashClass(el, 'fx-heal', t);
-        spawnNumber(el.getBoundingClientRect(), '+' + residual, 'heal', t);
+        later(at, function () {
+          flashClass(el, 'fx-heal', t);
+          spawnNumber(el.getBoundingClientRect(), '+' + residual, 'heal', t);
+        });
       }
       // An evolution changes the printed stats wholesale — the evolve pulse
       // already tells that story; a rise/sink on top would misreport it.
       if (!evolved) {
         const shift = classifyStatShift(statSideOf(pv), statSideOf(nv));
-        if (shift) shifts.push({ el: el, shift: shift, owner: newBoard[id].owner, name: nv.name });
+        if (shift) shifts.push({ el: el, shift: shift, owner: newBoard[id].owner, name: nv.name, at: at });
       }
     });
 
@@ -1193,7 +1507,7 @@ ${CAST_FX_SOURCE}
       tiers.push(t);
       const opp = x.owner === 'p1' ? 'p2' : 'p1';
       const tint = tintFaction(s.kind, newFrame.players[x.owner].faction, newFrame.players[opp].faction, sourceFactionFor(x.name, newFrame));
-      applyStatShift(x.el, s, tint, t);
+      later(x.at, function () { applyStatShift(x.el, s, tint, t); });
     });
 
     ['p1', 'p2'].forEach(function (pid) {
@@ -1203,42 +1517,72 @@ ${CAST_FX_SOURCE}
       if (delta < 0) {
         const t = tierFromScore(playerHitScore(delta, isLethal));
         tiers.push(t);
-        flashClass(hudEl, 'fx-hit', t);
-        spawnNumber(prevHudRects[pid], String(delta), 'dmg', t);
+        later(hudT(), function () {
+          flashClass(hudEl, 'fx-hit', t);
+          spawnNumber(prevHudRects[pid], String(delta), 'dmg', t);
+        });
       } else if (delta > 0) {
         const t = tierFromScore(playerHitScore(delta, false));
         tiers.push(t);
-        flashClass(hudEl, 'fx-heal', t);
-        spawnNumber(prevHudRects[pid], '+' + delta, 'heal', t);
+        later(hudT(), function () {
+          flashClass(hudEl, 'fx-heal', t);
+          spawnNumber(prevHudRects[pid], '+' + delta, 'heal', t);
+        });
       }
     });
 
     // Power / ability cast flourishes (EFFECTS.md slice 3), in event order.
+    // On a strike they are consequences and land with the bolt; a Command's
+    // CAST waits for its flying card to reach the stack.
     const castCount = {};
-    resolveCasts(prevFrame, newFrame, replay.cardFactions, replay.cardRarities || {}).forEach(function (fx) {
-      const key = fx.anchor + ':' + (fx.iid || fx.owner || 'mid');
+    casts.forEach(function (fx) {
+      const key = fx.anchor + ':' + (fx.iid || fx.stackId || fx.owner || 'mid');
       castCount[key] = (castCount[key] || 0) + 1;
       tiers.push(fx.tier);
-      spawnCast(fx, prevRects, castCount[key] - 1);
+      const idx = castCount[key] - 1;
+      const wait = strike ? strikeT : (fx.anchor === 'stack' && fx.kind === 'announce' && fx.stackId && flights[fx.stackId] ? flights[fx.stackId] : 0);
+      later(wait, function () { spawnCast(fx, prevRects, prevStackRects, idx); });
     });
 
     tiers.push(tierFromScore(momentumSwingScore(prevFrame.momentum.score, newFrame.momentum.score)));
-    if (justEnded) { tiers.push('spectacle'); showLethalFlash(); }
+    if (justEnded) { tiers.push('spectacle'); later(Math.max(effectT, counterT), showLethalFlash); }
 
     return maxTierOf(tiers);
+  }
+
+  function stackRects() {
+    const map = {};
+    document.querySelectorAll('.stackitem[data-sid]').forEach(function (el) { map[el.getAttribute('data-sid')] = el.getBoundingClientRect(); });
+    return map;
+  }
+  function handRects() {
+    const map = { p1: {}, p2: {} };
+    ['p1', 'p2'].forEach(function (pid) {
+      document.querySelectorAll('#hand-' + pid + ' .minicard[data-name]').forEach(function (el) {
+        const n = el.getAttribute('data-name');
+        if (!map[pid][n]) map[pid][n] = el.getBoundingClientRect();
+      });
+    });
+    return map;
   }
 
   function goTo(n) {
     const target = Math.max(0, Math.min(frames.length - 1, n));
     if (target === i + 1) {
+      // Anything move i was still waiting to show plays now, on move i's
+      // board, before move i+1 replaces it.
+      flushFx();
       const prevFrame = frames[i];
       const prevBoard = collectBoard(prevFrame);
       const prevRects = currentRectsByIid();
       const prevHudRects = { p1: hudRect('p1'), p2: hudRect('p2') };
+      const prevStackRects = stackRects();
+      const prevHandRects = handRects();
       i = target;
       renderFrame();
-      lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevHudRects, frames[i]);
+      lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevHudRects, prevStackRects, prevHandRects, frames[i]);
     } else {
+      cancelFx();
       i = target;
       renderFrame();
       lastTransitionTier = 'normal'; // a jump has no "in between" to weigh, so pacing falls back to normal
@@ -1291,6 +1635,10 @@ ${CAST_FX_SOURCE}
     if (e.key === 'ArrowLeft') { stop(); goTo(i - 1); }
     if (e.key === ' ') { e.preventDefault(); playing ? stop() : play(); }
   });
+
+  // Aim lines are drawn in viewport coordinates; keep them on their cards.
+  window.addEventListener('resize', function () { drawAimLines(frames[i], {}); });
+  window.addEventListener('scroll', function () { drawAimLines(frames[i], {}); }, { passive: true });
 
   renderFrame();
 })();

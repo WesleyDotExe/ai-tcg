@@ -22,8 +22,11 @@
 //                   on top of the stack before this move resolved it (the
 //                   capture reads it off the engine's StackItem; the event
 //                   log itself doesn't carry it);
-//   a Command    -> not on the board at all; the flourish comes from its
-//                   controller (the command that was on top of the stack).
+//   a Command    -> not on the board at all; the flourish plays on the
+//                   Command's own stack entry (render session 7: the card
+//                   now flies from its caster's hand onto the stack, so the
+//                   stack entry is where the viewer's eye already is),
+//                   identified by the engine's stack-item id.
 // If exactly one instance survives the narrowing, the flourish plays on that
 // card. If several do, it is honestly ambiguous: the flourish becomes a
 // banner (pinned to a side when every candidate is on the same side), never
@@ -56,11 +59,15 @@ export interface CastFx {
   label: string;
   /** Where the flourish plays:
    * - card:   on one exact instance (iid), live or just-departed;
-   * - hud:    from a player's HUD (a Command — it has no card on board);
+   * - stack:  on a Command's stack entry (`stackId`) — it has no card on
+   *           board; `owner` is the caster, the fallback anchor when the
+   *           entry can't be found on screen;
    * - banner: honestly ambiguous; shown as a banner, on `owner`'s side when
    *           every candidate is on one side, else centred. */
-  anchor: "card" | "hud" | "banner";
+  anchor: "card" | "stack" | "banner";
   iid?: string;
+  /** anchor "stack" only: the Command's engine stack-item id. */
+  stackId?: string;
   owner?: "p1" | "p2";
   /** Whether the instance is gone in the new frame (so the DOM half must
    * use the previous frame's rectangle). */
@@ -124,6 +131,7 @@ export const CAST_FX_SOURCE = `
       var fx = { kind: kind, source: source, trigger: trigger, label: CAST_LABELS[trigger] || trigger.toUpperCase(), anchor: anchor, faction: cardFactions[source], rarity: rarity, tier: castTier(castScore(rarity, trigger)), candidates: extra.candidates };
       if (entry) { fx.iid = entry.iid; fx.owner = entry.owner; fx.departed = !newById[entry.iid]; }
       else if (extra.owner) fx.owner = extra.owner;
+      if (extra.stackId) fx.stackId = extra.stackId;
       out.push(fx);
     }
     function settle(kind, source, trigger, cands, total) {
@@ -144,8 +152,11 @@ export const CAST_FX_SOURCE = `
         var response = ev.speed === 'Instant' && ev.player !== newFrame.activePlayer;
         var trig = response ? 'response' : 'cast';
         if (sep === -1) {
-          // A Command: it has no card on the board; the player casts it.
-          push('announce', ev.card, trig, 'hud', { owner: ev.player, candidates: 0 });
+          // A Command: it has no card on the board. It was just pushed, so
+          // it is the top of the new stack.
+          var cmdTop = newFrame.stack.length ? newFrame.stack[newFrame.stack.length - 1] : null;
+          var cmdSid = cmdTop && cmdTop.kind === 'command' && cmdTop.description === ev.card ? cmdTop.stackId : undefined;
+          push('announce', ev.card, trig, 'stack', { owner: ev.player, candidates: 0, stackId: cmdSid });
           return;
         }
         var srcName = ev.card.slice(0, sep);
@@ -164,7 +175,7 @@ export const CAST_FX_SOURCE = `
       var total = cands.length;
 
       if (total === 0 && prevStackTop && prevStackTop.kind === 'command' && prevStackTop.description === name) {
-        push('trigger', name, 'command', 'hud', { owner: prevStackTop.controller, candidates: 0 });
+        push('trigger', name, 'command', 'stack', { owner: prevStackTop.controller, candidates: 0, stackId: prevStackTop.stackId });
         return;
       }
 
