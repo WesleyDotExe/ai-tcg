@@ -1044,6 +1044,10 @@ Reviewed Session 21 (Phase 5 slice 3: Null grown 15 -> 20 unique cards, deck fil
 
 Alternation stands: next is a render slice (it picks up the 2026-09-26 render taste calls), then Cortex's Phase 5 slice, the neutral pool, then the mandatory full-ring re-measure gate. The Null consistency trim above can be folded into Null's next slice whenever it comes back around.
 
+**Handled (item 1, the Null consistency trim), session 23 (2026-09-28).** See the session 22
+confirmations entry below for the details. Items 1 and 2 of this entry are now both done:
+density only, no card's stats touched.
+
 **Handled (the Cortex step), session 22 (2026-09-26, balance session: the last merged PR, #28,
 was render).** Cortex's Phase 5 slice is done: 19 -> 24 unique cards, a variety pass aimed at
 the out-of-band Cortex-vs-Swarm edge. Under Lookahead, Cortex-vs-Swarm went 44.3 -> 58.7 on 300
@@ -1083,7 +1087,7 @@ rather than a unit, and Quorum Arbiter's attack changes live with the enemy boar
 
 ---
 
-## 2026-09-26 — Owner: session 22 (Cortex depth pass) confirmations + 900-seed standard + revised Phase 5 order
+## 2026-09-26 — Owner: session 22 (Cortex depth pass) confirmations + 900-seed standard + revised Phase 5 order (PARTIALLY HANDLED — item 2 step (i), the Null trim, done session 23; items 1 and 3 apply at the gate)
 
 Reviewed Session 22 (Phase 5 slice 4: Cortex 19 -> 24 unique cards; Cortex-vs-Swarm fixed, 44.3 -> 58.7% Cortex under Lookahead). Three decisions:
 
@@ -1095,10 +1099,22 @@ Reviewed Session 22 (Phase 5 slice 4: Cortex 19 -> 24 unique cards; Cortex-vs-Sw
 
 Net: the Null trim is doing double duty (fixes Null's weakness AND the Cortex-vs-Null overshoot), which is why it goes before the neutral pool and before any Cortex nerf. Everything gets judged at the 900-seed gate.
 
+**Handled (step i, the Null trim), session 23 (2026-09-28, balance session: the last merged PR,
+#30, was render).** Null 40 -> 36: Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1. All 20
+unique cards kept, Kernel Panic kept at 2. Cuts chosen by a measured greedy ablation
+(`engine/src/dev/nullTrimSearch.ts`), confirmed on 3,600 held-out seeds: about +3.5-4 points
+on each Null edge. Kernel Panic plays ~7.5% -> ~10%. Item 1 was followed: every call this
+session is 900+ seeds. Item 3: Cortex-vs-Null moved 61.1 -> 58.9 Cortex under Lookahead, toward
+band but still out. Quorum Arbiter left alone for the gate, as directed. Null is still the
+weakest faction (41.1 / 41.7 / 39.6 under Lookahead). A bigger-lift variant that also cuts Bit
+Rot and Watchdog Timer was measured and not shipped; it's flagged in notes-for-owner.md.
+Next per this entry: (ii) the neutral pool, then (iii) the gate.
+`progress/balance-report-017-null-trim.txt`.
+
 
 ---
 
-## 2026-09-26 — Owner: cross-project — AI TCG balance is claude-tools' first real caller (two-proportion significance for in/out-of-band)
+## 2026-09-26 — Owner: cross-project — AI TCG balance is claude-tools' first real caller (two-proportion significance for in/out-of-band) (PARTIALLY HANDLED — interim port done session 23; the live claude-tools call is still open)
 
 A direction connecting the two autonomous projects (recorded here so the balance lane sees it; matching enable-side items are in the claude-tools wishlist).
 
@@ -1113,6 +1129,15 @@ Adopt it for balance judgments:
 3. **Do NOT block the Phase 5 roadmap on this.** Order stays Null trim -> neutral pool -> 900-seed gate. Fold the significance test into the 900-seed gate's in/out-of-band logic when convenient; it is an accuracy upgrade to the gate, not a new phase.
 
 This makes AI TCG the first named external caller of the claude-tools collection, closing that project's "is anything actually using these tools" gap from the consuming side.
+
+**Partially handled, session 23 (2026-09-28).** Items 1 and 3: `engine/src/dev/edgeMeasure.ts`
+has Wilson intervals, Newcombe difference intervals, and your band rule (OUT only when the CI
+misses the band). `lookaheadEdgeCheck.ts` now prints a CI and a verdict for every edge, and
+the Null trim's before/after calls were made on Newcombe intervals. Item 2: this is the
+sanctioned interim port. No claude-tools MCP server is reachable from this session, so the
+live call has not happened. Tested against Newcombe (1998)'s published examples
+(`engine/test/edgeMeasure.test.ts`). One consequence for the gate is in notes-for-owner.md: at
+900 seeds, the CI is wider than a 5-point band, so those bands can't come back IN.
 
 
 ---

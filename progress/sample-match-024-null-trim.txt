@@ -1,0 +1,214 @@
+AI-TCG Null consistency trim evidence (2026-09-28): the shipped 36-card Null deck vs Aegis
+Both sides LookaheadAgent, seeding identical to lookaheadEdgeCheck.ts.
+Null completed the Kernel Panic evolution in 13 of 200 games vs Aegis.
+
+=== Full match log: seed 4, Null is p1; Kernel Panic evolved on turn 11; Null wins ===
+
+--- Turn 1 (p1) ---
+p1 plays Glitch Seed (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Bulwark Chassis
+--- Turn 2 (p2) ---
+p2 plays Barrier Drone (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Null Pointer
+--- Turn 3 (p1) ---
+  Null Shell attaches to Glitch Seed
+  Corruption Patch attaches to Glitch Seed
+Glitch Seed attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 2 damage to Barrier Drone (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Salvage Reflex
+--- Turn 4 (p2) ---
+p2 plays Salvage Reflex (u4)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Zombie Process
+--- Turn 5 (p1) ---
+p1 plays Zombie Process (u5)
+Glitch Seed attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 2 damage to Barrier Drone (unit)
+  Barrier Drone (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Failover Custodian
+--- Turn 6 (p2) ---
+Salvage Reflex attacks Zombie Process
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Zombie Process (unit)
+  Zombie Process deals 2 damage to Salvage Reflex (unit)
+  Zombie Process (p1) dies
+  ability: Zombie Process — zombie-process-death (onDeath)
+  Zombie Process summons Orphaned Thread for p1 (u8)
+p2 plays Failover Custodian (u9)
+  Plating Module attaches to Salvage Reflex
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Glitch Seed
+--- Turn 7 (p1) ---
+p1 plays Glitch Seed (u10)
+Orphaned Thread attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Orphaned Thread's attack
+  Orphaned Thread deals 1 damage to Lookahead-Aegis
+Glitch Seed attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 2 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Aegis Warden
+--- Turn 8 (p2) ---
+Salvage Reflex attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Lookahead-Null
+p2 plays Bulwark Chassis (u14)
+  Guard Directive Chip attaches to Salvage Reflex
+Failover Custodian attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Corrupted Process
+--- Turn 9 (p1) ---
+  Glitch Seed evolves into Corrupted Process
+  ability: Corrupted Process — corrupted-process-evolve (onPlay)
+p1 draws Entropy Harvester
+Corrupted Process attacks Salvage Reflex
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 2 damage to Salvage Reflex (unit)
+  Corrupted Process's base armor reduces 3 damage from Salvage Reflex to 2
+  Salvage Reflex deals 2 damage to Corrupted Process (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Aegis Sentinel
+--- Turn 10 (p2) ---
+Salvage Reflex attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 3 damage to Lookahead-Null
+Failover Custodian attacks Orphaned Thread
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Orphaned Thread (unit)
+  Orphaned Thread deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Orphaned Thread (p1) dies
+Bulwark Chassis attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Stray Fragment
+--- Turn 11 (p1) ---
+  Corrupted Process evolves into Kernel Panic
+  ability: Kernel Panic — kernel-panic-evolve (onPlay)
+  Bulwark Chassis (p2) dies
+Kernel Panic attacks Salvage Reflex
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kernel Panic's attack
+  Kernel Panic deals 4 damage to Salvage Reflex (unit)
+  Salvage Reflex deals 3 damage to Kernel Panic (unit)
+  Salvage Reflex (p2) dies
+  ability: Salvage Reflex — salvage-reflex-death (onDeath)
+  Salvage Reflex applies Barrier to Failover Custodian
+Glitch Seed attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 2 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Salvage Reflex
+--- Turn 12 (p2) ---
+p2 plays Salvage Reflex (u22)
+Failover Custodian attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Null Singularity
+--- Turn 13 (p1) ---
+Kernel Panic attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kernel Panic's attack
+  Kernel Panic deals 4 damage to Lookahead-Aegis
+p1 plays Null Singularity (u25)
+Glitch Seed attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Glitch Seed's attack
+  Glitch Seed deals 3 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Barrier Shim
+--- Turn 14 (p2) ---
+Salvage Reflex attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 1 damage to Lookahead-Null
+Failover Custodian attacks Lookahead-Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Barrier Shim attaches to Salvage Reflex
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Stray Fragment
+--- Turn 15 (p1) ---
+Kernel Panic attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kernel Panic's attack
+  Kernel Panic deals 5 damage to Lookahead-Aegis
+Null Singularity attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Singularity's attack
+  Null Singularity deals 4 damage to Lookahead-Aegis
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Winner: p1, turns: 15

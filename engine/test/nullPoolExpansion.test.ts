@@ -2,7 +2,7 @@
 // "Null — as a DEPTH / VARIETY pass, not a power buff"). Each of the five
 // new cards exercises a trigger or keyword the Null pool had never used, so
 // each gets a whitebox test proving that specific mechanism actually works
-// on this card — plus the pool-level checks (legal 40-card deck, lint
+// on this card — plus the pool-level checks (legal deck, lint
 // passes, removal density moved away from the cap, and the variety claim
 // itself).
 
@@ -131,13 +131,19 @@ test("Garbage Collector's activated ability spends 2 energy to heal a damaged al
   expect(again, "with 1 energy the 2-cost ability must not be offered").toHaveLength(0);
 });
 
-test("Null pool still builds a legal 40-card deck at 20 unique cards, further from the removal cap than before", () => {
+test("Null pool builds a legal 36-card deck at 20 unique cards after the 2026-09-28 consistency trim", () => {
   const deck = buildNullDeck("p1", "Null Test Deck");
-  expect(deck.cards.length).toBe(40);
+  expect(deck.cards.length, "the trim takes Null from 40 back to 36").toBe(36);
   const uniqueCount = new Set(NULL_CARDS.map((p) => p.card.id)).size;
-  expect(uniqueCount, "the Null slice should grow the pool from 15 to 20 unique cards").toBe(20);
+  expect(uniqueCount, "the trim cuts copies, not cards: all 20 unique cards stay").toBe(20);
+  expect(
+    NULL_CARDS.find((p) => p.card.name === "Kernel Panic")?.copies,
+    "Kernel Panic is protected by the trim (its visibility is part of the reason for it)",
+  ).toBe(2);
+  // Every trim cut was non-removal, so density rose from 9/40 back to the
+  // lint's cap exactly. At the cap still passes (the lint fails only over it).
   const removal = NULL_CARDS.filter((p) => isRemovalOrDebuffCard(p.card)).reduce((s, p) => s + p.copies, 0);
-  expect(removal / 40, "removal/debuff density should sit below the 25% cap, not at it").toBeLessThan(0.25);
+  expect(removal / deck.cards.length).toBeLessThanOrEqual(0.25);
 });
 
 test("the Null slice is genuine variety: the pool now uses triggers and keywords it never used before", () => {

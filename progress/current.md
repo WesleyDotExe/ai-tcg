@@ -1,84 +1,71 @@
 # Current status
 
 **Build-order stage: 3 (A real card set), still current, inside Phase 5
-(pool expansion).** Session 22 was a balance session. Under the alternation
-rule (owner-feedback.md, 2026-09-24), the most recently merged PR (#28) was
-a render slice, so this session did the balance/roadmap priority. The
-owner's 2026-09-26 "session 21 confirmations" entry set the order: render
-slice, then **Cortex's Phase 5 slice**, then the neutral pool, then the
-mandatory full-ring re-measure. Cortex's slice is what shipped. Every
-faction has now had its Phase 5 pass.
+(pool expansion).** Session 23 was a balance session. Under the alternation
+rule (owner-feedback.md, 2026-09-24), the last merged PR (#30) was a render
+slice. The owner's revised Phase 5 order (2026-09-26 "session 22
+confirmations", item 2) is: (i) Null consistency trim, (ii) neutral pool,
+(iii) mandatory 900-seed full-ring re-measure. Step (i) is what shipped.
 
-## What stands (this session's work; sessions 1-21 otherwise unchanged)
+## What stands (this session's work; sessions 1-22 otherwise unchanged)
 
-**Cortex pool grown 19 -> 24 unique cards** (`engine/src/data/cards.ts`).
-Each uses a shape Cortex never had, and each is aimed at Swarm's width:
+**Null deck trimmed 40 -> 36** (`engine/src/data/nullCards.ts`): Decay
+Ward 2->1, Fork Bomb 3->2, Null Shell 3->1. All 20 unique cards kept;
+Kernel Panic kept at 2. No card's stats changed. Removal/debuff density is
+9/36 = 25.0%, exactly at the lint cap. A further non-removal Null cut now
+needs a matching removal cut.
 
-| Card | Cost | Shape | New for Cortex |
-|---|---|---|---|
-| Rate Limiter (R) x2 | 3 | Directive: your turn start, if enemy has 3+ units, 1 damage to all of them | Directive turn trigger, opponent-board condition |
-| Load Balancer (U) x2 | 3 | 2/3, onAttack: 1 damage to a random enemy unit | onAttack |
-| Hotfix (C) x1 | 1 | Instant Command: friendly unit +1/+2 this turn | Instant friendly trick |
-| Deadlock Detector (C) x1 | 2 | 1/3, onPlay: if enemy has 3+ units, stun a random one | onPlay opponent-board condition |
-| Quorum Arbiter (M) x1 | 5 | 3/6, attack = 1 + enemy units | opponent-scaled stat; Cortex's first Mythic |
+**Measured (LookaheadAgent is the arbiter), Null's win rate:**
 
-Funded by trimming one copy each of the seven weakest cards under Lookahead
-(report 015). Deck stays 40; no card left it. Removal density 10/40 -> 9/40.
+| Edge | pre-trim (1-900) | shipped (1-900) | held-out change (901-4500) | band |
+|---|---|---|---|---|
+| vs Cortex | 38.9 | 41.1 | about +4.0 | 45-55 |
+| vs Swarm | 36.6 | 41.7 | about +3.7 | 40-45 |
+| vs Aegis | 37.3 | 39.6 | about +3.6 | 55-60 |
 
-**New tool: `engine/src/dev/lookaheadEdgeCheck.ts`.** A Lookahead-only
-check of one faction's three edges on any seed range. It uses the same
-seeding as balanceReport, so seeds 1-300 reproduce it exactly.
+Kernel Panic played in ~7.5% -> ~10% of Null's games. Lookahead >=60%
+flags on Null pairings 3 -> 1. No triple-flag. New side effect: under Random,
+Null beats Swarm 64.3%, which is discounted under the arbiter rule. Null is still
+the weakest faction, and Null > Aegis is still inverted.
 
-**Measured result (Lookahead is the arbiter):**
+**Instruments:**
+- `engine/src/dev/edgeMeasure.ts`: the shared Lookahead edge loop, plus
+  Wilson/Newcombe intervals and the owner's CI band verdict.
+  `lookaheadEdgeCheck.ts` now prints a CI and a verdict for each edge.
+- `engine/src/dev/nullTrimSearch.ts`: greedy ablation search with held-out
+  check. Three variants: the shipped one, singleton cuts allowed, and
+  unconstrained.
+- `engine/src/dev/nullTrimMatchDemo.ts`: real-play evidence.
 
-| Edge | 300 seeds | 900 seeds | Target |
-|---|---|---|---|
-| Cortex vs Swarm | 44.3 -> 58.7 | 46.7 -> 54.1 | 55-60 |
-| Cortex vs Aegis | 40.7 -> 43.3 | 42.4 -> 41.6 | 40-45 |
-| Cortex vs Null | 55.0 -> 63.7 | 57.9 -> 61.1 | 45-55 |
-
-No pairing is flagged under all three policies.
-
-**The noise finding.** Over 900 seeds, the baseline Null-vs-Cortex edge was
-already out of band. Null is below 45% against every faction, including
-Aegis (37.3%), which the ring says Null should beat. 300 seeds (one SE
-~2.9 points) hid how weak Null is. I measured whether Cortex could fix
-Swarm without moving Null (150 copy mixes, card-design variants, held-out
-seeds). It couldn't: Cortex's rate against Null moves almost 1:1 with its
-rate against Swarm. Flagged to the owner as an overrulable decision.
+**Engine fix:** `effects/resolver.ts` no longer logs `attackRedirected`
+for a redirect onto the attack's existing target; it logs a fizzle.
+This was a real render test failure the new deck surfaced. There's no
+balance effect: the 900-seed report is identical before and after.
 
 ## Evidence committed
 
-- `progress/balance-report-016-phase5-cortex-slice.txt`: before/after
-  table (all three policies, plus 900-seed Lookahead), the noise finding,
-  the ablation, the four-cut journey, then the full shipped report.
-- `progress/sample-match-023-phase5-cortex-slice.txt`: all five new
-  mechanisms found in real unscripted Lookahead play. Three fire in one game
-  (seed 2, Cortex vs Swarm: Load Balancer ping, Deadlock stun, Quorum
-  Arbiter attacking for 7 into a 6-unit board), and its full log is
-  included. Rate Limiter's sweep appears at seed 4 (4 units hit), and a
-  reactive Hotfix at seed 102. Generated by
-  `engine/src/dev/cortexPoolExpansionMatchDemo.ts`.
-- `engine/test/cortexPoolExpansion.test.ts`: 8 new tests covering each
-  mechanism (both sides of each condition), the legal deck plus lint, and
-  the variety claim.
-- `npm test` at the root: 249/249 across all five workspaces (engine 105,
-  was 97). `tsc --noEmit` is clean in all five.
+- `progress/balance-report-017-null-trim.txt`: headline, 900-seed
+  three-policy before/after, all three search transcripts, noise findings,
+  and the full shipped report.
+- `progress/sample-match-024-null-trim.txt`: 36-card Null vs Aegis. Kernel
+  Panic evolves in 13/200 games, and the full log of seed 4 is a Kernel Panic
+  win.
+- Tests: `engine/test/edgeMeasure.test.ts` (4, stats against published
+  values), a regression test in `aegisInteraction.test.ts`, and the pool test
+  updated to 36 cards. `npm test`: 262/262 across all five workspaces
+  (engine 110). `tsc --noEmit` clean in all five.
 
 ## Concrete next step
 
-Next session is a **render** slice, per the alternation rule. Its queue:
-the owner's 2026-09-26 render entry (spectacle-tier cast stagger, then
-EFFECTS.md slice 4: attack travel + impact).
+Next session is a **render** slice, per the alternation rule. Its queue is
+the owner's 2026-09-27 render entry: broaden the cast stagger to all
+responses, and fixed-slot board layout as the next render infrastructure
+priority, sequenced against EFFECTS.md slice 5.
 
-The next balance session follows the owner's stated order unless
-owner-feedback.md says otherwise: **the neutral pool** (roadmap item 10),
-then the mandatory full-ring re-measure (proposed to the owner: run it at
-900 seeds, with `lookaheadEdgeCheck.ts` for the Lookahead side).
-
-Null's consistency trim (2026-09-26 "session 21 confirmations" item 1: trim
-Null's measured-weakest filler back toward ~36 cards) has no fixed slot yet.
-Report 016 makes it look more urgent: Null is 37-42% against every faction
-over 900 seeds. I've asked the owner in notes-for-owner.md whether it should
-go before the neutral pool. Whenever it runs, re-measure with
-`lookaheadEdgeCheck.ts Null 1 900` as well as the standard report.
+The next balance session does step (ii), **the neutral pool** (roadmap item
+10). Then comes step (iii), the 900-seed gate. Before the gate, read
+notes-for-owner.md items 2 and 4: whether to take the bigger Null lift
+(variant B), and whether the gate's Lookahead side should run at ~2,500 seeds
+so 5-point bands can come back IN under the CI rule. Measure with
+`lookaheadEdgeCheck.ts <Faction> 1 900` (it now prints verdicts), and
+`balanceReport.ts 900`.

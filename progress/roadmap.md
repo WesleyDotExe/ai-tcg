@@ -185,9 +185,17 @@ building around them; don't block the whole project waiting.
    of band over 900 seeds: Null is below 45% against every faction.
    `progress/balance-report-016-phase5-cortex-slice.txt`; new tool
    `engine/src/dev/lookaheadEdgeCheck.ts` for 900-seed checks.
+   **Session 23 did the Null consistency trim** (owner's revised order, step
+   i): 40 -> 36 (Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1), all 20
+   unique cards kept, chosen by a measured greedy search and confirmed on
+   held-out seeds. That's about +4 points on each Null edge, and Kernel Panic
+   plays ~7.5% -> ~10%. Null is still the weakest faction. Also added CI band
+   verdicts (`engine/src/dev/edgeMeasure.ts`).
+   `progress/balance-report-017-null-trim.txt`.
    **Remaining before the hard gate: the neutral pool (item 10), then the
-   mandatory full-ring re-measure (run it at 900+ seeds, see report 016's
-   noise finding). Null's consistency trim can come before the gate.**
+   mandatory full-ring re-measure at 900+ seeds (see notes-for-owner.md on
+   running its Lookahead side at ~2,500 seeds so the CI rule can confirm
+   5-point bands).**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

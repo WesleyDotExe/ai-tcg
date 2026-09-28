@@ -63,6 +63,28 @@ test("Intercept Routine no-ops harmlessly (logged, not silent) when there's noth
   expect(state.log.some((e) => e.type === "fizzle" && e.reason.includes("no pending attack")), "the no-op should be logged").toBe(true);
 });
 
+test("Intercept Routine onto the unit the attack already targets is a logged no-op, not a redirect", () => {
+  // Found in real play (render attackFx scan, Null vs Aegis seed 3): the
+  // engine logged attackRedirected with from === to, which the render and
+  // commentators would read as the aim moving.
+  const state = emptyState();
+  const rng = new Rng(43);
+  const attacker = putUnit(state, "p1", aegisSentinel);
+  const guardian = putUnit(state, "p2", aegisWarden);
+  applyMove(state, { type: "attack", attackerInstanceId: attacker.instanceId, target: { kind: "unit", instanceId: guardian.instanceId } }, rng);
+  applyMove(state, { type: "passPriority" }, rng);
+  state.players.p2.hand.push(interceptRoutine);
+  state.players.p2.energy = 1;
+  state.players.p2.maxEnergy = 1;
+  const same = getLegalMoves(state).find((m) => m.type === "playCard" && m.target?.kind === "unit" && m.target.instanceId === guardian.instanceId);
+  expect(same, "targeting the already-attacked unit is still legal (the card is Instant, any unit)").toBeTruthy();
+  applyMove(state, same!, rng);
+  drainStack(state, rng);
+  expect(state.log.some((e) => e.type === "attackRedirected"), "nothing moved, so no redirect may be logged").toBe(false);
+  expect(state.log.some((e) => e.type === "fizzle" && e.reason.includes("already aimed at")), "the no-op should be logged").toBe(true);
+  expect(guardian.damageTaken, "the attack still lands on its original target").toBe(3);
+});
+
 test("Tariff Field taxes the opponent's card costs by 1, in both the cost math and legal-move gating", () => {
   const state = emptyState();
   state.players.p1.directives.push({ instanceId: "test-tariff", card: tariffField, controller: "p1" });

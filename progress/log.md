@@ -2262,3 +2262,51 @@ further out of band, and I flagged that to the owner as an overrulable call.
 Random policy now has Cortex over Swarm at 73%. Hotfix's Instant identity is
 invisible to the trusted agent. **Blocked:** nothing. `npm test` 249/249,
 `tsc` clean in all five.
+
+## 2026-09-28 — Session 23 (Phase 5: the Null consistency trim, 40 -> 36)
+
+Balance session: the last merged PR (#30) was render. The owner's revised
+Phase 5 order puts the Null trim first, so that's what I did. Null 40 -> 36:
+Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1. No card stats touched; all 20
+unique cards kept. I didn't pick the cuts by hand. `nullTrimSearch.ts` runs a
+greedy ablation under Lookahead on seeds 1-900 (drop one copy of each card,
+re-measure all three edges, cut the best, repeat), then checks on held-out
+seeds. On 3,600 held-out seeds (901-4500), Null gained about +4.0 / +3.7 /
++3.6 vs Cortex / Swarm / Aegis. Kernel Panic went from ~7.5% to ~10% of Null's
+games.
+
+**What worked and what didn't.** The first unconstrained search cut a Kernel
+Panic copy, the opposite of the owner's aim. A second run with Kernel Panic
+protected wanted Bit Rot and Watchdog Timer gone entirely. That lifted Null
+about twice as much, but it failed the session-21 variety test: those are
+Null's only Instant trick and only turn trigger. I shipped the
+keep-every-card variant and flagged the other to the owner. Greedy steps
+were noisy (one step had every option negative). So I compared five nearby
+decks on two held-out ranges. All were within noise; I kept the search's own
+pick. Deck list order changes the shuffle, so the search rebuilds the
+pre-trim deck in its original order.
+
+**Also built:** `edgeMeasure.ts`, with Wilson/Newcombe intervals and the
+owner's CI band rule. It's the interim port of the claude-tools method (no
+claude-tools server was reachable). It's tested against published values and
+wired into `lookaheadEdgeCheck.ts`. Finding: at 900 seeds the CI is wider
+than a 5-point band, so those bands can never come back IN. This matters for
+the gate design and is flagged to the owner.
+
+**Unplanned fix:** the trimmed deck made `render/test/attackFx.test.ts` fail.
+A real game (Null vs Aegis seed 3) had LookaheadAgent cast Intercept Routine
+onto the unit already under attack, and the engine logged a redirect from X
+to X. `resolver.ts` now logs a fizzle for that; there's a regression test.
+Game state is unchanged, and the 900-seed report is byte-identical apart from
+whitespace.
+
+**Ran it:** `balanceReport.ts 900` before and after, `lookaheadEdgeCheck.ts`
+for all four factions at 900 seeds, all three search variants, and
+`nullTrimMatchDemo.ts`. Null finished the Kernel Panic evolution in 13/200
+games vs Aegis; the seed-4 log is a Kernel Panic win. `npm test`: 262/262.
+`tsc` clean in all five workspaces.
+
+**Not fixed:** Null is still the weakest faction (41.1 / 41.7 / 39.6 under
+Lookahead). Null > Aegis is still inverted (Aegis 60.4%). Cortex-vs-Null
+moved toward band (61.1 -> 58.9) but is still out. **Blocked:** nothing.
+Next is a render slice, then the neutral pool.
