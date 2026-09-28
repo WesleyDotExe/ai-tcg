@@ -20,9 +20,49 @@ fix, Null past-cost nerf), session 19 (Phase 5 slice 1: Aegis pool
 grown 18 -> 22 unique cards), session 20 (Phase 5 slice 2: Swarm
 pool grown 16 -> 20 unique cards), session 21 (Phase 5 slice 3:
 Null depth/variety pass, 15 -> 20 unique cards), and now session 22 (Phase
-5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards).
+5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards), and now
+session 23 (the Null consistency trim, 40 -> 36).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 23
+
+- **Null is still the weakest faction, and the trim only moved it ~4
+  points.** Under Lookahead (900 seeds), it's 41.1 / 41.7 / 39.6 vs Cortex / Swarm /
+  Aegis. Null > Aegis is still inverted: Aegis wins 60.4% against a target of
+  40-45. Null vs Cortex is still out of band (CI 37.9-44.4 vs 45-55). The
+  sanctioned density lever is largely spent at 36 cards without cutting
+  mechanics. The bigger-lift variant (report 017, B) cuts Bit Rot and
+  Watchdog Timer and is waiting on the owner.
+- **Null is back at the removal lint cap exactly (9/36 = 25.0%).** Every
+  trim cut was non-removal. Any future non-removal Null cut fails the lint
+  unless a removal copy goes too.
+- **Null's removal/debuff cards measure as its weakest copies** (Bit Rot,
+  Null Pointer, Watchdog Timer, Decay Ward: +2-3 points each to cut). I
+  haven't separated whether the cards are weak or LookaheadAgent plays them
+  badly. The latter would be an instrument bug that also mis-measures every
+  other faction's reactive cards.
+- **LookaheadAgent wastes Intercept Routine.** It will cast it onto the unit
+  the attack already targets, a pure no-op (seen at Null vs Aegis seed 3).
+  The engine now logs that honestly, but the agent still spends the card.
+  This understates Aegis's reactive kit. Fix belongs in an agent/instrument
+  pass: don't score a redirect whose target equals the current one.
+- **The CI band rule can't confirm a 5-point band at 900 seeds.** The 95% CI
+  half-width is ~3.2 points. The gate needs ~2,500 seeds per pairing on its
+  Lookahead side, or the owner has to accept UNRESOLVED as a pass. Not decided; flagged.
+  balanceReport.ts still reports point estimates vs band, not CI verdicts;
+  only lookaheadEdgeCheck.ts has the verdicts.
+- **The significance test is a local port, not the live claude-tools call**
+  the owner named as the target. No claude-tools MCP server was reachable.
+- **Greedy search noise.** Step-to-step estimates carry 1-2 points of noise
+  even at 2,700 games per candidate, and deck list order changes the
+  shuffle. So a "same deck" re-listed in another order measures differently
+  on the same seeds. Decisions within ~2 points of each other are not
+  real distinctions. Five nearby 36-card decks were indistinguishable.
+- Carried and partly addressed: session 22's "ablation and search
+  scripts were scratch files" item. A reusable search now exists
+  (`nullTrimSearch.ts`), but it is Null-specific. The owner-facing
+  per-matchup per-card table still doesn't exist.
 
 ## New debt from session 22
 

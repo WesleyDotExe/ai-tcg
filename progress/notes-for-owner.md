@@ -1,5 +1,46 @@
 # Notes for the owner
 
+**Updated 2026-09-28, session 23 (the Null consistency trim, 40 -> 36).**
+Nothing is blocking. Full numbers: `progress/balance-report-017-null-trim.txt`.
+
+1. **Shipped: Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1.** All 20
+   unique Null cards stay, and Kernel Panic stays at 2 copies. On 3,600 seeds
+   the search never saw, Null gained about 3.5-4 points on each edge, and
+   Kernel Panic now shows up in about 10% of Null's games (was ~7.5%). Null
+   is still the weakest faction: 41.1 / 41.7 / 39.6% vs Cortex / Swarm / Aegis
+   under Lookahead (900 seeds). The Null > Aegis edge is still inverted.
+2. **Decision you may want to overrule: I didn't take the bigger lift.**
+   With single-copy cards allowed to go, the search cut Bit Rot, Null Pointer
+   (2->1), Decay Ward and Watchdog Timer. That lifted Null about twice as
+   much on held-out seeds (+7.7 / +8.1 / +6.9), close to band on Cortex and
+   Swarm. But Bit Rot and Watchdog Timer are Null's only Instant combat trick
+   and only turn trigger, two of the five mechanics you endorsed in session
+   21. I read "measured-weakest filler" as excluding them. If you'd rather
+   have the lift, it's a one-line deck-list swap (variant B in report 017),
+   plus relaxing one variety test.
+3. **Related finding:** under Lookahead, Null's weakest copies are its
+   removal/debuff cards: Bit Rot, Null Pointer, Watchdog Timer, then Decay
+   Ward. Either those cards are weak, or LookaheadAgent plays them badly. I
+   haven't separated the two yet.
+4. **For the 900-seed gate: the CI rule can't confirm a 5-point band at 900
+   seeds.** A 95% interval at 900 games is about +/-3.2 points, wider than
+   the win/lose ring bands (55-60, 40-45). Under your "out only when the CI
+   misses the band" rule, those pairings can come back OUT or UNRESOLVED,
+   never IN. The 10-point even bands can still come back IN. Options: run the gate's
+   Lookahead side at ~2,500 seeds per pairing (well under a minute), or
+   accept UNRESOLVED as a pass for the gate. I'd do the former. The CI
+   verdicts are now built into `lookaheadEdgeCheck.ts` (a local port of the
+   claude-tools method; no claude-tools server was reachable from here, so the
+   live call is still open).
+5. **Cortex-vs-Null moved toward band as you predicted:** 61.1 -> 58.9 Cortex
+   under Lookahead, still out (CI 55.6-62.1). Per your item 3, the Quorum
+   Arbiter decision waits for the gate.
+6. **Side fix:** the engine logged an Intercept Routine "redirect" onto the
+   unit already being attacked (from == to). It now logs a fizzle instead.
+   Game state is unchanged, so balance numbers are unaffected.
+
+---
+
 **Updated 2026-09-26, session 22 (Phase 5 slice 4: Cortex depth/variety
 pass, 19 -> 24 unique cards).** Nothing is blocking. Three things worth a
 look (full numbers: `progress/balance-report-016-phase5-cortex-slice.txt`):

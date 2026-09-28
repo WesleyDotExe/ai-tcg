@@ -10,21 +10,14 @@
 // Seeding, deck ids and who-goes-first match balanceReport.ts's Lookahead
 // section exactly, so seeds 1-300 here reproduce its Lookahead numbers.
 //
+// Each edge also prints its 95% Wilson interval and a verdict against the
+// ring band on that interval (edgeMeasure.ts's bandVerdict), per the owner's
+// 2026-09-26 entry: out of band only when the interval misses the band.
+//
 // Usage: npx tsx src/dev/lookaheadEdgeCheck.ts <Faction> [firstSeed=1] [count=900]
 
-import { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
-import { LookaheadAgent } from "../agents/lookaheadAgent.js";
-import { runMatch } from "../engine/match.js";
-import type { DeckSpec } from "../state/init.js";
+import { FACTIONS, measureEdges, wilson, bandVerdict, ringBand } from "./edgeMeasure.js";
 import type { Faction } from "../cards/types.js";
-
-const FACTIONS: Faction[] = ["Cortex", "Swarm", "Aegis", "Null"];
-const deckBuilders: Record<Faction, (id: DeckSpec["id"], name: string) => DeckSpec> = {
-  Cortex: buildCortexDeck,
-  Swarm: buildSwarmDeck,
-  Aegis: buildAegisDeck,
-  Null: buildNullDeck,
-};
 
 const faction = process.argv[2] as Faction;
 if (!FACTIONS.includes(faction)) {
@@ -35,29 +28,14 @@ const firstSeed = Number(process.argv[3] ?? 1);
 const count = Number(process.argv[4] ?? 900);
 
 console.log(`LookaheadAgent vs LookaheadAgent, ${faction} against each other faction, seeds ${firstSeed}-${firstSeed + count - 1}`);
-for (const opponent of FACTIONS.filter((f) => f !== faction)) {
-  // balanceReport.ts puts the earlier faction in FACTIONS order in slot A.
-  const aIsSelf = FACTIONS.indexOf(faction) < FACTIONS.indexOf(opponent);
-  const [factionA, factionB] = aIsSelf ? [faction, opponent] : [opponent, faction];
-  let selfWins = 0;
-  let draws = 0;
-  for (let seed = firstSeed; seed < firstSeed + count; seed++) {
-    const aGoesFirst = seed % 2 === 1;
-    const deckA = deckBuilders[factionA]("p1", `${factionA} Deck`);
-    const deckB = deckBuilders[factionB]("p2", `${factionB} Deck`);
-    const agentA = new LookaheadAgent(`Lookahead-${factionA}`, seed * 104729 + 31);
-    const agentB = new LookaheadAgent(`Lookahead-${factionB}`, seed * 104729 + 31);
-    const { state } = aGoesFirst
-      ? await runMatch(deckA, deckB, agentA, agentB, seed)
-      : await runMatch(deckB, deckA, agentB, agentA, seed);
-    if (state.winner === "draw") {
-      draws++;
-      continue;
-    }
-    const aWon = (state.winner === "p1") === aGoesFirst;
-    if (aWon === aIsSelf) selfWins++;
-  }
-  const rate = selfWins / count;
-  const se = Math.sqrt((rate * (1 - rate)) / count) * 100;
-  console.log(`  ${faction} vs ${opponent}: ${faction} ${(rate * 100).toFixed(1)}% (+/- ${se.toFixed(1)} one SE, ${draws} draws)`);
+for (const r of await measureEdges(faction, firstSeed, count)) {
+  const rate = r.selfWins / r.games;
+  const se = Math.sqrt((rate * (1 - rate)) / r.games) * 100;
+  const ci = wilson(r.selfWins, r.games);
+  const band = ringBand(faction, r.opponent);
+  console.log(
+    `  ${faction} vs ${r.opponent}: ${faction} ${(rate * 100).toFixed(1)}% (+/- ${se.toFixed(1)} one SE, ` +
+      `95% CI ${(ci.lo * 100).toFixed(1)}-${(ci.hi * 100).toFixed(1)}, ${r.draws} draws) ` +
+      `band ${(band.lo * 100).toFixed(0)}-${(band.hi * 100).toFixed(0)}: ${bandVerdict(r.selfWins, r.games, band)}`,
+  );
 }

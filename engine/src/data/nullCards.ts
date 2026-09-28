@@ -731,17 +731,36 @@ export const garbageCollector: UnitCard = {
 // a future session, not attempted here. The 2026-09-22 owner-feedback entry
 // also named Corrupted Process's draw specifically as "on the table," which
 // is exactly what this cut targets.
+// 2026-09-28 (the Null consistency trim; owner-feedback 2026-09-26,
+// "session 21 confirmations" item 1 and "session 22 confirmations" item 2):
+// 40 -> 36 by cutting measured-weakest filler, the owner's sanctioned way to
+// lift Null (density, not stats). The cuts were chosen by
+// dev/nullTrimSearch.ts, not by hand: a greedy ablation under LookaheadAgent
+// on seeds 1-900, confirmed on held-out seeds 901-2700. Two constraints:
+// Kernel Panic is never cut (raising its visibility is half the reason for
+// the trim), and every card keeps at least one copy, because the
+// single-copy cards the unconstrained search wanted gone (Bit Rot, Watchdog
+// Timer) are Null's only Instant combat trick and only turn trigger. That
+// is a mechanic loss, not filler. The unconstrained trim lifted Null about
+// twice as much; both are in progress/balance-report-017-null-trim.txt.
+//   Decay Ward   2 -> 1
+//   Fork Bomb    3 -> 2
+//   Null Shell   3 -> 1
+// Removal/debuff density: 9/36 = 25.0%, exactly at the lint's cap (the cap
+// is "over 25% fails", so this passes). Decay Ward is not removal-classified
+// (it is a Barrier tool for your own unit), so every cut here was non-removal. A further
+// non-removal cut would now fail the lint without a matching removal cut.
 export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
   { card: glitchSeed, copies: 3 },
   { card: strayFragment, copies: 3 },
   { card: corruptionPatch, copies: 3 },
   { card: segfaultHandler, copies: 1 },
-  { card: forkBomb, copies: 3 },
+  { card: forkBomb, copies: 2 },
   { card: corruptedProcess, copies: 2 },
-  { card: nullShell, copies: 3 },
+  { card: nullShell, copies: 1 },
   { card: propagatingExploit, copies: 3 },
   { card: deprecatedRoutine, copies: 1 },
-  { card: decayWard, copies: 2 },
+  { card: decayWard, copies: 1 },
   { card: entropyHarvester, copies: 2 },
   { card: segmentationFault, copies: 1 },
   { card: kernelPanic, copies: 2 },

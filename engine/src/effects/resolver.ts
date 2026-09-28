@@ -142,6 +142,14 @@ function redirectTopAttack(state: GameState, newTarget: TargetRef, sourceLabel: 
     const item = state.stack[i]!;
     if (item.kind !== "combatDamage") continue;
     const from = describeTargetRef(state, item.target);
+    // Redirecting onto the unit the attack already targets changes nothing,
+    // so it must not be logged as a redirect: commentators and the render
+    // read attackRedirected as "the aim moved". Found when a LookaheadAgent
+    // cast Intercept Routine on the unit already under attack.
+    if (JSON.stringify(item.target) === JSON.stringify(newTarget)) {
+      state.log.push({ type: "fizzle", reason: `${sourceLabel}: ${item.attackerName}'s attack is already aimed at ${from}` });
+      return;
+    }
     item.target = newTarget;
     state.log.push({
       type: "attackRedirected",
