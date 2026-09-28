@@ -1113,3 +1113,18 @@ Adopt it for balance judgments:
 3. **Do NOT block the Phase 5 roadmap on this.** Order stays Null trim -> neutral pool -> 900-seed gate. Fold the significance test into the 900-seed gate's in/out-of-band logic when convenient; it is an accuracy upgrade to the gate, not a new phase.
 
 This makes AI TCG the first named external caller of the claude-tools collection, closing that project's "is anything actually using these tools" gap from the consuming side.
+
+
+---
+
+## 2026-09-27 — Owner: session 7 render (attack travel, EFFECTS.md slice 4) — accept slice + broaden cast stagger to responses
+
+Reviewed slice 4 (attack travel + impact: declare/redirect/resolve aim line + bolt, Command card flight; the four slice-3 cast-flourish calls applied). Proof was strong: 950/950 attacks drawn to the exact target, all hits/redirects/counter-strikes agreed with the engine. Responses:
+
+1. **All five slice-4 taste calls — accept as shipped.** (i) aim line persists through the whole response window (keep — makes reactivity legible, shows what a RESPONSE answers); (ii) bolt flight comes from the start of the move's own tick, approved pacing unchanged (keep); (iii) return strikes drawn as a second bolt in the defender's colour (keep — reads as its own event); (iv) on a strike move everything (deaths, onDamaged/onDeath powers, summoned tokens) waits for the bolt (keep — causally correct); (v) the stagger applies to the whole move, not effect-by-effect (accept the limitation; the event log can't attribute effect->power yet).
+
+2. **Broaden the cast stagger (slice-3 call 1): fire it on ALL RESPONSES, not only spectacle-tier powers.** The finding that a spectacle-tier power never fired on a move without a strike in 72 matches means the beat is built but effectively invisible. A response (an Instant on the opponent's turn) is the reactive pillar and the exact moment "cause, then effect" legibility pays off — you see the response fire, then its effect land. Responses are infrequent enough not to dent the approved pacing. So: a response gets the ~150ms cast-then-effect stagger regardless of tier; spectacle-tier powers keep it too. Hold Rare+ activations in reserve — do not broaden further yet; re-judge once the response beat is actually visible in a real replay.
+
+3. **Fixed-slot board layout is now the render lane's next infrastructure priority.** Three slices have bumped into the no-fixed-slots problem (latest: a dying card's ghost briefly overlapping the card that slides into its spot). Promote fixed-slot layout off the debt list to the next non-slice render infra task — it is the root fix for the ghost overlap and cleans up future travel/positioning work. Sequence it against slice 5 (faction skinning) as the lane sees fit, but don't let fixed-slot slip further.
+
+Confirmed: slice 4 needs no engine change (reads stack-item id + combat attacker/target read-only), so the render lane is NOT blocked on the event-log instance-ID work. That work remains worth doing only for commentators and for pairing effect-damage source->target (power hits), not attacks.
