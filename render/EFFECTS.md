@@ -50,6 +50,10 @@ A small set of motion primitives. Everything in Axis 1 composes from these:
 
 Adding a faction = a palette + a particle style. Adding an effect type = one primitive, or a compose of existing ones. Never a faction × category × tier matrix of hand-made animations.
 
+## Board layout (infrastructure every primitive relies on)
+
+Fixed slots (render session 8, render/src/slotLayout.ts). A card keeps the slot it entered in until it leaves: units fill from the left, Directives from the right, and a card entering on the same move another left avoids the slot that just emptied (where the ghost is still fading) whenever another is free. Primitives that anchor to a card's rectangle (ghost, travel, aim, cast) can rely on that rectangle not moving while the card is on the board.
+
 ## Dependencies & guardrails
 
 - attack `travel` needed reliable attacker→target pairing. Resolved in render session 7 without the event-log change: the combatDamage stack item carries the exact attacker and target, captured read-only. (Per-hit pairing for effect damage — which card's ability hit which unit — still needs the event-log instance-ID work.)
@@ -62,7 +66,7 @@ Adding a faction = a palette + a particle style. Adding an effect type = one pri
 1. Defence / shield — built render session 4: interpose + absorb + shatter on Barrier; a persistent shield badge on Guard units; a small deflect on base-armor damage reduction. No pairing dependency — do this FIRST; it immediately makes Aegis’s defensive identity legible.
 2. Buff (rise) and penalty (sink) grammar, tier-scaled and faction-tinted. — built render session 5 (render/src/statFx.ts; persistent above/below-printed stat markers and penalty-status badges ride along).
 3. Power / ability cast flourish — built render session 6 (render/src/castFx.ts attributes each fired power to its exact source instance; the page draws ring + sigil + rays in the source's faction tint, plus a fixed-colour trigger tag — ON PLAY / ON DEATH / ACTIVATE / CAST / RESPONSE ...).
-4. Attack travel + impact — built render session 7 (render/src/attackFx.ts follows each combatDamage stack item by its engine id: declare -> an aim line + reticle that persists through the whole response window; redirect -> the old line fades in shield colour; resolve -> a bolt flies the same arc and the hit, burst, deaths and any triggered powers land when it does; a defender with attack returns a smaller bolt in its own colour; a fizzle says FIZZLED). No event-log change was needed. The same session added a Command's card flying from its caster's hand onto the stack (owner taste call 4) and the ~150ms "cast, then effect" beat for spectacle-tier powers only (taste call 1).
+4. Attack travel + impact — built render session 7 (render/src/attackFx.ts follows each combatDamage stack item by its engine id: declare -> an aim line + reticle that persists through the whole response window; redirect -> the old line fades in shield colour; resolve -> a bolt flies the same arc and the hit, burst, deaths and any triggered powers land when it does; a defender with attack returns a smaller bolt in its own colour; a fizzle says FIZZLED). No event-log change was needed. The same session added a Command's card flying from its caster's hand onto the stack (owner taste call 4) and the ~150ms "cast, then effect" beat for spectacle-tier powers only (taste call 1). Render session 8 broadened that beat to every RESPONSE (owner, 2026-09-27): it plays on the move a response's stack item resolves, so its RESOLVE/ACTIVATE sigil leads and its effect, including a redirect's aim-line swing, lands 150ms later.
 5. Faction skinning pass: give each primitive its per-faction particle character (still placeholder art; real art later).
 
 Each slice: pick one item, build it for all factions via the primitive + palette, keep it inside the tier system, prove it at play speed, and checkpoint. Update this file if the model itself changes.

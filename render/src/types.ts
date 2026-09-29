@@ -86,6 +86,11 @@ export interface PlayerSnapshot {
   directives: DirectiveSnapshot[];
   slotsUsed: number;
   slotsMax: number;
+  /** Fixed-slot layout (render/src/slotLayout.ts): which board card sits in
+   * each of the `slotsMax` slots, by instanceId, or null for an empty slot.
+   * A card keeps its slot from the move it enters until the move it leaves.
+   * Filled in by captureMatch after the match is played. */
+  slots?: (string | null)[];
 }
 
 /** Where a pending attack is aimed — a unit (exact instance) or a player.

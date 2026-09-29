@@ -1007,3 +1007,114 @@ into slice 4), then slice 4 itself.
 Give bolt, cast, mote and burst a per-faction particle character: Cortex
 packets, Swarm scatter, Aegis chrome, Null glitch. Consider fixed-slot
 board layout first if the owner flags the ghost overlap.
+
+## 2026-09-29 — Session 8: fixed-slot board layout + the cast beat on every response (owner, 2026-09-27)
+
+**Why this slice.** Under the alternation rule, the most recently merged PR
+was balance (#31), so this was a render session. The owner's 2026-09-27
+render entry set two things. Item 2: fire the ~150ms "cast, then effect"
+beat on all responses. Item 3: make fixed-slot board layout the next render
+infra priority and "don't let it slip further". Both are done here. Slice 5
+(faction skinning) moves to the next render session.
+
+**Built.**
+- **`render/src/slotLayout.ts`** (new). `assignSlots(frames)` gives every
+  board card a slot when it enters and keeps it there until it leaves. It
+  runs once over the whole match, in Node, and writes
+  `PlayerSnapshot.slots` into each frame. Stepping, playing, scrubbing and
+  jumping all show the same layout for a given move. The rules:
+  - units fill from the left and Directives from the right;
+  - a newcomer on the same move a card left avoids the just-vacated slot
+    (the ghost's spot) whenever another slot is free;
+  - on a full board it takes the vacated slot, because nothing else is
+    free.
+
+  The engine has no positional mechanics (nothing reads board order), so
+  this is purely a render decision. `captureMatch` calls it.
+  `renderBoard` reads `slots`; a replay captured before slots existed
+  falls back to packed order.
+- **Response beat.** castFx's single source gains
+  `responseStackIds(frames)`, the engine stack ids of items pushed as a
+  RESPONSE, using the same rule as the RESPONSE tag. It also gains
+  `resolvedStackIds(prev, next)`. A response's effect lands on the later
+  move its item *resolves*, not on the move it was announced. The beat
+  now fires on that resolve move: the RESOLVE/ACTIVATE sigil plays, then
+  the effect lands 150ms later. The announce move also qualifies, which
+  is harmless because the announce has no effect to delay. Spectacle-tier
+  powers keep the beat, and Rare+ activations are held in reserve as the
+  owner asked.
+- **Redirects join the beat.** A redirect is the effect of the power that
+  caused it (Intercept Routine is itself a response). The old line now
+  holds until the sigil has played, then swings.
+- **Bug fixed along the way (session 7).** `drawAimLines` cleared the
+  whole aim layer, which removed a redirect's fading old line the instant
+  `fadeOldAim` added it. The shield-coloured fade-out described in session
+  7 never showed. Measured in the old replays, it lived **0ms**; it now
+  lives its full 700ms. Redraws now skip fading groups, and a jump clears
+  them.
+
+**Evidence.**
+- `test/slotLayout.test.ts` (9 tests).
+  - Seven hand-built cases, one per rule, plus evolution keeps its slot
+    and a refusal to exceed the cap.
+  - A real-match scan over 48 Lookahead matches (16 pairings × 3 seeds;
+    10,738 player-frames, 666 placements):
+    - every frame's slots hold exactly its board;
+    - **0 cards ever change slot**, against **354 slides** the old packed
+      layout showed on the same frames;
+    - 13 moves had an entry and an exit together. In 3 of those, the
+      board was full and the newcomer had to take the vacated slot; the
+      test asserts no other slot was free.
+  - A response scan over the same 48 matches: all 10 response casts push
+    exactly one tracked item, and each resolves exactly once, on a move
+    whose own log says `resolving: <that item>`.
+- `npm test`: engine 110, protocol 7, server 23, agents 17, render 114
+  (was 105). `tsc --noEmit` is clean in all five workspaces.
+- Headless Chromium. The old committed replays and the new ones were each
+  single-stepped with a MutationObserver on the FX and aim layers. Old
+  and new are not identical matches, because the balance lane's Null trim
+  changed three of them.
+
+  | | old | new |
+  |---|---|---|
+  | same card changing slot index between moves | 39 | 0 |
+  | ghost covering >20% of a live card | 20 | 0 |
+  | response-resolve moves, sigil → first effect | +0ms (3 moves) | +150ms (+149, +151, +150, +151 over 4 moves) |
+  | redirect fade-out lifetime | 0ms | 700ms |
+
+  The new replays were then autoplayed at normal and fast. All passes had
+  zero console errors, FX tallies identical to single-step, and an FX
+  layer that drained to 0.
+- Screenshots were inspected, not committed.
+  - aegis-vs-cortex-seed6 move 148: gaps stay where cards died, and
+    Directives sit at the right end of both rows.
+  - aegis-vs-null-seed3 move 107 (Null Pointer resolving as a response),
+    captured at +70ms and +320ms. First the RESOLVE sigil plays with Static
+    Ward Beacon still standing. Then the Beacon's ghost fades in its own
+    now-empty slot, and the four Aegis units sink as its aura drops.
+- All six replays were regenerated. Three are different matches now,
+  because the Null pool changed in session 23: aegis-vs-null-seed3 is 134
+  moves, cortex-vs-null-seed5 is 98, and null-vs-swarm-seed2 is 85.
+
+**Named honestly, not fixed:**
+- **Full-board replacement still overlaps.** When the board is full, a
+  newcomer must take the slot that just emptied, so the ghost fades over
+  it. That happened 3 times in 48 matches. The fix would be a short enter
+  delay for that one case.
+- **Responses are rare.** There were 10 in 48 Lookahead matches, so the
+  beat now fires about once every five matches. The owner said to
+  re-judge once it's visible in a real replay. It is visible in
+  aegis-vs-null-seed3 (moves 107 and 123) and swarm-vs-aegis-seed8
+  (move 40, a redirect).
+- **An aura dropping reads as a penalty.** When Static Ward Beacon dies,
+  its +1 HP aura lifts and the units show "-1 HP" sinks. That is the
+  slice-2 "a buff wearing off" gap (the quiet-settle grammar in EFFECTS.md
+  is for temporary buffs, not auras), and it is still open.
+- Still open from before: effect damage has no travel (needs per-hit
+  event pairing), bolts and particles are identical per faction apart
+  from colour (slice 5), and hand chips are matched by name.
+
+**Next render-lane slice:** EFFECTS.md slice 5, the faction skinning
+pass. Give bolt, cast, mote and burst a per-faction particle character:
+Cortex packets, Swarm scatter, Aegis chrome, Null glitch. With fixed slots
+in, the aura-lift misread is a good small add-on if there's room.

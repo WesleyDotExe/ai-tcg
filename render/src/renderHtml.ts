@@ -662,6 +662,7 @@ const JS = `
   // cast(source) attribution — render/src/castFx.ts's CAST_FX_SOURCE,
   // embedded verbatim (one copy, no hand mirror; see that file's header).
 ${CAST_FX_SOURCE}
+  const RESPONSE_STACK_IDS = responseStackIds(frames);
   // Attack travel + Command flight — render/src/attackFx.ts's
   // ATTACK_FX_SOURCE, embedded verbatim (same single-source rule).
 ${ATTACK_FX_SOURCE}
@@ -754,8 +755,14 @@ ${ATTACK_FX_SOURCE}
   function renderBoard(elId, snapshot) {
     const el = document.getElementById(elId);
     el.innerHTML = '';
-    const occupants = snapshot.board.map(function (u) { return { kind: 'unit', v: u }; })
+    const packed = snapshot.board.map(function (u) { return { kind: 'unit', v: u }; })
       .concat(snapshot.directives.map(function (d) { return { kind: 'dir', v: d }; }));
+    // Fixed slots (render/src/slotLayout.ts): a card stays in the slot it
+    // entered until it leaves, so nothing slides when a neighbour dies. A
+    // replay captured before slots existed falls back to packed order.
+    const byIid = {};
+    packed.forEach(function (o) { byIid[o.v.instanceId] = o; });
+    const occupants = snapshot.slots ? snapshot.slots.map(function (iid) { return iid ? byIid[iid] : undefined; }) : packed;
     for (let s = 0; s < snapshot.slotsMax; s++) {
       const occ = occupants[s];
       if (!occ) {
@@ -1189,6 +1196,7 @@ ${ATTACK_FX_SOURCE}
     return Math.round(base * (TRAVEL_SCALE[tier] || 1));
   }
   const CAST_STAGGER_MS = 150;
+  function staggers(fx) { return fx.tier === 'spectacle' || fx.trigger === 'response'; }
 
   function centreOf(rect) { return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
   function targetEl(target) {
@@ -1247,7 +1255,9 @@ ${ATTACK_FX_SOURCE}
   // right); 'fresh' marks the ones this move just declared/redirected, which
   // fade in instead of simply being there.
   function drawAimLines(frame, fresh) {
-    while (aimLayer.firstChild) aimLayer.removeChild(aimLayer.firstChild);
+    // A redirect's fading old line removes itself; a redraw (this move's
+    // fresh lines, a resize) must not cut it short.
+    Array.prototype.slice.call(aimLayer.children).forEach(function (g) { if (!g.classList.contains('fading')) g.remove(); });
     pendingAttacks(frame).forEach(function (pa) {
       const from = liveCardEl(pa.attackerIid), to = targetEl(pa.target);
       // An attacker already killed by a response has nothing to aim from;
@@ -1356,13 +1366,18 @@ ${ATTACK_FX_SOURCE}
       strikeT = travelMs(strikeTier);
       if (strike.counter) counterT = strikeT + Math.round(travelMs(tierFromScore(hitScore(strike.counterPower, 0))) * 0.7);
     }
-    // "Cast, then effect" (owner taste call 1, 2026-09-26): only when a
-    // spectacle-tier power fired this move; routine powers stay simultaneous
-    // so the approved normal pacing is untouched. The event log can't say
-    // which effect came from which power, so the beat applies to the move's
-    // effects as a whole — the cast leads, everything it could have caused
-    // follows.
-    const stagger = !strike && casts.some(function (fx) { return fx.tier === 'spectacle'; }) ? CAST_STAGGER_MS : 0;
+    // "Cast, then effect" (owner taste call 1, 2026-09-26; broadened
+    // 2026-09-27): when a spectacle-tier power fired this move, or when a
+    // RESPONSE (an Instant cast on the opponent's turn, at any tier: the
+    // reactive pillar is exactly where "this caused that" should read) is
+    // announced or, above all, resolves: its RESOLVE/ACTIVATE sigil plays,
+    // then its effect lands.
+    // Other routine powers stay simultaneous so the approved normal pacing
+    // is untouched. The event log can't say which effect came from which
+    // power, so the beat applies to the move's effects as a whole: the cast
+    // leads, everything it could have caused follows.
+    const resolvesResponse = resolvedStackIds(prevFrame, newFrame).some(function (sid) { return RESPONSE_STACK_IDS[sid]; });
+    const stagger = !strike && (resolvesResponse || casts.some(staggers)) ? CAST_STAGGER_MS : 0;
     // Command flight (owner taste call 4): the card flies hand -> stack and
     // its CAST sigil starts as it lands.
     const flights = {};
@@ -1379,16 +1394,22 @@ ${ATTACK_FX_SOURCE}
 
     // ---- stack movement: aim lines, bolts, fizzles, redirects ----------
     const freshAim = {};
+    // A redirect is the effect of the power that caused it (Intercept
+    // Routine and kin, usually a RESPONSE resolving), so under the cast beat
+    // the old line holds until the sigil has played, then swings.
+    const redirecting = attacks.some(function (a) { return a.phase === 'redirect'; });
+    const aimT = redirecting ? stagger : 0;
+    if (aimT > 0) drawAimLines(prevFrame, {});
     attacks.forEach(function (a) {
       if (a.phase === 'declare' || a.phase === 'redirect') freshAim[a.stackId] = true;
-      if (a.phase === 'redirect') {
+      if (a.phase === 'redirect') later(aimT, function () {
         const f = factionOfUnit(newFrame, a.attackerIid) || newFrame.players[a.owner].faction;
         const fromEl = liveCardEl(a.attackerIid);
         const oldTo = a.from.kind === 'unit' ? prevRects[a.from.instanceId] : prevHudRects[a.from.playerId];
         if (fromEl) fadeOldAim(fromEl.getBoundingClientRect(), oldTo, 'var(--' + f.toLowerCase() + ')');
         const newTo = targetEl(a.target);
         if (newTo) { const r = newTo.getBoundingClientRect(); centreOn(spawnNumber(r, 'REDIRECTED', 'redirect', 'normal', 36), r); }
-      }
+      });
       if (a.phase === 'strike' && a.outcome !== 'hit') {
         // The engine's own two fizzle rules: the attacker, or its unit
         // target, was gone before the damage could resolve.
@@ -1398,7 +1419,10 @@ ${ATTACK_FX_SOURCE}
         if (r) { tiers.push('subtle'); centreOn(spawnNumber(r, 'FIZZLED', 'fizzle', 'subtle', 40), r); }
       }
     });
-    if (Object.keys(freshAim).length) drawAimLines(newFrame, freshAim);
+    if (Object.keys(freshAim).length) {
+      if (aimT > 0) later(aimT, function () { drawAimLines(newFrame, freshAim); });
+      else drawAimLines(newFrame, freshAim);
+    }
     if (strike) {
       const f = factionOfUnit(prevFrame, strike.attackerIid) || prevFrame.players[strike.owner].faction;
       const tint = 'var(--' + f.toLowerCase() + ')';
@@ -1583,6 +1607,7 @@ ${ATTACK_FX_SOURCE}
       lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevHudRects, prevStackRects, prevHandRects, frames[i]);
     } else {
       cancelFx();
+      while (aimLayer.firstChild) aimLayer.removeChild(aimLayer.firstChild);
       i = target;
       renderFrame();
       lastTransitionTier = 'normal'; // a jump has no "in between" to weigh, so pacing falls back to normal
