@@ -1168,3 +1168,19 @@ Reviewed Session 23 (Null trim: Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1
 2. **Bump the gate's Lookahead side to ~2,500 seeds for the WIN/LOSE-band pairings.** The CI rule can't confirm a 5-point band (55-60, 40-45) at 900 seeds — a 95% interval there is ~+/-3.2 pts, wider than the band, so those pairings can only ever come back OUT or UNRESOLVED, never IN. Run the win/lose-band pairings at ~2,500 seeds/pairing (still well under a minute) so the CI can actually fit inside a 5-point band. The 10-point "even" bands stay fine at 900. Do NOT accept UNRESOLVED as a pass — that would defeat the gate. This refines, not replaces, the 900-seed standard: 900 for wide/even bands, ~2,500 for the narrow win/lose bands.
 
 No change to the roadmap order (Null trim done -> neutral pool next -> mandatory full-ring re-measure gate, now at the seed counts above). The claude-tools live call remains open (local CI port shipped this session; the live cross-repo call needs the server mounted on the Mac stack, which is the owner's step).
+
+
+---
+
+## 2026-09-30 — Owner: AI TCG must be FULLY SELF-CONTAINED — supersedes the claude-tools live-call directive
+
+Decision: AI TCG runs with ZERO external runtime dependencies. No MCP calls, no cross-repo or cross-process calls, no network reliance for engine, balance harness or render. Every part must run standalone.
+
+**This supersedes the 2026-09-26 "cross-project" note** that said to prefer calling claude-tools' `compare_two_proportions` live, with porting only as an interim. Reverse it: the local port already in `lookaheadEdgeCheck.ts` (session 23) IS the permanent solution. Do NOT add a live call to claude-tools or any other external service, now or ever. The "live cross-repo call still open" item from session 23 is CLOSED — deliberately not-doing.
+
+Keep, all local and self-contained:
+- The vendored two-proportion z-test / Wilson-Newcombe CI logic in the balance harness (shipped session 23).
+- A one-line provenance comment naming the claude-tools source file + the commit it was ported from, so the origin is traceable.
+- A parity test that checks the port against a HARDCODED expected fixture value (captured once). The test must NOT call anything external — no server, no network.
+
+The 900/2,500-seed CI band gate uses only this local implementation. Nothing about claude-tools may become a runtime dependency of AI TCG.
