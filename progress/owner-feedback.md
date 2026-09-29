@@ -1153,3 +1153,18 @@ Reviewed slice 4 (attack travel + impact: declare/redirect/resolve aim line + bo
 3. **Fixed-slot board layout is now the render lane's next infrastructure priority.** Three slices have bumped into the no-fixed-slots problem (latest: a dying card's ghost briefly overlapping the card that slides into its spot). Promote fixed-slot layout off the debt list to the next non-slice render infra task — it is the root fix for the ghost overlap and cleans up future travel/positioning work. Sequence it against slice 5 (faction skinning) as the lane sees fit, but don't let fixed-slot slip further.
 
 Confirmed: slice 4 needs no engine change (reads stack-item id + combat attacker/target read-only), so the render lane is NOT blocked on the event-log instance-ID work. That work remains worth doing only for commentators and for pairing effect-damage source->target (power hits), not attacks.
+
+
+---
+
+## 2026-09-29 — Owner: session 23 (Null consistency trim 40 -> 36) — hold variant B, bump narrow-band gate to ~2,500 seeds
+
+Reviewed Session 23 (Null trim: Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1; all 20 unique cards kept, Kernel Panic stays at 2 and now shows in ~10% of Null games; +3.5-4 pts/edge; CI band verdicts now built into lookaheadEdgeCheck.ts). Two decisions:
+
+1. **Do NOT take the bigger lift (variant B). Hold the mechanics.** Variant B lifts Null roughly twice as much (+7.7/+8.1/+6.9, near band vs Cortex/Swarm) but cuts Bit Rot (Null's only Instant combat trick) and Watchdog Timer (its only turn trigger) — two of the five mechanics endorsed in session 21. That trade is the wrong one: Phase 5's purpose is variety, and a ~41% Null with its full mechanic set is better for a spectator game than a balanced-but-blander one. My session-22 "measured-weakest filler" instruction was right to exclude those two — confirmed.
+   - **First settle note 3 before removing anything else:** the session found Null's weakest copies are all its removal/debuff cards (Bit Rot, Null Pointer, Watchdog Timer, Decay Ward) but has NOT separated "the cards are weak" from "LookaheadAgent plays them badly." A next session should separate those two (e.g. compare against Aggressive/Random, or hand-check lines) before any further Null cuts — variant B may be cutting good cards the arbiter just mishandles, which would be an instrument problem, not a card problem.
+   - Null's remaining edge gap is left to the other levers already queued: the neutral pool (may hand Null stronger options) and the Quorum Arbiter drop (deferred to the gate, helps Cortex-vs-Null). Don't chase Null's win rate by sacrificing endorsed mechanics.
+
+2. **Bump the gate's Lookahead side to ~2,500 seeds for the WIN/LOSE-band pairings.** The CI rule can't confirm a 5-point band (55-60, 40-45) at 900 seeds — a 95% interval there is ~+/-3.2 pts, wider than the band, so those pairings can only ever come back OUT or UNRESOLVED, never IN. Run the win/lose-band pairings at ~2,500 seeds/pairing (still well under a minute) so the CI can actually fit inside a 5-point band. The 10-point "even" bands stay fine at 900. Do NOT accept UNRESOLVED as a pass — that would defeat the gate. This refines, not replaces, the 900-seed standard: 900 for wide/even bands, ~2,500 for the narrow win/lose bands.
+
+No change to the roadmap order (Null trim done -> neutral pool next -> mandatory full-ring re-measure gate, now at the seed counts above). The claude-tools live call remains open (local CI port shipped this session; the live cross-repo call needs the server mounted on the Mac stack, which is the owner's step).
