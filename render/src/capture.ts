@@ -29,6 +29,7 @@ import {
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 import { computeMomentum } from "./momentum.js";
 import { avatarSvg } from "./avatar.js";
+import { assignSlots } from "./slotLayout.js";
 import type { Faction, Rarity } from "./engineInternal.js";
 import type { CardRef, PlayerIdentity, DirectiveSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "./types.js";
 
@@ -221,7 +222,7 @@ export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
     factions: { p1: factionOf("p1"), p2: factionOf("p2") },
     movesPlayed,
     turnCap: state.turnCap,
-    frames,
+    frames: assignSlots(frames),
   };
 }
 

@@ -244,3 +244,30 @@ separate from the shared `progress/notes-for-owner.md`).
    spectacle, simultaneous otherwise. If you want the beat seen more
    often, lower the bar for a power to count as spectacle. That's your
    decision to make, not mine.
+
+## 2026-09-29 — Session 8 (fixed-slot layout; the response beat)
+
+1. **Your 2026-09-27 render entry is fully applied.** Item 1 (accept slice
+   4) needed nothing. Item 2: the cast beat now fires on every response,
+   on the move its effect lands. Item 3: fixed-slot layout is in. Your
+   entry can be marked handled the next time you edit owner-feedback.md.
+   This lane doesn't write to that file (RENDER.md guardrail 4).
+
+2. **One real bug from session 7, now fixed.** The redirect's fading old
+   aim line, which I described last session, never actually showed. A
+   redraw erased it the instant it was drawn. It's visible now. The
+   session 7 screenshot check missed it, because the fade was gone before
+   any screenshot could catch it.
+
+3. **Four layout and beat taste calls** are in
+   `progress/render/checkpoints.md`: Directives on the right, keeping
+   the ghost's spot clear, gaps staying open, and where the response beat
+   plays. None of them block anything.
+
+4. **Small render-only wish, not a blocker.** The engine logs a response
+   as a `cast` event with no stack id. The render pairs it with its stack
+   item by card name and controller, which is exact in all 48 test
+   matches. A `stackId` on the `cast` event would make that pairing exact
+   by construction. It belongs with the event-log instance-ID work, not
+   on its own.
+

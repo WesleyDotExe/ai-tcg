@@ -229,9 +229,41 @@ export const CAST_FX_SOURCE = `
     });
     return out;
   }
+
+  // Which stack items were put on the stack as a RESPONSE (an Instant cast
+  // on the opponent's turn), by engine stack id, over a whole replay. A
+  // response's effect lands on the later move its item resolves, so that is
+  // where the "cast, then effect" beat belongs (owner feedback 2026-09-27,
+  // item 2). Keyed by the same rule resolveCasts uses to tag RESPONSE.
+  function responseStackIds(frames) {
+    var ids = {};
+    for (var k = 1; k < frames.length; k++) {
+      var prevIds = {};
+      frames[k - 1].stack.forEach(function (it) { prevIds[it.stackId] = true; });
+      var responses = frames[k].newEvents.map(function (x) { return x.event; }).filter(function (ev) {
+        return ev.type === 'cast' && ev.speed === 'Instant' && ev.player !== frames[k].activePlayer;
+      });
+      if (!responses.length) continue;
+      frames[k].stack.forEach(function (it) {
+        if (prevIds[it.stackId] || it.kind === 'combatDamage') return;
+        if (responses.some(function (ev) { return ev.card === it.description && ev.player === it.controller; })) ids[it.stackId] = true;
+      });
+    }
+    return ids;
+  }
+
+  // The stack ids that left the stack on this move. The engine's only pop is
+  // resolution, so these are the items that just resolved.
+  function resolvedStackIds(prevFrame, newFrame) {
+    var still = {};
+    newFrame.stack.forEach(function (it) { still[it.stackId] = true; });
+    return prevFrame.stack.filter(function (it) { return !still[it.stackId]; }).map(function (it) { return it.stackId; });
+  }
 `;
 
-const impl = new Function(`${CAST_FX_SOURCE}; return { resolveCasts: resolveCasts, castScore: castScore, castTier: castTier };`)() as {
+const impl = new Function(`${CAST_FX_SOURCE}; return { resolveCasts: resolveCasts, castScore: castScore, castTier: castTier, responseStackIds: responseStackIds, resolvedStackIds: resolvedStackIds };`)() as {
+  responseStackIds: (frames: Frame[]) => Record<string, true>;
+  resolvedStackIds: (prev: Frame, next: Frame) => string[];
   resolveCasts: (prev: Frame, next: Frame, cardFactions: Record<string, Faction>, cardRarities: Record<string, Rarity>) => CastFx[];
   castScore: (rarity: Rarity, trigger: string) => number;
   castTier: (score: number) => FxTier;
@@ -249,3 +281,8 @@ export function resolveCasts(
 
 export const castScore = impl.castScore;
 export const castTier = impl.castTier;
+
+/** Stack ids of every item put on the stack as a RESPONSE, over a replay. */
+export const responseStackIds = impl.responseStackIds;
+/** Stack ids that resolved (left the stack) on the move prev -> next. */
+export const resolvedStackIds = impl.resolvedStackIds;

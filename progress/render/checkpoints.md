@@ -7,6 +7,63 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-09-29 — Fixed-slot board layout + the cast beat on every response — AWAITING FEEDBACK
+
+**What this delivers:** both of your 2026-09-27 render items.
+- **Cards no longer move.** Each card keeps the slot it entered in until it
+  leaves. Previously, when a unit died, every card to its right slid one
+  slot left. The dying card's ghost then faded over whichever card slid in,
+  and a viewer tracking a unit saw it jump for no in-game reason. Across
+  the six replays, the old layout moved a surviving card 39 times and
+  faded a ghost over a live card 20 times. The new layout does neither,
+  0 and 0.
+- **Units on the left, Directives on the right.** Standing effects no
+  longer interleave with the fighters.
+- **Every response now gets the "cast, then effect" beat.** It plays where
+  the effect lands, which is the move the response *resolves*. The
+  RESOLVE/ACTIVATE sigil fires first, and the effect follows 150ms later
+  (measured +149 to +151ms on all four such moves in the replays). A
+  redirect counts as an effect: the old aim line holds through the sigil,
+  then swings to the new target.
+- **A session-7 bug is fixed.** The shield-coloured fade-out of a
+  redirected attack's old line was being erased the instant it was drawn
+  (it lived 0ms). It now shows for its full 700ms.
+
+**Evidence:** `render/test/slotLayout.test.ts` covers each rule with
+hand-built cases, plus two real-match scans over 48 matches:
+- 0 slot changes, where packed order would have had 354;
+- 10/10 responses tracked from push to their single resolution.
+
+`npm test` passes in all five workspaces (render 114). The six replays
+were driven in headless Chromium single-stepped, at normal speed and at
+fast speed, with zero errors. The full before/after table is in the
+session 8 log.
+
+**Decisions you may want to overrule:**
+1. **Directives fill from the right.** The alternative is one shared
+   left-to-right fill, which is simpler but mixes Directives in among
+   units.
+2. **A newcomer avoids the slot that just emptied** when anything else is
+   free, even if that leaves an earlier gap open for a move. The ghost
+   gets a clean spot to fade in. On a full board it has to take that slot
+   (3 times in 48 matches), and the ghost briefly overlaps it.
+3. **Gaps stay open.** A long game can end with its units spread out,
+   e.g. slots 1, 3 and 5 filled. The next unit fills the leftmost gap.
+   Compacting later (say at turn end, with a visible slide) is possible,
+   but it would bring back the motion this removes.
+4. **Where the response beat plays.** It is on the resolve move, since
+   that's where a response's effect lands, and on the announce move too,
+   where there is nothing to delay. You asked to re-judge once the beat
+   is visible in a real replay. It now is: `aegis-vs-null-seed3` moves 107
+   and 123 (two destroys), and `swarm-vs-aegis-seed8` move 40 (a
+   redirect). Responses are rare, about 1 in 5 matches, so it stays out of
+   the way of the approved pacing.
+
+**What's next:** EFFECTS.md slice 5, the faction skinning pass, in the next
+render session.
+
+---
+
 ## 2026-09-27 — Attack travel + impact (EFFECTS.md slice 4) + Command card flight — AWAITING FEEDBACK
 
 **What this delivers:** an attack is now something you can watch move.
