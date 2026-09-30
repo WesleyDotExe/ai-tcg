@@ -1217,3 +1217,22 @@ Follow-up to the 2026-09-30 self-containment directive. Decision: remove the pro
 - End state: AI TCG has zero references to claude-tools in code or comments, and zero runtime dependency on it. It stands entirely on its own.
 
 Apply this when Session 24 (the neutral-pool branch) is merged or continued — the provenance line was added on that branch, not on main.
+
+
+---
+
+## 2026-10-01 — Owner: session 24 (neutral pool) remaining decisions
+
+Responses to the open Session-24 notes (neutral pool + hybrid decks + agent heal-bug fix). Note: this work is still on the unmerged WIP branch — apply these when it is merged or continued.
+
+1. **Commodity Rack — nerf to 3/2 and re-search.** A vanilla 3/3-for-3 being the best neutral card (48% vs 34-42% for the utility cards) defeats the "utility, not identity" purpose of the pool. Drop it to 3/2 so it is fair filler, not the auto-best, then re-run the package search. Caveat: the agent's apparent preference for raw stats over card draw may itself be an instrument issue (same family as the heal bug in note 3) — if a quick check shows the agent is under-valuing card advantage, fix that rather than over-nerfing Rack. Sequence: check the agent first, then nerf only if Rack is still over-rate on a correctly-valuing agent.
+
+2. **Kernel Panic at 7.1% — accept for now.** The add-only Null packages put the deck back to 40 and re-diluted the arc; that is an acceptable cost. Null's real problem is the one OUT pairing (Aegis over Null, 52.2% vs the ~42 target), not arc visibility. Fix the edge first; revisit Kernel Panic visibility after the Phase 5 gate. Do not trim Null to chase arc visibility now.
+
+3. **Neutral pool design — accept as shipped.** The 10-copy cap and the "utility, not identity" exclusion list (no removal, Mythic, Guard/Barrier/Rush, evolution/telegraph, summon, static/aura, faction-conditional) are good defaults. Keep them. Hybrid decks (one faction + at most 10 neutral copies) are correct.
+
+4. **Next session priority: the Null card-vs-agent check.** The heal-bug finding (Cortex Engineer "repaired" 1,231x at full health, moving an edge 6 points once fixed) proves the arbiter can misplay a card enough to distort an edge. Before any more Null card surgery, check Null's removal/debuff cards (Bit Rot, Null Pointer, Watchdog Timer, Decay Ward) for the same failure — compare LookaheadAgent's play against Aggressive/Random or hand-check lines. If the agent is misplaying them, fix the agent; the cards may be fine. This settles the note-3 question from session 23 and should come before the gate's verdict is trusted for Null.
+
+5. **Then the Phase 5 gate**, at 900 seeds for even bands and ~2,500 for the narrow win/lose bands (per 2026-09-29). The only edge currently confirmed OUT is Aegis-over-Null; the Quorum Arbiter lever for Cortex-vs-Null stays available at the gate if that edge is still out after the agent fix.
+
+Roadmap order stands: finish/merge session 24 (neutral pool) with the above applied -> Null card-vs-agent check -> Phase 5 full-ring gate.
