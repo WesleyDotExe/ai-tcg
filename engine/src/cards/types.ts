@@ -7,7 +7,12 @@
 // are added by extending these unions and teaching the resolver the new
 // variant, not by special-casing individual cards.
 
-export type Faction = "Cortex" | "Aegis" | "Swarm" | "Null";
+export type Faction = "Cortex" | "Aegis" | "Swarm" | "Null" | "Neutral";
+
+/** A faction a deck can be built around. "Neutral" is the shared utility
+ * pool (data/neutralCards.ts): any deck may run some of it, but no deck is a
+ * Neutral deck (see data/decks.ts's buildDeck). */
+export type DeckFaction = Exclude<Faction, "Neutral">;
 
 export type Rarity = "Common" | "Uncommon" | "Rare" | "Mythic";
 

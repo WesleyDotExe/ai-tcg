@@ -214,7 +214,11 @@ html, body {
 .faction-Aegis { --fc: var(--aegis); --rc: #b9f3ea; }
 .faction-Swarm { --fc: var(--swarm); --rc: #b6ff8f; }
 .faction-Null { --fc: var(--null); --rc: #e79bff; }
-.card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null { background: var(--fc); }
+/* Neutral cards (engine data/neutralCards.ts) take the UI gold, so the frame
+ * matches the fx tints, which read var(--<faction>) = var(--neutral). A
+ * palette of their own is a render-lane call. */
+.faction-Neutral { --fc: var(--neutral); --rc: #ffe4a0; }
+.card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null, .card.faction-Neutral { background: var(--fc); }
 
 .lower { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-top: 12px; }
 .hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }

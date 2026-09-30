@@ -8,17 +8,24 @@
 // is measured on exactly the seeding the standard check uses: seeds 1-300
 // here still reproduce balanceReport.ts's Lookahead section.
 //
-// The statistics are a local port of claude-tools' compare_two_proportions
-// method (Wilson score interval per proportion, Newcombe hybrid interval for
-// a difference). The owner named the live claude-tools call as the target;
-// no claude-tools MCP server is reachable from this session, so this is the
-// sanctioned interim. Swap it for the live call once that path exists.
+// The statistics are vendored, and permanent: AI TCG has no external runtime
+// dependencies (owner-feedback 2026-09-30, which closed the earlier
+// "call claude-tools live" direction). Nothing here calls out to anything.
+// Provenance: ported from claude-tools' discrete-probability
+// compare_two_proportions (pooled two-proportion z-test, Wilson score
+// interval per group, Newcombe hybrid interval for the difference); source
+// commit not recorded, since that repo is outside this build's reach (see
+// progress/notes-for-owner.md). engine/test/edgeMeasure.test.ts pins the port
+// to a hardcoded fixture, so it cannot drift silently.
 
 import { buildDeck, buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
+import { CORTEX_CARDS, SWARM_CARDS } from "../data/cards.js";
+import { AEGIS_CARDS } from "../data/aegisCards.js";
+import { NULL_CARDS } from "../data/nullCards.js";
 import { LookaheadAgent } from "../agents/lookaheadAgent.js";
 import { runMatch } from "../engine/match.js";
 import type { DeckSpec } from "../state/init.js";
-import type { Card, Faction } from "../cards/types.js";
+import type { Card, DeckFaction as Faction } from "../cards/types.js";
 import type { GameState, PlayerId } from "../state/types.js";
 
 export const FACTIONS: Faction[] = ["Cortex", "Swarm", "Aegis", "Null"];
@@ -32,6 +39,12 @@ const defaultBuilders: Record<Faction, DeckBuilder> = {
   Aegis: buildAegisDeck,
   Null: buildNullDeck,
 };
+
+/** A faction's shipped deck list, copied so a search can edit it freely. */
+export function shippedPool(faction: Faction): Pool {
+  const lists: Record<Faction, Pool> = { Cortex: CORTEX_CARDS, Swarm: SWARM_CARDS, Aegis: AEGIS_CARDS, Null: NULL_CARDS };
+  return lists[faction].map((p) => ({ ...p }));
+}
 
 export interface EdgeResult {
   opponent: Faction;
@@ -129,6 +142,43 @@ export function newcombeDiff(
   const lo = d - Math.sqrt((p1 - w1.lo) ** 2 + (w2.hi - p2) ** 2);
   const hi = d + Math.sqrt((w1.hi - p1) ** 2 + (p2 - w2.lo) ** 2);
   return { diff: d, lo, hi };
+}
+
+/** Standard normal CDF, via the Abramowitz-Stegun 7.1.26 erf
+ * approximation (absolute error under 1.5e-7, far below anything a band
+ * call reads). */
+function normalCdf(x: number): number {
+  const t = 1 / (1 + 0.3275911 * (Math.abs(x) / Math.SQRT2));
+  const poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))));
+  const erf = 1 - poly * Math.exp(-(x * x) / 2);
+  return x >= 0 ? (1 + erf) / 2 : (1 - erf) / 2;
+}
+
+/** Pooled two-proportion z-test for p1 = p2, with its two-sided p-value. */
+export function twoProportionZ(x1: number, n1: number, x2: number, n2: number): { z: number; p: number } {
+  const pooled = (x1 + x2) / (n1 + n2);
+  const se = Math.sqrt(pooled * (1 - pooled) * (1 / n1 + 1 / n2));
+  if (se === 0) return { z: 0, p: 1 };
+  const z = (x1 / n1 - x2 / n2) / se;
+  return { z, p: 2 * (1 - normalCdf(Math.abs(z))) };
+}
+
+/** Everything compare_two_proportions reports, in one call: both Wilson
+ * intervals, the Newcombe interval on the difference, the z-test, and a
+ * plain verdict (the difference is real at 95% when its interval excludes
+ * zero). */
+export function compareTwoProportions(x1: number, n1: number, x2: number, n2: number) {
+  const diff = newcombeDiff(x1, n1, x2, n2);
+  const test = twoProportionZ(x1, n1, x2, n2);
+  const real = diff.lo > 0 || diff.hi < 0;
+  return {
+    group1: { rate: x1 / n1, ...wilson(x1, n1) },
+    group2: { rate: x2 / n2, ...wilson(x2, n2) },
+    diff,
+    z: test.z,
+    p: test.p,
+    verdict: real ? (diff.diff > 0 ? "group 1 higher" : "group 2 higher") : "no detectable difference",
+  } as const;
 }
 
 /**

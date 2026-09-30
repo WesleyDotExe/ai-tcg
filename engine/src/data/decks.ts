@@ -1,6 +1,7 @@
-import type { Card, Rarity } from "../cards/types.js";
+import type { Card, DeckFaction, Rarity } from "../cards/types.js";
 import type { DeckSpec } from "../state/init.js";
-import { lintCardPool } from "../cards/poolLint.js";
+import { lintCardPool, neutralCardViolations } from "../cards/poolLint.js";
+import { NEUTRAL_POOL } from "./neutralCards.js";
 import { CORTEX_CARDS, SWARM_CARDS } from "./cards.js";
 import { AEGIS_CARDS } from "./aegisCards.js";
 import { NULL_CARDS } from "./nullCards.js";
@@ -31,13 +32,61 @@ const COPY_LIMITS: Record<Rarity, number> = {
 const MIN_DECK_SIZE = 20;
 const MAX_DECK_SIZE = 40;
 
+/** Neutral share cap (Phase 5 item 10, "faction cards carry identity;
+ * neutral cards carry utility"): at most a quarter of a full 40-card deck
+ * may come from the neutral pool, so every deck is at least three-quarters
+ * its own faction. A first proposal, flagged to the owner. */
+export const MAX_NEUTRAL_COPIES = 10;
+
+// The neutral pool is checked once at load, card by card, so a bad neutral
+// card fails the whole engine at import rather than only the decks that run
+// it.
+{
+  const bad = NEUTRAL_POOL.flatMap(neutralCardViolations);
+  if (bad.length > 0) throw new Error(`Neutral pool lint failed:\n  - ${bad.join("\n  - ")}`);
+}
+
+/** The one faction a deck is built around: its only non-Neutral faction.
+ * Throws for a deck with none (all neutral) or with two. */
+export function deckFaction(cards: readonly Card[]): DeckFaction {
+  const factions = [...new Set(cards.map((c) => c.faction))].filter((f): f is DeckFaction => f !== "Neutral");
+  if (factions.length !== 1) {
+    throw new Error(
+      factions.length === 0
+        ? "a deck needs one faction; it cannot be built from neutral cards alone"
+        : `a deck runs one faction plus neutral cards, not ${factions.join(" + ")}`,
+    );
+  }
+  return factions[0]!;
+}
+
 export function buildDeck(id: DeckSpec["id"], name: string, pool: { card: Card; copies: number }[]): DeckSpec {
+  // Hybrid-deck rule (Phase 5 item 10): one faction plus up to
+  // MAX_NEUTRAL_COPIES neutral cards, each of which must pass the neutral
+  // lint. A neutral card is identified by faction, and must also be the
+  // pool's own object, so a deck can't smuggle in a "Neutral" card the pool
+  // lint never saw.
+  let faction: DeckFaction;
+  try {
+    faction = deckFaction(pool.map((p) => p.card));
+  } catch (e) {
+    throw new Error(`Deck ${name}: ${(e as Error).message}`);
+  }
+  const neutral = pool.filter((p) => p.card.faction === "Neutral");
+  for (const { card } of neutral) {
+    if (!NEUTRAL_POOL.includes(card)) throw new Error(`Deck ${name}: "${card.name}" is marked Neutral but is not in the neutral pool`);
+  }
+  const neutralCopies = neutral.reduce((n, p) => n + p.copies, 0);
+  if (neutralCopies > MAX_NEUTRAL_COPIES) {
+    throw new Error(`Deck ${name}: ${neutralCopies} neutral cards exceeds the ${MAX_NEUTRAL_COPIES}-card neutral cap`);
+  }
+
   // Phase 3 (2026-09-20 owner-feedback entry): the card-pool lint, enforced
   // at load time exactly like the copy-limit/deck-size checks below — a
   // pool-construction rule violation fails to build a deck at all, not
   // something a future card author has to remember. See
   // cards/poolLint.ts for the four rules and their reasoning.
-  lintCardPool(pool, pool[0]?.card.faction ?? name);
+  lintCardPool(pool, faction);
 
   const cards: Card[] = [];
   for (const { card, copies } of pool) {

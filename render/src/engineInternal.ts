@@ -26,4 +26,4 @@ export {
 // Faction/Rarity/CardType/Keyword are likewise defined but not re-exported
 // by the public barrel — type-only, so re-exporting them here can never
 // affect engine runtime behaviour.
-export type { Faction, Rarity, CardType, Keyword } from "../../engine/src/cards/types.js";
+export type { Faction, DeckFaction, Rarity, CardType, Keyword } from "../../engine/src/cards/types.js";

@@ -191,8 +191,12 @@ export class LookaheadAgent implements Agent {
     // itself; a Command has no board presence of its own).
     const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
     const selfRef: TargetRef = { kind: "player", playerId: view.self };
-    if (onPlay) value += this.estimateAbility(view, onPlay, move.target ?? move.abilityTarget, selfRef);
-    return value;
+    const effectValue = onPlay ? this.estimateAbility(view, onPlay, move.target ?? move.abilityTarget, selfRef) : 0;
+    // A Command that would do nothing still spends the card. With a cost
+    // this was already below passing; a 0-cost one (Burst Credit into a
+    // full pool) tied with passing and was cast on a coin flip.
+    if (effectValue <= 0) return value - CARD_ADVANTAGE_WEIGHT;
+    return value + effectValue;
   }
 
   private scoreActivateAbility(view: PlayerView, move: Extract<Move, { type: "activateAbility" }>): number {
@@ -215,6 +219,29 @@ export class LookaheadAgent implements Agent {
       return ability ? { ability, selfRef: { kind: "player", playerId: view.self } } : undefined;
     }
     return undefined;
+  }
+
+  /** Flat heal already on the stack for `target`, from items whose target
+   * is known without resolving anything random: a chosen target, or "self"
+   * (the source unit for an ability, the controller for a Command). */
+  private pendingHealOn(view: PlayerView, target: TargetRef): number {
+    let total = 0;
+    for (const item of view.stack) {
+      if (item.kind === "combatDamage") continue;
+      const ability = item.kind === "ability" ? item.ability : item.card.abilities.find((a) => a.trigger === "onPlay");
+      if (!ability?.effects) continue;
+      let resolved: TargetRef | undefined;
+      if (ability.targeting?.scope === "chosen") resolved = item.chosen;
+      else if (ability.targeting?.scope === "self") {
+        resolved =
+          item.kind === "ability" && item.source.kind === "unit"
+            ? { kind: "unit", instanceId: item.source.instanceId }
+            : { kind: "player", playerId: item.controller };
+      }
+      if (!resolved || !sameTarget(resolved, target)) continue;
+      for (const e of ability.effects) if (e.kind === "heal" && e.amount.mode === "flat") total += e.amount.value;
+    }
+    return total;
   }
 
   /** Resolves `ability`'s real target list from a `PlayerView` (mirroring
@@ -303,7 +330,10 @@ export class LookaheadAgent implements Agent {
       case "drawCard":
         return effect.count * CARD_ADVANTAGE_WEIGHT;
       case "gainEnergy":
-        return effect.amount * ENERGY_WEIGHT * 1.5;
+        // Same cap as the resolver: energy never rises above maxEnergy, so
+        // only the spent room is worth anything (neutral pool slice: Burst
+        // Credit was cast into a full pool).
+        return Math.min(effect.amount, Math.max(0, view.me.maxEnergy - view.me.energy)) * ENERGY_WEIGHT * 1.5;
       case "summon":
         // Flat, like drawCard/gainEnergy above — a summon always benefits
         // its own controller and has no TargetSpec to resolve (see
@@ -362,13 +392,27 @@ export class LookaheadAgent implements Agent {
         return found.mine ? -raw : raw;
       }
       case "heal": {
+        // Only the health that can actually come back counts: the resolver
+        // (effects/resolver.ts's applyHeal) caps a player at maxHealth and a
+        // unit at zero damage. Valuing the full printed amount made a heal
+        // at full health look like a free half-point per point (found by the
+        // neutral pool slice: Rollback Point was cast at 20/20).
+        // Heals already waiting on the stack for the same target come off
+        // first, or the agent stacks a second repair on top of its own
+        // unresolved first one (measured: 1,231 Cortex Engineer repairs in
+        // 200 Cortex-vs-Null games, 66 of which healed anything).
         const amount = resolveAmount(effect.amount, this.scalingContext(view));
+        const pending = this.pendingHealOn(view, target);
         if (target.kind === "player") {
-          return (target.playerId === view.self ? amount : -amount) * 0.5;
+          const mine = target.playerId === view.self;
+          const p = mine ? view.me : view.opponent;
+          const healed = Math.min(amount, Math.max(0, p.maxHealth - p.health - pending));
+          return (mine ? healed : -healed) * 0.5;
         }
         const found = this.findUnit(view, target.instanceId);
         if (!found.unit) return 0;
-        return (found.mine ? amount : -amount) * 0.5;
+        const healed = Math.min(amount, Math.max(0, found.unit.damageTaken - pending));
+        return (found.mine ? healed : -healed) * 0.5;
       }
       case "buff": {
         if (target.kind !== "unit") return 0;
@@ -491,6 +535,11 @@ export class LookaheadAgent implements Agent {
  * static-aura-aware queries.ts" tradeoff AggressiveAgent documents — a real
  * agent (dummy or not) only ever sees a PlayerView, not the GameState those
  * queries need. */
+function sameTarget(a: TargetRef, b: TargetRef): boolean {
+  if (a.kind === "player") return b.kind === "player" && a.playerId === b.playerId;
+  return b.kind === a.kind && a.instanceId === b.instanceId;
+}
+
 function approxHealth(unit: UnitInstance): number {
   return approxMaxHealth(unit) - unit.damageTaken;
 }

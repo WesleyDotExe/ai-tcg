@@ -8,18 +8,18 @@ import { fileURLToPath } from "node:url";
 import { BOARD_SLOTS, buildAegisDeck, buildCortexDeck, buildSwarmDeck } from "@ai-tcg/engine";
 import type { DeckSpec } from "@ai-tcg/engine";
 import { LookaheadAgent, buildNullDeck } from "./engineInternal.js";
-import type { Faction } from "./engineInternal.js";
+import type { DeckFaction } from "./engineInternal.js";
 import { captureMatch } from "./capture.js";
 import { renderMatchHtml } from "./renderHtml.js";
 
-const DECK_BUILDERS: Record<Faction, (id: DeckSpec["id"], name: string) => DeckSpec> = {
+const DECK_BUILDERS: Record<DeckFaction, (id: DeckSpec["id"], name: string) => DeckSpec> = {
   Cortex: buildCortexDeck,
   Aegis: buildAegisDeck,
   Swarm: buildSwarmDeck,
   Null: buildNullDeck,
 };
 
-function isFaction(s: string): s is Faction {
+function isFaction(s: string): s is DeckFaction {
   return s in DECK_BUILDERS;
 }
 
