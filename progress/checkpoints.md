@@ -5,6 +5,37 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Phase 5 step (ii): the neutral pool (2026-09-30, session 24)
+
+Not a build-order stage completion. It's flagged because it adds a new deck-construction rule
+and a pool the owner specified in one line, so several taste calls were made here.
+
+**Delivered, with evidence:**
+1. Ten neutral utility cards (`engine/src/data/neutralCards.ts`), each with its own art slot.
+   All ten are played and land in real games (report 018, probe table).
+2. A load-time "utility, not identity" lint and hybrid-deck rules (one faction + at most 10
+   neutral copies). The rules have 13 tests (`engine/test/neutralPool.test.ts`).
+3. Measured packages: Cortex (2 swaps) and Null (add-only, +4). Swarm and Aegis run none. Each
+   shipped only on held-out improvement.
+4. A LookaheadAgent fix: heals and energy are valued as the resolver delivers them, and a
+   no-op Command costs the card. Measured waste went from 1,165 useless repairs per 200 games
+   to zero.
+5. Ring after: one edge OUT at 900 seeds (Aegis over Null, 52.2% Aegis; was 60.4%).
+   `progress/sample-match-025-neutral-pool.txt` has a full shipped-deck game.
+
+**Strong:** every rule is checked and tested, the picks are measured and held-out, and the
+owner's no-Null-cuts instruction was honoured, with a discarded run to prove it mattered.
+**Thin:** 7 of 10 neutral cards run in no deck; a vanilla 3/3 is the best neutral card;
+Kernel Panic visibility dropped to 7.1%.
+
+**Decisions the owner might overrule:** the 10-copy neutral cap; what the lint calls
+identity (Rush, all statics); Null going back to 40 cards (win rate vs Kernel Panic
+visibility); shipping the agent fix mid-Phase-5, which re-baselines every Cortex number.
+
+**Next:** a render slice, then the mandatory Phase 5 gate (900 / ~2,500 seeds, with a checkpoint).
+
+---
+
 ## AWAITING FEEDBACK — Phase 5 slice 3: Null depth/variety pass, 15 -> 20 unique cards (2026-09-26, session 21)
 
 This does not complete a build-order stage. It is flagged because it is the third Phase

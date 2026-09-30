@@ -21,9 +21,56 @@ grown 18 -> 22 unique cards), session 20 (Phase 5 slice 2: Swarm
 pool grown 16 -> 20 unique cards), session 21 (Phase 5 slice 3:
 Null depth/variety pass, 15 -> 20 unique cards), and now session 22 (Phase
 5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards), and now
-session 23 (the Null consistency trim, 40 -> 36).
+session 23 (the Null consistency trim, 40 -> 36), and now session 24 (the
+neutral pool).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 24
+
+- **Only 3 of 10 neutral cards made a shipped deck** (Rollback Point, Surge
+  Protector, Commodity Rack). The other seven are legal, tested and fire in
+  real play (probe table, report 018), but no faction runs them. The pool
+  "exists" more than it is "used". Swarm and Aegis run no neutral cards at
+  all.
+- **Commodity Rack, a vanilla 3/3 for 3, beats every utility card.** In the
+  probe it hits 48% vs 34-42%, and it's 3 of Null's 4 neutral slots. Either
+  it's over-rate against faction bodies (a neutral body crowding out faction
+  identity is the opposite of the owner's "utility" framing), or
+  LookaheadAgent over-values raw stats and under-values draw (flat 1.5 per
+  card). Not separated.
+- **Power Reserve is close to dead** (34% in the probe, worst). Its value is
+  holding energy for responses, and LookaheadAgent is greedy on its own turn
+  and rarely holds anything. It's an agent limit, but the card is still dead
+  in practice. Uplink Tower's draw landed only 94 times in 335 games.
+- **Kernel Panic visibility fell from 9.9% to 7.1% of Null's games** (36 -> 40
+  cards). That undoes most of the session-23 trim's visibility gain. Flagged
+  to the owner as a trade against +3-4 points per edge.
+- **The package search is greedy and one-faction-at-a-time against fixed
+  opponents.** Opponents' packages were not in place while each faction was
+  searched, and the gate hasn't re-measured the combined ring at 2,500
+  seeds. Cortex's package is small and its held-out edge changes are all
+  inside noise individually. It shipped on the held-out objective sum.
+- **The neutral lint rules and the 10-copy cap are this session's own first
+  proposal** (e.g. banning all neutral statics, and treating Rush as
+  identity). They're flagged to the owner, not confirmed.
+- **The agent fix changed the instrument mid-Phase-5.** Every number before
+  report 018 was measured with an agent that wasted energy on no-op heals.
+  Cortex was understated by ~3-6 points per edge. Earlier Cortex conclusions
+  (e.g. session 22's "Cortex-vs-Null follows Null's weakness") were drawn on
+  the flawed instrument.
+- **The agent still wastes Intercept Routine** (session-23 item below, not
+  fixed), and it doesn't account for pending stack effects other than flat
+  heals (damage, buffs, a pending destroy).
+- **Neutral cards render in the UI gold** (`.faction-Neutral` borrows
+  `--neutral`). That's a stopgap so frame and fx tints agree. The render lane
+  should give them a palette.
+- **Provenance is incomplete:** the claude-tools commit the statistics were
+  ported from isn't recorded. The parity fixture comes from an independent
+  Python re-implementation, not captured from claude-tools itself.
+- **Closed this session:** the "significance test is a local port, not the
+  live claude-tools call" item below. The owner made the local port
+  permanent (2026-09-30).
 
 ## New debt from session 23
 

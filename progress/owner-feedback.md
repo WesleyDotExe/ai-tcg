@@ -1087,7 +1087,7 @@ rather than a unit, and Quorum Arbiter's attack changes live with the enemy boar
 
 ---
 
-## 2026-09-26 — Owner: session 22 (Cortex depth pass) confirmations + 900-seed standard + revised Phase 5 order (PARTIALLY HANDLED — item 2 step (i), the Null trim, done session 23; items 1 and 3 apply at the gate)
+## 2026-09-26 — Owner: session 22 (Cortex depth pass) confirmations + 900-seed standard + revised Phase 5 order (PARTIALLY HANDLED — item 2 steps (i) Null trim, session 23, and (ii) neutral pool, session 24, done; step (iii) and items 1 and 3 apply at the gate)
 
 Reviewed Session 22 (Phase 5 slice 4: Cortex 19 -> 24 unique cards; Cortex-vs-Swarm fixed, 44.3 -> 58.7% Cortex under Lookahead). Three decisions:
 
@@ -1114,7 +1114,7 @@ Next per this entry: (ii) the neutral pool, then (iii) the gate.
 
 ---
 
-## 2026-09-26 — Owner: cross-project — AI TCG balance is claude-tools' first real caller (two-proportion significance for in/out-of-band) (PARTIALLY HANDLED — interim port done session 23; the live claude-tools call is still open)
+## 2026-09-26 — Owner: cross-project — AI TCG balance is claude-tools' first real caller (two-proportion significance for in/out-of-band) (CLOSED — superseded by the 2026-09-30 self-containment entry; the local port is permanent, no live call)
 
 A direction connecting the two autonomous projects (recorded here so the balance lane sees it; matching enable-side items are in the claude-tools wishlist).
 
@@ -1157,7 +1157,7 @@ Confirmed: slice 4 needs no engine change (reads stack-item id + combat attacker
 
 ---
 
-## 2026-09-29 — Owner: session 23 (Null consistency trim 40 -> 36) — hold variant B, bump narrow-band gate to ~2,500 seeds
+## 2026-09-29 — Owner: session 23 (Null consistency trim 40 -> 36) — hold variant B, bump narrow-band gate to ~2,500 seeds (ACKNOWLEDGED session 24 — item 1 followed, note 3 still open; item 2 applies at the gate)
 
 Reviewed Session 23 (Null trim: Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1; all 20 unique cards kept, Kernel Panic stays at 2 and now shows in ~10% of Null games; +3.5-4 pts/edge; CI band verdicts now built into lookaheadEdgeCheck.ts). Two decisions:
 
@@ -1169,10 +1169,19 @@ Reviewed Session 23 (Null trim: Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1
 
 No change to the roadmap order (Null trim done -> neutral pool next -> mandatory full-ring re-measure gate, now at the seed counts above). The claude-tools live call remains open (local CI port shipped this session; the live cross-repo call needs the server mounted on the Mac stack, which is the owner's step).
 
+**Acknowledged, session 24 (2026-09-30, the neutral pool).** Item 1: variant B not taken, and
+no Null card was cut this session. The first neutral-package search swapped Null copies out
+(Null Pointer, Propagating Exploit, Dangling Pointer); that run was discarded and Null was
+re-searched add-only (36 -> 40, +3 Commodity Rack, +1 Rollback Point). Note 3 ("weak card or
+agent misplay") is still not separated for Null's removal cards. But this session found and
+fixed a LookaheadAgent misplay of exactly that kind in Cortex's heals: 1,231 repair activations
+in 200 games, 66 of which healed anything. That fix alone moved Cortex-vs-Null ~6 points, so the
+question is a live one. Item 2: noted for the gate, which is next.
+
 
 ---
 
-## 2026-09-30 — Owner: AI TCG must be FULLY SELF-CONTAINED — supersedes the claude-tools live-call directive
+## 2026-09-30 — Owner: AI TCG must be FULLY SELF-CONTAINED — supersedes the claude-tools live-call directive (HANDLED 2026-09-30, session 24)
 
 Decision: AI TCG runs with ZERO external runtime dependencies. No MCP calls, no cross-repo or cross-process calls, no network reliance for engine, balance harness or render. Every part must run standalone.
 
@@ -1184,3 +1193,14 @@ Keep, all local and self-contained:
 - A parity test that checks the port against a HARDCODED expected fixture value (captured once). The test must NOT call anything external — no server, no network.
 
 The 900/2,500-seed CI band gate uses only this local implementation. Nothing about claude-tools may become a runtime dependency of AI TCG.
+
+**Handled, session 24 (2026-09-30).** `engine/src/dev/edgeMeasure.ts` now says the statistics
+are vendored and permanent, with a provenance line naming claude-tools' discrete-probability
+compare_two_proportions. The source commit is not recorded because the claude-tools repo is
+outside this build's reach. That's one line for you to fill in; see notes-for-owner.md. The port
+also gained the pooled two-proportion z-test, which it lacked, and a `compareTwoProportions`
+wrapper returning the same fields. `engine/test/edgeMeasure.test.ts` has a parity test against a
+hardcoded fixture: two input cases, every output field. The values were captured once from an
+independent Python re-implementation of the same formulas. Nothing calls out: no server, no
+network. The session-23 "live call still open" item is closed in quality-debt.md and in the
+2026-09-26 entry's header.

@@ -19,6 +19,7 @@
 import type {
   Ability,
   Card,
+  Condition,
   EffectSpec,
   StaticEffectSpec,
   TargetFilter,
@@ -216,11 +217,64 @@ export function lintCardPool(pool: { card: Card; copies: number }[], factionName
     }
   }
 
-  const cards = pool.map((p) => p.card);
+  // Clock and card flow are a faction's own identity (a pool "has" them),
+  // so they are checked on the faction's own cards only: a deck may not lean
+  // on the neutral pool (data/neutralCards.ts) for its only card draw. The
+  // 25% removal/debuff share above counts the whole deck, neutral cards
+  // included, since that is what gets played.
+  const cards = pool.map((p) => p.card).filter((c) => c.faction !== "Neutral");
   if (!poolHasClock(cards)) violations.push(`${factionName} pool has no clock (no card can pressure the opponent's health)`);
   if (!poolHasCardFlow(cards)) violations.push(`${factionName} pool has no card flow (no card draws)`);
 
   if (violations.length > 0) {
     throw new Error(`Card pool lint failed for ${factionName}:\n  - ${violations.join("\n  - ")}`);
   }
+}
+
+/** Keywords that are some faction's signature (Guard and Barrier walls,
+ * Rush haste). A neutral card may not carry or grant them. */
+const IDENTITY_KEYWORDS = ["Guard", "Barrier", "Rush"] as const;
+
+function* walkConditions(effects: EffectSpec[]): Generator<Condition> {
+  for (const effect of walkEffects(effects)) {
+    if (effect.kind === "conditional") yield effect.condition;
+  }
+}
+
+/**
+ * Phase 5 item 10 (owner-feedback 2026-09-20): "Faction cards carry
+ * identity; neutral cards carry utility." This is that sentence as a
+ * load-time check. It returns every reason `card` is not a legal neutral
+ * card, or an empty list. Called on the whole neutral pool and on every
+ * neutral card in every built deck (data/decks.ts). See data/neutralCards.ts
+ * for what the rule leaves room for.
+ */
+export function neutralCardViolations(card: Card): string[] {
+  const out: string[] = [];
+  if (card.faction !== "Neutral") return [`"${card.name}" is not a Neutral card`];
+  if (card.rarity === "Mythic") out.push(`"${card.name}": a Mythic is a faction signature, never neutral`);
+  if (isRemovalOrDebuffCard(card)) out.push(`"${card.name}": removal/debuff is faction identity`);
+  const keywords = card.type === "Unit" ? card.keywords : card.type === "Tool" ? card.grantedKeywords : [];
+  for (const k of keywords) {
+    if ((IDENTITY_KEYWORDS as readonly string[]).includes(k)) out.push(`"${card.name}": the ${k} keyword is faction identity`);
+  }
+  if (card.type === "Unit" && (card.evolvesFrom || card.telegraph || card.baseArmor)) {
+    out.push(`"${card.name}": evolution lines and telegraphs are faction identity`);
+  }
+  for (const ability of card.abilities) {
+    const effects = ability.effects ?? [];
+    if ([...walkEffects(effects)].some((e) => e.kind === "summon")) {
+      out.push(`"${card.name}": summoning tokens is faction identity`);
+    }
+    if (ability.staticEffect) {
+      // No neutral statics: board-scaling stats, ally auras and cost
+      // auras are all faction mechanics.
+      out.push(`"${card.name}": static/continuous effects are faction identity`);
+    }
+    const conditions = [...(ability.condition ? [ability.condition] : []), ...walkConditions(effects)];
+    if (conditions.some((c) => JSON.stringify(c).includes("controllerFactionInPlay"))) {
+      out.push(`"${card.name}": faction-conditional effects are faction identity`);
+    }
+  }
+  return out;
 }

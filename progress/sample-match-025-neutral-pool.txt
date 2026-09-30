@@ -1,0 +1,341 @@
+AI-TCG sample match 025 — neutral pool (session 24, 2026-09-30)
+Produced by: cd engine && npx tsx src/dev/neutralPoolMatchDemo.ts 300
+The first game (in pairing order) where two different neutral cards were played.
+
+AI-TCG neutral pool evidence: shipped decks, LookaheadAgent vs LookaheadAgent, all six pairings
+300 seeds per pairing (1800 games), seeding identical to lookaheadEdgeCheck.ts.
+
+Shipped neutral packages:
+  Cortex 40 cards, 2 neutral: Rollback Point x1, Surge Protector x1
+  Swarm  40 cards, 0 neutral: (none)
+  Aegis  40 cards, 0 neutral: (none)
+  Null   40 cards, 4 neutral: Commodity Rack x3, Rollback Point x1
+
+Per neutral card (games = games in which the card was played; landed = times its effect visibly happened):
+  Spare Cycles     games    0  landed    0             
+  Cache Warmup     games    0  landed    0             
+  Relay Courier    games    0  landed    0             
+  Rollback Point   games  304  landed  312  49.3% won  Cortex 140, Null 164
+  Surge Protector  games  176  landed  176  48.9% won  Cortex 176
+  Power Reserve    games    0  landed    0             
+  Commodity Rack   games  565  landed  565  49.7% won  Null 565
+  Uplink Tower     games    0  landed    0             
+  Scrap Recycler   games    0  landed    0             
+  Burst Credit     games    0  landed    0             
+
+=== Full match log: Swarm (p1) vs Cortex (p2), seed 18; neutral cards played: Surge Protector (Cortex), Rollback Point (Cortex) ===
+
+--- Turn 1 (p1) ---
+p1 plays Brood Skitterer (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Rollback Point
+--- Turn 2 (p2) ---
+p2 plays Signal Drone (u2)
+Signal Drone attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Colony Broodling
+--- Turn 3 (p1) ---
+Brood Skitterer attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Lookahead-Cortex
+p1 plays Colony Broodling (u5)
+p1 plays Colony Broodling (u6)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Backup Protocol
+--- Turn 4 (p2) ---
+  Overclock Shunt attaches to Signal Drone
+Signal Drone attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 2 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Reflex Spike
+--- Turn 5 (p1) ---
+Brood Skitterer attacks Signal Drone
+p1 casts Reflex Spike [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Reflex Spike
+  ability: Reflex Spike — reflex-spike-cast (onPlay)
+  Reflex Spike grants Brood Skitterer +0/+3
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Signal Drone (unit)
+  Signal Drone deals 2 damage to Brood Skitterer (unit)
+  Signal Drone (p2) dies
+Colony Broodling attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Cortex
+Colony Broodling attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Cortex
+p1 plays Swarm Larva (u12)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+  Brood Skitterer (p1) dies
+p2 draws Deadlock Detector
+--- Turn 6 (p2) ---
+p2 plays Firewall Sentinel (u13)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Swarm Larva
+--- Turn 7 (p1) ---
+p1 plays Overclock Beast (u14)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Fail-safe Unit
+--- Turn 8 (p2) ---
+p2 casts Cascade Purge [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Colony Broodling (unit)
+  Cascade Purge deals 2 damage to Colony Broodling (unit)
+  Swarm Larva's base armor reduces 2 damage from Cascade Purge to 1
+  Cascade Purge deals 1 damage to Swarm Larva (unit)
+  Cascade Purge deals 2 damage to Overclock Beast (unit)
+  Colony Broodling (p1) dies
+  Colony Broodling (p1) dies
+  Swarm Larva (p1) dies
+Firewall Sentinel attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Warren Guardian
+--- Turn 9 (p1) ---
+p1 plays Warren Guardian (u17)
+p1 plays Swarm Larva (u18)
+Overclock Beast attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Overclock Beast (unit)
+  Overclock Beast (p1) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Init Daemon
+--- Turn 10 (p2) ---
+p2 plays Deadlock Detector (u20)
+  ability: Deadlock Detector — deadlock-detector-play (onPlay)
+p2 plays Fail-safe Unit (u21)
+p2 plays Init Daemon (u22)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Overgrown Carapace
+--- Turn 11 (p1) ---
+Warren Guardian attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Warren Guardian's attack
+  Warren Guardian deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Warren Guardian (unit)
+  Firewall Sentinel (p2) dies
+Swarm Larva attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Cortex
+p1 plays Overgrown Carapace (u25)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Surge Protector
+--- Turn 12 (p2) ---
+Deadlock Detector attacks Warren Guardian
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Deadlock Detector's attack
+  Deadlock Detector deals 1 damage to Warren Guardian (unit)
+  Warren Guardian deals 2 damage to Deadlock Detector (unit)
+  Warren Guardian (p1) dies
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+Init Daemon attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 1 damage to Lookahead-Swarm
+  Surge Protector attaches to Deadlock Detector
+p2 casts Backup Protocol [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 3 health to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Molted Stalker
+--- Turn 13 (p1) ---
+  Swarm Larva evolves into Molted Stalker
+  ability: Molted Stalker — molted-stalker-evolve (onPlay)
+p1 draws Colony Broodling
+Molted Stalker attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Molted Stalker's attack
+  Molted Stalker deals 4 damage to Lookahead-Cortex
+Overgrown Carapace attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overgrown Carapace's attack
+  Overgrown Carapace deals 2 damage to Lookahead-Cortex
+p1 plays Colony Broodling (u32)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Fail-safe Unit
+--- Turn 14 (p2) ---
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+p2 plays Fail-safe Unit (u34)
+Deadlock Detector attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Deadlock Detector's attack
+  Deadlock Detector deals 1 damage to Lookahead-Swarm
+Init Daemon attacks Colony Broodling
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 1 damage to Colony Broodling (unit)
+  Init Daemon's base armor reduces 1 damage from Colony Broodling to 0
+  Colony Broodling (p1) dies
+  ability: Colony Broodling — colony-broodling-death (onDeath)
+  Colony Broodling summons Swarm Larva for p1 (u37)
+p2 casts Rollback Point [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Rollback Point
+  ability: Rollback Point — rollback-point-cast (onPlay)
+  Rollback Point restores 5 health to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Carapace Grunt
+--- Turn 15 (p1) ---
+Molted Stalker attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Molted Stalker's attack
+  Molted Stalker deals 4 damage to Lookahead-Cortex
+Overgrown Carapace attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overgrown Carapace's attack
+  Overgrown Carapace deals 2 damage to Lookahead-Cortex
+p1 plays Carapace Grunt (u41)
+Swarm Larva attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Watchtower Relay
+--- Turn 16 (p2) ---
+p2 plays Watchtower Relay (u43)
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+Deadlock Detector attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Deadlock Detector's attack
+  Deadlock Detector deals 1 damage to Lookahead-Swarm
+Init Daemon attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+p1 draws Spore Cluster
+--- Turn 17 (p1) ---
+Molted Stalker attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Molted Stalker's attack
+  Molted Stalker deals 4 damage to Lookahead-Cortex
+Carapace Grunt attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Carapace Grunt's attack
+  Carapace Grunt deals 2 damage to Lookahead-Cortex
+Overgrown Carapace attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overgrown Carapace's attack
+  Overgrown Carapace deals 2 damage to Lookahead-Cortex
+p1 plays Spore Cluster (u51)
+Swarm Larva attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 1 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+p2 draws Rate Limiter
+--- Turn 18 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Rate Limiter (d53)
+Watchtower Relay attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Swarm
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+Winner: p2, turns: 18

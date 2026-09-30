@@ -122,7 +122,8 @@ test("Quorum Arbiter's attack is 1 plus the number of enemy units, recomputed li
 test("Cortex pool builds a legal 40-card deck at 24 unique cards, inside the removal cap", () => {
   const deck = buildCortexDeck("p1", "Cortex Test Deck");
   expect(deck.cards.length).toBe(40);
-  const uniqueCount = new Set(CORTEX_CARDS.map((p) => p.card.id)).size;
+  // Cortex's own cards only; the deck also runs a neutral package (neutralPool.test.ts).
+  const uniqueCount = new Set(CORTEX_CARDS.filter((p) => p.card.faction === "Cortex").map((p) => p.card.id)).size;
   expect(uniqueCount, "the Cortex slice should grow the pool from 19 to 24 unique cards").toBe(24);
   const removal = CORTEX_CARDS.filter((p) => isRemovalOrDebuffCard(p.card)).reduce((s, p) => s + p.copies, 0);
   expect(removal, "trimming Diagnostic Pulse and Interrupt Handler funds Deadlock Detector").toBe(9);

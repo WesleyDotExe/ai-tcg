@@ -14,6 +14,7 @@
 // no reproduction of existing TCGs' keywords-as-text or card identities.
 
 import type { UnitCard, CommandCard, DirectiveCard, ToolCard } from "../cards/types.js";
+import { rollbackPoint, surgeProtector } from "./neutralCards.js";
 
 export const signalDrone: UnitCard = {
   id: "CX-001",
@@ -612,7 +613,7 @@ export const quorumArbiter: UnitCard = {
 // No card left the deck. Two of the trims were removal, so removal/debuff
 // density fell from 10/40 to 9/40 (22.5%) even with Deadlock Detector in.
 export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCard; copies: number }[] = [
-  { card: signalDrone, copies: 2 },
+  { card: signalDrone, copies: 1 },
   { card: firewallSentinel, copies: 3 },
   { card: recursiveConstruct, copies: 2 },
   { card: diagnosticPulse, copies: 1 },
@@ -629,13 +630,19 @@ export const CORTEX_CARDS: { card: UnitCard | CommandCard | DirectiveCard | Tool
   { card: initDaemon, copies: 3 },
   { card: compiledDaemon, copies: 2 },
   { card: dormantExploit, copies: 1 },
-  { card: overclockShunt, copies: 2 },
+  { card: overclockShunt, copies: 1 },
   { card: forceQuit, copies: 2 },
   { card: rateLimiter, copies: 2 },
   { card: loadBalancer, copies: 2 },
   { card: hotfix, copies: 1 },
   { card: deadlockDetector, copies: 1 },
   { card: quorumArbiter, copies: 1 },
+  // Neutral package (Phase 5 step (ii), 2026-09-30): one copy each of Signal
+  // Drone and Overclock Shunt swapped out, chosen by
+  // dev/neutralPackageSearch.ts and confirmed on held-out seeds (ring
+  // objective 140 -> 108; see progress/balance-report-018-neutral-pool.txt).
+  { card: rollbackPoint, copies: 1 },
+  { card: surgeProtector, copies: 1 },
 ];
 
 // --- Swarm faction ---------------------------------------------------------

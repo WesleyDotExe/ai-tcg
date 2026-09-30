@@ -95,12 +95,20 @@ function toDirectiveSnapshot(d: { instanceId: string; card: Card }): DirectiveSn
   };
 }
 
+function playerFaction(p: GameState["players"][PlayerId]): PlayerSnapshot["faction"] {
+  const cards = [...p.deck, ...p.hand, ...p.graveyard, ...p.board.map((u) => u.card), ...p.directives.map((d) => d.card)];
+  return cards.find((c) => c.faction !== "Neutral")?.faction ?? "Cortex";
+}
+
 function toPlayerSnapshot(state: GameState, pid: PlayerId, slotsMax: number): PlayerSnapshot {
   const p = state.players[pid];
   return {
     id: pid,
     name: p.name,
-    faction: p.board[0]?.card.faction ?? p.hand[0]?.faction ?? p.deck[0]?.faction ?? "Cortex",
+    // The deck's own faction, not the first card seen: a deck may run
+    // Neutral cards (engine data/neutralCards.ts), so any one card can be
+    // the wrong answer.
+    faction: playerFaction(p),
     health: Math.max(0, p.health),
     maxHealth: p.maxHealth,
     energy: p.energy,

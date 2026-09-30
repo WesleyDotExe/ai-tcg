@@ -29,6 +29,7 @@ export { buildPlayerView } from "./agents/agent.js";
 export { RandomAgent } from "./agents/randomAgent.js";
 export { AggressiveAgent } from "./agents/aggressiveAgent.js";
 
-export { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildDeck } from "./data/decks.js";
+export { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildDeck, deckFaction, MAX_NEUTRAL_COPIES } from "./data/decks.js";
+export { NEUTRAL_POOL } from "./data/neutralCards.js";
 
 export { formatEvent, formatLog } from "./log/format.js";

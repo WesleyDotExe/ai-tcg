@@ -17,7 +17,7 @@
 // Usage: npx tsx src/dev/lookaheadEdgeCheck.ts <Faction> [firstSeed=1] [count=900]
 
 import { FACTIONS, measureEdges, wilson, bandVerdict, ringBand } from "./edgeMeasure.js";
-import type { Faction } from "../cards/types.js";
+import type { DeckFaction as Faction } from "../cards/types.js";
 
 const faction = process.argv[2] as Faction;
 if (!FACTIONS.includes(faction)) {

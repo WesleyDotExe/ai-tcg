@@ -2310,3 +2310,38 @@ games vs Aegis; the seed-4 log is a Kernel Panic win. `npm test`: 262/262.
 Lookahead). Null > Aegis is still inverted (Aegis 60.4%). Cortex-vs-Null
 moved toward band (61.1 -> 58.9) but is still out. **Blocked:** nothing.
 Next is a render slice, then the neutral pool.
+
+## 2026-09-30 — Session 24 (Phase 5 step ii: the neutral pool)
+
+Balance session: the last merged PR (#32) was render. Owner feedback first. The 2026-09-30
+self-containment entry is handled. The statistics port is now permanent and gained the z-test,
+a provenance line and a hardcoded parity fixture. The 2026-09-29 entry is acknowledged. Its
+item 1 governed this session: no Null cuts.
+
+**Built:** 10 neutral utility cards covering draw, health, energy, a vanilla body and a plain
+tool. There's a load-time lint for "utility, not identity" and hybrid-deck rules: one faction
+plus at most 10 neutral copies, and clock/flow checked on faction cards only. `neutralPackageSearch.ts`
+picks each faction's package against a ring-distance objective, with a no-sandbag guard and a
+held-out ship rule. `neutralPoolMatchDemo.ts` gives real-play evidence, including a probe mode
+for all 10 cards. There were small render compatibility edits.
+
+**Found and fixed on the way:** LookaheadAgent valued heals and energy at their printed amount.
+The resolver caps both, so the agent was burning spare energy on no-op repairs: 1,231 Cortex
+Engineer activations in 200 games, 66 of which healed. Once capped, it stacked a second repair
+on its own pending one. It now nets out pending stack heals, and 93/93 repairs heal. This moved
+the ring more than the neutral cards did for Cortex: Cortex vs Null went 58.9 -> 65.7 on the
+fixed agent before packages.
+
+**Ran it:** four searches (900 search seeds, 2,500 held-out). The first run was discarded for
+three reasons: it cut Null copies, its ablation probe broke Null's removal cap, and it had no
+held-out rule. Shipped: Cortex swapped 2 copies for Rollback Point and Surge Protector. Null
+added +3 Commodity Rack and +1 Rollback Point, going 36 -> 40. Swarm and Aegis took nothing;
+Aegis's best pick got worse on held-out seeds. Final Lookahead ring over 900 seeds: only
+Aegis-over-Null is OUT (52.2% Aegis, was 60.4%). The rest are UNRESOLVED. Null's mean went
+40.8 -> 44.1. `balanceReport.ts 900`: no triple-flag.
+
+**Named, not fixed:** only 3 of 10 neutral cards made a shipped deck. Commodity Rack (vanilla 3/3)
+is the standout, 48% in the probe vs 34-42% for the utility cards. Kernel Panic's share of Null
+games fell from 9.9% to 7.1% with the 40-card deck. Power Reserve is weakest (34%); the agent
+never holds energy for it to matter. **Blocked:** nothing. `npm test` 285/285, `tsc` clean in
+all five. Next: render slice, then the Phase 5 gate.
