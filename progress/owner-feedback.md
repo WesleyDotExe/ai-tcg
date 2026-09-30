@@ -1204,3 +1204,16 @@ hardcoded fixture: two input cases, every output field. The values were captured
 independent Python re-implementation of the same formulas. Nothing calls out: no server, no
 network. The session-23 "live call still open" item is closed in quality-debt.md and in the
 2026-09-26 entry's header.
+
+
+---
+
+## 2026-10-01 — Owner: drop the claude-tools provenance reference entirely — AI TCG carries NO mention of claude-tools
+
+Follow-up to the 2026-09-30 self-containment directive. Decision: remove the provenance/attribution reference to claude-tools from AI TCG completely. Do NOT record the source commit hash; delete the provenance line instead.
+
+- Remove the "ported from claude-tools ... / source commit not recorded" comment in `engine/src/dev/edgeMeasure.ts` (and anywhere else in the repo that names claude-tools or discrete-probability).
+- KEEP the vendored two-proportion / Wilson-Newcombe statistics and the hardcoded parity-fixture test exactly as-is — this is purely about removing the external reference, not the math. The parity test stays (it validates the local implementation against a fixed expected value, no external call).
+- End state: AI TCG has zero references to claude-tools in code or comments, and zero runtime dependency on it. It stands entirely on its own.
+
+Apply this when Session 24 (the neutral-pool branch) is merged or continued — the provenance line was added on that branch, not on main.
