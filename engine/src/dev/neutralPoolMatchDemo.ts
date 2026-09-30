@@ -8,10 +8,17 @@
 // full log of the first game in which two or more different neutral cards
 // were played.
 //
-// Usage: npx tsx src/dev/neutralPoolMatchDemo.ts [seedsPerPairing=300]
+// --probe: shipped decks only run three of the ten neutral cards, so this
+// mode shows the other seven in real play too. For each neutral card, Null's
+// own 36 cards plus a full set of that card (3, or 2 for a Rare) play
+// `seedsPerPairing` games against each other faction's shipped deck. Only
+// the per-card table is printed.
+//
+// Usage: npx tsx src/dev/neutralPoolMatchDemo.ts [seedsPerPairing=300] [--probe]
 
 import { FACTIONS } from "./edgeMeasure.js";
-import { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
+import { buildDeck, buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
+import { NULL_CARDS } from "../data/nullCards.js";
 import { NEUTRAL_POOL } from "../data/neutralCards.js";
 import { LookaheadAgent } from "../agents/lookaheadAgent.js";
 import { runMatch } from "../engine/match.js";
@@ -20,7 +27,8 @@ import type { DeckFaction } from "../cards/types.js";
 import type { DeckSpec } from "../state/init.js";
 import type { GameState, PlayerId } from "../state/types.js";
 
-const seeds = Number(process.argv[2] ?? 300);
+const PROBE = process.argv.includes("--probe");
+const seeds = Number(process.argv.slice(2).find((a) => !a.startsWith("--")) ?? 300);
 const builders: Record<DeckFaction, (id: DeckSpec["id"], name: string) => DeckSpec> = {
   Cortex: buildCortexDeck,
   Swarm: buildSwarmDeck,
@@ -66,6 +74,36 @@ function neutralActivity(state: GameState, pid: PlayerId): { played: Set<string>
     if (card.abilities.length === 0 && card.type === "Unit") bump(name);
   }
   return { played, landed };
+}
+
+if (PROBE) {
+  console.log("AI-TCG neutral pool probe: Null's own 36 cards + one neutral card's full set, vs each shipped deck");
+  console.log(`LookaheadAgent vs LookaheadAgent, ${seeds} seeds per opponent, seeding identical to lookaheadEdgeCheck.ts.`);
+  console.log("");
+  const own = NULL_CARDS.filter((p) => p.card.faction === "Null");
+  for (const card of NEUTRAL_POOL) {
+    const copies = card.rarity === "Rare" ? 2 : 3;
+    const pool = [...own, { card, copies }];
+    let games = 0, played = 0, landed = 0, wins = 0;
+    for (const opp of FACTIONS.filter((f) => f !== "Null")) {
+      for (let seed = 1; seed <= seeds; seed++) {
+        const oppFirst = seed % 2 === 1; // every other faction sits before Null in FACTIONS order
+        const nul = new LookaheadAgent("Lookahead-Null", seed * 104729 + 31);
+        const other = new LookaheadAgent(`Lookahead-${opp}`, seed * 104729 + 31);
+        const { state } = oppFirst
+          ? await runMatch(builders[opp]("p1", opp), buildDeck("p2", "Null probe", pool), other, nul, seed)
+          : await runMatch(buildDeck("p1", "Null probe", pool), builders[opp]("p2", opp), nul, other, seed);
+        const pid: PlayerId = oppFirst ? "p2" : "p1";
+        games++;
+        if (state.winner === pid) wins++;
+        const a = neutralActivity(state, pid);
+        if (a.played.has(card.name)) played++;
+        landed += a.landed.get(card.name) ?? 0;
+      }
+    }
+    console.log(`  ${card.name.padEnd(16)} x${copies}: played in ${String(played).padStart(3)} of ${games} games, landed ${String(landed).padStart(4)} times, Null won ${((wins / games) * 100).toFixed(1)}%`);
+  }
+  process.exit(0);
 }
 
 let showcase: { label: string; state: GameState; names: string[] } | undefined;

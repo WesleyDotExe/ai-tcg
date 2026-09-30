@@ -70,8 +70,9 @@ test("the neutral lint refuses faction identity: removal, Mythic, signature keyw
 test("hybrid decks: one faction plus neutral cards, capped at MAX_NEUTRAL_COPIES", () => {
   const cortexMinus = (n: number) => {
     // Take n copies off Cortex's list (from the most-copied cards) to make room.
-    const pool = CORTEX_CARDS.map((p) => ({ ...p }));
-    let left = n;
+    // Cortex's own cards only, trimmed to 40 - n.
+    const pool = CORTEX_CARDS.filter((p) => p.card.faction === "Cortex").map((p) => ({ ...p }));
+    let left = pool.reduce((sum, p) => sum + p.copies, 0) - (40 - n);
     for (const p of pool) while (left > 0 && p.copies > 1) (p.copies--, left--);
     return pool;
   };

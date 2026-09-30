@@ -192,10 +192,19 @@ building around them; don't block the whole project waiting.
    plays ~7.5% -> ~10%. Null is still the weakest faction. Also added CI band
    verdicts (`engine/src/dev/edgeMeasure.ts`).
    `progress/balance-report-017-null-trim.txt`.
-   **Remaining before the hard gate: the neutral pool (item 10), then the
-   mandatory full-ring re-measure at 900+ seeds (see notes-for-owner.md on
-   running its Lookahead side at ~2,500 seeds so the CI rule can confirm
-   5-point bands).**
+   **Session 24 did the neutral pool** (step ii): 10 neutral utility cards
+   (`engine/src/data/neutralCards.ts`), a load-time "utility, not identity"
+   lint, and hybrid decks (one faction + at most 10 neutral copies).
+   Packages were chosen by a measured search and kept only on held-out
+   improvement. Cortex and Null run one, Swarm and Aegis don't. Also a
+   LookaheadAgent fix: heals and energy are valued only as far as the
+   resolver delivers them. Cortex had been burning energy on no-op
+   repairs. Ring after: only Aegis-over-Null is OUT at 900 seeds (52.2%
+   Aegis, was 60.4%). `progress/balance-report-018-neutral-pool.txt`.
+   **Remaining before the hard gate: nothing. Next balance session runs the
+   mandatory full-ring re-measure: 900 seeds for the even bands, ~2,500
+   for the 5-point win/lose bands (owner-feedback 2026-09-29 item 2), with
+   Lookahead as arbiter and a checkpoint.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

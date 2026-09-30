@@ -131,17 +131,19 @@ test("Garbage Collector's activated ability spends 2 energy to heal a damaged al
   expect(again, "with 1 energy the 2-cost ability must not be offered").toHaveLength(0);
 });
 
-test("Null pool builds a legal 36-card deck at 20 unique cards after the 2026-09-28 consistency trim", () => {
+test("Null's own cards: 36 copies of 20 unique cards after the 2026-09-28 consistency trim", () => {
   const deck = buildNullDeck("p1", "Null Test Deck");
-  expect(deck.cards.length, "the trim takes Null from 40 back to 36").toBe(36);
-  const uniqueCount = new Set(NULL_CARDS.map((p) => p.card.id)).size;
+  const own = NULL_CARDS.filter((p) => p.card.faction === "Null");
+  expect(own.reduce((n, p) => n + p.copies, 0), "the trim takes Null's own cards from 40 back to 36").toBe(36);
+  expect(deck.cards.length, "the 2026-09-30 neutral package adds 4, cutting nothing").toBe(40);
+  const uniqueCount = new Set(own.map((p) => p.card.id)).size;
   expect(uniqueCount, "the trim cuts copies, not cards: all 20 unique cards stay").toBe(20);
   expect(
     NULL_CARDS.find((p) => p.card.name === "Kernel Panic")?.copies,
     "Kernel Panic is protected by the trim (its visibility is part of the reason for it)",
   ).toBe(2);
-  // Every trim cut was non-removal, so density rose from 9/40 back to the
-  // lint's cap exactly. At the cap still passes (the lint fails only over it).
+  // Every trim cut was non-removal, so density rose back to the cap (9/36);
+  // the neutral package brings it to 9/40.
   const removal = NULL_CARDS.filter((p) => isRemovalOrDebuffCard(p.card)).reduce((s, p) => s + p.copies, 0);
   expect(removal / deck.cards.length).toBeLessThanOrEqual(0.25);
 });

@@ -1,5 +1,58 @@
 # Notes for the owner
 
+**Updated 2026-09-30, session 24 (Phase 5 step ii: the neutral pool).**
+Nothing is blocking. Full numbers: `progress/balance-report-018-neutral-pool.txt`.
+
+1. **Shipped: a 10-card neutral pool, plus hybrid decks** (one faction + at
+   most 10 neutral copies). "Utility, not identity" is a load-time check. A
+   neutral card can't be removal, Mythic, Guard/Barrier/Rush, an evolution
+   or telegraph, a summon, a static/aura, or faction-conditional. A faction's
+   clock and card flow must come from its own cards. **Decisions you may
+   want to overrule:** the 10-copy cap, and the exact list of what counts as
+   identity.
+2. **Who runs what.** Each package was picked by a measured search toward
+   the ring bands and shipped only if it also helped on 2,500 held-out
+   seeds.
+   - Cortex: -Signal Drone, -Overclock Shunt; +Rollback Point, +Surge
+     Protector.
+   - Null: +3 Commodity Rack, +1 Rollback Point. That's add-only, 36 -> 40,
+     with nothing cut, per your 2026-09-29 item 1. The first search did cut
+     Null copies, and I threw that run away.
+   - Swarm and Aegis run none.
+3. **A LookaheadAgent bug moved the ring more than the new cards did.** It
+   valued heals at their printed amount even at full health. Cortex Engineer
+   "repaired" 1,231 times in 200 games and healed something 66 times, which
+   burned the energy Cortex should have held. It's fixed, and all repairs
+   now heal. On the fixed agent Cortex is ~3-6 points stronger on every edge
+   (vs Null: 58.9 -> 65.7 before the neutral packages). This bears directly
+   on your note-3 question: the arbiter can misplay a card badly enough to
+   move an edge 6 points. I haven't checked Null's removal cards for the
+   same thing yet.
+4. **Ring now** (Lookahead, 900 seeds). Only Aegis over Null is OUT: 52.2%
+   Aegis, target 40-45, down from 60.4%. Everything else is UNRESOLVED, and
+   no edge is confirmed out apart from that one. Null's mean went 40.8 ->
+   44.1. Cortex vs Null is 58.1% Cortex, CI 54.9-61.3.
+5. **Two things you might not like:**
+   - **Commodity Rack** (a vanilla 3/3 for 3) is the neutral card that wins.
+     In a probe it hits 48% vs 34-42% for every utility card. Either it's
+     over-rate, or the agent prefers stats to card draw. If you want neutral
+     to mean "utility", the fix is a weaker Rack (2/3 or 3/2), then a
+     re-search.
+   - **Kernel Panic** now shows in 7.1% of Null games (was 9.9%), because
+     the deck is 40 again. Your call: +3-4 points per Null edge vs arc
+     visibility.
+6. **Self-containment (your 2026-09-30 entry) is done.** There is a
+   provenance line, a hardcoded parity fixture test, and no external calls.
+   **One thing only you can supply:** the claude-tools commit hash the
+   statistics were ported from. That repo is outside this build's reach, so
+   the line in `engine/src/dev/edgeMeasure.ts` says "source commit not
+   recorded". Paste the hash there, or say where to find it.
+7. **Next balance session is the Phase 5 gate.** It runs at 900 seeds for
+   the even bands and ~2,500 for the narrow bands, per your 2026-09-29 item
+   2.
+
+---
+
 **Updated 2026-09-28, session 23 (the Null consistency trim, 40 -> 36).**
 Nothing is blocking. Full numbers: `progress/balance-report-017-null-trim.txt`.
 
