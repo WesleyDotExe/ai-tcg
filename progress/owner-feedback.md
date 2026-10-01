@@ -1157,7 +1157,7 @@ Confirmed: slice 4 needs no engine change (reads stack-item id + combat attacker
 
 ---
 
-## 2026-09-29 — Owner: session 23 (Null consistency trim 40 -> 36) — hold variant B, bump narrow-band gate to ~2,500 seeds (ACKNOWLEDGED session 24 — item 1 followed, note 3 still open; item 2 applies at the gate)
+## 2026-09-29 — Owner: session 23 (Null consistency trim 40 -> 36) — hold variant B, bump narrow-band gate to ~2,500 seeds (ACKNOWLEDGED session 24 — item 1 followed; note 3 settled session 25, see the 2026-10-01 entry; item 2 applies at the gate)
 
 Reviewed Session 23 (Null trim: Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1; all 20 unique cards kept, Kernel Panic stays at 2 and now shows in ~10% of Null games; +3.5-4 pts/edge; CI band verdicts now built into lookaheadEdgeCheck.ts). Two decisions:
 
@@ -1208,7 +1208,7 @@ network. The session-23 "live call still open" item is closed in quality-debt.md
 
 ---
 
-## 2026-10-01 — Owner: drop the claude-tools provenance reference entirely — AI TCG carries NO mention of claude-tools
+## 2026-10-01 — Owner: drop the claude-tools provenance reference entirely — AI TCG carries NO mention of claude-tools (HANDLED 2026-10-01, session 25)
 
 Follow-up to the 2026-09-30 self-containment directive. Decision: remove the provenance/attribution reference to claude-tools from AI TCG completely. Do NOT record the source commit hash; delete the provenance line instead.
 
@@ -1218,10 +1218,16 @@ Follow-up to the 2026-09-30 self-containment directive. Decision: remove the pro
 
 Apply this when Session 24 (the neutral-pool branch) is merged or continued — the provenance line was added on that branch, not on main.
 
+**Handled, session 25 (2026-10-01).** The provenance comment in `engine/src/dev/edgeMeasure.ts`
+is gone. Its header now just says the statistics live there with no external dependency. The
+statistics and the hardcoded parity test are unchanged. The other mentions were in progress
+files (notes-for-owner, quality-debt, balance-report-017, log), and they're removed too. A repo
+grep now finds the name only in this file, in your own entries, which I left as written.
+
 
 ---
 
-## 2026-10-01 — Owner: session 24 (neutral pool) remaining decisions
+## 2026-10-01 — Owner: session 24 (neutral pool) remaining decisions (HANDLED 2026-10-01, session 25 — items 1, 3, 4 done; item 2 acknowledged; item 5 is the next balance session)
 
 Responses to the open Session-24 notes (neutral pool + hybrid decks + agent heal-bug fix). Note: this work is still on the unmerged WIP branch — apply these when it is merged or continued.
 
@@ -1236,3 +1242,25 @@ Responses to the open Session-24 notes (neutral pool + hybrid decks + agent heal
 5. **Then the Phase 5 gate**, at 900 seeds for even bands and ~2,500 for the narrow win/lose bands (per 2026-09-29). The only edge currently confirmed OUT is Aegis-over-Null; the Quorum Arbiter lever for Cortex-vs-Null stays available at the gate if that edge is still out after the agent fix.
 
 Roadmap order stands: finish/merge session 24 (neutral pool) with the above applied -> Null card-vs-agent check -> Phase 5 full-ring gate.
+
+**Handled, session 25 (2026-10-01).** Full numbers in `progress/balance-report-019-agent-check.txt`.
+- Item 1: agent first. `dev/cardAdvantageCheck.ts` played LookaheadAgent with card-draw weight W
+  against the shipped 1.5, 16,000 games per weight. No weight beat 1.5, and 4.5 and 6 were
+  measurably worse. Draw cards didn't improve in the probe at 4.5. So the agent doesn't
+  under-value card advantage. Rack was still top on the fixed agent (45.9% vs 36-42%), so it's
+  now 3/2 (41.3%, level with Rollback Point and Scrap Recycler). Re-searched all four factions.
+  Null drops its package (no neutral card helps it now). Aegis takes -1 Salvage Reflex +1 Uplink
+  Tower. Cortex keeps its package; Swarm runs none. Side effect: Null lost ~4-6 points per edge,
+  mostly from the nerf, since it ran 3 Racks. It's flagged in notes-for-owner.md item 1.
+- Item 2: acknowledged. Null is back at 36 cards (the package was dropped), so Kernel Panic's
+  density is back up, but that wasn't the aim.
+- Item 3: kept as shipped.
+- Item 4: `dev/nullCardPlayCheck.ts` + `dev/nullCardAblation.ts`. Bit Rot was an agent misplay
+  (222/240 casts did nothing; +2.7 to cut on the old agent, -0.5 on the fixed one). Decay Ward's
+  host was a coin flip; that's fixed, but the card's measured cost barely moved. Watchdog Timer is
+  a weak card, not misplayed (+1.9 to cut on the fixed agent, CI excludes 0). It wasn't touched;
+  a candidate buff is in notes-for-owner.md. Null Pointer is situational: it's stranded in hand
+  in 270/900 games with no directive to hit. Two agent fixes shipped: this-turn buffs are valued
+  by the fight they change, and Tools pick their host.
+- Item 5: next balance session. Under the alternation rule the next session is render.
+

@@ -6,6 +6,7 @@ import { otherPlayer } from "../state/types.js";
 import type { Ability, EffectSpec, ScalingContext, ScalingSource, StaticEffectSpec, TargetFilter, TargetSpec } from "../cards/types.js";
 import { resolveAmount } from "../cards/types.js";
 import { Rng } from "../state/rng.js";
+import { hasKeyword } from "../state/queries.js";
 
 const FACE_DAMAGE_WEIGHT = 2;
 const CARD_ADVANTAGE_WEIGHT = 1.5;
@@ -13,6 +14,8 @@ const ENERGY_WEIGHT = 0.4;
 /** Expected number of times a Directive's recurring turn trigger fires
  * before the match ends or the Directive is removed — see scorePlayCard. */
 const DIRECTIVE_TURN_TRIGGER_HORIZON = 2;
+/** How much a Tool prefers a more valuable host — see scorePlayCard. */
+const TOOL_HOST_WEIGHT = 0.1;
 
 /** Dummy agent #3 (2026-09-20 owner feedback, "fix the instrument before any
  * further balance change"): the other two dummy agents both value a move by
@@ -61,10 +64,15 @@ const DIRECTIVE_TURN_TRIGGER_HORIZON = 2;
 export class LookaheadAgent implements Agent {
   name: string;
   private rng: Rng;
+  private cardAdvantageWeight: number;
 
-  constructor(name: string, seed: number) {
+  /** `opts.cardAdvantageWeight` overrides CARD_ADVANTAGE_WEIGHT, for
+   * instrument checks only (dev/cardAdvantageCheck.ts plays one weight
+   * against another). Every balance measurement uses the default. */
+  constructor(name: string, seed: number, opts: { cardAdvantageWeight?: number } = {}) {
     this.name = name;
     this.rng = new Rng(seed);
+    this.cardAdvantageWeight = opts.cardAdvantageWeight ?? CARD_ADVANTAGE_WEIGHT;
   }
 
   decideMove(view: PlayerView, legalMoves: Move[]): Move {
@@ -107,17 +115,7 @@ export class LookaheadAgent implements Agent {
 
     const defender = view.opponent.board.find((u) => u.instanceId === attackTarget.instanceId);
     if (!defender) return -Infinity;
-    const defenderHealth = approxHealth(defender);
-    const defenderAtk = approxAttack(defender);
-    const attackerHealth = approxHealth(attacker);
-
-    // Combat is mutual (see engine.ts's resolveCombatDamage): the defender
-    // hits back for its own attack power if it's still standing — even a
-    // defender that's about to die deals its return hit first, since death
-    // processing is deferred until after both sides have applied damage.
-    let value = atk >= defenderHealth ? unitValue(defender) : atk;
-    if (defenderAtk >= attackerHealth) value -= unitValue(attacker);
-    return value;
+    return exchangeValue(fighter(attacker), fighter(defender));
   }
 
   private scorePlayCard(view: PlayerView, move: Extract<Move, { type: "playCard" }>): number {
@@ -126,7 +124,17 @@ export class LookaheadAgent implements Agent {
     let value = -card.cost * ENERGY_WEIGHT;
 
     if (card.type === "Tool") {
-      value += card.attackBonus + card.healthBonus + card.grantedKeywords.length * 1.5;
+      // The host matters (Null card-vs-agent check, session 25): scoring
+      // the card alone tied every host, so Decay Ward went on a random
+      // unit, below the best unprotected one in 112 of 206 casts. A granted
+      // Barrier on a host that already has one does nothing (the engine
+      // doesn't stack it), and a bonus is worth a little more on a unit
+      // that matters more, a named tie-breaker weight.
+      const t = move.target;
+      const host = t?.kind === "unit" ? view.me.board.find((u) => u.instanceId === t.instanceId) : undefined;
+      const keywords = card.grantedKeywords.filter((k) => !(k === "Barrier" && host?.statuses.some((st) => st.kind === "Barrier")));
+      value += card.attackBonus + card.healthBonus + keywords.length * 1.5;
+      if (host) value += unitValue(host) * TOOL_HOST_WEIGHT;
       return value;
     }
 
@@ -195,7 +203,7 @@ export class LookaheadAgent implements Agent {
     // A Command that would do nothing still spends the card. With a cost
     // this was already below passing; a 0-cost one (Burst Credit into a
     // full pool) tied with passing and was cast on a coin flip.
-    if (effectValue <= 0) return value - CARD_ADVANTAGE_WEIGHT;
+    if (effectValue <= 0) return value - this.cardAdvantageWeight;
     return value + effectValue;
   }
 
@@ -328,7 +336,7 @@ export class LookaheadAgent implements Agent {
   private effectValueOverTargets(view: PlayerView, effect: EffectSpec, targets: TargetRef[]): number {
     switch (effect.kind) {
       case "drawCard":
-        return effect.count * CARD_ADVANTAGE_WEIGHT;
+        return effect.count * this.cardAdvantageWeight;
       case "gainEnergy":
         // Same cap as the resolver: energy never rises above maxEnergy, so
         // only the spent room is worth anything (neutral pool slice: Burst
@@ -418,9 +426,9 @@ export class LookaheadAgent implements Agent {
         if (target.kind !== "unit") return 0;
         const found = this.findUnit(view, target.instanceId);
         if (!found.unit) return 0;
+        if (effect.duration === "turn") return this.estimateTurnBuff(view, effect, found.unit, found.mine);
         const magnitude = effect.attack + effect.health;
-        const durationScale = effect.duration === "permanent" ? 1 : 0.4;
-        return (found.mine ? magnitude : -magnitude) * durationScale;
+        return found.mine ? magnitude : -magnitude;
       }
       case "destroy": {
         if (target.kind === "unit") {
@@ -465,6 +473,74 @@ export class LookaheadAgent implements Agent {
         return prevented * 1.2;
       }
     }
+  }
+
+  /** A buff or debuff that wears off at end of turn is only worth the
+   * fight it changes this turn. Before session 25 it was scored as 40% of
+   * its printed size wherever it landed, so the agent cast Bit Rot (-3/-0
+   * this turn) on a unit that never fought in 222 of 240 casts (Null
+   * card-vs-agent check, dev/nullCardPlayCheck.ts).
+   *   - If combat damage involving the unit is on the stack (an attack was
+   *     declared and the response window is open), the value is how much
+   *     the buff changes that exchange. A response resolves before the
+   *     damage, and the damage is recomputed live, so this is exact up to
+   *     the usual approximations (armor and Barrier aren't modelled).
+   *   - Otherwise, on its controller's own turn, the value is how much it
+   *     improves the best attack that unit could make (own unit) or the
+   *     best attack any of my units could make into it (enemy
+   *     unit). Pre-combat pumps like Rally Cry live here.
+   *   - Otherwise (the opponent's turn, no fight pending for it) it is
+   *     worth nothing: it expires before anything uses it. */
+  private estimateTurnBuff(
+    view: PlayerView,
+    effect: Extract<EffectSpec, { kind: "buff" }>,
+    unit: UnitInstance,
+    mine: boolean,
+  ): number {
+    const buffed = (u: UnitInstance): Fighter => {
+      const f = fighter(u);
+      if (u.instanceId !== unit.instanceId) return f;
+      return { atk: Math.max(0, f.atk + effect.attack), health: f.health + effect.health, value: f.value };
+    };
+    const combat = view.stack.find(
+      (s): s is Extract<StackItem, { kind: "combatDamage" }> =>
+        s.kind === "combatDamage" &&
+        (s.attackerInstanceId === unit.instanceId || (s.target.kind === "unit" && s.target.instanceId === unit.instanceId)),
+    );
+    if (combat) {
+      const attacker = this.findUnit(view, combat.attackerInstanceId);
+      if (!attacker.unit) return 0;
+      const sign = attacker.mine ? 1 : -1;
+      if (combat.target.kind === "player") {
+        const before = fighter(attacker.unit).atk;
+        const after = buffed(attacker.unit).atk;
+        return (after - before) * FACE_DAMAGE_WEIGHT * sign;
+      }
+      const defender = this.findUnit(view, combat.target.instanceId).unit;
+      if (!defender) return 0;
+      const before = exchangeValue(fighter(attacker.unit), fighter(defender));
+      const after = exchangeValue(buffed(attacker.unit), buffed(defender));
+      return (after - before) * sign;
+    }
+    if (view.activePlayer !== view.self || view.stack.length > 0) return 0;
+    const targets = attackableEnemies(view);
+    if (!mine && !targets.units.some((u) => u.instanceId === unit.instanceId)) return 0;
+    // An attacker's best attack (0 = don't attack), with every stat seen
+    // through `stats` so the same scan prices the board with and without
+    // the buff.
+    const bestAttack = (a: UnitInstance, stats: (u: UnitInstance) => Fighter) =>
+      Math.max(
+        0,
+        targets.face ? stats(a).atk * FACE_DAMAGE_WEIGHT : -Infinity,
+        ...targets.units.map((d) => exchangeValue(stats(a), stats(d))),
+      );
+    const attackers = mine ? [unit] : view.me.board;
+    let gain = 0;
+    for (const a of attackers) {
+      if (!canAttackNow(a, view.turnNumber)) continue;
+      gain = Math.max(gain, bestAttack(a, buffed) - bestAttack(a, fighter));
+    }
+    return gain;
   }
 
   private estimateStaticEffect(view: PlayerView, staticEffect: StaticEffectSpec): number {
@@ -554,4 +630,39 @@ function approxAttack(unit: UnitInstance): number {
 
 function unitValue(unit: UnitInstance): number {
   return approxAttack(unit) + approxHealth(unit);
+}
+
+interface Fighter {
+  atk: number;
+  health: number;
+  value: number;
+}
+
+function fighter(unit: UnitInstance): Fighter {
+  return { atk: approxAttack(unit), health: approxHealth(unit), value: unitValue(unit) };
+}
+
+/** One attack's value to the attacker. Combat is mutual (see engine.ts's
+ * resolveCombatDamage): the defender hits back for its own attack power if
+ * it's still standing — even a defender that's about to die deals its
+ * return hit first, since death processing is deferred until after both
+ * sides have applied damage. */
+function exchangeValue(attacker: Fighter, defender: Fighter): number {
+  let value = attacker.atk >= defender.health ? defender.value : attacker.atk;
+  if (defender.atk >= attacker.health) value -= attacker.value;
+  return value;
+}
+
+/** Mirrors moves.ts's pushAttackMoves, from public instance fields. */
+function canAttackNow(unit: UnitInstance, turnNumber: number): boolean {
+  if (unit.pending || unit.hasAttackedThisTurn) return false;
+  if (unit.statuses.some((s) => s.kind === "Stasis")) return false;
+  return unit.enteredTurn < turnNumber || hasKeyword(unit, "Rush");
+}
+
+/** What my attacks may legally hit: Guard units only, if the opponent has
+ * any armed ones, else every enemy unit and the opponent's face. */
+function attackableEnemies(view: PlayerView): { units: UnitInstance[]; face: boolean } {
+  const guards = view.opponent.board.filter((u) => !u.pending && hasKeyword(u, "Guard"));
+  return guards.length > 0 ? { units: guards, face: false } : { units: view.opponent.board, face: true };
 }

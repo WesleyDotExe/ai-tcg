@@ -15,7 +15,7 @@
 //
 // Method:
 //   1. Ablation: replace one copy of each faction card with a plain neutral
-//      body (Commodity Rack, a vanilla 3/3) and score the objective. A bare
+//      body (Commodity Rack, a vanilla 3/2) and score the objective. A bare
 //      removal would do, except that it breaks the 25% removal cap for a
 //      deck sitting on it (Null), so the probe keeps the deck size. The
 //      CUT_POOL copies whose loss costs least are the swap-out options.
@@ -36,11 +36,17 @@
 // Null cuts until "weak card" is separated from "the agent misplays it"
 // (owner-feedback 2026-09-29, item 1), and Null's deck is at 36.
 //
+// --strip-neutral: the search starts from the shipped deck with its neutral
+// cards taken out, so a package chosen under an older agent or an older card
+// is re-chosen rather than inherited (session 25: re-search after the agent
+// fixes and the Commodity Rack nerf). The held-out comparison is still
+// against the shipped deck as it stands, package included.
+//
 // Ship rule: the package ships only if the held-out objective is lower than
 // the shipped deck's, not just the search-seed objective (greedy picks on
 // 900 seeds carry selection bias).
 //
-// Usage: npx tsx src/dev/neutralPackageSearch.ts <Faction> [searchSeeds=900] [heldOutSeeds=2500] [maxSwaps=4] [--add-only]
+// Usage: npx tsx src/dev/neutralPackageSearch.ts <Faction> [searchSeeds=900] [heldOutSeeds=2500] [maxSwaps=4] [--add-only] [--strip-neutral]
 
 import { buildDeck } from "../data/decks.js";
 import { NEUTRAL_POOL } from "../data/neutralCards.js";
@@ -50,6 +56,7 @@ import type { DeckFaction } from "../cards/types.js";
 const flags = process.argv.slice(2).filter((a) => a.startsWith("--"));
 const args = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const ADD_ONLY = flags.includes("--add-only");
+const STRIP_NEUTRAL = flags.includes("--strip-neutral");
 const faction = args[0] as DeckFaction;
 if (!FACTIONS.includes(faction)) {
   console.error(`Usage: neutralPackageSearch.ts <${FACTIONS.join("|")}> [searchSeeds] [heldOutSeeds] [maxSwaps]`);
@@ -109,11 +116,12 @@ const fmt = (s: Score) => `obj ${(s.objective * 1e4).toFixed(1)} mean ${pct(s.me
 const opponents = FACTIONS.filter((f) => f !== faction);
 
 const shipped = shippedPool(faction);
-let pool: Pool = shipped.map((p) => ({ ...p }));
+let pool: Pool = shipped.filter((p) => !STRIP_NEUTRAL || p.card.faction !== "Neutral").map((p) => ({ ...p }));
 let current = await score(pool, 1, SEARCH_SEEDS);
 console.log(`${faction}: neutral package search, seeds 1-${SEARCH_SEEDS}, edges vs ${opponents.join(" / ")}`);
 console.log(`Objective = sum over edges of (distance to band)^2, x1e4. Guard: mean may drop at most ${pct(MAX_MEAN_DROP)} pts.`);
-console.log(`Shipped deck: ${fmt(current)}`);
+if (STRIP_NEUTRAL) console.log(`Shipped deck: ${fmt(await score(shipped, 1, SEARCH_SEEDS))}`);
+console.log(`${STRIP_NEUTRAL ? "Start (shipped deck minus its neutral cards)" : "Shipped deck"}: ${fmt(current)}`);
 
 let cutOptions: string[] = [];
 if (!ADD_ONLY) {

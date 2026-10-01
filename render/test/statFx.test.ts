@@ -226,11 +226,14 @@ describe("real matches (engine event log is the referee)", () => {
 });
 
 describe("owner's render note (2026-09-26): a negative 'grant' is a sink, never a rise", () => {
-  // The exact replay the owner watched: render/output/aegis-vs-aegis-seed1.html,
+  // The replay the owner watched: render/output/aegis-vs-aegis-seed1.html,
   // same decks, agents and seeds as the CLI. Feedback Plating's onDamaged
   // sap goes through the engine's `buff` event with a negative value
-  // ("grants Aegis Cadet +-1/+0") at moves 29 and 40.
-  it("moves 29 and 40 classify every affected unit as a penalty, and the multi-unit sap is spectacle", async () => {
+  // ("grants Aegis Cadet +-1/+0"). When the owner watched it, the multi-unit
+  // saps were moves 29 and 40; agent and deck changes since (session 25)
+  // move them, so the test finds every such move in the replay instead of
+  // pinning move numbers.
+  it("every multi-unit Feedback Plating sap classifies each affected unit as a penalty, and is spectacle", async () => {
     const { LookaheadAgent } = await import("../src/engineInternal.js");
     const replay = await captureMatch({
       title: "aegis mirror", seed: 1,
@@ -238,11 +241,13 @@ describe("owner's render note (2026-09-26): a negative 'grant' is a sink, never 
       agentA: new LookaheadAgent("Lookahead-Aegis-A", 3), agentB: new LookaheadAgent("Lookahead-Aegis-B", 4),
       boardSlots: BOARD_SLOTS,
     });
-    for (const move of [29, 40]) {
+    const saps = (move: number) =>
+      replay.frames[move]!.newEvents.map((e) => e.event).filter((e) => e.type === "buff" && e.source === "Feedback Plating" && e.attack < 0);
+    const moves = replay.frames.map((_, i) => i).filter((i) => i > 0 && saps(i).length >= 3);
+    expect(moves.length, "the replay should contain at least one sap hitting 3+ units").toBeGreaterThanOrEqual(1);
+    for (const move of moves) {
       const prev = replay.frames[move - 1]!;
       const next = replay.frames[move]!;
-      const grants = next.newEvents.map((e) => e.event).filter((e) => e.type === "buff" && e.source === "Feedback Plating" && e.attack < 0);
-      expect(grants.length).toBeGreaterThanOrEqual(3);
       const prevUnits = new Map([...prev.players.p1.board, ...prev.players.p2.board].map((u) => [u.instanceId, u]));
       const kinds = [...next.players.p1.board, ...next.players.p2.board]
         .filter((u) => prevUnits.has(u.instanceId))

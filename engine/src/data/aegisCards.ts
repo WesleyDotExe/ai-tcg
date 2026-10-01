@@ -19,6 +19,7 @@
 // only; no reproduction of existing TCGs' card identities or keyword text.
 
 import type { CommandCard, DirectiveCard, ToolCard, UnitCard } from "../cards/types.js";
+import { uplinkTower } from "./neutralCards.js";
 
 // --- Evolution line: Cadet -> Sentinel -> Warden ---------------------------
 
@@ -671,6 +672,11 @@ export const AEGIS_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolC
   // of headroom the trims above freed, keeping the deck at its 40-card cap.
   { card: bulwarkChassis, copies: 3 },
   { card: reinforcedBastion, copies: 2 },
-  { card: salvageReflex, copies: 2 },
+  // -1 Salvage Reflex, +1 Uplink Tower (session 25): the neutral package
+  // search's pick on the fixed agent, kept because its 2,500-seed held-out
+  // ring objective improved (243 -> 234; balance-report-019). Every per-edge
+  // change is inside noise.
+  { card: salvageReflex, copies: 1 },
   { card: aegisLineTrooper, copies: 2 },
+  { card: uplinkTower, copies: 1 },
 ];

@@ -89,9 +89,7 @@ Noise, measured:
 engine/src/dev/edgeMeasure.ts: a shared Lookahead edge loop (lookaheadEdgeCheck.ts and
 nullTrimSearch.ts both use it; seeds 1-300 still reproduce balanceReport's Lookahead section),
 plus Wilson intervals, Newcombe difference intervals, the ring band table, and the owner's band
-verdict (OUT only when the CI misses the band, IN only when the CI sits inside it). This is a
-local port of claude-tools' compare_two_proportions method. No claude-tools MCP server is
-reachable from this session, so the live call the owner named as the target is still open.
+verdict (OUT only when the CI misses the band, IN only when the CI sits inside it).
 Tests: engine/test/edgeMeasure.test.ts checks the Wilson and Newcombe numbers against
 Newcombe (1998)'s published examples.
 

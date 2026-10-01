@@ -56,6 +56,8 @@ test("Aegis pool still builds a legal deck (lint + copy limits + size) after Pha
   expect(deck.cards.length).toBe(40);
   const totalCopies = AEGIS_CARDS.reduce((sum, p) => sum + p.copies, 0);
   expect(totalCopies).toBe(40);
-  const uniqueCount = new Set(AEGIS_CARDS.map((p) => p.card.id)).size;
+  // Aegis's own cards only: the neutral package (Uplink Tower, session 25)
+  // is not part of the faction's pool.
+  const uniqueCount = new Set(AEGIS_CARDS.filter((p) => p.card.faction === "Aegis").map((p) => p.card.id)).size;
   expect(uniqueCount, "Phase 5 slice 1 should have grown the pool from 18 to 22 unique cards").toBe(22);
 });

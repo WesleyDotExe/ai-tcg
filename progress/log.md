@@ -2287,8 +2287,7 @@ pick. Deck list order changes the shuffle, so the search rebuilds the
 pre-trim deck in its original order.
 
 **Also built:** `edgeMeasure.ts`, with Wilson/Newcombe intervals and the
-owner's CI band rule. It's the interim port of the claude-tools method (no
-claude-tools server was reachable). It's tested against published values and
+owner's CI band rule. It's tested against published values and
 wired into `lookaheadEdgeCheck.ts`. Finding: at 900 seeds the CI is wider
 than a 5-point band, so those bands can never come back IN. This matters for
 the gate design and is flagged to the owner.
@@ -2345,3 +2344,46 @@ is the standout, 48% in the probe vs 34-42% for the utility cards. Kernel Panic'
 games fell from 9.9% to 7.1% with the 40-card deck. Power Reserve is weakest (34%); the agent
 never holds energy for it to matter. **Blocked:** nothing. `npm test` 285/285, `tsc` clean in
 all five. Next: render slice, then the Phase 5 gate.
+
+## 2026-10-01 — Session 25 (owner follow-ups: Rack, the Null card-vs-agent check, claude-tools)
+
+Balance session, by the owner's 2026-10-01 entry ("next session priority: the Null card-vs-agent
+check"), even though the last merged PR (#33) was also balance. Owner feedback first. Two
+unhandled entries, both now handled.
+
+**claude-tools reference:** removed from `edgeMeasure.ts` and from the progress files. The
+statistics and the parity fixture are unchanged. The only remaining mentions are the owner's own
+words in owner-feedback.md.
+
+**Commodity Rack, agent first:** `dev/cardAdvantageCheck.ts` plays LookaheadAgent(weight W) vs
+LookaheadAgent(1.5) on the shipped decks, every ordered pairing, both seats, 16,000 games per
+weight. Nothing beats 1.5; 4.5 (-1.6) and 6 (-2.5) are measurably worse. Draw cards didn't improve
+in the probe at 4.5. So the agent doesn't under-value card advantage. Rack was still top on the
+fixed agent (45.9% vs 36-42%), so it's now 3/2 (41.3%).
+
+**Null card-vs-agent check:** `dev/nullCardPlayCheck.ts` classifies every cast of Bit Rot,
+Decay Ward, Null Pointer and Watchdog Timer by what it could do there. `dev/nullCardAblation.ts`
+measures each card's worth to Null at 7,500 games, on the old and fixed agents.
+- Bit Rot: 222/240 casts hit a unit that never fought, an agent misplay. Cutting it went from
+  +2.7 (old agent) to -0.5 (fixed).
+- Decay Ward: host choice was random. Fixed, but the card's cost barely moved.
+- Watchdog Timer: weak card (+1.9 to cut on the fixed agent, CI excludes 0). Not touched; it's
+  flagged.
+- Null Pointer: situational. It's stranded with no target in 270/900 games.
+
+**Agent fixes:** this-turn buffs are valued by the fight they change (pending combat, else the
+best attack they improve on your own turn, else 0). Tools pick the best host and don't re-grant
+Barrier. Four new tests.
+
+**Re-search** (`--strip-neutral`, new flag): Null ships its bare 36; Aegis takes -1 Salvage
+Reflex +1 Uplink Tower; Cortex and Swarm are unchanged. All of these passed the held-out rule, and
+all per-edge changes are noise.
+
+**Ran it:** h2h (5 weights x 16,000 games), probes, play checks old/new, ablations old/new, four
+searches, `lookaheadEdgeCheck.ts` x4 at 900 (Null also at 2,500), `balanceReport.ts 900`.
+Ring: three edges OUT, all Null's (40.0 / 38.9 / 41.4). Most of that is the Rack nerf: about -6 /
+-3.5 / -6 on its own. There's no triple-flag. `npm test` 289/289, `tsc` clean in all five. A
+render test that pinned move numbers now finds the moves itself.
+
+**Blocked:** nothing. **Flagged:** Null's weakness after the nerf, and a Watchdog Timer buff
+candidate. Next: render slice, then the Phase 5 gate.
