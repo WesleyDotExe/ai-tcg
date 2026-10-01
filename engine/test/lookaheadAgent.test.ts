@@ -17,6 +17,7 @@ import { buildPlayerView } from "../src/agents/agent.js";
 import { LookaheadAgent } from "../src/agents/lookaheadAgent.js";
 import { aegisSentinel, aegisWarden, interceptRoutine } from "../src/data/aegisCards.js";
 import { cascadePurge, backupProtocol } from "../src/data/cards.js";
+import { bitRot, decayWard } from "../src/data/nullCards.js";
 import { emptyState, putUnit } from "./helpers.js";
 
 test("prefers killing a valuable enemy unit over an equivalent face swing", () => {
@@ -144,4 +145,86 @@ test("plays the Instant when there IS a real pending attack worth redirecting", 
   if (move.type === "playCard") {
     expect(move.target).toEqual({ kind: "unit", instanceId: guardian.instanceId });
   }
+});
+
+// Session 25, the Null card-vs-agent check (dev/nullCardPlayCheck.ts): a
+// this-turn buff/debuff was scored at 40% of its printed size wherever it
+// landed, so Bit Rot was cast on a unit that never fought in 222 of 240
+// casts, and a Tool's host was a coin flip.
+
+const plainUnit = (name: string, attack: number, health: number): UnitCard => ({
+  id: `test-${name}`,
+  name,
+  faction: "Cortex",
+  rarity: "Common",
+  cost: 1,
+  type: "Unit",
+  attack,
+  health,
+  keywords: [],
+  art: "placeholder",
+  flavor: "",
+  abilities: [],
+});
+
+test("holds a this-turn debuff when no fight this turn would use it", () => {
+  const state = emptyState();
+  putUnit(state, "p2", aegisWarden);
+  state.players.p1.hand.push(bitRot);
+  state.players.p1.energy = 1;
+  state.players.p1.maxEnergy = 1;
+
+  const legal = getLegalMoves(state);
+  expect(legal.some((m) => m.type === "playCard"), "Bit Rot has a legal target").toBe(true);
+  const move = new LookaheadAgent("test", 11).decideMove(buildPlayerView(state, "p1"), legal);
+  expect(move.type, "p1 has no attacker, so the shrink wears off unused").toBe("passPriority");
+});
+
+test("casts a this-turn debuff on an attacker in the response window", () => {
+  const state = emptyState();
+  const rng = new Rng(7);
+  const attacker = putUnit(state, "p1", aegisSentinel); // 3/4
+  applyMove(state, { type: "attack", attackerInstanceId: attacker.instanceId, target: { kind: "player", playerId: "p2" } }, rng);
+  applyMove(state, { type: "passPriority" }, rng);
+  state.players.p2.hand.push(bitRot);
+  state.players.p2.energy = 1;
+  state.players.p2.maxEnergy = 1;
+
+  const move = new LookaheadAgent("test", 12).decideMove(buildPlayerView(state, "p2"), getLegalMoves(state));
+  expect(move.type).toBe("playCard");
+  if (move.type === "playCard") expect(move.target).toEqual({ kind: "unit", instanceId: attacker.instanceId });
+});
+
+test("casts a pre-combat debuff that turns a trade into a free kill", () => {
+  const state = emptyState();
+  const mine = putUnit(state, "p1", plainUnit("Test Striker", 3, 4));
+  mine.enteredTurn = -1;
+  // Guard, so the only attack is the even trade (no face swing outscores
+  // the cast).
+  const theirs = putUnit(state, "p2", { ...plainUnit("Test Glass Cannon", 5, 3), keywords: ["Guard"] });
+  state.players.p1.hand.push(bitRot);
+  state.players.p1.energy = 1;
+  state.players.p1.maxEnergy = 1;
+
+  const move = new LookaheadAgent("test", 13).decideMove(buildPlayerView(state, "p1"), getLegalMoves(state));
+  expect(move.type).toBe("playCard");
+  if (move.type === "playCard") expect(move.target).toEqual({ kind: "unit", instanceId: theirs.instanceId });
+});
+
+test("a Barrier tool goes on the most valuable unit that lacks Barrier", () => {
+  const state = emptyState();
+  const small = putUnit(state, "p1", plainUnit("Test Small", 1, 1));
+  const big = putUnit(state, "p1", plainUnit("Test Big", 4, 5));
+  state.players.p1.hand.push(decayWard);
+  state.players.p1.energy = 2;
+  state.players.p1.maxEnergy = 2;
+
+  const first = new LookaheadAgent("test", 14).decideMove(buildPlayerView(state, "p1"), getLegalMoves(state));
+  expect(first.type).toBe("playCard");
+  if (first.type === "playCard") expect(first.target).toEqual({ kind: "unit", instanceId: big.instanceId });
+
+  big.statuses.push({ kind: "Barrier", duration: "untilConsumed" });
+  const second = new LookaheadAgent("test", 14).decideMove(buildPlayerView(state, "p1"), getLegalMoves(state));
+  expect(second.type).toBe("playCard");
+  if (second.type === "playCard") expect(second.target).toEqual({ kind: "unit", instanceId: small.instanceId });
 });

@@ -25,7 +25,6 @@
 // names/flavour only; no reproduction of existing TCGs' card identities.
 
 import type { CommandCard, DirectiveCard, ToolCard, UnitCard } from "../cards/types.js";
-import { commodityRack, rollbackPoint } from "./neutralCards.js";
 
 // --- Evolution line: Glitch Seed -> Corrupted Process -> Kernel Panic -----
 
@@ -776,12 +775,11 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
   { card: bitRot, copies: 1 },
   { card: watchdogTimer, copies: 1 },
   { card: garbageCollector, copies: 2 },
-  // Neutral package (Phase 5 step (ii), 2026-09-30): added, nothing cut, 36 ->
-  // 40. The owner ruled out further Null cuts until "weak card" is separated
-  // from "the agent misplays it" (owner-feedback 2026-09-29), so
-  // dev/neutralPackageSearch.ts ran add-only. Held-out change about +4.3 /
-  // +3.0 / +2.3 vs Cortex / Swarm / Aegis (balance-report-018). Removal
-  // density falls 9/36 -> 9/40.
-  { card: commodityRack, copies: 3 },
-  { card: rollbackPoint, copies: 1 },
+  // No neutral package (session 25). Session 24 added +3 Commodity Rack and
+  // +1 Rollback Point (36 -> 40). Once Commodity Rack was nerfed to 3/2
+  // (owner-feedback 2026-10-01) and the agent's Bit Rot/Tool misplays were
+  // fixed, dev/neutralPackageSearch.ts --add-only --strip-neutral found no
+  // neutral card that helps Null, and on 2,500 held-out seeds the bare 36
+  // scored better on the ring objective than the old package (314 -> 249;
+  // balance-report-019). Every per-edge change is inside noise.
 ];

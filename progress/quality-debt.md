@@ -21,10 +21,49 @@ grown 18 -> 22 unique cards), session 20 (Phase 5 slice 2: Swarm
 pool grown 16 -> 20 unique cards), session 21 (Phase 5 slice 3:
 Null depth/variety pass, 15 -> 20 unique cards), and now session 22 (Phase
 5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards), and now
-session 23 (the Null consistency trim, 40 -> 36), and now session 24 (the
-neutral pool).
+session 23 (the Null consistency trim, 40 -> 36), session 24 (the
+neutral pool), and now session 25 (the owner's agent checks: card
+advantage, Null's cards).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 25
+
+- **Null is the weakest faction by a clear margin:** 40.0 / 38.9 / 41.4
+  under Lookahead (900 seeds), with three edges OUT. The Rack nerf the owner
+  asked for removed Null's best filler, and no neutral card helps it now.
+  The gate will report this, not fix it. Levers left: a Watchdog Timer buff
+  (flagged), or owner direction.
+- **Watchdog Timer is measurably weak** (+1.9 to cut, CI 0.3-3.4), and only
+  36 draws in 900 games. It's protected as an endorsed mechanic, so it
+  stays as a known weak card until the owner rules.
+- **The turn-buff valuation is still one-step.** A pre-combat debuff is
+  valued by the best attack it enables, but the agent may then make a
+  different attack. 8 of ~220 Bit Rot casts were still wasted this way. The
+  greedy agent also attacks face before casting a debuff that would have
+  enabled a better trade (see the lookahead test's Guard setup). Armor and
+  Barrier aren't modelled in `exchangeValue`.
+- **Reflex Spike plays halved** (1,990 -> 1,011 games) now that it's held
+  for real combats. That's correct by the new rule, but nobody has checked
+  that the agent finds every combat where it would help, e.g. defending a
+  unit against a pending effect, which the rule ignores.
+- **The Aegis package (+1 Uplink Tower) shipped on a noise-level held-out
+  improvement** (243 -> 234; every edge within +/-1). The ship rule allows
+  it, but it's churn rather than a measured gain.
+- **Package-search noise is structural.** Every add-only candidate
+  appends to the same deck position, so all candidates share one shuffle
+  permutation that differs from the start deck's. Step-1 comparisons on
+  search seeds mostly measure that shuffle change; only the held-out check
+  guards it. A seed-paired design (shuffle the deck independently of list
+  order) would fix the instrument.
+- **Null Pointer is dead in 270/900 games** (no enemy directive). It's the
+  owner-mandated answer card, so the cost is accepted, but it means Null's
+  deck has 2 slots that often do nothing.
+- **Closed this session:** "Commodity Rack beats every utility card"
+  (nerfed after the agent was cleared), and "Null's removal cards weak or
+  misplayed?" (settled card by card, report 019). The neutral-pool "3 of 10
+  cards in decks" item still stands (now Rollback Point, Surge Protector,
+  Uplink Tower).
 
 ## New debt from session 24
 
@@ -65,12 +104,10 @@ real, but here is where it's thin.
 - **Neutral cards render in the UI gold** (`.faction-Neutral` borrows
   `--neutral`). That's a stopgap so frame and fx tints agree. The render lane
   should give them a palette.
-- **Provenance is incomplete:** the claude-tools commit the statistics were
-  ported from isn't recorded. The parity fixture comes from an independent
-  Python re-implementation, not captured from claude-tools itself.
-- **Closed this session:** the "significance test is a local port, not the
-  live claude-tools call" item below. The owner made the local port
-  permanent (2026-09-30).
+- **The parity fixture comes from an independent Python
+  re-implementation** of the same formulas, not from a second trusted
+  library. (The provenance-line item is closed: session 25 removed the line
+  per owner-feedback 2026-10-01.)
 
 ## New debt from session 23
 
@@ -99,8 +136,6 @@ real, but here is where it's thin.
   Lookahead side, or the owner has to accept UNRESOLVED as a pass. Not decided; flagged.
   balanceReport.ts still reports point estimates vs band, not CI verdicts;
   only lookaheadEdgeCheck.ts has the verdicts.
-- **The significance test is a local port, not the live claude-tools call**
-  the owner named as the target. No claude-tools MCP server was reachable.
 - **Greedy search noise.** Step-to-step estimates carry 1-2 points of noise
   even at 2,700 games per candidate, and deck list order changes the
   shuffle. So a "same deck" re-listed in another order measures differently

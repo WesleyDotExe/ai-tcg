@@ -1,0 +1,891 @@
+AI-TCG balance report 019 — session 25 (2026-10-01): the agent checks the owner asked for
+=========================================================================================
+
+Owner-feedback 2026-10-01 (session 24 decisions), items 1 and 4, in the owner's order:
+  1. Commodity Rack: check whether LookaheadAgent under-values card advantage FIRST; nerf the
+     card to 3/2 only if it is still over-rate on a correctly-valuing agent; then re-search.
+  4. Null card-vs-agent check: are Null's removal/debuff cards (Bit Rot, Null Pointer, Watchdog
+     Timer, Decay Ward) weak, or does the agent misplay them?
+
+HEADLINE
+  - Card advantage: NOT an agent problem. No card-draw weight beats the shipped 1.5 head to head
+    (16,000 games per weight); 4.5 and 6 are measurably WORSE. Draw cards do not improve in the
+    probe at weight 4.5. So Commodity Rack was nerfed 3/3 -> 3/2, as the owner sequenced it.
+  - Null's cards: one real agent misplay, one smaller one, one weak card.
+      Bit Rot   — AGENT MISPLAY. 222 of 240 casts hit a unit that never fought that turn
+                  (the -3/-0 wore off unused). Cutting a copy was worth +2.7 pts to Null on the
+                  old agent (CI excludes 0); on the fixed agent the cut is -0.5 (CI spans 0).
+      Decay Ward — host choice was a coin flip (112/206 casts on a weaker host than available).
+                  Fixed: 258/258 now on the best unprotected unit. Its ablation delta barely
+                  moved (+1.5 -> +1.4, CI spans 0), so the host was not what made it weak.
+      Watchdog Timer — WEAK CARD. Played sensibly (it is cast when nothing better is) but drew
+                  only 36 cards in 900 games. Cutting a copy is still +1.9 on the fixed agent
+                  (CI 0.3 to 3.4). Not cut: owner-protected mechanic; flagged.
+      Null Pointer — situational, not misplayed: always hits the only directive; ended 270 of
+                  900 games stranded in hand with no directive to hit. +1.2 to cut (CI spans 0).
+  - Two LookaheadAgent fixes shipped (both sides of every measurement use them):
+      a. A this-turn buff/debuff is valued by the fight it changes: the pending combat on the
+         stack if there is one, else (own turn) how much it improves the best attack involving
+         that unit, else 0. Affects Bit Rot, Swarm's Reflex Spike and Rally Cry, Cortex's Hotfix.
+      b. A Tool prefers the more valuable host and never re-grants Barrier to a unit that has it.
+  - Re-search on the fixed agent with the 3/2 Rack (--strip-neutral, held-out ship rule):
+      Null: no neutral card helps; the bare 36 ships (held-out objective 314 -> 249).
+      Aegis: -1 Salvage Reflex, +1 Uplink Tower ships (243 -> 234). Per-edge changes are noise.
+      Cortex: keeps its package (re-search fails held-out). Swarm: none (already 0 objective).
+  - Net ring (Lookahead, 900 seeds): Null is now clearly the weakest faction, 40.0 / 38.9 / 41.4
+    vs Cortex / Swarm / Aegis. Three edges OUT, all Null's: Null-vs-Cortex (even band), Aegis
+    over Null, and the same Cortex-over-Null edge from Cortex's side. Most of the drop is the Rack
+    nerf: Null ran 3 Racks, and the nerf alone moved it about -6 / -3.5 / -6 (decomposition
+    below). At 2,500 seeds: 38.3 / 40.4 / 41.6.
+
+DECOMPOSITION OF NULL'S EDGES (Lookahead, seeds 1-900, Null's rate vs Cortex / Swarm / Aegis)
+  session start (report 018)                         41.9 / 42.6 / 47.8
+  + agent fixes (Bit Rot, Tools)                     43.7 / 42.3 / 49.2
+  + Rack 3/3 -> 3/2 (old 40-card package)            37.4 / 38.8 / 43.4   (search's "Shipped deck" line)
+  + Null package dropped, Aegis takes Uplink Tower   40.0 / 38.9 / 41.4   (final)
+
+==============================================================================
+1. CARD-ADVANTAGE HEAD-TO-HEAD (npx tsx src/dev/cardAdvantageCheck.ts h2h 500 0,0.75,3,4.5,6)
+==============================================================================
+AI-TCG card-advantage instrument check: LookaheadAgent(weight W) vs LookaheadAgent(weight 1.5)
+Shipped decks, all 16 ordered faction pairings, 500 seeds each, each seed played with W in both seats.
+Games per weight: 16000. Draws count as non-wins for both sides.
+
+  W=0     W wins 49.9%  1.5 wins 50.1%  diff -0.1 [-1.2, 1.0]  no detectable difference
+         W's win rate by the faction W piloted: Cortex 54.8, Swarm 49.4, Aegis 52.0, Null 43.5
+  W=0.75  W wins 50.0%  1.5 wins 50.0%  diff 0.1 [-1.0, 1.2]  no detectable difference
+         W's win rate by the faction W piloted: Cortex 54.3, Swarm 49.5, Aegis 51.8, Null 44.5
+  W=3     W wins 49.5%  1.5 wins 50.5%  diff -1.0 [-2.1, 0.0]  no detectable difference
+         W's win rate by the faction W piloted: Cortex 53.8, Swarm 49.5, Aegis 50.7, Null 43.9
+  W=4.5   W wins 49.2%  1.5 wins 50.8%  diff -1.6 [-2.7, -0.5]  1.5 BETTER
+         W's win rate by the faction W piloted: Cortex 53.5, Swarm 49.1, Aegis 50.7, Null 43.4
+  W=6     W wins 48.7%  1.5 wins 51.3%  diff -2.5 [-3.6, -1.4]  1.5 BETTER
+         W's win rate by the faction W piloted: Cortex 53.3, Swarm 49.1, Aegis 49.9, Null 42.6
+
+==============================================================================
+2. NEUTRAL PROBE, BEFORE THE AGENT FIXES: weight 1.5 vs weight 4.5 (cardAdvantageCheck.ts probe 300 W)
+   Draw cards (Spare Cycles, Cache Warmup, Relay Courier, Uplink Tower) do not improve at 4.5.
+==============================================================================
+AI-TCG neutral probe under card-advantage weight 1.5 (both sides): Null's own 36 + one neutral card's full set
+300 seeds per opponent, seeding identical to neutralPoolMatchDemo.ts --probe.
+
+  Spare Cycles     x3: Null won 36.6% of 900  [33.5, 39.8]
+  Cache Warmup     x3: Null won 36.4% of 900  [33.4, 39.6]
+  Relay Courier    x3: Null won 37.0% of 900  [33.9, 40.2]
+  Rollback Point   x3: Null won 41.0% of 900  [37.8, 44.2]
+  Surge Protector  x3: Null won 35.6% of 900  [32.5, 38.7]
+  Power Reserve    x3: Null won 33.7% of 900  [30.7, 36.8]
+  Commodity Rack   x3: Null won 45.6% of 900  [42.3, 48.8]
+  Uplink Tower     x2: Null won 33.9% of 900  [30.9, 37.0]
+  Scrap Recycler   x3: Null won 39.9% of 900  [36.7, 43.1]
+  Burst Credit     x3: Null won 37.3% of 900  [34.2, 40.5]
+
+AI-TCG neutral probe under card-advantage weight 4.5 (both sides): Null's own 36 + one neutral card's full set
+300 seeds per opponent, seeding identical to neutralPoolMatchDemo.ts --probe.
+
+  Spare Cycles     x3: Null won 35.0% of 900  [32.0, 38.2]
+  Cache Warmup     x3: Null won 31.0% of 900  [28.1, 34.1]
+  Relay Courier    x3: Null won 36.7% of 900  [33.6, 39.9]
+  Rollback Point   x3: Null won 41.0% of 900  [37.8, 44.2]
+  Surge Protector  x3: Null won 35.8% of 900  [32.7, 39.0]
+  Power Reserve    x3: Null won 33.3% of 900  [30.3, 36.5]
+  Commodity Rack   x3: Null won 45.8% of 900  [42.5, 49.0]
+  Uplink Tower     x2: Null won 32.9% of 900  [29.9, 36.0]
+  Scrap Recycler   x3: Null won 39.2% of 900  [36.1, 42.5]
+  Burst Credit     x3: Null won 37.6% of 900  [34.5, 40.8]
+
+==============================================================================
+3. NEUTRAL PROBE ON THE FIXED AGENT (Rack still 3/3), then Rack at 3/2
+==============================================================================
+AI-TCG neutral probe under card-advantage weight 1.5 (both sides): Null's own 36 + one neutral card's full set
+300 seeds per opponent, seeding identical to neutralPoolMatchDemo.ts --probe.
+
+  Spare Cycles     x3: Null won 37.7% of 900  [34.6, 40.9]
+  Cache Warmup     x3: Null won 37.2% of 900  [34.1, 40.4]
+  Relay Courier    x3: Null won 38.2% of 900  [35.1, 41.4]
+  Rollback Point   x3: Null won 42.1% of 900  [38.9, 45.4]
+  Surge Protector  x3: Null won 36.6% of 900  [33.5, 39.8]
+  Power Reserve    x3: Null won 36.0% of 900  [32.9, 39.2]
+  Commodity Rack   x3: Null won 45.9% of 900  [42.7, 49.2]
+  Uplink Tower     x2: Null won 35.9% of 900  [32.8, 39.1]
+  Scrap Recycler   x3: Null won 41.2% of 900  [38.1, 44.5]
+  Burst Credit     x3: Null won 37.7% of 900  [34.6, 40.9]
+
+After the nerf (cardAdvantageCheck.ts probe 300 1.5 "Commodity Rack,Rollback Point,Scrap Recycler"):
+  Rollback Point   x3: Null won 42.1% of 900  [38.9, 45.4]
+  Commodity Rack   x3: Null won 41.3% of 900  [38.2, 44.6]
+  Scrap Recycler   x3: Null won 41.2% of 900  [38.1, 44.5]
+
+==============================================================================
+4. NULL CARD-VS-AGENT CHECK, OLD AGENT (session-24 agent and decks; npx tsx src/dev/nullCardPlayCheck.ts 300)
+==============================================================================
+AI-TCG Null card-vs-agent check: shipped Null vs each shipped deck, lookahead vs lookahead
+300 seeds per opponent (900 games), seeding identical to lookaheadEdgeCheck.ts. Null won 46.9%.
+
+Bit Rot:
+    (of DEAD: Null attacked that unit later the same turn) 6
+  DEAD: target not in a pending combat                 222
+  LIVE: target is attacking Null                       2
+  LIVE: target is defending vs Null's attack           16
+  on opponent's turn                                   42
+  on own turn                                          198
+  plays                                                240
+
+Decay Ward:
+  games ended with it unplayed in hand                 57
+  host below best unprotected unit                     112
+  host is the most valuable unprotected unit           94
+  on own turn                                          206
+  plays                                                206
+  sum best value                                       1026
+  sum host value                                       747
+
+Null Pointer:
+  games ended with it unplayed in hand                 270
+  hit a cost-3 directive                               134
+  on opponent's turn                                   42
+  on own turn                                          92
+  plays                                                134
+
+Watchdog Timer:
+  draws it produced                                    36
+  games ended with it unplayed in hand                 114
+  hand size after cast: 0                              18
+  hand size after cast: 1                              54
+  hand size after cast: 2                              36
+  hand size after cast: 3                              23
+  hand size after cast: 4                              1
+  on own turn                                          132
+  plays                                                132
+
+==============================================================================
+5. NULL CARD-VS-AGENT CHECK, FINAL (fixed agent, shipped decks after this session)
+==============================================================================
+AI-TCG Null card-vs-agent check: shipped Null vs each shipped deck, lookahead vs lookahead
+300 seeds per opponent (900 games), seeding identical to lookaheadEdgeCheck.ts. Null won 40.1%.
+
+Bit Rot:
+    (of DEAD: Null attacked that unit later the same turn) 38
+  DEAD: target not in a pending combat                 51
+  LIVE: target is attacking Null                       184
+  games ended with it unplayed in hand                 46
+  on opponent's turn                                   184
+  on own turn                                          51
+  plays                                                235
+
+Decay Ward:
+  games ended with it unplayed in hand                 41
+  host is the most valuable unprotected unit           258
+  on own turn                                          258
+  plays                                                258
+  sum best value                                       1201
+  sum host value                                       1201
+
+Null Pointer:
+  games ended with it unplayed in hand                 321
+  hit a cost-3 directive                               144
+  on opponent's turn                                   47
+  on own turn                                          97
+  plays                                                144
+
+Watchdog Timer:
+  draws it produced                                    23
+  games ended with it unplayed in hand                 117
+  hand size after cast: 0                              17
+  hand size after cast: 1                              56
+  hand size after cast: 2                              58
+  hand size after cast: 3                              31
+  hand size after cast: 4                              15
+  on own turn                                          177
+  plays                                                177
+
+
+==============================================================================
+6. NULL CARD ABLATION (npx tsx src/dev/nullCardAblation.ts 1 2500): old agent vs fixed agent,
+   both on session 24's 40-card Null deck with the 3/3 Rack. Positive delta = Null wins MORE without it.
+==============================================================================
+--- old agent ---
+Null card ablation, LookaheadAgent, seeds 1-2500, 7500 games per deck
+  shipped deck: Null 42.6%  (Cortex 40.4, Swarm 43.4, Aegis 44.0)
+  -1 Bit Rot        : Null 45.3%  delta +2.7 [1.1, 4.3]  (Cortex 43.1, Swarm 45.8, Aegis 47.1)
+  -1 Null Pointer   : Null 44.4%  delta +1.8 [0.2, 3.4]  (Cortex 41.0, Swarm 45.0, Aegis 47.2)
+  -1 Watchdog Timer : Null 45.3%  delta +2.7 [1.1, 4.2]  (Cortex 43.2, Swarm 45.5, Aegis 47.0)
+  -1 Decay Ward     : Null 44.1%  delta +1.5 [-0.1, 3.1]  (Cortex 41.7, Swarm 44.8, Aegis 45.8)
+--- fixed agent ---
+Null card ablation, LookaheadAgent, seeds 1-2500, 7500 games per deck
+  shipped deck: Null 43.8%  (Cortex 42.5, Swarm 42.9, Aegis 46.0)
+  -1 Bit Rot        : Null 43.3%  delta -0.5 [-2.1, 1.1]  (Cortex 41.8, Swarm 42.0, Aegis 46.0)
+  -1 Null Pointer   : Null 45.0%  delta +1.2 [-0.4, 2.8]  (Cortex 43.1, Swarm 44.6, Aegis 47.3)
+  -1 Watchdog Timer : Null 45.6%  delta +1.9 [0.3, 3.4]  (Cortex 44.6, Swarm 44.2, Aegis 48.0)
+  -1 Decay Ward     : Null 45.2%  delta +1.4 [-0.2, 3.0]  (Cortex 44.0, Swarm 45.0, Aegis 46.5)
+--- fixed agent, final 36-card deck (on the removal cap, so only removal cuts are legal) ---
+Null card ablation, LookaheadAgent, seeds 1-2500, 7500 games per deck
+  shipped deck: Null 40.1%  (Cortex 38.3, Swarm 40.4, Aegis 41.6)
+  -1 Bit Rot        : Null 39.8%  delta -0.3 [-1.9, 1.2]  (Cortex 37.3, Swarm 40.2, Aegis 41.8)
+  -1 Null Pointer   : Null 41.2%  delta +1.1 [-0.5, 2.7]  (Cortex 39.6, Swarm 40.9, Aegis 43.1)
+  -1 Watchdog Timer : not a legal deck (- removal/debuff cards are 25.7% of the deck (9/35 copies), over the 25% cap)
+  -1 Decay Ward     : not a legal deck (- removal/debuff cards are 25.7% of the deck (9/35 copies), over the 25% cap)
+
+==============================================================================
+7. PACKAGE RE-SEARCH TRANSCRIPTS (neutralPackageSearch.ts; Null/Cortex --add-only --strip-neutral)
+==============================================================================
+Null: neutral package search, seeds 1-900, edges vs Cortex / Swarm / Aegis
+Objective = sum over edges of (distance to band)^2, x1e4. Guard: mean may drop at most 0.5 pts.
+Shipped deck: obj 192.1 mean 39.9 [37.4 / 38.8 / 43.4]
+Start (shipped deck minus its neutral cards): obj 165.0 mean 40.7 [40.0 / 38.9 / 43.2]
+Add-only: no faction card is cut; each step adds one neutral card (deck max 40).
+
+Step 1, from obj 165.0 mean 40.7 [40.0 / 38.9 / 43.2]:
+  +Rollback Point                               obj 309.9 mean 37.9 [34.7 / 38.0 / 40.9]
+  +Cache Warmup                                 obj 319.3 mean 37.6 [34.7 / 37.3 / 40.7]
+  +Uplink Tower                                 obj 322.8 mean 37.2 [34.9 / 36.1 / 40.7]
+  +Scrap Recycler                               obj 346.2 mean 37.4 [34.0 / 38.1 / 40.1]
+  +Commodity Rack                               obj 348.4 mean 37.7 [33.8 / 39.1 / 40.1]
+  +Relay Courier                                obj 353.2 mean 37.0 [35.3 / 36.2 / 39.3]
+  +Spare Cycles                                 obj 371.1 mean 36.6 [33.8 / 36.3 / 39.8]
+  +Burst Credit                                 obj 384.3 mean 36.4 [32.9 / 36.4 / 40.0]
+  +Surge Protector                              obj 416.2 mean 36.0 [33.3 / 35.9 / 38.8]
+  +Power Reserve                                obj 469.2 mean 35.4 [32.3 / 36.0 / 37.9]
+  => no swap improves the objective within the guard; stop.
+
+Chosen deck (36 cards):
+  Glitch Seed            x3
+  Stray Fragment         x3
+  Corruption Patch       x3
+  Segfault Handler       x1
+  Fork Bomb              x2
+  Corrupted Process      x2
+  Null Shell             x1
+  Propagating Exploit    x3
+  Deprecated Routine     x1
+  Decay Ward             x1
+  Entropy Harvester      x2
+  Segmentation Fault     x1
+  Kernel Panic           x2
+  Null Singularity       x1
+  Null Pointer           x2
+  Zombie Process         x2
+  Dangling Pointer       x2
+  Bit Rot                x1
+  Watchdog Timer         x1
+  Garbage Collector      x2
+  Commodity Rack         x0  (was x3)
+  Rollback Point         x0  (was x1)
+
+Held-out seeds 901-3400 (never used by the search):
+  Null vs Cortex 35.8 -> 37.6  change +1.9 (95% CI -0.8 to 4.5)  band 45.0-55.0
+  Null vs Swarm  41.0 -> 40.2  change -0.8 (95% CI -3.6 to 1.9)  band 40.0-45.0
+  Null vs Aegis  39.9 -> 41.0  change +1.2 (95% CI -1.6 to 3.9)  band 55.0-60.0
+  held-out objective 314.0 -> 249.1: SHIP (the package moves the ring toward band on unseen seeds)
+
+Cortex: neutral package search, seeds 1-900, edges vs Swarm / Aegis / Null
+Objective = sum over edges of (distance to band)^2, x1e4. Guard: mean may drop at most 0.5 pts.
+Shipped deck: obj 69.7 mean 55.3 [54.9 / 48.6 / 62.6]
+Start (shipped deck minus its neutral cards): obj 104.8 mean 57.5 [58.7 / 49.7 / 64.1]
+Add-only: no faction card is cut; each step adds one neutral card (deck max 40).
+
+Step 1, from obj 104.8 mean 57.5 [58.7 / 49.7 / 64.1]:
+  +Power Reserve                                obj 91.4 mean 55.8 [55.3 / 47.9 / 64.1]
+  +Cache Warmup                                 obj 111.0 mean 56.5 [55.2 / 49.9 / 64.3]
+  +Commodity Rack                               obj 117.3 mean 56.8 [55.9 / 49.9 / 64.7]
+  +Surge Protector                              obj 121.0 mean 57.0 [56.4 / 49.3 / 65.1]
+  +Burst Credit                                 obj 126.1 mean 57.2 [56.7 / 49.9 / 65.1]
+  +Spare Cycles                                 obj 129.5 mean 57.2 [56.3 / 50.2 / 65.1]
+  +Uplink Tower                                 obj 132.2 mean 56.9 [55.6 / 49.6 / 65.6]
+  +Rollback Point                               obj 147.8 mean 57.8 [56.8 / 51.2 / 65.4]
+  +Relay Courier                                obj 152.1 mean 57.6 [56.6 / 50.1 / 66.2]
+  +Scrap Recycler                               obj 159.7 mean 58.1 [57.6 / 50.1 / 66.6]
+  => no swap improves the objective within the guard; stop.
+
+Chosen deck (38 cards):
+  Signal Drone           x1
+  Firewall Sentinel      x3
+  Recursive Construct    x2
+  Diagnostic Pulse       x1
+  Cascade Purge          x1
+  Backup Protocol        x1
+  Mainframe Core         x2
+  Fail-safe Unit         x2
+  Cortex Engineer        x2
+  Watchtower Relay       x3
+  Overload Capacitor     x1
+  Diagnostic Loop        x1
+  Retaliation Node       x1
+  Interrupt Handler      x1
+  Init Daemon            x3
+  Compiled Daemon        x2
+  Dormant Exploit        x1
+  Overclock Shunt        x1
+  Force Quit             x2
+  Rate Limiter           x2
+  Load Balancer          x2
+  Hotfix                 x1
+  Deadlock Detector      x1
+  Quorum Arbiter         x1
+  Rollback Point         x0  (was x1)
+  Surge Protector        x0  (was x1)
+
+Held-out seeds 901-3400 (never used by the search):
+  Cortex vs Swarm  58.0 -> 59.2  change +1.2 (95% CI -1.5 to 3.9)  band 55.0-60.0
+  Cortex vs Aegis  48.8 -> 50.0  change +1.1 (95% CI -1.7 to 3.9)  band 40.0-45.0
+  Cortex vs Null   64.2 -> 67.0  change +2.8 (95% CI 0.1 to 5.4)  band 45.0-55.0
+  held-out objective 100.1 -> 168.6: DO NOT SHIP (no held-out improvement)
+
+Swarm: neutral package search, seeds 1-900, edges vs Cortex / Aegis / Null
+Objective = sum over edges of (distance to band)^2, x1e4. Guard: mean may drop at most 0.5 pts.
+Shipped deck: obj 1.5 mean 51.0 [45.1 / 46.6 / 61.2]
+
+Ablation (one copy replaced by Commodity Rack):
+  -1 Bloodswarm Alpha       obj 0.1 mean 50.6 [45.0 / 46.4 / 60.3]
+  -1 Warren Guardian        obj 0.2 mean 50.3 [45.4 / 46.6 / 59.0]
+  -1 Corrosive Spitter      obj 0.2 mean 49.0 [44.0 / 44.6 / 58.4]
+  -1 Carapace Grunt         obj 1.0 mean 51.3 [45.4 / 47.4 / 60.9]
+  -1 Overgrown Carapace     obj 2.5 mean 51.0 [45.3 / 46.1 / 61.6]
+  -1 Swarm Larva            obj 3.2 mean 47.7 [42.3 / 43.2 / 57.4]
+  -1 Colony Broodling       obj 3.5 mean 51.1 [45.6 / 46.0 / 61.8]
+  -1 Brood Skitterer        obj 3.6 mean 51.4 [44.8 / 47.6 / 61.9]
+  -1 Broodcaller            obj 4.5 mean 47.4 [40.6 / 42.9 / 58.7]
+  -1 Molted Stalker         obj 5.5 mean 51.2 [46.0 / 45.4 / 62.1]
+  -1 Overclock Beast        obj 6.0 mean 47.4 [40.2 / 42.6 / 59.3]
+  -1 Bore Swarm             obj 9.3 mean 52.4 [46.0 / 48.4 / 62.9]
+  -1 Reflex Spike           obj 14.8 mean 52.2 [47.8 / 46.2 / 62.7]
+  -1 Spore Cluster          obj 20.8 mean 53.1 [48.3 / 47.9 / 63.1]
+Swap-out options: Bloodswarm Alpha, Warren Guardian, Corrosive Spitter, Carapace Grunt, Overgrown Carapace
+
+Step 1, from obj 1.5 mean 51.0 [45.1 / 46.6 / 61.2]:
+  -Carapace Grunt +Relay Courier                obj 0.0 mean 50.2 [44.4 / 46.6 / 59.7]
+  -Carapace Grunt +Uplink Tower                 obj 0.0 mean 50.2 [44.9 / 45.9 / 59.8]
+  -Carapace Grunt +Cache Warmup                 obj 0.0 mean 50.1 [44.8 / 46.2 / 59.4]
+  -Bloodswarm Alpha +Surge Protector            obj 0.0 mean 50.1 [44.8 / 45.7 / 59.8]
+  -Bloodswarm Alpha +Uplink Tower               obj 0.0 mean 50.0 [44.1 / 46.1 / 59.7]
+  -Warren Guardian +Rollback Point              obj 0.0 mean 49.9 [44.9 / 45.9 / 58.9]
+  -Bloodswarm Alpha +Cache Warmup               obj 0.0 mean 49.8 [44.2 / 45.4 / 59.8]
+  -Warren Guardian +Scrap Recycler              obj 0.0 mean 49.8 [44.7 / 45.9 / 58.8]
+  -Corrosive Spitter +Rollback Point            obj 0.0 mean 49.6 [44.7 / 45.9 / 58.3]
+  -Carapace Grunt +Power Reserve                obj 0.0 mean 49.6 [43.7 / 45.7 / 59.6]
+  -Overgrown Carapace +Surge Protector          obj 0.0 mean 49.6 [43.8 / 45.1 / 59.9]
+  -Warren Guardian +Relay Courier               obj 0.0 mean 49.4 [44.3 / 45.8 / 58.2]
+  => take -1 Bloodswarm Alpha, +1 Commodity Rack
+
+Step 2, from obj 0.1 mean 50.6 [45.0 / 46.4 / 60.3]:
+  -Carapace Grunt +Rollback Point               obj 0.0 mean 50.2 [44.9 / 45.7 / 60.0]
+  -Carapace Grunt +Cache Warmup                 obj 0.0 mean 49.7 [44.9 / 45.4 / 58.9]
+  -Carapace Grunt +Relay Courier                obj 0.0 mean 49.7 [44.4 / 45.6 / 59.2]
+  -Carapace Grunt +Spare Cycles                 obj 0.0 mean 49.6 [44.0 / 45.2 / 59.4]
+  -Corrosive Spitter +Rollback Point            obj 0.0 mean 49.0 [44.0 / 45.0 / 58.0]
+  -Carapace Grunt +Uplink Tower                 obj 0.0 mean 49.7 [44.6 / 44.9 / 59.7]
+  -Warren Guardian +Relay Courier               obj 0.0 mean 48.9 [44.0 / 44.8 / 57.8]
+  -Corrosive Spitter +Cache Warmup              obj 0.0 mean 48.3 [43.1 / 44.8 / 57.0]
+  -Warren Guardian +Commodity Rack              obj 0.1 mean 49.3 [44.6 / 44.7 / 58.7]
+  -Overgrown Carapace +Cache Warmup             obj 0.1 mean 49.9 [44.3 / 45.1 / 60.3]
+  -Carapace Grunt +Commodity Rack               obj 0.2 mean 50.3 [44.7 / 45.8 / 60.4]
+  -Carapace Grunt +Surge Protector              obj 0.2 mean 49.5 [44.3 / 44.6 / 59.6]
+  => take -1 Carapace Grunt, +1 Rollback Point
+
+Step 3, from obj 0.0 mean 50.2 [44.9 / 45.7 / 60.0]:
+  -Overgrown Carapace +Scrap Recycler           obj 0.0 mean 50.3 [45.0 / 45.9 / 59.9]
+  -Carapace Grunt +Scrap Recycler               obj 0.0 mean 49.9 [44.2 / 45.7 / 59.8]
+  -Warren Guardian +Commodity Rack              obj 0.0 mean 49.5 [44.1 / 46.4 / 58.0]
+  -Carapace Grunt +Relay Courier                obj 0.0 mean 49.5 [44.8 / 45.3 / 58.3]
+  -Overgrown Carapace +Surge Protector          obj 0.0 mean 49.4 [44.8 / 45.0 / 58.6]
+  -Carapace Grunt +Surge Protector              obj 0.0 mean 49.3 [44.2 / 45.1 / 58.7]
+  -Warren Guardian +Spare Cycles                obj 0.0 mean 49.3 [44.1 / 45.4 / 58.2]
+  -Warren Guardian +Uplink Tower                obj 0.0 mean 49.3 [44.0 / 45.9 / 57.9]
+  -Warren Guardian +Cache Warmup                obj 0.0 mean 49.2 [44.4 / 45.6 / 57.7]
+  -Warren Guardian +Rollback Point              obj 0.0 mean 49.2 [43.7 / 45.6 / 58.4]
+  -Warren Guardian +Scrap Recycler              obj 0.0 mean 49.1 [43.3 / 45.0 / 59.0]
+  -Warren Guardian +Relay Courier               obj 0.0 mean 48.8 [43.6 / 45.3 / 57.4]
+  => no swap improves the objective within the guard; stop.
+
+Chosen deck (40 cards):
+  Swarm Larva            x3
+  Broodcaller            x3
+  Rally Cry              x1
+  Overclock Beast        x2
+  Corrosive Spitter      x3
+  Hive Mother            x1
+  Spore Cluster          x2
+  Barrier Node           x1
+  Reflex Spike           x2
+  Dormant Egg Sac        x1
+  Molted Stalker         x2
+  Chitin Plating         x1
+  Bore Swarm             x2
+  Brood Reserves         x1
+  Colony Broodling       x3
+  Overgrown Carapace     x2
+  Brood Skitterer        x3
+  Carapace Grunt         x2  (was x3)
+  Warren Guardian        x2
+  Bloodswarm Alpha       x1  (was x2)
+  Commodity Rack         x1  (was x0)
+  Rollback Point         x1  (was x0)
+
+Held-out seeds 901-3400 (never used by the search):
+  Swarm vs Cortex 42.0 -> 42.0  change +0.0 (95% CI -2.7 to 2.7)  band 40.0-45.0
+  Swarm vs Aegis  46.3 -> 45.3  change -1.0 (95% CI -3.8 to 1.8)  band 45.0-55.0
+  Swarm vs Null   59.0 -> 59.5  change +0.5 (95% CI -2.2 to 3.2)  band 55.0-60.0
+  held-out objective 0.0 -> 0.0: DO NOT SHIP (no held-out improvement)
+
+Aegis: neutral package search, seeds 1-900, edges vs Cortex / Swarm / Null
+Objective = sum over edges of (distance to band)^2, x1e4. Guard: mean may drop at most 0.5 pts.
+Shipped deck: obj 146.2 mean 53.8 [51.4 / 53.4 / 56.6]
+
+Ablation (one copy replaced by Commodity Rack):
+  -1 Reinforced Bastion     obj 102.2 mean 52.0 [51.1 / 50.4 / 54.3]
+  -1 Guard Directive Chip   obj 103.8 mean 52.8 [52.6 / 51.0 / 54.9]
+  -1 Perimeter Turret       obj 119.4 mean 53.1 [51.4 / 52.6 / 55.3]
+  -1 Salvage Reflex         obj 133.5 mean 52.6 [50.6 / 51.6 / 55.7]
+  -1 Aegis Line Trooper     obj 143.2 mean 52.5 [50.6 / 50.9 / 56.1]
+  -1 Aegis Cadet            obj 150.4 mean 51.6 [48.2 / 51.4 / 55.2]
+  -1 Plating Module         obj 176.3 mean 55.6 [53.8 / 54.9 / 58.2]
+  -1 Bulwark Chassis        obj 189.1 mean 56.1 [53.8 / 55.9 / 58.7]
+  -1 Barrier Drone          obj 208.6 mean 56.7 [55.6 / 55.0 / 59.4]
+  -1 Failover Custodian     obj 210.7 mean 55.7 [53.6 / 54.1 / 59.4]
+  -1 Aegis Warden           obj 215.2 mean 56.4 [54.7 / 55.0 / 59.7]
+  -1 Aegis Sentinel         obj 224.4 mean 55.4 [52.6 / 53.9 / 59.8]
+Swap-out options: Reinforced Bastion, Guard Directive Chip, Perimeter Turret, Salvage Reflex, Aegis Line Trooper
+
+Step 1, from obj 146.2 mean 53.8 [51.4 / 53.4 / 56.6]:
+  -Guard Directive Chip +Burst Credit           obj 60.2 mean 50.4 [51.2 / 48.1 / 51.8]
+  -Guard Directive Chip +Cache Warmup           obj 69.4 mean 52.1 [53.7 / 49.6 / 53.2]
+  -Guard Directive Chip +Rollback Point         obj 71.6 mean 50.9 [51.7 / 48.2 / 52.8]
+  -Guard Directive Chip +Power Reserve          obj 72.1 mean 49.4 [49.9 / 46.7 / 51.8]
+  -Reinforced Bastion +Relay Courier            obj 72.3 mean 51.9 [52.4 / 50.1 / 53.1]
+  -Perimeter Turret +Burst Credit               obj 74.1 mean 50.2 [49.6 / 49.4 / 51.7]
+  -Reinforced Bastion +Burst Credit             obj 76.1 mean 50.7 [50.1 / 49.9 / 52.2]
+  -Reinforced Bastion +Power Reserve            obj 76.4 mean 49.6 [49.2 / 48.1 / 51.6]
+  -Reinforced Bastion +Spare Cycles             obj 80.0 mean 51.2 [51.0 / 49.7 / 53.0]
+  -Guard Directive Chip +Surge Protector        obj 80.1 mean 50.8 [51.2 / 48.0 / 53.1]
+  -Guard Directive Chip +Spare Cycles           obj 80.3 mean 51.8 [52.3 / 49.6 / 53.6]
+  -Perimeter Turret +Surge Protector            obj 82.7 mean 50.7 [49.8 / 49.8 / 52.4]
+  => take -1 Salvage Reflex, +1 Uplink Tower
+
+Step 2, from obj 128.9 mean 53.3 [52.7 / 51.2 / 56.1]:
+  -Reinforced Bastion +Relay Courier            obj 51.9 mean 50.3 [51.8 / 47.7 / 51.4]
+  -Reinforced Bastion +Power Reserve            obj 53.5 mean 48.7 [50.1 / 45.6 / 50.4]
+  -Reinforced Bastion +Spare Cycles             obj 53.6 mean 49.9 [51.3 / 47.1 / 51.3]
+  -Reinforced Bastion +Burst Credit             obj 61.5 mean 49.6 [50.2 / 47.3 / 51.2]
+  -Guard Directive Chip +Burst Credit           obj 61.5 mean 49.3 [50.2 / 46.3 / 51.2]
+  -Guard Directive Chip +Rollback Point         obj 65.7 mean 50.0 [51.1 / 46.8 / 52.1]
+  -Reinforced Bastion +Surge Protector          obj 66.2 mean 49.3 [49.9 / 46.8 / 51.3]
+  -Reinforced Bastion +Cache Warmup             obj 66.5 mean 51.0 [52.6 / 47.6 / 52.8]
+  -Reinforced Bastion +Rollback Point           obj 66.6 mean 50.4 [51.0 / 48.2 / 52.1]
+  -Guard Directive Chip +Cache Warmup           obj 69.4 mean 51.4 [53.1 / 48.1 / 53.1]
+  -Guard Directive Chip +Spare Cycles           obj 69.5 mean 51.0 [52.0 / 48.1 / 52.8]
+  -Perimeter Turret +Burst Credit               obj 72.2 mean 49.7 [49.3 / 48.6 / 51.3]
+  => no swap improves the objective within the guard; stop.
+
+Chosen deck (40 cards):
+  Aegis Cadet            x3
+  Barrier Drone          x2
+  Plating Module         x3
+  Diagnostic Ward        x1
+  Perimeter Turret       x3
+  Guard Directive Chip   x3
+  Aegis Sentinel         x3
+  Static Ward Beacon     x1
+  Failover Custodian     x2
+  Barrier Shim           x1
+  Latent Ward            x1
+  Lockdown Field         x1
+  Aegis Warden           x2
+  Prime Aegis            x1
+  Intercept Routine      x1
+  Tariff Field           x1
+  Feedback Plating       x1
+  Breach Charge          x1
+  Bulwark Chassis        x3
+  Reinforced Bastion     x2
+  Salvage Reflex         x1  (was x2)
+  Aegis Line Trooper     x2
+  Uplink Tower           x1  (was x0)
+
+Held-out seeds 901-3400 (never used by the search):
+  Aegis vs Cortex 51.2 -> 51.5  change +0.4 (95% CI -2.4 to 3.1)  band 55.0-60.0
+  Aegis vs Swarm  53.7 -> 52.7  change -1.0 (95% CI -3.7 to 1.8)  band 45.0-55.0
+  Aegis vs Null   60.1 -> 59.9  change -0.2 (95% CI -3.0 to 2.5)  band 40.0-45.0
+  held-out objective 243.4 -> 233.5: SHIP (the package moves the ring toward band on unseen seeds)
+
+==============================================================================
+8. FINAL EDGE CHECKS (lookaheadEdgeCheck.ts <F> 1 900; Null also at 2500)
+==============================================================================
+LookaheadAgent vs LookaheadAgent, Cortex against each other faction, seeds 1-900
+  Cortex vs Swarm: Cortex 54.9% (+/- 1.7 one SE, 95% CI 51.6-58.1, 0 draws) band 55-60: UNRESOLVED
+  Cortex vs Aegis: Cortex 47.3% (+/- 1.7 one SE, 95% CI 44.1-50.6, 0 draws) band 40-45: UNRESOLVED
+  Cortex vs Null: Cortex 60.0% (+/- 1.6 one SE, 95% CI 56.8-63.2, 0 draws) band 45-55: OUT OF BAND
+LookaheadAgent vs LookaheadAgent, Swarm against each other faction, seeds 1-900
+  Swarm vs Cortex: Swarm 45.1% (+/- 1.7 one SE, 95% CI 41.9-48.4, 0 draws) band 40-45: UNRESOLVED
+  Swarm vs Aegis: Swarm 48.8% (+/- 1.7 one SE, 95% CI 45.5-52.0, 0 draws) band 45-55: IN BAND
+  Swarm vs Null: Swarm 61.1% (+/- 1.6 one SE, 95% CI 57.9-64.2, 0 draws) band 55-60: UNRESOLVED
+LookaheadAgent vs LookaheadAgent, Aegis against each other faction, seeds 1-900
+  Aegis vs Cortex: Aegis 52.7% (+/- 1.7 one SE, 95% CI 49.4-55.9, 0 draws) band 55-60: UNRESOLVED
+  Aegis vs Swarm: Aegis 51.2% (+/- 1.7 one SE, 95% CI 48.0-54.5, 0 draws) band 45-55: IN BAND
+  Aegis vs Null: Aegis 58.6% (+/- 1.6 one SE, 95% CI 55.3-61.7, 0 draws) band 40-45: OUT OF BAND
+LookaheadAgent vs LookaheadAgent, Null against each other faction, seeds 1-900
+  Null vs Cortex: Null 40.0% (+/- 1.6 one SE, 95% CI 36.8-43.2, 0 draws) band 45-55: OUT OF BAND
+  Null vs Swarm: Null 38.9% (+/- 1.6 one SE, 95% CI 35.8-42.1, 0 draws) band 40-45: UNRESOLVED
+  Null vs Aegis: Null 41.4% (+/- 1.6 one SE, 95% CI 38.3-44.7, 0 draws) band 55-60: OUT OF BAND
+
+LookaheadAgent vs LookaheadAgent, Null against each other faction, seeds 1-2500
+  Null vs Cortex: Null 38.3% (+/- 1.0 one SE, 95% CI 36.4-40.2, 0 draws) band 45-55: OUT OF BAND
+  Null vs Swarm: Null 40.4% (+/- 1.0 one SE, 95% CI 38.5-42.3, 0 draws) band 40-45: UNRESOLVED
+  Null vs Aegis: Null 41.6% (+/- 1.0 one SE, 95% CI 39.7-43.6, 0 draws) band 55-60: OUT OF BAND
+
+==============================================================================
+9. FULL balanceReport.ts 900
+==============================================================================
+AI-TCG balance report — design principle 3 measurement
+900 seeds per matchup, 6 cross-faction pairings + 4 mirror matchups per agent policy.
+
+=== AggressiveAgent vs AggressiveAgent (same policy both sides) ===
+  Cortex 451-449 Swarm  (Cortex 50.1% / Swarm 49.9%, 0 draws, avg 12.6 turns, 0.0% hit turn cap)
+  Cortex 441-459 Aegis  (Cortex 49.0% / Aegis 51.0%, 0 draws, avg 14.7 turns, 0.0% hit turn cap)
+  Cortex 494-406 Null  (Cortex 54.9% / Null 45.1%, 0 draws, avg 13.1 turns, 0.0% hit turn cap)
+  Swarm 481-419 Aegis  (Swarm 53.4% / Aegis 46.6%, 0 draws, avg 13.4 turns, 0.0% hit turn cap)
+  Swarm 537-363 Null  (Swarm 59.7% / Null 40.3%, 0 draws, avg 11.7 turns, 0.0% hit turn cap)
+  Aegis 419-481 Null  (Aegis 46.6% / Null 53.4%, 0 draws, avg 14.0 turns, 0.0% hit turn cap)
+  --- mirror matches (first-player-advantage baseline) ---
+  Cortex mirror: first-player 437-463 second-player (first-player win rate 48.6%, 0 draws, avg 14.1 turns)
+  Swarm mirror: first-player 425-475 second-player (first-player win rate 47.2%, 0 draws, avg 11.3 turns)
+  Aegis mirror: first-player 429-471 second-player (first-player win rate 47.7%, 0 draws, avg 15.8 turns)
+  Null mirror: first-player 447-453 second-player (first-player win rate 49.7%, 0 draws, avg 11.9 turns)
+  --- per-card win-rate instrumentation (drawn vs. played), accumulated across all of the above ---
+  --- Cortex per-card win rates ---
+    Watchtower Relay             drawn 2703 games (50.2% win)  played 2582 games (50.9% win)
+    Firewall Sentinel            drawn 2646 games (58.0% win)  played 2457 games (59.9% win)
+    Init Daemon                  drawn 2695 games (56.9% win)  played 2433 games (57.8% win)
+    Load Balancer                drawn 2190 games (50.9% win)  played 2057 games (52.1% win)
+    Cortex Engineer              drawn 2231 games (48.7% win)  played 1942 games (49.5% win)
+    Mainframe Core               drawn 2019 games (52.7% win)  played 1911 games (54.4% win)
+    Rate Limiter                 drawn 2014 games (48.2% win)  played 1904 games (49.1% win)
+    Fail-safe Unit               drawn 2149 games (51.8% win)  played 1867 games (53.6% win)
+    Recursive Construct          drawn 2070 games (56.1% win)  played 1799 games (59.0% win)
+    Overload Capacitor           drawn 1277 games (51.2% win)  played 1205 games (51.9% win)
+    Cascade Purge                drawn 1162 games (50.1% win)  played 1160 games (50.1% win)
+    Quorum Arbiter               drawn 1159 games (52.6% win)  played 1130 games (52.7% win)
+    Hotfix                       drawn 1173 games (46.5% win)  played 1094 games (49.5% win)
+    Signal Drone                 drawn 1252 games (56.7% win)  played 1078 games (56.6% win)
+    Backup Protocol              drawn 1219 games (45.5% win)  played 1075 games (48.1% win)
+    Retaliation Node             drawn 1271 games (50.7% win)  played 1071 games (52.0% win)
+    Rollback Point               drawn 1123 games (45.3% win)  played 1060 games (46.3% win)
+    Overclock Shunt              drawn 1168 games (50.4% win)  played 1059 games (53.7% win)
+    Diagnostic Pulse             drawn 1102 games (52.6% win)  played 1018 games (54.5% win)
+    Interrupt Handler            drawn 1116 games (46.2% win)  played 1004 games (49.0% win)
+    Diagnostic Loop              drawn 1193 games (46.9% win)  played  994 games (46.1% win)
+    Dormant Exploit              drawn 1190 games (53.0% win)  played  965 games (56.4% win)
+    Surge Protector              drawn 1068 games (47.3% win)  played  958 games (50.0% win)
+    Deadlock Detector            drawn 1123 games (50.0% win)  played  934 games (52.4% win)
+    Compiled Daemon              drawn 2063 games (50.6% win)  played  891 games (66.9% win)
+    Force Quit                   drawn 2008 games (50.1% win)  played  834 games (58.9% win)
+  --- Swarm per-card win rates ---
+    Broodcaller                  drawn 2657 games (55.4% win)  played 2339 games (56.4% win)
+    Carapace Grunt               drawn 2761 games (54.0% win)  played 2292 games (54.3% win)
+    Swarm Larva                  drawn 2697 games (55.8% win)  played 2132 games (55.8% win)
+    Corrosive Spitter            drawn 2612 games (56.3% win)  played 2094 games (59.8% win)
+    Brood Skitterer              drawn 2672 games (54.6% win)  played 2034 games (52.3% win)
+    Colony Broodling             drawn 2610 games (53.4% win)  played 2015 games (52.8% win)
+    Overclock Beast              drawn 2054 games (54.5% win)  played 1892 games (54.7% win)
+    Reflex Spike                 drawn 1982 games (48.7% win)  played 1782 games (51.1% win)
+    Bloodswarm Alpha             drawn 1936 games (52.9% win)  played 1775 games (53.2% win)
+    Overgrown Carapace           drawn 1994 games (50.9% win)  played 1658 games (50.7% win)
+    Spore Cluster                drawn 2090 games (50.2% win)  played 1607 games (46.2% win)
+    Warren Guardian              drawn 1961 games (55.6% win)  played 1585 games (55.6% win)
+    Hive Mother                  drawn 1244 games (65.0% win)  played 1103 games (67.5% win)
+    Brood Reserves               drawn 1119 games (47.3% win)  played  999 games (50.2% win)
+    Dormant Egg Sac              drawn 1201 games (50.3% win)  played  983 games (49.4% win)
+    Rally Cry                    drawn 1094 games (52.1% win)  played  968 games (55.0% win)
+    Chitin Plating               drawn 1097 games (48.8% win)  played  965 games (50.9% win)
+    Barrier Node                 drawn 1043 games (50.1% win)  played  817 games (47.4% win)
+    Molted Stalker               drawn 2097 games (53.8% win)  played  720 games (66.8% win)
+    Bore Swarm                   drawn 1964 games (52.9% win)  played  517 games (61.5% win)
+  --- Aegis per-card win rates ---
+    Aegis Cadet                  drawn 2881 games (54.4% win)  played 2795 games (54.6% win)
+    Bulwark Chassis              drawn 2855 games (46.9% win)  played 2755 games (46.7% win)
+    Perimeter Turret             drawn 2805 games (55.0% win)  played 2702 games (55.3% win)
+    Guard Directive Chip         drawn 2745 games (54.0% win)  played 2666 games (55.2% win)
+    Plating Module               drawn 2703 games (47.8% win)  played 2634 games (48.6% win)
+    Failover Custodian           drawn 2305 games (47.7% win)  played 2224 games (47.5% win)
+    Reinforced Bastion           drawn 2244 games (52.2% win)  played 2191 games (52.3% win)
+    Barrier Drone                drawn 2193 games (46.6% win)  played 2069 games (46.4% win)
+    Aegis Line Trooper           drawn 2132 games (51.5% win)  played 2037 games (51.2% win)
+    Aegis Sentinel               drawn 2784 games (50.9% win)  played 1418 games (64.7% win)
+    Diagnostic Ward              drawn 1292 games (42.1% win)  played 1269 games (42.7% win)
+    Static Ward Beacon           drawn 1293 games (40.9% win)  played 1266 games (40.5% win)
+    Salvage Reflex               drawn 1257 games (50.6% win)  played 1215 games (50.7% win)
+    Intercept Routine            drawn 1241 games (43.4% win)  played 1211 games (44.0% win)
+    Latent Ward                  drawn 1238 games (46.0% win)  played 1197 games (45.4% win)
+    Lockdown Field               drawn 1202 games (47.3% win)  played 1187 games (47.3% win)
+    Tariff Field                 drawn 1203 games (43.6% win)  played 1184 games (43.0% win)
+    Barrier Shim                 drawn 1199 games (43.9% win)  played 1166 games (44.7% win)
+    Uplink Tower                 drawn 1175 games (53.3% win)  played 1157 games (53.2% win)
+    Feedback Plating             drawn 1196 games (49.9% win)  played 1145 games (49.5% win)
+    Prime Aegis                  drawn 1247 games (71.8% win)  played 1127 games (77.3% win)
+    Breach Charge                drawn 1231 games (45.4% win)  played  548 games (51.6% win)
+    Aegis Warden                 drawn 2138 games (45.6% win)  played  545 games (67.9% win)
+  --- Null per-card win rates ---
+    Corruption Patch             drawn 2892 games (49.8% win)  played 2751 games (51.4% win)
+    Propagating Exploit          drawn 2903 games (51.3% win)  played 2706 games (51.8% win)
+    Glitch Seed                  drawn 2828 games (52.5% win)  played 2587 games (53.2% win)
+    Stray Fragment               drawn 2866 games (51.5% win)  played 2501 games (51.6% win)
+    Zombie Process               drawn 2238 games (51.6% win)  played 2002 games (52.4% win)
+    Fork Bomb                    drawn 2137 games (49.5% win)  played 1987 games (50.1% win)
+    Dangling Pointer             drawn 2243 games (51.9% win)  played 1976 games (52.3% win)
+    Entropy Harvester            drawn 2179 games (50.9% win)  played 1975 games (50.7% win)
+    Garbage Collector            drawn 2117 games (48.6% win)  played 1961 games (48.9% win)
+    Bit Rot                      drawn 1300 games (44.4% win)  played 1242 games (45.0% win)
+    Watchdog Timer               drawn 1297 games (39.2% win)  played 1172 games (38.6% win)
+    Segmentation Fault           drawn 1207 games (46.6% win)  played 1167 games (45.9% win)
+    Null Shell                   drawn 1248 games (44.2% win)  played 1166 games (46.1% win)
+    Decay Ward                   drawn 1232 games (41.9% win)  played 1160 games (43.1% win)
+    Segfault Handler             drawn 1181 games (46.9% win)  played 1121 games (47.9% win)
+    Deprecated Routine           drawn 1210 games (43.5% win)  played 1070 games (42.3% win)
+    Corrupted Process            drawn 2085 games (47.2% win)  played 1021 games (57.8% win)
+    Null Pointer                 drawn 2190 games (47.1% win)  played  846 games (57.9% win)
+    Null Singularity             drawn 1316 games (48.2% win)  played  379 games (74.7% win)
+    Kernel Panic                 drawn 2150 games (46.0% win)  played  324 games (76.2% win)
+
+=== RandomAgent vs RandomAgent (same policy both sides) ===
+  Cortex 634-263 Swarm  (Cortex 70.4% / Swarm 29.2%, 3 draws, avg 25.1 turns, 6.3% hit turn cap)  <-- FLAG: >=60% win rate
+  Cortex 423-474 Aegis  (Cortex 47.0% / Aegis 52.7%, 3 draws, avg 24.3 turns, 5.2% hit turn cap)
+  Cortex 420-480 Null  (Cortex 46.7% / Null 53.3%, 0 draws, avg 22.6 turns, 2.3% hit turn cap)
+  Swarm 365-531 Aegis  (Swarm 40.6% / Aegis 59.0%, 4 draws, avg 22.6 turns, 2.3% hit turn cap)
+  Swarm 320-579 Null  (Swarm 35.6% / Null 64.3%, 1 draws, avg 21.3 turns, 0.7% hit turn cap)  <-- FLAG: >=60% win rate
+  Aegis 430-470 Null  (Aegis 47.8% / Null 52.2%, 0 draws, avg 21.8 turns, 1.2% hit turn cap)
+  --- mirror matches (first-player-advantage baseline) ---
+  Cortex mirror: first-player 454-439 second-player (first-player win rate 50.4%, 7 draws, avg 28.3 turns)
+  Swarm mirror: first-player 454-444 second-player (first-player win rate 50.4%, 2 draws, avg 23.9 turns)
+  Aegis mirror: first-player 455-444 second-player (first-player win rate 50.6%, 1 draws, avg 23.2 turns)
+  Null mirror: first-player 445-454 second-player (first-player win rate 49.4%, 1 draws, avg 20.4 turns)
+  --- per-card win-rate instrumentation (drawn vs. played), accumulated across all of the above ---
+  --- Cortex per-card win rates ---
+    Init Daemon                  drawn 3602 games (54.2% win)  played 3509 games (53.8% win)
+    Firewall Sentinel            drawn 3621 games (55.5% win)  played 3461 games (55.6% win)
+    Watchtower Relay             drawn 3601 games (54.1% win)  played 3449 games (53.9% win)
+    Load Balancer                drawn 3084 games (54.0% win)  played 2941 games (53.9% win)
+    Cortex Engineer              drawn 3004 games (49.6% win)  played 2919 games (48.5% win)
+    Recursive Construct          drawn 3023 games (56.4% win)  played 2887 games (56.0% win)
+    Fail-safe Unit               drawn 2962 games (56.1% win)  played 2865 games (55.6% win)
+    Mainframe Core               drawn 2996 games (57.8% win)  played 2858 games (58.3% win)
+    Rate Limiter                 drawn 2957 games (53.0% win)  played 2802 games (52.3% win)
+    Overload Capacitor           drawn 2018 games (53.6% win)  played 1891 games (52.8% win)
+    Retaliation Node             drawn 1991 games (52.5% win)  played 1880 games (51.5% win)
+    Backup Protocol              drawn 1956 games (48.6% win)  played 1862 games (47.4% win)
+    Dormant Exploit              drawn 1960 games (51.6% win)  played 1844 games (50.9% win)
+    Force Quit                   drawn 2957 games (52.8% win)  played 1842 games (51.1% win)
+    Diagnostic Loop              drawn 1951 games (53.7% win)  played 1842 games (52.6% win)
+    Interrupt Handler            drawn 1879 games (51.6% win)  played 1835 games (50.6% win)
+    Signal Drone                 drawn 1931 games (51.0% win)  played 1828 games (49.7% win)
+    Hotfix                       drawn 1871 games (48.3% win)  played 1816 games (49.7% win)
+    Cascade Purge                drawn 1911 games (53.5% win)  played 1799 games (53.5% win)
+    Overclock Shunt              drawn 1886 games (51.3% win)  played 1783 games (52.7% win)
+    Rollback Point               drawn 1869 games (47.9% win)  played 1761 games (47.2% win)
+    Deadlock Detector            drawn 1861 games (53.0% win)  played 1761 games (52.0% win)
+    Surge Protector              drawn 1877 games (51.8% win)  played 1741 games (53.6% win)
+    Quorum Arbiter               drawn 1851 games (57.2% win)  played 1706 games (57.4% win)
+    Diagnostic Pulse             drawn 1794 games (51.4% win)  played 1661 games (48.1% win)
+    Compiled Daemon              drawn 3013 games (51.9% win)  played 1366 games (68.4% win)
+  --- Swarm per-card win rates ---
+    Carapace Grunt               drawn 3529 games (41.0% win)  played 3466 games (40.4% win)
+    Colony Broodling             drawn 3512 games (40.2% win)  played 3450 games (39.2% win)
+    Swarm Larva                  drawn 3494 games (42.6% win)  played 3448 games (42.1% win)
+    Brood Skitterer              drawn 3487 games (40.7% win)  played 3428 games (40.1% win)
+    Broodcaller                  drawn 3470 games (44.8% win)  played 3407 games (44.6% win)
+    Corrosive Spitter            drawn 3468 games (40.7% win)  played 3391 games (39.8% win)
+    Spore Cluster                drawn 2844 games (41.9% win)  played 2790 games (41.2% win)
+    Reflex Spike                 drawn 2837 games (36.9% win)  played 2768 games (37.7% win)
+    Overclock Beast              drawn 2837 games (45.9% win)  played 2740 games (44.9% win)
+    Overgrown Carapace           drawn 2829 games (42.8% win)  played 2735 games (41.8% win)
+    Bloodswarm Alpha             drawn 2806 games (45.0% win)  played 2726 games (44.4% win)
+    Warren Guardian              drawn 2767 games (43.4% win)  played 2669 games (42.3% win)
+    Hive Mother                  drawn 1903 games (58.4% win)  played 1821 games (58.2% win)
+    Dormant Egg Sac              drawn 1856 games (42.9% win)  played 1804 games (41.9% win)
+    Brood Reserves               drawn 1782 games (41.4% win)  played 1734 games (40.7% win)
+    Chitin Plating               drawn 1723 games (40.8% win)  played 1648 games (41.7% win)
+    Rally Cry                    drawn 1662 games (38.6% win)  played 1616 games (37.4% win)
+    Barrier Node                 drawn 1648 games (39.9% win)  played 1609 games (39.1% win)
+    Bore Swarm                   drawn 2843 games (38.6% win)  played 1180 games (35.0% win)
+    Molted Stalker               drawn 2972 games (40.0% win)  played  962 games (63.5% win)
+  --- Aegis per-card win rates ---
+    Aegis Cadet                  drawn 3452 games (56.0% win)  played 3390 games (55.4% win)
+    Bulwark Chassis              drawn 3441 games (50.9% win)  played 3345 games (49.7% win)
+    Guard Directive Chip         drawn 3453 games (52.6% win)  played 3336 games (53.9% win)
+    Perimeter Turret             drawn 3385 games (55.7% win)  played 3310 games (55.1% win)
+    Plating Module               drawn 3353 games (52.3% win)  played 3214 games (54.0% win)
+    Failover Custodian           drawn 2951 games (51.2% win)  played 2865 games (50.0% win)
+    Reinforced Bastion           drawn 2899 games (52.6% win)  played 2794 games (51.1% win)
+    Barrier Drone                drawn 2823 games (47.8% win)  played 2724 games (46.2% win)
+    Aegis Line Trooper           drawn 2761 games (51.3% win)  played 2666 games (49.8% win)
+    Aegis Sentinel               drawn 3476 games (53.2% win)  played 1750 games (73.1% win)
+    Diagnostic Ward              drawn 1795 games (48.6% win)  played 1732 games (47.2% win)
+    Static Ward Beacon           drawn 1793 games (50.3% win)  played 1724 games (48.8% win)
+    Intercept Routine            drawn 1784 games (44.1% win)  played 1721 games (45.6% win)
+    Lockdown Field               drawn 1749 games (47.3% win)  played 1690 games (46.2% win)
+    Latent Ward                  drawn 1750 games (52.0% win)  played 1686 games (50.6% win)
+    Prime Aegis                  drawn 1779 games (79.5% win)  played 1682 games (80.7% win)
+    Salvage Reflex               drawn 1735 games (53.5% win)  played 1656 games (51.9% win)
+    Tariff Field                 drawn 1712 games (47.8% win)  played 1651 games (46.1% win)
+    Feedback Plating             drawn 1709 games (53.2% win)  played 1632 games (51.5% win)
+    Uplink Tower                 drawn 1639 games (57.5% win)  played 1569 games (56.0% win)
+    Barrier Shim                 drawn 1671 games (49.5% win)  played 1567 games (51.7% win)
+    Breach Charge                drawn 1705 games (51.4% win)  played  945 games (54.2% win)
+    Aegis Warden                 drawn 2839 games (49.1% win)  played  824 games (80.5% win)
+  --- Null per-card win rates ---
+    Propagating Exploit          drawn 3583 games (55.5% win)  played 3456 games (54.8% win)
+    Corruption Patch             drawn 3570 games (55.1% win)  played 3452 games (56.3% win)
+    Glitch Seed                  drawn 3510 games (58.0% win)  played 3445 games (57.7% win)
+    Stray Fragment               drawn 3537 games (53.4% win)  played 3428 games (52.2% win)
+    Entropy Harvester            drawn 2995 games (61.5% win)  played 2871 games (61.0% win)
+    Zombie Process               drawn 2922 games (56.7% win)  played 2804 games (55.4% win)
+    Dangling Pointer             drawn 2889 games (52.9% win)  played 2776 games (51.4% win)
+    Garbage Collector            drawn 2884 games (57.8% win)  played 2752 games (56.7% win)
+    Fork Bomb                    drawn 2850 games (54.6% win)  played 2719 games (53.4% win)
+    Bit Rot                      drawn 1875 games (51.4% win)  played 1851 games (50.7% win)
+    Watchdog Timer               drawn 1852 games (50.4% win)  played 1748 games (48.3% win)
+    Decay Ward                   drawn 1835 games (52.3% win)  played 1709 games (54.2% win)
+    Segmentation Fault           drawn 1823 games (53.4% win)  played 1702 games (51.4% win)
+    Null Shell                   drawn 1811 games (53.2% win)  played 1701 games (54.9% win)
+    Segfault Handler             drawn 1749 games (52.9% win)  played 1633 games (49.7% win)
+    Deprecated Routine           drawn 1773 games (54.7% win)  played 1622 games (51.1% win)
+    Null Pointer                 drawn 2949 games (53.7% win)  played 1562 games (56.0% win)
+    Null Singularity             drawn 1860 games (69.7% win)  played 1504 games (73.5% win)
+    Corrupted Process            drawn 2812 games (55.0% win)  played 1355 games (76.2% win)
+    Kernel Panic                 drawn 2902 games (50.9% win)  played  604 games (82.3% win)
+
+=== LookaheadAgent vs LookaheadAgent (same policy both sides) — the board-state-aware third policy, Phase 1 item 1 ===
+  Cortex 494-406 Swarm  (Cortex 54.9% / Swarm 45.1%, 0 draws, avg 13.6 turns, 0.0% hit turn cap)
+  Cortex 426-474 Aegis  (Cortex 47.3% / Aegis 52.7%, 0 draws, avg 16.0 turns, 0.0% hit turn cap)
+  Cortex 540-360 Null  (Cortex 60.0% / Null 40.0%, 0 draws, avg 14.2 turns, 0.0% hit turn cap)  <-- FLAG: >=60% win rate
+  Swarm 439-461 Aegis  (Swarm 48.8% / Aegis 51.2%, 0 draws, avg 14.2 turns, 0.0% hit turn cap)
+  Swarm 550-350 Null  (Swarm 61.1% / Null 38.9%, 0 draws, avg 12.3 turns, 0.0% hit turn cap)  <-- FLAG: >=60% win rate
+  Aegis 527-373 Null  (Aegis 58.6% / Null 41.4%, 0 draws, avg 15.0 turns, 0.0% hit turn cap)
+  --- mirror matches (first-player-advantage baseline) ---
+  Cortex mirror: first-player 437-463 second-player (first-player win rate 48.6%, 0 draws, avg 15.9 turns)
+  Swarm mirror: first-player 428-472 second-player (first-player win rate 47.6%, 0 draws, avg 11.4 turns)
+  Aegis mirror: first-player 442-458 second-player (first-player win rate 49.1%, 0 draws, avg 17.0 turns)
+  Null mirror: first-player 443-457 second-player (first-player win rate 49.2%, 0 draws, avg 12.9 turns)
+  --- per-card win-rate instrumentation (drawn vs. played), accumulated across all of the above ---
+  --- Cortex per-card win rates ---
+    Watchtower Relay             drawn 2837 games (52.0% win)  played 2746 games (51.4% win)
+    Firewall Sentinel            drawn 2779 games (59.8% win)  played 2723 games (59.9% win)
+    Init Daemon                  drawn 2844 games (58.9% win)  played 2711 games (58.4% win)
+    Cortex Engineer              drawn 2350 games (50.0% win)  played 2186 games (49.0% win)
+    Load Balancer                drawn 2327 games (52.3% win)  played 2138 games (51.9% win)
+    Fail-safe Unit               drawn 2292 games (52.7% win)  played 2111 games (52.0% win)
+    Recursive Construct          drawn 2169 games (54.0% win)  played 1982 games (52.9% win)
+    Rate Limiter                 drawn 2146 games (50.8% win)  played 1772 games (45.6% win)
+    Mainframe Core               drawn 2149 games (53.0% win)  played 1535 games (59.0% win)
+    Overload Capacitor           drawn 1382 games (52.1% win)  played 1359 games (51.9% win)
+    Hotfix                       drawn 1264 games (47.3% win)  played 1231 games (48.6% win)
+    Cascade Purge                drawn 1272 games (56.8% win)  played 1222 games (55.9% win)
+    Overclock Shunt              drawn 1275 games (51.5% win)  played 1220 games (50.4% win)
+    Retaliation Node             drawn 1359 games (56.1% win)  played 1216 games (54.7% win)
+    Quorum Arbiter               drawn 1258 games (56.8% win)  played 1216 games (56.9% win)
+    Interrupt Handler            drawn 1210 games (50.1% win)  played 1189 games (50.8% win)
+    Signal Drone                 drawn 1338 games (54.8% win)  played 1186 games (53.5% win)
+    Diagnostic Loop              drawn 1306 games (49.7% win)  played 1164 games (46.9% win)
+    Deadlock Detector            drawn 1226 games (51.0% win)  played 1152 games (48.8% win)
+    Diagnostic Pulse             drawn 1188 games (52.8% win)  played 1119 games (50.4% win)
+    Compiled Daemon              drawn 2200 games (52.0% win)  played 1118 games (64.2% win)
+    Surge Protector              drawn 1170 games (48.5% win)  played 1060 games (47.9% win)
+    Backup Protocol              drawn 1308 games (51.5% win)  played 1004 games (49.9% win)
+    Force Quit                   drawn 2150 games (49.5% win)  played  861 games (53.0% win)
+    Dormant Exploit              drawn 1274 games (50.8% win)  played  836 games (48.4% win)
+    Rollback Point               drawn 1214 games (53.5% win)  played  735 games (49.7% win)
+  --- Swarm per-card win rates ---
+    Broodcaller                  drawn 2718 games (55.0% win)  played 2585 games (53.9% win)
+    Carapace Grunt               drawn 2806 games (51.4% win)  played 2524 games (49.9% win)
+    Brood Skitterer              drawn 2730 games (52.0% win)  played 2454 games (49.4% win)
+    Swarm Larva                  drawn 2734 games (56.7% win)  played 2238 games (55.9% win)
+    Colony Broodling             drawn 2676 games (50.3% win)  played 2126 games (46.7% win)
+    Corrosive Spitter            drawn 2683 games (52.3% win)  played 2066 games (51.2% win)
+    Spore Cluster                drawn 2139 games (46.6% win)  played 1920 games (43.2% win)
+    Bloodswarm Alpha             drawn 1991 games (50.7% win)  played 1904 games (49.9% win)
+    Overclock Beast              drawn 2092 games (54.7% win)  played 1702 games (53.7% win)
+    Warren Guardian              drawn 2016 games (55.5% win)  played 1589 games (54.4% win)
+    Hive Mother                  drawn 1275 games (59.8% win)  played 1164 games (61.0% win)
+    Chitin Plating               drawn 1147 games (45.2% win)  played 1046 games (42.8% win)
+    Reflex Spike                 drawn 2042 games (47.9% win)  played 1011 games (42.0% win)
+    Overgrown Carapace           drawn 2023 games (49.0% win)  played  987 games (39.7% win)
+    Molted Stalker               drawn 2158 games (52.7% win)  played  854 games (67.2% win)
+    Brood Reserves               drawn 1161 games (47.9% win)  played  832 games (40.9% win)
+    Barrier Node                 drawn 1086 games (49.4% win)  played  823 games (45.6% win)
+    Dormant Egg Sac              drawn 1253 games (48.7% win)  played  598 games (37.0% win)
+    Bore Swarm                   drawn 2022 games (50.5% win)  played  474 games (52.1% win)
+    Rally Cry                    drawn 1125 games (52.4% win)  played  439 games (54.4% win)
+  --- Aegis per-card win rates ---
+    Aegis Cadet                  drawn 2956 games (56.4% win)  played 2887 games (55.5% win)
+    Bulwark Chassis              drawn 2955 games (50.0% win)  played 2831 games (48.2% win)
+    Guard Directive Chip         drawn 2851 games (56.1% win)  played 2776 games (55.5% win)
+    Perimeter Turret             drawn 2914 games (56.0% win)  played 2759 games (54.3% win)
+    Plating Module               drawn 2799 games (51.3% win)  played 2699 games (50.2% win)
+    Reinforced Bastion           drawn 2365 games (56.5% win)  played 2295 games (55.5% win)
+    Failover Custodian           drawn 2414 games (51.3% win)  played 2282 games (48.9% win)
+    Barrier Drone                drawn 2301 games (48.3% win)  played 2192 games (46.3% win)
+    Aegis Line Trooper           drawn 2243 games (54.7% win)  played 2118 games (53.0% win)
+    Aegis Sentinel               drawn 2894 games (54.7% win)  played 1543 games (64.4% win)
+    Salvage Reflex               drawn 1345 games (57.4% win)  played 1313 games (56.4% win)
+    Prime Aegis                  drawn 1339 games (77.7% win)  played 1267 games (81.0% win)
+    Feedback Plating             drawn 1275 games (54.0% win)  played 1228 games (52.5% win)
+    Uplink Tower                 drawn 1236 games (56.2% win)  played 1195 games (55.0% win)
+    Intercept Routine            drawn 1320 games (47.0% win)  played 1179 games (42.0% win)
+    Barrier Shim                 drawn 1270 games (49.5% win)  played 1156 games (47.0% win)
+    Diagnostic Ward              drawn 1360 games (50.2% win)  played 1145 games (43.2% win)
+    Latent Ward                  drawn 1311 games (51.3% win)  played 1121 games (47.3% win)
+    Tariff Field                 drawn 1302 games (46.8% win)  played 1052 games (40.5% win)
+    Lockdown Field               drawn 1293 games (53.6% win)  played 1018 games (45.1% win)
+    Static Ward Beacon           drawn 1377 games (47.3% win)  played  885 games (52.3% win)
+    Aegis Warden                 drawn 2255 games (48.2% win)  played  486 games (63.4% win)
+    Breach Charge                drawn 1299 games (48.3% win)  played  478 games (53.1% win)
+  --- Null per-card win rates ---
+    Corruption Patch             drawn 2980 games (44.6% win)  played 2885 games (43.6% win)
+    Stray Fragment               drawn 2935 games (47.2% win)  played 2820 games (46.5% win)
+    Glitch Seed                  drawn 2915 games (48.1% win)  played 2817 games (47.2% win)
+    Propagating Exploit          drawn 2989 games (46.2% win)  played 2795 games (45.9% win)
+    Zombie Process               drawn 2339 games (47.1% win)  played 2256 games (46.1% win)
+    Dangling Pointer             drawn 2342 games (46.9% win)  played 2186 games (46.1% win)
+    Garbage Collector            drawn 2229 games (45.5% win)  played 2143 games (44.4% win)
+    Entropy Harvester            drawn 2249 games (47.8% win)  played 2131 games (46.0% win)
+    Fork Bomb                    drawn 2209 games (46.5% win)  played 1878 games (44.7% win)
+    Null Shell                   drawn 1296 games (41.1% win)  played 1253 games (39.7% win)
+    Bit Rot                      drawn 1359 games (45.1% win)  played 1206 games (41.2% win)
+    Segfault Handler             drawn 1237 games (44.9% win)  played 1192 games (43.2% win)
+    Corrupted Process            drawn 2159 games (46.1% win)  played 1165 games (54.9% win)
+    Decay Ward                   drawn 1301 games (38.0% win)  played 1124 games (34.3% win)
+    Deprecated Routine           drawn 1276 games (41.3% win)  played  959 games (35.8% win)
+    Watchdog Timer               drawn 1359 games (42.2% win)  played  809 games (36.1% win)
+    Null Pointer                 drawn 2263 games (40.5% win)  played  616 games (52.8% win)
+    Null Singularity             drawn 1382 games (48.8% win)  played  601 games (70.0% win)
+    Segmentation Fault           drawn 1282 games (42.1% win)  played  457 games (26.3% win)
+    Kernel Panic                 drawn 2252 games (41.7% win)  played  435 games (72.2% win)
+
+=== Cross-check: flagged under ALL THREE agent policies? ===
+(Previously this checked Aggressive+Random only. Per the 2026-09-20 owner feedback, LookaheadAgent
+ now has to agree too — a strictly higher bar, by design, than the two-policy check it replaces.)
+  None. No cross-faction pairing shows the SAME side winning >=60% under all three agent policies — no strong evidence of a dominant archetype from this measurement.
+
+=== Ring targets: Null > Aegis > Cortex > Swarm > Null ===
+(Decisive edges [W] target 55-60% for the named winner; the two "across" pairings [E] target 45-55% even.
+ Corrected 2026-09-23 — Cortex-vs-Swarm and Aegis-vs-Cortex are BOTH decisive [W] edges, not "even":
+ only Null-vs-Cortex and Aegis-vs-Swarm are the ~even pairings.)
+  --- Aggressive ---
+    [W] Null should beat Aegis: 53.4% (target 55.00000000000001-60%) out of band
+    [W] Aegis should beat Cortex: 51.0% (target 55.00000000000001-60%) out of band
+    [W] Cortex should beat Swarm: 50.1% (target 55.00000000000001-60%) out of band
+    [W] Swarm should beat Null: 59.7% (target 55.00000000000001-60%) IN BAND
+    [E] Null vs Cortex should be ~even: Null 45.1% (target 45-55.00000000000001%) IN BAND
+    [E] Aegis vs Swarm should be ~even: Aegis 46.6% (target 45-55.00000000000001%) IN BAND
+  --- Random ---
+    [W] Null should beat Aegis: 52.2% (target 55.00000000000001-60%) out of band
+    [W] Aegis should beat Cortex: 52.7% (target 55.00000000000001-60%) out of band
+    [W] Cortex should beat Swarm: 70.4% (target 55.00000000000001-60%) out of band
+    [W] Swarm should beat Null: 35.6% (target 55.00000000000001-60%) out of band
+    [E] Null vs Cortex should be ~even: Null 53.3% (target 45-55.00000000000001%) IN BAND
+    [E] Aegis vs Swarm should be ~even: Aegis 59.0% (target 45-55.00000000000001%) out of band
+  --- Lookahead ---
+    [W] Null should beat Aegis: 41.4% (target 55.00000000000001-60%) out of band
+    [W] Aegis should beat Cortex: 52.7% (target 55.00000000000001-60%) out of band
+    [W] Cortex should beat Swarm: 54.9% (target 55.00000000000001-60%) out of band
+    [W] Swarm should beat Null: 61.1% (target 55.00000000000001-60%) out of band
+    [E] Null vs Cortex should be ~even: Null 40.0% (target 45-55.00000000000001%) out of band
+    [E] Aegis vs Swarm should be ~even: Aegis 51.2% (target 45-55.00000000000001%) IN BAND

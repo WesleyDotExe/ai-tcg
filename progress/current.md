@@ -1,93 +1,81 @@
 # Current status
 
 **Build-order stage: 3 (A real card set), still current, inside Phase 5
-(pool expansion).** Session 24 was a balance session: the last merged PR
-(#32) was render. The owner's revised Phase 5 order (2026-09-26, item 2) is
-(i) Null consistency trim (done, session 23), (ii) neutral pool (this
-session), (iii) the mandatory full-ring re-measure gate (next).
+(pool expansion).** Session 25 was a balance session. The owner's 2026-10-01
+entry named "the Null card-vs-agent check" as the next session's priority,
+which overrode the alternation rule (the last merged PR, #33, was also
+balance). Phase 5 order is unchanged: (i) Null trim done, (ii) neutral pool
+done, the owner's follow-ups to it done this session, (iii) the mandatory
+full-ring gate is next.
 
-## What stands (this session's work; sessions 1-23 otherwise unchanged)
+## What stands (this session's work; sessions 1-24 otherwise unchanged)
 
-**The neutral pool** (`engine/src/data/neutralCards.ts`): 10 cards, all
-utility. Card flow: Spare Cycles, Cache Warmup, Relay Courier, Uplink Tower.
-Health: Rollback Point, Scrap Recycler. Energy: Burst Credit, Power Reserve.
-Plain bodies: Commodity Rack, and the Surge Protector tool. `Faction` gained
-"Neutral"; `DeckFaction` is the four real ones.
+**LookaheadAgent fixes** (`engine/src/agents/lookaheadAgent.ts`):
+- A this-turn buff/debuff is worth the fight it changes. That's the
+  pending combat on the stack if there is one. Otherwise, on its
+  controller's own turn, it's the improvement to the best attack involving
+  that unit. Otherwise it's 0. Before, Bit Rot hit a unit that never fought
+  in 222/240 casts; now 184/235 casts answer a declared attack.
+- A Tool prefers the most valuable host and never re-grants Barrier.
+- `scoreAttack` and the new code share `exchangeValue`.
+- Constructor option `cardAdvantageWeight`, used only by the instrument
+  check. Balance runs use the default 1.5.
 
-**Rules, all enforced at load time:**
-- `poolLint.ts`'s `neutralCardViolations`: a neutral card may not be
-  removal/debuff, Mythic, carry Guard/Barrier/Rush, evolve or telegraph,
-  summon, have a static effect, or be faction-conditional.
-- `decks.ts`'s `buildDeck`: exactly one faction plus at most
-  `MAX_NEUTRAL_COPIES` = 10 neutral copies. Every neutral card must be the
-  pool's own object. `deckFaction()` names a deck's faction.
-- Clock and card flow are now checked on a faction's own cards only.
-  Neutral draw can't stand in. The 25% removal cap still counts the whole
-  deck.
+**Commodity Rack 3/3 -> 3/2** (owner-feedback 2026-10-01 item 1), after
+`dev/cardAdvantageCheck.ts` showed the agent doesn't under-value draw.
 
-**Shipped neutral packages** (`dev/neutralPackageSearch.ts`, ring-distance
-objective, no-sandbag guard, held-out ship rule):
-- Cortex: -1 Signal Drone, -1 Overclock Shunt; +1 Rollback Point, +1 Surge
-  Protector.
-- Null: add-only, 36 -> 40: +3 Commodity Rack, +1 Rollback Point. Nothing
-  was cut, per owner-feedback 2026-09-29.
-- Swarm: none. Aegis: none (its best swap failed held-out).
+**Decks after the re-search** (`neutralPackageSearch.ts --strip-neutral`,
+held-out ship rule):
+- Null: its own 36 cards, no neutral package.
+- Aegis: -1 Salvage Reflex, +1 Uplink Tower.
+- Cortex: unchanged (Rollback Point + Surge Protector).
+- Swarm: unchanged (none).
 
-**LookaheadAgent fix:** heal is valued up to missing health, net of heals
-already pending on the stack. gainEnergy is valued up to the room left. A
-Command that does nothing costs the card. Before this, Cortex Engineer's
-repair fired 1,231 times in 200 games and healed 66 times.
+**claude-tools reference removed** from code and progress files
+(owner-feedback 2026-10-01). Statistics and the parity fixture test are
+unchanged.
 
-**Ring now** (Lookahead, 900 seeds): only Aegis over Null is OUT OF BAND
-(52.2% Aegis, target 40-45). All other edges are UNRESOLVED.
+**Ring now** (Lookahead, 900 seeds): three edges OUT, all Null's. Null is
+the weakest faction by a clear margin, mostly because of the Rack nerf (it
+ran 3 Racks).
 
-| Edge (row faction's rate) | session start | now | band |
-|---|---|---|---|
-| Null vs Cortex | 41.1 | 41.9 | 45-55 |
-| Null vs Swarm | 41.7 | 42.6 | 40-45 |
-| Null vs Aegis | 39.6 | 47.8 | 55-60 |
-| Cortex vs Swarm | 54.1 | 59.1 | 55-60 |
-| Cortex vs Aegis | 41.6 | 47.9 | 40-45 |
-| Aegis vs Swarm | 54.4 | 54.4 | 45-55 |
+| Edge (row faction's rate) | session start | now | band | verdict |
+|---|---|---|---|---|
+| Null vs Cortex | 41.9 | 40.0 | 45-55 | OUT |
+| Null vs Swarm | 42.6 | 38.9 | 40-45 | UNRESOLVED |
+| Null vs Aegis | 47.8 | 41.4 | 55-60 | OUT |
+| Cortex vs Swarm | 59.1 | 54.9 | 55-60 | UNRESOLVED |
+| Cortex vs Aegis | 47.9 | 47.3 | 40-45 | UNRESOLVED |
+| Aegis vs Swarm | 54.4 | 51.2 | 45-55 | IN BAND |
 
-**Self-containment (owner-feedback 2026-09-30):** `edgeMeasure.ts` is the
-permanent, vendored statistics. It now has the z-test,
-`compareTwoProportions`, a provenance line, and a hardcoded parity fixture
-test. It makes no external calls.
-
-**Render compatibility:** capture.ts derives a player's faction from their
-non-Neutral cards. Neutral cards use the UI gold (`.faction-Neutral`), and
-cli.ts uses `DeckFaction`.
+`balanceReport.ts 900`: no triple-flag.
 
 ## Evidence committed
 
-- `progress/balance-report-018-neutral-pool.txt`: headline, before/after
-  ring, agent-fix waste counts and decomposition, all four search
-  transcripts plus the discarded first run, probe table, Kernel Panic
-  frequency, final edge checks, full `balanceReport.ts 900`.
-- `progress/sample-match-025-neutral-pool.txt`: shipped-deck usage per
-  neutral card, and a full log (Swarm vs Cortex, seed 18) with Surge
-  Protector attached and Rollback Point cast.
-- Tests: `engine/test/neutralPool.test.ts` (13), the parity fixture in
-  `edgeMeasure.test.ts`, and updated Cortex/Null pool tests. `npm test`:
-  285/285 across all five workspaces (engine 124). `tsc --noEmit` clean in
-  all five.
+- `progress/balance-report-019-agent-check.txt`: head-to-head weights,
+  probes before/after, play-context tables old/new, ablations old/new,
+  all four search transcripts, final edge checks, full `balanceReport.ts
+  900`.
+- `progress/sample-match-026-bit-rot-response.txt`: a full game where Bit
+  Rot answers Watchtower Relay's attack and zeroes it.
+- Tests: four new LookaheadAgent tests (this-turn debuff held / cast in
+  response / cast pre-combat; Barrier tool host). `npm test` 289/289 across
+  all five workspaces (engine 128). `tsc --noEmit` clean in all five. One
+  render test (`statFx.test.ts`) no longer pins move numbers; the agent
+  change moved them.
 
 ## Concrete next step
 
-Next session is a **render** slice under the alternation rule. Its queue:
-the owner's 2026-09-27 entry (cast stagger on all responses), EFFECTS.md
-slice 5, and a real palette for Neutral cards.
+Next session is a **render** slice under the alternation rule. Its queue is
+unchanged from session 24's note: EFFECTS.md slice 5, and a real palette for
+Neutral cards. The cast stagger on responses has already shipped (#32).
 
 The next **balance** session runs the **Phase 5 gate (step iii)**:
-- `lookaheadEdgeCheck.ts <Faction> 1 900` for each faction, for the even
-  bands.
-- ~2,500 seeds for the 5-point win/lose bands (the CLI takes a count:
-  `lookaheadEdgeCheck.ts <Faction> 1 2500`). UNRESOLVED is not a pass.
-- `balanceReport.ts 900`.
-- Write the result as a checkpoint.
-
-If Cortex-vs-Null is still out there, the pre-authorized lever is dropping
-Quorum Arbiter (owner-feedback 2026-09-26 item 3). Before any Null cut,
-settle note 3: are Null's removal cards weak, or does the agent misplay
-them? This session showed the agent can misplay by ~6 points.
+- `lookaheadEdgeCheck.ts <Faction> 1 900` for each faction (even bands);
+  `... 1 2500` for the 5-point win/lose bands. UNRESOLVED is not a pass.
+- `balanceReport.ts 900`. Write the result as a checkpoint.
+- Expect Null's edges to come back OUT. Check notes-for-owner.md first: if
+  the owner answered the Watchdog Timer buff or the Null weakness flag, apply
+  that before the gate. The Quorum Arbiter drop is still pre-authorized if
+  Cortex-vs-Null is out. It's now 60.0, but that's Null's weakness, not
+  Cortex's strength.

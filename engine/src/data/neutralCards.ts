@@ -25,7 +25,7 @@
 // different costs and shapes (an Instant cantrip, a Sorcery double draw, a
 // body that draws), energy has two (a one-shot refund and a standing
 // end-of-turn refund), health has two (a flat restore and a death-triggered
-// one), and bodies have three at different points (a 3/3, a 2/5 engine, a
+// one), and bodies have three at different points (a 3/2, a 2/5 engine, a
 // tool). No two cards are the same apart from name.
 
 import type { UnitCard, CommandCard, DirectiveCard, ToolCard, Card } from "../cards/types.js";
@@ -163,8 +163,14 @@ export const commodityRack: UnitCard = {
   rarity: "Common",
   cost: 3,
   type: "Unit",
+  // 3/3 -> 3/2 (owner-feedback 2026-10-01, item 1). As a 3/3 it was the
+  // best neutral card by a clear margin (45.9% in the Null probe vs 36-42%
+  // for the utility cards, on the session-25 agent), which defeats
+  // "utility, not identity". The agent was checked first and does not
+  // under-value card draw (dev/cardAdvantageCheck.ts): no other weight beats
+  // the shipped one head to head. So the card moved, not the instrument.
   attack: 3,
-  health: 3,
+  health: 2,
   keywords: [],
   art: "placeholder:neutral/commodity-rack",
   flavor: "Off-the-shelf, bulk-priced, and exactly as good as it needs to be.",

@@ -201,6 +201,13 @@ building around them; don't block the whole project waiting.
    resolver delivers them. Cortex had been burning energy on no-op
    repairs. Ring after: only Aegis-over-Null is OUT at 900 seeds (52.2%
    Aegis, was 60.4%). `progress/balance-report-018-neutral-pool.txt`.
+   **Session 25 did the owner's 2026-10-01 follow-ups:** card advantage
+   cleared as an agent issue, Commodity Rack 3/3 -> 3/2, the Null
+   card-vs-agent check (Bit Rot was misplayed, Watchdog Timer is weak), two
+   LookaheadAgent fixes (this-turn buffs, Tool hosts), and a package
+   re-search (Null back to its bare 36, Aegis +1 Uplink Tower). Null is now
+   the clear weakest faction (three OUT edges). It's flagged to the owner.
+   `progress/balance-report-019-agent-check.txt`.
    **Remaining before the hard gate: nothing. Next balance session runs the
    mandatory full-ring re-measure: 900 seeds for the even bands, ~2,500
    for the 5-point win/lose bands (owner-feedback 2026-09-29 item 2), with

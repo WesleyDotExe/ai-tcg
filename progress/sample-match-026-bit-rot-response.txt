@@ -1,0 +1,274 @@
+AI-TCG sample match 026 — session 25: Bit Rot answers a declared attack
+Produced by: npx tsx src/dev/nullCardPlayCheck.ts 300 --show (fixed LookaheadAgent, shipped decks).
+Before the fix, 222 of 240 Bit Rot casts hit a unit that never fought that turn. Here, on turn 8,
+Watchtower Relay attacks Null's face, Cortex responds with an Engineer repair, and Null answers with
+Bit Rot on the attacker, which resolves before the combat damage. Watchtower Relay's attack then
+resolves for 0 (2 attack - 3): no damage line follows ">>> resolving: Watchtower Relay's attack".
+
+=== Full match log: Null (p1) vs Cortex (p2), seed 8; Bit Rot cast in answer to a declared attack ===
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Watchtower Relay
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Propagating Exploit
+--- Turn 3 (p1) ---
+p1 plays Dangling Pointer (u1)
+Dangling Pointer attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Dangling Pointer's attack
+  Dangling Pointer deals 2 damage to Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Cortex Engineer
+--- Turn 4 (p2) ---
+p2 plays Cortex Engineer (u3)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Fork Bomb
+--- Turn 5 (p1) ---
+Dangling Pointer attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Dangling Pointer's attack
+  Dangling Pointer deals 2 damage to Cortex
+p1 plays Propagating Exploit (u5)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Cortex Engineer
+--- Turn 6 (p2) ---
+p2 plays Watchtower Relay (u6)
+Cortex Engineer attacks Dangling Pointer
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Dangling Pointer (unit)
+  Dangling Pointer deals 2 damage to Cortex Engineer (unit)
+  Dangling Pointer (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Segfault Handler
+--- Turn 7 (p1) ---
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)
+  Propagating Exploit grants Propagating Exploit +1/+0
+Propagating Exploit attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Propagating Exploit's attack
+  Propagating Exploit deals 3 damage to Cortex
+p1 casts Segfault Handler [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Segfault Handler
+  ability: Segfault Handler — segfault-handler-cast (onPlay)
+  Segfault Handler deals 3 damage to Watchtower Relay (unit)
+  Corruption Patch attaches to Propagating Exploit
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Backup Protocol
+--- Turn 8 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Null (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+p1 casts Bit Rot [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bit Rot
+  ability: Bit Rot — bit-rot-cast (onPlay)
+  Bit Rot grants Watchtower Relay +-3/+0
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 2 health to Cortex Engineer
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+p2 plays Load Balancer (u13)
+Cortex Engineer attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Propagating Exploit
+--- Turn 9 (p1) ---
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)
+  Propagating Exploit grants Propagating Exploit +1/+0
+Propagating Exploit attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Propagating Exploit's attack
+  Propagating Exploit deals 5 damage to Cortex
+p1 plays Propagating Exploit (u16)
+p1 plays Fork Bomb (u17)
+  Fork Bomb deploys, dormant — arms in 1 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Diagnostic Loop
+--- Turn 10 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Null
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Propagating Exploit (unit)
+Load Balancer attacks Propagating Exploit
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Propagating Exploit (unit)
+  Propagating Exploit deals 2 damage to Load Balancer (unit)
+  Propagating Exploit (p1) dies
+p2 plays Recursive Construct (u20)
+p2 plays Cortex Engineer (u21)
+Cortex Engineer attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Corrupted Process
+--- Turn 11 (p1) ---
+  Fork Bomb arms
+  ability: Fork Bomb — fork-bomb-arm (onPlay)
+  Fork Bomb summons Fork Child for p1 (u23)
+  Fork Bomb summons Fork Child for p1 (u24)
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)
+  Propagating Exploit grants Propagating Exploit +1/+0
+Propagating Exploit attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Propagating Exploit's attack
+  Propagating Exploit deals 6 damage to Cortex
+Fork Bomb attacks Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Watchtower Relay (unit)
+  Watchtower Relay deals 2 damage to Fork Bomb (unit)
+  Watchtower Relay (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Overload Capacitor
+--- Turn 12 (p2) ---
+p2 plays Overload Capacitor (u27)
+  ability: Overload Capacitor — overload-capacitor-play (onPlay)
+  Overload Capacitor applies Overload to Overload Capacitor
+p2 plays Rate Limiter (d28)
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Fork Bomb (unit)
+  Fork Bomb (p1) dies
+Load Balancer attacks Propagating Exploit
+  p2 passes priority
+p1 casts Null Pointer [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Pointer
+  ability: Null Pointer — null-pointer-cast (onPlay)
+  Null Pointer destroys Rate Limiter (p2)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Propagating Exploit (unit)
+  Propagating Exploit deals 6 damage to Load Balancer (unit)
+  Load Balancer (p2) dies
+Cortex Engineer attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Null
+Cortex Engineer attacks Fork Child
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Fork Child (unit)
+  Fork Child deals 1 damage to Cortex Engineer (unit)
+  Fork Child (p1) dies
+Recursive Construct attacks Propagating Exploit
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 4 damage to Propagating Exploit (unit)
+  Propagating Exploit deals 6 damage to Recursive Construct (unit)
+  Propagating Exploit (p1) dies
+  Recursive Construct (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+  Overload deals 1 damage to Overload Capacitor (unit)
+p1 draws Garbage Collector
+--- Turn 13 (p1) ---
+p1 plays Garbage Collector (u34)
+Fork Child attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Child's attack
+  Fork Child deals 1 damage to Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Deadlock Detector
+--- Turn 14 (p2) ---
+Overload Capacitor attacks Null (face)
+p2 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overload Capacitor's attack
+  Overload Capacitor deals 4 damage to Null
+p2 plays Deadlock Detector (u38)
+  ability: Deadlock Detector — deadlock-detector-play (onPlay)
+p2 plays Recursive Construct (u39)
+p2 plays Diagnostic Loop (u40)
+Cortex Engineer attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Null
+Cortex Engineer attacks Fork Child
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Fork Child (unit)
+  Fork Child deals 1 damage to Cortex Engineer (unit)
+  Fork Child (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Overload deals 1 damage to Overload Capacitor (unit)
+p1 draws Stray Fragment
+--- Turn 15 (p1) ---
+Garbage Collector attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Garbage Collector's attack
+  Garbage Collector deals 2 damage to Cortex
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Winner: p1, turns: 15

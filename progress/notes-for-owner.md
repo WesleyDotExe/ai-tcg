@@ -1,5 +1,64 @@
 # Notes for the owner
 
+**Updated 2026-10-01, session 25 (your 2026-10-01 entries: claude-tools
+reference, Commodity Rack, the Null card-vs-agent check).** Nothing is
+blocking. Full numbers: `progress/balance-report-019-agent-check.txt`.
+
+1. **Null is now clearly the weakest faction. This is the main thing to
+   look at.** Under Lookahead (900 seeds) it's 40.0 / 38.9 / 41.4 vs Cortex
+   / Swarm / Aegis. Three edges are OUT, all Null's: Null-vs-Cortex (even
+   band), Aegis over Null, and Cortex over Null from Cortex's side. Most of
+   the drop is the Commodity Rack nerf you asked for. Null ran 3 Racks, and
+   the nerf alone cost it about 6 / 3.5 / 6 points. The decomposition is in
+   report 019. Your instruction was followed in the order given: check the
+   agent first, then nerf. I'm flagging the size of the side effect because
+   the Phase 5 gate is next and will measure this ring.
+2. **Card advantage is not an agent problem.** A LookaheadAgent with
+   card-draw weight W played one with the shipped 1.5, 16,000 games per
+   weight. Nothing beat 1.5, and 4.5 and 6 were measurably worse. Draw
+   cards didn't improve in the probe at weight 4.5. So Rack went 3/3 ->
+   3/2. It now probes at 41.3%, level with Rollback Point (42.1) and Scrap
+   Recycler (41.2) instead of 4-10 points clear of every other neutral.
+3. **Null card-vs-agent check (your item 4 and session 23's note 3):
+   settled card by card.**
+   - **Bit Rot was an agent misplay.** 222 of 240 casts hit a unit that
+     never fought that turn. The agent valued a this-turn -3/-0 at 40% of
+     its size wherever it landed. On the old agent, cutting a copy was worth
+     +2.7 points to Null; on the fixed agent it's -0.5. Fixed: a this-turn
+     buff is now worth the fight it changes. Now 184 of 235 casts answer a
+     declared attack (`progress/sample-match-026-bit-rot-response.txt`).
+   - **Decay Ward's host was a coin flip** (112/206 on a weaker unit).
+     Fixed, but its measured cost barely moved (+1.5 -> +1.4, CI spans 0).
+   - **Watchdog Timer is a weak card**, not misplayed. It drew 36 cards in
+     900 games, and cutting a copy is still +1.9 (CI 0.3-3.4). **Decision for
+     you:** it's one of your endorsed mechanics, so I didn't touch it. A
+     candidate buff that keeps the catch-up identity: draw when the hand has
+     1 card or fewer, not only when it's empty.
+   - **Null Pointer is situational.** It always hits the only directive, but
+     sat in hand with nothing to hit in 270 of 900 games. +1.2 to cut, CI
+     spans 0. That's the cost of a dedicated answer card. No change.
+4. **The agent fix changes other factions' cards too.** Reflex Spike (Swarm)
+   and Hotfix (Cortex) are now held for real combats. Reflex Spike plays
+   fell from 1,990 to 1,011 games out of ~2,000 drawn. Rally Cry still plays
+   pre-combat (465 -> 439). Swarm got a little stronger.
+5. **Packages re-searched on the fixed agent and the 3/2 Rack.** Null: no
+   neutral card helps, so it's back to its own 36 cards (held-out objective
+   314 -> 249). That also restores Kernel Panic's density. Aegis: -1 Salvage
+   Reflex, +1 Uplink Tower (243 -> 234). Every per-edge change is inside
+   noise; it shipped on the rule. Cortex keeps its package; Swarm runs none.
+   **Neutral cards now in decks:** Rollback Point and Surge Protector
+   (Cortex), and Uplink Tower (Aegis).
+6. **claude-tools is gone from the repo** except your own words in
+   `owner-feedback.md`, which I didn't edit. The comment in `edgeMeasure.ts`,
+   my notes here, the quality-debt items, report 017 and the log no longer
+   name it. The math and the parity fixture test are unchanged.
+7. **Session order:** your entry said "next session priority: the Null
+   card-vs-agent check", so this was a balance session even though the last
+   merged PR (#33) was also balance. Under the alternation rule the next
+   session is render, then the Phase 5 gate.
+
+---
+
 **Updated 2026-09-30, session 24 (Phase 5 step ii: the neutral pool).**
 Nothing is blocking. Full numbers: `progress/balance-report-018-neutral-pool.txt`.
 
@@ -42,11 +101,8 @@ Nothing is blocking. Full numbers: `progress/balance-report-018-neutral-pool.txt
      the deck is 40 again. Your call: +3-4 points per Null edge vs arc
      visibility.
 6. **Self-containment (your 2026-09-30 entry) is done.** There is a
-   provenance line, a hardcoded parity fixture test, and no external calls.
-   **One thing only you can supply:** the claude-tools commit hash the
-   statistics were ported from. That repo is outside this build's reach, so
-   the line in `engine/src/dev/edgeMeasure.ts` says "source commit not
-   recorded". Paste the hash there, or say where to find it.
+   hardcoded parity fixture test and no external calls. (The provenance
+   line was removed in session 25, per your 2026-10-01 entry.)
 7. **Next balance session is the Phase 5 gate.** It runs at 900 seeds for
    the even bands and ~2,500 for the narrow bands, per your 2026-09-29 item
    2.
@@ -82,9 +138,7 @@ Nothing is blocking. Full numbers: `progress/balance-report-017-null-trim.txt`.
    never IN. The 10-point even bands can still come back IN. Options: run the gate's
    Lookahead side at ~2,500 seeds per pairing (well under a minute), or
    accept UNRESOLVED as a pass for the gate. I'd do the former. The CI
-   verdicts are now built into `lookaheadEdgeCheck.ts` (a local port of the
-   claude-tools method; no claude-tools server was reachable from here, so the
-   live call is still open).
+   verdicts are now built into `lookaheadEdgeCheck.ts`.
 5. **Cortex-vs-Null moved toward band as you predicted:** 61.1 -> 58.9 Cortex
    under Lookahead, still out (CI 55.6-62.1). Per your item 3, the Quorum
    Arbiter decision waits for the gate.

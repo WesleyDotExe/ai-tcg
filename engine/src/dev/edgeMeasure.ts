@@ -8,15 +8,11 @@
 // is measured on exactly the seeding the standard check uses: seeds 1-300
 // here still reproduce balanceReport.ts's Lookahead section.
 //
-// The statistics are vendored, and permanent: AI TCG has no external runtime
-// dependencies (owner-feedback 2026-09-30, which closed the earlier
-// "call claude-tools live" direction). Nothing here calls out to anything.
-// Provenance: ported from claude-tools' discrete-probability
-// compare_two_proportions (pooled two-proportion z-test, Wilson score
-// interval per group, Newcombe hybrid interval for the difference); source
-// commit not recorded, since that repo is outside this build's reach (see
-// progress/notes-for-owner.md). engine/test/edgeMeasure.test.ts pins the port
-// to a hardcoded fixture, so it cannot drift silently.
+// The statistics (pooled two-proportion z-test, Wilson score interval per
+// group, Newcombe hybrid interval for the difference) live here, and AI TCG
+// has no external runtime dependencies (owner-feedback 2026-09-30). Nothing
+// here calls out to anything. engine/test/edgeMeasure.test.ts pins them to a
+// hardcoded fixture, so they cannot drift silently.
 
 import { buildDeck, buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
 import { CORTEX_CARDS, SWARM_CARDS } from "../data/cards.js";
