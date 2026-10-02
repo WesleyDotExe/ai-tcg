@@ -1264,3 +1264,18 @@ Roadmap order stands: finish/merge session 24 (neutral pool) with the above appl
   by the fight they change, and Tools pick their host.
 - Item 5: next balance session. Under the alternation rule the next session is render.
 
+
+
+---
+
+## 2026-10-02 — Owner: session 25 (agent fixes + Rack 3/2 + Null card-vs-agent check) responses
+
+Reviewed Session 25. The card-vs-agent work vindicated holding variant B: Bit Rot was an AGENT MISPLAY, not a weak card (222/240 casts were hitting a non-fighting unit; fixed, cutting a copy went +2.7 -> -0.5). Cutting it under variant B would have removed a good card the arbiter was mishandling. Two decisions:
+
+1. **Approve the Watchdog Timer buff: draw when the hand has <=1 card (not only when empty).** It measured genuinely weak (not misplayed) but it is an endorsed mechanic, so lift it through its own catch-up identity rather than leaving it dead or cutting it. On-theme, low-risk, and it nudges the weakest faction (Null) up without stat-creep. Re-measure after; pull back only if it overshoots.
+
+2. **Accept Null's current weakness and let the Phase 5 gate measure it — do not reactively patch Null now.** Null is now the weakest faction (40.0 / 38.9 / 41.4 vs Cortex/Swarm/Aegis, 900 seeds; three OUT edges, all Null's). Most of the drop is the Commodity Rack nerf — Null ran 3 Racks, so it took the hit hardest (~6/3.5/6 pts). That is the accepted cost of keeping the neutral pool "utility, not identity"; the nerf was correct (confirmed not an agent artifact across 16k-game weight tests). With the Bit Rot agent fix, the 3/2 Rack, Null reverted to its own 36 cards (which also restores Kernel Panic density), and the Watchdog buff above all now in, the gate is the designed point to judge the full ring. Address Null holistically THERE — the Quorum Arbiter lever (Cortex-vs-Null) and any targeted Null lift are gate-time decisions with full data. Do not chase individual Null edges before the gate.
+
+Endorsements (no action): the Rack nerf to 3/2; the agent card-draw weight staying at 1.5 (higher measured worse); the agent fix's spillover to Reflex Spike / Hotfix / Rally Cry (correct — those should be held for real combats); the package re-search outcome (Null 36 own cards; Cortex keeps Rollback Point + Surge Protector; Aegis +Uplink Tower -Salvage Reflex); claude-tools fully removed from the repo.
+
+Order stands: next session render (alternation), then the Phase 5 full-ring gate at 900 seeds (even bands) / ~2,500 (narrow bands).
