@@ -271,3 +271,21 @@ separate from the shared `progress/notes-for-owner.md`).
    by construction. It belongs with the event-log instance-ID work, not
    on its own.
 
+
+---
+
+## 2026-10-02 — Session 9 (faction skins)
+
+1. **The quickest way to judge slice 5 is `render/output/skin-sheet.html`.**
+   It shows every particle primitive frozen mid-flight, one row per
+   faction. The replays show the same skins in motion, but only one
+   strike at a time for a few hundred ms. Five taste calls are listed in
+   the new checkpoint. The two most likely to need your eye are dropping
+   the arrow shape on skinned motes, and Null's stepped glitch motion.
+2. **The owner-feedback 2026-10-02 entry (Watchdog Timer buff, Null
+   accepted into the gate) is untouched.** It is a balance/card item, and
+   RENDER.md bars this lane from card files and the shared feedback file.
+   Under the alternation rule, the next session is balance and picks it
+   up.
+3. **No engine change was needed.** The per-hit effect-damage travel still
+   waits on the event-log instance-ID work, as noted in earlier sessions.

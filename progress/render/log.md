@@ -1118,3 +1118,135 @@ infra priority and "don't let it slip further". Both are done here. Slice 5
 pass. Give bolt, cast, mote and burst a per-faction particle character:
 Cortex packets, Swarm scatter, Aegis chrome, Null glitch. With fixed slots
 in, the aura-lift misread is a good small add-on if there's room.
+
+## 2026-10-02 — Session 9: the faction skinning pass (EFFECTS.md slice 5)
+
+**Why this slice.** Under the alternation rule, the most recently merged PR
+was balance (#34), so this was a render session. Session 8's thread named
+slice 5 as next, and the owner's 2026-10-02 entry also says "next session
+render". That entry's Watchdog Timer buff is a card change, so it belongs
+to the balance session that follows. This session didn't touch it, or any
+shared progress file (RENDER.md guardrails 1 and 4).
+
+**Built.**
+- **`render/src/factionSkin.ts`** (new). One `FACTION_SKINS` table with a
+  row per faction (Cortex, Swarm, Aegis, Null, Neutral), and one generic
+  layout function per primitive:
+  - `moteLayout(faction, dir, tier, w, h)` sets count, size, x placement,
+    sideways drift, lanes and stepping for rise/sink motes;
+  - `boltLayout(faction, tier, small, arc)` gives the head, trail and
+    cloud particles with their own paths along the attack arc;
+  - `castRayAngles(faction, tier)` gives the cast flourish's rays.
+
+  An unknown faction gets the plain row. Same single-source pattern as
+  castFx.ts: the page embeds `FACTION_SKIN_SOURCE` verbatim and Node
+  evaluates the same text.
+- **The meaning stays outside the skin.** Direction comes from the caller
+  and is applied after the skin's choices. Every bolt path is pinned to the
+  attacker's centre at t=0 and the target's at t=1, because the weave and
+  jitter envelopes are sin(πt). No table field can flip a mote or move a
+  landing point.
+- **The characters** (placeholder art):
+  - **Cortex** — square packets that snap to 3 lanes and stream in file.
+    The bolt is a train of evenly spaced packets. Dashed rounded-square
+    rings, an outlined square sigil, thin circuit-line rays.
+  - **Swarm** — 1.7× as many spores at 0.7× size, drifting sideways as
+    they rise or sink. The bolt is a spore cloud weaving around the arc
+    and converging on the target. Dotted rings, a dotted round sigil, dot
+    rays.
+  - **Aegis** — 0.6× as many plates at 1.5× size, as chrome hexagons. The
+    bolt is one elongated chrome slug turned along its flight. Heavy rings
+    with an inner highlight, a filled chrome-hex sigil, wide chrome
+    shards.
+  - **Null** — torn bars with an RGB split, moving in 4 discrete steps
+    with sideways tears. The bolt stutters along the arc in 6 steps with
+    jitter, carrying an RGB split. Square rings that flicker on steps(5),
+    a broken sigil, dashed rays.
+  - **Neutral** — the original look: arrow motes, a round bolt, the
+    diamond sigil. A test pins it to the pre-slice layout (3/6/12 motes,
+    0/2/4 trail, 0/6/10 rays).
+- **Page wiring** (`renderHtml.ts`). `spawnMotes`, `spawnBolt`,
+  `spawnCast` and `spawnBurst` now take a faction and read the layout.
+  Motes and bolts animate from the layout paths with the Web Animations
+  API. Stepped skins use per-keyframe `steps(1, end)` over a linear clock.
+  Bursts whose colour is the message stay plain: a kill's red, a shield's
+  cyan, an evolve's green, an arming's gold. The penalty desaturate on a
+  sinking mote is meaning, so it applies to every skin. Tick pacing is
+  untouched. A long trail is capped to arrive within 35% of the flight
+  after the head, so Cortex's 7-packet spectacle train still lands inside
+  the move.
+- **`render/src/skinSheet.ts`** (new; `npm run skin-sheet -w
+  @ai-tcg/render`) writes `render/output/skin-sheet.html`. It shows every
+  primitive frozen mid-flight at spectacle tier, one row per faction,
+  using the replay page's own CSS (`CSS` is now exported) and the same
+  layout source. A replay shows one strike for a few hundred ms; the sheet
+  is the place to compare the five side by side.
+
+**Evidence.**
+- `test/factionSkin.test.ts` (13 tests):
+  - **The meaning invariant over every skin × tier × direction.** Every
+    mote step moves the caller's way, monotonically, by a travel distance
+    identical across skins. Every particle of every bolt (both sizes)
+    starts on the attacker and lands on the target.
+  - **The skins are really different.** A per-skin fingerprint covers
+    count, size, lanes, drift, cloud, weave, steps, stretch and rays, and
+    all five differ. Each named character is asserted where EFFECTS.md
+    puts it.
+  - **Other properties.** Every skin scales subtle ≤ normal ≤ spectacle,
+    and subtle casts have no rays. Layouts are deterministic, with no
+    random source. Neutral reproduces the pre-slice layout. The page and
+    the sheet embed the source verbatim, and the page has shape rules for
+    every skin on all six particle classes.
+  - **Real matches.** Over two captured matches, every faction a replay
+    names, including neutral-pool cards, has its own table row.
+- `npm test`: engine 128, protocol 7, server 23, agents 17, render 127
+  (was 114). `tsc --noEmit` is clean in all five workspaces.
+- **Headless Chromium, play speed.** All six regenerated replays were
+  autoplayed to the last move at normal (700ms) and fast (250ms), with a
+  MutationObserver on the FX layer.
+  - 12/12 runs had zero console errors.
+  - 0 particles carried a skin from a faction not in that match, and 0 had
+    a tint that disagreed with their skin.
+  - The FX layer drained to 0 every time, and per-skin tallies were
+    identical at both speeds.
+  - In cortex-vs-null-seed5: 51 Cortex and 39 Null bolt particles, 11
+    Cortex casts, and 2 plain (kill-red) bursts.
+- **Screenshots** were inspected, not committed: mid-flight captures from
+  live replays, plus the skin sheet. The Null mote count was cut from 1×
+  to 0.5× after the first sheet showed 12 overlapping bars merging into
+  one solid line at spectacle tier.
+- All six replays were regenerated. The balance lane's session-25 card
+  changes make some matches differ from session 8's:
+  - aegis-vs-aegis-seed1: 122 moves
+  - aegis-vs-cortex-seed6: 113
+  - aegis-vs-null-seed3: 139
+  - cortex-vs-null-seed5: 102
+  - null-vs-swarm-seed2: 82
+  - swarm-vs-aegis-seed8: 63
+
+**Named honestly, not fixed:**
+- **Only particles are skinned.** Card-level animations (enter, exit
+  ghost, hit flash, evolve pulse, shatter) are the same for every faction.
+  So are the aim line and the cast tag. The aim line and tag are meaning,
+  and should stay that way. A Null unit glitching out on death, or an
+  Aegis unit entering with a chrome sweep, would be the natural extension.
+- **Skinned motes lost the arrow shape.** The direction of motion, the
+  card's own rise or sink, the label, and the penalty desaturate still
+  carry the meaning. A first-time viewer may miss that on a small mote,
+  though. This is an owner taste call; see the checkpoint.
+- **Null's stepped motion is the riskiest read.** At play speed it reads
+  as glitch to me, but to a casual viewer it could read as the page
+  stuttering.
+- Still open from before:
+  - an aura lifting reads as a penalty;
+  - the full-board replacement ghost overlaps the newcomer;
+  - effect damage has no travel (needs per-hit event pairing);
+  - hand chips are matched by name.
+
+**Next render-lane slice:** the five-slice EFFECTS.md order is done.
+Recommended next is a legibility pass on the two known misreads:
+- give an aura lifting the quiet "settle" rather than a penalty sink;
+- add a short enter delay when a newcomer must take a just-emptied slot
+  on a full board.
+
+After that, skin the card-level animations (exit/enter per faction).

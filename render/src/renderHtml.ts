@@ -1,6 +1,7 @@
 import type { MatchReplay } from "./types.js";
 import { CAST_FX_SOURCE } from "./castFx.js";
 import { ATTACK_FX_SOURCE } from "./attackFx.js";
+import { FACTION_SKIN_SOURCE } from "./factionSkin.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -77,7 +78,7 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-const CSS = `
+export const CSS = `
 :root {
   --bg: #070912;
   --panel: #0d1220;
@@ -361,12 +362,49 @@ html, body {
   35% { transform: translateY(15px) scale(0.92); filter: grayscale(1) brightness(0.45); box-shadow: inset 0 0 30px 10px rgba(0,0,0,0.75), 0 0 16px 3px var(--fx-tint); }
   70% { transform: translateY(10px) scale(0.95); filter: grayscale(0.8) brightness(0.6); }
 }
-.fx-mote { position: fixed; width: 7px; height: 7px; margin-left: -3.5px; background: var(--fx-tint); opacity: 0; }
-.fx-mote.up { clip-path: polygon(50% 0, 100% 100%, 0 100%); animation: fx-mote-up var(--mote-ms) ease-out forwards; }
-.fx-mote.down { clip-path: polygon(0 0, 100% 0, 50% 100%); filter: saturate(0.3) brightness(0.8); animation: fx-mote-down var(--mote-ms) ease-in forwards; }
-.fx-mote.mag-spectacle { width: 10px; height: 10px; margin-left: -5px; }
-@keyframes fx-mote-up { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--mote-dist)); } }
-@keyframes fx-mote-down { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(var(--mote-dist)); } }
+/* Motes move along paths laid out by render/src/factionSkin.ts
+ * (moteLayout) and animated from JS. The direction is the meaning and is
+ * the caller's; the skin classes below only change what the particle looks
+ * like. The desaturate on .down is meaning (a penalty drains colour), so it
+ * applies to every skin. */
+.fx-mote { position: fixed; width: var(--mote-size, 7px); height: var(--mote-size, 7px); margin-left: calc(var(--mote-size, 7px) / -2); background: var(--fx-tint); opacity: 0; }
+.fx-mote.down { filter: saturate(0.3) brightness(0.8); }
+.fx-mote.skin-neutral.up { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.fx-mote.skin-neutral.down { clip-path: polygon(0 0, 100% 0, 50% 100%); }
+
+/* ---- Faction skins (EFFECTS.md slice 5) --------------------------------
+ * Axis 2: faction = HOW it looks. One rule set per skin, shared by every
+ * primitive (mote, bolt, cast ring/sigil/rays, burst); never meaning.
+ *   Cortex  packets: squares, circuit lines, dashed rounded-square rings
+ *   Swarm   spores: small round cells, dotted rings, a scattering cloud
+ *   Aegis   chrome: bright-edged metal plates, heavy solid rings, a slug
+ *   Null    glitch: torn bars with an RGB split, stepped flicker
+ *   Neutral plain: the original arrow motes, round bolt, diamond sigil */
+.fx-mote.skin-cortex { border-radius: 1px; box-shadow: 0 0 4px var(--fx-tint); background: linear-gradient(var(--fx-tint), var(--fx-tint)) center / 45% 45% no-repeat, rgba(10,14,24,0.85); outline: 1.5px solid var(--fx-tint); outline-offset: -1.5px; }
+.fx-mote.skin-swarm { border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0 18%, var(--fx-tint) 45%, transparent 75%); }
+.fx-mote.skin-aegis { clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: linear-gradient(135deg, #ffffff 0%, var(--fx-tint) 45%, #4d5d6b 100%); }
+.fx-mote.skin-null { height: 3px; width: calc(var(--mote-size, 7px) * 2); margin-left: calc(var(--mote-size, 7px) * -1); box-shadow: -3px 0 0 rgba(255,46,110,0.85), 3px 0 0 rgba(46,240,255,0.85); }
+
+.fx-bolt.skin-cortex { border-radius: 2px; background: radial-gradient(circle, #fff 0 25%, var(--fx-tint) 30%); outline: 1px solid rgba(255,255,255,0.6); outline-offset: 1px; }
+.fx-bolt.skin-cortex.trail { opacity: 0.6; background: var(--fx-tint); outline: none; box-shadow: 0 0 4px var(--fx-tint); }
+.fx-bolt.skin-swarm { background: radial-gradient(circle at 40% 40%, #fff 0 15%, var(--fx-tint) 40%, transparent 72%); box-shadow: 0 0 8px var(--fx-tint); }
+.fx-bolt.skin-swarm.cloud { opacity: 0.8; box-shadow: none; }
+.fx-bolt.skin-aegis { border-radius: 50% / 50%; background: linear-gradient(to bottom, #ffffff 0%, var(--fx-tint) 38%, #3f4d59 100%); box-shadow: 0 0 6px #fff, 0 0 16px var(--fx-tint); }
+.fx-bolt.skin-null { border-radius: 1px; background: var(--fx-tint); box-shadow: 4px 0 0 rgba(255,46,110,0.85), -4px 0 0 rgba(46,240,255,0.85), 0 0 10px var(--fx-tint); }
+.fx-bolt.skin-null.trail { opacity: 0.45; box-shadow: 3px 0 0 rgba(255,46,110,0.6), -3px 0 0 rgba(46,240,255,0.6); }
+
+.fx-cast-ring.skin-cortex, .fx-burst.skin-cortex { border-style: dashed; border-radius: 22%; }
+.fx-cast-ring.skin-swarm, .fx-burst.skin-swarm { border-style: dotted; border-width: 4px; }
+.fx-cast-ring.skin-aegis, .fx-burst.skin-aegis { border-width: 4px; box-shadow: 0 0 0 2px rgba(255,255,255,0.55) inset, 0 0 14px var(--fx-tint, var(--burst-color)); }
+.fx-cast-ring.skin-null, .fx-burst.skin-null { border-radius: 2px; box-shadow: 4px 0 0 rgba(255,46,110,0.7), -4px 0 0 rgba(46,240,255,0.7); animation-timing-function: steps(5, end); }
+.fx-cast-sigil.skin-cortex { outline: 1px solid var(--fx-tint); outline-offset: 3px; }
+.fx-cast-sigil.skin-swarm { border-radius: 50%; border-style: dotted; border-width: 3px; }
+.fx-cast-sigil.skin-aegis { border: none; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: linear-gradient(135deg, #ffffff 0%, var(--fx-tint) 50%, #3f4d59 100%); }
+.fx-cast-sigil.skin-null { clip-path: polygon(0 0, 55% 0, 55% 30%, 100% 30%, 100% 100%, 40% 100%, 40% 70%, 0 70%); background: var(--fx-tint); animation-timing-function: steps(6, end); }
+.fx-cast-ray.skin-cortex { width: 2px; background: var(--fx-tint); border-radius: 0; }
+.fx-cast-ray.skin-swarm { width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; border-radius: 50%; background: var(--fx-tint); }
+.fx-cast-ray.skin-aegis { width: 6px; height: 14px; margin-left: -3px; border-radius: 1px; background: linear-gradient(to right, #ffffff, var(--fx-tint) 50%, #3f4d59); }
+.fx-cast-ray.skin-null { background: repeating-linear-gradient(to top, var(--fx-tint) 0 3px, transparent 3px 6px); animation-timing-function: steps(4, end); }
 
 /* Magnitude scaling (RENDER.md render-lane session 3, per owner feedback
  * 2026-09-25 "scale animation magnitude to event magnitude"): every FX class
@@ -670,6 +708,9 @@ ${CAST_FX_SOURCE}
   // Attack travel + Command flight — render/src/attackFx.ts's
   // ATTACK_FX_SOURCE, embedded verbatim (same single-source rule).
 ${ATTACK_FX_SOURCE}
+  // Faction skins (EFFECTS.md slice 5) — render/src/factionSkin.ts's
+  // FACTION_SKIN_SOURCE, embedded verbatim (same single-source rule).
+${FACTION_SKIN_SOURCE}
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -975,10 +1016,13 @@ ${ATTACK_FX_SOURCE}
     return el;
   }
 
-  function spawnBurst(rect, color, scale) {
+  // 'faction' (optional) skins the ring; bursts whose colour is a meaning
+  // (a kill's red, a shield's cyan, an evolve's green) pass none and stay
+  // plain, because the colour is the message there.
+  function spawnBurst(rect, color, scale, faction) {
     if (!rect) return;
     const el = document.createElement('div');
-    el.className = 'fx-burst';
+    el.className = 'fx-burst' + (faction ? ' skin-' + skinOf(faction).name : '');
     if (scale && scale !== 1) el.style.scale = String(scale);
     el.style.setProperty('--burst-color', color);
     el.style.left = (rect.left + rect.width / 2) + 'px';
@@ -1000,29 +1044,30 @@ ${ATTACK_FX_SOURCE}
   // rise / sink primitives (EFFECTS.md slice 2). One function, parameterised
   // by direction (the meaning), tint (the faction skin) and tier (the size)
   // — never a per-faction or per-tier copy.
-  const MOTE_COUNT = { subtle: 3, normal: 6, spectacle: 12 };
+  // Slice 5: the layout (count, lanes, drift, steps) comes from the
+  // faction skin (moteLayout); 'dir' stays the caller's.
   const MOTE_MS = { subtle: 450, normal: 750, spectacle: 1150 };
-  function spawnMotes(rect, dir, tint, tier) {
+  function spawnMotes(rect, dir, faction, tier) {
     if (!rect) return;
-    const n = MOTE_COUNT[tier] || MOTE_COUNT.normal;
     const ms = MOTE_MS[tier] || MOTE_MS.normal;
-    const travel = rect.height * (tier === 'spectacle' ? 0.95 : tier === 'subtle' ? 0.45 : 0.7);
-    for (let k = 0; k < n; k++) {
+    const skin = skinOf(faction);
+    moteLayout(faction, dir, tier, rect.width, rect.height).forEach(function (m) {
       const el = document.createElement('div');
-      el.className = 'fx-mote ' + dir + ' mag-' + tier;
-      el.style.setProperty('--fx-tint', 'var(--' + tint.toLowerCase() + ')');
-      el.style.setProperty('--mote-ms', ms + 'ms');
-      el.style.setProperty('--mote-dist', (dir === 'up' ? -travel : travel) + 'px');
-      // Evenly spread across the card's width with a deterministic jitter
-      // (no Math.random — replaying the same move looks the same).
-      const x = rect.left + rect.width * ((k + 0.5) / n) + ((k * 7) % 5 - 2);
-      const y = dir === 'up' ? rect.top + rect.height * 0.8 : rect.top + rect.height * 0.15;
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      el.style.animationDelay = ((k % 4) * ms * 0.06) + 'ms';
+      el.className = 'fx-mote ' + dir + ' mag-' + tier + ' skin-' + skin.name;
+      el.style.setProperty('--fx-tint', 'var(--' + faction.toLowerCase() + ')');
+      el.style.setProperty('--mote-size', m.size + 'px');
+      el.style.left = (rect.left + m.x) + 'px';
+      el.style.top = (rect.top + m.y) + 'px';
+      const kf = [{ transform: 'translate(0px,0px)', opacity: 0 }];
+      m.path.forEach(function (p, k) {
+        kf.push({ transform: 'translate(' + p.dx + 'px,' + p.dy + 'px)', opacity: k === m.path.length - 1 ? 0 : 1 });
+      });
       fxLayer.appendChild(el);
-      setTimeout(function () { el.remove(); }, ms * 1.25);
-    }
+      // Glitch skins jump between keyframes; the rest glide.
+      const easing = skin.mote.steps > 0 ? 'steps(1, end)' : (dir === 'up' ? 'ease-out' : 'ease-in');
+      if (el.animate) el.animate(kf, { duration: ms, delay: m.delayMs, easing: easing, fill: 'both' });
+      setTimeout(function () { el.remove(); }, ms * 1.25 + m.delayMs);
+    });
   }
 
   // Stat labels ("+1/+1", "-1 ATK OVERLOAD") are much wider than a damage
@@ -1051,7 +1096,7 @@ ${ATTACK_FX_SOURCE}
     // sink — and both sit clear of the damage/heal number's own spot at the
     // top of the card, so a hit + a debuff on the same move don't stack.
     centreOn(spawnNumber(rect, shift.label, up ? 'buff' : 'penalty', tier, up ? 70 : 28), rect);
-    if (tier === 'spectacle') spawnBurst(rect, 'var(--' + tint.toLowerCase() + ')');
+    if (tier === 'spectacle') spawnBurst(rect, 'var(--' + tint.toLowerCase() + ')', 1, tint);
   }
 
   // Which faction's card caused this unit's buff/penalty, when the move's
@@ -1091,7 +1136,6 @@ ${ATTACK_FX_SOURCE}
   // ambiguous — a banner beside that side's board rather than a guess.
   const CAST_MS = { subtle: 420, normal: 650, spectacle: 1000 };
   const CAST_SCALE = { subtle: 1.0, normal: 1.4, spectacle: 2.1 };
-  const CAST_RAYS = { subtle: 0, normal: 6, spectacle: 10 };
   const CAST_TAG_MS = { subtle: 700, normal: 1100, spectacle: 1500 };
   function castAnchorRect(fx, prevRects, prevStackRects) {
     if (fx.anchor === 'card') {
@@ -1117,6 +1161,8 @@ ${ATTACK_FX_SOURCE}
     if (!rect || (rect.width === 0 && rect.height === 0)) return;
     const tier = fx.tier;
     const tint = fx.faction ? 'var(--' + fx.faction.toLowerCase() + ')' : 'var(--cast)';
+    // No faction (the name-only log couldn't place the card) -> plain skin.
+    const skinCls = ' skin-' + skinOf(fx.faction || 'Neutral').name;
     const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
     const ms = CAST_MS[tier] || CAST_MS.normal;
     function place(el) {
@@ -1130,16 +1176,15 @@ ${ATTACK_FX_SOURCE}
       return el;
     }
     if (fx.anchor !== 'banner') {
-      const ring = document.createElement('div'); ring.className = 'fx-cast-ring'; place(ring);
-      const sigil = document.createElement('div'); sigil.className = 'fx-cast-sigil'; place(sigil);
-      const rays = CAST_RAYS[tier] || 0;
-      for (let k = 0; k < rays; k++) {
+      const ring = document.createElement('div'); ring.className = 'fx-cast-ring' + skinCls; place(ring);
+      const sigil = document.createElement('div'); sigil.className = 'fx-cast-sigil' + skinCls; place(sigil);
+      castRayAngles(fx.faction || 'Neutral', tier).forEach(function (deg) {
         const ray = document.createElement('div');
-        ray.className = 'fx-cast-ray';
-        ray.style.setProperty('--ray-a', Math.round((360 / rays) * k + (rays === 6 ? 30 : 0)) + 'deg');
+        ray.className = 'fx-cast-ray' + skinCls;
+        ray.style.setProperty('--ray-a', deg + 'deg');
         place(ray);
-      }
-      if (tier === 'spectacle') spawnBurst(rect, tint);
+      });
+      if (tier === 'spectacle') spawnBurst(rect, tint, 1, fx.faction || 'Neutral');
     }
     const tag = document.createElement('div');
     tag.className = 'fx-cast-tag mag-' + tier + (fx.trigger === 'response' ? ' response' : '');
@@ -1279,28 +1324,38 @@ ${ATTACK_FX_SOURCE}
   }
 
   // travel(from, to) primitive: a bolt along the attack arc, landing at
-  // 'ms'. Tier sets size and trail; faction sets --fx-tint.
-  const BOLT_SIZE = { subtle: 9, normal: 13, spectacle: 19 };
-  const BOLT_TRAIL = { subtle: 0, normal: 2, spectacle: 4 };
-  function spawnBolt(fromRect, toRect, tint, tier, ms, small) {
+  // 'ms'. Tier sets size and trail; faction sets --fx-tint and, since
+  // slice 5, the particle character (boltLayout: Cortex's packet train,
+  // Swarm's spore cloud, Aegis's chrome slug, Null's stutter). Every
+  // particle's path starts on the attacker and ends on the target.
+  function spawnBolt(fromRect, toRect, faction, tier, ms, small) {
     if (!fromRect || !toRect) return;
+    const skin = skinOf(faction);
+    const tint = 'var(--' + faction.toLowerCase() + ')';
     const arc = arcBetween(centreOf(fromRect), centreOf(toRect));
-    const kf = [];
-    for (let k = 0; k <= 10; k++) {
-      const p = arcPoint(arc, k / 10);
-      kf.push({ transform: 'translate(' + p.x + 'px,' + p.y + 'px) scale(' + (0.7 + 0.5 * Math.sin(Math.PI * k / 10)) + ')' });
-    }
-    const size = Math.round((BOLT_SIZE[tier] || 13) * (small ? 0.65 : 1));
-    const trail = small ? 0 : (BOLT_TRAIL[tier] || 0);
-    for (let k = trail; k >= 0; k--) {
+    const parts = boltLayout(faction, tier, small, arc);
+    // Draw back to front: cloud and trail under the head.
+    for (let k = parts.length - 1; k >= 0; k--) {
+      const pt = parts[k];
       const el = document.createElement('div');
-      el.className = 'fx-bolt' + (k > 0 ? ' trail' : '');
+      el.className = 'fx-bolt skin-' + skin.name + (pt.role === 'head' ? '' : ' ' + pt.role);
       el.style.setProperty('--fx-tint', tint);
-      el.style.setProperty('--bolt-size', Math.max(4, size - k * 2) + 'px');
+      el.style.setProperty('--bolt-size', pt.size + 'px');
+      if (skin.bolt.stretch !== 1 && pt.role === 'head') el.style.width = Math.round(pt.size * skin.bolt.stretch) + 'px';
+      const half = (skin.bolt.stretch !== 1 && pt.role === 'head' ? Math.round(pt.size * skin.bolt.stretch) : pt.size) / 2;
+      el.style.marginLeft = (-half) + 'px';
+      // A stepped (glitch) particle holds each keyframe then jumps:
+      // per-keyframe steps(1) over a linear clock. The rest glide on the
+      // original accelerating curve.
+      const kf = pt.path.map(function (p) {
+        const f = { transform: 'translate(' + p.x + 'px,' + p.y + 'px) rotate(' + Math.round(p.rot) + 'deg) scale(' + p.scale.toFixed(3) + ')' };
+        if (pt.steps > 0) f.easing = 'steps(1, end)';
+        return f;
+      });
       el.style.transform = kf[0].transform;
       fxLayer.appendChild(el);
-      const lag = k * Math.round(ms * 0.07);
-      if (el.animate) el.animate(kf, { duration: ms, delay: lag, easing: 'cubic-bezier(.45,0,.75,1)', fill: 'both' });
+      const lag = Math.round(ms * pt.lag);
+      if (el.animate) el.animate(kf, { duration: ms, delay: lag, easing: pt.steps > 0 ? 'linear' : 'cubic-bezier(.45,0,.75,1)', fill: 'both' });
       setTimeout(function () { el.remove(); }, ms + lag + 30);
     }
   }
@@ -1437,15 +1492,14 @@ ${ATTACK_FX_SOURCE}
         ? (liveTo ? liveTo.getBoundingClientRect() : prevRects[strike.target.instanceId])
         : (liveTo ? liveTo.getBoundingClientRect() : prevHudRects[strike.target.playerId]);
       if (liveAtk) flashClass(liveAtk, 'fx-attack', 'normal');
-      spawnBolt(fromR, toR, tint, strikeTier, strikeT, false);
+      spawnBolt(fromR, toR, f, strikeTier, strikeT, false);
       // impact(target): the burst lands with the bolt.
-      if (strikeTier !== 'subtle') later(strikeT, function () { spawnBurst(toR, tint, strikeTier === 'spectacle' ? 1.35 : 0.8); });
+      if (strikeTier !== 'subtle') later(strikeT, function () { spawnBurst(toR, tint, strikeTier === 'spectacle' ? 1.35 : 0.8, f); });
       if (strike.counter) {
         // The return bolt wears the DEFENDER's colour: it is their hit.
         const df = factionOfUnit(prevFrame, strike.target.instanceId) || f;
-        const ctint = 'var(--' + df.toLowerCase() + ')';
         const cTier = tierFromScore(hitScore(strike.counterPower, 0));
-        later(strikeT, function () { spawnBolt(toR, fromR, ctint, cTier, counterT - strikeT, true); });
+        later(strikeT, function () { spawnBolt(toR, fromR, df, cTier, counterT - strikeT, true); });
       }
     }
 
