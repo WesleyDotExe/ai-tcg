@@ -1279,3 +1279,21 @@ Reviewed Session 25. The card-vs-agent work vindicated holding variant B: Bit Ro
 Endorsements (no action): the Rack nerf to 3/2; the agent card-draw weight staying at 1.5 (higher measured worse); the agent fix's spillover to Reflex Spike / Hotfix / Rally Cry (correct — those should be held for real combats); the package re-search outcome (Null 36 own cards; Cortex keeps Rollback Point + Surge Protector; Aegis +Uplink Tower -Salvage Reflex); claude-tools fully removed from the repo.
 
 Order stands: next session render (alternation), then the Phase 5 full-ring gate at 900 seeds (even bands) / ~2,500 (narrow bands).
+
+---
+
+## 2026-10-03 — Owner: effects v2 (Geometry Wars VFX, wards, procedural sound + music) and the Mythic asset pipeline
+
+Reviewed and approved a v2 effects prototype over several rounds. It is committed as `render/reference/effects-lab.html` and written up in **`render/EFFECTS.md` (now v2), which supersedes the slice-5 skin direction**. Decisions:
+
+1. **Look: Geometry Wars quality.** Effects travel from the acting card to the target card, or to the centre of the opponent's side when nothing is targeted. Blocked hits show a shield; removals and kills are big (hit-stop, colour split, camera punch, lingering debris and scorch). Aegis is orange. Faint faction texture stays on top.
+2. **Textures: Nano Banana Pro** won the texture bake-off. The three sprite atlases are committed under `render/assets/fx/`, greyscale on black, tinted per faction in code.
+3. **Every effect type differs by faction** (heal, buff, debuff, spell damage, removal and the rest), using the material table in EFFECTS.md. Neutral's debuff uses the Swarm acid look, in gold.
+4. **Faction wards appear ONLY for a Rare or Mythic's signature attack, buff or defence** (an ability unique to that rarity), then vanish. They are never permanent and never shown for ordinary attacks, arrivals or deaths. Neutral has none. Art: `render/assets/wards/faction/`.
+5. **Every Mythic gets a unique, permanent ward** that acts out its ability (Quorum Arbiter seats, Prime Aegis aura, Hive Mother heartbeat, Null Singularity gravity) and shatters when it dies. Art for the four current Mythics: `render/assets/wards/mythic/`. Index: `render/presentation/mythics.json`. A Mythic without art gets a code-generated fallback ward seeded from its name.
+6. **Sound and music are procedural code only.** I preferred them to every AI sound model tested (Stable Audio 2.5, AudioGen, Stable Audio Open, TangoFlux; video-to-sound did not sync). No audio files. The music adapts to intensity (A minor, 104 BPM). It must NOT drop out or muffle when a card is destroyed.
+7. **Runtime stays self-contained.** The only Replicate use is build-time: `.github/workflows/mythic-wards.yml` + `render/tools/mythic_ward.py` make ward art for new Mythics with the `REPLICATE_AI_TCG` secret (max 3 per run, about $0.15 each) and commit it. The game never calls the network.
+
+**Render lane:** implement EFFECTS.md v2 in its build order, one slice per turn, porting from the lab. Surface any new Mythic ward previews (from `progress/render/mythic-wards-log.md`) in notes-for-owner.md for me to check. Propose a `signatureAbilities` list for the existing Rares/Mythics in notes-for-owner.md for my approval before wiring faction wards to it.
+
+**Balance / design lane:** (a) whenever you add a Mythic, add its entry to `render/presentation/mythics.json` (faction, behaviour, motif, sound) per the `_howToAddAMythic` notes in that file; this is presentation data with no gameplay effect, and the only file outside your lane you should touch for it. (b) When convenient, add instance IDs to the event log so spells and abilities can travel to their exact target (EFFECTS.md, Dependencies). Neither item changes the roadmap order: the Phase 5 gate still comes first.
