@@ -1,0 +1,102 @@
+{
+  "_about": "Presentation data for Mythic cards (render only, no gameplay effect). Keyed by exact card name. Read by the renderer; written by whichever lane designs a Mythic; the 'ward', 'source' and 'generated' fields are filled by the mythic-wards GitHub Action (.github/workflows/mythic-wards.yml + render/tools/mythic_ward.py).",
+  "_howToAddAMythic": [
+    "Add an entry keyed by the card's exact name with: faction, behaviour, behaviourParams (if any), motif {concept, outer, middle, core, ornament} and sound.",
+    "Write the motif in plain visual terms drawn from the card's own ability and flavour. No letters, numbers, real-world emblems, religious/occult/political symbols, stars, hexagrams, pentagrams, crosses, eyes, hearts or crescents.",
+    "Leave out 'ward'. The action generates it (at most 3 per run, about $0.15 each) and commits the art; until then the renderer draws the code-generated fallback ward seeded from the card name and faction.",
+    "behaviour is one of: seats (lights one seat per counted thing; behaviourParams.counts names what), aura (tethers + crests on allies; pressure ring on enemies if it has an enemy effect), heartbeat (pulse + spawns ornaments that travel to allies), gravity (bends the grid toward it + ornaments spiral in), generic (rotation + pulse only)."
+  ],
+  "signatureAbilities": {
+    "_about": "Abilities unique to a Rare or Mythic that call a ward when they fire (attack, buff or defence). Keyed by card name -> list of ability ids. Empty until the owner approves a list; the render lane proposes one in progress/render/notes-for-owner.md. Ordinary attacks, arrivals and deaths never show a ward."
+  },
+  "mythics": {
+    "Quorum Arbiter": {
+      "faction": "Cortex",
+      "behaviour": "seats",
+      "behaviourParams": {
+        "counts": "opponentUnitsInPlay",
+        "seats": 12,
+        "showsAttack": "1 + count"
+      },
+      "motif": {
+        "concept": "a machine judge that waits until every voice in the chamber has spoken, then answers all of them.",
+        "outer": "a council chamber ring of twelve evenly spaced seat-nodes, each a small rounded rectangle with a tiny indicator light, joined by a precise double-line rail with fine tick marks.",
+        "middle": "many thin straight ballot lines radiating inward from the ring and converging toward the centre in a precise fan pattern, with small diamond markers along them.",
+        "core": "a faceted crystalline decision lens, an octagonal prism seen from above with a bright glowing centre and concentric refraction lines.",
+        "ornament": "one single seat-node: a small rounded rectangle with a glowing indicator light"
+      },
+      "sound": {
+        "voice": "cortex",
+        "bellMotif": "chord top note, 2 octaves up, every other bar"
+      },
+      "ward": "render/assets/wards/mythic/quorum-arbiter.webp",
+      "source": "replicate:google/nano-banana-pro (hand-run, owner-approved)",
+      "generated": "2026-10-03"
+    },
+    "Prime Aegis": {
+      "faction": "Aegis",
+      "behaviour": "aura",
+      "behaviourParams": {
+        "allies": "+1/+1",
+        "enemies": "-1/-0"
+      },
+      "motif": {
+        "concept": "the original master guardian machine, the reference design every other guardian was built from.",
+        "outer": "an engineering blueprint ring with precise measurement ticks, dimension arrows and bolted heavy armour segments at six points.",
+        "middle": "a ring of six identical guardian shield silhouettes facing outward, evenly spaced, connected by thick armoured struts.",
+        "core": "a prime reactor core, a heavy hexagonal armoured housing around a bright glowing sphere, with vents.",
+        "ornament": "a single small guardian shield silhouette"
+      },
+      "sound": {
+        "voice": "aegis",
+        "bellMotif": "chord top note, 2 octaves up, every other bar"
+      },
+      "ward": "render/assets/wards/mythic/prime-aegis.webp",
+      "source": "replicate:google/nano-banana-pro (hand-run, owner-approved)",
+      "generated": "2026-10-03"
+    },
+    "Hive Mother": {
+      "faction": "Swarm",
+      "behaviour": "heartbeat",
+      "behaviourParams": {
+        "allies": "+1/+0 (other units)",
+        "spawnEverySeconds": 1.5
+      },
+      "motif": {
+        "concept": "the queen of an alien insect swarm; everything else in the swarm flows downstream from her.",
+        "outer": "a living membrane ring of translucent veined tissue studded with glowing egg nodes and small curled larvae.",
+        "middle": "a branching vein and root network flowing outward from the centre like rivers and tributaries, organic and asymmetric.",
+        "core": "a queen's chrysalis seen from above, an ornate segmented cocoon crowned with curved chitin spines, with a bright glowing egg-shaped core and fine veins radiating from it.",
+        "ornament": "a single small curled larva"
+      },
+      "sound": {
+        "voice": "swarm",
+        "bellMotif": "chord top note, 2 octaves up, every other bar"
+      },
+      "ward": "render/assets/wards/mythic/hive-mother.webp",
+      "source": "replicate:google/nano-banana-pro (hand-run, owner-approved; core regenerated once)",
+      "generated": "2026-10-03"
+    },
+    "Null Singularity": {
+      "faction": "Null",
+      "behaviour": "gravity",
+      "behaviourParams": {
+        "allies": "+1/+0"
+      },
+      "motif": {
+        "concept": "not a process anymore, just the address where every dangling pointer eventually leads; a black hole made of corrupted data.",
+        "outer": "a spiral of many small thin arrow pointers all curving inward toward the centre, like data being pulled into a drain, with broken dotted orbit lines.",
+        "middle": "a glowing accretion disk of fine concentric streaks with glitchy torn segments.",
+        "core": "a singularity, a perfectly black disk surrounded by a thin intensely bright photon ring and faint gravitational lensing arcs.",
+        "ornament": "a single small arrow pointer shard"
+      },
+      "sound": {
+        "voice": "null",
+        "bellMotif": "chord top note, 2 octaves up, every other bar"
+      },
+      "ward": "render/assets/wards/mythic/null-singularity.webp",
+      "source": "replicate:google/nano-banana-pro (hand-run, owner-approved)",
+      "generated": "2026-10-03"
+    }
+  }
+}
