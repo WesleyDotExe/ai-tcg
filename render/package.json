@@ -7,6 +7,7 @@
   "scripts": {
     "replay": "tsx src/cli.ts",
     "skin-sheet": "tsx src/skinSheet.ts",
+    "fx-sheet": "tsx src/fxSheet.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

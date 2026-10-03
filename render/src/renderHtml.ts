@@ -2,6 +2,7 @@ import type { MatchReplay } from "./types.js";
 import { CAST_FX_SOURCE } from "./castFx.js";
 import { ATTACK_FX_SOURCE } from "./attackFx.js";
 import { FACTION_SKIN_SOURCE } from "./factionSkin.js";
+import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from "./canvasFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -12,6 +13,8 @@ import { FACTION_SKIN_SOURCE } from "./factionSkin.js";
  * package.json comment) for something this self-contained. */
 export function renderMatchHtml(replay: MatchReplay): string {
   const dataJson = JSON.stringify(replay).replace(/</g, "\\u003c");
+  // EFFECTS.md v2 sprite atlases, embedded so the page stays self-contained.
+  const atlasJson = JSON.stringify(fxAtlasDataUris());
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
@@ -68,6 +71,7 @@ export function renderMatchHtml(replay: MatchReplay): string {
 </main>
 
 <script type="application/json" id="match-data">${dataJson}</script>
+<script type="application/json" id="fx-atlases">${atlasJson}</script>
 <script>${JS}</script>
 </body>
 </html>
@@ -90,7 +94,7 @@ export const CSS = `
   --bad: #ff4d6d;
   --neutral: #ffcf5c;
   --cortex: #35c9ff;
-  --aegis: #9fd8d0;
+  --aegis: #ff7d24;
   --swarm: #8bff5c;
   --null: #d565ff;
   --shield: #6fe3ff;
@@ -119,7 +123,13 @@ html, body {
 .matchup { font-weight: bold; letter-spacing: 0.12em; }
 .matchup .vs { color: var(--ink-dim); margin: 0 0.5em; }
 .seed { color: var(--ink-dim); font-size: 0.75rem; }
-#app { max-width: 1180px; margin: 0 auto; padding: 14px 12px 24px; }
+#app { max-width: 1180px; margin: 0 auto; padding: 14px 12px 24px; position: relative; z-index: 1; }
+/* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under the
+ * board (ground marks, settled debris), the FX canvas over the cards but
+ * under the floating numbers and tags in .fx-layer. */
+.fx-canvas { position: fixed; left: 0; top: 0; pointer-events: none; }
+.fx-canvas.fx-floor { z-index: 0; }
+.fx-canvas.fx-top { z-index: 89; }
 
 .hud-row { display: grid; grid-template-columns: 1fr 220px 1fr; gap: 10px; align-items: stretch; margin-bottom: 8px; }
 .hud { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; }
@@ -212,7 +222,7 @@ html, body {
 @keyframes pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
 
 .faction-Cortex { --fc: var(--cortex); --rc: #35c9ff; }
-.faction-Aegis { --fc: var(--aegis); --rc: #b9f3ea; }
+.faction-Aegis { --fc: var(--aegis); --rc: #ffc29a; }
 .faction-Swarm { --fc: var(--swarm); --rc: #b6ff8f; }
 .faction-Null { --fc: var(--null); --rc: #e79bff; }
 /* Neutral cards (engine data/neutralCards.ts) take the UI gold, so the frame
@@ -711,6 +721,10 @@ ${ATTACK_FX_SOURCE}
   // Faction skins (EFFECTS.md slice 5) — render/src/factionSkin.ts's
   // FACTION_SKIN_SOURCE, embedded verbatim (same single-source rule).
 ${FACTION_SKIN_SOURCE}
+  // EFFECTS.md v2 slice 1: canvas FX + floor layers and sprite materials —
+  // render/src/canvasFx.ts, embedded verbatim (same single-source rule).
+${CANVAS_FX_PURE_SOURCE}
+${CANVAS_FX_RUNTIME_SOURCE}
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -1233,6 +1247,9 @@ ${FACTION_SKIN_SOURCE}
   function cancelFx() {
     pendingFx.forEach(function (e) { clearTimeout(e.id); });
     pendingFx = [];
+    // A jump has no "in between": nothing still in flight belongs on the
+    // board it lands on.
+    CFX.clear();
   }
   function speedMs() { return Number(document.getElementById('speed').value) || 700; }
   // The owner-approved per-move pacing (the tick itself) is untouched: the
@@ -1492,14 +1509,22 @@ ${FACTION_SKIN_SOURCE}
         ? (liveTo ? liveTo.getBoundingClientRect() : prevRects[strike.target.instanceId])
         : (liveTo ? liveTo.getBoundingClientRect() : prevHudRects[strike.target.playerId]);
       if (liveAtk) flashClass(liveAtk, 'fx-attack', 'normal');
-      spawnBolt(fromR, toR, f, strikeTier, strikeT, false);
-      // impact(target): the burst lands with the bolt.
-      if (strikeTier !== 'subtle') later(strikeT, function () { spawnBurst(toR, tint, strikeTier === 'spectacle' ? 1.35 : 0.8, f); });
+      // v2 (canvasFx.ts): sprite travel + impact on the canvas layers. The
+      // v1 DOM bolt and burst remain the fallback when the canvas or the
+      // atlases are unavailable, so an attack is never left undrawn.
+      if (!CFX.travel(fromR, toR, f, strikeTier, strikeT, false)) spawnBolt(fromR, toR, f, strikeTier, strikeT, false);
+      // impact(target): lands with the bolt.
+      later(strikeT, function () {
+        if (!CFX.impact(toR, f, strikeTier, strike.target.kind) && strikeTier !== 'subtle') spawnBurst(toR, tint, strikeTier === 'spectacle' ? 1.35 : 0.8, f);
+      });
       if (strike.counter) {
         // The return bolt wears the DEFENDER's colour: it is their hit.
         const df = factionOfUnit(prevFrame, strike.target.instanceId) || f;
         const cTier = tierFromScore(hitScore(strike.counterPower, 0));
-        later(strikeT, function () { spawnBolt(toR, fromR, df, cTier, counterT - strikeT, true); });
+        later(strikeT, function () {
+          if (!CFX.travel(toR, fromR, df, cTier, counterT - strikeT, true)) spawnBolt(toR, fromR, df, cTier, counterT - strikeT, true);
+        });
+        later(counterT, function () { CFX.impact(fromR, df, cTier === 'spectacle' ? 'normal' : 'subtle', 'unit'); });
       }
     }
 
