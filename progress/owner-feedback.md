@@ -1324,3 +1324,47 @@ started; the gate came first as directed. It's the queued engine item for a bala
 after you've answered the gate checkpoint. The render-lane items (EFFECTS.md v2 slices, the
 `signatureAbilities` proposal, Mythic ward previews) belong to the next render session; this
 entry stays open for them.
+
+
+---
+
+## 2026-10-04 — Owner: close Phase 5; balance lane becomes the game lane; Stage 4 (economy) decisions and order
+
+Balance has reached diminishing returns. Close Phase 5 next session and move the lane on to building the game. Balance matters again when new cards arrive through packs, so it becomes an automatic check, not a nightly lane.
+
+### A. Session 26 answers (apply next game-lane session, then close Phase 5)
+1. **Quorum Arbiter: keep it.** Do not drop it.
+2. **Propagating Exploit 2/2 -> 2/3: approved.** Re-measure the changed edges once.
+3. **Accept Null > Aegis and Aegis > Cortex as OUT.** Do not probe further. Record the final gate numbers as the Phase 5 baseline.
+4. **Mark Phase 5 done in the roadmap.** Pool growth toward 30-40 per faction is paused until sets/packs exist.
+5. **Balance as a regression check:** the CI band verdicts become the standing check on every change. Any new card or set must pass it before entering packs. No more open-ended tuning sessions.
+6. In the same session, if there is room: **instance IDs in the event log** (requested 2026-10-03; the render lane needs them).
+
+### B. Order change
+Persistence comes BEFORE the economy (roadmap item 6 moves ahead of item 5). The economy needs a permanent store for balances, collections, packs and history. It must be self-contained (a local database file, no external service). The match-server work that is not storage (running many matches, the ladder) can follow the economy.
+
+### C. Economy decisions (owner, 2026-10-04) — build to these; checkpoint only where marked
+1. **Every owned copy is its own item** (not card x count). Each copy records: hidden unique copy ID, card ID, finish, where it came from (pack, promo, starter), and when.
+2. **Ownership gates decks.** An agent must own 2 copies to play 2 in a deck. Any finish counts. Copy limits still apply on top (3/3/2/1 Common/Uncommon/Rare/Mythic). Decks point at specific copies, so the copy played (e.g. a gold one) is the one spectators see. One copy may sit in several saved decks; only one deck plays at a time.
+3. **Card identity.** Every card has a hidden unique ID. The card face shows only the collector number in its set (e.g. 56/220) and the set (a set symbol/seal or set name), like Pokémon. Secret rares number above the set total (e.g. 221/220).
+4. **Rarity vs finish are separate layers.** Rarity (Common/Uncommon/Rare/Mythic) sets copy limits and stays the gameplay ladder; Mythic is the top. Finishes (e.g. standard, holo, reverse holo, full art, gold) are print versions of the same card with no gameplay effect. They exist for owners and spectators: rarer finishes must be instantly recognisable and sought after. Exact finish list and pull rates: [OWNER CHECK-IN].
+5. **Promo cards.** Code the ability to issue cards outside sets, with their own promo stamp and numbering (e.g. PR-001). Sources: achievements, milestones, daily tasks/quests, tournament wins.
+6. **The first promo is each agent's unique one-off Mythic, granted on first login.** This replaces the roadmap's "1-of-1 signature leader" item and moves it into the economy work. It must be fair: build these from a constrained effect menu with power budgets so each looks unique but plays fair, and run the balance check before issuing. Its unique ward comes from the existing mythic-wards pipeline (add its entry to mythics.json; fallback ward until the art lands). Effect menu and budgets: [OWNER CHECK-IN].
+7. **The owner opens packs and decides when to spend.** The agent earns currency and holds its packs, but spending currency and opening packs are owner actions (this gives the owner control and is the pack-opening moment). Needs a minimal, self-contained owner interface for Season 0 (a local page or command is fine). Unopened packs are owned items too. The agent builds its own deck from its collection by default.
+8. **Earning has limits.** Earnings come mainly from daily rewards and quests, with diminishing returns on match wins beyond that. Opponents are assigned by the server (no farming against your own agents). Quest list and numbers: [OWNER CHECK-IN].
+9. **No real money and no trading in version 1.** Currency is earn-only, with no purchase and no cash-out. The per-copy records keep both possible later.
+10. **Starter collection:** every new agent gets enough owned copies to build a legal deck on day one, plus its unique Mythic promo. Shape (per faction or chosen): [OWNER CHECK-IN].
+11. **Season 0 is in-house** (owner's house agents). At the public launch, run Season 1 fresh. Sets, card art, wards and promo designs carry over; collections, currency and ranks reset; archive Season 0 rather than deleting it.
+
+### D. Later, do not build yet (recorded so the data model allows it)
+- 3D pack-opening animation and card art/finishes made with Replicate assets at build time (committed as static files; the game never calls the network). Finishes such as holo and gold should be code shaders. This comes after the render lane finishes EFFECTS.md v2.
+- A collector area where owners view every card they own in a detailed viewer.
+- Trading and any real-money features.
+
+### E. Next game-lane sessions (target: a playable, watchable Season 0)
+27. Section A (close Phase 5) + instance IDs.
+28. Persistence (section B) + economy spec. Pause at the [OWNER CHECK-IN] items; build the parts that need no taste call (copy model, ledger).
+29. Economy build: card identity and sets, promos, packs, owner pack-opening, ownership-gated decks, starter collections.
+30. Unique Mythic promo generator + daily rewards/quests.
+31. Match running and the ladder: many matches, server-assigned opponents, results recorded, ratings. This closes the loop: play -> earn -> owner opens packs -> agent rebuilds -> play.
+The render lane continues the EFFECTS.md v2 build order in between.
