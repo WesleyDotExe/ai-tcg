@@ -1,74 +1,101 @@
-# EFFECTS — the render visual language (spec the render lane builds against)
+# EFFECTS — the render visual and audio language (spec the render lane builds against)
 
-The reference the render lane builds toward, slice by slice. It defines ONE coherent visual language for match animation, so sessions compose from a shared system instead of accumulating one-off effects. Read it before adding or changing any FX. Owner-directed, 2026-09-26.
+The reference the render lane builds toward, slice by slice. It defines ONE coherent language for match animation and sound, so sessions compose from a shared system instead of accumulating one-off effects. Read it before adding or changing any FX, sound or music.
+
+- v1: owner-directed 2026-09-26 (three axes, five slices; all built, see "v1 build history" at the end).
+- **v2: owner-directed 2026-10-03.** Geometry Wars-quality canvas effects with AI-made textures, faction wards, unique Mythic wards, procedural sound and adaptive procedural music. The working reference is **`render/reference/effects-lab.html`** (open it in a browser; it runs offline). Where this file and the lab disagree, this file wins; where this file is silent, match the lab.
 
 ## Core idea: three axes, composed — never a hand-authored matrix
 
-Every on-screen effect is (event category) × (faction skin) × (magnitude tier). Build these as composable INPUTS, not as bespoke per-combination animations. Adding a faction or an effect type must stay cheap. If you find yourself writing a fourth near-duplicate of the same animation, stop and make it a parameterised primitive instead.
+Every on-screen effect is (event category) × (faction material) × (magnitude tier). Build these as composable INPUTS, not as bespoke per-combination animations. Adding a faction or an effect type must stay cheap. If you find yourself writing a fourth near-duplicate of the same animation, stop and make it a parameterised primitive instead.
 
 ## Axis 1 — event category = WHAT the animation does (the grammar; carries meaning)
 
-The grammar is CONSTANT across every faction and tier — a viewer learns it once. Each category maps to a motion primitive:
+The grammar is CONSTANT across every faction and tier — a viewer learns it once.
 
-- attack → travel (attacker → target) + impact on landing
-- defence / block → interpose (a shield comes between the hit and the unit), absorb, and shatter when it breaks
-- buff (positive) → rise + brighten, moving upward
-- penalty / debuff (negative) → sink + desaturate, moving downward
-- a temporary buff/debuff merely wearing off → a quiet settle (neither rise nor sink — it is not a new buff or penalty and must not read like one); always subtle
-- power / ability activation → a cast flourish emanating from the source card
+- attack → travel from the acting card to the target card (or to the centre of the opponent's side when no card is targeted) + impact on landing
+- spell / ability damage → travel from the card that used it; the faction decides the projectile form (see Axis 2)
+- defence / block → a shield takes the hit, ripples, deflects, and shatters when it breaks; "no effect" must always read as blocked
+- buff → rise + brighten, moving upward
+- penalty / debuff → sink + desaturate, moving downward
+- heal → flows in and gathers into the healed card
+- a temporary buff/debuff wearing off → a quiet settle; always subtle
+- power / ability activation → a cast flourish from the source card
 - enter / summon → materialise in
-- death / destroy → exit (existing ghost); an unconditional destroy is louder than an ordinary combat death
+- death / destroy → the card shatters; an unconditional destroy (removal) locks on first and is louder than a combat death
 - evolve → a transform pulse on the same unit
 
-THE ONE INVARIANT (do not break): meaning is constant. A debuff always reads as a debuff, a shield always reads as a shield, regardless of faction or tier. Faction and tier change flavour and scale, never meaning. Where spectacle and legibility conflict, legibility wins.
+THE ONE INVARIANT (do not break): meaning is constant. A debuff always reads as a debuff, a shield always reads as a shield, regardless of faction or tier. Faction and tier change material and scale, never meaning. Where spectacle and legibility conflict, legibility wins.
 
-## Axis 2 — faction = HOW it looks (skin: palette + particle character; never meaning)
+## Axis 2 — faction = WHAT IT IS MADE OF (material; never meaning)
 
-Rides the existing faction palette now; real sprites/art arrive in the later art pass. Built as data, not code: render/src/factionSkin.ts's FACTION_SKINS table (one row per faction) plus `skin-<faction>` CSS shape rules. Adding a faction = one table row + its shape rules. Do NOT block the grammar on art — placeholders now, skin later (same approach as the card frames).
+Colours (Aegis is ORANGE, owner 2026-10-02): Cortex `#35c9ff`, Aegis `#ff7d24`, Swarm `#8bff5c`, Null `#d565ff`, Neutral `#ffcf5c`.
 
-- Cortex — clean, networked, precise; data-packet motifs
-- Swarm — many small, organic; spore / scatter motifs
-- Aegis — chrome, solid, shield-forward
-- Null — glitch, corruption, decay
-- Neutral pool — a plain, faction-agnostic treatment
+Textures: three 4×4 greyscale-on-black sprite atlases, `render/assets/fx/atlas-{a,b,c}.webp` (cell names in `render/assets/manifest.json`). Draw them ADDITIVELY on a canvas, tinted per faction with a small white core (lab: `tex()`). Black must become transparent over the DOM cards: alpha = brightest channel (lab: the tint loop). Pre-tint and cache per (sprite, colour); never tint per frame.
 
-## Axis 3 — magnitude tier = HOW BIG (already built)
+| Faction | Debris / material | Trail | Ground mark | Spell damage | Removal | Heal | Buff | Debuff |
+|---|---|---|---|---|---|---|---|---|
+| Cortex | pixels, data shards, wireframe cubes, circuit traces; arcs | pixels | circuit trace | instant laser lines | target lock, then an orbital beam | repair scanlines + pixels gather | wireframe blocks stack up | lock, pixels fall away |
+| Aegis | shrapnel, hex plates, cracked hex, molten drops; embers | embers | scorch | lobbed molten shells | breach charge sticks, beeps, detonates | plates welded back on in sparks | armour plates slam on | plates crack and drop |
+| Swarm | chitin, wings, claws, spores; goo | spores | goo splat | cloud of homing spores | tendrils erupt from below and devour | egg sacs bloom, spores lift | tendrils grow up | acid drips eat in |
+| Null | glitch bars, shattered glass, pixels; dark star | glitch bars | rift tear | packets that teleport along the path | vortex swallows it into a dark star | vortex runs backwards | dark star pulses | glitch bars eat the card |
+| Neutral | glints, sparkle dust, feathers; light rays | dust | rune ring | straight lances of light | rune seals it, light smites it | crosses of light rise | chevrons + glints | **acid drips, same look as Swarm, in gold** (owner 2026-10-03) |
 
-subtle / normal / spectacle, scored by render/src/fxMagnitude.ts from the effect’s own weight and the momentum swing. Reuse that module; every primitive takes a tier and scales duration / size / particle-count / autoplay-hold accordingly. The `normal` tier stays the approved session-2/3 baseline — do not regress it.
+Adding a faction = one colour + one material kit (the lab's `K` block) + one procedural sound voice. Nothing else.
 
-## The primitives (build once, parameterise by faction palette + tier)
+## Axis 3 — magnitude = HOW BIG
 
-A small set of motion primitives. Everything in Axis 1 composes from these:
+Keep `render/src/fxMagnitude.ts` (subtle / normal / spectacle). Magnitude scales particle count, debris size, shake, hit-stop and volume. v2 adds, for kills and other spectacle moments: a hit-stop freeze (~120ms), a brief colour split at the edges, a small camera punch-in, and debris + scorch/goo/rift marks that linger on the table for a few seconds and fade. A warping background grid reacts to impacts. Keep the `normal` tier readable at play speed; do not regress the approved pacing.
 
-- travel(from, to) — a projectile / beam along the path between two card elements
-- impact(target) — burst on landing (reuse the existing burst-ring)
-- interpose(target) — a shield appears between the incoming hit and the unit; plus a shatter variant
-- rise(target) — upward brighten (buffs)
-- sink(target) — downward desaturate (penalties)
-- cast(source) — activation flourish from a card
-- existing: enter, exit / ghost, evolve-pulse, float-number
+## Wards (v2)
 
-Adding a faction = a palette + a particle style. Adding an effect type = one primitive, or a compose of existing ones. Never a faction × category × tier matrix of hand-made animations.
+- **Faction wards** (`render/assets/wards/faction/<faction>.webp`, 2×2 layers): appear ONLY when a Rare or Mythic uses an attack, buff or defence that is unique to its rarity — a "signature" ability (owner 2026-10-03). Rare = the single-ring ward (cell 3); a Mythic without its own ward uses its code-generated fallback. The ward draws itself in, spins up, the effect leaves from it, then it collapses. For a signature defence a copy of the ward moves onto the ally, takes the hit and cracks apart. Ordinary attacks, arrivals and deaths NEVER show a faction ward. Neutral has no ward.
+- **Which abilities are signature** is presentation data: `render/presentation/mythics.json` → `signatureAbilities` (card name → ability ids). It is empty until the owner approves a list; propose one in `progress/render/notes-for-owner.md`.
+- **Mythic unique wards** (permanent): every Mythic carries its own one-of-a-kind ward for as long as it is on the board, layered (outer / middle / core counter-rotating) over a dark "obsidian + foil" Mythic card. The ward acts out the card's ability via its `behaviour` in `mythics.json`:
+  - Quorum Arbiter — `seats`: one seat lights per enemy unit; its attack shows 1 + that count, live.
+  - Prime Aegis — `aura`: tethers and shield crests on every ally (+1/+1); a pressure ring rolls over the enemy line (−1/−0).
+  - Hive Mother — `heartbeat`: beats like a heart and sends larvae out to her brood (+1/+0).
+  - Null Singularity — `gravity`: bends the grid toward itself and drags pointers in (+1/+0).
+  - A Mythic's own ward (not the faction ward) flares for its signature moves, and shatters into spinning pieces when the Mythic dies.
+- **Fallback ward**: a Mythic with no art yet gets a ward drawn by code, seeded from its name and faction, so the same name always gives the same ward (lab: `genWardAtlas()`). It must never block a card from rendering.
+
+## Sound and music (v2): procedural only
+
+Owner 2026-10-03: the code-made sound is preferred over every AI sound model tested; **no audio files, no sound samples, no network**. Everything is synthesised with WebAudio at play time (lab: `SFX`, `tone()`, `noise()`).
+
+- **Effects**: one sound per event, panned by the card's position, through a limiter, with a voice cap. Each faction has a voice: Cortex clean square-wave blips; Aegis heavy metal clangs (inharmonic partials); Swarm wet chitters and squelches; Null broken pitch and glitch blips; Neutral bells. Magnitude scales volume and weight. Ward moments have their own rising chord, pulse and shatter.
+- **Music** (lab: the "adaptive procedural music" block): A minor, 104 BPM, i–VI–III–VII (Am–F–C–G), scheduled ahead on the audio clock. It starts calm (pad + bass); hits, kills and Mythic arrivals raise an intensity value that brings in kick + arpeggio, then hats, then snare and four-on-the-floor, and decays back over a few seconds. The arpeggio takes the acting faction's voice. A Mythic on the acting side adds a bell motif every other bar. Effects dip the music only slightly (to ~80%, back within ~0.2s). **Never drop the music out or muffle it on a kill** (owner 2026-10-03: "good theory, but not in practice").
+- Sound and music start OFF and are switched on by the viewer (browser autoplay rules); keep separate toggles and a music volume control.
 
 ## Board layout (infrastructure every primitive relies on)
 
-Fixed slots (render session 8, render/src/slotLayout.ts). A card keeps the slot it entered in until it leaves: units fill from the left, Directives from the right, and a card entering on the same move another left avoids the slot that just emptied (where the ghost is still fading) whenever another is free. Primitives that anchor to a card's rectangle (ghost, travel, aim, cast) can rely on that rectangle not moving while the card is on the board.
+Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slot until it leaves. Effects anchor to card rectangles; a canvas FX layer sits above the cards and a "floor" canvas below them for ground marks and lingering debris.
 
 ## Dependencies & guardrails
 
-- attack `travel` needed reliable attacker→target pairing. Resolved in render session 7 without the event-log change: the combatDamage stack item carries the exact attacker and target, captured read-only. (Per-hit pairing for effect damage — which card's ability hit which unit — still needs the event-log instance-ID work.)
-- All work stays under render/ and progress/render/ per RENDER.md. No engine / balance / card-pool / agent file edits.
-- Verify at PLAY speed, not just single-step (2026-09-25 pacing feedback).
-- Keep the `normal` tier visually stable so the approved baseline pacing is not regressed.
+- **Self-contained runtime** (owner 2026-09-30): the game and its replays make no network calls. All textures and ward art are committed static files under `render/assets/`. Only the build-time `mythic-wards` GitHub Action talks to Replicate.
+- Per-hit pairing for effect damage (which card's ability hit which unit) and the travel of spells/abilities to their exact target still need **instance IDs in the event log** — balance/engine lane work, requested in owner-feedback 2026-10-03. Until then, aim at the best available target and never invent pairings.
+- All render work stays under `render/` and `progress/render/` per RENDER.md. No engine / balance / card-pool / agent file edits.
+- Verify at PLAY speed. Check frame rate with several Mythic wards on the board.
 
-## Build order (one slice per render-lane turn; build each across ALL factions via the primitive, not one faction at a time)
+## New Mythics: the asset pipeline (owner 2026-10-03)
 
-1. Defence / shield — built render session 4: interpose + absorb + shatter on Barrier; a persistent shield badge on Guard units; a small deflect on base-armor damage reduction. No pairing dependency — do this FIRST; it immediately makes Aegis’s defensive identity legible.
-2. Buff (rise) and penalty (sink) grammar, tier-scaled and faction-tinted. — built render session 5 (render/src/statFx.ts; persistent above/below-printed stat markers and penalty-status badges ride along).
-3. Power / ability cast flourish — built render session 6 (render/src/castFx.ts attributes each fired power to its exact source instance; the page draws ring + sigil + rays in the source's faction tint, plus a fixed-colour trigger tag — ON PLAY / ON DEATH / ACTIVATE / CAST / RESPONSE ...).
-4. Attack travel + impact — built render session 7 (render/src/attackFx.ts follows each combatDamage stack item by its engine id: declare -> an aim line + reticle that persists through the whole response window; redirect -> the old line fades in shield colour; resolve -> a bolt flies the same arc and the hit, burst, deaths and any triggered powers land when it does; a defender with attack returns a smaller bolt in its own colour; a fizzle says FIZZLED). No event-log change was needed. The same session added a Command's card flying from its caster's hand onto the stack (owner taste call 4) and the ~150ms "cast, then effect" beat for spectacle-tier powers only (taste call 1). Render session 8 broadened that beat to every RESPONSE (owner, 2026-09-27): it plays on the move a response's stack item resolves, so its RESOLVE/ACTIVATE sigil leads and its effect, including a redirect's aim-line swing, lands 150ms later.
-5. Faction skinning pass: give each primitive its per-faction particle character (still placeholder art; real art later). — built render session 9 (render/src/factionSkin.ts: one FACTION_SKINS table, one layout function per primitive — moteLayout, boltLayout, castRayAngles — plus `skin-<faction>` CSS shape rules shared by mote, bolt, cast ring/sigil/rays and burst. Cortex = square packets in lanes and a packet-train bolt; Swarm = more, smaller drifting spores and a weaving spore-cloud bolt; Aegis = fewer, larger chrome plates and an elongated chrome slug; Null = torn RGB-split bars moving in discrete steps and a stuttering, jittering bolt; Neutral = the original plain look. The layout functions take direction and endpoints from the caller, so no skin can change meaning; bursts whose colour IS the meaning — a kill's red, a shield's cyan, an evolve's green — stay unskinned. `npm run skin-sheet -w @ai-tcg/render` writes render/output/skin-sheet.html, every primitive frozen side by side per faction.)
+1. Whichever lane designs a Mythic adds an entry to `render/presentation/mythics.json` (faction, behaviour, motif, sound) — see `_howToAddAMythic` in that file. No art, no network.
+2. `.github/workflows/mythic-wards.yml` runs after each auto-merge, daily, or by hand. `render/tools/mythic_ward.py` asks Replicate (Nano Banana Pro, secret `REPLICATE_AI_TCG`) for the 2×2 ward sheet, slices/centres/masks it, and commits the `.webp`, a preview PNG and a line in `progress/render/mythic-wards-log.md`. At most 3 cards per run (about $0.15 each), 3 attempts per card.
+3. Until the art lands the renderer uses the fallback ward. The render session that next runs surfaces any new ward preview in `notes-for-owner.md` so the owner can check it for unwanted symbols; deleting the `.webp` makes the action redo it.
 
-The five-slice build order is complete. Later work refines it (see progress/render/notes-for-owner.md) rather than adding a sixth axis.
+## v2 build order (one slice per render-lane turn; each across ALL factions)
 
-Each slice: pick one item, build it for all factions via the primitive + palette, keep it inside the tier system, prove it at play speed, and checkpoint. Update this file if the model itself changes.
+1. Canvas FX layer + floor layer over/under the existing DOM board; atlas loader with the tint cache; additive drawing with correct alpha. Port travel + impact to sprite materials.
+2. Faction material kits for every category in the table above (spell damage, removal, heal, buff, debuff variants included), plus magnitude polish: hit-stop, colour split, camera punch, lingering debris and ground marks, warping grid.
+3. Procedural sound effects with faction voices (port the lab's `SFX`), toggles off by default.
+4. Adaptive procedural music (port the lab's music block), no kill dropout.
+5. Faction wards for signature abilities, driven by `signatureAbilities`.
+6. Mythic unique wards: permanent layered ward, the four behaviours, Mythic card treatment, shatter on death; read everything from `mythics.json`.
+7. Fallback ward generator, so any Mythic without art still gets a unique ward.
+
+Each slice: build it for all factions, keep meaning constant, prove it at play speed, checkpoint, and update this file if the model itself changes.
+
+## v1 build history (still in use; v2 builds on it)
+
+Render sessions 4–9 built the v1 primitives on the DOM: defence/shield (s4), rise/sink stat FX (s5, `statFx.ts`), cast flourish with exact source attribution (s6, `castFx.ts`), attack travel + aim line + redirect + fizzle from the combatDamage stack item (s7, `attackFx.ts`), fixed slots (s8), and the placeholder faction skins (s9, `factionSkin.ts`, `npm run skin-sheet -w @ai-tcg/render`). v2 replaces the placeholder particle look with the sprite materials and canvas layer; keep the v1 timing, attribution and response-window behaviour.
