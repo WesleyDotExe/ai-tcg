@@ -87,7 +87,7 @@ test("Bit Rot shrinks an enemy unit's attack by 3 for the turn only, and is cast
   expect(isRemovalOrDebuffCard(bitRot), "Bit Rot must count toward the lint's removal/debuff density").toBe(true);
 });
 
-test("Watchdog Timer draws at end of turn only while its controller's hand is empty", () => {
+test("Watchdog Timer draws at end of turn only while its controller holds 1 card or fewer", () => {
   const run = (cardsInHand: number): number => {
     const state = emptyState();
     const rng = new Rng(1);
@@ -101,7 +101,8 @@ test("Watchdog Timer draws at end of turn only while its controller's hand is em
     return state.players.p1.hand.length - cardsInHand;
   };
   expect(run(0), "empty hand: draws").toBe(1);
-  expect(run(1), "one card in hand: no draw").toBe(0);
+  expect(run(1), "one card in hand: draws (owner-feedback 2026-10-02 buff)").toBe(1);
+  expect(run(2), "two cards in hand: no draw").toBe(0);
   expect(run(3), "several cards in hand: no draw").toBe(0);
 });
 

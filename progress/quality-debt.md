@@ -22,10 +22,30 @@ pool grown 16 -> 20 unique cards), session 21 (Phase 5 slice 3:
 Null depth/variety pass, 15 -> 20 unique cards), and now session 22 (Phase
 5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards), and now
 session 23 (the Null consistency trim, 40 -> 36), session 24 (the
-neutral pool), and now session 25 (the owner's agent checks: card
-advantage, Null's cards).
+neutral pool), session 25 (the owner's agent checks: card
+advantage, Null's cards), and now session 26 (the Phase 5 gate).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 26
+
+- **The Phase 5 gate failed: 3 edges OUT, 1 UNRESOLVED.** Null > Aegis (42.0 vs 55-60) is the
+  worst, and no single +1 stat lift on a Null unit reaches it. Phase 5 can't be called done on
+  this ring. It's waiting on the owner's answers to the checkpoint.
+- **Aegis > Cortex (52.2) is short, and nobody has probed why.** It drifted down after session 19
+  through the Cortex slice and the agent fixes. No measurement says which.
+- **The Quorum Arbiter "lever" was stale.** Session 22 measured ~6 points; it's now 1-3 and
+  inside noise. Any lever measured before an agent fix should be re-measured before it's
+  trusted. The other numbers carried in notes and owner-feedback have the same exposure.
+- **Watchdog Timer still barely matters.** The buff quadrupled its draws, but Null moved +0.3.
+  The agent values the conditional at a flat 0.5 and never plays toward the condition (e.g.
+  dumping a hand to trigger it). It's a lift that's only on paper until the agent reasons about
+  hand size.
+- **The gate's arbiter is one policy judging itself.** Every verdict is Lookahead-vs-Lookahead.
+  Random and Aggressive disagree a lot (Random has Cortex 70% over Swarm). That's expected for
+  weak policies, but it means the ring is only "balanced" for this one heuristic agent.
+- **The lift probe only tries +1 stats on units.** No cost changes, no spell or Directive tweaks,
+  no pairs. The menu is narrower than the design space.
 
 ## New debt from session 25
 

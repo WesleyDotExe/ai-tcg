@@ -5,6 +5,56 @@ owner's steering, never a block on continuing.
 
 ---
 
+## AWAITING FEEDBACK — Phase 5 step (iii): the full-ring gate (2026-10-03, session 26)
+
+Not a build-order stage completion, but the gate you made mandatory for closing Phase 5, so it
+gets a checkpoint. **The gate did not pass.**
+
+**Delivered, with evidence** (`progress/balance-report-020-phase5-gate.txt`):
+1. The gate at your seed counts: `lookaheadEdgeCheck.ts` for all four factions at 900 and at
+   2,500 seeds, interval verdicts, plus `balanceReport.ts 900` for all three policies.
+
+   | Edge (target) | seeds | rate | 95% CI | verdict |
+   |---|---|---|---|---|
+   | Null > Aegis (55-60) | 2,500 | Null 42.0 | 40.1-43.9 | OUT |
+   | Aegis > Cortex (55-60) | 2,500 | Aegis 52.2 | 50.3-54.2 | OUT |
+   | Cortex > Swarm (55-60) | 2,500 | Cortex 57.4 | 55.4-59.3 | IN |
+   | Swarm > Null (55-60) | 2,500 | Swarm 59.4 | 57.5-61.3 | UNRESOLVED |
+   | Null ~ Cortex (45-55) | 900 | Null 40.7 | 37.5-43.9 | OUT |
+   | Aegis ~ Swarm (45-55) | 900 | Aegis 51.2 | 48.0-54.5 | IN |
+
+   No pairing is triple-flagged (no dominant archetype under all three policies).
+2. Your approved Watchdog Timer buff (hand of 1 or fewer): 23 -> 102 draws per 900 games, Null
+   +0.3 (noise). Test updated; `progress/sample-match-027-watchdog-buff.txt`.
+3. The pre-authorized Quorum Arbiter drop, measured on the gate seeds and held out
+   (`engine/src/dev/phase5GateLevers.ts`): -2.7 / -1.0 on Cortex-vs-Null, which stays OUT
+   either way. Not applied.
+4. A measured lift menu for Null (`engine/src/dev/nullLiftProbe.ts`): +1 attack / +1 health on
+   each of Null's 12 unit cards, 7,500 games each, leaders confirmed on held-out seeds. Not applied.
+
+**Strong:** the gate ran exactly as you specified, and every verdict is on an interval, not a
+point estimate. Both levers you reserved were measured on held-out seeds before any decision.
+The Null-vs-Swarm constraint showed up only because the probe printed every edge, not just the
+pooled rate.
+**Thin:** the ring is not done. Null is weak, and the one lift with the right shape (Propagating
+Exploit 2/3) still leaves Null > Aegis about 5 points short. Aegis > Cortex wasn't probed. All of
+this is still one agent policy (Lookahead) judging itself.
+
+**Decisions you might overrule:**
+- **Not dropping Quorum Arbiter**, even though your 2026-09-26 instruction said to if
+  Cortex-vs-Null was still out. The lever no longer does what it did when you authorized it.
+- **Not shipping a Null lift.** You reserved it as a gate-time call. I recommend Propagating
+  Exploit 2/2 -> 2/3 (notes-for-owner.md item 3).
+- **Treating UNRESOLVED Swarm > Null (59.4, CI 57.5-61.3) as not a pass.** That's per your rule.
+  It's a symptom of Null being weak, and the recommended lift brings it to 56.4 held out.
+
+**Next:** the next session is render (alternation): EFFECTS.md v2 slice 1, per your 2026-10-03
+entry. The balance session after that applies your answers here, then re-runs the gate on just
+the edges that change. If you'd rather close Phase 5 with the ring as it stands, say so and the
+balance lane moves to the event-log instance IDs and then roadmap item 5 (economy).
+
+---
+
 ## AWAITING FEEDBACK — Phase 5 step (ii): the neutral pool (2026-09-30, session 24)
 
 Not a build-order stage completion. It's flagged because it adds a new deck-construction rule

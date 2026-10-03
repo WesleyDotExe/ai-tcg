@@ -1087,7 +1087,7 @@ rather than a unit, and Quorum Arbiter's attack changes live with the enemy boar
 
 ---
 
-## 2026-09-26 — Owner: session 22 (Cortex depth pass) confirmations + 900-seed standard + revised Phase 5 order (PARTIALLY HANDLED — item 2 steps (i) Null trim, session 23, and (ii) neutral pool, session 24, done; step (iii) and items 1 and 3 apply at the gate)
+## 2026-09-26 — Owner: session 22 (Cortex depth pass) confirmations + 900-seed standard + revised Phase 5 order (HANDLED — steps (i) session 23, (ii) session 24, (iii) the gate session 26; item 3's Quorum Arbiter drop measured at the gate and NOT applied, see the session-26 note)
 
 Reviewed Session 22 (Phase 5 slice 4: Cortex 19 -> 24 unique cards; Cortex-vs-Swarm fixed, 44.3 -> 58.7% Cortex under Lookahead). Three decisions:
 
@@ -1110,6 +1110,16 @@ weakest faction (41.1 / 41.7 / 39.6 under Lookahead). A bigger-lift variant that
 Rot and Watchdog Timer was measured and not shipped; it's flagged in notes-for-owner.md.
 Next per this entry: (ii) the neutral pool, then (iii) the gate.
 `progress/balance-report-017-null-trim.txt`.
+
+**Handled (step iii, the gate), session 26 (2026-10-03).** 900 seeds for the even bands, 2,500
+for the win/lose bands, Lookahead arbiter, interval verdicts. Result: 2 IN (Cortex>Swarm,
+Aegis~Swarm), 1 UNRESOLVED (Swarm>Null at 59.4, top of band), 3 OUT (Null>Aegis 42.0,
+Aegis>Cortex 52.2, Null~Cortex 40.7). Item 3: Cortex-vs-Null is still out, so the Quorum Arbiter
+drop was measured. It now moves that edge only -2.7 [-5.4, 0.0] on the gate seeds and -1.0
+[-3.7, 1.7] held out, and the edge stays OUT either way. Your instruction was "if it's still out,
+THEN drop it" on the premise that this was the ~6-point lever; it no longer is, so I did not drop
+Cortex's only Mythic and put the call to you in notes-for-owner.md. Checkpoint in
+`progress/checkpoints.md`; numbers in `progress/balance-report-020-phase5-gate.txt`.
 
 
 ---
@@ -1157,7 +1167,7 @@ Confirmed: slice 4 needs no engine change (reads stack-item id + combat attacker
 
 ---
 
-## 2026-09-29 — Owner: session 23 (Null consistency trim 40 -> 36) — hold variant B, bump narrow-band gate to ~2,500 seeds (ACKNOWLEDGED session 24 — item 1 followed; note 3 settled session 25, see the 2026-10-01 entry; item 2 applies at the gate)
+## 2026-09-29 — Owner: session 23 (Null consistency trim 40 -> 36) — hold variant B, bump narrow-band gate to ~2,500 seeds (HANDLED — item 1 followed session 24; note 3 settled session 25; item 2 applied at the gate, session 26)
 
 Reviewed Session 23 (Null trim: Decay Ward 2->1, Fork Bomb 3->2, Null Shell 3->1; all 20 unique cards kept, Kernel Panic stays at 2 and now shows in ~10% of Null games; +3.5-4 pts/edge; CI band verdicts now built into lookaheadEdgeCheck.ts). Two decisions:
 
@@ -1268,7 +1278,7 @@ Roadmap order stands: finish/merge session 24 (neutral pool) with the above appl
 
 ---
 
-## 2026-10-02 — Owner: session 25 (agent fixes + Rack 3/2 + Null card-vs-agent check) responses
+## 2026-10-02 — Owner: session 25 (agent fixes + Rack 3/2 + Null card-vs-agent check) responses (HANDLED 2026-10-03, session 26 — item 1 shipped and re-measured; item 2: the gate ran and measured Null, no reactive patch)
 
 Reviewed Session 25. The card-vs-agent work vindicated holding variant B: Bit Rot was an AGENT MISPLAY, not a weak card (222/240 casts were hitting a non-fighting unit; fixed, cutting a copy went +2.7 -> -0.5). Cutting it under variant B would have removed a good card the arbiter was mishandling. Two decisions:
 
@@ -1279,6 +1289,16 @@ Reviewed Session 25. The card-vs-agent work vindicated holding variant B: Bit Ro
 Endorsements (no action): the Rack nerf to 3/2; the agent card-draw weight staying at 1.5 (higher measured worse); the agent fix's spillover to Reflex Spike / Hotfix / Rally Cry (correct — those should be held for real combats); the package re-search outcome (Null 36 own cards; Cortex keeps Rollback Point + Surge Protector; Aegis +Uplink Tower -Salvage Reflex); claude-tools fully removed from the repo.
 
 Order stands: next session render (alternation), then the Phase 5 full-ring gate at 900 seeds (even bands) / ~2,500 (narrow bands).
+
+**Handled, session 26 (2026-10-03, balance session: the last merged PR, #35, was render).**
+Full numbers in `progress/balance-report-020-phase5-gate.txt`.
+- Item 1: Watchdog Timer now draws when the hand has 1 card or fewer. Draws went 23 -> 102 per
+  900 Lookahead games (85 of them into a 1-card hand). Null's pooled rate moved 40.1 -> 40.4% on
+  the same 7,500 games, so it doesn't overshoot and stays.
+  `progress/sample-match-027-watchdog-buff.txt` shows a draw into a 1-card hand in real play.
+- Item 2: no Null patch before the gate. The gate ran (see the 2026-09-26 entry above) and did
+  not pass; Null is behind three of the four non-IN edges. The Quorum Arbiter lever and a
+  measured Null-lift menu are in notes-for-owner.md for your call. Nothing was shipped on either.
 
 ---
 
@@ -1297,3 +1317,10 @@ Reviewed and approved a v2 effects prototype over several rounds. It is committe
 **Render lane:** implement EFFECTS.md v2 in its build order, one slice per turn, porting from the lab. Surface any new Mythic ward previews (from `progress/render/mythic-wards-log.md`) in notes-for-owner.md for me to check. Propose a `signatureAbilities` list for the existing Rares/Mythics in notes-for-owner.md for my approval before wiring faction wards to it.
 
 **Balance / design lane:** (a) whenever you add a Mythic, add its entry to `render/presentation/mythics.json` (faction, behaviour, motif, sound) per the `_howToAddAMythic` notes in that file; this is presentation data with no gameplay effect, and the only file outside your lane you should touch for it. (b) When convenient, add instance IDs to the event log so spells and abilities can travel to their exact target (EFFECTS.md, Dependencies). Neither item changes the roadmap order: the Phase 5 gate still comes first.
+
+**Acknowledged, session 26 (2026-10-03, balance session).** Balance lane: (a) no Mythic was
+added, so `render/presentation/mythics.json` wasn't touched. (b) Event-log instance IDs not
+started; the gate came first as directed. It's the queued engine item for a balance session
+after you've answered the gate checkpoint. The render-lane items (EFFECTS.md v2 slices, the
+`signatureAbilities` proposal, Mythic ward previews) belong to the next render session; this
+entry stays open for them.

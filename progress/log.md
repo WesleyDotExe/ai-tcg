@@ -2387,3 +2387,29 @@ render test that pinned move numbers now finds the moves itself.
 
 **Blocked:** nothing. **Flagged:** Null's weakness after the nerf, and a Watchdog Timer buff
 candidate. Next: render slice, then the Phase 5 gate.
+
+## 2026-10-03 — Session 26 (the Phase 5 gate)
+
+Balance session: the last merged PR (#35) was render. Owner feedback first. The 2026-10-02 entry
+approved a Watchdog Timer buff and said to measure Null at the gate rather than patch it. The
+2026-10-03 entry (effects v2) is mostly render-lane; its balance-lane items are acknowledged.
+
+**Watchdog Timer:** now draws when the hand has 1 card or fewer. Measured before/after with
+`nullCardPlayCheck.ts` and `nullCardAblation.ts`. Draws went 23 -> 102 per 900 games, Null 40.1 ->
+40.4% on the same 7,500 games. No overshoot, so it stays. The play check now records the hand
+size behind every Watchdog draw: 17 at 0 cards, 85 at 1.
+
+**The gate:** `lookaheadEdgeCheck.ts` x4 factions at 900 and 2,500 seeds, `balanceReport.ts 900`.
+Result: 2 IN, 1 UNRESOLVED, 3 OUT. Null > Aegis 42.0, Null ~ Cortex 40.7 and Aegis > Cortex 52.2
+are OUT; Swarm > Null 59.4 is UNRESOLVED on the band's top edge. No triple-flag.
+
+**Levers:** the pre-authorized Quorum Arbiter drop now moves Cortex-vs-Null only -2.7 / -1.0
+(gate / held-out seeds), and the edge stays OUT. I didn't drop the Mythic; it's asked in
+notes-for-owner.md. `nullLiftProbe.ts` measured +1 atk / +1 hp on all 12 Null units (24 variants
+x 7,500 games, leaders confirmed on 2501-5000). Most lifts break Null-vs-Swarm's lose band.
+Propagating Exploit 2/3 doesn't: held out it puts Null vs Cortex at 48.0 and vs Swarm at 43.6, both
+IN, and vs Aegis at 50.5, still OUT. That's recommended, not shipped; it's the owner's reserved call.
+
+**Ran it:** all of the above (about 4 minutes of compute), `npm test` 302/302, `tsc` clean in all
+five workspaces. **Blocked:** nothing. Checkpoint written. Next: render (EFFECTS.md v2 slice 1),
+then a balance session applying the owner's gate answers.

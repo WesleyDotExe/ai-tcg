@@ -647,17 +647,23 @@ export const watchdogTimer: DirectiveCard = {
   // agent only has spare energy for a 3-cost Directive once its board is
   // developed (2-4 units every time it was checked), so the card was dead
   // in practice. An empty hand is the state it actually gets played into.
+  //
+  // Session 26 (owner-feedback 2026-10-02 item 1): widened from "hand is
+  // empty" to "hand has 1 card or fewer". The empty-hand version measured
+  // weak, not misplayed (23 draws in 900 Lookahead games; cutting a copy was
+  // +1.9 for Null, CI excluding 0). Still a catch-up card: it never draws
+  // into a hand of 2+.
   art: "placeholder:null/watchdog-timer",
   flavor: "If nothing has checked in by the time it hits zero, it assumes the worst and reboots something.",
   abilities: [
     {
       id: "watchdog-timer-tick",
       trigger: "onTurnEnd",
-      text: "At the end of your turn, if your hand is empty, draw a card.",
+      text: "At the end of your turn, if you have 1 or fewer cards in hand, draw a card.",
       effects: [
         {
           kind: "conditional",
-          condition: { kind: "not", condition: { kind: "handSizeAtLeast", side: "controller", count: 1 } },
+          condition: { kind: "not", condition: { kind: "handSizeAtLeast", side: "controller", count: 2 } },
           then: [{ kind: "drawCard", count: 1 }],
         },
       ],
