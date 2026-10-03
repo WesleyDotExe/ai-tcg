@@ -1,0 +1,52 @@
+name: mythic-wards
+
+# Makes ward art for any Mythic in render/presentation/mythics.json that has none yet,
+# using the Replicate key in the REPLICATE_AI_TCG secret, and commits it to main.
+# Owner-approved 2026-10-03. Build-time only: the game itself never calls Replicate,
+# and a Mythic without art uses the code-generated fallback ward until this runs.
+#
+# Triggers: after each auto-merge run (new cards usually land that way), once a day as a
+# backstop, and by hand from the Actions tab. It exits in seconds when nothing is missing.
+# Spend cap: MAX_PER_RUN cards per run (about $0.15 each), at most 3 attempts per card.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 18 * * *"
+  workflow_run:
+    workflows: ["Auto-merge build PRs"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mythic-wards
+  cancel-in-progress: false
+
+jobs:
+  wards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install image tools
+        run: pip install pillow numpy
+      - name: Generate missing Mythic wards
+        env:
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_AI_TCG }}
+          MAX_PER_RUN: "3"
+        run: python render/tools/mythic_ward.py
+      - name: Commit new art
+        run: |
+          git config user.name "mythic-wards[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add render/assets/wards/mythic render/presentation/mythics.json progress/render/mythic-wards-log.md 2>/dev/null || true
+          if git diff --cached --quiet; then echo "Nothing new to commit."; exit 0; fi
+          git commit -m "render: Mythic ward art from the mythic-wards action"
+          git pull --rebase origin main
+          git push origin HEAD:main
