@@ -208,10 +208,16 @@ building around them; don't block the whole project waiting.
    re-search (Null back to its bare 36, Aegis +1 Uplink Tower). Null is now
    the clear weakest faction (three OUT edges). It's flagged to the owner.
    `progress/balance-report-019-agent-check.txt`.
-   **Remaining before the hard gate: nothing. Next balance session runs the
-   mandatory full-ring re-measure: 900 seeds for the even bands, ~2,500
-   for the 5-point win/lose bands (owner-feedback 2026-09-29 item 2), with
-   Lookahead as arbiter and a checkpoint.**
+   **Session 26 ran the hard gate** (900 seeds even bands, 2,500 win/lose,
+   Lookahead arbiter, interval verdicts) after the owner's Watchdog Timer
+   buff. **It did not pass:** 2 IN, 1 UNRESOLVED, 3 OUT (Null > Aegis,
+   Null ~ Cortex, Aegis > Cortex). Quorum Arbiter drop measured (no longer a
+   real lever, not applied); a Null lift menu measured (Propagating Exploit
+   2/3 recommended, not applied). Checkpoint written.
+   `progress/balance-report-020-phase5-gate.txt`.
+   **Next balance session: apply the owner's answers to the gate checkpoint
+   and re-measure the changed edges. Without answers, probe Aegis > Cortex
+   or start the event-log instance IDs.**
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still

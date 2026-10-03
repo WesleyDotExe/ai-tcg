@@ -19,15 +19,17 @@
 //     is it the most valuable unit the Ward could have gone on?
 //   - Null Pointer (destroy a Directive): the cost of what it hit, and
 //     whether a costlier target was available.
-//   - Watchdog Timer (Directive, draws at end of turn only on an empty
-//     hand): hand size after the cast, and how many times it actually drew
+//   - Watchdog Timer (Directive, draws at end of turn only on a hand of 1
+//     or fewer since session 26; empty-hand only before): hand size after the cast, and how many times it actually drew
 //     over the rest of the game.
 // It also counts games where each card sat in hand and was never played.
 //
 // --show prints the full log of the first game in which Bit Rot answered a
 // declared attack (the sample-match evidence for the session-25 fix).
+// --show-watchdog instead prints the first game in which Watchdog Timer drew
+// into a 1-card hand (the sample-match evidence for the session-26 buff).
 //
-// Usage: npx tsx src/dev/nullCardPlayCheck.ts [seedsPerOpponent=300] [--policy=lookahead|aggressive] [--show]
+// Usage: npx tsx src/dev/nullCardPlayCheck.ts [seedsPerOpponent=300] [--policy=lookahead|aggressive] [--show|--show-watchdog]
 
 import { FACTIONS } from "./edgeMeasure.js";
 import { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
@@ -43,7 +45,9 @@ import { formatLog } from "../log/format.js";
 
 const seeds = Number(process.argv.slice(2).find((a) => !a.startsWith("--")) ?? 300);
 const SHOW = process.argv.includes("--show");
+const SHOW_WATCHDOG = process.argv.includes("--show-watchdog");
 let liveResponseThisGame = false;
+let watchdogOneCardDrawThisGame: number | undefined;
 let shown: { label: string; state: GameState } | undefined;
 const policy = (process.argv.find((a) => a.startsWith("--policy="))?.split("=")[1] ?? "lookahead") as "lookahead" | "aggressive";
 const builders: Record<Exclude<DeckFaction, "Null">, (id: DeckSpec["id"], name: string) => DeckSpec> = {
@@ -124,6 +128,35 @@ class Recorder implements Agent {
     return move;
   }
 }
+// Wraps BOTH agents so it sees the state between every pair of moves. A
+// Watchdog draw happens inside the move that ends Null's turn, and the next
+// decision belongs to the opponent, so at that point Null's hand is exactly
+// the hand it ended its turn with plus the drawn card. That gives the hand
+// size the condition was checked against, which the log alone doesn't carry.
+class Watcher implements Agent {
+  name: string;
+  constructor(
+    private inner: Agent,
+    private game: { state?: GameState; seen: number; pid: PlayerId },
+  ) {
+    this.name = inner.name;
+  }
+  async decideMove(view: PlayerView, legal: Move[]): Promise<Move> {
+    const g = this.game;
+    const log = g.state!.log;
+    for (let i = Math.max(g.seen, 1); i < log.length; i++) {
+      const e = log[i]!;
+      const prev = log[i - 1]!;
+      if (e.type === "draw" && e.player === g.pid && prev.type === "abilityTrigger" && prev.source === "Watchdog Timer") {
+        const before = g.state!.players[g.pid].hand.length - 1;
+        bump("Watchdog Timer", `draws it produced (hand size at end of turn: ${before})`);
+        if (before === 1 && watchdogOneCardDrawThisGame === undefined) watchdogOneCardDrawThisGame = g.state!.turnNumber - 1;
+      }
+    }
+    g.seen = log.length;
+    return this.inner.decideMove(view, legal);
+  }
+}
 let pendingShrinks: { id: string; turn: number }[] = [];
 
 let games = 0;
@@ -133,26 +166,23 @@ for (const opp of FACTIONS.filter((f): f is Exclude<DeckFaction, "Null"> => f !=
     const oppFirst = seed % 2 === 1;
     const mk = (name: string): Agent =>
       policy === "aggressive" ? new AggressiveAgent(name) : new LookaheadAgent(name, seed * 104729 + 31);
-    const nul = new Recorder(mk("Null"));
-    const other = mk(opp);
+    const pid: PlayerId = oppFirst ? "p2" : "p1";
+    const game: { state?: GameState; seen: number; pid: PlayerId } = { seen: 0, pid };
+    const nul = new Watcher(new Recorder(mk("Null")), game);
+    const other = new Watcher(mk(opp), game);
     pendingShrinks = [];
     liveResponseThisGame = false;
+    watchdogOneCardDrawThisGame = undefined;
+    const hooks = { onMatchStart: (s: GameState) => (game.state = s) };
     const { state } = oppFirst
-      ? await runMatch(builders[opp]("p1", opp), buildNullDeck("p2", "Null"), other, nul, seed)
-      : await runMatch(buildNullDeck("p1", "Null"), builders[opp]("p2", opp), nul, other, seed);
-    const pid: PlayerId = oppFirst ? "p2" : "p1";
-    if (SHOW && liveResponseThisGame && !shown) shown = { label: `${oppFirst ? `${opp} (p1) vs Null (p2)` : `Null (p1) vs ${opp} (p2)`}, seed ${seed}`, state };
+      ? await runMatch(builders[opp]("p1", opp), buildNullDeck("p2", "Null"), other, nul, seed, hooks)
+      : await runMatch(buildNullDeck("p1", "Null"), builders[opp]("p2", opp), nul, other, seed, hooks);
+    const label = `${oppFirst ? `${opp} (p1) vs Null (p2)` : `Null (p1) vs ${opp} (p2)`}, seed ${seed}`;
+    if (SHOW && liveResponseThisGame && !shown) shown = { label: `${label}; Bit Rot cast in answer to a declared attack`, state };
+    if (SHOW_WATCHDOG && watchdogOneCardDrawThisGame !== undefined && !shown)
+      shown = { label: `${label}; Watchdog Timer drew into a 1-card hand at the end of turn ${watchdogOneCardDrawThisGame}`, state };
     games++;
     if (state.winner === pid) nullWins++;
-    // Watchdog draws: a draw event right after its trigger.
-    let lastTrigger: string | undefined;
-    for (const e of state.log) {
-      if (e.type === "abilityTrigger") lastTrigger = e.source;
-      else if (e.type === "draw" && e.player === pid && lastTrigger === "Watchdog Timer") {
-        bump("Watchdog Timer", "draws it produced");
-        lastTrigger = undefined;
-      } else if (e.type !== "draw") lastTrigger = undefined;
-    }
     // Held and never played.
     const playedNames = new Set(state.log.filter((e) => (e.type === "play" || e.type === "cast") && e.player === pid).map((e) => (e as { card: string }).card));
     const attached = new Set(state.log.filter((e) => e.type === "toolAttached" && e.player === pid).map((e) => (e as { tool: string }).tool));
@@ -173,7 +203,7 @@ for (const [card, c] of Object.entries(counts)) {
 
 if (shown) {
   console.log("");
-  console.log(`=== Full match log: ${shown.label}; Bit Rot cast in answer to a declared attack ===`);
+  console.log(`=== Full match log: ${shown.label} ===`);
   console.log("");
   console.log(formatLog(shown.state.log));
   console.log("");

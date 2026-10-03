@@ -9,6 +9,7 @@
 //   Dangling Pointer  Rush      -> an attack by it on the same turn it was played
 //   Bit Rot           Instant   -> cast on the OPPONENT's turn (reactive play)
 //   Watchdog Timer    onTurnEnd -> a Null draw right after its own onTurnEnd trigger
+//                     (hand of 1 or fewer since session 26; empty only before)
 //   Garbage Collector activated -> a "heal" whose source is Garbage Collector
 //
 // Then prints the full log of the single game that showed the most of them.
@@ -94,7 +95,7 @@ async function tryOne(seed: number, opponent: (typeof OPPONENTS)[number]): Promi
       if (e.type === "abilityTrigger" && e.source === "Watchdog Timer" && !found.has("Watchdog Timer draw")) {
         const next = fresh[i + 1];
         if (next?.type === "draw" && next.player === "p2") {
-          found.set("Watchdog Timer draw", `turn ${turnAtMove}: Null ended its turn with an empty hand and Watchdog Timer drew ${next.card}`);
+          found.set("Watchdog Timer draw", `turn ${turnAtMove}: Null ended its turn low on cards and Watchdog Timer drew ${next.card}`);
         }
       }
     }

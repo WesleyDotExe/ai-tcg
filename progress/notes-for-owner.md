@@ -1,6 +1,43 @@
 # Notes for the owner
 
-**Updated 2026-10-01, session 25 (your 2026-10-01 entries: claude-tools
+**Updated 2026-10-03, session 26 (the Phase 5 gate).** Nothing is blocking, but the gate did
+not pass and two calls are yours. Full numbers: `progress/balance-report-020-phase5-gate.txt`.
+Checkpoint: top of `progress/checkpoints.md`.
+
+1. **Gate result: 2 IN, 1 UNRESOLVED, 3 OUT** (Lookahead; 2,500 seeds on the win/lose bands, 900
+   on the even bands).
+   - IN: Cortex > Swarm 57.4, Aegis ~ Swarm 51.2.
+   - UNRESOLVED: Swarm > Null 59.4 (CI 57.5-61.3, sitting on the top edge).
+   - OUT: Null > Aegis 42.0 (target 55-60), Null ~ Cortex 40.7 Null (target 45-55),
+     Aegis > Cortex 52.2 (target 55-60).
+   Null is behind three of the four. Aegis-over-Cortex is the only one that isn't about Null.
+2. **Decision: Quorum Arbiter. I did not drop it.** You pre-authorized the drop if Cortex-vs-Null
+   was still out at the gate, as the ~6-point lever session 22 measured. It isn't that lever any
+   more: dropping it moves the edge -2.7 [-5.4, 0.0] on the gate seeds and -1.0 [-3.7, 1.7] held
+   out, and the edge stays OUT (about 59%) either way. It's Cortex's only Mythic, so I left it
+   and am asking. Say "drop it anyway" and it's a one-line deck change.
+3. **Decision: a targeted Null lift. Recommended: Propagating Exploit 2/2 -> 2/3.** I measured
+   +1 attack and +1 health on every Null unit (`engine/src/dev/nullLiftProbe.ts`, nothing
+   shipped). The catch: the ring wants Null up vs Cortex and Aegis but NOT vs Swarm (Null should
+   stay 40-45 there; it's 40.6). Most lifts raise all three, so Null-vs-Swarm breaks. Stray
+   Fragment 2/2, the biggest lift, reaches 51.8 vs Swarm held out. Propagating Exploit at 2/3
+   is the one with the right shape. On held-out seeds:
+   - vs Cortex: 39.1 -> 48.0 (into the even band)
+   - vs Swarm: 40.9 -> 43.6 (stays in its 40-45 band)
+   - vs Aegis: 42.8 -> 50.5 (up 7.7, still short of 55-60)
+   That's a stat buff, which you've steered away from for Null before, so it's your call. It
+   keeps all 20 Null mechanics and touches no other faction. No single +1 reaches Null > Aegis.
+   That edge needs something Aegis-specific or your acceptance that it stays OUT.
+4. **Watchdog Timer buff shipped as you approved** (hand of 1 or fewer). It draws 4x as often (23
+   -> 102 per 900 games) but moves Null only +0.3, inside noise. No overshoot, so it stays.
+   `progress/sample-match-027-watchdog-buff.txt` shows one of those draws in a real game.
+5. **Aegis > Cortex (52.2) is short, and it isn't about Null.** It was in band after session 19
+   and has drifted down since (the Cortex slice, then the agent fixes). I haven't probed it. If
+   you want it fixed before Phase 5 closes, the same probe pointed at Aegis is the next step.
+
+---
+
+**Previous update, 2026-10-01, session 25 (your 2026-10-01 entries: claude-tools
 reference, Commodity Rack, the Null card-vs-agent check).** Nothing is
 blocking. Full numbers: `progress/balance-report-019-agent-check.txt`.
 

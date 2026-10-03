@@ -1,0 +1,428 @@
+AI-TCG sample match 027 (session 26): Watchdog Timer's buffed condition in real play.
+Owner-feedback 2026-10-02 item 1 widened it from 'hand is empty' to 'hand has 1 card or fewer'.
+Produced by: npx tsx src/dev/nullCardPlayCheck.ts 300 --show-watchdog (LookaheadAgent both sides).
+The Watcher in that tool reads Null's hand size between moves; the log itself doesn't print it.
+At the end of turn 15 Null held exactly 1 card (it played Garbage Collector and Dangling Pointer
+from a 3-card hand), so the old card would not have drawn here; the buffed one draws Segfault Handler.
+
+AI-TCG Null card-vs-agent check: shipped Null vs each shipped deck, lookahead vs lookahead
+300 seeds per opponent (900 games), seeding identical to lookaheadEdgeCheck.ts. Null won 40.7%.
+
+Bit Rot:
+    (of DEAD: Null attacked that unit later the same turn) 40
+  DEAD: target not in a pending combat                 53
+  LIVE: target is attacking Null                       186
+  games ended with it unplayed in hand                 44
+  on opponent's turn                                   186
+  on own turn                                          53
+  plays                                                239
+
+Decay Ward:
+  games ended with it unplayed in hand                 41
+  host is the most valuable unprotected unit           259
+  on own turn                                          259
+  plays                                                259
+  sum best value                                       1204
+  sum host value                                       1204
+
+Null Pointer:
+  games ended with it unplayed in hand                 325
+  hit a cost-3 directive                               147
+  on opponent's turn                                   47
+  on own turn                                          100
+  plays                                                147
+
+Watchdog Timer:
+  draws it produced (hand size at end of turn: 0)      17
+  draws it produced (hand size at end of turn: 1)      85
+  games ended with it unplayed in hand                 117
+  hand size after cast: 0                              17
+  hand size after cast: 1                              56
+  hand size after cast: 2                              58
+  hand size after cast: 3                              31
+  hand size after cast: 4                              15
+  on own turn                                          177
+  plays                                                177
+
+=== Full match log: Null (p1) vs Cortex (p2), seed 28; Watchdog Timer drew into a 1-card hand at the end of turn 15 ===
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Firewall Sentinel
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Null Pointer
+--- Turn 3 (p1) ---
+p1 plays Zombie Process (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Fail-safe Unit
+--- Turn 4 (p2) ---
+p2 plays Fail-safe Unit (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Deprecated Routine
+--- Turn 5 (p1) ---
+Zombie Process attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Zombie Process's attack
+  Zombie Process deals 2 damage to Cortex
+p1 plays Deprecated Routine (u4)
+  Deprecated Routine deploys, dormant — arms in 2 of its controller's turn(s)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Hotfix
+--- Turn 6 (p2) ---
+p2 plays Firewall Sentinel (u5)
+Fail-safe Unit attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Stray Fragment
+--- Turn 7 (p1) ---
+p1 plays Stray Fragment (u7)
+p1 plays Watchdog Timer (d8)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+  ability: Watchdog Timer — watchdog-timer-tick (onTurnEnd)
+p2 draws Watchtower Relay
+--- Turn 8 (p2) ---
+p2 plays Watchtower Relay (u9)
+Firewall Sentinel attacks Stray Fragment
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Stray Fragment (unit)
+  Stray Fragment deals 1 damage to Firewall Sentinel (unit)
+  Stray Fragment (p1) dies
+Fail-safe Unit attacks Null (face)
+p2 casts Hotfix [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Hotfix
+  ability: Hotfix — hotfix-cast (onPlay)
+  Hotfix grants Fail-safe Unit +1/+2
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 3 damage to Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Corruption Patch
+--- Turn 9 (p1) ---
+  Deprecated Routine arms
+  ability: Deprecated Routine — deprecated-routine-arm (onPlay)
+  Deprecated Routine grants Fail-safe Unit +-2/+-2
+  Corruption Patch attaches to Deprecated Routine
+Deprecated Routine attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Deprecated Routine's attack
+  Deprecated Routine deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Deprecated Routine (unit)
+Zombie Process attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Zombie Process's attack
+  Zombie Process deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Zombie Process (unit)
+  Zombie Process (p1) dies
+  Firewall Sentinel (p2) dies
+  ability: Zombie Process — zombie-process-death (onDeath)
+  Zombie Process summons Orphaned Thread for p1 (u15)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+  ability: Watchdog Timer — watchdog-timer-tick (onTurnEnd)
+p2 draws Signal Drone
+--- Turn 10 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Null
+p2 plays Diagnostic Loop (u17)
+p2 plays Retaliation Node (u18)
+  Surge Protector attaches to Watchtower Relay
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Fork Bomb
+--- Turn 11 (p1) ---
+Deprecated Routine attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Deprecated Routine's attack
+  Deprecated Routine deals 2 damage to Cortex
+Orphaned Thread attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Orphaned Thread's attack
+  Orphaned Thread deals 1 damage to Cortex
+p1 plays Fork Bomb (u21)
+  Fork Bomb deploys, dormant — arms in 1 of its controller's turn(s)
+p1 plays Segmentation Fault (d22)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+  ability: Watchdog Timer — watchdog-timer-tick (onTurnEnd)
+p2 draws Recursive Construct
+--- Turn 12 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 1 damage to Null
+p2 plays Recursive Construct (u24)
+p2 plays Rate Limiter (d25)
+Retaliation Node attacks Orphaned Thread
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Orphaned Thread deals 1 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Deprecated Routine (unit)
+  Retaliation Node deals 1 damage to Orphaned Thread (unit)
+  Retaliation Node deals 1 damage to Fork Bomb (unit)
+  Orphaned Thread (p1) dies
+Diagnostic Loop attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+Fail-safe Unit attacks Deprecated Routine
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Deprecated Routine deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p2 draws Mainframe Core
+p2 plays Signal Drone (u29)
+Signal Drone attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Dangling Pointer
+--- Turn 13 (p1) ---
+  Fork Bomb arms
+  ability: Fork Bomb — fork-bomb-arm (onPlay)
+  Fork Bomb summons Fork Child for p1 (u31)
+  Fork Bomb summons Fork Child for p1 (u32)
+p1 casts Null Pointer [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Null Pointer
+  ability: Null Pointer — null-pointer-cast (onPlay)
+  Null Pointer destroys Rate Limiter (p2)
+Fork Bomb attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Cortex
+Deprecated Routine attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Deprecated Routine's attack
+  Deprecated Routine deals 2 damage to Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+  ability: Watchdog Timer — watchdog-timer-tick (onTurnEnd)
+p2 draws Cortex Engineer
+--- Turn 14 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 1 damage to Null
+p2 plays Mainframe Core (d37)
+Signal Drone attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Null
+Diagnostic Loop attacks Fork Child
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Fork Child (unit)
+  Fork Child deals 1 damage to Diagnostic Loop (unit)
+  Fork Child (p1) dies
+Retaliation Node attacks Fork Child
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Fork Child (unit)
+  Fork Child deals 1 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Deprecated Routine (unit)
+  Retaliation Node deals 1 damage to Fork Bomb (unit)
+  Retaliation Node deals 1 damage to Fork Child (unit)
+  Fork Child (p1) dies
+Recursive Construct attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 5 damage to Null
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p1 draws Garbage Collector
+--- Turn 15 (p1) ---
+p1 plays Garbage Collector (u42)
+p1 plays Dangling Pointer (u43)
+Dangling Pointer attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Dangling Pointer's attack
+  Dangling Pointer deals 2 damage to Cortex
+Deprecated Routine attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Deprecated Routine's attack
+  Deprecated Routine deals 2 damage to Cortex
+Fork Bomb attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Cortex
+p1 casts Garbage Collector — Pay 2 energy: restore 2 health to target friendly unit. [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Garbage Collector — Pay 2 energy: restore 2 health to target friendly unit.
+  ability: Garbage Collector — garbage-collector-sweep (activated)
+  Garbage Collector restores 2 health to Deprecated Routine
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+  ability: Watchdog Timer — watchdog-timer-tick (onTurnEnd)
+p1 draws Segfault Handler
+p2 draws Backup Protocol
+--- Turn 16 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Null
+Diagnostic Loop attacks Dangling Pointer
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Dangling Pointer (unit)
+  Dangling Pointer deals 2 damage to Diagnostic Loop (unit)
+  Dangling Pointer (p1) dies
+Signal Drone attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Signal Drone's attack
+  Signal Drone deals 1 damage to Null
+Retaliation Node attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Null
+p2 casts Backup Protocol [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 3 health to Cortex
+p2 draws Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p1 draws Null Shell
+--- Turn 17 (p1) ---
+Garbage Collector attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Garbage Collector's attack
+  Garbage Collector deals 2 damage to Cortex
+  Null Shell attaches to Garbage Collector
+p1 casts Segfault Handler [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Segfault Handler
+  ability: Segfault Handler — segfault-handler-cast (onPlay)
+  Segfault Handler deals 3 damage to Diagnostic Loop (unit)
+  Diagnostic Loop (p2) dies
+Deprecated Routine attacks Signal Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Deprecated Routine's attack
+  Deprecated Routine deals 2 damage to Signal Drone (unit)
+  Signal Drone deals 1 damage to Deprecated Routine (unit)
+  Signal Drone (p2) dies
+Fork Bomb attacks Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fork Bomb's attack
+  Fork Bomb deals 1 damage to Cortex
+p1 casts Garbage Collector — Pay 2 energy: restore 2 health to target friendly unit. [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Garbage Collector — Pay 2 energy: restore 2 health to target friendly unit.
+  ability: Garbage Collector — garbage-collector-sweep (activated)
+  Garbage Collector restores 2 health to Deprecated Routine
+p1 casts Garbage Collector — Pay 2 energy: restore 2 health to target friendly unit. [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Garbage Collector — Pay 2 energy: restore 2 health to target friendly unit.
+  ability: Garbage Collector — garbage-collector-sweep (activated)
+  Garbage Collector restores 2 health to Fork Bomb
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+  ability: Watchdog Timer — watchdog-timer-tick (onTurnEnd)
+p1 draws Bit Rot
+p2 draws Watchtower Relay
+--- Turn 18 (p2) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p2 plays Firewall Sentinel (u59)
+p2 plays Watchtower Relay (u60)
+Watchtower Relay attacks Null (face)
+  p2 passes priority
+p1 casts Bit Rot [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bit Rot
+  ability: Bit Rot — bit-rot-cast (onPlay)
+  Bit Rot grants Watchtower Relay +-3/+0
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Watchtower Relay's attack
+Retaliation Node attacks Null (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Null
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+Winner: p2, turns: 18
