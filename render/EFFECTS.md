@@ -67,6 +67,15 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 - **Music** (lab: the "adaptive procedural music" block): A minor, 104 BPM, i–VI–III–VII (Am–F–C–G), scheduled ahead on the audio clock. It starts calm (pad + bass); hits, kills and Mythic arrivals raise an intensity value that brings in kick + arpeggio, then hats, then snare and four-on-the-floor, and decays back over a few seconds. The arpeggio takes the acting faction's voice. A Mythic on the acting side adds a bell motif every other bar. Effects dip the music only slightly (to ~80%, back within ~0.2s). **Never drop the music out or muffle it on a kill** (owner 2026-10-03: "good theory, but not in practice").
 - Sound and music start OFF and are switched on by the viewer (browser autoplay rules); keep separate toggles and a music volume control.
 
+## Canvas layers as built (slice 1)
+
+- `render/src/canvasFx.ts` holds the kit table (`FX_KITS`, the lab's `K` block cut to travel + impact), the tint, the tier recipes (`FX_TRAVEL`, `FX_IMPACT`) and the canvas runtime (`CFX.travel`, `CFX.impact`, `CFX.clear`). Slice 2 adds its variants to the same rows rather than a new table.
+- Two fixed, full-viewport canvases: `.fx-floor` (z 0, under `#app`) and `.fx-top` (z 89, over the cards and the aim line, under `.fx-layer`'s floating numbers). Particles live in document coordinates so a ground mark stays put when the page scrolls. The loop only runs while something is alive.
+- **Lab correction:** the lab's `spr()`/`addP()` use `layer: o.layer || 1`, which turns layer 0 into 1, so its "floor" decals actually draw on the top canvas. The port uses `!= null`; marks really sit under the cards.
+- **Ground marks under a card** are sized past the card's larger side (`fxDecalCover`: normal 1.3×, spectacle 1.6×, subtle none) so the card stands in its scorch / goo / rift / rune / circuit trace instead of hiding it. A face hit leaves no mark: the HUD panel is opaque.
+- **Fallback:** if the atlases don't decode or there is no 2D canvas, `CFX.travel`/`CFX.impact` return false and the page draws the v1 DOM bolt and burst.
+- The atlases are embedded in each replay as data URIs (~300 KB per page) to keep the single-file, offline replay.
+
 ## Board layout (infrastructure every primitive relies on)
 
 Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slot until it leaves. Effects anchor to card rectangles; a canvas FX layer sits above the cards and a "floor" canvas below them for ground marks and lingering debris.
@@ -86,7 +95,7 @@ Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slo
 
 ## v2 build order (one slice per render-lane turn; each across ALL factions)
 
-1. Canvas FX layer + floor layer over/under the existing DOM board; atlas loader with the tint cache; additive drawing with correct alpha. Port travel + impact to sprite materials.
+1. Canvas FX layer + floor layer over/under the existing DOM board; atlas loader with the tint cache; additive drawing with correct alpha. Port travel + impact to sprite materials. **Built, render session 10** (`render/src/canvasFx.ts`, sheet: `npm run fx-sheet -w @ai-tcg/render`).
 2. Faction material kits for every category in the table above (spell damage, removal, heal, buff, debuff variants included), plus magnitude polish: hit-stop, colour split, camera punch, lingering debris and ground marks, warping grid.
 3. Procedural sound effects with faction voices (port the lab's `SFX`), toggles off by default.
 4. Adaptive procedural music (port the lab's music block), no kill dropout.

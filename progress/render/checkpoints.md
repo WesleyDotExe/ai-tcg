@@ -7,6 +7,41 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-03 — EFFECTS.md v2 slice 1: canvas layers + sprite travel/impact — AWAITING FEEDBACK
+
+**What this delivers:** the first v2 slice. Attacks are now drawn on canvas with the Nano Banana Pro sprites, in each faction's material:
+- **Cortex:** a data-shard head, a pixel trail, arcs on impact, a circuit trace left on the table.
+- **Aegis:** a molten head, an ember trail, shrapnel and hex plates, smoke, a scorch mark.
+- **Swarm:** spores, chitin and wings, a goo splat.
+- **Null:** a dark-star head that stutters, glitch bars, a rift tear.
+- **Neutral:** glints and feathers, light rays, a rune ring.
+
+Size scales with the existing magnitude tier. A face hit spreads wide and flat across the HUD. Ground marks and some debris sit on a floor layer under the cards and fade over a few seconds. The timeline and pacing are unchanged, and the head lands exactly when the hit's consequences play. If the canvas or textures fail, the old DOM bolt is drawn instead.
+
+**Evidence:**
+- `render/output/fx-sheet.html` (all five factions, looping) and any replay in `render/output/`.
+- Stills: `progress/render/evidence/v2-s1-fx-sheet.png`, `v2-s1-cortex-travel.png`, `v2-s1-aegis-kill-floor.png` (a dead unit's empty slot keeps the Aegis scorch and settled debris), `v2-s1-null-swarm-impact.png` (lethal face hit).
+- Headless Chromium on all six replays: 0 errors and 58–61 fps under autoplay. The sheet holds 60 fps at ~1,260 particles.
+- 14 new tests; render is at 141.
+
+**Strong:** it's the lab's look in the real replay, and the meaning stays constant (it always leaves the attacker and lands on the target). Each faction's material is distinct at a glance. It costs nothing when idle.
+
+**Thin:** only attacks moved. Spells, heals, buffs/debuffs, casts, shields and deaths still use the v1 look until slice 2. Hit-stop, colour split, camera punch and the warping grid aren't there yet either.
+
+**Decisions you may want to overrule:**
+1. **Ground marks under a hit card are drawn larger than the card** (1.3× normal, 1.6× spectacle), so they show around it. Under the card itself they'd be invisible.
+2. **No ground mark on a face hit.** The HUD panel is opaque.
+3. **Subtle (1-damage) hits get a small impact** (sparks, a few debris, a small shockwave) but no ground mark. Before, they had no burst at all.
+4. **Aegis is orange on the whole page,** not just in effects (card frames, tags, HUD).
+5. **The counter-strike's return bolt also lands a small impact** on the attacker (one tier down).
+6. **The atlases are embedded in every replay** (~300 KB each) to keep the single-file offline replay.
+
+**Also waiting on you:** the proposed `signatureAbilities` list (9 abilities in, with reasons for everything out) in `progress/render/notes-for-owner.md`. Slice 5 can't wire faction wards until it's approved.
+
+**Next:** slice 2 (material kits for every effect category + magnitude polish).
+
+---
+
 ## 2026-10-02 — Faction skins (EFFECTS.md slice 5) — the effects language is complete — AWAITING FEEDBACK
 
 **What this delivers:** the last of the five EFFECTS.md slices. Every particle the render throws now has its faction's character, not just its colour:

@@ -1250,3 +1250,119 @@ Recommended next is a legibility pass on the two known misreads:
   on a full board.
 
 After that, skin the card-level animations (exit/enter per faction).
+
+## 2026-10-03 — Session 10: EFFECTS.md v2 slice 1 (canvas FX + floor layers, sprite travel/impact)
+
+**Why this slice.** Under the alternation rule, the most recently merged PR
+was balance (#36, session 26), so this was a render session. The owner's
+2026-10-03 entry says to implement EFFECTS.md v2 in build order, one slice
+per turn, porting from `render/reference/effects-lab.html`. Slice 1 is the
+canvas layers, the atlas tint cache, and attack travel + impact in sprite
+materials. The 2026-10-04 entry (close Phase 5, instance IDs, persistence)
+is game-lane work for the next session. No shared progress file or
+engine/card/agent file was touched (RENDER.md guardrails 1 and 4).
+
+**Built.**
+- **`render/src/canvasFx.ts`** (new). It has two embedded halves, the same
+  single-source rule as the other FX modules:
+  - `CANVAS_FX_PURE_SOURCE`: the sprite map (48 cells), the faction kits
+    (the lab's `K` block cut to travel + impact, in the EFFECTS.md colours
+    with Aegis orange), the tint maths, the tier recipes, the flight ease
+    and arc. Node evaluates it, so the tests run the page's own code.
+  - `CANVAS_FX_RUNTIME_SOURCE`: the two fixed full-viewport canvases.
+    `.fx-floor` sits under `#app`. `.fx-top` sits over the cards and the
+    aim line, but under the floating numbers. It also has the atlas loader,
+    the pre-tinted cache (warmed in 8 ms idle slices), the particle and
+    projectile system, and a rAF loop that only runs while something is
+    alive.
+  - `CFX.travel` / `CFX.impact` / `CFX.clear`.
+- **Replay page wiring** (`renderHtml.ts`):
+  - A strike's travel and impact (and the counter's return bolt plus a
+    small impact on the attacker) go to the canvas.
+  - The v1 DOM bolt/burst is the fallback when the canvas or atlases are
+    unavailable.
+  - A jump clears anything still in flight.
+  - The three atlases are embedded as data URIs, so the replay stays one
+    offline file.
+  - `--aegis` is now `#ff7d24`.
+  - **The timeline is untouched:** the head arrives exactly at `strikeT`
+    (clocked on `performance.now`, like `later()`), so consequences still
+    land with the hit and the approved pacing is unchanged.
+- **`render/src/fxSheet.ts`** + `npm run fx-sheet`. It writes
+  `render/output/fx-sheet.html`: every faction × tier, plus a face hit,
+  looping, drawn by the same runtime.
+- **`render/test/canvasFx.test.ts`**, 14 tests:
+  - the sprite map vs `assets/manifest.json`, and the embedded atlases
+    byte-equal to the committed files;
+  - every faction has its own kit and EFFECTS.md colour, and the page CSS
+    agrees;
+  - tint: black is transparent, alpha is the brightest channel, the hue is
+    the faction's, alpha rises monotonically with brightness, and hot
+    pixels get a white core;
+  - every recipe number grows with the tier, and face hits are wider and
+    flatter;
+  - the flight ease is exact at 0 and 1 and monotonic, and the arc
+    endpoints are exact;
+  - the page embeds both halves verbatim, with the fallback wiring
+    present.
+- **EFFECTS.md:** slice 1 is marked built. There's a new "Canvas layers as
+  built" section.
+
+**A bug found in the reference lab, not copied.** The lab's
+`layer: o.layer || 1` turns layer 0 into 1, so its "floor" decals draw on
+the top canvas. My first port inherited it. The FX sheet showed scorch
+marks painted over the cards, and a floor-only screenshot was empty. Fixed
+with `!= null`. A floor mark under a 118×158 card would then be invisible,
+so marks under a hit card are sized past the card's larger side
+(`fxDecalCover`). The card now stands in its scorch, goo, rift, rune or
+circuit trace. Settled debris shows through empty slots.
+
+**Ran it.**
+- All six replays regenerated, with the same move counts as session 9
+  (122 / 113 / 139 / 102 / 82 / 63), since the engine is untouched.
+- Headless Chromium, every replay:
+  - stepped move by move (142 strikes found by the canvas, clearing
+    between moves so each count is exact);
+  - 3 strikes per replay captured at mid-flight, impact and after;
+  - 12 s of autoplay at normal speed: **58–61 fps** on every replay, peak
+    ~230 live particles, **0 page errors**.
+- FX sheet (all five factions firing at once): peak ~1,260 particles, still
+  60 fps.
+- **Fallback:** a copy of a replay with the atlases stripped draws 0 canvas
+  projectiles and falls back to the DOM bolts and bursts, with no errors.
+- `npm test`: render 141 tests (was 127); all five workspaces green (316). `tsc --noEmit` clean in all five.
+
+**Named honestly, not fixed:**
+- **Only attack travel + impact moved to the canvas.** The following are
+  still the v1 DOM primitives until slice 2:
+  - spell/ability damage;
+  - heal, buff/debuff motes;
+  - the cast flourish;
+  - the shield;
+  - the death ghost and its red burst.
+  Hit-stop, colour split, camera punch and the warping grid are also
+  slice 2.
+- **A face hit leaves no ground mark,** because the HUD panel is opaque.
+  The flare and the squashed shockwave carry it. On a lethal blow the burst
+  also sits over the player's name for ~half a second.
+- **Each replay is ~300 KB bigger** (the embedded atlases), about 1.8 MB
+  across the six committed replays on every regeneration. A shared
+  relative file would avoid that, but it would break "one file, opens
+  offline".
+- **Rects are snapshotted at launch.** If a layout shift happened
+  mid-flight, the head would land on the old spot (same as v1; fixed slots
+  make this rare).
+- **The fps figures are from headless Chromium on this container,** not a
+  real GPU or a phone. The several-Mythic-wards frame-rate check in
+  EFFECTS.md can't run until slice 6 exists.
+- **No `prefers-reduced-motion` handling,** neither in v1 nor here.
+- The very first impacts after load can tint a sprite synchronously (a few
+  ms each) if they land before the idle prewarm finishes.
+
+**Next render-lane slice:** EFFECTS.md v2 slice 2. That means the faction
+material kits for every category: spell damage (laser / molten shells /
+homing spores / blinking packets / light lances), removal, heal, buff and
+debuff (Neutral's debuff = Swarm acid in gold). Plus magnitude polish:
+hit-stop, colour split, camera punch, lingering debris, the warping grid.
+Port from the lab's scene functions into `FX_KITS` rows and `CFX` methods,
+then retire the matching v1 DOM paths behind the same fallback.

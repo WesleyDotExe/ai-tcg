@@ -289,3 +289,72 @@ separate from the shared `progress/notes-for-owner.md`).
    up.
 3. **No engine change was needed.** The per-hit effect-damage travel still
    waits on the event-log instance-ID work, as noted in earlier sessions.
+
+## 2026-10-03 — Session 10 (EFFECTS.md v2 slice 1: canvas layers + sprite travel/impact)
+
+1. **Quickest way to judge slice 1: `render/output/fx-sheet.html`.** It
+   loops one volley per faction (subtle / normal / spectacle hit on a card,
+   then a hit on a player), drawn by the replay's own canvas code. In a
+   replay, any attack shows it. Stills are in `progress/render/evidence/`
+   (`v2-s1-*.png`).
+
+2. **Proposed `signatureAbilities` list (needs your approval before slice 5
+   wires faction wards to it).** Your rule: a ward appears only when a Rare
+   or Mythic uses an attack, buff or defence unique to its rarity. I read
+   every Rare and Mythic in the pool (25 cards) and sorted their abilities.
+
+   **Proposed IN** (each fires once, on arrival, and is an attack, buff or
+   defence):
+
+   | Card | Faction | Ability id | What it does | Kind |
+   |---|---|---|---|---|
+   | Dormant Egg Sac | Swarm | `dormant-egg-sac-hatch` | 3 damage when it hatches | attack |
+   | Kernel Panic | Null | `kernel-panic-evolve` | destroy a unit | attack (removal) |
+   | Deprecated Routine | Null | `deprecated-routine-arm` | -2/-2 permanent | attack (debuff) |
+   | Retaliation Node | Cortex | `retaliation-node-damaged` | strikes back for 1 when damaged | attack |
+   | Overload Capacitor | Cortex | `overload-capacitor-play` | Overload: 1 damage at end of turn, 3 turns | attack (damage over time) |
+   | Aegis Warden | Aegis | `aegis-warden-evolve` | heal 10 + Barrier | buff + defence |
+   | Latent Ward | Aegis | `latent-ward-arm` | Barrier | defence |
+   | Lockdown Field | Aegis | `lockdown-field-cast` | Stasis 1 turn | defence |
+   | Dormant Exploit | Cortex | `dormant-exploit-arm` | Stasis 2 turns | defence |
+
+   **Proposed OUT, with the reason:**
+   - **All four Mythics' abilities are statics** (Quorum Arbiter, Prime
+     Aegis ×2, Hive Mother, Null Singularity). Their permanent unique wards
+     already act these out all the time (slice 6), so nothing fires as an
+     event that could flare the ward. As a result, no Mythic has a
+     signature move in today's pool. If you want the Mythic ward to flare
+     on something, the natural moment is when the aura first applies on
+     arrival. That would be a render-only rule, not a signature ability.
+   - **Rare statics/auras:** Mainframe Core, Overclock Beast, Recursive
+     Construct, Tariff Field, Entropy Harvester, Segmentation Fault. These
+     are always on, with no moment to call a ward.
+   - **Recurring ticks:** Rate Limiter (1 damage every turn while the
+     opponent has 3+ units). A ward every turn would be noise. It's the
+     closest call; say if you want it in.
+   - **Card draw:** Watchdog Timer, Uplink Tower. These aren't attack, buff
+     or defence, and Uplink Tower is Neutral, which has no ward anyway.
+   - **Arrival summon:** Bloodswarm Alpha. A summon is an arrival, and your
+     rule says arrivals never show a ward.
+   - **Tools with no ability id:** Barrier Shim, Decay Ward. Their effect is
+     a keyword or stat grant, so there's nothing to key a ward to.
+
+   Two calls are yours: whether a debuff (Deprecated Routine) counts as an
+   "attack", and Rate Limiter. Once you approve, I'll write the list into
+   `render/presentation/mythics.json` → `signatureAbilities`.
+
+3. **Mythic ward previews: nothing new to check.**
+   `progress/render/mythic-wards-log.md` doesn't exist yet. The action
+   hasn't generated a ward since the four hand-run, already-approved ones
+   (Quorum Arbiter, Prime Aegis, Hive Mother, Null Singularity), and no
+   Mythic has been added since.
+
+4. **Aegis is now orange on the whole page** (`--aegis: #ff7d24`, your
+   2026-10-02 call in EFFECTS.md). The faction tag, card frames, HUD tint
+   and v1 skins all changed with the effects. Aegis and Neutral (gold) are
+   both warm colours now. They read as different in the replays I watched,
+   but they are closer than teal vs gold was.
+
+5. **No engine change was needed.** Spell and ability travel to an exact
+   target still waits on the event-log instance IDs. The balance lane has
+   that queued (your 2026-10-04 entry, section A item 6).
