@@ -1,0 +1,88 @@
+{
+  "_about": "Asset map for the render lane. All textures are greyscale on black: draw them additively, tinted per faction (colour = luminance x faction colour, plus a small white core: see render/reference/effects-lab.html, tex() and tintInto()). Nothing here is fetched at runtime; these are committed static files.",
+  "fx": {
+    "files": [
+      "render/assets/fx/atlas-a.webp",
+      "render/assets/fx/atlas-b.webp",
+      "render/assets/fx/atlas-c.webp"
+    ],
+    "grid": "4x4 per atlas, 192px cells, row-major",
+    "source": "replicate:google/nano-banana-pro, 2026-10-02/03, owner-approved",
+    "cells": {
+      "0": "smoke puff",
+      "1": "smoke trail",
+      "2": "ember sparks",
+      "3": "molten droplets",
+      "4": "shrapnel shard",
+      "5": "hex plate",
+      "6": "cracked hex shards",
+      "7": "scorch mark",
+      "8": "goo splat",
+      "9": "chitin fragment",
+      "10": "spore cluster",
+      "11": "tendril",
+      "12": "glitch bars",
+      "13": "pixels",
+      "14": "circuit trace",
+      "15": "electric arc",
+      "16": "data shard",
+      "17": "laser streak",
+      "18": "targeting reticle",
+      "19": "wireframe cube",
+      "20": "insect wing",
+      "21": "claw talon",
+      "22": "acid drips",
+      "23": "egg sacs",
+      "24": "rift tear",
+      "25": "vortex swirl",
+      "26": "shattered glass",
+      "27": "dark star",
+      "28": "star glint",
+      "29": "light rays",
+      "30": "rune ring",
+      "31": "feather",
+      "32": "shockwave ring",
+      "33": "lens flare",
+      "34": "light column",
+      "35": "shield dome segment",
+      "36": "ice crystals",
+      "37": "ice shatter",
+      "38": "energy sphere",
+      "39": "ball lightning",
+      "40": "rising chevrons",
+      "41": "dripping streaks",
+      "42": "healing crosses",
+      "43": "summon portal",
+      "44": "card fragments",
+      "45": "energy orb",
+      "46": "sparkle dust",
+      "47": "impact crater"
+    }
+  },
+  "factionWards": {
+    "files": {
+      "cortex": "render/assets/wards/faction/cortex.webp",
+      "aegis": "render/assets/wards/faction/aegis.webp",
+      "swarm": "render/assets/wards/faction/swarm.webp",
+      "null": "render/assets/wards/faction/null.webp"
+    },
+    "grid": "2x2, 512px cells",
+    "layers": {
+      "0": "outer ring",
+      "1": "middle layer",
+      "2": "core emblem",
+      "3": "compact single-ring ward (Rare)"
+    },
+    "use": "Rare: cell 3 only. Mythic without its own ward data falls back to the code-generated ward, not these. Shown ONLY for a Rare/Mythic signature attack, buff or defence. Neutral has no ward."
+  },
+  "mythicWards": {
+    "index": "render/presentation/mythics.json",
+    "grid": "2x2, 512px cells",
+    "layers": {
+      "0": "outer ring",
+      "1": "middle layer",
+      "2": "core emblem",
+      "3": "ornament sprite used by the card's behaviour"
+    }
+  }
+}
