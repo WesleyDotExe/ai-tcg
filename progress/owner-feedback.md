@@ -1368,3 +1368,18 @@ Persistence comes BEFORE the economy (roadmap item 6 moves ahead of item 5). The
 30. Unique Mythic promo generator + daily rewards/quests.
 31. Match running and the ladder: many matches, server-assigned opponents, results recorded, ratings. This closes the loop: play -> earn -> owner opens packs -> agent rebuilds -> play.
 The render lane continues the EFFECTS.md v2 build order in between.
+
+
+---
+
+## 2026-10-04 — Owner: render session 10 (v2 slice 1) — signatureAbilities approved
+
+Slice 1 accepted. Answers to `progress/render/notes-for-owner.md` (session 10, item 2):
+
+1. **Approve the proposed signatureAbilities list: all 9 IN**, including Deprecated Routine. A debuff on an enemy counts as an attack.
+2. **New rule for every signature ability: the faction ward flares only the FIRST time an ability fires, never on repeats** (recurring ticks, later triggers of the same ability). This covers Retaliation Node and Overload Capacitor.
+3. **Under that rule, add Rate Limiter** (`signatureAbilities` gets 10 entries).
+4. **Mythics: the Mythic's own unique ward flares when the Mythic first arrives.** Render-only rule, not a signature ability. It is the Mythic's own ward, not the faction ward, so the "arrivals never show a faction ward" rule still holds. Arrival should be the biggest moment on the board.
+5. Everything else on the OUT list stays out (statics/auras, card draw, Bloodswarm Alpha's summon, tools with no ability id).
+
+**Render lane:** write the 10 entries into `render/presentation/mythics.json` → `signatureAbilities`. Add rules 2 and 4 to the Wards section of `render/EFFECTS.md`. Then carry on with slice 2. No change to Aegis orange or Neutral gold for now; the owner will check whether they are easy to tell apart in replays and say if Neutral should move to a paler gold.
