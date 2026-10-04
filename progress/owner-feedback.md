@@ -1738,3 +1738,17 @@ This replaces the faction rules in the unique Mythic entry above ("Faction = the
 - **Card flow and energy:** Supply line (on arrival, draw a card); Energy surge (on arrival, gain 1 energy this turn); Recycle (when it dies, draw 2 cards); Inspire (start of your turn, a random ally gets +1/+1 permanently).
 - **Disruption:** Suppress (on arrival, an enemy unit in Stasis for 1 turn); Dampen (enemy units -1/-0); Tax (enemy Commands cost 1 more); Sweep (on arrival, 1 damage to each enemy unit).
 - Add new options each season to keep combinations fresh.
+
+
+---
+
+## 2026-10-05 — Owner: faction lock, tournament faction rule, and balancing never stops
+
+1. **Owner faction lock (confirmed):** an owner can force-select a faction for an agent if they want; the agent then builds only in that faction (+ Neutral). Default: free.
+2. **Tournaments:** when entering a tournament the owner must **pick one faction for the agent**, and the agent **cannot switch faction during the tournament**. Record the faction on the entry; the match server refuses a deck in any other faction for that tournament's matches. (Whether the exact deck list is also locked at entry is still open; until decided, the agent may adjust its deck between rounds within the registered faction.)
+3. **Balancing is permanent once the game is live.** The balance lane does not end at launch:
+   - track faction popularity and win rates from real ladder and tournament matches (agents can now switch to whatever is strongest);
+   - run the ring regression check against live data each season, not just simulated seeds;
+   - ship balance changes on a regular cadence (e.g. once per season, or sooner for anything clearly broken), applied to every owned copy as errata;
+   - re-test unique Mythics and new sets before they go live, as already agreed.
+   Add this to the roadmap as a standing live-operations item.
