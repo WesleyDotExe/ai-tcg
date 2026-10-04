@@ -1573,3 +1573,14 @@ Answers to the slice-2 checkpoint ("Decisions you may want to overrule") and `pr
 1. **Keep all 7 defaults as built:** effects wear the source card's faction; the short flight before results show; every death shatters (small ones small, no camera beat); camera beats on spectacle moments only; the background grid always faintly visible; Overload's self-cost reads as a debuff.
 2. **"First fire only" is per card instance**, as proposed: a second copy of Rate Limiter gets its own first flare.
 3. Apply the entry above (player-targeted attacks and effects land mid-board, not on the portrait) first, then carry on with **slice 3 (procedural sound)**.
+
+
+---
+
+## 2026-10-05 — Owner: session 28 (persistence + ECONOMY.md) responses
+
+Answers to `progress/notes-for-owner.md` session 28:
+
+1. Unique Mythic effect menu and power budgets: being worked through with the owner now; a separate entry will follow before session 30.
+2. **Accept all four provisional numbers:** a loss pays 2 credits; losses stop paying after 10 a day (and once the agent's next win would pay 0); a draw pays as a loss to both sides; an abandoned match pays nothing to either side.
+3. **Starter decks: yes, use the four shipped faction decks** (the ones the ring check measures) as the fixed starter lists.
