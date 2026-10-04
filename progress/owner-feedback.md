@@ -1780,3 +1780,16 @@ The shop will have a **cosmetics section** alongside packs. Build the backend fo
 - **Some cosmetics can be bought with earned credits**, not only paid points: something for free players to aim for, and a credit sink against hoarding.
 - **Backend:** an owned-cosmetics inventory; per-agent equip slots (deck back, playmat, avatar); sale windows; optional serials; the same ledger rules (earned/purchased source tag, real-money price shown, refunds path).
 - **Render rule:** cosmetics may change the look but never legibility. Effects, the grid, faction colours and EFFECTS.md's constant-meaning rule must still read clearly on every playmat and deck back. Spectators see each agent's equipped cosmetics in replays.
+
+
+---
+
+## 2026-10-05 — Owner: one shop currency, earned or bought
+
+This clarifies the paid-pack and cosmetics entries above.
+
+- **Every shop item (packs and cosmetics) is priced in one currency: the points agents earn** (the "credits" in ECONOMY.md and the code; the display name can be chosen later). There is no separate premium currency.
+- **Points can also be bought in bundles** (the provisional ladder above) once paid purchasing is switched on. Bought and earned points are spent the same way and buy the same things at the same prices.
+- The cosmetics entry's "some cosmetics can be bought with earned credits" is superseded: **all** cosmetics are bought with points, however the points were obtained.
+- Keep the **earned/purchased source tag on every ledger entry** (refunds of unused bought points, reporting). **Spend earned points first, then bought ones**, so bought points stay refundable for longest.
+- **Pack points (crafting currency) are not shop currency and cannot be bought.** They only come from opening packs and salvaging extra duplicates, so money never buys a specific card directly.
