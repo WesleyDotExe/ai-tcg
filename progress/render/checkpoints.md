@@ -7,6 +7,55 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-04 — EFFECTS.md v2 slice 2: every category's faction material, kills, camera beats, warping grid — AWAITING FEEDBACK
+
+**What this delivers:**
+- **Every ability effect flies from the exact card that used it to the exact card it hits,** in the source card's faction material. This uses the event log's instance ids from game session 27. The five categories:
+  - spell damage: Cortex lasers, Aegis lobbed shells, Swarm homing spores, Null teleporting packets, Neutral light lances;
+  - heal: scanlines / welding sparks / egg-sac bloom / reversed vortex / rising crosses;
+  - buff: wireframe cubes / armour plates / tendrils / dark star / chevrons;
+  - debuff: lock and falling pixels / cracked plates / acid / glitch bars / gold acid (Neutral);
+  - removal: orbital beam / breach charge / devour / vortex / smite.
+- **Every death shatters the card,** with lingering debris, a crater and the killer's mark on the table.
+- **Big moments get the camera beats:** hit-stop, colour split, camera punch. The background grid warps under every hit.
+
+**Evidence:**
+- `render/output/fx-sheet.html` part 2: all 25 faction × category combinations, looping.
+- Any replay in `render/output/`; aegis-vs-null-seed3 has a spell kill, a debuff from a Command and a removal.
+- Stills in `progress/render/evidence/`:
+  - `v2-s2-sheet-spell.png`, `v2-s2-sheet-debuff.png`, `v2-s2-sheet-removal-kill.png`;
+  - `v2-s2-replay-spell-kill.png` (Aegis shells shatter a Null unit);
+  - `v2-s2-replay-debuff-from-stack.png` (Bit Rot flies from its stack entry);
+  - `v2-s2-replay-removal-shatter.png` (Breach Charge destroys a Directive);
+  - `v2-s2-effect-survey.txt` (80 matches).
+- Headless Chromium on all six replays:
+  - every effect and kill drawn, 0 errors;
+  - frame rate level with slice 1 on the same machine (median 54 vs 55);
+  - reduced motion turns every camera beat off;
+  - with the textures missing, the old look takes over.
+- 16 new tests; render is at 157.
+
+**Strong:**
+- It's the lab's look in the real replay, with real pairings, never guessed from names.
+- Meaning stays constant: a debuff always sinks with a slate ring and its slate label, and a spell always leaves its source.
+- The damage number never appears before the shot that causes it.
+
+**Thin:**
+- The committed replays only contain 25 effects between them; the sheet is where to judge all 25 combinations.
+- Shields, cast flourishes, armor deflect and evolve/arrival pulses still use the v1 look.
+- No sound yet (slice 3).
+
+**Decisions you may want to overrule:**
+1. **Effects wear the source card's faction** (a Neutral Command is gold whoever casts it). This extends your 2026-09-26 tint rule.
+2. **Effects now take a short flight before their result shows:** ~210 ms at normal speed, ~300 ms for a removal, after the cast beat. The tick, and so the pacing, is unchanged.
+3. **Every death shatters,** even a quiet one (a 1/1 traded, an Overload tick). Subtle deaths shatter small, with no camera beat.
+4. **Camera beats are spectacle-only** (a Mythic's death, a Rare's death in a move with no attack, hits of 6+, the lethal blow). A normal kill only gets a small punch and shake.
+5. **The background grid is always faintly visible,** as in the lab, and brightens and bends under hits.
+6. **Overload (a cost Overload Capacitor puts on itself) reads as a debuff,** a sink in place.
+7. **"First fire only" for signature wards is per card instance.** A second Rate Limiter gets its own first flare. Say if you meant once per card name per match. (Not wired until slice 5.)
+
+---
+
 ## 2026-10-03 — EFFECTS.md v2 slice 1: canvas layers + sprite travel/impact — AWAITING FEEDBACK
 
 **What this delivers:** the first v2 slice. Attacks are now drawn on canvas with the Nano Banana Pro sprites, in each faction's material:

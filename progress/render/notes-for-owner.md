@@ -358,3 +358,35 @@ separate from the shared `progress/notes-for-owner.md`).
 5. **No engine change was needed.** Spell and ability travel to an exact
    target still waits on the event-log instance IDs. The balance lane has
    that queued (your 2026-10-04 entry, section A item 6).
+
+## 2026-10-04 — Session 11 (EFFECTS.md v2 slice 2: categories, kills, camera beats, grid)
+
+1. **Your 2026-10-04 render answers are applied.**
+   - The 10 `signatureAbilities` entries are in `render/presentation/mythics.json`.
+   - EFFECTS.md's Wards section has "first fire only" and "the Mythic's own
+     ward flares on arrival".
+   - One interpretation to confirm: "first time" is per card instance, so a
+     second copy of Rate Limiter gets its own first flare. Nothing is wired to
+     it until slice 5.
+   - Neutral gold vs Aegis orange is unchanged, waiting on your replay check.
+
+2. **Quickest way to judge slice 2: `render/output/fx-sheet.html`, part 2.**
+   - It shows every faction × category (spell, heal, buff, debuff, removal
+     ending in a kill), looping.
+   - In a real match, `aegis-vs-null-seed3.html` moves 57 (Bit Rot), 77
+     (Perimeter Turret's shells kill Dangling Pointer) and 120 (Breach Charge
+     destroys Segmentation Fault).
+   - Stills are in `progress/render/evidence/v2-s2-*.png`; seven taste calls
+     are in the render checkpoint.
+
+3. **Telegraph and pacing note:** an ability's result now shows when its
+   travel lands (~210 ms at normal speed) instead of the instant the move
+   starts. The tick is unchanged. If the moves start to feel late, that's the
+   number to shorten (`travelMs` in renderHtml.ts).
+
+4. **Mythic ward previews: nothing new.** No Mythic has been added and
+   `progress/render/mythic-wards-log.md` doesn't exist yet.
+
+5. **No engine change was needed.** The game session 27 instance ids were
+   enough for exact source → target travel on everything except Overload's
+   end-of-turn tick, which has no source id and flies nothing.

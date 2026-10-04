@@ -7,7 +7,37 @@
     "behaviour is one of: seats (lights one seat per counted thing; behaviourParams.counts names what), aura (tethers + crests on allies; pressure ring on enemies if it has an enemy effect), heartbeat (pulse + spawns ornaments that travel to allies), gravity (bends the grid toward it + ornaments spiral in), generic (rotation + pulse only)."
   ],
   "signatureAbilities": {
-    "_about": "Abilities unique to a Rare or Mythic that call a ward when they fire (attack, buff or defence). Keyed by card name -> list of ability ids. Empty until the owner approves a list; the render lane proposes one in progress/render/notes-for-owner.md. Ordinary attacks, arrivals and deaths never show a ward."
+    "_about": "Abilities unique to a Rare or Mythic that call the faction ward when they fire (attack, buff or defence; a debuff on an enemy counts as an attack). Keyed by card name -> list of ability ids. Owner-approved 2026-10-04 (10 entries). The ward flares only the FIRST time an ability fires on a given card instance, never on repeats (recurring ticks, later triggers). Ordinary attacks, arrivals and deaths never show a faction ward; Neutral has no ward.",
+    "Dormant Egg Sac": [
+      "dormant-egg-sac-hatch"
+    ],
+    "Kernel Panic": [
+      "kernel-panic-evolve"
+    ],
+    "Deprecated Routine": [
+      "deprecated-routine-arm"
+    ],
+    "Retaliation Node": [
+      "retaliation-node-damaged"
+    ],
+    "Overload Capacitor": [
+      "overload-capacitor-play"
+    ],
+    "Rate Limiter": [
+      "rate-limiter-tick"
+    ],
+    "Aegis Warden": [
+      "aegis-warden-evolve"
+    ],
+    "Latent Ward": [
+      "latent-ward-arm"
+    ],
+    "Lockdown Field": [
+      "lockdown-field-cast"
+    ],
+    "Dormant Exploit": [
+      "dormant-exploit-arm"
+    ]
   },
   "mythics": {
     "Quorum Arbiter": {
