@@ -1532,3 +1532,16 @@ This replaces the Prototype pull rules in the two entries above (the shine-slot 
 - Tournament cards are their own series: not part of the set count and not pack Prototypes. They follow the bottom-left layout rule with a tournament marker (e.g. "S1 FINALS") beside the serial. Use a different foil from the pack Prototypes' gold (e.g. silver or platinum) so the two can't be confused.
 - They are existing cards with new art, so gameplay and balance are unchanged.
 - If a tournament has fewer entrants than a tier needs (Season 0's house agents), the lower tiers simply shrink.
+
+
+---
+
+## 2026-10-05 — Owner: render — attacks and effects aimed at a player land on the board, not the portrait
+
+After watching `aegis-vs-null-seed3.html` (render session 11, slice 2): direct ("face") attacks flying to the player's profile image read like stray shots.
+
+- **Attacks and effects aimed at a player travel to the middle of that player's side of the board**, not to their portrait/HUD panel.
+- The projectile lands in the centre of the defending player's row of slots and impacts there, in the attacker's faction material, with a ground mark on the floor layer (this also fixes the slice-1 gap where a hit on a player left no ground mark).
+- The defending player's HP bar then reacts on their panel: a flash and the damage number by the HP bar, timed to the impact. Bigger hits get a bigger reaction, by the usual magnitude tiers.
+- Same rule for spells, abilities and anything else whose target is a player. Cards are still hit on the card itself.
+- Update EFFECTS.md to match (Axis 1, attack: "to the centre of the opponent's side when the target is the player").
