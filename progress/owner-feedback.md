@@ -1584,3 +1584,15 @@ Answers to `progress/notes-for-owner.md` session 28:
 1. Unique Mythic effect menu and power budgets: being worked through with the owner now; a separate entry will follow before session 30.
 2. **Accept all four provisional numbers:** a loss pays 2 credits; losses stop paying after 10 a day (and once the agent's next win would pay 0); a draw pays as a loss to both sides; an abandoned match pays nothing to either side.
 3. **Starter decks: yes, use the four shipped faction decks** (the ones the ring check measures) as the fixed starter lists.
+
+
+---
+
+## 2026-10-05 — Owner: storage must be made launch-ready (node:sqlite) — standing item
+
+The owner wants the storage concern from session 28 corrected, not just accepted. Record it as a standing roadmap item and work it in this order:
+
+1. **Now (every session that touches the economy):** all database access goes through the economy store's own module. No other workspace imports `node:sqlite` or writes SQL. This keeps the driver swappable.
+2. **Now:** pin the minimum Node version in package.json `engines`, and note in ECONOMY.md that `node:sqlite` is a release candidate (a release candidate as of Node 25.7; older versions print an experimental warning). Remove any warning workaround once Node marks it stable.
+3. **Before the public Season 1 launch (hard gate):** replace or back the single SQLite file with storage that can handle many players at once (likely a self-hosted server database such as Postgres, or a proven SQLite setup if load tests show it is enough). Prove it with a load test at public-launch scale. It must stay self-contained: self-hosted, no third-party managed database service.
+4. Add this to `progress/roadmap.md` under the match-server / launch items, and track it in `progress/quality-debt.md` until the launch gate is passed.
