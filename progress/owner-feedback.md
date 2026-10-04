@@ -1510,3 +1510,25 @@ This replaces section 3 (Prototypes) of the economy answers entry where they dif
 - Treatment: mostly Full Art, but the art direction is free to have fun (e.g. the Blueprint schematic style).
 - **Pulls:** when a pack rolls a Prototype, pick which one in proportion to the copies still available (a 1/1 is about 1 in 1,516 Prototype pulls). **Pace the Prototype rate so the season's supply lasts roughly until the season ends**, instead of a fixed 1 in 500. In Season 0, with low volume, most runs won't sell out; that's fine.
 - The art is made at build time with Replicate (same pattern as the mythic-wards action) and committed as static files. Surface previews in notes-for-owner.md for the owner to check before a season's list goes live.
+
+
+---
+
+## 2026-10-04 — Owner: AMENDMENT — Prototypes as a bonus 6th card; season-finale tournament prizes
+
+This replaces the Prototype pull rules in the two entries above (the shine-slot 1 in 500 and the "pace the supply to the season" rule). Everything else about Prototypes stands: 15 per season in the pyramid, unique art per run, gold-foil layout, never reissued.
+
+### Prototype pulls
+- **A Prototype drops as a bonus 6th card, at a fixed 1 in 1,000 packs.** A normal pack is 5 cards, so a 6th card is a visible "something special happened" moment for the pack-opening animation. It never replaces one of the 5 normal cards.
+- Which Prototype: pick in proportion to the copies still available. The pack series keeps its own 1/1.
+- **Unpulled Prototypes are retired at season end, forever.** The card viewer and collector area show how many of each run were ever found (e.g. "/250 run: 11 found"). True scarcity is what was actually pulled.
+- In Season 0, with low volume, there may be no Prototype pull at all. Test the code with simulated pack openings, not by raising the rate.
+
+### Season-finale tournament prizes (new)
+- **Winner: a 1/1 made for that tournament**, with its own unique art. Separate from the pack Prototypes.
+- **2nd-10th: a limited tournament card** with its own unique art, numbered by finishing position (e.g. 02/10 means finished 2nd).
+- **11th-100th: a Full Art limited tournament card** with its own unique art, numbered by finishing position (e.g. 37/100).
+- **Everyone else who entered: a regular promo** (standard frame, not Full Art) with the tournament stamp and a PR- number.
+- Tournament cards are their own series: not part of the set count and not pack Prototypes. They follow the bottom-left layout rule with a tournament marker (e.g. "S1 FINALS") beside the serial. Use a different foil from the pack Prototypes' gold (e.g. silver or platinum) so the two can't be confused.
+- They are existing cards with new art, so gameplay and balance are unchanged.
+- If a tournament has fewer entrants than a tier needs (Season 0's house agents), the lower tiers simply shrink.
