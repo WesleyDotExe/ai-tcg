@@ -1,6 +1,8 @@
-// The v2 FX sheet (EFFECTS.md v2 slice 1 evidence): every faction's sprite
-// travel + impact on one page, one row per faction, the three tiers side by
-// side plus a hit on a player avatar, looping. It runs the replay page's own
+// The v2 FX sheet (EFFECTS.md v2 slices 1-2 evidence). Part 1: every
+// faction's sprite travel + impact, one row per faction, the three tiers side
+// by side plus a hit on a player avatar. Part 2 (slice 2): every faction x
+// every category (spell damage, heal, buff, debuff, removal ending in a
+// spectacle kill), each from a source card to a target card, looping. It runs the replay page's own
 // CANVAS_FX sources verbatim (same canvases, same tint cache, same recipes),
 // so what it shows is exactly what a replay draws — just all five materials
 // at once, which a replay (one strike at a time) can't show.
@@ -31,13 +33,20 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
 .blk.src { border-color: var(--fc); box-shadow: 0 0 12px var(--fc); }
 .blk.face { width: 46px; height: 46px; border-radius: 8px; }
 .ctl { margin: 8px 0; font-size: 0.75rem; color: var(--ink-dim); }
+.row2 { position: relative; height: 170px; border-bottom: 1px solid var(--line); }
+.row2 .lab { position: absolute; left: 8px; top: 8px; font-size: 0.9rem; font-weight: bold; }
+.blk.gone { opacity: 0; transition: opacity 0.05s; }
 </style>
 </head>
 <body>
-<h1>AI·TCG // FX MATERIALS (EFFECTS.md v2 slice 1)</h1>
+<h1>AI·TCG // FX MATERIALS (EFFECTS.md v2 slices 1-2)</h1>
 <p class="note">Attack travel + impact in each faction's sprite material, drawn by the replay's own canvas code. Columns: subtle / normal / spectacle hit on a card, then a normal hit on a player. Ground marks stay on the floor layer under the cards for a few seconds. Meaning is constant: every shot leaves the glowing card and lands on its target; only the material and size change.</p>
 <div class="ctl"><button id="go">Replay volley</button> <span id="st"></span></div>
-<div class="sheet" id="sheet"></div>
+<div class="sheet" id="sheet" data-fx-camera></div>
+<h1>CATEGORIES (slice 2): SPELL · HEAL · BUFF · DEBUFF · REMOVAL + KILL</h1>
+<p class="note">Each category keeps one grammar in every faction (spell: shots leave the source and land on the target; heal: an orb carries it in, the light gathers; buff: rises; debuff: sinks, slate ring; removal: locks on, strikes, and the card shatters with hit-stop, colour split and camera punch). Only the material changes: Cortex lasers and scanlines, Aegis shells and plates, Swarm spores and tendrils, Null packets and glitch, Neutral lances and light. Neutral's debuff is Swarm's acid in gold. The background grid warps under every hit.</p>
+<div class="ctl"><button id="go2">Replay categories</button></div>
+<div class="sheet" id="sheet2"></div>
 <script type="application/json" id="fx-atlases">${JSON.stringify(fxAtlasDataUris())}</script>
 <script>
 (function () {
@@ -73,9 +82,46 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       });
     });
   }
+  // Part 2: categories. Source on the left of each pair, target on the
+  // right; heal and buff go to an ally, the rest to an enemy.
+  var CATS = [['spell', 300, 'normal'], ['heal', 520, 'normal'], ['buff', 740, 'normal'], ['debuff', 960, 'normal'], ['removal', 1150, 'spectacle']];
+  var sheet2 = document.getElementById('sheet2');
+  var rows2 = FACTIONS.map(function (f) {
+    var row = document.createElement('div');
+    row.className = 'row2 faction-' + f;
+    row.innerHTML = '<div class="lab" style="color:var(--fc)">' + f + '</div>' +
+      CATS.map(function (c) { return '<div class="col" style="left:' + (c[1] - 130) + 'px">' + c[0].toUpperCase() + ' · ' + fxVariant(f, c[0]) + '</div>' +
+        '<div class="blk src" style="left:' + (c[1] - 140) + 'px;top:56px"></div>' +
+        '<div class="blk" data-cat="' + c[0] + '" style="left:' + (c[1] - 40) + 'px;top:' + (c[0] === 'spell' || c[0] === 'removal' ? 26 : 56) + 'px"></div>'; }).join('');
+    sheet2.appendChild(row);
+    return row;
+  });
+  var EMS = { spell: 260, heal: 240, buff: 240, debuff: 240, removal: 420 };
+  function categories() {
+    rows2.forEach(function (row, r) {
+      var f = FACTIONS[r], blks = row.querySelectorAll('.blk');
+      CATS.forEach(function (c, k) {
+        var src = blks[k * 2], tgt = blks[k * 2 + 1], d = k * 420 + r * 90;
+        setTimeout(function () {
+          tgt.classList.remove('gone');
+          var from = src.getBoundingClientRect(), to = tgt.getBoundingClientRect();
+          CFX.effect(c[0], from, to, f, c[2], EMS[c[0]], { targetKind: 'unit' });
+          // A removal is lock + strike + shatter: the page calls kill() for
+          // the death at the moment the strike lands.
+          if (c[0] === 'removal') setTimeout(function () { CFX.kill(to, f, FACTIONS[(r + 1) % FACTIONS.length], 'spectacle'); tgt.classList.add('gone'); setTimeout(function () { tgt.classList.remove('gone'); }, 1600); }, EMS.removal);
+        }, d);
+      });
+    });
+  }
+  window.__fxCategories = categories;
+  document.getElementById('go2').onclick = categories;
   document.getElementById('go').onclick = volley;
   window.__fxVolley = volley;
-  (function wait() { if (CFX.isReady()) { volley(); setInterval(volley, 4200); } else setTimeout(wait, 50); })();
+  (function wait() {
+    if (!CFX.isReady()) { setTimeout(wait, 50); return; }
+    volley(); setInterval(volley, 4200);
+    setTimeout(function () { categories(); setInterval(categories, 5200); }, 1500);
+  })();
   setInterval(function () { var s = CFX.stats(); document.getElementById('st').textContent = 'particles ' + s.particles + ' · peak ' + s.peak + ' · ' + s.fps + ' fps'; }, 500);
 })();
 </script>

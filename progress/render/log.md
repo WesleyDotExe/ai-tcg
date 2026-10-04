@@ -1366,3 +1366,114 @@ debuff (Neutral's debuff = Swarm acid in gold). Plus magnitude polish:
 hit-stop, colour split, camera punch, lingering debris, the warping grid.
 Port from the lab's scene functions into `FX_KITS` rows and `CFX` methods,
 then retire the matching v1 DOM paths behind the same fallback.
+
+## 2026-10-04 — Session 11: EFFECTS.md v2 slice 2 (every category's faction material, kills, camera beats, warping grid)
+
+Render session: the last merged PR (#38) was a game-lane slice. Owner feedback
+first. The 2026-10-04 render entry approved the `signatureAbilities` list (all 9
+plus Rate Limiter) and two ward rules. Both are done before the slice:
+- the 10 entries are in `render/presentation/mythics.json` → `signatureAbilities`;
+- "first fire only" and "the Mythic's own ward flares on arrival" are in
+  EFFECTS.md's Wards section.
+
+EFFECTS.md's Dependencies line saying the event log lacked instance ids was stale
+(game session 27 added them), so it now says how slice 2 uses them.
+
+**What I built.**
+- **`render/src/effectFx.ts` (new).** `resolveEffects(prev, next)` pairs each
+  ability effect with its exact source and target, using only the event log's
+  ids, never names.
+  - An ability's effects follow its `abilityTrigger` and carry its `sourceId`.
+    Combat damage never follows one, so it's never read as a spell.
+  - Categories: spell, heal, buff (+stats, Barrier), debuff (−stats, Stasis,
+    Overload), removal. A removal is a targeted unit that died this move with no
+    damage, or a destroyed Directive.
+  - Sources: a unit (or where it stood, for onDeath) or a Command's stack entry.
+    Same card on both ends = self, which plays in place.
+  - Embedded verbatim in the page, same single-source rule as attackFx/castFx.
+- **`render/src/canvasFx.ts`, slice 2.**
+  - Every kit row now names its variant per category, per EFFECTS.md's table:
+    - Cortex: laser / orbital / scan / cubes / throttle.
+    - Aegis: shells / breach / weld / plates / crack.
+    - Swarm: swarm / devour / bloom / tendrils / acid.
+    - Null: blink / vortex / reverse / darkstar / bitrot.
+    - Neutral: lances / smite / crosses / chevrons / acid (Swarm's acid, in gold).
+  - `CFX.effect` draws them, ported from the lab's scenes, onto the replay's
+    timeline.
+  - `fxVolleySchedule` makes the last shot of a volley land exactly when the
+    number shows, and nothing after it.
+  - `CFX.kill` shatters every dead card into triangles (the lab's
+    impactKill): the killer's and victim's debris, a crater and mark on the
+    floor.
+  - Spectacle kills get hit-stop (120 ms, particles only, the timeline keeps
+    real time), the colour split and a strong camera punch. Normal kills get a
+    small punch and shake. Big face hits get a short hit-stop and punch.
+  - Warping background grid (the lab's spring grid), at the bottom of the floor
+    canvas.
+  - `prefers-reduced-motion` turns off every camera beat and the grid motion.
+- **`renderHtml.ts`.**
+  - Effects launch when the cast beat ends (or when the strike lands, on a
+    strike move) and fly for a window carved out of the move (a removal ×1.45).
+    What they cause waits for them.
+  - On a strike move, only the cards an effect reaches wait.
+  - The canvas buff/debuff stands the v1 motes down (the flash and the label
+    stay). The canvas kill replaces the v1 red burst and hides the ghost as it
+    shatters. Both fall back to v1 when the canvas can't draw.
+- **FX sheet part 2** (`npm run fx-sheet`): all 5 factions × 5 categories,
+  looping. The removal ends in a spectacle kill.
+- **`src/effectSurvey.ts`** (`npm run effect-survey -w @ai-tcg/render -- <seeds>`):
+  plays all 16 pairings and counts what the resolver finds.
+
+**A frame-rate regression found and fixed before shipping.** The first build gave
+the grid its own full-viewport canvas plus `will-change: transform` on `#app`.
+Autoplay median fell to ~51 fps against 58–59 for the slice-1 page on the same
+machine. Per-frame JS was only ~1 ms (new `stats().msPerFrame`), so the cost was
+compositing. Reduced motion (no grid motion, no camera) was still 53. The fix:
+- draw the grid on the floor canvas, which is redrawn every frame anyway;
+- drop `will-change`.
+
+After the fix: median 54 vs 55 for the slice-1 page back to back, which is noise.
+
+**Ran it.**
+- All six replays regenerated with the same move counts as sessions 9–10
+  (122 / 113 / 139 / 102 / 82 / 63; engine untouched).
+- Headless Chromium, every replay stepped move by move, every call counted:
+  - 25 effects: all drawn, 21 with travel, 0 missing ends.
+  - 17 kills: all drawn, kill counts equal to death + directiveDestroyed events.
+  - 142 strikes; 0 page errors.
+- Autoplay, 20 s each, one browser at a time: median 51–54 fps, minimum 33–36
+  only at kill moments with ~800 particles alive.
+- Reduced motion: every effect drawn, camera max 0, grid never animated.
+- Atlases stripped: no canvas effects, the v1 paths run, 0 errors.
+- Effect survey, 80 matches / 8,759 moves:
+  - 559 effects: 184 spell, 137 debuff, 109 heal, 104 buff, 25 removal (4 of a
+    unit, 21 of a Directive).
+  - 0 unit ends missing from the boards.
+  - Output: `progress/render/evidence/v2-s2-effect-survey.txt`.
+- Tests: render 157 (was 141): `test/effectFx.test.ts` (9 tests) and 7 new in
+  `canvasFx.test.ts`. All five workspaces green (339); `tsc --noEmit` clean in all
+  five.
+
+**Named honestly, not fixed:**
+- **The committed replays show few effects** (25 across six matches; the
+  Lookahead agent plays few Commands, and null-vs-swarm seed 2 has none, and no
+  deaths). The FX sheet is the full view; the survey shows the categories are
+  common across many matches.
+- **Still v1 DOM:** the shield/Barrier block, the cast flourish, the armor
+  deflect, the evolve and arrival pulses.
+- **Ward rules are written down but not wired.** That's slice 5, plus slice 6
+  for the Mythic arrival flare.
+- **The camera punch moves `#app` for ~0.3 s.** A rect read during it (an
+  overlapping move's launch) can be off by up to ~3% near the edges. Fixed slots
+  and the short punch make it rare.
+- **MAXP (1,800) is reached** when the sheet fires 25 effects at once. Never seen
+  in a replay (peak ~800).
+- **Every death now shatters,** including the quiet ones (Overload ticks, a 1/1
+  traded off). Subtle-tier kills are small, but it's a taste call (checkpoint).
+- **fps is headless Chromium on this container,** not a GPU or a phone. No sound
+  yet (slice 3).
+
+**Next render-lane slice:** EFFECTS.md v2 slice 3, procedural sound effects with
+faction voices. Port the lab's `SFX`, `tone()`, `noise()` and the limiter/voice
+cap; toggles off by default. Hook it to the same calls (`CFX.travel/impact/effect/
+kill` and the v1 shield/cast).

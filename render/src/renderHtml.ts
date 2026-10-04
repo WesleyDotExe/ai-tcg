@@ -3,6 +3,7 @@ import { CAST_FX_SOURCE } from "./castFx.js";
 import { ATTACK_FX_SOURCE } from "./attackFx.js";
 import { FACTION_SKIN_SOURCE } from "./factionSkin.js";
 import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from "./canvasFx.js";
+import { EFFECT_FX_SOURCE } from "./effectFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -124,11 +125,15 @@ html, body {
 .matchup .vs { color: var(--ink-dim); margin: 0 0.5em; }
 .seed { color: var(--ink-dim); font-size: 0.75rem; }
 #app { max-width: 1180px; margin: 0 auto; padding: 14px 12px 24px; position: relative; z-index: 1; }
-/* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under the
- * board (ground marks, settled debris), the FX canvas over the cards but
- * under the floating numbers and tags in .fx-layer. */
+/* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under
+ * the board (the background grid impacts warp, then ground marks and
+ * settled debris), the FX canvas over the cards but under the floating
+ * numbers and tags in .fx-layer. */
 .fx-canvas { position: fixed; left: 0; top: 0; pointer-events: none; }
 .fx-canvas.fx-floor { z-index: 0; }
+/* The camera beats (canvasFx.ts: punch, shake, colour split) transform
+ * #app for a fraction of a second, and only then: no will-change, which
+ * would keep the whole board on its own layer for the entire replay. */
 .fx-canvas.fx-top { z-index: 89; }
 
 .hud-row { display: grid; grid-template-columns: 1fr 220px 1fr; gap: 10px; align-items: stretch; margin-bottom: 8px; }
@@ -718,6 +723,9 @@ ${CAST_FX_SOURCE}
   // Attack travel + Command flight — render/src/attackFx.ts's
   // ATTACK_FX_SOURCE, embedded verbatim (same single-source rule).
 ${ATTACK_FX_SOURCE}
+  // Ability effects with exact source + target (EFFECTS.md v2 slice 2) —
+  // render/src/effectFx.ts's EFFECT_FX_SOURCE, embedded verbatim.
+${EFFECT_FX_SOURCE}
   // Faction skins (EFFECTS.md slice 5) — render/src/factionSkin.ts's
   // FACTION_SKIN_SOURCE, embedded verbatim (same single-source rule).
 ${FACTION_SKIN_SOURCE}
@@ -997,7 +1005,11 @@ ${CANVAS_FX_RUNTIME_SOURCE}
   // stagger): the ghost stands in the card's old spot at full strength and
   // only starts its exit when the hit lands, so a card never blinks out
   // before whatever killed it arrives.
-  function spawnGhost(entry, rect, tier, delay) {
+  // kill (optional, v2 slice 2): { killer, victim } factions. When the
+  // canvas can draw, the card shatters there at the moment of the hit and
+  // the ghost is hidden at that moment, so the card breaks instead of
+  // fading; otherwise the v1 fade and red burst play as before.
+  function spawnGhost(entry, rect, tier, delay, kill) {
     if (!rect || (rect.width === 0 && rect.height === 0)) return;
     delay = delay || 0;
     const cardEl = entry.kind === 'unit' ? renderUnitSlot(entry.v, entry.owner) : renderDirectiveSlot(entry.v, entry.owner);
@@ -1010,7 +1022,10 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     cardEl.style.margin = '0';
     if (delay > 0) { cardEl.style.animationDelay = delay + 'ms'; cardEl.style.animationFillMode = 'both'; }
     fxLayer.appendChild(cardEl);
-    if (tier === 'spectacle') later(delay, function () { spawnBurst(rect, 'var(--bad)'); });
+    later(delay, function () {
+      if (kill && CFX.kill(rect, kill.killer, kill.victim, tier)) { cardEl.style.visibility = 'hidden'; return; }
+      if (tier === 'spectacle') spawnBurst(rect, 'var(--bad)');
+    });
     setTimeout(function () { cardEl.remove(); }, (GHOST_MS[tier] || GHOST_MS.normal) + delay);
   }
 
@@ -1095,7 +1110,10 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     el.style.translate = '-50% 0';
   }
 
-  function applyStatShift(el, shift, tint, tier) {
+  // onCanvas (v2 slice 2): the canvas already drew this buff/debuff in the
+  // source's material (CFX.effect), so the v1 DOM motes and burst stand down.
+  // The rise/sink flash and the label stay: they carry the meaning.
+  function applyStatShift(el, shift, tint, tier, onCanvas) {
     el.style.setProperty('--fx-tint', 'var(--' + tint.toLowerCase() + ')');
     const rect = el.getBoundingClientRect();
     if (shift.kind === 'expire') {
@@ -1105,12 +1123,12 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     }
     const up = shift.kind === 'buff';
     flashClass(el, up ? 'fx-rise' : 'fx-sink', tier);
-    spawnMotes(rect, up ? 'up' : 'down', tint, tier);
+    if (!onCanvas) spawnMotes(rect, up ? 'up' : 'down', tint, tier);
     // Buff labels start low and float up; penalty labels start high and
     // sink — and both sit clear of the damage/heal number's own spot at the
     // top of the card, so a hit + a debuff on the same move don't stack.
     centreOn(spawnNumber(rect, shift.label, up ? 'buff' : 'penalty', tier, up ? 70 : 28), rect);
-    if (tier === 'spectacle') spawnBurst(rect, 'var(--' + tint.toLowerCase() + ')', 1, tint);
+    if (tier === 'spectacle' && !onCanvas) spawnBurst(rect, 'var(--' + tint.toLowerCase() + ')', 1, tint);
   }
 
   // Which faction's card caused this unit's buff/penalty, when the move's
@@ -1411,6 +1429,32 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     setTimeout(function () { el.remove(); }, 1200);
   }
 
+  // A removal "locks on first" (EFFECTS.md axis 1): its window is longer
+  // than a spell's flight, still well inside the move at every speed.
+  const REMOVAL_LEAD = 1.45;
+  // Where an effect leaves from / lands on (effectFx.ts ends): a card (live,
+  // or where it stood before the move: a removal's victim, an onDeath
+  // source), a player's avatar, or a Command's stack entry (live, else
+  // where it stood, else its caster's avatar).
+  function effectEndRect(end, prevRects, prevHudRects, prevStackRects) {
+    if (end.kind === 'unit') { const el = liveCardEl(end.instanceId); return el ? el.getBoundingClientRect() : prevRects[end.instanceId]; }
+    if (end.kind === 'player') { const el = targetEl({ kind: 'player', playerId: end.playerId }); return el ? el.getBoundingClientRect() : prevHudRects[end.playerId]; }
+    const live = document.querySelector('.stackitem[data-sid="' + end.stackId + '"]');
+    if (live) return live.getBoundingClientRect();
+    if (prevStackRects[end.stackId]) return prevStackRects[end.stackId];
+    const av = document.querySelector('#hud-' + end.owner + ' .avatar');
+    return av ? av.getBoundingClientRect() : hudRect(end.owner);
+  }
+  // The effect wears its SOURCE card's faction (a Neutral Command is gold
+  // whoever casts it): the name -> faction table first, then the source
+  // unit on the board, then its controller.
+  function effectFaction(e, prevFrame) {
+    if (replay.cardFactions[e.sourceName]) return replay.cardFactions[e.sourceName];
+    if (e.source.kind === 'unit') { const f = factionOfUnit(prevFrame, e.source.instanceId); if (f) return f; }
+    if (e.source.kind === 'stack') return prevFrame.players[e.source.owner].faction;
+    return 'Neutral';
+  }
+
   function runFx(prevFrame, prevBoard, prevRects, prevHudRects, prevStackRects, prevHandRects, newFrame) {
     const newBoard = collectBoard(newFrame);
     const tiers = [];
@@ -1460,13 +1504,39 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     attacks.forEach(function (a) {
       if (a.phase === 'command') flights[a.stackId] = flyCommandCard(a, prevFrame, prevHandRects);
     });
-    const effectT = strike ? strikeT : stagger;
-    const causeT = strike ? strikeT : 0;
-    function unitT(iid) {
-      if (strike && strike.counter && iid === strike.attackerIid) return counterT;
-      return effectT;
+    // Ability effects with their exact source and target (v2 slice 2,
+    // effectFx.ts reading the event log's instance ids). Anything that
+    // travels (a spell, heal, buff, debuff from another card, a removal)
+    // gets a flight carved out of the move's own window, like an attack's
+    // bolt, and what it causes waits for it to land. On a strike move these
+    // are the strike's consequences (onDamaged / onDeath powers), so they
+    // leave when the strike lands. A removal locks on for longer first.
+    const effects = resolveEffects(prevFrame, newFrame);
+    const effUnits = {};
+    effects.forEach(function (e) { if (e.target.kind === 'unit' && (e.category === 'buff' || e.category === 'debuff')) effUnits[e.category + e.target.instanceId] = true; });
+    function effectTier(e) {
+      if (e.category === 'spell') return e.target.kind === 'player' ? tierFromScore(playerHitScore(e.amount, false)) : tierFromScore(hitScore(e.amount, aoeCount));
+      if (e.category === 'heal') return tierFromScore(healScore(e.amount));
+      if (e.category === 'removal') { const v = prevBoard[e.target.instanceId]; return tierFromScore(deathScore(v ? v.v.rarity : 'Common', true)); }
+      const same = effects.filter(function (o) { return o.category === e.category; }).length;
+      return tierFromScore(statShiftScore(e.category === 'buff' ? 'buff' : 'penalty', e.amount, e.status ? 1 : 0, same));
     }
-    function hudT() { return effectT; }
+    const travelling = effects.filter(function (e) { return !e.self; });
+    const effTier = maxTierOf(effects.map(effectTier).concat(['subtle']));
+    const effT = travelling.length ? Math.round(travelMs(effTier) * (effects.some(function (e) { return e.category === 'removal'; }) ? REMOVAL_LEAD : 1)) : 0;
+    const effStart = strike ? strikeT : stagger;
+    const effLand = effStart + effT;
+    const effectT = strike ? strikeT : effLand;
+    const causeT = strike ? strikeT : 0;
+    // On a strike move, only the cards an effect actually reaches wait for
+    // it; everything else lands with the strike.
+    const effArrive = {};
+    if (strike) travelling.forEach(function (e) { effArrive[e.target.kind === 'player' ? 'p:' + e.target.playerId : 'u:' + e.target.instanceId] = effLand; });
+    function unitT(iid) {
+      const base = strike && strike.counter && iid === strike.attackerIid ? counterT : effectT;
+      return Math.max(base, effArrive['u:' + iid] || 0);
+    }
+    function hudT(pid) { return Math.max(effectT, effArrive['p:' + pid] || 0); }
 
     // ---- stack movement: aim lines, bolts, fizzles, redirects ----------
     const freshAim = {};
@@ -1528,12 +1598,34 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       }
     }
 
+    // ---- ability effects on the canvas (v2 slice 2) ---------------------
+    effects.forEach(function (e) {
+      const tier = effectTier(e);
+      tiers.push(tier);
+      const f = effectFaction(e, prevFrame);
+      later(effStart, function () {
+        const toR = effectEndRect(e.target, prevRects, prevHudRects, prevStackRects);
+        const fromR = e.self ? null : effectEndRect(e.source, prevRects, prevHudRects, prevStackRects);
+        CFX.effect(e.category, fromR, toR, f, tier, effT, { self: e.self || !fromR, targetKind: e.target.kind === 'player' ? 'player' : 'unit' });
+      });
+    });
+
     // ---- board diff (unchanged meaning; now on the timeline) -----------
+    // Who broke each card, for the shatter's colours: the attacker (or, for
+    // a counter-kill, the defender), else the effect that reached it, else
+    // the card's own faction (an Overload tick, a self-inflicted loss).
+    function killerOf(id) {
+      if (strike && strike.target.kind === 'unit' && strike.target.instanceId === id) return factionOfUnit(prevFrame, strike.attackerIid) || prevFrame.players[strike.owner].faction;
+      if (strike && strike.counter && strike.attackerIid === id) return factionOfUnit(prevFrame, strike.target.instanceId);
+      const hit = effects.filter(function (e) { return e.target.kind === 'unit' && e.target.instanceId === id && (e.category === 'removal' || e.category === 'spell' || e.category === 'debuff'); })[0];
+      if (hit) return effectFaction(hit, prevFrame);
+      return prevBoard[id].v.faction;
+    }
     Object.keys(prevBoard).forEach(function (id) {
       if (!newBoard[id]) {
         const tier = tierFromScore(deathScore(prevBoard[id].v.rarity, !hasAttackEvent));
         tiers.push(tier);
-        spawnGhost(prevBoard[id], prevRects[id], tier, unitT(id));
+        spawnGhost(prevBoard[id], prevRects[id], tier, unitT(id), { killer: killerOf(id) || prevBoard[id].v.faction, victim: prevBoard[id].v.faction });
       }
     });
 
@@ -1598,7 +1690,7 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       // already tells that story; a rise/sink on top would misreport it.
       if (!evolved) {
         const shift = classifyStatShift(statSideOf(pv), statSideOf(nv));
-        if (shift) shifts.push({ el: el, shift: shift, owner: newBoard[id].owner, name: nv.name, at: at });
+        if (shift) shifts.push({ el: el, shift: shift, owner: newBoard[id].owner, name: nv.name, at: at, iid: id });
       }
     });
 
@@ -1614,7 +1706,8 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       tiers.push(t);
       const opp = x.owner === 'p1' ? 'p2' : 'p1';
       const tint = tintFaction(s.kind, newFrame.players[x.owner].faction, newFrame.players[opp].faction, sourceFactionFor(x.name, newFrame));
-      later(x.at, function () { applyStatShift(x.el, s, tint, t); });
+      const onCanvas = CFX.isReady() && !!effUnits[(s.kind === 'buff' ? 'buff' : 'debuff') + x.iid];
+      later(x.at, function () { applyStatShift(x.el, s, tint, t, onCanvas); });
     });
 
     ['p1', 'p2'].forEach(function (pid) {
@@ -1624,14 +1717,14 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       if (delta < 0) {
         const t = tierFromScore(playerHitScore(delta, isLethal));
         tiers.push(t);
-        later(hudT(), function () {
+        later(hudT(pid), function () {
           flashClass(hudEl, 'fx-hit', t);
           spawnNumber(prevHudRects[pid], String(delta), 'dmg', t);
         });
       } else if (delta > 0) {
         const t = tierFromScore(playerHitScore(delta, false));
         tiers.push(t);
-        later(hudT(), function () {
+        later(hudT(pid), function () {
           flashClass(hudEl, 'fx-heal', t);
           spawnNumber(prevHudRects[pid], '+' + delta, 'heal', t);
         });

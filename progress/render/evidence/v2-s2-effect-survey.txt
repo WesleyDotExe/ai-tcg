@@ -1,0 +1,30 @@
+80 matches, 8759 moves
+by category: {"buff":104,"debuff":137,"spell":184,"heal":109,"removal":25}
+  Aegis    {"buff":23,"spell":37,"heal":36,"debuff":76,"removal":2}
+  Cortex   {"buff":11,"debuff":24,"spell":127,"heal":46,"removal":7}
+  Neutral  {"heal":11}
+  Null     {"buff":46,"debuff":10,"removal":11,"heal":16,"spell":10}
+  Swarm    {"buff":24,"removal":5,"spell":10,"debuff":27}
+self-targeted (no travel): 147; unit ends not found on either board: 0
+removals: 4 of a unit, 21 of a Directive
+first example per faction/category:
+  Aegis/buff       Cortex vs Aegis s1 move 106: Aegis Warden (aegis-warden-evolve) -> {"kind":"unit","instanceId":"u1"} Barrier [self]
+  Aegis/debuff     Cortex vs Aegis s4 move 87: Lockdown Field (lockdown-field-cast) -> {"kind":"unit","instanceId":"u9"} Stasis
+  Aegis/heal       Cortex vs Aegis s2 move 58: Diagnostic Ward (diagnostic-ward-cast) -> {"kind":"player","playerId":"p2"} amount 2
+  Aegis/removal    Aegis vs Aegis s4 move 74: Breach Charge (breach-charge-cast) -> {"kind":"unit","instanceId":"d22"}
+  Aegis/spell      Cortex vs Aegis s2 move 32: Perimeter Turret (perimeter-turret-arm) -> {"kind":"unit","instanceId":"u3"} amount 3
+  Cortex/buff      Cortex vs Cortex s1 move 12: Hotfix (hotfix-cast) -> {"kind":"unit","instanceId":"u1"} amount 3
+  Cortex/debuff    Cortex vs Cortex s1 move 29: Overload Capacitor (overload-capacitor-play) -> {"kind":"unit","instanceId":"u9"} Overload [self]
+  Cortex/heal      Cortex vs Cortex s3 move 37: Diagnostic Loop (diagnostic-loop-turnend) -> {"kind":"unit","instanceId":"u1"} amount 1 [self]
+  Cortex/removal   Cortex vs Cortex s3 move 151: Force Quit (force-quit-cast) -> {"kind":"unit","instanceId":"d19"}
+  Cortex/spell     Cortex vs Cortex s1 move 48: Interrupt Handler (interrupt-handler-cast) -> {"kind":"unit","instanceId":"u1"} amount 1
+  Neutral/heal     Cortex vs Cortex s3 move 85: Rollback Point (rollback-point-cast) -> {"kind":"player","playerId":"p1"} amount 5
+  Null/buff        Cortex vs Null s1 move 55: Propagating Exploit (propagating-exploit-attack) -> {"kind":"unit","instanceId":"u11"} amount 1 [self]
+  Null/debuff      Cortex vs Null s2 move 86: Deprecated Routine (deprecated-routine-arm) -> {"kind":"unit","instanceId":"u6"} amount 4
+  Null/heal        Cortex vs Null s2 move 104: Garbage Collector (garbage-collector-sweep) -> {"kind":"unit","instanceId":"u9"} amount 2 [self]
+  Null/removal     Cortex vs Null s2 move 89: Null Pointer (null-pointer-cast) -> {"kind":"unit","instanceId":"d27"}
+  Null/spell       Aegis vs Null s1 move 90: Segfault Handler (segfault-handler-cast) -> {"kind":"unit","instanceId":"u11"} amount 3
+  Swarm/buff       Cortex vs Swarm s1 move 91: Reflex Spike (reflex-spike-cast) -> {"kind":"unit","instanceId":"u25"} amount 3
+  Swarm/debuff     Swarm vs Cortex s2 move 17: Corrosive Spitter (corrosive-spitter-attack) -> {"kind":"unit","instanceId":"u4"} Stasis
+  Swarm/removal    Cortex vs Swarm s2 move 78: Bore Swarm (bore-swarm-cast) -> {"kind":"unit","instanceId":"d25"}
+  Swarm/spell      Aegis vs Swarm s4 move 86: Dormant Egg Sac (dormant-egg-sac-hatch) -> {"kind":"unit","instanceId":"u26"} amount 3
