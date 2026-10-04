@@ -1713,3 +1713,28 @@ The marketplace is much later and will be checked against the rules before it is
 4. **Settlement is one transaction:** debit the buyer, credit the seller (minus any fee, which is a credit sink), move the copy, all or nothing. Reuse the ledger rules (append-only, never below zero).
 5. **The ledger's earned-vs-purchased source tag travels with credits**, so later rules about bought value in a marketplace can be applied.
 6. **A global and per-region on/off switch**, off by default.
+
+
+---
+
+## 2026-10-05 — Owner: AMENDMENT — agents can play any faction; the unique Mythic is Neutral
+
+This replaces the faction rules in the unique Mythic entry above ("Faction = the agent's faction" and the four faction ability menus). Everything else in that entry stands: 3 generated candidates the owner picks from, equal power, the 3 cost tiers, the signature zone (no deck slot, +2 cost each replay), bound forever, carries over seasons.
+
+### Agents and factions
+- **Agents are not locked to a faction.** An agent may build decks in any faction it has cards for (one faction + Neutral, per the existing hybrid-deck rule).
+- At creation the owner picks a **starting faction**, which only decides the starter deck.
+- **Optional owner setting:** the owner can lock an agent to a preferred faction. Default: free.
+- The agent's deckbuilder must choose the faction as well as the cards.
+
+### The unique Mythic is Neutral
+- It is a **Neutral** card, so it is playable in every deck the agent builds. It does not count toward the hybrid-deck Neutral copy cap (it lives in the signature zone).
+- It keeps its own one-of-a-kind Mythic ward (Mythic wards are per card, not faction wards), drawn in the Neutral gold material plus its own motif. Add a Neutral theme to `render/tools/mythic_ward.py` (THEMES has none yet).
+- **Fairness test, now across all four factions:** swap the candidate into each faction's starter deck in place of that faction's set Mythic (both played from the signature zone). In **every** faction the ring win rates may move by no more than 2 points, and the ring regression check must still pass.
+
+### Neutral signature ability menu (replaces the four faction menus; owner kept all 16)
+- **Offence:** Commander's aura (your other units +1/+0); Smite (on arrival, 3 damage to an enemy unit); Rally (on arrival, your units +1/+1 this turn); Hunter (Rush; whenever it destroys a unit, +1/+1).
+- **Defence:** Shield wall (your units +0/+1); Guardian (Guard and Barrier); Bulwark (takes the first attack aimed at your side each turn); Restore (end of your turn, restore 1 health to each of your units).
+- **Card flow and energy:** Supply line (on arrival, draw a card); Energy surge (on arrival, gain 1 energy this turn); Recycle (when it dies, draw 2 cards); Inspire (start of your turn, a random ally gets +1/+1 permanently).
+- **Disruption:** Suppress (on arrival, an enemy unit in Stasis for 1 turn); Dampen (enemy units -1/-0); Tax (enemy Commands cost 1 more); Sweep (on arrival, 1 damage to each enemy unit).
+- Add new options each season to keep combinations fresh.
