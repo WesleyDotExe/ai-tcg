@@ -2,12 +2,13 @@
   "name": "ai-tcg",
   "version": "0.1.0",
   "private": true,
-  "description": "AI-TCG monorepo: headless rules engine, wire protocol, match server, and reference agents.",
+  "description": "AI-TCG monorepo: headless rules engine, wire protocol, match server, reference agents, economy store, and spectator render.",
   "workspaces": [
     "engine",
     "protocol",
     "server",
     "agents",
+    "economy",
     "render"
   ],
   "scripts": {

@@ -12,7 +12,7 @@ import { NULL_CARDS } from "./nullCards.js";
  * miswritten card pool (or a future deck-builder UI) can't silently exceed
  * it. Full deck-construction UX (owned-card pools, size limits) is stage 5
  * work; this is the rule itself, real from day one. */
-const COPY_LIMITS: Record<Rarity, number> = {
+export const COPY_LIMITS: Readonly<Record<Rarity, number>> = {
   Common: 3,
   Uncommon: 3,
   Rare: 2,

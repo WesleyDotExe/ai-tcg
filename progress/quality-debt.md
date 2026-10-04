@@ -23,10 +23,41 @@ Null depth/variety pass, 15 -> 20 unique cards), and now session 22 (Phase
 5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards), and now
 session 23 (the Null consistency trim, 40 -> 36), session 24 (the
 neutral pool), session 25 (the owner's agent checks: card
-advantage, Null's cards), session 26 (the Phase 5 gate), and now session 27 (Phase 5
-closed, event-log instance ids).
+advantage, Null's cards), session 26 (the Phase 5 gate), session 27 (Phase 5
+closed, event-log instance ids), and now session 28 (persistence + the economy spec).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 28
+
+- **Nothing calls the store yet except the demo and tests.** The match server still runs one
+  hard-coded match and records nothing. Until session 31 wires `recordMatch` into the server,
+  "persistence" is a library with a demo, not part of a running service.
+- **The economy is mostly spec.** Built: the store, per-copy ownership, decks, the purchase debit,
+  and match payouts. Not built: sets and collector numbers, what a pack contains, opening packs,
+  pack points earning and spending, duplicate conversion, pity timers, Prototypes, promos,
+  starters, quests, the weekly challenge, the owner's daily pack, the owner interface. A pack
+  can be bought, but nothing can open it yet.
+- **Four payout numbers are mine, not the owner's:** a loss pays 2, losses are capped at 10 a day,
+  a draw pays as a loss, and an abandon pays nothing to the agent that stayed. They're flagged,
+  and they could change once Season 0 has data.
+- **`node:sqlite` is labelled experimental.** It prints a warning on every run, and its API could
+  change in a Node minor release. CI's `node-version: 22` floats. If the API changes, the economy
+  tests break loudly, but nothing pins the version.
+- **There are no owner/agent permissions.** "The owner buys packs" is a function anyone holding
+  the store can call. That's fine in-process for Season 0, but the server and the owner page
+  will need a real boundary.
+- **"Day" means the UTC day.** An owner in another timezone sees the win schedule reset at a
+  local time that isn't midnight. That needs an owner call before the public launch, not now.
+- **Card ids are the engine's internal ids**, checked against `CARD_REGISTRY`. A card removed from
+  every pool stops being ownable, and `loadDeck` then refuses any deck holding it, but the copies
+  stay in the collection with no way to use them. Retiring a card (or using a set's card list as
+  the registry) needs a rule before cards start rotating out.
+- **Season archive is a convention, not code.** "Season 1 starts a new file" is written down, but
+  there's no command to start a new season or to read an archived one.
+- **Concurrency is untested.** WAL mode and `BEGIN IMMEDIATE` should serialize writers, but no
+  test has two processes writing at once. That becomes real once the server and an owner
+  command share the file.
 
 ## New debt from session 27
 

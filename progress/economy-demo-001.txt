@@ -1,0 +1,91 @@
+# Economy demo (session 28): persistence + match payouts
+database: <temp>/season-0.db  schema v1  season S0
+
+agent house-cortex  40 owned copies, deck "Cortex starter" (40 cards) active
+agent house-swarm   40 owned copies, deck "Swarm starter" (40 cards) active
+agent house-aegis   40 owned copies, deck "Aegis starter" (40 cards) active
+agent house-null    36 owned copies, deck "Null starter" (36 cards) active
+
+## Day 1 (2026-10-05): 36 matches, every ordered pairing x3
+s0-m001  2026-10-05T09:10  house-cortex  v house-swarm    house-cortex wins          15 turns, 125 moves  house-cortex +40, house-swarm +2
+s0-m002  2026-10-05T09:20  house-cortex  v house-aegis    house-aegis wins           16 turns, 116 moves  house-cortex +2, house-aegis +40
+s0-m003  2026-10-05T09:30  house-cortex  v house-null     house-cortex wins          11 turns, 99 moves   house-cortex +15, house-null +2
+s0-m004  2026-10-05T09:40  house-swarm   v house-cortex   house-swarm wins           11 turns, 81 moves   house-swarm +40, house-cortex +2
+s0-m005  2026-10-05T09:50  house-swarm   v house-aegis    house-swarm wins           13 turns, 94 moves   house-swarm +15, house-aegis +2
+s0-m006  2026-10-05T10:00  house-swarm   v house-null     house-swarm wins           11 turns, 76 moves   house-swarm +15, house-null +2
+s0-m007  2026-10-05T10:10  house-aegis   v house-cortex   house-cortex wins          16 turns, 172 moves  house-aegis +2, house-cortex +15
+s0-m008  2026-10-05T10:20  house-aegis   v house-swarm    house-swarm wins           18 turns, 150 moves  house-aegis +2, house-swarm +15
+s0-m009  2026-10-05T10:30  house-aegis   v house-null     house-aegis wins           15 turns, 117 moves  house-aegis +15, house-null +2
+s0-m010  2026-10-05T10:40  house-null    v house-cortex   house-null wins            13 turns, 68 moves   house-null +40, house-cortex +2
+s0-m011  2026-10-05T10:50  house-null    v house-swarm    house-null wins            11 turns, 84 moves   house-null +15, house-swarm +2
+s0-m012  2026-10-05T11:00  house-null    v house-aegis    house-null wins            17 turns, 128 moves  house-null +15, house-aegis +2
+s0-m013  2026-10-05T11:10  house-cortex  v house-swarm    house-cortex wins          21 turns, 131 moves  house-cortex +15, house-swarm +2
+s0-m014  2026-10-05T11:20  house-cortex  v house-aegis    house-aegis wins           14 turns, 121 moves  house-cortex +2, house-aegis +15
+s0-m015  2026-10-05T11:30  house-cortex  v house-null     house-cortex wins          11 turns, 82 moves   house-cortex +5, house-null +2
+s0-m016  2026-10-05T11:40  house-swarm   v house-cortex   house-swarm wins           11 turns, 64 moves   house-swarm +5, house-cortex +2
+s0-m017  2026-10-05T11:50  house-swarm   v house-aegis    house-swarm wins           9 turns, 60 moves    house-swarm +5, house-aegis +2
+s0-m018  2026-10-05T12:00  house-swarm   v house-null     house-null wins            24 turns, 218 moves  house-swarm +2, house-null +15
+s0-m019  2026-10-05T12:10  house-aegis   v house-cortex   house-aegis wins           15 turns, 141 moves  house-aegis +15, house-cortex +2
+s0-m020  2026-10-05T12:20  house-aegis   v house-swarm    house-swarm wins           14 turns, 112 moves  house-aegis +2, house-swarm +5
+s0-m021  2026-10-05T12:30  house-aegis   v house-null     house-null wins            16 turns, 124 moves  house-aegis +2, house-null +5
+s0-m022  2026-10-05T12:40  house-null    v house-cortex   house-null wins            17 turns, 158 moves  house-null +5, house-cortex +2
+s0-m023  2026-10-05T12:50  house-null    v house-swarm    house-null wins            11 turns, 99 moves   house-null +5, house-swarm +2
+s0-m024  2026-10-05T13:00  house-null    v house-aegis    house-aegis wins           18 turns, 120 moves  house-null +2, house-aegis +5
+s0-m025  2026-10-05T13:10  house-cortex  v house-swarm    house-cortex wins          13 turns, 120 moves  house-cortex +5, house-swarm +2
+s0-m026  2026-10-05T13:20  house-cortex  v house-aegis    house-cortex wins          13 turns, 134 moves  house-cortex +5, house-aegis +2
+s0-m027  2026-10-05T13:30  house-cortex  v house-null     house-null wins            12 turns, 99 moves   house-cortex +2, house-null +5
+s0-m028  2026-10-05T13:40  house-swarm   v house-cortex   house-cortex wins          12 turns, 83 moves   house-swarm +2, house-cortex +5
+s0-m029  2026-10-05T13:50  house-swarm   v house-aegis    house-swarm wins           13 turns, 118 moves  house-swarm +5, house-aegis +2
+s0-m030  2026-10-05T14:00  house-swarm   v house-null     house-swarm wins           11 turns, 100 moves  house-swarm +5, house-null +2
+s0-m031  2026-10-05T14:10  house-aegis   v house-cortex   house-cortex wins          20 turns, 154 moves  house-aegis +2, house-cortex +5
+s0-m032  2026-10-05T14:20  house-aegis   v house-swarm    house-aegis wins           11 turns, 76 moves   house-aegis +5, house-swarm +2
+s0-m033  2026-10-05T14:30  house-aegis   v house-null     house-null wins            18 turns, 140 moves  house-aegis +0, house-null +5
+s0-m034  2026-10-05T14:40  house-null    v house-cortex   house-null wins            13 turns, 113 moves  house-null +5, house-cortex +2
+s0-m035  2026-10-05T14:50  house-null    v house-swarm    house-null wins            11 turns, 90 moves   house-null +0, house-swarm +2
+s0-m036  2026-10-05T15:00  house-null    v house-aegis    house-null wins            17 turns, 149 moves  house-null +0, house-aegis +0
+
+## Day 2 (2026-10-06): 4 matches, then a cancel and an abandon
+s0-m037  2026-10-06T09:00  house-cortex  v house-swarm    house-swarm wins           14 turns, 98 moves   house-cortex +2, house-swarm +40
+s0-m038  2026-10-06T09:10  house-swarm   v house-aegis    house-swarm wins           15 turns, 116 moves  house-swarm +15, house-aegis +2
+s0-m039  2026-10-06T09:20  house-aegis   v house-null     house-aegis wins           17 turns, 135 moves  house-aegis +40, house-null +2
+s0-m040  2026-10-06T09:30  house-null    v house-cortex   house-null wins            13 turns, 92 moves   house-null +40, house-cortex +2
+s0-cancel-1  2026-10-06T09:50  house-cortex  v house-aegis    cancelled                                       house-cortex +0, house-aegis +0
+s0-abandon-1  2026-10-06T10:00  house-swarm   v house-null     abandoned by house-null    6 turns, 41 moves    house-swarm +0, house-null +0
+
+## Refusals
+recording s0-m001 again: refused (match "s0-m001" is already recorded)
+raw UPDATE on ledger: refused (ledger is append-only: entries cannot be changed)
+
+## Balances after day 2 (derived from the ledger)
+house-cortex   132 credits   9W 11L 1 void   20 ledger entries   0 unopened packs
+house-swarm    183 credits   11W 9L 1 void   20 ledger entries   0 unopened packs
+house-aegis    157 credits   7W 13L 1 void   18 ledger entries   0 unopened packs
+house-null     169 credits   13W 7L 1 void   18 ledger entries   0 unopened packs
+
+## Owner buys packs (100 credits each) until each agent can't afford another
+house-cortex  bought 1; next refused: insufficient balance (balance 32)
+house-swarm   bought 1; next refused: insufficient balance (balance 83)
+house-aegis   bought 1; next refused: insufficient balance (balance 57)
+house-null    bought 1; next refused: insufficient balance (balance 69)
+
+## After closing and reopening the database file
+house-cortex    32 credits   9W 11L 1 void   21 ledger entries   1 unopened packs
+house-swarm     83 credits   11W 9L 1 void   21 ledger entries   1 unopened packs
+house-aegis     57 credits   7W 13L 1 void   19 ledger entries   1 unopened packs
+house-null      69 credits   13W 7L 1 void   19 ledger entries   1 unopened packs
+
+## Ledger for house-cortex (first 8 and last 4 entries)
+  #  1 2026-10-05T09:10    40 credits  matchWin      s0-m001
+  #  3 2026-10-05T09:20     2 credits  matchLoss     s0-m002
+  #  5 2026-10-05T09:30    15 credits  matchWin      s0-m003
+  #  8 2026-10-05T09:40     2 credits  matchLoss     s0-m004
+  # 14 2026-10-05T10:10    15 credits  matchWin      s0-m007
+  # 20 2026-10-05T10:40     2 credits  matchLoss     s0-m010
+  # 25 2026-10-05T11:10    15 credits  matchWin      s0-m013
+  # 27 2026-10-05T11:20     2 credits  matchLoss     s0-m014
+  ... 9 more
+  # 67 2026-10-05T14:40     2 credits  matchLoss     s0-m034
+  # 69 2026-10-06T09:00     2 credits  matchLoss     s0-m037
+  # 76 2026-10-06T09:30     2 credits  matchLoss     s0-m040
+  # 77 2026-10-06T11:00  -100 credits  packPurchase  94ecfb4f-4b95-418b-a0c3-e531c728c419
+  sum of entries = 32; balance() = 32

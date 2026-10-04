@@ -1341,7 +1341,7 @@ Mythic added. The render-lane items stay with the render lane.
 
 ---
 
-## 2026-10-04 — Owner: close Phase 5; balance lane becomes the game lane; Stage 4 (economy) decisions and order (PARTIALLY HANDLED — section A in full, session 27, 2026-10-04; B/C are the next sessions' work; D is a standing constraint)
+## 2026-10-04 — Owner: close Phase 5; balance lane becomes the game lane; Stage 4 (economy) decisions and order (PARTIALLY HANDLED — section A in full, session 27; section B in full, session 28; C is written into ECONOMY.md and built from session 28 on (C.1, C.2 and the payout half of C.8 are built); D is a standing constraint)
 
 Balance has reached diminishing returns. Close Phase 5 next session and move the lane on to building the game. Balance matters again when new cards arrive through packs, so it becomes an automatic check, not a nightly lane.
 
@@ -1400,6 +1400,17 @@ Section A, all six items, in order:**
 Section B's order is written into the roadmap (persistence is next, session 28). Section C is
 built from session 28 on. Section D is recorded in the roadmap as "later, not now".
 
+**Handled (section B, and section C's first parts), session 28 (2026-10-04, game-lane session:
+the last merged PR, #39, was render).** Persistence is built before the economy, as ordered:
+`economy/` (`@ai-tcg/economy`) is one local SQLite file per season (`node:sqlite`, no external
+service) holding agents, an append-only credits ledger, owned copies, packs, decks and match
+history. The integrity rules are in the schema itself. Section C is written into `ECONOMY.md`,
+with each item marked BUILT, SPEC or OPEN. Built this session: C.1 (every copy is its own item,
+with a hidden id, finish, source and time), C.2 (decks point at specific owned copies, checked
+by the engine's own deck rules), the purchase half of C.7 (`buyPack`), and the match-payout half
+of C.8 (the daily win schedule). Evidence: `progress/economy-demo-001.txt` (40 real Lookahead
+matches paid and recorded, a cancel and an abandon paying 0, refusals, the file reopened).
+
 
 ---
 
@@ -1418,7 +1429,7 @@ Slice 1 accepted. Answers to `progress/render/notes-for-owner.md` (session 10, i
 
 ---
 
-## 2026-10-04 — Owner: economy answers for session 28 (packs, finishes, Prototypes, promos, quests, starters, card layout)
+## 2026-10-04 — Owner: economy answers for session 28 (packs, finishes, Prototypes, promos, quests, starters, card layout) (WRITTEN INTO ECONOMY.md, session 28; the daily win schedule is built; packs, finishes, promos, starters → session 29; quests → session 30)
 
 This answers three of the [OWNER CHECK-IN] items in the 2026-10-04 Stage 4 entry (section C): finishes and pull rates, the quest list and numbers, and the starter shape. Build to these. They are starting values for Season 0; tune them from Season 0 data, not by guesswork. The only check-in still open is the unique Mythic effect menu and power budgets.
 
@@ -1475,10 +1486,16 @@ Finishes are code shaders/treatments where possible (self-contained). Season 0 s
 - When an agent is created, **the owner picks its faction.** The agent gets: a **fixed starter deck** for that faction plus neutrals (the same list every time), **its unique Mythic promo**, and **3 packs of the current set**.
 - All four starter decks must pass the ring regression check against each other before Season 0 starts, so no faction begins behind.
 
+**Noted, session 28 (2026-10-04).** All seven sections are written into `ECONOMY.md`, with the
+three amendments below applied. Section 6's win schedule (40 / 15 x3 / 5 x6 / 0) is built and
+tested. A loss payout wasn't in the answers, so a provisional 2 credits is in place, flagged in
+notes-for-owner.md with three related calls. The rest is built in sessions 29 and 30, as the
+roadmap orders.
+
 
 ---
 
-## 2026-10-04 — Owner: AMENDMENT to the economy answers — 5 cards per pack
+## 2026-10-04 — Owner: AMENDMENT to the economy answers — 5 cards per pack (WRITTEN INTO ECONOMY.md, session 28)
 
 This replaces the first bullet of section 1 (Packs) in the entry above. Everything else in that entry stands.
 
@@ -1488,7 +1505,7 @@ This replaces the first bullet of section 1 (Packs) in the entry above. Everythi
 
 ---
 
-## 2026-10-04 — Owner: AMENDMENT to the economy answers — Prototype series (15 limited runs, unique art per run)
+## 2026-10-04 — Owner: AMENDMENT to the economy answers — Prototype series (15 limited runs, unique art per run) (WRITTEN INTO ECONOMY.md, session 28)
 
 This replaces section 3 (Prototypes) of the economy answers entry where they differ. Everything not mentioned here stands (one series per season, never reissued, a used-up run gives a Gold instead, its own series outside the set count, the gold-foil card layout).
 
@@ -1514,7 +1531,7 @@ This replaces section 3 (Prototypes) of the economy answers entry where they dif
 
 ---
 
-## 2026-10-04 — Owner: AMENDMENT — Prototypes as a bonus 6th card; season-finale tournament prizes
+## 2026-10-04 — Owner: AMENDMENT — Prototypes as a bonus 6th card; season-finale tournament prizes (WRITTEN INTO ECONOMY.md, session 28)
 
 This replaces the Prototype pull rules in the two entries above (the shine-slot 1 in 500 and the "pace the supply to the season" rule). Everything else about Prototypes stands: 15 per season in the pyramid, unique art per run, gold-foil layout, never reissued.
 

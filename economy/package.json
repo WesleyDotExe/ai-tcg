@@ -1,0 +1,25 @@
+{
+  "name": "@ai-tcg/economy",
+  "version": "0.1.0",
+  "description": "AI-TCG persistence and economy: a self-contained local SQLite file holding agents, the credits ledger, owned card copies, unopened packs, decks and match history. See ECONOMY.md.",
+  "type": "module",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "demo": "tsx src/dev/economyDemo.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ai-tcg/engine": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  }
+}

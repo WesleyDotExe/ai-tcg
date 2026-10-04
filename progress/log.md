@@ -2442,3 +2442,40 @@ first.
 before/after (byte-identical text logs), the id demo (`sample-match-028-event-ids.txt`),
 `npm test` 323/323, `tsc` clean in all five. **Blocked:** nothing. Checkpoint written (Stage 3
 closed). Next: render (alternation), then session 28, persistence + economy spec.
+
+## 2026-10-04 — Session 28 (persistence + the economy spec)
+
+Game-lane session: the last merged PR (#39) was render. Owner feedback first. The 2026-10-04
+Stage 4 entry orders persistence before the economy (section B). The economy answers and three
+amendments settle finishes, packs, Prototypes, promos, quests and starters, and leave one
+check-in open (the unique Mythic's effect menu). Two newer entries (2026-10-05) are render-lane.
+
+**Built:** `economy/` (`@ai-tcg/economy`), a new workspace on Node's built-in SQLite. I picked
+it over a JSON store because the economy needs real transactions: a pack purchase and a match
+payout each write several rows that have to succeed or fail together. The schema (migration v1)
+enforces the integrity rules itself:
+- the ledger is append-only, and no entry may take a balance below zero;
+- a match pays each agent at most once;
+- decks hold only their own agent's live copies;
+- serials are unique and fit their run;
+- a cancel or abandon pays 0.
+The store API covers agents, the ledger (balance = sum), per-copy grants, decks checked by the
+engine's own `buildDeck`, `buyPack`, and `recordMatch`. `recordMatch` counts the agent's place in
+the UTC day from match history, so a win past the cap still counts. The owner's win schedule is
+built. The loss payout (2 credits, capped) is my provisional number, flagged. The engine only
+gained exports (a card registry, the shipped deck lists).
+
+**Spec:** `ECONOMY.md` gathers section C, the answers and the amendments into one document, with
+each part marked BUILT, SPEC (with its session) or OPEN.
+
+**Ran it:** `npm run demo -w @ai-tcg/economy` played 40 real Lookahead matches between four house
+agents using decks saved from their own copies. The caps showed up for real: Aegis's 11th loss
+and Null's 11th win paid 0. Day 2 reset to 40. A cancel and an abandon paid 0, and a duplicate
+match and a raw ledger UPDATE were refused. Each agent bought one pack before the next purchase
+was refused, and the balances matched the ledger sums after reopening the file. 18 new tests;
+`npm test` 357/357, `tsc` clean in all six workspaces, and the ring check is identical to the
+baseline.
+
+**Blocked:** nothing. One open owner call (the Mythic effect menu, needed by session 30) and four
+provisional numbers, all in notes-for-owner.md. Next: render (alternation), then session 29, the
+economy build.
