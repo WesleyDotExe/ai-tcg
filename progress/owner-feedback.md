@@ -1325,10 +1325,23 @@ after you've answered the gate checkpoint. The render-lane items (EFFECTS.md v2 
 `signatureAbilities` proposal, Mythic ward previews) belong to the next render session; this
 entry stays open for them.
 
+**Handled (balance lane item b), session 27 (2026-10-04).** Every event that names a board card
+now carries its identity next to the name: `sourceId` (unit/Directive instance id, a Command's
+stack id `c..`, or a dead unit's old id for onDeath), `targetRef`/`defenderRef`/`fromRef`/`toRef`
+(full TargetRefs, players included), `targetId`/`unitId`/`instanceId`, `stackId` on
+`cast`/`attack`/`stackResolve`, and `targets` on `abilityTrigger` (what the ability resolved
+against, before any effect). See the GameEvent doc comment in `engine/src/state/types.ts`. The
+fields are optional in the type so the render's hand-built fixtures stay valid, but
+`engine/test/eventIds.test.ts` plays all 16 faction pairings and checks every event against the
+real state (including an exact per-instance damage check that tells twin copies apart). The text
+log is unchanged: 64 matches came out byte-identical before and after. Evidence:
+`progress/sample-match-028-event-ids.txt`. Item (a) (mythics.json) still has nothing to do: no
+Mythic added. The render-lane items stay with the render lane.
+
 
 ---
 
-## 2026-10-04 — Owner: close Phase 5; balance lane becomes the game lane; Stage 4 (economy) decisions and order
+## 2026-10-04 — Owner: close Phase 5; balance lane becomes the game lane; Stage 4 (economy) decisions and order (PARTIALLY HANDLED — section A in full, session 27, 2026-10-04; B/C are the next sessions' work; D is a standing constraint)
 
 Balance has reached diminishing returns. Close Phase 5 next session and move the lane on to building the game. Balance matters again when new cards arrive through packs, so it becomes an automatic check, not a nightly lane.
 
@@ -1368,6 +1381,24 @@ Persistence comes BEFORE the economy (roadmap item 6 moves ahead of item 5). The
 30. Unique Mythic promo generator + daily rewards/quests.
 31. Match running and the ladder: many matches, server-assigned opponents, results recorded, ratings. This closes the loop: play -> earn -> owner opens packs -> agent rebuilds -> play.
 The render lane continues the EFFECTS.md v2 build order in between.
+
+**Handled, session 27 (2026-10-04, game-lane session: the last merged PR, #37, was render).
+Section A, all six items, in order:**
+1. Quorum Arbiter kept, untouched.
+2. Propagating Exploit 2/2 -> 2/3 applied (`engine/src/data/nullCards.ts`). Changed edges
+   re-measured once on the gate seeds plus held-out 2501-5000: Null vs Cortex 38.6 -> 47.6
+   (900-seed even band 40.7 -> 49.2, OUT -> IN), vs Swarm 40.6 -> 43.8, vs Aegis 42.0 -> 48.2.
+3. Null > Aegis and Aegis > Cortex accepted as OUT, not probed. Phase 5 baseline recorded:
+   3 IN, 1 UNRESOLVED (Swarm > Null 56.2), 2 OUT (the two accepted).
+   `progress/balance-report-021-phase5-close.txt`.
+4. Phase 5 marked DONE in `progress/roadmap.md`; pool growth paused until sets/packs.
+5. `engine/src/dev/ringRegression.ts` + `ringBaseline.json`: the six ring edges at gate seed
+   counts, failing on a worse verdict or a real move further out on an accepted-OUT edge. It's a
+   step in CI's `test` job, so it runs on every PR (about 15 s). Shown to fail (exit 1, two edges)
+   with Propagating Exploit put back to 2/2.
+6. Instance ids in the event log: done (see the 2026-10-03 entry's note).
+Section B's order is written into the roadmap (persistence is next, session 28). Section C is
+built from session 28 on. Section D is recorded in the roadmap as "later, not now".
 
 
 ---

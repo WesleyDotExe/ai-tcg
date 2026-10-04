@@ -71,30 +71,47 @@ export async function measureEdges(
   }
   const results: EdgeResult[] = [];
   for (const opponent of FACTIONS.filter((f) => f !== faction)) {
-    // balanceReport.ts puts the earlier faction in FACTIONS order in slot A.
-    const aIsSelf = FACTIONS.indexOf(faction) < FACTIONS.indexOf(opponent);
-    const [factionA, factionB] = aIsSelf ? [faction, opponent] : [opponent, faction];
-    const r: EdgeResult = { opponent, games: count, selfWins: 0, draws: 0, trackedPlays: 0 };
-    for (let seed = firstSeed; seed < firstSeed + count; seed++) {
-      const aGoesFirst = seed % 2 === 1;
-      const deckA = builders[factionA]("p1", `${factionA} Deck`);
-      const deckB = builders[factionB]("p2", `${factionB} Deck`);
-      const agentA = new LookaheadAgent(`Lookahead-${factionA}`, seed * 104729 + 31);
-      const agentB = new LookaheadAgent(`Lookahead-${factionB}`, seed * 104729 + 31);
-      const { state } = aGoesFirst
-        ? await runMatch(deckA, deckB, agentA, agentB, seed)
-        : await runMatch(deckB, deckA, agentB, agentA, seed);
-      const selfPid: PlayerId = aGoesFirst === aIsSelf ? "p1" : "p2";
-      if (opts.trackCard && playedCard(state, selfPid, opts.trackCard)) r.trackedPlays++;
-      if (state.winner === "draw") {
-        r.draws++;
-        continue;
-      }
-      if (state.winner === selfPid) r.selfWins++;
-    }
-    results.push(r);
+    results.push(await measurePairing(faction, opponent, firstSeed, count, { builders, trackCard: opts.trackCard }));
   }
   return results;
+}
+
+/**
+ * One pairing of measureEdges, on its own: `faction` against `opponent` on
+ * seeds [firstSeed, firstSeed + count), both LookaheadAgent, same seeding
+ * and seat order as measureEdges (so the two always agree). ringRegression.ts
+ * uses it to measure only the six ring edges.
+ */
+export async function measurePairing(
+  faction: Faction,
+  opponent: Faction,
+  firstSeed: number,
+  count: number,
+  opts: { builders?: Record<Faction, DeckBuilder>; trackCard?: string } = {},
+): Promise<EdgeResult> {
+  const builders = opts.builders ?? defaultBuilders;
+  // balanceReport.ts puts the earlier faction in FACTIONS order in slot A.
+  const aIsSelf = FACTIONS.indexOf(faction) < FACTIONS.indexOf(opponent);
+  const [factionA, factionB] = aIsSelf ? [faction, opponent] : [opponent, faction];
+  const r: EdgeResult = { opponent, games: count, selfWins: 0, draws: 0, trackedPlays: 0 };
+  for (let seed = firstSeed; seed < firstSeed + count; seed++) {
+    const aGoesFirst = seed % 2 === 1;
+    const deckA = builders[factionA]("p1", `${factionA} Deck`);
+    const deckB = builders[factionB]("p2", `${factionB} Deck`);
+    const agentA = new LookaheadAgent(`Lookahead-${factionA}`, seed * 104729 + 31);
+    const agentB = new LookaheadAgent(`Lookahead-${factionB}`, seed * 104729 + 31);
+    const { state } = aGoesFirst
+      ? await runMatch(deckA, deckB, agentA, agentB, seed)
+      : await runMatch(deckB, deckA, agentB, agentA, seed);
+    const selfPid: PlayerId = aGoesFirst === aIsSelf ? "p1" : "p2";
+    if (opts.trackCard && playedCard(state, selfPid, opts.trackCard)) r.trackedPlays++;
+    if (state.winner === "draw") {
+      r.draws++;
+      continue;
+    }
+    if (state.winner === selfPid) r.selfWins++;
+  }
+  return r;
 }
 
 /** Same "played" definition as balanceReport.ts's playedCardNames. */

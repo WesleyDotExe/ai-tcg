@@ -5,7 +5,63 @@ owner's steering, never a block on continuing.
 
 ---
 
-## AWAITING FEEDBACK — Phase 5 step (iii): the full-ring gate (2026-10-03, session 26)
+## AWAITING FEEDBACK — Stage 3 (a real card set) closed: Phase 5 done, balance becomes a regression check (2026-10-04, session 27)
+
+You told me to close Phase 5 and move the lane on to building the game. This is the end of
+build-order Stage 3, so it gets a checkpoint. Nothing here needs an answer before session 28
+starts persistence.
+
+**Delivered, with evidence:**
+1. **Your gate answers, applied** (`progress/balance-report-021-phase5-close.txt`). Propagating
+   Exploit is now 2/3. Re-measured once on the gate seeds and held out. The Phase 5 baseline:
+
+   | Edge (target) | seeds | rate | 95% CI | verdict | session 26 |
+   |---|---|---|---|---|---|
+   | Null > Aegis (55-60) | 2,500 | Null 48.2 | 46.2-50.1 | OUT (accepted) | 42.0 OUT |
+   | Aegis > Cortex (55-60) | 2,500 | Aegis 52.2 | 50.3-54.2 | OUT (accepted) | 52.2 OUT |
+   | Cortex > Swarm (55-60) | 2,500 | Cortex 57.4 | 55.4-59.3 | IN | 57.4 IN |
+   | Swarm > Null (55-60) | 2,500 | Swarm 56.2 | 54.2-58.1 | UNRESOLVED | 59.4 UNRESOLVED |
+   | Null ~ Cortex (45-55) | 900 | Null 49.2 | 46.0-52.5 | IN | 40.7 OUT |
+   | Aegis ~ Swarm (45-55) | 900 | Aegis 51.2 | 48.0-54.5 | IN | 51.2 IN |
+
+   The held-out run reproduced the session-26 probe exactly (48.0 / 43.6 / 50.5).
+2. **The standing regression check**: `engine/src/dev/ringRegression.ts` against
+   `engine/src/dev/ringBaseline.json`, a step in CI's `test` job. It fails when an edge's band
+   verdict gets worse, or when an accepted-OUT edge moves really further out. 11,800 games, about
+   15 s, so it runs on every PR. Shown working both ways: it passes on the shipped code, and with
+   Propagating Exploit put back to 2/2 it fails two edges and exits 1.
+3. **Instance ids in the event log** (your 2026-10-03 request, for the render's exact-target
+   travel). Every event that names a board card carries the instance id, a full target ref or a
+   stack id. `engine/test/eventIds.test.ts` checks every event in all 16 faction pairings
+   against the real state. `progress/sample-match-028-event-ids.txt` is a full game with the ids
+   printed, including a hit on one of two same-named units.
+4. **A real bug the id test caught**: when an onAttack ability killed the defender, the `attack`
+   log line printed its raw id ("attacks u11"). Fixed.
+
+**Strong:** the change is additive. 64 matches give byte-identical text logs before and after,
+so no balance number moved because of the ids. The regression check is deterministic (same seeds,
+same code, same numbers), so a CI failure always means the change under test moved the ring.
+**Thin:** the ring is balanced only under one heuristic agent judging itself (Lookahead vs
+Lookahead). The check guards that one measurement, not "balance" in general. Pools sit at 20-24
+unique cards per faction, short of the 30-40 target, now paused by your call.
+
+**Decisions you might overrule:**
+- **The regression rule.** It fails only on a worse verdict, or a real move further out on an
+  accepted-OUT edge. A real move inside the band, or toward it, passes. That means an edge can
+  drift from 56 to 59 inside its band without failing. Tighter option: fail on any real change
+  (95%) on any edge unless the baseline is re-recorded on purpose.
+- **Baseline updates are manual and deliberate.** `--write-baseline` is run only for an approved
+  change and committed with its balance report. Nothing re-baselines automatically.
+- **The id fields are optional in the TypeScript type.** That keeps the render's hand-built test
+  fixtures valid. The guarantee comes from the test, not the compiler.
+
+**Next:** session 28, persistence (a local database file, no external service) and the economy
+spec, built to your section C decisions. It pauses at the [OWNER CHECK-IN] items (finish list
+and pull rates, the unique-Mythic effect menu, quests, starter shape).
+
+---
+
+## ANSWERED (owner 2026-10-04, applied session 27) — Phase 5 step (iii): the full-ring gate (2026-10-03, session 26)
 
 Not a build-order stage completion, but the gate you made mandatory for closing Phase 5, so it
 gets a checkpoint. **The gate did not pass.**

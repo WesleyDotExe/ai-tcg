@@ -82,7 +82,7 @@ function playCard(
     // is what gives an opponent a real window to respond to it.
     const instanceId = `c${state.nextInstanceId++}`;
     state.stack.push({ kind: "command", instanceId, controller: pid, card, chosen: target });
-    state.log.push({ type: "cast", player: pid, card: card.name, speed: card.speed });
+    state.log.push({ type: "cast", player: pid, card: card.name, speed: card.speed, stackId: instanceId, ...(target ? { targetRef: { ...target } } : {}) });
     return;
   }
 
@@ -114,7 +114,7 @@ function playCard(
     if (isTelegraphed) {
       // Dormant on arrival — see UnitCard.telegraph: its onPlay ability
       // (if any) is deferred to processTelegraphArming, not fired here.
-      state.log.push({ type: "telegraphPlaced", unit: card.name, armIn: card.telegraph! });
+      state.log.push({ type: "telegraphPlaced", unit: card.name, armIn: card.telegraph!, instanceId });
     } else if (onPlay) {
       resolveAbility({
         state,
@@ -178,7 +178,7 @@ function evolveUnit(
   const fromName = unit.card.name;
   player.graveyard.push(unit.card);
   unit.card = card;
-  state.log.push({ type: "evolve", player: pid, from: fromName, to: card.name });
+  state.log.push({ type: "evolve", player: pid, from: fromName, to: card.name, instanceId: unit.instanceId });
   const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
   if (onPlay) {
     resolveAbility({
@@ -205,13 +205,26 @@ function attachTool(state: GameState, pid: PlayerId, card: ToolCard, targetInsta
   if (card.grantedKeywords.includes("Barrier") && !unit.statuses.some((s) => s.kind === "Barrier")) {
     unit.statuses.push({ kind: "Barrier", duration: "untilConsumed" });
   }
-  state.log.push({ type: "toolAttached", player: pid, tool: card.name, unit: unit.card.name });
+  state.log.push({ type: "toolAttached", player: pid, tool: card.name, unit: unit.card.name, unitId: unit.instanceId });
 }
 
 function declareAttack(state: GameState, pid: PlayerId, attackerInstanceId: string, target: TargetRef, rng: Rng): void {
   const attacker = state.players[pid].board.find((u) => u.instanceId === attackerInstanceId);
   if (!attacker) throw new Error(`attack: no unit ${attackerInstanceId} on attacker's board`);
   attacker.hasAttackedThisTurn = true;
+
+  // An attack's target is always a unit or a player — getLegalMoves never
+  // offers a Directive as an attack target (a Directive has no combat
+  // presence) — so this narrows safely even though TargetRef now has a
+  // third "directive" variant (2026-09-20 owner-feedback entry, Phase 2
+  // item 3). The name is read BEFORE onAttack fires: an onAttack that kills
+  // the defender used to leave the log printing its raw id ("attacks u11"),
+  // found by engine/test/eventIds.test.ts in session 27.
+  const defenderName =
+    target.kind === "player"
+      ? state.players[target.playerId].name
+      : (state.players[otherPlayer(pid)].board.find((u) => u.instanceId === target.instanceId)?.card.name ?? target.instanceId);
+  const defenderKind: "unit" | "player" = target.kind === "player" ? "player" : "unit";
 
   // onAttack fires immediately on declaration (not deferred to the stack —
   // see quality-debt.md on the scope this simplifies away); the damage
@@ -228,19 +241,17 @@ function declareAttack(state: GameState, pid: PlayerId, attackerInstanceId: stri
     });
   }
 
-  // An attack's target is always a unit or a player — getLegalMoves never
-  // offers a Directive as an attack target (a Directive has no combat
-  // presence) — so this narrows safely even though TargetRef now has a
-  // third "directive" variant (2026-09-20 owner-feedback entry, Phase 2
-  // item 3).
-  const defenderName =
-    target.kind === "player"
-      ? state.players[target.playerId].name
-      : (state.players[otherPlayer(pid)].board.find((u) => u.instanceId === target.instanceId)?.card.name ?? target.instanceId);
-  const defenderKind: "unit" | "player" = target.kind === "player" ? "player" : "unit";
-  state.log.push({ type: "attack", attacker: attacker.card.name, defender: defenderName, defenderKind });
-
   const stackInstanceId = `k${state.nextInstanceId++}`;
+  state.log.push({
+    type: "attack",
+    attacker: attacker.card.name,
+    defender: defenderName,
+    defenderKind,
+    attackerId: attacker.instanceId,
+    defenderRef: { ...target },
+    stackId: stackInstanceId,
+  });
+
   state.stack.push({
     kind: "combatDamage",
     instanceId: stackInstanceId,
@@ -278,7 +289,15 @@ function activateAbility(
     source: { kind: sourceKind, instanceId: sourceInstanceId, cardName: card.name },
     chosen: target,
   });
-  state.log.push({ type: "cast", player: pid, card: `${card.name} — ${ability.text}`, speed: ability.speed ?? "Sorcery" });
+  state.log.push({
+    type: "cast",
+    player: pid,
+    card: `${card.name} — ${ability.text}`,
+    speed: ability.speed ?? "Sorcery",
+    stackId: stackInstanceId,
+    sourceId: sourceInstanceId,
+    ...(target ? { targetRef: { ...target } } : {}),
+  });
 }
 
 /** The priority algorithm: the core of Magic-style reactivity. Passing
@@ -309,7 +328,7 @@ function passPriority(state: GameState, rng: Rng): void {
 function resolveTopOfStack(state: GameState, rng: Rng): void {
   const item = state.stack.pop();
   if (!item) return;
-  state.log.push({ type: "stackResolve", description: describeStackItem(item) });
+  state.log.push({ type: "stackResolve", description: describeStackItem(item), stackId: item.instanceId });
   switch (item.kind) {
     case "command": {
       const onPlay = item.card.abilities.find((a) => a.trigger === "onPlay");
@@ -318,7 +337,7 @@ function resolveTopOfStack(state: GameState, rng: Rng): void {
           state,
           ability: onPlay,
           controller: item.controller,
-          source: { kind: "command", cardName: item.card.name },
+          source: { kind: "command", instanceId: item.instanceId, cardName: item.card.name },
           chosen: item.chosen,
           rng,
         });
@@ -361,8 +380,9 @@ function resolveCombatDamage(state: GameState, item: Extract<StackItem, { kind: 
     return;
   }
   const attackerPower = currentAttack(state, attacker);
+  const attackerSource = { name: attacker.card.name, id: attacker.instanceId };
   if (item.target.kind === "player") {
-    applyDamage(state, item.target, attackerPower, attacker.card.name, rng);
+    applyDamage(state, item.target, attackerPower, attackerSource, rng);
     return;
   }
   const defenderFound = findUnit(state, item.target.instanceId);
@@ -371,12 +391,18 @@ function resolveCombatDamage(state: GameState, item: Extract<StackItem, { kind: 
     return;
   }
   const defenderPower = currentAttack(state, defenderFound.unit);
-  applyDamage(state, item.target, attackerPower, attacker.card.name, rng);
+  applyDamage(state, item.target, attackerPower, attackerSource, rng);
   // Re-check the attacker is still standing (a response could have killed
   // it as part of resolving the defender's side first) before it takes the
   // defender's return damage.
   if (findUnit(state, attacker.instanceId)) {
-    applyDamage(state, { kind: "unit", instanceId: attacker.instanceId }, defenderPower, defenderFound.unit.card.name, rng);
+    applyDamage(
+      state,
+      { kind: "unit", instanceId: attacker.instanceId },
+      defenderPower,
+      { name: defenderFound.unit.card.name, id: defenderFound.unit.instanceId },
+      rng,
+    );
   }
 }
 
@@ -428,7 +454,7 @@ function processTelegraphArming(state: GameState, pid: PlayerId, rng: Rng): void
   for (const unit of state.players[pid].board) {
     if (!unit.pending || unit.armTurn === undefined || state.turnNumber < unit.armTurn) continue;
     unit.pending = false;
-    state.log.push({ type: "telegraphArmed", unit: unit.card.name });
+    state.log.push({ type: "telegraphArmed", unit: unit.card.name, instanceId: unit.instanceId });
     const onPlay = unit.card.abilities.find((a) => a.trigger === "onPlay");
     if (onPlay) {
       resolveAbility({
@@ -473,7 +499,8 @@ function processEndOfTurnStatuses(state: GameState, pid: PlayerId, rng: Rng): vo
   for (const unit of state.players[pid].board) {
     const overload = unit.statuses.find((s) => s.kind === "Overload");
     if (overload) {
-      applyDamage(state, { kind: "unit", instanceId: unit.instanceId }, overload.amount ?? 1, "Overload", rng);
+      // No sourceId: the damage comes from a status, not a card.
+      applyDamage(state, { kind: "unit", instanceId: unit.instanceId }, overload.amount ?? 1, { name: "Overload" }, rng);
     }
     unit.statuses = unit.statuses
       .map((s) => (typeof s.duration === "number" ? { ...s, duration: s.duration - 1 } : s))

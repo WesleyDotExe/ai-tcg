@@ -1,0 +1,223 @@
+AI-TCG event-id demo: Null vs Cortex, seed 1 (first seed in 1-400 showing all four moments)
+p1 = Lookahead-Cortex, p2 = Lookahead-Null
+Each line: the unchanged text log, then the event's id fields in braces.
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Dangling Pointer
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Watchtower Relay
+--- Turn 3 (p1) ---
+p1 plays Fail-safe Unit (u1)   {instanceId=u1}
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Entropy Harvester
+--- Turn 4 (p2) ---
+p2 plays Zombie Process (u2)   {instanceId=u2}
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Force Quit
+--- Turn 5 (p1) ---
+p1 plays Watchtower Relay (u3)   {instanceId=u3}
+Fail-safe Unit attacks Lookahead-Null (face)   {attackerId=u1 stackId=k4 defenderRef=p2}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack   {stackId=k4}
+  Fail-safe Unit deals 2 damage to Lookahead-Null   {sourceId=u1 targetRef=p2}
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Entropy Harvester
+--- Turn 6 (p2) ---
+Zombie Process attacks Lookahead-Cortex (face)   {attackerId=u2 stackId=k5 defenderRef=p1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Zombie Process's attack   {stackId=k5}
+  Zombie Process deals 2 damage to Lookahead-Cortex   {sourceId=u2 targetRef=p1}
+p2 plays Propagating Exploit (u6)   {instanceId=u6}
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Overload Capacitor
+--- Turn 7 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)   {sourceId=u3 targets=[]}
+p1 plays Overload Capacitor (u7)   {instanceId=u7}
+  ability: Overload Capacitor — overload-capacitor-play (onPlay)   {sourceId=u7 targets=[u7]}
+  Overload Capacitor applies Overload to Overload Capacitor   {sourceId=u7 targetId=u7}
+Watchtower Relay attacks Zombie Process   {attackerId=u3 stackId=k8 defenderRef=u2}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack   {stackId=k8}
+  Watchtower Relay deals 2 damage to Zombie Process (unit)   {sourceId=u3 targetRef=u2}
+  Zombie Process deals 2 damage to Watchtower Relay (unit)   {sourceId=u2 targetRef=u3}
+  Zombie Process (p2) dies   {instanceId=u2}
+  ability: Zombie Process — zombie-process-death (onDeath)   {sourceId=u2 targets=[]}
+  Zombie Process summons Orphaned Thread for p2 (u9)   {instanceId=u9 sourceId=u2}
+Fail-safe Unit attacks Lookahead-Null (face)   {attackerId=u1 stackId=k10 defenderRef=p2}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack   {stackId=k10}
+  Fail-safe Unit deals 2 damage to Lookahead-Null   {sourceId=u1 targetRef=p2}
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+  Overload deals 1 damage to Overload Capacitor (unit)   {targetRef=u7}
+p2 draws Stray Fragment
+--- Turn 8 (p2) ---
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)   {sourceId=u6 targets=[u6]}
+  Propagating Exploit grants Propagating Exploit +1/+0   {sourceId=u6 targetId=u6}
+Propagating Exploit attacks Lookahead-Cortex (face)   {attackerId=u6 stackId=k11 defenderRef=p1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Propagating Exploit's attack   {stackId=k11}
+  Propagating Exploit deals 3 damage to Lookahead-Cortex   {sourceId=u6 targetRef=p1}
+p2 plays Entropy Harvester (u12)   {instanceId=u12}
+p2 plays Stray Fragment (u13)   {instanceId=u13}
+Orphaned Thread attacks Lookahead-Cortex (face)   {attackerId=u9 stackId=k14 defenderRef=p1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Orphaned Thread's attack   {stackId=k14}
+  Orphaned Thread deals 1 damage to Lookahead-Cortex   {sourceId=u9 targetRef=p1}
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Diagnostic Loop
+--- Turn 9 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)   {sourceId=u3 targets=[]}
+p1 plays Watchtower Relay (u15)   {instanceId=u15}
+p1 plays Diagnostic Loop (u16)   {instanceId=u16}
+Fail-safe Unit attacks Stray Fragment   {attackerId=u1 stackId=k17 defenderRef=u13}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack   {stackId=k17}
+  Fail-safe Unit deals 2 damage to Stray Fragment (unit)   {sourceId=u1 targetRef=u13}
+  Stray Fragment deals 1 damage to Fail-safe Unit (unit)   {sourceId=u13 targetRef=u1}
+  Stray Fragment (p2) dies   {instanceId=u13}
+Overload Capacitor attacks Lookahead-Null (face)   {attackerId=u7 stackId=k18 defenderRef=p2}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overload Capacitor's attack   {stackId=k18}
+  Overload Capacitor deals 4 damage to Lookahead-Null   {sourceId=u7 targetRef=p2}
+Watchtower Relay attacks Lookahead-Null (face)   {attackerId=u3 stackId=k19 defenderRef=p2}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack   {stackId=k19}
+  Watchtower Relay deals 2 damage to Lookahead-Null   {sourceId=u3 targetRef=p2}
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)   {sourceId=u16 targets=[u16]}
+  Overload deals 1 damage to Overload Capacitor (unit)   {targetRef=u7}
+p2 draws Zombie Process
+--- Turn 10 (p2) ---
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)   {sourceId=u6 targets=[u6]}
+  Propagating Exploit grants Propagating Exploit +1/+0   {sourceId=u6 targetId=u6}
+Propagating Exploit attacks Lookahead-Cortex (face)   {attackerId=u6 stackId=k20 defenderRef=p1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Propagating Exploit's attack   {stackId=k20}
+  Propagating Exploit deals 4 damage to Lookahead-Cortex   {sourceId=u6 targetRef=p1}
+p2 plays Entropy Harvester (u21)   {instanceId=u21}
+p2 plays Zombie Process (u22)   {instanceId=u22}
+Entropy Harvester attacks Fail-safe Unit   {attackerId=u12 stackId=k23 defenderRef=u1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Entropy Harvester's attack   {stackId=k23}
+  Entropy Harvester deals 1 damage to Fail-safe Unit (unit)   {sourceId=u12 targetRef=u1}
+  Fail-safe Unit deals 2 damage to Entropy Harvester (unit)   {sourceId=u1 targetRef=u12}
+  Fail-safe Unit (p1) dies   {instanceId=u1}
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)   {sourceId=u1 targets=[]}
+p1 draws Init Daemon
+Orphaned Thread attacks Lookahead-Cortex (face)   {attackerId=u9 stackId=k24 defenderRef=p1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Orphaned Thread's attack   {stackId=k24}
+  Orphaned Thread deals 1 damage to Lookahead-Cortex   {sourceId=u9 targetRef=p1}
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Overclock Shunt
+--- Turn 11 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)   {sourceId=u3 targets=[]}
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)   {sourceId=u15 targets=[]}
+Overload Capacitor attacks Lookahead-Null (face)   {attackerId=u7 stackId=k25 defenderRef=p2}
+p1 casts Interrupt Handler [Instant] (goes on the stack)   {stackId=c26 targetRef=u22}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Interrupt Handler   {stackId=c26}
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)   {sourceId=c26 targets=[u22]}
+  Interrupt Handler deals 2 damage to Zombie Process (unit)   {sourceId=c26 targetRef=u22}
+  Zombie Process (p2) dies   {instanceId=u22}
+  ability: Zombie Process — zombie-process-death (onDeath)   {sourceId=u22 targets=[]}
+  Zombie Process summons Orphaned Thread for p2 (u27)   {instanceId=u27 sourceId=u22}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overload Capacitor's attack   {stackId=k25}
+  Overload Capacitor deals 4 damage to Lookahead-Null   {sourceId=u7 targetRef=p2}
+Watchtower Relay attacks Lookahead-Null (face)   {attackerId=u3 stackId=k28 defenderRef=p2}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack   {stackId=k28}
+  Watchtower Relay deals 2 damage to Lookahead-Null   {sourceId=u3 targetRef=p2}
+Watchtower Relay attacks Lookahead-Null (face)   {attackerId=u15 stackId=k29 defenderRef=p2}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack   {stackId=k29}
+  Watchtower Relay deals 2 damage to Lookahead-Null   {sourceId=u15 targetRef=p2}
+  Overclock Shunt attaches to Watchtower Relay   {unitId=u15}
+p1 plays Init Daemon (u30)   {instanceId=u30}
+Diagnostic Loop attacks Orphaned Thread   {attackerId=u16 stackId=k31 defenderRef=u9}
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Loop's attack   {stackId=k31}
+  Diagnostic Loop deals 1 damage to Orphaned Thread (unit)   {sourceId=u16 targetRef=u9}
+  Orphaned Thread deals 1 damage to Diagnostic Loop (unit)   {sourceId=u9 targetRef=u16}
+  Orphaned Thread (p2) dies   {instanceId=u9}
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)   {sourceId=u16 targets=[u16]}
+  Diagnostic Loop restores 1 health to Diagnostic Loop   {sourceId=u16 targetRef=u16}
+  Overload deals 1 damage to Overload Capacitor (unit)   {targetRef=u7}
+p2 draws Glitch Seed
+--- Turn 12 (p2) ---
+  ability: Propagating Exploit — propagating-exploit-attack (onAttack)   {sourceId=u6 targets=[u6]}
+  Propagating Exploit grants Propagating Exploit +1/+0   {sourceId=u6 targetId=u6}
+Propagating Exploit attacks Lookahead-Cortex (face)   {attackerId=u6 stackId=k32 defenderRef=p1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Propagating Exploit's attack   {stackId=k32}
+  Propagating Exploit deals 5 damage to Lookahead-Cortex   {sourceId=u6 targetRef=p1}
+Orphaned Thread attacks Overload Capacitor   {attackerId=u27 stackId=k33 defenderRef=u7}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Orphaned Thread's attack   {stackId=k33}
+  Orphaned Thread deals 1 damage to Overload Capacitor (unit)   {sourceId=u27 targetRef=u7}
+  Overload Capacitor deals 4 damage to Orphaned Thread (unit)   {sourceId=u7 targetRef=u27}
+  Overload Capacitor (p1) dies   {instanceId=u7}
+  Orphaned Thread (p2) dies   {instanceId=u27}
+p2 plays Glitch Seed (u34)   {instanceId=u34}
+p2 plays Dangling Pointer (u35)   {instanceId=u35}
+Dangling Pointer attacks Lookahead-Cortex (face)   {attackerId=u35 stackId=k36 defenderRef=p1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Dangling Pointer's attack   {stackId=k36}
+  Dangling Pointer deals 2 damage to Lookahead-Cortex   {sourceId=u35 targetRef=p1}
+Entropy Harvester attacks Lookahead-Cortex (face)   {attackerId=u12 stackId=k37 defenderRef=p1}
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Entropy Harvester's attack   {stackId=k37}
+  Entropy Harvester deals 4 damage to Lookahead-Cortex   {sourceId=u12 targetRef=p1}
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+--- Summary ---
+Winner: p2  Turns: 12  Moves: 100
+Final health: p1 -2, p2 2
+Propagating Exploit instances: u6

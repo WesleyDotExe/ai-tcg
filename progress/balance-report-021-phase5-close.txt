@@ -1,0 +1,116 @@
+AI-TCG balance report 021: Phase 5 closed (session 27, 2026-10-04)
+=====================================================================================
+
+Owner-feedback 2026-10-04, section A, applied in full:
+  1. Quorum Arbiter: kept. No change.
+  2. Propagating Exploit 2/2 -> 2/3 (x3, cost 3, Uncommon): applied
+     (engine/src/data/nullCards.ts). Changed edges re-measured once, below.
+  3. Null > Aegis and Aegis > Cortex accepted as OUT. Not probed further.
+     The final gate numbers below are the Phase 5 baseline.
+  4. Phase 5 marked done in progress/roadmap.md. Pool growth is paused until sets/packs exist.
+  5. Balance as a regression check: engine/src/dev/ringRegression.ts measures the six ring edges
+     at the gate's seed counts against engine/src/dev/ringBaseline.json and fails on a worse band
+     verdict, or on a real move further out for an accepted-OUT edge. It's a step in CI's `test`
+     job (.github/workflows/test.yml), so it runs on every PR and push to main. ~15 s.
+  6. Event-log instance ids: built this session too (see section 5 for the no-behaviour-change
+     evidence; engine/test/eventIds.test.ts for the guarantee).
+
+Instrument: lookaheadEdgeCheck.ts / measurePairing (Lookahead vs Lookahead, seed * 104729 + 31,
+alternate seats), 95% Wilson intervals, bandVerdict. Same seeds as the session-26 gate.
+
+=====================================================================================
+1. Re-measure of the changed edges (Null's three), after Propagating Exploit 2/3
+=====================================================================================
+
+--- lookaheadEdgeCheck.ts Null 1 900 ---
+LookaheadAgent vs LookaheadAgent, Null against each other faction, seeds 1-900
+  Null vs Cortex: Null 49.2% (+/- 1.7 one SE, 95% CI 46.0-52.5, 0 draws) band 45-55: IN BAND
+  Null vs Swarm: Null 43.9% (+/- 1.7 one SE, 95% CI 40.7-47.2, 0 draws) band 40-45: UNRESOLVED
+  Null vs Aegis: Null 48.3% (+/- 1.7 one SE, 95% CI 45.1-51.6, 0 draws) band 55-60: OUT OF BAND
+
+--- lookaheadEdgeCheck.ts Null 1 2500 ---
+LookaheadAgent vs LookaheadAgent, Null against each other faction, seeds 1-2500
+  Null vs Cortex: Null 47.6% (+/- 1.0 one SE, 95% CI 45.6-49.5, 0 draws) band 45-55: IN BAND
+  Null vs Swarm: Null 43.8% (+/- 1.0 one SE, 95% CI 41.9-45.8, 0 draws) band 40-45: UNRESOLVED
+  Null vs Aegis: Null 48.2% (+/- 1.0 one SE, 95% CI 46.2-50.1, 0 draws) band 55-60: OUT OF BAND
+
+--- lookaheadEdgeCheck.ts Null 2501 2500 (held out) ---
+LookaheadAgent vs LookaheadAgent, Null against each other faction, seeds 2501-5000
+  Null vs Cortex: Null 48.0% (+/- 1.0 one SE, 95% CI 46.0-50.0, 0 draws) band 45-55: IN BAND
+  Null vs Swarm: Null 43.6% (+/- 1.0 one SE, 95% CI 41.7-45.6, 0 draws) band 40-45: UNRESOLVED
+  Null vs Aegis: Null 50.5% (+/- 1.0 one SE, 95% CI 48.6-52.5, 0 draws) band 55-60: OUT OF BAND
+
+Before (session 26 gate, same seeds, Propagating Exploit 2/2):
+  seeds 1-2500:  Null vs Cortex 38.6   Null vs Swarm 40.6   Null vs Aegis 42.0
+  seeds 1-900:   Null vs Cortex 40.7   Null vs Swarm 39.1   Null vs Aegis 41.6
+Held-out prediction from the session-26 lift probe (seeds 2501-5000): Cortex 48.0, Swarm 43.6,
+Aegis 50.5. The held-out run above reproduces it exactly (same code, same seeds).
+
+Change on the gate seeds (1-2500): Null vs Cortex +9.0, vs Swarm +3.2, vs Aegis +6.2.
+Null ~ Cortex moves OUT -> IN. Swarm > Null stays UNRESOLVED (59.4 -> 56.2, now near the band's
+bottom edge instead of its top). Null > Aegis stays OUT (accepted).
+
+=====================================================================================
+2. The Phase 5 baseline (final gate numbers; recorded in engine/src/dev/ringBaseline.json)
+=====================================================================================
+
+  Edge (target)        seeds   rate (named side)  95% CI       verdict       vs session-26 gate
+  Null > Aegis  (55-60) 2,500  Null   48.2%       46.2-50.1    OUT (accepted)   42.0 OUT
+  Aegis > Cortex(55-60) 2,500  Aegis  52.2%       50.3-54.2    OUT (accepted)   52.2 OUT
+  Cortex > Swarm(55-60) 2,500  Cortex 57.4%       55.4-59.3    IN BAND          57.4 IN
+  Swarm > Null  (55-60) 2,500  Swarm  56.2%       54.2-58.1    UNRESOLVED       59.4 UNRESOLVED
+  Null ~ Cortex (45-55)   900  Null   49.2%       46.0-52.5    IN BAND          40.7 OUT
+  Aegis ~ Swarm (45-55)   900  Aegis  51.2%       48.0-54.5    IN BAND          51.2 IN
+
+  3 IN, 1 UNRESOLVED, 2 OUT, and both OUT edges are the ones the owner accepted.
+  The three edges without Null are bit-identical to the session-26 gate (the change touches no
+  other deck), which is the expected check that nothing else moved.
+
+=====================================================================================
+3. The regression check on the shipped code (npm run ring -w @ai-tcg/engine)
+=====================================================================================
+
+Ring regression vs baseline recorded 2026-10-04 (Lookahead vs Lookahead, seeds from 1)
+  Null > Aegis      2500 seeds  48.2% (CI 46.2-50.1) OUT OF BAND | baseline 48.2% OUT OF BAND change +0.0 [-2.8, 2.8]  PASS (accepted OUT; did not move further out)
+  Aegis > Cortex    2500 seeds  52.2% (CI 50.3-54.2) OUT OF BAND | baseline 52.2% OUT OF BAND change +0.0 [-2.8, 2.8]  PASS (accepted OUT; did not move further out)
+  Cortex > Swarm    2500 seeds  57.4% (CI 55.4-59.3) IN BAND     | baseline 57.4% IN BAND     change +0.0 [-2.7, 2.7]  PASS (verdict held or improved)
+  Swarm > Null      2500 seeds  56.2% (CI 54.2-58.1) UNRESOLVED  | baseline 56.2% UNRESOLVED  change +0.0 [-2.7, 2.7]  PASS (verdict held or improved)
+  Null ~ Cortex      900 seeds  49.2% (CI 46.0-52.5) IN BAND     | baseline 49.2% IN BAND     change +0.0 [-4.6, 4.6]  PASS (verdict held or improved)
+  Aegis ~ Swarm      900 seeds  51.2% (CI 48.0-54.5) IN BAND     | baseline 51.2% IN BAND     change +0.0 [-4.6, 4.6]  PASS (verdict held or improved)
+RING REGRESSION: PASS
+
+=====================================================================================
+4. The regression check catches a regression (Propagating Exploit put back to 2/2 locally,
+   not committed)
+=====================================================================================
+
+Ring regression vs baseline recorded 2026-10-04 (Lookahead vs Lookahead, seeds from 1)
+  Null > Aegis      2500 seeds  42.0% (CI 40.1-43.9) OUT OF BAND | baseline 48.2% OUT OF BAND change -6.2 [-8.9, -3.4]  FAIL (accepted-OUT edge moved further from its band (real change at 95%))
+  Aegis > Cortex    2500 seeds  52.2% (CI 50.3-54.2) OUT OF BAND | baseline 52.2% OUT OF BAND change +0.0 [-2.8, 2.8]  PASS (accepted OUT; did not move further out)
+  Cortex > Swarm    2500 seeds  57.4% (CI 55.4-59.3) IN BAND     | baseline 57.4% IN BAND     change +0.0 [-2.7, 2.7]  PASS (verdict held or improved)
+  Swarm > Null      2500 seeds  59.4% (CI 57.5-61.3) UNRESOLVED  | baseline 56.2% UNRESOLVED  change +3.3 [0.5, 6.0]  PASS (verdict held or improved)
+  Null ~ Cortex      900 seeds  40.7% (CI 37.5-43.9) OUT OF BAND | baseline 49.2% IN BAND     change -8.6 [-13.1, -4.0]  FAIL (verdict worsened: IN BAND -> OUT OF BAND)
+  Aegis ~ Swarm      900 seeds  51.2% (CI 48.0-54.5) IN BAND     | baseline 51.2% IN BAND     change +0.0 [-4.6, 4.6]  PASS (verdict held or improved)
+RING REGRESSION: FAIL (2 edge(s))
+(exit code 1)
+
+The 2/2 run reproduces the session-26 gate numbers exactly (42.0, 59.4, 40.7). Two edges fail, for
+the two different reasons: Null ~ Cortex's verdict worsens IN -> OUT, and Null > Aegis, already an
+accepted OUT, moves really further out (-6.2, interval excludes zero). Swarm > Null moves +3.3 but
+keeps its UNRESOLVED verdict, so it passes. That's by design: the check is about verdicts, not
+point drift.
+
+=====================================================================================
+5. Instance ids change no game outcome
+=====================================================================================
+
+64 matches (all 16 ordered faction pairings x 4 seeds, Lookahead and Random on p1) were played
+before and after the id change (before the attack-line fix below) and their formatted text logs compared:
+byte-identical (md5
+972da227f8c970f80bf58727e2570b99 both ways, 17,085 lines). The ids are carried alongside the
+names, never instead of them. The ring numbers in section 2 are the same games either way.
+
+The one deliberate text change: when an attacker's onAttack ability kills its defender before the
+attack is logged, the `attack` line used to print the defender's raw id ("attacks u11"); it now
+prints the name. Found by the new id test. It never occurred in a committed log, and it doesn't
+change who wins.

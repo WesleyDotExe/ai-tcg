@@ -96,34 +96,102 @@ export interface PlayerState {
   graveyard: Card[];
 }
 
+/**
+ * Identity fields (owner-feedback 2026-10-03, balance lane item b; built
+ * session 27). Every event that names a card on the board also says WHICH
+ * one, by instance id, so a spectator client can make a spell or ability
+ * travel to its exact target and pair each hit with the card that caused
+ * it, even with two copies of the same card in play. The names stay
+ * (formatEvent prints them, and the committed match logs read the same);
+ * the ids sit alongside them.
+ *
+ * - `sourceId`: the instance id of whatever caused the event. A unit or
+ *   Directive is its board instance id; a Command is its stack id (`c..`,
+ *   the same id its `cast` event carries); an onDeath ability is the dead
+ *   unit's old instance id (the matching `death` event carries it too).
+ *   Absent only when no card caused it: Overload's end-of-turn damage
+ *   comes from a status, not a card.
+ * - `targetRef` / `defenderRef` / `fromRef` / `toRef`: a full TargetRef
+ *   (unit, Directive or player), so a hit on a player's face is as exact as
+ *   a hit on a unit.
+ * - `stackId`: the id of the stack item an event opens or closes, pairing
+ *   `cast` and `attack` with their later `stackResolve`.
+ *
+ * They are optional in the type so event fixtures written before ids
+ * existed (render tests build frames by hand) stay valid, but the engine
+ * always fills them: engine/test/eventIds.test.ts plays real matches for
+ * every faction pairing and fails if any id is missing or names the wrong
+ * card.
+ */
 export type GameEvent =
   | { type: "turnStart"; turn: number; player: PlayerId }
   | { type: "turnEnd"; turn: number; player: PlayerId }
   | { type: "draw"; player: PlayerId; card: string }
   | { type: "fatigue"; player: PlayerId; damage: number }
   | { type: "play"; player: PlayerId; card: string; instanceId?: string }
-  | { type: "abilityTrigger"; source: string; ability: string; trigger: string }
-  | { type: "damage"; target: string; targetKind: "unit" | "player"; amount: number; source: string }
-  | { type: "heal"; target: string; targetKind: "unit" | "player"; amount: number; source: string }
-  | { type: "buff"; target: string; attack: number; health: number; source: string }
-  | { type: "statusApplied"; target: string; status: string; source: string }
-  | { type: "barrierAbsorbed"; unit: string; source: string }
-  | { type: "death"; unit: string; controller: PlayerId }
-  | { type: "attack"; attacker: string; defender: string; defenderKind: "unit" | "player" }
-  | { type: "gainEnergy"; player: PlayerId; amount: number; source: string }
-  | { type: "cast"; player: PlayerId; card: string; speed: Speed }
+  | {
+      type: "abilityTrigger";
+      source: string;
+      ability: string;
+      trigger: string;
+      sourceId?: string;
+      /** Everything the ability resolved against, in resolution order,
+       * before any effect applied. Empty for an untargeted ability (draw,
+       * gain energy, summon). This is where a spell's travel aims, even
+       * when the effect then does nothing (a hit fully eaten by armor). */
+      targets?: TargetRef[];
+    }
+  | { type: "damage"; target: string; targetKind: "unit" | "player"; amount: number; source: string; sourceId?: string; targetRef?: TargetRef }
+  | { type: "heal"; target: string; targetKind: "unit" | "player"; amount: number; source: string; sourceId?: string; targetRef?: TargetRef }
+  | { type: "buff"; target: string; attack: number; health: number; source: string; sourceId?: string; targetId?: string }
+  | { type: "statusApplied"; target: string; status: string; source: string; sourceId?: string; targetId?: string }
+  | { type: "barrierAbsorbed"; unit: string; source: string; sourceId?: string; unitId?: string }
+  | { type: "death"; unit: string; controller: PlayerId; instanceId?: string }
+  | {
+      type: "attack";
+      attacker: string;
+      defender: string;
+      defenderKind: "unit" | "player";
+      attackerId?: string;
+      defenderRef?: TargetRef;
+      stackId?: string;
+    }
+  | { type: "gainEnergy"; player: PlayerId; amount: number; source: string; sourceId?: string }
+  | {
+      type: "cast";
+      player: PlayerId;
+      card: string;
+      speed: Speed;
+      stackId?: string;
+      /** An activated ability's board source; absent for a Command, whose
+       * own identity is its stackId. */
+      sourceId?: string;
+      /** The target chosen at cast time, if the spell or ability has one.
+       * It can still fizzle or change before the stack item resolves. */
+      targetRef?: TargetRef;
+    }
   | { type: "priorityPass"; player: PlayerId }
-  | { type: "stackResolve"; description: string }
+  | { type: "stackResolve"; description: string; stackId?: string }
   | { type: "fizzle"; reason: string }
-  | { type: "telegraphPlaced"; unit: string; armIn: number }
-  | { type: "telegraphArmed"; unit: string }
-  | { type: "evolve"; player: PlayerId; from: string; to: string }
-  | { type: "toolAttached"; player: PlayerId; tool: string; unit: string }
-  | { type: "attackRedirected"; source: string; attacker: string; from: string; to: string }
-  | { type: "directiveDestroyed"; directive: string; controller: PlayerId; source: string }
-  | { type: "summon"; player: PlayerId; token: string; instanceId: string; source: string }
-  | { type: "summonFizzle"; player: PlayerId; token: string; source: string }
-  | { type: "baseArmorReduced"; unit: string; source: string; rawAmount: number; reducedTo: number }
+  | { type: "telegraphPlaced"; unit: string; armIn: number; instanceId?: string }
+  | { type: "telegraphArmed"; unit: string; instanceId?: string }
+  | { type: "evolve"; player: PlayerId; from: string; to: string; instanceId?: string }
+  | { type: "toolAttached"; player: PlayerId; tool: string; unit: string; unitId?: string }
+  | {
+      type: "attackRedirected";
+      source: string;
+      attacker: string;
+      from: string;
+      to: string;
+      sourceId?: string;
+      attackerId?: string;
+      fromRef?: TargetRef;
+      toRef?: TargetRef;
+    }
+  | { type: "directiveDestroyed"; directive: string; controller: PlayerId; source: string; sourceId?: string; instanceId?: string }
+  | { type: "summon"; player: PlayerId; token: string; instanceId: string; source: string; sourceId?: string }
+  | { type: "summonFizzle"; player: PlayerId; token: string; source: string; sourceId?: string }
+  | { type: "baseArmorReduced"; unit: string; source: string; rawAmount: number; reducedTo: number; sourceId?: string; unitId?: string }
   | { type: "gameOver"; winner: PlayerId | "draw"; reason: string };
 
 export interface GameState {
