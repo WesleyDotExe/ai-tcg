@@ -1,76 +1,80 @@
 # Current status
 
-**Build-order stage: Stage 3 (A real card set) is CLOSED; Stage 4+ (the
-living system: persistence, then the economy) is next.** Session 27 was a
-game-lane session (the last merged PR, #37, was render). It closed Phase 5
-per owner-feedback 2026-10-04 section A and built the event-log instance
-ids. Checkpoint at the top of `checkpoints.md`.
+**Build-order stage: Stage 4+ (the living system), persistence DONE, the economy build is
+next.** Session 28 was a game-lane session (the last merged PR, #39, was render). It built
+persistence (owner-feedback 2026-10-04 section B) and wrote the economy spec (`ECONOMY.md`). The
+stage isn't finished, so there's no checkpoint this session.
 
-## What stands (this session's work; sessions 1-26 otherwise unchanged)
+## What stands (this session's work; sessions 1-27 otherwise unchanged)
 
-**Propagating Exploit 2/2 -> 2/3** (owner-approved, `engine/src/data/nullCards.ts`).
-The Phase 5 baseline (Lookahead, 2,500 seeds win/lose bands, 900 even):
+**`economy/` (`@ai-tcg/economy`), a new workspace.** The engine doesn't depend on it; the
+server will (roadmap 6b).
+- `src/schema.ts`: migration v1. Tables: `meta` (season), `agents`, `ledger`, `packs`,
+  `card_copies`, `decks`/`deck_copies`, `matches`. The integrity rules are in the schema as
+  triggers and CHECK constraints:
+  - the ledger is append-only, and no entry may take a balance below zero;
+  - each agent gets at most one payout per reason per reference;
+  - a deck can only hold copies its own agent owns;
+  - each serial exists once and fits its run;
+  - a cancelled or abandoned match pays 0.
+- `src/store.ts`: the `EconomyStore` API, backed by `node:sqlite` (one file per season).
+  - Agents: `createAgent`, `getAgent`, `listAgents`.
+  - Ledger: `balance` (the sum of the ledger, never stored), `ledger`.
+  - Copies: `grantCopy`/`grantCopies` (batch, all or nothing; card ids are checked against the
+    engine's new `CARD_REGISTRY`), `collection`.
+  - Decks: `saveDeck`/`loadDeck` (ownership checks, then the engine's own `buildDeck` rules),
+    `setActiveDeck`.
+  - Packs: `buyPack` (100 credits; the debit and the pack in one transaction), `grantPack`,
+    `unopenedPacks`.
+  - Matches: `recordMatch` (the match plus both payouts in one transaction; a duplicate id is
+    refused), `matchHistory`, `dailyTally`.
+- `src/payouts.ts`: wins pay 40 / 15 x3 / 5 x6 / 0 per UTC day (owner-set). A loss or draw pays
+  2 (provisional), first 10 a day, and only while a win would still pay. Cancelled or abandoned
+  pays 0.
+- The engine gained exports only: `CARD_REGISTRY`, `SHIPPED_DECK_LISTS`, `getCard`,
+  `COPY_LIMITS`, `buildNullDeck`, `LookaheadAgent`, and the `Rarity`/`DeckFaction` types. No
+  logic changed, and the ring check came out identical.
 
-| Edge (target) | rate | verdict |
-|---|---|---|
-| Null > Aegis (55-60) | Null 48.2 | OUT (owner-accepted) |
-| Aegis > Cortex (55-60) | Aegis 52.2 | OUT (owner-accepted) |
-| Cortex > Swarm (55-60) | Cortex 57.4 | IN |
-| Swarm > Null (55-60) | Swarm 56.2 | UNRESOLVED |
-| Null ~ Cortex (45-55) | Null 49.2 | IN |
-| Aegis ~ Swarm (45-55) | Aegis 51.2 | IN |
-
-**Balance is a regression check now, not a lane.** `engine/src/dev/ringRegression.ts`
-(`npm run ring -w @ai-tcg/engine`) measures those six edges and compares them with
-`engine/src/dev/ringBaseline.json`. It fails on a worse verdict, or on a real move further out
-on an accepted-OUT edge. It's a step in CI's `test` job (every PR, about 15 s). Re-baseline only
-with `--write-baseline` for an owner-approved change, committed with its balance report.
-`edgeMeasure.ts` gained `measurePairing` (one pairing, same seeding as `measureEdges`).
-
-**Event-log instance ids** (`engine/src/state/types.ts` GameEvent doc comment):
-- `sourceId` on everything a card causes. That's a unit or Directive id, a Command's stack id,
-  or the dead unit's id for onDeath. Overload ticks have none.
-- `targetRef` on damage/heal (players included); `targetId`/`unitId` on buff, status, Barrier
-  and armor events.
-- `attackerId`/`defenderRef`/`stackId` on attack; `stackId` (+ `sourceId`, `targetRef`) on cast;
-  `stackId` on stackResolve.
-- `instanceId` on death, telegraph, evolve and directiveDestroyed; `fromRef`/`toRef` on a
-  redirect; `targets` on abilityTrigger.
-
-The text log (`formatEvent`) is unchanged. Also fixed: an `attack` line printed the defender's raw
-id when an onAttack ability had already killed it.
+**`ECONOMY.md`**: the owner's section C, the economy answers and the three amendments as one
+spec. Each part is marked BUILT, SPEC (with its session) or OPEN. The only OPEN item is the
+unique Mythic's effect menu and power budgets. Four provisional numbers are flagged in
+notes-for-owner.md.
 
 ## Evidence committed
 
-- `progress/balance-report-021-phase5-close.txt`: the re-measure (900 / 2,500 / held-out
-  2501-5000), the baseline table, the regression check passing, and the check failing with
-  Propagating Exploit put back to 2/2. Also the 64-match byte-identical text-log comparison.
-- `progress/sample-match-028-event-ids.txt` (`engine/src/dev/eventIdsMatchDemo.ts`): a full
-  Null vs Cortex game, every line with its ids. Shows a targeted Command, onDeath sources, and a
-  hit on one of two Orphaned Threads.
-- `engine/test/eventIds.test.ts` (3 tests: all 16 pairings x 2 policies checked event by event
-  against real state, with an exact per-instance damage check; a twin-copy Command; combat plus
-  redirect). `engine/test/ringRegression.test.ts` (4 tests on the judging rule and the baseline).
-- `npm test`: 323 across five workspaces (engine 135). `tsc --noEmit` clean in all five.
+- `progress/economy-demo-001.txt` (`npm run demo -w @ai-tcg/economy`):
+  - four house agents own their faction's shipped deck as copies and play from decks saved from
+    those copies;
+  - 40 real Lookahead matches over two days, paid and recorded, with the daily caps visibly
+    paying 0 (s0-m033, m035, m036) and day 2 resetting to 40;
+  - a cancel and an abandon pay 0;
+  - a duplicate match and a raw ledger UPDATE are refused;
+  - the owner buys packs until each balance runs short, and the next purchase is refused;
+  - the file is closed, reopened, and the balances equal the ledger sums.
+- `economy/test/` (18 tests): the payout invariant over every tally from 0-15 wins and 0-15
+  losses, append-only and no-overdraw through raw SQL, a duplicate match, a foreign winner, UTC
+  day counting, cancel/abandon paying 0 (including a raw INSERT), a draw, the pack price and
+  refusal, a batch rollback, serial uniqueness and run bounds, promos needing a stamp, deck
+  ownership (also through raw SQL), the engine deck rules, a disposed copy, and close/reopen of
+  a real file.
+- `npm test`: 357 across six workspaces. `tsc --noEmit` clean in all six. The ring regression
+  check passes, identical to the baseline.
 
 ## Concrete next step
 
-Check the alternation: if the last merged PR is this one (game lane), the next session is
-**render** (EFFECTS.md v2 slice 2; per the 2026-10-04 render entry, write the 10
-`signatureAbilities` entries and the two Wards rules first if not done). The render lane can now
-use the ids. EFFECTS.md's Dependencies line saying ids are missing is stale, and the render
-session should update it (render-lane file, so not touched here).
+Check the alternation first. If the last merged PR is this one (game lane), the next session is
+**render**: apply the 2026-10-05 entry (player-targeted hits land mid-board), then EFFECTS.md v2
+slice 3 (procedural sound).
 
-The next **game-lane** session is **session 28: persistence + economy spec** (owner-feedback
-2026-10-04 sections B/C, roadmap item 6):
-1. A self-contained local database file (no external service). Pick the storage
-   (e.g. `node:sqlite` on Node 22, or a JSON-file store with atomic writes) and justify it.
-   Tables/collections: agents, currency ledger (append-only entries, balance derived), owned
-   card copies (hidden copy id, card id, finish, source = pack/promo/starter, acquired-at),
-   unopened packs as owned items, decks (pointing at copy ids), match history.
-2. Write the economy spec (in DESIGN.md or a new `ECONOMY.md`) to section C. Mark the
-   [OWNER CHECK-IN] items as open: finishes/pull rates, unique-Mythic effect menu and budgets,
-   quests and numbers, starter shape.
-3. Build only the no-taste-call parts: the per-copy model and the ledger, with the payout rule
-   (win > loss > cancel = 0) enforced and tested. Show it running: a script that records a few
-   real matches' payouts into the store and prints balances and history.
+The next **game-lane** session is **session 29, the economy build** (ECONOMY.md, sections marked
+"SPEC (session 29)"), in this order:
+1. Sets. A Season 0 set definition (`S0`): collector numbers for every ownable card (the
+   registry has the cards; pick a stable order), the set total, Gold numbering above the total.
+   Store it as data in `economy/`, not in the database.
+2. Pack generation as a pure, seeded function (5 slots, the shine-slot finish table, Jackpot,
+   the Prototype bonus 6th card at 1 in 1,000 weighted by remaining copies, pity timers derived
+   from history). Then `openPack` in the store: mark the pack opened, grant the copies, +5 pack
+   points, convert standard-finish duplicates beyond 3/3/2/1. Test the rates with a simulation of
+   ~100k packs, not by raising rates.
+3. Pack points spending (standard finish only), promo issuing (PR-001 numbering, stamp required).
+4. Starter collections (the four shipped decks + 3 packs), and the owner's pack-opening command.

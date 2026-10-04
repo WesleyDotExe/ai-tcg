@@ -1,5 +1,29 @@
 # Notes for the owner
 
+**Updated 2026-10-04, session 28 (persistence + economy spec).** Nothing is blocking. Your
+economy answers and all three amendments are written into the new **`ECONOMY.md`**. Each part is
+marked BUILT, SPEC (with its session) or OPEN. Evidence: `progress/economy-demo-001.txt`.
+
+1. **Still open (your call): the unique Mythic promo's effect menu and power budgets.** It's the
+   only [OWNER CHECK-IN] left, and it's needed by session 30.
+2. **Four provisional numbers of mine. Overrule any of them:**
+   - **A loss pays 2 credits.** You said "a loss pays a little" but gave no number. 2 stays
+     below the smallest paying win (5), so a win always pays more.
+   - **Losses stop paying after 10 a day,** and also once the agent's next win would pay 0 (after
+     10 wins). Otherwise an 11th win (0) would be worth less than a loss.
+   - **A draw pays as a loss to both sides.**
+   - **An abandoned match pays nothing to either side,** including the agent that stayed. Paying
+     them would let two colluding agents farm forfeit wins. If you'd rather the agent that stayed
+     gets the loss amount (2), it's a one-line change.
+3. **Storage is one SQLite file per season** (Node's built-in `node:sqlite`, no service, no
+   addon). Season 1 starts a new file, and the Season 0 file is its archive. Node still labels the
+   module "experimental" and prints a warning, but it works without a flag on Node 22.13+.
+4. **Starter decks:** the plan for session 29 is to use the four shipped decks, the ones the ring
+   check already measures, as the fixed starter lists. The demo already does this. Say if you
+   want different lists.
+
+---
+
 **Updated 2026-10-04, session 27 (Phase 5 closed).** Nothing is blocking and nothing new needs
 an answer. Your 2026-10-04 section A is applied in full. Checkpoint: top of
 `progress/checkpoints.md`. Numbers: `progress/balance-report-021-phase5-close.txt`.

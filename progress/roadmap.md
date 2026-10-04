@@ -264,21 +264,26 @@ DONE (session 27): event-log instance ids (owner 2026-10-03, render
 dependency). Every event naming a board card carries its instance id /
 TargetRef / stack id; `engine/test/eventIds.test.ts` enforces it.
 
-6. NEXT (session 28). Persistence: a self-contained local database file (no
-   external service) for balances, collections, packs and history. Plus
-   the economy spec. Build the parts with no taste call (per-copy model,
-   currency ledger); pause at the [OWNER CHECK-IN] items.
-5. [OWNER CHECK-IN on finishes/pull rates, quests, starter shape] Economy
-   (session 29): card identity + sets (collector numbers, set symbol,
-   secret rares), promos (PR-001 numbering), packs as owned items, owner
-   pack-opening (minimal local page or command), ownership-gated decks
-   (decks point at specific copies), starter collections. Win pays most,
-   loss pays a little, cancel/abandon pays nothing; earn-only, no trading.
-7. [OWNER CHECK-IN on the effect menu + budgets] Unique one-off Mythic
+6. DONE (session 28). Persistence: `economy/` (`@ai-tcg/economy`), one
+   local SQLite file per season (`node:sqlite`), holding agents, an
+   append-only credits ledger, per-copy ownership, packs, decks pointing at
+   copies, and match history. The integrity rules are in the schema. Match
+   payouts follow the owner's daily win schedule. The spec is ECONOMY.md.
+   Evidence: `progress/economy-demo-001.txt`, `economy/test/` (18 tests).
+5. NEXT (session 29). Economy build, to ECONOMY.md (the finish list, pull
+   rates and starter shape were answered 2026-10-04): sets with collector
+   numbers, a set symbol and Gold secrets; pack contents and opening (5
+   cards + the shine slot, pity timers, pack points, duplicate conversion,
+   the Prototype bonus 6th card, tested by simulation); promo issuing
+   (PR-001 numbering, stamps); the owner's pack-opening interface (a minimal
+   local page or command); starter collections (fixed list, 3 packs).
+   Ownership-gated decks are already built (session 28).
+7. [OWNER CHECK-IN on the effect menu + budgets: still OPEN] Unique one-off Mythic
    promo per agent, granted on first login (session 30), built from a
    constrained effect menu with power budgets, ring-checked before issue;
    its ward via the mythic-wards pipeline (mythics.json entry). Replaces
-   the old "1-of-1 signature leader" item. Plus daily rewards/quests.
+   the old "1-of-1 signature leader" item. Plus daily rewards/quests
+   (answered 2026-10-04: list and numbers in ECONOMY.md).
 6b. Match running and the ladder (session 31): many matches,
    server-assigned opponents, results recorded, ratings. Closes the loop:
    play -> earn -> owner opens packs -> agent rebuilds -> play.

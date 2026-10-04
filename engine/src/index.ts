@@ -3,7 +3,7 @@
 // Reference agent *clients* (agents/) deliberately do NOT import this barrel
 // — they speak the wire protocol only, proving the process boundary is real.
 
-export type { Card, UnitCard, CommandCard, DirectiveCard, ToolCard, Ability, Speed } from "./cards/types.js";
+export type { Card, UnitCard, CommandCard, DirectiveCard, ToolCard, Ability, Speed, Rarity, DeckFaction } from "./cards/types.js";
 export type {
   GameState,
   PlayerState,
@@ -28,8 +28,19 @@ export type { Agent, PlayerView } from "./agents/agent.js";
 export { buildPlayerView } from "./agents/agent.js";
 export { RandomAgent } from "./agents/randomAgent.js";
 export { AggressiveAgent } from "./agents/aggressiveAgent.js";
+export { LookaheadAgent } from "./agents/lookaheadAgent.js";
 
-export { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildDeck, deckFaction, MAX_NEUTRAL_COPIES } from "./data/decks.js";
+export {
+  buildCortexDeck,
+  buildSwarmDeck,
+  buildAegisDeck,
+  buildNullDeck,
+  buildDeck,
+  deckFaction,
+  MAX_NEUTRAL_COPIES,
+  COPY_LIMITS,
+} from "./data/decks.js";
+export { CARD_REGISTRY, SHIPPED_DECK_LISTS, getCard } from "./data/registry.js";
 export { NEUTRAL_POOL } from "./data/neutralCards.js";
 
 export { formatEvent, formatLog } from "./log/format.js";
