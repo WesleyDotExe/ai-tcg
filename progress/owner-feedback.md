@@ -1484,3 +1484,29 @@ This replaces the first bullet of section 1 (Packs) in the entry above. Everythi
 
 - **5 cards per pack:** 2 Common, 1 Uncommon, 1 Rare slot (1 in 8 is a Mythic instead), 1 **shine slot** (any card, any rarity). The shine slot is still the only slot that rolls a finish, and the finish rates per pack are unchanged.
 - Pack price (100 credits), pack points (5 per pack), pity timers, earning rates and the 3 starter packs stay as written. Collecting a full playset is slower than with 8-card packs; judge that from Season 0 data before changing any numbers.
+
+
+---
+
+## 2026-10-04 — Owner: AMENDMENT to the economy answers — Prototype series (15 limited runs, unique art per run)
+
+This replaces section 3 (Prototypes) of the economy answers entry where they differ. Everything not mentioned here stands (one series per season, never reissued, a used-up run gives a Gold instead, its own series outside the set count, the gold-foil card layout).
+
+- **15 Prototypes per season, each a single limited run.** Run sizes as a pyramid:
+
+| Run | Cards | Copies |
+|---|---|---|
+| x/250 | 4 | 1,000 |
+| x/100 | 3 | 300 |
+| x/50 | 3 | 150 |
+| x/25 | 2 | 50 |
+| x/10 | 1 | 10 |
+| x/5 | 1 | 5 |
+| 1/1 | 1 | 1 |
+| **Total** | **15** | **1,516** |
+
+- **Every Prototype run has its own unique card art**, made only for that run: different from the card's set art and from every other Prototype. The art is what makes each one special. No coloured tier overlays: every Prototype uses the same gold-foil serial plate and gold-foil PROTOTYPE · S1 from the card layout.
+- The most wanted cards get the smallest runs. The 1/1 goes to a fan-favourite Mythic. Reveal each season's list (card and run size) at the start of the season.
+- Treatment: mostly Full Art, but the art direction is free to have fun (e.g. the Blueprint schematic style).
+- **Pulls:** when a pack rolls a Prototype, pick which one in proportion to the copies still available (a 1/1 is about 1 in 1,516 Prototype pulls). **Pace the Prototype rate so the season's supply lasts roughly until the season ends**, instead of a fixed 1 in 500. In Season 0, with low volume, most runs won't sell out; that's fine.
+- The art is made at build time with Replicate (same pattern as the mythic-wards action) and committed as static files. Surface previews in notes-for-owner.md for the owner to check before a season's list goes live.
