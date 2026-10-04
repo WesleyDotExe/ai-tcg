@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card Text Layout</title>
+<style>
+  :root{
+    --bg:#0e1016; --panel:#171a23; --ink:#e9ecf3; --muted:#9aa3b5;
+    --null:#d565ff; --frame:#2a2f3d; --frame-hi:#3a4152;
+    --gold1:#7a5a12; --gold2:#f6d77a; --gold3:#b8862a; --gold4:#fff1b8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:28px 16px 48px}
+  h1{font-size:20px;margin:0 0 4px;text-align:center}
+  .sub{color:var(--muted);text-align:center;margin:0 0 28px}
+  .row{display:flex;flex-wrap:wrap;gap:28px;justify-content:center}
+  .col{width:260px}
+  .label{font-weight:600;text-align:center;margin:0 0 10px;letter-spacing:.02em;min-height:64px}
+  .label small{display:block;font-weight:400;color:var(--muted)}
+
+  /* ---------- card ---------- */
+  .card{position:relative;width:260px;height:364px;border-radius:14px;padding:10px;
+        background:linear-gradient(160deg,var(--frame-hi),var(--frame));
+        box-shadow:0 10px 30px rgba(0,0,0,.45), inset 0 0 0 2px rgba(255,255,255,.06)}
+  .head{display:flex;justify-content:space-between;align-items:center;height:30px;padding:0 4px}
+  .name{font-weight:700;font-size:15px}
+  .cost{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;
+        background:radial-gradient(circle at 35% 30%,#fff,#9fd8ff 40%,#2b6fa8);color:#0b1a2a}
+  .art{position:relative;height:150px;border-radius:8px;overflow:hidden;margin:4px 0 6px;
+       background:
+         radial-gradient(circle at 50% 55%, #000 0 18%, transparent 19%),
+         radial-gradient(circle at 50% 55%, rgba(213,101,255,.9) 0 26%, transparent 46%),
+         repeating-linear-gradient(90deg, rgba(213,101,255,.18) 0 6px, transparent 6px 14px),
+         linear-gradient(180deg,#1b0f2a,#3b1460)}
+  .type{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 6px;
+        background:rgba(0,0,0,.28);border-radius:5px}
+  .rarity{font-size:13px;color:var(--null)}
+  .text{height:62px;margin-top:6px;padding:6px 8px;font-size:12px;border-radius:6px;background:rgba(0,0,0,.22);color:#d9deea}
+  .stats{position:absolute;right:14px;bottom:36px;display:flex;gap:6px}
+  .stat{min-width:30px;height:24px;padding:0 6px;border-radius:6px;display:grid;place-items:center;font-weight:800;font-size:13px;background:#0d0f15;border:1px solid rgba(255,255,255,.15)}
+  .foot{position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted)}
+  .setno{display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums;font-weight:600;color:#cfd5e2}
+  .sym{width:16px;height:16px;flex:none}
+
+  /* ---------- gold foil (animated sheen) ---------- */
+  .foil{background:linear-gradient(110deg,var(--gold1) 0%,var(--gold2) 22%,var(--gold3) 40%,var(--gold4) 50%,var(--gold3) 60%,var(--gold2) 78%,var(--gold1) 100%);
+        background-size:250% 100%;animation:sheen 3.2s linear infinite}
+  .foil-text{background:linear-gradient(110deg,var(--gold1) 0%,var(--gold2) 22%,var(--gold3) 40%,var(--gold4) 50%,var(--gold3) 60%,var(--gold2) 78%,var(--gold1) 100%);
+        background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:sheen 3.2s linear infinite;font-weight:800}
+  @keyframes sheen{from{background-position:120% 0}to{background-position:-120% 0}}
+  @media (prefers-reduced-motion:reduce){.foil,.foil-text{animation:none}}
+
+  /* prototype serial plate */
+  .plate{position:absolute;right:8px;bottom:8px;padding:4px 10px;border-radius:5px;font-weight:900;font-size:14px;letter-spacing:.06em;color:#3a2604;
+         box-shadow:0 2px 6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.6), inset 0 -1px 0 rgba(0,0,0,.35);text-shadow:0 1px 0 rgba(255,255,255,.45)}
+  .plate-low{left:12px;right:auto;bottom:31px;font-size:13px;padding:3px 9px}
+  .stamp.stamp-low{left:12px;top:auto;bottom:33px;position:absolute}
+  .card.proto{background:linear-gradient(160deg,#2b2417,#15130e);box-shadow:0 10px 30px rgba(0,0,0,.5), inset 0 0 0 2px #a07a22}
+
+  /* gold card */
+  .card.goldcard{background:linear-gradient(150deg,#5c440f,#c9a24a 35%,#7d5c16 60%,#e6c56a 85%,#5c440f)}
+  .card.goldcard .art{filter:sepia(1) saturate(2.2) hue-rotate(-12deg) brightness(1.05)}
+  .card.goldcard .type,.card.goldcard .text{background:rgba(40,28,4,.45);color:#fff3cf}
+  .card.goldcard .setno{color:#fff3cf}
+
+  /* promo stamp */
+  .stamp{position:absolute;left:8px;top:8px;padding:3px 8px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.08em;
+         background:rgba(255,255,255,.92);color:#20242e}
+
+  /* callouts */
+  .pin{position:absolute;width:20px;height:20px;border-radius:50%;background:#ff5d73;color:#fff;font-weight:800;font-size:11px;
+       display:grid;place-items:center;box-shadow:0 0 0 2px var(--bg);z-index:3}
+  ol{margin:12px 0 0;padding-left:0;list-style:none;counter-reset:n}
+  ol li{counter-increment:n;position:relative;padding-left:28px;margin:6px 0;color:#cfd5e2;font-size:13px}
+  ol li::before{content:counter(n);position:absolute;left:0;top:1px;width:20px;height:20px;border-radius:50%;background:#ff5d73;color:#fff;font-weight:800;font-size:11px;display:grid;place-items:center}
+  .note{max-width:1180px;margin:30px auto 0;color:var(--muted);font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<h1>Where the numbers go</h1>
+<p class="sub">Layout mock-up. The card name, stats, art and symbols are placeholders.</p>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="setsym" viewBox="0 0 16 16"><path d="M8 1 14 4.5v7L8 15 2 11.5v-7z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="8" r="2.3" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<div class="row">
+
+  <!-- STANDARD -->
+  <div class="col">
+    <p class="label">Standard set card<small>also Foil, Full Art, Alt Art</small></p>
+    <div class="card">
+      <div class="head"><span class="name">Kernel Panic</span><span class="cost">4</span></div>
+      <div class="art"></div>
+      <div class="type"><span>Unit · Null</span><span class="rarity">★ Rare</span></div>
+      <div class="text">Evolve: destroy a unit.</div>
+      <div class="stats"><span class="stat">3</span><span class="stat">3</span></div>
+      <div class="foot">
+        <span class="setno"><svg class="sym" style="color:#cfd5e2"><use href="#setsym"/></svg>056/120</span>
+        <span>Set 1</span>
+      </div>
+      <span class="pin" style="left:14px;bottom:30px">1</span>
+      <span class="pin" style="right:2px;top:176px">2</span>
+    </div>
+    <ol>
+      <li><b>Set symbol + set number</b> (056/120), bottom left.</li>
+      <li><b>Rarity</b> (●&nbsp;◆&nbsp;★&nbsp;✦), on the type line.</li>
+    </ol>
+  </div>
+
+  <!-- GOLD -->
+  <div class="col">
+    <p class="label">Gold (secret)<small>counts as a secret card beyond the set total</small></p>
+    <div class="card goldcard">
+      <div class="head"><span class="name">Kernel Panic</span><span class="cost">4</span></div>
+      <div class="art"></div>
+      <div class="type"><span>Unit · Null</span><span class="rarity" style="color:#fff3cf">★ Rare</span></div>
+      <div class="text">Evolve: destroy a unit.</div>
+      <div class="stats"><span class="stat">3</span><span class="stat">3</span></div>
+      <div class="foot">
+        <span class="setno"><svg class="sym" style="color:#fff3cf"><use href="#setsym"/></svg>121/120</span>
+        <span style="color:#fff3cf">Set 1</span>
+      </div>
+      <span class="pin" style="left:14px;bottom:30px">1</span>
+    </div>
+    <ol>
+      <li><b>Same spot, number above the total</b> (121/120). Collectors spot a secret instantly.</li>
+    </ol>
+  </div>
+
+  <!-- PROTOTYPE -->
+  <div class="col">
+    <p class="label">Prototype<small>its own series, not part of the 120</small></p>
+    <div class="card proto">
+      <div class="head"><span class="name">Kernel Panic</span><span class="cost">4</span></div>
+      <div class="art"></div>
+      <div class="type"><span>Unit · Null</span><span class="rarity">★ Rare</span></div>
+      <div class="text">Evolve: destroy a unit.</div>
+      <div class="stats"><span class="stat">3</span><span class="stat">3</span></div>
+      <div class="foot">
+        <span class="setno"><svg class="sym" style="color:#e9c46a"><use href="#setsym"/></svg><span class="foil-text">PROTOTYPE · S1</span></span>
+        <span style="color:#c9b27a">Set 1</span>
+      </div>
+      <span class="plate foil plate-low">07/50</span>
+      <span class="pin" style="left:76px;bottom:34px">1</span>
+      <span class="pin" style="left:150px;bottom:6px">2</span>
+    </div>
+    <ol>
+      <li><b>Serial on a gold-foil plate, bottom left</b> (07/50): the 7th of 50 made for Season 1.</li>
+      <li><b>PROTOTYPE · S1 in gold foil</b>, directly below, where the set number would be. There's no x/120 anywhere on the card.</li>
+    </ol>
+  </div>
+
+  <!-- PROMO -->
+  <div class="col">
+    <p class="label">Promo<small>earned from milestones, quests, tournaments</small></p>
+    <div class="card">
+      <div class="head"><span class="name">Kernel Panic</span><span class="cost">4</span></div>
+      <div class="art"></div>
+      <div class="type"><span>Unit · Null</span><span class="rarity">★ Rare</span></div>
+      <div class="text">Evolve: destroy a unit.</div>
+      <div class="stats"><span class="stat">3</span><span class="stat">3</span></div>
+      <div class="foot">
+        <span class="setno"><svg class="sym" style="color:#cfd5e2"><use href="#setsym"/></svg>PR-014</span>
+        <span>Promo</span>
+      </div>
+      <span class="stamp stamp-low">10-WIN STREAK</span>
+      <span class="pin" style="left:128px;bottom:34px">1</span>
+      <span class="pin" style="left:98px;bottom:6px">2</span>
+    </div>
+    <ol>
+      <li><b>Promo stamp, bottom left</b>, naming how it was earned.</li>
+      <li><b>Promo number</b> (PR-014) directly below, in the set-number spot, with no slash.</li>
+    </ol>
+  </div>
+
+</div>
+
+<p class="note">Rule of thumb: the bottom-left corner holds everything about which series a card belongs to, and the artwork stays clean. A plain number (056/120) means the set, a gold-foil serial above PROTOTYPE · S1 means a Prototype, and PR- means a promo. Only Prototypes use gold foil text.</p>
+</body>
+</html>
