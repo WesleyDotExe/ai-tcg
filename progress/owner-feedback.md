@@ -1596,3 +1596,45 @@ The owner wants the storage concern from session 28 corrected, not just accepted
 2. **Now:** pin the minimum Node version in package.json `engines`, and note in ECONOMY.md that `node:sqlite` is a release candidate (a release candidate as of Node 25.7; older versions print an experimental warning). Remove any warning workaround once Node marks it stable.
 3. **Before the public Season 1 launch (hard gate):** replace or back the single SQLite file with storage that can handle many players at once (likely a self-hosted server database such as Postgres, or a proven SQLite setup if load tests show it is enough). Prove it with a load test at public-launch scale. It must stay self-contained: self-hosted, no third-party managed database service.
 4. Add this to `progress/roadmap.md` under the match-server / launch items, and track it in `progress/quality-debt.md` until the launch gate is passed.
+
+
+---
+
+## 2026-10-05 — Owner: the unique Mythic (signature card) — effect menu, power budget and rules
+
+This closes the last [OWNER CHECK-IN] in ECONOMY.md. Build it for session 30. Benchmarks are the four set Mythics: Quorum Arbiter (5, 3/6), Hive Mother (5, 3/6), Prime Aegis (6, 4/8), Null Singularity (7, 3/7).
+
+### Creation
+- At agent creation the system **generates 3 complete candidates** (name, concept, art, ward). **The owner picks one.** No owner theme or renaming: fully generated.
+- Every candidate has already passed the fairness test below before it is shown.
+- Faction = the agent's faction. No two agents in a season share the same body + ability combination; names and art are always unique.
+- Art and ward come from the existing build-time Replicate pipeline (mythics.json + mythic-wards action), with the fallback ward until the art lands.
+
+### Power: equal to the set Mythics
+- Swap the candidate in for its faction's set Mythic (both played from the signature zone, below). The faction's ring win rates must move by **no more than 2 points**, and the ring regression check must still pass. If it fails, adjust its stats and test again.
+
+### Body (3 cost tiers)
+| Cost | Stat choices | Ability allowance |
+|---|---|---|
+| 5 | 3/6, 4/5 or 2/7 | 1 signature ability |
+| 6 | 4/8, 5/7 or 3/9 | signature + one keyword (Rush, Guard or Barrier) |
+| 7 | 3/7 or 4/6 | signature + a second aura (like Null Singularity) |
+
+### Signature ability menu (owner kept all 16; all use existing engine effects)
+- **Cortex:** Scales with enemies (attack = 1 + enemy units); Stun on arrival (a random enemy unit, 2 turns); Cheaper Commands (your Commands cost 1 less); Retaliation burst (when damaged, 1 damage to all enemy units).
+- **Aegis:** Fortify all (your units +0/+2); Barrier wave (on arrival, all your units gain Barrier); Bodyguard (Guard, and it takes the first attack aimed at your side each turn); Field repair (end of your turn, restore 2 health to each of your units).
+- **Swarm:** Brood call (on arrival, summon two 1/1 Larva); Frenzy aura (your other units +1/+0); Death burst (when it dies, summon three 1/1 Larva); Feeds on loss (whenever another of your units dies, +1/+1).
+- **Null:** Purge (on arrival, destroy an enemy unit costing 3 or less); Entropy aura (enemy units -1/-0); Decay tick (end of your turn, 1 damage to each enemy unit); Freeze (on arrival, two enemy units in Stasis for 1 turn).
+- Add new menu options each season to keep combinations fresh.
+
+### How it plays: the signature zone (new engine rule)
+- **It does not take a deck slot.** It starts the match in its own signature zone, outside the deck, always available. It is never drawn, discarded or shuffled.
+- **Play it on any turn you can afford it**, like a card from your hand.
+- **When it dies it returns to the signature zone and costs 2 more each time it is played again** that match (like Magic's Commander).
+- It does not count toward the deck's Mythic copy limit; the deck can still run other Mythics.
+- This is a rules change for every match, so after it lands **re-baseline the ring regression check once**, with each faction's set Mythic standing in as its signature card, and record the new baseline. Agents (Lookahead etc.) must learn to use the zone.
+
+### Ownership
+- **Bound to its agent forever:** never traded or sold, even after trading exists.
+- **Carries over every season reset**, even when the rest of the collection resets.
+- It is the agent's first promo (PR- numbering), granted on first login.
