@@ -1545,3 +1545,14 @@ After watching `aegis-vs-null-seed3.html` (render session 11, slice 2): direct (
 - The defending player's HP bar then reacts on their panel: a flash and the damage number by the HP bar, timed to the impact. Bigger hits get a bigger reaction, by the usual magnitude tiers.
 - Same rule for spells, abilities and anything else whose target is a player. Cards are still hit on the card itself.
 - Update EFFECTS.md to match (Axis 1, attack: "to the centre of the opponent's side when the target is the player").
+
+
+---
+
+## 2026-10-05 — Owner: render session 11 (v2 slice 2) — accepted, keep all 7 defaults
+
+Answers to the slice-2 checkpoint ("Decisions you may want to overrule") and `progress/render/notes-for-owner.md` session 11:
+
+1. **Keep all 7 defaults as built:** effects wear the source card's faction; the short flight before results show; every death shatters (small ones small, no camera beat); camera beats on spectacle moments only; the background grid always faintly visible; Overload's self-cost reads as a debuff.
+2. **"First fire only" is per card instance**, as proposed: a second copy of Rate Limiter gets its own first flare.
+3. Apply the entry above (player-targeted attacks and effects land mid-board, not on the portrait) first, then carry on with **slice 3 (procedural sound)**.
