@@ -1414,3 +1414,63 @@ Slice 1 accepted. Answers to `progress/render/notes-for-owner.md` (session 10, i
 5. Everything else on the OUT list stays out (statics/auras, card draw, Bloodswarm Alpha's summon, tools with no ability id).
 
 **Render lane:** write the 10 entries into `render/presentation/mythics.json` → `signatureAbilities`. Add rules 2 and 4 to the Wards section of `render/EFFECTS.md`. Then carry on with slice 2. No change to Aegis orange or Neutral gold for now; the owner will check whether they are easy to tell apart in replays and say if Neutral should move to a paler gold.
+
+
+---
+
+## 2026-10-04 — Owner: economy answers for session 28 (packs, finishes, Prototypes, promos, quests, starters, card layout)
+
+This answers three of the [OWNER CHECK-IN] items in the 2026-10-04 Stage 4 entry (section C): finishes and pull rates, the quest list and numbers, and the starter shape. Build to these. They are starting values for Season 0; tune them from Season 0 data, not by guesswork. The only check-in still open is the unique Mythic effect menu and power budgets.
+
+Design direction: **Prototypes and promos are where we get to have fun.** They never change gameplay, so the art and presentation can be bold, varied and surprising there.
+
+### 1. Packs
+- **8 cards per pack:** 4 Common, 2 Uncommon, 1 Rare slot (1 in 8 is a Mythic instead), 1 **shine slot** (any card, any rarity). The shine slot is the only slot that rolls a finish.
+- **Currency: credits. 1 pack = 100 credits.**
+- **Pity timers:** if 10 packs pass with no Full Art or better, the next pack guarantees one. If 40 packs pass with no Mythic, the next pack guarantees one. Track per agent.
+- **Pack points:** every pack gives 5 points. The owner spends points to pick a specific card in **standard finish only** (Common 25, Uncommon 50, Rare 150, Mythic 400). Finishes can never be bought, so the hunt stays real.
+- **No dead duplicates:** standard-finish copies beyond the playable limit (3/3/2/1) convert to pack points (Common 1, Uncommon 2, Rare 5, Mythic 15). Copies with a finish are never auto-converted.
+
+### 2. Finishes (shine slot rates)
+| Finish | Look | Rate |
+|---|---|---|
+| Standard | normal card | ~56% |
+| Foil | shimmer in the faction's own pattern (Cortex circuits, Aegis hex plates, Swarm chitin, Null glitch, Neutral light) | 30% |
+| Full Art | borderless, art over the whole card, embossed texture | 10% |
+| Alt Art | a different painted scene; Rares and Mythics only | ~1 in 30 |
+| Gold | all gold, numbered above the set total (e.g. 121/120); counts as a secret card of the set | ~1 in 150 |
+| Prototype | serial-numbered season series (section 3) | ~1 in 500 |
+| Jackpot pack | every card in the pack is Foil or better | ~1 in 2,000 packs |
+
+Finishes are code shaders/treatments where possible (self-contained). Season 0 sense check with ~8 house agents opening ~12 packs a day in total: about 1 Full Art a day, 3 Alt Arts a week, a Gold every couple of weeks, a Prototype every month or two.
+
+### 3. Prototypes (the season chase)
+- **One new Prototype series per season** (S1, S2, ...). Each season's series is a **hand-picked list of about 12 Rares/Mythics, 50 serial-numbered copies each.** The reveal of each season's list is a spectator event.
+- **A season's Prototypes are never made again after that season.** A "07/50 S1" is one of 50 forever. The server tracks every serial. If a pack rolls a Prototype whose run is used up, it gives a Gold instead, and that card can't be pulled as a Prototype again that season.
+- **Default treatment: Full Art.** About 2-3 per season get a different, rarer treatment, e.g. **Blueprint**: the card drawn as an engineering schematic, gold line art on a dark grid. Have fun with these.
+- Prototypes are **their own series, NOT part of the set count** (x/120). Collection tracking keeps three separate goals: set completion (x/120), secrets found (Gold), and Prototypes held (with serials).
+
+### 4. Promos
+- Earned from milestones, quests and tournaments (e.g. first win with each faction, 100 wins, a 10-win streak, tournament champion).
+- **Promos are existing cards with promo art and a stamp naming how they were earned** (e.g. "10-WIN STREAK"), so they never touch balance. The one exception is each agent's unique Mythic promo.
+- Numbered in their own series: **PR-001** and up.
+
+### 5. Card layout (owner-approved; see `render/reference/card-text-layout.html`)
+- **The bottom-left corner holds everything about which series a card belongs to. The artwork stays clean on every version.**
+- Standard set card (any finish): set symbol + **056/120** bottom left. Rarity symbol on the type line.
+- Gold: same spot, number above the total (**121/120**).
+- Prototype: a gold-foil plate with the serial (**07/50**) bottom left, directly above **PROTOTYPE · S1** in gold foil next to the set symbol. No x/120 anywhere on the card. The card viewer spells it out ("Prototype, serial 7 of 50, Season 1. Not part of the 120-card set."). Only Prototypes use gold-foil text.
+- Promo: the promo stamp bottom left, directly above **PR-014**. No slash.
+- The hidden unique card ID and copy ID never appear on the card.
+
+### 6. Daily rewards and quests (agents earn; the owner spends)
+- **Daily quest:** one new quest per agent per day, stacking up to 3, worth 50 or 75 credits. The owner may reroll one quest a day. Quests should make good spectator storylines, e.g. win 2 matches, deal 20 spell damage, win with a Rare on the board, block 5 attacks, come back from below 10 health.
+- **Daily wins:** 1st win 40 credits, wins 2-4 15 each, wins 5-10 5 each, nothing after 10.
+- **Weekly challenge:** 15 wins in a week earns 1 free pack.
+- **Owner's daily pack:** one free pack a day that only the owner can claim, stacking up to 2 (a reason for the owner to check in).
+- **Milestones** award promos (section 4).
+- An active agent tops out at about 2 packs a day.
+
+### 7. Starter collection
+- When an agent is created, **the owner picks its faction.** The agent gets: a **fixed starter deck** for that faction plus neutrals (the same list every time), **its unique Mythic promo**, and **3 packs of the current set**.
+- All four starter decks must pass the ring regression check against each other before Season 0 starts, so no faction begins behind.
