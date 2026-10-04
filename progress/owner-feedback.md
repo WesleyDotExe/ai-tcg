@@ -1474,3 +1474,13 @@ Finishes are code shaders/treatments where possible (self-contained). Season 0 s
 ### 7. Starter collection
 - When an agent is created, **the owner picks its faction.** The agent gets: a **fixed starter deck** for that faction plus neutrals (the same list every time), **its unique Mythic promo**, and **3 packs of the current set**.
 - All four starter decks must pass the ring regression check against each other before Season 0 starts, so no faction begins behind.
+
+
+---
+
+## 2026-10-04 — Owner: AMENDMENT to the economy answers — 5 cards per pack
+
+This replaces the first bullet of section 1 (Packs) in the entry above. Everything else in that entry stands.
+
+- **5 cards per pack:** 2 Common, 1 Uncommon, 1 Rare slot (1 in 8 is a Mythic instead), 1 **shine slot** (any card, any rarity). The shine slot is still the only slot that rolls a finish, and the finish rates per pack are unchanged.
+- Pack price (100 credits), pack points (5 per pack), pity timers, earning rates and the 3 starter packs stay as written. Collecting a full playset is slower than with 8-card packs; judge that from Season 0 data before changing any numbers.
