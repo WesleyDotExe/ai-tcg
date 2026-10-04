@@ -331,7 +331,9 @@ export const propagatingExploit: UnitCard = {
   cost: 3,
   type: "Unit",
   attack: 2,
-  health: 2,
+  // 2 -> 3, owner-approved 2026-10-04 (the Phase 5 gate's Null lift, measured
+  // in progress/balance-report-020-phase5-gate.txt, re-measured in 021).
+  health: 3,
   keywords: [],
   art: "placeholder:null/propagating-exploit",
   flavor: "Every machine it touches teaches it something it keeps.",

@@ -11,6 +11,7 @@
   "scripts": {
     "match": "tsx src/cli.ts",
     "balance": "tsx src/dev/balanceReport.ts",
+    "ring": "tsx src/dev/ringRegression.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

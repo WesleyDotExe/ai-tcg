@@ -2413,3 +2413,32 @@ IN, and vs Aegis at 50.5, still OUT. That's recommended, not shipped; it's the o
 **Ran it:** all of the above (about 4 minutes of compute), `npm test` 302/302, `tsc` clean in all
 five workspaces. **Blocked:** nothing. Checkpoint written. Next: render (EFFECTS.md v2 slice 1),
 then a balance session applying the owner's gate answers.
+
+## 2026-10-04 — Session 27 (Phase 5 closed; event-log instance ids)
+
+Game-lane session: the last merged PR (#37) was render. Owner feedback first. The 2026-10-04
+entry says to close Phase 5 (section A), then persistence before the economy. The 2026-10-03
+entry's balance-lane item (b) asked for instance ids in the event log. Both were done.
+
+**Phase 5 closed:** Quorum Arbiter kept. Propagating Exploit 2/2 -> 2/3, re-measured once:
+Null vs Cortex / Swarm / Aegis = 47.6 / 43.8 / 48.2 on 2,500 seeds (was 38.6 / 40.6 / 42.0),
+and 49.2 on the 900-seed even band (was 40.7, OUT -> IN). Held out (2501-5000), the numbers match
+the session-26 probe exactly. Baseline: 3 IN, 1 UNRESOLVED, 2 OUT (both owner-accepted). Roadmap
+marks Phase 5 done, pool growth paused, and the Stage 4 order follows the owner's sections B-E.
+
+**Regression check:** `dev/ringRegression.ts` + `ringBaseline.json`, a CI step in the `test` job.
+It fails on a worse band verdict, or a real move further out on an accepted-OUT edge. The six
+edges take about 15 s. Shown passing on shipped code and failing (2 edges, exit 1) with the 2/2
+Exploit. 4 unit tests on the judging rule.
+
+**Instance ids:** source ids, target refs and stack ids on every event that names a board card.
+They're optional in the type (render fixtures), enforced by `test/eventIds.test.ts`. That test
+plays all 16 pairings with two policies and checks each event against real state, including the
+exact damage each instance took. The test caught a real bug on its first run: an `attack` line
+printed "attacks u11" when an onAttack had already killed the defender. Fixed by reading the name
+first.
+
+**Ran it:** three Null edge checks, the ring check (pass, then the deliberate fail), 64 matches
+before/after (byte-identical text logs), the id demo (`sample-match-028-event-ids.txt`),
+`npm test` 323/323, `tsc` clean in all five. **Blocked:** nothing. Checkpoint written (Stage 3
+closed). Next: render (alternation), then session 28, persistence + economy spec.

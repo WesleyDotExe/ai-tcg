@@ -1,69 +1,76 @@
 # Current status
 
-**Build-order stage: 3 (A real card set), still current, at the end of Phase 5
-(pool expansion).** Session 26 was a balance session (the last merged PR, #35,
-was render). It ran the mandatory Phase 5 gate (step iii). **The gate did not
-pass.** A checkpoint is waiting on the owner (top of `checkpoints.md`).
+**Build-order stage: Stage 3 (A real card set) is CLOSED; Stage 4+ (the
+living system: persistence, then the economy) is next.** Session 27 was a
+game-lane session (the last merged PR, #37, was render). It closed Phase 5
+per owner-feedback 2026-10-04 section A and built the event-log instance
+ids. Checkpoint at the top of `checkpoints.md`.
 
-## What stands (this session's work; sessions 1-25 otherwise unchanged)
+## What stands (this session's work; sessions 1-26 otherwise unchanged)
 
-**Watchdog Timer buff** (owner-feedback 2026-10-02 item 1,
-`engine/src/data/nullCards.ts`): draws at end of turn when the hand has 1 card
-or fewer (was: empty only). 23 -> 102 draws per 900 Lookahead games; Null
-40.1 -> 40.4% on the same 7,500 games (noise). The test now covers hand sizes
-0/1/2/3.
-
-**The gate** (Lookahead, interval verdicts; 2,500 seeds for win/lose bands, 900
-for even bands):
+**Propagating Exploit 2/2 -> 2/3** (owner-approved, `engine/src/data/nullCards.ts`).
+The Phase 5 baseline (Lookahead, 2,500 seeds win/lose bands, 900 even):
 
 | Edge (target) | rate | verdict |
 |---|---|---|
-| Null > Aegis (55-60) | Null 42.0 | OUT |
-| Aegis > Cortex (55-60) | Aegis 52.2 | OUT |
+| Null > Aegis (55-60) | Null 48.2 | OUT (owner-accepted) |
+| Aegis > Cortex (55-60) | Aegis 52.2 | OUT (owner-accepted) |
 | Cortex > Swarm (55-60) | Cortex 57.4 | IN |
-| Swarm > Null (55-60) | Swarm 59.4 | UNRESOLVED |
-| Null ~ Cortex (45-55) | Null 40.7 | OUT |
+| Swarm > Null (55-60) | Swarm 56.2 | UNRESOLVED |
+| Null ~ Cortex (45-55) | Null 49.2 | IN |
 | Aegis ~ Swarm (45-55) | Aegis 51.2 | IN |
 
-`balanceReport.ts 900`: no triple-flag.
+**Balance is a regression check now, not a lane.** `engine/src/dev/ringRegression.ts`
+(`npm run ring -w @ai-tcg/engine`) measures those six edges and compares them with
+`engine/src/dev/ringBaseline.json`. It fails on a worse verdict, or on a real move further out
+on an accepted-OUT edge. It's a step in CI's `test` job (every PR, about 15 s). Re-baseline only
+with `--write-baseline` for an owner-approved change, committed with its balance report.
+`edgeMeasure.ts` gained `measurePairing` (one pairing, same seeding as `measureEdges`).
 
-**Levers measured, not shipped:**
-- Quorum Arbiter drop (`dev/phase5GateLevers.ts`): Cortex-vs-Null -2.7 /
-  -1.0 (gate / held-out seeds); the edge stays OUT. Not dropped.
-- Null lift menu (`dev/nullLiftProbe.ts`): +1 atk / +1 hp on each of 12 Null
-  units. Recommended to the owner: Propagating Exploit 2/2 -> 2/3. Held out:
-  Null vs Cortex 48.0 (IN), vs Swarm 43.6 (IN), vs Aegis 50.5 (still OUT).
+**Event-log instance ids** (`engine/src/state/types.ts` GameEvent doc comment):
+- `sourceId` on everything a card causes. That's a unit or Directive id, a Command's stack id,
+  or the dead unit's id for onDeath. Overload ticks have none.
+- `targetRef` on damage/heal (players included); `targetId`/`unitId` on buff, status, Barrier
+  and armor events.
+- `attackerId`/`defenderRef`/`stackId` on attack; `stackId` (+ `sourceId`, `targetRef`) on cast;
+  `stackId` on stackResolve.
+- `instanceId` on death, telegraph, evolve and directiveDestroyed; `fromRef`/`toRef` on a
+  redirect; `targets` on abilityTrigger.
 
-**Tooling:** `dev/nullCardPlayCheck.ts` now records the hand size behind each
-Watchdog draw (a Watcher wraps both agents and reads state between moves) and
-has `--show-watchdog`.
+The text log (`formatEvent`) is unchanged. Also fixed: an `attack` line printed the defender's raw
+id when an onAttack ability had already killed it.
 
 ## Evidence committed
 
-- `progress/balance-report-020-phase5-gate.txt`: the buff before/after, all
-  eight gate runs, the verdict table, both lever measurements with held-out
-  confirmation, the full lift screen, and `balanceReport.ts 900`.
-- `progress/sample-match-027-watchdog-buff.txt`: a full game where Watchdog
-  Timer draws into a 1-card hand.
-- `npm test` 302/302 across all five workspaces (engine 128). `tsc --noEmit`
-  clean in all five.
+- `progress/balance-report-021-phase5-close.txt`: the re-measure (900 / 2,500 / held-out
+  2501-5000), the baseline table, the regression check passing, and the check failing with
+  Propagating Exploit put back to 2/2. Also the 64-match byte-identical text-log comparison.
+- `progress/sample-match-028-event-ids.txt` (`engine/src/dev/eventIdsMatchDemo.ts`): a full
+  Null vs Cortex game, every line with its ids. Shows a targeted Command, onDeath sources, and a
+  hit on one of two Orphaned Threads.
+- `engine/test/eventIds.test.ts` (3 tests: all 16 pairings x 2 policies checked event by event
+  against real state, with an exact per-instance damage check; a twin-copy Command; combat plus
+  redirect). `engine/test/ringRegression.test.ts` (4 tests on the judging rule and the baseline).
+- `npm test`: 323 across five workspaces (engine 135). `tsc --noEmit` clean in all five.
 
 ## Concrete next step
 
-Next session is **render** (alternation). Per owner-feedback 2026-10-03:
-implement `render/EFFECTS.md` v2 in its build order, slice 1, porting from
-`render/reference/effects-lab.html`. Also write the `signatureAbilities`
-proposal for existing Rares/Mythics into notes-for-owner.md, and surface any
-Mythic ward previews from `progress/render/mythic-wards-log.md`.
+Check the alternation: if the last merged PR is this one (game lane), the next session is
+**render** (EFFECTS.md v2 slice 2; per the 2026-10-04 render entry, write the 10
+`signatureAbilities` entries and the two Wards rules first if not done). The render lane can now
+use the ids. EFFECTS.md's Dependencies line saying ids are missing is stale, and the render
+session should update it (render-lane file, so not touched here).
 
-The next **balance** session:
-1. Read owner-feedback.md for answers to the gate checkpoint (Quorum Arbiter,
-   the Propagating Exploit lift, Aegis > Cortex).
-2. Apply them, then re-run only the changed edges at the gate seed counts:
-   `lookaheadEdgeCheck.ts <Faction> 1 2500` (and `1 900` for even bands), plus
-   a held-out range (2501-5000).
-3. If the owner hasn't answered, don't apply a lift. Probe Aegis > Cortex
-   instead: adapt `nullLiftProbe.ts` to Aegis units and look for a lift that
-   moves Aegis-vs-Cortex without moving Aegis-vs-Null or Aegis-vs-Swarm.
-   Or start the event-log instance IDs (owner-feedback 2026-10-03, balance
-   lane item b), which doesn't depend on the ring.
+The next **game-lane** session is **session 28: persistence + economy spec** (owner-feedback
+2026-10-04 sections B/C, roadmap item 6):
+1. A self-contained local database file (no external service). Pick the storage
+   (e.g. `node:sqlite` on Node 22, or a JSON-file store with atomic writes) and justify it.
+   Tables/collections: agents, currency ledger (append-only entries, balance derived), owned
+   card copies (hidden copy id, card id, finish, source = pack/promo/starter, acquired-at),
+   unopened packs as owned items, decks (pointing at copy ids), match history.
+2. Write the economy spec (in DESIGN.md or a new `ECONOMY.md`) to section C. Mark the
+   [OWNER CHECK-IN] items as open: finishes/pull rates, unique-Mythic effect menu and budgets,
+   quests and numbers, starter shape.
+3. Build only the no-taste-call parts: the per-copy model and the ledger, with the payout rule
+   (win > loss > cancel = 0) enforced and tested. Show it running: a script that records a few
+   real matches' payouts into the store and prints balances and history.

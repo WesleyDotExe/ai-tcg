@@ -18,13 +18,24 @@ import { BOARD_SLOTS } from "../state/init.js";
 export type AbilitySource =
   | { kind: "unit"; instanceId: string; cardName: string }
   | { kind: "directive"; instanceId: string; cardName: string }
-  | { kind: "command"; cardName: string }
-  | { kind: "detached"; cardName: string };
+  | { kind: "command"; instanceId: string; cardName: string }
+  | { kind: "detached"; instanceId: string; cardName: string };
+// A Command's instanceId is its stack id (`c..`); a detached source's is the
+// dead unit's old board id. Every source has one, so every event an ability
+// causes can carry a sourceId (see GameEvent in state/types.ts).
+
+/** Who an event is attributed to: the card name the text log prints, plus
+ * the instance id the spectator client aims by (GameEvent's `sourceId`).
+ * `id` is absent only for a source that isn't a card (Overload's tick). */
+export interface EventSource {
+  name: string;
+  id?: string;
+}
 
 interface EffectContext {
   state: GameState;
   controller: PlayerId;
-  sourceLabel: string;
+  source: EventSource;
   rng: Rng;
 }
 
@@ -66,8 +77,15 @@ export function resolveAbility(params: ResolveAbilityParams): void {
     ? resolveTargets({ spec: ability.targeting, controller, state, chosen, selfRef, rng })
     : [];
 
-  state.log.push({ type: "abilityTrigger", source: source.cardName, ability: ability.id, trigger: ability.trigger });
-  const ctx: EffectContext = { state, controller, sourceLabel: source.cardName, rng };
+  state.log.push({
+    type: "abilityTrigger",
+    source: source.cardName,
+    ability: ability.id,
+    trigger: ability.trigger,
+    sourceId: source.instanceId,
+    targets: targets.map((t) => ({ ...t })),
+  });
+  const ctx: EffectContext = { state, controller, source: { name: source.cardName, id: source.instanceId }, rng };
   applyEffects(ability.effects, targets, ctx);
   processDeaths(state, rng);
   checkGameOver(state);
@@ -83,12 +101,12 @@ function applyOneEffect(effect: EffectSpec, targets: TargetRef[], ctx: EffectCon
   switch (effect.kind) {
     case "damage": {
       const amount = resolveAmount(effect.amount, buildScalingContext(ctx.state, ctx.controller));
-      for (const t of targets) applyDamage(ctx.state, t, amount, ctx.sourceLabel, ctx.rng);
+      for (const t of targets) applyDamage(ctx.state, t, amount, ctx.source, ctx.rng);
       return;
     }
     case "heal": {
       const amount = resolveAmount(effect.amount, buildScalingContext(ctx.state, ctx.controller));
-      for (const t of targets) applyHeal(ctx.state, t, amount, ctx.sourceLabel);
+      for (const t of targets) applyHeal(ctx.state, t, amount, ctx.source);
       return;
     }
     case "buff":
@@ -113,7 +131,7 @@ function applyOneEffect(effect: EffectSpec, targets: TargetRef[], ctx: EffectCon
       return;
     }
     case "redirectAttack": {
-      for (const t of targets) redirectTopAttack(ctx.state, t, ctx.sourceLabel);
+      for (const t of targets) redirectTopAttack(ctx.state, t, ctx.source);
       return;
     }
     case "summon":
@@ -137,7 +155,8 @@ function describeTargetRef(state: GameState, ref: TargetRef): string {
  * is destroyed or countered. No-ops (logged, not silent) if there's nothing
  * pending to redirect — same convention as any other effect whose target
  * has already vanished. See Aegis's Intercept Routine, data/aegisCards.ts. */
-function redirectTopAttack(state: GameState, newTarget: TargetRef, sourceLabel: string): void {
+function redirectTopAttack(state: GameState, newTarget: TargetRef, source: EventSource): void {
+  const sourceLabel = source.name;
   for (let i = state.stack.length - 1; i >= 0; i--) {
     const item = state.stack[i]!;
     if (item.kind !== "combatDamage") continue;
@@ -150,6 +169,7 @@ function redirectTopAttack(state: GameState, newTarget: TargetRef, sourceLabel: 
       state.log.push({ type: "fizzle", reason: `${sourceLabel}: ${item.attackerName}'s attack is already aimed at ${from}` });
       return;
     }
+    const fromRef = item.target;
     item.target = newTarget;
     state.log.push({
       type: "attackRedirected",
@@ -157,6 +177,10 @@ function redirectTopAttack(state: GameState, newTarget: TargetRef, sourceLabel: 
       attacker: item.attackerName,
       from,
       to: describeTargetRef(state, newTarget),
+      sourceId: source.id,
+      attackerId: item.attackerInstanceId,
+      fromRef: { ...fromRef },
+      toRef: { ...newTarget },
     });
     return;
   }
@@ -166,12 +190,14 @@ function redirectTopAttack(state: GameState, newTarget: TargetRef, sourceLabel: 
 /** The single choke point for all damage to a unit or player — combat
  * damage and effect damage both route through here, so Barrier absorption
  * and onDamaged triggers fire consistently no matter the source. */
-export function applyDamage(state: GameState, target: TargetRef, amount: number, sourceLabel: string, rng: Rng): void {
+export function applyDamage(state: GameState, target: TargetRef, amount: number, source: EventSource, rng: Rng): void {
   if (amount <= 0) return;
+  const sourceLabel = source.name;
+  const sourceId = source.id;
   if (target.kind === "player") {
     const player = state.players[target.playerId];
     player.health -= amount;
-    state.log.push({ type: "damage", target: player.name, targetKind: "player", amount, source: sourceLabel });
+    state.log.push({ type: "damage", target: player.name, targetKind: "player", amount, source: sourceLabel, sourceId, targetRef: { ...target } });
     return;
   }
   const found = findUnit(state, target.instanceId);
@@ -187,17 +213,33 @@ export function applyDamage(state: GameState, target: TargetRef, amount: number,
   const armor = unit.card.baseArmor ?? 0;
   const effectiveAmount = armor > 0 ? Math.max(0, amount - armor) : amount;
   if (armor > 0 && effectiveAmount !== amount) {
-    state.log.push({ type: "baseArmorReduced", unit: unit.card.name, source: sourceLabel, rawAmount: amount, reducedTo: effectiveAmount });
+    state.log.push({
+      type: "baseArmorReduced",
+      unit: unit.card.name,
+      source: sourceLabel,
+      rawAmount: amount,
+      reducedTo: effectiveAmount,
+      sourceId,
+      unitId: unit.instanceId,
+    });
   }
   if (effectiveAmount <= 0) return;
   const barrierIdx = unit.statuses.findIndex((s) => s.kind === "Barrier");
   if (barrierIdx !== -1) {
     unit.statuses.splice(barrierIdx, 1);
-    state.log.push({ type: "barrierAbsorbed", unit: unit.card.name, source: sourceLabel });
+    state.log.push({ type: "barrierAbsorbed", unit: unit.card.name, source: sourceLabel, sourceId, unitId: unit.instanceId });
     return;
   }
   unit.damageTaken += effectiveAmount;
-  state.log.push({ type: "damage", target: unit.card.name, targetKind: "unit", amount: effectiveAmount, source: sourceLabel });
+  state.log.push({
+    type: "damage",
+    target: unit.card.name,
+    targetKind: "unit",
+    amount: effectiveAmount,
+    source: sourceLabel,
+    sourceId,
+    targetRef: { kind: "unit", instanceId: unit.instanceId },
+  });
   // A unit whose health has already dropped to 0 or below is dead in
   // substance even though processDeaths (which actually removes it from
   // the board and fires onDeath) only runs once the outer resolveAbility
@@ -223,15 +265,17 @@ export function applyDamage(state: GameState, target: TargetRef, amount: number,
   }
 }
 
-export function applyHeal(state: GameState, target: TargetRef, amount: number, sourceLabel: string): void {
+export function applyHeal(state: GameState, target: TargetRef, amount: number, source: EventSource): void {
   if (amount <= 0) return;
+  const sourceLabel = source.name;
+  const sourceId = source.id;
   if (target.kind === "player") {
     const player = state.players[target.playerId];
     const before = player.health;
     player.health = Math.min(player.maxHealth, player.health + amount);
     const healed = player.health - before;
     if (healed > 0) {
-      state.log.push({ type: "heal", target: player.name, targetKind: "player", amount: healed, source: sourceLabel });
+      state.log.push({ type: "heal", target: player.name, targetKind: "player", amount: healed, source: sourceLabel, sourceId, targetRef: { ...target } });
     }
     return;
   }
@@ -242,7 +286,15 @@ export function applyHeal(state: GameState, target: TargetRef, amount: number, s
   unit.damageTaken = Math.max(0, unit.damageTaken - amount);
   const healed = before - unit.damageTaken;
   if (healed > 0) {
-    state.log.push({ type: "heal", target: unit.card.name, targetKind: "unit", amount: healed, source: sourceLabel });
+    state.log.push({
+      type: "heal",
+      target: unit.card.name,
+      targetKind: "unit",
+      amount: healed,
+      source: sourceLabel,
+      sourceId,
+      targetRef: { kind: "unit", instanceId: unit.instanceId },
+    });
   }
 }
 
@@ -276,7 +328,7 @@ function buffUnit(ctx: EffectContext, target: TargetRef, attack: number, health:
     unit.turnBuff.attack += attack;
     unit.turnBuff.health += health;
   }
-  ctx.state.log.push({ type: "buff", target: unit.card.name, attack, health, source: ctx.sourceLabel });
+  ctx.state.log.push({ type: "buff", target: unit.card.name, attack, health, source: ctx.source.name, sourceId: ctx.source.id, targetId: unit.instanceId });
 }
 
 function applyStatusToUnit(
@@ -290,7 +342,14 @@ function applyStatusToUnit(
   const found = findUnit(ctx.state, target.instanceId);
   if (!found) return;
   found.unit.statuses.push({ kind: status, duration, amount });
-  ctx.state.log.push({ type: "statusApplied", target: found.unit.card.name, status, source: ctx.sourceLabel });
+  ctx.state.log.push({
+    type: "statusApplied",
+    target: found.unit.card.name,
+    status,
+    source: ctx.source.name,
+    sourceId: ctx.source.id,
+    targetId: found.unit.instanceId,
+  });
 }
 
 /** Unconditional removal, dispatched on the resolved target's own kind — a
@@ -328,7 +387,14 @@ function destroyDirective(ctx: EffectContext, instanceId: string): void {
   if (idx === -1) return;
   player.directives.splice(idx, 1);
   player.graveyard.push(directive.card);
-  ctx.state.log.push({ type: "directiveDestroyed", directive: directive.card.name, controller: owner, source: ctx.sourceLabel });
+  ctx.state.log.push({
+    type: "directiveDestroyed",
+    directive: directive.card.name,
+    controller: owner,
+    source: ctx.source.name,
+    sourceId: ctx.source.id,
+    instanceId,
+  });
 }
 
 /** Creates up to `count` fresh token units on the controller's board — the
@@ -364,7 +430,7 @@ function summonTokens(ctx: EffectContext, token: TokenSpec, count: number): void
   };
   for (let i = 0; i < count; i++) {
     if (boardSlotsUsed(player) >= BOARD_SLOTS) {
-      ctx.state.log.push({ type: "summonFizzle", player: ctx.controller, token: token.name, source: ctx.sourceLabel });
+      ctx.state.log.push({ type: "summonFizzle", player: ctx.controller, token: token.name, source: ctx.source.name, sourceId: ctx.source.id });
       continue;
     }
     const instanceId = `u${ctx.state.nextInstanceId++}`;
@@ -381,7 +447,7 @@ function summonTokens(ctx: EffectContext, token: TokenSpec, count: number): void
       tools: [],
     };
     player.board.push(unit);
-    ctx.state.log.push({ type: "summon", player: ctx.controller, token: token.name, instanceId, source: ctx.sourceLabel });
+    ctx.state.log.push({ type: "summon", player: ctx.controller, token: token.name, instanceId, source: ctx.source.name, sourceId: ctx.source.id });
   }
 }
 
@@ -391,7 +457,7 @@ function gainEnergyEffect(ctx: EffectContext, playerId: PlayerId, amount: number
   player.energy = Math.min(player.maxEnergy, player.energy + amount);
   const gained = player.energy - before;
   if (gained > 0) {
-    ctx.state.log.push({ type: "gainEnergy", player: playerId, amount: gained, source: ctx.sourceLabel });
+    ctx.state.log.push({ type: "gainEnergy", player: playerId, amount: gained, source: ctx.source.name, sourceId: ctx.source.id });
   }
 }
 
@@ -409,7 +475,7 @@ export function processDeaths(state: GameState, rng: Rng): void {
       player.graveyard.push(unit.card);
       // Attached Tools (see ToolCard) go down with the unit they were on.
       for (const tool of unit.tools) player.graveyard.push(tool);
-      state.log.push({ type: "death", unit: unit.card.name, controller: unit.controller });
+      state.log.push({ type: "death", unit: unit.card.name, controller: unit.controller, instanceId: unit.instanceId });
     }
     for (const unit of round) {
       for (const ability of unit.card.abilities) {
@@ -418,7 +484,7 @@ export function processDeaths(state: GameState, rng: Rng): void {
             state,
             ability,
             controller: unit.controller,
-            source: { kind: "detached", cardName: unit.card.name },
+            source: { kind: "detached", instanceId: unit.instanceId, cardName: unit.card.name },
             rng,
           });
         }

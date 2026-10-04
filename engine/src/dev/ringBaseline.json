@@ -1,0 +1,36 @@
+{
+  "_about": "Ring regression baseline (engine/src/dev/ringRegression.ts). selfWins = wins for the first-named faction, Lookahead vs Lookahead, seeds 1..games. Only rewrite with --write-baseline for an owner-approved change, committed alongside the balance report that justifies it.",
+  "recorded": "2026-10-04",
+  "edges": [
+    {
+      "edge": "Null > Aegis",
+      "selfWins": 1204,
+      "games": 2500
+    },
+    {
+      "edge": "Aegis > Cortex",
+      "selfWins": 1306,
+      "games": 2500
+    },
+    {
+      "edge": "Cortex > Swarm",
+      "selfWins": 1434,
+      "games": 2500
+    },
+    {
+      "edge": "Swarm > Null",
+      "selfWins": 1404,
+      "games": 2500
+    },
+    {
+      "edge": "Null ~ Cortex",
+      "selfWins": 443,
+      "games": 900
+    },
+    {
+      "edge": "Aegis ~ Swarm",
+      "selfWins": 461,
+      "games": 900
+    }
+  ]
+}

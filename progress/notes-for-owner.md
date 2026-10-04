@@ -1,5 +1,24 @@
 # Notes for the owner
 
+**Updated 2026-10-04, session 27 (Phase 5 closed).** Nothing is blocking and nothing new needs
+an answer. Your 2026-10-04 section A is applied in full. Checkpoint: top of
+`progress/checkpoints.md`. Numbers: `progress/balance-report-021-phase5-close.txt`.
+
+- **Propagating Exploit 2/3 is live.** Null ~ Cortex moved into band (49.2), and Null > Aegis rose
+  from 42.0 to 48.2 but stays OUT (accepted). The ring now reads 3 IN, 1 UNRESOLVED, 2 OUT, and
+  that's the recorded baseline.
+- **CI now runs the ring regression check on every PR** (`npm run ring -w @ai-tcg/engine`, about
+  15 s). If a future set fails it, the PR goes red and auto-merge won't merge it. The rule is in
+  the checkpoint, in case you want it stricter.
+- **Event-log instance ids are done**, so the render lane can aim spells at their exact target.
+- **Coming up in session 28**, built to your section C: persistence and the economy spec. It will
+  pause at your [OWNER CHECK-IN] items. If you already know the finish list and pull rates, the
+  quest list, or the starter shape, writing them in owner-feedback.md now saves a round trip.
+
+Items 2 and 3 below (Quorum Arbiter, the Null lift) were answered on 2026-10-04 and are applied.
+
+---
+
 **Updated 2026-10-03, session 26 (the Phase 5 gate).** Nothing is blocking, but the gate did
 not pass and two calls are yours. Full numbers: `progress/balance-report-020-phase5-gate.txt`.
 Checkpoint: top of `progress/checkpoints.md`.

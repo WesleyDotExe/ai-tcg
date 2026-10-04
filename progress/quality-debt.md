@@ -23,9 +23,36 @@ Null depth/variety pass, 15 -> 20 unique cards), and now session 22 (Phase
 5 slice 4: Cortex depth/variety pass, 19 -> 24 unique cards), and now
 session 23 (the Null consistency trim, 40 -> 36), session 24 (the
 neutral pool), session 25 (the owner's agent checks: card
-advantage, Null's cards), and now session 26 (the Phase 5 gate).
+advantage, Null's cards), session 26 (the Phase 5 gate), and now session 27 (Phase 5
+closed, event-log instance ids).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 27
+
+- **The regression check guards one measurement, not balance.** Every number is Lookahead vs
+  Lookahead on fixed seeds. A change that only hurts under a smarter agent, or only on seeds past
+  2,500, passes. The shipped gate is now "this heuristic, these seeds, no worse than before."
+- **The check is loose inside a band.** An edge that drifts from 56 to 59 inside its 55-60 band
+  passes, and so does an UNRESOLVED edge that moves a lot without changing verdict (Swarm > Null
+  moved +3.3 in the 2/2 demo and passed). Named in the checkpoint as a call the owner can tighten.
+- **CI determinism is assumed, not proven.** The baseline was recorded on Node 22.22 here; CI runs
+  Node 22 (unpinned minor). The engine is integer-seeded, but the agent scores use floats. A V8
+  change in float maths could flip a close Lookahead choice and shift a count by a game or two.
+  The verdict rule tolerates that, but nobody has run the check on CI yet; the first PR run is
+  that test.
+- **Id fields are optional in the type.** A new event kind or emitter could forget its ids and
+  still compile. Only `eventIds.test.ts` catches it, and only for events that real matches
+  between the shipped decks actually produce. Cards outside the shipped decks (most neutrals,
+  some trimmed cards) are covered only by sharing emitters with cards that are in them.
+- **`abilityTrigger.targets` is the resolved list, not what got hit.** A random-target ability
+  logs its random pick there; an AOE logs every unit. The render still has to read the
+  per-effect events for which targets actually took something.
+- **The 2026-10-03 render guardrail in render/EFFECTS.md is now stale** ("ids still needed").
+  It's a render-lane file, so it's left for the next render session.
+- **Phase 5's carried session-26 debt stands, unresolved by choice.** Null > Aegis (48.2) and
+  Aegis > Cortex (52.2) are OUT by owner acceptance, not fixed. Watchdog Timer still barely
+  matters. Lift menus only ever tried +1 stats. These are closed as a lane, not as problems.
 
 ## New debt from session 26
 

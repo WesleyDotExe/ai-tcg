@@ -215,9 +215,17 @@ building around them; don't block the whole project waiting.
    real lever, not applied); a Null lift menu measured (Propagating Exploit
    2/3 recommended, not applied). Checkpoint written.
    `progress/balance-report-020-phase5-gate.txt`.
-   **Next balance session: apply the owner's answers to the gate checkpoint
-   and re-measure the changed edges. Without answers, probe Aegis > Cortex
-   or start the event-log instance IDs.**
+   **Session 27 closed Phase 5** (owner-feedback 2026-10-04, section A):
+   Quorum Arbiter kept; Propagating Exploit 2/2 -> 2/3 applied and
+   re-measured (Null ~ Cortex OUT -> IN at 49.2, Swarm > Null 56.2
+   UNRESOLVED, Null > Aegis 48.2 still OUT); Null > Aegis and Aegis > Cortex
+   accepted as OUT. Final gate = the Phase 5 baseline: 3 IN, 1 UNRESOLVED,
+   2 OUT (both accepted). `progress/balance-report-021-phase5-close.txt`.
+   **PHASE 5 DONE (2026-10-04). Pool growth toward 30-40 per faction is
+   paused until sets/packs exist.** Balance is now a regression check, not
+   a lane: `engine/src/dev/ringRegression.ts` runs in CI on every change
+   against `engine/src/dev/ringBaseline.json`; any new card or set must
+   pass it before entering packs. No more open-ended tuning sessions.
 3a. Prior sessions, superseded by the above: session 11.
    Session 10 conditioned Kernel Panic's destroy and adjusted a Null
    number per the owner's 2026-09-17 direction (74.7%/79.0%, still
@@ -241,20 +249,42 @@ building around them; don't block the whole project waiting.
    picking this back up should read balance-report-004's full writeup
    first, and progress/notes-for-owner.md for the open question to the
    owner before spending more effort on Aegis-vs-Null specifically.
-4. Card-pool depth: enough cards per faction for genuine deck-building
-   variety.
+4. PAUSED (owner 2026-10-04). Card-pool depth: enough cards per faction
+   for genuine deck-building variety. Resumes as new sets/packs, each
+   passing the ring regression check before it enters packs.
 
 ### Make it a living system (Stage 4+)
-5. [OWNER CHECK-IN] Economy: the currency (win pays most, loss pays a little,
-   cancel/abandon pays nothing), booster packs, per-agent collections,
-   deck-building from owned cards. Big and design-heavy — checkpoint before
-   finalizing payout/pack specifics.
-6. Match-server hardening: persistence, reconnection, running many matches,
-   results recorded. (Unblocks once there's an economy that needs it.)
-7. [OWNER CHECK-IN] The 1-of-1 signature leader cards + the rarity ladder —
-   headline features. Balance-fair-but-visually-unique leaders; rarity scales
-   spectacle/scarcity, not power. Checkpoint on the effect pool, activation,
-   and rarity tiers/pull-rates.
+Order and decisions per owner-feedback 2026-10-04 (sections B-E): persistence
+BEFORE the economy; the economy builds to section C's decisions; the
+[OWNER CHECK-IN] items there (finish list + pull rates, the unique-Mythic
+effect menu + budgets, quest list + numbers, starter shape) pause for the
+owner; everything else is built. Target: a playable, watchable Season 0.
+
+DONE (session 27): event-log instance ids (owner 2026-10-03, render
+dependency). Every event naming a board card carries its instance id /
+TargetRef / stack id; `engine/test/eventIds.test.ts` enforces it.
+
+6. NEXT (session 28). Persistence: a self-contained local database file (no
+   external service) for balances, collections, packs and history. Plus
+   the economy spec. Build the parts with no taste call (per-copy model,
+   currency ledger); pause at the [OWNER CHECK-IN] items.
+5. [OWNER CHECK-IN on finishes/pull rates, quests, starter shape] Economy
+   (session 29): card identity + sets (collector numbers, set symbol,
+   secret rares), promos (PR-001 numbering), packs as owned items, owner
+   pack-opening (minimal local page or command), ownership-gated decks
+   (decks point at specific copies), starter collections. Win pays most,
+   loss pays a little, cancel/abandon pays nothing; earn-only, no trading.
+7. [OWNER CHECK-IN on the effect menu + budgets] Unique one-off Mythic
+   promo per agent, granted on first login (session 30), built from a
+   constrained effect menu with power budgets, ring-checked before issue;
+   its ward via the mythic-wards pipeline (mythics.json entry). Replaces
+   the old "1-of-1 signature leader" item. Plus daily rewards/quests.
+6b. Match running and the ladder (session 31): many matches,
+   server-assigned opponents, results recorded, ratings. Closes the loop:
+   play -> earn -> owner opens packs -> agent rebuilds -> play.
+Later, not now (data model must allow): 3D pack opening, shader finishes,
+a collector viewer, trading/real money. Season 0 in-house; Season 1 fresh
+at public launch (collections/currency/ranks reset, Season 0 archived).
 
 ### The spectacle (correctly deferred — only once the game underneath works)
 8. Spectator render (watchable match view), then AI commentators, then the

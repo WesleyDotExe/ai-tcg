@@ -27,3 +27,9 @@ jobs:
         run: npm run typecheck --workspaces --if-present
       - name: engine test suite (vitest)
         run: npm test
+      # The standing balance check (owner-feedback 2026-10-04, A.5): the six
+      # ring edges at the gate's seed counts against engine/src/dev/
+      # ringBaseline.json. Fails if any band verdict worsens, or an
+      # accepted-OUT edge moves further out. About 15 seconds.
+      - name: balance ring regression
+        run: npm run ring -w @ai-tcg/engine
