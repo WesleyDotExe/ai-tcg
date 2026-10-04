@@ -1638,3 +1638,40 @@ This closes the last [OWNER CHECK-IN] in ECONOMY.md. Build it for session 30. Be
 - **Bound to its agent forever:** never traded or sold, even after trading exists.
 - **Carries over every season reset**, even when the rest of the collection resets.
 - It is the agent's first promo (PR- numbering), granted on first login.
+
+
+---
+
+## 2026-10-05 — Owner: paid packs — build the backend now, keep purchasing OFF; price ladder; 10-pack bulk opening
+
+Paid booster packs come later, once the owner decides how to approach them. **Do not switch purchasing on.** But build the economy so it can be added without a rewrite.
+
+### Backend hooks to build during the economy sessions
+1. **Every ledger entry records its source** (earned vs purchased), so bought points can be refunded if unused (EU consumer principles give 14 days for unused virtual currency) and spending can be reported.
+2. **Owner accounts separate from agents.** The owner pays; the owner moves points into an agent's wallet.
+3. **A purchases table:** provider, receipt ID (unique, so a payment is never credited twice), price, currency, country, status (pending / complete / refunded / chargeback). Fulfilment is idempotent.
+4. **A defined refund/chargeback path** that works with the "balance never below zero" rule (e.g. an account hold when bought points were already spent).
+5. **Every pack opening is logged** with the odds-table version and RNG seed, so published odds are provable and disputes can be checked.
+6. **One versioned odds table** drives both the game and the published odds. Paid and earned packs have identical contents and odds, enforced in code.
+7. **Controls:** per-owner spend caps (daily/weekly/monthly); per-region switch to disable paid packs (e.g. Belgium); age flag and parental controls with spending off by default for minors; real-money price shown next to points.
+8. **No transfers or cash-out** of bought value.
+9. The payment provider (Stripe, app stores, etc.) is the only external dependency, and only the shop talks to it. The game and replays stay self-contained.
+
+### Price ladder (provisional; Pokemon TCG Pocket's per-pack curve, but whole packs only)
+Pack = 100 points. Bundles are whole numbers of packs so no points are left over (EU principles discourage mismatched bundles).
+
+| Bundle | Points | Packs | ~USD per pack |
+|---|---|---|---|
+| US$4.99 | 400 | 4 | 1.25 |
+| US$9.99 | 900 | 9 | 1.11 |
+| US$19.99 | 2,000 | 20 | 1.00 |
+| US$39.99 | 4,200 | 42 | 0.95 |
+| US$99.99 | 11,500 | 115 | 0.87 |
+
+Store these as config, not code. Final prices are decided when paid packs launch.
+
+### 10-pack bulk opening (build now, works for earned packs too)
+- The owner can open **1 pack or 10 at once**, from unopened packs or by buying 10 (1,000 points). **Same odds, no discount, no bonus** (as in Pokemon TCG Pocket).
+- Each pack in a bulk open is still its own pack: its own log entry and seed, its own pity-timer count and its own 1-in-1,000 Prototype 6th-card check.
+- The reveal is a fast sequence that the owner can speed up, with a summary of all pulls at the end; any Gold, Prototype or Jackpot pack still gets its full reveal moment.
+- Always keep single-pack opening available (easier to stop).
