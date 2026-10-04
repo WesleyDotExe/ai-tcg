@@ -1675,3 +1675,27 @@ Store these as config, not code. Final prices are decided when paid packs launch
 - Each pack in a bulk open is still its own pack: its own log entry and seed, its own pity-timer count and its own 1-in-1,000 Prototype 6th-card check.
 - The reveal is a fast sequence that the owner can speed up, with a summary of all pulls at the end; any Gold, Prototype or Jackpot pack still gets its full reveal moment.
 - Always keep single-pack opening available (easier to stop).
+
+
+---
+
+## 2026-10-05 — Owner: economy balance decisions (salvage, crafting, win pay, achievements, extras)
+
+Worked through with the owner. These update the earlier economy answers where they differ. The goal is balance, keeping in mind that paid packs may come later.
+
+### Decided
+- **Daily win pay trimmed:** 1st win **30**, wins 2-4 **10** each, wins 5-10 **5** each, nothing after 10. (Loss 2, draw = loss, abandon = 0, quests, weekly 15-win pack and the owner's daily pack are unchanged.) A typical active day is ~140 credits (~1.4 packs) + the owner's daily pack = ~2.4 packs a day.
+- **Salvage = extra standard duplicates only.** Only standard-finish copies beyond the playable limit (3/3/2/1) can be destroyed for pack points: **Common 5, Uncommon 10, Rare 30, Mythic 100.** Off-faction cards and first copies are kept.
+- **Cards with a finish are never salvaged** (Foil, Full Art, Alt Art, Gold), and neither are Prototypes, tournament cards, promos or the unique Mythic.
+- **Crafting (standard finish only), pack points:** Common 40, Uncommon 80, Rare 250, Mythic 800 (about 8x salvage). Pack points per pack stay at 5. This replaces the earlier 25/50/150/400.
+- **Mixed packs only** (no faction-focused pack type for now).
+- **Achievements (one-time per agent):** win milestones 10 / 50 / 100 / 500 (credits, then a pack, then a promo, then a promo); first Mythic pulled; first Gold pulled; faction playset complete (promo); first tournament entry. Exact credit amounts go in the economy config.
+- **Tournament entry fees** in credits that feed the prize pool.
+- **Season pass:** plan the data model now (free track + optional paid track of packs, cosmetics and promos); build it later, alongside paid packs.
+- **One economy config file** for every number above, plus **Season 0 metrics:** credits per day, packs per day, days to a faction playset, salvage volume, credit balances (hoarding). Tune from data.
+
+### Simulation (current 96-card pool, these rules, mixed 5-card packs)
+A full playset of one faction plus Neutral takes about **63-67 packs** (~4 weeks at ~2.4 packs a day); a playset of the whole set about **94 packs** (~6 weeks). Re-run this after any change to pack contents, set size or these numbers.
+
+### Much later: a marketplace instead of trading
+The owner prefers an eventual **marketplace** where owners sell cards (including high-end finishes) to players finishing master sets, over a direct trading system. Not now. Keep the per-copy ownership history so it is possible. When it is designed, review it against the loot box and consumer rules first: tradeable value makes paid packs more gambling-like in some countries.
