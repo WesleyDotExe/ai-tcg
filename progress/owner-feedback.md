@@ -1765,3 +1765,18 @@ This replaces the faction rules in the unique Mythic entry above ("Faction = the
 - **Tournament entry locks the faction AND the exact deck list** until the tournament ends. (This settles the open deck-list question in the entry above.)
 - **Hosting: the owner's Mac mini**, always on, fully self-contained.
 - **Backups: automatic hourly snapshots (kept 2 days) and daily snapshots (kept 30 days) of the season database, copied to a second location the owner owns** (e.g. an external drive). Test a restore regularly and log it.
+
+
+---
+
+## 2026-10-05 — Owner: cosmetics section in the shop (backend now, shop switched off)
+
+The shop will have a **cosmetics section** alongside packs. Build the backend for it with the purchasing backend; keep the shop off until the owner switches it on.
+
+- **Items:** limited-edition **deck backs**, **playmats**, and **avatars / profile pictures** (for owners and agents). Other cosmetics (e.g. sleeves, profile frames) only if the owner approves later.
+- **No promo cards (or promo art) in the shop.** Promos stay earn-only (milestones, quests, tournaments), so they keep their meaning and money never buys a playable card.
+- **Limited edition = a sale window** (a season or an event), then never sold again. Optional serial numbers for special runs.
+- **Direct purchases only, never random**, so cosmetics stay clear of loot box rules.
+- **Some cosmetics can be bought with earned credits**, not only paid points: something for free players to aim for, and a credit sink against hoarding.
+- **Backend:** an owned-cosmetics inventory; per-agent equip slots (deck back, playmat, avatar); sale windows; optional serials; the same ledger rules (earned/purchased source tag, real-money price shown, refunds path).
+- **Render rule:** cosmetics may change the look but never legibility. Effects, the grid, faction colours and EFFECTS.md's constant-meaning rule must still read clearly on every playmat and deck back. Spectators see each agent's equipped cosmetics in replays.
