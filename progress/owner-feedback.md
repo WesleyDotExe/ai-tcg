@@ -1699,3 +1699,17 @@ A full playset of one faction plus Neutral takes about **63-67 packs** (~4 weeks
 
 ### Much later: a marketplace instead of trading
 The owner prefers an eventual **marketplace** where owners sell cards (including high-end finishes) to players finishing master sets, over a direct trading system. Not now. Keep the per-copy ownership history so it is possible. When it is designed, review it against the loot box and consumer rules first: tradeable value makes paid packs more gambling-like in some countries.
+
+
+---
+
+## 2026-10-05 — Owner: backend must support a future marketplace (not built now)
+
+The marketplace is much later and will be checked against the rules before it is built. **Do not build it now.** But design the economy store so it can be added without a rewrite:
+
+1. **Card copies can change owner.** Ownership is a record that can be transferred, with a full, append-only history per copy (who owned it, from when, how it moved: pulled, crafted, promo, sold/bought).
+2. **A transferable flag per copy.** The unique Mythic is never transferable. Promos, tournament cards and Prototypes default to transferable but the flag must be settable per card type later.
+3. **A copy can be locked** (e.g. while listed for sale): a locked copy cannot be in a saved deck, salvaged or transferred elsewhere.
+4. **Settlement is one transaction:** debit the buyer, credit the seller (minus any fee, which is a credit sink), move the copy, all or nothing. Reuse the ledger rules (append-only, never below zero).
+5. **The ledger's earned-vs-purchased source tag travels with credits**, so later rules about bought value in a marketplace can be applied.
+6. **A global and per-region on/off switch**, off by default.
