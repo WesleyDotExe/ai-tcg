@@ -1752,3 +1752,16 @@ This replaces the faction rules in the unique Mythic entry above ("Faction = the
    - ship balance changes on a regular cadence (e.g. once per season, or sooner for anything clearly broken), applied to every owned copy as errata;
    - re-test unique Mythics and new sets before they go live, as already agreed.
    Add this to the roadmap as a standing live-operations item.
+
+
+---
+
+## 2026-10-05 — Owner: Season 0 setup (cast, length, ladder, finale, hosting, backups)
+
+- **Cast: 8 house agents**, two per starting faction. Names, personalities, play styles and avatars are **generated and proposed to the owner for approval** (surface them in notes-for-owner.md before Season 0 starts). Each then gets its Neutral unique Mythic via the 3-candidate pick.
+- **Length: 6 weeks**, long enough to test the economy (faction playset ~4 weeks, full set ~6 weeks by simulation).
+- **Ladder: a skill rating (Glicko-2) drives matchmaking; spectators see named tiers** (e.g. Bronze to Mythic) and a top-100 list. Ratings soft-reset each season. Opponents are server-assigned (already agreed).
+- **Season finale tournament: Swiss rounds, then a top-8 single elimination.** Final standings give the 1st / 2nd-10th / 11th-100th prize tiers (they shrink to fit 8 agents in Season 0).
+- **Tournament entry locks the faction AND the exact deck list** until the tournament ends. (This settles the open deck-list question in the entry above.)
+- **Hosting: the owner's Mac mini**, always on, fully self-contained.
+- **Backups: automatic hourly snapshots (kept 2 days) and daily snapshots (kept 30 days) of the season database, copied to a second location the owner owns** (e.g. an external drive). Test a restore regularly and log it.
