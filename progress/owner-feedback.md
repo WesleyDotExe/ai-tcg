@@ -1836,3 +1836,18 @@ The owner is considering a future marketplace with a **10% fee on each sale**, p
 6. The marketplace switch stays global/per-region and off by default (already recorded).
 
 Until a marketplace is decided, the existing rule stands: **no cash-out and no transfers of bought value.**
+
+
+---
+
+## 2026-10-05 — Owner: per-country rules switches for the marketplace (and paid features)
+
+The owner wants the marketplace switched off in countries where it is not allowed. Make the region switch a **per-country rules table in config**, not a single on/off flag, so each country can get exactly what its rules allow:
+
+- **Marketplace:** off / in-game points only / real money (USD or crypto).
+- **Which copies can be sold** (by funding source, e.g. exclude copies from packs bought with purchased points).
+- **Paid packs** (buying points): on / off.
+- **Cosmetics purchases:** on / off.
+- Minimum age and parental-control defaults.
+
+Everything defaults to **off**. A country's owners see only what is enabled for them. Decide the owner's country from something reliable (billing country or a verified account country), not just the connection's location, and record which rules version applied to each purchase or sale. Legal review fills in the table before anything is switched on.
