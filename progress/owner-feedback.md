@@ -1896,3 +1896,112 @@ The Aegis orange vs Neutral gold check is done. Checked side by side and with a 
 ## 2026-10-05 — Owner: ECONOMY.md now holds all of today's economy decisions
 
 The owner folded every 2026-10-05 economy entry above into `ECONOMY.md` (commit "ECONOMY.md: fold in the owner's 2026-10-05 decisions"). **Game-lane sessions: read ECONOMY.md first; it is the single, current economy spec**, with superseded rules already replaced (5-card packs, the Prototype pyramid and 6th-card drop, win pay 30/10/5, salvage and crafting numbers, the Neutral unique Mythic and signature zone, one shop currency, anti-exploit rules, marketplace hooks, per-country rules, Season 0 setup). If ECONOMY.md and an entry here ever disagree, the entry here wins and ECONOMY.md should be fixed. Keep each section's BUILT / SPEC / OPEN marker up to date as you build.
+
+
+---
+
+## 2026-10-05 — Owner: owner app spec (title screen, main menu, owner-owned economy, one agent, auto-play, 2× rule, Watch live, dark mode)
+
+Owner-approved. Build the owner app to this spec. Where earlier owner-screen notes disagree, this entry wins.
+
+**Visual reference:** `render/reference/owner-app-mockup.html`, a clickable phone mockup. Agent names, card art, numbers and prices in it are placeholders. Open it in a browser and sign in with anything.
+
+### A. The economy moves from the agent to the owner [CHANGES BUILT CODE]
+- The owner (the human account) owns everything:
+  - the collection and every card copy, plus credits, pack points and unopened packs;
+  - promos;
+  - rating, tier and match stats;
+  - quest, daily-reward, weekly-challenge and pity-timer progress.
+- An agent owns nothing except its signature card.
+- **Migrate `economy/`:** card copies, ledger entries, wallets, packs and decks key on `owner_id`, not the agent. Keep the agent on matches and ledger rows as "played by", for history and the stats filter.
+- **Caps are per owner:** daily caps, quests, the weekly challenge, pity timers and win rewards. Switching agents must never reset them or double them.
+- **Rating is per owner.** A newly connected agent plays at the owner's current rating, so switching can't reset a bad rating.
+- **The starter collection is once per owner:** the starter deck plus 3 packs.
+- Update `ECONOMY.md` to match. Mark the per-agent wording as superseded by this entry.
+
+### B. Agents: one at a time
+- An owner has one connected agent at a time.
+- Switching agents changes **only the signature card** in play. Everything else stays with the owner.
+- **A new agent gets its signature card only.** No starter deck and no starter packs.
+  - The owner picks the signature card from 3 generated options, as already specced.
+  - Season 0 flow: "Generate a new agent" shows 3 generated agents. The owner picks one, then picks its signature card from 3, then confirms.
+  - "Connect your own AI agent" is shown as coming after Season 0.
+- **Old signature cards stay bound to their old agent forever.**
+  - They show in the owner's Collection under Promos → Signature cards.
+  - Only the connected agent's card is marked "in use"; the rest are greyed out.
+- No switching or disconnecting during a live match.
+- **Faction lock is an owner setting.** It applies to whichever agent is connected.
+
+### C. Screens
+1. **Title screen (animated):** fanned rare cards, a shimmering logo and a moving background. Tap to start. If the owner isn't signed in, a sign-in panel slides up (email or username, password, and a create-account link). Season 0 stays home Wi-Fi only, as already decided.
+2. **Main menu, top to bottom:**
+   - **Header:** owner avatar and name, credits, pack points, notifications bell.
+   - **Connected agent card:** name, faction, tier, rating and record, live status, a Watch or Start match button, and the Auto-play switch.
+   - **Pack banner:** "Open" when a free daily or unopened pack is waiting; otherwise a countdown to the next free pack.
+   - **Full-width rows, one under another, in this order:** Agent match, Watch live, Collection, Store, Tournament, Stats, Settings, **Connect agent (last)**.
+     - Each row has an icon, a name, a one-line status, an optional badge (LIVE, 2 FREE) and a chevron.
+     - The Agent match and Watch live rows use dark styling.
+3. **Agent match (dark), tab "My agent":**
+   - Flow: Start match → matchmaking → live board → Victory or Defeat with rewards → Replay, Play again or Menu.
+   - The live board shows health, hand counts, units, damage numbers, a turn banner and a play-by-play log.
+   - Leaving the screen doesn't stop the match; the menu shows its live status.
+   - Use the existing match renderer for the real board.
+4. **Watch live (main menu row, and a tab on the match screen):**
+   - Featured live matches in two groups: Tournament (including the Season 0 finale when it runs) and Top rated (high-rating players).
+   - Shows viewer counts. Spectators can't change speed or interact with the match.
+5. **Collection:**
+   - The owner's collection, grouped by set (Set 1 now, later sets listed).
+   - Tabs: Set, Secrets, Prototypes, Promos. Faction filter.
+   - Binder layout with numbered empty slots for missing cards.
+   - Card viewer with tilt, and craft with pack points.
+6. **Store:**
+   - **Packs:** buy 1 or 10, open 1 or 10.
+   - **Daily:** claim free daily packs; weekly challenge.
+   - **Cosmetics:** deck backs, playmats, avatars. Prices to be decided.
+   - **Credits:** paid credits are shown but switched off until after Season 0. Pay by card (USD) or MetaMask (ETH or USDT, web only), with the per-country switch already decided.
+7. **Tournament:**
+   - Event card and entry flow: pick a faction; the faction and exact deck list lock until the event ends.
+   - Prizes as already decided, plus the seeding ladder.
+   - Featured tournament matches appear in Watch live.
+8. **Stats (owner-level):**
+   - Rating chart; matches, wins, win rate and best streak; recent results.
+   - Win rate by faction; today's earnings and quests; achievements.
+   - Filter: "All agents" or the agent that played.
+9. **Settings:**
+   - **Account:** sign out.
+   - **Play:** Auto-play; Lock faction with a faction pick; "Ask for 2× in every match".
+   - **Notifications:** big pulls, match results, free daily pack ready.
+   - **Display & sound:** Theme, Sound, Haptics, Reduce motion.
+   - **Season 0:** network status.
+   - **Admin:** shown to admin accounts only.
+10. **Admin → House agents (admin only):** manage the 7 Season 0 house agents. Each house agent runs under its own house owner account, with its own collection, wallet and rating.
+11. **Pack opening (from the menu banner or the Store), as already specced:**
+    - single pack: choose a pack from a carousel, slide to tear it open, swipe through the cards;
+    - special cards arrive face-down and glowing; tap to reveal;
+    - the bonus 6th-card moment;
+    - results with NEW badges and salvage;
+    - bulk 10 opens to a grid with tap-to-reveal.
+
+### D. Match speed: 2× only when both owners agree
+- Matches start at 1×. They run at 2× only when **both** owners in the match agree.
+- Each owner can tap "Ask for 2×" during a match, or turn on "Ask for 2× in every match" in Settings. The screen shows when you're waiting on the other owner.
+- The vote resets every match.
+- Speed only changes the pace of playback and streaming. It never changes game logic or results.
+
+### E. Auto-play (maxes daily rewards with little human input)
+- One easy switch, on the main menu agent card, on the match screen and in Settings.
+- When on, the agent queues ranked matches back to back without input.
+- It **switches itself off once the day's rewards are maxed** (the daily earnings cap, or 10 rewarded wins), with a message. The owner turns it back on another day.
+- Turning it off lets the current match finish.
+- Auto-play earns nothing extra. The same daily caps apply.
+
+### F. Dark mode
+- Settings → Theme: **System** (the default, follows the device), Light, Dark.
+- The menu and list screens switch between light and dark.
+- The match board, pack opening and title screen are dark in both modes.
+- Cards look identical in both modes.
+- Neutral's white-gold #fff0c2 is used as text only on dark backgrounds. On light backgrounds, use a darker gold.
+
+### Still open (decide later)
+- Cosmetic prices, and the paid credit tiers and prices.
+- The rules for who appears in Watch live under "Top rated".
