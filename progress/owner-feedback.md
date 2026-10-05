@@ -1889,3 +1889,10 @@ The Aegis orange vs Neutral gold check is done. Checked side by side and with a 
 - The unique Neutral Mythics' wards use this white-gold material too.
 - Aegis stays orange `#ff7d24`.
 - Check text on white-gold stays readable (dark text on light fills, or white-gold text on dark).
+
+
+---
+
+## 2026-10-05 — Owner: ECONOMY.md now holds all of today's economy decisions
+
+The owner folded every 2026-10-05 economy entry above into `ECONOMY.md` (commit "ECONOMY.md: fold in the owner's 2026-10-05 decisions"). **Game-lane sessions: read ECONOMY.md first; it is the single, current economy spec**, with superseded rules already replaced (5-card packs, the Prototype pyramid and 6th-card drop, win pay 30/10/5, salvage and crafting numbers, the Neutral unique Mythic and signature zone, one shop currency, anti-exploit rules, marketplace hooks, per-country rules, Season 0 setup). If ECONOMY.md and an entry here ever disagree, the entry here wins and ECONOMY.md should be fixed. Keep each section's BUILT / SPEC / OPEN marker up to date as you build.
