@@ -2005,3 +2005,18 @@ Owner-approved. Build the owner app to this spec. Where earlier owner-screen not
 ### Still open (decide later)
 - Cosmetic prices, and the paid credit tiers and prices.
 - The rules for who appears in Watch live under "Top rated".
+
+
+---
+
+## 2026-10-05 — Owner: crafted and starter cards are account-bound
+
+Owner decision, clarifying the anti-exploit rules. Build to this and update `ECONOMY.md` to match (anti-exploit and marketplace sections).
+
+- **Every card copy records its origin** on its `card_copies` row: pack, crafted, starter, promo or prize.
+- **Crafted copies (made with pack points) are account-bound.** They can't be sold on the future marketplace and can't be salvaged into pack points. They can only be played.
+- **Starter deck copies are account-bound too.** They can't be sold and can't be salvaged. This stops anyone farming new accounts for free cards to sell.
+- **Bound copies still count normally** for deck building, the playable limits (3/3/2/1) and collection completion.
+- **Salvage only ever uses standard-finish copies from packs.** When an owner holds more than the playable limit, the extra pack copies are the ones that salvage; bound copies never do.
+  - Example: an owner holds 3 starter copies of a Common and pulls a 4th from a pack. The pack copy salvages.
+- **The marketplace (later) never lists bound copies.** The card viewer shows an "Account-bound" tag on them.
