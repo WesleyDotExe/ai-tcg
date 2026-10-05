@@ -2020,3 +2020,115 @@ Owner decision, clarifying the anti-exploit rules. Build to this and update `ECO
 - **Salvage only ever uses standard-finish copies from packs.** When an owner holds more than the playable limit, the extra pack copies are the ones that salvage; bound copies never do.
   - Example: an owner holds 3 starter copies of a Common and pulls a 4th from a pack. The pack copy salvages.
 - **The marketplace (later) never lists bound copies.** The card viewer shows an "Account-bound" tag on them.
+
+
+---
+
+## 2026-10-05 — Owner: website first, with a customisable widget board (owner UI layout)
+
+Owner-approved. **Build the owner UI as a website first. There will be no phone app for now, and the phone layout is parked, so don't build it.** Every rule in today's owner app spec still applies; only the layout changes:
+- the owner-owned economy and the one-agent rule;
+- auto-play, the 2× rule and Watch live;
+- dark mode and account-bound cards.
+
+**Visual reference:** `render/reference/owner-web-mockup.html`. Open it full screen in a desktop browser and click to start. `render/reference/owner-app-mockup.html` stays as a reference for behaviour only. Names, numbers, art and prices in both are placeholders.
+
+### A. Platform
+- A website that owners sign into from a desktop browser. No App Store or Play Store for now.
+- In Season 0 it's served from the Mac mini on home Wi-Fi, as already decided.
+- It's fully self-contained: system fonts only, and the backgrounds are generated in the browser. No external services.
+
+### B. Site layout
+- **Left sidebar, always visible:**
+  - Home, Agent match, Watch live, Collection, Store, Tournament, Stats.
+  - Then Settings and Connect agent.
+  - At the bottom, a small agent card with live status and the Auto-play switch.
+- **Top bar:**
+  - the page title;
+  - an "Open" button whenever packs are waiting;
+  - credits and pack points;
+  - theme switch, notifications and account.
+- **Full pages:**
+  - **Agent match and Watch live:** a big board on the left, the play-by-play and controls on the right.
+  - **Collection:** a wide binder.
+  - Store, Tournament, Stats, Settings, Connect agent and Admin.
+- Confirmations open as centred dialogs. Pack opening is full screen, as already specced.
+
+### C. Home is a customisable widget board
+- **Grid:** 12 columns. Each widget has three sizes:
+  - **S:** 3 columns × 2 rows.
+  - **M:** 6 × 4.
+  - **L:** either wide (12 × 6) or tall (6 × 8), whichever suits the widget.
+- **Customise mode** (iOS edit style, where widgets jiggle):
+  - drag to move;
+  - pick S, M or L to resize;
+  - "−" to remove;
+  - buttons for "+ Add widget", "Background" and "Recommended layout" (asks to confirm first).
+- **"+ Add widget"** is always available. It opens the widget gallery, and a dashed "+ Add widget" tile also sits at the end of the board in Customise mode.
+- **Empty board:** shows "Your board is empty" with Add widget and Use recommended layout.
+- **The layout is saved to the owner's account** on the server, so it follows them to any browser.
+- **Widget limits:**
+  - one of each widget, except Watch live (up to 2);
+  - at most **2 live boards** render at once; extra live widgets drop to a scoreboard with a short note.
+- Every widget has a button that opens its full page.
+- **Narrow windows** stack the widgets in the owner's order.
+- **Recommended layout:**
+  - Row 1: My agent (M), Live match (M).
+  - Row 2: Packs (M), Daily rewards (S), Tournament (S).
+  - Row 3: Watch live (M), Collection (M).
+  - Row 4: Ladder (M), Rating & form (M).
+
+| Widget | S | M | L |
+|---|---|---|---|
+| My agent | Avatar, name, status, auto-play switch | + rating, record, Start/Watch, signature name | Wide: + persona, signature card art, faction lock, today's rewards |
+| Live match | Scoreboard: names, health, turn | Compact board, last log line | Wide: board, play-by-play, 2× request, auto-play |
+| Watch live (max 2) | Top featured match, viewers, Watch | List of featured matches | Wide: featured match plays in the widget, list alongside |
+| Packs | Pack, count, Open | Pack art, daily timer, Open / Open 10 / Buy | Wide: + last opening's cards |
+| Daily rewards & quests | Earnings bar, rewarded wins | + quests with reroll | Tall: + weekly challenge, daily streak |
+| Collection | Completion ring | + secrets and Prototypes, last 5 pulls | Wide: mini binder with faction filter |
+| Showcase | Best card | 5 best or pinned | Wide: showcase wall the owner arranges |
+| Ladder | Rank and rating | Top 8 plus you | Tall: full ladder with tiers and search |
+| Rating & form | Rating, weekly trend | Chart, recent results | Wide: chart, stats, win rate by faction |
+| Match history | Last result | Last 6 | Tall: full list with replay links |
+| Tournament | Countdown | Event card, Enter, prizes | Wide: live bracket and standings |
+| League pull feed | Latest big pull | Feed | Tall: feed with card images |
+| Notifications | Unread count, latest | Feed | Tall: feed with filters |
+| Store | Claim free daily pack | Packs and daily claim | Wide: + cosmetics |
+
+### D. Look and feel
+- **iOS widget style:**
+  - frosted-glass panels: translucent, blurred, a fine bright edge, a soft shadow, corners around 26px;
+  - each widget has a small coloured app-style icon and a plain title;
+  - Apple's system font, with the rounded variant for big numbers.
+- **Background:**
+  - a slow-moving liquid gradient drawn in the browser (WebGL);
+  - it sits behind the glass sidebar, top bar, widgets, panels and dialogs.
+- **Background choices** (Settings → Display & sound, and Customise → Background):
+  - liquid colours: **Glacier** (default, soft blue-grey), **Ocean**, **Aurora**, **Sunset**, **Lavender**, **Graphite**;
+  - **Plain black** and **Plain purple**, which always use dark mode;
+  - the choice saves to the owner's account.
+- **Theme:** System, Light or Dark, as before. Each liquid colour has a light and a dark version.
+- **Accessibility:** reduce motion keeps the background still; reduce transparency makes panels solid.
+- **Performance:** render the background at low resolution, cap it at about 30 frames a second, and pause it when the tab is hidden or the background isn't visible.
+
+### E. Title screen
+- **Background:**
+  - a deep cosmic version of the liquid background in indigo, violet and teal;
+  - a warm glow behind the cards, and slowly drifting sparkles;
+  - **no rotating light rays.**
+- **Cards:**
+  - a fan of five rare cards: a Full Art, a Gold, a Prototype in the centre, an Alt Art and a Foil;
+  - they tilt in 3D towards the mouse, with a holographic shine;
+  - **all text stays still.**
+- **Logo and text:**
+  - the logo builds in letter by letter, then keeps a slow foil shimmer;
+  - a "Season 0 is live" badge, "SEASON 0 · SET 1", the tagline and three feature points;
+  - stat tiles showing cards in the set, Prototypes to hunt and days to the finale, all from live data.
+- **Starting:**
+  - a **"CLICK TO START"** glass button; Enter works too;
+  - if the owner isn't signed in, the sign-in panel takes the button's place.
+- **Live ticker** along the bottom, from real data: live featured matches with viewer counts, big pulls and tournament news.
+
+### Still open
+- The phone layout (parked).
+- Cosmetic prices, paid credit prices and the "Top rated" rules (already open).
