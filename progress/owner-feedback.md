@@ -1851,3 +1851,28 @@ The owner wants the marketplace switched off in countries where it is not allowe
 - Minimum age and parental-control defaults.
 
 Everything defaults to **off**. A country's owners see only what is enabled for them. Decide the owner's country from something reliable (billing country or a verified account country), not just the connection's location, and record which rules version applied to each purchase or sale. Legal review fills in the table before anything is switched on.
+
+
+---
+
+## 2026-10-05 — Owner: marketplace payment methods — USD and MetaMask (ETH / USDT), designed in now
+
+Add these to the marketplace design now, in case they affect the infrastructure. The marketplace itself stays off (per-country table, legal review first).
+
+### Payment methods
+- **USD** through a marketplace payment provider (e.g. Stripe Connect: card payments, seller payouts, provider-side identity checks, the 10% fee taken automatically).
+- **MetaMask: ETH and USDT** (USDT as the ERC-20 token on Ethereum to start). **Web only** (app stores restrict crypto payments for digital goods). **No identity checks for MetaMask sales** (owner decision).
+- One listing price in USD; a buyer paying in ETH or USDT gets a short-lived quote converted at checkout.
+- A small smart contract splits each crypto payment: 90% to the seller, **10% to the platform**; the card transfers only after the payment is confirmed on-chain.
+- Crypto payments cannot be reversed: define a dispute process that does not rely on refunds.
+
+### Build now (data model and boundaries only; no live payments, no contract deployed)
+- payment method on every sale (points / USD / ETH / USDT);
+- accepted payment methods per listing;
+- exchange-rate snapshot (rate, source, time, expiry) per crypto checkout;
+- on-chain transaction hash, chain ID and confirmation status per crypto sale;
+- wallet address(es) linked to an owner account (one owner can link a wallet; a wallet links to one owner);
+- seller payout records and platform fee records, separate from the in-game points ledger;
+- the per-country rules table gets separate switches for USD and for crypto.
+
+Wallet connection, the smart contract and live checkout are built later with the marketplace.
