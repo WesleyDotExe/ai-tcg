@@ -1876,3 +1876,16 @@ Add these to the marketplace design now, in case they affect the infrastructure.
 - the per-country rules table gets separate switches for USD and for crypto.
 
 Wallet connection, the smart contract and live checkout are built later with the marketplace.
+
+
+---
+
+## 2026-10-05 — Owner: Neutral colour changes to white-gold #fff0c2 (render)
+
+The Aegis orange vs Neutral gold check is done. Checked side by side and with a colour-blindness simulation: the current Neutral gold #ffcf5c nearly merges with Aegis orange #ff7d24 for deuteranopia (the most common colour blindness), especially in glowing effects. **Neutral becomes white-gold `#fff0c2`** (CIEDE2000 distance from Aegis: 26 → 33 in normal vision, 12 → 22 with deuteranopia; still clear of Cortex, Swarm and Null).
+
+**Render lane:**
+- Change Neutral to `#fff0c2` everywhere: `render/EFFECTS.md` colour list, the page CSS variable, faction tags, card frames, HUD tint, v1 skins and the canvas kits (light lances, crosses, chevrons, smite, the gold acid debuff, which becomes white-gold acid).
+- The unique Neutral Mythics' wards use this white-gold material too.
+- Aegis stays orange `#ff7d24`.
+- Check text on white-gold stays readable (dark text on light fills, or white-gold text on dark).
