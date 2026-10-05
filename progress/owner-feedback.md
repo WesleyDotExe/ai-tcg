@@ -1820,3 +1820,19 @@ This clarifies the paid-pack and cosmetics entries above.
 - Add an **exploit test suite** that tries each loop above and must fail to profit.
 - Add **economy anomaly flags** to the Season 0 metrics: earnings above the daily caps, rapid salvage/craft cycles, unusual balance growth, repeated pairings.
 - Re-run these whenever an economy number changes.
+
+
+---
+
+## 2026-10-05 — Owner: future marketplace — 10% fee, possibly USD or Ethereum (hooks only, nothing built)
+
+The owner is considering a future marketplace with a **10% fee on each sale**, priced in **USD, or Ethereum via MetaMask**. This is much later and needs legal review before any of it is built (real-money resale of cards from paid random packs is treated as gambling in some countries, and crypto adds payments, tax and licensing questions). **Build nothing for it now.** Only make sure the store does not block it:
+
+1. **Card copy IDs are globally unique and never reused** (e.g. UUIDs), so a copy could later map to an external record or token without renumbering.
+2. **Each copy records how it was funded:** pulled from a pack bought with earned points, a pack bought with purchased points, crafted, promo, starter, etc. Rules may later treat these differently (e.g. only some copies may be sold for money).
+3. **Listings and sales are currency-agnostic:** a price plus a currency code, not hard-wired to in-game points. Real-money or crypto settlement would live outside the in-game points ledger, in its own records (payouts, fees), and never turn into in-game points.
+4. **The fee rate is config** (10% planned), recorded per sale.
+5. Owner accounts have room for later verification fields (e.g. identity or wallet), unused for now.
+6. The marketplace switch stays global/per-region and off by default (already recorded).
+
+Until a marketplace is decided, the existing rule stands: **no cash-out and no transfers of bought value.**
