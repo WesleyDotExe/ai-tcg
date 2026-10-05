@@ -59,7 +59,8 @@ export const CANVAS_FX_PURE_SOURCE = String.raw`
   // orange, owner 2026-10-02). The kit is the lab's K block. Slice 2 added
   // one variant name per category (EFFECTS.md's material table): the
   // category's grammar stays the same, the variant only picks the material.
-  // Neutral's debuff is Swarm's acid, in gold (owner 2026-10-03).
+  // Neutral's debuff is Swarm's acid, in white-gold (owner 2026-10-03;
+  // white-gold #fff0c2 replaced gold #ffcf5c, owner 2026-10-05).
   var FX_KITS = {
     Cortex:  { col: '#35c9ff', debris: [FX_SP.pixels, FX_SP.shard, FX_SP.cube, FX_SP.circuit],
                trail: FX_SP.pixels, head: FX_SP.shard, decal: FX_SP.circuit, smoke: 0.35, flavor: 'arc',
@@ -73,7 +74,7 @@ export const CANVAS_FX_PURE_SOURCE = String.raw`
     Null:    { col: '#d565ff', debris: [FX_SP.glitch, FX_SP.glass, FX_SP.pixels, FX_SP.glass],
                trail: FX_SP.glitch, head: FX_SP.darkStar, decal: FX_SP.rift, smoke: 0.7, flavor: 'glitch',
                spell: 'blink', removal: 'vortex', heal: 'reverse', buff: 'darkstar', debuff: 'bitrot' },
-    Neutral: { col: '#ffcf5c', debris: [FX_SP.glint, FX_SP.dust, FX_SP.feather, FX_SP.glint],
+    Neutral: { col: '#fff0c2', debris: [FX_SP.glint, FX_SP.dust, FX_SP.feather, FX_SP.glint],
                trail: FX_SP.dust, head: FX_SP.glint, decal: FX_SP.rune, smoke: 0.3, flavor: 'glint',
                spell: 'lances', removal: 'smite', heal: 'crosses', buff: 'chevrons', debuff: 'acid' }
   };
@@ -180,8 +181,9 @@ export const CANVAS_FX_PURE_SOURCE = String.raw`
     if (!small) return r;
     return { size: r.size * 0.7, trailLen: Math.round(r.trailLen * 0.7), headScale: r.headScale, trailEvery: 2 };
   }
-  // A hit on a player (their avatar) is wider and flatter than a hit on a
-  // card: the lab's impactFace squashes the shockwave across the HUD.
+  // A hit on a player lands mid-board on their side (owner 2026-10-05) and
+  // is wider and flatter than a hit on a card: the lab's impactFace
+  // squashes the shockwave across their row of slots.
   function fxImpactRecipe(tier, targetKind) {
     var r = FX_IMPACT[tier] || FX_IMPACT.normal;
     var out = {};
@@ -569,9 +571,9 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
       ring(p.x, p.y, c, r.ring, 0.42, tier === 'spectacle' ? 3 : 2.5);
       // The ground mark lives on the floor, under the cards. Under a card it
       // is sized past the card's own edges so it shows around it (the card
-      // stands in its scorch / goo / rift); a player's HUD panel is opaque,
-      // so a face hit leaves no mark (the flare and shock carry it).
-      if (r.decal > 0 && targetKind !== 'player') {
+      // stands in its scorch / goo / rift). A hit on a player lands in the
+      // middle of their side of the board and marks the floor there too.
+      if (r.decal > 0) {
         var ds = Math.max(r.decal, Math.max(rect.width, rect.height) * fxDecalCover(tier));
         decal(p.x, p.y + 6, kit.decal, c, ds, r.decalLife, 0.42);
       }
@@ -643,7 +645,7 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
           // The last shot is the one the number arrives with: it leaves the
           // faction's mark (not on a player's opaque HUD) and, at spectacle,
           // the camera beat.
-          if (tier !== 'subtle' && targetKind !== 'player') decal(p.x, p.y + 6, kit.decal, c, Math.max(70, Math.max(rect.width, rect.height) * fxDecalCover(tier)), 3.5, 0.38);
+          if (tier !== 'subtle') decal(p.x, p.y + 6, kit.decal, c, Math.max(70, Math.max(rect.width, rect.height) * fxDecalCover(tier)), 3.5, 0.38);
           if (tier === 'spectacle') { hitStop(70); doPunch(0.015, p.x, p.y); doShake(3, 180); }
         };
         if (v === 'laser') at(s.at, function () {
@@ -774,7 +776,7 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
     }
 
     // Debuff: sink + desaturate, moving downward (axis 1). Slate ring sinks,
-    // the faction's material falls away. Neutral's is Swarm's acid, in gold.
+    // the faction's material falls away. Neutral's is Swarm's acid, in white-gold.
     function debuffAt(v, b, rect, kit, c, m) {
       var w = rect.width, h = rect.height, i;
       ring(b.x, b.y, SLATE, 60 * m, 0.5, 2, { dy: -20 });

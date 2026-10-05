@@ -50,7 +50,7 @@ const manifest = JSON.parse(readFileSync(resolve(here, "../assets/manifest.json"
 const FACTIONS = ["Cortex", "Aegis", "Swarm", "Null", "Neutral"] as const;
 const TIERS = ["subtle", "normal", "spectacle"] as const;
 // EFFECTS.md, Axis 2.
-const SPEC_COLOURS = { Cortex: "#35c9ff", Aegis: "#ff7d24", Swarm: "#8bff5c", Null: "#d565ff", Neutral: "#ffcf5c" };
+const SPEC_COLOURS = { Cortex: "#35c9ff", Aegis: "#ff7d24", Swarm: "#8bff5c", Null: "#d565ff", Neutral: "#fff0c2" };
 
 describe("sprite map vs the committed atlases", () => {
   it("is a permutation of the 48 cells", () => {
@@ -203,8 +203,27 @@ describe("the page", () => {
     expect(JSON.parse(m![1]!)).toEqual(fxAtlasDataUris());
   });
 
-  it("keeps the CSS faction colours on the EFFECTS.md palette (Aegis orange)", () => {
+  it("keeps the CSS faction colours on the EFFECTS.md palette (Aegis orange, Neutral white-gold)", () => {
     for (const f of FACTIONS) expect(html).toContain(`--${f.toLowerCase()}: ${SPEC_COLOURS[f]};`);
+    // The spec's own colour line, so the doc, the kits and the CSS can't drift.
+    const spec = readFileSync(resolve(here, "../EFFECTS.md"), "utf8");
+    const line = spec.split("\n").find((l) => l.startsWith("Colours ("))!;
+    for (const f of FACTIONS) expect(line).toMatch(new RegExp(`${f} [^\`]*\`${SPEC_COLOURS[f]}\``));
+    expect(html).not.toContain("#ffcf5c;");
+  });
+
+  it("aims and lands anything targeting a player mid-board on their side, and the HP bar reacts", () => {
+    // The landing point is the centre of the defending player's row of slots
+    // (owner 2026-10-05), for attacks (targetRect), effects (effectEndRect)
+    // and the aim line alike; never the avatar.
+    expect(html).toContain("if (target.kind === 'player') return playerLandRect(target.playerId);");
+    expect(html).toContain("if (end.kind === 'player') return prevLandRects[end.playerId] || playerLandRect(end.playerId);");
+    expect(html).toContain("const prevLandRects = { p1: playerLandRect('p1'), p2: playerLandRect('p2') };");
+    expect(html).not.toMatch(/function targetEl\(/);
+    expect(html).toContain("reactHp(pid, hudEl, 'fx-hit', String(delta), 'dmg', t)");
+    expect(html).toContain('id="\' + elId + \'-hp-row"');
+    // A player hit now leaves a ground mark, like a card hit.
+    expect(CANVAS_FX_RUNTIME_SOURCE).not.toContain("targetKind !== 'player'");
   });
 
   it("falls back to the v1 DOM bolt and burst when the canvas can't draw", () => {

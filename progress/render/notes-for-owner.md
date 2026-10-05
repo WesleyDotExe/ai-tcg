@@ -390,3 +390,21 @@ separate from the shared `progress/notes-for-owner.md`).
 5. **No engine change was needed.** The game session 27 instance ids were
    enough for exact source → target travel on everything except Overload's
    end-of-turn tick, which has no source id and flies nothing.
+
+## 2026-10-05 — Session 12 (player hits mid-board, Neutral white-gold, EFFECTS.md v2 slice 3: sound)
+
+1. **Your three 2026-10-05 render entries are applied:**
+   - attacks and effects aimed at a player land in the middle of their side of the board (EFFECTS.md Axis 1 updated);
+   - Neutral is white-gold `#fff0c2`, and `mythic_ward.py` has a Neutral theme for the unique Mythics;
+   - slice 3 (procedural sound) is built.
+
+2. **The quickest way to judge the sound is `render/output/fx-sheet.html`, part 3** (scroll down).
+   - Press "Sound: off" to switch it on.
+   - Click a faction name to hear all 11 of its sounds, or a sound name to hear it in all five voices.
+   - Then try a replay with sound on: `aegis-vs-null-seed3.html`.
+
+3. **One taste call worth a look:** a spectacle face hit lands in the gap between slots 3 and 4, and its flash spills onto the cards either side (`progress/render/evidence/v2-s3-face-hit-spectacle-aegis-vs-cortex-seed6.png`). If it reads as hitting a card, the alternative is landing on the nearest empty slot. See checkpoint item 1.
+
+4. **Mythic ward previews: nothing new.** No Mythic has been added since session 11, and `progress/render/mythic-wards-log.md` still doesn't exist.
+
+5. **No engine change was needed.**

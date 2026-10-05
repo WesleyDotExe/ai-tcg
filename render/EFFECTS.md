@@ -13,7 +13,7 @@ Every on-screen effect is (event category) × (faction material) × (magnitude t
 
 The grammar is CONSTANT across every faction and tier — a viewer learns it once.
 
-- attack → travel from the acting card to the target card (or to the centre of the opponent's side when no card is targeted) + impact on landing
+- attack → travel from the acting card to the target card, or **to the centre of the opponent's side of the board when the target is the player** (the middle of their row of slots, never their portrait/HUD; owner 2026-10-05) + impact on landing, with a ground mark there. The player's HP bar then reacts on their panel, timed to the impact: it flashes and the number rises from the bar, scaled by tier (a spectacle hit also flashes the whole panel and jolts the bar). The same rule holds for spells, heals and anything else whose target is a player; a card is still hit on the card itself.
 - spell / ability damage → travel from the card that used it; the faction decides the projectile form (see Axis 2)
 - defence / block → a shield takes the hit, ripples, deflects, and shatters when it breaks; "no effect" must always read as blocked
 - buff → rise + brighten, moving upward
@@ -29,7 +29,7 @@ THE ONE INVARIANT (do not break): meaning is constant. A debuff always reads as 
 
 ## Axis 2 — faction = WHAT IT IS MADE OF (material; never meaning)
 
-Colours (Aegis is ORANGE, owner 2026-10-02): Cortex `#35c9ff`, Aegis `#ff7d24`, Swarm `#8bff5c`, Null `#d565ff`, Neutral `#ffcf5c`.
+Colours (Aegis is ORANGE, owner 2026-10-02): Cortex `#35c9ff`, Aegis `#ff7d24`, Swarm `#8bff5c`, Null `#d565ff`, Neutral **white-gold `#fff0c2`** (owner 2026-10-05: the old gold `#ffcf5c` nearly merged with Aegis orange under deuteranopia; CIEDE2000 from Aegis 26 → 33, deuteranopia 12 → 22). White-gold is text only on dark backgrounds; on a white-gold fill, text is dark, or sits on a dark strip (the card name and stats strips are darker on Neutral cards).
 
 Textures: three 4×4 greyscale-on-black sprite atlases, `render/assets/fx/atlas-{a,b,c}.webp` (cell names in `render/assets/manifest.json`). Draw them ADDITIVELY on a canvas, tinted per faction with a small white core (lab: `tex()`). Black must become transparent over the DOM cards: alpha = brightest channel (lab: the tint loop). Pre-tint and cache per (sprite, colour); never tint per frame.
 
@@ -39,7 +39,7 @@ Textures: three 4×4 greyscale-on-black sprite atlases, `render/assets/fx/atlas-
 | Aegis | shrapnel, hex plates, cracked hex, molten drops; embers | embers | scorch | lobbed molten shells | breach charge sticks, beeps, detonates | plates welded back on in sparks | armour plates slam on | plates crack and drop |
 | Swarm | chitin, wings, claws, spores; goo | spores | goo splat | cloud of homing spores | tendrils erupt from below and devour | egg sacs bloom, spores lift | tendrils grow up | acid drips eat in |
 | Null | glitch bars, shattered glass, pixels; dark star | glitch bars | rift tear | packets that teleport along the path | vortex swallows it into a dark star | vortex runs backwards | dark star pulses | glitch bars eat the card |
-| Neutral | glints, sparkle dust, feathers; light rays | dust | rune ring | straight lances of light | rune seals it, light smites it | crosses of light rise | chevrons + glints | **acid drips, same look as Swarm, in gold** (owner 2026-10-03) |
+| Neutral | glints, sparkle dust, feathers; light rays | dust | rune ring | straight lances of light | rune seals it, light smites it | crosses of light rise | chevrons + glints | **acid drips, same look as Swarm, in white-gold** (owner 2026-10-03) |
 
 Adding a faction = one colour + one material kit (the lab's `K` block) + one procedural sound voice. Nothing else.
 
@@ -74,7 +74,7 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 - `render/src/canvasFx.ts` holds the kit table (`FX_KITS`, the lab's `K` block; slice 2 added the category variants to the same rows), the tint, the tier recipes (`FX_TRAVEL`, `FX_IMPACT`, `FX_KILL`) and the canvas runtime (`CFX.travel`, `CFX.impact`, `CFX.effect`, `CFX.kill`, `CFX.clear`).
 - Two fixed, full-viewport canvases: `.fx-floor` (z 0, under `#app`; the warping grid at its bottom) and `.fx-top` (z 89, over the cards and the aim line, under `.fx-layer`'s floating numbers). Particles live in document coordinates so a ground mark stays put when the page scrolls. The loop only runs while something is alive.
 - **Lab correction:** the lab's `spr()`/`addP()` use `layer: o.layer || 1`, which turns layer 0 into 1, so its "floor" decals actually draw on the top canvas. The port uses `!= null`; marks really sit under the cards.
-- **Ground marks under a card** are sized past the card's larger side (`fxDecalCover`: normal 1.3×, spectacle 1.6×, subtle none) so the card stands in its scorch / goo / rift / rune / circuit trace instead of hiding it. A face hit leaves no mark: the HUD panel is opaque.
+- **Ground marks under a card** are sized past the card's larger side (`fxDecalCover`: normal 1.3×, spectacle 1.6×, subtle none) so the card stands in its scorch / goo / rift / rune / circuit trace instead of hiding it. A hit on a player lands mid-board on their side and leaves its mark on the floor there (owner 2026-10-05; until then a face hit went to the portrait and left none).
 - **Fallback:** if the atlases don't decode or there is no 2D canvas, `CFX.travel`/`CFX.impact` return false and the page draws the v1 DOM bolt and burst.
 - The atlases are embedded in each replay as data URIs (~300 KB per page) to keep the single-file, offline replay.
 
@@ -91,6 +91,17 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 - **prefers-reduced-motion:** no hit-stop, shake, punch, colour split or grid motion. The particles still show what happened.
 - **v1 DOM paths retired behind the canvas:** a canvas buff/debuff stands down the v1 motes and burst (the rise/sink flash and the gold/slate label stay, they carry the meaning); a canvas kill replaces the v1 red burst. Both still run if the canvas can't draw.
 - **Still v1 (DOM):** the shield/Barrier block, the cast flourish, the armor deflect, evolve and arrival pulses. These belong to slices 5-6 (wards) or a later polish pass.
+
+## Slice 3 as built (render session 12)
+
+- `render/src/soundFx.ts`: `sfxRecipe(kind, faction, tier, rand, o)` turns an event into a list of voices (oscillators and filtered noise, as plain data); `SND.play(kind, faction, tier, rect, o)` plays it. Same single-source rule as the canvas: the page embeds the exact text the tests run, and the tests drive the runtime against a recording fake `AudioContext`.
+- **Eleven sounds:** `launch` (a strike leaves), `impact` (it lands; a spell's landing too), `bolt` (a spell's shot leaves), `heal`, `buff`, `debuff`, `lock` (a removal locks on), `beam` (the removal strikes), `kill`, `block` (a Barrier takes the hit), `cast` (a power's cast flourish). The page fires each at the same moment as the visual it belongs to, through the same `later()` timeline, so a sound never runs ahead of what it describes.
+- **Meaning stays constant across voices:** an impact always has the same low falling thump under the faction's colour (lower and longer when it lands on a player's side), a heal always ends higher than it starts, a buff sweeps up, a debuff falls in a detuned pair, a block always rings (a 1760 Hz triangle), a kill is the killer's impact at 1.5× plus a deep drop and glass pings.
+- **Voices (axis 2):** Cortex square-wave blips; Aegis inharmonic partials (1, 2.76, 5.4: struck metal); Swarm high-Q noise chitters and squelches; Null stepped, randomised pitch; Neutral sine/triangle bells only. An unknown faction gets the Neutral voice.
+- **Magnitude (axis 3)** scales every voice's gain: subtle 0.55, normal 1, spectacle 1.4.
+- **Mix:** master gain 0.6 into a hard compressor (threshold −16 dB, ratio 10, 2 ms attack) as the limiter; each voice panned by where it happens (±0.75 at the screen edges); at most 30 voices alive (more are dropped, never queued); the same sound in the same voice within 28 ms is dropped, so a Swarm volley reads as one chitter cloud.
+- **Off by default.** A "Sound: off" button in the replay controls creates the `AudioContext` on the viewer's click; switching it off suspends it. Nothing is created or played before that.
+- **Not yet:** ward sounds (rising chord, pulse, shatter) arrive with the wards (slices 5-6); music is slice 4 with its own toggle and volume.
 
 ## Board layout (infrastructure every primitive relies on)
 
@@ -113,7 +124,7 @@ Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slo
 
 1. Canvas FX layer + floor layer over/under the existing DOM board; atlas loader with the tint cache; additive drawing with correct alpha. Port travel + impact to sprite materials. **Built, render session 10** (`render/src/canvasFx.ts`, sheet: `npm run fx-sheet -w @ai-tcg/render`).
 2. Faction material kits for every category in the table above (spell damage, removal, heal, buff, debuff variants included), plus magnitude polish: hit-stop, colour split, camera punch, lingering debris and ground marks, warping grid. **Built, render session 11** (`render/src/effectFx.ts` + `canvasFx.ts`; see "Slice 2 as built").
-3. Procedural sound effects with faction voices (port the lab's `SFX`), toggles off by default.
+3. Procedural sound effects with faction voices (port the lab's `SFX`), toggles off by default. **Built, render session 12** (`render/src/soundFx.ts`; see "Slice 3 as built"; audition grid in the FX sheet).
 4. Adaptive procedural music (port the lab's music block), no kill dropout.
 5. Faction wards for signature abilities, driven by `signatureAbilities`.
 6. Mythic unique wards: permanent layered ward, the four behaviours, Mythic card treatment, shatter on death; read everything from `mythics.json`.

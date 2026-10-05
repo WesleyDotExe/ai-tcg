@@ -14,7 +14,9 @@
   --line: #24314f;
   --good: #35e6a0;
   --bad: #ff4d6d;
-  --neutral: #ffcf5c;
+  /* Neutral is white-gold (owner 2026-10-05): the old gold #ffcf5c nearly
+   * merged with Aegis orange under deuteranopia. */
+  --neutral: #fff0c2;
   --cortex: #35c9ff;
   --aegis: #ff7d24;
   --swarm: #8bff5c;
@@ -151,10 +153,12 @@ html, body {
 .faction-Aegis { --fc: var(--aegis); --rc: #ffc29a; }
 .faction-Swarm { --fc: var(--swarm); --rc: #b6ff8f; }
 .faction-Null { --fc: var(--null); --rc: #e79bff; }
-/* Neutral cards (engine data/neutralCards.ts) take the UI gold, so the frame
- * matches the fx tints, which read var(--<faction>) = var(--neutral). A
- * palette of their own is a render-lane call. */
-.faction-Neutral { --fc: var(--neutral); --rc: #ffe4a0; }
+/* Neutral cards (engine data/neutralCards.ts) take the white-gold, so the
+ * frame matches the fx tints, which read var(--<faction>) = var(--neutral).
+ * White text on a white-gold frame needs darker strips under it to stay
+ * readable (owner 2026-10-05: dark on light, or white-gold on dark). */
+.faction-Neutral { --fc: var(--neutral); --rc: #fff8e2; }
+.card.faction-Neutral .name, .card.faction-Neutral .stats { background: rgba(0,0,0,0.66); }
 .card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null, .card.faction-Neutral { background: var(--fc); }
 
 .lower { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-top: 12px; }
@@ -173,6 +177,7 @@ html, body {
 .controls button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: inherit; }
 .controls button:hover { border-color: var(--cortex); }
 .controls #scrubber { width: 320px; }
+.controls #btn-sound.on { border-color: var(--good); color: var(--good); }
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
 .speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
@@ -367,6 +372,21 @@ html, body {
   100% { box-shadow: none; transform: scale(1); }
 }
 .fx-mag-spectacle.fx-heal, .fx-mag-spectacle.hud.fx-heal { animation-name: fx-heal-flash-big; }
+/* A player's HP bar reacts when a hit or heal aimed at them lands mid-board
+ * (owner 2026-10-05): the bar flashes, by tier (subtle: a brightening,
+ * normal: a glow, spectacle: a bigger glow and a jolt; the whole panel also
+ * flashes then). */
+.bar-row.fx-hit .bar-track { animation: fx-hp-hit 500ms ease; }
+.bar-row.fx-heal .bar-track { animation: fx-hp-heal 500ms ease; }
+@keyframes fx-hp-hit { 0% { box-shadow: 0 0 0 1px var(--bad), 0 0 12px 2px var(--bad); filter: brightness(1.9); } 100% { box-shadow: none; filter: brightness(1); } }
+@keyframes fx-hp-heal { 0% { box-shadow: 0 0 0 1px var(--good), 0 0 12px 2px var(--good); filter: brightness(1.6); } 100% { box-shadow: none; filter: brightness(1); } }
+.bar-row.fx-mag-subtle .bar-track { animation-duration: 300ms; box-shadow: none; }
+.bar-row.fx-mag-spectacle.fx-hit .bar-track { animation: fx-hp-hit-big 900ms ease; }
+@keyframes fx-hp-hit-big {
+  0% { box-shadow: 0 0 0 2px var(--bad), 0 0 26px 6px var(--bad); filter: brightness(2.3); transform: translateX(0); }
+  12% { transform: translateX(-4px); } 24% { transform: translateX(4px); } 36% { transform: translateX(-2px); } 48% { transform: translateX(0); }
+  100% { box-shadow: none; filter: brightness(1); }
+}
 @keyframes fx-heal-flash-big {
   0% { box-shadow: 0 0 0 5px var(--good) inset, 0 0 34px 6px var(--good); }
   100% { box-shadow: none; }
@@ -558,6 +578,7 @@ html, body {
         <option value="250">fast</option>
       </select>
     </label>
+    <button id="btn-sound" aria-pressed="false" title="Sound effects (off until you switch them on)">Sound: off</button>
   </section>
 </main>
 
@@ -1159,7 +1180,8 @@ html, body {
   // orange, owner 2026-10-02). The kit is the lab's K block. Slice 2 added
   // one variant name per category (EFFECTS.md's material table): the
   // category's grammar stays the same, the variant only picks the material.
-  // Neutral's debuff is Swarm's acid, in gold (owner 2026-10-03).
+  // Neutral's debuff is Swarm's acid, in white-gold (owner 2026-10-03;
+  // white-gold #fff0c2 replaced gold #ffcf5c, owner 2026-10-05).
   var FX_KITS = {
     Cortex:  { col: '#35c9ff', debris: [FX_SP.pixels, FX_SP.shard, FX_SP.cube, FX_SP.circuit],
                trail: FX_SP.pixels, head: FX_SP.shard, decal: FX_SP.circuit, smoke: 0.35, flavor: 'arc',
@@ -1173,7 +1195,7 @@ html, body {
     Null:    { col: '#d565ff', debris: [FX_SP.glitch, FX_SP.glass, FX_SP.pixels, FX_SP.glass],
                trail: FX_SP.glitch, head: FX_SP.darkStar, decal: FX_SP.rift, smoke: 0.7, flavor: 'glitch',
                spell: 'blink', removal: 'vortex', heal: 'reverse', buff: 'darkstar', debuff: 'bitrot' },
-    Neutral: { col: '#ffcf5c', debris: [FX_SP.glint, FX_SP.dust, FX_SP.feather, FX_SP.glint],
+    Neutral: { col: '#fff0c2', debris: [FX_SP.glint, FX_SP.dust, FX_SP.feather, FX_SP.glint],
                trail: FX_SP.dust, head: FX_SP.glint, decal: FX_SP.rune, smoke: 0.3, flavor: 'glint',
                spell: 'lances', removal: 'smite', heal: 'crosses', buff: 'chevrons', debuff: 'acid' }
   };
@@ -1280,8 +1302,9 @@ html, body {
     if (!small) return r;
     return { size: r.size * 0.7, trailLen: Math.round(r.trailLen * 0.7), headScale: r.headScale, trailEvery: 2 };
   }
-  // A hit on a player (their avatar) is wider and flatter than a hit on a
-  // card: the lab's impactFace squashes the shockwave across the HUD.
+  // A hit on a player lands mid-board on their side (owner 2026-10-05) and
+  // is wider and flatter than a hit on a card: the lab's impactFace
+  // squashes the shockwave across their row of slots.
   function fxImpactRecipe(tier, targetKind) {
     var r = FX_IMPACT[tier] || FX_IMPACT.normal;
     var out = {};
@@ -1668,9 +1691,9 @@ html, body {
       ring(p.x, p.y, c, r.ring, 0.42, tier === 'spectacle' ? 3 : 2.5);
       // The ground mark lives on the floor, under the cards. Under a card it
       // is sized past the card's own edges so it shows around it (the card
-      // stands in its scorch / goo / rift); a player's HUD panel is opaque,
-      // so a face hit leaves no mark (the flare and shock carry it).
-      if (r.decal > 0 && targetKind !== 'player') {
+      // stands in its scorch / goo / rift). A hit on a player lands in the
+      // middle of their side of the board and marks the floor there too.
+      if (r.decal > 0) {
         var ds = Math.max(r.decal, Math.max(rect.width, rect.height) * fxDecalCover(tier));
         decal(p.x, p.y + 6, kit.decal, c, ds, r.decalLife, 0.42);
       }
@@ -1742,7 +1765,7 @@ html, body {
           // The last shot is the one the number arrives with: it leaves the
           // faction's mark (not on a player's opaque HUD) and, at spectacle,
           // the camera beat.
-          if (tier !== 'subtle' && targetKind !== 'player') decal(p.x, p.y + 6, kit.decal, c, Math.max(70, Math.max(rect.width, rect.height) * fxDecalCover(tier)), 3.5, 0.38);
+          if (tier !== 'subtle') decal(p.x, p.y + 6, kit.decal, c, Math.max(70, Math.max(rect.width, rect.height) * fxDecalCover(tier)), 3.5, 0.38);
           if (tier === 'spectacle') { hitStop(70); doPunch(0.015, p.x, p.y); doShake(3, 180); }
         };
         if (v === 'laser') at(s.at, function () {
@@ -1873,7 +1896,7 @@ html, body {
     }
 
     // Debuff: sink + desaturate, moving downward (axis 1). Slate ring sinks,
-    // the faction's material falls away. Neutral's is Swarm's acid, in gold.
+    // the faction's material falls away. Neutral's is Swarm's acid, in white-gold.
     function debuffAt(v, b, rect, kit, c, m) {
       var w = rect.width, h = rect.height, i;
       ring(b.x, b.y, SLATE, 60 * m, 0.5, 2, { dy: -20 });
@@ -2097,6 +2120,223 @@ html, body {
   })();
 
 
+  // Axis 3: magnitude scales volume (and so weight: a spectacle impact's
+  // thump is the loudest thing in the mix). The limiter keeps the sum sane.
+  var SFX_TIER_GAIN = { subtle: 0.55, normal: 1, spectacle: 1.4 };
+  // At most this many oscillators/noise sources alive at once (the lab's
+  // cap); a voice past it is dropped, never queued.
+  var SFX_VOICE_CAP = 30;
+  // The same sound for the same faction this soon after the last one is
+  // dropped: a Swarm volley is many shots but should read as one chitter
+  // cloud, not a wall of identical clicks.
+  var SFX_REPEAT_GAP_MS = 28;
+  var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast'];
+  var SFX_VOICES = { Cortex: 'cortex', Aegis: 'aegis', Swarm: 'swarm', Null: 'null', Neutral: 'neutral' };
+  function sfxVoiceOf(faction) { return SFX_VOICES[faction] || 'neutral'; }
+  function sfxTierGain(tier) { return SFX_TIER_GAIN[tier] || SFX_TIER_GAIN.normal; }
+  // Left of the screen pans left; never fully hard (the lab's 0.75).
+  function sfxPan(x, width) {
+    if (!(width > 0) || typeof x !== 'number' || x !== x) return 0;
+    var p = (x / width * 2 - 1) * 0.75;
+    return p < -0.75 ? -0.75 : p > 0.75 ? 0.75 : p;
+  }
+  // Aegis's metal and Neutral's bells: the inharmonic partials of a struck
+  // bar (1, 2.76, 5.4), quieter the higher they go.
+  var SFX_BELL = [1, 2.76, 5.4];
+
+  // sfxRecipe(kind, faction, tier, rand, o) -> a list of voices, each
+  //   { k: 'tone', type, f0, f1?, dur, g, att?, delay?, steps?, detune?, filt?, ff?, q? }
+  //   { k: 'noise', type, f0, f1?, q?, dur, g, att?, delay? }
+  // in seconds and linear gain, ready for the runtime to play. rand() is
+  // injected (Math.random on the page, a seeded one in the tests). o:
+  //   targetKind 'player' (impact): a hit that lands on a player's side of
+  //     the board carries a heavier low end;
+  //   victim (kill): the victim's faction adds its own breaking sound.
+  // The lab's recipes, with every gain scaled by the tier.
+  function sfxRecipe(kind, faction, tier, rand, o) {
+    o = o || {};
+    var v = sfxVoiceOf(faction), m = sfxTierGain(tier), out = [];
+    function r(a, b) { return a + (b - a) * rand(); }
+    function T(x) { x.k = 'tone'; x.g = x.g * m; out.push(x); }
+    function N(x) { x.k = 'noise'; x.g = x.g * m; out.push(x); }
+    if (kind === 'launch') {
+      if (v === 'cortex') { T({ type: 'square', f0: 1400, f1: 420, dur: 0.14, g: 0.07 }); T({ type: 'square', f0: 2100, dur: 0.04, g: 0.04, delay: 0.03 }); }
+      else if (v === 'aegis') { N({ type: 'lowpass', f0: 900, f1: 180, dur: 0.3, g: 0.32 }); T({ type: 'sawtooth', f0: 95, f1: 48, dur: 0.22, g: 0.12, filt: 'lowpass', ff: 500 }); }
+      else if (v === 'swarm') { for (var i = 0; i < 6; i++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.035, g: 0.22, delay: i * 0.035 }); N({ type: 'bandpass', f0: 1300, f1: 350, q: 4, dur: 0.22, g: 0.18 }); }
+      else if (v === 'null') { T({ type: 'sawtooth', f0: 420, dur: 0.22, g: 0.06, steps: 7, filt: 'bandpass', ff: 1400, q: 2 }); N({ type: 'highpass', f0: 3000, dur: 0.16, g: 0.09, att: 0.12 }); }
+      else { T({ type: 'sine', f0: 660, f1: 990, dur: 0.22, g: 0.09 }); T({ type: 'triangle', f0: 1320, dur: 0.18, g: 0.04, delay: 0.04 }); }
+    } else if (kind === 'impact') {
+      // The constant part (meaning): a low thump and a noise crack. A hit on
+      // a player's side of the board lands lower and longer.
+      var face = o.targetKind === 'player';
+      T({ type: 'sine', f0: face ? 120 : 150, f1: face ? 34 : 42, dur: face ? 0.4 : 0.28, g: 0.45 });
+      N({ type: 'lowpass', f0: 3600, f1: 280, dur: face ? 0.3 : 0.22, g: 0.32 });
+      if (v === 'cortex') { T({ type: 'square', f0: 1800, f1: 220, dur: 0.09, g: 0.06 }); T({ type: 'square', f0: 900, dur: 0.05, g: 0.04, delay: 0.05 }); }
+      else if (v === 'aegis') { SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 330 * p, dur: 0.7, g: 0.05 / p }); }); N({ type: 'bandpass', f0: 2400, q: 3, dur: 0.12, g: 0.15 }); }
+      else if (v === 'swarm') { N({ type: 'bandpass', f0: 950, f1: 180, q: 5, dur: 0.24, g: 0.3 }); for (var j = 0; j < 4; j++) N({ type: 'bandpass', f0: r(3000, 5000), q: 10, dur: 0.03, g: 0.12, delay: 0.05 + j * 0.03 }); }
+      else if (v === 'null') { for (var k = 0; k < 3; k++) T({ type: 'square', f0: r(200, 2400), dur: 0.03, g: 0.06, delay: k * 0.035 }); T({ type: 'sawtooth', f0: 70, f1: 35, dur: 0.35, g: 0.12, filt: 'lowpass', ff: 400 }); }
+      else { [880, 1320, 1760].forEach(function (n) { T({ type: 'triangle', f0: n, dur: 0.5, g: 0.035 }); }); }
+    } else if (kind === 'bolt') {
+      // One shot of a spell volley leaving its source.
+      if (v === 'cortex') T({ type: 'square', f0: 2400, f1: 600, dur: 0.08, g: 0.05 });
+      else if (v === 'aegis') N({ type: 'lowpass', f0: 1400, f1: 200, dur: 0.18, g: 0.22 });
+      else if (v === 'swarm') N({ type: 'bandpass', f0: r(2500, 4500), q: 9, dur: 0.04, g: 0.12 });
+      else if (v === 'null') T({ type: 'square', f0: r(300, 2600), dur: 0.05, g: 0.05 });
+      else T({ type: 'triangle', f0: 1760, f1: 2640, dur: 0.1, g: 0.05 });
+    } else if (kind === 'heal') {
+      // Always rises (meaning); the voice picks the notes and the wave.
+      var notes = v === 'null' ? [784, 659, 523, 1047] : v === 'aegis' ? [392, 523, 659, 784] : [523, 659, 784, 1047];
+      var ht = v === 'cortex' || v === 'null' ? 'square' : v === 'aegis' ? 'triangle' : 'sine';
+      notes.forEach(function (n, i) { T({ type: ht, f0: n, dur: 0.4, g: ht === 'square' ? 0.03 : 0.07, delay: i * 0.08 }); });
+      if (v === 'swarm') for (var h = 0; h < 5; h++) T({ type: 'sine', f0: r(500, 900), f1: r(1200, 1800), dur: 0.07, g: 0.04, delay: h * 0.06 });
+      if (v === 'neutral') T({ type: 'sine', f0: 1047 * SFX_BELL[1], dur: 0.6, g: 0.012, delay: 0.24 });
+    } else if (kind === 'buff') {
+      // Always a rising sweep and a high note on top.
+      T({ type: v === 'cortex' ? 'square' : 'triangle', f0: 220, f1: 880, dur: 0.42, g: v === 'cortex' ? 0.04 : 0.06 });
+      T({ type: 'sine', f0: 1047, dur: 0.4, g: 0.05, delay: 0.3 });
+      if (v === 'aegis') N({ type: 'bandpass', f0: 2000, q: 4, dur: 0.08, g: 0.2, delay: 0.25 });
+      else if (v === 'swarm') N({ type: 'bandpass', f0: 700, f1: 1800, q: 6, dur: 0.3, g: 0.08 });
+      else if (v === 'null') T({ type: 'square', f0: 880, dur: 0.2, g: 0.025, steps: 4, delay: 0.1 });
+      else if (v === 'neutral') T({ type: 'sine', f0: 1047 * SFX_BELL[1], dur: 0.5, g: 0.012, delay: 0.3 });
+    } else if (kind === 'debuff') {
+      // Always a falling, detuned pair (meaning: it sinks).
+      T({ type: 'sawtooth', f0: 620, f1: 140, dur: 0.55, g: 0.06, filt: 'lowpass', ff: 1600 });
+      T({ type: 'sawtooth', f0: 640, f1: 150, dur: 0.55, g: 0.05, filt: 'lowpass', ff: 1600, detune: 30 });
+      if (v === 'swarm' || v === 'neutral') N({ type: 'highpass', f0: 5000, dur: 0.6, g: 0.06, att: 0.1 });
+      else if (v === 'null') for (var d = 0; d < 3; d++) T({ type: 'square', f0: r(200, 1800), dur: 0.03, g: 0.04, delay: 0.1 + d * 0.05 });
+      else if (v === 'aegis') N({ type: 'bandpass', f0: 1800, f1: 600, q: 3, dur: 0.18, g: 0.12, delay: 0.05 });
+    } else if (kind === 'lock') {
+      // A removal locking on: three beeps.
+      for (var b = 0; b < 3; b++) T({ type: v === 'neutral' ? 'triangle' : 'square', f0: v === 'null' ? r(900, 2200) : 1500, dur: 0.05, g: 0.05, delay: b * 0.14 });
+    } else if (kind === 'beam') {
+      // The removal's strike.
+      T({ type: 'sawtooth', f0: 2200, f1: 70, dur: 0.4, g: 0.14 });
+      N({ type: 'highpass', f0: 1500, dur: 0.3, g: 0.18 });
+      if (v === 'neutral') SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 440 * p, dur: 0.8, g: 0.04 / p, delay: 0.05 }); });
+    } else if (kind === 'kill') {
+      // The killer's impact at full weight, then the card breaking: a deep
+      // drop, a long noise fall, a spray of tiny glass pings.
+      // (the impact is already scaled by the tier; the lab plays it at 1.5x)
+      sfxRecipe('impact', faction, tier, rand, {}).forEach(function (x) { x.g *= 1.5; out.push(x); });
+      T({ type: 'sine', f0: 62, f1: 28, dur: 0.8, g: 0.6 });
+      N({ type: 'lowpass', f0: 1800, f1: 120, dur: 0.9, g: 0.3, delay: 0.05 });
+      for (var s = 0; s < 9; s++) T({ type: 'sine', f0: r(2200, 5200), dur: 0.06, g: 0.03, delay: 0.06 + s * 0.03 });
+      if (sfxVoiceOf(o.victim) === 'aegis') SFX_BELL.slice(0, 2).forEach(function (p) { T({ type: 'sine', f0: 220 * p, dur: 1, g: 0.05, delay: 0.05 }); });
+    } else if (kind === 'block') {
+      // A Barrier takes the hit: a bright ring, in every voice.
+      T({ type: 'triangle', f0: 1760, dur: 0.45, g: 0.1 });
+      T({ type: 'sine', f0: 2640, dur: 0.35, g: 0.06 });
+      N({ type: 'bandpass', f0: 4200, q: 2, dur: 0.12, g: 0.14 });
+      if (v === 'aegis') T({ type: 'sine', f0: 440 * SFX_BELL[1], dur: 0.6, g: 0.05 });
+    } else if (kind === 'cast') {
+      // A power's cast flourish: a rising whoosh, the voice on top.
+      N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });
+      if (v === 'cortex') T({ type: 'square', f0: 880, f1: 1760, dur: 0.16, g: 0.025, delay: 0.12 });
+      else if (v === 'aegis') T({ type: 'sawtooth', f0: 110, f1: 165, dur: 0.3, g: 0.06, filt: 'lowpass', ff: 700 });
+      else if (v === 'swarm') for (var c = 0; c < 3; c++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.03, g: 0.1, delay: 0.1 + c * 0.04 });
+      else if (v === 'null') T({ type: 'sawtooth', f0: 330, dur: 0.25, g: 0.04, steps: 5, filt: 'bandpass', ff: 1200, q: 2 });
+      else T({ type: 'sine', f0: 1320, dur: 0.45, g: 0.04, delay: 0.1 });
+    }
+    return out;
+  }
+
+
+  var SND = (function () {
+    var AU = { ctx: null, on: false, master: null, comp: null, noise: null, active: 0 };
+    var counts = { played: 0, voices: 0, capped: 0, repeats: 0 }, byKind = {}, last = {};
+    function init() {
+      if (AU.ctx) return true;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      var C = new AC();
+      AU.ctx = C;
+      // The limiter: the lab's hard compressor on the master bus.
+      var comp = C.createDynamicsCompressor();
+      comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 10; comp.attack.value = 0.002; comp.release.value = 0.18;
+      var m = C.createGain(); m.gain.value = 0.6;
+      m.connect(comp); comp.connect(C.destination);
+      AU.master = m; AU.comp = comp;
+      // One second of white noise, shared by every noise voice.
+      var len = C.sampleRate, buf = C.createBuffer(1, len, C.sampleRate), d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      AU.noise = buf;
+      return true;
+    }
+    function bus(pan) {
+      var C = AU.ctx, g = C.createGain();
+      if (C.createStereoPanner) { var p = C.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(AU.master); }
+      else g.connect(AU.master);
+      return g;
+    }
+    function env(g, t, peak, att, dur) {
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + att);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    }
+    function done() { AU.active--; }
+    function tone(o, pan) {
+      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+      var osc = C.createOscillator();
+      osc.type = o.type || 'sine';
+      osc.frequency.setValueAtTime(o.f0 || 440, t);
+      if (o.f1) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.f1), t + dur);
+      if (o.steps) for (var i = 1; i < o.steps; i++) osc.frequency.setValueAtTime((o.f0 || 440) * Math.pow(2, Math.random() * 2 - 1), t + dur * i / o.steps);
+      if (o.detune) osc.detune.value = o.detune;
+      var e = C.createGain();
+      env(e, t, o.g || 0.2, o.att || 0.005, dur);
+      var n = osc;
+      if (o.filt) { var f = C.createBiquadFilter(); f.type = o.filt; f.frequency.value = o.ff || 2000; f.Q.value = o.q || 1; osc.connect(f); n = f; }
+      n.connect(e); e.connect(bus(pan));
+      osc.start(t); osc.stop(t + dur + 0.05);
+      AU.active++; osc.onended = done;
+    }
+    function noise(o, pan) {
+      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+      var s = C.createBufferSource();
+      s.buffer = AU.noise; s.loop = true;
+      var f = C.createBiquadFilter();
+      f.type = o.type || 'bandpass'; f.Q.value = o.q || 1;
+      f.frequency.setValueAtTime(o.f0 || 1200, t);
+      if (o.f1) f.frequency.exponentialRampToValueAtTime(Math.max(30, o.f1), t + dur);
+      var e = C.createGain();
+      env(e, t, o.g || 0.2, o.att || 0.003, dur);
+      s.connect(f); f.connect(e); e.connect(bus(pan));
+      s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
+      AU.active++; s.onended = done;
+    }
+    // play(kind, faction, tier, rect, o): one event's sound, panned by the
+    // centre of rect (where it happens). Silent while sound is off.
+    function play(kind, faction, tier, rect, o) {
+      if (!AU.on || !AU.ctx) return false;
+      var now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      var key = kind + ':' + sfxVoiceOf(faction);
+      if (last[key] !== undefined && now - last[key] < SFX_REPEAT_GAP_MS) { counts.repeats++; return false; }
+      last[key] = now;
+      var x = rect ? rect.left + rect.width / 2 : (window.innerWidth || 1) / 2;
+      var pan = sfxPan(x, window.innerWidth || 1);
+      var voices = sfxRecipe(kind, faction, tier, Math.random, o);
+      counts.played++; byKind[kind] = (byKind[kind] || 0) + 1;
+      for (var i = 0; i < voices.length; i++) {
+        if (AU.active >= SFX_VOICE_CAP) { counts.capped += voices.length - i; break; }
+        if (voices[i].k === 'tone') tone(voices[i], pan); else noise(voices[i], pan);
+        counts.voices++;
+      }
+      return true;
+    }
+    function setOn(on) {
+      if (on && !init()) return false;
+      AU.on = !!on;
+      if (AU.ctx && AU.ctx.resume && on) AU.ctx.resume();
+      if (AU.ctx && AU.ctx.suspend && !on) AU.ctx.suspend();
+      return AU.on;
+    }
+    var api = { play: play, setOn: setOn, isOn: function () { return AU.on; },
+      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, ctx: !!AU.ctx, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, byKind: k }; } };
+    window.__sfx = api;
+    return api;
+  })();
+
+
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
 
@@ -2216,7 +2456,7 @@ html, body {
     const el = document.getElementById(elId);
     el.innerHTML =
       '<div class="name"><span class="ident">' + avatarHtml(pid) + '<span class="uname" id="' + elId + '-name"></span></span><span class="faction-tag" id="' + elId + '-faction" style="color:var(--fc)"></span></div>' +
-      '<div class="bar-row"><span>HP</span><div class="bar-track"><div class="bar-fill health" id="' + elId + '-hp-fill"></div></div><span id="' + elId + '-hp-text"></span></div>' +
+      '<div class="bar-row" id="' + elId + '-hp-row"><span>HP</span><div class="bar-track"><div class="bar-fill health" id="' + elId + '-hp-fill"></div></div><span id="' + elId + '-hp-text"></span></div>' +
       '<div class="bar-row"><span>EN</span><div class="bar-track"><div class="bar-fill energy" id="' + elId + '-en-fill"></div></div><span id="' + elId + '-en-text"></span></div>' +
       '<div class="meta" id="' + elId + '-meta"></div>';
     hudBuilt[pid] = true;
@@ -2358,6 +2598,44 @@ html, body {
   }
 
   function hudRect(pid) { return document.getElementById('hud-' + pid).getBoundingClientRect(); }
+  // Attacks and effects aimed at a PLAYER land in the middle of that
+  // player's side of the board, not on their portrait (owner 2026-10-05):
+  // the centre of their row of slots, as a card-sized box so the impact and
+  // its ground mark are sized like a hit on a card. Six fixed slots put the
+  // centre in the gap between the third and the fourth, never on a card.
+  // The HP bar on their panel reacts when it lands (hpBarEl).
+  function playerLandRect(pid) {
+    const row = document.getElementById('board-' + pid);
+    // Every child is a slot: an empty one (.slot.empty) or the card in it.
+    const slots = row ? row.children : [];
+    if (!slots.length) return row ? row.getBoundingClientRect() : hudRect(pid);
+    let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity, w = 0, h = 0;
+    Array.prototype.forEach.call(slots, function (el) {
+      const q = el.getBoundingClientRect();
+      l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom);
+      w = Math.max(w, q.width); h = Math.max(h, q.height);
+    });
+    const cx = (l + r) / 2, cy = (t + b) / 2;
+    return { left: cx - w / 2, top: cy - h / 2, right: cx + w / 2, bottom: cy + h / 2, width: w, height: h, x: cx - w / 2, y: cy - h / 2 };
+  }
+  function hpBarEl(pid) { return document.getElementById('hud-' + pid + '-hp-row'); }
+  // The HP bar's reaction, timed by the caller to the impact on the board:
+  // the bar flashes and the number rises from the bar itself. Only a
+  // spectacle hit flashes the whole panel as well.
+  function reactHp(pid, hudEl, cls, text, numCls, tier) {
+    const row = hpBarEl(pid);
+    const track = row && row.querySelector('.bar-track');
+    flashClass(row || hudEl, cls, tier);
+    if (tier === 'spectacle') flashClass(hudEl, cls, tier);
+    // The number rises from the end of the fill, the spot where the health
+    // is lost (or gained), just above the bar.
+    const fill = row && row.querySelector('.bar-fill');
+    const tr = track ? track.getBoundingClientRect() : hudRect(pid);
+    const fr = fill ? fill.getBoundingClientRect() : tr;
+    const x = Math.max(tr.left + 14, Math.min(tr.right - 14, fr.right));
+    const r = { left: x - 1, right: x + 1, width: 2, top: tr.top, bottom: tr.bottom, height: tr.height };
+    centreOn(spawnNumber(r, text, numCls, tier, -22), r);
+  }
   function liveCardEl(iid) { return document.querySelector('.card[data-iid="' + iid + '"]'); }
 
   const GHOST_MS = { subtle: 320, normal: 700, spectacle: 950 };
@@ -2386,6 +2664,7 @@ html, body {
     if (delay > 0) { cardEl.style.animationDelay = delay + 'ms'; cardEl.style.animationFillMode = 'both'; }
     fxLayer.appendChild(cardEl);
     later(delay, function () {
+      if (kill) SND.play('kill', kill.killer, tier, rect, { victim: kill.victim });
       if (kill && CFX.kill(rect, kill.killer, kill.victim, tier)) { cardEl.style.visibility = 'hidden'; return; }
       if (tier === 'spectacle') spawnBurst(rect, 'var(--bad)');
     });
@@ -2560,6 +2839,7 @@ html, body {
     const skinCls = ' skin-' + skinOf(fx.faction || 'Neutral').name;
     const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
     const ms = CAST_MS[tier] || CAST_MS.normal;
+    SND.play('cast', fx.faction, tier, rect);
     function place(el) {
       el.style.setProperty('--fx-tint', tint);
       el.style.setProperty('--cast-ms', ms + 'ms');
@@ -2646,10 +2926,11 @@ html, body {
   function staggers(fx) { return fx.tier === 'spectacle' || fx.trigger === 'response'; }
 
   function centreOf(rect) { return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
-  function targetEl(target) {
+  function targetRect(target) {
     if (!target) return null;
-    if (target.kind === 'unit') return liveCardEl(target.instanceId);
-    return document.querySelector('#hud-' + target.playerId + ' .avatar') || document.getElementById('hud-' + target.playerId);
+    if (target.kind === 'player') return playerLandRect(target.playerId);
+    const el = liveCardEl(target.instanceId);
+    return el ? el.getBoundingClientRect() : null;
   }
   function factionOfUnit(frame, iid) {
     let f = null;
@@ -2706,12 +2987,12 @@ html, body {
     // fresh lines, a resize) must not cut it short.
     Array.prototype.slice.call(aimLayer.children).forEach(function (g) { if (!g.classList.contains('fading')) g.remove(); });
     pendingAttacks(frame).forEach(function (pa) {
-      const from = liveCardEl(pa.attackerIid), to = targetEl(pa.target);
+      const from = liveCardEl(pa.attackerIid), to = targetRect(pa.target);
       // An attacker already killed by a response has nothing to aim from;
       // its attack will fizzle on resolution, and the strike says so then.
       if (!from || !to) return;
       const f = factionOfUnit(frame, pa.attackerIid) || frame.players[pa.owner].faction;
-      aimLayer.appendChild(aimGroup(from.getBoundingClientRect(), to.getBoundingClientRect(), 'var(--' + f.toLowerCase() + ')', fresh[pa.stackId] ? 'fresh' : ''));
+      aimLayer.appendChild(aimGroup(from.getBoundingClientRect(), to, 'var(--' + f.toLowerCase() + ')', fresh[pa.stackId] ? 'fresh' : ''));
     });
   }
   function fadeOldAim(fromRect, toRect, tint) {
@@ -2799,16 +3080,16 @@ html, body {
   // or where it stood before the move: a removal's victim, an onDeath
   // source), a player's avatar, or a Command's stack entry (live, else
   // where it stood, else its caster's avatar).
-  function effectEndRect(end, prevRects, prevHudRects, prevStackRects) {
+  function effectEndRect(end, prevRects, prevLandRects, prevStackRects) {
     if (end.kind === 'unit') { const el = liveCardEl(end.instanceId); return el ? el.getBoundingClientRect() : prevRects[end.instanceId]; }
-    if (end.kind === 'player') { const el = targetEl({ kind: 'player', playerId: end.playerId }); return el ? el.getBoundingClientRect() : prevHudRects[end.playerId]; }
+    if (end.kind === 'player') return prevLandRects[end.playerId] || playerLandRect(end.playerId);
     const live = document.querySelector('.stackitem[data-sid="' + end.stackId + '"]');
     if (live) return live.getBoundingClientRect();
     if (prevStackRects[end.stackId]) return prevStackRects[end.stackId];
     const av = document.querySelector('#hud-' + end.owner + ' .avatar');
     return av ? av.getBoundingClientRect() : hudRect(end.owner);
   }
-  // The effect wears its SOURCE card's faction (a Neutral Command is gold
+  // The effect wears its SOURCE card's faction (a Neutral Command is white-gold
   // whoever casts it): the name -> faction table first, then the source
   // unit on the board, then its controller.
   function effectFaction(e, prevFrame) {
@@ -2818,7 +3099,7 @@ html, body {
     return 'Neutral';
   }
 
-  function runFx(prevFrame, prevBoard, prevRects, prevHudRects, prevStackRects, prevHandRects, newFrame) {
+  function runFx(prevFrame, prevBoard, prevRects, prevLandRects, prevStackRects, prevHandRects, newFrame) {
     const newBoard = collectBoard(newFrame);
     const tiers = [];
     // Coarse, aggregate-only reads of newEvents (event TYPES and counts,
@@ -2914,16 +3195,16 @@ html, body {
       if (a.phase === 'redirect') later(aimT, function () {
         const f = factionOfUnit(newFrame, a.attackerIid) || newFrame.players[a.owner].faction;
         const fromEl = liveCardEl(a.attackerIid);
-        const oldTo = a.from.kind === 'unit' ? prevRects[a.from.instanceId] : prevHudRects[a.from.playerId];
+        const oldTo = a.from.kind === 'unit' ? prevRects[a.from.instanceId] : prevLandRects[a.from.playerId];
         if (fromEl) fadeOldAim(fromEl.getBoundingClientRect(), oldTo, 'var(--' + f.toLowerCase() + ')');
-        const newTo = targetEl(a.target);
-        if (newTo) { const r = newTo.getBoundingClientRect(); centreOn(spawnNumber(r, 'REDIRECTED', 'redirect', 'normal', 36), r); }
+        const r = targetRect(a.target);
+        if (r) centreOn(spawnNumber(r, 'REDIRECTED', 'redirect', 'normal', 36), r);
       });
       if (a.phase === 'strike' && a.outcome !== 'hit') {
         // The engine's own two fizzle rules: the attacker, or its unit
         // target, was gone before the damage could resolve.
         const r = a.outcome === 'fizzle-attacker'
-          ? (a.target.kind === 'unit' ? (prevRects[a.target.instanceId] || prevRects[a.attackerIid]) : prevHudRects[a.target.playerId])
+          ? (a.target.kind === 'unit' ? (prevRects[a.target.instanceId] || prevRects[a.attackerIid]) : prevLandRects[a.target.playerId])
           : prevRects[a.attackerIid];
         if (r) { tiers.push('subtle'); centreOn(spawnNumber(r, 'FIZZLED', 'fizzle', 'subtle', 40), r); }
       }
@@ -2937,17 +3218,16 @@ html, body {
       const tint = 'var(--' + f.toLowerCase() + ')';
       const liveAtk = liveCardEl(strike.attackerIid);
       const fromR = liveAtk ? liveAtk.getBoundingClientRect() : prevRects[strike.attackerIid];
-      const liveTo = targetEl(strike.target);
-      const toR = strike.target.kind === 'unit'
-        ? (liveTo ? liveTo.getBoundingClientRect() : prevRects[strike.target.instanceId])
-        : (liveTo ? liveTo.getBoundingClientRect() : prevHudRects[strike.target.playerId]);
+      const toR = targetRect(strike.target) || (strike.target.kind === 'unit' ? prevRects[strike.target.instanceId] : prevLandRects[strike.target.playerId]);
       if (liveAtk) flashClass(liveAtk, 'fx-attack', 'normal');
       // v2 (canvasFx.ts): sprite travel + impact on the canvas layers. The
       // v1 DOM bolt and burst remain the fallback when the canvas or the
       // atlases are unavailable, so an attack is never left undrawn.
       if (!CFX.travel(fromR, toR, f, strikeTier, strikeT, false)) spawnBolt(fromR, toR, f, strikeTier, strikeT, false);
+      SND.play('launch', f, strikeTier, fromR);
       // impact(target): lands with the bolt.
       later(strikeT, function () {
+        SND.play('impact', f, strikeTier, toR, { targetKind: strike.target.kind });
         if (!CFX.impact(toR, f, strikeTier, strike.target.kind) && strikeTier !== 'subtle') spawnBurst(toR, tint, strikeTier === 'spectacle' ? 1.35 : 0.8, f);
       });
       if (strike.counter) {
@@ -2957,7 +3237,10 @@ html, body {
         later(strikeT, function () {
           if (!CFX.travel(toR, fromR, df, cTier, counterT - strikeT, true)) spawnBolt(toR, fromR, df, cTier, counterT - strikeT, true);
         });
-        later(counterT, function () { CFX.impact(fromR, df, cTier === 'spectacle' ? 'normal' : 'subtle', 'unit'); });
+        later(counterT, function () {
+          CFX.impact(fromR, df, cTier === 'spectacle' ? 'normal' : 'subtle', 'unit');
+          SND.play('impact', df, cTier === 'spectacle' ? 'normal' : 'subtle', fromR);
+        });
       }
     }
 
@@ -2967,9 +3250,17 @@ html, body {
       tiers.push(tier);
       const f = effectFaction(e, prevFrame);
       later(effStart, function () {
-        const toR = effectEndRect(e.target, prevRects, prevHudRects, prevStackRects);
-        const fromR = e.self ? null : effectEndRect(e.source, prevRects, prevHudRects, prevStackRects);
+        const toR = effectEndRect(e.target, prevRects, prevLandRects, prevStackRects);
+        const fromR = e.self ? null : effectEndRect(e.source, prevRects, prevLandRects, prevStackRects);
         CFX.effect(e.category, fromR, toR, f, tier, effT, { self: e.self || !fromR, targetKind: e.target.kind === 'player' ? 'player' : 'unit' });
+        // Sound: a spell's shot or a removal's lock-on as it leaves, then
+        // the landing in the same category's sound, timed to the number.
+        if (e.category === 'spell' && !e.self) SND.play('bolt', f, tier, fromR || toR);
+        if (e.category === 'removal') SND.play('lock', f, tier, toR);
+        later(effT, function () {
+          const kind = e.category === 'spell' ? 'impact' : e.category === 'removal' ? 'beam' : e.category;
+          SND.play(kind, f, tier, toR, { targetKind: e.target.kind === 'player' ? 'player' : 'unit' });
+        });
       });
     });
 
@@ -3019,6 +3310,7 @@ html, body {
         tiers.push(t);
         later(at, function () {
           flashClass(el, 'fx-shatter', t);
+          SND.play('block', nv.faction, t, el.getBoundingClientRect());
           spawnNumber(el.getBoundingClientRect(), 'BLOCKED', 'shield', t);
         });
       }
@@ -3080,17 +3372,11 @@ html, body {
       if (delta < 0) {
         const t = tierFromScore(playerHitScore(delta, isLethal));
         tiers.push(t);
-        later(hudT(pid), function () {
-          flashClass(hudEl, 'fx-hit', t);
-          spawnNumber(prevHudRects[pid], String(delta), 'dmg', t);
-        });
+        later(hudT(pid), function () { reactHp(pid, hudEl, 'fx-hit', String(delta), 'dmg', t); });
       } else if (delta > 0) {
         const t = tierFromScore(playerHitScore(delta, false));
         tiers.push(t);
-        later(hudT(pid), function () {
-          flashClass(hudEl, 'fx-heal', t);
-          spawnNumber(prevHudRects[pid], '+' + delta, 'heal', t);
-        });
+        later(hudT(pid), function () { reactHp(pid, hudEl, 'fx-heal', '+' + delta, 'heal', t); });
       }
     });
 
@@ -3138,12 +3424,12 @@ html, body {
       const prevFrame = frames[i];
       const prevBoard = collectBoard(prevFrame);
       const prevRects = currentRectsByIid();
-      const prevHudRects = { p1: hudRect('p1'), p2: hudRect('p2') };
+      const prevLandRects = { p1: playerLandRect('p1'), p2: playerLandRect('p2') };
       const prevStackRects = stackRects();
       const prevHandRects = handRects();
       i = target;
       renderFrame();
-      lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevHudRects, prevStackRects, prevHandRects, frames[i]);
+      lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevLandRects, prevStackRects, prevHandRects, frames[i]);
     } else {
       cancelFx();
       while (aimLayer.firstChild) aimLayer.removeChild(aimLayer.firstChild);
@@ -3192,6 +3478,14 @@ html, body {
   document.getElementById('btn-next').onclick = function () { stop(); goTo(i + 1); };
   document.getElementById('btn-last').onclick = function () { stop(); goTo(frames.length - 1); };
   document.getElementById('btn-play').onclick = function () { playing ? stop() : play(); };
+  // Sound (EFFECTS.md v2 slice 3, render/src/soundFx.ts) starts off: the
+  // viewer switches it on (browser autoplay rules).
+  document.getElementById('btn-sound').onclick = function () {
+    const on = SND.setOn(!SND.isOn());
+    this.textContent = on ? 'Sound: on' : 'Sound: off';
+    this.classList.toggle('on', on);
+    this.setAttribute('aria-pressed', String(on));
+  };
   scrubber.oninput = function () { stop(); goTo(Number(scrubber.value)); };
   document.getElementById('speed').onchange = function () { if (playing) { stop(); play(); } };
   document.addEventListener('keydown', function (e) {

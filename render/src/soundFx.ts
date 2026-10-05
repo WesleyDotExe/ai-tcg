@@ -1,0 +1,287 @@
+// EFFECTS.md v2, slice 3 — procedural sound effects with faction voices
+// (owner-directed 2026-10-03; working reference: the lab's SFX, tone() and
+// noise() in render/reference/effects-lab.html).
+//
+// What it is:
+//   - Every sound is synthesised with WebAudio at play time: oscillators and
+//     filtered noise, no audio files, no samples, no network (owner
+//     2026-10-03: the code-made sound beat every AI sound model tested).
+//   - One sound per visual event, fired by renderHtml.ts at the moment the
+//     visual happens (a strike leaving, its impact, a spell's shot and its
+//     landing, a heal, a buff, a debuff, a removal locking on and striking,
+//     a kill, a Barrier blocking, a cast flourish). The page decides WHAT and
+//     WHEN, exactly as for the canvas; this module only decides how it
+//     sounds.
+//   - Axis 2 (faction = material) is the VOICE: Cortex clean square-wave
+//     blips, Aegis heavy metal clangs (inharmonic partials), Swarm wet
+//     chitters and squelches, Null broken pitch and glitch blips, Neutral
+//     bells. Axis 3 (magnitude) scales volume and weight (SFX_TIER_GAIN).
+//     Axis 1 (meaning) stays constant across voices: a heal always rises, a
+//     debuff always falls, an impact always has the same low thump under the
+//     faction's colour, a block always rings.
+//   - Panned by where it happens on screen, through a limiter (a hard
+//     compressor on the master bus), with a voice cap so a big volley can't
+//     pile up.
+//   - OFF by default. Browsers only allow audio after a viewer gesture, and
+//     the owner's spec says the viewer switches it on (a "Sound" toggle in
+//     the controls). Music is slice 4 and has its own toggle.
+//
+// Same single-source rule as canvasFx.ts: the page embeds
+// SOUND_FX_PURE_SOURCE (the voice recipes: which oscillators and noise
+// bursts make each sound, as plain data) and SOUND_FX_RUNTIME_SOURCE (the
+// WebAudio player) verbatim. Node evaluates the pure half, and the tests run
+// the runtime half against a recording fake AudioContext, so they exercise
+// exactly what the page runs.
+import type { FxTier } from "./fxMagnitude.js";
+
+export const SOUND_FX_PURE_SOURCE = String.raw`
+  // Axis 3: magnitude scales volume (and so weight: a spectacle impact's
+  // thump is the loudest thing in the mix). The limiter keeps the sum sane.
+  var SFX_TIER_GAIN = { subtle: 0.55, normal: 1, spectacle: 1.4 };
+  // At most this many oscillators/noise sources alive at once (the lab's
+  // cap); a voice past it is dropped, never queued.
+  var SFX_VOICE_CAP = 30;
+  // The same sound for the same faction this soon after the last one is
+  // dropped: a Swarm volley is many shots but should read as one chitter
+  // cloud, not a wall of identical clicks.
+  var SFX_REPEAT_GAP_MS = 28;
+  var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast'];
+  var SFX_VOICES = { Cortex: 'cortex', Aegis: 'aegis', Swarm: 'swarm', Null: 'null', Neutral: 'neutral' };
+  function sfxVoiceOf(faction) { return SFX_VOICES[faction] || 'neutral'; }
+  function sfxTierGain(tier) { return SFX_TIER_GAIN[tier] || SFX_TIER_GAIN.normal; }
+  // Left of the screen pans left; never fully hard (the lab's 0.75).
+  function sfxPan(x, width) {
+    if (!(width > 0) || typeof x !== 'number' || x !== x) return 0;
+    var p = (x / width * 2 - 1) * 0.75;
+    return p < -0.75 ? -0.75 : p > 0.75 ? 0.75 : p;
+  }
+  // Aegis's metal and Neutral's bells: the inharmonic partials of a struck
+  // bar (1, 2.76, 5.4), quieter the higher they go.
+  var SFX_BELL = [1, 2.76, 5.4];
+
+  // sfxRecipe(kind, faction, tier, rand, o) -> a list of voices, each
+  //   { k: 'tone', type, f0, f1?, dur, g, att?, delay?, steps?, detune?, filt?, ff?, q? }
+  //   { k: 'noise', type, f0, f1?, q?, dur, g, att?, delay? }
+  // in seconds and linear gain, ready for the runtime to play. rand() is
+  // injected (Math.random on the page, a seeded one in the tests). o:
+  //   targetKind 'player' (impact): a hit that lands on a player's side of
+  //     the board carries a heavier low end;
+  //   victim (kill): the victim's faction adds its own breaking sound.
+  // The lab's recipes, with every gain scaled by the tier.
+  function sfxRecipe(kind, faction, tier, rand, o) {
+    o = o || {};
+    var v = sfxVoiceOf(faction), m = sfxTierGain(tier), out = [];
+    function r(a, b) { return a + (b - a) * rand(); }
+    function T(x) { x.k = 'tone'; x.g = x.g * m; out.push(x); }
+    function N(x) { x.k = 'noise'; x.g = x.g * m; out.push(x); }
+    if (kind === 'launch') {
+      if (v === 'cortex') { T({ type: 'square', f0: 1400, f1: 420, dur: 0.14, g: 0.07 }); T({ type: 'square', f0: 2100, dur: 0.04, g: 0.04, delay: 0.03 }); }
+      else if (v === 'aegis') { N({ type: 'lowpass', f0: 900, f1: 180, dur: 0.3, g: 0.32 }); T({ type: 'sawtooth', f0: 95, f1: 48, dur: 0.22, g: 0.12, filt: 'lowpass', ff: 500 }); }
+      else if (v === 'swarm') { for (var i = 0; i < 6; i++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.035, g: 0.22, delay: i * 0.035 }); N({ type: 'bandpass', f0: 1300, f1: 350, q: 4, dur: 0.22, g: 0.18 }); }
+      else if (v === 'null') { T({ type: 'sawtooth', f0: 420, dur: 0.22, g: 0.06, steps: 7, filt: 'bandpass', ff: 1400, q: 2 }); N({ type: 'highpass', f0: 3000, dur: 0.16, g: 0.09, att: 0.12 }); }
+      else { T({ type: 'sine', f0: 660, f1: 990, dur: 0.22, g: 0.09 }); T({ type: 'triangle', f0: 1320, dur: 0.18, g: 0.04, delay: 0.04 }); }
+    } else if (kind === 'impact') {
+      // The constant part (meaning): a low thump and a noise crack. A hit on
+      // a player's side of the board lands lower and longer.
+      var face = o.targetKind === 'player';
+      T({ type: 'sine', f0: face ? 120 : 150, f1: face ? 34 : 42, dur: face ? 0.4 : 0.28, g: 0.45 });
+      N({ type: 'lowpass', f0: 3600, f1: 280, dur: face ? 0.3 : 0.22, g: 0.32 });
+      if (v === 'cortex') { T({ type: 'square', f0: 1800, f1: 220, dur: 0.09, g: 0.06 }); T({ type: 'square', f0: 900, dur: 0.05, g: 0.04, delay: 0.05 }); }
+      else if (v === 'aegis') { SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 330 * p, dur: 0.7, g: 0.05 / p }); }); N({ type: 'bandpass', f0: 2400, q: 3, dur: 0.12, g: 0.15 }); }
+      else if (v === 'swarm') { N({ type: 'bandpass', f0: 950, f1: 180, q: 5, dur: 0.24, g: 0.3 }); for (var j = 0; j < 4; j++) N({ type: 'bandpass', f0: r(3000, 5000), q: 10, dur: 0.03, g: 0.12, delay: 0.05 + j * 0.03 }); }
+      else if (v === 'null') { for (var k = 0; k < 3; k++) T({ type: 'square', f0: r(200, 2400), dur: 0.03, g: 0.06, delay: k * 0.035 }); T({ type: 'sawtooth', f0: 70, f1: 35, dur: 0.35, g: 0.12, filt: 'lowpass', ff: 400 }); }
+      else { [880, 1320, 1760].forEach(function (n) { T({ type: 'triangle', f0: n, dur: 0.5, g: 0.035 }); }); }
+    } else if (kind === 'bolt') {
+      // One shot of a spell volley leaving its source.
+      if (v === 'cortex') T({ type: 'square', f0: 2400, f1: 600, dur: 0.08, g: 0.05 });
+      else if (v === 'aegis') N({ type: 'lowpass', f0: 1400, f1: 200, dur: 0.18, g: 0.22 });
+      else if (v === 'swarm') N({ type: 'bandpass', f0: r(2500, 4500), q: 9, dur: 0.04, g: 0.12 });
+      else if (v === 'null') T({ type: 'square', f0: r(300, 2600), dur: 0.05, g: 0.05 });
+      else T({ type: 'triangle', f0: 1760, f1: 2640, dur: 0.1, g: 0.05 });
+    } else if (kind === 'heal') {
+      // Always rises (meaning); the voice picks the notes and the wave.
+      var notes = v === 'null' ? [784, 659, 523, 1047] : v === 'aegis' ? [392, 523, 659, 784] : [523, 659, 784, 1047];
+      var ht = v === 'cortex' || v === 'null' ? 'square' : v === 'aegis' ? 'triangle' : 'sine';
+      notes.forEach(function (n, i) { T({ type: ht, f0: n, dur: 0.4, g: ht === 'square' ? 0.03 : 0.07, delay: i * 0.08 }); });
+      if (v === 'swarm') for (var h = 0; h < 5; h++) T({ type: 'sine', f0: r(500, 900), f1: r(1200, 1800), dur: 0.07, g: 0.04, delay: h * 0.06 });
+      if (v === 'neutral') T({ type: 'sine', f0: 1047 * SFX_BELL[1], dur: 0.6, g: 0.012, delay: 0.24 });
+    } else if (kind === 'buff') {
+      // Always a rising sweep and a high note on top.
+      T({ type: v === 'cortex' ? 'square' : 'triangle', f0: 220, f1: 880, dur: 0.42, g: v === 'cortex' ? 0.04 : 0.06 });
+      T({ type: 'sine', f0: 1047, dur: 0.4, g: 0.05, delay: 0.3 });
+      if (v === 'aegis') N({ type: 'bandpass', f0: 2000, q: 4, dur: 0.08, g: 0.2, delay: 0.25 });
+      else if (v === 'swarm') N({ type: 'bandpass', f0: 700, f1: 1800, q: 6, dur: 0.3, g: 0.08 });
+      else if (v === 'null') T({ type: 'square', f0: 880, dur: 0.2, g: 0.025, steps: 4, delay: 0.1 });
+      else if (v === 'neutral') T({ type: 'sine', f0: 1047 * SFX_BELL[1], dur: 0.5, g: 0.012, delay: 0.3 });
+    } else if (kind === 'debuff') {
+      // Always a falling, detuned pair (meaning: it sinks).
+      T({ type: 'sawtooth', f0: 620, f1: 140, dur: 0.55, g: 0.06, filt: 'lowpass', ff: 1600 });
+      T({ type: 'sawtooth', f0: 640, f1: 150, dur: 0.55, g: 0.05, filt: 'lowpass', ff: 1600, detune: 30 });
+      if (v === 'swarm' || v === 'neutral') N({ type: 'highpass', f0: 5000, dur: 0.6, g: 0.06, att: 0.1 });
+      else if (v === 'null') for (var d = 0; d < 3; d++) T({ type: 'square', f0: r(200, 1800), dur: 0.03, g: 0.04, delay: 0.1 + d * 0.05 });
+      else if (v === 'aegis') N({ type: 'bandpass', f0: 1800, f1: 600, q: 3, dur: 0.18, g: 0.12, delay: 0.05 });
+    } else if (kind === 'lock') {
+      // A removal locking on: three beeps.
+      for (var b = 0; b < 3; b++) T({ type: v === 'neutral' ? 'triangle' : 'square', f0: v === 'null' ? r(900, 2200) : 1500, dur: 0.05, g: 0.05, delay: b * 0.14 });
+    } else if (kind === 'beam') {
+      // The removal's strike.
+      T({ type: 'sawtooth', f0: 2200, f1: 70, dur: 0.4, g: 0.14 });
+      N({ type: 'highpass', f0: 1500, dur: 0.3, g: 0.18 });
+      if (v === 'neutral') SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 440 * p, dur: 0.8, g: 0.04 / p, delay: 0.05 }); });
+    } else if (kind === 'kill') {
+      // The killer's impact at full weight, then the card breaking: a deep
+      // drop, a long noise fall, a spray of tiny glass pings.
+      // (the impact is already scaled by the tier; the lab plays it at 1.5x)
+      sfxRecipe('impact', faction, tier, rand, {}).forEach(function (x) { x.g *= 1.5; out.push(x); });
+      T({ type: 'sine', f0: 62, f1: 28, dur: 0.8, g: 0.6 });
+      N({ type: 'lowpass', f0: 1800, f1: 120, dur: 0.9, g: 0.3, delay: 0.05 });
+      for (var s = 0; s < 9; s++) T({ type: 'sine', f0: r(2200, 5200), dur: 0.06, g: 0.03, delay: 0.06 + s * 0.03 });
+      if (sfxVoiceOf(o.victim) === 'aegis') SFX_BELL.slice(0, 2).forEach(function (p) { T({ type: 'sine', f0: 220 * p, dur: 1, g: 0.05, delay: 0.05 }); });
+    } else if (kind === 'block') {
+      // A Barrier takes the hit: a bright ring, in every voice.
+      T({ type: 'triangle', f0: 1760, dur: 0.45, g: 0.1 });
+      T({ type: 'sine', f0: 2640, dur: 0.35, g: 0.06 });
+      N({ type: 'bandpass', f0: 4200, q: 2, dur: 0.12, g: 0.14 });
+      if (v === 'aegis') T({ type: 'sine', f0: 440 * SFX_BELL[1], dur: 0.6, g: 0.05 });
+    } else if (kind === 'cast') {
+      // A power's cast flourish: a rising whoosh, the voice on top.
+      N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });
+      if (v === 'cortex') T({ type: 'square', f0: 880, f1: 1760, dur: 0.16, g: 0.025, delay: 0.12 });
+      else if (v === 'aegis') T({ type: 'sawtooth', f0: 110, f1: 165, dur: 0.3, g: 0.06, filt: 'lowpass', ff: 700 });
+      else if (v === 'swarm') for (var c = 0; c < 3; c++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.03, g: 0.1, delay: 0.1 + c * 0.04 });
+      else if (v === 'null') T({ type: 'sawtooth', f0: 330, dur: 0.25, g: 0.04, steps: 5, filt: 'bandpass', ff: 1200, q: 2 });
+      else T({ type: 'sine', f0: 1320, dur: 0.45, g: 0.04, delay: 0.1 });
+    }
+    return out;
+  }
+`;
+
+export const SOUND_FX_RUNTIME_SOURCE = String.raw`
+  var SND = (function () {
+    var AU = { ctx: null, on: false, master: null, comp: null, noise: null, active: 0 };
+    var counts = { played: 0, voices: 0, capped: 0, repeats: 0 }, byKind = {}, last = {};
+    function init() {
+      if (AU.ctx) return true;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      var C = new AC();
+      AU.ctx = C;
+      // The limiter: the lab's hard compressor on the master bus.
+      var comp = C.createDynamicsCompressor();
+      comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 10; comp.attack.value = 0.002; comp.release.value = 0.18;
+      var m = C.createGain(); m.gain.value = 0.6;
+      m.connect(comp); comp.connect(C.destination);
+      AU.master = m; AU.comp = comp;
+      // One second of white noise, shared by every noise voice.
+      var len = C.sampleRate, buf = C.createBuffer(1, len, C.sampleRate), d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      AU.noise = buf;
+      return true;
+    }
+    function bus(pan) {
+      var C = AU.ctx, g = C.createGain();
+      if (C.createStereoPanner) { var p = C.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(AU.master); }
+      else g.connect(AU.master);
+      return g;
+    }
+    function env(g, t, peak, att, dur) {
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + att);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    }
+    function done() { AU.active--; }
+    function tone(o, pan) {
+      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+      var osc = C.createOscillator();
+      osc.type = o.type || 'sine';
+      osc.frequency.setValueAtTime(o.f0 || 440, t);
+      if (o.f1) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.f1), t + dur);
+      if (o.steps) for (var i = 1; i < o.steps; i++) osc.frequency.setValueAtTime((o.f0 || 440) * Math.pow(2, Math.random() * 2 - 1), t + dur * i / o.steps);
+      if (o.detune) osc.detune.value = o.detune;
+      var e = C.createGain();
+      env(e, t, o.g || 0.2, o.att || 0.005, dur);
+      var n = osc;
+      if (o.filt) { var f = C.createBiquadFilter(); f.type = o.filt; f.frequency.value = o.ff || 2000; f.Q.value = o.q || 1; osc.connect(f); n = f; }
+      n.connect(e); e.connect(bus(pan));
+      osc.start(t); osc.stop(t + dur + 0.05);
+      AU.active++; osc.onended = done;
+    }
+    function noise(o, pan) {
+      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+      var s = C.createBufferSource();
+      s.buffer = AU.noise; s.loop = true;
+      var f = C.createBiquadFilter();
+      f.type = o.type || 'bandpass'; f.Q.value = o.q || 1;
+      f.frequency.setValueAtTime(o.f0 || 1200, t);
+      if (o.f1) f.frequency.exponentialRampToValueAtTime(Math.max(30, o.f1), t + dur);
+      var e = C.createGain();
+      env(e, t, o.g || 0.2, o.att || 0.003, dur);
+      s.connect(f); f.connect(e); e.connect(bus(pan));
+      s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
+      AU.active++; s.onended = done;
+    }
+    // play(kind, faction, tier, rect, o): one event's sound, panned by the
+    // centre of rect (where it happens). Silent while sound is off.
+    function play(kind, faction, tier, rect, o) {
+      if (!AU.on || !AU.ctx) return false;
+      var now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      var key = kind + ':' + sfxVoiceOf(faction);
+      if (last[key] !== undefined && now - last[key] < SFX_REPEAT_GAP_MS) { counts.repeats++; return false; }
+      last[key] = now;
+      var x = rect ? rect.left + rect.width / 2 : (window.innerWidth || 1) / 2;
+      var pan = sfxPan(x, window.innerWidth || 1);
+      var voices = sfxRecipe(kind, faction, tier, Math.random, o);
+      counts.played++; byKind[kind] = (byKind[kind] || 0) + 1;
+      for (var i = 0; i < voices.length; i++) {
+        if (AU.active >= SFX_VOICE_CAP) { counts.capped += voices.length - i; break; }
+        if (voices[i].k === 'tone') tone(voices[i], pan); else noise(voices[i], pan);
+        counts.voices++;
+      }
+      return true;
+    }
+    function setOn(on) {
+      if (on && !init()) return false;
+      AU.on = !!on;
+      if (AU.ctx && AU.ctx.resume && on) AU.ctx.resume();
+      if (AU.ctx && AU.ctx.suspend && !on) AU.ctx.suspend();
+      return AU.on;
+    }
+    var api = { play: play, setOn: setOn, isOn: function () { return AU.on; },
+      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, ctx: !!AU.ctx, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, byKind: k }; } };
+    window.__sfx = api;
+    return api;
+  })();
+`;
+
+export type SfxKind = "launch" | "impact" | "bolt" | "heal" | "buff" | "debuff" | "lock" | "beam" | "kill" | "block" | "cast";
+export interface SfxVoice {
+  k: "tone" | "noise";
+  type: string;
+  f0: number;
+  f1?: number;
+  dur: number;
+  g: number;
+  att?: number;
+  delay?: number;
+  steps?: number;
+  detune?: number;
+  filt?: string;
+  ff?: number;
+  q?: number;
+}
+
+const pure = new Function(
+  `${SOUND_FX_PURE_SOURCE}; return { SFX_TIER_GAIN: SFX_TIER_GAIN, SFX_VOICE_CAP: SFX_VOICE_CAP, SFX_REPEAT_GAP_MS: SFX_REPEAT_GAP_MS, SFX_KINDS: SFX_KINDS, SFX_BELL: SFX_BELL, sfxVoiceOf: sfxVoiceOf, sfxTierGain: sfxTierGain, sfxPan: sfxPan, sfxRecipe: sfxRecipe };`,
+)() as {
+  SFX_TIER_GAIN: Record<FxTier, number>;
+  SFX_VOICE_CAP: number;
+  SFX_REPEAT_GAP_MS: number;
+  SFX_KINDS: SfxKind[];
+  SFX_BELL: number[];
+  sfxVoiceOf: (faction: string | undefined) => string;
+  sfxTierGain: (tier: FxTier) => number;
+  sfxPan: (x: number, width: number) => number;
+  sfxRecipe: (kind: SfxKind, faction: string | undefined, tier: FxTier, rand: () => number, o?: { targetKind?: "unit" | "player"; victim?: string }) => SfxVoice[];
+};
+
+export const { SFX_TIER_GAIN, SFX_VOICE_CAP, SFX_REPEAT_GAP_MS, SFX_KINDS, SFX_BELL, sfxVoiceOf, sfxTierGain, sfxPan, sfxRecipe } = pure;

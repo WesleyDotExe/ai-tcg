@@ -14,7 +14,9 @@
   --line: #24314f;
   --good: #35e6a0;
   --bad: #ff4d6d;
-  --neutral: #ffcf5c;
+  /* Neutral is white-gold (owner 2026-10-05): the old gold #ffcf5c nearly
+   * merged with Aegis orange under deuteranopia. */
+  --neutral: #fff0c2;
   --cortex: #35c9ff;
   --aegis: #ff7d24;
   --swarm: #8bff5c;
@@ -46,11 +48,15 @@ html, body {
 .matchup .vs { color: var(--ink-dim); margin: 0 0.5em; }
 .seed { color: var(--ink-dim); font-size: 0.75rem; }
 #app { max-width: 1180px; margin: 0 auto; padding: 14px 12px 24px; position: relative; z-index: 1; }
-/* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under the
- * board (ground marks, settled debris), the FX canvas over the cards but
- * under the floating numbers and tags in .fx-layer. */
+/* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under
+ * the board (the background grid impacts warp, then ground marks and
+ * settled debris), the FX canvas over the cards but under the floating
+ * numbers and tags in .fx-layer. */
 .fx-canvas { position: fixed; left: 0; top: 0; pointer-events: none; }
 .fx-canvas.fx-floor { z-index: 0; }
+/* The camera beats (canvasFx.ts: punch, shake, colour split) transform
+ * #app for a fraction of a second, and only then: no will-change, which
+ * would keep the whole board on its own layer for the entire replay. */
 .fx-canvas.fx-top { z-index: 89; }
 
 .hud-row { display: grid; grid-template-columns: 1fr 220px 1fr; gap: 10px; align-items: stretch; margin-bottom: 8px; }
@@ -147,10 +153,12 @@ html, body {
 .faction-Aegis { --fc: var(--aegis); --rc: #ffc29a; }
 .faction-Swarm { --fc: var(--swarm); --rc: #b6ff8f; }
 .faction-Null { --fc: var(--null); --rc: #e79bff; }
-/* Neutral cards (engine data/neutralCards.ts) take the UI gold, so the frame
- * matches the fx tints, which read var(--<faction>) = var(--neutral). A
- * palette of their own is a render-lane call. */
-.faction-Neutral { --fc: var(--neutral); --rc: #ffe4a0; }
+/* Neutral cards (engine data/neutralCards.ts) take the white-gold, so the
+ * frame matches the fx tints, which read var(--<faction>) = var(--neutral).
+ * White text on a white-gold frame needs darker strips under it to stay
+ * readable (owner 2026-10-05: dark on light, or white-gold on dark). */
+.faction-Neutral { --fc: var(--neutral); --rc: #fff8e2; }
+.card.faction-Neutral .name, .card.faction-Neutral .stats { background: rgba(0,0,0,0.66); }
 .card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null, .card.faction-Neutral { background: var(--fc); }
 
 .lower { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-top: 12px; }
@@ -169,6 +177,7 @@ html, body {
 .controls button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: inherit; }
 .controls button:hover { border-color: var(--cortex); }
 .controls #scrubber { width: 320px; }
+.controls #btn-sound.on { border-color: var(--good); color: var(--good); }
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
 .speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
@@ -363,6 +372,21 @@ html, body {
   100% { box-shadow: none; transform: scale(1); }
 }
 .fx-mag-spectacle.fx-heal, .fx-mag-spectacle.hud.fx-heal { animation-name: fx-heal-flash-big; }
+/* A player's HP bar reacts when a hit or heal aimed at them lands mid-board
+ * (owner 2026-10-05): the bar flashes, by tier (subtle: a brightening,
+ * normal: a glow, spectacle: a bigger glow and a jolt; the whole panel also
+ * flashes then). */
+.bar-row.fx-hit .bar-track { animation: fx-hp-hit 500ms ease; }
+.bar-row.fx-heal .bar-track { animation: fx-hp-heal 500ms ease; }
+@keyframes fx-hp-hit { 0% { box-shadow: 0 0 0 1px var(--bad), 0 0 12px 2px var(--bad); filter: brightness(1.9); } 100% { box-shadow: none; filter: brightness(1); } }
+@keyframes fx-hp-heal { 0% { box-shadow: 0 0 0 1px var(--good), 0 0 12px 2px var(--good); filter: brightness(1.6); } 100% { box-shadow: none; filter: brightness(1); } }
+.bar-row.fx-mag-subtle .bar-track { animation-duration: 300ms; box-shadow: none; }
+.bar-row.fx-mag-spectacle.fx-hit .bar-track { animation: fx-hp-hit-big 900ms ease; }
+@keyframes fx-hp-hit-big {
+  0% { box-shadow: 0 0 0 2px var(--bad), 0 0 26px 6px var(--bad); filter: brightness(2.3); transform: translateX(0); }
+  12% { transform: translateX(-4px); } 24% { transform: translateX(4px); } 36% { transform: translateX(-2px); } 48% { transform: translateX(0); }
+  100% { box-shadow: none; filter: brightness(1); }
+}
 @keyframes fx-heal-flash-big {
   0% { box-shadow: 0 0 0 5px var(--good) inset, 0 0 34px 6px var(--good); }
   100% { box-shadow: none; }
