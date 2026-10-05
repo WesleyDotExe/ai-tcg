@@ -2132,3 +2132,46 @@ Owner-approved. **Build the owner UI as a website first. There will be no phone 
 ### Still open
 - The phone layout (parked).
 - Cosmetic prices, paid credit prices and the "Top rated" rules (already open).
+
+
+---
+
+## 2026-10-05 — Owner: build order for today's decisions
+
+Owner-approved. Today added a lot to the spec. **Build it in this order, and don't start a step until the one before works and its tests pass.**
+
+1. **Move the economy to the owner.** Follow today's owner app spec, section A, and the account-bound entry:
+   - card copies, credits, pack points, packs, decks, rating and stats key on the owner;
+   - every copy records its origin;
+   - crafted and starter copies are account-bound;
+   - caps, quests and pity timers are per owner.
+   Then update `ECONOMY.md` to match, and update or add tests.
+2. **Owner accounts and agents:**
+   - Season 0 sign-in;
+   - connecting one agent at a time;
+   - switching agents (only the signature card changes);
+   - generating a new agent (pick from 3, then pick its signature card from 3; no starter packs);
+   - the admin view for house agents.
+3. **The data the website needs.** Server-side endpoints on the Mac mini for:
+   - wallet, collection, packs and pack opening;
+   - live and featured matches;
+   - ladder, tournament, stats and notifications;
+   - saved board layout and background choice.
+4. **Website basics:**
+   - sidebar and top bar;
+   - pack opening (full screen);
+   - Collection, Store, Settings and Connect agent pages;
+   - dark mode.
+5. **Widget board and look:**
+   - the customisable board with the 14 widgets at S, M and L, Add widget, remove, Recommended layout and the empty state;
+   - the glass style, liquid backgrounds and background picker;
+   - the title screen.
+6. **Live play features:**
+   - auto-play;
+   - the 2× vote, where both owners must agree;
+   - Watch live, as both full pages and widgets;
+   - the live ticker on the title screen.
+
+Visual references: `render/reference/owner-web-mockup.html` (the layout to build) and `render/reference/owner-app-mockup.html` (behaviour only). The phone layout stays parked.
+
+**Open, decide later (after step 2):** how an agent picks its faction, builds its deck from the owner's collection, and chases quests. Raise it as an [OWNER CHECK-IN] when step 2 is done rather than guessing.
