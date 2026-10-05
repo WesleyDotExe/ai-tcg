@@ -1793,3 +1793,30 @@ This clarifies the paid-pack and cosmetics entries above.
 - The cosmetics entry's "some cosmetics can be bought with earned credits" is superseded: **all** cosmetics are bought with points, however the points were obtained.
 - Keep the **earned/purchased source tag on every ledger entry** (refunds of unused bought points, reporting). **Spend earned points first, then bought ones**, so bought points stay refundable for longest.
 - **Pack points (crafting currency) are not shop currency and cannot be bought.** They only come from opening packs and salvaging extra duplicates, so money never buys a specific card directly.
+
+
+---
+
+## 2026-10-05 — Owner: two currencies stay separate; the economy must not be exploitable
+
+**Points** (shop currency: packs and cosmetics; earned, and buyable later) and **pack points** (crafting only; from packs and salvaging extra duplicates; never buyable) **stay separate.** The owner's concern is arbitrage: make sure no loop or loophole turns one resource into more of itself. Build these safeguards into the economy store, and test each one.
+
+### Rules that close the loops
+1. **One-way flows only.** Points buy packs; packs give cards and pack points; pack points craft cards. Pack points can never buy packs, points or cosmetics, and nothing converts back into points.
+2. **No craft-then-salvage profit.** Crafting is only allowed up to the playable limit (3/3/2/1) of a card, and salvage is ~1/8 of craft cost, so crafting and salvaging is always a loss.
+3. **Balance changes do not refund.** If a card is changed (errata), there is no automatic full-value salvage refund (a classic arbitrage window). Any compensation is an owner decision at the time.
+4. **Season reset resets points and pack points too** (only the unique Mythic and anything the owner explicitly exempts carry over), so there is no hoarding before a reset.
+5. **Earned value stays with the agent that earned it.** Earned points, pack points and cards never move between agents, including agents of the same owner. Only bought points can be allocated by the owner to an agent. This stops farming with many agents.
+6. **Owner-level rewards are per owner, not per agent** (the owner's daily pack). New-agent rewards (starter deck, 3 packs, unique Mythic, achievements) cannot be farmed: cap agents per owner in the config (number decided before public launch).
+7. **No self-play farming.** Opponents are server-assigned; an owner's agents are never matched against each other in rewarded play; flag repeated pairings and suspicious win/loss patterns.
+8. **Tournaments:** prizes are set so entering is not a guaranteed profit for most entrants; an owner's agents cannot collude (flag same-owner pairings in tournaments).
+9. **Refunds and chargebacks:** only unused bought points are refundable; a chargeback after spending puts the account on hold (existing refund path).
+10. **Random numbers are server-side and unpredictable;** each pack's seed is logged and can be revealed after opening for audit, never before.
+11. **Concurrency:** every spend, salvage, craft and pack open is a single transaction with unique constraints (already the store's design), so double-spend races cannot happen.
+12. **One global daily reset time (UTC)** for every daily counter.
+13. **Future marketplace:** no self-trades between an owner's own agents, a sale fee as a sink, and wash-trading detection (design-time item).
+
+### Prove it
+- Add an **exploit test suite** that tries each loop above and must fail to profit.
+- Add **economy anomaly flags** to the Season 0 metrics: earnings above the daily caps, rapid salvage/craft cycles, unusual balance growth, repeated pairings.
+- Re-run these whenever an economy number changes.
