@@ -87,9 +87,12 @@ describe("server integration (real sockets, real engine match)", () => {
     const clientA = runAgentClient({ url, agentName: "A", decide: makeRandomDecision(4), log: () => {} });
     const clientB = runAgentClient({ url, agentName: "B", decide: makeRandomDecision(5), log: () => {} });
 
-    // Give the pairing a moment to lock in before the third connects, then
-    // confirm the third socket gets closed by the server rather than queued.
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    // Wait until the server has actually paired A and B before the third
+    // connects, then confirm the third socket gets closed by the server
+    // rather than queued. (This used to be a fixed 50ms sleep, which raced on
+    // slow CI runners: if A's or B's hello landed after C's, C was paired into
+    // the match instead of being turned away.)
+    await server.matchStarted;
     const thirdSocket = new WebSocket(url);
     const thirdClosed = await new Promise<boolean>((resolve) => {
       thirdSocket.once("open", () => {
