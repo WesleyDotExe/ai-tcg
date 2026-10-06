@@ -2207,3 +2207,18 @@ Owner decisions. Build to these and update `ECONOMY.md` to match. This replaces 
   - Report the before and after numbers at a checkpoint.
 - **Pack opening results:** show NEW badges and how many copies the owner now holds (for example "×3 owned"). No salvage chips.
 - **Order:** do this before or alongside build-order step 2. It touches the same economy code that step 1 just changed.
+
+
+---
+
+## 2026-10-07 — Owner: amendment, keep the 3 / 3 / 2 / 1 deck copy limit
+
+Owner decision. This amends section 2 and part of section 3 of today's "manual salvage only" entry. Section 1 (salvage) stands unchanged.
+
+- **The deck copy limit stays 3 Common / 3 Uncommon / 2 Rare / 1 Mythic**, as built. Ignore the 2 / 2 / 2 / 1 change. A lot of balance work rests on the current limit.
+- **Still applies from today's entry:**
+  - the owner must own at least as many copies as a deck uses;
+  - copies are shared across saved decks, not reserved per deck;
+  - crafting can make copies up to the deck limit (3 / 3 / 2 / 1).
+- **Dropped from today's entry:** rebuilding the starter and ring decks, and re-running the ring check for the copy limit. The decks stay as they are.
+- **Still applies from section 3:** pack results show NEW badges and the number of copies held (for example "×4 owned"), with no salvage chips.
