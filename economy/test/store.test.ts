@@ -2,235 +2,488 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { SHIPPED_DECK_LISTS } from "@ai-tcg/engine";
-import { EconomyError, EconomyStore, PACK_PRICE_CREDITS } from "../src/index.js";
+import { getCard, SHIPPED_DECK_LISTS } from "@ai-tcg/engine";
+import { EconomyError, EconomyStore, PACK_PRICE_CREDITS, SALVAGE_PACK_POINTS, STARTER_PACKS } from "../src/index.js";
 
 const DAY1 = "2026-10-05T10:00:00.000Z";
 let clock = new Date(DAY1);
-const open = (path = ":memory:") => EconomyStore.open(path, { now: () => clock });
+const open = (path = ":memory:", migrateTo?: number) => EconomyStore.open(path, { now: () => clock, migrateTo });
 const tmpDirs: string[] = [];
+const tmpFile = () => {
+  const dir = mkdtempSync(join(tmpdir(), "economy-"));
+  tmpDirs.push(dir);
+  return join(dir, "season.db");
+};
 afterEach(() => {
   clock = new Date(DAY1);
   for (const d of tmpDirs.splice(0)) rmSync(d, { recursive: true, force: true });
 });
 
-function starter(store: EconomyStore, agentId: string, faction: keyof typeof SHIPPED_DECK_LISTS) {
-  return store.grantCopies(
-    SHIPPED_DECK_LISTS[faction].flatMap(({ cardId, copies }) =>
-      Array.from({ length: copies }, () => ({ ownerId: agentId, cardId, source: "starter" as const })),
-    ),
-  );
+/** An owner with one agent: the common case. */
+function player(store: EconomyStore, name: string) {
+  const owner = store.createOwner({ name });
+  const agent = store.createAgent({ ownerId: owner.ownerId, name: `${name}-agent` });
+  return { ownerId: owner.ownerId, agentId: agent.agentId };
 }
 
 function win(store: EconomyStore, matchId: string, winner: string, loser: string, endedAt = DAY1) {
   return store.recordMatch({ matchId, seed: 1, p1AgentId: winner, p2AgentId: loser, outcome: { kind: "win", winnerAgentId: winner }, endedAt });
 }
 
+/** A Common the Aegis starter runs 3 of. */
+const AEGIS_COMMON = SHIPPED_DECK_LISTS.Aegis.find((e) => e.copies === 3 && getCard(e.cardId)?.rarity === "Common")!.cardId;
+
 describe("EconomyStore: schema and persistence", () => {
-  it("creates the schema at v1 for Season 0, and survives close + reopen from its file", () => {
-    const dir = mkdtempSync(join(tmpdir(), "economy-"));
-    tmpDirs.push(dir);
-    const path = join(dir, "season.db");
+  it("creates the schema at v2 for Season 0, and survives close + reopen from its file", () => {
+    const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(1);
+    expect(a.schemaVersion).toBe(2);
     expect(a.season).toBe("S0");
-    const alpha = a.createAgent({ name: "alpha", faction: "Cortex" });
-    const beta = a.createAgent({ name: "beta", faction: "Swarm" });
-    const copies = starter(a, alpha.agentId, "Cortex");
+    const alpha = player(a, "alpha");
+    const beta = player(a, "beta");
+    const { copies } = a.grantStarterCollection(alpha.ownerId, "Cortex");
     win(a, "m1", alpha.agentId, beta.agentId);
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(1);
-    expect(b.listAgents().map((x) => x.name)).toEqual(["alpha", "beta"]);
-    expect(b.balance(alpha.agentId)).toBe(40);
-    expect(b.balance(beta.agentId)).toBe(2);
-    expect(b.collection(alpha.agentId).map((c) => c.copyId)).toEqual(copies.map((c) => c.copyId));
+    expect(b.schemaVersion).toBe(2);
+    expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
+    expect(b.balance(alpha.ownerId)).toBe(30);
+    expect(b.balance(beta.ownerId)).toBe(2);
+    expect(b.collection(alpha.ownerId).map((c) => c.copyId)).toEqual(copies.map((c) => c.copyId));
     expect(b.matchHistory()).toHaveLength(1);
     b.close();
+  });
+});
+
+describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
+  it("turns each v1 agent into a house owner with that agent, and carries every row across", () => {
+    const path = tmpFile();
+    const v1 = open(path, 1);
+    expect(v1.schemaVersion).toBe(1);
+    const cortex = SHIPPED_DECK_LISTS.Cortex[0]!.cardId;
+    const at = DAY1;
+    v1.unsafeExec(`
+      INSERT INTO agents (agent_id, name, faction, created_at) VALUES ('a1', 'house-a', 'Cortex', '${at}'), ('a2', 'house-b', 'Swarm', '${at}');
+      INSERT INTO card_copies (copy_id, owner_id, card_id, finish, series_kind, source, acquired_at)
+        VALUES ('c-starter', 'a1', '${cortex}', 'standard', 'set', 'starter', '${at}'),
+               ('c-pack', 'a1', '${cortex}', 'standard', 'set', 'pack', '${at}'),
+               ('c-crafted', 'a1', '${cortex}', 'standard', 'set', 'packPoints', '${at}');
+      INSERT INTO card_copies (copy_id, owner_id, card_id, finish, series_kind, series_code, serial, run_size, source, acquired_at,
+                               disposed_at, disposed_reason)
+        VALUES ('c-prize', 'a2', '${cortex}', 'tournament', 'tournament', 'S0F', 2, 10, 'tournament', '${at}', NULL, NULL),
+               ('c-gone', 'a1', '${cortex}', 'standard', 'set', NULL, NULL, NULL, 'pack', '${at}', '${at}', 'convertedToPackPoints');
+      INSERT INTO decks (deck_id, owner_id, name, created_at) VALUES ('d1', 'a1', 'main', '${at}');
+      INSERT INTO deck_copies (deck_id, copy_id) VALUES ('d1', 'c-starter'), ('d1', 'c-pack');
+      UPDATE agents SET active_deck_id = 'd1' WHERE agent_id = 'a1';
+      INSERT INTO matches (match_id, seed, p1_agent, p2_agent, p1_deck, outcome, winner_agent, p1_credits, p2_credits, ended_at)
+        VALUES ('m1', 7, 'a1', 'a2', 'd1', 'win', 'a1', 40, 2, '${at}');
+      INSERT INTO matches (match_id, seed, p1_agent, p2_agent, outcome, abandoned_by, p1_credits, p2_credits, ended_at)
+        VALUES ('m2', 8, 'a1', 'a2', 'abandoned', 'a2', 0, 0, '${at}');
+      INSERT INTO ledger (agent_id, currency, delta, reason, ref, created_at)
+        VALUES ('a1', 'credits', 40, 'matchWin', 'm1', '${at}'), ('a2', 'credits', 2, 'matchLoss', 'm1', '${at}'),
+               ('a1', 'packPoints', 5, 'convert', 'c-gone', '${at}');
+    `);
+    v1.close();
+
+    const s = open(path);
+    expect(s.schemaVersion).toBe(2);
+    const owners = s.listOwners();
+    expect(owners.map((o) => [o.ownerId, o.name, o.kind, o.startingFaction, o.activeDeckId])).toEqual([
+      ["owner-a1", "house-a", "house", "Cortex", "d1"],
+      ["owner-a2", "house-b", "house", "Swarm", null],
+    ]);
+    // a1 had starter copies, so its starter counts as granted; a2 never had one.
+    expect(owners[0]!.starterGrantedAt).toBe(DAY1);
+    expect(owners[1]!.starterGrantedAt).toBeNull();
+    expect(s.getAgent("a1").ownerId).toBe("owner-a1");
+
+    expect(s.balance("owner-a1")).toBe(40);
+    expect(s.balance("owner-a1", "packPoints")).toBe(5);
+    expect(s.balance("owner-a2")).toBe(2);
+    expect(s.ledger("owner-a1").map((e) => [e.reason, e.playedBy])).toEqual([
+      ["matchWin", "a1"],
+      ["convert", null],
+    ]);
+
+    const origin = (id: string) => {
+      const c = s.getCopy(id);
+      return [c.ownerId, c.origin, c.accountBound, c.disposedReason];
+    };
+    expect(origin("c-starter")).toEqual(["owner-a1", "starter", true, null]);
+    expect(origin("c-pack")).toEqual(["owner-a1", "pack", false, null]);
+    expect(origin("c-crafted")).toEqual(["owner-a1", "crafted", true, null]);
+    expect(origin("c-prize")).toEqual(["owner-a2", "prize", false, null]);
+    expect(origin("c-gone")).toEqual(["owner-a1", "pack", false, "salvaged"]);
+
+    const [m1, m2] = s.matchHistory();
+    expect([m1!.p1OwnerId, m1!.p1AgentId, m1!.winnerOwnerId, m1!.winnerAgentId, m1!.p1DeckId]).toEqual(["owner-a1", "a1", "owner-a1", "a1", "d1"]);
+    expect([m2!.outcome, m2!.abandonedByOwnerId]).toEqual(["abandoned", "owner-a2"]);
+    // The v1 daily tally carries over per owner: a1's next win that day is its 2nd.
+    const c = s.createOwner({ name: "newcomer" });
+    const cAgent = s.createAgent({ ownerId: c.ownerId, name: "newcomer-agent" });
+    expect(win(s, "m3", "a1", cAgent.agentId).p1Credits).toBe(10);
+    // Foreign keys are back on after the migration.
+    expect(() => s.unsafeExec(`INSERT INTO agents (agent_id, owner_id, name, created_at) VALUES ('x', 'no-such-owner', 'x', '${at}')`)).toThrow(
+      /FOREIGN KEY/,
+    );
+    s.close();
   });
 });
 
 describe("EconomyStore: the ledger", () => {
   it("is append-only: UPDATE and DELETE are refused by the schema itself", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const b = s.createAgent({ name: "b" });
+    const a = player(s, "a");
+    const b = player(s, "b");
     win(s, "m1", a.agentId, b.agentId);
     expect(() => s.unsafeExec("UPDATE ledger SET delta = 9999")).toThrow(/append-only/);
     expect(() => s.unsafeExec("DELETE FROM ledger")).toThrow(/append-only/);
-    expect(s.balance(a.agentId)).toBe(40);
+    expect(s.balance(a.ownerId)).toBe(30);
   });
 
   it("refuses any entry that would take a balance below zero, even raw SQL", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
+    const a = player(s, "a");
     expect(() =>
-      s.unsafeExec(`INSERT INTO ledger (agent_id, currency, delta, reason, created_at) VALUES ('${a.agentId}', 'credits', -1, 'x', '${DAY1}')`),
+      s.unsafeExec(`INSERT INTO ledger (owner_id, currency, delta, reason, created_at) VALUES ('${a.ownerId}', 'credits', -1, 'x', '${DAY1}')`),
     ).toThrow(/insufficient balance/);
   });
 
-  it("pays the daily win schedule from match history, and stops paying after the 10th win", () => {
+  it("pays the daily win schedule (30, 10 x3, 5 x6) from match history, and stops after the 10th win", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const b = s.createAgent({ name: "b" });
+    const a = player(s, "a");
+    const b = player(s, "b");
     const paid = Array.from({ length: 12 }, (_, i) => win(s, `m${i}`, a.agentId, b.agentId).p1Credits);
-    expect(paid).toEqual([40, 15, 15, 15, 5, 5, 5, 5, 5, 5, 0, 0]);
-    expect(s.balance(a.agentId)).toBe(115);
+    expect(paid).toEqual([30, 10, 10, 10, 5, 5, 5, 5, 5, 5, 0, 0]);
+    expect(s.balance(a.ownerId)).toBe(90);
     // b lost 12: losses pay 2 each up to the 10-loss cap.
-    expect(s.balance(b.agentId)).toBe(20);
+    expect(s.balance(b.ownerId)).toBe(20);
     // A new UTC day resets the schedule.
-    expect(win(s, "next-day", a.agentId, b.agentId, "2026-10-06T00:00:01.000Z").p1Credits).toBe(40);
+    expect(win(s, "next-day", a.agentId, b.agentId, "2026-10-06T00:00:01.000Z").p1Credits).toBe(30);
     // Zero-credit matches are in history but write no ledger entry.
-    expect(s.ledger(a.agentId).filter((e) => e.reason === "matchWin")).toHaveLength(11);
-    expect(s.matchHistory(a.agentId)).toHaveLength(13);
+    expect(s.ledger(a.ownerId).filter((e) => e.reason === "matchWin")).toHaveLength(11);
+    expect(s.matchHistory({ ownerId: a.ownerId })).toHaveLength(13);
   });
 
   it("counts the day in UTC whatever offset the end time is written with", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const b = s.createAgent({ name: "b" });
+    const a = player(s, "a");
+    const b = player(s, "b");
     win(s, "m1", a.agentId, b.agentId, "2026-10-05T23:30:00.000Z");
     // 01:30 on the 6th in +02:00 is 23:30 UTC on the 5th: same day, 2nd win.
-    expect(win(s, "m2", a.agentId, b.agentId, "2026-10-06T01:30:00+02:00").p1Credits).toBe(15);
+    expect(win(s, "m2", a.agentId, b.agentId, "2026-10-06T01:30:00+02:00").p1Credits).toBe(10);
   });
 
   it("pays nothing to either side for a cancelled or abandoned match, and the schema forbids otherwise", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const b = s.createAgent({ name: "b" });
+    const a = player(s, "a");
+    const b = player(s, "b");
     const c = s.recordMatch({ matchId: "c", seed: 1, p1AgentId: a.agentId, p2AgentId: b.agentId, outcome: { kind: "cancelled" } });
     const ab = s.recordMatch({ matchId: "ab", seed: 2, p1AgentId: a.agentId, p2AgentId: b.agentId, outcome: { kind: "abandoned", byAgentId: b.agentId } });
     expect([c.p1Credits, c.p2Credits, ab.p1Credits, ab.p2Credits]).toEqual([0, 0, 0, 0]);
-    expect(s.balance(a.agentId) + s.balance(b.agentId)).toBe(0);
+    expect(ab.abandonedByOwnerId).toBe(b.ownerId);
+    expect(s.balance(a.ownerId) + s.balance(b.ownerId)).toBe(0);
     expect(() =>
       s.unsafeExec(
-        `INSERT INTO matches (match_id, seed, p1_agent, p2_agent, outcome, p1_credits, p2_credits, ended_at)
-         VALUES ('bad', 1, '${a.agentId}', '${b.agentId}', 'cancelled', 5, 0, '${DAY1}')`,
+        `INSERT INTO matches (match_id, seed, p1_owner, p2_owner, p1_agent, p2_agent, outcome, p1_credits, p2_credits, ended_at)
+         VALUES ('bad', 1, '${a.ownerId}', '${b.ownerId}', '${a.agentId}', '${b.agentId}', 'cancelled', 5, 0, '${DAY1}')`,
       ),
     ).toThrow(/CHECK/);
     // Abandoned/cancelled matches don't use up the daily win schedule either.
-    expect(win(s, "w", a.agentId, b.agentId).p1Credits).toBe(40);
+    expect(win(s, "w", a.agentId, b.agentId).p1Credits).toBe(30);
   });
 
   it("pays a draw as a loss to both sides", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const b = s.createAgent({ name: "b" });
+    const a = player(s, "a");
+    const b = player(s, "b");
     const d = s.recordMatch({ matchId: "d", seed: 1, p1AgentId: a.agentId, p2AgentId: b.agentId, outcome: { kind: "draw" } });
     expect([d.p1Credits, d.p2Credits]).toEqual([2, 2]);
   });
 
   it("refuses to record the same match twice, and leaves balances untouched", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const b = s.createAgent({ name: "b" });
+    const a = player(s, "a");
+    const b = player(s, "b");
     win(s, "m1", a.agentId, b.agentId);
     expect(() => win(s, "m1", a.agentId, b.agentId)).toThrow(EconomyError);
-    expect(s.balance(a.agentId)).toBe(40);
+    expect(s.balance(a.ownerId)).toBe(30);
     expect(s.matchHistory()).toHaveLength(1);
   });
 
   it("refuses a winner who wasn't in the match", () => {
     const s = open();
-    const [a, b, c] = ["a", "b", "c"].map((name) => s.createAgent({ name }));
+    const [a, b, c] = ["a", "b", "c"].map((name) => player(s, name));
     expect(() =>
       s.recordMatch({ matchId: "x", seed: 1, p1AgentId: a!.agentId, p2AgentId: b!.agentId, outcome: { kind: "win", winnerAgentId: c!.agentId } }),
     ).toThrow(EconomyError);
-    expect(s.balance(c!.agentId)).toBe(0);
+    expect(s.balance(c!.ownerId)).toBe(0);
+    expect(s.matchHistory()).toHaveLength(0);
+  });
+});
+
+describe("EconomyStore: owners and agents (exploit checks)", () => {
+  it("counts the daily caps per owner: switching agents neither resets nor doubles them", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "owner" });
+    const first = s.createAgent({ ownerId: owner.ownerId, name: "first" });
+    const opp = player(s, "opp");
+    const firstPaid = Array.from({ length: 6 }, (_, i) => win(s, `a${i}`, first.agentId, opp.agentId).p1Credits);
+    // The owner switches agents mid-day: the schedule carries on at win 7.
+    const second = s.createAgent({ ownerId: owner.ownerId, name: "second" });
+    const secondPaid = Array.from({ length: 6 }, (_, i) => win(s, `b${i}`, second.agentId, opp.agentId).p1Credits);
+    expect([...firstPaid, ...secondPaid]).toEqual([30, 10, 10, 10, 5, 5, 5, 5, 5, 5, 0, 0]);
+    expect(s.balance(owner.ownerId)).toBe(90);
+    // Each payout names the agent that played it.
+    const played = s.ledger(owner.ownerId).map((e) => e.playedBy);
+    expect(played.filter((p) => p === first.agentId)).toHaveLength(6);
+    expect(played.filter((p) => p === second.agentId)).toHaveLength(4);
+    // The loss cap is per owner too: opp's 12 losses paid 10 x 2.
+    expect(s.balance(opp.ownerId)).toBe(20);
+  });
+
+  it("never lets an owner's own agents play each other, even through raw SQL", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "farmer" });
+    const x = s.createAgent({ ownerId: owner.ownerId, name: "x" });
+    const y = s.createAgent({ ownerId: owner.ownerId, name: "y" });
+    expect(() => win(s, "self", x.agentId, y.agentId)).toThrow(/never play each other/);
+    expect(() =>
+      s.unsafeExec(
+        `INSERT INTO matches (match_id, seed, p1_owner, p2_owner, p1_agent, p2_agent, outcome, winner_owner, p1_credits, p2_credits, ended_at)
+         VALUES ('raw', 1, '${owner.ownerId}', '${owner.ownerId}', '${x.agentId}', '${y.agentId}', 'win', '${owner.ownerId}', 30, 2, '${DAY1}')`,
+      ),
+    ).toThrow(/CHECK/);
+    expect(s.balance(owner.ownerId)).toBe(0);
+  });
+
+  it("refuses a match side played by another owner's agent, and a payout to someone else's agent", () => {
+    const s = open();
+    const a = player(s, "a");
+    const b = player(s, "b");
+    const c = player(s, "c");
+    expect(() =>
+      s.unsafeExec(
+        `INSERT INTO matches (match_id, seed, p1_owner, p2_owner, p1_agent, p2_agent, outcome, winner_owner, p1_credits, p2_credits, ended_at)
+         VALUES ('raw', 1, '${a.ownerId}', '${b.ownerId}', '${c.agentId}', '${b.agentId}', 'win', '${a.ownerId}', 30, 2, '${DAY1}')`,
+      ),
+    ).toThrow(/own owner's agent/);
+    expect(() =>
+      s.unsafeExec(
+        `INSERT INTO ledger (owner_id, played_by, currency, delta, reason, ref, created_at)
+         VALUES ('${a.ownerId}', '${c.agentId}', 'credits', 30, 'matchWin', 'x', '${DAY1}')`,
+      ),
+    ).toThrow(/own agents/);
+    expect(() => s.unsafeExec(`UPDATE agents SET owner_id = '${a.ownerId}' WHERE agent_id = '${c.agentId}'`)).toThrow(/one owner forever/);
+  });
+
+  it("gives a new agent nothing: no copies, credits or packs", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "o" });
+    s.grantStarterCollection(owner.ownerId, "Swarm");
+    const before = [s.collection(owner.ownerId).length, s.balance(owner.ownerId), s.unopenedPacks(owner.ownerId).length];
+    s.createAgent({ ownerId: owner.ownerId, name: "a1" });
+    s.createAgent({ ownerId: owner.ownerId, name: "a2" });
+    expect([s.collection(owner.ownerId).length, s.balance(owner.ownerId), s.unopenedPacks(owner.ownerId).length]).toEqual(before);
+    expect(s.listAgents(owner.ownerId).map((a) => a.name)).toEqual(["a1", "a2"]);
+  });
+
+  it("grants the starter collection once per owner: the faction deck as bound copies plus 3 packs", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "o" });
+    const { copies, packs } = s.grantStarterCollection(owner.ownerId, "Aegis");
+    const total = SHIPPED_DECK_LISTS.Aegis.reduce((n, e) => n + e.copies, 0);
+    expect(copies).toHaveLength(total);
+    expect(copies.every((c) => c.origin === "starter" && c.accountBound)).toBe(true);
+    expect(packs).toHaveLength(STARTER_PACKS);
+    expect(s.getOwner(owner.ownerId).startingFaction).toBe("Aegis");
+    // The starter deck saves and plays.
+    s.saveDeck(owner.ownerId, "starter", copies.map((c) => c.copyId));
+
+    // A second starter, any faction, is refused with nothing granted.
+    expect(() => s.grantStarterCollection(owner.ownerId, "Null")).toThrow(/already has its starter/);
+    expect(s.collection(owner.ownerId)).toHaveLength(total);
+    expect(s.unopenedPacks(owner.ownerId)).toHaveLength(STARTER_PACKS);
+    expect(() => s.unsafeExec(`UPDATE owners SET starter_granted_at = NULL WHERE owner_id = '${owner.ownerId}'`)).toThrow(/once per owner/);
+  });
+
+  it("keeps a player's stats per owner, filterable to the agent that played", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "o" });
+    const x = s.createAgent({ ownerId: owner.ownerId, name: "x" });
+    const y = s.createAgent({ ownerId: owner.ownerId, name: "y" });
+    const opp = player(s, "opp");
+    win(s, "1", x.agentId, opp.agentId);
+    win(s, "2", x.agentId, opp.agentId);
+    win(s, "3", opp.agentId, x.agentId);
+    win(s, "4", y.agentId, opp.agentId);
+    s.recordMatch({ matchId: "5", seed: 1, p1AgentId: y.agentId, p2AgentId: opp.agentId, outcome: { kind: "cancelled" } });
+    win(s, "6", y.agentId, opp.agentId);
+    win(s, "7", y.agentId, opp.agentId);
+    const all = s.ownerStats(owner.ownerId);
+    expect([all.matches, all.wins, all.losses, all.void, all.bestWinStreak]).toEqual([7, 5, 1, 1, 3]);
+    expect(all.winRate).toBeCloseTo(5 / 6);
+    expect(all.creditsFromMatches).toBe(s.balance(owner.ownerId));
+    const onlyY = s.ownerStats(owner.ownerId, { agentId: y.agentId });
+    expect([onlyY.matches, onlyY.wins, onlyY.losses, onlyY.void, onlyY.bestWinStreak]).toEqual([4, 3, 0, 1, 3]);
+  });
+});
+
+describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
+  it("records every copy's origin, binds crafted and starter copies, and never unbinds or moves a bound copy", () => {
+    const s = open();
+    const a = player(s, "a");
+    const b = player(s, "b");
+    const crafted = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "crafted", accountBound: false });
+    const pack = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "pack" });
+    expect([crafted.origin, crafted.accountBound, pack.origin, pack.accountBound]).toEqual(["crafted", true, "pack", false]);
+    expect(() =>
+      s.unsafeExec(
+        `INSERT INTO card_copies (copy_id, owner_id, card_id, finish, series_kind, origin, account_bound, acquired_at)
+         VALUES ('raw', '${a.ownerId}', '${AEGIS_COMMON}', 'standard', 'set', 'starter', 0, '${DAY1}')`,
+      ),
+    ).toThrow(/CHECK/);
+    expect(() => s.unsafeExec(`UPDATE card_copies SET account_bound = 0 WHERE copy_id = '${crafted.copyId}'`)).toThrow(/stays bound/);
+    expect(() => s.unsafeExec(`UPDATE card_copies SET owner_id = '${b.ownerId}' WHERE copy_id = '${crafted.copyId}'`)).toThrow(/never change owner/);
+    expect(() => s.unsafeExec(`UPDATE card_copies SET origin = 'pack' WHERE copy_id = '${crafted.copyId}'`)).toThrow(/origin never changes/);
+  });
+
+  it("salvages the extra pack copy, not the bound starter copies (the owner's example)", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "o" });
+    s.grantStarterCollection(owner.ownerId, "Aegis"); // 3 starter copies of AEGIS_COMMON
+    expect(s.salvageableCopies(owner.ownerId)).toEqual([]);
+    const fourth = s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack" });
+    expect(s.salvageableCopies(owner.ownerId).map((c) => c.copyId)).toEqual([fourth.copyId]);
+
+    const result = s.salvageExtras(owner.ownerId);
+    expect(result.copies.map((c) => c.copyId)).toEqual([fourth.copyId]);
+    expect(result.packPoints).toBe(SALVAGE_PACK_POINTS.Common);
+    expect(s.balance(owner.ownerId, "packPoints")).toBe(SALVAGE_PACK_POINTS.Common);
+    expect(s.getCopy(fourth.copyId).disposedReason).toBe("salvaged");
+    // The three bound copies remain, a full playset; a second run finds nothing.
+    expect(s.collection(owner.ownerId).filter((c) => c.cardId === AEGIS_COMMON)).toHaveLength(3);
+    expect(s.salvageExtras(owner.ownerId)).toEqual({ copies: [], packPoints: 0 });
+  });
+
+  it("never salvages a finish, a bound copy, a promo or a copy in a saved deck, and the schema backs it up", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "o" });
+    const { copies: starter } = s.grantStarterCollection(owner.ownerId, "Aegis");
+    // Over the limit, but none of these may salvage.
+    s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack", finish: "foil" });
+    s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "crafted" });
+    s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN" });
+    expect(s.salvageableCopies(owner.ownerId)).toEqual([]);
+
+    // A standard pack copy that sits in a saved deck is skipped too.
+    const inDeck = s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack" });
+    const starterOfCommon = starter.filter((c) => c.cardId === AEGIS_COMMON).map((c) => c.copyId);
+    const rest = starter.filter((c) => c.cardId !== AEGIS_COMMON).map((c) => c.copyId);
+    s.saveDeck(owner.ownerId, "with the pack copy", [...rest, ...starterOfCommon.slice(1), inDeck.copyId]);
+    expect(s.salvageableCopies(owner.ownerId)).toEqual([]);
+
+    // Raw SQL can't salvage a bound copy or a foil either.
+    expect(() =>
+      s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'salvaged' WHERE copy_id = '${starter[0]!.copyId}'`),
+    ).toThrow(/CHECK/);
+    expect(() =>
+      s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'salvaged' WHERE finish = 'foil'`),
+    ).toThrow(/CHECK/);
+    expect(s.balance(owner.ownerId, "packPoints")).toBe(0);
   });
 });
 
 describe("EconomyStore: packs", () => {
   it("debits 100 credits and creates the pack together, and refuses what the balance can't cover", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const b = s.createAgent({ name: "b" });
-    for (let i = 0; i < 6; i++) win(s, `m${i}`, a.agentId, b.agentId); // 40+15+15+15+5+5 = 95
-    expect(s.balance(a.agentId)).toBe(95);
-    expect(() => s.buyPack(a.agentId, "S0")).toThrow(/insufficient balance/);
-    expect(s.unopenedPacks(a.agentId)).toHaveLength(0);
-    win(s, "m6", a.agentId, b.agentId);
-    const pack = s.buyPack(a.agentId, "S0");
-    expect(s.balance(a.agentId)).toBe(100 - PACK_PRICE_CREDITS);
-    expect(s.unopenedPacks(a.agentId).map((p) => p.packId)).toEqual([pack.packId]);
-    s.grantPack(a.agentId, "S0", "starter");
-    expect(s.unopenedPacks(a.agentId)).toHaveLength(2);
+    const a = player(s, "a");
+    const b = player(s, "b");
+    for (let i = 0; i < 10; i++) win(s, `m${i}`, a.agentId, b.agentId); // 30+10+10+10+5x6 = 90
+    expect(s.balance(a.ownerId)).toBe(90);
+    expect(() => s.buyPack(a.ownerId, "S0")).toThrow(/insufficient balance/);
+    expect(s.unopenedPacks(a.ownerId)).toHaveLength(0);
+    win(s, "next-day", a.agentId, b.agentId, "2026-10-06T10:00:00.000Z");
+    const pack = s.buyPack(a.ownerId, "S0");
+    expect(s.balance(a.ownerId)).toBe(120 - PACK_PRICE_CREDITS);
+    expect(s.unopenedPacks(a.ownerId).map((p) => p.packId)).toEqual([pack.packId]);
+    // A purchase is an owner action: no agent is named on it.
+    expect(s.ledger(a.ownerId).find((e) => e.reason === "packPurchase")!.playedBy).toBeNull();
+    s.grantPack(a.ownerId, "S0", "weeklyChallenge");
+    expect(s.unopenedPacks(a.ownerId)).toHaveLength(2);
   });
 });
 
 describe("EconomyStore: owned copies and decks", () => {
   it("records every copy as its own item and refuses cards that aren't ownable", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const copies = starter(s, a.agentId, "Null");
+    const owner = s.createOwner({ name: "o" });
+    const { copies } = s.grantStarterCollection(owner.ownerId, "Null");
     const total = SHIPPED_DECK_LISTS.Null.reduce((n, e) => n + e.copies, 0);
-    expect(copies).toHaveLength(total);
     expect(new Set(copies.map((c) => c.copyId)).size).toBe(total);
-    expect(() => s.grantCopy({ ownerId: a.agentId, cardId: "not-a-card", source: "pack" })).toThrow(/no ownable card/);
+    expect(() => s.grantCopy({ ownerId: owner.ownerId, cardId: "not-a-card", origin: "pack" })).toThrow(/no ownable card/);
     // A failing grant inside a batch rolls the whole batch back.
-    const before = s.collection(a.agentId).length;
     const cardId = SHIPPED_DECK_LISTS.Null[0]!.cardId;
     expect(() =>
       s.grantCopies([
-        { ownerId: a.agentId, cardId, source: "pack" },
-        { ownerId: a.agentId, cardId: "nope", source: "pack" },
+        { ownerId: owner.ownerId, cardId, origin: "pack" },
+        { ownerId: owner.ownerId, cardId: "nope", origin: "pack" },
       ]),
     ).toThrow();
-    expect(s.collection(a.agentId)).toHaveLength(before);
+    expect(s.collection(owner.ownerId)).toHaveLength(total);
   });
 
   it("keeps numbered serials unique and inside their run", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
+    const a = player(s, "a");
     const cardId = SHIPPED_DECK_LISTS.Aegis[0]!.cardId;
-    const proto = { ownerId: a.agentId, cardId, finish: "prototype" as const, seriesKind: "prototype" as const, seriesCode: "S1", runSize: 50, source: "pack" as const };
+    const proto = { ownerId: a.ownerId, cardId, finish: "prototype" as const, seriesKind: "prototype" as const, seriesCode: "S1", runSize: 50, origin: "pack" as const };
     s.grantCopy({ ...proto, serial: 7 });
     expect(() => s.grantCopy({ ...proto, serial: 7 })).toThrow(EconomyError);
     expect(() => s.grantCopy({ ...proto, serial: 51 })).toThrow(EconomyError);
     expect(() => s.grantCopy({ ...proto, serial: null, runSize: null })).toThrow(EconomyError);
-    expect(() => s.grantCopy({ ownerId: a.agentId, cardId, seriesKind: "promo", source: "promo" })).toThrow(EconomyError);
-    s.grantCopy({ ownerId: a.agentId, cardId, seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN", source: "promo" });
+    expect(() => s.grantCopy({ ownerId: a.ownerId, cardId, seriesKind: "promo", origin: "promo" })).toThrow(EconomyError);
+    s.grantCopy({ ownerId: a.ownerId, cardId, seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN", origin: "promo" });
   });
 
-  it("saves a deck only from the agent's own copies, legal by the engine's rules, and loads it for play", () => {
+  it("saves a deck only from the owner's own copies, legal by the engine's rules, and loads it for play", () => {
     const s = open();
-    const a = s.createAgent({ name: "a", faction: "Aegis" });
-    const b = s.createAgent({ name: "b", faction: "Swarm" });
-    const mine = starter(s, a.agentId, "Aegis").map((c) => c.copyId);
-    const theirs = starter(s, b.agentId, "Swarm").map((c) => c.copyId);
+    const a = s.createOwner({ name: "a" });
+    const b = s.createOwner({ name: "b" });
+    const mine = s.grantStarterCollection(a.ownerId, "Aegis").copies.map((c) => c.copyId);
+    const theirs = s.grantStarterCollection(b.ownerId, "Swarm").copies.map((c) => c.copyId);
 
-    const deck = s.saveDeck(a.agentId, "main", mine);
-    s.setActiveDeck(a.agentId, deck.deckId);
-    expect(s.getAgent(a.agentId).activeDeckId).toBe(deck.deckId);
+    const deck = s.saveDeck(a.ownerId, "main", mine);
+    s.setActiveDeck(a.ownerId, deck.deckId);
+    expect(s.getOwner(a.ownerId).activeDeckId).toBe(deck.deckId);
     const loaded = s.loadDeck(deck.deckId);
     expect(loaded.copyIds).toEqual(mine);
     expect(loaded.spec.cards).toHaveLength(mine.length);
 
     // One copy may sit in several decks.
-    s.saveDeck(a.agentId, "copy of main", mine);
+    s.saveDeck(a.ownerId, "copy of main", mine);
 
-    expect(() => s.saveDeck(a.agentId, "stolen", [...mine.slice(1), theirs[0]!])).toThrow(/another agent/);
-    expect(() => s.saveDeck(a.agentId, "dup", [mine[0]!, mine[0]!, ...mine.slice(2)])).toThrow(/same copy twice/);
+    expect(() => s.saveDeck(a.ownerId, "stolen", [...mine.slice(1), theirs[0]!])).toThrow(/another owner/);
+    expect(() => s.saveDeck(a.ownerId, "dup", [mine[0]!, mine[0]!, ...mine.slice(2)])).toThrow(/same copy twice/);
     // Five cards: refused by the engine's own deck rules (the pool lint
     // fires before the 20-card size floor does).
-    expect(() => s.saveDeck(a.agentId, "tiny", mine.slice(0, 5))).toThrow(/lint failed|deck size/);
+    expect(() => s.saveDeck(a.ownerId, "tiny", mine.slice(0, 5))).toThrow(/lint failed|deck size/);
     // A fourth copy of a Common needs a fourth owned copy *and* still breaks the 3-copy limit.
-    const common = SHIPPED_DECK_LISTS.Aegis.find((e) => e.copies === 3)!.cardId;
-    const extra = s.grantCopy({ ownerId: a.agentId, cardId: common, source: "pack" });
-    expect(() => s.saveDeck(a.agentId, "four", [...mine, extra.copyId])).toThrow(/3-copy limit/);
+    const extra = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "pack" });
+    expect(() => s.saveDeck(a.ownerId, "four", [...mine, extra.copyId])).toThrow(/3-copy limit/);
     // The schema refuses a cross-owner deck slot or active deck even through raw SQL.
     expect(() => s.unsafeExec(`INSERT INTO deck_copies (deck_id, copy_id) VALUES ('${deck.deckId}', '${theirs[0]}')`)).toThrow(/owns/);
-    expect(() => s.setActiveDeck(b.agentId, deck.deckId)).toThrow(/own deck/);
+    expect(() => s.setActiveDeck(b.ownerId, deck.deckId)).toThrow(/own deck/);
   });
 
-  it("will not load a deck holding a copy the agent no longer owns", () => {
+  it("will not load a deck holding a copy the owner no longer has", () => {
     const s = open();
-    const a = s.createAgent({ name: "a" });
-    const mine = starter(s, a.agentId, "Cortex").map((c) => c.copyId);
-    const deck = s.saveDeck(a.agentId, "main", mine);
-    s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'convertedToPackPoints' WHERE copy_id = '${mine[0]}'`);
+    const owner = s.createOwner({ name: "o" });
+    const mine = s.grantStarterCollection(owner.ownerId, "Cortex").copies.map((c) => c.copyId);
+    const deck = s.saveDeck(owner.ownerId, "main", mine);
+    s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'retired' WHERE copy_id = '${mine[0]}'`);
     expect(() => s.loadDeck(deck.deckId)).toThrow(/no longer owned/);
-    expect(s.collection(a.agentId)).toHaveLength(mine.length - 1);
+    expect(s.collection(owner.ownerId)).toHaveLength(mine.length - 1);
   });
 });

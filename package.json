@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "AI-TCG monorepo: headless rules engine, wire protocol, match server, reference agents, economy store, and spectator render.",
+  "engines": {
+    "node": ">=22.13"
+  },
   "workspaces": [
     "engine",
     "protocol",

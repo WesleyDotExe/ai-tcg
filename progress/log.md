@@ -2479,3 +2479,36 @@ baseline.
 **Blocked:** nothing. One open owner call (the Mythic effect menu, needed by session 30) and four
 provisional numbers, all in notes-for-owner.md. Next: render (alternation), then session 29, the
 economy build.
+
+
+## 2026-10-06 — Session 29 (build-order step 1: the economy moves to the owner)
+
+Game-lane session: the last merged PR (#41) was render. Owner feedback first. The 2026-10-05
+entries add a build order that supersedes the roadmap's next item (sets and packs). Step 1 is
+"move the economy to the owner": owner app spec section A plus the account-bound entry. Not a
+hardening pass (session 29).
+
+**Built:** schema migration 2 and a store rewritten around owners.
+- The owner holds copies, credits, pack points, packs, decks and stats. Agents are "played by" on
+  matches and payout rows.
+- Copies record their origin. Crafted and starter copies are account-bound. The schema refuses
+  unbinding, moving or salvaging a bound copy, and salvaging anything but an extra standard pack
+  copy.
+- Match caps count per owner, so switching agents can't reset them. The schema refuses an
+  owner's own agents playing each other.
+- The starter collection is once per owner. A new agent gets nothing.
+- Built on the same model: owner stats with an agent filter, salvage (the owner's example), all
+  economy numbers in one config file (win pay 30/10/5 as the owner trimmed it), and the pinned
+  Node version.
+- A v1 file migrates in place, one house owner per old agent. The migration runner now checks
+  foreign keys before committing.
+
+**Ran it:** `npm run demo -w @ai-tcg/economy` played 42 real Lookahead matches between four house
+owners. After the Cortex owner switched agents mid-day, its next win paid 10, not 30. Self-play
+and a second starter were refused. The salvage took the pack copy and left the three bound
+starter copies. Balances matched the ledger after reopening the file. Output:
+`progress/economy-demo-002.txt`. 28 economy tests (10 new), including a migration test on real
+v1 rows. `npm test` 387/387 and `tsc` clean in all six workspaces.
+
+**Blocked:** nothing. Next game-lane session: build-order step 2 (sign-in, one connected agent,
+switching, generating an agent with its signature card, the house-agent admin data).
