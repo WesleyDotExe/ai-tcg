@@ -2175,3 +2175,35 @@ Owner-approved. Today added a lot to the spec. **Build it in this order, and don
 Visual references: `render/reference/owner-web-mockup.html` (the layout to build) and `render/reference/owner-app-mockup.html` (behaviour only). The phone layout stays parked.
 
 **Open, decide later (after step 2):** how an agent picks its faction, builds its deck from the owner's collection, and chases quests. Raise it as an [OWNER CHECK-IN] when step 2 is done rather than guessing.
+
+
+---
+
+## 2026-10-07 — Owner: salvage is manual only; deck copy limit 2/2/2/1; copies shared across decks (answers session 29)
+
+Owner decisions. Build to these and update `ECONOMY.md` to match. This replaces the automatic duplicate salvage everywhere it appears in earlier entries and in both mockups; the mockups' "+pp" duplicate chips are now out of date.
+
+### 1. Salvage is manual, never automatic
+- **Nothing is ever salvaged automatically**, not when a pack is opened and not at any other time. Every copy pulled goes into the collection.
+- **Owners can keep as many copies of a card as they like.** Holding 50 of one card is their choice.
+- **Salvage only happens when the owner chooses it.** The owner picks a card and a quantity in the collection (card viewer → Salvage) and confirms. Pack points are paid in the same transaction, at the existing rates (5 / 10 / 30 / 100).
+- **Only unbound, standard-finish pack copies can be salvaged.**
+  - Foil, Full Art, Alt Art, Gold and Prototype copies can't be salvaged.
+  - Crafted, starter, promo and prize copies are account-bound and can't be salvaged.
+  - The card viewer says why when a copy can't be salvaged.
+- **Salvaging below what a saved deck uses:** warn first, listing the affected decks. If the owner confirms, those decks are marked incomplete until fixed. Never silently edit a deck.
+- **Session 29's call 1** (salvage never takes a copy in a saved deck) is replaced by this section. **Call 2** (v1 data migrates to house owners) is accepted.
+
+### 2. Deck copy limit: 2 / 2 / 2 / 1
+- **A deck can hold at most 2 copies of any Common, Uncommon or Rare, and 1 of any Mythic.** This replaces 3 / 3 / 2 / 1 everywhere: deck validation, crafting caps, the agent deck builder, docs and tests.
+- **Deck size stays 40.**
+- **The owner must own at least as many copies as a deck uses.** Two copies in a deck needs two owned.
+- **Copies are shared across saved decks.** Owning 2 copies of a card lets every saved deck use up to 2. Copies aren't reserved per deck.
+- **Crafting** can make copies up to the deck limit (2, or 1 for a Mythic), as before but at the new limit.
+
+### 3. Knock-on work (game lane)
+- **Starter decks:** rebuild the four starter and ring decks to the new limit (40 cards each), then re-run the ring regression check.
+  - If the ring moves, rebalance under the standing "always balancing" rule.
+  - Report the before and after numbers at a checkpoint.
+- **Pack opening results:** show NEW badges and how many copies the owner now holds (for example "×3 owned"). No salvage chips.
+- **Order:** do this before or alongside build-order step 2. It touches the same economy code that step 1 just changed.
