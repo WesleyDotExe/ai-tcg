@@ -270,23 +270,62 @@ TargetRef / stack id; `engine/test/eventIds.test.ts` enforces it.
    copies, and match history. The integrity rules are in the schema. Match
    payouts follow the owner's daily win schedule. The spec is ECONOMY.md.
    Evidence: `progress/economy-demo-001.txt`, `economy/test/` (18 tests).
-5. NEXT (session 29). Economy build, to ECONOMY.md (the finish list, pull
-   rates and starter shape were answered 2026-10-04): sets with collector
-   numbers, a set symbol and Gold secrets; pack contents and opening (5
-   cards + the shine slot, pity timers, pack points, duplicate conversion,
-   the Prototype bonus 6th card, tested by simulation); promo issuing
-   (PR-001 numbering, stamps); the owner's pack-opening interface (a minimal
-   local page or command); starter collections (fixed list, 3 packs).
-   Ownership-gated decks are already built (session 28).
-7. [OWNER CHECK-IN on the effect menu + budgets: still OPEN] Unique one-off Mythic
-   promo per agent, granted on first login (session 30), built from a
-   constrained effect menu with power budgets, ring-checked before issue;
-   its ward via the mythic-wards pipeline (mythics.json entry). Replaces
-   the old "1-of-1 signature leader" item. Plus daily rewards/quests
-   (answered 2026-10-04: list and numbers in ECONOMY.md).
-6b. Match running and the ladder (session 31): many matches,
-   server-assigned opponents, results recorded, ratings. Closes the loop:
+**The owner's 2026-10-05 build order supersedes the numbering below for
+what comes next** (owner-feedback "build order for today's decisions"; don't
+start a step until the one before works and its tests pass):
+  1. DONE (session 29). Move the economy to the owner: schema v2 keys copies,
+     credits, pack points, packs, decks and stats on `owner_id` (agents kept
+     as "played by"); every copy records its origin; crafted and starter
+     copies are account-bound; caps per owner; starter once per owner; no
+     self-play; salvage of extra pack copies only. ECONOMY.md updated.
+     Evidence: `progress/economy-demo-002.txt`, `economy/test/` (28 tests,
+     incl. the v1 -> v2 migration and the exploit checks).
+  2. NEXT. Owner accounts and agents: Season 0 sign-in; one connected agent
+     at a time; switching agents (only the signature card changes; not
+     during a live match); generating a new agent (pick from 3, then its
+     signature card from 3; this pulls in item 7's unique Mythic and the
+     signature zone); the admin view for house agents. Then raise the
+     [OWNER CHECK-IN]: how an agent picks its faction, builds its deck from
+     the owner's collection, and chases quests.
+  3. Server endpoints for the website (wallet, collection, packs and pack
+     opening, live/featured matches, ladder, tournament, stats,
+     notifications, saved board layout). Needs item 5's pack contents and
+     opening first.
+  4-6. Website basics; the widget board and look; live play features
+     (render lane builds the visuals; see owner-feedback 2026-10-05).
+
+5. Economy build, to ECONOMY.md (the finish list, pull rates and starter
+   shape were answered 2026-10-04): sets with collector numbers, a set
+   symbol and Gold secrets; pack contents and opening (5 cards + the shine
+   slot, pity timers per owner, pack points, the Prototype bonus 6th card,
+   tested by simulation; opening calls the salvage built in session 29);
+   promo issuing (PR-001 numbering, stamps); 10-pack bulk opening.
+   DONE already: ownership-gated decks (session 28), starter collections and
+   salvage (session 29).
+7. Unique Mythic (signature card), owner-decided 2026-10-05 (Neutral, 3
+   generated candidates, 3 cost tiers, 16-option menu, the signature zone,
+   ring re-baseline). Built with build-order step 2. Plus daily
+   rewards/quests (list and numbers in ECONOMY.md).
+6b. Match running and the ladder: many matches, server-assigned opponents,
+   results recorded, Glicko-2 ratings per owner. Closes the loop:
    play -> earn -> owner opens packs -> agent rebuilds -> play.
+
+**Standing: storage launch-readiness (owner 2026-10-05).** (1) All database
+access stays inside `economy/src/store.ts`; no other workspace imports
+`node:sqlite` or writes SQL. (2) DONE session 29: `engines.node >= 22.13`
+pinned in the root package.json; ECONOMY.md notes `node:sqlite` is a
+release candidate. (3) HARD GATE before the public Season 1 launch: replace
+or back the single SQLite file with storage that handles many players at
+once (self-hosted, e.g. Postgres, or SQLite proven by a load test at launch
+scale), proven by that load test. Tracked in quality-debt.md until passed.
+
+**Standing: live operations, balancing never stops (owner 2026-10-05).**
+Once live: track faction popularity and win rates from real ladder and
+tournament matches; run the ring regression check against live data each
+season; ship balance changes on a regular cadence as errata on every owned
+copy (no automatic refunds); re-test unique Mythics and new sets before
+they go live.
+
 Later, not now (data model must allow): 3D pack opening, shader finishes,
 a collector viewer, trading/real money. Season 0 in-house; Season 1 fresh
 at public launch (collections/currency/ranks reset, Season 0 archived).

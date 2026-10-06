@@ -1,80 +1,80 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system), persistence DONE, the economy build is
-next.** Session 28 was a game-lane session (the last merged PR, #39, was render). It built
-persistence (owner-feedback 2026-10-04 section B) and wrote the economy spec (`ECONOMY.md`). The
-stage isn't finished, so there's no checkpoint this session.
+**Build-order stage: Stage 4+ (the living system). Session 29 (game lane) did step 1 of the
+owner's 2026-10-05 build order: the economy moved from the agent to the owner.** Step 2 (owner
+accounts and agents) is next. The stage isn't finished, so there's no checkpoint this session.
 
-## What stands (this session's work; sessions 1-27 otherwise unchanged)
+## What stands (this session's work; sessions 1-28 otherwise unchanged)
 
-**`economy/` (`@ai-tcg/economy`), a new workspace.** The engine doesn't depend on it; the
-server will (roadmap 6b).
-- `src/schema.ts`: migration v1. Tables: `meta` (season), `agents`, `ledger`, `packs`,
-  `card_copies`, `decks`/`deck_copies`, `matches`. The integrity rules are in the schema as
-  triggers and CHECK constraints:
-  - the ledger is append-only, and no entry may take a balance below zero;
-  - each agent gets at most one payout per reason per reference;
-  - a deck can only hold copies its own agent owns;
-  - each serial exists once and fits its run;
-  - a cancelled or abandoned match pays 0.
-- `src/store.ts`: the `EconomyStore` API, backed by `node:sqlite` (one file per season).
-  - Agents: `createAgent`, `getAgent`, `listAgents`.
-  - Ledger: `balance` (the sum of the ledger, never stored), `ledger`.
-  - Copies: `grantCopy`/`grantCopies` (batch, all or nothing; card ids are checked against the
-    engine's new `CARD_REGISTRY`), `collection`.
-  - Decks: `saveDeck`/`loadDeck` (ownership checks, then the engine's own `buildDeck` rules),
-    `setActiveDeck`.
-  - Packs: `buyPack` (100 credits; the debit and the pack in one transaction), `grantPack`,
-    `unopenedPacks`.
-  - Matches: `recordMatch` (the match plus both payouts in one transaction; a duplicate id is
-    refused), `matchHistory`, `dailyTally`.
-- `src/payouts.ts`: wins pay 40 / 15 x3 / 5 x6 / 0 per UTC day (owner-set). A loss or draw pays
-  2 (provisional), first 10 a day, and only while a win would still pay. Cancelled or abandoned
-  pays 0.
-- The engine gained exports only: `CARD_REGISTRY`, `SHIPPED_DECK_LISTS`, `getCard`,
-  `COPY_LIMITS`, `buildNullDeck`, `LookaheadAgent`, and the `Rarity`/`DeckFaction` types. No
-  logic changed, and the ring check came out identical.
+**Schema v2 (`economy/src/schema.ts`, migration 2): the owner owns everything.**
+- New `owners` table (player or house; starting faction; starter granted at; active deck).
+  `agents` belong to one owner forever and own nothing.
+- Copies, the ledger, packs and decks key on `owner_id`. Match payouts carry `played_by` (the
+  agent), which must be that owner's own agent. Matches record both owners and both agents.
+- Every copy records its origin (pack, crafted, starter, promo, prize) and an `account_bound`
+  flag. Crafted and starter copies are always bound; a bound copy never unbinds or changes owner;
+  only an unbound standard pack copy of the set can be salvaged. All of this holds against raw SQL.
+- No self-play: the two owners in a match must differ (CHECK), and each side must be played by
+  its owner's own agent and deck (trigger).
+- The starter collection is once per owner (trigger).
+- A v1 (session-28) file migrates in place: each v1 agent becomes a house owner with that agent.
+  The migration runner now turns foreign keys off, runs each migration in a transaction, and runs
+  `PRAGMA foreign_key_check` before commit.
 
-**`ECONOMY.md`**: the owner's section C, the economy answers and the three amendments as one
-spec. Each part is marked BUILT, SPEC (with its session) or OPEN. The only OPEN item is the
-unique Mythic's effect menu and power budgets. Four provisional numbers are flagged in
-notes-for-owner.md.
+**Store (`economy/src/store.ts`).** `createOwner`, `getOwner`, `listOwners`,
+`grantStarterCollection` (the shipped faction deck as bound copies + 3 packs, once), `createAgent`
+(grants nothing), `listAgents(ownerId)`, per-owner `balance`/`ledger`/`collection`/decks/packs,
+`dailyTally(ownerId)` (caps per owner, so switching agents can't reset them), `recordMatch` (takes
+agents, resolves owners, refuses self-play), `matchHistory({ownerId, agentId})`,
+`ownerStats(ownerId, {agentId})`, `salvageableCopies`/`salvageExtras`.
+
+**Config (`economy/src/config.ts`).** Every economy number in one file. Win pay is now the owner's
+30 / 10 x3 / 5 x6 / 0 (was 40/15/5). Salvage 5/10/30/100, craft 40/80/250/800, pack 100, starter
+packs 3, loss 2, loss cap 10.
+
+**`engines.node >= 22.13`** in the root package.json (owner's standing storage item 2).
 
 ## Evidence committed
 
-- `progress/economy-demo-001.txt` (`npm run demo -w @ai-tcg/economy`):
-  - four house agents own their faction's shipped deck as copies and play from decks saved from
-    those copies;
-  - 40 real Lookahead matches over two days, paid and recorded, with the daily caps visibly
-    paying 0 (s0-m033, m035, m036) and day 2 resetting to 40;
-  - a cancel and an abandon pay 0;
-  - a duplicate match and a raw ledger UPDATE are refused;
-  - the owner buys packs until each balance runs short, and the next purchase is refused;
-  - the file is closed, reopened, and the balances equal the ledger sums.
-- `economy/test/` (18 tests): the payout invariant over every tally from 0-15 wins and 0-15
-  losses, append-only and no-overdraw through raw SQL, a duplicate match, a foreign winner, UTC
-  day counting, cancel/abandon paying 0 (including a raw INSERT), a draw, the pack price and
-  refusal, a batch rollback, serial uniqueness and run bounds, promos needing a stamp, deck
-  ownership (also through raw SQL), the engine deck rules, a disposed copy, and close/reopen of
-  a real file.
-- `npm test`: 357 across six workspaces. `tsc --noEmit` clean in all six. The ring regression
-  check passes, identical to the baseline.
+- `progress/economy-demo-002.txt` (`npm run demo -w @ai-tcg/economy`): four house owners get
+  their starter collections and play 42 real Lookahead matches over two days. After round 1 the
+  Cortex owner switches to a second agent: its first win pays 10 (the owner's 4th win that day),
+  not 30. The demo also shows:
+  - self-play and a second starter refused;
+  - the owner's salvage example: 3 bound starter copies + 1 pack copy, and only the pack copy
+    salvages (5 pack points);
+  - stats split by agent;
+  - each owner buying packs until refused;
+  - the balances equal to the ledger sums after the file is reopened.
+- `economy/test/` 28 tests (was 18). New ones cover:
+  - the v1 -> v2 migration with real v1 rows: origins mapped, bound flags set, the daily tally
+    carried over, foreign keys back on;
+  - caps across an agent switch;
+  - self-play, through the store and raw SQL;
+  - another owner's agent on a match side or a payout;
+  - a new agent getting nothing;
+  - the starter once only;
+  - owner stats with the agent filter;
+  - the bound-copy triggers;
+  - salvage (the owner's example, finishes, promos, crafted copies, in-deck copies, raw SQL).
+- `npm test`: 387 across six workspaces, all pass. `tsc --noEmit` clean in all six. The engine
+  didn't change, so the ring check is unaffected.
 
 ## Concrete next step
 
-Check the alternation first. If the last merged PR is this one (game lane), the next session is
-**render**: apply the 2026-10-05 entry (player-targeted hits land mid-board), then EFFECTS.md v2
-slice 3 (procedural sound).
+Check the alternation first: if the last merged PR is this one (game lane), the next session is
+**render**.
 
-The next **game-lane** session is **session 29, the economy build** (ECONOMY.md, sections marked
-"SPEC (session 29)"), in this order:
-1. Sets. A Season 0 set definition (`S0`): collector numbers for every ownable card (the
-   registry has the cards; pick a stable order), the set total, Gold numbering above the total.
-   Store it as data in `economy/`, not in the database.
-2. Pack generation as a pure, seeded function (5 slots, the shine-slot finish table, Jackpot,
-   the Prototype bonus 6th card at 1 in 1,000 weighted by remaining copies, pity timers derived
-   from history). Then `openPack` in the store: mark the pack opened, grant the copies, +5 pack
-   points, convert standard-finish duplicates beyond 3/3/2/1. Test the rates with a simulation of
-   ~100k packs, not by raising rates.
-3. Pack points spending (standard finish only), promo issuing (PR-001 numbering, stamp required).
-4. Starter collections (the four shipped decks + 3 packs), and the owner's pack-opening command.
+The next **game-lane** session is **build-order step 2, owner accounts and agents**
+(owner-feedback 2026-10-05, owner app spec B and the build-order entry):
+1. Season 0 sign-in: credentials on `owners` (a password hash, scrypt from `node:crypto`; no
+   external service), sessions. Keep it in the economy store, behind its API.
+2. One connected agent per owner (`owners.connected_agent_id`), switching (refused during a live
+   match, which needs a "match in progress" record), the faction-lock owner setting.
+3. Generating a new agent: 3 generated agents, then 3 signature-card candidates. This pulls in
+   the unique Mythic (ECONOMY.md "Unique Mythic"): the Neutral menu, the 3 cost tiers, the
+   signature zone in the engine, the fairness test, and a ring re-baseline. That's likely more
+   than one session. Do the data model + the signature zone first.
+4. The admin view's data: house owners and their agents.
+Then raise the [OWNER CHECK-IN]: how an agent picks its faction, builds from the owner's
+collection, and chases quests.

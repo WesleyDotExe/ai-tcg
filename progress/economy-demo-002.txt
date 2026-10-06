@@ -1,0 +1,103 @@
+# Economy demo (session 29): the owner owns everything
+database: <temp>/season-0.db  schema v2  season S0
+
+owner house-cortex  starter: 40 copies (40 account-bound), 3 packs; agent cortex-a connected; deck "Cortex starter" (40 cards) active
+owner house-swarm   starter: 40 copies (40 account-bound), 3 packs; agent swarm-a connected; deck "Swarm starter" (40 cards) active
+owner house-aegis   starter: 40 copies (40 account-bound), 3 packs; agent aegis-a connected; deck "Aegis starter" (40 cards) active
+owner house-null    starter: 36 copies (36 account-bound), 3 packs; agent null-a connected; deck "Null starter" (36 cards) active
+
+## Day 1 (2026-10-05): 36 matches, every ordered pairing x3
+s0-m001  2026-10-05T09:10  cortex-a  v swarm-a    cortex-a wins            15 turns, 125 moves  house-cortex +30, house-swarm +2
+s0-m002  2026-10-05T09:20  cortex-a  v aegis-a    aegis-a wins             16 turns, 116 moves  house-cortex +2, house-aegis +30
+s0-m003  2026-10-05T09:30  cortex-a  v null-a     cortex-a wins            11 turns, 99 moves   house-cortex +10, house-null +2
+s0-m004  2026-10-05T09:40  swarm-a   v cortex-a   swarm-a wins             11 turns, 81 moves   house-swarm +30, house-cortex +2
+s0-m005  2026-10-05T09:50  swarm-a   v aegis-a    swarm-a wins             13 turns, 94 moves   house-swarm +10, house-aegis +2
+s0-m006  2026-10-05T10:00  swarm-a   v null-a     swarm-a wins             11 turns, 76 moves   house-swarm +10, house-null +2
+s0-m007  2026-10-05T10:10  aegis-a   v cortex-a   cortex-a wins            16 turns, 172 moves  house-aegis +2, house-cortex +10
+s0-m008  2026-10-05T10:20  aegis-a   v swarm-a    swarm-a wins             18 turns, 150 moves  house-aegis +2, house-swarm +10
+s0-m009  2026-10-05T10:30  aegis-a   v null-a     aegis-a wins             15 turns, 117 moves  house-aegis +10, house-null +2
+s0-m010  2026-10-05T10:40  null-a    v cortex-a   null-a wins              13 turns, 68 moves   house-null +30, house-cortex +2
+s0-m011  2026-10-05T10:50  null-a    v swarm-a    null-a wins              11 turns, 84 moves   house-null +10, house-swarm +2
+s0-m012  2026-10-05T11:00  null-a    v aegis-a    null-a wins              17 turns, 128 moves  house-null +10, house-aegis +2
+-- house-cortex switches to agent cortex-b (the owner's tally so far today: 3W 3L; cortex-b's matches count on from there, not from zero)
+s0-m013  2026-10-05T11:10  cortex-b  v swarm-a    cortex-b wins            21 turns, 131 moves  house-cortex +10, house-swarm +2
+s0-m014  2026-10-05T11:20  cortex-b  v aegis-a    aegis-a wins             14 turns, 121 moves  house-cortex +2, house-aegis +10
+s0-m015  2026-10-05T11:30  cortex-b  v null-a     cortex-b wins            11 turns, 82 moves   house-cortex +5, house-null +2
+s0-m016  2026-10-05T11:40  swarm-a   v cortex-b   swarm-a wins             11 turns, 64 moves   house-swarm +5, house-cortex +2
+s0-m017  2026-10-05T11:50  swarm-a   v aegis-a    swarm-a wins             9 turns, 60 moves    house-swarm +5, house-aegis +2
+s0-m018  2026-10-05T12:00  swarm-a   v null-a     null-a wins              24 turns, 218 moves  house-swarm +2, house-null +10
+s0-m019  2026-10-05T12:10  aegis-a   v cortex-b   aegis-a wins             15 turns, 141 moves  house-aegis +10, house-cortex +2
+s0-m020  2026-10-05T12:20  aegis-a   v swarm-a    swarm-a wins             14 turns, 112 moves  house-aegis +2, house-swarm +5
+s0-m021  2026-10-05T12:30  aegis-a   v null-a     null-a wins              16 turns, 124 moves  house-aegis +2, house-null +5
+s0-m022  2026-10-05T12:40  null-a    v cortex-b   null-a wins              17 turns, 158 moves  house-null +5, house-cortex +2
+s0-m023  2026-10-05T12:50  null-a    v swarm-a    null-a wins              11 turns, 99 moves   house-null +5, house-swarm +2
+s0-m024  2026-10-05T13:00  null-a    v aegis-a    aegis-a wins             18 turns, 120 moves  house-null +2, house-aegis +5
+s0-m025  2026-10-05T13:10  cortex-b  v swarm-a    cortex-b wins            13 turns, 120 moves  house-cortex +5, house-swarm +2
+s0-m026  2026-10-05T13:20  cortex-b  v aegis-a    cortex-b wins            13 turns, 134 moves  house-cortex +5, house-aegis +2
+s0-m027  2026-10-05T13:30  cortex-b  v null-a     null-a wins              12 turns, 99 moves   house-cortex +2, house-null +5
+s0-m028  2026-10-05T13:40  swarm-a   v cortex-b   cortex-b wins            12 turns, 83 moves   house-swarm +2, house-cortex +5
+s0-m029  2026-10-05T13:50  swarm-a   v aegis-a    swarm-a wins             13 turns, 118 moves  house-swarm +5, house-aegis +2
+s0-m030  2026-10-05T14:00  swarm-a   v null-a     swarm-a wins             11 turns, 100 moves  house-swarm +5, house-null +2
+s0-m031  2026-10-05T14:10  aegis-a   v cortex-b   cortex-b wins            20 turns, 154 moves  house-aegis +2, house-cortex +5
+s0-m032  2026-10-05T14:20  aegis-a   v swarm-a    aegis-a wins             11 turns, 76 moves   house-aegis +5, house-swarm +2
+s0-m033  2026-10-05T14:30  aegis-a   v null-a     null-a wins              18 turns, 140 moves  house-aegis +0, house-null +5
+s0-m034  2026-10-05T14:40  null-a    v cortex-b   null-a wins              13 turns, 113 moves  house-null +5, house-cortex +2
+s0-m035  2026-10-05T14:50  null-a    v swarm-a    null-a wins              11 turns, 90 moves   house-null +0, house-swarm +2
+s0-m036  2026-10-05T15:00  null-a    v aegis-a    null-a wins              17 turns, 149 moves  house-null +0, house-aegis +0
+
+## Day 2 (2026-10-06): 4 matches, then a cancel and an abandon
+s0-m037  2026-10-06T09:00  cortex-b  v swarm-a    swarm-a wins             14 turns, 98 moves   house-cortex +2, house-swarm +30
+s0-m038  2026-10-06T09:10  swarm-a   v aegis-a    swarm-a wins             15 turns, 116 moves  house-swarm +10, house-aegis +2
+s0-m039  2026-10-06T09:20  aegis-a   v null-a     aegis-a wins             17 turns, 135 moves  house-aegis +30, house-null +2
+s0-m040  2026-10-06T09:30  null-a    v cortex-b   null-a wins              13 turns, 92 moves   house-null +30, house-cortex +2
+s0-cancel-1  2026-10-06T09:50  cortex-b  v aegis-a    cancelled                                     house-cortex +0, house-aegis +0
+s0-abandon-1  2026-10-06T10:00  swarm-a   v null-a     abandoned by house-null  6 turns, 41 moves    house-swarm +0, house-null +0
+
+## Refusals
+recording s0-m001 again: refused (match "s0-m001" is already recorded)
+raw UPDATE on ledger: refused (ledger is append-only: entries cannot be changed)
+house-cortex's own agents playing each other (cortex-a v cortex-b): refused (an owner's own agents never play each other in rewarded play)
+a second starter collection for house-swarm (Null this time): refused (owner "house-swarm" already has its starter collection (Swarm, 2026-10-05T08:00:00.000Z))
+
+## Balances after day 2 (derived from the ledger)
+house-cortex   107 credits   0 pack pts   9W 11L 1 void  best streak 2   20 ledger entries   3 unopened packs
+house-swarm    143 credits   0 pack pts   11W 9L 1 void  best streak 4   20 ledger entries   3 unopened packs
+house-aegis    122 credits   0 pack pts   7W 13L 1 void  best streak 1   18 ledger entries   3 unopened packs
+house-null     134 credits   0 pack pts   13W 7L 1 void  best streak 4   18 ledger entries   3 unopened packs
+
+## house-cortex stats by agent (the Stats page filter)
+cortex-a  6 matches, 3W 3L 0 void, win rate 50.0%, 56 credits earned for the owner
+cortex-b  15 matches, 6W 8L 1 void, win rate 42.9%, 51 credits earned for the owner
+
+## Salvage: house-aegis holds 3 bound starter copies of a Common and pulls a 4th from a pack
+before: Aegis Cadet x4 = starter (bound), starter (bound), starter (bound), pack
+salvaged 1 copy (the pack copy) for 5 pack points
+after:  Aegis Cadet x3 = starter (bound), starter (bound), starter (bound); a second salvage finds 0 more
+
+## Each owner buys packs (100 credits each) until it can't afford another
+house-cortex  bought 1; next refused: insufficient balance (balance 7)
+house-swarm   bought 1; next refused: insufficient balance (balance 43)
+house-aegis   bought 1; next refused: insufficient balance (balance 22)
+house-null    bought 1; next refused: insufficient balance (balance 34)
+
+## After closing and reopening the database file
+house-cortex     7 credits   0 pack pts   9W 11L 1 void  best streak 2   21 ledger entries   4 unopened packs
+house-swarm     43 credits   0 pack pts   11W 9L 1 void  best streak 4   21 ledger entries   4 unopened packs
+house-aegis     22 credits   5 pack pts   7W 13L 1 void  best streak 1   20 ledger entries   4 unopened packs
+house-null      34 credits   0 pack pts   13W 7L 1 void  best streak 4   19 ledger entries   4 unopened packs
+
+## Ledger for house-cortex (first 8 and last 4 entries; played-by names the agent)
+  #  1 2026-10-05T09:10    30 credits  matchWin      cortex-a  s0-m001
+  #  3 2026-10-05T09:20     2 credits  matchLoss     cortex-a  s0-m002
+  #  5 2026-10-05T09:30    10 credits  matchWin      cortex-a  s0-m003
+  #  8 2026-10-05T09:40     2 credits  matchLoss     cortex-a  s0-m004
+  # 14 2026-10-05T10:10    10 credits  matchWin      cortex-a  s0-m007
+  # 20 2026-10-05T10:40     2 credits  matchLoss     cortex-a  s0-m010
+  # 25 2026-10-05T11:10    10 credits  matchWin      cortex-b  s0-m013
+  # 27 2026-10-05T11:20     2 credits  matchLoss     cortex-b  s0-m014
+  ... 9 more
+  # 67 2026-10-05T14:40     2 credits  matchLoss     cortex-b  s0-m034
+  # 69 2026-10-06T09:00     2 credits  matchLoss     cortex-b  s0-m037
+  # 76 2026-10-06T09:30     2 credits  matchLoss     cortex-b  s0-m040
+  # 78 2026-10-06T11:00  -100 credits  packPurchase  (owner)   657a9cb8-4db8-4076-ab3c-5a71a62dee49
+  sum of entries = 7; balance() = 7

@@ -1,5 +1,24 @@
 # Notes for the owner
 
+**Updated 2026-10-06, session 29 (build-order step 1: the economy moves to the owner).** Nothing
+is blocking. Step 1 of your 2026-10-05 build order is done. Evidence:
+`progress/economy-demo-002.txt`. Two calls of mine you may want to overrule:
+
+1. **Salvage never takes a copy that sits in a saved deck.** This stops salvage from silently
+   breaking a deck. The side effect is that an owner who saves several decks can keep more than
+   the playable limit, as long as each extra copy is in some deck. The alternative is to salvage
+   anyway and drop the copy from those decks. Say which you prefer.
+2. **Old session-28 data becomes house owners.** A v1 database migrates in place, with each old
+   agent becoming a house owner that has that agent connected. Only demo and test data exists in
+   v1, so this changes nothing real.
+
+Next game-lane session: step 2 (Season 0 sign-in, one connected agent, switching, generating a
+new agent with its signature card, the house-agent admin data). After step 2 I'll raise your
+open question as an [OWNER CHECK-IN]: how an agent picks its faction, builds from your
+collection and chases quests.
+
+---
+
 **Updated 2026-10-04, session 28 (persistence + economy spec).** Nothing is blocking. Your
 economy answers and all three amendments are written into the new **`ECONOMY.md`**. Each part is
 marked BUILT, SPEC (with its session) or OPEN. Evidence: `progress/economy-demo-001.txt`.

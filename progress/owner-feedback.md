@@ -1577,7 +1577,7 @@ Answers to the slice-2 checkpoint ("Decisions you may want to overrule") and `pr
 
 ---
 
-## 2026-10-05 — Owner: session 28 (persistence + ECONOMY.md) responses
+## 2026-10-05 — Owner: session 28 (persistence + ECONOMY.md) responses (HANDLED 2026-10-06, session 29 — item 1 superseded by the unique Mythic entry; items 2 and 3 applied: the four numbers stand, the shipped decks are the starter lists)
 
 Answers to `progress/notes-for-owner.md` session 28:
 
@@ -1588,7 +1588,7 @@ Answers to `progress/notes-for-owner.md` session 28:
 
 ---
 
-## 2026-10-05 — Owner: storage must be made launch-ready (node:sqlite) — standing item
+## 2026-10-05 — Owner: storage must be made launch-ready (node:sqlite) — standing item (PARTIALLY HANDLED 2026-10-06, session 29 — items 1, 2 and 4 done: access stays in the store, `engines.node >= 22.13` pinned, roadmap + quality-debt track it; item 3 is the standing pre-launch gate)
 
 The owner wants the storage concern from session 28 corrected, not just accepted. Record it as a standing roadmap item and work it in this order:
 
@@ -1679,7 +1679,7 @@ Store these as config, not code. Final prices are decided when paid packs launch
 
 ---
 
-## 2026-10-05 — Owner: economy balance decisions (salvage, crafting, win pay, achievements, extras)
+## 2026-10-05 — Owner: economy balance decisions (salvage, crafting, win pay, achievements, extras) (PARTIALLY HANDLED 2026-10-06, session 29 — win pay 30/10/5 built; salvage built at 5/10/30/100 for extra standard pack copies; all numbers in `economy/src/config.ts`; crafting, achievements, entry fees, season pass and metrics still SPEC in ECONOMY.md)
 
 Worked through with the owner. These update the earlier economy answers where they differ. The goal is balance, keeping in mind that paid packs may come later.
 
@@ -1900,7 +1900,7 @@ The owner folded every 2026-10-05 economy entry above into `ECONOMY.md` (commit 
 
 ---
 
-## 2026-10-05 — Owner: owner app spec (title screen, main menu, owner-owned economy, one agent, auto-play, 2× rule, Watch live, dark mode)
+## 2026-10-05 — Owner: owner app spec (title screen, main menu, owner-owned economy, one agent, auto-play, 2× rule, Watch live, dark mode) (SECTION A HANDLED 2026-10-06, session 29 — schema v2, the owner owns everything; rating is per owner when the ladder is built. Sections B-F follow the build-order entry below)
 
 Owner-approved. Build the owner app to this spec. Where earlier owner-screen notes disagree, this entry wins.
 
@@ -2009,7 +2009,7 @@ Owner-approved. Build the owner app to this spec. Where earlier owner-screen not
 
 ---
 
-## 2026-10-05 — Owner: crafted and starter cards are account-bound
+## 2026-10-05 — Owner: crafted and starter cards are account-bound (HANDLED 2026-10-06, session 29 — every copy records its origin; crafted and starter copies are bound in the schema; bound copies never salvage or change owner; salvage takes only extra standard pack copies, the example is in `progress/economy-demo-002.txt`; ECONOMY.md updated. The "Account-bound" tag in the card viewer is website work)
 
 Owner decision, clarifying the anti-exploit rules. Build to this and update `ECONOMY.md` to match (anti-exploit and marketplace sections).
 
@@ -2136,7 +2136,7 @@ Owner-approved. **Build the owner UI as a website first. There will be no phone 
 
 ---
 
-## 2026-10-05 — Owner: build order for today's decisions
+## 2026-10-05 — Owner: build order for today's decisions (STEP 1 HANDLED 2026-10-06, session 29; step 2 is next; the order is copied into progress/roadmap.md)
 
 Owner-approved. Today added a lot to the spec. **Build it in this order, and don't start a step until the one before works and its tests pass.**
 

@@ -24,9 +24,38 @@ Null depth/variety pass, 15 -> 20 unique cards), and now session 22 (Phase
 session 23 (the Null consistency trim, 40 -> 36), session 24 (the
 neutral pool), session 25 (the owner's agent checks: card
 advantage, Null's cards), session 26 (the Phase 5 gate), session 27 (Phase 5
-closed, event-log instance ids), and now session 28 (persistence + the economy spec).
+closed, event-log instance ids), session 28 (persistence + the economy spec), and now session 29
+(the economy moves to the owner).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 29
+
+- **"One connected agent at a time" isn't enforced.** Owners can have many agents, and nothing
+  stops two of them playing at once for the same owner (against different opponents). Both would
+  draw on the same daily caps, so it farms nothing, but it breaks the owner's rule. Build-order
+  step 2 adds the connected agent and refuses switching during a live match.
+- **No sign-in and no permissions.** `createOwner` makes an account from a name. Anyone holding
+  the store can act as any owner. Step 2 adds Season 0 sign-in; the server needs a real boundary.
+- **Rating is still a promise.** "Rating is per owner" is written down, but no rating exists yet
+  (Glicko-2 comes with the ladder, roadmap 6b). Stats per owner are built.
+- **Salvage skips copies sitting in a saved deck.** This is my rule, not the owner's: it stops a
+  salvage from breaking a saved deck. The side effect is that an owner can keep more than the
+  playable limit by spreading extra copies across saved decks. It's flagged in notes-for-owner.md.
+- **The marketplace hooks are partial:**
+  - built: the origin per copy, the bound flag, bound copies never moving;
+  - not built: the append-only ownership history per copy, the earned/purchased funding tag on
+    ledger rows and pack copies, the lock state, the per-type transferable setting.
+  The funding tag is needed before paid packs, not before Season 0.
+- **The v1 migration assumes every v1 agent was a house agent.** That's true for the only v1
+  data that exists (the session-28 demo and tests), but a real v1 player file would come out
+  labelled "house".
+- **The exploit suite covers only what exists.** Tested: switching agents vs the caps,
+  self-play, a second starter, bound copies, cross-owner payouts. Not tested yet:
+  craft-then-salvage (crafting isn't built), quest and pity farming, and multi-agent farming of
+  owner-level rewards (none exist yet).
+- **The demo isn't byte-reproducible.** The pack-purchase ledger line prints a random pack UUID.
+  Everything else is seeded.
 
 ## New debt from session 28
 
@@ -43,7 +72,10 @@ real, but here is where it's thin.
   and they could change once Season 0 has data.
 - **`node:sqlite` is labelled experimental.** It prints a warning on every run, and its API could
   change in a Node minor release. CI's `node-version: 22` floats. If the API changes, the economy
-  tests break loudly, but nothing pins the version.
+  tests break loudly. (Session 29: `engines.node >= 22.13` is now pinned.) **Standing owner gate
+  (2026-10-05):** before the public Season 1 launch, replace or back the single SQLite file with
+  self-hosted storage that handles many players, and prove it with a load test at launch scale.
+  Not started. This stays here until that gate passes.
 - **There are no owner/agent permissions.** "The owner buys packs" is a function anyone holding
   the store can call. That's fine in-process for Season 0, but the server and the owner page
   will need a real boundary.

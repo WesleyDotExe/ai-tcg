@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { LOSS_CREDITS, MAX_PAID_LOSSES_PER_DAY, matchCredits, winCredits } from "../src/payouts.js";
 
-describe("winCredits (owner schedule: 40, then 15 x3, then 5 x6, then 0)", () => {
+describe("winCredits (owner schedule: 30, then 10 x3, then 5 x6, then 0)", () => {
   it("pays the owner's daily schedule exactly", () => {
     const paid = Array.from({ length: 12 }, (_, i) => winCredits(i + 1));
-    expect(paid).toEqual([40, 15, 15, 15, 5, 5, 5, 5, 5, 5, 0, 0]);
-    expect(paid.reduce((a, b) => a + b, 0)).toBe(115);
+    expect(paid).toEqual([30, 10, 10, 10, 5, 5, 5, 5, 5, 5, 0, 0]);
+    expect(paid.reduce((a, b) => a + b, 0)).toBe(90);
   });
 
   it("rejects a non-positive or fractional position", () => {
