@@ -33,6 +33,10 @@ export interface RunningServer {
   /** Resolves once the single hosted match has settled — resolved normally,
    * forfeited on a protocol fault, or hit an unexpected engine error. */
   readonly matchEnded: Promise<MatchOutcome>;
+  /** Resolves once two agents have said hello and been paired, so the
+   * single hosted match is locked in and any later connection is closed.
+   * Lets tests wait for pairing instead of guessing with a fixed sleep. */
+  readonly matchStarted: Promise<void>;
   close(): void;
 }
 
@@ -67,6 +71,11 @@ export function startServer(options: StartServerOptions = {}): Promise<RunningSe
   const wss = new WebSocketServer({ port: options.port ?? 8080 });
   const waiting: { socket: WebSocket; name: string }[] = [];
 
+  let resolveMatchStarted!: () => void;
+  const matchStarted = new Promise<void>((resolve) => {
+    resolveMatchStarted = resolve;
+  });
+
   let resolveMatchEnded!: (outcome: MatchOutcome) => void;
   const matchEnded = new Promise<MatchOutcome>((resolve) => {
     resolveMatchEnded = resolve;
@@ -77,7 +86,7 @@ export function startServer(options: StartServerOptions = {}): Promise<RunningSe
       const address = wss.address();
       const port = typeof address === "object" && address !== null ? address.port : (options.port ?? 8080);
       console.log(`[server] listening on ws://localhost:${port} — match seed ${seed}`);
-      resolveReady({ port, wss, matchEnded, close: () => wss.close() });
+      resolveReady({ port, wss, matchStarted, matchEnded, close: () => wss.close() });
     });
 
     wss.on("connection", (socket) => {
@@ -100,6 +109,7 @@ export function startServer(options: StartServerOptions = {}): Promise<RunningSe
         waiting.push({ socket, name });
         if (waiting.length === 2) {
           const [a, b] = waiting as [{ socket: WebSocket; name: string }, { socket: WebSocket; name: string }];
+          resolveMatchStarted();
           const outcome = await playMatch(a, b, seed, options.logPath);
           resolveMatchEnded(outcome);
           wss.close();
