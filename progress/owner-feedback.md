@@ -2222,3 +2222,25 @@ Owner decision. This amends section 2 and part of section 3 of today's "manual s
   - crafting can make copies up to the deck limit (3 / 3 / 2 / 1).
 - **Dropped from today's entry:** rebuilding the starter and ring decks, and re-running the ring check for the copy limit. The decks stay as they are.
 - **Still applies from section 3:** pack results show NEW badges and the number of copies held (for example "×4 owned"), with no salvage chips.
+
+
+---
+
+## 2026-10-07 — Owner: render v2 slice 3 (procedural sound, mid-board hits) — answers to the 7 calls
+
+Owner decisions on the 7 calls in the 2026-10-05 render checkpoint (`progress/render/checkpoints.md`).
+
+1. **Hits land at the exact centre of the defender's row** (the gap between slots 3 and 4), even when the flash spills onto neighbouring cards. **Keep.**
+2. **Change: the damage number appears where the visual hit lands**, at the impact point on the board, not at the HP bar. The HP bar still flashes and drops as it does now. Only the floating number moves to the impact.
+3. **Only spectacle hits flash the whole panel.** **Keep.**
+4. **A volley plays as one combined sound.** **Keep.**
+5. **Spell and removal sounds as built:**
+   - spells use the impact sound;
+   - a removal plays lock-on beeps, then a beam, then the kill sound.
+   **Keep.**
+6. **Barrier blocks ring the same tone in every faction, plus a metal ring for Aegis.** **Keep.**
+7. **Change: sound defaults to ON, and turning it off is remembered.**
+   - Browsers block audio until the viewer interacts with the page. So treat sound as armed on, and start it on the viewer's first click or key press. Pressing Play counts.
+   - Show a small "Sound on" indicator with a one-click mute.
+   - If the viewer mutes, remember it: in browser storage for standalone replays, and in the account's Sound setting on the owner website. A muted viewer stays muted next time until they switch it back on.
+   - Add an effects volume control next to the toggle. The checkpoint itself flagged this as thin.
