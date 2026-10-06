@@ -1477,3 +1477,107 @@ After the fix: median 54 vs 55 for the slice-1 page back to back, which is noise
 faction voices. Port the lab's `SFX`, `tone()`, `noise()` and the limiter/voice
 cap; toggles off by default. Hook it to the same calls (`CFX.travel/impact/effect/
 kill` and the v1 shield/cast).
+
+---
+
+## 2026-10-05 — Session 12: player hits land mid-board, Neutral white-gold, EFFECTS.md v2 slice 3 (procedural sound)
+
+The last merged PR (#40, session 28) was the game lane, so this was a render
+session. Three owner entries were open for the lane, applied in the order the
+owner gave: player-targeted hits first, then slice 3. The Neutral colour
+change (also 2026-10-05) went in with them.
+
+**1. Hits aimed at a player land on the board, not the portrait** (owner
+2026-10-05).
+- `playerLandRect(pid)` in `renderHtml.ts`: the centre of that player's row of
+  slots, as a card-sized box. With six fixed slots the centre is the gap
+  between the third and fourth, so it never sits on a card.
+- Attacks (`targetRect`), ability effects (`effectEndRect`), aim lines,
+  REDIRECTED labels and fizzles all use it. `targetEl` is gone.
+- `canvasFx.ts`: a player impact now leaves its ground mark on the floor
+  there, as a card hit does. It keeps the wider, flatter shock.
+- The HP bar reacts, timed to the impact (`reactHp`). The bar flashes by
+  tier: subtle brightens, normal glows, spectacle glows bigger, jolts, and
+  flashes the whole panel too. The number rises from the end of the fill,
+  where the health is lost.
+- EFFECTS.md Axis 1 and the "as built" notes are updated.
+- **Bug found and fixed while verifying:** the first version measured only
+  `.slot` children, but only empty slots carry that class. Impacts landed up
+  to 252 px off-centre whenever cards stood in the row. It now measures every
+  child of the row; the re-run shows 0 px.
+
+**2. Neutral is white-gold `#fff0c2`** (owner 2026-10-05).
+- Changed in the CSS variable (faction tags, frames, HUD tint, the momentum
+  "even" colour), the canvas kit, EFFECTS.md and the FX sheet text.
+- Neutral cards get darker name/stats strips (0.66 black) so the white text
+  stays readable on the light frame.
+- `mythic_ward.py` gained a Neutral theme for the Neutral unique Mythics
+  (owner's AMENDMENT entry). The prompt stays monochrome; the render tints it.
+- A test now reads EFFECTS.md's colour line and checks it against the kits
+  and the CSS, so the three can't drift.
+
+**3. EFFECTS.md v2 slice 3: procedural sound** (`render/src/soundFx.ts`).
+- The lab's `SFX`, `tone()`, `noise()` and limiter are ported into the
+  repo's single-source pattern. `sfxRecipe(kind, faction, tier, rand)`
+  returns plain voice data; the `SND` runtime plays it with WebAudio.
+- Eleven sounds: launch, impact, bolt, heal, buff, debuff, lock, beam, kill,
+  block, cast. Each is fired from the page at the same `later()` moment as
+  its visual.
+- Five voices, as specced: Cortex square blips, Aegis inharmonic metal,
+  Swarm high-Q chitters, Null broken pitch, Neutral bells. The tier scales
+  gain (0.55 / 1 / 1.4).
+- The mix: a limiter on the master bus, panning by screen position, a
+  30-voice cap, and a 28 ms repeat gap per sound and voice, so a volley reads
+  as one.
+- Off by default: a "Sound: off" button in the replay controls makes the
+  AudioContext on click.
+- The FX sheet gained an audition grid (5 voices × 11 sounds, plus
+  play-a-row / play-a-column and a tier picker).
+
+**Ran it.**
+- All six replays regenerated with the same move counts (122 / 113 / 139 /
+  102 / 82 / 63). The engine is untouched.
+- Headless Chromium, every replay stepped move by move (`face.mjs`):
+  - 101 player impacts, 0 off the defender's row, 0 centred on a card, 0 px
+    from the row centre;
+  - the HP bar flashed on each;
+  - 0 page errors.
+- Headless Chromium with sound on (`snd.mjs`), the limiter's output tapped
+  with an AnalyserNode:
+  - the sheet played all 55 cells (11 kinds × 5 voices): 253 voices, peak
+    0.43;
+  - three full replays played 86 / 29 / 67 sounds: 411 / 175 / 226 voices,
+    0 capped;
+  - peak 0.62 / 0.54 / 0.62, so the limiter keeps it below clipping;
+  - the AudioContext stayed running, with 0 errors;
+  - before the click there was no AudioContext and nothing played.
+- Stills in `progress/render/evidence/`:
+  - `v2-s3-face-hit-normal-aegis-vs-null-seed3.png`;
+  - `v2-s3-face-hit-spectacle-aegis-vs-cortex-seed6.png` (−6 by the HP bar,
+    panel flash, impact mid-board);
+  - `v2-s3-neutral-white-gold-aegis-vs-null-seed3.png` (Uplink Tower next to
+    an Aegis card);
+  - `v2-s3-sound-grid.png`.
+- Tests: render 177 (was 157): `test/soundFx.test.ts` has 19, including the
+  runtime against a recording fake AudioContext, and `canvasFx.test.ts` has 1
+  new. All six workspaces are green (377). `tsc --noEmit` is clean in render.
+
+**Named honestly, not fixed:**
+- **A spectacle face hit is big enough to overlap the cards either side of
+  the centre gap** (see the spectacle still). The HP bar reaction says whose
+  hit it was, but a viewer might briefly read it as hitting the slot-3 card.
+  An alternative is in the checkpoint.
+- **Headless audio is measured, not heard.** The analyser proves signal and
+  levels, not taste; the audition grid is there for the owner's ears.
+- **No ward sounds yet** (slices 5-6) and **no music** (slice 4).
+- **No mute on tab hide**, and no volume control for effects yet (the spec
+  asks for one for music; slice 4 adds it).
+- **FX sheet:** the looping canvas parts keep their screen positions from
+  launch, so scrolling while they fly draws them in the wrong place (sheet
+  only; not new).
+
+**Next render-lane slice:** EFFECTS.md v2 slice 4, adaptive procedural music.
+Port the lab's music block: A minor, 104 BPM, Am–F–C–G, scheduled ahead on the
+audio clock, with intensity driven by hits, kills and Mythics. Effects dip it
+to ~80% and it never drops out. Add its own toggle and a volume control, and
+reuse `SND`'s context and limiter.

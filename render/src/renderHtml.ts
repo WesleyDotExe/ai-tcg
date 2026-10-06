@@ -4,6 +4,7 @@ import { ATTACK_FX_SOURCE } from "./attackFx.js";
 import { FACTION_SKIN_SOURCE } from "./factionSkin.js";
 import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from "./canvasFx.js";
 import { EFFECT_FX_SOURCE } from "./effectFx.js";
+import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -68,6 +69,7 @@ export function renderMatchHtml(replay: MatchReplay): string {
         <option value="250">fast</option>
       </select>
     </label>
+    <button id="btn-sound" aria-pressed="false" title="Sound effects (off until you switch them on)">Sound: off</button>
   </section>
 </main>
 
@@ -93,7 +95,9 @@ export const CSS = `
   --line: #24314f;
   --good: #35e6a0;
   --bad: #ff4d6d;
-  --neutral: #ffcf5c;
+  /* Neutral is white-gold (owner 2026-10-05): the old gold #ffcf5c nearly
+   * merged with Aegis orange under deuteranopia. */
+  --neutral: #fff0c2;
   --cortex: #35c9ff;
   --aegis: #ff7d24;
   --swarm: #8bff5c;
@@ -230,10 +234,12 @@ html, body {
 .faction-Aegis { --fc: var(--aegis); --rc: #ffc29a; }
 .faction-Swarm { --fc: var(--swarm); --rc: #b6ff8f; }
 .faction-Null { --fc: var(--null); --rc: #e79bff; }
-/* Neutral cards (engine data/neutralCards.ts) take the UI gold, so the frame
- * matches the fx tints, which read var(--<faction>) = var(--neutral). A
- * palette of their own is a render-lane call. */
-.faction-Neutral { --fc: var(--neutral); --rc: #ffe4a0; }
+/* Neutral cards (engine data/neutralCards.ts) take the white-gold, so the
+ * frame matches the fx tints, which read var(--<faction>) = var(--neutral).
+ * White text on a white-gold frame needs darker strips under it to stay
+ * readable (owner 2026-10-05: dark on light, or white-gold on dark). */
+.faction-Neutral { --fc: var(--neutral); --rc: #fff8e2; }
+.card.faction-Neutral .name, .card.faction-Neutral .stats { background: rgba(0,0,0,0.66); }
 .card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null, .card.faction-Neutral { background: var(--fc); }
 
 .lower { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-top: 12px; }
@@ -252,6 +258,7 @@ html, body {
 .controls button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: inherit; }
 .controls button:hover { border-color: var(--cortex); }
 .controls #scrubber { width: 320px; }
+.controls #btn-sound.on { border-color: var(--good); color: var(--good); }
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
 .speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
@@ -446,6 +453,21 @@ html, body {
   100% { box-shadow: none; transform: scale(1); }
 }
 .fx-mag-spectacle.fx-heal, .fx-mag-spectacle.hud.fx-heal { animation-name: fx-heal-flash-big; }
+/* A player's HP bar reacts when a hit or heal aimed at them lands mid-board
+ * (owner 2026-10-05): the bar flashes, by tier (subtle: a brightening,
+ * normal: a glow, spectacle: a bigger glow and a jolt; the whole panel also
+ * flashes then). */
+.bar-row.fx-hit .bar-track { animation: fx-hp-hit 500ms ease; }
+.bar-row.fx-heal .bar-track { animation: fx-hp-heal 500ms ease; }
+@keyframes fx-hp-hit { 0% { box-shadow: 0 0 0 1px var(--bad), 0 0 12px 2px var(--bad); filter: brightness(1.9); } 100% { box-shadow: none; filter: brightness(1); } }
+@keyframes fx-hp-heal { 0% { box-shadow: 0 0 0 1px var(--good), 0 0 12px 2px var(--good); filter: brightness(1.6); } 100% { box-shadow: none; filter: brightness(1); } }
+.bar-row.fx-mag-subtle .bar-track { animation-duration: 300ms; box-shadow: none; }
+.bar-row.fx-mag-spectacle.fx-hit .bar-track { animation: fx-hp-hit-big 900ms ease; }
+@keyframes fx-hp-hit-big {
+  0% { box-shadow: 0 0 0 2px var(--bad), 0 0 26px 6px var(--bad); filter: brightness(2.3); transform: translateX(0); }
+  12% { transform: translateX(-4px); } 24% { transform: translateX(4px); } 36% { transform: translateX(-2px); } 48% { transform: translateX(0); }
+  100% { box-shadow: none; filter: brightness(1); }
+}
 @keyframes fx-heal-flash-big {
   0% { box-shadow: 0 0 0 5px var(--good) inset, 0 0 34px 6px var(--good); }
   100% { box-shadow: none; }
@@ -733,6 +755,8 @@ ${FACTION_SKIN_SOURCE}
   // render/src/canvasFx.ts, embedded verbatim (same single-source rule).
 ${CANVAS_FX_PURE_SOURCE}
 ${CANVAS_FX_RUNTIME_SOURCE}
+${SOUND_FX_PURE_SOURCE}
+${SOUND_FX_RUNTIME_SOURCE}
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -853,7 +877,7 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     const el = document.getElementById(elId);
     el.innerHTML =
       '<div class="name"><span class="ident">' + avatarHtml(pid) + '<span class="uname" id="' + elId + '-name"></span></span><span class="faction-tag" id="' + elId + '-faction" style="color:var(--fc)"></span></div>' +
-      '<div class="bar-row"><span>HP</span><div class="bar-track"><div class="bar-fill health" id="' + elId + '-hp-fill"></div></div><span id="' + elId + '-hp-text"></span></div>' +
+      '<div class="bar-row" id="' + elId + '-hp-row"><span>HP</span><div class="bar-track"><div class="bar-fill health" id="' + elId + '-hp-fill"></div></div><span id="' + elId + '-hp-text"></span></div>' +
       '<div class="bar-row"><span>EN</span><div class="bar-track"><div class="bar-fill energy" id="' + elId + '-en-fill"></div></div><span id="' + elId + '-en-text"></span></div>' +
       '<div class="meta" id="' + elId + '-meta"></div>';
     hudBuilt[pid] = true;
@@ -995,6 +1019,44 @@ ${CANVAS_FX_RUNTIME_SOURCE}
   }
 
   function hudRect(pid) { return document.getElementById('hud-' + pid).getBoundingClientRect(); }
+  // Attacks and effects aimed at a PLAYER land in the middle of that
+  // player's side of the board, not on their portrait (owner 2026-10-05):
+  // the centre of their row of slots, as a card-sized box so the impact and
+  // its ground mark are sized like a hit on a card. Six fixed slots put the
+  // centre in the gap between the third and the fourth, never on a card.
+  // The HP bar on their panel reacts when it lands (hpBarEl).
+  function playerLandRect(pid) {
+    const row = document.getElementById('board-' + pid);
+    // Every child is a slot: an empty one (.slot.empty) or the card in it.
+    const slots = row ? row.children : [];
+    if (!slots.length) return row ? row.getBoundingClientRect() : hudRect(pid);
+    let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity, w = 0, h = 0;
+    Array.prototype.forEach.call(slots, function (el) {
+      const q = el.getBoundingClientRect();
+      l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom);
+      w = Math.max(w, q.width); h = Math.max(h, q.height);
+    });
+    const cx = (l + r) / 2, cy = (t + b) / 2;
+    return { left: cx - w / 2, top: cy - h / 2, right: cx + w / 2, bottom: cy + h / 2, width: w, height: h, x: cx - w / 2, y: cy - h / 2 };
+  }
+  function hpBarEl(pid) { return document.getElementById('hud-' + pid + '-hp-row'); }
+  // The HP bar's reaction, timed by the caller to the impact on the board:
+  // the bar flashes and the number rises from the bar itself. Only a
+  // spectacle hit flashes the whole panel as well.
+  function reactHp(pid, hudEl, cls, text, numCls, tier) {
+    const row = hpBarEl(pid);
+    const track = row && row.querySelector('.bar-track');
+    flashClass(row || hudEl, cls, tier);
+    if (tier === 'spectacle') flashClass(hudEl, cls, tier);
+    // The number rises from the end of the fill, the spot where the health
+    // is lost (or gained), just above the bar.
+    const fill = row && row.querySelector('.bar-fill');
+    const tr = track ? track.getBoundingClientRect() : hudRect(pid);
+    const fr = fill ? fill.getBoundingClientRect() : tr;
+    const x = Math.max(tr.left + 14, Math.min(tr.right - 14, fr.right));
+    const r = { left: x - 1, right: x + 1, width: 2, top: tr.top, bottom: tr.bottom, height: tr.height };
+    centreOn(spawnNumber(r, text, numCls, tier, -22), r);
+  }
   function liveCardEl(iid) { return document.querySelector('.card[data-iid="' + iid + '"]'); }
 
   const GHOST_MS = { subtle: 320, normal: 700, spectacle: 950 };
@@ -1023,6 +1085,7 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     if (delay > 0) { cardEl.style.animationDelay = delay + 'ms'; cardEl.style.animationFillMode = 'both'; }
     fxLayer.appendChild(cardEl);
     later(delay, function () {
+      if (kill) SND.play('kill', kill.killer, tier, rect, { victim: kill.victim });
       if (kill && CFX.kill(rect, kill.killer, kill.victim, tier)) { cardEl.style.visibility = 'hidden'; return; }
       if (tier === 'spectacle') spawnBurst(rect, 'var(--bad)');
     });
@@ -1197,6 +1260,7 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     const skinCls = ' skin-' + skinOf(fx.faction || 'Neutral').name;
     const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
     const ms = CAST_MS[tier] || CAST_MS.normal;
+    SND.play('cast', fx.faction, tier, rect);
     function place(el) {
       el.style.setProperty('--fx-tint', tint);
       el.style.setProperty('--cast-ms', ms + 'ms');
@@ -1283,10 +1347,11 @@ ${CANVAS_FX_RUNTIME_SOURCE}
   function staggers(fx) { return fx.tier === 'spectacle' || fx.trigger === 'response'; }
 
   function centreOf(rect) { return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; }
-  function targetEl(target) {
+  function targetRect(target) {
     if (!target) return null;
-    if (target.kind === 'unit') return liveCardEl(target.instanceId);
-    return document.querySelector('#hud-' + target.playerId + ' .avatar') || document.getElementById('hud-' + target.playerId);
+    if (target.kind === 'player') return playerLandRect(target.playerId);
+    const el = liveCardEl(target.instanceId);
+    return el ? el.getBoundingClientRect() : null;
   }
   function factionOfUnit(frame, iid) {
     let f = null;
@@ -1343,12 +1408,12 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     // fresh lines, a resize) must not cut it short.
     Array.prototype.slice.call(aimLayer.children).forEach(function (g) { if (!g.classList.contains('fading')) g.remove(); });
     pendingAttacks(frame).forEach(function (pa) {
-      const from = liveCardEl(pa.attackerIid), to = targetEl(pa.target);
+      const from = liveCardEl(pa.attackerIid), to = targetRect(pa.target);
       // An attacker already killed by a response has nothing to aim from;
       // its attack will fizzle on resolution, and the strike says so then.
       if (!from || !to) return;
       const f = factionOfUnit(frame, pa.attackerIid) || frame.players[pa.owner].faction;
-      aimLayer.appendChild(aimGroup(from.getBoundingClientRect(), to.getBoundingClientRect(), 'var(--' + f.toLowerCase() + ')', fresh[pa.stackId] ? 'fresh' : ''));
+      aimLayer.appendChild(aimGroup(from.getBoundingClientRect(), to, 'var(--' + f.toLowerCase() + ')', fresh[pa.stackId] ? 'fresh' : ''));
     });
   }
   function fadeOldAim(fromRect, toRect, tint) {
@@ -1436,16 +1501,16 @@ ${CANVAS_FX_RUNTIME_SOURCE}
   // or where it stood before the move: a removal's victim, an onDeath
   // source), a player's avatar, or a Command's stack entry (live, else
   // where it stood, else its caster's avatar).
-  function effectEndRect(end, prevRects, prevHudRects, prevStackRects) {
+  function effectEndRect(end, prevRects, prevLandRects, prevStackRects) {
     if (end.kind === 'unit') { const el = liveCardEl(end.instanceId); return el ? el.getBoundingClientRect() : prevRects[end.instanceId]; }
-    if (end.kind === 'player') { const el = targetEl({ kind: 'player', playerId: end.playerId }); return el ? el.getBoundingClientRect() : prevHudRects[end.playerId]; }
+    if (end.kind === 'player') return prevLandRects[end.playerId] || playerLandRect(end.playerId);
     const live = document.querySelector('.stackitem[data-sid="' + end.stackId + '"]');
     if (live) return live.getBoundingClientRect();
     if (prevStackRects[end.stackId]) return prevStackRects[end.stackId];
     const av = document.querySelector('#hud-' + end.owner + ' .avatar');
     return av ? av.getBoundingClientRect() : hudRect(end.owner);
   }
-  // The effect wears its SOURCE card's faction (a Neutral Command is gold
+  // The effect wears its SOURCE card's faction (a Neutral Command is white-gold
   // whoever casts it): the name -> faction table first, then the source
   // unit on the board, then its controller.
   function effectFaction(e, prevFrame) {
@@ -1455,7 +1520,7 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     return 'Neutral';
   }
 
-  function runFx(prevFrame, prevBoard, prevRects, prevHudRects, prevStackRects, prevHandRects, newFrame) {
+  function runFx(prevFrame, prevBoard, prevRects, prevLandRects, prevStackRects, prevHandRects, newFrame) {
     const newBoard = collectBoard(newFrame);
     const tiers = [];
     // Coarse, aggregate-only reads of newEvents (event TYPES and counts,
@@ -1551,16 +1616,16 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       if (a.phase === 'redirect') later(aimT, function () {
         const f = factionOfUnit(newFrame, a.attackerIid) || newFrame.players[a.owner].faction;
         const fromEl = liveCardEl(a.attackerIid);
-        const oldTo = a.from.kind === 'unit' ? prevRects[a.from.instanceId] : prevHudRects[a.from.playerId];
+        const oldTo = a.from.kind === 'unit' ? prevRects[a.from.instanceId] : prevLandRects[a.from.playerId];
         if (fromEl) fadeOldAim(fromEl.getBoundingClientRect(), oldTo, 'var(--' + f.toLowerCase() + ')');
-        const newTo = targetEl(a.target);
-        if (newTo) { const r = newTo.getBoundingClientRect(); centreOn(spawnNumber(r, 'REDIRECTED', 'redirect', 'normal', 36), r); }
+        const r = targetRect(a.target);
+        if (r) centreOn(spawnNumber(r, 'REDIRECTED', 'redirect', 'normal', 36), r);
       });
       if (a.phase === 'strike' && a.outcome !== 'hit') {
         // The engine's own two fizzle rules: the attacker, or its unit
         // target, was gone before the damage could resolve.
         const r = a.outcome === 'fizzle-attacker'
-          ? (a.target.kind === 'unit' ? (prevRects[a.target.instanceId] || prevRects[a.attackerIid]) : prevHudRects[a.target.playerId])
+          ? (a.target.kind === 'unit' ? (prevRects[a.target.instanceId] || prevRects[a.attackerIid]) : prevLandRects[a.target.playerId])
           : prevRects[a.attackerIid];
         if (r) { tiers.push('subtle'); centreOn(spawnNumber(r, 'FIZZLED', 'fizzle', 'subtle', 40), r); }
       }
@@ -1574,17 +1639,16 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       const tint = 'var(--' + f.toLowerCase() + ')';
       const liveAtk = liveCardEl(strike.attackerIid);
       const fromR = liveAtk ? liveAtk.getBoundingClientRect() : prevRects[strike.attackerIid];
-      const liveTo = targetEl(strike.target);
-      const toR = strike.target.kind === 'unit'
-        ? (liveTo ? liveTo.getBoundingClientRect() : prevRects[strike.target.instanceId])
-        : (liveTo ? liveTo.getBoundingClientRect() : prevHudRects[strike.target.playerId]);
+      const toR = targetRect(strike.target) || (strike.target.kind === 'unit' ? prevRects[strike.target.instanceId] : prevLandRects[strike.target.playerId]);
       if (liveAtk) flashClass(liveAtk, 'fx-attack', 'normal');
       // v2 (canvasFx.ts): sprite travel + impact on the canvas layers. The
       // v1 DOM bolt and burst remain the fallback when the canvas or the
       // atlases are unavailable, so an attack is never left undrawn.
       if (!CFX.travel(fromR, toR, f, strikeTier, strikeT, false)) spawnBolt(fromR, toR, f, strikeTier, strikeT, false);
+      SND.play('launch', f, strikeTier, fromR);
       // impact(target): lands with the bolt.
       later(strikeT, function () {
+        SND.play('impact', f, strikeTier, toR, { targetKind: strike.target.kind });
         if (!CFX.impact(toR, f, strikeTier, strike.target.kind) && strikeTier !== 'subtle') spawnBurst(toR, tint, strikeTier === 'spectacle' ? 1.35 : 0.8, f);
       });
       if (strike.counter) {
@@ -1594,7 +1658,10 @@ ${CANVAS_FX_RUNTIME_SOURCE}
         later(strikeT, function () {
           if (!CFX.travel(toR, fromR, df, cTier, counterT - strikeT, true)) spawnBolt(toR, fromR, df, cTier, counterT - strikeT, true);
         });
-        later(counterT, function () { CFX.impact(fromR, df, cTier === 'spectacle' ? 'normal' : 'subtle', 'unit'); });
+        later(counterT, function () {
+          CFX.impact(fromR, df, cTier === 'spectacle' ? 'normal' : 'subtle', 'unit');
+          SND.play('impact', df, cTier === 'spectacle' ? 'normal' : 'subtle', fromR);
+        });
       }
     }
 
@@ -1604,9 +1671,17 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       tiers.push(tier);
       const f = effectFaction(e, prevFrame);
       later(effStart, function () {
-        const toR = effectEndRect(e.target, prevRects, prevHudRects, prevStackRects);
-        const fromR = e.self ? null : effectEndRect(e.source, prevRects, prevHudRects, prevStackRects);
+        const toR = effectEndRect(e.target, prevRects, prevLandRects, prevStackRects);
+        const fromR = e.self ? null : effectEndRect(e.source, prevRects, prevLandRects, prevStackRects);
         CFX.effect(e.category, fromR, toR, f, tier, effT, { self: e.self || !fromR, targetKind: e.target.kind === 'player' ? 'player' : 'unit' });
+        // Sound: a spell's shot or a removal's lock-on as it leaves, then
+        // the landing in the same category's sound, timed to the number.
+        if (e.category === 'spell' && !e.self) SND.play('bolt', f, tier, fromR || toR);
+        if (e.category === 'removal') SND.play('lock', f, tier, toR);
+        later(effT, function () {
+          const kind = e.category === 'spell' ? 'impact' : e.category === 'removal' ? 'beam' : e.category;
+          SND.play(kind, f, tier, toR, { targetKind: e.target.kind === 'player' ? 'player' : 'unit' });
+        });
       });
     });
 
@@ -1656,6 +1731,7 @@ ${CANVAS_FX_RUNTIME_SOURCE}
         tiers.push(t);
         later(at, function () {
           flashClass(el, 'fx-shatter', t);
+          SND.play('block', nv.faction, t, el.getBoundingClientRect());
           spawnNumber(el.getBoundingClientRect(), 'BLOCKED', 'shield', t);
         });
       }
@@ -1717,17 +1793,11 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       if (delta < 0) {
         const t = tierFromScore(playerHitScore(delta, isLethal));
         tiers.push(t);
-        later(hudT(pid), function () {
-          flashClass(hudEl, 'fx-hit', t);
-          spawnNumber(prevHudRects[pid], String(delta), 'dmg', t);
-        });
+        later(hudT(pid), function () { reactHp(pid, hudEl, 'fx-hit', String(delta), 'dmg', t); });
       } else if (delta > 0) {
         const t = tierFromScore(playerHitScore(delta, false));
         tiers.push(t);
-        later(hudT(pid), function () {
-          flashClass(hudEl, 'fx-heal', t);
-          spawnNumber(prevHudRects[pid], '+' + delta, 'heal', t);
-        });
+        later(hudT(pid), function () { reactHp(pid, hudEl, 'fx-heal', '+' + delta, 'heal', t); });
       }
     });
 
@@ -1775,12 +1845,12 @@ ${CANVAS_FX_RUNTIME_SOURCE}
       const prevFrame = frames[i];
       const prevBoard = collectBoard(prevFrame);
       const prevRects = currentRectsByIid();
-      const prevHudRects = { p1: hudRect('p1'), p2: hudRect('p2') };
+      const prevLandRects = { p1: playerLandRect('p1'), p2: playerLandRect('p2') };
       const prevStackRects = stackRects();
       const prevHandRects = handRects();
       i = target;
       renderFrame();
-      lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevHudRects, prevStackRects, prevHandRects, frames[i]);
+      lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevLandRects, prevStackRects, prevHandRects, frames[i]);
     } else {
       cancelFx();
       while (aimLayer.firstChild) aimLayer.removeChild(aimLayer.firstChild);
@@ -1829,6 +1899,14 @@ ${CANVAS_FX_RUNTIME_SOURCE}
   document.getElementById('btn-next').onclick = function () { stop(); goTo(i + 1); };
   document.getElementById('btn-last').onclick = function () { stop(); goTo(frames.length - 1); };
   document.getElementById('btn-play').onclick = function () { playing ? stop() : play(); };
+  // Sound (EFFECTS.md v2 slice 3, render/src/soundFx.ts) starts off: the
+  // viewer switches it on (browser autoplay rules).
+  document.getElementById('btn-sound').onclick = function () {
+    const on = SND.setOn(!SND.isOn());
+    this.textContent = on ? 'Sound: on' : 'Sound: off';
+    this.classList.toggle('on', on);
+    this.setAttribute('aria-pressed', String(on));
+  };
   scrubber.oninput = function () { stop(); goTo(Number(scrubber.value)); };
   document.getElementById('speed').onchange = function () { if (playing) { stop(); play(); } };
   document.addEventListener('keydown', function (e) {

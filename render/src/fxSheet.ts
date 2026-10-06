@@ -11,6 +11,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from "./canvasFx.js";
+import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { CSS } from "./renderHtml.js";
 
 export function renderFxSheet(): string {
@@ -33,20 +34,28 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
 .blk.src { border-color: var(--fc); box-shadow: 0 0 12px var(--fc); }
 .blk.face { width: 46px; height: 46px; border-radius: 8px; }
 .ctl { margin: 8px 0; font-size: 0.75rem; color: var(--ink-dim); }
+.ctl button, .ctl select, .snd button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 4px 9px; cursor: pointer; font-family: inherit; }
+.snd { border-collapse: collapse; margin: 6px 0 40px; font-size: 0.72rem; }
+.snd th, .snd td { padding: 3px; text-align: center; }
+.snd td button { width: 46px; }
 .row2 { position: relative; height: 170px; border-bottom: 1px solid var(--line); }
 .row2 .lab { position: absolute; left: 8px; top: 8px; font-size: 0.9rem; font-weight: bold; }
 .blk.gone { opacity: 0; transition: opacity 0.05s; }
 </style>
 </head>
 <body>
-<h1>AI·TCG // FX MATERIALS (EFFECTS.md v2 slices 1-2)</h1>
+<h1>AI·TCG // FX MATERIALS + SOUND (EFFECTS.md v2 slices 1-3)</h1>
 <p class="note">Attack travel + impact in each faction's sprite material, drawn by the replay's own canvas code. Columns: subtle / normal / spectacle hit on a card, then a normal hit on a player. Ground marks stay on the floor layer under the cards for a few seconds. Meaning is constant: every shot leaves the glowing card and lands on its target; only the material and size change.</p>
 <div class="ctl"><button id="go">Replay volley</button> <span id="st"></span></div>
 <div class="sheet" id="sheet" data-fx-camera></div>
 <h1>CATEGORIES (slice 2): SPELL · HEAL · BUFF · DEBUFF · REMOVAL + KILL</h1>
-<p class="note">Each category keeps one grammar in every faction (spell: shots leave the source and land on the target; heal: an orb carries it in, the light gathers; buff: rises; debuff: sinks, slate ring; removal: locks on, strikes, and the card shatters with hit-stop, colour split and camera punch). Only the material changes: Cortex lasers and scanlines, Aegis shells and plates, Swarm spores and tendrils, Null packets and glitch, Neutral lances and light. Neutral's debuff is Swarm's acid in gold. The background grid warps under every hit.</p>
+<p class="note">Each category keeps one grammar in every faction (spell: shots leave the source and land on the target; heal: an orb carries it in, the light gathers; buff: rises; debuff: sinks, slate ring; removal: locks on, strikes, and the card shatters with hit-stop, colour split and camera punch). Only the material changes: Cortex lasers and scanlines, Aegis shells and plates, Swarm spores and tendrils, Null packets and glitch, Neutral lances and light. Neutral's debuff is Swarm's acid in white-gold. The background grid warps under every hit.</p>
 <div class="ctl"><button id="go2">Replay categories</button></div>
 <div class="sheet" id="sheet2"></div>
+<h1>SOUND (slice 3): FACTION VOICES</h1>
+<p class="note">Every sound is synthesised in the browser (no files). Switch sound on, then click any cell to hear that event in that faction's voice, or play a whole row or column. Cortex: clean square-wave blips. Aegis: heavy metal clangs. Swarm: wet chitters and squelches. Null: broken pitch and glitch blips. Neutral: bells. The meaning stays the same in every voice: an impact always thumps, a heal always rises, a debuff always falls, a block always rings. The tier picks the volume.</p>
+<div class="ctl"><button id="snd">Sound: off</button> tier <select id="sndtier"><option>subtle</option><option selected>normal</option><option>spectacle</option></select> <span id="sndst"></span></div>
+<table class="snd" id="sndgrid"></table>
 <script type="application/json" id="fx-atlases">${JSON.stringify(fxAtlasDataUris())}</script>
 <script>
 (function () {
@@ -56,6 +65,8 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
   }
 ${CANVAS_FX_PURE_SOURCE}
 ${CANVAS_FX_RUNTIME_SOURCE}
+${SOUND_FX_PURE_SOURCE}
+${SOUND_FX_RUNTIME_SOURCE}
   var FACTIONS = ['Cortex', 'Aegis', 'Swarm', 'Null', 'Neutral'];
   var COLS = [['subtle', 330, 'unit'], ['normal', 560, 'unit'], ['spectacle', 790, 'unit'], ['normal', 1040, 'player']];
   var sheet = document.getElementById('sheet');
@@ -114,6 +125,22 @@ ${CANVAS_FX_RUNTIME_SOURCE}
     });
   }
   window.__fxCategories = categories;
+  // Part 3: the sound audition grid. Sound only plays while switched on.
+  var grid = document.getElementById('sndgrid');
+  grid.innerHTML = '<tr><th></th>' + SFX_KINDS.map(function (k) { return '<th><button data-col="' + k + '">' + k + '</button></th>'; }).join('') + '</tr>' +
+    FACTIONS.map(function (f) { return '<tr class="faction-' + f + '"><th><button data-row="' + f + '" style="color:var(--fc)">' + f + '</button></th>' +
+      SFX_KINDS.map(function (k) { return '<td><button data-f="' + f + '" data-k="' + k + '">\u25B6</button></td>'; }).join('') + '</tr>'; }).join('');
+  function sndTier() { return document.getElementById('sndtier').value; }
+  function hear(f, k, el) { SND.play(k, f, sndTier(), el ? el.getBoundingClientRect() : null, { targetKind: 'unit', victim: 'Aegis' }); }
+  grid.onclick = function (ev) {
+    var b = ev.target.closest('button');
+    if (!b) return;
+    if (b.dataset.k) hear(b.dataset.f, b.dataset.k, b);
+    else if (b.dataset.row) SFX_KINDS.forEach(function (k, i) { setTimeout(function () { hear(b.dataset.row, k, b); }, i * 650); });
+    else if (b.dataset.col) FACTIONS.forEach(function (f, i) { setTimeout(function () { hear(f, b.dataset.col, b); }, i * 650); });
+  };
+  document.getElementById('snd').onclick = function () { var on = SND.setOn(!SND.isOn()); this.textContent = on ? 'Sound: on' : 'Sound: off'; };
+  setInterval(function () { var s = SND.stats(); document.getElementById('sndst').textContent = s.on ? 'sounds ' + s.played + ' · voices ' + s.voices + ' · alive ' + s.active : ''; }, 300);
   document.getElementById('go2').onclick = categories;
   document.getElementById('go').onclick = volley;
   window.__fxVolley = volley;

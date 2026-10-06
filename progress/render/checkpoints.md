@@ -7,6 +7,56 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-05 — EFFECTS.md v2 slice 3: procedural sound (+ player hits land mid-board, Neutral white-gold) — AWAITING FEEDBACK
+
+**What this delivers:**
+- **Sound.** Every visual event now has a synthesised sound in its faction's voice. There are no audio files.
+  - The events: a strike leaving and landing, a spell's shots and landing, heal, buff, debuff, a removal locking on and striking, kills, Barrier blocks and cast flourishes.
+  - The voices: Cortex square-wave blips, Aegis metal clangs, Swarm chitters and squelches, Null broken pitch, Neutral bells.
+  - Bigger moments are louder. Everything goes through a limiter, is panned by where it happens, and has a voice cap.
+  - Sound is off until the viewer clicks "Sound: off" in the controls.
+- **Hits aimed at a player land in the middle of their side of the board** (your 2026-10-05 entry):
+  - the impact lands in the gap between their third and fourth slots, in the attacker's material, with a ground mark;
+  - their HP bar flashes and the number rises from the bar, timed to the impact;
+  - a spectacle hit also flashes the whole panel and jolts the bar;
+  - the same rule covers spells and heals aimed at a player.
+- **Neutral is white-gold `#fff0c2`** everywhere the render draws it. Neutral cards have darker text strips so the white text stays readable.
+
+**Evidence:**
+- `render/output/fx-sheet.html`, part 3: the sound audition grid. Switch sound on, then click any cell or play a whole row or column. A tier picker sets the volume.
+- Any replay in `render/output/`: press "Sound: off" to switch it on, then play. `aegis-vs-null-seed3` has kills, a removal, a debuff and many face hits.
+- Stills in `progress/render/evidence/`:
+  - `v2-s3-face-hit-spectacle-aegis-vs-cortex-seed6.png`;
+  - `v2-s3-face-hit-normal-aegis-vs-null-seed3.png`;
+  - `v2-s3-neutral-white-gold-aegis-vs-null-seed3.png`;
+  - `v2-s3-sound-grid.png`.
+- Headless Chromium on all six replays:
+  - 101 player hits, every one exactly at the centre of the defender's row, none on a card, the HP bar reacting each time;
+  - with sound on, real signal out of the limiter, peaking at 0.62 (no clipping), with no voices dropped by the cap;
+  - 0 errors.
+- 20 new tests; render is at 177. The sound runtime is tested against a fake AudioContext.
+
+**Strong:**
+- It's the lab's sound, with the same voices you approved. It's timed to the visuals, so a sound never runs ahead of the thing it describes.
+- Meaning stays constant in sound too: an impact always thumps, a heal always rises, a debuff always falls, a block always rings.
+- It's silent and costs nothing until switched on.
+
+**Thin:**
+- No music yet (slice 4) and no ward sounds (slices 5-6).
+- No separate effects volume. The limiter keeps the level sane, but you might want a slider.
+- I can measure the sound, not hear it: judge the voices on the audition grid.
+
+**Decisions you may want to overrule:**
+1. **The exact centre of the row, even beside cards.** A big face hit lands in the gap between slots 3 and 4, and its flash can spill over the cards either side (see the spectacle still). Alternative: land on the empty slot nearest the centre when there is one, and on the gap only on a full board.
+2. **Where the number appears:** above the end of the HP bar's fill, where the health is lost, rather than at the panel's centre.
+3. **A spectacle face hit also flashes the whole panel**, not just the bar. Smaller hits only flash the bar.
+4. **A volley is one sound:** the same sound in the same voice within 28 ms plays once, so a Swarm volley is one chitter cloud rather than 14 clicks.
+5. **A spell landing on a card or player uses the impact sound** (thump + voice). A removal gets lock-on beeps, then a beam, then the kill sound.
+6. **A Barrier block rings the same bright tone in every voice,** with an extra metal ring for Aegis. A block always reads as a block.
+7. **Sound switches on per page and isn't remembered** between replays. Remembering it would still need a click on each new page (browser rule).
+
+---
+
 ## 2026-10-04 — EFFECTS.md v2 slice 2: every category's faction material, kills, camera beats, warping grid — AWAITING FEEDBACK
 
 **What this delivers:**

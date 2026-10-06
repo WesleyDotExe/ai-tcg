@@ -43,6 +43,9 @@ THEMES = {
     "Aegis": "an armoured fortress faction of heavy engineering, hexagonal plates and molten metal",
     "Swarm": "an organic alien insect hive of chitin, veins, eggs and spores",
     "Null": "a void faction of corrupted data, entropy, broken geometry and black holes",
+    # The unique (signature) Mythics are Neutral (owner 2026-10-05); the
+    # render tints them white-gold #fff0c2, like every Neutral effect.
+    "Neutral": "an unaligned faction of pure white-gold light, faceted glints, drifting feathers, light rays and abstract rune seals",
 }
 BANNED = (
     "No grid lines, no dividing lines, no borders, no labels, no letters, no words, no numbers, "
