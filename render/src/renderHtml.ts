@@ -69,7 +69,10 @@ export function renderMatchHtml(replay: MatchReplay): string {
         <option value="250">fast</option>
       </select>
     </label>
-    <button id="btn-sound" aria-pressed="false" title="Sound effects (off until you switch them on)">Sound: off</button>
+    <span class="sound-ctl" id="sound-ctl">
+      <button id="btn-sound" aria-pressed="true" title="Sound is on. Click to mute.">Sound on</button>
+      <input type="range" id="sound-vol" min="0" max="100" step="1" value="80" aria-label="Effects volume" title="Effects volume">
+    </span>
   </section>
 </main>
 
@@ -259,6 +262,11 @@ html, body {
 .controls button:hover { border-color: var(--cortex); }
 .controls #scrubber { width: 320px; }
 .controls #btn-sound.on { border-color: var(--good); color: var(--good); }
+/* Armed: on, waiting for the viewer's first click or key press to start. */
+.controls #btn-sound.armed { border-style: dashed; }
+.sound-ctl { display: inline-flex; align-items: center; gap: 6px; }
+.sound-ctl #sound-vol { width: 80px; accent-color: var(--good); }
+.sound-ctl #sound-vol:disabled { opacity: 0.4; }
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
 .speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
@@ -1041,15 +1049,18 @@ ${SOUND_FX_RUNTIME_SOURCE}
   }
   function hpBarEl(pid) { return document.getElementById('hud-' + pid + '-hp-row'); }
   // The HP bar's reaction, timed by the caller to the impact on the board:
-  // the bar flashes and the number rises from the bar itself. Only a
-  // spectacle hit flashes the whole panel as well.
-  function reactHp(pid, hudEl, cls, text, numCls, tier) {
+  // the bar flashes and drops. Only a spectacle hit flashes the whole panel
+  // as well. The number appears where the visual hit landed (owner
+  // 2026-10-07, call 2): landR is the impact point mid-board, placed the
+  // way a hit on a card places its number. With no visual hit on this
+  // player this move (landR null: a self-cost, a drain with no flight), it
+  // rises from the end of the bar's fill instead, where the health is lost.
+  function reactHp(pid, hudEl, cls, text, numCls, tier, landR) {
     const row = hpBarEl(pid);
     const track = row && row.querySelector('.bar-track');
     flashClass(row || hudEl, cls, tier);
     if (tier === 'spectacle') flashClass(hudEl, cls, tier);
-    // The number rises from the end of the fill, the spot where the health
-    // is lost (or gained), just above the bar.
+    if (landR) { centreOn(spawnNumber(landR, text, numCls, tier), landR); return; }
     const fill = row && row.querySelector('.bar-fill');
     const tr = track ? track.getBoundingClientRect() : hudRect(pid);
     const fr = fill ? fill.getBoundingClientRect() : tr;
@@ -1790,14 +1801,20 @@ ${SOUND_FX_RUNTIME_SOURCE}
       const delta = newFrame.players[pid].health - prevFrame.players[pid].health;
       const hudEl = document.getElementById('hud-' + pid);
       const isLethal = justEnded && newFrame.winner !== pid && newFrame.winner !== 'draw' && delta < 0;
+      // Did something visibly land on this player this move? A strike at
+      // them, or an effect whose target is them, lands at the centre of
+      // their row; the number goes there.
+      const landed = (strike && strike.target.kind === 'player' && strike.target.playerId === pid) ||
+        effects.some(function (e) { return e.target.kind === 'player' && e.target.playerId === pid; });
+      const landR = landed ? (prevLandRects[pid] || playerLandRect(pid)) : null;
       if (delta < 0) {
         const t = tierFromScore(playerHitScore(delta, isLethal));
         tiers.push(t);
-        later(hudT(pid), function () { reactHp(pid, hudEl, 'fx-hit', String(delta), 'dmg', t); });
+        later(hudT(pid), function () { reactHp(pid, hudEl, 'fx-hit', String(delta), 'dmg', t, landR); });
       } else if (delta > 0) {
         const t = tierFromScore(playerHitScore(delta, false));
         tiers.push(t);
-        later(hudT(pid), function () { reactHp(pid, hudEl, 'fx-heal', '+' + delta, 'heal', t); });
+        later(hudT(pid), function () { reactHp(pid, hudEl, 'fx-heal', '+' + delta, 'heal', t, landR); });
       }
     });
 
@@ -1899,14 +1916,10 @@ ${SOUND_FX_RUNTIME_SOURCE}
   document.getElementById('btn-next').onclick = function () { stop(); goTo(i + 1); };
   document.getElementById('btn-last').onclick = function () { stop(); goTo(frames.length - 1); };
   document.getElementById('btn-play').onclick = function () { playing ? stop() : play(); };
-  // Sound (EFFECTS.md v2 slice 3, render/src/soundFx.ts) starts off: the
-  // viewer switches it on (browser autoplay rules).
-  document.getElementById('btn-sound').onclick = function () {
-    const on = SND.setOn(!SND.isOn());
-    this.textContent = on ? 'Sound: on' : 'Sound: off';
-    this.classList.toggle('on', on);
-    this.setAttribute('aria-pressed', String(on));
-  };
+  // Sound (EFFECTS.md v2 slice 3, render/src/soundFx.ts) is on by default
+  // (owner 2026-10-07): armed at load, started by the viewer's first click
+  // or key press, muted in one click, and the mute and volume remembered.
+  SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));
   scrubber.oninput = function () { stop(); goTo(Number(scrubber.value)); };
   document.getElementById('speed').onchange = function () { if (playing) { stop(); play(); } };
   document.addEventListener('keydown', function (e) {

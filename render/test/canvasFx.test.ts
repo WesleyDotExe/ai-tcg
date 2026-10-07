@@ -220,7 +220,12 @@ describe("the page", () => {
     expect(html).toContain("if (end.kind === 'player') return prevLandRects[end.playerId] || playerLandRect(end.playerId);");
     expect(html).toContain("const prevLandRects = { p1: playerLandRect('p1'), p2: playerLandRect('p2') };");
     expect(html).not.toMatch(/function targetEl\(/);
-    expect(html).toContain("reactHp(pid, hudEl, 'fx-hit', String(delta), 'dmg', t)");
+    expect(html).toContain("reactHp(pid, hudEl, 'fx-hit', String(delta), 'dmg', t, landR)");
+    expect(html).toContain("reactHp(pid, hudEl, 'fx-heal', '+' + delta, 'heal', t, landR)");
+    // The number appears where the visual hit landed (owner 2026-10-07),
+    // whenever a strike or an effect landed on that player this move.
+    expect(html).toContain("const landR = landed ? (prevLandRects[pid] || playerLandRect(pid)) : null;");
+    expect(html).toContain("if (landR) { centreOn(spawnNumber(landR, text, numCls, tier), landR); return; }");
     expect(html).toContain('id="\' + elId + \'-hp-row"');
     // A player hit now leaves a ground mark, like a card hit.
     expect(CANVAS_FX_RUNTIME_SOURCE).not.toContain("targetKind !== 'player'");

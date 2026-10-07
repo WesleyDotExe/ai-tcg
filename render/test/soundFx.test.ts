@@ -1,4 +1,4 @@
-// EFFECTS.md v2 slice 3 (procedural sound with faction voices). Four layers:
+// EFFECTS.md v2 slice 3 (procedural sound with faction voices). Five layers:
 //  1. every event kind has a sound in every faction voice, made of sane
 //     voices (positive frequencies, gains and durations), and an unknown
 //     faction gets the Neutral voice;
@@ -11,17 +11,24 @@
 //  4. the runtime (the exact text the page embeds) against a recording fake
 //     AudioContext: silent and context-free until switched on, a limiter on
 //     the master bus, panning by position, the voice cap and the repeat gap;
-//     and the replay page embeds both halves with the toggle starting off.
+//  5. the viewer's setting (owner 2026-10-07): on by default and armed
+//     until the first gesture, one-click mute, the effects volume, both
+//     remembered through the store, a hidden tab going quiet; and the replay
+//     page embeds both halves and mounts the control.
 import { describe, expect, it } from "vitest";
 import {
   SFX_BELL,
+  SFX_DEFAULT_VOLUME,
   SFX_KINDS,
+  SFX_PREF_KEY,
   SFX_REPEAT_GAP_MS,
   SFX_TIER_GAIN,
   SFX_VOICE_CAP,
   SOUND_FX_PURE_SOURCE,
   SOUND_FX_RUNTIME_SOURCE,
   sfxPan,
+  sfxPrefParse,
+  sfxPrefSerialize,
   sfxRecipe,
   sfxVoiceOf,
   type SfxKind,
@@ -203,13 +210,20 @@ function makeFakeWindow(width = 1000) {
   const perf = { now: () => now };
   return { win, perf, made, contexts: () => contexts, advance: (ms: number) => { now += ms; } };
 }
-function bootRuntime(width = 1000) {
+function bootRuntime(width = 1000, doc: unknown = undefined) {
   const env = makeFakeWindow(width);
-  const SND = new Function("window", "performance", `${SOUND_FX_PURE_SOURCE}; ${SOUND_FX_RUNTIME_SOURCE}; return SND;`)(env.win, env.perf) as {
+  const SND = new Function("window", "performance", "document", `${SOUND_FX_PURE_SOURCE}; ${SOUND_FX_RUNTIME_SOURCE}; return SND;`)(env.win, env.perf, doc) as {
     play: (k: string, f: string, t: string, rect: { left: number; width: number } | null, o?: object) => boolean;
     setOn: (on: boolean) => boolean;
     isOn: () => boolean;
-    stats: () => { on: boolean; ctx: boolean; active: number; played: number; voices: number; capped: number; repeats: number; byKind: Record<string, number> };
+    arm: (pref: unknown) => string;
+    unlock: () => boolean;
+    setVolume: (v: number) => number;
+    volume: () => number;
+    setHidden: (h: boolean) => void;
+    state: () => "muted" | "armed" | "on";
+    mount: (btn: FakeEl, slider: FakeEl | null, store?: { read: () => unknown; write: (v: string) => void }) => { gesture: (ev?: { target?: unknown }) => void };
+    stats: () => { on: boolean; state: string; volume: number; ctxState: string | null; ctx: boolean; active: number; played: number; voices: number; capped: number; repeats: number; byKind: Record<string, number> };
   };
   return { SND, ...env };
 }
@@ -285,11 +299,13 @@ describe("the replay page", () => {
   } as unknown as MatchReplay;
   const html = renderMatchHtml(replay);
 
-  it("embeds the exact sound source the tests run, with the toggle starting off", () => {
+  it("embeds the exact sound source the tests run, with sound on by default and a volume slider", () => {
     expect(html).toContain(SOUND_FX_PURE_SOURCE);
     expect(html).toContain(SOUND_FX_RUNTIME_SOURCE);
-    expect(html).toContain('<button id="btn-sound" aria-pressed="false"');
-    expect(html).toContain(">Sound: off</button>");
+    expect(html).toContain('<button id="btn-sound" aria-pressed="true"');
+    expect(html).toContain('<input type="range" id="sound-vol" min="0" max="100"');
+    expect(html).toContain("SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));");
+    expect(html).not.toContain("Sound: off");
   });
 
   it("fires one sound at each visual moment: launch, impact, counter, effects, kill, block, cast", () => {
@@ -303,5 +319,165 @@ describe("the replay page", () => {
       "SND.play('block', nv.faction, t, el.getBoundingClientRect());",
       "SND.play('cast', fx.faction, tier, rect);",
     ]) expect(html).toContain(call);
+  });
+});
+
+// ---- the viewer's sound setting (owner 2026-10-07, call 7) ----------------
+describe("the remembered setting", () => {
+  it("defaults to sound on at the default volume when nothing (or junk) is stored", () => {
+    for (const raw of [null, undefined, "", "not json", "null", "42", "{}", 7]) {
+      expect(sfxPrefParse(raw)).toEqual({ muted: false, volume: SFX_DEFAULT_VOLUME });
+    }
+  });
+  it("only an explicit mute is remembered as off; the volume is clamped to 0-1", () => {
+    expect(sfxPrefParse('{"muted":true,"volume":0.3}')).toEqual({ muted: true, volume: 0.3 });
+    expect(sfxPrefParse('{"muted":"yes"}').muted).toBe(false);
+    expect(sfxPrefParse('{"volume":7}').volume).toBe(1);
+    expect(sfxPrefParse('{"volume":-1}').volume).toBe(0);
+    expect(sfxPrefParse('{"volume":"x"}').volume).toBe(SFX_DEFAULT_VOLUME);
+    expect(sfxPrefParse({ muted: true, volume: 0.5 })).toEqual({ muted: true, volume: 0.5 });
+  });
+  it("round-trips through serialize", () => {
+    for (const p of [{ muted: true, volume: 0 }, { muted: false, volume: 0.42 }, { muted: false, volume: 1 }]) {
+      expect(sfxPrefParse(sfxPrefSerialize(p))).toEqual(p);
+    }
+    expect(SFX_PREF_KEY).toBe("ai-tcg.sound");
+  });
+});
+
+interface FakeEl {
+  textContent: string; title: string; value: string; disabled: boolean; attrs: Record<string, string>; classes: Set<string>;
+  listeners: Record<string, (() => void)[]>;
+  setAttribute(k: string, v: string): void; addEventListener(t: string, f: () => void): void;
+  contains(x: unknown): boolean; classList: { toggle(c: string, on: boolean): void }; fire(t: string): void;
+}
+function fakeEl(): FakeEl {
+  const el: FakeEl = {
+    textContent: "", title: "", value: "", disabled: false, attrs: {}, classes: new Set(), listeners: {},
+    setAttribute(k, v) { el.attrs[k] = v; },
+    addEventListener(t, f) { (el.listeners[t] ||= []).push(f); },
+    contains(x) { return x === el; },
+    classList: { toggle(c, on) { if (on) el.classes.add(c); else el.classes.delete(c); } },
+    fire(t) { (el.listeners[t] || []).forEach((f) => f()); },
+  };
+  return el;
+}
+function fakeDoc() {
+  const ls: Record<string, ((ev: { target?: unknown }) => void)[]> = {};
+  const doc = {
+    visibilityState: "visible",
+    addEventListener(t: string, f: (ev: { target?: unknown }) => void) { (ls[t] ||= []).push(f); },
+    fire(t: string, ev: { target?: unknown } = {}) { (ls[t] || []).forEach((f) => f(ev)); },
+  };
+  return doc;
+}
+function memStore(initial: string | null = null) {
+  const s = { v: initial, writes: 0, read: () => s.v, write: (v: string) => { s.v = v; s.writes++; } };
+  return s;
+}
+
+describe("sound on by default, armed until a gesture", () => {
+  it("arms with no context; the first pointer or key press anywhere starts it", () => {
+    const doc = fakeDoc();
+    const { SND, contexts } = bootRuntime(1000, doc);
+    const btn = fakeEl(), vol = fakeEl();
+    SND.mount(btn, vol, memStore());
+    expect(SND.state()).toBe("armed");
+    expect(contexts()).toBe(0);
+    expect(btn.textContent).toContain("Sound on");
+    expect(btn.attrs["aria-pressed"]).toBe("true");
+    expect(btn.classes.has("armed")).toBe(true);
+    expect(SND.play("impact", "Aegis", "normal", null)).toBe(false);
+    doc.fire("keydown", { target: {} });
+    expect(SND.state()).toBe("on");
+    expect(contexts()).toBe(1);
+    expect(btn.classes.has("armed")).toBe(false);
+    expect(SND.play("impact", "Aegis", "normal", null)).toBe(true);
+    doc.fire("pointerdown", { target: {} });
+    expect(contexts()).toBe(1);
+  });
+
+  it("a press on the mute button mutes without starting sound first, and the mute is remembered", () => {
+    const doc = fakeDoc();
+    const { SND, contexts } = bootRuntime(1000, doc);
+    const btn = fakeEl(), store = memStore();
+    SND.mount(btn, null, store);
+    doc.fire("pointerdown", { target: btn });
+    btn.fire("click");
+    expect(SND.state()).toBe("muted");
+    expect(contexts()).toBe(0);
+    expect(btn.textContent).toContain("Sound off");
+    expect(btn.attrs["aria-pressed"]).toBe("false");
+    expect(sfxPrefParse(store.v).muted).toBe(true);
+    // Later gestures don't wake a muted viewer.
+    doc.fire("keydown", { target: {} });
+    expect(contexts()).toBe(0);
+  });
+
+  it("a remembered mute stays muted on the next page until switched back on", () => {
+    const doc = fakeDoc();
+    const store = memStore(sfxPrefSerialize({ muted: true, volume: 0.5 }));
+    const { SND, contexts } = bootRuntime(1000, doc);
+    const btn = fakeEl(), vol = fakeEl();
+    SND.mount(btn, vol, store);
+    expect(SND.state()).toBe("muted");
+    expect(vol.value).toBe("50");
+    expect(vol.disabled).toBe(true);
+    doc.fire("pointerdown", { target: {} });
+    expect(contexts()).toBe(0);
+    btn.fire("click");
+    expect(SND.state()).toBe("on");
+    expect(contexts()).toBe(1);
+    expect(vol.disabled).toBe(false);
+    expect(sfxPrefParse(store.v)).toEqual({ muted: false, volume: 0.5 });
+  });
+
+  it("the volume slider scales the master bus ahead of the limiter and is remembered", () => {
+    const doc = fakeDoc();
+    const { SND, made } = bootRuntime(1000, doc);
+    const btn = fakeEl(), vol = fakeEl(), store = memStore();
+    SND.mount(btn, vol, store);
+    expect(vol.value).toBe(String(Math.round(SFX_DEFAULT_VOLUME * 100)));
+    vol.value = "25"; vol.fire("input");
+    doc.fire("pointerdown", { target: vol });
+    const master = made.find((n) => n.kind === "gain" && n.to.some((d) => d.kind === "compressor")) as FakeNode & { gain: { value: number } };
+    expect(master.gain.value).toBeCloseTo(0.6 * 0.25);
+    vol.value = "100"; vol.fire("input");
+    expect(master.gain.value).toBeCloseTo(0.6);
+    expect(sfxPrefParse(store.v).volume).toBe(1);
+  });
+
+  it("the standalone page remembers in browser storage under ai-tcg.sound", () => {
+    const doc = fakeDoc();
+    const { SND, win } = bootRuntime(1000, doc);
+    const data: Record<string, string> = {};
+    win.localStorage = { getItem: (k: string) => data[k] ?? null, setItem: (k: string, v: string) => { data[k] = v; } };
+    const btn = fakeEl();
+    SND.mount(btn, null);
+    btn.fire("click");
+    expect(sfxPrefParse(data[SFX_PREF_KEY])).toEqual({ muted: true, volume: SFX_DEFAULT_VOLUME });
+  });
+
+  it("browser storage that throws (private window, blocked site data) just isn't remembered: sound still arms on", () => {
+    const doc = fakeDoc();
+    const { SND, win } = bootRuntime(1000, doc);
+    win.localStorage = { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); } };
+    const btn = fakeEl();
+    expect(() => SND.mount(btn, null)).not.toThrow();
+    expect(SND.state()).toBe("armed");
+    expect(() => btn.fire("click")).not.toThrow();
+    expect(SND.state()).toBe("muted");
+  });
+
+  it("a hidden tab suspends the context and the return resumes it", () => {
+    const doc = fakeDoc();
+    const { SND } = bootRuntime(1000, doc);
+    SND.mount(fakeEl(), null, memStore());
+    doc.fire("keydown", { target: {} });
+    expect(SND.stats().ctxState).toBe("running");
+    doc.visibilityState = "hidden"; doc.fire("visibilitychange");
+    expect(SND.stats().ctxState).toBe("suspended");
+    doc.visibilityState = "visible"; doc.fire("visibilitychange");
+    expect(SND.stats().ctxState).toBe("running");
   });
 });

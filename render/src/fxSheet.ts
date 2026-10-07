@@ -54,7 +54,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
 <div class="sheet" id="sheet2"></div>
 <h1>SOUND (slice 3): FACTION VOICES</h1>
 <p class="note">Every sound is synthesised in the browser (no files). Switch sound on, then click any cell to hear that event in that faction's voice, or play a whole row or column. Cortex: clean square-wave blips. Aegis: heavy metal clangs. Swarm: wet chitters and squelches. Null: broken pitch and glitch blips. Neutral: bells. The meaning stays the same in every voice: an impact always thumps, a heal always rises, a debuff always falls, a block always rings. The tier picks the volume.</p>
-<div class="ctl"><button id="snd">Sound: off</button> tier <select id="sndtier"><option>subtle</option><option selected>normal</option><option>spectacle</option></select> <span id="sndst"></span></div>
+<div class="ctl"><button id="snd">Sound on</button> volume <input type="range" id="sndvol" min="0" max="100" value="80" aria-label="Effects volume"> tier <select id="sndtier"><option>subtle</option><option selected>normal</option><option>spectacle</option></select> <span id="sndst"></span></div>
 <table class="snd" id="sndgrid"></table>
 <script type="application/json" id="fx-atlases">${JSON.stringify(fxAtlasDataUris())}</script>
 <script>
@@ -139,7 +139,7 @@ ${SOUND_FX_RUNTIME_SOURCE}
     else if (b.dataset.row) SFX_KINDS.forEach(function (k, i) { setTimeout(function () { hear(b.dataset.row, k, b); }, i * 650); });
     else if (b.dataset.col) FACTIONS.forEach(function (f, i) { setTimeout(function () { hear(f, b.dataset.col, b); }, i * 650); });
   };
-  document.getElementById('snd').onclick = function () { var on = SND.setOn(!SND.isOn()); this.textContent = on ? 'Sound: on' : 'Sound: off'; };
+  SND.mount(document.getElementById('snd'), document.getElementById('sndvol'));
   setInterval(function () { var s = SND.stats(); document.getElementById('sndst').textContent = s.on ? 'sounds ' + s.played + ' · voices ' + s.voices + ' · alive ' + s.active : ''; }, 300);
   document.getElementById('go2').onclick = categories;
   document.getElementById('go').onclick = volley;

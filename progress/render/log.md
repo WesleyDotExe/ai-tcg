@@ -1581,3 +1581,97 @@ Port the lab's music block: A minor, 104 BPM, Am–F–C–G, scheduled ahead on
 audio clock, with intensity driven by hits, kills and Mythics. Effects dip it
 to ~80% and it never drops out. Add its own toggle and a volume control, and
 reuse `SND`'s context and limiter.
+
+---
+
+## 2026-10-07 — Session 13: owner's slice-3 answers (number at the impact, sound on by default, mute remembered, effects volume)
+
+The last merged PR (#42, session 29) was the game lane, so this was a render
+session. The owner's 2026-10-07 entry answered the 7 slice-3 calls: keep 1, 3,
+4, 5 and 6; change 2 and 7. This session built the two changes and nothing
+else. Music (slice 4) stays next.
+
+**1. The damage number appears where the visual hit lands** (call 2).
+- `reactHp(..., landR)` in `renderHtml.ts`: when a strike or an effect landed
+  on that player this move, the number is placed on the impact point (the
+  centre of their row, `prevLandRects[pid]`), the way a hit on a card places
+  its number. The HP bar still flashes and drops as before; a spectacle hit
+  still flashes the panel.
+- A player health change with nothing landing on them (no strike or effect
+  aimed at them this move) keeps the number at the end of the bar's fill,
+  so a number never appears mid-board with no hit there.
+- EFFECTS.md Axis 1 updated.
+
+**2. Sound on by default, armed until the first gesture** (call 7).
+- `soundFx.ts`: `SND.arm(pref)` at load (no `AudioContext`), `SND.unlock()`
+  on the viewer's first pointer press or key press anywhere (Play counts,
+  so does the space bar or an arrow key). `SND.state()` is `muted`, `armed`
+  or `on`.
+- `SND.mount(button, slider, store)` wires the control: "🔊 Sound on"
+  (dashed border while armed), one click mutes ("🔇 Sound off", context
+  suspended). A press on the mute button never starts sound first.
+- **Effects volume** slider beside it (0-100, default 80): scales the
+  master bus (0.6 × volume) ahead of the limiter. Disabled while muted.
+- **Remembered:** `{ muted, volume }` through `sfxPrefParse` /
+  `sfxPrefSerialize`, saved on each change. The standalone replay uses
+  browser storage (`ai-tcg.sound`); the owner website will pass the
+  account's Sound setting through the same `{ read, write }` store. Only an
+  explicit mute is remembered as off; missing, junk or blocked storage means
+  sound on (and a throwing storage is caught).
+- **A hidden tab goes quiet** (context suspended on `visibilitychange`,
+  resumed on return if sound was on). This was named debt in session 12.
+- The FX sheet uses the same control.
+
+**Ran it.**
+- All six replays and the FX sheet regenerated; the match data is unchanged
+  (same 161-line diff in each replay, code only). The engine is untouched.
+- Headless Chromium, sound behaviour on `aegis-vs-null-seed3`
+  (scratch `snd2.mjs`):
+  1. fresh load: state `armed`, no AudioContext, button "🔊 Sound on";
+  2. press Play: context `running`, sounds playing;
+  3. one click on the indicator: `muted`, context `suspended`, stored
+     `{"muted":true,"volume":0.8}`;
+  4. reload: still muted, no context; 5. Play while muted: still no context;
+  6. click again: `on`, context running; 7. slider to 30: volume 0.3 stored;
+  8. reload: `armed` at volume 30; 9. first key press (ArrowRight) starts it;
+  10. with storage blocked (localStorage throws): mute still works, 0 errors.
+  0 page errors throughout.
+- Headless Chromium, every replay stepped move by move (scratch `num.mjs`),
+  each player health change matched to its floating number: 93 player
+  health changes across the six replays (16 / 13 / 19 / 20 / 16 / 9), 93
+  numbers within 4 px of the centre of that player's row (on the impact),
+  0 at the HP bar, 0 elsewhere, 0 missing, 0 page errors. Every health
+  change in these replays had a hit landing on the player, so the bar
+  fallback (no hit landed) is covered by its code path and tests, not by a
+  replay.
+- Stills in `progress/render/evidence/`:
+  - `v2-s3b-number-at-impact-spectacle-aegis-vs-cortex-seed6.png` (−6! on
+    the impact mid-board, the HP bar and panel flashing, the sound control
+    and slider at the bottom right);
+  - `v2-s3b-number-at-impact-normal-aegis-vs-null-seed3.png` (−2 at the
+    impact).
+- Tests: render 187 (was 177): `soundFx.test.ts` +10 (the setting's parse /
+  serialize / clamp; armed until a gesture; the mute-button press; the
+  remembered mute; the volume scaling the master bus; browser storage
+  round trip and a throwing storage; the hidden tab), `canvasFx.test.ts`
+  checks the number goes to the impact. `tsc --noEmit` clean in render.
+
+**Named honestly, not fixed:**
+- **The account's Sound setting doesn't exist yet**: the owner website
+  (build-order steps 3-4) will need to pass a store into `SND.mount`. The
+  seam is there; the website side isn't.
+- **The volume is measured as the master gain, not heard.** The analyser
+  tap from session 12 wasn't re-run at different volumes.
+- **A move where a player both takes a hit and pays a self-cost shows one
+  net number at the impact** (the HP delta is per move, not per cause). Same
+  as before, only the place moved.
+- **The number sits at the top of the impact box**, like a card's. On a
+  spectacle hit it can overlap the bottom edge of the opposing row's gap.
+- Still no music (slice 4) and no ward sounds (slices 5-6).
+
+**Next render-lane slice:** EFFECTS.md v2 slice 4, adaptive procedural music
+(unchanged from session 12): port the lab's music block (A minor, 104 BPM,
+Am–F–C–G, scheduled ahead on the audio clock, intensity driven by hits,
+kills and Mythics; effects dip it to ~80%, never drop out). Give it its own
+toggle and volume using the same armed / remembered pattern (`SND.mount`'s
+store holds both), and reuse `SND`'s context and limiter.

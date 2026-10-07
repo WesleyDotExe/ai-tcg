@@ -408,3 +408,15 @@ separate from the shared `progress/notes-for-owner.md`).
 4. **Mythic ward previews: nothing new.** No Mythic has been added since session 11, and `progress/render/mythic-wards-log.md` still doesn't exist.
 
 5. **No engine change was needed.**
+
+## 2026-10-07 — Session 13 (your slice-3 answers: number at the impact, sound on by default)
+
+1. **Your 2026-10-07 render answers are built.** Calls 2 and 7 changed; 1, 3, 4, 5 and 6 are as built. Open any replay in `render/output/`: sound starts on your first click (Play counts), the "🔊 Sound on" button mutes, the slider sets the effects volume, and both are remembered next time.
+
+2. **For the website (build-order step 3-4), one hook to wire:** the replay's sound control takes a store with `read()` / `write()`. The account's Sound setting should be that store, so a viewer muted on the website stays muted in every embedded replay. Nothing to decide now; it's recorded so the website session finds it.
+
+3. **Four small calls are in the render checkpoint** (default volume 80%, where the number sits, the greyed slider while muted, the FX sheet sharing the setting).
+
+4. **Mythic ward previews: nothing new.** `progress/render/mythic-wards-log.md` still doesn't exist.
+
+5. **No engine change was needed.**
