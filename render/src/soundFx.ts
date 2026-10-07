@@ -22,9 +22,16 @@
 //   - Panned by where it happens on screen, through a limiter (a hard
 //     compressor on the master bus), with a voice cap so a big volley can't
 //     pile up.
-//   - OFF by default. Browsers only allow audio after a viewer gesture, and
-//     the owner's spec says the viewer switches it on (a "Sound" toggle in
-//     the controls). Music is slice 4 and has its own toggle.
+//   - ON by default, armed (owner 2026-10-07, call 7). Browsers only allow
+//     audio after a viewer gesture, so the page arms sound at load and the
+//     AudioContext starts on the viewer's first click or key press anywhere
+//     (pressing Play counts). A small "Sound on" control mutes it in one
+//     click, with an effects volume slider beside it. Muting and the volume
+//     are remembered (sfxPrefParse / sfxPrefSerialize, under SFX_PREF_KEY):
+//     in browser storage for a standalone replay; the owner website will
+//     pass its own store holding the account's Sound setting through the
+//     same { read, write } seam (SND.mount). A muted viewer stays muted
+//     until they switch it back on. Music is slice 4 and has its own toggle.
 //
 // Same single-source rule as canvasFx.ts: the page embeds
 // SOUND_FX_PURE_SOURCE (the voice recipes: which oscillators and noise
@@ -58,6 +65,26 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
   // Aegis's metal and Neutral's bells: the inharmonic partials of a struck
   // bar (1, 2.76, 5.4), quieter the higher they go.
   var SFX_BELL = [1, 2.76, 5.4];
+  // The viewer's remembered sound setting: muted or not, and the effects
+  // volume (0-1). Anything unreadable falls back to the default: sound on
+  // at SFX_DEFAULT_VOLUME. Only an explicit mute is ever remembered as off.
+  var SFX_PREF_KEY = 'ai-tcg.sound';
+  var SFX_DEFAULT_VOLUME = 0.8;
+  function sfxClampVolume(v) {
+    v = Number(v);
+    if (v !== v) return SFX_DEFAULT_VOLUME;
+    return v < 0 ? 0 : v > 1 ? 1 : v;
+  }
+  function sfxPrefParse(raw) {
+    var p = null;
+    if (typeof raw === 'string') { try { p = JSON.parse(raw); } catch (e) { p = null; } }
+    else if (raw && typeof raw === 'object') p = raw;
+    if (!p || typeof p !== 'object') return { muted: false, volume: SFX_DEFAULT_VOLUME };
+    return { muted: p.muted === true, volume: p.volume === undefined ? SFX_DEFAULT_VOLUME : sfxClampVolume(p.volume) };
+  }
+  function sfxPrefSerialize(pref) {
+    return JSON.stringify({ muted: !!(pref && pref.muted), volume: sfxClampVolume(pref ? pref.volume : SFX_DEFAULT_VOLUME) });
+  }
 
   // sfxRecipe(kind, faction, tier, rand, o) -> a list of voices, each
   //   { k: 'tone', type, f0, f1?, dur, g, att?, delay?, steps?, detune?, filt?, ff?, q? }
@@ -158,7 +185,12 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
 
 export const SOUND_FX_RUNTIME_SOURCE = String.raw`
   var SND = (function () {
-    var AU = { ctx: null, on: false, master: null, comp: null, noise: null, active: 0 };
+    // want: the viewer wants sound (armed, or playing). on: the context is
+    // running and play() makes sound. vol: the effects volume, 0-1.
+    var AU = { ctx: null, on: false, want: false, vol: SFX_DEFAULT_VOLUME, hidden: false, master: null, comp: null, noise: null, active: 0 };
+    // The master bus level at full volume (the lab's 0.6); the effects
+    // volume scales it.
+    var MASTER = 0.6;
     var counts = { played: 0, voices: 0, capped: 0, repeats: 0 }, byKind = {}, last = {};
     function init() {
       if (AU.ctx) return true;
@@ -169,7 +201,7 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
       // The limiter: the lab's hard compressor on the master bus.
       var comp = C.createDynamicsCompressor();
       comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 10; comp.attack.value = 0.002; comp.release.value = 0.18;
-      var m = C.createGain(); m.gain.value = 0.6;
+      var m = C.createGain(); m.gain.value = MASTER * AU.vol;
       m.connect(comp); comp.connect(C.destination);
       AU.master = m; AU.comp = comp;
       // One second of white noise, shared by every noise voice.
@@ -240,14 +272,93 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
       return true;
     }
     function setOn(on) {
-      if (on && !init()) return false;
+      AU.want = !!on;
+      if (on && !init()) { AU.want = false; return false; }
       AU.on = !!on;
-      if (AU.ctx && AU.ctx.resume && on) AU.ctx.resume();
+      if (AU.ctx && AU.ctx.resume && on && !AU.hidden) AU.ctx.resume();
       if (AU.ctx && AU.ctx.suspend && !on) AU.ctx.suspend();
       return AU.on;
     }
-    var api = { play: play, setOn: setOn, isOn: function () { return AU.on; },
-      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, ctx: !!AU.ctx, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, byKind: k }; } };
+    // arm(pref): at page load, before any gesture. Remembers what the viewer
+    // wants without making a context (browsers refuse audio until a gesture).
+    function arm(pref) {
+      pref = sfxPrefParse(pref);
+      AU.want = !pref.muted;
+      setVolume(pref.volume);
+      return state();
+    }
+    // unlock(): called from a viewer gesture. Starts the armed sound; does
+    // nothing while muted or already playing.
+    function unlock() {
+      if (!AU.want || AU.on) return AU.on;
+      return setOn(true);
+    }
+    function setVolume(v) {
+      AU.vol = sfxClampVolume(v);
+      if (AU.master) AU.master.gain.value = MASTER * AU.vol;
+      return AU.vol;
+    }
+    // A hidden tab goes quiet (the context is suspended) and picks up again
+    // when the viewer comes back, if sound was on.
+    function setHidden(hidden) {
+      AU.hidden = !!hidden;
+      if (!AU.ctx || !AU.on) return;
+      if (AU.hidden && AU.ctx.suspend) AU.ctx.suspend();
+      if (!AU.hidden && AU.ctx.resume) AU.ctx.resume();
+    }
+    // 'muted' (the viewer switched it off), 'armed' (on, waiting for the
+    // first gesture) or 'on'.
+    function state() { return AU.on ? 'on' : AU.want ? 'armed' : 'muted'; }
+    // A store the page reads and writes the setting through: { read() ->
+    // anything sfxPrefParse takes, write(serialized) }. The standalone
+    // replay uses browser storage; storage can be missing or throw (a
+    // private window, blocked site data), and then the setting just isn't
+    // remembered.
+    function localStore() {
+      return {
+        read: function () { try { return window.localStorage.getItem(SFX_PREF_KEY); } catch (e) { return null; } },
+        write: function (v) { try { window.localStorage.setItem(SFX_PREF_KEY, v); } catch (e) { /* not remembered */ } },
+      };
+    }
+    // mount(btn, slider, store): wires the page's sound control. The first
+    // pointer press or key press anywhere starts armed sound (a press on the
+    // mute button itself just mutes); the button toggles and remembers;
+    // the slider sets and remembers the volume.
+    function mount(btn, slider, store) {
+      store = store || localStore();
+      arm(store.read());
+      function save() { store.write(sfxPrefSerialize({ muted: !AU.want, volume: AU.vol })); }
+      function show() {
+        var st = state();
+        btn.textContent = st === 'muted' ? '\u{1F507} Sound off' : '\u{1F50A} Sound on';
+        btn.title = st === 'muted' ? 'Sound is off. Click to switch it on.'
+          : st === 'armed' ? 'Sound is on and starts on your first click or key press. Click to mute.'
+          : 'Sound is on. Click to mute.';
+        btn.setAttribute('aria-pressed', String(st !== 'muted'));
+        btn.setAttribute('data-state', st);
+        if (btn.classList) { btn.classList.toggle('on', st !== 'muted'); btn.classList.toggle('armed', st === 'armed'); }
+        if (slider) slider.disabled = st === 'muted';
+      }
+      function gesture(ev) {
+        if (ev && ev.target && btn.contains && btn.contains(ev.target)) return;
+        if (state() === 'armed') { unlock(); show(); }
+      }
+      if (typeof document !== 'undefined' && document.addEventListener) {
+        document.addEventListener('pointerdown', gesture, true);
+        document.addEventListener('keydown', gesture, true);
+        document.addEventListener('visibilitychange', function () { setHidden(document.visibilityState === 'hidden'); });
+      }
+      btn.addEventListener('click', function () { setOn(state() === 'muted'); save(); show(); });
+      if (slider) {
+        slider.value = String(Math.round(AU.vol * 100));
+        slider.addEventListener('input', function () { setVolume(Number(slider.value) / 100); save(); });
+      }
+      show();
+      return { gesture: gesture, show: show };
+    }
+    var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
+      volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
+      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, byKind: k }; } };
     window.__sfx = api;
     return api;
   })();
@@ -271,17 +382,27 @@ export interface SfxVoice {
 }
 
 const pure = new Function(
-  `${SOUND_FX_PURE_SOURCE}; return { SFX_TIER_GAIN: SFX_TIER_GAIN, SFX_VOICE_CAP: SFX_VOICE_CAP, SFX_REPEAT_GAP_MS: SFX_REPEAT_GAP_MS, SFX_KINDS: SFX_KINDS, SFX_BELL: SFX_BELL, sfxVoiceOf: sfxVoiceOf, sfxTierGain: sfxTierGain, sfxPan: sfxPan, sfxRecipe: sfxRecipe };`,
+  `${SOUND_FX_PURE_SOURCE}; return { SFX_TIER_GAIN: SFX_TIER_GAIN, SFX_VOICE_CAP: SFX_VOICE_CAP, SFX_REPEAT_GAP_MS: SFX_REPEAT_GAP_MS, SFX_KINDS: SFX_KINDS, SFX_BELL: SFX_BELL, SFX_PREF_KEY: SFX_PREF_KEY, SFX_DEFAULT_VOLUME: SFX_DEFAULT_VOLUME, sfxVoiceOf: sfxVoiceOf, sfxTierGain: sfxTierGain, sfxPan: sfxPan, sfxRecipe: sfxRecipe, sfxClampVolume: sfxClampVolume, sfxPrefParse: sfxPrefParse, sfxPrefSerialize: sfxPrefSerialize };`,
 )() as {
   SFX_TIER_GAIN: Record<FxTier, number>;
   SFX_VOICE_CAP: number;
   SFX_REPEAT_GAP_MS: number;
   SFX_KINDS: SfxKind[];
   SFX_BELL: number[];
+  SFX_PREF_KEY: string;
+  SFX_DEFAULT_VOLUME: number;
+  sfxClampVolume: (v: unknown) => number;
+  sfxPrefParse: (raw: unknown) => SfxPref;
+  sfxPrefSerialize: (pref: Partial<SfxPref> | null | undefined) => string;
   sfxVoiceOf: (faction: string | undefined) => string;
   sfxTierGain: (tier: FxTier) => number;
   sfxPan: (x: number, width: number) => number;
   sfxRecipe: (kind: SfxKind, faction: string | undefined, tier: FxTier, rand: () => number, o?: { targetKind?: "unit" | "player"; victim?: string }) => SfxVoice[];
 };
 
-export const { SFX_TIER_GAIN, SFX_VOICE_CAP, SFX_REPEAT_GAP_MS, SFX_KINDS, SFX_BELL, sfxVoiceOf, sfxTierGain, sfxPan, sfxRecipe } = pure;
+export interface SfxPref {
+  muted: boolean;
+  volume: number;
+}
+
+export const { SFX_TIER_GAIN, SFX_VOICE_CAP, SFX_REPEAT_GAP_MS, SFX_KINDS, SFX_BELL, SFX_PREF_KEY, SFX_DEFAULT_VOLUME, sfxVoiceOf, sfxTierGain, sfxPan, sfxRecipe, sfxClampVolume, sfxPrefParse, sfxPrefSerialize } = pure;

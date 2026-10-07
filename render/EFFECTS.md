@@ -13,7 +13,7 @@ Every on-screen effect is (event category) × (faction material) × (magnitude t
 
 The grammar is CONSTANT across every faction and tier — a viewer learns it once.
 
-- attack → travel from the acting card to the target card, or **to the centre of the opponent's side of the board when the target is the player** (the middle of their row of slots, never their portrait/HUD; owner 2026-10-05) + impact on landing, with a ground mark there. The player's HP bar then reacts on their panel, timed to the impact: it flashes and the number rises from the bar, scaled by tier (a spectacle hit also flashes the whole panel and jolts the bar). The same rule holds for spells, heals and anything else whose target is a player; a card is still hit on the card itself.
+- attack → travel from the acting card to the target card, or **to the centre of the opponent's side of the board when the target is the player** (the middle of their row of slots, never their portrait/HUD; owner 2026-10-05) + impact on landing, with a ground mark there. The player's HP bar then reacts on their panel, timed to the impact: it flashes and drops, scaled by tier (a spectacle hit also flashes the whole panel and jolts the bar). The damage (or heal) number appears at the impact point on the board, placed as a hit on a card places its number (owner 2026-10-07); only a player health change with no visual landing on them (a self-cost) shows its number at the end of the HP bar's fill. The same rule holds for spells, heals and anything else whose target is a player; a card is still hit on the card itself.
 - spell / ability damage → travel from the card that used it; the faction decides the projectile form (see Axis 2)
 - defence / block → a shield takes the hit, ripples, deflects, and shatters when it breaks; "no effect" must always read as blocked
 - buff → rise + brighten, moving upward
@@ -100,8 +100,11 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 - **Voices (axis 2):** Cortex square-wave blips; Aegis inharmonic partials (1, 2.76, 5.4: struck metal); Swarm high-Q noise chitters and squelches; Null stepped, randomised pitch; Neutral sine/triangle bells only. An unknown faction gets the Neutral voice.
 - **Magnitude (axis 3)** scales every voice's gain: subtle 0.55, normal 1, spectacle 1.4.
 - **Mix:** master gain 0.6 into a hard compressor (threshold −16 dB, ratio 10, 2 ms attack) as the limiter; each voice panned by where it happens (±0.75 at the screen edges); at most 30 voices alive (more are dropped, never queued); the same sound in the same voice within 28 ms is dropped, so a Swarm volley reads as one chitter cloud.
-- **Off by default.** A "Sound: off" button in the replay controls creates the `AudioContext` on the viewer's click; switching it off suspends it. Nothing is created or played before that.
-- **Not yet:** ward sounds (rising chord, pulse, shatter) arrive with the wards (slices 5-6); music is slice 4 with its own toggle and volume.
+- **On by default, armed** (owner 2026-10-07, call 7; replaces "off by default"). Browsers refuse audio before a gesture, so the page arms sound at load (`SND.arm`) and the viewer's first pointer press or key press anywhere starts the `AudioContext` (`SND.unlock`; pressing Play counts). No context exists before that gesture.
+- **The control** (`SND.mount(button, slider, store)`): a "🔊 Sound on" button (dashed border while armed, waiting for the first gesture) that mutes in one click ("🔇 Sound off" suspends the context), and an effects volume slider beside it (0-100, default 80; it scales the master bus, 0.6 × volume, ahead of the limiter). A press on the mute button never starts sound first.
+- **Remembered:** `{ muted, volume }` (`sfxPrefParse` / `sfxPrefSerialize`), saved on every change. A standalone replay keeps it in browser storage under `ai-tcg.sound`; the owner website will pass its own store (the account's Sound setting) through the same `{ read, write }` seam. Only an explicit mute is remembered as off, so missing or broken storage means sound on. A muted viewer stays muted on the next page until they switch it back on.
+- **A hidden tab goes quiet:** the context is suspended while the tab is hidden and resumes when the viewer returns, if sound was on.
+- **Not yet:** ward sounds (rising chord, pulse, shatter) arrive with the wards (slices 5-6); music is slice 4 with its own toggle and volume, reusing the same armed/remembered pattern.
 
 ## Board layout (infrastructure every primitive relies on)
 
@@ -124,7 +127,7 @@ Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slo
 
 1. Canvas FX layer + floor layer over/under the existing DOM board; atlas loader with the tint cache; additive drawing with correct alpha. Port travel + impact to sprite materials. **Built, render session 10** (`render/src/canvasFx.ts`, sheet: `npm run fx-sheet -w @ai-tcg/render`).
 2. Faction material kits for every category in the table above (spell damage, removal, heal, buff, debuff variants included), plus magnitude polish: hit-stop, colour split, camera punch, lingering debris and ground marks, warping grid. **Built, render session 11** (`render/src/effectFx.ts` + `canvasFx.ts`; see "Slice 2 as built").
-3. Procedural sound effects with faction voices (port the lab's `SFX`), toggles off by default. **Built, render session 12** (`render/src/soundFx.ts`; see "Slice 3 as built"; audition grid in the FX sheet).
+3. Procedural sound effects with faction voices (port the lab's `SFX`); on by default and armed until the first gesture, mute remembered, effects volume (owner 2026-10-07). **Built, render sessions 12-13** (`render/src/soundFx.ts`; see "Slice 3 as built"; audition grid in the FX sheet).
 4. Adaptive procedural music (port the lab's music block), no kill dropout.
 5. Faction wards for signature abilities, driven by `signatureAbilities`.
 6. Mythic unique wards: permanent layered ward, the four behaviours, Mythic card treatment, shatter on death; read everything from `mythics.json`.

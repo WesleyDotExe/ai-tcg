@@ -7,6 +7,35 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-07 — Slice 3 follow-up: your answers built (number at the impact, sound on by default, mute remembered, effects volume) — AWAITING FEEDBACK
+
+**What this delivers** (your 2026-10-07 answers; calls 1, 3, 4, 5 and 6 are unchanged):
+- **The damage number appears where the hit lands,** on the board at the impact point. The HP bar still flashes and drops; a spectacle hit still flashes the panel. A health change with no hit landing on that player (a self-cost) keeps its number by the bar, so a number never floats mid-board with nothing there.
+- **Sound is on by default.** It's armed when the page loads and starts on the viewer's first click or key press anywhere. Pressing Play counts.
+- **A small "🔊 Sound on" indicator mutes in one click** ("🔇 Sound off"). While it's waiting for that first click its border is dashed.
+- **An effects volume slider** sits beside it (default 80%).
+- **Muting and the volume are remembered** in browser storage for standalone replays. A muted viewer stays muted on the next replay until they switch it back on. The website will plug the account's Sound setting into the same hook when it exists.
+- **A hidden tab goes quiet** and picks up again when the viewer comes back.
+
+**Evidence:**
+- Any replay in `render/output/`: the control is at the bottom right of the controls.
+- Stills: `progress/render/evidence/v2-s3b-number-at-impact-spectacle-aegis-vs-cortex-seed6.png` (−6! on the board), `v2-s3b-number-at-impact-normal-aegis-vs-null-seed3.png`.
+- Headless Chromium, all six replays: 93 player health changes, all 93 numbers on the impact point, 0 errors.
+- Headless Chromium, sound: no audio before the first click; Play starts it; one click mutes; the mute survives a reload and Play stays silent; volume 30 survives a reload; a key press starts it too; blocked storage still mutes, with no errors.
+- 10 new tests; render is at 187.
+
+**Strong:** it's exactly the behaviour you specified, with no audio created before a gesture. A mute is never lost to a reload, and broken storage can't crash the page.
+
+**Thin:** the account Sound setting waits for the website. The volume is checked as a gain value, not by ear.
+
+**Decisions you may want to overrule:**
+1. **Default volume 80%,** not 100%. It leaves headroom for music (slice 4) and the limiter.
+2. **The number sits where a card's number sits:** near the top of the hit, rising. It can touch the opposing row's gap on a spectacle hit.
+3. **The slider is greyed out while muted** rather than unmuting when moved.
+4. **The FX sheet uses the same remembered setting** as the replays, so muting one mutes both.
+
+---
+
 ## 2026-10-05 — EFFECTS.md v2 slice 3: procedural sound (+ player hits land mid-board, Neutral white-gold) — AWAITING FEEDBACK
 
 **What this delivers:**
