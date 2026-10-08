@@ -2512,3 +2512,35 @@ v1 rows. `npm test` 387/387 and `tsc` clean in all six workspaces.
 
 **Blocked:** nothing. Next game-lane session: build-order step 2 (sign-in, one connected agent,
 switching, generating an agent with its signature card, the house-agent admin data).
+
+
+## 2026-10-08 — Session 30 (owner's 2026-10-07 economy entries; build-order step 2, part 1)
+
+Game-lane session: the last merged PR (#44) was render. Owner feedback first. Two unhandled
+economy entries (2026-10-07: manual salvage; the amendment keeping 3/3/2/1) said "before or
+alongside step 2", so both are done here, and both are marked handled. The render entry of
+2026-10-07 was done by PR #44 and is now marked too. Not a hardening pass.
+
+**Built (owner 2026-10-07):**
+- Salvage is manual only: card + quantity, the card viewer's "why not" for every copy, and a
+  warning listing decks a salvage would leave short. A confirmed salvage marks those decks
+  incomplete and never edits them.
+- Decks count cards and share copies: any held copy fills a slot.
+- Promo and prize copies are account-bound (migration 3, with a backfill).
+
+**Built (step 2, part 1):**
+- Season 0 sign-in: scrypt hashes, token sessions stored as hashes, the same answer for an
+  unknown login, a per-account lockout, the admin flag.
+- One connected agent per owner, and no switching during a live match.
+- `startMatch` / `recordMatch` bracket every live match.
+- The faction lock, and the house-owner admin data.
+
+**Ran it:** `npm run demo -w @ai-tcg/economy` played 42 real Lookahead matches, all started and
+recorded through the live-match path. The mid-match switch was refused, the deck-short salvage
+was warned and then confirmed, and both decks recovered after two more pulls. Output:
+`progress/economy-demo-003.txt`, byte-identical across two runs. 15 new economy tests (43);
+`npm test` 412/412, `tsc` clean in all six workspaces.
+
+**Blocked:** nothing. **Calls for the owner** (notes-for-owner.md): promo and prize binding also
+means they can never be sold later, one live match per owner, no password reset yet. Next
+game-lane session: generating a new agent, starting with the engine's signature zone.

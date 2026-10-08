@@ -28,3 +28,19 @@ export const SALVAGE_PACK_POINTS: Readonly<Record<Rarity, number>> = { Common: 5
 /** Pack points to craft one standard-finish copy (about 8x salvage). Crafting
  * itself is built with the pack session; the number lives here now. */
 export const CRAFT_PACK_POINTS: Readonly<Record<Rarity, number>> = { Common: 40, Uncommon: 80, Rare: 250, Mythic: 800 };
+
+/** Season 0 sign-in (owner app spec C.1). A password needs at least this
+ * many characters; nothing else is required of it. */
+export const PASSWORD_MIN_LENGTH = 10;
+
+/** scrypt cost for new password hashes: N = 2^15, r = 8, p = 1 (about 32 MB
+ * and tens of milliseconds per hash). The cost is stored inside each hash, so
+ * raising it later re-hashes each password at its owner's next sign-in. */
+export const SCRYPT_COST = { log2N: 15, r: 8, p: 1 } as const;
+
+/** A sign-in session lasts this many days, then the owner signs in again. */
+export const SESSION_DAYS = 30;
+
+/** After this many failed sign-ins for one login within the window, that
+ * login is refused (without checking the password) until the window passes. */
+export const SIGN_IN_LOCKOUT = { failures: 10, windowMinutes: 15 } as const;

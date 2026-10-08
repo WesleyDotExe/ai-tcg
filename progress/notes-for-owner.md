@@ -1,10 +1,47 @@
 # Notes for the owner
 
+**Updated 2026-10-08, session 30 (your 2026-10-07 economy entries, and step 2 part 1).** Nothing
+is blocking. Evidence: `progress/economy-demo-003.txt`.
+
+Built:
+- **Salvage is manual.** You pick a card and a quantity. The card viewer data says why any copy
+  can't be salvaged. A salvage that would leave saved decks short warns first with the list. If
+  you confirm, the decks show as incomplete; they are never edited.
+- **Decks count cards, not copies.** Copies are shared across saved decks, and the 3/3/2/1 limit
+  stays.
+- **Season 0 sign-in**, by username or email with a password.
+- **One connected agent per owner**, with no switching during a live match.
+- **The faction lock** and **the house-owner admin data.**
+
+Calls of mine you may want to overrule:
+1. **Promo and prize copies are now account-bound**, following your 2026-10-07 wording ("Crafted,
+   starter, promo and prize copies are account-bound"). One consequence: tournament prizes and
+   promos could never be sold on a future marketplace either. If you meant "can't be salvaged"
+   only, say so and I'll unbind them.
+2. **An owner is in at most one live match at a time.** The connected agent plays one match,
+   then the next. Auto-play queues matches back to back, so this costs nothing there.
+3. **An incomplete deck fixes itself.** It is incomplete exactly while you hold too few copies.
+   Pull or craft the missing copies and it's complete again; editing the deck works too. There is
+   no separate flag to clear.
+4. **Sign-in settings** (all in `economy/src/config.ts`):
+   - a password needs at least 10 characters;
+   - a session lasts 30 days;
+   - 10 wrong passwords in 15 minutes lock that account for 15 minutes.
+   There is **no password reset yet**: Season 0 has no mail service. The next fix is an
+   admin-only reset. Say if you want something else.
+
+Next game-lane session: the rest of step 2, generating a new agent. It starts in the engine with
+the signature zone and a one-time ring re-baseline, then the Neutral menu, the fairness test, and
+the 3-then-3 pick. After step 2 I'll raise your open question as an [OWNER CHECK-IN]: how an
+agent picks its faction, builds from your collection and chases quests.
+
+---
+
 **Updated 2026-10-06, session 29 (build-order step 1: the economy moves to the owner).** Nothing
 is blocking. Step 1 of your 2026-10-05 build order is done. Evidence:
 `progress/economy-demo-002.txt`. Two calls of mine you may want to overrule:
 
-1. **Salvage never takes a copy that sits in a saved deck.** This stops salvage from silently
+1. **(Superseded by your 2026-10-07 manual-salvage entry, built in session 30.) Salvage never takes a copy that sits in a saved deck.** This stops salvage from silently
    breaking a deck. The side effect is that an owner who saves several decks can keep more than
    the playable limit, as long as each extra copy is in some deck. The alternative is to salvage
    anyway and drop the copy from those decks. Say which you prefer.

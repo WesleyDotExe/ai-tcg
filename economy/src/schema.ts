@@ -15,7 +15,11 @@
 //    salvage at all;
 //  - (v2) an owner's own agents never play each other, and each side of a
 //    match is played by an agent of that side's owner;
-//  - (v2) the starter collection is granted once per owner.
+//  - (v2) the starter collection is granted once per owner;
+//  - (v3) promo and prize copies are account-bound too; an owner connects
+//    only its own agent and can't switch it during a live match; a live
+//    match is played by both owners' connected agents, one per owner at a
+//    time; a stored password is always a scrypt hash.
 //
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
@@ -32,8 +36,13 @@ export const COPY_ORIGINS = ["pack", "crafted", "starter", "promo", "prize"] as 
 export type CopyOrigin = (typeof COPY_ORIGINS)[number];
 
 /** Origins whose copies are always account-bound: playable, never sold,
- * never salvaged. */
-export const BOUND_ORIGINS: readonly CopyOrigin[] = ["crafted", "starter"];
+ * never salvaged. v2 bound crafted and starter copies; v3 adds promo and
+ * prize copies (owner 2026-10-07). */
+export const BOUND_ORIGINS: readonly CopyOrigin[] = ["crafted", "starter", "promo", "prize"];
+
+/** The factions an owner can lock its connected agent to (the engine's deck
+ * factions; Neutral is never a deck's faction). */
+export const LOCKABLE_FACTIONS = ["Cortex", "Swarm", "Aegis", "Null"] as const;
 
 export const OWNER_KINDS = ["player", "house"] as const;
 export type OwnerKind = (typeof OWNER_KINDS)[number];
@@ -55,6 +64,10 @@ const inList = (values: readonly string[]) => `(${values.map((v) => `'${v}'`).jo
 // Migration 1's lists, frozen: a shipped migration must read exactly as it
 // did when it shipped, even after the live lists above change.
 const V1_COPY_SOURCES = ["pack", "starter", "promo", "packPoints", "tournament"] as const;
+// Migration 2's and 3's lists, frozen for the same reason.
+const V2_BOUND_ORIGINS = ["crafted", "starter"] as const;
+const V3_BOUND_ORIGINS = ["crafted", "starter", "promo", "prize"] as const;
+const V3_DECK_FACTIONS = ["Cortex", "Swarm", "Aegis", "Null"] as const;
 
 export const MIGRATIONS: readonly string[] = [
   // 1: the Stage 4 persistence base (session 28).
@@ -281,7 +294,7 @@ export const MIGRATIONS: readonly string[] = [
     CHECK (series_kind <> 'promo' OR stamp IS NOT NULL),
     CHECK ((disposed_at IS NULL) = (disposed_reason IS NULL)),
     -- Crafted and starter copies are always account-bound.
-    CHECK (origin NOT IN ${inList(BOUND_ORIGINS)} OR account_bound = 1),
+    CHECK (origin NOT IN ${inList(V2_BOUND_ORIGINS)} OR account_bound = 1),
     -- Only an unbound, standard-finish set copy from a pack ever salvages.
     CHECK (disposed_reason IS NOT 'salvaged'
            OR (origin = 'pack' AND account_bound = 0 AND finish = 'standard' AND series_kind = 'set'))
@@ -425,5 +438,90 @@ export const MIGRATIONS: readonly string[] = [
     OR (NEW.p1_deck IS NOT NULL AND NOT EXISTS (SELECT 1 FROM decks WHERE deck_id = NEW.p1_deck AND owner_id = NEW.p1_owner))
     OR (NEW.p2_deck IS NOT NULL AND NOT EXISTS (SELECT 1 FROM decks WHERE deck_id = NEW.p2_deck AND owner_id = NEW.p2_owner))
   BEGIN SELECT RAISE(ABORT, 'each side must be played by its own owner''s agent and deck'); END;
+  `,
+
+  // 3: owner accounts and agents (session 30; build-order step 2 of the
+  // owner's 2026-10-05 entry, owner app spec B and C.1, and the 2026-10-07
+  // manual-salvage entry).
+  //  - Promo and prize copies are account-bound too ("Crafted, starter,
+  //    promo and prize copies are account-bound", owner 2026-10-07). v2
+  //    bound them by CHECK for crafted/starter only; a CHECK can't change
+  //    without a table rebuild, so the new rule is a trigger plus a backfill.
+  //  - Season 0 sign-in: one login per owner (username, optional email), a
+  //    scrypt password hash (never the password), and sessions stored by the
+  //    SHA-256 of their token (never the token). Failed sign-ins are logged
+  //    so repeated guessing locks the login for a while.
+  //  - One connected agent per owner, which must be the owner's own; no
+  //    switching or disconnecting while the owner has a live match.
+  //  - The owner's faction lock setting (applies to whichever agent is
+  //    connected).
+  //  - Live matches: a row from start to record. An owner is in at most one
+  //    live match at a time, played by its connected agent.
+  `
+  UPDATE card_copies SET account_bound = 1 WHERE origin IN ('promo', 'prize') AND account_bound = 0;
+  CREATE TRIGGER copy_bound_by_origin BEFORE INSERT ON card_copies
+  WHEN NEW.origin IN ${inList(V3_BOUND_ORIGINS)} AND NEW.account_bound = 0
+  BEGIN SELECT RAISE(ABORT, 'crafted, starter, promo and prize copies are always account-bound'); END;
+
+  CREATE TABLE logins (
+    owner_id            TEXT PRIMARY KEY REFERENCES owners(owner_id),
+    username            TEXT NOT NULL UNIQUE COLLATE NOCASE CHECK (length(username) BETWEEN 3 AND 32),
+    email               TEXT UNIQUE COLLATE NOCASE CHECK (email IS NULL OR email LIKE '%_@_%'),
+    password_hash       TEXT NOT NULL CHECK (password_hash LIKE 'scrypt$%'),
+    is_admin            INTEGER NOT NULL DEFAULT 0 CHECK (is_admin IN (0, 1)),
+    created_at          TEXT NOT NULL,
+    password_changed_at TEXT NOT NULL
+  );
+
+  CREATE TABLE sessions (
+    token_hash  TEXT PRIMARY KEY CHECK (length(token_hash) = 64),
+    owner_id    TEXT NOT NULL REFERENCES owners(owner_id),
+    created_at  TEXT NOT NULL,
+    expires_at  TEXT NOT NULL,
+    revoked_at  TEXT,
+    CHECK (expires_at > created_at)
+  );
+  CREATE INDEX sessions_by_owner ON sessions(owner_id);
+
+  CREATE TABLE sign_in_failures (
+    login TEXT NOT NULL COLLATE NOCASE,
+    at    TEXT NOT NULL
+  );
+  CREATE INDEX sign_in_failures_by_login ON sign_in_failures(login, at);
+
+  ALTER TABLE owners ADD COLUMN connected_agent_id TEXT REFERENCES agents(agent_id);
+  ALTER TABLE owners ADD COLUMN faction_lock TEXT CHECK (faction_lock IS NULL OR faction_lock IN ${inList(V3_DECK_FACTIONS)});
+
+  CREATE TRIGGER connected_agent_owned BEFORE UPDATE OF connected_agent_id ON owners
+  WHEN NEW.connected_agent_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM agents WHERE agent_id = NEW.connected_agent_id AND owner_id = NEW.owner_id)
+  BEGIN SELECT RAISE(ABORT, 'an owner can only connect one of its own agents'); END;
+
+  CREATE TABLE live_matches (
+    match_id   TEXT PRIMARY KEY,
+    p1_owner   TEXT NOT NULL REFERENCES owners(owner_id),
+    p2_owner   TEXT NOT NULL REFERENCES owners(owner_id),
+    p1_agent   TEXT NOT NULL REFERENCES agents(agent_id),
+    p2_agent   TEXT NOT NULL REFERENCES agents(agent_id),
+    started_at TEXT NOT NULL,
+    CHECK (p1_owner <> p2_owner)
+  );
+
+  CREATE TRIGGER live_match_connected BEFORE INSERT ON live_matches
+  WHEN NOT EXISTS (SELECT 1 FROM owners WHERE owner_id = NEW.p1_owner AND connected_agent_id = NEW.p1_agent)
+    OR NOT EXISTS (SELECT 1 FROM owners WHERE owner_id = NEW.p2_owner AND connected_agent_id = NEW.p2_agent)
+  BEGIN SELECT RAISE(ABORT, 'each side of a live match is played by its owner''s connected agent'); END;
+  CREATE TRIGGER live_match_one_per_owner BEFORE INSERT ON live_matches
+  WHEN EXISTS (SELECT 1 FROM live_matches
+               WHERE p1_owner IN (NEW.p1_owner, NEW.p2_owner) OR p2_owner IN (NEW.p1_owner, NEW.p2_owner))
+  BEGIN SELECT RAISE(ABORT, 'an owner is already in a live match'); END;
+  CREATE TRIGGER live_match_not_recorded BEFORE INSERT ON live_matches
+  WHEN EXISTS (SELECT 1 FROM matches WHERE match_id = NEW.match_id)
+  BEGIN SELECT RAISE(ABORT, 'that match is already recorded'); END;
+
+  CREATE TRIGGER no_switch_during_live_match BEFORE UPDATE OF connected_agent_id ON owners
+  WHEN NEW.connected_agent_id IS NOT OLD.connected_agent_id AND EXISTS (
+    SELECT 1 FROM live_matches WHERE p1_owner = NEW.owner_id OR p2_owner = NEW.owner_id)
+  BEGIN SELECT RAISE(ABORT, 'no switching or disconnecting agents during a live match'); END;
   `,
 ];
