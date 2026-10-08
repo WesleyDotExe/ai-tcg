@@ -1,12 +1,21 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { buildDeck, COPY_LIMITS, getCard, SHIPPED_DECK_LISTS, type Card, type DeckFaction, type DeckSpec } from "@ai-tcg/engine";
-import { PACK_PRICE_CREDITS, SALVAGE_PACK_POINTS, STARTER_PACKS } from "./config.js";
+import { buildDeck, deckFaction, getCard, SHIPPED_DECK_LISTS, type Card, type DeckFaction, type DeckSpec, type Rarity } from "@ai-tcg/engine";
+import {
+  PACK_PRICE_CREDITS,
+  PASSWORD_MIN_LENGTH,
+  SALVAGE_PACK_POINTS,
+  SESSION_DAYS,
+  SIGN_IN_LOCKOUT,
+  STARTER_PACKS,
+} from "./config.js";
+import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./passwords.js";
 import { matchCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 import {
   BOUND_ORIGINS,
   COPY_ORIGINS,
   FINISHES,
+  LOCKABLE_FACTIONS,
   MIGRATIONS,
   OWNER_KINDS,
   PACK_SOURCES,
@@ -48,6 +57,12 @@ export interface OwnerRecord {
   startingFaction: DeckFaction | null;
   starterGrantedAt: string | null;
   activeDeckId: string | null;
+  /** The one agent playing for this owner right now, if any (owner app
+   * spec B). Switching it changes only the signature card in play. */
+  connectedAgentId: string | null;
+  /** The owner's faction lock setting: the connected agent may only play a
+   * deck of this faction. Null is the default, free. */
+  factionLock: DeckFaction | null;
   createdAt: string;
 }
 
@@ -172,9 +187,122 @@ export interface StarterGrant {
   packs: PackRecord[];
 }
 
+/** A saved deck that uses more copies of a card than the owner would hold. */
+export interface DeckShortfall {
+  deckId: string;
+  name: string;
+  /** Copies of the card the deck uses. */
+  uses: number;
+  /** Copies the owner holds (after the salvage, in a salvage plan). */
+  owned: number;
+  /** True when it is the owner's active deck. */
+  active: boolean;
+}
+
+/** What the card viewer shows for one card in the owner's collection
+ * (owner 2026-10-07): how many are held, how many can be salvaged and for
+ * how much, why the rest can't, and which saved decks use it. */
+export interface CardHoldings {
+  cardId: string;
+  rarity: Rarity;
+  owned: number;
+  salvageable: number;
+  packPointsEach: number;
+  /** Every copy that can't be salvaged, grouped by the reason shown. */
+  notSalvageable: { reason: string; count: number }[];
+  decks: { deckId: string; name: string; uses: number; active: boolean }[];
+}
+
+export interface SalvagePlan {
+  cardId: string;
+  quantity: number;
+  /** The copies that would go: unbound standard pack copies, those listed in
+   * no saved deck first, newest first. */
+  copies: CardCopy[];
+  packPoints: number;
+  ownedAfter: number;
+  /** Saved decks that would be left using more copies than the owner holds.
+   * The owner must confirm before these are salvaged below. */
+  affectedDecks: DeckShortfall[];
+}
+
 export interface SalvageResult {
   copies: CardCopy[];
   packPoints: number;
+  /** Decks the owner confirmed would become incomplete. */
+  incompleteDecks: DeckShortfall[];
+}
+
+export interface DeckStatus {
+  deckId: string;
+  name: string;
+  ownerId: string;
+  active: boolean;
+  /** False when the owner holds fewer copies of some card than the deck
+   * uses (after a confirmed salvage, say). An incomplete deck can't be
+   * played until the owner holds the copies again or edits the deck. */
+  complete: boolean;
+  missing: { cardId: string; uses: number; owned: number }[];
+  cards: number;
+}
+
+/** A Season 0 sign-in session. The token is only ever returned here, once;
+ * the store keeps its SHA-256. */
+export interface SignInResult {
+  token: string;
+  ownerId: string;
+  expiresAt: string;
+}
+
+export interface SessionInfo {
+  ownerId: string;
+  isAdmin: boolean;
+  expiresAt: string;
+}
+
+export interface LoginInput {
+  username: string;
+  email?: string | null;
+  password: string;
+  isAdmin?: boolean;
+}
+
+export interface LiveSide {
+  ownerId: string;
+  agentId: string;
+  deck: PlayableDeck;
+}
+
+export interface LiveMatch {
+  matchId: string;
+  startedAt: string;
+  p1: LiveSide;
+  p2: LiveSide;
+}
+
+/** One house owner as the admin view shows it (owner app spec C.10). */
+export interface HouseOwnerRow {
+  owner: OwnerRecord;
+  agents: AgentRecord[];
+  connectedAgent: AgentRecord | null;
+  credits: number;
+  packPoints: number;
+  copies: number;
+  unopenedPacks: number;
+  stats: OwnerStats;
+  inLiveMatch: boolean;
+}
+
+/** The salvage refusal that needs the owner's say-so: it would leave saved
+ * decks short. `affectedDecks` lists them for the warning. */
+export class SalvageNeedsConfirmation extends Error {
+  constructor(readonly affectedDecks: DeckShortfall[]) {
+    super(
+      `salvaging would leave ${affectedDecks.length} saved deck(s) short: ` +
+        affectedDecks.map((d) => `"${d.name}" uses ${d.uses}, ${d.owned} left`).join("; ") +
+        ". Confirm to salvage anyway; those decks are then incomplete until fixed",
+    );
+  }
 }
 
 /** Owner-level match stats (owner app spec, Stats page), optionally filtered
@@ -193,6 +321,27 @@ export interface OwnerStats {
 }
 
 export class EconomyError extends Error {}
+
+const FINISH_LABEL: Readonly<Record<Finish, string>> = {
+  standard: "Standard",
+  foil: "Foil",
+  fullArt: "Full Art",
+  altArt: "Alt Art",
+  gold: "Gold",
+  prototype: "Prototype",
+  tournament: "Tournament",
+};
+
+/** Why a copy can't be salvaged, in the card viewer's words, or null when it
+ * can (owner 2026-10-07: only unbound standard-finish pack copies salvage). */
+export function salvageBlockReason(copy: Pick<CardCopy, "accountBound" | "origin" | "finish" | "seriesKind">): string | null {
+  if (copy.accountBound) return `Account-bound (${copy.origin} copy): it can be played, never salvaged`;
+  if (copy.finish !== "standard") return `${FINISH_LABEL[copy.finish]} copies are never salvaged`;
+  if (copy.seriesKind !== "set" || copy.origin !== "pack") return `Only standard copies pulled from packs can be salvaged`;
+  return null;
+}
+
+const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 
 type Row = Record<string, unknown>;
 
@@ -328,6 +477,8 @@ export class EconomyStore {
       startingFaction: null,
       starterGrantedAt: null,
       activeDeckId: null,
+      connectedAgentId: null,
+      factionLock: null,
       createdAt: this.stamp(),
     };
     if (!OWNER_KINDS.includes(owner.kind)) throw new EconomyError(`unknown owner kind "${owner.kind}"`);
@@ -359,6 +510,8 @@ export class EconomyStore {
       startingFaction: strOrNull(row.starting_faction) as DeckFaction | null,
       starterGrantedAt: strOrNull(row.starter_granted_at),
       activeDeckId: strOrNull(row.active_deck_id),
+      connectedAgentId: strOrNull(row.connected_agent_id),
+      factionLock: strOrNull(row.faction_lock) as DeckFaction | null,
       createdAt: str(row.created_at),
     };
   }
@@ -385,6 +538,140 @@ export class EconomyStore {
       const packs = Array.from({ length: STARTER_PACKS }, () => this.grantPack(ownerId, setCode, "starter"));
       return { copies, packs };
     });
+  }
+
+  // ---- accounts: Season 0 sign-in (owner app spec C.1) ----
+  //
+  // Self-contained: scrypt from node:crypto, sessions in this file, no
+  // external identity service. Passwords and tokens are never stored, only
+  // their hashes. Owner kinds don't matter here: a house owner can have a
+  // login too, but needn't.
+
+  /** A new owner account with its login, in one transaction (the title
+   * screen's "create account"). */
+  createAccount(input: LoginInput & { name: string; kind?: OwnerKind }): OwnerRecord {
+    return this.transaction(() => {
+      const owner = this.createOwner({ name: input.name, kind: input.kind });
+      this.addLogin(owner.ownerId, input);
+      return owner;
+    });
+  }
+
+  /** Gives an existing owner a login. One per owner. */
+  addLogin(ownerId: string, input: LoginInput): void {
+    const username = input.username.trim();
+    const email = input.email?.trim() || null;
+    if (!/^[A-Za-z0-9_.-]{3,32}$/.test(username)) {
+      throw new EconomyError("a username is 3 to 32 letters, digits, dots, dashes or underscores");
+    }
+    if (email !== null && !/^[^@\s]+@[^@\s]+$/.test(email)) throw new EconomyError("that email address doesn't look right");
+    this.checkPassword(input.password);
+    const at = this.stamp();
+    try {
+      this.db
+        .prepare(
+          `INSERT INTO logins (owner_id, username, email, password_hash, is_admin, created_at, password_changed_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(ownerId, username, email, hashPassword(input.password), input.isAdmin === true ? 1 : 0, at, at);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (/UNIQUE.*logins\.owner_id/.test(message)) throw new EconomyError("this owner already has a login");
+      if (/UNIQUE.*logins\.username/.test(message)) throw new EconomyError("that username is taken");
+      if (/UNIQUE.*logins\.email/.test(message)) throw new EconomyError("that email address is already in use");
+      refused(err);
+    }
+  }
+
+  private checkPassword(password: string): void {
+    if ([...password].length < PASSWORD_MIN_LENGTH) throw new EconomyError(`a password needs at least ${PASSWORD_MIN_LENGTH} characters`);
+  }
+
+  /** The login matching a username or an email, either case. */
+  private loginRow(login: string): Row | undefined {
+    const l = login.trim();
+    return this.db.prepare("SELECT * FROM logins WHERE username = ? OR email = ?").get(l, l) as Row | undefined;
+  }
+
+  /** Signs in with a username or email and a password, and returns a new
+   * session token (shown once; the store keeps only its hash). A wrong
+   * password and an unknown login get the same message and cost the same
+   * scrypt time. After SIGN_IN_LOCKOUT.failures failures in the window, the
+   * login is refused until the window passes, right password or not. */
+  signIn(login: string, password: string): SignInResult {
+    const row = this.loginRow(login);
+    // Failures are counted per account when the login names one, so typing
+    // the username one time and the email the next doesn't double the tries.
+    const failureKey = row ? `owner:${str(row.owner_id)}` : `login:${login.trim().toLowerCase()}`;
+    const now = this.now();
+    const windowStart = new Date(now.getTime() - SIGN_IN_LOCKOUT.windowMinutes * 60_000).toISOString();
+    const recent = num(
+      (this.db.prepare("SELECT COUNT(*) AS n FROM sign_in_failures WHERE login = ? AND at > ?").get(failureKey, windowStart) as Row).n,
+    );
+    if (recent >= SIGN_IN_LOCKOUT.failures) {
+      throw new EconomyError(`too many failed sign-ins; try again in ${SIGN_IN_LOCKOUT.windowMinutes} minutes`);
+    }
+    const ok = verifyPassword(password, row ? str(row.password_hash) : dummyHash()) && row !== undefined;
+    if (!ok) {
+      this.db.prepare("INSERT INTO sign_in_failures (login, at) VALUES (?, ?)").run(failureKey, now.toISOString());
+      throw new EconomyError("wrong login or password");
+    }
+    const ownerId = str(row.owner_id);
+    return this.transaction(() => {
+      this.db.prepare("DELETE FROM sign_in_failures WHERE login = ?").run(failureKey);
+      if (needsRehash(str(row.password_hash))) {
+        this.db.prepare("UPDATE logins SET password_hash = ? WHERE owner_id = ?").run(hashPassword(password), ownerId);
+      }
+      return this.openSession(ownerId);
+    });
+  }
+
+  private openSession(ownerId: string): SignInResult {
+    const token = randomBytes(32).toString("base64url");
+    const createdAt = this.stamp();
+    const expiresAt = new Date(this.now().getTime() + SESSION_DAYS * 86_400_000).toISOString();
+    this.db
+      .prepare("INSERT INTO sessions (token_hash, owner_id, created_at, expires_at) VALUES (?, ?, ?, ?)")
+      .run(sha256(token), ownerId, createdAt, expiresAt);
+    return { token, ownerId, expiresAt };
+  }
+
+  /** The owner a session token belongs to. Refused for an unknown, expired
+   * or signed-out token. */
+  authenticate(token: string): SessionInfo {
+    const row = this.db
+      .prepare(
+        `SELECT s.owner_id, s.expires_at, s.revoked_at, COALESCE(l.is_admin, 0) AS is_admin
+         FROM sessions s LEFT JOIN logins l ON l.owner_id = s.owner_id WHERE s.token_hash = ?`,
+      )
+      .get(sha256(token)) as Row | undefined;
+    if (!row || row.revoked_at !== null || str(row.expires_at) <= this.stamp()) throw new EconomyError("not signed in");
+    return { ownerId: str(row.owner_id), isAdmin: num(row.is_admin) === 1, expiresAt: str(row.expires_at) };
+  }
+
+  /** Settings → Account → Sign out: ends this session. */
+  signOut(token: string): void {
+    this.db.prepare("UPDATE sessions SET revoked_at = ? WHERE token_hash = ? AND revoked_at IS NULL").run(this.stamp(), sha256(token));
+  }
+
+  /** Changes the password after checking the current one, and signs out
+   * every session the owner has. */
+  changePassword(ownerId: string, current: string, next: string): void {
+    const row = this.db.prepare("SELECT password_hash FROM logins WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    if (!row) throw new EconomyError("this owner has no login");
+    if (!verifyPassword(current, str(row.password_hash))) throw new EconomyError("wrong password");
+    this.checkPassword(next);
+    this.transaction(() => {
+      const at = this.stamp();
+      this.db.prepare("UPDATE logins SET password_hash = ?, password_changed_at = ? WHERE owner_id = ?").run(hashPassword(next), at, ownerId);
+      this.db.prepare("UPDATE sessions SET revoked_at = ? WHERE owner_id = ? AND revoked_at IS NULL").run(at, ownerId);
+    });
+  }
+
+  /** Admin accounts see Settings → Admin (owner app spec C.9). */
+  isAdmin(ownerId: string): boolean {
+    const row = this.db.prepare("SELECT is_admin FROM logins WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    return row !== undefined && num(row.is_admin) === 1;
   }
 
   // ---- agents ----
@@ -419,6 +706,136 @@ export class EconomyStore {
 
   private agentFromRow(row: Row): AgentRecord {
     return { agentId: str(row.agent_id), ownerId: str(row.owner_id), name: str(row.name), createdAt: str(row.created_at) };
+  }
+
+  // ---- the connected agent (owner app spec B) ----
+
+  /** Connects one of the owner's own agents, replacing whichever was
+   * connected. Only the signature card in play changes: the collection,
+   * decks, wallet, caps and stats stay with the owner. Refused during the
+   * owner's live match, by the schema as well as here. */
+  connectAgent(ownerId: string, agentId: string): void {
+    const agent = this.getAgent(agentId);
+    if (agent.ownerId !== ownerId) throw new EconomyError("an owner can only connect one of its own agents");
+    this.setConnected(ownerId, agentId);
+  }
+
+  /** Disconnects the owner's agent (none plays until another connects). */
+  disconnectAgent(ownerId: string): void {
+    this.setConnected(ownerId, null);
+  }
+
+  private setConnected(ownerId: string, agentId: string | null): void {
+    if (this.liveMatchOf(ownerId) !== null) throw new EconomyError("no switching or disconnecting agents during a live match");
+    try {
+      this.db.prepare("UPDATE owners SET connected_agent_id = ? WHERE owner_id = ?").run(agentId, ownerId);
+    } catch (err) {
+      refused(err);
+    }
+  }
+
+  connectedAgent(ownerId: string): AgentRecord | null {
+    const id = this.getOwner(ownerId).connectedAgentId;
+    return id === null ? null : this.getAgent(id);
+  }
+
+  /** The owner's faction lock (Settings → Play), or null to free it. It
+   * applies to whichever agent is connected: matches start only with an
+   * active deck of that faction. Returns whether the current active deck
+   * already fits. */
+  setFactionLock(ownerId: string, faction: DeckFaction | null): { activeDeckFits: boolean } {
+    if (faction !== null && !(LOCKABLE_FACTIONS as readonly string[]).includes(faction)) {
+      throw new EconomyError(`can't lock to "${faction}"`);
+    }
+    try {
+      this.db.prepare("UPDATE owners SET faction_lock = ? WHERE owner_id = ?").run(faction, ownerId);
+    } catch (err) {
+      refused(err);
+    }
+    const active = this.getOwner(ownerId).activeDeckId;
+    return { activeDeckFits: faction === null || (active !== null && this.deckFactionOf(active) === faction) };
+  }
+
+  // ---- live matches ----
+
+  /** Starts a match between two owners (opponents are server-assigned).
+   * Each side is played by the owner's connected agent with the owner's
+   * active deck, loaded from the copies held now. Refused: the same owner
+   * on both sides, an owner without a connected agent or an active deck, an
+   * incomplete or illegal deck, a deck outside the faction lock, and an
+   * owner already in a live match. Until `recordMatch` closes it, neither
+   * owner can switch or disconnect its agent. */
+  startMatch(input: { matchId: string; p1OwnerId: string; p2OwnerId: string }): LiveMatch {
+    if (input.p1OwnerId === input.p2OwnerId) throw new EconomyError("an owner's own agents never play each other in rewarded play");
+    return this.transaction(() => {
+      if (this.db.prepare("SELECT 1 FROM live_matches WHERE match_id = ?").get(input.matchId)) {
+        throw new EconomyError(`match "${input.matchId}" is already live`);
+      }
+      const side = (ownerId: string): LiveSide => {
+        const owner = this.getOwner(ownerId);
+        if (owner.connectedAgentId === null) throw new EconomyError(`owner "${owner.name}" has no connected agent`);
+        if (owner.activeDeckId === null) throw new EconomyError(`owner "${owner.name}" has no active deck`);
+        if (this.liveMatchOf(ownerId) !== null) throw new EconomyError(`owner "${owner.name}" is already in a live match`);
+        const deck = this.loadDeck(owner.activeDeckId);
+        if (owner.factionLock !== null && deckFaction(deck.spec.cards) !== owner.factionLock) {
+          throw new EconomyError(`owner "${owner.name}" is locked to ${owner.factionLock}; the active deck isn't`);
+        }
+        return { ownerId, agentId: owner.connectedAgentId, deck };
+      };
+      const p1 = side(input.p1OwnerId);
+      const p2 = side(input.p2OwnerId);
+      const startedAt = this.stamp();
+      try {
+        this.db
+          .prepare("INSERT INTO live_matches (match_id, p1_owner, p2_owner, p1_agent, p2_agent, started_at) VALUES (?, ?, ?, ?, ?, ?)")
+          .run(input.matchId, p1.ownerId, p2.ownerId, p1.agentId, p2.agentId, startedAt);
+      } catch (err) {
+        refused(err);
+      }
+      return { matchId: input.matchId, startedAt, p1, p2 };
+    });
+  }
+
+  /** The live match the owner is in, if any. */
+  liveMatchOf(ownerId: string): { matchId: string; startedAt: string } | null {
+    const row = this.db.prepare("SELECT match_id, started_at FROM live_matches WHERE p1_owner = ? OR p2_owner = ?").get(ownerId, ownerId) as
+      | Row
+      | undefined;
+    return row ? { matchId: str(row.match_id), startedAt: str(row.started_at) } : null;
+  }
+
+  /** Every live match, oldest first (Watch live's source list). */
+  liveMatches(): { matchId: string; p1OwnerId: string; p2OwnerId: string; p1AgentId: string; p2AgentId: string; startedAt: string }[] {
+    return (this.db.prepare("SELECT * FROM live_matches ORDER BY started_at, rowid").all() as Row[]).map((r) => ({
+      matchId: str(r.match_id),
+      p1OwnerId: str(r.p1_owner),
+      p2OwnerId: str(r.p2_owner),
+      p1AgentId: str(r.p1_agent),
+      p2AgentId: str(r.p2_agent),
+      startedAt: str(r.started_at),
+    }));
+  }
+
+  // ---- admin: house owners (owner app spec C.10) ----
+
+  /** The admin view's data: every house owner with its agents, connected
+   * agent, wallet, collection size, unopened packs, stats and live state.
+   * The caller checks `isAdmin` (the store holds the data, the server
+   * holds the boundary). */
+  houseRoster(): HouseOwnerRow[] {
+    return this.listOwners()
+      .filter((o) => o.kind === "house")
+      .map((owner) => ({
+        owner,
+        agents: this.listAgents(owner.ownerId),
+        connectedAgent: this.connectedAgent(owner.ownerId),
+        credits: this.balance(owner.ownerId, "credits"),
+        packPoints: this.balance(owner.ownerId, "packPoints"),
+        copies: this.collection(owner.ownerId).length,
+        unopenedPacks: this.unopenedPacks(owner.ownerId).length,
+        stats: this.ownerStats(owner.ownerId),
+        inLiveMatch: this.liveMatchOf(owner.ownerId) !== null,
+      }));
   }
 
   // ---- ledger ----
@@ -557,48 +974,101 @@ export class EconomyStore {
     };
   }
 
-  // ---- salvage ----
+  // ---- salvage (manual only, owner 2026-10-07) ----
+  //
+  // Nothing is ever salvaged automatically. The owner picks a card and a
+  // quantity in the card viewer and confirms; pack points are paid in the
+  // same transaction. Owners may hold as many copies as they like.
 
-  /** The copies that would salvage right now (owner 2026-10-05): for each
-   * card the owner holds more of than its playable limit (3/3/2/1), the
-   * extras, taken only from unbound standard-finish pack copies of the set.
-   * Every copy counts toward the limit, bound ones included, but bound
-   * copies, finishes, promos, prizes and numbered copies are never picked.
-   * Copies sitting in a saved deck are skipped, so a salvage never breaks a
-   * deck; the newest eligible copies go first. */
-  salvageableCopies(ownerId: string): CardCopy[] {
-    const inDeck = new Set(
+  /** The card viewer's data for one card: copies held, how many salvage and
+   * for how much, why the rest can't, and the saved decks that use it. */
+  cardHoldings(ownerId: string, cardId: string): CardHoldings {
+    const card = getCard(cardId);
+    if (!card) throw new EconomyError(`no ownable card with id "${cardId}"`);
+    const copies = this.collection(ownerId).filter((c) => c.cardId === cardId);
+    const reasons = new Map<string, number>();
+    let salvageable = 0;
+    for (const c of copies) {
+      const why = salvageBlockReason(c);
+      if (why === null) salvageable++;
+      else reasons.set(why, (reasons.get(why) ?? 0) + 1);
+    }
+    const activeDeckId = this.getOwner(ownerId).activeDeckId;
+    const decks = this.deckUses(ownerId, cardId).map((d) => ({ ...d, active: d.deckId === activeDeckId }));
+    return {
+      cardId,
+      rarity: card.rarity,
+      owned: copies.length,
+      salvageable,
+      packPointsEach: SALVAGE_PACK_POINTS[card.rarity],
+      notSalvageable: [...reasons].map(([reason, count]) => ({ reason, count })),
+      decks,
+    };
+  }
+
+  /** How many copies of a card each of the owner's saved decks uses. */
+  private deckUses(ownerId: string, cardId: string): { deckId: string; name: string; uses: number }[] {
+    return (
+      this.db
+        .prepare(
+          `SELECT d.deck_id, d.name, COUNT(*) AS uses
+           FROM decks d JOIN deck_copies dc ON dc.deck_id = d.deck_id JOIN card_copies c ON c.copy_id = dc.copy_id
+           WHERE d.owner_id = ? AND c.card_id = ?
+           GROUP BY d.deck_id ORDER BY d.created_at, d.rowid`,
+        )
+        .all(ownerId, cardId) as Row[]
+    ).map((r) => ({ deckId: str(r.deck_id), name: str(r.name), uses: num(r.uses) }));
+  }
+
+  /** What salvaging `quantity` copies of a card would do, without doing it.
+   * Refused when the quantity is more than the owner can salvage, with the
+   * reasons the other copies can't go. */
+  salvagePlan(ownerId: string, cardId: string, quantity: number): SalvagePlan {
+    if (!Number.isInteger(quantity) || quantity < 1) throw new EconomyError(`salvage needs a whole quantity of at least 1, got ${quantity}`);
+    const holdings = this.cardHoldings(ownerId, cardId);
+    if (quantity > holdings.salvageable) {
+      const why = holdings.notSalvageable.map((r) => `${r.count} x ${r.reason}`).join("; ");
+      throw new EconomyError(
+        `can't salvage ${quantity} of "${cardId}": ${holdings.salvageable} of ${holdings.owned} held can be salvaged${why ? ` (${why})` : ""}`,
+      );
+    }
+    const listed = new Set(
       (this.db
         .prepare("SELECT dc.copy_id FROM deck_copies dc JOIN decks d ON d.deck_id = dc.deck_id WHERE d.owner_id = ?")
         .all(ownerId) as Row[]).map((r) => str(r.copy_id)),
     );
-    const byCard = new Map<string, CardCopy[]>();
-    for (const c of this.collection(ownerId)) byCard.set(c.cardId, [...(byCard.get(c.cardId) ?? []), c]);
-    const picked: CardCopy[] = [];
-    for (const [cardId, copies] of byCard) {
-      const card = getCard(cardId);
-      if (!card) continue;
-      const extras = copies.length - COPY_LIMITS[card.rarity];
-      if (extras <= 0) continue;
-      const eligible = copies
-        .filter((c) => !c.accountBound && c.origin === "pack" && c.finish === "standard" && c.seriesKind === "set" && !inDeck.has(c.copyId))
-        .reverse();
-      picked.push(...eligible.slice(0, extras));
-    }
-    return picked;
+    // Copies are shared across decks, so which copy goes doesn't change any
+    // deck's count; copies no deck lists go first so a deck keeps the exact
+    // copies it was saved with where it can. Newest first after that.
+    const eligible = this.collection(ownerId)
+      .filter((c) => c.cardId === cardId && salvageBlockReason(c) === null)
+      .reverse()
+      .sort((a, b) => Number(listed.has(a.copyId)) - Number(listed.has(b.copyId)));
+    const ownedAfter = holdings.owned - quantity;
+    return {
+      cardId,
+      quantity,
+      copies: eligible.slice(0, quantity),
+      packPoints: quantity * holdings.packPointsEach,
+      ownedAfter,
+      affectedDecks: holdings.decks
+        .filter((d) => d.uses > ownedAfter)
+        .map((d) => ({ deckId: d.deckId, name: d.name, uses: d.uses, owned: ownedAfter, active: d.active })),
+    };
   }
 
-  /** Salvages every extra copy `salvageableCopies` names, in one
-   * transaction: each is marked disposed (not deleted) and pays its pack
-   * points to the owner. The ledger allows one salvage payout per copy, and
-   * the schema refuses to salvage a bound or non-pack copy even by raw SQL. */
-  salvageExtras(ownerId: string): SalvageResult {
+  /** Salvages `quantity` copies of one card, the owner's own choice. Each
+   * copy is marked disposed (not deleted) and pays its pack points in the
+   * same transaction. If it would leave saved decks short, it is refused with
+   * `SalvageNeedsConfirmation` listing them unless `confirmDeckImpact` is set;
+   * a deck is never edited, it is reported incomplete until fixed. The
+   * schema refuses salvaging a bound copy or a finish even by raw SQL. */
+  salvage(ownerId: string, cardId: string, quantity: number, options: { confirmDeckImpact?: boolean } = {}): SalvageResult {
     return this.transaction(() => {
-      const copies = this.salvageableCopies(ownerId);
+      const plan = this.salvagePlan(ownerId, cardId, quantity);
+      if (plan.affectedDecks.length > 0 && options.confirmDeckImpact !== true) throw new SalvageNeedsConfirmation(plan.affectedDecks);
       const at = this.stamp();
-      let packPoints = 0;
-      for (const c of copies) {
-        const points = SALVAGE_PACK_POINTS[getCard(c.cardId)!.rarity];
+      for (const c of plan.copies) {
         try {
           this.db
             .prepare("UPDATE card_copies SET disposed_at = ?, disposed_reason = 'salvaged' WHERE copy_id = ? AND disposed_at IS NULL")
@@ -606,10 +1076,9 @@ export class EconomyStore {
         } catch (err) {
           refused(err);
         }
-        this.appendLedger(ownerId, null, "packPoints", points, "salvage", c.copyId, at);
-        packPoints += points;
+        this.appendLedger(ownerId, null, "packPoints", plan.packPoints / plan.quantity, "salvage", c.copyId, at);
       }
-      return { copies, packPoints };
+      return { copies: plan.copies, packPoints: plan.packPoints, incompleteDecks: plan.affectedDecks };
     });
   }
 
@@ -619,27 +1088,53 @@ export class EconomyStore {
    * Ownership is checked here and again by the schema; the deck must also be
    * legal by the engine's own rules (copy limits, size, one faction plus
    * capped neutrals, the pool lint), so a deck that saves is a deck that
-   * plays. One copy may sit in several saved decks. Bound copies play like
-   * any other. */
+   * plays. Copies are shared across saved decks, not reserved (owner
+   * 2026-10-07): owning 2 copies lets every deck use up to 2. Bound copies
+   * play like any other. */
   saveDeck(ownerId: string, name: string, copyIds: readonly string[]): PlayableDeck {
+    const spec = this.checkDeckCopies(ownerId, name, copyIds);
+    const deckId = randomUUID();
+    this.transaction(() => {
+      try {
+        this.db.prepare("INSERT INTO decks (deck_id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(deckId, ownerId, name, this.stamp());
+        this.writeDeckCopies(deckId, copyIds);
+      } catch (err) {
+        refused(err);
+      }
+    });
+    return { deckId, name, copyIds: [...copyIds], spec };
+  }
+
+  /** Replaces a saved deck's list (how an owner fixes an incomplete deck),
+   * under the same checks as saving one. */
+  updateDeck(ownerId: string, deckId: string, copyIds: readonly string[]): PlayableDeck {
+    const status = this.deckStatus(deckId);
+    if (status.ownerId !== ownerId) throw new EconomyError(`deck "${status.name}" belongs to another owner`);
+    const spec = this.checkDeckCopies(ownerId, status.name, copyIds);
+    this.transaction(() => {
+      try {
+        this.db.prepare("DELETE FROM deck_copies WHERE deck_id = ?").run(deckId);
+        this.writeDeckCopies(deckId, copyIds);
+      } catch (err) {
+        refused(err);
+      }
+    });
+    return { deckId, name: status.name, copyIds: [...copyIds], spec };
+  }
+
+  private checkDeckCopies(ownerId: string, name: string, copyIds: readonly string[]): DeckSpec {
     if (new Set(copyIds).size !== copyIds.length) throw new EconomyError(`deck "${name}" lists the same copy twice`);
     const copies = copyIds.map((id) => this.getCopy(id));
     for (const c of copies) {
       if (c.ownerId !== ownerId) throw new EconomyError(`deck "${name}": copy ${c.copyId} belongs to another owner`);
       if (c.disposedAt !== null) throw new EconomyError(`deck "${name}": copy ${c.copyId} is no longer owned`);
     }
-    const spec = this.legalSpec(name, copies);
-    const deckId = randomUUID();
-    this.transaction(() => {
-      try {
-        this.db.prepare("INSERT INTO decks (deck_id, owner_id, name, created_at) VALUES (?, ?, ?, ?)").run(deckId, ownerId, name, this.stamp());
-        const add = this.db.prepare("INSERT INTO deck_copies (deck_id, copy_id) VALUES (?, ?)");
-        for (const id of copyIds) add.run(deckId, id);
-      } catch (err) {
-        refused(err);
-      }
-    });
-    return { deckId, name, copyIds: [...copyIds], spec };
+    return this.legalSpec(name, copies);
+  }
+
+  private writeDeckCopies(deckId: string, copyIds: readonly string[]): void {
+    const add = this.db.prepare("INSERT INTO deck_copies (deck_id, copy_id) VALUES (?, ?)");
+    for (const id of copyIds) add.run(deckId, id);
   }
 
   /** Groups copies by card and runs the engine's deck builder, which throws
@@ -660,8 +1155,14 @@ export class EconomyStore {
     }
   }
 
-  /** The owner's active deck: whichever agent is connected plays it. */
+  /** The owner's active deck: whichever agent is connected plays it. With a
+   * faction lock set, only a deck of that faction can be made active. */
   setActiveDeck(ownerId: string, deckId: string): void {
+    const lock = this.getOwner(ownerId).factionLock;
+    if (lock !== null) {
+      const faction = this.deckFactionOf(deckId);
+      if (faction !== lock) throw new EconomyError(`the owner's faction lock is ${lock}; this deck is ${faction}`);
+    }
     try {
       this.db.prepare("UPDATE owners SET active_deck_id = ? WHERE owner_id = ?").run(deckId, ownerId);
     } catch (err) {
@@ -669,23 +1170,90 @@ export class EconomyStore {
     }
   }
 
-  /** Loads a saved deck for play, re-checking that every copy is still owned
-   * and the deck is still legal (a card pool change can make an old deck
-   * illegal). The returned spec's player slot is set by the caller. */
-  loadDeck(deckId: string): PlayableDeck {
+  private deckFactionOf(deckId: string): DeckFaction {
+    const cards = this.deckListing(deckId).listed.map((l) => getCard(l.cardId)).filter((c): c is Card => c !== undefined);
+    return deckFaction(cards);
+  }
+
+  /** A deck's saved list: the copies it was saved with, in order, and each
+   * one's card (disposed copies included, so the card counts survive). */
+  private deckListing(deckId: string): { name: string; ownerId: string; listed: { copyId: string; cardId: string }[] } {
     const deck = this.db.prepare("SELECT * FROM decks WHERE deck_id = ?").get(deckId) as Row | undefined;
     if (!deck) throw new EconomyError(`no deck "${deckId}"`);
-    const name = str(deck.name);
-    const copyIds = (this.db.prepare("SELECT copy_id FROM deck_copies WHERE deck_id = ? ORDER BY rowid").all(deckId) as Row[]).map((r) =>
-      str(r.copy_id),
-    );
-    const copies = copyIds.map((id) => this.getCopy(id));
-    for (const c of copies) {
-      if (c.ownerId !== str(deck.owner_id) || c.disposedAt !== null) {
-        throw new EconomyError(`deck "${name}": copy ${c.copyId} is no longer owned by the deck's owner`);
+    const listed = (
+      this.db
+        .prepare("SELECT dc.copy_id, c.card_id FROM deck_copies dc JOIN card_copies c ON c.copy_id = dc.copy_id WHERE dc.deck_id = ? ORDER BY dc.rowid")
+        .all(deckId) as Row[]
+    ).map((r) => ({ copyId: str(r.copy_id), cardId: str(r.card_id) }));
+    return { name: str(deck.name), ownerId: str(deck.owner_id), listed };
+  }
+
+  /** Resolves a deck's list against what the owner holds now. A deck
+   * counts cards, not particular copies: each slot keeps the copy it was
+   * saved with while the owner still holds it, and otherwise takes another
+   * held copy of the same card (oldest first). A slot no held copy can fill
+   * is missing. */
+  private resolveDeck(deckId: string) {
+    const { name, ownerId, listed } = this.deckListing(deckId);
+    const held = new Map<string, string[]>();
+    for (const c of this.collection(ownerId)) held.set(c.cardId, [...(held.get(c.cardId) ?? []), c.copyId]);
+    const used = new Set<string>();
+    const slots: (string | null)[] = listed.map((l) => {
+      if (held.get(l.cardId)?.includes(l.copyId)) {
+        used.add(l.copyId);
+        return l.copyId;
       }
+      return null;
+    });
+    const missing = new Map<string, { uses: number; owned: number }>();
+    listed.forEach((l, i) => {
+      if (slots[i] !== null) return;
+      const spare = (held.get(l.cardId) ?? []).find((id) => !used.has(id));
+      if (spare !== undefined) {
+        used.add(spare);
+        slots[i] = spare;
+        return;
+      }
+      const uses = listed.filter((x) => x.cardId === l.cardId).length;
+      missing.set(l.cardId, { uses, owned: held.get(l.cardId)?.length ?? 0 });
+    });
+    return { name, ownerId, slots, missing };
+  }
+
+  /** Whether a saved deck can be played with what the owner holds now. */
+  deckStatus(deckId: string): DeckStatus {
+    const { name, ownerId, slots, missing } = this.resolveDeck(deckId);
+    return {
+      deckId,
+      name,
+      ownerId,
+      active: this.getOwner(ownerId).activeDeckId === deckId,
+      complete: missing.size === 0,
+      missing: [...missing].map(([cardId, m]) => ({ cardId, ...m })),
+      cards: slots.length,
+    };
+  }
+
+  /** The owner's saved decks, oldest first, each with its status. */
+  listDecks(ownerId: string): DeckStatus[] {
+    return (this.db.prepare("SELECT deck_id FROM decks WHERE owner_id = ? ORDER BY created_at, rowid").all(ownerId) as Row[]).map((r) =>
+      this.deckStatus(str(r.deck_id)),
+    );
+  }
+
+  /** Loads a saved deck for play from the copies the owner holds now (a
+   * deck counts cards; copies are shared across decks), and re-checks it is
+   * legal (a card pool change can make an old deck illegal). Refused while
+   * the deck is incomplete. The returned spec's player slot is set by the
+   * caller. */
+  loadDeck(deckId: string): PlayableDeck {
+    const { name, slots, missing } = this.resolveDeck(deckId);
+    if (missing.size > 0) {
+      const what = [...missing].map(([cardId, m]) => `${getCard(cardId)?.name ?? cardId} (uses ${m.uses}, holds ${m.owned})`).join(", ");
+      throw new EconomyError(`deck "${name}" is incomplete: ${what}`);
     }
-    return { deckId, name, copyIds, spec: this.legalSpec(name, copies) };
+    const copyIds = slots as string[];
+    return { deckId, name, copyIds, spec: this.legalSpec(name, copyIds.map((id) => this.getCopy(id))) };
   }
 
   // ---- packs ----
@@ -756,7 +1324,10 @@ export class EconomyStore {
   /** Records a finished match and pays both owners for it, in one
    * transaction, each payout marked with the agent that played. Refused: the
    * same match id twice, a winner or abandoner who didn't play, and two
-   * agents of the same owner (no self-play farming). */
+   * agents of the same owner (no self-play farming). A match begun with
+   * `startMatch` ends its live state here (a cancel or abandon included). A
+   * match id that was never started is still recorded, for offline history
+   * and tests; the server records only matches it started. */
   recordMatch(input: RecordMatchInput): MatchRecord {
     // Normalised to ISO UTC so the day the tally counts is the string's
     // first ten characters.
@@ -793,6 +1364,15 @@ export class EconomyStore {
       // gets a clear message rather than a constraint error.
       if (this.db.prepare("SELECT 1 FROM matches WHERE match_id = ?").get(input.matchId)) {
         throw new EconomyError(`match "${input.matchId}" is already recorded`);
+      }
+      // A match started with startMatch must be recorded with the agents
+      // that started it, and recording it ends the live match.
+      const live = this.db.prepare("SELECT p1_agent, p2_agent FROM live_matches WHERE match_id = ?").get(input.matchId) as Row | undefined;
+      if (live) {
+        if (str(live.p1_agent) !== p1 || str(live.p2_agent) !== p2) {
+          throw new EconomyError(`match "${input.matchId}" was started by other agents`);
+        }
+        this.db.prepare("DELETE FROM live_matches WHERE match_id = ?").run(input.matchId);
       }
       const p1Credits = matchCredits(resultFor(owner1), this.dailyTally(owner1, endedAt));
       const p2Credits = matchCredits(resultFor(owner2), this.dailyTally(owner2, endedAt));

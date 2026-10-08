@@ -25,11 +25,44 @@ session 23 (the Null consistency trim, 40 -> 36), session 24 (the
 neutral pool), session 25 (the owner's agent checks: card
 advantage, Null's cards), session 26 (the Phase 5 gate), session 27 (Phase 5
 closed, event-log instance ids), session 28 (persistence + the economy spec), and now session 29
-(the economy moves to the owner).
+(the economy moves to the owner), and now session 30 (manual salvage, sign-in, the connected
+agent).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
+## New debt from session 30
+
+- **Nothing outside the demo and tests calls sign-in or `startMatch` yet.** The match server still
+  runs one hard-coded match, and there are no HTTP endpoints. The permission boundary ("only the
+  signed-in owner acts for itself", "only admins see the roster") belongs to the step-3 server and
+  isn't written.
+- **`recordMatch` still accepts a match that was never started.** That keeps offline history and
+  the older tests working, but it means "one connected agent, not during a live match" holds only
+  for callers that use `startMatch`. Once the server records matches, recordMatch should refuse
+  unstarted ids (or take an explicit offline flag).
+- **A live match can go stale.** If the server dies mid-match, the `live_matches` row stays and
+  locks both owners' agents until someone records a cancel. There is no expiry, and no startup
+  sweep.
+- **No password reset or account recovery, and no email verification.** A self-contained
+  Season 0 has no mail service. A forgotten password needs an admin reset path, which isn't built.
+  The email field is optional and unverified.
+- **The lockout can be used against a known username.** Ten wrong guesses lock the real owner
+  out for 15 minutes. That's the usual trade-off; there's no per-source limit because the store
+  doesn't see network addresses (the server must add one).
+- **Sessions and failure rows are never cleaned up.** Expired sessions and old failures stay in
+  the file. They're tiny, but they grow forever.
+- **Slot filling ignores finish.** When a deck's saved copy is gone, the oldest held copy fills the
+  slot, even if the owner would rather show a Gold one. There's no per-deck finish preference.
+- **Deck and holdings reads load the whole collection.** `listDecks` is decks x collection, which
+  is fine for Season 0 sizes and untested at scale.
+- **The tests reach the private `db` through a cast** to check what's stored (no plaintext
+  password or token) and the re-hash. It works, but it's brittle.
+
 ## New debt from session 29
+
+(Session 30 status: the salvage-in-deck rule is replaced by the owner's manual salvage, sign-in
+exists, the connected agent is enforced at `startMatch`, and the demo is byte-reproducible. The
+items below are kept as written, with those four now resolved.)
 
 - **"One connected agent at a time" isn't enforced.** Owners can have many agents, and nothing
   stops two of them playing at once for the same owner (against different opponents). Both would

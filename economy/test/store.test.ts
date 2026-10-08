@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { getCard, SHIPPED_DECK_LISTS } from "@ai-tcg/engine";
-import { EconomyError, EconomyStore, PACK_PRICE_CREDITS, SALVAGE_PACK_POINTS, STARTER_PACKS } from "../src/index.js";
+import { EconomyError, EconomyStore, PACK_PRICE_CREDITS, SALVAGE_PACK_POINTS, SalvageNeedsConfirmation, STARTER_PACKS } from "../src/index.js";
 
 const DAY1 = "2026-10-05T10:00:00.000Z";
 let clock = new Date(DAY1);
@@ -34,10 +34,10 @@ function win(store: EconomyStore, matchId: string, winner: string, loser: string
 const AEGIS_COMMON = SHIPPED_DECK_LISTS.Aegis.find((e) => e.copies === 3 && getCard(e.cardId)?.rarity === "Common")!.cardId;
 
 describe("EconomyStore: schema and persistence", () => {
-  it("creates the schema at v2 for Season 0, and survives close + reopen from its file", () => {
+  it("creates the schema at v3 for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(2);
+    expect(a.schemaVersion).toBe(3);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -46,7 +46,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(2);
+    expect(b.schemaVersion).toBe(3);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -86,7 +86,7 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
     `);
     v1.close();
 
-    const s = open(path);
+    const s = open(path, 2);
     expect(s.schemaVersion).toBe(2);
     const owners = s.listOwners();
     expect(owners.map((o) => [o.ownerId, o.name, o.kind, o.startingFaction, o.activeDeckId])).toEqual([
@@ -119,15 +119,28 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
     const [m1, m2] = s.matchHistory();
     expect([m1!.p1OwnerId, m1!.p1AgentId, m1!.winnerOwnerId, m1!.winnerAgentId, m1!.p1DeckId]).toEqual(["owner-a1", "a1", "owner-a1", "a1", "d1"]);
     expect([m2!.outcome, m2!.abandonedByOwnerId]).toEqual(["abandoned", "owner-a2"]);
+    s.close();
+
+    // v2 -> v3: the prize copy becomes account-bound (owner 2026-10-07), and
+    // nothing else about the history changes.
+    const v3 = open(path);
+    expect(v3.schemaVersion).toBe(3);
+    expect(v3.getCopy("c-prize").accountBound).toBe(true);
+    expect(v3.getCopy("c-pack").accountBound).toBe(false);
+    expect(v3.listOwners().map((o) => [o.connectedAgentId, o.factionLock])).toEqual([
+      [null, null],
+      [null, null],
+    ]);
     // The v1 daily tally carries over per owner: a1's next win that day is its 2nd.
-    const c = s.createOwner({ name: "newcomer" });
-    const cAgent = s.createAgent({ ownerId: c.ownerId, name: "newcomer-agent" });
-    expect(win(s, "m3", "a1", cAgent.agentId).p1Credits).toBe(10);
-    // Foreign keys are back on after the migration.
-    expect(() => s.unsafeExec(`INSERT INTO agents (agent_id, owner_id, name, created_at) VALUES ('x', 'no-such-owner', 'x', '${at}')`)).toThrow(
+    const c = v3.createOwner({ name: "newcomer" });
+    const cAgent = v3.createAgent({ ownerId: c.ownerId, name: "newcomer-agent" });
+    expect(win(v3, "m3", "a1", cAgent.agentId).p1Credits).toBe(10);
+    expect(v3.balance("owner-a1")).toBe(50);
+    // Foreign keys are back on after the migrations.
+    expect(() => v3.unsafeExec(`INSERT INTO agents (agent_id, owner_id, name, created_at) VALUES ('x', 'no-such-owner', 'x', '${at}')`)).toThrow(
       /FOREIGN KEY/,
     );
-    s.close();
+    v3.close();
   });
 });
 
@@ -343,55 +356,131 @@ describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
         `INSERT INTO card_copies (copy_id, owner_id, card_id, finish, series_kind, origin, account_bound, acquired_at)
          VALUES ('raw', '${a.ownerId}', '${AEGIS_COMMON}', 'standard', 'set', 'starter', 0, '${DAY1}')`,
       ),
-    ).toThrow(/CHECK/);
+    ).toThrow(/CHECK|always account-bound/);
     expect(() => s.unsafeExec(`UPDATE card_copies SET account_bound = 0 WHERE copy_id = '${crafted.copyId}'`)).toThrow(/stays bound/);
     expect(() => s.unsafeExec(`UPDATE card_copies SET owner_id = '${b.ownerId}' WHERE copy_id = '${crafted.copyId}'`)).toThrow(/never change owner/);
     expect(() => s.unsafeExec(`UPDATE card_copies SET origin = 'pack' WHERE copy_id = '${crafted.copyId}'`)).toThrow(/origin never changes/);
   });
 
-  it("salvages the extra pack copy, not the bound starter copies (the owner's example)", () => {
+  it("binds promo and prize copies too (owner 2026-10-07), even through raw SQL", () => {
+    const s = open();
+    const a = player(s, "a");
+    const promo = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN" });
+    const prize = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "prize", finish: "tournament", seriesKind: "tournament", seriesCode: "S0F", serial: 3, runSize: 10 });
+    expect([promo.accountBound, prize.accountBound]).toEqual([true, true]);
+    expect(() =>
+      s.unsafeExec(
+        `INSERT INTO card_copies (copy_id, owner_id, card_id, finish, series_kind, series_code, stamp, origin, account_bound, acquired_at)
+         VALUES ('raw', '${a.ownerId}', '${AEGIS_COMMON}', 'standard', 'promo', 'PR-002', 'X', 'promo', 0, '${DAY1}')`,
+      ),
+    ).toThrow(/always account-bound/);
+  });
+
+  it("never salvages anything on its own: an owner may hold as many copies as they like", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "o" });
+    s.grantStarterCollection(owner.ownerId, "Aegis");
+    for (let i = 0; i < 47; i++) s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack" });
+    expect(s.collection(owner.ownerId).filter((c) => c.cardId === AEGIS_COMMON)).toHaveLength(50);
+    expect(s.balance(owner.ownerId, "packPoints")).toBe(0);
+    expect(s.cardHoldings(owner.ownerId, AEGIS_COMMON)).toMatchObject({ owned: 50, salvageable: 47, packPointsEach: SALVAGE_PACK_POINTS.Common });
+  });
+
+  it("salvages the card and quantity the owner picks, from pack copies only (the owner's example)", () => {
     const s = open();
     const owner = s.createOwner({ name: "o" });
     s.grantStarterCollection(owner.ownerId, "Aegis"); // 3 starter copies of AEGIS_COMMON
-    expect(s.salvageableCopies(owner.ownerId)).toEqual([]);
+    expect(() => s.salvage(owner.ownerId, AEGIS_COMMON, 1)).toThrow(/0 of 3 held can be salvaged \(3 x Account-bound \(starter copy\)/);
     const fourth = s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack" });
-    expect(s.salvageableCopies(owner.ownerId).map((c) => c.copyId)).toEqual([fourth.copyId]);
 
-    const result = s.salvageExtras(owner.ownerId);
+    const result = s.salvage(owner.ownerId, AEGIS_COMMON, 1);
     expect(result.copies.map((c) => c.copyId)).toEqual([fourth.copyId]);
     expect(result.packPoints).toBe(SALVAGE_PACK_POINTS.Common);
+    expect(result.incompleteDecks).toEqual([]);
     expect(s.balance(owner.ownerId, "packPoints")).toBe(SALVAGE_PACK_POINTS.Common);
     expect(s.getCopy(fourth.copyId).disposedReason).toBe("salvaged");
-    // The three bound copies remain, a full playset; a second run finds nothing.
     expect(s.collection(owner.ownerId).filter((c) => c.cardId === AEGIS_COMMON)).toHaveLength(3);
-    expect(s.salvageExtras(owner.ownerId)).toEqual({ copies: [], packPoints: 0 });
+    expect(() => s.salvage(owner.ownerId, AEGIS_COMMON, 1)).toThrow(/can't salvage 1/);
+    expect(() => s.salvage(owner.ownerId, AEGIS_COMMON, 0)).toThrow(/at least 1/);
+    expect(() => s.salvage(owner.ownerId, AEGIS_COMMON, 1.5)).toThrow(/whole quantity/);
   });
 
-  it("never salvages a finish, a bound copy, a promo or a copy in a saved deck, and the schema backs it up", () => {
+  it("says why each copy can't be salvaged: bound, finish, promo, prize, Prototype", () => {
     const s = open();
     const owner = s.createOwner({ name: "o" });
-    const { copies: starter } = s.grantStarterCollection(owner.ownerId, "Aegis");
-    // Over the limit, but none of these may salvage.
+    s.grantStarterCollection(owner.ownerId, "Aegis");
     s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack", finish: "foil" });
+    s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack", finish: "gold" });
+    s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack", finish: "prototype", seriesKind: "prototype", seriesCode: "S0", serial: 1, runSize: 5 });
     s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "crafted" });
     s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN" });
-    expect(s.salvageableCopies(owner.ownerId)).toEqual([]);
-
-    // A standard pack copy that sits in a saved deck is skipped too.
-    const inDeck = s.grantCopy({ ownerId: owner.ownerId, cardId: AEGIS_COMMON, origin: "pack" });
-    const starterOfCommon = starter.filter((c) => c.cardId === AEGIS_COMMON).map((c) => c.copyId);
-    const rest = starter.filter((c) => c.cardId !== AEGIS_COMMON).map((c) => c.copyId);
-    s.saveDeck(owner.ownerId, "with the pack copy", [...rest, ...starterOfCommon.slice(1), inDeck.copyId]);
-    expect(s.salvageableCopies(owner.ownerId)).toEqual([]);
-
-    // Raw SQL can't salvage a bound copy or a foil either.
-    expect(() =>
-      s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'salvaged' WHERE copy_id = '${starter[0]!.copyId}'`),
-    ).toThrow(/CHECK/);
-    expect(() =>
-      s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'salvaged' WHERE finish = 'foil'`),
-    ).toThrow(/CHECK/);
+    const h = s.cardHoldings(owner.ownerId, AEGIS_COMMON);
+    expect([h.owned, h.salvageable]).toEqual([8, 0]);
+    expect(h.notSalvageable).toEqual([
+      { reason: "Account-bound (starter copy): it can be played, never salvaged", count: 3 },
+      { reason: "Foil copies are never salvaged", count: 1 },
+      { reason: "Gold copies are never salvaged", count: 1 },
+      { reason: "Prototype copies are never salvaged", count: 1 },
+      { reason: "Account-bound (crafted copy): it can be played, never salvaged", count: 1 },
+      { reason: "Account-bound (promo copy): it can be played, never salvaged", count: 1 },
+    ]);
+    expect(() => s.salvage(owner.ownerId, AEGIS_COMMON, 1)).toThrow(/0 of 8 held can be salvaged/);
+    // Raw SQL can't salvage a bound copy or a finish either.
+    expect(() => s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'salvaged' WHERE origin = 'starter'`)).toThrow(/CHECK/);
+    expect(() => s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'salvaged' WHERE finish = 'foil'`)).toThrow(/CHECK/);
     expect(s.balance(owner.ownerId, "packPoints")).toBe(0);
+  });
+
+  it("warns before salvaging below what saved decks use, then marks them incomplete without editing them", () => {
+    const s = open();
+    const owner = s.createOwner({ name: "o" });
+    const swarm = SHIPPED_DECK_LISTS.Swarm;
+    const common = swarm.find((e) => e.copies === 3 && getCard(e.cardId)?.rarity === "Common")!.cardId;
+    // Built from pack copies so they can be salvaged at all.
+    const copies = swarm.flatMap((e) => Array.from({ length: e.copies }, () => s.grantCopy({ ownerId: owner.ownerId, cardId: e.cardId, origin: "pack" }).copyId));
+    const main = s.saveDeck(owner.ownerId, "main", copies);
+    const spare = s.saveDeck(owner.ownerId, "spare", copies);
+    s.setActiveDeck(owner.ownerId, main.deckId);
+    const extra = s.grantCopy({ ownerId: owner.ownerId, cardId: common, origin: "pack" });
+
+    // One copy: 4 held, decks use 3, nothing to warn about; the unlisted copy goes.
+    const first = s.salvage(owner.ownerId, common, 1);
+    expect(first.copies.map((c) => c.copyId)).toEqual([extra.copyId]);
+
+    // Two more would leave 1 against decks that use 3: refused with the list.
+    const plan = s.salvagePlan(owner.ownerId, common, 2);
+    expect(plan.affectedDecks).toEqual([
+      { deckId: main.deckId, name: "main", uses: 3, owned: 1, active: true },
+      { deckId: spare.deckId, name: "spare", uses: 3, owned: 1, active: false },
+    ]);
+    let warned: unknown;
+    try {
+      s.salvage(owner.ownerId, common, 2);
+    } catch (e) {
+      warned = e;
+    }
+    expect(warned).toBeInstanceOf(SalvageNeedsConfirmation);
+    expect((warned as SalvageNeedsConfirmation).affectedDecks).toEqual(plan.affectedDecks);
+    expect(s.cardHoldings(owner.ownerId, common).owned).toBe(3);
+    expect(s.balance(owner.ownerId, "packPoints")).toBe(SALVAGE_PACK_POINTS.Common);
+
+    // Confirmed: salvaged, both decks incomplete, neither deck edited.
+    const done = s.salvage(owner.ownerId, common, 2, { confirmDeckImpact: true });
+    expect(done.incompleteDecks.map((d) => d.name)).toEqual(["main", "spare"]);
+    expect(s.balance(owner.ownerId, "packPoints")).toBe(3 * SALVAGE_PACK_POINTS.Common);
+    const status = s.deckStatus(main.deckId);
+    expect([status.complete, status.cards, status.missing]).toEqual([false, copies.length, [{ cardId: common, uses: 3, owned: 1 }]]);
+    expect(s.listDecks(owner.ownerId).map((d) => [d.name, d.complete, d.active])).toEqual([
+      ["main", false, true],
+      ["spare", false, false],
+    ]);
+    expect(() => s.loadDeck(main.deckId)).toThrow(/incomplete/);
+
+    // Fixed by holding the copies again: any copy of the card fills the slots.
+    s.grantCopies([0, 1].map(() => ({ ownerId: owner.ownerId, cardId: common, origin: "pack" as const })));
+    expect(s.deckStatus(main.deckId).complete).toBe(true);
+    expect(s.deckStatus(spare.deckId).complete).toBe(true);
+    expect(s.loadDeck(main.deckId).spec.cards).toHaveLength(copies.length);
   });
 });
 
@@ -477,13 +566,27 @@ describe("EconomyStore: owned copies and decks", () => {
     expect(() => s.setActiveDeck(b.ownerId, deck.deckId)).toThrow(/own deck/);
   });
 
-  it("will not load a deck holding a copy the owner no longer has", () => {
+  it("counts cards, not copies: a gone copy is replaced by another held copy, else the deck is incomplete", () => {
     const s = open();
     const owner = s.createOwner({ name: "o" });
     const mine = s.grantStarterCollection(owner.ownerId, "Cortex").copies.map((c) => c.copyId);
     const deck = s.saveDeck(owner.ownerId, "main", mine);
-    s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'retired' WHERE copy_id = '${mine[0]}'`);
-    expect(() => s.loadDeck(deck.deckId)).toThrow(/no longer owned/);
-    expect(s.collection(owner.ownerId)).toHaveLength(mine.length - 1);
+    const gone = s.getCopy(mine[0]!);
+    const spare = s.grantCopy({ ownerId: owner.ownerId, cardId: gone.cardId, origin: "pack", finish: "foil" });
+    s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'retired' WHERE copy_id = '${gone.copyId}'`);
+    // The foil fills the slot; the rest keep the copies the deck was saved with.
+    expect(s.loadDeck(deck.deckId).copyIds).toEqual([spare.copyId, ...mine.slice(1)]);
+    s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'retired' WHERE copy_id = '${spare.copyId}'`);
+    expect(() => s.loadDeck(deck.deckId)).toThrow(/is incomplete/);
+    expect(s.deckStatus(deck.deckId).complete).toBe(false);
+    // The owner fixes it by editing the deck (here: dropping to the copies held).
+    const held = s.collection(owner.ownerId).filter((c) => c.cardId === gone.cardId).map((c) => c.copyId);
+    const others = mine.filter((id) => s.getCopy(id).cardId !== gone.cardId);
+    const extra = s.grantCopy({ ownerId: owner.ownerId, cardId: gone.cardId, origin: "pack" });
+    s.updateDeck(owner.ownerId, deck.deckId, [...others, ...held, extra.copyId]);
+    expect(s.deckStatus(deck.deckId).complete).toBe(true);
+    expect(s.loadDeck(deck.deckId).copyIds).toHaveLength(mine.length);
+    const other = s.createOwner({ name: "x" });
+    expect(() => s.updateDeck(other.ownerId, deck.deckId, mine)).toThrow(/another owner/);
   });
 });

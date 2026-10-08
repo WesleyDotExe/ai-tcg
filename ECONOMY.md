@@ -23,6 +23,18 @@ Schema v2 (`economy/src/schema.ts`, migration 2) keys everything on the owner:
 - **Stats are per owner** (`ownerStats`), with the Stats page's agent filter: matches, wins, losses, draws, void, win rate, best win streak, credits from matches. **Rating** (Glicko-2) isn't built yet; when it is, it keys on the owner, and a newly connected agent plays at the owner's rating.
 - A session-28 (v1) file migrates in place: each v1 agent becomes a house owner (`owner-<agent id>`) with that agent, its faction becomes the owner's starting faction, `packPoints` copies become `crafted`, `tournament` copies become `prize`, and every row carries across (tested).
 
+## Accounts and agents — BUILT (session 30; build-order step 2, part 1)
+
+Owner app spec B and C.1, and the 2026-10-05 build order step 2.
+
+- **Season 0 sign-in**, self-contained (no external identity service). `createAccount` makes an owner and its login in one transaction; `addLogin` gives an existing owner (a house owner, say) one. A username is 3 to 32 letters, digits, dots, dashes or underscores; an email is optional; both are unique in any case, and either signs in. A password needs at least 10 characters (`PASSWORD_MIN_LENGTH`). Passwords are stored only as scrypt hashes (N = 2^15, r = 8, p = 1, a 16-byte salt; the cost is inside each hash, and a lower-cost hash is redone at the next sign-in).
+- `signIn` returns a session token once; the store keeps only its SHA-256. Sessions last 30 days (`SESSION_DAYS`); `signOut` ends one, and `changePassword` ends them all. A wrong password and an unknown login get the same message and cost the same scrypt time. After 10 failed sign-ins in 15 minutes for one account (counted across its username and email), the login is refused until the window passes (`SIGN_IN_LOCKOUT`).
+- **Admin accounts** are marked on the login (`isAdmin`, also in `authenticate`'s answer). `houseRoster` is the admin view's data: each house owner's agents, connected agent, wallet, collection size, unopened packs, stats and live state. The store holds the data; the server checks `isAdmin` before serving it.
+- **One connected agent per owner** (`connectAgent`, `disconnectAgent`, `connectedAgent`). It must be the owner's own. Switching changes only who plays (and, once built, the signature card in play): collection, decks, wallet, caps and stats stay with the owner. **No switching or disconnecting during a live match**, enforced in the store and the schema.
+- **Live matches:** `startMatch` takes two owners (opponents are server-assigned) and starts the match with each owner's connected agent and active deck, loaded from the copies held now. It refuses self-play, an owner with no connected agent or active deck, an incomplete or illegal deck, a deck outside the faction lock, and an owner already in a live match. `recordMatch` ends it (a cancel or abandon included) and must name the agents that started it. A match id that was never started is still recorded (offline history and tests); the server must record only matches it started.
+- **Faction lock** (`setFactionLock`): an owner setting, applied to whichever agent is connected.
+- **Not built yet (the rest of step 2):** generating a new agent (3 generated agents, then 3 signature-card candidates) and the signature zone. **OPEN, raised after step 2:** how an agent picks its faction, builds its deck from the owner's collection and chases quests.
+
 ## Storage — BUILT (session 28)
 
 The store is `economy/` (`@ai-tcg/economy`), backed by Node's built-in SQLite (`node:sqlite`, Node 22).
@@ -41,6 +53,9 @@ The integrity rules are written into the schema itself (`economy/src/schema.ts`)
 - (v2) Only an unbound, standard-finish set copy from a pack can be salvaged.
 - (v2) The starter collection is granted once per owner.
 - (v2) An owner's own agents never play each other; each match side is played by its owner's own agent and deck; a payout's `played_by` is the owner's own agent.
+- (v3) Promo and prize copies are account-bound too.
+- (v3) An owner can only connect one of its own agents, and can't switch or disconnect it while in a live match. A live match is played by each owner's connected agent, and an owner is in at most one live match.
+- (v3) A stored password is always a scrypt hash.
 
 Schema changes are numbered migrations tracked by `PRAGMA user_version`. A shipped migration is never edited; changes go in a new one.
 
@@ -50,12 +65,16 @@ Schema changes are numbered migrations tracked by `PRAGMA user_version`. A shipp
 
 | Table | Holds |
 |---|---|
-| `owners` | Hidden owner id, name, kind (player or house), starting faction, starter granted at, active deck |
+| `owners` | Hidden owner id, name, kind (player or house), starting faction, starter granted at, active deck, (v3) connected agent, faction lock |
 | `agents` | Hidden agent id, its owner (fixed forever), name |
 | `ledger` | Append-only entries: owner, played by (the agent, on match payouts), currency (`credits` or `packPoints`), delta, reason, reference, time. A balance is never stored; it is the sum of the owner's entries. |
 | `card_copies` | One row per owned copy: hidden copy id, owner, card id, finish, series (set, promo, prototype or tournament, plus series code, serial, run size and stamp), origin (pack, crafted, starter, promo or prize) with a reference, account-bound flag, time acquired, and time and reason disposed (for example, salvaged) |
 | `packs` | Owned packs, opened or unopened: set, source (purchase, starter, weeklyChallenge or ownerDaily), time acquired, time opened |
-| `decks` / `deck_copies` | Saved decks that point at specific copy ids. A copy may sit in more than one deck. |
+| `decks` / `deck_copies` | Saved decks: the copies each was saved with. A deck counts cards, so any held copy of a card can fill its slot; copies are shared across decks. |
+| `logins` | (v3) One per owner: username, optional email (both unique, any case), scrypt password hash, admin flag |
+| `sessions` | (v3) Sign-in sessions by the SHA-256 of their token, with expiry and sign-out time |
+| `sign_in_failures` | (v3) Failed sign-ins per account (or per unknown login) for the lockout |
+| `live_matches` | (v3) Matches started and not yet recorded: both owners and their connected agents |
 | `matches` | Seed, both owners, both agents (played by) and decks, outcome (win, draw, cancelled or abandoned), winning or abandoning owner, turns, moves, credits paid to each side, end time |
 
 Pity timers (no Full Art in 10 packs, no Mythic in 40) are worked out from pack and copy history when they are needed. They are not stored as counters, so they can't drift out of step with the history.
@@ -85,7 +104,8 @@ Finishes are drawn as code shaders where possible. **SPEC (the pack session for 
 - Each pack has 5 cards: 2 Common, 1 Uncommon, 1 Rare slot (1 in 8 is a Mythic instead), and 1 shine slot (any card, any rarity). Only the shine slot rolls a finish.
 - A pack costs 100 credits. **BUILT:** `buyPack` makes the debit and the pack in one transaction, and the schema refuses a purchase the balance can't cover.
 - Every pack, free ones included, gives 5 pack points when opened. The owner spends pack points on a specific card, in standard finish only: **Common 40, Uncommon 80, Rare 250, Mythic 800** (owner 2026-10-05). Crafting is only allowed up to a card's playable limit (3/3/2/1). Pack points can never be bought and never convert into credits.
-- No dead duplicates: a standard-finish copy beyond the playable limit (3/3/2/1) converts to pack points (**Common 5, Uncommon 10, Rare 30, Mythic 100**, owner 2026-10-05). A converted copy is marked disposed, not deleted. Only extra standard duplicates can be salvaged: off-faction cards and first copies are kept, and a copy with any other finish is never salvaged, nor are Prototypes, tournament cards, promos or the unique Mythic. **BUILT (session 29):** `salvageableCopies` / `salvageExtras`. Every copy counts toward the limit, account-bound ones included, but only unbound standard pack copies are ever picked (the owner's example: 3 starter copies of a Common plus a 4th from a pack, and the pack copy salvages). Copies in a saved deck are skipped so a salvage never breaks a deck. Each salvage pays its pack points in the same transaction, once per copy, and the schema refuses to salvage a bound copy or a finish even through raw SQL. Pack opening will call it.
+- **Salvage is manual, never automatic** (owner 2026-10-07; this replaces the automatic duplicate conversion of earlier entries and of both mockups' "+pp" chips). Every pulled copy goes into the collection, and an owner may hold as many copies of a card as they like. The owner picks a card and a quantity in the card viewer and confirms; pack points are paid in the same transaction (**Common 5, Uncommon 10, Rare 30, Mythic 100**, owner 2026-10-05). A salvaged copy is marked disposed, not deleted. Only unbound, standard-finish pack copies can be salvaged: Foil, Full Art, Alt Art, Gold, Prototype and tournament copies never are, and crafted, starter, promo and prize copies are account-bound and never are either. The card viewer says why a copy can't be salvaged. Salvaging below what a saved deck uses warns first, listing the affected decks; if the owner confirms, those decks are incomplete until fixed, and a deck is never edited silently. **BUILT (session 30):** `cardHoldings` (the viewer's data: held, salvageable, the reason for each copy that isn't, the decks using it), `salvagePlan` and `salvage(owner, card, quantity, {confirmDeckImpact})`, which refuses with `SalvageNeedsConfirmation` (listing the decks) until confirmed. Copies no deck lists go first. Each salvage pays once per copy, and the schema refuses to salvage a bound copy or a finish even through raw SQL. Shown in `progress/economy-demo-003.txt`.
+- **Pack results** show a NEW badge on cards the owner didn't hold before and how many copies the owner now holds (for example "×4 owned"). No salvage chips (owner 2026-10-07). **SPEC (the pack session):** opening returns, per card, `isNew` and the owned count after the pack.
 - Pity timers, tracked per owner: after 10 packs in a row with no Full Art or better, the next pack guarantees one. After 40 packs with no Mythic, the next pack guarantees one.
 - Packs are mixed (no faction-focused pack type for now).
 - The owner can open **1 pack or 10 at once**. A bulk open has the same odds, no discount and no bonus; each pack in it is still its own pack (its own log entry and seed, its own pity count and its own Prototype check). The reveal can be sped up and ends with a summary; any Gold, Prototype or Jackpot pack still gets its full reveal. Single-pack opening is always available.
@@ -142,10 +162,11 @@ A typical active day is ~140 credits (~1.4 packs) plus the owner's daily pack: ~
 
 ## Decks — BUILT (session 28)
 
-- A deck is a list of specific copy ids the owner holds. The owner must own 2 copies to play 2. Account-bound copies play like any other. Any finish counts. The copy limits (3/3/2/1) still apply on top.
+- A deck is saved as a list of copies the owner holds, but it **counts cards, not copies** (owner 2026-10-07): copies are shared across saved decks, never reserved, so owning 2 copies lets every deck use up to 2. The owner must hold at least as many copies as a deck uses. Account-bound copies play like any other. Any finish counts. The copy limits stay **3/3/2/1** (owner amendment 2026-10-07; the 2/2/2/1 change was withdrawn).
+- **BUILT (session 30):** at play time each slot keeps the copy it was saved with while the owner still holds it, and otherwise takes another held copy of the same card. A deck the owner holds too few copies for is **incomplete** (`deckStatus`, `listDecks`): it can't be loaded or start a match until the owner holds the copies again or edits it (`updateDeck`).
 - `saveDeck` checks that the owner holds every copy, then runs the engine's own `buildDeck` on the result: copy limits, deck size, one faction plus at most 10 neutral cards, and the card-pool lint. A deck that saves is a deck that plays.
 - `loadDeck` runs the same checks again at play time, because the owner may have salvaged a copy since saving, or a card-pool change may have made an old deck illegal.
-- One copy may be in several saved decks. One deck is active at a time, on the owner, and whichever agent is connected plays it.
+- One deck is active at a time, on the owner, and whichever agent is connected plays it. With a faction lock set, only a deck of that faction can be made active or start a match (**BUILT, session 30**).
 - **Agents may build in any faction** the owner has cards for (one faction + Neutral per deck). The owner may lock an agent to a faction; default free. The agent's deckbuilder chooses the faction as well as the cards. **OPEN (owner, after step 2 of the 2026-10-05 build order):** how an agent picks its faction, builds its deck from the owner's collection and chases quests.
 - The unique Mythic is never in the deck (it lives in the signature zone) and does not count toward the Neutral cap.
 
@@ -218,7 +239,7 @@ Owner decisions of 2026-10-05, including the Neutral amendment.
 9. **Server-side, unpredictable RNG;** seeds logged and revealable only after opening.
 10. **Every spend, salvage, craft and pack open is one transaction** with unique constraints (no double-spend races).
 11. **One global daily reset time (UTC).**
-- Account-bound copies (owner 2026-10-05): crafted and starter copies can only be played: never sold, never salvaged, never moved. They count normally for deck building, the playable limits and collection completion. **BUILT (session 29)** in the schema.
+- Account-bound copies (owner 2026-10-05, widened 2026-10-07): crafted, starter, promo and prize copies can only be played: never sold, never salvaged, never moved. They count normally for deck building, the playable limits and collection completion. **BUILT** in the schema (crafted and starter session 29; promo and prize session 30, migration 3, with existing ones backfilled).
 - Prove it: an **exploit test suite** that tries each loop and must fail to profit (**started session 29:** agent switching vs the caps, self-play, a second starter, bound copies vs salvage and transfer, payouts to another owner's agent), plus **economy anomaly flags** in the Season 0 metrics. Re-run both whenever an economy number changes.
 
 ## Marketplace hooks — data model only (nothing live)

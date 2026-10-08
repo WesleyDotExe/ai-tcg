@@ -280,11 +280,16 @@ start a step until the one before works and its tests pass):
      self-play; salvage of extra pack copies only. ECONOMY.md updated.
      Evidence: `progress/economy-demo-002.txt`, `economy/test/` (28 tests,
      incl. the v1 -> v2 migration and the exploit checks).
-  2. NEXT. Owner accounts and agents: Season 0 sign-in; one connected agent
-     at a time; switching agents (only the signature card changes; not
-     during a live match); generating a new agent (pick from 3, then its
-     signature card from 3; this pulls in item 7's unique Mythic and the
-     signature zone); the admin view for house agents. Then raise the
+  2. IN PROGRESS. Owner accounts and agents. DONE (session 30): Season 0
+     sign-in (scrypt, sessions, lockout, admin flag); one connected agent at
+     a time; switching agents (not during a live match: `startMatch` /
+     `recordMatch` bracket a live match); the faction lock; the admin view's
+     house-owner data. Also session 30, from owner-feedback 2026-10-07:
+     manual salvage only, decks count cards and share copies, promo and
+     prize copies bound. Evidence: `progress/economy-demo-003.txt`,
+     `economy/test/` (43 tests). NEXT: generating a new agent (pick from 3,
+     then its signature card from 3; this pulls in item 7's unique Mythic
+     and the signature zone). Then raise the
      [OWNER CHECK-IN]: how an agent picks its faction, builds its deck from
      the owner's collection, and chases quests.
   3. Server endpoints for the website (wallet, collection, packs and pack
@@ -298,7 +303,8 @@ start a step until the one before works and its tests pass):
    shape were answered 2026-10-04): sets with collector numbers, a set
    symbol and Gold secrets; pack contents and opening (5 cards + the shine
    slot, pity timers per owner, pack points, the Prototype bonus 6th card,
-   tested by simulation; opening calls the salvage built in session 29);
+   tested by simulation; results show NEW and "×N owned", never salvage
+   anything: salvage is manual, built session 30);
    promo issuing (PR-001 numbering, stamps); 10-pack bulk opening.
    DONE already: ownership-gated decks (session 28), starter collections and
    salvage (session 29).

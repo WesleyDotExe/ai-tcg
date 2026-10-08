@@ -2136,7 +2136,7 @@ Owner-approved. **Build the owner UI as a website first. There will be no phone 
 
 ---
 
-## 2026-10-05 — Owner: build order for today's decisions (STEP 1 HANDLED 2026-10-06, session 29; step 2 is next; the order is copied into progress/roadmap.md)
+## 2026-10-05 — Owner: build order for today's decisions (STEP 1 HANDLED 2026-10-06, session 29; STEP 2 PART 1 HANDLED 2026-10-08, session 30 — Season 0 sign-in, one connected agent, switching (refused during a live match), the faction lock, the house-owner admin data; still to do in step 2: generating a new agent with its signature card; the order is copied into progress/roadmap.md)
 
 Owner-approved. Today added a lot to the spec. **Build it in this order, and don't start a step until the one before works and its tests pass.**
 
@@ -2179,7 +2179,7 @@ Visual references: `render/reference/owner-web-mockup.html` (the layout to build
 
 ---
 
-## 2026-10-07 — Owner: salvage is manual only; deck copy limit 2/2/2/1; copies shared across decks (answers session 29)
+## 2026-10-07 — Owner: salvage is manual only; deck copy limit 2/2/2/1; copies shared across decks (answers session 29) (HANDLED 2026-10-08, session 30 — section 1 built: `salvage(owner, card, quantity)` is the only salvage, the card viewer data says why each copy can't go, a deck-short salvage warns with the deck list and then marks the decks incomplete without editing them; promo and prize copies are now account-bound too (migration 3). Section 2 as amended: the 3/3/2/1 limit stays, decks count cards and share copies, the owner must hold what a deck uses. Section 3: the starter rebuild was dropped by the amendment; NEW badges and "×N owned" are written into ECONOMY.md for the pack session. Evidence: `progress/economy-demo-003.txt`)
 
 Owner decisions. Build to these and update `ECONOMY.md` to match. This replaces the automatic duplicate salvage everywhere it appears in earlier entries and in both mockups; the mockups' "+pp" duplicate chips are now out of date.
 
@@ -2211,7 +2211,7 @@ Owner decisions. Build to these and update `ECONOMY.md` to match. This replaces 
 
 ---
 
-## 2026-10-07 — Owner: amendment, keep the 3 / 3 / 2 / 1 deck copy limit
+## 2026-10-07 — Owner: amendment, keep the 3 / 3 / 2 / 1 deck copy limit (HANDLED 2026-10-08, session 30 — nothing changed in the limit or the decks; the shared-copies, own-what-you-use and pack-result items are done or specced as noted above)
 
 Owner decision. This amends section 2 and part of section 3 of today's "manual salvage only" entry. Section 1 (salvage) stands unchanged.
 
@@ -2226,7 +2226,7 @@ Owner decision. This amends section 2 and part of section 3 of today's "manual s
 
 ---
 
-## 2026-10-07 — Owner: render v2 slice 3 (procedural sound, mid-board hits) — answers to the 7 calls
+## 2026-10-07 — Owner: render v2 slice 3 (procedural sound, mid-board hits) — answers to the 7 calls (HANDLED 2026-10-08 by the render lane, PR #44 — the damage number at the impact point, sound armed on by default, a one-click mute and a volume control, both remembered; marked here by session 30)
 
 Owner decisions on the 7 calls in the 2026-10-05 render checkpoint (`progress/render/checkpoints.md`).
 
