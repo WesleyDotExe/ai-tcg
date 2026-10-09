@@ -5,6 +5,7 @@ import { FACTION_SKIN_SOURCE } from "./factionSkin.js";
 import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from "./canvasFx.js";
 import { EFFECT_FX_SOURCE } from "./effectFx.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
+import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -69,9 +70,14 @@ export function renderMatchHtml(replay: MatchReplay): string {
         <option value="250">fast</option>
       </select>
     </label>
-    <span class="sound-ctl" id="sound-ctl">
+    <span class="sound-ctl" id="sound-ctl" data-audio-ctl>
       <button id="btn-sound" aria-pressed="true" title="Sound is on. Click to mute.">Sound on</button>
       <input type="range" id="sound-vol" min="0" max="100" step="1" value="80" aria-label="Effects volume" title="Effects volume">
+    </span>
+    <span class="sound-ctl" id="music-ctl" data-audio-ctl>
+      <button id="btn-music" aria-pressed="true" title="Music is on. Click to mute.">Music on</button>
+      <input type="range" id="music-vol" min="0" max="100" step="1" value="60" aria-label="Music volume" title="Music volume">
+      <span id="music-meter" class="music-meter" aria-hidden="true"></span>
     </span>
   </section>
 </main>
@@ -261,12 +267,13 @@ html, body {
 .controls button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: inherit; }
 .controls button:hover { border-color: var(--cortex); }
 .controls #scrubber { width: 320px; }
-.controls #btn-sound.on { border-color: var(--good); color: var(--good); }
+.controls #btn-sound.on, .controls #btn-music.on { border-color: var(--good); color: var(--good); }
 /* Armed: on, waiting for the viewer's first click or key press to start. */
-.controls #btn-sound.armed { border-style: dashed; }
+.controls #btn-sound.armed, .controls #btn-music.armed { border-style: dashed; }
 .sound-ctl { display: inline-flex; align-items: center; gap: 6px; }
-.sound-ctl #sound-vol { width: 80px; accent-color: var(--good); }
-.sound-ctl #sound-vol:disabled { opacity: 0.4; }
+.sound-ctl input[type=range] { width: 80px; accent-color: var(--good); }
+.sound-ctl input[type=range]:disabled { opacity: 0.4; }
+.music-meter { font-size: 0.7rem; color: var(--ink-dim); min-width: 92px; letter-spacing: 1px; }
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
 .speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
@@ -765,6 +772,8 @@ ${CANVAS_FX_PURE_SOURCE}
 ${CANVAS_FX_RUNTIME_SOURCE}
 ${SOUND_FX_PURE_SOURCE}
 ${SOUND_FX_RUNTIME_SOURCE}
+${MUSIC_PURE_SOURCE}
+${MUSIC_RUNTIME_SOURCE}
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -983,8 +992,15 @@ ${SOUND_FX_RUNTIME_SOURCE}
     el.scrollTop = el.scrollHeight;
   }
 
+  // The music's scene (slice 4): the acting side's faction voices the
+  // arpeggio, and a Mythic in play on that side adds its bells.
+  function hasMythic(p) {
+    return p.board.some(function (u) { return u.rarity === 'Mythic'; }) || p.directives.some(function (d) { return d.rarity === 'Mythic'; });
+  }
   function renderFrame() {
     const frame = frames[i];
+    const actor = frame.players[frame.activePlayer];
+    MUS.setScene(actor.faction, hasMythic(actor));
     renderHud('hud-p1', frame.players.p1);
     renderHud('hud-p2', frame.players.p2);
     renderMomentum(frame.momentum);
@@ -1721,6 +1737,8 @@ ${SOUND_FX_RUNTIME_SOURCE}
       if (!prevBoard[id]) {
         const tier = tierFromScore(enterScore(newBoard[id].v.rarity));
         tiers.push(tier);
+        // A Mythic arriving lifts the music (slice 4), on its entrance beat.
+        if (newBoard[id].v.rarity === 'Mythic') later(causeT, function () { MUS.event('mythic', tier); });
         if (causeT > 0) { el.style.opacity = '0'; later(causeT, function () { el.style.opacity = ''; flashClass(el, 'fx-enter', tier); }); }
         else flashClass(el, 'fx-enter', tier);
         return;
@@ -1920,6 +1938,9 @@ ${SOUND_FX_RUNTIME_SOURCE}
   // (owner 2026-10-07): armed at load, started by the viewer's first click
   // or key press, muted in one click, and the mute and volume remembered.
   SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));
+  // Music (slice 4, render/src/musicFx.ts): its own toggle, volume and
+  // intensity meter, on the same armed / remembered pattern.
+  MUS.mount(document.getElementById('btn-music'), document.getElementById('music-vol'), document.getElementById('music-meter'));
   scrubber.oninput = function () { stop(); goTo(Number(scrubber.value)); };
   document.getElementById('speed').onchange = function () { if (playing) { stop(); play(); } };
   document.addEventListener('keydown', function (e) {

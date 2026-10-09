@@ -420,3 +420,15 @@ separate from the shared `progress/notes-for-owner.md`).
 4. **Mythic ward previews: nothing new.** `progress/render/mythic-wards-log.md` still doesn't exist.
 
 5. **No engine change was needed.**
+
+---
+
+## 2026-10-09 — Session 14 (music)
+
+1. **Music is in.** Open any replay in `render/output/`, click anywhere and
+   it starts (on by default, like the sound). The FX sheet's part 4 is a
+   music desk for judging it by ear. The six calls are in
+   `progress/render/checkpoints.md`.
+2. **For the website (build-order steps 3-5):** the account settings need a
+   **Music** setting (muted + volume) beside Sound. The replay hands each
+   one through its own `{ read, write }` store (`SND.mount`, `MUS.mount`).

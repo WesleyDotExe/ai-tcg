@@ -5,13 +5,15 @@
 // spectacle kill), each from a source card to a target card, looping. It runs the replay page's own
 // CANVAS_FX sources verbatim (same canvases, same tint cache, same recipes),
 // so what it shows is exactly what a replay draws — just all five materials
-// at once, which a replay (one strike at a time) can't show.
+// at once, which a replay (one strike at a time) can't show. Part 3
+// (slice 3): the sound audition grid. Part 4 (slice 4): the music desk.
 // Usage: npm run fx-sheet -w @ai-tcg/render  -> render/output/fx-sheet.html
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from "./canvasFx.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
+import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
 import { CSS } from "./renderHtml.js";
 
 export function renderFxSheet(): string {
@@ -44,7 +46,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
 </style>
 </head>
 <body>
-<h1>AI·TCG // FX MATERIALS + SOUND (EFFECTS.md v2 slices 1-3)</h1>
+<h1>AI·TCG // FX MATERIALS + SOUND + MUSIC (EFFECTS.md v2 slices 1-4)</h1>
 <p class="note">Attack travel + impact in each faction's sprite material, drawn by the replay's own canvas code. Columns: subtle / normal / spectacle hit on a card, then a normal hit on a player. Ground marks stay on the floor layer under the cards for a few seconds. Meaning is constant: every shot leaves the glowing card and lands on its target; only the material and size change.</p>
 <div class="ctl"><button id="go">Replay volley</button> <span id="st"></span></div>
 <div class="sheet" id="sheet" data-fx-camera></div>
@@ -54,8 +56,15 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
 <div class="sheet" id="sheet2"></div>
 <h1>SOUND (slice 3): FACTION VOICES</h1>
 <p class="note">Every sound is synthesised in the browser (no files). Switch sound on, then click any cell to hear that event in that faction's voice, or play a whole row or column. Cortex: clean square-wave blips. Aegis: heavy metal clangs. Swarm: wet chitters and squelches. Null: broken pitch and glitch blips. Neutral: bells. The meaning stays the same in every voice: an impact always thumps, a heal always rises, a debuff always falls, a block always rings. The tier picks the volume.</p>
-<div class="ctl"><button id="snd">Sound on</button> volume <input type="range" id="sndvol" min="0" max="100" value="80" aria-label="Effects volume"> tier <select id="sndtier"><option>subtle</option><option selected>normal</option><option>spectacle</option></select> <span id="sndst"></span></div>
+<div class="ctl"><span data-audio-ctl><button id="snd">Sound on</button> volume <input type="range" id="sndvol" min="0" max="100" value="80" aria-label="Effects volume"></span> tier <select id="sndtier"><option>subtle</option><option selected>normal</option><option>spectacle</option></select> <span id="sndst"></span></div>
 <table class="snd" id="sndgrid"></table>
+<h1>MUSIC (slice 4): ADAPTIVE, PROCEDURAL</h1>
+<p class="note">A minor at 104 BPM (Am, F, C, G), generated live like the effects. It rests calm (pad and bass). Every hit, kill and Mythic arrival raises the intensity, bringing in the kick, then the arpeggio, then a driving bass and hats, then the snare and four on the floor; it settles back over a few seconds. The arpeggio plays in the acting side's faction voice. A Mythic in play on the acting side adds a bell every other bar and keeps the music a little higher. Effects dip it slightly (to 80%) and it never drops out on a kill. Pick a voice, then push the intensity with the buttons; the effects grid above pushes it too.</p>
+<div class="ctl"><span data-audio-ctl><button id="mus">Music on</button> volume <input type="range" id="musvol" min="0" max="100" value="60" aria-label="Music volume"></span>
+ voice <select id="musvoice"><option>Cortex</option><option>Aegis</option><option>Swarm</option><option>Null</option><option>Neutral</option></select>
+ <label><input type="checkbox" id="musmythic"> Mythic in play</label>
+ <button id="mushit">hit</button> <button id="musbig">big hit</button> <button id="muskill">kill</button> <button id="musmyth">Mythic arrives</button>
+ <span id="musmeter"></span> <span id="musst"></span></div>
 <script type="application/json" id="fx-atlases">${JSON.stringify(fxAtlasDataUris())}</script>
 <script>
 (function () {
@@ -67,6 +76,8 @@ ${CANVAS_FX_PURE_SOURCE}
 ${CANVAS_FX_RUNTIME_SOURCE}
 ${SOUND_FX_PURE_SOURCE}
 ${SOUND_FX_RUNTIME_SOURCE}
+${MUSIC_PURE_SOURCE}
+${MUSIC_RUNTIME_SOURCE}
   var FACTIONS = ['Cortex', 'Aegis', 'Swarm', 'Null', 'Neutral'];
   var COLS = [['subtle', 330, 'unit'], ['normal', 560, 'unit'], ['spectacle', 790, 'unit'], ['normal', 1040, 'player']];
   var sheet = document.getElementById('sheet');
@@ -140,6 +151,19 @@ ${SOUND_FX_RUNTIME_SOURCE}
     else if (b.dataset.col) FACTIONS.forEach(function (f, i) { setTimeout(function () { hear(f, b.dataset.col, b); }, i * 650); });
   };
   SND.mount(document.getElementById('snd'), document.getElementById('sndvol'));
+  // Part 4: the music desk. The buttons go through SND.play like a replay's
+  // events do, so they bump (and, with effects on, duck) exactly as a match.
+  MUS.mount(document.getElementById('mus'), document.getElementById('musvol'), document.getElementById('musmeter'));
+  function scene() { MUS.setScene(document.getElementById('musvoice').value, document.getElementById('musmythic').checked); }
+  document.getElementById('musvoice').onchange = scene;
+  document.getElementById('musmythic').onchange = scene;
+  scene();
+  function musFx(kind, tier) { var f = document.getElementById('musvoice').value; SND.play(kind, f, tier, null, { targetKind: 'unit', victim: 'Aegis' }); }
+  document.getElementById('mushit').onclick = function () { musFx('impact', 'normal'); };
+  document.getElementById('musbig').onclick = function () { musFx('impact', 'spectacle'); };
+  document.getElementById('muskill').onclick = function () { musFx('kill', 'spectacle'); };
+  document.getElementById('musmyth').onclick = function () { MUS.event('mythic', 'spectacle'); document.getElementById('musmythic').checked = true; scene(); };
+  setInterval(function () { var m = MUS.stats(), L = m.layers; document.getElementById('musst').textContent = m.on ? 'I ' + m.I.toFixed(2) + ' · ' + ['pad', 'bass ' + L.bass, L.kick ? 'kick x' + L.kick : '', L.arp ? 'arp 1/' + L.arp : '', L.hats ? 'hats' : '', L.offHats ? 'off-hats' : '', L.snare ? 'snare' : ''].filter(Boolean).join(' + ') : ''; }, 300);
   setInterval(function () { var s = SND.stats(); document.getElementById('sndst').textContent = s.on ? 'sounds ' + s.played + ' · voices ' + s.voices + ' · alive ' + s.active : ''; }, 300);
   document.getElementById('go2').onclick = categories;
   document.getElementById('go').onclick = volley;

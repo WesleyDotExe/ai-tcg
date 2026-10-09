@@ -1675,3 +1675,104 @@ Am–F–C–G, scheduled ahead on the audio clock, intensity driven by hits,
 kills and Mythics; effects dip it to ~80%, never drop out). Give it its own
 toggle and volume using the same armed / remembered pattern (`SND.mount`'s
 store holds both), and reuse `SND`'s context and limiter.
+
+---
+
+## 2026-10-09 — Session 14: EFFECTS.md v2 slice 4, adaptive procedural music
+
+The last merged PR (#45, game session 30) was the game lane, so this was a
+render session. Owner feedback had nothing unhandled for this lane. Slice 4
+(music) was the standing next step.
+
+**Built:**
+- `render/src/musicFx.ts`, ported from the lab's music block:
+  - A minor, 104 BPM, Am–F–C–G, scheduled 0.12 s ahead on the audio clock;
+  - the arrangement is plain data (`musStep`). Calm is a pad and bass. Rising
+    intensity adds the kick, the arpeggio, a driving bass, hats, off-hats,
+    then snare and four on the floor;
+  - intensity bumps (hits by tier, kills, Mythic arrivals), relaxes back
+    over ~6 s, and rests higher with a Mythic in play on the acting side;
+  - the arpeggio is in the acting faction's voice; a Mythic on the acting
+    side adds a bell motif every other bar.
+- **No kill dropout:** the lab's `muDrop` is not ported. There is no filter
+  on the music's output, and an effect dips it to 80% at the lowest, back
+  within ~0.2 s, at most once per 60 ms.
+- **Shared audio:** `SND` gained `core()` (the shared context, limiter and
+  noise), `hold()` (the context runs while effects OR music is on and the
+  tab is visible) and `listen()` (every `SND.play` reaches the music, played
+  or not, so intensity follows the match with effects muted).
+- **The control:** "♫ Music on", a music volume (default 60, the lab's
+  mix) and an intensity meter. Same armed / one-click mute / remembered
+  pattern as the effects, under `ai-tcg.music`.
+  - Found while testing: a press on the effects mute started the music.
+    Now a press inside any `data-audio-ctl` control only does what that
+    control does.
+- **Replay wiring:** every frame sets the scene (the acting faction, and
+  whether that side has a Mythic unit or Directive in play). A Mythic
+  entering bumps the music on its entrance beat.
+- **The FX sheet's part 4,** a music desk: voice, Mythic in play, hit / big
+  hit / kill / Mythic arrives, and a live layers readout.
+
+**Ran it.**
+- All six replays and the FX sheet regenerated (code only; the match data is
+  unchanged, the same diff in each replay). The engine is untouched.
+- Headless Chromium, every replay played to the end at fast speed (scratch
+  `mus.mjs`), with an analyser on the shared limiter:
+  - music was armed with no context before the first gesture, and Play
+    started it;
+  - **0% silent samples** in all six (the music never dropped out, kills
+    included);
+  - limiter peak 0.49-0.62, so no clipping;
+  - every layer reached in five replays. null-vs-swarm-seed2, the quietest
+    match, peaked at I = 2.48, so no snare;
+  - the arpeggio voice followed the acting faction (both factions seen in
+    each replay);
+  - Mythic bells active in the four replays with a Mythic in play;
+  - 0 page errors.
+- Normal speed, the share of time at each intensity (bins 1-1.5 / 1.5-2 /
+  2-2.5 / 2.5-3 / 3+):
+  - aegis-vs-null-seed3: 25 / 24 / 28 / 19 / 5%;
+  - null-vs-swarm-seed2: 61 / 39 / 0 / 0 / 0%.
+  So it adapts rather than pinning. At fast speed it sits near the top,
+  which is fair: more violence per second.
+- Effects muted (scratch `mute.mjs`):
+  - the press on the effects mute left the music armed, and Play started it;
+  - 26 intensity bumps, 0 ducks;
+  - the music volume (35) and its mute survive a reload, with no context
+    made before a gesture.
+- Frame rate on aegis-vs-null-seed3: median 58 fps with music on, 58-59
+  with it off. No measurable cost.
+- Stills in `progress/render/evidence/`:
+  - `v2-s4-music-controls-aegis-vs-null-seed3.png` (effects muted, music on,
+    the meter);
+  - `v2-s4-music-desk-fx-sheet.png` (Null voice, Mythic in play, every
+    layer).
+- Tests: render 216 (was 187). The new `test/musicFx.test.ts` has 29: every
+  pitched note is in A minor in every voice and intensity; layers enter in
+  order and never leave as I rises; the faction voices differ; the bells;
+  bumps, the cap, relaxing back, the Mythic rest; the runtime on the shared
+  context with no filter on its output; the 16th-note schedule and stall
+  recovery; the duck floor; the context held by either; the mount, mute,
+  volume, storage and cross-control press; the page wiring.
+  All 441 tests pass across six workspaces; `tsc --noEmit` is clean in
+  render.
+
+**Named honestly, not fixed:**
+- **Measured, not heard.** The analyser proves signal, level and no
+  dropout. Whether it sounds good is for the owner's ears (the desk).
+- **Music keeps playing when the replay is paused or ends.** It settles
+  back to calm; the viewer can mute it. A pause-aware fade is a small
+  follow-up if wanted.
+- **Intensity counts sound events, not stakes.** A lethal blow and a big
+  mid-game hit of the same tier bump it equally. Momentum (who's winning)
+  doesn't drive the music yet.
+- **The website's Music setting doesn't exist yet**; the store seam is
+  there.
+- **Swarm and Null arpeggios use `Math.random`** on the page (as in the
+  lab), so two plays of a replay aren't note-identical. The tests use a
+  seeded rand.
+
+**Next render-lane slice:** EFFECTS.md v2 slice 5, faction wards for
+signature abilities, driven by `signatureAbilities` (the rising chord,
+pulse and shatter ward sounds come with them; `MUS_BUMP` gains a ward pulse
+at 0.3 as in the lab).

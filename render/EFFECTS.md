@@ -67,7 +67,7 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 
 - **Effects**: one sound per event, panned by the card's position, through a limiter, with a voice cap. Each faction has a voice: Cortex clean square-wave blips; Aegis heavy metal clangs (inharmonic partials); Swarm wet chitters and squelches; Null broken pitch and glitch blips; Neutral bells. Magnitude scales volume and weight. Ward moments have their own rising chord, pulse and shatter.
 - **Music** (lab: the "adaptive procedural music" block): A minor, 104 BPM, i–VI–III–VII (Am–F–C–G), scheduled ahead on the audio clock. It starts calm (pad + bass); hits, kills and Mythic arrivals raise an intensity value that brings in kick + arpeggio, then hats, then snare and four-on-the-floor, and decays back over a few seconds. The arpeggio takes the acting faction's voice. A Mythic on the acting side adds a bell motif every other bar. Effects dip the music only slightly (to ~80%, back within ~0.2s). **Never drop the music out or muffle it on a kill** (owner 2026-10-03: "good theory, but not in practice").
-- Sound and music start OFF and are switched on by the viewer (browser autoplay rules); keep separate toggles and a music volume control.
+- Sound and music are each ON by default and armed until the viewer's first click or key press (browser autoplay rules; owner 2026-10-07 for sound, the same pattern for music), each with its own toggle and volume control, each remembered.
 
 ## Canvas layers as built (slice 1)
 
@@ -104,7 +104,18 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 - **The control** (`SND.mount(button, slider, store)`): a "🔊 Sound on" button (dashed border while armed, waiting for the first gesture) that mutes in one click ("🔇 Sound off" suspends the context), and an effects volume slider beside it (0-100, default 80; it scales the master bus, 0.6 × volume, ahead of the limiter). A press on the mute button never starts sound first.
 - **Remembered:** `{ muted, volume }` (`sfxPrefParse` / `sfxPrefSerialize`), saved on every change. A standalone replay keeps it in browser storage under `ai-tcg.sound`; the owner website will pass its own store (the account's Sound setting) through the same `{ read, write }` seam. Only an explicit mute is remembered as off, so missing or broken storage means sound on. A muted viewer stays muted on the next page until they switch it back on.
 - **A hidden tab goes quiet:** the context is suspended while the tab is hidden and resumes when the viewer returns, if sound was on.
-- **Not yet:** ward sounds (rising chord, pulse, shatter) arrive with the wards (slices 5-6); music is slice 4 with its own toggle and volume, reusing the same armed/remembered pattern.
+- **Not yet:** ward sounds (rising chord, pulse, shatter) arrive with the wards (slices 5-6); music is slice 4 (below).
+
+## Slice 4 as built (render session 14)
+
+- `render/src/musicFx.ts`: `musStep(step, I, faction, mythic, rand)` turns one sixteenth into a list of voices (plain data); `MUS` schedules and plays them. Same single-source rule: the page embeds the text the tests run, after the sound sources.
+- **The lab's arrangement:** A minor, 104 BPM, Am–F–C–G a bar each. Calm (I ≈ 1): a detuned-saw pad and a pulsing bass, a kick on the one. Then, as intensity I rises: kick on 1 and 3 (1.2), the arpeggio in eighths (1.3), a driving eighth-note bass (1.45), hats (1.6), the arpeggio in sixteenths (2.2), four on the floor (2.3), off-beat hats (2.4), snare on 2 and 4 (2.5). All thresholds live in `MUS_AT`.
+- **Intensity:** rests at 1, or 1.35 with a Mythic in play on the acting side; capped at 3.2; relaxes toward rest with a 6 s time constant. Bumps (`MUS_BUMP`): a strike leaving or a spell shot 0.04, an impact 0.2 × its tier weight, a kill 1.1, a Mythic arriving 1.3. Heals, buffs, debuffs, blocks and casts don't move it: the music follows violence.
+- **The scene:** each frame tells the music the acting player's faction (the arpeggio's voice: Cortex square, Aegis low filtered saw, Swarm detuned triangle that drops notes, Null square with broken octaves, Neutral bells) and whether that side has a Mythic unit or Directive in play (a three-note bell motif every other bar). A Mythic entering bumps it on its entrance beat.
+- **Mixing with the effects:** music shares SND's context, limiter and noise buffer (`SND.core()`). Every `SND.play` call reaches the music (`SND.listen`), played or not, so intensity follows the match even with effects muted. An effect that actually sounds dips the music to 80% and it recovers within ~0.2 s, at most once per 60 ms. **The lab's `muDrop` low-pass sweep on kills is not ported** (owner 2026-10-03): there is no filter on the music's way out at all, and nothing ever takes it below 80% while it is on.
+- **Scheduling:** a 25 ms timer queues every step starting within the next 0.12 s on the audio clock. After a stall (a hidden tab) it restarts just ahead of now instead of firing the missed steps. The context runs while effects or music is on and the tab is visible (`SND.hold`).
+- **The control** (`MUS.mount(button, slider, meter, store)`): "♫ Music on" / "♪ Music off", a music volume slider (default 60, matching the lab's default mix) and a small intensity meter. Armed until the first gesture like the effects; a press on either audio control (marked `data-audio-ctl`) only does what that control does, so muting effects never starts the music. Remembered as `{ muted, volume }` under `ai-tcg.music` (`musPrefParse` / `musPrefSerialize`), through the same `{ read, write }` store seam the website will fill from the account's Music setting.
+- **The FX sheet's music desk** (part 4): pick a voice, tick "Mythic in play", push intensity with hit / big hit / kill / Mythic arrives, and watch the layers readout.
 
 ## Board layout (infrastructure every primitive relies on)
 
@@ -128,7 +139,7 @@ Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slo
 1. Canvas FX layer + floor layer over/under the existing DOM board; atlas loader with the tint cache; additive drawing with correct alpha. Port travel + impact to sprite materials. **Built, render session 10** (`render/src/canvasFx.ts`, sheet: `npm run fx-sheet -w @ai-tcg/render`).
 2. Faction material kits for every category in the table above (spell damage, removal, heal, buff, debuff variants included), plus magnitude polish: hit-stop, colour split, camera punch, lingering debris and ground marks, warping grid. **Built, render session 11** (`render/src/effectFx.ts` + `canvasFx.ts`; see "Slice 2 as built").
 3. Procedural sound effects with faction voices (port the lab's `SFX`); on by default and armed until the first gesture, mute remembered, effects volume (owner 2026-10-07). **Built, render sessions 12-13** (`render/src/soundFx.ts`; see "Slice 3 as built"; audition grid in the FX sheet).
-4. Adaptive procedural music (port the lab's music block), no kill dropout.
+4. Adaptive procedural music (port the lab's music block), no kill dropout. **Built, render session 14** (`render/src/musicFx.ts`; see "Slice 4 as built"; music desk in the FX sheet).
 5. Faction wards for signature abilities, driven by `signatureAbilities`.
 6. Mythic unique wards: permanent layered ward, the four behaviours, Mythic card treatment, shatter on death; read everything from `mythics.json`.
 7. Fallback ward generator, so any Mythic without art still gets a unique ward.
