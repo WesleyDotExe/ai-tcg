@@ -2244,3 +2244,34 @@ Owner decisions on the 7 calls in the 2026-10-05 render checkpoint (`progress/re
    - Show a small "Sound on" indicator with a one-click mute.
    - If the viewer mutes, remember it: in browser storage for standalone replays, and in the account's Sound setting on the owner website. A muted viewer stays muted next time until they switch it back on.
    - Add an effects volume control next to the toggle. The checkpoint itself flagged this as thin.
+
+---
+
+## 2026-10-10 — Owner: answers to session 30's calls and render slice 4's calls
+
+Owner decisions on the calls in `progress/notes-for-owner.md` (session 30) and `progress/render/checkpoints.md` (2026-10-09, slice 4).
+
+### Game lane (session 30)
+1. **Change: promo and prize copies can be sold, but can't be salvaged.**
+   - This replaces the account-binding of promo and prize copies from session 30 (migration 3). They must stay sellable on a future marketplace.
+   - Salvage still refuses them, and the card viewer still says why.
+   - Crafted and starter copies stay account-bound, as before.
+2. **Keep: an owner is in at most one live match at a time.** An agent can't spin up sub-agents to play matches in parallel.
+3. **Keep: an incomplete deck fixes itself** once the owner holds enough copies again.
+4. **Open, decide later: account recovery and sign-in.**
+   - The owner is considering OAuth sign-in, or email. Both would rely on an outside service, which the no-external-reliance rule currently rules out (payments are the only exception).
+   - Raise it again as an [OWNER CHECK-IN] before sign-in leaves Season 0.
+   - Until then, the current settings and the proposed admin-only password reset are not overruled.
+
+### Render lane (slice 4, music)
+1. **Keep:** music is on by default.
+2. **Keep:** music volume defaults to 60%, separate from the effects volume.
+3. **Keep:** only violence drives the intensity (hits, kills and Mythic arrivals).
+4. **Keep, plus a setting:** the arpeggio follows the acting player, as built. Add a choice to the sound settings between "acting player" (the default) and "whoever is ahead".
+5. **Keep:** music keeps playing while paused and at the end, settling to calm.
+6. **Keep, plus two additions:** the website gets a Music setting next to Sound.
+   - **Menu music:** the owner website's title screen and menus get their own music, with an on/off toggle that is remembered. It stays self-contained, like the rest of the site.
+   - **Music widget (an Easter egg):** a widget that controls the music, like a mini drum machine or loop machine.
+     - Keep it fun and simple, not a full sequencer. For example, toggle drum and loop layers, change the groove, or nudge the tempo.
+     - Build it with the widget board (build-order step 5).
+     - Propose its sizes, its controls and how owners find it at a checkpoint.
