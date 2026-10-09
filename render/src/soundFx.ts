@@ -31,7 +31,8 @@
 //     in browser storage for a standalone replay; the owner website will
 //     pass its own store holding the account's Sound setting through the
 //     same { read, write } seam (SND.mount). A muted viewer stays muted
-//     until they switch it back on. Music is slice 4 and has its own toggle.
+//     until they switch it back on. Music (slice 4, musicFx.ts) has its own
+//     toggle and shares this context and limiter (SND.core / hold / listen).
 //
 // Same single-source rule as canvasFx.ts: the page embeds
 // SOUND_FX_PURE_SOURCE (the voice recipes: which oscillators and noise
@@ -192,6 +193,9 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
     // volume scales it.
     var MASTER = 0.6;
     var counts = { played: 0, voices: 0, capped: 0, repeats: 0 }, byKind = {}, last = {};
+    // Who needs the context running besides the effects (the music, slice
+    // 4), and who hears about every event (the music's intensity and duck).
+    var holds = {}, listeners = [];
     function init() {
       if (AU.ctx) return true;
       var AC = window.AudioContext || window.webkitAudioContext;
@@ -253,8 +257,15 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
       AU.active++; s.onended = done;
     }
     // play(kind, faction, tier, rect, o): one event's sound, panned by the
-    // centre of rect (where it happens). Silent while sound is off.
+    // centre of rect (where it happens). Silent while sound is off. Every
+    // call reaches the listeners, played or not (the music follows the
+    // match even with effects muted).
     function play(kind, faction, tier, rect, o) {
+      var played = sound(kind, faction, tier, rect, o);
+      for (var i = 0; i < listeners.length; i++) listeners[i](kind, faction, tier, played);
+      return played;
+    }
+    function sound(kind, faction, tier, rect, o) {
       if (!AU.on || !AU.ctx) return false;
       var now = typeof performance !== 'undefined' ? performance.now() : Date.now();
       var key = kind + ':' + sfxVoiceOf(faction);
@@ -271,14 +282,27 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
       }
       return true;
     }
+    // The context runs while the effects or anything holding it (the
+    // music) is on and the tab is visible; otherwise it is suspended.
+    function refresh() {
+      if (!AU.ctx) return;
+      var need = AU.on;
+      for (var k in holds) if (holds[k]) need = true;
+      if (need && !AU.hidden) { if (AU.ctx.resume) AU.ctx.resume(); }
+      else if (AU.ctx.suspend) AU.ctx.suspend();
+    }
     function setOn(on) {
       AU.want = !!on;
       if (on && !init()) { AU.want = false; return false; }
       AU.on = !!on;
-      if (AU.ctx && AU.ctx.resume && on && !AU.hidden) AU.ctx.resume();
-      if (AU.ctx && AU.ctx.suspend && !on) AU.ctx.suspend();
+      refresh();
       return AU.on;
     }
+    // core(): the shared context, limiter and noise buffer, made on first
+    // use (only ever from a gesture), or null without WebAudio.
+    function core() { return init() ? { ctx: AU.ctx, comp: AU.comp, noise: AU.noise } : null; }
+    function hold(name, on) { holds[name] = !!on; refresh(); }
+    function listen(fn) { listeners.push(fn); }
     // arm(pref): at page load, before any gesture. Remembers what the viewer
     // wants without making a context (browsers refuse audio until a gesture).
     function arm(pref) {
@@ -299,12 +323,10 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
       return AU.vol;
     }
     // A hidden tab goes quiet (the context is suspended) and picks up again
-    // when the viewer comes back, if sound was on.
+    // when the viewer comes back, if sound or music was on.
     function setHidden(hidden) {
       AU.hidden = !!hidden;
-      if (!AU.ctx || !AU.on) return;
-      if (AU.hidden && AU.ctx.suspend) AU.ctx.suspend();
-      if (!AU.hidden && AU.ctx.resume) AU.ctx.resume();
+      refresh();
     }
     // 'muted' (the viewer switched it off), 'armed' (on, waiting for the
     // first gesture) or 'on'.
@@ -341,6 +363,10 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
       }
       function gesture(ev) {
         if (ev && ev.target && btn.contains && btn.contains(ev.target)) return;
+        // A press on any audio control (marked data-audio-ctl: the effects'
+        // or the music's) only does what that control does; muting one
+        // never starts the other.
+        if (ev && ev.target && ev.target.closest && ev.target.closest('[data-audio-ctl]')) return;
         if (state() === 'armed') { unlock(); show(); }
       }
       if (typeof document !== 'undefined' && document.addEventListener) {
@@ -358,6 +384,7 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
     }
     var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
+      core: core, hold: hold, listen: listen,
       stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, byKind: k }; } };
     window.__sfx = api;
     return api;

@@ -7,6 +7,53 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-09 — EFFECTS.md v2 slice 4: adaptive procedural music — AWAITING FEEDBACK
+
+**What this delivers:**
+- **Music in every replay,** generated live like the effects, with no files. It's the lab's piece: A minor, 104 BPM, Am–F–C–G.
+- **It follows the match.**
+  - It rests calm: a pad and bass.
+  - Hits, kills and a Mythic arriving raise the intensity. That brings in the kick, the arpeggio, hats, then the snare and four on the floor.
+  - It settles back over a few seconds.
+- **The arpeggio plays in the acting side's faction voice,** the same voices as the effects.
+- **A Mythic in play on the acting side** adds a bell every other bar and keeps the music a little higher.
+- **It never drops out on a kill** (your 2026-10-03 note). Effects only dip it to 80%, back within a fifth of a second.
+- **Its own control,** next to the sound control:
+  - "♫ Music on", a volume slider (default 60%) and a small intensity meter;
+  - on by default, starting on the first click or key press, like the sound;
+  - one click mutes it, and the mute and volume are remembered;
+  - muting the effects doesn't stop the music, and the other way round.
+- **A music desk in the FX sheet** (part 4): pick a voice, push the intensity, and hear each layer come in.
+
+**Evidence:**
+- Any replay in `render/output/`; `aegis-vs-null-seed3` has the widest range.
+- `render/output/fx-sheet.html`, part 4: the desk.
+- Stills: `progress/render/evidence/v2-s4-music-controls-aegis-vs-null-seed3.png` and `v2-s4-music-desk-fx-sheet.png`.
+- Headless Chromium, all six replays played through:
+  - the music was never silent (kills included);
+  - no clipping (peak 0.62);
+  - every layer reached in a violent match, while a quiet one stayed in the lower half;
+  - no change in frame rate;
+  - 0 errors.
+- 29 new tests; render is at 216.
+
+**Strong:** it's the lab's music, as you heard it, with your one change (no kill dropout) built in so it can't creep back: there's no filter on the music's output at all. It's tied to the real events and the real acting side, so a Swarm turn sounds like Swarm.
+
+**Thin:**
+- I can measure it, not hear it. Judge it on the desk.
+- It keeps playing (calming down) when the replay is paused or over.
+- The intensity counts violence, not stakes: a lethal blow and a big mid-game hit of the same size lift it equally.
+
+**Decisions you may want to overrule:**
+1. **Music is on by default** like the sound, starting on the first click. Say if you'd rather it start off.
+2. **Default music volume 60%** (the lab's default mix), separate from the 80% effects volume.
+3. **Only violence drives it:** hits, kills and Mythic arrivals. Heals, buffs and blocks don't move it.
+4. **The arpeggio follows the ACTING player,** so it changes voice every turn. The alternative is following whoever is ahead.
+5. **It keeps playing while paused** and at the end, settling to calm. The alternative is fading out on pause.
+6. **The website will need a separate Music setting** next to Sound (the replay remembers them separately).
+
+---
+
 ## 2026-10-07 — Slice 3 follow-up: your answers built (number at the impact, sound on by default, mute remembered, effects volume) — AWAITING FEEDBACK
 
 **What this delivers** (your 2026-10-07 answers; calls 1, 3, 4, 5 and 6 are unchanged):
