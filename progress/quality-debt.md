@@ -26,9 +26,38 @@ neutral pool), session 25 (the owner's agent checks: card
 advantage, Null's cards), session 26 (the Phase 5 gate), session 27 (Phase 5
 closed, event-log instance ids), session 28 (persistence + the economy spec), and now session 29
 (the economy moves to the owner), and now session 30 (manual salvage, sign-in, the connected
-agent).
+agent), and now session 31 (promo/prize unbinding, the signature zone).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 31
+
+- **The ring has no signature-mode gate yet, and the stand-in ring is badly out.** With each set
+  Mythic in the signature zone, 4 of 6 edges sit 10-24 points from where they are today
+  (balance report 022). The gate still measures decks as shipped, which is true to every real
+  match today but stops being true the day agents carry signature cards. Owner check-in pending.
+- **The fairness test as written can't pass.** Swapping one candidate for four very different set
+  Mythics can't move every faction 2 points or less. Option A (same plain stand-in on both sides)
+  is a proposal, not built.
+- **Aegis gains from any extra always-available body**: even an identical plain 5-cost 3/6 on
+  both sides gives Aegis +7-8 points against Cortex and Swarm. Not addressed.
+- **Lookahead values a signature play exactly like the same unit from the hand.** It doesn't
+  value that the card comes back (a renewable threat), or that holding it for a better turn might
+  be worth more. It plays it on the first affordable turn almost every game.
+- **Null Singularity (cost 7) is near-dead in the zone** (played in 29% of games), because games
+  end before turn ~13. Using a 7-cost card as a signature card is a weak choice under today's
+  curve.
+- **The arena doesn't show the signature zone yet.** Render ignores `signatureReturn` and
+  `fromSignatureZone`; a spectator can't see the waiting card or its climbing cost. Render-lane
+  work.
+- **Nothing gives a real match a signature card yet.** The server's one hard-coded match, the
+  economy's `startMatch` and the demo all play without one. The zone is proven in engine tests,
+  the demo and the measurement only.
+- **The signature card is only checked for "plain Unit".** The Neutral-faction rule, the tier
+  stat lines and the one-signature-ability budget from ECONOMY.md aren't validated anywhere yet.
+- **Migration 4 assumes every bound promo/prize was bound by migration 3.** True today (nothing
+  else bound them), but it would wrongly unbind a promo granted bound on purpose on a v3 file.
+  No such file exists.
 
 ## New debt from session 30
 

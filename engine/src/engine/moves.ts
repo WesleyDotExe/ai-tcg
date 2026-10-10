@@ -1,7 +1,7 @@
 import type { Ability, Speed } from "../cards/types.js";
 import type { GameState, PlayerId } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
-import { isAlive, hasKeyword, effectiveCardCost, boardSlotsUsed } from "../state/queries.js";
+import { isAlive, hasKeyword, effectiveCardCost, boardSlotsUsed, signatureCost } from "../state/queries.js";
 import { enumerateTargets, type TargetRef } from "../effects/targeting.js";
 import { evaluateCondition } from "../effects/conditions.js";
 import { BOARD_SLOTS } from "../state/init.js";
@@ -23,6 +23,11 @@ export type Move =
        * this field closes. */
       abilityTarget?: TargetRef;
     }
+  /** Plays the signature card from the signature zone (see SignatureZone
+   * in state/types.ts). Sorcery timing, a free board slot, and its current
+   * cost (base plus the replay surcharge). `target` is its onPlay ability's
+   * chosen target, exactly as for a plain Unit played from the hand. */
+  | { type: "playSignature"; target?: TargetRef }
   | { type: "attack"; attackerInstanceId: string; target: TargetRef }
   | { type: "activateAbility"; sourceInstanceId: string; abilityId: string; target?: TargetRef }
   /** Passes priority. Legal for whoever currently holds it, always. Two
@@ -55,6 +60,7 @@ export function getLegalMoves(state: GameState): Move[] {
   const moves: Move[] = [{ type: "passPriority" }];
 
   pushPlayCardMoves(state, actor, moves, sorceryTiming);
+  if (sorceryTiming) pushPlaySignatureMoves(state, actor, moves);
   if (sorceryTiming) pushAttackMoves(state, actor, moves);
   pushActivatedAbilityMoves(state, actor, moves, sorceryTiming);
 
@@ -79,8 +85,10 @@ function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorce
       // the same "has this unit actually lived through a turn boundary"
       // check summoning sickness uses in pushAttackMoves below — evolution
       // gets no Rush-style bypass, unlike attacking.
+      // A signature unit never evolves: it must stay the card that goes
+      // back to the signature zone when it dies.
       const bases = player.board.filter(
-        (u) => !u.pending && u.card.id === card.evolvesFrom && u.enteredTurn < state.turnNumber,
+        (u) => !u.pending && !u.signature && u.card.id === card.evolvesFrom && u.enteredTurn < state.turnNumber,
       );
       const onEvolve = card.abilities.find((a) => a.trigger === "onPlay");
       for (const base of bases) {
@@ -141,6 +149,23 @@ function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorce
       moves.push({ type: "playCard", handIndex });
     }
   });
+}
+
+/** The signature card, when it is waiting in its zone: same rules as a
+ * plain Unit from the hand (a free board slot; a "chosen" onPlay needs a
+ * legal target), always Sorcery timing, paid at signatureCost. */
+function pushPlaySignatureMoves(state: GameState, pid: PlayerId, moves: Move[]): void {
+  const player = state.players[pid];
+  const zone = player.signature;
+  if (!zone || !zone.inZone) return;
+  if ((signatureCost(state, pid) ?? Infinity) > player.energy) return;
+  if (boardSlotsUsed(player) >= BOARD_SLOTS) return;
+  const onPlay = zone.card.abilities.find((a) => a.trigger === "onPlay");
+  if (onPlay?.targeting && onPlay.targeting.scope === "chosen") {
+    for (const target of enumerateTargets(onPlay.targeting.filter, pid, state)) moves.push({ type: "playSignature", target });
+  } else {
+    moves.push({ type: "playSignature" });
+  }
 }
 
 function pushAttackMoves(state: GameState, pid: PlayerId, moves: Move[]): void {

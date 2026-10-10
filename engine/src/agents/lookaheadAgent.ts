@@ -3,10 +3,11 @@ import type { Move } from "../engine/moves.js";
 import type { TargetRef } from "../effects/targeting.js";
 import type { DirectiveInstance, PlayerId, StackItem, UnitInstance } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
-import type { Ability, EffectSpec, ScalingContext, ScalingSource, StaticEffectSpec, TargetFilter, TargetSpec } from "../cards/types.js";
+import type { Ability, EffectSpec, UnitCard, ScalingContext, ScalingSource, StaticEffectSpec, TargetFilter, TargetSpec } from "../cards/types.js";
 import { resolveAmount } from "../cards/types.js";
 import { Rng } from "../state/rng.js";
 import { hasKeyword } from "../state/queries.js";
+import { SIGNATURE_REPLAY_SURCHARGE } from "../state/init.js";
 
 const FACE_DAMAGE_WEIGHT = 2;
 const CARD_ADVANTAGE_WEIGHT = 1.5;
@@ -98,6 +99,8 @@ export class LookaheadAgent implements Agent {
         return this.scoreAttack(view, move);
       case "playCard":
         return this.scorePlayCard(view, move);
+      case "playSignature":
+        return this.scorePlaySignature(view, move);
       case "activateAbility":
         return this.scoreActivateAbility(view, move);
     }
@@ -153,22 +156,7 @@ export class LookaheadAgent implements Agent {
         // means that same, already-real instance.
         if (onPlay) value += this.estimateAbility(view, onPlay, move.abilityTarget, { kind: "unit", instanceId: evolveTarget.instanceId });
       } else {
-        // A telegraphed unit sits dormant (can't attack, can't activate,
-        // no static aura, no onPlay yet — see UnitCard.telegraph) until it
-        // arms turns later, so its body/ability value is real but not yet
-        // realised — discounted, not ignored, since board presence and the
-        // opponent's need to answer it are worth something right now too.
-        const telegraphDiscount = card.telegraph ? 0.4 : 1;
-        value += (card.attack + card.health) * telegraphDiscount;
-        const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
-        // A brand-new unit's own instance doesn't exist in the view yet
-        // (it's created by this very move), so "self" targeting has
-        // nothing real to resolve against — a named simplification: any
-        // self-targeting onPlay effect on a *newly played* (non-evolving)
-        // unit scores 0 rather than guessing at an instance that isn't on
-        // the board yet. Non-self targeting (chosen/all/opponent, etc.)
-        // is unaffected and scored normally.
-        if (onPlay && !card.telegraph) value += this.estimateAbility(view, onPlay, move.target, undefined);
+        value += this.scoreNewUnit(view, card, move.target);
       }
       return value;
     }
@@ -205,6 +193,40 @@ export class LookaheadAgent implements Agent {
     // full pool) tied with passing and was cast on a coin flip.
     if (effectValue <= 0) return value - this.cardAdvantageWeight;
     return value + effectValue;
+  }
+
+  /** A newly played (non-evolution) Unit's board value: its body, plus its
+   * onPlay. Shared by a play from the hand and from the signature zone. */
+  private scoreNewUnit(view: PlayerView, card: UnitCard, target: TargetRef | undefined): number {
+    // A telegraphed unit sits dormant (can't attack, can't activate,
+    // no static aura, no onPlay yet — see UnitCard.telegraph) until it
+    // arms turns later, so its body/ability value is real but not yet
+    // realised — discounted, not ignored, since board presence and the
+    // opponent's need to answer it are worth something right now too.
+    const telegraphDiscount = card.telegraph ? 0.4 : 1;
+    let value = (card.attack + card.health) * telegraphDiscount;
+    const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
+    // A brand-new unit's own instance doesn't exist in the view yet
+    // (it's created by this very move), so "self" targeting has
+    // nothing real to resolve against — a named simplification: any
+    // self-targeting onPlay effect on a *newly played* (non-evolving)
+    // unit scores 0 rather than guessing at an instance that isn't on
+    // the board yet. Non-self targeting (chosen/all/opponent, etc.)
+    // is unaffected and scored normally.
+    if (onPlay && !card.telegraph) value += this.estimateAbility(view, onPlay, target, undefined);
+    return value;
+  }
+
+  /** The signature card (see SignatureZone): scored like the same Unit
+   * played from the hand, at what it costs now (base plus the replay
+   * surcharge, read from the public zone). It spends no card from the hand,
+   * and the scoring already charges a hand play nothing for the card, so
+   * the two compare on body, effect and energy alone. */
+  private scorePlaySignature(view: PlayerView, move: Extract<Move, { type: "playSignature" }>): number {
+    const zone = view.me.signature;
+    if (!zone || !zone.inZone) return -Infinity;
+    const cost = zone.card.cost + SIGNATURE_REPLAY_SURCHARGE * zone.timesPlayed;
+    return -cost * ENERGY_WEIGHT + this.scoreNewUnit(view, zone.card, move.target);
   }
 
   private scoreActivateAbility(view: PlayerView, move: Extract<Move, { type: "activateAbility" }>): number {

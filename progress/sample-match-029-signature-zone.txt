@@ -1,0 +1,275 @@
+AI-TCG signature-zone demo: Cortex vs Swarm, seed 2 (first seed in 1-400 with a signature replay)
+p1 = Lookahead-Swarm, p2 = Lookahead-Cortex
+p1 signature card: Hive Mother (5 cost, 3/6); deck 39 cards, the Mythic not among them
+p2 signature card: Quorum Arbiter (5 cost, 3/6); deck 39 cards, the Mythic not among them
+Lines marked SIG are the signature zone's own events; [zone ...] is the zone straight after.
+
+--- Turn 1 (p1) ---
+p1 plays Colony Broodling (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Retaliation Node
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Rally Cry
+--- Turn 3 (p1) ---
+Colony Broodling attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Cortex
+p1 plays Colony Broodling (u3)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Load Balancer
+--- Turn 4 (p2) ---
+p2 plays Retaliation Node (u4)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Bloodswarm Alpha
+--- Turn 5 (p1) ---
+Colony Broodling attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Cortex
+Colony Broodling attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Interrupt Handler
+--- Turn 6 (p2) ---
+p2 plays Load Balancer (u7)
+Retaliation Node attacks Colony Broodling
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Colony Broodling (unit)
+  Colony Broodling deals 1 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Colony Broodling (unit)
+  Retaliation Node deals 1 damage to Colony Broodling (unit)
+  Colony Broodling (p1) dies
+  Colony Broodling (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Carapace Grunt
+--- Turn 7 (p1) ---
+p1 plays Bloodswarm Alpha (u9)
+  ability: Bloodswarm Alpha — bloodswarm-alpha-play (onPlay)
+  Bloodswarm Alpha summons Swarm Larva for p1 (u10)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Firewall Sentinel
+--- Turn 8 (p2) ---
+p2 plays Firewall Sentinel (u11)
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Swarm Larva (unit)
+  Swarm Larva (p1) dies
+Load Balancer attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+Retaliation Node attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Corrosive Spitter
+--- Turn 9 (p1) ---
+SIG p1 plays Hive Mother from the signature zone for 5 energy (u14)
+   [zone p1: Hive Mother, played 1x, on the board]
+Bloodswarm Alpha attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Bloodswarm Alpha (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Deadlock Detector
+--- Turn 10 (p2) ---
+SIG p2 plays Quorum Arbiter from the signature zone for 5 energy (u16)
+   [zone p2: Quorum Arbiter, played 1x, on the board]
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Hive Mother (unit)
+Load Balancer attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+Firewall Sentinel attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Lookahead-Swarm
+Retaliation Node attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Broodcaller
+--- Turn 11 (p1) ---
+p1 plays Bloodswarm Alpha (u20)
+  ability: Bloodswarm Alpha — bloodswarm-alpha-play (onPlay)
+  Bloodswarm Alpha summons Swarm Larva for p1 (u21)
+p1 plays Carapace Grunt (u22)
+Hive Mother attacks Firewall Sentinel
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hive Mother's attack
+  Hive Mother deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Hive Mother (unit)
+  Firewall Sentinel (p2) dies
+Bloodswarm Alpha attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bloodswarm Alpha's attack
+  Bloodswarm Alpha deals 4 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Load Balancer
+--- Turn 12 (p2) ---
+p2 casts Cascade Purge [Sorcery] (goes on the stack)
+p2 casts Interrupt Handler [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Bloodswarm Alpha (unit)
+  Bloodswarm Alpha (p1) dies
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Cascade Purge
+  ability: Cascade Purge — cascade-purge-cast (onPlay)
+  Cascade Purge deals 2 damage to Hive Mother (unit)
+  Cascade Purge deals 2 damage to Bloodswarm Alpha (unit)
+  Cascade Purge deals 2 damage to Swarm Larva (unit)
+  Cascade Purge deals 2 damage to Carapace Grunt (unit)
+  Swarm Larva (p1) dies
+  Carapace Grunt (p1) dies
+Quorum Arbiter attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Quorum Arbiter's attack
+  Quorum Arbiter deals 3 damage to Lookahead-Swarm
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Bloodswarm Alpha (unit)
+  Bloodswarm Alpha (p1) dies
+Load Balancer attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+Retaliation Node attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Carapace Grunt
+--- Turn 13 (p1) ---
+Hive Mother attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hive Mother's attack
+  Hive Mother deals 4 damage to Lookahead-Cortex
+p1 plays Broodcaller (u31)
+  ability: Broodcaller — broodcaller-play (onPlay)
+p1 plays Carapace Grunt (u32)
+p1 plays Corrosive Spitter (u33)
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Rate Limiter
+--- Turn 14 (p2) ---
+p2 plays Rate Limiter (d34)
+Quorum Arbiter attacks Broodcaller
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Quorum Arbiter's attack
+  Quorum Arbiter deals 5 damage to Broodcaller (unit)
+  Broodcaller deals 4 damage to Quorum Arbiter (unit)
+  Broodcaller (p1) dies
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Hive Mother (unit)
+  Hive Mother (p1) dies
+SIG Hive Mother returns to p1's signature zone (next play costs 7)
+   [zone p1: Hive Mother, played 1x, waiting, next play costs 7]
+Load Balancer attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+p2 plays Deadlock Detector (u37)
+  ability: Deadlock Detector — deadlock-detector-play (onPlay)
+Retaliation Node attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Swarm
+p2 casts Backup Protocol [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Backup Protocol
+  ability: Backup Protocol — backup-protocol-cast (onPlay)
+  Backup Protocol restores 3 health to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Warren Guardian
+--- Turn 15 (p1) ---
+SIG p1 plays Hive Mother from the signature zone for 7 energy (u40)
+   [zone p1: Hive Mother, played 2x, on the board]
+  ability: Corrosive Spitter — corrosive-spitter-attack (onAttack)
+  Corrosive Spitter applies Stasis to Load Balancer
+Corrosive Spitter attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrosive Spitter's attack
+  Corrosive Spitter deals 3 damage to Lookahead-Cortex
+Carapace Grunt attacks Lookahead-Cortex (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Carapace Grunt's attack
+  Carapace Grunt deals 3 damage to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Recursive Construct
+--- Turn 16 (p2) ---
+  ability: Rate Limiter — rate-limiter-tick (onTurnStart)
+  Rate Limiter deals 1 damage to Carapace Grunt (unit)
+  Rate Limiter deals 1 damage to Corrosive Spitter (unit)
+  Rate Limiter deals 1 damage to Hive Mother (unit)
+  Corrosive Spitter (p1) dies
+Quorum Arbiter attacks Lookahead-Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Quorum Arbiter's attack
+  Quorum Arbiter deals 3 damage to Lookahead-Swarm
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+Turns: 16. Signature plays: p1 2, p2 1.

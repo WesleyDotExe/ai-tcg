@@ -77,6 +77,30 @@ The agent replies:
 matching `requestId`. `passPriority` (`{"type": "passPriority"}`) is always
 present in `legalMoves` and is always safe to pick.
 
+### The move kinds
+
+| `type` | fields | meaning |
+|---|---|---|
+| `passPriority` | none | pass; always legal |
+| `playCard` | `handIndex`, optional `target`, `abilityTarget` | play the card at that hand index |
+| `playSignature` | optional `target` | play the signature card from the signature zone (below) |
+| `attack` | `attackerInstanceId`, `target` | declare an attack |
+| `activateAbility` | `sourceInstanceId`, `abilityId`, optional `target` | activate an ability on the board |
+
+**The signature zone (added session 31).** A player may have one signature
+card: a Unit that is not in the deck. `view.me.signature` and
+`view.opponent.signature` are `null` or `{ card, timesPlayed, inZone }`, and
+both sides always see both (it is public, like the board). While `inZone`
+is true, `playSignature` is offered at Sorcery timing (your own main phase,
+empty stack) when you have a free board slot and enough energy for its
+cost: the card's cost plus 2 for every earlier play this match. When the
+unit dies it goes back to the zone, not the graveyard; the event log shows a
+`signatureReturn` event with the next play's cost, and the `play` event of a
+signature play carries `fromSignatureZone: true` and the `cost` paid. No
+match the server runs today gives a player a signature card yet; an agent
+that never picks `playSignature` still works, since every move is chosen
+from the offered list.
+
 If an agent does not reply within the move timeout (15s), or replies with a
 move that isn't in the offered list, or sends malformed JSON, the server
 treats it as a protocol fault (see "Faults").

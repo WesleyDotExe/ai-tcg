@@ -1,89 +1,91 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 30 (game lane) did the owner's
-2026-10-07 economy entries and the first part of build-order step 2 (owner accounts and
-agents).** The rest of step 2 (generating a new agent and its signature card) is next. The
-stage isn't finished, so there's no checkpoint this session.
+**Build-order stage: Stage 4+ (the living system). Session 31 (game lane) did the owner's
+2026-10-10 game-lane answers and the next piece of build-order step 2: the engine's signature
+zone.** Step 2 isn't finished (the Neutral menu, its fairness test, the bound signature promo and
+generating an agent are left), so there's no stage checkpoint. There is an **[OWNER CHECK-IN]** in
+notes-for-owner.md about the ring re-baseline.
 
-## What stands (this session's work; sessions 1-29 otherwise unchanged)
+## What stands (this session's work; sessions 1-30 otherwise unchanged)
 
-**Schema v3 (`economy/src/schema.ts`, migration 3).**
-- Promo and prize copies are account-bound too (owner 2026-10-07). Done with a trigger plus a
-  backfill, because v2's CHECK can't change without rebuilding the table.
-- `logins` (username, optional email, scrypt hash, admin flag), `sessions` (keyed by the token's
-  SHA-256), `sign_in_failures`.
-- `owners.connected_agent_id` (must be the owner's own agent) and `owners.faction_lock`.
-- `live_matches`. Each side must be the owner's connected agent, an owner is in at most one live
-  match, and an owner can't switch or disconnect its agent while live. All of these are enforced
-  in the schema too.
+**Schema v4 (`economy/src/schema.ts`, migration 4; owner 2026-10-10 answer 1).**
+- Promo and prize copies are no longer account-bound: they can be sold on a future marketplace.
+  Migration 4 drops v3's "always bound" insert trigger and unbinds the copies v3 bound, lifting
+  "a bound copy stays bound" for that one UPDATE and putting it straight back.
+- Salvage still refuses them (v2's CHECK only salvages standard set copies from packs), and the
+  card viewer's reason is "Promo/Prize copies can be kept or sold, never salvaged".
+- A copy of any origin can still be granted bound on purpose (`accountBound: true`), which is what
+  the signature card will use.
 
-**Store (`economy/src/store.ts`).**
-- **Sign-in:** `createAccount`, `addLogin`, `signIn`, `authenticate`, `signOut`,
-  `changePassword`, `isAdmin`.
-  - Passwords are hashed in `economy/src/passwords.ts`: `node:crypto` scrypt, with the cost stored
-    in each hash and a re-hash on sign-in when the cost is raised.
-  - An unknown login gets the same answer, at the same scrypt cost, as a wrong password.
-  - 10 failures in 15 minutes lock the account, counted across its username and email.
-- **Agents:** `connectAgent`, `disconnectAgent`, `connectedAgent`, `setFactionLock`.
-- **Live matches:**
-  - `startMatch` takes two owners. It uses each owner's connected agent and active deck, and
-    refuses self-play, a missing agent or deck, an incomplete deck, a deck outside the faction
-    lock, and an owner already live.
-  - `recordMatch` ends a live match and must name the agents that started it.
-  - `liveMatchOf` and `liveMatches` read the live state.
-- **Admin:** `houseRoster` is the admin view's data.
-- **Salvage is manual only:**
-  - `cardHoldings` gives the card viewer its data: copies held, how many are salvageable, why
-    each of the rest can't be, and the decks that use the card.
-  - `salvagePlan` previews a salvage.
-  - `salvage(owner, card, qty, {confirmDeckImpact})` throws `SalvageNeedsConfirmation`, with the
-    affected decks, until the owner confirms.
-  - `salvageExtras` and `salvageableCopies` are gone.
-- **Decks count cards and share copies.**
-  - `loadDeck` fills a slot whose copy is gone with another held copy of the same card.
-  - `deckStatus` and `listDecks` report a deck as incomplete when there are too few copies held.
-  - `updateDeck` fixes a deck.
-  - `setActiveDeck` respects the faction lock.
+**The signature zone (engine).**
+- `DeckSpec.signature?: UnitCard`; `PlayerState.signature: { card, timesPlayed, inZone } | null`,
+  public in `PlayerView` for both sides.
+- The new move is `{ type: "playSignature", target? }`, offered when all of these hold:
+  - Sorcery timing;
+  - a free board slot;
+  - enough energy for `signatureCost`: the card's effective cost plus `SIGNATURE_REPLAY_SURCHARGE`
+    (2) for each earlier play.
+
+  A chosen-target onPlay gets one move per legal target, just like a Unit from the hand.
+- Hand and signature plays share `putUnitOnBoard` in `engine.ts`. A signature unit is marked
+  `signature: true` and never evolves.
+- On death (`processDeaths`):
+  - the card goes back to the zone, not the graveyard, and its Tools still go down;
+  - a `signatureReturn` event carries `nextCost`;
+  - the `play` event of a signature play carries `fromSignatureZone` and `cost`.
+- `createInitialState` refuses a signature card that isn't a plain Unit, or that is an evolution.
+- Agents:
+  - Lookahead scores a signature play like the same Unit from the hand, at its current cost;
+  - both Aggressive agents treat it as a card play at its current printed cost.
+- `withSetMythicSignature(deck)` moves a deck's one set Mythic into the zone (the ring's stand-in).
+- `PROTOCOL.md` documents the move kinds and the zone.
+
+**Ring measurement (`progress/balance-report-022-signature-zone.txt`,
+`engine/src/dev/signatureZoneReport.ts`).**
+- With the set Mythics as signature cards, 4 of the 6 edges moved 10 to 24 points. Examples:
+  Aegis > Cortex 52.2 -> 75.9 and Null > Aegis 48.2 -> 29.4.
+- The cause is guaranteed access: Mythics are played in 92-97% of games instead of ~26%, apart
+  from Null Singularity at 29%. Replays are rare.
+- An identical plain 5-cost 3/6 signature card on both sides moves the ring by up to 8 points,
+  with Aegis gaining most.
+- **The gate is unchanged** (`ringBaseline.json`, decks as shipped, still passing). The signature
+  mode is a second baseline: `ringBaselineSignature.json`, `npm run ring:signature -w @ai-tcg/engine`,
+  and a second CI step.
 
 ## Evidence committed
 
-- `progress/economy-demo-003.txt` (`npm run demo -w @ai-tcg/economy`) is byte-reproducible now
-  (the pack id is masked). It shows:
-  - sign-in by email in any case, the same refusal for a wrong password and an unknown login, the
-    lockout and its expiry, sign-out, and the admin;
-  - 42 real Lookahead matches, each started with `startMatch` and closed by `recordMatch`.
-    house-cortex's switch to cortex-b is refused mid-match and goes through after it. Match
-    results match session 29's run; the only difference is match 13, now played by cortex-a;
-  - manual salvage with the card viewer's reasons;
-  - a deck-short salvage: warned, then confirmed, with both decks marked INCOMPLETE and the
-    active one refused at load. Two more pulls make both decks complete again;
-  - the faction lock refusing a start;
-  - the admin's house roster.
-- `economy/test/` 43 tests (was 28). New `accounts.test.ts` (12): passwords, sign-in, lockout,
-  sessions, re-hash, admin, connected agent, live matches, start refusals, the roster.
-  `store.test.ts` covers the v2 -> v3 migration, promo and prize binding (including raw SQL), no
-  automatic salvage, manual salvage, the reasons, the deck warning and incomplete decks, and
-  shared-copy resolution with `updateDeck`.
-- `npm test`: 412 across six workspaces, all pass. `tsc --noEmit` is clean in all six. The engine
-  didn't change, so the ring check is unaffected.
+- `progress/sample-match-029-signature-zone.txt` (`npx tsx src/dev/signatureZoneMatchDemo.ts`): a
+  real Lookahead Cortex-vs-Swarm game. Hive Mother is played for 5, dies, returns to the zone
+  ("next play costs 7"), and is replayed for 7. Quorum Arbiter is played for 5.
+- `progress/balance-report-022-signature-zone.txt` (`npx tsx src/dev/signatureZoneReport.ts`, ~25 s).
+- `engine/test/signatureZone.test.ts` has 13 tests:
+  - setup, publicity, refusals, timing, slots, targets, play, return and surcharge;
+  - Tools to the graveyard, no evolving, the stand-in helper;
+  - 40 real Lookahead games checking conservation of the card and the cost of each replay;
+  - Aggressive playing it.
+
+  `ringRegression.test.ts` checks the second baseline file. `economy/test/store.test.ts` covers
+  the v3 -> v4 migration, unbound promos and prizes that still can't salvage, and a bound promo
+  that stays bound.
+- The gate ring check reproduces its baseline exactly after the engine refactor, so a deck
+  without a signature card plays byte-identically.
+- `npm test`: 455 across six workspaces, all pass (engine 149, protocol 7, server 23, agents 17,
+  economy 43, render 216). `tsc --noEmit` is clean in all six.
 
 ## Concrete next step
 
 Check the alternation first: if the last merged PR is this one (game lane), the next session is
-**render**.
+**render**. Render can pick up the owner's 2026-10-10 render items (the arpeggio setting) and
+show `signatureReturn` / `fromSignatureZone` in the arena.
 
-The next **game-lane** session finishes **build-order step 2: generating a new agent** (owner app
-spec B; ECONOMY.md "Unique Mythic"):
-1. Engine first: the signature zone (the card starts in its own zone, never drawn or shuffled,
-   playable when affordable, returns on death at +2 cost each replay, outside the deck limits).
-   Teach LookaheadAgent to use it, then re-baseline the ring once, with each faction's set Mythic
-   standing in as its signature card.
-2. The 16-option Neutral ability menu x the 3 cost tiers as card data built from existing effect
-   kinds, and the fairness test (swap into each starter, ring moves of 2 points or less, ring
-   check passes).
-3. Economy: the signature card as the agent's bound promo (PR- numbering), `generateAgent`
-   (3 agents, then 3 signature candidates, pick, confirm; no starter packs), and the connected
-   agent's card in play.
-Likely more than one session; do the signature zone + ring re-baseline first. Then raise the
-[OWNER CHECK-IN]: how an agent picks its faction, builds from the owner's collection, and
-chases quests.
+The next **game-lane** session reads the owner's answer to the ring check-in in owner-feedback.md.
+With no answer, it takes **option A**:
+1. Build the 16-option Neutral ability menu x the 3 cost tiers as card data from existing effect
+   kinds (ECONOMY.md "Unique Mythic").
+2. Build the fairness test against the "same plain signature card on both sides" reference. A
+   candidate swapped in for one faction's plain stand-in may move that faction's edges by 2 points
+   at most.
+3. Then the economy: the signature card as the agent's bound promo (PR- numbering) and
+   `generateAgent` (3 agents, then 3 signature candidates, pick, confirm; no starter packs).
+
+Then raise the step-2 [OWNER CHECK-IN]: faction choice, deck building from the collection, quests.

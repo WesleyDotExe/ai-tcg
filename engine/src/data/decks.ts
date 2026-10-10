@@ -1,4 +1,4 @@
-import type { Card, DeckFaction, Rarity } from "../cards/types.js";
+import type { Card, DeckFaction, Rarity, UnitCard } from "../cards/types.js";
 import type { DeckSpec } from "../state/init.js";
 import { lintCardPool, neutralCardViolations } from "../cards/poolLint.js";
 import { NEUTRAL_POOL } from "./neutralCards.js";
@@ -120,4 +120,18 @@ export function buildAegisDeck(id: DeckSpec["id"], name: string): DeckSpec {
 
 export function buildNullDeck(id: DeckSpec["id"], name: string): DeckSpec {
   return buildDeck(id, name, NULL_CARDS);
+}
+
+/** The ring's stand-in for a signature card (owner 2026-10-05, the unique
+ * Mythic: "re-baseline the ring regression check once, with each faction's
+ * set Mythic standing in as its signature card"). Takes a built deck and
+ * moves its one Mythic out of the deck into the signature zone, so the deck
+ * is one card shorter and the Mythic is always available instead of drawn.
+ * Throws unless the deck holds exactly one Mythic and it is a Unit. */
+export function withSetMythicSignature(spec: DeckSpec): DeckSpec {
+  const mythics = spec.cards.filter((c) => c.rarity === "Mythic");
+  if (mythics.length !== 1) throw new Error(`Deck ${spec.name}: needs exactly one Mythic to stand in as its signature card, has ${mythics.length}`);
+  const mythic = mythics[0]!;
+  if (mythic.type !== "Unit") throw new Error(`Deck ${spec.name}: its Mythic ${mythic.name} is a ${mythic.type}; a signature card is a Unit`);
+  return { ...spec, cards: spec.cards.filter((c) => c !== mythic), signature: mythic as UnitCard };
 }

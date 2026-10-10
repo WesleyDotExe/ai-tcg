@@ -1,5 +1,82 @@
 # Notes for the owner
 
+**Updated 2026-10-10, session 31 (your 2026-10-10 answers; step 2 continues: the signature
+zone).** Nothing is blocking, but there is one **[OWNER CHECK-IN]** below that shapes the next
+session. Evidence: `progress/balance-report-022-signature-zone.txt`,
+`progress/sample-match-029-signature-zone.txt`.
+
+Built:
+- **Promo and prize copies can be sold again** (your answer 1). Schema migration 4 unbinds the
+  ones session 30 bound, new ones arrive unbound, and salvage still refuses them. The card viewer
+  says "Promo copies can be kept or sold, never salvaged". Crafted and starter copies stay bound.
+- **The signature zone, in the engine.** A signature card starts in its own zone, takes no deck
+  slot, and is never drawn or shuffled. It can be played on your own turn when affordable. When
+  it dies it goes back to the zone, and each replay costs 2 more. It can't be evolved, and it is
+  public to both sides. All three agents use it. The sample match shows Hive Mother played for 5,
+  killed, back in the zone, and replayed for 7.
+
+### [OWNER CHECK-IN] The ring re-baseline moved far more than expected, so I didn't make it the gate
+
+You asked for the ring check to be re-baselined once, with each faction's set Mythic standing in
+as its signature card. I measured it on the same seeds as the gate:
+
+| edge (band) | Mythic in deck (gate today) | Mythic as signature card |
+|---|---|---|
+| Null > Aegis (55-60) | 48.2% | 29.4% |
+| Aegis > Cortex (55-60) | 52.2% | 75.9% |
+| Cortex > Swarm (55-60) | 57.4% IN | 43.0% |
+| Swarm > Null (55-60) | 56.2% | 66.1% |
+| Null ~ Cortex (45-55) | 49.2% IN | 44.7% |
+| Aegis ~ Swarm (45-55) | 51.2% IN | 58.6% |
+
+Why: in the deck, each Mythic is played in about 26% of games (Null's in 13%). In the zone,
+Quorum Arbiter, Hive Mother and Prime Aegis are played in 92-97% of games, but Null Singularity
+(cost 7) only in 29%, because games end first. Replays are rare (about 5% of games at most), so this is
+almost all from guaranteed access. The set Mythics were balanced as 1-in-4 draws, not as cards
+you always have.
+
+Writing those numbers in as the gate would accept 4 newly broken edges as "OUT", and the gate
+would only catch further drift. No real match gives a player a signature card yet, so **the gate
+still measures the decks as they play today** (unchanged baseline, still passing). The
+signature-mode numbers are recorded as a second baseline (`ringBaselineSignature.json`), and CI
+runs both.
+
+It also affects the **fairness test** for the Neutral menu ("swap the candidate in for each
+faction's set Mythic; the ring may move 2 points at most"). The set Mythics are so far apart in
+the zone (Prime Aegis is worth about +24 points to Aegis; Null Singularity much less) that one
+candidate can't land within 2 points of all four. Every candidate would fail.
+
+A closer stand-in: give **both** sides the same plain Neutral 5-cost 3/6 signature card and leave
+each set Mythic in its deck. That moves the ring by up to 8 points (Aegis gains most: Aegis > Cortex
+52 -> 60, Aegis ~ Swarm 51 -> 58). Real agents will each carry an equal-budget Neutral signature
+card, so this is nearer to real play. Report section 3.
+
+**Options:**
+- **A (my recommendation).** The gate stays as it is until real matches carry signature cards.
+  The fairness test uses the "same plain signature card on both sides" ring as its reference: a
+  candidate passes when swapping it in for one faction's plain stand-in moves that faction's
+  edges by 2 points or less. Then the next session builds the Neutral menu against that.
+- **B.** Re-baseline the gate as you first said (set Mythics as signature cards), accepting the
+  4 broken edges, and keep the fairness test as written.
+- **C.** Rebalance first: tune the four set Mythics until the "Mythic as signature card" ring sits
+  near today's numbers, then re-baseline. This is a balance project of its own (Null Singularity
+  at 7 and Prime Aegis are the two outliers).
+
+Also: should Aegis's gain from **any** extra 5-cost body be dealt with now, or once real
+signature cards exist? It's real at 95%, and it's the same direction the ring already leans.
+
+Calls of mine you may want to overrule:
+1. **A signature card must be a plain Unit** (not a Command, Directive, Tool or evolution). Your
+   tier table only gives stats, so I read it as a Unit.
+2. **Cost modifiers apply to it** like any card. The +2 per replay comes on top.
+3. **Its Tools go to the graveyard** when it dies; only the card goes back to the zone.
+4. **Any onDeath ability on it still fires** when it dies, before it goes back.
+
+Next game-lane session: whichever option you pick. Without an answer, A: the Neutral menu as card
+data and the fairness test against the "same plain signature card" reference.
+
+---
+
 **Updated 2026-10-08, session 30 (your 2026-10-07 economy entries, and step 2 part 1).** Nothing
 is blocking. Evidence: `progress/economy-demo-003.txt`.
 

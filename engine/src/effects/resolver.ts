@@ -2,7 +2,7 @@ import { resolveAmount } from "../cards/types.js";
 import type { Ability, EffectSpec, StatusKind, TokenSpec, UnitCard } from "../cards/types.js";
 import type { GameState, PlayerId, UnitInstance } from "../state/types.js";
 import type { Rng } from "../state/rng.js";
-import { findUnit, findDirective, allUnits, isAlive, currentMaxHealth, boardSlotsUsed } from "../state/queries.js";
+import { findUnit, findDirective, allUnits, isAlive, currentMaxHealth, boardSlotsUsed, signatureCost } from "../state/queries.js";
 import { evaluateCondition } from "./conditions.js";
 import { resolveTargets, type TargetRef } from "./targeting.js";
 import { buildScalingContext } from "./scaling.js";
@@ -472,10 +472,23 @@ export function processDeaths(state: GameState, rng: Rng): void {
       const idx = player.board.findIndex((u) => u.instanceId === unit.instanceId);
       if (idx === -1) continue;
       player.board.splice(idx, 1);
-      player.graveyard.push(unit.card);
+      // A signature card goes back to its zone instead (see SignatureZone),
+      // to be played again at a higher cost; its Tools still go down.
+      const zone = unit.signature ? player.signature : null;
+      if (!zone) player.graveyard.push(unit.card);
       // Attached Tools (see ToolCard) go down with the unit they were on.
       for (const tool of unit.tools) player.graveyard.push(tool);
       state.log.push({ type: "death", unit: unit.card.name, controller: unit.controller, instanceId: unit.instanceId });
+      if (zone) {
+        zone.inZone = true;
+        state.log.push({
+          type: "signatureReturn",
+          player: unit.controller,
+          card: zone.card.name,
+          instanceId: unit.instanceId,
+          nextCost: signatureCost(state, unit.controller)!,
+        });
+      }
     }
     for (const unit of round) {
       for (const ability of unit.card.abilities) {

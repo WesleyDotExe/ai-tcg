@@ -2,6 +2,7 @@ import type { GameState, PlayerId, PlayerState, UnitInstance, DirectiveInstance 
 import { otherPlayer } from "./types.js";
 import type { Ability, Card, Keyword } from "../cards/types.js";
 import { staticModifiersFor } from "../effects/statics.js";
+import { SIGNATURE_REPLAY_SURCHARGE } from "./init.js";
 
 export function findUnit(state: GameState, instanceId: string): { unit: UnitInstance; owner: PlayerId } | undefined {
   for (const pid of ["p1", "p2"] as const) {
@@ -101,4 +102,14 @@ export function effectiveCardCost(state: GameState, pid: PlayerId, card: Card): 
  * keyword check happens. */
 export function hasKeyword(unit: UnitInstance, keyword: Keyword): boolean {
   return unit.card.keywords.includes(keyword) || unit.tools.some((t) => t.grantedKeywords.includes(keyword));
+}
+
+/** What playing `pid`'s signature card would cost right now: its effective
+ * cost (cost modifiers apply to it like any card) plus the replay surcharge
+ * for every earlier play this match. Undefined when there is no signature
+ * card. */
+export function signatureCost(state: GameState, pid: PlayerId): number | undefined {
+  const zone = state.players[pid].signature;
+  if (!zone) return undefined;
+  return effectiveCardCost(state, pid, zone.card) + SIGNATURE_REPLAY_SURCHARGE * zone.timesPlayed;
 }

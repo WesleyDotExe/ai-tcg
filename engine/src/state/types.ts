@@ -53,6 +53,27 @@ export interface UnitInstance {
    * unit across an evolution (see engine.ts's evolveUnit) since evolution
    * mutates this same instance rather than replacing it. */
   tools: ToolCard[];
+  /** True for the controller's signature card (see SignatureZone). When
+   * it dies it goes back to the signature zone, not the graveyard. Absent
+   * for every other unit. */
+  signature?: true;
+}
+
+/** The signature zone (owner 2026-10-05, "the unique Mythic"; built
+ * session 31). One Unit card per player that takes no deck slot: it starts
+ * the match here, is never drawn, discarded or shuffled, and can be played
+ * from here at Sorcery timing whenever its controller can afford it. When it
+ * dies it comes back here instead of going to the graveyard, and every
+ * replay that match costs SIGNATURE_REPLAY_SURCHARGE more than the last
+ * (see state/queries.ts's signatureCost). Public information, like the
+ * board: both players always know the card, whether it's waiting, and how
+ * many times it has been played. */
+export interface SignatureZone {
+  card: UnitCard;
+  /** How many times it has been played this match. */
+  timesPlayed: number;
+  /** True while it waits in the zone; false while it is on the board. */
+  inZone: boolean;
 }
 
 export interface DirectiveInstance {
@@ -94,6 +115,8 @@ export interface PlayerState {
   board: UnitInstance[];
   directives: DirectiveInstance[];
   graveyard: Card[];
+  /** The signature zone, or null when this player has no signature card. */
+  signature: SignatureZone | null;
 }
 
 /**
@@ -128,7 +151,17 @@ export type GameEvent =
   | { type: "turnEnd"; turn: number; player: PlayerId }
   | { type: "draw"; player: PlayerId; card: string }
   | { type: "fatigue"; player: PlayerId; damage: number }
-  | { type: "play"; player: PlayerId; card: string; instanceId?: string }
+  | {
+      type: "play";
+      player: PlayerId;
+      card: string;
+      instanceId?: string;
+      /** Set when the card came from the signature zone, not the hand. */
+      fromSignatureZone?: true;
+      /** What it cost, for a signature play (the base cost plus the replay
+       * surcharge), so the log and a spectator can show the climb. */
+      cost?: number;
+    }
   | {
       type: "abilityTrigger";
       source: string;
@@ -147,6 +180,9 @@ export type GameEvent =
   | { type: "statusApplied"; target: string; status: string; source: string; sourceId?: string; targetId?: string }
   | { type: "barrierAbsorbed"; unit: string; source: string; sourceId?: string; unitId?: string }
   | { type: "death"; unit: string; controller: PlayerId; instanceId?: string }
+  /** A signature card that died goes back to its zone (it follows its own
+   * `death` event). `nextCost` is what playing it again would cost now. */
+  | { type: "signatureReturn"; player: PlayerId; card: string; instanceId?: string; nextCost: number }
   | {
       type: "attack";
       attacker: string;
