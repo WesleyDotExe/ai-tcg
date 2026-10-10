@@ -1,7 +1,7 @@
 import type { GameState, PlayerId, StackItem, UnitInstance, DirectiveInstance } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
 import { MAX_ENERGY_CAP } from "../state/init.js";
-import { currentAttack, allUnits, findUnit, effectiveCardCost } from "../state/queries.js";
+import { currentAttack, allUnits, findUnit, effectiveCardCost, signatureCost } from "../state/queries.js";
 import type { Rng } from "../state/rng.js";
 import type { Move } from "./moves.js";
 import {
@@ -30,6 +30,9 @@ export function applyMove(state: GameState, move: Move, rng: Rng): void {
   switch (move.type) {
     case "playCard":
       playCard(state, pid, move.handIndex, move.target, move.abilityTarget, rng);
+      break;
+    case "playSignature":
+      playSignature(state, pid, move.target, rng);
       break;
     case "attack":
       declareAttack(state, pid, move.attackerInstanceId, move.target, rng);
@@ -86,48 +89,12 @@ function playCard(
     return;
   }
 
-  const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
   if (card.type === "Unit") {
-    const instanceId = `u${state.nextInstanceId++}`;
-    const isTelegraphed = card.telegraph !== undefined && card.telegraph > 0;
-    const unit: UnitInstance = {
-      instanceId,
-      card,
-      controller: pid,
-      permanentBuff: { attack: 0, health: 0 },
-      turnBuff: { attack: 0, health: 0 },
-      damageTaken: 0,
-      statuses: card.keywords.includes("Barrier") ? [{ kind: "Barrier", duration: "untilConsumed" }] : [],
-      enteredTurn: state.turnNumber,
-      hasAttackedThisTurn: false,
-      tools: [],
-      // `target` doubles as this unit's onPlay ability's own chosen target
-      // when it isn't spoken for by a structural reference (see the Move
-      // type's doc comment) — for a telegraphed unit, that ability doesn't
-      // fire until processTelegraphArming, turns from now, with no agent
-      // decision point of its own, so the choice made *now* is captured
-      // here and replayed then (see UnitInstance.armChosenTarget).
-      ...(isTelegraphed ? { pending: true, armTurn: computeArmTurn(state, card.telegraph!), armChosenTarget: target } : {}),
-    };
-    player.board.push(unit);
-    state.log.push({ type: "play", player: pid, card: card.name, instanceId });
-    if (isTelegraphed) {
-      // Dormant on arrival — see UnitCard.telegraph: its onPlay ability
-      // (if any) is deferred to processTelegraphArming, not fired here.
-      state.log.push({ type: "telegraphPlaced", unit: card.name, armIn: card.telegraph!, instanceId });
-    } else if (onPlay) {
-      resolveAbility({
-        state,
-        ability: onPlay,
-        controller: pid,
-        source: { kind: "unit", instanceId, cardName: card.name },
-        chosen: target,
-        rng,
-      });
-    }
+    putUnitOnBoard(state, pid, card, target, rng);
   } else {
     // Directive: a non-unit permanent, played and resolved immediately —
     // see the module doc comment for why permanents skip the stack.
+    const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
     const instanceId = `d${state.nextInstanceId++}`;
     const directive: DirectiveInstance = { instanceId, card, controller: pid };
     player.directives.push(directive);
@@ -143,6 +110,80 @@ function playCard(
       });
     }
   }
+}
+
+/** Puts a newly played (non-evolution) Unit on the board and fires its
+ * onPlay, or places it dormant if it is telegraphed. Shared by a play from
+ * the hand and a play from the signature zone, so both follow exactly the
+ * same rules. */
+function putUnitOnBoard(
+  state: GameState,
+  pid: PlayerId,
+  card: UnitCard,
+  target: TargetRef | undefined,
+  rng: Rng,
+  signature?: { cost: number },
+): void {
+  const player = state.players[pid];
+  const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
+  const instanceId = `u${state.nextInstanceId++}`;
+  const isTelegraphed = card.telegraph !== undefined && card.telegraph > 0;
+  const unit: UnitInstance = {
+    instanceId,
+    card,
+    controller: pid,
+    permanentBuff: { attack: 0, health: 0 },
+    turnBuff: { attack: 0, health: 0 },
+    damageTaken: 0,
+    statuses: card.keywords.includes("Barrier") ? [{ kind: "Barrier", duration: "untilConsumed" }] : [],
+    enteredTurn: state.turnNumber,
+    hasAttackedThisTurn: false,
+    tools: [],
+    // `target` doubles as this unit's onPlay ability's own chosen target
+    // when it isn't spoken for by a structural reference (see the Move
+    // type's doc comment) — for a telegraphed unit, that ability doesn't
+    // fire until processTelegraphArming, turns from now, with no agent
+    // decision point of its own, so the choice made *now* is captured
+    // here and replayed then (see UnitInstance.armChosenTarget).
+    ...(isTelegraphed ? { pending: true, armTurn: computeArmTurn(state, card.telegraph!), armChosenTarget: target } : {}),
+    ...(signature ? { signature: true as const } : {}),
+  };
+  player.board.push(unit);
+  state.log.push({
+    type: "play",
+    player: pid,
+    card: card.name,
+    instanceId,
+    ...(signature ? { fromSignatureZone: true as const, cost: signature.cost } : {}),
+  });
+  if (isTelegraphed) {
+    // Dormant on arrival — see UnitCard.telegraph: its onPlay ability
+    // (if any) is deferred to processTelegraphArming, not fired here.
+    state.log.push({ type: "telegraphPlaced", unit: card.name, armIn: card.telegraph!, instanceId });
+  } else if (onPlay) {
+    resolveAbility({
+      state,
+      ability: onPlay,
+      controller: pid,
+      source: { kind: "unit", instanceId, cardName: card.name },
+      chosen: target,
+      rng,
+    });
+  }
+}
+
+/** Plays the signature card out of its zone (see SignatureZone). It pays
+ * the current signatureCost (base plus the replay surcharge), counts the
+ * play, and leaves the zone empty until the unit dies (processDeaths sends
+ * it back). Otherwise it is a plain Unit play. */
+function playSignature(state: GameState, pid: PlayerId, target: TargetRef | undefined, rng: Rng): void {
+  const zone = state.players[pid].signature;
+  if (!zone || !zone.inZone) throw new Error(`playSignature: ${pid} has no signature card waiting in its zone`);
+  const cost = signatureCost(state, pid)!;
+  state.players[pid].energy -= cost;
+  zone.timesPlayed += 1;
+  zone.inZone = false;
+  putUnitOnBoard(state, pid, zone.card, target, rng, { cost });
 }
 
 /** Board-development system: how many single-player turnNumber ticks from

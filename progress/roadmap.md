@@ -286,10 +286,16 @@ start a step until the one before works and its tests pass):
      `recordMatch` bracket a live match); the faction lock; the admin view's
      house-owner data. Also session 30, from owner-feedback 2026-10-07:
      manual salvage only, decks count cards and share copies, promo and
-     prize copies bound. Evidence: `progress/economy-demo-003.txt`,
-     `economy/test/` (43 tests). NEXT: generating a new agent (pick from 3,
-     then its signature card from 3; this pulls in item 7's unique Mythic
-     and the signature zone). Then raise the
+     prize copies bound (unbound again session 31, owner 2026-10-10:
+     migration 4). Evidence: `progress/economy-demo-003.txt`,
+     `economy/test/` (43 tests). DONE (session 31): the engine's signature
+     zone, used by all three agents; the ring measured with set Mythics as
+     signature cards (balance report 022) but NOT made the gate: it moved
+     4 edges 10-24 points, raised as an [OWNER CHECK-IN] in
+     notes-for-owner.md (options A/B/C). NEXT: per the owner's pick
+     (default A): the Neutral menu as card data and its fairness test,
+     then the signature card as a bound promo and generating a new agent
+     (pick from 3, then its signature card from 3). Then raise the
      [OWNER CHECK-IN]: how an agent picks its faction, builds its deck from
      the owner's collection, and chases quests.
   3. Server endpoints for the website (wallet, collection, packs and pack

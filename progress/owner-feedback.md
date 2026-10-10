@@ -2247,7 +2247,7 @@ Owner decisions on the 7 calls in the 2026-10-05 render checkpoint (`progress/re
 
 ---
 
-## 2026-10-10 — Owner: answers to session 30's calls and render slice 4's calls
+## 2026-10-10 — Owner: answers to session 30's calls and render slice 4's calls (GAME LANE HANDLED 2026-10-10, session 31 — item 1 built: schema migration 4 unbinds promo and prize copies, new ones are granted unbound, salvage still refuses them and the card viewer says "can be kept or sold, never salvaged"; items 2 and 3 stand as built; item 4 is carried in notes-for-owner.md as the check-in due before sign-in leaves Season 0. RENDER LANE items still open for the render lane: the arpeggio "acting player / whoever is ahead" setting; the website Music setting, menu music and the music widget belong to build-order steps 4 and 5)
 
 Owner decisions on the calls in `progress/notes-for-owner.md` (session 30) and `progress/render/checkpoints.md` (2026-10-09, slice 4).
 

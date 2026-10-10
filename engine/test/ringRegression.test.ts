@@ -18,6 +18,14 @@ test("the baseline file records each of the six ring edges at its gate seed coun
   expect(RING_EDGES.map(edgeName)).toEqual(["Null > Aegis", "Aegis > Cortex", "Cortex > Swarm", "Swarm > Null", "Null ~ Cortex", "Aegis ~ Swarm"]);
 });
 
+test("the signature-zone baseline covers the same six edges and says which decks it played", () => {
+  const base = JSON.parse(readFileSync(new URL("../src/dev/ringBaselineSignature.json", import.meta.url), "utf8"));
+  expect(base.decks).toBe("set Mythic as signature card");
+  expect(base.edges.map((e: { edge: string; games: number }) => [e.edge, e.games])).toEqual(
+    RING_EDGES.map((e) => [edgeName(e), e.seeds]),
+  );
+});
+
 test("an IN edge that slips to OUT fails; one that stays IN passes", () => {
   const base = m("Null ~ Cortex", 450, 900); // 50%, IN
   expect(judgeEdge(NULL_CORTEX, m("Null ~ Cortex", 360, 900), base).pass).toBe(false); // 40%, OUT

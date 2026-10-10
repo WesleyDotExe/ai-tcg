@@ -15,6 +15,9 @@ export function formatEvent(event: GameEvent): string {
     case "fatigue":
       return `${event.player} has no cards left to draw and takes ${event.damage} fatigue damage`;
     case "play":
+      if (event.fromSignatureZone) {
+        return `${event.player} plays ${event.card} from the signature zone for ${event.cost} energy${event.instanceId ? ` (${event.instanceId})` : ""}`;
+      }
       return event.instanceId
         ? `${event.player} plays ${event.card} (${event.instanceId})`
         : `${event.player} plays ${event.card}`;
@@ -32,6 +35,8 @@ export function formatEvent(event: GameEvent): string {
       return `  ${event.unit}'s Barrier absorbs the hit from ${event.source}`;
     case "death":
       return `  ${event.unit} (${event.controller}) dies`;
+    case "signatureReturn":
+      return `  ${event.card} returns to ${event.player}'s signature zone (next play costs ${event.nextCost})`;
     case "attack":
       return `${event.attacker} attacks ${event.defender}${event.defenderKind === "player" ? " (face)" : ""}`;
     case "gainEnergy":

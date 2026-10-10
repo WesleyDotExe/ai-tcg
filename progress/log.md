@@ -2544,3 +2544,46 @@ was warned and then confirmed, and both decks recovered after two more pulls. Ou
 **Blocked:** nothing. **Calls for the owner** (notes-for-owner.md): promo and prize binding also
 means they can never be sold later, one live match per owner, no password reset yet. Next
 game-lane session: generating a new agent, starting with the engine's signature zone.
+
+
+## 2026-10-10 — Session 31 (owner's 2026-10-10 answers; step 2: the signature zone)
+
+Game-lane session: the last merged PR (#46) was render. Owner feedback first. The 2026-10-10
+entry's game-lane items are handled; its render-lane items are left for the render lane. Not a
+hardening pass.
+
+**Built (owner 2026-10-10):** schema migration 4. Promo and prize copies are no longer
+account-bound, so they can be sold later. Salvage still refuses them, with the reason "can be kept
+or sold, never salvaged". Crafted and starter copies stay bound, and a copy can still be granted
+bound on purpose.
+
+**Built (step 2): the engine's signature zone.**
+- One Unit per player, outside the deck. It's playable from its zone at Sorcery timing when
+  affordable, and back to the zone on death.
+- Each replay costs +2, it never evolves, and it's public in both views. The `playSignature` move
+  and the `signatureReturn` event are new.
+- Lookahead and both Aggressive agents use it. PROTOCOL.md documents it.
+
+**Ran it:**
+- The gate ring check reproduced its baseline exactly after the refactor.
+- Measured the ring with each set Mythic as its signature card. 4 of 6 edges moved 10-24 points
+  (Aegis > Cortex 52 -> 76, Null > Aegis 48 -> 29), almost all from guaranteed access. In the
+  zone, Mythics are played in 92-97% of games instead of ~26%, apart from Null Singularity at
+  29%. Replays are 5% of games at most.
+- An identical plain 5-cost 3/6 signature card on both sides moves the ring by up to 8 points,
+  with Aegis gaining most.
+
+**Decision flagged:** I did not make the signature-mode numbers the gate. That would accept 4
+newly broken edges, and no real match carries a signature card yet. It's a second baseline, run
+in CI, and an [OWNER CHECK-IN] with options A/B/C. It also means the fairness test as written
+can't pass any candidate.
+
+**Evidence:**
+- `progress/balance-report-022-signature-zone.txt`;
+- `progress/sample-match-029-signature-zone.txt` (Hive Mother played for 5, killed, replayed
+  for 7);
+- 13 new engine tests, 2 new economy tests, one new ring test;
+- `npm test` 455/455 and `tsc` clean in all six workspaces.
+
+**Blocked:** nothing; the check-in has a default (A). Next: render (alternation), then the
+Neutral menu and its fairness test.

@@ -333,9 +333,11 @@ const FINISH_LABEL: Readonly<Record<Finish, string>> = {
 };
 
 /** Why a copy can't be salvaged, in the card viewer's words, or null when it
- * can (owner 2026-10-07: only unbound standard-finish pack copies salvage). */
+ * can (owner 2026-10-07: only unbound standard-finish pack copies salvage;
+ * owner 2026-10-10: promo and prize copies can be sold, never salvaged). */
 export function salvageBlockReason(copy: Pick<CardCopy, "accountBound" | "origin" | "finish" | "seriesKind">): string | null {
   if (copy.accountBound) return `Account-bound (${copy.origin} copy): it can be played, never salvaged`;
+  if (copy.origin === "promo" || copy.origin === "prize") return `${copy.origin === "promo" ? "Promo" : "Prize"} copies can be kept or sold, never salvaged`;
   if (copy.finish !== "standard") return `${FINISH_LABEL[copy.finish]} copies are never salvaged`;
   if (copy.seriesKind !== "set" || copy.origin !== "pack") return `Only standard copies pulled from packs can be salvaged`;
   return null;

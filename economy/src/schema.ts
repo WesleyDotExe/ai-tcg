@@ -20,6 +20,9 @@
 //    only its own agent and can't switch it during a live match; a live
 //    match is played by both owners' connected agents, one per owner at a
 //    time; a stored password is always a scrypt hash.
+//  - (v4) promo and prize copies are NOT bound by default again: they can be
+//    sold on a future marketplace, but they still never salvage (owner
+//    2026-10-10). Crafted and starter copies stay bound.
 //
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
@@ -36,9 +39,12 @@ export const COPY_ORIGINS = ["pack", "crafted", "starter", "promo", "prize"] as 
 export type CopyOrigin = (typeof COPY_ORIGINS)[number];
 
 /** Origins whose copies are always account-bound: playable, never sold,
- * never salvaged. v2 bound crafted and starter copies; v3 adds promo and
- * prize copies (owner 2026-10-07). */
-export const BOUND_ORIGINS: readonly CopyOrigin[] = ["crafted", "starter", "promo", "prize"];
+ * never salvaged. v2 bound crafted and starter copies; v3 added promo and
+ * prize copies (owner 2026-10-07); v4 took them back out (owner 2026-10-10:
+ * promo and prize copies can be sold, but can't be salvaged). A single copy
+ * of another origin can still be granted bound on purpose (an agent's
+ * signature card, a bound promo). */
+export const BOUND_ORIGINS: readonly CopyOrigin[] = ["crafted", "starter"];
 
 /** The factions an owner can lock its connected agent to (the engine's deck
  * factions; Neutral is never a deck's faction). */
@@ -523,5 +529,24 @@ export const MIGRATIONS: readonly string[] = [
   WHEN NEW.connected_agent_id IS NOT OLD.connected_agent_id AND EXISTS (
     SELECT 1 FROM live_matches WHERE p1_owner = NEW.owner_id OR p2_owner = NEW.owner_id)
   BEGIN SELECT RAISE(ABORT, 'no switching or disconnecting agents during a live match'); END;
+  `,
+  // 4: promo and prize copies can be sold again (owner 2026-10-10, answer 1
+  // to session 30's calls). Migration 3 bound them; this undoes that:
+  //  - the insert trigger that forced promo and prize copies bound is
+  //    dropped, so they are granted unbound (crafted and starter copies stay
+  //    bound by v2's CHECK);
+  //  - copies migration 3 bound are unbound. No copy of either origin was
+  //    ever bound on purpose before this (the signature card isn't built
+  //    yet), so every bound one was bound by migration 3. "A bound copy stays
+  //    bound" is lifted for this one UPDATE and put straight back;
+  //  - salvage still refuses them: v2's CHECK only ever lets a standard pack
+  //    copy from a set salvage, and that hasn't changed.
+  `
+  DROP TRIGGER copy_bound_by_origin;
+  DROP TRIGGER copy_stays_bound;
+  UPDATE card_copies SET account_bound = 0 WHERE origin IN ('promo', 'prize') AND account_bound = 1;
+  CREATE TRIGGER copy_stays_bound BEFORE UPDATE OF account_bound ON card_copies
+  WHEN OLD.account_bound = 1 AND NEW.account_bound = 0
+  BEGIN SELECT RAISE(ABORT, 'an account-bound copy stays bound'); END;
   `,
 ];

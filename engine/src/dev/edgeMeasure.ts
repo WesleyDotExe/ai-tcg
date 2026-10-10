@@ -14,7 +14,7 @@
 // here calls out to anything. engine/test/edgeMeasure.test.ts pins them to a
 // hardcoded fixture, so they cannot drift silently.
 
-import { buildDeck, buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
+import { buildDeck, buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck, withSetMythicSignature } from "../data/decks.js";
 import { CORTEX_CARDS, SWARM_CARDS } from "../data/cards.js";
 import { AEGIS_CARDS } from "../data/aegisCards.js";
 import { NULL_CARDS } from "../data/nullCards.js";
@@ -87,9 +87,21 @@ export async function measurePairing(
   opponent: Faction,
   firstSeed: number,
   count: number,
-  opts: { builders?: Record<Faction, DeckBuilder>; trackCard?: string } = {},
+  opts: {
+    builders?: Record<Faction, DeckBuilder>;
+    trackCard?: string;
+    signature?: boolean;
+    /** Sees every finished game, for reports that need more than the win count. */
+    onGame?: (state: GameState, selfPid: PlayerId) => void;
+  } = {},
 ): Promise<EdgeResult> {
-  const builders = opts.builders ?? defaultBuilders;
+  const base = opts.builders ?? defaultBuilders;
+  // `signature`: each deck's set Mythic leaves the deck and stands in as its
+  // signature card (withSetMythicSignature), the way the ring regression
+  // check measures since the signature zone landed (session 31).
+  const builders: Record<Faction, DeckBuilder> = opts.signature
+    ? (Object.fromEntries(FACTIONS.map((f) => [f, (id: DeckSpec["id"], name: string) => withSetMythicSignature(base[f](id, name))])) as Record<Faction, DeckBuilder>)
+    : base;
   // balanceReport.ts puts the earlier faction in FACTIONS order in slot A.
   const aIsSelf = FACTIONS.indexOf(faction) < FACTIONS.indexOf(opponent);
   const [factionA, factionB] = aIsSelf ? [faction, opponent] : [opponent, faction];
@@ -105,6 +117,7 @@ export async function measurePairing(
       : await runMatch(deckB, deckA, agentB, agentA, seed);
     const selfPid: PlayerId = aGoesFirst === aIsSelf ? "p1" : "p2";
     if (opts.trackCard && playedCard(state, selfPid, opts.trackCard)) r.trackedPlays++;
+    opts.onGame?.(state, selfPid);
     if (state.winner === "draw") {
       r.draws++;
       continue;

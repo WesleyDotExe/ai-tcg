@@ -37,7 +37,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at v3 for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(3);
+    expect(a.schemaVersion).toBe(4);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -46,7 +46,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(3);
+    expect(b.schemaVersion).toBe(4);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -123,7 +123,7 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
 
     // v2 -> v3: the prize copy becomes account-bound (owner 2026-10-07), and
     // nothing else about the history changes.
-    const v3 = open(path);
+    const v3 = open(path, 3);
     expect(v3.schemaVersion).toBe(3);
     expect(v3.getCopy("c-prize").accountBound).toBe(true);
     expect(v3.getCopy("c-pack").accountBound).toBe(false);
@@ -140,7 +140,23 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
     expect(() => v3.unsafeExec(`INSERT INTO agents (agent_id, owner_id, name, created_at) VALUES ('x', 'no-such-owner', 'x', '${at}')`)).toThrow(
       /FOREIGN KEY/,
     );
+    // (v3 required a promo to be bound; this code no longer binds one by default.)
+    const promo = v3.grantCopy({ ownerId: "owner-a1", cardId: cortex, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN", accountBound: true });
+    expect(promo.accountBound).toBe(true);
     v3.close();
+
+    // v3 -> v4: promo and prize copies can be sold again (owner 2026-10-10),
+    // so the copies v3 bound are unbound. Crafted and starter copies stay
+    // bound, and none of them can be salvaged.
+    const v4 = open(path);
+    expect(v4.schemaVersion).toBe(4);
+    expect([v4.getCopy("c-prize").accountBound, v4.getCopy(promo.copyId).accountBound]).toEqual([false, false]);
+    expect([v4.getCopy("c-starter").accountBound, v4.getCopy("c-crafted").accountBound]).toEqual([true, true]);
+    expect(() => v4.unsafeExec(`UPDATE card_copies SET account_bound = 0 WHERE copy_id = 'c-starter'`)).toThrow(/stays bound/);
+    expect(() =>
+      v4.unsafeExec(`UPDATE card_copies SET disposed_at = '${at}', disposed_reason = 'salvaged' WHERE copy_id IN ('c-prize', '${promo.copyId}')`),
+    ).toThrow(/CHECK/);
+    v4.close();
   });
 });
 
@@ -362,18 +378,25 @@ describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
     expect(() => s.unsafeExec(`UPDATE card_copies SET origin = 'pack' WHERE copy_id = '${crafted.copyId}'`)).toThrow(/origin never changes/);
   });
 
-  it("binds promo and prize copies too (owner 2026-10-07), even through raw SQL", () => {
+  it("grants promo and prize copies unbound so they can be sold, but never salvages them (owner 2026-10-10)", () => {
     const s = open();
     const a = player(s, "a");
+    const b = player(s, "b");
     const promo = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN" });
     const prize = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "prize", finish: "tournament", seriesKind: "tournament", seriesCode: "S0F", serial: 3, runSize: 10 });
-    expect([promo.accountBound, prize.accountBound]).toEqual([true, true]);
+    expect([promo.accountBound, prize.accountBound]).toEqual([false, false]);
+    // Unbound means it can change owner (the future marketplace's sale).
+    s.unsafeExec(`UPDATE card_copies SET owner_id = '${b.ownerId}' WHERE copy_id = '${promo.copyId}'`);
+    expect(s.getCopy(promo.copyId).ownerId).toBe(b.ownerId);
+    // A promo can still be granted bound on purpose (the signature card), and then it stays bound.
+    const bound = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-002", stamp: "SIGNATURE", accountBound: true });
+    expect(bound.accountBound).toBe(true);
+    expect(() => s.unsafeExec(`UPDATE card_copies SET account_bound = 0 WHERE copy_id = '${bound.copyId}'`)).toThrow(/stays bound/);
+    // Neither salvages, through the store or raw SQL.
+    expect(() => s.salvage(a.ownerId, AEGIS_COMMON, 1)).toThrow(/0 of 2 held can be salvaged.*Prize copies can be kept or sold, never salvaged/);
     expect(() =>
-      s.unsafeExec(
-        `INSERT INTO card_copies (copy_id, owner_id, card_id, finish, series_kind, series_code, stamp, origin, account_bound, acquired_at)
-         VALUES ('raw', '${a.ownerId}', '${AEGIS_COMMON}', 'standard', 'promo', 'PR-002', 'X', 'promo', 0, '${DAY1}')`,
-      ),
-    ).toThrow(/always account-bound/);
+      s.unsafeExec(`UPDATE card_copies SET disposed_at = '${DAY1}', disposed_reason = 'salvaged' WHERE copy_id = '${prize.copyId}'`),
+    ).toThrow(/CHECK/);
   });
 
   it("never salvages anything on its own: an owner may hold as many copies as they like", () => {
@@ -422,7 +445,7 @@ describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
       { reason: "Gold copies are never salvaged", count: 1 },
       { reason: "Prototype copies are never salvaged", count: 1 },
       { reason: "Account-bound (crafted copy): it can be played, never salvaged", count: 1 },
-      { reason: "Account-bound (promo copy): it can be played, never salvaged", count: 1 },
+      { reason: "Promo copies can be kept or sold, never salvaged", count: 1 },
     ]);
     expect(() => s.salvage(owner.ownerId, AEGIS_COMMON, 1)).toThrow(/0 of 8 held can be salvaged/);
     // Raw SQL can't salvage a bound copy or a finish either.

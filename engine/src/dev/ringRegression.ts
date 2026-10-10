@@ -20,9 +20,21 @@
 // with --write-baseline and commit the new baseline next to the balance
 // report that justifies it, so the baseline only ever moves on purpose.
 //
+// Two modes since the signature zone landed (session 31):
+//  - the GATE (default): decks as shipped, set Mythic in the deck. This is
+//    how every real match plays today, and ringBaseline.json is unchanged.
+//  - --signature: each set Mythic leaves the deck and stands in as its
+//    signature card (owner 2026-10-05, the unique Mythic). Its baseline is
+//    ringBaselineSignature.json. The owner asked for the gate itself to be
+//    re-baselined this way, but the move was far larger than expected (4 of
+//    6 edges moved 10-24 points; progress/balance-report-022-signature-zone.txt),
+//    so it is recorded beside the gate and the switch is left to the owner.
+//    CI runs both, so neither can drift unnoticed.
+//
 // Usage:
 //   npx tsx src/dev/ringRegression.ts                  all six edges
 //   npx tsx src/dev/ringRegression.ts --write-baseline measure all six and record them
+//   add --signature to either for the signature-zone mode
 // Exit code 1 on any failing edge. All six edges (11,800 games) take about
 // 15 seconds, so CI runs the whole thing on every engine change
 // (.github/workflows/test.yml).
@@ -116,22 +128,30 @@ export function formatJudgement(j: EdgeJudgement, games: number): string {
   );
 }
 
-const BASELINE_PATH = fileURLToPath(new URL("./ringBaseline.json", import.meta.url));
+const DECK_MODES = {
+  deck: { label: "set Mythic in the deck", file: "./ringBaseline.json" },
+  signature: { label: "set Mythic as signature card", file: "./ringBaselineSignature.json" },
+} as const;
 
 interface BaselineFile {
   _about: string;
   recorded: string;
+  /** Absent in the original (deck-mode) file. */
+  decks?: string;
   edges: EdgeMeasurement[];
 }
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const write = args.includes("--write-baseline");
+  const signature = args.includes("--signature");
+  const mode = DECK_MODES[signature ? "signature" : "deck"];
+  const baselinePath = fileURLToPath(new URL(mode.file, import.meta.url));
   const edges = RING_EDGES;
 
   const measured: EdgeMeasurement[] = [];
   for (const e of edges) {
-    const r = await measurePairing(e.self, e.opponent, 1, e.seeds);
+    const r = await measurePairing(e.self, e.opponent, 1, e.seeds, { signature });
     measured.push({ edge: edgeName(e), selfWins: r.selfWins, games: r.games });
   }
 
@@ -142,14 +162,18 @@ async function main(): Promise<void> {
         "Lookahead vs Lookahead, seeds 1..games. Only rewrite with --write-baseline for an owner-approved change, " +
         "committed alongside the balance report that justifies it.",
       recorded: new Date().toISOString().slice(0, 10),
+      ...(signature ? { decks: mode.label } : {}),
       edges: measured,
     };
-    writeFileSync(BASELINE_PATH, JSON.stringify(file, null, 2) + "\n");
-    console.log(`Wrote ${BASELINE_PATH}`);
+    writeFileSync(baselinePath, JSON.stringify(file, null, 2) + "\n");
+    console.log(`Wrote ${baselinePath}`);
   }
 
-  const baseline = JSON.parse(readFileSync(BASELINE_PATH, "utf8")) as BaselineFile;
-  console.log(`Ring regression vs baseline recorded ${baseline.recorded} (Lookahead vs Lookahead, seeds from 1)`);
+  const baseline = JSON.parse(readFileSync(baselinePath, "utf8")) as BaselineFile;
+  if ((baseline.decks ?? DECK_MODES.deck.label) !== mode.label) {
+    throw new Error(`${mode.file} was recorded with decks "${baseline.decks ?? DECK_MODES.deck.label}", this run plays "${mode.label}"`);
+  }
+  console.log(`Ring regression (${mode.label}) vs baseline recorded ${baseline.recorded} (Lookahead vs Lookahead, seeds from 1)`);
   let failed = 0;
   edges.forEach((e, i) => {
     const base = baseline.edges.find((b) => b.edge === edgeName(e));

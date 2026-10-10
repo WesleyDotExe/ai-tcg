@@ -36,7 +36,7 @@ export class AggressiveAgent implements Agent {
       return this.pickReactiveResponse(view, legalMoves) ?? { type: "passPriority" };
     }
 
-    const playMoves = legalMoves.filter((m): m is Extract<Move, { type: "playCard" }> => m.type === "playCard");
+    const playMoves = legalMoves.filter((m): m is PlayMove => m.type === "playCard" || m.type === "playSignature");
     if (playMoves.length > 0) {
       return this.pickBiggestCard(view, playMoves);
     }
@@ -103,12 +103,11 @@ export class AggressiveAgent implements Agent {
     return false;
   }
 
-  private pickBiggestCard(view: PlayerView, moves: Extract<Move, { type: "playCard" }>[]): Move {
+  private pickBiggestCard(view: PlayerView, moves: PlayMove[]): Move {
     let best = moves[0]!;
     let bestCost = -1;
     for (const move of moves) {
-      const card = view.me.hand[move.handIndex];
-      const cost = card?.cost ?? 0;
+      const cost = playCost(view, move);
       // Among target options for the same card, prefer hitting the
       // opponent's face over their board.
       const targetsFace = move.target?.kind === "player";
@@ -151,4 +150,16 @@ function approximateHealth(unit: UnitInstance): number {
 
 function approximateAttack(unit: UnitInstance): number {
   return unit.card.attack + unit.permanentBuff.attack + unit.turnBuff.attack;
+}
+
+/** A card play from the hand or from the signature zone. */
+type PlayMove = Extract<Move, { type: "playCard" | "playSignature" }>;
+
+/** What a play costs, by printed cost: the hand card's, or the signature
+ * card's plus 2 for each earlier play this match (the engine's replay
+ * surcharge, read from the public signature zone). */
+function playCost(view: PlayerView, move: PlayMove): number {
+  if (move.type === "playCard") return view.me.hand[move.handIndex]?.cost ?? 0;
+  const zone = view.me.signature;
+  return zone ? zone.card.cost + 2 * zone.timesPlayed : 0;
 }

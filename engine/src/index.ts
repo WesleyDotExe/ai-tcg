@@ -12,10 +12,12 @@ export type {
   DirectiveInstance,
   StackItem,
   GameEvent,
+  SignatureZone,
 } from "./state/types.js";
 export { otherPlayer } from "./state/types.js";
 export type { DeckSpec } from "./state/init.js";
-export { createInitialState, MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP, BOARD_SLOTS } from "./state/init.js";
+export { createInitialState, MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP, BOARD_SLOTS, SIGNATURE_REPLAY_SURCHARGE } from "./state/init.js";
+export { signatureCost } from "./state/queries.js";
 export { Rng } from "./state/rng.js";
 
 export type { TargetRef } from "./effects/targeting.js";
@@ -39,6 +41,7 @@ export {
   deckFaction,
   MAX_NEUTRAL_COPIES,
   COPY_LIMITS,
+  withSetMythicSignature,
 } from "./data/decks.js";
 export { CARD_REGISTRY, SHIPPED_DECK_LISTS, getCard } from "./data/registry.js";
 export { NEUTRAL_POOL } from "./data/neutralCards.js";

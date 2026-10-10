@@ -1,4 +1,4 @@
-import type { Card } from "../cards/types.js";
+import type { Card, UnitCard } from "../cards/types.js";
 import type { GameState, PlayerId, PlayerState } from "./types.js";
 import type { Rng } from "./rng.js";
 
@@ -16,7 +16,12 @@ const TURN_CAP = 40;
  * checkpoint for the owner to weigh in on. */
 const BOARD_SLOTS = 6;
 
-export { MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP, BOARD_SLOTS };
+/** How much more each replay of a signature card costs than the play before
+ * it, within one match (owner 2026-10-05, the unique Mythic: "costs 2 more
+ * each time it is played again"). */
+const SIGNATURE_REPLAY_SURCHARGE = 2;
+
+export { MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP, BOARD_SLOTS, SIGNATURE_REPLAY_SURCHARGE };
 
 export interface DeckSpec {
   id: PlayerId;
@@ -24,9 +29,18 @@ export interface DeckSpec {
   /** Deck list as a flat list of cards, one entry per copy (copy-limit
    * enforcement happens at deck-construction time — see decks.ts). */
   cards: Card[];
+  /** The signature card: outside `cards`, outside the copy limits and the
+   * deck size, and never shuffled into the deck (see SignatureZone). */
+  signature?: UnitCard;
 }
 
 function freshPlayerState(spec: DeckSpec, rng: Rng): PlayerState {
+  if (spec.signature && spec.signature.type !== "Unit") {
+    throw new Error(`${spec.name}: a signature card must be a Unit, not a ${(spec.signature as Card).type}`);
+  }
+  if (spec.signature?.evolvesFrom) {
+    throw new Error(`${spec.name}: a signature card can't be an evolution (${spec.signature.name} evolves from ${spec.signature.evolvesFrom})`);
+  }
   const deck = rng.shuffle(spec.cards);
   const hand: Card[] = [];
   for (let i = 0; i < OPENING_HAND_SIZE; i++) {
@@ -45,6 +59,7 @@ function freshPlayerState(spec: DeckSpec, rng: Rng): PlayerState {
     board: [],
     directives: [],
     graveyard: [],
+    signature: spec.signature ? { card: spec.signature, timesPlayed: 0, inZone: true } : null,
   };
 }
 
