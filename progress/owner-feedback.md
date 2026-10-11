@@ -2288,3 +2288,15 @@ Owner decision. This changes EFFECTS.md's "Mythic unique wards", which are curre
   - Signature-move flares and live ward behaviour (seats lighting, heartbeat and so on) play behind the card too.
   - The core can no longer be seen in the card's centre. The render session may enlarge or brighten the outer layers so a Mythic still clearly stands out, and should show the result at a checkpoint.
 - **Death:** when the Mythic dies, its ward shatters into spinning pieces, as now.
+
+---
+
+## 2026-10-11 — Owner: signature zone check-in, option A (answers session 31)
+
+Owner decision on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 31).
+
+- **Option A.** The ring gate keeps its current baseline until real matches carry signature cards. The "Mythic as signature card" numbers stay recorded as the second baseline only.
+- **Fairness test for the Neutral menu:** use the "same plain signature card on both sides" ring as the reference (the Neutral 5-cost 3/6 stand-in, with each set Mythic left in its deck). A candidate passes when swapping it in for one faction's plain stand-in moves that faction's edges by 2 points or less.
+- **Next game-lane session:** build the Neutral menu as card data and run the fairness test against that reference.
+- **Still open:** whether to deal with Aegis gaining the most from an extra 5-cost body (Aegis > Cortex 52 -> 60 with the stand-in). The owner hasn't decided. Raise it again with the Neutral menu results.
+- **Not overruled:** session 31's four calls (a signature card is a plain Unit; cost modifiers apply to it, with +2 per replay on top; its Tools go to the graveyard when it dies; its onDeath abilities fire before it goes back to the zone).
