@@ -2275,3 +2275,16 @@ Owner decisions on the calls in `progress/notes-for-owner.md` (session 30) and `
      - Keep it fun and simple, not a full sequencer. For example, toggle drum and loop layers, change the groove, or nudge the tempo.
      - Build it with the widget board (build-order step 5).
      - Propose its sizes, its controls and how owners find it at a checkpoint.
+
+---
+
+## 2026-10-11 — Owner: Mythic wards sit behind the card
+
+Owner decision. This changes EFFECTS.md's "Mythic unique wards", which are currently layered over the Mythic card. Update EFFECTS.md, the effects lab and the replays to match.
+
+- **Arrival:** when a Mythic arrives, its ward appears on top of the card as it does now. After a few seconds it fades back behind the card.
+- **After that, the ward always stays behind the card**, for as long as the Mythic is on the board. The card art and its name and stats strip stay fully visible.
+  - Only the parts of the ward that reach past the card's edges show, for example Quorum Arbiter's outer ring and seats, or Hive Mother's outer membrane and pulse.
+  - Signature-move flares and live ward behaviour (seats lighting, heartbeat and so on) play behind the card too.
+  - The core can no longer be seen in the card's centre. The render session may enlarge or brighten the outer layers so a Mythic still clearly stands out, and should show the result at a checkpoint.
+- **Death:** when the Mythic dies, its ward shatters into spinning pieces, as now.
