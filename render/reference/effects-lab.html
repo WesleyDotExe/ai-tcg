@@ -153,7 +153,7 @@ label{font-size:12px;color:#9fb2d8;display:flex;gap:6px;align-items:center}
       <span class="sw" style="background:var(--swarm)"></span>Swarm: spores, chitin, goo, tendrils, wet chitters
       <span class="sw" style="background:var(--null)"></span>Null: glitch bars, rifts, vortex, dark stars, broken pitch
       <span class="sw" style="background:var(--neutral)"></span>Neutral: light rays, glints, runes, bells.<br>
-      <b>Wards.</b> Rares call their faction's single-ring ward only for a signature attack, buff or defence, then it vanishes. <b>Every Mythic carries its own permanent, one-of-a-kind ward</b> that also acts out its ability: Quorum Arbiter lights a seat for each enemy unit (its attack), Prime Aegis tethers and shields its allies, Hive Mother beats like a heart and sends larvae to her brood, Null Singularity bends the grid and drags pointers into itself. A Mythic's ward flares for its signature moves and shatters when it dies.<br>
+      <b>Wards.</b> Rares call their faction's single-ring ward only for a signature attack, buff or defence, then it vanishes. <b>Every Mythic carries its own permanent, one-of-a-kind ward, behind the card</b> (only the parts reaching past the card's edges show, so its art and stats stay readable) that also acts out its ability: Quorum Arbiter lights a seat for each enemy unit (its attack), Prime Aegis tethers and shields its allies, Hive Mother beats like a heart and sends larvae to her brood, Null Singularity bends the grid and drags pointers into itself. A Mythic's ward flares for its signature moves and shatters when it dies.<br>
       <b>Music</b> is generated live like the effects: A minor at 104 BPM. It starts calm (pad and bass), and every hit, kill and Mythic raises the intensity, bringing in kick, arpeggio, hats and snare. It settles again over a few seconds. The arpeggio takes the acting faction's voice, a Mythic on your side adds a bell motif, and effects dip the music only slightly so it never drops out.<br>
       <b>Magnitude</b> scales debris, shake, hit-stop and volume. A kill freezes for a beat, splits colour at the edges, punches the camera in and leaves scorch and debris on the table for a few seconds.
     </div>
@@ -315,6 +315,9 @@ function wedgeTex(fk,i,j,N){const key=fk+i+'_'+j;if(wedgeCache[key])return wedge
 const wsmall={};
 function wardTexFor(fk,i,px){if(px>300||!WIMG[fk])return wardTex(fk,i);const key=fk+i;if(wsmall[key])return wsmall[key];const cv=document.createElement('canvas');cv.width=cv.height=256;
   cv.getContext('2d').drawImage(wardTex(fk,i),0,0,256,256);return wsmall[key]=cv;}
+// Owner 2026-10-11: a Mythic's own ward sits BEHIND its card. On arrival it draws in on top, holds for WARD_ON_TOP s,
+// then crossfades behind over WARD_SINK s; behind, the outer layers are brightened and enlarged (WARD_BEHIND).
+const WARD_ON_TOP=2.6,WARD_SINK=.8,WARD_BEHIND={alpha:.82,boost:[1.45,1.3,1],scale:[1.16,1.08,1]};
 const LAYERS={mythic:[{i:0,r:1,spd:.10},{i:1,r:.72,spd:-.18},{i:2,r:.33,spd:.3}],rare:[{i:3,r:1,spd:.13}],unique:[{i:0,r:1,spd:.05},{i:1,r:.74,spd:-.09},{i:2,r:.37,spd:.14}]};
 const wards=[];
 function addWard(card,f,tier,o={}){const p=o.at||center(card);const w={card,f,tier,x:p.x,y:p.y,R:o.R||(tier==='mythic'?118:92),sz:1,rot:LAYERS[tier].map(()=>rand(0,6.28)),t:rand(0,6),mode:'manifest',mt:0,reveal:0,spin:5};wards.push(w);return w;}
@@ -330,23 +333,24 @@ function updateWards(dt){for(let i=wards.length-1;i>=0;i--){const w=wards[i];w.t
   LAYERS[w.tier].forEach((L,k)=>w.rot[k]+=L.spd*w.spin*dt);
   if(w.mode==='manifest')w.reveal=Math.min(1,w.mt/.45);
   if(w.mode==='pulse'&&w.mt>1.0)w.mode=w.u&&!w.clone?'perm':'hold';
-  if(w.mode==='manifest'&&w.u&&!w.clone&&w.mt>1.5)w.mode='perm';
+  if(w.mode==='manifest'&&w.u&&!w.clone&&w.mt>WARD_ON_TOP+WARD_SINK)w.mode='perm';
   if(w.beh==='singularity')w.rot[1]+=dt*.5;
   if(w.tw){const q=w.tw;q.t+=dt/q.d;const e=q.t>=1?1:1-Math.pow(1-q.t,3);w.x=q.x0+(q.x1-q.x0)*e;w.y=q.y0+(q.y1-q.y0)*e;w.R=q.r0+(q.r1-q.r0)*e;if(q.t>=1)w.tw=null;}
   if(w.mode==='collapse'&&w.mt>=.38)wards.splice(i,1);}}
-function wardState(w){const hold=.82*(.9+.1*Math.sin(w.t*3));
-  if(w.mode==='manifest'){const e=1-Math.pow(1-Math.min(1,w.mt/.45),3);return {above:true,a:w.mt<.55?1:hold,s:1.25-.25*e};}
-  if(w.mode==='pulse'){const k=Math.min(1,w.mt/1.0);return {above:true,a:hold+(1-hold)*(1-k),s:1+.18*Math.sin(Math.PI*Math.min(1,w.mt/.45))};}
+function wardState(w){const hold=.82*(.9+.1*Math.sin(w.t*3)),uniq=w.u&&!w.clone;
+  if(w.mode==='manifest'){const e=1-Math.pow(1-Math.min(1,w.mt/.45),3);let sink=0;if(uniq&&w.mt>WARD_ON_TOP){const k=Math.min(1,(w.mt-WARD_ON_TOP)/WARD_SINK);sink=k*k*(3-2*k);}
+    return {above:true,a:w.mt<.55?1:hold,s:1.25-.25*e,sink};}
+  if(w.mode==='pulse'){const k=Math.min(1,w.mt/1.0);const rest=uniq?WARD_BEHIND.alpha*.88:hold;return {above:!uniq,behind:uniq,a:rest+(1-rest)*(1-k),s:1+.18*Math.sin(Math.PI*Math.min(1,w.mt/.45))};}
   if(w.mode==='collapse'){const k=Math.min(1,w.mt/.38);return {above:true,a:hold*(1-k),s:1-.8*k*k};}
-  if(w.mode==='perm'){const b=w.beh==='hive'?beat(w.t):0;return {above:true,a:.52*(.88+.12*Math.sin(w.t*1.7))+b*.25,s:1+b*.035};}
+  if(w.mode==='perm'){const b=w.beh==='hive'?beat(w.t):0;return {above:false,behind:true,a:WARD_BEHIND.alpha*(.88+.12*Math.sin(w.t*1.7))+b*.25,s:1+b*.035};}
   return {above:true,a:hold,s:1};}
 function drawWard(ctx,w,st){const c=w.f.rgb;
   drawGlow(ctx,w.x,w.y,w.R*1.15*st.s,c,st.a*(w.tier==='rare'?.1:.16));
-  LAYERS[w.tier].forEach((L,k)=>{const r=w.R*L.r*st.s;ctx.save();ctx.translate(w.x,w.y);ctx.rotate(w.rot[k]);
+  LAYERS[w.tier].forEach((L,k)=>{const r=w.R*L.r*st.s*(st.behind?WARD_BEHIND.scale[k]:1);ctx.save();ctx.translate(w.x,w.y);ctx.rotate(w.rot[k]);
     if(w.reveal<1){const pr=Math.max(0,Math.min(1,w.reveal*1.5-k*.22));if(pr<=0){ctx.restore();return;}
       ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r*1.05,-Math.PI/2,-Math.PI/2+pr*6.283);ctx.closePath();ctx.clip();
       const ea=-Math.PI/2+pr*6.283;if(pr<1)drawGlow(ctx,Math.cos(ea)*r*.95,Math.sin(ea)*r*.95,14,WHITE,.9);}
-    ctx.globalAlpha=Math.min(1,st.a*(k===2?1.1:1));ctx.drawImage(layerTex(w,L.i,2*r*DPR),-r,-r,2*r,2*r);ctx.restore();});
+    ctx.globalAlpha=Math.min(1,st.a*(k===2?1.1:1)*(st.behind?WARD_BEHIND.boost[k]:1));ctx.drawImage(layerTex(w,L.i,2*r*DPR),-r,-r,2*r,2*r);ctx.restore();});
   ctx.globalAlpha=1;
   if(w.u&&!w.clone&&w.reveal>=1)drawMythic(ctx,w,st);
   if(w.tier==='mythic'){for(let m=0;m<3;m++){const a=w.rot[0]*1.6+m*2.094;drawGlow(ctx,w.x+Math.cos(a)*w.R*.93*st.s,w.y+Math.sin(a)*w.R*.93*st.s,7,mix(c,WHITE,.5),st.a*1.2);}}}
@@ -375,13 +379,13 @@ const permOf=card=>wards.find(w=>w.card===card&&w.u&&w.mode!=='collapse'&&!w.clo
 function beat(t){const p=t%1.7;const b=q=>Math.exp(-Math.pow((p-q)/.06,2));return b(.0)+.6*b(.22);}
 function liveCards(side){return [...rowEl(side).querySelectorAll('.card')].filter(c=>!c.classList.contains('gone')&&c.style.opacity!=='0');}
 function updateMythic(dt){for(const w of wards){if(!w.u||w.clone)continue;w.bt+=dt;
-  if(w.beh==='quorum'){const n=Math.min(12,liveCards(opp(w.side)).length);if(n!==w.lit){if(w.lit>=0){ring(w.x,w.y,w.f.rgb,w.R*1.05,500,2);SFX.seat&&SFX.seat(w.f,w.x,n>w.lit);}w.lit=n;
+  if(w.beh==='quorum'){const n=Math.min(12,liveCards(opp(w.side)).length);if(n!==w.lit){if(w.lit>=0){ring(w.x,w.y,w.f.rgb,w.R*1.05,500,2,{floor:true});SFX.seat&&SFX.seat(w.f,w.x,n>w.lit);}w.lit=n;
       const at=w.card.querySelector('.atk');if(at)at.textContent='⚔'+(1+n);}}
-  else if(w.beh==='prime'){if(w.bt>2.6){w.bt=0;ring(w.x,w.y,w.f.rgb,300,1100,2,{squash:.3});}}
+  else if(w.beh==='prime'){if(w.bt>2.6){w.bt=0;ring(w.x,w.y,w.f.rgb,300,1100,2,{squash:.3,floor:true});}}
   else if(w.beh==='hive'){if(w.bt>1.5){w.bt=0;const al=liveCards(w.side).filter(c=>c!==w.card);if(al.length){const t=center(pick(al));const a=Math.atan2(t.y-w.y,t.x-w.x);
-      addP({kind:'utex',tex:uTexFor(w.u,3,w.f.rgb,40),x:w.x+Math.cos(a)*40,y:w.y+Math.sin(a)*40,vx:Math.cos(a)*((Math.hypot(t.x-w.x,t.y-w.y)-40)/1.5),vy:Math.sin(a)*((Math.hypot(t.x-w.x,t.y-w.y)-40)/1.5),s:24,rot:a+Math.PI/2,wob:rand(0,6),life:1.5,fric:1,grav:0,fade:'inout',a:.95});}}}
+      addP({kind:'utex',tex:uTexFor(w.u,3,w.f.rgb,40),x:w.x+Math.cos(a)*40,y:w.y+Math.sin(a)*40,vx:Math.cos(a)*((Math.hypot(t.x-w.x,t.y-w.y)-40)/1.5),vy:Math.sin(a)*((Math.hypot(t.x-w.x,t.y-w.y)-40)/1.5),s:24,rot:a+Math.PI/2,wob:rand(0,6),life:1.5,fric:1,grav:0,fade:'inout',a:.95,layer:0});}}}
   else if(w.beh==='singularity'){if(gridOn&&dt>0)gridForce(w.x,w.y,22,170,true);if(w.bt>.18){w.bt=0;const a=rand(0,6.283),r=rand(200,300);
-      addP({kind:'spiral',tex:uTexFor(w.u,3,w.f.rgb,40),cx:w.x,cy:w.y,ang:a,rad:r,x:w.x+Math.cos(a)*r,y:w.y+Math.sin(a)*r,s:rand(12,20),life:2.2,fade:'inout',a:.9,vx:0,vy:0,fric:1,grav:0});}}}}
+      addP({kind:'spiral',tex:uTexFor(w.u,3,w.f.rgb,40),cx:w.x,cy:w.y,ang:a,rad:r,x:w.x+Math.cos(a)*r,y:w.y+Math.sin(a)*r,s:rand(12,20),life:2.2,fade:'inout',a:.9,vx:0,vy:0,fric:1,grav:0,layer:0});}}}}
 function drawMythic(ctx,w,st){const c=w.f.rgb;
   if(w.beh==='quorum'){for(let k=0;k<12;k++){const a=w.rot[0]+k/12*6.283-Math.PI/2;const x=w.x+Math.cos(a)*w.R*.93*st.s,y=w.y+Math.sin(a)*w.R*.93*st.s;const on=k<w.lit;
       ctx.globalAlpha=on?1:.22;ctx.save();ctx.translate(x,y);ctx.rotate(a+Math.PI/2);ctx.drawImage(uTexFor(w.u,3,c,40),-10,-10,20,20);ctx.restore();if(on)drawGlow(ctx,x,y,14,mix(c,WHITE,.4),.8);}ctx.globalAlpha=1;}
@@ -441,8 +445,8 @@ const P=[]; const MAXP=2400;
 function spr(id,c,x,y,o={}){if(P.length>=MAXP)return;
   const s0=o.s0!=null?o.s0:(o.s!=null?o.s:40), s1=o.s1!=null?o.s1:s0;
   P.push({kind:'spr',id,c,x,y,vx:o.vx||0,vy:o.vy||0,rot:o.rot!=null?o.rot:rand(0,6.283),vr:o.vr||0,s0,s1,a:o.a!=null?o.a:1,age:-(o.delay||0),life:o.life||.6,
-    fric:o.fric!=null?o.fric:1,grav:o.grav||0,fade:o.fade||'out',layer:o.layer||1,sx:o.sx||1,sy:o.sy||1,blink:o.blink||0,jit:o.jit||0});}
-function addP(p){if(P.length<MAXP){p.age=p.age||0;p.layer=p.layer||1;if(p.a==null)p.a=1;if(!p.fade)p.fade='out';if(p.vr==null)p.vr=0;P.push(p);}}
+    fric:o.fric!=null?o.fric:1,grav:o.grav||0,fade:o.fade||'out',layer:o.layer!=null?o.layer:1,sx:o.sx||1,sy:o.sy||1,blink:o.blink||0,jit:o.jit||0});}
+function addP(p){if(P.length<MAXP){p.age=p.age||0;p.layer=p.layer!=null?p.layer:1;if(p.a==null)p.a=1;if(!p.fade)p.fade='out';if(p.vr==null)p.vr=0;P.push(p);}}
 function sparks(x,y,c,n,spd,o={}){const life=o.life||.6;
   for(let i=0;i<n;i++){const a=o.angle!=null?o.angle+rand(-(o.spread||Math.PI),(o.spread||Math.PI)):rand(0,6.283);const s=spd*rand(.25,1.05);
     addP({kind:o.kind||'spark',x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:life*rand(.55,1.15),c,size:o.size||rand(1.2,2.2),fric:o.fric!=null?o.fric:.9,grav:o.grav||0,rot:rand(0,6),vr:rand(-6,6)});}}
@@ -461,7 +465,7 @@ const drawLater=[]; // soft bloom flares (code)
 
 // ---------- rings, shields, beams, camera ----------
 const rings=[], shields=[], beams=[];
-function ring(x,y,c,maxR,dur,w,o={}){rings.push({x,y,c,maxR,t:0,dur:dur/1000,w,dy:o.dy||0,squash:o.squash||1});}
+function ring(x,y,c,maxR,dur,w,o={}){rings.push({x,y,c,maxR,t:0,dur:dur/1000,w,dy:o.dy||0,squash:o.squash||1,floor:!!o.floor});}
 let flash=null, shake=null, punch=0, freeze=0, fringeT=0;
 function doFlash(c,a){flash={c,a};}
 function doShake(amp,ms){shake={amp,t:0,dur:ms/1000};}
@@ -574,18 +578,20 @@ function drawShield(c,s){
   c.strokeStyle=rgba(s.c,.35*fade);c.lineWidth=8;c.beginPath();c.arc(s.x,s.y,R,0,6.283);c.stroke();
   c.strokeStyle=rgba(mix(s.c,WHITE,.5),.9*fade);c.lineWidth=2;c.beginPath();c.arc(s.x,s.y,R,0,6.283);c.stroke();
   drawGlow(c,s.x,s.y,R*1.15,s.c,.10*fade);}
+function drawRing(c,r){const e=1-Math.pow(1-r.t,3);const rad=r.maxR*e;const a=1-r.t;c.save();c.translate(r.x,r.y-r.dy*e);c.scale(1,r.squash);
+    c.strokeStyle=rgba(r.c,a*.28);c.lineWidth=r.w*3.5/r.squash;c.beginPath();c.arc(0,0,rad,0,6.283);c.stroke();
+    c.strokeStyle=rgba(mix(r.c,WHITE,.5),a);c.lineWidth=r.w/r.squash;c.beginPath();c.arc(0,0,rad,0,6.283);c.stroke();c.restore();}
 function draw(){
   bgc.clearRect(0,0,W,H);if(gridOn){bgc.globalCompositeOperation='lighter';gridDraw(bgc);bgc.globalCompositeOperation='source-over';}
   flc.clearRect(0,0,W,H);flc.globalCompositeOperation='lighter';
   const c=fxc;c.clearRect(0,0,W,H);c.globalCompositeOperation='lighter';c.lineCap='round';c.lineJoin='round';
-  const WS=wards.map(w=>[w,wardState(w)]);for(const [w,st] of WS)if(!st.above)drawWard(flc,w,st);
+  const WS=wards.map(w=>[w,wardState(w)]);for(const [w,st] of WS){if(!st.above)drawWard(flc,w,st);else if(st.sink)drawWard(flc,w,{...st,a:st.a*st.sink,s:1,behind:true});}
+  for(const r of rings)if(r.floor)drawRing(flc,r);
   for(const p of P)if(p.layer===0)drawP(flc,p);
   flc.globalCompositeOperation='source-over';
-  for(const r of rings){const e=1-Math.pow(1-r.t,3);const rad=r.maxR*e;const a=1-r.t;c.save();c.translate(r.x,r.y-r.dy*e);c.scale(1,r.squash);
-    c.strokeStyle=rgba(r.c,a*.28);c.lineWidth=r.w*3.5/r.squash;c.beginPath();c.arc(0,0,rad,0,6.283);c.stroke();
-    c.strokeStyle=rgba(mix(r.c,WHITE,.5),a);c.lineWidth=r.w/r.squash;c.beginPath();c.arc(0,0,rad,0,6.283);c.stroke();c.restore();}
+  for(const r of rings)if(!r.floor)drawRing(c,r);
   for(const s of shields)drawShield(c,s);
-  for(const [w,st] of WS)if(st.above)drawWard(c,w,st);
+  for(const [w,st] of WS)if(st.above&&(st.sink||0)<1)drawWard(c,w,st.sink?{...st,a:st.a*(1-st.sink)}:st);
   for(const b of beams){const t=b.t/b.dur;const a=1-t;const jx=rand(-2,2),jy=rand(-2,2);const w=b.w||1;
     c.strokeStyle=rgba(b.c,a*.3);c.lineWidth=16*w;c.beginPath();c.moveTo(b.from.x,b.from.y);c.lineTo(b.to.x+jx,b.to.y+jy);c.stroke();
     c.strokeStyle=rgba(mix(b.c,WHITE,.5),a);c.lineWidth=4*w;c.beginPath();c.moveTo(b.from.x,b.from.y);c.lineTo(b.to.x+jx,b.to.y+jy);c.stroke();
@@ -906,7 +912,7 @@ const SC=[
  {k:'sigAttack',n:'Mythic signature attack (ward)',ward:true,s:'A Mythic’s own unique attack: its permanent ward flares, spins up and the attack fires out of it.',run:async A=>{
    const cd=cardAt(A.side,5),p=center(cd),c=A.f.rgb,tgt=cardAt(A.o,2),tc=center(tgt);
    cd.style.transform='translateY(-6px) scale(1.04)';const pw=permOf(cd);const w=pw||manifestWard(cd,A.f,'mythic');if(pw){SFX.wardIn(A.f,p.x);wardPulse(pw);}await wait(650);
-   wardPulse(w);SFX.wardPulse(A.f,p.x);ring(p.x,p.y,c,130,500,2.5);await wait(260);
+   wardPulse(w);SFX.wardPulse(A.f,p.x);ring(p.x,p.y,c,130,500,2.5,{floor:!!pw});await wait(260);
    const shots=[];for(let i=0;i<3;i++){SFX.launch(A.f,p.x);shots.push(fly({from:{x:p.x+rand(-30,30),y:p.y+rand(-20,20)},to:{x:tc.x+rand(-12,12),y:tc.y+rand(-14,14)},f:A.f,size:6,dur:480,bend:.35,curve:i-1||.0001}));await wait(110);}
    if(!pw)collapseWard(w);const q=await shots[2];impactHit(q,A.f,4,tgt);flavor(A.f,tc.x,tc.y,2);
    setTimeout(()=>{cd.style.transform='';},300/TS);await wait(1300);}},
@@ -928,7 +934,7 @@ const SC=[
    const tang=Math.atan2(dy,dx)+Math.PI;sparks(q.x,q.y,A.vf.rgb,50,440,{angle:tang+1.25,spread:.45,life:.5});sparks(q.x,q.y,A.vf.rgb,50,440,{angle:tang-1.25,spread:.45,life:.5});
    flareS(q.x,q.y,c,120,.3);shock(q.x,q.y,c,50,.35);doShake(4,180);label(ac.x,ac.y-ac.h/2-40,'BLOCKED',rgba(mix(c,WHITE,.4),1),20);
    await wait(380);breakWard(w);await wait(1300);}},
- {k:'mythicIn',n:'Mythic arrives (unique ward)',ward:true,board:{noMythic:true},s:'A Mythic enters: its one-of-a-kind ward draws itself in, the board bends to it, and the ward stays for as long as the card lives.',run:async A=>{
+ {k:'mythicIn',n:'Mythic arrives (unique ward)',ward:true,board:{noMythic:true},s:'A Mythic enters: its one-of-a-kind ward draws itself in over the card, the board bends to it, then after a few seconds the ward sinks behind the card and stays there for as long as the card lives.',run:async A=>{
    const slot=rowEl(A.side).querySelectorAll('.slot')[5];const hc=(genMythic&&genMythic.fac===A.f.key)?[genMythic.name,3,6,'M']:A.f.high[1];
    if(genMythic&&genMythic.name===hc[0])caption(`Mythic arrives · ${hc[0]}`,'Code-generated fallback ward: made from the card’s name and faction, with no Replicate call.');
    const cd=makeCard(A.f,hc);cd.style.opacity='0';cd.style.transform='scale(1.25)';slot.appendChild(cd);

@@ -6,6 +6,7 @@ import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from
 import { EFFECT_FX_SOURCE } from "./effectFx.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
+import { WARD_FX_PURE_SOURCE, WARD_FX_RUNTIME_SOURCE, wardDataFor } from "./wardFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -18,6 +19,8 @@ export function renderMatchHtml(replay: MatchReplay): string {
   const dataJson = JSON.stringify(replay).replace(/</g, "\\u003c");
   // EFFECTS.md v2 sprite atlases, embedded so the page stays self-contained.
   const atlasJson = JSON.stringify(fxAtlasDataUris());
+  // Slice 6: Mythic ward sheets, only for the Mythics this match puts on the board.
+  const wardJson = JSON.stringify(wardDataFor(replay)).replace(/</g, "\\u003c");
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
@@ -78,12 +81,17 @@ export function renderMatchHtml(replay: MatchReplay): string {
       <button id="btn-music" aria-pressed="true" title="Music is on. Click to mute.">Music on</button>
       <input type="range" id="music-vol" min="0" max="100" step="1" value="60" aria-label="Music volume" title="Music volume">
       <span id="music-meter" class="music-meter" aria-hidden="true"></span>
+      <select id="music-follow" aria-label="The arpeggio follows" title="Whose faction voices the arpeggio">
+        <option value="acting">arp: acting player</option>
+        <option value="ahead">arp: whoever is ahead</option>
+      </select>
     </span>
   </section>
 </main>
 
 <script type="application/json" id="match-data">${dataJson}</script>
 <script type="application/json" id="fx-atlases">${atlasJson}</script>
+<script type="application/json" id="ward-data">${wardJson}</script>
 <script>${JS}</script>
 </body>
 </html>
@@ -237,6 +245,13 @@ html, body {
 .rarity-Uncommon { box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset; }
 .rarity-Rare { box-shadow: 0 0 8px 1px var(--rc), 0 0 0 1px var(--rc) inset; }
 .rarity-Mythic { box-shadow: 0 0 14px 3px var(--rc), 0 0 0 1px var(--rc) inset; animation: pulse 2.2s ease-in-out infinite; }
+/* Slice 6: the Mythic card's foil, a slow light sweep across the card (the
+ * lab's .card.mythic::after). Its ward lives on the floor canvas behind it. */
+.card.rarity-Mythic:not(.pending)::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.2) 45%, transparent 60%) 0 0 / 250% 100%;
+  animation: mythic-foil 4.5s linear infinite; }
+@keyframes mythic-foil { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .card.rarity-Mythic::after { animation: none; } }
 @keyframes pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
 
 .faction-Cortex { --fc: var(--cortex); --rc: #35c9ff; }
@@ -250,6 +265,13 @@ html, body {
 .faction-Neutral { --fc: var(--neutral); --rc: #fff8e2; }
 .card.faction-Neutral .name, .card.faction-Neutral .stats { background: rgba(0,0,0,0.66); }
 .card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null, .card.faction-Neutral { background: var(--fc); }
+/* Slice 6: the Mythic card is obsidian + foil (EFFECTS.md "Mythic unique
+ * wards", the lab's .card.mythic): near-black with a faint glow of its
+ * faction, rimmed in its colour, so its ward reads around it. */
+.card.rarity-Mythic { background: #05060b; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--fc) 18%, #05060b), #05060b 75%);
+  border-color: var(--rc); color: #fff; }
+.card.rarity-Mythic .art { background-image: none !important; color: var(--rc); text-shadow: 0 0 8px var(--rc); }
+.card.rarity-Mythic .head { background: color-mix(in srgb, var(--rc) 70%, #fff); color: #05060d; }
 
 .lower { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-top: 12px; }
 .hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }
@@ -276,7 +298,8 @@ html, body {
 .music-meter { font-size: 0.7rem; color: var(--ink-dim); min-width: 92px; letter-spacing: 1px; }
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
-.speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
+.speedlabel select, .sound-ctl select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
+.sound-ctl select { font-size: 0.7rem; }
 
 /* Per-move transitions (RENDER.md render-lane session 2): the board no
  * longer just snaps to the next frame — plays, deaths, attacks, damage/heal,
@@ -637,6 +660,10 @@ const JS = `
   let i = 0;
   let playing = false;
   let timer = null;
+  // True only while goTo steps one move forward (slice 6: wards arrive and
+  // shatter on cue then; a jump just places them).
+  let stepping = false;
+  const wardSpecs = (JSON.parse(document.getElementById('ward-data').textContent || '{}').specs) || {};
 
   // Player identity (owner-feedback 2026-09-26): a real image when the
   // identity carries one, else the username-seeded SVG placeholder
@@ -774,6 +801,10 @@ ${SOUND_FX_PURE_SOURCE}
 ${SOUND_FX_RUNTIME_SOURCE}
 ${MUSIC_PURE_SOURCE}
 ${MUSIC_RUNTIME_SOURCE}
+  // Slice 6: Mythic unique wards, behind the card (owner 2026-10-11) —
+  // render/src/wardFx.ts, embedded verbatim; it plugs into CFX's canvases.
+${WARD_FX_PURE_SOURCE}
+${WARD_FX_RUNTIME_SOURCE}
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -997,10 +1028,20 @@ ${MUSIC_RUNTIME_SOURCE}
   function hasMythic(p) {
     return p.board.some(function (u) { return u.rarity === 'Mythic'; }) || p.directives.some(function (d) { return d.rarity === 'Mythic'; });
   }
+  // The music's scene (slice 4): whose faction voices the arpeggio and
+  // whether that side has a Mythic in play. By default the acting player;
+  // the viewer can switch it to whoever is ahead (owner 2026-10-10).
+  function setMusicScene(frame) {
+    const side = frame.players[musSceneSide(MUS.follow(), frame.activePlayer, frame.momentum.leader)];
+    MUS.setScene(side.faction, hasMythic(side));
+  }
   function renderFrame() {
     const frame = frames[i];
-    const actor = frame.players[frame.activePlayer];
-    MUS.setScene(actor.faction, hasMythic(actor));
+    setMusicScene(frame);
+    // Mythic wards follow the board. Stepping move by move, runFx cues an
+    // arriving ward and shatters a dying one at the kill; a jump just
+    // places them.
+    WARDS.sync(wardsOnBoard(frame.players, wardSpecs), { stepping: stepping });
     renderHud('hud-p1', frame.players.p1);
     renderHud('hud-p2', frame.players.p2);
     renderMomentum(frame.momentum);
@@ -1728,6 +1769,8 @@ ${MUSIC_RUNTIME_SOURCE}
         const tier = tierFromScore(deathScore(prevBoard[id].v.rarity, !hasAttackEvent));
         tiers.push(tier);
         spawnGhost(prevBoard[id], prevRects[id], tier, unitT(id), { killer: killerOf(id) || prevBoard[id].v.faction, victim: prevBoard[id].v.faction });
+        // A Mythic's ward shatters into spinning pieces as its card does.
+        if (WARDS.has(id)) later(unitT(id), function () { WARDS.shatter(id); });
       }
     });
 
@@ -1739,6 +1782,9 @@ ${MUSIC_RUNTIME_SOURCE}
         tiers.push(tier);
         // A Mythic arriving lifts the music (slice 4), on its entrance beat.
         if (newBoard[id].v.rarity === 'Mythic') later(causeT, function () { MUS.event('mythic', tier); });
+        // Its ward draws itself in over the card, then sinks behind it
+        // (owner 2026-10-11; render/src/wardFx.ts).
+        if (WARDS.has(id)) later(causeT, function () { WARDS.arrive(id); });
         if (causeT > 0) { el.style.opacity = '0'; later(causeT, function () { el.style.opacity = ''; flashClass(el, 'fx-enter', tier); }); }
         else flashClass(el, 'fx-enter', tier);
         return;
@@ -1884,7 +1930,9 @@ ${MUSIC_RUNTIME_SOURCE}
       const prevStackRects = stackRects();
       const prevHandRects = handRects();
       i = target;
+      stepping = true;
       renderFrame();
+      stepping = false;
       lastTransitionTier = runFx(prevFrame, prevBoard, prevRects, prevLandRects, prevStackRects, prevHandRects, frames[i]);
     } else {
       cancelFx();
@@ -1940,7 +1988,8 @@ ${MUSIC_RUNTIME_SOURCE}
   SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));
   // Music (slice 4, render/src/musicFx.ts): its own toggle, volume and
   // intensity meter, on the same armed / remembered pattern.
-  MUS.mount(document.getElementById('btn-music'), document.getElementById('music-vol'), document.getElementById('music-meter'));
+  MUS.mount(document.getElementById('btn-music'), document.getElementById('music-vol'), document.getElementById('music-meter'), null, document.getElementById('music-follow'));
+  document.getElementById('music-follow').addEventListener('change', function () { setMusicScene(frames[i]); });
   scrubber.oninput = function () { stop(); goTo(Number(scrubber.value)); };
   document.getElementById('speed').onchange = function () { if (playing) { stop(); play(); } };
   document.addEventListener('keydown', function (e) {

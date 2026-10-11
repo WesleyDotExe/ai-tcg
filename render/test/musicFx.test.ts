@@ -35,6 +35,8 @@ import {
   musMeter,
   musPrefParse,
   musPrefSerialize,
+  MUS_FOLLOW,
+  musSceneSide,
   musRest,
   musStep,
   type MusVoice,
@@ -445,11 +447,11 @@ function memStore(initial: string | null = null) {
 
 describe("the remembered music setting", () => {
   it("defaults to on at the default volume; only an explicit mute is remembered as off", () => {
-    for (const raw of [null, undefined, "", "junk", "{}", 3]) expect(musPrefParse(raw)).toEqual({ muted: false, volume: MUS_DEFAULT_VOLUME });
-    expect(musPrefParse('{"muted":true,"volume":0.25}')).toEqual({ muted: true, volume: 0.25 });
+    for (const raw of [null, undefined, "", "junk", "{}", 3]) expect(musPrefParse(raw)).toEqual({ muted: false, volume: MUS_DEFAULT_VOLUME, follow: "acting" });
+    expect(musPrefParse('{"muted":true,"volume":0.25}')).toEqual({ muted: true, volume: 0.25, follow: "acting" });
     expect(musPrefParse('{"muted":1}').muted).toBe(false);
     expect(musPrefParse('{"volume":9}').volume).toBe(1);
-    for (const p of [{ muted: true, volume: 0 }, { muted: false, volume: 0.42 }]) expect(musPrefParse(musPrefSerialize(p))).toEqual(p);
+    for (const p of [{ muted: true, volume: 0, follow: "acting" as const }, { muted: false, volume: 0.42, follow: "ahead" as const }]) expect(musPrefParse(musPrefSerialize(p))).toEqual(p);
     expect(MUS_PREF_KEY).toBe("ai-tcg.music");
   });
 
@@ -484,7 +486,7 @@ describe("the remembered music setting", () => {
     expect(contexts()).toBe(0);
     expect(btn.textContent).toContain("Music off");
     expect(vol.disabled).toBe(true);
-    expect(musPrefParse(store.v)).toEqual({ muted: true, volume: 0.3 });
+    expect(musPrefParse(store.v)).toEqual({ muted: true, volume: 0.3, follow: "acting" });
     // Next page: still muted until switched back on.
     const doc2 = fakeDoc();
     const second = boot(doc2);
@@ -492,6 +494,31 @@ describe("the remembered music setting", () => {
     doc2.fire("keydown", { target: {} });
     expect(second.MUS.state()).toBe("muted");
     expect(second.contexts()).toBe(0);
+  });
+
+  it("the arpeggio follows the acting player by default, or whoever is ahead, and the choice is remembered", () => {
+    expect(MUS_FOLLOW).toEqual(["acting", "ahead"]);
+    expect(musSceneSide("acting", "p2", "p1")).toBe("p2");
+    expect(musSceneSide(undefined, "p2", "p1")).toBe("p2");
+    expect(musSceneSide("ahead", "p2", "p1")).toBe("p1");
+    expect(musSceneSide("ahead", "p1", "p2")).toBe("p2");
+    // An even match falls back to the acting player, so the voice never flips on a draw.
+    expect(musSceneSide("ahead", "p1", "even")).toBe("p1");
+    expect(musPrefParse('{"follow":"sideways"}').follow).toBe("acting");
+    const doc = fakeDoc();
+    const { MUS } = boot(doc);
+    const store = memStore(), sel = fakeEl();
+    MUS.mount(fakeEl(), fakeEl(), null, store, sel);
+    expect(sel.value).toBe("acting");
+    expect(MUS.follow()).toBe("acting");
+    sel.value = "ahead"; sel.fire("change");
+    expect(MUS.follow()).toBe("ahead");
+    expect(musPrefParse(store.v).follow).toBe("ahead");
+    const second = boot(fakeDoc());
+    const sel2 = fakeEl();
+    second.MUS.mount(fakeEl(), fakeEl(), null, store, sel2);
+    expect(sel2.value).toBe("ahead");
+    expect(second.MUS.follow()).toBe("ahead");
   });
 
   it("muting the effects leaves the music alone, and the other way round", () => {
@@ -556,11 +583,12 @@ describe("the replay page and the FX sheet", () => {
     expect(html).toContain('<span class="sound-ctl" id="sound-ctl" data-audio-ctl>');
     expect(html).toContain('<span class="sound-ctl" id="music-ctl" data-audio-ctl>');
     expect(html).toContain('<input type="range" id="music-vol" min="0" max="100" step="1" value="60"');
-    expect(html).toContain("MUS.mount(document.getElementById('btn-music'), document.getElementById('music-vol'), document.getElementById('music-meter'));");
+    expect(html).toContain("MUS.mount(document.getElementById('btn-music'), document.getElementById('music-vol'), document.getElementById('music-meter'), null, document.getElementById('music-follow'));");
   });
 
   it("tells the music who is acting, whether they have a Mythic in play, and when a Mythic arrives", () => {
-    expect(html).toContain("MUS.setScene(actor.faction, hasMythic(actor));");
+    expect(html).toContain("const side = frame.players[musSceneSide(MUS.follow(), frame.activePlayer, frame.momentum.leader)];");
+    expect(html).toContain("MUS.setScene(side.faction, hasMythic(side));");
     expect(html).toContain("if (newBoard[id].v.rarity === 'Mythic') later(causeT, function () { MUS.event('mythic', tier); });");
   });
 
@@ -568,6 +596,14 @@ describe("the replay page and the FX sheet", () => {
     const sheet = renderFxSheet();
     expect(sheet).toContain(MUSIC_RUNTIME_SOURCE);
     expect(sheet).toContain("MUS.mount(document.getElementById('mus')");
+  });
+
+  it("offers the arpeggio choice beside the music control and re-voices on change (owner 2026-10-10)", () => {
+    expect(html).toContain('<select id="music-follow" aria-label="The arpeggio follows"');
+    expect(html).toContain('<option value="acting">arp: acting player</option>');
+    expect(html.indexOf('id="music-follow"')).toBeGreaterThan(html.indexOf('<span class="sound-ctl" id="music-ctl" data-audio-ctl>'));
+    expect(html.indexOf('id="music-follow"')).toBeLessThan(html.indexOf("</section>", html.indexOf('id="music-ctl"')));
+    expect(html).toContain("document.getElementById('music-follow').addEventListener('change', function () { setMusicScene(frames[i]); });");
   });
 
   it("keeps the layer thresholds in one place", () => {

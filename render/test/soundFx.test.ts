@@ -52,8 +52,8 @@ const totalGain = (vs: SfxVoice[]) => vs.reduce((a, v) => a + v.g, 0);
 const tones = (vs: SfxVoice[]) => vs.filter((v) => v.k === "tone");
 
 describe("every event has a sound in every voice", () => {
-  it("covers all eleven kinds in all five factions with sane voices", () => {
-    expect(SFX_KINDS).toEqual(["launch", "impact", "bolt", "heal", "buff", "debuff", "lock", "beam", "kill", "block", "cast"]);
+  it("covers all fourteen kinds in all five factions with sane voices", () => {
+    expect(SFX_KINDS).toEqual(["launch", "impact", "bolt", "heal", "buff", "debuff", "lock", "beam", "kill", "block", "cast", "ward", "wardPulse", "wardBreak"]);
     for (const k of SFX_KINDS) for (const f of FACTIONS) for (const t of TIERS) {
       const vs = recipe(k, f, t, { victim: "Aegis" });
       expect(vs.length, `${k}/${f}/${t}`).toBeGreaterThan(0);

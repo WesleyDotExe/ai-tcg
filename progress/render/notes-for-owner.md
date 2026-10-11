@@ -432,3 +432,32 @@ separate from the shared `progress/notes-for-owner.md`).
 2. **For the website (build-order steps 3-5):** the account settings need a
    **Music** setting (muted + volume) beside Sound. The replay hands each
    one through its own `{ read, write }` store (`SND.mount`, `MUS.mount`).
+
+---
+
+## 2026-10-11 — Session 15 (Mythic wards behind the card; the arpeggio choice)
+
+1. **Your 2026-10-11 "Mythic wards sit behind the card" is built:** in
+   EFFECTS.md, the effects lab and the replays. In the replays the Mythic
+   wards are new this session (slice 6), so they were built behind the card
+   from the start.
+   - **Quickest look:** open `render/output/null-vs-cortex-seed4.html`, drag
+     to move 120, then press → once. Null Singularity's ward draws in over
+     its card and sinks behind it about three seconds later. Quorum Arbiter's
+     ward is already behind its card in the row above.
+   - **For a death:** `cortex-vs-swarm-seed11.html`, move 98, then →.
+   - The six calls, including "how long on top" and "how it stands out", are
+     in `progress/render/checkpoints.md`.
+   - Please mark the entry handled in `owner-feedback.md`, or have the next
+     game-lane session do it (this lane doesn't write that file).
+2. **Your 2026-10-10 render item 4 is built:** "arp: acting player /
+   whoever is ahead" sits next to the music control and is remembered. Item
+   6 (the website's Music setting, menu music and the music widget) waits
+   for build-order steps 4-5.
+3. **One look change you didn't ask for directly:** Mythic cards are now
+   "obsidian + foil" (dark, rimmed in their colour, with a light sweep), as
+   EFFECTS.md and the lab specify. Without it, a ward behind a bright card
+   barely stood out. It's call 4 in the checkpoint.
+4. **Mythic ward previews: nothing new.** No Mythic has been added, and
+   `progress/render/mythic-wards-log.md` still doesn't exist.
+5. **No engine change was needed.**

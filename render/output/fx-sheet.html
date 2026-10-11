@@ -147,6 +147,13 @@ html, body {
 .rarity-Uncommon { box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset; }
 .rarity-Rare { box-shadow: 0 0 8px 1px var(--rc), 0 0 0 1px var(--rc) inset; }
 .rarity-Mythic { box-shadow: 0 0 14px 3px var(--rc), 0 0 0 1px var(--rc) inset; animation: pulse 2.2s ease-in-out infinite; }
+/* Slice 6: the Mythic card's foil, a slow light sweep across the card (the
+ * lab's .card.mythic::after). Its ward lives on the floor canvas behind it. */
+.card.rarity-Mythic:not(.pending)::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.2) 45%, transparent 60%) 0 0 / 250% 100%;
+  animation: mythic-foil 4.5s linear infinite; }
+@keyframes mythic-foil { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .card.rarity-Mythic::after { animation: none; } }
 @keyframes pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
 
 .faction-Cortex { --fc: var(--cortex); --rc: #35c9ff; }
@@ -160,6 +167,13 @@ html, body {
 .faction-Neutral { --fc: var(--neutral); --rc: #fff8e2; }
 .card.faction-Neutral .name, .card.faction-Neutral .stats { background: rgba(0,0,0,0.66); }
 .card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null, .card.faction-Neutral { background: var(--fc); }
+/* Slice 6: the Mythic card is obsidian + foil (EFFECTS.md "Mythic unique
+ * wards", the lab's .card.mythic): near-black with a faint glow of its
+ * faction, rimmed in its colour, so its ward reads around it. */
+.card.rarity-Mythic { background: #05060b; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--fc) 18%, #05060b), #05060b 75%);
+  border-color: var(--rc); color: #fff; }
+.card.rarity-Mythic .art { background-image: none !important; color: var(--rc); text-shadow: 0 0 8px var(--rc); }
+.card.rarity-Mythic .head { background: color-mix(in srgb, var(--rc) 70%, #fff); color: #05060d; }
 
 .lower { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-top: 12px; }
 .hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }
@@ -1387,11 +1401,23 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       return true;
     }
 
-    function clear() { P.length = 0; proj.length = 0; rings.length = 0; beams.length = 0; timers.length = 0; resetCamera(); }
+    function clear() { P.length = 0; proj.length = 0; rings.length = 0; beams.length = 0; timers.length = 0; resetCamera(); plugins.forEach(function (pl) { if (pl.clear) pl.clear(); }); }
+
+    // ---- plug-ins (slice 6: render/src/wardFx.ts) ----
+    // A plug-in is a layer with its own state that draws on the same two
+    // canvases, inside the same frame: update(dt, raw) each frame (dt is 0
+    // during hit-stop), drawFloor(ctx) under the cards after the ground
+    // marks, drawTop(ctx) over the cards before rings, beams and
+    // projectiles, alive() to keep the loop running, clear() on a jump,
+    // and optionally hasTop() (false = nothing over the cards this frame).
+    // Both contexts are already in document coordinates and 'lighter'.
+    var plugins = [];
+    function plug(pl) { plugins.push(pl); kick(); return pl; }
+    function pluginsAlive() { for (var i = 0; i < plugins.length; i++) if (plugins[i].alive()) return true; return false; }
 
     // ---- the loop: runs only while something is alive, so an idle replay
     // costs nothing ----
-    function alive() { return P.length || proj.length || rings.length || beams.length || timers.length || G.live || punch || shakeS || fringeT > 0 || flashS || camLive; }
+    function alive() { return P.length || proj.length || rings.length || beams.length || timers.length || G.live || punch || shakeS || fringeT > 0 || flashS || camLive || pluginsAlive(); }
     function kick() { if (running || !ok) return; running = true; lastT = performance.now(); requestAnimationFrame(frame); }
     function frame(now) {
       var raw = Math.max(0, Math.min(0.05, (now - lastT) / 1000)); lastT = now;
@@ -1403,6 +1429,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       for (var i = 0; i < timers.length; i++) if (timers[i].t <= now) { var tm = timers.splice(i, 1)[0]; i--; tm.fn(); }
       var c0 = performance.now();
       update(dt, raw, now);
+      for (var pi = 0; pi < plugins.length; pi++) plugins[pi].update(dt, raw);
       camera(raw);
       var c1 = performance.now();
       gridUpdate(dt);
@@ -1490,18 +1517,34 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       }
       if (p.kind === 'bloom') { var b = Math.pow(1 - k, 2); drawGlow(c, p.x, p.y, p.r * (0.7 + 0.5 * k), p.c, b * 0.75); drawGlow(c, p.x, p.y, p.r * 0.25, WHITE, b * 0.5); }
     }
+    // Whether anything will be drawn over the cards this frame. A resting
+    // Mythic ward keeps the loop alive (slice 6) but draws only on the
+    // floor, so the top canvas is left untouched (not even cleared) until
+    // something needs it, and the browser doesn't repaint it every frame.
+    var topWasDrawn = true;
+    function topBusy() {
+      if (rings.length || beams.length || proj.length || flashS) return true;
+      for (var q = 0; q < P.length; q++) if (P[q].layer !== 0) return true;
+      for (q = 0; q < plugins.length; q++) if (!plugins[q].hasTop || plugins[q].hasTop()) return true;
+      return false;
+    }
     function draw() {
       var sx = window.scrollX, sy = window.scrollY;
       flc.setTransform(1, 0, 0, 1, 0, 0); flc.clearRect(0, 0, floorC.width, floorC.height);
       gridDraw(flc);
       flc.setTransform(DPR, 0, 0, DPR, -sx * DPR, -sy * DPR);
-      fxc.setTransform(DPR, 0, 0, DPR, -sx * DPR, -sy * DPR); fxc.clearRect(sx, sy, VW, VH);
+      var busy = topBusy();
+      if (busy || topWasDrawn) { fxc.setTransform(DPR, 0, 0, DPR, -sx * DPR, -sy * DPR); fxc.clearRect(sx, sy, VW, VH); }
+      topWasDrawn = busy;
       flc.globalCompositeOperation = 'lighter';
       var i;
       for (i = 0; i < P.length; i++) if (P[i].layer === 0) drawP(flc, P[i]);
+      for (i = 0; i < plugins.length; i++) plugins[i].drawFloor(flc);
       flc.globalCompositeOperation = 'source-over';
+      if (!busy) return;
       var c = fxc;
       c.globalCompositeOperation = 'lighter'; c.lineCap = 'round'; c.lineJoin = 'round';
+      for (i = 0; i < plugins.length; i++) plugins[i].drawTop(c);
       for (i = 0; i < rings.length; i++) {
         var r = rings[i], e = 1 - Math.pow(1 - r.t, 3), rad = r.maxR * e, ra = 1 - r.t;
         c.save(); c.translate(r.x, r.y - r.dy * e); c.scale(1, r.squash);
@@ -1533,7 +1576,11 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     }
 
     size();
-    var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear,
+    var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear, plug: plug,
+      // What a plug-in may draw with: the same glow, rings, shockwaves,
+      // sprites, sparks and grid pushes the effects use.
+      kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,
+        gridForce: gridForce, gridTint: gridTint, rand: rand, mix: mix, rgba: rgba, kick: kick, docCentre: docCentre },
       isReady: function () { return ready && !failed; },
       stats: function () { return { ready: ready && !failed, particles: P.length, projectiles: proj.length, beams: beams.length, timers: timers.length, frames: frames, peak: peak, fps: fps, tinted: Object.keys(tcache).length, gridLive: G.live, camera: camLive, reduced: REDUCED,
         msPerFrame: cost.n ? { update: +(cost.update / cost.n).toFixed(2), grid: +(cost.grid / cost.n).toFixed(2), draw: +(cost.draw / cost.n).toFixed(2) } : null }; } };
@@ -1552,7 +1599,10 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
   // dropped: a Swarm volley is many shots but should read as one chitter
   // cloud, not a wall of identical clicks.
   var SFX_REPEAT_GAP_MS = 28;
-  var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast'];
+  var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast', 'ward', 'wardPulse', 'wardBreak'];
+  // Ward moments (slice 6, the lab's wardIn / wardPulse / wardBreak): each
+  // faction's chord, low to high. Neutral has no ward; it gets Cortex's.
+  var SFX_WARD_CHORD = { cortex: [440, 660, 880], aegis: [110, 165, 220], swarm: [262, 277, 392], null: [233, 330, 466], neutral: [440, 660, 880] };
   var SFX_VOICES = { Cortex: 'cortex', Aegis: 'aegis', Swarm: 'swarm', Null: 'null', Neutral: 'neutral' };
   function sfxVoiceOf(faction) { return SFX_VOICES[faction] || 'neutral'; }
   function sfxTierGain(tier) { return SFX_TIER_GAIN[tier] || SFX_TIER_GAIN.normal; }
@@ -1670,6 +1720,23 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       T({ type: 'sine', f0: 2640, dur: 0.35, g: 0.06 });
       N({ type: 'bandpass', f0: 4200, q: 2, dur: 0.12, g: 0.14 });
       if (v === 'aegis') T({ type: 'sine', f0: 440 * SFX_BELL[1], dur: 0.6, g: 0.05 });
+    } else if (kind === 'ward') {
+      // A Mythic arrives: a run of ticks, the ward's rising chord, then the
+      // landing thump; under it all, the lab's mythicIn swell.
+      var wc = SFX_WARD_CHORD[v], wt = { cortex: 'square', aegis: 'sawtooth', swarm: 'triangle', null: 'sawtooth' }[v] || 'triangle';
+      for (var wi = 0; wi < 12; wi++) T({ type: 'square', f0: v === 'null' ? r(1500, 4000) : 2800 + wi * 60, dur: 0.025, g: 0.025, delay: wi * 0.045 });
+      wc.forEach(function (n, i) { T({ type: wt, f0: n, dur: 1.3, g: wt === 'square' ? 0.03 : 0.06, att: 0.45, delay: 0.05 + i * 0.06, filt: 'lowpass', ff: 2400 }); });
+      T({ type: 'sine', f0: 90, f1: 40, dur: 0.7, g: 0.45, delay: 0.55 });
+      N({ type: 'lowpass', f0: 2000, f1: 200, dur: 0.5, g: 0.18, delay: 0.55 });
+      T({ type: 'sine', f0: 55, f1: 110, dur: 1.4, g: 0.3, att: 0.7 });
+      T({ type: 'triangle', f0: 220, f1: 330, dur: 1.4, g: 0.05, att: 0.8 });
+    } else if (kind === 'wardPulse') {
+      SFX_WARD_CHORD[v].slice(1).forEach(function (n) { T({ type: 'triangle', f0: n * 2, dur: 0.6, g: 0.07 }); });
+      N({ type: 'bandpass', f0: 3000, q: 2, dur: 0.25, g: 0.08, att: 0.08 });
+    } else if (kind === 'wardBreak') {
+      // Glass pings, then the chord falling apart, high to low.
+      for (var wb = 0; wb < 14; wb++) T({ type: 'sine', f0: r(1800, 5200), dur: 0.09, g: 0.035, delay: wb * 0.022 });
+      SFX_WARD_CHORD[v].slice().reverse().forEach(function (n, i) { T({ type: 'triangle', f0: n * 2, f1: n * 1.4, dur: 0.7, g: 0.06, delay: 0.08 + i * 0.09 }); });
     } else if (kind === 'cast') {
       // A power's cast flourish: a rising whoosh, the voice on top.
       N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });
@@ -1960,15 +2027,27 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     if (v !== v) return MUS_DEFAULT_VOLUME;
     return v < 0 ? 0 : v > 1 ? 1 : v;
   }
+  // Whom the arpeggio follows (owner 2026-10-10, render item 4): the acting
+  // player (the default, as built in slice 4) or whoever is ahead.
+  var MUS_FOLLOW = ['acting', 'ahead'];
+  function musFollowOf(v) { return v === 'ahead' ? 'ahead' : 'acting'; }
   function musPrefParse(raw) {
     var p = null;
     if (typeof raw === 'string') { try { p = JSON.parse(raw); } catch (e) { p = null; } }
     else if (raw && typeof raw === 'object') p = raw;
-    if (!p || typeof p !== 'object') return { muted: false, volume: MUS_DEFAULT_VOLUME };
-    return { muted: p.muted === true, volume: p.volume === undefined ? MUS_DEFAULT_VOLUME : musClampVolume(p.volume) };
+    if (!p || typeof p !== 'object') return { muted: false, volume: MUS_DEFAULT_VOLUME, follow: 'acting' };
+    return { muted: p.muted === true, volume: p.volume === undefined ? MUS_DEFAULT_VOLUME : musClampVolume(p.volume), follow: musFollowOf(p.follow) };
   }
   function musPrefSerialize(pref) {
-    return JSON.stringify({ muted: !!(pref && pref.muted), volume: musClampVolume(pref ? pref.volume : MUS_DEFAULT_VOLUME) });
+    return JSON.stringify({ muted: !!(pref && pref.muted), volume: musClampVolume(pref ? pref.volume : MUS_DEFAULT_VOLUME), follow: musFollowOf(pref && pref.follow) });
+  }
+  // The side the music follows this frame: its faction voices the
+  // arpeggio, its Mythic rings the bells. 'ahead' takes the momentum
+  // leader; when the match is even it falls back to the acting player, so
+  // the voice never goes silent or flips on a draw.
+  function musSceneSide(follow, activePlayer, leader) {
+    if (musFollowOf(follow) === 'ahead' && (leader === 'p1' || leader === 'p2')) return leader;
+    return activePlayer;
   }
 
   // musStep(step, I, faction, mythic, rand) -> the voices that start on this
@@ -2034,7 +2113,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
   var MUS = (function () {
     // want: the viewer wants music (armed, or playing). on: it is playing.
     // vol: the music volume, 0-1. I: intensity. voice/mythic: the scene.
-    var MU = { on: false, want: false, vol: MUS_DEFAULT_VOLUME, I: 1, faction: 'Neutral', mythic: false,
+    var MU = { on: false, want: false, vol: MUS_DEFAULT_VOLUME, follow: 'acting', I: 1, faction: 'Neutral', mythic: false,
       bus: null, duck: null, send: null, next: 0, step: 0, lastT: 0, timer: null, lastDuck: -1, meter: null };
     // The music bus at full volume: the lab's 0.84 bus through its 0.6
     // master, so the default volume (0.6) matches the lab's default mix.
@@ -2159,6 +2238,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     function arm(pref) {
       pref = musPrefParse(pref);
       MU.want = !pref.muted;
+      MU.follow = pref.follow;
       setVolume(pref.volume);
       return state();
     }
@@ -2178,15 +2258,20 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
         write: function (v) { try { window.localStorage.setItem(MUS_PREF_KEY, v); } catch (e) { /* not remembered */ } },
       };
     }
-    // mount(btn, slider, meter, store): the page's music control, wired like
-    // SND.mount: armed at load, started by the first gesture anywhere (a
-    // press on this button just mutes), toggled and volume-set in place,
-    // both remembered.
-    function mount(btn, slider, meter, store) {
+    // mount(btn, slider, meter, store, follow): the page's music control,
+    // wired like SND.mount: armed at load, started by the first gesture
+    // anywhere (a press on this button just mutes), toggled and volume-set
+    // in place, all remembered. follow (optional) is a <select> of
+    // MUS_FOLLOW: whom the arpeggio follows.
+    function mount(btn, slider, meter, store, follow) {
       store = store || localStore();
       MU.meter = meter || null;
       arm(store.read());
-      function save() { store.write(musPrefSerialize({ muted: !MU.want, volume: MU.vol })); }
+      function save() { store.write(musPrefSerialize({ muted: !MU.want, volume: MU.vol, follow: MU.follow })); }
+      if (follow) {
+        follow.value = MU.follow;
+        follow.addEventListener('change', function () { MU.follow = musFollowOf(follow.value); save(); });
+      }
       function show() {
         var st = state();
         btn.textContent = st === 'muted' ? '♪ Music off' : '♫ Music on';
@@ -2223,7 +2308,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     // (even with effects muted) and, when it actually sounds, ducks.
     SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
-      volume: function () { return MU.vol; }, state: state, event: event, duck: duck, setScene: setScene, tick: tick,
+      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,
       stats: function () { return { on: MU.on, state: state(), volume: MU.vol, I: +MU.I.toFixed(3), faction: MU.faction, mythic: MU.mythic,
         layers: musLayers(MU.I), step: MU.step, steps: counts.steps, voices: counts.voices, ducks: counts.ducks, bumps: counts.bumps,
