@@ -2300,3 +2300,16 @@ Owner decision on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session
 - **Next game-lane session:** build the Neutral menu as card data and run the fairness test against that reference.
 - **Still open:** whether to deal with Aegis gaining the most from an extra 5-cost body (Aegis > Cortex 52 -> 60 with the stand-in). The owner hasn't decided. Raise it again with the Neutral menu results.
 - **Not overruled:** session 31's four calls (a signature card is a plain Unit; cost modifiers apply to it, with +2 per replay on top; its Tools go to the graveyard when it dies; its onDeath abilities fire before it goes back to the zone).
+
+---
+
+## 2026-10-12 — Owner: render session 15 (Mythic wards, slice 6) accepted, keep all 6 calls
+
+Owner decision on the slice 6 checkpoint in `progress/render/checkpoints.md` (render session 15, PR #48). All six calls are kept as built:
+
+1. Slice 6 (Mythic wards) built before slice 5. Slice 5, the faction ward flares for the ten signature abilities, is next.
+2. On arrival the ward stays on top for about 2.6 s, then fades behind the card over 0.8 s.
+3. Behind the card, the ward stands out with brighter outer rings, about 16% larger.
+4. The obsidian + foil Mythic card.
+5. The death shatter flies over the board.
+6. "Whoever is ahead" falls back to the acting player when the match is even.
