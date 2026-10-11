@@ -7,6 +7,58 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-11 — Mythic wards behind the card (your 2026-10-11 entry) + EFFECTS.md v2 slice 6 — AWAITING FEEDBACK
+
+**What this delivers:**
+- **Every Mythic on the board now carries its own ward in the replays, behind the card** (your rule, built in from the start):
+  - **Arrival:** the ward draws itself in on top of the card, the grid bends to it, and it holds there about 2.6 s. Then it fades back behind the card over 0.8 s.
+  - **After that it stays behind.** The card's art, name and stats are fully visible, and only the parts of the ward reaching past the card's edges show. The core is hidden inside the card's outline.
+  - **To keep a Mythic standing out** (you allowed this), the outer layers are brighter (×1.45) and larger (×1.16) behind the card than the lab had them over it.
+  - **Live behaviour plays behind the card too:**
+    - Quorum Arbiter lights one seat per enemy unit;
+    - Prime Aegis tethers its allies, crests them, and rolls a pressure ring;
+    - Hive Mother beats and sends larvae to her brood;
+    - Null Singularity pulls the grid in and drags pointers into itself.
+  - **Death:** the ward shatters into spinning pieces over the board, on the same beat as the card.
+- **The Mythic card is obsidian + foil,** as the lab and EFFECTS.md have it: near-black, rimmed in its faction's colour, with a slow light sweep. Until now it was a bright faction card like any other, and a ward behind a bright card had nothing to stand out against.
+- **Ward sounds:** a rising faction chord when a Mythic arrives (with the deep swell), and glass plus a falling chord when its ward breaks.
+- **Your 2026-10-10 item 4:** a choice beside the music control, "arp: acting player" (default) or "arp: whoever is ahead". It's remembered with the music setting.
+- **EFFECTS.md and the effects lab are updated to match.** The lab's "Mythic arrives" scene shows the sink behind the card.
+
+**Evidence:**
+- **Replays:** `render/output/null-vs-cortex-seed4.html` (Quorum Arbiter at move 58, Null Singularity at move 121), `cortex-vs-swarm-seed11.html` (Quorum Arbiter dies at move 99), `swarm-vs-null-seed8.html` (Hive Mother arrives at 45 and dies at 83), and any Prime Aegis replay (`aegis-vs-null-seed3.html`, move 78).
+- **Stills** in `progress/render/evidence/`:
+  - over the card on arrival: `v2-s6-hive-arrival-on-top.png`, `v2-s6-singularity-arrival-on-top.png`;
+  - behind at rest: `v2-s6-hive-at-rest-behind.png`, `v2-s6-quorum-singularity-at-rest.png`, `v2-s6-prime-aegis-at-rest.png`;
+  - the shatter: `v2-s6-quorum-death-shatter.png`, `v2-s6-hive-death-shatter.png`;
+  - the lab: `v2-s6-lab-cortex-arrival-on-top.png`, `v2-s6-lab-cortex-at-rest-behind.png`.
+- **Measured in headless Chromium:**
+  - each Mythic's ward was fully over its card for the first ~2.5 s and fully behind by ~3.2 s;
+  - Quorum Arbiter's lit seats matched the enemy count and its printed attack;
+  - deaths shattered on the kill beat;
+  - all nine replays played to the end with 0 errors.
+- 23 new tests; render is at 239.
+
+**Strong:**
+- The rule is enforced in the maths, not just the drawing: a resting or flaring ward can't be drawn over a card, and the test checks it. The tests also check that the core fits inside the card while the middle and outer rings reach past its corners.
+- Everything a ward does is read from `mythics.json`, so a new Mythic only needs its entry and its sheet.
+
+**Thin:**
+- **Frame rate:** one ward costs nothing measurable. Two wards during play cost about 10 fps in headless software rendering (45 against 55 at normal speed). A real browser with a GPU should do better, but I haven't measured one.
+- **Neighbours hide part of the ward too,** not just its own card. On a full row you see it mostly above, below and in the gaps (see the Hive Mother still).
+- **No signature-move flare is wired yet.** The four Mythics' abilities are all passive, and spotting signature moves comes with slice 5.
+- **A brand-new Mythic without a sheet gets the obsidian card but no ward** until slice 7 (the fallback ward).
+
+**Decisions you may want to overrule:**
+1. **Built slice 6 before slice 5,** because your entry was about these wards and there was nothing in the replays to change yet. Slice 5 (faction wards for the ten signature abilities) is next.
+2. **How long it stays on top:** 2.6 s, then a 0.8 s fade behind. Shorter or longer?
+3. **How it stands out behind the card:** brighter and about 16% larger outer ring. The alternatives are larger still (it already reaches into the neighbouring slots and the opposing row), or a brighter rim on the card itself.
+4. **The obsidian Mythic card.** It's EFFECTS.md's "obsidian + foil" treatment, but it does change how every Mythic card looks in the replays.
+5. **The shatter flies over the board,** not behind it: death is the one moment the ward is in front again.
+6. **"Whoever is ahead" falls back to the acting player when the match is even,** so the arpeggio never goes silent or flickers on a draw.
+
+---
+
 ## 2026-10-09 — EFFECTS.md v2 slice 4: adaptive procedural music — AWAITING FEEDBACK
 
 **What this delivers:**

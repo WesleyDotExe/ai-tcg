@@ -114,15 +114,27 @@ export const MUSIC_PURE_SOURCE = String.raw`
     if (v !== v) return MUS_DEFAULT_VOLUME;
     return v < 0 ? 0 : v > 1 ? 1 : v;
   }
+  // Whom the arpeggio follows (owner 2026-10-10, render item 4): the acting
+  // player (the default, as built in slice 4) or whoever is ahead.
+  var MUS_FOLLOW = ['acting', 'ahead'];
+  function musFollowOf(v) { return v === 'ahead' ? 'ahead' : 'acting'; }
   function musPrefParse(raw) {
     var p = null;
     if (typeof raw === 'string') { try { p = JSON.parse(raw); } catch (e) { p = null; } }
     else if (raw && typeof raw === 'object') p = raw;
-    if (!p || typeof p !== 'object') return { muted: false, volume: MUS_DEFAULT_VOLUME };
-    return { muted: p.muted === true, volume: p.volume === undefined ? MUS_DEFAULT_VOLUME : musClampVolume(p.volume) };
+    if (!p || typeof p !== 'object') return { muted: false, volume: MUS_DEFAULT_VOLUME, follow: 'acting' };
+    return { muted: p.muted === true, volume: p.volume === undefined ? MUS_DEFAULT_VOLUME : musClampVolume(p.volume), follow: musFollowOf(p.follow) };
   }
   function musPrefSerialize(pref) {
-    return JSON.stringify({ muted: !!(pref && pref.muted), volume: musClampVolume(pref ? pref.volume : MUS_DEFAULT_VOLUME) });
+    return JSON.stringify({ muted: !!(pref && pref.muted), volume: musClampVolume(pref ? pref.volume : MUS_DEFAULT_VOLUME), follow: musFollowOf(pref && pref.follow) });
+  }
+  // The side the music follows this frame: its faction voices the
+  // arpeggio, its Mythic rings the bells. 'ahead' takes the momentum
+  // leader; when the match is even it falls back to the acting player, so
+  // the voice never goes silent or flips on a draw.
+  function musSceneSide(follow, activePlayer, leader) {
+    if (musFollowOf(follow) === 'ahead' && (leader === 'p1' || leader === 'p2')) return leader;
+    return activePlayer;
   }
 
   // musStep(step, I, faction, mythic, rand) -> the voices that start on this
@@ -189,7 +201,7 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
   var MUS = (function () {
     // want: the viewer wants music (armed, or playing). on: it is playing.
     // vol: the music volume, 0-1. I: intensity. voice/mythic: the scene.
-    var MU = { on: false, want: false, vol: MUS_DEFAULT_VOLUME, I: 1, faction: 'Neutral', mythic: false,
+    var MU = { on: false, want: false, vol: MUS_DEFAULT_VOLUME, follow: 'acting', I: 1, faction: 'Neutral', mythic: false,
       bus: null, duck: null, send: null, next: 0, step: 0, lastT: 0, timer: null, lastDuck: -1, meter: null };
     // The music bus at full volume: the lab's 0.84 bus through its 0.6
     // master, so the default volume (0.6) matches the lab's default mix.
@@ -314,6 +326,7 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
     function arm(pref) {
       pref = musPrefParse(pref);
       MU.want = !pref.muted;
+      MU.follow = pref.follow;
       setVolume(pref.volume);
       return state();
     }
@@ -333,15 +346,20 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
         write: function (v) { try { window.localStorage.setItem(MUS_PREF_KEY, v); } catch (e) { /* not remembered */ } },
       };
     }
-    // mount(btn, slider, meter, store): the page's music control, wired like
-    // SND.mount: armed at load, started by the first gesture anywhere (a
-    // press on this button just mutes), toggled and volume-set in place,
-    // both remembered.
-    function mount(btn, slider, meter, store) {
+    // mount(btn, slider, meter, store, follow): the page's music control,
+    // wired like SND.mount: armed at load, started by the first gesture
+    // anywhere (a press on this button just mutes), toggled and volume-set
+    // in place, all remembered. follow (optional) is a <select> of
+    // MUS_FOLLOW: whom the arpeggio follows.
+    function mount(btn, slider, meter, store, follow) {
       store = store || localStore();
       MU.meter = meter || null;
       arm(store.read());
-      function save() { store.write(musPrefSerialize({ muted: !MU.want, volume: MU.vol })); }
+      function save() { store.write(musPrefSerialize({ muted: !MU.want, volume: MU.vol, follow: MU.follow })); }
+      if (follow) {
+        follow.value = MU.follow;
+        follow.addEventListener('change', function () { MU.follow = musFollowOf(follow.value); save(); });
+      }
       function show() {
         var st = state();
         btn.textContent = st === 'muted' ? '♪ Music off' : '♫ Music on';
@@ -378,7 +396,7 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
     // (even with effects muted) and, when it actually sounds, ducks.
     SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
-      volume: function () { return MU.vol; }, state: state, event: event, duck: duck, setScene: setScene, tick: tick,
+      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,
       stats: function () { return { on: MU.on, state: state(), volume: MU.vol, I: +MU.I.toFixed(3), faction: MU.faction, mythic: MU.mythic,
         layers: musLayers(MU.I), step: MU.step, steps: counts.steps, voices: counts.voices, ducks: counts.ducks, bumps: counts.bumps,
@@ -416,13 +434,15 @@ export interface MusLayers {
   offHats: boolean;
   snare: boolean;
 }
+export type MusFollow = "acting" | "ahead";
 export interface MusPref {
   muted: boolean;
   volume: number;
+  follow: MusFollow;
 }
 
 const pure = new Function(
-  `${SOUND_FX_PURE_SOURCE}; ${MUSIC_PURE_SOURCE}; return { MUS_BPM: MUS_BPM, MUS_S16: MUS_S16, MUS_PROG: MUS_PROG, MUS_ARP: MUS_ARP, MUS_I_MAX: MUS_I_MAX, MUS_REST_S: MUS_REST_S, MUS_MYTHIC_LIFT: MUS_MYTHIC_LIFT, MUS_BUMP: MUS_BUMP, MUS_AT: MUS_AT, MUS_DUCK_TO: MUS_DUCK_TO, MUS_LOOKAHEAD_S: MUS_LOOKAHEAD_S, MUS_PREF_KEY: MUS_PREF_KEY, MUS_DEFAULT_VOLUME: MUS_DEFAULT_VOLUME, musFreq: musFreq, musBase: musBase, musRest: musRest, musBump: musBump, musLayers: musLayers, musMeter: musMeter, musStep: musStep, musPrefParse: musPrefParse, musPrefSerialize: musPrefSerialize };`,
+  `${SOUND_FX_PURE_SOURCE}; ${MUSIC_PURE_SOURCE}; return { MUS_BPM: MUS_BPM, MUS_S16: MUS_S16, MUS_PROG: MUS_PROG, MUS_ARP: MUS_ARP, MUS_I_MAX: MUS_I_MAX, MUS_REST_S: MUS_REST_S, MUS_MYTHIC_LIFT: MUS_MYTHIC_LIFT, MUS_BUMP: MUS_BUMP, MUS_AT: MUS_AT, MUS_DUCK_TO: MUS_DUCK_TO, MUS_LOOKAHEAD_S: MUS_LOOKAHEAD_S, MUS_PREF_KEY: MUS_PREF_KEY, MUS_DEFAULT_VOLUME: MUS_DEFAULT_VOLUME, musFreq: musFreq, musBase: musBase, musRest: musRest, musBump: musBump, musLayers: musLayers, musMeter: musMeter, musStep: musStep, musPrefParse: musPrefParse, musPrefSerialize: musPrefSerialize, MUS_FOLLOW: MUS_FOLLOW, musSceneSide: musSceneSide };`,
 )() as {
   MUS_BPM: number;
   MUS_S16: number;
@@ -446,9 +466,12 @@ const pure = new Function(
   musStep: (step: number, I: number, faction: string | undefined, mythic: boolean, rand: () => number) => MusVoice[];
   musPrefParse: (raw: unknown) => MusPref;
   musPrefSerialize: (pref: Partial<MusPref> | null | undefined) => string;
+  MUS_FOLLOW: MusFollow[];
+  musSceneSide: (follow: string | undefined, activePlayer: "p1" | "p2", leader: string) => "p1" | "p2";
 };
 
 export const {
   MUS_BPM, MUS_S16, MUS_PROG, MUS_ARP, MUS_I_MAX, MUS_REST_S, MUS_MYTHIC_LIFT, MUS_BUMP, MUS_AT, MUS_DUCK_TO, MUS_LOOKAHEAD_S, MUS_PREF_KEY,
   MUS_DEFAULT_VOLUME, musFreq, musBase, musRest, musBump, musLayers, musMeter, musStep, musPrefParse, musPrefSerialize,
+  MUS_FOLLOW, musSceneSide,
 } = pure;

@@ -53,7 +53,10 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
   // dropped: a Swarm volley is many shots but should read as one chitter
   // cloud, not a wall of identical clicks.
   var SFX_REPEAT_GAP_MS = 28;
-  var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast'];
+  var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast', 'ward', 'wardPulse', 'wardBreak'];
+  // Ward moments (slice 6, the lab's wardIn / wardPulse / wardBreak): each
+  // faction's chord, low to high. Neutral has no ward; it gets Cortex's.
+  var SFX_WARD_CHORD = { cortex: [440, 660, 880], aegis: [110, 165, 220], swarm: [262, 277, 392], null: [233, 330, 466], neutral: [440, 660, 880] };
   var SFX_VOICES = { Cortex: 'cortex', Aegis: 'aegis', Swarm: 'swarm', Null: 'null', Neutral: 'neutral' };
   function sfxVoiceOf(faction) { return SFX_VOICES[faction] || 'neutral'; }
   function sfxTierGain(tier) { return SFX_TIER_GAIN[tier] || SFX_TIER_GAIN.normal; }
@@ -171,6 +174,23 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
       T({ type: 'sine', f0: 2640, dur: 0.35, g: 0.06 });
       N({ type: 'bandpass', f0: 4200, q: 2, dur: 0.12, g: 0.14 });
       if (v === 'aegis') T({ type: 'sine', f0: 440 * SFX_BELL[1], dur: 0.6, g: 0.05 });
+    } else if (kind === 'ward') {
+      // A Mythic arrives: a run of ticks, the ward's rising chord, then the
+      // landing thump; under it all, the lab's mythicIn swell.
+      var wc = SFX_WARD_CHORD[v], wt = { cortex: 'square', aegis: 'sawtooth', swarm: 'triangle', null: 'sawtooth' }[v] || 'triangle';
+      for (var wi = 0; wi < 12; wi++) T({ type: 'square', f0: v === 'null' ? r(1500, 4000) : 2800 + wi * 60, dur: 0.025, g: 0.025, delay: wi * 0.045 });
+      wc.forEach(function (n, i) { T({ type: wt, f0: n, dur: 1.3, g: wt === 'square' ? 0.03 : 0.06, att: 0.45, delay: 0.05 + i * 0.06, filt: 'lowpass', ff: 2400 }); });
+      T({ type: 'sine', f0: 90, f1: 40, dur: 0.7, g: 0.45, delay: 0.55 });
+      N({ type: 'lowpass', f0: 2000, f1: 200, dur: 0.5, g: 0.18, delay: 0.55 });
+      T({ type: 'sine', f0: 55, f1: 110, dur: 1.4, g: 0.3, att: 0.7 });
+      T({ type: 'triangle', f0: 220, f1: 330, dur: 1.4, g: 0.05, att: 0.8 });
+    } else if (kind === 'wardPulse') {
+      SFX_WARD_CHORD[v].slice(1).forEach(function (n) { T({ type: 'triangle', f0: n * 2, dur: 0.6, g: 0.07 }); });
+      N({ type: 'bandpass', f0: 3000, q: 2, dur: 0.25, g: 0.08, att: 0.08 });
+    } else if (kind === 'wardBreak') {
+      // Glass pings, then the chord falling apart, high to low.
+      for (var wb = 0; wb < 14; wb++) T({ type: 'sine', f0: r(1800, 5200), dur: 0.09, g: 0.035, delay: wb * 0.022 });
+      SFX_WARD_CHORD[v].slice().reverse().forEach(function (n, i) { T({ type: 'triangle', f0: n * 2, f1: n * 1.4, dur: 0.7, g: 0.06, delay: 0.08 + i * 0.09 }); });
     } else if (kind === 'cast') {
       // A power's cast flourish: a rising whoosh, the voice on top.
       N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });
@@ -391,7 +411,7 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
   })();
 `;
 
-export type SfxKind = "launch" | "impact" | "bolt" | "heal" | "buff" | "debuff" | "lock" | "beam" | "kill" | "block" | "cast";
+export type SfxKind = "launch" | "impact" | "bolt" | "heal" | "buff" | "debuff" | "lock" | "beam" | "kill" | "block" | "cast" | "ward" | "wardPulse" | "wardBreak";
 export interface SfxVoice {
   k: "tone" | "noise";
   type: string;

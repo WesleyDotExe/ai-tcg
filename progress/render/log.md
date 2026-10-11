@@ -1776,3 +1776,157 @@ render session. Owner feedback had nothing unhandled for this lane. Slice 4
 signature abilities, driven by `signatureAbilities` (the rising chord,
 pulse and shatter ward sounds come with them; `MUS_BUMP` gains a ward pulse
 at 0.3 as in the lab).
+
+
+## 2026-10-11 — Session 15: Mythic wards behind the card (owner 2026-10-11), EFFECTS.md v2 slice 6, the arpeggio choice
+
+The last merged PR (#47, game session 31) was the game lane, so this was a
+render session. Owner feedback had two render items: **"Mythic wards sit
+behind the card"** (2026-10-11, new) and the render half of 2026-10-10
+(item 4: the arpeggio follows "acting player" or "whoever is ahead"; item 6's
+website Music setting, menu music and widget belong to build-order steps
+4-5). The 2026-10-11 signature-zone entry is game-lane. Not a hardening pass.
+
+**Order call:** the v2 build order has slice 5 (faction wards for signature
+abilities) before slice 6 (Mythic unique wards). The owner's new entry
+changes slice 6's wards and asks to see the result at a checkpoint, and the
+replays had no Mythic wards yet to change. So this session built slice 6
+with the owner's rule from the start, and slice 5 is next.
+
+**Built:**
+- **The owner's rule, everywhere it lives:**
+  - EFFECTS.md "Mythic unique wards" now says the ward sits behind the card:
+    over it on arrival, then behind it for good, with live behaviour and
+    flares behind too, and the shatter over the board.
+  - The effects lab:
+    - arrival holds on top for 2.6 s, then crossfades behind over 0.8 s;
+    - at rest and when flaring, the ward is on the floor canvas with its
+      outer layers brightened and enlarged;
+    - the seat ring, the pressure ring, the larvae and the pointers moved to
+      the floor;
+    - its `layer || 1` bug is fixed (layer 0 now really is the floor).
+  - The replays, below.
+- **`render/src/wardFx.ts`** (slice 6):
+  - The pure half: timing (`WARD_T`), the over/behind split (`wardLayering`),
+    opacity and scale (`wardLook`), the mode machine, the geometry
+    (`WARD_BEHIND`, `wardRadius`), seats, and which units get a ward
+    (`wardsOnBoard`, from `mythics.json`, never names in code).
+  - The runtime (`WARDS`) is a plug-in on the slice-1 canvases through a new
+    `CFX.plug` / `CFX.kit` seam: floor drawing under the cards, top drawing
+    over them, its own particles (wedges, larvae, pointers) and floor rings.
+  - The four behaviours: Quorum Arbiter's seats (one per enemy unit), Prime
+    Aegis's tethers, crests and pressure ring, Hive Mother's heartbeat and
+    larvae, and Null Singularity's grid pull and spiralling pointers.
+  - Arrival: the ward draws in over the card, with a grid pull, shockwave and
+    sparks. Shatter: wedges cut from the ward's own sheet spin out over the
+    board. `WARDS.pulse` (a flare behind the card) exists but nothing calls
+    it yet: all four Mythics' abilities are statics, and signature-move
+    detection comes with slice 5.
+- **The replay page:**
+  - every frame syncs the wards to the board;
+  - stepping one move, a new Mythic's ward waits for the card's own
+    entrance beat, and a dying one shatters at the kill (`unitT`, the same
+    moment the card's ghost shatters);
+  - a jump just places or removes wards;
+  - only the sheets of Mythics that reach the board are embedded (about
+    110-125 KB each).
+- **The Mythic card is obsidian + foil** (EFFECTS.md's card treatment, the
+  lab's look): near-black with a faint faction glow, a faction rim and
+  header, and a slow light sweep. Before, it was a bright faction card like
+  any other, and the ward behind it had nothing to contrast with.
+- **Ward sounds:** `ward` (arrival: ticks, the rising faction chord, the
+  thump, the deep swell), `wardPulse` and `wardBreak` (glass, then the chord
+  falling). These are kinds 12-14 in `SFX_KINDS`, so the FX sheet's
+  audition grid has them too.
+- **The top canvas is left alone when nothing is over the cards** (`hasTop`).
+  A resting ward keeps the loop running, so without this the top canvas was
+  cleared and repainted every frame for nothing.
+- **Owner 2026-10-10 item 4, the arpeggio choice:**
+  - "arp: acting player / whoever is ahead" beside the music control;
+  - remembered as `follow` in `ai-tcg.music`;
+  - "ahead" follows the momentum leader, and falls back to the acting
+    player when the match is even (`musSceneSide`);
+  - the Mythic bells follow the same side.
+
+**Ran it:**
+- Three new replays, chosen by searching 72 seeded Lookahead games for
+  Mythic arrivals and deaths. The six committed replays never play Quorum
+  Arbiter or Null Singularity, and no Mythic dies in them.
+  - `null-vs-cortex-seed4`: Quorum Arbiter, then Null Singularity.
+  - `cortex-vs-swarm-seed11`: Quorum Arbiter, then Hive Mother; Quorum
+    Arbiter dies at move 99.
+  - `swarm-vs-null-seed8`: Hive Mother arrives at move 45 and dies at
+    move 83.
+  - All nine replays and the FX sheet were regenerated. The match data of
+    the old six is unchanged; the engine is untouched.
+- **Headless Chromium, stepping into each Mythic's arrival** (scratch
+  `wardShots.mjs`): at 0.25 / 0.9 / 2.3 s after the step the ward is fully
+  over the card. By 3.2 s it is fully behind, and it stays there. This held
+  for all four Mythics.
+  - Quorum Arbiter lit 4 seats with 4 enemy units, and 5 with 5, matching
+    its printed ⚔5 / ⚔6.
+  - Stepping into a Mythic's death shattered its ward 200 ms after the step
+    (the kill beat) into 25 pieces, and the other Mythic's ward stayed.
+  - 0 page errors.
+- **Every replay played end to end at fast speed** (`playAll.mjs`), with 0
+  page errors in all nine:
+  - one arrival in each Prime Aegis replay and in `swarm-vs-aegis-seed8`;
+  - two arrivals and one shatter in `cortex-vs-swarm-seed11`;
+  - one arrival and one shatter in `swarm-vs-null-seed8`;
+  - nothing at all in the two replays with no Mythic;
+  - each Mythic still on the board at the end still has its ward, behind
+    its card.
+- **Frame rate** (headless, software-rendered, so a floor, not what a GPU
+  browser will show):
+  - one ward at normal speed: no measurable cost (52-56 fps with it, 54-56
+    with wards off; 56-59 idle);
+  - two wards (Quorum Arbiter + Null Singularity) on an idle board: 55-56
+    fps, or 58-59 with Singularity's grid pull removed;
+  - two wards during normal-speed play: 45-46 fps against 54-57 with wards
+    off; at fast speed, about 34 against 43-47.
+  - The wards' own JS is under 3 ms a frame. The rest is the browser
+    repainting the floor canvas every frame while a ward lives.
+- Stills in `progress/render/evidence/`:
+  - `v2-s6-<mythic>-arrival-on-top.png` for hive, quorum, singularity and
+    prime;
+  - `v2-s6-hive-at-rest-behind.png`, `v2-s6-quorum-singularity-at-rest.png`
+    and `v2-s6-prime-aegis-at-rest.png`;
+  - `v2-s6-hive-death-shatter.png` and `v2-s6-quorum-death-shatter.png`;
+  - the lab: `v2-s6-lab-{cortex,aegis}-{arrival-on-top,at-rest-behind}.png`;
+  - `v2-s6-arp-follow-control.png`.
+- Tests: render 239 (was 216).
+  - The new `test/wardFx.test.ts` has 21 tests:
+    - over-then-behind timing, never on top at rest or while flaring;
+    - the flare and the heartbeat;
+    - the geometry: the core is hidden inside the card, while the middle
+      and outer reach past its corners, and are brighter and larger
+      behind;
+    - `mythics.json` coverage and its committed sheets;
+    - which units get a ward;
+    - only the needed sheets embedded, checked on a real captured match;
+    - the page wiring and the ward sounds' rising and falling chords.
+  - The music tests cover the arpeggio choice: default, "ahead", the even
+    fallback, remembered across pages, and the page's select.
+  - `tsc --noEmit` is clean in render.
+
+**Named honestly, not fixed:**
+- **Two wards cost frame rate while effects play** (above). Fixes to try if
+  it shows on real hardware:
+  - redraw the floor at a lower cadence while only wards are moving;
+  - a cheaper grid hot path for Singularity's constant pull.
+- **Behind the card, a ward is partly hidden by its neighbours,** not just
+  its own card: on a full row, Hive Mother shows mostly above, below and in
+  the gaps. That's what the owner's rule implies; the brightened and
+  enlarged outer layers are my compensation, and a taste call.
+- **No flare is wired** (`WARDS.pulse`), and **no fallback ward** (slice 7):
+  a future Mythic without a sheet gets the obsidian card but no ward.
+- **The signature card** (game session 31's zone) is a plain Unit, so it gets
+  no ward and no obsidian look, by design. The "Mythic as signature card"
+  stand-in would, but no committed replay uses it.
+- The ward's behaviour particles use `Math.random`, so two plays of a replay
+  differ slightly, like the Swarm/Null arpeggios.
+
+**Next render-lane slice:** EFFECTS.md v2 slice 5, faction wards for the
+ten signature abilities (`signatureAbilities`, first fire only). That brings
+the signature-move detection, which can then call `WARDS.pulse` for a
+Mythic's own signature move. Then slice 7, the fallback ward.

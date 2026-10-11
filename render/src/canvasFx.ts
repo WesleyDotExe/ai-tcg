@@ -845,11 +845,23 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
       return true;
     }
 
-    function clear() { P.length = 0; proj.length = 0; rings.length = 0; beams.length = 0; timers.length = 0; resetCamera(); }
+    function clear() { P.length = 0; proj.length = 0; rings.length = 0; beams.length = 0; timers.length = 0; resetCamera(); plugins.forEach(function (pl) { if (pl.clear) pl.clear(); }); }
+
+    // ---- plug-ins (slice 6: render/src/wardFx.ts) ----
+    // A plug-in is a layer with its own state that draws on the same two
+    // canvases, inside the same frame: update(dt, raw) each frame (dt is 0
+    // during hit-stop), drawFloor(ctx) under the cards after the ground
+    // marks, drawTop(ctx) over the cards before rings, beams and
+    // projectiles, alive() to keep the loop running, clear() on a jump,
+    // and optionally hasTop() (false = nothing over the cards this frame).
+    // Both contexts are already in document coordinates and 'lighter'.
+    var plugins = [];
+    function plug(pl) { plugins.push(pl); kick(); return pl; }
+    function pluginsAlive() { for (var i = 0; i < plugins.length; i++) if (plugins[i].alive()) return true; return false; }
 
     // ---- the loop: runs only while something is alive, so an idle replay
     // costs nothing ----
-    function alive() { return P.length || proj.length || rings.length || beams.length || timers.length || G.live || punch || shakeS || fringeT > 0 || flashS || camLive; }
+    function alive() { return P.length || proj.length || rings.length || beams.length || timers.length || G.live || punch || shakeS || fringeT > 0 || flashS || camLive || pluginsAlive(); }
     function kick() { if (running || !ok) return; running = true; lastT = performance.now(); requestAnimationFrame(frame); }
     function frame(now) {
       var raw = Math.max(0, Math.min(0.05, (now - lastT) / 1000)); lastT = now;
@@ -861,6 +873,7 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
       for (var i = 0; i < timers.length; i++) if (timers[i].t <= now) { var tm = timers.splice(i, 1)[0]; i--; tm.fn(); }
       var c0 = performance.now();
       update(dt, raw, now);
+      for (var pi = 0; pi < plugins.length; pi++) plugins[pi].update(dt, raw);
       camera(raw);
       var c1 = performance.now();
       gridUpdate(dt);
@@ -948,18 +961,34 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
       }
       if (p.kind === 'bloom') { var b = Math.pow(1 - k, 2); drawGlow(c, p.x, p.y, p.r * (0.7 + 0.5 * k), p.c, b * 0.75); drawGlow(c, p.x, p.y, p.r * 0.25, WHITE, b * 0.5); }
     }
+    // Whether anything will be drawn over the cards this frame. A resting
+    // Mythic ward keeps the loop alive (slice 6) but draws only on the
+    // floor, so the top canvas is left untouched (not even cleared) until
+    // something needs it, and the browser doesn't repaint it every frame.
+    var topWasDrawn = true;
+    function topBusy() {
+      if (rings.length || beams.length || proj.length || flashS) return true;
+      for (var q = 0; q < P.length; q++) if (P[q].layer !== 0) return true;
+      for (q = 0; q < plugins.length; q++) if (!plugins[q].hasTop || plugins[q].hasTop()) return true;
+      return false;
+    }
     function draw() {
       var sx = window.scrollX, sy = window.scrollY;
       flc.setTransform(1, 0, 0, 1, 0, 0); flc.clearRect(0, 0, floorC.width, floorC.height);
       gridDraw(flc);
       flc.setTransform(DPR, 0, 0, DPR, -sx * DPR, -sy * DPR);
-      fxc.setTransform(DPR, 0, 0, DPR, -sx * DPR, -sy * DPR); fxc.clearRect(sx, sy, VW, VH);
+      var busy = topBusy();
+      if (busy || topWasDrawn) { fxc.setTransform(DPR, 0, 0, DPR, -sx * DPR, -sy * DPR); fxc.clearRect(sx, sy, VW, VH); }
+      topWasDrawn = busy;
       flc.globalCompositeOperation = 'lighter';
       var i;
       for (i = 0; i < P.length; i++) if (P[i].layer === 0) drawP(flc, P[i]);
+      for (i = 0; i < plugins.length; i++) plugins[i].drawFloor(flc);
       flc.globalCompositeOperation = 'source-over';
+      if (!busy) return;
       var c = fxc;
       c.globalCompositeOperation = 'lighter'; c.lineCap = 'round'; c.lineJoin = 'round';
+      for (i = 0; i < plugins.length; i++) plugins[i].drawTop(c);
       for (i = 0; i < rings.length; i++) {
         var r = rings[i], e = 1 - Math.pow(1 - r.t, 3), rad = r.maxR * e, ra = 1 - r.t;
         c.save(); c.translate(r.x, r.y - r.dy * e); c.scale(1, r.squash);
@@ -991,7 +1020,11 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
     }
 
     size();
-    var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear,
+    var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear, plug: plug,
+      // What a plug-in may draw with: the same glow, rings, shockwaves,
+      // sprites, sparks and grid pushes the effects use.
+      kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,
+        gridForce: gridForce, gridTint: gridTint, rand: rand, mix: mix, rgba: rgba, kick: kick, docCentre: docCentre },
       isReady: function () { return ready && !failed; },
       stats: function () { return { ready: ready && !failed, particles: P.length, projectiles: proj.length, beams: beams.length, timers: timers.length, frames: frames, peak: peak, fps: fps, tinted: Object.keys(tcache).length, gridLive: G.live, camera: camLive, reduced: REDUCED,
         msPerFrame: cost.n ? { update: +(cost.update / cost.n).toFixed(2), grid: +(cost.grid / cost.n).toFixed(2), draw: +(cost.draw / cost.n).toFixed(2) } : null }; } };
