@@ -70,6 +70,16 @@ export function resolveAbility(params: ResolveAbilityParams): void {
   // whose chosen target doesn't exist, so reaching this path any other way
   // would be a real bug worth surfacing loudly, not silently swallowing.
   if (ability.targeting?.scope === "chosen" && chosen === undefined) return;
+  // A once-per-turn unit ability that already resolved this turn does
+  // nothing (Ability.limit). The use is counted here, so every trigger kind
+  // honours the limit the same way.
+  if (ability.limit === "oncePerTurn" && source.kind === "unit") {
+    const unit = findUnit(state, source.instanceId)?.unit;
+    if (unit) {
+      if (unit.usedThisTurn?.includes(ability.id)) return;
+      (unit.usedThisTurn ??= []).push(ability.id);
+    }
+  }
 
   const selfRef: TargetRef | undefined =
     source.kind === "unit" ? { kind: "unit", instanceId: source.instanceId } : { kind: "player", playerId: controller };
@@ -230,7 +240,9 @@ export function applyDamage(state: GameState, target: TargetRef, amount: number,
     state.log.push({ type: "barrierAbsorbed", unit: unit.card.name, source: sourceLabel, sourceId, unitId: unit.instanceId });
     return;
   }
+  const wasAlive = isAlive(state, unit);
   unit.damageTaken += effectiveAmount;
+  if (wasAlive && !isAlive(state, unit) && sourceId) unit.lethalBy = sourceId;
   state.log.push({
     type: "damage",
     target: unit.card.name,
@@ -363,7 +375,9 @@ function applyDestroy(ctx: EffectContext, target: TargetRef): void {
     if (!found) return;
     // Destroy bypasses Barrier (it isn't damage) and guarantees lethal
     // regardless of any buffs applied earlier this tick.
+    const wasAlive = isAlive(ctx.state, found.unit);
     found.unit.damageTaken = currentMaxHealth(ctx.state, found.unit) + 1;
+    if (wasAlive && ctx.source.id) found.unit.lethalBy = ctx.source.id;
   } else if (target.kind === "directive") {
     destroyDirective(ctx, target.instanceId);
   }
@@ -501,6 +515,23 @@ export function processDeaths(state: GameState, rng: Rng): void {
             rng,
           });
         }
+      }
+    }
+    // onKill: the unit that dealt the killing hit, if it is still on the
+    // board (a unit that died in the same exchange gets nothing).
+    for (const unit of round) {
+      if (!unit.lethalBy) continue;
+      const killer = findUnit(state, unit.lethalBy)?.unit;
+      if (!killer || !isAlive(state, killer)) continue;
+      for (const ability of killer.card.abilities) {
+        if (ability.trigger !== "onKill") continue;
+        resolveAbility({
+          state,
+          ability,
+          controller: killer.controller,
+          source: { kind: "unit", instanceId: killer.instanceId, cardName: killer.card.name },
+          rng,
+        });
       }
     }
     round = allUnits(state).filter((u) => !isAlive(state, u));

@@ -2587,3 +2587,48 @@ can't pass any candidate.
 
 **Blocked:** nothing; the check-in has a default (A). Next: render (alternation), then the
 Neutral menu and its fairness test.
+
+
+## 2026-10-12 — Session 32 (owner's 2026-10-11 answer: the Neutral menu and its fairness test)
+
+Game-lane session: the last merged PR (#48) was render. Owner feedback first. The 2026-10-11
+"option A" entry is handled (marked). The 2026-10-12 render entry is the render lane's own
+(accepted as built). Not a hardening pass.
+
+**Built:**
+- The 16-option Neutral signature menu as card data, with the three cost tiers, the 6-cost
+  keyword and the 7-cost second aura: 303 legal combinations (`data/signatureMenu.ts`).
+- Four generic engine additions it needed: `onKill`, `onEnemyAttack`, a once-per-turn ability
+  limit, `buffAllies.excludeSelf` and `cardCostModifier.cardType`.
+- The owner's fairness test against the plain-3/6-on-every-side reference, read on the paired
+  per-seed change at 2,500 seeds per edge, plus a stat tuner for "adjust its stats and test
+  again" (`dev/signatureFairness.ts`).
+
+**Ran it:**
+- Both ring checks reproduced their baselines exactly after the engine changes.
+- The reference ring at 2,500 seeds per ordered pairing.
+- All 48 cost-5 table lines at 900 seeds, and the two closest at 2,500.
+- The tuner on all 16 options (screen at 500, confirm at 2,500), and a first 57 cost-6/7 lines
+  at 900.
+- About 40 minutes of games over 4 cores.
+
+**Result:** only Recycle 3/6 and Tax 3/6 pass on the table, and no other option passes at any
+stat line.
+- Attack is the only lever (~5 points per point; health is worth tenths, since a signature card
+  rarely dies), which is coarser than the 2-point limit.
+- An ability paid for with attack helps the factions unevenly; Aegis loses most.
+- Guardian (Guard + Barrier) is by far the strongest option.
+- Cost 6 plays far above the 5-cost reference; cost 7 sits near it.
+
+**Raised as an [OWNER CHECK-IN]** with options. My recommendation is A: keep the rule and give
+the tuner ability-size and cost levers.
+
+**Evidence:**
+- `progress/balance-report-023-signature-menu.txt` (printed from committed raw results);
+- `progress/sample-match-030-signature-menu.txt` (Bulwark redirects two attacks, Hunter grows
+  from a kill);
+- 28 new engine tests;
+- `npm test` 506/506 and `tsc` clean in all six workspaces.
+
+**Blocked:** nothing; the check-in has a default (A). Next: render (alternation), then the tuner
+levers.

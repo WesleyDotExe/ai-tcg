@@ -301,6 +301,25 @@ function declareAttack(state: GameState, pid: PlayerId, attackerInstanceId: stri
     attackerName: attacker.card.name,
     target,
   });
+
+  // onEnemyAttack: the defending side's units react to the declaration
+  // (Bulwark steps in front of it). Like onAttack it fires at once, not via
+  // the stack; the damage still waits for priority to pass.
+  const defenderPid = otherPlayer(pid);
+  for (const unit of [...state.players[defenderPid].board]) {
+    if (unit.pending) continue;
+    for (const ability of unit.card.abilities) {
+      if (ability.trigger !== "onEnemyAttack") continue;
+      if (!state.players[defenderPid].board.includes(unit)) break;
+      resolveAbility({
+        state,
+        ability,
+        controller: defenderPid,
+        source: { kind: "unit", instanceId: unit.instanceId, cardName: unit.card.name },
+        rng,
+      });
+    }
+  }
 }
 
 function activateAbility(
@@ -552,6 +571,8 @@ function processEndOfTurnStatuses(state: GameState, pid: PlayerId, rng: Rng): vo
 function clearAllTurnBuffs(state: GameState): void {
   for (const unit of allUnits(state)) {
     unit.turnBuff = { attack: 0, health: 0 };
+    // Once-per-turn abilities (Ability.limit) are available again.
+    if (unit.usedThisTurn) delete unit.usedThisTurn;
   }
 }
 

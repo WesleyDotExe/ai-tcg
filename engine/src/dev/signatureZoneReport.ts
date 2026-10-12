@@ -12,32 +12,12 @@
 import { measurePairing, wilson, bandVerdict, ringBand, newcombeDiff, FACTIONS, type DeckBuilder } from "./edgeMeasure.js";
 import { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
 import { RING_EDGES, edgeName } from "./ringRegression.js";
-import type { DeckFaction as Faction, UnitCard } from "../cards/types.js";
+import type { DeckFaction as Faction } from "../cards/types.js";
+import { REFERENCE_SIGNATURE } from "./signatureFairness.js";
 import type { GameState, PlayerId } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
 
 const pct = (x: number) => (x * 100).toFixed(1);
-
-/** A measuring stand-in only, never a real card: the bottom of the unique
- * Mythic's cost-5 tier (ECONOMY.md: 5 cost, 3/6, one signature ability) with
- * no ability at all, given to BOTH sides. Real agents will each carry an
- * equal-budget Neutral signature card, so this asks what an identical
- * signature on both sides does to the ring, with the set Mythic left in the
- * deck as shipped. */
-const REFERENCE_SIGNATURE: UnitCard = {
-  id: "REF-SIG",
-  name: "Reference Signature",
-  faction: "Neutral",
-  rarity: "Mythic",
-  cost: 5,
-  type: "Unit",
-  attack: 3,
-  health: 6,
-  keywords: [],
-  art: "placeholder:dev/reference-signature",
-  flavor: "",
-  abilities: [],
-};
 
 const shipped: Record<Faction, DeckBuilder> = { Cortex: buildCortexDeck, Swarm: buildSwarmDeck, Aegis: buildAegisDeck, Null: buildNullDeck };
 const withReference = Object.fromEntries(

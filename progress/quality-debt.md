@@ -26,9 +26,39 @@ neutral pool), session 25 (the owner's agent checks: card
 advantage, Null's cards), session 26 (the Phase 5 gate), session 27 (Phase 5
 closed, event-log instance ids), session 28 (persistence + the economy spec), and now session 29
 (the economy moves to the owner), and now session 30 (manual salvage, sign-in, the connected
-agent), and now session 31 (promo/prize unbinding, the signature zone).
+agent), and now session 31 (promo/prize unbinding, the signature zone), and session 32 (the Neutral
+signature menu and its fairness test).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 32
+
+- **The menu doesn't pass its own fairness test.** Only Recycle and Tax pass, and those are the
+  two weakest options. The generator can't show an owner 3 different candidates until the
+  owner's check-in is answered and the tuner gets more levers. Step 2 is blocked on that, by
+  design, not by a bug.
+- **The tuner only moves stats, and its walk is greedy.** It screens at 500 seeds, so a
+  half-point step can be noise, and it can stop at a local best. It never tries the ability's
+  size or the cost tier. Attack is bounded to 0-6 and health to 1-9 by hand (an unbounded walk
+  climbed Sweep to 1/16).
+- **Cost 6 and 7 are barely measured.** Only 57 of their 255 lines (4 options) ran, untuned.
+- **The test's result depends on the dummy agents.** Lookahead doesn't value a signature card's
+  statics, turn triggers or onDeath when deciding to play it (it scores body + onPlay). It also
+  attacks into Guard walls it should leave alone: Guardian wins 197 of 200 games for Cortex
+  against Swarm from the first seat. Guardian's +40 may say as much about the agent as about the
+  card.
+- **First-seat advantage looks large.** In that same check, Cortex won 155 of 200 games against
+  Swarm from the first seat with the plain card, against ~53% over alternating seats. The ring
+  alternates seats, so its numbers are fair, but it's worth measuring on its own.
+- **`lethalBy` credits whichever source dealt the last hit.** A Command's id never matches a
+  unit, which is right, but an onDamaged retaliation that finishes a unit credits the
+  retaliating unit. Only Hunter reads it today.
+- **Bulwark reacts to every attack declaration, including a Rush unit's same-turn attack.** It
+  ignores Stasis on itself (a frozen Bulwark still redirects). That's my call, not specified.
+- **The render ignores the new triggers' meaning.** It labels them ON KILL and INTERCEPT, but
+  there's no dedicated effect yet. Render-lane work.
+- **The raw results are committed as JSONL (288 KB).** It's reproducible, but heavy for a repo
+  that has mostly kept to text reports.
 
 ## New debt from session 31
 

@@ -53,6 +53,7 @@ export function staticModifiersFor(state: GameState, unit: UnitInstance): Static
         if (ability.condition && !evaluateCondition(ability.condition, state, src.controller)) continue;
         const se = ability.staticEffect;
         if (se.kind === "buffAllies") {
+          if (se.excludeSelf && src.instanceId === unit.instanceId) continue;
           if (matchesSide(se.filter, src.controller, unit.controller)) {
             mods.attack += se.attack;
             mods.health += se.health;

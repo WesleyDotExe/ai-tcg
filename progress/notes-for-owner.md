@@ -1,5 +1,105 @@
 # Notes for the owner
 
+**Updated 2026-10-12, session 32 (your 2026-10-11 answer, option A: the Neutral menu and its
+fairness test).** Nothing is blocking, but there is one **[OWNER CHECK-IN]** below: as written, the
+fairness test passes only 2 of the 16 options. Evidence:
+`progress/balance-report-023-signature-menu.txt`, `progress/sample-match-030-signature-menu.txt`.
+
+Built:
+- **The Neutral menu as card data.** All 16 options, the three cost tiers, the 6-cost keyword
+  and the 7-cost second aura: 303 legal combinations, each buildable as a Neutral Mythic Unit.
+  Four options needed a small engine addition, all usable by any card: Hunter ("whenever it
+  destroys a unit"), Bulwark ("the first attack each turn", a once-per-turn limit), Commander's
+  aura ("your *other* units") and Tax ("enemy *Commands*"). The sample match shows Hunter growing
+  after a kill and Bulwark pulling two attacks onto itself in a real game.
+- **The fairness test, exactly as you set it.** All four factions get the same plain 5-cost 3/6
+  signature card; a candidate replaces one faction's card; it passes when each of that faction's
+  three edges moves 2 points or less, in all four factions (12 edges, 2,500 games each).
+- **A stat tuner**, for your "if it fails, adjust its stats and test again".
+
+### [OWNER CHECK-IN] Only Recycle and Tax pass; stats alone can't fix the rest
+
+What I measured (cost 5, report sections 2 and 3):
+
+| option | on the table (3/6) worst edge | best line the tuner found | its worst edge |
+|---|---|---|---|
+| Recycle | **1.2 PASS** | 3/5 | **1.5 PASS** |
+| Tax | **1.6 PASS** | 3/6 | **1.6 PASS** |
+| Energy surge | 3.6 | 3/6 | 2.4 |
+| Inspire | 10.4 | 1/7 | 2.3 |
+| Restore | 3.9 | 3/4 | 2.7 |
+| Supply line | 4.6 | 3/4 | 3.7 |
+| Commander's aura | 17.2 | 1/3 | 4.6 |
+| Shield wall | 8.7 | 2/6 | 4.9 |
+| Dampen | 25.6 | 1/2 | 5.6 |
+| Smite | 13.9 | 1/6 | 6.1 |
+| Suppress | 11.1 | 2/6 | 6.1 |
+| Sweep | 12.9 | 1/8 | 6.7 |
+| Rally | 10.1 | 2/6 | 6.8 |
+| Hunter | 15.9 | 2/5 | 7.7 |
+| Guardian | 44.0 | 1/3 | 8.0 |
+| Bulwark | 22.9 | 1/5 | 9.2 |
+
+(3/6 numbers are 900 games per edge, apart from Recycle and Restore, re-measured at 2,500. The
+tuner's lines are all at 2,500.)
+
+Why it fails:
+1. **Attack is the only stat that matters, and it's too coarse.** One attack point moves a
+   candidate about 5 points. One health point moves it a few tenths, because a signature card
+   rarely dies. So a strong ability has to be paid for with attack, in steps bigger than your
+   2-point limit. That's why the tuner lands on 1/6 Smite and 1/3 Commander's aura, which don't
+   read as Mythics.
+2. **Even when the average is right, the factions split.** Paying for an ability with attack
+   costs Aegis the most, because Aegis gains most from a plain body. Smite at 1/6 is net 0.0 but
+   leaves Aegis about 3-4 points down and Null 6 up.
+3. **Guardian (Guard + Barrier) and Bulwark are far stronger than anything else.** The opponent
+   has to attack into a tough wall. Guardian at 3/6 wins 197 of 200 games for Cortex against
+   Swarm from the first seat, against 155 of 200 for the plain card.
+4. **The 6-cost tier plays far above the plain 5-cost reference** (up to +32 points net in the
+   first sample). **The 7-cost tier is close to it** (-1 to +8), because a 7-cost card comes down
+   late.
+
+Loosening the limit barely helps: "each faction's average within 2, no edge beyond 4" passes one
+more option (Energy surge).
+
+**Options:**
+- **A (my recommendation).** Keep your 2-point rule. Give the tuner finer levers than stats, and
+  keep attack at 2 or more so the cards still read as Mythics:
+  - the ability's own size (Smite 3 -> 2 damage, Rally +1/+0, Commander's aura on Units only);
+  - the cost (a strong option moves up a tier: Smite at 6 is a 3/6 that arrives a turn later).
+
+  Options that still can't pass get a rework proposal at the next check-in. Guardian and Bulwark
+  are the likely ones: they could become one keyword each (Guard or Barrier, not both), and
+  Bulwark could take the first attack aimed at a unit, not at the player.
+- **B.** Judge each faction on its average change (2 points), not every edge. More stat lines pass,
+  but each one hides a real 3-6 point skew between factions.
+- **C.** Make the reference stronger (for example a 3/6 with a small built-in ability), so the
+  menu's abilities are judged against a card that already does something. This changes the
+  baseline every candidate is held to, so it needs your say.
+
+**The Aegis question you left open** (Aegis gains most from an extra body: Aegis > Cortex 52 -> 60
+with the plain stand-in). These results point the same way from the other side: when a
+candidate trades attack for an ability, Aegis loses the most. I'd leave it until the menu passes,
+then re-measure the ring with the cards agents actually carry.
+
+Calls of mine you may want to overrule:
+1. **"Moves by 2 points or less" means the measured change on the same 2,500 games**, candidate
+   against reference. Each game is identical until the signature card changes something, so
+   noise is small: the 95% interval is about ±0.3 to ±1.7 points at 2,500 games, tightest for
+   cards close to the plain one. I don't require the whole interval to sit inside ±2. Even Tax
+   (1.6 ± 0.7) would fail that, and it would take several times more games per edge.
+2. **Hunter's "destroys a unit"** counts a kill by combat or by its own effect, and only if Hunter
+   survives the exchange.
+3. **Bulwark** takes the first enemy attack each turn, even one already aimed at itself. It
+   steps in front of Guard units too, since it isn't one itself.
+4. **Tax** adds 1 to enemy Commands only, never to a signature card's +2 replay surcharge.
+5. **Inspire's "random ally"** can pick the signature card itself.
+
+Next game-lane session: your answer here. Without one, A: give the tuner ability-size and cost
+levers, then the signature card as the agent's bound promo.
+
+---
+
 **Updated 2026-10-10, session 31 (your 2026-10-10 answers; step 2 continues: the signature
 zone).** Nothing is blocking, but there is one **[OWNER CHECK-IN]** below that shapes the next
 session. Evidence: `progress/balance-report-022-signature-zone.txt`,
@@ -15,7 +115,7 @@ Built:
   public to both sides. All three agents use it. The sample match shows Hive Mother played for 5,
   killed, back in the zone, and replayed for 7.
 
-### [OWNER CHECK-IN] The ring re-baseline moved far more than expected, so I didn't make it the gate
+### [ANSWERED 2026-10-11: option A] The ring re-baseline moved far more than expected, so I didn't make it the gate
 
 You asked for the ring check to be re-baselined once, with each faction's set Mythic standing in
 as its signature card. I measured it on the same seeds as the gate:

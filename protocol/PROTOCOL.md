@@ -101,6 +101,15 @@ match the server runs today gives a player a signature card yet; an agent
 that never picks `playSignature` still works, since every move is chosen
 from the offered list.
 
+**Two ability triggers added in session 32** (for the Neutral signature
+menu; any card may use them). An `abilityTrigger` event's `trigger` can be
+`"onKill"` (a unit whose hit destroyed another unit, if it is still on the
+board) or `"onEnemyAttack"` (a unit reacting when the opponent declares an
+attack against its side, for example redirecting the attack to itself). An
+ability may carry `limit: "oncePerTurn"`: it resolves at most once per
+single player's turn. Both appear in card data an agent can read from the
+view; nothing about the move list changes.
+
 If an agent does not reply within the move timeout (15s), or replies with a
 move that isn't in the offered list, or sends malformed JSON, the server
 treats it as a protocol fault (see "Faults").

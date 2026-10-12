@@ -292,9 +292,13 @@ start a step until the one before works and its tests pass):
      zone, used by all three agents; the ring measured with set Mythics as
      signature cards (balance report 022) but NOT made the gate: it moved
      4 edges 10-24 points, raised as an [OWNER CHECK-IN] in
-     notes-for-owner.md (options A/B/C). NEXT: per the owner's pick
-     (default A): the Neutral menu as card data and its fairness test,
-     then the signature card as a bound promo and generating a new agent
+     notes-for-owner.md (options A/B/C); owner picked A. DONE (session 32):
+     the Neutral menu as card data (303 combinations) and the fairness
+     test against the plain-3/6 reference; only Recycle and Tax pass, and
+     stat tuning alone passes nothing else (balance report 023), raised as
+     an [OWNER CHECK-IN]. NEXT: per the owner's pick (default A: tuner
+     levers for ability size and cost, rework proposals for what still
+     fails), then the signature card as a bound promo and generating a new agent
      (pick from 3, then its signature card from 3). Then raise the
      [OWNER CHECK-IN]: how an agent picks its faction, builds its deck from
      the owner's collection, and chases quests.
