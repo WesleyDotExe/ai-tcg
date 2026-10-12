@@ -1,0 +1,275 @@
+AI-TCG signature-menu demo: Cortex (Hunter) vs Aegis (Bulwark), seed 7 (first seed in 1-400 where both fire)
+p1 = Lookahead-Cortex, p2 = Lookahead-Aegis
+Hunter: 5 cost, 3/6, Rush, "Whenever this destroys a unit, it gets +1/+1."
+Bulwark: 5 cost, 3/6, "The first enemy attack each turn is redirected to this." (once per turn)
+Lines marked SIG involve a signature card.
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Perimeter Turret
+--- Turn 2 (p2) ---
+p2 plays Aegis Cadet (u1)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Load Balancer
+--- Turn 3 (p1) ---
+p1 plays Fail-safe Unit (u2)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Plating Module
+--- Turn 4 (p2) ---
+p2 plays Bulwark Chassis (u3)
+Aegis Cadet attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Rate Limiter
+--- Turn 5 (p1) ---
+p1 plays Firewall Sentinel (u5)
+Fail-safe Unit attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Aegis Warden
+--- Turn 6 (p2) ---
+p2 plays Failover Custodian (u7)
+  Plating Module attaches to Failover Custodian
+Bulwark Chassis attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Bulwark Chassis (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Dormant Exploit
+--- Turn 7 (p1) ---
+Firewall Sentinel attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Lookahead-Aegis
+Fail-safe Unit attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Aegis
+p1 plays Load Balancer (u11)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Perimeter Turret
+--- Turn 8 (p2) ---
+p2 plays Perimeter Turret (u12)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+p2 plays Perimeter Turret (u13)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+Failover Custodian attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Backup Protocol
+--- Turn 9 (p1) ---
+SIG p1 plays Hunter (sig5-3x6-hunter) from the signature zone for 5 energy (u15)
+Hunter (sig5-3x6-hunter) attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hunter (sig5-3x6-hunter)'s attack
+  Hunter (sig5-3x6-hunter) deals 3 damage to Lookahead-Aegis
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+Load Balancer attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Aegis
+Firewall Sentinel attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Lookahead-Aegis
+Fail-safe Unit attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Bulwark Chassis
+--- Turn 10 (p2) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel (p1) dies
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Hunter (sig5-3x6-hunter) (unit)
+SIG p2 plays Bulwark (sig5-3x6-bulwark) from the signature zone for 5 energy (u20)
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Lookahead-Cortex
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Lookahead-Cortex
+Bulwark Chassis attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Lookahead-Cortex
+Failover Custodian attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Cortex
+Aegis Cadet attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Force Quit
+--- Turn 11 (p1) ---
+Hunter (sig5-3x6-hunter) attacks Lookahead-Aegis (face)
+SIG ability: Bulwark (sig5-3x6-bulwark) — sig-bulwark (onEnemyAttack)
+SIG Bulwark (sig5-3x6-bulwark) redirects Hunter (sig5-3x6-hunter)'s attack from Lookahead-Aegis to Bulwark (sig5-3x6-bulwark)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hunter (sig5-3x6-hunter)'s attack
+  Hunter (sig5-3x6-hunter) deals 3 damage to Bulwark (sig5-3x6-bulwark) (unit)
+  Bulwark (sig5-3x6-bulwark) deals 3 damage to Hunter (sig5-3x6-hunter) (unit)
+  Hunter (sig5-3x6-hunter) (p1) dies
+SIG Hunter (sig5-3x6-hunter) returns to p1's signature zone (next play costs 7)
+p1 plays Rate Limiter (d27)
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Perimeter Turret (unit)
+Load Balancer attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Aegis
+Fail-safe Unit attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Aegis
+p1 plays Load Balancer (u30)
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Diagnostic Ward
+--- Turn 12 (p2) ---
+Bulwark (sig5-3x6-bulwark) attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark (sig5-3x6-bulwark)'s attack
+  Bulwark (sig5-3x6-bulwark) deals 3 damage to Lookahead-Cortex
+Perimeter Turret attacks Fail-safe Unit
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit deals 2 damage to Perimeter Turret (unit)
+  Fail-safe Unit (p1) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Deadlock Detector
+Perimeter Turret attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Lookahead-Cortex
+Failover Custodian attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Lookahead-Cortex
+Aegis Cadet attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex
+Bulwark Chassis attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Lookahead-Cortex
+p2 casts Diagnostic Ward [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Ward
+  ability: Diagnostic Ward — diagnostic-ward-cast (onPlay)
+  Diagnostic Ward restores 2 health to Lookahead-Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Mainframe Core
+--- Turn 13 (p1) ---
+  ability: Rate Limiter — rate-limiter-tick (onTurnStart)
+  Aegis Cadet's base armor reduces 1 damage from Rate Limiter to 0
+  Rate Limiter deals 1 damage to Bulwark Chassis (unit)
+  Rate Limiter deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Bulwark Chassis (p2) dies
+  Rate Limiter deals 1 damage to Perimeter Turret (unit)
+  Rate Limiter deals 1 damage to Perimeter Turret (unit)
+  Rate Limiter deals 1 damage to Bulwark (sig5-3x6-bulwark) (unit)
+SIG p1 plays Hunter (sig5-3x6-hunter) from the signature zone for 7 energy (u38)
+Hunter (sig5-3x6-hunter) attacks Lookahead-Aegis (face)
+SIG ability: Bulwark (sig5-3x6-bulwark) — sig-bulwark (onEnemyAttack)
+SIG Bulwark (sig5-3x6-bulwark) redirects Hunter (sig5-3x6-hunter)'s attack from Lookahead-Aegis to Bulwark (sig5-3x6-bulwark)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hunter (sig5-3x6-hunter)'s attack
+  Hunter (sig5-3x6-hunter) deals 3 damage to Bulwark (sig5-3x6-bulwark) (unit)
+  Bulwark (sig5-3x6-bulwark) deals 3 damage to Hunter (sig5-3x6-hunter) (unit)
+  Bulwark (sig5-3x6-bulwark) (p2) dies
+SIG Bulwark (sig5-3x6-bulwark) returns to p2's signature zone (next play costs 7)
+SIG ability: Hunter (sig5-3x6-hunter) — sig-hunter (onKill)
+SIG Hunter (sig5-3x6-hunter) grants Hunter (sig5-3x6-hunter) +1/+1
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Perimeter Turret (unit)
+  Perimeter Turret (p2) dies
+Load Balancer attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Aegis
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Perimeter Turret (unit)
+Load Balancer attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Aegis
+=== GAME OVER: p1 wins (p2 health depleted) ===
+
+Turns: 13. Hunter kills that grew it: 1. Attacks Bulwark pulled onto itself: 2. Winner: p1.

@@ -202,6 +202,17 @@ export type TriggerKind =
   | "onDeath"
   | "onTurnStart"
   | "onTurnEnd"
+  /** Fires on a unit when a unit it destroyed leaves the board: its damage
+   * (combat or effect) was the hit that took the victim to 0, or its
+   * effect destroyed it. Fires after the victim's own onDeath, and only if
+   * the killer is still on the board. First user: the Neutral signature
+   * menu's Hunter (data/signatureMenu.ts). */
+  | "onKill"
+  /** Fires on each of a player's units when the OPPONENT declares an
+   * attack against that player or any of their units, right after the
+   * attack goes on the stack (so a redirectAttack effect can move it).
+   * First user: the signature menu's Bulwark, with `limit: "oncePerTurn"`. */
+  | "onEnemyAttack"
   /** Always-on continuous modifier recomputed on every state change; has no
    * `effects` timeline, only a `staticEffect` payload. */
   | "static"
@@ -209,7 +220,9 @@ export type TriggerKind =
   | "activated";
 
 export type StaticEffectSpec =
-  | { kind: "buffAllies"; attack: number; health: number; filter: TargetFilter }
+  /** `excludeSelf`: the source unit doesn't buff itself ("your OTHER
+   * units"). */
+  | { kind: "buffAllies"; attack: number; health: number; filter: TargetFilter; excludeSelf?: boolean }
   /** Overrides the source unit's own attack/health with a live-computed
    * value every time it's read, instead of adding a flat bonus. This is
    * the "stats mutate with board state" mechanic from design principle 1. */
@@ -218,8 +231,10 @@ export type StaticEffectSpec =
    * negative = a discount) — a taxing/blunting aura, not removal. See
    * Aegis's Tariff Field (data/aegisCards.ts) and
    * state/queries.ts's effectiveCardCost, the generic mechanism this
-   * plugs into. */
-  | { kind: "cardCostModifier"; side: Side; amount: number };
+   * plugs into. `cardType`, when given, limits it to that card type (the
+   * signature menu's Tax: "enemy Commands cost 1 more"). It never touches a
+   * signature play's +2 replay surcharge, only the card's own cost. */
+  | { kind: "cardCostModifier"; side: Side; amount: number; cardType?: CardType };
 
 export interface Ability {
   id: string;
@@ -238,6 +253,11 @@ export interface Ability {
   speed?: Speed;
   /** How targets are selected for `effects`. Omit for untargeted abilities. */
   targeting?: TargetSpec;
+  /** "oncePerTurn": a unit's ability resolves at most once per turn (each
+   * single player's turn counts; see UnitInstance.usedThisTurn). Checked in
+   * effects/resolver.ts's resolveAbility for every trigger with a unit
+   * source. Omit for no limit. */
+  limit?: "oncePerTurn";
   /** Ordered effects applied when the ability resolves. Required for every
    * trigger except "static". */
   effects?: EffectSpec[];

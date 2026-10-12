@@ -81,7 +81,7 @@ export interface CastFx {
 }
 
 export const CAST_FX_SOURCE = `
-  var CAST_LABELS = { onPlay: 'ON PLAY', onAttack: 'ON ATTACK', onDamaged: 'ON HIT', onDeath: 'ON DEATH', onTurnStart: 'TURN START', onTurnEnd: 'TURN END', activated: 'ACTIVATE', command: 'RESOLVE', cast: 'CAST', response: 'RESPONSE' };
+  var CAST_LABELS = { onPlay: 'ON PLAY', onAttack: 'ON ATTACK', onDamaged: 'ON HIT', onDeath: 'ON DEATH', onTurnStart: 'TURN START', onTurnEnd: 'TURN END', onKill: 'ON KILL', onEnemyAttack: 'INTERCEPT', activated: 'ACTIVATE', command: 'RESOLVE', cast: 'CAST', response: 'RESPONSE' };
   var CAST_RARITY_BASE = { Common: 0.7, Uncommon: 1.1, Rare: 1.6, Mythic: 2.5 };
   var CAST_RECURRING = ['onTurnStart', 'onTurnEnd', 'onDamaged', 'onAttack'];
 

@@ -57,6 +57,13 @@ export interface UnitInstance {
    * it dies it goes back to the signature zone, not the graveyard. Absent
    * for every other unit. */
   signature?: true;
+  /** The instance id of whatever dealt the hit that took this unit from
+   * alive to dead (or destroyed it). Read by processDeaths to fire the
+   * killer's onKill. Absent until then. */
+  lethalBy?: string;
+  /** Ids of this unit's `limit: "oncePerTurn"` abilities that have already
+   * resolved this turn. Cleared for every unit when any turn ends. */
+  usedThisTurn?: string[];
 }
 
 /** The signature zone (owner 2026-10-05, "the unique Mythic"; built

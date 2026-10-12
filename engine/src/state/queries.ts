@@ -88,6 +88,7 @@ export function effectiveCardCost(state: GameState, pid: PlayerId, card: Card): 
     for (const ability of sources) {
       if (ability.trigger !== "static" || ability.staticEffect?.kind !== "cardCostModifier") continue;
       const se = ability.staticEffect;
+      if (se.cardType && se.cardType !== card.type) continue;
       const applies = se.side === "any" || (se.side === "controller" ? owner === pid : otherPlayer(owner) === pid);
       if (applies) modifier += se.amount;
     }

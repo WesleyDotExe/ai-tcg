@@ -2291,7 +2291,7 @@ Owner decision. This changes EFFECTS.md's "Mythic unique wards", which are curre
 
 ---
 
-## 2026-10-11 — Owner: signature zone check-in, option A (answers session 31)
+## 2026-10-11 — Owner: signature zone check-in, option A (answers session 31) (HANDLED 2026-10-12, session 32 — the Neutral menu is card data (`engine/src/data/signatureMenu.ts`, all 303 table combinations) and the fairness test is built against the plain-stand-in reference (`engine/src/dev/signatureFairness.ts`). Measured: only Recycle and Tax pass on the table, and stat tuning alone passes no other option (`progress/balance-report-023-signature-menu.txt`). The Aegis question is raised again with these results in notes-for-owner.md, as asked)
 
 Owner decision on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 31).
 
