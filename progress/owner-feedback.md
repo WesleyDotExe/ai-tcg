@@ -2327,3 +2327,15 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 - **The Aegis question:** not decided. Session 32's suggestion (leave it until the menu passes, then re-measure the ring with the signature cards agents will actually carry) is not overruled.
 - **An agent's unique promo (its signature card) can't be sold.** It's an exception to the 2026-10-10 rule that promo copies can be sold. It stays bound to its agent, as the owner app spec already says. Salvage refuses it too, under the promo rule.
 - **Session 32's five smaller calls:** the owner is reviewing them; a follow-up entry will record the answer.
+
+---
+
+## 2026-10-13 — Owner: session 32's five smaller calls (follow-up)
+
+Owner decisions on the five "calls you may want to overrule" in session 32's notes. This completes the earlier 2026-10-13 entry.
+
+1. **Keep:** "moves by 2 points or less" means the measured change on the same games, candidate against reference. The whole interval doesn't need to sit inside ±2.
+2. **Keep:** Hunter grows only if it survives the kill.
+3. **Change: Guard takes priority over Bulwark.** Bulwark doesn't step in front of an attack that a Guard unit is already forcing onto itself. It takes the first enemy attack each turn only when no Guard unit is protecting the target. Apply this before re-running Bulwark's fairness test, and in its rework proposal.
+4. **Keep:** Tax raises enemy Commands only, never a signature card's +2 replay surcharge.
+5. **Keep:** Inspire's random ally can be the signature card itself.
