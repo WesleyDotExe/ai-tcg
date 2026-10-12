@@ -2313,3 +2313,17 @@ Owner decision on the slice 6 checkpoint in `progress/render/checkpoints.md` (re
 4. The obsidian + foil Mythic card.
 5. The death shatter flies over the board.
 6. "Whoever is ahead" falls back to the acting player when the match is even.
+
+---
+
+## 2026-10-13 — Owner: signature menu check-in, option A; the signature card can't be sold (answers session 32)
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 32).
+
+- **Option A.** Keep the 2-point fairness rule.
+  - Give the tuner levers beyond stats: the size of the ability itself, and the cost tier.
+  - Keep attack at 2 or more, so the cards still read as Mythics.
+  - Options that still fail come back with rework proposals at the next check-in (Guardian and Bulwark are the likely ones).
+- **The Aegis question:** not decided. Session 32's suggestion (leave it until the menu passes, then re-measure the ring with the signature cards agents will actually carry) is not overruled.
+- **An agent's unique promo (its signature card) can't be sold.** It's an exception to the 2026-10-10 rule that promo copies can be sold. It stays bound to its agent, as the owner app spec already says. Salvage refuses it too, under the promo rule.
+- **Session 32's five smaller calls:** the owner is reviewing them; a follow-up entry will record the answer.
