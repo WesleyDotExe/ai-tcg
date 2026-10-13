@@ -180,7 +180,9 @@ describe("which Mythics, and what their wards see", () => {
     for (const s of Object.values(data.specs)) expect(Object.keys(s).sort()).toEqual(["behaviour", "behaviourParams", "faction"]);
     const html = renderMatchHtml(replay);
     expect(html).toContain('<script type="application/json" id="ward-data">');
-    expect(html.match(/data:image\/webp;base64,/g)!.length).toBe(3 + 1); // the three FX atlases + one ward sheet
+    // The three FX atlases + one Mythic ward sheet + the Swarm faction ring
+    // (slice 5: Dormant Egg Sac's signature hatch fires in this match).
+    expect(html.match(/data:image\/webp;base64,/g)!.length).toBe(3 + 1 + 1);
   }, 60_000);
 });
 

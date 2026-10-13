@@ -7,6 +7,7 @@ import { EFFECT_FX_SOURCE } from "./effectFx.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
 import { WARD_FX_PURE_SOURCE, WARD_FX_RUNTIME_SOURCE, wardDataFor } from "./wardFx.js";
+import { SIG_WARD_PURE_SOURCE, SIG_WARD_RUNTIME_SOURCE, sigWardDataFor } from "./sigWardFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -21,6 +22,9 @@ export function renderMatchHtml(replay: MatchReplay): string {
   const atlasJson = JSON.stringify(fxAtlasDataUris());
   // Slice 6: Mythic ward sheets, only for the Mythics this match puts on the board.
   const wardJson = JSON.stringify(wardDataFor(replay)).replace(/</g, "\\u003c");
+  // Slice 5: the signature table, and faction ring sheets only for the
+  // factions whose signature ward plays in this match.
+  const sigWardJson = JSON.stringify(sigWardDataFor(replay)).replace(/</g, "\\u003c");
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
@@ -92,6 +96,7 @@ export function renderMatchHtml(replay: MatchReplay): string {
 <script type="application/json" id="match-data">${dataJson}</script>
 <script type="application/json" id="fx-atlases">${atlasJson}</script>
 <script type="application/json" id="ward-data">${wardJson}</script>
+<script type="application/json" id="sigward-data">${sigWardJson}</script>
 <script>${JS}</script>
 </body>
 </html>
@@ -805,6 +810,12 @@ ${MUSIC_RUNTIME_SOURCE}
   // render/src/wardFx.ts, embedded verbatim; it plugs into CFX's canvases.
 ${WARD_FX_PURE_SOURCE}
 ${WARD_FX_RUNTIME_SOURCE}
+  // Slice 5: faction wards for signature abilities, first fire only —
+  // render/src/sigWardFx.ts, embedded verbatim; also a CFX plug-in.
+${SIG_WARD_PURE_SOURCE}
+${SIG_WARD_RUNTIME_SOURCE}
+  const SIG_FIRES = signatureFires(frames, (JSON.parse(document.getElementById('sigward-data').textContent || '{}').table) || {}, replay.cardFactions, replay.cardRarities || {});
+  const SIG_GUARDS = signatureGuards(frames, SIG_FIRES);
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -1042,6 +1053,9 @@ ${WARD_FX_RUNTIME_SOURCE}
     // arriving ward and shatters a dying one at the kill; a jump just
     // places them.
     WARDS.sync(wardsOnBoard(frame.players, wardSpecs), { stepping: stepping });
+    // Guard copies of a signature defence stand behind each unit it gave a
+    // Barrier, for as long as that Barrier stands (slice 5).
+    FWARDS.syncGuards(SIG_GUARDS[i] || [], { stepping: stepping });
     renderHud('hud-p1', frame.players.p1);
     renderHud('hud-p2', frame.players.p2);
     renderMomentum(frame.momentum);
@@ -1328,7 +1342,7 @@ ${WARD_FX_RUNTIME_SOURCE}
     const skinCls = ' skin-' + skinOf(fx.faction || 'Neutral').name;
     const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
     const ms = CAST_MS[tier] || CAST_MS.normal;
-    SND.play('cast', fx.faction, tier, rect);
+    if (!fx.ward) SND.play('cast', fx.faction, tier, rect);
     function place(el) {
       el.style.setProperty('--fx-tint', tint);
       el.style.setProperty('--cast-ms', ms + 'ms');
@@ -1339,7 +1353,7 @@ ${WARD_FX_RUNTIME_SOURCE}
       setTimeout(function () { el.remove(); }, ms + 150);
       return el;
     }
-    if (fx.anchor !== 'banner') {
+    if (fx.anchor !== 'banner' && !fx.ward) {
       const ring = document.createElement('div'); ring.className = 'fx-cast-ring' + skinCls; place(ring);
       const sigil = document.createElement('div'); sigil.className = 'fx-cast-sigil' + skinCls; place(sigil);
       castRayAngles(fx.faction || 'Neutral', tier).forEach(function (deg) {
@@ -1631,6 +1645,13 @@ ${WARD_FX_RUNTIME_SOURCE}
     // leads, everything it could have caused follows.
     const resolvesResponse = resolvedStackIds(prevFrame, newFrame).some(function (sid) { return RESPONSE_STACK_IDS[sid]; });
     const stagger = !strike && (resolvesResponse || casts.some(staggers)) ? CAST_STAGGER_MS : 0;
+    // Signature wards (EFFECTS.md v2 slice 5, render/src/sigWardFx.ts): the
+    // first fire of a Rare's or Mythic's signature ability. Its faction ward
+    // draws in over the source and spins up, then the effect leaves from it
+    // (a Mythic with its own ward flares that one instead). The ward leads
+    // the effect by sigLeadMs; everything the effect causes waits as usual.
+    const sigs = (SIG_FIRES[i] || []).filter(function (s) { return s.ward && (WARDS.has(s.sourceId) || FWARDS.ready(s.faction)); });
+    const sigLead = sigs.length ? sigLeadMs(speedMs()) : 0;
     // Command flight (owner taste call 4): the card flies hand -> stack and
     // its CAST sigil starts as it lands.
     const flights = {};
@@ -1657,7 +1678,8 @@ ${WARD_FX_RUNTIME_SOURCE}
     const travelling = effects.filter(function (e) { return !e.self; });
     const effTier = maxTierOf(effects.map(effectTier).concat(['subtle']));
     const effT = travelling.length ? Math.round(travelMs(effTier) * (effects.some(function (e) { return e.category === 'removal'; }) ? REMOVAL_LEAD : 1)) : 0;
-    const effStart = strike ? strikeT : stagger;
+    const sigT0 = strike ? strikeT : 0;
+    const effStart = strike ? strikeT + sigLead : Math.max(stagger, sigLead);
     const effLand = effStart + effT;
     const effectT = strike ? strikeT : effLand;
     const causeT = strike ? strikeT : 0;
@@ -1752,6 +1774,28 @@ ${WARD_FX_RUNTIME_SOURCE}
         });
       });
     });
+
+    // ---- signature wards (v2 slice 5) ----------------------------------
+    sigs.forEach(function (s) {
+      tiers.push('spectacle');
+      function srcRect() { return effectEndRect(s.source, prevRects, prevLandRects, prevStackRects); }
+      if (WARDS.has(s.sourceId)) { later(effStart, function () { WARDS.pulse(s.sourceId); }); return; }
+      let wid = null;
+      later(sigT0, function () { wid = FWARDS.open(srcRect(), s.faction); });
+      later(effStart, function () { if (wid) FWARDS.fire(wid); });
+      later(effLand + (s.role === 'defence' ? 120 : 380), function () { if (wid) FWARDS.close(wid); });
+      // A buff: a smaller copy settles on each ally it reached.
+      if (s.role === 'buff') s.targets.forEach(function (t) {
+        if (t.kind !== 'unit') return;
+        later(effLand, function () { const el = liveCardEl(t.instanceId); if (el) FWARDS.mini(el.getBoundingClientRect(), s.faction); });
+      });
+      // A defence: a copy flies onto each unit it gave a Barrier and stays
+      // behind that card until the Barrier goes.
+      if (s.role === 'defence') s.guarded.forEach(function (iid) { later(effLand, function () { FWARDS.guardIn(iid, srcRect()); }); });
+    });
+    // A guard whose Barrier just took its hit (or whose unit left) cracks
+    // apart at the same beat as the BLOCKED shield / the card's death.
+    FWARDS.goneGuards().forEach(function (id) { later(unitT(id), function () { FWARDS.crack(id); }); });
 
     // ---- board diff (unchanged meaning; now on the timeline) -----------
     // Who broke each card, for the shatter's colours: the attacker (or, for
@@ -1891,6 +1935,9 @@ ${WARD_FX_RUNTIME_SOURCE}
       castCount[key] = (castCount[key] || 0) + 1;
       tiers.push(fx.tier);
       const idx = castCount[key] - 1;
+      // A signature ward is this power's flourish: the ward replaces the
+      // sigil, rays and cast sound; the trigger tag still names it.
+      fx.ward = sigs.some(function (s) { return fx.kind === 'trigger' && !WARDS.has(s.sourceId) && (fx.iid === s.sourceId || fx.stackId === s.sourceId); });
       const wait = strike ? strikeT : (fx.anchor === 'stack' && fx.kind === 'announce' && fx.stackId && flights[fx.stackId] ? flights[fx.stackId] : 0);
       later(wait, function () { spawnCast(fx, prevRects, prevStackRects, idx); });
     });

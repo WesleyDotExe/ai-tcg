@@ -1930,3 +1930,117 @@ with the owner's rule from the start, and slice 5 is next.
 ten signature abilities (`signatureAbilities`, first fire only). That brings
 the signature-move detection, which can then call `WARDS.pulse` for a
 Mythic's own signature move. Then slice 7, the fallback ward.
+
+## 2026-10-13 — Session 16: EFFECTS.md v2 slice 5, faction wards for signature abilities
+
+The last merged PR (#49, game session 32) was the game lane, so this was a
+render session. Owner feedback had no new render item: the two 2026-10-13
+entries are game-lane (the signature menu and its fairness rules), and the
+2026-10-12 entry accepted all six slice-6 calls. RENDER.md and EFFECTS.md
+govern, and the v2 build order's next slice is 5.
+
+**Built:**
+- **`render/src/sigWardFx.ts`** (slice 5):
+  - The pure half:
+    - `signatureFires` reads the whole replay. It pairs each
+      `abilityTrigger` from `signatureAbilities` with that move's
+      `resolveEffects` by `sourceId`.
+    - First fire only, per card instance and ability; a Command's stack id
+      makes every copy cast its own first fire.
+    - A fire that did nothing isn't counted.
+    - `sigRole` reads the role from the effects: attack, defence, self or
+      buff.
+    - `signatureGuards` builds the guard timeline: each unit a signature
+      defence shielded, frame by frame, while its Barrier stands.
+    - `sigLook` / `sigNextMode` hold the look and the mode machine.
+    - `sigLeadMs` is how long the ward leads its effect.
+  - The runtime (`FWARDS`) is a second `CFX.plug` plug-in. It has:
+    - the flare (open, fire, close);
+    - the buff's mini copy;
+    - guard copies that fly onto their unit, sink behind the card and rest
+      there quietly;
+    - the crack, with wedges cut from the tinted ring;
+    - the sounds `ward`, `wardPulse` and `wardBreak`.
+- **The page** (`renderHtml.ts`):
+  - It embeds `#sigward-data`: the table, plus ring sheets only for factions
+    whose ward plays.
+  - Every frame syncs the guards.
+  - In `runFx`, a signature move:
+    - opens the ward over the source (`sigT0`: the move's start, or the
+      strike's landing);
+    - pushes the effects' start back by the lead;
+    - fires the ward as they leave, and closes it after they land;
+    - flies guards in at the landing;
+    - counts as spectacle.
+  - A guard whose Barrier went cracks at `unitT(id)`, the same beat as
+    BLOCKED or the death.
+  - The ward replaces that power's cast sigil, rays and cast sound; its tag
+    stays.
+  - A Mythic source with its own ward gets `WARDS.pulse` instead (none
+    yet).
+- **Two fixes found by looking at the stills:**
+  - Resting guards were at Mythic-ward brightness. Four of them in a row
+    read as a wall of rings, so the resting opacity is now 0.5 with no
+    boost.
+  - Lockdown Field's ward was sized from its stack entry (R 17 px).
+    Wards are now sized from a board card at least.
+- EFFECTS.md has "Slice 5 as built". The slice-6 note that nothing calls
+  `WARDS.pulse` is updated.
+
+**Ran it:**
+- **Surveyed the 9 committed games plus 48 more seeded ones** (Cortex and
+  Aegis against each other faction, seeds 1-8) for signature fires.
+  - The nine committed replays cover 5 of the 10 abilities.
+  - Three new replays cover the rest: `aegis-vs-cortex-seed1` (Rate
+    Limiter, Latent Ward with 4 guards, all 4 cracked by Rate Limiter's
+    next tick), `aegis-vs-cortex-seed3` (Dormant Exploit, Retaliation Node
+    on a strike, Lockdown Field) and `cortex-vs-swarm-seed6` (Dormant
+    Exploit and Rate Limiter on one move, then Overload Capacitor).
+  - All twelve replays and the FX sheet were regenerated. The match data
+    of the old nine is byte-identical; the engine is untouched.
+- **Headless Chromium, stepping into each of the ten abilities' moves**
+  (scratch `sigShots.mjs`):
+  - the runtime's own state showed the flare over the card while drawing in
+    and firing, and gone after the effect landed;
+  - guards went wait → travel → perm behind the card;
+  - Latent Ward's four guards cracked together at move 150 (32 wedges);
+  - 0 page errors.
+- **Every replay played end to end at fast speed** (`playAll.mjs`):
+  - 0 page errors in all twelve;
+  - the flare count per replay matched the detector exactly (0, 1, 2 or
+    3);
+  - Aegis Warden's guard is still standing at the end of
+    `aegis-vs-aegis-seed1`, because its Barrier was never broken.
+- **Stills:** ten `v2-s5-*.png` in `progress/render/evidence/`.
+- **Tests:** render 257 (was 239).
+  - The new `test/sigWardFx.test.ts` has 18 tests:
+    - the table;
+    - Neutral has no sheet;
+    - first fire only (Rate Limiter's five ticks, Retaliation Node);
+    - a fire with its effects stripped moves the ward to the next tick;
+    - the role of every ability, on real captured matches;
+    - Command vs unit sources;
+    - only the needed sheets are embedded;
+    - guards stand exactly while the Barrier stands (Latent Ward's four,
+      Aegis Warden's own);
+    - the look over time;
+    - the page wiring.
+  - `wardFx.test.ts`'s embed count grew by one (the Swarm ring for the Egg
+    Sac's hatch).
+  - `tsc --noEmit` is clean in render.
+
+**Named honestly, not fixed:**
+- No approved ability is a buff, so the mini copy has never been seen in a
+  replay.
+- No FX-sheet section for slice 5; every earlier slice has one.
+- A busy move stays busy (move 58 of `cortex-vs-swarm-seed6`).
+- The engine doesn't log a Rate Limiter tick whose condition fails, so the
+  "a fire that did nothing doesn't count" rule is proven only on a doctored
+  copy of a real match.
+- Frame rate with guards wasn't measured separately. Four resting guards
+  are four floor-canvas draws a frame, cheaper than one Mythic ward, but
+  not measured.
+
+**Next render-lane slice:** EFFECTS.md v2 slice 7, the fallback ward
+generator (any Mythic without a sheet still gets a unique ward). A slice-5
+section for the FX sheet could go with it.
