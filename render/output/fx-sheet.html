@@ -200,7 +200,8 @@ html, body {
 .music-meter { font-size: 0.7rem; color: var(--ink-dim); min-width: 92px; letter-spacing: 1px; }
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
-.speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
+.speedlabel select, .sound-ctl select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
+.sound-ctl select { font-size: 0.7rem; }
 
 /* Per-move transitions (RENDER.md render-lane session 2): the board no
  * longer just snaps to the next frame — plays, deaths, attacks, damage/heal,

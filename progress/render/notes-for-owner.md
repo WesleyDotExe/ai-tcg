@@ -461,3 +461,30 @@ separate from the shared `progress/notes-for-owner.md`).
 4. **Mythic ward previews: nothing new.** No Mythic has been added, and
    `progress/render/mythic-wards-log.md` still doesn't exist.
 5. **No engine change was needed.**
+
+---
+
+## 2026-10-13 — Session 16 (EFFECTS.md v2 slice 5: faction wards for signature abilities)
+
+1. **Slice 5 is built:** the first fire of each of your ten signature
+   abilities calls its faction's ward in the replays.
+   - **Quickest look:** open `render/output/aegis-vs-cortex-seed1.html`,
+     drag to move 134, then press → once. Latent Ward's orange ring flares,
+     and copies fly onto the four units it shields and settle behind them.
+     Drag to move 149 and press → again: Rate Limiter's hit lands on the
+     four Barriers and the four guards crack.
+   - **An attack:** `null-vs-cortex-seed4.html`, move 69, then →
+     (Kernel Panic's removal leaves from its Null ring).
+   - The six calls are in `progress/render/checkpoints.md`. The two
+     likeliest to want your eye: guards staying behind the card until the
+     Barrier breaks (call 2), and Overload Capacitor, whose "signature" is
+     its own drawback (call 6).
+2. **Three new committed replays** (each about 1.2 MB) cover what the
+   older nine didn't: every Cortex signature, Latent Ward and Retaliation
+   Node. The older nine were regenerated; their match data is unchanged.
+3. **Mythic ward previews: nothing new.** No Mythic has been added.
+4. **The signature card (game sessions 31-32) gets no ward:** it's a Neutral
+   unit, and Neutral has no ward. If you want the signature card to look
+   special in the replays, that's a new call.
+5. **No engine change was needed.**
+

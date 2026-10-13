@@ -7,6 +7,54 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-13 — EFFECTS.md v2 slice 5: faction wards for signature abilities — AWAITING FEEDBACK
+
+**What this delivers:**
+- **The first time one of your ten approved signature abilities fires, its faction's ward appears.** It's the Rare single-ring ward from the faction sheets. It draws itself in over the card, and as it spins up the effect leaves from it. Then it folds away. Later fires of the same ability on the same card get no ward (your "first fire only").
+- **What the ward does next depends on what the power did,** worked out from the effects themselves, never from card names:
+  - **Attack** (damage, a removal, a debuff or a stun on the enemy): the ward flares and the effect flies out of it. That covers Kernel Panic, Dormant Egg Sac, Deprecated Routine, Dormant Exploit, Rate Limiter, Retaliation Node and Lockdown Field.
+  - **Defence** (a Barrier): a copy of the ward flies onto each unit it shielded and **stays behind that card for as long as the Barrier stands**. When the Barrier takes its hit, the copy cracks apart on the same beat as the BLOCKED shield. That covers Latent Ward (every ally) and Aegis Warden (itself).
+  - **Self** (an effect on its own card only): the ward plays in place. That's Overload Capacitor.
+  - **Buff** (helping allies, not a Barrier): a smaller copy settles on each ally. It's built, but none of the ten is a buff, so no replay shows it.
+- **A Command's ward plays on its stack entry,** sized like a card. That's Lockdown Field.
+- **The ward is the power's flourish.** On that move it replaces the cast sigil and cast sound; the trigger tag ("ON PLAY", "TURN START") still names the power.
+- **A Mythic with its own ward flares that ward instead.** None of the ten is a Mythic yet, so nothing shows it.
+
+**Evidence:**
+- **Replays:** all ten abilities fire in the committed replays.
+  - `null-vs-cortex-seed4.html` move 70: Kernel Panic.
+  - `aegis-vs-cortex-seed6.html` move 93: Lockdown Field.
+  - `aegis-vs-null-seed3.html` move 89: Deprecated Routine.
+  - `swarm-vs-null-seed8.html` move 86: Dormant Egg Sac.
+  - `aegis-vs-aegis-seed1.html` move 77: Aegis Warden.
+  - **New** `aegis-vs-cortex-seed1.html`: Rate Limiter at move 117. Latent Ward at move 135 guards four units, and all four guards crack at move 150, when Rate Limiter's second tick hits their Barriers.
+  - **New** `aegis-vs-cortex-seed3.html`: Dormant Exploit at move 100, Retaliation Node at 110 (on a strike) and Lockdown Field at 130.
+  - **New** `cortex-vs-swarm-seed6.html`: Dormant Exploit and Rate Limiter together at move 58, then Overload Capacitor at 59.
+- **Stills** in `progress/render/evidence/`, all `v2-s5-*.png`: Kernel Panic, Lockdown Field, Retaliation Node, Egg Sac, the double Cortex flare and Overload Capacitor firing; Latent Ward's guards flying in, resting behind and cracking; Aegis Warden's guard.
+- **Measured in headless Chromium:**
+  - At every one of these moves the runtime's state matched the detector: the ward is over the card while it draws in and fires, and gone after the effect lands. Guards fly in, then rest behind (fully under the card).
+  - All twelve replays played to the end at fast speed with 0 page errors. Each one's ward count matched its detected signature fires.
+- **Tests:** 18 new, render at 257.
+
+**Strong:**
+- The role comes from the event log, so a new signature ability only needs its line in `mythics.json`.
+- Guards follow the real Barrier frame by frame, so a jump with the scrubber always shows the right guards.
+
+**Thin:**
+- **The buff copy has never been seen in a replay,** because no approved ability is a buff.
+- **A busy move is busy.** Move 58 of `cortex-vs-swarm-seed6` has two Cortex flares, a Stasis, an area hit and three deaths at once (see the still).
+- **No FX-sheet audition yet.** The other slices each have a section in the FX sheet; this one is only in the replays.
+
+**Decisions you may want to overrule:**
+1. **"First fire" means the first fire that did something.** A fire with no effect (for example, a condition that finds no target) doesn't use up the ward. In practice the engine doesn't log Rate Limiter's ticks that fail their condition, so this hasn't changed any ward in these replays yet.
+2. **A defence's guard stays behind the card until the Barrier breaks,** possibly many moves later. That's my reading of "a copy moves onto the ally, takes the hit and cracks apart" in a replay. The alternative is a copy that settles and fades within the same move.
+3. **Resting guards are quiet** (half opacity). At full brightness, four guards in a row read as a wall of rings.
+4. **The ward leads its effect by about half a second at normal speed** (0.75 × the tick, 200-600 ms), and the move is held like any spectacle moment (+0.9 s). Signature moves are rare (0-3 per match here), so the overall pace barely changes.
+5. **The ward replaces the cast sigil and cast sound** on that move, rather than playing on top of them.
+6. **Overload Capacitor's signature is its drawback** (it damages itself over three turns). Its ward plays in place. You may want it off the list, or to keep it so the card reads as special when it lands.
+
+---
+
 ## 2026-10-11 — Mythic wards behind the card (your 2026-10-11 entry) + EFFECTS.md v2 slice 6 — AWAITING FEEDBACK
 
 **What this delivers:**
