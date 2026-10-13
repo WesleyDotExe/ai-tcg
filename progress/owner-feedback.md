@@ -2339,3 +2339,16 @@ Owner decisions on the five "calls you may want to overrule" in session 32's not
 3. **Change: Guard takes priority over Bulwark.** Bulwark doesn't step in front of an attack that a Guard unit is already forcing onto itself. It takes the first enemy attack each turn only when no Guard unit is protecting the target. Apply this before re-running Bulwark's fairness test, and in its rework proposal.
 4. **Keep:** Tax raises enemy Commands only, never a signature card's +2 replay surcharge.
 5. **Keep:** Inspire's random ally can be the signature card itself.
+
+---
+
+## 2026-10-14 — Owner: render session 16 (faction wards, slice 5) accepted, keep all 6 calls
+
+Owner decision on the slice 5 checkpoint in `progress/render/checkpoints.md` (render session 16, PR #50). All six calls are kept as built:
+
+1. "First fire" means the first fire that did something. A fire with no effect doesn't use up the ward.
+2. A defence's guard stays behind the card until the Barrier breaks, then cracks on the BLOCKED beat.
+3. Resting guards are quiet (half opacity).
+4. The ward leads its effect by 0.75 of a tick (about half a second at normal speed), and the move is held like any spectacle moment.
+5. The ward replaces the cast sigil and cast sound on that move.
+6. Overload Capacitor stays on the signature list, and its ward plays in place.
