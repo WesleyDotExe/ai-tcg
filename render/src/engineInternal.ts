@@ -27,3 +27,8 @@ export {
 // by the public barrel — type-only, so re-exporting them here can never
 // affect engine runtime behaviour.
 export type { Faction, DeckFaction, Rarity, CardType, Keyword } from "../../engine/src/cards/types.js";
+// The Neutral signature card builder (the menu is card data in the engine);
+// the render only builds demo signature cards with it, to show the slice-7
+// fallback ward on a real Mythic with no art.
+export { buildSignatureCard } from "../../engine/src/data/signatureMenu.js";
+export type { SignatureSpec } from "../../engine/src/data/signatureMenu.js";

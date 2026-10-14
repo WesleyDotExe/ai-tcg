@@ -7,6 +7,8 @@
 // so what it shows is exactly what a replay draws — just all five materials
 // at once, which a replay (one strike at a time) can't show. Part 3
 // (slice 3): the sound audition grid. Part 4 (slice 4): the music desk.
+// Part 5 (slice 7): the fallback ward generator's gallery, drawn by the
+// replay's own FALLBACK_WARD sources.
 // Usage: npm run fx-sheet -w @ai-tcg/render  -> render/output/fx-sheet.html
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -14,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from "./canvasFx.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
+import { FALLBACK_WARD_PURE_SOURCE, FALLBACK_WARD_RUNTIME_SOURCE } from "./fallbackWard.js";
 import { CSS } from "./renderHtml.js";
 
 export function renderFxSheet(): string {
@@ -43,10 +46,15 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
 .row2 { position: relative; height: 170px; border-bottom: 1px solid var(--line); }
 .row2 .lab { position: absolute; left: 8px; top: 8px; font-size: 0.9rem; font-weight: bold; }
 .blk.gone { opacity: 0; transition: opacity 0.05s; }
+.fwrow { display: flex; gap: 14px; align-items: flex-start; margin: 0 0 10px; }
+.fwrow .lab { width: 80px; padding-top: 8px; font-size: 0.9rem; font-weight: bold; color: var(--fc); }
+.fwcell { width: 200px; text-align: center; font-size: 0.66rem; color: var(--ink-dim); }
+.fwcell canvas { display: block; width: 200px; height: 200px; background: #05060b; border: 1px solid var(--line); border-radius: 6px; }
+.fwcell b { color: var(--ink); font-weight: normal; display: block; margin-top: 3px; }
 </style>
 </head>
 <body>
-<h1>AI·TCG // FX MATERIALS + SOUND + MUSIC (EFFECTS.md v2 slices 1-4)</h1>
+<h1>AI·TCG // FX MATERIALS + SOUND + MUSIC + FALLBACK WARDS (EFFECTS.md v2 slices 1-4, 7)</h1>
 <p class="note">Attack travel + impact in each faction's sprite material, drawn by the replay's own canvas code. Columns: subtle / normal / spectacle hit on a card, then a normal hit on a player. Ground marks stay on the floor layer under the cards for a few seconds. Meaning is constant: every shot leaves the glowing card and lands on its target; only the material and size change.</p>
 <div class="ctl"><button id="go">Replay volley</button> <span id="st"></span></div>
 <div class="sheet" id="sheet" data-fx-camera></div>
@@ -65,6 +73,9 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
  <label><input type="checkbox" id="musmythic"> Mythic in play</label>
  <button id="mushit">hit</button> <button id="musbig">big hit</button> <button id="muskill">kill</button> <button id="musmyth">Mythic arrives</button>
  <span id="musmeter"></span> <span id="musst"></span></div>
+<h1>FALLBACK WARDS (slice 7): A WARD FOR EVERY MYTHIC WITHOUT ART</h1>
+<p class="note">A Mythic with no ward art (an agent's signature card, or a new Mythic the art pipeline hasn't reached) gets a ward drawn by code from its name and faction: the same name always gives the same ward. Each ward below is that generator's sheet, tinted and spun as a replay spins it (outer, middle and core counter-rotating; sped up here). The faction is only the material: Cortex chips and straight traces, Aegis heavy plates, Swarm eggs and curves, Null torn rings, Neutral rune tablets and broken arcs. The first column of each faction row is the fallback its set Mythic would get without its art, for comparison; Neutral shows the two demo signature cards and a signature menu id.</p>
+<div id="fwgal"></div>
 <script type="application/json" id="fx-atlases">${JSON.stringify(fxAtlasDataUris())}</script>
 <script>
 (function () {
@@ -78,6 +89,8 @@ ${SOUND_FX_PURE_SOURCE}
 ${SOUND_FX_RUNTIME_SOURCE}
 ${MUSIC_PURE_SOURCE}
 ${MUSIC_RUNTIME_SOURCE}
+${FALLBACK_WARD_PURE_SOURCE}
+${FALLBACK_WARD_RUNTIME_SOURCE}
   var FACTIONS = ['Cortex', 'Aegis', 'Swarm', 'Null', 'Neutral'];
   var COLS = [['subtle', 330, 'unit'], ['normal', 560, 'unit'], ['spectacle', 790, 'unit'], ['normal', 1040, 'player']];
   var sheet = document.getElementById('sheet');
@@ -165,6 +178,58 @@ ${MUSIC_RUNTIME_SOURCE}
   document.getElementById('musmyth').onclick = function () { MUS.event('mythic', 'spectacle'); document.getElementById('musmythic').checked = true; scene(); };
   setInterval(function () { var m = MUS.stats(), L = m.layers; document.getElementById('musst').textContent = m.on ? 'I ' + m.I.toFixed(2) + ' · ' + ['pad', 'bass ' + L.bass, L.kick ? 'kick x' + L.kick : '', L.arp ? 'arp 1/' + L.arp : '', L.hats ? 'hats' : '', L.offHats ? 'off-hats' : '', L.snare ? 'snare' : ''].filter(Boolean).join(' + ') : ''; }, 300);
   setInterval(function () { var s = SND.stats(); document.getElementById('sndst').textContent = s.on ? 'sounds ' + s.played + ' · voices ' + s.voices + ' · alive ' + s.active : ''; }, 300);
+  // Part 5: the fallback ward gallery. Each ward's sheet is tinted per cell
+  // (the replay's own fxTintPixels) and its three layers counter-rotate at
+  // the replay's radii (1, 0.74, 0.37).
+  var FW_GALLERY = [
+    ['Cortex', ['Quorum Arbiter', 'Unreleased Cortex Mythic I', 'Unreleased Cortex Mythic II']],
+    ['Aegis', ['Prime Aegis', 'Unreleased Aegis Mythic I', 'Unreleased Aegis Mythic II']],
+    ['Swarm', ['Hive Mother', 'Unreleased Swarm Mythic I', 'Unreleased Swarm Mythic II']],
+    ['Null', ['Null Singularity', 'Unreleased Null Mythic I', 'Unreleased Null Mythic II']],
+    ['Neutral', ['Consensus Lantern', 'Tollgate Daemon', 'sig5-3x6-recycle.c1']]
+  ];
+  var FW_LAYERS = [{ i: 0, r: 1, spd: 0.2 }, { i: 1, r: 0.74, spd: -0.36 }, { i: 2, r: 0.37, spd: 0.56 }];
+  var fwItems = [];
+  var gal = document.getElementById('fwgal');
+  FW_GALLERY.forEach(function (row) {
+    var f = row[0], div = document.createElement('div');
+    div.className = 'fwrow faction-' + f;
+    div.innerHTML = '<div class="lab">' + f + '</div>';
+    row[1].forEach(function (name) {
+      var plan = fallbackWardPlan(name, f), sheet = fallbackWardSheet(plan), rgb = fxRgbOf(f), cells = [];
+      for (var c = 0; c < 3; c++) {
+        var cv = document.createElement('canvas'); cv.width = cv.height = 256;
+        var g = cv.getContext('2d');
+        g.drawImage(sheet, (c % 2) * FW_CELL, ((c / 2) | 0) * FW_CELL, FW_CELL, FW_CELL, 0, 0, 256, 256);
+        var d = g.getImageData(0, 0, 256, 256); fxTintPixels(d.data, rgb); g.putImageData(d, 0, 0);
+        cells.push(cv);
+      }
+      var cell = document.createElement('div'); cell.className = 'fwcell';
+      var view = document.createElement('canvas'); view.width = view.height = 400;
+      cell.appendChild(view);
+      var cap = document.createElement('b'); cap.textContent = name; cell.appendChild(cap);
+      var sub = document.createElement('span'); sub.textContent = plan.middle.mode + ' · ' + plan.outer.nodes + ' nodes · core ' + plan.core.n; cell.appendChild(sub);
+      div.appendChild(cell);
+      fwItems.push({ ctx: view.getContext('2d'), cells: cells, rot: [0, 0, 0] });
+    });
+    gal.appendChild(div);
+  });
+  var fwLast = 0;
+  function fwTick(t) {
+    var dt = fwLast ? Math.min(0.1, (t - fwLast) / 1000) : 0; fwLast = t;
+    fwItems.forEach(function (it) {
+      var g = it.ctx; g.clearRect(0, 0, 400, 400); g.globalCompositeOperation = 'lighter';
+      FW_LAYERS.forEach(function (L, k) {
+        it.rot[k] += L.spd * dt;
+        var r = 190 * L.r;
+        g.save(); g.translate(200, 200); g.rotate(it.rot[k]); g.drawImage(it.cells[L.i], -r, -r, 2 * r, 2 * r); g.restore();
+      });
+      g.globalCompositeOperation = 'source-over';
+    });
+    requestAnimationFrame(fwTick);
+  }
+  requestAnimationFrame(fwTick);
+  window.__fwGallery = function () { return fwItems.length; };
   document.getElementById('go2').onclick = categories;
   document.getElementById('go').onclick = volley;
   window.__fxVolley = volley;

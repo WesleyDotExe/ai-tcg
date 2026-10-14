@@ -7,6 +7,51 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-14 — EFFECTS.md v2 slice 7: the fallback ward generator (v2 complete) — AWAITING FEEDBACK
+
+**What this delivers:**
+- **Every Mythic on the board now has a ward,** even with no art. The ward is drawn by code from the card's name and faction: the same name always gives the same ward.
+- **The main case is the signature card.** Every agent's signature card is a Neutral Mythic with a generated name. It's never in `mythics.json`, so the art pipeline never reaches it. Its ward is always the fallback: white-gold, with Neutral's own material (rune tablets and notched broken rings).
+- **The fallback behaves like art.** It draws in over the card on arrival, sinks behind it, counter-rotates, and shatters when the card dies. Its behaviour is "generic": rotation plus a soft ring every 3.2 s.
+- **Set Mythics keep their art.** A Mythic only falls back if its art is missing, for example a new Mythic the pipeline hasn't reached yet. It then keeps its own behaviour (seats, aura and so on).
+- **Each faction draws in its own material:** Cortex chips, Aegis plates, Swarm eggs and curves, Null torn rings, Neutral rune tablets. The symbol rules from `_howToAddAMythic` (no stars, crosses, eyes and so on) hold, and the tests check them.
+- With this, **all seven EFFECTS.md v2 slices are built.**
+
+**Evidence:**
+- **Replays:**
+  - **New** `render/output/cortex-vs-aegis-sig-seed5.html`, with a signature card on each side. Consensus Lantern arrives at move 44 and Tollgate Daemon at move 47. Both die and come back (deaths at moves 96 and 103, replays at 100 and 116). Quorum Arbiter's art ward is on the board from move 78, next to them.
+  - **New** `render/output/cortex-vs-aegis-sig-seed2.html`: four Mythic wards at once (two art, two fallback).
+- **FX sheet part 5** (`render/output/fx-sheet.html`): 15 fallback wards spinning, three per faction. Each faction's row starts with what its set Mythic would get without art.
+- **Stills** in `progress/render/evidence/v2-s7-*.png`: the gallery, an arrival on top, a ward at rest behind, a shatter, a second arrival, and the four-ward board.
+- **Measured in headless Chromium:**
+  - Every arrival went from on top to behind; both deaths shattered; 0 page errors.
+  - Drawing a fallback sheet takes 3-9 ms, once, at page load.
+  - Frame rate by wards on the board (headless software rendering): median 51 fps with none, 33 with four (minimum 25).
+- **Variety:** the 303 signature menu ids give 303 different wards. 299 of them also differ in pattern and counts, not just in glyph strokes.
+- **Tests:** 15 new, render at 272.
+
+**Strong:**
+- Same name, same ward, on any machine. The plan is plain data, and the tests pin the hash.
+- Nothing extra is shipped. The fallback is drawn in the browser, so a replay with two signature cards is no bigger than one without.
+- A failure can't break a card. Drawing is wrapped in a try/catch, and a sheet that fails means no ward.
+
+**Thin:**
+- **Every fallback is a ring.** The patterns, counts and glyphs vary, but two wards from the same faction read as siblings. Real art is much more individual.
+- **The signature zone isn't drawn yet.** A signature card that dies just leaves the board, and its replay appears from nowhere. Only the event log says it went back to the zone. This is the next slice.
+- **Four wards cost frames** (33 fps median, headless). A real GPU should do better, but I haven't measured one.
+
+**Decisions you may want to overrule:**
+1. **The signature card gets a Mythic ward.** Session 16's note said it gets no ward because Neutral has no ward. I read that rule as covering faction wards (for signature abilities). The signature card is a Mythic, and every Mythic carries its own ward. Alternative: signature cards get no ward.
+2. **Signature cards always use the fallback, never Replicate art.** Each agent's card is unique, so art would cost about $0.15 per agent, through the existing pipeline. Alternative: add each generated agent's signature card to `mythics.json` and let the action draw it.
+3. **"generic" is rotation plus a soft ring every 3.2 s,** the quietest behaviour, so the card's actual ability isn't misread from its ward. Alternative: a behaviour read from the signature option (for example, Rally's ward could send motes to allies).
+4. **The turn line now has a dark backing.** Before, a ward behind a top-row card drew over the turn and phase text. With a signature card on each side that would happen in most matches.
+5. **Neutral's fallback material is rune tablets and broken arcs.** Neutral had no ward material before, because it has no faction ward.
+6. **The demo signature cards' names (Consensus Lantern, Tollgate Daemon) are mine,** for the replays only. Real names will come from the engine's agent generator.
+
+**Next:** the signature zone on the board. That means a place per side showing the signature card and its next cost, with deaths flying the card back to the zone and replays leaving from it.
+
+---
+
 ## 2026-10-13 — EFFECTS.md v2 slice 5: faction wards for signature abilities — AWAITING FEEDBACK
 
 **What this delivers:**
