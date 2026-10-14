@@ -2352,3 +2352,20 @@ Owner decision on the slice 5 checkpoint in `progress/render/checkpoints.md` (re
 4. The ward leads its effect by 0.75 of a tick (about half a second at normal speed), and the move is held like any spectacle moment.
 5. The ward replaces the cast sigil and cast sound on that move.
 6. Overload Capacitor stays on the signature list, and its ward plays in place.
+
+---
+
+## 2026-10-15 — Owner: signature menu check-in, option A; keep all four calls (answers session 33)
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 33).
+
+- **Option A.**
+  - Guardian becomes Barrier only, and gets one more tuner pass.
+  - Bulwark becomes "takes the first attack aimed at one of your units (never you)". It stays off the generator until it passes.
+  - The three near misses (Smite, Energy surge, Sweep) get a finer tuner pass.
+  - The generator can use the 6 passing options now (Recycle, Supply line, Rally, Restore, Tax, Inspire). Then build generateAgent and the bound promo grant, as planned.
+- **Keep all four of session 33's calls:**
+  1. "Only while" conditions count as a size.
+  2. Inspire passes off the table (3/4 or 3/5), and that's allowed.
+  3. A Bulwark with its own Guard never redirects.
+  4. A once-per-turn activated ability isn't offered again after it's been used that turn.
