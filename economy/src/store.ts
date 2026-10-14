@@ -20,6 +20,7 @@ import {
   OWNER_KINDS,
   PACK_SOURCES,
   SERIES_KINDS,
+  SIGNATURE_ORIGIN_REF_PREFIX,
   type CopyOrigin,
   type Currency,
   type Finish,
@@ -28,6 +29,11 @@ import {
   type PackSource,
   type SeriesKind,
 } from "./schema.js";
+
+/** True for an agent's signature card (schema.ts's SIGNATURE_ORIGIN_REF_PREFIX). */
+function isSignatureRef(originRef: string | null | undefined): boolean {
+  return originRef?.startsWith(SIGNATURE_ORIGIN_REF_PREFIX) ?? false;
+}
 
 // Storage choice (ECONOMY.md, "Storage"): Node's built-in SQLite
 // (`node:sqlite`, Node 22). One local file, no server, no native addon, no
@@ -99,7 +105,7 @@ export interface CardCopy {
   origin: CopyOrigin;
   originRef: string | null;
   /** Bound copies are played, never sold or salvaged (crafted and starter
-   * copies always; the unique Mythic later). */
+   * copies, and an agent's signature card, always). */
   accountBound: boolean;
   acquiredAt: string;
 }
@@ -116,7 +122,8 @@ export interface GrantCopyInput {
   origin: CopyOrigin;
   originRef?: string | null;
   /** Only needed to bind a copy whose origin isn't bound by rule. Crafted
-   * and starter copies are bound whatever this says. */
+   * and starter copies, and a signature card (originRef "signature:..."),
+   * are bound whatever this says. */
   accountBound?: boolean;
 }
 
@@ -902,9 +909,12 @@ export class EconomyStore {
       stamp: input.stamp ?? null,
       origin: input.origin,
       originRef: input.originRef ?? null,
-      accountBound: BOUND_ORIGINS.includes(input.origin) || input.accountBound === true,
+      accountBound: BOUND_ORIGINS.includes(input.origin) || isSignatureRef(input.originRef) || input.accountBound === true,
       acquiredAt: this.stamp(),
     };
+    if (isSignatureRef(copy.originRef) && copy.origin !== "promo") {
+      throw new EconomyError(`a signature card is granted as a promo copy, not a ${copy.origin} copy`);
+    }
     if (!FINISHES.includes(copy.finish)) throw new EconomyError(`unknown finish "${copy.finish}"`);
     if (!SERIES_KINDS.includes(copy.seriesKind)) throw new EconomyError(`unknown series kind "${copy.seriesKind}"`);
     if (!COPY_ORIGINS.includes(copy.origin)) throw new EconomyError(`unknown copy origin "${copy.origin}"`);

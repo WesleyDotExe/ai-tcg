@@ -1,0 +1,240 @@
+AI-TCG balance report 024: the Neutral signature menu with the tuner's new levers (session 33, 2026-10-14)
+======================================================================================================================
+
+The test is unchanged from report 023 (owner 2026-10-11, option A): every faction plays its shipped deck with the
+same plain Neutral 5-cost 3/6 signature card; a candidate replaces ONE faction's plain card, and passes when each of
+that faction's three edges moves 2.0 points or less, for all four factions (12 edges). Read on the paired point
+estimate (owner 2026-10-13, call 1: the measured change on the same games, not the whole interval).
+
+What is new (owner 2026-10-13, option A):
+  - The size lever. Every option except Guardian and Bulwark has smaller and/or larger sizes in the menu data
+    (engine/src/data/signatureMenu.ts, MenuOption.sizes): the same mechanic with a number turned up or down, a
+    narrower target, or an 'only while' condition. Guardian and Bulwark have no size between all and nothing.
+  - The cost-tier lever. Each size is tried at cost 5, at cost 6 with each keyword it doesn't print (Rush, Guard,
+    Barrier), and at cost 7 with each other aura (Commander's aura, Shield wall, Dampen, Tax).
+  - Attack stays at 2 or more everywhere (the walk no longer goes below 2).
+  - Bulwark now stands aside while a Guard unit protects its side (owner 2026-10-13, call 3), measured here.
+
+Method, per option (signatureFairness.ts tuneWithLevers):
+  1. every table stat line of every size x tier x extra, at 300 seeds per edge (the coarse screen);
+  2. from the 3 configs with the best table line, the stat walk (attack 2-6, health 1-9) at 500 seeds;
+  3. the 3 best lines over all of it re-measured at 2,500 seeds. Only a 2,500-seed result counts as a pass.
+Command (from engine/): npx tsx src/dev/signatureFairness.ts levers --shard i/4 --coarse 300 --seeds 500 --confirm 2500 \
+  --out ../progress/signature-fairness/levers-i.jsonl     (i = 0..3, in parallel; everything is seeded)
+
+1. Result per option: the best confirmed line (2,500 seeds), with the levers it uses
+----------------------------------------------------------------------------------------------------------------------
+Commander's aura (Offence) - fails
+     sig7-2x7-commanders-aura.w3+tax          net  +1.1  worst  4.8   Co +4.6/+2.0/+4.8  Sw +3.4/+3.1/+4.3  Ae -3.6/-3.2/-1.5  Nu -1.8/+1.9/-1.1
+       cost 7, 2/7 (off the table), size w3: "While you control 3 or more units, your other units get +1/+0.", + Tax
+     sig7-2x6-commanders-aura+tax             net  +0.9  worst  5.1   Co +4.8/+2.5/+5.1  Sw +2.6/+2.2/+3.6  Ae -3.9/-3.3/-1.7  Nu -1.9/+1.7/-1.2
+       cost 7, 2/6 (off the table), standard size, + Tax
+     sig7-3x5-commanders-aura.w3+tax          net  +1.3  worst  5.2   Co +5.1/+3.3/+5.2  Sw +3.2/+2.9/+3.6  Ae -2.4/-2.5/-1.4  Nu -1.6/+1.7/-1.0
+       cost 7, 3/5 (off the table), size w3: "While you control 3 or more units, your other units get +1/+0.", + Tax
+
+Smite (Offence) - fails
+     sig5-2x9-smite.d1                        net  -0.2  worst  2.4   Co +0.5/-1.8/+0.2  Sw +0.1/-1.0/-0.5  Ae -1.3/+0.4/-0.3  Nu -0.5/+2.4/-0.2
+       cost 5, 2/9 (off the table), size d1: "On arrival, deal 1 damage to an enemy unit."
+     sig5-2x8-smite.d1                        net  -0.4  worst  2.6   Co +0.7/-2.2/+0.2  Sw -0.2/-1.1/-0.5  Ae -2.4/+0.2/-1.8  Nu -0.6/+2.6/-0.2
+       cost 5, 2/8 (off the table), size d1: "On arrival, deal 1 damage to an enemy unit."
+     sig5-2x7-smite.d1                        net  -0.7  worst  3.5   Co +0.8/-2.8/+0.3  Sw -0.4/-1.7/-0.5  Ae -3.5/-0.2/-2.4  Nu -0.6/+2.8/-0.4
+       cost 5, 2/7 (on the table), size d1: "On arrival, deal 1 damage to an enemy unit."
+
+Rally (Offence) - PASSES (2 of 3 confirmed lines)
+PASS sig5-3x6-rally.a0                        net  +0.1  worst  1.3   Co -0.5/+0.9/+0.1  Sw -0.0/+0.8/-1.3  Ae -0.4/+0.2/+0.1  Nu +0.7/-0.8/+1.0
+       cost 5, 3/6 (on the table), size a0: "On arrival, your units get +0/+1 this turn."
+PASS sig5-3x5-rally.a0                        net  +0.1  worst  1.8   Co -0.3/+0.1/+0.1  Sw +1.5/+1.0/-0.2  Ae -1.8/-0.2/-0.2  Nu +0.0/+0.2/+0.8
+       cost 5, 3/5 (off the table), size a0: "On arrival, your units get +0/+1 this turn."
+     sig5-3x4-rally.a0                        net  -0.1  worst  3.0   Co +0.3/-0.3/+0.6  Sw +1.0/+0.7/+0.6  Ae -3.0/-0.3/-1.3  Nu -0.3/+0.8/+0.3
+       cost 5, 3/4 (off the table), size a0: "On arrival, your units get +0/+1 this turn."
+
+Hunter (Offence) - fails
+     sig5-2x8-hunter.a0                       net  +2.7  worst  5.2   Co +1.9/+1.2/+1.6  Sw +5.2/+2.7/+1.4  Ae +4.0/+1.8/+2.4  Nu +4.9/+3.2/+2.0
+       cost 5, 2/8 (off the table), size a0: "Rush. Whenever it destroys a unit, it gets +0/+1."
+     sig5-2x7-hunter.a0                       net  +2.7  worst  5.8   Co +2.2/+1.4/+2.3  Sw +5.8/+3.0/+2.5  Ae +2.3/+1.0/+1.5  Nu +4.8/+3.3/+2.1
+       cost 5, 2/7 (on the table), size a0: "Rush. Whenever it destroys a unit, it gets +0/+1."
+     sig7-3x6-hunter.a0+tax                   net  +1.9  worst  5.8   Co +5.0/+2.6/+5.0  Sw +5.8/+3.3/+3.8  Ae -2.1/-1.8/-1.0  Nu -0.0/+2.0/-0.1
+       cost 7, 3/6 (off the table), size a0: "Rush. Whenever it destroys a unit, it gets +0/+1.", + Tax
+
+Shield wall (Defence) - fails
+     sig6-3x8-shield-wall.w3+barrier          net  -0.1  worst  3.2   Co -1.3/+1.5/+0.5  Sw +3.2/+1.5/+1.9  Ae +0.2/-2.2/-2.4  Nu -2.0/-0.2/-2.6
+       cost 6, 3/8 (off the table), size w3: "While you control 3 or more units, your units get +0/+1.", + Barrier
+     sig6-3x8-shield-wall+barrier             net  +0.0  worst  3.6   Co -1.3/+1.6/+0.8  Sw +3.6/+1.5/+1.9  Ae +0.8/-1.9/-2.4  Nu -1.8/-0.2/-2.5
+       cost 6, 3/8 (off the table), standard size, + Barrier
+     sig6-3x9-shield-wall+barrier             net  -0.4  worst  3.8   Co -1.3/+1.6/+0.6  Sw +3.6/+1.5/+1.9  Ae -0.6/-3.2/-3.8  Nu -2.0/-0.4/-2.6
+       cost 6, 3/9 (on the table), standard size, + Barrier
+
+Guardian (Defence) - fails
+     sig7-3x2-guardian+shield-wall            net  +0.4  worst  5.8   Co +4.0/+1.7/+3.3  Sw +2.1/+3.0/+2.9  Ae -5.8/-2.4/-3.3  Nu -1.0/+1.6/-0.8
+       cost 7, 3/2 (off the table), standard size, + Shield wall
+     sig7-3x2-guardian+commanders-aura        net  +0.4  worst  5.8   Co +3.9/+1.1/+3.4  Sw +1.9/+3.3/+3.3  Ae -5.8/-2.5/-3.2  Nu -1.6/+1.4/-0.9
+       cost 7, 3/2 (off the table), standard size, + Commander's aura
+     sig7-2x4-guardian+shield-wall            net  +3.0  worst  6.5   Co +6.5/+6.0/+6.2  Sw +4.3/+6.0/+3.9  Ae -3.0/+1.8/+0.3  Nu -0.4/+2.4/+2.2
+       cost 7, 2/4 (off the table), standard size, + Shield wall
+
+Bulwark (Defence) - fails
+     sig7-3x4-bulwark+shield-wall             net  +1.4  worst  5.8   Co +5.8/+4.5/+5.6  Sw +2.6/+3.4/+2.5  Ae -3.9/-1.8/-2.3  Nu -1.2/+1.3/+0.4
+       cost 7, 3/4 (off the table), standard size, + Shield wall
+     sig7-4x3-bulwark+commanders-aura         net  +1.4  worst  5.9   Co +5.9/+2.8/+5.6  Sw +2.5/+3.1/+3.6  Ae -4.1/-2.4/-1.8  Nu -1.2/+1.9/+0.4
+       cost 7, 4/3 (off the table), standard size, + Commander's aura
+     sig7-2x4-bulwark+commanders-aura         net  +0.3  worst  6.2   Co +4.4/+1.3/+3.8  Sw +2.2/+2.8/+3.2  Ae -6.2/-3.0/-3.1  Nu -2.2/+1.2/-0.6
+       cost 7, 2/4 (off the table), standard size, + Commander's aura
+
+Restore (Defence) - PASSES (3 of 3 confirmed lines)
+PASS sig5-3x6-restore.r1                      net  +0.6  worst  1.6   Co +0.3/+1.1/+0.8  Sw +1.1/+0.0/+0.1  Ae +1.6/+0.7/+0.0  Nu +1.2/+0.2/+0.2
+       cost 5, 3/6 (on the table), size r1: "At the end of your turn, restore 1 health to a random unit of yours."
+PASS sig5-3x4-restore.r1                      net  +0.3  worst  1.8   Co +1.2/+0.0/+1.5  Sw +1.7/+0.0/+1.8  Ae -1.0/+0.3/-1.3  Nu +0.4/+0.3/-0.8
+       cost 5, 3/4 (off the table), size r1: "At the end of your turn, restore 1 health to a random unit of yours."
+PASS sig5-3x5-restore.r1                      net  +0.6  worst  1.9   Co +0.7/+0.7/+1.2  Sw +1.9/+0.0/+1.4  Ae -0.2/+0.2/-0.6  Nu +1.3/+0.3/-0.2
+       cost 5, 3/5 (off the table), size r1: "At the end of your turn, restore 1 health to a random unit of yours."
+       (session 32, standard size on the table: sig5-3x6-restore worst 3.9)
+
+Supply line (Card flow and energy) - PASSES (2 of 3 confirmed lines)
+PASS sig5-3x6-supply-line.low                 net  -0.2  worst  0.8   Co -0.6/-0.2/-0.8  Sw -0.4/-0.6/-0.8  Ae +0.4/+0.2/+0.5  Nu -0.3/-0.1/-0.1
+       cost 5, 3/6 (on the table), size low: "On arrival, if you have 2 or fewer cards in hand, draw a card."
+PASS sig5-3x7-supply-line.low                 net  +0.2  worst  1.4   Co -0.8/+0.0/-0.8  Sw +0.4/-0.6/-0.7  Ae +1.4/+1.3/+1.0  Nu +0.3/+0.2/+0.6
+       cost 5, 3/7 (off the table), size low: "On arrival, if you have 2 or fewer cards in hand, draw a card."
+     sig5-3x8-supply-line.low                 net  +0.4  worst  2.4   Co -0.6/+0.6/-0.7  Sw +0.8/-0.3/-0.8  Ae +2.4/+1.4/+1.9  Nu +0.5/-0.5/+0.6
+       cost 5, 3/8 (off the table), size low: "On arrival, if you have 2 or fewer cards in hand, draw a card."
+
+Energy surge (Card flow and energy) - fails
+     sig5-3x6-energy-surge                    net  +1.7  worst  2.4   Co +2.0/+1.8/+2.1  Sw +2.4/+1.4/+1.0  Ae +1.7/+1.0/+1.6  Nu +1.0/+2.3/+1.8
+       cost 5, 3/6 (on the table), standard size
+     sig6-3x7-energy-surge+barrier            net  -1.2  worst  3.6   Co -0.6/-0.0/-0.2  Sw +0.4/+0.1/+1.2  Ae -2.7/-3.6/-3.1  Nu -2.6/-0.3/-3.1
+       cost 6, 3/7 (off the table), standard size, + Barrier
+     sig6-4x8-energy-surge+barrier            net  +1.2  worst  3.6   Co +2.4/+3.6/+2.4  Sw +2.6/+2.6/+2.7  Ae +0.5/-0.6/-1.5  Nu -0.4/+0.6/-0.8
+       cost 6, 4/8 (on the table), standard size, + Barrier
+
+Recycle (Card flow and energy) - PASSES (3 of 3 confirmed lines)
+PASS sig5-3x6-recycle.c1                      net  +0.2  worst  0.8   Co +0.1/+0.2/+0.0  Sw +0.1/+0.0/+0.0  Ae +0.8/+0.4/+0.4  Nu +0.2/+0.0/+0.2
+       cost 5, 3/6 (on the table), size c1: "When it dies, draw a card."
+PASS sig5-3x5-recycle                         net  +0.6  worst  1.5   Co +0.6/+0.6/+0.6  Sw +1.5/+0.5/+1.2  Ae +0.4/+0.5/+0.2  Nu +0.3/+0.2/+0.2
+       cost 5, 3/5 (off the table), standard size
+PASS sig5-3x5-recycle.c3                      net  +0.7  worst  1.7   Co +0.6/+0.8/+0.6  Sw +1.7/+0.4/+1.3  Ae +0.8/+0.7/+0.3  Nu +0.5/+0.4/+0.2
+       cost 5, 3/5 (off the table), size c3: "When it dies, draw 3 cards."
+       (session 32, standard size on the table: sig5-3x6-recycle worst 1.2)
+
+Inspire (Card flow and energy) - PASSES (2 of 3 confirmed lines)
+PASS sig5-3x4-inspire.a0                      net  +0.2  worst  1.6   Co +0.5/+0.5/+1.1  Sw +1.6/+0.0/+1.2  Ae -1.0/+0.3/-0.8  Nu -0.4/-0.4/-0.0
+       cost 5, 3/4 (off the table), size a0: "At the start of your turn, a random ally gets +0/+1 permanently."
+PASS sig5-3x5-inspire.a0                      net  +0.5  worst  1.8   Co +0.5/+1.0/+0.7  Sw +1.8/+0.6/+0.6  Ae +0.6/-0.1/+0.5  Nu -0.2/-0.2/-0.0
+       cost 5, 3/5 (off the table), size a0: "At the start of your turn, a random ally gets +0/+1 permanently."
+     sig5-3x6-inspire.a0                      net  +0.5  worst  2.6   Co -0.0/+1.5/+0.2  Sw +0.7/+0.1/-0.6  Ae +2.6/+0.7/+0.8  Nu +0.0/-0.6/+0.0
+       cost 5, 3/6 (on the table), size a0: "At the start of your turn, a random ally gets +0/+1 permanently."
+
+Suppress (Disruption) - fails
+     sig5-2x9-suppress.m5                     net  +0.4  worst  3.9   Co +0.2/-1.0/+1.4  Sw -0.1/-1.1/+1.8  Ae -1.6/+1.2/+1.0  Nu +0.8/+3.9/-1.2
+       cost 5, 2/9 (off the table), size m5: "On arrival, put an enemy unit with 5 or less health in Stasis for 1 turn."
+     sig5-2x8-suppress.m5                     net  +0.3  worst  4.2   Co +0.2/-1.0/+1.1  Sw -0.4/-1.2/+1.8  Ae -1.8/+0.9/+0.2  Nu +0.7/+4.2/-1.4
+       cost 5, 2/8 (off the table), size m5: "On arrival, put an enemy unit with 5 or less health in Stasis for 1 turn."
+     sig6-3x8-suppress.m3+barrier             net  +0.1  worst  4.6   Co +1.8/+0.0/+3.4  Sw +1.2/+2.2/+3.6  Ae -2.7/-2.8/-4.6  Nu -1.4/+3.2/-2.6
+       cost 6, 3/8 (off the table), size m3: "On arrival, put an enemy unit with 3 or less health in Stasis for 1 turn.", + Barrier
+
+Dampen (Disruption) - fails
+     sig7-2x4-dampen.hp15+shield-wall         net  +0.8  worst  3.8   Co +3.8/+2.6/+2.8  Sw +3.2/+3.1/+2.6  Ae -3.6/-1.4/-3.3  Nu -1.0/+1.2/-0.6
+       cost 7, 2/4 (off the table), size hp15: "While you have 15 or less health, enemy units get -1/-0.", + Shield wall
+     sig7-2x5-dampen.hp10+shield-wall         net  +1.3  worst  4.2   Co +4.2/+3.7/+3.8  Sw +3.6/+3.8/+2.6  Ae -2.3/-1.5/-3.7  Nu -0.5/+1.6/+0.4
+       cost 7, 2/5 (off the table), size hp10: "While you have 10 or less health, enemy units get -1/-0.", + Shield wall
+     sig7-2x6-dampen.hp10+shield-wall         net  +1.7  worst  4.8   Co +4.8/+4.6/+4.1  Sw +4.0/+4.1/+2.6  Ae -1.8/-1.2/-3.6  Nu +0.1/+1.5/+0.6
+       cost 7, 2/6 (off the table), size hp10: "While you have 10 or less health, enemy units get -1/-0.", + Shield wall
+
+Tax (Disruption) - PASSES (1 of 3 confirmed lines)
+PASS sig5-3x6-tax                             net  +0.6  worst  1.6   Co +0.2/+0.6/+0.4  Sw +1.1/+0.3/+0.5  Ae +1.5/+0.2/+0.3  Nu +1.6/+0.3/+0.6
+       cost 5, 3/6 (on the table), standard size
+     sig5-3x4-tax                             net  +0.5  worst  2.2   Co +1.1/+0.4/+1.4  Sw +2.2/+0.2/+1.8  Ae -1.9/+0.4/-0.7  Nu +0.8/+0.7/-0.4
+       cost 5, 3/4 (off the table), standard size
+     sig5-3x5-tax                             net  +0.6  worst  2.4   Co +0.6/+0.8/+0.8  Sw +2.4/+0.1/+1.3  Ae -0.4/+0.0/+0.0  Nu +1.1/+0.6/+0.0
+       cost 5, 3/5 (off the table), standard size
+
+Sweep (Disruption) - fails
+     sig5-2x7-sweep.r2                        net  -0.2  worst  2.6   Co +1.9/-1.5/+0.4  Sw -0.2/-1.6/-0.4  Ae -2.1/-0.4/-0.1  Nu -0.0/+2.6/-1.0
+       cost 5, 2/7 (on the table), size r2: "On arrival, deal 1 damage to 2 random enemy units."
+     sig5-3x6-sweep.r1                        net  +2.4  worst  3.6   Co +2.6/+1.4/+2.3  Sw +2.2/+1.6/+1.4  Ae +3.1/+2.3/+3.1  Nu +2.1/+3.6/+2.5
+       cost 5, 3/6 (on the table), size r1: "On arrival, deal 1 damage to a random enemy unit."
+     sig5-3x4-sweep.r1                        net  +2.0  worst  3.8   Co +2.7/+0.8/+1.7  Sw +2.5/+1.6/+3.1  Ae -0.4/+2.4/+2.1  Nu +2.3/+3.8/+1.7
+       cost 5, 3/4 (off the table), size r1: "On arrival, deal 1 damage to a random enemy unit."
+
+  6 of 16 options pass: Rally, Restore, Supply line, Recycle, Inspire, Tax.
+  Still failing: Commander's aura (worst 4.8), Smite (worst 2.4), Hunter (worst 5.2), Shield wall (worst 3.2), Guardian (worst 5.8), Bulwark (worst 5.8), Energy surge (worst 2.4), Suppress (worst 3.9), Dampen (worst 3.8), Sweep (worst 2.6).
+
+2. The coarse screen: each option's 5 best table lines over every size x tier x extra (300 seeds)
+----------------------------------------------------------------------------------------------------------------------
+  Commander's aura   54 lines; best: 7-3x7-commanders-aura.w4+tax 6.3, 7-3x7-commanders-aura+tax 7.3, 7-4x6-commanders-aura.w4+tax 7.3, 7-3x7-commanders-aura.w3+tax 7.3, 7-4x6-commanders-aura+tax 7.7
+  Smite              80 lines; best: 5-2x7-smite.d1 2.7, 5-2x7-smite.d2 4.7, 6-3x9-smite.d1+barrier 5.7, 7-4x6-smite+shield-wall 6.0, 7-4x6-smite+tax 6.0
+  Rally              80 lines; best: 5-3x6-rally.a0 3.3, 5-2x7-rally 5.3, 6-3x9-rally.a0+barrier 5.3, 6-4x8-rally.a0+barrier 5.7, 7-3x7-rally.a0+commanders-aura 6.3
+  Hunter             68 lines; best: 5-2x7-hunter.a0 6.3, 7-3x7-hunter.a0+tax 7.3, 7-3x7-hunter+tax 7.7, 7-3x7-hunter.h0+tax 7.7, 7-3x7-hunter.x2+tax 7.7
+  Shield wall        54 lines; best: 6-3x9-shield-wall+barrier 3.3, 6-3x9-shield-wall.w3+barrier 4.3, 5-2x7-shield-wall.w4 5.0, 6-3x9-shield-wall.w4+barrier 5.3, 5-2x7-shield-wall.w3 5.3
+  Guardian           14 lines; best: 7-3x7-guardian+tax 25.7, 7-4x6-guardian+tax 27.3, 7-3x7-guardian+shield-wall 28.3, 7-4x6-guardian+shield-wall 28.7, 7-3x7-guardian+commanders-aura 29.0
+  Bulwark            20 lines; best: 7-3x7-bulwark+tax 12.0, 7-4x6-bulwark+tax 12.3, 7-4x6-bulwark+shield-wall 14.0, 7-3x7-bulwark+shield-wall 15.7, 7-4x6-bulwark+commanders-aura 16.0
+  Restore            60 lines; best: 6-4x8-restore.r1+barrier 2.7, 5-3x6-restore.r1 3.0, 5-3x6-restore 5.0, 5-2x7-restore.h2 5.0, 6-4x8-restore+barrier 5.3
+  Supply line        60 lines; best: 5-3x6-supply-line.low 1.7, 6-3x9-supply-line.c2+barrier 4.3, 6-4x8-supply-line.c2+barrier 4.7, 6-4x8-supply-line.low+barrier 5.0, 6-3x9-supply-line+barrier 5.7
+  Energy surge       40 lines; best: 5-3x6-energy-surge 3.7, 6-4x8-energy-surge+barrier 5.7, 6-3x9-energy-surge.e2+barrier 5.7, 7-4x6-energy-surge.e2+shield-wall 5.7, 7-3x7-energy-surge.e2+shield-wall 6.0
+  Recycle            60 lines; best: 5-3x6-recycle.c1 0.7, 5-3x6-recycle 2.0, 5-3x6-recycle.c3 2.0, 6-4x8-recycle+barrier 5.0, 6-4x8-recycle.c1+barrier 5.0
+  Inspire            80 lines; best: 5-3x6-inspire.a0 3.0, 6-3x9-inspire.h0+barrier 4.0, 7-4x6-inspire.x2+tax 5.0, 6-4x8-inspire.a0+barrier 5.3, 6-3x9-inspire+barrier 5.7
+  Suppress           80 lines; best: 5-2x7-suppress.m5 4.0, 6-4x8-suppress.m3+barrier 4.3, 6-3x9-suppress.m5+barrier 5.0, 7-4x6-suppress.m5+shield-wall 5.0, 7-3x7-suppress+shield-wall 5.3
+  Dampen             54 lines; best: 7-3x7-dampen.hp10+shield-wall 10.0, 7-3x7-dampen.hp10+tax 10.3, 7-3x7-dampen.hp15+shield-wall 11.7, 7-3x7-dampen.hp15+tax 11.7, 7-3x7-dampen+shield-wall 12.0
+  Tax                36 lines; best: 5-3x6-tax 2.3, 5-3x6-tax.t2 4.3, 6-4x8-tax+barrier 4.7, 6-4x8-tax.t2+barrier 5.7, 5-2x7-tax.t2 6.0
+  Sweep              80 lines; best: 5-2x7-sweep.r2 3.7, 5-3x6-sweep.r1 5.0, 6-3x9-sweep.r2+barrier 5.3, 5-2x7-sweep.r1 5.7, 6-3x9-sweep+barrier 6.3
+
+3. Where the levers help: best table line per tier, over every size (300 seeds; net = mean change, worst = largest edge)
+----------------------------------------------------------------------------------------------------------------------
+  Commander's aura   cost 5: 11.0 (net +6.6)   cost 6: 12.0 (net +5.8)   cost 7:  6.3 (net +0.5)
+  Smite              cost 5:  2.7 (net -0.9)   cost 6:  5.7 (net -0.3)   cost 7:  6.0 (net +0.9)
+  Rally              cost 5:  3.3 (net +0.0)   cost 6:  5.3 (net -2.3)   cost 7:  6.3 (net +1.3)
+  Hunter             cost 5:  6.3 (net +2.7)   cost 6: 12.3 (net +5.7)   cost 7:  7.3 (net +1.1)
+  Shield wall        cost 5:  5.0 (net -1.6)   cost 6:  3.3 (net -0.1)   cost 7:  6.7 (net -1.4)
+  Guardian           cost 5: 40.0 (net +31.8)   cost 6: 44.0 (net +32.5)   cost 7: 25.7 (net +13.3)
+  Bulwark            cost 5: 17.3 (net +10.6)   cost 6: 24.7 (net +11.9)   cost 7: 12.0 (net +2.7)
+  Restore            cost 5:  3.0 (net +0.5)   cost 6:  2.7 (net +0.5)   cost 7:  7.0 (net -1.2)
+  Supply line        cost 5:  1.7 (net -0.3)   cost 6:  4.3 (net -0.6)   cost 7:  7.0 (net -1.5)
+  Energy surge       cost 5:  3.7 (net +1.6)   cost 6:  5.7 (net +1.3)   cost 7:  5.7 (net -0.4)
+  Recycle            cost 5:  0.7 (net +0.2)   cost 6:  5.0 (net +0.6)   cost 7:  7.0 (net -1.4)
+  Inspire            cost 5:  3.0 (net +0.3)   cost 6:  4.0 (net +0.8)   cost 7:  5.0 (net -0.3)
+  Suppress           cost 5:  4.0 (net -0.7)   cost 6:  4.3 (net +2.1)   cost 7:  5.0 (net +0.3)
+  Dampen             cost 5: 18.0 (net +11.7)   cost 6: 22.7 (net +9.6)   cost 7: 10.0 (net +3.6)
+  Tax                cost 5:  2.3 (net +0.4)   cost 6:  4.7 (net +0.9)   cost 7:  6.7 (net -1.4)
+  Sweep              cost 5:  3.7 (net -0.2)   cost 6:  5.3 (net +0.0)   cost 7:  7.3 (net +0.1)
+
+4. Rework proposals for Guardian and Bulwark (not menu options: each is a different ability, the owner's call)
+----------------------------------------------------------------------------------------------------------------------
+  Command (from engine/): npx tsx src/dev/signatureReworkProbe.ts --out ../progress/signature-fairness/reworks.jsonl
+  Each at cost 5: a body grid (attack 2-4) at 500 seeds, the 2 best re-measured at 2,500 seeds.
+
+guard-only (replaces Guardian): "Guard. (Barrier dropped.)"
+     rework5-3x3-guard-only                   net  +2.2  worst  8.1   Co +4.1/+1.8/+3.0  Sw +2.7/+3.7/+5.1  Ae -4.0/+1.8/-1.2  Nu -0.0/+8.1/+1.1
+     rework5-2x4-guard-only                   net  +3.9  worst  9.3   Co +8.2/+4.4/+6.4  Sw +2.3/+5.9/+7.1  Ae -4.8/+3.8/+1.3  Nu +0.8/+9.3/+2.6
+
+barrier-only (replaces Guardian): "Barrier. (Guard dropped.)"
+     rework5-3x4-barrier-only                 net  +0.9  worst  2.1   Co +1.3/+1.5/+0.4  Sw +2.1/+0.7/+1.7  Ae +0.4/+1.8/+0.4  Nu +0.0/+0.2/+0.4
+     rework5-3x6-barrier-only                 net  +0.7  worst  2.3   Co -0.1/+0.9/+0.0  Sw +0.8/+0.3/-0.1  Ae +2.3/+1.9/+2.1  Nu +0.4/-0.6/+0.7
+
+bulwark-units (replaces Bulwark): "Takes the first attack aimed at one of your units each turn (never one aimed at you), unless a Guard unit is protecting your side."
+     rework5-3x4-bulwark-units                net  +1.7  worst  3.9   Co +1.4/+0.9/+2.8  Sw +2.7/+2.0/+3.9  Ae -1.4/+0.1/-0.2  Nu +2.3/+3.2/+2.2
+     rework5-3x5-bulwark-units                net  +2.3  worst  4.7   Co +1.2/+2.1/+2.8  Sw +3.8/+3.0/+4.7  Ae +0.2/-0.3/+0.5  Nu +3.5/+2.8/+2.9
+
+bulwark-face (replaces Bulwark): "Takes the first attack aimed at you each turn, unless a Guard unit is protecting your side."
+     rework5-3x3-bulwark-face                 net  +1.4  worst  6.0   Co +3.4/+0.4/+3.3  Sw +1.5/+3.2/+4.4  Ae -4.5/-0.1/-1.9  Nu -0.6/+6.0/+1.3
+     rework5-2x4-bulwark-face                 net  +2.9  worst  9.1   Co +6.6/+2.6/+4.8  Sw +1.3/+5.4/+5.7  Ae -5.8/+1.6/-0.4  Nu +0.5/+9.1/+2.9
+
+intercept (replaces Bulwark): "Once per turn, Instant, pay 1 energy: redirect the pending attack to this."
+     rework5-2x6-intercept                    net  +0.6  worst  4.4   Co +2.8/+4.4/+3.0  Sw +0.7/+1.9/+1.7  Ae -4.2/-1.2/-1.5  Nu -1.7/+0.0/+1.5
+     rework5-3x4-intercept                    net  +2.9  worst  5.5   Co +4.2/+4.7/+5.5  Sw +2.6/+4.2/+4.4  Ae -1.6/+2.0/+1.5  Nu +1.6/+2.7/+2.6
+
+5. What the numbers say
+----------------------------------------------------------------------------------------------------------------------
+  - The size lever is the one that works. All four new passes are a smaller size at cost 5 on or next to the
+    table: Rally +0/+1 at 3/6, Restore on one random unit at 3/6, Supply line only from a hand of 2 or fewer
+    at 3/6, Inspire +0/+1 at 3/4 or 3/5. Recycle and Tax still pass as before (Recycle now also at 1 card).
+  - The cost lever rarely helps. Cost 6 still plays above the reference for almost every option; cost 7 lands
+    near it in net terms, but only with bodies far off the table (Guardian 3/2, Bulwark 3/4), and its
+    second aura splits the factions: Cortex and Swarm up 3-6, Aegis down 2-6.
+  - Three options are close (worst edge 2.4-2.6): Smite at 1 damage, Energy surge as written, Sweep on 2
+    random units. Each misses on one edge, and a 1-health step is the finest lever left, so another tuner
+    pass at finer resolution (more seeds per step, more starting points) is worth a run before reworking them.
+  - Commander's aura, Hunter, Shield wall, Suppress and Dampen fail at every size and tier (3.2-5.2). Hunter is
+    simply too strong even at its smallest size (net +2.7, every edge up). The other four show report 023's
+    pattern: at a net-even line the factions still split, Aegis down 1.6-3.6 points on some edge while another
+    faction gains 3.2-4.8 on one of its own, so the 12 edges can't all sit inside 2 at once.
+  - Guardian and Bulwark fail by the most, as you expected. Guard is the problem, not Barrier: Barrier alone at
+    3/4 misses by 0.1 (2.1), Guard alone at 3/3 is still 8.1 off. Every attack-pulling version of Bulwark
+    fails too (3.9-9.1), the 'only attacks aimed at your units' version least.

@@ -1,5 +1,99 @@
 # Notes for the owner
 
+**Updated 2026-10-14, session 33 (your 2026-10-13 answers: option A, Guard over Bulwark, the
+signature card can't be sold).** Nothing is blocking. There is one **[OWNER CHECK-IN]** below, with
+defaults, so the next game-lane session can go ahead without an answer. Evidence:
+`progress/balance-report-024-signature-levers.txt`, `progress/sample-match-031-bulwark-guard.txt`.
+
+Built:
+- **The size lever.** Every menu option except Guardian and Bulwark now has smaller and/or larger
+  sizes: the same mechanic with a number turned down or up (Smite 1, 2, 3 or 4 damage), a narrower
+  target (Restore on one random unit), or an "only while" condition (Commander's aura only while you
+  control 3 or more units). Your wording stays the standard size.
+- **The cost lever.** The tuner tries each size at cost 5, at cost 6 with each keyword, and at cost
+  7 with each second aura. Attack stays at 2 or more everywhere.
+- **Guard takes priority over Bulwark** (your call 3). Bulwark stands aside while a Guard unit
+  protects its side, and keeps its redirect for later in the turn. The sample match shows it: the
+  first attack is forced onto Barrier Drone, Bulwark doesn't step in, and once the Drone is dead
+  Bulwark takes the next attack.
+- **The signature card can't be sold.** The economy schema now refuses an unbound signature copy
+  even through raw SQL. The generator will grant it.
+
+### [OWNER CHECK-IN] 6 of 16 options now pass; Guardian and Bulwark need your rework call
+
+| option | passing line (2,500 games per edge) | worst edge |
+|---|---|---|
+| Recycle | 3/6, "when it dies, draw **a** card" | **0.8** |
+| Supply line | 3/6, "draw a card **if you have 2 or fewer in hand**" | **0.8** |
+| Rally | 3/6, "your units get **+0/+1** this turn" | **1.3** |
+| Restore | 3/6, "restore 1 health to **a random unit** of yours" | **1.6** |
+| Tax | 3/6, as written | **1.6** |
+| Inspire | **3/4** (off the table), "a random ally gets **+0/+1**" | **1.6** |
+
+Close, but not passing:
+- Smite at 1 damage (2/9): 2.4.
+- Energy surge as written (3/6): 2.4.
+- Sweep on 2 random units (2/7): 2.6.
+
+Each misses on one edge.
+
+Failing at every size and cost:
+- Commander's aura: 4.8.
+- Hunter: 5.2. It's too strong even at its smallest size.
+- Shield wall: 3.2.
+- Suppress: 3.9.
+- Dampen: 3.8.
+
+For all but Hunter, the factions split: Aegis drops 1.6-3.6 points on one edge while another
+faction gains 3-5.
+
+The cost lever helps less than I hoped:
+- Cost 6 still plays above the reference.
+- Cost 7 only gets near it with bodies like 3/2 and 3/4, which don't read as Mythics.
+
+**Guardian and Bulwark** fail by the most (5.8 each, even at cost 7). I measured rework proposals
+(report section 4):
+
+| proposal | best line | worst edge |
+|---|---|---|
+| Guardian -> **Barrier only** | 3/4 | **2.1** (misses by 0.1) |
+| Guardian -> Guard only | 3/3 | 8.1 |
+| Bulwark -> takes the first attack aimed at **one of your units** (never you) | 3/4 | 3.9 |
+| Bulwark -> takes the first attack aimed at **you** | 3/3 | 6.0 |
+| Bulwark -> once per turn, pay 1 energy: redirect an attack to it | 2/6 | 4.4 |
+
+Guard is what breaks Guardian, not Barrier. Every version of Bulwark that pulls attacks fails too.
+
+**Options:**
+- **A (my recommendation).**
+  - Guardian becomes **Barrier only**, tuned once more. 3/4 already misses by 0.1.
+  - Bulwark becomes **"the first attack aimed at one of your units"**, and stays off the generator
+    until it passes.
+  - The next tuner pass also takes the three near misses at finer resolution.
+  - The generator can use the 6 passing options now. That's already enough to offer an owner 3
+    different candidates.
+- **B.** Drop Bulwark from the menu. Defence keeps Shield wall, Guardian (as Barrier) and Restore.
+- **C.** Keep both as written and accept that they never pass, so the generator never offers them.
+
+Calls of mine you may want to overrule:
+1. **"Only while" conditions count as a size**, for example Commander's aura only while you control
+   3+ units, or Dampen only while you have 15 or less health. The mechanic is the same, so I
+   treated it as the ability turned down, not a rework. No passing line uses one yet.
+2. **Inspire passes only off the table (3/4 or 3/5).** At 3/6 it is 2.6. Your "adjust its stats
+   and test again" allows this, but it means the card isn't one of the three table bodies.
+3. **A Bulwark with Guard of its own** (the cost-6 keyword) never redirects. With a Guard up,
+   every attack is already forced onto a Guard, itself included.
+4. **A once-per-turn activated ability is no longer offered after it's been used that turn.**
+   This is an engine-wide fix: before it, an agent could pay for a use that did nothing. No
+   shipped card has such an ability yet.
+
+Next game-lane session: your answer here. Without one, option A:
+- a finer tuner pass on Barrier-only Guardian and the three near misses;
+- then `generateAgent`: three agents, then three signature candidates, all from passing lines;
+- then the bound promo grant.
+
+---
+
 **Updated 2026-10-12, session 32 (your 2026-10-11 answer, option A: the Neutral menu and its
 fairness test).** Nothing is blocking, but there is one **[OWNER CHECK-IN]** below: as written, the
 fairness test passes only 2 of the 16 options. Evidence:

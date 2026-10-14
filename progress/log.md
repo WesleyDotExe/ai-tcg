@@ -2632,3 +2632,46 @@ the tuner ability-size and cost levers.
 
 **Blocked:** nothing; the check-in has a default (A). Next: render (alternation), then the tuner
 levers.
+
+
+## 2026-10-14 — Session 33 (owner's 2026-10-13 answers: tuner levers, Guard over Bulwark, the signature card can't be sold)
+
+Game-lane session: the last merged PR (#50) was render. Owner feedback first. Both 2026-10-13
+entries are handled (marked). The 2026-10-14 render entry is the render lane's own (accepted as
+built, nothing to do). Not a hardening pass.
+
+**Built:**
+- **The size lever.** `MenuOption.sizes` on 14 options: smaller and larger versions of the same
+  mechanic. The cost-tier lever too. `tuneWithLevers` runs every size x tier x extra, then stat
+  walks (attack 2 or more), then confirms at 2,500 seeds.
+- **Guard over Bulwark** (call 3), as a generic `guardInPlay` condition over one shared
+  `activeGuards`.
+- **`all` / `any` / `attackTargets` conditions**, for the rework probes.
+- **An engine fix:** a once-per-turn activated ability is no longer offered after its use.
+- **Economy migration 5:** an agent's signature card is always a bound promo, so it can't be sold.
+
+**Ran it:**
+- The lever sweep on all 16 options over 4 cores (about 1 hour), then 5 rework probes.
+- A real game showing Bulwark stand aside for a Guard.
+- Both ring checks: unchanged, PASS.
+- `npm test`: 533/533.
+
+**Result:** 6 of 16 options pass (2 before): Recycle, Supply line, Rally, Restore, Tax and Inspire,
+all at a smaller size at cost 5.
+- The size lever is what works. The cost lever rarely helps: cost 6 stays strong, and cost 7
+  only nears the reference with tiny bodies and a faction split.
+- Three options are within 0.6 of passing.
+- Guardian and Bulwark fail at every lever. Barrier-only Guardian misses by 0.1, and Guard is
+  what breaks it. Every attack-pulling Bulwark fails (3.9 at best).
+
+**Raised as an [OWNER CHECK-IN]:**
+- Guardian -> Barrier only, and Bulwark -> units only, with defaults.
+- The generator can already offer 3 different candidates from the 6 passing options.
+
+**Evidence:**
+- `progress/balance-report-024-signature-levers.txt`;
+- `progress/sample-match-031-bulwark-guard.txt`;
+- 9 new tests.
+
+**Blocked:** nothing; the check-in has a default (A). Next: render (alternation), then the finer
+tuner pass and `generateAgent`.

@@ -12,3 +12,16 @@ The cached reference ring it was measured against is `engine/src/dev/signatureRe
 | `tuned-cost5.jsonl` | `npx tsx src/dev/signatureFairness.ts tune --ability K --tier 5 --seeds 500 --confirm 2500 --out ...`, once per option |
 
 Everything is seeded, so each command reproduces its lines exactly.
+
+## Session 33 (the owner's 2026-10-13 levers)
+
+Printed into `progress/balance-report-024-signature-levers.txt` by `engine/src/dev/signatureLeversReport.ts`.
+
+| file | command (from `engine/`) |
+|---|---|
+| `levers-0.jsonl` … `levers-3.jsonl` | `npx tsx src/dev/signatureFairness.ts levers --shard i/4 --coarse 300 --seeds 500 --confirm 2500 --out ../progress/signature-fairness/levers-i.jsonl` (i = 0..3, run in parallel; option k goes to shard k mod 4) |
+| `reworks.jsonl` | `npx tsx src/dev/signatureReworkProbe.ts --out ../progress/signature-fairness/reworks.jsonl` (rework proposals for Guardian and Bulwark: not menu options, measured for the owner's check-in) |
+
+Each `levers` line holds one option: every table line screened at 300 seeds, the stat walks from its three best
+lever configs at 500 seeds, and the three best lines over all of it re-measured at 2,500 seeds (only those count
+as a pass).

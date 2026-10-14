@@ -296,10 +296,14 @@ start a step until the one before works and its tests pass):
      the Neutral menu as card data (303 combinations) and the fairness
      test against the plain-3/6 reference; only Recycle and Tax pass, and
      stat tuning alone passes nothing else (balance report 023), raised as
-     an [OWNER CHECK-IN]. NEXT: per the owner's pick (default A: tuner
-     levers for ability size and cost, rework proposals for what still
-     fails), then the signature card as a bound promo and generating a new agent
-     (pick from 3, then its signature card from 3). Then raise the
+     an [OWNER CHECK-IN]; owner picked A. DONE (session 33): the tuner's
+     size and cost-tier levers (attack 2 or more), Guard over Bulwark, the
+     signature card unsellable (migration 5); 6 of 16 options pass
+     (balance report 024); Guardian and Bulwark rework proposals measured,
+     raised as an [OWNER CHECK-IN]. NEXT: per the owner's pick (default A:
+     Barrier-only Guardian, units-only Bulwark, a finer tuner pass on the
+     near misses), then generating a new agent (pick from 3, then its
+     signature card from 3, passing lines only) with the bound promo grant. Then raise the
      [OWNER CHECK-IN]: how an agent picks its faction, builds its deck from
      the owner's collection, and chases quests.
   3. Server endpoints for the website (wallet, collection, packs and pack

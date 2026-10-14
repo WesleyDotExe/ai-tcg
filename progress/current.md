@@ -1,77 +1,90 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 32 (game lane) did the owner's
-2026-10-11 answer (option A): the Neutral signature menu as card data and its fairness test.**
-Step 2 isn't finished (the menu doesn't pass yet, the bound signature promo and generating an
-agent are left), so there's no stage checkpoint. There is an **[OWNER CHECK-IN]** in
-notes-for-owner.md: only Recycle and Tax pass the test.
+**Build-order stage: Stage 4+ (the living system). Session 33 (game lane) did the owner's
+2026-10-13 answers: the tuner's size and cost levers, Guard over Bulwark, and the signature card
+can't be sold.** Step 2 isn't finished (Guardian and Bulwark need the owner's rework call, and
+generating an agent is left), so there's no stage checkpoint. There is an **[OWNER CHECK-IN]** in
+notes-for-owner.md with a default (option A).
 
-## What stands (this session's work; sessions 1-31 otherwise unchanged)
+## What stands (this session's work; sessions 1-32 otherwise unchanged)
 
-**The menu (`engine/src/data/signatureMenu.ts`).**
-- `SIGNATURE_MENU`: the 16 options with category, rules text, keywords, abilities and an `aura`
-  flag (the 7-cost second-aura pool: Commander's aura, Shield wall, Dampen, Tax).
-- `SIGNATURE_TIERS` (5: 3/6, 4/5, 2/7; 6: 4/8, 5/7, 3/9 + Rush/Guard/Barrier; 7: 3/7, 4/6 + a
-  second aura), `signatureSpecProblem`, `allSignatureSpecs` (303), `signatureComboId`
-  (e.g. `sig6-4x8-rally+guard`), `buildSignatureCard` (a Neutral Mythic Unit; `anyStats` lets
-  the tuner leave the table), `onTable`.
+**The size lever (`engine/src/data/signatureMenu.ts`).**
+- `MenuOption.sizes`: every option except Guardian and Bulwark has smaller and/or larger sizes.
+  Each is the same mechanic turned down or up: a number, a narrower target, or an "only while"
+  condition. The owner's text stays the standard size.
+- `SignatureSpec.size`, `optionAtSize`. A sized card's id carries the size
+  (`sig5-3x6-smite.d2`), and `signatureSpecProblem` refuses unknown sizes.
+- `allSignatureSpecs` still lists the 303 standard combinations.
 
-**Engine additions, all generic (none name a card).**
-- `onKill` trigger: a unit's hit took another unit from alive to dead (or its effect destroyed
-  it). It's recorded on the victim as `lethalBy` and fired in `processDeaths` after onDeath, if
-  the killer is still on the board.
-- `onEnemyAttack` trigger: fired on the defending side's units right after an attack goes on the
-  stack.
-- `Ability.limit: "oncePerTurn"`, counted in `resolveAbility` for any unit-source trigger;
-  `UnitInstance.usedThisTurn` is cleared at every turn end.
-- `buffAllies.excludeSelf` and `cardCostModifier.cardType`.
-- PROTOCOL.md documents the two triggers. The render's cast labels gained ON KILL and INTERCEPT.
+**The tuner (`engine/src/dev/signatureFairness.ts`).**
+- `leverConfigs` lists every size x tier x extra (the 6-cost keyword, the 7-cost aura).
+- `tuneWithLevers` works in three passes:
+  1. every table line of every config at 300 seeds;
+  2. the stat walk from the 3 best configs at 500 seeds;
+  3. the 3 best lines re-measured at 2,500 seeds.
+- `MIN_TUNED_ATTACK = 2` (owner rule). New command: `levers`.
 
-**The fairness test (`engine/src/dev/signatureFairness.ts`).**
-- `reference` caches the plain-3/6-everywhere ring per seed (`signatureReference.json`).
-- `candidates` tests table lines.
-- `tune` walks the stat line toward zero net change (attack 0-6, health 1-9), then confirms at
-  2,500 seeds.
-- `pairedChange` is the per-seed paired difference with its interval.
-- `signatureZoneReport.ts` now imports the shared `REFERENCE_SIGNATURE`.
+**Engine additions, all generic.**
+- New Condition kinds:
+  - `guardInPlay`, used by Bulwark: `not guardInPlay controller` (Guard takes priority);
+  - `attackTargets` (unit or player), used only by the rework probes;
+  - `all` and `any`.
+- `activeGuards(state, pid)` in `state/queries.ts`, shared by the attack-move rule and the
+  condition.
+- `getLegalMoves` no longer offers a once-per-turn activated ability already used that turn.
 
-**Measured (`progress/balance-report-023-signature-menu.txt`, raw data in
-`progress/signature-fairness/`).**
-- On the cost-5 table, 2 of 48 pass: Recycle 3/6 and Tax 3/6.
-- The tuner finds no passing line for the other 14 options. One attack point is worth ~5 points
-  and health almost nothing, and a net-even line still splits the factions by 3-6 points (Aegis
-  loses most).
-- Guardian is the strongest option (+40 to +47 worst edge). The 6-cost tier plays far above the
-  reference, the 7-cost tier near it.
+**Economy.**
+- Schema migration 5: a signature copy (`origin_ref` `signature:<agentId>`) must be a bound promo.
+  The schema also refuses relabelling a copy into or out of being one.
+- `grantCopy` binds it whatever the caller says, and refuses any other origin.
+- ECONOMY.md updated.
+
+**Measured (`progress/balance-report-024-signature-levers.txt`, raw data in
+`progress/signature-fairness/levers-*.jsonl` and `reworks.jsonl`).**
+- **6 of 16 options pass** (2 in session 32):
+  - Recycle (1 card, 3/6);
+  - Supply line (only from a hand of 2 or fewer, 3/6);
+  - Rally (+0/+1, 3/6);
+  - Restore (one random unit, 3/6);
+  - Tax (3/6);
+  - Inspire (+0/+1, 3/4, off the table).
+- Near misses (worst edge 2.4-2.6): Smite 1 damage, Energy surge, Sweep on 2 random units.
+- Failing at every size and tier: Commander's aura, Hunter, Shield wall, Suppress, Dampen,
+  Guardian, Bulwark.
+- Rework probes (`engine/src/dev/signatureReworkProbe.ts`):
+  - Guardian as Barrier only: 2.1, misses by 0.1;
+  - Guard only: 8.1;
+  - Bulwark "units only": 3.9; "face only": 6.0; "pay 1 to intercept": 4.4.
 
 ## Evidence committed
 
-- `progress/balance-report-023-signature-menu.txt` (`npx tsx src/dev/signatureMenuReport.ts`,
-  from the committed JSONL; commands in `progress/signature-fairness/README.md`).
-- `progress/sample-match-030-signature-menu.txt` (`npx tsx src/dev/signatureMenuMatchDemo.ts`):
-  a real Lookahead Cortex (Hunter) vs Aegis (Bulwark) game. Bulwark pulls two of Hunter's attacks
-  onto itself, dies, goes back to the zone, and Hunter grows +1/+1 from the kill.
-- `engine/test/signatureMenu.test.ts`, 28 tests:
-  - the menu and the table, and refusals;
-  - Commander's aura, Tax, Hunter (kill, trade, Rush), Bulwark (first attack only, reset, an
-    attack already aimed at it), destroy credit;
-  - every one of the 16 options firing in real Lookahead games;
-  - `pairedChange`.
+- `progress/balance-report-024-signature-levers.txt`
+  (`npx tsx src/dev/signatureLeversReport.ts`, from the committed JSONL; the commands are in
+  `progress/signature-fairness/README.md`).
+- `progress/sample-match-031-bulwark-guard.txt` (`npx tsx src/dev/bulwarkGuardMatchDemo.ts`): a
+  real Cortex vs Aegis (Bulwark) game. On turn 13 the first attack is forced onto Barrier Drone
+  (Guard) and Bulwark stands aside. Once the Drone is dead, Bulwark takes the next attack.
+- Tests:
+  - engine `signatureMenu.test.ts` +8: Guard over Bulwark (3 cases), sizes (3), `attackTargets`,
+    once-per-turn gating;
+  - economy `store.test.ts` +1, plus the v4 -> v5 migration step.
 - Both ring checks (gate and signature mode) reproduce their baselines exactly.
-- `npm test`: 506 across six workspaces, all pass (engine 177, protocol 7, server 23,
-  agents 17, economy 43, render 239). `tsc --noEmit` is clean in all six.
+- `npm test`: 533 across six workspaces, all pass (engine 185, protocol 7, server 23, agents 17,
+  economy 44, render 257). `tsc --noEmit` is clean in all six.
 
 ## Concrete next step
 
-Check the alternation first: if the last merged PR is this one (game lane), the next session is
-**render**. Render can show `signatureReturn` / `fromSignatureZone`, plus the new ON KILL /
-INTERCEPT triggers and Bulwark's `attackRedirected` in the arena.
+Check the alternation first. If the last merged PR is this one (game lane), the next session is
+**render**. Render can show:
+- the signature zone (`signatureReturn` / `fromSignatureZone`);
+- the ON KILL / INTERCEPT triggers;
+- Bulwark's `attackRedirected`.
 
-The next **game-lane** session reads the owner's answer to the menu check-in. With no answer, it
-takes **option A**:
-1. Add tuner levers beyond stats: the ability's own magnitude (as data parameters on the menu
-   options) and the cost tier, with attack kept at 2 or more.
-2. Re-run the 16 options. Write rework proposals for the ones that still fail (Guardian and
-   Bulwark first).
-3. Then the economy: the signature card as the agent's bound promo (PR- numbering) and
-   `generateAgent`.
+The next **game-lane** session reads the owner's answer to the check-in. With no answer, it takes
+**option A**:
+1. Add Barrier-only as Guardian's sizes, and "units only" as Bulwark's, in the menu data.
+2. Run a finer tuner pass (more starting points, 1,000-seed walk) on Guardian and the three near
+   misses (Smite d1, Energy surge, Sweep r2).
+3. Build `generateAgent`: 3 generated agents, then 3 signature candidates drawn only from lines
+   that passed at 2,500 seeds, no two agents sharing a combo id. The signature copy is granted
+   with `origin: "promo"`, `originRef: "signature:<agentId>"` and the next PR- number.

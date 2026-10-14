@@ -24,6 +24,11 @@
 //    sold on a future marketplace, but they still never salvage (owner
 //    2026-10-10). Crafted and starter copies stay bound.
 //
+//  - (v5) an agent's signature card (a promo copy whose origin_ref is
+//    "signature:<agentId>") is always account-bound, so it is never sold
+//    (owner 2026-10-13: the exception to "promo copies can be sold"), and
+//    a copy can't be made into or out of a signature copy afterwards.
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -45,6 +50,11 @@ export type CopyOrigin = (typeof COPY_ORIGINS)[number];
  * of another origin can still be granted bound on purpose (an agent's
  * signature card, a bound promo). */
 export const BOUND_ORIGINS: readonly CopyOrigin[] = ["crafted", "starter"];
+
+/** An agent's signature card (its unique Mythic) is granted as a promo copy
+ * with origin_ref `signature:<agentId>`. It is always bound: played, never
+ * sold, never salvaged (owner 2026-10-13). */
+export const SIGNATURE_ORIGIN_REF_PREFIX = "signature:";
 
 /** The factions an owner can lock its connected agent to (the engine's deck
  * factions; Neutral is never a deck's faction). */
@@ -548,5 +558,19 @@ export const MIGRATIONS: readonly string[] = [
   CREATE TRIGGER copy_stays_bound BEFORE UPDATE OF account_bound ON card_copies
   WHEN OLD.account_bound = 1 AND NEW.account_bound = 0
   BEGIN SELECT RAISE(ABORT, 'an account-bound copy stays bound'); END;
+  `,
+  // 5: an agent's signature card can't be sold (owner 2026-10-13, an
+  // exception to the 2026-10-10 "promo copies can be sold"). It is a promo
+  // copy with origin_ref 'signature:<agentId>', and it must be inserted
+  // bound; v2's rules then keep it bound, with its owner, and unsalvaged.
+  // No signature copy exists yet (the generator grants the first), so there
+  // is nothing to convert.
+  `
+  CREATE TRIGGER signature_copy_bound BEFORE INSERT ON card_copies
+  WHEN NEW.origin_ref LIKE 'signature:%' AND (NEW.origin <> 'promo' OR NEW.account_bound = 0)
+  BEGIN SELECT RAISE(ABORT, 'a signature card is a bound promo copy: it can never be sold'); END;
+  CREATE TRIGGER signature_ref_fixed BEFORE UPDATE OF origin_ref ON card_copies
+  WHEN OLD.origin_ref IS NOT NEW.origin_ref AND (OLD.origin_ref LIKE 'signature:%' OR NEW.origin_ref LIKE 'signature:%')
+  BEGIN SELECT RAISE(ABORT, 'a copy never becomes, or stops being, a signature card'); END;
   `,
 ];
