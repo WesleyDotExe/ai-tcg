@@ -14,7 +14,7 @@
 // dev/signatureFairness.ts (the owner's 2026-10-11 test), and only a
 // candidate that passes it may be shown to an owner.
 
-import type { Ability, Keyword, UnitCard } from "../cards/types.js";
+import type { Ability, Keyword, TargetSpec, UnitCard } from "../cards/types.js";
 
 export type MenuCategory = "Offence" | "Defence" | "Card flow and energy" | "Disruption";
 
@@ -32,12 +32,88 @@ export interface MenuOption {
   abilities: Ability[];
   /** A continuous aura: allowed as the 7-cost tier's second aura. */
   aura: boolean;
+  /** The ability at other sizes (owner 2026-10-13: "give the tuner levers
+   * beyond stats: the size of the ability itself"). The option's own
+   * `text` / `keywords` / `abilities` above are the standard size, as the
+   * owner wrote it; these are the smaller and larger versions the fairness
+   * tuner may pick instead. Every size is the same mechanic turned up or
+   * down (a number, a narrower target, or an "only while" condition), never
+   * a different ability: changing what an option does is a rework, and
+   * reworks go to the owner (see balance report 024). Keys are short and
+   * stable: they appear in combo ids. */
+  sizes: MenuSize[];
+}
+
+export interface MenuSize {
+  key: string;
+  text: string;
+  /** Replaces the option's keywords at this size (omit to keep them). */
+  keywords?: Keyword[];
+  abilities: Ability[];
 }
 
 const yourUnits = { side: "controller", kind: "unit" } as const;
 const enemyUnits = { side: "opponent", kind: "unit" } as const;
 
+/** One onPlay/onTurnEnd/... ability at a given size: same id as the
+ * standard, so the event log names the option the same way at every size. */
+const ab = (base: Ability, patch: Partial<Ability>): Ability => ({ ...base, ...patch });
+/** "Only while you control N or more units (this one included)". */
+const whileUnits = (count: number) => ({ kind: "unitsInPlayAtLeast", side: "controller", count }) as const;
+
 /** All 16 options, in the owner's order. */
+// The abilities, as builders so every size is the same ability with one
+// number or one filter changed.
+const COMMANDERS_AURA: Ability = { id: "sig-commanders-aura", trigger: "static", text: "Your other units get +1/+0.", staticEffect: { kind: "buffAllies", attack: 1, health: 0, filter: yourUnits, excludeSelf: true } };
+const SHIELD_WALL: Ability = { id: "sig-shield-wall", trigger: "static", text: "Your units get +0/+1.", staticEffect: { kind: "buffAllies", attack: 0, health: 1, filter: yourUnits } };
+const DAMPEN: Ability = { id: "sig-dampen", trigger: "static", text: "Enemy units get -1/-0.", staticEffect: { kind: "buffAllies", attack: -1, health: 0, filter: enemyUnits } };
+// Bulwark stands aside while a Guard unit protects its side (owner
+// 2026-10-13, call 3: Guard takes priority). Every attack is then already
+// forced onto a Guard, and the turn's redirect isn't used up.
+const BULWARK: Ability = {
+  id: "sig-bulwark",
+  trigger: "onEnemyAttack",
+  limit: "oncePerTurn",
+  condition: { kind: "not", condition: { kind: "guardInPlay", side: "controller" } },
+  text: "The first enemy attack each turn is redirected to this, unless a Guard unit is protecting your side.",
+  targeting: { scope: "self" },
+  effects: [{ kind: "redirectAttack" }],
+};
+const SUPPLY_LINE: Ability = { id: "sig-supply-line", trigger: "onPlay", text: "Draw a card.", effects: [{ kind: "drawCard", count: 1 }] };
+const ENERGY_SURGE: Ability = { id: "sig-energy-surge", trigger: "onPlay", text: "Gain 1 energy.", effects: [{ kind: "gainEnergy", amount: 1 }] };
+const signedStats = (a: number, h: number) => `+${a}/+${h}`;
+function smite(amount: number): Ability {
+  return { id: "sig-smite", trigger: "onPlay", text: `Deal ${amount} damage to an enemy unit.`, targeting: { scope: "chosen", filter: enemyUnits }, effects: [{ kind: "damage", amount: { mode: "flat", value: amount } }] };
+}
+function rally(attack: number, health: number): Ability {
+  return { id: "sig-rally", trigger: "onPlay", text: `Your units get ${signedStats(attack, health)} this turn.`, targeting: { scope: "all", filter: yourUnits }, effects: [{ kind: "buff", attack, health, duration: "turn" }] };
+}
+function hunter(attack: number, health: number): Ability {
+  return { id: "sig-hunter", trigger: "onKill", text: `Whenever this destroys a unit, it gets ${signedStats(attack, health)}.`, targeting: { scope: "self" }, effects: [{ kind: "buff", attack, health, duration: "permanent" }] };
+}
+function restore(targeting: TargetSpec, amount: number): Ability {
+  const who = targeting.scope === "random" ? "a random unit of yours" : "each of your units";
+  return { id: "sig-restore", trigger: "onTurnEnd", text: `Restore ${amount} health to ${who}.`, targeting, effects: [{ kind: "heal", amount: { mode: "flat", value: amount } }] };
+}
+function recycle(count: number): Ability {
+  return { id: "sig-recycle", trigger: "onDeath", text: count === 1 ? "Draw a card." : `Draw ${count} cards.`, effects: [{ kind: "drawCard", count }] };
+}
+function inspire(attack: number, health: number): Ability {
+  return { id: "sig-inspire", trigger: "onTurnStart", text: `A random unit of yours gets ${signedStats(attack, health)}.`, targeting: { scope: "random", filter: yourUnits, count: 1 }, effects: [{ kind: "buff", attack, health, duration: "permanent" }] };
+}
+function suppress(maxHealth: number | undefined, turns: number): Ability {
+  const filter = maxHealth === undefined ? enemyUnits : { ...enemyUnits, maxHealth };
+  const which = maxHealth === undefined ? "an enemy unit" : `an enemy unit with ${maxHealth} or less health`;
+  return { id: "sig-suppress", trigger: "onPlay", text: `Put ${which} in Stasis for ${turns} turn${turns === 1 ? "" : "s"}.`, targeting: { scope: "chosen", filter }, effects: [{ kind: "applyStatus", status: "Stasis", duration: turns }] };
+}
+function tax(amount: number): Ability {
+  return { id: "sig-tax", trigger: "static", text: `Enemy Commands cost ${amount} more.`, staticEffect: { kind: "cardCostModifier", side: "opponent", amount, cardType: "Command" } };
+}
+function sweep(targeting: TargetSpec, amount: number): Ability {
+  const who = targeting.scope === "random" ? (targeting.count === 1 ? "a random enemy unit" : `${targeting.count} random enemy units`) : "each enemy unit";
+  return { id: "sig-sweep", trigger: "onPlay", text: `Deal ${amount} damage to ${who}.`, targeting, effects: [{ kind: "damage", amount: { mode: "flat", value: amount } }] };
+}
+
 export const SIGNATURE_MENU: MenuOption[] = [
   // Offence
   {
@@ -47,7 +123,11 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "Your other units get +1/+0.",
     keywords: [],
     aura: true,
-    abilities: [{ id: "sig-commanders-aura", trigger: "static", text: "Your other units get +1/+0.", staticEffect: { kind: "buffAllies", attack: 1, health: 0, filter: yourUnits, excludeSelf: true } }],
+    abilities: [COMMANDERS_AURA],
+    sizes: [
+      { key: "w4", text: "While you control 4 or more units, your other units get +1/+0.", abilities: [ab(COMMANDERS_AURA, { condition: whileUnits(4) })] },
+      { key: "w3", text: "While you control 3 or more units, your other units get +1/+0.", abilities: [ab(COMMANDERS_AURA, { condition: whileUnits(3) })] },
+    ],
   },
   {
     key: "smite",
@@ -56,7 +136,12 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "On arrival, deal 3 damage to an enemy unit.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-smite", trigger: "onPlay", text: "Deal 3 damage to an enemy unit.", targeting: { scope: "chosen", filter: enemyUnits }, effects: [{ kind: "damage", amount: { mode: "flat", value: 3 } }] }],
+    abilities: [smite(3)],
+    sizes: [
+      { key: "d1", text: "On arrival, deal 1 damage to an enemy unit.", abilities: [smite(1)] },
+      { key: "d2", text: "On arrival, deal 2 damage to an enemy unit.", abilities: [smite(2)] },
+      { key: "d4", text: "On arrival, deal 4 damage to an enemy unit.", abilities: [smite(4)] },
+    ],
   },
   {
     key: "rally",
@@ -65,7 +150,12 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "On arrival, your units get +1/+1 this turn.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-rally", trigger: "onPlay", text: "Your units get +1/+1 this turn.", targeting: { scope: "all", filter: yourUnits }, effects: [{ kind: "buff", attack: 1, health: 1, duration: "turn" }] }],
+    abilities: [rally(1, 1)],
+    sizes: [
+      { key: "a0", text: "On arrival, your units get +0/+1 this turn.", abilities: [rally(0, 1)] },
+      { key: "h0", text: "On arrival, your units get +1/+0 this turn.", abilities: [rally(1, 0)] },
+      { key: "a2", text: "On arrival, your units get +2/+1 this turn.", abilities: [rally(2, 1)] },
+    ],
   },
   {
     key: "hunter",
@@ -74,7 +164,12 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "Rush. Whenever it destroys a unit, it gets +1/+1.",
     keywords: ["Rush"],
     aura: false,
-    abilities: [{ id: "sig-hunter", trigger: "onKill", text: "Whenever this destroys a unit, it gets +1/+1.", targeting: { scope: "self" }, effects: [{ kind: "buff", attack: 1, health: 1, duration: "permanent" }] }],
+    abilities: [hunter(1, 1)],
+    sizes: [
+      { key: "h0", text: "Rush. Whenever it destroys a unit, it gets +1/+0.", abilities: [hunter(1, 0)] },
+      { key: "a0", text: "Rush. Whenever it destroys a unit, it gets +0/+1.", abilities: [hunter(0, 1)] },
+      { key: "x2", text: "Rush. Whenever it destroys a unit, it gets +2/+2.", abilities: [hunter(2, 2)] },
+    ],
   },
   // Defence
   {
@@ -84,7 +179,11 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "Your units get +0/+1.",
     keywords: [],
     aura: true,
-    abilities: [{ id: "sig-shield-wall", trigger: "static", text: "Your units get +0/+1.", staticEffect: { kind: "buffAllies", attack: 0, health: 1, filter: yourUnits } }],
+    abilities: [SHIELD_WALL],
+    sizes: [
+      { key: "w4", text: "While you control 4 or more units, your units get +0/+1.", abilities: [ab(SHIELD_WALL, { condition: whileUnits(4) })] },
+      { key: "w3", text: "While you control 3 or more units, your units get +0/+1.", abilities: [ab(SHIELD_WALL, { condition: whileUnits(3) })] },
+    ],
   },
   {
     key: "guardian",
@@ -94,15 +193,21 @@ export const SIGNATURE_MENU: MenuOption[] = [
     keywords: ["Guard", "Barrier"],
     aura: false,
     abilities: [],
+    // No smaller Guardian that is still "Guard and Barrier": dropping either
+    // keyword is a different card (a rework, report 024).
+    sizes: [],
   },
   {
     key: "bulwark",
     name: "Bulwark",
     category: "Defence",
-    text: "Takes the first attack aimed at your side each turn.",
+    text: "Takes the first attack aimed at your side each turn, unless a Guard unit is protecting your side.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-bulwark", trigger: "onEnemyAttack", limit: "oncePerTurn", text: "The first enemy attack each turn is redirected to this.", targeting: { scope: "self" }, effects: [{ kind: "redirectAttack" }] }],
+    abilities: [BULWARK],
+    // One redirect a turn is the whole ability; there is no size between
+    // that and none (a rework, report 024).
+    sizes: [],
   },
   {
     key: "restore",
@@ -111,7 +216,11 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "At the end of your turn, restore 1 health to each of your units.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-restore", trigger: "onTurnEnd", text: "Restore 1 health to each of your units.", targeting: { scope: "all", filter: yourUnits }, effects: [{ kind: "heal", amount: { mode: "flat", value: 1 } }] }],
+    abilities: [restore({ scope: "all", filter: yourUnits }, 1)],
+    sizes: [
+      { key: "r1", text: "At the end of your turn, restore 1 health to a random unit of yours.", abilities: [restore({ scope: "random", filter: yourUnits, count: 1 }, 1)] },
+      { key: "h2", text: "At the end of your turn, restore 2 health to each of your units.", abilities: [restore({ scope: "all", filter: yourUnits }, 2)] },
+    ],
   },
   // Card flow and energy
   {
@@ -121,7 +230,11 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "On arrival, draw a card.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-supply-line", trigger: "onPlay", text: "Draw a card.", effects: [{ kind: "drawCard", count: 1 }] }],
+    abilities: [SUPPLY_LINE],
+    sizes: [
+      { key: "low", text: "On arrival, if you have 2 or fewer cards in hand, draw a card.", abilities: [ab(SUPPLY_LINE, { condition: { kind: "not", condition: { kind: "handSizeAtLeast", side: "controller", count: 3 } } })] },
+      { key: "c2", text: "On arrival, draw 2 cards.", abilities: [ab(SUPPLY_LINE, { text: "Draw 2 cards.", effects: [{ kind: "drawCard", count: 2 }] })] },
+    ],
   },
   {
     key: "energy-surge",
@@ -130,7 +243,10 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "On arrival, gain 1 energy this turn.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-energy-surge", trigger: "onPlay", text: "Gain 1 energy.", effects: [{ kind: "gainEnergy", amount: 1 }] }],
+    abilities: [ENERGY_SURGE],
+    sizes: [
+      { key: "e2", text: "On arrival, gain 2 energy this turn.", abilities: [ab(ENERGY_SURGE, { text: "Gain 2 energy.", effects: [{ kind: "gainEnergy", amount: 2 }] })] },
+    ],
   },
   {
     key: "recycle",
@@ -139,7 +255,11 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "When it dies, draw 2 cards.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-recycle", trigger: "onDeath", text: "Draw 2 cards.", effects: [{ kind: "drawCard", count: 2 }] }],
+    abilities: [recycle(2)],
+    sizes: [
+      { key: "c1", text: "When it dies, draw a card.", abilities: [recycle(1)] },
+      { key: "c3", text: "When it dies, draw 3 cards.", abilities: [recycle(3)] },
+    ],
   },
   {
     key: "inspire",
@@ -148,7 +268,12 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "At the start of your turn, a random ally gets +1/+1 permanently.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-inspire", trigger: "onTurnStart", text: "A random unit of yours gets +1/+1.", targeting: { scope: "random", filter: yourUnits, count: 1 }, effects: [{ kind: "buff", attack: 1, health: 1, duration: "permanent" }] }],
+    abilities: [inspire(1, 1)],
+    sizes: [
+      { key: "a0", text: "At the start of your turn, a random ally gets +0/+1 permanently.", abilities: [inspire(0, 1)] },
+      { key: "h0", text: "At the start of your turn, a random ally gets +1/+0 permanently.", abilities: [inspire(1, 0)] },
+      { key: "x2", text: "At the start of your turn, a random ally gets +2/+2 permanently.", abilities: [inspire(2, 2)] },
+    ],
   },
   // Disruption
   {
@@ -158,7 +283,12 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "On arrival, put an enemy unit in Stasis for 1 turn.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-suppress", trigger: "onPlay", text: "Put an enemy unit in Stasis for 1 turn.", targeting: { scope: "chosen", filter: enemyUnits }, effects: [{ kind: "applyStatus", status: "Stasis", duration: 1 }] }],
+    abilities: [suppress(undefined, 1)],
+    sizes: [
+      { key: "m3", text: "On arrival, put an enemy unit with 3 or less health in Stasis for 1 turn.", abilities: [suppress(3, 1)] },
+      { key: "m5", text: "On arrival, put an enemy unit with 5 or less health in Stasis for 1 turn.", abilities: [suppress(5, 1)] },
+      { key: "t2", text: "On arrival, put an enemy unit in Stasis for 2 turns.", abilities: [suppress(undefined, 2)] },
+    ],
   },
   {
     key: "dampen",
@@ -167,7 +297,11 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "Enemy units get -1/-0.",
     keywords: [],
     aura: true,
-    abilities: [{ id: "sig-dampen", trigger: "static", text: "Enemy units get -1/-0.", staticEffect: { kind: "buffAllies", attack: -1, health: 0, filter: enemyUnits } }],
+    abilities: [DAMPEN],
+    sizes: [
+      { key: "hp10", text: "While you have 10 or less health, enemy units get -1/-0.", abilities: [ab(DAMPEN, { condition: { kind: "healthAtMost", side: "controller", threshold: 10 } })] },
+      { key: "hp15", text: "While you have 15 or less health, enemy units get -1/-0.", abilities: [ab(DAMPEN, { condition: { kind: "healthAtMost", side: "controller", threshold: 15 } })] },
+    ],
   },
   {
     key: "tax",
@@ -176,7 +310,8 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "Enemy Commands cost 1 more.",
     keywords: [],
     aura: true,
-    abilities: [{ id: "sig-tax", trigger: "static", text: "Enemy Commands cost 1 more.", staticEffect: { kind: "cardCostModifier", side: "opponent", amount: 1, cardType: "Command" } }],
+    abilities: [tax(1)],
+    sizes: [{ key: "t2", text: "Enemy Commands cost 2 more.", abilities: [tax(2)] }],
   },
   {
     key: "sweep",
@@ -185,7 +320,12 @@ export const SIGNATURE_MENU: MenuOption[] = [
     text: "On arrival, deal 1 damage to each enemy unit.",
     keywords: [],
     aura: false,
-    abilities: [{ id: "sig-sweep", trigger: "onPlay", text: "Deal 1 damage to each enemy unit.", targeting: { scope: "all", filter: enemyUnits }, effects: [{ kind: "damage", amount: { mode: "flat", value: 1 } }] }],
+    abilities: [sweep({ scope: "all", filter: enemyUnits }, 1)],
+    sizes: [
+      { key: "r1", text: "On arrival, deal 1 damage to a random enemy unit.", abilities: [sweep({ scope: "random", filter: enemyUnits, count: 1 }, 1)] },
+      { key: "r2", text: "On arrival, deal 1 damage to 2 random enemy units.", abilities: [sweep({ scope: "random", filter: enemyUnits, count: 2 }, 1)] },
+      { key: "d2", text: "On arrival, deal 2 damage to each enemy unit.", abilities: [sweep({ scope: "all", filter: enemyUnits }, 2)] },
+    ],
   },
 ];
 
@@ -210,6 +350,9 @@ export interface SignatureSpec {
   keyword?: Keyword;
   /** Cost 7 only: the key of a second, different aura option. */
   secondAura?: string;
+  /** A key from the option's `sizes`; omitted for the standard size. The
+   * second aura is always at its standard size. */
+  size?: string;
 }
 
 export function menuOption(key: string): MenuOption {
@@ -219,11 +362,22 @@ export function menuOption(key: string): MenuOption {
 }
 
 /** A stable id for a body + ability combination, e.g. "sig5-3x6-smite",
- * "sig6-4x8-rally+guard", "sig7-3x7-sweep+dampen". The season-uniqueness
- * rule compares these. */
+ * "sig6-4x8-rally+guard", "sig7-3x7-sweep+dampen", and with a size other
+ * than the standard, "sig5-3x6-smite.d2". The season-uniqueness rule
+ * compares these. */
 export function signatureComboId(spec: SignatureSpec): string {
   const extra = spec.keyword ? `+${spec.keyword.toLowerCase()}` : spec.secondAura ? `+${spec.secondAura}` : "";
-  return `sig${spec.tier}-${spec.attack}x${spec.health}-${spec.ability}${extra}`;
+  const size = spec.size ? `.${spec.size}` : "";
+  return `sig${spec.tier}-${spec.attack}x${spec.health}-${spec.ability}${size}${extra}`;
+}
+
+/** The option's text, keywords and abilities at `size` (the standard when
+ * omitted). Throws on a size the option doesn't have. */
+export function optionAtSize(option: MenuOption, size?: string): { text: string; keywords: Keyword[]; abilities: Ability[] } {
+  if (!size) return { text: option.text, keywords: option.keywords, abilities: option.abilities };
+  const s = option.sizes.find((z) => z.key === size);
+  if (!s) throw new Error(`${option.name} has no size "${size}"`);
+  return { text: s.text, keywords: s.keywords ?? option.keywords, abilities: s.abilities };
 }
 
 /** Why `spec` breaks the owner's table, or undefined when it doesn't.
@@ -239,9 +393,11 @@ export function signatureSpecProblem(spec: SignatureSpec, opts: { anyStats?: boo
   }
   const option = SIGNATURE_MENU.find((m) => m.key === spec.ability);
   if (!option) return `no signature ability "${spec.ability}"`;
+  if (spec.size !== undefined && !option.sizes.some((z) => z.key === spec.size)) return `${option.name} has no size "${spec.size}"`;
+  const keywordsAtSize = optionAtSize(option, spec.size).keywords;
   if (tier.extra === "keyword") {
     if (!spec.keyword || !TIER6_KEYWORDS.includes(spec.keyword)) return "cost 6 takes one keyword: Rush, Guard or Barrier";
-    if (option.keywords.includes(spec.keyword)) return `${option.name} already has ${spec.keyword}`;
+    if (keywordsAtSize.includes(spec.keyword)) return `${option.name} already has ${spec.keyword}`;
   } else if (spec.keyword) return `only cost 6 takes a keyword`;
   if (tier.extra === "aura") {
     const aura = SIGNATURE_MENU.find((m) => m.key === spec.secondAura);
@@ -273,10 +429,10 @@ export function allSignatureSpecs(): SignatureSpec[] {
 export function buildSignatureCard(spec: SignatureSpec, opts: { name?: string; art?: string; flavor?: string; anyStats?: boolean } = {}): UnitCard {
   const problem = signatureSpecProblem(spec, opts);
   if (problem) throw new Error(`Signature card ${signatureComboId(spec)}: ${problem}`);
-  const option = menuOption(spec.ability);
-  const keywords: Keyword[] = [...option.keywords];
+  const atSize = optionAtSize(menuOption(spec.ability), spec.size);
+  const keywords: Keyword[] = [...atSize.keywords];
   if (spec.keyword) keywords.push(spec.keyword);
-  const abilities: Ability[] = [...option.abilities];
+  const abilities: Ability[] = [...atSize.abilities];
   if (spec.secondAura) abilities.push(...menuOption(spec.secondAura).abilities);
   const id = signatureComboId(spec);
   return {

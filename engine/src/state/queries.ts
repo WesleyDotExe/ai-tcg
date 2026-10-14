@@ -105,6 +105,15 @@ export function hasKeyword(unit: UnitInstance, keyword: Keyword): boolean {
   return unit.card.keywords.includes(keyword) || unit.tools.some((t) => t.grantedKeywords.includes(keyword));
 }
 
+/** `pid`'s units that are forcing attacks onto themselves right now: active
+ * (not pending, since a dormant telegraph can't protect anyone) and alive,
+ * with Guard printed or granted. The one definition the attack-move rule
+ * (moves.ts) and the "guardInPlay" condition both read, so a unit counts as
+ * a Guard in exactly the same cases for both. */
+export function activeGuards(state: GameState, pid: PlayerId): UnitInstance[] {
+  return state.players[pid].board.filter((u) => !u.pending && hasKeyword(u, "Guard") && isAlive(state, u));
+}
+
 /** What playing `pid`'s signature card would cost right now: its effective
  * cost (cost modifiers apply to it like any card) plus the replay surcharge
  * for every earlier play this match. Undefined when there is no signature

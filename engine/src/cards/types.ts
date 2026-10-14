@@ -101,11 +101,26 @@ export type Side = "controller" | "opponent" | "any";
 export type Condition =
   | { kind: "always" }
   | { kind: "not"; condition: Condition }
+  /** Every / at least one of `conditions` holds (session 33). */
+  | { kind: "all"; conditions: Condition[] }
+  | { kind: "any"; conditions: Condition[] }
   | { kind: "healthAtMost"; side: Exclude<Side, "any">; threshold: number }
   | { kind: "healthAtLeast"; side: Exclude<Side, "any">; threshold: number }
   | { kind: "unitsInPlayAtLeast"; side: Exclude<Side, "any">; count: number }
   | { kind: "handSizeAtLeast"; side: Exclude<Side, "any">; count: number }
-  | { kind: "controllerFactionInPlay"; faction: Faction };
+  | { kind: "controllerFactionInPlay"; faction: Faction }
+  /** `side` has a unit forcing attacks onto itself right now: active, alive
+   * and with Guard (state/queries.ts's activeGuards). First user: the
+   * signature menu's Bulwark, as `not guardInPlay controller` (owner
+   * 2026-10-13: Guard takes priority, so Bulwark only steps in when no
+   * Guard is protecting the target). */
+  | { kind: "guardInPlay"; side: Exclude<Side, "any"> }
+  /** The nearest pending attack on the stack (the one an onEnemyAttack
+   * trigger is reacting to) is aimed at a unit, or at a player. False with
+   * no pending attack. Added session 33 for the measured Bulwark rework
+   * proposals (balance report 024), which the owner hasn't chosen; no menu
+   * option uses it yet. */
+  | { kind: "attackTargets"; target: "unit" | "player" };
 
 export interface TargetFilter {
   side: Side;

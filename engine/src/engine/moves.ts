@@ -1,7 +1,7 @@
 import type { Ability, Speed } from "../cards/types.js";
 import type { GameState, PlayerId } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
-import { isAlive, hasKeyword, effectiveCardCost, boardSlotsUsed, signatureCost } from "../state/queries.js";
+import { hasKeyword, activeGuards, effectiveCardCost, boardSlotsUsed, signatureCost } from "../state/queries.js";
 import { enumerateTargets, type TargetRef } from "../effects/targeting.js";
 import { evaluateCondition } from "../effects/conditions.js";
 import { BOARD_SLOTS } from "../state/init.js";
@@ -173,7 +173,7 @@ function pushAttackMoves(state: GameState, pid: PlayerId, moves: Move[]): void {
   const enemy = state.players[enemyId];
   // A pending (unarmed) telegraphed unit is dormant and cannot force
   // attacks onto itself via Guard, same as it cannot attack itself.
-  const guards = enemy.board.filter((u) => !u.pending && hasKeyword(u, "Guard") && isAlive(state, u));
+  const guards = activeGuards(state, enemyId);
   const enemyTargets: TargetRef[] =
     guards.length > 0
       ? guards.map((u) => ({ kind: "unit", instanceId: u.instanceId }))
@@ -199,12 +199,16 @@ function pushActivatedAbilityMoves(state: GameState, pid: PlayerId, moves: Move[
   const sources = [
     // A pending (unarmed) telegraphed unit is dormant — it cannot activate
     // abilities until it arms.
-    ...player.board.filter((u) => !u.pending).map((u) => ({ instanceId: u.instanceId, abilities: u.card.abilities })),
-    ...player.directives.map((d) => ({ instanceId: d.instanceId, abilities: d.card.abilities })),
+    ...player.board.filter((u) => !u.pending).map((u) => ({ instanceId: u.instanceId, abilities: u.card.abilities, used: u.usedThisTurn })),
+    ...player.directives.map((d) => ({ instanceId: d.instanceId, abilities: d.card.abilities, used: undefined as string[] | undefined })),
   ];
   for (const src of sources) {
     for (const ability of src.abilities as Ability[]) {
       if (ability.trigger !== "activated") continue;
+      // A once-per-turn ability already used this turn would resolve to
+      // nothing (resolver.ts), so it isn't offered: paying for a no-op is
+      // never a real choice.
+      if (ability.limit === "oncePerTurn" && src.used?.includes(ability.id)) continue;
       const speed: Speed = ability.speed ?? "Sorcery";
       if (speed === "Sorcery" && !sorceryTiming) continue;
       const cost = ability.cost?.energy ?? 0;

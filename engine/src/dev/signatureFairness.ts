@@ -34,6 +34,9 @@
 //       "if it fails, adjust its stats and test again" (owner 2026-10-05):
 //       walk the stat line (off the table if need be) toward zero net
 //       change, then confirm the best line found at --confirm seeds
+//   npx tsx src/dev/signatureFairness.ts levers [--ability key | --shard i/k] [--coarse N] [--seeds N] [--confirm N] [--out file]
+//       the tuner with the owner's 2026-10-13 levers: the ability's size
+//       and the cost tier as well as the stat line (attack 2 or more)
 //   npx tsx src/dev/signatureFairness.ts report file... [--seeds N]
 //       the table for a balance report
 
@@ -41,7 +44,19 @@ import { readFileSync, writeFileSync, existsSync, appendFileSync } from "node:fs
 import { fileURLToPath } from "node:url";
 import { measurePairing, FACTIONS, type DeckBuilder } from "./edgeMeasure.js";
 import { buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck } from "../data/decks.js";
-import { allSignatureSpecs, buildSignatureCard, signatureComboId, onTable, SIGNATURE_TIERS, type SignatureSpec } from "../data/signatureMenu.js";
+import {
+  allSignatureSpecs,
+  buildSignatureCard,
+  menuOption,
+  optionAtSize,
+  signatureComboId,
+  onTable,
+  SIGNATURE_MENU,
+  SIGNATURE_TIERS,
+  TIER6_KEYWORDS,
+  type SignatureSpec,
+  type SignatureTier,
+} from "../data/signatureMenu.js";
 import type { DeckFaction as Faction, UnitCard } from "../cards/types.js";
 
 /** A measuring stand-in only, never a real card: the bottom of the cost-5
@@ -61,7 +76,10 @@ export const REFERENCE_SIGNATURE: UnitCard = {
   abilities: [],
 };
 
-/** The stat walk's bounds (tuneCandidate). */
+/** The stat walk's bounds (tuneCandidate). Attack stays at 2 or more so the
+ * card still reads as a Mythic (owner 2026-10-13); session 32's walk went
+ * down to 0 and is not reproduced by this one below 2. */
+export const MIN_TUNED_ATTACK = 2;
 const MAX_TUNED_ATTACK = 6;
 const MAX_TUNED_HEALTH = 9;
 
@@ -171,7 +189,7 @@ export async function tuneCandidate(start: SignatureSpec, screen: Reference, con
     // Bounds: health is a weak lever here (a signature card rarely dies),
     // so an unbounded walk can climb health forever chasing a few tenths of
     // a point (session 32: Sweep walked to 1/16). Keep bodies plausible.
-    if (spec.attack < 0 || spec.attack > MAX_TUNED_ATTACK || spec.health < 1 || spec.health > MAX_TUNED_HEALTH) return undefined;
+    if (spec.attack < MIN_TUNED_ATTACK || spec.attack > MAX_TUNED_ATTACK || spec.health < 1 || spec.health > MAX_TUNED_HEALTH) return undefined;
     const id = signatureComboId(spec);
     if (!cache.has(id)) {
       const r = await testCandidate(buildSignatureCard(spec, { anyStats: true }), spec, screen);
@@ -250,6 +268,98 @@ export async function testCandidate(card: UnitCard, spec: SignatureSpec, referen
   return { id: signatureComboId(spec), spec, seeds: reference.seeds, factions, worst, pass: factions.every((f) => f.pass) };
 }
 
+/** One lever setting short of the stat line: the ability's size, its cost
+ * tier, and that tier's extra (the 6-cost keyword or the 7-cost aura). */
+export type LeverConfig = Pick<SignatureSpec, "ability" | "tier" | "size" | "keyword" | "secondAura">;
+
+/** Every size x tier x extra the table allows for `ability` (owner
+ * 2026-10-13: "the size of the ability itself, and the cost tier"). */
+export function leverConfigs(ability: string): LeverConfig[] {
+  const option = menuOption(ability);
+  const out: LeverConfig[] = [];
+  for (const size of [undefined, ...option.sizes.map((z) => z.key)]) {
+    const keywords = optionAtSize(option, size).keywords;
+    const base = size ? { ability, size } : { ability };
+    out.push({ ...base, tier: 5 });
+    for (const keyword of TIER6_KEYWORDS) if (!keywords.includes(keyword)) out.push({ ...base, tier: 6, keyword });
+    for (const aura of SIGNATURE_MENU) if (aura.aura && aura.key !== ability) out.push({ ...base, tier: 7, secondAura: aura.key });
+  }
+  return out;
+}
+
+export interface LeverResult {
+  ability: string;
+  /** Every table line of every config, at the coarse screen. */
+  screened: { id: string; net: number; worst: number }[];
+  /** The stat walks from the best configs. */
+  walks: TuneResult[];
+  /** The best lines overall, re-measured at the confirm seed count, best
+   * first. */
+  confirmed: CandidateResult[];
+}
+
+/**
+ * The tuner with all three levers. (1) Every table line of every lever
+ * config at the coarse screen. (2) From the `walkFrom` configs whose best
+ * table line has the smallest worst edge, the stat walk (tuneCandidate,
+ * attack 2 or more). (3) The `confirmTop` best distinct lines over all of
+ * it re-measured at the confirm seed count; a candidate passes only on that
+ * confirmed measurement.
+ */
+export async function tuneWithLevers(
+  ability: string,
+  refs: { coarse: Reference; screen: Reference; confirm: Reference },
+  opts: { walkFrom?: number; confirmTop?: number; log?: (s: string) => void } = {},
+): Promise<LeverResult> {
+  const log = opts.log ?? (() => {});
+  const screened: { spec: SignatureSpec; r: CandidateResult }[] = [];
+  for (const config of leverConfigs(ability)) {
+    for (const [attack, health] of SIGNATURE_TIERS[config.tier as SignatureTier].stats) {
+      const spec: SignatureSpec = { ...config, attack, health } as SignatureSpec;
+      const r = await testCandidate(buildSignatureCard(spec), spec, refs.coarse);
+      screened.push({ spec, r });
+      log(`  screen ${r.id.padEnd(44)} net ${signed(netChange(r))}  worst ${pct(r.worst)}`);
+    }
+  }
+  // Best table line per config, then the best configs.
+  const configKey = (s: SignatureSpec) => `${s.tier}|${s.size ?? ""}|${s.keyword ?? ""}|${s.secondAura ?? ""}`;
+  const bestPerConfig = new Map<string, { spec: SignatureSpec; r: CandidateResult }>();
+  for (const x of screened) {
+    const k = configKey(x.spec);
+    const cur = bestPerConfig.get(k);
+    if (!cur || x.r.worst < cur.r.worst) bestPerConfig.set(k, x);
+  }
+  const starts = [...bestPerConfig.values()].sort((a, b) => a.r.worst - b.r.worst).slice(0, opts.walkFrom ?? 3);
+  const walks: TuneResult[] = [];
+  for (const start of starts) {
+    log(` walk from ${start.r.id}`);
+    walks.push(await tuneCandidate(start.spec, refs.screen, refs.screen, log));
+  }
+  // Candidates for confirmation: every walked line, plus the screened
+  // table lines (they may beat a walk), ranked by worst edge at their own
+  // seed count. Distinct ids only.
+  const pool = new Map<string, { spec: SignatureSpec; worst: number }>();
+  for (const w of walks) for (const t of w.tried) if (!pool.has(t.id) || pool.get(t.id)!.worst > t.worst) pool.set(t.id, { spec: specOf(w, t.id), worst: t.worst });
+  for (const x of screened) if (!pool.has(x.r.id)) pool.set(x.r.id, { spec: x.spec, worst: x.r.worst });
+  const ranked = [...pool.values()].sort((a, b) => a.worst - b.worst).slice(0, opts.confirmTop ?? 3);
+  const confirmed: CandidateResult[] = [];
+  for (const c of ranked) {
+    const r = await testCandidate(buildSignatureCard(c.spec, { anyStats: true }), c.spec, refs.confirm);
+    confirmed.push(r);
+    log(` confirm ${r.id.padEnd(44)} net ${signed(netChange(r))}  worst ${pct(r.worst)}  ${r.pass ? "PASS" : "fail"}`);
+  }
+  confirmed.sort((a, b) => a.worst - b.worst);
+  return { ability, screened: screened.map((x) => ({ id: x.r.id, net: netChange(x.r), worst: x.r.worst })), walks, confirmed };
+}
+
+/** The spec a walk measured under `id` (walks keep the start's levers and
+ * change only the stat line). */
+function specOf(w: TuneResult, id: string): SignatureSpec {
+  const m = /-(\d+)x(\d+)-/.exec(id);
+  if (!m) throw new Error(`specOf: ${id}`);
+  return { ...w.start, attack: Number(m[1]), health: Number(m[2]) };
+}
+
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
   return i === -1 ? undefined : process.argv[i + 1];
@@ -310,6 +420,25 @@ async function main(): Promise<void> {
     const out = arg("out");
     if (out) appendFileSync(out, JSON.stringify(result) + "\n");
     else console.log(JSON.stringify(result));
+    return;
+  }
+  if (command === "levers") {
+    // --ability K (one option) or --shard i/k over the 16 options.
+    const only = arg("ability");
+    const [shard, shards] = (arg("shard") ?? "0/1").split("/").map(Number) as [number, number];
+    const options = SIGNATURE_MENU.map((o) => o.key).filter((k, i) => (only ? k === only : i % shards === shard));
+    const refs = {
+      coarse: loadReference(Number(arg("coarse") ?? 300)),
+      screen: loadReference(Number(arg("seeds") ?? 500)),
+      confirm: loadReference(Number(arg("confirm") ?? 2500)),
+    };
+    const out = arg("out");
+    for (const ability of options) {
+      console.error(`levers ${ability} (coarse ${refs.coarse.seeds}, walk ${refs.screen.seeds}, confirm ${refs.confirm.seeds})`);
+      const result = await tuneWithLevers(ability, refs, { log: (s) => console.error(s) });
+      if (out) appendFileSync(out, JSON.stringify(result) + "\n");
+      else console.log(JSON.stringify(result));
+    }
     return;
   }
   if (command === "report") {

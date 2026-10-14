@@ -1,0 +1,258 @@
+AI-TCG Guard-over-Bulwark demo (owner 2026-10-13, call 3): Cortex vs Aegis (Bulwark), seed 1
+(first seed in 1-400 where Bulwark both stands aside for a Guard and pulls an attack)
+p1 = Lookahead-Cortex, p2 = Lookahead-Aegis
+Bulwark: 5 cost, 3/6, "The first enemy attack each turn is redirected to this, unless a Guard unit is protecting your side." (once per turn)
+SIG   = a signature-card line.
+GUARD = Cortex attacks while Bulwark is on the board and an Aegis Guard unit protects the side:
+        the attack is forced onto the Guard and Bulwark doesn't step in (no redirect follows).
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Latent Ward
+--- Turn 2 (p2) ---
+p2 plays Aegis Cadet (u1)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Watchtower Relay
+--- Turn 3 (p1) ---
+p1 plays Fail-safe Unit (u2)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Reinforced Bastion
+--- Turn 4 (p2) ---
+p2 plays Bulwark Chassis (u3)
+Aegis Cadet attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Force Quit
+--- Turn 5 (p1) ---
+p1 plays Watchtower Relay (u5)
+Fail-safe Unit attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Uplink Tower
+--- Turn 6 (p2) ---
+p2 plays Reinforced Bastion (u7)
+Aegis Cadet attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex
+Bulwark Chassis attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Overload Capacitor
+--- Turn 7 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p1 plays Overload Capacitor (u10)
+  ability: Overload Capacitor — overload-capacitor-play (onPlay)
+  Overload Capacitor applies Overload to Overload Capacitor
+Watchtower Relay attacks Reinforced Bastion
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Reinforced Bastion (unit)
+  Reinforced Bastion deals 2 damage to Watchtower Relay (unit)
+Fail-safe Unit attacks Reinforced Bastion
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Reinforced Bastion (unit)
+  Reinforced Bastion deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit (p1) dies
+  Reinforced Bastion (p2) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Diagnostic Loop
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+  Overload deals 1 damage to Overload Capacitor (unit)
+p2 draws Salvage Reflex
+--- Turn 8 (p2) ---
+p2 plays Uplink Tower (u13)
+Aegis Cadet attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex
+Bulwark Chassis attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Init Daemon
+--- Turn 9 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Overload Capacitor attacks Lookahead-Aegis (face)
+p1 casts Interrupt Handler [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Aegis Cadet's base armor reduces 2 damage from Interrupt Handler to 1
+  Interrupt Handler deals 1 damage to Aegis Cadet (unit)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overload Capacitor's attack
+  Overload Capacitor deals 4 damage to Lookahead-Aegis
+p1 plays Watchtower Relay (u18)
+Watchtower Relay attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+  Overload deals 1 damage to Overload Capacitor (unit)
+p2 draws Aegis Sentinel
+--- Turn 10 (p2) ---
+  ability: Uplink Tower — uplink-tower-sync (onTurnStart)
+SIG   p2 plays Bulwark (sig5-3x6-bulwark) from the signature zone for 5 energy (u20)
+Uplink Tower attacks Overload Capacitor
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Uplink Tower's attack
+  Uplink Tower deals 2 damage to Overload Capacitor (unit)
+  Overload Capacitor deals 4 damage to Uplink Tower (unit)
+  Overload Capacitor (p1) dies
+Aegis Cadet attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Cadet's attack
+  Aegis Cadet deals 1 damage to Lookahead-Cortex
+Bulwark Chassis attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Overclock Shunt
+--- Turn 11 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+SIG   p1 plays Reference Signature from the signature zone for 5 energy (u24)
+Watchtower Relay attacks Lookahead-Aegis (face)
+SIG   ability: Bulwark (sig5-3x6-bulwark) — sig-bulwark (onEnemyAttack)
+SIG   Bulwark (sig5-3x6-bulwark) redirects Watchtower Relay's attack from Lookahead-Aegis to Bulwark (sig5-3x6-bulwark)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Bulwark (sig5-3x6-bulwark) (unit)
+  Bulwark (sig5-3x6-bulwark) deals 3 damage to Watchtower Relay (unit)
+Watchtower Relay attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Aegis
+  Overclock Shunt attaches to Reference Signature
+Reference Signature attacks Lookahead-Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Reference Signature's attack
+  Reference Signature deals 4 damage to Lookahead-Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Aegis Warden
+--- Turn 12 (p2) ---
+  ability: Uplink Tower — uplink-tower-sync (onTurnStart)
+Bulwark (sig5-3x6-bulwark) attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark (sig5-3x6-bulwark)'s attack
+  Bulwark (sig5-3x6-bulwark) deals 3 damage to Lookahead-Cortex
+p2 plays Salvage Reflex (u29)
+  Aegis Cadet evolves into Aegis Sentinel
+  ability: Aegis Sentinel — aegis-sentinel-evolve (onPlay)
+  p2 gains 1 energy from Aegis Sentinel
+Aegis Sentinel attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Sentinel's attack
+  Aegis Sentinel deals 3 damage to Lookahead-Cortex
+Uplink Tower attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Uplink Tower's attack
+  Uplink Tower deals 2 damage to Lookahead-Cortex
+Bulwark Chassis attacks Watchtower Relay
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 1 damage to Watchtower Relay (unit)
+  Watchtower Relay deals 2 damage to Bulwark Chassis (unit)
+  Watchtower Relay (p1) dies
+p2 plays Barrier Drone (u33)
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Surge Protector
+--- Turn 13 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+p1 plays Diagnostic Loop (u34)
+GUARD Reference Signature attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Reference Signature's attack
+  Reference Signature deals 4 damage to Barrier Drone (unit)
+  Barrier Drone (p2) dies
+Watchtower Relay attacks Lookahead-Aegis (face)
+SIG   ability: Bulwark (sig5-3x6-bulwark) — sig-bulwark (onEnemyAttack)
+SIG   Bulwark (sig5-3x6-bulwark) redirects Watchtower Relay's attack from Lookahead-Aegis to Bulwark (sig5-3x6-bulwark)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Bulwark (sig5-3x6-bulwark) (unit)
+  Bulwark (sig5-3x6-bulwark) deals 3 damage to Watchtower Relay (unit)
+  Watchtower Relay (p1) dies
+p1 plays Init Daemon (u37)
+  Surge Protector attaches to Reference Signature
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p2 draws Feedback Plating
+--- Turn 14 (p2) ---
+  ability: Uplink Tower — uplink-tower-sync (onTurnStart)
+Bulwark (sig5-3x6-bulwark) attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Bulwark (sig5-3x6-bulwark)'s attack
+  Bulwark (sig5-3x6-bulwark) deals 3 damage to Lookahead-Cortex
+Aegis Sentinel attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Sentinel's attack
+  Aegis Sentinel deals 3 damage to Lookahead-Cortex
+=== GAME OVER: p2 wins (p1 health depleted) ===
+
+Turns: 14. Attacks past a protecting Guard (Bulwark stood aside): 1.
+Attacks Bulwark pulled onto itself: 2. Winner: p2.
+Redirects right after a GUARD attack (must be 0): 0.
+
+Same seed with session 32's Bulwark (no Guard rule): Bulwark pulled 2 attack(s), 14 turns, winner p2.

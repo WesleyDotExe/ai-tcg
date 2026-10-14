@@ -14,6 +14,8 @@ import {
   type SignatureSpec,
 } from "../src/data/signatureMenu.js";
 import { applyMove } from "../src/engine/engine.js";
+import { getLegalMoves } from "../src/engine/moves.js";
+import { resolveAbility } from "../src/effects/resolver.js";
 import { runMatch } from "../src/engine/match.js";
 import { Rng } from "../src/state/rng.js";
 import { currentAttack, currentHealth, effectiveCardCost } from "../src/state/queries.js";
@@ -84,6 +86,53 @@ describe("the Neutral signature menu as card data", () => {
     expect(seven.abilities.map((a) => a.id)).toEqual(["sig-sweep", "sig-dampen"]);
     const six = buildSignatureCard({ ability: "hunter", tier: 6, attack: 4, health: 8, keyword: "Guard" });
     expect(six.keywords).toEqual(["Rush", "Guard"]);
+  });
+});
+
+describe("ability sizes (owner 2026-10-13: the tuner's size lever)", () => {
+  it("every size builds a legal card that differs from the standard, with a unique id", () => {
+    const ids = new Set<string>();
+    for (const option of SIGNATURE_MENU) {
+      const standard = card({ ability: option.key });
+      ids.add(standard.id);
+      for (const size of option.sizes) {
+        const sized = card({ ability: option.key, size: size.key });
+        expect(sized.id).toBe(`sig5-3x6-${option.key}.${size.key}`);
+        expect(JSON.stringify(sized.abilities)).not.toBe(JSON.stringify(standard.abilities));
+        expect(sized.abilities.map((a) => a.id)).toEqual(standard.abilities.map((a) => a.id));
+        expect(size.text).not.toBe(option.text);
+        ids.add(sized.id);
+      }
+    }
+    expect(ids.size).toBe(SIGNATURE_MENU.length + SIGNATURE_MENU.reduce((n, o) => n + o.sizes.length, 0));
+  });
+
+  it("refuses a size the option doesn't have", () => {
+    expect(signatureSpecProblem({ ability: "smite", tier: 5, attack: 3, health: 6, size: "d9" })).toMatch(/no size/);
+    expect(signatureSpecProblem({ ability: "guardian", tier: 5, attack: 3, health: 6, size: "d1" })).toMatch(/no size/);
+  });
+
+  it("a smaller Smite deals less, and a conditional aura is off until its condition holds", () => {
+    const rng = new Rng(3);
+    const state = emptyState();
+    const victim = putUnit(state, "p2", vanilla(1, 9, "Victim"));
+    const smiter = putUnit(state, "p1", card({ ability: "smite", size: "d2" }));
+    resolveAbility({
+      state,
+      ability: smiter.card.abilities[0]!,
+      controller: "p1",
+      source: { kind: "unit", instanceId: smiter.instanceId, cardName: smiter.card.name },
+      chosen: { kind: "unit", instanceId: victim.instanceId },
+      rng,
+    });
+    expect(currentHealth(state, victim)).toBe(7);
+
+    const aura = putUnit(state, "p1", card({ ability: "commanders-aura", size: "w4" }));
+    const ally = putUnit(state, "p1", vanilla(2, 2, "Ally"));
+    expect(currentAttack(state, ally)).toBe(2); // 3 units: a w4 aura is off
+    putUnit(state, "p1", vanilla(1, 1, "Fourth"));
+    expect(currentAttack(state, ally)).toBe(3); // 4 units: on
+    expect(currentAttack(state, aura)).toBe(3); // never itself
   });
 });
 
@@ -175,6 +224,84 @@ describe("the engine pieces the menu needed", () => {
     attack(state, a2.instanceId, { kind: "unit", instanceId: other.instanceId }, rng);
     expect(currentHealth(state, bulwark)).toBe(5);
     expect(currentHealth(state, other)).toBe(4);
+  });
+
+  // Owner 2026-10-13, call 3: Guard takes priority over Bulwark.
+  it("Bulwark stands aside while a Guard unit protects its side, and keeps its redirect for later", () => {
+    const rng = new Rng(7);
+    const state = emptyState();
+    const a1 = putUnit(state, "p1", vanilla(3, 5, "A1"));
+    const a2 = putUnit(state, "p1", vanilla(1, 5, "A2"));
+    const bulwark = putUnit(state, "p2", card({ ability: "bulwark" }));
+    const guard = putUnit(state, "p2", { ...vanilla(1, 3, "Wall"), keywords: ["Guard"] });
+    readyToAttack(state);
+    // The only legal enemy target is the Guard; Bulwark doesn't take it.
+    attack(state, a1.instanceId, { kind: "unit", instanceId: guard.instanceId }, rng);
+    expect(state.log.some((e) => e.type === "attackRedirected")).toBe(false);
+    expect(currentHealth(state, bulwark)).toBe(6);
+    expect(bulwark.usedThisTurn).toBeUndefined(); // the redirect wasn't spent
+    expect(state.players.p2.board.includes(guard)).toBe(false); // 3 damage killed the 1/3 Guard
+    // With the Guard gone, the next attack is Bulwark's first of the turn.
+    attack(state, a2.instanceId, { kind: "player", playerId: "p2" }, rng);
+    expect(currentHealth(state, bulwark)).toBe(5);
+    expect(state.players.p2.health).toBe(state.players.p1.health);
+  });
+
+  it("a Bulwark with Guard of its own (the cost-6 keyword) never pulls an attack off another Guard", () => {
+    const rng = new Rng(8);
+    const state = emptyState();
+    const a1 = putUnit(state, "p1", vanilla(1, 5, "A1"));
+    const bulwark = putUnit(state, "p2", card({ ability: "bulwark", tier: 6, attack: 4, health: 8, keyword: "Guard" }));
+    const guard = putUnit(state, "p2", { ...vanilla(1, 5, "Wall"), keywords: ["Guard"] });
+    readyToAttack(state);
+    attack(state, a1.instanceId, { kind: "unit", instanceId: guard.instanceId }, rng);
+    expect(currentHealth(state, guard)).toBe(4);
+    expect(currentHealth(state, bulwark)).toBe(8);
+  });
+
+  it("a pending (unarmed) Guard doesn't protect, so Bulwark steps in as usual", () => {
+    const rng = new Rng(9);
+    const state = emptyState();
+    const a1 = putUnit(state, "p1", vanilla(1, 5, "A1"));
+    const bulwark = putUnit(state, "p2", card({ ability: "bulwark" }));
+    const dormant = putUnit(state, "p2", { ...vanilla(1, 5, "Dormant"), keywords: ["Guard"] });
+    dormant.pending = true;
+    readyToAttack(state);
+    attack(state, a1.instanceId, { kind: "player", playerId: "p2" }, rng);
+    expect(currentHealth(state, bulwark)).toBe(5);
+  });
+
+  it("the attackTargets condition reads where the pending attack is aimed (for the Bulwark rework probes)", () => {
+    const rng = new Rng(10);
+    const state = emptyState();
+    const a1 = putUnit(state, "p1", vanilla(1, 5, "A1"));
+    const a2 = putUnit(state, "p1", vanilla(1, 5, "A2"));
+    const unitsOnly = { ...card({ ability: "bulwark" }) };
+    unitsOnly.abilities = unitsOnly.abilities.map((a) => ({ ...a, condition: { kind: "attackTargets", target: "unit" } as const }));
+    const bulwark = putUnit(state, "p2", unitsOnly);
+    const other = putUnit(state, "p2", vanilla(1, 5, "Other"));
+    readyToAttack(state);
+    attack(state, a1.instanceId, { kind: "player", playerId: "p2" }, rng); // aimed at the player: not taken
+    expect(currentHealth(state, bulwark)).toBe(6);
+    attack(state, a2.instanceId, { kind: "unit", instanceId: other.instanceId }, rng); // aimed at a unit: taken
+    expect(currentHealth(state, bulwark)).toBe(5);
+    expect(currentHealth(state, other)).toBe(5);
+  });
+
+  it("a once-per-turn activated ability isn't offered again after it resolved this turn", () => {
+    const rng = new Rng(11);
+    const state = emptyState();
+    const pinger = putUnit(state, "p1", {
+      ...vanilla(1, 5, "Pinger"),
+      abilities: [{ id: "t-ping", trigger: "activated", limit: "oncePerTurn", text: "Deal 1 damage to the enemy player.", targeting: { scope: "chosen", filter: { side: "opponent", kind: "player" } }, effects: [{ kind: "damage", amount: { mode: "flat", value: 1 } }] }],
+    });
+    readyToAttack(state);
+    const offered = () => getLegalMoves(state).filter((m) => m.type === "activateAbility" && m.sourceInstanceId === pinger.instanceId);
+    expect(offered()).toHaveLength(1);
+    applyMove(state, offered()[0]!, rng);
+    drainStack(state, rng);
+    expect(state.players.p2.health).toBe(state.players.p1.health - 1);
+    expect(offered()).toHaveLength(0);
   });
 
   it("a destroy effect credits its source unit with the kill", () => {

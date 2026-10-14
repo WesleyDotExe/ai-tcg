@@ -2316,7 +2316,7 @@ Owner decision on the slice 6 checkpoint in `progress/render/checkpoints.md` (re
 
 ---
 
-## 2026-10-13 — Owner: signature menu check-in, option A; the signature card can't be sold (answers session 32)
+## 2026-10-13 — Owner: signature menu check-in, option A; the signature card can't be sold (answers session 32) (HANDLED 2026-10-14, session 33 — the tuner has the size lever (`MenuOption.sizes`, every option but Guardian and Bulwark) and the cost-tier lever, attack kept at 2 or more; all 16 options re-run: 6 pass (Recycle, Supply line, Rally, Restore, Tax, Inspire), 3 are within 0.6 of passing; rework proposals for Guardian and Bulwark were measured and are in the new [OWNER CHECK-IN] in notes-for-owner.md (`progress/balance-report-024-signature-levers.txt`). The Aegis question stays open, as asked. The signature card can't be sold: schema migration 5 and `grantCopy` force a signature copy (`origin_ref` `signature:<agentId>`) to be a bound promo)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 32).
 
@@ -2330,7 +2330,7 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ---
 
-## 2026-10-13 — Owner: session 32's five smaller calls (follow-up)
+## 2026-10-13 — Owner: session 32's five smaller calls (follow-up) (HANDLED 2026-10-14, session 33 — call 3 built before Bulwark's re-test: a generic `guardInPlay` condition, Bulwark stands aside while a Guard unit protects its side and keeps its redirect; tested, and shown in a real game in `progress/sample-match-031-bulwark-guard.txt`; the rework proposals were measured with it. Calls 1, 2, 4 and 5 stand as built)
 
 Owner decisions on the five "calls you may want to overrule" in session 32's notes. This completes the earlier 2026-10-13 entry.
 

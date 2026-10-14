@@ -27,9 +27,50 @@ advantage, Null's cards), session 26 (the Phase 5 gate), session 27 (Phase 5
 closed, event-log instance ids), session 28 (persistence + the economy spec), and now session 29
 (the economy moves to the owner), and now session 30 (manual salvage, sign-in, the connected
 agent), and now session 31 (promo/prize unbinding, the signature zone), and session 32 (the Neutral
-signature menu and its fairness test).
+signature menu and its fairness test), and session 33 (the tuner's size and cost levers, Guard over
+Bulwark, the unsellable signature card).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 33
+
+- **10 of 16 menu options still fail the fairness test.** Guardian and Bulwark fail at every lever
+  and wait on the owner's rework call. Hunter is too strong even at its smallest size, and it has
+  no size without Rush. Commander's aura, Shield wall, Suppress and Dampen split the factions at
+  every size. The generator can only draw from 6 options until this moves.
+- **The search isn't exhaustive.** The coarse screen runs at 300 seeds, and the walks start only
+  from the 3 best configs. A config that screened badly by noise is never walked, so a passing
+  line may be missed, most likely for the near misses (Smite d1 2.4, Energy surge 2.4, Sweep r2
+  2.6).
+- **Picking the lowest worst edge from a noisy screen favours lucky lines.** Only the 2,500-seed
+  re-measure counts as a pass, so no false pass gets through. But it is why several confirmed
+  lines come in worse than they screened (Tax 3/4: 2.2 confirmed).
+- **The sizes are my picks, 2-4 steps per option.** No size is finer than one number step.
+  "Only while" conditions count as sizes (a call flagged to the owner). Guardian and Bulwark have
+  no size at all.
+- **Inspire passes only off the table (3/4, 3/5).** The generator will show a body the owner's
+  table doesn't list.
+- **The cost-7 lines the tuner likes are tiny bodies (Guardian 3/2, Bulwark 3/4).** They don't
+  read as Mythics, and the tuner has no lower bound on health beyond 1.
+- **`attackTargets` is engine surface no card uses.** Only the dev rework probes use it. If the
+  owner picks neither Bulwark rework that needs it, it should go.
+- **A once-per-turn activated ability can still be activated twice before the first resolves.**
+  The use is recorded at resolution, so a second activation in response to the first is offered,
+  paid for, and then does nothing. No card is affected yet (the only user is the "intercept" probe).
+- **The menu's results still depend on Lookahead**, as session 32 noted. It doesn't value a
+  signature card's statics or turn triggers when deciding to play it. The passes are passes for
+  Lookahead-vs-Lookahead play.
+- **The report's findings are hand-written** (`signatureLeversReport.ts` FINDINGS). If the data is
+  re-run with different numbers, the prose won't follow it.
+- **The raw results grew by ~320 KB of JSONL** (levers and reworks), on top of session 32's
+  288 KB.
+
+## Session 32 items moved by session 33
+
+- "The tuner only moves stats": it now also has size and cost-tier levers. The walk is still
+  greedy (see above).
+- "Cost 6 and 7 are barely measured": every option is now screened at cost 6 and 7 with every
+  extra (300 seeds), and the best lines confirmed.
 
 ## New debt from session 32
 
