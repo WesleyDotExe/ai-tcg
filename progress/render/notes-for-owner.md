@@ -488,3 +488,21 @@ separate from the shared `progress/notes-for-owner.md`).
    special in the replays, that's a new call.
 5. **No engine change was needed.**
 
+
+---
+
+## 2026-10-14 — Session 17 (EFFECTS.md v2 slice 7: fallback wards)
+
+1. **Session 16's note 4 is superseded.** Signature cards now get a ward:
+   the Mythic ward, drawn by code from the card's name (white-gold,
+   Neutral's own rune material). The checkpoint (call 1) asks whether
+   that's what you want.
+2. **Signature cards never get Replicate art** as things stand: the art
+   action only reads `mythics.json`, and generated agents' cards aren't in
+   it. If you want art for them, the cost is about $0.15 per agent through
+   the existing pipeline (checkpoint call 2). Nothing to set up until then.
+3. **Ask for the game lane, not a blocker:** when `generateAgent` lands,
+   its signature card names feed the ward seed directly. A name change
+   changes that agent's ward, so names should be fixed once given.
+4. **No engine change was needed.** `buildSignatureCard` is read through
+   `render/src/engineInternal.ts`, like the other deep imports.

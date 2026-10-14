@@ -2044,3 +2044,93 @@ govern, and the v2 build order's next slice is 5.
 **Next render-lane slice:** EFFECTS.md v2 slice 7, the fallback ward
 generator (any Mythic without a sheet still gets a unique ward). A slice-5
 section for the FX sheet could go with it.
+
+## 2026-10-14 — Session 17: EFFECTS.md v2 slice 7, the fallback ward generator
+
+The last merged PR (#51, game session 33) was the game lane, so this was a
+render session. Owner feedback had no new render item: the 2026-10-14 entry
+accepted all six slice-5 calls, and the 2026-10-15 entry (signature menu,
+option A) is game-lane. RENDER.md and EFFECTS.md govern, and the v2 build
+order's last open slice is 7.
+
+**Built:**
+- **`render/src/fallbackWard.ts`** (slice 7):
+  - The pure half:
+    - `fallbackWardPlan(name, faction)` makes every random choice up front
+      (FNV-1a of `faction:name`, then mulberry32) and returns plain data.
+    - `FW_KITS`: one material per faction, Neutral included (rune tablets,
+      arc glyphs, a "runes" middle of notched broken rings). An unknown
+      faction draws in the Neutral kit.
+    - `fallbackWardLook` is the coarse look (patterns and counts) used to
+      measure variety; `fallbackWardsNeeded` lists the Mythics in a replay
+      with no sheet.
+  - The runtime: `fallbackWardSheet(plan)` draws a 2×2 sheet in the
+    Replicate layout, so `WARDS` handles it exactly like art.
+- **`wardFx.ts`:**
+  - `wardsOnBoard` lists every Mythic unit. One not in `mythics.json`, or
+    with a behaviour the runtime doesn't know, is `generic`.
+  - New `generic` behaviour: rotation plus a soft ring every 3.2 s.
+  - `ensureSheet` / `prepare`: art if the page has it, else the fallback,
+    drawn at load; wrapped in try/catch so a failed sheet means no ward,
+    never a broken card. `stats()` reports which wards fell back and how
+    long each took to draw.
+- **The page:** embeds the generator before `WARDS` and calls
+  `WARDS.prepare(...)`. The turn line got its own backing, because wards on
+  top-row cards were drawing over the turn and phase text (found in the
+  four-ward still).
+- **Demo signature cards** (`demoSignatures.ts`, CLI `--signatures`):
+  Consensus Lantern (Rally +0/+1, 3/6) and Tollgate Daemon (Tax, 3/6), both
+  lines that pass the fairness test at 2,500 seeds. Built with the engine's
+  own `buildSignatureCard`, read-only through `engineInternal.ts`.
+- **FX sheet part 5:** a spinning gallery of 15 fallback wards (three per
+  faction).
+- EFFECTS.md: "Slice 7 as built", the fallback bullet, build order item 7.
+
+**Ran it:**
+- **Scanned 32 games with demo signature cards** (four pairings, seeds
+  1-8). Picked:
+  - `cortex-vs-aegis-sig-seed5.html`: both signature cards arrive (moves 44,
+    47), both die and return to the zone (96, 103) and are played again
+    (100, 116); Quorum Arbiter arrives with its art at move 78.
+  - `cortex-vs-aegis-sig-seed2.html`: four Mythic wards on the board at
+    once (Quorum Arbiter, Prime Aegis and both signature cards).
+- **Headless Chromium, stepping into each arrival and death** (scratch
+  `s7shots.mjs`): every arrival went manifest (on top) → perm (behind)
+  within 4.9 s; both shatters fired at the death; counts arrived 5,
+  shattered 2, generic pulses 17; sheets drawn in 3-9 ms; 0 page errors.
+- **Played seed 2 end to end at normal speed** (`s7play.mjs`), fps by wards
+  on the board (headless, software rendering, so lower than a real GPU):
+  0 wards median 51, 1 → 46, 2 → 47, 3 → 42, 4 → 33 (min 25). 0 errors.
+- **Variety:** 303 signature menu ids → 303 distinct plans, 299 distinct
+  coarse looks. 300 names per faction → 294-299 distinct looks.
+- **All 14 replays regenerated** (12 old + 2 new) plus the FX and skin
+  sheets. The match data of the old twelve is byte-identical; the engine is
+  untouched. (The skin sheet was stale since slice 6; regenerating it only
+  added the Mythic CSS.)
+- **Stills:** six `v2-s7-*.png` in `progress/render/evidence/`.
+- **Tests:** render 272 (was 257). New `test/fallbackWard.test.ts` (14):
+  determinism, the pinned hash, kits, sheet layout, variety on all 303 menu
+  ids, all middle patterns used, the symbol rules over 2,000 names, which
+  Mythics need a fallback, and a real signature-card replay (only the
+  signature cards fall back; no extra image shipped; failures caught).
+  `wardFx.test.ts`: the Unknown Mythic now gets a generic ward, and an
+  unknown behaviour falls back to generic. `tsc --noEmit` clean.
+
+**Named honestly, not fixed:**
+- **Every fallback is a ring.** The plans vary (patterns, counts, glyphs),
+  but the silhouette is always concentric circles, so two wards of the same
+  faction read as siblings. The Replicate art is far more individual.
+- **The signature zone isn't drawn.** A signature card that dies just
+  leaves the board, and comes back from nowhere; the log says "returns to
+  p1's signature zone (next play costs 7)", the board doesn't.
+- **Four wards cost frames:** median 33 fps headless with four on the
+  board, against 51 with none. Not measured on a real GPU.
+- The demo names are mine; the real ones will come from the engine's agent
+  generator, which isn't built yet.
+
+**Next render-lane slice:** every EFFECTS.md v2 slice is now built. Next:
+the signature zone on the board (a slot or chip per side showing the
+signature card, its next cost, `signatureReturn` animating the card back
+and `fromSignatureZone` plays leaving from it), then the owner's open
+render items (website Music setting and menu music belong to build-order
+steps 4-5).

@@ -7,6 +7,7 @@ import { EFFECT_FX_SOURCE } from "./effectFx.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
 import { WARD_FX_PURE_SOURCE, WARD_FX_RUNTIME_SOURCE, wardDataFor } from "./wardFx.js";
+import { FALLBACK_WARD_PURE_SOURCE, FALLBACK_WARD_RUNTIME_SOURCE } from "./fallbackWard.js";
 import { SIG_WARD_PURE_SOURCE, SIG_WARD_RUNTIME_SOURCE, sigWardDataFor } from "./sigWardFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
@@ -190,7 +191,11 @@ html, body {
 .momentum .gauge .fill { position: absolute; top: 0; bottom: 0; background: var(--neutral); transition: left 420ms ease, width 420ms ease, background 420ms ease; }
 .momentum .why { font-size: 0.66rem; color: var(--ink-dim); margin-top: 6px; min-height: 2.4em; }
 
-.turnbar { text-align: center; padding: 6px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink-dim); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+/* Slice 7: the turn line sits on its own backing. A ward behind a top-row
+ * card (two signature cards make that common) reaches up past the card,
+ * and the turn and phase must always read (legibility wins). */
+.turnbar { text-align: center; padding: 6px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink-dim); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent); position: relative; }
 .turnbar b { color: var(--ink); }
 .turnbar .win { color: var(--neutral); font-weight: bold; }
 
@@ -809,7 +814,13 @@ ${MUSIC_RUNTIME_SOURCE}
   // Slice 6: Mythic unique wards, behind the card (owner 2026-10-11) —
   // render/src/wardFx.ts, embedded verbatim; it plugs into CFX's canvases.
 ${WARD_FX_PURE_SOURCE}
+  // Slice 7: the fallback ward generator, for a Mythic with no ward art
+  // (render/src/fallbackWard.ts); WARDS draws every sheet this replay
+  // needs up front.
+${FALLBACK_WARD_PURE_SOURCE}
+${FALLBACK_WARD_RUNTIME_SOURCE}
 ${WARD_FX_RUNTIME_SOURCE}
+  WARDS.prepare(fallbackWardsNeeded(frames, (JSON.parse(document.getElementById('ward-data').textContent || '{}').atlases) || {}));
   // Slice 5: faction wards for signature abilities, first fire only —
   // render/src/sigWardFx.ts, embedded verbatim; also a CFX plug-in.
 ${SIG_WARD_PURE_SOURCE}

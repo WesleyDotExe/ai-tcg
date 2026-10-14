@@ -87,7 +87,11 @@ html, body {
 .momentum .gauge .fill { position: absolute; top: 0; bottom: 0; background: var(--neutral); transition: left 420ms ease, width 420ms ease, background 420ms ease; }
 .momentum .why { font-size: 0.66rem; color: var(--ink-dim); margin-top: 6px; min-height: 2.4em; }
 
-.turnbar { text-align: center; padding: 6px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink-dim); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+/* Slice 7: the turn line sits on its own backing. A ward behind a top-row
+ * card (two signature cards make that common) reaches up past the card,
+ * and the turn and phase must always read (legibility wins). */
+.turnbar { text-align: center; padding: 6px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink-dim); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent); position: relative; }
 .turnbar b { color: var(--ink); }
 .turnbar .win { color: var(--neutral); font-weight: bold; }
 
@@ -2942,7 +2946,11 @@ html, body {
   // are per layer (outer, middle, core). The core stays as it was: it is
   // hidden by the card anyway.
   var WARD_BEHIND = { alpha: 0.82, boost: [1.45, 1.3, 1], scale: [1.16, 1.08, 1] };
-  var WARD_BEHAVIOURS = ['seats', 'aura', 'heartbeat', 'gravity'];
+  // generic (slice 7): rotation and a slow pulse only, for a Mythic with
+  // no behaviour of its own (an agent's signature card, or a new Mythic
+  // not yet in mythics.json). WARD_GENERIC_EVERY is the pulse's period, s.
+  var WARD_BEHAVIOURS = ['seats', 'aura', 'heartbeat', 'gravity', 'generic'];
+  var WARD_GENERIC_EVERY = 3.2;
 
   function wardRadius(cardH) { return (cardH > 0 ? cardH : 158) * WARD_R_PER_CARD_H; }
   function wardEase(k) { k = k < 0 ? 0 : k > 1 ? 1 : k; return k * k * (3 - 2 * k); }
@@ -2993,21 +3001,252 @@ html, body {
     var n = Math.max(0, Math.floor(enemies || 0));
     return Math.min(seats > 0 ? seats : 12, n);
   }
-  // The Mythic units on the board with a ward, as the runtime wants them:
-  // which side, how many enemy units (seats), which allies (aura tethers,
-  // larvae). specs is mythics.json's "mythics" table (name -> entry).
+  // The Mythic units on the board, every one of them with a ward, as the
+  // runtime wants them: which side, how many enemy units (seats), which
+  // allies (aura tethers, larvae). specs is mythics.json's "mythics" table
+  // (name -> entry). A Mythic in the table acts out its behaviour; one that
+  // isn't (an agent's signature card) is generic (slice 7). Whether the
+  // ward is the card's own art or the fallback is the runtime's call: it
+  // depends on which sheets the page carries.
   function wardsOnBoard(players, specs) {
     var out = [];
     ['p1', 'p2'].forEach(function (pid) {
       var me = players[pid], foe = players[pid === 'p1' ? 'p2' : 'p1'];
       me.board.forEach(function (u) {
-        if (u.rarity !== 'Mythic' || !specs[u.name]) return;
-        out.push({ iid: u.instanceId, name: u.name, faction: u.faction, side: pid, beh: specs[u.name].behaviour,
+        if (u.rarity !== 'Mythic') return;
+        var spec = specs[u.name];
+        out.push({ iid: u.instanceId, name: u.name, faction: u.faction, side: pid, beh: spec && WARD_BEHAVIOURS.indexOf(spec.behaviour) >= 0 ? spec.behaviour : 'generic',
           enemies: foe.board.length,
           allies: me.board.filter(function (a) { return a.instanceId !== u.instanceId; }).map(function (a) { return a.instanceId; }) });
       });
     });
     return out;
+  }
+
+  // Slice 7: the fallback ward generator, for a Mythic with no ward art
+  // (render/src/fallbackWard.ts); WARDS draws every sheet this replay
+  // needs up front.
+
+  // One cell of the 2x2 sheet, in px (the lab's WT). The drawing space is
+  // centred, radius 236 at the cell's edge.
+  var FW_CELL = 512;
+  // Material per faction. node: the outer ring's node shape. thick: line
+  // weight. cuts: torn gaps cut out of the rings (Null). glyph: how the
+  // small marks inside the outer ring are stroked. middles: the patterns
+  // the middle layer may take.
+  var FW_KITS = {
+    Cortex: { node: 'chip', thick: 1, cuts: false, glyph: 'line', middles: ['spokes', 'polys', 'orbits'] },
+    Aegis: { node: 'plate', thick: 1.8, cuts: false, glyph: 'line', middles: ['polys', 'spokes', 'plates'] },
+    Swarm: { node: 'egg', thick: 1, cuts: false, glyph: 'curve', middles: ['curl', 'spokes', 'orbits'] },
+    Null: { node: 'broken', thick: 1, cuts: true, glyph: 'line', middles: ['orbits', 'curl', 'polys'] },
+    Neutral: { node: 'rune', thick: 1.2, cuts: false, glyph: 'arc', middles: ['runes', 'orbits', 'polys'] }
+  };
+  function fwKitName(faction) { return FW_KITS[faction] ? faction : 'Neutral'; }
+  // FNV-1a, then mulberry32 (lab: hashStr, rng).
+  function fwHash(s) {
+    var h = 2166136261;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function fwRng(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function fwRound(x) { return Math.round(x * 100) / 100; }
+  // Every choice the drawing makes, as data. Same (name, faction) in, same
+  // plan out, on any machine.
+  function fallbackWardPlan(name, faction) {
+    var kitName = fwKitName(faction), kit = FW_KITS[kitName];
+    var seed = fwHash(kitName + ':' + String(name));
+    var R = fwRng(seed);
+    function ri(a, b) { return a + Math.floor(R() * (b - a + 1)); }
+    function pk(a) { return a[Math.floor(R() * a.length)]; }
+    function cuts(n, minR, spanR, len) {
+      var out = [];
+      for (var i = 0; i < n; i++) out.push({ a: fwRound(R() * 6.283), r: fwRound(minR + R() * spanR), len: len });
+      return out;
+    }
+    // Outer ring: a double rail with ticks, evenly spaced nodes, and small
+    // stroked glyphs just inside it.
+    var glyphCount = pk([12, 16, 24]), glyphs = [];
+    for (var i = 0; i < glyphCount; i++) {
+      var k = ri(2, 4), segs = [];
+      for (var j = 0; j < k; j++) segs.push([fwRound((R() - 0.5) * 16), fwRound((R() - 0.5) * 16), fwRound((R() - 0.5) * 16), fwRound((R() - 0.5) * 16)]);
+      glyphs.push(segs);
+    }
+    var outer = { ticks: pk([48, 60, 72, 96]), nodes: pk([6, 8, 10, 12]), glyphs: glyphs, cuts: kit.cuts ? cuts(5, 180, 0, 70) : [] };
+    // Middle: one of the kit's patterns.
+    var mode = pk(kit.middles), middle = { mode: mode };
+    if (mode === 'spokes') {
+      middle.n = ri(16, 40); middle.dots = [];
+      for (i = 0; i < middle.n; i += 2) middle.dots.push(fwRound(120 + R() * 90));
+    } else if (mode === 'polys') {
+      middle.n = pk([4, 5, 6, 7, 8, 9, 10, 12]); middle.k = ri(3, 6); middle.rot = fwRound(R() * 6.283);
+    } else if (mode === 'plates') {
+      middle.n = ri(6, 10);
+    } else if (mode === 'curl') {
+      middle.n = ri(3, 7);
+    } else if (mode === 'runes') {
+      // Concentric rings broken into arcs with a notch at each break.
+      middle.rings = [];
+      var rings = ri(3, 5);
+      for (i = 0; i < rings; i++) middle.rings.push({ r: 236 - i * 34, parts: ri(3, 9), gap: fwRound(0.12 + R() * 0.2), off: fwRound(R() * 6.283) });
+    } else {
+      middle.dashes = [];
+      var rk = ri(4, 7);
+      for (i = 0; i < rk; i++) middle.dashes.push(R() < 0.5 ? [2, 8] : [18, 10]);
+    }
+    middle.cuts = kit.cuts ? cuts(6, 60, 120, 80) : [];
+    // Core: nested polygons at one orientation, two rings, a bright centre.
+    var core = { n: pk([4, 5, 6, 7, 8]), rot: fwRound(R() * 6.283) };
+    // Ornament: one filled polygon and a disc (seats, crests, larvae and
+    // pointers in the behaviours are drawn from this cell).
+    var ornament = { n: pk([4, 5, 6]) };
+    return { name: String(name), faction: kitName, seed: seed, kit: kit, outer: outer, middle: middle, core: core, ornament: ornament };
+  }
+  // The coarse look of a plan: what a viewer can actually tell apart at a
+  // glance (counts and patterns, not the exact glyph strokes).
+  function fallbackWardLook(plan) {
+    var m = plan.middle;
+    return [plan.faction, plan.outer.ticks, plan.outer.nodes, plan.outer.glyphs.length, m.mode, m.n || 0, m.k || 0,
+      (m.rings || m.dashes || []).length, plan.core.n, plan.ornament.n].join('|');
+  }
+  // Which Mythics in this replay need a fallback: every Mythic unit that
+  // reaches the board and has no ward sheet. atlases is the page's
+  // ward-data atlases (name -> data URI).
+  function fallbackWardsNeeded(frames, atlases) {
+    var seen = {}, out = [];
+    (frames || []).forEach(function (f) {
+      ['p1', 'p2'].forEach(function (pid) {
+        f.players[pid].board.forEach(function (u) {
+          if (u.rarity !== 'Mythic' || (atlases && atlases[u.name]) || seen[u.name]) return;
+          seen[u.name] = true;
+          out.push({ name: u.name, faction: u.faction });
+        });
+      });
+    });
+    return out;
+  }
+
+
+  // Draws plan into a 2x2 greyscale-on-black sheet (FW_CELL px per cell),
+  // the same layout as the Replicate sheets. Returns a canvas.
+  function fallbackWardSheet(plan) {
+    var WT = FW_CELL, kit = plan.kit, fk = plan.faction, thick = kit.thick;
+    var cv = document.createElement('canvas'); cv.width = cv.height = WT * 2;
+    var g = cv.getContext('2d');
+    g.fillStyle = '#000'; g.fillRect(0, 0, WT * 2, WT * 2);
+    g.strokeStyle = '#fff'; g.fillStyle = '#fff'; g.shadowColor = '#fff'; g.lineCap = 'round'; g.lineJoin = 'round';
+    var C = WT / 2;
+    function at(cell, fn) { g.save(); g.translate((cell % 2) * WT + C, ((cell / 2) | 0) * WT + C); fn(); g.restore(); }
+    function circle(r, w) { g.lineWidth = w; g.beginPath(); g.arc(0, 0, r, 0, 6.283); g.stroke(); }
+    function poly(n, r, rot, w) {
+      g.lineWidth = w; g.beginPath();
+      for (var i = 0; i <= n; i++) { var a = rot + i / n * 6.283; if (i) g.lineTo(Math.cos(a) * r, Math.sin(a) * r); else g.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
+      g.stroke();
+    }
+    function cut(list, h) {
+      if (!list.length) return;
+      g.globalCompositeOperation = 'destination-out';
+      list.forEach(function (c) { g.save(); g.rotate(c.a); g.fillRect(c.r, -h / 2, c.len, h); g.restore(); });
+      g.globalCompositeOperation = 'source-over';
+    }
+    function node() {
+      if (kit.node === 'chip') { g.lineWidth = 2; g.strokeRect(-9, -9, 18, 18); g.fillRect(-3, -3, 6, 6); }
+      else if (kit.node === 'plate') { g.lineWidth = 3; g.beginPath(); g.moveTo(-12, -16); g.lineTo(12, -12); g.lineTo(12, 12); g.lineTo(-12, 16); g.closePath(); g.stroke(); }
+      else if (kit.node === 'egg') { g.lineWidth = 2; g.beginPath(); g.ellipse(0, 0, 11, 15, 0, 0, 6.283); g.stroke(); g.beginPath(); g.arc(0, 0, 4, 0, 6.283); g.fill(); }
+      // A rune tablet: an upright slab with one bar across it.
+      else if (kit.node === 'rune') { g.lineWidth = 2; g.strokeRect(-7, -11, 14, 22); g.fillRect(-4, -2, 8, 4); }
+      else { g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 11, 0.4, 5.6); g.stroke(); g.fillRect(-2, -2, 4, 4); }
+    }
+    g.shadowBlur = 10;
+    // Cell 0: the outer ring.
+    at(0, function () {
+      var o = plan.outer;
+      circle(236, 3 * thick); circle(212, 1.5 * thick);
+      g.lineWidth = 1.2;
+      for (var i = 0; i < o.ticks; i++) {
+        var a = i / o.ticks * 6.283, l = i % 6 ? 6 : 14;
+        g.beginPath(); g.moveTo(Math.cos(a) * 212, Math.sin(a) * 212); g.lineTo(Math.cos(a) * (212 - l), Math.sin(a) * (212 - l)); g.stroke();
+      }
+      for (i = 0; i < o.nodes; i++) { g.save(); g.rotate(i / o.nodes * 6.283); g.translate(224, 0); node(); g.restore(); }
+      o.glyphs.forEach(function (segs, i) {
+        var a = (i + 0.5) / o.glyphs.length * 6.283;
+        g.save(); g.translate(Math.cos(a) * 190, Math.sin(a) * 190); g.rotate(a + Math.PI / 2); g.lineWidth = 2; g.beginPath();
+        segs.forEach(function (s) {
+          g.moveTo(s[0], s[1]);
+          if (kit.glyph === 'curve') g.quadraticCurveTo(0, 0, s[2], s[3]);
+          else if (kit.glyph === 'arc') g.arcTo(s[0], s[3], s[2], s[3], 5);
+          else g.lineTo(s[2], s[3]);
+        });
+        g.stroke(); g.restore();
+      });
+      cut(o.cuts, 12);
+    });
+    // Cell 1: the middle layer.
+    at(1, function () {
+      var m = plan.middle, i;
+      if (m.mode === 'spokes') {
+        g.lineWidth = 1.3;
+        for (i = 0; i < m.n; i++) {
+          var a = i / m.n * 6.283;
+          g.beginPath(); g.moveTo(Math.cos(a) * 70, Math.sin(a) * 70); g.lineTo(Math.cos(a) * 236, Math.sin(a) * 236); g.stroke();
+          if (i % 2 === 0) { var d = m.dots[i / 2]; g.beginPath(); g.arc(Math.cos(a) * d, Math.sin(a) * d, 3, 0, 6.283); g.fill(); }
+        }
+        circle(236, 1.5);
+      } else if (m.mode === 'polys') {
+        for (i = 0; i < m.k; i++) poly(m.n, 236 - i * 28, m.rot, 1.6 * thick);
+        circle(110, 1.2);
+      } else if (m.mode === 'plates') {
+        for (i = 0; i < m.n; i++) {
+          g.save(); g.rotate(i / m.n * 6.283); g.lineWidth = 3; g.strokeRect(150, -30, 70, 60);
+          g.beginPath(); g.moveTo(150, 0); g.lineTo(110, 0); g.stroke(); g.restore();
+        }
+        circle(236, 2);
+      } else if (m.mode === 'curl') {
+        g.lineWidth = 2.2;
+        for (i = 0; i < m.n; i++) {
+          g.save(); g.rotate(i / m.n * 6.283);
+          g.beginPath(); g.moveTo(80, 0); g.bezierCurveTo(160, -60, 230, -10, 210, 70); g.stroke();
+          g.beginPath(); g.moveTo(120, -20); g.quadraticCurveTo(150, -80, 185, -70); g.stroke();
+          g.restore();
+        }
+        circle(236, 1.2);
+      } else if (m.mode === 'runes') {
+        m.rings.forEach(function (ring, k) {
+          var step = 6.283 / ring.parts;
+          g.lineWidth = (k === 0 ? 2.2 : 1.4) * thick;
+          for (var p = 0; p < ring.parts; p++) {
+            var a0 = ring.off + p * step, a1 = a0 + step * (1 - ring.gap);
+            g.beginPath(); g.arc(0, 0, ring.r, a0, a1); g.stroke();
+            g.beginPath(); g.moveTo(Math.cos(a1) * (ring.r - 7), Math.sin(a1) * (ring.r - 7)); g.lineTo(Math.cos(a1) * (ring.r + 7), Math.sin(a1) * (ring.r + 7)); g.stroke();
+          }
+        });
+      } else {
+        m.dashes.forEach(function (dash, k) { g.setLineDash(dash); circle(236 - k * 26, 1.4); });
+        g.setLineDash([]);
+      }
+      cut(m.cuts, 10);
+    });
+    // Cell 2: the core.
+    at(2, function () {
+      var c = plan.core;
+      circle(236, 2.5); poly(c.n, 200, c.rot, 2.5 * thick); poly(c.n, 150, c.rot, 1.5); circle(90, 2); circle(60, 1.2);
+      g.shadowBlur = 0;
+      var gr = g.createRadialGradient(0, 0, 0, 0, 0, 70);
+      gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 70, 0, 6.283); g.fill();
+    });
+    // Cell 3: the ornament.
+    at(3, function () {
+      g.fillStyle = '#fff'; poly(plan.ornament.n, 120, -Math.PI / 2, 10);
+      g.beginPath(); g.arc(0, 0, 40, 0, 6.283); g.fill();
+    });
+    return cv;
   }
 
 
@@ -3022,6 +3261,27 @@ html, body {
       im.onload = function () { IMG[name] = im; };
       im.src = DATA.atlases[name];
     });
+    // Slice 7: a Mythic with no sheet gets one drawn by code from its name
+    // and faction (render/src/fallbackWard.ts). Never fatal: if drawing
+    // fails, that Mythic just has no ward and its card renders as ever.
+    var FALLBACK = {}, failed = {};
+    function ensureSheet(name, faction) {
+      if (DATA.atlases && DATA.atlases[name]) return true;
+      if (FALLBACK[name]) return true;
+      if (failed[name]) return false;
+      try {
+        var t0 = performance.now();
+        IMG[name] = fallbackWardSheet(fallbackWardPlan(name, faction));
+        FALLBACK[name] = { faction: fwKitName(faction), ms: Math.round(performance.now() - t0) };
+        return true;
+      } catch (e) {
+        failed[name] = true;
+        return false;
+      }
+    }
+    // Draw every fallback the replay will need up front, so no sheet is
+    // drawn in the middle of a move.
+    function prepare(list) { (list || []).forEach(function (m) { ensureSheet(m.name, m.faction); }); }
     // One tinted canvas per (card, cell, size): the sheet is greyscale on
     // black, tinted with the faction colour exactly like the FX atlases.
     function cellTex(w, i, small) {
@@ -3048,7 +3308,7 @@ html, body {
     }
 
     var wards = [], bits = [], pulses = [];
-    var counts = { arrived: 0, shattered: 0, pulsed: 0, seatChanges: 0, larvae: 0, pointers: 0, auraRings: 0 };
+    var counts = { arrived: 0, shattered: 0, pulsed: 0, seatChanges: 0, larvae: 0, pointers: 0, auraRings: 0, genericPulses: 0 };
     function find(iid) { for (var i = 0; i < wards.length; i++) if (wards[i].iid === iid) return wards[i]; return null; }
     function cardEl(iid) { return document.querySelector('#app .card[data-iid="' + iid + '"]'); }
     function rectOf(iid) { var el = cardEl(iid); if (!el) return null; var r = el.getBoundingClientRect(); return r.width > 0 ? r : null; }
@@ -3083,7 +3343,7 @@ html, body {
       var seen = {};
       list.forEach(function (it) {
         seen[it.iid] = true;
-        if (!SPECS[it.name] || !DATA.atlases || !DATA.atlases[it.name]) return;
+        if (!ensureSheet(it.name, it.faction)) return;
         var w = find(it.iid);
         if (!w) { make(it, o.stepping ? 'wait' : 'perm'); return; }
         w.enemies = it.enemies; w.allies = it.allies; w.gone = false;
@@ -3168,6 +3428,8 @@ html, body {
             counts.larvae++;
           }
         }
+      } else if (w.beh === 'generic') {
+        if (w.bt > WARD_GENERIC_EVERY) { w.bt = 0; pulses.push({ x: w.x, y: w.y, c: w.rgb, maxR: w.R * 1.1, t: 0, dur: 0.9, w: 1.5, sq: 1 }); counts.genericPulses++; }
       } else if (w.beh === 'gravity') {
         if (dt > 0) K.gridForce(w.x, w.y, 22, 170 * sc, true);
         if (w.bt > 0.18) {
@@ -3295,11 +3557,11 @@ html, body {
     }
 
     var api = {
-      sync: sync, arrive: arrive, pulse: pulse, shatter: shatter,
+      sync: sync, arrive: arrive, pulse: pulse, shatter: shatter, prepare: prepare,
       has: function (iid) { return !!find(iid); },
       stats: function () {
         return { wards: wards.map(function (w) { var lay = wardLayering(w.mode, w.mt); return { iid: w.iid, name: w.name, mode: w.mode, top: +lay.top.toFixed(2), under: +lay.under.toFixed(2), lit: w.lit, R: Math.round(w.R) }; }),
-          bits: bits.length, loaded: Object.keys(IMG), counts: counts };
+          bits: bits.length, loaded: Object.keys(IMG), fallback: FALLBACK, counts: counts };
       }
     };
     function hasTop() {
@@ -3314,6 +3576,7 @@ html, body {
     return api;
   })();
 
+  WARDS.prepare(fallbackWardsNeeded(frames, (JSON.parse(document.getElementById('ward-data').textContent || '{}').atlases) || {}));
   // Slice 5: faction wards for signature abilities, first fire only —
   // render/src/sigWardFx.ts, embedded verbatim; also a CFX plug-in.
 

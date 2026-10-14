@@ -27,7 +27,10 @@
 // (progress/render/evidence/).
 //
 // Self-contained (owner 2026-09-30): only the ward sheets of Mythics that
-// actually reach the board in this replay are embedded, as data URIs.
+// actually reach the board in this replay are embedded, as data URIs. A
+// Mythic with no sheet (an agent's signature card, or a Mythic the
+// mythic-wards action hasn't reached) gets the slice-7 fallback, drawn in
+// the browser from its name and faction (render/src/fallbackWard.ts).
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -53,7 +56,11 @@ export const WARD_FX_PURE_SOURCE = String.raw`
   // are per layer (outer, middle, core). The core stays as it was: it is
   // hidden by the card anyway.
   var WARD_BEHIND = { alpha: 0.82, boost: [1.45, 1.3, 1], scale: [1.16, 1.08, 1] };
-  var WARD_BEHAVIOURS = ['seats', 'aura', 'heartbeat', 'gravity'];
+  // generic (slice 7): rotation and a slow pulse only, for a Mythic with
+  // no behaviour of its own (an agent's signature card, or a new Mythic
+  // not yet in mythics.json). WARD_GENERIC_EVERY is the pulse's period, s.
+  var WARD_BEHAVIOURS = ['seats', 'aura', 'heartbeat', 'gravity', 'generic'];
+  var WARD_GENERIC_EVERY = 3.2;
 
   function wardRadius(cardH) { return (cardH > 0 ? cardH : 158) * WARD_R_PER_CARD_H; }
   function wardEase(k) { k = k < 0 ? 0 : k > 1 ? 1 : k; return k * k * (3 - 2 * k); }
@@ -104,16 +111,21 @@ export const WARD_FX_PURE_SOURCE = String.raw`
     var n = Math.max(0, Math.floor(enemies || 0));
     return Math.min(seats > 0 ? seats : 12, n);
   }
-  // The Mythic units on the board with a ward, as the runtime wants them:
-  // which side, how many enemy units (seats), which allies (aura tethers,
-  // larvae). specs is mythics.json's "mythics" table (name -> entry).
+  // The Mythic units on the board, every one of them with a ward, as the
+  // runtime wants them: which side, how many enemy units (seats), which
+  // allies (aura tethers, larvae). specs is mythics.json's "mythics" table
+  // (name -> entry). A Mythic in the table acts out its behaviour; one that
+  // isn't (an agent's signature card) is generic (slice 7). Whether the
+  // ward is the card's own art or the fallback is the runtime's call: it
+  // depends on which sheets the page carries.
   function wardsOnBoard(players, specs) {
     var out = [];
     ['p1', 'p2'].forEach(function (pid) {
       var me = players[pid], foe = players[pid === 'p1' ? 'p2' : 'p1'];
       me.board.forEach(function (u) {
-        if (u.rarity !== 'Mythic' || !specs[u.name]) return;
-        out.push({ iid: u.instanceId, name: u.name, faction: u.faction, side: pid, beh: specs[u.name].behaviour,
+        if (u.rarity !== 'Mythic') return;
+        var spec = specs[u.name];
+        out.push({ iid: u.instanceId, name: u.name, faction: u.faction, side: pid, beh: spec && WARD_BEHAVIOURS.indexOf(spec.behaviour) >= 0 ? spec.behaviour : 'generic',
           enemies: foe.board.length,
           allies: me.board.filter(function (a) { return a.instanceId !== u.instanceId; }).map(function (a) { return a.instanceId; }) });
       });
@@ -134,6 +146,27 @@ export const WARD_FX_RUNTIME_SOURCE = String.raw`
       im.onload = function () { IMG[name] = im; };
       im.src = DATA.atlases[name];
     });
+    // Slice 7: a Mythic with no sheet gets one drawn by code from its name
+    // and faction (render/src/fallbackWard.ts). Never fatal: if drawing
+    // fails, that Mythic just has no ward and its card renders as ever.
+    var FALLBACK = {}, failed = {};
+    function ensureSheet(name, faction) {
+      if (DATA.atlases && DATA.atlases[name]) return true;
+      if (FALLBACK[name]) return true;
+      if (failed[name]) return false;
+      try {
+        var t0 = performance.now();
+        IMG[name] = fallbackWardSheet(fallbackWardPlan(name, faction));
+        FALLBACK[name] = { faction: fwKitName(faction), ms: Math.round(performance.now() - t0) };
+        return true;
+      } catch (e) {
+        failed[name] = true;
+        return false;
+      }
+    }
+    // Draw every fallback the replay will need up front, so no sheet is
+    // drawn in the middle of a move.
+    function prepare(list) { (list || []).forEach(function (m) { ensureSheet(m.name, m.faction); }); }
     // One tinted canvas per (card, cell, size): the sheet is greyscale on
     // black, tinted with the faction colour exactly like the FX atlases.
     function cellTex(w, i, small) {
@@ -160,7 +193,7 @@ export const WARD_FX_RUNTIME_SOURCE = String.raw`
     }
 
     var wards = [], bits = [], pulses = [];
-    var counts = { arrived: 0, shattered: 0, pulsed: 0, seatChanges: 0, larvae: 0, pointers: 0, auraRings: 0 };
+    var counts = { arrived: 0, shattered: 0, pulsed: 0, seatChanges: 0, larvae: 0, pointers: 0, auraRings: 0, genericPulses: 0 };
     function find(iid) { for (var i = 0; i < wards.length; i++) if (wards[i].iid === iid) return wards[i]; return null; }
     function cardEl(iid) { return document.querySelector('#app .card[data-iid="' + iid + '"]'); }
     function rectOf(iid) { var el = cardEl(iid); if (!el) return null; var r = el.getBoundingClientRect(); return r.width > 0 ? r : null; }
@@ -195,7 +228,7 @@ export const WARD_FX_RUNTIME_SOURCE = String.raw`
       var seen = {};
       list.forEach(function (it) {
         seen[it.iid] = true;
-        if (!SPECS[it.name] || !DATA.atlases || !DATA.atlases[it.name]) return;
+        if (!ensureSheet(it.name, it.faction)) return;
         var w = find(it.iid);
         if (!w) { make(it, o.stepping ? 'wait' : 'perm'); return; }
         w.enemies = it.enemies; w.allies = it.allies; w.gone = false;
@@ -280,6 +313,8 @@ export const WARD_FX_RUNTIME_SOURCE = String.raw`
             counts.larvae++;
           }
         }
+      } else if (w.beh === 'generic') {
+        if (w.bt > WARD_GENERIC_EVERY) { w.bt = 0; pulses.push({ x: w.x, y: w.y, c: w.rgb, maxR: w.R * 1.1, t: 0, dur: 0.9, w: 1.5, sq: 1 }); counts.genericPulses++; }
       } else if (w.beh === 'gravity') {
         if (dt > 0) K.gridForce(w.x, w.y, 22, 170 * sc, true);
         if (w.bt > 0.18) {
@@ -407,11 +442,11 @@ export const WARD_FX_RUNTIME_SOURCE = String.raw`
     }
 
     var api = {
-      sync: sync, arrive: arrive, pulse: pulse, shatter: shatter,
+      sync: sync, arrive: arrive, pulse: pulse, shatter: shatter, prepare: prepare,
       has: function (iid) { return !!find(iid); },
       stats: function () {
         return { wards: wards.map(function (w) { var lay = wardLayering(w.mode, w.mt); return { iid: w.iid, name: w.name, mode: w.mode, top: +lay.top.toFixed(2), under: +lay.under.toFixed(2), lit: w.lit, R: Math.round(w.R) }; }),
-          bits: bits.length, loaded: Object.keys(IMG), counts: counts };
+          bits: bits.length, loaded: Object.keys(IMG), fallback: FALLBACK, counts: counts };
       }
     };
     function hasTop() {
@@ -428,13 +463,14 @@ export const WARD_FX_RUNTIME_SOURCE = String.raw`
 `;
 
 const pure = new Function(
-  `${WARD_FX_PURE_SOURCE}; return { WARD_LAYERS: WARD_LAYERS, WARD_R_PER_CARD_H: WARD_R_PER_CARD_H, WARD_T: WARD_T, WARD_BEHIND: WARD_BEHIND, WARD_BEHAVIOURS: WARD_BEHAVIOURS, wardRadius: wardRadius, wardBeat: wardBeat, wardLayering: wardLayering, wardLook: wardLook, wardNextMode: wardNextMode, wardSeatsLit: wardSeatsLit, wardsOnBoard: wardsOnBoard };`,
+  `${WARD_FX_PURE_SOURCE}; return { WARD_LAYERS: WARD_LAYERS, WARD_R_PER_CARD_H: WARD_R_PER_CARD_H, WARD_T: WARD_T, WARD_BEHIND: WARD_BEHIND, WARD_BEHAVIOURS: WARD_BEHAVIOURS, WARD_GENERIC_EVERY: WARD_GENERIC_EVERY, wardRadius: wardRadius, wardBeat: wardBeat, wardLayering: wardLayering, wardLook: wardLook, wardNextMode: wardNextMode, wardSeatsLit: wardSeatsLit, wardsOnBoard: wardsOnBoard };`,
 )() as {
   WARD_LAYERS: { i: number; r: number; spd: number }[];
   WARD_R_PER_CARD_H: number;
   WARD_T: { drawIn: number; onTop: number; sink: number; pulse: number; waitMax: number };
   WARD_BEHIND: { alpha: number; boost: number[]; scale: number[] };
   WARD_BEHAVIOURS: string[];
+  WARD_GENERIC_EVERY: number;
   wardRadius: (cardH: number) => number;
   wardBeat: (t: number) => number;
   wardLayering: (mode: WardMode, mt: number) => { top: number; under: number };
@@ -451,7 +487,7 @@ export type WardPlayers = Record<"p1" | "p2", { board: WardUnit[] }>;
 export interface WardOnBoard { iid: string; name: string; faction: string; side: "p1" | "p2"; beh: string; enemies: number; allies: string[] }
 export interface MythicSpec { faction: string; behaviour: string; behaviourParams?: Record<string, unknown>; ward?: string }
 
-export const { WARD_LAYERS, WARD_R_PER_CARD_H, WARD_T, WARD_BEHIND, WARD_BEHAVIOURS, wardRadius, wardBeat, wardLayering, wardLook, wardNextMode, wardSeatsLit, wardsOnBoard } = pure;
+export const { WARD_LAYERS, WARD_R_PER_CARD_H, WARD_T, WARD_BEHIND, WARD_BEHAVIOURS, WARD_GENERIC_EVERY, wardRadius, wardBeat, wardLayering, wardLook, wardNextMode, wardSeatsLit, wardsOnBoard } = pure;
 
 const RENDER_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const REPO_DIR = resolve(RENDER_DIR, "..");

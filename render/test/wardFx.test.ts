@@ -142,20 +142,27 @@ describe("which Mythics, and what their wards see", () => {
   it("every Mythic in mythics.json has a behaviour the runtime knows and a committed sheet", () => {
     expect(Object.keys(specs).sort()).toEqual(["Hive Mother", "Null Singularity", "Prime Aegis", "Quorum Arbiter"]);
     for (const [name, s] of Object.entries(specs)) {
-      expect(["seats", "aura", "heartbeat", "gravity"], name).toContain(s.behaviour);
+      expect(["seats", "aura", "heartbeat", "gravity", "generic"], name).toContain(s.behaviour);
       expect(s.ward, name).toBeTruthy();
       expect(existsSync(resolve(__dirname, "../..", s.ward!)), name).toBe(true);
     }
   });
 
-  it("gives a ward to Mythic units in mythics.json only, with their enemies and allies", () => {
+  it("gives a ward to every Mythic unit, with their enemies and allies; one not in mythics.json is generic (slice 7)", () => {
     const players = {
       p1: { board: [unit("u1", "Quorum Arbiter", "Mythic"), unit("u2", "Signal Drone"), unit("u3", "Some Rare", "Rare")] },
       p2: { board: [unit("u4", "Glitch Seed", "Common", "Null"), unit("u5", "Unknown Mythic", "Mythic", "Null")] },
     };
     expect(wardsOnBoard(players, specs)).toEqual([
       { iid: "u1", name: "Quorum Arbiter", faction: "Cortex", side: "p1", beh: "seats", enemies: 2, allies: ["u2", "u3"] },
+      { iid: "u5", name: "Unknown Mythic", faction: "Null", side: "p2", beh: "generic", enemies: 3, allies: ["u4"] },
     ]);
+  });
+
+  it("a Mythic whose entry names a behaviour the runtime doesn't know falls back to generic, never to nothing", () => {
+    const players = { p1: { board: [unit("u1", "New Mythic", "Mythic", "Swarm")] }, p2: { board: [] } };
+    expect(wardsOnBoard(players, { "New Mythic": { faction: "Swarm", behaviour: "orbit" } })[0]!.beh).toBe("generic");
+    expect(wardsOnBoard(players, { "New Mythic": { faction: "Swarm", behaviour: "heartbeat" } })[0]!.beh).toBe("heartbeat");
   });
 
   it("Quorum Arbiter lights one seat per enemy unit, up to its twelve seats", () => {

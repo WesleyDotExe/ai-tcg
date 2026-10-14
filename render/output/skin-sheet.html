@@ -87,7 +87,11 @@ html, body {
 .momentum .gauge .fill { position: absolute; top: 0; bottom: 0; background: var(--neutral); transition: left 420ms ease, width 420ms ease, background 420ms ease; }
 .momentum .why { font-size: 0.66rem; color: var(--ink-dim); margin-top: 6px; min-height: 2.4em; }
 
-.turnbar { text-align: center; padding: 6px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink-dim); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px; }
+/* Slice 7: the turn line sits on its own backing. A ward behind a top-row
+ * card (two signature cards make that common) reaches up past the card,
+ * and the turn and phase must always read (legibility wins). */
+.turnbar { text-align: center; padding: 6px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink-dim); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent); position: relative; }
 .turnbar b { color: var(--ink); }
 .turnbar .win { color: var(--neutral); font-weight: bold; }
 
@@ -147,6 +151,13 @@ html, body {
 .rarity-Uncommon { box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset; }
 .rarity-Rare { box-shadow: 0 0 8px 1px var(--rc), 0 0 0 1px var(--rc) inset; }
 .rarity-Mythic { box-shadow: 0 0 14px 3px var(--rc), 0 0 0 1px var(--rc) inset; animation: pulse 2.2s ease-in-out infinite; }
+/* Slice 6: the Mythic card's foil, a slow light sweep across the card (the
+ * lab's .card.mythic::after). Its ward lives on the floor canvas behind it. */
+.card.rarity-Mythic:not(.pending)::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.2) 45%, transparent 60%) 0 0 / 250% 100%;
+  animation: mythic-foil 4.5s linear infinite; }
+@keyframes mythic-foil { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .card.rarity-Mythic::after { animation: none; } }
 @keyframes pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
 
 .faction-Cortex { --fc: var(--cortex); --rc: #35c9ff; }
@@ -160,6 +171,13 @@ html, body {
 .faction-Neutral { --fc: var(--neutral); --rc: #fff8e2; }
 .card.faction-Neutral .name, .card.faction-Neutral .stats { background: rgba(0,0,0,0.66); }
 .card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null, .card.faction-Neutral { background: var(--fc); }
+/* Slice 6: the Mythic card is obsidian + foil (EFFECTS.md "Mythic unique
+ * wards", the lab's .card.mythic): near-black with a faint glow of its
+ * faction, rimmed in its colour, so its ward reads around it. */
+.card.rarity-Mythic { background: #05060b; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--fc) 18%, #05060b), #05060b 75%);
+  border-color: var(--rc); color: #fff; }
+.card.rarity-Mythic .art { background-image: none !important; color: var(--rc); text-shadow: 0 0 8px var(--rc); }
+.card.rarity-Mythic .head { background: color-mix(in srgb, var(--rc) 70%, #fff); color: #05060d; }
 
 .lower { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-top: 12px; }
 .hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }
@@ -177,10 +195,17 @@ html, body {
 .controls button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: inherit; }
 .controls button:hover { border-color: var(--cortex); }
 .controls #scrubber { width: 320px; }
-.controls #btn-sound.on { border-color: var(--good); color: var(--good); }
+.controls #btn-sound.on, .controls #btn-music.on { border-color: var(--good); color: var(--good); }
+/* Armed: on, waiting for the viewer's first click or key press to start. */
+.controls #btn-sound.armed, .controls #btn-music.armed { border-style: dashed; }
+.sound-ctl { display: inline-flex; align-items: center; gap: 6px; }
+.sound-ctl input[type=range] { width: 80px; accent-color: var(--good); }
+.sound-ctl input[type=range]:disabled { opacity: 0.4; }
+.music-meter { font-size: 0.7rem; color: var(--ink-dim); min-width: 92px; letter-spacing: 1px; }
 .framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
 .speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
-.speedlabel select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
+.speedlabel select, .sound-ctl select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
+.sound-ctl select { font-size: 0.7rem; }
 
 /* Per-move transitions (RENDER.md render-lane session 2): the board no
  * longer just snaps to the next frame — plays, deaths, attacks, damage/heal,

@@ -61,7 +61,7 @@ Keep `render/src/fxMagnitude.ts` (subtle / normal / spectacle). Magnitude scales
   - Hive Mother — `heartbeat`: beats like a heart and sends larvae out to her brood (+1/+0).
   - Null Singularity — `gravity`: bends the grid toward itself and drags pointers in (+1/+0).
   - A Mythic's own ward (not the faction ward) flares for its signature moves (behind the card), and shatters into spinning pieces over the board when the Mythic dies.
-- **Fallback ward**: a Mythic with no art yet gets a ward drawn by code, seeded from its name and faction, so the same name always gives the same ward (lab: `genWardAtlas()`). It must never block a card from rendering.
+- **Fallback ward**: a Mythic with no art yet gets a ward drawn by code, seeded from its name and faction, so the same name always gives the same ward (lab: `genWardAtlas()`). It must never block a card from rendering. Every agent's **signature card** is a Neutral Mythic with a generated name that is never in `mythics.json`, so its ward is always the fallback, with the `generic` behaviour (rotation plus a slow pulse).
 
 ## Sound and music (v2): procedural only
 
@@ -145,6 +145,19 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 - **Only the sheets a replay needs are embedded** (`sigWardDataFor`, ~85-125 KB per faction); a replay with no signature fire carries none.
 - Neutral has no ward, and an unknown faction has none either. Without the canvas or the sheet, nothing changes: the v1 cast flourish plays as before.
 
+## Slice 7 as built (render session 17)
+
+- `render/src/fallbackWard.ts`: `FALLBACK_WARD_PURE_SOURCE` (`fwHash`, the seeded generator, `fallbackWardPlan`, `fallbackWardLook`, `fallbackWardsNeeded`) and `FALLBACK_WARD_RUNTIME_SOURCE` (`fallbackWardSheet`). Same single-source rule; the page and the FX sheet embed the text the tests run.
+- **Plan, then draw.** `fallbackWardPlan(name, faction)` makes every random choice up front (FNV-1a of `faction:name`, then mulberry32) and returns plain data: the outer ring's ticks, node count and glyph strokes, the middle pattern and its numbers, the core polygon, the ornament. `fallbackWardSheet(plan)` draws it into a 2×2 greyscale-on-black sheet of 512 px cells in the Replicate layout (outer / middle / core / ornament), so `WARDS` tints, spins, flares, acts out behaviours with and shatters it exactly like art.
+- **Faction = material** (`FW_KITS`): Cortex chips and straight glyphs (spokes / polys / orbits); Aegis plates, thick lines (polys / spokes / plates); Swarm eggs and curved glyphs (curl / spokes / orbits); Null broken nodes with torn cuts in the rings (orbits / curl / polys); Neutral rune tablets and arc glyphs (runes: concentric rings broken into notched arcs / orbits / polys). An unknown faction draws in the Neutral kit.
+- **Symbol rules** (as `_howToAddAMythic`): nested polygons share one orientation (never two turned against each other, which reads as a star), no triangle in the core or the ornament, spokes are 16 or more (never a cross). Tested over 2,000 names.
+- **Variety, measured:** all 303 signature menu combination ids get a distinct plan, and 299 of them a distinct coarse look (pattern and counts; the test floor is 95%); every kit uses all its middle patterns over 300 names. A distinct coarse look is not the same as easy to tell apart at a glance: the silhouette is always a ring.
+- **In the page:** `wardsOnBoard` now lists every Mythic unit; one not in `mythics.json`, or naming a behaviour the runtime doesn't know, is `generic`. `WARDS.prepare(fallbackWardsNeeded(frames, atlases))` draws every sheet the replay needs at load (3-9 ms each in headless Chromium); `sync` still draws one lazily if needed. A Mythic with art always uses its art. Drawing is wrapped in try/catch: a sheet that fails means no ward, never a broken card.
+- **`generic` behaviour:** the layers counter-rotate and a soft ring leaves the ward every 3.2 s (`WARD_GENERIC_EVERY`), behind the card.
+- **The turn line got its own backing** (90% of the page background): a ward behind a top-row card reaches up past it, and with a signature card on each side that is common.
+- **FX sheet part 5:** the generator's gallery, three wards per faction, spinning (each faction's set Mythic as it would look without art, and for Neutral the two demo signature cards and a menu id).
+- **Demo signature cards** (`render/src/demoSignatures.ts`, CLI `--signatures`): Consensus Lantern (Rally +0/+1, 3/6) and Tollgate Daemon (Tax, 3/6), two lines that pass the owner's fairness test, standing in until the engine's agent generator hands out real ones.
+
 ## Board layout (infrastructure every primitive relies on)
 
 Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slot until it leaves. Effects anchor to card rectangles; a canvas FX layer sits above the cards and a "floor" canvas below them for ground marks and lingering debris.
@@ -170,7 +183,7 @@ Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slo
 4. Adaptive procedural music (port the lab's music block), no kill dropout. **Built, render session 14** (`render/src/musicFx.ts`; see "Slice 4 as built"; music desk in the FX sheet).
 5. Faction wards for signature abilities, driven by `signatureAbilities`. **Built, render session 16** (`render/src/sigWardFx.ts`; see "Slice 5 as built").
 6. Mythic unique wards: permanent layered ward, the four behaviours, Mythic card treatment, shatter on death; read everything from `mythics.json`. The ward sits behind the card (owner 2026-10-11). **Built, render session 15, ahead of slice 5** because the owner's 2026-10-11 entry was about these wards (`render/src/wardFx.ts`; see "Slice 6 as built").
-7. Fallback ward generator, so any Mythic without art still gets a unique ward.
+7. Fallback ward generator, so any Mythic without art still gets a unique ward. **Built, render session 17** (`render/src/fallbackWard.ts`; see "Slice 7 as built"; gallery in the FX sheet). With it, every v2 slice is built.
 
 Each slice: build it for all factions, keep meaning constant, prove it at play speed, checkpoint, and update this file if the model itself changes.
 

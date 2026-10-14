@@ -1,7 +1,9 @@
 // Entry point: plays one real match through the engine and writes a
 // self-contained HTML replay to render/output/. Usage:
-//   npm run replay -w @ai-tcg/render -- <factionA> <factionB> <seed> [outfile]
+//   npm run replay -w @ai-tcg/render -- <factionA> <factionB> <seed> [outfile] [--signatures]
 // factions: Cortex | Aegis | Swarm | Null
+// --signatures gives each side a demo signature card (render/src/demoSignatures.ts),
+// a Neutral Mythic with no ward art, so the replay shows the slice-7 fallback ward.
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,6 +12,7 @@ import type { DeckSpec } from "@ai-tcg/engine";
 import { LookaheadAgent, buildNullDeck } from "./engineInternal.js";
 import type { DeckFaction } from "./engineInternal.js";
 import { captureMatch } from "./capture.js";
+import { demoSignatureCard } from "./demoSignatures.js";
 import { renderMatchHtml } from "./renderHtml.js";
 
 const DECK_BUILDERS: Record<DeckFaction, (id: DeckSpec["id"], name: string) => DeckSpec> = {
@@ -24,13 +27,15 @@ function isFaction(s: string): s is DeckFaction {
 }
 
 async function main() {
-  const [factionAArg, factionBArg, seedArg, outArg] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  const signatures = args.includes("--signatures");
+  const [factionAArg, factionBArg, seedArg, outArg] = args.filter((a) => !a.startsWith("--"));
   const factionA = factionAArg && isFaction(factionAArg) ? factionAArg : "Aegis";
   const factionB = factionBArg && isFaction(factionBArg) ? factionBArg : "Swarm";
   const seed = seedArg ? Number(seedArg) : 1;
 
-  const deckA = DECK_BUILDERS[factionA]!("p1", `${factionA} Deck`);
-  const deckB = DECK_BUILDERS[factionB]!("p2", `${factionB} Deck`);
+  const deckA: DeckSpec = { ...DECK_BUILDERS[factionA]!("p1", `${factionA} Deck`), ...(signatures ? { signature: demoSignatureCard(0) } : {}) };
+  const deckB: DeckSpec = { ...DECK_BUILDERS[factionB]!("p2", `${factionB} Deck`), ...(signatures ? { signature: demoSignatureCard(1) } : {}) };
   // Usernames are the player-identity key (the avatar is seeded from them),
   // so a mirror match must not give both sides the same one.
   const mirror = factionA === factionB;
@@ -38,7 +43,7 @@ async function main() {
   const agentB = new LookaheadAgent(`Lookahead-${factionB}${mirror ? "-B" : ""}`, seed * 2 + 2);
 
   const replay = await captureMatch({
-    title: `${factionA} vs ${factionB} (seed ${seed})`,
+    title: `${factionA} vs ${factionB} (seed ${seed}${signatures ? ", signature cards" : ""})`,
     seed,
     deckA,
     deckB,
@@ -51,7 +56,7 @@ async function main() {
   const here = dirname(fileURLToPath(import.meta.url));
   const outPath = outArg
     ? resolve(process.cwd(), outArg)
-    : resolve(here, "../output", `${factionA.toLowerCase()}-vs-${factionB.toLowerCase()}-seed${seed}.html`);
+    : resolve(here, "../output", `${factionA.toLowerCase()}-vs-${factionB.toLowerCase()}-${signatures ? "sig-" : ""}seed${seed}.html`);
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, html, "utf8");
 
