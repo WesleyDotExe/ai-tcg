@@ -2369,3 +2369,16 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
   2. Inspire passes off the table (3/4 or 3/5), and that's allowed.
   3. A Bulwark with its own Guard never redirects.
   4. A once-per-turn activated ability isn't offered again after it's been used that turn.
+
+---
+
+## 2026-10-15 — Owner: render session 17 (fallback wards, slice 7) accepted, keep all 6 calls
+
+Owner decision on the slice 7 checkpoint in `progress/render/checkpoints.md` (render session 17, PR #52). All six calls are kept as built:
+
+1. Signature cards get a Mythic ward.
+2. Signature cards always use the code-drawn fallback ward, never generated art. Per the standing no-external-reliance rule, a generated agent's card must never call an outside service (such as Replicate) at runtime.
+3. The fallback ward uses the quiet "generic" behaviour (rotation plus a soft ring every 3.2 s).
+4. The turn line keeps its dark backing.
+5. Neutral's fallback material is rune tablets and broken arcs.
+6. The demo signature card names are placeholders for the replays. Real names come from the agent generator.
