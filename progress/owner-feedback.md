@@ -2432,3 +2432,19 @@ This completes the two open items in the earlier 2026-10-15 entry.
 - **How many styles:** the owner suggested around 6. The game lane proposes the set at a checkpoint, with each style's fairness results.
 - **No free-text instructions for now.** Interpreting them would need a language model running each match, against the no-external-reliance rule.
 - Propose where play styles fit in the build order at the same checkpoint.
+
+---
+
+## 2026-10-15 — Owner: signature card names must make sense and stay on theme; ~6 play styles is a target
+
+- **Play styles:** around 6 is a target, not a strict rule.
+- **Signature card names** (double- or triple-barrel) must read as a real name and fit the game's theme: cyberpunk with 1990s retro-futurism. The owner's example: **"Zion's Midnight DDoS"**.
+  - **Suggested approach** (not an owner decision; the session can propose something better):
+    - Build names from templates with grammatical slots, not words strung together at random. For example: [Handle]'s [Modifier] [Thing], [Modifier] [Thing], or [Thing] of the [Place].
+    - Each word list is tagged by its slot (handle, modifier, noun, place) so every result is grammatical.
+    - The lists are themed: hacker handles, network and hardware terms, time-of-night and neon words, retro-tech nouns.
+    - Where it fits, lean the noun towards the card's ability, so an attack card can be a "DDoS" and a defensive card a "Firewall".
+    - Filter out offensive or nonsense combinations.
+  - Names stay unique, with a re-roll on a clash.
+  - The rare variant puts the owner's username in the handle slot ("[username]'s Midnight DDoS").
+  - Show sample names at a checkpoint before they go live.
