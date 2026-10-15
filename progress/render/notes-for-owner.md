@@ -506,3 +506,25 @@ separate from the shared `progress/notes-for-owner.md`).
    changes that agent's ward, so names should be fixed once given.
 4. **No engine change was needed.** `buildSignatureCard` is read through
    `render/src/engineInternal.ts`, like the other deep imports.
+
+
+---
+
+## 2026-10-15 — Session 18 (the signature zone)
+
+1. **Quickest look:** open `render/output/cortex-vs-aegis-sig-seed5.html`,
+   drag to move 102, then press → once. Cinder Uplink dies and a white-gold
+   card shape flies back into its zone, which now says 7. Drag to move 116
+   and press → to see it played again for 7.
+2. **Six calls are in `progress/render/checkpoints.md`.** The two likeliest
+   to want your eye: where the zone sits (call 1) and the waiting card
+   showing its next cost instead of its printed cost (call 2).
+3. **Your 500-piece signature art pool (2026-10-15, game lane) fits
+   straight in.** When it exists, the card in the zone and on the board
+   can show its piece; the ward stays code-drawn, as you accepted. Nothing
+   for the render lane to do until the pool and its assignment exist.
+4. **Names feed the ward seed.** When the game lane switches to template
+   names, both demo agents in the replays get new names and new wards.
+   That's expected: I'll regenerate the two signature replays then.
+5. **No engine change was needed.** `signatureCost` is read through
+   `render/src/engineInternal.ts`, like the other deep imports.

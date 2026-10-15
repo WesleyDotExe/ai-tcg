@@ -156,7 +156,17 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 - **`generic` behaviour:** the layers counter-rotate and a soft ring leaves the ward every 3.2 s (`WARD_GENERIC_EVERY`), behind the card.
 - **The turn line got its own backing** (90% of the page background): a ward behind a top-row card reaches up past it, and with a signature card on each side that is common.
 - **FX sheet part 5:** the generator's gallery, three wards per faction, spinning (each faction's set Mythic as it would look without art, and for Neutral the two demo signature cards and a menu id).
-- **Demo signature cards** (`render/src/demoSignatures.ts`, CLI `--signatures`): Consensus Lantern (Rally +0/+1, 3/6) and Tollgate Daemon (Tax, 3/6), two lines that pass the owner's fairness test, standing in until the engine's agent generator hands out real ones.
+- **Demo signature cards** (CLI `--signatures`): Consensus Lantern and Tollgate Daemon stood in until the engine's agent generator existed. Replaced in render session 18 by generated agents (see "The signature zone as built").
+
+## The signature zone as built (render session 18, after v2)
+
+- `render/src/sigZoneFx.ts`: `SIG_ZONE_SOURCE` (`signatureZoneMoves`, `signatureZoneView`), single source like the rest. Reads the captured snapshots only: `PlayerSnapshot.signature` (the engine's public SignatureZone plus `signatureCost`) and `UnitSnapshot.isSignature`. A test checks every movement it derives against the engine's own `play` (fromSignatureZone) and `signatureReturn` events, same instance, same cost, over five real matches.
+- **Where:** a white-gold socket left of each side's row of six slots, outside the slots (it never counts as one). Below 1040 px wide it moves above the row and shrinks.
+- **What it shows:** the waiting card at its next cost; or, while the card is out, an empty socket saying ON BOARD with the card's name. Under it: the next cost, the climb so far (+2 per replay, in red), the plays so far, and the reach line.
+- **Reach** (meaning, not decoration): IN REACH (its owner's turn and the pool covers the cost; the socket glows and the cost pill fills), IN REACH NEXT TURN (the next refill, max + 1 capped at 10, covers it; dashed pill), OUT OF REACH, or RETURNS IF IT DIES while out.
+- **Leave:** the card lifts out of the socket, arcs to its slot and lands at full size; the slot's entrance flourish, the Mythic music cue and the ward's arrival all wait for the landing.
+- **Return:** the card shatters as any Mythic does; 420 ms later (`SIG_RETURN_LAG`, so it clears the debris) a white-gold card-shaped mote with two echoes arcs back to the socket, which stays empty until the mote lands and then flares (`sz-landing`).
+- **Generated agents** (`render/src/generatedSignatures.ts`, CLI `--signatures`): each side is the first candidate of the engine's own `generateAgentCandidates` / `generateSignatureCandidates`, seeded from the replay seed, seat two generated with seat one taken. The agent's name is the side's username; the card is `sig-PR-001` / `sig-PR-002`.
 
 ## Board layout (infrastructure every primitive relies on)
 
@@ -184,6 +194,7 @@ Fixed slots (render session 8, `render/src/slotLayout.ts`). A card keeps its slo
 5. Faction wards for signature abilities, driven by `signatureAbilities`. **Built, render session 16** (`render/src/sigWardFx.ts`; see "Slice 5 as built").
 6. Mythic unique wards: permanent layered ward, the four behaviours, Mythic card treatment, shatter on death; read everything from `mythics.json`. The ward sits behind the card (owner 2026-10-11). **Built, render session 15, ahead of slice 5** because the owner's 2026-10-11 entry was about these wards (`render/src/wardFx.ts`; see "Slice 6 as built").
 7. Fallback ward generator, so any Mythic without art still gets a unique ward. **Built, render session 17** (`render/src/fallbackWard.ts`; see "Slice 7 as built"; gallery in the FX sheet). With it, every v2 slice is built.
+8. (After v2) The signature zone on the board: the socket, reach, the leave and return flights, generated agents in the replays. **Built, render session 18** (`render/src/sigZoneFx.ts`; see "The signature zone as built").
 
 Each slice: build it for all factions, keep meaning constant, prove it at play speed, checkpoint, and update this file if the model itself changes.
 

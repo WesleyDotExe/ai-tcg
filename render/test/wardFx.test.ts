@@ -215,7 +215,7 @@ describe("the replay page", () => {
 
   it("follows the board every frame and cues arrival and shatter on the card's own beats", () => {
     expect(html).toContain("WARDS.sync(wardsOnBoard(frame.players, wardSpecs), { stepping: stepping });");
-    expect(html).toContain("if (WARDS.has(id)) later(causeT, function () { WARDS.arrive(id); });");
+    expect(html).toContain("if (WARDS.has(id)) later(enterT, function () { WARDS.arrive(id); });");
     expect(html).toContain("if (WARDS.has(id)) later(unitT(id), function () { WARDS.shatter(id); });");
     // The shatter shares the kill's moment: the ghost dies at unitT(id) too.
     expect(html).toContain("spawnGhost(prevBoard[id], prevRects[id], tier, unitT(id),");

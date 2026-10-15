@@ -22,6 +22,7 @@ export {
   boardSlotsUsed,
   hasKeyword,
   effectiveCardCost,
+  signatureCost,
 } from "../../engine/src/state/queries.js";
 // Faction/Rarity/CardType/Keyword are likewise defined but not re-exported
 // by the public barrel — type-only, so re-exporting them here can never

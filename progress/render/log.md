@@ -2134,3 +2134,97 @@ signature card, its next cost, `signatureReturn` animating the card back
 and `fromSignatureZone` plays leaving from it), then the owner's open
 render items (website Music setting and menu music belong to build-order
 steps 4-5).
+
+## 2026-10-15 — Session 18: the signature zone on the board, generated agents in the replays
+
+Render session by the alternation rule: the last merged PR (#53) was a game
+slice. Owner feedback read first. The one render entry since session 17
+(2026-10-15, slice 7 accepted, keep all 6 calls) needs nothing built; its
+call 6 ("real names come from the agent generator") is acted on below
+because the generator now exists. The three other 2026-10-15 entries are
+game-lane work (pool, names, play styles) and are left for that lane.
+
+**Built:**
+- **`render/src/sigZoneFx.ts`** (single source, embedded in the page):
+  - `signatureZoneMoves(prev, next)`: `leave` (played from the zone, with
+    the arriving unit's id and the cost paid), `return` (died and went back,
+    with the leaving unit's id and the next cost), `bounce` (played and
+    back inside one move, never silently dropped).
+  - `signatureZoneView(player, isActive, cap)`: waiting or out, next cost,
+    the climb, plays so far, the collector number, and reach: `now` (own
+    turn, pool covers it), `next` (the refill, max + 1 capped, covers it).
+- **Capture:** `PlayerSnapshot.signature` (card, printed body, rules text,
+  `nextCost` from the engine's own `signatureCost`, `timesPlayed`,
+  `inZone`), `UnitSnapshot.isSignature`, `MatchReplay.energyCap`.
+  `signatureCost` is read through `engineInternal.ts`.
+- **The page:** a white-gold socket left of each row (outside the six
+  slots). The waiting card at its next cost, or ON BOARD with its name;
+  the cost pill, the climb in red, plays so far, the reach line; the socket
+  glows when the card is in reach now. Below 1040 px it moves above the
+  row and shrinks.
+  - **Leave:** the card lifts out and arcs to its slot; the slot's entrance,
+    the Mythic music cue and the ward's arrival wait for the landing.
+  - **Return:** the socket stays empty through the shatter; 420 ms after
+    the kill a card-shaped mote with two echoes arcs home and the socket
+    flares as it fills.
+- **Generated agents** (`render/src/generatedSignatures.ts`, replaces
+  `demoSignatures.ts`): `--signatures` now runs the engine's own generator
+  (first agent candidate, then first signature candidate, seat two with
+  seat one taken). The generated agent's name is the username; cards are
+  `sig-PR-001` / `sig-PR-002`.
+
+**Ran it:**
+- **Scanned 32 games** (four pairings, seeds 1-8) with generated agents.
+  Every game played at least one signature card; only three had one die
+  and return (Cortex-Aegis 5, Aegis-Swarm 5, Null-Cortex 2), and only
+  Cortex-Aegis 5 replayed it. That one is the showcase:
+  `cortex-vs-aegis-sig-seed5.html`, Wren Mk II (Last Courier) vs Tamsin of
+  the Long Queue (Cinder Uplink). Plays at moves 44 and 47 (cost 5);
+  Cinder Uplink dies to Quorum Arbiter at move 103 and returns at 7; it is
+  played again at 117 for 7, and the zone then reads 9, +4, played ×2.
+- **Headless Chromium:**
+  - Every one of 130 frames: the zone's DOM agrees with the data (state,
+    cost, card present or not). 0 page errors.
+  - Stepped into moves 44, 103 and 117, and recorded each as video
+    (1280×960, ffmpeg frame strips at 20 fps).
+- **Found and fixed in the video:**
+  - The return mote launched under the Mythic shatter and couldn't be
+    seen: delayed it from 180 to 420 ms, made it a brighter card shape with
+    two echoes, on a higher arc.
+  - The waiting card flashed for ~160 ms before the socket emptied (an
+    opacity transition set off by runFx's layout reads): removed the
+    transition.
+- **All 14 replays regenerated** plus the FX and skin sheets. The twelve
+  without signature cards: match data identical apart from the new fields
+  (`signature: null`, `energyCap`). The two with signature cards are new
+  matches, because the cards are new.
+- **Tests:** render 290 (was 272). New `test/sigZone.test.ts` (18): every
+  movement and reach state on hand-built frames; the engine-event oracle on
+  five real matches (11 plays from the zone, 3 returns, all matched); the
+  cost shown is the cost the engine charges at the next play; the
+  showcase's exact cycle; generated seats over 40 seeds; the page embeds
+  the module. `fallbackWard.test.ts` moved to the generated cards; two
+  string pins moved from `causeT` to `enterT`. `npm test` 583 across six
+  workspaces; `tsc --noEmit` clean in all six.
+- **Stills:** six `v2-s8-*.png` in `progress/render/evidence/`.
+
+**Named honestly, not fixed:**
+- **"In reach now" is almost never seen.** The reference agents play the
+  signature card the moment they can afford it, so the glow lasts 3 moves
+  or fewer in 25 of the 32 scanned games (the longest: 22). Against real
+  agents that hold it back it would matter more.
+- **The return mote competes with the Mythic shatter.** The card usually
+  dies next to its own zone, so the flight is short (about 200 px) and the
+  shatter is still bright. It reads in the video strip, not as clearly as
+  the leave flight.
+- **`cortex-vs-aegis-sig-seed2.html` no longer shows four wards at once.**
+  It now has one signature card played; session 17's four-ward frame-rate
+  measurement belongs to the old cards.
+- Units on the board still show a 0 in the cost circle (pre-existing).
+- Below about 900 px the page still overflows sideways (pre-existing); the
+  zone itself fits.
+
+**Next render-lane slice:** the owner's open render items (the website
+Music setting and menu music belong to build-order steps 4-5), or, if the
+game lane's template names land first, regenerate the two signature
+replays so the cards carry them.
