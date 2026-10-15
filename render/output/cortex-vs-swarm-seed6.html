@@ -119,7 +119,7 @@ html, body {
   background: radial-gradient(ellipse at 50% 42%, color-mix(in srgb, var(--neutral) 12%, transparent), transparent 70%),
     repeating-linear-gradient(135deg, rgba(255,240,194,0.045) 0 5px, transparent 5px 10px), #05060b;
   box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 14px -4px var(--neutral) inset; }
-.sigzone .sz-socket .card { position: absolute; left: 0; top: 0; transform: scale(0.864); transform-origin: top left; animation: none; transition: opacity 160ms ease; }
+.sigzone .sz-socket .card { position: absolute; left: 0; top: 0; transform: scale(0.864); transform-origin: top left; animation: none; }
 .sigzone .sz-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 5px; padding: 8px; text-align: center; color: var(--ink-dim); letter-spacing: 0.06em; line-height: 1.3; }
 .sigzone .sz-empty b { color: var(--neutral); font-size: 0.64rem; letter-spacing: 0.14em; }
@@ -148,8 +148,9 @@ html, body {
 }
 .card.fx-sigfly { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
   box-shadow: 0 0 22px var(--neutral), 0 0 0 2px var(--neutral); }
-.fx-sigmote { position: fixed; left: 0; top: 0; width: 30px; height: 40px; border-radius: 4px; pointer-events: none; z-index: 1;
-  border: 2px solid var(--neutral); background: rgba(255,240,194,0.18); box-shadow: 0 0 16px 2px var(--neutral); }
+.fx-sigmote { position: fixed; left: 0; top: 0; width: 34px; height: 46px; border-radius: 4px; pointer-events: none; z-index: 1;
+  border: 2px solid var(--neutral); background: rgba(255,240,194,0.28); box-shadow: 0 0 18px 4px var(--neutral), 0 0 0 1px #05060d; }
+.fx-sigmote.trail { background: transparent; box-shadow: 0 0 12px 2px var(--neutral); }
 @media (max-width: 1040px) {
   .sigzone { position: static; transform: none; width: auto; flex-direction: row; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
   .sigzone .sz-socket { width: 51px; height: 69px; }
@@ -4899,7 +4900,10 @@ html, body {
   // little, holds long enough to read, and settles at full size where the
   // slot's card will appear. Starts at `delay`; returns when it lands
   // (from the start of the move), so the slot's entrance waits for it.
-  const SIG_RETURN_LAG = 180;
+  // The mote waits for the card's shatter to scatter first (a Mythic's
+  // shatter is a spectacle, and the dead card usually stands right next to
+  // its own zone), so it rises out of the debris instead of under it.
+  const SIG_RETURN_LAG = 420;
   function sigFlightMs() { return Math.min(620, Math.max(180, Math.round(speedMs() * 0.65))); }
   function flySigCard(z, cost, fromR, toR, delay) {
     const card = sigZoneCard(z, cost);
@@ -4920,21 +4924,25 @@ html, body {
     });
     return delay + ms;
   }
-  // A dead signature card going home: a small white-gold card shape flies
-  // from where the card died back to its socket. Returns when it lands.
+  // A dead signature card going home: a small white-gold card shape, with
+  // two fading echoes behind it as a trail, arcs from where the card died
+  // up and over to its socket. Returns when it lands.
   function flySigMote(fromR, toR, delay) {
-    const mote = document.createElement('div');
-    mote.className = 'fx-sigmote';
-    mote.style.opacity = '0';
-    fxLayer.appendChild(mote);
     const a = centreOf(fromR), b = centreOf(toR);
-    const mid = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 40 };
+    const mid = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 70 };
     const ms = sigFlightMs();
-    function at(p, sc, op) { return { transform: 'translate(' + (p.x - 15) + 'px,' + (p.y - 20) + 'px) scale(' + sc + ')', opacity: op }; }
-    later(delay, function () {
-      mote.style.opacity = '';
-      if (mote.animate) mote.animate([at(a, 0.6, 0), Object.assign(at(a, 1.2, 1), { offset: 0.15 }), Object.assign(at(mid, 1, 1), { offset: 0.55 }), at(b, 1.6, 0.2)], { duration: ms, easing: 'ease-in', fill: 'both' });
-      setTimeout(function () { mote.remove(); }, ms + 30);
+    function at(p, sc, op) { return { transform: 'translate(' + (p.x - 17) + 'px,' + (p.y - 23) + 'px) scale(' + sc + ')', opacity: op }; }
+    [0, 1, 2].forEach(function (k) {
+      const mote = document.createElement('div');
+      mote.className = 'fx-sigmote' + (k ? ' trail' : '');
+      mote.style.opacity = '0';
+      fxLayer.appendChild(mote);
+      const lag = k * 45, fade = 1 - k * 0.35;
+      later(delay + lag, function () {
+        mote.style.opacity = '';
+        if (mote.animate) mote.animate([at(a, 0.5, 0), Object.assign(at(a, 1.15, fade), { offset: 0.12 }), Object.assign(at(mid, 1, fade), { offset: 0.55 }), at(b, 1.5, 0.15)], { duration: ms, easing: 'ease-in', fill: 'both' });
+        setTimeout(function () { mote.remove(); }, ms + 30);
+      });
     });
     return delay + ms;
   }
