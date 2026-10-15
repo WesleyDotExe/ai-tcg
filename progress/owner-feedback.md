@@ -2448,3 +2448,16 @@ This completes the two open items in the earlier 2026-10-15 entry.
   - Names stay unique, with a re-roll on a clash.
   - The rare variant puts the owner's username in the handle slot ("[username]'s Midnight DDoS").
   - Show sample names at a checkpoint before they go live.
+
+---
+
+## 2026-10-15 — Owner: render signature zone (PR #54) accepted, keep all 6 calls
+
+Owner decision on the signature zone checkpoint in `progress/render/checkpoints.md` (PR #54). All six calls are kept as built:
+
+1. The zone sits left of each row, outside the six slots.
+2. The waiting card shows its next cost in its cost circle, with the red +2 explaining the climb.
+3. "In reach" uses the refill rule and doesn't predict board cost changes.
+4. The return waits 420 ms after the kill so it clears the shatter.
+5. Replays take the generator's first candidate at each step.
+6. In replays with signature cards, the generated agent's name replaces the "Lookahead-Cortex" style username.
