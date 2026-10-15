@@ -37,11 +37,14 @@
 //   npx tsx src/dev/signatureFairness.ts levers [--ability key | --shard i/k] [--coarse N] [--seeds N] [--confirm N] [--out file]
 //       the tuner with the owner's 2026-10-13 levers: the ability's size
 //       and the cost tier as well as the stat line (attack 2 or more)
-//   npx tsx src/dev/signatureFairness.ts grid --abilities a,b [--tier 5] [--attack 2-4] [--health 3-9] [--seeds N] [--shard i/k] [--out file]
+//   npx tsx src/dev/signatureFairness.ts grid --abilities a,b [--sizes s,t] [--tier 5] [--attack 2-4] [--health 3-9] [--seeds N] [--shard i/k] [--out file]
 //       the finer pass (owner 2026-10-15): every size of each option x every
 //       body in the grid, no greedy walk; one compact line per candidate
 //   npx tsx src/dev/signatureFairness.ts confirm --in file,... [--top N] [--seeds N] [--shard i/k] [--out file]
 //       the N best grid lines per option re-measured at --seeds (2,500)
+//   npx tsx src/dev/signatureFairness.ts remeasure (--ids id,... | --approved) [--seeds N] [--shard i/k] [--out file]
+//       named lines (any stat line, by combo id) or every approved line,
+//       full results at --seeds (owner 2026-10-15: the near misses at 10,000)
 //   npx tsx src/dev/signatureFairness.ts report file... [--seeds N]
 //       the table for a balance report
 
@@ -56,12 +59,14 @@ import {
   optionAtSize,
   signatureComboId,
   onTable,
+  parseSignatureComboId,
   SIGNATURE_MENU,
   SIGNATURE_TIERS,
   TIER6_KEYWORDS,
   type SignatureSpec,
   type SignatureTier,
 } from "../data/signatureMenu.js";
+import { APPROVED_SIGNATURE_LINES } from "../data/signatureApproved.js";
 import type { DeckFaction as Faction, UnitCard } from "../cards/types.js";
 
 /** A measuring stand-in only, never a real card: the bottom of the cost-5
@@ -500,7 +505,11 @@ async function main(): Promise<void> {
     const [shard, shards] = (arg("shard") ?? "0/1").split("/").map(Number) as [number, number];
     const reference = loadReference(Number(arg("seeds") ?? 1000));
     const out = arg("out");
-    const specs = gridSpecs(abilities, tier, range(arg("attack") ?? "2-4"), range(arg("health") ?? "3-9"));
+    // --sizes: only these size keys ("standard" for the unsized option).
+    const sizes = arg("sizes")?.split(",");
+    const specs = gridSpecs(abilities, tier, range(arg("attack") ?? "2-4"), range(arg("health") ?? "3-9")).filter(
+      (sp) => !sizes || sizes.includes(sp.size ?? "standard"),
+    );
     for (const [i, spec] of specs.entries()) {
       if (i % shards !== shard) continue;
       const line = compactResult(await testCandidate(buildSignatureCard(spec, { anyStats: true }), spec, reference));
@@ -529,6 +538,22 @@ async function main(): Promise<void> {
     }
     return;
   }
+  if (command === "remeasure") {
+    const ids = process.argv.includes("--approved") ? APPROVED_SIGNATURE_LINES.map((l) => l.id) : (arg("ids") ?? "").split(",").filter(Boolean);
+    if (ids.length === 0) throw new Error("remeasure needs --ids or --approved");
+    const [shard, shards] = (arg("shard") ?? "0/1").split("/").map(Number) as [number, number];
+    const reference = loadReference(seeds);
+    const out = arg("out");
+    for (const [i, id] of ids.entries()) {
+      if (i % shards !== shard) continue;
+      const spec = parseSignatureComboId(id);
+      const r = await testCandidate(buildSignatureCard(spec, { anyStats: true }), spec, reference);
+      if (out) appendFileSync(out, JSON.stringify(r) + "\n");
+      else console.log(JSON.stringify(r));
+      console.error(`remeasure ${r.id.padEnd(36)} net ${signed(netChange(r))}  worst ${pct(r.worst)}  ${r.pass ? "PASS" : "fail"}`);
+    }
+    return;
+  }
   if (command === "report") {
     const files = process.argv.slice(3).filter((a, i, all) => !a.startsWith("--") && !all[i - 1]?.startsWith("--"));
     const rows: CandidateResult[] = files.flatMap((f) => readFileSync(f, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as CandidateResult));
@@ -539,7 +564,7 @@ async function main(): Promise<void> {
     }
     return;
   }
-  console.error("usage: signatureFairness.ts reference|candidates|tune|levers|grid|confirm|report ...");
+  console.error("usage: signatureFairness.ts reference|candidates|tune|levers|grid|confirm|remeasure|report ...");
   process.exit(2);
 }
 

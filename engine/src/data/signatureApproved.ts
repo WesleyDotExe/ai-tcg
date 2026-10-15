@@ -2,8 +2,9 @@
 // Don't edit by hand: re-run the script after new fairness results land.
 //
 // Every signature line that passed the owner's fairness test (2 points or
-// less on every edge, paired, at 2,500 seeds). The agent generator draws its
-// signature candidates only from here.
+// less on every edge, paired, at 2,500 seeds or more; a line's largest
+// measurement decides). The agent generator draws its signature candidates
+// only from here.
 
 import type { SignatureSpec } from "./signatureMenu.js";
 
@@ -23,20 +24,18 @@ export interface ApprovedSignatureLine {
 }
 
 export const APPROVED_SIGNATURE_LINES: readonly ApprovedSignatureLine[] = [
-  { id: "sig5-2x8-energy-surge.e2", spec: { ability: "energy-surge", tier: 5, attack: 2, health: 8, size: "e2" }, worst: 0.0184, seeds: 2500, onTable: false, fingerprint: "e4e58af7", source: "progress/signature-fairness/grid-confirm-2.jsonl" },
-  { id: "sig5-2x9-energy-surge.e2", spec: { ability: "energy-surge", tier: 5, attack: 2, health: 9, size: "e2" }, worst: 0.0188, seeds: 2500, onTable: false, fingerprint: "f877b45a", source: "progress/signature-fairness/grid-confirm-1.jsonl" },
-  { id: "sig5-3x4-inspire.a0", spec: { ability: "inspire", size: "a0", tier: 5, attack: 3, health: 4 }, worst: 0.0164, seeds: 2500, onTable: false, fingerprint: "90be7a2b", source: "progress/signature-fairness/levers-3.jsonl" },
-  { id: "sig5-3x4-restore.r1", spec: { ability: "restore", size: "r1", tier: 5, attack: 3, health: 4 }, worst: 0.0176, seeds: 2500, onTable: false, fingerprint: "00dcfefd", source: "progress/signature-fairness/levers-3.jsonl" },
-  { id: "sig5-3x5-inspire.a0", spec: { ability: "inspire", size: "a0", tier: 5, attack: 3, health: 5 }, worst: 0.0180, seeds: 2500, onTable: false, fingerprint: "0c4f60fe", source: "progress/signature-fairness/levers-3.jsonl" },
-  { id: "sig5-3x5-rally.a0", spec: { ability: "rally", size: "a0", tier: 5, attack: 3, health: 5 }, worst: 0.0176, seeds: 2500, onTable: false, fingerprint: "2d25c33d", source: "progress/signature-fairness/levers-2.jsonl" },
-  { id: "sig5-3x5-recycle", spec: { ability: "recycle", tier: 5, attack: 3, health: 5 }, worst: 0.0152, seeds: 2500, onTable: false, fingerprint: "ed99ae7d", source: "progress/signature-fairness/levers-2.jsonl" },
-  { id: "sig5-3x5-recycle.c3", spec: { ability: "recycle", size: "c3", tier: 5, attack: 3, health: 5 }, worst: 0.0172, seeds: 2500, onTable: false, fingerprint: "39587d3d", source: "progress/signature-fairness/levers-2.jsonl" },
-  { id: "sig5-3x5-restore.r1", spec: { ability: "restore", size: "r1", tier: 5, attack: 3, health: 5 }, worst: 0.0188, seeds: 2500, onTable: false, fingerprint: "4dd23c80", source: "progress/signature-fairness/levers-3.jsonl" },
-  { id: "sig5-3x6-rally.a0", spec: { ability: "rally", size: "a0", tier: 5, attack: 3, health: 6 }, worst: 0.0128, seeds: 2500, onTable: true, fingerprint: "7eea396e", source: "progress/signature-fairness/levers-2.jsonl" },
-  { id: "sig5-3x6-recycle", spec: { ability: "recycle", tier: 5, attack: 3, health: 6 }, worst: 0.0124, seeds: 2500, onTable: true, fingerprint: "6491dcae", source: "progress/signature-fairness/on-table-2500.jsonl" },
-  { id: "sig5-3x6-recycle.c1", spec: { ability: "recycle", size: "c1", tier: 5, attack: 3, health: 6 }, worst: 0.0076, seeds: 2500, onTable: true, fingerprint: "305c7e2f", source: "progress/signature-fairness/levers-2.jsonl" },
-  { id: "sig5-3x6-restore.r1", spec: { ability: "restore", size: "r1", tier: 5, attack: 3, health: 6 }, worst: 0.0164, seeds: 2500, onTable: true, fingerprint: "8f7ecedb", source: "progress/signature-fairness/levers-3.jsonl" },
-  { id: "sig5-3x6-supply-line.low", spec: { ability: "supply-line", size: "low", tier: 5, attack: 3, health: 6 }, worst: 0.0084, seeds: 2500, onTable: true, fingerprint: "683b374e", source: "progress/signature-fairness/levers-0.jsonl" },
-  { id: "sig5-3x6-tax", spec: { ability: "tax", tier: 5, attack: 3, health: 6 }, worst: 0.0156, seeds: 2500, onTable: true, fingerprint: "c93d5fe1", source: "progress/signature-fairness/levers-2.jsonl" },
-  { id: "sig5-3x7-supply-line.low", spec: { ability: "supply-line", size: "low", tier: 5, attack: 3, health: 7 }, worst: 0.0136, seeds: 2500, onTable: false, fingerprint: "098efd7b", source: "progress/signature-fairness/levers-0.jsonl" },
+  { id: "sig5-3x4-inspire.a0", spec: { ability: "inspire", tier: 5, attack: 3, health: 4, size: "a0" }, worst: 0.0171, seeds: 10000, onTable: false, fingerprint: "90be7a2b", source: "progress/signature-fairness/remeasure-10k-1.jsonl" },
+  { id: "sig5-3x5-guardian", spec: { ability: "guardian", tier: 5, attack: 3, health: 5 }, worst: 0.0187, seeds: 10000, onTable: false, fingerprint: "efed547e", source: "progress/signature-fairness/remeasure-10k-2.jsonl" },
+  { id: "sig5-3x5-inspire.a0", spec: { ability: "inspire", tier: 5, attack: 3, health: 5, size: "a0" }, worst: 0.0135, seeds: 10000, onTable: false, fingerprint: "0c4f60fe", source: "progress/signature-fairness/remeasure-10k-3.jsonl" },
+  { id: "sig5-3x5-rally.a0", spec: { ability: "rally", tier: 5, attack: 3, health: 5, size: "a0" }, worst: 0.0096, seeds: 10000, onTable: false, fingerprint: "2d25c33d", source: "progress/signature-fairness/remeasure-10k-0.jsonl" },
+  { id: "sig5-3x5-recycle", spec: { ability: "recycle", tier: 5, attack: 3, health: 5 }, worst: 0.0132, seeds: 10000, onTable: false, fingerprint: "ed99ae7d", source: "progress/signature-fairness/remeasure-10k-1.jsonl" },
+  { id: "sig5-3x5-recycle.c3", spec: { ability: "recycle", tier: 5, attack: 3, health: 5, size: "c3" }, worst: 0.0130, seeds: 10000, onTable: false, fingerprint: "39587d3d", source: "progress/signature-fairness/remeasure-10k-2.jsonl" },
+  { id: "sig5-3x5-restore.r1", spec: { ability: "restore", tier: 5, attack: 3, health: 5, size: "r1" }, worst: 0.0137, seeds: 10000, onTable: false, fingerprint: "4dd23c80", source: "progress/signature-fairness/remeasure-10k-3.jsonl" },
+  { id: "sig5-3x6-rally.a0", spec: { ability: "rally", tier: 5, attack: 3, health: 6, size: "a0" }, worst: 0.0121, seeds: 10000, onTable: true, fingerprint: "7eea396e", source: "progress/signature-fairness/remeasure-10k-0.jsonl" },
+  { id: "sig5-3x6-recycle", spec: { ability: "recycle", tier: 5, attack: 3, health: 6 }, worst: 0.0130, seeds: 10000, onTable: true, fingerprint: "6491dcae", source: "progress/signature-fairness/remeasure-10k-1.jsonl" },
+  { id: "sig5-3x6-recycle.c1", spec: { ability: "recycle", tier: 5, attack: 3, health: 6, size: "c1" }, worst: 0.0068, seeds: 10000, onTable: true, fingerprint: "305c7e2f", source: "progress/signature-fairness/remeasure-10k-2.jsonl" },
+  { id: "sig5-3x6-restore.r1", spec: { ability: "restore", tier: 5, attack: 3, health: 6, size: "r1" }, worst: 0.0156, seeds: 10000, onTable: true, fingerprint: "8f7ecedb", source: "progress/signature-fairness/remeasure-10k-3.jsonl" },
+  { id: "sig5-3x6-supply-line.low", spec: { ability: "supply-line", tier: 5, attack: 3, health: 6, size: "low" }, worst: 0.0099, seeds: 10000, onTable: true, fingerprint: "683b374e", source: "progress/signature-fairness/remeasure-10k-0.jsonl" },
+  { id: "sig5-3x6-tax", spec: { ability: "tax", tier: 5, attack: 3, health: 6 }, worst: 0.0123, seeds: 10000, onTable: true, fingerprint: "c93d5fe1", source: "progress/signature-fairness/remeasure-10k-1.jsonl" },
+  { id: "sig5-3x7-supply-line.low", spec: { ability: "supply-line", tier: 5, attack: 3, health: 7, size: "low" }, worst: 0.0187, seeds: 10000, onTable: false, fingerprint: "098efd7b", source: "progress/signature-fairness/remeasure-10k-2.jsonl" },
 ];

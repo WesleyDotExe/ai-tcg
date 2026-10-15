@@ -2725,3 +2725,64 @@ signature entry is handled (marked). The 2026-10-15 render entry is the render l
 
 **Blocked:** nothing; the check-in has defaults. Next: render (alternation), then the 10,000-seed
 re-measure and build-order step 3.
+
+
+## 2026-10-15 — Session 35 (owner's 2026-10-15 answers: grow the pool, combinations may repeat, themed names, play styles)
+
+Game-lane session: the last merged PR (#54) was render. Owner feedback first. The three 2026-10-15
+game-lane entries are handled and marked: the answers to session 34, the follow-up, and the names
+entry. The render entry (PR #54 accepted) is the render lane's own, with nothing to do. Not a
+hardening pass.
+
+**Built:**
+- **The 10,000-game measurement.**
+  - The reference ring at 10,000 per pairing (its first 2,500 match the old one exactly).
+  - `remeasure` by combo id, with `parseSignatureComboId`.
+  - `grid --sizes`.
+  - The approved-list script lets a line's largest measurement decide.
+- **5 new sizes:** Smite `d2m3`, `d1hp15`, `d2hp15`; Sweep `hp15`, `r2hp15`.
+- **Combinations may repeat:** schema v7 rebuilds `signature_cards` without the unique combination,
+  and the generator and the store stop filtering on it.
+- **Themed signature card names** (`engine/src/data/signatureNames.ts`):
+  - 5 templates with slot-tagged lists, and an ability-leaning noun;
+  - a filter for repeats, length and blocked words;
+  - a re-roll on a clash;
+  - the owner's username in the handle slot 1 time in 30.
+
+**Ran it:**
+- The reference, about 2 minutes.
+- 23 lines at 10,000 games per edge on 4 cores, about 1 hour: the 7 near misses and all 16
+  approved lines.
+- The new-size grid (105 lines at 1,000), then the 4 best at 10,000.
+- The name samples.
+- The generate-agent demo: 42 agents in a real database file, with two recorded matches.
+- Both ring checks: unchanged, PASS.
+- `npm test`: 594/594.
+
+**Result:**
+- Guardian (Barrier) 3/5 passes at 10,000 (1.87).
+- Energy surge 2/8 and 2/9 (2.22, 2.20) and Restore r1 3/4 (2.08) passed at 2,500 but fail at
+  10,000, so they leave. The pool is now **14 lines over 7 options**, with Guardian in and Energy
+  surge out.
+- Smite d1 and Sweep r2 still fail, on one matchup: Null over Swarm is +2.4 to +2.8, because pings
+  kill Swarm's small units. Their net change is about 0.
+- None of the new sizes come close (3.5 at best at 10,000). "Only when behind" mostly switches the
+  ability off. So these options need a different idea, not a different number.
+- Names read as names (samples in the check-in). The demo shows 42 agents over 13 combinations,
+  with 42 distinct names.
+
+**Raised as an [OWNER CHECK-IN]:**
+- the username odds (default 1 in 30);
+- the art-pool plan (not built);
+- the proposed order: pack opening, then the deck-building agent, then ~6 play styles with a
+  fairness ring, then step 3;
+- whether agent names get the same theme.
+
+**Evidence:**
+- `progress/balance-report-026-signature-10k.txt`;
+- `progress/signature-names-sample-001.txt`;
+- `progress/economy-demo-005.txt`;
+- 13 new tests.
+
+**Blocked:** nothing; the check-in has defaults. Next: render (alternation), then pack contents and
+opening.

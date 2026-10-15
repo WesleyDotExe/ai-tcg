@@ -7,7 +7,7 @@ import { buildSignatureCard, signatureComboId, signatureFingerprint, signatureSp
 import { FAIRNESS_LIMIT } from "../src/dev/signatureFairness.js";
 import { CARD_REGISTRY } from "../src/data/registry.js";
 
-const none = { agentNames: new Set<string>(), cardNames: new Set<string>(), comboIds: new Set<string>() };
+const none = { agentNames: new Set<string>(), cardNames: new Set<string>() };
 
 describe("the approved signature lines", () => {
   it("are all passes at 2,500 seeds, and the cards still do what was measured", () => {
@@ -60,7 +60,7 @@ describe("generateSignatureCandidates", () => {
     const setNames = new Set([...CARD_REGISTRY.values()].map((c) => c.name));
     const approved = new Set(APPROVED_SIGNATURE_LINES.map((l) => l.id));
     for (let seed = 1; seed <= 50; seed++) {
-      const cs = generateSignatureCandidates(seed, "Test Agent", { cardNames: setNames, comboIds: new Set() });
+      const cs = generateSignatureCandidates(seed, "Test Agent", { cardNames: setNames });
       expect(cs).toHaveLength(3);
       expect(new Set(cs.map((c) => c.spec.ability)).size).toBe(3);
       expect(new Set(cs.map((c) => c.name)).size).toBe(3);
@@ -73,23 +73,19 @@ describe("generateSignatureCandidates", () => {
     }
   });
 
-  it("skips taken combinations and falls back to more lines of fewer abilities", () => {
-    // Leave only lines of two abilities free.
+  it("falls back to more lines of fewer abilities when the list has fewer than 3", () => {
     const abilities = [...new Set(APPROVED_SIGNATURE_LINES.map((l) => l.spec.ability))];
     const keep = new Set(abilities.slice(0, 2));
-    const taken = new Set(APPROVED_SIGNATURE_LINES.filter((l) => !keep.has(l.spec.ability)).map((l) => l.id));
-    const free = APPROVED_SIGNATURE_LINES.filter((l) => !taken.has(l.id));
-    if (free.length < 3) return; // not enough lines of two abilities to test the fallback
-    const cs = generateSignatureCandidates(3, "X", { cardNames: new Set(), comboIds: taken });
+    const approved = APPROVED_SIGNATURE_LINES.filter((l) => keep.has(l.spec.ability));
+    if (approved.length < 3) return; // not enough lines of two abilities to test the fallback
+    const cs = generateSignatureCandidates(3, "X", { cardNames: new Set() }, { approved });
     expect(cs).toHaveLength(3);
-    for (const c of cs) expect(taken.has(c.comboId)).toBe(false);
     expect(new Set(cs.map((c) => c.comboId)).size).toBe(3);
     expect(new Set(cs.map((c) => c.spec.ability)).size).toBe(2);
   });
 
-  it("refuses when fewer than 3 approved lines are free", () => {
-    const taken = new Set(APPROVED_SIGNATURE_LINES.slice(2).map((l) => l.id));
-    expect(() => generateSignatureCandidates(1, "X", { cardNames: new Set(), comboIds: taken })).toThrow(/only 2 approved/);
+  it("refuses a list of fewer than 3 lines", () => {
+    expect(() => generateSignatureCandidates(1, "X", { cardNames: new Set() }, { approved: APPROVED_SIGNATURE_LINES.slice(0, 2) })).toThrow(/only 2 approved/);
   });
 
   it("builds the agent's own card under its own id", () => {

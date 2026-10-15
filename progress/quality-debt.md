@@ -29,9 +29,39 @@ closed, event-log instance ids), session 28 (persistence + the economy spec), an
 agent), and now session 31 (promo/prize unbinding, the signature zone), and session 32 (the Neutral
 signature menu and its fairness test), and session 33 (the tuner's size and cost levers, Guard over
 Bulwark, the unsellable signature card), and session 34 (Barrier-only Guardian, units-only Bulwark,
-the finer tuner pass, generating a new agent).
+the finer tuner pass, generating a new agent), and session 35 (10,000-game re-measure, combinations
+may repeat, themed card names).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 35
+
+- **The signature pool has 7 options, and the new sizes fixed nothing.** Smite and Sweep fail on one
+  matchup (pings kill Swarm's small units), and neither a smaller number nor an "only when behind"
+  condition fixes that. Energy surge left the pool. A next idea has to change who the card helps
+  (for example, a target filter that spares 1-health units, or damage to the enemy player instead
+  of units); I haven't designed or measured one.
+- **The 10,000-game standard covers only 23 lines.** Every other line ever measured (the grids, the
+  levers files) is at 1,000 or 2,500, so a line could sit just inside the limit at 2,500 and never
+  be re-checked if it isn't in the approved list. Today's list is entirely 10,000-game numbers,
+  but a future pass that confirms only at 2,500 would reintroduce the noise. The approved-list
+  script doesn't demand 10,000; it only lets the larger measurement win.
+- **The ring check (decks as shipped) was re-run, but the signature-mode baseline was not
+  re-derived at 10,000.** It is still the session-31 number.
+- **The names are mine, and only filtered mechanically.** About 2,000 handles are compounds I
+  never read one by one. The blocked-word list is short and English-only. "Nonsense" is caught
+  only as a repeated word; a grammatical but silly name ("Deluxe Ghost", "Looping Calculator")
+  passes. The owner hasn't seen them yet; the samples are in the check-in.
+- **The username variant trusts the username,** apart from the filter, the length cap and the
+  character set. A username that is a real person's name, or a brand, passes.
+- **Agent names are still the session-34 lists** (~800 given name x designation pairs, fantasy in
+  tone). Raised as a question in the check-in.
+- **The art pool (500 pieces) isn't modelled.** A signature card still points at
+  `placeholder:signature/<id>`; the pool slot is planned, not built.
+- **Play styles and the deck builder are proposals only.** Every agent still plays the same
+  Lookahead brain with the owner's hand-picked active deck.
+- **Session-34 debt resolved here:** the pool no longer caps a season (combinations may repeat).
+  Pass/fail near the limit is now read at 10,000 games, with intervals of about ±0.5 per edge.
 
 ## New debt from session 34
 

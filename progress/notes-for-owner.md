@@ -1,5 +1,135 @@
 # Notes for the owner
 
+**Updated 2026-10-15, session 35 (your 2026-10-15 answers to session 34: grow the pool, names,
+combinations may repeat, play styles).** Nothing is blocking. There is one **[OWNER CHECK-IN]**
+below, with defaults, so the next game-lane session can go ahead without an answer. Evidence:
+`progress/balance-report-026-signature-10k.txt`, `progress/signature-names-sample-001.txt`,
+`progress/economy-demo-005.txt`.
+
+Built:
+- **Combinations may repeat** (your follow-up). The database no longer refuses two agents with the
+  same body + ability, and the generator no longer avoids them. Names stay unique, and a clash is
+  re-rolled. In the demo, 42 agents share 13 combinations, and all 42 names are different.
+- **Themed signature card names** (your names entry), built the way you suggested:
+  - 5 templates with grammatical slots:
+    - [Handle]'s [Modifier] [Thing] (the most common)
+    - [Modifier] [Thing]
+    - [Thing] of [Place]
+    - [Handle]'s [Thing]
+    - [Modifier] [Thing] [Edition]
+  - Every word list is tagged by its slot and themed:
+    - hacker handles: about 2,000, mostly compounds like "Bytewolf";
+    - time-of-night, neon and retro-tech modifiers;
+    - network and hardware nouns;
+    - places like "the Dead Mall" or "Sector Zero".
+  - The noun leans toward the ability 80% of the time. An attack card can be a "DDoS" and a
+    Barrier card a "Firewall". The rest of the time it's a generic retro object ("Boombox").
+  - A filter refuses a repeated word ("Static Static Burst"), a name over 30 characters, or a
+    blocked word.
+  - About 15 million names per menu option. Nothing calls an outside service.
+- **The 10,000-game re-measure** (question 1, option A). The 7 near misses you named, and the 16
+  lines already approved, all against a 10,000-game reference.
+- **5 new sizes for the tuner:** Smite "2 damage to a unit with 3 or less health", and Smite (1 or
+  2 damage) and Sweep (each unit, or 2 random) "only if you have 15 or less health". Each was
+  measured at every cost-5 body.
+
+**Some sample names** (more, by option, in `progress/signature-names-sample-001.txt`):
+
+| ability | names |
+|---|---|
+| Guardian (Barrier) | Dialmonk's Holographic Proxy · Phreakhawk's Midnight Bunker · Firewall of the Grid |
+| Tax | Quartzking's Late Fee · Bitraven's Rooftop Bouncer · Turnstile of the Night Train |
+| Rally / Inspire | Laserkid's Phosphor Rave · Rasterwolf's Cheat Code · Modemfox's Hidden Anthem |
+| Recycle / Supply line | Rogue Warez Drop · Archive of the Night Market · Phreakjack's Hyper Uplink |
+| Restore | Holomancer's Back-Alley Reboot · Save State of the Underpass · White-Noise Duct Tape |
+| your username (rare) | Zion's Cold-Boot Drumline · Kestrel's Ultra Short Circuit · Neon_Fan99's Quantum Sandbox |
+
+**The 10,000-game results (limit 2.0):**
+
+| line | at 2,500 | at 10,000 | |
+|---|---|---|---|
+| Guardian (Barrier) 3/5 | 2.08 | **1.87** | **joins**: Guardian is on the generator |
+| Guardian 3/4 / 3/6 | 2.12 / 2.32 | 2.02 / 2.79 | still fails |
+| Sweep, 2 random, 2/9 / 2/8 | 2.04 / 2.20 | 2.36 / 2.50 | still fails |
+| Smite 1, 2/9 / 2/8 | 2.40 / 2.60 | 2.63 / 2.80 | still fails |
+| Energy surge "+2 energy" 2/9 / 2/8 | 1.88 / 1.84 | **2.20 / 2.22** | **leaves** |
+| Restore (one random unit) 3/4 | 1.76 | **2.08** | **leaves** |
+| the other 13 approved lines | 0.76-1.88 | 0.68-1.87 | all stay |
+
+- **The pool is 14 lines over 7 options:** Recycle, Supply line, Rally, Restore, Tax, Inspire, and
+  now Guardian. Energy surge is out.
+- **Why approved lines left:** at 2,500 games, an edge's 95% interval is about ±1 point, so a 1.8
+  can really be a 2.2. Re-measuring only the near misses would have let noise through in one
+  direction only. A line's largest measurement now decides, either way.
+- **Smite and Sweep miss on one edge, not on strength.** Their net change is about 0. What breaks
+  them is Null against Swarm (+2.4 to +2.8) and Cortex against Swarm (-1.7 to -2.7): pings kill
+  Swarm's small units.
+- **None of the new sizes come close:** 4.0 at best at 1,000 games (Smite "1 damage, only when
+  behind" at 2/9). The 2 best of each, re-measured at 10,000, still fail (3.5 to 4.6).
+  - "Small units only" makes the Swarm problem worse (5.4 at best).
+  - "Only when behind" mostly turns the ability off, which leaves a 2/x body (too weak) or a
+    3/x body (too strong).
+  - So these two options need a different idea, not a smaller number. I've stopped spending games
+    on them for now.
+
+### [OWNER CHECK-IN] Username odds, the art pool, and where the deck builder and play styles go
+
+**1. The username in a card's name.** Proposal: **1 candidate in 30**, so about one draft in ten
+shows one.
+- The username is used as typed, with the first letter capitalised ("zion" becomes "Zion's ...").
+- It's skipped when it's longer than 16 characters, is all digits, or trips the filter.
+- An owner without a login (the house owners) never gets one.
+- Options: **A** 1 in 30 (my default). **B** 1 in 10 (about one draft in four). **C** 1 in 100
+  (a real rarity, about one draft in 33).
+
+**2. The art pool of 500 (not built yet).** My plan, for you to correct:
+- At creation, each signature card records which of the 500 pool pieces it uses (drawn at random,
+  so two cards can share art, as you accepted). The card points at the pool slot from day one.
+  The images arrive in the late, owner-funded art pass.
+- A season refresh just points new cards at a new pool; old cards keep their art.
+- The ward stays code-drawn.
+- I'd build the slot (one schema column and the draw) with the next economy change, not as a
+  session on its own.
+
+**3. Where the deck builder and play styles go in the build order.** Proposal:
+1. **Pack contents and opening** (roadmap item 5). It's needed first anyway: step 3's endpoints
+   need it, and a deck builder only matters once collections differ.
+2. **The deck-building agent.** It picks the best faction and deck it can build from what the
+   owner holds, unless the owner forces a deck or a faction (your decision). It's measured by
+   playing its decks against the shipped decks.
+3. **Play styles.** About 6 presets of the same Lookahead brain, tuned to play visibly differently,
+   with a fairness ring between them (each style against each other style, same seeds, the same
+   2-point rule as signature cards). The owner's setting applies from the next match. A draft set,
+   to be measured, not final:
+   - **Rusher** (goes face, plays cheap);
+   - **Controller** (trades, holds answers);
+   - **Tempo** (on-curve trades, punishes over-extension);
+   - **Fortress** (Guard and Barrier first, attacks only when safe);
+   - **Gambler** (takes swingy lines);
+   - **Calculator** (today's balanced default).
+4. **Then step 3**, the website endpoints, which can then expose both settings (forced deck or
+   faction, and the play style) from the start, instead of adding them later.
+- The persona's effect on commentary belongs with the commentators (build-order stage 7), which
+  don't exist yet.
+
+**4. Agent names (a question, not a change).** You asked for themed card names. Agent names are
+still the session-34 style ("Ilsa Delta", "Talis Echo"), which reads more fantasy than cyberpunk.
+Should they get the same treatment? My default: leave them until you say.
+
+Calls of mine you may want to overrule:
+1. **A line's largest measurement decides,** so Energy surge and Restore 3/4 left the pool. (The
+   alternative is to keep anything that ever passed at 2,500, which gives 17 lines.)
+2. **The noun leans toward the ability 80% of the time;** 20% are generic objects ("Deluxe
+   Ghost"). Names are capped at 30 characters.
+3. **The handle is a generated hacker handle,** not the agent's own name ("Ilsa Delta's ..." would
+   run too long).
+4. **I didn't build the art pool this session** (point 2), to keep the slice to what was decided.
+
+Next game-lane session, without an answer: the defaults above. That means pack contents and opening
+(roadmap item 5), then the deck-building agent.
+
+---
+
 **Updated 2026-10-14, session 34 (your 2026-10-15 answer: option A).** Nothing is blocking. Step 2
 of your build order is built: an owner can generate a new agent and get its signature card. There
 is one **[OWNER CHECK-IN]** below, with defaults, so the next game-lane session can go ahead
@@ -45,7 +175,7 @@ Built:
 The generator can now draw from **16 lines over 7 options**: Recycle, Supply line, Rally, Restore,
 Tax, Inspire, and now Energy surge.
 
-### [OWNER CHECK-IN] The season's signature pool, then how an agent plays its owner's collection
+### [ANSWERED 2026-10-15: option A, combinations may repeat, names themed] The season's signature pool, then how an agent plays its owner's collection
 
 **1. The pool caps how many agents a season can have.** No two agents in a season may share a
 body + ability combination. With 16 passing lines, at most 14 agents can be generated in a season:

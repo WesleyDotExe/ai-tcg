@@ -1,0 +1,141 @@
+AI-TCG signature card names: samples for the owner's check-in (session 35)
+Generator: engine/src/data/signatureNames.ts. Command: npx tsx src/dev/signatureNameSamples.ts (from engine/).
+
+Templates (weights): [Handle]'s [Modifier] [Thing] 40, [Modifier] [Thing] 25, [Thing] of [Place] 15,
+[Handle]'s [Thing] 10, [Modifier] [Thing] [Edition] 10. The Thing hints at the ability 80% of the time,
+otherwise it is a generic retro-tech object. Filter: no word repeated across slots, 30 characters at most,
+no blocked word. A taken name (a set card or another signature card) is re-rolled.
+
+List sizes: 1992 handles, 135 modifiers, 56 places, 15 editions, 40 generic things,
+and per ability group: strike 20, wave 16, guard 20, draw 18, boost 18, mend 16, toll 15, power 15, jam 16, hunt 15.
+
+Name space per menu option (before the filter):
+  Commander's aura   boost     15,841,424
+  Smite              strike    16,387,680
+  Rally              boost     15,841,424
+  Hunter             hunt      15,022,040
+  Shield wall        guard     16,387,680
+  Guardian           guard     16,387,680
+  Bulwark            guard     16,387,680
+  Restore            mend      15,295,168
+  Supply line        draw      15,841,424
+  Energy surge       power     15,022,040
+  Recycle            draw      15,841,424
+  Inspire            boost     15,841,424
+  Suppress           jam       15,295,168
+  Dampen             jam       15,295,168
+  Tax                toll      15,022,040
+  Sweep              wave      15,295,168
+
+1. Twelve names per approved option (seed 2026), as the generator makes them
+
+  guardian
+    Cyan Safe Room                  Dialmonk's Holographic Proxy    Phreakhawk's Midnight Bunker
+    Checksum of the Glass Tower     Fluxpilot's Honeypot            Novapunk's Rogue Encryption
+    Firewall of the Grid            Fluorescent Body Armor Classic  Fragmented Bunker
+    Carbon Bunker                   Small-Hours Boombox Classic     Rooftop Antenna '99
+
+  inspire
+    Orbital Laser Pointer SE        Modemfox's Hidden Anthem        Gridwolf's Anthem
+    Glowing Anthem Mk III           Widescreen Modem Classic        Pixelbandit's Drumline
+    Modemhawk's Wireless Anthem     Zerokid's Cybernetic Tutorial   Diskcobra's Silent Cyborg
+    Chromenomad's Hidden Satellite  Carbon Signal Fire SE           Chrome Upgrade
+
+  rally
+    Laserkid's Phosphor Rave        Disksaint's Coin-Op Hype Track  Nullkid's Pixelated Mainframe
+    Holomoth's Rooftop Mixtape      Handheld Tutorial               Mega Mentor
+    Infrared Upgrade                Rave of the Burned CD           Borrowed Drumline
+    Datajack's Graveyard Tutorial   Off-Grid Satellite Plus         Rasterwolf's Cheat Code
+
+  recycle
+    Retrorat's Carbon Switchboard   Quantum Courier                 Novajack's Cache
+    Synthetic Cache                 Rogue Warez Drop                Phantom Mirror Site Classic
+    Chromecat's Moonless Courier    Infinite Dead Drop              Cyan Courier
+    Hardwired Afterimage            Hardwired Care Package          Insomniac Care Package
+
+  restore
+    Kernelkid's Pastel Reboot       Subterranean Patch Max          White-Noise Duct Tape
+    Defrag of the Blackout          Holomancer's Back-Alley Reboot  Cordless Pocket TV
+    Solar Safe Mode                 Looping Calculator              Dead-Air Laser Pointer XL
+    Kernel-Level Camcorder          Save State of the Underpass     Patch of the Pawn Shop
+
+  supply-line
+    Diskwolf's Cordless Dead Drop   Neonrat's Legacy Undelete       Torrent of the Pawn Shop
+    Backup Tape of the Undernet     Forgotten Cache                 Circuitviper's Salvage
+    Pixelated Care Package SE       Blacklisted Dead Drop Mk III    Phreakjack's Hyper Uplink
+    Subterranean Courier            Archive of the Night Market     Insomniac Lava Lamp
+
+  tax
+    Night-Shift Toll Booth          Quartzking's Late Fee           Monochrome Gatekeeper
+    Cybernetic Late Fee             Dot-Matrix Gatekeeper           Paywall of the Wire
+    Red Tape of the Video Store     Bitraven's Rooftop Bouncer      Turnstile of the Night Train
+    Small-Hours Late Fee            Codefox's Forgotten Bouncer     Corrupted Lava Lamp Classic
+
+2. The rare username variant (1 candidate in 30), shown here forced on, for three example usernames
+
+  zion         Zion's Hack  |  Zion's Encryption  |  Zion's Bouncer  |  Zion's Cold-Boot Drumline
+  Neon_Fan99   Neon_Fan99's Chromed Trojan  |  Neon_Fan99's Quantum Sandbox  |  Neon_Fan99's Laser Pointer  |  Neon_Fan99's Midnight Boombox
+  kestrel      Kestrel's Ultra Short Circuit  |  Kestrel's Graveyard Shield  |  Kestrel's Lo-Fi Laser Pointer  |  Kestrel's Dot-Matrix Tutorial
+
+3. Ten complete "Generate a new agent" drafts (agent picked = the first; its 3 signature cards)
+
+  Merrow Zero — A cheerful forecaster that hums while it waits for priority.
+      Synthetic Pep Talk Plus: cost 5, 3/5. At the start of your turn, a random ally gets +0/+1 permanently.
+      Real-Time Stunt Double Gold: cost 5, 3/5. Barrier.
+      Obsolete Afterimage: cost 5, 3/7. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      flavour: "Merrow Zero turns a nobody into a threat, one turn at a time."
+
+  Kestra Sigma — A patient cartographer that never attacks into an even trade.
+      Bitrunner's Restore Point: cost 5, 3/5. At the end of your turn, restore 1 health to a random unit of yours.
+      Novamonk's Encrypted Mailbag: cost 5, 3/6. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      Retrorider's Failsafe: cost 5, 3/5. Barrier.
+      flavour: "Every scratch on Kestra Sigma's side gets a ticket and a fix."
+
+  Seren Ninefold — A curious archivist that plays its biggest threat one turn earlier than it should.
+      White-Noise Mixtape: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      8-Bit Server Rack: cost 5, 3/6. Enemy Commands cost 1 more.
+      Ghostfox's Mega Data Heist: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "Seren Ninefold doesn't fight alone; it never has."
+
+  Zephan Sigma — A superstitious tactician that treats every match as a proof to finish.
+      Ultra Torrent: cost 5, 3/6. When it dies, draw a card.
+      Logickid's Classified Fuse Box: cost 5, 3/6. At the end of your turn, restore 1 health to a random unit of yours.
+      Codewitch's Boombox: cost 5, 3/6. On arrival, your units get +0/+1 this turn.
+      flavour: "Nothing Zephan Sigma loses stays lost."
+
+  Ember Vector — A cheerful tinkerer that estimates its win chance out loud, to three decimals.
+      Superuser Recycle Bin: cost 5, 3/6. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      Ionhawk's Phantom Gatekeeper: cost 5, 3/6. Enemy Commands cost 1 more.
+      Cache of the Test Server: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "Ember Vector never runs out of plans, only of patience."
+
+  Halcyon Eleven — A restless forecaster that counts every card left in its opponent's deck.
+      Moonlight's Bootleg Download: cost 5, 3/6. When it dies, draw 2 cards.
+      Signalcat's Ultra Deadbolt: cost 5, 3/5. Barrier.
+      Retromoth's Turnstile: cost 5, 3/6. Enemy Commands cost 1 more.
+      flavour: "Halcyon Eleven keeps nothing it can't use twice."
+
+  Brannoc Echo — A courteous cartographer that refuses to pass with energy unspent.
+      Root-Level Deadbolt: cost 5, 3/5. Barrier.
+      Off-World Signal Fire: cost 5, 3/6. On arrival, your units get +0/+1 this turn.
+      Hexhound's Shareware Salvage: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "The first hit on Brannoc Echo never lands."
+
+  Mireth Eleven — A stubborn sentinel that estimates its win chance out loud, to three decimals.
+      Glitchsaint's Salvage: cost 5, 3/5. When it dies, draw 3 cards.
+      Pingshark's Legacy Anthem: cost 5, 3/4. At the start of your turn, a random ally gets +0/+1 permanently.
+      Plug-In Ghost: cost 5, 3/6. Enemy Commands cost 1 more.
+      flavour: "Mireth Eleven keeps nothing it can't use twice."
+
+  Odalys Nine — A ruthless duellist that re-reads the rules text of every card it sees.
+      Abandoned Red Tape: cost 5, 3/6. Enemy Commands cost 1 more.
+      Diskhawk's Redacted Body Armor: cost 5, 3/5. Barrier.
+      Off-World Signal Fire v2: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      flavour: "Spells pass Odalys Nine's gate at a price."
+
+  Ilsa Unbound — A superstitious auditor that counts every card left in its opponent's deck.
+      Magenta Pep Talk: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      Chromed Dead Drop Gold: cost 5, 3/5. When it dies, draw 3 cards.
+      Rewound Drumline: cost 5, 3/5. At the start of your turn, a random ally gets +0/+1 permanently.
+      flavour: "One signal from Ilsa Unbound and the whole board leans forward."
+

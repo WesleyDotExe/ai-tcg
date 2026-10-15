@@ -80,22 +80,58 @@ describe("generating a new agent", () => {
     expect(generate(s, o.ownerId, 21).signature.collectorNumber).toBe("PR-002");
   });
 
-  it("never offers a combination or a name the season already has", () => {
+  it("never offers a name the season already has; combinations may repeat (owner 2026-10-15)", () => {
     const s = store();
     const owners = Array.from({ length: 4 }, (_, i) => s.createOwner({ name: `o${i}` }).ownerId);
     const made = owners.map((o, i) => generate(s, o, 100 + i));
-    const combos = made.map((m) => m.signature.comboId);
-    expect(new Set(combos).size).toBe(combos.length);
     expect(new Set(made.map((m) => m.agent.name)).size).toBe(made.length);
     expect(new Set(made.map((m) => m.signature.card.name)).size).toBe(made.length);
-    // Every later draft avoids all four.
+    // Every later draft avoids all four names.
+    const names = made.map((m) => m.signature.card.name);
     for (let seed = 0; seed < 30; seed++) {
       const o = s.createOwner({ name: `later${seed}` }).ownerId;
       const d = s.startAgentDraft(o, { seed });
       for (const a of d.agents) expect(made.map((m) => m.agent.name)).not.toContain(a.name);
       const p = s.pickDraftAgent(o, d.draftId, 0, { seed: seed + 1 });
-      for (const c of p.signatures!) expect(combos).not.toContain(c.comboId);
+      for (const c of p.signatures!) expect(names).not.toContain(c.name);
     }
+  });
+
+  it("generates more agents than there are approved lines: the pool no longer caps a season", () => {
+    const s = store();
+    const count = APPROVED_SIGNATURE_LINES.length + 6;
+    const made = Array.from({ length: count }, (_, i) => generate(s, s.createOwner({ name: `o${i}` }).ownerId, 300 + i));
+    const combos = made.map((m) => m.signature.comboId);
+    // Some combination is shared (more agents than lines), and the schema takes it.
+    expect(new Set(combos).size).toBeLessThan(count);
+    expect(new Set(made.map((m) => m.signature.card.name)).size).toBe(count);
+    expect(new Set(made.map((m) => m.signature.collectorNumber)).size).toBe(count);
+    // A card name is still unique in the schema itself.
+    expect(() => s.unsafeExec(`UPDATE signature_cards SET name = '${made[0]!.signature.card.name.replace(/'/g, "''")}' WHERE agent_id = '${made[1]!.agent.agentId}'`)).toThrow(/UNIQUE/);
+  });
+
+  it("now and then names the card after the owner's username, never a refused one", () => {
+    const s = store();
+    let withName = 0;
+    let shown = 0;
+    // One login; each new draft replaces the last.
+    const o = s.createAccount({ name: "u", username: "neonfan", password: "correct horse battery" }).ownerId;
+    const plain = s.createOwner({ name: "house" }).ownerId;
+    for (let i = 0; i < 90; i++) {
+      const d = s.startAgentDraft(o, { seed: 500 + i });
+      const p = s.pickDraftAgent(o, d.draftId, 0, { seed: 900 + i });
+      for (const c of p.signatures!) {
+        shown++;
+        if (c.name.startsWith("Neonfan's ")) withName++;
+      }
+      // An owner without a login (the house owners) never gets one.
+      const dh = s.startAgentDraft(plain, { seed: 500 + i });
+      for (const c of s.pickDraftAgent(plain, dh.draftId, 0, { seed: 900 + i }).signatures!) expect(c.name).not.toMatch(/^Neonfan's /);
+    }
+    // 1 in 30 per candidate: about 9 of 270 (seeded, so this count is fixed).
+    expect(withName).toBeGreaterThan(2);
+    expect(withName).toBeLessThan(25);
+    expect(shown).toBe(270);
   });
 
   it("refuses a confirm when the shown card was taken in the meantime", () => {
@@ -109,7 +145,8 @@ describe("generating a new agent", () => {
     const pb = s.pickDraftAgent(b, db.draftId, 0, { seed: 9 });
     expect(pa.signatures!.map((c) => c.comboId)).toEqual(pb.signatures!.map((c) => c.comboId));
     s.confirmAgentDraft(a, da.draftId, 0);
-    expect(() => s.confirmAgentDraft(b, db.draftId, 0)).toThrow(/taken since this draft was made/);
+    // Same seeds, same names: the card name is taken now.
+    expect(() => s.confirmAgentDraft(b, db.draftId, 0)).toThrow(/card name ".+" was taken since this draft was made/);
     // A different, still-free candidate from the same draft is fine.
     expect(s.confirmAgentDraft(b, db.draftId, 1).signature.comboId).toBe(pb.signatures![1]!.comboId);
   });
@@ -131,15 +168,6 @@ describe("generating a new agent", () => {
     expect(() =>
       s.unsafeExec(`INSERT INTO agent_drafts (draft_id, owner_id, agents_json, created_at) VALUES ('raw', '${a}', '[]', '2026-10-16T10:00:00.000Z')`),
     ).toThrow(/UNIQUE/);
-  });
-
-  it("stops offering cards once fewer than 3 approved lines are free (the season's pool is finite)", () => {
-    const s = store();
-    const lines = APPROVED_SIGNATURE_LINES.length;
-    for (let i = 0; i < lines - 2; i++) generate(s, s.createOwner({ name: `o${i}` }).ownerId, 300 + i);
-    const o = s.createOwner({ name: "late" }).ownerId;
-    const d = s.startAgentDraft(o, { seed: 1 });
-    expect(() => s.pickDraftAgent(o, d.draftId, 0, { seed: 2 })).toThrow(/only 2 approved signature line\(s\) left untaken/);
   });
 
   it("the schema keeps a signature card and its single copy honest", () => {

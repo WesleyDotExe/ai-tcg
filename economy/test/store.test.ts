@@ -37,7 +37,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(6);
+    expect(a.schemaVersion).toBe(7);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -46,7 +46,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(6);
+    expect(b.schemaVersion).toBe(7);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -171,7 +171,7 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
     // Nothing converts: the v5 copy above stays as it is, but from now on a
     // signature copy must be a copy of that agent's own signature card, and
     // the next PR- number counts the promo codes already handed out.
-    const v6 = open(path);
+    const v6 = open(path, 6);
     expect(v6.schemaVersion).toBe(6);
     expect(v6.getCopy(v5sig.copyId).accountBound).toBe(true);
     expect(v6.getAgent("a1").persona).toBeNull();
@@ -180,8 +180,32 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
     ).toThrow(/own signature card/);
     const draft = v6.startAgentDraft("owner-a1", { seed: 1 });
     v6.pickDraftAgent("owner-a1", draft.draftId, 0, { seed: 2 });
-    expect(v6.confirmAgentDraft("owner-a1", draft.draftId, 0).signature.collectorNumber).toBe("PR-003");
+    const made = v6.confirmAgentDraft("owner-a1", draft.draftId, 0);
+    expect(made.signature.collectorNumber).toBe("PR-003");
+    // v6 refuses a second card with the same combination.
+    const twin = v6.createAgent({ ownerId: "owner-a1", name: "twin" });
+    const rawTwin = (db: EconomyStore, n: number) =>
+      db.unsafeExec(
+        `INSERT INTO signature_cards (agent_id, card_id, combo_id, name, spec_json, fingerprint, flavor, promo_number, created_at)
+         SELECT '${twin.agentId}', 'sig-PR-0${n}', combo_id, 'Twin Card ${n}', spec_json, fingerprint, flavor, ${n}, created_at FROM signature_cards WHERE agent_id = '${made.agent.agentId}'`,
+      );
+    expect(() => rawTwin(v6, 50)).toThrow(/UNIQUE.*combo_id/);
     v6.close();
+
+    // v6 -> v7: combinations may repeat (owner 2026-10-15). The table is
+    // rebuilt with its rows; the rules that name it still hold.
+    const v7 = open(path);
+    expect(v7.schemaVersion).toBe(7);
+    expect(v7.signatureCard(made.agent.agentId)).toMatchObject({ collectorNumber: "PR-003", comboId: made.signature.comboId, fingerprint: made.signature.fingerprint });
+    rawTwin(v7, 51);
+    expect(v7.signatureCard(twin.agentId)!.comboId).toBe(made.signature.comboId);
+    expect(() => v7.unsafeExec(`DELETE FROM signature_cards`)).toThrow(/never deleted/);
+    expect(() => v7.unsafeExec(`UPDATE signature_cards SET combo_id = 'x'`)).toThrow(/keeps its agent/);
+    expect(() => v7.unsafeExec(`UPDATE signature_cards SET name = 'Twin Card 51' WHERE agent_id = '${made.agent.agentId}'`)).toThrow(/UNIQUE/);
+    expect(() =>
+      v7.grantCopy({ ownerId: "owner-a1", cardId: cortex, origin: "promo", originRef: `signature:${twin.agentId}`, seriesKind: "promo", seriesCode: "PR-051", stamp: "SIGNATURE" }),
+    ).toThrow(/own signature card/);
+    v7.close();
   });
 });
 
