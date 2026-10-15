@@ -45,5 +45,23 @@ export {
 } from "./data/decks.js";
 export { CARD_REGISTRY, SHIPPED_DECK_LISTS, getCard } from "./data/registry.js";
 export { NEUTRAL_POOL } from "./data/neutralCards.js";
+export {
+  buildSignatureCard,
+  signatureComboId,
+  signatureFingerprint,
+  signatureSpecProblem,
+  type SignatureSpec,
+  type SignatureTier,
+} from "./data/signatureMenu.js";
+export { APPROVED_SIGNATURE_LINES, type ApprovedSignatureLine } from "./data/signatureApproved.js";
+export {
+  generateAgentCandidates,
+  generateSignatureCandidates,
+  signatureCardFor,
+  CANDIDATES_PER_PICK,
+  type AgentCandidate,
+  type SignatureCandidate,
+  type TakenNames,
+} from "./data/agentGenerator.js";
 
 export { formatEvent, formatLog } from "./log/format.js";

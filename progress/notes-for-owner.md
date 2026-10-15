@@ -1,5 +1,100 @@
 # Notes for the owner
 
+**Updated 2026-10-14, session 34 (your 2026-10-15 answer: option A).** Nothing is blocking. Step 2
+of your build order is built: an owner can generate a new agent and get its signature card. There
+is one **[OWNER CHECK-IN]** below, with defaults, so the next game-lane session can go ahead
+without an answer. Evidence: `progress/balance-report-025-signature-finer-pass.txt`,
+`progress/economy-demo-004.txt`, `progress/sample-match-032-bulwark-units.txt`.
+
+Built:
+- **Guardian is Barrier only**, and **Bulwark takes the first attack aimed at one of your units
+  (never you)**. Guard still takes priority over Bulwark. The sample match shows a real game: three
+  attacks on the Aegis player go through an armed Bulwark, and Bulwark then pulls an attack off
+  Aegis Sentinel onto itself.
+- **The finer tuner pass.** Every size of Smite, Energy surge, Sweep, Guardian and Bulwark, at
+  every cost-5 body from 2/3 to 4/9 (252 lines, 1,000 games per edge), then the 5 best of each
+  option at 2,500. Guardian and Bulwark also got the full cost 5/6/7 tuner run.
+- **Generating a new agent**, your Season 0 flow:
+  1. 3 generated agents, each a name and a one-line persona.
+  2. Pick one, and get 3 signature cards for it: only lines that passed the fairness test, with 3
+     different abilities.
+  3. Confirm. The agent, its card and the card's copy are made together. The card is the agent's
+     bound promo (PR-001, PR-002, ...).
+  - Nothing calls an outside service; names and flavour come from word lists.
+  - The card plays from the signature zone of whichever agent is connected, so switching agents
+    changes only that card.
+  - It can never go in a deck, be salvaged, sold or moved; the database refuses that too.
+  - A new agent brings nothing else.
+
+**Results (2,500 games per edge; limit 2.0):**
+
+| option | best line | worst edge | |
+|---|---|---|---|
+| Energy surge | "gain **2** energy", **2/8** or **2/9** | **1.8 / 1.9** | **passes** |
+| Sweep | 1 damage to 2 random enemy units, 2/9 | 2.04 | misses by 0.04 |
+| Guardian (Barrier) | 3/5 or 3/4 | 2.08 | misses by 0.08 |
+| Smite | 1 damage, 2/9 | 2.40 | misses by 0.40 |
+| Bulwark (units only) | 3/4 | 3.88 | fails |
+
+- Attack is the main lever: one attack point moves a line's worst edge by 4-6 points, one health
+  point by about 1.
+- Guardian at 3/6 is 2.3, and only Aegis gains (2 points or so).
+- Bulwark fails at every cost. At cost 7 (5/5 with Shield wall) the net is even, but Aegis loses up
+  to 4 and Cortex and Swarm gain 2. So it stays off the generator, as you said.
+
+The generator can now draw from **16 lines over 7 options**: Recycle, Supply line, Rally, Restore,
+Tax, Inspire, and now Energy surge.
+
+### [OWNER CHECK-IN] The season's signature pool, then how an agent plays its owner's collection
+
+**1. The pool caps how many agents a season can have.** No two agents in a season may share a
+body + ability combination. With 16 passing lines, at most 14 agents can be generated in a season:
+a draft needs 3 free lines to show. Season 0 alone needs 8 house agents. Options:
+- **A (my recommendation).** Keep the rule, and grow the pool:
+  - measure the near misses (within 0.5 of the limit: Sweep, Guardian, Smite) at 10,000 games per
+    edge instead of 2,500. At 2,500, each edge's 95% interval is ±0.5 to ±1.5 points (Sweep's
+    are the widest), so 2.04 and 2.08 can't be told apart from 2.0. At 10,000 it halves. This needs the reference ring measured once at
+    10,000 too (about 3 minutes). A line passes or fails on the more precise number;
+  - add new sizes for the next tuner pass, for example Smite "1 damage to a unit with 3 or less
+    health".
+- **B.** Let a combination repeat once the pool runs low, with a different name and art.
+- **C.** Count only the stat line + ability as the combination, not the size (so "Recycle, draw 1"
+  and "Recycle, draw 2" at 3/6 are the same). This shrinks the pool from 16 to 14 combinations
+  (12 agents), so I don't recommend it. Today the size counts.
+
+**2. How an agent plays its owner's collection (the question you asked to have raised after step
+2).** Today an agent plays the owner's active deck, chosen by hand; the deck must fit the faction
+lock. What's open:
+- **How an agent picks its faction.** Default: the owner's faction lock, or, if none is set, the
+  faction of the owner's active deck.
+- **How it builds its deck from the collection.** Default: it doesn't yet. The owner saves decks,
+  and the agent plays the active one. A deck builder agent (it picks 40 cards from what the owner
+  holds) comes once pack opening exists.
+- **How it chases quests.** Default: it doesn't. Quests come with the daily rewards (roadmap item
+  7), and the agent plays as it always does.
+- **Whether the persona changes how it plays.** Today every generated agent plays with the same
+  Lookahead brain; the persona is only text. Default: keep it that way until there's a second
+  playing style worth offering.
+
+Calls of mine you may want to overrule:
+1. **The 3 signature candidates differ in ability** whenever 3 abilities have free lines, so an
+   owner never sees three sizes of one card.
+2. **Energy surge passes only as "gain 2 energy" on a 2/8 or 2/9 body.** That's off the table and
+   a low-attack body for a Mythic (attack 2 is your floor).
+3. **A new agent is not connected automatically.** The owner connects it, as with any agent.
+4. **One open draft per owner.** Starting a new draft replaces the old one. That also means an owner
+   can re-roll the 3 agents as often as they like, but every candidate is fair, so nothing is
+   gained by it.
+5. **The signature card's id is `sig-PR-001` and its promo number is shared with all promos.** The
+   numbering counts any PR- code already given out, so a number is never handed out twice.
+6. **A signature card never shares a name with a set card**, as well as with other signature cards.
+
+Next game-lane session, without an answer: option A for question 1 (the 10,000-game reference and
+the near misses first), and the defaults for question 2. Then build-order
+step 3: the server endpoints for the website.
+
+---
+
 **Updated 2026-10-14, session 33 (your 2026-10-13 answers: option A, Guard over Bulwark, the
 signature card can't be sold).** Nothing is blocking. There is one **[OWNER CHECK-IN]** below, with
 defaults, so the next game-lane session can go ahead without an answer. Evidence:

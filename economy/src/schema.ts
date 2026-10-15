@@ -573,4 +573,60 @@ export const MIGRATIONS: readonly string[] = [
   WHEN OLD.origin_ref IS NOT NEW.origin_ref AND (OLD.origin_ref LIKE 'signature:%' OR NEW.origin_ref LIKE 'signature:%')
   BEGIN SELECT RAISE(ABORT, 'a copy never becomes, or stops being, a signature card'); END;
   `,
+  // 6: generating a new agent (session 34; owner app spec B and the unique
+  // Mythic spec, 2026-10-05). An agent may now carry a generated persona
+  // and exactly one signature card: a generated Neutral Mythic, stored here
+  // as its menu spec, since it is in no card set. The rules:
+  //  - one signature card per agent, and per season (this file) no two
+  //    share a body + ability combination (combo_id) or a name; its id and
+  //    its PR- promo number are never reused;
+  //  - a signature copy must be a copy of THAT agent's signature card, held
+  //    by the agent's owner, and an agent has at most one;
+  //  - a signature card is never deleted and its identity never changes
+  //    (errata to what it does may come later; its id, agent and number
+  //    can't);
+  //  - the draft an owner picks from (3 agents, then 3 signature cards) is
+  //    kept, at most one open per owner, so what is confirmed is what was
+  //    shown.
+  // No agent has a signature card yet, so there is nothing to convert.
+  `
+  ALTER TABLE agents ADD COLUMN persona TEXT;
+
+  CREATE TABLE signature_cards (
+    agent_id     TEXT PRIMARY KEY REFERENCES agents(agent_id),
+    card_id      TEXT NOT NULL UNIQUE,
+    combo_id     TEXT NOT NULL UNIQUE,
+    name         TEXT NOT NULL UNIQUE,
+    spec_json    TEXT NOT NULL CHECK (json_valid(spec_json)),
+    fingerprint  TEXT NOT NULL,
+    flavor       TEXT NOT NULL,
+    promo_number INTEGER NOT NULL UNIQUE CHECK (promo_number >= 1),
+    created_at   TEXT NOT NULL
+  );
+  CREATE TRIGGER signature_card_kept BEFORE DELETE ON signature_cards
+  BEGIN SELECT RAISE(ABORT, 'a signature card is never deleted'); END;
+  CREATE TRIGGER signature_card_identity BEFORE UPDATE OF agent_id, card_id, combo_id, promo_number ON signature_cards
+  BEGIN SELECT RAISE(ABORT, 'a signature card keeps its agent, id, combination and number'); END;
+
+  CREATE TRIGGER signature_copy_is_the_agents BEFORE INSERT ON card_copies
+  WHEN NEW.origin_ref LIKE 'signature:%' AND NOT EXISTS (
+    SELECT 1 FROM signature_cards s JOIN agents a ON a.agent_id = s.agent_id
+    WHERE 'signature:' || s.agent_id = NEW.origin_ref AND s.card_id = NEW.card_id AND a.owner_id = NEW.owner_id)
+  BEGIN SELECT RAISE(ABORT, 'a signature copy is a copy of that agent''s own signature card, held by its owner'); END;
+  CREATE UNIQUE INDEX one_signature_copy ON card_copies(origin_ref) WHERE origin_ref LIKE 'signature:%';
+
+  CREATE TABLE agent_drafts (
+    draft_id        TEXT PRIMARY KEY,
+    owner_id        TEXT NOT NULL REFERENCES owners(owner_id),
+    agents_json     TEXT NOT NULL CHECK (json_valid(agents_json)),
+    picked          INTEGER CHECK (picked IS NULL OR picked >= 0),
+    signatures_json TEXT CHECK (signatures_json IS NULL OR json_valid(signatures_json)),
+    created_at      TEXT NOT NULL,
+    closed_at       TEXT,
+    agent_id        TEXT REFERENCES agents(agent_id),
+    CHECK ((picked IS NULL) = (signatures_json IS NULL)),
+    CHECK (agent_id IS NULL OR closed_at IS NOT NULL)
+  );
+  CREATE UNIQUE INDEX one_open_draft ON agent_drafts(owner_id) WHERE closed_at IS NULL;
+  `,
 ];

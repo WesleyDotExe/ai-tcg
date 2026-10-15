@@ -2675,3 +2675,53 @@ all at a smaller size at cost 5.
 
 **Blocked:** nothing; the check-in has a default (A). Next: render (alternation), then the finer
 tuner pass and `generateAgent`.
+
+
+## 2026-10-14 — Session 34 (owner's 2026-10-15 option A: Barrier-only Guardian, units-only Bulwark, the finer pass, generating a new agent)
+
+Game-lane session: the last merged PR (#52) was render. Owner feedback first. The 2026-10-15
+signature entry is handled (marked). The 2026-10-15 render entry is the render lane's own
+(accepted as built, nothing to do). Not a hardening pass.
+
+**Built:**
+- **The menu changes.** Guardian is Barrier only; Bulwark covers units only (never you), and still
+  stands aside for a Guard.
+- **The finer tuner.** `grid` measures every size x every cost-5 body (2/3 to 4/9) at 1,000 seeds,
+  with no greedy walk; `confirm` re-measures the 5 best per option at 2,500.
+- **The approved list**, generated from every committed result, with a fingerprint of each card
+  measured.
+- **`generateAgent`.** The generator (names, personas, card names, flavour from word lists; 3
+  approved lines with 3 different abilities), and economy schema v6: the draft, the signature card
+  record, the bound promo grant (PR-001...), the card in the connected agent's signature zone.
+- **An engine fix:** a once-per-turn activated ability is no longer offered while an activation
+  of it is on the stack.
+
+**Ran it:**
+- The grid (252 lines) and confirms (25 lines) on 4 cores, then the full tuner on Guardian and
+  Bulwark (about 50 minutes in all).
+- The generate-agent demo against a real database file, with two recorded matches.
+- A real game showing the new Bulwark.
+- Both ring checks: unchanged, PASS.
+- `npm test`: 565/565.
+
+**Result:**
+- Energy surge passes ("gain 2 energy" at 2/8 and 2/9), so the pool is 16 lines over 7 options.
+- Sweep (2.04) and Guardian (2.08) miss by less than their own measuring noise; Smite misses by
+  0.4; Bulwark fails everywhere (3.88 at best).
+- Generating works end to end. The card plays in real matches, and the schema refuses every misuse
+  tried.
+
+**Raised as an [OWNER CHECK-IN]:**
+- No shared combination per season caps a season at 14 generated agents. Default: measure the near
+  misses at 10,000 seeds, and add sizes.
+- How an agent picks its faction, builds its deck and chases quests (promised after step 2), with
+  defaults.
+
+**Evidence:**
+- `progress/balance-report-025-signature-finer-pass.txt`;
+- `progress/economy-demo-004.txt`;
+- `progress/sample-match-032-bulwark-units.txt`;
+- 17 new tests.
+
+**Blocked:** nothing; the check-in has defaults. Next: render (alternation), then the 10,000-seed
+re-measure and build-order step 3.

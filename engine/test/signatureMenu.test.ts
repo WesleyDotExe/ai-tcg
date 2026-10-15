@@ -57,10 +57,10 @@ describe("the Neutral signature menu as card data", () => {
   it("enumerates every combination the body table allows, each legal and uniquely named", () => {
     const specs = allSignatureSpecs();
     // 16 x 3 at cost 5; 16 x 3 x 3 at cost 6 minus a keyword an option
-    // already prints (Guardian's Guard and Barrier, Hunter's Rush: 9);
+    // already prints (Guardian's Barrier, Hunter's Rush: 6);
     // (12 x 4 + 4 x 3) x 2 at cost 7.
     expect(specs.filter((s) => s.tier === 5)).toHaveLength(48);
-    expect(specs.filter((s) => s.tier === 6)).toHaveLength(135);
+    expect(specs.filter((s) => s.tier === 6)).toHaveLength(138);
     expect(specs.filter((s) => s.tier === 7)).toHaveLength(120);
     expect(new Set(specs.map(signatureComboId)).size).toBe(specs.length);
     for (const s of specs) {
@@ -75,7 +75,9 @@ describe("the Neutral signature menu as card data", () => {
     expect(signatureSpecProblem({ ability: "smite", tier: 5, attack: 5, health: 5 })).toMatch(/not a cost-5 stat line/);
     expect(signatureSpecProblem({ ability: "smite", tier: 5, attack: 3, health: 6, keyword: "Rush" })).toMatch(/only cost 6/);
     expect(signatureSpecProblem({ ability: "smite", tier: 6, attack: 4, health: 8 })).toMatch(/one keyword/);
-    expect(signatureSpecProblem({ ability: "guardian", tier: 6, attack: 4, health: 8, keyword: "Guard" })).toMatch(/already has Guard/);
+    expect(signatureSpecProblem({ ability: "guardian", tier: 6, attack: 4, health: 8, keyword: "Barrier" })).toMatch(/already has Barrier/);
+    // Guardian is Barrier only since owner 2026-10-15, so cost 6 may add Guard.
+    expect(signatureSpecProblem({ ability: "guardian", tier: 6, attack: 4, health: 8, keyword: "Guard" })).toBeUndefined();
     expect(signatureSpecProblem({ ability: "dampen", tier: 7, attack: 3, health: 7, secondAura: "dampen" })).toMatch(/must differ/);
     expect(signatureSpecProblem({ ability: "smite", tier: 7, attack: 3, health: 7, secondAura: "sweep" })).toMatch(/second aura/);
     expect(() => buildSignatureCard({ ability: "nope", tier: 5, attack: 3, health: 6 })).toThrow(/no signature ability/);
@@ -190,7 +192,7 @@ describe("the engine pieces the menu needed", () => {
     expect(state.players.p2.health).toBeLessThan(state.players.p1.health);
   });
 
-  it("Bulwark takes the first attack aimed at its side each turn, and only the first", () => {
+  it("Bulwark takes the first attack aimed at one of its side's units each turn, and only the first", () => {
     const rng = new Rng(5);
     const state = emptyState();
     const a1 = putUnit(state, "p1", vanilla(1, 5, "A1"));
@@ -234,6 +236,7 @@ describe("the engine pieces the menu needed", () => {
     const a2 = putUnit(state, "p1", vanilla(1, 5, "A2"));
     const bulwark = putUnit(state, "p2", card({ ability: "bulwark" }));
     const guard = putUnit(state, "p2", { ...vanilla(1, 3, "Wall"), keywords: ["Guard"] });
+    const other = putUnit(state, "p2", vanilla(1, 5, "Other"));
     readyToAttack(state);
     // The only legal enemy target is the Guard; Bulwark doesn't take it.
     attack(state, a1.instanceId, { kind: "unit", instanceId: guard.instanceId }, rng);
@@ -242,9 +245,9 @@ describe("the engine pieces the menu needed", () => {
     expect(bulwark.usedThisTurn).toBeUndefined(); // the redirect wasn't spent
     expect(state.players.p2.board.includes(guard)).toBe(false); // 3 damage killed the 1/3 Guard
     // With the Guard gone, the next attack is Bulwark's first of the turn.
-    attack(state, a2.instanceId, { kind: "player", playerId: "p2" }, rng);
+    attack(state, a2.instanceId, { kind: "unit", instanceId: other.instanceId }, rng);
     expect(currentHealth(state, bulwark)).toBe(5);
-    expect(state.players.p2.health).toBe(state.players.p1.health);
+    expect(currentHealth(state, other)).toBe(5);
   });
 
   it("a Bulwark with Guard of its own (the cost-6 keyword) never pulls an attack off another Guard", () => {
@@ -266,23 +269,25 @@ describe("the engine pieces the menu needed", () => {
     const bulwark = putUnit(state, "p2", card({ ability: "bulwark" }));
     const dormant = putUnit(state, "p2", { ...vanilla(1, 5, "Dormant"), keywords: ["Guard"] });
     dormant.pending = true;
+    const other = putUnit(state, "p2", vanilla(1, 5, "Other"));
     readyToAttack(state);
-    attack(state, a1.instanceId, { kind: "player", playerId: "p2" }, rng);
+    attack(state, a1.instanceId, { kind: "unit", instanceId: other.instanceId }, rng);
     expect(currentHealth(state, bulwark)).toBe(5);
   });
 
-  it("the attackTargets condition reads where the pending attack is aimed (for the Bulwark rework probes)", () => {
+  // Owner 2026-10-15, option A: Bulwark covers units, never the player.
+  it("Bulwark never takes an attack aimed at its controller, and that attack doesn't use up its redirect", () => {
     const rng = new Rng(10);
     const state = emptyState();
     const a1 = putUnit(state, "p1", vanilla(1, 5, "A1"));
     const a2 = putUnit(state, "p1", vanilla(1, 5, "A2"));
-    const unitsOnly = { ...card({ ability: "bulwark" }) };
-    unitsOnly.abilities = unitsOnly.abilities.map((a) => ({ ...a, condition: { kind: "attackTargets", target: "unit" } as const }));
-    const bulwark = putUnit(state, "p2", unitsOnly);
+    const bulwark = putUnit(state, "p2", card({ ability: "bulwark" }));
     const other = putUnit(state, "p2", vanilla(1, 5, "Other"));
     readyToAttack(state);
     attack(state, a1.instanceId, { kind: "player", playerId: "p2" }, rng); // aimed at the player: not taken
     expect(currentHealth(state, bulwark)).toBe(6);
+    expect(state.players.p2.health).toBe(state.players.p1.health - 1);
+    expect(bulwark.usedThisTurn).toBeUndefined();
     attack(state, a2.instanceId, { kind: "unit", instanceId: other.instanceId }, rng); // aimed at a unit: taken
     expect(currentHealth(state, bulwark)).toBe(5);
     expect(currentHealth(state, other)).toBe(5);
@@ -302,6 +307,25 @@ describe("the engine pieces the menu needed", () => {
     drainStack(state, rng);
     expect(state.players.p2.health).toBe(state.players.p1.health - 1);
     expect(offered()).toHaveLength(0);
+  });
+
+  it("a once-per-turn Instant ability isn't offered again while its first activation is still on the stack", () => {
+    const rng = new Rng(12);
+    const state = emptyState();
+    const pinger = putUnit(state, "p1", {
+      ...vanilla(1, 5, "Pinger"),
+      abilities: [{ id: "t-ping", trigger: "activated", speed: "Instant", limit: "oncePerTurn", cost: { energy: 1 }, text: "Deal 1 damage to the enemy player.", targeting: { scope: "chosen", filter: { side: "opponent", kind: "player" } }, effects: [{ kind: "damage", amount: { mode: "flat", value: 1 } }] }],
+    });
+    readyToAttack(state);
+    state.players.p1.energy = 5;
+    const offered = () => getLegalMoves(state).filter((m) => m.type === "activateAbility" && m.sourceInstanceId === pinger.instanceId);
+    applyMove(state, offered()[0]!, rng);
+    expect(state.stack).toHaveLength(1);
+    expect(state.priority).toBe("p1"); // the actor keeps priority, so a second activation would be its own move
+    expect(offered()).toHaveLength(0);
+    drainStack(state, rng);
+    expect(state.players.p2.health).toBe(state.players.p1.health - 1);
+    expect(state.players.p1.energy).toBe(4); // paid once, used once
   });
 
   it("a destroy effect credits its source unit with the kill", () => {
@@ -326,7 +350,7 @@ describe("the engine pieces the menu needed", () => {
 describe("every menu option fires in real games", () => {
   // Each option as Cortex's signature card (cost 5, 3/6) against Swarm, in
   // Lookahead games until it has fired (at most 150). Every option with an
-  // ability must see it resolve; Guardian (keywords only) must see its
+  // ability must see it resolve; Guardian (Barrier only) must see its
   // Barrier absorb a hit. Recycle is the slow one: a 3/6 signature card dies
   // in only ~3% of these games (session 32).
   for (const option of SIGNATURE_MENU) {

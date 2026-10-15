@@ -19,7 +19,7 @@ const pct = (x: number) => (x * 100).toFixed(1);
 const signed = (x: number) => `${x >= 0 ? "+" : ""}${pct(x)}`;
 
 const results = new Map<string, LeverResult>();
-for (const f of readdirSync(DIR).filter((f) => f.startsWith("levers-") && f.endsWith(".jsonl"))) {
+for (const f of readdirSync(DIR).filter((f) => f.startsWith("levers-") && !f.startsWith("levers-s34-") && f.endsWith(".jsonl"))) {
   for (const l of readFileSync(DIR + f, "utf8").trim().split("\n").filter(Boolean)) {
     const r = JSON.parse(l) as LeverResult;
     results.set(r.ability, r);

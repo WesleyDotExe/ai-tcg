@@ -75,7 +75,7 @@ describe("same name, same ward", () => {
 describe("names almost never share a look", () => {
   it("every signature menu combination id gets its own plan, and at least 95% a look of its own", () => {
     const ids = allSignatureSpecs().map(signatureComboId);
-    expect(ids.length).toBe(303);
+    expect(ids.length).toBe(306); // 303 until Guardian became Barrier only (owner 2026-10-15): cost 6 may now add Guard
     const plans = new Set(ids.map((id) => JSON.stringify(fallbackWardPlan(id, "Neutral"))));
     expect(plans.size).toBe(ids.length);
     const looks = new Set(ids.map((id) => fallbackWardLook(fallbackWardPlan(id, "Neutral"))));

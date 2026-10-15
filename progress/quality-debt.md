@@ -28,9 +28,57 @@ closed, event-log instance ids), session 28 (persistence + the economy spec), an
 (the economy moves to the owner), and now session 30 (manual salvage, sign-in, the connected
 agent), and now session 31 (promo/prize unbinding, the signature zone), and session 32 (the Neutral
 signature menu and its fairness test), and session 33 (the tuner's size and cost levers, Guard over
-Bulwark, the unsellable signature card).
+Bulwark, the unsellable signature card), and session 34 (Barrier-only Guardian, units-only Bulwark,
+the finer tuner pass, generating a new agent).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 34
+
+- **The season's signature pool is small: 16 lines, so at most 14 generated agents a season.**
+  Season 0 needs 8 house agents before any player. Raised as an [OWNER CHECK-IN]. Nothing stops
+  the 15th owner today except a clear error ("only 2 approved signature lines left untaken").
+- **Pass/fail at the limit is decided inside the noise.** Sweep (2.04) and Guardian (2.08) fail by
+  less than their own 95% intervals (±0.5 to ±1.5 per edge at 2,500 seeds), and Energy surge's
+  passes (1.8, 1.9) are just as close on the other side. The 2,500-seed reference can't settle
+  lines this close; a 10,000-seed reference can.
+- **The passing Energy surge bodies are 2/8 and 2/9**, off the table and low on attack for a
+  Mythic. The tuner's health ceiling is 9, so 2/10 was never tried.
+- **The grid covers cost 5 only.** Cost 6 and 7 for Smite, Energy surge and Sweep were last
+  measured with session 33's greedy walk.
+- **The generator's words are mine, about 40 agent names x 20 designations and 6 card nouns per
+  option.** Names can read oddly ("Second Rollback", "Sable Ninefold"), and with only ~1,200 agent
+  names a long-lived platform will reach the numbered fallback. Nobody has reviewed the lists for
+  tone. Personas are text only: every agent still plays with the same Lookahead brain.
+- **No avatar, no art, no ward choice per candidate.** The owner's spec says a candidate is "name,
+  concept, art, ward". Art and ward are the render's fallback ward seeded from the name; there is
+  no per-candidate visual on the pick screen yet.
+- **The draft has no expiry.** An open draft stays open until confirmed or replaced, and its
+  candidates are re-checked only at confirm time.
+- **No server endpoint calls the draft yet.** The flow exists only as store methods, tests and the
+  demo (build-order step 3).
+- **`createAgent` keeps a pre-v6 insert path** (no persona column) only so the migration tests can
+  run today's code on old schema versions.
+- **The approved list trusts file names** to tell old Guardian and Bulwark results from new ones
+  (`grid-*`, `levers-s34-*`). The fingerprint test only checks the list against today's cards, not
+  that each result was measured with that fingerprint. Future result files should carry the
+  fingerprint themselves.
+- **Older demos now replay differently.** `bulwarkGuardMatchDemo.ts` and
+  `signatureMenuMatchDemo.ts` build today's Bulwark (units only), so re-running them won't
+  reproduce `sample-match-030`/`031`; those files stay as the record of the old card.
+- **The raw results grew again** (~210 KB of grid, confirm and lever JSONL).
+
+## Session 33 items moved by session 34
+
+- "Guardian and Bulwark fail at every lever and wait on the owner's rework call": reworked
+  (owner 2026-10-15). Guardian now misses by 0.08, Bulwark still fails (3.88).
+- "The search isn't exhaustive": for the five options in this pass, every cost-5 body and size is
+  measured. Still greedy for cost 6/7 and for the other options.
+- "`attackTargets` is engine surface no card uses": Bulwark uses it now.
+- "A once-per-turn activated ability can still be activated twice before the first resolves":
+  fixed (not offered while one is on the stack), with a test.
+- "The report's findings are hand-written": report 025's findings are computed from the data.
+  Report 024's still aren't.
 
 ## New debt from session 33
 
