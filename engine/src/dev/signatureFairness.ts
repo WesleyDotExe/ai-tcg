@@ -37,6 +37,11 @@
 //   npx tsx src/dev/signatureFairness.ts levers [--ability key | --shard i/k] [--coarse N] [--seeds N] [--confirm N] [--out file]
 //       the tuner with the owner's 2026-10-13 levers: the ability's size
 //       and the cost tier as well as the stat line (attack 2 or more)
+//   npx tsx src/dev/signatureFairness.ts grid --abilities a,b [--tier 5] [--attack 2-4] [--health 3-9] [--seeds N] [--shard i/k] [--out file]
+//       the finer pass (owner 2026-10-15): every size of each option x every
+//       body in the grid, no greedy walk; one compact line per candidate
+//   npx tsx src/dev/signatureFairness.ts confirm --in file,... [--top N] [--seeds N] [--shard i/k] [--out file]
+//       the N best grid lines per option re-measured at --seeds (2,500)
 //   npx tsx src/dev/signatureFairness.ts report file... [--seeds N]
 //       the table for a balance report
 
@@ -360,6 +365,53 @@ function specOf(w: TuneResult, id: string): SignatureSpec {
   return { ...w.start, attack: Number(m[1]), health: Number(m[2]) };
 }
 
+/** One grid line, compact: the per-edge changes without their intervals
+ * (the confirm step keeps the full result). */
+export interface GridLine {
+  id: string;
+  spec: SignatureSpec;
+  seeds: number;
+  net: number;
+  worst: number;
+  /** "Faction>Opponent" -> paired change. */
+  edges: Record<string, number>;
+}
+
+export function compactResult(r: CandidateResult): GridLine {
+  const edges: Record<string, number> = {};
+  for (const f of r.factions) for (const e of f.edges) edges[`${f.faction}>${e.opponent}`] = Math.round(e.change.diff * 10000) / 10000;
+  return { id: r.id, spec: r.spec, seeds: r.seeds, net: netChange(r), worst: r.worst, edges };
+}
+
+/**
+ * The finer pass's search space (owner 2026-10-15: "a finer tuner pass" on
+ * the near misses and the reworked Guardian). Session 33's tuner screened
+ * the table lines at 300 seeds and walked greedily from the 3 best configs,
+ * so a line next to a noisy screen was never measured. This one measures
+ * every size of each option at every body in a fixed grid (attack never
+ * below MIN_TUNED_ATTACK), at one seed count, so nothing depends on which
+ * line happened to screen well.
+ */
+export function gridSpecs(abilities: readonly string[], tier: SignatureTier, attacks: readonly number[], healths: readonly number[]): SignatureSpec[] {
+  const out: SignatureSpec[] = [];
+  for (const ability of abilities) {
+    const option = menuOption(ability);
+    if (SIGNATURE_TIERS[tier].extra !== "none") throw new Error("gridSpecs covers the cost-5 tier only (no extra to choose)");
+    for (const size of [undefined, ...option.sizes.map((z) => z.key)]) {
+      for (const attack of attacks) {
+        if (attack < MIN_TUNED_ATTACK) throw new Error(`attack ${attack} is below the owner's floor of ${MIN_TUNED_ATTACK}`);
+        for (const health of healths) out.push({ ability, tier, attack, health, ...(size ? { size } : {}) });
+      }
+    }
+  }
+  return out;
+}
+
+const range = (s: string): number[] => {
+  const [a, b] = s.split("-").map(Number) as [number, number];
+  return Array.from({ length: (b ?? a) - a + 1 }, (_, i) => a + i);
+};
+
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
   return i === -1 ? undefined : process.argv[i + 1];
@@ -441,6 +493,42 @@ async function main(): Promise<void> {
     }
     return;
   }
+  if (command === "grid") {
+    const abilities = (arg("abilities") ?? "").split(",").filter(Boolean);
+    if (abilities.length === 0) throw new Error("grid needs --abilities");
+    const tier = Number(arg("tier") ?? 5) as SignatureTier;
+    const [shard, shards] = (arg("shard") ?? "0/1").split("/").map(Number) as [number, number];
+    const reference = loadReference(Number(arg("seeds") ?? 1000));
+    const out = arg("out");
+    const specs = gridSpecs(abilities, tier, range(arg("attack") ?? "2-4"), range(arg("health") ?? "3-9"));
+    for (const [i, spec] of specs.entries()) {
+      if (i % shards !== shard) continue;
+      const line = compactResult(await testCandidate(buildSignatureCard(spec, { anyStats: true }), spec, reference));
+      if (out) appendFileSync(out, JSON.stringify(line) + "\n");
+      else console.log(JSON.stringify(line));
+      console.error(`${line.id.padEnd(36)} net ${signed(line.net)}  worst ${pct(line.worst)}`);
+    }
+    return;
+  }
+  if (command === "confirm") {
+    const files = (arg("in") ?? "").split(",").filter(Boolean);
+    const top = Number(arg("top") ?? 5);
+    const [shard, shards] = (arg("shard") ?? "0/1").split("/").map(Number) as [number, number];
+    const reference = loadReference(Number(arg("seeds") ?? 2500));
+    const out = arg("out");
+    const lines = files.flatMap((f) => readFileSync(f, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as GridLine));
+    const picks = [...new Set(lines.map((l) => l.spec.ability))].flatMap((ability) =>
+      lines.filter((l) => l.spec.ability === ability).sort((a, b) => a.worst - b.worst || a.id.localeCompare(b.id)).slice(0, top),
+    );
+    for (const [i, pick] of picks.entries()) {
+      if (i % shards !== shard) continue;
+      const r = await testCandidate(buildSignatureCard(pick.spec, { anyStats: true }), pick.spec, reference);
+      if (out) appendFileSync(out, JSON.stringify(r) + "\n");
+      else console.log(JSON.stringify(r));
+      console.error(`confirm ${r.id.padEnd(36)} net ${signed(netChange(r))}  worst ${pct(r.worst)}  ${r.pass ? "PASS" : "fail"}`);
+    }
+    return;
+  }
   if (command === "report") {
     const files = process.argv.slice(3).filter((a, i, all) => !a.startsWith("--") && !all[i - 1]?.startsWith("--"));
     const rows: CandidateResult[] = files.flatMap((f) => readFileSync(f, "utf8").trim().split("\n").filter(Boolean).map((l) => JSON.parse(l) as CandidateResult));
@@ -451,7 +539,7 @@ async function main(): Promise<void> {
     }
     return;
   }
-  console.error("usage: signatureFairness.ts reference|candidates|report ...");
+  console.error("usage: signatureFairness.ts reference|candidates|tune|levers|grid|confirm|report ...");
   process.exit(2);
 }
 

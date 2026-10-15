@@ -117,9 +117,8 @@ export type Condition =
   | { kind: "guardInPlay"; side: Exclude<Side, "any"> }
   /** The nearest pending attack on the stack (the one an onEnemyAttack
    * trigger is reacting to) is aimed at a unit, or at a player. False with
-   * no pending attack. Added session 33 for the measured Bulwark rework
-   * proposals (balance report 024), which the owner hasn't chosen; no menu
-   * option uses it yet. */
+   * no pending attack. Added session 33 for the Bulwark rework proposals;
+   * since owner 2026-10-15 the menu's Bulwark uses it ("units only"). */
   | { kind: "attackTargets"; target: "unit" | "player" };
 
 export interface TargetFilter {

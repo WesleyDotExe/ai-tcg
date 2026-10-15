@@ -1,6 +1,24 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomInt, randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { buildDeck, deckFaction, getCard, SHIPPED_DECK_LISTS, type Card, type DeckFaction, type DeckSpec, type Rarity } from "@ai-tcg/engine";
+import {
+  buildDeck,
+  CARD_REGISTRY,
+  deckFaction,
+  generateAgentCandidates,
+  generateSignatureCandidates,
+  getCard,
+  SHIPPED_DECK_LISTS,
+  signatureCardFor,
+  signatureFingerprint,
+  type AgentCandidate,
+  type Card,
+  type DeckFaction,
+  type DeckSpec,
+  type Rarity,
+  type SignatureCandidate,
+  type SignatureSpec,
+  type UnitCard,
+} from "@ai-tcg/engine";
 import {
   PACK_PRICE_CREDITS,
   PASSWORD_MIN_LENGTH,
@@ -46,7 +64,8 @@ function isSignatureRef(originRef: string | null | undefined): boolean {
 // the human account, owns copies, credits, pack points, packs, decks and
 // match stats, and every daily cap counts per owner. An agent is who played:
 // it's kept on matches and on match-payout ledger rows, and it owns nothing
-// here (its signature card comes with the unique Mythic session).
+// but its signature card (schema v6): a generated Neutral Mythic, granted to
+// its owner as a bound promo copy when the agent is generated.
 
 /** Season 0 is the in-house season (owner 2026-10-04, C.11). A new season is
  * a new database file; the old file is the archive. */
@@ -76,7 +95,45 @@ export interface AgentRecord {
   agentId: string;
   ownerId: string;
   name: string;
+  /** The generated one-line personality (null for an agent made by hand
+   * with createAgent, e.g. before schema v6). */
+  persona: string | null;
   createdAt: string;
+}
+
+/** An agent's own signature card (schema v6). */
+export interface SignatureCardRecord {
+  agentId: string;
+  cardId: string;
+  /** The body + ability combination, unique per season. */
+  comboId: string;
+  /** Its promo collector number, "PR-001". */
+  collectorNumber: string;
+  spec: SignatureSpec;
+  /** The playable card, built from the menu data as it is now. */
+  card: UnitCard;
+  /** What the card did when it was approved and granted; `card` differs
+   * only after an errata to the menu data. */
+  fingerprint: string;
+  createdAt: string;
+}
+
+/** "Generate a new agent" in progress (owner app spec B): 3 agents, then,
+ * once one is picked, 3 signature cards for it. */
+export interface AgentDraft {
+  draftId: string;
+  ownerId: string;
+  agents: AgentCandidate[];
+  picked: number | null;
+  signatures: SignatureCandidate[] | null;
+  createdAt: string;
+}
+
+export interface GeneratedAgent {
+  agent: AgentRecord;
+  signature: SignatureCardRecord;
+  /** The bound promo copy now in the owner's collection. */
+  copy: CardCopy;
 }
 
 export interface LedgerEntry {
@@ -687,12 +744,20 @@ export class EconomyStore {
 
   /** A new agent for an owner. It brings nothing with it: no copies, no
    * credits, no packs (owner app spec B). */
-  createAgent(input: { ownerId: string; name: string }): AgentRecord {
-    const agent: AgentRecord = { agentId: randomUUID(), ownerId: input.ownerId, name: input.name, createdAt: this.stamp() };
+  createAgent(input: { ownerId: string; name: string; persona?: string }): AgentRecord {
+    const agent: AgentRecord = { agentId: randomUUID(), ownerId: input.ownerId, name: input.name, persona: input.persona ?? null, createdAt: this.stamp() };
     try {
-      this.db
-        .prepare("INSERT INTO agents (agent_id, owner_id, name, created_at) VALUES (?, ?, ?, ?)")
-        .run(agent.agentId, agent.ownerId, agent.name, agent.createdAt);
+      // Without a persona, the pre-v6 column list (the migration tests open
+      // old schema versions with this code).
+      if (agent.persona === null) {
+        this.db
+          .prepare("INSERT INTO agents (agent_id, owner_id, name, created_at) VALUES (?, ?, ?, ?)")
+          .run(agent.agentId, agent.ownerId, agent.name, agent.createdAt);
+      } else {
+        this.db
+          .prepare("INSERT INTO agents (agent_id, owner_id, name, persona, created_at) VALUES (?, ?, ?, ?, ?)")
+          .run(agent.agentId, agent.ownerId, agent.name, agent.persona, agent.createdAt);
+      }
     } catch (err) {
       refused(err);
     }
@@ -714,7 +779,175 @@ export class EconomyStore {
   }
 
   private agentFromRow(row: Row): AgentRecord {
-    return { agentId: str(row.agent_id), ownerId: str(row.owner_id), name: str(row.name), createdAt: str(row.created_at) };
+    return { agentId: str(row.agent_id), ownerId: str(row.owner_id), name: str(row.name), persona: strOrNull(row.persona ?? null), createdAt: str(row.created_at) };
+  }
+
+  // ---- generating a new agent (owner app spec B; schema v6) ----
+
+  /** Step 1 of "Generate a new agent": 3 generated agents to pick from.
+   * Starting a draft closes the owner's earlier open one. The seed is drawn
+   * here, server-side (anti-exploit rule 9); `seed` is for tests and the
+   * demo only. */
+  startAgentDraft(ownerId: string, options: { seed?: number } = {}): AgentDraft {
+    this.getOwner(ownerId);
+    return this.transaction(() => {
+      const at = this.stamp();
+      this.db.prepare("UPDATE agent_drafts SET closed_at = ? WHERE owner_id = ? AND closed_at IS NULL").run(at, ownerId);
+      const agents = generateAgentCandidates(options.seed ?? randomInt(2 ** 31), { agentNames: this.takenNames().agentNames });
+      const draft: AgentDraft = { draftId: randomUUID(), ownerId, agents, picked: null, signatures: null, createdAt: at };
+      this.db
+        .prepare("INSERT INTO agent_drafts (draft_id, owner_id, agents_json, created_at) VALUES (?, ?, ?, ?)")
+        .run(draft.draftId, ownerId, JSON.stringify(agents), at);
+      return draft;
+    });
+  }
+
+  /** Step 2: the owner picks one of the 3 agents and gets 3 signature cards
+   * for it, every one a line that passed the fairness test and none a
+   * combination this season already has. One pick per draft: to see other
+   * agents, start a new draft. */
+  pickDraftAgent(ownerId: string, draftId: string, index: number, options: { seed?: number } = {}): AgentDraft {
+    return this.transaction(() => {
+      const draft = this.openDraft(ownerId, draftId);
+      if (draft.picked !== null) throw new EconomyError("this draft's agent is already picked; start a new draft to choose again");
+      const agent = draft.agents[index];
+      if (!Number.isInteger(index) || agent === undefined) throw new EconomyError(`no agent candidate ${index} in this draft`);
+      const taken = this.takenNames();
+      let signatures: SignatureCandidate[];
+      try {
+        signatures = generateSignatureCandidates(options.seed ?? randomInt(2 ** 31), agent.name, taken);
+      } catch (err) {
+        refused(err);
+      }
+      this.db.prepare("UPDATE agent_drafts SET picked = ?, signatures_json = ? WHERE draft_id = ?").run(index, JSON.stringify(signatures), draftId);
+      return { ...draft, picked: index, signatures };
+    });
+  }
+
+  /** Step 3: the owner confirms one of the 3 signature cards. In one
+   * transaction: the agent is created with its generated name and persona,
+   * its signature card is recorded with the next PR- number, and the card is
+   * granted to the owner as a bound promo copy. Refused if the name or the
+   * combination was taken since the draft was shown (start a new draft).
+   * The new agent is not connected; the owner connects it. */
+  confirmAgentDraft(ownerId: string, draftId: string, signatureIndex: number): GeneratedAgent {
+    return this.transaction(() => {
+      const draft = this.openDraft(ownerId, draftId);
+      if (draft.picked === null || draft.signatures === null) throw new EconomyError("pick an agent before its signature card");
+      const chosen = draft.signatures[signatureIndex];
+      if (!Number.isInteger(signatureIndex) || chosen === undefined) throw new EconomyError(`no signature candidate ${signatureIndex} in this draft`);
+      const candidate = draft.agents[draft.picked]!;
+      const taken = this.takenNames();
+      if (taken.agentNames.has(candidate.name)) throw new EconomyError(`the agent name "${candidate.name}" was taken since this draft was made; start a new draft`);
+      if (taken.comboIds.has(chosen.comboId) || taken.cardNames.has(chosen.name)) {
+        throw new EconomyError(`that signature card was taken since this draft was made; start a new draft`);
+      }
+      const agent = this.createAgent({ ownerId, name: candidate.name, persona: candidate.persona });
+      const promoNumber = this.nextPromoNumber();
+      const collectorNumber = `PR-${String(promoNumber).padStart(3, "0")}`;
+      const cardId = `sig-${collectorNumber}`;
+      const card = signatureCardFor(chosen, cardId);
+      const at = this.stamp();
+      try {
+        this.db
+          .prepare(
+            `INSERT INTO signature_cards (agent_id, card_id, combo_id, name, spec_json, fingerprint, flavor, promo_number, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          )
+          .run(agent.agentId, cardId, chosen.comboId, chosen.name, JSON.stringify(chosen.spec), signatureFingerprint(card), chosen.flavor, promoNumber, at);
+      } catch (err) {
+        refused(err);
+      }
+      const copy = this.grantCopy({
+        ownerId,
+        cardId,
+        origin: "promo",
+        originRef: `${SIGNATURE_ORIGIN_REF_PREFIX}${agent.agentId}`,
+        seriesKind: "promo",
+        seriesCode: collectorNumber,
+        stamp: "SIGNATURE",
+      });
+      this.db.prepare("UPDATE agent_drafts SET closed_at = ?, agent_id = ? WHERE draft_id = ?").run(at, agent.agentId, draftId);
+      return { agent, signature: this.signatureCard(agent.agentId)!, copy };
+    });
+  }
+
+  /** The owner's open draft, if any. */
+  openAgentDraft(ownerId: string): AgentDraft | null {
+    const row = this.db.prepare("SELECT * FROM agent_drafts WHERE owner_id = ? AND closed_at IS NULL").get(ownerId) as Row | undefined;
+    return row ? this.draftFromRow(row) : null;
+  }
+
+  /** An agent's signature card, or null for an agent made without one. */
+  signatureCard(agentId: string): SignatureCardRecord | null {
+    const row = this.db.prepare("SELECT * FROM signature_cards WHERE agent_id = ?").get(agentId) as Row | undefined;
+    return row ? this.signatureFromRow(row) : null;
+  }
+
+  /** A signature card by its card id (it is in no card set, so getCard
+   * doesn't know it). */
+  signatureCardById(cardId: string): SignatureCardRecord | null {
+    const row = this.db.prepare("SELECT * FROM signature_cards WHERE card_id = ?").get(cardId) as Row | undefined;
+    return row ? this.signatureFromRow(row) : null;
+  }
+
+  private signatureFromRow(row: Row): SignatureCardRecord {
+    const spec = JSON.parse(str(row.spec_json)) as SignatureSpec;
+    const cardId = str(row.card_id);
+    const card = signatureCardFor({ spec, name: str(row.name), flavor: str(row.flavor) }, cardId);
+    return {
+      agentId: str(row.agent_id),
+      cardId,
+      comboId: str(row.combo_id),
+      collectorNumber: `PR-${String(num(row.promo_number)).padStart(3, "0")}`,
+      spec,
+      card,
+      fingerprint: str(row.fingerprint),
+      createdAt: str(row.created_at),
+    };
+  }
+
+  private openDraft(ownerId: string, draftId: string): AgentDraft {
+    const row = this.db.prepare("SELECT * FROM agent_drafts WHERE draft_id = ?").get(draftId) as Row | undefined;
+    if (!row || str(row.owner_id) !== ownerId) throw new EconomyError(`no draft "${draftId}" for this owner`);
+    if (row.closed_at !== null) throw new EconomyError("this draft is closed (confirmed, or replaced by a newer one)");
+    return this.draftFromRow(row);
+  }
+
+  private draftFromRow(row: Row): AgentDraft {
+    return {
+      draftId: str(row.draft_id),
+      ownerId: str(row.owner_id),
+      agents: JSON.parse(str(row.agents_json)) as AgentCandidate[],
+      picked: row.picked === null ? null : num(row.picked),
+      signatures: row.signatures_json === null ? null : (JSON.parse(str(row.signatures_json)) as SignatureCandidate[]),
+      createdAt: str(row.created_at),
+    };
+  }
+
+  /** Names and combinations this season has used: every agent name, every
+   * signature card's name and combination, and every set card's name (a
+   * signature card never shares a name with a set card). */
+  private takenNames(): { agentNames: Set<string>; cardNames: Set<string>; comboIds: Set<string> } {
+    const agentNames = new Set((this.db.prepare("SELECT name FROM agents").all() as Row[]).map((r) => str(r.name)));
+    const sigs = this.db.prepare("SELECT name, combo_id FROM signature_cards").all() as Row[];
+    const cardNames = new Set([...sigs.map((r) => str(r.name)), ...[...CARD_REGISTRY.values()].map((c) => c.name)]);
+    return { agentNames, cardNames, comboIds: new Set(sigs.map((r) => str(r.combo_id))) };
+  }
+
+  /** The next PR- collector number. Signature cards are the only promos
+   * issued so far; any promo copy already carrying a PR- code counts too, so
+   * a number is never handed out twice once general promo issuing lands. */
+  private nextPromoNumber(): number {
+    const sig = num((this.db.prepare("SELECT COALESCE(MAX(promo_number), 0) AS n FROM signature_cards").get() as Row).n);
+    const copies = num(
+      (
+        this.db
+          .prepare("SELECT COALESCE(MAX(CAST(substr(series_code, 4) AS INTEGER)), 0) AS n FROM card_copies WHERE series_kind = 'promo' AND series_code LIKE 'PR-%'")
+          .get() as Row
+      ).n,
+    );
+    return Math.max(sig, copies) + 1;
   }
 
   // ---- the connected agent (owner app spec B) ----
@@ -789,6 +1022,10 @@ export class EconomyStore {
         if (owner.factionLock !== null && deckFaction(deck.spec.cards) !== owner.factionLock) {
           throw new EconomyError(`owner "${owner.name}" is locked to ${owner.factionLock}; the active deck isn't`);
         }
+        // The connected agent's signature card plays from the signature
+        // zone: switching agents changes only this (owner app spec B).
+        const signature = this.signatureCard(owner.connectedAgentId);
+        if (signature) deck.spec.signature = signature.card;
         return { ownerId, agentId: owner.connectedAgentId, deck };
       };
       const p1 = side(input.p1OwnerId);
@@ -896,7 +1133,7 @@ export class EconomyStore {
    * copies are account-bound (owner 2026-10-05). The card id must be a real,
    * ownable card. */
   grantCopy(input: GrantCopyInput): CardCopy {
-    if (!getCard(input.cardId)) throw new EconomyError(`no ownable card with id "${input.cardId}"`);
+    if (!getCard(input.cardId) && !this.signatureCardById(input.cardId)) throw new EconomyError(`no ownable card with id "${input.cardId}"`);
     const copy: CardCopy = {
       copyId: randomUUID(),
       ownerId: input.ownerId,
@@ -995,7 +1232,8 @@ export class EconomyStore {
   /** The card viewer's data for one card: copies held, how many salvage and
    * for how much, why the rest can't, and the saved decks that use it. */
   cardHoldings(ownerId: string, cardId: string): CardHoldings {
-    const card = getCard(cardId);
+    // A signature card is in no set, but the card viewer shows it too.
+    const card = getCard(cardId) ?? this.signatureCardById(cardId)?.card;
     if (!card) throw new EconomyError(`no ownable card with id "${cardId}"`);
     const copies = this.collection(ownerId).filter((c) => c.cardId === cardId);
     const reasons = new Map<string, number>();
@@ -1155,6 +1393,9 @@ export class EconomyStore {
     const byCard = new Map<string, { card: Card; copies: number }>();
     for (const c of copies) {
       const card = getCard(c.cardId);
+      if (!card && this.signatureCardById(c.cardId)) {
+        throw new EconomyError(`deck "${name}": a signature card plays from its own zone, never from the deck`);
+      }
       if (!card) throw new EconomyError(`deck "${name}": card "${c.cardId}" is not ownable any more`);
       const entry = byCard.get(c.cardId) ?? { card, copies: 0 };
       entry.copies++;

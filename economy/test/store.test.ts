@@ -37,7 +37,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(5);
+    expect(a.schemaVersion).toBe(6);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -46,7 +46,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(5);
+    expect(b.schemaVersion).toBe(6);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -160,11 +160,28 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
 
     // v4 -> v5: an agent's signature card can't be sold (owner 2026-10-13).
     // Nothing to convert; from now on a signature copy is inserted bound.
-    const v5 = open(path);
+    const v5 = open(path, 5);
     expect(v5.schemaVersion).toBe(5);
     expect(v5.getCopy(promo.copyId).accountBound).toBe(false);
-    expect(v5.grantCopy({ ownerId: "owner-a1", cardId: cortex, origin: "promo", originRef: "signature:a1", seriesKind: "promo", seriesCode: "PR-002", stamp: "SIGNATURE" }).accountBound).toBe(true);
+    const v5sig = v5.grantCopy({ ownerId: "owner-a1", cardId: cortex, origin: "promo", originRef: "signature:a1", seriesKind: "promo", seriesCode: "PR-002", stamp: "SIGNATURE" });
+    expect(v5sig.accountBound).toBe(true);
     v5.close();
+
+    // v5 -> v6: generated agents and their signature cards (session 34).
+    // Nothing converts: the v5 copy above stays as it is, but from now on a
+    // signature copy must be a copy of that agent's own signature card, and
+    // the next PR- number counts the promo codes already handed out.
+    const v6 = open(path);
+    expect(v6.schemaVersion).toBe(6);
+    expect(v6.getCopy(v5sig.copyId).accountBound).toBe(true);
+    expect(v6.getAgent("a1").persona).toBeNull();
+    expect(() =>
+      v6.grantCopy({ ownerId: "owner-a1", cardId: cortex, origin: "promo", originRef: "signature:a2", seriesKind: "promo", seriesCode: "PR-003", stamp: "SIGNATURE" }),
+    ).toThrow(/own signature card/);
+    const draft = v6.startAgentDraft("owner-a1", { seed: 1 });
+    v6.pickDraftAgent("owner-a1", draft.draftId, 0, { seed: 2 });
+    expect(v6.confirmAgentDraft("owner-a1", draft.draftId, 0).signature.collectorNumber).toBe("PR-003");
+    v6.close();
   });
 });
 
@@ -440,25 +457,28 @@ describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
     const s = open();
     const a = player(s, "a");
     const b = player(s, "b");
-    const sig = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", originRef: "signature:agent-1", seriesKind: "promo", seriesCode: "PR-001", stamp: "SIGNATURE" });
+    const draft = s.startAgentDraft(a.ownerId, { seed: 3 });
+    s.pickDraftAgent(a.ownerId, draft.draftId, 1, { seed: 4 });
+    const { agent, signature, copy: sig } = s.confirmAgentDraft(a.ownerId, draft.draftId, 2);
+    const ref = `signature:${agent.agentId}`;
     expect(sig.accountBound).toBe(true);
     // Never sold: a bound copy never changes owner, even by raw SQL.
     expect(() => s.unsafeExec(`UPDATE card_copies SET owner_id = '${b.ownerId}' WHERE copy_id = '${sig.copyId}'`)).toThrow();
     expect(s.getCopy(sig.copyId).ownerId).toBe(a.ownerId);
     // Never salvaged.
-    expect(() => s.salvage(a.ownerId, AEGIS_COMMON, 1)).toThrow(/0 of 1 held can be salvaged/);
+    expect(() => s.salvage(a.ownerId, signature.cardId, 1)).toThrow(/0 of 1 held can be salvaged/);
     // It is a promo, nothing else.
-    expect(() => s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "pack", originRef: "signature:agent-1" })).toThrow(/granted as a promo copy/);
+    expect(() => s.grantCopy({ ownerId: a.ownerId, cardId: signature.cardId, origin: "pack", originRef: ref })).toThrow(/granted as a promo copy/);
     // The schema holds the rule without the store: an unbound signature insert aborts,
     // and a copy can't be relabelled into or out of being a signature card.
     expect(() =>
       s.unsafeExec(
         `INSERT INTO card_copies (copy_id, owner_id, card_id, finish, series_kind, origin, origin_ref, account_bound, acquired_at)
-         VALUES ('raw-sig', '${a.ownerId}', '${AEGIS_COMMON}', 'standard', 'promo', 'promo', 'signature:agent-2', 0, '${DAY1}')`,
+         VALUES ('raw-sig', '${a.ownerId}', '${signature.cardId}', 'standard', 'promo', 'promo', '${ref}', 0, '${DAY1}')`,
       ),
     ).toThrow(/can never be sold/);
     const promo = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-002", stamp: "FIRST WIN" });
-    expect(() => s.unsafeExec(`UPDATE card_copies SET origin_ref = 'signature:agent-3' WHERE copy_id = '${promo.copyId}'`)).toThrow(/never becomes/);
+    expect(() => s.unsafeExec(`UPDATE card_copies SET origin_ref = '${ref}' WHERE copy_id = '${promo.copyId}'`)).toThrow(/never becomes/);
     expect(() => s.unsafeExec(`UPDATE card_copies SET origin_ref = NULL WHERE copy_id = '${sig.copyId}'`)).toThrow(/never becomes/);
   });
 

@@ -207,8 +207,15 @@ function pushActivatedAbilityMoves(state: GameState, pid: PlayerId, moves: Move[
       if (ability.trigger !== "activated") continue;
       // A once-per-turn ability already used this turn would resolve to
       // nothing (resolver.ts), so it isn't offered: paying for a no-op is
-      // never a real choice.
+      // never a real choice. The same holds while an activation of it is
+      // still on the stack: the use is counted when that one resolves, so a
+      // second one in response would be paid for and then do nothing.
       if (ability.limit === "oncePerTurn" && src.used?.includes(ability.id)) continue;
+      if (
+        ability.limit === "oncePerTurn" &&
+        state.stack.some((item) => item.kind === "ability" && item.source.instanceId === src.instanceId && item.ability.id === ability.id)
+      )
+        continue;
       const speed: Speed = ability.speed ?? "Sorcery";
       if (speed === "Sorcery" && !sorceryTiming) continue;
       const cost = ability.cost?.energy ?? 0;

@@ -1,0 +1,158 @@
+AI-TCG balance report 025: the finer tuner pass, and the reworked Guardian and Bulwark (session 34)
+Owner 2026-10-15, option A: Guardian becomes Barrier only and gets one more tuner pass; Bulwark becomes
+'takes the first attack aimed at one of your units (never you)' and stays off the generator until it
+passes; the three near misses (Smite, Energy surge, Sweep) get a finer tuner pass.
+
+The test (unchanged): swap the candidate in for one faction's plain 3/6 stand-in; it passes when every one of
+the twelve edges moves by 2.0 points or less (paired change, same seeds). Only a 2,500-seed measurement counts.
+
+Commands (from engine/), all seeded, so each reproduces its lines exactly:
+  grid:    npx tsx src/dev/signatureFairness.ts grid --abilities smite,energy-surge,sweep,guardian,bulwark --seeds 1000 --shard i/4 --out grid-i.jsonl
+  confirm: npx tsx src/dev/signatureFairness.ts confirm --in grid-0..3.jsonl --top 5 --seeds 2500 --shard i/4 --out grid-confirm-i.jsonl
+  levers:  npx tsx src/dev/signatureFairness.ts levers --ability guardian|bulwark --coarse 300 --seeds 500 --confirm 2500 --out levers-s34-K.jsonl
+
+What 'finer' means here. Session 33's tuner screened table lines at 300 seeds and walked greedily from the 3 best
+configs at 500, so a line next to a noisy screen was never measured. This pass measures EVERY size of each option at
+EVERY cost-5 body with attack 2-4 and health 3-9 (21 bodies), all at 1,000 seeds, then re-measures the 5 best lines
+of each option at 2,500. Nothing depends on which line happened to screen well.
+
+1. The grid (1,000 seeds): worst edge in points, by size and body. Lower is better; * = 2.0 or less at 1,000 seeds.
+
+  Smite
+    standard: "On arrival, deal 3 damage to an enemy unit."
+      atk \ hp      3     4     5     6     7     8     9
+            2     9.3   9.7   9.4   9.0   9.0   9.0   9.1 
+            3    14.8  13.7  14.5  14.3  14.1  14.3  14.4 
+            4    16.5  18.2  19.1  19.3  19.0  18.8  18.9 
+    size d1: "On arrival, deal 1 damage to an enemy unit."
+      atk \ hp      3     4     5     6     7     8     9
+            2     7.9   7.0   6.4   6.1   4.5   2.8   2.1 
+            3     9.2   7.7   7.0   7.0   7.1   6.7   7.4 
+            4    11.5  11.6  11.8  11.7  11.9  12.8  13.2 
+    size d2: "On arrival, deal 2 damage to an enemy unit."
+      atk \ hp      3     4     5     6     7     8     9
+            2     6.1   5.6   6.0   6.0   6.0   5.8   5.5 
+            3     9.3   8.9   9.5  10.2  10.4  10.4  10.5 
+            4    13.1  13.2  14.3  14.4  14.4  14.3  14.5 
+    size d4: "On arrival, deal 4 damage to an enemy unit."
+      atk \ hp      3     4     5     6     7     8     9
+            2    10.2  11.0  11.7  12.0  11.6  11.6  11.7 
+            3    15.4  14.2  15.4  14.5  14.9  15.3  15.2 
+            4    19.6  19.2  19.7  19.5  19.6  20.3  20.2 
+
+  Energy surge
+    standard: "On arrival, gain 1 energy this turn."
+      atk \ hp      3     4     5     6     7     8     9
+            2     9.6   8.2   8.4   7.5   6.4   5.1   4.6 
+            3     4.4   3.8   4.2   3.5   3.1   3.7   3.9 
+            4     7.3   7.5   9.2   9.3   9.8   9.9  10.6 
+    size e2: "On arrival, gain 2 energy this turn."
+      atk \ hp      3     4     5     6     7     8     9
+            2     7.7   7.0   6.7   5.7   4.6   3.0   1.8*
+            3     7.2   6.6   8.0   7.9   6.7   8.6   8.7 
+            4    10.6  11.3  12.9  12.3  13.7  13.8  14.5 
+
+  Sweep
+    standard: "On arrival, deal 1 damage to each enemy unit."
+      atk \ hp      3     4     5     6     7     8     9
+            2     9.3  10.2  10.1  10.1  10.1   9.7   9.3 
+            3    15.6  13.9  13.6  13.5  13.9  13.4  13.3 
+            4    17.7  16.7  16.9  16.9  16.9  16.9  17.0 
+    size r1: "On arrival, deal 1 damage to a random enemy unit."
+      atk \ hp      3     4     5     6     7     8     9
+            2     9.7   8.4   8.6   7.3   6.0   4.9   3.8 
+            3     4.7   3.4   4.0   3.8   3.7   4.1   5.1 
+            4     6.7   7.6   8.6  10.1  10.4  11.5  12.2 
+    size r2: "On arrival, deal 1 damage to 2 random enemy units."
+      atk \ hp      3     4     5     6     7     8     9
+            2     7.4   7.0   5.2   4.5   3.2   3.4   3.2 
+            3     7.7   6.9   6.9   6.3   7.4   7.4   8.5 
+            4    10.3  11.5  11.3  12.7  13.3  13.5  14.1 
+    size d2: "On arrival, deal 2 damage to each enemy unit."
+      atk \ hp      3     4     5     6     7     8     9
+            2    21.4  21.6  20.8  20.6  20.7  20.6  20.0 
+            3    26.1  25.0  24.1  23.7  23.8  23.5  23.6 
+            4    27.8  27.3  27.2  27.0  27.0  27.0  27.0 
+
+  Guardian
+    standard: "Barrier."
+      atk \ hp      3     4     5     6     7     8     9
+            2    10.2   9.3   8.2   6.4   5.5   5.4   5.6 
+            3     5.1   2.8   2.5   2.4   3.0   4.1   5.1 
+            4    12.0   8.0   8.0   9.2   9.6  10.2  11.1 
+
+  Bulwark
+    standard: "Takes the first attack aimed at one of your units each turn (never you), unless a Guard unit is protecting your side."
+      atk \ hp      3     4     5     6     7     8     9
+            2    11.2  11.3  10.2   9.2   7.7   5.9   4.7 
+            3     6.7   3.2   4.2   5.4   6.3   8.0   8.1 
+            4     4.2  10.0   9.8  10.8  11.3  12.5  12.9 
+
+2. Confirmed at 2,500 seeds: the 5 best grid lines of each option (edges per faction: vs the other three, in
+   Cortex/Swarm/Aegis/Null order without itself).
+
+  Smite
+       sig5-2x9-smite.d1                  net  -0.2  worst  2.4   Co +0.5/-1.8/+0.2  Sw +0.1/-1.0/-0.5  Ae -1.3/+0.4/-0.3  Nu -0.5/+2.4/-0.2
+       sig5-2x8-smite.d1                  net  -0.4  worst  2.6   Co +0.7/-2.2/+0.2  Sw -0.2/-1.1/-0.5  Ae -2.4/+0.2/-1.8  Nu -0.6/+2.6/-0.2
+       sig5-2x7-smite.d1                  net  -0.7  worst  3.5   Co +0.8/-2.8/+0.3  Sw -0.4/-1.7/-0.5  Ae -3.5/-0.2/-2.4  Nu -0.6/+2.8/-0.4
+       sig5-2x9-smite.d2                  net  +1.8  worst  4.1   Co +3.6/+0.9/+1.9  Sw +4.1/+0.0/-0.5  Ae +1.6/+1.8/+2.0  Nu +3.2/+3.2/+0.2
+       sig5-2x4-smite.d2                  net  +1.3  worst  4.9   Co +4.5/-0.2/+2.2  Sw +3.1/+0.0/+0.2  Ae -2.9/+1.5/-0.6  Nu +2.8/+4.9/-0.4
+
+  Energy surge
+  PASS sig5-2x8-energy-surge.e2           net  -0.6  worst  1.8   Co +0.8/-0.7/+0.6  Sw +0.2/-1.4/-0.7  Ae -1.8/+0.3/-0.4  Nu -1.1/-0.7/-1.8
+  PASS sig5-2x9-energy-surge.e2           net  -0.4  worst  1.9   Co +0.6/-0.2/+0.3  Sw +0.5/-1.3/-0.7  Ae -1.2/+0.9/+0.2  Nu -1.1/-0.7/-1.9
+       sig5-3x7-energy-surge              net  +1.6  worst  2.4   Co +1.8/+1.4/+1.6  Sw +2.2/+0.8/+0.4  Ae +2.4/+1.8/+2.0  Nu +1.0/+2.0/+1.3
+       sig5-3x6-energy-surge              net  +1.7  worst  2.4   Co +2.0/+1.8/+2.1  Sw +2.4/+1.4/+1.0  Ae +1.7/+1.0/+1.6  Nu +1.0/+2.3/+1.8
+       sig5-3x8-energy-surge              net  +1.8  worst  3.4   Co +1.7/+2.0/+1.6  Sw +2.4/+1.0/+0.2  Ae +3.4/+2.4/+3.0  Nu +1.0/+1.3/+1.6
+
+  Sweep
+       sig5-2x9-sweep.r2                  net  +0.2  worst  2.0   Co +2.0/-1.0/+0.3  Sw +0.0/-1.2/-0.5  Ae -0.6/+0.8/+1.2  Nu -0.0/+2.0/-0.6
+       sig5-2x8-sweep.r2                  net  +0.0  worst  2.2   Co +2.2/-1.2/+0.5  Sw -0.2/-1.0/-0.5  Ae -1.6/+0.1/+0.6  Nu -0.1/+2.2/-0.8
+       sig5-2x7-sweep.r2                  net  -0.2  worst  2.6   Co +1.9/-1.5/+0.4  Sw -0.2/-1.6/-0.4  Ae -2.1/-0.4/-0.1  Nu -0.0/+2.6/-1.0
+       sig5-3x4-sweep.r1                  net  +2.0  worst  3.8   Co +2.7/+0.8/+1.7  Sw +2.5/+1.6/+3.1  Ae -0.4/+2.4/+2.1  Nu +2.3/+3.8/+1.7
+       sig5-3x7-sweep.r1                  net  +2.6  worst  4.5   Co +2.2/+1.6/+2.2  Sw +2.8/+1.4/+1.5  Ae +4.5/+2.6/+3.6  Nu +2.7/+3.7/+2.8
+
+  Guardian
+       sig5-3x5-guardian                  net  +1.0  worst  2.1   Co +0.6/+1.5/+0.5  Sw +2.1/+0.9/+1.0  Ae +1.5/+1.1/+1.7  Nu +0.5/-0.6/+0.8
+       sig5-3x4-guardian                  net  +0.9  worst  2.1   Co +1.3/+1.5/+0.4  Sw +2.1/+0.7/+1.7  Ae +0.4/+1.8/+0.4  Nu +0.0/+0.2/+0.4
+       sig5-3x6-guardian                  net  +0.7  worst  2.3   Co -0.1/+0.9/+0.0  Sw +0.8/+0.3/-0.1  Ae +2.3/+1.9/+2.1  Nu +0.4/-0.6/+0.7
+       sig5-3x7-guardian                  net  +0.6  worst  3.6   Co -0.8/+0.6/-0.7  Sw +0.4/-0.4/-0.8  Ae +3.6/+2.3/+2.6  Nu +0.2/-0.7/+0.6
+       sig5-3x8-guardian                  net  +0.7  worst  4.2   Co -0.8/+1.0/-0.8  Sw +0.6/-0.2/-0.9  Ae +4.2/+2.8/+2.7  Nu +0.2/-0.7/+0.8
+
+  Bulwark
+       sig5-3x4-bulwark                   net  +1.7  worst  3.9   Co +1.4/+0.9/+2.8  Sw +2.7/+2.0/+3.9  Ae -1.4/+0.1/-0.2  Nu +2.3/+3.2/+2.2
+       sig5-2x9-bulwark                   net  -1.6  worst  4.2   Co -3.0/-1.9/-2.6  Sw +1.5/-0.1/+0.7  Ae -3.7/-4.2/-3.5  Nu -0.7/-0.8/-0.7
+       sig5-4x3-bulwark                   net  +1.6  worst  4.6   Co +2.8/+2.5/+2.9  Sw +0.8/+1.8/+2.5  Ae -2.1/+1.8/+1.0  Nu -0.5/+4.6/+1.8
+       sig5-3x5-bulwark                   net  +2.3  worst  4.7   Co +1.2/+2.1/+2.8  Sw +3.8/+3.0/+4.7  Ae +0.2/-0.3/+0.5  Nu +3.5/+2.8/+2.9
+       sig5-3x6-bulwark                   net  +3.0  worst  5.2   Co +1.4/+2.3/+3.0  Sw +4.8/+4.0/+4.8  Ae +2.2/+0.1/+1.5  Nu +5.2/+3.2/+3.7
+
+3. Guardian (Barrier only) and Bulwark (units only) at every lever, session 33's tuner: every table line of every
+   size x tier x extra at 300 seeds, stat walks from the 3 best configs at 500, the 3 best lines at 2,500.
+
+  Bulwark: best table line per tier at 300 seeds
+    cost 5: sig5-3x6-bulwark                     net  +2.6  worst 5.7
+    cost 6: sig6-3x9-bulwark+barrier             net  -1.3  worst 5.3
+    cost 7: sig7-4x6-bulwark+shield-wall         net  -1.3  worst 6.7
+  confirmed at 2,500:
+       sig5-3x4-bulwark                   net  +1.7  worst  3.9   Co +1.4/+0.9/+2.8  Sw +2.7/+2.0/+3.9  Ae -1.4/+0.1/-0.2  Nu +2.3/+3.2/+2.2
+       sig7-5x5-bulwark+shield-wall       net  -0.5  worst  4.0   Co +2.3/+1.7/+2.2  Sw +2.1/+1.3/+1.8  Ae -2.4/-4.0/-3.7  Nu -3.3/+0.1/-3.8
+       sig5-3x5-bulwark                   net  +2.3  worst  4.7   Co +1.2/+2.1/+2.8  Sw +3.8/+3.0/+4.7  Ae +0.2/-0.3/+0.5  Nu +3.5/+2.8/+2.9
+
+  Guardian: best table line per tier at 300 seeds
+    cost 5: sig5-3x6-guardian                    net  +0.8  worst 4.0
+    cost 6: sig6-3x9-guardian+rush               net  +5.6  worst 12.7
+    cost 7: sig7-4x6-guardian+shield-wall        net  -1.4  worst 6.7
+  confirmed at 2,500:
+       sig5-3x5-guardian                  net  +1.0  worst  2.1   Co +0.6/+1.5/+0.5  Sw +2.1/+0.9/+1.0  Ae +1.5/+1.1/+1.7  Nu +0.5/-0.6/+0.8
+       sig5-3x6-guardian                  net  +0.7  worst  2.3   Co -0.1/+0.9/+0.0  Sw +0.8/+0.3/-0.1  Ae +2.3/+1.9/+2.1  Nu +0.4/-0.6/+0.7
+       sig5-3x7-guardian                  net  +0.6  worst  3.6   Co -0.8/+0.6/-0.7  Sw +0.4/-0.4/-0.8  Ae +3.6/+2.3/+2.6  Nu +0.2/-0.7/+0.6
+
+4. Findings (computed from sections 1-3)
+  - Smite: fails; closest sig5-2x9-smite.d1 (off the table), worst 2.40 on Null vs Swarm (+2.4), 0.40 over the limit.
+  - Energy surge: PASSES, 2 line(s); best sig5-2x8-energy-surge.e2 (off the table), worst 1.84 on Aegis vs Cortex (-1.8).
+  - Sweep: fails; closest sig5-2x9-sweep.r2 (off the table), worst 2.04 on Cortex vs Swarm (+2.0), 0.04 over the limit.
+  - Guardian: fails; closest sig5-3x5-guardian (off the table), worst 2.08 on Swarm vs Cortex (+2.1), 0.08 over the limit.
+  - Bulwark: fails; closest sig5-3x4-bulwark (off the table), worst 3.88 on Swarm vs Null (+3.9), 1.88 over the limit.
+  - The generator's pool (src/data/signatureApproved.ts): 16 lines over 7 options (Energy surge, Inspire, Restore, Rally, Recycle, Supply line, Tax).
+    No two agents in a season share a combination, so at most 16 agents can be generated per season, and a draft
+    needs 3 free lines: the 14th agent is the last one that can be generated.

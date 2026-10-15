@@ -26,8 +26,7 @@ export interface MenuOption {
   category: MenuCategory;
   /** Rules text as the owner wrote it. */
   text: string;
-  /** Printed keywords this option adds (Guardian: Guard + Barrier; Hunter:
-   * Rush). */
+  /** Printed keywords this option adds (Guardian: Barrier; Hunter: Rush). */
   keywords: Keyword[];
   abilities: Ability[];
   /** A continuous aura: allowed as the 7-cost tier's second aura. */
@@ -67,15 +66,17 @@ const whileUnits = (count: number) => ({ kind: "unitsInPlayAtLeast", side: "cont
 const COMMANDERS_AURA: Ability = { id: "sig-commanders-aura", trigger: "static", text: "Your other units get +1/+0.", staticEffect: { kind: "buffAllies", attack: 1, health: 0, filter: yourUnits, excludeSelf: true } };
 const SHIELD_WALL: Ability = { id: "sig-shield-wall", trigger: "static", text: "Your units get +0/+1.", staticEffect: { kind: "buffAllies", attack: 0, health: 1, filter: yourUnits } };
 const DAMPEN: Ability = { id: "sig-dampen", trigger: "static", text: "Enemy units get -1/-0.", staticEffect: { kind: "buffAllies", attack: -1, health: 0, filter: enemyUnits } };
-// Bulwark stands aside while a Guard unit protects its side (owner
-// 2026-10-13, call 3: Guard takes priority). Every attack is then already
-// forced onto a Guard, and the turn's redirect isn't used up.
+// Bulwark covers your units, never you (owner 2026-10-15, option A: the
+// rework "takes the first attack aimed at one of your units (never you)").
+// It stands aside while a Guard unit protects its side (owner 2026-10-13,
+// call 3: Guard takes priority): every attack is then already forced onto a
+// Guard, and the turn's redirect isn't used up.
 const BULWARK: Ability = {
   id: "sig-bulwark",
   trigger: "onEnemyAttack",
   limit: "oncePerTurn",
-  condition: { kind: "not", condition: { kind: "guardInPlay", side: "controller" } },
-  text: "The first enemy attack each turn is redirected to this, unless a Guard unit is protecting your side.",
+  condition: { kind: "all", conditions: [{ kind: "not", condition: { kind: "guardInPlay", side: "controller" } }, { kind: "attackTargets", target: "unit" }] },
+  text: "The first enemy attack each turn aimed at one of your units is redirected to this (never one aimed at you), unless a Guard unit is protecting your side.",
   targeting: { scope: "self" },
   effects: [{ kind: "redirectAttack" }],
 };
@@ -189,24 +190,27 @@ export const SIGNATURE_MENU: MenuOption[] = [
     key: "guardian",
     name: "Guardian",
     category: "Defence",
-    text: "Guard and Barrier.",
-    keywords: ["Guard", "Barrier"],
+    // Owner 2026-10-15, option A: Guardian becomes Barrier only (it was
+    // "Guard and Barrier"; Guard is what broke it, report 024). The cost-6
+    // tier may still add Guard as its keyword, and the fairness test judges
+    // that line like any other.
+    text: "Barrier.",
+    keywords: ["Barrier"],
     aura: false,
     abilities: [],
-    // No smaller Guardian that is still "Guard and Barrier": dropping either
-    // keyword is a different card (a rework, report 024).
+    // A keyword has no size between all and nothing.
     sizes: [],
   },
   {
     key: "bulwark",
     name: "Bulwark",
     category: "Defence",
-    text: "Takes the first attack aimed at your side each turn, unless a Guard unit is protecting your side.",
+    text: "Takes the first attack aimed at one of your units each turn (never you), unless a Guard unit is protecting your side.",
     keywords: [],
     aura: false,
     abilities: [BULWARK],
     // One redirect a turn is the whole ability; there is no size between
-    // that and none (a rework, report 024).
+    // that and none. Off the generator until it passes (owner 2026-10-15).
     sizes: [],
   },
   {
@@ -407,7 +411,7 @@ export function signatureSpecProblem(spec: SignatureSpec, opts: { anyStats?: boo
   return undefined;
 }
 
-/** Every combination the owner's table allows: 48 at cost 5, 135 at cost 6
+/** Every combination the owner's table allows: 48 at cost 5, 138 at cost 6
  * (no keyword an option already prints), 120 at cost 7. */
 export function allSignatureSpecs(): SignatureSpec[] {
   const out: SignatureSpec[] = [];
@@ -423,10 +427,10 @@ export function allSignatureSpecs(): SignatureSpec[] {
   return out;
 }
 
-/** The signature card for `spec`: a Neutral Mythic Unit. `name` and
+/** The signature card for `spec`: a Neutral Mythic Unit. `id`, `name` and
  * `art` come from the generator (generated names, the art pipeline); the
  * defaults are for measuring only. Throws if `spec` breaks the table. */
-export function buildSignatureCard(spec: SignatureSpec, opts: { name?: string; art?: string; flavor?: string; anyStats?: boolean } = {}): UnitCard {
+export function buildSignatureCard(spec: SignatureSpec, opts: { id?: string; name?: string; art?: string; flavor?: string; anyStats?: boolean } = {}): UnitCard {
   const problem = signatureSpecProblem(spec, opts);
   if (problem) throw new Error(`Signature card ${signatureComboId(spec)}: ${problem}`);
   const atSize = optionAtSize(menuOption(spec.ability), spec.size);
@@ -434,7 +438,9 @@ export function buildSignatureCard(spec: SignatureSpec, opts: { name?: string; a
   if (spec.keyword) keywords.push(spec.keyword);
   const abilities: Ability[] = [...atSize.abilities];
   if (spec.secondAura) abilities.push(...menuOption(spec.secondAura).abilities);
-  const id = signatureComboId(spec);
+  // A real agent's card has its own id (one card per agent); the combo id
+  // is the default for measuring.
+  const id = opts.id ?? signatureComboId(spec);
   return {
     id,
     name: opts.name ?? id,
@@ -454,4 +460,31 @@ export function buildSignatureCard(spec: SignatureSpec, opts: { name?: string; a
 /** True when `spec`'s stat line is one of its tier's table lines. */
 export function onTable(spec: SignatureSpec): boolean {
   return SIGNATURE_TIERS[spec.tier].stats.some(([a, h]) => a === spec.attack && h === spec.health);
+}
+
+/** What a signature card does, as a short stable hash: cost, body,
+ * keywords and abilities (everything but its id, name, art and flavour).
+ * The approved list (signatureApproved.ts) records it beside every line it
+ * measured, so a later change to a menu option's data can't silently keep
+ * an approval measured on the old card. FNV-1a over canonical JSON, so the
+ * engine needs no crypto module. */
+export function signatureFingerprint(card: UnitCard): string {
+  const canonical = (v: unknown): string => {
+    if (Array.isArray(v)) return `[${v.map(canonical).join(",")}]`;
+    if (v && typeof v === "object") {
+      return `{${Object.keys(v)
+        .sort()
+        .filter((k) => (v as Record<string, unknown>)[k] !== undefined)
+        .map((k) => `${JSON.stringify(k)}:${canonical((v as Record<string, unknown>)[k])}`)
+        .join(",")}}`;
+    }
+    return JSON.stringify(v);
+  };
+  const text = canonical({ cost: card.cost, attack: card.attack, health: card.health, keywords: card.keywords, abilities: card.abilities });
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
 }

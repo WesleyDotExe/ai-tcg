@@ -300,12 +300,17 @@ start a step until the one before works and its tests pass):
      size and cost-tier levers (attack 2 or more), Guard over Bulwark, the
      signature card unsellable (migration 5); 6 of 16 options pass
      (balance report 024); Guardian and Bulwark rework proposals measured,
-     raised as an [OWNER CHECK-IN]. NEXT: per the owner's pick (default A:
-     Barrier-only Guardian, units-only Bulwark, a finer tuner pass on the
-     near misses), then generating a new agent (pick from 3, then its
-     signature card from 3, passing lines only) with the bound promo grant. Then raise the
-     [OWNER CHECK-IN]: how an agent picks its faction, builds its deck from
-     the owner's collection, and chases quests.
+     raised as an [OWNER CHECK-IN]; owner picked A. DONE (session 34):
+     Barrier-only Guardian and units-only Bulwark; the finer tuner pass
+     (every cost-5 body and size of 5 options; Energy surge passes, Sweep
+     and Guardian miss by <0.1, Bulwark fails; balance report 025);
+     generating a new agent (3 agents, then 3 signature cards from the 16
+     approved lines, then confirm; schema v6, the bound promo PR-NNN, the
+     card in the connected agent's signature zone; economy-demo-004). Step
+     2 is built. Raised as an [OWNER CHECK-IN]: the season's signature pool
+     (14 agents max) and how an agent picks its faction, builds its deck
+     from the owner's collection, and chases quests. NEXT (default A): the
+     10,000-seed reference and the near misses re-measured.
   3. Server endpoints for the website (wallet, collection, packs and pack
      opening, live/featured matches, ladder, tournament, stats,
      notifications, saved board layout). Needs item 5's pack contents and

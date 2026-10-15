@@ -2355,7 +2355,7 @@ Owner decision on the slice 5 checkpoint in `progress/render/checkpoints.md` (re
 
 ---
 
-## 2026-10-15 — Owner: signature menu check-in, option A; keep all four calls (answers session 33)
+## 2026-10-15 — Owner: signature menu check-in, option A; keep all four calls (answers session 33) (HANDLED 2026-10-14, session 34 — Guardian is Barrier only and Bulwark covers units only (never you), both in the menu data; the finer pass measured every size of Smite, Energy surge, Sweep, Guardian and Bulwark at every cost-5 body (attack 2-4, health 3-9) at 1,000 seeds and confirmed the 5 best of each at 2,500, plus all tiers for Guardian and Bulwark: Energy surge now passes (+2 energy at 2/8 and 2/9), Sweep misses by 0.04, Guardian by 0.08, Smite by 0.40, Bulwark by 1.88, so Bulwark stays off the generator (`progress/balance-report-025-signature-finer-pass.txt`). generateAgent and the bound promo grant are built (schema v6, `progress/economy-demo-004.txt`); the generator draws from the 16 passing lines over 7 options. The four calls stand as built)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 33).
 

@@ -25,3 +25,20 @@ Printed into `progress/balance-report-024-signature-levers.txt` by `engine/src/d
 Each `levers` line holds one option: every table line screened at 300 seeds, the stat walks from its three best
 lever configs at 500 seeds, and the three best lines over all of it re-measured at 2,500 seeds (only those count
 as a pass).
+
+## Session 34 (the owner's 2026-10-15 option A: the finer pass, Barrier-only Guardian, units-only Bulwark)
+
+Printed into `progress/balance-report-025-signature-finer-pass.txt` by `engine/src/dev/signatureFinerPassReport.ts`. The
+passing lines over every file here (2,500 seeds only; Guardian and Bulwark only from the session-34 files, since both
+changed) are written into `engine/src/data/signatureApproved.ts` by `engine/src/dev/signatureApprovedList.ts`, the
+generator's only source of signature cards.
+
+| file | command (from `engine/`) |
+|---|---|
+| `grid-0.jsonl` … `grid-3.jsonl` | `npx tsx src/dev/signatureFairness.ts grid --abilities smite,energy-surge,sweep,guardian,bulwark --seeds 1000 --shard i/4 --out ../progress/signature-fairness/grid-i.jsonl` (every size x attack 2-4 x health 3-9 at cost 5; compact lines: per-edge change, no intervals) |
+| `grid-confirm-0.jsonl` … `grid-confirm-3.jsonl` | `npx tsx src/dev/signatureFairness.ts confirm --in grid-0.jsonl,…,grid-3.jsonl --top 5 --seeds 2500 --shard i/4 --out ../progress/signature-fairness/grid-confirm-i.jsonl` (the 5 best grid lines per option, full results) |
+| `levers-s34-guardian.jsonl`, `levers-s34-bulwark.jsonl` | `npx tsx src/dev/signatureFairness.ts levers --ability guardian\|bulwark --coarse 300 --seeds 500 --confirm 2500 --out ../progress/signature-fairness/levers-s34-K.jsonl` (session 33's tuner on the reworked options, all tiers) |
+
+The session-33 `levers-*.jsonl` lines for Guardian and Bulwark measured the old cards (Guard and Barrier; "aimed at your
+side") and stay as the record of those; `signatureLeversReport.ts` ignores the `levers-s34-` files so report 024 still
+prints as committed.
