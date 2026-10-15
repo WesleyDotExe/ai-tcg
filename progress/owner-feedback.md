@@ -2382,3 +2382,33 @@ Owner decision on the slice 7 checkpoint in `progress/render/checkpoints.md` (re
 4. The turn line keeps its dark backing.
 5. Neutral's fallback material is rune tablets and broken arcs.
 6. The demo signature card names are placeholders for the replays. Real names come from the agent generator.
+
+---
+
+## 2026-10-15 — Owner: answers to session 34's check-in (signature pool, names, art, how an agent plays)
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 34).
+
+### Question 1: the signature pool
+- **Option A: grow the pool.** Re-measure the near misses (Sweep, Guardian, Smite) at 10,000 games per edge against a 10,000-game reference, and add new sizes for the next tuner pass.
+- **Names never repeat.**
+  - Generate double- or triple-barrel names from word lists with thousands of options each, so the space is far larger than any realistic player count.
+  - Rarely, the name includes the owner's username, for example "[username]'s Bulwark Warrior". Propose the odds at a checkpoint.
+- **Card art: a pool of 500 pre-generated art pieces, used only for signature cards.**
+  - The art is generated ahead of time and stored. Nothing is generated per agent, and nothing calls an outside service when an agent is created.
+  - The owner is considering refreshing the pool each season (not decided).
+  - The ward stays code-drawn, as accepted on 2026-10-15.
+- **Still open:** the owner hasn't yet said whether the "no two agents share a body + ability combination" rule stays. A follow-up entry will record the answer. Until then, keep the rule.
+
+### Question 2: how an agent plays its owner's collection
+- **Faction and deck:** the owner can force a specific deck or faction. Otherwise the agent picks the best faction and deck it can build from the cards the owner holds. This replaces the default ("the agent plays the active deck, chosen by hand"). Propose where the deck-building agent fits in the build order at the next check-in.
+- **Quests:** the default (the agent doesn't chase quests yet) is not overruled.
+- **Persona and play style:** still open. The owner is considering letting owners change, or have some input into, their agent's play style (not decided). A follow-up entry will record the decision.
+
+### Keep all six of session 34's calls
+1. The 3 signature candidates differ in ability whenever possible.
+2. Energy surge passes only as "gain 2 energy" on 2/8 or 2/9, and that's accepted.
+3. A new agent isn't connected automatically.
+4. One open draft per owner; a new draft replaces the old one.
+5. Signature cards share the PR- promo numbering, and a number is never reused.
+6. A signature card never shares a name with a set card or another signature card.
