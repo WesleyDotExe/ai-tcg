@@ -14,7 +14,7 @@
 // dev/signatureFairness.ts (the owner's 2026-10-11 test), and only a
 // candidate that passes it may be shown to an owner.
 
-import type { Ability, Keyword, TargetSpec, UnitCard } from "../cards/types.js";
+import type { Ability, Condition, Keyword, TargetSpec, UnitCard } from "../cards/types.js";
 
 export type MenuCategory = "Offence" | "Defence" | "Card flow and energy" | "Disruption";
 
@@ -83,9 +83,15 @@ const BULWARK: Ability = {
 const SUPPLY_LINE: Ability = { id: "sig-supply-line", trigger: "onPlay", text: "Draw a card.", effects: [{ kind: "drawCard", count: 1 }] };
 const ENERGY_SURGE: Ability = { id: "sig-energy-surge", trigger: "onPlay", text: "Gain 1 energy.", effects: [{ kind: "gainEnergy", amount: 1 }] };
 const signedStats = (a: number, h: number) => `+${a}/+${h}`;
-function smite(amount: number): Ability {
-  return { id: "sig-smite", trigger: "onPlay", text: `Deal ${amount} damage to an enemy unit.`, targeting: { scope: "chosen", filter: enemyUnits }, effects: [{ kind: "damage", amount: { mode: "flat", value: amount } }] };
+function smite(amount: number, maxHealth?: number): Ability {
+  const filter = maxHealth === undefined ? enemyUnits : { ...enemyUnits, maxHealth };
+  const which = maxHealth === undefined ? "an enemy unit" : `an enemy unit with ${maxHealth} or less health`;
+  return { id: "sig-smite", trigger: "onPlay", text: `Deal ${amount} damage to ${which}.`, targeting: { scope: "chosen", filter }, effects: [{ kind: "damage", amount: { mode: "flat", value: amount } }] };
 }
+/** "Only if you're behind": the on-arrival options' comeback condition
+ * (session 35's new sizes). */
+const ifHealthAtMost15: Condition = { kind: "healthAtMost", side: "controller", threshold: 15 };
+const whenBehind = (base: Ability): Ability => ab(base, { condition: ifHealthAtMost15, text: `If you have 15 or less health, ${base.text[0]!.toLowerCase()}${base.text.slice(1)}` });
 function rally(attack: number, health: number): Ability {
   return { id: "sig-rally", trigger: "onPlay", text: `Your units get ${signedStats(attack, health)} this turn.`, targeting: { scope: "all", filter: yourUnits }, effects: [{ kind: "buff", attack, health, duration: "turn" }] };
 }
@@ -142,6 +148,13 @@ export const SIGNATURE_MENU: MenuOption[] = [
       { key: "d1", text: "On arrival, deal 1 damage to an enemy unit.", abilities: [smite(1)] },
       { key: "d2", text: "On arrival, deal 2 damage to an enemy unit.", abilities: [smite(2)] },
       { key: "d4", text: "On arrival, deal 4 damage to an enemy unit.", abilities: [smite(4)] },
+      // Session 35 (owner 2026-10-15: "add new sizes for the next tuner
+      // pass"). Smite d1 misses on a faction split, not on strength (net
+      // about -0.3 at 10,000), so these change who it helps: only small
+      // targets, or only when behind.
+      { key: "d2m3", text: "On arrival, deal 2 damage to an enemy unit with 3 or less health.", abilities: [smite(2, 3)] },
+      { key: "d1hp15", text: "On arrival, if you have 15 or less health, deal 1 damage to an enemy unit.", abilities: [whenBehind(smite(1))] },
+      { key: "d2hp15", text: "On arrival, if you have 15 or less health, deal 2 damage to an enemy unit.", abilities: [whenBehind(smite(2))] },
     ],
   },
   {
@@ -329,6 +342,10 @@ export const SIGNATURE_MENU: MenuOption[] = [
       { key: "r1", text: "On arrival, deal 1 damage to a random enemy unit.", abilities: [sweep({ scope: "random", filter: enemyUnits, count: 1 }, 1)] },
       { key: "r2", text: "On arrival, deal 1 damage to 2 random enemy units.", abilities: [sweep({ scope: "random", filter: enemyUnits, count: 2 }, 1)] },
       { key: "d2", text: "On arrival, deal 2 damage to each enemy unit.", abilities: [sweep({ scope: "all", filter: enemyUnits }, 2)] },
+      // Session 35's new sizes: Sweep r2 misses on a faction split (net
+      // about 0 at 10,000), so the same comeback condition as Smite's.
+      { key: "hp15", text: "On arrival, if you have 15 or less health, deal 1 damage to each enemy unit.", abilities: [whenBehind(sweep({ scope: "all", filter: enemyUnits }, 1))] },
+      { key: "r2hp15", text: "On arrival, if you have 15 or less health, deal 1 damage to 2 random enemy units.", abilities: [whenBehind(sweep({ scope: "random", filter: enemyUnits, count: 2 }, 1))] },
     ],
   },
 ];
@@ -373,6 +390,22 @@ export function signatureComboId(spec: SignatureSpec): string {
   const extra = spec.keyword ? `+${spec.keyword.toLowerCase()}` : spec.secondAura ? `+${spec.secondAura}` : "";
   const size = spec.size ? `.${spec.size}` : "";
   return `sig${spec.tier}-${spec.attack}x${spec.health}-${spec.ability}${size}${extra}`;
+}
+
+/** The spec a combo id names (the inverse of signatureComboId). Throws on an
+ * id that doesn't round-trip, so a typo never measures a different card. */
+export function parseSignatureComboId(id: string): SignatureSpec {
+  const m = /^sig([567])-(\d+)x(\d+)-([a-z-]+?)(?:\.([a-z0-9]+))?(?:\+([a-z-]+))?$/.exec(id);
+  if (!m) throw new Error(`not a signature combo id: ${id}`);
+  const [, tier, attack, health, ability, size, extra] = m;
+  const spec: SignatureSpec = { ability: ability!, tier: Number(tier) as SignatureTier, attack: Number(attack), health: Number(health) };
+  if (size) spec.size = size;
+  if (extra && spec.tier === 6) spec.keyword = TIER6_KEYWORDS.find((k) => k.toLowerCase() === extra);
+  else if (extra) spec.secondAura = extra;
+  menuOption(spec.ability);
+  if (spec.size) optionAtSize(menuOption(spec.ability), spec.size);
+  if (signatureComboId(spec) !== id) throw new Error(`not a signature combo id: ${id}`);
+  return spec;
 }
 
 /** The option's text, keywords and abilities at `size` (the standard when

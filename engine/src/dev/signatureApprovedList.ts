@@ -1,6 +1,11 @@
 // Writes src/data/signatureApproved.ts: every signature line that passed the
-// owner's fairness test at 2,500 seeds, read from the committed raw results
-// in progress/signature-fairness/ (session 34). The generator draws only
+// owner's fairness test at 2,500 seeds or more, read from the committed raw
+// results in progress/signature-fairness/ (session 34).
+//
+// The largest measurement of a line decides (session 35, owner 2026-10-15:
+// the near misses re-measured at 10,000 games per edge). A line that passed
+// at 2,500 but fails at 10,000 is out; one that missed at 2,500 but passes
+// at 10,000 is in. At equal seed counts the best result counts, as before. The generator draws only
 // from that list (owner 2026-10-05: "every candidate passes the fairness
 // test before it is shown").
 //
@@ -20,7 +25,7 @@ import { buildSignatureCard, onTable, signatureComboId, signatureFingerprint, ty
 const DIR = fileURLToPath(new URL("../../../progress/signature-fairness/", import.meta.url));
 const OUT = fileURLToPath(new URL("../data/signatureApproved.ts", import.meta.url));
 const CHANGED_IN_SESSION_34 = new Set(["guardian", "bulwark"]);
-const measuredAfterChange = (file: string) => file.startsWith("grid-") || file.startsWith("levers-s34-");
+const measuredAfterChange = (file: string) => file.startsWith("grid-") || file.startsWith("levers-s34-") || file.startsWith("remeasure-");
 
 /** Every full CandidateResult in a raw-results line, whatever command wrote
  * it (candidates: the line itself; tune: `best`; levers: `confirmed`). */
@@ -31,17 +36,24 @@ function resultsIn(line: unknown): CandidateResult[] {
   return o.factions ? [line as CandidateResult] : [];
 }
 
-const passes = new Map<string, { spec: SignatureSpec; worst: number; seeds: number; file: string }>();
+/** Per line, its deciding measurement: the most seeds, then the best. */
+const decisive = new Map<string, { spec: SignatureSpec; worst: number; seeds: number; pass: boolean; file: string }>();
+const everPassed = new Set<string>();
 for (const file of readdirSync(DIR).filter((f) => f.endsWith(".jsonl")).sort()) {
   for (const text of readFileSync(DIR + file, "utf8").split("\n").filter(Boolean)) {
     for (const r of resultsIn(JSON.parse(text))) {
-      if (!r.pass || r.seeds < 2500 || r.spec.ability.startsWith("rework:")) continue;
+      if (r.seeds < 2500 || r.spec.ability.startsWith("rework:")) continue;
       if (CHANGED_IN_SESSION_34.has(r.spec.ability) && !measuredAfterChange(file)) continue;
       const id = signatureComboId(r.spec);
-      if (!passes.has(id) || passes.get(id)!.worst > r.worst) passes.set(id, { spec: r.spec, worst: r.worst, seeds: r.seeds, file });
+      if (r.pass) everPassed.add(id);
+      const cur = decisive.get(id);
+      if (!cur || r.seeds > cur.seeds || (r.seeds === cur.seeds && r.worst < cur.worst)) {
+        decisive.set(id, { spec: r.spec, worst: r.worst, seeds: r.seeds, pass: r.pass, file });
+      }
     }
   }
 }
+const passes = new Map([...decisive].filter(([, d]) => d.pass));
 
 const rows = [...passes.entries()].sort(([a], [b]) => a.localeCompare(b));
 const specText = (s: SignatureSpec) =>
@@ -64,8 +76,9 @@ writeFileSync(
 // Don't edit by hand: re-run the script after new fairness results land.
 //
 // Every signature line that passed the owner's fairness test (2 points or
-// less on every edge, paired, at 2,500 seeds). The agent generator draws its
-// signature candidates only from here.
+// less on every edge, paired, at 2,500 seeds or more; a line's largest
+// measurement decides). The agent generator draws its signature candidates
+// only from here.
 
 import type { SignatureSpec } from "./signatureMenu.js";
 
@@ -90,4 +103,8 @@ ${body}
 `,
 );
 console.log(`${rows.length} approved lines over ${new Set(rows.map(([, p]) => p.spec.ability)).size} options -> ${OUT}`);
-for (const [id, p] of rows) console.log(`  ${id.padEnd(32)} worst ${(p.worst * 100).toFixed(1)}  ${p.file}`);
+for (const [id, p] of rows) console.log(`  ${id.padEnd(32)} worst ${(p.worst * 100).toFixed(2)} at ${p.seeds}  ${p.file}`);
+for (const id of everPassed) {
+  const d = decisive.get(id)!;
+  if (!d.pass) console.log(`  OUT ${id.padEnd(28)} passed at a smaller seed count; fails at ${d.seeds} (worst ${(d.worst * 100).toFixed(2)})`);
+}

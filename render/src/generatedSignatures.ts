@@ -10,7 +10,8 @@
 //
 // Seat two is generated with seat one already taken, the way the economy
 // store passes a season's taken names: the agents never share a name, and
-// the cards never share a name with each other or with a set card. Seeded
+// the cards never share a name with each other or with a set card (the two
+// cards may share a body + ability combination: owner 2026-10-15). Seeded
 // from the replay seed, so the same seed gives the same two agents. Nothing
 // calls an outside service. Render-only use of the public engine API;
 // nothing here changes play.
@@ -32,16 +33,14 @@ export interface GeneratedSeat {
 export function generatedSeats(seed: number): [GeneratedSeat, GeneratedSeat] {
   const agentNames = new Set<string>();
   const cardNames = new Set<string>([...CARD_REGISTRY.values()].map((c) => c.name));
-  const comboIds = new Set<string>();
   const seats: GeneratedSeat[] = [];
   for (let k = 0; k < 2; k++) {
     // Distinct, deterministic sub-seeds per seat and per step.
     const base = (seed * 7919 + k * 104729) >>> 0;
     const agent = generateAgentCandidates(base + 1, { agentNames })[0]!;
     agentNames.add(agent.name);
-    const sig = generateSignatureCandidates(base + 2, agent.name, { cardNames, comboIds })[0]!;
+    const sig = generateSignatureCandidates(base + 2, agent.name, { cardNames })[0]!;
     cardNames.add(sig.name);
-    comboIds.add(sig.comboId);
     const collectorNumber = `PR-${String(k + 1).padStart(3, "0")}`;
     seats.push({
       agentName: agent.name,

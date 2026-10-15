@@ -1,14 +1,20 @@
 // Evidence for generating a new agent (session 34; owner app spec B, the
-// unique Mythic spec, owner 2026-10-15 option A).
+// unique Mythic spec, owner 2026-10-15 option A). Session 35: themed card
+// names (now and then on the owner's username), combinations may repeat
+// (schema v7), and a crowded season.
 //
-//   npx tsx src/dev/generateAgentDemo.ts > ../progress/economy-demo-004.txt
+//   npx tsx src/dev/generateAgentDemo.ts > ../progress/economy-demo-005.txt
+//
+// (economy-demo-004.txt is this script's session-34 output, before names
+// were themed and combinations could repeat.)
 //
 // In a real database file: an owner with the starter collection runs
 // "Generate a new agent" (3 agents, pick one, 3 signature cards, confirm),
 // gets the card as its bound promo PR-001, connects the agent and plays a
 // recorded match against a house owner, with the generated card played from
-// the signature zone. Then a second agent: the season never offers a taken
-// combination again, and switching agents changes only the signature card.
+// the signature zone. Then a second agent, and switching agents changes only
+// the signature card. Then 40 more owners generate agents: combinations
+// repeat, names never do.
 // Seeds are fixed here so the output reproduces; the store draws them
 // server-side otherwise.
 
@@ -26,7 +32,7 @@ let store = EconomyStore.open(dbPath, { now: () => clock });
 const say = (line = "") => console.log(line);
 const pct = (x: number) => (x * 100).toFixed(1);
 
-say("# Generate a new agent (session 34)");
+say("# Generate a new agent (sessions 34-35)");
 say(`database: <temp>/season-0.db  schema v${store.schemaVersion}  season ${store.season}`);
 say(`approved signature lines: ${APPROVED_SIGNATURE_LINES.length}, over ${new Set(APPROVED_SIGNATURE_LINES.map((l) => l.spec.ability)).size} menu options (only these are ever shown)`);
 say();
@@ -40,6 +46,8 @@ function readyOwner(name: string, faction: "Cortex" | "Swarm" | "Aegis" | "Null"
   return owner.ownerId;
 }
 const ada = readyOwner("Ada", "Aegis", "player");
+// Ada signs in as "zion" (the owner's example): now and then a card name is built on it.
+store.addLogin(ada, { username: "zion", password: "correct horse battery staple" });
 const house = readyOwner("House Swarm", "Swarm", "house");
 const houseAgent = store.createAgent({ ownerId: house, name: "House Swarm agent" });
 store.connectAgent(house, houseAgent.agentId);
@@ -112,9 +120,9 @@ async function playRecorded(matchId: string, agentId: string, seed: number) {
 await playRecorded("demo-1", first.agent.agentId, 7);
 say();
 
-say("## 3. A second agent: the first card's combination is never offered again");
+say("## 3. A second agent");
 const second = runDraft(ada, 4242, 0, 2);
-say(`  first card ${first.signature.comboId}, second ${second.signature.comboId}: ${first.signature.comboId === second.signature.comboId ? "SAME (bug)" : "different"}`);
+say(`  names: "${first.signature.card.name}" and "${second.signature.card.name}" (never the same); combinations ${first.signature.comboId} and ${second.signature.comboId} (may be the same since v7)`);
 say();
 
 say("## 4. Switching agents changes only the signature card");
@@ -122,7 +130,25 @@ store.connectAgent(ada, second.agent.agentId);
 await playRecorded("demo-2", second.agent.agentId, 8);
 say();
 
-say("## 5. The rules hold");
+say("## 5. A crowded season: 40 more owners generate an agent each (combinations may repeat; names never)");
+const crowd: GeneratedAgent[] = [];
+for (let i = 0; i < 40; i++) {
+  const o = store.createOwner({ name: `Owner ${i + 1}` }).ownerId;
+  const d = store.startAgentDraft(o, { seed: 9000 + i });
+  store.pickDraftAgent(o, d.draftId, i % 3, { seed: 9500 + i });
+  crowd.push(store.confirmAgentDraft(o, d.draftId, (i * 7) % 3));
+}
+const all = [first, second, ...crowd];
+const combos = new Map<string, number>();
+for (const m of all) combos.set(m.signature.comboId, (combos.get(m.signature.comboId) ?? 0) + 1);
+say(`  ${all.length} agents this season; ${new Set(all.map((m) => m.agent.name)).size} distinct agent names, ${new Set(all.map((m) => m.signature.card.name)).size} distinct card names, ${combos.size} distinct combinations (of ${APPROVED_SIGNATURE_LINES.length} approved)`);
+say(`  most shared combination: ${[...combos].sort((a, b) => b[1] - a[1])[0]!.join(" x ")} agents`);
+say(`  promo numbers ${all[0]!.signature.collectorNumber} .. ${all[all.length - 1]!.signature.collectorNumber}, none reused: ${new Set(all.map((m) => m.signature.collectorNumber)).size === all.length}`);
+say("  the first 16 of the crowd:");
+for (const m of crowd.slice(0, 16)) say(`    ${m.signature.collectorNumber}  ${m.signature.card.name.padEnd(31)} ${m.signature.comboId.padEnd(26)} (${m.agent.name})`);
+say();
+
+say("## 6. The rules hold");
 const attempt = (what: string, fn: () => unknown) => {
   try {
     fn();
@@ -147,15 +173,13 @@ say();
 // Reopen the file: the agents, cards and copies are persistent.
 store.close();
 store = EconomyStore.open(dbPath, { now: () => clock });
-say("## 6. After closing and reopening the database file");
+say("## 7. After closing and reopening the database file");
 for (const a of store.listAgents(ada)) {
   const sig = store.signatureCard(a.agentId);
   say(`  ${a.name}: ${sig ? `${sig.card.name} (${sig.collectorNumber}, ${sig.comboId})` : "no signature card"}${store.connectedAgent(ada)?.agentId === a.agentId ? "  [connected]" : ""}`);
 }
 const history = store.matchHistory({ ownerId: ada });
 say(`  Ada's recorded matches: ${history.length}`);
-const taken = new Set(store.listAgents().map((a) => store.signatureCard(a.agentId)?.comboId).filter(Boolean));
-const free = APPROVED_SIGNATURE_LINES.filter((l) => !taken.has(l.id)).length;
-say(`  approved lines left untaken this season: ${free} of ${APPROVED_SIGNATURE_LINES.length} (a draft needs 3)`);
+say(`  schema v${store.schemaVersion}; signature cards in the season: ${store.listAgents().filter((a) => store.signatureCard(a.agentId)).length}`);
 store.close();
 rmSync(tempDir, { recursive: true, force: true });

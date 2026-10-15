@@ -2385,7 +2385,7 @@ Owner decision on the slice 7 checkpoint in `progress/render/checkpoints.md` (re
 
 ---
 
-## 2026-10-15 — Owner: answers to session 34's check-in (signature pool, names, art, how an agent plays)
+## 2026-10-15 — Owner: answers to session 34's check-in (signature pool, names, art, how an agent plays) (HANDLED 2026-10-15, session 35 — Question 1: the reference ring is measured at 10,000 games per pairing. The 7 near misses and all 16 approved lines were re-measured at 10,000 (`progress/balance-report-026-signature-10k.txt`). Guardian 3/5 now passes (1.87). Sweep, Smite and the other Guardian lines still fail. Energy surge (both lines) and Restore 3/4 passed at 2,500 but fail at 10,000, so they left the list: the largest measurement now decides. That gives 14 lines over 7 options. 5 new sizes were added (Smite on small units only; Smite and Sweep only when you have 15 or less health) and measured over every cost-5 body; none passes. Names never repeat: themed, templated card names with thousands of handles and millions of names per option (`engine/src/data/signatureNames.ts`). The username variant is built at a proposed 1 in 30, shown in the new check-in. The art pool is NOT built yet; its plan is in the check-in. Question 2: the placement of the deck-building agent in the build order is proposed in the check-in, and the default on quests stands)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 34).
 
@@ -2415,7 +2415,7 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ---
 
-## 2026-10-15 — Owner: follow-up to session 34 (combinations may repeat; play styles)
+## 2026-10-15 — Owner: follow-up to session 34 (combinations may repeat; play styles) (HANDLED 2026-10-15, session 35 — the rule is dropped: schema v7 rebuilds `signature_cards` without the unique combination, and the generator and the store no longer filter on it. Names stay unique, and a clash is re-rolled. Shown with 42 agents over 13 combinations in `progress/economy-demo-005.txt`. Play styles: where they fit in the build order, and a draft set of 6, are proposed in the new check-in. The fairness results come with the build, since a style has to exist before it can be measured)
 
 This completes the two open items in the earlier 2026-10-15 entry.
 
@@ -2435,7 +2435,7 @@ This completes the two open items in the earlier 2026-10-15 entry.
 
 ---
 
-## 2026-10-15 — Owner: signature card names must make sense and stay on theme; ~6 play styles is a target
+## 2026-10-15 — Owner: signature card names must make sense and stay on theme; ~6 play styles is a target (HANDLED 2026-10-15, session 35 — built as suggested. There are 5 templates with slot-tagged, themed word lists: [Handle]'s [Modifier] [Thing], [Modifier] [Thing], [Thing] of [Place], [Handle]'s [Thing], and [Modifier] [Thing] [Edition]. The Thing leans toward the ability 80% of the time. A filter refuses repeated words, names over 30 characters and blocked words. A clash is re-rolled. The rare variant puts the owner's username in the handle slot. Samples are in `progress/signature-names-sample-001.txt` and in the new check-in. Season 0 has no player-facing surface yet, so you see them before anyone else)
 
 - **Play styles:** around 6 is a target, not a strict rule.
 - **Signature card names** (double- or triple-barrel) must read as a real name and fit the game's theme: cyberpunk with 1990s retro-futurism. The owner's example: **"Zion's Midnight DDoS"**.

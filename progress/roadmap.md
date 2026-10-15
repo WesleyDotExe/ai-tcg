@@ -307,10 +307,19 @@ start a step until the one before works and its tests pass):
      generating a new agent (3 agents, then 3 signature cards from the 16
      approved lines, then confirm; schema v6, the bound promo PR-NNN, the
      card in the connected agent's signature zone; economy-demo-004). Step
-     2 is built. Raised as an [OWNER CHECK-IN]: the season's signature pool
-     (14 agents max) and how an agent picks its faction, builds its deck
-     from the owner's collection, and chases quests. NEXT (default A): the
-     10,000-seed reference and the near misses re-measured.
+     2 is built. Raised as an [OWNER CHECK-IN]; owner answered 2026-10-15
+     (grow the pool, combinations may repeat, themed names, play styles).
+     DONE (session 35): the 10,000-game reference and re-measure (the
+     largest measurement decides: 14 lines over 7 options, Guardian in,
+     Energy surge out; balance report 026); 5 new sizes measured (none
+     pass); combinations may repeat (schema v7); themed templated card
+     names with the rare username variant. Raised as an [OWNER CHECK-IN]:
+     username odds, the art pool plan, and the proposed order below.
+  2b. PROPOSED (session 35 check-in; default): item 5's pack contents and
+     opening; then the deck-building agent (best faction and deck from the
+     owner's holdings, or the owner's forced deck/faction); then ~6 play
+     styles with a fairness ring (owner-picked preset, applies from the
+     next match). Then step 3, exposing both settings.
   3. Server endpoints for the website (wallet, collection, packs and pack
      opening, live/featured matches, ladder, tournament, stats,
      notifications, saved board layout). Needs item 5's pack contents and

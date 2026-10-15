@@ -11,10 +11,12 @@
 //  - every signature candidate is a line that passed the owner's fairness
 //    test at 2,500 seeds (APPROVED_SIGNATURE_LINES), so nothing unmeasured
 //    is ever shown;
-//  - no candidate reuses a body + ability combination already taken this
-//    season, and the 3 candidates differ in ability whenever 3 abilities
-//    are left (a real choice, not three sizes of one card);
-//  - agent names and card names never repeat a taken one.
+//  - the 3 candidates differ in ability whenever possible (a real choice,
+//    not three sizes of one card). Two agents may share a body + ability
+//    combination (owner 2026-10-15: generation is random, and that's
+//    accepted);
+//  - agent names and card names never repeat a taken one. Card names are
+//    themed and built from grammatical templates (signatureNames.ts).
 //
 // Nothing here calls an outside service: names, personas and flavour come
 // from word lists in this file, picked by a seeded RNG, so the same seed
@@ -26,6 +28,7 @@ import { Rng } from "../state/rng.js";
 import type { UnitCard } from "../cards/types.js";
 import { buildSignatureCard, menuOption, optionAtSize, type SignatureSpec } from "./signatureMenu.js";
 import { APPROVED_SIGNATURE_LINES, type ApprovedSignatureLine } from "./signatureApproved.js";
+import { signatureCardName } from "./signatureNames.js";
 
 export interface AgentCandidate {
   name: string;
@@ -48,7 +51,6 @@ export interface SignatureCandidate {
 export interface TakenNames {
   agentNames: ReadonlySet<string>;
   cardNames: ReadonlySet<string>;
-  comboIds: ReadonlySet<string>;
 }
 
 export const CANDIDATES_PER_PICK = 3;
@@ -88,29 +90,6 @@ const HABITS = [
   "apologises to every unit it destroys",
 ];
 
-const CARD_PREFIX = [
-  "Quiet", "Gilded", "Recursive", "Hollow", "Lantern", "Sable", "Patient", "Vigil", "Ivory", "Cinder",
-  "Meridian", "Glass", "Second", "Errant", "Orbital", "Tidal", "Woven", "Last", "Bright", "Velvet",
-];
-/** Card nouns by menu option, so a name hints at what the card does. */
-const CARD_NOUN: Record<string, string[]> = {
-  recycle: ["Reclaimer", "Undertow Cache", "Salvage Loop", "Afterimage", "Remnant Engine", "Return Coil"],
-  "supply-line": ["Courier", "Supply Daemon", "Relay Mule", "Provisioner", "Quartermaster", "Packet Runner"],
-  rally: ["Herald", "Banner Process", "Chorus", "Signal Fire", "Drumline", "Muster Call"],
-  restore: ["Mender", "Patchwright", "Rollback", "Field Medic", "Checkpoint", "Restorer"],
-  tax: ["Tollgate", "Toll Daemon", "Customs Unit", "Levy Engine", "Gatekeeper", "Tariff Clerk"],
-  inspire: ["Mentor", "Tutor Thread", "Muse", "Coach", "Kindler", "Uplink"],
-  smite: ["Lance", "Pinpoint", "Striker", "Needle", "Marksman", "Spike"],
-  "energy-surge": ["Capacitor", "Overclock", "Dynamo", "Surge Cell", "Spark Bank", "Battery"],
-  sweep: ["Scythe", "Broom Protocol", "Static Wave", "Purge", "Shockfront", "Sweeper"],
-  guardian: ["Ward Shell", "Warden", "Shieldframe", "Bastion", "Ward Plate", "Keeper"],
-  bulwark: ["Bulwark", "Interceptor", "Decoy Frame", "Bodyguard", "Shield Bearer", "Catcher"],
-  "commanders-aura": ["Marshal", "Commander", "Captain", "Warlead", "Conductor", "Admiral"],
-  "shield-wall": ["Rampart", "Wall Process", "Parapet", "Bulkhead", "Battlement", "Palisade"],
-  dampen: ["Damper", "Muffler", "Fog Engine", "Static", "Hush", "Inhibitor"],
-  suppress: ["Freezer", "Stasis Lock", "Pause Key", "Holding Cell", "Halt", "Interrupt"],
-  hunter: ["Hunter", "Tracker", "Stalker", "Predator", "Seeker", "Hound"],
-};
 /** One flavour line per option; `{agent}` is the agent's name. */
 const FLAVOR: Record<string, string[]> = {
   recycle: ["{agent} keeps nothing it can't use twice.", "Nothing {agent} loses stays lost."],
@@ -156,36 +135,37 @@ export function generateAgentCandidates(seed: number, taken: Pick<TakenNames, "a
 }
 
 /** 3 signature-card candidates for `agentName`, drawn only from approved
- * lines whose combination isn't taken, with 3 different abilities when 3
- * are left. Throws when fewer than 3 approved lines are free (the season's
- * pool is used up: an owner call, see notes-for-owner.md). */
+ * lines, with 3 different abilities when the list has 3. A combination may
+ * repeat one another agent already has (owner 2026-10-15); a name never
+ * does. `username` is the owner's, which now and then fills a name's
+ * handle slot. */
 export function generateSignatureCandidates(
   seed: number,
   agentName: string,
-  taken: Pick<TakenNames, "cardNames" | "comboIds">,
-  approved: readonly ApprovedSignatureLine[] = APPROVED_SIGNATURE_LINES,
+  taken: Pick<TakenNames, "cardNames">,
+  opts: { username?: string; approved?: readonly ApprovedSignatureLine[] } = {},
 ): SignatureCandidate[] {
   const rng = new Rng(seed);
-  const free = approved.filter((l) => !taken.comboIds.has(l.id));
+  const free = opts.approved ?? APPROVED_SIGNATURE_LINES;
   if (free.length < CANDIDATES_PER_PICK) {
-    throw new Error(`only ${free.length} approved signature line(s) left untaken this season; ${CANDIDATES_PER_PICK} are needed`);
+    throw new Error(`only ${free.length} approved signature line(s); ${CANDIDATES_PER_PICK} are needed`);
   }
   const byAbility = new Map<string, ApprovedSignatureLine[]>();
   for (const l of free) byAbility.set(l.spec.ability, [...(byAbility.get(l.spec.ability) ?? []), l]);
-  // One line from each of 3 different abilities, then (only if fewer than
-  // 3 abilities are left) more lines from the abilities already used.
+  // One line from each of 3 different abilities, then (only if the list
+  // has fewer than 3 abilities) more lines from the abilities already used.
   const picks: ApprovedSignatureLine[] = [];
   for (const ability of rng.shuffle([...byAbility.keys()].sort())) {
     if (picks.length === CANDIDATES_PER_PICK) break;
     picks.push(rng.pick(byAbility.get(ability)!));
   }
-  for (const l of rng.shuffle(free)) {
+  for (const l of rng.shuffle([...free])) {
     if (picks.length === CANDIDATES_PER_PICK) break;
     if (!picks.includes(l)) picks.push(l);
   }
   const usedNames = new Set(taken.cardNames);
   return picks.map((line) => {
-    const name = cardName(rng, line.spec.ability, usedNames);
+    const name = signatureCardName(rng, line.spec.ability, usedNames, { username: opts.username });
     usedNames.add(name);
     return {
       spec: line.spec,
@@ -204,18 +184,6 @@ export function signatureCardFor(candidate: Pick<SignatureCandidate, "spec" | "n
   return buildSignatureCard(candidate.spec, { id: cardId, name: candidate.name, flavor: candidate.flavor, anyStats: true });
 }
 
-function cardName(rng: Rng, ability: string, used: ReadonlySet<string>): string {
-  const nouns = CARD_NOUN[ability] ?? ["Construct"];
-  for (let attempt = 0; attempt < 500; attempt++) {
-    const name = `${rng.pick(CARD_PREFIX)} ${rng.pick(nouns)}`;
-    if (!used.has(name)) return name;
-  }
-  for (let n = 2; ; n++) {
-    const name = `${rng.pick(CARD_PREFIX)} ${rng.pick(nouns)} ${roman(n)}`;
-    if (!used.has(name)) return name;
-  }
-}
-
 /** "Cost 5, 3/6. When it dies, draw a card." */
 export function describe(spec: SignatureSpec): string {
   const { text, keywords } = optionAtSize(menuOption(spec.ability), spec.size);
@@ -228,11 +196,3 @@ export function describe(spec: SignatureSpec): string {
 function article(word: string): string {
   return /^[aeiou]/i.test(word) ? "An" : "A";
 }
-
-function roman(n: number): string {
-  const table: [number, string][] = [[10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
-  let out = "";
-  for (const [v, s] of table) while (n >= v) (out += s), (n -= v);
-  return out;
-}
-

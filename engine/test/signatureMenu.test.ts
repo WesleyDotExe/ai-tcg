@@ -138,6 +138,43 @@ describe("ability sizes (owner 2026-10-13: the tuner's size lever)", () => {
   });
 });
 
+describe("session 35's new sizes (owner 2026-10-15: \"add new sizes for the next tuner pass\")", () => {
+  const fire = (state: GameState, unit: ReturnType<typeof putUnit>, chosen?: ReturnType<typeof putUnit>) =>
+    resolveAbility({
+      state,
+      ability: unit.card.abilities[0]!,
+      controller: "p1",
+      source: { kind: "unit", instanceId: unit.instanceId, cardName: unit.card.name },
+      chosen: chosen ? { kind: "unit", instanceId: chosen.instanceId } : undefined,
+      rng: new Rng(5),
+    });
+
+  it("Smite d2m3 deals 2, and only to a unit with 3 or less health", () => {
+    const smite = card({ ability: "smite", size: "d2m3" });
+    expect(smite.abilities[0]!.targeting).toMatchObject({ scope: "chosen", filter: { side: "opponent", kind: "unit", maxHealth: 3 } });
+    const state = emptyState();
+    const small = putUnit(state, "p2", vanilla(1, 3, "Small"));
+    fire(state, putUnit(state, "p1", smite), small);
+    expect(currentHealth(state, small)).toBe(1);
+  });
+
+  it("the 'if you have 15 or less health' sizes do nothing until you're behind", () => {
+    for (const [ability, size] of [["smite", "d1hp15"], ["smite", "d2hp15"], ["sweep", "hp15"], ["sweep", "r2hp15"]] as const) {
+      const c = card({ ability, size });
+      expect(c.abilities[0]!.text, size).toMatch(/^If you have 15 or less health, deal \d damage to /);
+      const state = emptyState();
+      const enemy = putUnit(state, "p2", vanilla(1, 9, "Enemy"));
+      const self = putUnit(state, "p1", c);
+      state.players.p1.health = 16;
+      fire(state, self, enemy);
+      expect(currentHealth(state, enemy), `${size} at 16 health`).toBe(9);
+      state.players.p1.health = 15;
+      fire(state, self, enemy);
+      expect(currentHealth(state, enemy), `${size} at 15 health`).toBeLessThan(9);
+    }
+  });
+});
+
 describe("the engine pieces the menu needed", () => {
   it("Commander's aura buffs your other units, not itself", () => {
     const state = emptyState();

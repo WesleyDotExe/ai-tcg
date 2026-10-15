@@ -578,8 +578,8 @@ export const MIGRATIONS: readonly string[] = [
   // and exactly one signature card: a generated Neutral Mythic, stored here
   // as its menu spec, since it is in no card set. The rules:
   //  - one signature card per agent, and per season (this file) no two
-  //    share a body + ability combination (combo_id) or a name; its id and
-  //    its PR- promo number are never reused;
+  //    share a body + ability combination (combo_id; dropped in v7) or a
+  //    name; its id and its PR- promo number are never reused;
   //  - a signature copy must be a copy of THAT agent's signature card, held
   //    by the agent's owner, and an agent has at most one;
   //  - a signature card is never deleted and its identity never changes
@@ -628,5 +628,38 @@ export const MIGRATIONS: readonly string[] = [
     CHECK (agent_id IS NULL OR closed_at IS NOT NULL)
   );
   CREATE UNIQUE INDEX one_open_draft ON agent_drafts(owner_id) WHERE closed_at IS NULL;
+  `,
+  // 7: two agents may share a signature body + ability combination (owner
+  // 2026-10-15: generation is random, and with 500 art pieces and a themed
+  // name space in the millions a shared card is rare and accepted). Names
+  // stay unique. SQLite can't drop a column's UNIQUE, so the table is
+  // rebuilt with its rows, and the triggers that name it are made again
+  // (the copy trigger is dropped first so the rebuild never leaves it
+  // pointing at a missing table).
+  `
+  DROP TRIGGER signature_copy_is_the_agents;
+  CREATE TABLE signature_cards_v7 (
+    agent_id     TEXT PRIMARY KEY REFERENCES agents(agent_id),
+    card_id      TEXT NOT NULL UNIQUE,
+    combo_id     TEXT NOT NULL,
+    name         TEXT NOT NULL UNIQUE,
+    spec_json    TEXT NOT NULL CHECK (json_valid(spec_json)),
+    fingerprint  TEXT NOT NULL,
+    flavor       TEXT NOT NULL,
+    promo_number INTEGER NOT NULL UNIQUE CHECK (promo_number >= 1),
+    created_at   TEXT NOT NULL
+  );
+  INSERT INTO signature_cards_v7 SELECT agent_id, card_id, combo_id, name, spec_json, fingerprint, flavor, promo_number, created_at FROM signature_cards;
+  DROP TABLE signature_cards;
+  ALTER TABLE signature_cards_v7 RENAME TO signature_cards;
+  CREATE TRIGGER signature_card_kept BEFORE DELETE ON signature_cards
+  BEGIN SELECT RAISE(ABORT, 'a signature card is never deleted'); END;
+  CREATE TRIGGER signature_card_identity BEFORE UPDATE OF agent_id, card_id, combo_id, promo_number ON signature_cards
+  BEGIN SELECT RAISE(ABORT, 'a signature card keeps its agent, id, combination and number'); END;
+  CREATE TRIGGER signature_copy_is_the_agents BEFORE INSERT ON card_copies
+  WHEN NEW.origin_ref LIKE 'signature:%' AND NOT EXISTS (
+    SELECT 1 FROM signature_cards s JOIN agents a ON a.agent_id = s.agent_id
+    WHERE 'signature:' || s.agent_id = NEW.origin_ref AND s.card_id = NEW.card_id AND a.owner_id = NEW.owner_id)
+  BEGIN SELECT RAISE(ABORT, 'a signature copy is a copy of that agent''s own signature card, held by its owner'); END;
   `,
 ];

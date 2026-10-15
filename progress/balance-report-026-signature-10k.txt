@@ -1,0 +1,144 @@
+AI-TCG balance report 026: the signature lines at 10,000 games per edge, and new sizes (session 35)
+Owner 2026-10-15, question 1, option A: grow the pool. Re-measure the near misses (Sweep, Guardian, Smite) at
+10,000 games per edge against a 10,000-game reference, and add new sizes for the next tuner pass.
+
+The test (unchanged): swap the candidate in for one faction's plain 3/6 stand-in; it passes when every one of the
+twelve edges moves by 2.0 points or less (paired change, same seeds).
+
+Commands (from engine/), all seeded:
+  reference: npx tsx src/dev/signatureFairness.ts reference --seeds 10000          (about 2 minutes, one core)
+  remeasure: npx tsx src/dev/signatureFairness.ts remeasure --ids <IDS> --seeds 10000 --shard i/4 --out remeasure-10k-i.jsonl
+             (sharding is by position in the list, so the order matters) IDS =
+             sig5-2x9-sweep.r2,sig5-2x8-sweep.r2,sig5-3x5-guardian,sig5-3x4-guardian,
+             sig5-3x6-guardian,sig5-2x9-smite.d1,sig5-2x8-smite.d1,sig5-2x8-energy-surge.e2,
+             sig5-2x9-energy-surge.e2,sig5-3x4-inspire.a0,sig5-3x4-restore.r1,sig5-3x5-inspire.a0,
+             sig5-3x5-rally.a0,sig5-3x5-recycle,sig5-3x5-recycle.c3,sig5-3x5-restore.r1,
+             sig5-3x6-rally.a0,sig5-3x6-recycle,sig5-3x6-recycle.c1,sig5-3x6-restore.r1,
+             sig5-3x6-supply-line.low,sig5-3x6-tax,sig5-3x7-supply-line.low
+  new sizes: npx tsx src/dev/signatureFairness.ts grid --abilities smite,sweep --sizes d2m3,d1hp15,d2hp15,hp15,r2hp15 --seeds 1000 --shard i/4 --out s35-grid-i.jsonl
+  confirm:   npx tsx src/dev/signatureFairness.ts confirm --in s35-grid-0..3.jsonl --top 3 --seeds 10000 --shard i/4 --out s35-confirm-i.jsonl
+
+1. The reference ring at 10,000 games per ordered pairing (every faction with the plain 3/6)
+   The first 2,500 games of each pairing are exactly the old 2,500-game reference (same seeds), checked when it was made.
+
+   pairing          2,500    10,000
+   Cortex>Swarm      53.3%    52.4%
+   Cortex>Aegis      39.6%    39.8%
+   Cortex>Null       48.0%    47.5%
+   Swarm>Cortex      46.7%    47.6%
+   Swarm>Aegis       41.6%    41.9%
+   Swarm>Null        54.4%    55.1%
+   Aegis>Cortex      60.4%    60.2%
+   Aegis>Swarm       58.4%    58.1%
+   Aegis>Null        56.2%    56.4%
+   Null>Cortex       52.0%    52.5%
+   Null>Swarm        45.6%    44.9%
+   Null>Aegis        43.8%    43.6%
+
+2. Re-measured at 10,000 games per edge: the 7 near misses the owner named, and all 16 approved lines
+   (the approved lines too, because a pass at 2,500 is no more certain than a near miss: at 2,500 an edge's 95%
+   interval is about +/-1 point, so a 1.8 can be a 2.2. At 10,000 it is about +/-0.5.)
+
+   line                            2,500   10,000   verdict at 10,000   was approved   worst edge at 10,000 [95% interval]
+   sig5-2x9-energy-surge.e2         1.88    2.20   FAIL (leaves)       yes            Null>Aegis -2.2 [-2.8, -1.6]
+   sig5-2x8-energy-surge.e2         1.84    2.22   FAIL (leaves)       yes            Null>Aegis -2.2 [-2.8, -1.6]
+   sig5-3x5-guardian                2.08    1.87   PASS (joins)        no             Aegis>Cortex +1.9 [+1.5, +2.3]
+   sig5-3x4-guardian                2.12    2.02   fail                no             Swarm>Null +2.0 [+1.6, +2.4]
+   sig5-3x6-guardian                2.32    2.79   fail                no             Aegis>Cortex +2.8 [+2.4, +3.2]
+   sig5-3x5-inspire.a0              1.80    1.35   PASS (stays)        yes            Cortex>Aegis +1.4 [+0.8, +1.9]
+   sig5-3x4-inspire.a0              1.64    1.71   PASS (stays)        yes            Swarm>Null +1.7 [+1.2, +2.2]
+   sig5-3x5-rally.a0                1.76    0.96   PASS (stays)        yes            Swarm>Aegis +1.0 [+0.4, +1.5]
+   sig5-3x6-rally.a0                1.28    1.21   PASS (stays)        yes            Null>Cortex +1.2 [+0.8, +1.6]
+   sig5-3x6-recycle.c1              0.76    0.68   PASS (stays)        yes            Aegis>Cortex +0.7 [+0.5, +0.9]
+   sig5-3x6-recycle                 1.24    1.30   PASS (stays)        yes            Aegis>Cortex +1.3 [+1.0, +1.6]
+   sig5-3x5-recycle.c3              1.72    1.30   PASS (stays)        yes            Swarm>Null +1.3 [+1.0, +1.6]
+   sig5-3x5-recycle                 1.52    1.32   PASS (stays)        yes            Swarm>Null +1.3 [+1.0, +1.6]
+   sig5-3x5-restore.r1              1.88    1.37   PASS (stays)        yes            Swarm>Null +1.4 [+1.0, +1.7]
+   sig5-3x6-restore.r1              1.64    1.56   PASS (stays)        yes            Aegis>Cortex +1.6 [+1.1, +2.1]
+   sig5-3x4-restore.r1              1.76    2.08   FAIL (leaves)       yes            Swarm>Null +2.1 [+1.6, +2.5]
+   sig5-2x9-smite.d1                2.40    2.63   fail                no             Null>Swarm +2.6 [+2.0, +3.3]
+   sig5-2x8-smite.d1                2.60    2.80   fail                no             Null>Swarm +2.8 [+2.2, +3.4]
+   sig5-3x6-supply-line.low         0.84    0.99   PASS (stays)        yes            Swarm>Null -1.0 [-1.2, -0.8]
+   sig5-3x7-supply-line.low         1.36    1.87   PASS (stays)        yes            Aegis>Cortex +1.9 [+1.5, +2.3]
+   sig5-2x9-sweep.r2                2.04    2.36   fail                no             Null>Swarm +2.4 [+1.7, +3.1]
+   sig5-2x8-sweep.r2                2.20    2.50   fail                no             Null>Swarm +2.5 [+1.8, +3.2]
+   sig5-3x6-tax                     1.56    1.23   PASS (stays)        yes            Swarm>Cortex +1.2 [+1.0, +1.5]
+
+   Per faction (each faction's three edges: vs the other three in Cortex, Swarm, Aegis, Null order):
+        sig5-2x9-energy-surge.e2       net  -0.4  worst  2.20   Co +0.4/-0.1/+0.2  Sw +0.7/-1.9/-0.9  Ae -0.3/+0.5/-0.2  Nu -1.1/-0.4/-2.2
+        sig5-2x8-energy-surge.e2       net  -0.7  worst  2.22   Co +0.6/-0.3/+0.2  Sw +0.4/-1.9/-0.9  Ae -1.2/-0.5/-0.8  Nu -1.1/-0.4/-2.2
+   PASS sig5-3x5-guardian              net  +0.9  worst  1.87   Co +0.5/+1.5/+0.4  Sw +1.3/+1.2/+1.1  Ae +1.9/+1.1/+1.6  Nu +0.4/-0.6/+0.5
+        sig5-3x4-guardian              net  +1.0  worst  2.02   Co +1.9/+1.2/+0.6  Sw +1.6/+1.3/+2.0  Ae +0.4/+1.2/+0.2  Nu +0.2/+0.6/+0.3
+        sig5-3x6-guardian              net  +0.7  worst  2.79   Co -0.3/+1.1/-0.0  Sw +0.5/+0.4/-0.1  Ae +2.8/+1.7/+2.0  Nu +0.3/-0.7/+0.6
+   PASS sig5-3x5-inspire.a0            net  +0.4  worst  1.35   Co +0.8/+1.4/+0.4  Sw +0.9/+0.9/+1.0  Ae +0.3/-0.2/-0.0  Nu +0.2/-0.5/+0.2
+   PASS sig5-3x4-inspire.a0            net  +0.2  worst  1.71   Co +1.4/+0.4/+0.6  Sw +1.1/+0.9/+1.7  Ae -1.6/-0.4/-1.3  Nu -0.4/+0.0/-0.1
+   PASS sig5-3x5-rally.a0              net  +0.2  worst  0.96   Co +0.3/+0.0/+0.1  Sw +0.8/+1.0/+0.3  Ae -0.9/-0.3/+0.1  Nu +0.5/+0.1/+0.5
+   PASS sig5-3x6-rally.a0              net  +0.2  worst  1.21   Co -0.1/+0.1/-0.2  Sw +0.2/+0.7/-1.0  Ae +0.3/+0.1/+0.5  Nu +1.2/+0.0/+0.9
+   PASS sig5-3x6-recycle.c1            net  +0.2  worst  0.68   Co +0.1/+0.3/+0.0  Sw +0.1/+0.1/-0.0  Ae +0.7/+0.3/+0.3  Nu +0.1/+0.0/+0.2
+   PASS sig5-3x6-recycle               net  +0.3  worst  1.30   Co +0.1/+0.4/+0.1  Sw +0.1/+0.3/+0.0  Ae +1.3/+0.4/+0.6  Nu +0.1/+0.0/+0.4
+   PASS sig5-3x5-recycle.c3            net  +0.7  worst  1.30   Co +0.8/+1.1/+0.4  Sw +1.0/+0.9/+1.3  Ae +1.3/+0.4/+0.3  Nu +0.4/+0.0/+0.2
+   PASS sig5-3x5-recycle               net  +0.5  worst  1.32   Co +0.7/+0.8/+0.4  Sw +0.7/+0.8/+1.3  Ae +0.6/+0.1/-0.0  Nu +0.2/-0.1/+0.1
+   PASS sig5-3x5-restore.r1            net  +0.5  worst  1.37   Co +0.9/+1.0/+0.8  Sw +1.1/+0.6/+1.4  Ae +0.1/-0.2/-0.4  Nu +0.6/+0.2/-0.0
+   PASS sig5-3x6-restore.r1            net  +0.6  worst  1.56   Co +0.6/+1.0/+0.6  Sw +0.9/+0.1/+0.2  Ae +1.6/+0.2/+0.3  Nu +1.0/+0.1/+0.2
+        sig5-3x4-restore.r1            net  +0.3  worst  2.08   Co +1.7/+0.1/+1.0  Sw +1.2/+0.6/+2.1  Ae -1.7/-0.1/-1.7  Nu -0.2/+0.9/-0.5
+        sig5-2x9-smite.d1              net  -0.3  worst  2.63   Co +0.4/-2.5/-0.8  Sw -0.5/-0.8/-0.3  Ae -1.0/+0.1/-0.5  Nu -0.2/+2.6/-0.2
+        sig5-2x8-smite.d1              net  -0.5  worst  2.80   Co +0.6/-2.7/-0.7  Sw -0.6/-0.8/-0.3  Ae -1.9/-0.2/-1.5  Nu -0.2/+2.8/-0.2
+   PASS sig5-3x6-supply-line.low       net  -0.1  worst  0.99   Co -0.4/-0.1/-0.2  Sw -0.4/-0.6/-1.0  Ae +0.7/+0.4/+0.5  Nu -0.1/-0.1/-0.1
+   PASS sig5-3x7-supply-line.low       net  +0.2  worst  1.87   Co -0.5/+0.3/-0.3  Sw +0.1/-0.4/-0.9  Ae +1.9/+0.9/+1.0  Nu +0.3/-0.2/+0.1
+        sig5-2x9-sweep.r2              net  +0.2  worst  2.36   Co +1.6/-1.7/+0.3  Sw -0.3/-1.1/-0.6  Ae +0.3/+0.5/+0.9  Nu +0.1/+2.4/-0.5
+        sig5-2x8-sweep.r2              net  -0.0  worst  2.50   Co +1.8/-2.0/+0.3  Sw -0.4/-1.1/-0.6  Ae -0.8/+0.1/+0.4  Nu +0.0/+2.5/-0.6
+   PASS sig5-3x6-tax                   net  +0.6  worst  1.23   Co +0.5/+0.5/+0.6  Sw +1.2/+0.3/+0.4  Ae +1.1/+0.3/+0.4  Nu +1.0/+0.3/+0.5
+
+3. New sizes (for the next tuner pass): every body with attack 2-4 and health 3-9 at cost 5, 1,000 games per edge.
+   Smite d1 and Sweep r2 miss on a faction split, not on strength (net change near zero at 10,000), so the new
+   sizes change who they help: Smite only on small units, and both only when you're behind (15 or less health).
+   Worst edge in points; lower is better; * = 2.0 or less at 1,000 games.
+
+   Smite, size d1hp15: "On arrival, if you have 15 or less health, deal 1 damage to an enemy unit."
+     atk \ hp      3     4     5     6     7     8     9
+            2  10.6  10.1   8.2   9.1   7.1   5.4   4.0 
+            3   6.1   5.8   5.3   5.0   4.8   4.3   4.4 
+            4   9.2   9.8   9.8   9.6  10.1  11.0  11.7 
+     best: sig5-2x9-smite.d1hp15 worst 4.0, net -2.2
+
+   Smite, size d2hp15: "On arrival, if you have 15 or less health, deal 2 damage to an enemy unit."
+     atk \ hp      3     4     5     6     7     8     9
+            2  11.4  10.5   8.2   7.5   6.1   4.7   4.1 
+            3   6.8   6.1   7.8   7.6   7.8   8.3   8.3 
+            4  10.5  11.2  12.7  12.6  13.0  12.9  13.0 
+     best: sig5-2x9-smite.d2hp15 worst 4.1, net -1.4
+
+   Smite, size d2m3: "On arrival, deal 2 damage to an enemy unit with 3 or less health."
+     atk \ hp      3     4     5     6     7     8     9
+            2  11.8  10.0   9.4   8.0   6.8   6.2   5.4 
+            3  12.0  11.4  11.0  10.6  11.0  10.6  10.6 
+            4  13.9  14.2  13.9  14.0  14.0  14.0  14.0 
+     best: sig5-2x9-smite.d2m3 worst 5.4, net -0.0
+
+   Sweep, size hp15: "On arrival, if you have 15 or less health, deal 1 damage to each enemy unit."
+     atk \ hp      3     4     5     6     7     8     9
+            2   9.5   8.9   7.6   7.3   6.1   5.8   5.4 
+            3  11.1  10.3  10.4   9.9   9.7   9.2   9.1 
+            4  14.8  14.0  14.5  14.2  14.2  14.2  14.3 
+     best: sig5-2x9-sweep.hp15 worst 5.4, net +0.0
+
+   Sweep, size r2hp15: "On arrival, if you have 15 or less health, deal 1 damage to 2 random enemy units."
+     atk \ hp      3     4     5     6     7     8     9
+            2  10.7  10.4   8.6   8.3   6.1   5.2   4.5 
+            3   5.2   4.5   5.2   4.4   4.2   4.6   5.2 
+            4   7.4   9.7   9.7  10.2  11.1  11.6  12.0 
+     best: sig5-3x7-sweep.r2hp15 worst 4.2, net +2.6
+
+   The best 4 grid lines re-measured at 10,000 games per edge:
+        sig5-2x9-smite.d2hp15          net  -1.6  worst  3.49   Co -1.3/-3.5/-2.6  Sw +0.2/-2.5/-1.2  Ae -2.9/-1.9/-2.7  Nu +0.1/+1.6/-2.2
+        sig5-2x9-smite.d1hp15          net  -2.6  worst  4.00   Co -3.0/-4.0/-3.7  Sw -2.3/-2.5/-1.6  Ae -3.5/-2.6/-3.2  Nu -2.3/+0.3/-2.2
+        sig5-3x7-sweep.r2hp15          net  +2.9  worst  4.60   Co +3.8/+1.5/+2.5  Sw +2.7/+2.1/+1.7  Ae +3.5/+3.2/+3.0  Nu +3.4/+4.6/+2.4
+        sig5-3x6-sweep.r2hp15          net  +2.5  worst  4.60   Co +4.0/+1.4/+2.5  Sw +2.3/+2.0/+1.6  Ae +2.0/+2.5/+2.3  Nu +3.1/+4.6/+2.2
+
+4. Findings (computed from the data above)
+   - Before: 16 approved lines over 7 options, each passing at 2,500.
+   - Leave at 10,000: sig5-2x9-energy-surge.e2 (2.20), sig5-2x8-energy-surge.e2 (2.22), sig5-3x4-restore.r1 (2.08).
+   - Join at 10,000: sig5-3x5-guardian (1.87).
+   - The approved list as generated now (largest measurement decides): 14 lines over 7 options: guardian, inspire, rally, recycle, restore, supply-line, tax.
+   - Net change over all twelve edges stays small for every re-measured line (-0.7 to +1.0): what fails is one
+     faction's edge, not the card's overall strength.

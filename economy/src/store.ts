@@ -105,7 +105,8 @@ export interface AgentRecord {
 export interface SignatureCardRecord {
   agentId: string;
   cardId: string;
-  /** The body + ability combination, unique per season. */
+  /** The body + ability combination. Two agents may share one (owner
+   * 2026-10-15, schema v7). */
   comboId: string;
   /** Its promo collector number, "PR-001". */
   collectorNumber: string;
@@ -803,9 +804,9 @@ export class EconomyStore {
   }
 
   /** Step 2: the owner picks one of the 3 agents and gets 3 signature cards
-   * for it, every one a line that passed the fairness test and none a
-   * combination this season already has. One pick per draft: to see other
-   * agents, start a new draft. */
+   * for it, every one a line that passed the fairness test, under a themed
+   * name no card has (now and then built on the owner's username). One pick
+   * per draft: to see other agents, start a new draft. */
   pickDraftAgent(ownerId: string, draftId: string, index: number, options: { seed?: number } = {}): AgentDraft {
     return this.transaction(() => {
       const draft = this.openDraft(ownerId, draftId);
@@ -815,7 +816,7 @@ export class EconomyStore {
       const taken = this.takenNames();
       let signatures: SignatureCandidate[];
       try {
-        signatures = generateSignatureCandidates(options.seed ?? randomInt(2 ** 31), agent.name, taken);
+        signatures = generateSignatureCandidates(options.seed ?? randomInt(2 ** 31), agent.name, taken, { username: this.username(ownerId) });
       } catch (err) {
         refused(err);
       }
@@ -827,8 +828,9 @@ export class EconomyStore {
   /** Step 3: the owner confirms one of the 3 signature cards. In one
    * transaction: the agent is created with its generated name and persona,
    * its signature card is recorded with the next PR- number, and the card is
-   * granted to the owner as a bound promo copy. Refused if the name or the
-   * combination was taken since the draft was shown (start a new draft).
+   * granted to the owner as a bound promo copy. Refused if the agent's or
+   * the card's name was taken since the draft was shown (start a new
+   * draft); a combination another agent has since taken is fine.
    * The new agent is not connected; the owner connects it. */
   confirmAgentDraft(ownerId: string, draftId: string, signatureIndex: number): GeneratedAgent {
     return this.transaction(() => {
@@ -839,8 +841,8 @@ export class EconomyStore {
       const candidate = draft.agents[draft.picked]!;
       const taken = this.takenNames();
       if (taken.agentNames.has(candidate.name)) throw new EconomyError(`the agent name "${candidate.name}" was taken since this draft was made; start a new draft`);
-      if (taken.comboIds.has(chosen.comboId) || taken.cardNames.has(chosen.name)) {
-        throw new EconomyError(`that signature card was taken since this draft was made; start a new draft`);
+      if (taken.cardNames.has(chosen.name)) {
+        throw new EconomyError(`the card name "${chosen.name}" was taken since this draft was made; start a new draft`);
       }
       const agent = this.createAgent({ ownerId, name: candidate.name, persona: candidate.persona });
       const promoNumber = this.nextPromoNumber();
@@ -925,14 +927,21 @@ export class EconomyStore {
     };
   }
 
-  /** Names and combinations this season has used: every agent name, every
-   * signature card's name and combination, and every set card's name (a
-   * signature card never shares a name with a set card). */
-  private takenNames(): { agentNames: Set<string>; cardNames: Set<string>; comboIds: Set<string> } {
+  /** Names this season has used: every agent name, every signature card's
+   * name, and every set card's name (a signature card never shares a name
+   * with a set card). */
+  private takenNames(): { agentNames: Set<string>; cardNames: Set<string> } {
     const agentNames = new Set((this.db.prepare("SELECT name FROM agents").all() as Row[]).map((r) => str(r.name)));
-    const sigs = this.db.prepare("SELECT name, combo_id FROM signature_cards").all() as Row[];
+    const sigs = this.db.prepare("SELECT name FROM signature_cards").all() as Row[];
     const cardNames = new Set([...sigs.map((r) => str(r.name)), ...[...CARD_REGISTRY.values()].map((c) => c.name)]);
-    return { agentNames, cardNames, comboIds: new Set(sigs.map((r) => str(r.combo_id))) };
+    return { agentNames, cardNames };
+  }
+
+  /** The owner's login username, or undefined for an owner without a login
+   * (the house owners). */
+  private username(ownerId: string): string | undefined {
+    const row = this.db.prepare("SELECT username FROM logins WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    return row ? str(row.username) : undefined;
   }
 
   /** The next PR- collector number. Signature cards are the only promos

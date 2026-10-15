@@ -42,3 +42,21 @@ generator's only source of signature cards.
 The session-33 `levers-*.jsonl` lines for Guardian and Bulwark measured the old cards (Guard and Barrier; "aimed at your
 side") and stay as the record of those; `signatureLeversReport.ts` ignores the `levers-s34-` files so report 024 still
 prints as committed.
+
+## Session 35 (the owner's 2026-10-15 answer to session 34: grow the pool)
+
+Printed into `progress/balance-report-026-signature-10k.txt` by `engine/src/dev/signatureTenThousandReport.ts`. The
+reference (`engine/src/dev/signatureReference.json`) now holds 10,000 games per ordered pairing; its first 2,500 are
+exactly the old 2,500-game reference (same seeds), so every earlier command still reproduces its lines.
+
+`signatureApprovedList.ts` now lets a line's **largest** measurement decide: a pass at 2,500 that fails at 10,000 is
+out, a miss at 2,500 that passes at 10,000 is in.
+
+| file | command (from `engine/`) |
+|---|---|
+| (reference) | `npx tsx src/dev/signatureFairness.ts reference --seeds 10000` (about 2 minutes on one core) |
+| `remeasure-10k-0.jsonl` … `remeasure-10k-3.jsonl` | `npx tsx src/dev/signatureFairness.ts remeasure --ids <the 7 near misses, then the 16 session-34 approved lines> --seeds 10000 --shard i/4 --out ../progress/signature-fairness/remeasure-10k-i.jsonl` (full results; the 23 ids are listed in report 026) |
+| `s35-grid-0.jsonl` … `s35-grid-3.jsonl` | `npx tsx src/dev/signatureFairness.ts grid --abilities smite,sweep --sizes d2m3,d1hp15,d2hp15,hp15,r2hp15 --seeds 1000 --shard i/4 --out ../progress/signature-fairness/s35-grid-i.jsonl` (the session-35 sizes x every cost-5 body, attack 2-4, health 3-9) |
+| `s35-confirm-0.jsonl` … `s35-confirm-3.jsonl` | `npx tsx src/dev/signatureFairness.ts confirm --in s35-grid-0..3.jsonl --top 2 --seeds 10000 --shard i/4 --out ../progress/signature-fairness/s35-confirm-i.jsonl` |
+
+The new files are prefixed `s35-` so report 025's `grid-` reader still prints as committed.
