@@ -155,7 +155,7 @@ Owner 2026-10-03: the code-made sound is preferred over every AI sound model tes
 - **In the page:** `wardsOnBoard` now lists every Mythic unit; one not in `mythics.json`, or naming a behaviour the runtime doesn't know, is `generic`. `WARDS.prepare(fallbackWardsNeeded(frames, atlases))` draws every sheet the replay needs at load (3-9 ms each in headless Chromium); `sync` still draws one lazily if needed. A Mythic with art always uses its art. Drawing is wrapped in try/catch: a sheet that fails means no ward, never a broken card.
 - **`generic` behaviour:** the layers counter-rotate and a soft ring leaves the ward every 3.2 s (`WARD_GENERIC_EVERY`), behind the card.
 - **The turn line got its own backing** (90% of the page background): a ward behind a top-row card reaches up past it, and with a signature card on each side that is common.
-- **FX sheet part 5:** the generator's gallery, three wards per faction, spinning (each faction's set Mythic as it would look without art, and for Neutral the two demo signature cards and a menu id).
+- **FX sheet part 5:** the generator's gallery, three wards per faction, spinning (each faction's set Mythic as it would look without art, and for Neutral three of the generated signature cards the committed signature replays carry; render session 19 replaced the old demo names).
 - **Demo signature cards** (CLI `--signatures`): Consensus Lantern and Tollgate Daemon stood in until the engine's agent generator existed. Replaced in render session 18 by generated agents (see "The signature zone as built").
 
 ## The signature zone as built (render session 18, after v2)

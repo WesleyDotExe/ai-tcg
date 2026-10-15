@@ -18,6 +18,13 @@ import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
 import { FALLBACK_WARD_PURE_SOURCE, FALLBACK_WARD_RUNTIME_SOURCE } from "./fallbackWard.js";
 import { CSS } from "./renderHtml.js";
+import { generatedSeats } from "./generatedSignatures.js";
+
+/** Neutral's gallery row: the generated signature cards the two committed
+ * signature replays carry (seeds 5 and 2), the names a spectator meets. */
+export function galleryNeutralNames(): string[] {
+  return [5, 2].flatMap((seed) => generatedSeats(seed).map((s) => s.card.name)).slice(0, 3);
+}
 
 export function renderFxSheet(): string {
   return `<!doctype html>
@@ -186,7 +193,7 @@ ${FALLBACK_WARD_RUNTIME_SOURCE}
     ['Aegis', ['Prime Aegis', 'Unreleased Aegis Mythic I', 'Unreleased Aegis Mythic II']],
     ['Swarm', ['Hive Mother', 'Unreleased Swarm Mythic I', 'Unreleased Swarm Mythic II']],
     ['Null', ['Null Singularity', 'Unreleased Null Mythic I', 'Unreleased Null Mythic II']],
-    ['Neutral', ['Consensus Lantern', 'Tollgate Daemon', 'sig5-3x6-recycle.c1']]
+    ['Neutral', ${JSON.stringify(galleryNeutralNames())}]
   ];
   var FW_LAYERS = [{ i: 0, r: 1, spd: 0.2 }, { i: 1, r: 0.74, spd: -0.36 }, { i: 2, r: 0.37, spd: 0.56 }];
   var fwItems = [];

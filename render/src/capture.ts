@@ -71,6 +71,7 @@ function toUnitSnapshot(state: GameState, unit: UnitInstance): UnitSnapshot {
     barrierActive: unit.statuses.some((s) => s.kind === "Barrier"),
     printedAttack: unit.card.attack,
     printedHealth: unit.card.health,
+    printedCost: unit.card.cost,
     turnBuff: { attack: unit.turnBuff.attack, health: unit.turnBuff.health },
     tools: unit.tools.map((t) => ({
       name: t.name,
@@ -116,6 +117,7 @@ function toDirectiveSnapshot(d: { instanceId: string; card: Card }): DirectiveSn
     faction: d.card.faction,
     rarity: d.card.rarity,
     flavor: d.card.flavor,
+    printedCost: d.card.cost,
     visualSeed: visualSeedFor(d.card.id),
     visualPattern: visualPatternFor(d.card.id),
   };

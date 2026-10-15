@@ -38,6 +38,10 @@ export interface UnitSnapshot {
    * changed", the marker keeps saying "it is still changed"). */
   printedAttack: number;
   printedHealth: number;
+  /** Printed (card) cost, for the cost circle. Cost modifiers on the board
+   * and a signature card's replay surcharge aren't in it: what a play cost
+   * is shown where it happens (the hand, the signature zone). */
+  printedCost: number;
   /** This-turn-only buff totals (engine UnitInstance.turnBuff) — what lets
    * render/src/statFx.ts tell a temporary buff wearing off at end of turn
    * apart from a real penalty landing. */
@@ -87,6 +91,8 @@ export interface DirectiveSnapshot {
   faction: Faction;
   rarity: Rarity;
   flavor: string;
+  /** Printed (card) cost, for the cost circle. */
+  printedCost: number;
   visualSeed: number;
   visualPattern: number;
 }

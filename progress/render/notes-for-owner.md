@@ -528,3 +528,27 @@ separate from the shared `progress/notes-for-owner.md`).
    That's expected: I'll regenerate the two signature replays then.
 5. **No engine change was needed.** `signatureCost` is read through
    `render/src/engineInternal.ts`, like the other deep imports.
+
+
+---
+
+## 2026-10-15 — Session 19 (hardening pass)
+
+1. **The board's cost circles now show the card's cost.** They all said 0
+   before. A signature card on the board shows its printed cost. What the
+   replay charged stays in its zone, next to the red climb.
+2. **The replay works on a phone without sideways scrolling.** Below 900 px
+   the momentum gauge moves under the two players; below 560 px everything
+   stacks in one column. Measured on all 14 replays at six widths. A still
+   is at `progress/render/evidence/v2-s19-narrow-sig-seed5-390.png`. One
+   small taste call: on a phone the gauge sits under both players rather
+   than between them. Say if you want it elsewhere.
+3. **The two signature replays now carry the generated names:** Wren Mk II
+   plays Proxyviper's Twilight Download, Tamsin of the Long Queue plays
+   Wireburner's Anthem (seed 5); Vesper Zero plays Unpatched Encore, and
+   Zephan of the Long Queue plays Data Heist of the Recycle Bin (seed 2).
+   Their wards changed with the names, as expected. Quickest look: open
+   `render/output/cortex-vs-aegis-sig-seed5.html`, drag to move 102, press →.
+4. **The render lane now keeps its own debt list,**
+   `progress/render/quality-debt.md`.
+5. **No engine change was needed.**
