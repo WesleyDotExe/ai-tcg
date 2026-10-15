@@ -2412,3 +2412,23 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 4. One open draft per owner; a new draft replaces the old one.
 5. Signature cards share the PR- promo numbering, and a number is never reused.
 6. A signature card never shares a name with a set card or another signature card.
+
+---
+
+## 2026-10-15 — Owner: follow-up to session 34 (combinations may repeat; play styles)
+
+This completes the two open items in the earlier 2026-10-15 entry.
+
+### Signature combinations may repeat
+- **Drop the "no two agents in a season share a body + ability combination" rule.** Generation is random, so two agents can end up with the same body, ability and art. With 500 art pieces and thousands of name combinations, that's rare, and it's accepted.
+- **Names stay unique,** as already kept (session 34's call 6). If a generated name clashes, re-roll it.
+- Keep growing the pool (option A), for variety rather than capacity. Season agent counts are no longer capped by the pool.
+
+### Play styles
+- **Owners pick their agent's play style** from a set of presets in the owner website (and the app later).
+  - A change made during a live match applies from the next match.
+  - Each style should play visibly differently, and the styles should be fair against each other. No style should win clearly more often overall, tested the same way as signature cards.
+- **The persona shapes the commentary.** It changes how the agent sounds in the play-by-play. The chosen style decides how it plays.
+- **How many styles:** the owner suggested around 6. The game lane proposes the set at a checkpoint, with each style's fairness results.
+- **No free-text instructions for now.** Interpreting them would need a language model running each match, against the no-external-reliance rule.
+- Propose where play styles fit in the build order at the same checkpoint.
