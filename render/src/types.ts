@@ -46,6 +46,38 @@ export interface UnitSnapshot {
   statuses: { kind: string; duration: number | "untilConsumed" }[];
   visualSeed: number;
   visualPattern: number;
+  /** True for the controller's signature card (engine
+   * UnitInstance.signature): when it dies it goes back to the signature
+   * zone, not the graveyard. Absent on every other unit. */
+  isSignature?: true;
+}
+
+/** The signature zone (engine SignatureZone), as a spectator sees it. It is
+ * public information in the engine too: both players always know the
+ * card, whether it waits in the zone, and what playing it again costs. */
+export interface SignatureSnapshot {
+  cardId: string;
+  name: string;
+  faction: Faction;
+  rarity: Rarity;
+  flavor: string;
+  /** Printed body. A signature card carries no tools or buffs while it
+   * waits, so the printed stats are what arrives. */
+  attack: number;
+  health: number;
+  keywords: Keyword[];
+  /** The card's abilities, in rules text. */
+  text: string[];
+  /** What playing it now (or once it is back) costs: the engine's own
+   * signatureCost, base plus the replay surcharge per earlier play. */
+  nextCost: number;
+  /** Its printed cost, so the page can show the climb. */
+  baseCost: number;
+  timesPlayed: number;
+  /** True while it waits in the zone; false while it is on the board. */
+  inZone: boolean;
+  visualSeed: number;
+  visualPattern: number;
 }
 
 export interface DirectiveSnapshot {
@@ -86,6 +118,8 @@ export interface PlayerSnapshot {
   directives: DirectiveSnapshot[];
   slotsUsed: number;
   slotsMax: number;
+  /** The signature zone, or absent/null when this player has none. */
+  signature?: SignatureSnapshot | null;
   /** Fixed-slot layout (render/src/slotLayout.ts): which board card sits in
    * each of the `slotsMax` slots, by instanceId, or null for an empty slot.
    * A card keeps its slot from the move it enters until the move it leaves.
@@ -174,5 +208,9 @@ export interface MatchReplay {
   factions: Record<PlayerId, Faction>;
   movesPlayed: number;
   turnCap: number;
+  /** The engine's energy cap (MAX_ENERGY_CAP): the signature zone uses it
+   * to say whether the next refill puts the card within reach. Absent on
+   * replays captured before the zone was drawn (the page assumes 10). */
+  energyCap?: number;
   frames: Frame[];
 }

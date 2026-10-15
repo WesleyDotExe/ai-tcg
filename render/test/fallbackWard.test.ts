@@ -16,7 +16,7 @@ import { allSignatureSpecs } from "../../engine/src/data/signatureMenu.js";
 import { signatureComboId } from "../../engine/src/data/signatureMenu.js";
 import { captureMatch } from "../src/capture.js";
 import { renderMatchHtml } from "../src/renderHtml.js";
-import { DEMO_SIGNATURES, demoSignatureCard } from "../src/demoSignatures.js";
+import { generatedSeats } from "../src/generatedSignatures.js";
 import {
   FALLBACK_WARD_PURE_SOURCE,
   FALLBACK_WARD_RUNTIME_SOURCE,
@@ -82,8 +82,8 @@ describe("names almost never share a look", () => {
     expect(looks.size / ids.length).toBeGreaterThanOrEqual(0.95);
   });
 
-  it("the two demo signature cards look different from each other", () => {
-    const [a, b] = DEMO_SIGNATURES.map((d) => fallbackWardLook(fallbackWardPlan(d.name, "Neutral")));
+  it("the two generated signature cards of a replay look different from each other", () => {
+    const [a, b] = generatedSeats(5).map((d) => fallbackWardLook(fallbackWardPlan(d.card.name, "Neutral")));
     expect(a).not.toBe(b);
   });
 
@@ -138,25 +138,24 @@ describe("which Mythics need a fallback", () => {
 });
 
 describe("in a real replay with signature cards", () => {
-  // Cortex vs Aegis, seed 5, both sides carrying a demo signature card: the
-  // committed render/output/cortex-vs-aegis-sig-seed5.html. Quorum Arbiter
-  // (art) and both signature cards (no art) reach the board.
+  // Cortex vs Aegis, seed 5, both sides a generated agent carrying its
+  // generated signature card: the committed
+  // render/output/cortex-vs-aegis-sig-seed5.html. Both signature cards (no
+  // art) reach the board.
+  const seats = generatedSeats(5);
   const replayP = captureMatch({
     title: "sig", seed: 5,
-    deckA: { ...buildCortexDeck("p1", "Cortex"), signature: demoSignatureCard(0) },
-    deckB: { ...buildAegisDeck("p2", "Aegis"), signature: demoSignatureCard(1) },
-    agentA: new LookaheadAgent("Lookahead-Cortex", 11), agentB: new LookaheadAgent("Lookahead-Aegis", 12), boardSlots: BOARD_SLOTS,
+    deckA: { ...buildCortexDeck("p1", "Cortex"), signature: seats[0].card },
+    deckB: { ...buildAegisDeck("p2", "Aegis"), signature: seats[1].card },
+    agentA: new LookaheadAgent(seats[0].agentName, 11), agentB: new LookaheadAgent(seats[1].agentName, 12), boardSlots: BOARD_SLOTS,
   });
 
   it("the signature cards are Neutral Mythics outside mythics.json, so only they fall back", async () => {
     const replay = await replayP;
     const data = wardDataFor(replay);
     expect(Object.keys(data.atlases)).toEqual(["Quorum Arbiter"]);
-    for (const d of DEMO_SIGNATURES) expect(mythicSpecs()[d.name]).toBeUndefined();
-    expect(fallbackWardsNeeded(replay.frames, data.atlases)).toEqual([
-      { name: "Consensus Lantern", faction: "Neutral" },
-      { name: "Tollgate Daemon", faction: "Neutral" },
-    ]);
+    for (const d of seats) expect(mythicSpecs()[d.card.name]).toBeUndefined();
+    expect(fallbackWardsNeeded(replay.frames, data.atlases)).toEqual(seats.map((d) => ({ name: d.card.name, faction: "Neutral" })));
   }, 60_000);
 
   it("the page embeds the generator before WARDS and draws every needed sheet up front, carrying no extra image", async () => {

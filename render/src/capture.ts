@@ -16,6 +16,7 @@ import {
   Rng,
   formatEvent,
   otherPlayer,
+  MAX_ENERGY_CAP,
 } from "@ai-tcg/engine";
 import type { Agent, DeckSpec, GameState, PlayerId, Card, UnitInstance } from "@ai-tcg/engine";
 import {
@@ -25,13 +26,14 @@ import {
   boardSlotsUsed,
   hasKeyword,
   effectiveCardCost,
+  signatureCost,
 } from "./engineInternal.js";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 import { computeMomentum } from "./momentum.js";
 import { avatarSvg } from "./avatar.js";
 import { assignSlots } from "./slotLayout.js";
 import type { Faction, Rarity } from "./engineInternal.js";
-import type { CardRef, PlayerIdentity, DirectiveSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "./types.js";
+import type { CardRef, PlayerIdentity, DirectiveSnapshot, SignatureSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "./types.js";
 
 const MAX_MOVES_SAFETY = 5000;
 
@@ -79,6 +81,30 @@ function toUnitSnapshot(state: GameState, unit: UnitInstance): UnitSnapshot {
     statuses: unit.statuses.map((s) => ({ kind: s.kind, duration: s.duration })),
     visualSeed: visualSeedFor(unit.card.id),
     visualPattern: visualPatternFor(unit.card.id),
+    ...(unit.signature ? { isSignature: true as const } : {}),
+  };
+}
+
+function toSignatureSnapshot(state: GameState, pid: PlayerId): SignatureSnapshot | null {
+  const zone = state.players[pid].signature;
+  if (!zone) return null;
+  const card = zone.card;
+  return {
+    cardId: card.id,
+    name: card.name,
+    faction: card.faction,
+    rarity: card.rarity,
+    flavor: card.flavor,
+    attack: card.attack,
+    health: card.health,
+    keywords: [...card.keywords],
+    text: card.abilities.map((a) => a.text),
+    nextCost: signatureCost(state, pid)!,
+    baseCost: card.cost,
+    timesPlayed: zone.timesPlayed,
+    inZone: zone.inZone,
+    visualSeed: visualSeedFor(card.id),
+    visualPattern: visualPatternFor(card.id),
   };
 }
 
@@ -120,6 +146,7 @@ function toPlayerSnapshot(state: GameState, pid: PlayerId, slotsMax: number): Pl
     directives: p.directives.map(toDirectiveSnapshot),
     slotsUsed: boardSlotsUsed(p),
     slotsMax,
+    signature: toSignatureSnapshot(state, pid),
   };
 }
 
@@ -230,6 +257,7 @@ export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
     factions: { p1: factionOf("p1"), p2: factionOf("p2") },
     movesPlayed,
     turnCap: state.turnCap,
+    energyCap: MAX_ENERGY_CAP,
     frames: assignSlots(frames),
   };
 }

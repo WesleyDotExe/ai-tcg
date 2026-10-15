@@ -9,6 +9,7 @@ import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
 import { WARD_FX_PURE_SOURCE, WARD_FX_RUNTIME_SOURCE, wardDataFor } from "./wardFx.js";
 import { FALLBACK_WARD_PURE_SOURCE, FALLBACK_WARD_RUNTIME_SOURCE } from "./fallbackWard.js";
 import { SIG_WARD_PURE_SOURCE, SIG_WARD_RUNTIME_SOURCE, sigWardDataFor } from "./sigWardFx.js";
+import { SIG_ZONE_SOURCE } from "./sigZoneFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -52,9 +53,9 @@ export function renderMatchHtml(replay: MatchReplay): string {
   <section class="turnbar" id="turnbar"></section>
 
   <section class="board-area">
-    <div class="board-row" id="board-p2"></div>
+    <div class="side" id="side-p2"><div class="sigzone" id="sig-p2" hidden></div><div class="board-row" id="board-p2"></div></div>
     <div class="stackzone" id="stackzone"></div>
-    <div class="board-row" id="board-p1"></div>
+    <div class="side" id="side-p1"><div class="sigzone" id="sig-p1" hidden></div><div class="board-row" id="board-p1"></div></div>
   </section>
 
   <section class="lower">
@@ -206,6 +207,63 @@ html, body {
 
 .slot { width: 118px; height: 158px; border-radius: 6px; position: relative; flex-shrink: 0; }
 .slot.empty { border: 1px dashed var(--line); background: repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 6px, transparent 6px 12px); }
+
+/* The signature zone (render/src/sigZoneFx.ts): each agent's signature card
+ * waits here, off the board, in a white-gold socket left of its own row.
+ * Out on the board, the socket stays and says so; the cost shows the climb
+ * (+2 per replay) and the glow says when the card is within reach. */
+.side { position: relative; }
+.sigzone { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 112px; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 0.58rem; letter-spacing: 0.1em; color: var(--neutral); }
+.sigzone[hidden] { display: none; }
+.sigzone .sz-head { display: flex; gap: 6px; align-items: baseline; }
+.sigzone .sz-no { color: var(--ink-dim); letter-spacing: 0.04em; }
+.sigzone .sz-socket { width: 102px; height: 137px; border-radius: 7px; position: relative; flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--neutral) 55%, transparent);
+  background: radial-gradient(ellipse at 50% 42%, color-mix(in srgb, var(--neutral) 12%, transparent), transparent 70%),
+    repeating-linear-gradient(135deg, rgba(255,240,194,0.045) 0 5px, transparent 5px 10px), #05060b;
+  box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 14px -4px var(--neutral) inset; }
+.sigzone .sz-socket .card { position: absolute; left: 0; top: 0; transform: scale(0.864); transform-origin: top left; animation: none; }
+.sigzone .sz-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px; padding: 8px; text-align: center; color: var(--ink-dim); letter-spacing: 0.06em; line-height: 1.3; }
+.sigzone .sz-empty b { color: var(--neutral); font-size: 0.64rem; letter-spacing: 0.14em; }
+.sigzone .sz-empty .sz-name { color: var(--ink); letter-spacing: 0.02em; }
+.sigzone .sz-foot { display: flex; gap: 5px; align-items: center; }
+.sigzone .sz-cost { border: 1px solid var(--neutral); border-radius: 3px; padding: 0 5px; font-weight: bold; }
+.sigzone .sz-climb { color: #ff8a5c; font-weight: bold; }
+.sigzone .sz-plays { color: var(--ink-dim); letter-spacing: 0.04em; }
+.sigzone .sz-reach { min-height: 1.2em; color: var(--ink-dim); }
+.sigzone.reach-next .sz-cost { border-style: dashed; }
+.sigzone.reach-next .sz-reach { color: var(--neutral); opacity: 0.75; }
+.sigzone.reach-now .sz-cost { background: var(--neutral); color: #05060d; }
+.sigzone.reach-now .sz-reach { color: var(--neutral); font-weight: bold; }
+.sigzone.reach-now .sz-socket { animation: sz-ready 1.6s ease-in-out infinite; }
+@keyframes sz-ready {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 12px 1px var(--neutral); }
+  50% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 26px 6px var(--neutral); }
+}
+/* A dead signature card is on its way home: the socket waits empty until
+ * the mote lands, then flares. */
+.sigzone.sz-awaiting .sz-socket .card { opacity: 0; }
+.sigzone.sz-landing .sz-socket { animation: sz-land 480ms ease-out; }
+@keyframes sz-land {
+  0% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 44px 14px var(--neutral); transform: scale(1.07); }
+  100% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 14px -4px var(--neutral) inset; transform: scale(1); }
+}
+.card.fx-sigfly { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
+  box-shadow: 0 0 22px var(--neutral), 0 0 0 2px var(--neutral); }
+.fx-sigmote { position: fixed; left: 0; top: 0; width: 34px; height: 46px; border-radius: 4px; pointer-events: none; z-index: 1;
+  border: 2px solid var(--neutral); background: rgba(255,240,194,0.28); box-shadow: 0 0 18px 4px var(--neutral), 0 0 0 1px #05060d; }
+.fx-sigmote.trail { background: transparent; box-shadow: 0 0 12px 2px var(--neutral); }
+@media (max-width: 1040px) {
+  .sigzone { position: static; transform: none; width: auto; flex-direction: row; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+  .sigzone .sz-socket { width: 51px; height: 69px; }
+  .sigzone .sz-socket .card { transform: scale(0.432); }
+  .sigzone .sz-empty { font-size: 0; gap: 0; }
+  .sigzone .sz-empty b { font-size: 0.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { .sigzone.reach-now .sz-socket, .sigzone.sz-landing .sz-socket { animation: none; } }
 
 .card { width: 118px; height: 158px; border-radius: 6px; position: relative; overflow: hidden;
   border: 1px solid var(--line); display: flex; flex-direction: column; color: #0a0e18; }
@@ -825,6 +883,9 @@ ${WARD_FX_RUNTIME_SOURCE}
   // render/src/sigWardFx.ts, embedded verbatim; also a CFX plug-in.
 ${SIG_WARD_PURE_SOURCE}
 ${SIG_WARD_RUNTIME_SOURCE}
+  // The signature zone (render/src/sigZoneFx.ts, embedded verbatim).
+${SIG_ZONE_SOURCE}
+  const ENERGY_CAP = replay.energyCap || 10;
   const SIG_FIRES = signatureFires(frames, (JSON.parse(document.getElementById('sigward-data').textContent || '{}').table) || {}, replay.cardFactions, replay.cardRarities || {});
   const SIG_GUARDS = signatureGuards(frames, SIG_FIRES);
 
@@ -981,6 +1042,41 @@ ${SIG_WARD_RUNTIME_SOURCE}
     });
   }
 
+  // The signature zone: the waiting card (at its next cost), or an empty
+  // socket while it is out on the board; the climb, the plays so far, and
+  // whether it is within reach (sigZoneFx.ts signatureZoneView).
+  function sigZoneCard(z, cost) {
+    return renderCardEl(
+      { name: z.name, faction: z.faction, rarity: z.rarity, cost: cost, type: 'Unit', flavor: z.flavor, visualSeed: z.visualSeed, visualPattern: z.visualPattern },
+      { stats: { attack: z.attack, health: z.health, maxHealth: z.health }, keywords: z.keywords, guard: z.keywords.indexOf('Guard') !== -1 },
+    );
+  }
+  function renderSigZone(pid, frame) {
+    const el = document.getElementById('sig-' + pid);
+    const p = frame.players[pid];
+    const v = signatureZoneView(p, frame.activePlayer === pid && !frame.winner, ENERGY_CAP);
+    if (!v) { el.hidden = true; el.innerHTML = ''; return; }
+    const z = p.signature;
+    el.hidden = false;
+    el.className = 'sigzone faction-' + z.faction + ' sz-' + v.state + (v.reach ? ' reach-' + v.reach : '');
+    el.title = z.name + ' (signature card) \u2014 ' + z.text.join(' ') + (z.flavor ? ' \u2014 ' + z.flavor : '');
+    const reachText = v.reach === 'now' ? 'IN REACH' : v.reach === 'next' ? 'IN REACH NEXT TURN' : v.state === 'waiting' ? 'OUT OF REACH' : 'RETURNS IF IT DIES';
+    el.innerHTML =
+      '<div class="sz-head">SIGNATURE' + (v.collector ? '<span class="sz-no">' + escapeHtml(v.collector) + '</span>' : '') + '</div>' +
+      '<div class="sz-socket"></div>' +
+      '<div class="sz-foot"><span class="sz-cost" title="What playing it ' + (v.state === 'waiting' ? 'now' : 'again') + ' costs">' + v.nextCost + '</span>' +
+        (v.climb > 0 ? '<span class="sz-climb" title="Replay surcharge so far">+' + v.climb + '</span>' : '') +
+        '<span class="sz-plays">' + (v.timesPlayed ? 'played \u00D7' + v.timesPlayed : 'unplayed') + '</span></div>' +
+      '<div class="sz-reach">' + reachText + '</div>';
+    const socket = el.querySelector('.sz-socket');
+    if (v.state === 'waiting') socket.appendChild(sigZoneCard(z, v.nextCost));
+    else socket.innerHTML = '<div class="sz-empty"><b>ON BOARD</b><span class="sz-name">' + escapeHtml(z.name) + '</span></div>';
+  }
+  function sigSocketRect(pid) {
+    const s = document.querySelector('#sig-' + pid + ' .sz-socket');
+    return s ? s.getBoundingClientRect() : hudRect(pid);
+  }
+
   let momentumBuilt = false;
   function ensureMomentum() {
     if (momentumBuilt) return;
@@ -1073,6 +1169,8 @@ ${SIG_WARD_RUNTIME_SOURCE}
     renderTurnbar(frame);
     renderBoard('board-p2', frame.players.p2);
     renderBoard('board-p1', frame.players.p1);
+    renderSigZone('p2', frame);
+    renderSigZone('p1', frame);
     renderStack(frame.stack);
     renderHand('hand-p1', frame.players.p1, 'P1 HAND');
     renderHand('hand-p2', frame.players.p2, 'P2 HAND');
@@ -1580,6 +1678,57 @@ ${SIG_WARD_RUNTIME_SOURCE}
     return Math.round(ms * 0.9);
   }
 
+  // The signature card lifting out of its zone into its slot: it rises a
+  // little, holds long enough to read, and settles at full size where the
+  // slot's card will appear. Starts at \`delay\`; returns when it lands
+  // (from the start of the move), so the slot's entrance waits for it.
+  // The mote waits for the card's shatter to scatter first (a Mythic's
+  // shatter is a spectacle, and the dead card usually stands right next to
+  // its own zone), so it rises out of the debris instead of under it.
+  const SIG_RETURN_LAG = 420;
+  function sigFlightMs() { return Math.min(620, Math.max(180, Math.round(speedMs() * 0.65))); }
+  function flySigCard(z, cost, fromR, toR, delay) {
+    const card = sigZoneCard(z, cost);
+    card.classList.add('fx-sigfly');
+    card.style.opacity = '0';
+    fxLayer.appendChild(card);
+    const w = card.offsetWidth || 118, h = card.offsetHeight || 158;
+    const a = centreOf(fromR), b = centreOf(toR);
+    const s0 = fromR.width / w, s1 = toR.width / w;
+    const mid = { x: a.x + (b.x - a.x) * 0.45, y: Math.min(a.y, b.y) - 28 };
+    const ms = sigFlightMs();
+    function at(p, sc, op) { return { transform: 'translate(' + (p.x - w / 2) + 'px,' + (p.y - h / 2) + 'px) scale(' + sc + ')', opacity: op }; }
+    later(delay, function () {
+      card.style.opacity = '';
+      if (card.animate) card.animate([at(a, s0, 1), Object.assign(at(mid, Math.max(s0, s1) * 1.08, 1), { offset: 0.45 }), at(b, s1, 1)], { duration: ms, easing: 'ease-in-out', fill: 'both' });
+      else card.style.transform = at(b, s1, 1).transform;
+      setTimeout(function () { card.remove(); }, ms + 30);
+    });
+    return delay + ms;
+  }
+  // A dead signature card going home: a small white-gold card shape, with
+  // two fading echoes behind it as a trail, arcs from where the card died
+  // up and over to its socket. Returns when it lands.
+  function flySigMote(fromR, toR, delay) {
+    const a = centreOf(fromR), b = centreOf(toR);
+    const mid = { x: (a.x + b.x) / 2, y: Math.min(a.y, b.y) - 70 };
+    const ms = sigFlightMs();
+    function at(p, sc, op) { return { transform: 'translate(' + (p.x - 17) + 'px,' + (p.y - 23) + 'px) scale(' + sc + ')', opacity: op }; }
+    [0, 1, 2].forEach(function (k) {
+      const mote = document.createElement('div');
+      mote.className = 'fx-sigmote' + (k ? ' trail' : '');
+      mote.style.opacity = '0';
+      fxLayer.appendChild(mote);
+      const lag = k * 45, fade = 1 - k * 0.35;
+      later(delay + lag, function () {
+        mote.style.opacity = '';
+        if (mote.animate) mote.animate([at(a, 0.5, 0), Object.assign(at(a, 1.15, fade), { offset: 0.12 }), Object.assign(at(mid, 1, fade), { offset: 0.55 }), at(b, 1.5, 0.15)], { duration: ms, easing: 'ease-in', fill: 'both' });
+        setTimeout(function () { mote.remove(); }, ms + 30);
+      });
+    });
+    return delay + ms;
+  }
+
   function showLethalFlash() {
     const el = document.createElement('div');
     el.className = 'fx-lethal-overlay';
@@ -1703,6 +1852,31 @@ ${SIG_WARD_RUNTIME_SOURCE}
       return Math.max(base, effArrive['u:' + iid] || 0);
     }
     function hudT(pid) { return Math.max(effectT, effArrive['p:' + pid] || 0); }
+
+    // ---- signature zone: the card leaves for the board, or comes home ---
+    // A play from the zone lifts the card out of its socket and sets it in
+    // its slot; the slot's own entrance (and a Mythic's ward) waits for it.
+    // A dead signature card shatters as any card does, then a white-gold
+    // mote carries it back, and the socket fills when the mote lands.
+    const sigEnterAt = {};
+    signatureZoneMoves(prevFrame, newFrame).forEach(function (zm) {
+      const zoneEl = document.getElementById('sig-' + zm.owner);
+      if (!zoneEl) return;
+      if (zm.kind === 'leave' && zm.iid) {
+        const el = liveCardEl(zm.iid);
+        const z = prevFrame.players[zm.owner].signature;
+        if (el && z) sigEnterAt[zm.iid] = flySigCard(z, zm.cost, sigSocketRect(zm.owner), el.getBoundingClientRect(), causeT);
+      } else if (zm.kind === 'return') {
+        const from = zm.iid ? prevRects[zm.iid] : null;
+        const t0 = (zm.iid ? unitT(zm.iid) : causeT) + SIG_RETURN_LAG;
+        zoneEl.classList.add('sz-awaiting');
+        const land = from ? flySigMote(from, sigSocketRect(zm.owner), t0) : t0;
+        later(land, function () { zoneEl.classList.remove('sz-awaiting'); flashClass(zoneEl, 'sz-landing', 'normal'); });
+        tiers.push('normal');
+      } else {
+        later(causeT, function () { flashClass(zoneEl, 'sz-landing', 'normal'); });
+      }
+    });
 
     // ---- stack movement: aim lines, bolts, fizzles, redirects ----------
     const freshAim = {};
@@ -1836,11 +2010,13 @@ ${SIG_WARD_RUNTIME_SOURCE}
         const tier = tierFromScore(enterScore(newBoard[id].v.rarity));
         tiers.push(tier);
         // A Mythic arriving lifts the music (slice 4), on its entrance beat.
-        if (newBoard[id].v.rarity === 'Mythic') later(causeT, function () { MUS.event('mythic', tier); });
+        // A signature card played from its zone lands when its flight does.
+        const enterT = sigEnterAt[id] !== undefined ? sigEnterAt[id] : causeT;
+        if (newBoard[id].v.rarity === 'Mythic') later(enterT, function () { MUS.event('mythic', tier); });
         // Its ward draws itself in over the card, then sinks behind it
         // (owner 2026-10-11; render/src/wardFx.ts).
-        if (WARDS.has(id)) later(causeT, function () { WARDS.arrive(id); });
-        if (causeT > 0) { el.style.opacity = '0'; later(causeT, function () { el.style.opacity = ''; flashClass(el, 'fx-enter', tier); }); }
+        if (WARDS.has(id)) later(enterT, function () { WARDS.arrive(id); });
+        if (enterT > 0) { el.style.opacity = '0'; later(enterT, function () { el.style.opacity = ''; flashClass(el, 'fx-enter', tier); }); }
         else flashClass(el, 'fx-enter', tier);
         return;
       }

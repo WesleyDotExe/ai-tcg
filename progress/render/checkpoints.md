@@ -7,6 +7,51 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-15 — The signature zone on the board, generated agents in the replays — AWAITING FEEDBACK
+
+**What this delivers:**
+- **Each signature card now has a home on the board:** a white-gold socket to the left of its side's six slots. It is outside the slots and never takes one.
+- **While the card waits,** the socket shows it at what it would cost now. While it is out, the socket says ON BOARD with its name.
+- **Under the socket:** the next cost, how far it has climbed (+2 per replay, in red), how many times it has been played, and whether it is within reach:
+  - IN REACH: its owner's turn, and the pool covers it. The socket glows.
+  - IN REACH NEXT TURN: the next refill covers it.
+  - OUT OF REACH, or RETURNS IF IT DIES while it is out.
+- **Playing it:** the card lifts out of the socket and arcs into its slot. Its entrance and its ward wait for it to land.
+- **Its death:** it shatters like any Mythic. Then a white-gold card shape flies back to the socket, which fills and flares when it lands. Before, it just left the board and came back from nowhere.
+- **The replays now use real generated agents** (your slice 7 call 6). Each side is what the engine's own generator gives: the agent's name is the username, and its signature card carries a PR- number.
+
+**Evidence:**
+- **Replay:** `render/output/cortex-vs-aegis-sig-seed5.html`, Wren Mk II (Last Courier) vs Tamsin of the Long Queue (Cinder Uplink):
+  - move 43: both cards waiting; one IN REACH, one IN REACH NEXT TURN;
+  - move 44, then →: Last Courier leaves for the board;
+  - move 102, then →: Cinder Uplink dies and goes home; it now costs 7;
+  - move 116, then →: it's played again for 7; the zone then reads 9, +4, played ×2.
+- **Stills** in `progress/render/evidence/v2-s8-*.png`: the waiting zones, three frame strips from video (leave, return, replay), the replayed card, the narrow layout.
+- **Measured in headless Chromium:** the zone matches the data on all 130 frames; 0 page errors.
+- **Tests:** 18 new, render at 290. Every zone movement the page shows is checked against the engine's own events over five real matches (11 plays from the zone, 3 returns), and the cost shown is the cost the engine charges at the next play.
+
+**Strong:**
+- It's exact. The zone reads the engine's own public zone and cost function, and the tests hold it to the engine's events.
+- The climb is legible. A replay at 7, then 9, is right there under the card.
+- The other twelve replays' matches are unchanged; they just show no zone.
+
+**Thin:**
+- **The glow is rarely seen.** The reference agents play the card the moment they can afford it, so IN REACH lasts 3 moves or fewer in 25 of 32 scanned games.
+- **The return competes with the shatter.** The card usually dies right next to its zone, and the Mythic shatter is still bright when the card shape flies home. It reads, but less clearly than the play.
+- Only 3 of 32 scanned games had a signature card die, and 1 replayed it. That's the game, not the render.
+
+**Decisions you may want to overrule:**
+1. **The zone sits left of each row, outside the six slots.** Alternative: in each player's panel next to HP and energy (it would be smaller and farther from the board).
+2. **The waiting card shows its next cost in its cost circle,** not its printed cost, so 5 becomes 7 after a death. The printed cost isn't shown separately; the red +2 says why.
+3. **"In reach" uses the refill rule** (next turn's pool is max + 1, capped at 10). It doesn't count cost changes the board might make by then.
+4. **The return waits 420 ms after the kill** so the card shape clears the shatter, which makes a signature death about half a second longer than other Mythic deaths.
+5. **The replays take the first candidate** at each step of the generator. An owner picks by hand on the site; the replay can't.
+6. **The generated agent's name replaces the "Lookahead-Cortex" style username** in replays with signature cards. Replays without signature cards keep the old usernames.
+
+**Next:** your open render items (the website Music setting and menu music come with build-order steps 4-5). When the game lane's template names land, I'll regenerate the two signature replays so they carry them.
+
+---
+
 ## 2026-10-14 — EFFECTS.md v2 slice 7: the fallback ward generator (v2 complete) — AWAITING FEEDBACK
 
 **What this delivers:**

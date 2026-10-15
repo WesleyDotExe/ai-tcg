@@ -589,7 +589,7 @@ describe("the replay page and the FX sheet", () => {
   it("tells the music who is acting, whether they have a Mythic in play, and when a Mythic arrives", () => {
     expect(html).toContain("const side = frame.players[musSceneSide(MUS.follow(), frame.activePlayer, frame.momentum.leader)];");
     expect(html).toContain("MUS.setScene(side.faction, hasMythic(side));");
-    expect(html).toContain("if (newBoard[id].v.rarity === 'Mythic') later(causeT, function () { MUS.event('mythic', tier); });");
+    expect(html).toContain("if (newBoard[id].v.rarity === 'Mythic') later(enterT, function () { MUS.event('mythic', tier); });");
   });
 
   it("the FX sheet has a music desk running the same sources", () => {

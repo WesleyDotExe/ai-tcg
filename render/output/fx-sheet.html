@@ -103,6 +103,62 @@ html, body {
 .slot { width: 118px; height: 158px; border-radius: 6px; position: relative; flex-shrink: 0; }
 .slot.empty { border: 1px dashed var(--line); background: repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 6px, transparent 6px 12px); }
 
+/* The signature zone (render/src/sigZoneFx.ts): each agent's signature card
+ * waits here, off the board, in a white-gold socket left of its own row.
+ * Out on the board, the socket stays and says so; the cost shows the climb
+ * (+2 per replay) and the glow says when the card is within reach. */
+.side { position: relative; }
+.sigzone { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 112px; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 0.58rem; letter-spacing: 0.1em; color: var(--neutral); }
+.sigzone[hidden] { display: none; }
+.sigzone .sz-head { display: flex; gap: 6px; align-items: baseline; }
+.sigzone .sz-no { color: var(--ink-dim); letter-spacing: 0.04em; }
+.sigzone .sz-socket { width: 102px; height: 137px; border-radius: 7px; position: relative; flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--neutral) 55%, transparent);
+  background: radial-gradient(ellipse at 50% 42%, color-mix(in srgb, var(--neutral) 12%, transparent), transparent 70%),
+    repeating-linear-gradient(135deg, rgba(255,240,194,0.045) 0 5px, transparent 5px 10px), #05060b;
+  box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 14px -4px var(--neutral) inset; }
+.sigzone .sz-socket .card { position: absolute; left: 0; top: 0; transform: scale(0.864); transform-origin: top left; animation: none; transition: opacity 160ms ease; }
+.sigzone .sz-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px; padding: 8px; text-align: center; color: var(--ink-dim); letter-spacing: 0.06em; line-height: 1.3; }
+.sigzone .sz-empty b { color: var(--neutral); font-size: 0.64rem; letter-spacing: 0.14em; }
+.sigzone .sz-empty .sz-name { color: var(--ink); letter-spacing: 0.02em; }
+.sigzone .sz-foot { display: flex; gap: 5px; align-items: center; }
+.sigzone .sz-cost { border: 1px solid var(--neutral); border-radius: 3px; padding: 0 5px; font-weight: bold; }
+.sigzone .sz-climb { color: #ff8a5c; font-weight: bold; }
+.sigzone .sz-plays { color: var(--ink-dim); letter-spacing: 0.04em; }
+.sigzone .sz-reach { min-height: 1.2em; color: var(--ink-dim); }
+.sigzone.reach-next .sz-cost { border-style: dashed; }
+.sigzone.reach-next .sz-reach { color: var(--neutral); opacity: 0.75; }
+.sigzone.reach-now .sz-cost { background: var(--neutral); color: #05060d; }
+.sigzone.reach-now .sz-reach { color: var(--neutral); font-weight: bold; }
+.sigzone.reach-now .sz-socket { animation: sz-ready 1.6s ease-in-out infinite; }
+@keyframes sz-ready {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 12px 1px var(--neutral); }
+  50% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 26px 6px var(--neutral); }
+}
+/* A dead signature card is on its way home: the socket waits empty until
+ * the mote lands, then flares. */
+.sigzone.sz-awaiting .sz-socket .card { opacity: 0; }
+.sigzone.sz-landing .sz-socket { animation: sz-land 480ms ease-out; }
+@keyframes sz-land {
+  0% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 44px 14px var(--neutral); transform: scale(1.07); }
+  100% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 14px -4px var(--neutral) inset; transform: scale(1); }
+}
+.card.fx-sigfly { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
+  box-shadow: 0 0 22px var(--neutral), 0 0 0 2px var(--neutral); }
+.fx-sigmote { position: fixed; left: 0; top: 0; width: 30px; height: 40px; border-radius: 4px; pointer-events: none; z-index: 1;
+  border: 2px solid var(--neutral); background: rgba(255,240,194,0.18); box-shadow: 0 0 16px 2px var(--neutral); }
+@media (max-width: 1040px) {
+  .sigzone { position: static; transform: none; width: auto; flex-direction: row; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+  .sigzone .sz-socket { width: 51px; height: 69px; }
+  .sigzone .sz-socket .card { transform: scale(0.432); }
+  .sigzone .sz-empty { font-size: 0; gap: 0; }
+  .sigzone .sz-empty b { font-size: 0.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { .sigzone.reach-now .sz-socket, .sigzone.sz-landing .sz-socket { animation: none; } }
+
 .card { width: 118px; height: 158px; border-radius: 6px; position: relative; overflow: hidden;
   border: 1px solid var(--line); display: flex; flex-direction: column; color: #0a0e18; }
 .card .art { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; padding: 4px; }
