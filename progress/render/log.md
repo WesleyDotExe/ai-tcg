@@ -2228,3 +2228,81 @@ game-lane work (pool, names, play styles) and are left for that lane.
 Music setting and menu music belong to build-order steps 4-5), or, if the
 game lane's template names land first, regenerate the two signature
 replays so the cards carry them.
+
+## 2026-10-15 — Session 19: hardening pass (cost circle, narrow screens, generated names in the sheets)
+
+Render session by the alternation rule: the last merged PR (#55) was a game
+slice. Owner feedback read first. The only render entry since session 18
+(2026-10-15, signature zone accepted, keep all 6 calls) needs nothing
+built. The other new entries are game-lane work. The game lane's template
+names have landed (session 35), so the two signature replays are
+regenerated with them, as session 18 said they would be.
+
+**Why a hardening pass.** Eighteen render sessions, none of them a
+hardening pass, and every v2 slice is built. The next feature work (the
+website Music setting, menu music) belongs to build-order steps 4-5. So
+this session adds no new feature. It fixes three defects session 18 named
+or that I found looking, and starts a render-lane debt list
+(`progress/render/quality-debt.md`), which this lane didn't have.
+
+**Fixed:**
+- **The cost circle on board cards always showed 0.** The page had no cost
+  to give units and Directives on the board. `UnitSnapshot.printedCost` and
+  `DirectiveSnapshot.printedCost` (the card's printed cost) now fill it. A
+  signature unit shows its printed cost; its replay surcharge stays in the
+  zone, where the climb is explained.
+- **The Guard / Barrier / status badges sat on top of the cost circle.**
+  Found by zooming into a still once the circle had a real number. They now
+  sit under the card head (`top: 22px`).
+- **The page scrolled sideways below about 900 px.** Measured first: the
+  showcase was 841 px wide at every width from 360 to 768, because a plain
+  `1fr` HUD column won't shrink below its content. Now:
+  - below 900 px the HUD columns are `minmax(0, 1fr)`, the momentum gauge
+    drops under the two players, the match bar and audio controls wrap, and
+    the scrubber shrinks;
+  - below 560 px the HUDs stack in one column and the event log drops under
+    the two hands.
+- **The FX sheet's Neutral ward gallery used the old placeholder names**
+  (Consensus Lantern, Tollgate Daemon). It now shows three of the generated
+  cards the committed replays carry (`galleryNeutralNames()`).
+
+**Ran it:**
+- **Regenerated all 14 replays and both sheets.** Before the code changes,
+  only the two signature replays changed: new names and new combinations
+  from the generator. The match beats are the same moves: seed 5 still
+  plays both cards at 44 and 47, and Tamsin of the Long Queue's card, now
+  Wireburner's Anthem, dies at 103, returns at 7 and is played again at
+  117. Wren Mk II's card is now Proxyviper's Twilight Download. Seed 2 is
+  Vesper Zero (Unpatched Encore) vs Zephan of the Long Queue (Data Heist of
+  the Recycle Bin).
+- **Overflow check in headless Chromium**
+  (`progress/render/evidence/narrow-overflow-check.txt`, script alongside):
+  all 14 replays, every 3rd move, at 360, 390, 600, 768, 900 and 1280 px.
+  84 of 84 runs: 0 px of sideways overflow and 0 page errors.
+- **Stills:** `v2-s19-narrow-sig-seed5-390.png` and `-768.png` (move 90),
+  `v2-s19-cost-circle-and-guard-badge.png` (the signature unit with its 5
+  and its Guard badge apart).
+- **Tests:** render 295 (was 290). New `test/boardCost.test.ts` (5):
+  - an oracle over four real matches: every unit and Directive on every
+    frame carries the engine registry's cost, or the generated card's for
+    a signature unit;
+  - a replayed signature unit still shows its printed cost;
+  - the page passes the cost through, with no literal 0;
+  - the narrow-screen rules are pinned;
+  - the gallery uses the generated names.
+  `npm test`: 599 across six workspaces, all pass. `tsc --noEmit` clean in
+  all six.
+
+**Named honestly, not fixed** (all in the new debt list):
+- The overflow check runs from a scratch folder, not in CI. The tests only
+  pin the CSS rules.
+- At 768 px the six slots wrap 5 + 1, so a row stops reading as a row on a
+  tablet. The slots don't scale down.
+- The FX and skin sheets are still fixed at 1196 px. They're developer
+  audition grids, not spectator pages.
+- The cost circle is the printed cost. A board cost modifier, or the 7 a
+  replayed signature card paid, isn't shown on the card.
+
+**Next render-lane slice:** the top of `progress/render/quality-debt.md`.
+Scaling the slots so a row of six fits from 600 px up is the most visible
+item.

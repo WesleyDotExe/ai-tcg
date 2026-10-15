@@ -264,6 +264,25 @@ html, body {
   .sigzone .sz-empty b { font-size: 0.5rem; }
 }
 @media (prefers-reduced-motion: reduce) { .sigzone.reach-now .sz-socket, .sigzone.sz-landing .sz-socket { animation: none; } }
+/* Narrow screens: nothing may push the page sideways. The HUD columns
+ * shrink (minmax(0, 1fr): a plain 1fr won't go below its content), the
+ * gauge drops under the two players, and below 560 px everything stacks.
+ * The board rows already wrap. */
+@media (max-width: 900px) {
+  .hud-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .hud-row .momentum { grid-column: 1 / -1; order: 3; }
+  .hud { padding: 8px 10px; min-width: 0; }
+  .matchbar { flex-wrap: wrap; gap: 4px 10px; padding: 8px 12px; }
+  .controls #scrubber { width: 100%; max-width: 320px; }
+  .controls .sound-ctl { flex-wrap: wrap; justify-content: center; max-width: 100%; }
+  .lower { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .hud-row { grid-template-columns: minmax(0, 1fr); }
+  .board-row { gap: 6px; }
+  .lower { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .lower .eventlog { grid-column: 1 / -1; order: 3; }
+}
 
 .card { width: 118px; height: 158px; border-radius: 6px; position: relative; overflow: hidden;
   border: 1px solid var(--line); display: flex; flex-direction: column; color: #0a0e18; }
@@ -293,7 +312,7 @@ html, body {
  * until it's consumed; driven by the live barrierActive snapshot field,
  * not the static keywords list, so the badge correctly disappears the
  * moment the shield breaks instead of lying about a spent shield). */
-.card .shields { position: absolute; top: 2px; right: 2px; display: flex; flex-direction: column; gap: 2px; z-index: 2; }
+.card .shields { position: absolute; top: 22px; right: 3px; display: flex; flex-direction: column; gap: 2px; z-index: 2; }
 .shield-badge { font-size: 0.6rem; font-weight: bold; line-height: 1; width: 13px; height: 13px; display: flex; align-items: center; justify-content: center; border-radius: 3px; background: rgba(0,0,0,0.55); }
 .shield-badge.shield-guard { color: #cfd8e3; box-shadow: 0 0 0 1px rgba(207,216,227,0.7) inset; }
 .shield-badge.shield-barrier { color: var(--shield); box-shadow: 0 0 5px var(--shield), 0 0 0 1px var(--shield) inset; animation: shield-idle-pulse 1.8s ease-in-out infinite; }
@@ -965,13 +984,13 @@ ${SIG_ZONE_SOURCE}
 
   function renderUnitSlot(u, owner) {
     return renderCardEl(
-      { name: u.name, faction: u.faction, rarity: u.rarity, cost: 0, type: 'Unit', flavor: u.flavor, visualSeed: u.visualSeed, visualPattern: u.visualPattern },
+      { name: u.name, faction: u.faction, rarity: u.rarity, cost: u.printedCost, type: 'Unit', flavor: u.flavor, visualSeed: u.visualSeed, visualPattern: u.visualPattern },
       { stats: { attack: u.attack, health: u.health, maxHealth: u.maxHealth, printedAttack: u.printedAttack, printedHealth: u.printedHealth }, statuses: u.statuses, pending: u.pending, armTurn: u.pending ? u.armTurn : undefined, isEvolved: u.isEvolved, keywords: u.keywords, tools: u.tools, instanceId: u.instanceId, owner: owner, guard: u.keywords.indexOf('Guard') !== -1, barrierActive: u.barrierActive },
     );
   }
 
   function renderDirectiveSlot(d, owner) {
-    return renderCardEl({ name: d.name, faction: d.faction, rarity: d.rarity, cost: 0, type: 'Directive', flavor: d.flavor, visualSeed: d.visualSeed, visualPattern: d.visualPattern }, { instanceId: d.instanceId, owner: owner });
+    return renderCardEl({ name: d.name, faction: d.faction, rarity: d.rarity, cost: d.printedCost, type: 'Directive', flavor: d.flavor, visualSeed: d.visualSeed, visualPattern: d.visualPattern }, { instanceId: d.instanceId, owner: owner });
   }
 
   function renderBoard(elId, snapshot) {

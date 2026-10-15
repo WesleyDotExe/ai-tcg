@@ -1,0 +1,103 @@
+Narrow-screen overflow check, render session 19 (2026-10-15).
+Headless Chromium; each replay stepped to every 3rd move at each width;
+'max overflow' = document scrollWidth minus viewport width, in px (0 = no sideways scroll).
+Before this session, cortex-vs-aegis-sig-seed5.html at move 0 measured: 360->841, 390->841, 600->841, 768->841 (the HUD grid).
+
+== aegis-vs-aegis-seed1.html
+360 frames 123 max overflow px 0 at -1 no errors
+390 frames 123 max overflow px 0 at -1 no errors
+600 frames 123 max overflow px 0 at -1 no errors
+768 frames 123 max overflow px 0 at -1 no errors
+900 frames 123 max overflow px 0 at -1 no errors
+1280 frames 123 max overflow px 0 at -1 no errors
+== aegis-vs-cortex-seed1.html
+360 frames 154 max overflow px 0 at -1 no errors
+390 frames 154 max overflow px 0 at -1 no errors
+600 frames 154 max overflow px 0 at -1 no errors
+768 frames 154 max overflow px 0 at -1 no errors
+900 frames 154 max overflow px 0 at -1 no errors
+1280 frames 154 max overflow px 0 at -1 no errors
+== aegis-vs-cortex-seed3.html
+360 frames 142 max overflow px 0 at -1 no errors
+390 frames 142 max overflow px 0 at -1 no errors
+600 frames 142 max overflow px 0 at -1 no errors
+768 frames 142 max overflow px 0 at -1 no errors
+900 frames 142 max overflow px 0 at -1 no errors
+1280 frames 142 max overflow px 0 at -1 no errors
+== aegis-vs-cortex-seed6.html
+360 frames 114 max overflow px 0 at -1 no errors
+390 frames 114 max overflow px 0 at -1 no errors
+600 frames 114 max overflow px 0 at -1 no errors
+768 frames 114 max overflow px 0 at -1 no errors
+900 frames 114 max overflow px 0 at -1 no errors
+1280 frames 114 max overflow px 0 at -1 no errors
+== aegis-vs-null-seed3.html
+360 frames 140 max overflow px 0 at -1 no errors
+390 frames 140 max overflow px 0 at -1 no errors
+600 frames 140 max overflow px 0 at -1 no errors
+768 frames 140 max overflow px 0 at -1 no errors
+900 frames 140 max overflow px 0 at -1 no errors
+1280 frames 140 max overflow px 0 at -1 no errors
+== cortex-vs-aegis-sig-seed2.html
+360 frames 93 max overflow px 0 at -1 no errors
+390 frames 93 max overflow px 0 at -1 no errors
+600 frames 93 max overflow px 0 at -1 no errors
+768 frames 93 max overflow px 0 at -1 no errors
+900 frames 93 max overflow px 0 at -1 no errors
+1280 frames 93 max overflow px 0 at -1 no errors
+== cortex-vs-aegis-sig-seed5.html
+360 frames 130 max overflow px 0 at -1 no errors
+390 frames 130 max overflow px 0 at -1 no errors
+600 frames 130 max overflow px 0 at -1 no errors
+768 frames 130 max overflow px 0 at -1 no errors
+900 frames 130 max overflow px 0 at -1 no errors
+1280 frames 130 max overflow px 0 at -1 no errors
+== cortex-vs-null-seed5.html
+360 frames 103 max overflow px 0 at -1 no errors
+390 frames 103 max overflow px 0 at -1 no errors
+600 frames 103 max overflow px 0 at -1 no errors
+768 frames 103 max overflow px 0 at -1 no errors
+900 frames 103 max overflow px 0 at -1 no errors
+1280 frames 103 max overflow px 0 at -1 no errors
+== cortex-vs-swarm-seed11.html
+360 frames 114 max overflow px 0 at -1 no errors
+390 frames 114 max overflow px 0 at -1 no errors
+600 frames 114 max overflow px 0 at -1 no errors
+768 frames 114 max overflow px 0 at -1 no errors
+900 frames 114 max overflow px 0 at -1 no errors
+1280 frames 114 max overflow px 0 at -1 no errors
+== cortex-vs-swarm-seed6.html
+360 frames 111 max overflow px 0 at -1 no errors
+390 frames 111 max overflow px 0 at -1 no errors
+600 frames 111 max overflow px 0 at -1 no errors
+768 frames 111 max overflow px 0 at -1 no errors
+900 frames 111 max overflow px 0 at -1 no errors
+1280 frames 111 max overflow px 0 at -1 no errors
+== null-vs-cortex-seed4.html
+360 frames 158 max overflow px 0 at -1 no errors
+390 frames 158 max overflow px 0 at -1 no errors
+600 frames 158 max overflow px 0 at -1 no errors
+768 frames 158 max overflow px 0 at -1 no errors
+900 frames 158 max overflow px 0 at -1 no errors
+1280 frames 158 max overflow px 0 at -1 no errors
+== null-vs-swarm-seed2.html
+360 frames 83 max overflow px 0 at -1 no errors
+390 frames 83 max overflow px 0 at -1 no errors
+600 frames 83 max overflow px 0 at -1 no errors
+768 frames 83 max overflow px 0 at -1 no errors
+900 frames 83 max overflow px 0 at -1 no errors
+1280 frames 83 max overflow px 0 at -1 no errors
+== swarm-vs-aegis-seed8.html
+360 frames 64 max overflow px 0 at -1 no errors
+390 frames 64 max overflow px 0 at -1 no errors
+600 frames 64 max overflow px 0 at -1 no errors
+768 frames 64 max overflow px 0 at -1 no errors
+900 frames 64 max overflow px 0 at -1 no errors
+1280 frames 64 max overflow px 0 at -1 no errors
+== swarm-vs-null-seed8.html
+360 frames 110 max overflow px 0 at -1 no errors
+390 frames 110 max overflow px 0 at -1 no errors
+600 frames 110 max overflow px 0 at -1 no errors
+768 frames 110 max overflow px 0 at -1 no errors
+900 frames 110 max overflow px 0 at -1 no errors
+1280 frames 110 max overflow px 0 at -1 no errors
