@@ -2595,3 +2595,12 @@ Owner decision. This **replaces the "it's a finish, not a stronger card" part** 
 - **The engine needs a generic "choose one" mechanic.** The choice is made when the card is played, it's offered to agents as separate legal moves, it's logged, and the replays show it.
 - Add modal cards in future card-set work, every faction included. Keep the ring regression checks in band, and check that the agents actually use both modes, not always the same one.
 - Propose where this fits in the build order (after the current steps, or alongside the next set work) at the next check-in.
+
+---
+
+## 2026-10-16 — Owner: top-tier card guardrails decided
+
+Owner decision. This closes the "guardrails are still open" item in today's top-tier card amendment.
+
+- **Only 1 copy per deck** of each top-tier card.
+- **They're allowed in ranked play and tournaments.** Their strength stays limited by the fairness-test cap (to be proposed with the measurements).
