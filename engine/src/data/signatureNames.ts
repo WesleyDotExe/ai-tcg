@@ -6,11 +6,15 @@
 // grammatical slots, never words strung together at random, so every result
 // reads as a name:
 //
-//   [Handle]'s [Modifier] [Thing]     Zion's Midnight DDoS        (triple)
-//   [Modifier] [Thing]                Ultraviolet Firewall         (double)
-//   [Thing] of [Place]                Honeypot of the Dead Mall    (double)
-//   [Handle]'s [Thing]                Glitchmoth's Paywall         (double)
-//   [Modifier] [Thing] [Edition]      Dial-Up Rollback 2000        (triple)
+//   [Handle]'s [Modifier] [Thing]     Zion's Midnight DDoS        41%
+//   [Handle]'s [Thing]                Glitchmoth's Paywall        20%
+//   [Thing] of the [Place]            Honeypot of the Dead Mall   30%
+//   [Modifier] [Thing]                Ultraviolet Firewall         5%
+//   [Modifier] [Thing] [Edition]      Dial-Up Rollback 2000        4%
+//
+// The weights are the owner's (2026-10-16): the "[Handle]'s" patterns about
+// 60%, "of the [Place]" about 30%, and the bare two-word and edition names
+// 10% or less, since those read weakest.
 //
 // Each word list is tagged by its slot. Handles are hacker handles: a short
 // hand-written list, plus compounds of a tech prefix and a creature-or-role
@@ -25,8 +29,19 @@
 // a taken name is re-rolled too.
 //
 // Rarely, the handle is the owner's own username ("[username]'s Midnight
-// DDoS"): USERNAME_HANDLE_ODDS per candidate, only when the username passes
-// the same filter. The odds are a proposal for the owner's check-in.
+// DDoS"): 1 candidate in USERNAME_HANDLE_ODDS (owner 2026-10-16: 1 in 100),
+// only when the username passes the same filter.
+//
+// Agent names share the generator (owner 2026-10-16: the same themed
+// treatment, hacker-handle style, and the same favoured patterns):
+//
+//   [Handle]'s [Program]              Bytewolf's Daemon           61%
+//   [Handle] of the [Place]           Hexmoth of the Undernet     30%
+//   [Modifier] [Handle]               Midnight Glitchmoth          5%
+//   [Handle] [Edition]                Phreakhawk 2000              4%
+//
+// A Program is what an AI agent is, in the theme's words: a daemon, a
+// ghost, a copilot, a construct.
 //
 // All lists are original. No handle, place or product here is a character,
 // location or trademark from an existing work.
@@ -34,8 +49,8 @@
 import type { Rng } from "../state/rng.js";
 
 /** One candidate in this many puts the owner's username in the handle
- * slot (proposal, owner check-in: about one draft in ten shows one). */
-export const USERNAME_HANDLE_ODDS = 30;
+ * slot (owner 2026-10-16, option C: a real rarity, about one draft in 33). */
+export const USERNAME_HANDLE_ODDS = 100;
 /** Longest name the card frame takes. */
 export const MAX_NAME_LENGTH = 30;
 /** How often the Thing is a generic retro-tech object rather than one that
@@ -202,7 +217,7 @@ const PLACES = [
   "the Rain City", "the Night Rain", "the Deep Web", "the Lost Floppy", "the Burned CD", "the Arcade Strip", "the Laser Tag Arena", "the Parking Garage",
   "the Phone Lines", "the Pirate Station", "the Signal Tower", "the Junkyard", "the Chrome Bazaar", "the Glass Tower", "the Old Network", "the Ninth Floor",
   "the Loading Screen", "the Error Log", "the Recycle Bin", "the Test Server", "the Clean Room", "the Mirror Site", "the Hologram Booth", "the Night Bus",
-  "Sector Eleven", "Sector Zero", "Channel Nine", "Floor Thirteen", "Port 80", "Block C", "Platform Six", "Grid Square Four",
+  "the Eleventh Sector", "the Zero Sector", "the Late Channel", "the Thirteenth Floor", "the Open Port", "the Back Room", "the Last Platform", "the Outer Grid",
 ];
 
 // ---- slot: edition ----
@@ -211,14 +226,37 @@ const EDITIONS = ["2000", "3000", "'95", "'97", "'99", "XL", "Deluxe", "Pro", "P
 
 // ---- templates ----
 
-type Template = "handleModThing" | "modThing" | "thingOfPlace" | "handleThing" | "modThingEdition";
-/** Weights: the owner's example (triple, with a handle) leads. */
-const TEMPLATES: readonly [Template, number][] = [
-  ["handleModThing", 40],
-  ["modThing", 25],
-  ["thingOfPlace", 15],
-  ["handleThing", 10],
-  ["modThingEdition", 10],
+export type Template = "handleModThing" | "handleThing" | "thingOfPlace" | "modThing" | "modThingEdition";
+/** Weights out of 100 (owner 2026-10-16): the [Handle]'s patterns 61, "of
+ * the [Place]" 30, bare two-word and edition names 9 together (the owner
+ * asked for 10% or less, so this sits under it with room for noise). */
+export const TEMPLATE_WEIGHTS: readonly [Template, number][] = [
+  ["handleModThing", 41],
+  ["handleThing", 20],
+  ["thingOfPlace", 30],
+  ["modThing", 5],
+  ["modThingEdition", 4],
+];
+
+export type AgentTemplate = "handleProgram" | "handleOfPlace" | "modHandle" | "handleEdition";
+/** Agent names use the same split (owner 2026-10-16: "the same goes for the
+ * themed agent names, where they share the generator"). */
+export const AGENT_TEMPLATE_WEIGHTS: readonly [AgentTemplate, number][] = [
+  ["handleProgram", 61],
+  ["handleOfPlace", 30],
+  ["modHandle", 5],
+  ["handleEdition", 4],
+];
+
+// ---- slot: program (agent names only) ----
+
+/** What an AI agent is, in the theme's words. Original, generic nouns. */
+const PROGRAMS = [
+  "Daemon", "Ghost", "Copilot", "Autopilot", "Construct", "Familiar", "Oracle", "Proxy", "Avatar", "Sidekick",
+  "Shadow", "Clone", "Twin", "Echo", "Doppelganger", "Understudy", "Apprentice", "Protege", "Prodigy", "Copycat",
+  "Spectre", "Mirror", "Instance", "Process", "Subroutine", "Algorithm", "Engine", "Machine", "Automaton", "Android",
+  "Droid", "Bot", "Mind", "Brain", "Script", "Macro", "Wingman", "Gambit", "Ace", "Champion",
+  "Stand-In", "Ringer", "Hustler", "Operator", "Navigator", "Analyst", "Strategist", "Pupil", "Protocol", "Intelligence",
 ];
 
 /** Every handle the generator can use: the plain list and the compounds the
@@ -239,7 +277,7 @@ export const HANDLES: readonly string[] = (() => {
 })();
 
 /** The slot lists, read-only, for tests and the sample report. */
-export const NAME_LISTS = { modifiers: MODIFIERS, things: THINGS, generic: GENERIC_THINGS, places: PLACES, editions: EDITIONS, groupOf: THING_GROUP_OF };
+export const NAME_LISTS = { modifiers: MODIFIERS, things: THINGS, generic: GENERIC_THINGS, places: PLACES, editions: EDITIONS, programs: PROGRAMS, groupOf: THING_GROUP_OF };
 
 /** A name the filter refuses, and why; undefined when it's fine. */
 export function namingProblem(name: string): string | undefined {
@@ -281,34 +319,78 @@ export function usernameHandle(username: string | undefined): string | undefined
  * ability runs to millions (signatureNameSpace), so this ends fast.
  */
 export function signatureCardName(rng: Rng, ability: string, used: ReadonlySet<string>, opts: { username?: string } = {}): string {
+  return drawSignatureCardName(rng, ability, used, opts).name;
+}
+
+/** signatureCardName, also saying which template the name came from (for
+ * the sample report and the weight test). */
+export function drawSignatureCardName(
+  rng: Rng,
+  ability: string,
+  used: ReadonlySet<string>,
+  opts: { username?: string } = {},
+): { name: string; template: Template; username: boolean } {
   const owned = usernameHandle(opts.username);
   const useOwner = owned !== undefined && rng.int(USERNAME_HANDLE_ODDS) === 0;
+  // The template is drawn once and only its words are re-rolled, so the
+  // filter (which refuses long triples more often) can't skew the owner's
+  // 60 / 30 / 10 split. The username goes into handle templates only; after
+  // a few misses (taken or filtered), a generated handle takes its place.
+  const template: Template = useOwner ? (rng.int(3) === 0 ? "handleThing" : "handleModThing") : weighted(rng, TEMPLATE_WEIGHTS);
   for (let attempt = 0; attempt < 10_000; attempt++) {
-    // The username only goes into templates with a handle; after a few
-    // misses (taken or filtered), fall back to a generated handle.
-    const name = composeName(rng, ability, useOwner && attempt < 50 ? owned : undefined);
-    if (!used.has(name) && namingProblem(name) === undefined) return name;
+    const withOwner = useOwner && attempt < 50;
+    const name = composeName(rng, template, ability, withOwner ? owned : undefined);
+    if (!used.has(name) && namingProblem(name) === undefined) return { name, template, username: withOwner };
   }
   throw new Error(`signatureCardName: no free name for ${ability} after 10,000 tries`);
 }
 
-function composeName(rng: Rng, ability: string, ownerHandle: string | undefined): string {
-  const template = ownerHandle ? (rng.int(5) === 0 ? "handleThing" : "handleModThing") : weighted(rng, TEMPLATES);
+/**
+ * A themed agent name (owner 2026-10-16), never one in `used`: a hacker
+ * handle with what the agent is ("Bytewolf's Daemon"), or where it runs
+ * ("Hexmoth of the Undernet"). Same filter as card names.
+ */
+export function agentName(rng: Rng, used: ReadonlySet<string>): string {
+  // As for card names: one template, words re-rolled, so the split holds.
+  const template = weighted(rng, AGENT_TEMPLATE_WEIGHTS);
+  for (let attempt = 0; attempt < 10_000; attempt++) {
+    const handle = rng.pick(HANDLES as string[]);
+    let name: string;
+    switch (template) {
+      case "handleProgram":
+        name = `${handle}'s ${rng.pick(PROGRAMS)}`;
+        break;
+      case "handleOfPlace":
+        name = `${handle} of ${rng.pick(PLACES)}`;
+        break;
+      case "modHandle":
+        name = `${rng.pick(MODIFIERS)} ${handle}`;
+        break;
+      case "handleEdition":
+        name = `${handle} ${rng.pick(EDITIONS)}`;
+        break;
+    }
+    if (!used.has(name) && namingProblem(name) === undefined) return name;
+  }
+  throw new Error("agentName: no free name after 10,000 tries");
+}
+
+/** How many distinct agent names the templates can make (before the
+ * filter). */
+export function agentNameSpace(): number {
+  const h = HANDLES.length;
+  return h * PROGRAMS.length + h * PLACES.length + MODIFIERS.length * h + h * EDITIONS.length;
+}
+
+function composeName(rng: Rng, template: Template, ability: string, ownerHandle: string | undefined): string {
   const handle = ownerHandle ?? rng.pick(HANDLES as string[]);
   const thing = pickThing(rng, ability);
   const mod = rng.pick(MODIFIERS);
-  switch (template) {
-    case "handleModThing":
-      return `${handle}'s ${mod} ${thing}`;
-    case "modThing":
-      return `${mod} ${thing}`;
-    case "thingOfPlace":
-      return `${thing} of ${rng.pick(PLACES)}`;
-    case "handleThing":
-      return `${handle}'s ${thing}`;
-    case "modThingEdition":
-      return `${mod} ${thing} ${rng.pick(EDITIONS)}`;
-  }
+  return template === "handleModThing" ? `${handle}'s ${mod} ${thing}`
+    : template === "handleThing" ? `${handle}'s ${thing}`
+    : template === "thingOfPlace" ? `${thing} of ${rng.pick(PLACES)}` // every place starts "the"
+    : template === "modThing" ? `${mod} ${thing}`
+    : `${mod} ${thing} ${rng.pick(EDITIONS)}`;
 }
 
 function pickThing(rng: Rng, ability: string): string {

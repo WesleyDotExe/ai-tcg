@@ -2464,7 +2464,7 @@ Owner decision on the signature zone checkpoint in `progress/render/checkpoints.
 
 ---
 
-## 2026-10-16 — Owner: answers to session 35's check-in (username odds, art pool, build order, agent names)
+## 2026-10-16 — Owner: answers to session 35's check-in (username odds, art pool, build order, agent names, HANDLED 2026-10-16, session 36 — 1: `USERNAME_HANDLE_ODDS` = 100, the other rules unchanged; 2: schema v8, every signature card records a random slot of its season's 500-piece pool when made and keeps it (cards made before v8 drew one in the migration), its art reference names the slot; 3: step 1 of the order is built, pack contents and opening (`economy/src/packs.ts`, schema v8, `progress/pack-sim-001.txt`, `progress/economy-demo-006.txt`), the deck-building agent is next; 4: agent names come from the card-name generator, hacker-handle style, samples in `progress/signature-names-sample-002.txt`; the four calls stand)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 35).
 
@@ -2493,7 +2493,7 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ---
 
-## 2026-10-16 — Owner: favour the "[Handle]'s ..." and "... of the [Place]" name patterns
+## 2026-10-16 — Owner: favour the "[Handle]'s ..." and "... of the [Place]" name patterns (HANDLED 2026-10-16, session 36 — weights 41 [Handle]'s [Modifier] [Thing] + 20 [Handle]'s [Thing] = 61, 30 "[Thing] of the [Place]" (every place now starts "the"), 5 bare + 4 edition = 9, under your 10% with room for noise; the template is drawn first and only its words re-rolled, so the filter can't skew the split (measured 61.0 / 29.8 / 9.2 over 20,000 names); agent names use the same 61 / 30 / 9; fresh samples in `progress/signature-names-sample-002.txt`)
 
 Owner decision on the session-35 name samples (`progress/signature-names-sample-001.txt`).
 

@@ -1,29 +1,66 @@
-// Prints sample signature card names for the owner's check-in (owner
-// 2026-10-15: "show sample names at a checkpoint before they go live").
-// Session 35. Everything is seeded, so the file reproduces exactly.
+// Prints sample signature card names and agent names for the owner's
+// check-in (owner 2026-10-15: "show sample names at a checkpoint before they
+// go live"; 2026-10-16: favour the [Handle]'s and "of the [Place]" patterns,
+// show a fresh sample, and give agent names the same treatment). Session 35,
+// updated session 36. Everything is seeded, so the file reproduces exactly.
 //
-// Usage (from engine/): npx tsx src/dev/signatureNameSamples.ts > ../progress/signature-names-sample-001.txt
+// Usage (from engine/): npx tsx src/dev/signatureNameSamples.ts > ../progress/signature-names-sample-002.txt
 
 import { Rng } from "../state/rng.js";
 import { SIGNATURE_MENU } from "../data/signatureMenu.js";
 import { CARD_REGISTRY } from "../data/registry.js";
 import { APPROVED_SIGNATURE_LINES } from "../data/signatureApproved.js";
 import { generateAgentCandidates, generateSignatureCandidates } from "../data/agentGenerator.js";
-import { HANDLES, NAME_LISTS, USERNAME_HANDLE_ODDS, signatureCardName, signatureNameSpace } from "../data/signatureNames.js";
+import {
+  AGENT_TEMPLATE_WEIGHTS,
+  HANDLES,
+  NAME_LISTS,
+  TEMPLATE_WEIGHTS,
+  USERNAME_HANDLE_ODDS,
+  agentName,
+  agentNameSpace,
+  drawSignatureCardName,
+  signatureCardName,
+  signatureNameSpace,
+} from "../data/signatureNames.js";
 
 const out: string[] = [];
 const say = (s = "") => out.push(s);
 const setNames = new Set([...CARD_REGISTRY.values()].map((c) => c.name));
 
-say("AI-TCG signature card names: samples for the owner's check-in (session 35)");
+say("AI-TCG signature card and agent names: fresh samples for the owner (session 36)");
 say("Generator: engine/src/data/signatureNames.ts. Command: npx tsx src/dev/signatureNameSamples.ts (from engine/).");
+say("Owner 2026-10-16: the [Handle]'s patterns ~60%, \"of the [Place]\" ~30%, bare two-word and edition names");
+say("10% or less; the username 1 candidate in 100; agent names get the same themed treatment.");
 say();
-say("Templates (weights): [Handle]'s [Modifier] [Thing] 40, [Modifier] [Thing] 25, [Thing] of [Place] 15,");
-say("[Handle]'s [Thing] 10, [Modifier] [Thing] [Edition] 10. The Thing hints at the ability 80% of the time,");
-say("otherwise it is a generic retro-tech object. Filter: no word repeated across slots, 30 characters at most,");
-say("no blocked word. A taken name (a set card or another signature card) is re-rolled.");
+const label: Record<string, string> = {
+  handleModThing: "[Handle]'s [Modifier] [Thing]",
+  handleThing: "[Handle]'s [Thing]",
+  thingOfPlace: "[Thing] of the [Place]",
+  modThing: "[Modifier] [Thing]",
+  modThingEdition: "[Modifier] [Thing] [Edition]",
+  handleProgram: "[Handle]'s [Program]",
+  handleOfPlace: "[Handle] of the [Place]",
+  modHandle: "[Modifier] [Handle]",
+  handleEdition: "[Handle] [Edition]",
+};
+say("Card name templates (weights): " + TEMPLATE_WEIGHTS.map(([t, w]) => `${label[t]} ${w}`).join(", ") + ".");
+say("The Thing hints at the ability 80% of the time, otherwise it is a generic retro-tech object. The template");
+say("is drawn once and only its words are re-rolled, so the filter can't skew the split. Filter: no word repeated");
+say("across slots, 30 characters at most, no blocked word. A taken name (a set card or another signature card)");
+say("is re-rolled.");
+{
+  const rng = new Rng(1016);
+  const n = 20_000;
+  const counts = new Map<string, number>();
+  for (let i = 0; i < n; i++) {
+    const t = drawSignatureCardName(rng, SIGNATURE_MENU[i % SIGNATURE_MENU.length]!.key, new Set()).template;
+    counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  say(`Measured over ${n.toLocaleString("en-US")} names: ` + TEMPLATE_WEIGHTS.map(([t]) => `${label[t]} ${((100 * (counts.get(t) ?? 0)) / n).toFixed(1)}%`).join(", ") + ".");
+}
 say();
-say(`List sizes: ${HANDLES.length} handles, ${NAME_LISTS.modifiers.length} modifiers, ${NAME_LISTS.places.length} places, ${NAME_LISTS.editions.length} editions, ${NAME_LISTS.generic.length} generic things,`);
+say(`List sizes: ${HANDLES.length} handles, ${NAME_LISTS.modifiers.length} modifiers, ${NAME_LISTS.places.length} places (all "the ..."), ${NAME_LISTS.editions.length} editions, ${NAME_LISTS.generic.length} generic things,`);
 say(`and per ability group: ${Object.entries(NAME_LISTS.things).map(([g, t]) => `${g} ${t.length}`).join(", ")}.`);
 say();
 say("Name space per menu option (before the filter):");
@@ -45,7 +82,7 @@ for (const ability of [...new Set(APPROVED_SIGNATURE_LINES.map((l) => l.spec.abi
   say();
 }
 
-say(`2. The rare username variant (1 candidate in ${USERNAME_HANDLE_ODDS}), shown here forced on, for three example usernames`);
+say(`2. The rare username variant (1 candidate in ${USERNAME_HANDLE_ODDS}, about one draft in 33), shown here forced on, for three example usernames`);
 say();
 for (const [k, username] of ["zion", "Neon_Fan99", "kestrel"].entries()) {
   const r = new Rng(7 + k);
@@ -59,7 +96,25 @@ for (const [k, username] of ["zion", "Neon_Fan99", "kestrel"].entries()) {
 }
 say();
 
-say("3. Ten complete \"Generate a new agent\" drafts (agent picked = the first; its 3 signature cards)");
+say("3. Agent names (owner 2026-10-16: hacker-handle style, the same favoured patterns)");
+say();
+say("Agent name templates (weights): " + AGENT_TEMPLATE_WEIGHTS.map(([t, w]) => `${label[t]} ${w}`).join(", ") + ".");
+say(`A Program is what an AI agent is, in the theme's words (${NAME_LISTS.programs.length}: ${NAME_LISTS.programs.slice(0, 8).join(", ")}, ...).`);
+say(`Name space: ${agentNameSpace().toLocaleString("en-US")} before the filter. They replace session 34's "Ilsa Delta" / "Talis Echo" style.`);
+say();
+{
+  const rng = new Rng(36);
+  const used = new Set<string>();
+  const names = Array.from({ length: 36 }, () => {
+    const n = agentName(rng, used);
+    used.add(n);
+    return n;
+  });
+  for (let i = 0; i < names.length; i += 3) say(`    ${names.slice(i, i + 3).map((n) => n.padEnd(32)).join("")}`.trimEnd());
+}
+say();
+
+say("4. Ten complete \"Generate a new agent\" drafts (agent picked = the first; its 3 signature cards)");
 say();
 const taken = { agentNames: new Set<string>(), cardNames: new Set(setNames) };
 for (let d = 0; d < 10; d++) {

@@ -1,0 +1,57 @@
+AI-TCG pack simulation (session 36)
+Set S0 "Season Zero": 96 cards. Odds table S0-odds-1 (economy/src/config.ts PACK_ODDS).
+Command (from economy/): npx tsx src/dev/packSimulation.ts. Every pack is rollPack(seed, ...), the function openPack uses.
+
+1. Published rates against 400,000 simulated packs (pity off, so these are the base odds)
+
+   what                              published      measured
+   Rare slot is a Mythic             1 in 8 (12.5%) 12.445%
+   Shine slot Standard               ~56%           56.025%
+   Shine slot Foil                   30%            30.010%
+   Shine slot Full Art               10%            10.008%
+   Shine slot Alt Art (R/M only)     ~1 in 30       3.275%
+   Shine slot Gold                   ~1 in 150      0.682%
+   Jackpot pack                      ~1 in 2,000    0.049%
+   Prototype bonus 6th card          1 in 1,000     0.099%
+
+   Shine slot rarity (PROPOSED weights 60 / 25 / 12 / 3; an Alt Art roll draws a Rare or Mythic):
+   Common 57.92%, Uncommon 24.35%, Rare 14.16%, Mythic 3.57%
+   Any Mythic in a pack (Rare slot or shine slot): about 16.01% of packs.
+   Every card, every slot (2,000,395 cards): standard 91.148%, foil 6.029%, fullArt 2.010%, altArt 0.655%, gold 0.137%, prototype 0.020%
+
+2. Pity per owner: 2,000 owners x 120 packs each, timers carried pack to pack as openPack does
+
+   Full Art or better pity (after 10 dry packs) fired in 3.59% of packs; the longest dry run was 10.
+   Mythic pity (after 40 dry packs) fired in 0.011% of packs; the longest dry run was 40.
+   ("Full Art or better" = fullArt, altArt, gold, prototype. With ~14% of packs naturally Full Art or better,
+   10 dry packs in a row is about a 1 in 5 event, so the timer fires often; with ~16% of packs holding a
+   Mythic, 40 dry packs is rare, so that timer is a backstop. Both numbers are the owner's.)
+
+3. Prototypes found across a season, by packs opened season-wide (the real 1 in 1,000 rate; runs used up as found)
+
+   run     card                         size     @250k   @500k @1,000k @2,000k
+   S0-P01  Null Singularity                1         0       1       1       1
+   S0-P02  Prime Aegis                     5         2       3       5       5
+   S0-P03  Quorum Arbiter                 10         4       4       5      10
+   S0-P04  Hive Mother                    25         6       9      20      25
+   S0-P05  Kernel Panic                   25         3       5      13      25
+   S0-P06  Overclock Beast                50         4      12      33      50
+   S0-P07  Aegis Warden                   50        10      16      28      50
+   S0-P08  Mainframe Core                 50         9      19      33      50
+   S0-P09  Bloodswarm Alpha              100        13      32      65     100
+   S0-P10  Entropy Harvester             100        13      29      69     100
+   S0-P11  Uplink Tower                  100        14      34      77     100
+   S0-P12  Recursive Construct           250        45      86     170     250
+   S0-P13  Latent Ward                   250        36      77     170     250
+   S0-P14  Dormant Egg Sac               250        29      66     152     250
+   S0-P15  Watchdog Timer                250        35      84     165     250
+   all 15                               1516       223     477    1006    1516
+   449 bonus Golds once every run had run out. A run is picked in proportion to the copies it has left,
+   so every run empties at about the same pace, share for share; the 1/1 is as likely to go early as late.
+   For scale: 1,000,000 packs is 100,000,000 credits, or 3,333,333 first-win-of-the-day payouts.
+
+4. Packs to see every card of the set at least once (500 simulated owners, pity on)
+
+   median 130 packs (10th percentile 96, 90th 188); every Mythic: median 45.
+   At 100 credits a pack, the median is 13,000 credits. Crafting with pack points (5 a pack) and the
+   starter packs shorten this; a playable deck needs far less than the whole set.

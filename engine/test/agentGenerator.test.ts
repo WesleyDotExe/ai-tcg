@@ -48,6 +48,14 @@ describe("generateAgentCandidates", () => {
     for (const x of b) expect(a.map((y) => y.name)).not.toContain(x.name);
   });
 
+  it("gives hacker-handle names (owner 2026-10-16), and the 3 on a pick screen never share a final word", () => {
+    for (let seed = 0; seed < 300; seed++) {
+      const names = generateAgentCandidates(seed, none).map((c) => c.name);
+      expect(new Set(names.map((n) => n.split(" ").at(-1))).size, names.join(" | ")).toBe(3);
+      for (const n of names) expect(n, n).toMatch(/'s | of the |^\S+ \S+( \S+)?$/);
+    }
+  });
+
   it("still finds free names when almost every name is taken", () => {
     const taken = new Set<string>();
     for (let seed = 0; seed < 400; seed++) for (const c of generateAgentCandidates(seed, { agentNames: taken })) taken.add(c.name);

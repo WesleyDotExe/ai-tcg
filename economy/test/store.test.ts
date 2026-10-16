@@ -37,7 +37,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(7);
+    expect(a.schemaVersion).toBe(8);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -46,7 +46,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(7);
+    expect(b.schemaVersion).toBe(8);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -194,7 +194,7 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
 
     // v6 -> v7: combinations may repeat (owner 2026-10-15). The table is
     // rebuilt with its rows; the rules that name it still hold.
-    const v7 = open(path);
+    const v7 = open(path, 7);
     expect(v7.schemaVersion).toBe(7);
     expect(v7.signatureCard(made.agent.agentId)).toMatchObject({ collectorNumber: "PR-003", comboId: made.signature.comboId, fingerprint: made.signature.fingerprint });
     rawTwin(v7, 51);
@@ -206,6 +206,20 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
       v7.grantCopy({ ownerId: "owner-a1", cardId: cortex, origin: "promo", originRef: `signature:${twin.agentId}`, seriesKind: "promo", seriesCode: "PR-051", stamp: "SIGNATURE" }),
     ).toThrow(/own signature card/);
     v7.close();
+
+    // v7 -> v8: the art pool and pack opening (session 36). Cards made
+    // before v8 draw their art slot in the migration, and keep it.
+    const v8 = open(path);
+    expect(v8.schemaVersion).toBe(8);
+    for (const agentId of [made.agent.agentId, twin.agentId]) {
+      const art = v8.signatureCard(agentId)!.art!;
+      expect(art.pool).toBe("S0");
+      expect(art.slot).toBeGreaterThanOrEqual(1);
+      expect(art.slot).toBeLessThanOrEqual(500);
+    }
+    expect(v8.signatureCard(made.agent.agentId)!.card.art).toMatch(/^placeholder:signature-pool\/S0\/\d{3}$/);
+    expect(() => v8.unsafeExec(`UPDATE signature_cards SET art_slot = 1`)).toThrow(/keeps its art/);
+    v8.close();
   });
 });
 

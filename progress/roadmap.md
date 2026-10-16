@@ -315,8 +315,11 @@ start a step until the one before works and its tests pass):
      pass); combinations may repeat (schema v7); themed templated card
      names with the rare username variant. Raised as an [OWNER CHECK-IN]:
      username odds, the art pool plan, and the proposed order below.
-  2b. PROPOSED (session 35 check-in; default): item 5's pack contents and
-     opening; then the deck-building agent (best faction and deck from the
+  2b. ACCEPTED (owner 2026-10-16). DONE (session 36): item 5's pack contents
+     and opening (set S0, the odds table, pity, Prototypes, NEW and "x N
+     owned", 1- or 10-pack opening, pack points, crafting; schema v8, also
+     the signature art-pool slot; pack-sim-001, economy-demo-006). NEXT: the
+     deck-building agent (best faction and deck from the
      owner's holdings, or the owner's forced deck/faction); then ~6 play
      styles with a fairness ring (owner-picked preset, applies from the
      next match). Then step 3, exposing both settings.
@@ -327,13 +330,15 @@ start a step until the one before works and its tests pass):
   4-6. Website basics; the widget board and look; live play features
      (render lane builds the visuals; see owner-feedback 2026-10-05).
 
-5. Economy build, to ECONOMY.md (the finish list, pull rates and starter
+5. MOSTLY DONE (session 36). Economy build, to ECONOMY.md (the finish list, pull rates and starter
    shape were answered 2026-10-04): sets with collector numbers, a set
    symbol and Gold secrets; pack contents and opening (5 cards + the shine
    slot, pity timers per owner, pack points, the Prototype bonus 6th card,
    tested by simulation; results show NEW and "×N owned", never salvage
    anything: salvage is manual, built session 30);
    promo issuing (PR-001 numbering, stamps); 10-pack bulk opening.
+   Still open: general promo issuing (milestones, quests), retiring unpulled
+   Prototype runs at season end, the published-odds page, an owner interface.
    DONE already: ownership-gated decks (session 28), starter collections and
    salvage (session 29).
 7. Unique Mythic (signature card), owner-decided 2026-10-05 (Neutral, 3

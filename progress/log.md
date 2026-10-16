@@ -2786,3 +2786,64 @@ hardening pass.
 
 **Blocked:** nothing; the check-in has defaults. Next: render (alternation), then pack contents and
 opening.
+
+
+## 2026-10-16 — Session 36 (owner's 2026-10-16 answers: username odds, the art pool, agent names, name patterns; pack contents and opening)
+
+Game-lane session: the last merged PR (#56) was render. Owner feedback first. Both 2026-10-16
+entries are handled and marked: the answers to session 35, and the name patterns. Not a hardening
+pass (session 36).
+
+**Built:**
+- **Names.**
+  - The username is used 1 candidate in 100.
+  - Pattern weights are 61 / 30 / 9. The template is drawn once and only its words re-rolled. The
+    old loop re-drew the template on every refusal, which pushed the handle share down to 54%,
+    because long [Handle]'s triples hit the length cap more often.
+  - Every place starts "the".
+  - Agent names come from the same generator: [Handle]'s [Program], [Handle] of the [Place], etc.
+    They replace the session-34 fantasy names, and a pick screen's 3 never share a final word.
+- **The art-pool slot** (schema v8). Each signature card records `art_pool` and `art_slot` when it
+  is made, and keeps them. Older cards drew a slot in the migration.
+- **Pack contents and opening** (roadmap item 5):
+  - set S0 with collector and Gold numbers;
+  - `PACK_ODDS` as one versioned table;
+  - a pure `rollPack`;
+  - `pack_openings` (append-only, with its seed);
+  - pity from history;
+  - the Prototype bonus, with serials and a Gold fallback;
+  - NEW and "×N owned";
+  - 1- or 10-pack opening with a summary and full-reveal flags;
+  - 5 pack points per pack;
+  - crafting up to the playable limit.
+
+**Ran it:**
+- the pack simulation, about 10 seconds;
+- the store demo in a real database file (it reproduces exactly);
+- the name samples;
+- `npm test`: 622/622; `tsc` clean in all six workspaces.
+
+**Result:**
+- Every published rate is within noise over 400,000 packs.
+- The Full Art pity fires in 3.6% of packs, and the Mythic pity almost never fires.
+- Seeing the whole set takes a median of 130 packs.
+- At 1 in 1,000, about 223 Prototypes are found per 250,000 packs season-wide, so a small Season 0
+  will likely see none (raised).
+- The first demo run crashed on crafting: the script picked an Uncommon it couldn't afford, a demo
+  bug and not a store bug. It's fixed. A crafting test was flaky (unseeded packs could pull the
+  Mythic it used); it's fixed with fixed seeds.
+
+**Raised as an [OWNER CHECK-IN]:**
+- the shine slot's rarity weights;
+- Alt Art on Rares and Mythics;
+- the 15 Prototype cards;
+- Prototypes in Season 0.
+
+**Evidence:**
+- `progress/pack-sim-001.txt`;
+- `progress/economy-demo-006.txt`;
+- `progress/signature-names-sample-002.txt`;
+- 23 new tests.
+
+**Blocked:** nothing; the check-in has defaults. Next: render (alternation), then the
+deck-building agent.

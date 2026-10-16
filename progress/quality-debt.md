@@ -30,9 +30,39 @@ agent), and now session 31 (promo/prize unbinding, the signature zone), and sess
 signature menu and its fairness test), and session 33 (the tuner's size and cost levers, Guard over
 Bulwark, the unsellable signature card), and session 34 (Barrier-only Guardian, units-only Bulwark,
 the finer tuner pass, generating a new agent), and session 35 (10,000-game re-measure, combinations
-may repeat, themed card names).
+may repeat, themed card names), and session 36 (the art-pool slot, themed agent names, pack
+contents and opening).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 36
+
+- **Pack opening has no interface.** The store has `openPack` / `openPacks` / `craftCard`, but no
+  owner can press anything: no command, no local page, no endpoint. ECONOMY.md asks Season 0 for "a
+  local page or a command". It's planned with step 3 (website endpoints), but today it's a library.
+- **Several pack numbers are mine, not the owner's:** the shine slot's rarity weights, Alt Art
+  forcing a Rare or Mythic, and which 15 cards get Prototype runs (in the check-in). The odds-table
+  version (`S0-odds-1`) is a string I bump by hand. Nothing checks that a changed number came with
+  a new version.
+- **The published odds aren't published.** One table drives the game, but nothing renders it as
+  the public odds page the spec describes. The data is there; the page is not.
+- **Prototype season mechanics are partial.** Retiring unpulled runs at season end isn't built (it
+  needs a season roll-over, which doesn't exist). There's no art per run, and serial assignment is
+  sequential (01, 02 ...), a call I made without asking.
+- **Pity reads the last 40 openings on every open** (one query, a join over at most 240 copies).
+  Fine for Season 0; at scale it wants an index check or a cached streak.
+- **`openPacks` holds one transaction across 10 packs.** Fine with SQLite and one writer; under
+  the launch-scale storage gate it should be re-checked.
+- **Crafting has no viewer data.** `cardHoldings` doesn't yet say "craftable: costs 80, you have
+  70", so the card viewer would have to work it out itself.
+- **The agent names are mine and only filtered mechanically,** like the card names: 50 program
+  nouns and ~2,000 handles I never read one by one. A flavour line built on an agent name can read
+  awkwardly ("Every scratch on Sectormantis's Copilot's side ...", a double possessive). The
+  owner hasn't seen the new agent names yet; samples are in the notes.
+- **Committed render replays still show session-34 agent names** where they were generated before
+  this change; the render lane regenerates its own artifacts.
+- **`progress/economy-demo-005.txt` is historical:** re-running its script now gives the new agent
+  names. It was left as the record of session 35, like demo 004.
 
 ## New debt from session 35
 

@@ -1,0 +1,164 @@
+AI-TCG signature card and agent names: fresh samples for the owner (session 36)
+Generator: engine/src/data/signatureNames.ts. Command: npx tsx src/dev/signatureNameSamples.ts (from engine/).
+Owner 2026-10-16: the [Handle]'s patterns ~60%, "of the [Place]" ~30%, bare two-word and edition names
+10% or less; the username 1 candidate in 100; agent names get the same themed treatment.
+
+Card name templates (weights): [Handle]'s [Modifier] [Thing] 41, [Handle]'s [Thing] 20, [Thing] of the [Place] 30, [Modifier] [Thing] 5, [Modifier] [Thing] [Edition] 4.
+The Thing hints at the ability 80% of the time, otherwise it is a generic retro-tech object. The template
+is drawn once and only its words are re-rolled, so the filter can't skew the split. Filter: no word repeated
+across slots, 30 characters at most, no blocked word. A taken name (a set card or another signature card)
+is re-rolled.
+Measured over 20,000 names: [Handle]'s [Modifier] [Thing] 41.2%, [Handle]'s [Thing] 19.8%, [Thing] of the [Place] 29.8%, [Modifier] [Thing] 4.9%, [Modifier] [Thing] [Edition] 4.3%.
+
+List sizes: 1992 handles, 135 modifiers, 56 places (all "the ..."), 15 editions, 40 generic things,
+and per ability group: strike 20, wave 16, guard 20, draw 18, boost 18, mend 16, toll 15, power 15, jam 16, hunt 15.
+
+Name space per menu option (before the filter):
+  Commander's aura   boost     15,841,424
+  Smite              strike    16,387,680
+  Rally              boost     15,841,424
+  Hunter             hunt      15,022,040
+  Shield wall        guard     16,387,680
+  Guardian           guard     16,387,680
+  Bulwark            guard     16,387,680
+  Restore            mend      15,295,168
+  Supply line        draw      15,841,424
+  Energy surge       power     15,022,040
+  Recycle            draw      15,841,424
+  Inspire            boost     15,841,424
+  Suppress           jam       15,295,168
+  Dampen             jam       15,295,168
+  Tax                toll      15,022,040
+  Sweep              wave      15,295,168
+
+1. Twelve names per approved option (seed 2026), as the generator makes them
+
+  guardian
+    Ghostmoth's Safe Room           Bitdrifter's Neon Encryption    Patchwork's Beta Air Gap
+    Turbo Air Gap                   Fluxmonk's Bodyguard            Experimental Switchboard
+    Panic Room of the Night Train   Modemrat's Back-Alley Shield    Codepunk's Shield
+    Firewall of the Undernet        Rewound Joystick                Fluxmoth's Decoy
+
+  inspire
+    Back-Alley Pirate Radio Plus    Vaporviper's Deluxe Level Up    Kilobyte's Classified Mentor
+    Volthawk's Antenna              Drumline of the Grid            Tapespider's Server Rack
+    Pirate Radio of the Data Haven  Mixer of the Thirteenth Floor   Pep Talk of the Deep Web
+    Fusehawk's Phosphor Mixtape     Ghostburner's Turbo Mixtape     Codejinx's Dead-Air Drumline
+
+  rally
+    Phreakwraith's Upgrade          Laserkid's Phosphor Rave        Pixelslinger's Plasma Drumline
+    Pingbandit's 16-Bit Broadcast   Wirespider's Deluxe Bass Drop   Rave of the Underpass
+    Hexrat's After-Hours Satellite  Cartridge of the Food Court     Hexsmith's Mega Mentor
+    Upgrade of the Ninth Floor      Mainframe Key of the Burned CD  Signalmancer's Level Up
+
+  recycle
+    Hexcat's Hi-Res Undelete        Neon Sign of the Test Server    Fusekid's Stereo Recycle Bin
+    Blacklisted Data Heist          Data Heist of the Mainframe     Fuseking's Redacted Warez Drop
+    Dialbot's Blackout Dead Drop    Codeburner's Uplink             Magnetic Tape of the Grid
+    Turboqueen's Rewound Undelete   Circuitrider's Laser Data Mule  Chromecat's Turbo Archive
+
+  restore
+    Codeviper's Patch               Kernelrat's Cyan Field Medic    Circuitmancer's Restore Point
+    Rewound Field Medic 2000        Monorunner's Duct Tape          Magenta Hotfix Plus
+    Circuitwidow's Duct Tape        Ioncobra's Pastel Antenna       Patch of the Blackout
+    Quartzmonk's Stolen Rollback    Fluorescent Patch               Rollback of the Midnight Shift
+
+  supply-line
+    Synthrat's Obsolete Warez Drop  Rasterviper's Care Package      Cache of the Food Court
+    Pingcobra's Superuser Archive   Zerojinx's Deluxe Backup Tape   Tapehound's Cordless Courier
+    Vaporbot's Pixelated Mailbag    Tapemancer's Turbo Mailbag      Wirenomad's Lo-Fi Care Package
+    Echocobra's Cache               Neonowl's Rooftop Salvage       Gray-Market Data Mule
+
+  tax
+    Glitchwitch's Hi-Res Paywall    Quartzking's Mega Late Fee      Gatekeeper of the Junkyard
+    Retromoth's Meter               Late Fee of the Ninth Floor     Nag Screen of the Late Channel
+    Bitraven's Rooftop Bouncer      Turnstile of the Night Train    Tapewidow's Late Fee
+    Codefox's Forgotten Bouncer     Corrupted Lava Lamp             Hidden License Key
+
+2. The rare username variant (1 candidate in 100, about one draft in 33), shown here forced on, for three example usernames
+
+  zion         Zion's Terminal  |  Zion's 32-Bit Sandbox  |  Zion's White-Noise Meter  |  Zion's Beta Anthem
+  Neon_Fan99   Neon_Fan99's Second-Hand Pager  |  Neon_Fan99's Beta Air Gap  |  Neon_Fan99's Legacy Late Fee  |  Neon_Fan99's Beta Signal Fire
+  kestrel      Kestrel's Wireless Shock  |  Kestrel's Laser Pointer  |  Kestrel's Abandoned Boombox  |  Kestrel's Wireless Rave
+
+3. Agent names (owner 2026-10-16: hacker-handle style, the same favoured patterns)
+
+Agent name templates (weights): [Handle]'s [Program] 61, [Handle] of the [Place] 30, [Modifier] [Handle] 5, [Handle] [Edition] 4.
+A Program is what an AI agent is, in the theme's words (50: Daemon, Ghost, Copilot, Autopilot, Construct, Familiar, Oracle, Proxy, ...).
+Name space: 509,952 before the filter. They replace session 34's "Ilsa Delta" / "Talis Echo" style.
+
+    Pastel Tapepilot                Fusehawk's Hustler              Diskwidow's Ace
+    Rootjack's Protege              Diskwraith's Autopilot          Tapemantis of the Zero Sector
+    Diskshark's Intelligence        Ghostlynx's Oracle              Pingmonk's Clone
+    Rootshark's Ghost               Holorider's Twin                Datarunner's Avatar
+    Voltbreaker of the Last Arcade  Vintage Fluxjack                Chromewitch of the Clean Room
+    Modemkid of the Error Log       Modemjack's Prodigy             Fluxmoth v2
+    Novahawk of the Pirate Station  Logichound's Instance           Nullmonk of the Late Channel
+    Bithawk of the Dial-Up Era      Dialwraith's Stand-In           Downtown Novahawk
+    Sectorpunk's Daemon             Sectorhawk of the Ninth Floor   Turboqueen of the Rain City
+    Glitchlynx's Champion           Pingpunk of the Night Market    Cipherburner of the Outer Grid
+    Fluxrunner's Mirror             Rootwitch's Macro               Vectorkid of the Rain City
+    Diskwolf's Navigator            Proxycat of the Underpass       Chromeking of the Arcade Strip
+
+4. Ten complete "Generate a new agent" drafts (agent picked = the first; its 3 signature cards)
+
+  Nullhawk of the Junkyard — A cold-blooded forecaster that hums while it waits for priority.
+      Synthetic Pep Talk Plus: cost 5, 3/5. At the start of your turn, a random ally gets +0/+1 permanently.
+      Real-Time Stunt Double: cost 5, 3/5. Barrier.
+      Data Heist of the Error Log: cost 5, 3/7. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      flavour: "Nullhawk of the Junkyard turns a nobody into a threat, one turn at a time."
+
+  Sectormantis's Copilot — A cheerful cartographer that never attacks into an even trade.
+      Reboot of the Underpass: cost 5, 3/5. At the end of your turn, restore 1 health to a random unit of yours.
+      Sectordroid's Ultimate Uplink: cost 5, 3/6. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      Pingwraith's Firewall: cost 5, 3/5. Barrier.
+      flavour: "Every scratch on Sectormantis's Copilot's side gets a ticket and a fix."
+
+  Wirecat's Analyst — A theatrical archivist that plays its biggest threat one turn earlier than it should.
+      Turbospider's Mixtape: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      Paygate of the Mirror Site: cost 5, 3/6. Enemy Commands cost 1 more.
+      Data Mule of the Last Arcade: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "Wirecat's Analyst doesn't fight alone; it never has."
+
+  Modemsaint's Mirror — A courteous tactician that treats every match as a proof to finish.
+      Rootnomad's Archived Robot: cost 5, 3/6. When it dies, draw a card.
+      Looping Fuse Box SE: cost 5, 3/6. At the end of your turn, restore 1 health to a random unit of yours.
+      Boombox of the Last Platform: cost 5, 3/6. On arrival, your units get +0/+1 this turn.
+      flavour: "Nothing Modemsaint's Mirror loses stays lost."
+
+  Voltjack of the Signal Tower — A theatrical tinkerer that estimates its win chance out loud, to three decimals.
+      Recycle Bin of the Blackout: cost 5, 3/6. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      Turnstile of the Recycle Bin: cost 5, 3/6. Enemy Commands cost 1 more.
+      Afterimage of the Night Market: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "Voltjack of the Signal Tower never runs out of plans, only of patience."
+
+  Signalsaint's Construct — A theatrical forecaster that counts every card left in its opponent's deck.
+      Moonlight's Bootleg Download: cost 5, 3/6. When it dies, draw 2 cards.
+      Pixelrat's Unpatched Bunker: cost 5, 3/5. Barrier.
+      Logicslinger's Plasma Late Fee: cost 5, 3/6. Enemy Commands cost 1 more.
+      flavour: "Signalsaint's Construct keeps nothing it can't use twice."
+
+  Voltraven's Proxy — A playful cartographer that refuses to pass with energy unspent.
+      Sectorking's Deadbolt: cost 5, 3/5. Barrier.
+      Gridrat's Signal Fire: cost 5, 3/6. On arrival, your units get +0/+1 this turn.
+      Hexhound's Shareware Salvage: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "The first hit on Voltraven's Proxy never lands."
+
+  Signalowl's Machine — A restless sentinel that estimates its win chance out loud, to three decimals.
+      Salvage of the Data Haven: cost 5, 3/5. When it dies, draw 3 cards.
+      Glitchjack's Pixelated Encore: cost 5, 3/4. At the start of your turn, a random ally gets +0/+1 permanently.
+      Orbital Gatekeeper: cost 5, 3/6. Enemy Commands cost 1 more.
+      flavour: "Signalowl's Machine keeps nothing it can't use twice."
+
+  Staticwolf's Twin — A methodical duellist that re-reads the rules text of every card it sees.
+      Retrobot's Red Tape: cost 5, 3/6. Enemy Commands cost 1 more.
+      Diskhawk's Redacted Body Armor: cost 5, 3/5. Barrier.
+      Tapespider's 16-Bit Anthem: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      flavour: "Spells pass Staticwolf's Twin's gate at a price."
+
+  Quartzowl of the Rain City — A courteous auditor that counts every card left in its opponent's deck.
+      Hexmantis's Unpatched Anthem: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      Data Heist of the Undernet: cost 5, 3/5. When it dies, draw 3 cards.
+      Pep Talk of the Old Network: cost 5, 3/5. At the start of your turn, a random ally gets +0/+1 permanently.
+      flavour: "Quartzowl of the Rain City doesn't fight alone; it never has."
+

@@ -44,3 +44,49 @@ export const SESSION_DAYS = 30;
 /** After this many failed sign-ins for one login within the window, that
  * login is refused (without checking the password) until the window passes. */
 export const SIGN_IN_LOCKOUT = { failures: 10, windowMinutes: 15 } as const;
+
+/** Pack points every opened pack pays, free packs included (ECONOMY.md,
+ * "Packs"). */
+export const PACK_POINTS_PER_PACK = 5;
+
+/** How many packs one bulk open takes (owner 2026-10-05: "1 pack or 10 at
+ * once"; same odds, no discount, no bonus). */
+export const BULK_OPEN_COUNT = 10;
+
+/** Pieces in a season's signature art pool (owner 2026-10-16: 500,
+ * accepted as planned). Each signature card records one slot at creation;
+ * the images arrive with the late art pass. */
+export const SIGNATURE_ART_POOL_SIZE = 500;
+
+/**
+ * The pack odds table (ECONOMY.md "Rarity and finish" and "Packs"). One
+ * versioned table drives both the game and the published odds; every
+ * opening records the version it used. Change a number here only together
+ * with a new `version`, so an old opening still names the table it rolled
+ * against.
+ *
+ * Fixed by the owner (2026-10-04 and amendments): 5 cards (2 Common, 1
+ * Uncommon, 1 Rare slot, 1 shine slot); 1 Rare slot in 8 is a Mythic; only
+ * the shine slot rolls a finish (Standard ~56%, Foil 30%, Full Art 10%, Alt
+ * Art ~1 in 30 on Rares and Mythics only, Gold ~1 in 150); a Jackpot pack
+ * (~1 in 2,000) is Foil or better throughout; a Prototype is a bonus 6th
+ * card in 1 pack in 1,000; pity after 10 packs without Full Art or better
+ * and after 40 without a Mythic.
+ *
+ * PROPOSED by session 36, for the owner's check-in: the shine slot's rarity
+ * weights ("any card, any rarity" didn't fix them), and that an Alt Art
+ * roll draws its card from the Rares and Mythics (so the ~1 in 30 holds).
+ */
+export const PACK_ODDS = {
+  version: "S0-odds-1",
+  slots: { Common: 2, Uncommon: 1, Rare: 1 },
+  /** The Rare slot is a Mythic this often. */
+  mythicInRareSlot: 1 / 8,
+  /** The shine slot's rarity, before its finish (proposal). */
+  shineRarity: { Common: 60, Uncommon: 25, Rare: 12, Mythic: 3 },
+  /** The shine slot's finish, in percent: Standard is what's left (56). */
+  shineFinish: { foil: 30, fullArt: 10, altArt: 100 / 30, gold: 100 / 150 },
+  jackpotPack: 1 / 2000,
+  prototypeBonus: 1 / 1000,
+  pity: { fullArtAfter: 10, mythicAfter: 40 },
+} as const;

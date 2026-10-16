@@ -1,8 +1,8 @@
 // Public surface of @ai-tcg/economy: the persistent store (owners, their
 // Season 0 logins and sessions, the agents that play for them and which one
 // is connected, live matches, the credits and pack-points ledger, owned
-// copies, packs, decks, match history), the payout rule and the economy
-// config.
+// copies, packs and their openings, decks, match history), the card sets
+// and pack odds, the payout rule and the economy config.
 // The engine knows nothing about this package; the server will call it to
 // record matches (roadmap item 6b).
 
@@ -13,6 +13,11 @@ export {
   salvageBlockReason,
   DEFAULT_SEASON,
   PACK_PRICE_CREDITS,
+  signatureArtRef,
+  type OpenedCard,
+  type PackOpening,
+  type BulkOpening,
+  type PityStatus,
   type OwnerRecord,
   type AgentRecord,
   type AgentDraft,
@@ -49,11 +54,30 @@ export {
   STARTER_PACKS,
   SALVAGE_PACK_POINTS,
   CRAFT_PACK_POINTS,
+  PACK_POINTS_PER_PACK,
+  BULK_OPEN_COUNT,
+  PACK_ODDS,
+  SIGNATURE_ART_POOL_SIZE,
   PASSWORD_MIN_LENGTH,
   SCRYPT_COST,
   SESSION_DAYS,
   SIGN_IN_LOCKOUT,
 } from "./config.js";
+export {
+  CARD_SETS,
+  cardSet,
+  rollPack,
+  pityDue,
+  nextPity,
+  FULL_ART_OR_BETTER,
+  type CardSet,
+  type SetCard,
+  type PrototypeRun,
+  type PackPull,
+  type PackRoll,
+  type PackSlot,
+  type PityState,
+} from "./packs.js";
 export { hashPassword, verifyPassword, needsRehash } from "./passwords.js";
 export {
   FINISHES,
