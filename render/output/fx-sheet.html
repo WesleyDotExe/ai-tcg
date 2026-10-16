@@ -97,6 +97,14 @@ html, body {
 
 .board-area { position: relative; }
 .board-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 8px 0; min-height: 168px; }
+/* A row of six slots fits the screen (render/src/boardFit.ts): the page
+ * zooms the row so all six stay on one line down to about 600 px. Below
+ * that the row splits into two lines of three, and the side's two lines
+ * sit in one faint frame in its faction colour, so they still read as one
+ * side's board and never interleave with the opponent's. */
+.board-row.two-line { margin: 2px auto; padding: 6px; border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fc, var(--line)) 40%, transparent);
+  background: color-mix(in srgb, var(--fc, var(--line)) 5%, transparent); }
 .stackzone { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 22px; margin: 2px 0; }
 .stackitem { font-size: 0.68rem; background: var(--panel-2); border: 1px dashed var(--neutral); color: var(--neutral); padding: 2px 8px; border-radius: 3px; }
 
@@ -2724,7 +2732,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     ['Aegis', ['Prime Aegis', 'Unreleased Aegis Mythic I', 'Unreleased Aegis Mythic II']],
     ['Swarm', ['Hive Mother', 'Unreleased Swarm Mythic I', 'Unreleased Swarm Mythic II']],
     ['Null', ['Null Singularity', 'Unreleased Null Mythic I', 'Unreleased Null Mythic II']],
-    ['Neutral', ["Proxyviper's Twilight Download","Wireburner's Anthem","Unpatched Encore"]]
+    ['Neutral', ["Proxyviper's Twilight Download","Anthem of the Midnight Shift","Cybermonk's Encore"]]
   ];
   var FW_LAYERS = [{ i: 0, r: 1, spd: 0.2 }, { i: 1, r: 0.74, spd: -0.36 }, { i: 2, r: 0.37, spd: 0.56 }];
   var fwItems = [];

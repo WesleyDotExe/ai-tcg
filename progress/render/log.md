@@ -2306,3 +2306,78 @@ or that I found looking, and starts a render-lane debt list
 **Next render-lane slice:** the top of `progress/render/quality-debt.md`.
 Scaling the slots so a row of six fits from 600 px up is the most visible
 item.
+
+## 2026-10-16 — Session 20: six slots in one line from 600 px up (render debt, item 1)
+
+Render session by the alternation rule: the last merged PR (#57) was a game
+slice. Owner feedback read first. There is no new render entry since
+session 19. The 2026-10-16 entries are game-lane work: agent naming, pack
+opening, Zero-Day, top-tier cards, guardrails and the chase cards. Two of
+them will reach this lane later: the animated Zero-Day cards and the Glitch
+variant's look. Both wait for the game lane's checkpoint on their rules.
+
+**Why this slice.** Session 19 named the next render slice: the top of
+`progress/render/quality-debt.md`, where the six slots wrap from about
+780 px down. That's existing work below bar (a row stops reading as one
+side's line), so it comes before any new width.
+
+**Built:**
+- **`render/src/boardFit.ts`.** `boardFit(avail, slots, gap)` picks the
+  row's layout. It uses one line, zoomed to fit, while the cards stay at
+  least 72% of their size (85 px). Below that it uses two lines of three,
+  zoomed only if three don't fit. It never scales up. The source is
+  embedded in the page (the single-source pattern).
+- **The page.** `fitBoards()` runs at load and on every resize. It sets
+  each row's CSS `zoom`, and for two lines a max width, the `two-line`
+  class and the side's faction class. The two-line row has a faint frame in
+  the faction colour.
+- **The ghost.** A dying card's ghost is copied into the fixed overlay. On a
+  zoomed row it was squeezed: 118 px of layout in a smaller box.
+  `ghostPlacement(rect)` now gives it the row's zoom and divides its
+  position by it.
+- **Every other effect already aims at the cards' on-screen rects**, so
+  hits, wards, aim lines and the signature flight follow the zoom unchanged.
+
+**Two bugs found by measuring:**
+- **2 + 2 + 2 at 390 px.** The first version left the two-line frame (14
+  px) out of the zoom, so the third card wrapped. The frame is now part of
+  the sum.
+- **2 + 2 + 2 at 360 px.** Zoomed exactly to fit, the row was still a
+  pixel short, because a zoomed 1 px border stays 1 device pixel. The
+  module now leaves 4 px of slack.
+
+**Ran it:**
+- **Regenerated all 14 replays and both sheets.** The two signature replays
+  pick up session 36's agent and card names, for example Proxymonk's Ace vs
+  Codejinx's Clone at seed 5, and Hexking's Oracle vs Codesmith's Autopilot
+  at seed 2. The cards' abilities and the match moves are the same as
+  before (seed 2: 92 moves, p1 wins).
+- **Board-fit check in headless Chromium**
+  (`progress/render/evidence/board-fit-check.txt`, script alongside). It
+  covers all 14 replays at 11 widths from 360 to 1280 px, every 4th move.
+  All 154 runs passed: one line from 560 px up and two from 540 px down,
+  0 px of sideways overflow, no overlap between the sides, no card outside
+  its row, and 0 page errors.
+- **Ghost check:** at 600, 390 and 1280 px the ghost of the first death
+  (move 32) sits 0.0 px off the dead card, and its name strip keeps the
+  same share of its width.
+- **Stills:** `v2-s20-board-fit-390.png`, `-600.png`, `-768.png`, and
+  `v2-s20-ghost-zoomed-600.png`.
+- **Tests:** render 303 (was 295), from the new `test/boardFit.test.ts`
+  (8). It covers the fit at real widths, the switch point, odd inputs, the
+  ghost's placement, and the page's wiring. `npm test`: 630 across six
+  workspaces, all pass. `tsc --noEmit` is clean in all six.
+
+**Named honestly** (in the debt list):
+- From 545 to 600 px the cards are 85-91 px wide, and the name text is
+  about 7.5 px.
+- Floating numbers and trigger labels don't scale with the row.
+- The fit relies on CSS `zoom`.
+- The browser checks still run from a scratch folder, not in CI.
+
+**Checkpoint:** a small layout check-in in `progress/render/checkpoints.md`
+(the 85-px floor, 3 + 3 on phones, the faction-tinted frame).
+
+**Next render-lane slice:** the event log. It shows raw engine text,
+priority passes and p1 / p2. Filter the passes and use the agents' names
+until commentary (stage 7) replaces it.

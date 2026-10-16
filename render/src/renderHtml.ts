@@ -10,6 +10,7 @@ import { WARD_FX_PURE_SOURCE, WARD_FX_RUNTIME_SOURCE, wardDataFor } from "./ward
 import { FALLBACK_WARD_PURE_SOURCE, FALLBACK_WARD_RUNTIME_SOURCE } from "./fallbackWard.js";
 import { SIG_WARD_PURE_SOURCE, SIG_WARD_RUNTIME_SOURCE, sigWardDataFor } from "./sigWardFx.js";
 import { SIG_ZONE_SOURCE } from "./sigZoneFx.js";
+import { BOARD_FIT_SOURCE } from "./boardFit.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -202,6 +203,14 @@ html, body {
 
 .board-area { position: relative; }
 .board-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 8px 0; min-height: 168px; }
+/* A row of six slots fits the screen (render/src/boardFit.ts): the page
+ * zooms the row so all six stay on one line down to about 600 px. Below
+ * that the row splits into two lines of three, and the side's two lines
+ * sit in one faint frame in its faction colour, so they still read as one
+ * side's board and never interleave with the opponent's. */
+.board-row.two-line { margin: 2px auto; padding: 6px; border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fc, var(--line)) 40%, transparent);
+  background: color-mix(in srgb, var(--fc, var(--line)) 5%, transparent); }
 .stackzone { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 22px; margin: 2px 0; }
 .stackitem { font-size: 0.68rem; background: var(--panel-2); border: 1px dashed var(--neutral); color: var(--neutral); padding: 2px 8px; border-radius: 3px; }
 
@@ -902,6 +911,26 @@ ${WARD_FX_RUNTIME_SOURCE}
   // render/src/sigWardFx.ts, embedded verbatim; also a CFX plug-in.
 ${SIG_WARD_PURE_SOURCE}
 ${SIG_WARD_RUNTIME_SOURCE}
+  // Board rows fit the screen (render/src/boardFit.ts, embedded verbatim).
+${BOARD_FIT_SOURCE}
+  // Zoom each side's row so its slots fit the side's width: one line while
+  // the cards stay readable, two framed lines of three on a phone. Runs at
+  // load and on every resize; the cards inside are rebuilt each move, but
+  // the row element and its zoom persist.
+  function fitBoards() {
+    ['p1', 'p2'].forEach(function (pid) {
+      const row = document.getElementById('board-' + pid);
+      const side = document.getElementById('side-' + pid);
+      if (!row || !side) return;
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const fit = boardFit(side.clientWidth, frames[0].players[pid].slotsMax, gap);
+      row.style.zoom = fit.zoom === 1 ? '' : String(fit.zoom);
+      row.classList.toggle('two-line', fit.lines > 1);
+      row.style.maxWidth = fit.lines > 1 ? (lineWidth(fit.perLine, gap) + TWO_LINE_FRAME + FIT_SLACK) + 'px' : '';
+      row.classList.add('faction-' + frames[0].players[pid].faction);
+      row.dataset.fit = fit.lines + 'x' + fit.perLine + '@' + fit.zoom;
+    });
+  }
   // The signature zone (render/src/sigZoneFx.ts, embedded verbatim).
 ${SIG_ZONE_SOURCE}
   const ENERGY_CAP = replay.energyCap || 10;
@@ -1287,10 +1316,12 @@ ${SIG_ZONE_SOURCE}
     const cardEl = entry.kind === 'unit' ? renderUnitSlot(entry.v, entry.owner) : renderDirectiveSlot(entry.v, entry.owner);
     cardEl.classList.add('fx-ghost', 'fx-mag-' + tier);
     cardEl.style.position = 'fixed';
-    cardEl.style.left = rect.left + 'px';
-    cardEl.style.top = rect.top + 'px';
-    cardEl.style.width = rect.width + 'px';
-    cardEl.style.height = rect.height + 'px';
+    // A zoomed board row (boardFit.ts): the ghost wears the row's zoom, so
+    // its card lays out at full size and shrinks as a whole.
+    const gp = ghostPlacement(rect);
+    if (gp.zoom !== 1) cardEl.style.zoom = String(gp.zoom);
+    cardEl.style.left = gp.left + 'px';
+    cardEl.style.top = gp.top + 'px';
     cardEl.style.margin = '0';
     if (delay > 0) { cardEl.style.animationDelay = delay + 'ms'; cardEl.style.animationFillMode = 'both'; }
     fxLayer.appendChild(cardEl);
@@ -2252,9 +2283,11 @@ ${SIG_ZONE_SOURCE}
   });
 
   // Aim lines are drawn in viewport coordinates; keep them on their cards.
-  window.addEventListener('resize', function () { drawAimLines(frames[i], {}); });
+  // The rows refit first, so the lines aim at the cards' new size.
+  window.addEventListener('resize', function () { fitBoards(); drawAimLines(frames[i], {}); });
   window.addEventListener('scroll', function () { drawAimLines(frames[i], {}); }, { passive: true });
 
+  fitBoards();
   renderFrame();
 })();
 `;

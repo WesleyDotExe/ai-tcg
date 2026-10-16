@@ -7,6 +7,41 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-16 — Six slots in one line from 600 px up; two framed lines of three on a phone — AWAITING FEEDBACK
+
+A small layout check-in, from the top of the render debt list. Nothing here changes how a match reads on a desktop.
+
+**What this delivers:**
+- **The board row now scales to fit instead of wrapping.** Before, the six slots wrapped 5 + 1 on a tablet (768 px) and 2 + 2 + 2 on a phone, and the two sides' rows ran into each other in the middle.
+- **From about 545 px up,** all six slots stay on one line. The row is zoomed down to fit: cards are 117 px wide at 768 px, 91 px at 600 px, and never smaller than 85 px.
+- **On a phone,** each side's row splits into two lines of three, in a faint frame in that player's faction colour, so the six read as one side's board. Cards are full size from about 410 px, 112 px at 390 px and 103 px at 360 px.
+- **Every effect follows the scaled cards**: hits, wards, aim lines, the signature card's flight. A dying card's ghost now scales with its row. Before, it was squeezed into the smaller box.
+
+**Evidence:**
+- **Measured in headless Chromium:** `progress/render/evidence/board-fit-check.txt` covers all 14 replays at 11 widths from 360 to 1280 px, every 4th move. All 154 runs had the right number of lines, no sideways scroll, no overlap between the two sides, no card outside its row and no page errors.
+- **Ghost check (same file):** at 600, 390 and 1280 px the ghost sits exactly on the dead card (0.0 px off) and keeps its proportions.
+- **Stills:** `v2-s20-board-fit-390.png`, `-600.png` and `-768.png` (move 90 of the seed-5 signature replay), and `v2-s20-ghost-zoomed-600.png` (move 32, a death on a zoomed row).
+- **Tests:** 8 new (`render/test/boardFit.test.ts`), render at 303.
+
+**Strong:**
+- A row is always one side's line again, at every width measured.
+- It's one rule in one place (`render/src/boardFit.ts`). The page runs it on load and on every resize.
+
+**Thin:**
+- **At 545-600 px the cards are small** (85-91 px). The name strip is then about 7.5 px text. It reads, but only just.
+- **Floating numbers and trigger labels** ("ON PLAY", "+3 HP") are not scaled, so on a zoomed row they look a little larger next to the card.
+- **The scaling uses CSS `zoom`.** Current Chrome, Safari and Firefox (since 2024) support it. An older Firefox would show full-size cards that wrap, as before.
+
+**Decisions you may want to overrule:**
+1. **The switch to two lines comes at 85 px cards** (72% of full size). A lower floor keeps one line on smaller screens, with smaller text.
+2. **Phones get 3 + 3, framed,** not one line of tiny cards or a sideways-scrolling row.
+3. **The frame takes the player's faction colour** at low strength. It shows only in the two-line layout.
+4. **Cards never scale up** on screens wider than the 1180 px page.
+
+**Next:** the next item on the render debt list. The event log is the most visible one: it shows raw engine text (priority passes, p1 / p2). It could filter passes and use the agents' names until commentary arrives.
+
+---
+
 ## 2026-10-15 — The signature zone on the board, generated agents in the replays — AWAITING FEEDBACK
 
 **What this delivers:**
