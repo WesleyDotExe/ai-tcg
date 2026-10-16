@@ -2506,3 +2506,28 @@ Owner decision on the session-35 name samples (`progress/signature-names-sample-
 - **Suggested weights** (the session can tune them): the [Handle]'s patterns about 60%, "of the [Place]" about 30%, and bare two-word and edition names together about 10% or less.
 - The same goes for the themed agent names, where they share the generator.
 - Show a fresh sample at the next checkpoint that touches names.
+
+---
+
+## 2026-10-16 — Owner: owners can name their agent; more agent-name room (session 36 follow-up)
+
+### Owners can name their agent
+- **Naming is free when the agent is created.** The generator still suggests themed names (the 3 draft candidates arrive named), and the owner can keep one or type their own.
+- **Any rename after that costs pack points.** This replaces the free-rename-with-cooldown idea. The game lane proposes the price at a checkpoint.
+- **Name rules** (proposed in chat, the owner didn't object; the session can refine them):
+  - Agent names are unique, case-insensitive, across generated and custom names.
+  - 3–24 characters: letters, numbers and simple punctuation.
+  - No impersonating staff or official accounts ("Admin", "AI-TCG Official"), and no copying another owner's username.
+  - Old names stay visible in match history ("formerly …").
+- **The name filter runs on the game's own server.** That's the Mac mini today, and whatever server hosts the game at launch. It's part of the server code, never an outside moderation service.
+  - Use a blocked-word list plus the same checks as generated names.
+  - Add an admin-view force-rename, and later an owner report button.
+- **Signature cards keep their generated, themed names**, whatever the agent is called.
+
+### More room for generated agent names
+The owner wants generated agent names to be more unique. Today's two-part patterns only give about 510,000 names (handles × one other word). Suggested approach (the session can tune it):
+- add a third part in the middle, like card names ("Ghostlynx's Midnight Oracle");
+- grow the lists (about 10,000 handles, 300 modifiers, 200 program words);
+- on the rare clash, add a numeral ("... II") instead of failing.
+
+Avoid version-style endings ("v2.7", "Mk III"). If three-part names need it, raise the agent-name length cap a little. Show samples at a checkpoint.
