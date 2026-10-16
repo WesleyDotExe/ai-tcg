@@ -34,6 +34,10 @@
 //    odds version; copies from an opened pack name it and go to its owner;
 //    an opening is never changed or deleted.
 //
+//  - (v9) agent names are unique without case; every name an agent held is
+//    logged, append-only, and stays reserved to that agent; a rename needs
+//    its log entry first.
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -727,5 +731,45 @@ export const MIGRATIONS: readonly string[] = [
     OR (SELECT COUNT(*) FROM card_copies WHERE origin_ref = NEW.origin_ref) >= 6)
   BEGIN SELECT RAISE(ABORT, 'a pack copy comes from an opened pack of its owner, at most 6 per pack'); END;
   CREATE INDEX copies_by_origin_ref ON card_copies(origin_ref);
+  `,
+  // 9: agent names (session 37; owner 2026-10-16, "owners can name their
+  // agent"). An owner may type the name when the agent is created, and
+  // rename it later for pack points; an admin can force a rename.
+  //  - agent_names logs every name an agent has held, append-only: how it
+  //    was named (generated, typed at creation, renamed, forced by an
+  //    admin, or legacy for agents made before v9), what it cost and who
+  //    did it. Old names stay on record for "formerly ..." in match history.
+  //  - Agent names are unique without case, and a name another agent ever
+  //    held stays reserved: no one can take it over and borrow its history.
+  //  - An agent's name changes only through a logged entry for that name.
+  `
+  CREATE TABLE agent_names (
+    entry_no    INTEGER PRIMARY KEY AUTOINCREMENT,
+    agent_id    TEXT NOT NULL REFERENCES agents(agent_id),
+    name        TEXT NOT NULL,
+    kind        TEXT NOT NULL CHECK (kind IN ('legacy', 'generated', 'custom', 'rename', 'forced')),
+    pack_points INTEGER NOT NULL DEFAULT 0 CHECK (pack_points >= 0 AND (pack_points = 0 OR kind = 'rename')),
+    by_owner_id TEXT REFERENCES owners(owner_id),
+    note        TEXT,
+    named_at    TEXT NOT NULL
+  );
+  CREATE INDEX agent_names_by_agent ON agent_names(agent_id, entry_no);
+  CREATE INDEX agent_names_by_name ON agent_names(name COLLATE NOCASE);
+  INSERT INTO agent_names (agent_id, name, kind, named_at) SELECT agent_id, name, 'legacy', created_at FROM agents ORDER BY created_at, agent_id;
+  CREATE UNIQUE INDEX agents_name_nocase ON agents(name COLLATE NOCASE);
+  CREATE TRIGGER agent_name_log_kept BEFORE UPDATE ON agent_names
+  BEGIN SELECT RAISE(ABORT, 'an agent name entry is never changed'); END;
+  CREATE TRIGGER agent_name_log_no_delete BEFORE DELETE ON agent_names
+  BEGIN SELECT RAISE(ABORT, 'an agent name entry is never deleted'); END;
+  CREATE TRIGGER agent_name_reserved BEFORE INSERT ON agent_names
+  WHEN EXISTS (SELECT 1 FROM agent_names WHERE name = NEW.name COLLATE NOCASE AND agent_id <> NEW.agent_id)
+  BEGIN SELECT RAISE(ABORT, 'that agent name is taken (another agent holds or held it)'); END;
+  CREATE TRIGGER agent_name_reserved_on_create BEFORE INSERT ON agents
+  WHEN EXISTS (SELECT 1 FROM agent_names WHERE name = NEW.name COLLATE NOCASE)
+  BEGIN SELECT RAISE(ABORT, 'that agent name is taken (another agent holds or held it)'); END;
+  CREATE TRIGGER agent_rename_logged BEFORE UPDATE OF name ON agents
+  WHEN NOT EXISTS (SELECT 1 FROM agent_names WHERE agent_id = NEW.agent_id AND name = NEW.name
+                   AND entry_no = (SELECT MAX(entry_no) FROM agent_names WHERE agent_id = NEW.agent_id))
+  BEGIN SELECT RAISE(ABORT, 'an agent is renamed only through its logged name entry'); END;
   `,
 ];

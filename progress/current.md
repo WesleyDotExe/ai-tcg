@@ -1,66 +1,62 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 36 (game lane) handled the owner's
-2026-10-16 answers to session 35 and the name-pattern entry, and built step 1 of the accepted
-order:**
-- the username in a card name 1 candidate in 100;
-- name patterns 61 / 30 / 9 ([Handle]'s / "of the [Place]" / the rest), and themed agent names
-  from the same generator;
-- the signature art-pool slot (schema v8);
-- **pack contents and opening** (roadmap item 5): set S0 with collector numbers, the versioned
-  odds table, pity per owner, the Prototype bonus, NEW and "×N owned", 1- or 10-pack opening,
-  pack points, crafting.
+**Build-order stage: Stage 4+ (the living system). Session 37 (game lane) handled the owner's
+2026-10-16 entries:**
+- **Owners name their agents** (schema v9): free at creation, a paid rename, the name rules in the
+  store, old names kept for "formerly ...", an admin force-rename.
+- **More room for generated agent names:** a three-part pattern, ~10,700 handles, 300 modifiers,
+  200 program words, no version endings, a numeral on a clash.
+- The pack check-in answers: everything stands as built.
+- The top finish, top-tier cards, modal cards and chase cards: **a build order is proposed** in an
+  [OWNER CHECK-IN] in notes-for-owner.md; nothing of those is built yet.
 
-No stage checkpoint (the living system reports through notes-for-owner check-ins). There is an
-**[OWNER CHECK-IN]** in notes-for-owner.md with defaults: the shine slot's rarity weights, Alt Art
-on Rares and Mythics, which 15 cards get Prototype runs, and Prototypes in Season 0.
+No stage checkpoint (the living system reports through notes-for-owner check-ins).
 
-## What stands (this session's work; sessions 1-35 otherwise unchanged)
+## What stands (this session's work; sessions 1-36 otherwise unchanged)
 
 **Names (`engine/src/data/signatureNames.ts`).**
-- `USERNAME_HANDLE_ODDS = 100`.
-- `TEMPLATE_WEIGHTS` 41 / 20 / 30 / 5 / 4. The template is drawn once and only its words are
-  re-rolled, so the filter can't skew the split (`drawSignatureCardName` returns the template).
-- Every place starts "the".
-- `agentName` and `AGENT_TEMPLATE_WEIGHTS` ([Handle]'s [Program] 61, [Handle] of the [Place] 30,
-  [Modifier] [Handle] 5, [Handle] [Edition] 4; 50 program nouns; ~510,000 names).
-- `generateAgentCandidates` uses it; the 3 candidates never share a final word.
+- `AGENT_TEMPLATE_WEIGHTS`: [Handle]'s [Modifier] [Program] 41, [Handle]'s [Program] 20, [Handle]
+  of the [Place] 30, [Modifier] [Handle] 5, [Handle] [Edition] 4.
+- `HANDLE_PREFIX` / `HANDLE_SUFFIX` ~100 each (10,702 handles after the filter), `MODIFIERS` 300,
+  `PROGRAMS` 200 (handles and modifiers are shared with card names).
+- `AGENT_NAME_MAX_LENGTH = 32`; `AGENT_EDITIONS` (no v2 / Mk III); `drawAgentName` compares without
+  case and adds II..X on a clash; `agentNameSpace()` ~648 million.
+- `blockedWordIn` exported; `namingProblem(name, maxLength)`.
+- "Zero-Day" replaced by "Backdoor" in the strike things (the proposed finish name).
 
-**Packs (`economy/src/packs.ts`, `economy/src/config.ts` `PACK_ODDS`).**
-- `CARD_SETS` / `cardSet("S0")`: 96 cards, collector and Gold numbers, 15 Prototype runs (proposed
-  cards).
-- `rollPack(seed, set, pity, prototypesLeft)` is pure; `pityDue`, `nextPity`, `FULL_ART_OR_BETTER`.
-
-**Economy (schema v8, `economy/src/schema.ts`, `store.ts`).**
-- `signature_cards.art_pool` / `art_slot` (drawn in `confirmAgentDraft`, `artSlot` option for
-  tests; kept forever); `SignatureCardRecord.art`; `signatureArtRef`.
-- `pack_openings` (append-only), with triggers on packs and pack copies.
-- `openPack`, `openPacks(owner, 1 | 10)`, `packOpening`, `pityStatus`, `prototypesFound`,
-  `craftCard`. `buyPack` and `grantPack` refuse an unknown set.
+**Economy (schema v9).**
+- `economy/src/agentNames.ts`: `customAgentNameProblem`, `tidyAgentName`, `nameKey`.
+- `config.ts`: `AGENT_RENAME_PACK_POINTS = 100` (proposal).
+- `agent_names` (append-only log; kinds legacy / generated / custom / rename / forced), the
+  case-insensitive unique index on `agents.name`, reserved old names, renames only through a
+  logged entry.
+- Store: `confirmAgentDraft(..., { name })`, `agentNameProblem`, `renameAgent`,
+  `forceRenameAgent`, `agentNames` (current, formerly, history). `takenNames` includes past names.
 
 ## Evidence committed
 
-- `progress/pack-sim-001.txt` (`npx tsx src/dev/packSimulation.ts` in economy/): 400,000 packs
-  against the published rates, pity over 2,000 owners, a season of Prototypes, packs to see the set.
-- `progress/economy-demo-006.txt` (`npx tsx src/dev/packOpeningDemo.ts` in economy/): the store
-  end to end in a real database file, and the schema's refusals. Reproduces exactly.
-- `progress/signature-names-sample-002.txt` (`npx tsx src/dev/signatureNameSamples.ts` in engine/).
+- `progress/economy-demo-007.txt` (`npx tsx src/dev/agentNamingDemo.ts` in economy/): naming,
+  every refusal, the paid rename, "formerly" in match history, the force-rename, reopen, raw-SQL
+  refusals. Reproduces exactly.
+- `progress/signature-names-sample-003.txt` (`npx tsx src/dev/signatureNameSamples.ts` in engine/).
 - Tests:
-  - economy: `packs.test.ts` (19), and the v7 -> v8 migration step;
-  - engine: 3 new name tests and 1 agent-name test.
-- `npm test`: 622 across six workspaces, all pass (engine 208, protocol 7, server 23, agents 17,
-  economy 72, render 295). `tsc --noEmit` is clean in all six.
+  - economy: `agentNames.test.ts` (8), and the v8 -> v9 migration step;
+  - engine: the agent-name tests rewritten (5).
+- `npm test`: 641 across six workspaces, all pass (engine 211, protocol 7, server 23, agents 17,
+  economy 80, render 303). `tsc --noEmit` is clean in all six.
 
 ## Concrete next step
 
-Check the alternation first. The last merged PR before this one (#56) was render, so this
-session was game lane, and the next session is **render**. Render can show set collector numbers
-and finishes on cards, and the new agent names in replays.
+Check the alternation first. The last merged PR before this one (#58) was render, so this session
+was game lane, and the next session is **render**. Render can show "formerly ..." from
+`agentNames`, and the longer (up to 32-character) agent names need to fit the board.
 
-The next **game-lane** session reads the owner's answer to the check-in. With no answer:
-1. **The deck-building agent** (step 2 of the order): from an owner's collection (`collection`,
-   `COPY_LIMITS`), build the best deck it can for each faction, pick the best faction (or the
-   owner's forced faction or deck), and measure its decks against the shipped decks with the ring
-   tooling.
-2. Then about 6 play styles with a fairness ring, then build-order step 3 (website endpoints,
-   including the pack-opening calls built here).
+The next **game-lane** session reads the owner's answer to the check-in. With no answer (option A):
+1. **The chase-card proposal** (chase entry items 1-4), measured, NOT live: the secret-card list
+   (30-40 illustration versions + 3 Zero-Day slots, placeholder art slots), Glitch rules and rate,
+   and `S0-odds-2` (shine slot pointed at chosen cards, Zero-Day ~1 in 500). Extend
+   `economy/src/packs.ts` and `src/dev/packSimulation.ts`; report the median packs to complete the
+   base set and the full set, the share of packs with Full Art or better (target ~20%), Jackpot
+   1 in 2,000 and the pity timers. Update ECONOMY.md; raise it as a check-in.
+2. Then the engine's generic "choose one" mechanic, then the 3 Zero-Day cards, then the
+   deck-building agent and play styles.

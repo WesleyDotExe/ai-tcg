@@ -1,5 +1,108 @@
 # Notes for the owner
 
+**Updated 2026-10-17, session 37 (your 2026-10-16 entries: naming agents, the pack answers, the
+top finish, top-tier cards, modal cards, chase cards).** Nothing is blocking. There is one
+**[OWNER CHECK-IN]** below, with defaults, so the next game-lane session can go ahead without an
+answer. Evidence: `progress/economy-demo-007.txt`, `progress/signature-names-sample-003.txt`.
+
+Built:
+- **Owners name their agents** (your naming entry):
+  - **Free at creation.** The 3 candidates arrive named, and the owner keeps one or types their
+    own. The signature card keeps its generated name. Its flavour line is printed with the name
+    the agent is created with.
+  - **A rename costs pack points** (100 proposed, below). It's refused while that agent is in a
+    live match.
+  - **The rules run in the game's own server code** (the economy store), with no outside service.
+    The check-in lists the rules; every refusal is shown in the demo.
+  - **Old names stay on record.** Match history shows "Day Owl (formerly Night Owl)". An old name
+    stays reserved, so nobody else can take it and borrow its history. The agent that held it can
+    take it back.
+  - **An admin force-rename** is free and logs its reason. The bad name is never shown again (not
+    even as "formerly"), and it stays reserved.
+  - The database itself refuses an unlogged rename, editing or deleting the name log, and a
+    clashing name, even through raw SQL.
+- **More room for generated agent names**, done as you suggested:
+  - a third part, "[Handle]'s [Modifier] [Program]" ("Turbotiger's Moonlit Engineer");
+  - 10,702 handles, 300 modifiers, 200 program words, about **648 million names** (it was about
+    510,000);
+  - no "v2" or "Mk III" endings;
+  - on a clash, a numeral ("Cinderspider of the Blackout II").
+  - Over 20,000 agents in one season, 32 needed a numeral. Almost all of them were "[Handle] of
+    the [Place]" names: that pattern has only 56 places, so it is the smallest. More places would
+    cut the numerals further if you'd like.
+- **The pack answers:** nothing to change. Everything stands as built.
+- **"Zero-Day" left the card-name word list,** so no signature card is named like the finish you
+  proposed.
+
+### [OWNER CHECK-IN] Naming calls, and where the top finish, modal cards and chase cards go
+
+**Sample agent names** (more in `progress/signature-names-sample-003.txt`):
+
+| [Handle]'s [Modifier] [Program] | [Handle]'s [Program] / of the [Place] | rarer patterns |
+|---|---|---|
+| Turbotiger's Moonlit Engineer | Monoqueen's Prodigy | Gray-Market Hyperowl |
+| Novatoad's Unlicensed Guard Dog | Kryptoswift's Architect | Downloading Chromemedic |
+| Rasterwasp's Rogue Duelist | Stacksaint of the Pirate Station | Smokejackal '95 |
+| Baudwitch's Insomniac Enforcer | Copperpike of the Chatroom | Beta Cyberbat |
+
+**1. The rename price.** Proposal: **100 pack points.** That's between crafting an Uncommon (80)
+and a Rare (250), or about 20 packs' worth from opening packs alone. A rename is a choice, not a
+whim.
+   - Options: **A** 100 (default). **B** cheaper (40, a Common craft). **C** steeper (250), or your
+     number. **D** the first rename free, then the price.
+
+**2. Smaller naming calls, as built** (overrule any):
+   1. **The cap is 32 characters,** for typed names too. You proposed 24, and allowed a little more
+      for three-part names. One cap for both is simpler, and the longest generated name is 32.
+   2. **ASCII letters only.** Letters from other alphabets would let "Аdmin" (with a Cyrillic A)
+      get past the staff check.
+   3. **Simple punctuation is ' . - _ and spaces.** A name starts and ends with a letter or digit,
+      and punctuation can't run together ("a..b").
+   4. **Typed names get the generated names' repeated-word check,** as your rules said. So "Static
+      Static" is refused, and so is "Bit by Bit".
+   5. **Staff words:** "admin", "moderator", "official", "AI-TCG" are refused anywhere in a name.
+      "mod", "dev", "gm", "staff", "support", "system" are refused only as whole words, so "Modem
+      Ghost" is fine.
+   6. **An old name is reserved forever** to the agent that held it. The alternative is to free it
+      after a season.
+   7. **Usernames:** a name can't equal another owner's login username, ignoring case, spaces and
+      punctuation ("Neon Fan 99" matches "neon_fan99"). An owner may use their own username.
+   8. **A rename never reprints the signature card.** Its flavour keeps the name it was printed
+      with.
+   9. **Renaming is refused during that agent's live match.** An admin's force-rename is allowed
+      during one, so a bad name doesn't stay on a broadcast.
+
+**3. Where your other 2026-10-16 entries go.** Proposed order for the next game-lane sessions:
+   1. **Chase cards, items 1-4, as a measured proposal before anything goes live.** That means:
+      - the secret-card list (about 30-40 illustration versions plus the 3 Zero-Day slots, on
+        placeholder art slots);
+      - the Glitch rules (which cards qualify, and the rate);
+      - a new odds table `S0-odds-2` that points the shine slot at chosen cards, with Zero-Day at
+        about 1 pack in 500.
+
+      Each is measured with the pack simulation against your targets: about 20% of packs with a
+      Full Art or better, base-set completion, full-set completion in months, Jackpot 1 in 2,000,
+      and pity still working. It goes first because it changes the pack odds just built, before
+      anyone opens real packs.
+   2. **The generic "choose one" mechanic** in the engine: chosen when played, offered to agents as
+      separate legal moves, logged, and in the replays. The 3 top-tier cards need it, so it comes
+      before them.
+   3. **The 3 Zero-Day cards:** their own cards, each with 2 modes. Measured with the signature
+      fairness test, with a proposed cap above the 2-point band. Built with your guardrails: 1 copy
+      per deck, allowed in ranked play and tournaments.
+   4. **Then the deck-building agent and the play styles**, as already ordered. It's better that
+      the deck builder knows about modal and 1-per-deck cards from the start.
+   5. **More modal cards in every faction** with the next card-set work. The ring regression checks
+      stay in band, and I check that agents use both modes.
+
+   - Options: **A** this order (default). **B** the deck-building agent first, then this list.
+     **C** your order.
+
+Next game-lane session, without an answer: the defaults above, starting with the chase-card
+proposal (3.1).
+
+---
+
 **Updated 2026-10-16, session 36 (your 2026-10-16 answers to session 35, and the name patterns).**
 Nothing is blocking. Step 1 of the order you accepted is built: **pack contents and opening**. There
 is one **[OWNER CHECK-IN]** below, with defaults, so the next game-lane session can go ahead without
@@ -55,7 +158,7 @@ Built:
   the whole season. A small in-house Season 0 will most likely see none. That's your number, and I
   haven't changed it. It's raised below in case Season 0 should show one.
 
-### [OWNER CHECK-IN] Pack details your spec didn't fix
+### [ANSWERED 2026-10-16: all defaults accepted] Pack details your spec didn't fix
 
 1. **The shine slot's rarity.** "Any card, any rarity" didn't set the odds. Proposal: Common 60,
    Uncommon 25, Rare 12, Mythic 3. With the Rare slot, about 16% of packs hold a Mythic.

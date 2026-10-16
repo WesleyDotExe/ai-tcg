@@ -2509,7 +2509,7 @@ Owner decision on the session-35 name samples (`progress/signature-names-sample-
 
 ---
 
-## 2026-10-16 — Owner: owners can name their agent; more agent-name room (session 36 follow-up)
+## 2026-10-16 — Owner: owners can name their agent; more agent-name room (session 36 follow-up) (HANDLED 2026-10-17, session 37 — schema v9: naming is free at creation (`confirmAgentDraft(..., { name })`), `renameAgent` costs a proposed 100 pack points, the rules run in the store (`economy/src/agentNames.ts`: 3-32 characters, letters/digits/' . - _, no staff or game impersonation, the blocked-word list and repeated-word check, unique without case across current and past names, never another owner's username), `agent_names` keeps every old name for "formerly ...", `forceRenameAgent` for admins (free, reason logged, the old name hidden and reserved). Generated names: a three-part [Handle]'s [Modifier] [Program], 10,702 handles, 300 modifiers, 200 program words (~648 million names), no v2 / Mk III endings, a numeral on a clash; the cap is 32. Evidence `progress/economy-demo-007.txt`, samples `progress/signature-names-sample-003.txt`; the price and smaller calls are in the new check-in. The owner report button is website work)
 
 ### Owners can name their agent
 - **Naming is free when the agent is created.** The generator still suggests themed names (the 3 draft candidates arrive named), and the owner can keep one or type their own.
@@ -2534,7 +2534,7 @@ Avoid version-style endings ("v2.7", "Mk III"). If three-part names need it, rai
 
 ---
 
-## 2026-10-16 — Owner: pack opening check-in accepted (answers session 36)
+## 2026-10-16 — Owner: pack opening check-in accepted (answers session 36) (HANDLED 2026-10-17, session 37 — everything stands as built in session 36: the 60/25/12/3 shine slot, Alt Art on Rares and Mythics, the 15 Prototype runs, the 1-in-1,000 rate, and the seven smaller calls. The program-word list grew to 200 under the agent-name entry. Note: the chase-card entry below amends the shine slot; its new odds table comes as a proposal first)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 36). All defaults are accepted:
 
@@ -2554,7 +2554,7 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ---
 
-## 2026-10-16 — Owner: a new top finish above Gold, 3 cards per season
+## 2026-10-16 — Owner: a new top finish above Gold, 3 cards per season (BUILD ORDER PROPOSED 2026-10-17, session 37 — not built yet; superseded in part by the amendment and the chase-card entry below. Where it goes is in the new check-in in notes-for-owner.md. "Zero-Day" left the signature-name word lists so no card is named like the finish)
 
 Owner decision.
 
@@ -2575,7 +2575,7 @@ Owner decision.
 
 ---
 
-## 2026-10-16 — Owner: amendment, the top-tier cards are their own cards, slightly stronger, with a choice of two abilities; more modal cards overall
+## 2026-10-16 — Owner: amendment, the top-tier cards are their own cards, slightly stronger, with a choice of two abilities; more modal cards overall (BUILD ORDER PROPOSED 2026-10-17, session 37 — the generic "choose one" mechanic comes before the 3 cards that need it; see the new check-in. Not built yet)
 
 Owner decision. This **replaces the "it's a finish, not a stronger card" part** of today's earlier "new top finish" entry. The rest of that entry stays as suggestions, including the name ("Zero-Day"), the odds (about 1 pack in 2,500), the reveal and the 3 cards per season.
 
@@ -2598,7 +2598,7 @@ Owner decision. This **replaces the "it's a finish, not a stronger card" part** 
 
 ---
 
-## 2026-10-16 — Owner: top-tier card guardrails decided
+## 2026-10-16 — Owner: top-tier card guardrails decided (NOTED 2026-10-17, session 37 — 1 copy per deck and ranked/tournament play are written into the plan; they are built with the 3 cards)
 
 Owner decision. This closes the "guardrails are still open" item in today's top-tier card amendment.
 
@@ -2607,7 +2607,7 @@ Owner decision. This closes the "guardrails are still open" item in today's top-
 
 ---
 
-## 2026-10-16 — Owner: more collectable chase cards (benchmarked against Pokémon TCG Pocket)
+## 2026-10-16 — Owner: more collectable chase cards (benchmarked against Pokémon TCG Pocket) (BUILD ORDER PROPOSED 2026-10-17, session 37 — items 1-4 go first, before the deck-building agent, as a measured proposal (secret-card list, Glitch rules, a new odds table) shown before anything goes live; see the new check-in. Not built yet)
 
 Owner decision, after comparing Season 0 with Pokémon TCG Pocket's Genetic Apex.
 

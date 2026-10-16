@@ -2847,3 +2847,58 @@ pass (session 36).
 
 **Blocked:** nothing; the check-in has defaults. Next: render (alternation), then the
 deck-building agent.
+
+## 2026-10-17 — Session 37 (owner's 2026-10-16 entries: naming agents; the build order for the top finish, modal cards and chase cards)
+
+Game-lane session: the last merged PR (#58) was render. Owner feedback first. The naming entry
+and the pack check-in answers are handled and marked. The four entries on the top finish,
+top-tier cards, guardrails and chase cards are marked with a proposed build order, not built. The
+render entry (PR #58 accepted) is the render lane's own. Not a hardening pass.
+
+**Built:**
+- **Owners name their agents** (schema v9):
+  - a typed name at creation, free;
+  - `renameAgent` for 100 pack points (a proposal);
+  - the rules in the store (`economy/src/agentNames.ts` plus the database checks);
+  - an append-only name log with "formerly ...";
+  - old names reserved;
+  - `forceRenameAgent` for admins (the old name hidden and reserved);
+  - triggers that refuse unlogged renames and clashing names.
+- **Generated agent names:**
+  - the three-part [Handle]'s [Modifier] [Program];
+  - lists grown to 10,702 / 300 / 200;
+  - no version endings;
+  - a numeral on a clash;
+  - the cap 32.
+- "Zero-Day" left the card-name things.
+
+**Ran it:**
+- the naming demo in a real database file (it reproduces exactly);
+- the name samples;
+- `npm test`: 641/641; `tsc` clean in all six workspaces.
+
+**Result:**
+- Every refusal in the rules fires with a clear message, including a Cyrillic look-alike "Аdmin"
+  and another owner's username written with spaces.
+- Over 20,000 agents in one season, all names were distinct, and 32 needed a numeral.
+  - Almost all of those were "[Handle] of the [Place]": 56 places make it the smallest pattern.
+- The template split measured 40.9 / 20.2 / 30.1 / 4.8 / 4.0 against weights 41 / 20 / 30 / 5 / 4.
+
+**Bugs found while building:**
+- The first punctuation rule refused "Dr. Static" (a period then a space counted as doubled). Now
+  only punctuation run together is refused.
+- A test asserted a value against itself; it was fixed to compare with the confirmed card.
+
+**Raised as an [OWNER CHECK-IN]:**
+- the rename price;
+- 9 smaller naming calls;
+- the order for chase cards (first, as a measured proposal), the "choose one" mechanic, the 3
+  Zero-Day cards, then the deck builder.
+
+**Evidence:**
+- `progress/economy-demo-007.txt`;
+- `progress/signature-names-sample-003.txt`;
+- 13 new or rewritten tests.
+
+**Blocked:** nothing; the check-in has defaults. Next: render (alternation), then the chase-card
+proposal.

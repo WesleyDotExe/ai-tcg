@@ -68,14 +68,18 @@ export {
   signatureCardName,
   drawSignatureCardName,
   agentName,
+  drawAgentName,
   agentNameSpace,
   namingProblem,
+  blockedWordIn,
   usernameHandle,
   signatureNameSpace,
   USERNAME_HANDLE_ODDS,
   MAX_NAME_LENGTH,
+  AGENT_NAME_MAX_LENGTH,
   TEMPLATE_WEIGHTS,
   AGENT_TEMPLATE_WEIGHTS,
+  type AgentTemplate,
 } from "./data/signatureNames.js";
 
 export { formatEvent, formatLog } from "./log/format.js";

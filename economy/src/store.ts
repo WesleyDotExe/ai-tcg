@@ -4,6 +4,8 @@ import {
   buildDeck,
   CARD_REGISTRY,
   deckFaction,
+  agentName as generatedAgentName,
+  Rng,
   generateAgentCandidates,
   generateSignatureCandidates,
   getCard,
@@ -21,6 +23,7 @@ import {
   type UnitCard,
 } from "@ai-tcg/engine";
 import {
+  AGENT_RENAME_PACK_POINTS,
   BULK_OPEN_COUNT,
   CRAFT_PACK_POINTS,
   PACK_ODDS,
@@ -33,6 +36,7 @@ import {
   SIGN_IN_LOCKOUT,
   STARTER_PACKS,
 } from "./config.js";
+import { customAgentNameProblem, nameKey, tidyAgentName } from "./agentNames.js";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./passwords.js";
 import { CARD_SETS, nextPity, rollPack, type PackSlot, type PityState } from "./packs.js";
 import { matchCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
@@ -113,6 +117,35 @@ export interface AgentRecord {
    * with createAgent, e.g. before schema v6). */
   persona: string | null;
   createdAt: string;
+}
+
+/** How an agent got a name (schema v9). */
+export type AgentNameKind = "legacy" | "generated" | "custom" | "rename" | "forced";
+
+/** One name an agent held (schema v9's agent_names log). */
+export interface AgentNameEntry {
+  entryNo: number;
+  agentId: string;
+  name: string;
+  kind: AgentNameKind;
+  /** Pack points the owner paid (renames only). */
+  packPoints: number;
+  /** Who named it: the owner, an admin for a forced rename, or null for a
+   * name logged by the migration or the low-level createAgent. */
+  byOwnerId: string | null;
+  note: string | null;
+  namedAt: string;
+}
+
+/** An agent's name as match history shows it (owner 2026-10-16: "old names
+ * stay visible in match history"). A name an admin forced off is never
+ * shown again, but stays reserved. */
+export interface AgentNames {
+  agentId: string;
+  current: string;
+  /** Earlier names, most recent first, without the ones forced off. */
+  formerly: string[];
+  history: AgentNameEntry[];
 }
 
 /** An agent's own signature card (schema v6). */
@@ -832,23 +865,138 @@ export class EconomyStore {
   /** A new agent for an owner. It brings nothing with it: no copies, no
    * credits, no packs (owner app spec B). */
   createAgent(input: { ownerId: string; name: string; persona?: string }): AgentRecord {
+    return this.insertAgent(input, "custom", null);
+  }
+
+  /** The agent row and (schema v9) its first name entry. createAgent is
+   * the low-level path (tests, house setup) and doesn't run the typed-name
+   * rules; owners name agents through confirmAgentDraft and renameAgent. */
+  private insertAgent(input: { ownerId: string; name: string; persona?: string }, kind: AgentNameKind, byOwnerId: string | null): AgentRecord {
     const agent: AgentRecord = { agentId: randomUUID(), ownerId: input.ownerId, name: input.name, persona: input.persona ?? null, createdAt: this.stamp() };
-    try {
-      // Without a persona, the pre-v6 column list (the migration tests open
-      // old schema versions with this code).
-      if (agent.persona === null) {
-        this.db
-          .prepare("INSERT INTO agents (agent_id, owner_id, name, created_at) VALUES (?, ?, ?, ?)")
-          .run(agent.agentId, agent.ownerId, agent.name, agent.createdAt);
-      } else {
-        this.db
-          .prepare("INSERT INTO agents (agent_id, owner_id, name, persona, created_at) VALUES (?, ?, ?, ?, ?)")
-          .run(agent.agentId, agent.ownerId, agent.name, agent.persona, agent.createdAt);
+    this.transaction(() => {
+      try {
+        // Without a persona, the pre-v6 column list (the migration tests open
+        // old schema versions with this code).
+        if (agent.persona === null) {
+          this.db
+            .prepare("INSERT INTO agents (agent_id, owner_id, name, created_at) VALUES (?, ?, ?, ?)")
+            .run(agent.agentId, agent.ownerId, agent.name, agent.createdAt);
+        } else {
+          this.db
+            .prepare("INSERT INTO agents (agent_id, owner_id, name, persona, created_at) VALUES (?, ?, ?, ?, ?)")
+            .run(agent.agentId, agent.ownerId, agent.name, agent.persona, agent.createdAt);
+        }
+        if (this.schemaVersion >= 9) this.logAgentName(agent.agentId, agent.name, kind, 0, byOwnerId, null, agent.createdAt);
+      } catch (err) {
+        if (/UNIQUE.*agents\.name|agents_name_nocase/.test(err instanceof Error ? err.message : "")) throw new EconomyError(`the agent name "${agent.name}" is taken`);
+        refused(err);
       }
-    } catch (err) {
-      refused(err);
-    }
+    });
     return agent;
+  }
+
+  private logAgentName(agentId: string, name: string, kind: AgentNameKind, packPoints: number, byOwnerId: string | null, note: string | null, at: string): number {
+    const r = this.db
+      .prepare("INSERT INTO agent_names (agent_id, name, kind, pack_points, by_owner_id, note, named_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .run(agentId, name, kind, packPoints, byOwnerId, note, at);
+    return Number(r.lastInsertRowid);
+  }
+
+  // ---- naming an agent (owner 2026-10-16; schema v9) ----
+
+  /** Why `name` can't be `ownerId`'s agent's name, or undefined when it can.
+   * The typed-name rules (agentNames.ts), then the ones that need the
+   * database: free without case (no agent holds it, and no other agent ever
+   * held it), and not another owner's login username. `agentId` is the
+   * agent being renamed, which may take back a name it held before. */
+  agentNameProblem(ownerId: string, name: string, agentId?: string): string | undefined {
+    const problem = customAgentNameProblem(name);
+    if (problem) return problem;
+    const tidy = tidyAgentName(name);
+    const holder = this.db.prepare("SELECT agent_id FROM agents WHERE name = ? COLLATE NOCASE").get(tidy) as Row | undefined;
+    if (holder && str(holder.agent_id) !== agentId) return `the agent name "${tidy}" is taken`;
+    const held = this.db.prepare("SELECT 1 FROM agent_names WHERE name = ? COLLATE NOCASE AND agent_id IS NOT ?").get(tidy, agentId ?? null);
+    if (held) return `the agent name "${tidy}" belonged to another agent and stays reserved`;
+    const key = nameKey(tidy);
+    const logins = this.db.prepare("SELECT owner_id, username FROM logins").all() as Row[];
+    if (logins.some((l) => str(l.owner_id) !== ownerId && nameKey(str(l.username)) === key)) return "an agent name can't copy another owner's username";
+    return undefined;
+  }
+
+  /** Renames an owner's agent for AGENT_RENAME_PACK_POINTS pack points
+   * (owner 2026-10-16: naming is free at creation, any rename after costs
+   * pack points). Refused during the agent's live match, for a name the
+   * rules refuse, or without the points. The signature card keeps its
+   * name and its printed flavour. */
+  renameAgent(ownerId: string, agentId: string, newName: string): AgentNames {
+    return this.transaction(() => {
+      const agent = this.getAgent(agentId);
+      if (agent.ownerId !== ownerId) throw new EconomyError("only the agent's owner can rename it");
+      const name = tidyAgentName(newName);
+      if (name === agent.name) throw new EconomyError(`the agent is already called "${name}"`);
+      if (this.liveMatchOf(ownerId) !== null && this.connectedAgent(ownerId)?.agentId === agentId) {
+        throw new EconomyError("no renaming an agent during its live match");
+      }
+      const problem = this.agentNameProblem(ownerId, name, agentId);
+      if (problem) throw new EconomyError(problem);
+      const have = this.balance(ownerId, "packPoints");
+      if (have < AGENT_RENAME_PACK_POINTS) throw new EconomyError(`a rename costs ${AGENT_RENAME_PACK_POINTS} pack points; you have ${have}`);
+      const at = this.stamp();
+      const entry = this.logAgentName(agentId, name, "rename", AGENT_RENAME_PACK_POINTS, ownerId, null, at);
+      this.appendLedger(ownerId, null, "packPoints", -AGENT_RENAME_PACK_POINTS, "agentRename", `agent-name:${entry}`, at);
+      this.db.prepare("UPDATE agents SET name = ? WHERE agent_id = ?").run(name, agentId);
+      return this.agentNames(agentId);
+    });
+  }
+
+  /** An admin's force-rename (owner 2026-10-16: "add an admin-view
+   * force-rename"): free, to a fresh generated name (or `name`, checked by
+   * the same rules). The old name is never shown again, not even as
+   * "formerly", and stays reserved so no one can take it. Allowed during a
+   * live match: a bad name shouldn't stay on a broadcast. */
+  forceRenameAgent(adminOwnerId: string, agentId: string, options: { reason: string; name?: string; seed?: number }): AgentNames {
+    if (!this.isAdmin(adminOwnerId)) throw new EconomyError("only an admin can force a rename");
+    const reason = options.reason.trim();
+    if (reason.length === 0) throw new EconomyError("a forced rename records its reason");
+    return this.transaction(() => {
+      const agent = this.getAgent(agentId);
+      let name: string;
+      if (options.name !== undefined) {
+        name = tidyAgentName(options.name);
+        const problem = this.agentNameProblem(agent.ownerId, name, agentId);
+        if (problem) throw new EconomyError(problem);
+      } else {
+        name = generatedAgentName(new Rng(options.seed ?? randomInt(2 ** 31)), this.takenNames().agentNames);
+      }
+      const at = this.stamp();
+      this.logAgentName(agentId, name, "forced", 0, adminOwnerId, reason, at);
+      this.db.prepare("UPDATE agents SET name = ? WHERE agent_id = ?").run(name, agentId);
+      return this.agentNames(agentId);
+    });
+  }
+
+  /** An agent's current name, what it was formerly called, and the full log. */
+  agentNames(agentId: string): AgentNames {
+    const agent = this.getAgent(agentId);
+    const history = (this.db.prepare("SELECT * FROM agent_names WHERE agent_id = ? ORDER BY entry_no").all(agentId) as Row[]).map(
+      (r): AgentNameEntry => ({
+        entryNo: num(r.entry_no),
+        agentId: str(r.agent_id),
+        name: str(r.name),
+        kind: str(r.kind) as AgentNameKind,
+        packPoints: num(r.pack_points),
+        byOwnerId: strOrNull(r.by_owner_id),
+        note: strOrNull(r.note),
+        namedAt: str(r.named_at),
+      }),
+    );
+    // A name followed by a forced rename was forced off: never shown.
+    const shown = history.filter((e, i) => history[i + 1]?.kind !== "forced");
+    const formerly: string[] = [];
+    for (const e of [...shown].reverse()) {
+      if (e.name.toLowerCase() !== agent.name.toLowerCase() && !formerly.some((f) => f.toLowerCase() === e.name.toLowerCase())) formerly.push(e.name);
+    }
+    return { agentId, current: agent.name, formerly, history };
   }
 
   getAgent(agentId: string): AgentRecord {
@@ -920,7 +1068,7 @@ export class EconomyStore {
    * The card's art-pool slot is drawn here, server-side; `artSlot` is for
    * tests and the demo only. The new agent is not connected; the owner
    * connects it. */
-  confirmAgentDraft(ownerId: string, draftId: string, signatureIndex: number, options: { artSlot?: number } = {}): GeneratedAgent {
+  confirmAgentDraft(ownerId: string, draftId: string, signatureIndex: number, options: { artSlot?: number; name?: string } = {}): GeneratedAgent {
     const artSlot = options.artSlot ?? randomInt(1, SIGNATURE_ART_POOL_SIZE + 1);
     if (!Number.isInteger(artSlot) || artSlot < 1 || artSlot > SIGNATURE_ART_POOL_SIZE) {
       throw new EconomyError(`an art slot is 1 to ${SIGNATURE_ART_POOL_SIZE}, got ${artSlot}`);
@@ -928,15 +1076,26 @@ export class EconomyStore {
     return this.transaction(() => {
       const draft = this.openDraft(ownerId, draftId);
       if (draft.picked === null || draft.signatures === null) throw new EconomyError("pick an agent before its signature card");
-      const chosen = draft.signatures[signatureIndex];
+      let chosen = draft.signatures[signatureIndex];
       if (!Number.isInteger(signatureIndex) || chosen === undefined) throw new EconomyError(`no signature candidate ${signatureIndex} in this draft`);
       const candidate = draft.agents[draft.picked]!;
       const taken = this.takenNames();
-      if (taken.agentNames.has(candidate.name)) throw new EconomyError(`the agent name "${candidate.name}" was taken since this draft was made; start a new draft`);
+      // Naming is free here (owner 2026-10-16): keep the generated name, or
+      // type one, checked by the typed-name rules. The card's flavour line
+      // is printed now, so it uses the name the agent is created with.
+      const typed = options.name === undefined ? undefined : tidyAgentName(options.name);
+      if (typed !== undefined && typed !== candidate.name) {
+        const problem = this.agentNameProblem(ownerId, typed);
+        if (problem) throw new EconomyError(problem);
+      } else if ([...taken.agentNames].some((n) => n.toLowerCase() === candidate.name.toLowerCase())) {
+        throw new EconomyError(`the agent name "${candidate.name}" was taken since this draft was made; start a new draft or type a name`);
+      }
       if (taken.cardNames.has(chosen.name)) {
         throw new EconomyError(`the card name "${chosen.name}" was taken since this draft was made; start a new draft`);
       }
-      const agent = this.createAgent({ ownerId, name: candidate.name, persona: candidate.persona });
+      const agentName = typed ?? candidate.name;
+      const agent = this.insertAgent({ ownerId, name: agentName, persona: candidate.persona }, agentName === candidate.name ? "generated" : "custom", ownerId);
+      if (agentName !== candidate.name) chosen = { ...chosen, flavor: chosen.flavor.replaceAll(candidate.name, agentName) };
       const promoNumber = this.nextPromoNumber();
       const collectorNumber = `PR-${String(promoNumber).padStart(3, "0")}`;
       const cardId = `sig-${collectorNumber}`;
@@ -1038,7 +1197,10 @@ export class EconomyStore {
    * name, and every set card's name (a signature card never shares a name
    * with a set card). */
   private takenNames(): { agentNames: Set<string>; cardNames: Set<string> } {
-    const agentNames = new Set((this.db.prepare("SELECT name FROM agents").all() as Row[]).map((r) => str(r.name)));
+    // Every agent's current name and (v9) every name one ever held: an old
+    // name stays reserved. Generated names are compared without case.
+    const held = this.schemaVersion >= 9 ? "SELECT name FROM agents UNION SELECT name FROM agent_names" : "SELECT name FROM agents";
+    const agentNames = new Set((this.db.prepare(held).all() as Row[]).map((r) => str(r.name)));
     const sigs = this.db.prepare("SELECT name FROM signature_cards").all() as Row[];
     const cardNames = new Set([...sigs.map((r) => str(r.name)), ...[...CARD_REGISTRY.values()].map((c) => c.name)]);
     return { agentNames, cardNames };

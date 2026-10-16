@@ -31,9 +31,43 @@ signature menu and its fairness test), and session 33 (the tuner's size and cost
 Bulwark, the unsellable signature card), and session 34 (Barrier-only Guardian, units-only Bulwark,
 the finer tuner pass, generating a new agent), and session 35 (10,000-game re-measure, combinations
 may repeat, themed card names), and session 36 (the art-pool slot, themed agent names, pack
-contents and opening).
+contents and opening), and session 37 (owners name their agents, more agent-name room).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 37
+
+- **Naming has no interface either.** `confirmAgentDraft({ name })`, `renameAgent` and
+  `forceRenameAgent` are store calls. No owner can type a name anywhere yet, there is no admin view
+  to press "force rename", and the owner report button the spec mentions doesn't exist. All wait on
+  the website endpoints (build-order step 3).
+- **The name filter is a short blocked-root list plus a staff-word list, both mine.** It catches the
+  obvious, not the clever: leetspeak ("4dmin", "sh1t"), words split by punctuation ("A.d.m.i.n" is
+  caught only because the squash joins letters; "Ad-min" too, but "Adm1n" is not), and slurs not on
+  the list get through. The admin force-rename is the backstop, and nothing yet tells an admin a
+  name needs one.
+- **The rename price (100 pack points) and nine smaller calls are mine** (in the check-in): the cap
+  of 32 for typed names, ASCII only, old names reserved forever, the repeated-word rule refusing
+  ordinary names like "Bit by Bit", and the rest.
+- **Reserved names never free up.** With every past name reserved forever, a long-lived game slowly
+  fills the space with names nobody uses. Fine at hundreds of millions of generated names; it
+  matters only for short, popular typed names, and there's no policy for it.
+- **"Formerly" is data only.** `agentNames` gives current and formerly, but `matchHistory` rows
+  still carry agent ids, and nothing (render, replays, commentators) shows the old names yet.
+- **Agent names are now up to 32 characters,** longer than session 36's longest. The render's
+  board, replay headers and the signature card's flavour line haven't been checked at that length.
+  The flavour double possessive ("Every scratch on Rustwren's Last-Call Chronicler's side") reads
+  worse with three-part names.
+- **"[Handle] of the [Place]" is the smallest pattern** (56 places), so it causes almost all clash
+  numerals (32 in 20,000 agents). More places would fix it; not done.
+- **The 300 modifiers and ~100 new handle parts are shared with card names,** so card names changed
+  too. The new words were not read one by one in every combination, as with session 35's lists.
+  The tests only prove the filter passes them.
+- **The migration's case-insensitive unique index fails if an existing database already holds two
+  agent names that differ only in case.** No such database exists (Season 0 is in-house), but the
+  migration doesn't repair it; it would stop with an error.
+- **The chase-card, Zero-Day, top-tier and modal-card entries are unbuilt.** Only their order is
+  proposed. The odds table still has no secret cards, no Glitch tier and no Zero-Day row.
 
 ## New debt from session 36
 

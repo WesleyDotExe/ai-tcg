@@ -1,0 +1,168 @@
+AI-TCG signature card and agent names: fresh samples for the owner (session 37)
+Generator: engine/src/data/signatureNames.ts. Command: npx tsx src/dev/signatureNameSamples.ts (from engine/).
+Owner 2026-10-16: the [Handle]'s patterns ~60%, "of the [Place]" ~30%, bare two-word and edition names
+10% or less; the username 1 candidate in 100; agent names get the same themed treatment.
+
+Card name templates (weights): [Handle]'s [Modifier] [Thing] 41, [Handle]'s [Thing] 20, [Thing] of the [Place] 30, [Modifier] [Thing] 5, [Modifier] [Thing] [Edition] 4.
+The Thing hints at the ability 80% of the time, otherwise it is a generic retro-tech object. The template
+is drawn once and only its words are re-rolled, so the filter can't skew the split. Filter: no word repeated
+across slots, 30 characters at most, no blocked word. A taken name (a set card or another signature card)
+is re-rolled.
+Measured over 20,000 names: [Handle]'s [Modifier] [Thing] 41.5%, [Handle]'s [Thing] 19.8%, [Thing] of the [Place] 29.8%, [Modifier] [Thing] 4.8%, [Modifier] [Thing] [Edition] 4.1%.
+
+List sizes: 10702 handles, 300 modifiers, 56 places (all "the ..."), 15 editions, 40 generic things,
+and per ability group: strike 20, wave 16, guard 20, draw 18, boost 18, mend 16, toll 15, power 15, jam 16, hunt 15.
+
+Name space per menu option (before the filter):
+  Commander's aura   boost    187,117,164
+  Smite              strike   193,569,480
+  Rally              boost    187,117,164
+  Hunter             hunt     177,438,690
+  Shield wall        guard    193,569,480
+  Guardian           guard    193,569,480
+  Bulwark            guard    193,569,480
+  Restore            mend     180,664,848
+  Supply line        draw     187,117,164
+  Energy surge       power    177,438,690
+  Recycle            draw     187,117,164
+  Inspire            boost    187,117,164
+  Suppress           jam      180,664,848
+  Dampen             jam      180,664,848
+  Tax                toll     177,438,690
+  Sweep              wave     180,664,848
+
+1. Twelve names per approved option (seed 2026), as the generator makes them
+
+  guardian
+    Dialsaint's Safe Room               Onyxmancer's Last-Call Air Gap      Astroronin's Handheld Proxy
+    Fusemancer's Midnight Bunker        Smokebeetle's Redacted Air Gap      Zerogull's Off-World Bodyguard
+    Zeroking's Safe Room                Lightning Rod of the Dead Mall      Kryptofrog's Cybernetic Bunker
+    Plastic Laser Pointer               Bunker of the Thirteenth Floor      Firewall of the Open Port
+
+  inspire
+    Vapormanta's Arcade Cabinet         Sub-Level Modem                     Moonless Cheat Code Plus
+    Photonkrait's Stereo Broadcast      Proxymamba's Infrared Pep Talk      Fluxdrifter's Glowing Level Up
+    Fiberspider's Ivory Bass Drop       Hype Track of the Error Log         Holoking's Turbo Hype Track
+    Jadecat's Rewound Mixtape           Drumline of the Midnight Shift      Gridgator's Wired Bass Drop
+
+  rally
+    Rave of the Underpass               Copperfalcon's Silver Mixtape       Ionferret's Obsolete Camcorder
+    Sparkmink's Tutorial                Vectorprophet's Mentor              Upgrade of the Ninth Floor
+    Mainframe Key of the Burned CD      Relaykraken's Level Up              Vectorhare's Stolen Drumline
+    Neon Sign of the Test Server        Rombat's 16-Bit Circuit Board       Bass Drop of the Underpass
+
+  recycle
+    Sigmaweasel's Archive               Download of the Parking Garage      Echonewt's Crimson Data Mule
+    Gridwren's Limited Vacuum Tube      Voltbot's Subterranean Cache        Photonwasp's Glowing Courier
+    Gigacoyote's Torrent                Salvage of the Error Log            Logicsage's Offline Pocket TV
+    Logicboar's Rust-Belt Uplink        Plasmapanther's Calculator          Uploading Laser Pointer
+
+  restore
+    Photonadder's Stolen Patch          Hotfix of the Night Train           Shellsage's Atomic Duct Tape
+    Strobeheron's Freeway Hotfix        Reboot of the Datacenter            Duskhound's Proxied Rollback
+    Hardwired Patch                     Rollback of the Midnight Shift      Vaporsage's Gilded Save State
+    Macrocat's Soldering Iron           Rollback of the Zero Sector         Shellking's Moonlit Defrag
+
+  supply-line
+    Byteclaw's Idle Courier             Mailbag of the Error Log            Torrentsmith's Archive
+    Novacat's Moonstruck Archive        Modemjinx's Sub-Level Courier       Retromanta's Warez Drop
+    Care Package of the Junkyard        Archive of the Night Market         Laserdoc's Lava Lamp
+    Gigakid's Warez Drop                Salvage of the Rain City            Torrent of the Video Store
+
+  tax
+    Late Fee of the Ninth Floor         Nag Screen of the Late Channel      Hexmedic's Copper Bouncer
+    Turnstile of the Night Train        Hyperbeetle's Late Fee              Biosweasel's Awakened Bouncer
+    Smoggy Lava Lamp                    Cloned License Key                  Micromedic's Paygate
+    Staticfixer's Arcade Turnstile      Synthmantis's Lo-Res Meter          Signalbeetle's Phosphor Meter
+
+2. The rare username variant (1 candidate in 100, about one draft in 33), shown here forced on, for three example usernames
+
+  zion         Zion's Terminal  |  Zion's Off-World Shield  |  Zion's Syncing Turnstile  |  Zion's Signal Fire
+  Neon_Fan99   Neon_Fan99's Flickering Pager  |  Neon_Fan99's Gutter Panic Room  |  Neon_Fan99's Wired Gatekeeper  |  Neon_Fan99's Electric Upgrade
+  kestrel      Kestrel's Terminal Shock  |  Kestrel's Electric Body Armor  |  Kestrel's Crimson Tariff  |  Kestrel's Broadcast
+
+3. Agent names (owner 2026-10-16: hacker-handle style, the same favoured patterns; session 37: more room)
+
+Agent name templates (weights): [Handle]'s [Modifier] [Program] 41, [Handle]'s [Program] 20, [Handle] of the [Place] 30, [Modifier] [Handle] 5, [Handle] [Edition] 4.
+A Program is what an AI agent is, in the theme's words (200: Daemon, Ghost, Copilot, Autopilot, Construct, Familiar, Oracle, Proxy, ...).
+Lists: 10,702 handles, 300 modifiers, 200 program words, 56 places, editions 2000 3000 '95 '97 '99 XL Deluxe Pro Plus Max Gold SE Classic (no v2, no Mk III).
+Name space: 648,209,438 before the filter and the 32-character cap (session 36: about 510,000).
+Measured over 20,000 names drawn into one season: [Handle]'s [Modifier] [Program] 40.9%, [Handle]'s [Program] 20.2%, [Handle] of the [Place] 30.1%, [Modifier] [Handle] 4.8%, [Handle] [Edition] 4.0%.
+  all distinct: true; needed a numeral: 32; longest: 32 characters.
+A clash gets a numeral instead of failing: "Cinderspider of the Blackout" -> "Cinderspider of the Blackout II" -> "Cinderspider of the Blackout III".
+
+    Gray-Market Hyperowl                Cachegecko's Booting Historian      Smokejackal '95
+    Monoqueen's Prodigy                 Downloading Chromemedic             Titanium Arcadebroker
+    Cathode Fibercrane                  Turbotiger's Moonlit Engineer       Echoferret's Pinball Assistant
+    Novatoad's Unlicensed Guard Dog     Frostwarden's Unsigned Bot          Stacksaint of the Pirate Station
+    Cybernewt of the Pirate Station     Lambdaotter's Cybernetic Villain    Pingswift of the Hologram Booth
+    Gigascarab's Beeper Clone           Bitbadger's Plastic Homunculus      Polished Cinderhornet
+    Rasterwasp's Rogue Duelist          Fibertoad's Riverside Second        Kryptoswift's Architect
+    Copperpike of the Chatroom          Coilcobra's Transmitter             Steelburner of the Test Server
+    Beta Cyberbat                       Tapefinch of the Late Channel       Baudwitch's Insomniac Enforcer
+    Stormhunter of the Recycle Bin      Proxywren's Obsidian Machine        Streamsaint's Abandoned Mind
+    Novasentry of the Dial-Up Era       Cachegolem of the Mainframe         Floppypunk of the Phone Lines
+    Pingcourier of the Chrome Bazaar    Fusebroker's Neon Engineer          Kernelbreaker's Daemon
+
+4. Ten complete "Generate a new agent" drafts (agent picked = the first; its 3 signature cards)
+
+  Echosquid of the Junkyard — A cold-blooded forecaster that hums while it waits for priority.
+      Fiber-Optic Pep Talk Plus: cost 5, 3/5. At the start of your turn, a random ally gets +0/+1 permanently.
+      Syncing Stunt Double: cost 5, 3/5. Barrier.
+      Data Heist of the Error Log: cost 5, 3/7. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      flavour: "Echosquid of the Junkyard turns a nobody into a threat, one turn at a time."
+
+  Rustwren's Last-Call Chronicler — A patient cartographer that never attacks into an even trade.
+      Reboot of the Underpass: cost 5, 3/5. At the end of your turn, restore 1 health to a random unit of yours.
+      Gigamanta's Coin-Op Afterimage: cost 5, 3/6. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      Photonmanta's Proxy: cost 5, 3/5. Barrier.
+      flavour: "Every scratch on Rustwren's Last-Call Chronicler's side gets a ticket and a fix."
+
+  Gridwraith's Beacon — A theatrical archivist that plays its biggest threat one turn earlier than it should.
+      Rasterpanther's Mixtape: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      Paygate of the Mirror Site: cost 5, 3/6. Enemy Commands cost 1 more.
+      Data Mule of the Last Arcade: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "Gridwraith's Beacon doesn't fight alone; it never has."
+
+  Astropilot's Nemesis — A courteous tactician that treats every match as a proof to finish.
+      Pulsefalcon's Humid Robot: cost 5, 3/6. When it dies, draw a card.
+      Unindexed Fuse Box SE: cost 5, 3/6. At the end of your turn, restore 1 health to a random unit of yours.
+      Boombox of the Last Platform: cost 5, 3/6. On arrival, your units get +0/+1 this turn.
+      flavour: "Nothing Astropilot's Nemesis loses stays lost."
+
+  Databear of the Signal Tower — A theatrical tinkerer that estimates its win chance out loud, to three decimals.
+      Recycle Bin of the Blackout: cost 5, 3/6. On arrival, if you have 2 or fewer cards in hand, draw a card.
+      Turnstile of the Recycle Bin: cost 5, 3/6. Enemy Commands cost 1 more.
+      Afterimage of the Night Market: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "Databear of the Signal Tower never runs out of plans, only of patience."
+
+  Servohornet's Laser Antihero — A courteous forecaster that counts every card left in its opponent's deck.
+      Byteking's Prototype Download: cost 5, 3/6. When it dies, draw 2 cards.
+      Laserjackal's Late-Show Bunker: cost 5, 3/5. Barrier.
+      Synthcourier's 8-Bit Late Fee: cost 5, 3/6. Enemy Commands cost 1 more.
+      flavour: "Servohornet's Laser Antihero keeps nothing it can't use twice."
+
+  Phreakfinch's Cathode Courier — A ruthless cartographer that refuses to pass with energy unspent.
+      Rustrider's Deadbolt: cost 5, 3/5. Barrier.
+      Sigmaosprey's Signal Fire: cost 5, 3/6. On arrival, your units get +0/+1 this turn.
+      Fluxscout's Limited Salvage: cost 5, 3/5. When it dies, draw 3 cards.
+      flavour: "The first hit on Phreakfinch's Cathode Courier never lands."
+
+  Turbotiger's Beta Lighthouse — A quiet sentinel that estimates its win chance out loud, to three decimals.
+      Salvage of the Data Haven: cost 5, 3/5. When it dies, draw 3 cards.
+      Chromemamba's Plasma Encore: cost 5, 3/4. At the start of your turn, a random ally gets +0/+1 permanently.
+      Plastic Gatekeeper: cost 5, 3/6. Enemy Commands cost 1 more.
+      flavour: "Turbotiger's Beta Lighthouse keeps nothing it can't use twice."
+
+  Voltnomad's Solar Player — A stubborn duellist that re-reads the rules text of every card it sees.
+      Jadedoc's Red Tape: cost 5, 3/6. Enemy Commands cost 1 more.
+      Frostcrow's Solar Faraday Cage: cost 5, 3/5. Barrier.
+      Rootcrow's Plugged-In Level Up: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      flavour: "Spells pass Voltnomad's Solar Player's gate at a price."
+
+  Stormgull of the Rain City — A courteous auditor that counts every card left in its opponent's deck.
+      Tapemamba's Mixtape Bass Drop: cost 5, 3/5. On arrival, your units get +0/+1 this turn.
+      Data Mule of the Dead Mall: cost 5, 3/5. When it dies, draw 3 cards.
+      Level Up of the Video Store: cost 5, 3/5. At the start of your turn, a random ally gets +0/+1 permanently.
+      flavour: "One signal from Stormgull of the Rain City and the whole board leans forward."
+
