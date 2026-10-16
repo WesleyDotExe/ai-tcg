@@ -2531,3 +2531,23 @@ The owner wants generated agent names to be more unique. Today's two-part patter
 - on the rare clash, add a numeral ("... II") instead of failing.
 
 Avoid version-style endings ("v2.7", "Mk III"). If three-part names need it, raise the agent-name length cap a little. Show samples at a checkpoint.
+
+---
+
+## 2026-10-16 — Owner: pack opening check-in accepted (answers session 36)
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 36). All defaults are accepted:
+
+1. **Shine slot rarity: option A**, Common 60 / Uncommon 25 / Rare 12 / Mythic 3.
+2. **Alt Art draws a Rare or Mythic,** as built (about 1 in 30).
+3. **Prototype runs:** the proposed 15-card list is accepted as the starting list (Null Singularity 1/1 at the top). The owner checks the art before it goes live.
+4. **Prototypes in Season 0: option A.** Leave the 1-in-1,000 rate unchanged; never raise a rate just to test it. Check the Prototype reveal with a test or demo pack outside the season's odds instead.
+
+**Keep all seven of session 36's smaller calls:**
+1. "NEW" means no copy held before that pack, counted once per bulk summary.
+2. A 10-pack open is all or nothing.
+3. Crafting counts every copy held toward the limit, Foil and Gold included.
+4. Prototype serials are handed out in order.
+5. The username variant uses only the [username]'s patterns.
+6. Agent names use the 50 "program" nouns. This list grows under the 2026-10-16 agent-name entry.
+7. Season 0's set symbol is a name only (S0-boot) until the render draws it.
