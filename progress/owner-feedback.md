@@ -2604,3 +2604,54 @@ Owner decision. This closes the "guardrails are still open" item in today's top-
 
 - **Only 1 copy per deck** of each top-tier card.
 - **They're allowed in ranked play and tournaments.** Their strength stays limited by the fairness-test cap (to be proposed with the measurements).
+
+---
+
+## 2026-10-16 — Owner: more collectable chase cards (benchmarked against Pokémon TCG Pocket)
+
+Owner decision, after comparing Season 0 with Pokémon TCG Pocket's Genetic Apex.
+
+### Pocket benchmark (published third-party rates, for reference)
+- 286 cards: 226 main and 60 "secret" chase cards.
+- Chase tiers: 1★, 2★, 3★ immersive, shiny 1 and 2, and crown.
+- About 21% of packs hold a ★ or better.
+- Crown is about 1 pack in 500 (slot 4 0.04% + slot 5 0.16%), with 3 crowns per set.
+- God pack 1 in 2,000. Crowns can be crafted for 2,500 pack points. No pity.
+
+Gaps found:
+- Season 0 completes in a median of 130 packs.
+- Our chase versions are random finishes, mostly on Commons, not collectable set entries.
+- There's no animated tier, no cheap variant tier, a single pack type, no collection rewards, and no guaranteed path to the very top.
+
+### Do these, in this order
+
+1. **Secret cards every season.**
+   - Add numbered secret cards above the set total, the way Gold already numbers above it.
+   - For Season 0, about 30–40 secret cards: illustration versions of chosen cards, each with its own new art, plus all 3 Zero-Day cards.
+   - Each is its own collection entry, with its own place in the binder and the set checklist.
+   - Art arrives with the owner-funded art pass. Until then, use placeholder art slots, as the signature art pool does.
+   - The owner approves which cards get secret versions.
+2. **Zero-Day odds: about 1 pack in 500 overall,** matching Pocket's crown. That makes each of the 3 cards about 1 in 1,500.
+   - This **corrects the "about 1 in 2,500" in today's top-finish entry,** which was based on a wrong reading of Pocket's crown rate.
+   - **Make the 3 Zero-Day cards animated,** like Pocket's immersive cards: art that moves and reaches past the card frame. The render lane builds it in code; no outside service at runtime.
+3. **A code-generated "Glitch" variant tier.**
+   - Corrupted-colour versions of selected cards (palette shift, scanlines, data-corruption effects), on theme and costing no new art, like Pocket's shiny cards.
+   - Glitch versions are collection entries too.
+   - Propose its rate and which cards qualify.
+4. **Point the shine slot at chosen cards.**
+   - Special versions (Full Art, Alt Art, Gold, the secret cards and Glitch) should land on chosen cards people want, rather than mostly on Commons.
+   - Foil can stay on any card.
+   - This amends the accepted 60/25/12/3 shine-slot weights where they conflict. Propose a new odds table version.
+5. **Later, after the above:**
+   - 2–3 pack designs per season, each with exclusive cards;
+   - collection-milestone reward cards (for example, complete a faction to earn an exclusive card);
+   - consider crafting top-tier and secret cards at a steep pack-point cost, as Pocket does. This is a proposal for the owner to decide.
+
+### Targets for the new odds table (measure with the pack simulation)
+- About 20% of packs hold a hit of Full Art or better. Foil stays a common "lite" hit.
+- The base set still completes in a reasonable number of packs.
+- The full set including secret cards takes months for a dedicated owner, not weeks. Report the median packs to complete both.
+- Keep Jackpot at 1 in 2,000, and keep the pity timers working with the new tiers.
+- Never raise a rate just to test it.
+
+**Build order:** propose where items 1–4 fit. They touch the pack odds just built, so doing them before the deck-building agent may be sensible. Update ECONOMY.md to match, and show the proposed secret-card list, Glitch rules and new odds table at a checkpoint before they go live.
