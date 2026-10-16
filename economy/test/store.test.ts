@@ -37,7 +37,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(8);
+    expect(a.schemaVersion).toBe(9);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -46,7 +46,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(8);
+    expect(b.schemaVersion).toBe(9);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -209,7 +209,7 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
 
     // v7 -> v8: the art pool and pack opening (session 36). Cards made
     // before v8 draw their art slot in the migration, and keep it.
-    const v8 = open(path);
+    const v8 = open(path, 8);
     expect(v8.schemaVersion).toBe(8);
     for (const agentId of [made.agent.agentId, twin.agentId]) {
       const art = v8.signatureCard(agentId)!.art!;
@@ -220,6 +220,20 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
     expect(v8.signatureCard(made.agent.agentId)!.card.art).toMatch(/^placeholder:signature-pool\/S0\/\d{3}$/);
     expect(() => v8.unsafeExec(`UPDATE signature_cards SET art_slot = 1`)).toThrow(/keeps its art/);
     v8.close();
+
+    // v8 -> v9: agent names (session 37). Every existing agent's name is
+    // logged as legacy; names become unique without case and stay reserved.
+    const v9 = open(path);
+    expect(v9.schemaVersion).toBe(9);
+    for (const a of v9.listAgents()) {
+      const names = v9.agentNames(a.agentId);
+      expect(names.history).toEqual([expect.objectContaining({ name: a.name, kind: "legacy", packPoints: 0, byOwnerId: null, namedAt: a.createdAt })]);
+      expect(names.formerly).toEqual([]);
+    }
+    expect(() => v9.createAgent({ ownerId: "owner-a1", name: "TWIN" })).toThrow(/taken/);
+    expect(() => v9.unsafeExec(`UPDATE agents SET name = 'renamed by hand' WHERE agent_id = '${twin.agentId}'`)).toThrow(/logged name entry/);
+    expect(() => v9.unsafeExec(`DELETE FROM agent_names`)).toThrow(/never deleted/);
+    v9.close();
   });
 });
 

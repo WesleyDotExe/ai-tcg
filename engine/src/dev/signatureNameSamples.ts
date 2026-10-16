@@ -2,9 +2,11 @@
 // check-in (owner 2026-10-15: "show sample names at a checkpoint before they
 // go live"; 2026-10-16: favour the [Handle]'s and "of the [Place]" patterns,
 // show a fresh sample, and give agent names the same treatment). Session 35,
-// updated session 36. Everything is seeded, so the file reproduces exactly.
+// updated sessions 36 and 37 (owner 2026-10-16: more room for agent names,
+// a three-part pattern, no version endings, a numeral on a clash).
+// Everything is seeded, so the file reproduces exactly.
 //
-// Usage (from engine/): npx tsx src/dev/signatureNameSamples.ts > ../progress/signature-names-sample-002.txt
+// Usage (from engine/): npx tsx src/dev/signatureNameSamples.ts > ../progress/signature-names-sample-003.txt
 
 import { Rng } from "../state/rng.js";
 import { SIGNATURE_MENU } from "../data/signatureMenu.js";
@@ -12,6 +14,7 @@ import { CARD_REGISTRY } from "../data/registry.js";
 import { APPROVED_SIGNATURE_LINES } from "../data/signatureApproved.js";
 import { generateAgentCandidates, generateSignatureCandidates } from "../data/agentGenerator.js";
 import {
+  AGENT_NAME_MAX_LENGTH,
   AGENT_TEMPLATE_WEIGHTS,
   HANDLES,
   NAME_LISTS,
@@ -19,6 +22,7 @@ import {
   USERNAME_HANDLE_ODDS,
   agentName,
   agentNameSpace,
+  drawAgentName,
   drawSignatureCardName,
   signatureCardName,
   signatureNameSpace,
@@ -28,13 +32,14 @@ const out: string[] = [];
 const say = (s = "") => out.push(s);
 const setNames = new Set([...CARD_REGISTRY.values()].map((c) => c.name));
 
-say("AI-TCG signature card and agent names: fresh samples for the owner (session 36)");
+say("AI-TCG signature card and agent names: fresh samples for the owner (session 37)");
 say("Generator: engine/src/data/signatureNames.ts. Command: npx tsx src/dev/signatureNameSamples.ts (from engine/).");
 say("Owner 2026-10-16: the [Handle]'s patterns ~60%, \"of the [Place]\" ~30%, bare two-word and edition names");
 say("10% or less; the username 1 candidate in 100; agent names get the same themed treatment.");
 say();
 const label: Record<string, string> = {
   handleModThing: "[Handle]'s [Modifier] [Thing]",
+  handleModProgram: "[Handle]'s [Modifier] [Program]",
   handleThing: "[Handle]'s [Thing]",
   thingOfPlace: "[Thing] of the [Place]",
   modThing: "[Modifier] [Thing]",
@@ -78,7 +83,7 @@ for (const ability of [...new Set(APPROVED_SIGNATURE_LINES.map((l) => l.spec.abi
     return n;
   });
   say(`  ${ability}`);
-  for (let i = 0; i < names.length; i += 3) say(`    ${names.slice(i, i + 3).map((n) => n.padEnd(32)).join("")}`.trimEnd());
+  for (let i = 0; i < names.length; i += 3) say(`    ${names.slice(i, i + 3).map((n) => n.padEnd(36)).join("")}`.trimEnd());
   say();
 }
 
@@ -96,11 +101,36 @@ for (const [k, username] of ["zion", "Neon_Fan99", "kestrel"].entries()) {
 }
 say();
 
-say("3. Agent names (owner 2026-10-16: hacker-handle style, the same favoured patterns)");
+say("3. Agent names (owner 2026-10-16: hacker-handle style, the same favoured patterns; session 37: more room)");
 say();
 say("Agent name templates (weights): " + AGENT_TEMPLATE_WEIGHTS.map(([t, w]) => `${label[t]} ${w}`).join(", ") + ".");
 say(`A Program is what an AI agent is, in the theme's words (${NAME_LISTS.programs.length}: ${NAME_LISTS.programs.slice(0, 8).join(", ")}, ...).`);
-say(`Name space: ${agentNameSpace().toLocaleString("en-US")} before the filter. They replace session 34's "Ilsa Delta" / "Talis Echo" style.`);
+say(`Lists: ${HANDLES.length.toLocaleString("en-US")} handles, ${NAME_LISTS.modifiers.length} modifiers, ${NAME_LISTS.programs.length} program words, ${NAME_LISTS.places.length} places, editions ${NAME_LISTS.agentEditions.join(" ")} (no v2, no Mk III).`);
+say(`Name space: ${agentNameSpace().toLocaleString("en-US")} before the filter and the ${AGENT_NAME_MAX_LENGTH}-character cap (session 36: about 510,000).`);
+{
+  const rng = new Rng(3700);
+  const n = 20_000;
+  const counts = new Map<string, number>();
+  const used = new Set<string>();
+  let numerals = 0;
+  let longest = 0;
+  for (let i = 0; i < n; i++) {
+    const d = drawAgentName(rng, used);
+    used.add(d.name);
+    counts.set(d.template, (counts.get(d.template) ?? 0) + 1);
+    if (d.numeral) numerals++;
+    longest = Math.max(longest, d.name.length);
+  }
+  say(`Measured over ${n.toLocaleString("en-US")} names drawn into one season: ` + AGENT_TEMPLATE_WEIGHTS.map(([t]) => `${label[t]} ${((100 * (counts.get(t) ?? 0)) / n).toFixed(1)}%`).join(", ") + ".");
+  say(`  all distinct: ${used.size === n}; needed a numeral: ${numerals}; longest: ${longest} characters.`);
+}
+{
+  // A clash, shown: the same draw against a season that already has it.
+  const first = drawAgentName(new Rng(5), new Set()).name;
+  const second = drawAgentName(new Rng(5), new Set([first])).name;
+  const third = drawAgentName(new Rng(5), new Set([first, second])).name;
+  say(`A clash gets a numeral instead of failing: "${first}" -> "${second}" -> "${third}".`);
+}
 say();
 {
   const rng = new Rng(36);
@@ -110,7 +140,7 @@ say();
     used.add(n);
     return n;
   });
-  for (let i = 0; i < names.length; i += 3) say(`    ${names.slice(i, i + 3).map((n) => n.padEnd(32)).join("")}`.trimEnd());
+  for (let i = 0; i < names.length; i += 3) say(`    ${names.slice(i, i + 3).map((n) => n.padEnd(36)).join("")}`.trimEnd());
 }
 say();
 

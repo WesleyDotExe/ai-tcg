@@ -1,0 +1,53 @@
+# Owners name their agents (session 37)
+database: <temp>/season-0.db  schema v9  season S0
+rules: 3-32 characters; letters, digits, spaces and ' . - _; unique without case; old names reserved;
+       no staff or game impersonation; never another owner's username; the blocked-word list; a rename costs 100 pack points
+
+## 1. Naming is free at creation
+  Ada's 3 generated candidates: "Echosquid of the Junkyard", "Lambdascarab's Ghostly Backup", "Steelpike's Pixelated Schemer"
+  Ada keeps the first: "Echosquid of the Junkyard" (logged as generated)
+  Bo's candidates: "Servobat Plus", "Arcsquid of the Server Farm", "Terarunner of the Parking Garage"; Bo types a name instead.
+  "ECHOSQUID OF THE JUNKYARD" (Ada's agent's name, other case): refused — the agent name "ECHOSQUID OF THE JUNKYARD" is taken
+  "Neon Fan 99" (Ada's username, spaced): refused — an agent name can't copy another owner's username
+  "AI-TCG Official": refused — an agent name can't pose as staff or the game ("official")
+  "TheRealAdmin": refused — an agent name can't pose as staff or the game ("admin")
+  "Аdmin" (a Cyrillic A): refused — an agent name uses letters, digits, spaces and ' . - _ only
+  "Shitposter": refused — an agent name can't contain a blocked word
+  "Static Static": refused — an agent name can't do that: repeats "static"
+  "Hi": refused — an agent name is 3 to 32 characters
+  "a..b": refused — an agent name never runs punctuation together
+  "  Night   Owl " is tidied and accepted: "Night Owl" (logged as custom, free; Bo's ledger has 0 entries)
+  its signature card keeps its generated name: "Relaybot's Reckless Defrag"
+  the flavour is printed with the name it was created with:
+    shown in the draft: "Servobat Plus rolls the damage back, one unit at a time."
+    printed:            "Night Owl rolls the damage back, one unit at a time."
+
+## 2. A rename costs pack points
+  Bo renames to "Day Owl" with 0 pack points: refused — a rename costs 100 pack points; you have 0
+  Bo opens 25 packs: 125 pack points (5 a pack)
+  renamed: Day Owl (formerly Night Owl); pack points left 25
+  ledger: -100 packPoints "agentRename" ref agent-name:3
+  a second rename with 25 pack points: refused — a rename costs 100 pack points; you have 25
+  Ada renames Bo's agent: refused — only the agent's owner can rename it
+  Ada's agent takes the name "night owl" (Bo's old one): refused — the agent name "night owl" belonged to another agent and stays reserved
+
+## 3. Match history shows the name and what it was formerly
+  Bo renames during the live match: refused — no renaming an agent during its live match
+  named-1: Echosquid of the Junkyard vs Day Owl (formerly Night Owl), won by Day Owl (formerly Night Owl); Bo credited 30
+
+## 4. An admin's force-rename
+  Ada names a second agent "Rude Words" (imagine it slipped past the list and was reported)
+  Bo (not an admin) forces a rename: refused — only an admin can force a rename
+  the admin forces a fresh generated name: "Macrorider's Magnetic Minion"; formerly shown: [] (never again)
+  the log keeps it: custom "Rude Words" -> forced "Macrorider's Magnetic Minion" (reported: offensive)
+  Bo's agent takes "rude words": refused — the agent name "rude words" belonged to another agent and stays reserved
+  Ada's ledger has no forced-rename charge: 0 rename entries
+
+## 5. Reopen the file; the schema refuses what the store would never do
+  reopened at schema v9: Echosquid of the Junkyard | Day Owl (formerly Night Owl) | Macrorider's Magnetic Minion
+  raw SQL, rename without a log entry: refused — an agent is renamed only through its logged name entry
+  raw SQL, edit the log: refused — an agent name entry is never changed
+  raw SQL, delete the log: refused — an agent name entry is never deleted
+  raw SQL, insert an agent named 'DAY OWL': refused — that agent name is taken (another agent holds or held it)
+  raw SQL, log Bo's old name for another agent: refused — that agent name is taken (another agent holds or held it)
+  raw SQL, charge pack points on a typed name: refused — CHECK constraint failed: pack_points >= 0 AND (pack_points = 0 OR kind = 'rename')

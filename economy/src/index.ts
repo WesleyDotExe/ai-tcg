@@ -20,6 +20,9 @@ export {
   type PityStatus,
   type OwnerRecord,
   type AgentRecord,
+  type AgentNameKind,
+  type AgentNameEntry,
+  type AgentNames,
   type AgentDraft,
   type GeneratedAgent,
   type SignatureCardRecord,
@@ -58,6 +61,7 @@ export {
   BULK_OPEN_COUNT,
   PACK_ODDS,
   SIGNATURE_ART_POOL_SIZE,
+  AGENT_RENAME_PACK_POINTS,
   PASSWORD_MIN_LENGTH,
   SCRYPT_COST,
   SESSION_DAYS,
@@ -97,3 +101,5 @@ export {
   type Currency,
   type MatchOutcomeKind,
 } from "./schema.js";
+export { customAgentNameProblem, tidyAgentName, nameKey, AGENT_NAME_MIN_LENGTH } from "./agentNames.js";
+

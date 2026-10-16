@@ -323,6 +323,18 @@ start a step until the one before works and its tests pass):
      owner's holdings, or the owner's forced deck/faction); then ~6 play
      styles with a fairness ring (owner-picked preset, applies from the
      next match). Then step 3, exposing both settings.
+  2c. DONE (session 37, owner 2026-10-16): owners name their agents (free
+     at creation, 100 pack points to rename (proposal), the rules in the
+     store, the name log with "formerly", reserved old names, an admin
+     force-rename; schema v9) and more agent-name room (three-part names,
+     ~648 million). Evidence: economy-demo-007, signature-names-sample-003.
+  2d. PROPOSED ORDER (session 37 check-in; default A), before 2b's deck
+     builder: (i) the chase-card proposal, measured, not live (secret
+     cards, Glitch, `S0-odds-2` with Zero-Day ~1 in 500); (ii) the generic
+     "choose one" engine mechanic; (iii) the 3 Zero-Day top-tier cards
+     (2 modes, the fairness test with a cap above the band, 1 per deck,
+     ranked and tournaments allowed); then 2b; then modal cards in every
+     faction with the next set work.
   3. Server endpoints for the website (wallet, collection, packs and pack
      opening, live/featured matches, ladder, tournament, stats,
      notifications, saved board layout). Needs item 5's pack contents and

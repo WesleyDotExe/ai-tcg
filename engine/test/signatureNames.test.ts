@@ -11,8 +11,10 @@ import {
   AGENT_TEMPLATE_WEIGHTS,
   HANDLES,
   TEMPLATE_WEIGHTS,
+  AGENT_NAME_MAX_LENGTH,
   agentName,
   agentNameSpace,
+  drawAgentName,
   drawSignatureCardName,
   MAX_NAME_LENGTH,
   NAME_LISTS,
@@ -143,42 +145,69 @@ describe("signature card names", () => {
   });
 });
 
-describe("agent names (owner 2026-10-16: the same themed treatment)", () => {
+describe("agent names (owner 2026-10-16: the same themed treatment, and more room)", () => {
+  const NUMERAL = "( (II|III|IV|V|VI|VII|VIII|IX|X))?";
   const AGENT_SHAPES = [
-    new RegExp(`^${HANDLE}'s [A-Z][A-Za-z-]+$`), // [Handle]'s [Program]
+    new RegExp(`^${HANDLE}'s [A-Z0-9][^ ]* [A-Z][A-Za-z -]+${NUMERAL}$`), // [Handle]'s [Modifier] [Program]
+    new RegExp(`^${HANDLE}'s [A-Z][A-Za-z -]+${NUMERAL}$`), // [Handle]'s [Program]
     new RegExp(`^${HANDLE} of the [A-Z].+$`), // [Handle] of the [Place]
-    new RegExp(`^[A-Z0-9][^ ]* ${HANDLE}$`), // [Modifier] [Handle]
-    new RegExp(`^${HANDLE} (${NAME_LISTS.editions.map((e) => e.replace(/[.']/g, "\\$&")).join("|")})$`), // [Handle] [Edition]
+    new RegExp(`^[A-Z0-9][^ ]* ${HANDLE}${NUMERAL}$`), // [Modifier] [Handle]
+    new RegExp(`^${HANDLE} (${NAME_LISTS.agentEditions.map((e) => e.replace(/[.']/g, "\\$&")).join("|")})${NUMERAL}$`), // [Handle] [Edition]
   ];
 
-  it("2,000 agent names: all fit a template, pass the filter, fit 30 characters, never repeat", () => {
+  it("the lists the owner asked for: about 10,000 handles, 300 modifiers, 200 program words, no duplicates", () => {
+    expect(HANDLES.length).toBeGreaterThan(9_000);
+    expect(NAME_LISTS.modifiers.length).toBe(300);
+    expect(NAME_LISTS.programs.length).toBe(200);
+    for (const list of [HANDLES, NAME_LISTS.modifiers, NAME_LISTS.programs]) expect(new Set(list).size).toBe(list.length);
+    // Hundreds of millions before the filter, against about 510,000 in session 36.
+    expect(agentNameSpace()).toBeGreaterThan(500_000_000);
+  });
+
+  it("2,000 agent names: all fit a template, pass the filter, fit the agent cap, never repeat", () => {
     const rng = new Rng(36);
     const used = new Set<string>();
     for (let i = 0; i < 2000; i++) {
       const name = agentName(rng, used);
       expect(used.has(name)).toBe(false);
-      expect(namingProblem(name), name).toBeUndefined();
-      expect(name.length).toBeLessThanOrEqual(MAX_NAME_LENGTH);
+      expect(namingProblem(name, AGENT_NAME_MAX_LENGTH), name).toBeUndefined();
+      expect(name.length).toBeLessThanOrEqual(AGENT_NAME_MAX_LENGTH);
       expect(AGENT_SHAPES.some((s) => s.test(name)), name).toBe(true);
       used.add(name);
     }
-    expect(agentNameSpace()).toBeGreaterThan(100_000);
   });
 
-  it("uses the same 60 / 30 / 10 split", () => {
+  it("never ends like a version number (no v2, no Mk III)", () => {
+    expect(NAME_LISTS.agentEditions).not.toContain("v2");
+    expect(NAME_LISTS.agentEditions).not.toContain("Mk III");
+    const rng = new Rng(9);
+    for (let i = 0; i < 5000; i++) expect(agentName(rng, new Set())).not.toMatch(/ (v\d|Mk )/);
+  });
+
+  it("a taken name gets a numeral instead of failing, compared without case", () => {
+    // Replay the same draw against a set that already holds it.
+    const first = drawAgentName(new Rng(77), new Set());
+    const clash = drawAgentName(new Rng(77), new Set([first.name.toUpperCase()]));
+    expect(clash.numeral).toBe(true);
+    expect(clash.name).toBe(`${first.name} II`);
+    const twice = drawAgentName(new Rng(77), new Set([first.name, `${first.name} II`]));
+    expect(twice.name).toBe(`${first.name} III`);
+  });
+
+  it("uses the same 60 / 30 / 10 split, most of the handle share three-part", () => {
     expect(AGENT_TEMPLATE_WEIGHTS.reduce((t, [, w]) => t + w, 0)).toBe(100);
     const rng = new Rng(61);
     const n = 10_000;
-    let handles = 0;
-    let places = 0;
+    const count: Record<string, number> = {};
     for (let i = 0; i < n; i++) {
-      const name = agentName(rng, new Set());
-      if (/^\S+'s /.test(name)) handles++;
-      else if (/ of the /.test(name)) places++;
+      const { template } = drawAgentName(rng, new Set());
+      count[template] = (count[template] ?? 0) + 1;
     }
-    expect(handles / n).toBeGreaterThan(0.57);
+    const handles = (count.handleModProgram ?? 0) + (count.handleProgram ?? 0);
+    expect(handles / n).toBeGreaterThan(0.58);
     expect(handles / n).toBeLessThan(0.64);
-    expect(places / n).toBeGreaterThan(0.27);
-    expect(places / n).toBeLessThan(0.33);
+    expect((count.handleModProgram ?? 0) / n).toBeGreaterThan(0.38);
+    expect((count.handleOfPlace ?? 0) / n).toBeGreaterThan(0.27);
+    expect((count.handleOfPlace ?? 0) / n).toBeLessThan(0.33);
   });
 });
