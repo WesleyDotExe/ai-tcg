@@ -2461,3 +2461,32 @@ Owner decision on the signature zone checkpoint in `progress/render/checkpoints.
 4. The return waits 420 ms after the kill so it clears the shatter.
 5. Replays take the generator's first candidate at each step.
 6. In replays with signature cards, the generated agent's name replaces the "Lookahead-Cortex" style username.
+
+---
+
+## 2026-10-16 — Owner: answers to session 35's check-in (username odds, art pool, build order, agent names)
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 35).
+
+1. **Username in a card name: option C, 1 candidate in 100.** Keep the other rules as proposed:
+   - capitalise the first letter;
+   - skip it when the username is over 16 characters, is all digits, or trips the filter;
+   - house owners never get one.
+2. **Art pool of 500: accepted as planned.**
+   - Each signature card records a random pool slot at creation, and the images arrive with the later art pass.
+   - A new season points new cards at a new pool; old cards keep their art.
+   - Build the slot with the next economy change.
+3. **Build order: accepted.**
+   1. Pack contents and opening (roadmap item 5).
+   2. The deck-building agent: the best faction and deck it can build from the owner's cards, unless the owner forces a deck or faction.
+   3. About 6 play styles with a fairness ring. The draft set is Rusher, Controller, Tempo, Fortress, Gambler and Calculator, to be measured, not final.
+   4. Step 3, the website endpoints, exposing the forced deck or faction setting and the play style from the start.
+
+   Persona commentary waits for the commentators (stage 7).
+4. **Agent names get the same themed treatment as signature card names.** They should be cyberpunk / 1990s retro-futurism, for example hacker-handle style, replacing the session-34 fantasy-style names. Show samples at a checkpoint.
+
+**Keep all four of session 35's calls:**
+1. A line's largest measurement decides.
+2. The noun leans toward the ability 80% of the time; names are capped at 30 characters.
+3. The handle in a card name is a generated handle.
+4. The art pool wasn't built yet.
