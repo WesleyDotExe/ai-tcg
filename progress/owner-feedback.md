@@ -2490,3 +2490,19 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 2. The noun leans toward the ability 80% of the time; names are capped at 30 characters.
 3. The handle in a card name is a generated handle.
 4. The art pool wasn't built yet.
+
+---
+
+## 2026-10-16 — Owner: favour the "[Handle]'s ..." and "... of the [Place]" name patterns
+
+Owner decision on the session-35 name samples (`progress/signature-names-sample-001.txt`).
+
+- **Use the two strongest patterns much more often:**
+  - "[Handle]'s ..." patterns, e.g. "Phreakhawk's Midnight Bunker", "Laserkid's Phosphor Rave";
+  - "[Thing] of the [Place]", e.g. "Checksum of the Glass Tower", "Firewall of the Grid".
+- **Cut back the weaker ones:**
+  - bare two-word names ("Mega Mentor", "Handheld Tutorial");
+  - edition endings ("Widescreen Modem Classic", "... Plus", "... SE").
+- **Suggested weights** (the session can tune them): the [Handle]'s patterns about 60%, "of the [Place]" about 30%, and bare two-word and edition names together about 10% or less.
+- The same goes for the themed agent names, where they share the generator.
+- Show a fresh sample at the next checkpoint that touches names.
