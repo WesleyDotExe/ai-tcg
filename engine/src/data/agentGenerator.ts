@@ -15,8 +15,10 @@
 //    not three sizes of one card). Two agents may share a body + ability
 //    combination (owner 2026-10-15: generation is random, and that's
 //    accepted);
-//  - agent names and card names never repeat a taken one. Card names are
-//    themed and built from grammatical templates (signatureNames.ts).
+//  - agent names and card names never repeat a taken one. Both are themed
+//    and built from grammatical templates (signatureNames.ts); agent names
+//    are hacker-handle style since owner 2026-10-16, replacing session 34's
+//    fantasy-style "Ilsa Delta" names.
 //
 // Nothing here calls an outside service: names, personas and flavour come
 // from word lists in this file, picked by a seeded RNG, so the same seed
@@ -28,7 +30,7 @@ import { Rng } from "../state/rng.js";
 import type { UnitCard } from "../cards/types.js";
 import { buildSignatureCard, menuOption, optionAtSize, type SignatureSpec } from "./signatureMenu.js";
 import { APPROVED_SIGNATURE_LINES, type ApprovedSignatureLine } from "./signatureApproved.js";
-import { signatureCardName } from "./signatureNames.js";
+import { agentName, signatureCardName } from "./signatureNames.js";
 
 export interface AgentCandidate {
   name: string;
@@ -57,16 +59,6 @@ export const CANDIDATES_PER_PICK = 3;
 
 // ---- word lists (original; AI-themed) ----
 
-const AGENT_GIVEN = [
-  "Vesper", "Halcyon", "Kestra", "Orrin", "Talis", "Mireth", "Corvin", "Sable", "Isolde", "Quillon",
-  "Thessaly", "Brannoc", "Lumen", "Odalys", "Pell", "Rook", "Seren", "Tamsin", "Ulric", "Wren",
-  "Ysolde", "Zephan", "Anselm", "Briar", "Calloway", "Dace", "Ember", "Fennick", "Gideon", "Hollis",
-  "Ilsa", "Juno", "Kael", "Lark", "Merrow", "Nyx", "Ottoline", "Perrin", "Riven", "Solenne",
-];
-const AGENT_DESIGNATION = [
-  "Prime", "Nine", "Zero", "Vector", "Echo", "Delta", "Mk II", "Mk IV", "Seven", "Ninefold",
-  "of the Long Queue", "Eleven", "Sigma", "Halting", "Unbound", "Relay", "Twelve", "Kernel", "Tensor", "Lattice",
-];
 const TEMPERAMENTS = [
   "patient", "restless", "courteous", "ruthless", "playful", "methodical", "superstitious", "stubborn",
   "cheerful", "cold-blooded", "theatrical", "quiet", "curious", "proud",
@@ -121,13 +113,16 @@ export function generateAgentCandidates(seed: number, taken: Pick<TakenNames, "a
   const roles = rng.shuffle(ROLES);
   const habits = rng.shuffle(HABITS);
   const out: AgentCandidate[] = [];
-  for (let attempt = 0; out.length < CANDIDATES_PER_PICK; attempt++) {
-    if (attempt > 2000) throw new Error("generateAgentCandidates: no free agent name left");
-    let name = `${rng.pick(AGENT_GIVEN)} ${rng.pick(AGENT_DESIGNATION)}`;
-    // After many collisions, a numbered name is always free.
-    if (attempt > 400) name = `${name} ${attempt}`;
-    if (used.has(name)) continue;
+  while (out.length < CANDIDATES_PER_PICK) {
+    // agentName re-rolls a taken name; the space is in the hundreds of
+    // thousands (agentNameSpace), so a season never runs out.
+    const name = agentName(rng, used);
     used.add(name);
+    // The three on one pick screen never share a final word ("Hexwolf's
+    // Twin" beside "Holorider's Twin" reads as a mistake); the name stays
+    // used, so the re-roll is always a different name.
+    const last = (n: string) => n.split(" ").at(-1);
+    if (out.some((c) => last(c.name) === last(name))) continue;
     const temperament = rng.pick(TEMPERAMENTS);
     out.push({ name, persona: `${article(temperament)} ${temperament} ${roles[out.length]} that ${habits[out.length]}.` });
   }
@@ -179,9 +174,9 @@ export function generateSignatureCandidates(
 }
 
 /** The real card for a chosen candidate: `cardId` is the agent's own card
- * id (one card per agent), not the combo id. */
-export function signatureCardFor(candidate: Pick<SignatureCandidate, "spec" | "name" | "flavor">, cardId: string): UnitCard {
-  return buildSignatureCard(candidate.spec, { id: cardId, name: candidate.name, flavor: candidate.flavor, anyStats: true });
+ * id (one card per agent), not the combo id; `art` its art-pool reference. */
+export function signatureCardFor(candidate: Pick<SignatureCandidate, "spec" | "name" | "flavor">, cardId: string, art?: string): UnitCard {
+  return buildSignatureCard(candidate.spec, { id: cardId, name: candidate.name, flavor: candidate.flavor, art, anyStats: true });
 }
 
 /** "Cost 5, 3/6. When it dies, draw a card." */

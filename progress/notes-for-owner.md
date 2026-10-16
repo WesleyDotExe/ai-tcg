@@ -1,5 +1,109 @@
 # Notes for the owner
 
+**Updated 2026-10-16, session 36 (your 2026-10-16 answers to session 35, and the name patterns).**
+Nothing is blocking. Step 1 of the order you accepted is built: **pack contents and opening**. There
+is one **[OWNER CHECK-IN]** below, with defaults, so the next game-lane session can go ahead without
+an answer. Evidence: `progress/pack-sim-001.txt`, `progress/economy-demo-006.txt`,
+`progress/signature-names-sample-002.txt`.
+
+Built:
+- **Your answers to session 35:**
+  - The username is in a card name 1 candidate in 100 (option C). The other rules are unchanged.
+  - The art pool: each signature card records a random slot of its season's 500-piece pool when
+    it's made, and keeps it forever. Its art reference names the slot
+    (`placeholder:signature-pool/S0/217`) until the art pass fills the pool. Cards made before
+    this change drew a slot when the database upgraded.
+  - Agent names now come from the card-name generator, in hacker-handle style. They replace
+    "Ilsa Delta". The 3 on one pick screen never share a final word.
+- **The name patterns:** the [Handle]'s patterns are 61%, "[Thing] of the [Place]" 30%, and bare
+  two-word and edition names 9%, under your 10%. The pattern is picked first, and only its words
+  are re-rolled when the filter refuses one. That way the filter can't shift the split (it used to
+  refuse long [Handle]'s names more often). Measured over 20,000 names: 61.0 / 29.8 / 9.2. Every
+  place now starts with "the" ("the Zero Sector", not "Sector Zero").
+- **Pack contents and opening** (roadmap item 5), all in the store and database, no interface yet:
+  - **Set S0:** all 96 ownable cards numbered `001/096` to `096/096`, by faction, rarity and name.
+    Each card's Gold number sits above the total (`097/096` and up).
+  - **A pack:** 2 Commons, 1 Uncommon, the Rare slot (a Mythic 1 time in 8) and the shine slot,
+    the only slot with a finish. Plus a Jackpot pack (1 in 2,000, every card Foil or better) and a
+    Prototype bonus 6th card (1 in 1,000). The rates are one versioned table (`S0-odds-1`).
+  - **Each opening is logged** with its seed and the table version. The seed is drawn when the
+    pack opens, so it can't be read before.
+  - **Pity per owner:** after 10 packs with no Full Art or better, and after 40 with no Mythic.
+    It's worked out from the owner's opening history.
+  - **Opening 1 pack or 10.** A 10-pack open gives a summary (cards, new cards, pack points, by
+    rarity and finish) and names the packs that keep their full reveal (Gold, Prototype,
+    Jackpot).
+  - **Every card shows** NEW and "×N owned". Every pack pays 5 pack points.
+  - **Crafting:** pack points buy a standard, account-bound copy, up to the card's playable limit.
+  - The database refuses opening a pack twice, opening someone else's pack, marking a pack opened
+    without its log, changing or deleting a log, a forged pack card, and a 7th card.
+  - 19 new tests, and a simulation of 400,000 packs.
+
+**What the simulation says** (`progress/pack-sim-001.txt`):
+
+| | published | measured (400,000 packs) |
+|---|---|---|
+| Rare slot is a Mythic | 1 in 8 | 12.4% |
+| Shine: Standard / Foil / Full Art | ~56% / 30% / 10% | 56.0% / 30.0% / 10.0% |
+| Shine: Alt Art / Gold | ~1 in 30 / ~1 in 150 | 3.3% / 0.68% |
+| Jackpot pack / Prototype | 1 in 2,000 / 1 in 1,000 | 0.049% / 0.099% |
+
+- The Full Art pity fires in about 3.6% of packs. Ten dry packs in a row is about a 1-in-5 run.
+  The Mythic pity almost never fires (0.01%), so it's a backstop.
+- **Seeing every card takes a median of 130 packs** (13,000 credits). Every Mythic takes a median of 45.
+- **Prototypes are very rare at your rate.** About 223 are found per 250,000 packs opened across
+  the whole season. A small in-house Season 0 will most likely see none. That's your number, and I
+  haven't changed it. It's raised below in case Season 0 should show one.
+
+### [OWNER CHECK-IN] Pack details your spec didn't fix
+
+1. **The shine slot's rarity.** "Any card, any rarity" didn't set the odds. Proposal: Common 60,
+   Uncommon 25, Rare 12, Mythic 3. With the Rare slot, about 16% of packs hold a Mythic.
+   - Options: **A** as proposed (default). **B** flat over the 96 cards (Mythics ~4%, Commons ~32%).
+     **C** your numbers.
+2. **Alt Art draws a Rare or a Mythic.** The finish is rolled first. On Alt Art, the card is drawn
+   from the Rares and Mythics, so the ~1 in 30 holds. The alternative (re-roll Alt Art on a Common)
+   would make it about 1 in 200. Default: as built.
+3. **Which 15 cards get Prototype runs.** Proposal, with every faction's Mythic at the top and all
+   five pools in:
+
+   | run size | cards |
+   |---|---|
+   | 1/1 | Null Singularity |
+   | /5 | Prime Aegis |
+   | /10 | Quorum Arbiter |
+   | /25 | Hive Mother, Kernel Panic |
+   | /50 | Overclock Beast, Aegis Warden, Mainframe Core |
+   | /100 | Bloodswarm Alpha, Entropy Harvester, Uplink Tower |
+   | /250 | Recursive Construct, Latent Ward, Dormant Egg Sac, Watchdog Timer |
+
+   "Fan favourite" for the 1/1 can't be measured before anyone has played, so I picked the most
+   dramatic Mythic. You check the art before the list goes live in any case. Default: as listed.
+4. **Prototypes in Season 0.** At 1 in 1,000, a house-only Season 0 will very likely find none.
+   Options: **A** leave it (default; the rate is yours, and "never raise the rate to test it" is
+   honoured). **B** a Season 0-only table with a higher rate, as its own odds version, so the
+   reveal can be seen in-house.
+5. **Smaller calls, as built:**
+   - "NEW" means the owner held no copy before the pack. A card new in a bulk open counts once in
+     the summary.
+   - A 10-pack open is all or nothing: if any pack fails, none open.
+   - Crafting counts every copy held toward the limit, Foil and Gold included.
+   - A Prototype found while its run is open always gets the next serial (01, 02 ...), not a random
+     free serial.
+
+Calls of mine you may want to overrule:
+1. **The username variant only uses handle patterns,** split 2:1 between "[username]'s [Modifier]
+   [Thing]" and "[username]'s [Thing]" (as in session 35).
+2. **Agent names use 50 "program" nouns** (Daemon, Ghost, Copilot, Oracle, Twin ...) for "[Handle]'s
+   [Program]". The persona line is unchanged.
+3. **Season 0's set symbol is a name only** (`S0-boot`) until the render draws it.
+
+Next game-lane session, without an answer: the defaults above, then **the deck-building agent**
+(step 2 of the order): the best faction and deck it can build from the owner's cards, unless the
+owner forces a deck or a faction. It's measured by playing its decks against the shipped decks.
+
+---
+
 **Updated 2026-10-15, session 35 (your 2026-10-15 answers to session 34: grow the pool, names,
 combinations may repeat, play styles).** Nothing is blocking. There is one **[OWNER CHECK-IN]**
 below, with defaults, so the next game-lane session can go ahead without an answer. Evidence:

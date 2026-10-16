@@ -1,78 +1,66 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 35 (game lane) handled the owner's
-2026-10-15 answers to session 34:**
-- the signature pool re-measured at 10,000 games per edge;
-- combinations may repeat (schema v7);
-- themed, templated signature card names, with the rare username variant;
-- 5 new sizes measured.
+**Build-order stage: Stage 4+ (the living system). Session 36 (game lane) handled the owner's
+2026-10-16 answers to session 35 and the name-pattern entry, and built step 1 of the accepted
+order:**
+- the username in a card name 1 candidate in 100;
+- name patterns 61 / 30 / 9 ([Handle]'s / "of the [Place]" / the rest), and themed agent names
+  from the same generator;
+- the signature art-pool slot (schema v8);
+- **pack contents and opening** (roadmap item 5): set S0 with collector numbers, the versioned
+  odds table, pity per owner, the Prototype bonus, NEW and "×N owned", 1- or 10-pack opening,
+  pack points, crafting.
 
 No stage checkpoint (the living system reports through notes-for-owner check-ins). There is an
-**[OWNER CHECK-IN]** in notes-for-owner.md with defaults: username odds, the art pool plan, where
-the deck builder and play styles go, and agent names.
+**[OWNER CHECK-IN]** in notes-for-owner.md with defaults: the shine slot's rarity weights, Alt Art
+on Rares and Mythics, which 15 cards get Prototype runs, and Prototypes in Season 0.
 
-## What stands (this session's work; sessions 1-34 otherwise unchanged)
-
-**Measuring (`engine/src/dev/signatureFairness.ts`).**
-- The cached reference (`signatureReference.json`) holds 10,000 games per ordered pairing. Its
-  first 2,500 are exactly the old reference, so every earlier command still reproduces.
-- `remeasure --ids ... | --approved`: named lines (any stat line, by combo id) at full results.
-- `grid --sizes`: only some sizes.
-- `parseSignatureComboId` (the inverse of `signatureComboId`, round-trip checked).
-
-**The approved list (`engine/src/data/signatureApproved.ts`).**
-- A line's **largest** measurement now decides (`signatureApprovedList.ts`): 14 lines over 7
-  options.
-- Guardian (Barrier) 3/5 joins at 1.87.
-- Energy surge 2/8 and 2/9 (2.20, 2.22) and Restore r1 3/4 (2.08) leave: they passed at 2,500
-  and fail at 10,000.
-
-**New sizes (`engine/src/data/signatureMenu.ts`).**
-- Smite: `d2m3` (2 damage to a unit with 3 or less health), `d1hp15` and `d2hp15` (only if you
-  have 15 or less health).
-- Sweep: `hp15` and `r2hp15`.
-- None passes. The best is 4.0 at 1,000 games; the 2 best per option re-measured at 10,000 fail at 3.5-4.6.
+## What stands (this session's work; sessions 1-35 otherwise unchanged)
 
 **Names (`engine/src/data/signatureNames.ts`).**
-- 5 grammatical templates with slot-tagged, themed lists: 1,992 handles (60 plain plus filtered
-  compounds), 135 modifiers, 10 ability groups of things plus 40 generic, 56 places, and 15
-  editions. About 15 million names per option.
-- The filter refuses repeats, names over 30 characters and blocked words (whole-token for short
-  roots).
-- `USERNAME_HANDLE_ODDS = 30`, and `usernameHandle` checks the username.
-- `agentGenerator.ts` uses it, and no longer filters taken combinations. `generateSignatureCandidates`
-  takes `{ username, approved }`.
+- `USERNAME_HANDLE_ODDS = 100`.
+- `TEMPLATE_WEIGHTS` 41 / 20 / 30 / 5 / 4. The template is drawn once and only its words are
+  re-rolled, so the filter can't skew the split (`drawSignatureCardName` returns the template).
+- Every place starts "the".
+- `agentName` and `AGENT_TEMPLATE_WEIGHTS` ([Handle]'s [Program] 61, [Handle] of the [Place] 30,
+  [Modifier] [Handle] 5, [Handle] [Edition] 4; 50 program nouns; ~510,000 names).
+- `generateAgentCandidates` uses it; the 3 candidates never share a final word.
 
-**Economy (schema v7, `economy/src/schema.ts`, `store.ts`).**
-- `signature_cards` is rebuilt without `UNIQUE(combo_id)`, and its triggers are made again.
-- `pickDraftAgent` passes the owner's login username.
-- `confirmAgentDraft` refuses only a name clash.
+**Packs (`economy/src/packs.ts`, `economy/src/config.ts` `PACK_ODDS`).**
+- `CARD_SETS` / `cardSet("S0")`: 96 cards, collector and Gold numbers, 15 Prototype runs (proposed
+  cards).
+- `rollPack(seed, set, pity, prototypesLeft)` is pure; `pityDue`, `nextPity`, `FULL_ART_OR_BETTER`.
 
-**Render:** `generatedSignatures.ts` drops the combo set (one-line API follow-up). 290/290 pass.
+**Economy (schema v8, `economy/src/schema.ts`, `store.ts`).**
+- `signature_cards.art_pool` / `art_slot` (drawn in `confirmAgentDraft`, `artSlot` option for
+  tests; kept forever); `SignatureCardRecord.art`; `signatureArtRef`.
+- `pack_openings` (append-only), with triggers on packs and pack copies.
+- `openPack`, `openPacks(owner, 1 | 10)`, `packOpening`, `pityStatus`, `prototypesFound`,
+  `craftCard`. `buyPack` and `grantPack` refuse an unknown set.
 
 ## Evidence committed
 
-- `progress/balance-report-026-signature-10k.txt` (`npx tsx src/dev/signatureTenThousandReport.ts`
-  from the committed JSONL; commands in `progress/signature-fairness/README.md`).
-- `progress/signature-names-sample-001.txt` (`npx tsx src/dev/signatureNameSamples.ts`).
-- `progress/economy-demo-005.txt` (`npx tsx src/dev/generateAgentDemo.ts` in economy/): v7, two
-  recorded matches, and 42 agents over 13 combinations with 42 distinct names.
+- `progress/pack-sim-001.txt` (`npx tsx src/dev/packSimulation.ts` in economy/): 400,000 packs
+  against the published rates, pity over 2,000 owners, a season of Prototypes, packs to see the set.
+- `progress/economy-demo-006.txt` (`npx tsx src/dev/packOpeningDemo.ts` in economy/): the store
+  end to end in a real database file, and the schema's refusals. Reproduces exactly.
+- `progress/signature-names-sample-002.txt` (`npx tsx src/dev/signatureNameSamples.ts` in engine/).
 - Tests:
-  - engine: `signatureNames.test.ts` (8) and the new-size tests (2);
-  - economy: the v6 -> v7 migration step, combinations repeating, the username variant;
-  - updated generator tests.
-- Both ring checks reproduce their baselines exactly (PASS).
-- `npm test`: 594 across six workspaces, all pass (engine 204, protocol 7, server 23, agents 17,
-  economy 53, render 290). `tsc --noEmit` is clean in all six.
+  - economy: `packs.test.ts` (19), and the v7 -> v8 migration step;
+  - engine: 3 new name tests and 1 agent-name test.
+- `npm test`: 622 across six workspaces, all pass (engine 208, protocol 7, server 23, agents 17,
+  economy 72, render 295). `tsc --noEmit` is clean in all six.
 
 ## Concrete next step
 
-Check the alternation first. If the last merged PR is this one (game lane), the next session is
-**render**. Render can show the themed names (the replays already take them from the generator).
+Check the alternation first. The last merged PR before this one (#56) was render, so this
+session was game lane, and the next session is **render**. Render can show set collector numbers
+and finishes on cards, and the new agent names in replays.
 
 The next **game-lane** session reads the owner's answer to the check-in. With no answer:
-1. Roadmap item 5: pack contents and opening (5 cards + the shine slot, pity timers per owner,
-   pack points, the Prototype bonus 6th card, NEW and "×N owned", 10-pack bulk opening), tested
-   by simulation. Build the art-pool slot on signature cards with the next schema change.
-2. Then the deck-building agent (best faction and deck from the owner's holdings; the owner can
-   force a deck or faction), then play styles, then build-order step 3.
+1. **The deck-building agent** (step 2 of the order): from an owner's collection (`collection`,
+   `COPY_LIMITS`), build the best deck it can for each faction, pick the best faction (or the
+   owner's forced faction or deck), and measure its decks against the shipped decks with the ring
+   tooling.
+2. Then about 6 play styles with a fairness ring, then build-order step 3 (website endpoints,
+   including the pack-opening calls built here).

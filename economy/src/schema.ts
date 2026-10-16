@@ -29,6 +29,11 @@
 //    (owner 2026-10-13: the exception to "promo copies can be sold"), and
 //    a copy can't be made into or out of a signature copy afterwards.
 //
+//  - (v8) a signature card records its art-pool slot at creation and keeps
+//    it; a pack opens once, by its owner, and is logged with its seed and
+//    odds version; copies from an opened pack name it and go to its owner;
+//    an opening is never changed or deleted.
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -84,6 +89,8 @@ const V1_COPY_SOURCES = ["pack", "starter", "promo", "packPoints", "tournament"]
 const V2_BOUND_ORIGINS = ["crafted", "starter"] as const;
 const V3_BOUND_ORIGINS = ["crafted", "starter", "promo", "prize"] as const;
 const V3_DECK_FACTIONS = ["Cortex", "Swarm", "Aegis", "Null"] as const;
+// Migration 8's pool size, frozen (config.ts's SIGNATURE_ART_POOL_SIZE may change for a later season).
+const SIGNATURE_ART_POOL_SIZE_V8 = 500;
 
 export const MIGRATIONS: readonly string[] = [
   // 1: the Stage 4 persistence base (session 28).
@@ -661,5 +668,64 @@ export const MIGRATIONS: readonly string[] = [
     SELECT 1 FROM signature_cards s JOIN agents a ON a.agent_id = s.agent_id
     WHERE 'signature:' || s.agent_id = NEW.origin_ref AND s.card_id = NEW.card_id AND a.owner_id = NEW.owner_id)
   BEGIN SELECT RAISE(ABORT, 'a signature copy is a copy of that agent''s own signature card, held by its owner'); END;
+  `,
+  // 8: the signature art pool and pack opening (session 36; owner
+  // 2026-10-16 answers 2 and 3, roadmap item 5).
+  //  - Each signature card records which piece of its season's art pool it
+  //    uses (art_pool is the season, art_slot 1..pool size), drawn at random
+  //    when the card is made; two cards may share a piece (owner
+  //    2026-10-15). A new season points new cards at a new pool, and a card
+  //    keeps its art forever. Cards made before v8 draw their slot here.
+  //  - pack_openings logs every opening: the pack, its owner, the odds-table
+  //    version and the RNG seed (stored only once the pack is open, so it
+  //    can never be read before), whether it was a Jackpot pack and what
+  //    pity forced. It is append-only. An opening needs an unopened pack of
+  //    that owner, and a pack's opened_at can only be set with its opening,
+  //    and never cleared.
+  //  - A copy whose origin_ref is 'pack:<id>' must be a pack copy, held by
+  //    the opening's owner, from an opened pack, and a pack holds at most 6
+  //    cards (5 plus a Prototype bonus).
+  `
+  ALTER TABLE signature_cards ADD COLUMN art_pool TEXT;
+  ALTER TABLE signature_cards ADD COLUMN art_slot INTEGER CHECK (art_slot IS NULL OR art_slot >= 1);
+  UPDATE signature_cards
+    SET art_pool = (SELECT value FROM meta WHERE key = 'season'), art_slot = abs(random() % ${SIGNATURE_ART_POOL_SIZE_V8}) + 1;
+  CREATE TRIGGER signature_art_drawn BEFORE INSERT ON signature_cards
+  WHEN NEW.art_pool IS NULL OR NEW.art_slot IS NULL
+  BEGIN SELECT RAISE(ABORT, 'a signature card records its art-pool slot when it is made'); END;
+  CREATE TRIGGER signature_art_kept BEFORE UPDATE OF art_pool, art_slot ON signature_cards
+  BEGIN SELECT RAISE(ABORT, 'a signature card keeps its art'); END;
+
+  CREATE TABLE pack_openings (
+    opening_no   INTEGER PRIMARY KEY AUTOINCREMENT,
+    pack_id      TEXT NOT NULL UNIQUE REFERENCES packs(pack_id),
+    owner_id     TEXT NOT NULL REFERENCES owners(owner_id),
+    odds_version TEXT NOT NULL,
+    seed         INTEGER NOT NULL,
+    jackpot      INTEGER NOT NULL CHECK (jackpot IN (0, 1)),
+    pity_json    TEXT NOT NULL CHECK (json_valid(pity_json)),
+    opened_at    TEXT NOT NULL
+  );
+  CREATE INDEX openings_by_owner ON pack_openings(owner_id, opening_no);
+  CREATE TRIGGER opening_needs_unopened_pack BEFORE INSERT ON pack_openings
+  WHEN NOT EXISTS (SELECT 1 FROM packs WHERE pack_id = NEW.pack_id AND owner_id = NEW.owner_id AND opened_at IS NULL)
+  BEGIN SELECT RAISE(ABORT, 'a pack opens once, by its owner'); END;
+  CREATE TRIGGER opening_no_update BEFORE UPDATE ON pack_openings
+  BEGIN SELECT RAISE(ABORT, 'a pack opening is never changed'); END;
+  CREATE TRIGGER opening_no_delete BEFORE DELETE ON pack_openings
+  BEGIN SELECT RAISE(ABORT, 'a pack opening is never deleted'); END;
+
+  CREATE TRIGGER pack_opened_with_opening BEFORE UPDATE OF opened_at ON packs
+  WHEN OLD.opened_at IS NOT NULL OR NEW.opened_at IS NULL
+    OR NOT EXISTS (SELECT 1 FROM pack_openings WHERE pack_id = NEW.pack_id)
+  BEGIN SELECT RAISE(ABORT, 'a pack is opened only through its logged opening, once'); END;
+
+  CREATE TRIGGER pack_copy_from_opening BEFORE INSERT ON card_copies
+  WHEN NEW.origin_ref LIKE 'pack:%' AND (
+    NEW.origin <> 'pack'
+    OR NOT EXISTS (SELECT 1 FROM pack_openings o WHERE 'pack:' || o.pack_id = NEW.origin_ref AND o.owner_id = NEW.owner_id)
+    OR (SELECT COUNT(*) FROM card_copies WHERE origin_ref = NEW.origin_ref) >= 6)
+  BEGIN SELECT RAISE(ABORT, 'a pack copy comes from an opened pack of its owner, at most 6 per pack'); END;
+  CREATE INDEX copies_by_origin_ref ON card_copies(origin_ref);
   `,
 ];

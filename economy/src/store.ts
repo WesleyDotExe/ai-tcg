@@ -7,6 +7,7 @@ import {
   generateAgentCandidates,
   generateSignatureCandidates,
   getCard,
+  COPY_LIMITS,
   SHIPPED_DECK_LISTS,
   signatureCardFor,
   signatureFingerprint,
@@ -20,14 +21,20 @@ import {
   type UnitCard,
 } from "@ai-tcg/engine";
 import {
+  BULK_OPEN_COUNT,
+  CRAFT_PACK_POINTS,
+  PACK_ODDS,
+  PACK_POINTS_PER_PACK,
   PACK_PRICE_CREDITS,
   PASSWORD_MIN_LENGTH,
   SALVAGE_PACK_POINTS,
+  SIGNATURE_ART_POOL_SIZE,
   SESSION_DAYS,
   SIGN_IN_LOCKOUT,
   STARTER_PACKS,
 } from "./config.js";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./passwords.js";
+import { CARD_SETS, nextPity, rollPack, type PackSlot, type PityState } from "./packs.js";
 import { matchCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 import {
   BOUND_ORIGINS,
@@ -47,6 +54,13 @@ import {
   type PackSource,
   type SeriesKind,
 } from "./schema.js";
+
+/** A signature card's art reference: its slot in its season's pool. Still a
+ * placeholder (the image arrives with the late art pass), but it already
+ * names the piece the card will show. */
+export function signatureArtRef(art: { pool: string; slot: number }): string {
+  return `placeholder:signature-pool/${art.pool}/${String(art.slot).padStart(3, "0")}`;
+}
 
 /** True for an agent's signature card (schema.ts's SIGNATURE_ORIGIN_REF_PREFIX). */
 function isSignatureRef(originRef: string | null | undefined): boolean {
@@ -116,6 +130,11 @@ export interface SignatureCardRecord {
   /** What the card did when it was approved and granted; `card` differs
    * only after an errata to the menu data. */
   fingerprint: string;
+  /** Its piece of the season's art pool (schema v8, owner 2026-10-16),
+   * drawn when the card was made and kept forever. The images arrive with
+   * the late art pass; until then `card.art` names the slot and the render
+   * draws its fallback. */
+  art: { pool: string; slot: number } | null;
   createdAt: string;
 }
 
@@ -192,6 +211,66 @@ export interface PackRecord {
   source: PackSource;
   acquiredAt: string;
   openedAt: string | null;
+}
+
+/** One card revealed from a pack, as the pack-result screen shows it. */
+export interface OpenedCard {
+  copyId: string;
+  cardId: string;
+  name: string;
+  rarity: Rarity;
+  slot: PackSlot;
+  finish: Finish;
+  /** "056/096", or a Gold copy's number above the set total. */
+  collectorNumber: string;
+  /** A Prototype's run and serial ("S0-P07", 12 of 100). */
+  prototype: { runCode: string; serial: number; runSize: number } | null;
+  /** The owner held no copy of this card before this pack. */
+  isNew: boolean;
+  /** Copies of this card the owner holds after this pack ("x4 owned"). */
+  ownedAfter: number;
+}
+
+/** A logged pack opening (ECONOMY.md "Packs"). The seed is revealed only
+ * here, after the pack is open. */
+export interface PackOpening {
+  packId: string;
+  ownerId: string;
+  setCode: string;
+  oddsVersion: string;
+  seed: number;
+  openedAt: string;
+  jackpot: boolean;
+  /** What the pity timers forced in this pack. */
+  pity: { fullArt: boolean; mythic: boolean };
+  /** A Prototype was due but every run was used up, so the bonus was Gold. */
+  prototypeFallbackGold: boolean;
+  cards: OpenedCard[];
+  packPoints: number;
+  /** Gold, a Prototype or a Jackpot pack: a bulk open still gives this pack
+   * its full reveal (owner 2026-10-05). */
+  fullReveal: boolean;
+}
+
+/** A 10-pack bulk open: each pack is its own opening, plus the summary the
+ * sped-up reveal ends on. */
+export interface BulkOpening {
+  packs: PackOpening[];
+  summary: {
+    cards: number;
+    newCards: number;
+    packPoints: number;
+    byRarity: Record<Rarity, number>;
+    byFinish: Partial<Record<Finish, number>>;
+    /** The packs that keep their full reveal. */
+    fullReveals: string[];
+  };
+}
+
+/** The owner's pity timers, worked out from pack history. */
+export interface PityStatus extends PityState {
+  /** What the next pack is guaranteed. */
+  next: { fullArt: boolean; mythic: boolean };
 }
 
 export type RecordedOutcome =
@@ -432,6 +511,13 @@ function utcDay(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) throw new EconomyError(`not a valid time: "${iso}"`);
   return d.toISOString().slice(0, 10);
+}
+
+/** The card set a pack belongs to; refused for a set that doesn't exist. */
+function knownSet(setCode: string) {
+  const set = CARD_SETS.get(setCode);
+  if (!set) throw new EconomyError(`no card set "${setCode}"`);
+  return set;
 }
 
 /** SQLite's own messages for the schema's RAISE(ABORT) rules and constraint
@@ -831,8 +917,14 @@ export class EconomyStore {
    * granted to the owner as a bound promo copy. Refused if the agent's or
    * the card's name was taken since the draft was shown (start a new
    * draft); a combination another agent has since taken is fine.
-   * The new agent is not connected; the owner connects it. */
-  confirmAgentDraft(ownerId: string, draftId: string, signatureIndex: number): GeneratedAgent {
+   * The card's art-pool slot is drawn here, server-side; `artSlot` is for
+   * tests and the demo only. The new agent is not connected; the owner
+   * connects it. */
+  confirmAgentDraft(ownerId: string, draftId: string, signatureIndex: number, options: { artSlot?: number } = {}): GeneratedAgent {
+    const artSlot = options.artSlot ?? randomInt(1, SIGNATURE_ART_POOL_SIZE + 1);
+    if (!Number.isInteger(artSlot) || artSlot < 1 || artSlot > SIGNATURE_ART_POOL_SIZE) {
+      throw new EconomyError(`an art slot is 1 to ${SIGNATURE_ART_POOL_SIZE}, got ${artSlot}`);
+    }
     return this.transaction(() => {
       const draft = this.openDraft(ownerId, draftId);
       if (draft.picked === null || draft.signatures === null) throw new EconomyError("pick an agent before its signature card");
@@ -851,12 +943,25 @@ export class EconomyStore {
       const card = signatureCardFor(chosen, cardId);
       const at = this.stamp();
       try {
-        this.db
-          .prepare(
-            `INSERT INTO signature_cards (agent_id, card_id, combo_id, name, spec_json, fingerprint, flavor, promo_number, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          )
-          .run(agent.agentId, cardId, chosen.comboId, chosen.name, JSON.stringify(chosen.spec), signatureFingerprint(card), chosen.flavor, promoNumber, at);
+        const values = [agent.agentId, cardId, chosen.comboId, chosen.name, JSON.stringify(chosen.spec), signatureFingerprint(card), chosen.flavor, promoNumber, at];
+        if (this.schemaVersion >= 8) {
+          // The card's piece of this season's art pool (owner 2026-10-16),
+          // drawn server-side; two cards may share one.
+          this.db
+            .prepare(
+              `INSERT INTO signature_cards (agent_id, card_id, combo_id, name, spec_json, fingerprint, flavor, promo_number, created_at, art_pool, art_slot)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            )
+            .run(...values, this.season, artSlot);
+        } else {
+          // The pre-v8 column list (the migration tests open old schema versions with this code).
+          this.db
+            .prepare(
+              `INSERT INTO signature_cards (agent_id, card_id, combo_id, name, spec_json, fingerprint, flavor, promo_number, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            )
+            .run(...values);
+        }
       } catch (err) {
         refused(err);
       }
@@ -896,7 +1001,8 @@ export class EconomyStore {
   private signatureFromRow(row: Row): SignatureCardRecord {
     const spec = JSON.parse(str(row.spec_json)) as SignatureSpec;
     const cardId = str(row.card_id);
-    const card = signatureCardFor({ spec, name: str(row.name), flavor: str(row.flavor) }, cardId);
+    const art = row.art_slot === undefined || row.art_slot === null ? null : { pool: str(row.art_pool), slot: num(row.art_slot) };
+    const card = signatureCardFor({ spec, name: str(row.name), flavor: str(row.flavor) }, cardId, art ? signatureArtRef(art) : undefined);
     return {
       agentId: str(row.agent_id),
       cardId,
@@ -905,6 +1011,7 @@ export class EconomyStore {
       spec,
       card,
       fingerprint: str(row.fingerprint),
+      art,
       createdAt: str(row.created_at),
     };
   }
@@ -1524,6 +1631,7 @@ export class EconomyStore {
    * happen together or not at all, and the schema refuses a purchase the
    * balance can't cover. */
   buyPack(ownerId: string, setCode: string): PackRecord {
+    knownSet(setCode);
     const pack: PackRecord = { packId: randomUUID(), ownerId, setCode, source: "purchase", acquiredAt: this.stamp(), openedAt: null };
     this.transaction(() => {
       this.appendLedger(ownerId, null, "credits", -PACK_PRICE_CREDITS, "packPurchase", pack.packId, pack.acquiredAt);
@@ -1535,6 +1643,7 @@ export class EconomyStore {
   /** A pack that costs nothing (starter, weekly challenge, owner's daily). */
   grantPack(ownerId: string, setCode: string, source: Exclude<PackSource, "purchase">): PackRecord {
     if (!PACK_SOURCES.includes(source) || (source as PackSource) === "purchase") throw new EconomyError(`not a free pack source: "${source}"`);
+    knownSet(setCode);
     const pack: PackRecord = { packId: randomUUID(), ownerId, setCode, source, acquiredAt: this.stamp(), openedAt: null };
     this.insertPack(pack);
     return pack;
@@ -1561,6 +1670,199 @@ export class EconomyStore {
       acquiredAt: str(r.acquired_at),
       openedAt: strOrNull(r.opened_at),
     }));
+  }
+
+  // ---- opening packs (ECONOMY.md "Packs"; roadmap item 5, session 36) ----
+  //
+  // Opening is an owner action. Each pack is its own opening: its own seed
+  // (drawn here, server-side, and stored only once the pack is open), its
+  // own pity count and its own Prototype check, logged with the odds-table
+  // version. Pity is worked out from the owner's opening history, never
+  // stored as a counter. Every pulled copy goes into the collection; nothing
+  // is salvaged automatically (owner 2026-10-07).
+
+  /** Opens one of the owner's unopened packs (`packId`, or the oldest).
+   * `seed` is for tests and the demo only. */
+  openPack(ownerId: string, packId?: string, options: { seed?: number } = {}): PackOpening {
+    return this.transaction(() => {
+      const pack = packId === undefined ? this.unopenedPacks(ownerId)[0] : this.unopenedPacks(ownerId).find((p) => p.packId === packId);
+      if (!pack) {
+        throw new EconomyError(packId === undefined ? "no unopened pack to open" : `no unopened pack "${packId}" for this owner`);
+      }
+      const set = knownSet(pack.setCode);
+      const seed = options.seed ?? randomInt(2 ** 31);
+      const pityBefore = this.pityStatus(ownerId);
+      const roll = rollPack(seed, set, pityBefore, this.prototypesLeft(set.code));
+      const at = this.stamp();
+      try {
+        this.db
+          .prepare(
+            `INSERT INTO pack_openings (pack_id, owner_id, odds_version, seed, jackpot, pity_json, opened_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          )
+          .run(pack.packId, ownerId, PACK_ODDS.version, seed, roll.jackpot ? 1 : 0, JSON.stringify({ ...roll.pity, prototypeFallbackGold: roll.prototypeFallbackGold }), at);
+        this.db.prepare("UPDATE packs SET opened_at = ? WHERE pack_id = ?").run(at, pack.packId);
+      } catch (err) {
+        refused(err);
+      }
+      const heldBefore = new Map<string, number>();
+      for (const c of this.collection(ownerId)) heldBefore.set(c.cardId, (heldBefore.get(c.cardId) ?? 0) + 1);
+      const found = new Map<string, number>();
+      const copies = roll.pulls.map((p) => {
+        const run = p.prototypeRun ? set.prototypes.find((r) => r.code === p.prototypeRun)! : undefined;
+        const serial = run ? this.prototypesFound(run.code) + 1 : null;
+        return this.grantCopy({
+          ownerId,
+          cardId: p.cardId,
+          finish: p.finish,
+          seriesKind: run ? "prototype" : "set",
+          seriesCode: run ? run.code : set.code,
+          serial,
+          runSize: run ? run.runSize : null,
+          origin: "pack",
+          originRef: `pack:${pack.packId}`,
+        });
+      });
+      for (const p of roll.pulls) found.set(p.cardId, (found.get(p.cardId) ?? 0) + 1);
+      this.appendLedger(ownerId, null, "packPoints", PACK_POINTS_PER_PACK, "packOpened", pack.packId, at);
+      const cards: OpenedCard[] = roll.pulls.map((p, i) => ({
+        copyId: copies[i]!.copyId,
+        cardId: p.cardId,
+        name: getCard(p.cardId)!.name,
+        rarity: p.rarity,
+        slot: p.slot,
+        finish: p.finish,
+        collectorNumber: p.collectorNumber,
+        prototype: copies[i]!.serial === null ? null : { runCode: copies[i]!.seriesCode!, serial: copies[i]!.serial!, runSize: copies[i]!.runSize! },
+        isNew: (heldBefore.get(p.cardId) ?? 0) === 0,
+        ownedAfter: (heldBefore.get(p.cardId) ?? 0) + found.get(p.cardId)!,
+      }));
+      return {
+        packId: pack.packId,
+        ownerId,
+        setCode: set.code,
+        oddsVersion: PACK_ODDS.version,
+        seed,
+        openedAt: at,
+        jackpot: roll.jackpot,
+        pity: roll.pity,
+        prototypeFallbackGold: roll.prototypeFallbackGold,
+        cards,
+        packPoints: PACK_POINTS_PER_PACK,
+        fullReveal: roll.jackpot || roll.pulls.some((p) => p.finish === "gold" || p.finish === "prototype"),
+      };
+    });
+  }
+
+  /** Opens 1 pack, or BULK_OPEN_COUNT (10) at once (owner 2026-10-05): the
+   * same odds, no discount and no bonus. The packs open one after another,
+   * oldest first, each its own opening, all in one transaction (all open or
+   * none). `seeds` is for tests and the demo only. */
+  openPacks(ownerId: string, count: number, options: { seeds?: readonly number[] } = {}): BulkOpening {
+    if (count !== 1 && count !== BULK_OPEN_COUNT) throw new EconomyError(`open 1 pack or ${BULK_OPEN_COUNT} at once, not ${count}`);
+    return this.transaction(() => {
+      const unopened = this.unopenedPacks(ownerId);
+      if (unopened.length < count) throw new EconomyError(`only ${unopened.length} unopened pack(s); can't open ${count}`);
+      const packs = unopened.slice(0, count).map((p, i) => this.openPack(ownerId, p.packId, { seed: options.seeds?.[i] }));
+      const cards = packs.flatMap((p) => p.cards);
+      const byRarity: Record<Rarity, number> = { Common: 0, Uncommon: 0, Rare: 0, Mythic: 0 };
+      const byFinish: Partial<Record<Finish, number>> = {};
+      for (const c of cards) {
+        byRarity[c.rarity]++;
+        byFinish[c.finish] = (byFinish[c.finish] ?? 0) + 1;
+      }
+      // NEW once per card across the whole bulk open (a card new in pack 2
+      // is no longer new in pack 5).
+      const newCards = new Set(cards.filter((c) => c.isNew).map((c) => c.cardId)).size;
+      return {
+        packs,
+        summary: {
+          cards: cards.length,
+          newCards,
+          packPoints: packs.reduce((t, p) => t + p.packPoints, 0),
+          byRarity,
+          byFinish,
+          fullReveals: packs.filter((p) => p.fullReveal).map((p) => p.packId),
+        },
+      };
+    });
+  }
+
+  /** A logged opening, seed and all (revealable after opening, never
+   * before: an unopened pack has no seed yet). Card names and NEW badges
+   * are as of now, not as of the opening. */
+  packOpening(packId: string): { packId: string; ownerId: string; oddsVersion: string; seed: number; jackpot: boolean; openedAt: string; copies: CardCopy[] } {
+    const row = this.db.prepare("SELECT * FROM pack_openings WHERE pack_id = ?").get(packId) as Row | undefined;
+    if (!row) throw new EconomyError(`pack "${packId}" hasn't been opened`);
+    const copies = (this.db.prepare("SELECT * FROM card_copies WHERE origin_ref = ? ORDER BY rowid").all(`pack:${packId}`) as Row[]).map((r) => this.copyFromRow(r));
+    return {
+      packId,
+      ownerId: str(row.owner_id),
+      oddsVersion: str(row.odds_version),
+      seed: num(row.seed),
+      jackpot: num(row.jackpot) === 1,
+      openedAt: str(row.opened_at),
+      copies,
+    };
+  }
+
+  /** The owner's pity timers, from opening history: packs in a row (most
+   * recent first) with no Full Art or better, and with no Mythic. */
+  pityStatus(ownerId: string): PityStatus {
+    const limit = Math.max(PACK_ODDS.pity.fullArtAfter, PACK_ODDS.pity.mythicAfter);
+    const rows = this.db
+      .prepare(
+        `SELECT o.opening_no, c.card_id, c.finish
+         FROM (SELECT opening_no, pack_id FROM pack_openings WHERE owner_id = ? ORDER BY opening_no DESC LIMIT ?) o
+         LEFT JOIN card_copies c ON c.origin_ref = 'pack:' || o.pack_id
+         ORDER BY o.opening_no`,
+      )
+      .all(ownerId, limit) as Row[];
+    const packs = new Map<number, { finish: Finish; rarity: Rarity }[]>();
+    for (const r of rows) {
+      const pulls = packs.get(num(r.opening_no)) ?? [];
+      if (r.card_id !== null) pulls.push({ finish: str(r.finish) as Finish, rarity: getCard(str(r.card_id))!.rarity });
+      packs.set(num(r.opening_no), pulls);
+    }
+    // Only the last `limit` openings are read, so a count can't pass it;
+    // that is enough, since pity is due at the limit.
+    let state: PityState = { packsSinceFullArt: 0, packsSinceMythic: 0 };
+    for (const pulls of packs.values()) state = nextPity(state, pulls);
+    const next = { fullArt: state.packsSinceFullArt >= PACK_ODDS.pity.fullArtAfter, mythic: state.packsSinceMythic >= PACK_ODDS.pity.mythicAfter };
+    return { ...state, next };
+  }
+
+  /** Copies of a Prototype run found so far (the card viewer shows it). */
+  prototypesFound(runCode: string): number {
+    return num((this.db.prepare("SELECT COUNT(*) AS n FROM card_copies WHERE series_kind = 'prototype' AND series_code = ?").get(runCode) as Row).n);
+  }
+
+  /** Copies each of a set's Prototype runs still has. */
+  private prototypesLeft(setCode: string): Map<string, number> {
+    return new Map(knownSet(setCode).prototypes.map((r) => [r.code, r.runSize - this.prototypesFound(r.code)]));
+  }
+
+  // ---- crafting with pack points (ECONOMY.md "Packs") ----
+
+  /** The owner spends pack points on one standard-finish copy of a set card
+   * (Common 40, Uncommon 80, Rare 250, Mythic 800). The copy is crafted, so
+   * account-bound. Refused once the owner holds the card's playable limit
+   * (3 / 3 / 2 / 1), counting every copy held, and refused without the
+   * points (the schema refuses an overdraw too). */
+  craftCard(ownerId: string, cardId: string): CardCopy {
+    const card = getCard(cardId);
+    if (!card) throw new EconomyError(`"${cardId}" is not a set card; only set cards can be crafted`);
+    return this.transaction(() => {
+      const held = this.collection(ownerId).filter((c) => c.cardId === cardId).length;
+      const limit = COPY_LIMITS[card.rarity];
+      if (held >= limit) throw new EconomyError(`you already hold ${held} of "${card.name}"; crafting stops at its playable limit of ${limit}`);
+      const cost = CRAFT_PACK_POINTS[card.rarity];
+      const have = this.balance(ownerId, "packPoints");
+      if (have < cost) throw new EconomyError(`crafting "${card.name}" costs ${cost} pack points; you have ${have}`);
+      const copy = this.grantCopy({ ownerId, cardId, origin: "crafted" });
+      this.appendLedger(ownerId, null, "packPoints", -cost, "craft", copy.copyId, copy.acquiredAt);
+      return copy;
+    });
   }
 
   // ---- matches ----

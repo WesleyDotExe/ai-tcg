@@ -64,6 +64,18 @@ export {
   type SignatureCandidate,
   type TakenNames,
 } from "./data/agentGenerator.js";
-export { signatureCardName, namingProblem, usernameHandle, signatureNameSpace, USERNAME_HANDLE_ODDS, MAX_NAME_LENGTH } from "./data/signatureNames.js";
+export {
+  signatureCardName,
+  drawSignatureCardName,
+  agentName,
+  agentNameSpace,
+  namingProblem,
+  usernameHandle,
+  signatureNameSpace,
+  USERNAME_HANDLE_ODDS,
+  MAX_NAME_LENGTH,
+  TEMPLATE_WEIGHTS,
+  AGENT_TEMPLATE_WEIGHTS,
+} from "./data/signatureNames.js";
 
 export { formatEvent, formatLog } from "./log/format.js";

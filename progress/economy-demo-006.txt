@@ -1,0 +1,75 @@
+# Pack contents and opening (session 36)
+database: <temp>/season-0.db  schema v8  season S0  odds table S0-odds-1
+
+## 1. Starter collection: 40 bound Swarm copies and 3 starter packs
+
+starter pack 1  seed 1101  odds S0-odds-1  +5 pack points
+    Common    071/096  Stray Fragment           Common               NEW  x1 owned
+    Common    072/096  Zombie Process           Common               NEW  x1 owned
+    Uncommon  095/096  Power Reserve            Uncommon             NEW  x1 owned
+    Rare      096/096  Uplink Tower             Rare                 NEW  x1 owned
+    shine     068/096  Dangling Pointer         Common               NEW  x1 owned
+starter pack 2  seed 1102  odds S0-odds-1  +5 pack points
+    Common    088/096  Relay Courier            Common               NEW  x1 owned
+    Common    069/096  Glitch Seed              Common               NEW  x1 owned
+    Uncommon  058/096  Reinforced Bastion       Uncommon             NEW  x1 owned
+    Rare      065/096  Tariff Field             Rare                 NEW  x1 owned
+    shine     090/096  Scrap Recycler           Common    FULL ART   NEW  x1 owned
+starter pack 3  seed 1103  odds S0-odds-1  +5 pack points
+    Common    006/096  Init Daemon              Common               NEW  x1 owned
+    Common    005/096  Hotfix                   Common               NEW  x1 owned
+    Uncommon  009/096  Cascade Purge            Uncommon             NEW  x1 owned
+    Rare      042/096  Dormant Egg Sac          Rare                      x2 owned
+    shine     007/096  Signal Drone             Common               NEW  x1 owned
+
+(A card in the Swarm starter deck is never NEW: the owner already holds its starter copies.)
+
+## 2. Credits from play, then a purchase
+12 wins today: 90 credits (the daily schedule stops paying after the 10th win).
+buy a pack (100 credits): refused, insufficient balance
+next day, 2 more wins: bought a pack; 30 credits left.
+bought pack  seed 2201  odds S0-odds-1  +5 pack points
+    Common    029/096  Colony Broodling         Common                    x4 owned
+    Common    067/096  Corruption Patch         Common               NEW  x1 owned
+    Uncommon  031/096  Barrier Node             Uncommon                  x2 owned
+    Rare      021/096  Rate Limiter             Rare                 NEW  x1 owned
+    shine     039/096  Spore Cluster            Uncommon                  x3 owned
+
+## 3. Ten weekly-challenge packs, opened as one bulk open (same odds, no discount, no bonus)
+  pack  1  seed 3300  3 NEW  highlights: Latent Ward (Rare); Plating Module (Common, FULL ART)
+  pack  2  seed 3301  2 NEW  highlights: Bloodswarm Alpha (Rare); Hive Mother (Mythic, FOIL)
+  pack  3  seed 3302  4 NEW  highlights: Retaliation Node (Rare)
+  pack  4  seed 3303  3 NEW  highlights: Quorum Arbiter (Mythic); Plating Module (Common, FULL ART)
+  pack  5  seed 3304  1 NEW  highlights: Rate Limiter (Rare)
+  pack  6  seed 3305  4 NEW  highlights: Segmentation Fault (Rare); Mainframe Core (Rare, ALT ART)
+  pack  7  seed 3306  4 NEW  highlights: Lockdown Field (Rare); Init Daemon (Common, FULL ART)
+  pack  8  seed 3307  2 NEW  highlights: Barrier Shim (Rare)
+  pack  9  seed 3308  1 NEW  highlights: Barrier Shim (Rare); Rollback Point (Common, FOIL)
+  pack 10  seed 3309  1 NEW  highlights: Lockdown Field (Rare)
+  summary: 50 cards, 24 new cards, +50 pack points
+           by rarity Common 27, Uncommon 11, Rare 10, Mythic 2; by finish standard 44, fullArt 3, foil 2, altArt 1
+           packs keeping their full reveal: 0
+
+## 4. Pity timers (worked out from the owner's opening history)
+  packs in a row with no Full Art or better: 3 (guaranteed at 10); with no Mythic: 6 (at 40)
+  next pack guarantees: nothing yet
+  the opening log for bulk pack 1: seed 3300, odds S0-odds-1, 5 copies, opened 2026-10-17T13:45:00.000Z
+
+## 5. Crafting with pack points
+  70 pack points; crafted a standard SW-012 (held 1, now 2): crafted, account-bound true; 30 pack points left
+  craft a Mythic: refused, you already hold 2 of "Hive Mother"; crafting stops at its playable limit of 1
+
+## 6. Generating an agent: themed agent names, and the signature card's art-pool slot
+  agents offered: Hexwolf's Twin | Farad's Engine | Datarunner's Avatar
+  confirmed Hexwolf's Twin: Body Armor of the Server Farm (PR-001)
+  art pool S0, slot 217 of 500; card art reference placeholder:signature-pool/S0/217
+
+## 7. Reopened from the file, then raw SQL against the rules
+  same collection after reopening: 112 copies; same art slot: 217
+  open the same pack again: refused, no unopened pack "<the bought pack>" for this owner
+  mark a pack opened without an opening: refused, a pack is opened only through its logged opening, once
+  change a logged seed: refused, a pack opening is never changed
+  delete an opening: refused, a pack opening is never deleted
+  forge a 7th card into an opened pack: refused, a pack copy comes from an opened pack of its owner, at most 6 per pack
+  move a signature card to another art slot: refused, a signature card keeps its art
+  open 3 packs at once: refused, open 1 pack or 10 at once, not 3
