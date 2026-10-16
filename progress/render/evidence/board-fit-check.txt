@@ -1,0 +1,176 @@
+# Render session 20: board-fit check. node board-fit-check.mjs <replay.html> per replay, headless Chromium.
+# fit = lines x per-line @ zoom; card = on-screen card width; lines = min-max distinct card rows per side over every 4th move;
+# overflow = px of sideways page overflow; interleave = moves where the top side's cards reach below the bottom side's; offRow = cards outside their row.
+== aegis-vs-aegis-seed1.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== aegis-vs-cortex-seed1.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== aegis-vs-cortex-seed3.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== aegis-vs-cortex-seed6.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== aegis-vs-null-seed3.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== cortex-vs-aegis-sig-seed2.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== cortex-vs-aegis-sig-seed5.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== cortex-vs-null-seed5.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== cortex-vs-swarm-seed11.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== cortex-vs-swarm-seed6.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== null-vs-cortex-seed4.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== null-vs-swarm-seed2.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== swarm-vs-aegis-seed8.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+== swarm-vs-null-seed8.html
+  360 fit 2x3@0.873 card 103.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  390 fit 2x3@0.952 card 112.3px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  430 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  540 fit 2x3@1 card 118.0px lines 2-2 overflow 0 interleave 0 offRow 0 ok
+  560 fit 1x6@0.72 card 85.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  600 fit 1x6@0.764 card 90.1px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  680 fit 1x6@0.871 card 102.8px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  768 fit 1x6@0.989 card 116.7px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+  900 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1040 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+ 1280 fit 1x6@1 card 118.0px lines 1-1 overflow 0 interleave 0 offRow 0 ok
+
+# Ghost check (board-fit-ghost-check.mjs, cortex-vs-aegis-sig-seed5, first death at move 32): offset of the ghost from the dead card, and its name strip's width / card width
+600 move 32 ghost zoom 0.763904 {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"-0.0","nameVsCard":"0.978"}
+390 move 32 ghost zoom 0.951933 {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"-0.0","nameVsCard":"0.982"}
+1280 move 32 ghost zoom  {"dl":"0.0","dt":"0.0","dw":"0.0","dh":"0.0","nameVsCard":"0.983"}

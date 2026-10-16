@@ -9,11 +9,12 @@ items are removed, with the fix in `log.md`.
 
 ## Layout and legibility
 
-- **The six slots wrap from about 780 px down.** At 768 px a row is 5 + 1;
-  on a phone it is 3 + 3 or 2 + 2 + 2. The fixed-slot layout (session 8)
-  keeps each card in its slot, but a wrapped row no longer reads as one
-  side's line, and the opposing rows interleave visually. The slots are a
-  fixed 118 × 158 px; they should scale so six fit from about 600 px up.
+- **At 545-600 px the board cards are small** (85-91 px wide, session 20).
+  The row is zoomed to keep six on one line, and the name strip's text is
+  about 7.5 px. It reads, but only just.
+- **Floating numbers and trigger labels aren't scaled with a zoomed row.**
+  "ON PLAY" and "+3 HP" stay at full size, so next to an 85-px card they
+  look a little large.
 - **The event log is raw engine text** ("p1 passes priority", "[end of turn
   13 for p1]"). It is dense, full of priority passes, and names players as
   p1 / p2 instead of their usernames. For a spectator it is a debugging
@@ -23,6 +24,8 @@ items are removed, with the fix in `log.md`.
   7 a replayed signature card paid, isn't on the card. The hand shows the
   effective cost and the zone shows the climb, so nothing is wrong, but the
   card itself can't say "this cost more than printed".
+- **The board fit uses CSS `zoom`** (session 20). An older Firefox
+  (before 2024) ignores it and shows full-size cards that wrap, as before.
 - **Wards on narrow screens run off the edges.** A ward behind an edge card
   is clipped by the viewport (the canvas is fixed, so the page doesn't
   scroll, but you see half a ring).
@@ -52,8 +55,9 @@ items are removed, with the fix in `log.md`.
 - **The tests never run a browser.** Every visual claim (overflow, the
   zone's DOM, frame strips) is checked by scratch Playwright scripts from a
   folder outside the repo, and only the CSS rules are pinned in vitest. A
-  regression in layout would pass CI. The overflow script is committed as
-  `progress/render/evidence/narrow-overflow-check.mjs`, but nothing runs it.
+  regression in layout would pass CI. The overflow script and the
+  board-fit script (session 20) are committed in
+  `progress/render/evidence/`, but nothing runs them.
 - **Sound and music were only ever heard in headless runs and through
   stats.** No check on a real device, on mobile browsers' autoplay rules,
   or on low-end hardware.
