@@ -2551,3 +2551,24 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 5. The username variant uses only the [username]'s patterns.
 6. Agent names use the 50 "program" nouns. This list grows under the 2026-10-16 agent-name entry.
 7. Season 0's set symbol is a name only (S0-boot) until the render draws it.
+
+---
+
+## 2026-10-16 — Owner: a new top finish above Gold, 3 cards per season
+
+Owner decision.
+
+- **Add a finish rarer than everything else, like Pokémon TCG Pocket's crown cards.**
+  - **It's a finish, not a stronger card.** It's the same card and the same effects in a far rarer, more spectacular version. Mythic stays the top power rarity, and the balance ring is untouched.
+  - **Only 3 cards per season** can appear in this finish.
+- **Suggested details** (proposed in chat; the game lane proposes the final version at a checkpoint):
+  - **Name:** "Zero-Day", on theme: the rarest find in hacker culture.
+  - **Odds:** about 1 pack in 2,500, in line with Pocket's crown cards. Add it as a new row in a new odds table version, and confirm it with the pack simulation.
+  - **How it differs:** Gold is about 1 shine slot in 150. Prototypes are numbered, limited runs. Zero-Day is set by odds alone, with no copy limit.
+  - **Rules:**
+    - It doesn't count toward pity.
+    - It can't be crafted.
+    - It's a normal, unbound pack copy, so it's sellable once the marketplace exists.
+    - It gets the full-screen reveal (like Gold, Prototype and Jackpot), and a 10-pack open names it as a kept reveal.
+  - **Which 3 cards:** the season's headline cards, probably three of its Mythics, each with new art made for this finish. The owner approves the 3 cards and their art.
+  - **Season 0:** use the real rate. Don't raise it to test it; check the reveal with a test pack outside the season's odds, as for Prototypes.
