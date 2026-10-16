@@ -2655,3 +2655,14 @@ Gaps found:
 - Never raise a rate just to test it.
 
 **Build order:** propose where items 1–4 fit. They touch the pack odds just built, so doing them before the deck-building agent may be sensible. Update ECONOMY.md to match, and show the proposed secret-card list, Glitch rules and new odds table at a checkpoint before they go live.
+
+---
+
+## 2026-10-17 — Owner: render session 20 (board fit) accepted, keep all 4 calls
+
+Owner decision on the board-fit checkpoint in `progress/render/checkpoints.md` (render session 20, PR #58). All four calls are kept as built:
+
+1. The row splits into two lines when cards would drop below 85 px (72% of full size).
+2. Phones get 3 + 3 in a frame, not one line of tiny cards or a sideways-scrolling row.
+3. The frame uses the player's faction colour at low strength, and shows only in the two-line layout.
+4. Cards never scale up past full size on wide screens.
