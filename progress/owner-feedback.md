@@ -2666,3 +2666,27 @@ Owner decision on the board-fit checkpoint in `progress/render/checkpoints.md` (
 2. Phones get 3 + 3 in a frame, not one line of tiny cards or a sideways-scrolling row.
 3. The frame uses the player's faction colour at low strength, and shows only in the two-line layout.
 4. Cards never scale up past full size on wide screens.
+
+---
+
+## 2026-10-17 — Owner: answers to session 37's check-in (rename price, naming rules, build order)
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 37).
+
+1. **Rename price: option D.** An agent's first rename is free. Every rename after that costs 100 pack points (the proposed price, not overruled). This amends the 2026-10-16 "any rename costs pack points" line.
+2. **Naming rules: keep all as built, except one.**
+   - **Change:** the repeated-word check applies to generated names only. Typed names may repeat words ("Bit by Bit" and "Static Static" are allowed).
+   - **Keep:**
+     - the 32-character cap for typed and generated names;
+     - ASCII letters only;
+     - the punctuation rules;
+     - the staff-word rules ("mod", "dev" and so on blocked only as whole words);
+     - old names reserved forever to the agent that held them;
+     - the username rule;
+     - a rename never reprints the signature card;
+     - no renaming during that agent's live match, with an admin force-rename allowed during one.
+3. **Build order: option A, as proposed.**
+   1. The chase-card proposal: the secret-card list, the Glitch rules, and S0-odds-2 with Zero-Day at about 1 pack in 500, measured against the targets.
+   2. The generic "choose one" mechanic, and the 3 top-tier cards with the guardrails.
+   3. The deck-building agent and play styles.
+   4. More modal cards in every faction with the next card-set work.
