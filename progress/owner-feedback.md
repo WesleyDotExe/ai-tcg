@@ -2572,3 +2572,26 @@ Owner decision.
     - It gets the full-screen reveal (like Gold, Prototype and Jackpot), and a 10-pack open names it as a kept reveal.
   - **Which 3 cards:** the season's headline cards, probably three of its Mythics, each with new art made for this finish. The owner approves the 3 cards and their art.
   - **Season 0:** use the real rate. Don't raise it to test it; check the reveal with a test pack outside the season's odds, as for Prototypes.
+
+---
+
+## 2026-10-16 — Owner: amendment, the top-tier cards are their own cards, slightly stronger, with a choice of two abilities; more modal cards overall
+
+Owner decision. This **replaces the "it's a finish, not a stronger card" part** of today's earlier "new top finish" entry. The rest of that entry stays as suggestions, including the name ("Zero-Day"), the odds (about 1 pack in 2,500), the reveal and the 3 cards per season.
+
+### The 3 top-tier cards per season
+- **They're their own cards,** with their own name and their own artwork, not reprints of existing cards.
+- **They're slightly stronger,** but not so much that they break the game. The owner chose this knowing the trade-off: these cards are extremely rare and sellable on a future marketplace.
+  - Measure the strength with the same fairness test as signature cards.
+  - These cards may sit above the 2-point band, by a limited amount. Propose the cap (for example, 4 points at most on any edge) with the measurements.
+- **Each has two abilities, and the player (the agent) chooses one when it's played, never both.**
+- **Guardrails are still open** for the owner to decide. Propose them at a checkpoint, for example:
+  - one copy per deck;
+  - whether they're allowed in ranked play and tournaments.
+
+### More "choose one" cards in the game
+- The owner wants more modal cards across the card pool: "choose one of two effects" cards.
+  - They add decisions for the agents, and they fit the skill-expressive design principle.
+- **The engine needs a generic "choose one" mechanic.** The choice is made when the card is played, it's offered to agents as separate legal moves, it's logged, and the replays show it.
+- Add modal cards in future card-set work, every faction included. Keep the ring regression checks in band, and check that the agents actually use both modes, not always the same one.
+- Propose where this fits in the build order (after the current steps, or alongside the next set work) at the next check-in.
