@@ -2817,3 +2817,54 @@ The three cards tell a small story: infect, take over, shut down. In each card, 
 
 ### Small fix: keep "Zero-Day" out of generated agent names
 The signature-name word lists (`engine/src/data/signatureNames.ts`) contain "Zero-Day". Remove it, so that no generated agent card is named like the Zero-Day tier. If any existing agent already has it, list them in the notes and don't rename them without asking. The game lane can do this as a small side task in its next session.
+
+
+---
+
+## 2026-10-18 — Owner: answers to render session 23, and the pack-opening reveal is the render lane's next priority
+
+### Render session 23: keep all 3, as built
+Owner decisions on the 3 calls in `progress/render/checkpoints.md` (2026-10-17, "The board agrees with the feed; labels shrink with a zoomed row").
+1. **Keep:** a quiet trigger gets nothing on the board (no faint ring).
+2. **Keep:** a redirect fizzle takes the place of its "resolves" line.
+3. **Keep:** labels shrink all the way with the card (to about 72%), with no floor.
+
+### Next render priority: the pack-opening reveal
+**This goes ahead of the render debt list.** The chase cards are live (game session 39), but the render has no pack-opening surface, so Glitch, secret illustrations and Zero-Day can't be seen in a reveal. The turn-cap ending and the momentum gauge's pending threat wait until after this work.
+
+This builds on the earlier owner decisions, which still stand:
+- **Feel like Pocket:** peel or tap to open, cards revealed one at a time, a real rare-reveal moment. A card that simply fades or pops in is a failure. The first packs and the leader reveal are the most polished moments.
+- **10-pack opening (2026-10-05):** a fast sequence the owner can speed up, a summary at the end, and single-pack opening always available.
+- **Full reveals in a 10-pack open:** Gold, Prototype, Jackpot, secret and Zero-Day packs keep their full reveal (2026-10-18).
+- **Runtime:** finishes are code shaders, and nothing calls the network at runtime.
+
+**Where it lives:** there's no owner website yet. Build a self-contained pack-opening page (like the replay pages), driven by real pack results from the economy's `openPack` (seeded, so a run can be reproduced). It must work at phone and desktop widths. It moves into the owner website when that exists. The reveal only shows a result that has already been rolled; it never changes what's in the pack.
+
+**Single pack:**
+1. **The pack:** a code-drawn Season 0 pack with an idle shimmer. Drag across the top to tear it open; tap also works.
+2. **The cards:** the 5 cards come out as a stack. Swipe or tap through them. Plain cards move quickly, and the shine-slot card is always last.
+3. **An honest tell:** if the pack holds a hit (Full Art or better, as counted for pity), the tear throws sparks. Never a fake-out: sparks always mean a hit, and no sparks means no hit.
+4. **A reveal for each finish:**
+   - **Foil:** a shine shader that follows device tilt or the pointer.
+   - **Full Art:** the frame expands to full bleed.
+   - **Glitch:** the card corrupts as it flips (RGB split, jumping block tears, scanlines), then settles with a faint glitch loop. This is the look approved in session 38.
+   - **Secret illustration:** a slow-motion flip, with its number (for example `193/096`) shown above the set total.
+   - **Gold:** a gold shader with sparkle.
+   - **Zero-Day:** a full-screen takeover. The screen drops to black, a terminal types "ZERO-DAY DETECTED", a short breach sequence plays, then the animated card arrives. Until the 3 cards are built, show the reserved entry.
+   - **Prototype and Jackpot:** keep their full moments.
+5. **Summary screen:** the 5 cards with their finishes, NEW badges (per collection entry), and pack points earned, then "Open another" or "Done".
+
+**Ten packs:** fast flips with skip and speed-up controls, a summary grid at the end, and full reveals only for the big pulls listed above.
+
+**Sound:** a tear sound, flip ticks and a rising tone on hits, from the game's own self-contained sound system, following the sound settings.
+
+**Build in three slices, with a checkpoint after each:**
+1. Single pack plus every finish reveal.
+2. Ten-pack opening plus the summary.
+3. The first-time flow: an agent's first packs and the leader (signature card) reveal.
+
+Show each slice with phone and desktop recordings or stills, and a headless check like the replay checks. Propose timings and any open details at the checkpoints.
+
+**Art:** real pack and card artwork depends on the art pass, which is still open (build-time generated assets committed as static files, as decided 2026-10-04). Until then, use code-drawn packs and placeholder card art.
+
+**Game lane:** if the render needs a small data hook from the economy (for example, a seeded demo that returns pack results in the shape the pack-result screen gets), note it in `progress/render/notes-for-owner.md` as an ask for the game lane rather than changing economy files.
