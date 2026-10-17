@@ -2763,3 +2763,21 @@ Owner decisions on the 3 calls in `progress/render/checkpoints.md` (2026-10-18, 
 From `progress/render/notes-for-owner.md` (2026-10-18, session 22, item 2). **Do this as a small side task in the next game session.** It does not change the build order.
 - **Problem:** the Intercept Routine fizzle (nothing to redirect) still has no structured cause. The feed prints its reason text as is: "fizzles: Intercept Routine: Garbage Collector's attack is already aimed at Barrier Drone". Seen in Null vs Aegis seed 3, move 33.
 - **Change:** give it the same shape as the attack fizzles from session 38: a `cause` (for example `alreadyAimed` / `noPendingAttack`) plus the source and attacker names, so the feed and commentary can word it.
+
+
+---
+
+## 2026-10-18 — Owner: answers to session 39's calls (chase cards live)
+
+Owner decisions on the 7 calls in `progress/notes-for-owner.md` (session 39, "Calls I made").
+
+**Keep all 7, as built:**
+1. **Keep:** a Zero-Day card can be pulled now as a reserved entry ("Zero-Day 1 (not designed yet)") at the approved 0.2%. It becomes playable on its own once the card is designed.
+2. **Keep:** crafting makes one copy per secret card and is refused while the owner holds it. A crafted secret copy is account-bound (playable, never sold).
+3. **Keep:** Zero-Day crafting opens only once the cards are designed.
+4. **Keep:** the NEW badge is per collection entry.
+5. **Keep:** secret and Zero-Day packs keep the full reveal in a 10-pack open; a Glitch pack doesn't by itself.
+6. **Keep:** base-set completion counts any copy of a card, in any finish.
+7. **Keep:** packs bought before the switch open under S0-odds-2.
+
+**Zero-Day cards need more design work.** The owner wants to do more work on the Zero-Day cards. Details will follow in a later owner-feedback entry. Until then, don't treat their design as settled beyond the decisions already recorded (2026-10-16 entries).
