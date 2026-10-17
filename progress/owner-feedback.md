@@ -2690,3 +2690,19 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
    2. The generic "choose one" mechanic, and the 3 top-tier cards with the guardrails.
    3. The deck-building agent and play styles.
    4. More modal cards in every faction with the next card-set work.
+
+
+---
+
+## 2026-10-18 — Owner: answers to render session 21 (the match feed)
+
+Owner decisions on the 5 calls in `progress/render/checkpoints.md` (2026-10-17, "The match feed replaces the raw event log").
+
+**Keep all 5, as built:**
+1. **Keep:** priority passes are hidden completely, with no "no response" mark.
+2. **Keep:** the turn header names the card drawn.
+3. **Keep:** an attack and its damage are one entry, unless a response came between them.
+4. **Keep:** triggers and spells show their rules text in small type under the line.
+5. **Keep:** the raw engine log stays available behind the switch.
+
+The proposed next step (dropping trigger lines that change nothing) is not overruled.
