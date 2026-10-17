@@ -32,9 +32,62 @@ Bulwark, the unsellable signature card), and session 34 (Barrier-only Guardian, 
 the finer tuner pass, generating a new agent), and session 35 (10,000-game re-measure, combinations
 may repeat, themed card names), and session 36 (the art-pool slot, themed agent names, pack
 contents and opening), and session 37 (owners name their agents, more agent-name room), and session 38 (unique
-signature ability ids, game-over causes as data, the free first rename, the chase-card proposal).
+signature ability ids, game-over causes as data, the free first rename, the chase-card proposal),
+and session 39 (the chase cards live: schema v10, S0-odds-2, one roller, secret crafting, the
+binder; Intercept Routine fizzle causes).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 39
+
+- **The rarest pull in the game is an unplayable placeholder today.** A Zero-Day pull (about 1 pack
+  in 500) gives a copy named "Zero-Day 1 (not designed yet)". It can't go in a deck or be crafted
+  until build-order step 2 designs the card under its id. The data is safe: the copy turns into the
+  real card with no migration. But the reveal of the most special card is currently a stub. Step 2
+  should come soon, not drift.
+- **No pack-reveal visuals for the new finishes.** Glitch, secret illustrations and the animated
+  Zero-Day exist only as data (finish, secret code, art slot, `animated`). The render lane hasn't
+  drawn them, and there is no owner-facing opening screen yet (website steps), so nobody sees them.
+  The Glitch "mark" on its number is only a convention: the binder gives the base number, and the
+  render is expected to add the mark.
+- **A logged opening can't be fully re-rolled from what is stored.** `pack_openings` keeps the seed,
+  the odds version and what pity forced, but not the pity counters or the Prototype copies left at
+  the time. Those are what `rollPack` takes, so "revealable seed" can't yet be checked end to end
+  for a pack where a Prototype bonus or near-due pity mattered. A `verifyOpening(packId)` needs
+  those inputs stored (a v11 column), or rebuilt from history.
+- **`grantCopy` names `secret_code` only when a copy has one.** This exists so the migration tests,
+  which drive old schema versions with today's store code, keep working. It's an accommodation for
+  the tests, not a product rule.
+- **`openPack` and `binder` scan the owner's whole collection.**
+  - `openPack` scans it once per pack, for NEW and "x N owned".
+  - `binder` filters it once per entry: 248 entries times every copy held.
+  - Fine at Season 0 sizes (2,000 packs through the store took about 15 s across 20 owners), but a
+    heavy collector's binder will slow. Group by entry in SQL when it matters.
+- **Two copies of the same card in one pack both show NEW.** This is pre-existing (session 36: NEW
+  means "held before this pack"), and the bulk summary counts it once. Seen again in the demo's
+  Glitch pack (Swarm Larva twice). The owner may want only the first marked.
+- **Calls not yet confirmed by the owner,** listed in notes-for-owner:
+  - Zero-Day is pullable before it is designed;
+  - crafting makes one per secret card held, and crafted secret copies are bound (never sellable);
+  - NEW is per collection entry;
+  - a Glitch pack has no full reveal by itself;
+  - base completion counts any finish;
+  - pre-switch packs open under the live table.
+- **The feed still prints the raw reason** for the two Intercept Routine fizzles. The engine now
+  gives their cause as data, and the render lane words it next.
+- **Only one set exists,** so "older seasons' packs stay openable under the live table" is untested
+  against a second set. A future table must still be valid for an older set's cards: for example,
+  an S1 table whose Glitch list names S1 cards can't roll an S0 pack's Glitch slot.
+  `rollPack` reads the lists from the pack's own set, which is right, but no test proves it.
+
+## Session 38's chase items, resolved in session 39
+
+- "Not live, not in the schema": **live**, schema v10.
+- "`rollPackV2` duplicates `rollPack`": **merged** into one roller. Both tables are pinned by a seed
+  test, and the merge was checked identical over 60,000 seeds.
+- "No crafting of secret cards": **built** at the owner's 750 / 3,000.
+- Still true: the secret and Glitch lists are picks, not play data; the months figures rest on 2.4
+  packs a day; the 3 Zero-Day cards are not designed.
 
 ## New debt from session 38
 

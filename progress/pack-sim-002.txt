@@ -1,8 +1,8 @@
-AI-TCG chase-card simulation (session 38): S0-odds-1 (live) against S0-odds-2 (PROPOSED, not live)
+AI-TCG chase-card simulation (session 38; rerun session 39): S0-odds-1 (session 36's table) against S0-odds-2 (live since session 39)
 Set S0: 96 cards; S0-odds-2 adds 33 secret illustrations, 3 Zero-Day slots and 20 Glitch versions.
-Command (from economy/): npx tsx src/dev/packSimulation2.ts. S0-odds-1 packs are rollPack (what openPack uses today);
-S0-odds-2 packs are rollPackV2 (economy/src/chase.ts), the same pack shape with the proposed shine slot.
-"Hit" = Full Art or better. S0-odds-1: fullArt, altArt, gold, prototype. S0-odds-2: fullArt, glitch, altArt, gold, secret, zeroDay, prototype.
+Command (from economy/): npx tsx src/dev/packSimulation2.ts. S0-odds-1 packs are rollPack with PACK_ODDS;
+S0-odds-2 packs are rollPack with PACK_ODDS_V2 (economy/src/config.ts), the same pack shape with the chase shine slot.
+"Hit" = Full Art or better. S0-odds-1: fullArt, glitch, altArt, gold, secret, zeroDay, prototype. S0-odds-2: fullArt, glitch, altArt, gold, secret, zeroDay, prototype.
 
 1. Rates against 400,000 simulated packs per table (pity off: the base odds)
 

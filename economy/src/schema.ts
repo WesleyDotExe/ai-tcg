@@ -38,13 +38,26 @@
 //    logged, append-only, and stays reserved to that agent; a rename needs
 //    its log entry first.
 //
+//  - (v10) the chase finishes: Glitch, secret illustrations and Zero-Day.
+//    A secret copy names its secret card (secret_code), a Zero-Day copy is
+//    its secret card, and a copy's card, finish and secret code never
+//    change. None of them salvage (v2's rule: only standard copies do).
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
 // is kept on matches and ledger rows as "played by".
 
-export const FINISHES = ["standard", "foil", "fullArt", "altArt", "gold", "prototype", "tournament"] as const;
+/** Every finish a copy can have. Glitch, secret and zeroDay came with v10
+ * (the chase cards, owner 2026-10-16 and 2026-10-18): a Glitch copy is a
+ * code-drawn variant of a listed card; a secret copy is a secret
+ * illustration of its card; a zeroDay copy is one of the season's three
+ * Zero-Day cards. */
+export const FINISHES = ["standard", "foil", "fullArt", "altArt", "gold", "prototype", "tournament", "glitch", "secret", "zeroDay"] as const;
 export type Finish = (typeof FINISHES)[number];
+
+/** The finishes that name a secret card (`secret_code` on the copy). */
+export const SECRET_FINISHES: readonly Finish[] = ["secret", "zeroDay"];
 
 /** Where a copy came from (owner 2026-10-05, "crafted and starter cards are
  * account-bound"). v1 called these sources: v1 "packPoints" is "crafted" and
@@ -88,11 +101,16 @@ const inList = (values: readonly string[]) => `(${values.map((v) => `'${v}'`).jo
 
 // Migration 1's lists, frozen: a shipped migration must read exactly as it
 // did when it shipped, even after the live lists above change.
+const V1_FINISHES = ["standard", "foil", "fullArt", "altArt", "gold", "prototype", "tournament"] as const;
 const V1_COPY_SOURCES = ["pack", "starter", "promo", "packPoints", "tournament"] as const;
 // Migration 2's and 3's lists, frozen for the same reason.
 const V2_BOUND_ORIGINS = ["crafted", "starter"] as const;
 const V3_BOUND_ORIGINS = ["crafted", "starter", "promo", "prize"] as const;
 const V3_DECK_FACTIONS = ["Cortex", "Swarm", "Aegis", "Null"] as const;
+// Migration 10's lists, frozen.
+const V10_FINISHES = ["standard", "foil", "fullArt", "altArt", "gold", "prototype", "tournament", "glitch", "secret", "zeroDay"] as const;
+const V10_SERIES_KINDS = ["set", "promo", "prototype", "tournament"] as const;
+const V10_COPY_ORIGINS = ["pack", "crafted", "starter", "promo", "prize"] as const;
 // Migration 8's pool size, frozen (config.ts's SIGNATURE_ART_POOL_SIZE may change for a later season).
 const SIGNATURE_ART_POOL_SIZE_V8 = 500;
 
@@ -149,7 +167,7 @@ export const MIGRATIONS: readonly string[] = [
     copy_id         TEXT PRIMARY KEY,
     owner_id        TEXT NOT NULL REFERENCES agents(agent_id),
     card_id         TEXT NOT NULL,
-    finish          TEXT NOT NULL CHECK (finish IN ${inList(FINISHES)}),
+    finish          TEXT NOT NULL CHECK (finish IN ${inList(V1_FINISHES)}),
     series_kind     TEXT NOT NULL CHECK (series_kind IN ${inList(SERIES_KINDS)}),
     series_code     TEXT,
     serial          INTEGER,
@@ -302,7 +320,7 @@ export const MIGRATIONS: readonly string[] = [
     copy_id         TEXT PRIMARY KEY,
     owner_id        TEXT NOT NULL REFERENCES owners(owner_id),
     card_id         TEXT NOT NULL,
-    finish          TEXT NOT NULL CHECK (finish IN ${inList(FINISHES)}),
+    finish          TEXT NOT NULL CHECK (finish IN ${inList(V1_FINISHES)}),
     series_kind     TEXT NOT NULL CHECK (series_kind IN ${inList(SERIES_KINDS)}),
     series_code     TEXT,
     serial          INTEGER,
@@ -771,5 +789,109 @@ export const MIGRATIONS: readonly string[] = [
   WHEN NOT EXISTS (SELECT 1 FROM agent_names WHERE agent_id = NEW.agent_id AND name = NEW.name
                    AND entry_no = (SELECT MAX(entry_no) FROM agent_names WHERE agent_id = NEW.agent_id))
   BEGIN SELECT RAISE(ABORT, 'an agent is renamed only through its logged name entry'); END;
+  `,
+  // 10: the chase cards go live (session 39; owner 2026-10-18, answers to
+  // session 38, "yes on 1-6").
+  //  - Three new finishes: glitch (a code-drawn variant of a listed card,
+  //    its base card id), secret (a secret illustration of its card, the
+  //    base card id) and zeroDay (one of the season's 3 Zero-Day cards).
+  //  - secret_code names the secret card ("S0-SR07", "S0-ZD2") on exactly
+  //    the secret and zeroDay copies. A Zero-Day copy's card id IS its
+  //    secret code: the card is designed with build-order step 2 and takes
+  //    that id, so copies pulled before then become playable without a
+  //    data change.
+  //  - Chase copies are set copies with no serial.
+  //  - A copy's card, finish and secret code never change once granted.
+  //  - Salvage is unchanged: v2's CHECK still lets only a standard pack
+  //    copy salvage, so no chase copy ever does.
+  // A finish is a CHECK on card_copies, so the table is rebuilt (as v7 did
+  // for signature_cards): the trigger on deck_copies that reads it is
+  // dropped first so the rename never meets a trigger pointing at a missing
+  // table, then every index and trigger is made again exactly as before.
+  `
+  DROP TRIGGER deck_copy_owned;
+  CREATE TABLE card_copies_v10 (
+    copy_id         TEXT PRIMARY KEY,
+    owner_id        TEXT NOT NULL REFERENCES owners(owner_id),
+    card_id         TEXT NOT NULL,
+    finish          TEXT NOT NULL CHECK (finish IN ${inList(V10_FINISHES)}),
+    series_kind     TEXT NOT NULL CHECK (series_kind IN ${inList(V10_SERIES_KINDS)}),
+    series_code     TEXT,
+    serial          INTEGER,
+    run_size        INTEGER,
+    stamp           TEXT,
+    origin          TEXT NOT NULL CHECK (origin IN ${inList(V10_COPY_ORIGINS)}),
+    origin_ref      TEXT,
+    account_bound   INTEGER NOT NULL CHECK (account_bound IN (0, 1)),
+    acquired_at     TEXT NOT NULL,
+    disposed_at     TEXT,
+    disposed_reason TEXT,
+    secret_code     TEXT,
+    CHECK ((serial IS NULL) = (run_size IS NULL)),
+    CHECK (serial IS NULL OR series_kind IN ('prototype', 'tournament')),
+    CHECK (series_kind NOT IN ('prototype', 'tournament') OR serial IS NOT NULL),
+    CHECK (serial IS NULL OR (serial >= 1 AND serial <= run_size)),
+    CHECK (series_kind <> 'promo' OR stamp IS NOT NULL),
+    CHECK ((disposed_at IS NULL) = (disposed_reason IS NULL)),
+    CHECK (origin NOT IN ('crafted', 'starter') OR account_bound = 1),
+    CHECK (disposed_reason IS NOT 'salvaged'
+           OR (origin = 'pack' AND account_bound = 0 AND finish = 'standard' AND series_kind = 'set')),
+    -- A secret or Zero-Day copy names its secret card; no other copy does.
+    CHECK ((finish IN ('secret', 'zeroDay')) = (secret_code IS NOT NULL)),
+    -- A Zero-Day copy is its secret card.
+    CHECK (finish <> 'zeroDay' OR card_id = secret_code),
+    -- Chase copies are set copies, never numbered runs.
+    CHECK (finish NOT IN ('glitch', 'secret', 'zeroDay') OR (series_kind = 'set' AND serial IS NULL))
+  );
+  INSERT INTO card_copies_v10 (copy_id, owner_id, card_id, finish, series_kind, series_code, serial, run_size, stamp,
+                               origin, origin_ref, account_bound, acquired_at, disposed_at, disposed_reason)
+    SELECT copy_id, owner_id, card_id, finish, series_kind, series_code, serial, run_size, stamp,
+           origin, origin_ref, account_bound, acquired_at, disposed_at, disposed_reason
+    FROM card_copies ORDER BY rowid;
+  DROP TABLE card_copies;
+  ALTER TABLE card_copies_v10 RENAME TO card_copies;
+
+  CREATE INDEX copies_by_owner ON card_copies(owner_id) WHERE disposed_at IS NULL;
+  CREATE UNIQUE INDEX copies_serial_once ON card_copies(series_kind, series_code, card_id, serial)
+    WHERE serial IS NOT NULL;
+  CREATE UNIQUE INDEX one_signature_copy ON card_copies(origin_ref) WHERE origin_ref LIKE 'signature:%';
+  CREATE INDEX copies_by_origin_ref ON card_copies(origin_ref);
+  CREATE INDEX copies_by_secret ON card_copies(secret_code) WHERE secret_code IS NOT NULL;
+
+  CREATE TRIGGER copy_origin_fixed BEFORE UPDATE OF origin ON card_copies
+  WHEN NEW.origin IS NOT OLD.origin
+  BEGIN SELECT RAISE(ABORT, 'a copy''s origin never changes'); END;
+  CREATE TRIGGER copy_stays_bound BEFORE UPDATE OF account_bound ON card_copies
+  WHEN OLD.account_bound = 1 AND NEW.account_bound = 0
+  BEGIN SELECT RAISE(ABORT, 'an account-bound copy stays bound'); END;
+  CREATE TRIGGER copy_bound_never_moves BEFORE UPDATE OF owner_id ON card_copies
+  WHEN OLD.account_bound = 1 AND NEW.owner_id IS NOT OLD.owner_id
+  BEGIN SELECT RAISE(ABORT, 'an account-bound copy can never change owner'); END;
+  CREATE TRIGGER signature_copy_bound BEFORE INSERT ON card_copies
+  WHEN NEW.origin_ref LIKE 'signature:%' AND (NEW.origin <> 'promo' OR NEW.account_bound = 0)
+  BEGIN SELECT RAISE(ABORT, 'a signature card is a bound promo copy: it can never be sold'); END;
+  CREATE TRIGGER signature_ref_fixed BEFORE UPDATE OF origin_ref ON card_copies
+  WHEN OLD.origin_ref IS NOT NEW.origin_ref AND (OLD.origin_ref LIKE 'signature:%' OR NEW.origin_ref LIKE 'signature:%')
+  BEGIN SELECT RAISE(ABORT, 'a copy never becomes, or stops being, a signature card'); END;
+  CREATE TRIGGER signature_copy_is_the_agents BEFORE INSERT ON card_copies
+  WHEN NEW.origin_ref LIKE 'signature:%' AND NOT EXISTS (
+    SELECT 1 FROM signature_cards s JOIN agents a ON a.agent_id = s.agent_id
+    WHERE 'signature:' || s.agent_id = NEW.origin_ref AND s.card_id = NEW.card_id AND a.owner_id = NEW.owner_id)
+  BEGIN SELECT RAISE(ABORT, 'a signature copy is a copy of that agent''s own signature card, held by its owner'); END;
+  CREATE TRIGGER pack_copy_from_opening BEFORE INSERT ON card_copies
+  WHEN NEW.origin_ref LIKE 'pack:%' AND (
+    NEW.origin <> 'pack'
+    OR NOT EXISTS (SELECT 1 FROM pack_openings o WHERE 'pack:' || o.pack_id = NEW.origin_ref AND o.owner_id = NEW.owner_id)
+    OR (SELECT COUNT(*) FROM card_copies WHERE origin_ref = NEW.origin_ref) >= 6)
+  BEGIN SELECT RAISE(ABORT, 'a pack copy comes from an opened pack of its owner, at most 6 per pack'); END;
+  CREATE TRIGGER copy_identity_fixed BEFORE UPDATE OF card_id, finish, secret_code ON card_copies
+  WHEN NEW.card_id IS NOT OLD.card_id OR NEW.finish IS NOT OLD.finish OR NEW.secret_code IS NOT OLD.secret_code
+  BEGIN SELECT RAISE(ABORT, 'a copy''s card, finish and secret code never change'); END;
+
+  CREATE TRIGGER deck_copy_owned BEFORE INSERT ON deck_copies
+  WHEN NOT EXISTS (
+    SELECT 1 FROM card_copies c JOIN decks d ON d.deck_id = NEW.deck_id
+    WHERE c.copy_id = NEW.copy_id AND c.owner_id = d.owner_id AND c.disposed_at IS NULL)
+  BEGIN SELECT RAISE(ABORT, 'a deck can only hold copies its owner owns'); END;
   `,
 ];

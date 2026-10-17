@@ -276,6 +276,28 @@ describe("quiet triggers, fizzles and the end", () => {
     expect(lines.join("\n")).not.toMatch(/lands|deals no damage|fizzles —/);
   });
 
+  it("an Intercept Routine fizzle keeps its reason text, though it now has a cause (game session 39)", async () => {
+    // The engine gives redirect fizzles a cause and the attacker's name; they
+    // are not attack fizzles, so they must not read "its target left play".
+    const frame = await frameWith([
+      { type: "attack", attacker: "Garbage Collector", defender: "Barrier Drone", defenderKind: "unit", stackId: "s1" },
+      { type: "cast", player: "p2", card: "Intercept Routine", speed: "Instant", stackId: "s2" },
+      { type: "stackResolve", description: "Intercept Routine", stackId: "s2" },
+      {
+        type: "fizzle",
+        reason: "Intercept Routine: Garbage Collector's attack is already aimed at Barrier Drone",
+        cause: "alreadyAimed",
+        source: "Intercept Routine",
+        attacker: "Garbage Collector",
+        target: "Barrier Drone",
+      },
+    ]);
+    const [entries] = buildFeed([frame], { names, abilityText: {} });
+    const lines = entries!.map((e) => feedText(e, { names })).join("\n");
+    expect(lines).toContain("fizzles: Intercept Routine: Garbage Collector's attack is already aimed at Barrier Drone");
+    expect(lines).not.toMatch(/left play first/);
+  });
+
   it("words the end from its cause", async () => {
     const end = async (ev: GameEvent) => {
       const [entries] = buildFeed([await frameWith([ev])], { names, abilityText: {} });

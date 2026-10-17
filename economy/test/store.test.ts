@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
 import { getCard, SHIPPED_DECK_LISTS } from "@ai-tcg/engine";
 import { EconomyError, EconomyStore, PACK_PRICE_CREDITS, SALVAGE_PACK_POINTS, SalvageNeedsConfirmation, STARTER_PACKS } from "../src/index.js";
@@ -37,7 +38,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(9);
+    expect(a.schemaVersion).toBe(10);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -46,7 +47,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(9);
+    expect(b.schemaVersion).toBe(10);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -223,7 +224,7 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
 
     // v8 -> v9: agent names (session 37). Every existing agent's name is
     // logged as legacy; names become unique without case and stay reserved.
-    const v9 = open(path);
+    const v9 = open(path, 9);
     expect(v9.schemaVersion).toBe(9);
     for (const a of v9.listAgents()) {
       const names = v9.agentNames(a.agentId);
@@ -233,9 +234,50 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
     expect(() => v9.createAgent({ ownerId: "owner-a1", name: "TWIN" })).toThrow(/taken/);
     expect(() => v9.unsafeExec(`UPDATE agents SET name = 'renamed by hand' WHERE agent_id = '${twin.agentId}'`)).toThrow(/logged name entry/);
     expect(() => v9.unsafeExec(`DELETE FROM agent_names`)).toThrow(/never deleted/);
+    // A pack opened under the v9 schema, so v10 carries pack copies too.
+    v9.grantPack("owner-a1", "S0", "weeklyChallenge");
+    const v9pack = v9.openPack("owner-a1", undefined, { seed: 11 });
+    const v9copies = (db: EconomyStore) =>
+      ["owner-a1", "owner-a2"].flatMap((o) => db.collection(o)).map((c) => ({ ...c, secretCode: undefined }));
+    const beforeV10 = v9copies(v9);
+    const disposedBefore = v9.getCopy("c-gone");
+    const objectsBefore = schemaObjects(path);
     v9.close();
+
+    // v9 -> v10: the chase finishes (session 39). card_copies is rebuilt
+    // with every row, index and trigger; new copies may carry a secret code.
+    const v10 = open(path);
+    expect(v10.schemaVersion).toBe(10);
+    expect(v9copies(v10)).toEqual(beforeV10);
+    expect(v10.collection("owner-a1").every((c) => c.secretCode === null)).toBe(true);
+    expect({ ...v10.getCopy("c-gone"), secretCode: undefined }).toEqual({ ...disposedBefore, secretCode: undefined });
+    expect(v10.packOpening(v9pack.packId).copies.map((c) => c.copyId)).toEqual(v9pack.cards.map((c) => c.copyId));
+    expect(v10.deckStatus("d1").complete).toBe(true);
+    // Every index and trigger that was there is there again, plus v10's own.
+    const objectsAfter = schemaObjects(path);
+    expect(objectsAfter.filter((o) => !objectsBefore.includes(o))).toEqual(["index copies_by_secret", "trigger copy_identity_fixed"]);
+    expect(objectsBefore.filter((o) => !objectsAfter.includes(o))).toEqual([]);
+    // The old rules still hold on the rebuilt table.
+    expect(() => v10.unsafeExec(`UPDATE card_copies SET account_bound = 0 WHERE copy_id = 'c-starter'`)).toThrow(/stays bound/);
+    expect(() => v10.unsafeExec(`UPDATE card_copies SET owner_id = 'owner-a2' WHERE copy_id = 'c-starter'`)).toThrow(/never change owner/);
+    expect(() => v10.unsafeExec(`INSERT INTO deck_copies (deck_id, copy_id) VALUES ('d1', 'c-prize')`)).toThrow(/owner owns/);
+    expect(() => v10.unsafeExec(`UPDATE card_copies SET finish = 'gold' WHERE copy_id = 'c-pack'`)).toThrow(/never change/);
+    expect(() =>
+      v10.unsafeExec(`UPDATE card_copies SET disposed_at = '${at}', disposed_reason = 'salvaged' WHERE copy_id = 'c-starter'`),
+    ).toThrow(/CHECK/);
+    // Foreign keys are on and still point at the rebuilt table.
+    expect(() => v10.unsafeExec(`INSERT INTO deck_copies (deck_id, copy_id) VALUES ('d1', 'no-such-copy')`)).toThrow(/owner owns|FOREIGN KEY/);
+    v10.close();
   });
 });
+
+/** Every index and trigger in the database file, as "kind name". */
+function schemaObjects(path: string): string[] {
+  const db = new DatabaseSync(path);
+  const rows = db.prepare("SELECT type, name FROM sqlite_master WHERE type IN ('index', 'trigger') AND name NOT LIKE 'sqlite_%' ORDER BY type, name").all() as { type: string; name: string }[];
+  db.close();
+  return rows.map((r) => `${r.type} ${r.name}`);
+}
 
 describe("EconomyStore: the ledger", () => {
   it("is append-only: UPDATE and DELETE are refused by the schema itself", () => {

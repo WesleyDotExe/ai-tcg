@@ -176,7 +176,17 @@ function redirectTopAttack(state: GameState, newTarget: TargetRef, source: Event
     // read attackRedirected as "the aim moved". Found when a LookaheadAgent
     // cast Intercept Routine on the unit already under attack.
     if (JSON.stringify(item.target) === JSON.stringify(newTarget)) {
-      state.log.push({ type: "fizzle", reason: `${sourceLabel}: ${item.attackerName}'s attack is already aimed at ${from}` });
+      state.log.push({
+        type: "fizzle",
+        reason: `${sourceLabel}: ${item.attackerName}'s attack is already aimed at ${from}`,
+        cause: "alreadyAimed",
+        source: sourceLabel,
+        sourceId: source.id,
+        attacker: item.attackerName,
+        attackerId: item.attackerInstanceId,
+        target: from,
+        targetRef: { ...item.target },
+      });
       return;
     }
     const fromRef = item.target;
@@ -194,7 +204,7 @@ function redirectTopAttack(state: GameState, newTarget: TargetRef, source: Event
     });
     return;
   }
-  state.log.push({ type: "fizzle", reason: `${sourceLabel} finds no pending attack to redirect` });
+  state.log.push({ type: "fizzle", reason: `${sourceLabel} finds no pending attack to redirect`, cause: "noPendingAttack", source: sourceLabel, sourceId: source.id });
 }
 
 /** The single choke point for all damage to a unit or player — combat

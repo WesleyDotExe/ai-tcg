@@ -1,5 +1,6 @@
 // Sets and pack contents (ECONOMY.md "Card identity", "Rarity and finish",
-// "Packs" and "Prototypes"; roadmap item 5). Built session 36.
+// "Packs", "Prototypes" and "Chase cards"; roadmap item 5). Built session
+// 36; the chase cards and S0-odds-2 went live in session 39.
 //
 // This file is pure: no database. `rollPack` turns a seed, the owner's pity
 // state and the Prototype runs still open into a pack's cards, so the same
@@ -9,8 +10,9 @@
 // simulation (dev/packSimulation.ts) calls the same function hundreds of
 // thousands of times to check the published rates.
 
-import { CARD_REGISTRY, Rng, type Rarity } from "@ai-tcg/engine";
-import { PACK_ODDS } from "./config.js";
+import { CARD_REGISTRY, getCard, Rng, type Rarity } from "@ai-tcg/engine";
+import { LIVE_PACK_ODDS, PACK_ODDS, PACK_ODDS_V2, type PackOdds } from "./config.js";
+import { S0_GLITCH_CARDS, S0_ILLUSTRATIONS, secretCards, type SecretCard } from "./chase.js";
 import type { Finish } from "./schema.js";
 
 const RARITIES: readonly Rarity[] = ["Common", "Uncommon", "Rare", "Mythic"];
@@ -44,6 +46,11 @@ export interface CardSet {
   cards: readonly SetCard[];
   /** The season's 15 Prototype runs (ECONOMY.md "Prototypes"). */
   prototypes: readonly PrototypeRun[];
+  /** The secret cards, numbered above every Gold number: illustrations,
+   * then the Zero-Day cards at the very top (chase.ts). */
+  secrets: readonly SecretCard[];
+  /** The cards with a Glitch version (Units only, chase.ts). */
+  glitch: readonly string[];
 }
 
 /** Season 0's set: every ownable card (the four faction pools and the
@@ -59,7 +66,7 @@ function seasonZeroSet(): CardSet {
   const total = cards.length;
   const width = Math.max(3, String(total * 2).length);
   const pad = (n: number) => String(n).padStart(width, "0");
-  return {
+  const set = {
     code: "S0",
     name: "Season Zero",
     symbol: "S0-boot",
@@ -93,6 +100,18 @@ function seasonZeroSet(): CardSet {
       ["NL-019", 250],
     ].map(([cardId, runSize], i) => ({ code: `S0-P${String(i + 1).padStart(2, "0")}`, cardId: cardId as string, runSize: runSize as number })),
   };
+  // The chase lists the owner approved 2026-10-18 (answers 1 and 3).
+  return { ...set, secrets: secretCards(set, S0_ILLUSTRATIONS), glitch: glitchList(set, S0_GLITCH_CARDS) };
+}
+
+/** A set's Glitch list, checked: every card is a Unit of the set, none twice. */
+function glitchList(set: Pick<CardSet, "code" | "cards">, ids: readonly string[]): readonly string[] {
+  for (const id of ids) {
+    if (!set.cards.some((c) => c.cardId === id)) throw new Error(`Glitch version of ${id}: not a card of ${set.code}`);
+    if (getCard(id)?.type !== "Unit") throw new Error(`Glitch version of ${id}: Units only`);
+  }
+  if (new Set(ids).size !== ids.length) throw new Error("a Glitch card is listed twice");
+  return ids;
 }
 
 export const CARD_SETS: ReadonlyMap<string, CardSet> = new Map([["S0", seasonZeroSet()]]);
@@ -108,12 +127,17 @@ export function cardSet(code: string): CardSet {
 export type PackSlot = "Common" | "Uncommon" | "Rare" | "shine" | "bonus";
 
 export interface PackPull {
+  /** The card: the base card for every finish and for an illustration;
+   * for a Zero-Day pull, its secret code (the card takes that id). */
   cardId: string;
   rarity: Rarity;
   slot: PackSlot;
   finish: Finish;
-  /** The number printed on this copy ("056/096", or the Gold number). */
+  /** The number printed on this copy ("056/096", the Gold number, or a
+   * secret card's number above every Gold number). */
   collectorNumber: string;
+  /** A secret card's code ("S0-SR07", "S0-ZD2"), on secret and zeroDay pulls. */
+  secret?: string;
   /** Only on a Prototype: its run. The store gives it the next serial. */
   prototypeRun?: string;
 }
@@ -134,17 +158,21 @@ export interface PackRoll {
   prototypeFallbackGold: boolean;
 }
 
-/** Finishes that count as "Full Art or better" for the pity timer. */
-export const FULL_ART_OR_BETTER: readonly Finish[] = ["fullArt", "altArt", "gold", "prototype"];
+/** Finishes that count as a hit, "Full Art or better", for the pity timer
+ * and the owner's 20% target. S0-odds-1 packs only ever roll the first four
+ * of the chase-era list below, so one list serves both tables. Glitch counts
+ * (owner 2026-10-18, call 7.1); Foil doesn't (the common "lite" hit). */
+export const FULL_ART_OR_BETTER: readonly Finish[] = ["fullArt", "glitch", "altArt", "gold", "secret", "zeroDay", "prototype"];
 
-export function pityDue(state: PityState): { fullArt: boolean; mythic: boolean } {
+export function pityDue(state: PityState, odds: PackOdds = LIVE_PACK_ODDS): { fullArt: boolean; mythic: boolean } {
   return {
-    fullArt: state.packsSinceFullArt >= PACK_ODDS.pity.fullArtAfter,
-    mythic: state.packsSinceMythic >= PACK_ODDS.pity.mythicAfter,
+    fullArt: state.packsSinceFullArt >= odds.pity.fullArtAfter,
+    mythic: state.packsSinceMythic >= odds.pity.mythicAfter,
   };
 }
 
-/** The pity state after a pack with these pulls. */
+/** The pity state after a pack with these pulls. A Zero-Day pull counts as
+ * a Mythic (owner 2026-10-18, answer 2). */
 export function nextPity(state: PityState, pulls: readonly Pick<PackPull, "finish" | "rarity">[]): PityState {
   return {
     packsSinceFullArt: pulls.some((p) => FULL_ART_OR_BETTER.includes(p.finish)) ? 0 : state.packsSinceFullArt + 1,
@@ -153,11 +181,28 @@ export function nextPity(state: PityState, pulls: readonly Pick<PackPull, "finis
 }
 
 /**
- * One pack: 2 Commons, 1 Uncommon, the Rare slot (a Mythic 1 time in 8),
- * and the shine slot (any rarity, and the only slot with a finish), plus a
- * Prototype as a bonus 6th card 1 pack in 1,000. A Jackpot pack (1 in
- * 2,000) rolls Foil or better on every card. Pity, when due, makes the
- * shine slot Full Art or better and the Rare slot a Mythic.
+ * One pack under `odds` (an odds table from config.ts: `PACK_ODDS` is
+ * S0-odds-1, `PACK_ODDS_V2` S0-odds-2, live since session 39). Both tables
+ * share the pack's shape: 2 Commons, 1 Uncommon, the Rare slot (a Mythic 1
+ * time in 8), the shine slot (the only slot with a finish), and a Prototype
+ * as a bonus 6th card 1 pack in 1,000. A Jackpot pack (1 in 2,000) rolls
+ * Foil or better on every card. Pity, when due, makes the shine slot Full
+ * Art or better and the Rare slot a Mythic.
+ *
+ * Where the tables differ:
+ *  - S0-odds-1: the shine slot rolls its finish, then a card by the slot's
+ *    rarity weights (Alt Art from the Rares and Mythics); a Jackpot card
+ *    rolls Foil or better by its rarity.
+ *  - S0-odds-2 (owner 2026-10-16 items 2-4, accepted 2026-10-18): the shine
+ *    slot rolls its finish, then a card that can carry it: Standard and
+ *    Foil any card by the slot's rarity weights; Full Art, Alt Art and Gold
+ *    by their own rarity weights; Glitch from the set's Glitch list; secret
+ *    an illustration; Zero-Day one of the 3. A Jackpot card rolls Foil or
+ *    better among the finishes its own card can carry; secret cards come
+ *    only in the shine slot.
+ * Each table draws its random numbers in the order it always has, so every
+ * logged opening reproduces from its seed and odds version (pinned by a
+ * seed test in packs.test.ts).
  *
  * `prototypesLeft` is how many copies each run still has; a Prototype's run
  * is picked in proportion to them, and if all are used up the bonus is a
@@ -168,41 +213,58 @@ export function rollPack(
   set: CardSet,
   pity: PityState,
   prototypesLeft: ReadonlyMap<string, number>,
+  odds: PackOdds,
 ): PackRoll {
   const rng = new Rng(seed);
-  const due = pityDue(pity);
+  const due = pityDue(pity, odds);
   const byRarity = new Map<Rarity, SetCard[]>(RARITIES.map((r) => [r, set.cards.filter((c) => c.rarity === r)]));
   const pickOf = (rarity: Rarity) => rng.pick(byRarity.get(rarity)!);
-  const jackpot = rng.next() < PACK_ODDS.jackpotPack;
+  const jackpot = rng.next() < odds.jackpotPack;
 
   const pulls: PackPull[] = [];
   const add = (card: SetCard, slot: PackSlot, finish: Finish) =>
     pulls.push({ cardId: card.cardId, rarity: card.rarity, slot, finish, collectorNumber: finish === "gold" ? card.goldNumber : card.collectorNumber });
+  const jackpotFinish = (card: SetCard): Finish =>
+    odds.version === "S0-odds-1" ? foilOrBetterV1(rng, odds, card.rarity) : jackpotFinishV2(rng, odds, set, card);
 
   for (const rarity of ["Common", "Uncommon"] as const) {
-    for (let i = 0; i < PACK_ODDS.slots[rarity]; i++) {
+    for (let i = 0; i < odds.slots[rarity]; i++) {
       const card = pickOf(rarity);
-      add(card, rarity, jackpot ? foilOrBetter(rng, card.rarity) : "standard");
+      add(card, rarity, jackpot ? jackpotFinish(card) : "standard");
     }
   }
-  const rareSlotRarity: Rarity = due.mythic || rng.next() < PACK_ODDS.mythicInRareSlot ? "Mythic" : "Rare";
-  const rareCard = pickOf(rareSlotRarity);
-  add(rareCard, "Rare", jackpot ? foilOrBetter(rng, rareCard.rarity) : "standard");
+  const rareCard = pickOf(due.mythic || rng.next() < odds.mythicInRareSlot ? "Mythic" : "Rare");
+  add(rareCard, "Rare", jackpot ? jackpotFinish(rareCard) : "standard");
 
-  // The shine slot: the finish first, then a card that can carry it (Alt
-  // Art exists only on Rares and Mythics).
-  const shineFinish = due.fullArt ? fullArtOrBetter(rng) : jackpot ? foilOrBetter(rng, undefined) : anyFinish(rng);
-  const shineRarities = shineFinish === "altArt" ? (["Rare", "Mythic"] as const) : RARITIES;
-  const shineRarity = weightedPick(rng, shineRarities.map((r) => [r, PACK_ODDS.shineRarity[r]] as const));
-  add(pickOf(shineRarity), "shine", shineFinish);
+  // The shine slot: the finish first, then a card that can carry it.
+  if (odds.version === "S0-odds-1") {
+    const finish = due.fullArt ? fullArtOrBetterV1(rng, odds) : jackpot ? foilOrBetterV1(rng, odds, undefined) : anyFinishV1(rng, odds);
+    const rarities = finish === "altArt" ? (["Rare", "Mythic"] as const) : RARITIES;
+    add(pickOf(weightedPick(rng, rarities.map((r) => [r, odds.shineRarity[r]] as const))), "shine", finish);
+  } else {
+    const finish = shineFinishV2(rng, odds, due.fullArt ? "hit" : jackpot ? "foilOrBetter" : "any");
+    if (finish === "secret" || finish === "zeroDay") {
+      const s = rng.pick(set.secrets.filter((x) => (finish === "secret" ? x.kind === "illustration" : x.kind === "zeroDay")));
+      pulls.push({ cardId: s.cardId, rarity: s.rarity, slot: "shine", finish, collectorNumber: s.collectorNumber, secret: s.code });
+    } else if (finish === "glitch") {
+      const cardId = rng.pick([...set.glitch]);
+      add(set.cards.find((c) => c.cardId === cardId)!, "shine", "glitch");
+    } else {
+      const weights =
+        finish === "fullArt" ? odds.fullArtRarity : finish === "altArt" ? odds.altArtRarity : finish === "gold" ? odds.goldRarity : odds.shineRarity;
+      add(pickOf(weightedPick(rng, Object.entries(weights) as [Rarity, number][])), "shine", finish);
+    }
+  }
 
   let prototypeFallbackGold = false;
-  if (rng.next() < PACK_ODDS.prototypeBonus) {
+  if (rng.next() < odds.prototypeBonus) {
     const open = [...prototypesLeft.entries()].filter(([, left]) => left > 0);
     if (open.length === 0) {
       prototypeFallbackGold = true;
-      const card = weightedPick(rng, RARITIES.map((r) => [r, PACK_ODDS.shineRarity[r]] as const));
-      add(pickOf(card), "bonus", "gold");
+      // S0-odds-1 draws the fallback Gold's rarity by the shine slot's
+      // weights; S0-odds-2 by Gold's own (Rares and Mythics).
+      const weights = odds.version === "S0-odds-1" ? odds.shineRarity : odds.goldRarity;
+      add(pickOf(weightedPick(rng, Object.entries(weights) as [Rarity, number][])), "bonus", "gold");
     } else {
       const code = weightedPick(rng, open.map(([c, left]) => [c, left] as const));
       const run = set.prototypes.find((p) => p.code === code)!;
@@ -213,9 +275,11 @@ export function rollPack(
   return { pulls, jackpot, pity: due, prototypeFallbackGold };
 }
 
+// S0-odds-1's finish rolls.
+
 /** The shine slot's ordinary finish roll. */
-function anyFinish(rng: Rng): Finish {
-  const { foil, fullArt, altArt, gold } = PACK_ODDS.shineFinish;
+function anyFinishV1(rng: Rng, odds: typeof PACK_ODDS): Finish {
+  const { foil, fullArt, altArt, gold } = odds.shineFinish;
   return weightedPick(rng, [
     ["standard", 100 - foil - fullArt - altArt - gold],
     ["foil", foil],
@@ -226,18 +290,54 @@ function anyFinish(rng: Rng): Finish {
 }
 
 /** Pity: Full Art or better, in the table's own proportions. */
-function fullArtOrBetter(rng: Rng): Finish {
-  const { fullArt, altArt, gold } = PACK_ODDS.shineFinish;
+function fullArtOrBetterV1(rng: Rng, odds: typeof PACK_ODDS): Finish {
+  const { fullArt, altArt, gold } = odds.shineFinish;
   return weightedPick(rng, [["fullArt", fullArt], ["altArt", altArt], ["gold", gold]] as const);
 }
 
 /** A Jackpot card: Foil or better, in the table's own proportions. Alt Art
  * only on a Rare or Mythic (`rarity` undefined: the card isn't drawn yet,
  * and the shine slot then draws a Rare or Mythic for it). */
-function foilOrBetter(rng: Rng, rarity: Rarity | undefined): Finish {
-  const { foil, fullArt, altArt, gold } = PACK_ODDS.shineFinish;
+function foilOrBetterV1(rng: Rng, odds: typeof PACK_ODDS, rarity: Rarity | undefined): Finish {
+  const { foil, fullArt, altArt, gold } = odds.shineFinish;
   const alt = rarity === undefined || rarity === "Rare" || rarity === "Mythic";
   return weightedPick(rng, [["foil", foil], ["fullArt", fullArt], ...(alt ? ([["altArt", altArt]] as const) : []), ["gold", gold]] as const);
+}
+
+// S0-odds-2's finish rolls.
+
+/** A Jackpot card's finish: Foil or better among what this card can carry. */
+function jackpotFinishV2(rng: Rng, odds: typeof PACK_ODDS_V2, set: CardSet, card: SetCard): Finish {
+  const f = odds.shineFinish;
+  const table: [Finish, number][] = [["foil", f.foil]];
+  if (card.rarity !== "Common") table.push(["fullArt", f.fullArt]);
+  if (set.glitch.includes(card.cardId)) table.push(["glitch", f.glitch]);
+  if (card.rarity === "Rare" || card.rarity === "Mythic") table.push(["altArt", f.altArt], ["gold", f.gold]);
+  return weightedPick(rng, table);
+}
+
+/** The shine slot's finish: the whole table, Foil or better (Jackpot), or
+ * a hit only (pity), each in the table's own proportions. */
+function shineFinishV2(rng: Rng, odds: typeof PACK_ODDS_V2, mode: "any" | "foilOrBetter" | "hit"): Finish {
+  const f = odds.shineFinish;
+  const hits: [Finish, number][] = [
+    ["fullArt", f.fullArt],
+    ["glitch", f.glitch],
+    ["altArt", f.altArt],
+    ["secret", f.secret],
+    ["gold", f.gold],
+    ["zeroDay", f.zeroDay],
+  ];
+  if (mode === "hit") return weightedPick(rng, hits);
+  if (mode === "foilOrBetter") return weightedPick(rng, [["foil", f.foil], ...hits]);
+  const standard = 100 - Object.values(f).reduce((s, x) => s + x, 0);
+  return weightedPick(rng, [["standard", standard], ["foil", f.foil], ...hits]);
+}
+
+/** The shine slot's base hit rate under `odds`, in percent (before pity). */
+export function baseHitPercent(odds: PackOdds = LIVE_PACK_ODDS): number {
+  // Every shine finish but Foil is a hit; Standard is not in the table.
+  return Object.entries(odds.shineFinish).reduce((sum, [finish, pct]) => (finish === "foil" ? sum : sum + pct), 0);
 }
 
 export function weightedPick<T>(rng: Rng, table: readonly (readonly [T, number])[]): T {
@@ -250,5 +350,14 @@ export function weightedPick<T>(rng: Rng, table: readonly (readonly [T, number])
 /** The card behind a set card id, for callers that need its name. */
 export function setCardOf(set: CardSet, cardId: string): SetCard | undefined {
   return set.cards.find((c) => c.cardId === cardId);
+}
+
+/** The secret card with this code ("S0-SR07", "S0-ZD2"), in any set. */
+export function secretCardOf(code: string): SecretCard | undefined {
+  for (const set of CARD_SETS.values()) {
+    const s = set.secrets.find((x) => x.code === code);
+    if (s) return s;
+  }
+  return undefined;
 }
 

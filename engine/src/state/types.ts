@@ -220,12 +220,22 @@ export type GameEvent =
       /** Readable text for the raw log. Readers that word it themselves
        * (the spectator feed, commentary) use the fields below. */
       reason: string;
-      /** On an attack's fizzle only: its attacker, or its unit target, left
-       * play before it resolved. Absent on other fizzles (an ability with
-       * nothing to do) and in logs written before session 38. */
-      cause?: "attackerGone" | "targetGone";
+      /** Why it fizzled, as data. An attack's fizzle (session 38): its
+       * attacker, or its unit target, left play before it resolved. An
+       * attack redirect's fizzle (Intercept Routine, session 39): the attack
+       * was already aimed at the chosen unit, or no attack was pending.
+       * Absent on other fizzles (an ability with nothing to do) and in logs
+       * written before those sessions. */
+      cause?: "attackerGone" | "targetGone" | "alreadyAimed" | "noPendingAttack";
+      /** The attack's attacker (every cause but `noPendingAttack`). */
       attacker?: string;
       attackerId?: string;
+      /** A redirect's fizzle: the card whose redirect did nothing. */
+      source?: string;
+      sourceId?: string;
+      /** `alreadyAimed`: the unit the attack was, and stays, aimed at. */
+      target?: string;
+      targetRef?: TargetRef;
     }
   | { type: "telegraphPlaced"; unit: string; armIn: number; instanceId?: string }
   | { type: "telegraphArmed"; unit: string; instanceId?: string }

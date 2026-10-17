@@ -1,8 +1,9 @@
 // Chase-card simulation (session 38; owner 2026-10-16 "more collectable
 // chase cards": "measure with the pack simulation ... report the median
-// packs to complete both"). Rolls S0-odds-1 (live, packs.ts rollPack) and the
-// PROPOSED S0-odds-2 (chase.ts rollPackV2) side by side and checks the
-// proposal against the owner's targets:
+// packs to complete both"). Rolls S0-odds-1 and S0-odds-2 (both through
+// packs.ts rollPack since session 39; S0-odds-2 is live since the owner's
+// 2026-10-18 yes) side by side and checks S0-odds-2 against the owner's
+// targets:
 //  - about 20% of packs with Full Art or better, Foil a common "lite" hit;
 //  - the base set still completes in a reasonable number of packs;
 //  - the full set with secret cards takes months for a dedicated owner,
@@ -16,15 +17,15 @@
 import type { Rarity } from "@ai-tcg/engine";
 import { COPY_LIMITS } from "@ai-tcg/engine";
 import { CRAFT_PACK_POINTS, PACK_ODDS, PACK_POINTS_PER_PACK, SALVAGE_PACK_POINTS } from "../config.js";
-import { cardSet, FULL_ART_OR_BETTER, nextPity, rollPack, type PityState } from "../packs.js";
-import { baseHitPercent, HIT_FINISHES, nextPityV2, PACK_ODDS_V2, rollPackV2, seasonZeroChase, type ChasePull } from "../chase.js";
+import { PACK_ODDS_V2 } from "../config.js";
+import { baseHitPercent, cardSet, FULL_ART_OR_BETTER, nextPity, rollPack, type PackPull, type PityState } from "../packs.js";
 
 const out: string[] = [];
 const say = (s = "") => out.push(s);
 const pct = (x: number, d = 2) => `${(100 * x).toFixed(d)}%`;
 const oneIn = (x: number) => (x > 0 ? `1 in ${Math.round(1 / x).toLocaleString("en-US")}` : "never");
 const set = cardSet("S0");
-const chase = seasonZeroChase(set);
+const chase = set;
 const illustrations = chase.secrets.filter((s) => s.kind === "illustration");
 const zeroDays = chase.secrets.filter((s) => s.kind === "zeroDay");
 const fullRuns = () => new Map(set.prototypes.map((r) => [r.code, r.runSize]));
@@ -36,27 +37,27 @@ const months = (packs: number) => (packs / PACKS_PER_DAY / 30.4).toFixed(1);
 const q = (xs: number[], f: number) => [...xs].sort((a, b) => a - b)[Math.floor(f * (xs.length - 1))]!;
 
 /** Both tables behind one shape: a pack's pulls, Jackpot and pity fired. */
-type Roll = { pulls: readonly Pick<ChasePull, "cardId" | "rarity" | "finish" | "secret" | "slot">[]; jackpot: boolean; pity: { fullArt: boolean; mythic: boolean } };
+type Roll = { pulls: readonly Pick<PackPull, "cardId" | "rarity" | "finish" | "secret" | "slot">[]; jackpot: boolean; pity: { fullArt: boolean; mythic: boolean } };
 const TABLES = {
   "S0-odds-1": {
-    roll: (seed: number, pity: PityState): Roll => rollPack(seed, set, pity, fullRuns()),
-    next: (pity: PityState, r: Roll) => nextPity(pity, r.pulls as never),
+    roll: (seed: number, pity: PityState): Roll => rollPack(seed, set, pity, fullRuns(), PACK_ODDS),
+    next: (pity: PityState, r: Roll) => nextPity(pity, r.pulls),
     hits: FULL_ART_OR_BETTER as readonly string[],
   },
   "S0-odds-2": {
-    roll: (seed: number, pity: PityState): Roll => rollPackV2(seed, set, chase, pity, fullRuns()),
-    next: (pity: PityState, r: Roll) => nextPityV2(pity, r.pulls),
-    hits: HIT_FINISHES as readonly string[],
+    roll: (seed: number, pity: PityState): Roll => rollPack(seed, set, pity, fullRuns(), PACK_ODDS_V2),
+    next: (pity: PityState, r: Roll) => nextPity(pity, r.pulls),
+    hits: FULL_ART_OR_BETTER as readonly string[],
   },
 } as const;
 type TableName = keyof typeof TABLES;
 const NAMES = Object.keys(TABLES) as TableName[];
 
-say("AI-TCG chase-card simulation (session 38): S0-odds-1 (live) against S0-odds-2 (PROPOSED, not live)");
+say("AI-TCG chase-card simulation (session 38; rerun session 39): S0-odds-1 (session 36's table) against S0-odds-2 (live since session 39)");
 say(`Set ${set.code}: ${set.cards.length} cards; S0-odds-2 adds ${illustrations.length} secret illustrations, ${zeroDays.length} Zero-Day slots and ${chase.glitch.length} Glitch versions.`);
-say("Command (from economy/): npx tsx src/dev/packSimulation2.ts. S0-odds-1 packs are rollPack (what openPack uses today);");
-say("S0-odds-2 packs are rollPackV2 (economy/src/chase.ts), the same pack shape with the proposed shine slot.");
-say(`"Hit" = Full Art or better. S0-odds-1: ${FULL_ART_OR_BETTER.join(", ")}. S0-odds-2: ${HIT_FINISHES.join(", ")}.`);
+say("Command (from economy/): npx tsx src/dev/packSimulation2.ts. S0-odds-1 packs are rollPack with PACK_ODDS;");
+say("S0-odds-2 packs are rollPack with PACK_ODDS_V2 (economy/src/config.ts), the same pack shape with the chase shine slot.");
+say(`"Hit" = Full Art or better. S0-odds-1: ${FULL_ART_OR_BETTER.join(", ")}. S0-odds-2: ${FULL_ART_OR_BETTER.join(", ")}.`);
 say();
 
 // ---- 1. rates, pity off ----
@@ -107,7 +108,7 @@ say();
   const zd = stats.get("S0-odds-2")!.zd;
   const zdTotal = Object.values(zd).reduce((a, b) => a + b, 0);
   say(`   S0-odds-2 Zero-Day: ${oneIn(zdTotal / N)} packs overall (target about 1 in 500); each card: ${zeroDays.map((z) => `${z.code} ${oneIn((zd[z.code] ?? 0) / N)}`).join(", ")} (target about 1 in 1,500).`);
-  say(`   S0-odds-2 base hit rate as set: ${baseHitPercent().toFixed(1)}% of shine slots, before pity and the Prototype bonus.`);
+  say(`   S0-odds-2 base hit rate as set: ${baseHitPercent(PACK_ODDS_V2).toFixed(1)}% of shine slots, before pity and the Prototype bonus.`);
   say();
 }
 
@@ -258,8 +259,8 @@ const completion = new Map<string, number[]>();
         .filter((m) => Number.isFinite(m.cost))
         .sort((a, b) => a.cost - b.cost);
       while (packs < CAP && fullAt === 0) {
-        const r = rollPackV2(seed++, set, chase, pity, fullRuns());
-        pity = nextPityV2(pity, r.pulls);
+        const r = rollPack(seed++, set, pity, fullRuns(), PACK_ODDS_V2);
+        pity = nextPity(pity, r.pulls);
         packs++;
         points += PACK_POINTS_PER_PACK;
         let gained = false;

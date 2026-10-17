@@ -61,6 +61,11 @@ test("Intercept Routine no-ops harmlessly (logged, not silent) when there's noth
   applyMove(state, cast!, rng);
   expect(() => drainStack(state, rng)).not.toThrow();
   expect(state.log.some((e) => e.type === "fizzle" && e.reason.includes("no pending attack")), "the no-op should be logged").toBe(true);
+  // The cause as data (owner 2026-10-18 side task), so the feed and the
+  // commentators word it themselves rather than printing the reason text.
+  const fizzle = state.log.find((e) => e.type === "fizzle");
+  expect(fizzle).toMatchObject({ cause: "noPendingAttack", source: "Intercept Routine" });
+  expect(fizzle).not.toHaveProperty("attacker");
 });
 
 test("Intercept Routine onto the unit the attack already targets is a logged no-op, not a redirect", () => {
@@ -82,6 +87,15 @@ test("Intercept Routine onto the unit the attack already targets is a logged no-
   drainStack(state, rng);
   expect(state.log.some((e) => e.type === "attackRedirected"), "nothing moved, so no redirect may be logged").toBe(false);
   expect(state.log.some((e) => e.type === "fizzle" && e.reason.includes("already aimed at")), "the no-op should be logged").toBe(true);
+  const fizzle = state.log.find((e) => e.type === "fizzle");
+  expect(fizzle).toMatchObject({
+    cause: "alreadyAimed",
+    source: "Intercept Routine",
+    attacker: aegisSentinel.name,
+    attackerId: attacker.instanceId,
+    target: aegisWarden.name,
+    targetRef: { kind: "unit", instanceId: guardian.instanceId },
+  });
   expect(guardian.damageTaken, "the attack still lands on its original target").toBe(3);
 });
 

@@ -3,6 +3,10 @@
 //
 //   npx tsx src/dev/packOpeningDemo.ts > ../progress/economy-demo-006.txt
 //
+// (economy-demo-006.txt was made under S0-odds-1; since session 39 packs
+// open under S0-odds-2, so a rerun shows different packs. The chase cards'
+// own evidence is chaseLiveDemo.ts, economy-demo-009.txt.)
+//
 // In a real database file: a new owner takes the starter collection and
 // opens its 3 starter packs one at a time (the pack-result screen's data:
 // slot, card, rarity, finish, collector number, NEW and "x N owned"), earns
@@ -17,7 +21,7 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { EconomyError, EconomyStore, PACK_ODDS, PACK_PRICE_CREDITS, type PackOpening } from "../index.js";
+import { EconomyError, EconomyStore, LIVE_PACK_ODDS, PACK_PRICE_CREDITS, type PackOpening } from "../index.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "pack-opening-demo-"));
 const dbPath = join(tempDir, "season-0.db");
@@ -25,7 +29,7 @@ let clock = new Date("2026-10-16T09:00:00.000Z");
 const tick = (minutes: number) => (clock = new Date(clock.getTime() + minutes * 60_000));
 let store = EconomyStore.open(dbPath, { now: () => clock });
 const say = (line = "") => console.log(line);
-const FINISH: Record<string, string> = { standard: "", foil: "FOIL", fullArt: "FULL ART", altArt: "ALT ART", gold: "GOLD", prototype: "PROTOTYPE" };
+const FINISH: Record<string, string> = { standard: "", foil: "FOIL", fullArt: "FULL ART", altArt: "ALT ART", gold: "GOLD", prototype: "PROTOTYPE", glitch: "GLITCH", secret: "SECRET", zeroDay: "ZERO-DAY" };
 
 function showPack(p: PackOpening, title: string): void {
   const flags = [p.jackpot && "JACKPOT PACK", p.pity.fullArt && "pity: Full Art or better", p.pity.mythic && "pity: Mythic", p.fullReveal && "full reveal"].filter(Boolean);
@@ -39,7 +43,7 @@ function showPack(p: PackOpening, title: string): void {
 }
 
 say("# Pack contents and opening (session 36)");
-say(`database: <temp>/season-0.db  schema v${store.schemaVersion}  season ${store.season}  odds table ${PACK_ODDS.version}`);
+say(`database: <temp>/season-0.db  schema v${store.schemaVersion}  season ${store.season}  odds table ${LIVE_PACK_ODDS.version}`);
 say();
 
 // ---- the starter collection and its 3 packs, one at a time ----
@@ -104,7 +108,7 @@ say();
 // ---- pity and the logged seed ----
 const pity = store.pityStatus(owner.ownerId);
 say("## 4. Pity timers (worked out from the owner's opening history)");
-say(`  packs in a row with no Full Art or better: ${pity.packsSinceFullArt} (guaranteed at ${PACK_ODDS.pity.fullArtAfter}); with no Mythic: ${pity.packsSinceMythic} (at ${PACK_ODDS.pity.mythicAfter})`);
+say(`  packs in a row with no Full Art or better: ${pity.packsSinceFullArt} (guaranteed at ${LIVE_PACK_ODDS.pity.fullArtAfter}); with no Mythic: ${pity.packsSinceMythic} (at ${LIVE_PACK_ODDS.pity.mythicAfter})`);
 say(`  next pack guarantees: ${pity.next.fullArt || pity.next.mythic ? JSON.stringify(pity.next) : "nothing yet"}`);
 const log = store.packOpening(bulk.packs[0]!.packId);
 say(`  the opening log for bulk pack 1: seed ${log.seed}, odds ${log.oddsVersion}, ${log.copies.length} copies, opened ${log.openedAt}`);

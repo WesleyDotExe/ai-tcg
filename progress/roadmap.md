@@ -328,9 +328,12 @@ start a step until the one before works and its tests pass):
      store, the name log with "formerly", reserved old names, an admin
      force-rename; schema v9) and more agent-name room (three-part names,
      ~648 million). Evidence: economy-demo-007, signature-names-sample-003.
-  2d. PROPOSED ORDER (session 37 check-in; default A), before 2b's deck
-     builder: (i) the chase-card proposal, measured, not live (secret
-     cards, Glitch, `S0-odds-2` with Zero-Day ~1 in 500); (ii) the generic
+  2d. ORDER ACCEPTED (owner 2026-10-17, option A), before 2b's deck
+     builder: (i) DONE: the chase-card proposal, measured (session 38), and
+     LIVE (session 39, owner yes 2026-10-18): schema v10, `openPack` on
+     `S0-odds-2`, one roller for both tables pinned by a seed test, secret
+     crafting at 750 / 3,000, the binder; evidence economy-demo-009,
+     pack-sim-002; (ii) NEXT: the generic
      "choose one" engine mechanic; (iii) the 3 Zero-Day top-tier cards
      (2 modes, the fairness test with a cap above the band, 1 per deck,
      ranked and tournaments allowed); then 2b; then modal cards in every

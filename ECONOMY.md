@@ -90,16 +90,19 @@ Pity timers (no Full Art in 10 packs, no Mythic in 40) are worked out from pack 
 
 Rarity (Common, Uncommon, Rare, Mythic) is the gameplay ladder and sets the copy limits (3/3/2/1). A finish is a print version and never changes gameplay.
 
-| Finish | Look | Rate (shine slot) |
-|---|---|---|
-| Standard | normal card | ~56% |
-| Foil | shimmer in the faction's own pattern | 30% |
-| Full Art | borderless, embossed | 10% |
-| Alt Art | a different painted scene; Rares and Mythics only | ~1 in 30 |
-| Gold | all gold, numbered above the set total | ~1 in 150 |
-| Jackpot pack | every card in the pack is Foil or better | ~1 in 2,000 packs |
+| Finish | Look | Rate (shine slot), `S0-odds-2` (live since session 39) | `S0-odds-1` (sessions 36-38) |
+|---|---|---|---|
+| Standard | normal card | ~53.6% | ~56% |
+| Foil | shimmer in the faction's own pattern; any card | 28% | 30% |
+| Full Art | borderless, embossed; Uncommons, Rares, Mythics | 9% | 10% |
+| Glitch | the card's own art, corrupted in code; 20 listed Units | 4% | — |
+| Alt Art | a different painted scene; Rares and Mythics only | 3% | ~1 in 30 |
+| Secret illustration | its own painted version, numbered above the Gold numbers | 1.5% | — |
+| Gold | all gold, numbered above the set total; Rares and Mythics | 0.7% | ~1 in 150 |
+| Zero-Day | animated, at the very top of the numbering | 0.2% | — |
+| Jackpot pack | every card in the pack is Foil or better | ~1 in 2,000 packs | same |
 
-Finishes are drawn as code shaders where possible. **The data is BUILT (session 36):** the rates above are `PACK_ODDS` in `economy/src/config.ts` (version `S0-odds-1`), the finish is on every copy, and a Gold copy carries its number above the set total. **Shaders come later, after EFFECTS.md v2.** Two choices the table didn't make are session 36's proposals for the owner's check-in: the shine slot's rarity weights (Common 60, Uncommon 25, Rare 12, Mythic 3), and that an Alt Art roll draws its card from the Rares and Mythics, so the ~1 in 30 holds.
+Finishes are drawn as code shaders where possible. **The data is BUILT (session 36; the chase finishes session 39, see "Chase cards"):** the rates above are `PACK_ODDS_V2` (`S0-odds-2`, live) and `PACK_ODDS` (`S0-odds-1`, kept so its openings reproduce) in `economy/src/config.ts`, the finish is on every copy, and a Gold copy carries its number above the set total. **Shaders come later, after EFFECTS.md v2.** Two choices the table didn't make are session 36's proposals for the owner's check-in: the shine slot's rarity weights (Common 60, Uncommon 25, Rare 12, Mythic 3), and that an Alt Art roll draws its card from the Rares and Mythics, so the ~1 in 30 holds.
 
 ## Packs — BUILT (session 36; salvage BUILT session 30)
 
@@ -134,9 +137,19 @@ Finishes are drawn as code shaders where possible. **The data is BUILT (session 
 - The art is made at build time with Replicate, following the mythic-wards pattern. The owner checks previews before a season's list goes live.
 - Test this with simulated pack openings. Never raise the drop rate to test it.
 
-## Chase cards — PROPOSED (session 38; S0-odds-2, not live)
+## Chase cards — BUILT and LIVE (proposed session 38; owner yes 2026-10-18; live session 39)
 
-Owner 2026-10-16, "more collectable chase cards", items 1-4, in the order accepted 2026-10-17 (option A). **Proposed and measured, not live:** the store still opens `S0-odds-1` packs, and nothing here is in the schema. Code: `economy/src/chase.ts` (`S0_ILLUSTRATIONS`, `S0_GLITCH_CARDS`, `secretCards`, `PACK_ODDS_V2`, `rollPackV2`); tests `economy/test/chase.test.ts`; evidence `progress/pack-sim-002.txt` (`npx tsx src/dev/packSimulation2.ts` in economy/). The list, the rules and the table are in the session-38 [OWNER CHECK-IN] in `progress/notes-for-owner.md` for approval.
+Owner 2026-10-16, "more collectable chase cards", items 1-5, in the order accepted 2026-10-17 (option A); the list, the rules, the table and secret crafting approved as proposed 2026-10-18 (option A on 1-6, all 4 smaller calls kept). **Live since session 39:** every pack opens under `S0-odds-2`, and each opening records that version. Code: `economy/src/chase.ts` (the lists: `S0_ILLUSTRATIONS`, `S0_GLITCH_CARDS`, `secretCards`), `economy/src/config.ts` (`PACK_ODDS_V2`, `LIVE_PACK_ODDS`, `PACK_ODDS_TABLES`, `SECRET_CRAFT_PACK_POINTS`), `economy/src/packs.ts` (`rollPack(..., odds)`, one roller for both tables; the set carries `secrets` and `glitch`), the store's `openPack`, `craftSecret` and `binder`, and schema v10. Tests `economy/test/chase.test.ts`; evidence `progress/economy-demo-009.txt` (`npx tsx src/dev/chaseLiveDemo.ts` in economy/) and `progress/pack-sim-002.txt`.
+
+- **Built in session 39:**
+  - **Schema v10.** Three new finishes, `glitch`, `secret` and `zeroDay`, and a `secret_code` on the copies that are secret cards. A secret copy keeps its base card's id (it plays as that card); a Zero-Day copy's card id IS its code (`S0-ZD1`), so when build-order step 2 designs the card under that id, copies pulled before then become playable with no data change. The schema refuses a secret or Zero-Day copy without a fitting code, a code on any other copy, a chase copy that is numbered, and any change to a copy's card, finish or secret code. Salvage is unchanged: only standard pack copies salvage, so no chase copy ever does. `card_copies` was rebuilt for the new CHECK, with every row, index and trigger carried across (tested row by row and object by object).
+  - **One roller.** `rollPack(seed, set, pity, prototypesLeft, odds)` serves both tables. Each draws its random numbers exactly as before: the merged roller matched the two old ones over 60,000 seeds, and a test pins 20,000 seeds of each table by hash, so every logged opening of either version reproduces. A change that moves the draws needs a new odds version.
+  - **Pity across the tables.** One hit list (`FULL_ART_OR_BETTER`: Full Art, Glitch, Alt Art, Gold, secret, Zero-Day, Prototype); `S0-odds-1` packs only ever rolled the first four. A Zero-Day card counts as a Mythic.
+  - **The pack result.** A secret card arrives with its code, kind, art slot and whether it moves; its NEW badge is for its own entry, so an illustration is NEW even when the plain card is held, and a Glitch copy is NEW until the first Glitch copy of that card; a plain card is NEW only when no copy of it, in any finish, was held (an illustration or Glitch copy fills its base place). Secret and Zero-Day packs keep their full reveal in a bulk open; a Glitch pack (about 1 in 25) doesn't by itself.
+  - **Secret crafting** (owner 5A): `craftSecret(owner, code)`, 750 pack points for an illustration and 3,000 for a Zero-Day card. Refused while the owner holds a copy of that secret card (crafting completes a collection, it doesn't farm one), and a crafted copy is account-bound like every crafted copy. A Zero-Day card can't be crafted until it is designed (step 2); until then it can only be pulled.
+  - **The binder and checklist:** `binder(owner, set)` gives five sections in number order: the base set (any copy of the card counts, any finish: 96), the secret cards (33 illustrations, then 3 Zero-Day), Glitch (20), Gold (96), and the 15 Prototype runs with the serials held.
+  - **Older seasons' packs stay openable** (owner 6A): a pack of any known set opens under the live table.
+- **Still to come:** the 3 Zero-Day cards themselves (build-order step 2, after the "choose one" mechanic); the render lane's Glitch look and animated Zero-Day reveal; the illustration art (the owner-funded art pass); the binder's screen (website steps).
 
 - **Secret cards (item 1).** Each season gets numbered secret cards above every Gold number: for Season 0, **33 illustration versions** (`193/096` to `225/096`) and the **3 Zero-Day cards** at the very top (`226/096` to `228/096`). Each is its own collection entry with its own binder place and checklist line. The proposed illustrations: every faction's Mythic, 13 Rares, 9 Uncommons and 7 Commons, spread 8 Cortex / 7 Swarm / 7 Aegis / 7 Null / 4 Neutral. Each has a placeholder art slot (`placeholder:secret/S0-SR07`) until the owner-funded art pass. An illustration plays exactly as its card.
 - **Zero-Day (item 2).** About **1 pack in 500** overall, each card about 1 in 1,500 (measured: 1 in 485 overall). Animated: art that moves and reaches past the frame, built by the render lane in code. The 3 cards themselves come with build-order step 2 (the "choose one" mechanic first); until then they are reserved slots. Proposed: they count as Mythic for the Mythic pity timer.
@@ -145,9 +158,9 @@ Owner 2026-10-16, "more collectable chase cards", items 1-4, in the order accept
 - **Measured against the owner's targets** (`progress/pack-sim-002.txt`):
   - **A hit in 20.7% of packs** with pity on (target about 20%; S0-odds-1: 17.3%). Hit pity fires in 2.5% of packs; the longest dry run stays 10.
   - **Base set:** median 130 packs opening only (S0-odds-1: 134); 57 for an owner who salvages and crafts.
-  - **The full set takes years by opening packs alone:** 33 illustrations at 1.5% need a median 7,593 packs (about 104 months at 2.4 packs a day); the 3 Zero-Day cards a median 1,950. No sane rate makes this "months": that needs crafting, the benchmark's lever (owner item 5, later). Measured for the owner's decision: secret cards at 750 pack points and Zero-Day at 3,000 put the master set (base + illustrations) at a median 5.2 months and the full set at 6.6 months for a dedicated owner; 500 / 2,500 gives 3.9 and 5.0 months; 1,000 / 5,000 gives 6.6 and 8.5.
-  - Season 0 is 6 weeks long, so a full set in months only works if Season 0 packs stay openable after the season. That is an owner decision, raised in the check-in.
-- **Going live needs:** the owner's approval of the list, the rules and the table; schema v10 (the new finishes and secret entries on copies; secret and Zero-Day copies never salvaged, as every finish); `openPack` switched to `S0-odds-2` with the version recorded as now; the binder and checklist entries; the render lane's Glitch and Zero-Day drawing.
+  - **The full set takes years by opening packs alone:** 33 illustrations at 1.5% need a median 7,593 packs (about 104 months at 2.4 packs a day); the 3 Zero-Day cards a median 1,950. No sane rate makes this "months": that needs crafting, the benchmark's lever. Measured for the owner's decision (the owner chose 750 / 3,000, built session 39): secret cards at 750 pack points and Zero-Day at 3,000 put the master set (base + illustrations) at a median 5.2 months and the full set at 6.6 months for a dedicated owner; 500 / 2,500 gives 3.9 and 5.0 months; 1,000 / 5,000 gives 6.6 and 8.5.
+  - Season 0 is 6 weeks long, so a full set in months only works if Season 0 packs stay openable after the season. The owner decided they do (2026-10-18, answer 6A).
+- **Went live** in session 39, as above. The render lane's Glitch and Zero-Day drawing is still to come.
 
 ## Promos and tournament cards — SPEC (the pack session issuing; the unique Mythic with step 2 of the build order)
 
