@@ -2658,7 +2658,7 @@ Gaps found:
 
 ---
 
-## 2026-10-17 — Owner: render session 20 (board fit) accepted, keep all 4 calls
+## 2026-10-17 — Owner: render session 20 (board fit) accepted, keep all 4 calls (render lane's own; nothing for the game lane, noted session 38)
 
 Owner decision on the board-fit checkpoint in `progress/render/checkpoints.md` (render session 20, PR #58). All four calls are kept as built:
 
@@ -2669,7 +2669,7 @@ Owner decision on the board-fit checkpoint in `progress/render/checkpoints.md` (
 
 ---
 
-## 2026-10-17 — Owner: answers to session 37's check-in (rename price, naming rules, build order)
+## 2026-10-17 — Owner: answers to session 37's check-in (rename price, naming rules, build order) (HANDLED 2026-10-17, session 38 — 1: option D built, `renamePrice(agent)` is 0 for an agent's first rename and 100 after; the free rename writes no ledger row and an admin's force-rename doesn't use it up; 2: the repeated-word check is gone from typed names ("Bit by Bit" and "Static Static" pass) and stays on generated names, the rest unchanged; evidence `progress/economy-demo-008.txt`; 3: option A followed: step 1, the chase-card proposal, is built as a measured proposal, not live, in the new [OWNER CHECK-IN])
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 37).
 
@@ -2694,7 +2694,7 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ---
 
-## 2026-10-18 — Owner: answers to render session 21 (the match feed)
+## 2026-10-18 — Owner: answers to render session 21 (the match feed) (render lane's own; nothing for the game lane, noted session 38)
 
 Owner decisions on the 5 calls in `progress/render/checkpoints.md` (2026-10-17, "The match feed replaces the raw event log").
 
@@ -2710,7 +2710,7 @@ The proposed next step (dropping trigger lines that change nothing) is not overr
 
 ---
 
-## 2026-10-18 — Owner: game lane side task — unique signature ability ids and engine reason text
+## 2026-10-18 — Owner: game lane side task — unique signature ability ids and engine reason text (HANDLED 2026-10-17, session 38 — 1: every size of a signature ability has its own id, the standard id plus the size key (`sig-recycle`, `sig-recycle.c1`, `sig-recycle.c3`); the tier-7 second aura keeps its standard id; `legacySignatureAbilityId` / `upgradeSignatureAbilityId` map old ids both ways, and the fingerprint reads ids in the old form, so every recorded fingerprint (approved list, owners' databases) still matches; existing agents' cards are rebuilt from their spec and get the new ids; tests check that no id names two abilities over every size, every table combination and 3,000 generated agents; evidence `progress/signature-ability-ids-001.txt` (old ids: 1,262 abilities on a shared id over 3,000 agents; new: 0). Render can switch to id-only lookups. 2: both: the game-over text reads as a sentence ("p2's health reached 0", so the feed says "<agent>'s health reached 0") and the event carries `cause` (`healthDepleted` with the losers, or `turnCap` tied or not); attack fizzles carry `cause`, `attacker`, `attackerId`, so the feed can word them without the doubled "fizzles")
 
 Found by render session 21 (PR #60). The render lane worked around both problems inside `render/` but can't fix them at the source. **Do this as a side task in the next game session.** It does not change the build order (chase-card proposal, then the choose-one mechanic and top-tier cards, then the deck-building agent and play styles).
 

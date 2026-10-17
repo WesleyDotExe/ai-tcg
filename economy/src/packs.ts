@@ -240,7 +240,7 @@ function foilOrBetter(rng: Rng, rarity: Rarity | undefined): Finish {
   return weightedPick(rng, [["foil", foil], ["fullArt", fullArt], ...(alt ? ([["altArt", altArt]] as const) : []), ["gold", gold]] as const);
 }
 
-function weightedPick<T>(rng: Rng, table: readonly (readonly [T, number])[]): T {
+export function weightedPick<T>(rng: Rng, table: readonly (readonly [T, number])[]): T {
   const total = table.reduce((s, [, w]) => s + w, 0);
   let roll = rng.next() * total;
   for (const [item, w] of table) if ((roll -= w) < 0) return item;

@@ -1,5 +1,144 @@
 # Notes for the owner
 
+**Updated 2026-10-17, session 38 (your 2026-10-17 answers, the 2026-10-18 side task, and step 1
+of the order: the chase-card proposal).** Nothing is blocking. There is one **[OWNER CHECK-IN]**
+below, with defaults; nothing in it goes live until you answer. Evidence:
+`progress/pack-sim-002.txt`, `progress/signature-ability-ids-001.txt`,
+`progress/economy-demo-008.txt`.
+
+Built:
+- **Your naming answers:**
+  - An agent's **first rename is free**; every later one costs 100 pack points.
+  - An admin's force-rename doesn't use up the free one.
+  - **Typed names may repeat a word** ("Bit by Bit", "Static Static"). Generated names still never
+    do.
+- **The side task (render's find):**
+  - **Every version of a signature ability has its own id** now: `sig-recycle` (draw 2),
+    `sig-recycle.c1` (draw 1), `sig-recycle.c3` (draw 3). Over 3,000 generated agents, 1,262
+    abilities shared an id with a different version before; now none do. A test checks this
+    every run.
+  - Existing agents keep working: their cards are rebuilt from what they are, so they get the new
+    ids, and their recorded fingerprints still match. Old replays can be mapped to the new ids.
+  - **The game-over line reads properly:** "Rombot's Navigator's health reached 0" instead of
+    "Rombot's Navigator health depleted". The event also says why as data (health reached 0, or
+    the turn cap), so the feed and the commentators can word it their own way.
+
+### [OWNER CHECK-IN] Chase cards: the secret list, the Glitch tier and the new odds table
+
+Nothing here is live. The store still opens packs with today's table (`S0-odds-1`). The numbers
+are measured in `progress/pack-sim-002.txt`.
+
+**1. The secret cards (33 illustrations + 3 Zero-Day).** Numbered above every Gold number:
+`193/096` to `225/096`, then Zero-Day at `226/096` to `228/096`. Each one has its own place in the
+binder and the checklist, and a placeholder art slot until the art pass.
+
+| Pool | Illustration versions proposed |
+|---|---|
+| Cortex (8) | Quorum Arbiter, Mainframe Core, Recursive Construct, Overload Capacitor, Firewall Sentinel, Watchtower Relay, Signal Drone, Init Daemon |
+| Swarm (7) | Hive Mother, Bloodswarm Alpha, Overclock Beast, Dormant Egg Sac, Molted Stalker, Spore Cluster, Swarm Larva |
+| Aegis (7) | Prime Aegis, Aegis Warden, Latent Ward, Lockdown Field, Reinforced Bastion, Perimeter Turret, Aegis Cadet |
+| Null (7) | Null Singularity, Kernel Panic, Entropy Harvester, Segmentation Fault, Fork Bomb, Garbage Collector, Glitch Seed |
+| Neutral (4) | Uplink Tower, Power Reserve, Relay Courier, Scrap Recycler |
+
+   - That's every Mythic, 13 Rares, 9 Uncommons and 7 Commons.
+   - A few humble cards are in on purpose: a painted Swarm Larva is part of the charm, as with the
+     benchmark's illustration cards.
+   - Options: **A** this list (default). **B** your changes (swap any card in or out).
+
+**2. Zero-Day.** About **1 pack in 500** overall, so each card is about 1 in 1,500 (measured: 1 in
+485 overall). Animated, built in code by the render lane.
+   - The 3 cards are empty slots until build-order step 2.
+   - Proposed: they count as **Mythic** for the Mythic pity timer.
+
+**3. The Glitch tier.**
+   - **20 Units qualify,** 4 per pool:
+     - Cortex: Quorum Arbiter, Recursive Construct, Firewall Sentinel, Signal Drone;
+     - Swarm: Hive Mother, Overclock Beast, Corrosive Spitter, Molted Stalker;
+     - Aegis: Prime Aegis, Aegis Warden, Perimeter Turret, Aegis Sentinel;
+     - Null: Null Singularity, Kernel Panic, Entropy Harvester, Zombie Process;
+     - Neutral: Uplink Tower, Relay Courier, Scrap Recycler, Commodity Rack (Neutral has only 4
+       units).
+   - **Why Units only:** a corrupted creature or machine reads as a glitch. A corrupted spell frame
+     reads as a rendering bug.
+   - **Rate: 4% of packs** (about 1 in 25).
+   - **The look:** the card's own art with a corrupted palette, scanlines, jumping block tears, and
+     an RGB split on reveal. No new art.
+   - **It counts as a hit** (Full Art or better) for pity and the 20% target.
+   - It keeps its base card's number with a glitch mark. Numbers above the total stay for secret
+     cards.
+   - One thing to know: Null is already glitch-themed, so a Glitch Null card is the subtlest.
+   - Options: **A** as above (default). **B** a different list, or a different rate.
+
+**4. The new odds table, `S0-odds-2`.** The shine slot:
+
+| Finish | S0-odds-1 (live) | S0-odds-2 (proposed) | Lands on |
+|---|---|---|---|
+| Standard | ~56% | ~53.6% | any card |
+| Foil | 30% | 28% | any card (unchanged) |
+| Full Art | 10% | 9% | Uncommons, Rares, Mythics (40/45/15) |
+| Glitch | — | 4% | its 20 cards |
+| Alt Art | ~3.3% | 3% | Rares, Mythics (75/25) |
+| Secret illustration | — | 1.5% | its 33 entries |
+| Gold | ~0.7% | 0.7% | Rares, Mythics (70/30) |
+| Zero-Day | — | 0.2% | its 3 cards |
+
+   Measured against your targets:
+
+| Target | S0-odds-1 | S0-odds-2 |
+|---|---|---|
+| ~20% of packs with Full Art or better (pity on) | 17.3% | **20.7%** |
+| Full Art on Commons | 60% | **0%** |
+| Gold on Commons | 59% | **0%** |
+| Base set, median packs | 134 | **130** (57 for an owner who salvages and crafts) |
+| Jackpot | 1 in 2,062 | 1 in 2,062 (unchanged) |
+| Pity timers | fire as set | fire as set; longest dry run 10 |
+
+   - Options: **A** this table (default). **B** your numbers.
+
+**5. The full set can't take "months" by opening packs alone. It takes years.** This is the one
+real conflict in your targets:
+   - **33 illustrations at 1.5% of packs** need a median **7,593 packs**, about 104 months at 2.4
+     packs a day.
+   - **The 3 Zero-Day cards** need a median **1,950 packs** (about 27 months). One Zero-Day card
+     takes a median 314 packs.
+   - No sane rate fixes this. The last few cards of any chase list are the slow ones, and doubling
+     the rate only halves the time, while pushing hits far past 20%.
+   - **The benchmark's lever is crafting with pack points** (your item 5, "later"). I measured it so
+     you can decide with numbers:
+
+| Craft price (secret / Zero-Day) | Master set (base + 33 illustrations) | Full set (+ 3 Zero-Day) |
+|---|---|---|
+| none | ~104 months | ~104 months |
+| 1,500 / 5,000 | 8.9 months | 10.7 months |
+| 1,000 / 5,000 | 6.6 months | 8.5 months |
+| **750 / 3,000** | **5.2 months** | **6.6 months** |
+| 500 / 2,500 | 3.9 months | 5.0 months |
+
+   (A dedicated owner at 2.4 packs a day, who salvages standard extras beyond the playable limit
+   and crafts the cheapest missing card first. Owners who keep extras to trade take longer.)
+
+   - Options: **A** build secret crafting next to S0-odds-2, at 750 / 3,000 pack points (default:
+     about 5 and 7 months). **B** another price. **C** no crafting: the full set is a multi-season
+     chase.
+
+**6. Season 0 is 6 weeks long.** A full set "in months" only works if Season 0 packs can still be
+opened after the season.
+   - Options: **A** older seasons' packs stay openable (default: the season ends the ladder, not
+     the packs). **B** a season's packs retire with it, so the full set is a within-season chase.
+
+**7. Smaller calls, as built in the proposal** (overrule any):
+   1. Glitch counts as a hit for pity and the 20% target. Foil doesn't.
+   2. An illustration plays exactly like its card, and it can't be salvaged (like every finish).
+   3. A Jackpot pack's other four cards roll Foil or better among the finishes their card can
+      carry. Secret cards come only in the shine slot.
+   4. Secret cards are picked evenly. A Mythic's illustration is no rarer than a Common's.
+
+Next game-lane session, without an answer: the defaults above. That means the "choose one" mechanic
+(step 2), while S0-odds-2 waits for your yes. With a yes on 1-6, the session after builds schema
+v10 and switches `openPack` over, with crafting if you pick option 5A.
+
+---
+
 **Updated 2026-10-17, session 37 (your 2026-10-16 entries: naming agents, the pack answers, the
 top finish, top-tier cards, modal cards, chase cards).** Nothing is blocking. There is one
 **[OWNER CHECK-IN]** below, with defaults, so the next game-lane session can go ahead without an

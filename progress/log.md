@@ -2902,3 +2902,66 @@ render entry (PR #58 accepted) is the render lane's own. Not a hardening pass.
 
 **Blocked:** nothing; the check-in has defaults. Next: render (alternation), then the chase-card
 proposal.
+
+## 2026-10-17 — Session 38 (owner's 2026-10-17 answers and 2026-10-18 side task; the chase-card proposal)
+
+Game-lane session: the last merged PR (#60) was render. Owner feedback first. The session-37
+answers and the side task are handled and marked. The two render entries (board fit, the match
+feed) are the render lane's own and are marked as such. Not a hardening pass.
+
+**Built:**
+- **Unique signature ability ids:**
+  - every size's id is the standard id plus its size key;
+  - old ids map both ways;
+  - the fingerprint reads ids in their old form, so the approved list and owners' stored
+    fingerprints still match.
+- **Game over and attack fizzles as data,** and a game-over sentence with its "'s".
+- **The first rename is free** (`renamePrice`); typed names may repeat a word.
+- **The chase-card proposal (not live):**
+  - the secret list (33 illustrations + 3 Zero-Day, numbered 193-228/096);
+  - the Glitch tier (20 Units, 4%);
+  - `S0-odds-2` and `rollPackV2`;
+  - a second pack simulation.
+
+**Ran it:**
+- the ability-id report;
+- the naming demo (reproduces exactly);
+- the chase simulation (about 2 minutes);
+- `npm test`: 669/669; `tsc` clean in all six workspaces.
+
+**Result:**
+- Over 3,000 generated agents, 1,262 abilities shared an id with a different version before; none
+  do now. The whole menu: 52 versions, 52 ids.
+- S0-odds-2: a hit in 20.7% of packs with pity on (target ~20%; S0-odds-1 17.3%).
+  - Zero-Day 1 in 485.
+  - Full Art and Gold no longer land on Commons (they did 60% and 59% of the time).
+  - The base set takes a median 130 packs.
+- **The finding:** the full set with secrets takes years by opening alone (median 7,593 packs for
+  the 33 illustrations). Only crafting makes "months": 750 / 3,000 pack points gives 5.2 months for
+  the master set and 6.6 for the full set. Raised as a decision with the season-length question.
+
+**Bugs found while building:**
+- `rollPackV2` first called `rng.pick` inside a `find` callback, which drew a new random number
+  per card compared. tsc caught the readonly type next to it, which is how I saw it. Fixed before
+  any measurement.
+- A render test (feed.test.ts) asserted that a clashing id existed among generated cards. It now
+  builds the clash from two real cards, as an old replay would have it, and still checks that the
+  feed takes text from the triggering card.
+
+**Raised as an [OWNER CHECK-IN]:**
+- the secret list;
+- Zero-Day as Mythic;
+- the Glitch list and rate;
+- `S0-odds-2`;
+- crafting secret cards (options with months);
+- whether Season 0 packs stay openable after the season;
+- 4 smaller calls.
+
+**Evidence:**
+- `progress/signature-ability-ids-001.txt`;
+- `progress/economy-demo-008.txt`;
+- `progress/pack-sim-002.txt`;
+- 17 new tests.
+
+**Blocked:** nothing. Next: render (alternation), then the chase answer or the "choose one"
+mechanic.
