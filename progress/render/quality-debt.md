@@ -7,6 +7,29 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## Pack opening (slice 1, session 24)
+
+- **Only checked in headless Chromium with a software GPU (SwiftShader).**
+  The shaders compile and light pixels there, but nothing has run on a
+  real phone, a real GPU, iOS Safari, or with the device tilt (the
+  `deviceorientation` path and its iOS permission prompt are untested).
+- **The card swipe was only exercised as taps.** The check tears by a real
+  drag, but steps through the stack by tapping; a drag-to-swipe on a card
+  is untested in the browser (the gesture rule itself is unit-tested).
+- **The sounds were never heard,** only checked as recipes (sane voices,
+  the hit's rise always rising).
+- **The Glitch "RGB split" is two filtered DOM copies of the card**, not a
+  per-pixel channel split (a shader can't read DOM). It reads as a split
+  in motion; a still mid-flip mostly shows the card edge-on.
+- **The page runtime (about 500 lines) is one string.** Its pure helpers
+  are tested in Node; the rest only by the browser check.
+- **The committed page changes on every rebuild** (the store's random pack
+  and copy ids), even with the same packs. Asked of the game lane.
+- **The showcase packs are found by seed search**, so the page shows one
+  of each finish; it is not a sample of what a typical opening looks like.
+- **Single pack only.** The ten-pack opening (slice 2) and the first-time
+  flow with the signature reveal (slice 3) don't exist yet.
+
 ## Layout and legibility
 
 - **At 545-600 px the board cards are small** (85-91 px wide, session 20).

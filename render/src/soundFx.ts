@@ -53,6 +53,10 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
   // dropped: a Swarm volley is many shots but should read as one chitter
   // cloud, not a wall of identical clicks.
   var SFX_REPEAT_GAP_MS = 28;
+  // The pack opening's sounds (render session 24, owner 2026-10-18: "a tear
+  // sound, flip ticks and a rising tone on hits"). Same player, same
+  // settings; the voice is the card's faction where there is one.
+  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp'];
   var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast', 'ward', 'wardPulse', 'wardBreak'];
   // Ward moments (slice 6, the lab's wardIn / wardPulse / wardBreak): each
   // faction's chord, low to high. Neutral has no ward; it gets Cortex's.
@@ -199,6 +203,43 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
       else if (v === 'swarm') for (var c = 0; c < 3; c++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.03, g: 0.1, delay: 0.1 + c * 0.04 });
       else if (v === 'null') T({ type: 'sawtooth', f0: 330, dur: 0.25, g: 0.04, steps: 5, filt: 'bandpass', ff: 1200, q: 2 });
       else T({ type: 'sine', f0: 1320, dur: 0.45, g: 0.04, delay: 0.1 });
+    } else if (kind === 'tear') {
+      // Foil ripping: a bright noise sweep with a crackle on top, and a
+      // low pop as the strip comes free.
+      N({ type: 'bandpass', f0: 5200, f1: 1400, q: 1.4, dur: 0.32, g: 0.28 });
+      for (var ti = 0; ti < 7; ti++) N({ type: 'highpass', f0: r(3500, 7000), q: 2, dur: 0.02, g: 0.12, delay: ti * 0.04 });
+      T({ type: 'sine', f0: 220, f1: 90, dur: 0.18, g: 0.18, delay: 0.3 });
+    } else if (kind === 'flip') {
+      // One card moving: a short dry tick; the voice tints it.
+      N({ type: 'bandpass', f0: v === 'aegis' ? 1700 : v === 'swarm' ? 2600 : 3200, q: 6, dur: 0.035, g: 0.2 });
+      T({ type: v === 'cortex' || v === 'null' ? 'square' : 'triangle', f0: v === 'null' ? r(700, 1400) : 1100, dur: 0.03, g: 0.025 });
+    } else if (kind === 'rise') {
+      // A hit: a rising tone. Always rises (meaning); the tier sets how far
+      // and how long (a Foil is a small lift, a Gold or a secret a long climb).
+      var big = tier === 'spectacle';
+      T({ type: 'sine', f0: 330, f1: big ? 1320 : 880, dur: big ? 1.1 : 0.55, g: 0.12, att: 0.08 });
+      T({ type: 'triangle', f0: 495, f1: big ? 1980 : 1320, dur: big ? 1.1 : 0.55, g: 0.05, att: 0.08 });
+      if (big) [1, 1.25, 1.5, 2].forEach(function (p, i) { T({ type: 'sine', f0: 1320 * p, dur: 0.7, g: 0.035, delay: 1.0 + i * 0.07 }); });
+    } else if (kind === 'sparkle') {
+      // Sparks off the tear, or a Gold card's stars: high bell pings.
+      for (var si = 0; si < 9; si++) T({ type: 'sine', f0: r(2400, 5200), dur: 0.12, g: 0.03, delay: si * 0.045 + r(0, 0.02) });
+    } else if (kind === 'type') {
+      // A terminal key: a click with a little body.
+      N({ type: 'bandpass', f0: r(1800, 2600), q: 8, dur: 0.025, g: 0.16 });
+      T({ type: 'square', f0: r(160, 220), dur: 0.02, g: 0.03 });
+    } else if (kind === 'breach') {
+      // The Zero-Day breach: a falling alarm over a low drone.
+      for (var bi = 0; bi < 3; bi++) T({ type: 'sawtooth', f0: 880, f1: 440, dur: 0.22, g: 0.05, delay: bi * 0.26, filt: 'lowpass', ff: 2400 });
+      T({ type: 'sawtooth', f0: 55, f1: 41, dur: 1.4, g: 0.12, filt: 'lowpass', ff: 300, att: 0.1 });
+    } else if (kind === 'glitch') {
+      // Corruption: broken pitch blips and a crunch.
+      for (var gi = 0; gi < 6; gi++) T({ type: 'square', f0: r(150, 3200), dur: 0.03, g: 0.05, delay: gi * 0.05 });
+      N({ type: 'bandpass', f0: 900, f1: 3000, q: 3, dur: 0.25, g: 0.18 });
+    } else if (kind === 'stamp') {
+      // A Prototype's serial plate pressing in: a heavy thunk and a ring.
+      T({ type: 'sine', f0: 140, f1: 45, dur: 0.35, g: 0.4 });
+      N({ type: 'lowpass', f0: 2600, f1: 300, dur: 0.18, g: 0.25 });
+      SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 523 * p, dur: 0.9, g: 0.04 / p, delay: 0.05 }); });
     }
     return out;
   }
@@ -412,6 +453,7 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
 `;
 
 export type SfxKind = "launch" | "impact" | "bolt" | "heal" | "buff" | "debuff" | "lock" | "beam" | "kill" | "block" | "cast" | "ward" | "wardPulse" | "wardBreak";
+export type SfxPackKind = "tear" | "flip" | "rise" | "sparkle" | "type" | "breach" | "glitch" | "stamp";
 export interface SfxVoice {
   k: "tone" | "noise";
   type: string;
@@ -429,8 +471,9 @@ export interface SfxVoice {
 }
 
 const pure = new Function(
-  `${SOUND_FX_PURE_SOURCE}; return { SFX_TIER_GAIN: SFX_TIER_GAIN, SFX_VOICE_CAP: SFX_VOICE_CAP, SFX_REPEAT_GAP_MS: SFX_REPEAT_GAP_MS, SFX_KINDS: SFX_KINDS, SFX_BELL: SFX_BELL, SFX_PREF_KEY: SFX_PREF_KEY, SFX_DEFAULT_VOLUME: SFX_DEFAULT_VOLUME, sfxVoiceOf: sfxVoiceOf, sfxTierGain: sfxTierGain, sfxPan: sfxPan, sfxRecipe: sfxRecipe, sfxClampVolume: sfxClampVolume, sfxPrefParse: sfxPrefParse, sfxPrefSerialize: sfxPrefSerialize };`,
+  `${SOUND_FX_PURE_SOURCE}; return { SFX_PACK_KINDS: SFX_PACK_KINDS, SFX_TIER_GAIN: SFX_TIER_GAIN, SFX_VOICE_CAP: SFX_VOICE_CAP, SFX_REPEAT_GAP_MS: SFX_REPEAT_GAP_MS, SFX_KINDS: SFX_KINDS, SFX_BELL: SFX_BELL, SFX_PREF_KEY: SFX_PREF_KEY, SFX_DEFAULT_VOLUME: SFX_DEFAULT_VOLUME, sfxVoiceOf: sfxVoiceOf, sfxTierGain: sfxTierGain, sfxPan: sfxPan, sfxRecipe: sfxRecipe, sfxClampVolume: sfxClampVolume, sfxPrefParse: sfxPrefParse, sfxPrefSerialize: sfxPrefSerialize };`,
 )() as {
+  SFX_PACK_KINDS: SfxPackKind[];
   SFX_TIER_GAIN: Record<FxTier, number>;
   SFX_VOICE_CAP: number;
   SFX_REPEAT_GAP_MS: number;
@@ -444,7 +487,7 @@ const pure = new Function(
   sfxVoiceOf: (faction: string | undefined) => string;
   sfxTierGain: (tier: FxTier) => number;
   sfxPan: (x: number, width: number) => number;
-  sfxRecipe: (kind: SfxKind, faction: string | undefined, tier: FxTier, rand: () => number, o?: { targetKind?: "unit" | "player"; victim?: string }) => SfxVoice[];
+  sfxRecipe: (kind: SfxKind | SfxPackKind, faction: string | undefined, tier: FxTier, rand: () => number, o?: { targetKind?: "unit" | "player"; victim?: string }) => SfxVoice[];
 };
 
 export interface SfxPref {
@@ -452,4 +495,4 @@ export interface SfxPref {
   volume: number;
 }
 
-export const { SFX_TIER_GAIN, SFX_VOICE_CAP, SFX_REPEAT_GAP_MS, SFX_KINDS, SFX_BELL, SFX_PREF_KEY, SFX_DEFAULT_VOLUME, sfxVoiceOf, sfxTierGain, sfxPan, sfxRecipe, sfxClampVolume, sfxPrefParse, sfxPrefSerialize } = pure;
+export const { SFX_PACK_KINDS, SFX_TIER_GAIN, SFX_VOICE_CAP, SFX_REPEAT_GAP_MS, SFX_KINDS, SFX_BELL, SFX_PREF_KEY, SFX_DEFAULT_VOLUME, sfxVoiceOf, sfxTierGain, sfxPan, sfxRecipe, sfxClampVolume, sfxPrefParse, sfxPrefSerialize } = pure;

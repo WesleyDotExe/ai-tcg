@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Season Zero pack opening</title>
+<style>
+:root {
+  --bg: #05060d; --ink: #e6eeff; --dim: #8ea3c9; --line: #24314f;
+  --cortex: #35c9ff; --aegis: #ff7d24; --swarm: #8bff5c; --null: #d565ff; --neutral: #fff0c2;
+  --gold1: #7a5a12; --gold2: #f6d77a; --gold3: #b8862a; --gold4: #fff1b8;
+  /* The card's width: as big as the phone or the window allows. */
+  --cw: min(74vw, 300px, calc((100dvh - 210px) * 0.714));
+  font-size: 15px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
+body { min-height: 100dvh; display: flex; flex-direction: column; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.crt { position: fixed; inset: 0; pointer-events: none; z-index: 40; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px); mix-blend-mode: overlay; }
+
+.bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: rgba(8,11,22,0.9); position: relative; z-index: 30; flex-wrap: wrap; }
+.brand { font-weight: 800; letter-spacing: 0.08em; font-size: 13px; white-space: nowrap; }
+.brand span { color: var(--dim); font-weight: 600; }
+.picker { display: flex; gap: 6px; overflow-x: auto; flex: 1 1 300px; min-width: 0; scrollbar-width: thin; padding-bottom: 2px; }
+.picker button { flex: none; border: 1px solid var(--line); background: #0d1324; border-radius: 999px; padding: 4px 11px; font-size: 12px; color: var(--dim); }
+.picker button.on { color: var(--ink); border-color: #6a8cff; background: #17204a; }
+.sound-ctl { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.sound-ctl button { border: 1px solid var(--line); background: #0d1324; border-radius: 6px; padding: 4px 9px; }
+.sound-ctl input { width: 70px; }
+
+.stage { position: relative; flex: 1; min-height: calc(100dvh - 120px); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
+  background: radial-gradient(ellipse at 50% 38%, #1d2350 0%, #0b0e24 48%, #05060d 100%); }
+.stage::before { content: ""; position: absolute; inset: -20%; background: radial-gradient(circle at 30% 20%, rgba(122,92,255,0.25), transparent 40%), radial-gradient(circle at 75% 70%, rgba(47,182,255,0.18), transparent 45%); animation: drift 16s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes drift { to { transform: translate(6%, -4%) scale(1.1); } }
+.dim { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity 0.6s; pointer-events: none; z-index: 1; }
+.scene { position: absolute; inset: 0; display: grid; place-items: center; z-index: 2; perspective: 1100px; }
+.sparks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
+.hint { position: absolute; left: 16px; right: 16px; bottom: 18px; text-align: center; color: var(--dim); font-size: 13px; z-index: 5; min-height: 2.6em; }
+.hint .slot { display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: 0.14em; color: #fff; background: rgba(106,140,255,0.25); border: 1px solid rgba(106,140,255,0.6); border-radius: 4px; padding: 1px 7px; margin-bottom: 4px; }
+.hint .slot.bonus { background: rgba(246,215,122,0.22); border-color: var(--gold2); color: var(--gold4); }
+.counter { position: absolute; top: 12px; right: 16px; font-size: 12px; color: var(--dim); z-index: 5; font-variant-numeric: tabular-nums; }
+.skip { position: absolute; top: 10px; left: 16px; z-index: 5; border: 1px solid var(--line); background: rgba(13,19,36,0.8); border-radius: 6px; padding: 3px 9px; font-size: 12px; color: var(--dim); }
+.foot { padding: 8px 16px 12px; font-size: 11px; color: var(--dim); border-top: 1px solid var(--line); background: #070912; }
+.foot b { color: var(--ink); font-weight: 600; }
+
+/* ---------- the pack ---------- */
+.pack { --pw: min(56vw, 230px, calc((100dvh - 230px) * 0.62)); width: var(--pw); height: calc(var(--pw) * 1.6); position: relative; transform-style: preserve-3d; cursor: grab; animation: bob 3.4s ease-in-out infinite; }
+.pack.held { animation: none; }
+.pack:focus { outline: none; }
+.pack:focus-visible { outline: 2px solid #6a8cff; outline-offset: 8px; border-radius: 12px; }
+@keyframes bob { 50% { transform: translateY(-8px) rotateZ(-0.6deg); } }
+.pack .tilt { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.12s; }
+.pack .half { position: absolute; left: 0; right: 0; overflow: hidden; }
+.pack .half.top { top: 0; height: 16%; z-index: 2; }
+.pack .half.body { top: 16%; bottom: 0; }
+.pack .wrap { position: absolute; left: 0; right: 0; height: calc(var(--pw) * 1.6); border-radius: 10px;
+  background: linear-gradient(135deg, #1b2a6b 0%, #3a1f7a 32%, #11163a 55%, #2a1150 78%, #0f2a5e 100%);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08), inset 0 0 40px rgba(0,0,0,0.5); }
+.pack .half.body .wrap { top: calc(var(--pw) * -0.256); }
+.pack .crimp { position: absolute; left: 0; right: 0; height: 12px; background: repeating-linear-gradient(90deg, rgba(255,255,255,0.22) 0 4px, rgba(0,0,0,0.25) 4px 8px); }
+.pack .crimp.t { top: 0; } .pack .crimp.b { bottom: 0; }
+.pack .logo { position: absolute; top: 24%; left: 0; right: 0; text-align: center; font-weight: 900; letter-spacing: 0.12em; font-size: calc(var(--pw) * 0.15);
+  background: linear-gradient(180deg, #fff 0%, #bfe3ff 45%, #6a8cff 55%, #e6d2ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 6px rgba(80,120,255,0.6)); }
+.pack .emb { position: absolute; top: 42%; left: 50%; width: 42%; aspect-ratio: 1; transform: translateX(-50%); color: #bfe3ff; filter: drop-shadow(0 0 10px rgba(120,170,255,0.7)); }
+.pack .emb svg { width: 100%; height: 100%; }
+.pack .set { position: absolute; top: 72%; left: 0; right: 0; text-align: center; font-weight: 800; letter-spacing: 0.3em; font-size: calc(var(--pw) * 0.06); color: #dfe8ff; }
+.pack .meta { position: absolute; top: 79%; left: 0; right: 0; text-align: center; font-size: calc(var(--pw) * 0.05); color: #9fb1dd; letter-spacing: 0.08em; }
+.pack .cutline { position: absolute; left: 6%; right: 6%; top: 16%; height: 0; border-top: 1px dashed rgba(255,255,255,0.35); z-index: 3; }
+.pack .cutline i { position: absolute; left: 0; top: -2px; height: 3px; width: 0; background: linear-gradient(90deg, #fff, #bfe3ff); box-shadow: 0 0 10px #bfe3ff, 0 0 22px #6a8cff; border-radius: 2px; }
+.pack .grip { position: absolute; left: 0; right: 0; top: 0; height: 26%; z-index: 4; }
+.pack .fxgl { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; mix-blend-mode: screen; pointer-events: none; z-index: 2; }
+.pack.fx-css-pack .half.body::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%); background-size: 250% 100%; animation: sheen 3.6s linear infinite; mix-blend-mode: screen; }
+.pack.torn .half.top { animation: stripoff 0.65s cubic-bezier(.3,.7,.4,1) forwards; }
+@keyframes stripoff { to { transform: translate(28%, -140%) rotate(16deg); opacity: 0; } }
+.pack.torn .half.body { animation: packdown 0.7s 0.35s cubic-bezier(.5,0,.8,.4) forwards; }
+@keyframes packdown { to { transform: translateY(70%); opacity: 0; } }
+.pack.torn { animation: none; cursor: default; }
+.finger { position: absolute; top: 9%; left: 8%; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.75); box-shadow: 0 0 14px #fff; z-index: 5; pointer-events: none; animation: swipehint 2.2s ease-in-out infinite; }
+@keyframes swipehint { 0% { transform: translateX(0); opacity: 0; } 15% { opacity: 1; } 70% { transform: translateX(calc(var(--pw) * 0.75)); opacity: 1; } 100% { transform: translateX(calc(var(--pw) * 0.75)); opacity: 0; } }
+.banner { position: absolute; left: 50%; top: 18%; transform: translateX(-50%); z-index: 7; padding: 8px 18px; border-radius: 8px; font-weight: 900; letter-spacing: 0.16em; font-size: 20px; white-space: nowrap;
+  color: #2b1a00; background: linear-gradient(110deg, var(--gold1), var(--gold2) 30%, var(--gold4) 50%, var(--gold2) 70%, var(--gold1)); background-size: 250% 100%; animation: sheen 1.6s linear infinite, pop 0.5s cubic-bezier(.2,1.6,.4,1); box-shadow: 0 0 30px rgba(246,215,122,0.6); }
+.banner small { display: block; font-size: 11px; letter-spacing: 0.08em; text-align: center; font-weight: 700; }
+@keyframes pop { from { transform: translateX(-50%) scale(0.3); opacity: 0; } }
+@keyframes sheen { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+
+/* ---------- the stack ---------- */
+.stack { position: relative; width: var(--cw); height: calc(var(--cw) * 1.4); }
+.cslot { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.3s cubic-bezier(.2,.8,.3,1), opacity 0.3s; will-change: transform; }
+.cslot.rise { animation: rise 0.7s cubic-bezier(.2,.9,.3,1) both; }
+@keyframes rise { from { transform: translateY(65%) scale(0.86); opacity: 0; } }
+.flipper { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.42s cubic-bezier(.3,.6,.3,1); }
+.cslot.down .flipper { transform: rotateY(180deg); }
+.front { position: absolute; inset: 0; transform-style: preserve-3d; }
+.face, .back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: calc(var(--cw) * 0.05); }
+.back { transform: rotateY(180deg); overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #2c3a8a 0%, #141a44 45%, #090c22 100%); box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) #1c2350, inset 0 0 0 calc(var(--cw) * 0.03) rgba(255,255,255,0.15); }
+.back::before { content: ""; position: absolute; inset: 8%; border-radius: 6px; background: repeating-conic-gradient(from 0deg, rgba(120,160,255,0.09) 0 15deg, transparent 15deg 30deg); border: 1px solid rgba(160,190,255,0.25); }
+.back .bl { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 900; letter-spacing: 0.12em; font-size: calc(var(--cw) * 0.12); color: #cfe0ff; text-shadow: 0 0 16px #6a8cff; }
+.back .bs { position: absolute; left: 50%; top: 64%; width: 18%; transform: translateX(-50%); color: #9fb6ff; }
+.cslot.down.glow .back { animation: glow 1.4s ease-in-out infinite; }
+@keyframes glow { 50% { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) #1c2350, 0 0 26px 6px rgba(150,190,255,0.75), 0 0 60px 12px rgba(122,92,255,0.45); } }
+.cslot.dragging { transition: none; }
+.cslot.gone-l { transform: translateX(-140%) rotate(-18deg) !important; opacity: 0; }
+.cslot.gone-r { transform: translateX(140%) rotate(18deg) !important; opacity: 0; }
+
+/* ---------- the card face (owner-approved layout, card-text-layout.html) ---------- */
+.face { overflow: hidden; container-type: inline-size; background: linear-gradient(160deg, #343b4d, #1e2330);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.55), inset 0 0 0 2px rgba(255,255,255,0.07), inset 0 0 0 4px var(--fc, #3a4152); }
+.faction-Cortex { --fc: var(--cortex); } .faction-Aegis { --fc: var(--aegis); } .faction-Swarm { --fc: var(--swarm); } .faction-Null { --fc: var(--null); } .faction-Neutral { --fc: var(--neutral); }
+.face .art { position: absolute; left: 4.5%; right: 4.5%; top: 13%; height: 41%; border-radius: 6px; overflow: hidden; transition: all 0.7s cubic-bezier(.3,.7,.2,1); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); }
+.face .art svg { width: 100%; height: 100%; display: block; }
+.face .head { position: absolute; left: 4.5%; right: 4.5%; top: 2.6%; height: 9%; display: flex; align-items: center; justify-content: space-between; gap: 6px; z-index: 2; }
+.face .name { font-weight: 800; font-size: 6.4cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+.face .cost { flex: none; width: 10.5cqw; height: 10.5cqw; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 5.6cqw; color: #0b1a2a; background: radial-gradient(circle at 35% 30%, #fff, #9fd8ff 40%, #2b6fa8); box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
+.face .type { position: absolute; left: 4.5%; right: 4.5%; top: 55.5%; height: 7%; display: flex; justify-content: space-between; align-items: center; font-size: 4.4cqw; padding: 0 2.5cqw; background: rgba(0,0,0,0.32); border-radius: 4px; z-index: 2; }
+.face .rar { color: var(--fc); font-weight: 700; }
+.face .text { position: absolute; left: 4.5%; right: 4.5%; top: 64%; bottom: 13%; padding: 2.4cqw 3cqw; font-size: 4.3cqw; line-height: 1.32; border-radius: 4px; background: rgba(0,0,0,0.26); color: #dfe5f1; overflow: hidden; z-index: 2; }
+.face .text p { margin: 0 0 1.4cqw; }
+.face .text .flav { color: #9aa6bf; font-style: italic; }
+.face .stats { position: absolute; right: 5.5%; bottom: 13.8%; display: flex; gap: 2cqw; z-index: 3; }
+.face .stats span { min-width: 11cqw; height: 9cqw; padding: 0 2cqw; border-radius: 5px; display: grid; place-items: center; font-weight: 900; font-size: 5.2cqw; background: #0d0f15; border: 1px solid rgba(255,255,255,0.18); }
+.face .stats .atk { color: #ffd0a0; } .face .stats .hp { color: #b4ffcf; }
+.face .foot { position: absolute; left: 5%; right: 5%; bottom: 3.6%; height: 7%; display: flex; justify-content: space-between; align-items: center; font-size: 4cqw; color: #9aa6bf; z-index: 3; }
+.face .setno { display: flex; align-items: center; gap: 1.6cqw; font-variant-numeric: tabular-nums; font-weight: 700; color: #cfd5e2; }
+.face .setno svg { width: 5.4cqw; height: 5.4cqw; }
+.face .mark { position: absolute; left: 4.5%; top: 14.2%; z-index: 3; font-size: 3.4cqw; font-weight: 900; letter-spacing: 0.14em; padding: 0.6cqw 2cqw; border-radius: 3px; background: rgba(0,0,0,0.55); color: #fff; }
+.face .fxgl { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; border-radius: inherit; }
+.face .fxgl-foil { mix-blend-mode: color-dodge; }
+.face .fxgl-gold { mix-blend-mode: screen; }
+.face .fxgl-glitch { mix-blend-mode: screen; }
+.face .fxgl-zeroDay { mix-blend-mode: screen; }
+/* Full Art and the illustrations: the art fills the card, the text sits on it. */
+.face.full .art { left: 0; right: 0; top: 0; height: 100%; border-radius: 0; }
+.face.full .type, .face.full .text { background: rgba(5,8,18,0.62); backdrop-filter: blur(2px); }
+.face.full .head { background: linear-gradient(180deg, rgba(0,0,0,0.55), transparent); border-radius: 4px; padding: 0 1.6cqw; }
+/* Gold: the whole frame is gold; its text reads dark-on-gold where it sits on the frame. */
+.face.goldframe { background: linear-gradient(115deg, var(--gold1), var(--gold2) 22%, var(--gold3) 40%, var(--gold4) 50%, var(--gold3) 60%, var(--gold2) 78%, var(--gold1)); background-size: 250% 100%; animation: sheen 4s linear infinite; box-shadow: 0 14px 40px rgba(0,0,0,0.55), 0 0 30px rgba(246,215,122,0.45), inset 0 0 0 2px rgba(255,241,184,0.7); }
+.face.goldframe .art { filter: sepia(0.55) saturate(1.5) hue-rotate(-12deg) brightness(1.08); }
+.face.goldframe .name { color: #2b1a00; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
+.face.goldframe .foot, .face.goldframe .setno { color: #2b1a00; font-weight: 800; text-shadow: 0 1px 0 rgba(255,241,184,0.6); }
+.face.goldframe .text, .face.goldframe .type { background: rgba(40,24,0,0.55); color: #fff3cf; }
+.face.goldframe .rar { color: #fff3cf; }
+/* Glitch: the card's own art and frame, palette rotated to a corrupted one. */
+.face.corrupt .art { filter: hue-rotate(150deg) saturate(1.8) contrast(1.35); }
+.face.corrupt { box-shadow: 0 14px 40px rgba(0,0,0,0.55), inset 0 0 0 2px rgba(255,255,255,0.07), inset 0 0 0 4px #ff2bd6; }
+.face.corrupt .name { text-shadow: 1.2cqw 0 rgba(255,0,90,0.7), -1.2cqw 0 rgba(0,240,255,0.7); }
+.ghost { position: absolute; inset: 0; pointer-events: none; z-index: 6; mix-blend-mode: screen; opacity: 0.9; }
+.ghost.r { filter: url(#only-r); } .ghost.c { filter: url(#only-gb); }
+.ghost > .face { box-shadow: none; }
+/* Prototype: the serial on a gold-foil plate, PROTOTYPE · S0 in gold foil. */
+.face .plate { position: absolute; left: 5%; bottom: 11.5%; z-index: 4; padding: 1cqw 3cqw; border-radius: 4px; font-weight: 900; font-size: 5.4cqw; letter-spacing: 0.06em; color: #3a2604;
+  background: linear-gradient(110deg, var(--gold1), var(--gold2) 22%, var(--gold3) 40%, var(--gold4) 50%, var(--gold3) 60%, var(--gold2) 78%, var(--gold1)); background-size: 250% 100%; animation: sheen 3.2s linear infinite;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.6); text-shadow: 0 1px 0 rgba(255,255,255,0.45); }
+.face .foiltext { background: linear-gradient(110deg, var(--gold1), var(--gold2) 22%, var(--gold3) 40%, var(--gold4) 50%, var(--gold3) 60%, var(--gold2) 78%, var(--gold1)); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: sheen 3.2s linear infinite; font-weight: 900; }
+.face.proto .text { bottom: 21%; }
+.face .plate.pending { opacity: 0; transform: scale(2.4) rotate(-8deg); }
+.face .plate.stamp { animation: stamp 0.32s cubic-bezier(.5,0,.8,1.4) both; }
+@keyframes stamp { from { opacity: 0; transform: scale(2.4) rotate(-8deg); } }
+/* Zero-Day: the card moves, and reaches past its frame. */
+.cslot.reach::before { content: ""; position: absolute; inset: -9%; border-radius: 16px; pointer-events: none; z-index: -1;
+  background: conic-gradient(from var(--zda, 0deg), rgba(255,30,60,0), rgba(255,30,60,0.75), rgba(60,255,140,0.6), rgba(255,30,60,0)); filter: blur(14px); animation: zdspin 3s linear infinite; }
+@property --zda { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes zdspin { to { --zda: 360deg; } }
+.face.zdface { box-shadow: 0 0 0 2px #ff1e3c, 0 0 34px rgba(255,30,60,0.7), inset 0 0 0 4px #35ff8a; }
+.face.zdface .name { color: #8dffb8; font-family: ui-monospace, Menlo, Consolas, monospace; }
+.face.zdface .art { animation: zdart 4s steps(40) infinite; }
+@keyframes zdart { 50% { filter: hue-rotate(40deg) brightness(1.2); } }
+/* The CSS stand-ins when a shader can't run. */
+.face.fx-css-foil::after, .face.fx-css-gold::after, .face.fx-css-glitch::after, .face.fx-css-zeroDay::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; border-radius: inherit; }
+.face.fx-css-foil::after { background: linear-gradient(115deg, transparent 20%, rgba(255,120,200,0.35) 35%, rgba(120,220,255,0.35) 45%, rgba(255,255,160,0.35) 55%, transparent 70%); background-size: 250% 100%; animation: sheen 3s linear infinite; mix-blend-mode: color-dodge; }
+.face.fx-css-gold::after { background: linear-gradient(115deg, transparent 30%, rgba(255,240,190,0.55) 50%, transparent 70%); background-size: 250% 100%; animation: sheen 2.6s linear infinite; mix-blend-mode: screen; }
+.face.fx-css-glitch::after { background: repeating-linear-gradient(0deg, rgba(0,255,220,0.12) 0 1px, transparent 1px 3px); }
+.face.fx-css-zeroDay::after { background: repeating-linear-gradient(90deg, rgba(60,255,140,0.18) 0 2px, transparent 2px 9px); animation: zdart 2s steps(10) infinite; }
+
+/* The secret number callout. */
+.callout { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 6px 14px; border-radius: 10px; background: rgba(10,6,24,0.72); z-index: 8; text-align: center; pointer-events: none; animation: callin 0.6s cubic-bezier(.2,1.4,.4,1) both; }
+.callout b { display: block; font-size: 11px; letter-spacing: 0.32em; color: #ffd6f6; }
+.callout span { display: block; font-weight: 900; font-size: 34px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; background: linear-gradient(180deg, #fff, #ffb3ec 60%, #b07cff); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 12px rgba(255,120,220,0.7)); }
+.callout.out { animation: callout 0.5s ease-in forwards; }
+@keyframes callin { from { opacity: 0; transform: translateX(-50%) scale(0.4); } }
+@keyframes callout { to { opacity: 0; transform: translateX(-50%) translateY(30px) scale(0.6); } }
+.wash { position: absolute; inset: 0; pointer-events: none; z-index: 4; background: radial-gradient(circle at 50% 50%, var(--c, #fff) 0%, transparent 60%); animation: wash 0.9s ease-out forwards; }
+@keyframes wash { from { opacity: 0.85; } to { opacity: 0; transform: scale(1.4); } }
+.shake { animation: shake 0.42s cubic-bezier(.36,.07,.19,.97); }
+@keyframes shake { 20%, 60% { transform: translate(-6px, 3px); } 40%, 80% { transform: translate(6px, -3px); } }
+
+/* ---------- the Zero-Day takeover ---------- */
+.zd { position: fixed; inset: 0; z-index: 50; background: #000; opacity: 0; transition: opacity 0.45s; }
+.zd.on { opacity: 1; }
+.zd.fade { opacity: 0; transition: opacity 0.7s; pointer-events: none; }
+.zd .fxgl { position: absolute; inset: 0; width: 100%; height: 100%; }
+.zd-term { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100vw - 32px)); font: 600 15px/1.5 ui-monospace, Menlo, Consolas, monospace; color: #35ff8a; text-shadow: 0 0 8px rgba(53,255,138,0.8); z-index: 2; white-space: pre-wrap; }
+.zd-term .big { font-size: clamp(22px, 7vw, 38px); font-weight: 900; color: #ff2b4a; text-shadow: 0 0 16px rgba(255,43,74,0.9), 2px 0 #35ff8a; display: block; margin-bottom: 10px; letter-spacing: 0.06em; }
+.zd-term .cur { display: inline-block; width: 0.6em; background: #35ff8a; animation: blink 0.8s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.zd.breach .zd-term { animation: shake 0.42s 3; }
+
+/* ---------- the summary ---------- */
+.summary { width: min(980px, calc(100vw - 32px)); max-height: calc(100% - 20px); overflow-y: auto; padding: 14px 0 70px; text-align: center; touch-action: pan-y; }
+.summary h2 { margin: 0 0 4px; font-size: 18px; letter-spacing: 0.06em; }
+.summary .sub { color: var(--dim); margin: 0 0 14px; font-size: 13px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 42vw), 1fr)); gap: 14px; justify-items: center; }
+.tile { position: relative; width: 100%; max-width: 180px; animation: rise 0.5s cubic-bezier(.2,.9,.3,1) both; animation-delay: calc(var(--i) * 70ms); }
+.tile .mini { position: relative; width: 100%; aspect-ratio: 5 / 7; --cw: 100%; }
+.tile .mini .face { border-radius: 8px; }
+.tile .new { position: absolute; top: -7px; right: -7px; z-index: 9; background: #ff3d7f; color: #fff; font-weight: 900; font-size: 10px; letter-spacing: 0.1em; padding: 2px 6px; border-radius: 4px; box-shadow: 0 0 10px rgba(255,61,127,0.7); }
+.tile .cap { margin-top: 5px; font-size: 11px; color: var(--dim); line-height: 1.3; }
+.tile .fin { display: inline-block; font-weight: 800; letter-spacing: 0.08em; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #1a2342; color: #cfe0ff; margin-bottom: 2px; }
+.tile .fin.hit { background: linear-gradient(110deg, #7a5cff, #ff5cc8); color: #fff; }
+.points { margin: 16px 0 6px; font-size: 14px; }
+.points b { color: var(--gold2); }
+.btns { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+.btns button { border: 1px solid #6a8cff; background: #17204a; border-radius: 8px; padding: 9px 18px; font-weight: 700; }
+.btns button.pri { background: linear-gradient(135deg, #3d7bff, #7a5cff); border-color: transparent; }
+.shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 14px; width: min(760px, calc(100vw - 32px)); }
+.shelf button { border: 1px solid var(--line); background: rgba(13,19,36,0.7); border-radius: 10px; padding: 10px 6px; font-size: 12px; color: var(--ink); }
+.shelf .mp { width: 54px; height: 86px; margin: 0 auto 6px; border-radius: 5px; background: linear-gradient(135deg, #1b2a6b, #3a1f7a 40%, #11163a 60%, #0f2a5e); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); }
+@media (prefers-reduced-motion: reduce) {
+  .pack, .stage::before, .back, .cslot.reach::before, .face.zdface .art { animation: none !important; }
+}
+@media (max-width: 520px) {
+  .brand span { display: none; }
+  .banner { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="setsym" viewBox="0 0 16 16"><path d="M8 1 14 4.5v7L8 15 2 11.5v-7z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="8" r="2.3" fill="currentColor"/></symbol>
+    <filter id="only-r" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"/></filter>
+    <filter id="only-gb" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/></filter>
+  </defs>
+</svg>
+<div class="crt" aria-hidden="true"></div>
+<header class="bar">
+  <div class="brand">AI·TCG <span>// PACK OPENING</span></div>
+  <nav class="picker" id="picker" aria-label="Choose a pack"></nav>
+  <span class="sound-ctl" data-audio-ctl>
+    <button id="btn-sound" aria-pressed="true" title="Sound is on. Click to mute.">Sound on</button>
+    <input type="range" id="sound-vol" min="0" max="100" step="1" value="80" aria-label="Effects volume" title="Effects volume">
+  </span>
+</header>
+<main class="stage" id="stage">
+  <div class="dim" id="dim"></div>
+  <div class="scene" id="scene"></div>
+  <canvas class="sparks" id="sparks" aria-hidden="true"></canvas>
+  <div class="hint" id="hint" aria-live="polite"></div>
+  <div class="counter" id="counter"></div>
+  <button class="skip" id="skip" hidden>Skip to summary</button>
+</main>
+<div class="zd" id="zd" hidden><div class="zd-term" id="zd-term"></div></div>
+<p class="sr" id="announce" aria-live="assertive"></p>
+<footer class="foot" id="foot"></footer>
+<script type="application/json" id="pack-data">{"title":"Season Zero pack opening","packs":[{"label":"No hit","reveal":{"packId":"c9379dd6-7927-43d8-82c0-a308ebd35156","setCode":"S0","oddsVersion":"S0-odds-2","seed":2,"jackpot":false,"sparks":false,"fullReveal":false,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"cc5befbd-334f-4de4-bea4-adb71fb184b4","cardId":"SW-012","face":{"name":"Chitin Plating","type":"Tool","faction":"Swarm","rarity":"Common","cost":1,"attack":null,"health":null,"text":["+0/+3"],"flavor":"Grown, not built. Just as hard to get through.","visualSeed":104,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"028/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"13f32e2c-d0e3-42eb-a119-0bd559f3bb51","cardId":"SW-002","face":{"name":"Broodcaller","type":"Unit","faction":"Swarm","rarity":"Common","cost":3,"attack":3,"health":3,"text":["If you control 3 or more units, draw a card."],"flavor":"Calls the others in once the numbers favour it.","visualSeed":135,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"026/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"7a19a785-372b-40ad-8099-2a4d208260b8","cardId":"AG-018","face":{"name":"Breach Charge","type":"Command","faction":"Aegis","rarity":"Uncommon","cost":2,"attack":null,"health":null,"text":["Destroy target enemy directive. Instant speed."],"flavor":"Not aimed at anything that bleeds. Just the wall it's bolted to.","visualSeed":184,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"052/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"e795985f-7b1e-4c84-a2bb-348aefc592ed","cardId":"AG-016","face":{"name":"Tariff Field","type":"Directive","faction":"Aegis","rarity":"Rare","cost":3,"attack":null,"health":null,"text":["Enemy cards cost 1 more to play."],"flavor":"Every packet that crosses the line pays a toll first.","visualSeed":182,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"065/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"6c1d9417-a5ea-4227-bcb5-1e6d4ccf54af","cardId":"NL-016","face":{"name":"Zombie Process","type":"Unit","faction":"Null","rarity":"Common","cost":2,"attack":2,"health":2,"text":["When this dies, create a 1/1 Orphaned Thread token."],"flavor":"Its parent exited long ago. Nobody reaped it, so it lingers in the table, still holding a slot.","visualSeed":26,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"shine","collectorNumber":"072/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null}]}},{"label":"Foil","reveal":{"packId":"da759cce-ed45-4ba3-8d56-6994e2b4a928","setCode":"S0","oddsVersion":"S0-odds-2","seed":1,"jackpot":false,"sparks":false,"fullReveal":false,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"06676722-1745-4ee6-a71a-9c3a221ebf5a","cardId":"CX-009","face":{"name":"Cortex Engineer","type":"Unit","faction":"Cortex","rarity":"Common","cost":2,"attack":1,"health":3,"text":["Pay 1 energy: restore 2 health to this unit. Instant speed."],"flavor":"Patches itself between shifts.","visualSeed":353,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"001/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"84645580-3cea-419c-9929-7733c7a37c7b","cardId":"AG-019","face":{"name":"Bulwark Chassis","type":"Unit","faction":"Aegis","rarity":"Common","cost":2,"attack":1,"health":3,"text":[],"flavor":"Nothing about it moves fast. Nothing about it falls over, either.","visualSeed":185,"visualPattern":1},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"048/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"f6c50166-ecae-447b-bfe0-fedf358c76e6","cardId":"NT-006","face":{"name":"Power Reserve","type":"Directive","faction":"Neutral","rarity":"Uncommon","cost":2,"attack":null,"health":null,"text":["At the end of your turn, gain 1 energy."],"flavor":"A capacitor bank nobody remembers installing.","visualSeed":169,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"095/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"87672915-53a2-401a-add1-13ae61afaefe","cardId":"CX-013","face":{"name":"Retaliation Node","type":"Unit","faction":"Cortex","rarity":"Rare","cost":2,"attack":1,"health":3,"text":["Whenever this unit is damaged, deal 1 damage to all enemy units."],"flavor":"Strike it and the whole grid strikes back.","visualSeed":18,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"023/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"17dc4f88-c1f9-4a01-a511-da7337da03cd","cardId":"SW-009","face":{"name":"Reflex Spike","type":"Command","faction":"Swarm","rarity":"Uncommon","cost":1,"attack":null,"health":null,"text":["Give target friendly unit +0/+3 this turn. Instant speed."],"flavor":"The swarm doesn't wait for its turn to brace for impact.","visualSeed":128,"visualPattern":0},"finish":"foil","reveal":"foil","slot":"shine","collectorNumber":"038/096","hit":false,"faceDown":true,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null}]}},{"label":"Full Art","reveal":{"packId":"c984aa2a-128a-4a5e-854f-cd7d1b124111","setCode":"S0","oddsVersion":"S0-odds-2","seed":8,"jackpot":false,"sparks":true,"fullReveal":false,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"4d8f0131-3f8b-4766-a09e-4d603625fbb5","cardId":"NL-003","face":{"name":"Corruption Patch","type":"Tool","faction":"Null","rarity":"Common","cost":1,"attack":null,"health":null,"text":["+1/+1"],"flavor":"It doesn't fix the bug. It just makes the bug hit harder.","visualSeed":60,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"067/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"130541f7-0424-43ea-b0f3-17b43c8515ae","cardId":"SW-018","face":{"name":"Carapace Grunt","type":"Unit","faction":"Swarm","rarity":"Common","cost":2,"attack":2,"health":2,"text":[],"flavor":"Doesn't dig in. Doesn't need to — there's another one behind it.","visualSeed":98,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"027/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"53ee3cd2-b20c-4665-90ac-abce0534feff","cardId":"AG-020","face":{"name":"Reinforced Bastion","type":"Unit","faction":"Aegis","rarity":"Uncommon","cost":3,"attack":2,"health":4,"text":["Guard"],"flavor":"It doesn't ask to be hit first. It just always is.","visualSeed":207,"visualPattern":1},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"058/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"c879010a-1ee8-4c96-a283-887c89972842","cardId":"AG-013","face":{"name":"Aegis Warden","type":"Unit","faction":"Aegis","rarity":"Rare","cost":5,"attack":5,"health":7,"text":["When this evolves in, restore it to full health and it gains Barrier."],"flavor":"Every scar it kept becomes a weld line. Nothing gets through twice.","visualSeed":179,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"061/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"d0fc829b-57ca-47bc-8d0a-2880fba3123d","cardId":"AG-007","face":{"name":"Aegis Sentinel","type":"Unit","faction":"Aegis","rarity":"Uncommon","cost":3,"attack":3,"health":4,"text":["When this evolves in, recover 1 energy."],"flavor":"The plating thickens. So does the resolve.","visualSeed":152,"visualPattern":0},"finish":"fullArt","reveal":"fullArt","slot":"shine","collectorNumber":"051/096","hit":true,"faceDown":true,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null}]}},{"label":"Alt Art","reveal":{"packId":"707b6cc5-b360-4783-9b41-92419ed30dcd","setCode":"S0","oddsVersion":"S0-odds-2","seed":81,"jackpot":false,"sparks":true,"fullReveal":false,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"330c018a-93d4-4ebc-9083-c97a1bf48598","cardId":"SW-018","face":{"name":"Carapace Grunt","type":"Unit","faction":"Swarm","rarity":"Common","cost":2,"attack":2,"health":2,"text":[],"flavor":"Doesn't dig in. Doesn't need to — there's another one behind it.","visualSeed":98,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"027/096","hit":false,"faceDown":false,"isNew":false,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"a8fde544-147b-45ac-b3a3-8cc4bfaeec23","cardId":"SW-015","face":{"name":"Colony Broodling","type":"Unit","faction":"Swarm","rarity":"Common","cost":1,"attack":1,"health":1,"text":["When this dies, if you control 2 or more other units, summon a 1/1 Swarm Larva."],"flavor":"Killing one changes nothing the mass hasn't already budgeted for.","visualSeed":101,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"029/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"92f751f8-2fac-41ed-9335-907fa83273b4","cardId":"AG-009","face":{"name":"Failover Custodian","type":"Unit","faction":"Aegis","rarity":"Uncommon","cost":2,"attack":1,"health":3,"text":["Whenever this unit is damaged, restore 1 health to it."],"flavor":"Every hit is just a diagnostic it failed and then patched.","visualSeed":154,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"053/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"3fd6d353-1d2c-4b50-8272-714b2e8c4c42","cardId":"CX-024","face":{"name":"Quorum Arbiter","type":"Unit","faction":"Cortex","rarity":"Mythic","cost":5,"attack":3,"health":6,"text":["This unit's attack equals 1 plus the number of enemy units in play."],"flavor":"It waits until everyone has spoken. Then it answers all of them.","visualSeed":50,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"024/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"51c8d4f6-6c8a-4bd2-b49f-8faaacee2a44","cardId":"CX-024","face":{"name":"Quorum Arbiter","type":"Unit","faction":"Cortex","rarity":"Mythic","cost":5,"attack":3,"health":6,"text":["This unit's attack equals 1 plus the number of enemy units in play."],"flavor":"It waits until everyone has spoken. Then it answers all of them.","visualSeed":50,"visualPattern":2},"finish":"altArt","reveal":"altArt","slot":"shine","collectorNumber":"024/096","hit":true,"faceDown":true,"isNew":true,"ownedAfter":2,"prototype":null,"secret":null}]}},{"label":"Glitch","reveal":{"packId":"4aa42307-7e4e-4c3a-8a7f-4a4834cbab43","setCode":"S0","oddsVersion":"S0-odds-2","seed":15,"jackpot":false,"sparks":true,"fullReveal":false,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"db368e36-bd40-4d87-a99f-d3484a86f973","cardId":"SW-001","face":{"name":"Swarm Larva","type":"Unit","faction":"Swarm","rarity":"Common","cost":1,"attack":1,"health":1,"text":[],"flavor":"One of ten thousand. Ten thousand more where it came from.","visualSeed":136,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"030/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"07cf99fa-8baa-4725-857b-618895f19f4b","cardId":"SW-001","face":{"name":"Swarm Larva","type":"Unit","faction":"Swarm","rarity":"Common","cost":1,"attack":1,"health":1,"text":[],"flavor":"One of ten thousand. Ten thousand more where it came from.","visualSeed":136,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"030/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"c37b60af-ecab-4731-94d4-d53bd955033e","cardId":"SW-009","face":{"name":"Reflex Spike","type":"Command","faction":"Swarm","rarity":"Uncommon","cost":1,"attack":null,"health":null,"text":["Give target friendly unit +0/+3 this turn. Instant speed."],"flavor":"The swarm doesn't wait for its turn to brace for impact.","visualSeed":128,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"038/096","hit":false,"faceDown":false,"isNew":false,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"71dc3325-a437-408d-b5de-cb48e124412e","cardId":"AG-016","face":{"name":"Tariff Field","type":"Directive","faction":"Aegis","rarity":"Rare","cost":3,"attack":null,"health":null,"text":["Enemy cards cost 1 more to play."],"flavor":"Every packet that crosses the line pays a toll first.","visualSeed":182,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"065/096","hit":false,"faceDown":false,"isNew":false,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"230b061c-f015-4c70-8ee2-e996723b849d","cardId":"SW-005","face":{"name":"Corrosive Spitter","type":"Unit","faction":"Swarm","rarity":"Uncommon","cost":2,"attack":2,"health":1,"text":["Whenever this attacks, stun a random enemy unit for 1 turn."],"flavor":"Aims badly. Hits something anyway.","visualSeed":132,"visualPattern":0},"finish":"glitch","reveal":"glitch","slot":"shine","collectorNumber":"034/096","hit":true,"faceDown":true,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null}]}},{"label":"Secret","reveal":{"packId":"2bd59697-2d10-4a87-bacb-7857d715c70d","setCode":"S0","oddsVersion":"S0-odds-2","seed":26,"jackpot":false,"sparks":true,"fullReveal":true,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"b59616eb-ed51-4b59-81d2-7e92c00d81d5","cardId":"NL-002","face":{"name":"Stray Fragment","type":"Unit","faction":"Null","rarity":"Common","cost":1,"attack":1,"health":2,"text":["Guard"],"flavor":"Leftover from a deallocation that never quite finished.","visualSeed":61,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"071/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"fac86945-242b-4541-b778-d56083200493","cardId":"AG-002","face":{"name":"Barrier Drone","type":"Unit","faction":"Aegis","rarity":"Common","cost":1,"attack":0,"health":3,"text":["Guard"],"flavor":"It has one job. It stands in front of things.","visualSeed":147,"visualPattern":1},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"047/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"f0569a41-8015-49e2-b3cc-608a1e972ac5","cardId":"CX-006","face":{"name":"Backup Protocol","type":"Command","faction":"Cortex","rarity":"Uncommon","cost":2,"attack":null,"health":null,"text":["Restore 3 health. If you are at 10 health or less, draw a card."],"flavor":"Restore from the last known good state.","visualSeed":350,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"008/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"ce7b3e38-cc07-42bf-960e-c01287fea8fa","cardId":"AG-011","face":{"name":"Latent Ward","type":"Unit","faction":"Aegis","rarity":"Rare","cost":3,"attack":1,"health":5,"text":["Telegraph 2","When this arms, your units gain Barrier."],"flavor":"Sits dark on the grid until the moment it lights every board at once.","visualSeed":177,"visualPattern":1},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"063/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"7e840eae-22bb-4db1-90b7-662cfabf51ce","cardId":"NL-011","face":{"name":"Entropy Harvester","type":"Unit","faction":"Null","rarity":"Rare","cost":3,"attack":1,"health":4,"text":["This unit's attack equals 1 plus the number of cards in the enemy graveyard."],"flavor":"It doesn't grow on its own losses. It grows on everyone else's.","visualSeed":31,"visualPattern":3},"finish":"secret","reveal":"secret","slot":"shine","collectorNumber":"217/096","hit":true,"faceDown":true,"isNew":true,"ownedAfter":1,"prototype":null,"secret":{"code":"S0-SR25","kind":"illustration","art":"placeholder:secret/S0-SR25","animated":false}}]}},{"label":"Gold","reveal":{"packId":"4d008338-f02f-430e-af7f-4fffad026403","setCode":"S0","oddsVersion":"S0-odds-2","seed":65,"jackpot":false,"sparks":true,"fullReveal":true,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"eb56086c-ceb4-4e7b-996a-60f6cdc3e6b3","cardId":"SW-015","face":{"name":"Colony Broodling","type":"Unit","faction":"Swarm","rarity":"Common","cost":1,"attack":1,"health":1,"text":["When this dies, if you control 2 or more other units, summon a 1/1 Swarm Larva."],"flavor":"Killing one changes nothing the mass hasn't already budgeted for.","visualSeed":101,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"029/096","hit":false,"faceDown":false,"isNew":false,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"d24fd1a7-94f2-4a94-9bd9-2140f478f292","cardId":"AG-003","face":{"name":"Plating Module","type":"Tool","faction":"Aegis","rarity":"Common","cost":1,"attack":null,"health":null,"text":["+0/+3"],"flavor":"Bolt it on. It was never going to be pretty anyway.","visualSeed":148,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"050/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"acf135b2-d793-453b-9d5e-fbaf41ac50d0","cardId":"AG-008","face":{"name":"Static Ward Beacon","type":"Directive","faction":"Aegis","rarity":"Uncommon","cost":3,"attack":null,"health":null,"text":["Your units get +0/+1."],"flavor":"A steady chrome hum, and the whole line stands a little straighter.","visualSeed":153,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"060/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"03c556a3-21cd-4e04-8016-fde928b5174e","cardId":"CX-003","face":{"name":"Recursive Construct","type":"Unit","faction":"Cortex","rarity":"Rare","cost":2,"attack":0,"health":4,"text":["This unit's attack equals the number of units you control."],"flavor":"It counts itself, then counts what it counted.","visualSeed":347,"visualPattern":1},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"022/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"b4a5cf15-04a1-422a-81a1-29ba203eb59a","cardId":"AG-014","face":{"name":"Prime Aegis","type":"Unit","faction":"Aegis","rarity":"Mythic","cost":6,"attack":4,"health":8,"text":["Your units get +1/+1.","Enemy units get -1/-0."],"flavor":"The reference implementation every other guardian was compiled from.","visualSeed":180,"visualPattern":2},"finish":"gold","reveal":"gold","slot":"shine","collectorNumber":"162/096","hit":true,"faceDown":true,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null}]}},{"label":"Zero-Day","reveal":{"packId":"e343b1f2-3786-40e1-8e74-fbf9a76be6b3","setCode":"S0","oddsVersion":"S0-odds-2","seed":624,"jackpot":false,"sparks":true,"fullReveal":true,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"97e6cd22-f33f-494a-8fe3-f08c15b29382","cardId":"SW-001","face":{"name":"Swarm Larva","type":"Unit","faction":"Swarm","rarity":"Common","cost":1,"attack":1,"health":1,"text":[],"flavor":"One of ten thousand. Ten thousand more where it came from.","visualSeed":136,"visualPattern":0},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"030/096","hit":false,"faceDown":false,"isNew":false,"ownedAfter":3,"prototype":null,"secret":null},{"copyId":"16a0a668-9260-4d27-ae6c-c0701473baf3","cardId":"SW-012","face":{"name":"Chitin Plating","type":"Tool","faction":"Swarm","rarity":"Common","cost":1,"attack":null,"health":null,"text":["+0/+3"],"flavor":"Grown, not built. Just as hard to get through.","visualSeed":104,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"028/096","hit":false,"faceDown":false,"isNew":false,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"b0b9c7e2-7fa0-4e5c-8a33-d905ea9615aa","cardId":"NT-002","face":{"name":"Cache Warmup","type":"Command","faction":"Neutral","rarity":"Uncommon","cost":3,"attack":null,"health":null,"text":["Draw two cards."],"flavor":"The second request is always faster.","visualSeed":173,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"094/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"541c9c96-1d65-4776-b8c2-077543288ef7","cardId":"CX-003","face":{"name":"Recursive Construct","type":"Unit","faction":"Cortex","rarity":"Rare","cost":2,"attack":0,"health":4,"text":["This unit's attack equals the number of units you control."],"flavor":"It counts itself, then counts what it counted.","visualSeed":347,"visualPattern":1},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"022/096","hit":false,"faceDown":false,"isNew":false,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"ae485a56-9d72-4624-8466-3c811226bcce","cardId":"S0-ZD1","face":{"name":"Zero-Day 1 (not designed yet)","type":"Reserved","faction":"Neutral","rarity":"Mythic","cost":null,"attack":null,"health":null,"text":["Reserved entry. This card is designed and waits to go live."],"flavor":"Signal acquired. Payload withheld.","visualSeed":233,"visualPattern":1},"finish":"zeroDay","reveal":"zeroDay","slot":"shine","collectorNumber":"226/096","hit":true,"faceDown":true,"isNew":true,"ownedAfter":1,"prototype":null,"secret":{"code":"S0-ZD1","kind":"zeroDay","art":"placeholder:zero-day/S0-ZD1","animated":true}}]}},{"label":"Prototype","reveal":{"packId":"1846856b-fc96-49ae-8282-b48c7d5ebffe","setCode":"S0","oddsVersion":"S0-odds-2","seed":551,"jackpot":false,"sparks":true,"fullReveal":true,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"0ba6c687-2d78-40f9-9e2c-560a093733a8","cardId":"SW-012","face":{"name":"Chitin Plating","type":"Tool","faction":"Swarm","rarity":"Common","cost":1,"attack":null,"health":null,"text":["+0/+3"],"flavor":"Grown, not built. Just as hard to get through.","visualSeed":104,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"028/096","hit":false,"faceDown":false,"isNew":false,"ownedAfter":3,"prototype":null,"secret":null},{"copyId":"30c8ff09-8b19-4670-b9e7-26d8f0f065a7","cardId":"CX-023","face":{"name":"Deadlock Detector","type":"Unit","faction":"Cortex","rarity":"Common","cost":2,"attack":1,"health":3,"text":["If the enemy controls 3 or more units, stun a random enemy unit for 1 turn."],"flavor":"Too many threads waiting on each other. It picks one and freezes it.","visualSeed":49,"visualPattern":3},"finish":"standard","reveal":"plain","slot":"Common","collectorNumber":"002/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"7700a592-4b1b-46af-9187-1dd2818b434d","cardId":"SW-003","face":{"name":"Rally Cry","type":"Command","faction":"Swarm","rarity":"Uncommon","cost":2,"attack":null,"health":null,"text":["If you control a Swarm unit, your units get +1/+0 this turn."],"flavor":"One voice, then all of them.","visualSeed":134,"visualPattern":2},"finish":"standard","reveal":"plain","slot":"Uncommon","collectorNumber":"037/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"7b42a535-be98-4c88-8723-0d785a11b24a","cardId":"CX-007","face":{"name":"Mainframe Core","type":"Directive","faction":"Cortex","rarity":"Rare","cost":3,"attack":null,"health":null,"text":["Your units get +1/+1."],"flavor":"Every process routes through here now.","visualSeed":351,"visualPattern":1},"finish":"standard","reveal":"plain","slot":"Rare","collectorNumber":"019/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"ffa82f42-d48c-46ee-a503-32727ccbfb8c","cardId":"NL-004","face":{"name":"Segfault Handler","type":"Command","faction":"Null","rarity":"Common","cost":2,"attack":null,"health":null,"text":["Deal 3 damage to target enemy unit."],"flavor":"Access violation at address zero. Whatever was there, isn't anymore.","visualSeed":59,"visualPattern":1},"finish":"standard","reveal":"plain","slot":"shine","collectorNumber":"070/096","hit":false,"faceDown":false,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"2318f5e3-324f-4af3-9971-a63c34eac81a","cardId":"CX-003","face":{"name":"Recursive Construct","type":"Unit","faction":"Cortex","rarity":"Rare","cost":2,"attack":0,"health":4,"text":["This unit's attack equals the number of units you control."],"flavor":"It counts itself, then counts what it counted.","visualSeed":347,"visualPattern":1},"finish":"prototype","reveal":"prototype","slot":"bonus","collectorNumber":"022/096","hit":true,"faceDown":true,"isNew":false,"ownedAfter":3,"prototype":{"runCode":"S0-P12","serial":1,"runSize":250},"secret":null}]}},{"label":"Jackpot","reveal":{"packId":"99587c67-076b-49f4-b090-26ecebed9a94","setCode":"S0","oddsVersion":"S0-odds-2","seed":5602,"jackpot":true,"sparks":true,"fullReveal":true,"pity":{"fullArt":false,"mythic":false},"packPoints":5,"cards":[{"copyId":"dfb0964e-158f-4678-81ab-544e31b78f1b","cardId":"AG-003","face":{"name":"Plating Module","type":"Tool","faction":"Aegis","rarity":"Common","cost":1,"attack":null,"health":null,"text":["+0/+3"],"flavor":"Bolt it on. It was never going to be pretty anyway.","visualSeed":148,"visualPattern":0},"finish":"foil","reveal":"foil","slot":"Common","collectorNumber":"050/096","hit":false,"faceDown":true,"isNew":false,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"6a5139d2-37a1-4678-a7a8-a646c78f5394","cardId":"NT-004","face":{"name":"Rollback Point","type":"Command","faction":"Neutral","rarity":"Common","cost":3,"attack":null,"health":null,"text":["Restore 5 health to yourself."],"flavor":"Everything since the snapshot never happened.","visualSeed":171,"visualPattern":1},"finish":"foil","reveal":"foil","slot":"Common","collectorNumber":"089/096","hit":false,"faceDown":true,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null},{"copyId":"bb2268ff-4507-4c25-8acc-d75baaee06ea","cardId":"NT-002","face":{"name":"Cache Warmup","type":"Command","faction":"Neutral","rarity":"Uncommon","cost":3,"attack":null,"health":null,"text":["Draw two cards."],"flavor":"The second request is always faster.","visualSeed":173,"visualPattern":3},"finish":"foil","reveal":"foil","slot":"Uncommon","collectorNumber":"094/096","hit":false,"faceDown":true,"isNew":false,"ownedAfter":2,"prototype":null,"secret":null},{"copyId":"5ef87f99-6ac7-4381-bcca-047ebaaec90a","cardId":"CX-003","face":{"name":"Recursive Construct","type":"Unit","faction":"Cortex","rarity":"Rare","cost":2,"attack":0,"health":4,"text":["This unit's attack equals the number of units you control."],"flavor":"It counts itself, then counts what it counted.","visualSeed":347,"visualPattern":1},"finish":"foil","reveal":"foil","slot":"Rare","collectorNumber":"022/096","hit":false,"faceDown":true,"isNew":false,"ownedAfter":4,"prototype":null,"secret":null},{"copyId":"a04f7b8a-e10b-48e6-8b2f-3144e4087cba","cardId":"NT-009","face":{"name":"Scrap Recycler","type":"Unit","faction":"Neutral","rarity":"Common","cost":2,"attack":2,"health":1,"text":["When this dies, restore 2 health to you."],"flavor":"Strips itself for parts on the way down.","visualSeed":166,"visualPattern":0},"finish":"glitch","reveal":"glitch","slot":"shine","collectorNumber":"090/096","hit":true,"faceDown":true,"isNew":true,"ownedAfter":1,"prototype":null,"secret":null}]}}]}</script>
+<script type="application/json" id="pack-timings">{"pack":{"autoTear":420,"tear":650,"sparks":1300,"jackpotBanner":1500,"rise":700,"fly":220},"reveal":{"plain":{"flip":0,"hold":120},"foil":{"flip":420,"hold":500},"fullArt":{"flip":480,"hold":1100},"altArt":{"flip":480,"hold":1100},"glitch":{"flip":950,"hold":700},"secret":{"flip":1900,"hold":1300},"gold":{"flip":650,"hold":1200},"prototype":{"flip":900,"hold":1300},"zeroDay":{"flip":600,"hold":1400}},"zeroDay":{"black":450,"typePerChar":55,"breach":1900,"arrive":700}}</script>
+<script type="application/json" id="pack-shaders">{"foil":"precision mediump float;\nuniform vec2 u_res;\nuniform float u_time;\nuniform vec2 u_ptr;\nuniform float u_amt;\nuniform float u_seed;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)) + u_seed * 17.13) * 43758.5453); }\nvec3 hsv(float h, float s, float v) {\n  vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);\n  return v * mix(vec3(1.0), k, s);\n}\n\nvoid main() {\n  vec2 uv = gl_FragCoord.xy / u_res;\n  vec2 d = uv - u_ptr;\n  float band = dot(uv, vec2(0.86, 0.5)) * 2.6 + (u_ptr.x - u_ptr.y) * 1.8 + u_time * 0.04;\n  vec3 rainbow = hsv(fract(band), 0.6, 1.0);\n  float lines = 0.5 + 0.5 * sin((uv.x + uv.y) * u_res.x * 0.42);\n  float glare = exp(-dot(d, d) * 7.0);\n  vec2 cell = floor(gl_FragCoord.xy / 5.0);\n  float h = hash(cell);\n  float glint = step(0.986, h) * pow(0.5 + 0.5 * sin(u_time * 3.2 + h * 50.0), 10.0);\n  vec3 col = rainbow * (0.35 + 0.25 * lines) * (0.4 + 0.9 * glare) + vec3(glare * 0.35 + glint);\n  float a = clamp(u_amt * (0.3 + 0.45 * glare + glint), 0.0, 1.0);\n  gl_FragColor = vec4(col * a, a);\n}","gold":"precision mediump float;\nuniform vec2 u_res;\nuniform float u_time;\nuniform vec2 u_ptr;\nuniform float u_amt;\nuniform float u_seed;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)) + u_seed * 17.13) * 43758.5453); }\nvec3 hsv(float h, float s, float v) {\n  vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);\n  return v * mix(vec3(1.0), k, s);\n}\n\nvoid main() {\n  vec2 uv = gl_FragCoord.xy / u_res;\n  float t = dot(uv - u_ptr, vec2(0.7, 0.7));\n  float sheen = pow(max(0.0, 1.0 - abs(t + 0.15 * sin(u_time * 0.7)) * 3.2), 3.0);\n  vec3 ramp = mix(vec3(0.55, 0.36, 0.08), vec3(1.0, 0.86, 0.48), 0.5 + 0.5 * sin(t * 9.0 + u_time * 0.6));\n  vec2 g = gl_FragCoord.xy / 26.0;\n  vec2 c = floor(g);\n  vec2 f = fract(g) - 0.5;\n  float h = hash(c);\n  vec2 o = vec2(hash(c + 3.1), hash(c + 7.7)) - 0.5;\n  vec2 q = abs(f - o * 0.5);\n  float star = max(0.0, 1.0 - (q.x * q.y) * 900.0) * max(0.0, 1.0 - length(q) * 6.0);\n  float tw = step(0.72, h) * pow(0.5 + 0.5 * sin(u_time * 2.4 + h * 40.0), 6.0);\n  vec3 col = ramp * (0.25 + 0.75 * sheen) + vec3(1.0, 0.95, 0.8) * star * tw * 1.6;\n  float a = clamp(u_amt * (0.22 + 0.55 * sheen + star * tw), 0.0, 1.0);\n  gl_FragColor = vec4(col * a, a);\n}","glitch":"precision mediump float;\nuniform vec2 u_res;\nuniform float u_time;\nuniform vec2 u_ptr;\nuniform float u_amt;\nuniform float u_seed;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)) + u_seed * 17.13) * 43758.5453); }\nvec3 hsv(float h, float s, float v) {\n  vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);\n  return v * mix(vec3(1.0), k, s);\n}\n\nvoid main() {\n  vec2 uv = gl_FragCoord.xy / u_res;\n  float step12 = floor(u_time * 12.0);\n  vec2 blk = floor(uv * vec2(5.0, 22.0));\n  float n = hash(blk + step12);\n  float tear = step(1.0 - 0.22 * u_amt, n);\n  float which = hash(blk + step12 + 9.0);\n  vec3 split = which \u003c 0.5 ? vec3(1.0, 0.0, 0.35) : vec3(0.0, 0.95, 1.0);\n  float scan = 0.5 + 0.5 * sin(gl_FragCoord.y * 1.9);\n  float roll = exp(-pow((fract(uv.y - u_time * 0.12) - 0.5) * 9.0, 2.0));\n  vec3 col = split * tear * (0.6 + 0.4 * hash(blk * 3.0 + step12)) + vec3(0.15, 0.9, 0.7) * (1.0 - scan) * 0.22 + vec3(0.5) * roll * 0.12;\n  float a = clamp(tear * 0.85 + (1.0 - scan) * 0.12 + roll * 0.08, 0.0, 1.0) * clamp(u_amt * 1.4 + 0.25, 0.0, 1.0);\n  gl_FragColor = vec4(col * a, a);\n}","zeroDay":"precision mediump float;\nuniform vec2 u_res;\nuniform float u_time;\nuniform vec2 u_ptr;\nuniform float u_amt;\nuniform float u_seed;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)) + u_seed * 17.13) * 43758.5453); }\nvec3 hsv(float h, float s, float v) {\n  vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);\n  return v * mix(vec3(1.0), k, s);\n}\n\nvoid main() {\n  vec2 uv = gl_FragCoord.xy / u_res;\n  vec2 cellSize = vec2(9.0, 13.0);\n  float col = floor(gl_FragCoord.x / cellSize.x);\n  float speed = 0.35 + hash(vec2(col, 1.0)) * 1.1;\n  float y = fract(uv.y + u_time * speed * 0.35 + hash(vec2(col, 5.0)));\n  float trail = pow(y, 7.0);\n  float glyph = step(0.45, hash(floor(gl_FragCoord.xy / cellSize) + floor(u_time * 9.0)));\n  vec3 rain = vec3(0.25, 1.0, 0.55) * trail * glyph;\n  float r = length((uv - 0.5) * vec2(u_res.x / u_res.y, 1.0));\n  float ring = exp(-pow((r - fract(u_time * 0.55) * 1.2) * 10.0, 2.0));\n  vec3 breach = vec3(1.0, 0.12, 0.22) * ring * 0.9;\n  float flick = step(0.993, hash(floor(gl_FragCoord.xy / 3.0) + floor(u_time * 30.0)));\n  vec3 c = rain + breach + vec3(flick);\n  float a = clamp(u_amt * (trail * glyph * 0.9 + ring * 0.7 + flick), 0.0, 1.0);\n  gl_FragColor = vec4(c * a, a);\n}","pack":"precision mediump float;\nuniform vec2 u_res;\nuniform float u_time;\nuniform vec2 u_ptr;\nuniform float u_amt;\nuniform float u_seed;\nfloat hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)) + u_seed * 17.13) * 43758.5453); }\nvec3 hsv(float h, float s, float v) {\n  vec3 k = clamp(abs(mod(h * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);\n  return v * mix(vec3(1.0), k, s);\n}\n\nvoid main() {\n  vec2 uv = gl_FragCoord.xy / u_res;\n  float sweep = fract(u_time * 0.18);\n  float x = dot(uv, vec2(0.8, 0.6)) - (sweep * 2.2 - 0.6);\n  float glare = exp(-x * x * 60.0);\n  vec2 d = uv - u_ptr;\n  float soft = exp(-dot(d, d) * 5.0);\n  vec3 holo = hsv(fract(dot(uv, vec2(0.5, 0.9)) * 1.4 + u_ptr.x * 0.6), 0.45, 1.0);\n  vec3 col = vec3(1.0) * glare * 0.7 + holo * soft * 0.35;\n  float a = clamp(u_amt * (glare * 0.55 + soft * 0.25), 0.0, 1.0);\n  gl_FragColor = vec4(col * a, a);\n}"}</script>
+<script>
+  // Axis 3: magnitude scales volume (and so weight: a spectacle impact's
+  // thump is the loudest thing in the mix). The limiter keeps the sum sane.
+  var SFX_TIER_GAIN = { subtle: 0.55, normal: 1, spectacle: 1.4 };
+  // At most this many oscillators/noise sources alive at once (the lab's
+  // cap); a voice past it is dropped, never queued.
+  var SFX_VOICE_CAP = 30;
+  // The same sound for the same faction this soon after the last one is
+  // dropped: a Swarm volley is many shots but should read as one chitter
+  // cloud, not a wall of identical clicks.
+  var SFX_REPEAT_GAP_MS = 28;
+  // The pack opening's sounds (render session 24, owner 2026-10-18: "a tear
+  // sound, flip ticks and a rising tone on hits"). Same player, same
+  // settings; the voice is the card's faction where there is one.
+  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp'];
+  var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast', 'ward', 'wardPulse', 'wardBreak'];
+  // Ward moments (slice 6, the lab's wardIn / wardPulse / wardBreak): each
+  // faction's chord, low to high. Neutral has no ward; it gets Cortex's.
+  var SFX_WARD_CHORD = { cortex: [440, 660, 880], aegis: [110, 165, 220], swarm: [262, 277, 392], null: [233, 330, 466], neutral: [440, 660, 880] };
+  var SFX_VOICES = { Cortex: 'cortex', Aegis: 'aegis', Swarm: 'swarm', Null: 'null', Neutral: 'neutral' };
+  function sfxVoiceOf(faction) { return SFX_VOICES[faction] || 'neutral'; }
+  function sfxTierGain(tier) { return SFX_TIER_GAIN[tier] || SFX_TIER_GAIN.normal; }
+  // Left of the screen pans left; never fully hard (the lab's 0.75).
+  function sfxPan(x, width) {
+    if (!(width > 0) || typeof x !== 'number' || x !== x) return 0;
+    var p = (x / width * 2 - 1) * 0.75;
+    return p < -0.75 ? -0.75 : p > 0.75 ? 0.75 : p;
+  }
+  // Aegis's metal and Neutral's bells: the inharmonic partials of a struck
+  // bar (1, 2.76, 5.4), quieter the higher they go.
+  var SFX_BELL = [1, 2.76, 5.4];
+  // The viewer's remembered sound setting: muted or not, and the effects
+  // volume (0-1). Anything unreadable falls back to the default: sound on
+  // at SFX_DEFAULT_VOLUME. Only an explicit mute is ever remembered as off.
+  var SFX_PREF_KEY = 'ai-tcg.sound';
+  var SFX_DEFAULT_VOLUME = 0.8;
+  function sfxClampVolume(v) {
+    v = Number(v);
+    if (v !== v) return SFX_DEFAULT_VOLUME;
+    return v < 0 ? 0 : v > 1 ? 1 : v;
+  }
+  function sfxPrefParse(raw) {
+    var p = null;
+    if (typeof raw === 'string') { try { p = JSON.parse(raw); } catch (e) { p = null; } }
+    else if (raw && typeof raw === 'object') p = raw;
+    if (!p || typeof p !== 'object') return { muted: false, volume: SFX_DEFAULT_VOLUME };
+    return { muted: p.muted === true, volume: p.volume === undefined ? SFX_DEFAULT_VOLUME : sfxClampVolume(p.volume) };
+  }
+  function sfxPrefSerialize(pref) {
+    return JSON.stringify({ muted: !!(pref && pref.muted), volume: sfxClampVolume(pref ? pref.volume : SFX_DEFAULT_VOLUME) });
+  }
+
+  // sfxRecipe(kind, faction, tier, rand, o) -> a list of voices, each
+  //   { k: 'tone', type, f0, f1?, dur, g, att?, delay?, steps?, detune?, filt?, ff?, q? }
+  //   { k: 'noise', type, f0, f1?, q?, dur, g, att?, delay? }
+  // in seconds and linear gain, ready for the runtime to play. rand() is
+  // injected (Math.random on the page, a seeded one in the tests). o:
+  //   targetKind 'player' (impact): a hit that lands on a player's side of
+  //     the board carries a heavier low end;
+  //   victim (kill): the victim's faction adds its own breaking sound.
+  // The lab's recipes, with every gain scaled by the tier.
+  function sfxRecipe(kind, faction, tier, rand, o) {
+    o = o || {};
+    var v = sfxVoiceOf(faction), m = sfxTierGain(tier), out = [];
+    function r(a, b) { return a + (b - a) * rand(); }
+    function T(x) { x.k = 'tone'; x.g = x.g * m; out.push(x); }
+    function N(x) { x.k = 'noise'; x.g = x.g * m; out.push(x); }
+    if (kind === 'launch') {
+      if (v === 'cortex') { T({ type: 'square', f0: 1400, f1: 420, dur: 0.14, g: 0.07 }); T({ type: 'square', f0: 2100, dur: 0.04, g: 0.04, delay: 0.03 }); }
+      else if (v === 'aegis') { N({ type: 'lowpass', f0: 900, f1: 180, dur: 0.3, g: 0.32 }); T({ type: 'sawtooth', f0: 95, f1: 48, dur: 0.22, g: 0.12, filt: 'lowpass', ff: 500 }); }
+      else if (v === 'swarm') { for (var i = 0; i < 6; i++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.035, g: 0.22, delay: i * 0.035 }); N({ type: 'bandpass', f0: 1300, f1: 350, q: 4, dur: 0.22, g: 0.18 }); }
+      else if (v === 'null') { T({ type: 'sawtooth', f0: 420, dur: 0.22, g: 0.06, steps: 7, filt: 'bandpass', ff: 1400, q: 2 }); N({ type: 'highpass', f0: 3000, dur: 0.16, g: 0.09, att: 0.12 }); }
+      else { T({ type: 'sine', f0: 660, f1: 990, dur: 0.22, g: 0.09 }); T({ type: 'triangle', f0: 1320, dur: 0.18, g: 0.04, delay: 0.04 }); }
+    } else if (kind === 'impact') {
+      // The constant part (meaning): a low thump and a noise crack. A hit on
+      // a player's side of the board lands lower and longer.
+      var face = o.targetKind === 'player';
+      T({ type: 'sine', f0: face ? 120 : 150, f1: face ? 34 : 42, dur: face ? 0.4 : 0.28, g: 0.45 });
+      N({ type: 'lowpass', f0: 3600, f1: 280, dur: face ? 0.3 : 0.22, g: 0.32 });
+      if (v === 'cortex') { T({ type: 'square', f0: 1800, f1: 220, dur: 0.09, g: 0.06 }); T({ type: 'square', f0: 900, dur: 0.05, g: 0.04, delay: 0.05 }); }
+      else if (v === 'aegis') { SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 330 * p, dur: 0.7, g: 0.05 / p }); }); N({ type: 'bandpass', f0: 2400, q: 3, dur: 0.12, g: 0.15 }); }
+      else if (v === 'swarm') { N({ type: 'bandpass', f0: 950, f1: 180, q: 5, dur: 0.24, g: 0.3 }); for (var j = 0; j < 4; j++) N({ type: 'bandpass', f0: r(3000, 5000), q: 10, dur: 0.03, g: 0.12, delay: 0.05 + j * 0.03 }); }
+      else if (v === 'null') { for (var k = 0; k < 3; k++) T({ type: 'square', f0: r(200, 2400), dur: 0.03, g: 0.06, delay: k * 0.035 }); T({ type: 'sawtooth', f0: 70, f1: 35, dur: 0.35, g: 0.12, filt: 'lowpass', ff: 400 }); }
+      else { [880, 1320, 1760].forEach(function (n) { T({ type: 'triangle', f0: n, dur: 0.5, g: 0.035 }); }); }
+    } else if (kind === 'bolt') {
+      // One shot of a spell volley leaving its source.
+      if (v === 'cortex') T({ type: 'square', f0: 2400, f1: 600, dur: 0.08, g: 0.05 });
+      else if (v === 'aegis') N({ type: 'lowpass', f0: 1400, f1: 200, dur: 0.18, g: 0.22 });
+      else if (v === 'swarm') N({ type: 'bandpass', f0: r(2500, 4500), q: 9, dur: 0.04, g: 0.12 });
+      else if (v === 'null') T({ type: 'square', f0: r(300, 2600), dur: 0.05, g: 0.05 });
+      else T({ type: 'triangle', f0: 1760, f1: 2640, dur: 0.1, g: 0.05 });
+    } else if (kind === 'heal') {
+      // Always rises (meaning); the voice picks the notes and the wave.
+      var notes = v === 'null' ? [784, 659, 523, 1047] : v === 'aegis' ? [392, 523, 659, 784] : [523, 659, 784, 1047];
+      var ht = v === 'cortex' || v === 'null' ? 'square' : v === 'aegis' ? 'triangle' : 'sine';
+      notes.forEach(function (n, i) { T({ type: ht, f0: n, dur: 0.4, g: ht === 'square' ? 0.03 : 0.07, delay: i * 0.08 }); });
+      if (v === 'swarm') for (var h = 0; h < 5; h++) T({ type: 'sine', f0: r(500, 900), f1: r(1200, 1800), dur: 0.07, g: 0.04, delay: h * 0.06 });
+      if (v === 'neutral') T({ type: 'sine', f0: 1047 * SFX_BELL[1], dur: 0.6, g: 0.012, delay: 0.24 });
+    } else if (kind === 'buff') {
+      // Always a rising sweep and a high note on top.
+      T({ type: v === 'cortex' ? 'square' : 'triangle', f0: 220, f1: 880, dur: 0.42, g: v === 'cortex' ? 0.04 : 0.06 });
+      T({ type: 'sine', f0: 1047, dur: 0.4, g: 0.05, delay: 0.3 });
+      if (v === 'aegis') N({ type: 'bandpass', f0: 2000, q: 4, dur: 0.08, g: 0.2, delay: 0.25 });
+      else if (v === 'swarm') N({ type: 'bandpass', f0: 700, f1: 1800, q: 6, dur: 0.3, g: 0.08 });
+      else if (v === 'null') T({ type: 'square', f0: 880, dur: 0.2, g: 0.025, steps: 4, delay: 0.1 });
+      else if (v === 'neutral') T({ type: 'sine', f0: 1047 * SFX_BELL[1], dur: 0.5, g: 0.012, delay: 0.3 });
+    } else if (kind === 'debuff') {
+      // Always a falling, detuned pair (meaning: it sinks).
+      T({ type: 'sawtooth', f0: 620, f1: 140, dur: 0.55, g: 0.06, filt: 'lowpass', ff: 1600 });
+      T({ type: 'sawtooth', f0: 640, f1: 150, dur: 0.55, g: 0.05, filt: 'lowpass', ff: 1600, detune: 30 });
+      if (v === 'swarm' || v === 'neutral') N({ type: 'highpass', f0: 5000, dur: 0.6, g: 0.06, att: 0.1 });
+      else if (v === 'null') for (var d = 0; d < 3; d++) T({ type: 'square', f0: r(200, 1800), dur: 0.03, g: 0.04, delay: 0.1 + d * 0.05 });
+      else if (v === 'aegis') N({ type: 'bandpass', f0: 1800, f1: 600, q: 3, dur: 0.18, g: 0.12, delay: 0.05 });
+    } else if (kind === 'lock') {
+      // A removal locking on: three beeps.
+      for (var b = 0; b < 3; b++) T({ type: v === 'neutral' ? 'triangle' : 'square', f0: v === 'null' ? r(900, 2200) : 1500, dur: 0.05, g: 0.05, delay: b * 0.14 });
+    } else if (kind === 'beam') {
+      // The removal's strike.
+      T({ type: 'sawtooth', f0: 2200, f1: 70, dur: 0.4, g: 0.14 });
+      N({ type: 'highpass', f0: 1500, dur: 0.3, g: 0.18 });
+      if (v === 'neutral') SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 440 * p, dur: 0.8, g: 0.04 / p, delay: 0.05 }); });
+    } else if (kind === 'kill') {
+      // The killer's impact at full weight, then the card breaking: a deep
+      // drop, a long noise fall, a spray of tiny glass pings.
+      // (the impact is already scaled by the tier; the lab plays it at 1.5x)
+      sfxRecipe('impact', faction, tier, rand, {}).forEach(function (x) { x.g *= 1.5; out.push(x); });
+      T({ type: 'sine', f0: 62, f1: 28, dur: 0.8, g: 0.6 });
+      N({ type: 'lowpass', f0: 1800, f1: 120, dur: 0.9, g: 0.3, delay: 0.05 });
+      for (var s = 0; s < 9; s++) T({ type: 'sine', f0: r(2200, 5200), dur: 0.06, g: 0.03, delay: 0.06 + s * 0.03 });
+      if (sfxVoiceOf(o.victim) === 'aegis') SFX_BELL.slice(0, 2).forEach(function (p) { T({ type: 'sine', f0: 220 * p, dur: 1, g: 0.05, delay: 0.05 }); });
+    } else if (kind === 'block') {
+      // A Barrier takes the hit: a bright ring, in every voice.
+      T({ type: 'triangle', f0: 1760, dur: 0.45, g: 0.1 });
+      T({ type: 'sine', f0: 2640, dur: 0.35, g: 0.06 });
+      N({ type: 'bandpass', f0: 4200, q: 2, dur: 0.12, g: 0.14 });
+      if (v === 'aegis') T({ type: 'sine', f0: 440 * SFX_BELL[1], dur: 0.6, g: 0.05 });
+    } else if (kind === 'ward') {
+      // A Mythic arrives: a run of ticks, the ward's rising chord, then the
+      // landing thump; under it all, the lab's mythicIn swell.
+      var wc = SFX_WARD_CHORD[v], wt = { cortex: 'square', aegis: 'sawtooth', swarm: 'triangle', null: 'sawtooth' }[v] || 'triangle';
+      for (var wi = 0; wi < 12; wi++) T({ type: 'square', f0: v === 'null' ? r(1500, 4000) : 2800 + wi * 60, dur: 0.025, g: 0.025, delay: wi * 0.045 });
+      wc.forEach(function (n, i) { T({ type: wt, f0: n, dur: 1.3, g: wt === 'square' ? 0.03 : 0.06, att: 0.45, delay: 0.05 + i * 0.06, filt: 'lowpass', ff: 2400 }); });
+      T({ type: 'sine', f0: 90, f1: 40, dur: 0.7, g: 0.45, delay: 0.55 });
+      N({ type: 'lowpass', f0: 2000, f1: 200, dur: 0.5, g: 0.18, delay: 0.55 });
+      T({ type: 'sine', f0: 55, f1: 110, dur: 1.4, g: 0.3, att: 0.7 });
+      T({ type: 'triangle', f0: 220, f1: 330, dur: 1.4, g: 0.05, att: 0.8 });
+    } else if (kind === 'wardPulse') {
+      SFX_WARD_CHORD[v].slice(1).forEach(function (n) { T({ type: 'triangle', f0: n * 2, dur: 0.6, g: 0.07 }); });
+      N({ type: 'bandpass', f0: 3000, q: 2, dur: 0.25, g: 0.08, att: 0.08 });
+    } else if (kind === 'wardBreak') {
+      // Glass pings, then the chord falling apart, high to low.
+      for (var wb = 0; wb < 14; wb++) T({ type: 'sine', f0: r(1800, 5200), dur: 0.09, g: 0.035, delay: wb * 0.022 });
+      SFX_WARD_CHORD[v].slice().reverse().forEach(function (n, i) { T({ type: 'triangle', f0: n * 2, f1: n * 1.4, dur: 0.7, g: 0.06, delay: 0.08 + i * 0.09 }); });
+    } else if (kind === 'cast') {
+      // A power's cast flourish: a rising whoosh, the voice on top.
+      N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });
+      if (v === 'cortex') T({ type: 'square', f0: 880, f1: 1760, dur: 0.16, g: 0.025, delay: 0.12 });
+      else if (v === 'aegis') T({ type: 'sawtooth', f0: 110, f1: 165, dur: 0.3, g: 0.06, filt: 'lowpass', ff: 700 });
+      else if (v === 'swarm') for (var c = 0; c < 3; c++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.03, g: 0.1, delay: 0.1 + c * 0.04 });
+      else if (v === 'null') T({ type: 'sawtooth', f0: 330, dur: 0.25, g: 0.04, steps: 5, filt: 'bandpass', ff: 1200, q: 2 });
+      else T({ type: 'sine', f0: 1320, dur: 0.45, g: 0.04, delay: 0.1 });
+    } else if (kind === 'tear') {
+      // Foil ripping: a bright noise sweep with a crackle on top, and a
+      // low pop as the strip comes free.
+      N({ type: 'bandpass', f0: 5200, f1: 1400, q: 1.4, dur: 0.32, g: 0.28 });
+      for (var ti = 0; ti < 7; ti++) N({ type: 'highpass', f0: r(3500, 7000), q: 2, dur: 0.02, g: 0.12, delay: ti * 0.04 });
+      T({ type: 'sine', f0: 220, f1: 90, dur: 0.18, g: 0.18, delay: 0.3 });
+    } else if (kind === 'flip') {
+      // One card moving: a short dry tick; the voice tints it.
+      N({ type: 'bandpass', f0: v === 'aegis' ? 1700 : v === 'swarm' ? 2600 : 3200, q: 6, dur: 0.035, g: 0.2 });
+      T({ type: v === 'cortex' || v === 'null' ? 'square' : 'triangle', f0: v === 'null' ? r(700, 1400) : 1100, dur: 0.03, g: 0.025 });
+    } else if (kind === 'rise') {
+      // A hit: a rising tone. Always rises (meaning); the tier sets how far
+      // and how long (a Foil is a small lift, a Gold or a secret a long climb).
+      var big = tier === 'spectacle';
+      T({ type: 'sine', f0: 330, f1: big ? 1320 : 880, dur: big ? 1.1 : 0.55, g: 0.12, att: 0.08 });
+      T({ type: 'triangle', f0: 495, f1: big ? 1980 : 1320, dur: big ? 1.1 : 0.55, g: 0.05, att: 0.08 });
+      if (big) [1, 1.25, 1.5, 2].forEach(function (p, i) { T({ type: 'sine', f0: 1320 * p, dur: 0.7, g: 0.035, delay: 1.0 + i * 0.07 }); });
+    } else if (kind === 'sparkle') {
+      // Sparks off the tear, or a Gold card's stars: high bell pings.
+      for (var si = 0; si < 9; si++) T({ type: 'sine', f0: r(2400, 5200), dur: 0.12, g: 0.03, delay: si * 0.045 + r(0, 0.02) });
+    } else if (kind === 'type') {
+      // A terminal key: a click with a little body.
+      N({ type: 'bandpass', f0: r(1800, 2600), q: 8, dur: 0.025, g: 0.16 });
+      T({ type: 'square', f0: r(160, 220), dur: 0.02, g: 0.03 });
+    } else if (kind === 'breach') {
+      // The Zero-Day breach: a falling alarm over a low drone.
+      for (var bi = 0; bi < 3; bi++) T({ type: 'sawtooth', f0: 880, f1: 440, dur: 0.22, g: 0.05, delay: bi * 0.26, filt: 'lowpass', ff: 2400 });
+      T({ type: 'sawtooth', f0: 55, f1: 41, dur: 1.4, g: 0.12, filt: 'lowpass', ff: 300, att: 0.1 });
+    } else if (kind === 'glitch') {
+      // Corruption: broken pitch blips and a crunch.
+      for (var gi = 0; gi < 6; gi++) T({ type: 'square', f0: r(150, 3200), dur: 0.03, g: 0.05, delay: gi * 0.05 });
+      N({ type: 'bandpass', f0: 900, f1: 3000, q: 3, dur: 0.25, g: 0.18 });
+    } else if (kind === 'stamp') {
+      // A Prototype's serial plate pressing in: a heavy thunk and a ring.
+      T({ type: 'sine', f0: 140, f1: 45, dur: 0.35, g: 0.4 });
+      N({ type: 'lowpass', f0: 2600, f1: 300, dur: 0.18, g: 0.25 });
+      SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 523 * p, dur: 0.9, g: 0.04 / p, delay: 0.05 }); });
+    }
+    return out;
+  }
+
+
+  var SND = (function () {
+    // want: the viewer wants sound (armed, or playing). on: the context is
+    // running and play() makes sound. vol: the effects volume, 0-1.
+    var AU = { ctx: null, on: false, want: false, vol: SFX_DEFAULT_VOLUME, hidden: false, master: null, comp: null, noise: null, active: 0 };
+    // The master bus level at full volume (the lab's 0.6); the effects
+    // volume scales it.
+    var MASTER = 0.6;
+    var counts = { played: 0, voices: 0, capped: 0, repeats: 0 }, byKind = {}, last = {};
+    // Who needs the context running besides the effects (the music, slice
+    // 4), and who hears about every event (the music's intensity and duck).
+    var holds = {}, listeners = [];
+    function init() {
+      if (AU.ctx) return true;
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      var C = new AC();
+      AU.ctx = C;
+      // The limiter: the lab's hard compressor on the master bus.
+      var comp = C.createDynamicsCompressor();
+      comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 10; comp.attack.value = 0.002; comp.release.value = 0.18;
+      var m = C.createGain(); m.gain.value = MASTER * AU.vol;
+      m.connect(comp); comp.connect(C.destination);
+      AU.master = m; AU.comp = comp;
+      // One second of white noise, shared by every noise voice.
+      var len = C.sampleRate, buf = C.createBuffer(1, len, C.sampleRate), d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      AU.noise = buf;
+      return true;
+    }
+    function bus(pan) {
+      var C = AU.ctx, g = C.createGain();
+      if (C.createStereoPanner) { var p = C.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(AU.master); }
+      else g.connect(AU.master);
+      return g;
+    }
+    function env(g, t, peak, att, dur) {
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t + att);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    }
+    function done() { AU.active--; }
+    function tone(o, pan) {
+      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+      var osc = C.createOscillator();
+      osc.type = o.type || 'sine';
+      osc.frequency.setValueAtTime(o.f0 || 440, t);
+      if (o.f1) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.f1), t + dur);
+      if (o.steps) for (var i = 1; i < o.steps; i++) osc.frequency.setValueAtTime((o.f0 || 440) * Math.pow(2, Math.random() * 2 - 1), t + dur * i / o.steps);
+      if (o.detune) osc.detune.value = o.detune;
+      var e = C.createGain();
+      env(e, t, o.g || 0.2, o.att || 0.005, dur);
+      var n = osc;
+      if (o.filt) { var f = C.createBiquadFilter(); f.type = o.filt; f.frequency.value = o.ff || 2000; f.Q.value = o.q || 1; osc.connect(f); n = f; }
+      n.connect(e); e.connect(bus(pan));
+      osc.start(t); osc.stop(t + dur + 0.05);
+      AU.active++; osc.onended = done;
+    }
+    function noise(o, pan) {
+      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+      var s = C.createBufferSource();
+      s.buffer = AU.noise; s.loop = true;
+      var f = C.createBiquadFilter();
+      f.type = o.type || 'bandpass'; f.Q.value = o.q || 1;
+      f.frequency.setValueAtTime(o.f0 || 1200, t);
+      if (o.f1) f.frequency.exponentialRampToValueAtTime(Math.max(30, o.f1), t + dur);
+      var e = C.createGain();
+      env(e, t, o.g || 0.2, o.att || 0.003, dur);
+      s.connect(f); f.connect(e); e.connect(bus(pan));
+      s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
+      AU.active++; s.onended = done;
+    }
+    // play(kind, faction, tier, rect, o): one event's sound, panned by the
+    // centre of rect (where it happens). Silent while sound is off. Every
+    // call reaches the listeners, played or not (the music follows the
+    // match even with effects muted).
+    function play(kind, faction, tier, rect, o) {
+      var played = sound(kind, faction, tier, rect, o);
+      for (var i = 0; i < listeners.length; i++) listeners[i](kind, faction, tier, played);
+      return played;
+    }
+    function sound(kind, faction, tier, rect, o) {
+      if (!AU.on || !AU.ctx) return false;
+      var now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      var key = kind + ':' + sfxVoiceOf(faction);
+      if (last[key] !== undefined && now - last[key] < SFX_REPEAT_GAP_MS) { counts.repeats++; return false; }
+      last[key] = now;
+      var x = rect ? rect.left + rect.width / 2 : (window.innerWidth || 1) / 2;
+      var pan = sfxPan(x, window.innerWidth || 1);
+      var voices = sfxRecipe(kind, faction, tier, Math.random, o);
+      counts.played++; byKind[kind] = (byKind[kind] || 0) + 1;
+      for (var i = 0; i < voices.length; i++) {
+        if (AU.active >= SFX_VOICE_CAP) { counts.capped += voices.length - i; break; }
+        if (voices[i].k === 'tone') tone(voices[i], pan); else noise(voices[i], pan);
+        counts.voices++;
+      }
+      return true;
+    }
+    // The context runs while the effects or anything holding it (the
+    // music) is on and the tab is visible; otherwise it is suspended.
+    function refresh() {
+      if (!AU.ctx) return;
+      var need = AU.on;
+      for (var k in holds) if (holds[k]) need = true;
+      if (need && !AU.hidden) { if (AU.ctx.resume) AU.ctx.resume(); }
+      else if (AU.ctx.suspend) AU.ctx.suspend();
+    }
+    function setOn(on) {
+      AU.want = !!on;
+      if (on && !init()) { AU.want = false; return false; }
+      AU.on = !!on;
+      refresh();
+      return AU.on;
+    }
+    // core(): the shared context, limiter and noise buffer, made on first
+    // use (only ever from a gesture), or null without WebAudio.
+    function core() { return init() ? { ctx: AU.ctx, comp: AU.comp, noise: AU.noise } : null; }
+    function hold(name, on) { holds[name] = !!on; refresh(); }
+    function listen(fn) { listeners.push(fn); }
+    // arm(pref): at page load, before any gesture. Remembers what the viewer
+    // wants without making a context (browsers refuse audio until a gesture).
+    function arm(pref) {
+      pref = sfxPrefParse(pref);
+      AU.want = !pref.muted;
+      setVolume(pref.volume);
+      return state();
+    }
+    // unlock(): called from a viewer gesture. Starts the armed sound; does
+    // nothing while muted or already playing.
+    function unlock() {
+      if (!AU.want || AU.on) return AU.on;
+      return setOn(true);
+    }
+    function setVolume(v) {
+      AU.vol = sfxClampVolume(v);
+      if (AU.master) AU.master.gain.value = MASTER * AU.vol;
+      return AU.vol;
+    }
+    // A hidden tab goes quiet (the context is suspended) and picks up again
+    // when the viewer comes back, if sound or music was on.
+    function setHidden(hidden) {
+      AU.hidden = !!hidden;
+      refresh();
+    }
+    // 'muted' (the viewer switched it off), 'armed' (on, waiting for the
+    // first gesture) or 'on'.
+    function state() { return AU.on ? 'on' : AU.want ? 'armed' : 'muted'; }
+    // A store the page reads and writes the setting through: { read() ->
+    // anything sfxPrefParse takes, write(serialized) }. The standalone
+    // replay uses browser storage; storage can be missing or throw (a
+    // private window, blocked site data), and then the setting just isn't
+    // remembered.
+    function localStore() {
+      return {
+        read: function () { try { return window.localStorage.getItem(SFX_PREF_KEY); } catch (e) { return null; } },
+        write: function (v) { try { window.localStorage.setItem(SFX_PREF_KEY, v); } catch (e) { /* not remembered */ } },
+      };
+    }
+    // mount(btn, slider, store): wires the page's sound control. The first
+    // pointer press or key press anywhere starts armed sound (a press on the
+    // mute button itself just mutes); the button toggles and remembers;
+    // the slider sets and remembers the volume.
+    function mount(btn, slider, store) {
+      store = store || localStore();
+      arm(store.read());
+      function save() { store.write(sfxPrefSerialize({ muted: !AU.want, volume: AU.vol })); }
+      function show() {
+        var st = state();
+        btn.textContent = st === 'muted' ? '\u{1F507} Sound off' : '\u{1F50A} Sound on';
+        btn.title = st === 'muted' ? 'Sound is off. Click to switch it on.'
+          : st === 'armed' ? 'Sound is on and starts on your first click or key press. Click to mute.'
+          : 'Sound is on. Click to mute.';
+        btn.setAttribute('aria-pressed', String(st !== 'muted'));
+        btn.setAttribute('data-state', st);
+        if (btn.classList) { btn.classList.toggle('on', st !== 'muted'); btn.classList.toggle('armed', st === 'armed'); }
+        if (slider) slider.disabled = st === 'muted';
+      }
+      function gesture(ev) {
+        if (ev && ev.target && btn.contains && btn.contains(ev.target)) return;
+        // A press on any audio control (marked data-audio-ctl: the effects'
+        // or the music's) only does what that control does; muting one
+        // never starts the other.
+        if (ev && ev.target && ev.target.closest && ev.target.closest('[data-audio-ctl]')) return;
+        if (state() === 'armed') { unlock(); show(); }
+      }
+      if (typeof document !== 'undefined' && document.addEventListener) {
+        document.addEventListener('pointerdown', gesture, true);
+        document.addEventListener('keydown', gesture, true);
+        document.addEventListener('visibilitychange', function () { setHidden(document.visibilityState === 'hidden'); });
+      }
+      btn.addEventListener('click', function () { setOn(state() === 'muted'); save(); show(); });
+      if (slider) {
+        slider.value = String(Math.round(AU.vol * 100));
+        slider.addEventListener('input', function () { setVolume(Number(slider.value) / 100); save(); });
+      }
+      show();
+      return { gesture: gesture, show: show };
+    }
+    var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
+      volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
+      core: core, hold: hold, listen: listen,
+      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, byKind: k }; } };
+    window.__sfx = api;
+    return api;
+  })();
+
+var PACK_FX_SHADERS = JSON.parse(document.getElementById('pack-shaders').textContent);
+
+  // FXGL.layer(host, name, opts): a canvas over host running shader name.
+  // Returns { set(amt), ptr(x, y), stop() }, or null without WebGL (the
+  // caller then adds the CSS stand-in). opts.amt is the starting strength.
+  var FXGL = (function () {
+    var VS = 'attribute vec2 p; void main() { gl_Position = vec4(p, 0.0, 1.0); }';
+    var stats = { compiled: {}, failed: {}, frames: {}, layers: 0, live: 0, fallbacks: {} };
+    window.__packfx = stats;
+    function compile(gl, type, src) {
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { var log = gl.getShaderInfoLog(s); gl.deleteShader(s); throw new Error(log || 'compile failed'); }
+      return s;
+    }
+    function layer(host, name, opts) {
+      opts = opts || {};
+      var src = PACK_FX_SHADERS[name];
+      if (!src) return null;
+      var canvas = document.createElement('canvas');
+      canvas.className = 'fxgl fxgl-' + name;
+      var gl = null;
+      try { gl = canvas.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false, preserveDrawingBuffer: !!opts.readable }); } catch (e) { gl = null; }
+      if (!gl) { stats.fallbacks[name] = (stats.fallbacks[name] || 0) + 1; return null; }
+      var prog;
+      try {
+        prog = gl.createProgram();
+        gl.attachShader(prog, compile(gl, gl.VERTEX_SHADER, VS));
+        gl.attachShader(prog, compile(gl, gl.FRAGMENT_SHADER, src));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog) || 'link failed');
+      } catch (e) {
+        stats.failed[name] = String(e && e.message || e);
+        stats.fallbacks[name] = (stats.fallbacks[name] || 0) + 1;
+        return null;
+      }
+      stats.compiled[name] = true;
+      gl.useProgram(prog);
+      var buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      var loc = gl.getAttribLocation(prog, 'p');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      var U = {};
+      ['u_res', 'u_time', 'u_ptr', 'u_amt', 'u_seed'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+      host.appendChild(canvas);
+      stats.layers++; stats.live++;
+      var amt = opts.amt === undefined ? 1 : opts.amt, px = 0.5, py = 0.5, t0 = performance.now(), raf = 0, alive = true;
+      var seed = opts.seed || 0;
+      function frame(now) {
+        if (!alive) return;
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        var w = Math.max(1, Math.round(canvas.clientWidth * dpr)), h = Math.max(1, Math.round(canvas.clientHeight * dpr));
+        if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+        gl.viewport(0, 0, w, h);
+        gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform2f(U.u_res, w, h);
+        gl.uniform1f(U.u_time, (now - t0) / 1000);
+        // u_ptr is in GL space (y up); the page passes y down.
+        gl.uniform2f(U.u_ptr, px, 1 - py);
+        gl.uniform1f(U.u_amt, amt);
+        gl.uniform1f(U.u_seed, seed);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        stats.frames[name] = (stats.frames[name] || 0) + 1;
+        raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
+      return {
+        canvas: canvas,
+        set: function (a) { amt = a; },
+        get: function () { return amt; },
+        ptr: function (x, y) { px = x; py = y; },
+        stop: function () {
+          if (!alive) return;
+          alive = false; cancelAnimationFrame(raf); stats.live--;
+          var ext = gl.getExtension('WEBGL_lose_context');
+          if (ext) ext.loseContext();
+          if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+        },
+      };
+    }
+    return { layer: layer, stats: stats };
+  })();
+
+
+  // How far a drag across the pack's top has torn it, 0-1: the horizontal
+  // distance over 70% of the pack's width. Dragging back doesn't un-tear.
+  function packTearProgress(prev, x0, x, width) {
+    var p = (x - x0) / Math.max(1, width * 0.7);
+    return Math.max(prev, Math.min(1, Math.max(0, p)));
+  }
+  // What a release on the top card means: a tap (barely moved), a swipe
+  // (moved far enough sideways) or neither (let go mid-drag: snap back).
+  function packGesture(dx, dy, ms) {
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 10 && ms < 600) return 'tap';
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) return dx < 0 ? 'swipeLeft' : 'swipeRight';
+    return 'none';
+  }
+  // A finish's sound tier: small hits lift, big ones climb.
+  function packRiseTier(kind) {
+    return kind === 'gold' || kind === 'secret' || kind === 'zeroDay' || kind === 'prototype' ? 'spectacle' : 'normal';
+  }
+  // The label a finish gets on the summary and in the hint.
+  function packFinishLabel(finish) {
+    return { standard: '', foil: 'FOIL', fullArt: 'FULL ART', altArt: 'ALT ART', glitch: 'GLITCH', secret: 'SECRET', gold: 'GOLD', prototype: 'PROTOTYPE', tournament: 'PRIZE', zeroDay: 'ZERO-DAY' }[finish] || '';
+  }
+  // A small seeded generator for the placeholder art (mulberry32).
+  function packRng(seed) {
+    var a = seed >>> 0;
+    return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  var PACK_FACTION_HUE = { Cortex: 196, Aegis: 24, Swarm: 100, Null: 285, Neutral: 45 };
+  // The placeholder art: a generative frame from the card's own attributes
+  // (DESIGN.md: "driven by card attributes ... explicitly NOT an emoji or
+  // glyph on a flat background"). Faction sets the palette, the card id's
+  // seed the circuit traces and offsets, the type the central motif. 'alt'
+  // is the Alt Art composition (the motif large and off centre, the palette
+  // turned); 'illustration' a painted scene (layered ridges under a
+  // sun disc) for the secret illustrations, until the art pass paints them.
+  function packArtSvg(face, variant) {
+    var rnd = packRng(face.visualSeed * 7919 + face.visualPattern * 104729 + (variant === 'alt' ? 77 : variant === 'illustration' ? 991 : 0));
+    var hue = (PACK_FACTION_HUE[face.faction] || 200) + (face.visualSeed % 40) - 20 + (variant === 'alt' ? 140 : 0);
+    var light = face.faction === 'Neutral' ? 62 : 52;
+    function hsl(h, s, l, a) { return 'hsla(' + Math.round(((h % 360) + 360) % 360) + ',' + s + '%,' + l + '%,' + (a === undefined ? 1 : a) + ')'; }
+    var W = 100, H = 76, out = [];
+    out.push('<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">');
+    out.push('<defs><radialGradient id="g" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="' + hsl(hue, 70, light + 8) + '"/><stop offset="0.55" stop-color="' + hsl(hue + 25, 65, 22) + '"/><stop offset="1" stop-color="' + hsl(hue + 40, 60, 8) + '"/></radialGradient></defs>');
+    out.push('<rect width="' + W + '" height="' + H + '" fill="url(#g)"/>');
+    if (variant === 'illustration') {
+      out.push('<circle cx="' + (30 + rnd() * 40).toFixed(1) + '" cy="' + (18 + rnd() * 10).toFixed(1) + '" r="' + (10 + rnd() * 6).toFixed(1) + '" fill="' + hsl(hue + 180, 90, 75, 0.85) + '"/>');
+      for (var layer = 0; layer < 5; layer++) {
+        var y0 = 34 + layer * 8, amp = 6 + rnd() * 6, fr = 0.05 + rnd() * 0.07, ph = rnd() * 6;
+        var d = 'M0 ' + H + ' L0 ' + y0.toFixed(1);
+        for (var x = 0; x <= W; x += 4) d += ' L' + x + ' ' + (y0 + Math.sin(x * fr + ph) * amp + Math.sin(x * fr * 2.7 + ph) * amp * 0.35).toFixed(1);
+        d += ' L' + W + ' ' + H + ' Z';
+        out.push('<path d="' + d + '" fill="' + hsl(hue + layer * 18, 55, 40 - layer * 6, 0.92) + '"/>');
+      }
+      out.push('</svg>');
+      return out.join('');
+    }
+    // Circuit traces: right-angled runs with a node at each end.
+    var traces = 9 + Math.floor(rnd() * 6);
+    for (var i = 0; i < traces; i++) {
+      var tx = rnd() * W, ty = rnd() * H, pts = [tx.toFixed(1) + ',' + ty.toFixed(1)];
+      for (var k = 0; k < 3; k++) { if (k % 2 === 0) tx += (rnd() - 0.5) * 50; else ty += (rnd() - 0.5) * 40; pts.push(tx.toFixed(1) + ',' + ty.toFixed(1)); }
+      out.push('<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + hsl(hue + 10, 90, 70, 0.35) + '" stroke-width="0.7"/>');
+      out.push('<circle cx="' + tx.toFixed(1) + '" cy="' + ty.toFixed(1) + '" r="1.1" fill="' + hsl(hue, 100, 80, 0.7) + '"/>');
+    }
+    // The pattern axis (cardVisual.ts visualPatternFor): a background texture.
+    var pat = face.visualPattern % 4;
+    if (pat === 0) for (var s = -H; s < W; s += 7) out.push('<line x1="' + s + '" y1="' + H + '" x2="' + (s + H) + '" y2="0" stroke="rgba(0,0,0,0.18)" stroke-width="2"/>');
+    if (pat === 1) for (var s2 = 0; s2 < W + H; s2 += 6) out.push('<line x1="' + s2 + '" y1="0" x2="' + (s2 - H) + '" y2="' + H + '" stroke="rgba(0,0,0,0.16)" stroke-width="1.6"/>');
+    if (pat === 2) for (var gx = 6; gx < W; gx += 12) for (var gy = 6; gy < H; gy += 12) out.push('<circle cx="' + gx + '" cy="' + gy + '" r="1.3" fill="rgba(255,255,255,0.18)"/>');
+    if (pat === 3) for (var g2 = 0; g2 < W; g2 += 10) out.push('<line x1="' + g2 + '" y1="0" x2="' + g2 + '" y2="' + H + '" stroke="rgba(0,0,0,0.14)"/><line x1="0" y1="' + g2 + '" x2="' + W + '" y2="' + g2 + '" stroke="rgba(0,0,0,0.14)"/>');
+    // The motif, by card type.
+    var cx = variant === 'alt' ? 62 + rnd() * 10 : 50, cy = variant === 'alt' ? 44 : 38, R = variant === 'alt' ? 30 : 18;
+    var stroke = hsl(hue, 100, 82), fill = hsl(hue, 80, 60, 0.35);
+    out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (R * 1.5) + '" fill="' + hsl(hue, 100, 70, 0.12) + '"/>');
+    if (face.type === 'Unit') {
+      var hex = [];
+      for (var hI = 0; hI < 6; hI++) { var ang = Math.PI / 3 * hI + Math.PI / 6; hex.push((cx + Math.cos(ang) * R).toFixed(1) + ',' + (cy + Math.sin(ang) * R).toFixed(1)); }
+      out.push('<polygon points="' + hex.join(' ') + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.4"/>');
+      out.push('<circle cx="' + cx + '" cy="' + cy + '" r="' + (R * 0.38).toFixed(1) + '" fill="' + stroke + '"/>');
+    } else if (face.type === 'Command') {
+      var rays = 10, star = [];
+      for (var rI = 0; rI < rays * 2; rI++) { var ra = Math.PI / rays * rI, rr = rI % 2 ? R * 0.42 : R * 1.05; star.push((cx + Math.cos(ra) * rr).toFixed(1) + ',' + (cy + Math.sin(ra) * rr).toFixed(1)); }
+      out.push('<polygon points="' + star.join(' ') + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.2"/>');
+    } else if (face.type === 'Directive') {
+      for (var q = 0; q < 3; q++) { var e = R * (1 - q * 0.3); out.push('<rect x="' + (cx - e).toFixed(1) + '" y="' + (cy - e).toFixed(1) + '" width="' + (2 * e).toFixed(1) + '" height="' + (2 * e).toFixed(1) + '" fill="' + (q === 2 ? stroke : 'none') + '" stroke="' + stroke + '" stroke-width="1.2" transform="rotate(' + (q * 15) + ' ' + cx + ' ' + cy + ')"/>'); }
+    } else if (face.type === 'Tool') {
+      var teeth = [];
+      for (var tI = 0; tI < 24; tI++) { var ta = Math.PI / 12 * tI, tr = tI % 2 ? R * 0.8 : R; teeth.push((cx + Math.cos(ta) * tr).toFixed(1) + ',' + (cy + Math.sin(ta) * tr).toFixed(1)); }
+      out.push('<polygon points="' + teeth.join(' ') + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.2"/><circle cx="' + cx + '" cy="' + cy + '" r="' + (R * 0.35).toFixed(1) + '" fill="#000" stroke="' + stroke + '"/>');
+    } else {
+      // A reserved entry: a redacted block over a breach glyph.
+      out.push('<text x="50" y="44" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-weight="900" font-size="15" fill="#ff2b4a">0-DAY</text>');
+      for (var b = 0; b < 4; b++) out.push('<rect x="' + (14 + rnd() * 20).toFixed(1) + '" y="' + (50 + b * 5) + '" width="' + (30 + rnd() * 40).toFixed(1) + '" height="3" fill="#000"/>');
+    }
+    out.push('</svg>');
+    return out.join('');
+  }
+
+
+(function () {
+  var DATA = JSON.parse(document.getElementById('pack-data').textContent);
+  var TM = JSON.parse(document.getElementById('pack-timings').textContent);
+  var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var stage = document.getElementById('stage'), scene = document.getElementById('scene'), hint = document.getElementById('hint');
+  var counter = document.getElementById('counter'), skipBtn = document.getElementById('skip'), dim = document.getElementById('dim');
+  var zd = document.getElementById('zd'), zdTerm = document.getElementById('zd-term'), announce = document.getElementById('announce');
+  var sparksCanvas = document.getElementById('sparks');
+  var t0 = performance.now();
+  // The page's state, and a log of every beat, for the headless check.
+  // tilt: the card that follows the light (only once it has landed, so a
+  // flip is never pulled off course).
+  var S = { pack: 0, phase: 'shelf', i: 0, busyUntil: 0, revealed: {}, tilt: -1, layers: [], log: [], timers: [] };
+  window.__pack = S;
+  function log(kind, o) { var e = { kind: kind, t: Math.round(performance.now() - t0), pack: S.pack }; for (var k in o) e[k] = o[k]; S.log.push(e); }
+  function later(fn, ms) { var id = setTimeout(fn, REDUCE ? Math.min(ms, 120) : ms); S.timers.push(id); return id; }
+  function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function stopLayers() { S.layers.forEach(function (l) { l.stop(); }); S.layers = []; }
+  function sfx(kind, faction, tier) { if (window.SND) SND.play(kind, faction || 'Neutral', tier || 'normal', null); }
+
+  // ---------- sound ----------
+  SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));
+
+  // ---------- the picker and footer ----------
+  var picker = document.getElementById('picker');
+  DATA.packs.forEach(function (p, i) {
+    var b = document.createElement('button');
+    b.textContent = (i + 1) + '. ' + p.label;
+    b.addEventListener('click', function () { openPack(i); });
+    picker.appendChild(b);
+  });
+  function markPicker() { Array.prototype.forEach.call(picker.children, function (b, i) { b.classList.toggle('on', i === S.pack && S.phase !== 'shelf'); }); }
+  function footer() {
+    var r = DATA.packs[S.pack].reveal;
+    document.getElementById('foot').innerHTML = 'A real opening from the economy store: seed <b>' + r.seed + '</b>, odds <b>' + esc(r.oddsVersion) + '</b>. The reveal only shows what was rolled; nothing on this page rolls anything. Placeholder card art until the art pass.';
+  }
+
+  // ---------- card faces ----------
+  var RAR = { Common: '● Common', Uncommon: '◆ Uncommon', Rare: '★ Rare', Mythic: '✦ Mythic' };
+  function faceHtml(c, opts) {
+    opts = opts || {};
+    var f = c.face, full = c.reveal === 'fullArt' || c.reveal === 'altArt' || c.reveal === 'secret';
+    var variant = c.reveal === 'altArt' ? 'alt' : c.reveal === 'secret' ? 'illustration' : '';
+    var cls = 'face faction-' + f.faction + (opts.settled && full ? ' full' : '') + (opts.settled && c.reveal === 'gold' ? ' goldframe' : '') + (opts.settled && c.reveal === 'glitch' ? ' corrupt' : '') + (opts.settled && c.reveal === 'zeroDay' ? ' zdface' : '') + (c.prototype ? ' proto' : '');
+    var type = f.type === 'Reserved' ? 'Zero-Day · Reserved' : f.type + ' · ' + f.faction;
+    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + esc(DATA.packs[S.pack] ? DATA.packs[S.pack].reveal.setCode : 'S0') + '</span>' : esc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '');
+    var mark = c.reveal === 'altArt' ? 'ALT ART' : c.reveal === 'glitch' ? 'GL1TCH' : c.reveal === 'secret' ? 'SECRET' : c.reveal === 'zeroDay' ? 'ZERO-DAY' : '';
+    return '<div class="' + cls + '">' +
+      '<div class="art">' + packArtSvg(f, variant) + '</div>' +
+      '<div class="head"><span class="name">' + esc(f.name) + '</span>' + (f.cost === null ? '' : '<span class="cost">' + f.cost + '</span>') + '</div>' +
+      (mark ? '<span class="mark">' + mark + '</span>' : '') +
+      '<div class="type"><span>' + esc(type) + '</span><span class="rar">' + RAR[f.rarity] + '</span></div>' +
+      '<div class="text">' + f.text.map(function (t) { return '<p>' + esc(t) + '</p>'; }).join('') + (f.flavor ? '<p class="flav">' + esc(f.flavor) + '</p>' : '') + '</div>' +
+      (f.attack === null ? '' : '<div class="stats"><span class="atk">' + f.attack + '</span><span class="hp">' + f.health + '</span></div>') +
+      (c.prototype ? '<span class="plate' + (opts.settled ? '' : ' pending') + '">' + c.prototype.serial + '/' + c.prototype.runSize + '</span>' : '') +
+      '<div class="foot"><span class="setno"><svg><use href="#setsym"/></svg>' + number + '</span><span>Season 0</span></div>' +
+      '</div>';
+  }
+  function backHtml() { return '<div class="back"><div class="bl">AI·TCG</div><svg class="bs"><use href="#setsym"/></svg></div>'; }
+
+  // ---------- the shelf ----------
+  function shelf() {
+    clearTimers(); stopLayers(); S.phase = 'shelf'; markPicker();
+    skipBtn.hidden = true; counter.textContent = ''; dim.style.opacity = 0;
+    hint.innerHTML = 'Pick a pack to open. Each one is a real opening.';
+    scene.innerHTML = '<div class="shelf">' + DATA.packs.map(function (p, i) { return '<button data-i="' + i + '"><div class="mp"></div>' + (i + 1) + '. ' + esc(p.label) + '</button>'; }).join('') + '</div>';
+    scene.querySelectorAll('.shelf button').forEach(function (b) { b.addEventListener('click', function () { openPack(Number(b.getAttribute('data-i'))); }); });
+    log('shelf', {});
+  }
+
+  // ---------- the sealed pack and the tear ----------
+  function openPack(i) {
+    clearTimers(); stopLayers(); zd.hidden = true; zd.className = 'zd';
+    S.pack = i; S.phase = 'pack'; S.i = 0; S.revealed = {}; S.busyUntil = 0;
+    markPicker(); footer();
+    var r = DATA.packs[i].reveal;
+    skipBtn.hidden = true; counter.textContent = ''; dim.style.opacity = 0;
+    var wrap = '<div class="wrap"><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div><div class="meta">' + r.cards.length + ' CARDS · ' + esc(r.setCode) + '</div><div class="crimp b"></div></div>';
+    scene.innerHTML = '<div class="pack" id="pack" tabindex="0" role="button" aria-label="Sealed Season Zero pack. Drag across the top to tear it open, or tap."><div class="tilt"><div class="half top">' + wrap + '</div><div class="half body">' + wrap + '</div><div class="cutline"><i id="cutp"></i></div><div class="grip"></div><div class="finger"></div></div></div>';
+    hint.innerHTML = 'Drag across the top of the pack to tear it open<br>or tap it';
+    var pack = document.getElementById('pack'), tilt = pack.querySelector('.tilt'), cutp = document.getElementById('cutp');
+    var shimmer = FXGL.layer(tilt, 'pack', { amt: 1, seed: i + 1 });
+    if (shimmer) S.layers.push(shimmer); else pack.classList.add('fx-css-pack');
+    var drag = null, progress = 0;
+    pack.addEventListener('pointermove', function (e) {
+      var rc = pack.getBoundingClientRect();
+      var x = (e.clientX - rc.left) / rc.width, y = (e.clientY - rc.top) / rc.height;
+      if (!drag) tilt.style.transform = 'rotateY(' + ((x - 0.5) * 16).toFixed(1) + 'deg) rotateX(' + ((0.5 - y) * 12).toFixed(1) + 'deg)';
+      if (shimmer) shimmer.ptr(x, y);
+      if (drag && drag.top) {
+        progress = packTearProgress(progress, drag.x0, e.clientX, rc.width);
+        cutp.style.width = (progress * 100) + '%';
+        if (progress >= 1) { drag = null; tear('drag'); }
+      }
+    });
+    pack.addEventListener('pointerdown', function (e) {
+      if (S.phase !== 'pack') return;
+      pack.setPointerCapture && pack.setPointerCapture(e.pointerId);
+      // A drag tears only along the top (the strip above the cut line and a
+      // little below it); a press anywhere else can still be a tap.
+      var prc = pack.getBoundingClientRect();
+      drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), top: (e.clientY - prc.top) / prc.height < 0.32 };
+      pack.classList.add('held');
+      var f = pack.querySelector('.finger'); if (f) f.remove();
+      log('tearStart', {});
+    });
+    pack.addEventListener('pointerup', function (e) {
+      if (!drag) return;
+      var g = packGesture(e.clientX - drag.x0, e.clientY - drag.y0, performance.now() - drag.at);
+      drag = null;
+      if (S.phase !== 'pack') return;
+      if (g === 'tap') autoTear(cutp, 'tap');
+      else if (progress < 1) { pack.classList.remove('held'); }
+    });
+    pack.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); autoTear(cutp, 'key'); } });
+    pack.focus({ preventScroll: true, focusVisible: false });
+    log('packShown', { label: DATA.packs[i].label });
+  }
+  function autoTear(cutp, via) {
+    if (S.phase !== 'pack') return;
+    S.phase = 'tearing';
+    cutp.style.transition = 'width ' + TM.pack.autoTear + 'ms ease-in';
+    cutp.style.width = '100%';
+    later(function () { S.phase = 'pack'; tear(via); }, TM.pack.autoTear);
+  }
+  function tear(via) {
+    if (S.phase !== 'pack') return;
+    S.phase = 'torn';
+    var r = DATA.packs[S.pack].reveal, pack = document.getElementById('pack');
+    pack.classList.add('torn');
+    stopLayers();
+    sfx('tear');
+    hint.innerHTML = '';
+    log('tear', { via: via, sparks: r.sparks, jackpot: r.jackpot });
+    // The honest tell: sparks iff the pack holds a hit.
+    if (r.sparks) {
+      var rc = pack.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+      sparks(rc.left - sr.left, rc.top - sr.top + rc.height * 0.16, rc.width, r.jackpot ? 140 : 90);
+      sfx('sparkle', 'Neutral', 'spectacle');
+      log('sparks', {});
+    }
+    var wait = TM.pack.tear;
+    if (r.jackpot) {
+      later(function () {
+        var b = document.createElement('div'); b.className = 'banner'; b.innerHTML = 'JACKPOT PACK<small>every card Foil or better</small>';
+        stage.appendChild(b); sfx('rise', 'Neutral', 'spectacle'); log('jackpot', {});
+        later(function () { b.remove(); }, TM.pack.jackpotBanner);
+      }, TM.pack.tear * 0.5);
+      wait += TM.pack.jackpotBanner;
+    }
+    later(dealStack, wait);
+  }
+
+  // ---------- sparks ----------
+  var sparkRun = null;
+  function sparks(x, y, w, n) {
+    var ctx = sparksCanvas.getContext('2d');
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    sparksCanvas.width = sparksCanvas.clientWidth * dpr; sparksCanvas.height = sparksCanvas.clientHeight * dpr;
+    var ps = [], cols = ['#ffffff', '#fff1b8', '#f6d77a', '#9fe0ff', '#ffb3ec'];
+    for (var i = 0; i < n; i++) ps.push({ x: x + Math.random() * w, y: y, vx: (Math.random() - 0.5) * 7, vy: -2 - Math.random() * 7, life: 0.6 + Math.random() * 0.7, c: cols[i % cols.length], s: 1 + Math.random() * 2.2 });
+    var start = performance.now(), last = start;
+    if (sparkRun) cancelAnimationFrame(sparkRun);
+    function step(now) {
+      var dt = Math.min(0.05, (now - last) / 1000); last = now;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, sparksCanvas.width, sparksCanvas.height);
+      ctx.globalCompositeOperation = 'lighter';
+      var alive = 0;
+      ps.forEach(function (p) {
+        p.life -= dt; if (p.life <= 0) return; alive++;
+        p.vy += 14 * dt; p.x += p.vx * 60 * dt; p.y += p.vy * 60 * dt;
+        ctx.globalAlpha = Math.min(1, p.life * 1.6);
+        ctx.strokeStyle = p.c; ctx.lineWidth = p.s; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 1.6, p.y - p.vy * 1.6); ctx.stroke();
+      });
+      if (alive && now - start < TM.pack.sparks + 800) sparkRun = requestAnimationFrame(step);
+      else { ctx.clearRect(0, 0, sparksCanvas.width, sparksCanvas.height); sparkRun = null; }
+    }
+    sparkRun = requestAnimationFrame(step);
+  }
+
+  // ---------- the stack ----------
+  function dealStack() {
+    var r = DATA.packs[S.pack].reveal;
+    S.phase = 'cards'; S.i = 0;
+    scene.innerHTML = '<div class="stack" id="stack"></div>';
+    var stack = document.getElementById('stack');
+    // Last card at the bottom, first on top.
+    for (var k = r.cards.length - 1; k >= 0; k--) {
+      var c = r.cards[k];
+      var el = document.createElement('div');
+      el.className = 'cslot rise' + (c.faceDown ? ' down glow' : '');
+      el.setAttribute('data-k', k);
+      el.style.animationDelay = (k * 40) + 'ms';
+      el.innerHTML = '<div class="flipper"><div class="front">' + faceHtml(c, { settled: !c.faceDown }) + '</div>' + backHtml() + '</div>';
+      stack.appendChild(el);
+    }
+    layoutStack();
+    skipBtn.hidden = false;
+    S.busyUntil = performance.now() + TM.pack.rise;
+    later(function () { stack.querySelectorAll('.cslot').forEach(function (e) { e.classList.remove('rise'); }); showTop(); }, TM.pack.rise);
+    bindStack(stack);
+  }
+  function slotEl(k) { return document.querySelector('.cslot[data-k="' + k + '"]'); }
+  function layoutStack() {
+    var r = DATA.packs[S.pack].reveal;
+    for (var k = S.i; k < r.cards.length; k++) {
+      var el = slotEl(k); if (!el) continue;
+      var d = Math.min(4, k - S.i);
+      el.style.zIndex = String(100 - k);
+      el.style.transform = 'translateY(' + (d * 5) + 'px) scale(' + (1 - d * 0.025) + ')';
+    }
+  }
+  function showTop() {
+    var r = DATA.packs[S.pack].reveal, c = r.cards[S.i];
+    counter.textContent = (S.i + 1) + ' / ' + r.cards.length;
+    var slot = c.slot === 'shine' ? '<span class="slot">SHINE SLOT</span><br>' : c.slot === 'bonus' ? '<span class="slot bonus">BONUS 6TH CARD</span><br>' : '';
+    if (c.faceDown && !S.revealed[S.i]) hint.innerHTML = slot + 'Something special… tap to reveal';
+    else hint.innerHTML = slot + (S.i === r.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
+    if (!c.faceDown) { announce.textContent = c.face.name; settleFx(S.i, c); S.tilt = S.i; }
+    log('cardShown', { idx: S.i, faceDown: c.faceDown, finish: c.finish, slot: c.slot, name: c.face.name });
+    sfx('flip', c.face.faction);
+  }
+  function bindStack(stack) {
+    var drag = null;
+    stack.addEventListener('pointerdown', function (e) {
+      if (S.phase !== 'cards') return;
+      var el = slotEl(S.i); if (!el) return;
+      stack.setPointerCapture && stack.setPointerCapture(e.pointerId);
+      drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), el: el };
+    });
+    stack.addEventListener('pointermove', function (e) {
+      var el = slotEl(S.i); if (!el) return;
+      var rc = el.getBoundingClientRect();
+      var x = (e.clientX - rc.left) / rc.width, y = (e.clientY - rc.top) / rc.height;
+      setLight(x, y);
+      var top = DATA.packs[S.pack].reveal.cards[S.i];
+      if (drag && (!top.faceDown || S.revealed[S.i])) {
+        var dx = e.clientX - drag.x0;
+        if (Math.abs(dx) > 10 && canLeave()) { el.classList.add('dragging'); el.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx * 0.05) + 'deg)'; }
+      }
+    });
+    stack.addEventListener('pointerup', function (e) {
+      if (!drag) return;
+      var d = drag; drag = null;
+      d.el.classList.remove('dragging');
+      var g = packGesture(e.clientX - d.x0, e.clientY - d.y0, performance.now() - d.at);
+      act(g === 'swipeRight' ? 'r' : g === 'swipeLeft' ? 'l' : g === 'tap' ? 'tap' : 'none');
+    });
+    stack.addEventListener('pointerleave', function () { setLight(0.5, 0.4); });
+  }
+  function canLeave() { return performance.now() >= S.busyUntil; }
+  // A tap or a swipe on the top card: reveal it if it waits face down,
+  // otherwise send it off (once its reveal has had its moment).
+  function act(how) {
+    if (S.phase !== 'cards') return;
+    var r = DATA.packs[S.pack].reveal, c = r.cards[S.i], el = slotEl(S.i);
+    if (!el) return;
+    if (c.faceDown && !S.revealed[S.i]) { if (how !== 'none' && canLeave()) reveal(S.i); else layoutStack(); return; }
+    if (how === 'none' || !canLeave()) { layoutStack(); return; }
+    leave(how === 'r' ? 'r' : 'l');
+  }
+  function leave(dir) {
+    var r = DATA.packs[S.pack].reveal, el = slotEl(S.i);
+    S.tilt = -1;
+    el.classList.add(dir === 'r' ? 'gone-r' : 'gone-l');
+    log('cardLeft', { idx: S.i, dir: dir });
+    stopLayers();
+    var gone = el; later(function () { gone.remove(); }, 400);
+    S.i++;
+    if (S.i >= r.cards.length) { later(summary, TM.pack.fly + 120); return; }
+    S.busyUntil = performance.now() + TM.pack.fly;
+    layoutStack();
+    later(showTop, TM.pack.fly * 0.6);
+  }
+  document.addEventListener('keydown', function (e) {
+    if (S.phase === 'cards' && (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); act('tap'); }
+    if (S.phase === 'cards' && e.key === 'ArrowLeft') { e.preventDefault(); act('l'); }
+  });
+  skipBtn.addEventListener('click', function () { if (S.phase === 'cards') { log('skip', { at: S.i }); summary(); } });
+
+  // ---------- the light: the pointer, or the device's tilt ----------
+  var light = { x: 0.5, y: 0.4 };
+  function setLight(x, y) {
+    light.x = Math.max(0, Math.min(1, x)); light.y = Math.max(0, Math.min(1, y));
+    S.layers.forEach(function (l) { l.ptr(light.x, light.y); });
+    var el = slotEl(S.i);
+    if (el && S.tilt === S.i && !el.classList.contains('dragging')) {
+      var f = el.querySelector('.flipper');
+      f.style.transform = 'rotateY(' + ((light.x - 0.5) * 14).toFixed(1) + 'deg) rotateX(' + ((0.5 - light.y) * 10).toFixed(1) + 'deg)';
+    }
+  }
+  var tiltAsked = false;
+  function askTilt() {
+    if (tiltAsked) return; tiltAsked = true;
+    var D = window.DeviceOrientationEvent;
+    if (D && typeof D.requestPermission === 'function') D.requestPermission().catch(function () {});
+  }
+  document.addEventListener('pointerdown', askTilt, { once: true });
+  window.addEventListener('deviceorientation', function (e) {
+    if (e.gamma === null || e.beta === null) return;
+    setLight(0.5 + Math.max(-30, Math.min(30, e.gamma)) / 60, 0.5 + Math.max(-30, Math.min(30, e.beta - 35)) / 60);
+  });
+
+  // ---------- the reveals ----------
+  function addLayer(host, name, amt, seed) {
+    var l = FXGL.layer(host, name, { amt: amt, seed: seed });
+    if (l) { l.ptr(light.x, light.y); S.layers.push(l); return l; }
+    host.classList.add('fx-css-' + name);
+    return null;
+  }
+  function wash(color) { var w = document.createElement('div'); w.className = 'wash'; w.style.setProperty('--c', color); stage.appendChild(w); later(function () { w.remove(); }, 900); }
+  function ramp(layer, from, to, ms) {
+    if (!layer) return;
+    var a = performance.now();
+    (function tick() { var p = Math.min(1, (performance.now() - a) / ms); layer.set(from + (to - from) * p); if (p < 1) requestAnimationFrame(tick); })();
+  }
+  // The finish's lasting look on a card already face up (a plain card, or
+  // a card after its reveal).
+  function settleFx(k, c) {
+    var face = slotEl(k) && slotEl(k).querySelector('.front .face');
+    if (!face) return null;
+    if (c.reveal === 'foil' || c.reveal === 'fullArt' || c.reveal === 'altArt' || c.reveal === 'secret') return addLayer(face, 'foil', c.reveal === 'foil' ? 1 : 0.55, k + 1);
+    if (c.reveal === 'gold' || c.reveal === 'prototype') return addLayer(face, 'gold', c.reveal === 'gold' ? 1 : 0.5, k + 1);
+    if (c.reveal === 'glitch') return addLayer(face, 'glitch', 0.18, k + 1);
+    if (c.reveal === 'zeroDay') return addLayer(face, 'zeroDay', 0.75, k + 1);
+    return null;
+  }
+  function reveal(k) {
+    var r = DATA.packs[S.pack].reveal, c = r.cards[k], el = slotEl(k);
+    S.revealed[k] = true;
+    var t = TM.reveal[c.reveal];
+    el.classList.remove('glow');
+    if (c.reveal === 'zeroDay') { zeroDay(k); return; }
+    var front = el.querySelector('.front');
+    // The card turns over showing its plain face first; the finish arrives
+    // as part of the reveal, not before it.
+    front.innerHTML = faceHtml(c, { settled: false });
+    var flipper = el.querySelector('.flipper');
+    flipper.style.transition = 'transform ' + t.flip + 'ms ' + (c.reveal === 'secret' ? 'cubic-bezier(.45,0,.2,1)' : 'cubic-bezier(.3,.6,.3,1)');
+    S.busyUntil = performance.now() + t.flip + t.hold;
+    log('reveal', { idx: k, as: c.reveal, finish: c.finish });
+    announce.textContent = c.face.name + (packFinishLabel(c.finish) ? ', ' + packFinishLabel(c.finish) : '');
+    var face = front.querySelector('.face');
+    if (c.reveal === 'glitch') glitchFlip(el, face, t.flip);
+    if (c.reveal === 'secret') { dim.style.opacity = 0.55; el.style.transition = 'transform ' + t.flip + 'ms cubic-bezier(.45,0,.2,1)'; el.style.transform = 'translateY(-10px) scale(1.06)'; }
+    sfx('flip', c.face.faction);
+    requestAnimationFrame(function () { el.classList.remove('down'); });
+    later(function () { landed(k, c, el, face, t); }, t.flip);
+    hint.innerHTML = (c.slot === 'shine' ? '<span class="slot">SHINE SLOT</span><br>' : c.slot === 'bonus' ? '<span class="slot bonus">BONUS 6TH CARD</span><br>' : '') + packFinishLabel(c.finish);
+  }
+  function landed(k, c, el, face, t) {
+    var tier = packRiseTier(c.reveal);
+    if (c.reveal !== 'glitch') sfx('rise', c.face.faction, tier);
+    if (c.reveal === 'foil') { ramp(addLayer(face, 'foil', 0, k + 1), 0, 1, 500); wash('#bfe3ff'); }
+    if (c.reveal === 'fullArt' || c.reveal === 'altArt') { face.classList.add('full'); ramp(addLayer(face, 'foil', 0, k + 1), 0, 0.55, 900); wash(c.reveal === 'altArt' ? '#ffb3ec' : '#bfe3ff'); }
+    if (c.reveal === 'gold') {
+      face.classList.add('goldframe'); ramp(addLayer(face, 'gold', 0, k + 1), 0, 1, 600); wash('#f6d77a');
+      var rc = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+      sparks(rc.left - sr.left, rc.top - sr.top + rc.height * 0.1, rc.width, 110); sfx('sparkle', 'Neutral', 'spectacle');
+    }
+    if (c.reveal === 'secret') {
+      face.classList.add('full'); ramp(addLayer(face, 'foil', 0, k + 1), 0, 0.55, 900); wash('#ffb3ec');
+      var co = document.createElement('div'); co.className = 'callout'; co.innerHTML = '<b>SECRET ILLUSTRATION</b><span>' + esc(c.collectorNumber) + '</span>';
+      // Above the card when there is room, otherwise over its art window.
+      var crc = el.getBoundingClientRect(), stg = stage.getBoundingClientRect();
+      stage.appendChild(co);
+      var above = crc.top - stg.top - co.offsetHeight - 10;
+      co.style.top = (above >= 6 ? above : crc.top - stg.top + crc.height * 0.24) + 'px';
+      log('callout', { text: c.collectorNumber, above: above >= 6 });
+      later(function () { co.classList.add('out'); dim.style.opacity = 0; el.style.transform = ''; later(function () { co.remove(); }, 500); }, t.hold);
+    }
+    if (c.reveal === 'prototype') {
+      ramp(addLayer(face, 'gold', 0, k + 1), 0, 0.5, 600); wash('#f6d77a');
+      later(function () {
+        var plate = face.querySelector('.plate'); if (plate) { plate.classList.remove('pending'); plate.classList.add('stamp'); }
+        el.classList.add('shake'); sfx('stamp', c.face.faction, 'spectacle'); log('stamp', { serial: c.prototype && c.prototype.serial });
+      }, 220);
+    }
+    S.tilt = k;
+    log('landed', { idx: k, as: c.reveal });
+    hint.innerHTML += '<br>' + (k === DATA.packs[S.pack].reveal.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
+  }
+  // Glitch: the card corrupts as it flips (RGB split, jumping block tears,
+  // scanlines), then settles with a faint glitch loop.
+  function glitchFlip(el, face, ms) {
+    var host = el.querySelector('.front');
+    var r = document.createElement('div'), c = document.createElement('div');
+    r.className = 'ghost r'; c.className = 'ghost c';
+    r.innerHTML = c.innerHTML = face.outerHTML;
+    host.appendChild(r); host.appendChild(c);
+    var gl = addLayer(face, 'glitch', 1, 7);
+    sfx('glitch', 'Null', 'spectacle');
+    var start = performance.now(), flipper = el.querySelector('.flipper');
+    flipper.style.transition = 'none';
+    function band() { var a = Math.random() * 80, b = Math.min(100, a + 4 + Math.random() * 18); return 'inset(' + a.toFixed(0) + '% 0 ' + (100 - b).toFixed(0) + '% 0)'; }
+    (function tick() {
+      var p = (performance.now() - start) / ms;
+      if (p >= 1) {
+        r.remove(); c.remove(); face.classList.add('corrupt'); flipper.style.transform = '';
+        if (gl) gl.set(0.18);
+        glitchLoop(el, face, gl);
+        return;
+      }
+      // A stepped, jumpy turn instead of a smooth one.
+      var stepped = Math.floor(p * 9) / 9;
+      flipper.style.transform = 'rotateY(' + (180 - 180 * stepped).toFixed(0) + 'deg) translateX(' + ((Math.random() - 0.5) * 10).toFixed(1) + 'px)';
+      var off = (1 - p) * 9;
+      r.style.transform = 'translateX(' + (off + Math.random() * 4).toFixed(1) + 'px)';
+      c.style.transform = 'translateX(' + (-off - Math.random() * 4).toFixed(1) + 'px)';
+      r.style.clipPath = band(); c.style.clipPath = band();
+      if (p > 0.45 && !face.classList.contains('corrupt')) face.classList.add('corrupt');
+      setTimeout(tick, 45);
+    })();
+  }
+  function glitchLoop(el, face, gl) {
+    var k = S.i, pack = S.pack;
+    (function burst() {
+      if (S.pack !== pack || S.i !== k || S.phase !== 'cards') return;
+      if (gl) { gl.set(0.85); later(function () { gl.set(0.18); }, 160); }
+      face.style.transform = 'translateX(' + ((Math.random() - 0.5) * 6).toFixed(1) + 'px)';
+      later(function () { face.style.transform = ''; }, 90);
+      later(burst, 2200 + Math.random() * 1200);
+    })();
+  }
+  // Zero-Day: a full-screen takeover. The screen drops to black, a terminal
+  // types "ZERO-DAY DETECTED", a short breach sequence plays, then the
+  // animated card arrives.
+  function zeroDay(k) {
+    var r = DATA.packs[S.pack].reveal, c = r.cards[k], el = slotEl(k), Z = TM.zeroDay;
+    S.busyUntil = Infinity;
+    log('reveal', { idx: k, as: 'zeroDay', finish: c.finish });
+    zd.hidden = false; zd.className = 'zd'; zdTerm.innerHTML = '';
+    requestAnimationFrame(function () { zd.classList.add('on'); });
+    sfx('breach', 'Null', 'spectacle');
+    var bg = null;
+    later(function () {
+      bg = FXGL.layer(zd, 'zeroDay', { amt: 0.15, seed: 3 });
+      if (bg) S.layers.push(bg);
+      var text = 'ZERO-DAY DETECTED', n = 0;
+      var big = document.createElement('span'); big.className = 'big'; zdTerm.appendChild(big);
+      var cur = document.createElement('span'); cur.className = 'cur'; cur.innerHTML = '&nbsp;'; zdTerm.appendChild(cur);
+      (function type() {
+        if (n < text.length) { big.textContent = text.slice(0, ++n); sfx('type', 'Null', 'normal'); later(type, Z.typePerChar); return; }
+        log('zeroDayTyped', { text: big.textContent });
+        breach();
+      })();
+      function breach() {
+        var lines = ['> scanning ' + r.setCode + ' kernel ... ' + c.collectorNumber, '> privilege: ROOT', '> payload: ' + c.face.name.toUpperCase(), '> containment: FAILED'];
+        zd.classList.add('breach'); sfx('breach', 'Null', 'spectacle');
+        ramp(bg, 0.15, 1, Z.breach * 0.6);
+        lines.forEach(function (ln, i) { later(function () { zdTerm.insertBefore(document.createTextNode(ln + '\n'), cur); sfx('type', 'Null', 'normal'); }, i * (Z.breach / 5)); });
+        later(arrive, Z.breach);
+      }
+      function arrive() {
+        log('zeroDayArrive', { idx: k });
+        var front = el.querySelector('.front');
+        front.innerHTML = faceHtml(c, { settled: true });
+        el.classList.remove('down'); el.classList.add('reach');
+        el.style.zIndex = '200';
+        el.style.transition = 'transform ' + Z.arrive + 'ms cubic-bezier(.2,1.3,.4,1)';
+        el.style.transform = 'scale(1.5)';
+        requestAnimationFrame(function () { el.style.transform = 'scale(1)'; });
+        zd.classList.add('fade');
+        stage.classList.add('shake');
+        sfx('rise', 'Null', 'spectacle');
+        settleFx(k, c);
+        later(function () { zd.hidden = true; zd.className = 'zd'; stage.classList.remove('shake'); if (bg) { bg.stop(); } }, 800);
+        S.busyUntil = performance.now() + Z.arrive + TM.reveal.zeroDay.hold;
+        later(function () { el.style.transition = ''; S.tilt = k; }, Z.arrive);
+        announce.textContent = c.face.name + ', Zero-Day';
+        hint.innerHTML = '<span class="slot">SHINE SLOT</span><br>ZERO-DAY<br>' + (k === r.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
+      }
+    }, Z.black);
+  }
+
+  // ---------- the summary ----------
+  function summary() {
+    clearTimers(); stopLayers(); dim.style.opacity = 0;
+    S.phase = 'summary'; skipBtn.hidden = true; counter.textContent = ''; hint.innerHTML = '';
+    var r = DATA.packs[S.pack].reveal;
+    var hits = r.cards.filter(function (c) { return c.hit; }).length;
+    var tiles = r.cards.map(function (c, i) {
+      var lab = packFinishLabel(c.finish);
+      var cap = (lab ? '<span class="fin' + (c.hit ? ' hit' : '') + '">' + lab + '</span><br>' : '') + esc(c.face.name) + '<br>' + esc(c.prototype ? 'serial ' + c.prototype.serial + ' of ' + c.prototype.runSize : c.collectorNumber) + ' · x' + c.ownedAfter + ' owned';
+      return '<div class="tile" style="--i:' + i + '" data-finish="' + c.finish + '">' + (c.isNew ? '<span class="new">NEW</span>' : '') + '<div class="mini">' + faceHtml(c, { settled: true }).replace('class="face ', 'class="face ' + (c.reveal === 'foil' || c.reveal === 'fullArt' || c.reveal === 'altArt' || c.reveal === 'secret' ? 'fx-css-foil ' : c.reveal === 'gold' || c.reveal === 'prototype' ? 'fx-css-gold ' : c.reveal === 'glitch' ? 'fx-css-glitch ' : c.reveal === 'zeroDay' ? 'fx-css-zeroDay ' : '')) + '</div><div class="cap">' + cap + '</div></div>';
+    }).join('');
+    var pity = r.pity.fullArt || r.pity.mythic ? '<div class="sub">' + (r.pity.fullArt ? 'Pity: this pack was due a hit. ' : '') + (r.pity.mythic ? 'Pity: this pack was due a Mythic.' : '') + '</div>' : '';
+    scene.innerHTML = '<div class="summary"><h2>PACK COMPLETE</h2><p class="sub">' + r.cards.length + ' cards · ' + (hits ? hits + ' hit' + (hits > 1 ? 's' : '') : 'no hits') + (r.jackpot ? ' · Jackpot pack' : '') + '</p>' + pity +
+      '<div class="grid">' + tiles + '</div><p class="points">+<b>' + r.packPoints + '</b> pack points</p>' +
+      '<div class="btns"><button class="pri" id="again">Open another</button><button id="done">Done</button></div></div>';
+    document.getElementById('again').addEventListener('click', function () { openPack((S.pack + 1) % DATA.packs.length); });
+    document.getElementById('done').addEventListener('click', shelf);
+    log('summary', { cards: r.cards.map(function (c) { return { name: c.face.name, finish: c.finish, isNew: c.isNew }; }), packPoints: r.packPoints });
+  }
+
+  // ?pack=N opens that pack straight away (1-based); otherwise the shelf.
+  var m = /[?&]pack=(\d+)/.exec(location.search);
+  if (m && DATA.packs[Number(m[1]) - 1]) openPack(Number(m[1]) - 1); else shelf();
+})();
+</script>
+</body>
+</html>

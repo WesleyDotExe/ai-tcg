@@ -2654,3 +2654,79 @@ calls.
 is only seen in tests), or the momentum gauge naming a pending threat (an
 armed telegraph, a stack item). The chase finishes need a pack-opening
 surface first.
+
+---
+
+## 2026-10-17 — Session 24: pack opening, slice 1 (one pack and every finish reveal)
+
+Render session by the alternation rule: the last merged PR (#65) was a game
+slice. Owner feedback read first:
+- 2026-10-18: render session 23's 3 calls kept; **the pack-opening reveal
+  is the render lane's next priority**, ahead of the debt list, in three
+  slices with a checkpoint after each. This is slice 1.
+- 2026-10-18 (answers to game session 40): a render side task, the chosen
+  mode in the match feed. Done alongside.
+- The rest (the Zero-Day cap, the measuring agent) is game-lane work.
+
+**Built:**
+- `render/src/packOpening.ts`: a real `PackOpening` (economy store) becomes
+  a `PackReveal`: the cards in reveal order (slots as rolled, the shine slot
+  5th, a bonus card 6th), each with its printed face (`cardFaceOf`, from the
+  engine registry; a Zero-Day pull shows its reserved entry), its reveal
+  kind, `faceDown` (every finish but Standard) and `hit`; `sparks` = any
+  hit. The proposed timings live here.
+- `render/src/packFx.ts`: five WebGL fragment shaders (foil, gold, glitch,
+  zeroDay, the pack's shimmer) and a small player (`FXGL.layer`) that lays a
+  canvas over an element, follows the light (pointer or device tilt), fades
+  by one number, and says when it can't run, so the page adds a CSS
+  stand-in.
+- `render/src/packPage.ts`: the self-contained page: the shelf and picker,
+  the sealed pack (drag-tear along the top, tap, Enter/Space), the sparks,
+  the Jackpot banner, the stack (tap/swipe, face-down glow, early taps
+  ignored), the eight finish reveals, the Zero-Day takeover, the summary,
+  and the placeholder art generator (`packArtSvg`: faction palette, seeded
+  circuit traces, the pattern axis, a motif by type; an Alt Art composition;
+  a painted-scene composition for the secret illustrations).
+- `render/src/packDemo.ts` (`npm run pack-opening -w @ai-tcg/render`): one
+  owner in an in-memory store opens 10 packs, a seed searched for each
+  (no hit, Foil, Full Art, Alt Art, Glitch, Secret, Gold, Zero-Day,
+  Prototype, a Jackpot with a hit), and writes the page and a transcript.
+- `soundFx.ts`: eight pack sounds in the same recipe table and player
+  (`SFX_PACK_KINDS`); the match sounds are unchanged.
+- **Side task:** `feed.ts` names a mode on play / evolve ("(Outbreak)") and
+  cast (", choosing Wipe"), and the resolve line strips the engine's
+  "(Wipe)" from the card name. `capture.ts abilityTextFor` reads every
+  mode's abilities (`allAbilities`, via `engineInternal.ts`).
+
+**Ran it:**
+- `npm run pack-opening`: the 10 packs in
+  `progress/render/evidence/v2-s24-pack-showcase.txt`.
+- The browser check (`pack-opening-check.mjs`, output in `.txt`): all
+  pass at 1280 x 800 and 390 x 844.
+- The modal feed on the engine's own sample seed (442, Cortex vs Swarm
+  with the 3 Zero-Day cards): 5 mode choices worded, the Wipe's text folded
+  into its resolve line.
+
+**Bugs found while building:**
+- The first browser run "failed" every reveal: my log helper let the
+  payload's `kind` overwrite the event's own kind, so reveals were logged
+  under the finish's name. A logging bug only; renamed the field.
+- The stills showed three visual bugs: a focus ring drew a white box round
+  the pack; the Gold card's footer was dark text on a dark bar; the secret
+  number callout covered the card's name on a phone (now above the card
+  when there is room, over the art otherwise). The Prototype plate covered
+  the last line of text (the text box is shorter on a Prototype now).
+- The feed bugs on modal cards (side task): see notes-for-owner.
+
+**Tests:** render 349 (+22): `packOpening.test.ts` (17: the plan over 400
+real openings, the showcase, the page, the pure helpers, the sounds) and
+`feedModes.test.ts` (5, a real modal match). Mutation: removing the mode
+suffix fails 2; reading `card.abilities` instead of every mode fails 2.
+
+**Named honestly** (in the debt list): no real device, GPU, tilt or ears;
+card swipes checked only as taps; the committed page's ids change on every
+rebuild.
+
+**Next render-lane slice:** slice 2, the ten-pack opening: fast flips with
+skip and speed-up, full reveals only for the big pulls (the store's
+`fullReveal`), and the summary grid.
