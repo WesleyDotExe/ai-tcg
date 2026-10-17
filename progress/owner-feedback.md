@@ -2725,3 +2725,24 @@ Found by render session 21 (PR #60). The render lane worked around both problems
 ### 2. Engine reason text (cosmetic, lower priority)
 - **Problem:** some engine reason strings read badly. For example, "Rombot's Navigator health depleted" is missing its "'s". The feed shows engine text as is.
 - **Change:** fix the sentence templates at the source, or emit the reason as structured data (what happened and to which card) so that the feed and commentary word it. The game lane picks.
+
+
+---
+
+## 2026-10-18 — Owner: answers to session 38 (chase cards: secret list, Glitch tier, S0-odds-2, crafting)
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 38, "Chase cards: the secret list, the Glitch tier and the new odds table"). **Yes on 1–6:** build schema v10, switch `openPack` to S0-odds-2 and add secret crafting, as the check-in describes.
+
+1. **A: the secret list as proposed.** 33 illustrations (every Mythic, 13 Rares, 9 Uncommons, 7 Commons), numbered `193/096` to `225/096`, then Zero-Day at `226/096` to `228/096`.
+2. **A: Zero-Day at about 1 pack in 500**, animated and built in code by the render lane. It counts as a Mythic for the Mythic pity timer. The 3 cards stay empty slots until build-order step 2.
+3. **A: the Glitch tier as proposed.** The 20 listed Units, 4% of packs, the card's own art corrupted in code (no new art), keeping its base number with a glitch mark.
+4. **A: the S0-odds-2 table as proposed.**
+5. **A: build secret crafting next to S0-odds-2, at 750 pack points per secret illustration and 3,000 per Zero-Day card.**
+6. **A: older seasons' packs stay openable.** The season ends the ladder, not the packs.
+7. **Keep all 4 smaller calls:**
+   - Glitch counts as a hit for pity and the 20% target; Foil doesn't.
+   - An illustration plays exactly like its card and can't be salvaged.
+   - A Jackpot pack's other four cards roll Foil or better; secret cards come only in the shine slot.
+   - Secret cards are picked evenly.
+
+**Order:** the session-38 notes say the session after a yes builds schema v10, switches `openPack` and adds crafting. The game lane decides whether that comes before or after the "choose one" mechanic (step 2).
