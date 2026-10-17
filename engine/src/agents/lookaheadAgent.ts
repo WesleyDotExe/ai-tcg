@@ -7,9 +7,8 @@ import type { Ability, Card, EffectSpec, UnitCard, ScalingContext, ScalingSource
 import { resolveAmount } from "../cards/types.js";
 import { Rng } from "../state/rng.js";
 import { hasKeyword } from "../state/queries.js";
-import { SIGNATURE_REPLAY_SURCHARGE } from "../state/init.js";
+import { BOARD_SLOTS, SIGNATURE_REPLAY_SURCHARGE } from "../state/init.js";
 import { findMode, withMode } from "../cards/modes.js";
-import type { CardMode } from "../cards/types.js";
 
 const FACE_DAMAGE_WEIGHT = 2;
 const CARD_ADVANTAGE_WEIGHT = 1.5;
@@ -19,10 +18,30 @@ const ENERGY_WEIGHT = 0.4;
 const DIRECTIVE_TURN_TRIGGER_HORIZON = 2;
 /** How much a Tool prefers a more valuable host — see scorePlayCard. */
 const TOOL_HOST_WEIGHT = 0.1;
-/** A mode's onDeath is worth this share of what it would do on the board
+/** A unit's onDeath is worth this share of what it would do on the board
  * as it stands now: it fires later, if the unit dies at all, on a board
- * that will have changed (see estimateModeAbilities). */
+ * that will have changed (see estimateUnitAbilities). */
 const ON_DEATH_DISCOUNT = 0.5;
+/** How many of its controller's turns an ongoing aura (a buffAllies static)
+ * is expected to stay up — see estimateStaticEffect. Session 41 (owner
+ * 2026-10-18, "value auras over several turns"). */
+const AURA_HORIZON = 3;
+/** The chance an aura's source is still in play on a later turn of that
+ * horizon, per turn (turn k of the horizon counts SURVIVAL^k). */
+const AURA_SURVIVAL = 0.75;
+/** What one of an enemy unit's turns in Stasis is worth, per point of its
+ * attack: the attack (or activation) it can't make that turn, valued as a
+ * non-lethal hit is in exchangeValue (its attack, 1:1). Later turns of a
+ * longer stun count STATUS_DECAY^k each, since the unit may be answered (or
+ * the game over) before then. Before session 41 every status scored 0.6 x
+ * attack whatever its kind or duration; at 0.6 per turn, Kill Switch's
+ * Lights Out (a 2-turn stun of the board) was still picked in 1-4% of casts,
+ * at 1.0 in 35-55%, and the card measured stronger with the agent choosing
+ * (balance-report-028). */
+const STASIS_TURN_WEIGHT = 1.0;
+const STATUS_DECAY = 0.8;
+/** A granted Barrier: the same value a Tool's granted keyword gets. */
+const BARRIER_VALUE = 1.5;
 
 /** Dummy agent #3 (2026-09-20 owner feedback, "fix the instrument before any
  * further balance change"): the other two dummy agents both value a move by
@@ -130,38 +149,39 @@ export class LookaheadAgent implements Agent {
   private scorePlayCard(view: PlayerView, move: Extract<Move, { type: "playCard" }>): number {
     const printed = view.me.hand[move.handIndex];
     if (!printed) return -Infinity;
-    // A modal card is scored as the card its chosen mode makes it (the same
-    // copy the engine plays, cards/modes.ts), plus what the mode adds that
-    // the plain scoring below never reads (see estimateModeAbilities).
+    // A modal card is scored as the card its chosen mode makes it: the same
+    // copy the engine plays (cards/modes.ts), whose abilities are the
+    // printed ones plus the mode's, so a mode is read by the same scoring as
+    // any plain card's abilities.
     const mode = move.mode === undefined ? undefined : findMode(printed, move.mode);
     if (move.mode !== undefined && !mode) return -Infinity;
     const card = mode ? withMode(printed, mode.id) : printed;
-    const modeValue = mode ? this.estimateModeAbilities(view, mode, card) : 0;
-    return this.scorePlayedCard(view, move, card) + modeValue;
+    return this.scorePlayedCard(view, move, card);
   }
 
-  /** What a mode's own abilities are worth that scorePlayedCard doesn't
-   * already count. It counts a Directive's statics and turn triggers and
-   * every card's onPlay; a Unit's statics, onDeath and turn triggers it
-   * never reads (the agent has always valued a unit by body and onPlay, and
-   * changing that would move every measurement taken since session 12). A
-   * modal unit's two modes would then tie on body and the pick would be a
-   * coin flip, not a read of the board, so a mode's own abilities are
-   * valued here, for modal cards only:
-   *   - a static: as a Directive's static is (estimateStaticEffect);
+  /** What a unit's own non-onPlay abilities are worth: its statics, its
+   * onDeath and its turn triggers. One path for every unit, plain or modal
+   * (a modal unit's chosen mode is already among `card.abilities`).
+   * Session 41: before it, a plain unit's statics, onDeath and turn triggers
+   * were worth 0 to this agent, and a modal unit's were valued by a second
+   * path that only modal cards took.
+   *   - a static: estimateStaticEffect, over the aura's horizon;
    *   - an onDeath: what it would do on the board as it is now, discounted;
    *   - a turn trigger: one firing now, times the Directive horizon.
-   * onPlay is skipped (already counted on the moded card) and so is a
-   * Directive's static/turn trigger (already counted there). */
-  private estimateModeAbilities(view: PlayerView, mode: CardMode, card: Card): number {
-    const selfRef: TargetRef = { kind: "player", playerId: view.self };
+   * onAttack/onDamaged triggers are still not read (named in
+   * quality-debt.md). `selfRef` is the unit's own instance when it is
+   * already in play (an evolution), undefined for a unit not yet played;
+   * `skipIds` leaves out abilities the unit already had (an evolution's
+   * base). */
+  private estimateUnitAbilities(view: PlayerView, card: UnitCard, selfRef: TargetRef | undefined, skipIds: ReadonlySet<string> = new Set()): number {
     let value = 0;
-    for (const ability of mode.abilities) {
-      if (ability.trigger === "onPlay") continue;
-      if (card.type === "Directive" && (ability.trigger === "static" || ability.trigger === "onTurnStart" || ability.trigger === "onTurnEnd")) continue;
-      if (ability.trigger === "static" && ability.staticEffect) value += this.estimateStaticEffect(view, ability.staticEffect);
-      else if (ability.trigger === "onDeath") value += this.estimateAbility(view, ability, undefined, undefined) * ON_DEATH_DISCOUNT;
-      else if (ability.trigger === "onTurnStart" || ability.trigger === "onTurnEnd") {
+    for (const ability of card.abilities) {
+      if (skipIds.has(ability.id)) continue;
+      if (ability.trigger === "static" && ability.staticEffect) {
+        value += this.estimateStaticEffect(view, ability.staticEffect, { card, inPlay: selfRef !== undefined });
+      } else if (ability.trigger === "onDeath") {
+        value += this.estimateAbility(view, ability, undefined, undefined) * ON_DEATH_DISCOUNT;
+      } else if (ability.trigger === "onTurnStart" || ability.trigger === "onTurnEnd") {
         value += this.estimateAbility(view, ability, undefined, selfRef) * DIRECTIVE_TURN_TRIGGER_HORIZON;
       }
     }
@@ -199,7 +219,11 @@ export class LookaheadAgent implements Agent {
         // Evolution mutates the base's own instance in place (engine.ts's
         // evolveUnit) — "self" targeting for the evolved form's onPlay
         // means that same, already-real instance.
-        if (onPlay) value += this.estimateAbility(view, onPlay, move.abilityTarget, { kind: "unit", instanceId: evolveTarget.instanceId });
+        const selfRef: TargetRef = { kind: "unit", instanceId: evolveTarget.instanceId };
+        if (onPlay) value += this.estimateAbility(view, onPlay, move.abilityTarget, selfRef);
+        // What the evolved form adds that the base didn't have (an aura, a
+        // death trigger); the base's own abilities are already on the board.
+        if (base) value += this.estimateUnitAbilities(view, card, selfRef, new Set(base.card.abilities.map((a) => a.id)));
       } else {
         value += this.scoreNewUnit(view, card, move.target);
       }
@@ -259,6 +283,7 @@ export class LookaheadAgent implements Agent {
     // the board yet. Non-self targeting (chosen/all/opponent, etc.)
     // is unaffected and scored normally.
     if (onPlay && !card.telegraph) value += this.estimateAbility(view, onPlay, target, undefined);
+    value += this.estimateUnitAbilities(view, card, undefined) * telegraphDiscount;
     return value;
   }
 
@@ -522,11 +547,8 @@ export class LookaheadAgent implements Agent {
         if (target.kind !== "unit") return 0;
         const found = this.findUnit(view, target.instanceId);
         if (!found.unit) return 0;
-        // A rough "a turn or so of that unit's offense denied" estimate —
-        // Stasis/Overload/Barrier all read as "this unit is worth less for
-        // a while," which is the shared shape worth scoring generically.
-        const denial = approxAttack(found.unit) * 0.6;
-        return found.mine ? -denial : denial;
+        const value = statusValue(found.unit, effect);
+        return found.mine ? -value : value;
       }
       case "redirectAttack": {
         const pending = [...view.stack].reverse().find((s): s is Extract<StackItem, { kind: "combatDamage" }> => s.kind === "combatDamage");
@@ -610,27 +632,63 @@ export class LookaheadAgent implements Agent {
     return gain;
   }
 
-  private estimateStaticEffect(view: PlayerView, staticEffect: StaticEffectSpec): number {
+  /** An ongoing static's value at one decision point. `source` is the unit
+   * carrying it (absent for a Directive): `inPlay` false means the unit is
+   * the one being played now, so it isn't on the board yet but will be once
+   * the aura is live.
+   *
+   * buffAllies (session 41, owner 2026-10-18 "value auras over several
+   * turns"): an aura is a buff on every unit it covers for as long as it
+   * stays up, including units that arrive later. It is worth the buff's
+   * size times the units it covers on each of its controller's next
+   * AURA_HORIZON turns, averaged, with turn k counted AURA_SURVIVAL^k (the
+   * source may be gone by then). A side is assumed to add one unit a turn,
+   * up to its free board slots. Before session 41 an aura was worth half
+   * its size times the units in play now, once: a +1/+1 to three units for
+   * the rest of the game scored 3, the same as a one-off +1/+1 to two.
+   *
+   * selfStatFromScaling: the engine overrides the unit's printed stat with
+   * the scaled one (effects/statics.ts), so it is worth the difference from
+   * the printed body (which the caller already counts), as the board is now,
+   * counting the played unit itself. */
+  private estimateStaticEffect(view: PlayerView, staticEffect: StaticEffectSpec, source?: { card: UnitCard; inPlay: boolean }): number {
+    const arriving = source !== undefined && !source.inPlay;
     switch (staticEffect.kind) {
       case "buffAllies": {
-        const affectsMine = staticEffect.filter.side !== "opponent";
-        const affectsTheirs = staticEffect.filter.side !== "controller";
         const magnitude = staticEffect.attack + staticEffect.health;
+        // The average, over the horizon, of the units covered on each turn:
+        // `units` now (the source included when it is a unit on that side),
+        // one more a turn up to `slots`, less the source if it skips itself.
+        const covered = (units: number, slots: number, skipped: number) => {
+          let total = 0;
+          for (let k = 0; k < AURA_HORIZON; k++) total += AURA_SURVIVAL ** k * Math.max(0, Math.min(slots, units + k) - skipped);
+          return total / AURA_HORIZON;
+        };
         let total = 0;
-        if (affectsMine) total += view.me.board.length * magnitude;
-        if (affectsTheirs) total -= view.opponent.board.length * magnitude;
-        // Ongoing, not one-shot — discounted for a single decision point.
-        return total * 0.5;
+        if (staticEffect.filter.side !== "opponent") {
+          const units = view.me.board.length + (arriving ? 1 : 0);
+          const skipped = source !== undefined && staticEffect.excludeSelf ? 1 : 0;
+          total += covered(units, BOARD_SLOTS - view.me.directives.length, skipped) * magnitude;
+        }
+        if (staticEffect.filter.side !== "controller") {
+          total -= covered(view.opponent.board.length, BOARD_SLOTS - view.opponent.directives.length, 0) * magnitude;
+        }
+        return total;
       }
       case "selfStatFromScaling": {
-        const atk = staticEffect.attack ? resolveAmount(staticEffect.attack, this.scalingContext(view)) : 0;
-        const hp = staticEffect.health ? resolveAmount(staticEffect.health, this.scalingContext(view)) : 0;
-        return (atk + hp) * 0.5;
+        const ctx = this.scalingContext(view, arriving);
+        const printed = source?.card;
+        const atk = staticEffect.attack ? resolveAmount(staticEffect.attack, ctx) - (printed?.attack ?? 0) : 0;
+        const hp = staticEffect.health ? resolveAmount(staticEffect.health, ctx) - (printed?.health ?? 0) : 0;
+        return atk + hp;
       }
       case "cardCostModifier": {
         const sign = staticEffect.side === "controller" ? -1 : 1;
         // A flat, rough "worth several future turns of tax/discount"
-        // estimate — this is an ongoing aura, not a one-shot effect.
+        // estimate — this is an ongoing aura, not a one-shot effect. Left
+        // as it was in session 41: measured locked to its mode, Lockout is
+        // the weaker of Root Access's two (balance-report-027), so the agent
+        // doesn't under-read it.
         return sign * staticEffect.amount * 2;
       }
     }
@@ -652,12 +710,15 @@ export class LookaheadAgent implements Agent {
     return { mine: false };
   }
 
-  private scalingContext(view: PlayerView): ScalingContext {
+  /** `arriving`: count a unit being played now (not yet in the view) among
+   * its controller's units. */
+  private scalingContext(view: PlayerView, arriving = false): ScalingContext {
+    const extra = arriving ? 1 : 0;
     return {
       sample: (source: ScalingSource): number => {
         switch (source) {
           case "controllerUnitsInPlay":
-            return view.me.board.length;
+            return view.me.board.length + extra;
           case "opponentUnitsInPlay":
             return view.opponent.board.length;
           case "controllerHandSize":
@@ -667,7 +728,7 @@ export class LookaheadAgent implements Agent {
           case "opponentGraveyardSize":
             return view.opponent.graveyard.length;
           case "allUnitsInPlay":
-            return view.me.board.length + view.opponent.board.length;
+            return view.me.board.length + extra + view.opponent.board.length;
           case "turnNumber":
             return view.turnNumber;
         }
@@ -683,6 +744,45 @@ export class LookaheadAgent implements Agent {
 function sameTarget(a: TargetRef, b: TargetRef): boolean {
   if (a.kind === "player") return b.kind === "player" && a.playerId === b.playerId;
   return b.kind === a.kind && a.instanceId === b.instanceId;
+}
+
+/** What a status costs the unit it lands on, by kind and duration (session
+ * 41, owner 2026-10-18 "stuns by how long they last"). Positive = bad for
+ * the unit's controller, except Barrier, which is negative (it protects).
+ *   - Stasis: the unit's attack for each of its turns it is held, the
+ *     first at STASIS_TURN_WEIGHT, each later one STATUS_DECAY times the
+ *     last. A unit already held only loses the turns past its current
+ *     Stasis (the engine ticks both together and checks "any Stasis").
+ *   - Overload: its end-of-turn damage over its duration, as damage is
+ *     valued (lethal: the whole unit), each later tick decayed.
+ *   - Barrier: one hit absorbed, BARRIER_VALUE, unless it already has one
+ *     (the engine doesn't stack it).
+ * Before session 41 every status scored 0.6 x attack, whatever its kind
+ * or duration, with the sign of a debuff: a Barrier on your own unit
+ * scored below doing nothing. */
+function statusValue(unit: UnitInstance, effect: Extract<EffectSpec, { kind: "applyStatus" }>): number {
+  const turns = effect.duration === "untilConsumed" ? 1 : effect.duration;
+  switch (effect.status) {
+    case "Stasis": {
+      const held = Math.max(0, ...unit.statuses.filter((st) => st.kind === "Stasis").map((st) => (st.duration === "untilConsumed" ? 1 : st.duration)));
+      let value = 0;
+      for (let k = held; k < turns; k++) value += approxAttack(unit) * STASIS_TURN_WEIGHT * STATUS_DECAY ** k;
+      return value;
+    }
+    case "Overload": {
+      const perTick = effect.amount ?? 1;
+      let dealt = 0;
+      let value = 0;
+      for (let k = 0; k < turns; k++) {
+        if (dealt >= approxHealth(unit)) break;
+        dealt += perTick;
+        value += (dealt >= approxHealth(unit) ? unitValue(unit) - (dealt - perTick) : perTick) * STATUS_DECAY ** k;
+      }
+      return value;
+    }
+    case "Barrier":
+      return unit.statuses.some((st) => st.kind === "Barrier") ? 0 : -BARRIER_VALUE;
+  }
 }
 
 function approxHealth(unit: UnitInstance): number {

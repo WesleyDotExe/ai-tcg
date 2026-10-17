@@ -24,15 +24,24 @@
 //
 // Usage (from engine/):
 //   npx tsx src/dev/zeroDayFairness.ts reference --seeds N --out file
-//   npx tsx src/dev/zeroDayFairness.ts candidate --card S0-ZD1 --ref file --out file
+//   npx tsx src/dev/zeroDayFairness.ts candidate --card S0-ZD1 [--force mode] [--patch json] --ref file --out file
 //   npx tsx src/dev/zeroDayFairness.ts report --ref file file...
+//
+// --patch (session 41, tuning to the owner's cap): a JSON object merged into
+// the card for this run only (objects key by key, arrays index by index), to
+// try other numbers without editing the card, e.g. '{"health":3}' or, for
+// Patient Zero's Carrier, '{"modes":[{},{"abilities":[{"staticEffect":{"health":0}}]}]}'.
+// The patched card must pass the Zero-Day lint and count as removal exactly
+// when the designed card does. The stand-in and the cut card stay those of
+// the designed card, so a patch that trims the body is measured against the
+// designed body, not a stand-in trimmed with it.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { measurePairing, FACTIONS, shippedPool, type DeckBuilder, type Pool } from "./edgeMeasure.js";
 import { REFERENCE_SIGNATURE, pairedChange, type PairedChange } from "./signatureFairness.js";
 import { buildDeck } from "../data/decks.js";
 import { ZERO_DAY_CARDS } from "../data/zeroDayCards.js";
-import { isRemovalOrDebuffCard } from "../cards/poolLint.js";
+import { isRemovalOrDebuffCard, zeroDayCardViolations } from "../cards/poolLint.js";
 import { findMode, withMode } from "../cards/modes.js";
 import type { Card, DeckFaction as Faction, UnitCard } from "../cards/types.js";
 
@@ -106,13 +115,27 @@ export function forcedMode(card: Card, modeId: string): Card {
   return plain as Card;
 }
 
+/** `base` with `patch` merged in: objects key by key, arrays index by
+ * index, anything else replaced. */
+export function patched<T>(base: T, patch: unknown): T {
+  if (Array.isArray(base) && Array.isArray(patch)) return base.map((v, i) => (i < patch.length ? patched(v, patch[i]) : v)) as T;
+  if (base && typeof base === "object" && patch && typeof patch === "object" && !Array.isArray(patch)) {
+    const out: Record<string, unknown> = { ...(base as Record<string, unknown>) };
+    for (const [k, v] of Object.entries(patch)) out[k] = k in out ? patched(out[k], v) : v;
+    return out as T;
+  }
+  return patch as T;
+}
+
 /** Plays every pairing involving `holder` (all six when no holder). With
- * `force`, the holder's copy is locked into that mode. */
-async function measure(card: Card, holder: Faction | undefined, seeds: number, force?: string): Promise<Record<string, PairResult>> {
-  const stand = standIn(card);
+ * `force`, the holder's copy is locked into that mode. `base` is the
+ * designed card when `card` is a patched one: the stand-in and the deck
+ * check come from it. */
+async function measure(card: Card, holder: Faction | undefined, seeds: number, force?: string, base: Card = card): Promise<Record<string, PairResult>> {
+  const stand = standIn(base);
   const held = force ? forcedMode(card, force) : card;
   const slots = Object.fromEntries(FACTIONS.map((f) => [f, f === holder ? held : stand])) as Record<Faction, Card>;
-  const b = builders(slots, card);
+  const b = builders(slots, base);
   const out: Record<string, PairResult> = {};
   for (const [i, self] of FACTIONS.entries()) {
     for (const opponent of FACTIONS.slice(i + 1)) {
@@ -173,11 +196,18 @@ async function main(): Promise<void> {
     return;
   }
   if (cmd === "candidate") {
-    const card = ZERO_DAY_CARDS.find((c) => c.id === arg("card"))!;
+    const base = ZERO_DAY_CARDS.find((c) => c.id === arg("card"))!;
     const ref = JSON.parse(readFileSync(arg("ref")!, "utf8")) as { seeds: number };
     const force = arg("force");
-    const out: Record<string, unknown> = { card: card.id, seeds: ref.seeds, ...(force ? { force } : {}) };
-    for (const holder of FACTIONS) out[holder] = await measure(card, holder, ref.seeds, force);
+    const patch = arg("patch") ? (JSON.parse(arg("patch")!) as unknown) : undefined;
+    const card = patch ? patched(base, patch) : base;
+    if (patch) {
+      const lint = zeroDayCardViolations(card);
+      if (lint.length > 0) throw new Error(`patched ${base.name}: ${lint.join("; ")}`);
+      if (isRemovalOrDebuffCard(card) !== isRemovalOrDebuffCard(base)) throw new Error(`patched ${base.name}: the patch changes whether it counts as removal`);
+    }
+    const out: Record<string, unknown> = { card: card.id, seeds: ref.seeds, ...(force ? { force } : {}), ...(patch ? { patch } : {}) };
+    for (const holder of FACTIONS) out[holder] = await measure(card, holder, ref.seeds, force, base);
     writeFileSync(arg("out")!, JSON.stringify(out));
     return;
   }
@@ -186,9 +216,9 @@ async function main(): Promise<void> {
     const files = process.argv.slice(3).filter((a, i, all) => !a.startsWith("--") && all[i - 1] !== "--ref");
     const lines: string[] = [];
     for (const file of files) {
-      const cand = JSON.parse(readFileSync(file, "utf8")) as Record<string, Record<string, PairResult>> & { card: string; seeds: number; force?: string };
+      const cand = JSON.parse(readFileSync(file, "utf8")) as Record<string, Record<string, PairResult>> & { card: string; seeds: number; force?: string; patch?: unknown };
       const card = ZERO_DAY_CARDS.find((c) => c.id === cand.card)!;
-      const how = cand.force ? `LOCKED to ${findMode(card, cand.force)!.name}` : "agent chooses the mode";
+      const how = (cand.force ? `LOCKED to ${findMode(card, cand.force)!.name}` : "agent chooses the mode") + (cand.patch ? `, PATCHED ${JSON.stringify(cand.patch)}` : "");
       lines.push(`${card.name} (${card.id}), ${how}; ${card.cost} energy ${card.type}, ${cand.seeds} seeds per pairing, vs stand-in "${standIn(card).name}" (${standIn(card).attack}/${standIn(card).health} vanilla)`);
       lines.push(`  cut: one copy of ${removalCutFor(card) ? "a removal card" : "a non-removal card"}`);
       let worst = 0;

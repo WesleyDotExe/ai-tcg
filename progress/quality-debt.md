@@ -35,9 +35,49 @@ contents and opening), and session 37 (owners name their agents, more agent-name
 signature ability ids, game-over causes as data, the free first rename, the chase-card proposal),
 and session 39 (the chase cards live: schema v10, S0-odds-2, one roller, secret crafting, the
 binder; Intercept Routine fizzle causes), and session 40 (the generic "choose one" mechanic; the 3
-Zero-Day cards built and measured, not live).
+Zero-Day cards built and measured, not live), and session 41 (the reference agent fixed, the ring
+re-baselined, the Zero-Day cards tuned to the cap).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 41
+
+- **The ring moved and was re-baselined, not fixed.** With the better agent, Aegis no longer beats
+  Cortex in the gate mode (52.2 -> 49.3, a real move further out of its band), and Null ~ Cortex,
+  Aegis ~ Swarm and Cortex > Swarm slipped IN -> UNRESOLVED. No card changed, so this is what the
+  factions were all along under a better player. The baseline was re-recorded as the owner allowed;
+  any balance response is the owner's call (raised in the check-in).
+- **The signature approved list was measured with the old agent.** The new agent now values
+  signature statics and turn triggers (Rally, Inspire, Supply line...) it ignored before. The
+  signature-mode ring passed, but the 14 approved lines' 10,000-game fairness numbers are stale.
+  Re-measure before the next signature change.
+- **The agent still ignores onAttack and onDamaged triggers** (Load Balancer, Corrosive Spitter,
+  Retaliation Node, Feedback Plating, Failover Custodian, Propagating Exploit). Same kind of gap as
+  the one fixed this session, smaller.
+- **A newly played unit's self-targeting onPlay is still worth 0** (Overload Capacitor's drawback,
+  any self-buff on entry): the unit has no instance in the view yet. Named simplification, unchanged.
+- **Aura and stun constants are reasoned, not fitted.** AURA_HORIZON 3, AURA_SURVIVAL 0.75,
+  STATUS_DECAY 0.8 were not distinguishable from nearby values head to head on shipped decks (too few
+  aura/stun cards there). Only STASIS_TURN_WEIGHT was chosen by a measurement (the Kill Switch probe).
+- **The cost aura (Lockout) is still a flat 2.** Left alone on purpose (locked Lockout measured the
+  weaker mode), but it is the one ongoing static not valued over a horizon.
+- **The Zero-Day stand-in for a trimmed body is the designed body.** A body trim (tried, not
+  proposed) is measured against a 2/4 or 3/6 vanilla, not against a vanilla with the trimmed body.
+  That is the right question for "how much stronger than the designed slot", but it is a choice.
+- **Committed evidence no longer regenerates identically** with the new agent: older sample match
+  logs (033 and before) and the render lane's committed replay pages. They stand as history; the
+  render lane should regenerate its showcase pages.
+- **Head-to-head per-faction rows include each faction's own strength** only when read alone; the
+  tool now prints current-vs-other on the same faction to cancel it. Earlier instrument checks
+  (cardAdvantageCheck) still print raw per-faction win rates.
+
+## Session 40 debt, status after session 41
+
+- Agent misreads Zero-Day modes: FIXED (Carrier 68%, Lights Out 44% of casts).
+- Modal scoring as a second path: FIXED (one path).
+- Root Access over the cap / Kill Switch failing the 10% rule: FIXED by the proposed numbers (not
+  live yet). The Zero-Day cards are still not live: waits on the owner.
+- The rest of session 40's list stands.
 
 ## New debt from session 40
 

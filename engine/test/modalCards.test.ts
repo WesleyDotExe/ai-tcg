@@ -116,7 +116,7 @@ describe("modal cards: one legal move per mode", () => {
 });
 
 describe("modal cards: the copy in play carries the chosen mode only", () => {
-  it("Patient Zero, Carrier: your other units get +1/+1, it doesn't, and it has no Outbreak", () => {
+  it("Patient Zero, Carrier: your other units get +1/+0, it doesn't, and it has no Outbreak", () => {
     const state = mainPhase([patientZero]);
     const ally = putUnit(state, "p1", vanilla);
     const enemy = putUnit(state, "p2", vanilla);
@@ -124,7 +124,7 @@ describe("modal cards: the copy in play carries the chosen mode only", () => {
     const pz = state.players.p1.board.find((u) => u.card.id === "S0-ZD1")!;
     expect(pz.card.chosenMode).toBe("carrier");
     expect(pz.card.abilities.map((a) => a.id)).toEqual(["patient-zero-carrier"]);
-    expect([currentAttack(state, ally), currentMaxHealth(state, ally)]).toEqual([3, 3]);
+    expect([currentAttack(state, ally), currentMaxHealth(state, ally)]).toEqual([3, 2]);
     expect([currentAttack(state, pz), currentMaxHealth(state, pz)]).toEqual([2, 4]);
     expect([currentAttack(state, enemy), currentMaxHealth(state, enemy)]).toEqual([2, 2]);
     // Dies: no Outbreak, the enemy is untouched; the graveyard gets the printed card.
@@ -155,16 +155,16 @@ describe("modal cards: the copy in play carries the chosen mode only", () => {
     expect(trigger).toBeDefined();
   });
 
-  it("Root Access, Privilege Escalation: attack is 1 plus every other unit in play, live", () => {
+  it("Root Access, Privilege Escalation: attack is the number of other units in play, live", () => {
     const state = mainPhase([rootAccess]);
     putUnit(state, "p1", vanilla);
     putUnit(state, "p2", vanilla);
     putUnit(state, "p2", vanilla);
     play(state, "privilege-escalation");
     const ra = state.players.p1.board.find((u) => u.card.id === "S0-ZD2")!;
-    expect(currentAttack(state, ra)).toBe(4);
-    state.players.p2.board.pop();
     expect(currentAttack(state, ra)).toBe(3);
+    state.players.p2.board.pop();
+    expect(currentAttack(state, ra)).toBe(2);
     expect(currentMaxHealth(state, ra)).toBe(6);
   });
 

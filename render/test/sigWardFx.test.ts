@@ -75,7 +75,9 @@ describe("which fires get a faction ward", () => {
   });
 
   it("first fire only: Rate Limiter ticks turn after turn but gets one ward, on its first tick", async () => {
-    const r = await match("Cortex", "Aegis", 7);
+    // Seed 12 since game session 41 (the reference agent's fix replayed
+    // seed 7 with 4 ticks).
+    const r = await match("Cortex", "Aegis", 12);
     const ticks = triggers(r, "rate-limiter-tick");
     const fires = flat(signatureFires(r)).filter((f) => f.ability === "rate-limiter-tick");
     expect(ticks.length).toBeGreaterThanOrEqual(5);
@@ -137,11 +139,13 @@ describe("the role comes from what the power did", () => {
   }, 120_000);
 
   it("a Command's ward plays on its stack entry; a unit's on the unit", async () => {
-    const lock = flat(signatureFires(await match("Aegis", "Cortex", 6))).find((f) => f.name === "Lockdown Field")!;
+    // Seed 3 since game session 41 (the reference agent's fix replayed seed
+    // 6 with Lockdown Field holding 2 units, not 6).
+    const lock = flat(signatureFires(await match("Aegis", "Cortex", 3))).find((f) => f.name === "Lockdown Field")!;
     expect(lock.source.kind).toBe("stack");
     expect(lock.owner).toBe("p1");
     expect(lock.faction).toBe("Aegis");
-    expect(lock.targets.length).toBe(6);
+    expect(lock.targets.length).toBe(5);
     const kp = flat(signatureFires(await match("Null", "Cortex", 4))).find((f) => f.name === "Kernel Panic")!;
     expect(kp.source).toEqual({ kind: "unit", instanceId: kp.sourceId });
     expect(kp.ward).toBe(true);

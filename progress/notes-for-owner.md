@@ -1,5 +1,64 @@
 # Notes for the owner
 
+**Updated 2026-10-17, session 41 (your 2026-10-18 answers: fix the agent first, then the cap).**
+Nothing is blocking. One new **[OWNER CHECK-IN]** below: OK to make the 3 Zero-Day cards live at the
+tuned numbers. Evidence: `progress/balance-report-028-agent-fix-zero-day-tuned.txt`,
+`progress/sample-match-034-modal-cards-agent-fix.txt`.
+
+Done:
+- **The measuring agent is fixed, for every card.**
+  - A unit's own auras, death triggers and turn triggers now count, plain or modal, by one rule.
+  - An aura counts over the next 3 turns, including units that arrive later.
+  - A stun counts each turn it holds a unit. Overload counts as its damage.
+  - A bug found on the way: a shield (Barrier) on your own unit used to score as a loss. Fixed.
+  - It is a better player: it beats the old agent by 1.5 points over 64,000 games.
+- **Mode picks now read the board.** Carrier went from 23% to 68% of Patient Zero plays. Lights Out
+  went from 1 cast in 17,967 to 44% of Kill Switch casts.
+- **The ring baseline is re-recorded once, as you allowed.** No card changed; what moved is the
+  better agent:
+  - Aegis no longer beats Cortex in normal play (52.2% -> 49.3%). This is a real move.
+  - Null vs Cortex, Aegis vs Swarm and Cortex vs Swarm moved from "in band" to "unresolved". These
+    moves are within noise.
+  - With the signature cards in their zone, Aegis vs Cortex moved toward its band (75.9% -> 71.5%).
+
+### [OWNER CHECK-IN] The 3 Zero-Day cards: final numbers, and going live
+
+Measured at 10,000 games per pairing with the agent choosing the mode (your cap: at most 4 points on
+any edge, every mode in at least 10% of plays).
+
+| card | at your numbers | proposed change | after |
+|---|---|---|---|
+| Patient Zero | 5.37 points: **over** | Carrier: "Your other units get **+1/+0**" (was +1/+1) | 2.73; Carrier 26%, Outbreak 74% |
+| Root Access | 4.18 points: **over**; Lockout 6.7% for Swarm | Privilege Escalation: "attack equals **the number of** other units" (was 1 plus) | 3.52; Lockout 17-32% per faction |
+| Kill Switch | 3.52; Lights Out 44% | none | passes as designed |
+
+Other trims I measured, not proposed:
+- Patient Zero with a 1/4 body misses the cap by 0.06 (4.06).
+- Patient Zero with a 2/3 body fails (4.45).
+- Patient Zero with Carrier at +0/+1 passes, but it is weaker (2.02).
+- Root Access with a 3/5 body still fails (4.06), and Swarm still plays Lockout only 6.7%.
+
+**Question: go live at these numbers?**
+- **A (default):** yes. The next game session adds the 3 cards to the card list. A pulled copy
+  becomes the real card, and Zero-Day crafting opens at 3,000. An economy test checks both.
+- **B:** use different numbers. Name them, and I measure them the same way first.
+
+**Also for you (no default action):** Aegis vs Cortex. With the better agent, Aegis no longer
+beats Cortex in normal play. Should a later session look at it, or wait for the next set?
+
+**Calls I made (overrule any):**
+1. **A stun turn is worth the unit's full attack** (not 0.6 of it). This is the one constant chosen
+   by measurement: at 0.6 the agent still almost never picked Lights Out.
+2. **A trimmed body is measured against your designed body,** not against a stand-in trimmed the
+   same way. The question is "how much stronger than the card as designed".
+3. **The "10% of plays" rule is checked for each faction separately,** not only overall. Root Access
+   passed overall at your numbers (11.5%) but not for Swarm.
+4. **Render tests:** four render tests replayed games that now go differently. I re-picked their
+   seeds and kept every check. The render lane's committed replay pages were made with the old
+   agent and will look slightly different when regenerated.
+
+---
+
 **Updated 2026-10-17, session 40 (your 2026-10-18 Zero-Day designs; build-order step 2, the "choose
 one" mechanic).** Nothing is blocking. There is one **[OWNER CHECK-IN]** below, with a default: the
 3 Zero-Day cards are built but not live until you agree how they are capped. Evidence:
