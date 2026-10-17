@@ -2888,3 +2888,20 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ### Render lane: small side task
 Show the chosen mode in the match feed, for example "Patient Zero (Outbreak)" or "casts Kill Switch, choosing Wipe", using the mode id and name the engine now puts on play / cast / evolve events (game session 40). Do this as a small side task alongside the pack-opening work. It doesn't replace the pack-opening priority.
+
+
+---
+
+## 2026-10-18 — Owner: answers to render session 24 (pack opening, slice 1)
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` (2026-10-17, "Pack opening, slice 1: one pack and every finish reveal").
+
+**Keep all 6, as built:**
+1. **Keep:** Foil arrives face down too and gets a flip (no sparks, since it isn't a hit).
+2. **Keep:** a Prototype comes 6th, after the shine slot, as its own moment.
+3. **Keep:** Alt Art gets the Full Art growth on its own composition, with a pink wash.
+4. **Keep:** a second tap during a reveal is ignored until the reveal's hold ends. Skip to summary stays available.
+5. **Keep:** the proposed timings, as starting points.
+6. **Keep:** the showcase packs are chosen by seed search, opened and recorded by the store.
+
+Not yet checked on a real phone, with device tilt or by ear. The owner may come back with feel notes on the pace, tilt and sound after trying the page; until then, carry on with slice 2 (the ten-pack opening and its summary grid).
