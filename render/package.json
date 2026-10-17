@@ -11,10 +11,12 @@
     "effect-survey": "tsx src/effectSurvey.ts",
     "feed-transcript": "tsx src/feedTranscript.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "pack-opening": "tsx src/packDemo.ts"
   },
   "dependencies": {
-    "@ai-tcg/engine": "*"
+    "@ai-tcg/engine": "*",
+    "@ai-tcg/economy": "*"
   },
   "devDependencies": {
     "@types/node": "^22.20.2",

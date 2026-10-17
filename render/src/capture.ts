@@ -34,7 +34,7 @@ import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 import { computeMomentum } from "./momentum.js";
 import { avatarSvg } from "./avatar.js";
 import { assignSlots } from "./slotLayout.js";
-import type { Faction, Rarity } from "./engineInternal.js";
+import { allAbilities, type Faction, type Rarity } from "./engineInternal.js";
 import type { CardRef, PlayerIdentity, DirectiveSnapshot, SignatureSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "./types.js";
 
 const MAX_MOVES_SAFETY = 5000;
@@ -277,7 +277,9 @@ export function abilityTextFor(decks: DeckSpec[]): Record<string, string> {
   const text: Record<string, string> = {};
   const from: Record<string, string> = {};
   const add = (card: Card) => {
-    for (const a of card.abilities) {
+    // Every mode's abilities too: a modal card's played copy carries its
+    // chosen mode's, and their triggers name those ids.
+    for (const a of allAbilities(card)) {
       if (a.id in text && text[a.id] !== a.text) {
         throw new Error(`ability id ${a.id} has two rules texts: "${text[a.id]}" (${from[a.id]}) and "${a.text}" (${card.name})`);
       }

@@ -590,3 +590,31 @@ separate from the shared `progress/notes-for-owner.md`).
    was already aimed at Barrier Drone". Nothing more is needed from the
    game lane for fizzles.
 4. **No engine change was made.**
+
+## 2026-10-17 — Session 24 (pack opening, slice 1: one pack and every finish)
+
+1. **The render now reads the economy, read-only.** `render/package.json`
+   depends on `@ai-tcg/economy` (one line in `package-lock.json`). The
+   pack page is built from real `EconomyStore.openPack` results in an
+   in-memory database (`render/src/packDemo.ts`). No economy file was
+   changed, and no data hook was needed from the game lane: `openPack`
+   already returns everything the reveal shows (finish, slot, collector
+   number, NEW, owned count, Prototype serial, secret code, pity, pack
+   points).
+2. **One small ask for the game lane, not blocking:** the store's pack and
+   copy ids are random (`randomUUID`), so the committed
+   `render/output/pack-opening.html` changes its ids every time it is
+   rebuilt, even though the packs are the same. A seedable id source for
+   demos would make it byte-stable. The test compares everything but the ids.
+3. **The 3 Zero-Day cards show their reserved entry**, as you asked, until
+   they go live. When `ZERO_DAY_CARDS` joins the registry, the same page
+   shows the real card with no render change (`cardFaceOf` reads the
+   registry).
+4. **The side task is done:** the match feed names a mode ("plays Patient
+   Zero (Outbreak)", "casts Kill Switch, choosing Wipe"). Building it found
+   two render bugs on modal cards, both fixed: the resolve line named the
+   card "Kill Switch (Wipe)" (so the rules text didn't fold in and an extra
+   "on entry" line appeared), and a mode's own rules text was missing from
+   the feed's text table. No committed replay has a modal card, so none
+   changed.
+5. **No engine change was made.**

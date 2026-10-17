@@ -1,0 +1,64 @@
+Pack-opening showcase (render session 24): real openings through EconomyStore.openPack,
+one owner, a fresh database, odds S0-odds-2. Reveal order; * = a hit (Full Art or better).
+
+No hit: seed 2, +5 pack points, no sparks
+    Common   028/096  Chitin Plating                 Common    standard  face up    NEW
+    Common   026/096  Broodcaller                    Common    standard  face up    NEW
+    Uncommon 052/096  Breach Charge                  Uncommon  standard  face up    NEW
+    Rare     065/096  Tariff Field                   Rare      standard  face up    NEW
+    shine    072/096  Zombie Process                 Common    standard  face up    NEW
+Foil: seed 1, +5 pack points, no sparks
+    Common   001/096  Cortex Engineer                Common    standard  face up    NEW
+    Common   048/096  Bulwark Chassis                Common    standard  face up    NEW
+    Uncommon 095/096  Power Reserve                  Uncommon  standard  face up    NEW
+    Rare     023/096  Retaliation Node               Rare      standard  face up    NEW
+    shine    038/096  Reflex Spike                   Uncommon  foil      face down  NEW
+Full Art: seed 8, +5 pack points, SPARKS
+    Common   067/096  Corruption Patch               Common    standard  face up    NEW
+    Common   027/096  Carapace Grunt                 Common    standard  face up    NEW
+    Uncommon 058/096  Reinforced Bastion             Uncommon  standard  face up    NEW
+    Rare     061/096  Aegis Warden                   Rare      standard  face up    NEW
+  * shine    051/096  Aegis Sentinel                 Uncommon  fullArt   face down  NEW
+Alt Art: seed 81, +5 pack points, SPARKS
+    Common   027/096  Carapace Grunt                 Common    standard  face up    
+    Common   029/096  Colony Broodling               Common    standard  face up    NEW
+    Uncommon 053/096  Failover Custodian             Uncommon  standard  face up    NEW
+    Rare     024/096  Quorum Arbiter                 Mythic    standard  face up    NEW
+  * shine    024/096  Quorum Arbiter                 Mythic    altArt    face down  NEW
+Glitch: seed 15, +5 pack points, SPARKS
+    Common   030/096  Swarm Larva                    Common    standard  face up    NEW
+    Common   030/096  Swarm Larva                    Common    standard  face up    NEW
+    Uncommon 038/096  Reflex Spike                   Uncommon  standard  face up    
+    Rare     065/096  Tariff Field                   Rare      standard  face up    
+  * shine    034/096  Corrosive Spitter              Uncommon  glitch    face down  NEW
+Secret: seed 26, +5 pack points, SPARKS
+    Common   071/096  Stray Fragment                 Common    standard  face up    NEW
+    Common   047/096  Barrier Drone                  Common    standard  face up    NEW
+    Uncommon 008/096  Backup Protocol                Uncommon  standard  face up    NEW
+    Rare     063/096  Latent Ward                    Rare      standard  face up    NEW
+  * shine    217/096  Entropy Harvester              Rare      secret    face down  NEW S0-SR25
+Gold: seed 65, +5 pack points, SPARKS
+    Common   029/096  Colony Broodling               Common    standard  face up    
+    Common   050/096  Plating Module                 Common    standard  face up    NEW
+    Uncommon 060/096  Static Ward Beacon             Uncommon  standard  face up    NEW
+    Rare     022/096  Recursive Construct            Rare      standard  face up    NEW
+  * shine    162/096  Prime Aegis                    Mythic    gold      face down  NEW
+Zero-Day: seed 624, +5 pack points, SPARKS
+    Common   030/096  Swarm Larva                    Common    standard  face up    
+    Common   028/096  Chitin Plating                 Common    standard  face up    
+    Uncommon 094/096  Cache Warmup                   Uncommon  standard  face up    NEW
+    Rare     022/096  Recursive Construct            Rare      standard  face up    
+  * shine    226/096  Zero-Day 1 (not designed yet)  Mythic    zeroDay   face down  NEW S0-ZD1
+Prototype: seed 551, +5 pack points, SPARKS
+    Common   028/096  Chitin Plating                 Common    standard  face up    
+    Common   002/096  Deadlock Detector              Common    standard  face up    NEW
+    Uncommon 037/096  Rally Cry                      Uncommon  standard  face up    NEW
+    Rare     019/096  Mainframe Core                 Rare      standard  face up    NEW
+    shine    070/096  Segfault Handler               Common    standard  face up    NEW
+  * bonus    022/096  Recursive Construct            Rare      prototype face down  serial 1/250 (S0-P12)
+Jackpot: seed 5602, +5 pack points, SPARKS, JACKPOT
+    Common   050/096  Plating Module                 Common    foil      face down  
+    Common   089/096  Rollback Point                 Common    foil      face down  NEW
+    Uncommon 094/096  Cache Warmup                   Uncommon  foil      face down  
+    Rare     022/096  Recursive Construct            Rare      foil      face down  
+  * shine    090/096  Scrap Recycler                 Common    glitch    face down  NEW

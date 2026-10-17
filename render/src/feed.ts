@@ -277,6 +277,9 @@ export function buildFeedWithQuiet(frames: Frame[], ctx: FeedContext): FeedBuild
   let lastTopStack: string | undefined;
   // Declared attacks waiting on the stack, by stack id: attacker, side.
   const attacks = new Map<string, { attacker: string; side: PlayerId }>();
+  // A modal Command's chosen mode, by stack id: the engine names it in the
+  // resolve's description ("Kill Switch (Wipe)"), which isn't a card name.
+  const castModes = new Map<string, string>();
   for (let f = 0; f < frames.length; f++) {
     const frame = frames[f]!;
     const before = f > 0 ? frames[f - 1] : undefined;
@@ -347,7 +350,7 @@ export function buildFeedWithQuiet(frames: Frame[], ctx: FeedContext): FeedBuild
         case "play": {
           const e: FeedEntry = ev.fromSignatureZone
             ? { kind: "action", side: ev.player, tag: "SIGNATURE", parts: [{ player: ev.player }, " plays ", { card: ev.card }, ` from the signature zone for ${ev.cost}`] }
-            : { kind: "action", side: ev.player, parts: [{ player: ev.player }, " plays ", { card: ev.card }] };
+            : { kind: "action", side: ev.player, parts: [{ player: ev.player }, " plays ", { card: ev.card }, ...modeSuffix(ev.modeName)] };
           top(e);
           break;
         }
@@ -356,6 +359,11 @@ export function buildFeedWithQuiet(frames: Frame[], ctx: FeedContext): FeedBuild
           // An activated ability's cast names "Card — rules text".
           const [cardName, abilityText] = splitAbility(ev.card);
           const parts: FeedPart[] = [{ player: ev.player }, ev.sourceId ? " activates " : " casts ", { card: cardName }];
+          // A modal Command names its choice: "casts Kill Switch, choosing Wipe".
+          if (ev.modeName) {
+            parts.push(`, choosing ${ev.modeName}`);
+            if (ev.stackId) castModes.set(ev.stackId, ev.modeName);
+          }
           const tgt = targetPart(ev.targetRef as TargetRefLike | undefined, before);
           if (tgt) parts.push(" at ", tgt);
           const e: FeedEntry = { kind: responding ? "response" : "action", side: ev.player, parts };
@@ -389,9 +397,11 @@ export function buildFeedWithQuiet(frames: Frame[], ctx: FeedContext): FeedBuild
             break;
           }
           // A Command or an activated ability: "Name — text" or "Name".
-          const name = splitAbility(ev.description)[0];
+          const modeName = ev.stackId ? castModes.get(ev.stackId) : undefined;
+          if (ev.stackId) castModes.delete(ev.stackId);
+          const name = withoutMode(splitAbility(ev.description)[0], modeName);
           const castSide = sideOfCast(frames, f, ev.stackId);
-          const e: FeedEntry = { kind: "resolve", parts: [{ card: name }, " resolves"] };
+          const e: FeedEntry = { kind: "resolve", parts: [{ card: name }, ...modeSuffix(modeName), " resolves"] };
           if (castSide) e.side = castSide;
           top(e, ev.stackId);
           resolvedCommand = { name, entry: e };
@@ -435,7 +445,7 @@ export function buildFeedWithQuiet(frames: Frame[], ctx: FeedContext): FeedBuild
           break;
         }
         case "evolve":
-          top({ kind: "action", side: ev.player, parts: [{ player: ev.player }, " evolves ", { card: ev.from }, " into ", { card: ev.to }] });
+          top({ kind: "action", side: ev.player, parts: [{ player: ev.player }, " evolves ", { card: ev.from }, " into ", { card: ev.to }, ...modeSuffix(ev.modeName)] });
           break;
         case "toolAttached":
           top({ kind: "action", side: ev.player, parts: [{ player: ev.player }, " attaches ", { card: ev.tool }, " to ", { card: ev.unit }] });
@@ -524,6 +534,18 @@ function gameOverParts(ev: Extract<GameEvent, { type: "gameOver" }>, frame: Fram
 }
 
 /** "Card — rules text" (an activated ability on the stack) -> [card, text]. */
+/** A modal card's chosen mode after its name: "Patient Zero (Outbreak)". */
+function modeSuffix(modeName: string | undefined): FeedPart[] {
+  return modeName ? [` (${modeName})`] : [];
+}
+
+/** The card's name from a modal Command's stack description: the engine
+ * writes "Kill Switch (Wipe)"; the card is "Kill Switch". */
+function withoutMode(description: string, modeName: string | undefined): string {
+  const suffix = modeName ? ` (${modeName})` : "";
+  return suffix && description.endsWith(suffix) ? description.slice(0, -suffix.length) : description;
+}
+
 function splitAbility(s: string): [string, string | undefined] {
   const at = s.indexOf(" \u2014 ");
   return at < 0 ? [s, undefined] : [s.slice(0, at), s.slice(at + 3)];

@@ -33,3 +33,7 @@ export type { Faction, DeckFaction, Rarity, CardType, Keyword } from "../../engi
 // fallback ward on a real Mythic with no art.
 export { buildSignatureCard } from "../../engine/src/data/signatureMenu.js";
 export type { SignatureSpec } from "../../engine/src/data/signatureMenu.js";
+// Every ability a card prints, its modes' included (a modal card's played
+// copy carries only its chosen mode's): the feed's rules-text table needs
+// the ids a mode's triggers name.
+export { allAbilities } from "../../engine/src/cards/modes.js";

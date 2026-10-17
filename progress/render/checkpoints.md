@@ -7,6 +7,49 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-17 — Pack opening, slice 1: one pack and every finish reveal — AWAITING FEEDBACK
+
+Your 2026-10-18 priority, slice 1 of 3. Open `render/output/pack-opening.html` in a browser (phone or desktop). Every pack on it is a real opening from the economy store (`openPack`, seeded, S0-odds-2); the page only plays back what was rolled.
+
+**What this delivers:**
+- **The pack:** a code-drawn Season Zero pack (crimped foil, logo, set emblem) that bobs, leans toward the pointer and has an idle shimmer (a shader). Drag across the top to tear it: a glowing cut line follows your finger, the strip flies off, the pack drops away. A tap tears it too (and Enter or Space).
+- **The honest tell:** the tear throws sparks exactly when the pack holds a hit (Full Art or better, as pity counts). A Foil pack gets none. Checked over 400 real openings and in the browser on every pack.
+- **The stack:** the cards rise out as a stack. Plain cards are face up and fly off with a tap or a swipe (220 ms). Every other finish arrives face down and glowing; the first tap reveals it, and a second tap during the reveal is ignored, so a hit can't be skipped by accident. The shine slot is always 5th; a Prototype comes 6th, under a "BONUS 6TH CARD" tag. A counter and a "Skip to summary" button are always there.
+- **A reveal for each finish:**
+  - **Foil:** a holo shader (rainbow bands, glints, glare) that follows the pointer or the phone's tilt.
+  - **Full Art:** after the flip, the art window grows to fill the card and the text sits on it.
+  - **Alt Art:** the same growth, on its own composition (motif large and off centre, palette turned).
+  - **Glitch:** the card turns in jerky steps while red and cyan copies of it split apart and block tears jump (12 a second), scanlines over it; it settles corrupted (palette rotated, magenta frame, split name) with a short glitch burst every 2-3 s.
+  - **Secret illustration:** the screen dims, the card turns over slowly (1.9 s) and lifts; it lands as a painted scene, and its number ("217/096") appears large above it under "SECRET ILLUSTRATION".
+  - **Gold:** the frame turns gold, a metal-sheen shader with twinkling stars runs over it, and gold sparks burst.
+  - **Prototype:** a gold wash, then the serial plate ("1/250") stamps in with a thud and a shake; "PROTOTYPE · S0" in gold foil.
+  - **Zero-Day:** the screen drops to black, a terminal types "ZERO-DAY DETECTED", the breach plays (code rain, a red ring pulsing out, four status lines, an alarm), then the card slams in and stays animated, with a red and green glow reaching past its frame. It shows the reserved entry until the 3 cards go live.
+  - **Jackpot:** a gold "JACKPOT PACK" banner before the cards rise.
+- **The summary:** the cards with finish labels, NEW badges, "x2 owned", Prototype serials, pity notes, and the pack points; then "Open another" (the next showcase pack) or "Done" (the shelf of packs).
+- **Sound:** from the game's own sound system (the same player and the same remembered Sound setting): a tear, flip ticks voiced by faction, a rising tone on hits (short for Foil and Full Art, a long climb for Gold, secret, Prototype and Zero-Day), sparkle pings, terminal keys, the breach alarm, the glitch crunch and the plate stamp.
+- **No WebGL?** Each shader has a CSS gradient stand-in, so the page still works.
+- **Side task:** the match feed names a modal card's mode ("p1 plays Patient Zero (Outbreak)", "casts Kill Switch, choosing Wipe", "Kill Switch (Wipe) resolves").
+
+**Evidence:**
+- **The page:** `render/output/pack-opening.html` (`npm run pack-opening -w @ai-tcg/render`). The 10 packs it opens: `progress/render/evidence/v2-s24-pack-showcase.txt`.
+- **Browser check** (`pack-opening-check.mjs` / `.txt`): every pack at 1280 x 800 and 390 x 844, torn by drag or tap, stepped through by taps. All pass: sparks iff a hit; the order; each face-down card got its own reveal; early taps ignored; the Zero-Day text typed; the summary equals the pack; every shader compiled and lit pixels; nothing off screen or scrolling sideways; no page errors.
+- **Stills** (`progress/render/evidence/v2-s24-*.jpg`): the sealed pack, the sparks, every finish, the Zero-Day terminal, breach and card, and summaries, on desktop and phone.
+- **Tests:** render 349 (+22).
+
+**Decisions you may want to overrule:**
+1. **Foil arrives face down too** (every finish but Standard). It isn't a hit, so it throws no sparks, but it gets a flip. The other way: Foil face up, shining as it comes off the stack.
+2. **A Prototype comes 6th, after the shine slot.** You said the shine slot is always last; I read that as last of the five, with the bonus 6th card as its own moment after it.
+3. **Alt Art (your list doesn't name it) gets the Full Art growth on its own composition,** with a pink wash instead of a blue one.
+4. **A second tap during a reveal is ignored** until the reveal's hold ends (0.5 s for Foil, about 1.1-1.4 s for the big ones). It protects the moment, but it can feel slow on a fast thumb. Skip to summary is always there.
+5. **Timings** (proposed, all in `packOpening.ts`): tap-tear 0.42 s; strip 0.65 s; Jackpot banner 1.5 s; cards rise 0.7 s; a plain card leaves in 0.22 s; flips 0.42 s Foil, 0.48 s Full/Alt Art, 0.95 s Glitch, 1.9 s secret, 0.65 s Gold, 0.9 s Prototype; Zero-Day: 0.45 s black, 55 ms a letter, 1.9 s breach, 0.7 s arrival.
+6. **The showcase's packs are chosen by seed search** (the first seed that gives each finish, as the economy's chase demo does). The store opens and records them; nothing is faked. The Jackpot pack is one with a hit in it, so it shows sparks; most Jackpot packs are all Foil.
+
+**Thin spots (named in the debt list):** checked only in headless Chromium with a software GPU; tilt, real phones and sound by ear are untested; the card swipe was checked with taps, not drags; the card art is the placeholder.
+
+**Next:** slice 2, the ten-pack opening and its summary grid.
+
+---
+
 ## 2026-10-17 — The board agrees with the feed; labels shrink with a zoomed row — AWAITING FEEDBACK
 
 A small follow-up to the feed check-ins below. Three loose ends, each named in the render debt list.
