@@ -3,9 +3,10 @@
 //
 // The check runs here, in the game's own server code (the economy store the
 // server calls), never in an outside moderation service. It uses the same
-// blocked-word list and the same checks as generated names
-// (engine/src/data/signatureNames.ts), plus the rules only a typed name
-// needs:
+// blocked-word list and length cap as generated names
+// (engine/src/data/signatureNames.ts), but not their repeated-word check
+// (owner 2026-10-17: typed names may repeat words), plus the rules only a
+// typed name needs:
 //  - 3 to AGENT_NAME_MAX_LENGTH characters: letters, digits, spaces and
 //    simple punctuation (' . - _), starting and ending with a letter or
 //    digit, at least one letter, no punctuation run together ("a..b");
@@ -19,7 +20,7 @@
 // ASCII letters only, on purpose: look-alike letters from other alphabets
 // would let "Аdmin" (Cyrillic A) through the staff check.
 
-import { AGENT_NAME_MAX_LENGTH, blockedWordIn, namingProblem } from "@ai-tcg/engine";
+import { AGENT_NAME_MAX_LENGTH, blockedWordIn } from "@ai-tcg/engine";
 
 export const AGENT_NAME_MIN_LENGTH = 3;
 
@@ -50,9 +51,10 @@ export function customAgentNameProblem(raw: string): string | undefined {
   if (staff) return `an agent name can't pose as staff or the game ("${staff}")`;
   const blocked = blockedWordIn(name);
   if (blocked) return "an agent name can't contain a blocked word";
-  // The generated names' own check: a repeated word, the length cap.
-  const problem = namingProblem(name, AGENT_NAME_MAX_LENGTH);
-  return problem === undefined ? undefined : `an agent name can't do that: ${problem}`;
+  // No repeated-word check: that is for generated names only, where a
+  // repeat reads as a mistake (owner 2026-10-17). An owner may choose "Bit
+  // by Bit" or "Static Static".
+  return undefined;
 }
 
 function staffWordIn(name: string): string | undefined {

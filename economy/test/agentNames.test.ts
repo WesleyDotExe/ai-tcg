@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { AGENT_NAME_MAX_LENGTH } from "@ai-tcg/engine";
+import { AGENT_NAME_MAX_LENGTH, namingProblem } from "@ai-tcg/engine";
 import { AGENT_RENAME_PACK_POINTS, EconomyStore, customAgentNameProblem } from "../src/index.js";
 
 // Owners name their agents (owner 2026-10-16, session 37): free when the
-// agent is created, pack points for any rename after; the name rules run in
+// agent is created, the first rename free too and pack points for every
+// rename after (owner 2026-10-17, option D); the name rules run in
 // the game's own server code; old names stay visible as "formerly ...";
 // an admin can force a rename.
 
@@ -51,11 +52,16 @@ describe("the typed-name rules (server-side, no outside service)", () => {
       ["Mod Squad", /pose as staff/],
       ["Moderator Bot", /pose as staff/],
       ["Shitposter", /blocked word/],
-      ["Static Static", /repeats/],
     ];
     for (const [name, why] of refused) expect(customAgentNameProblem(name), name).toMatch(why);
     // Whole words only for the short ones: ordinary words that contain them pass.
     for (const ok of ["Modem Ghost", "Developing Story", "Gemini"]) expect(customAgentNameProblem(ok), ok).toBeUndefined();
+  });
+
+  it("lets a typed name repeat a word (owner 2026-10-17: that check is for generated names only)", () => {
+    for (const ok of ["Bit by Bit", "Static Static", "Loop Looper"]) expect(customAgentNameProblem(ok), ok).toBeUndefined();
+    // Generated names still refuse a repeat.
+    expect(namingProblem("Static Static", AGENT_NAME_MAX_LENGTH)).toMatch(/repeats/);
   });
 });
 
@@ -93,29 +99,52 @@ describe("naming an agent when it is created (free)", () => {
   });
 });
 
-describe("renaming an agent (pack points)", () => {
-  it(`costs ${AGENT_RENAME_PACK_POINTS} pack points, logs the old name as "formerly", and is refused without the points`, () => {
+describe("renaming an agent (first free, then pack points)", () => {
+  it(`the first rename is free, every later one costs ${AGENT_RENAME_PACK_POINTS} pack points, and old names are "formerly"`, () => {
     const s = store();
     const o = s.createOwner({ name: "o" }).ownerId;
     const { agent, signature } = generate(s, o, 7).made;
     const generated = agent.name;
-    expect(() => s.renameAgent(o, agent.agentId, "Night Owl")).toThrow(`a rename costs ${AGENT_RENAME_PACK_POINTS} pack points; you have 0`);
-
-    withPackPoints(s, o, 40); // 40 packs x 5 = 200 pack points
-    const after = s.renameAgent(o, agent.agentId, "Night Owl");
-    expect(after).toMatchObject({ current: "Night Owl", formerly: [generated] });
+    // Owner 2026-10-17, option D: the first rename costs nothing, with no points at all.
+    expect(s.renamePrice(agent.agentId)).toBe(0);
+    const first = s.renameAgent(o, agent.agentId, "Night Owl");
+    expect(first).toMatchObject({ current: "Night Owl", formerly: [generated] });
     expect(s.getAgent(agent.agentId).name).toBe("Night Owl");
+    expect(first.history.at(-1)).toMatchObject({ kind: "rename", packPoints: 0, byOwnerId: o });
+    expect(s.ledger(o)).toEqual([]);
+
+    // The second is paid, and refused without the points.
+    expect(s.renamePrice(agent.agentId)).toBe(AGENT_RENAME_PACK_POINTS);
+    expect(() => s.renameAgent(o, agent.agentId, "Day Owl")).toThrow(`this rename costs ${AGENT_RENAME_PACK_POINTS} pack points (only the first is free); you have 0`);
+    withPackPoints(s, o, 40); // 40 packs x 5 = 200 pack points
+    const second = s.renameAgent(o, agent.agentId, "Day Owl");
     expect(s.balance(o, "packPoints")).toBe(200 - AGENT_RENAME_PACK_POINTS);
-    const charge = s.ledger(o).find((e) => e.reason === "agentRename")!;
-    expect(charge).toMatchObject({ currency: "packPoints", delta: -AGENT_RENAME_PACK_POINTS });
-    expect(after.history.at(-1)).toMatchObject({ kind: "rename", packPoints: AGENT_RENAME_PACK_POINTS, byOwnerId: o });
+    const charges = s.ledger(o).filter((e) => e.reason === "agentRename");
+    expect(charges).toEqual([expect.objectContaining({ currency: "packPoints", delta: -AGENT_RENAME_PACK_POINTS })]);
+    expect(second.history.at(-1)).toMatchObject({ kind: "rename", packPoints: AGENT_RENAME_PACK_POINTS, byOwnerId: o });
+    expect(second).toMatchObject({ current: "Day Owl", formerly: ["Night Owl", generated] });
 
     // The signature card keeps its name.
     expect(s.signatureCard(agent.agentId)!.card).toMatchObject({ name: signature.card.name, flavor: signature.card.flavor });
-    // A second rename; both old names listed, newest first.
-    s.renameAgent(o, agent.agentId, "Day Owl");
-    expect(s.agentNames(agent.agentId)).toMatchObject({ current: "Day Owl", formerly: ["Night Owl", generated] });
-    expect(() => s.renameAgent(o, agent.agentId, "Dusk Owl")).toThrow(/you have 0/);
+    // A third rename pays again; then the points run out.
+    s.renameAgent(o, agent.agentId, "Dusk Owl");
+    expect(s.balance(o, "packPoints")).toBe(0);
+    expect(() => s.renameAgent(o, agent.agentId, "Dawn Owl")).toThrow(/you have 0/);
+  });
+
+  it("the free rename is per agent, and an admin's force-rename doesn't use it up", () => {
+    const s = store();
+    const admin = s.createAccount({ name: "House", username: "house", password: PW, isAdmin: true }).ownerId;
+    const o = s.createAccount({ name: "o", username: "owner-o", password: PW }).ownerId;
+    const one = generate(s, o, 41).made.agent;
+    s.forceRenameAgent(admin, one.agentId, { reason: "reported", seed: 9 });
+    expect(s.renamePrice(one.agentId)).toBe(0);
+    s.renameAgent(o, one.agentId, "Night Owl");
+    expect(s.renamePrice(one.agentId)).toBe(AGENT_RENAME_PACK_POINTS);
+    const two = generate(s, o, 42).made.agent;
+    expect(s.renamePrice(two.agentId)).toBe(0);
+    expect(s.renameAgent(o, two.agentId, "Day Owl").current).toBe("Day Owl");
+    expect(s.ledger(o)).toEqual([]);
   });
 
   it("an old name stays reserved for its agent: no one else may take it, the agent may take it back", () => {

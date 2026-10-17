@@ -269,8 +269,9 @@ export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
 /** Every ability's rules text, keyed by card name and ability id
  * (feed.ts abilityKey): the set's cards and both decks' cards, signature
  * cards included (they are generated, not in the set). Not by id alone:
- * generated signature cards share ids with different numbers ("sig-recycle"
- * is "Draw 2 cards." on one card and "Draw 3 cards." on another). */
+ * before game session 38 generated signature cards shared ids with
+ * different numbers ("sig-recycle" was "Draw 2 cards." on one card and
+ * "Draw 3 cards." on another), and replays recorded then still carry them. */
 export function abilityTextFor(decks: DeckSpec[]): Record<string, string> {
   const text: Record<string, string> = {};
   const add = (card: Card) => {

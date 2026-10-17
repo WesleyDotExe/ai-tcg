@@ -436,7 +436,13 @@ function describeStackItem(item: StackItem): string {
 function resolveCombatDamage(state: GameState, item: Extract<StackItem, { kind: "combatDamage" }>, rng: Rng): void {
   const attacker = state.players[item.controller].board.find((u) => u.instanceId === item.attackerInstanceId);
   if (!attacker) {
-    state.log.push({ type: "fizzle", reason: `${item.attackerName}'s attack fizzles — the attacker is no longer in play` });
+    state.log.push({
+      type: "fizzle",
+      reason: `${item.attackerName}'s attack fizzles — the attacker is no longer in play`,
+      cause: "attackerGone",
+      attacker: item.attackerName,
+      attackerId: item.attackerInstanceId,
+    });
     return;
   }
   const attackerPower = currentAttack(state, attacker);
@@ -447,7 +453,13 @@ function resolveCombatDamage(state: GameState, item: Extract<StackItem, { kind: 
   }
   const defenderFound = findUnit(state, item.target.instanceId);
   if (!defenderFound) {
-    state.log.push({ type: "fizzle", reason: `${attacker.card.name}'s attack fizzles — its target is no longer in play` });
+    state.log.push({
+      type: "fizzle",
+      reason: `${attacker.card.name}'s attack fizzles — its target is no longer in play`,
+      cause: "targetGone",
+      attacker: attacker.card.name,
+      attackerId: attacker.instanceId,
+    });
     return;
   }
   const defenderPower = currentAttack(state, defenderFound.unit);
@@ -583,10 +595,10 @@ function resolveTurnCapTiebreak(state: GameState): void {
   const { p1, p2 } = state.players;
   if (p1.health === p2.health) {
     state.winner = "draw";
-    state.log.push({ type: "gameOver", winner: "draw", reason: "turn cap reached, health tied" });
+    state.log.push({ type: "gameOver", winner: "draw", reason: "turn cap reached, health tied", cause: { kind: "turnCap", tied: true } });
   } else {
     const winner: PlayerId = p1.health > p2.health ? "p1" : "p2";
     state.winner = winner;
-    state.log.push({ type: "gameOver", winner, reason: "turn cap reached, ahead on health" });
+    state.log.push({ type: "gameOver", winner, reason: "turn cap reached, ahead on health", cause: { kind: "turnCap", tied: false } });
   }
 }

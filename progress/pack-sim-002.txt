@@ -1,0 +1,69 @@
+AI-TCG chase-card simulation (session 38): S0-odds-1 (live) against S0-odds-2 (PROPOSED, not live)
+Set S0: 96 cards; S0-odds-2 adds 33 secret illustrations, 3 Zero-Day slots and 20 Glitch versions.
+Command (from economy/): npx tsx src/dev/packSimulation2.ts. S0-odds-1 packs are rollPack (what openPack uses today);
+S0-odds-2 packs are rollPackV2 (economy/src/chase.ts), the same pack shape with the proposed shine slot.
+"Hit" = Full Art or better. S0-odds-1: fullArt, altArt, gold, prototype. S0-odds-2: fullArt, glitch, altArt, gold, secret, zeroDay, prototype.
+
+1. Rates against 400,000 simulated packs per table (pity off: the base odds)
+
+   shine slot                 S0-odds-1 set    measured     S0-odds-2 set    measured
+   Standard                   56.00%           56.025%      53.6%            53.611%
+   Foil                       30.00%           30.010%      28%              28.050%
+   Full Art                   10.00%           10.008%      9%               8.947%
+   Glitch (new)               -                -            4%               4.003%
+   Alt Art                    3.33%            3.275%       3%               3.005%
+   Secret illustration (new)  -                -            1.5%             1.476%
+   Gold                       0.67%            0.682%       0.7%             0.701%
+   Zero-Day (new)             -                -            0.2%             0.206%
+
+   S0-odds-1: a hit in 14.08% of packs (pity off); Jackpot 1 in 2,062; Prototype bonus 1 in 1,013; any Mythic in 15.59%.
+   S0-odds-2: a hit in 18.43% of packs (pity off); Jackpot 1 in 2,062; Prototype bonus 1 in 1,008; any Mythic in 17.73%.
+   S0-odds-2 Zero-Day: 1 in 485 packs overall (target about 1 in 500); each card: S0-ZD1 1 in 1,423, S0-ZD2 1 in 1,521, S0-ZD3 1 in 1,429 (target about 1 in 1,500).
+   S0-odds-2 base hit rate as set: 18.4% of shine slots, before pity and the Prototype bonus.
+
+2. Where the special versions land (owner item 4: "on chosen cards people want, rather than mostly on Commons"), 400,000 packs each
+
+   finish        table       Common  Uncommon      Rare    Mythic   distinct cards
+   fullArt       S0-odds-1      59.8%     25.3%     12.1%      2.9%   96
+   fullArt       S0-odds-2       0.0%     39.9%     45.1%     15.0%   65
+   glitch        S0-odds-2      24.9%     24.5%     29.6%     21.0%   20
+   altArt        S0-odds-1       0.0%      0.0%     79.9%     20.1%   25
+   altArt        S0-odds-2       0.0%      0.0%     74.8%     25.2%   25
+   secret        S0-odds-2      21.7%     26.0%     39.9%     12.4%   33
+   gold          S0-odds-1      58.8%     25.3%     12.5%      3.4%   96
+   gold          S0-odds-2       0.0%      0.0%     68.8%     31.2%   25
+   (Secret illustrations show the rarity of the card they illustrate. Foil stays on any card, as before.)
+
+3. Pity per owner: 2,000 owners x 120 packs, timers carried pack to pack as openPack does
+
+   S0-odds-1: a hit in 17.25% of packs (target about 20%); hit pity fired in 3.59%, Mythic pity in 0.011%; longest dry run 10 (the timer guarantees 10 at most).
+   S0-odds-2: a hit in 20.66% of packs (target about 20%); hit pity fired in 2.51%, Mythic pity in 0.004%; longest dry run 10 (the timer guarantees 10 at most).
+
+4. Packs to complete each goal, opening packs only (400 simulated owners, pity on, no crafting; capped at 60,000 packs)
+   Months assume a dedicated owner at ~2.4 packs a day (ECONOMY.md "Earning": ~1.4 from credits plus the daily pack).
+
+   goal                                              median      10th      90th   median months
+   base set (every card, any version) S0-odds-1         134        97       193             1.8
+   base set (every card, any version) S0-odds-2         130        97       195             1.8
+   33 secret illustrations                             7593      5349     11411           104.1
+   20 Glitch versions                                  1504       967      2336            20.6
+   3 Zero-Day cards                                    1950       793      4420            26.7
+   one Zero-Day card (any of the 3)                     314        47      1048             4.3
+
+   Opening packs alone, the secret illustrations take years: 33 entries at 1.5% of packs is about 1 pack in
+   2,200 for any one illustration, and the last few are the slow ones (the coupon collector's tail). The
+   rate alone can't make 'months': halving the time needs about twice the rate, which would push hits
+   past the 20% target. Section 5 measures the lever the benchmark uses: crafting with pack points.
+
+5. A dedicated owner who salvages and crafts (200 owners per option, pity on, S0-odds-2; capped at 20,000 packs)
+   Each pack pays 5 pack points; every standard copy beyond the playable limit (3/3/2/1) is salvaged (5/10/30/100 by rarity);
+   missing base cards are crafted at 40/80/250/800, cheapest missing thing first, then secret cards at the price shown.
+   'Master set' = base set + the 33 illustrations; 'full set' = master set + the 3 Zero-Day cards. Glitch is its own checklist.
+
+   option                              base set      master set (months)        full set (months)
+   no secret crafting                        57        7560 (103.6)              7560 (103.6)
+   secret 1,500 / Zero-Day 5,000             58         652 (8.9)               782 (10.7)
+   secret 1,000 / Zero-Day 5,000             57         480 (6.6)               619 (8.5)
+   secret 750 / Zero-Day 3,000               57         383 (5.2)               480 (6.6)
+   secret 500 / Zero-Day 2,500               58         283 (3.9)               365 (5.0)
+

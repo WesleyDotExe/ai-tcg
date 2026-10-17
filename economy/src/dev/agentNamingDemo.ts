@@ -1,10 +1,13 @@
-// Evidence for owners naming their agents (owner 2026-10-16, session 37).
+// Evidence for owners naming their agents (owner 2026-10-16, session 37;
+// the owner's 2026-10-17 answers, session 38: the first rename is free, and
+// typed names may repeat a word).
 //
-//   npx tsx src/dev/agentNamingDemo.ts > ../progress/economy-demo-007.txt
+//   npx tsx src/dev/agentNamingDemo.ts > ../progress/economy-demo-008.txt
 //
 // In a real database file: an owner keeps a generated name, another types
-// one at creation (free); the typed-name rules refuse what they should; a
-// rename costs pack points earned by opening packs; match history shows
+// one at creation (free); the typed-name rules refuse what they should; the
+// first rename is free and every later one costs pack points earned by
+// opening packs; match history shows
 // the current name and "formerly ..."; an admin force-renames a bad name,
 // which is never shown again and stays reserved; the file is closed and
 // reopened and the schema itself refuses unlogged renames.
@@ -35,10 +38,11 @@ const tryIt = (what: string, fn: () => unknown) => {
 };
 const shown = (n: AgentNames) => (n.formerly.length > 0 ? `${n.current} (formerly ${n.formerly.join(", ")})` : n.current);
 
-say("# Owners name their agents (session 37)");
+say("# Owners name their agents (session 37; session 38: first rename free, typed names may repeat a word)");
 say(`database: <temp>/season-0.db  schema v${store.schemaVersion}  season ${store.season}`);
 say(`rules: ${3}-${AGENT_NAME_MAX_LENGTH} characters; letters, digits, spaces and ' . - _; unique without case; old names reserved;`);
-say(`       no staff or game impersonation; never another owner's username; the blocked-word list; a rename costs ${AGENT_RENAME_PACK_POINTS} pack points`);
+say(`       no staff or game impersonation; never another owner's username; the blocked-word list;`);
+say(`       the first rename is free, every later one costs ${AGENT_RENAME_PACK_POINTS} pack points`);
 say();
 
 const admin = store.createAccount({ name: "House admin", username: "house", password: PW, isAdmin: true }).ownerId;
@@ -65,7 +69,11 @@ tryIt(`"AI-TCG Official"`, () => store.confirmAgentDraft(bo, b1.d.draftId, 0, { 
 tryIt(`"TheRealAdmin"`, () => store.confirmAgentDraft(bo, b1.d.draftId, 0, { name: "TheRealAdmin" }));
 tryIt(`"Аdmin" (a Cyrillic A)`, () => store.confirmAgentDraft(bo, b1.d.draftId, 0, { name: "Аdmin" }));
 tryIt(`"Shitposter"`, () => store.confirmAgentDraft(bo, b1.d.draftId, 0, { name: "Shitposter" }));
-tryIt(`"Static Static"`, () => store.confirmAgentDraft(bo, b1.d.draftId, 0, { name: "Static Static" }));
+for (const ok of ["Static Static", "Bit by Bit"]) {
+  // Checked without confirming, so Bo's draft stays open for the name below.
+  const problem = store.agentNameProblem(bo, ok);
+  say(`  "${ok}" (a repeated word; generated names never do this): ${problem === undefined ? "allowed for a typed name" : `refused — ${problem}`}`);
+}
 tryIt(`"Hi"`, () => store.confirmAgentDraft(bo, b1.d.draftId, 0, { name: "Hi" }));
 tryIt(`"a..b"`, () => store.confirmAgentDraft(bo, b1.d.draftId, 0, { name: "a..b" }));
 const boMade = store.confirmAgentDraft(bo, b1.d.draftId, 0, { name: "  Night   Owl " });
@@ -77,8 +85,13 @@ say(`    shown in the draft: "${b1.sig.flavor}"`);
 say(`    printed:            "${boMade.signature.card.flavor}"`);
 say();
 
-say("## 2. A rename costs pack points");
-tryIt(`Bo renames to "Day Owl" with 0 pack points`, () => store.renameAgent(bo, boAgent.agentId, "Day Owl"));
+say("## 2. The first rename is free; every later one costs pack points");
+say(`  Bo has ${store.balance(bo, "packPoints")} pack points; the next rename costs ${store.renamePrice(boAgent.agentId)}`);
+tick();
+let names = store.renameAgent(bo, boAgent.agentId, "Day Owl");
+say(`  renamed for free: ${shown(names)} (logged as ${names.history.at(-1)!.kind}, ${names.history.at(-1)!.packPoints} pack points; Bo's ledger has ${store.ledger(bo).length} entries)`);
+say(`  the next rename costs ${store.renamePrice(boAgent.agentId)}`);
+tryIt(`Bo renames to "Dusk Owl" with 0 pack points`, () => store.renameAgent(bo, boAgent.agentId, "Dusk Owl"));
 for (let i = 0; i < 25; i++) store.grantPack(bo, "S0", "weeklyChallenge");
 tick();
 store.openPacks(bo, 10, { seeds: Array.from({ length: 10 }, (_, i) => i) });
@@ -86,11 +99,11 @@ store.openPacks(bo, 10, { seeds: Array.from({ length: 10 }, (_, i) => 10 + i) })
 for (let i = 0; i < 5; i++) store.openPack(bo, undefined, { seed: 20 + i });
 say(`  Bo opens 25 packs: ${store.balance(bo, "packPoints")} pack points (${PACK_POINTS_PER_PACK} a pack)`);
 tick();
-let names = store.renameAgent(bo, boAgent.agentId, "Day Owl");
+names = store.renameAgent(bo, boAgent.agentId, "Dusk Owl");
 say(`  renamed: ${shown(names)}; pack points left ${store.balance(bo, "packPoints")}`);
 const charge = store.ledger(bo).find((e) => e.reason === "agentRename")!;
 say(`  ledger: ${charge.delta} ${charge.currency} "${charge.reason}" ref ${charge.ref}`);
-tryIt(`a second rename with ${store.balance(bo, "packPoints")} pack points`, () => store.renameAgent(bo, boAgent.agentId, "Dusk Owl"));
+tryIt(`a third rename with ${store.balance(bo, "packPoints")} pack points`, () => store.renameAgent(bo, boAgent.agentId, "Dawn Owl"));
 tryIt(`Ada renames Bo's agent`, () => store.renameAgent(ada, boAgent.agentId, "Stolen Owl"));
 tryIt(`Ada's agent takes the name "night owl" (Bo's old one)`, () => {
   const d = draft(ada, 300);

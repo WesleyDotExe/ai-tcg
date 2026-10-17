@@ -91,9 +91,9 @@ export const PACK_ODDS = {
   pity: { fullArtAfter: 10, mythicAfter: 40 },
 } as const;
 
-/** Pack points a rename costs once the agent exists (owner 2026-10-16:
- * naming is free at creation, any rename after that costs pack points; the
- * price is the game lane's proposal, session 37). 100 sits between crafting
- * an Uncommon (80) and a Rare (250): about 20 packs' worth from opening
- * alone, so a rename is a choice, not a whim. */
+/** Pack points each rename after an agent's first costs (owner 2026-10-17,
+ * option D: naming at creation and the first rename are free, every rename
+ * after that costs this; the price is session 37's proposal, kept). 100
+ * sits between crafting an Uncommon (80) and a Rare (250): about 20 packs'
+ * worth from opening alone, so a rename is a choice, not a whim. */
 export const AGENT_RENAME_PACK_POINTS = 100;

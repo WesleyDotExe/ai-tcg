@@ -12,6 +12,7 @@ export type {
   DirectiveInstance,
   StackItem,
   GameEvent,
+  GameOverCause,
   SignatureZone,
 } from "./state/types.js";
 export { otherPlayer } from "./state/types.js";
@@ -51,6 +52,8 @@ export {
   parseSignatureComboId,
   signatureFingerprint,
   signatureSpecProblem,
+  legacySignatureAbilityId,
+  upgradeSignatureAbilityId,
   type SignatureSpec,
   type SignatureTier,
 } from "./data/signatureMenu.js";

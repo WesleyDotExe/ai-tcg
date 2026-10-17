@@ -31,9 +31,37 @@ signature menu and its fairness test), and session 33 (the tuner's size and cost
 Bulwark, the unsellable signature card), and session 34 (Barrier-only Guardian, units-only Bulwark,
 the finer tuner pass, generating a new agent), and session 35 (10,000-game re-measure, combinations
 may repeat, themed card names), and session 36 (the art-pool slot, themed agent names, pack
-contents and opening), and session 37 (owners name their agents, more agent-name room).
+contents and opening), and session 37 (owners name their agents, more agent-name room), and session 38 (unique
+signature ability ids, game-over causes as data, the free first rename, the chase-card proposal).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 38
+
+- **The chase-card proposal is not live, and not in the schema.** `rollPackV2` exists only for the
+  simulation and the tests. Going live needs schema v10 (the finishes `glitch`, `secret`,
+  `zeroDay`, a secret code on copies), `openPack` switched over, binder and checklist entries, and
+  render work for Glitch and the animated Zero-Day. None of that is started, on purpose: the owner
+  approves first.
+- **`rollPackV2` duplicates the slot logic of `rollPack`** (about 40 lines) so that S0-odds-1 packs
+  keep reproducing from their seeds. When S0-odds-2 goes live, the two should share one roller with
+  the S0-odds-1 path pinned by a seed-reproduction test, not two copies drifting apart.
+- **The 3 Zero-Day cards are empty slots** ("Zero-Day 1 (not designed yet)"), counted as Mythic by
+  my proposal. Their rarity, names and modes come with build-order step 2.
+- **The secret list and the Glitch list are my picks** (33 and 20 cards), chosen by role and by
+  names worth painting, not by any play-rate or popularity data, because there is none yet.
+- **The full set can't reach "months" without crafting secret cards,** which isn't built (owner item
+  5, later). The crafting model in pack-sim-002 is simple: salvage every standard extra beyond the
+  playable limit, craft the cheapest missing thing. Real owners keep extras for trading; their
+  times will be longer.
+- **The months figures assume 2.4 packs a day** from ECONOMY.md's earning estimate, which is itself
+  an estimate: daily quests and the owner's daily pack aren't built.
+- **Signature ability ids changed shape** (`sig-recycle.c3`). Old event logs still name the standard
+  id; `upgradeSignatureAbilityId` maps them, but nothing calls it yet (render keys by card name plus
+  id, which still works for old replays). The render lane can now switch to id-only lookups.
+- **Attack fizzles carry their cause as data, but the feed still prints the old sentence** ("fizzles:
+  X's attack fizzles — ..."), which repeats "fizzles". That wording is in `render/src/feed.ts`, the
+  render lane's file; the fields it needs (`cause`, `attacker`) are now on the event.
 
 ## New debt from session 37
 
@@ -46,9 +74,9 @@ real, but here is where it's thin.
   caught only because the squash joins letters; "Ad-min" too, but "Adm1n" is not), and slurs not on
   the list get through. The admin force-rename is the backstop, and nothing yet tells an admin a
   name needs one.
-- **The rename price (100 pack points) and nine smaller calls are mine** (in the check-in): the cap
-  of 32 for typed names, ASCII only, old names reserved forever, the repeated-word rule refusing
-  ordinary names like "Bit by Bit", and the rest.
+- ~~**The rename price (100 pack points) and nine smaller calls are mine**~~ The owner answered
+  2026-10-17: the first rename is free, then 100; typed names may repeat words; the rest stands.
+  Built session 38.
 - **Reserved names never free up.** With every past name reserved forever, a long-lived game slowly
   fills the space with names nobody uses. Fine at hundreds of millions of generated names; it
   matters only for short, popular typed names, and there's no policy for it.

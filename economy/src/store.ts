@@ -923,11 +923,19 @@ export class EconomyStore {
     return undefined;
   }
 
-  /** Renames an owner's agent for AGENT_RENAME_PACK_POINTS pack points
-   * (owner 2026-10-16: naming is free at creation, any rename after costs
-   * pack points). Refused during the agent's live match, for a name the
-   * rules refuse, or without the points. The signature card keeps its
-   * name and its printed flavour. */
+  /** What the agent's next rename costs in pack points (owner 2026-10-17,
+   * option D: an agent's first rename is free, every one after costs
+   * AGENT_RENAME_PACK_POINTS). An admin's forced rename is not the owner's
+   * rename, so it never uses up the free one. */
+  renamePrice(agentId: string): number {
+    const row = this.db.prepare("SELECT COUNT(*) AS n FROM agent_names WHERE agent_id = ? AND kind = 'rename'").get(agentId) as Row;
+    return num(row.n) === 0 ? 0 : AGENT_RENAME_PACK_POINTS;
+  }
+
+  /** Renames an owner's agent: the first rename is free, every later one
+   * costs AGENT_RENAME_PACK_POINTS pack points (renamePrice). Refused
+   * during the agent's live match, for a name the rules refuse, or without
+   * the points. The signature card keeps its name and its printed flavour. */
   renameAgent(ownerId: string, agentId: string, newName: string): AgentNames {
     return this.transaction(() => {
       const agent = this.getAgent(agentId);
@@ -939,11 +947,14 @@ export class EconomyStore {
       }
       const problem = this.agentNameProblem(ownerId, name, agentId);
       if (problem) throw new EconomyError(problem);
+      const price = this.renamePrice(agentId);
       const have = this.balance(ownerId, "packPoints");
-      if (have < AGENT_RENAME_PACK_POINTS) throw new EconomyError(`a rename costs ${AGENT_RENAME_PACK_POINTS} pack points; you have ${have}`);
+      if (have < price) throw new EconomyError(`this rename costs ${price} pack points (only the first is free); you have ${have}`);
       const at = this.stamp();
-      const entry = this.logAgentName(agentId, name, "rename", AGENT_RENAME_PACK_POINTS, ownerId, null, at);
-      this.appendLedger(ownerId, null, "packPoints", -AGENT_RENAME_PACK_POINTS, "agentRename", `agent-name:${entry}`, at);
+      const entry = this.logAgentName(agentId, name, "rename", price, ownerId, null, at);
+      // The free rename leaves no ledger entry: the ledger records only
+      // balance changes, and the name log keeps the rename itself.
+      if (price > 0) this.appendLedger(ownerId, null, "packPoints", -price, "agentRename", `agent-name:${entry}`, at);
       this.db.prepare("UPDATE agents SET name = ? WHERE agent_id = ?").run(name, agentId);
       return this.agentNames(agentId);
     });

@@ -101,7 +101,8 @@ describe("ability sizes (owner 2026-10-13: the tuner's size lever)", () => {
         const sized = card({ ability: option.key, size: size.key });
         expect(sized.id).toBe(`sig5-3x6-${option.key}.${size.key}`);
         expect(JSON.stringify(sized.abilities)).not.toBe(JSON.stringify(standard.abilities));
-        expect(sized.abilities.map((a) => a.id)).toEqual(standard.abilities.map((a) => a.id));
+        // Owner 2026-10-18: every size has its own ability id (the standard's plus the size key).
+        expect(sized.abilities.map((a) => a.id)).toEqual(standard.abilities.map((a) => `${a.id}.${size.key}`));
         expect(size.text).not.toBe(option.text);
         ids.add(sized.id);
       }
