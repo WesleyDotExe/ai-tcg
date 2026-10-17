@@ -1,0 +1,14 @@
+# node board-feed-check.mjs <shotDir> <replay.html>... (render session 23), headless Chromium.
+# null-vs-aegis-seed3 is not a committed replay: npm run replay -w @ai-tcg/render -- Null Aegis 3 <file> (it has the Intercept Routine fizzle).
+aegis-vs-cortex-seed1.html @1280px (card zoom 1.000): 153 moves, 12 cast tags (feed: 12), 5 quiet triggers with no tag; labels 0 scaled / 71 full — ok
+aegis-vs-cortex-seed1.html @580px (card zoom 0.737): 153 moves, 12 cast tags (feed: 12), 5 quiet triggers with no tag; labels 52 scaled / 19 full — ok
+all passed
+cortex-vs-aegis-sig-seed5.html @1280px (card zoom 1.000): 129 moves, 9 cast tags (feed: 9), 9 quiet triggers with no tag; labels 0 scaled / 51 full — ok
+cortex-vs-aegis-sig-seed5.html @580px (card zoom 0.737): 129 moves, 9 cast tags (feed: 9), 9 quiet triggers with no tag; labels 33 scaled / 18 full — ok
+all passed
+swarm-vs-null-seed8.html @1280px (card zoom 1.000): 109 moves, 12 cast tags (feed: 12), 0 quiet triggers with no tag; labels 0 scaled / 50 full — ok
+swarm-vs-null-seed8.html @580px (card zoom 0.737): 109 moves, 12 cast tags (feed: 12), 0 quiet triggers with no tag; labels 35 scaled / 15 full — ok
+all passed
+null-vs-aegis-seed3.html @1280px (card zoom 1.000): 105 moves, 5 cast tags (feed: 5), 0 quiet triggers with no tag; labels 0 scaled / 32 full — ok
+null-vs-aegis-seed3.html @580px (card zoom 0.737): 105 moves, 5 cast tags (feed: 5), 0 quiet triggers with no tag; labels 17 scaled / 15 full — ok
+all passed

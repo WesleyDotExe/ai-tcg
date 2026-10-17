@@ -7,6 +7,30 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-17 — The board agrees with the feed; labels shrink with a zoomed row — AWAITING FEEDBACK
+
+A small follow-up to the feed check-ins below. Three loose ends, each named in the render debt list.
+
+**What this delivers:**
+- **A trigger the feed drops gets no flourish on the board either.** Before, an unhurt Diagnostic Loop's end-of-turn heal still threw its ring and a "TURN END" tag while the feed said nothing. Now the feed records which triggers it dropped (`Frame.quietTriggers`), and the board skips the same ones. Over the 14 replays that is 50 flourishes gone, the same 50 lines the feed dropped in session 22.
+- **The Intercept Routine fizzle is worded from the engine's new cause** (game session 39). "Intercept Routine resolves", then "fizzles: Intercept Routine: Garbage Collector's attack is already aimed at Barrier Drone", is now one line: "Intercept Routine fizzles: Garbage Collector's attack was already aimed at Barrier Drone", with the rules text under it. With no attack waiting, it reads "Intercept Routine fizzles: no attack was waiting to redirect".
+- **Floating labels over a card shrink with a zoomed row.** At 545-600 px the cards are drawn at about 72-91% size; damage numbers, BLOCKED, FIZZLED, stat labels and the cast tag ("ON PLAY") now use the card's own scale, and float a proportionally shorter distance. Labels over a player (an impact point, the health bar) and a Command's tag on the stack stay full size.
+
+**Evidence:**
+- **Feed summary:** `progress/render/evidence/v2-s23-feed-summary.txt`. Only the Null vs Aegis seed 3 fizzle changed; every other line over the 14 replays is identical to session 22.
+- **Stills:** `v2-s23-redirect-fizzle-1280.png` (the fizzle line, Null vs Aegis seed 3, move 33) and `v2-s23-zoomed-labels-580.png` (a hit at 580 px, its number at the row's 0.737 scale).
+- **Browser check** (`board-feed-check.mjs` / `.txt`): stepping every move with the arrow key, the board's cast tags per move equal the feed's count (casts plus kept triggers); at 580 px every label over a card carries the card's zoom; at 1280 px none is scaled.
+- **Tests:** render 327 (+5). The real-match cast test (48 matches, checked against the engine's own resolver) now checks that quiet triggers get no flourish, and that without the list they come back placed on the right card. It fails if the skip is removed.
+
+**Decisions you may want to overrule:**
+1. **A quiet trigger gets nothing on the board, not a dimmer "tried, nothing happened" mark.** That matches your session-22 call for the feed (drop it, no "(no effect)" line). The alternative is a faint ring with no tag.
+2. **A redirect fizzle takes the place of its "resolves" line,** the way an attack's fizzle takes the place of "lands". The rules text stays under it.
+3. **Labels shrink all the way with the card** (to about 72% at the narrowest one-line width) rather than stopping at a floor. The two-line phone layout is usually at full size, so it is unaffected.
+
+**Next:** the turn-cap ending is still only seen in tests, and the momentum gauge doesn't explain a pending threat. Also open: drawing the chase finishes (Glitch, secret illustrations, the animated Zero-Day) in a pack reveal, which needs a pack-opening surface the render doesn't have yet.
+
+---
+
 ## 2026-10-18 — The match feed, tightened: quiet triggers dropped, endings worded from the engine's data — AWAITING FEEDBACK
 
 A small follow-up to the match feed check-in below. You accepted that one with all 5 calls and left "drop trigger lines that change nothing" as the next step. This session did that, and used the game lane's new structured data (game session 38).

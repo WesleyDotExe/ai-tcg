@@ -497,7 +497,7 @@ html, body {
   animation: fx-deflect-ring 380ms ease-out forwards; }
 @keyframes fx-deflect-ring { 0% { opacity: 0.85; transform: scale(0.3); } 100% { opacity: 0; transform: scale(1.5); } }
 
-.fx-number { position: fixed; font-weight: bold; font-size: 0.95rem; letter-spacing: 0.02em;
+.fx-number { position: fixed; font-weight: bold; font-size: 0.95rem; letter-spacing: 0.02em; transform-origin: 50% 0;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; animation: fx-float 900ms ease forwards; }
 .fx-number.dmg { color: var(--bad); }
 .fx-number.heal { color: var(--good); }
@@ -724,7 +724,7 @@ html, body {
   25% { opacity: 1; }
   100% { opacity: 0; transform: rotate(var(--ray-a)) translateY(calc(-26px * var(--cast-scale))); }
 }
-.fx-cast-tag { position: fixed; pointer-events: none; white-space: nowrap; translate: -50% 0;
+.fx-cast-tag { position: fixed; pointer-events: none; white-space: nowrap; translate: -50% 0; transform-origin: 50% 0;
   font-size: 0.6rem; font-weight: bold; letter-spacing: 0.12em; color: var(--cast);
   background: rgba(10,8,24,0.88); border: 1px solid var(--cast); border-radius: 3px; padding: 1px 6px;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.6), -3px 0 0 0 var(--fx-tint);
@@ -964,6 +964,13 @@ ${BOARD_FIT_SOURCE}
       row.classList.add('faction-' + frames[0].players[pid].faction);
       row.dataset.fit = fit.lines + 'x' + fit.perLine + '@' + fit.zoom;
     });
+  }
+  // The scale for a label over a card: the zoom of the row it sits in.
+  function cardLabelScale(rect) {
+    return labelScale(rect, ['p1', 'p2'].map(function (pid) {
+      const row = document.getElementById('board-' + pid);
+      return row && row.style.zoom ? Number(row.style.zoom) : 1;
+    }));
   }
   // The signature zone (render/src/sigZoneFx.ts, embedded verbatim).
 ${SIG_ZONE_SOURCE}
@@ -1398,13 +1405,18 @@ ${SIG_ZONE_SOURCE}
     setTimeout(function () { cardEl.remove(); }, (GHOST_MS[tier] || GHOST_MS.normal) + delay);
   }
 
-  function spawnNumber(rect, text, cls, tier, yOffset) {
+  // onCard: the label floats over a board card, so it shrinks with a
+  // zoomed row (boardFit.ts labelScale), offset and float distance too.
+  // Labels over a player (an impact point, the health bar) stay full size.
+  function spawnNumber(rect, text, cls, tier, yOffset, onCard) {
     if (!rect) return;
     const el = document.createElement('div');
     el.className = 'fx-number ' + cls + (tier ? ' mag-' + tier : '');
     el.textContent = tier === 'spectacle' ? text + '!' : text;
+    const z = onCard ? cardLabelScale(rect) : 1;
+    if (z !== 1) el.style.scale = String(z);
     el.style.left = (rect.left + rect.width / 2 - 16) + 'px';
-    el.style.top = (rect.top + 6 + (yOffset || 0)) + 'px';
+    el.style.top = (rect.top + (6 + (yOffset || 0)) * z) + 'px';
     fxLayer.appendChild(el);
     // Removal must be scheduled BEFORE returning (it used to sit after the
     // return and never ran, so every floating number stayed in the DOM for
@@ -1487,7 +1499,7 @@ ${SIG_ZONE_SOURCE}
     const rect = el.getBoundingClientRect();
     if (shift.kind === 'expire') {
       flashClass(el, 'fx-settle', 'subtle');
-      centreOn(spawnNumber(rect, shift.label, 'expire', 'subtle', 40), rect);
+      centreOn(spawnNumber(rect, shift.label, 'expire', 'subtle', 40, true), rect);
       return;
     }
     const up = shift.kind === 'buff';
@@ -1496,7 +1508,7 @@ ${SIG_ZONE_SOURCE}
     // Buff labels start low and float up; penalty labels start high and
     // sink — and both sit clear of the damage/heal number's own spot at the
     // top of the card, so a hit + a debuff on the same move don't stack.
-    centreOn(spawnNumber(rect, shift.label, up ? 'buff' : 'penalty', tier, up ? 70 : 28), rect);
+    centreOn(spawnNumber(rect, shift.label, up ? 'buff' : 'penalty', tier, up ? 70 : 28, true), rect);
     if (tier === 'spectacle' && !onCanvas) spawnBurst(rect, 'var(--' + tint.toLowerCase() + ')', 1, tint);
   }
 
@@ -1609,8 +1621,12 @@ ${SIG_ZONE_SOURCE}
       tagX = fx.owner === 'p1' ? row.left + row.width * 0.14 : row.right - row.width * 0.14;
       baseTop = lane.top + 1;
     }
+    // On a card in a zoomed row the tag shrinks with the card, and so does
+    // the step between several tags (boardFit.ts labelScale).
+    const z = fx.anchor === 'card' ? cardLabelScale(rect) : 1;
+    if (z !== 1) tag.style.scale = String(z);
     tag.style.left = Math.max(80, Math.min(window.innerWidth - 80, tagX)) + 'px';
-    tag.style.top = (baseTop + stackIndex * 15) + 'px';
+    tag.style.top = (baseTop + stackIndex * 15 * z) + 'px';
     fxLayer.appendChild(tag);
     setTimeout(function () { tag.remove(); }, tagMs + 100);
   }
@@ -2009,15 +2025,16 @@ ${SIG_ZONE_SOURCE}
         const oldTo = a.from.kind === 'unit' ? prevRects[a.from.instanceId] : prevLandRects[a.from.playerId];
         if (fromEl) fadeOldAim(fromEl.getBoundingClientRect(), oldTo, 'var(--' + f.toLowerCase() + ')');
         const r = targetRect(a.target);
-        if (r) centreOn(spawnNumber(r, 'REDIRECTED', 'redirect', 'normal', 36), r);
+        if (r) centreOn(spawnNumber(r, 'REDIRECTED', 'redirect', 'normal', 36, a.target.kind === 'unit'), r);
       });
       if (a.phase === 'strike' && a.outcome !== 'hit') {
         // The engine's own two fizzle rules: the attacker, or its unit
         // target, was gone before the damage could resolve.
+        const onCard = a.outcome !== 'fizzle-attacker' || a.target.kind === 'unit';
         const r = a.outcome === 'fizzle-attacker'
           ? (a.target.kind === 'unit' ? (prevRects[a.target.instanceId] || prevRects[a.attackerIid]) : prevLandRects[a.target.playerId])
           : prevRects[a.attackerIid];
-        if (r) { tiers.push('subtle'); centreOn(spawnNumber(r, 'FIZZLED', 'fizzle', 'subtle', 40), r); }
+        if (r) { tiers.push('subtle'); centreOn(spawnNumber(r, 'FIZZLED', 'fizzle', 'subtle', 40, onCard), r); }
       }
     });
     if (Object.keys(freshAim).length) {
@@ -2153,7 +2170,7 @@ ${SIG_ZONE_SOURCE}
         later(at, function () {
           flashClass(el, 'fx-shatter', t);
           SND.play('block', nv.faction, t, el.getBoundingClientRect());
-          spawnNumber(el.getBoundingClientRect(), 'BLOCKED', 'shield', t);
+          spawnNumber(el.getBoundingClientRect(), 'BLOCKED', 'shield', t, 0, true);
         });
       }
       // Damage/heal is only the part of the health change that ISN'T a
@@ -2173,14 +2190,14 @@ ${SIG_ZONE_SOURCE}
         later(at, function () {
           if (nv.baseArmor > 0) spawnDeflect(el.getBoundingClientRect());
           flashClass(el, 'fx-hit', t);
-          spawnNumber(el.getBoundingClientRect(), String(residual), 'dmg', t);
+          spawnNumber(el.getBoundingClientRect(), String(residual), 'dmg', t, 0, true);
         });
       } else if (residual > 0) {
         const t = tierFromScore(healScore(residual));
         tiers.push(t);
         later(at, function () {
           flashClass(el, 'fx-heal', t);
-          spawnNumber(el.getBoundingClientRect(), '+' + residual, 'heal', t);
+          spawnNumber(el.getBoundingClientRect(), '+' + residual, 'heal', t, 0, true);
         });
       }
       // An evolution changes the printed stats wholesale — the evolve pulse

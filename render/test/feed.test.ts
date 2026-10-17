@@ -12,7 +12,7 @@ import type { DeckFaction } from "../src/engineInternal.js";
 import { abilityTextFor, captureMatch } from "../src/capture.js";
 import { generatedSeats } from "../src/generatedSignatures.js";
 import { renderMatchHtml } from "../src/renderHtml.js";
-import { attackFirst, buildFeed, feedText, triggerChangedNothing, withPlayers } from "../src/feed.js";
+import { attackFirst, buildFeed, buildFeedWithQuiet, feedText, triggerChangedNothing, withPlayers } from "../src/feed.js";
 import type { FeedEntry, FeedPart } from "../src/feed.js";
 
 const BUILDERS: Record<DeckFaction, (id: DeckSpec["id"], name: string) => DeckSpec> = {
@@ -276,13 +276,16 @@ describe("quiet triggers, fizzles and the end", () => {
     expect(lines.join("\n")).not.toMatch(/lands|deals no damage|fizzles —/);
   });
 
-  it("an Intercept Routine fizzle keeps its reason text, though it now has a cause (game session 39)", async () => {
-    // The engine gives redirect fizzles a cause and the attacker's name; they
-    // are not attack fizzles, so they must not read "its target left play".
+  it("words an Intercept Routine fizzle from its cause, on its resolve line (render session 23)", async () => {
+    // The engine gives redirect fizzles a cause and the attacker's name
+    // (game session 39). They are not attack fizzles, so they must not read
+    // "its target left play"; and the Command's "resolves" line becomes the
+    // fizzle, as an attack's "lands" line does.
     const frame = await frameWith([
       { type: "attack", attacker: "Garbage Collector", defender: "Barrier Drone", defenderKind: "unit", stackId: "s1" },
       { type: "cast", player: "p2", card: "Intercept Routine", speed: "Instant", stackId: "s2" },
       { type: "stackResolve", description: "Intercept Routine", stackId: "s2" },
+      { type: "abilityTrigger", source: "Intercept Routine", ability: "intercept-routine-play", trigger: "onPlay" },
       {
         type: "fizzle",
         reason: "Intercept Routine: Garbage Collector's attack is already aimed at Barrier Drone",
@@ -290,12 +293,49 @@ describe("quiet triggers, fizzles and the end", () => {
         source: "Intercept Routine",
         attacker: "Garbage Collector",
         target: "Barrier Drone",
+        targetRef: { kind: "unit", instanceId: "no-such-unit" },
       },
     ]);
+    const abilityText = { "intercept-routine-play": "Instant. Redirect a pending attack to target unit you control." };
+    const [entries] = buildFeed([frame], { names, abilityText });
+    const lines = entries!.map((e) => feedText(e, { names }));
+    expect(lines).toContain("   Intercept Routine fizzles: Garbage Collector's attack was already aimed at Barrier Drone — Instant. Redirect a pending attack to target unit you control.");
+    const all = lines.join("\n");
+    expect(all).not.toMatch(/left play first|resolves|fizzles: Intercept Routine:/);
+  });
+
+  it("reports the triggers it dropped as quiet, by their index in the frame's own events", async () => {
+    const heal: GameEvent = { type: "heal", target: "Diagnostic Loop", targetKind: "unit", amount: 1, source: "Diagnostic Loop" };
+    const frame = await frameWith([
+      { type: "turnStart", turn: 4, player: "p1" },
+      trig("Quiet One"),
+      trig("Loud One"),
+      heal,
+      trig("Quiet Two"),
+      { type: "turnEnd", turn: 4, player: "p1" },
+    ]);
+    const { entries, quiet } = buildFeedWithQuiet([frame], { names, abilityText: {} });
+    expect(quiet).toEqual([[1, 4]]);
+    const text = entries[0]!.map((e) => feedText(e, { names })).join("\n");
+    expect(text).toContain("Loud One");
+    expect(text).not.toMatch(/Quiet/);
+  });
+
+  it("words a redirect with no attack waiting, on its own line when nothing resolved just before", async () => {
+    const frame = await frameWith([
+      { type: "fizzle", reason: "Intercept Routine finds no pending attack to redirect", cause: "noPendingAttack", source: "Intercept Routine" },
+    ]);
     const [entries] = buildFeed([frame], { names, abilityText: {} });
-    const lines = entries!.map((e) => feedText(e, { names })).join("\n");
-    expect(lines).toContain("fizzles: Intercept Routine: Garbage Collector's attack is already aimed at Barrier Drone");
-    expect(lines).not.toMatch(/left play first/);
+    expect(entries!.map((e) => feedText(e, { names }))).toEqual(["      Intercept Routine fizzles: no attack was waiting to redirect"]);
+  });
+
+  it("names a player the attack was already aimed at as the player", async () => {
+    const frame = await frameWith([
+      { type: "fizzle", reason: "x", cause: "alreadyAimed", source: "Intercept Routine", attacker: "Garbage Collector", target: "Bix", targetRef: { kind: "player", playerId: "p2" } },
+    ]);
+    const [entries] = buildFeed([frame], { names, abilityText: {} });
+    expect(entries![0]!.parts).toContainEqual({ player: "p2" });
+    expect(feedText(entries![0]!, { names })).toBe("      Intercept Routine fizzles: Garbage Collector's attack was already aimed at Bix");
   });
 
   it("words the end from its cause", async () => {

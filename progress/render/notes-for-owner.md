@@ -572,3 +572,21 @@ separate from the shared `progress/notes-for-owner.md`).
    33 (`progress/render/evidence/v2-s22-feed-summary.txt`).
 3. **No engine change was made.** The soundness test wraps the engine's
    resolver inside the test only; no engine file changed.
+
+---
+
+## 2026-10-17 — Session 23 (the board agrees with the feed)
+
+1. **Quickest look:** open `render/output/aegis-vs-cortex-seed1.html` at
+   a narrow window (about 580 px) and step with →. The hit numbers and
+   "ON PLAY" tags now match the smaller cards. At full width nothing
+   changed.
+2. **Three calls are in `progress/render/checkpoints.md`.** The one most
+   likely to want your eye: a trigger that changed nothing now gets no
+   flourish at all on the board (call 1), the same rule you kept for the
+   feed.
+3. **The game lane's Intercept Routine cause (game session 39) is used.**
+   The feed reads "Intercept Routine fizzles: Garbage Collector's attack
+   was already aimed at Barrier Drone". Nothing more is needed from the
+   game lane for fizzles.
+4. **No engine change was made.**

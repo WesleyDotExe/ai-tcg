@@ -1,0 +1,120 @@
+# Match feed of render/output/cortex-vs-aegis-sig-seed5.html (render session 23)
+# Cyberburner's Antihero vs Rombot's Navigator; 129 moves; engine log 268 lines, feed 117 entries.
+# Left column: the move the entry appears on. Indent: turn header, then actions, then results.
+  0  == Turn 1 · Cyberburner's Antihero ==
+  2  == Turn 2 · Rombot's Navigator == — draws Aegis Sentinel
+  3     Rombot's Navigator plays Barrier Drone
+  5  == Turn 3 · Cyberburner's Antihero == — draws Diagnostic Loop
+  6     Cyberburner's Antihero plays Diagnostic Loop
+  8  == Turn 4 · Rombot's Navigator == — draws Aegis Sentinel
+  9     Rombot's Navigator attaches Plating Module to Barrier Drone
+ 11  == Turn 5 · Cyberburner's Antihero == — draws Watchtower Relay
+ 12     Cyberburner's Antihero plays Watchtower Relay
+ 13     Diagnostic Loop attacks Barrier Drone
+ 15        Diagnostic Loop deals 1 to Barrier Drone
+ 17  == Turn 6 · Rombot's Navigator == — draws Perimeter Turret
+ 18     Rombot's Navigator plays Perimeter Turret
+ 18        Perimeter Turret deploys dormant: arms in 1 turn
+ 19     Barrier Drone attacks Cyberburner's Antihero
+ 21        Barrier Drone deals no damage
+ 23  == Turn 7 · Cyberburner's Antihero == — draws Cortex Engineer
+ 24     Cyberburner's Antihero plays Load Balancer
+ 25     Watchtower Relay attacks Barrier Drone
+ 27        Watchtower Relay deals 2 to Barrier Drone
+ 28     Diagnostic Loop attacks Barrier Drone
+ 30        Diagnostic Loop deals 1 to Barrier Drone
+ 32  == Turn 8 · Rombot's Navigator == — draws Aegis Sentinel
+ 32     Perimeter Turret arms — When this arms, deal 3 damage to a random enemy unit.
+ 32        Perimeter Turret deals 3 to Load Balancer
+ 32        Load Balancer is destroyed
+ 33     Perimeter Turret attacks Cyberburner's Antihero
+ 35        Perimeter Turret deals 2 to Cyberburner's Antihero
+ 36     Barrier Drone attacks Watchtower Relay
+ 38        Watchtower Relay deals 2 to Barrier Drone
+ 38        Barrier Drone is destroyed
+ 39     Rombot's Navigator casts Lockdown Field
+ 41     Lockdown Field resolves — Stun all enemy units for 1 turn.
+ 41        Lockdown Field puts Stasis on Diagnostic Loop
+ 41        Lockdown Field puts Stasis on Watchtower Relay
+ 43  == Turn 9 · Cyberburner's Antihero == — draws Force Quit
+ 44     [SIGNATURE] Cyberburner's Antihero plays Arcadefalcon's Pixelated Robot from the signature zone for 5
+ 46  == Turn 10 · Rombot's Navigator == — draws Aegis Warden
+ 47     [SIGNATURE] Rombot's Navigator plays Anthem of the Midnight Shift from the signature zone for 5
+ 48     Perimeter Turret attacks Cyberburner's Antihero
+ 50        Perimeter Turret deals 2 to Cyberburner's Antihero
+ 52  == Turn 11 · Cyberburner's Antihero == — draws Fail-safe Unit
+ 53     Arcadefalcon's Pixelated Robot attacks Rombot's Navigator
+ 55        Arcadefalcon's Pixelated Robot deals 3 to Rombot's Navigator
+ 56     Watchtower Relay attacks Rombot's Navigator
+ 58        Watchtower Relay deals 2 to Rombot's Navigator
+ 59     Cyberburner's Antihero plays Load Balancer
+ 60     Cyberburner's Antihero plays Cortex Engineer
+ 61     Diagnostic Loop attacks Rombot's Navigator
+ 63        Diagnostic Loop deals 1 to Rombot's Navigator
+ 65  == Turn 12 · Rombot's Navigator == — draws Guard Directive Chip
+ 65     Anthem of the Midnight Shift · start of turn — A random unit of yours gets +0/+1.
+ 65        Anthem of the Midnight Shift gives Anthem of the Midnight Shift +0/+1
+ 66     Anthem of the Midnight Shift attacks Cyberburner's Antihero
+ 68        Anthem of the Midnight Shift deals 3 to Cyberburner's Antihero
+ 69     Perimeter Turret attacks Cyberburner's Antihero
+ 71        Perimeter Turret deals 2 to Cyberburner's Antihero
+ 72     Rombot's Navigator attaches Guard Directive Chip to Anthem of the Midnight Shift
+ 73     Rombot's Navigator casts Diagnostic Ward
+ 75     Diagnostic Ward resolves — Restore 2 health to yourself. If your hand has 1 or fewer cards, draw a card.
+ 75        Diagnostic Ward restores 2 to Rombot's Navigator
+ 77  == Turn 13 · Cyberburner's Antihero == — draws Quorum Arbiter
+ 78     Cyberburner's Antihero plays Quorum Arbiter
+ 79     Arcadefalcon's Pixelated Robot attacks Anthem of the Midnight Shift
+ 81        Arcadefalcon's Pixelated Robot deals 3 to Anthem of the Midnight Shift
+ 81        Anthem of the Midnight Shift deals 4 to Arcadefalcon's Pixelated Robot
+ 82     Watchtower Relay attacks Anthem of the Midnight Shift
+ 84        Watchtower Relay deals 2 to Anthem of the Midnight Shift
+ 84        Anthem of the Midnight Shift deals 4 to Watchtower Relay
+ 84        Watchtower Relay is destroyed
+ 85     Cyberburner's Antihero plays Fail-safe Unit
+ 86     Diagnostic Loop attacks Anthem of the Midnight Shift
+ 88        Diagnostic Loop deals 1 to Anthem of the Midnight Shift
+ 88        Anthem of the Midnight Shift deals 4 to Diagnostic Loop
+ 88        Diagnostic Loop is destroyed
+ 90  == Turn 14 · Rombot's Navigator == — draws Aegis Cadet
+ 90     Anthem of the Midnight Shift · start of turn — A random unit of yours gets +0/+1.
+ 90        Anthem of the Midnight Shift gives Anthem of the Midnight Shift +0/+1
+ 91     Anthem of the Midnight Shift attacks Cyberburner's Antihero
+ 93        Anthem of the Midnight Shift deals 4 to Cyberburner's Antihero
+ 94     Perimeter Turret attacks Fail-safe Unit
+ 96        Perimeter Turret deals 2 to Fail-safe Unit
+ 96        Fail-safe Unit deals 2 to Perimeter Turret
+ 96        Fail-safe Unit is destroyed
+ 96     Fail-safe Unit · on death — When this dies, draw a card.
+ 96        Cyberburner's Antihero draws Surge Protector
+ 97     Rombot's Navigator plays Aegis Cadet
+ 99  == Turn 15 · Cyberburner's Antihero == — draws Firewall Sentinel
+100     Cyberburner's Antihero plays Firewall Sentinel
+101     Quorum Arbiter attacks Anthem of the Midnight Shift
+103        Quorum Arbiter deals 4 to Anthem of the Midnight Shift
+103        Anthem of the Midnight Shift deals 4 to Quorum Arbiter
+103        Anthem of the Midnight Shift is destroyed
+103        Anthem of the Midnight Shift returns to the signature zone; next play costs 7
+104     Arcadefalcon's Pixelated Robot attacks Rombot's Navigator
+106        Arcadefalcon's Pixelated Robot deals 3 to Rombot's Navigator
+107     Load Balancer attacks Perimeter Turret
+107     Load Balancer · on attack — Whenever this attacks, deal 1 damage to a random enemy unit.
+107        Load Balancer deals 1 to Perimeter Turret
+109        Load Balancer deals 2 to Perimeter Turret
+109        Perimeter Turret deals 2 to Load Balancer
+109        Perimeter Turret is destroyed
+110     Cyberburner's Antihero plays Mainframe Core
+111     Cyberburner's Antihero attaches Surge Protector to Firewall Sentinel
+112     Cortex Engineer attacks Rombot's Navigator
+114        Cortex Engineer deals 2 to Rombot's Navigator
+116  == Turn 16 · Rombot's Navigator == — draws Aegis Line Trooper
+117     [SIGNATURE] Rombot's Navigator plays Anthem of the Midnight Shift from the signature zone for 7
+118     Rombot's Navigator plays Aegis Line Trooper
+120  == Turn 17 · Cyberburner's Antihero == — draws Compiled Daemon
+121     Quorum Arbiter attacks Rombot's Navigator
+123        Quorum Arbiter deals 4 to Rombot's Navigator
+124     Arcadefalcon's Pixelated Robot attacks Rombot's Navigator
+126        Arcadefalcon's Pixelated Robot deals 4 to Rombot's Navigator
+127     Firewall Sentinel attacks Rombot's Navigator
+129        Firewall Sentinel deals 3 to Rombot's Navigator
+129  Cyberburner's Antihero wins: Rombot's Navigator's health reached 0

@@ -29,7 +29,7 @@ import {
   effectiveCardCost,
   signatureCost,
 } from "./engineInternal.js";
-import { buildFeed } from "./feed.js";
+import { buildFeedWithQuiet } from "./feed.js";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 import { computeMomentum } from "./momentum.js";
 import { avatarSvg } from "./avatar.js";
@@ -295,8 +295,8 @@ export function abilityTextFor(decks: DeckSpec[]): Record<string, string> {
 
 /** Puts the spectator feed (render/src/feed.ts) on each frame. */
 function withFeed(frames: Frame[], names: Record<PlayerId, string>, decks: DeckSpec[]): Frame[] {
-  const feed = buildFeed(frames, { names, abilityText: abilityTextFor(decks) });
-  return frames.map((frame, i) => ({ ...frame, feed: feed[i]! }));
+  const feed = buildFeedWithQuiet(frames, { names, abilityText: abilityTextFor(decks) });
+  return frames.map((frame, i) => ({ ...frame, feed: feed.entries[i]!, quietTriggers: feed.quiet[i]! }));
 }
 
 // Re-exported so callers (cli.ts) don't need a second import line just for

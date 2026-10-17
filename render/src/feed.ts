@@ -29,7 +29,10 @@
 //     end-of-turn heal on an unhurt unit, a condition that didn't hold) is
 //     dropped (render session 22): it is news only in the engine log;
 //   - attack fizzles and the game's end are worded from the engine's
-//     structured cause (game session 38), not its reason text;
+//     structured cause (game session 38), not its reason text, and so is a
+//     redirect that did nothing (game session 39, worded in render session
+//     23): "Intercept Routine fizzles: X's attack was already aimed at Y"
+//     takes the place of its "resolves" line;
 //   - players are named by their agent names and carried as player parts,
 //     so the page can tint them in their faction colour.
 // Everything is computed in Node at capture time and embedded per frame, so
@@ -252,7 +255,23 @@ export function triggerChangedNothing(events: GameEvent[], k: number): boolean {
 
 /** Builds the feed: one list of entries per frame, in frame order. */
 export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
+  return buildFeedWithQuiet(frames, ctx).entries;
+}
+
+export interface FeedBuild {
+  /** One list of entries per frame, in frame order. */
+  entries: FeedEntry[][];
+  /** Per frame: the indices into that frame's newEvents of the triggers
+   * the feed dropped because they changed nothing (render session 23). The
+   * board's cast flourish skips the same ones, so the board and the feed
+   * agree on what fired. */
+  quiet: number[][];
+}
+
+/** buildFeed, plus which triggers it dropped as quiet. */
+export function buildFeedWithQuiet(frames: Frame[], ctx: FeedContext): FeedBuild {
   const out: FeedEntry[][] = [];
+  const quiet: number[][] = [];
   // The most recent top-level entry, across frames: an attack's resolution
   // nests under its declaration only if that is still the last thing said.
   let lastTopStack: string | undefined;
@@ -261,8 +280,10 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
   for (let f = 0; f < frames.length; f++) {
     const frame = frames[f]!;
     const before = f > 0 ? frames[f - 1] : undefined;
-    const events = attackFirst(frame.newEvents.map((e) => e.event));
+    const raw = frame.newEvents.map((e) => e.event);
+    const events = attackFirst(raw);
     const entries: FeedEntry[] = [];
+    const dropped: number[] = [];
     const heldDraws: FeedPart[][] = [];
     // A resolve just emitted for a Command: its onPlay trigger is the same
     // news, so its rules text joins the resolve line.
@@ -275,6 +296,10 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
     // An attack's resolution on its own line: if the attack then fizzles,
     // that line says so instead of "lands".
     let landed: { attacker: string; entry: FeedEntry } | null = null;
+    // A Command's resolve line, kept past the onPlay trigger it absorbs: if
+    // the Command then fizzles (Intercept Routine with nothing to redirect),
+    // that line says so instead of "resolves".
+    let resolvedLine: { name: string; entry: FeedEntry } | null = null;
 
     const top = (e: FeedEntry, stackId?: string) => {
       entries.push(e);
@@ -291,6 +316,8 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
       }
       const wasLanded = landed;
       landed = null;
+      const wasResolved = resolvedLine;
+      if (ev.type !== "abilityTrigger") resolvedLine = null;
       if (pendingNoDamage && ev.type !== "damage" && ev.type !== "barrierAbsorbed" && ev.type !== "baseArmorReduced" && ev.type !== "attackRedirected" && !(ev.type === "fizzle" && isAttackFizzle(ev))) {
         entries.push(pendingNoDamage);
         pendingNoDamage = null;
@@ -368,6 +395,7 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
           if (castSide) e.side = castSide;
           top(e, ev.stackId);
           resolvedCommand = { name, entry: e };
+          resolvedLine = resolvedCommand;
           break;
         }
         case "abilityTrigger": {
@@ -383,7 +411,11 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
             break;
           }
           resolvedCommand = null;
-          if (triggerChangedNothing(events, k)) break;
+          resolvedLine = null;
+          if (triggerChangedNothing(events, k)) {
+            dropped.push(raw.indexOf(ev));
+            break;
+          }
           const side = instanceSide(before, ev.sourceId) ?? instanceSide(frame, ev.sourceId) ?? sideByName([before, frame], ev.source);
           const e: FeedEntry = { kind: "trigger", parts: [{ card: ev.source }, " · ", triggerLabel(ev.trigger)] };
           if (side) e.side = side;
@@ -417,6 +449,13 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
             const parts: FeedPart[] = [{ card: ev.attacker }, `'s attack fizzles: ${why}`];
             if (wasLanded && wasLanded.attacker === ev.attacker) wasLanded.entry.parts = parts;
             else entries.push({ kind: "result", ...(side ? { side } : {}), parts });
+          } else if (isRedirectFizzle(ev) && ev.source) {
+            const parts: FeedPart[] = [{ card: ev.source }, " fizzles: ", ...redirectFizzleWhy(ev, before, ctx)];
+            if (wasResolved && wasResolved.name === ev.source) wasResolved.entry.parts = parts;
+            else {
+              const side = instanceSide(before, ev.sourceId) ?? sideOfCast(frames, f, ev.sourceId);
+              entries.push({ kind: "result", ...(side ? { side } : {}), parts });
+            }
           } else {
             entries.push({ kind: "result", parts: ["fizzles: ", ...withPlayers(ev.reason)] });
           }
@@ -436,16 +475,33 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
     // the engine's order, but never lose a line).
     for (const d of heldDraws) entries.push({ kind: "result", parts: d });
     out.push(entries);
+    quiet.push(dropped.sort((a, b) => a - b));
   }
-  return out;
+  return { entries: out, quiet };
 }
 
+type FizzleEvent = Extract<GameEvent, { type: "fizzle" }>;
+
 /** An attack's own fizzle (its attacker or target left play), as opposed
- * to an Intercept Routine redirect that did nothing: the engine gives those
- * a cause too since game session 39 (`alreadyAimed`, `noPendingAttack`),
- * and the feed still prints their reason text until it words them. */
-function isAttackFizzle(ev: Extract<GameEvent, { type: "fizzle" }>): boolean {
+ * to an Intercept Routine redirect that did nothing (isRedirectFizzle). */
+function isAttackFizzle(ev: FizzleEvent): boolean {
   return ev.cause === "attackerGone" || ev.cause === "targetGone";
+}
+
+/** A redirect that did nothing (game session 39): the attack was already
+ * aimed at the unit chosen, or no attack was waiting. Worded by the feed
+ * since render session 23; until then it printed the engine's reason text,
+ * "fizzles: Intercept Routine: X's attack is already aimed at Y". */
+function isRedirectFizzle(ev: FizzleEvent): boolean {
+  return ev.cause === "alreadyAimed" || ev.cause === "noPendingAttack";
+}
+
+/** Why a redirect fizzled, after "<card> fizzles: ". */
+function redirectFizzleWhy(ev: FizzleEvent, before: Frame | undefined, ctx: FeedContext): FeedPart[] {
+  if (ev.cause === "noPendingAttack" || !ev.attacker) return ["no attack was waiting to redirect"];
+  const ref = ev.targetRef as TargetRefLike | undefined;
+  const target = targetPart(ref, before) ?? (ev.target ? nameOrPlayer(ev.target, ref?.kind === "unit" ? "unit" : undefined, ctx) : undefined);
+  return target ? [{ card: ev.attacker }, "'s attack was already aimed at ", target] : [{ card: ev.attacker }, "'s attack was already aimed there"];
 }
 
 /** The game's end, from its cause: "X wins: Y's health reached 0", "X

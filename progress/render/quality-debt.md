@@ -12,27 +12,26 @@ items are removed, with the fix in `log.md`.
 - **At 545-600 px the board cards are small** (85-91 px wide, session 20).
   The row is zoomed to keep six on one line, and the name strip's text is
   about 7.5 px. It reads, but only just.
-- **Floating numbers and trigger labels aren't scaled with a zoomed row.**
-  "ON PLAY" and "+3 HP" stay at full size, so next to an 85-px card they
-  look a little large.
-- **One fizzle is still engine text:** Intercept Routine finding nothing
-  to redirect prints "fizzles: Intercept Routine: X's attack is already
-  aimed at Y". It has no structured cause yet (asked of the game lane in
-  notes-for-owner.md). The feed says what happened, never why it mattered
-  (commentary, stage 7).
+- **Labels over a zoomed card now shrink with it (session 23), but only
+  where the call site says "this is a card".** spawnNumber takes an
+  `onCard` flag; a new call site that forgets it gets a full-size label.
+  The cast tag on a Command's stack entry and the impact number over a
+  player stay full size on purpose.
+- **The feed says what happened, never why it mattered** (commentary,
+  stage 7). Every fizzle is now worded from the engine's cause; a fizzle
+  with no cause (an ability with nothing to do, an old log) still prints
+  the engine's reason text.
 - **The quiet-trigger rule depends on an engine habit:** every effect that
   changes the game logs an event straight after its trigger. The test
   (`feedQuiet.test.ts`) checks that over 32 real matches. But it sees only
   triggers resolved from the turn and stack code: onDeath triggers fired
   inside the resolver's own death pass aren't wrapped. A new effect kind
   that changes state without logging would make its trigger vanish from
-  the feed.
-- **The board still plays the cast flourish for a quiet trigger.**
-  `castFx.ts` fires on every abilityTrigger event, not on feed entries, so
-  an unhurt Diagnostic Loop still throws its ring and "TURN END" tag while
-  the feed says nothing. Either the flourish should use
-  `triggerChangedNothing` too, or a quieter version should mark "tried,
-  nothing happened". That's a taste call for the next render slice.
+  the feed, and now from the board too.
+- **The board and the feed agree on quiet triggers only through
+  `Frame.quietTriggers`** (session 23). A replay captured before session 23
+  has no list, so its page still flourishes every trigger. All 14
+  committed replays are regenerated.
 - **The turn-cap ending ("X wins at the turn cap, 14 health to 9") is only
   seen in tests;** no replay reaches the cap.
 - **In a mirror match a feed trigger can lose its side colour** when its
