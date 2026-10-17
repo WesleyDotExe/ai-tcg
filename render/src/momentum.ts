@@ -37,9 +37,12 @@ export function computeMomentum(p1: PlayerSnapshot, p2: PlayerSnapshot): Momentu
   const score = Math.max(-100, Math.min(100, Math.round((raw / 40) * 100)));
 
   const reasons: string[] = [];
-  if (Math.abs(healthDelta) >= 3) reasons.push(healthDelta > 0 ? "P1 ahead on health" : "P2 ahead on health");
-  if (Math.abs(boardDelta) >= 4) reasons.push(boardDelta > 0 ? "P1 ahead on board" : "P2 ahead on board");
-  if (Math.abs(handDelta) >= 2) reasons.push(handDelta > 0 ? "P1 has more cards in hand" : "P2 has more cards in hand");
+  // Players by their agent names (render session 21): the gauge sits next
+  // to both names, and "P1" meant nothing to a spectator.
+  const ahead = (delta: number) => (delta > 0 ? p1.name : p2.name);
+  if (Math.abs(healthDelta) >= 3) reasons.push(`${ahead(healthDelta)} ahead on health`);
+  if (Math.abs(boardDelta) >= 4) reasons.push(`${ahead(boardDelta)} ahead on board`);
+  if (Math.abs(handDelta) >= 2) reasons.push(`${ahead(handDelta)} has more cards in hand`);
   if (reasons.length === 0) reasons.push("close — no single clear edge yet");
 
   const leader: PlayerId | "even" = score > 8 ? "p1" : score < -8 ? "p2" : "even";

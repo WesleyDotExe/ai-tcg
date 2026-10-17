@@ -31,10 +31,10 @@ describe("computeMomentum", () => {
   });
 
   it("favours p1 when p1 has clearly more health, and names why", () => {
-    const reading = computeMomentum(player({ id: "p1", health: 20 }), player({ id: "p2", health: 5 }));
+    const reading = computeMomentum(player({ id: "p1", name: "Kestrel", health: 20 }), player({ id: "p2", name: "Mote", health: 5 }));
     expect(reading.leader).toBe("p1");
     expect(reading.score).toBeGreaterThan(0);
-    expect(reading.reasons.some((r) => r.includes("P1") && r.includes("health"))).toBe(true);
+    expect(reading.reasons).toContain("Kestrel ahead on health");
   });
 
   it("favours p2 when p2 has clearly more board power", () => {

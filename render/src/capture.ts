@@ -17,6 +17,7 @@ import {
   formatEvent,
   otherPlayer,
   MAX_ENERGY_CAP,
+  CARD_REGISTRY,
 } from "@ai-tcg/engine";
 import type { Agent, DeckSpec, GameState, PlayerId, Card, UnitInstance } from "@ai-tcg/engine";
 import {
@@ -28,6 +29,7 @@ import {
   effectiveCardCost,
   signatureCost,
 } from "./engineInternal.js";
+import { abilityKey, buildFeed } from "./feed.js";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 import { computeMomentum } from "./momentum.js";
 import { avatarSvg } from "./avatar.js";
@@ -260,8 +262,32 @@ export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
     movesPlayed,
     turnCap: state.turnCap,
     energyCap: MAX_ENERGY_CAP,
-    frames: assignSlots(frames),
+    frames: withFeed(assignSlots(frames), { p1: opts.agentA.name, p2: opts.agentB.name }, [opts.deckA, opts.deckB]),
   };
+}
+
+/** Every ability's rules text, keyed by card name and ability id
+ * (feed.ts abilityKey): the set's cards and both decks' cards, signature
+ * cards included (they are generated, not in the set). Not by id alone:
+ * generated signature cards share ids with different numbers ("sig-recycle"
+ * is "Draw 2 cards." on one card and "Draw 3 cards." on another). */
+export function abilityTextFor(decks: DeckSpec[]): Record<string, string> {
+  const text: Record<string, string> = {};
+  const add = (card: Card) => {
+    for (const a of card.abilities) text[abilityKey(card.name, a.id)] = a.text;
+  };
+  for (const card of CARD_REGISTRY.values()) add(card);
+  for (const deck of decks) {
+    for (const card of deck.cards) add(card);
+    if (deck.signature) add(deck.signature);
+  }
+  return text;
+}
+
+/** Puts the spectator feed (render/src/feed.ts) on each frame. */
+function withFeed(frames: Frame[], names: Record<PlayerId, string>, decks: DeckSpec[]): Frame[] {
+  const feed = buildFeed(frames, { names, abilityText: abilityTextFor(decks) });
+  return frames.map((frame, i) => ({ ...frame, feed: feed[i]! }));
 }
 
 // Re-exported so callers (cli.ts) don't need a second import line just for

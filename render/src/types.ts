@@ -1,4 +1,5 @@
 import type { GameEvent, PlayerId, StackItem } from "@ai-tcg/engine";
+import type { FeedEntry } from "./feed.js";
 import type { Faction, Rarity, CardType, Keyword } from "./engineInternal.js";
 
 /** A single face-up board occupant (Unit) as the render lane needs it —
@@ -180,6 +181,11 @@ export interface Frame {
   stack: StackItemSnapshot[];
   players: Record<PlayerId, PlayerSnapshot>;
   newEvents: { event: GameEvent; text: string }[];
+  /** The spectator feed's entries for this move (render/src/feed.ts):
+   * names, no priority passes, attacks folded with their damage. Filled in
+   * by captureMatch after the match is played; the page falls back to
+   * newEvents' raw text when it is absent. */
+  feed?: FeedEntry[];
   momentum: MomentumReading;
 }
 
