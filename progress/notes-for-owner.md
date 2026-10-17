@@ -1,5 +1,96 @@
 # Notes for the owner
 
+**Updated 2026-10-17, session 40 (your 2026-10-18 Zero-Day designs; build-order step 2, the "choose
+one" mechanic).** Nothing is blocking. There is one **[OWNER CHECK-IN]** below, with a default: the
+3 Zero-Day cards are built but not live until you agree how they are capped. Evidence:
+`progress/sample-match-033-modal-cards.txt` (a real game with 5 mode choices),
+`progress/balance-report-027-zero-day.txt` (the measurement, 10,000 games per pairing).
+
+Built:
+- **"Choose one" in the engine, for any card.** A modal card lists its modes, each with a name, its
+  text and ordinary abilities (an enter-play effect, an aura, a death trigger: anything).
+  - Each mode is its own legal move, so an agent picks a mode the way it picks a target. A mode
+    that has no legal target isn't offered; the other mode still is.
+  - The copy played carries the chosen mode only. The other mode is gone for that copy, so every
+    rule that reads a card's abilities sees exactly what the agent chose.
+  - The choice is logged: "p1 plays Patient Zero, choosing Outbreak", "p1 casts Kill Switch,
+    choosing Wipe". The events carry the mode's id and name, so replays and the feed can show it.
+    The render lane can word it in the feed next.
+  - When the card leaves play it goes to the graveyard as the printed card.
+  - Units, evolutions, Directives and Commands can all be modal. Tools and signature cards can't.
+  - Shipped decks have no modal card yet, so every existing measurement is unchanged (the ring
+    check moved +0.0 on all six edges).
+- **The 3 Zero-Day cards, exactly as you designed them, at your starting numbers:** Patient Zero,
+  Root Access, Kill Switch, Neutral, ids `S0-ZD1` to `S0-ZD3`, 1 per deck (checked when a deck is
+  built).
+  - **Not live yet.** They are kept out of the card list the economy reads, so a pulled copy is
+    still "Zero-Day 1 (not designed yet)" and crafting stays closed. Making them live is one line;
+    a pulled copy then becomes the card with no data change.
+- **The side task:** "Zero-Day" already left the name word lists in session 37. It was in them
+  only in sessions 35 and 36. No name in any committed sample or demo used it. Agents in owners'
+  own databases can't be checked from the repo; there is no live player base yet.
+
+### [OWNER CHECK-IN] Zero-Day cards: the strength cap, and the agent that measures it
+
+**What was measured.** Each card went into each faction's deck in place of a plain card of the same
+cost with no ability (same body for the two units). It played the same 10,000 seeds per pairing
+against the other three factions. I also ran each card locked to one mode, to see whether the
+agent's choice is worth anything.
+
+| card | worst edge move | average move | modes the agent picked | locked to each mode (worst / average) |
+|---|---|---|---|---|
+| Patient Zero | 2.5 points | 1.7 | Outbreak 77%, Carrier 23% | Outbreak 2.1 / 0.9; **Carrier 6.0 / 4.7** |
+| Root Access | **4.5 points** | 3.6 | Privilege Escalation 88%, Lockout 12% | Priv. Escalation 3.4 / 2.8; Lockout 1.8 / 1.1 |
+| Kill Switch | 2.3 points | 1.7 | **Wipe 100%, Lights Out 1 in 17,967** | Lights Out 2.9 / 2.0; Wipe 2.3 / 1.7 |
+
+What this says:
+- All three are stronger than a plain card on every edge, and none breaks the game.
+- **The agent that does the measuring reads two of the three cards badly.**
+  - It picks Outbreak most of the time, but Carrier is far stronger.
+  - It never picks Lights Out, though per cast Lights Out does more than Wipe. So "agents use both
+    modes" fails for Kill Switch today.
+  - Why: the reference agent values an aura (+1/+1 to your units for the rest of the game) as a
+    small one-off bonus, and a stun as the same size whether it lasts one turn or two.
+- So the measured strength depends on the agent. A better chooser makes Patient Zero stronger
+  (towards 6.0 on an edge). A cap set on today's numbers would be set against an agent that leaves
+  strength on the table.
+
+**Question 1: what to do first.**
+- **A (my recommendation, the default):** fix the agent first. Value auras over a few turns and
+  stuns by how long they last, for every card, not only modal ones. Re-record the ring baseline
+  once, as when the signature zone landed. Then re-measure the 3 cards and tune them to the cap.
+  This is the same "fix the instrument before balancing" rule you set in September. One session.
+- **B:** fix it only for the mode choice. It's cheaper and the ring doesn't move, but the agent
+  would then judge the same aura one way on a modal card and another way on a plain card.
+- **C:** tune on today's numbers and go live now. Root Access would need a cut (for example,
+  Privilege Escalation's attack becomes "the number of other units", one less). Kill Switch would
+  still be played in one mode only.
+
+**Question 2: the cap.** I propose **4 points at most on any edge, measured at 10,000 games per
+pairing with the agent choosing the mode**, plus every mode picked in at least 10% of the games
+where the card is played. Today Patient Zero and Kill Switch are inside 4 points and Root Access is
+just over (4.5, Swarm vs Aegis). Kill Switch fails the 10% rule. If a card fails after option A,
+I change its numbers, not its idea, and say which numbers in the notes.
+
+**Calls I made (overrule any):**
+1. **Kill Switch is Sorcery speed** (your own turn, nothing on the stack). Your design names no
+   speed, and a board-wide stun or sweep at instant speed during the other side's attack felt too
+   strong for a first measure.
+2. **Zero-Day cards don't follow the neutral pool's rules** (no removal, no auras), because you
+   made them Neutral knowing what they do. They have their own: two modes, Neutral, 1 per deck.
+   They still count toward a deck's 10 neutral cards and its 25% removal share.
+3. **A finding from that:** Null's shipped deck sits at exactly 25% removal. Adding Root Access or
+   Kill Switch (both count as removal) means cutting a removal card. The measurement cut a removal
+   card for those two everywhere, so no deck's removal share moved.
+4. **The simple Aggressive test agent always plays a modal card's first mode.** It picks by cost,
+   and both modes cost the same. The Random agent picks either; the Lookahead agent reads the board.
+   Only Lookahead is used for balance.
+
+Next game-lane session, unless you say otherwise: option A, then re-measure, propose the final
+numbers, and make the 3 cards live with your OK.
+
+---
+
 **Updated 2026-10-17, session 39 (your 2026-10-18 answers: the chase cards go live; the Intercept
 Routine side task).** Nothing is blocking and there is no new check-in. Below are the calls I made
 while building, in case you want any changed. Evidence: `progress/economy-demo-009.txt` (the store

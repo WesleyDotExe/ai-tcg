@@ -1,10 +1,11 @@
-import type { Ability, Speed } from "../cards/types.js";
+import type { Ability, Card, Speed } from "../cards/types.js";
 import type { GameState, PlayerId } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
 import { hasKeyword, activeGuards, effectiveCardCost, boardSlotsUsed, signatureCost } from "../state/queries.js";
 import { enumerateTargets, type TargetRef } from "../effects/targeting.js";
 import { evaluateCondition } from "../effects/conditions.js";
 import { BOARD_SLOTS } from "../state/init.js";
+import { playVariants } from "../cards/modes.js";
 
 export type Move =
   | {
@@ -22,6 +23,10 @@ export type Move =
        * the 2026-09-19 owner-feedback entry ("the chosen-targeting gap")
        * this field closes. */
       abilityTarget?: TargetRef;
+      /** A modal card's chosen mode (CardMode.id). Required for a card with
+       * modes, absent for every other: each mode is its own legal move, so
+       * an agent picks the mode the same way it picks a target. */
+      mode?: string;
     }
   /** Plays the signature card from the signature zone (see SignatureZone
    * in state/types.ts). Sorcery timing, a free board slot, and its current
@@ -69,86 +74,101 @@ export function getLegalMoves(state: GameState): Move[] {
 
 function pushPlayCardMoves(state: GameState, pid: PlayerId, moves: Move[], sorceryTiming: boolean): void {
   const player = state.players[pid];
-  player.hand.forEach((card, handIndex) => {
-    if (effectiveCardCost(state, pid, card) > player.energy) return;
-    const speed: Speed = card.type === "Command" ? card.speed : "Sorcery";
+  player.hand.forEach((printed, handIndex) => {
+    if (effectiveCardCost(state, pid, printed) > player.energy) return;
+    const speed: Speed = printed.type === "Command" ? printed.speed : "Sorcery";
     if (speed === "Sorcery" && !sorceryTiming) return;
-
-    if (card.type === "Unit" && card.evolvesFrom) {
-      // Evolution targets an existing, already-armed unit on the board
-      // matching the required base card id — no target, no legal play.
-      // It must also have survived to a LATER turn than the one it was
-      // played on (owner overrule, 2026-09-13 stage-3 checkpoint feedback,
-      // item 4): same-turn play-and-evolve let a base skip the "answer it
-      // early while it's weak" exposure window entirely, which undercut the
-      // whole point of the mechanic. `enteredTurn < state.turnNumber` is
-      // the same "has this unit actually lived through a turn boundary"
-      // check summoning sickness uses in pushAttackMoves below — evolution
-      // gets no Rush-style bypass, unlike attacking.
-      // A signature unit never evolves: it must stay the card that goes
-      // back to the signature zone when it dies.
-      const bases = player.board.filter(
-        (u) => !u.pending && !u.signature && u.card.id === card.evolvesFrom && u.enteredTurn < state.turnNumber,
-      );
-      const onEvolve = card.abilities.find((a) => a.trigger === "onPlay");
-      for (const base of bases) {
-        // If the evolved form's onPlay ability itself needs a "chosen"
-        // target (e.g. Kernel Panic's destroy, data/nullCards.ts), that
-        // target is independent of which base is evolving — enumerate it
-        // separately and cross it with each base, carried in
-        // `abilityTarget` since `target` is already the base reference
-        // (see the Move type's own doc comment; this is the fix for the
-        // 2026-09-19 owner-feedback "chosen-targeting gap"). A card whose
-        // ability has no legal target right now offers no move for that
-        // base at all, mirroring the existing convention for a plain
-        // card's own chosen-target onPlay ability below.
-        if (onEvolve?.targeting && onEvolve.targeting.scope === "chosen") {
-          const abilityOptions = enumerateTargets(onEvolve.targeting.filter, pid, state);
-          if (abilityOptions.length > 0) {
-            for (const abilityTarget of abilityOptions) {
-              moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId }, abilityTarget });
-            }
-          } else {
-            // No legal target for the bonus ability right now — evolving
-            // is still legal (the base's upgrade isn't conditional on it),
-            // the ability just doesn't fire; see resolveAbility's matching
-            // guard. Unlike a plain new unit's own chosen-target onPlay
-            // (which blocks the whole play with no legal target), evolving
-            // has a structural target of its own that doesn't depend on
-            // the bonus ability having anywhere to point.
-            moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
-          }
-        } else {
-          moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
-        }
-      }
-      return;
-    }
-
-    if (card.type === "Tool") {
-      // A Tool attaches to any friendly board unit (pending or armed —
-      // tooling up a telegraphed threat before it arms is legal and
-      // meaningful: it makes the eventual payoff bigger).
-      for (const unit of player.board) {
-        moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: unit.instanceId } });
-      }
-      return;
-    }
-
-    if ((card.type === "Unit" || card.type === "Directive") && boardSlotsUsed(player) >= BOARD_SLOTS) {
-      return; // no free board slot — this card cannot be played right now
-    }
-
-    const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
-    if (onPlay?.targeting && onPlay.targeting.scope === "chosen") {
-      const options = enumerateTargets(onPlay.targeting.filter, pid, state);
-      // A card whose enter-play ability requires a target can't be played
-      // with no legal target on board (mirrors genre convention).
-      for (const target of options) moves.push({ type: "playCard", handIndex, target });
-    } else {
-      moves.push({ type: "playCard", handIndex });
+    // A modal card is offered once per mode, each read as the card it
+    // becomes in that mode (cards/modes.ts): a mode whose onPlay needs a
+    // target it can't find offers nothing, while the other mode stays
+    // playable. A plain card is its one variant, with no `mode` on the move.
+    for (const variant of playVariants(printed)) {
+      const tag = variant.mode ? { mode: variant.mode.id } : {};
+      const before = moves.length;
+      pushPlayVariantMoves(state, pid, variant.card, handIndex, moves);
+      for (let i = before; i < moves.length; i++) Object.assign(moves[i]!, tag);
     }
   });
+}
+
+/** The legal plays of one card from the hand, as it would be played (for a
+ * modal card, in one mode). Timing and cost are already checked. */
+function pushPlayVariantMoves(state: GameState, pid: PlayerId, card: Card, handIndex: number, moves: Move[]): void {
+  const player = state.players[pid];
+  if (card.type === "Unit" && card.evolvesFrom) {
+    // Evolution targets an existing, already-armed unit on the board
+    // matching the required base card id — no target, no legal play.
+    // It must also have survived to a LATER turn than the one it was
+    // played on (owner overrule, 2026-09-13 stage-3 checkpoint feedback,
+    // item 4): same-turn play-and-evolve let a base skip the "answer it
+    // early while it's weak" exposure window entirely, which undercut the
+    // whole point of the mechanic. `enteredTurn < state.turnNumber` is
+    // the same "has this unit actually lived through a turn boundary"
+    // check summoning sickness uses in pushAttackMoves below — evolution
+    // gets no Rush-style bypass, unlike attacking.
+    // A signature unit never evolves: it must stay the card that goes
+    // back to the signature zone when it dies.
+    const bases = player.board.filter(
+      (u) => !u.pending && !u.signature && u.card.id === card.evolvesFrom && u.enteredTurn < state.turnNumber,
+    );
+    const onEvolve = card.abilities.find((a) => a.trigger === "onPlay");
+    for (const base of bases) {
+      // If the evolved form's onPlay ability itself needs a "chosen"
+      // target (e.g. Kernel Panic's destroy, data/nullCards.ts), that
+      // target is independent of which base is evolving — enumerate it
+      // separately and cross it with each base, carried in
+      // `abilityTarget` since `target` is already the base reference
+      // (see the Move type's own doc comment; this is the fix for the
+      // 2026-09-19 owner-feedback "chosen-targeting gap"). A card whose
+      // ability has no legal target right now offers no move for that
+      // base at all, mirroring the existing convention for a plain
+      // card's own chosen-target onPlay ability below.
+      if (onEvolve?.targeting && onEvolve.targeting.scope === "chosen") {
+        const abilityOptions = enumerateTargets(onEvolve.targeting.filter, pid, state);
+        if (abilityOptions.length > 0) {
+          for (const abilityTarget of abilityOptions) {
+            moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId }, abilityTarget });
+          }
+        } else {
+          // No legal target for the bonus ability right now — evolving
+          // is still legal (the base's upgrade isn't conditional on it),
+          // the ability just doesn't fire; see resolveAbility's matching
+          // guard. Unlike a plain new unit's own chosen-target onPlay
+          // (which blocks the whole play with no legal target), evolving
+          // has a structural target of its own that doesn't depend on
+          // the bonus ability having anywhere to point.
+          moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
+        }
+      } else {
+        moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: base.instanceId } });
+      }
+    }
+    return;
+  }
+
+  if (card.type === "Tool") {
+    // A Tool attaches to any friendly board unit (pending or armed —
+    // tooling up a telegraphed threat before it arms is legal and
+    // meaningful: it makes the eventual payoff bigger).
+    for (const unit of player.board) {
+      moves.push({ type: "playCard", handIndex, target: { kind: "unit", instanceId: unit.instanceId } });
+    }
+    return;
+  }
+
+  if ((card.type === "Unit" || card.type === "Directive") && boardSlotsUsed(player) >= BOARD_SLOTS) {
+    return; // no free board slot — this card cannot be played right now
+  }
+
+  const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
+  if (onPlay?.targeting && onPlay.targeting.scope === "chosen") {
+    const options = enumerateTargets(onPlay.targeting.filter, pid, state);
+    // A card whose enter-play ability requires a target can't be played
+    // with no legal target on board (mirrors genre convention).
+    for (const target of options) moves.push({ type: "playCard", handIndex, target });
+  } else {
+    moves.push({ type: "playCard", handIndex });
+  }
 }
 
 /** The signature card, when it is waiting in its zone: same rules as a

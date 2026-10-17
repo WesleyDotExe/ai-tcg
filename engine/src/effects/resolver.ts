@@ -7,6 +7,7 @@ import { evaluateCondition } from "./conditions.js";
 import { resolveTargets, type TargetRef } from "./targeting.js";
 import { buildScalingContext } from "./scaling.js";
 import { BOARD_SLOTS } from "../state/init.js";
+import { printedCard } from "../cards/modes.js";
 
 /** Where an ability's owner lives, i.e. what "self" targeting means for it.
  * A Unit's "self" is the unit itself on the board; a Command has no board
@@ -410,7 +411,7 @@ function destroyDirective(ctx: EffectContext, instanceId: string): void {
   const idx = player.directives.findIndex((d) => d.instanceId === instanceId);
   if (idx === -1) return;
   player.directives.splice(idx, 1);
-  player.graveyard.push(directive.card);
+  player.graveyard.push(printedCard(directive.card));
   ctx.state.log.push({
     type: "directiveDestroyed",
     directive: directive.card.name,
@@ -499,7 +500,7 @@ export function processDeaths(state: GameState, rng: Rng): void {
       // A signature card goes back to its zone instead (see SignatureZone),
       // to be played again at a higher cost; its Tools still go down.
       const zone = unit.signature ? player.signature : null;
-      if (!zone) player.graveyard.push(unit.card);
+      if (!zone) player.graveyard.push(printedCard(unit.card));
       // Attached Tools (see ToolCard) go down with the unit they were on.
       for (const tool of unit.tools) player.graveyard.push(tool);
       state.log.push({ type: "death", unit: unit.card.name, controller: unit.controller, instanceId: unit.instanceId });

@@ -2767,7 +2767,7 @@ From `progress/render/notes-for-owner.md` (2026-10-18, session 22, item 2). **Do
 
 ---
 
-## 2026-10-18 — Owner: answers to session 39's calls (chase cards live)
+## 2026-10-18 — Owner: answers to session 39's calls (chase cards live) (NOTED 2026-10-17, session 40 — all 7 calls stand as built, nothing to change; the Zero-Day design was left open until the entry below arrived, and is built from that entry)
 
 Owner decisions on the 7 calls in `progress/notes-for-owner.md` (session 39, "Calls I made").
 
@@ -2785,7 +2785,7 @@ Owner decisions on the 7 calls in `progress/notes-for-owner.md` (session 39, "Ca
 
 ---
 
-## 2026-10-18 — Owner: the 3 Season 0 Zero-Day cards (designs)
+## 2026-10-18 — Owner: the 3 Season 0 Zero-Day cards (designs) (BUILT AS A MEASURED PROPOSAL 2026-10-17, session 40 — not live yet. Step 2 first: the generic "choose one" mechanic is in the engine (`engine/src/cards/modes.ts`): each mode is its own legal move, the played copy carries only the chosen mode, the mode is on the play/cast/evolve event and in the log line, and the graveyard gets the printed card. Then the 3 cards, exactly as designed at your starting numbers (`engine/src/data/zeroDayCards.ts`, ids `S0-ZD1`..`S0-ZD3`, Neutral, 1 per deck). They are kept out of the card registry, so the reserved entries and closed crafting stay as they are until you agree the cap. Measured at 10,000 games per pairing against a plain stand-in (`progress/balance-report-027-zero-day.txt`). The cap proposal, the mode-use findings (Kill Switch's Lights Out is almost never picked) and the tuning options are in the new [OWNER CHECK-IN] in notes-for-owner.md. Side task: "Zero-Day" already left the name lists in session 37; it was in them only in sessions 35-36, no recorded or committed agent name used it, and owners' own databases are not reachable from the repo, so no agent is listed)
 
 Owner decision. This follows the 2026-10-18 entry "Zero-Day cards need more design work". It builds on the 2026-10-16 entries (their own cards, slightly stronger, two abilities with the agent choosing one, 1 copy per deck, allowed in ranked and tournaments, animated, about 1 pack in 500).
 

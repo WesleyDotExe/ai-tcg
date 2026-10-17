@@ -38,6 +38,10 @@ function freshPlayerState(spec: DeckSpec, rng: Rng): PlayerState {
   if (spec.signature && spec.signature.type !== "Unit") {
     throw new Error(`${spec.name}: a signature card must be a Unit, not a ${(spec.signature as Card).type}`);
   }
+  if (spec.signature?.modes) {
+    // The signature zone plays its card as printed (no mode on playSignature).
+    throw new Error(`${spec.name}: a signature card can't be modal (${spec.signature.name})`);
+  }
   if (spec.signature?.evolvesFrom) {
     throw new Error(`${spec.name}: a signature card can't be an evolution (${spec.signature.name} evolves from ${spec.signature.evolvesFrom})`);
   }

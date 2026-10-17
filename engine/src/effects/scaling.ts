@@ -20,6 +20,8 @@ export function buildScalingContext(state: GameState, forPlayer: PlayerId): Scal
           return state.players[forPlayer].graveyard.length;
         case "opponentGraveyardSize":
           return state.players[opponent].graveyard.length;
+        case "allUnitsInPlay":
+          return state.players.p1.board.length + state.players.p2.board.length;
         case "turnNumber":
           return state.turnNumber;
       }

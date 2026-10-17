@@ -25,6 +25,7 @@ import type {
   TargetFilter,
   TriggerKind,
 } from "./types.js";
+import { allAbilities, playVariants } from "./modes.js";
 
 const REMOVAL_DEBUFF_MAX_SHARE = 0.25;
 const TARGETED_DAMAGE_COST_THRESHOLD = 3;
@@ -101,7 +102,7 @@ function isRemovalOrDebuffStaticEffect(se: StaticEffectSpec): boolean {
 /** Rule 1's per-card classifier. Exported for reuse (e.g. a future
  * balanceReport.ts breakdown), not just an internal helper. */
 export function isRemovalOrDebuffCard(card: Card): boolean {
-  for (const ability of card.abilities) {
+  for (const ability of allAbilities(card)) {
     if (!REMOVAL_ELIGIBLE_TRIGGERS.includes(ability.trigger)) continue;
     if (ability.trigger === "static") {
       if (ability.staticEffect && isRemovalOrDebuffStaticEffect(ability.staticEffect)) return true;
@@ -123,7 +124,7 @@ export function isRemovalOrDebuffCard(card: Card): boolean {
  * different curve, not this rule's concern. */
 function findExcessiveTargetedDamage(card: Card): Ability | undefined {
   if (card.cost >= TARGETED_DAMAGE_COST_THRESHOLD) return undefined;
-  for (const ability of card.abilities) {
+  for (const ability of allAbilities(card)) {
     const scope = ability.targeting?.scope;
     if (scope !== "chosen" && scope !== "random") continue;
     for (const effect of walkEffects(ability.effects ?? [])) {
@@ -148,7 +149,7 @@ function findExcessiveTargetedDamage(card: Card): Ability | undefined {
  * 1's broader removal/debuff density). */
 function violatesCheapPermanentEnemyAura(card: Card): Ability | undefined {
   if (card.cost >= CHEAP_AURA_COST_THRESHOLD) return undefined;
-  for (const ability of card.abilities) {
+  for (const ability of allAbilities(card)) {
     if (ability.trigger !== "static" || !ability.staticEffect) continue;
     const se = ability.staticEffect;
     if (se.kind === "buffAllies" && se.filter.side === "opponent" && (se.attack < 0 || se.health < 0)) {
@@ -160,7 +161,7 @@ function violatesCheapPermanentEnemyAura(card: Card): Ability | undefined {
 
 function poolHasCardFlow(cards: Card[]): boolean {
   return cards.some((card) =>
-    card.abilities.some((ability) =>
+    allAbilities(card).some((ability) =>
       [...walkEffects(ability.effects ?? [])].some((effect) => effect.kind === "drawCard"),
     ),
   );
@@ -169,7 +170,7 @@ function poolHasCardFlow(cards: Card[]): boolean {
 function poolHasClock(cards: Card[]): boolean {
   const hasAttacker = cards.some((card) => card.type === "Unit" && card.attack > 0);
   const hasFaceDamage = cards.some((card) =>
-    card.abilities.some((ability) => {
+    allAbilities(card).some((ability) => {
       const targeting = ability.targeting;
       const filter = targeting && "filter" in targeting ? targeting.filter : undefined;
       if (!filter || filter.kind !== "player" || !targetsOpponent(filter)) return false;
@@ -201,6 +202,7 @@ export function lintCardPool(pool: { card: Card; copies: number }[], factionName
   }
 
   for (const { card } of pool) {
+    violations.push(...modalCardViolations(card));
     const overCost = findExcessiveTargetedDamage(card);
     if (overCost) {
       violations.push(
@@ -261,7 +263,7 @@ export function neutralCardViolations(card: Card): string[] {
   if (card.type === "Unit" && (card.evolvesFrom || card.telegraph || card.baseArmor)) {
     out.push(`"${card.name}": evolution lines and telegraphs are faction identity`);
   }
-  for (const ability of card.abilities) {
+  for (const ability of allAbilities(card)) {
     const effects = ability.effects ?? [];
     if ([...walkEffects(effects)].some((e) => e.kind === "summon")) {
       out.push(`"${card.name}": summoning tokens is faction identity`);
@@ -276,5 +278,58 @@ export function neutralCardViolations(card: Card): string[] {
       out.push(`"${card.name}": faction-conditional effects are faction identity`);
     }
   }
+  return out;
+}
+
+/**
+ * The "choose one" rules (session 40), checked on every card of every built
+ * deck and on the Zero-Day cards at load. A modal card has two or more
+ * modes with distinct ids and names, each with at least one ability; no
+ * ability id repeats across the card (its printed abilities and every
+ * mode), so an event's ability id always names one ability; and each way to
+ * play it has at most one onPlay, the one the engine fires. A Tool can't be
+ * modal (it has no abilities to choose between), and a printed card never
+ * carries a chosen mode.
+ */
+export function modalCardViolations(card: Card): string[] {
+  const out: string[] = [];
+  if (card.chosenMode !== undefined) return [`"${card.name}": a printed card has no chosen mode`];
+  const modes = card.modes;
+  if (!modes) return out;
+  if (card.type === "Tool") out.push(`"${card.name}": a Tool can't be modal`);
+  if (modes.length < 2) out.push(`"${card.name}": a modal card needs at least two modes, has ${modes.length}`);
+  if (new Set(modes.map((m) => m.id)).size !== modes.length) out.push(`"${card.name}": two modes share an id`);
+  if (new Set(modes.map((m) => m.name)).size !== modes.length) out.push(`"${card.name}": two modes share a name`);
+  for (const mode of modes) {
+    if (mode.abilities.length === 0) out.push(`"${card.name}": mode "${mode.name}" has no abilities`);
+  }
+  const ids = allAbilities(card).map((a) => a.id);
+  if (new Set(ids).size !== ids.length) out.push(`"${card.name}": an ability id repeats across its modes`);
+  for (const { card: played, mode } of playVariants(card)) {
+    if (played.abilities.filter((a) => a.trigger === "onPlay").length > 1) {
+      out.push(`"${card.name}": mode "${mode?.name}" would have two onPlay abilities`);
+    }
+  }
+  return out;
+}
+
+/** How many modes a Zero-Day card has (owner 2026-10-16: "each has two
+ * abilities, and the player chooses one"). */
+const ZERO_DAY_MODES = 2;
+
+/**
+ * A Zero-Day card's own rules (owner 2026-10-16 and 2026-10-18), in place of
+ * the neutral-pool identity rules it is exempt from: Neutral, marked
+ * `topTier: "zeroDay"`, a Mythic for copy limits and pity (1 per deck, the
+ * guardrail), exactly two modes, and the modal rules above. Its strength is
+ * bounded by the fairness test's cap, not by this lint.
+ */
+export function zeroDayCardViolations(card: Card): string[] {
+  const out: string[] = [];
+  if (card.topTier !== "zeroDay") out.push(`"${card.name}" is not marked as a Zero-Day card`);
+  if (card.faction !== "Neutral") out.push(`"${card.name}": the Season 0 Zero-Day cards are Neutral`);
+  if (card.rarity !== "Mythic") out.push(`"${card.name}": a Zero-Day card counts as a Mythic (1 per deck)`);
+  if ((card.modes?.length ?? 0) !== ZERO_DAY_MODES) out.push(`"${card.name}": a Zero-Day card has exactly ${ZERO_DAY_MODES} modes`);
+  out.push(...modalCardViolations(card));
   return out;
 }

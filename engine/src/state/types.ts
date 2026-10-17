@@ -168,6 +168,10 @@ export type GameEvent =
       /** What it cost, for a signature play (the base cost plus the replay
        * surcharge), so the log and a spectator can show the climb. */
       cost?: number;
+      /** A modal card's chosen mode: its id and printed name (session 40).
+       * Absent for every other card. */
+      mode?: string;
+      modeName?: string;
     }
   | {
       type: "abilityTrigger";
@@ -212,6 +216,9 @@ export type GameEvent =
       /** The target chosen at cast time, if the spell or ability has one.
        * It can still fizzle or change before the stack item resolves. */
       targetRef?: TargetRef;
+      /** A modal Command's chosen mode, as on `play`. */
+      mode?: string;
+      modeName?: string;
     }
   | { type: "priorityPass"; player: PlayerId }
   | { type: "stackResolve"; description: string; stackId?: string }
@@ -239,7 +246,7 @@ export type GameEvent =
     }
   | { type: "telegraphPlaced"; unit: string; armIn: number; instanceId?: string }
   | { type: "telegraphArmed"; unit: string; instanceId?: string }
-  | { type: "evolve"; player: PlayerId; from: string; to: string; instanceId?: string }
+  | { type: "evolve"; player: PlayerId; from: string; to: string; instanceId?: string; mode?: string; modeName?: string }
   | { type: "toolAttached"; player: PlayerId; tool: string; unit: string; unitId?: string }
   | {
       type: "attackRedirected";

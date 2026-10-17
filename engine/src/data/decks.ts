@@ -5,6 +5,11 @@ import { NEUTRAL_POOL } from "./neutralCards.js";
 import { CORTEX_CARDS, SWARM_CARDS } from "./cards.js";
 import { AEGIS_CARDS } from "./aegisCards.js";
 import { NULL_CARDS } from "./nullCards.js";
+import { ZERO_DAY_CARDS } from "./zeroDayCards.js";
+
+/** Top-tier guardrail (owner 2026-10-16): only 1 copy per deck of each
+ * Zero-Day card, whatever its rarity says. */
+export const TOP_TIER_COPY_LIMIT = 1;
 
 /** Copy-limit rule: a small cap on how many copies of one card a deck may
  * run, tighter at higher rarity. This is deck-construction, not just a
@@ -74,6 +79,12 @@ export function buildDeck(id: DeckSpec["id"], name: string, pool: { card: Card; 
   }
   const neutral = pool.filter((p) => p.card.faction === "Neutral");
   for (const { card } of neutral) {
+    // A Zero-Day card is Neutral without being a neutral-pool card (see
+    // data/zeroDayCards.ts); it must be one of the linted Zero-Day objects.
+    if (card.topTier === "zeroDay") {
+      if (!ZERO_DAY_CARDS.includes(card)) throw new Error(`Deck ${name}: "${card.name}" is marked Zero-Day but is not a Zero-Day card`);
+      continue;
+    }
     if (!NEUTRAL_POOL.includes(card)) throw new Error(`Deck ${name}: "${card.name}" is marked Neutral but is not in the neutral pool`);
   }
   const neutralCopies = neutral.reduce((n, p) => n + p.copies, 0);
@@ -95,6 +106,9 @@ export function buildDeck(id: DeckSpec["id"], name: string, pool: { card: Card; 
       throw new Error(
         `Deck ${name}: ${copies} copies of "${card.name}" exceeds the ${limit}-copy limit for ${card.rarity} cards`,
       );
+    }
+    if (card.topTier && copies > TOP_TIER_COPY_LIMIT) {
+      throw new Error(`Deck ${name}: ${copies} copies of "${card.name}"; a Zero-Day card is ${TOP_TIER_COPY_LIMIT} per deck`);
     }
     for (let i = 0; i < copies; i++) cards.push(card);
   }

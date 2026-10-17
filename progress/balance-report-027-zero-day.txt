@@ -1,0 +1,164 @@
+AI-TCG balance report 027: the 3 Season 0 Zero-Day cards, measured (session 40)
+Owner 2026-10-16: "measure the strength with the same fairness test as signature cards ... propose the cap
+with the measurements". Owner 2026-10-18: the 3 designs, at starting numbers; "check that agents use both
+modes of each card, not always the same one".
+
+The test (dev/zeroDayFairness.ts; the signature test's shape, for a deck card):
+  - Reference: every faction plays its shipped deck with one slot changed: one spare copy of a card
+    (a removal card when the Zero-Day card counts as removal, so the deck's removal share doesn't move)
+    becomes a plain Neutral stand-in of the same cost with no ability. A Unit's stand-in keeps the
+    Zero-Day card's body (2/4, 3/6), so what is measured is the modes alone; Kill Switch's is a 7-cost 4/8.
+    The signature zone holds the plain 3/6 reference signature, as in the signature test.
+  - Candidate: one faction's stand-in becomes the Zero-Day card, in the same deck position (same shuffle,
+    same games until it is drawn), the other three keeping theirs. All four factions take a turn.
+  - Each edge's change is the paired mean of per-seed differences (a win 1, a loss or draw 0), with its
+    95% interval. 10,000 games per pairing, LookaheadAgent on both sides (edge-measure seeding).
+  - "LOCKED to X": the same card made non-modal in mode X, so the agent can't pick the other. It plays
+    exactly like the modal card in that mode. It answers "is the agent's pick worth anything?"
+    Caveat: LookaheadAgent values a plain unit by body and onPlay only, so a LOCKED unit whose mode is a
+    static or an onDeath is played less often than the modal card (it gets no mode value), and LOCKED
+    Lights Out is cast far less often than Wipe. Compare the "played in" counts.
+
+Commands (from engine/), all seeded, about 4 minutes each on one core:
+  npx tsx src/dev/zeroDayFairness.ts reference --seeds 10000 --out ref.json
+  npx tsx src/dev/zeroDayFairness.ts candidate --card S0-ZD1 [--force outbreak] --ref ref.json --out zd1.json
+  npx tsx src/dev/zeroDayFairness.ts report --ref ref.json zd1.json ...
+
+Summary (worst edge move / mean move over the 12 edges, in points; agent's mode split):
+  Patient Zero  agent chooses   2.51 / 1.68   Outbreak 77%, Carrier 23%
+                LOCKED Outbreak 2.07 / 0.93
+                LOCKED Carrier  6.04 / 4.69   <- the stronger mode, which the agent picks less
+  Root Access   agent chooses   4.50 / 3.57   Privilege Escalation 88%, Lockout 12%
+                LOCKED Priv.Esc 3.43 / 2.76
+                LOCKED Lockout  1.75 / 1.14
+  Kill Switch   agent chooses   2.33 / 1.65   Wipe 99.99%, Lights Out 1 cast in 17,967
+                LOCKED Lights   2.87 / 1.95   (cast in 1,291 games per faction on average, Wipe in 4,492)
+                LOCKED Wipe     2.33 / 1.65
+
+Findings:
+  1. Every card plays stronger than a plain card of its cost on every edge, as the owner intends
+     ("slightly stronger"), and no card breaks the game: the largest move is 4.50 points (agent choosing)
+     and 6.04 points (Patient Zero locked to Carrier).
+  2. The mode choice is real but the reference agent reads it badly in two of three cards:
+     - Patient Zero: Carrier is clearly the stronger mode (4.69 vs 0.93 mean), yet the agent picks Outbreak
+       about 3 times in 4. Its pick is worth less than always picking Carrier.
+     - Kill Switch: per cast, Lights Out moves edges more than Wipe (it is cast in under a third as many games), yet the
+       agent essentially never picks it. Both modes are not used: the owner's check fails here.
+     - Root Access: the agent picks the stronger mode (Privilege Escalation) most of the time, and the
+       modal card is stronger than either locked version, because the mode value also makes the agent
+       play it more often.
+     Cause (agents/lookaheadAgent.ts): an ongoing aura is valued at half its size once, and a status at
+     0.6 x the unit's attack whatever its duration. A 2-turn stun of the whole board scores like a
+     one-turn tap, and +1/+1 to every unit for the rest of the game scores like a small one-off buff.
+  3. Because the fairness test measures through this agent, a better chooser would make Patient Zero
+     stronger (towards its Carrier 6.04) and Kill Switch somewhat stronger. A cap set on today's numbers
+     would be set against an agent that leaves strength on the table.
+
+Patient Zero (S0-ZD1), agent chooses the mode; 3 energy Unit, 10000 seeds per pairing, vs stand-in "Stand-in 3" (2/4 vanilla)
+  cut: one copy of a non-removal card
+  Cortex vs Swarm 48.5% -> 48.7% +0.19 [-0.10, 0.48] | vs Aegis 39.3% -> 41.7% +2.48 [2.11, 2.85] | vs Null 46.4% -> 47.7% +1.30 [0.97, 1.63]
+         played in 7789 of 30000 games; modes: Outbreak 6355 (81.6%), Carrier 1434 (18.4%)
+  Swarm  vs Cortex 51.5% -> 53.9% +2.35 [1.96, 2.74] | vs Aegis 42.2% -> 44.5% +2.27 [1.89, 2.65] | vs Null 54.8% -> 56.0% +1.25 [0.92, 1.58]
+         played in 7720 of 30000 games; modes: Outbreak 5460 (70.7%), Carrier 2260 (29.3%)
+  Aegis  vs Cortex 60.8% -> 63.1% +2.37 [2.01, 2.73] | vs Swarm 57.8% -> 58.6% +0.82 [0.55, 1.09] | vs Null 56.2% -> 57.8% +1.60 [1.29, 1.91]
+         played in 7884 of 30000 games; modes: Outbreak 6311 (80.0%), Carrier 1573 (20.0%)
+  Null   vs Cortex 53.6% -> 55.9% +2.30 [1.96, 2.64] | vs Swarm 45.3% -> 46.0% +0.73 [0.50, 0.96] | vs Aegis 43.8% -> 46.3% +2.51 [2.15, 2.87]
+         played in 8505 of 30000 games; modes: Outbreak 6592 (77.5%), Carrier 1913 (22.5%)
+  worst edge move 2.51 points; mean move 1.68 points
+
+Patient Zero (S0-ZD1), LOCKED to Outbreak; 3 energy Unit, 10000 seeds per pairing, vs stand-in "Stand-in 3" (2/4 vanilla)
+  cut: one copy of a non-removal card
+  Cortex vs Swarm 48.5% -> 48.7% +0.18 [0.10, 0.26] | vs Aegis 39.3% -> 40.3% +1.04 [0.82, 1.26] | vs Null 46.4% -> 46.9% +0.46 [0.31, 0.61]
+         played in 6767 of 30000 games; modes: Outbreak (forced) 6767 (100.0%)
+  Swarm  vs Cortex 51.5% -> 53.0% +1.48 [1.21, 1.75] | vs Aegis 42.2% -> 43.2% +1.01 [0.77, 1.25] | vs Null 54.8% -> 55.2% +0.44 [0.29, 0.59]
+         played in 6224 of 30000 games; modes: Outbreak (forced) 6224 (100.0%)
+  Aegis  vs Cortex 60.8% -> 62.8% +2.07 [1.77, 2.37] | vs Swarm 57.8% -> 58.5% +0.66 [0.49, 0.83] | vs Null 56.2% -> 57.3% +1.05 [0.83, 1.27]
+         played in 7272 of 30000 games; modes: Outbreak (forced) 7272 (100.0%)
+  Null   vs Cortex 53.6% -> 55.0% +1.46 [1.20, 1.72] | vs Swarm 45.3% -> 45.3% +0.08 [0.01, 0.15] | vs Aegis 43.8% -> 45.0% +1.21 [0.96, 1.46]
+         played in 7950 of 30000 games; modes: Outbreak (forced) 7950 (100.0%)
+  worst edge move 2.07 points; mean move 0.93 points
+
+Patient Zero (S0-ZD1), LOCKED to Carrier; 3 energy Unit, 10000 seeds per pairing, vs stand-in "Stand-in 3" (2/4 vanilla)
+  cut: one copy of a non-removal card
+  Cortex vs Swarm 48.5% -> 52.2% +3.72 [3.34, 4.10] | vs Aegis 39.3% -> 44.1% +4.86 [4.43, 5.29] | vs Null 46.4% -> 50.8% +4.39 [3.99, 4.79]
+         played in 6767 of 30000 games; modes: Carrier (forced) 6767 (100.0%)
+  Swarm  vs Cortex 51.5% -> 56.1% +4.63 [4.21, 5.05] | vs Aegis 42.2% -> 47.2% +5.03 [4.58, 5.48] | vs Null 54.8% -> 59.3% +4.54 [4.13, 4.95]
+         played in 6224 of 30000 games; modes: Carrier (forced) 6224 (100.0%)
+  Aegis  vs Cortex 60.8% -> 65.3% +4.56 [4.14, 4.98] | vs Swarm 57.8% -> 62.2% +4.35 [3.94, 4.76] | vs Null 56.2% -> 60.9% +4.71 [4.28, 5.14]
+         played in 7272 of 30000 games; modes: Carrier (forced) 7272 (100.0%)
+  Null   vs Cortex 53.6% -> 58.0% +4.36 [3.95, 4.77] | vs Swarm 45.3% -> 50.3% +5.06 [4.62, 5.50] | vs Aegis 43.8% -> 49.8% +6.04 [5.55, 6.53]
+         played in 7950 of 30000 games; modes: Carrier (forced) 7950 (100.0%)
+  worst edge move 6.04 points; mean move 4.69 points
+
+Root Access (S0-ZD2), agent chooses the mode; 5 energy Unit, 10000 seeds per pairing, vs stand-in "Stand-in 5" (3/6 vanilla)
+  cut: one copy of a removal card
+  Cortex vs Swarm 51.1% -> 54.4% +3.31 [2.94, 3.68] | vs Aegis 41.9% -> 45.8% +3.85 [3.45, 4.25] | vs Null 46.5% -> 50.0% +3.55 [3.18, 3.92]
+         played in 7777 of 30000 games; modes: Privilege Escalation 6566 (84.4%), Lockout 1211 (15.6%)
+  Swarm  vs Cortex 48.9% -> 52.8% +3.86 [3.47, 4.25] | vs Aegis 44.5% -> 49.0% +4.50 [4.09, 4.91] | vs Null 55.0% -> 57.6% +2.62 [2.28, 2.96]
+         played in 7601 of 30000 games; modes: Privilege Escalation 7002 (92.1%), Lockout 599 (7.9%)
+  Aegis  vs Cortex 58.1% -> 61.6% +3.52 [3.14, 3.90] | vs Swarm 55.5% -> 58.1% +2.60 [2.27, 2.93] | vs Null 52.9% -> 56.5% +3.50 [3.13, 3.87]
+         played in 7804 of 30000 games; modes: Lockout 1055 (13.5%), Privilege Escalation 6749 (86.5%)
+  Null   vs Cortex 53.5% -> 57.5% +3.99 [3.59, 4.39] | vs Swarm 45.0% -> 48.4% +3.42 [3.06, 3.78] | vs Aegis 47.0% -> 51.2% +4.12 [3.72, 4.52]
+         played in 8181 of 30000 games; modes: Privilege Escalation 7354 (89.9%), Lockout 827 (10.1%)
+  worst edge move 4.50 points; mean move 3.57 points
+
+Root Access (S0-ZD2), LOCKED to Privilege Escalation; 5 energy Unit, 10000 seeds per pairing, vs stand-in "Stand-in 5" (3/6 vanilla)
+  cut: one copy of a removal card
+  Cortex vs Swarm 51.1% -> 53.5% +2.41 [2.11, 2.71] | vs Aegis 41.9% -> 45.1% +3.14 [2.79, 3.49] | vs Null 46.5% -> 49.2% +2.75 [2.43, 3.07]
+         played in 6881 of 30000 games; modes: Privilege Escalation (forced) 6881 (100.0%)
+  Swarm  vs Cortex 48.9% -> 51.9% +3.06 [2.72, 3.40] | vs Aegis 44.5% -> 47.9% +3.43 [3.07, 3.79] | vs Null 55.0% -> 57.0% +2.00 [1.73, 2.27]
+         played in 6635 of 30000 games; modes: Privilege Escalation (forced) 6635 (100.0%)
+  Aegis  vs Cortex 58.1% -> 61.2% +3.08 [2.74, 3.42] | vs Swarm 55.5% -> 57.8% +2.25 [1.96, 2.54] | vs Null 52.9% -> 55.8% +2.87 [2.54, 3.20]
+         played in 6999 of 30000 games; modes: Privilege Escalation (forced) 6999 (100.0%)
+  Null   vs Cortex 53.5% -> 56.4% +2.89 [2.56, 3.22] | vs Swarm 45.0% -> 47.1% +2.12 [1.84, 2.40] | vs Aegis 47.0% -> 50.2% +3.12 [2.78, 3.46]
+         played in 7368 of 30000 games; modes: Privilege Escalation (forced) 7368 (100.0%)
+  worst edge move 3.43 points; mean move 2.76 points
+
+Root Access (S0-ZD2), LOCKED to Lockout; 5 energy Unit, 10000 seeds per pairing, vs stand-in "Stand-in 5" (3/6 vanilla)
+  cut: one copy of a removal card
+  Cortex vs Swarm 51.1% -> 51.8% +0.67 [0.45, 0.89] | vs Aegis 41.9% -> 43.4% +1.51 [1.23, 1.79] | vs Null 46.5% -> 47.7% +1.21 [0.95, 1.47]
+         played in 6881 of 30000 games; modes: Lockout (forced) 6881 (100.0%)
+  Swarm  vs Cortex 48.9% -> 50.4% +1.47 [1.18, 1.76] | vs Aegis 44.5% -> 46.3% +1.75 [1.45, 2.05] | vs Null 55.0% -> 55.6% +0.54 [0.33, 0.75]
+         played in 6635 of 30000 games; modes: Lockout (forced) 6635 (100.0%)
+  Aegis  vs Cortex 58.1% -> 59.3% +1.18 [0.92, 1.44] | vs Swarm 55.5% -> 56.3% +0.78 [0.56, 1.00] | vs Null 52.9% -> 54.2% +1.26 [1.01, 1.51]
+         played in 6999 of 30000 games; modes: Lockout (forced) 6999 (100.0%)
+  Null   vs Cortex 53.5% -> 54.8% +1.29 [1.01, 1.57] | vs Swarm 45.0% -> 45.4% +0.39 [0.20, 0.58] | vs Aegis 47.0% -> 48.7% +1.68 [1.38, 1.98]
+         played in 7368 of 30000 games; modes: Lockout (forced) 7368 (100.0%)
+  worst edge move 1.75 points; mean move 1.14 points
+
+Kill Switch (S0-ZD3), agent chooses the mode; 7 energy Command, 10000 seeds per pairing, vs stand-in "Stand-in 7" (4/8 vanilla)
+  cut: one copy of a removal card
+  Cortex vs Swarm 51.1% -> 53.5% +2.33 [2.00, 2.66] | vs Aegis 42.2% -> 43.4% +1.26 [0.90, 1.62] | vs Null 47.2% -> 48.7% +1.45 [1.13, 1.77]
+         played in 4757 of 30000 games; modes: Wipe 4757 (100.0%)
+  Swarm  vs Cortex 48.9% -> 50.2% +1.38 [1.05, 1.71] | vs Aegis 44.8% -> 46.4% +1.56 [1.24, 1.88] | vs Null 55.7% -> 56.6% +0.98 [0.77, 1.19]
+         played in 3710 of 30000 games; modes: Wipe 3709 (100.0%), Lights Out 1 (0.0%)
+  Aegis  vs Cortex 57.8% -> 59.7% +1.81 [1.45, 2.17] | vs Swarm 55.2% -> 57.4% +2.19 [1.85, 2.53] | vs Null 53.9% -> 55.6% +1.64 [1.30, 1.98]
+         played in 5480 of 30000 games; modes: Wipe 5480 (100.0%)
+  Null   vs Cortex 52.8% -> 54.5% +1.74 [1.42, 2.06] | vs Swarm 44.3% -> 46.1% +1.71 [1.44, 1.98] | vs Aegis 46.1% -> 47.8% +1.70 [1.35, 2.05]
+         played in 4020 of 30000 games; modes: Wipe 4020 (100.0%)
+  worst edge move 2.33 points; mean move 1.65 points
+
+Kill Switch (S0-ZD3), LOCKED to Lights Out; 7 energy Command, 10000 seeds per pairing, vs stand-in "Stand-in 7" (4/8 vanilla)
+  cut: one copy of a removal card
+  Cortex vs Swarm 51.1% -> 53.1% +1.97 [1.67, 2.27] | vs Aegis 42.2% -> 43.3% +1.17 [0.85, 1.49] | vs Null 47.2% -> 48.5% +1.30 [1.03, 1.57]
+         played in 933 of 30000 games; modes: Lights Out (forced) 933 (100.0%)
+  Swarm  vs Cortex 48.9% -> 50.4% +1.56 [1.26, 1.86] | vs Aegis 44.8% -> 46.5% +1.71 [1.41, 2.01] | vs Null 55.7% -> 56.6% +0.96 [0.76, 1.16]
+         played in 1001 of 30000 games; modes: Lights Out (forced) 1001 (100.0%)
+  Aegis  vs Cortex 57.8% -> 60.2% +2.32 [1.95, 2.69] | vs Swarm 55.2% -> 58.1% +2.87 [2.52, 3.22] | vs Null 53.9% -> 56.6% +2.73 [2.37, 3.09]
+         played in 1998 of 30000 games; modes: Lights Out (forced) 1998 (100.0%)
+  Null   vs Cortex 52.8% -> 55.1% +2.36 [2.04, 2.68] | vs Swarm 44.3% -> 46.1% +1.80 [1.54, 2.06] | vs Aegis 46.1% -> 48.7% +2.65 [2.31, 2.99]
+         played in 1233 of 30000 games; modes: Lights Out (forced) 1233 (100.0%)
+  worst edge move 2.87 points; mean move 1.95 points
+
+Kill Switch (S0-ZD3), LOCKED to Wipe; 7 energy Command, 10000 seeds per pairing, vs stand-in "Stand-in 7" (4/8 vanilla)
+  cut: one copy of a removal card
+  Cortex vs Swarm 51.1% -> 53.5% +2.33 [2.00, 2.66] | vs Aegis 42.2% -> 43.4% +1.26 [0.90, 1.62] | vs Null 47.2% -> 48.7% +1.45 [1.13, 1.77]
+         played in 4757 of 30000 games; modes: Wipe (forced) 4757 (100.0%)
+  Swarm  vs Cortex 48.9% -> 50.2% +1.38 [1.05, 1.71] | vs Aegis 44.8% -> 46.4% +1.56 [1.24, 1.88] | vs Null 55.7% -> 56.6% +0.98 [0.77, 1.19]
+         played in 3709 of 30000 games; modes: Wipe (forced) 3709 (100.0%)
+  Aegis  vs Cortex 57.8% -> 59.7% +1.81 [1.45, 2.17] | vs Swarm 55.2% -> 57.4% +2.19 [1.85, 2.53] | vs Null 53.9% -> 55.6% +1.64 [1.30, 1.98]
+         played in 5480 of 30000 games; modes: Wipe (forced) 5480 (100.0%)
+  Null   vs Cortex 52.8% -> 54.5% +1.74 [1.42, 2.06] | vs Swarm 44.3% -> 46.1% +1.71 [1.44, 1.98] | vs Aegis 46.1% -> 47.8% +1.70 [1.35, 2.05]
+         played in 4020 of 30000 games; modes: Wipe (forced) 4020 (100.0%)
+  worst edge move 2.33 points; mean move 1.65 points
+
