@@ -215,7 +215,18 @@ export type GameEvent =
     }
   | { type: "priorityPass"; player: PlayerId }
   | { type: "stackResolve"; description: string; stackId?: string }
-  | { type: "fizzle"; reason: string }
+  | {
+      type: "fizzle";
+      /** Readable text for the raw log. Readers that word it themselves
+       * (the spectator feed, commentary) use the fields below. */
+      reason: string;
+      /** On an attack's fizzle only: its attacker, or its unit target, left
+       * play before it resolved. Absent on other fizzles (an ability with
+       * nothing to do) and in logs written before session 38. */
+      cause?: "attackerGone" | "targetGone";
+      attacker?: string;
+      attackerId?: string;
+    }
   | { type: "telegraphPlaced"; unit: string; armIn: number; instanceId?: string }
   | { type: "telegraphArmed"; unit: string; instanceId?: string }
   | { type: "evolve"; player: PlayerId; from: string; to: string; instanceId?: string }
@@ -235,7 +246,20 @@ export type GameEvent =
   | { type: "summon"; player: PlayerId; token: string; instanceId: string; source: string; sourceId?: string }
   | { type: "summonFizzle"; player: PlayerId; token: string; source: string; sourceId?: string }
   | { type: "baseArmorReduced"; unit: string; source: string; rawAmount: number; reducedTo: number; sourceId?: string; unitId?: string }
-  | { type: "gameOver"; winner: PlayerId | "draw"; reason: string };
+  | {
+      type: "gameOver";
+      winner: PlayerId | "draw";
+      /** Readable text for the raw log, naming seats ("p2's health reached
+       * 0"). Readers that word it themselves use `cause`. */
+      reason: string;
+      /** Absent in logs written before session 38. */
+      cause?: GameOverCause;
+    };
+
+/** What ended a match, as data (owner 2026-10-18: the feed and the
+ * commentators word it, not a fixed sentence). `losers` is every player
+ * whose health reached 0: both on a simultaneous lethal (a draw). */
+export type GameOverCause = { kind: "healthDepleted"; losers: PlayerId[] } | { kind: "turnCap"; tied: boolean };
 
 export interface GameState {
   turnNumber: number;

@@ -54,13 +54,12 @@ export interface MenuSize {
 const yourUnits = { side: "controller", kind: "unit" } as const;
 const enemyUnits = { side: "opponent", kind: "unit" } as const;
 
-/** One onPlay/onTurnEnd/... ability at a given size: same id as the
- * standard, so the event log names the option the same way at every size. */
+/** One onPlay/onTurnEnd/... ability at a given size. It is written with the
+ * standard's id; `withSizedIds` below gives every size its own. */
 const ab = (base: Ability, patch: Partial<Ability>): Ability => ({ ...base, ...patch });
 /** "Only while you control N or more units (this one included)". */
 const whileUnits = (count: number) => ({ kind: "unitsInPlayAtLeast", side: "controller", count }) as const;
 
-/** All 16 options, in the owner's order. */
 // The abilities, as builders so every size is the same ability with one
 // number or one filter changed.
 const COMMANDERS_AURA: Ability = { id: "sig-commanders-aura", trigger: "static", text: "Your other units get +1/+0.", staticEffect: { kind: "buffAllies", attack: 1, health: 0, filter: yourUnits, excludeSelf: true } };
@@ -121,7 +120,7 @@ function sweep(targeting: TargetSpec, amount: number): Ability {
   return { id: "sig-sweep", trigger: "onPlay", text: `Deal ${amount} damage to ${who}.`, targeting, effects: [{ kind: "damage", amount: { mode: "flat", value: amount } }] };
 }
 
-export const SIGNATURE_MENU: MenuOption[] = [
+const MENU_AS_WRITTEN: MenuOption[] = [
   // Offence
   {
     key: "commanders-aura",
@@ -350,6 +349,57 @@ export const SIGNATURE_MENU: MenuOption[] = [
   },
 ];
 
+// Ability ids (owner 2026-10-18, "unique ids for signature card
+// abilities"). Every distinct version of an ability has its own id: the
+// standard size keeps the option's id ("sig-recycle"), and a size adds its
+// key ("sig-recycle.c3"). Until session 38 every size shared the standard's
+// id, so "sig-recycle" was "Draw 2 cards." on one card and "Draw 3 cards." on
+// another, and anything looking an ability up by id alone could get the
+// wrong text or effect. The tier-7 second aura is always the standard size,
+// so it keeps the standard id. test/signatureMenu.test.ts checks that no id
+// names two different abilities, over every size and a large generated batch.
+
+/** Joins an option's ability id and a size key. */
+export const SIGNATURE_SIZE_SEPARATOR = ".";
+
+function withSizedIds(option: MenuOption): MenuOption {
+  return {
+    ...option,
+    sizes: option.sizes.map((size) => ({
+      ...size,
+      abilities: size.abilities.map((a) => ({ ...a, id: `${a.id}${SIGNATURE_SIZE_SEPARATOR}${size.key}` })),
+    })),
+  };
+}
+
+/** All 16 options, in the owner's order, every size with its own ability ids. */
+export const SIGNATURE_MENU: MenuOption[] = MENU_AS_WRITTEN.map(withSizedIds);
+
+/** The id an ability had before session 38 (the size key dropped):
+ * "sig-recycle.c3" -> "sig-recycle". Ids that aren't signature ids pass
+ * through. Kept for two readers: the fingerprint (so every fingerprint
+ * recorded before the change, in the approved list and in owners'
+ * databases, still matches the card rebuilt from its spec), and anything
+ * reading an older event log. */
+export function legacySignatureAbilityId(id: string): string {
+  if (!id.startsWith("sig-")) return id;
+  const cut = id.indexOf(SIGNATURE_SIZE_SEPARATOR);
+  return cut === -1 ? id : id.slice(0, cut);
+}
+
+/** The current id of an ability named `legacyId` in an event log written
+ * before session 38, on the card built from `spec`. Old logs only ever
+ * named the standard id; on a sized card that id meant the sized version,
+ * except for the tier-7 second aura, which is always standard. Signature
+ * cards are rebuilt from their stored spec, so the spec is always at hand
+ * where an old log is read. */
+export function upgradeSignatureAbilityId(legacyId: string, spec: SignatureSpec): string {
+  if (!spec.size) return legacyId;
+  const option = menuOption(spec.ability);
+  const standardIds = new Set(option.abilities.map((a) => a.id));
+  return standardIds.has(legacyId) ? `${legacyId}${SIGNATURE_SIZE_SEPARATOR}${spec.size}` : legacyId;
+}
+
 export type SignatureTier = 5 | 6 | 7;
 
 /** The owner's body table. */
@@ -513,7 +563,11 @@ export function signatureFingerprint(card: UnitCard): string {
     }
     return JSON.stringify(v);
   };
-  const text = canonical({ cost: card.cost, attack: card.attack, health: card.health, keywords: card.keywords, abilities: card.abilities });
+  // Ability ids go in as they were before session 38's unique ids: an id
+  // names an ability, it doesn't change what the card does, and this keeps
+  // every fingerprint recorded before the change valid.
+  const abilities = card.abilities.map((a) => ({ ...a, id: legacySignatureAbilityId(a.id) }));
+  const text = canonical({ cost: card.cost, attack: card.attack, health: card.health, keywords: card.keywords, abilities });
   let h = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) {
     h ^= text.charCodeAt(i);

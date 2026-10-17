@@ -1,0 +1,39 @@
+# Unique signature ability ids (owner 2026-10-18, session 38)
+
+## 300 generated agents (772 abilities on 900 candidate cards)
+  old ids: 6 ids, 1 naming more than one ability; 136 abilities carry a shared id
+    sig-recycle: "Draw 2 cards." / "Draw a card." / "Draw 3 cards."
+  new ids: 8 ids, 0 naming more than one ability; 0 abilities carry a shared id
+    sig-inspire.a0           "A random unit of yours gets +0/+1."
+    sig-rally.a0             "Your units get +0/+1 this turn."
+    sig-recycle              "Draw 2 cards."
+    sig-recycle.c1           "Draw a card."
+    sig-recycle.c3           "Draw 3 cards."
+    sig-restore.r1           "Restore 1 health to a random unit of yours."
+    sig-supply-line.low      "Draw a card."
+    sig-tax                  "Enemy Commands cost 1 more."
+
+## 3000 generated agents (7729 abilities on 9000 candidate cards)
+  old ids: 6 ids, 1 naming more than one ability; 1262 abilities carry a shared id
+    sig-recycle: "Draw 2 cards." / "Draw a card." / "Draw 3 cards."
+  new ids: 8 ids, 0 naming more than one ability; 0 abilities carry a shared id
+    sig-inspire.a0           "A random unit of yours gets +0/+1."
+    sig-rally.a0             "Your units get +0/+1 this turn."
+    sig-recycle              "Draw 2 cards."
+    sig-recycle.c1           "Draw a card."
+    sig-recycle.c3           "Draw 3 cards."
+    sig-restore.r1           "Restore 1 health to a random unit of yours."
+    sig-supply-line.low      "Draw a card."
+    sig-tax                  "Enemy Commands cost 1 more."
+
+## Every option at every size (the whole menu, not only the approved lines)
+  52 ability versions, 52 ids, 0 clashes
+
+# Engine reason text (owner 2026-10-18): game over as text and as data
+  The raw log names seats; the feed names agents, so "p2's health reached 0" reads
+  "<agent>'s health reached 0" (it used to be "<agent> health depleted").
+
+  Cortex vs Swarm, seed 101: winner p1; reason "p2's health reached 0"; cause {"kind":"healthDepleted","losers":["p2"]}; health p1 14, p2 -1, turn 15
+  Swarm vs Aegis, seed 102: winner p1; reason "p2's health reached 0"; cause {"kind":"healthDepleted","losers":["p2"]}; health p1 13, p2 0, turn 13
+  Aegis vs Null, seed 103: winner p2; reason "p1's health reached 0"; cause {"kind":"healthDepleted","losers":["p1"]}; health p1 -2, p2 9, turn 16
+  Null vs Cortex, seed 104: winner p1; reason "p2's health reached 0"; cause {"kind":"healthDepleted","losers":["p2"]}; health p1 17, p2 0, turn 13

@@ -544,12 +544,12 @@ export function checkGameOver(state: GameState): void {
   const p2Dead = state.players.p2.health <= 0;
   if (p1Dead && p2Dead) {
     state.winner = "draw";
-    state.log.push({ type: "gameOver", winner: "draw", reason: "simultaneous lethal" });
+    state.log.push({ type: "gameOver", winner: "draw", reason: "both players' health reached 0 at once", cause: { kind: "healthDepleted", losers: ["p1", "p2"] } });
   } else if (p1Dead) {
     state.winner = "p2";
-    state.log.push({ type: "gameOver", winner: "p2", reason: "p1 health depleted" });
+    state.log.push({ type: "gameOver", winner: "p2", reason: "p1's health reached 0", cause: { kind: "healthDepleted", losers: ["p1"] } });
   } else if (p2Dead) {
     state.winner = "p1";
-    state.log.push({ type: "gameOver", winner: "p1", reason: "p2 health depleted" });
+    state.log.push({ type: "gameOver", winner: "p1", reason: "p2's health reached 0", cause: { kind: "healthDepleted", losers: ["p2"] } });
   }
 }

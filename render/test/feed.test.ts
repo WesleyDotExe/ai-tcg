@@ -174,17 +174,21 @@ describe("feed helpers", () => {
 
 describe("rules text", () => {
   it("comes from the triggering card, even when another card shares its ability id", async () => {
-    // Generated signature cards reuse ability ids with different numbers.
-    const seats = Array.from({ length: 300 }, (_, s) => generatedSeats(s + 1)).flat();
-    const byId = new Map<string, { name: string; text: string }[]>();
-    for (const seat of seats) for (const a of seat.card.abilities) byId.set(a.id, [...(byId.get(a.id) ?? []), { name: seat.card.name, text: a.text }]);
-    const shared = [...byId.entries()].find(([, cards]) => new Set(cards.map((c) => c.text)).size > 1);
-    expect(shared, "some ability id carries different text on different signature cards").toBeDefined();
-    const [id, cards] = shared!;
-    const a = cards[0]!;
-    const b = cards.find((c) => c.text !== a.text)!;
+    // Before game session 38 generated signature cards reused ability ids
+    // with different numbers ("sig-recycle" was "Draw 2 cards." on one card
+    // and "Draw 3 cards." on another). New cards no longer do (the engine's
+    // signatureAbilityIds test), but replays recorded before then still
+    // can, so the clash is rebuilt here from two real generated cards.
+    const seats = Array.from({ length: 50 }, (_, s) => generatedSeats(s + 1)).flat();
+    const withAbility = seats.filter((s) => s.card.abilities.length > 0);
+    const first = withAbility[0]!;
+    const other = withAbility.find((s) => s.card.name !== first.card.name && s.card.abilities[0]!.text !== first.card.abilities[0]!.text)!;
+    const id = first.card.abilities[0]!.id;
+    const second = { ...other, card: { ...other.card, abilities: [{ ...other.card.abilities[0]!, id }] } };
+    const a = { name: first.card.name, text: first.card.abilities[0]!.text };
+    const b = { name: second.card.name, text: second.card.abilities[0]!.text };
     const deckOf = (seat: (typeof seats)[number]) => ({ id: "p1" as const, name: "d", cards: [], signature: seat.card });
-    const text = abilityTextFor(seats.filter((s) => s.card.name === a.name || s.card.name === b.name).map(deckOf));
+    const text = abilityTextFor([first, second].map(deckOf));
     const { r } = await replay("Cortex", "Aegis", 5, true);
     const frame = { ...r.frames[1]!, newEvents: [a, b].map((c) => ({ event: { type: "abilityTrigger" as const, source: c.name, ability: id, trigger: "onPlay" }, text: "" })) };
     const [entries] = buildFeed([frame], { names: r.agentNames, abilityText: text });
