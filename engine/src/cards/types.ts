@@ -83,6 +83,11 @@ export type ScalingSource =
    * so this is exposed to PlayerView the same as any other opponent-facing
    * count and needs no new redaction rule. */
   | "opponentGraveyardSize"
+  /** Every unit in play on both sides, the reading unit included. "1 plus
+   * the number of OTHER units in play" is base 0 plus 1 per unit, since the
+   * unit reading it is itself in play. First user: Zero-Day 2, Root Access
+   * (data/zeroDayCards.ts, its Privilege Escalation mode). */
+  | "allUnitsInPlay"
   | "turnNumber";
 
 export function resolveAmount(amount: ScalingAmount, ctx: ScalingContext): number {
@@ -279,6 +284,27 @@ export interface Ability {
   staticEffect?: StaticEffectSpec;
 }
 
+/** One mode of a modal ("choose one") card (owner 2026-10-16: "each has
+ * two abilities, and the player (the agent) chooses one when it's played,
+ * never both"; "the engine needs a generic choose-one mechanic"). A mode is
+ * a named bundle of ordinary abilities, any trigger allowed: an onPlay, a
+ * static aura, an onDeath. The choice is made when the card is played and
+ * offered as its own legal move per mode (engine/moves.ts); from then on
+ * the copy in play (or on the stack) carries the printed abilities plus the
+ * chosen mode's, so everything that reads `card.abilities` sees exactly
+ * what the agent picked and nothing it didn't (cards/modes.ts's withMode).
+ * The mode's `name` is part of the card: it appears in the choice, the log,
+ * the replay and the feed. */
+export interface CardMode {
+  /** Unique within the card; what a Move names ("outbreak"). */
+  id: string;
+  /** Printed mode name ("Outbreak"). */
+  name: string;
+  /** Rules text of this mode, for the card face and the feed. */
+  text: string;
+  abilities: Ability[];
+}
+
 interface CardBase {
   id: string;
   name: string;
@@ -292,6 +318,22 @@ interface CardBase {
   art: string;
   flavor: string;
   abilities: Ability[];
+  /** A modal card's modes (see CardMode): two or more, the agent picks one
+   * when the card is played. Absent on every other card. Never on a Tool
+   * (a Tool has no abilities) or a signature card (cards/poolLint.ts's
+   * modalCardViolations). */
+  modes?: CardMode[];
+  /** Set only on a played copy of a modal card (on the board, on the stack,
+   * in a Directive slot): the id of the mode its controller chose. The
+   * copy's `abilities` already include that mode's (cards/modes.ts). A
+   * card in a hand, deck or graveyard never has it. */
+  chosenMode?: string;
+  /** Top-tier cards (owner 2026-10-16: "Zero-Day", 3 per season): their
+   * own cards, slightly stronger, 1 copy per deck, allowed in ranked play.
+   * A Zero-Day card is Neutral but is not a neutral-pool card, so the
+   * neutral-pool identity rules don't apply to it; its own rules do
+   * (cards/poolLint.ts's zeroDayCardViolations). */
+  topTier?: "zeroDay";
 }
 
 export interface UnitCard extends CardBase {

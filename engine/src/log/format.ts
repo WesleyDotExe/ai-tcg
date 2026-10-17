@@ -19,8 +19,8 @@ export function formatEvent(event: GameEvent): string {
         return `${event.player} plays ${event.card} from the signature zone for ${event.cost} energy${event.instanceId ? ` (${event.instanceId})` : ""}`;
       }
       return event.instanceId
-        ? `${event.player} plays ${event.card} (${event.instanceId})`
-        : `${event.player} plays ${event.card}`;
+        ? `${event.player} plays ${event.card}${modeSuffix(event)} (${event.instanceId})`
+        : `${event.player} plays ${event.card}${modeSuffix(event)}`;
     case "abilityTrigger":
       return `  ability: ${event.source} — ${event.ability} (${event.trigger})`;
     case "damage":
@@ -42,7 +42,7 @@ export function formatEvent(event: GameEvent): string {
     case "gainEnergy":
       return `  ${event.player} gains ${event.amount} energy from ${event.source}`;
     case "cast":
-      return `${event.player} casts ${event.card} [${event.speed}] (goes on the stack)`;
+      return `${event.player} casts ${event.card}${modeSuffix(event)} [${event.speed}] (goes on the stack)`;
     case "priorityPass":
       return `  ${event.player} passes priority`;
     case "stackResolve":
@@ -54,7 +54,7 @@ export function formatEvent(event: GameEvent): string {
     case "telegraphArmed":
       return `  ${event.unit} arms`;
     case "evolve":
-      return `  ${event.from} evolves into ${event.to}`;
+      return `  ${event.from} evolves into ${event.to}${modeSuffix(event)}`;
     case "toolAttached":
       return `  ${event.tool} attaches to ${event.unit}`;
     case "attackRedirected":
@@ -74,4 +74,10 @@ export function formatEvent(event: GameEvent): string {
 
 export function formatLog(events: GameEvent[]): string {
   return events.map(formatEvent).join("\n");
+}
+
+/** ", choosing Outbreak" for a modal card's play, cast or evolve; empty
+ * otherwise, so every other line reads as it always has. */
+function modeSuffix(event: { modeName?: string }): string {
+  return event.modeName ? `, choosing ${event.modeName}` : "";
 }

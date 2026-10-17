@@ -82,10 +82,22 @@ present in `legalMoves` and is always safe to pick.
 | `type` | fields | meaning |
 |---|---|---|
 | `passPriority` | none | pass; always legal |
-| `playCard` | `handIndex`, optional `target`, `abilityTarget` | play the card at that hand index |
+| `playCard` | `handIndex`, optional `target`, `abilityTarget`, `mode` | play the card at that hand index (in `mode`, for a modal card) |
 | `playSignature` | optional `target` | play the signature card from the signature zone (below) |
 | `attack` | `attackerInstanceId`, `target` | declare an attack |
 | `activateAbility` | `sourceInstanceId`, `abilityId`, optional `target` | activate an ability on the board |
+
+**Modal cards (added session 40).** A card with `modes` (a list of
+`{ id, name, text, abilities }`) is a "choose one" card: it is played in
+exactly one of its modes. Each mode is offered as its own `playCard` move,
+carrying `mode` (the mode's `id`), crossed with that mode's targets like any
+other choice; a mode whose enter-play ability has no legal target is not
+offered. Pick the mode by picking the move. Once played, the copy on the
+board or the stack has `chosenMode` set and its `abilities` already include
+that mode's (and none of the other's), so reading `card.abilities` is enough
+to know what it does. The `play`, `cast` and `evolve` events carry `mode` and
+`modeName`. A card in a hand, deck or graveyard is always the printed card.
+Plain cards never carry `mode` on their moves.
 
 **The signature zone (added session 31).** A player may have one signature
 card: a Unit that is not in the deck. `view.me.signature` and

@@ -3036,3 +3036,81 @@ economy (`chase.test.ts` rewritten, the v10 migration step), engine (2 files) an
 
 **Blocked:** nothing. Next: render (alternation: word the new fizzle causes, draw the chase
 finishes), then the game lane's build-order step 2, the "choose one" mechanic.
+
+
+## 2026-10-17 — Session 40 (owner's 2026-10-18 Zero-Day designs; build-order step 2: "choose one")
+
+Game-lane session: the last merged PR (#64) was render. Owner feedback first. Two 2026-10-18
+entries were open: the answers to session 39's calls (all 7 kept, nothing to change; noted) and the
+3 Zero-Day designs (built as a measured proposal, marked). The side task in it ("Zero-Day" out of the
+name lists) was already done in session 37; I checked the history and the committed samples, and no
+agent name used it. By the 5-session rule this would be a hardening pass. I followed the owner's
+order instead: step 2 is next, and session 39's debt list named the unplayable Zero-Day stub as
+something that "should come soon, not drift". Two earlier owner-directed sessions (30, 35) did the
+same. The new feature work is only what step 2 names, and the next game session is an
+instrument fix (see the check-in), which is depth work.
+
+**Built:**
+- **The generic "choose one" mechanic** (`cards/modes.ts`).
+  - A card's `modes` are named bundles of ordinary abilities, any trigger.
+  - Legal moves: one `playCard` per mode (`mode`), each crossed with that mode's targets. A mode
+    with no legal target isn't offered.
+  - Play: the engine plays a copy whose abilities are the printed ones plus the chosen mode's, and
+    `chosenMode` names it. Statics, triggers, cost auras and the agents need no change; they read
+    `card.abilities` as before. The graveyard gets the printed card back.
+  - Logged on `play`, `cast` and `evolve` (`mode`, `modeName`), and in the text log.
+  - Lint: all rules read every mode. New rules for modal cards (2+ modes, distinct ids and names, no
+    empty mode, no repeated ability id, at most one onPlay per mode, no modal Tool) and for Zero-Day
+    cards. A signature card can't be modal.
+  - Lookahead scores a modal play as the moded card plus the mode's own static/onDeath/turn-trigger
+    abilities, for modal cards only, so no existing measurement moves.
+- **The 3 Zero-Day cards** at the owner's numbers (`data/zeroDayCards.ts`), 1 per deck, Neutral,
+  exempt from the neutral-pool identity rules, NOT in the registry.
+- **New scaling source** `allUnitsInPlay` for Privilege Escalation ("1 plus the other units" = all
+  units, the unit itself included).
+- **The measurement** (`dev/zeroDayFairness.ts`): the signature test's shape for a deck card, with
+  a same-cost plain stand-in in the same deck position, and `--force` to lock a mode.
+
+**Ran it:**
+- `modalMatchDemo` -> `sample-match-033-modal-cards.txt` (seed 442: 5 choices, 4 modes);
+- 10 measurement runs at 10,000 games per pairing (about 4 minutes each);
+- the ring check (+0.0 on all six edges), render's feed transcripts (no diff), an older demo log
+  (same as main);
+- `npm test`: 715/715; `tsc` clean in all six workspaces.
+
+**Result:**
+- **The mechanic works end to end in real play.** In 40 test matches (Lookahead vs Random), all 6
+  modes were played.
+- **Strength:** worst edge move 2.51 (Patient Zero), 4.50 (Root Access), 2.33 (Kill Switch).
+- **The mode choice exposed an instrument problem.**
+  - Patient Zero locked to Carrier is far stronger (6.04 worst, 4.69 mean) than the agent's pick
+    (Outbreak 77%).
+  - Kill Switch's Lights Out was picked once in 17,967 plays, though per cast it moves edges more
+    than Wipe.
+  - Cause: Lookahead values an aura as half its size once, and a status at 0.6 x attack whatever
+    its duration.
+  - The owner's "agents use both modes" check fails for Kill Switch today, and the cap would be
+    measured against a weak chooser.
+
+**Bugs and findings while building:**
+- **Null's shipped deck sits at exactly the 25% removal cap.** Adding a removal Zero-Day card (Root
+  Access, Kill Switch) fails the lint unless a removal card goes. My first test deck failed this way
+  (Cortex with two removal Zero-Days: 27.5%). The measurement swaps removal for removal; the owner is
+  told.
+- **The lint's own check crashed on a printed card with `chosenMode`.** It tried to expand the modes
+  of an already-moded copy. Now it reports and stops; a test covers it.
+- **A modal signature card would have silently lost its modes.** `playSignature` names no mode.
+  Now it's refused at match setup, with a test.
+- **Economy tests timed out** while four measurement processes held every core. They pass on an idle
+  machine (rerun twice). Not a code issue, but the 5 s default timeout is tight.
+
+**Calls made (in notes-for-owner, overrule any):** Kill Switch at Sorcery speed. Zero-Day cards
+follow their own rules, not the neutral pool's, but count toward the neutral cap and the removal
+share. The Aggressive test agent always plays the first mode.
+
+**Evidence:** `progress/sample-match-033-modal-cards.txt`, `progress/balance-report-027-zero-day.txt`;
+`engine/test/modalCards.test.ts` (23).
+
+**Blocked:** nothing. Next: render (alternation: word the mode choices in the feed), then the game
+lane's instrument fix (check-in default A), the re-measure, and the cards going live with the
+owner's OK.

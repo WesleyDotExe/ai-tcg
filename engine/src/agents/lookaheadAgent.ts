@@ -3,11 +3,13 @@ import type { Move } from "../engine/moves.js";
 import type { TargetRef } from "../effects/targeting.js";
 import type { DirectiveInstance, PlayerId, StackItem, UnitInstance } from "../state/types.js";
 import { otherPlayer } from "../state/types.js";
-import type { Ability, EffectSpec, UnitCard, ScalingContext, ScalingSource, StaticEffectSpec, TargetFilter, TargetSpec } from "../cards/types.js";
+import type { Ability, Card, EffectSpec, UnitCard, ScalingContext, ScalingSource, StaticEffectSpec, TargetFilter, TargetSpec } from "../cards/types.js";
 import { resolveAmount } from "../cards/types.js";
 import { Rng } from "../state/rng.js";
 import { hasKeyword } from "../state/queries.js";
 import { SIGNATURE_REPLAY_SURCHARGE } from "../state/init.js";
+import { findMode, withMode } from "../cards/modes.js";
+import type { CardMode } from "../cards/types.js";
 
 const FACE_DAMAGE_WEIGHT = 2;
 const CARD_ADVANTAGE_WEIGHT = 1.5;
@@ -17,6 +19,10 @@ const ENERGY_WEIGHT = 0.4;
 const DIRECTIVE_TURN_TRIGGER_HORIZON = 2;
 /** How much a Tool prefers a more valuable host — see scorePlayCard. */
 const TOOL_HOST_WEIGHT = 0.1;
+/** A mode's onDeath is worth this share of what it would do on the board
+ * as it stands now: it fires later, if the unit dies at all, on a board
+ * that will have changed (see estimateModeAbilities). */
+const ON_DEATH_DISCOUNT = 0.5;
 
 /** Dummy agent #3 (2026-09-20 owner feedback, "fix the instrument before any
  * further balance change"): the other two dummy agents both value a move by
@@ -122,8 +128,47 @@ export class LookaheadAgent implements Agent {
   }
 
   private scorePlayCard(view: PlayerView, move: Extract<Move, { type: "playCard" }>): number {
-    const card = view.me.hand[move.handIndex];
-    if (!card) return -Infinity;
+    const printed = view.me.hand[move.handIndex];
+    if (!printed) return -Infinity;
+    // A modal card is scored as the card its chosen mode makes it (the same
+    // copy the engine plays, cards/modes.ts), plus what the mode adds that
+    // the plain scoring below never reads (see estimateModeAbilities).
+    const mode = move.mode === undefined ? undefined : findMode(printed, move.mode);
+    if (move.mode !== undefined && !mode) return -Infinity;
+    const card = mode ? withMode(printed, mode.id) : printed;
+    const modeValue = mode ? this.estimateModeAbilities(view, mode, card) : 0;
+    return this.scorePlayedCard(view, move, card) + modeValue;
+  }
+
+  /** What a mode's own abilities are worth that scorePlayedCard doesn't
+   * already count. It counts a Directive's statics and turn triggers and
+   * every card's onPlay; a Unit's statics, onDeath and turn triggers it
+   * never reads (the agent has always valued a unit by body and onPlay, and
+   * changing that would move every measurement taken since session 12). A
+   * modal unit's two modes would then tie on body and the pick would be a
+   * coin flip, not a read of the board, so a mode's own abilities are
+   * valued here, for modal cards only:
+   *   - a static: as a Directive's static is (estimateStaticEffect);
+   *   - an onDeath: what it would do on the board as it is now, discounted;
+   *   - a turn trigger: one firing now, times the Directive horizon.
+   * onPlay is skipped (already counted on the moded card) and so is a
+   * Directive's static/turn trigger (already counted there). */
+  private estimateModeAbilities(view: PlayerView, mode: CardMode, card: Card): number {
+    const selfRef: TargetRef = { kind: "player", playerId: view.self };
+    let value = 0;
+    for (const ability of mode.abilities) {
+      if (ability.trigger === "onPlay") continue;
+      if (card.type === "Directive" && (ability.trigger === "static" || ability.trigger === "onTurnStart" || ability.trigger === "onTurnEnd")) continue;
+      if (ability.trigger === "static" && ability.staticEffect) value += this.estimateStaticEffect(view, ability.staticEffect);
+      else if (ability.trigger === "onDeath") value += this.estimateAbility(view, ability, undefined, undefined) * ON_DEATH_DISCOUNT;
+      else if (ability.trigger === "onTurnStart" || ability.trigger === "onTurnEnd") {
+        value += this.estimateAbility(view, ability, undefined, selfRef) * DIRECTIVE_TURN_TRIGGER_HORIZON;
+      }
+    }
+    return value;
+  }
+
+  private scorePlayedCard(view: PlayerView, move: Extract<Move, { type: "playCard" }>, card: Card): number {
     let value = -card.cost * ENERGY_WEIGHT;
 
     if (card.type === "Tool") {
@@ -621,6 +666,8 @@ export class LookaheadAgent implements Agent {
             return view.me.graveyard.length;
           case "opponentGraveyardSize":
             return view.opponent.graveyard.length;
+          case "allUnitsInPlay":
+            return view.me.board.length + view.opponent.board.length;
           case "turnNumber":
             return view.turnNumber;
         }

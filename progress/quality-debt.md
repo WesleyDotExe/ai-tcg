@@ -34,9 +34,47 @@ may repeat, themed card names), and session 36 (the art-pool slot, themed agent 
 contents and opening), and session 37 (owners name their agents, more agent-name room), and session 38 (unique
 signature ability ids, game-over causes as data, the free first rename, the chase-card proposal),
 and session 39 (the chase cards live: schema v10, S0-odds-2, one roller, secret crafting, the
-binder; Intercept Routine fizzle causes).
+binder; Intercept Routine fizzle causes), and session 40 (the generic "choose one" mechanic; the 3
+Zero-Day cards built and measured, not live).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 40
+
+- **The reference agent can't judge two of the three Zero-Day mode choices.** LookaheadAgent values
+  an aura (Carrier's +1/+1 to every other unit) as half its size once, and any status at 0.6 x the
+  unit's attack whatever its duration (Lights Out stuns the whole board for 2 turns). So it picks
+  Outbreak over Carrier about 3 in 4, though Carrier locked is much stronger (6.04 vs 2.07 worst
+  edge), and casts Lights Out once in 17,967 Kill Switch plays. The fairness test measures through
+  this agent, so the Zero-Day strength numbers are lower bounds for a good chooser. This is the
+  same "fix the instrument first" problem as September's, now on modes. Also true for plain cards
+  (a Stasis card's duration has never counted), which is why the fix belongs to every card.
+- **Modal scoring is a second path in the agent.** `estimateModeAbilities` values a mode's statics
+  and death triggers for modal units only; a plain unit's own static or onDeath is still worth 0 to
+  the agent (it never was). It was done this way so no existing measurement moved, but it means the
+  same aura is valued on a modal card and not on a plain one. The instrument fix should make it one
+  path.
+- **The 3 Zero-Day cards are designed but not live.** Pulls are still the "not designed yet" stub
+  and Zero-Day crafting is closed, until the owner agrees the cap. Going live is one registry line,
+  plus an economy test that a pulled copy plays and `craftSecret` opens; that test isn't written yet.
+- **Root Access is over the proposed 4-point cap** (4.50, Swarm vs Aegis) with the agent choosing,
+  and Kill Switch fails the proposed 10% mode rule. Neither is tuned yet, by design (instrument first).
+- **The Zero-Day measurement's stand-in is a judgment call.** A Unit's stand-in has the same body,
+  so only the modes are measured. Kill Switch, a Command, is measured against a 7-cost 4/8 vanilla
+  unit. That's a different question ("a sweep instead of a big body"). Named in the report.
+- **Locked-mode runs are confounded by play rate.** A card locked to a static/onDeath mode is scored
+  by the agent as a plain body, so it's played less often than the modal card (6,767 vs 7,789 games
+  for Patient Zero). The report prints play counts beside every number, but "locked vs choosing"
+  compares slightly different things.
+- **Null's shipped deck sits at exactly the 25% removal share.** Any added removal card, a Zero-Day
+  card included, needs a removal card cut. Fine as a rule, but an owner building a Null deck will
+  meet it.
+- **Modes aren't drawn anywhere yet.** The feed doesn't word `mode` / `modeName`, and no card face
+  shows the two modes. Render lane.
+- **The Aggressive test agent always plays a modal card's first mode** (it picks by cost, and the
+  modes tie). It isn't used for balance, but a smoke test with it never sees the second mode.
+- **Economy tests are timing-sensitive under load.** Six timed out at the 5 s default while four
+  measurement processes ran; all pass when the machine is idle.
 
 ## New debt from session 39
 
@@ -44,7 +82,8 @@ real, but here is where it's thin.
   in 500) gives a copy named "Zero-Day 1 (not designed yet)". It can't go in a deck or be crafted
   until build-order step 2 designs the card under its id. The data is safe: the copy turns into the
   real card with no migration. But the reveal of the most special card is currently a stub. Step 2
-  should come soon, not drift.
+  should come soon, not drift. (Session 40: step 2 is built and the 3 cards are designed; they wait
+  only on the owner's cap answer and the instrument fix, see session 40's debt above.)
 - **No pack-reveal visuals for the new finishes.** Glitch, secret illustrations and the animated
   Zero-Day exist only as data (finish, secret code, art slot, `animated`). The render lane hasn't
   drawn them, and there is no owner-facing opening screen yet (website steps), so nobody sees them.

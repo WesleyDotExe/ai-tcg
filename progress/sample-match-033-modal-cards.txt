@@ -1,0 +1,292 @@
+AI-TCG "choose one" demo (owner 2026-10-16; session 40): Cortex vs Swarm, both decks running the 3 Zero-Day cards, seed 442
+(first seed in 1-600 with at least 4 different modes chosen)
+p1 = Lookahead-Cortex, p2 = Lookahead-Swarm
+  Patient Zero: 3 energy Unit, 2/4. Choose one: Outbreak: "When this dies, deal 2 damage to all enemy units." / Carrier: "Your other units get +1/+1."
+  Root Access: 5 energy Unit, 3/6. Choose one: Privilege Escalation: "This unit's attack equals 1 plus the number of other units in play." / Lockout: "Enemy cards cost 1 more to play."
+  Kill Switch: 7 energy Command. Choose one: Lights Out: "Stun all enemy units for 2 turns." / Wipe: "Deal 3 damage to all enemy units, then draw a card."
+MODE = a modal card played; the line under it says which legal moves the agent chose from.
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Dormant Egg Sac
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Cortex Engineer
+--- Turn 3 (p1) ---
+p1 plays Cortex Engineer (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Swarm Larva
+--- Turn 4 (p2) ---
+p2 plays Carapace Grunt (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Firewall Sentinel
+--- Turn 5 (p1) ---
+MODE p1 plays Patient Zero, choosing Outbreak (u3)
+       (2 legal plays of this card: outbreak x1, carrier x1)
+Cortex Engineer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Swarm
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Rally Cry
+--- Turn 6 (p2) ---
+MODE p2 plays Patient Zero, choosing Outbreak (u5)
+       (2 legal plays of this card: outbreak x1, carrier x1)
+Carapace Grunt attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Carapace Grunt's attack
+  Carapace Grunt deals 2 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Recursive Construct
+--- Turn 7 (p1) ---
+p1 plays Firewall Sentinel (u7)
+Patient Zero attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Patient Zero's attack
+  Patient Zero deals 2 damage to Lookahead-Swarm
+  Surge Protector attaches to Firewall Sentinel
+Cortex Engineer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Swarm
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Reflex Spike
+--- Turn 8 (p2) ---
+  Chitin Plating attaches to Patient Zero
+Patient Zero attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Patient Zero's attack
+  Patient Zero deals 2 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Patient Zero (unit)
+p2 plays Overgrown Carapace (u11)
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Dormant Exploit
+--- Turn 9 (p1) ---
+Patient Zero attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Patient Zero's attack
+  Patient Zero deals 2 damage to Lookahead-Swarm
+Firewall Sentinel attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Lookahead-Swarm
+p1 plays Recursive Construct (u14)
+Cortex Engineer attacks Overgrown Carapace
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Overgrown Carapace (unit)
+  Overgrown Carapace deals 2 damage to Cortex Engineer (unit)
+p1 plays Dormant Exploit (u16)
+  Dormant Exploit deploys, dormant — arms in 1 of its controller's turn(s)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 2 health to Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Colony Broodling
+--- Turn 10 (p2) ---
+p2 casts Rally Cry [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Rally Cry
+  ability: Rally Cry — rally-cry-cast (onPlay)
+  Rally Cry grants Carapace Grunt +1/+0
+  Rally Cry grants Patient Zero +1/+0
+  Rally Cry grants Overgrown Carapace +1/+0
+p2 casts Reflex Spike [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Reflex Spike
+  ability: Reflex Spike — reflex-spike-cast (onPlay)
+  Reflex Spike grants Carapace Grunt +0/+3
+Carapace Grunt attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Carapace Grunt's attack
+  Carapace Grunt deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 2 damage to Carapace Grunt (unit)
+p2 plays Swarm Larva (u21)
+p2 plays Colony Broodling (u22)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+  Carapace Grunt (p2) dies
+p1 draws Root Access
+--- Turn 11 (p1) ---
+  Dormant Exploit arms
+  ability: Dormant Exploit — dormant-exploit-arm (onPlay)
+  Dormant Exploit applies Stasis to Patient Zero
+MODE p1 plays Root Access, choosing Privilege Escalation (u23)
+       (2 legal plays of this card: privilege-escalation x1, lockout x1)
+Patient Zero attacks Patient Zero
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Patient Zero's attack
+  Patient Zero deals 2 damage to Patient Zero (unit)
+  Patient Zero deals 2 damage to Patient Zero (unit)
+Firewall Sentinel attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Firewall Sentinel's attack
+  Firewall Sentinel deals 2 damage to Lookahead-Swarm
+Cortex Engineer attacks Colony Broodling
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Colony Broodling (unit)
+  Colony Broodling deals 1 damage to Cortex Engineer (unit)
+  Colony Broodling (p2) dies
+  ability: Colony Broodling — colony-broodling-death (onDeath)
+  Colony Broodling summons Swarm Larva for p2 (u27)
+Dormant Exploit attacks Lookahead-Swarm (face)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 1 health to Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Dormant Exploit's attack
+  Dormant Exploit deals 1 damage to Lookahead-Swarm
+Recursive Construct attacks Patient Zero
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 6 damage to Patient Zero (unit)
+  Patient Zero deals 2 damage to Recursive Construct (unit)
+  Patient Zero (p2) dies
+  ability: Patient Zero — patient-zero-outbreak (onDeath)
+  Patient Zero deals 2 damage to Cortex Engineer (unit)
+  Patient Zero deals 2 damage to Patient Zero (unit)
+  Patient Zero deals 2 damage to Firewall Sentinel (unit)
+  Patient Zero deals 2 damage to Recursive Construct (unit)
+  Patient Zero deals 2 damage to Dormant Exploit (unit)
+  Patient Zero deals 2 damage to Root Access (unit)
+  Patient Zero (p1) dies
+  Firewall Sentinel (p1) dies
+  Recursive Construct (p1) dies
+  ability: Patient Zero — patient-zero-outbreak (onDeath)
+  Patient Zero deals 2 damage to Overgrown Carapace (unit)
+  Swarm Larva's base armor reduces 2 damage from Patient Zero to 1
+  Patient Zero deals 1 damage to Swarm Larva (unit)
+  Patient Zero deals 2 damage to Swarm Larva (unit)
+  Swarm Larva (p2) dies
+  Swarm Larva (p2) dies
+  Overgrown Carapace (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Root Access
+--- Turn 12 (p2) ---
+MODE p2 plays Root Access, choosing Lockout (u31)
+       (2 legal plays of this card: privilege-escalation x1, lockout x1)
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Load Balancer
+--- Turn 13 (p1) ---
+Root Access attacks Lookahead-Swarm (face)
+p1 casts Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed. [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer — Pay 1 energy: restore 2 health to this unit. Instant speed.
+  ability: Cortex Engineer — cortex-engineer-repair (activated)
+  Cortex Engineer restores 2 health to Cortex Engineer
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Root Access's attack
+  Root Access deals 4 damage to Lookahead-Swarm
+p1 plays Load Balancer (u34)
+Dormant Exploit attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Dormant Exploit's attack
+  Dormant Exploit deals 1 damage to Lookahead-Swarm
+Cortex Engineer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Swarm
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Hive Mother
+--- Turn 14 (p2) ---
+p2 plays Hive Mother (u37)
+Root Access attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Root Access's attack
+  Root Access deals 4 damage to Lookahead-Cortex
+p2 plays Dormant Egg Sac (u39)
+  Dormant Egg Sac deploys, dormant — arms in 1 of its controller's turn(s)
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Hotfix
+--- Turn 15 (p1) ---
+MODE p1 casts Kill Switch, choosing Wipe [Sorcery] (goes on the stack)
+       (2 legal plays of this card: lights-out x1, wipe x1)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kill Switch (Wipe)
+  ability: Kill Switch — kill-switch-wipe (onPlay)
+  Kill Switch deals 3 damage to Root Access (unit)
+  Kill Switch deals 3 damage to Hive Mother (unit)
+  Kill Switch deals 3 damage to Dormant Egg Sac (unit)
+p1 draws Load Balancer
+Root Access attacks Hive Mother
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Root Access's attack
+  Root Access deals 7 damage to Hive Mother (unit)
+  Hive Mother deals 4 damage to Root Access (unit)
+  Root Access (p1) dies
+  Hive Mother (p2) dies
+  ability: Load Balancer — load-balancer-attack (onAttack)
+  Load Balancer deals 1 damage to Dormant Egg Sac (unit)
+  Dormant Egg Sac (p2) dies
+Load Balancer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Load Balancer's attack
+  Load Balancer deals 2 damage to Lookahead-Swarm
+Cortex Engineer attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Cortex Engineer's attack
+  Cortex Engineer deals 1 damage to Lookahead-Swarm
+=== GAME OVER: p1 wins (p2's health reached 0) ===
+
+Turns: 15. Winner: p1.
+Mode choices: p1 Patient Zero -> Outbreak; p2 Patient Zero -> Outbreak; p1 Root Access -> Privilege Escalation; p2 Root Access -> Lockout; p1 Kill Switch -> Wipe.
+Graveyard cards still carrying a chosen mode (must be 0): 0.

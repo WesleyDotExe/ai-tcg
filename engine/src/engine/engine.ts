@@ -12,7 +12,8 @@ import {
   checkGameOver,
 } from "../effects/resolver.js";
 import type { TargetRef } from "../effects/targeting.js";
-import type { Ability, ToolCard, UnitCard } from "../cards/types.js";
+import type { Ability, Card, ToolCard, UnitCard } from "../cards/types.js";
+import { chosenModeOf, printedCard, withMode } from "../cards/modes.js";
 
 /** Applies one legal move (as produced by getLegalMoves) to the state,
  * mutating it in place. The caller is responsible for only ever passing a
@@ -29,7 +30,7 @@ export function applyMove(state: GameState, move: Move, rng: Rng): void {
   const pid = state.priority;
   switch (move.type) {
     case "playCard":
-      playCard(state, pid, move.handIndex, move.target, move.abilityTarget, rng);
+      playCard(state, pid, move.handIndex, move.target, move.abilityTarget, move.mode, rng);
       break;
     case "playSignature":
       playSignature(state, pid, move.target, rng);
@@ -58,13 +59,21 @@ function playCard(
   handIndex: number,
   target: TargetRef | undefined,
   abilityTarget: TargetRef | undefined,
+  mode: string | undefined,
   rng: Rng,
 ): void {
   const player = state.players[pid];
-  const card = player.hand[handIndex];
-  if (!card) throw new Error(`playCard: no card at hand index ${handIndex}`);
+  const printed = player.hand[handIndex];
+  if (!printed) throw new Error(`playCard: no card at hand index ${handIndex}`);
+  // A modal card is played as the copy its chosen mode makes of it (see
+  // cards/modes.ts); from here on that copy is "the card" everywhere.
+  const hasModes = (printed.modes?.length ?? 0) > 0;
+  if (hasModes !== (mode !== undefined)) {
+    throw new Error(hasModes ? `playCard: ${printed.name} needs a mode` : `playCard: ${printed.name} has no modes`);
+  }
+  const card = mode === undefined ? printed : withMode(printed, mode);
   player.hand.splice(handIndex, 1);
-  player.energy -= effectiveCardCost(state, pid, card);
+  player.energy -= effectiveCardCost(state, pid, printed);
 
   if (card.type === "Tool") {
     if (!target || target.kind !== "unit") throw new Error(`playCard: Tool ${card.name} requires a unit target`);
@@ -85,7 +94,15 @@ function playCard(
     // is what gives an opponent a real window to respond to it.
     const instanceId = `c${state.nextInstanceId++}`;
     state.stack.push({ kind: "command", instanceId, controller: pid, card, chosen: target });
-    state.log.push({ type: "cast", player: pid, card: card.name, speed: card.speed, stackId: instanceId, ...(target ? { targetRef: { ...target } } : {}) });
+    state.log.push({
+      type: "cast",
+      player: pid,
+      card: card.name,
+      speed: card.speed,
+      stackId: instanceId,
+      ...modeFields(card),
+      ...(target ? { targetRef: { ...target } } : {}),
+    });
     return;
   }
 
@@ -98,7 +115,7 @@ function playCard(
     const instanceId = `d${state.nextInstanceId++}`;
     const directive: DirectiveInstance = { instanceId, card, controller: pid };
     player.directives.push(directive);
-    state.log.push({ type: "play", player: pid, card: card.name, instanceId });
+    state.log.push({ type: "play", player: pid, card: card.name, instanceId, ...modeFields(card) });
     if (onPlay) {
       resolveAbility({
         state,
@@ -154,6 +171,7 @@ function putUnitOnBoard(
     player: pid,
     card: card.name,
     instanceId,
+    ...modeFields(card),
     ...(signature ? { fromSignatureZone: true as const, cost: signature.cost } : {}),
   });
   if (isTelegraphed) {
@@ -170,6 +188,14 @@ function putUnitOnBoard(
       rng,
     });
   }
+}
+
+/** The mode fields a play, cast or evolve event carries for a modal card
+ * (owner 2026-10-16: the choice is logged and the replays show it). Empty
+ * for every other card, so their events are unchanged. */
+function modeFields(card: Card): { mode?: string; modeName?: string } {
+  const mode = chosenModeOf(card);
+  return mode ? { mode: mode.id, modeName: mode.name } : {};
 }
 
 /** Plays the signature card out of its zone (see SignatureZone). It pays
@@ -217,9 +243,9 @@ function evolveUnit(
   const unit = player.board.find((u) => u.instanceId === targetInstanceId);
   if (!unit) throw new Error(`evolveUnit: no unit ${targetInstanceId} on ${pid}'s board`);
   const fromName = unit.card.name;
-  player.graveyard.push(unit.card);
+  player.graveyard.push(printedCard(unit.card));
   unit.card = card;
-  state.log.push({ type: "evolve", player: pid, from: fromName, to: card.name, instanceId: unit.instanceId });
+  state.log.push({ type: "evolve", player: pid, from: fromName, to: card.name, instanceId: unit.instanceId, ...modeFields(card) });
   const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
   if (onPlay) {
     resolveAbility({
@@ -402,7 +428,7 @@ function resolveTopOfStack(state: GameState, rng: Rng): void {
           rng,
         });
       }
-      state.players[item.controller].graveyard.push(item.card);
+      state.players[item.controller].graveyard.push(printedCard(item.card));
       break;
     }
     case "ability":
@@ -418,8 +444,10 @@ function resolveTopOfStack(state: GameState, rng: Rng): void {
 
 function describeStackItem(item: StackItem): string {
   switch (item.kind) {
-    case "command":
-      return item.card.name;
+    case "command": {
+      const mode = chosenModeOf(item.card);
+      return mode ? `${item.card.name} (${mode.name})` : item.card.name;
+    }
     case "ability":
       return `${item.source.cardName} — ${item.ability.text}`;
     case "combatDamage":
