@@ -15,13 +15,26 @@ items are removed, with the fix in `log.md`.
 - **Floating numbers and trigger labels aren't scaled with a zoomed row.**
   "ON PLAY" and "+3 HP" stay at full size, so next to an 85-px card they
   look a little large.
-- **The match feed (session 21) gives a line to triggers that change
-  nothing**: "Diagnostic Loop · end of turn" healing an unhurt unit, 5
-  times in the seed-5 game. Comparing the unit across the frame would drop
-  them.
-- **The feed uses engine reason text as is**: "Rombot's Navigator health
-  depleted" lacks its "'s". The feed says what happened, never why it
-  mattered (commentary, stage 7).
+- **One fizzle is still engine text:** Intercept Routine finding nothing
+  to redirect prints "fizzles: Intercept Routine: X's attack is already
+  aimed at Y". It has no structured cause yet (asked of the game lane in
+  notes-for-owner.md). The feed says what happened, never why it mattered
+  (commentary, stage 7).
+- **The quiet-trigger rule depends on an engine habit:** every effect that
+  changes the game logs an event straight after its trigger. The test
+  (`feedQuiet.test.ts`) checks that over 32 real matches. But it sees only
+  triggers resolved from the turn and stack code: onDeath triggers fired
+  inside the resolver's own death pass aren't wrapped. A new effect kind
+  that changes state without logging would make its trigger vanish from
+  the feed.
+- **The board still plays the cast flourish for a quiet trigger.**
+  `castFx.ts` fires on every abilityTrigger event, not on feed entries, so
+  an unhurt Diagnostic Loop still throws its ring and "TURN END" tag while
+  the feed says nothing. Either the flourish should use
+  `triggerChangedNothing` too, or a quieter version should mark "tried,
+  nothing happened". That's a taste call for the next render slice.
+- **The turn-cap ending ("X wins at the turn cap, 14 health to 9") is only
+  seen in tests;** no replay reaches the cap.
 - **In a mirror match a feed trigger can lose its side colour** when its
   event carries no instance id and the card's name is on both boards.
 - **The feed is built for a finished match** (`buildFeed` over all frames).

@@ -1,0 +1,73 @@
+# Match feed summary over the 14 committed replays (render session 22)
+# raw = engine log lines; feed = feed entries; quiet = triggers that changed nothing (dropped,
+# or folded into a resolve/arming line); fizzles and the end line as the feed words them.
+
+aegis-vs-aegis-seed1: Lookahead-Aegis-A vs Lookahead-Aegis-B, 122 moves
+  raw 244, feed 112 (46%), quiet 2: Uplink Tower ×2
+  end: Lookahead-Aegis-B wins: Lookahead-Aegis-A's health reached 0
+aegis-vs-cortex-seed1: Lookahead-Aegis vs Lookahead-Cortex, 153 moves
+  raw 317, feed 153 (48%), quiet 5: Deadlock Detector ×1, Watchtower Relay ×3, Uplink Tower ×1
+  end: Lookahead-Cortex wins: Lookahead-Aegis's health reached 0
+aegis-vs-cortex-seed3: Lookahead-Aegis vs Lookahead-Cortex, 141 moves
+  raw 298, feed 130 (44%), quiet 11: Diagnostic Loop ×6, Uplink Tower ×5
+  end: Lookahead-Aegis wins: Lookahead-Cortex's health reached 0
+aegis-vs-cortex-seed6: Lookahead-Aegis vs Lookahead-Cortex, 113 moves
+  raw 227, feed 96 (42%), quiet 6: Uplink Tower ×1, Watchtower Relay ×5
+  end: Lookahead-Aegis wins: Lookahead-Cortex's health reached 0
+aegis-vs-null-seed3: Lookahead-Aegis vs Lookahead-Null, 139 moves
+  raw 267, feed 113 (42%), quiet 4: Uplink Tower ×4
+  end: Lookahead-Aegis wins: Lookahead-Null's health reached 0
+cortex-vs-aegis-sig-seed2: Fluxpunk's 8-Bit Trickster vs Chiphound's Understudy, 92 moves
+  raw 187, feed 80 (43%), quiet 1: Deadlock Detector ×1
+  end: Fluxpunk's 8-Bit Trickster wins: Chiphound's Understudy's health reached 0
+cortex-vs-aegis-sig-seed5: Cyberburner's Antihero vs Rombot's Navigator, 129 moves
+  raw 268, feed 117 (44%), quiet 9: Diagnostic Loop ×5, Watchtower Relay ×4
+  end: Cyberburner's Antihero wins: Rombot's Navigator's health reached 0
+cortex-vs-null-seed5: Lookahead-Cortex vs Lookahead-Null, 102 moves
+  raw 204, feed 87 (43%), quiet 7: Diagnostic Loop ×4, Watchtower Relay ×3
+  end: Lookahead-Null wins: Lookahead-Cortex's health reached 0
+cortex-vs-swarm-seed11: Lookahead-Cortex vs Lookahead-Swarm, 113 moves
+  raw 222, feed 95 (43%), quiet 1: Deadlock Detector ×1
+  end: Lookahead-Swarm wins: Lookahead-Cortex's health reached 0
+cortex-vs-swarm-seed6: Lookahead-Cortex vs Lookahead-Swarm, 110 moves
+  raw 262, feed 143 (55%), quiet 2: Broodcaller ×1, Deadlock Detector ×1
+  end: Lookahead-Cortex wins: Lookahead-Swarm's health reached 0
+null-vs-cortex-seed4: Lookahead-Null vs Lookahead-Cortex, 157 moves
+  raw 319, feed 150 (47%), quiet 2: Watchtower Relay ×1, Diagnostic Loop ×1
+  end: Lookahead-Null wins: Lookahead-Cortex's health reached 0
+null-vs-swarm-seed2: Lookahead-Null vs Lookahead-Swarm, 82 moves
+  raw 154, feed 62 (40%), quiet 0
+  end: Lookahead-Swarm wins: Lookahead-Null's health reached 0
+swarm-vs-aegis-seed8: Lookahead-Swarm vs Lookahead-Aegis, 63 moves
+  raw 125, feed 52 (42%), quiet 0
+  end: Lookahead-Swarm wins: Lookahead-Aegis's health reached 0
+swarm-vs-null-seed8: Lookahead-Swarm vs Lookahead-Null, 109 moves
+  raw 227, feed 107 (47%), quiet 0
+  end: Lookahead-Swarm wins: Lookahead-Null's health reached 0
+
+## Fizzles in real matches (not among the committed replays)
+
+Cortex vs Aegis seed 1, fizzle on move 54:
+   50     [RESPONSE] Lookahead-Cortex casts Interrupt Handler at Reinforced Bastion
+   52     Interrupt Handler resolves — Deal 2 damage to target enemy unit. Instant speed.
+   52        Interrupt Handler deals 2 to Reinforced Bastion
+   52        Reinforced Bastion is destroyed
+   54     Overload Capacitor's attack fizzles: its target left play first
+
+Aegis vs Cortex seed 9, fizzle on move 54:
+   51     Diagnostic Pulse resolves — Deal 2 damage to target enemy unit.
+   51        Aegis Cadet's armor turns 2 damage into 1
+   51        Diagnostic Pulse deals 1 to Aegis Cadet
+   52     Load Balancer attacks Reinforced Bastion
+   52     Load Balancer · on attack — Whenever this attacks, deal 1 damage to a random enemy unit.
+   52        Load Balancer deals 1 to Reinforced Bastion
+   52        Reinforced Bastion is destroyed
+   54        Load Balancer's attack fizzles: its target left play first
+
+Null vs Aegis seed 3, fizzle on move 33:
+   29     Garbage Collector attacks Barrier Drone
+   31     [RESPONSE] Lookahead-Aegis casts Intercept Routine at Barrier Drone
+   33     Intercept Routine resolves — Instant. Redirect a pending attack to target unit you control.
+   33        fizzles: Intercept Routine: Garbage Collector's attack is already aimed at Barrier Drone
+
+total: raw 3321, feed 1497 (45%), quiet triggers 50

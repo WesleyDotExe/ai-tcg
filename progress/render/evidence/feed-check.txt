@@ -1,4 +1,3 @@
-# node feed-check.mjs <shotDir> render/output/*-seed*.html  (render session 21)
 aegis-vs-aegis-seed1.html @1280px: 26 moves checked, raw 244 lines vs feed — ok
 aegis-vs-aegis-seed1.html @390px: 26 moves checked, raw 244 lines vs feed — ok
 aegis-vs-cortex-seed1.html @1280px: 32 moves checked, raw 317 lines vs feed — ok

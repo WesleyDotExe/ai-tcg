@@ -9,6 +9,7 @@
     "skin-sheet": "tsx src/skinSheet.ts",
     "fx-sheet": "tsx src/fxSheet.ts",
     "effect-survey": "tsx src/effectSurvey.ts",
+    "feed-transcript": "tsx src/feedTranscript.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

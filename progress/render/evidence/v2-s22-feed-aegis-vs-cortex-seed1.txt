@@ -1,0 +1,156 @@
+# Match feed of render/output/aegis-vs-cortex-seed1.html (render session 22)
+# Lookahead-Aegis vs Lookahead-Cortex; 153 moves; engine log 317 lines, feed 153 entries.
+# Left column: the move the entry appears on. Indent: turn header, then actions, then results.
+  0  == Turn 1 · Lookahead-Aegis ==
+  2  == Turn 2 · Lookahead-Cortex == — draws Init Daemon
+  3     Lookahead-Cortex plays Init Daemon
+  5  == Turn 3 · Lookahead-Aegis == — draws Aegis Sentinel
+  7  == Turn 4 · Lookahead-Cortex == — draws Hotfix
+  8     Init Daemon attacks Lookahead-Aegis
+  9     [RESPONSE] Lookahead-Cortex casts Hotfix at Init Daemon
+ 11     Hotfix resolves — Give target friendly unit +1/+2 this turn. Instant speed.
+ 11        Hotfix gives Init Daemon +1/+2
+ 13     Init Daemon's attack lands
+ 13        Init Daemon deals 2 to Lookahead-Aegis
+ 15  == Turn 5 · Lookahead-Aegis == — draws Feedback Plating
+ 16     Lookahead-Aegis plays Feedback Plating
+ 18  == Turn 6 · Lookahead-Cortex == — draws Surge Protector
+ 19     Lookahead-Cortex plays Firewall Sentinel
+ 20     Init Daemon attacks Lookahead-Aegis
+ 22        Init Daemon deals 1 to Lookahead-Aegis
+ 24  == Turn 7 · Lookahead-Aegis == — draws Static Ward Beacon
+ 25     Lookahead-Aegis attaches Guard Directive Chip to Feedback Plating
+ 26     Lookahead-Aegis attaches Barrier Shim to Feedback Plating
+ 27     Feedback Plating attacks Firewall Sentinel
+ 29        Feedback Plating deals 2 to Firewall Sentinel
+ 29        Feedback Plating's Barrier absorbs the hit from Firewall Sentinel
+ 31  == Turn 8 · Lookahead-Cortex == — draws Deadlock Detector
+ 32     Lookahead-Cortex plays Firewall Sentinel
+ 33     Lookahead-Cortex attaches Surge Protector to Firewall Sentinel
+ 34     Firewall Sentinel attacks Feedback Plating
+ 36        Firewall Sentinel deals 2 to Feedback Plating
+ 36     Feedback Plating · when damaged — Whenever this is damaged, enemy units get -1/-0 until end of turn.
+ 36        Feedback Plating gives Init Daemon -1/+0
+ 36        Feedback Plating gives Firewall Sentinel -1/+0
+ 36        Feedback Plating gives Firewall Sentinel -1/+0
+ 36        Feedback Plating deals 2 to Firewall Sentinel
+ 37     Init Daemon attacks Feedback Plating
+ 39        Init Daemon's armor turns 2 damage into 1
+ 39        Feedback Plating deals 1 to Init Daemon
+ 41  == Turn 9 · Lookahead-Aegis == — draws Failover Custodian
+ 42     Lookahead-Aegis plays Failover Custodian
+ 43     Feedback Plating attacks Firewall Sentinel
+ 45        Feedback Plating deals 2 to Firewall Sentinel
+ 45        Firewall Sentinel deals 2 to Feedback Plating
+ 45     Feedback Plating · when damaged — Whenever this is damaged, enemy units get -1/-0 until end of turn.
+ 45        Feedback Plating gives Init Daemon -1/+0
+ 45        Feedback Plating gives Firewall Sentinel -1/+0
+ 45        Feedback Plating gives Firewall Sentinel -1/+0
+ 45        Firewall Sentinel is destroyed
+ 47  == Turn 10 · Lookahead-Cortex == — draws Watchtower Relay
+ 48     Lookahead-Cortex plays Quorum Arbiter
+ 49     Firewall Sentinel attacks Feedback Plating
+ 51        Firewall Sentinel deals 2 to Feedback Plating
+ 51        Feedback Plating deals 2 to Firewall Sentinel
+ 51        Feedback Plating is destroyed
+ 52     Init Daemon attacks Lookahead-Aegis
+ 54        Init Daemon deals 1 to Lookahead-Aegis
+ 56  == Turn 11 · Lookahead-Aegis == — draws Latent Ward
+ 57     Lookahead-Aegis plays Prime Aegis
+ 58     Failover Custodian attacks Firewall Sentinel
+ 60        Failover Custodian deals 2 to Firewall Sentinel
+ 60        Firewall Sentinel deals 1 to Failover Custodian
+ 60     Failover Custodian · when damaged — Whenever this unit is damaged, restore 1 health to it.
+ 60        Failover Custodian restores 1 to Failover Custodian
+ 62  == Turn 12 · Lookahead-Cortex == — draws Init Daemon
+ 63     Quorum Arbiter attacks Lookahead-Aegis
+ 65        Quorum Arbiter deals 3 to Lookahead-Aegis
+ 66     Lookahead-Cortex plays Watchtower Relay
+ 67     Firewall Sentinel attacks Lookahead-Aegis
+ 69        Firewall Sentinel deals 1 to Lookahead-Aegis
+ 70     Lookahead-Cortex plays Deadlock Detector
+ 71     Lookahead-Cortex plays Init Daemon
+ 72     Init Daemon attacks Lookahead-Aegis
+ 74        Init Daemon deals no damage
+ 76  == Turn 13 · Lookahead-Aegis == — draws Tariff Field
+ 77     Failover Custodian attacks Firewall Sentinel
+ 79        Failover Custodian deals 2 to Firewall Sentinel
+ 79        Firewall Sentinel deals 1 to Failover Custodian
+ 79     Failover Custodian · when damaged — Whenever this unit is damaged, restore 1 health to it.
+ 79        Failover Custodian restores 1 to Failover Custodian
+ 80     Lookahead-Aegis plays Latent Ward
+ 80        Latent Ward deploys dormant: arms in 2 turns
+ 81     Prime Aegis attacks Firewall Sentinel
+ 83        Prime Aegis deals 5 to Firewall Sentinel
+ 83        Firewall Sentinel deals 1 to Prime Aegis
+ 83        Firewall Sentinel is destroyed
+ 84     Lookahead-Aegis plays Tariff Field
+ 86  == Turn 14 · Lookahead-Cortex == — draws Force Quit
+ 87     Quorum Arbiter attacks Lookahead-Aegis
+ 88     [RESPONSE] Lookahead-Cortex casts Force Quit at Tariff Field
+ 90     Force Quit resolves — Destroy target enemy directive. Instant speed.
+ 90        Force Quit destroys Tariff Field
+ 92     Quorum Arbiter's attack lands
+ 92        Quorum Arbiter deals 4 to Lookahead-Aegis
+ 93     Watchtower Relay attacks Lookahead-Aegis
+ 95        Watchtower Relay deals 1 to Lookahead-Aegis
+ 96     Init Daemon attacks Lookahead-Aegis
+ 98        Init Daemon deals no damage
+ 99     Init Daemon attacks Lookahead-Aegis
+101        Init Daemon deals no damage
+102     Deadlock Detector attacks Lookahead-Aegis
+104        Deadlock Detector deals no damage
+105     Lookahead-Cortex plays Rate Limiter
+107  == Turn 15 · Lookahead-Aegis == — draws Uplink Tower
+108     Prime Aegis attacks Lookahead-Cortex
+110        Prime Aegis deals 5 to Lookahead-Cortex
+111     Lookahead-Aegis plays Uplink Tower
+112     Failover Custodian attacks Lookahead-Cortex
+114        Failover Custodian deals 2 to Lookahead-Cortex
+115     Lookahead-Aegis plays Static Ward Beacon
+117  == Turn 16 · Lookahead-Cortex == — draws Overclock Shunt
+117     Rate Limiter · start of turn — At the start of your turn, if the enemy controls 3 or more units, deal 1 damage to all enemy units.
+117        Rate Limiter deals 1 to Failover Custodian
+117     Failover Custodian · when damaged — Whenever this unit is damaged, restore 1 health to it.
+117        Failover Custodian restores 1 to Failover Custodian
+117        Rate Limiter deals 1 to Prime Aegis
+117        Rate Limiter deals 1 to Latent Ward
+117        Rate Limiter deals 1 to Uplink Tower
+118     Quorum Arbiter attacks Lookahead-Aegis
+120        Quorum Arbiter deals 5 to Lookahead-Aegis
+121     Watchtower Relay attacks Lookahead-Aegis
+123        Watchtower Relay deals 1 to Lookahead-Aegis
+124     Lookahead-Cortex attaches Overclock Shunt to Quorum Arbiter
+125     Init Daemon attacks Lookahead-Aegis
+127        Init Daemon deals no damage
+128     Init Daemon attacks Lookahead-Aegis
+130        Init Daemon deals no damage
+131     Deadlock Detector attacks Lookahead-Aegis
+133        Deadlock Detector deals no damage
+135  == Turn 17 · Lookahead-Aegis == — draws Bulwark Chassis
+135     Latent Ward arms — When this arms, your units gain Barrier.
+135        Latent Ward puts Barrier on Failover Custodian
+135        Latent Ward puts Barrier on Prime Aegis
+135        Latent Ward puts Barrier on Latent Ward
+135        Latent Ward puts Barrier on Uplink Tower
+136     Prime Aegis attacks Lookahead-Cortex
+138        Prime Aegis deals 5 to Lookahead-Cortex
+139     Uplink Tower attacks Lookahead-Cortex
+141        Uplink Tower deals 3 to Lookahead-Cortex
+142     Lookahead-Aegis plays Bulwark Chassis
+143     Latent Ward attacks Init Daemon
+145        Init Daemon's armor turns 2 damage into 1
+145        Latent Ward deals 1 to Init Daemon
+145        Init Daemon is destroyed
+146     Failover Custodian attacks Lookahead-Cortex
+148        Failover Custodian deals 2 to Lookahead-Cortex
+150  == Turn 18 · Lookahead-Cortex == — draws Fail-safe Unit
+150     Rate Limiter · start of turn — At the start of your turn, if the enemy controls 3 or more units, deal 1 damage to all enemy units.
+150        Failover Custodian's Barrier absorbs the hit from Rate Limiter
+150        Prime Aegis's Barrier absorbs the hit from Rate Limiter
+150        Latent Ward's Barrier absorbs the hit from Rate Limiter
+150        Uplink Tower's Barrier absorbs the hit from Rate Limiter
+150        Rate Limiter deals 1 to Bulwark Chassis
+151     Quorum Arbiter attacks Lookahead-Aegis
+153        Quorum Arbiter deals 6 to Lookahead-Aegis
+153  Lookahead-Cortex wins: Lookahead-Aegis's health reached 0

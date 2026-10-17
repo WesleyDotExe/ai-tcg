@@ -12,7 +12,7 @@ import type { DeckFaction } from "../src/engineInternal.js";
 import { abilityTextFor, captureMatch } from "../src/capture.js";
 import { generatedSeats } from "../src/generatedSignatures.js";
 import { renderMatchHtml } from "../src/renderHtml.js";
-import { abilityKey, attackFirst, buildFeed, feedText, withPlayers } from "../src/feed.js";
+import { attackFirst, buildFeed, feedText, triggerChangedNothing, withPlayers } from "../src/feed.js";
 import type { FeedEntry, FeedPart } from "../src/feed.js";
 
 const BUILDERS: Record<DeckFaction, (id: DeckSpec["id"], name: string) => DeckSpec> = {
@@ -65,11 +65,24 @@ describe("the match feed", () => {
       // Draws: in the turn header (the turn's draw) or a line of their own.
       const headerDraws = entries.filter((e) => e.kind === "turn").reduce((n, e) => n + (flat(e.detail).match(/draws /g)?.length ?? 0), 0);
       expect(headerDraws + where((e) => e.kind === "result" && has(e, " draws ")), msg).toBe(count("draw"));
-      // Triggers: a line of their own, or the rules text of the resolve or
-      // arming line they belong to.
+      // Triggers: a line of their own, the rules text of the resolve or
+      // arming line they belong to, or dropped because nothing came of
+      // them (no result event follows; feedQuiet.test.ts checks that
+      // against the engine's state).
       const merged = where((e) => (e.kind === "resolve" && !!e.detail) || (e.kind === "trigger" && has(e, " arms") && !!e.detail));
       const ownLine = where((e) => e.kind === "trigger" && !has(e, " arms"));
-      expect(ownLine + merged, msg).toBe(count("abilityTrigger"));
+      let quiet = 0;
+      for (const f of r.frames) {
+        const evs = f.newEvents.map((e) => e.event);
+        evs.forEach((e, k) => {
+          if (e.type !== "abilityTrigger" || !triggerChangedNothing(evs, k)) return;
+          // Absorbed into a resolve or arming line all the same.
+          const prev = evs[k - 1];
+          const absorbed = (prev?.type === "stackResolve" && prev.description.startsWith(e.source) && (e.trigger === "onPlay" || e.trigger === "activated")) || (prev?.type === "telegraphArmed" && prev.unit === e.source && e.trigger === "onPlay");
+          if (!absorbed) quiet++;
+        });
+      }
+      expect(ownLine + merged + quiet, msg).toBe(count("abilityTrigger"));
       expect(count("abilityTrigger"), msg).toBeGreaterThan(0);
     }
   });
@@ -80,7 +93,7 @@ describe("the match feed", () => {
       const events = r.frames.flatMap((f) => f.newEvents.map((e) => e.event));
       passes += events.filter((e) => e.type === "priorityPass").length;
       for (const e of events) {
-        if (e.type === "abilityTrigger") expect(abilityText[abilityKey(e.source, e.ability)], `${r.title}: rules text for ${e.source} ${e.ability}`).toBeTruthy();
+        if (e.type === "abilityTrigger") expect(abilityText[e.ability], `${r.title}: rules text for ${e.source} ${e.ability}`).toBeTruthy();
       }
       const ids = new Set(events.flatMap((e) => (e.type === "abilityTrigger" ? [e.ability] : [])));
       for (const f of r.frames) {
@@ -100,7 +113,23 @@ describe("the match feed", () => {
     const lines = r.frames.flatMap((f) => f.feed!.map((e) => feedText(e, { names: r.agentNames })));
     expect(lines[0]).toBe(`== Turn 1 · ${r.agentNames.p1} ==`);
     expect(lines.some((l) => l.includes(`${r.agentNames.p2} plays `))).toBe(true);
-    expect(lines[lines.length - 1]).toMatch(new RegExp(`^${r.agentNames.p1.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} wins \\(`));
+    expect(lines[lines.length - 1]).toBe(`${r.agentNames.p1} wins: ${r.agentNames.p2}'s health reached 0`);
+  });
+
+  it("never leaves a trigger line with nothing under it", async () => {
+    // The noise render session 22 removed: "Diagnostic Loop · end of turn"
+    // on an unhurt unit, then straight on to the next turn's header.
+    let triggers = 0;
+    for (const { r } of await replaysP) {
+      for (const f of r.frames) {
+        f.feed!.forEach((e, i) => {
+          if (e.kind !== "trigger" || has(e, " arms")) return;
+          triggers++;
+          expect(f.feed![i + 1]?.kind, `${r.title} move ${f.index}: ${flat(e.parts)}`).toBe("result");
+        });
+      }
+    }
+    expect(triggers).toBeGreaterThan(20);
   });
 
   it("tags a cast into a waiting stack as a RESPONSE", async () => {
@@ -173,26 +202,91 @@ describe("feed helpers", () => {
 });
 
 describe("rules text", () => {
-  it("comes from the triggering card, even when another card shares its ability id", async () => {
-    // Before game session 38 generated signature cards reused ability ids
-    // with different numbers ("sig-recycle" was "Draw 2 cards." on one card
-    // and "Draw 3 cards." on another). New cards no longer do (the engine's
-    // signatureAbilityIds test), but replays recorded before then still
-    // can, so the clash is rebuilt here from two real generated cards.
-    const seats = Array.from({ length: 50 }, (_, s) => generatedSeats(s + 1)).flat();
+  // Looked up by ability id alone since render session 22: game session 38
+  // gave every size of a signature ability its own id.
+  const seats = Array.from({ length: 150 }, (_, s) => generatedSeats(s + 1)).flat();
+  const deckOf = (card: (typeof seats)[number]["card"]) => ({ id: "p1" as const, name: "d", cards: [], signature: card });
+
+  it("one id, one text: the set and 300 generated signature cards", () => {
+    const text = abilityTextFor(seats.map((s) => deckOf(s.card)));
+    for (const seat of seats) for (const a of seat.card.abilities) expect(text[a.id], `${seat.card.name} ${a.id}`).toBe(a.text);
+    // Different sizes of one option are different ids.
+    const recycle = Object.keys(text).filter((id) => id.startsWith("sig-recycle"));
+    expect(new Set(recycle.map((id) => text[id])).size).toBe(recycle.length);
+  });
+
+  it("refuses a clash rather than show one card's text on another", () => {
+    // The pre-session-38 shape, rebuilt from two real generated cards.
     const withAbility = seats.filter((s) => s.card.abilities.length > 0);
     const first = withAbility[0]!;
-    const other = withAbility.find((s) => s.card.name !== first.card.name && s.card.abilities[0]!.text !== first.card.abilities[0]!.text)!;
-    const id = first.card.abilities[0]!.id;
-    const second = { ...other, card: { ...other.card, abilities: [{ ...other.card.abilities[0]!, id }] } };
-    const a = { name: first.card.name, text: first.card.abilities[0]!.text };
-    const b = { name: second.card.name, text: second.card.abilities[0]!.text };
-    const deckOf = (seat: (typeof seats)[number]) => ({ id: "p1" as const, name: "d", cards: [], signature: seat.card });
-    const text = abilityTextFor([first, second].map(deckOf));
+    const other = withAbility.find((s) => s.card.abilities[0]!.text !== first.card.abilities[0]!.text)!;
+    const clash = { ...other.card, abilities: [{ ...other.card.abilities[0]!, id: first.card.abilities[0]!.id }] };
+    expect(() => abilityTextFor([deckOf(first.card), deckOf(clash)])).toThrow(/has two rules texts/);
+  });
+
+  it("follows the id, not the card name (a renamed agent's card keeps its text)", async () => {
+    const { r, abilityText } = await replay("Cortex", "Aegis", 5, true);
+    const sigEvent = r.frames.flatMap((f) => f.newEvents.map((e) => e.event)).find((e) => e.type === "abilityTrigger" && e.ability.startsWith("sig-"));
+    expect(sigEvent).toBeTruthy();
+    const ev = { ...(sigEvent as Extract<GameEvent, { type: "abilityTrigger" }>), source: "A Renamed Card" };
+    const frame = { ...r.frames[1]!, newEvents: [{ event: ev as GameEvent, text: "" }, { event: { type: "heal", target: "x", targetKind: "unit", amount: 1, source: ev.source } as GameEvent, text: "" }] };
+    const [entries] = buildFeed([frame], { names: r.agentNames, abilityText });
+    expect(entries![0]!.detail?.[0]).toBe(abilityText[ev.ability]);
+  });
+});
+
+describe("quiet triggers, fizzles and the end", () => {
+  const trig = (source: string): GameEvent => ({ type: "abilityTrigger", source, ability: "diagnostic-loop-turnend", trigger: "onTurnEnd" });
+  const names = { p1: "Ada", p2: "Bix" };
+  const frameWith = async (events: GameEvent[]) => {
     const { r } = await replay("Cortex", "Aegis", 5, true);
-    const frame = { ...r.frames[1]!, newEvents: [a, b].map((c) => ({ event: { type: "abilityTrigger" as const, source: c.name, ability: id, trigger: "onPlay" }, text: "" })) };
-    const [entries] = buildFeed([frame], { names: r.agentNames, abilityText: text });
-    expect(entries!.map((e) => e.detail?.[0])).toEqual([a.text, b.text]);
+    return { ...r.frames[r.frames.length - 1]!, newEvents: events.map((event) => ({ event, text: "" })) };
+  };
+
+  it("triggerChangedNothing: only when no result (or fizzle) comes straight after", () => {
+    const heal: GameEvent = { type: "heal", target: "Diagnostic Loop", targetKind: "unit", amount: 1, source: "Diagnostic Loop" };
+    const end: GameEvent = { type: "turnEnd", turn: 3, player: "p1" };
+    expect(triggerChangedNothing([trig("A"), end], 0)).toBe(true);
+    expect(triggerChangedNothing([trig("A")], 0)).toBe(true);
+    expect(triggerChangedNothing([trig("A"), heal], 0)).toBe(false);
+    // The next trigger's results are its own.
+    expect(triggerChangedNothing([trig("A"), trig("B"), heal], 0)).toBe(true);
+    expect(triggerChangedNothing([trig("A"), { type: "fizzle", reason: "A finds no pending attack to redirect" }], 0)).toBe(false);
+    // The next turn's draw follows an end-of-turn trigger; it isn't the
+    // trigger's. A draw the trigger made is.
+    const draw: GameEvent = { type: "draw", player: "p2", card: "Aegis Sentinel" };
+    const start: GameEvent = { type: "turnStart", turn: 4, player: "p2" };
+    expect(triggerChangedNothing([trig("A"), draw, start], 0)).toBe(true);
+    expect(triggerChangedNothing([trig("A"), { ...draw, player: "p1" }, draw, start], 0)).toBe(false);
+    expect(triggerChangedNothing([trig("A"), { type: "fatigue", player: "p2", damage: 2 }, start], 0)).toBe(true);
+  });
+
+  it("an attack fizzle says why, in place of the 'lands' line", async () => {
+    const frame = await frameWith([
+      { type: "attack", attacker: "Init Daemon", defender: "Bix", defenderKind: "player", stackId: "s1" },
+      { type: "cast", player: "p2", card: "Force Quit", speed: "Instant", stackId: "s2" },
+      { type: "stackResolve", description: "Force Quit", stackId: "s2" },
+      { type: "death", unit: "Init Daemon", controller: "p1" },
+      { type: "stackResolve", description: "Init Daemon's attack", stackId: "s1" },
+      { type: "fizzle", reason: "Init Daemon's attack fizzles — the attacker is no longer in play", cause: "attackerGone", attacker: "Init Daemon" },
+    ]);
+    const [entries] = buildFeed([frame], { names, abilityText: {} });
+    const lines = entries!.map((e) => feedText(e, { names }));
+    expect(lines).toContain("   Init Daemon's attack fizzles: the attacker left play first");
+    expect(lines.join("\n")).not.toMatch(/lands|deals no damage|fizzles —/);
+  });
+
+  it("words the end from its cause", async () => {
+    const end = async (ev: GameEvent) => {
+      const [entries] = buildFeed([await frameWith([ev])], { names, abilityText: {} });
+      return feedText(entries![0]!, { names });
+    };
+    expect(await end({ type: "gameOver", winner: "p1", reason: "p2's health reached 0", cause: { kind: "healthDepleted", losers: ["p2"] } })).toBe("Ada wins: Bix's health reached 0");
+    expect(await end({ type: "gameOver", winner: "draw", reason: "x", cause: { kind: "healthDepleted", losers: ["p1", "p2"] } })).toBe("Draw: both players' health reached 0 at once");
+    expect(await end({ type: "gameOver", winner: "p2", reason: "x", cause: { kind: "turnCap", tied: false } })).toMatch(/^Bix wins at the turn cap, -?\d+ health to -?\d+$/);
+    expect(await end({ type: "gameOver", winner: "draw", reason: "x", cause: { kind: "turnCap", tied: true } })).toMatch(/^Draw at the turn cap, both on -?\d+ health$/);
+    // A log from before the cause existed.
+    expect(await end({ type: "gameOver", winner: "p1", reason: "p2 health depleted" })).toBe("Ada wins (Bix health depleted)");
   });
 });
 
