@@ -2746,3 +2746,20 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
    - Secret cards are picked evenly.
 
 **Order:** the session-38 notes say the session after a yes builds schema v10, switches `openPack` and adds crafting. The game lane decides whether that comes before or after the "choose one" mechanic (step 2).
+
+
+---
+
+## 2026-10-18 — Owner: answers to render session 22 (match feed tightened) and a game lane side task
+
+Owner decisions on the 3 calls in `progress/render/checkpoints.md` (2026-10-18, "The match feed, tightened: quiet triggers dropped, endings worded from the engine's data").
+
+### Render lane: keep all 3, as built
+1. **Keep:** a trigger whose condition didn't hold is dropped from the feed too (no "(no effect)" line). It stays in the engine log.
+2. **Keep:** the fizzle wording "its target left play first" / "the attacker left play first".
+3. **Keep:** the turn-cap ending shows both health totals.
+
+### Game lane: side task (low priority)
+From `progress/render/notes-for-owner.md` (2026-10-18, session 22, item 2). **Do this as a small side task in the next game session.** It does not change the build order.
+- **Problem:** the Intercept Routine fizzle (nothing to redirect) still has no structured cause. The feed prints its reason text as is: "fizzles: Intercept Routine: Garbage Collector's attack is already aimed at Barrier Drone". Seen in Null vs Aegis seed 3, move 33.
+- **Change:** give it the same shape as the attack fizzles from session 38: a `cause` (for example `alreadyAimed` / `noPendingAttack`) plus the source and attacker names, so the feed and commentary can word it.
