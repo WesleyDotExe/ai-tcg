@@ -2868,3 +2868,23 @@ Show each slice with phone and desktop recordings or stills, and a headless chec
 **Art:** real pack and card artwork depends on the art pass, which is still open (build-time generated assets committed as static files, as decided 2026-10-04). Until then, use code-drawn packs and placeholder card art.
 
 **Game lane:** if the render needs a small data hook from the economy (for example, a seeded demo that returns pack results in the shape the pack-result screen gets), note it in `progress/render/notes-for-owner.md` as an ask for the game lane rather than changing economy files.
+
+
+---
+
+## 2026-10-18 — Owner: answers to session 40 (Zero-Day strength cap, the measuring agent) and a render side task
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 40, "Zero-Day cards: the strength cap, and the agent that measures it").
+
+### Game lane
+1. **Question 1: A.** Fix the reference agent first: value auras over several turns and stuns by how long they last, for every card, not only modal ones. Re-record the ring baseline once. Then re-measure the 3 Zero-Day cards, tune them to the cap and propose the final numbers.
+2. **Question 2: accept the cap.** At most 4 points on any edge, measured at 10,000 games per pairing with the agent choosing the mode. Every mode must be picked in at least 10% of the games where the card is played. If a card fails, change its numbers, not its idea, and say which numbers in the notes. (Patient Zero may need a trim once Carrier is valued properly.)
+3. **Keep all 4 smaller calls:**
+   - Kill Switch is Sorcery speed (own turn, nothing on the stack).
+   - Zero-Day cards follow their own rules, not the neutral pool's, but still count toward a deck's 10 neutral cards and its 25% removal share.
+   - When a Zero-Day card that counts as removal goes into a deck at the removal cap (Null today), a removal card comes out.
+   - Only the Lookahead agent is used for balance.
+4. **Going live:** after the re-measure, propose the final numbers. The 3 cards go live with the owner's OK.
+
+### Render lane: small side task
+Show the chosen mode in the match feed, for example "Patient Zero (Outbreak)" or "casts Kill Switch, choosing Wipe", using the mode id and name the engine now puts on play / cast / evolve events (game session 40). Do this as a small side task alongside the pack-opening work. It doesn't replace the pack-opening priority.
