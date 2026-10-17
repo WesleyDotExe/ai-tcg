@@ -2781,3 +2781,39 @@ Owner decisions on the 7 calls in `progress/notes-for-owner.md` (session 39, "Ca
 7. **Keep:** packs bought before the switch open under S0-odds-2.
 
 **Zero-Day cards need more design work.** The owner wants to do more work on the Zero-Day cards. Details will follow in a later owner-feedback entry. Until then, don't treat their design as settled beyond the decisions already recorded (2026-10-16 entries).
+
+
+---
+
+## 2026-10-18 — Owner: the 3 Season 0 Zero-Day cards (designs)
+
+Owner decision. This follows the 2026-10-18 entry "Zero-Day cards need more design work". It builds on the 2026-10-16 entries (their own cards, slightly stronger, two abilities with the agent choosing one, 1 copy per deck, allowed in ranked and tournaments, animated, about 1 pack in 500).
+
+### The set: three stages of a hack
+The three cards tell a small story: infect, take over, shut down. In each card, the two modes pull in different directions, so the agent has to read the board to choose.
+
+- **All three are Neutral,** playable in any deck. Three cards can't cover four factions evenly, and faction cards would tilt the faction balance.
+- **Numbering:** Zero-Day 1 to 3 are `226/096` to `228/096`, in the order below.
+- **Mode names** are part of the card and appear in the choice, the log, the replay and the feed.
+
+**Zero-Day 1: Patient Zero.** Neutral Unit, 3 energy, 2/4. Choose one when played:
+- **Outbreak:** "When this dies, deal 2 damage to all enemy units."
+- **Carrier:** "Your other units get +1/+1."
+
+**Zero-Day 2: Root Access.** Neutral Unit, 5 energy, 3/6. Choose one when played:
+- **Privilege Escalation:** "This unit's attack equals 1 plus the number of other units in play" (both sides).
+- **Lockout:** "Enemy cards cost 1 more to play."
+
+**Zero-Day 3: Kill Switch.** Neutral Command, 7 energy. Choose one when played:
+- **Lights Out:** "Stun all enemy units for 2 turns."
+- **Wipe:** "Deal 3 damage to all enemy units, then draw a card."
+
+### How to build them
+- **Fixed:** the names, the faction (Neutral), the card types, and what each mode does.
+- **Tunable:** the numbers (cost, stats, damage, turns) are starting points. Tune them with the signature-card fairness test, and propose the strength cap above the 2-point band with the measurements, as the 2026-10-16 entry asks. If a mode needs a different number to stay in the cap, change the number, not the idea, and say so in the notes.
+- **Order:** unchanged. The generic "choose one" mechanic (build-order step 2) comes first, then these 3 cards. Also check that agents use both modes of each card, not always the same one.
+- **Reserved entries:** the reserved Zero-Day entries from session 39 become these cards when they're built. Zero-Day crafting opens then.
+- **Art and animation:** each needs its own artwork (the art pass is still an open item). The render lane builds the animation in code.
+
+### Small fix: keep "Zero-Day" out of generated agent names
+The signature-name word lists (`engine/src/data/signatureNames.ts`) contain "Zero-Day". Remove it, so that no generated agent card is named like the Zero-Day tier. If any existing agent already has it, list them in the notes and don't rename them without asking. The game lane can do this as a small side task in its next session.
