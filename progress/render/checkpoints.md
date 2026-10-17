@@ -7,6 +7,46 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-17 — The match feed replaces the raw event log — AWAITING FEEDBACK
+
+A small check-in on how the log pane reads. Commentary (stage 7) is still the real translation layer; this is the written record a spectator can scroll back through until then, and after.
+
+**What this delivers:**
+- **The log pane is now a match feed.** It used to print the engine's own text: a third of it was "p1 passes priority", players were p1 / p2, and triggers showed internal ids like "diagnostic-loop-turnend (onTurnEnd)".
+- **Each turn opens with a header** in the player's faction colour, with their avatar, their agent name and the card they drew.
+- **An attack is one entry**, with its damage under it. It only takes a second line ("X's attack lands") when something happened in between, which is a response.
+- **Responses are tagged.** A card cast into a waiting stack, or on the other player's turn, shows a RESPONSE tag. This is the reactive play the priority system exists for, and the old log buried it among the passes.
+- **Triggers read in plain words,** for example "Diagnostic Loop · end of turn", with the card's own rules text underneath.
+- **Agent names everywhere:** the feed, the turn bar, the stack, the momentum gauge and the hand labels. "P1" no longer appears on the page.
+- **The raw engine log is one switch away** ("engine log", top right of the pane). The page remembers the choice per viewer.
+
+**Evidence:**
+- **Two full feeds as plain text:** `progress/render/evidence/v2-s21-feed-sig-seed5.txt` (the signature replay) and `v2-s21-feed-aegis-cortex-seed1.txt` (two responses, at moves 9 and 88).
+- **Stills:** `v2-s21-page-1280.png`, `v2-s21-feed-1280.png` and `v2-s21-feed-390.png` (a Hotfix response to an attack), and `v2-s21-raw-1280.png` (the same move with the engine log on).
+- **Length:** over the 14 replays, 3,321 engine lines become 1,547 feed entries (47%).
+- **Measured in headless Chromium** (`feed-check.txt`): all 14 replays at 1280 and 390 px. All 28 runs passed: the feed matches the replay's entries move by move, no seat names or passes appear, the switch works both ways, no sideways scroll and no page errors.
+- **Tests:** 11 new (`render/test/feed.test.ts`); render at 314. Over seven real matches they check that nothing is lost: every play, cast, attack, damage, death, draw and trigger has its entry.
+
+**Strong:**
+- Nothing is lost, only folded, and the tests hold it to the engine's events.
+- Responses stand out. Before, finding one meant reading past dozens of passes.
+
+**Thin:**
+- **Triggers that change nothing still get a line,** such as an end-of-turn heal on an unhurt unit (5 times in the seed-5 game).
+- **It says what happened, not why it mattered.** That's commentary's job.
+- **Engine reason text is used as is:** "Rombot's Navigator health depleted" lacks its "'s".
+
+**Decisions you may want to overrule:**
+1. **Priority passes are hidden completely.** The alternative is a quiet "no response" mark after an attack or spell that nobody answered.
+2. **The turn's draw is named in the turn header.** The hands are already face-up for spectators, so this hides nothing. The alternative is "draws a card".
+3. **An attack and its damage are one entry,** unless a response came between them.
+4. **Triggers and spells show their rules text** in small type under the line. The alternative is the name only, which is shorter but harder to follow.
+5. **The engine log stays available** behind a switch, rather than being removed.
+
+**Next:** the next item on the render debt list. Dropping the trigger lines that change nothing is the cheapest legibility win.
+
+---
+
 ## 2026-10-16 — Six slots in one line from 600 px up; two framed lines of three on a phone — AWAITING FEEDBACK
 
 A small layout check-in, from the top of the render debt list. Nothing here changes how a match reads on a desktop.

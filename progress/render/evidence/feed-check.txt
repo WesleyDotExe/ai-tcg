@@ -1,0 +1,30 @@
+# node feed-check.mjs <shotDir> render/output/*-seed*.html  (render session 21)
+aegis-vs-aegis-seed1.html @1280px: 26 moves checked, raw 244 lines vs feed — ok
+aegis-vs-aegis-seed1.html @390px: 26 moves checked, raw 244 lines vs feed — ok
+aegis-vs-cortex-seed1.html @1280px: 32 moves checked, raw 317 lines vs feed — ok
+aegis-vs-cortex-seed1.html @390px: 32 moves checked, raw 317 lines vs feed — ok
+aegis-vs-cortex-seed3.html @1280px: 30 moves checked, raw 298 lines vs feed — ok
+aegis-vs-cortex-seed3.html @390px: 30 moves checked, raw 298 lines vs feed — ok
+aegis-vs-cortex-seed6.html @1280px: 24 moves checked, raw 227 lines vs feed — ok
+aegis-vs-cortex-seed6.html @390px: 24 moves checked, raw 227 lines vs feed — ok
+aegis-vs-null-seed3.html @1280px: 29 moves checked, raw 267 lines vs feed — ok
+aegis-vs-null-seed3.html @390px: 29 moves checked, raw 267 lines vs feed — ok
+cortex-vs-aegis-sig-seed2.html @1280px: 20 moves checked, raw 187 lines vs feed — ok
+cortex-vs-aegis-sig-seed2.html @390px: 20 moves checked, raw 187 lines vs feed — ok
+cortex-vs-aegis-sig-seed5.html @1280px: 27 moves checked, raw 268 lines vs feed — ok
+cortex-vs-aegis-sig-seed5.html @390px: 27 moves checked, raw 268 lines vs feed — ok
+cortex-vs-null-seed5.html @1280px: 22 moves checked, raw 204 lines vs feed — ok
+cortex-vs-null-seed5.html @390px: 22 moves checked, raw 204 lines vs feed — ok
+cortex-vs-swarm-seed11.html @1280px: 24 moves checked, raw 222 lines vs feed — ok
+cortex-vs-swarm-seed11.html @390px: 24 moves checked, raw 222 lines vs feed — ok
+cortex-vs-swarm-seed6.html @1280px: 23 moves checked, raw 262 lines vs feed — ok
+cortex-vs-swarm-seed6.html @390px: 23 moves checked, raw 262 lines vs feed — ok
+null-vs-cortex-seed4.html @1280px: 33 moves checked, raw 319 lines vs feed — ok
+null-vs-cortex-seed4.html @390px: 33 moves checked, raw 319 lines vs feed — ok
+null-vs-swarm-seed2.html @1280px: 18 moves checked, raw 154 lines vs feed — ok
+null-vs-swarm-seed2.html @390px: 18 moves checked, raw 154 lines vs feed — ok
+swarm-vs-aegis-seed8.html @1280px: 14 moves checked, raw 125 lines vs feed — ok
+swarm-vs-aegis-seed8.html @390px: 14 moves checked, raw 125 lines vs feed — ok
+swarm-vs-null-seed8.html @1280px: 23 moves checked, raw 227 lines vs feed — ok
+swarm-vs-null-seed8.html @390px: 23 moves checked, raw 227 lines vs feed — ok
+all passed

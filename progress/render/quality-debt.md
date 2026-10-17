@@ -15,11 +15,18 @@ items are removed, with the fix in `log.md`.
 - **Floating numbers and trigger labels aren't scaled with a zoomed row.**
   "ON PLAY" and "+3 HP" stay at full size, so next to an 85-px card they
   look a little large.
-- **The event log is raw engine text** ("p1 passes priority", "[end of turn
-  13 for p1]"). It is dense, full of priority passes, and names players as
-  p1 / p2 instead of their usernames. For a spectator it is a debugging
-  view, not a feed. Commentary (stage 7) is the real fix; until then it
-  could at least filter passes and use names.
+- **The match feed (session 21) gives a line to triggers that change
+  nothing**: "Diagnostic Loop · end of turn" healing an unhurt unit, 5
+  times in the seed-5 game. Comparing the unit across the frame would drop
+  them.
+- **The feed uses engine reason text as is**: "Rombot's Navigator health
+  depleted" lacks its "'s". The feed says what happened, never why it
+  mattered (commentary, stage 7).
+- **In a mirror match a feed trigger can lose its side colour** when its
+  event carries no instance id and the card's name is on both boards.
+- **The feed is built for a finished match** (`buildFeed` over all frames).
+  It only ever looks back, so a live stream (the server, stage 4) could
+  build it move by move, but nothing does yet.
 - **The cost circle shows the printed cost.** A board cost modifier, or the
   7 a replayed signature card paid, isn't on the card. The hand shows the
   effective cost and the zone shows the climb, so nothing is wrong, but the
@@ -46,7 +53,7 @@ items are removed, with the fix in `log.md`.
   front". Neither Hunter nor Bulwark is on the generator yet, so no replay
   shows them; build it when one is.
 - **The momentum gauge's reasons are a fixed list of comparisons**
-  (health, board, hand), and they name players P1 / P2. They don't explain a threat that hasn't landed
+  (health, board, hand). They now use agent names (session 21). They don't explain a threat that hasn't landed
   yet (a pending stack item, an armed telegraph), which is exactly what a
   spectator can't track.
 
@@ -56,7 +63,8 @@ items are removed, with the fix in `log.md`.
   zone's DOM, frame strips) is checked by scratch Playwright scripts from a
   folder outside the repo, and only the CSS rules are pinned in vitest. A
   regression in layout would pass CI. The overflow script and the
-  board-fit script (session 20) are committed in
+  board-fit script (session 20) and the feed script (session 21) are
+  committed in
   `progress/render/evidence/`, but nothing runs them.
 - **Sound and music were only ever heard in headless runs and through
   stats.** No check on a real device, on mobile browsers' autoplay rules,
@@ -71,7 +79,7 @@ items are removed, with the fix in `log.md`.
   folder).** Every page embeds the same atlases and sources. That's the
   owner's self-contained rule (no network calls), but the website will want
   shared assets.
-- **`renderHtml.ts` is one file of about 2,260 lines** holding the CSS, the
+- **`renderHtml.ts` is one file of about 2,360 lines** holding the CSS, the
   page markup and the page runtime as strings. The FX modules are split out
   and tested; the page glue isn't.
 

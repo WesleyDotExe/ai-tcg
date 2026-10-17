@@ -61,7 +61,10 @@ export function renderMatchHtml(replay: MatchReplay): string {
 
   <section class="lower">
     <div class="hand" id="hand-p1"></div>
-    <div class="eventlog" id="eventlog"></div>
+    <div class="eventlog" id="eventlog">
+      <div class="feed-head"><span>MATCH FEED</span><label title="Show the engine's raw event log instead"><input type="checkbox" id="raw-log"> engine log</label></div>
+      <div class="eventlog-body" id="eventlog-body"></div>
+    </div>
     <div class="hand" id="hand-p2"></div>
   </section>
 
@@ -375,8 +378,33 @@ html, body {
 .hand .minicard b { color: var(--fc, var(--ink)); }
 .hand-label { width: 100%; font-size: 0.6rem; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 2px; }
 
-.eventlog { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 0.72rem; max-height: 220px; overflow-y: auto; }
-.eventlog .turn-hdr { color: var(--neutral); margin-top: 6px; }
+.eventlog { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 0.72rem; max-height: 260px; display: flex; flex-direction: column; min-width: 0; }
+.eventlog .feed-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 10px; font-size: 0.6rem; letter-spacing: 0.12em; color: var(--ink-dim); border-bottom: 1px solid var(--line); }
+.eventlog .feed-head label { letter-spacing: 0.04em; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.eventlog .feed-head input { margin: 0; accent-color: var(--ink-dim); }
+.eventlog-body { overflow-y: auto; padding: 4px 8px 8px; flex: 1; min-height: 0; }
+/* The match feed (render/src/feed.ts): one entry per thing that happened.
+ * The left rule takes the faction colour of whoever the entry belongs to;
+ * names take their own faction colour. */
+.fe { color: var(--ink-dim); border-left: 2px solid transparent; padding: 1px 0 1px 8px; line-height: 1.4; overflow-wrap: anywhere; }
+.fe .fc { color: color-mix(in srgb, var(--fc, var(--ink)) 80%, var(--ink)); }
+.fe .fp { color: var(--fc, var(--ink)); font-weight: bold; }
+.fe.now { color: var(--ink); background: color-mix(in srgb, var(--fc, var(--ink)) 8%, transparent); }
+.fe-turn { margin-top: 8px; padding: 3px 8px; border-left-color: var(--fc, var(--line)); color: var(--ink); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+  background: color-mix(in srgb, var(--fc, var(--line)) 10%, transparent); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fe-turn:first-child { margin-top: 2px; }
+.fe-turn .avatar { width: 16px; height: 16px; border-radius: 4px; box-shadow: 0 0 0 1px var(--fc); }
+.fe-turn .fe-detail { text-transform: none; letter-spacing: 0; flex-basis: 100%; margin: 0; }
+.fe-action, .fe-response, .fe-resolve, .fe-trigger { border-left-color: color-mix(in srgb, var(--fc, var(--line)) 55%, transparent); margin-top: 2px; }
+.fe-trigger, .fe-resolve { font-style: italic; }
+.fe-result { padding-left: 22px; position: relative; }
+.fe-result::before { content: "\u203a"; position: absolute; left: 12px; color: var(--line); }
+.fe-detail { font-size: 0.64rem; color: var(--ink-dim); font-style: normal; margin-top: 1px; }
+.fe-tag { font-size: 0.56rem; padding: 0 4px; margin-right: 6px; border: 1px solid currentColor; border-radius: 3px; letter-spacing: 0.08em; font-style: normal; vertical-align: 1px; }
+.fe-response { background: color-mix(in srgb, var(--cast) 7%, transparent); }
+.fe-response .fe-tag { color: var(--cast); }
+.fe-tag-SIGNATURE { color: var(--neutral); }
+.fe-end { margin-top: 8px; padding: 4px 8px; border-left-color: var(--good); color: var(--good); font-weight: bold; }
 .eventlog .ev { color: var(--ink-dim); white-space: pre-wrap; }
 .eventlog .ev.now { color: var(--ink); }
 .eventlog .ev.gameover { color: var(--good); font-weight: bold; }
@@ -771,6 +799,12 @@ const JS = `
     return '<span class="avatar" title="' + escapeHtml(id.username) + '">' + inner + '</span>';
   }
 
+  // An agent by name, in its faction colour (feed, turn bar, momentum).
+  function pname(pid) { return replay.identities[pid].username; }
+  function playerHtml(pid) {
+    return '<b class="fp faction-' + replay.factions[pid] + '" style="color:var(--fc)">' + escapeHtml(pname(pid)) + '</b>';
+  }
+
   document.getElementById('matchup').innerHTML =
     '<span class="faction-' + replay.factions.p1 + '" style="color:var(--fc)">' + avatarHtml('p1') + escapeHtml(replay.identities.p1.username) + ' [' + replay.factions.p1 + ']</span>' +
     '<span class="vs">vs</span>' +
@@ -1146,7 +1180,7 @@ ${SIG_ZONE_SOURCE}
     fillEl.style.width = fillWidth + '%';
     fillEl.style.background = color;
     document.getElementById('momentum-why').innerHTML =
-      (m.leader === 'even' ? 'EVEN' : (m.leader.toUpperCase() + ' AHEAD')) + '<br>' + escapeHtml(m.reasons.join(' \\u00b7 '));
+      (m.leader === 'even' ? 'EVEN' : (playerHtml(m.leader) + ' AHEAD')) + '<br>' + escapeHtml(m.reasons.join(' \\u00b7 '));
   }
 
   function renderStack(stack) {
@@ -1156,35 +1190,66 @@ ${SIG_ZONE_SOURCE}
       const div = document.createElement('div');
       div.className = 'stackitem';
       div.setAttribute('data-sid', item.stackId);
-      div.textContent = (idx === 0 ? '\\u25B2 TOP: ' : '') + item.controller + ': ' + item.description;
+      div.textContent = (idx === 0 ? '\\u25B2 TOP: ' : '') + pname(item.controller) + ': ' + item.description;
       el.appendChild(div);
     });
   }
 
   function renderTurnbar(frame) {
     const el = document.getElementById('turnbar');
-    let text = 'TURN ' + frame.turnNumber + ' (of up to ' + replay.turnCap + ')  \\u2014  active: <b>' + frame.activePlayer.toUpperCase() + '</b>  \\u2014  priority: <b>' + frame.priority.toUpperCase() + '</b>';
+    let text = 'TURN ' + frame.turnNumber + ' (of up to ' + replay.turnCap + ')  \\u2014  active: ' + playerHtml(frame.activePlayer) + '  \\u2014  priority: ' + playerHtml(frame.priority);
     if (frame.winner) {
-      text += '  \\u2014  <span class="win">GAME OVER: ' + (frame.winner === 'draw' ? 'DRAW' : frame.winner.toUpperCase() + ' WINS') + '</span>';
+      text += '  \\u2014  <span class="win">GAME OVER: ' + (frame.winner === 'draw' ? 'DRAW' : escapeHtml(pname(frame.winner)) + ' WINS') + '</span>';
     }
     el.innerHTML = text;
   }
 
+  // The match feed (render/src/feed.ts, built at capture time): agent
+  // names, no priority passes, each attack with its damage. The engine's
+  // raw log stays one switch away, remembered per viewer.
+  const RAW_LOG_KEY = 'aitcg.rawLog';
+  let rawLog = false;
+  try { rawLog = localStorage.getItem(RAW_LOG_KEY) === '1'; } catch (e) {}
+  const rawLogBox = document.getElementById('raw-log');
+  rawLogBox.checked = rawLog;
+  rawLogBox.addEventListener('change', function () {
+    rawLog = rawLogBox.checked;
+    try { localStorage.setItem(RAW_LOG_KEY, rawLog ? '1' : '0'); } catch (e) {}
+    renderEventLog(i);
+  });
+  function feedPartsHtml(parts) {
+    return parts.map(function (p) {
+      if (typeof p === 'string') return escapeHtml(p);
+      if (p.player) return playerHtml(p.player);
+      const fac = replay.cardFactions[p.card];
+      return '<span class="fc' + (fac ? ' faction-' + fac : '') + '">' + escapeHtml(p.card) + '</span>';
+    }).join('');
+  }
+  function feedEntryEl(entry, now) {
+    const line = document.createElement('div');
+    line.className = 'fe fe-' + entry.kind + (now ? ' now' : '') + (entry.side ? ' faction-' + replay.factions[entry.side] : '');
+    line.innerHTML = (entry.kind === 'turn' && entry.side ? avatarHtml(entry.side) : '') +
+      (entry.tag ? '<span class="fe-tag fe-tag-' + entry.tag + '">' + entry.tag + '</span>' : '') +
+      (entry.kind === 'turn' ? '<span>' + feedPartsHtml(entry.parts) + '</span>' : feedPartsHtml(entry.parts)) +
+      (entry.detail ? '<div class="fe-detail">' + feedPartsHtml(entry.detail) + '</div>' : '');
+    return line;
+  }
   function renderEventLog(upTo) {
-    const el = document.getElementById('eventlog');
+    const el = document.getElementById('eventlog-body');
     el.innerHTML = '';
-    let lastTurn = null;
+    const raw = rawLog || !frames[0].feed;
     for (let f = 0; f <= upTo; f++) {
       const frame = frames[f];
-      frame.newEvents.forEach(function (e) {
-        if (e.event.type === 'turnStart' && e.event.turn !== lastTurn) {
-          lastTurn = e.event.turn;
-        }
-        const line = document.createElement('div');
-        line.className = 'ev' + (f === upTo ? ' now' : '') + (e.event.type === 'gameOver' ? ' gameover' : '');
-        line.textContent = e.text;
-        el.appendChild(line);
-      });
+      if (raw) {
+        frame.newEvents.forEach(function (e) {
+          const line = document.createElement('div');
+          line.className = 'ev' + (f === upTo ? ' now' : '') + (e.event.type === 'gameOver' ? ' gameover' : '');
+          line.textContent = e.text;
+          el.appendChild(line);
+        });
+      } else {
+        frame.feed.forEach(function (entry) { el.appendChild(feedEntryEl(entry, f === upTo)); });
+      }
     }
     el.scrollTop = el.scrollHeight;
   }
@@ -1220,8 +1285,8 @@ ${SIG_ZONE_SOURCE}
     renderSigZone('p2', frame);
     renderSigZone('p1', frame);
     renderStack(frame.stack);
-    renderHand('hand-p1', frame.players.p1, 'P1 HAND');
-    renderHand('hand-p2', frame.players.p2, 'P2 HAND');
+    renderHand('hand-p1', frame.players.p1, escapeHtml(pname('p1')) + ' \\u00b7 HAND');
+    renderHand('hand-p2', frame.players.p2, escapeHtml(pname('p2')) + ' \\u00b7 HAND');
     renderEventLog(i);
     drawAimLines(frame, {});
     scrubber.value = String(i);

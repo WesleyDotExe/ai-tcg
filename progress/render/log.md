@@ -2368,6 +2368,14 @@ side's line), so it comes before any new width.
   ghost's placement, and the page's wiring. `npm test`: 630 across six
   workspaces, all pass. `tsc --noEmit` is clean in all six.
 
+**A bug found by measuring:** the first version looked up rules text by
+ability id alone. Over 300 generated agents, 66 signature abilities share
+an id with a different text ("sig-recycle" is "Draw 2 cards." on one card
+and "Draw 3 cards." on another), so a match with two such cards could show
+the wrong number. The lookup is now keyed by card name and ability id
+(`abilityKey`). The two committed signature replays read the same either
+way.
+
 **Named honestly** (in the debt list):
 - From 545 to 600 px the cards are 85-91 px wide, and the name text is
   about 7.5 px.
@@ -2381,3 +2389,113 @@ side's line), so it comes before any new width.
 **Next render-lane slice:** the event log. It shows raw engine text,
 priority passes and p1 / p2. Filter the passes and use the agents' names
 until commentary (stage 7) replaces it.
+
+## 2026-10-17 — Session 21: the match feed replaces the raw event log (render debt)
+
+Render session by the alternation rule: the last merged PR (#59) was a game
+slice. Owner feedback read first. The one new render entry (2026-10-17,
+board fit accepted, all 4 calls kept) needs no work. The 2026-10-17 answers
+to session 37 are game-lane work (the first rename free, typed names may
+repeat words, build order A) and are left for the next game session.
+
+**Why this slice.** Session 20 named it: the event log was the most visible
+item on `progress/render/quality-debt.md`. It printed the engine's own
+`formatEvent` text: a third of its lines were "p1 passes priority", turns
+ended in "[end of turn 13 for p1]", players were p1 / p2, triggers showed
+internal ability ids ("diagnostic-loop-turnend (onTurnEnd)"), and every
+attack took two lines. That's a debugging view, not something a spectator
+reads.
+
+**Built:**
+- **`render/src/feed.ts`.** `buildFeed(frames, ctx)` turns each frame's
+  structured events (never the prose) into feed entries, at capture time:
+  - priority passes and turn ends are dropped;
+  - each turn opens with a header naming the agent, and the turn's draw
+    sits in the header (the engine logs it just before the turn starts);
+  - an attack is one entry with its damage nested under it. Its resolution
+    only gets its own line ("X's attack lands") when something happened in
+    between, which is a response;
+  - a cast into a waiting stack, or on the other player's turn, is tagged
+    RESPONSE;
+  - triggers read "Card · end of turn", with the card's own rules text
+    under them (`abilityTextFor`: every set card, both decks and both
+    signature cards). A Command's resolve line and its on-entry trigger are
+    one entry; so are an arming unit and its arming effect;
+  - an attacker's on-attack trigger is logged by the engine before the
+    attack; `attackFirst` puts the attack first;
+  - players are carried as player parts, and seats inside engine reason
+    text ("p2 health depleted") become player parts too (`withPlayers`).
+- **The page.** The log pane is now the MATCH FEED: a turn header band in
+  the player's faction colour with their avatar, a faction-coloured left
+  rule per entry, card names tinted by faction, players in bold in theirs,
+  results indented, rules text in small type. An "engine log" switch in the
+  pane's header shows the raw lines again; the choice is remembered per
+  viewer (localStorage, wrapped in try/catch).
+- **Names everywhere else on the page:** the turn bar (active, priority,
+  winner), the stack panel, the momentum gauge's "... AHEAD" and its
+  reasons (`momentum.ts` now uses the snapshot's name), and the hand labels.
+
+**Ran it:**
+- **Regenerated all 14 replays and both sheets.** The matches are the same
+  moves (seed 2 signature: 92 moves, p1 wins; seed 5: 129 moves). The
+  signature replays carry session 37's agent names (Cyberburner's Antihero
+  vs Rombot's Navigator at seed 5).
+- **Length:** across the 14 replays the engine log is 3,321 lines and the
+  feed 1,547 entries (47%).
+- **Transcripts:** `progress/render/evidence/v2-s21-feed-sig-seed5.txt` and
+  `v2-s21-feed-aegis-cortex-seed1.txt`, the whole feed of two replays as
+  plain text. Seed 1 has two responses: Hotfix on an attacking Init
+  Daemon (move 9) and Force Quit on Tariff Field mid-attack (move 88).
+  Intercept Routine pulling an attack onto a Bulwark Chassis is in the
+  Aegis vs Cortex seed 6 replay.
+- **Browser check** (`progress/render/evidence/feed-check.txt`, script
+  alongside): all 14 replays at 1280 and 390 px, every 5th move and the
+  last. All 28 runs passed: the feed shows exactly the replay's entries up
+  to that move, no seat name or priority pass in the feed, turn bar or
+  gauge, the engine-log switch shows one line per engine event and
+  switches back, 0 px sideways overflow, 0 page errors.
+- **Board fit re-run** on the seed-5 replay at 11 widths: unchanged, all ok.
+- **Stills:** `v2-s21-page-1280.png`, `v2-s21-feed-1280.png`,
+  `v2-s21-feed-390.png` (move 13 of Aegis vs Cortex seed 1: the Hotfix
+  response, its resolve and the attack landing), `v2-s21-raw-1280.png`
+  (the same move with the engine-log switch on).
+- **Tests:** render 314 (was 303). New `test/feed.test.ts` (11):
+  - oracles over seven real matches: every play, cast, attack, damage,
+    death, draw, trigger, turn and game end has its entry;
+  - no priority passes, no seat names, no ability ids; every triggered
+    ability has rules text;
+  - a cast into a waiting stack is always tagged RESPONSE;
+  - attacks fold unless answered, and every answered attack gets its own
+    line;
+  - the feed is under 60% of the raw log;
+  - rules text comes from the triggering card even when another card
+    shares its ability id (the bug below);
+  - `withPlayers`, `attackFirst`, and the page's wiring.
+  A mutation check (passes left in, the RESPONSE tag removed) fails 3 of
+  them. `npm test`: 652 across six workspaces, all pass. `tsc --noEmit` is
+  clean in all six.
+
+**A bug found by measuring:** the first version looked up rules text by
+ability id alone. Over 300 generated agents, 66 signature abilities share
+an id with a different text ("sig-recycle" is "Draw 2 cards." on one card
+and "Draw 3 cards." on another), so a match with two such cards could show
+the wrong number. The lookup is now keyed by card name and ability id
+(`abilityKey`). The two committed signature replays read the same either
+way.
+
+**Named honestly** (in the debt list):
+- Triggers that change nothing still get a line, e.g. "Diagnostic Loop ·
+  end of turn" healing an unhurt unit (5 times in the seed-5 game).
+- Engine reason text is used as is: "Rombot's Navigator health depleted"
+  lacks its "'s".
+- The feed says what happened, not why it mattered. That is commentary
+  (stage 7).
+- In a mirror match, a trigger whose event has no instance id can lose its
+  side colour (the name is on both boards).
+
+**Checkpoint:** a small feed check-in in `progress/render/checkpoints.md`.
+
+**Next render-lane slice:** the next item on the debt list. The empty
+trigger lines are the cheapest legibility win (needs only the next frame's
+board to tell "did anything change"); the zoomed-row floating labels are
+the most visible.

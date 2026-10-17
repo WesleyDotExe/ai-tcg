@@ -269,8 +269,33 @@ html, body {
 .hand .minicard b { color: var(--fc, var(--ink)); }
 .hand-label { width: 100%; font-size: 0.6rem; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 2px; }
 
-.eventlog { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 0.72rem; max-height: 220px; overflow-y: auto; }
-.eventlog .turn-hdr { color: var(--neutral); margin-top: 6px; }
+.eventlog { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 0.72rem; max-height: 260px; display: flex; flex-direction: column; min-width: 0; }
+.eventlog .feed-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 10px; font-size: 0.6rem; letter-spacing: 0.12em; color: var(--ink-dim); border-bottom: 1px solid var(--line); }
+.eventlog .feed-head label { letter-spacing: 0.04em; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.eventlog .feed-head input { margin: 0; accent-color: var(--ink-dim); }
+.eventlog-body { overflow-y: auto; padding: 4px 8px 8px; flex: 1; min-height: 0; }
+/* The match feed (render/src/feed.ts): one entry per thing that happened.
+ * The left rule takes the faction colour of whoever the entry belongs to;
+ * names take their own faction colour. */
+.fe { color: var(--ink-dim); border-left: 2px solid transparent; padding: 1px 0 1px 8px; line-height: 1.4; overflow-wrap: anywhere; }
+.fe .fc { color: color-mix(in srgb, var(--fc, var(--ink)) 80%, var(--ink)); }
+.fe .fp { color: var(--fc, var(--ink)); font-weight: bold; }
+.fe.now { color: var(--ink); background: color-mix(in srgb, var(--fc, var(--ink)) 8%, transparent); }
+.fe-turn { margin-top: 8px; padding: 3px 8px; border-left-color: var(--fc, var(--line)); color: var(--ink); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+  background: color-mix(in srgb, var(--fc, var(--line)) 10%, transparent); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fe-turn:first-child { margin-top: 2px; }
+.fe-turn .avatar { width: 16px; height: 16px; border-radius: 4px; box-shadow: 0 0 0 1px var(--fc); }
+.fe-turn .fe-detail { text-transform: none; letter-spacing: 0; flex-basis: 100%; margin: 0; }
+.fe-action, .fe-response, .fe-resolve, .fe-trigger { border-left-color: color-mix(in srgb, var(--fc, var(--line)) 55%, transparent); margin-top: 2px; }
+.fe-trigger, .fe-resolve { font-style: italic; }
+.fe-result { padding-left: 22px; position: relative; }
+.fe-result::before { content: "›"; position: absolute; left: 12px; color: var(--line); }
+.fe-detail { font-size: 0.64rem; color: var(--ink-dim); font-style: normal; margin-top: 1px; }
+.fe-tag { font-size: 0.56rem; padding: 0 4px; margin-right: 6px; border: 1px solid currentColor; border-radius: 3px; letter-spacing: 0.08em; font-style: normal; vertical-align: 1px; }
+.fe-response { background: color-mix(in srgb, var(--cast) 7%, transparent); }
+.fe-response .fe-tag { color: var(--cast); }
+.fe-tag-SIGNATURE { color: var(--neutral); }
+.fe-end { margin-top: 8px; padding: 4px 8px; border-left-color: var(--good); color: var(--good); font-weight: bold; }
 .eventlog .ev { color: var(--ink-dim); white-space: pre-wrap; }
 .eventlog .ev.now { color: var(--ink); }
 .eventlog .ev.gameover { color: var(--good); font-weight: bold; }
