@@ -186,6 +186,11 @@ export interface Frame {
    * by captureMatch after the match is played; the page falls back to
    * newEvents' raw text when it is absent. */
   feed?: FeedEntry[];
+  /** Indices into newEvents of the abilityTrigger events the feed dropped
+   * because they changed nothing (render/src/feed.ts buildFeedWithQuiet).
+   * The board's cast flourish skips them too (castFx.ts). Filled in with
+   * the feed; absent means none are skipped. */
+  quietTriggers?: number[];
   momentum: MomentumReading;
 }
 

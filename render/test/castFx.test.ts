@@ -143,7 +143,7 @@ describe("real matches (oracle: the engine's own resolveAbility source)", () => 
   it("never pins a flourish on the wrong instance, and accounts for every trigger and cast", async () => {
     const builders = { Cortex: buildCortexDeck, Aegis: buildAegisDeck, Swarm: buildSwarmDeck, Null: buildNullDeck };
     const factions = Object.keys(builders) as (keyof typeof builders)[];
-    const tally = { triggers: 0, casts: 0, fx: 0, oracleChecked: 0, oracleNarrowed: 0, banners: 0, stack: 0, stackMissingId: 0, departedChecked: 0 };
+    const tally = { triggers: 0, quiet: 0, casts: 0, fx: 0, oracleChecked: 0, oracleNarrowed: 0, banners: 0, stack: 0, stackMissingId: 0, departedChecked: 0 };
     for (const a of factions) {
       for (const b of factions) {
         for (const seed of [1, 2, 3]) {
@@ -158,13 +158,27 @@ describe("real matches (oracle: the engine's own resolveAbility source)", () => 
             const prev = replay.frames[f - 1]!;
             const next = replay.frames[f]!;
             const events = next.newEvents.map((e) => e.event);
-            const triggers = events.filter((e) => e.type === "abilityTrigger");
+            // The triggers the feed dropped as quiet get no flourish
+            // (render session 23); every other trigger gets exactly one.
+            const quiet = new Set(next.quietTriggers ?? []);
+            for (const k of quiet) expect(events[k]!.type).toBe("abilityTrigger");
+            tally.quiet += quiet.size;
+            const triggers = events.filter((e, k) => e.type === "abilityTrigger" && !quiet.has(k));
             tally.triggers += triggers.length;
             tally.casts += events.filter((e) => e.type === "cast").length;
             const fxs = resolveCasts(prev, next, replay.cardFactions, replay.cardRarities);
             tally.fx += fxs.length;
             const triggerFx = fxs.filter((x) => x.kind === "trigger");
             expect(triggerFx.length).toBe(triggers.length);
+            // Without the list, the quiet ones are back: the skip is the
+            // list's doing, and the narrowing still places them right.
+            const allTriggers = events.filter((e) => e.type === "abilityTrigger");
+            const allFx = resolveCasts(prev, { ...next, quietTriggers: undefined }, replay.cardFactions, replay.cardRarities).filter((x) => x.kind === "trigger");
+            expect(allFx.length).toBe(triggers.length + quiet.size);
+            allFx.forEach((fx, k) => {
+              const real = truth.get(allTriggers[k]!);
+              if (real !== undefined && fx.anchor === "card") expect(fx.iid).toBe(real);
+            });
             triggerFx.forEach((fx, k) => {
               const ev = triggers[k]!;
               if (fx.anchor === "banner") tally.banners++;
@@ -186,6 +200,7 @@ describe("real matches (oracle: the engine's own resolveAbility source)", () => 
       }
     }
     expect(tally.fx).toBe(tally.triggers + tally.casts);
+    expect(tally.quiet).toBeGreaterThan(0);
     expect(tally.oracleChecked).toBeGreaterThan(100);
     expect(tally.oracleNarrowed).toBeGreaterThan(10);
     expect(tally.stack).toBeGreaterThan(0);

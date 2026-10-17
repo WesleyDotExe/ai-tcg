@@ -388,7 +388,7 @@ html, body {
   animation: fx-deflect-ring 380ms ease-out forwards; }
 @keyframes fx-deflect-ring { 0% { opacity: 0.85; transform: scale(0.3); } 100% { opacity: 0; transform: scale(1.5); } }
 
-.fx-number { position: fixed; font-weight: bold; font-size: 0.95rem; letter-spacing: 0.02em;
+.fx-number { position: fixed; font-weight: bold; font-size: 0.95rem; letter-spacing: 0.02em; transform-origin: 50% 0;
   text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; animation: fx-float 900ms ease forwards; }
 .fx-number.dmg { color: var(--bad); }
 .fx-number.heal { color: var(--good); }
@@ -615,7 +615,7 @@ html, body {
   25% { opacity: 1; }
   100% { opacity: 0; transform: rotate(var(--ray-a)) translateY(calc(-26px * var(--cast-scale))); }
 }
-.fx-cast-tag { position: fixed; pointer-events: none; white-space: nowrap; translate: -50% 0;
+.fx-cast-tag { position: fixed; pointer-events: none; white-space: nowrap; translate: -50% 0; transform-origin: 50% 0;
   font-size: 0.6rem; font-weight: bold; letter-spacing: 0.12em; color: var(--cast);
   background: rgba(10,8,24,0.88); border: 1px solid var(--cast); border-radius: 3px; padding: 1px 6px;
   box-shadow: 0 0 0 1px rgba(0,0,0,0.6), -3px 0 0 0 var(--fx-tint);

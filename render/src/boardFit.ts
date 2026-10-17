@@ -73,11 +73,26 @@ export const BOARD_FIT_SOURCE = `
     if (Math.abs(z - 1) < 0.005) z = 1;
     return { zoom: z, left: rect.left / z, top: rect.top / z };
   }
+  // The scale for a label floated over a card at rect (render session
+  // 23): a damage number, a stat label, FIZZLED, a cast tag. The labels sit
+  // in the fixed overlay, outside the zoomed row, so on their own they stay
+  // full size next to an 85 px card. Same measure as the ghost: the card's
+  // on-screen width over its unzoomed width, never above 1. A card mid-FX
+  // (a hit flash scales it up a little) measures a few percent off, so
+  // when the rows' own zooms are given the nearest one is used.
+  function labelScale(rect, rowZooms) {
+    var z = Math.min(1, ghostPlacement(rect).zoom);
+    if (!rowZooms || !rowZooms.length) return z;
+    var best = rowZooms[0];
+    rowZooms.forEach(function (r) { if (Math.abs(r - z) < Math.abs(best - z)) best = r; });
+    return Math.min(1, best);
+  }
 `;
 
-const impl = new Function(`${BOARD_FIT_SOURCE}; return { boardFit: boardFit, ghostPlacement: ghostPlacement, MIN_LINE_ZOOM: MIN_LINE_ZOOM, TWO_LINE_FRAME: TWO_LINE_FRAME, lineWidth: lineWidth };`)() as {
+const impl = new Function(`${BOARD_FIT_SOURCE}; return { boardFit: boardFit, ghostPlacement: ghostPlacement, labelScale: labelScale, MIN_LINE_ZOOM: MIN_LINE_ZOOM, TWO_LINE_FRAME: TWO_LINE_FRAME, lineWidth: lineWidth };`)() as {
   boardFit: (avail: number, slots: number, gap: number) => BoardFit;
   ghostPlacement: (rect: { left: number; top: number; width: number }) => GhostPlacement;
+  labelScale: (rect: { left: number; top: number; width: number }, rowZooms?: number[]) => number;
   MIN_LINE_ZOOM: number;
   TWO_LINE_FRAME: number;
   lineWidth: (n: number, gap: number) => number;
@@ -91,6 +106,12 @@ export function boardFit(avail: number, slots: number, gap: number): BoardFit {
 /** Where and how big to draw a fixed-overlay copy of a card shown at `rect`. */
 export function ghostPlacement(rect: { left: number; top: number; width: number }): GhostPlacement {
   return impl.ghostPlacement(rect);
+}
+
+/** How much to shrink a floating label over a card shown at `rect`;
+ * `rowZooms` (the board rows' zooms) snaps it to the row the card is in. */
+export function labelScale(rect: { left: number; top: number; width: number }, rowZooms?: number[]): number {
+  return impl.labelScale(rect, rowZooms);
 }
 
 export const MIN_LINE_ZOOM = impl.MIN_LINE_ZOOM;

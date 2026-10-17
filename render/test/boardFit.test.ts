@@ -11,7 +11,7 @@ import { BOARD_SLOTS, buildAegisDeck, buildCortexDeck } from "@ai-tcg/engine";
 import { LookaheadAgent } from "../src/engineInternal.js";
 import { captureMatch } from "../src/capture.js";
 import { renderMatchHtml } from "../src/renderHtml.js";
-import { BOARD_FIT_SOURCE, MIN_LINE_ZOOM, TWO_LINE_FRAME, boardFit, ghostPlacement, lineWidth } from "../src/boardFit.js";
+import { BOARD_FIT_SOURCE, MIN_LINE_ZOOM, TWO_LINE_FRAME, boardFit, ghostPlacement, labelScale, lineWidth } from "../src/boardFit.js";
 
 const SLOTS = 6;
 
@@ -77,6 +77,24 @@ describe("ghostPlacement", () => {
   });
 });
 
+describe("labelScale (render session 23)", () => {
+  it("shrinks a label with its card's zoom, and never grows it", () => {
+    expect(labelScale({ left: 0, top: 0, width: 118 * MIN_LINE_ZOOM })).toBeCloseTo(MIN_LINE_ZOOM, 6);
+    expect(labelScale({ left: 0, top: 0, width: 85 })).toBeCloseTo(85 / 118, 6);
+    expect(labelScale({ left: 0, top: 0, width: 118 })).toBe(1);
+    // A card hovered larger, or a rect with no width, keeps full size.
+    expect(labelScale({ left: 0, top: 0, width: 160 })).toBe(1);
+    expect(labelScale({ left: 0, top: 0, width: 0 })).toBe(1);
+  });
+
+  it("snaps to the nearest row zoom, so a card mid hit-flash doesn't skew it", () => {
+    // Seen in the browser check: ON HIT tags at 0.772 on a 0.737 row.
+    expect(labelScale({ left: 0, top: 0, width: 118 * 0.772 }, [0.737, 0.737])).toBe(0.737);
+    expect(labelScale({ left: 0, top: 0, width: 118 * 0.9 }, [0.737, 1])).toBe(1);
+    expect(labelScale({ left: 0, top: 0, width: 118 * 0.8 }, [0.737, 1])).toBe(0.737);
+  });
+});
+
 describe("the page", () => {
   it("embeds the module, fits the rows at load and on resize, and zooms the ghost", async () => {
     const r = await captureMatch({
@@ -92,5 +110,10 @@ describe("the page", () => {
     // The ghost no longer squeezes a 118 px card into a smaller box.
     expect(html).not.toContain("cardEl.style.width = rect.width + 'px';");
     expect(html).toContain(".board-row.two-line { margin: 2px auto; padding: 6px;");
+    // Floating labels over a card shrink with it; over a player they don't.
+    expect(html).toContain("const z = onCard ? cardLabelScale(rect) : 1;");
+    expect(html).toContain("spawnNumber(el.getBoundingClientRect(), String(residual), 'dmg', t, 0, true);");
+    expect(html).toContain("centreOn(spawnNumber(landR, text, numCls, tier), landR);");
+    expect(html).toContain("const z = fx.anchor === 'card' ? cardLabelScale(rect) : 1;");
   }, 60_000);
 });

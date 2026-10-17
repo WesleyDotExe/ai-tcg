@@ -2583,3 +2583,74 @@ calls.
 **Next render-lane slice:** make the board agree with the feed. Either the
 cast flourish skips quiet triggers, or it gets a dimmer "nothing happened"
 version. Then the zoomed-row floating labels.
+
+---
+
+## 2026-10-17 — Session 23: the board agrees with the feed; the redirect fizzle worded; labels shrink with a zoomed row
+
+Render session by the alternation rule: the last merged PR (#63) was a game
+slice. Owner feedback read first:
+- The 2026-10-18 answers to render session 22 keep all 3 calls.
+- The game lane's side task (#63) gave the Intercept Routine fizzles a
+  `cause` (`alreadyAimed` / `noPendingAttack`) and their names. Render can
+  word them now.
+- The Zero-Day designs, the "Zero-Day" word in generated names and the
+  session-39 answers are game-lane work, left for the next game session.
+
+**Built:**
+- **The board skips the flourish of a trigger the feed dropped.**
+  `feed.ts buildFeedWithQuiet` returns, per frame, the indices into
+  `newEvents` of the triggers it dropped as quiet; `capture.ts` stores them
+  as `Frame.quietTriggers`; `castFx.ts resolveCasts` skips those events.
+  They still count in the turn-trigger pairing, so the copies that did fire
+  stay on the right card. One rule, decided once in Node, read by both.
+- **The redirect fizzle is worded from its cause.** It takes the place of
+  the Command's "resolves" line (its rules text stays under it), as an
+  attack's fizzle takes the place of "lands"; on its own it is a result
+  line. A target that is a player is named as the player.
+- **Labels shrink with a zoomed row.** `boardFit.ts labelScale(rect)` is
+  the card's on-screen width over 118 px, never above 1 (the same measure
+  as the ghost), snapped to the nearest board row's zoom. `spawnNumber` takes an `onCard` flag and sets the CSS
+  `scale` (origin top centre), with the offset scaled too; the float
+  distance scales with it because `scale` applies before the animation's
+  transform. The cast tag on a card does the same, including the step
+  between stacked tags.
+
+**Ran it:**
+- All 14 replays and both sheets regenerated.
+- `npm run feed-transcript -w @ai-tcg/render`: only the Null vs Aegis seed 3
+  fizzle line changed; the two full feeds are identical to session 22's
+  apart from the header. The 50 dropped triggers (by `quietTriggers`) are
+  the same 50 session 22 counted.
+- Browser check (`progress/render/evidence/board-feed-check.mjs`):
+  4 replays (aegis-vs-cortex seed 1, the seed-5 signature replay,
+  swarm-vs-null seed 8, and null-vs-aegis seed 3 for the fizzle) at 1280
+  and 580 px, all 8 runs pass (`board-feed-check.txt`). Every move's cast
+  tags equal the feed's count (38 tags, 14 quiet triggers with none); at
+  580 px 137 labels over cards carry the row's 0.737 zoom, and 67 over
+  players or the stack stay full size; at 1280 px nothing is scaled.
+- Stills: the fizzle line at 1280 px; a hit at 580 px, its number at the
+  row's 0.737 scale (an 87 px card).
+
+**Bug found by the browser check:** the first version measured the card's
+rect alone. An ON HIT tag spawns while the card's hit flash scales it up a
+little, so three tags came out at 0.772 on a 0.737 row. The scale now snaps
+to the row's own zoom (a test pins the seen case).
+
+**Tests:** render 327 (+5): the quiet list by index; the redirect fizzle on
+its resolve line, on its own line, and aimed at a player; `labelScale`; the
+page's call sites; the snap. The real-match cast test (48 matches against the
+engine's resolver) now expects no flourish for quiet triggers and, with the
+list removed, every trigger back on the right card. Mutation: removing the
+skip fails it.
+
+**Named honestly** (in the debt list): `onCard` is a flag each call site
+must remember; a replay captured before this session has no quiet list.
+
+**Checkpoint:** a small one in `progress/render/checkpoints.md` with 3
+calls.
+
+**Next render-lane slice:** a replay that reaches the turn cap (the ending
+is only seen in tests), or the momentum gauge naming a pending threat (an
+armed telegraph, a stack item). The chase finishes need a pack-opening
+surface first.

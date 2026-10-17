@@ -119,6 +119,7 @@ export const CAST_FX_SOURCE = `
     prevList.forEach(function (e) { if (!newById[e.iid]) all.push(e); });
     var prevStackTop = prevFrame.stack.length ? prevFrame.stack[prevFrame.stack.length - 1] : null;
     var events = newFrame.newEvents.map(function (x) { return x.event; });
+    var quiet = newFrame.quietTriggers || [];
     var out = [];
 
     function rarityOf(name, entry) {
@@ -170,6 +171,11 @@ export const CAST_FX_SOURCE = `
         return;
       }
       if (ev.type !== 'abilityTrigger') return;
+      // A trigger the feed dropped because it changed nothing (an unhurt
+      // unit's end-of-turn heal, a condition that didn't hold) gets no
+      // flourish either (render session 23): the board and the feed agree
+      // on what fired. Its copies still count in the pairing below.
+      if (quiet.indexOf(k) !== -1) return;
       var name = ev.source;
       var cands = all.filter(function (e) { return e.v.name === name; });
       var total = cands.length;
