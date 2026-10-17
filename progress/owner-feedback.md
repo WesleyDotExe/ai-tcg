@@ -2706,3 +2706,22 @@ Owner decisions on the 5 calls in `progress/render/checkpoints.md` (2026-10-17, 
 5. **Keep:** the raw engine log stays available behind the switch.
 
 The proposed next step (dropping trigger lines that change nothing) is not overruled.
+
+
+---
+
+## 2026-10-18 — Owner: game lane side task — unique signature ability ids and engine reason text
+
+Found by render session 21 (PR #60). The render lane worked around both problems inside `render/` but can't fix them at the source. **Do this as a side task in the next game session.** It does not change the build order (chase-card proposal, then the choose-one mechanic and top-tier cards, then the deck-building agent and play styles).
+
+### 1. Unique ids for signature card abilities (do this first)
+- **Problem:** the signature card generator reuses one ability id for different versions. For example, `sig-recycle` is "Draw 2 cards." on one card and "Draw 3" on another. Render counted 66 clashes over 300 generated agents. Anything that looks an ability up by id alone can get the wrong text or effect: commentary, the deck-building agent reading card text, balance reports grouping by ability, the card viewer and replays.
+- **Change:** give every distinct ability version its own id. Either encode the version (for example `sig-recycle-2` / `sig-recycle-3`) or scope the id to the card. The game lane picks the scheme.
+- **Existing agents and replays:** keep them readable, for example with a mapping from old ids to new ones, or by leaving already-generated cards as they are and applying the rule to new cards.
+- **Test:** add a check that no ability id maps to two different rules texts or effects across a large batch of generated agents.
+- **Timing:** land this before the deck-building agent and commentary start relying on ability ids.
+- **Render follow-up:** render currently looks up rules text by card name plus ability id. Once ids are unique, the render lane can switch to id-only lookup. Card names may change if they follow an agent's name and the owner renames the agent, so a name-keyed lookup is fragile for old replays.
+
+### 2. Engine reason text (cosmetic, lower priority)
+- **Problem:** some engine reason strings read badly. For example, "Rombot's Navigator health depleted" is missing its "'s". The feed shows engine text as is.
+- **Change:** fix the sentence templates at the source, or emit the reason as structured data (what happened and to which card) so that the feed and commentary word it. The game lane picks.
