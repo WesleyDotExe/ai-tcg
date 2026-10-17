@@ -7,6 +7,34 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-18 — The match feed, tightened: quiet triggers dropped, endings worded from the engine's data — AWAITING FEEDBACK
+
+A small follow-up to the match feed check-in below. You accepted that one with all 5 calls and left "drop trigger lines that change nothing" as the next step. This session did that, and used the game lane's new structured data (game session 38).
+
+**What this delivers:**
+- **Triggers that changed nothing are gone from the feed.** Examples: an end-of-turn heal on an unhurt unit, energy recovery at the cap, or an entry ability whose condition didn't hold. Over the 14 replays that is 50 lines. They stay in the engine log.
+- **The game's end reads as a sentence,** built from the engine's `cause`:
+  - "Cyberburner's Antihero wins: Rombot's Navigator's health reached 0";
+  - "Draw: both players' health reached 0 at once";
+  - at the turn cap, "X wins at the turn cap, 14 health to 9".
+- **An attack that fizzles says why,** in place of "lands" / "deals no damage": "Overload Capacitor's attack fizzles: its target left play first".
+- **Rules text is looked up by ability id alone.** Ids are unique now, so a renamed agent's signature card keeps its text. If two cards ever share an id with different texts, capture stops with an error instead of showing the wrong text.
+
+**Evidence:**
+- **Summary over all 14 replays:** `progress/render/evidence/v2-s22-feed-summary.txt`, from `npm run feed-transcript -w @ai-tcg/render`. It lists each replay's quiet triggers by card and its end line. It also shows the fizzles from 3 real matches (none of the 14 replays has one).
+- **Two full feeds:** `v2-s22-feed-cortex-vs-aegis-sig-seed5.txt` and `v2-s22-feed-aegis-vs-cortex-seed1.txt`. Compare them with the session-21 versions.
+- **Stills:** `v2-s22-feed-quiet-1280.png` (turns 1-4 of the seed-5 replay; turn 3 now goes straight to turn 4) and `v2-s22-feed-end-1280.png` (the end line).
+- **Checked against the engine:** a test wraps the engine's own ability resolver and snapshots the whole game state around every trigger in 32 real matches. Every trigger the feed drops left the state exactly as it was.
+- **Browser check** (`feed-check.txt`): 14 replays at 1280 and 390 px, all pass.
+- **Length:** over the 14 replays, 3,321 engine lines become 1,497 feed entries (45%; it was 47%).
+
+**Decisions you may want to overrule:**
+1. **A trigger whose condition didn't hold is dropped too.** For example, Deadlock Detector entering when the enemy has fewer than 3 units, or Uplink Tower at the start of a turn with a full hand. The alternative is a quiet "(no effect)" line. Dropping it matches "drop lines that change nothing".
+2. **The fizzle wording:** "its target left play first" / "the attacker left play first".
+3. **The turn-cap ending shows both health totals.** No replay reaches the cap yet, so this is only seen in tests.
+
+---
+
 ## 2026-10-17 — The match feed replaces the raw event log — AWAITING FEEDBACK
 
 A small check-in on how the log pane reads. Commentary (stage 7) is still the real translation layer; this is the written record a spectator can scroll back through until then, and after.

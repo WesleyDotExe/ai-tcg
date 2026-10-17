@@ -29,7 +29,7 @@ import {
   effectiveCardCost,
   signatureCost,
 } from "./engineInternal.js";
-import { abilityKey, buildFeed } from "./feed.js";
+import { buildFeed } from "./feed.js";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 import { computeMomentum } from "./momentum.js";
 import { avatarSvg } from "./avatar.js";
@@ -266,16 +266,24 @@ export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
   };
 }
 
-/** Every ability's rules text, keyed by card name and ability id
- * (feed.ts abilityKey): the set's cards and both decks' cards, signature
- * cards included (they are generated, not in the set). Not by id alone:
- * before game session 38 generated signature cards shared ids with
- * different numbers ("sig-recycle" was "Draw 2 cards." on one card and
- * "Draw 3 cards." on another), and replays recorded then still carry them. */
+/** Every ability's rules text, keyed by ability id (FeedContext
+ * abilityText): the set's cards and both decks' cards, signature cards
+ * included (they are generated, not in the set). Ids are unique since game
+ * session 38: a signature ability's size is part of its id ("sig-recycle"
+ * draws 2, "sig-recycle.c3" draws 3). Replays are always captured from the
+ * live engine, so no older id reaches here; a clash anyway (an engine
+ * regression) throws rather than show one card's text on another. */
 export function abilityTextFor(decks: DeckSpec[]): Record<string, string> {
   const text: Record<string, string> = {};
+  const from: Record<string, string> = {};
   const add = (card: Card) => {
-    for (const a of card.abilities) text[abilityKey(card.name, a.id)] = a.text;
+    for (const a of card.abilities) {
+      if (a.id in text && text[a.id] !== a.text) {
+        throw new Error(`ability id ${a.id} has two rules texts: "${text[a.id]}" (${from[a.id]}) and "${a.text}" (${card.name})`);
+      }
+      text[a.id] = a.text;
+      from[a.id] = card.name;
+    }
   };
   for (const card of CARD_REGISTRY.values()) add(card);
   for (const deck of decks) {

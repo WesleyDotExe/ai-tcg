@@ -25,7 +25,11 @@
 //     isn't, is tagged RESPONSE: the reactive play the priority system
 //     exists for, which the raw log buried among the passes;
 //   - triggers read as "Card · end of turn: <rules text>", from the card's
-//     own ability text, not its id;
+//     own ability text, not its id. A trigger that changed nothing (an
+//     end-of-turn heal on an unhurt unit, a condition that didn't hold) is
+//     dropped (render session 22): it is news only in the engine log;
+//   - attack fizzles and the game's end are worded from the engine's
+//     structured cause (game session 38), not its reason text;
 //   - players are named by their agent names and carried as player parts,
 //     so the page can tint them in their faction colour.
 // Everything is computed in Node at capture time and embedded per frame, so
@@ -69,16 +73,12 @@ export interface FeedEntry {
 export interface FeedContext {
   /** Agent name per seat (the replay's usernames). */
   names: Record<PlayerId, string>;
-  /** abilityKey(card name, ability id) -> its rules text (engine
-   * Ability.text). A missing one falls back to the trigger label alone,
-   * never to the id. */
+  /** Ability id -> its rules text (engine Ability.text). Ids are unique
+   * since game session 38 (a signature ability's size is in its id), and
+   * capture.ts's abilityTextFor refuses a clash. Not keyed by card name: a
+   * signature card's name can follow its agent's, and owners rename agents.
+   * A missing one falls back to the trigger label alone, never to the id. */
   abilityText: Record<string, string>;
-}
-
-/** The abilityText key. Ids alone are not unique: generated signature
- * cards reuse them with different numbers. Card names are. */
-export function abilityKey(cardName: string, abilityId: string): string {
-  return `${cardName}\u0000${abilityId}`;
 }
 
 const TRIGGER_LABEL: Record<string, string> = {
@@ -231,6 +231,25 @@ function turnStartFollows(events: GameEvent[], k: number, player: PlayerId): boo
   return false;
 }
 
+/** True when the trigger at event index `k` changed nothing. The engine
+ * logs what an ability does straight after its abilityTrigger (effects,
+ * then the deaths they caused), and every effect that changes the game
+ * logs it; a heal on an unhurt unit, energy at the cap or a condition that
+ * didn't hold logs nothing. So: nothing before the next event that isn't
+ * a result. Another trigger ends the run too, since what follows it is its
+ * own. A fizzle counts as news (the ability tried and found nothing).
+ * One result isn't the trigger's: after an end-of-turn trigger the engine
+ * logs the next turn's draw (or fatigue), straight before its turnStart. */
+export function triggerChangedNothing(events: GameEvent[], k: number): boolean {
+  const next = events[k + 1];
+  if (!next) return true;
+  if (next.type === "draw" || next.type === "fatigue") {
+    const after = events[k + 2];
+    return after?.type === "turnStart" && after.player === next.player;
+  }
+  return next.type !== "fizzle" && !RESULT_TYPES.has(next.type);
+}
+
 /** Builds the feed: one list of entries per frame, in frame order. */
 export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
   const out: FeedEntry[][] = [];
@@ -253,6 +272,9 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
     let pendingNoDamage: FeedEntry | null = null;
     // An arming unit: its onPlay trigger is the arming, not an entry.
     let armed: { name: string; entry: FeedEntry } | null = null;
+    // An attack's resolution on its own line: if the attack then fizzles,
+    // that line says so instead of "lands".
+    let landed: { attacker: string; entry: FeedEntry } | null = null;
 
     const top = (e: FeedEntry, stackId?: string) => {
       entries.push(e);
@@ -267,7 +289,9 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
         resolvedCommand = null;
         armed = null;
       }
-      if (pendingNoDamage && ev.type !== "damage" && ev.type !== "barrierAbsorbed" && ev.type !== "baseArmorReduced" && ev.type !== "attackRedirected") {
+      const wasLanded = landed;
+      landed = null;
+      if (pendingNoDamage && ev.type !== "damage" && ev.type !== "barrierAbsorbed" && ev.type !== "baseArmorReduced" && ev.type !== "attackRedirected" && !(ev.type === "fizzle" && ev.cause)) {
         entries.push(pendingNoDamage);
         pendingNoDamage = null;
       } else if (pendingNoDamage) {
@@ -330,7 +354,9 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
               // Nested under its own declaration.
               pendingNoDamage = noDamage;
             } else {
-              top({ kind: "resolve", side: atk.side, parts: [{ card: atk.attacker }, "'s attack lands"] }, ev.stackId);
+              const e: FeedEntry = { kind: "resolve", side: atk.side, parts: [{ card: atk.attacker }, "'s attack lands"] };
+              top(e, ev.stackId);
+              landed = { attacker: atk.attacker, entry: e };
               pendingNoDamage = noDamage;
             }
             break;
@@ -345,7 +371,7 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
           break;
         }
         case "abilityTrigger": {
-          const text = ctx.abilityText[abilityKey(ev.source, ev.ability)];
+          const text = ctx.abilityText[ev.ability];
           if (resolvedCommand && resolvedCommand.name === ev.source && (ev.trigger === "onPlay" || ev.trigger === "activated")) {
             if (text) resolvedCommand.entry.detail = [text];
             resolvedCommand = null;
@@ -357,6 +383,7 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
             break;
           }
           resolvedCommand = null;
+          if (triggerChangedNothing(events, k)) break;
           const side = instanceSide(before, ev.sourceId) ?? instanceSide(frame, ev.sourceId) ?? sideByName([before, frame], ev.source);
           const e: FeedEntry = { kind: "trigger", parts: [{ card: ev.source }, " · ", triggerLabel(ev.trigger)] };
           if (side) e.side = side;
@@ -381,15 +408,22 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
         case "toolAttached":
           top({ kind: "action", side: ev.player, parts: [{ player: ev.player }, " attaches ", { card: ev.tool }, " to ", { card: ev.unit }] });
           break;
-        case "fizzle":
-          entries.push({ kind: "result", parts: ["fizzles: ", ...withPlayers(ev.reason)] });
+        case "fizzle": {
+          if (ev.cause && ev.attacker) {
+            // The attack's resolution said "deals no damage"; this says why.
+            pendingNoDamage = null;
+            const side = instanceSide(before, ev.attackerId) ?? instanceSide(frame, ev.attackerId);
+            const why = ev.cause === "attackerGone" ? "the attacker left play first" : "its target left play first";
+            const parts: FeedPart[] = [{ card: ev.attacker }, `'s attack fizzles: ${why}`];
+            if (wasLanded && wasLanded.attacker === ev.attacker) wasLanded.entry.parts = parts;
+            else entries.push({ kind: "result", ...(side ? { side } : {}), parts });
+          } else {
+            entries.push({ kind: "result", parts: ["fizzles: ", ...withPlayers(ev.reason)] });
+          }
           break;
+        }
         case "gameOver":
-          top({
-            kind: "end",
-            ...(ev.winner === "draw" ? {} : { side: ev.winner }),
-            parts: ev.winner === "draw" ? ["Draw (", ...withPlayers(ev.reason), ")"] : [{ player: ev.winner }, " wins (", ...withPlayers(ev.reason), ")"],
-          });
+          top({ kind: "end", ...(ev.winner === "draw" ? {} : { side: ev.winner }), parts: gameOverParts(ev, frame) });
           break;
         default: {
           const r = resultEntry(ev, ctx, frame);
@@ -404,6 +438,25 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
     out.push(entries);
   }
   return out;
+}
+
+/** The game's end, from its cause: "X wins: Y's health reached 0", "X
+ * wins at the turn cap, 14 health to 9", "Draw: ...". Logs from before game
+ * session 38 have no cause and fall back to the reason text. */
+function gameOverParts(ev: Extract<GameEvent, { type: "gameOver" }>, frame: Frame): FeedPart[] {
+  const c = ev.cause;
+  const health = (p: PlayerId) => frame.players[p].health;
+  if (c?.kind === "healthDepleted") {
+    if (ev.winner === "draw") return ["Draw: both players' health reached 0 at once"];
+    const loser = c.losers[0] ?? (ev.winner === "p1" ? "p2" : "p1");
+    return [{ player: ev.winner }, " wins: ", { player: loser }, "'s health reached 0"];
+  }
+  if (c?.kind === "turnCap") {
+    if (ev.winner === "draw") return [`Draw at the turn cap, both on ${health("p1")} health`];
+    const loser: PlayerId = ev.winner === "p1" ? "p2" : "p1";
+    return [{ player: ev.winner }, ` wins at the turn cap, ${health(ev.winner)} health to ${health(loser)}`];
+  }
+  return ev.winner === "draw" ? ["Draw (", ...withPlayers(ev.reason), ")"] : [{ player: ev.winner }, " wins (", ...withPlayers(ev.reason), ")"];
 }
 
 /** "Card — rules text" (an activated ability on the stack) -> [card, text]. */

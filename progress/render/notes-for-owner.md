@@ -552,3 +552,23 @@ separate from the shared `progress/notes-for-owner.md`).
 4. **The render lane now keeps its own debt list,**
    `progress/render/quality-debt.md`.
 5. **No engine change was needed.**
+
+---
+
+## 2026-10-18 — Session 22 (the match feed, tightened)
+
+1. **The game lane's two fixes are now used by the render** (game session
+   38). Rules text is looked up by ability id alone. The end of the game
+   and attack fizzles are worded from `cause`. The "'s" problem is gone:
+   "X wins: Y's health reached 0".
+2. **A small engine ask for the game lane, not urgent.** The other fizzle,
+   Intercept Routine finding nothing to redirect, still has no structured
+   cause. Its reason text reads "Intercept Routine: Garbage Collector's
+   attack is already aimed at Barrier Drone", so the feed prints "fizzles:
+   Intercept Routine: Garbage Collector's attack ...". It reads, but
+   clumsily. The fix would be the same shape as the attack fizzles: a
+   `cause` (`alreadyAimed` / `noPendingAttack`) plus the source and attacker
+   names. I haven't touched the engine. Seen in Null vs Aegis seed 3, move
+   33 (`progress/render/evidence/v2-s22-feed-summary.txt`).
+3. **No engine change was made.** The soundness test wraps the engine's
+   resolver inside the test only; no engine file changed.

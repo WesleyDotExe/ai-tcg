@@ -2499,3 +2499,87 @@ way.
 trigger lines are the cheapest legibility win (needs only the next frame's
 board to tell "did anything change"); the zoomed-row floating labels are
 the most visible.
+
+## 2026-10-18 — Session 22: the match feed, tightened (quiet triggers, endings from the engine's cause, id-only rules text)
+
+Render session by the alternation rule: the last merged PR (#61) was a game
+slice. Owner feedback read first:
+- The 2026-10-18 answers to render session 21 keep all 5 feed calls, and
+  leave dropping trigger lines that change nothing as the next step.
+- The game lane's side task (#61) landed unique signature ability ids and
+  a structured `cause` on game over and attack fizzles. Render can use
+  both now.
+- The 2026-10-18 answers to session 38 (chase cards) are game-lane work.
+  They're left for the next game session.
+
+**Built:**
+- **Quiet triggers dropped** (`feed.ts triggerChangedNothing`). The engine
+  logs an ability's results straight after its abilityTrigger, so a trigger
+  with no result event after it changed nothing. A fizzle counts as news.
+  - **Bug found by measuring:** after an end-of-turn trigger, the engine
+    logs the next turn's draw, straight before that turn's turnStart. The
+    first version took that draw for the trigger's result and kept every
+    Diagnostic Loop line. Now a draw or fatigue followed by its player's
+    turnStart isn't the trigger's.
+- **Game over from `cause`:**
+  - "X wins: Y's health reached 0";
+  - "Draw: both players' health reached 0 at once";
+  - "X wins at the turn cap, 14 health to 9";
+  - "Draw at the turn cap, both on N health";
+  - logs with no cause fall back to the old wording.
+- **Attack fizzles from `cause`:** "X's attack fizzles: its target left play
+  first". This line replaces the "lands" line or the "deals no damage"
+  line instead of adding to them.
+- **Rules text by ability id alone.** `abilityKey` is gone. `abilityTextFor`
+  throws if one id has two texts, so a regression can't show one card's
+  text on another.
+- **`replaySetup.ts`:** cli.ts's match setup, shared with the new
+  `feedTranscript.ts` (`npm run feed-transcript`). The transcripts always
+  show the same matches as the replays.
+
+**Ran it:**
+- Regenerated all 14 replays and both sheets. Same matches as session 21:
+  seed 5 is 129 moves and p1 wins; seed 2 is 92 moves.
+- Wrote `v2-s22-feed-summary.txt` and the two full feeds.
+- 50 quiet triggers were dropped over the 14 replays:
+  - Diagnostic Loop ×16, Watchtower Relay ×16 and Uplink Tower ×13;
+  - Deadlock Detector, Broodcaller and others make up the rest.
+- 3,321 engine lines → 1,497 feed entries (45%; it was 47%).
+- No committed replay has a fizzle. A scan of every pairing over seeds 1-12
+  found 8. Three are shown in the summary, nested and on their own line.
+- Browser check (`feed-check.txt`): 14 replays at 1280 and 390 px, all
+  pass.
+- Stills: `v2-s22-feed-quiet-1280.png` and `v2-s22-feed-end-1280.png`.
+- **Tests:** render 321 (was 314):
+  - **`feedQuiet.test.ts`.** It wraps the engine's own `resolveAbility` with
+    `vi.mock` (test only; no engine file changes). It snapshots the whole
+    state around every trigger in 32 real matches (every pairing, half with
+    signature cards). It checks that no trigger the feed drops, judged on
+    the frame's full event list, changed the state. In those matches, 208
+    triggers were wrapped, and over 90% of the kept ones changed the state.
+  - **`feed.test.ts`.** No trigger line in the feed has nothing under it;
+    this test fails on the draw bug above. It also covers
+    `triggerChangedNothing`, fizzle and ending wording, the id clash
+    refusal, and the id-not-name lookup.
+  - **Mutation checks:**
+    - with the drop turned off, 1 test fails;
+    - with the cause wording turned off, 2 fail;
+    - with fizzle replacement turned off, 1 fails;
+    - with the draw rule turned off, 2 fail.
+- `npm test`: 676 across six workspaces, all pass. `tsc --noEmit` is clean
+  in all six.
+
+**Named honestly** (in the debt list):
+- The board's cast flourish still fires for quiet triggers.
+- The Intercept Routine fizzle has no structured cause (asked of the game
+  lane).
+- The soundness test doesn't see onDeath triggers fired inside the
+  resolver's own death pass.
+- The turn-cap ending is only seen in tests.
+
+**Checkpoint:** a small one in `progress/render/checkpoints.md` with 3
+calls.
+
+**Next render-lane slice:** make the board agree with the feed. Either the
+cast flourish skips quiet triggers, or it gets a dimmer "nothing happened"
+version. Then the zoomed-row floating labels.
