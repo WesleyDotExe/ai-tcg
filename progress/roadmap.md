@@ -333,11 +333,13 @@ start a step until the one before works and its tests pass):
      LIVE (session 39, owner yes 2026-10-18): schema v10, `openPack` on
      `S0-odds-2`, one roller for both tables pinned by a seed test, secret
      crafting at 750 / 3,000, the binder; evidence economy-demo-009,
-     pack-sim-002; (ii) NEXT: the generic
+     pack-sim-002; (ii) DONE (session 40): the generic
      "choose one" engine mechanic; (iii) the 3 Zero-Day top-tier cards
      (2 modes, the fairness test with a cap above the band, 1 per deck,
-     ranked and tournaments allowed); then 2b; then modal cards in every
-     faction with the next set work.
+     ranked and tournaments allowed): built (session 40), the agent fixed
+     and the cards tuned to the owner's cap (session 41, balance-report-028);
+     NEXT: live with the owner's OK (one registry line + an economy test);
+     then 2b; then modal cards in every faction with the next set work.
   3. Server endpoints for the website (wallet, collection, packs and pack
      opening, live/featured matches, ladder, tournament, stats,
      notifications, saved board layout). Needs item 5's pack contents and

@@ -1,36 +1,36 @@
 {
   "_about": "Ring regression baseline (engine/src/dev/ringRegression.ts). selfWins = wins for the first-named faction, Lookahead vs Lookahead, seeds 1..games. Only rewrite with --write-baseline for an owner-approved change, committed alongside the balance report that justifies it.",
-  "recorded": "2026-10-10",
+  "recorded": "2026-10-17",
   "decks": "set Mythic as signature card",
   "edges": [
     {
       "edge": "Null > Aegis",
-      "selfWins": 734,
+      "selfWins": 763,
       "games": 2500
     },
     {
       "edge": "Aegis > Cortex",
-      "selfWins": 1898,
+      "selfWins": 1787,
       "games": 2500
     },
     {
       "edge": "Cortex > Swarm",
-      "selfWins": 1075,
+      "selfWins": 1098,
       "games": 2500
     },
     {
       "edge": "Swarm > Null",
-      "selfWins": 1653,
+      "selfWins": 1621,
       "games": 2500
     },
     {
       "edge": "Null ~ Cortex",
-      "selfWins": 402,
+      "selfWins": 412,
       "games": 900
     },
     {
       "edge": "Aegis ~ Swarm",
-      "selfWins": 527,
+      "selfWins": 507,
       "games": 900
     }
   ]

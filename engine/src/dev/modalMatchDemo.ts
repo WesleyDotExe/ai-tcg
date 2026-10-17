@@ -13,7 +13,7 @@
 // mode choice marked MODE, and a count of the legal moves the choice was
 // made from (one per mode, per target).
 //
-// Usage: npx tsx src/dev/modalMatchDemo.ts [maxSeed=400] [minModes=4]
+// Usage: npx tsx src/dev/modalMatchDemo.ts [maxSeed=400] [minModes=4] [firstSeed=1]
 
 import { buildDeck } from "../data/decks.js";
 import { CORTEX_CARDS, SWARM_CARDS } from "../data/cards.js";
@@ -28,6 +28,7 @@ import type { GameState } from "../state/types.js";
 
 const maxSeed = Number(process.argv[2] ?? 400);
 const minModes = Number(process.argv[3] ?? 4);
+const firstSeed = Number(process.argv[4] ?? 1);
 
 type Pool = { card: Card; copies: number }[];
 
@@ -60,7 +61,7 @@ function observe(agent: Agent, offered: Map<number, string>, state: () => GameSt
   };
 }
 
-for (let seed = 1; seed <= maxSeed; seed++) {
+for (let seed = firstSeed; seed <= maxSeed; seed++) {
   const cortex = buildDeck("p1", "Cortex + Zero-Day", withZeroDays(CORTEX_CARDS));
   const swarm = buildDeck("p2", "Swarm + Zero-Day", withZeroDays(SWARM_CARDS));
   let live: GameState | undefined;
@@ -73,8 +74,8 @@ for (let seed = 1; seed <= maxSeed; seed++) {
   if (distinct.size < minModes) continue;
 
   const lines: string[] = [];
-  lines.push(`AI-TCG "choose one" demo (owner 2026-10-16; session 40): Cortex vs Swarm, both decks running the 3 Zero-Day cards, seed ${seed}`);
-  lines.push(`(first seed in 1-${maxSeed} with at least ${minModes} different modes chosen)`);
+  lines.push(`AI-TCG "choose one" demo (owner 2026-10-16; session 40, reference agent as of session 41): Cortex vs Swarm, both decks running the 3 Zero-Day cards, seed ${seed}`);
+  lines.push(`(first seed in ${firstSeed}-${maxSeed} with at least ${minModes} different modes chosen)`);
   lines.push(`p1 = ${state.players.p1.name}, p2 = ${state.players.p2.name}`);
   for (const zd of ZERO_DAY_CARDS) {
     const body = zd.type === "Unit" ? `, ${zd.attack}/${zd.health}` : "";
@@ -100,4 +101,4 @@ for (let seed = 1; seed <= maxSeed; seed++) {
   console.log(lines.join("\n"));
   process.exit(0);
 }
-console.log(`no game in seeds 1-${maxSeed} with ${minModes} different modes`);
+console.log(`no game in seeds ${firstSeed}-${maxSeed} with ${minModes} different modes`);

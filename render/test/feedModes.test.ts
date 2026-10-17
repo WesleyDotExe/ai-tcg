@@ -3,8 +3,11 @@
 // cast / evolve events (game session 40). Checked on a real match: Cortex
 // vs Swarm, both decks running the 3 Zero-Day cards (one copy each, each in
 // place of a spare copy, removal for removal as the engine's own
-// modalMatchDemo does), seed 442, the seed of the engine's committed
-// sample-match-033-modal-cards.txt.
+// modalMatchDemo does), seed 5896, the seed of the engine's committed
+// sample-match-034-modal-cards-agent-fix.txt (game session 41 moved the
+// test off seed 442: the reference agent's fix changed how that game plays,
+// and its Patient Zero now picks Carrier, so no Outbreak line was left to
+// check; seed 5896 casts Kill Switch in both modes).
 import { describe, expect, it } from "vitest";
 import { BOARD_SLOTS } from "@ai-tcg/engine";
 import type { Card } from "@ai-tcg/engine";
@@ -28,8 +31,8 @@ function withZeroDays(base: Pool): Pool {
   return pool;
 }
 
-describe("the feed names a modal card's chosen mode (real match, seed 442)", async () => {
-  const seed = 442;
+describe("the feed names a modal card's chosen mode (real match, seed 5896)", async () => {
+  const seed = 5896;
   const replay = await captureMatch({
     title: "modal",
     seed,
@@ -71,10 +74,13 @@ describe("the feed names a modal card's chosen mode (real match, seed 442)", asy
       // fold work: the mode's rules text joins the resolve line, and no
       // separate "on entry" trigger line is left for it.
       expect(resolve!.entry.parts[0]).toEqual({ card: c.card });
-      expect(resolve!.entry.detail).toEqual(["Deal 3 damage to all enemy units, then draw a card."]);
+      const mode = ZERO_DAY_CARDS.find((z) => z.name === c.card)!.modes!.find((m) => m.id === c.mode)!;
+      expect(resolve!.entry.detail).toEqual([mode.text]);
     }
     expect(lines.some((l) => l.text.startsWith("Kill Switch · on entry"))).toBe(false);
-    expect(lines.some((l) => l.text.includes("Kill Switch (Wipe) (Wipe)"))).toBe(false);
+    expect(lines.some((l) => /Kill Switch \((Wipe|Lights Out)\) \(\1\)/.test(l.text))).toBe(false);
+    // Seed 5896 casts both modes, so both rules texts are checked above.
+    expect(new Set(casts.map((c) => (c.type === "cast" ? c.modeName : undefined)))).toEqual(new Set(["Lights Out", "Wipe"]));
   });
 
   it("a mode's own triggers carry its rules text (the text table reads every mode)", () => {

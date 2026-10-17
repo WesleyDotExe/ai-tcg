@@ -1,81 +1,67 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 40 (game lane) built build-order step 2,
-the generic "choose one" mechanic, and the 3 Season 0 Zero-Day cards from the owner's 2026-10-18
-designs as its first users, measured but NOT live.**
-- **Modal cards** (`engine/src/cards/modes.ts`): each mode is its own legal move; the played copy
-  carries only the chosen mode; `play` / `cast` / `evolve` events carry `mode` and `modeName`; the
-  log reads "..., choosing Outbreak"; the graveyard gets the printed card.
-- **Patient Zero, Root Access, Kill Switch** (`engine/src/data/zeroDayCards.ts`, `S0-ZD1`..`S0-ZD3`),
-  at the owner's starting numbers, 1 per deck. Not in `CARD_REGISTRY`, so the economy still treats
-  them as reserved entries.
-- **Measured** at 10,000 games per pairing (`progress/balance-report-027-zero-day.txt`): worst edge
-  moves 2.5 / 4.5 / 2.3 points. The reference agent misreads two of the three mode choices (see the
-  check-in).
+**Build-order stage: Stage 4+ (the living system). Session 41 (game lane) fixed the reference agent
+(owner 2026-10-18, option A), re-recorded both ring baselines once, and re-measured and tuned the 3
+Zero-Day cards to the owner's cap. The cards are tuned but NOT live; going live waits on the
+owner's OK.**
+- **LookaheadAgent** (`engine/src/agents/lookaheadAgent.ts`): one path for every unit's own statics,
+  onDeath and turn triggers (plain or modal; `estimateModeAbilities` is gone); auras over a 3-turn
+  horizon; scaling self-stats count the played unit and only the difference from the printed stat;
+  statuses by kind and duration (`statusValue`; Stasis 1.0 x attack per turn held, decaying 0.8;
+  Overload as damage; Barrier +1.5, no longer negative on your own unit).
+- **Better player:** +1.5 points [0.9, 2.0] head to head against the session-40 agent over 64,000
+  games (`dev/agentHeadToHead.ts`).
+- **Ring re-baselined once** (both modes). Gate moves: Aegis > Cortex 52.2 -> 49.3 (a real move
+  further out), Null ~ Cortex, Aegis ~ Swarm and Cortex > Swarm IN -> UNRESOLVED (within noise).
+- **Zero-Day tuned:** Patient Zero's Carrier +1/+0 (was +1/+1), Root Access's Privilege Escalation
+  "the number of other units" (was 1 plus), Kill Switch unchanged. Worst edges 2.73 / 3.52 / 3.52;
+  every mode picked in 16.7%+ of plays for every faction.
 
-No stage checkpoint (the living system reports through notes-for-owner). One new **[OWNER CHECK-IN]**
-in notes-for-owner.md: the cap (proposed 4 points on any edge, every mode picked in 10%+ of plays)
-and what to do first (default A: fix the agent's valuation of auras and stun durations for every
-card, re-record the ring baseline once, then re-measure and tune).
+One new **[OWNER CHECK-IN]** in notes-for-owner.md: OK to go live at these numbers (default: yes,
+next game session), plus the ring moves the owner may want to act on.
 
-## What stands (this session's work; sessions 1-39 otherwise unchanged)
+## What stands (this session's work; sessions 1-40 otherwise unchanged)
 
 **Engine.**
-- `cards/types.ts`: `CardMode`; `Card.modes`, `Card.chosenMode` (played copies only),
-  `Card.topTier: "zeroDay"`; scaling source `allUnitsInPlay`.
-- `cards/modes.ts`: `withMode`, `printedCard`, `chosenModeOf`, `findMode`, `allAbilities`,
-  `playVariants`.
-- `engine/moves.ts`: `playCard.mode`; `pushPlayCardMoves` loops a card's play variants, each through
-  the old per-card logic (`pushPlayVariantMoves`), so targets cross with modes.
-- `engine/engine.ts`: `playCard` refuses a modal play with no mode (and a mode on a plain card),
-  plays the moded copy, pays the printed cost; `modeFields` on play/cast/evolve; the graveyard gets
-  `printedCard` (here and in `effects/resolver.ts`); a modal Command's stack line is "Kill Switch
-  (Wipe)".
-- `cards/poolLint.ts`: every rule reads `allAbilities` (all modes); `modalCardViolations` (in every
-  deck build) and `zeroDayCardViolations` (at load).
-- `data/decks.ts`: a deck may run a Zero-Day card (must be the linted object), 1 copy each
-  (`TOP_TIER_COPY_LIMIT`); it counts toward the 10 neutral cards and the 25% removal share.
-- `state/init.ts`: a signature card can't be modal.
-- `agents/lookaheadAgent.ts`: a modal play is scored as the moded card plus
-  `estimateModeAbilities` (a mode's static, onDeath and turn triggers, which unit scoring never
-  read). Non-modal scoring is unchanged: the ring moved +0.0 on all six edges, and the committed
-  logs and render transcripts regenerate as on main.
-- `log/format.ts`: ", choosing <mode>".
-- Dev: `dev/modalMatchDemo.ts` (the sample match), `dev/zeroDayFairness.ts` (the measurement:
-  reference, candidate, `--force` a mode, report).
+- `agents/lookaheadAgent.ts`: `estimateUnitAbilities` (one path), `estimateStaticEffect(view, spec,
+  source?)` (aura horizon, scaling with the arriving unit), `statusValue`, constants `AURA_HORIZON`,
+  `AURA_SURVIVAL`, `STASIS_TURN_WEIGHT`, `STATUS_DECAY`, `BARRIER_VALUE`.
+- `data/zeroDayCards.ts`: Carrier +1/+0; Privilege Escalation base -1 (`allUnitsInPlay` counts this
+  unit).
+- `dev/agentHeadToHead.ts` (new): the current agent vs any earlier one, loaded by module path.
+- `dev/zeroDayFairness.ts`: `--patch` (numbers merged into the card for one run, measured against
+  the designed card's stand-in).
+- `dev/modalMatchDemo.ts`: optional first seed.
+- `dev/ringBaseline.json`, `dev/ringBaselineSignature.json`: re-recorded 2026-10-17.
 
-**Protocol.** `PROTOCOL.md` documents `mode` on `playCard` and modal cards.
+**Render (tests only, seeds re-picked, no assertion loosened):** `feedModes.test.ts` (seed 5896,
+checks both Kill Switch modes' rules text), `sigWardFx.test.ts` (Rate Limiter seed 12, Lockdown
+Field seed 3), `sigZone.test.ts` (one more case). The render lane's committed replay pages were
+generated with the session-40 agent and no longer regenerate identically; they are not re-made here.
 
 ## Evidence committed
 
-- `progress/sample-match-033-modal-cards.txt` (`npx tsx src/dev/modalMatchDemo.ts 600 4` in engine/,
-  reproduces exactly): Cortex vs Swarm, both running the 3 cards, seed 442: 5 mode choices, 4
-  different modes, each with the legal moves it was chosen from; Outbreak's death trigger fires
-  twice; Wipe resolves as "Kill Switch (Wipe)"; 0 graveyard cards carry a mode.
-- `progress/balance-report-027-zero-day.txt`: 10 runs at 10,000 games per pairing (reference, each
-  card with the agent choosing, each card locked to each mode), with the commands.
-- Tests: `engine/test/modalCards.test.ts` (23: legal moves per mode, a targetless mode not offered,
-  cost/timing from the printed card, the engine's refusals, each of the 6 modes' effects, the log,
-  modal evolution and Directive, the helpers, the lint rules, the deck rules, not-live, the
-  signature guard, Lookahead reads the board for Patient Zero, 40 real matches using all 6 modes).
-- `npm test`: 715 across six workspaces, all pass (engine 241, protocol 7, server 23, agents 17,
-  economy 100, render 327). `tsc --noEmit` is clean in all six.
+- `progress/balance-report-028-agent-fix-zero-day-tuned.txt`: the agent change, the head-to-head,
+  the ring before/after, the 3 cards at the designed numbers and 6 tuning trials, all at 10,000
+  games per pairing, with the commands.
+- `progress/sample-match-034-modal-cards-agent-fix.txt` (`npx tsx src/dev/modalMatchDemo.ts 5896 5
+  5896` in engine/): 5 mode choices, both Kill Switch modes, an Outbreak death trigger, Carrier,
+  Lockout; tuned numbers. `sample-match-033` no longer reproduces (older agent and numbers).
+- Tests: `engine/test/lookaheadValuation.test.ts` (8; 7 fail on the session-40 agent).
+- `npm test`: all six workspaces pass; `tsc --noEmit` clean.
 
 ## Concrete next step
 
-Check the alternation first. This session's PR follows render's #64, so the next session is
-**render**. Render can now word mode choices in the feed (`play` / `cast` / `evolve` carry `mode`,
-`modeName`; a played card's `chosenMode`), and still has the two Intercept Routine fizzle causes and
-the chase-finish visuals from session 39.
+Check the alternation first: this session's PR follows render's #66, so the next session is
+**render** (pack opening slice 2; the committed replay pages may want regenerating with the new
+agent).
 
-The next **game-lane** session: the owner's answer to the session-40 check-in; by default option A:
-1. In `agents/lookaheadAgent.ts`, value a unit's own static aura over a short horizon (as a
-   Directive's already is) and a status by its duration, for every card.
-2. Re-record both ring baselines once (`dev/ringRegression.ts --write-baseline`, and the signature
-   one) and say what moved.
-3. Re-run `dev/zeroDayFairness.ts` for the 3 cards at 10,000; tune any card over the agreed cap (numbers
-   only); check every mode is picked in 10%+ of plays.
-4. With the owner's OK, add `ZERO_DAY_CARDS` to `CARD_REGISTRY` (`data/registry.ts`): pulled copies
-   become playable and `craftSecret` opens Zero-Day crafting. Add an economy test for both.
+The next **game-lane** session: the owner's answer to the session-41 check-in; by default:
+1. Add `ZERO_DAY_CARDS` to `CARD_REGISTRY` (`data/registry.ts`): pulled copies become playable,
+   `craftSecret` opens Zero-Day crafting. Add an economy test for both (a pulled copy plays in a
+   deck; crafting a Zero-Day card at 3,000).
+2. Check nothing in the economy's reserved-entry path still assumes "not designed yet".
+3. Then quality debt: the signature approved list was measured with the session-40 agent; re-run
+   its 10,000-game check with the new agent before the next signature change.
 
-**Blocked:** nothing (going live waits on the owner's cap answer; the agent fix doesn't).
+**Blocked:** going live waits on the owner's OK; nothing else.

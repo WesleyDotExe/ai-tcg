@@ -1,0 +1,342 @@
+AI-TCG "choose one" demo (owner 2026-10-16; session 40, reference agent as of session 41): Cortex vs Swarm, both decks running the 3 Zero-Day cards, seed 5896
+(first seed in 5896-5896 with at least 5 different modes chosen)
+p1 = Lookahead-Cortex, p2 = Lookahead-Swarm
+  Patient Zero: 3 energy Unit, 2/4. Choose one: Outbreak: "When this dies, deal 2 damage to all enemy units." / Carrier: "Your other units get +1/+0."
+  Root Access: 5 energy Unit, 3/6. Choose one: Privilege Escalation: "This unit's attack equals the number of other units in play." / Lockout: "Enemy cards cost 1 more to play."
+  Kill Switch: 7 energy Command. Choose one: Lights Out: "Stun all enemy units for 2 turns." / Wipe: "Deal 3 damage to all enemy units, then draw a card."
+MODE = a modal card played; the line under it says which legal moves the agent chose from.
+
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Brood Skitterer
+--- Turn 2 (p2) ---
+p2 plays Brood Skitterer (u1)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Retaliation Node
+--- Turn 3 (p1) ---
+p1 plays Fail-safe Unit (u2)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Corrosive Spitter
+--- Turn 4 (p2) ---
+p2 plays Corrosive Spitter (u3)
+Brood Skitterer attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Rollback Point
+--- Turn 5 (p1) ---
+p1 plays Watchtower Relay (u5)
+Fail-safe Unit attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Patient Zero
+--- Turn 6 (p2) ---
+MODE p2 plays Patient Zero, choosing Outbreak (u7)
+       (2 legal plays of this card: outbreak x1, carrier x1)
+  ability: Corrosive Spitter — corrosive-spitter-attack (onAttack)
+  Corrosive Spitter applies Stasis to Watchtower Relay
+Corrosive Spitter attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Corrosive Spitter's attack
+  Corrosive Spitter deals 2 damage to Lookahead-Cortex
+Brood Skitterer attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Diagnostic Loop
+--- Turn 7 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Fail-safe Unit attacks Lookahead-Swarm (face)
+p1 casts Interrupt Handler [Instant] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Interrupt Handler
+  ability: Interrupt Handler — interrupt-handler-cast (onPlay)
+  Interrupt Handler deals 2 damage to Corrosive Spitter (unit)
+  Corrosive Spitter (p2) dies
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Fail-safe Unit's attack
+  Fail-safe Unit deals 2 damage to Lookahead-Swarm
+p1 plays Diagnostic Loop (u12)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p2 draws Molted Stalker
+--- Turn 8 (p2) ---
+Patient Zero attacks Fail-safe Unit
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Patient Zero's attack
+  Patient Zero deals 2 damage to Fail-safe Unit (unit)
+  Fail-safe Unit deals 2 damage to Patient Zero (unit)
+  Fail-safe Unit (p1) dies
+  ability: Fail-safe Unit — failsafe-unit-death (onDeath)
+p1 draws Surge Protector
+p2 plays Corrosive Spitter (u14)
+Brood Skitterer attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Init Daemon
+--- Turn 9 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Patient Zero
+  p1 passes priority
+p2 casts Reflex Spike [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Reflex Spike
+  ability: Reflex Spike — reflex-spike-cast (onPlay)
+  Reflex Spike grants Patient Zero +0/+3
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Patient Zero (unit)
+  Patient Zero deals 2 damage to Watchtower Relay (unit)
+p1 plays Retaliation Node (u18)
+Diagnostic Loop attacks Corrosive Spitter
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Corrosive Spitter (unit)
+  Corrosive Spitter deals 2 damage to Diagnostic Loop (unit)
+  Corrosive Spitter (p2) dies
+p1 plays Init Daemon (u20)
+  Surge Protector attaches to Watchtower Relay
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+  Patient Zero (p2) dies
+  ability: Patient Zero — patient-zero-outbreak (onDeath)
+  Patient Zero deals 2 damage to Watchtower Relay (unit)
+  Patient Zero deals 2 damage to Diagnostic Loop (unit)
+  Patient Zero deals 2 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Brood Skitterer (unit)
+  Diagnostic Loop (p1) dies
+  Init Daemon's base armor reduces 2 damage from Patient Zero to 1
+  Patient Zero deals 1 damage to Init Daemon (unit)
+p2 draws Overgrown Carapace
+--- Turn 10 (p2) ---
+MODE p2 plays Root Access, choosing Lockout (u21)
+       (2 legal plays of this card: privilege-escalation x1, lockout x1)
+Brood Skitterer attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Init Daemon
+--- Turn 11 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+Watchtower Relay attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 2 damage to Lookahead-Swarm
+p1 plays Init Daemon (u24)
+Init Daemon attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 1 damage to Lookahead-Swarm
+Retaliation Node attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Lookahead-Swarm
+p1 casts Rollback Point [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Rollback Point
+  ability: Rollback Point — rollback-point-cast (onPlay)
+  Rollback Point restores 5 health to Lookahead-Cortex
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Molted Stalker
+--- Turn 12 (p2) ---
+Root Access attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Root Access's attack
+  Root Access deals 3 damage to Lookahead-Cortex
+p2 plays Overgrown Carapace (u29)
+Brood Skitterer attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Patient Zero
+--- Turn 13 (p1) ---
+  ability: Watchtower Relay — watchtower-relay-turnstart (onTurnStart)
+MODE p1 plays Patient Zero, choosing Carrier (u31)
+       (2 legal plays of this card: outbreak x1, carrier x1)
+Watchtower Relay attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Watchtower Relay's attack
+  Watchtower Relay deals 3 damage to Lookahead-Swarm
+Retaliation Node attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 2 damage to Lookahead-Swarm
+Init Daemon attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 2 damage to Lookahead-Swarm
+Init Daemon attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Init Daemon's attack
+  Init Daemon deals 2 damage to Lookahead-Swarm
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Bloodswarm Alpha
+--- Turn 14 (p2) ---
+MODE p2 casts Kill Switch, choosing Wipe [Sorcery] (goes on the stack)
+       (2 legal plays of this card: lights-out x1, wipe x1)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Kill Switch (Wipe)
+  ability: Kill Switch — kill-switch-wipe (onPlay)
+  Kill Switch deals 3 damage to Watchtower Relay (unit)
+  Kill Switch deals 3 damage to Retaliation Node (unit)
+  Init Daemon's base armor reduces 3 damage from Kill Switch to 2
+  Kill Switch deals 2 damage to Init Daemon (unit)
+  Init Daemon's base armor reduces 3 damage from Kill Switch to 2
+  Kill Switch deals 2 damage to Init Daemon (unit)
+  Kill Switch deals 3 damage to Patient Zero (unit)
+p2 draws Warren Guardian
+  Watchtower Relay (p1) dies
+  Retaliation Node (p1) dies
+  Init Daemon (p1) dies
+  Init Daemon (p1) dies
+Root Access attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Root Access's attack
+  Root Access deals 3 damage to Lookahead-Cortex
+Overgrown Carapace attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Overgrown Carapace's attack
+  Overgrown Carapace deals 2 damage to Lookahead-Cortex
+Brood Skitterer attacks Lookahead-Cortex (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Lookahead-Cortex
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Rate Limiter
+--- Turn 15 (p1) ---
+MODE p1 casts Kill Switch, choosing Lights Out [Sorcery] (goes on the stack)
+       (2 legal plays of this card: lights-out x1, wipe x1)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Kill Switch (Lights Out)
+  ability: Kill Switch — kill-switch-lights-out (onPlay)
+  Kill Switch applies Stasis to Brood Skitterer
+  Kill Switch applies Stasis to Root Access
+  Kill Switch applies Stasis to Overgrown Carapace
+Patient Zero attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Patient Zero's attack
+  Patient Zero deals 2 damage to Lookahead-Swarm
+  p1 passes priority
+  p2 passes priority
+[end of turn 15 for p1]
+p2 draws Hive Mother
+--- Turn 16 (p2) ---
+p2 plays Hive Mother (u42)
+p2 plays Warren Guardian (u43)
+  p2 passes priority
+  p1 passes priority
+[end of turn 16 for p2]
+p1 draws Firewall Sentinel
+--- Turn 17 (p1) ---
+p1 plays Rate Limiter (d44)
+p1 plays Firewall Sentinel (u45)
+  p1 passes priority
+  p2 passes priority
+[end of turn 17 for p1]
+p2 draws Rally Cry
+--- Turn 18 (p2) ---
+p2 plays Bloodswarm Alpha (u46)
+  ability: Bloodswarm Alpha — bloodswarm-alpha-play (onPlay)
+  Bloodswarm Alpha finds no room to summon another Swarm Larva for p2 — the board is full
+Hive Mother attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Hive Mother's attack
+  Hive Mother deals 4 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 3 damage to Hive Mother (unit)
+Warren Guardian attacks Firewall Sentinel
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Warren Guardian's attack
+  Warren Guardian deals 3 damage to Firewall Sentinel (unit)
+  Firewall Sentinel deals 3 damage to Warren Guardian (unit)
+  Firewall Sentinel (p1) dies
+  Warren Guardian (p2) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 18 for p2]
+p1 draws Cortex Engineer
+--- Turn 19 (p1) ---
+  ability: Rate Limiter — rate-limiter-tick (onTurnStart)
+  Rate Limiter deals 1 damage to Brood Skitterer (unit)
+  Rate Limiter deals 1 damage to Root Access (unit)
+  Rate Limiter deals 1 damage to Overgrown Carapace (unit)
+  Rate Limiter deals 1 damage to Hive Mother (unit)
+  Rate Limiter deals 1 damage to Bloodswarm Alpha (unit)
+  Brood Skitterer (p2) dies
+Patient Zero attacks Lookahead-Swarm (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Patient Zero's attack
+  Patient Zero deals 2 damage to Lookahead-Swarm
+=== GAME OVER: p1 wins (p2's health reached 0) ===
+
+Turns: 19. Winner: p1.
+Mode choices: p2 Patient Zero -> Outbreak; p2 Root Access -> Lockout; p1 Patient Zero -> Carrier; p2 Kill Switch -> Wipe; p1 Kill Switch -> Lights Out.
+Graveyard cards still carrying a chosen mode (must be 0): 0.

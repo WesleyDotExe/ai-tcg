@@ -2821,7 +2821,7 @@ The signature-name word lists (`engine/src/data/signatureNames.ts`) contain "Zer
 
 ---
 
-## 2026-10-18 — Owner: answers to render session 23, and the pack-opening reveal is the render lane's next priority
+## 2026-10-18 — Owner: answers to render session 23, and the pack-opening reveal is the render lane's next priority (render lane's own; nothing for the game lane, noted session 41)
 
 ### Render session 23: keep all 3, as built
 Owner decisions on the 3 calls in `progress/render/checkpoints.md` (2026-10-17, "The board agrees with the feed; labels shrink with a zoomed row").
@@ -2872,7 +2872,7 @@ Show each slice with phone and desktop recordings or stills, and a headless chec
 
 ---
 
-## 2026-10-18 — Owner: answers to session 40 (Zero-Day strength cap, the measuring agent) and a render side task
+## 2026-10-18 — Owner: answers to session 40 (Zero-Day strength cap, the measuring agent) and a render side task (GAME LANE HANDLED 2026-10-17, session 41 — 1: option A done: LookaheadAgent values every unit's own statics, death and turn triggers by one path (plain and modal), auras over 3 turns, statuses by kind and duration (a Barrier on your own unit no longer scores below passing); it beats the session-40 agent head to head by 1.5 points over 64,000 games; both ring baselines re-recorded once, with what moved in `progress/balance-report-028-agent-fix-zero-day-tuned.txt` (Aegis > Cortex fell 52.2 -> 49.3; three gate edges slipped IN -> UNRESOLVED). 2: cap applied at 10,000 games per pairing: Kill Switch passes as designed (3.52; Lights Out 44%); Patient Zero (5.37) and Root Access (4.18) were over; proposed numbers: Carrier +1/+0 (2.73), Privilege Escalation "the number of other units" (3.52); every mode 16.7%+ for every faction. 3: the four calls stand. 4: the final numbers are in the new [OWNER CHECK-IN]; the cards are not live yet. The render side task is the render lane's own)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 40, "Zero-Day cards: the strength cap, and the agent that measures it").
 
@@ -2892,7 +2892,7 @@ Show the chosen mode in the match feed, for example "Patient Zero (Outbreak)" or
 
 ---
 
-## 2026-10-18 — Owner: answers to render session 24 (pack opening, slice 1)
+## 2026-10-18 — Owner: answers to render session 24 (pack opening, slice 1) (render lane's own; nothing for the game lane, noted session 41)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` (2026-10-17, "Pack opening, slice 1: one pack and every finish reveal").
 

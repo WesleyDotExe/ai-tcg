@@ -3114,3 +3114,50 @@ share. The Aggressive test agent always plays the first mode.
 **Blocked:** nothing. Next: render (alternation: word the mode choices in the feed), then the game
 lane's instrument fix (check-in default A), the re-measure, and the cards going live with the
 owner's OK.
+
+## 2026-10-17 — Session 41 (owner's 2026-10-18 answers to session 40: fix the agent, apply the cap)
+
+Game-lane session: the last merged PR (#66) was render. Owner feedback first. One game entry was
+open (answers to session 40); the two render entries are the render lane's own and are marked so.
+Not a feature session: the whole session is instrument depth work (the owner's option A) plus the
+measurement and tuning it unblocks, which is the hardening the 5-session rule asked for in session
+40.
+
+**Built:**
+- **LookaheadAgent, one valuation path for every unit.** A unit's own statics, death triggers and
+  turn triggers now count whether or not the card is modal; the modal-only second path is gone.
+  Evolutions count what the evolved form adds.
+- **Auras over several turns:** the buff times the average units covered over 3 turns (one more a
+  turn, up to the free slots, 0.75 survival per turn). Applies to Directive auras too.
+- **Statuses by kind and duration:** Stasis per turn held (1.0 x attack, 0.8 decay; nothing for turns
+  already held), Overload as damage over its ticks, Barrier +1.5. Found a real bug on the way: every
+  status had a debuff's sign, so a Barrier on your own unit scored below passing.
+- **Tools:** `dev/agentHeadToHead.ts` (any earlier agent by module path), `--patch` in
+  `dev/zeroDayFairness.ts`, a first-seed argument in `modalMatchDemo`.
+
+**Ran it:**
+- Head to head vs the session-40 agent: +1.5 [0.9, 2.0] over 64,000 games; better piloting Cortex
+  (+4.2) and Null (+1.4), no detectable change on Swarm and Aegis. Component ablations at 500 seeds
+  and constant variants at 1,000 seeds all landed within noise of each other on shipped decks.
+- Stasis weight decided by the Zero-Day probe: at 0.6, Lights Out still 1-4% of casts; at 1.0, 35-55%
+  and Kill Switch stronger with the agent choosing.
+- Ring regression against the old baselines: the gate failed on 4 edges (Aegis > Cortex 52.2 -> 49.3,
+  a real move; three IN -> UNRESOLVED within noise); signature mode passed. Both re-recorded once, as
+  the owner allowed.
+- Zero-Day at 10,000 per pairing (reference + 3 cards + 6 patched trials + 2 confirmation runs from
+  the edited data file): see balance-report-028. Proposed: Carrier +1/+0, Privilege Escalation one
+  less, Kill Switch as designed.
+- 4 render tests broke because their seeded games played differently; seeds re-picked, assertions kept
+  (one generalized to check the cast mode's own rules text, so a Lights Out cast is covered too).
+- `npm test` all six workspaces; `tsc` clean.
+
+**Worked:** the fix moved the mode picks the owner's way (Carrier 23% -> 68%, Lights Out 1 in 17,967
+-> 44%), and the cap then caught exactly the card the owner expected (Patient Zero).
+**Didn't / honest limits:** the head-to-head gain is modest; shipped decks have few aura and stun
+cards. The ring moved, and Aegis no longer beats Cortex in the gate mode. Committed render replay
+pages and older sample logs no longer regenerate identically.
+
+**Evidence:** `progress/balance-report-028-agent-fix-zero-day-tuned.txt`,
+`progress/sample-match-034-modal-cards-agent-fix.txt`, `engine/test/lookaheadValuation.test.ts`.
+
+**Blocked:** going live waits on the owner's OK (one registry line + an economy test).

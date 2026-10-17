@@ -60,13 +60,15 @@ export const patientZero: UnitCard = {
     {
       id: "carrier",
       name: "Carrier",
-      text: "Your other units get +1/+1.",
+      text: "Your other units get +1/+0.",
       abilities: [
         {
           id: "patient-zero-carrier",
           trigger: "static",
-          text: "Your other units get +1/+1.",
-          staticEffect: { kind: "buffAllies", attack: 1, health: 1, filter: { side: "controller", kind: "unit" }, excludeSelf: true },
+          text: "Your other units get +1/+0.",
+          // Session 41: +1/+1 measured 5.37 points on its worst edge, over
+          // the owner's 4-point cap (balance-report-028); +1/+0 measured 2.73.
+          staticEffect: { kind: "buffAllies", attack: 1, health: 0, filter: { side: "controller", kind: "unit" }, excludeSelf: true },
         },
       ],
     },
@@ -92,14 +94,17 @@ export const rootAccess: UnitCard = {
     {
       id: "privilege-escalation",
       name: "Privilege Escalation",
-      text: "This unit's attack equals 1 plus the number of other units in play.",
+      text: "This unit's attack equals the number of other units in play.",
       abilities: [
         {
           id: "root-access-privilege-escalation",
           trigger: "static",
-          text: "This unit's attack equals 1 plus the number of other units in play.",
-          // Both sides count, this unit included: 1 + others = all units.
-          staticEffect: { kind: "selfStatFromScaling", attack: { mode: "scaling", base: 0, multiplier: 1, per: "allUnitsInPlay" } },
+          text: "This unit's attack equals the number of other units in play.",
+          // Both sides count. allUnitsInPlay includes this unit, so the
+          // others are all units less 1. Session 41: "1 plus the other
+          // units" measured 4.18 points on its worst edge, over the owner's
+          // 4-point cap (balance-report-028); one less measured 3.52.
+          staticEffect: { kind: "selfStatFromScaling", attack: { mode: "scaling", base: -1, multiplier: 1, per: "allUnitsInPlay" } },
         },
       ],
     },
