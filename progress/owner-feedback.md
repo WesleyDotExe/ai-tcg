@@ -2729,7 +2729,7 @@ Found by render session 21 (PR #60). The render lane worked around both problems
 
 ---
 
-## 2026-10-18 — Owner: answers to session 38 (chase cards: secret list, Glitch tier, S0-odds-2, crafting)
+## 2026-10-18 — Owner: answers to session 38 (chase cards: secret list, Glitch tier, S0-odds-2, crafting) (HANDLED 2026-10-17, session 39 — built before the "choose one" mechanic: schema v10 (finishes `glitch`, `secret`, `zeroDay`, a `secret_code` on secret copies; a Zero-Day copy's card id is its code, so it becomes playable when step 2 designs the card under that id), `openPack` on `S0-odds-2` with the version recorded, one roller for both tables pinned by a seed test, secret crafting at 750 / 3,000 (`craftSecret`; one per secret card held; Zero-Day crafting opens when the card is designed), the binder and checklist (`binder`), older packs openable under the live table; the 4 smaller calls as built. Evidence `progress/economy-demo-009.txt`; calls the owner may overrule in notes-for-owner.md)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 38, "Chase cards: the secret list, the Glitch tier and the new odds table"). **Yes on 1–6:** build schema v10, switch `openPack` to S0-odds-2 and add secret crafting, as the check-in describes.
 
@@ -2750,7 +2750,7 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ---
 
-## 2026-10-18 — Owner: answers to render session 22 (match feed tightened) and a game lane side task
+## 2026-10-18 — Owner: answers to render session 22 (match feed tightened) and a game lane side task (GAME LANE SIDE TASK HANDLED 2026-10-17, session 39 — both Intercept Routine fizzles carry `cause` (`alreadyAimed` / `noPendingAttack`) plus `source`/`sourceId`, and for `alreadyAimed` the `attacker`/`attackerId` and the `target`/`targetRef` it stays aimed at; render's feed now checks for the two attack causes, so its text is unchanged until the render lane words the new ones (a render test pins it). The render calls are the render lane's own)
 
 Owner decisions on the 3 calls in `progress/render/checkpoints.md` (2026-10-18, "The match feed, tightened: quiet triggers dropped, endings worded from the engine's data").
 

@@ -1,5 +1,57 @@
 # Notes for the owner
 
+**Updated 2026-10-17, session 39 (your 2026-10-18 answers: the chase cards go live; the Intercept
+Routine side task).** Nothing is blocking and there is no new check-in. Below are the calls I made
+while building, in case you want any changed. Evidence: `progress/economy-demo-009.txt` (the store
+end to end), `progress/pack-sim-002.txt` (rerun: every number identical).
+
+Built:
+- **The chase cards are live.** Every pack now opens under `S0-odds-2`, and each opening records
+  it. The secret list, the Glitch list and the table are exactly as you approved.
+  - In 2,000 packs opened through the store, 20.2% had a hit (the million-pack simulation: 20.7%).
+- **Crafting secret cards:** 750 pack points for an illustration, 3,000 for a Zero-Day card.
+- **The binder and checklist:** five sections in number order:
+  - the base set (96);
+  - the secret cards (33 illustrations, then the 3 Zero-Day);
+  - Glitch (20);
+  - Gold (96);
+  - the 15 Prototype runs, with the serials held.
+- **Old packs:** packs of any season stay openable, under today's table.
+- **Every pack opened before today still reproduces from its seed.** The two pack rollers are now one,
+  and a test pins thousands of packs from each table.
+- **The side task:** both Intercept Routine fizzles now say why as data ("already aimed" or "no
+  attack to redirect"), with the card and the attack's names.
+  - Before shipping, I found that the match feed would have misread the new data as "its target
+    left play first". I made a one-line guard in the feed so its text stays exactly as it was. A
+    test now checks this.
+  - The render lane can now word these lines itself.
+
+**Calls I made (overrule any; each is small to change):**
+1. **A Zero-Day card can be pulled now, before it's designed.** It keeps your approved 0.2%.
+   - The copy is a reserved entry, "Zero-Day 1 (not designed yet)", numbered `226/096`.
+   - It can't go in a deck or be crafted until build-order step 2 designs the card.
+   - It becomes playable then by itself, with no change to anyone's collection.
+   - The other option was 0% until the cards exist. That would change the table you approved.
+2. **Crafting makes one copy per secret card.** Crafting is refused while you hold that secret card.
+   - A crafted secret card is account-bound, like every crafted card: it can be played and never
+     sold. Only pulled copies could reach a marketplace.
+3. **Zero-Day crafting opens when the cards are designed.** Until then, they can only be pulled.
+4. **The NEW badge is per collection entry.**
+   - An illustration is NEW even if you hold the plain card.
+   - A Glitch card is NEW until your first Glitch copy of that card.
+   - The plain card isn't NEW if you already hold its illustration or Glitch copy, because that
+     fills its base place.
+5. **Full reveal in a 10-pack open:** secret and Zero-Day packs keep it, like Gold and Prototype. A
+   Glitch pack (about 1 in 25) doesn't by itself.
+6. **Base-set completion counts any copy of a card,** in any finish. An illustration or a Glitch
+   copy also fills its card's base place, as in the simulation.
+7. **Packs bought before the switch** open under `S0-odds-2`, the table that is live when they open.
+
+Next game-lane session: build-order step 2, the generic "choose one" mechanic. After that come the 3
+Zero-Day cards.
+
+---
+
 **Updated 2026-10-17, session 38 (your 2026-10-17 answers, the 2026-10-18 side task, and step 1
 of the order: the chase-card proposal).** Nothing is blocking. There is one **[OWNER CHECK-IN]**
 below, with defaults; nothing in it goes live until you answer. Evidence:
@@ -23,7 +75,7 @@ Built:
     "Rombot's Navigator health depleted". The event also says why as data (health reached 0, or
     the turn cap), so the feed and the commentators can word it their own way.
 
-### [OWNER CHECK-IN] Chase cards: the secret list, the Glitch tier and the new odds table
+### [ANSWERED 2026-10-18: A on 1-6, all 4 smaller calls kept; built session 39] Chase cards: the secret list, the Glitch tier and the new odds table
 
 Nothing here is live. The store still opens packs with today's table (`S0-odds-1`). The numbers
 are measured in `progress/pack-sim-002.txt`.

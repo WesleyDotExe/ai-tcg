@@ -291,7 +291,7 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
       }
       const wasLanded = landed;
       landed = null;
-      if (pendingNoDamage && ev.type !== "damage" && ev.type !== "barrierAbsorbed" && ev.type !== "baseArmorReduced" && ev.type !== "attackRedirected" && !(ev.type === "fizzle" && ev.cause)) {
+      if (pendingNoDamage && ev.type !== "damage" && ev.type !== "barrierAbsorbed" && ev.type !== "baseArmorReduced" && ev.type !== "attackRedirected" && !(ev.type === "fizzle" && isAttackFizzle(ev))) {
         entries.push(pendingNoDamage);
         pendingNoDamage = null;
       } else if (pendingNoDamage) {
@@ -409,7 +409,7 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
           top({ kind: "action", side: ev.player, parts: [{ player: ev.player }, " attaches ", { card: ev.tool }, " to ", { card: ev.unit }] });
           break;
         case "fizzle": {
-          if (ev.cause && ev.attacker) {
+          if (isAttackFizzle(ev) && ev.attacker) {
             // The attack's resolution said "deals no damage"; this says why.
             pendingNoDamage = null;
             const side = instanceSide(before, ev.attackerId) ?? instanceSide(frame, ev.attackerId);
@@ -438,6 +438,14 @@ export function buildFeed(frames: Frame[], ctx: FeedContext): FeedEntry[][] {
     out.push(entries);
   }
   return out;
+}
+
+/** An attack's own fizzle (its attacker or target left play), as opposed
+ * to an Intercept Routine redirect that did nothing: the engine gives those
+ * a cause too since game session 39 (`alreadyAimed`, `noPendingAttack`),
+ * and the feed still prints their reason text until it words them. */
+function isAttackFizzle(ev: Extract<GameEvent, { type: "fizzle" }>): boolean {
+  return ev.cause === "attackerGone" || ev.cause === "targetGone";
 }
 
 /** The game's end, from its cause: "X wins: Y's health reached 0", "X

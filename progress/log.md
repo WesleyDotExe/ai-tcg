@@ -2965,3 +2965,74 @@ feed) are the render lane's own and are marked as such. Not a hardening pass.
 
 **Blocked:** nothing. Next: render (alternation), then the chase answer or the "choose one"
 mechanic.
+
+## 2026-10-17 — Session 39 (owner's 2026-10-18 answers to session 38; the chase cards go live; the Intercept Routine side task)
+
+Game-lane session: the last merged PR (#62) was render. Owner feedback first. The session-38 chase
+answers and the Intercept Routine side task are handled and marked. The render session 22 calls are
+the render lane's own. Not a hardening pass (session 40 is the next 5th), but this session also
+worked off a named debt item: the two duplicated pack rollers are now one.
+
+**Built:**
+- **Schema v10.** It rebuilds `card_copies` for three new finishes and a `secret_code`. Every row,
+  index and trigger carries across.
+  - A Zero-Day copy's card id is its code, so it becomes playable when step 2 designs the card.
+  - New rules: a secret copy names a fitting secret card; nothing else names one; a copy's card,
+    finish and code never change.
+  - Migrations 1-2 now read a frozen finish list; their text is byte-identical (checked).
+- **One roller:** `rollPack(..., odds)` serves `S0-odds-1` and `S0-odds-2`, each drawing in its old
+  order.
+- **`openPack` on `S0-odds-2`:**
+  - the pack result carries a secret card's code, art slot and animation;
+  - NEW is per collection entry;
+  - secret and Zero-Day packs keep their full reveal;
+  - a Zero-Day copy counts as a Mythic for pity.
+- **`craftSecret`** (750 / 3,000; one per secret card held; Zero-Day crafting opens when the card is
+  designed) and **`binder`** (base, secrets, Glitch, Gold, Prototypes, in number order).
+- **The side task:** Intercept Routine fizzles carry `cause`, `source` and the attack's names.
+
+**Ran it:**
+- `chaseLiveDemo` (economy-demo-009, about 20 s, reproduces exactly);
+- the chase simulation rerun through the merged roller (about 1 minute);
+- the render feed transcripts regenerated;
+- `npm test`: 687/687; `tsc` clean in all six workspaces.
+
+**Result:**
+- **The merged roller matches the old two exactly:** the same hash over 60,000 seeds per table
+  (every pity state, Prototype runs open and used up). pack-sim-002 reran with every number
+  identical. A test pins 20,000 seeds per table.
+- **The v9 file upgraded** with all 45 copies unchanged and its deck complete. The migration test
+  also checks each row and the full index and trigger list.
+- **2,000 packs through the store:** 20.2% had a hit (table: 20.7% over a million). Zero-Day came 4
+  times (table: 0.2%, so about 4 expected).
+
+**Bugs found while building:**
+- **A cross-lane regression, caught before shipping.** Render's feed treated any fizzle with a
+  `cause` and an `attacker` as an attack fizzle. The new `alreadyAimed` cause would have printed
+  "Garbage Collector's attack fizzles: its target left play first" for the render lane's own find
+  (Null vs Aegis seed 3, move 33). That is wrong, and no test failed. Found by regenerating render's
+  transcripts with and without a guard. Fixed with a one-line check in `feed.ts` and a render test
+  that fails without it.
+- **The demo found the binder's Glitch section in list order,** not number order (022, 034, 066,
+  061...). Fixed, and the test checks the order.
+- **NEW per entry first marked a plain card NEW when only its illustration was held.** The binder
+  counts that illustration in the card's base place, so the two disagreed. I found it reading my
+  own diff. A plain card is now NEW only when no copy of it, in any finish, was held, and a test
+  (which fails without the fix) checks it.
+- **The migration tests open old schema versions with today's store code.** `grantCopy` would
+  have named a `secret_code` column that a v5 file doesn't have. It now names it only on a copy
+  that has one.
+
+**Calls made (in notes-for-owner, overrule any):**
+- Zero-Day is pullable now as a reserved entry, not playable or craftable until it is designed.
+- Crafting makes one per secret card held, and the copy is bound.
+- NEW is per collection entry.
+- A Glitch pack doesn't keep the full reveal by itself.
+- Base completion counts any finish.
+- Packs bought before the switch open under the live table.
+
+**Evidence:** `progress/economy-demo-009.txt`; `progress/pack-sim-002.txt` (rerun); tests in
+economy (`chase.test.ts` rewritten, the v10 migration step), engine (2 files) and render (+1).
+
+**Blocked:** nothing. Next: render (alternation: word the new fizzle causes, draw the chase
+finishes), then the game lane's build-order step 2, the "choose one" mechanic.

@@ -10,6 +10,7 @@ import {
   CRAFT_PACK_POINTS,
   EconomyStore,
   FULL_ART_OR_BETTER,
+  LIVE_PACK_ODDS,
   PACK_ODDS,
   PACK_POINTS_PER_PACK,
   cardSet,
@@ -23,6 +24,10 @@ const S0 = cardSet("S0");
 const NO_PITY: PityState = { packsSinceFullArt: 0, packsSinceMythic: 0 };
 const ALL_RUNS = new Map(S0.prototypes.map((r) => [r.code, r.runSize]));
 const NO_RUNS = new Map(S0.prototypes.map((r) => [r.code, 0]));
+/** A pack under S0-odds-1, the table session 36 shipped (its openings must
+ * keep reproducing), and under the live table, the one openPack rolls. */
+const rollV1 = (seed: number, pity: PityState, runs: ReadonlyMap<string, number>) => rollPack(seed, S0, pity, runs, PACK_ODDS);
+const rollLive = (seed: number, pity: PityState, runs: ReadonlyMap<string, number>) => rollPack(seed, S0, pity, runs, LIVE_PACK_ODDS);
 
 /** An owner with `n` free packs. */
 function ownerWithPacks(s: EconomyStore, n: number) {
@@ -33,7 +38,11 @@ function ownerWithPacks(s: EconomyStore, n: number) {
 
 /** The first seed from `start` whose pack (with this pity and these runs) passes `want`. */
 function seedWhere(pity: PityState, want: (roll: ReturnType<typeof rollPack>) => boolean, start = 0, runs = ALL_RUNS): number {
-  for (let seed = start; seed < start + 1_000_000; seed++) if (want(rollPack(seed, S0, pity, runs))) return seed;
+  for (let seed = start; seed < start + 1_000_000; seed++) if (want(rollLive(seed, pity, runs))) return seed;
+  throw new Error("no seed found");
+}
+function seedWhereV1(pity: PityState, want: (roll: ReturnType<typeof rollPack>) => boolean): number {
+  for (let seed = 0; seed < 1_000_000; seed++) if (want(rollV1(seed, pity, ALL_RUNS))) return seed;
   throw new Error("no seed found");
 }
 
@@ -61,11 +70,11 @@ describe("the Season 0 set", () => {
   });
 });
 
-describe("rollPack", () => {
+describe("rollPack under S0-odds-1 (session 36's table, kept so its openings reproduce)", () => {
   it("is reproducible from its seed, and gives 2 Commons, 1 Uncommon, the Rare slot and the shine slot", () => {
     for (let seed = 0; seed < 500; seed++) {
-      const roll = rollPack(seed, S0, NO_PITY, ALL_RUNS);
-      expect(rollPack(seed, S0, NO_PITY, ALL_RUNS)).toEqual(roll);
+      const roll = rollV1(seed, NO_PITY, ALL_RUNS);
+      expect(rollV1(seed, NO_PITY, ALL_RUNS)).toEqual(roll);
       const main = roll.pulls.filter((p) => p.slot !== "bonus");
       expect(main.map((p) => p.slot)).toEqual(["Common", "Common", "Uncommon", "Rare", "shine"]);
       expect(main.slice(0, 2).every((p) => p.rarity === "Common")).toBe(true);
@@ -78,8 +87,8 @@ describe("rollPack", () => {
   });
 
   it("gives a Gold copy its number above the set total", () => {
-    const seed = seedWhere(NO_PITY, (r) => r.pulls.some((p) => p.finish === "gold"));
-    const gold = rollPack(seed, S0, NO_PITY, ALL_RUNS).pulls.find((p) => p.finish === "gold")!;
+    const seed = seedWhereV1(NO_PITY, (r) => r.pulls.some((p) => p.finish === "gold"));
+    const gold = rollV1(seed, NO_PITY, ALL_RUNS).pulls.find((p) => p.finish === "gold")!;
     expect(gold.collectorNumber).toBe(S0.cards.find((c) => c.cardId === gold.cardId)!.goldNumber);
   });
 
@@ -90,7 +99,7 @@ describe("rollPack", () => {
     let jackpots = 0;
     let bonus = 0;
     for (let seed = 0; seed < n; seed++) {
-      const r = rollPack(seed, S0, NO_PITY, ALL_RUNS);
+      const r = rollV1(seed, NO_PITY, ALL_RUNS);
       if (r.pulls[3]!.rarity === "Mythic") mythicRare++;
       const f = r.pulls[4]!.finish;
       shine[f] = (shine[f] ?? 0) + 1;
@@ -109,32 +118,32 @@ describe("rollPack", () => {
   });
 
   it("a Jackpot pack is Foil or better on every card", () => {
-    const seed = seedWhere(NO_PITY, (r) => r.jackpot);
-    for (const p of rollPack(seed, S0, NO_PITY, ALL_RUNS).pulls) expect(p.finish).not.toBe("standard");
+    const seed = seedWhereV1(NO_PITY, (r) => r.jackpot);
+    for (const p of rollV1(seed, NO_PITY, ALL_RUNS).pulls) expect(p.finish).not.toBe("standard");
   });
 
   it("pity, when due, makes the shine slot Full Art or better and the Rare slot a Mythic", () => {
     const due: PityState = { packsSinceFullArt: PACK_ODDS.pity.fullArtAfter, packsSinceMythic: PACK_ODDS.pity.mythicAfter };
     for (let seed = 0; seed < 2000; seed++) {
-      const r = rollPack(seed, S0, due, ALL_RUNS);
+      const r = rollV1(seed, due, ALL_RUNS);
       expect(r.pity).toEqual({ fullArt: true, mythic: true });
       expect(FULL_ART_OR_BETTER).toContain(r.pulls[4]!.finish);
       expect(r.pulls[3]!.rarity).toBe("Mythic");
     }
     // One pack short of either timer: nothing forced.
-    expect(rollPack(1, S0, { packsSinceFullArt: 9, packsSinceMythic: 39 }, ALL_RUNS).pity).toEqual({ fullArt: false, mythic: false });
+    expect(rollV1(1, { packsSinceFullArt: 9, packsSinceMythic: 39 }, ALL_RUNS).pity).toEqual({ fullArt: false, mythic: false });
   });
 
   it("a Prototype is a bonus 6th card, from a run with copies left; with every run used up it is a Gold", () => {
-    const seed = seedWhere(NO_PITY, (r) => r.pulls.length === 6);
-    const r = rollPack(seed, S0, NO_PITY, ALL_RUNS);
+    const seed = seedWhereV1(NO_PITY, (r) => r.pulls.length === 6);
+    const r = rollV1(seed, NO_PITY, ALL_RUNS);
     expect(r.pulls[5]).toMatchObject({ slot: "bonus", finish: "prototype" });
-    expect(r.pulls.slice(0, 5)).toEqual(rollPack(seed, S0, NO_PITY, NO_RUNS).pulls.slice(0, 5));
+    expect(r.pulls.slice(0, 5)).toEqual(rollV1(seed, NO_PITY, NO_RUNS).pulls.slice(0, 5));
     // Only one run open: the Prototype is from it.
     const onlyOne = new Map([...NO_RUNS, ["S0-P07", 3]]);
-    expect(rollPack(seed, S0, NO_PITY, onlyOne).pulls[5]!.prototypeRun).toBe("S0-P07");
+    expect(rollV1(seed, NO_PITY, onlyOne).pulls[5]!.prototypeRun).toBe("S0-P07");
     // None open: a Gold instead, still the 6th card.
-    const fallback = rollPack(seed, S0, NO_PITY, NO_RUNS);
+    const fallback = rollV1(seed, NO_PITY, NO_RUNS);
     expect(fallback.prototypeFallbackGold).toBe(true);
     expect(fallback.pulls[5]).toMatchObject({ slot: "bonus", finish: "gold" });
   });
@@ -148,13 +157,13 @@ describe("opening packs (the store)", () => {
     expect(() => s.packOpening(pack!.packId)).toThrow(/hasn't been opened/); // no seed before opening
     const opened = s.openPack(o, undefined, { seed: 42 });
     expect(opened.packId).toBe(pack!.packId);
-    expect(opened.oddsVersion).toBe(PACK_ODDS.version);
-    expect(opened.cards.map((c) => c.cardId)).toEqual(rollPack(42, S0, NO_PITY, ALL_RUNS).pulls.map((p) => p.cardId));
+    expect(opened.oddsVersion).toBe("S0-odds-2");
+    expect(opened.cards.map((c) => c.cardId)).toEqual(rollLive(42, NO_PITY, ALL_RUNS).pulls.map((p) => p.cardId));
     expect(s.collection(o)).toHaveLength(opened.cards.length);
     expect(s.balance(o, "packPoints")).toBe(PACK_POINTS_PER_PACK);
     expect(s.unopenedPacks(o)).toHaveLength(0);
     const log = s.packOpening(pack!.packId);
-    expect(log).toMatchObject({ seed: 42, oddsVersion: PACK_ODDS.version, ownerId: o });
+    expect(log).toMatchObject({ seed: 42, oddsVersion: "S0-odds-2", ownerId: o });
     expect(log.copies.map((c) => c.copyId)).toEqual(opened.cards.map((c) => c.copyId));
     for (const c of log.copies) expect(c).toMatchObject({ origin: "pack", originRef: `pack:${pack!.packId}`, accountBound: false, seriesCode: "S0" });
     expect(() => s.openPack(o, pack!.packId)).toThrow(/no unopened pack/);
@@ -165,7 +174,7 @@ describe("opening packs (the store)", () => {
     const s = store();
     const o = ownerWithPacks(s, 1);
     const seed = 42;
-    const first = rollPack(seed, S0, NO_PITY, ALL_RUNS).pulls;
+    const first = rollLive(seed, NO_PITY, ALL_RUNS).pulls;
     // The owner already holds 2 copies of the pack's first card.
     s.grantCopy({ ownerId: o, cardId: first[0]!.cardId, origin: "pack" });
     s.grantCopy({ ownerId: o, cardId: first[0]!.cardId, origin: "pack" });
@@ -214,7 +223,7 @@ describe("opening packs (the store)", () => {
     const s = store();
     const o = ownerWithPacks(s, 2);
     const seed = seedWhere(NO_PITY, (r) => r.pulls.length === 6 && r.pulls[5]!.finish === "prototype");
-    const run = rollPack(seed, S0, NO_PITY, ALL_RUNS).pulls[5]!.prototypeRun!;
+    const run = rollLive(seed, NO_PITY, ALL_RUNS).pulls[5]!.prototypeRun!;
     const a = s.openPack(o, undefined, { seed });
     expect(a.cards[5]!.prototype).toMatchObject({ runCode: run, serial: 1 });
     expect(a.fullReveal).toBe(true);

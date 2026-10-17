@@ -26,7 +26,7 @@ import {
   AGENT_RENAME_PACK_POINTS,
   BULK_OPEN_COUNT,
   CRAFT_PACK_POINTS,
-  PACK_ODDS,
+  LIVE_PACK_ODDS,
   PACK_POINTS_PER_PACK,
   PACK_PRICE_CREDITS,
   PASSWORD_MIN_LENGTH,
@@ -34,11 +34,13 @@ import {
   SIGNATURE_ART_POOL_SIZE,
   SESSION_DAYS,
   SIGN_IN_LOCKOUT,
+  SECRET_CRAFT_PACK_POINTS,
   STARTER_PACKS,
 } from "./config.js";
 import { customAgentNameProblem, nameKey, tidyAgentName } from "./agentNames.js";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./passwords.js";
-import { CARD_SETS, nextPity, rollPack, type PackSlot, type PityState } from "./packs.js";
+import { CARD_SETS, nextPity, rollPack, secretCardOf, type PackSlot, type PityState } from "./packs.js";
+import type { SecretCard } from "./chase.js";
 import { matchCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 import {
   BOUND_ORIGINS,
@@ -47,6 +49,7 @@ import {
   LOCKABLE_FACTIONS,
   MIGRATIONS,
   OWNER_KINDS,
+  SECRET_FINISHES,
   PACK_SOURCES,
   SERIES_KINDS,
   SIGNATURE_ORIGIN_REF_PREFIX,
@@ -218,6 +221,9 @@ export interface CardCopy {
    * copies, and an agent's signature card, always). */
   accountBound: boolean;
   acquiredAt: string;
+  /** The secret card a secret or Zero-Day copy is ("S0-SR07", "S0-ZD2");
+   * null on every other copy (schema v10). */
+  secretCode: string | null;
 }
 
 export interface GrantCopyInput {
@@ -235,6 +241,8 @@ export interface GrantCopyInput {
    * and starter copies, and a signature card (originRef "signature:..."),
    * are bound whatever this says. */
   accountBound?: boolean;
+  /** Required on a secret or Zero-Day copy, refused on any other. */
+  secretCode?: string | null;
 }
 
 export interface PackRecord {
@@ -258,7 +266,12 @@ export interface OpenedCard {
   collectorNumber: string;
   /** A Prototype's run and serial ("S0-P07", 12 of 100). */
   prototype: { runCode: string; serial: number; runSize: number } | null;
-  /** The owner held no copy of this card before this pack. */
+  /** A secret card's entry: its code, kind, art slot, and whether it moves
+   * (Zero-Day). Null on every other card. */
+  secret: Pick<SecretCard, "code" | "kind" | "art" | "animated"> | null;
+  /** The owner held nothing of this card's collection entry before this
+   * pack: for most cards, no copy of the card; for a secret card, no copy
+   * of that secret card; for a Glitch card, no Glitch copy of it. */
   isNew: boolean;
   /** Copies of this card the owner holds after this pack ("x4 owned"). */
   ownedAfter: number;
@@ -280,8 +293,9 @@ export interface PackOpening {
   prototypeFallbackGold: boolean;
   cards: OpenedCard[];
   packPoints: number;
-  /** Gold, a Prototype or a Jackpot pack: a bulk open still gives this pack
-   * its full reveal (owner 2026-10-05). */
+  /** Gold, a Prototype, a secret card, a Zero-Day card or a Jackpot pack: a
+   * bulk open still gives this pack its full reveal (owner 2026-10-05 and
+   * 2026-10-16). */
   fullReveal: boolean;
 }
 
@@ -499,6 +513,39 @@ export interface OwnerStats {
 
 export class EconomyError extends Error {}
 
+/** One place in a set's binder. */
+export interface BinderEntry {
+  /** The number printed on the card ("056/096"; a Glitch entry keeps its
+   * card's number and the render adds the glitch mark). */
+  number: string;
+  kind: "card" | "illustration" | "zeroDay" | "glitch" | "gold";
+  /** The card a copy plays as (a Zero-Day card's id is its code). */
+  cardId: string;
+  secretCode: string | null;
+  name: string;
+  rarity: Rarity;
+  /** Copies of this entry the owner holds now. */
+  owned: number;
+}
+
+export interface BinderSection {
+  title: string;
+  /** Entries with at least one copy held, of `total` ("x/96"). */
+  held: number;
+  total: number;
+  entries: BinderEntry[];
+}
+
+/** A set's binder and checklist for one owner (owner 2026-10-16 item 1). */
+export interface Binder {
+  setCode: string;
+  base: BinderSection;
+  secrets: BinderSection;
+  glitch: BinderSection;
+  gold: BinderSection;
+  prototypes: { runCode: string; cardId: string; name: string; runSize: number; found: number; serialsHeld: number[] }[];
+}
+
 const FINISH_LABEL: Readonly<Record<Finish, string>> = {
   standard: "Standard",
   foil: "Foil",
@@ -507,7 +554,24 @@ const FINISH_LABEL: Readonly<Record<Finish, string>> = {
   gold: "Gold",
   prototype: "Prototype",
   tournament: "Tournament",
+  glitch: "Glitch",
+  secret: "Secret illustration",
+  zeroDay: "Zero-Day",
 };
+
+/** Finishes that keep a pack's full reveal in a bulk open: Gold and
+ * Prototype (owner 2026-10-05), the secret cards and Zero-Day (owner
+ * 2026-10-16: "the full-screen reveal, like Gold, Prototype and Jackpot").
+ * Glitch, at about 1 pack in 25, does not. */
+const FULL_REVEAL_FINISHES: readonly Finish[] = ["gold", "prototype", "secret", "zeroDay"];
+
+/** The collection entry a copy fills: its secret card, its Glitch version,
+ * or its card. */
+function collectionEntryKey(copy: Pick<CardCopy, "cardId" | "finish" | "secretCode">): string {
+  if (copy.secretCode !== null) return `secret:${copy.secretCode}`;
+  if (copy.finish === "glitch") return `glitch:${copy.cardId}`;
+  return `card:${copy.cardId}`;
+}
 
 /** Why a copy can't be salvaged, in the card viewer's words, or null when it
  * can (owner 2026-10-07: only unbound standard-finish pack copies salvage;
@@ -551,6 +615,36 @@ function knownSet(setCode: string) {
   const set = CARD_SETS.get(setCode);
   if (!set) throw new EconomyError(`no card set "${setCode}"`);
   return set;
+}
+
+/** A Zero-Day card's secret entry, by the card id its copies carry (its
+ * code, "S0-ZD1"). The card itself is designed with build-order step 2; until
+ * then a copy is a collection entry that can't be played yet. */
+function zeroDayEntry(cardId: string): SecretCard | undefined {
+  const s = secretCardOf(cardId);
+  return s?.kind === "zeroDay" ? s : undefined;
+}
+
+/** A set card's or Zero-Day card's gameplay rarity (a Zero-Day card counts
+ * as Mythic, owner 2026-10-18). */
+function setCardRarity(cardId: string): Rarity | undefined {
+  return getCard(cardId)?.rarity ?? zeroDayEntry(cardId)?.rarity;
+}
+
+/** Why a chase copy's card, finish and secret code don't fit together, or
+ * null when they do (schema v10's CHECKs hold the rest). */
+function chaseCopyProblem(cardId: string, finish: Finish, secretCode: string | null): string | null {
+  if (SECRET_FINISHES.includes(finish)) {
+    if (secretCode === null) return `a ${FINISH_LABEL[finish]} copy names its secret card`;
+    const secret = secretCardOf(secretCode);
+    if (!secret) return `no secret card "${secretCode}"`;
+    if ((secret.kind === "zeroDay") !== (finish === "zeroDay")) return `"${secretCode}" is not a ${FINISH_LABEL[finish]} card`;
+    if (secret.cardId !== cardId) return `"${secretCode}" is a version of ${secret.cardId}, not ${cardId}`;
+    return null;
+  }
+  if (secretCode !== null) return `only secret and Zero-Day copies name a secret card`;
+  if (finish === "glitch" && ![...CARD_SETS.values()].some((set) => set.glitch.includes(cardId))) return `"${cardId}" has no Glitch version`;
+  return null;
 }
 
 /** SQLite's own messages for the schema's RAISE(ABORT) rules and constraint
@@ -1422,7 +1516,9 @@ export class EconomyStore {
    * copies are account-bound (owner 2026-10-05). The card id must be a real,
    * ownable card. */
   grantCopy(input: GrantCopyInput): CardCopy {
-    if (!getCard(input.cardId) && !this.signatureCardById(input.cardId)) throw new EconomyError(`no ownable card with id "${input.cardId}"`);
+    if (!getCard(input.cardId) && !zeroDayEntry(input.cardId) && !this.signatureCardById(input.cardId)) {
+      throw new EconomyError(`no ownable card with id "${input.cardId}"`);
+    }
     const copy: CardCopy = {
       copyId: randomUUID(),
       ownerId: input.ownerId,
@@ -1437,6 +1533,7 @@ export class EconomyStore {
       originRef: input.originRef ?? null,
       accountBound: BOUND_ORIGINS.includes(input.origin) || isSignatureRef(input.originRef) || input.accountBound === true,
       acquiredAt: this.stamp(),
+      secretCode: input.secretCode ?? null,
     };
     if (isSignatureRef(copy.originRef) && copy.origin !== "promo") {
       throw new EconomyError(`a signature card is granted as a promo copy, not a ${copy.origin} copy`);
@@ -1444,12 +1541,19 @@ export class EconomyStore {
     if (!FINISHES.includes(copy.finish)) throw new EconomyError(`unknown finish "${copy.finish}"`);
     if (!SERIES_KINDS.includes(copy.seriesKind)) throw new EconomyError(`unknown series kind "${copy.seriesKind}"`);
     if (!COPY_ORIGINS.includes(copy.origin)) throw new EconomyError(`unknown copy origin "${copy.origin}"`);
+    const chaseProblem = chaseCopyProblem(copy.cardId, copy.finish, copy.secretCode);
+    if (chaseProblem !== null) throw new EconomyError(chaseProblem);
     try {
+      // secret_code is named only on a copy that has one, so a store opened
+      // at an older schema version (the migration tests) still grants
+      // ordinary copies.
+      const secretColumn = copy.secretCode === null ? "" : ", secret_code";
+      const secretValue = copy.secretCode === null ? "" : ", ?";
       this.db
         .prepare(
           `INSERT INTO card_copies (copy_id, owner_id, card_id, finish, series_kind, series_code, serial, run_size,
-             stamp, origin, origin_ref, account_bound, acquired_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             stamp, origin, origin_ref, account_bound, acquired_at${secretColumn})
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?${secretValue})`,
         )
         .run(
           copy.copyId,
@@ -1465,6 +1569,7 @@ export class EconomyStore {
           copy.originRef,
           copy.accountBound ? 1 : 0,
           copy.acquiredAt,
+          ...(copy.secretCode === null ? [] : [copy.secretCode]),
         );
     } catch (err) {
       refused(err);
@@ -1509,6 +1614,7 @@ export class EconomyStore {
       originRef: strOrNull(r.origin_ref),
       accountBound: num(r.account_bound) === 1,
       acquiredAt: str(r.acquired_at),
+      secretCode: strOrNull(r.secret_code),
     };
   }
 
@@ -1522,7 +1628,7 @@ export class EconomyStore {
    * for how much, why the rest can't, and the saved decks that use it. */
   cardHoldings(ownerId: string, cardId: string): CardHoldings {
     // A signature card is in no set, but the card viewer shows it too.
-    const card = getCard(cardId) ?? this.signatureCardById(cardId)?.card;
+    const card = getCard(cardId) ?? this.signatureCardById(cardId)?.card ?? zeroDayEntry(cardId);
     if (!card) throw new EconomyError(`no ownable card with id "${cardId}"`);
     const copies = this.collection(ownerId).filter((c) => c.cardId === cardId);
     const reasons = new Map<string, number>();
@@ -1684,6 +1790,9 @@ export class EconomyStore {
       const card = getCard(c.cardId);
       if (!card && this.signatureCardById(c.cardId)) {
         throw new EconomyError(`deck "${name}": a signature card plays from its own zone, never from the deck`);
+      }
+      if (!card && zeroDayEntry(c.cardId)) {
+        throw new EconomyError(`deck "${name}": Zero-Day card ${c.cardId} isn't designed yet; it becomes playable when it is (build-order step 2)`);
       }
       if (!card) throw new EconomyError(`deck "${name}": card "${c.cardId}" is not ownable any more`);
       const entry = byCard.get(c.cardId) ?? { card, copies: 0 };
@@ -1865,7 +1974,11 @@ export class EconomyStore {
       const set = knownSet(pack.setCode);
       const seed = options.seed ?? randomInt(2 ** 31);
       const pityBefore = this.pityStatus(ownerId);
-      const roll = rollPack(seed, set, pityBefore, this.prototypesLeft(set.code));
+      // Every pack opens under the live table, whenever it was bought and
+      // whatever its season (owner 2026-10-18, answer 6A); the opening
+      // records which table that was.
+      const odds = LIVE_PACK_ODDS;
+      const roll = rollPack(seed, set, pityBefore, this.prototypesLeft(set.code), odds);
       const at = this.stamp();
       try {
         this.db
@@ -1873,13 +1986,20 @@ export class EconomyStore {
             `INSERT INTO pack_openings (pack_id, owner_id, odds_version, seed, jackpot, pity_json, opened_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
           )
-          .run(pack.packId, ownerId, PACK_ODDS.version, seed, roll.jackpot ? 1 : 0, JSON.stringify({ ...roll.pity, prototypeFallbackGold: roll.prototypeFallbackGold }), at);
+          .run(pack.packId, ownerId, odds.version, seed, roll.jackpot ? 1 : 0, JSON.stringify({ ...roll.pity, prototypeFallbackGold: roll.prototypeFallbackGold }), at);
         this.db.prepare("UPDATE packs SET opened_at = ? WHERE pack_id = ?").run(at, pack.packId);
       } catch (err) {
         refused(err);
       }
+      // Copies held before this pack: by card ("x4 owned") and by
+      // collection entry (the NEW badge; a secret or Glitch card is its own
+      // entry).
       const heldBefore = new Map<string, number>();
-      for (const c of this.collection(ownerId)) heldBefore.set(c.cardId, (heldBefore.get(c.cardId) ?? 0) + 1);
+      const entriesBefore = new Set<string>();
+      for (const c of this.collection(ownerId)) {
+        heldBefore.set(c.cardId, (heldBefore.get(c.cardId) ?? 0) + 1);
+        entriesBefore.add(collectionEntryKey(c));
+      }
       const found = new Map<string, number>();
       const copies = roll.pulls.map((p) => {
         const run = p.prototypeRun ? set.prototypes.find((r) => r.code === p.prototypeRun)! : undefined;
@@ -1894,27 +2014,37 @@ export class EconomyStore {
           runSize: run ? run.runSize : null,
           origin: "pack",
           originRef: `pack:${pack.packId}`,
+          secretCode: p.secret ?? null,
         });
       });
       for (const p of roll.pulls) found.set(p.cardId, (found.get(p.cardId) ?? 0) + 1);
       this.appendLedger(ownerId, null, "packPoints", PACK_POINTS_PER_PACK, "packOpened", pack.packId, at);
-      const cards: OpenedCard[] = roll.pulls.map((p, i) => ({
-        copyId: copies[i]!.copyId,
-        cardId: p.cardId,
-        name: getCard(p.cardId)!.name,
-        rarity: p.rarity,
-        slot: p.slot,
-        finish: p.finish,
-        collectorNumber: p.collectorNumber,
-        prototype: copies[i]!.serial === null ? null : { runCode: copies[i]!.seriesCode!, serial: copies[i]!.serial!, runSize: copies[i]!.runSize! },
-        isNew: (heldBefore.get(p.cardId) ?? 0) === 0,
-        ownedAfter: (heldBefore.get(p.cardId) ?? 0) + found.get(p.cardId)!,
-      }));
+      const cards: OpenedCard[] = roll.pulls.map((p, i) => {
+        const secret = p.secret === undefined ? undefined : set.secrets.find((x) => x.code === p.secret)!;
+        return {
+          copyId: copies[i]!.copyId,
+          cardId: p.cardId,
+          name: secret ? secret.name : getCard(p.cardId)!.name,
+          rarity: p.rarity,
+          slot: p.slot,
+          finish: p.finish,
+          collectorNumber: p.collectorNumber,
+          prototype: copies[i]!.serial === null ? null : { runCode: copies[i]!.seriesCode!, serial: copies[i]!.serial!, runSize: copies[i]!.runSize! },
+          secret: secret ? { code: secret.code, kind: secret.kind, art: secret.art, animated: secret.animated } : null,
+          // A plain card is NEW when no copy of it, in any finish, was held
+          // (as the binder's base place counts); a secret or Glitch card when
+          // its own entry was empty.
+          isNew: collectionEntryKey(copies[i]!).startsWith("card:")
+            ? (heldBefore.get(p.cardId) ?? 0) === 0
+            : !entriesBefore.has(collectionEntryKey(copies[i]!)),
+          ownedAfter: (heldBefore.get(p.cardId) ?? 0) + found.get(p.cardId)!,
+        };
+      });
       return {
         packId: pack.packId,
         ownerId,
         setCode: set.code,
-        oddsVersion: PACK_ODDS.version,
+        oddsVersion: odds.version,
         seed,
         openedAt: at,
         jackpot: roll.jackpot,
@@ -1922,7 +2052,7 @@ export class EconomyStore {
         prototypeFallbackGold: roll.prototypeFallbackGold,
         cards,
         packPoints: PACK_POINTS_PER_PACK,
-        fullReveal: roll.jackpot || roll.pulls.some((p) => p.finish === "gold" || p.finish === "prototype"),
+        fullReveal: roll.jackpot || roll.pulls.some((p) => FULL_REVEAL_FINISHES.includes(p.finish)),
       };
     });
   }
@@ -1982,7 +2112,8 @@ export class EconomyStore {
   /** The owner's pity timers, from opening history: packs in a row (most
    * recent first) with no Full Art or better, and with no Mythic. */
   pityStatus(ownerId: string): PityStatus {
-    const limit = Math.max(PACK_ODDS.pity.fullArtAfter, PACK_ODDS.pity.mythicAfter);
+    const { pity } = LIVE_PACK_ODDS;
+    const limit = Math.max(pity.fullArtAfter, pity.mythicAfter);
     const rows = this.db
       .prepare(
         `SELECT o.opening_no, c.card_id, c.finish
@@ -1994,14 +2125,14 @@ export class EconomyStore {
     const packs = new Map<number, { finish: Finish; rarity: Rarity }[]>();
     for (const r of rows) {
       const pulls = packs.get(num(r.opening_no)) ?? [];
-      if (r.card_id !== null) pulls.push({ finish: str(r.finish) as Finish, rarity: getCard(str(r.card_id))!.rarity });
+      if (r.card_id !== null) pulls.push({ finish: str(r.finish) as Finish, rarity: setCardRarity(str(r.card_id))! });
       packs.set(num(r.opening_no), pulls);
     }
     // Only the last `limit` openings are read, so a count can't pass it;
     // that is enough, since pity is due at the limit.
     let state: PityState = { packsSinceFullArt: 0, packsSinceMythic: 0 };
     for (const pulls of packs.values()) state = nextPity(state, pulls);
-    const next = { fullArt: state.packsSinceFullArt >= PACK_ODDS.pity.fullArtAfter, mythic: state.packsSinceMythic >= PACK_ODDS.pity.mythicAfter };
+    const next = { fullArt: state.packsSinceFullArt >= pity.fullArtAfter, mythic: state.packsSinceMythic >= pity.mythicAfter };
     return { ...state, next };
   }
 
@@ -2024,6 +2155,7 @@ export class EconomyStore {
    * points (the schema refuses an overdraw too). */
   craftCard(ownerId: string, cardId: string): CardCopy {
     const card = getCard(cardId);
+    if (!card && zeroDayEntry(cardId)) throw new EconomyError(`"${cardId}" is a Zero-Day card: craft it with craftSecret`);
     if (!card) throw new EconomyError(`"${cardId}" is not a set card; only set cards can be crafted`);
     return this.transaction(() => {
       const held = this.collection(ownerId).filter((c) => c.cardId === cardId).length;
@@ -2036,6 +2168,118 @@ export class EconomyStore {
       this.appendLedger(ownerId, null, "packPoints", -cost, "craft", copy.copyId, copy.acquiredAt);
       return copy;
     });
+  }
+
+  /** The owner spends pack points on one secret card (owner 2026-10-18,
+   * answer 5A): a secret illustration costs 750, a Zero-Day card 3,000
+   * (config.ts SECRET_CRAFT_PACK_POINTS). Crafting completes a collection,
+   * it doesn't farm one: refused while the owner holds a copy of that secret
+   * card. The copy is crafted, so account-bound like every crafted copy:
+   * played, never sold, never salvaged. A Zero-Day card can be crafted only
+   * once it is designed (build-order step 2); until then it can only be
+   * pulled. */
+  craftSecret(ownerId: string, secretCode: string): CardCopy {
+    const secret = secretCardOf(secretCode);
+    if (!secret) throw new EconomyError(`no secret card "${secretCode}"`);
+    if (secret.kind === "zeroDay" && !getCard(secret.cardId)) {
+      throw new EconomyError(`${secret.code} isn't designed yet (build-order step 2); until it is, it can only be pulled from a pack`);
+    }
+    return this.transaction(() => {
+      if (this.collection(ownerId).some((c) => c.secretCode === secret.code)) {
+        throw new EconomyError(`you already hold ${secret.name} (${secret.code}); crafting makes the one copy a collection needs`);
+      }
+      const cost = SECRET_CRAFT_PACK_POINTS[secret.kind];
+      const have = this.balance(ownerId, "packPoints");
+      if (have < cost) throw new EconomyError(`crafting ${secret.name} (${secret.code}) costs ${cost} pack points; you have ${have}`);
+      const copy = this.grantCopy({
+        ownerId,
+        cardId: secret.cardId,
+        finish: secret.kind === "zeroDay" ? "zeroDay" : "secret",
+        secretCode: secret.code,
+        origin: "crafted",
+      });
+      this.appendLedger(ownerId, null, "packPoints", -cost, "craftSecret", copy.copyId, copy.acquiredAt);
+      return copy;
+    });
+  }
+
+  // ---- the binder and the set checklist (owner 2026-10-16 item 1: "each
+  // is its own collection entry, with its own place in the binder and the
+  // set checklist") ----
+
+  /** One set's binder for an owner: every collection entry in its place,
+   * with the copies held, in five sections (ECONOMY.md "Chase cards"):
+   * the base set (any copy of the card counts, any finish), the secret
+   * cards (illustrations, then Zero-Day), the Glitch versions, the Gold
+   * versions, and the Prototype runs (with the serials held). */
+  binder(ownerId: string, setCode: string): Binder {
+    const set = knownSet(setCode);
+    const held = this.collection(ownerId);
+    const count = (keep: (c: CardCopy) => boolean) => held.filter(keep).length;
+    const section = (title: string, entries: BinderEntry[]): BinderSection => ({
+      title,
+      held: entries.filter((e) => e.owned > 0).length,
+      total: entries.length,
+      entries,
+    });
+    const base = set.cards.map((c) => ({
+      number: c.collectorNumber,
+      kind: "card" as const,
+      cardId: c.cardId,
+      secretCode: null,
+      name: c.name,
+      rarity: c.rarity,
+      owned: count((x) => x.cardId === c.cardId),
+    }));
+    const secrets = set.secrets.map((s) => ({
+      number: s.collectorNumber,
+      kind: s.kind,
+      cardId: s.cardId,
+      secretCode: s.code,
+      name: s.name,
+      rarity: s.rarity,
+      owned: count((x) => x.secretCode === s.code),
+    }));
+    // In the binder's order, the card's own number (the Glitch list is
+    // written by faction and role, not by number).
+    const glitch = set.cards
+      .filter((c) => set.glitch.includes(c.cardId))
+      .map((c) => ({
+        number: c.collectorNumber,
+        kind: "glitch" as const,
+        cardId: c.cardId,
+        secretCode: null,
+        name: c.name,
+        rarity: c.rarity,
+        owned: count((x) => x.cardId === c.cardId && x.finish === "glitch"),
+      }));
+    const gold = set.cards.map((c) => ({
+      number: c.goldNumber,
+      kind: "gold" as const,
+      cardId: c.cardId,
+      secretCode: null,
+      name: c.name,
+      rarity: c.rarity,
+      owned: count((x) => x.cardId === c.cardId && x.finish === "gold"),
+    }));
+    return {
+      setCode: set.code,
+      base: section("Base set", base),
+      secrets: section("Secret cards", secrets),
+      glitch: section("Glitch", glitch),
+      gold: section("Gold", gold),
+      prototypes: set.prototypes.map((r) => ({
+        runCode: r.code,
+        cardId: r.cardId,
+        name: getCard(r.cardId)!.name,
+        runSize: r.runSize,
+        found: this.prototypesFound(r.code),
+        serialsHeld: held
+          .filter((x) => x.seriesKind === "prototype" && x.seriesCode === r.code)
+          .map((x) => x.serial!)
+          .sort((a, b) => a - b),
+      })),
+    };
   }
 
   // ---- matches ----

@@ -59,7 +59,8 @@ export const BULK_OPEN_COUNT = 10;
 export const SIGNATURE_ART_POOL_SIZE = 500;
 
 /**
- * The pack odds table (ECONOMY.md "Rarity and finish" and "Packs"). One
+ * The pack odds table S0-odds-1, live from session 36 to session 39 and kept
+ * so its openings reproduce (ECONOMY.md "Rarity and finish" and "Packs"). One
  * versioned table drives both the game and the published odds; every
  * opening records the version it used. Change a number here only together
  * with a new `version`, so an old opening still names the table it rolled
@@ -90,6 +91,58 @@ export const PACK_ODDS = {
   prototypeBonus: 1 / 1000,
   pity: { fullArtAfter: 10, mythicAfter: 40 },
 } as const;
+
+/**
+ * The pack odds table S0-odds-2: the chase cards (owner 2026-10-16, "more
+ * collectable chase cards", items 2-4). Proposed and measured in session 38
+ * (`progress/pack-sim-002.txt`), approved as proposed 2026-10-18 (answer
+ * 4A), live since session 39. What stays from S0-odds-1: the 5 slots, a
+ * Mythic in 1 Rare slot in 8, only the shine slot rolling a finish, the
+ * Jackpot pack at 1 in 2,000 (Foil or better throughout), the Prototype
+ * bonus at 1 in 1,000, both pity timers at 10 and 40.
+ *
+ * What changes: the shine slot's finish table gains Glitch, secret
+ * illustrations and Zero-Day (about 1 pack in 500), and each special
+ * version draws its card from a chosen list instead of the slot's
+ * 60/25/12/3 rarity weights, so Full Art and up land on cards people want.
+ * Foil stays on any card.
+ */
+export const PACK_ODDS_V2 = {
+  version: "S0-odds-2",
+  slots: PACK_ODDS.slots,
+  mythicInRareSlot: PACK_ODDS.mythicInRareSlot,
+  /** Standard and Foil shine cards: any card, by these rarity weights (as S0-odds-1). */
+  shineRarity: PACK_ODDS.shineRarity,
+  /** The shine slot's finish, in percent; Standard is what's left (53.6). */
+  shineFinish: { foil: 28, fullArt: 9, glitch: 4, altArt: 3, secret: 1.5, gold: 0.7, zeroDay: 0.2 },
+  /** Which cards a special version lands on: rarity weights over the set's
+   * cards (Full Art, Alt Art, Gold), or a chosen list (Glitch, secrets). */
+  fullArtRarity: { Uncommon: 40, Rare: 45, Mythic: 15 },
+  altArtRarity: { Rare: 75, Mythic: 25 },
+  goldRarity: { Rare: 70, Mythic: 30 },
+  jackpotPack: PACK_ODDS.jackpotPack,
+  prototypeBonus: PACK_ODDS.prototypeBonus,
+  pity: PACK_ODDS.pity,
+} as const;
+
+export type PackOdds = typeof PACK_ODDS | typeof PACK_ODDS_V2;
+
+/** The table every pack opened now rolls against, whatever its season
+ * (owner 2026-10-18, answer 6A: older seasons' packs stay openable). */
+export const LIVE_PACK_ODDS: PackOdds = PACK_ODDS_V2;
+
+/** Every table ever live, by version, so a logged opening can be rolled
+ * again from its seed. */
+export const PACK_ODDS_TABLES: ReadonlyMap<string, PackOdds> = new Map<string, PackOdds>([
+  [PACK_ODDS.version, PACK_ODDS],
+  [PACK_ODDS_V2.version, PACK_ODDS_V2],
+]);
+
+/** Pack points to craft one secret card (owner 2026-10-18, answer 5A):
+ * a secret illustration 750, a Zero-Day card 3,000. Measured in
+ * `progress/pack-sim-002.txt`: about 5 months to the master set and 7 to
+ * the full set for a dedicated owner. */
+export const SECRET_CRAFT_PACK_POINTS = { illustration: 750, zeroDay: 3000 } as const;
 
 /** Pack points each rename after an agent's first costs (owner 2026-10-17,
  * option D: naming at creation and the first rename are free, every rename

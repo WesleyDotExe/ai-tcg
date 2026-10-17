@@ -33,7 +33,7 @@ say();
   const anyFinish: Record<string, number> = {};
   let cards = 0;
   for (let seed = 0; seed < N; seed++) {
-    const r = rollPack(seed, set, { packsSinceFullArt: 0, packsSinceMythic: 0 }, fullRuns());
+    const r = rollPack(seed, set, { packsSinceFullArt: 0, packsSinceMythic: 0 }, fullRuns(), PACK_ODDS);
     if (r.pulls[3]!.rarity === "Mythic") mythicRare++;
     shine[r.pulls[4]!.finish] = (shine[r.pulls[4]!.finish] ?? 0) + 1;
     shineRarity[r.pulls[4]!.rarity] = (shineRarity[r.pulls[4]!.rarity] ?? 0) + 1;
@@ -79,7 +79,7 @@ say();
   for (let o = 0; o < OWNERS; o++) {
     let pity: PityState = { packsSinceFullArt: 0, packsSinceMythic: 0 };
     for (let p = 0; p < PACKS; p++) {
-      const r = rollPack(seed++, set, pity, fullRuns());
+      const r = rollPack(seed++, set, pity, fullRuns(), PACK_ODDS);
       if (r.pity.fullArt) fullArtFired++;
       if (r.pity.mythic) mythicFired++;
       pity = nextPity(pity, r.pulls);
@@ -106,7 +106,7 @@ say();
   const snapshots: Map<string, number>[] = [];
   let gold = 0;
   for (let seed = 0; seed < N; seed++) {
-    const r = rollPack(5_000_000 + seed, set, { packsSinceFullArt: 0, packsSinceMythic: 0 }, left);
+    const r = rollPack(5_000_000 + seed, set, { packsSinceFullArt: 0, packsSinceMythic: 0 }, left, PACK_ODDS);
     const bonus = r.pulls[5];
     if (bonus?.prototypeRun) left.set(bonus.prototypeRun, left.get(bonus.prototypeRun)! - 1);
     else if (bonus) gold++;
@@ -141,7 +141,7 @@ say();
     let packs = 0;
     let allMythicsAt = 0;
     while (seen.size < set.cards.length) {
-      const r = rollPack(seed++, set, pity, fullRuns());
+      const r = rollPack(seed++, set, pity, fullRuns(), PACK_ODDS);
       pity = nextPity(pity, r.pulls);
       packs++;
       for (const p of r.pulls) {

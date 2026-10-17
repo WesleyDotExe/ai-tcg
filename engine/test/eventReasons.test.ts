@@ -21,6 +21,7 @@ const builders = [buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck
 test("every game over says why as data, consistent with the winner and the final health", async () => {
   const kinds = new Set<string>();
   let fizzles = 0;
+  let redirectFizzles = 0;
   for (let seed = 1; seed <= 48; seed++) {
     const a = builders[seed % 4]!("p1", "A");
     const b = builders[(seed >> 2) % 4]!("p2", "B");
@@ -41,14 +42,31 @@ test("every game over says why as data, consistent with the winner and the final
     for (const e of state.log) {
       if (e.type !== "fizzle" || !e.cause) continue;
       fizzles += 1;
-      expect(e.reason.startsWith(`${e.attacker}'s attack fizzles`)).toBe(true);
-      expect(e.attackerId).toBeTruthy();
+      if (e.cause === "attackerGone" || e.cause === "targetGone") {
+        expect(e.reason.startsWith(`${e.attacker}'s attack fizzles`)).toBe(true);
+        expect(e.attackerId).toBeTruthy();
+      } else {
+        // An Intercept Routine redirect that did nothing (session 39).
+        redirectFizzles += 1;
+        expect(e.reason.startsWith(`${e.source}`)).toBe(true);
+        expect(e.sourceId).toBeTruthy();
+        if (e.cause === "alreadyAimed") {
+          expect(e.reason).toBe(`${e.source}: ${e.attacker}'s attack is already aimed at ${e.target}`);
+          expect(e.attackerId && e.targetRef).toBeTruthy();
+        } else {
+          expect(e.attacker).toBeUndefined();
+        }
+      }
     }
   }
   expect(kinds.has("healthDepleted")).toBe(true);
   // Attack fizzles are rare under these agents; the fields are checked on
   // every one that happens, and the crafted cases below always make one.
   expect(fizzles).toBeGreaterThanOrEqual(0);
+  // Every fizzle with a cause was one of the four kinds above; redirect
+  // fizzles do happen in these 48 games (Null vs Aegis seed 3 was the
+  // render lane's find).
+  expect(redirectFizzles).toBeGreaterThan(0);
 });
 
 test("an attack whose target or attacker left play fizzles with its cause and attacker as data", () => {
