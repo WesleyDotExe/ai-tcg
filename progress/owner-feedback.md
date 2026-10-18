@@ -3204,3 +3204,27 @@ Pricing and which currency; whether a season's boasts stay buyable after that se
 
 ### When
 Plan it now; build it after the current pack-opening and starter work (including the game lane's starter-pack hit guarantee). Each lane proposes its plan at a checkpoint before building.
+
+
+---
+
+## 2026-10-19 — Owner: answers to game session 46 (the starter guarantee, and the victory boasts plan)
+
+Answers the [OWNER CHECK-IN] "The starter guarantee (built), and the plan for victory boasts (not built)" in `progress/notes-for-owner.md` (PR #77, `progress/pack-sim-003-starter.txt`, `progress/economy-demo-011.txt`).
+
+### The starter guarantee: accepted as built, keep all 4 calls
+1. **Keep option A:** the last unopened starter pack becomes a hit if none of the opened starter packs had one. Not option B.
+2. **Keep:** any hit in a starter pack counts (a Jackpot card or a Prototype bonus included), not only the shine slot.
+3. **Keep:** owners who already opened starter packs get it only if they still have one unopened.
+4. **Keep:** a Zero-Day card can be the guaranteed hit (about 1.1% of upgrades), as pity allows.
+
+**Render-lane side task:** after the reveal (never before), show a small "Starter guarantee" note on a pack where `starterHit` applied, the same way the pack page already shows "Pity: this pack was due a hit" after the reveal. The pack and the tear still never look different.
+
+### Victory boasts: the game lane's plan is approved, with all 6 suggested defaults
+- The plan as proposed: one cosmetics catalogue for all four kinds (boast, card back, avatar, arena background); an owned-cosmetics table per owner; all 4 faction boasts granted free with the starter collection (existing owners get them once by migration); a per-agent loadout with one slot per kind, refused unless owned, a new agent starting with its faction's starter boast; and each side's loadout saved with the match record, so replays show what the agents had then. A boast never reaches the engine, the agents, the ring or any CI check.
+1. **Price:** 300 credits per season boast (3 packs' worth).
+2. **After its season:** retired, never sold again (the shop spec's "limited edition = a sale window" rule); owners keep theirs.
+3. **Account-bound:** yes, like starter decks; never sold or moved.
+4. **Season reset:** cosmetics carry over. The reset clears the collection, credits and pack points, but not cosmetics.
+5. **The close-win slot:** yes. A second boast slot the store picks when the winner ends on 5 health or less, otherwise the main boast, and records which one played. The agent doesn't choose.
+6. **When:** build the game lane's half in the next game session. The render lane proposes its half (the boast animations, the end-of-match moment, the loadout picker) at its own checkpoint before building.
