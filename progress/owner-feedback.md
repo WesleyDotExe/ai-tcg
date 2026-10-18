@@ -2989,3 +2989,30 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ### Render lane: small side task
 Show both modes on a modal card's face (Zero-Day cards today, and future "choose one" cards), with each mode's name and rules text. Today a Zero-Day card's face shows no rules text, because the face only reads `abilities`, which is empty on a modal card. Do this alongside the 2026-10-18 pack-opening changes (full-size art, tap-driven ten-pack), in the pack page, the summary and any card viewer.
+
+
+---
+
+## 2026-10-18 — Owner: answers to render session 26, and a new feature: hold and drag a card to tilt it (parallax)
+
+### Render session 26: keep all 9, as built
+Owner decisions on the 9 calls in `progress/render/checkpoints.md` (2026-10-18, "Pack opening feel notes: full-size art for the top finishes, a tap-driven ten-pack, modal card faces").
+1. **Keep:** Glitch and Alt Art are full bleed too.
+2. **Keep:** the fan tap tears pack 1 straight away.
+3. **Keep:** every face-down card is turned before a tap moves on; a tap on the row turns cards left to right.
+4. **Keep:** the proposed tap timings (`BULK_TAP_TIMINGS`), including the 0.6 s hold after a hit.
+5. **Keep:** Auto is remembered per viewer and starts off; the speed buttons show only while Auto is on.
+6. **Keep:** in Auto, a big pull plays its full reveal by itself.
+7. **Keep:** the card viewer (tap a summary tile).
+8. **Keep:** long rules text shrinks (down to 68%) rather than being cut off.
+9. **Keep:** the modal face layout (CHOOSE ONE, each mode named in bold with an accent bar).
+
+### New feature: hold and drag a card to tilt it (parallax)
+Once a card is revealed (in a single-pack reveal, a big pull, and the card viewer), the owner can **press and hold the card, then drag** to tilt it, like holding a real card up to the light (the Pocket-style card handling).
+- **The tilt:** while held, the card tilts in 3D towards the finger or pointer, side to side and up and down (propose a maximum, for example about 15°). Letting go springs it back flat smoothly.
+- **The parallax:** the layers move at different depths as it tilts. For example, the art shifts slightly inside the frame against the tilt, while the frame, text and serial plate stay on the surface, so the art looks like it sits behind a window. Full-bleed finishes get the strongest effect.
+- **The shine follows the tilt:** the finish shaders (Foil holo, Gold sheen, Glitch, secret, Zero-Day) respond to the drag the same way they respond to device tilt today.
+- **Tap versus hold:** a quick tap still does what it does now (turn or move on). Only a press-and-hold or a drag tilts the card, and releasing never counts as a tap. Propose the threshold (for example, a hold over about 0.2 s or a move of a few pixels).
+- **Input:** works with touch and mouse, at phone and desktop sizes. Respect reduced-motion settings (a smaller tilt, no spring).
+- **Art:** with placeholder art, a simple art-behind-the-frame depth is enough. When real art arrives, the art pass can supply layered art (background and foreground) for a deeper effect; note this for the art pass rather than building it now.
+- **When:** build this alongside slice 3 (the first-time flow), or just before it. Show it with phone and desktop recordings at the checkpoint.
