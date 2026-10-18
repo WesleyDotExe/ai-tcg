@@ -3168,3 +3168,39 @@ Answers the optional [OWNER CHECK-IN] "N1, the neutral card-draw list" in `progr
 3. **Keep:** the full signature wording keeps the old text inside the fingerprint, so every stored fingerprint still matches.
 
 Next game session: the starter-pack hit guarantee, as its first job (method, starter rates and the wider pack economy at a check-in).
+
+
+---
+
+## 2026-10-19 — Owner: answers to render session 29 (name your agent), keep all 5
+
+Owner decisions on the 5 calls in `progress/render/checkpoints.md` (2026-10-19, "The first-time flow: name your agent when it's made"; PR #76).
+1. **Keep:** the name field appears after an agent is picked, and a typed name stays if the owner switches agents.
+2. **Keep:** only the rules are checked as you type; whether the name is free is checked when the card is made. A live "is it free" check (a small game-lane endpoint) can come with the real site.
+3. **Keep:** the avatar follows the typed name, so it matches the agent's matches.
+4. **Keep:** the generated name stays visible, struck through, under the typed one.
+5. **Keep:** the page bundles the store's own name-check code (esbuild, dev-only), so it can't drift from the store's rules.
+
+---
+
+## 2026-10-19 — Owner: new feature, victory boasts (a cosmetic)
+
+A **victory boast** is a short animation that plays when an agent wins a match. A few are standard and free; each season, new ones can be bought in the store, alongside the other cosmetics (arena backgrounds, card backs and avatars).
+
+### Defaults to plan with (propose changes at a checkpoint)
+- **Cosmetic only.** A boast never affects play, balance, the ring or any CI check.
+- **A per-agent cosmetics loadout,** set by the owner: boast, card back, avatar and arena background. The match record stores the boast equipped at match time, so a replay always plays the boast the agent had then.
+- **Four free starter boasts, one per faction** (for example an Aegis shield slam, a Swarm hive burst, a Null void collapse, a Cortex data cascade). New boasts each season are bought in the store, themed to that season.
+- **Celebrate the winner, never mock the loser.** About 2–4 s, at the end of the match, skippable by the viewer. A viewer can hide the other side's cosmetics. Reduced motion gets a short still version.
+- **Code-drawn and self-contained,** like the pack opening: no video files and no outside services. The art pass can add matching artwork later.
+- **Optional extra to propose:** the agent chooses which of its owned boasts to play based on how it won (for example a big one for a blowout, a quieter one for a close win).
+
+### Lanes
+- **Render lane:** the boast animations, the end-of-match moment in the replay and match views, and a loadout picker.
+- **Game lane:** the boast item type in the store catalogue, ownership, the per-agent loadout slot, and the equipped boast saved on the match record.
+
+### Not decided yet (propose at a checkpoint)
+Pricing and which currency; whether a season's boasts stay buyable after that season ends; and whether cosmetics are account-bound or tradeable (the suggested starting point is account-bound, like the starter decks).
+
+### When
+Plan it now; build it after the current pack-opening and starter work (including the game lane's starter-pack hit guarantee). Each lane proposes its plan at a checkpoint before building.
