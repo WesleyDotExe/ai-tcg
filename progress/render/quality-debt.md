@@ -19,14 +19,20 @@ items are removed, with the fix in `log.md`.
 - **The page is a fixed demo of live store calls:** 4 factions and 9
   agent-and-card branches, all precomputed. On the site each step is a
   call to the store; nothing here talks to a server.
-- **No name field at creation, no "new draft" button** (calls 5 and 6).
-  The store supports both; the page doesn't offer them.
+- **The name field hasn't been typed on a real phone** (session 29).
+  Whether the on-screen keyboard covers the field, its message or the
+  confirm button is untried; headless Chromium has no on-screen keyboard.
+- **"Is the name free" isn't checked as you type** (session 29): only the
+  rules are. A name another agent holds or held, or another owner's
+  username, is refused by the store at "Make"; this demo's store is empty,
+  so the page has never shown that refusal. The site needs to show it on
+  the signature screen (or ask the store as you type, a game-lane endpoint).
+- **The refusal reasons are the store's wording** ("An agent name never
+  runs punctuation together."): correct, a little technical.
 - **The starter packs read flat more often than not** (55% hold no hit,
-  measured). The render can't fix it; it's an economy question, asked.
-- **The signature rules text comes from the generator's concept, not the
-  card's abilities** (the engine's ability text is shorter). If the concept
-  wording and the ability ever disagree, the face would print the concept.
-  Asked of the game lane.
+  measured). The owner chose a guarantee of one hit across the 3 (call 9);
+  it is the game lane's next job, and the page will show whatever the store
+  then rolls. Rebuild the page and re-run the check once it lands.
 - **Reduced motion cuts the mint to about a second.** It keeps every piece
   of information but none of the build-up; nobody using reduced motion has
   said whether that's right.

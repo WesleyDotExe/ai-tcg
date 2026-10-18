@@ -1,0 +1,11 @@
+Render session 29: first-time-check.mjs <out> render/output/first-time.html video v2-s29 (typed names), then the session-28 mode (blank field).
+desktop: pass (faction Swarm, agent Coiljackal's Croupier typed as "Night Shift 99", card Turboheron's Denim Rave; mint 7428 ms tap-to-free, beats gather@19 ward@1195 forge@3608 stamp@4906 settle@6133 free@7425; lean [15,15]; ward lit 2217)
+phone: pass (faction Aegis, agent Shellfixer's Sleepless Flywheel typed as "Bit by Bit", card Fluxbadger's Obsidian Torrent; mint 7457 ms tap-to-free, beats gather@22 ward@1149 forge@3640 stamp@4934 settle@5789 free@7454; lean [15,15]; ward lit 1684)
+phone-reduced: pass (faction Null, agent Laserferret's Turbo Champion, card Mainframe Key of the Blackout; mint 954 ms tap-to-free, beats gather@17 ward@99 forge@144 stamp@149 settle@856 free@887; lean [6,6]; ward lit 3980)
+all pass
+
+session-28 mode (no name typed):
+desktop: pass (faction Swarm, agent Coiljackal's Croupier, card Turboheron's Denim Rave; mint 7496 ms tap-to-free, beats gather@19 ward@1154 forge@3699 stamp@4997 settle@5987 free@7519; lean [15,15]; ward lit 2415)
+phone: pass (faction Aegis, agent Shellfixer's Sleepless Flywheel, card Fluxbadger's Obsidian Torrent; mint 7731 ms tap-to-free, beats gather@10 ward@1151 forge@3900 stamp@5196 settle@6004 free@7716; lean [15,15]; ward lit 1707)
+phone-reduced: pass (faction Null, agent Laserferret's Turbo Champion, card Mainframe Key of the Blackout; mint 926 ms tap-to-free, beats gather@13 ward@89 forge@138 stamp@152 settle@796 free@852; lean [6,6]; ward lit 3058)
+all pass

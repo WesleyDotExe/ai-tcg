@@ -7,6 +7,52 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-19 — The first-time flow: name your agent when it's made — AWAITING FEEDBACK
+
+Your call 5 on slice 3. Open `render/output/first-time.html`, go through to "Generate your agent", pick one, and type a name.
+
+**What this delivers:**
+- **A name field on the agent screen.** It appears once you pick an agent, as a terminal prompt ("> ") under the three dossiers, with the agent's generated name as its placeholder. Leave it blank and the agent keeps its generated name.
+- **The store's own rules, checked as you type.** The page doesn't copy the rules. It runs the economy store's actual name-check code, bundled into the page: 3 to 32 characters, letters, digits, spaces and ' . - _, no staff or game names ("TheRealAdmin", "Support Desk"), no blocked words. Repeated words are fine ("Static Static"), as you decided. Extra spaces are tidied the way the store tidies them ("  Night   Shift 99 " becomes "Night Shift 99").
+  - A refused name turns the field red, shows the store's own reason ("An agent name can't pose as staff or the game ("admin")."), and the button reads "Name not allowed" and can't be pressed.
+  - A good name shows "OK Night Shift 99 follows the name rules. The store checks no other agent has it when the card is made." The button reads "Pick Night Shift 99".
+  - "Keep generated" clears it.
+- **The name is used everywhere after that.** The picked dossier shows the typed name with the generated one struck through under it, and its avatar is redrawn for the new name. The new name is then on the signature screen ("NIGHT SHIFT 99'S SIGNATURE CARD"), in the mint's terminal, in the made card's flavour line ("Under Night Shift 99's eye, every unit grows."), and on the ready screen. The store prints the flavour line with the name the agent is created with; the page shows exactly what it prints (tested against the store).
+- **The signature card prints its own rules text.** The game lane fixed the ability text at the source (session 45), so the face now reads the card's abilities, not the generator's concept. Keyword-only cards now print "Barrier" like every other card, not "Barrier.".
+- **Three bugs from slice 3, found by this session's checks and fixed:**
+  - **A pick couldn't be changed.** On the faction, agent and card screens, the plates you didn't pick vanished (a clash with the pack page's full-screen dimmer style), so you couldn't change your mind. Now they stay in place, dimmed, and can be picked.
+  - **On a phone the confirm button could be untappable** once the page was scrolled to the bottom: the pack page's empty hint strip sat over it and caught the tap.
+  - **After the packs, the flow's screens kept the last pack's footer** ("seed 103, odds S0-odds-2"). They now show the sign-up's own footer.
+
+**Evidence:**
+- **Recordings:** `progress/render/evidence/v2-s29-first-time-desktop.webm` and `v2-s29-first-time-phone.webm`, the whole flow by hand, with a name typed (by keyboard on desktop, after a tap on the phone).
+- **Stills** (`v2-s29-*-{desktop,phone}.jpg`): a refused name, a typed name, the signature screen, the settled mint and the ready screen, all under the typed name.
+- **Browser check** (`first-time-check.mjs`; output `first-time-check-s29.txt`): the same 3 runs as slice 3. Desktop and phone now type a name; reduced motion leaves it blank. All pass. New checks:
+  - the field appears after a pick, with the generated name;
+  - a tap focuses it on the phone;
+  - a staff name is refused with the store's reason and can't be confirmed;
+  - "Keep generated" is readable and works;
+  - a good name renames the dossier and redraws its avatar;
+  - the name is on every later screen and in the card's flavour line, and the generated one is gone from the card;
+  - on all three pick screens a pick can be changed and the other plates stay visible.
+  
+  Slice 3's own runs (no name typed) still pass.
+- **Store transcript:** `v2-s29-first-time-transcript.txt` ends with 12 typed names played through `confirmAgentDraft`: what the store made, or its refusal.
+- **Tests:** render 407 (+5). The page's bundled rules agree with the store's on about 50 names, and every kind of refusal appears among them. For each name the store accepts, the page shows the agent name and flavour line the store made. For each name it refuses, the page refuses with the same reason. The avatar is the replay's own. Two mutation checks fail the tests: leaving the flavour line unchanged, and a check that only looks at length.
+
+**Decisions you may want to overrule:**
+1. **The field appears after you pick an agent**, not before, and a name you typed stays if you switch to another agent. Alternative: a field on each dossier.
+2. **Only the rules are checked as you type. Whether the name is free is checked when the card is made.** A name another agent has or had, or another owner's username, needs the store's database. On the site the store refuses it at "Make" (and the page would say so). This demo's store is empty, so that never happens here. Alternative: the site asks the store as you type (a small game-lane endpoint).
+3. **The avatar follows the typed name.** Avatars are drawn from the agent's name, and its matches will draw it from the new name, so the pick screen shows that one. Alternative: keep the generated name's avatar (but then the matches would look different).
+4. **The generated name stays visible, struck through**, under the typed one on the dossier, so you can see what you replaced. Alternative: replace it outright.
+5. **The page ships the store's own code for the check**, bundled at build time (a new dev-only tool for the render lane, esbuild, which the repo already had as a sub-dependency). This means the page can't drift from the store's rules. Alternative: a hand copy of the rules (smaller, but it can drift).
+
+**Thin spots (in the debt list):** not typed on a real phone (whether the on-screen keyboard hides the field or the button is untried); the "is it free" check is not live (call 2); the refusal reasons are the store's wording, which is a bit technical.
+
+**Next:** your call on these; then the render debt list (the turn-cap ending and the momentum gauge's pending threat).
+
+---
+
 ## 2026-10-18 — Pack opening, slice 3: the first-time flow, and the signature card is made in front of you — AWAITING FEEDBACK
 
 Slice 3 of your pack-opening plan. Open `render/output/first-time.html`, press Begin, and go all the way through: pick a faction, open the 3 starter packs, pick an agent, pick its card, and watch the card being made. Every screen plays back what the economy store returned for that choice; nothing on the page rolls anything.

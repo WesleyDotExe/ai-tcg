@@ -10,17 +10,23 @@
 //     the card is made, the menu option's full rules text;
 //  3. the mint: its terminal prints the store's values, its beats run in
 //     order, and it lasts what the checkpoint proposes;
-//  4. the page ships the flow only when asked; the pack page is unchanged.
+//  4. the page ships the flow only when asked; the pack page is unchanged;
+//  5. (session 29) the name field: the page runs the store's own name
+//     rules (bundled), and what it shows for a typed name (the agent's
+//     name, the card's flavour line, the avatar) is what confirmAgentDraft
+//     makes.
 import { describe, expect, it } from "vitest";
 import { SHIPPED_DECK_LISTS, generateSignatureCandidates } from "@ai-tcg/engine";
-import { signatureArtRef, STARTER_PACKS } from "@ai-tcg/economy";
-import { FIRST_TIME_FACTIONS, FIRST_TIME_SEEDS, MINT_TIMINGS, agentChoices, factionStart, firstTimeData, printedText, type AgentChoice, type MintedSignature, type SignatureChoice } from "../src/firstTime.js";
+import { signatureArtRef, STARTER_PACKS, customAgentNameProblem, tidyAgentName } from "@ai-tcg/economy";
+import { FIRST_TIME_FACTIONS, FIRST_TIME_SEEDS, MINT_TIMINGS, SAMPLE_TYPED_NAMES, agentChoices, factionStart, firstTimeData, typedNameResults, type AgentChoice, type MintedSignature, type SignatureChoice } from "../src/firstTime.js";
+import { nameRulesSource } from "../src/nameRules.js";
+import { avatarSvg } from "../src/avatar.js";
 import { FIRST_TIME_PURE_SOURCE } from "../src/firstTimePage.js";
 import { PACK_PAGE_PURE_SOURCE, renderPackOpeningHtml } from "../src/packPage.js";
 import { PACK_FX_SHADERS } from "../src/packFx.js";
 import { visualSeedFor } from "../src/cardVisual.js";
 
-const pure = new Function(`${PACK_PAGE_PURE_SOURCE}\n${FIRST_TIME_PURE_SOURCE}; return { packFaceHtml, packFullBleed, packFinishLayerName, packFinishLabel, ftMintLines, ftBoundLine, ftMintSchedule, ftCandidate, ftMinted, ftConceptTail, ftRailIndex, FT_RAIL };`)() as {
+const pure = new Function(`${PACK_PAGE_PURE_SOURCE}\n${nameRulesSource()}\n${FIRST_TIME_PURE_SOURCE}; return { packFaceHtml, packFullBleed, packFinishLayerName, packFinishLabel, ftMintLines, ftBoundLine, ftMintSchedule, ftCandidate, ftMinted, ftConceptTail, ftRailIndex, FT_RAIL, ftNameCheck, ftNamedMint, FTN };`)() as {
   packFaceHtml: (c: unknown, opts: { settled: boolean }, setCode: string) => string;
   packFullBleed: (reveal: string) => boolean;
   packFinishLayerName: (reveal: string) => string;
@@ -33,7 +39,17 @@ const pure = new Function(`${PACK_PAGE_PURE_SOURCE}\n${FIRST_TIME_PURE_SOURCE}; 
   ftConceptTail: (name: string, concept: string) => string;
   ftRailIndex: (step: string) => number;
   FT_RAIL: string[];
+  ftNameCheck: (n: Names, generated: string, raw: string) => { name: string; typed: boolean; problem: string | null };
+  ftNamedMint: (m: MintedSignature, generated: string, name: string) => MintedSignature;
+  FTN: Names;
 };
+interface Names {
+  customAgentNameProblem: (s: string) => string | undefined;
+  tidyAgentName: (s: string) => string;
+  avatarSvg: (s: string) => string;
+  AGENT_NAME_MIN_LENGTH: number;
+  AGENT_NAME_MAX_LENGTH: number;
+}
 
 const data = firstTimeData();
 
@@ -146,17 +162,20 @@ describe("the signature card's face", () => {
     expect(html).toContain(choice.face.name.replace(/'/g, "&#39;"));
   });
 
-  it("prints the menu option's whole rules text, trigger and condition included", () => {
-    // The engine's built ability text is shorter ("Draw a card."); the
-    // generator's concept carries the option's own wording.
-    for (let seed = 1; seed <= 60; seed++) {
-      for (const c of generateSignatureCandidates(seed, "Probe Agent", { agentNames: new Set(), cardNames: new Set() })) {
-        const t = printedText(c.name, c.concept);
-        expect(t, c.concept).not.toMatch(/^cost/);
-        expect(t.length, c.concept).toBeGreaterThan(5);
-        expect(t.endsWith("."), c.concept).toBe(true);
-        expect(pure.ftConceptTail(c.name, c.concept)).toBe(`cost ${c.spec.tier}, ${c.spec.attack}/${c.spec.health}. ${t}`);
-      }
+  it("prints the card's own rules text, the menu option's full wording (game session 45)", () => {
+    // Every made card's face text is its built abilities' text (keywords as
+    // every other card prints them), and the pick screen shows the same.
+    for (const a of data.agents) {
+      a.signatures.forEach((c, i) => {
+        const m = a.minted[i]!;
+        expect(c.face.text).toEqual(m.face.text);
+        expect(m.face.text.join(" ").length, c.concept).toBeGreaterThan(5);
+        // The pick screen's caption still reads from the concept: cost and
+        // stats, then the same wording (a keyword-only card prints it bare).
+        const tail = pure.ftConceptTail(c.name, c.concept);
+        expect(tail.startsWith(`cost ${m.face.cost}, `), tail).toBe(true);
+        expect(tail.replace(/\.$/, "").endsWith(m.face.text.join(" ").replace(/\.$/, "")), `${tail} | ${m.face.text.join(" ")}`).toBe(true);
+      });
     }
     expect(data.agents.flatMap((x) => x.signatures).some((s) => /^(On arrival|At the start|When it)/.test(s.face.text[0]!))).toBe(true);
   });
@@ -230,5 +249,75 @@ describe("the page", () => {
     const d = JSON.parse(json);
     expect(d.flow.agents[0].minted[0].collectorNumber).toBe("PR-001");
     expect(flowPage).not.toMatch(/rollPack|generateSignatureCandidates|startAgentDraft\(/);
+  });
+});
+
+describe("the name field (render session 29)", () => {
+  const generated = data.agents[0]!.name;
+  // Names an owner might type: the samples, each generated agent name, and
+  // mangled versions of them (case, spaces, punctuation, length).
+  const corpus = new Set<string>(SAMPLE_TYPED_NAMES);
+  for (const a of data.agents) for (const n of [a.name, a.name.toUpperCase(), ` ${a.name}  `, a.name.replace(/ /g, "_"), a.name.replace(/ /g, ".."), `${a.name} Admin`, `${a.name}${"z".repeat(30)}`]) corpus.add(n);
+  for (const w of ["mod", "Mod Squad", "modem", "System Shock", "Systemic", "Dev Null", "Devo", "gm", "Sussex Lane", "Cumulus", "Grapevine", "Analog Kid", "kys", "aitcg fan", "A I T C G", "Ünicode", "Аdmin", "Tab\tName", "99", "a1", "abc", "o'Neil", "O''Neil", "_lead", "end.", "Mid-Life_Crisis"]) corpus.add(w);
+
+  it("runs the store's own rules: the bundle agrees with economy/src/agentNames.ts on every name", () => {
+    expect(pure.FTN.AGENT_NAME_MIN_LENGTH).toBe(3);
+    expect(pure.FTN.AGENT_NAME_MAX_LENGTH).toBe(32);
+    for (const n of corpus) {
+      expect(pure.FTN.tidyAgentName(n), n).toBe(tidyAgentName(n));
+      expect(pure.FTN.customAgentNameProblem(n), n).toBe(customAgentNameProblem(n));
+    }
+    // The corpus reaches every kind of refusal and some allowed names.
+    const kinds = new Set([...corpus].map((n) => customAgentNameProblem(n)?.split(" ").slice(0, 5).join(" ") ?? "ok"));
+    expect(kinds.size).toBeGreaterThanOrEqual(8);
+  });
+
+  it("shows for a typed name exactly what confirmAgentDraft makes (name, flavour line) or refuses", () => {
+    const results = typedNameResults([...corpus].filter((n) => n.trim() !== generated));
+    const made = data.agents[0]!.minted[0]!;
+    let refused = 0, renamed = 0;
+    for (const r of results) {
+      const c = pure.ftNameCheck(pure.FTN, generated, r.typed);
+      if (r.refused) {
+        refused++;
+        expect(c.problem, r.typed).not.toBeNull();
+        expect(c.problem!.toLowerCase(), r.typed).toBe(`${r.refused}.`.toLowerCase());
+        continue;
+      }
+      expect(c.problem, r.typed).toBeNull();
+      expect(c.name, r.typed).toBe(r.agentName);
+      const shown = pure.ftNamedMint(made, generated, c.name);
+      expect(shown.agentName).toBe(r.agentName);
+      expect(shown.face.flavor, r.typed).toBe(r.flavor);
+      expect(shown.face.name).toBe(made.face.name);
+      expect(shown.face.text).toEqual(made.face.text);
+      if (c.typed) renamed++;
+    }
+    expect(refused).toBeGreaterThan(10);
+    expect(renamed).toBeGreaterThan(10);
+    // The generated name is in the flavour line, so a typed name shows.
+    expect(made.face.flavor).toContain(generated);
+  });
+
+  it("keeps the generated name when the field is blank or repeats it, and leaves the made card as it was", () => {
+    for (const raw of ["", "   ", generated, `  ${generated} `]) {
+      const c = pure.ftNameCheck(pure.FTN, generated, raw);
+      expect(c).toEqual({ name: generated, typed: false, problem: null });
+    }
+    const m = data.agents[0]!.minted[0]!;
+    expect(pure.ftNamedMint(m, generated, generated)).toBe(m);
+  });
+
+  it("draws the avatar a typed name's matches will draw (the replay's own avatar code)", () => {
+    for (const n of ["Bit by Bit", "Night Shift 99", data.agents[1]!.name]) expect(pure.FTN.avatarSvg(n)).toBe(avatarSvg(n));
+    for (const a of data.agents) expect(a.avatar).toBe(avatarSvg(a.name));
+  });
+
+  it("ships the bundled rules only on the first-time page", () => {
+    const flowPage = renderPackOpeningHtml({ title: "t", packs: [], flow: data });
+    const packPage = renderPackOpeningHtml({ title: "t", packs: [] });
+    expect(flowPage).toContain("var FTN");
+    expect(flowPage).toContain('id="ft-name"');
+    expect(packPage).not.toContain("var FTN");
   });
 });

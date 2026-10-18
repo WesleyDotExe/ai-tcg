@@ -26,7 +26,7 @@
 // Read-only on the economy and the engine.
 
 import { SHIPPED_DECK_LISTS, getCard, type DeckFaction } from "@ai-tcg/engine";
-import { EconomyStore, LIVE_PACK_ODDS, STARTER_PACKS, SIGNATURE_ART_POOL_SIZE, cardSet } from "@ai-tcg/economy";
+import { EconomyStore, EconomyError, LIVE_PACK_ODDS, STARTER_PACKS, SIGNATURE_ART_POOL_SIZE, cardSet } from "@ai-tcg/economy";
 import { avatarSvg } from "./avatar.js";
 import { faceOfCard, planReveal, type CardFace, type PackReveal } from "./packOpening.js";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
@@ -195,7 +195,9 @@ export function agentChoices(seeds = FIRST_TIME_SEEDS): AgentChoice[] {
           persona: agent.persona,
           cardId: sig.cardId,
           collectorNumber: sig.collectorNumber,
-          face: { ...faceOfCard(sig.card), text: [printedText(choice.name, choice.concept)], ...artSeeds(sig.card.art ?? sig.cardId) },
+          // The rules text is the card's own: since game session 45 each
+          // signature ability carries its menu option's full wording.
+          face: { ...faceOfCard(sig.card), ...artSeeds(sig.card.art ?? sig.cardId) },
           art: { pool: art.pool, slot: art.slot, of: SIGNATURE_ART_POOL_SIZE },
           comboId: sig.comboId,
           fingerprint: sig.fingerprint,
@@ -228,17 +230,6 @@ export function agentChoices(seeds = FIRST_TIME_SEEDS): AgentChoice[] {
   });
 }
 
-/** A signature card's rules text, from the generator's concept ("Name:
- * cost 5, 3/6. On arrival, if you have 2 or fewer cards in hand, draw a
- * card."). The engine's built abilities carry a shorter text that leaves out
- * the trigger and the condition ("Draw a card."), so the face prints the
- * menu option's own wording, which the concept carries (asked of the game
- * lane in progress/render/notes-for-owner.md). */
-export function printedText(name: string, concept: string): string {
-  const tail = concept.startsWith(`${name}: `) ? concept.slice(name.length + 2) : concept;
-  return tail.replace(/^cost \d+, \d+\/\d+\.\s*/, "");
-}
-
 /** The placeholder art follows the card's art-pool piece, not its card id:
  * two cards that drew the same piece share the picture, as the pool means
  * (owner 2026-10-16), until the art pass paints it. */
@@ -253,6 +244,41 @@ function withOwner<T>(seeds: typeof FIRST_TIME_SEEDS, fn: (store: EconomyStore, 
   } finally {
     store.close();
   }
+}
+
+/** Names an owner might type on the agent screen, for the transcript: kept,
+ * tidied, repeated words (allowed for typed names), and each kind of
+ * refusal. */
+export const SAMPLE_TYPED_NAMES: readonly string[] = [
+  "", "  Bit   by Bit ", "Static Static", "Night Shift 99", "Ab", "x".repeat(33), "Neon*Fan", "-Edge", "1999", "Ok..Then", "TheRealAdmin", "Support Desk",
+];
+
+export interface TypedNameResult {
+  typed: string;
+  /** What confirmAgentDraft did with it: the agent's name and the card's
+   * flavour line, or the store's refusal. */
+  agentName?: string;
+  flavor?: string;
+  refused?: string;
+}
+
+/** Each typed name through the store, on agent 1's first card: a fresh
+ * owner, the same draft, `confirmAgentDraft(..., { name })` (a blank field
+ * passes no name, as the page does). */
+export function typedNameResults(names: readonly string[] = SAMPLE_TYPED_NAMES, seeds = FIRST_TIME_SEEDS): TypedNameResult[] {
+  return names.map((typed) =>
+    withOwner(seeds, (store, owner) => {
+      const draft = store.startAgentDraft(owner, { seed: seeds.draft });
+      store.pickDraftAgent(owner, draft.draftId, 0, { seed: seeds.pick });
+      try {
+        const made = store.confirmAgentDraft(owner, draft.draftId, 0, { artSlot: demoArtSlot(0, 0, seeds.art), ...(typed.trim() ? { name: typed } : {}) });
+        return { typed, agentName: made.agent.name, flavor: made.signature.card.flavor ?? "" };
+      } catch (err) {
+        if (err instanceof EconomyError) return { typed, refused: err.message };
+        throw err;
+      }
+    }),
+  );
 }
 
 export function firstTimeData(seeds = FIRST_TIME_SEEDS): FirstTimeData {
@@ -289,6 +315,11 @@ export function firstTimeTranscript(d: FirstTimeData): string {
       lines.push(`      minted ${m.collectorNumber} ${m.cardId}, art ${m.art.pool} piece ${m.art.slot}/${m.art.of}, copy ${m.copy.origin}${m.copy.bound ? " bound" : ""} ${m.copy.stamp ?? ""}; flavour "${m.face.flavor}"`);
     });
   });
+  lines.push("", `Typed names (agent 1, card 1; generated name "${d.agents[0]!.name}"), through confirmAgentDraft:`);
+  for (const r of typedNameResults()) {
+    const shown = JSON.stringify(r.typed.length > 20 ? `${r.typed.slice(0, 12)}...(${r.typed.length})` : r.typed);
+    lines.push(r.refused ? `  ${shown}: refused, "${r.refused}"` : `  ${shown}: agent "${r.agentName}"; flavour "${r.flavor}"`);
+  }
   return lines.join("\n") + "\n";
 }
 
