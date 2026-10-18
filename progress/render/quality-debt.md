@@ -7,6 +7,33 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The first-time flow (slice 3, session 28)
+
+- **The mint has not been watched by a person.** Its 6.5 s length, the
+  order of its beats and whether it feels like the most special moment in
+  the product were all judged from stills and a software-GPU recording.
+  It can't be skipped; a person may find it long the second time.
+- **The signature art is a placeholder** (a figure of light in rings, its
+  hue from the art-pool piece). The real pool images come with the art
+  pass; until then the reveal's "art develops" beat develops a stand-in.
+- **The page is a fixed demo of live store calls:** 4 factions and 9
+  agent-and-card branches, all precomputed. On the site each step is a
+  call to the store; nothing here talks to a server.
+- **No name field at creation, no "new draft" button** (calls 5 and 6).
+  The store supports both; the page doesn't offer them.
+- **The starter packs read flat more often than not** (55% hold no hit,
+  measured). The render can't fix it; it's an economy question, asked.
+- **The signature rules text comes from the generator's concept, not the
+  card's abilities** (the engine's ability text is shorter). If the concept
+  wording and the ability ever disagree, the face would print the concept.
+  Asked of the game lane.
+- **Reduced motion cuts the mint to about a second.** It keeps every piece
+  of information but none of the build-up; nobody using reduced motion has
+  said whether that's right.
+- **The ward canvas is redrawn every frame** for as long as the mint is
+  open (a 900 x 900 canvas, three layers). Fine in headless Chromium; a
+  low-end phone may drop frames.
+
 ## Pack opening (slices 1-2, sessions 24-26; hold to tilt, session 27)
 
 - **Hold to tilt hasn't been held by a person** (session 27).
@@ -78,8 +105,6 @@ items are removed, with the fix in `log.md`.
   and copy ids), even with the same packs. Asked of the game lane.
 - **The showcase packs are found by seed search**, so the page shows one
   of each finish; it is not a sample of what a typical opening looks like.
-- **No first-time flow yet** (slice 3): an agent's first packs and the
-  signature (leader) card reveal don't exist. Next render session.
 
 ## Layout and legibility
 

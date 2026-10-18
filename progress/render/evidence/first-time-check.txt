@@ -1,0 +1,4 @@
+desktop: pass (faction Swarm, agent Coiljackal's Croupier, card Turboheron's Denim Rave; mint 7497 ms tap-to-free, beats gather@15 ward@1199 forge@3695 stamp@4993 settle@6414 free@7512; lean [15,15]; ward lit 2489)
+phone: pass (faction Aegis, agent Shellfixer's Sleepless Flywheel, card Fluxbadger's Obsidian Torrent; mint 7745 ms tap-to-free, beats gather@14 ward@1164 forge@3906 stamp@5200 settle@6084 free@7720; lean [15,15]; ward lit 1917)
+phone-reduced: pass (faction Null, agent Laserferret's Turbo Champion, card Mainframe Key of the Blackout; mint 977 ms tap-to-free, beats gather@10 ward@81 forge@135 stamp@147 settle@917 free@924; lean [6,6]; ward lit 2403)
+all pass

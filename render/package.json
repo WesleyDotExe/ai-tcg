@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "pack-opening": "tsx src/packDemo.ts",
-    "card-faces": "tsx src/faceSheet.ts"
+    "card-faces": "tsx src/faceSheet.ts",
+    "first-time": "tsx src/firstTimeDemo.ts"
   },
   "dependencies": {
     "@ai-tcg/engine": "*",

@@ -25,25 +25,31 @@
 import { PACK_FX_RUNTIME_SOURCE, PACK_FX_SHADERS } from "./packFx.js";
 import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, TILT, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
+import { FLOW_TIMINGS, MINT_TIMINGS, type FirstTimeData } from "./firstTime.js";
+import { FIRST_TIME_CSS, FIRST_TIME_PURE_SOURCE, FIRST_TIME_RUNTIME_SOURCE, FIRST_TIME_WARD_SOURCE } from "./firstTimePage.js";
 
 export interface PackPageData {
   title: string;
   packs: { label: string; reveal: PackReveal }[];
   /** Ten-pack opens (slice 2). */
   bulks?: { label: string; reveal: BulkReveal }[];
+  /** The first-time flow (slice 3, firstTimePage.ts): the page becomes the
+   * Season 0 sign-up, with the pack opening inside it. */
+  flow?: FirstTimeData;
 }
 
 export function renderPackOpeningHtml(data: PackPageData): string {
   const embed = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
-  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT };
+  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT, mint: MINT_TIMINGS, flow: FLOW_TIMINGS };
   data = { ...data, bulks: data.bulks ?? [] };
+  const flow = !!data.flow;
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${escapeHtml(data.title)}</title>
-<style>${PACK_CSS}</style>
+<style>${PACK_CSS}${flow ? FIRST_TIME_CSS : ""}</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -55,7 +61,7 @@ export function renderPackOpeningHtml(data: PackPageData): string {
 </svg>
 <div class="crt" aria-hidden="true"></div>
 <header class="bar">
-  <div class="brand">AI·TCG <span>// PACK OPENING</span></div>
+  <div class="brand">AI·TCG <span>// ${flow ? "SEASON ZERO SIGN-UP" : "PACK OPENING"}</span></div>
   <nav class="picker" id="picker" aria-label="Choose a pack"></nav>
   <span class="sound-ctl" data-audio-ctl>
     <button id="btn-sound" aria-pressed="true" title="Sound is on. Click to mute.">Sound on</button>
@@ -67,11 +73,11 @@ export function renderPackOpeningHtml(data: PackPageData): string {
   <div class="scene" id="scene"></div>
   <canvas class="sparks" id="sparks" aria-hidden="true"></canvas>
   <div class="hint" id="hint" aria-live="polite"></div>
-  <div class="counter" id="counter"></div>
+  <div class="counter" id="counter"></div>${flow ? '\n  <div class="ftbadge" id="ftbadge"></div>' : ""}
   <button class="skip" id="skip" hidden>Skip to summary</button>
   <div class="bctl"><button class="bauto" id="bauto" role="switch" aria-checked="false" hidden title="Plays the packs by themselves, as fast as the speed says">Auto</button><span class="speed" id="speed" role="group" aria-label="Auto speed" hidden></span><button class="bskip" id="bskip" hidden title="Runs ahead to the next big pull, which still gets its full reveal; with none left, to the summary">Skip to summary</button></div>
 </main>
-<div class="zd" id="zd" hidden><div class="zd-term" id="zd-term"></div></div>
+<div class="zd" id="zd" hidden><div class="zd-term" id="zd-term"></div></div>${flow ? '\n<div class="mint" id="mint" hidden></div>' : ""}
 <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Card viewer"><div class="vcard" id="vcard"></div><div class="vcap" id="vcap"></div><button class="vclose" id="vclose">Close</button></div>
 <p class="sr" id="announce" aria-live="assertive"></p>
 <footer class="foot" id="foot"></footer>
@@ -83,7 +89,7 @@ ${SOUND_FX_RUNTIME_SOURCE}
 var PACK_FX_SHADERS = JSON.parse(document.getElementById('pack-shaders').textContent);
 ${PACK_FX_RUNTIME_SOURCE}
 ${PACK_PAGE_PURE_SOURCE}
-${PACK_PAGE_RUNTIME_SOURCE}</script>
+${PACK_PAGE_RUNTIME_SOURCE}${flow ? `\n${FIRST_TIME_WARD_SOURCE}\n${FIRST_TIME_PURE_SOURCE}\n${FIRST_TIME_RUNTIME_SOURCE}` : ""}</script>
 </body>
 </html>
 `;
@@ -210,7 +216,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .face .art { position: absolute; left: 4.5%; right: 4.5%; top: 13%; height: 41%; border-radius: 6px; overflow: hidden; transition: all 0.7s cubic-bezier(.3,.7,.2,1); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); }
 .face .art svg { width: 100%; height: 100%; display: block; }
 .face .head { position: absolute; left: 4.5%; right: 4.5%; top: 2.6%; height: 9%; display: flex; align-items: center; justify-content: space-between; gap: 6px; z-index: 2; }
-.face .name { font-weight: 800; font-size: 6.4cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+.face .name { font-weight: 800; font-size: calc(6.4cqw * var(--nfit, 1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,0.6); }
 .face .cost { flex: none; width: 10.5cqw; height: 10.5cqw; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 5.6cqw; color: #0b1a2a; background: radial-gradient(circle at 35% 30%, #fff, #9fd8ff 40%, #2b6fa8); box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
 .face .type { position: absolute; left: 4.5%; right: 4.5%; top: 55.5%; height: 7%; display: flex; justify-content: space-between; align-items: center; font-size: 4.4cqw; padding: 0 2.5cqw; background: rgba(0,0,0,0.32); border-radius: 4px; z-index: 2; }
 .face .rar { color: var(--fc); font-weight: 700; }
@@ -249,6 +255,17 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .face.goldframe .rar, .face.goldframe .text .flav, .face.goldframe .foot, .face.goldframe .setno { color: var(--gold2); }
 .face.goldframe .foot { background: linear-gradient(0deg, rgba(40,24,0,0.7), transparent); }
 /* Glitch: the card's own art, palette rotated to a corrupted one. */
+/* An agent's signature card (render session 28): full bleed, a white-gold
+   edge, white-gold lettering, and "1 OF 1" after its PR- number. */
+.face.sigface { --ring: var(--neutral); box-shadow: 0 14px 40px rgba(0,0,0,0.55), 0 0 34px rgba(255,240,194,0.5); }
+.face.sigface::before { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.9), inset 0 0 0 2.4cqw rgba(255,240,194,0.2), inset 0 0 0 2.8cqw rgba(255,240,194,0.85); }
+.face.sigface .name { background: linear-gradient(180deg, #fffdf2, var(--neutral) 55%, #d9b860); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.9)); }
+.face.sigface .cost { background: radial-gradient(circle at 35% 30%, #fffdf2, var(--neutral) 45%, #b8862a); color: #2b1a00; }
+.face.sigface .mark { background: linear-gradient(110deg, #d9b860, #fff8e0 50%, #d9b860); color: #2b1a00; }
+.face.sigface .rar, .face.sigface .setno, .face.sigface .foot { color: var(--neutral); }
+.face .oneof { font-weight: 900; letter-spacing: 0.08em; color: var(--neutral); }
+.face .fxgl-signature { mix-blend-mode: screen; }
+.face.fx-css-signature::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; border-radius: inherit; background: radial-gradient(circle at 50% 34%, rgba(255,240,194,0.35), transparent 55%), linear-gradient(115deg, transparent 30%, rgba(255,248,224,0.45) 50%, transparent 70%); background-size: 100% 100%, 250% 100%; animation: sheen 3.4s linear infinite; mix-blend-mode: screen; }
 .face.corrupt .art { filter: hue-rotate(150deg) saturate(1.8) contrast(1.35); }
 .face.corrupt { --ring: #ff2bd6; box-shadow: 0 14px 40px rgba(0,0,0,0.55), inset 0 0 0 2px rgba(255,255,255,0.07), inset 0 0 0 4px #ff2bd6; }
 /* A modal ("choose one") card: each mode's name and its rules text. On a
@@ -473,7 +490,7 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
   }
   // The label a finish gets on the summary and in the hint.
   function packFinishLabel(finish) {
-    return { standard: '', foil: 'FOIL', fullArt: 'FULL ART', altArt: 'ALT ART', glitch: 'GLITCH', secret: 'SECRET', gold: 'GOLD', prototype: 'PROTOTYPE', tournament: 'PRIZE', zeroDay: 'ZERO-DAY' }[finish] || '';
+    return { standard: '', foil: 'FOIL', fullArt: 'FULL ART', altArt: 'ALT ART', glitch: 'GLITCH', secret: 'SECRET', gold: 'GOLD', prototype: 'PROTOTYPE', tournament: 'PRIZE', zeroDay: 'ZERO-DAY', signature: 'SIGNATURE' }[finish] || '';
   }
   // The finishes, best first (the ten-pack summary's chips and order).
   function packFinishOrder() {
@@ -489,10 +506,10 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
   // The lasting look a settled card wears over its face: which shader
   // layer (or its CSS stand-in), and how strong. '' for a plain card.
   function packFinishLayerName(reveal) {
-    return { foil: 'foil', fullArt: 'foil', altArt: 'foil', secret: 'foil', gold: 'gold', prototype: 'gold', glitch: 'glitch', zeroDay: 'zeroDay' }[reveal] || '';
+    return { foil: 'foil', fullArt: 'foil', altArt: 'foil', secret: 'foil', gold: 'gold', prototype: 'gold', glitch: 'glitch', zeroDay: 'zeroDay', signature: 'signature' }[reveal] || '';
   }
   function packFinishLayerAmt(reveal) {
-    return { foil: 1, fullArt: 0.55, altArt: 0.55, secret: 0.55, gold: 1, prototype: 0.5, glitch: 0.18, zeroDay: 0.75 }[reveal] || 0;
+    return { foil: 1, fullArt: 0.55, altArt: 0.55, secret: 0.55, gold: 1, prototype: 0.5, glitch: 0.18, zeroDay: 0.75, signature: 0.85 }[reveal] || 0;
   }
   // What a tap (or a swipe) on a ten-pack row does, in the tap-driven
   // opening (owner 2026-10-18): turn over the card tapped if it waits face
@@ -535,23 +552,27 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
   // wears its finish's look (face up, or after its reveal); a card still to
   // be revealed turns over showing its plain face first. setCode names the
   // set on a Prototype's foil line.
+  // An agent's signature card (render session 28) is reveal 'signature': a
+  // full-bleed white-gold face whose number reads "PR-001 · 1 OF 1". With
+  // c.artPending (the pick screen, before the store draws the card's
+  // art-pool piece) its art window shows that the piece is still to come.
   function packFaceHtml(c, opts, setCode) {
     opts = opts || {};
-    var f = c.face, settled = !!opts.settled;
-    var variant = c.reveal === 'altArt' ? 'alt' : c.reveal === 'secret' ? 'illustration' : '';
-    var cls = 'face faction-' + f.faction + (settled && packFullBleed(c.reveal) ? ' full' : '') + (settled && c.reveal === 'gold' ? ' goldframe' : '') + (settled && c.reveal === 'glitch' ? ' corrupt' : '') + (settled && c.reveal === 'zeroDay' ? ' zdface' : '') + (c.prototype ? ' proto' : '') + (f.modes && f.modes.length ? ' modal' : '');
+    var f = c.face, settled = !!opts.settled, sig = c.reveal === 'signature';
+    var variant = c.reveal === 'altArt' ? 'alt' : c.reveal === 'secret' ? 'illustration' : sig ? 'signature' : '';
+    var cls = 'face faction-' + f.faction + (settled && packFullBleed(c.reveal) ? ' full' : '') + (settled && c.reveal === 'gold' ? ' goldframe' : '') + (settled && c.reveal === 'glitch' ? ' corrupt' : '') + (settled && c.reveal === 'zeroDay' ? ' zdface' : '') + (settled && sig ? ' sigface' : '') + (c.prototype ? ' proto' : '') + (f.modes && f.modes.length ? ' modal' : '');
     var type = f.type === 'Reserved' ? 'Zero-Day · Reserved' : f.type + ' · ' + f.faction;
-    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + packEsc(setCode || 'S0') + '</span>' : packEsc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '');
-    var mark = c.reveal === 'altArt' ? 'ALT ART' : c.reveal === 'glitch' ? 'GL1TCH' : c.reveal === 'secret' ? 'SECRET' : c.reveal === 'zeroDay' ? 'ZERO-DAY' : '';
+    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + packEsc(setCode || 'S0') + '</span>' : packEsc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '') + (sig ? '<span class="oneof"> · 1 OF 1</span>' : '');
+    var mark = c.reveal === 'altArt' ? 'ALT ART' : c.reveal === 'glitch' ? 'GL1TCH' : c.reveal === 'secret' ? 'SECRET' : c.reveal === 'zeroDay' ? 'ZERO-DAY' : sig ? 'SIGNATURE' : '';
     return '<div class="' + cls + '">' +
-      '<div class="art">' + packArtSvg(f, variant) + '</div>' +
+      '<div class="art">' + (c.artPending ? packArtPendingSvg() : packArtSvg(f, variant)) + '</div>' +
       '<div class="head"><span class="name">' + packEsc(f.name) + '</span>' + (f.cost === null ? '' : '<span class="cost">' + f.cost + '</span>') + '</div>' +
       (mark ? '<span class="mark">' + mark + '</span>' : '') +
       '<div class="type"><span>' + packEsc(type) + '</span><span class="rar">' + PACK_RARITY_LABEL[f.rarity] + '</span></div>' +
       packRulesHtml(f) +
       (f.attack === null ? '' : '<div class="stats"><span class="atk">' + f.attack + '</span><span class="hp">' + f.health + '</span></div>') +
       (c.prototype ? '<span class="plate' + (settled ? '' : ' pending') + '">' + c.prototype.serial + '/' + c.prototype.runSize + '</span>' : '') +
-      '<div class="foot"><span class="setno"><svg><use href="#setsym"/></svg>' + number + '</span><span>Season 0</span></div>' +
+      '<div class="foot"><span class="setno"><svg><use href="#setsym"/></svg>' + number + '</span><span>' + (sig ? 'Signature · S0' : 'Season 0') + '</span></div>' +
       '</div>';
   }
   // The rules text's fit (render session 26). A face's text box is a fixed
@@ -574,7 +595,27 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     }
     return false;
   }
+  // The name's fit (render session 28): a long name steps its size down
+  // until it fits beside the cost, instead of being cut off with "...". An
+  // agent's signature card is all about its one-of-a-kind name, and the
+  // generator's names run up to 30 characters.
+  var PACK_NAME_FIT_STEPS = [1, 0.92, 0.85, 0.78, 0.72, 0.66];
+  function packFitName(face) {
+    var n = face.querySelector('.name');
+    if (!n || !n.clientWidth) return 0;
+    // The text's own width against its box, both measured on screen (so a
+    // scaled card compares like for like); scrollWidth rounds, and a name a
+    // fraction of a pixel too wide still gets its "...".
+    var range = document.createRange();
+    range.selectNodeContents(n);
+    for (var i = 0; i < PACK_NAME_FIT_STEPS.length; i++) {
+      n.style.setProperty('--nfit', String(PACK_NAME_FIT_STEPS[i]));
+      if (range.getBoundingClientRect().width <= n.getBoundingClientRect().width + 0.25) break;
+    }
+    return Number(n.style.getPropertyValue('--nfit'));
+  }
   function packFitText(face) {
+    packFitName(face);
     var t = face.querySelector('.text');
     if (!t || !t.clientHeight) return 0;
     var stats = face.querySelector('.stats');
@@ -600,6 +641,41 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     var a = seed >>> 0;
     return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
   }
+  // A signature card's placeholder art, seeded from its art-pool piece (two
+  // cards that drew the same piece share it, as the pool means): a figure
+  // of light standing in rings, over a sky in the piece's own hue. Any hue,
+  // not the faction's: every signature card is Neutral, so the hue is what
+  // tells one piece from another.
+  function packSignatureArt(face, rnd) {
+    var hue = face.visualSeed % 360, W = 100, H = 76, out = [];
+    function hsl(h, s, l, a) { return 'hsla(' + Math.round(((h % 360) + 360) % 360) + ',' + s + '%,' + l + '%,' + (a === undefined ? 1 : a) + ')'; }
+    var gid = 'sg' + face.visualSeed + '-' + face.visualPattern;
+    out.push('<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">');
+    out.push('<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + hsl(hue, 55, 14) + '"/><stop offset="0.6" stop-color="' + hsl(hue + 30, 60, 30) + '"/><stop offset="1" stop-color="' + hsl(45, 80, 70) + '"/></linearGradient>' +
+      '<radialGradient id="' + gid + 'g" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff8e0" stop-opacity="0.95"/><stop offset="1" stop-color="#fff0c2" stop-opacity="0"/></radialGradient></defs>');
+    out.push('<rect width="' + W + '" height="' + H + '" fill="url(#' + gid + ')"/>');
+    // A horizon grid, the 90s floor running off to the vanishing point.
+    for (var gy = 0; gy < 7; gy++) { var yy = 58 + gy * gy * 0.6; out.push('<line x1="0" y1="' + yy.toFixed(1) + '" x2="' + W + '" y2="' + yy.toFixed(1) + '" stroke="' + hsl(hue + 180, 90, 75, 0.25) + '" stroke-width="0.5"/>'); }
+    for (var gx = -60; gx <= 160; gx += 14) out.push('<line x1="50" y1="56" x2="' + gx + '" y2="' + H + '" stroke="' + hsl(hue + 180, 90, 75, 0.2) + '" stroke-width="0.5"/>');
+    var cx = 42 + rnd() * 16, cy = 32;
+    out.push('<circle cx="' + cx.toFixed(1) + '" cy="' + cy + '" r="30" fill="url(#' + gid + 'g)" opacity="0.55"/>');
+    // Rings: arcs with gaps, each turned its own way.
+    var rings = 3 + Math.floor(rnd() * 3);
+    for (var i = 0; i < rings; i++) {
+      var r = 9 + i * 5.5, gap = 0.15 + rnd() * 0.5, off = rnd() * 6.283, a0 = off, a1 = off + 6.283 * (1 - gap);
+      var x0 = cx + Math.cos(a0) * r, y0 = cy + Math.sin(a0) * r, x1 = cx + Math.cos(a1) * r, y1 = cy + Math.sin(a1) * r;
+      out.push('<path d="M' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' A' + r + ' ' + r + ' 0 1 1 ' + x1.toFixed(1) + ' ' + y1.toFixed(1) + '" fill="none" stroke="' + hsl(45, 100, 88, 0.75 - i * 0.1) + '" stroke-width="' + (i === 0 ? 1.2 : 0.7) + '"/>');
+    }
+    // The figure: a shoulders-and-head silhouette made of light, its build
+    // from the seed.
+    var sw = 13 + rnd() * 6, hr = 4.6 + rnd() * 1.6;
+    out.push('<path d="M' + (cx - sw).toFixed(1) + ' 60 Q' + (cx - sw * 0.85).toFixed(1) + ' ' + (cy + 9).toFixed(1) + ' ' + cx.toFixed(1) + ' ' + (cy + 7).toFixed(1) + ' Q' + (cx + sw * 0.85).toFixed(1) + ' ' + (cy + 9).toFixed(1) + ' ' + (cx + sw).toFixed(1) + ' 60 Z" fill="' + hsl(hue, 40, 8, 0.92) + '" stroke="#fff0c2" stroke-width="0.6"/>');
+    out.push('<circle cx="' + cx.toFixed(1) + '" cy="' + (cy - 1).toFixed(1) + '" r="' + hr.toFixed(1) + '" fill="' + hsl(hue, 40, 8, 0.95) + '" stroke="#fff0c2" stroke-width="0.6"/>');
+    // Circuit light running down from the head into the shoulders.
+    for (var t = 0; t < 5; t++) { var tx = cx + (rnd() - 0.5) * sw * 1.4; out.push('<polyline points="' + cx.toFixed(1) + ',' + (cy + 7).toFixed(1) + ' ' + tx.toFixed(1) + ',' + (cy + 12 + rnd() * 6).toFixed(1) + ' ' + tx.toFixed(1) + ',60" fill="none" stroke="' + hsl(45, 100, 80, 0.55) + '" stroke-width="0.5"/>'); }
+    out.push('</svg>');
+    return out.join('');
+  }
   var PACK_FACTION_HUE = { Cortex: 196, Aegis: 24, Swarm: 100, Null: 285, Neutral: 45 };
   // The placeholder art: a generative frame from the card's own attributes
   // (DESIGN.md: "driven by card attributes ... explicitly NOT an emoji or
@@ -608,6 +684,19 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
   // is the Alt Art composition (the motif large and off centre, the palette
   // turned); 'illustration' a painted scene (layered ridges under a
   // sun disc) for the secret illustrations, until the art pass paints them.
+  // The art window of a signature card on the pick screen: its art-pool
+  // piece is drawn by the store only when the card is made, so there is no
+  // picture yet, only the empty frame waiting for one.
+  function packArtPendingSvg() {
+    // Drawn for the whole card (a signature face is full bleed), the
+    // waiting frame where the art window would be.
+    var out = ['<svg viewBox="0 0 100 140" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="140" fill="#0b0d14"/>'];
+    for (var x = 0; x <= 100; x += 8) out.push('<line x1="' + x + '" y1="0" x2="' + x + '" y2="140" stroke="rgba(255,240,194,0.07)" stroke-width="0.4"/>');
+    for (var y = 0; y <= 140; y += 8) out.push('<line x1="0" y1="' + y + '" x2="100" y2="' + y + '" stroke="rgba(255,240,194,0.07)" stroke-width="0.4"/>');
+    out.push('<rect x="22" y="24" width="56" height="44" rx="2" fill="none" stroke="rgba(255,240,194,0.4)" stroke-width="0.6" stroke-dasharray="2.4 1.6"/>');
+    out.push('<text x="50" y="44" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="4.6" font-weight="700" letter-spacing="0.6" fill="rgba(255,240,194,0.75)">ART PIECE</text><text x="50" y="51" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="3.4" fill="rgba(255,240,194,0.5)">DRAWN WHEN MADE</text></svg>');
+    return out.join('');
+  }
   function packArtSvg(face, variant) {
     var rnd = packRng(face.visualSeed * 7919 + face.visualPattern * 104729 + (variant === 'alt' ? 77 : variant === 'illustration' ? 991 : 0));
     var hue = (PACK_FACTION_HUE[face.faction] || 200) + (face.visualSeed % 40) - 20 + (variant === 'alt' ? 140 : 0);
@@ -621,6 +710,7 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     var gid = 'pa' + face.visualSeed + '-' + face.visualPattern + '-' + (variant || 'n') + '-' + Math.round(hue);
     out.push('<defs><radialGradient id="' + gid + '" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="' + hsl(hue, 70, light + 8) + '"/><stop offset="0.55" stop-color="' + hsl(hue + 25, 65, 22) + '"/><stop offset="1" stop-color="' + hsl(hue + 40, 60, 8) + '"/></radialGradient></defs>');
     out.push('<rect width="' + W + '" height="' + H + '" fill="url(#' + gid + ')"/>');
+    if (variant === 'signature') return packSignatureArt(face, rnd);
     if (variant === 'illustration') {
       out.push('<circle cx="' + (30 + rnd() * 40).toFixed(1) + '" cy="' + (18 + rnd() * 10).toFixed(1) + '" r="' + (10 + rnd() * 6).toFixed(1) + '" fill="' + hsl(hue + 180, 90, 75, 0.85) + '"/>');
       for (var layer = 0; layer < 5; layer++) {
@@ -1281,8 +1371,13 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     scene.innerHTML = '<div class="summary"><h2>PACK COMPLETE</h2><p class="sub">' + r.cards.length + ' cards · ' + (hits ? hits + ' hit' + (hits > 1 ? 's' : '') : 'no hits') + (r.jackpot ? ' · Jackpot pack' : '') + '</p>' + pity +
       '<div class="grid">' + tiles + '</div><p class="points">+<b>' + r.packPoints + '</b> pack points</p>' +
       '<div class="btns"><button class="pri" id="again">Open another</button><button id="done">Done</button></div></div>';
-    document.getElementById('again').addEventListener('click', function () { openPack((S.pack + 1) % DATA.packs.length); });
-    document.getElementById('done').addEventListener('click', shelf);
+    // A flow around the packs (the first-time page) puts its own buttons
+    // here; otherwise "Open another" and "Done".
+    if (S.onSummary) S.onSummary(scene.querySelector('.btns'), r);
+    else {
+      document.getElementById('again').addEventListener('click', function () { openPack((S.pack + 1) % DATA.packs.length); });
+      document.getElementById('done').addEventListener('click', shelf);
+    }
     bindViewer(r.cards);
     log('summary', { cards: r.cards.map(function (c) { return { name: c.face.name, finish: c.finish, isNew: c.isNew }; }), packPoints: r.packPoints });
   }
@@ -1609,6 +1704,16 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     pressTilt(e, { el: t, box: vcard, layers: function () { return vLayers; }, swipe: false, what: 'viewer', can: function () { return !viewer.hidden; } });
   });
 
+  // What a flow built around the pack opening (firstTimePage.ts) drives:
+  // it sets the packs, opens them, and reuses the tilt, the viewer, the
+  // finish layers and the sound.
+  window.PACK = {
+    S: S, log: log, later: later, clearTimers: clearTimers, stopLayers: stopLayers, sfx: sfx, esc: esc,
+    setPacks: function (list) { DATA.packs = list; }, openPack: openPack,
+    faceHtml: faceHtml, backHtml: backHtml, addLayer: addLayer, sparks: sparks, openViewer: openViewer,
+    pressTilt: pressTilt, tilting: tilting, bulkControls: bulkControls,
+  };
+  if (DATA.flow) return;
   // ?pack=N opens that pack straight away (1-based), ?bulk=N that ten-pack
   // open; otherwise the shelf.
   var m = /[?&]pack=(\d+)/.exec(location.search), mb = /[?&]bulk=(\d+)/.exec(location.search);
