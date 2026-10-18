@@ -393,7 +393,13 @@ at public launch (collections/currency/ranks reset, Season 0 archived).
 8. Spectator render (watchable match view), then AI commentators, then the
    public web platform, then monthly set cadence. [OWNER CHECK-IN] on the art
    pipeline when the render stage arrives (real generated art is a late,
-   owner-funded pass per DESIGN.md).
+   owner-funded pass per DESIGN.md). Art model DECIDED (owner 2026-10-18):
+   Google Imagen 4 Ultra (Replicate `google/imagen-4-ultra`, 3:4), with the
+   starting prompt template and composition rules in that owner-feedback
+   entry, tuned on 10-15 cards first; one flat image per card. Still open:
+   when the pass starts, its budget, any cheaper model for some cards, and
+   checking the model's terms allow commercial use. No production art is
+   generated without the owner's OK.
 
 ## Keeping this current
 When an item is genuinely done (built, tested, evidenced), mark it done here

@@ -1,0 +1,211 @@
+# Balance report 030: why Aegis beats Cortex so heavily in the ring's signature mode, and the other far-out edges (session 43)
+
+Owner 2026-10-18 (answers to session 42, item 2): "find out why Aegis beats Cortex so heavily (71.5%) once
+signature cards are in play. Also report any other signature-mode edges that are far outside their bands.
+Show what drives it ... measured the same way as balance-report-029. Then propose fixes at an [OWNER
+CHECK-IN]. Don't change any cards or signature options without the owner's OK."
+No card, signature option or baseline is changed by this report. Trials patch card data for the run only.
+
+Reproduce (in engine/, ~4.5 min): npx tsx src/dev/signatureRingDrivers.ts 2500
+Seeding is the gate's own (measurePairing: seeds 1..2,500 per edge, the current LookaheadAgent both sides),
+as in balance-report-029. Every edge is measured at 2,500 here, including the two even edges the gate
+measures at 900. The "mythic" column reproduces ringBaselineSignature.json exactly (Aegis > Cortex
+1,787 of 2,500 = 71.5%; Null > Aegis 763 = 30.5%), and "gate" reproduces ringBaseline.json's
+2,500-seed edges.
+
+THE FIRST FINDING: the ring's "signature mode" is not how a real match plays.
+  ringRegression.ts --signature puts each faction's SET MYTHIC (Prime Aegis, Quorum Arbiter, Hive Mother,
+  Null Singularity) in the signature zone. It was recorded in session 31 as a "what if" (option A,
+  2026-10-11: the gate stays as it is; these numbers stay as a second baseline only). A real match does
+  something else: the store's match setup (economy/src/store.ts, `deck.spec.signature = signature.card`)
+  gives each agent its generated NEUTRAL signature card from the approved menu lines, and the set Mythic,
+  if the owner holds one, is an ordinary deck card. So this report measures four ways:
+    gate      decks as shipped, no signature card (the CI gate)
+    mythic    set Mythic as signature card (the CI's second baseline, the 71.5%)
+    plain     set Mythic in the deck, both sides the plain Neutral 5-cost 3/6 (the fairness reference)
+    approved  set Mythic in the deck, each side one of the 14 approved menu lines, drawn per seed and
+              seat (every line equally often): the nearest stand-in for a real match
+
+# Balance report driver: the ring with signature cards (2500 gate seeds per edge, current LookaheadAgent both sides)
+  Win rates are the edge's first-named faction; bands from ringBand; (+x) / (-x) = points outside the band.
+  Set Mythics: Cortex Quorum Arbiter (5, 3/6), Swarm Hive Mother (5, 3/6), Aegis Prime Aegis (6, 4/8), Null Null Singularity (7, 3/7)
+  Approved menu lines drawn in "approved" mode: 14
+
+== 1. The six ring edges in four ways ==
+  edge (band)                  gate                mythic in zone      plain stand-in      approved lines     
+  Null > Aegis (55.0-60.0)      50.6% OUT  (-4.4)   30.5% OUT  (-24.5)  45.1% OUT  (-9.9)   45.2% OUT  (-9.8) 
+  Aegis > Cortex (55.0-60.0)    49.3% OUT  (-5.7)   71.5% OUT  (+11.5)  55.2% UNRES         54.2% UNRES(-0.8) 
+  Cortex > Swarm (55.0-60.0)    58.2% UNRES         43.9% OUT  (-11.1)  53.8% UNRES(-1.2)   52.9% OUT  (-2.1) 
+  Swarm > Null (55.0-60.0)      57.1% IN            64.8% OUT  (+4.8)   55.4% UNRES         56.3% UNRES       
+  Null ~ Cortex (45.0-55.0)     45.6% UNRES         45.1% UNRES         47.9% IN            47.9% IN          
+  Aegis ~ Swarm (45.0-55.0)     51.9% IN            56.1% UNRES(+1.1)   55.5% UNRES(+0.5)   55.2% UNRES(+0.2) 
+
+  Change from the gate (points, Newcombe 95%):
+  Null > Aegis     mythic -20.1 [-22.8, -17.4] real   plain  -5.6 [-8.3, -2.8] real   approved  -5.4 [-8.2, -2.7] real
+  Aegis > Cortex   mythic +22.2 [19.5, 24.8] real   plain  +5.9 [3.2, 8.7] real   approved  +4.9 [2.1, 7.6] real
+  Cortex > Swarm   mythic -14.3 [-17.0, -11.6] real   plain  -4.5 [-7.2, -1.7] real   approved  -5.4 [-8.1, -2.6] real
+  Swarm > Null     mythic  +7.8 [5.1, 10.4] real   plain  -1.7 [-4.5, 1.0]        approved  -0.8 [-3.5, 2.0]     
+  Null ~ Cortex    mythic  -0.6 [-3.3, 2.2]        plain  +2.3 [-0.5, 5.0]        approved  +2.2 [-0.5, 5.0]     
+  Aegis ~ Swarm    mythic  +4.2 [1.4, 7.0] real   plain  +3.6 [0.8, 6.4] real   approved  +3.3 [0.5, 6.0] real
+
+== 2a. Which side's Mythic-in-the-zone moves each edge (mythic mode) ==
+  Each edge with only one side's set Mythic moved to the zone (the other keeps it in the deck).
+  Four cells: neither (= gate), only the first-named side, only the other, both. Changes in points, Newcombe 95%.
+  Null > Aegis: neither 50.6%, only Null 61.4%, only Aegis 20.9%, both 30.5%
+      Null Singularity to the zone     +10.8 [8.1, 13.5] real   (with the other already there:  +9.6 [7.2, 12.0] real)
+      Prime Aegis to the zone          -29.8 [-32.3, -27.2] real   (with the other already there: -30.9 [-33.5, -28.3] real)
+  Aegis > Cortex: neither 49.3%, only Aegis 82.4%, only Cortex 38.5%, both 71.5%
+      Prime Aegis to the zone          +33.0 [30.5, 35.5] real   (with the other already there: +33.0 [30.4, 35.6] real)
+      Quorum Arbiter to the zone       -10.8 [-13.6, -8.1] real   (with the other already there: -10.9 [-13.2, -8.6] real)
+  Cortex > Swarm: neither 58.2%, only Cortex 62.6%, only Swarm 38.6%, both 43.9%
+      Quorum Arbiter to the zone        +4.4 [1.7, 7.1] real   (with the other already there:  +5.3 [2.6, 8.0] real)
+      Hive Mother to the zone          -19.6 [-22.3, -16.9] real   (with the other already there: -18.7 [-21.4, -16.0] real)
+  Swarm > Null: neither 57.1%, only Swarm 70.9%, only Null 51.8%, both 64.8%
+      Hive Mother to the zone          +13.8 [11.2, 16.5] real   (with the other already there: +13.0 [10.3, 15.7] real)
+      Null Singularity to the zone      -5.2 [-8.0, -2.5] real   (with the other already there:  -6.1 [-8.7, -3.5] real)
+  Null ~ Cortex: neither 45.6%, only Null 56.8%, only Cortex 37.2%, both 45.1%
+      Null Singularity to the zone     +11.1 [8.4, 13.9] real   (with the other already there:  +7.9 [5.2, 10.6] real)
+      Quorum Arbiter to the zone        -8.5 [-11.2, -5.8] real   (with the other already there: -11.7 [-14.4, -8.9] real)
+  Aegis ~ Swarm: neither 51.9%, only Aegis 74.9%, only Swarm 32.5%, both 56.1%
+      Prime Aegis to the zone          +23.0 [20.3, 25.5] real   (with the other already there: +23.6 [20.9, 26.3] real)
+      Hive Mother to the zone          -19.4 [-22.1, -16.7] real   (with the other already there: -18.8 [-21.3, -16.2] real)
+
+== 2b. Which side's signature card moves each edge (approved mode: what a menu card is worth to each faction) ==
+  Each edge with only one side given an approved signature card (both keep their set Mythic in the deck).
+  Four cells: neither (= gate), only the first-named side, only the other, both. Changes in points, Newcombe 95%.
+  Null > Aegis: neither 50.6%, only Null 56.5%, only Aegis 40.0%, both 45.2%
+      Null gets a signature card        +5.9 [3.1, 8.6] real   (with the other already there:  +5.2 [2.4, 7.9] real)
+      Aegis gets a signature card      -10.6 [-13.3, -7.8] real   (with the other already there: -11.3 [-14.1, -8.6] real)
+  Aegis > Cortex: neither 49.3%, only Aegis 60.9%, only Cortex 42.9%, both 54.2%
+      Aegis gets a signature card      +11.6 [8.9, 14.3] real   (with the other already there: +11.3 [8.5, 14.0] real)
+      Cortex gets a signature card      -6.4 [-9.1, -3.6] real   (with the other already there:  -6.7 [-9.4, -4.0] real)
+  Cortex > Swarm: neither 58.2%, only Cortex 54.3%, only Swarm 54.5%, both 52.9%
+      Cortex gets a signature card      -3.9 [-6.7, -1.2] real   (with the other already there:  -1.6 [-4.4, 1.2]     )
+      Swarm gets a signature card       -3.8 [-6.5, -1.0] real   (with the other already there:  -1.4 [-4.2, 1.3]     )
+  Swarm > Null: neither 57.1%, only Swarm 54.7%, only Null 57.4%, both 56.3%
+      Swarm gets a signature card       -2.4 [-5.1, 0.4]        (with the other already there:  -1.1 [-3.8, 1.7]     )
+      Null gets a signature card        +0.3 [-2.4, 3.1]        (with the other already there:  +1.6 [-1.2, 4.4]     )
+  Null ~ Cortex: neither 45.6%, only Null 48.9%, only Cortex 45.0%, both 47.9%
+      Null gets a signature card        +3.3 [0.5, 6.0] real   (with the other already there:  +2.8 [0.1, 5.6] real)
+      Cortex gets a signature card      -0.6 [-3.4, 2.2]        (with the other already there:  -1.0 [-3.8, 1.7]     )
+  Aegis ~ Swarm: neither 51.9%, only Aegis 57.9%, only Swarm 47.3%, both 55.2%
+      Aegis gets a signature card       +6.0 [3.2, 8.7] real   (with the other already there:  +7.9 [5.1, 10.6] real)
+      Swarm gets a signature card       -4.6 [-7.4, -1.8] real   (with the other already there:  -2.7 [-5.4, 0.1]     )
+
+== 3. How each side uses its key card (gate: the set Mythic from the deck; other modes: the signature card) ==
+  played = share of games it was played at all; turn = mean own turn of the first play; plays/returns per game;
+  died = share of the games it was played in where it died at least once;
+  stuck = games it was played and never died: their share, and the first-named side's win rate in them | in the rest.
+  -- gate --
+  Null > Aegis     Null   played  20.3%  turn  7.3  plays 0.20  returns 0.00  died   0.0%  stuck  20.3%, Null wins  72.6% |  45.1%
+                   Aegis  played  26.0%  turn  6.3  plays 0.26  returns 0.00  died   0.5%  stuck  25.9%, Null wins  23.6% |  60.1%   (mean game 14.8 turns)
+  Aegis > Cortex   Aegis  played  29.0%  turn  6.5  plays 0.29  returns 0.00  died   0.3%  stuck  28.9%, Aegis wins  80.3% |  36.7%
+                   Cortex played  28.6%  turn  5.7  plays 0.29  returns 0.00  died   8.9%  stuck  26.1%, Aegis wins  42.5% |  51.7%   (mean game 15.8 turns)
+  Cortex > Swarm   Cortex played  24.8%  turn  5.3  plays 0.25  returns 0.00  died   1.8%  stuck  24.4%, Cortex wins  56.0% |  59.0%
+                   Swarm  played  27.2%  turn  5.4  plays 0.27  returns 0.00  died   7.3%  stuck  25.2%, Cortex wins  43.3% |  63.3%   (mean game 13.5 turns)
+  Swarm > Null     Swarm  played  23.8%  turn  5.2  plays 0.24  returns 0.00  died   2.9%  stuck  23.1%, Swarm wins  68.5% |  53.6%
+                   Null   played   6.3%  turn  7.0  plays 0.06  returns 0.00  died   0.0%  stuck   6.3%, Swarm wins  20.4% |  59.5%   (mean game 12.2 turns)
+  Null ~ Cortex    Null   played  17.5%  turn  7.1  plays 0.18  returns 0.00  died   0.5%  stuck  17.4%, Null wins  68.1% |  40.9%
+                   Cortex played  26.4%  turn  5.4  plays 0.26  returns 0.00  died   3.0%  stuck  25.6%, Null wins  42.1% |  46.9%   (mean game 13.8 turns)
+  Aegis ~ Swarm    Aegis  played  25.2%  turn  6.2  plays 0.25  returns 0.00  died   0.0%  stuck  25.2%, Aegis wins  81.3% |  42.0%
+                   Swarm  played  29.3%  turn  5.5  plays 0.29  returns 0.00  died   8.0%  stuck  27.0%, Aegis wins  36.5% |  57.6%   (mean game 14.2 turns)
+  -- mythic --
+  Null > Aegis     Null   played  48.2%  turn  7.1  plays 0.48  returns 0.01  died   1.4%  stuck  47.6%, Null wins  44.1% |  18.2%
+                   Aegis  played  92.5%  turn  6.0  plays 0.93  returns 0.01  died   0.9%  stuck  91.6%, Null wins  26.2% |  78.0%   (mean game 13.7 turns)
+  Aegis > Cortex   Aegis  played  95.0%  turn  6.0  plays 0.96  returns 0.01  died   1.4%  stuck  93.6%, Aegis wins  75.0% |  20.1%
+                   Cortex played  99.1%  turn  5.1  plays 1.07  returns 0.14  died  13.2%  stuck  86.0%, Aegis wins  68.4% |  90.6%   (mean game 14.1 turns)
+  Cortex > Swarm   Cortex played  96.0%  turn  5.0  plays 1.00  returns 0.05  died   4.9%  stuck  91.2%, Cortex wins  45.9% |  22.8%
+                   Swarm  played  99.0%  turn  5.0  plays 1.04  returns 0.07  died   6.5%  stuck  92.6%, Cortex wins  41.8% |  71.2%   (mean game 12.4 turns)
+  Swarm > Null     Swarm  played  96.3%  turn  5.0  plays 0.97  returns 0.02  died   2.4%  stuck  94.0%, Swarm wins  66.4% |  40.9%
+                   Null   played  12.3%  turn  7.0  plays 0.12  returns 0.00  died   0.0%  stuck  12.3%, Swarm wins  28.3% |  69.9%   (mean game 11.6 turns)
+  Null ~ Cortex    Null   played  44.2%  turn  7.0  plays 0.44  returns 0.00  died   1.0%  stuck  43.7%, Null wins  59.7% |  33.7%
+                   Cortex played  98.6%  turn  5.1  plays 1.01  returns 0.04  died   3.6%  stuck  95.0%, Null wins  43.7% |  70.4%   (mean game 13.1 turns)
+  Aegis ~ Swarm    Aegis  played  79.9%  turn  6.0  plays 0.80  returns 0.00  died   0.6%  stuck  79.4%, Aegis wins  68.0% |  10.3%
+                   Swarm  played  98.1%  turn  5.1  plays 1.03  returns 0.08  died   8.0%  stuck  90.2%, Aegis wins  52.7% |  88.1%   (mean game 12.8 turns)
+  -- plain --
+  Null > Aegis     Null   played  98.5%  turn  5.0  plays 1.04  returns 0.10  died   9.8%  stuck  88.8%, Null wins  47.0% |  29.7%
+                   Aegis  played  99.6%  turn  5.0  plays 1.09  returns 0.13  died  12.5%  stuck  87.2%, Null wins  42.1% |  65.1%   (mean game 13.8 turns)
+  Aegis > Cortex   Aegis  played  99.4%  turn  5.0  plays 1.15  returns 0.20  died  18.9%  stuck  80.7%, Aegis wins  61.5% |  29.0%
+                   Cortex played  96.2%  turn  5.2  plays 1.03  returns 0.11  died  11.3%  stuck  85.3%, Aegis wins  52.6% |  70.3%   (mean game 14.4 turns)
+  Cortex > Swarm   Cortex played  90.4%  turn  5.2  plays 0.92  returns 0.03  died   3.3%  stuck  87.4%, Cortex wins  57.7% |  26.1%
+                   Swarm  played  89.3%  turn  5.2  plays 0.93  returns 0.08  died   8.9%  stuck  81.3%, Cortex wins  51.0% |  65.7%   (mean game 13.0 turns)
+  Swarm > Null     Swarm  played  82.2%  turn  5.2  plays 0.83  returns 0.02  died   2.5%  stuck  80.2%, Swarm wins  55.2% |  56.0%
+                   Null   played  94.4%  turn  5.0  plays 0.95  returns 0.02  died   2.4%  stuck  92.2%, Swarm wins  54.9% |  60.2%   (mean game 12.1 turns)
+  Null ~ Cortex    Null   played  98.8%  turn  5.0  plays 1.02  returns 0.07  died   6.8%  stuck  92.0%, Null wins  49.5% |  29.1%
+                   Cortex played  92.4%  turn  5.2  plays 0.94  returns 0.03  died   2.8%  stuck  89.8%, Null wins  46.2% |  63.4%   (mean game 13.1 turns)
+  Aegis ~ Swarm    Aegis  played  98.4%  turn  5.0  plays 1.06  returns 0.10  died  10.2%  stuck  88.4%, Aegis wins  57.4% |  41.6%
+                   Swarm  played  88.6%  turn  5.3  plays 0.94  returns 0.09  died  10.5%  stuck  79.3%, Aegis wins  54.4% |  59.8%   (mean game 13.4 turns)
+  -- approved --
+  Null > Aegis     Null   played  98.5%  turn  5.0  plays 1.07  returns 0.15  died  14.2%  stuck  84.5%, Null wins  47.4% |  33.3%
+                   Aegis  played  99.1%  turn  5.0  plays 1.09  returns 0.14  died  13.8%  stuck  85.4%, Null wins  41.4% |  67.5%   (mean game 13.9 turns)
+  Aegis > Cortex   Aegis  played  99.7%  turn  5.0  plays 1.20  returns 0.26  died  24.0%  stuck  75.8%, Aegis wins  60.2% |  35.3%
+                   Cortex played  94.9%  turn  5.2  plays 1.04  returns 0.13  died  13.2%  stuck  82.4%, Aegis wins  50.9% |  69.5%   (mean game 14.4 turns)
+  Cortex > Swarm   Cortex played  90.9%  turn  5.2  plays 0.94  returns 0.05  died   5.1%  stuck  86.3%, Cortex wins  57.0% |  26.6%
+                   Swarm  played  85.8%  turn  5.3  plays 0.92  returns 0.12  died  14.1%  stuck  73.6%, Cortex wins  52.8% |  53.1%   (mean game 13.2 turns)
+  Swarm > Null     Swarm  played  84.2%  turn  5.2  plays 0.86  returns 0.05  died   5.6%  stuck  79.5%, Swarm wins  56.8% |  54.3%
+                   Null   played  94.6%  turn  5.0  plays 0.96  returns 0.03  died   3.6%  stuck  91.3%, Swarm wins  55.9% |  60.6%   (mean game 12.2 turns)
+  Null ~ Cortex    Null   played  98.8%  turn  5.0  plays 1.07  returns 0.14  died  13.1%  stuck  85.8%, Null wins  49.7% |  36.6%
+                   Cortex played  90.4%  turn  5.2  plays 0.92  returns 0.03  died   3.6%  stuck  87.2%, Null wins  45.2% |  66.4%   (mean game 13.2 turns)
+  Aegis ~ Swarm    Aegis  played  98.6%  turn  5.0  plays 1.08  returns 0.13  died  12.6%  stuck  86.2%, Aegis wins  57.3% |  42.3%
+                   Swarm  played  86.0%  turn  5.3  plays 0.92  returns 0.11  died  12.3%  stuck  75.4%, Aegis wins  53.4% |  60.7%   (mean game 13.5 turns)
+
+== 4. Trial fixes on Prime Aegis (card data patched for the run only; nothing is written) ==
+  Each cell: the trial's rate, verdict, then the change from the same mode as shipped.
+  P1: Prime Aegis costs 7
+    Null > Aegis     gate  55.0% UNRES(-0.0)  +4.3 [1.6, 7.1] real  mythic  46.7% OUT  (-8.3) +16.2 [13.5, 18.8] real  approved  48.4% OUT  (-6.6)  +3.2 [0.4, 6.0] real
+    Aegis > Cortex   gate  45.8% OUT  (-9.2)  -3.5 [-6.2, -0.7] real  mythic  56.3% UNRES       -15.2 [-17.8, -12.5] real  approved  51.9% OUT  (-3.1)  -2.3 [-5.1, 0.4]     
+    Aegis ~ Swarm    gate  47.4% IN           -4.5 [-7.3, -1.7] real  mythic  39.9% OUT  (-5.1) -16.2 [-18.9, -13.5] real  approved  52.1% IN           -3.1 [-5.8, -0.3] real
+  P2: Prime Aegis loses "Enemy units get -1/-0"
+    Null > Aegis     gate  53.8% UNRES(-1.2)  +3.2 [0.4, 6.0] real  mythic  38.8% OUT  (-16.2) +8.2 [5.6, 10.9] real  approved  48.4% OUT  (-6.6)  +3.2 [0.4, 6.0] real
+    Aegis > Cortex   gate  45.6% OUT  (-9.4)  -3.8 [-6.5, -1.0] real  mythic  62.8% OUT  (+2.8)  -8.7 [-11.3, -6.1] real  approved  51.2% OUT  (-3.8)  -3.0 [-5.7, -0.2] real
+    Aegis ~ Swarm    gate  47.6% IN           -4.3 [-7.0, -1.5] real  mythic  45.6% UNRES       -10.5 [-13.3, -7.8] real  approved  51.7% IN           -3.5 [-6.2, -0.7] real
+  P3: Prime Aegis 4/8 -> 4/6
+    Null > Aegis     gate  50.8% OUT  (-4.2)  +0.1 [-2.6, 2.9]       mythic  30.8% OUT  (-24.2) +0.2 [-2.3, 2.8]       approved  45.2% OUT  (-9.8)  +0.0 [-2.8, 2.8]     
+    Aegis > Cortex   gate  49.0% OUT  (-6.0)  -0.3 [-3.0, 2.5]       mythic  71.3% OUT  (+11.3) -0.2 [-2.7, 2.3]       approved  54.1% UNRES(-0.9)  -0.1 [-2.8, 2.7]     
+    Aegis ~ Swarm    gate  51.9% IN           +0.0 [-2.8, 2.8]       mythic  55.8% UNRES(+0.8)  -0.4 [-3.1, 2.4]       approved  55.1% UNRES(+0.1)  -0.1 [-2.8, 2.7]     
+
+(267 s)
+
+== Reading ==
+
+1. In the mythic mode, the 71.5% is Prime Aegis being always available. Moving Prime Aegis alone to the
+   zone is worth +33.0 points to Aegis against Cortex (+33.0 again with Quorum Arbiter already there);
+   Quorum Arbiter in the zone only gives Cortex 10.8 back. Prime Aegis comes down on Aegis's 6th turn
+   in 95% of games and dies in 1.4% of them: Cortex has nothing that removes a 4/8 that makes itself 5/9
+   and shrinks every Cortex attacker by 1. Aegis wins 75.0% of the games it sticks, 20.1% of the rest.
+   It is not the replay rule (returns 0.01 a game), and not how the agent plays it (it plays it on curve
+   every time it can). It is guaranteed access to a card balanced as a 1-in-4 draw (the gate plays it in
+   29% of games, winning 80.3% of those). Session 31 said the same; the agent fix did not change it.
+
+2. The other mythic-mode edges far out of band, and what drives each (section 2a):
+     Null > Aegis    30.5% (24.5 under)  Prime Aegis to the zone -29.8; Null Singularity only +10.8 (cost 7,
+                                          played in 48% of games: games end first)
+     Cortex > Swarm  43.9% (11.1 under)  Hive Mother to the zone -19.6 for Cortex; Quorum Arbiter only +4.4
+     Swarm > Null    64.8% (4.8 over)    Hive Mother +13.8; Null Singularity -5.2
+     Aegis ~ Swarm   56.1% (1.1 over)    Prime Aegis +23.0 against Hive Mother -19.4
+   So the mythic mode ranks the four Mythics in the zone: Prime Aegis (~+23 to +33) > Hive Mother (~+14 to
+   +20) > Null Singularity (~+5 to +11) ~ Quorum Arbiter (~+4 to +11). Its edges measure that ranking,
+   not the factions.
+
+3. In the mode real matches use, Aegis > Cortex is close to its band. With the approved lines it is 54.2%
+   (UNRESOLVED, 0.8 under 55); with the plain stand-in 55.2%. A signature card on each side actually
+   lifts the gate's OUT edge (49.3%) toward the band. The 71.5% does not describe a real match.
+
+4. The real-mode outlier is a different edge: Null > Aegis, 45.2% (9.8 under its band; gate 50.6%). Section
+   2b shows why: a signature card is worth more to Aegis than to any other faction. Aegis gains +11.6
+   against Cortex, +10.6 against Null and +6.0 against Swarm from its own; Cortex gains 6.4, Null 5.9, Swarm
+   4.6 or less. Cortex > Swarm also slips (58.2 -> 52.9, both sides' cards cost Cortex about 4). Why Aegis
+   gains most is NOT measured here; a guess for the next session: its auras and buffs (Prime Aegis,
+   Static Ward Beacon, Plating Module) stack on one more durable body, and Aegis replays its signature
+   card more than anyone (1.20 plays a game vs Cortex).
+
+5. Trials on Prime Aegis (section 4), each patched on every copy:
+   P1 cost 7: the mythic mode's Aegis > Cortex falls into reach (56.3%, -15.2) and Null > Aegis rises
+      +16.2 there; in real (approved) play Null > Aegis +3.2 (to 48.4%), but Aegis > Cortex drops to 51.9%
+      (OUT) and the gate's Aegis > Cortex to 45.8% (-3.5, further out).
+   P2 no enemy aura: the same direction, smaller in the mythic mode (-8.7), similar costs elsewhere.
+   P3 4/8 -> 4/6: changes nothing anywhere (within +-0.4). Nothing in these decks gets damage through
+      to Prime Aegis; its health is not what makes it strong.
+   Every Prime Aegis nerf trades the edge it fixes (Null > Aegis) for the one already OUT on the other
+   side (Aegis > Cortex in the gate). The ring's two Aegis edges pull in opposite directions; one card
+   can't fix both.

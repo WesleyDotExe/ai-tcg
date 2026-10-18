@@ -37,9 +37,25 @@ and session 39 (the chase cards live: schema v10, S0-odds-2, one roller, secret 
 binder; Intercept Routine fizzle causes), and session 40 (the generic "choose one" mechanic; the 3
 Zero-Day cards built and measured, not live), and session 41 (the reference agent fixed, the ring
 re-baselined, the Zero-Day cards tuned to the cap), and session 42 (the Zero-Day cards live; the
-Aegis vs Cortex investigation).
+Aegis vs Cortex investigation), and session 43 (the signature-mode ring investigation).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 43
+
+- **The CI's second ring check measures a mode no real match plays.** `--signature` puts set Mythics
+  in the zone; real matches carry a generated Neutral menu card. Its 4 far-out edges measure how
+  strong each Mythic is when guaranteed, not the factions. Nothing in CI measures the real-match
+  mode yet; the fix is the owner's call (check-in option A).
+- **In the real-match stand-in, Null > Aegis is 45.2%, 9.8 under its band,** and Cortex > Swarm
+  52.9% slips OUT. A signature card is worth ~2x more to Aegis than to the others; why is
+  unmeasured. The 14 approved lines passed a fairness test that measured each line against the
+  plain stand-in on both sides, so a faction-wide gain from the body itself was never in its scope.
+- **The real-match stand-in draws approved lines evenly,** not as real owners pick them (1 of 3).
+- **Prime Aegis's health is not doing anything** (4/8 -> 4/6 changes no edge by more than 0.4):
+  nothing in the shipped decks gets damage through to it. A design smell for the next set.
+- Session 42's debt stands otherwise (Aegis > Cortex OUT in the gate, accepted by the owner for now;
+  2,500-seed trials; no agent builds decks with Zero-Day cards; the registry trap).
 
 ## New debt from session 42
 

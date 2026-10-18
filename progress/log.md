@@ -3197,3 +3197,37 @@ render pack page has no rules text (modal cards keep it in modes); flagged for t
 **Evidence:** `progress/economy-demo-010.txt`, `progress/balance-report-029-aegis-cortex-shift.txt`.
 
 **Blocked:** nothing. The Aegis vs Cortex fix waits on the owner's pick (default A: +1/+0).
+
+## 2026-10-18 — Session 43 (owner's 2026-10-18 answers to session 42: leave Mainframe Core; the signature-mode ring)
+
+Game-lane session: the last merged PR (#70) was render. Owner feedback first: the session-42
+answers handled (game parts); the render feel notes, render session 26 answers and the three
+hold-to-tilt entries are the render lane's own, marked so; the art-model decision (Imagen 4 Ultra)
+noted and recorded in roadmap item 8 (no art generated). Not a hardening pass (session 45 is the
+next 5th); the owner asked for this investigation.
+
+**Built:** `engine/src/dev/signatureRingDrivers.ts`, a report driver. No card, signature option or
+baseline changed.
+
+**Ran it** (2,500 gate seeds per edge, ~4.5 min; `progress/balance-report-030-signature-ring-drivers.txt`):
+- The set-Mythic column reproduces `ringBaselineSignature.json` exactly (Aegis > Cortex 1,787/2,500).
+- That mode is not real play: the store's match setup gives each agent its generated Neutral card.
+  The owner's note read the 71.5% as "real matches"; my session-42 wording invited that. Corrected
+  in the check-in.
+- Set-Mythic mode: Prime Aegis to the zone alone +33.0 [30.5, 35.5] for Aegis vs Cortex; Quorum
+  Arbiter -10.8. Prime Aegis dies in 1.4% of games played; Aegis wins 75.0% when it sticks. Null >
+  Aegis 30.5% (Prime Aegis -29.8), Cortex > Swarm 43.9% (Hive Mother -19.6), Swarm > Null 64.8%.
+- Real-match stand-in (approved lines): Aegis > Cortex 54.2%, Null > Aegis 45.2% (9.8 under). Aegis
+  gains +11.6 / +10.6 / +6.0 from its own signature card; other factions 4-6.
+- Prime Aegis trials: cost 7 and no enemy aura move Null > Aegis +3 (real) / +8-16 (Mythic mode)
+  and cost the gate's Aegis > Cortex 3.5-3.8; 4/8 -> 4/6 changes nothing (nothing damages it).
+- `npm test` all workspaces; `tsc` clean; both ring modes PASS unchanged.
+
+**Worked:** the one-side splits answer "what drives it" in one table per edge.
+**Didn't / honest limits:** why Aegis gains most from a signature card is a guess, not measured. The
+approved mode draws lines evenly; real owners pick 1 of 3. 2,500 seeds, not 10,000.
+
+**Evidence:** `progress/balance-report-030-signature-ring-drivers.txt`.
+
+**Blocked:** nothing. The ring's second check waits on the owner's pick (default A: measure real
+matches).
