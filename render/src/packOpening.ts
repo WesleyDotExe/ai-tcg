@@ -98,6 +98,11 @@ export interface CardFace {
   health: number | null;
   /** Keywords, then each ability's rules text, one line each. */
   text: string[];
+  /** A modal ("choose one") card's modes, each with its printed name and
+   * rules text (engine CardMode). Empty on every other card. A modal card's
+   * `abilities` hold only what every mode shares (usually nothing), so
+   * without these its face had no rules text at all (owner 2026-10-18). */
+  modes: { name: string; text: string }[];
   flavor: string;
   /** The placeholder art's seeds (cardVisual.ts), from the card id. */
   visualSeed: number;
@@ -203,6 +208,7 @@ export function cardFaceOf(c: Pick<OpenedCard, "cardId" | "name" | "rarity">): C
       attack: null,
       health: null,
       text: ["Reserved entry. This card is designed and waits to go live."],
+      modes: [],
       flavor: "Signal acquired. Payload withheld.",
       visualSeed: visualSeedFor(c.cardId),
       visualPattern: visualPatternFor(c.cardId),
@@ -221,6 +227,7 @@ export function cardFaceOf(c: Pick<OpenedCard, "cardId" | "name" | "rarity">): C
     attack: card.type === "Unit" ? card.attack : null,
     health: card.type === "Unit" ? card.health : null,
     text,
+    modes: (card.modes ?? []).map((m) => ({ name: m.name, text: m.text })),
     flavor: card.flavor,
     visualSeed: visualSeedFor(card.id),
     visualPattern: visualPatternFor(card.id),
@@ -249,8 +256,27 @@ export const BULK_TIMINGS = {
   hitHold: 1100,
 } as const;
 
-/** The speeds the owner can pick. */
+/** The speeds the owner can pick. Owner 2026-10-18 (feel notes): they
+ * apply to Auto only; the tap-driven opening runs at 1x. */
 export const BULK_SPEEDS = [1, 2, 4] as const;
+
+/** The tap-driven ten-pack opening (owner 2026-10-18 feel notes: "nothing
+ * plays on its own. Each tap or swipe tears the next pack. Its cards deal
+ * into the row, and the owner taps to flip the face-down ones, then moves on
+ * to the next pack"). Proposed, in milliseconds; BULK_TIMINGS' tear, deal
+ * and flip are reused at 1x. */
+export const BULK_TAP_TIMINGS = {
+  /** The tapped pack showing sealed before it rips: just long enough to see
+   * which pack it is. */
+  sealed: 140,
+  /** After a hit turns over, a tap on the row waits this long before it
+   * moves on, so the hit's pop is never cut off by a double tap. Flipping
+   * another card is never held up. */
+  hitPop: 600,
+  /** Auto, during a big pull's full reveal: the beat between one step of the
+   * reveal ending and the next starting (full length at every speed). */
+  autoStackBeat: 700,
+} as const;
 
 /** One tile of the ten-pack summary grid: every copy of the same card in
  * the same finish, folded into one tile with a count. A Prototype copy is

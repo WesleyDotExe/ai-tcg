@@ -23,7 +23,7 @@
 // plans it was given (packOpening.ts), each one a real opening.
 
 import { PACK_FX_RUNTIME_SOURCE, PACK_FX_SHADERS } from "./packFx.js";
-import { BULK_SPEEDS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
+import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 
 export interface PackPageData {
@@ -35,7 +35,7 @@ export interface PackPageData {
 
 export function renderPackOpeningHtml(data: PackPageData): string {
   const embed = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
-  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, speeds: BULK_SPEEDS };
+  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS };
   data = { ...data, bulks: data.bulks ?? [] };
   return `<!doctype html>
 <html lang="en" data-theme="dark">
@@ -69,9 +69,10 @@ export function renderPackOpeningHtml(data: PackPageData): string {
   <div class="hint" id="hint" aria-live="polite"></div>
   <div class="counter" id="counter"></div>
   <button class="skip" id="skip" hidden>Skip to summary</button>
-  <div class="bctl"><span class="speed" id="speed" role="group" aria-label="Speed" hidden></span><button class="bskip" id="bskip" hidden title="Runs ahead to the next big pull, which still gets its full reveal; with none left, to the summary">Skip</button></div>
+  <div class="bctl"><button class="bauto" id="bauto" role="switch" aria-checked="false" hidden title="Plays the packs by themselves, as fast as the speed says">Auto</button><span class="speed" id="speed" role="group" aria-label="Auto speed" hidden></span><button class="bskip" id="bskip" hidden title="Runs ahead to the next big pull, which still gets its full reveal; with none left, to the summary">Skip to summary</button></div>
 </main>
 <div class="zd" id="zd" hidden><div class="zd-term" id="zd-term"></div></div>
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Card viewer"><div class="vcard" id="vcard"></div><div class="vcap" id="vcap"></div><button class="vclose" id="vclose">Close</button></div>
 <p class="sr" id="announce" aria-live="assertive"></p>
 <footer class="foot" id="foot"></footer>
 <script type="application/json" id="pack-data">${embed(data)}</script>
@@ -204,7 +205,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .face .cost { flex: none; width: 10.5cqw; height: 10.5cqw; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 5.6cqw; color: #0b1a2a; background: radial-gradient(circle at 35% 30%, #fff, #9fd8ff 40%, #2b6fa8); box-shadow: 0 0 0 1px rgba(0,0,0,0.4); }
 .face .type { position: absolute; left: 4.5%; right: 4.5%; top: 55.5%; height: 7%; display: flex; justify-content: space-between; align-items: center; font-size: 4.4cqw; padding: 0 2.5cqw; background: rgba(0,0,0,0.32); border-radius: 4px; z-index: 2; }
 .face .rar { color: var(--fc); font-weight: 700; }
-.face .text { position: absolute; left: 4.5%; right: 4.5%; top: 64%; bottom: 13%; padding: 2.4cqw 3cqw; font-size: 4.3cqw; line-height: 1.32; border-radius: 4px; background: rgba(0,0,0,0.26); color: #dfe5f1; overflow: hidden; z-index: 2; }
+.face .text { position: absolute; left: 4.5%; right: 4.5%; top: 64%; bottom: 13%; padding: 2.4cqw 3cqw; font-size: calc(4.3cqw * var(--fit, 1)); line-height: 1.32; border-radius: 4px; background: rgba(0,0,0,0.26); color: #dfe5f1; overflow: hidden; z-index: 2; }
 .face .text p { margin: 0 0 1.4cqw; }
 .face .text .flav { color: #9aa6bf; font-style: italic; }
 .face .stats { position: absolute; right: 5.5%; bottom: 13.8%; display: flex; gap: 2cqw; z-index: 3; }
@@ -219,20 +220,38 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .face .fxgl-gold { mix-blend-mode: screen; }
 .face .fxgl-glitch { mix-blend-mode: screen; }
 .face .fxgl-zeroDay { mix-blend-mode: screen; }
-/* Full Art and the illustrations: the art fills the card, the text sits on it. */
+/* Full bleed: every finish rarer than Full Art (packFullBleed) lets the art
+   fill the card, the text sitting on it (owner 2026-10-18). The edge ring is
+   drawn over the art, since the face's own inset ring sits under it. */
 .face.full .art { left: 0; right: 0; top: 0; height: 100%; border-radius: 0; }
 .face.full .type, .face.full .text { background: rgba(5,8,18,0.62); backdrop-filter: blur(2px); }
 .face.full .head { background: linear-gradient(180deg, rgba(0,0,0,0.55), transparent); border-radius: 4px; padding: 0 1.6cqw; }
-/* Gold: the whole frame is gold; its text reads dark-on-gold where it sits on the frame. */
-.face.goldframe { background: linear-gradient(115deg, var(--gold1), var(--gold2) 22%, var(--gold3) 40%, var(--gold4) 50%, var(--gold3) 60%, var(--gold2) 78%, var(--gold1)); background-size: 250% 100%; animation: sheen 4s linear infinite; box-shadow: 0 14px 40px rgba(0,0,0,0.55), 0 0 30px rgba(246,215,122,0.45), inset 0 0 0 2px rgba(255,241,184,0.7); }
-.face.goldframe .art { filter: sepia(0.55) saturate(1.5) hue-rotate(-12deg) brightness(1.08); }
-.face.goldframe .name { color: #2b1a00; text-shadow: 0 1px 0 rgba(255,255,255,0.4); }
-.face.goldframe .foot, .face.goldframe .setno { color: #2b1a00; font-weight: 800; text-shadow: 0 1px 0 rgba(255,241,184,0.6); }
-.face.goldframe .text, .face.goldframe .type { background: rgba(40,24,0,0.55); color: #fff3cf; }
-.face.goldframe .rar { color: #fff3cf; }
-/* Glitch: the card's own art and frame, palette rotated to a corrupted one. */
+.face.full .foot { background: linear-gradient(0deg, rgba(0,0,0,0.5), transparent); border-radius: 4px; padding: 0 1.6cqw; left: 3.4%; right: 3.4%; }
+.face.full::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 4; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12), inset 0 0 0 4px var(--ring, var(--fc, #3a4152)); }
+/* Gold: full-bleed art in gold tones, a gold edge, gold lettering. */
+.face.goldframe { box-shadow: 0 14px 40px rgba(0,0,0,0.55), 0 0 30px rgba(246,215,122,0.45); }
+.face.goldframe::before { box-shadow: inset 0 0 0 1px rgba(255,248,214,0.8); padding: 2.6cqw; background: linear-gradient(115deg, var(--gold1), var(--gold2) 22%, var(--gold3) 40%, var(--gold4) 50%, var(--gold3) 60%, var(--gold2) 78%, var(--gold1)); background-size: 250% 100%; animation: sheen 4s linear infinite;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); mask-composite: exclude; }
+.face.goldframe .art { filter: sepia(0.85) saturate(1.7) hue-rotate(-10deg) brightness(1.06) contrast(1.05); }
+.face.goldframe .head { background: linear-gradient(180deg, rgba(40,24,0,0.75), transparent); }
+.face.goldframe .name { background: linear-gradient(180deg, var(--gold4), var(--gold2) 55%, var(--gold3)); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.85)); }
+.face.goldframe .cost { background: radial-gradient(circle at 35% 30%, #fffbe6, var(--gold2) 45%, var(--gold1)); color: #2b1a00; }
+.face.goldframe .text, .face.goldframe .type { background: rgba(34,20,0,0.7); color: #ffe9b0; box-shadow: inset 0 0 0 1px rgba(246,215,122,0.35); }
+.face.goldframe .rar, .face.goldframe .text .flav, .face.goldframe .foot, .face.goldframe .setno { color: var(--gold2); }
+.face.goldframe .foot { background: linear-gradient(0deg, rgba(40,24,0,0.7), transparent); }
+/* Glitch: the card's own art, palette rotated to a corrupted one. */
 .face.corrupt .art { filter: hue-rotate(150deg) saturate(1.8) contrast(1.35); }
-.face.corrupt { box-shadow: 0 14px 40px rgba(0,0,0,0.55), inset 0 0 0 2px rgba(255,255,255,0.07), inset 0 0 0 4px #ff2bd6; }
+.face.corrupt { --ring: #ff2bd6; box-shadow: 0 14px 40px rgba(0,0,0,0.55), inset 0 0 0 2px rgba(255,255,255,0.07), inset 0 0 0 4px #ff2bd6; }
+/* A modal ("choose one") card: each mode's name and its rules text. On a
+   full-bleed face the rules box starts higher, since the art is behind it
+   anyway and two modes need the room. */
+.face .text.modal { font-size: calc(3.7cqw * var(--fit, 1)); line-height: 1.26; }
+.face .text .choose { margin: 0 0 1cqw; font-size: 2.8cqw; font-weight: 900; letter-spacing: 0.18em; color: var(--fc); }
+.face .text .mode { margin: 0 0 1.3cqw; padding-left: 2cqw; border-left: 0.7cqw solid var(--fc); }
+.face .text .mode b { color: #fff; font-weight: 800; margin-right: 0.6cqw; }
+.face.full.modal .type { top: 47%; }
+.face.full.modal .text { top: 55%; }
+.face.zdface .text .choose { color: #35ff8a; } .face.zdface .text .mode { border-left-color: #35ff8a; }
 .face.corrupt .name { text-shadow: 1.2cqw 0 rgba(255,0,90,0.7), -1.2cqw 0 rgba(0,240,255,0.7); }
 .ghost { position: absolute; inset: 0; pointer-events: none; z-index: 6; mix-blend-mode: screen; opacity: 0.9; }
 .ghost.r { filter: url(#only-r); } .ghost.c { filter: url(#only-gb); }
@@ -251,7 +270,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: conic-gradient(from var(--zda, 0deg), rgba(255,30,60,0), rgba(255,30,60,0.75), rgba(60,255,140,0.6), rgba(255,30,60,0)); filter: blur(14px); animation: zdspin 3s linear infinite; }
 @property --zda { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 @keyframes zdspin { to { --zda: 360deg; } }
-.face.zdface { box-shadow: 0 0 0 2px #ff1e3c, 0 0 34px rgba(255,30,60,0.7), inset 0 0 0 4px #35ff8a; }
+.face.zdface { --ring: #35ff8a; box-shadow: 0 0 0 2px #ff1e3c, 0 0 34px rgba(255,30,60,0.7), inset 0 0 0 4px #35ff8a; }
 .face.zdface .name { color: #8dffb8; font-family: ui-monospace, Menlo, Consolas, monospace; }
 .face.zdface .art { animation: zdart 4s steps(40) infinite; }
 @keyframes zdart { 50% { filter: hue-rotate(40deg) brightness(1.2); } }
@@ -284,6 +303,19 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .zd-term .cur { display: inline-block; width: 0.6em; background: #35ff8a; animation: blink 0.8s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .zd.breach .zd-term { animation: shake 0.42s 3; }
+
+/* ---------- the card viewer (a summary tile, full size) ---------- */
+.viewer { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; align-content: center; gap: 12px; padding: 16px; background: rgba(3,4,10,0.88); backdrop-filter: blur(3px); touch-action: none; }
+.viewer[hidden] { display: none; }
+.vcard { --cw: min(calc(100vw - 32px), 360px, calc((100dvh - 150px) * 0.714)); width: var(--cw); height: calc(var(--cw) * 1.4); position: relative; perspective: 1100px; animation: rise 0.35s cubic-bezier(.2,.9,.3,1) both; }
+.vcard .tiltv { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.12s; }
+.vcard .face { border-radius: calc(var(--cw) * 0.05); }
+.vcard.reach::before { content: ""; position: absolute; inset: -7%; border-radius: 16px; pointer-events: none; background: conic-gradient(from var(--zda, 0deg), rgba(255,30,60,0), rgba(255,30,60,0.75), rgba(60,255,140,0.6), rgba(255,30,60,0)); filter: blur(14px); animation: zdspin 3s linear infinite; }
+.vcap { font-size: 12px; color: var(--dim); text-align: center; max-width: var(--cw); }
+.vcap .fin { display: inline-block; font-weight: 800; letter-spacing: 0.08em; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #1a2342; color: #cfe0ff; }
+.vcap .fin.hit { background: linear-gradient(110deg, #7a5cff, #ff5cc8); color: #fff; }
+.vclose { border: 1px solid #6a8cff; background: #17204a; border-radius: 8px; padding: 6px 18px; font-weight: 700; }
+.tile .mini { cursor: zoom-in; }
 
 /* ---------- the summary ---------- */
 .summary { width: min(980px, calc(100vw - 32px)); max-height: calc(100% - 20px); overflow-y: auto; padding: 14px 0 70px; text-align: center; touch-action: pan-y; }
@@ -319,6 +351,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .speed { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
 .speed button { border: 0; background: rgba(13,19,36,0.85); padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--dim); font-variant-numeric: tabular-nums; }
 .speed button[aria-pressed="true"] { background: #2a3a8a; color: #fff; }
+.bauto { border: 1px solid var(--line); background: rgba(13,19,36,0.85); border-radius: 999px; padding: 3px 10px 3px 6px; font-size: 12px; font-weight: 700; color: var(--dim); display: inline-flex; align-items: center; gap: 6px; }
+.bauto::before { content: ""; width: 22px; height: 12px; border-radius: 6px; background: #1f2a4d; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); transition: background 0.2s; }
+.bauto[aria-checked="true"] { color: #fff; border-color: #6a8cff; }
+.bauto[aria-checked="true"]::before { background: radial-gradient(circle at 16px 6px, #fff 0 4px, transparent 4.5px), #3d7bff; }
+.bauto:not([aria-checked="true"])::before { background: radial-gradient(circle at 6px 6px, #8ea3c9 0 4px, transparent 4.5px), #1f2a4d; }
 .bskip { border: 1px solid var(--line); background: rgba(13,19,36,0.85); border-radius: 7px; padding: 4px 11px; font-size: 12px; font-weight: 700; color: var(--ink); }
 /* A small sealed pack: the fan of ten, and the one about to tear in the fast sequence. */
 .mpack { --mw: min(30vw, 120px, calc((100dvh - 260px) * 0.4)); width: var(--mw); height: calc(var(--mw) * 1.6); position: relative; }
@@ -349,6 +386,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .bcard .flipper { transition: transform calc(0.23s / var(--sp)) cubic-bezier(.3,.6,.3,1); }
 .bcard.down .flipper { transform: rotateY(180deg); }
 .bcard.down .back { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) #1c2350, 0 0 14px 3px rgba(150,190,255,0.6); }
+.bcards.wait .bcard.down { cursor: pointer; }
+.bcards.wait .bcard.down .back { animation: glow 1.4s ease-in-out infinite; }
 .bcard .face { border-radius: calc(var(--cw) * 0.05); }
 .bcard.pop { z-index: 3; animation: bpop calc(0.6s / var(--sp)) cubic-bezier(.2,1.5,.4,1); }
 @keyframes bpop { 40% { transform: scale(1.14); } }
@@ -416,12 +455,114 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     var head = packs.slice(0, 3).join(', ');
     return 'packs ' + head + (packs.length > 3 ? ' +' + (packs.length - 3) : '');
   }
+  // The lasting look a settled card wears over its face: which shader
+  // layer (or its CSS stand-in), and how strong. '' for a plain card.
+  function packFinishLayerName(reveal) {
+    return { foil: 'foil', fullArt: 'foil', altArt: 'foil', secret: 'foil', gold: 'gold', prototype: 'gold', glitch: 'glitch', zeroDay: 'zeroDay' }[reveal] || '';
+  }
+  function packFinishLayerAmt(reveal) {
+    return { foil: 1, fullArt: 0.55, altArt: 0.55, secret: 0.55, gold: 1, prototype: 0.5, glitch: 0.18, zeroDay: 0.75 }[reveal] || 0;
+  }
+  // What a tap (or a swipe) on a ten-pack row does, in the tap-driven
+  // opening (owner 2026-10-18): turn over the card tapped if it waits face
+  // down, else the first face-down card left, else move on to the next pack
+  // (the summary after the last). downs: the row's face-down cards, in
+  // order; tapped: the card under the tap, or -1.
+  function packRowTap(downs, tapped, last) {
+    if (tapped >= 0 && downs.indexOf(tapped) >= 0) return { flip: tapped };
+    if (downs.length) return { flip: downs[0] };
+    return { next: last ? 'summary' : 'pack' };
+  }
   // How long a fast (not full-reveal) pack of a ten-pack open takes at a
   // speed: sealed, torn, dealt, each face-down card turned in turn, held.
-  // Mirrors the page's own beats (fastPack, dealRow).
+  // Mirrors Auto's own beats (tearMini, dealRow, autoRow).
   function packFastDuration(cards, sparks, T, speed) {
     var downs = cards.filter(function (c) { return c.faceDown; }).length;
     return (T.sealed + T.tear + cards.length * T.deal + 160 + downs * T.flip + (sparks ? T.hitHold : T.hold)) / speed;
+  }
+  var PACK_RARITY_LABEL = { Common: '● Common', Uncommon: '◆ Uncommon', Rare: '★ Rare', Mythic: '✦ Mythic' };
+  function packEsc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  // Which finishes show their art across the whole card. Owner 2026-10-18:
+  // "a finish rarer than Full Art always shows its artwork across the whole
+  // card ... a rarer card must never look smaller than a Full Art." Only
+  // Standard and Foil are commoner than Full Art (S0-odds-2's shine slot:
+  // Full Art 9%, Glitch 4%, Alt Art 3%, the rest rarer still), so every
+  // other finish is full bleed: Full Art, Alt Art, Glitch, the secret
+  // illustrations, Gold, Prototype (and a prize copy) and Zero-Day.
+  function packFullBleed(reveal) { return reveal !== 'plain' && reveal !== 'foil'; }
+  // The rules box. A modal ("choose one") card prints its modes, each with
+  // its name and its own rules text, under CHOOSE ONE: its abilities list
+  // holds only what the modes share, which is nothing on the Zero-Day cards.
+  function packRulesHtml(f) {
+    var modes = f.modes || [];
+    var body = f.text.map(function (t) { return '<p>' + packEsc(t) + '</p>'; }).join('');
+    if (modes.length) body += '<p class="choose">CHOOSE ONE</p>' + modes.map(function (m) { return '<p class="mode"><b>' + packEsc(m.name) + '</b> ' + packEsc(m.text) + '</p>'; }).join('');
+    return '<div class="text' + (modes.length ? ' modal' : '') + '">' + body + (f.flavor ? '<p class="flav">' + packEsc(f.flavor) + '</p>' : '') + '</div>';
+  }
+  // One card face, under the owner-approved layout
+  // (render/reference/card-text-layout.html). settled: the card already
+  // wears its finish's look (face up, or after its reveal); a card still to
+  // be revealed turns over showing its plain face first. setCode names the
+  // set on a Prototype's foil line.
+  function packFaceHtml(c, opts, setCode) {
+    opts = opts || {};
+    var f = c.face, settled = !!opts.settled;
+    var variant = c.reveal === 'altArt' ? 'alt' : c.reveal === 'secret' ? 'illustration' : '';
+    var cls = 'face faction-' + f.faction + (settled && packFullBleed(c.reveal) ? ' full' : '') + (settled && c.reveal === 'gold' ? ' goldframe' : '') + (settled && c.reveal === 'glitch' ? ' corrupt' : '') + (settled && c.reveal === 'zeroDay' ? ' zdface' : '') + (c.prototype ? ' proto' : '') + (f.modes && f.modes.length ? ' modal' : '');
+    var type = f.type === 'Reserved' ? 'Zero-Day · Reserved' : f.type + ' · ' + f.faction;
+    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + packEsc(setCode || 'S0') + '</span>' : packEsc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '');
+    var mark = c.reveal === 'altArt' ? 'ALT ART' : c.reveal === 'glitch' ? 'GL1TCH' : c.reveal === 'secret' ? 'SECRET' : c.reveal === 'zeroDay' ? 'ZERO-DAY' : '';
+    return '<div class="' + cls + '">' +
+      '<div class="art">' + packArtSvg(f, variant) + '</div>' +
+      '<div class="head"><span class="name">' + packEsc(f.name) + '</span>' + (f.cost === null ? '' : '<span class="cost">' + f.cost + '</span>') + '</div>' +
+      (mark ? '<span class="mark">' + mark + '</span>' : '') +
+      '<div class="type"><span>' + packEsc(type) + '</span><span class="rar">' + PACK_RARITY_LABEL[f.rarity] + '</span></div>' +
+      packRulesHtml(f) +
+      (f.attack === null ? '' : '<div class="stats"><span class="atk">' + f.attack + '</span><span class="hp">' + f.health + '</span></div>') +
+      (c.prototype ? '<span class="plate' + (settled ? '' : ' pending') + '">' + c.prototype.serial + '/' + c.prototype.runSize + '</span>' : '') +
+      '<div class="foot"><span class="setno"><svg><use href="#setsym"/></svg>' + number + '</span><span>Season 0</span></div>' +
+      '</div>';
+  }
+  // The rules text's fit (render session 26). A face's text box is a fixed
+  // share of the card, so a long card's flavor line was cut off at the
+  // bottom, or ran under the attack/health boxes. The text steps down in
+  // size until it fits its box and its last line clears those boxes. The
+  // step is a share of the card-relative size (--fit), so the fit holds at
+  // every card size; most cards keep step 1.
+  var PACK_FIT_STEPS = [1, 0.93, 0.86, 0.8, 0.74, 0.68];
+  function packTextCrowded(t, stats) {
+    if (t.scrollHeight > t.clientHeight + 1) return true;
+    var last = t.lastElementChild;
+    if (!stats || !last) return false;
+    var s = stats.getBoundingClientRect(), range = document.createRange();
+    range.selectNodeContents(last);
+    var rects = range.getClientRects();
+    for (var i = 0; i < rects.length; i++) {
+      var r = rects[i];
+      if (r.width > 0 && r.right > s.left && r.left < s.right && r.bottom > s.top + 1 && r.top < s.bottom) return true;
+    }
+    return false;
+  }
+  function packFitText(face) {
+    var t = face.querySelector('.text');
+    if (!t || !t.clientHeight) return 0;
+    var stats = face.querySelector('.stats');
+    for (var i = 0; i < PACK_FIT_STEPS.length; i++) {
+      t.style.setProperty('--fit', String(PACK_FIT_STEPS[i]));
+      if (!packTextCrowded(t, stats)) break;
+    }
+    return Number(t.style.getPropertyValue('--fit'));
+  }
+  // Fits every face as it is put on the page, wherever that happens (the
+  // stack, a reveal, the ten-pack row, a summary tile, the viewer).
+  function packFitWatch(root) {
+    function fitIn(n) {
+      if (n.nodeType !== 1) return;
+      if (n.classList.contains('face')) packFitText(n);
+      n.querySelectorAll('.face').forEach(packFitText);
+    }
+    fitIn(root);
+    if (window.MutationObserver) new MutationObserver(function (ms) { ms.forEach(function (m) { m.addedNodes.forEach(fitIn); }); }).observe(root, { childList: true, subtree: true });
   }
   // A small seeded generator for the placeholder art (mulberry32).
   function packRng(seed) {
@@ -531,6 +672,8 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   function stopLayers() { S.layers.forEach(function (l) { l.stop(); }); S.layers = []; }
   function sfx(kind, faction, tier) { if (window.SND) SND.play(kind, faction || 'Neutral', tier || 'normal', null); }
 
+  packFitWatch(document.body);
+
   // ---------- sound ----------
   SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));
 
@@ -568,26 +711,8 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   }
 
   // ---------- card faces ----------
-  var RAR = { Common: '● Common', Uncommon: '◆ Uncommon', Rare: '★ Rare', Mythic: '✦ Mythic' };
-  function faceHtml(c, opts) {
-    opts = opts || {};
-    var f = c.face, full = c.reveal === 'fullArt' || c.reveal === 'altArt' || c.reveal === 'secret';
-    var variant = c.reveal === 'altArt' ? 'alt' : c.reveal === 'secret' ? 'illustration' : '';
-    var cls = 'face faction-' + f.faction + (opts.settled && full ? ' full' : '') + (opts.settled && c.reveal === 'gold' ? ' goldframe' : '') + (opts.settled && c.reveal === 'glitch' ? ' corrupt' : '') + (opts.settled && c.reveal === 'zeroDay' ? ' zdface' : '') + (c.prototype ? ' proto' : '');
-    var type = f.type === 'Reserved' ? 'Zero-Day · Reserved' : f.type + ' · ' + f.faction;
-    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + esc(S.cur ? S.cur.setCode : 'S0') + '</span>' : esc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '');
-    var mark = c.reveal === 'altArt' ? 'ALT ART' : c.reveal === 'glitch' ? 'GL1TCH' : c.reveal === 'secret' ? 'SECRET' : c.reveal === 'zeroDay' ? 'ZERO-DAY' : '';
-    return '<div class="' + cls + '">' +
-      '<div class="art">' + packArtSvg(f, variant) + '</div>' +
-      '<div class="head"><span class="name">' + esc(f.name) + '</span>' + (f.cost === null ? '' : '<span class="cost">' + f.cost + '</span>') + '</div>' +
-      (mark ? '<span class="mark">' + mark + '</span>' : '') +
-      '<div class="type"><span>' + esc(type) + '</span><span class="rar">' + RAR[f.rarity] + '</span></div>' +
-      '<div class="text">' + f.text.map(function (t) { return '<p>' + esc(t) + '</p>'; }).join('') + (f.flavor ? '<p class="flav">' + esc(f.flavor) + '</p>' : '') + '</div>' +
-      (f.attack === null ? '' : '<div class="stats"><span class="atk">' + f.attack + '</span><span class="hp">' + f.health + '</span></div>') +
-      (c.prototype ? '<span class="plate' + (opts.settled ? '' : ' pending') + '">' + c.prototype.serial + '/' + c.prototype.runSize + '</span>' : '') +
-      '<div class="foot"><span class="setno"><svg><use href="#setsym"/></svg>' + number + '</span><span>Season 0</span></div>' +
-      '</div>';
-  }
+  var RAR = PACK_RARITY_LABEL;
+  function faceHtml(c, opts) { return packFaceHtml(c, opts, S.cur ? S.cur.setCode : 'S0'); }
   function backHtml() { return '<div class="back"><div class="bl">AI·TCG</div><svg class="bs"><use href="#setsym"/></svg></div>'; }
 
   // ---------- the shelf ----------
@@ -616,10 +741,10 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     S.phase = 'pack'; S.i = 0; S.revealed = {}; S.busyUntil = 0;
     markPicker(); footer();
     var r = S.cur;
-    skipBtn.hidden = true; counter.textContent = S.mode === 'bulk' ? 'Pack ' + (S.bp + 1) + ' / ' + DATA.bulks[S.bulk].reveal.packs.length : ''; dim.style.opacity = 0;
+    skipBtn.hidden = true; counter.textContent = ''; dim.style.opacity = 0;
     var wrap = '<div class="wrap"><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div><div class="meta">' + r.cards.length + ' CARDS · ' + esc(r.setCode) + '</div><div class="crimp b"></div></div>';
     scene.innerHTML = '<div class="pack" id="pack" tabindex="0" role="button" aria-label="Sealed Season Zero pack. Drag across the top to tear it open, or tap."><div class="tilt"><div class="half top">' + wrap + '</div><div class="half body">' + wrap + '</div><div class="cutline"><i id="cutp"></i></div><div class="grip"></div><div class="finger"></div></div></div>';
-    hint.innerHTML = (S.mode === 'bulk' ? '<span class="slot bonus">BIG PULL</span><br>This pack gets its full reveal. ' : '') + 'Drag across the top of the pack to tear it open<br>or tap it';
+    hint.innerHTML = 'Drag across the top of the pack to tear it open<br>or tap it';
     var pack = document.getElementById('pack'), tilt = pack.querySelector('.tilt'), cutp = document.getElementById('cutp');
     var shimmer = FXGL.layer(tilt, 'pack', { amt: 1, seed: S.pack + S.bp + 2 });
     if (shimmer) S.layers.push(shimmer); else pack.classList.add('fx-css-pack');
@@ -759,10 +884,17 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     counter.textContent = (S.mode === 'bulk' ? 'Pack ' + (S.bp + 1) + ' · ' : '') + (S.i + 1) + ' / ' + r.cards.length;
     var slot = c.slot === 'shine' ? '<span class="slot">SHINE SLOT</span><br>' : c.slot === 'bonus' ? '<span class="slot bonus">BONUS 6TH CARD</span><br>' : '';
     if (c.faceDown && !S.revealed[S.i]) hint.innerHTML = slot + 'Something special… tap to reveal';
-    else hint.innerHTML = slot + (S.i === r.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
+    else hint.innerHTML = slot + nextCardHint(S.i);
     if (!c.faceDown) { announce.textContent = c.face.name; settleFx(S.i, c); S.tilt = S.i; }
     log('cardShown', { idx: S.i, faceDown: c.faceDown, finish: c.finish, slot: c.slot, name: c.face.name });
     sfx('flip', c.face.faction);
+  }
+  // What a tap does after card k of the stack. A big pull inside a
+  // ten-pack open goes back to the packs, not to a summary.
+  function nextCardHint(k) {
+    if (k < S.cur.cards.length - 1) return 'Swipe or tap for the next card';
+    if (S.mode !== 'bulk') return 'Tap for the summary';
+    return S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1 ? 'Tap for the summary' : 'Tap to carry on with the packs';
   }
   function bindStack(stack) {
     var drag = null;
@@ -819,7 +951,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   document.addEventListener('keydown', function (e) {
     if (S.phase === 'cards' && (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); act('tap'); }
     if (S.phase === 'cards' && e.key === 'ArrowLeft') { e.preventDefault(); act('l'); }
-    if (S.phase === 'bulk' && (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); bulkTap(); }
+    if (S.phase === 'bulk' && (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); bulkTap(-1, 'key'); }
   });
   skipBtn.addEventListener('click', function () { if (S.phase === 'cards') { log('skip', { at: S.i }); summary(); } });
 
@@ -863,12 +995,11 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // a card after its reveal).
   function settleFx(k, c) {
     var face = slotEl(k) && slotEl(k).querySelector('.front .face');
-    if (!face) return null;
-    if (c.reveal === 'foil' || c.reveal === 'fullArt' || c.reveal === 'altArt' || c.reveal === 'secret') return addLayer(face, 'foil', c.reveal === 'foil' ? 1 : 0.55, k + 1);
-    if (c.reveal === 'gold' || c.reveal === 'prototype') return addLayer(face, 'gold', c.reveal === 'gold' ? 1 : 0.5, k + 1);
-    if (c.reveal === 'glitch') return addLayer(face, 'glitch', 0.18, k + 1);
-    if (c.reveal === 'zeroDay') return addLayer(face, 'zeroDay', 0.75, k + 1);
-    return null;
+    return face ? finishLayer(face, c, k + 1) : null;
+  }
+  function finishLayer(face, c, seed) {
+    var name = packFinishLayerName(c.reveal);
+    return name ? addLayer(face, name, packFinishLayerAmt(c.reveal), seed) : null;
   }
   function reveal(k) {
     var r = S.cur, c = r.cards[k], el = slotEl(k);
@@ -899,7 +1030,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     if (c.reveal === 'foil') { ramp(addLayer(face, 'foil', 0, k + 1), 0, 1, 500); wash('#bfe3ff'); }
     if (c.reveal === 'fullArt' || c.reveal === 'altArt') { face.classList.add('full'); ramp(addLayer(face, 'foil', 0, k + 1), 0, 0.55, 900); wash(c.reveal === 'altArt' ? '#ffb3ec' : '#bfe3ff'); }
     if (c.reveal === 'gold') {
-      face.classList.add('goldframe'); ramp(addLayer(face, 'gold', 0, k + 1), 0, 1, 600); wash('#f6d77a');
+      face.classList.add('full', 'goldframe'); ramp(addLayer(face, 'gold', 0, k + 1), 0, 1, 600); wash('#f6d77a');
       var rc = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
       sparks(rc.left - sr.left, rc.top - sr.top + rc.height * 0.1, rc.width, 110); sfx('sparkle', 'Neutral', 'spectacle');
     }
@@ -915,6 +1046,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       later(function () { co.classList.add('out'); dim.style.opacity = 0; el.style.transform = ''; later(function () { co.remove(); }, 500); }, t.hold);
     }
     if (c.reveal === 'prototype') {
+      face.classList.add('full');
       ramp(addLayer(face, 'gold', 0, k + 1), 0, 0.5, 600); wash('#f6d77a');
       later(function () {
         var plate = face.querySelector('.plate'); if (plate) { plate.classList.remove('pending'); plate.classList.add('stamp'); }
@@ -923,7 +1055,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     }
     S.tilt = k;
     log('landed', { idx: k, as: c.reveal });
-    hint.innerHTML += '<br>' + (k === S.cur.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
+    hint.innerHTML += '<br>' + nextCardHint(k);
   }
   // Glitch: the card corrupts as it flips (RGB split, jumping block tears,
   // scanlines), then settles with a faint glitch loop.
@@ -941,7 +1073,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     (function tick() {
       var p = (performance.now() - start) / ms;
       if (p >= 1) {
-        r.remove(); c.remove(); face.classList.add('corrupt'); flipper.style.transform = '';
+        r.remove(); c.remove(); face.classList.add('corrupt', 'full'); flipper.style.transform = '';
         if (gl) gl.set(0.18);
         glitchLoop(el, face, gl);
         return;
@@ -1013,7 +1145,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
         S.busyUntil = performance.now() + Z.arrive + TM.reveal.zeroDay.hold;
         later(function () { el.style.transition = ''; S.tilt = k; }, Z.arrive);
         announce.textContent = c.face.name + ', Zero-Day';
-        hint.innerHTML = '<span class="slot">SHINE SLOT</span><br>ZERO-DAY<br>' + (k === r.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
+        hint.innerHTML = '<span class="slot">SHINE SLOT</span><br>ZERO-DAY<br>' + nextCardHint(k);
       }
     }, Z.black);
   }
@@ -1033,70 +1165,98 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       '<div class="btns"><button class="pri" id="again">Open another</button><button id="done">Done</button></div></div>';
     document.getElementById('again').addEventListener('click', function () { openPack((S.pack + 1) % DATA.packs.length); });
     document.getElementById('done').addEventListener('click', shelf);
+    bindViewer(r.cards);
     log('summary', { cards: r.cards.map(function (c) { return { name: c.face.name, finish: c.finish, isNew: c.isNew }; }), packPoints: r.packPoints });
   }
 
   // A card face that is settled and wears its finish's CSS look (a summary
   // tile, a card in a ten-pack row: too many for a shader each).
   function settledFaceHtml(c) {
-    return faceHtml(c, { settled: true }).replace('class="face ', 'class="face ' + (c.reveal === 'foil' || c.reveal === 'fullArt' || c.reveal === 'altArt' || c.reveal === 'secret' ? 'fx-css-foil ' : c.reveal === 'gold' || c.reveal === 'prototype' ? 'fx-css-gold ' : c.reveal === 'glitch' ? 'fx-css-glitch ' : c.reveal === 'zeroDay' ? 'fx-css-zeroDay ' : ''));
+    var name = packFinishLayerName(c.reveal);
+    return faceHtml(c, { settled: true }).replace('class="face ', 'class="face ' + (name ? 'fx-css-' + name + ' ' : ''));
   }
   // One summary tile: a revealed card, or a ten-pack tile (count, packs).
   function tileHtml(c, i, extra) {
     var lab = packFinishLabel(c.finish);
     var where = c.packs ? ' · ' + packListLabel(c.packs) : '';
     var cap = (lab ? '<span class="fin' + (c.hit ? ' hit' : '') + '">' + lab + '</span><br>' : '') + esc(c.face.name) + '<br>' + esc(c.prototype ? 'serial ' + c.prototype.serial + ' of ' + c.prototype.runSize : c.collectorNumber) + where + ' · x' + c.ownedAfter + ' owned';
-    return '<div class="tile' + extra + '" style="--i:' + Math.min(i, 14) + '" data-finish="' + c.finish + '"' + (c.count ? ' data-count="' + c.count + '"' : '') + '>' + (c.isNew ? '<span class="new">NEW</span>' : '') + (c.count > 1 ? '<span class="cnt">×' + c.count + '</span>' : '') + '<div class="mini">' + settledFaceHtml(c) + '</div><div class="cap">' + cap + '</div></div>';
+    return '<div class="tile' + extra + '" style="--i:' + Math.min(i, 14) + '" data-ti="' + i + '" data-finish="' + c.finish + '"' + (c.count ? ' data-count="' + c.count + '"' : '') + '>' + (c.isNew ? '<span class="new">NEW</span>' : '') + (c.count > 1 ? '<span class="cnt">×' + c.count + '</span>' : '') + '<div class="mini">' + settledFaceHtml(c) + '</div><div class="cap">' + cap + '</div></div>';
   }
 
   // ---------- ten packs at once ----------
-  // owner 2026-10-05 / 2026-10-18: fast flips with skip and speed-up
-  // controls, full reveals only for the big pulls (the store's fullReveal:
-  // Gold, Prototype, secret, Zero-Day, Jackpot), a summary grid at the end.
-  var speedEl = document.getElementById('speed'), bskip = document.getElementById('bskip');
-  var SPEED_KEY = 'aitcg.packSpeed';
+  // owner 2026-10-05 / 2026-10-18: a summary grid at the end, full reveals
+  // only for the big pulls (the store's fullReveal: Gold, Prototype, secret,
+  // Zero-Day, Jackpot). Owner 2026-10-18 feel notes: nothing plays on its
+  // own. Each tap or swipe tears the next pack, its cards deal into the row
+  // and the owner taps to flip the face-down ones, then moves on. A big pull
+  // is torn the same way, and its full reveal plays right there: no pause,
+  // no second tear. "Auto" (off by default) is the old automatic sequence,
+  // and the 1x / 2x / 4x speeds apply to it.
+  var speedEl = document.getElementById('speed'), bskip = document.getElementById('bskip'), bauto = document.getElementById('bauto');
+  var SPEED_KEY = 'aitcg.packSpeed', AUTO_KEY = 'aitcg.packAuto';
+  S.auto = false; S.row = null; S.nextAt = 0;
   try { var sv = Number(localStorage.getItem(SPEED_KEY)); if (TM.speeds.indexOf(sv) >= 0) S.speed = sv; } catch (e) {}
+  try { S.auto = localStorage.getItem(AUTO_KEY) === '1'; } catch (e) {}
   TM.speeds.forEach(function (v) {
     var b = document.createElement('button');
     b.textContent = v + '×'; b.setAttribute('data-speed', v);
     b.addEventListener('click', function (e) { e.stopPropagation(); setSpeed(v); });
     speedEl.appendChild(b);
   });
+  // The CSS beats (--sp) run at the speed only in Auto; tapping runs at 1x.
+  function paceCss() { stage.style.setProperty('--sp', String(S.auto ? S.speed : 1)); }
   function setSpeed(v) {
     S.speed = v;
     try { localStorage.setItem(SPEED_KEY, String(v)); } catch (e) {}
-    stage.style.setProperty('--sp', String(v));
+    paceCss();
     Array.prototype.forEach.call(speedEl.children, function (b) { b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-speed')) === v)); });
     log('speed', { speed: v });
   }
   setSpeed(S.speed);
-  // A fast-sequence beat: the 1x time over the speed.
-  function fast(fn, ms) { return later(fn, ms / S.speed); }
-  function bulkControls(on) { speedEl.hidden = !on; bskip.hidden = !on; }
+  bauto.addEventListener('click', function (e) { e.stopPropagation(); setAuto(!S.auto); });
+  function setAuto(on) {
+    S.auto = on;
+    try { localStorage.setItem(AUTO_KEY, on ? '1' : '0'); } catch (e) {}
+    bauto.setAttribute('aria-checked', String(on));
+    paceCss();
+    if (S.mode === 'bulk' && (S.phase === 'bulk' || S.phase === 'fan')) bulkControls(true);
+    log('auto', { on: on });
+    if (S.mode !== 'bulk') return;
+    // Switched on mid-open: carry on by itself from where the owner is.
+    // Switched off: the auto steps already queued see it and stop, and the
+    // row waits for a tap.
+    if (on && S.phase === 'bulk' && S.row) { if (S.row.waiting) { S.row = null; bulkNext(); } else autoRow(S.row.r, 0); }
+    if (on && S.phase === 'cards') autoStack();
+    if (S.phase === 'bulk') bulkHint();
+  }
+  bauto.setAttribute('aria-checked', String(S.auto));
+  // A fast-sequence beat: in Auto the 1x time over the speed, else at 1x.
+  function fast(fn, ms) { return later(fn, S.auto ? ms / S.speed : ms); }
+  function bulkControls(on) { bauto.hidden = !on; speedEl.hidden = !(on && S.auto); bskip.hidden = !on; }
   bskip.addEventListener('click', function (e) {
     e.stopPropagation();
     if (S.mode !== 'bulk' || (S.phase !== 'bulk' && S.phase !== 'fan')) return;
-    // Skip runs ahead to the next big pull, which still gets its full
-    // reveal; with none left, to the summary.
+    // Runs ahead to the next big pull, which still gets its full reveal;
+    // with none left, to the summary.
     log('bulkSkip', { from: S.bp });
-    clearTimers(); S.skipping = true; bulkNext();
+    clearTimers(); S.skipping = true; S.row = null; bulkNext();
   });
   function openBulk(b) {
     clearTimers(); stopLayers(); zd.hidden = true; zd.className = 'zd'; dim.style.opacity = 0;
     var B = DATA.bulks[b].reveal;
-    S.mode = 'bulk'; S.bulk = b; S.bp = -1; S.cur = B.packs[0]; S.phase = 'fan'; S.skipping = false;
+    S.mode = 'bulk'; S.bulk = b; S.bp = -1; S.cur = B.packs[0]; S.phase = 'fan'; S.skipping = false; S.row = null;
     markPicker(); footer(); bulkControls(true); skipBtn.hidden = true;
     counter.textContent = B.packs.length + ' packs';
     var fan = '';
     for (var k = B.packs.length - 1; k >= 0; k--) fan += '<div class="mpack" style="--k:' + k + ';--n:' + B.packs.length + '">' + miniPackHtml() + '</div>';
-    scene.innerHTML = '<div class="fan" id="fan" tabindex="0" role="button" aria-label="Ten sealed Season Zero packs. Tap to open them all.">' + fan + '</div>';
-    hint.innerHTML = 'Ten packs. Tap to open them all';
+    scene.innerHTML = '<div class="fan" id="fan" tabindex="0" role="button" aria-label="Ten sealed Season Zero packs. Tap to tear the first one.">' + fan + '</div>';
+    hint.innerHTML = 'Ten packs. Tap to tear the first one';
     var f = document.getElementById('fan');
     function go() { if (S.phase !== 'fan') return; S.phase = 'bulk'; f.classList.add('go'); sfx('tear'); log('bulkGo', {}); fast(bulkNext, 420); }
     f.addEventListener('click', go);
     f.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
     f.focus({ preventScroll: true, focusVisible: false });
-    log('bulkStart', { packs: B.packs.length, label: DATA.bulks[b].label });
+    log('bulkStart', { packs: B.packs.length, label: DATA.bulks[b].label, auto: S.auto });
   }
   function miniPackHtml() {
     return '<div class="mtop"></div><div class="mbody"><span>AI·TCG</span><svg><use href="#setsym"/></svg></div>';
@@ -1105,7 +1265,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     var B = DATA.bulks[S.bulk].reveal;
     if (!document.getElementById('brow')) {
       scene.innerHTML = '<div class="bulk"><div class="pips" id="pips">' + B.packs.map(function (_, k) { return '<i data-p="' + k + '"></i>'; }).join('') + '</div><div class="brow" id="brow"></div></div>';
-      document.getElementById('brow').addEventListener('click', bulkTap);
+      bindRow(document.getElementById('brow'));
     }
     // A pip only says what a pack held once it has been opened: no spoilers.
     Array.prototype.forEach.call(document.getElementById('pips').children, function (el, k) {
@@ -1114,52 +1274,127 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     });
     return document.getElementById('brow');
   }
+  // A tap or a swipe on the row; a tap knows which card it landed on.
+  function bindRow(row) {
+    var down = null;
+    row.addEventListener('pointerdown', function (e) { down = { x: e.clientX, y: e.clientY, at: performance.now() }; });
+    row.addEventListener('pointerup', function (e) {
+      if (!down) return;
+      var g = packGesture(e.clientX - down.x, e.clientY - down.y, performance.now() - down.at);
+      down = null;
+      if (g === 'none') return;
+      var card = g === 'tap' && e.target.closest ? e.target.closest('.bcard') : null;
+      bulkTap(card ? Number(card.getAttribute('data-k')) : -1, g);
+    });
+  }
   function bulkNext() {
     var B = DATA.bulks[S.bulk].reveal;
+    S.row = null;
     S.bp++;
     if (S.bp >= B.packs.length) { S.skipping = false; bulkSummary(); return; }
     var r = B.packs[S.bp];
     S.cur = r;
     if (S.skipping && !r.fullReveal) { log('bulkPack', { fast: true, skipped: true, sparks: r.sparks }); bulkNext(); return; }
     S.skipping = false;
-    if (r.fullReveal) {
-      log('bulkPack', { fast: false, sparks: r.sparks });
-      // A big pull leaves the fast sequence: its own sealed pack, torn by
-      // hand, and every reveal at full length, whatever the speed.
-      bulkControls(false);
-      sealed('pack ' + (S.bp + 1));
-      return;
-    }
-    log('bulkPack', { fast: true, sparks: r.sparks });
+    log('bulkPack', { fast: !r.fullReveal, sparks: r.sparks, auto: S.auto });
     S.phase = 'bulk';
-    fastPack(r);
+    tearMini(r);
   }
+  // The pack tears in the row, the same way for every pack; a big pull then
+  // plays its full reveal right there (every reveal at its own full length,
+  // whatever the speed), the rest deal into the row.
+  function tearMini(r) {
+    var T = TM.bulk, row = bulkFrame();
+    counter.textContent = 'Pack ' + (S.bp + 1) + ' / ' + DATA.bulks[S.bulk].reveal.packs.length;
+    hint.innerHTML = '';
+    row.innerHTML = '<div class="mpack solo" id="mpack">' + miniPackHtml() + '</div>';
+    later(function () {
+      var mp = document.getElementById('mpack'); if (!mp) return;
+      mp.classList.add('torn'); sfx('tear');
+      log('tear', { via: S.auto ? 'auto' : 'tap', sparks: r.sparks, jackpot: r.jackpot });
+      // The honest tell holds here too.
+      if (r.sparks) {
+        var rc = mp.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+        sparks(rc.left - sr.left, rc.top - sr.top + rc.height * 0.16, rc.width, r.fullReveal ? 90 : 50);
+        sfx('sparkle', 'Neutral', r.fullReveal ? 'spectacle' : 'normal'); log('sparks', {});
+      }
+      if (r.fullReveal) later(function () { bigPull(r); }, TM.pack.tear);
+      else fast(function () { dealRow(r, row); }, T.tear);
+    }, S.auto ? T.sealed / S.speed : TM.tap.sealed);
+  }
+  function bigPull(r) {
+    bulkControls(false);
+    var wait = 0;
+    if (r.jackpot) {
+      var b = document.createElement('div'); b.className = 'banner'; b.innerHTML = 'JACKPOT PACK<small>every card Foil or better</small>';
+      stage.appendChild(b); sfx('rise', 'Neutral', 'spectacle'); log('jackpot', {});
+      later(function () { b.remove(); }, TM.pack.jackpotBanner);
+      wait = TM.pack.jackpotBanner;
+    }
+    later(function () { dealStack(); if (S.auto) autoStack(); }, wait);
+  }
+  // Auto, during a big pull: step through the stack by itself, each step
+  // once the last has had its full moment, plus a beat.
+  function autoStack() {
+    if (!(S.mode === 'bulk' && S.auto && S.phase === 'cards')) return;
+    var left = S.busyUntil - performance.now();
+    later(function () {
+      if (!(S.mode === 'bulk' && S.auto && S.phase === 'cards')) return;
+      if (performance.now() < S.busyUntil) { autoStack(); return; }
+      act('tap'); autoStack();
+    }, S.busyUntil === Infinity ? 200 : Math.max(0, left) + TM.tap.autoStackBeat);
+  }
+  // Back from a big pull: the next pack waits for a tap (or comes by
+  // itself in Auto). After the last pack, the summary.
   function bulkResume() {
     S.phase = 'bulk'; bulkControls(true);
     scene.innerHTML = '';
-    bulkFrame();
-    hint.innerHTML = '';
-    fast(bulkNext, 300);
+    var row = bulkFrame();
+    if (S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1) { bulkNext(); return; }
+    S.row = { waiting: true };
+    row.innerHTML = '<div class="mpack" style="opacity:0.85">' + miniPackHtml() + '</div>';
+    bulkHint();
+    if (S.auto) fast(function () { if (S.auto && S.row && S.row.waiting) bulkNext(); }, 300);
   }
-  // A tap on a fast pack moves straight on to the next one.
-  function bulkTap() { if (S.phase !== 'bulk') return; log('bulkTap', {}); clearTimers(); bulkNext(); }
-  function fastPack(r) {
-    var T = TM.bulk, row = bulkFrame();
-    counter.textContent = 'Pack ' + (S.bp + 1) + ' / ' + DATA.bulks[S.bulk].reveal.packs.length;
-    hint.innerHTML = 'Tap to move on · Skip runs ahead to the next big pull';
-    row.innerHTML = '<div class="mpack solo" id="mpack">' + miniPackHtml() + '</div>';
-    fast(function () {
-      var mp = document.getElementById('mpack'); if (!mp) return;
-      mp.classList.add('torn'); sfx('tear');
-      log('tear', { via: 'auto', sparks: r.sparks, jackpot: r.jackpot });
-      // The honest tell holds in the fast sequence too.
-      if (r.sparks) {
-        var rc = mp.getBoundingClientRect(), sr = stage.getBoundingClientRect();
-        sparks(rc.left - sr.left, rc.top - sr.top + rc.height * 0.16, rc.width, 50);
-        sfx('sparkle', 'Neutral', 'normal'); log('sparks', {});
-      }
-      fast(function () { dealRow(r, row); }, T.tear);
-    }, T.sealed);
+  function rowDowns() {
+    var R = S.row, out = [];
+    if (!R || !R.r) return out;
+    R.r.cards.forEach(function (c, k) { if (c.faceDown && !R.flipped[k]) out.push(k); });
+    return out;
+  }
+  function bulkHint() {
+    var R = S.row, last = S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1;
+    if (!R) { hint.innerHTML = ''; return; }
+    if (S.auto) { hint.innerHTML = 'Auto · tap to move on'; return; }
+    var downs = rowDowns().length;
+    hint.innerHTML = downs ? 'Tap to flip' + (downs > 1 ? ' · ' + downs + ' face down' : '') : last ? 'Tap for the summary' : 'Tap or swipe for pack ' + (S.bp + 2);
+    var bc = document.querySelector('.bcards'); if (bc) bc.classList.toggle('wait', downs > 0);
+  }
+  // A tap (k: the card under it, or -1) or a swipe on the row.
+  function bulkTap(k, how) {
+    if (S.phase !== 'bulk' || !S.row) return;
+    var now = performance.now();
+    if (S.auto) { log('bulkTap', { idx: k, how: how || 'key', auto: true }); clearTimers(); bulkNext(); return; }
+    if (S.row.waiting) { log('bulkTap', { idx: k, how: how || 'key' }); bulkNext(); return; }
+    if (now < S.busyUntil) return;
+    var step = packRowTap(rowDowns(), k, S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1);
+    if (step.next && now < S.nextAt) return;
+    log('bulkTap', { idx: k, how: how || 'key', step: step.next || 'flip' });
+    if (step.next) { log('bulkPackDone', {}); bulkNext(); return; }
+    flipCard(step.flip, 'tap');
+  }
+  function flipCard(k, via) {
+    var R = S.row, c = R.r.cards[k], el = document.querySelector('.bcard[data-k="' + k + '"]');
+    if (!el || R.flipped[k]) return;
+    R.flipped[k] = true;
+    el.classList.remove('down'); el.classList.add('shown');
+    sfx('flip', c.face.faction);
+    var now = performance.now();
+    S.busyUntil = Math.max(S.busyUntil, now + (via === 'tap' ? TM.bulk.flip : 0));
+    if (c.hit) { el.classList.add('pop'); sfx('rise', c.face.faction, 'normal'); S.nextAt = now + TM.tap.hitPop; }
+    announce.textContent = c.face.name + (packFinishLabel(c.finish) ? ', ' + packFinishLabel(c.finish) : '');
+    log('bulkFlip', { idx: k, finish: c.finish, hit: c.hit, via: via });
+    bulkHint();
   }
   function dealRow(r, row) {
     var T = TM.bulk;
@@ -1167,19 +1402,24 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       return '<div class="bcard' + (c.faceDown ? ' down' : '') + '" data-k="' + k + '" style="--d:' + k + '"><div class="flipper"><div class="front">' + settledFaceHtml(c) + '</div>' + backHtml() + '</div><span class="blab' + (c.hit ? ' hit' : '') + '">' + (c.slot === 'bonus' ? 'BONUS · ' : '') + packFinishLabel(c.finish) + '</span>' + (c.isNew ? '<span class="new">NEW</span>' : '') + '</div>';
     }).join('') + '</div>';
     log('bulkDealt', { cards: r.cards.map(function (c) { return { finish: c.finish, faceDown: c.faceDown, slot: c.slot }; }) });
-    var t = r.cards.length * T.deal + 160, downs = [];
-    r.cards.forEach(function (c, k) { if (c.faceDown) downs.push(k); });
-    downs.forEach(function (k, j) {
-      fast(function () {
-        var c = r.cards[k], el = row.querySelector('.bcard[data-k="' + k + '"]'); if (!el) return;
-        el.classList.remove('down'); el.classList.add('shown');
-        sfx('flip', c.face.faction);
-        if (c.hit) { el.classList.add('pop'); sfx('rise', c.face.faction, 'normal'); }
-        log('bulkFlip', { idx: k, finish: c.finish, hit: c.hit });
-      }, t + j * T.flip);
-    });
-    var end = t + downs.length * T.flip + (r.sparks ? T.hitHold : T.hold);
-    fast(function () { log('bulkPackDone', {}); bulkNext(); }, end);
+    // Taps wait for the deal to land (the last card's deal ends then).
+    var dealt = r.cards.length * T.deal + 160;
+    S.row = { r: r, flipped: {} };
+    S.busyUntil = performance.now() + (S.auto ? dealt / S.speed : dealt); S.nextAt = 0;
+    bulkHint();
+    if (S.auto) autoRow(r, dealt);
+  }
+  // Auto: turn the face-down cards one after another, hold, move on
+  // (packFastDuration's beats). Each step checks Auto is still on.
+  function autoRow(r, first) {
+    var T = TM.bulk;
+    function live() { return S.auto && S.phase === 'bulk' && S.row && S.row.r === r; }
+    fast(function step() {
+      if (!live()) return;
+      var d = rowDowns();
+      if (d.length) { flipCard(d[0], 'auto'); fast(step, T.flip); return; }
+      fast(function () { if (!live()) return; log('bulkPackDone', {}); bulkNext(); }, r.sparks ? T.hitHold : T.hold);
+    }, first);
   }
   function bulkSummary() {
     clearTimers(); stopLayers(); dim.style.opacity = 0;
@@ -1198,8 +1438,45 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     document.getElementById('again').addEventListener('click', function () { openBulk((S.bulk + 1) % DATA.bulks.length); });
     document.getElementById('one').addEventListener('click', function () { openPack(0); });
     document.getElementById('done').addEventListener('click', shelf);
+    bindViewer(best.concat(rest));
     log('bulkSummary', { tiles: B.tiles.length, copies: B.tiles.reduce(function (n, t) { return n + t.count; }, 0), newBadges: B.tiles.filter(function (t) { return t.isNew; }).length, best: best.length, packPoints: sm.packPoints });
   }
+
+  // ---------- the card viewer ----------
+  // A tap on a summary tile shows that card full size, with its finish's
+  // own look (the shader, not the tile's CSS stand-in) and the light
+  // following the pointer or the tilt: the place to read a card, its modes
+  // included, after the reveal has moved on.
+  var viewer = document.getElementById('viewer'), vcard = document.getElementById('vcard'), vcap = document.getElementById('vcap');
+  var vLayers = [];
+  function bindViewer(list) {
+    scene.querySelectorAll('.tile').forEach(function (t) {
+      t.querySelector('.mini').addEventListener('click', function () { openViewer(list[Number(t.getAttribute('data-ti'))]); });
+    });
+  }
+  function openViewer(c) {
+    if (!c) return;
+    vcard.className = 'vcard' + (c.reveal === 'zeroDay' ? ' reach' : '');
+    vcard.innerHTML = '<div class="tiltv">' + faceHtml(c, { settled: true }) + '</div>';
+    var lab = packFinishLabel(c.finish);
+    vcap.innerHTML = (lab ? '<span class="fin' + (c.hit ? ' hit' : '') + '">' + lab + '</span> ' : '') + esc(c.face.name) + ' · ' + esc(c.prototype ? 'serial ' + c.prototype.serial + ' of ' + c.prototype.runSize : c.collectorNumber) + ' · ' + esc(c.face.rarity);
+    viewer.hidden = false;
+    var face = vcard.querySelector('.face');
+    var l = FXGL.layer(face, packFinishLayerName(c.reveal), { amt: packFinishLayerAmt(c.reveal), seed: 11 });
+    if (l) { l.ptr(0.5, 0.4); vLayers.push(l); } else if (packFinishLayerName(c.reveal)) face.classList.add('fx-css-' + packFinishLayerName(c.reveal));
+    document.getElementById('vclose').focus({ preventScroll: true });
+    log('viewer', { name: c.face.name, finish: c.finish, full: face.classList.contains('full'), modes: (c.face.modes || []).length });
+  }
+  function closeViewer() { if (viewer.hidden) return; vLayers.forEach(function (l) { l.stop(); }); vLayers = []; viewer.hidden = true; vcard.innerHTML = ''; log('viewerClosed', {}); }
+  document.getElementById('vclose').addEventListener('click', closeViewer);
+  viewer.addEventListener('click', function (e) { if (e.target === viewer) closeViewer(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeViewer(); });
+  viewer.addEventListener('pointermove', function (e) {
+    var t = vcard.querySelector('.tiltv'); if (!t) return;
+    var rc = vcard.getBoundingClientRect(), x = Math.max(0, Math.min(1, (e.clientX - rc.left) / rc.width)), y = Math.max(0, Math.min(1, (e.clientY - rc.top) / rc.height));
+    t.style.transform = 'rotateY(' + ((x - 0.5) * 14).toFixed(1) + 'deg) rotateX(' + ((0.5 - y) * 10).toFixed(1) + 'deg)';
+    vLayers.forEach(function (l) { l.ptr(x, y); });
+  });
 
   // ?pack=N opens that pack straight away (1-based), ?bulk=N that ten-pack
   // open; otherwise the shelf.
