@@ -38,9 +38,31 @@ binder; Intercept Routine fizzle causes), and session 40 (the generic "choose on
 Zero-Day cards built and measured, not live), and session 41 (the reference agent fixed, the ring
 re-baselined, the Zero-Day cards tuned to the cap), and session 42 (the Zero-Day cards live; the
 Aegis vs Cortex investigation), and session 43 (the signature-mode ring investigation), and session 44
-(the real-match ring check; why a signature card helps Aegis most).
+(the real-match ring check; why a signature card helps Aegis most), and session 45 (option C: the
+Aegis late-deck trials; full signature ability wording).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 45
+
+- **Null > Aegis is still 45.4% in the real-match check, 9.6 under its band, now by the owner's
+  choice (fallback A)** until the next set. Every all-Aegis list that moves it does so by weakening
+  Aegis overall; the real fix needs new cards.
+- **The card-flow cause rests on two neutral lists (N1, N2),** not on an Aegis card or an ablation of
+  Aegis's draw; it is the best reading, not a proven one. Session 44's "spare energy" reading is
+  now known to be a symptom (heavier lists use the energy, the gain stays).
+- **The Aegis pool has no room to grow inside itself:** 22 unique cards, 40 of 40, every card in the
+  list, one 4+ cost card below its copy cap. Any Aegis deck change is a trade, not an addition.
+- **The render lane's committed pages still print the old short signature wording** until it
+  regenerates them (render/** is its lane; not touched here).
+- **The starter-pack hit guarantee (owner 2026-10-19) is not built.**
+- **The hardening pass due this session was displaced** by the owner's option C priority. Still
+  open from it: the approved list's 10,000-game re-check with the session-41 agent, and a smoke test
+  for `signatureRingDrivers.ts` (it still runs its work at top level).
+- ~~**The dev report drivers run their work at top level and have no smoke test.**~~ PARTLY FIXED
+  session 45: the shared harness and the new trial driver have a test; `aegisSignatureGain.ts` and
+  `signatureRingDrivers.ts` still run at top level.
+- 2,500 seeds per trial cell, 10,000 only for the two confirmed lists.
 
 ## New debt from session 44
 

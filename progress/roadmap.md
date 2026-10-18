@@ -343,6 +343,14 @@ start a step until the one before works and its tests pass):
      NEXT: 2b (the deck-building agent); then modal cards in every faction
      with the next set work. Side item: the Aegis vs Cortex check-in
      (balance-report-029).
+     **For the next set's design (owner 2026-10-19, fallback A, session 45):**
+     Null > Aegis stays the real-match check's accepted-OUT edge (45.4%,
+     band 55-60). Fix it in the next set, aimed at the measured cause: a
+     signature card is worth ~2x to Aegis because it is one more card when
+     Aegis runs short of useful ones (card draw halves the gain; heavier
+     all-Aegis lists don't, balance-report-032). So give Aegis its own card
+     flow or a late play that refills its hand, and give Null an answer to
+     one durable attacker.
   3. Server endpoints for the website (wallet, collection, packs and pack
      opening, live/featured matches, ladder, tournament, stats,
      notifications, saved board layout). Needs item 5's pack contents and

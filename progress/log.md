@@ -3272,3 +3272,41 @@ that also weakens Aegis's gate. 2,500 seeds, not 10,000.
 
 **Blocked:** nothing. The Null > Aegis fix waits on the owner's pick (default A: no change now, fix it
 in the next set's design).
+
+## 2026-10-19 — Session 45 (owner's 2026-10-19 answers: option C, A as fallback; the ability-text ask)
+
+Game-lane session: the last merged PR (#74) was render. Owner feedback first: the session-44
+answers handled (option C tested, fallback A applied); render session 28's game-lane asks: the
+ability text done, ECONOMY.md wording done, the starter-pack hit guarantee left for session 46 (the
+owner put option C first). This was due to be a hardening pass; the owner's named priority came first,
+and the session still hardened the dev drivers it touched (harness split out, smoke test added).
+
+**Built:**
+- `engine/src/dev/signatureGainHarness.ts`: session 44's measuring harness, out of the report driver
+  (byte-identical output at 40 seeds before and after).
+- `engine/src/dev/aegisLateDeckTrial.ts`: option C. Each trial is a copy change to the shipped Aegis
+  list built through buildDeck (copy limits, size, lint), judged with ringRegression's judgeEdge on
+  the gate and the real-match ring. Four all-Aegis lists (C1-C4), two neutral comparisons (N1, N2),
+  a 10,000-seed confirmation for named trials.
+- `engine/test/signatureGainHarness.test.ts`: the harness plays the ring's own games (matches
+  measurePairing in both modes); every trial list builds as a legal 40-card deck.
+- Signature ability text at the source: each ability carries its menu option's (or size's) full
+  wording, minus a keyword the card prints as a keyword. The fingerprint hashes the old wording by
+  legacy id, so all 14 approved fingerprints (and owners' stored ones) still match; tests pin both.
+- ECONOMY.md: no art is offered with the 3 candidates.
+
+**Ran it** (`progress/balance-report-032-aegis-late-deck.txt`, 573 s): both baselines reproduce
+exactly. Null > Aegis real: shipped 45.4%, C1 42.0%, C2 47.6%, C3 49.2% (10,000: 50.1%, +4.8, but
+Aegis > Cortex -3.9 real / -2.9 gate, CI FAIL), C4 56.9% (in band, by gutting Aegis: Aegis > Cortex
+gate 32.6%), N1 46.8% (10,000: +3.5; passes CI), N2 45.0%. Aegis's signature gain: shipped +10.0,
+C3 +10.1, N1 +5.9, N2 +6.3. Late spare energy: shipped 2.83, C3 2.08. `npm test` all six workspaces
+(806 tests); typecheck clean everywhere.
+
+**Worked:** a clean negative result with a mechanism. Filling Aegis's late turns with its own cards
+uses up the energy but leaves the signature gain alone; card draw halves it. That corrects session
+44's reading (energy was a symptom) and points the next set's Aegis design at card flow.
+**Didn't / honest limits:** the Aegis pool is fully used (22 cards, 40 of 40), so "real Aegis late
+plays" means mostly 3-drops: only Lockdown Field is a 4+ cost card with room. The card-flow reading
+rests on two neutral lists; it isn't tested with an Aegis card. 2,500 seeds per trial cell.
+
+**Blocked:** nothing. Optional owner check-in on N1 (recommended: leave it).

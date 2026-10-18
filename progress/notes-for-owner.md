@@ -1,5 +1,68 @@
 # Notes for the owner
 
+**Updated 2026-10-19, session 45 (your 2026-10-19 answers: option C, with A as the fallback).**
+Nothing is blocking. No deck or card was changed. **Your fallback (A) applies**, as you set it: no
+Aegis list built from real Aegis cards gets Null > Aegis meaningfully closer without pushing another
+edge out. One small **[OWNER CHECK-IN]** below (an optional extra, not needed for anything).
+Evidence: `progress/balance-report-032-aegis-late-deck.txt`.
+
+Also done this session (your render-session-28 asks):
+- **Signature abilities print their full wording at the source** (`engine/src/data/signatureMenu.ts`),
+  e.g. Inspire a0 now reads "At the start of your turn, a random ally gets +0/+1 permanently." Rush
+  on Hunter isn't printed twice. Every card's fingerprint is unchanged (a test checks all 14
+  approved lines), so owners' stored cards still match. The render lane's committed pages show the
+  old wording until it regenerates them.
+- **ECONOMY.md** no longer says the 3 candidates come with their art.
+- **Not done yet: the starter-pack hit guarantee.** It's next session's first job (method, starter
+  rates and the wider pack economy at a check-in).
+
+### Option C: what happened (test only, 2,500 games a cell, 10,000 for the confirmation)
+
+The Aegis list is 40 of 40 cards and already runs every Aegis card, so each trial raises cards it
+already has and cuts cheap ones. Every list passed the deck rules and the lint.
+
+| trial (all Aegis cards unless marked) | Null > Aegis, real (band 55-60) | other edges | Aegis's signature gain |
+|---|---|---|---|
+| shipped | 45.4% | | +10.0 |
+| C1: Lockdown Field x2 (cost 4) for a Barrier Drone | 42.0% (-3.4, worse) | | +9.5 |
+| C2: every Aegis Rare x2, cut Drones and Line Troopers | 47.6% (+2.2) | Aegis > Cortex real 52.6%, out | +11.1 |
+| C3: C2 plus more 3-drops, cut Plating Module | 49.2% (+3.8); **10,000: 50.1% (+4.8)** | Aegis > Cortex real -3.9, gate -2.9, out | +10.1 |
+| C4: like C3 but cut the Cadets | **56.9%, reaches the band** | Aegis > Cortex gate 32.6%, Aegis ~ Swarm gate 38.6%, far out | +15.3 |
+| N1 (neutral cards, outside your brief): Cache Warmup x2, Uplink Tower x2 | 46.8% (+1.4); 10,000: 48.8% (+3.5) | passes CI; Aegis > Cortex gate +4.1, real -2.4 | **+5.9** |
+| N2 (neutral): Cache Warmup x2 only | 45.0% (-0.4) | Null > Aegis gate moves further out | +6.3 |
+
+**What it shows:**
+1. **The real-Aegis lists don't do what option C hoped.** Heavier lists do use up Aegis's spare late
+   energy (2.83 left per late turn -> 2.08 for C3), but the signature card is worth just as much to
+   Aegis (+10.0 -> +10.1). Where Null > Aegis moves, it's because Aegis gets weaker everywhere,
+   which costs Aegis > Cortex. C4 reaches the band only by gutting Aegis (cutting the Cadets breaks
+   its Cadet -> Sentinel -> Warden line).
+2. **So session 44's "spare energy" reading was a symptom, not the cause.** What shrinks the gain
+   is drawing cards: both neutral card-draw lists roughly halve it (+5.9, +6.3). The signature card
+   is worth most to Aegis as one more card when Aegis runs short of useful ones. Note that hands are
+   rarely empty (about 12% of late turns); they hold cards that aren't worth playing then.
+3. **For the next set (your fallback A, now in roadmap.md):** give Aegis its own card flow or a real
+   late play that refills its hand, rather than more mid-cost bodies, and give Null an answer to one
+   durable attacker. Null > Aegis stays the real-match check's one accepted-out-of-band edge.
+
+### [OWNER CHECK-IN] (optional) N1, the neutral card-draw list
+
+N1 is the one list that passes both CI checks and halves Aegis's signature gain, but it's built
+from neutral cards, which is outside what you asked for, and it only moves Null > Aegis +3.5 (at
+10,000). **My recommendation: leave it** (fallback A as you set it), and use what it shows for the
+next set's Aegis design. If you'd rather have it now, say "ship N1" and I'll change the Aegis list
+and re-record both baselines.
+
+Smaller calls you may want to overrule:
+1. **I applied fallback A without waiting,** as your answer allowed: no card change, roadmap note
+   written.
+2. **The 10,000-game confirmation was run on C3 and N1** (the best all-Aegis list that isn't a plain
+   nerf, and the best comparison), not C4.
+3. **The signature wording change keeps the old text inside the fingerprint** (the same approach
+   as the session-38 ability ids), rather than re-recording every fingerprint.
+
+---
+
 **Updated 2026-10-18, session 44 (your 2026-10-18 answers to session 43: option A).** Nothing is
 blocking. One new **[OWNER CHECK-IN]** below. No card or signature option was changed. Evidence:
 `progress/balance-report-031-real-ring-aegis-gain.txt`.
