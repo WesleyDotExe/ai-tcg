@@ -3045,3 +3045,31 @@ This corrects today's entry "a new feature: hold and drag a card to tilt it (par
 - **The whole card tilts as one solid object.** The artwork must not shift, move or project out inside the frame. Drop the "parallax" layer depth: no art-behind-the-frame offset, and no layered art.
 - **Everything else stays:** press-and-hold then drag to tilt in 3D (up to about 15°), the spring back on release, the finish shine following the tilt, tap versus hold, touch and mouse, reduced motion, and the same behaviour on the sealed pack (only the pack being opened, in a ten-pack).
 - **For the art pass:** one flat image per card is enough. No foreground/background layers or cut-outs are needed.
+
+
+---
+
+## 2026-10-18 — Owner: card art model chosen, Imagen 4 Ultra
+
+The owner ran a two-round art bake-off outside the sessions (Replicate, 18 Oct 2026, under $5 total). Round 1 compared six models. Round 2 re-tested Seedream 4, Imagen 4 Ultra and Recraft V4 Pro with a composition-aware prompt, on Hive Mother, Prime Aegis, Kernel Panic, Cascade Purge and Patient Zero.
+
+### Decision
+- **The card art model is Google Imagen 4 Ultra** (on Replicate, `google/imagen-4-ultra`, 3:4 portrait). It was the only model that followed the card layout on all 5 test cards: subject inside the art window, a dark and calm lower third for the text box, no stray text and no added borders.
+
+### Starting prompt template (to be tuned on 10–15 cards before any full run)
+Each image uses `[card type, name and subject + faction colours]` followed by this shared style text:
+
+> Trading card game illustration in a vertical card composition. The main subject sits in the upper-middle of the image with its head or key feature about one third of the way down, comfortably inside the central area so it survives a wide crop. The lower third of the image is darker, calmer and low in detail (a simple floor, mist or deep shadow) because rules text sits there. Clear, distinctive silhouette against a contrasting background; the brightest light, strongest contrast and sharpest detail are on the focal point, while the background is soft, suggestive and lower in contrast. One key light plus a coloured rim light. Limited palette of three to five colours led by the faction colours. Painterly digital painting with bold, confident brushwork that reads at small card size. Cyberpunk world with 1990s retro-futurist flair: chunky 90s computer hardware, CRT glow, subtle scanlines. No text, letters, numbers, logos, borders or card frame.
+
+### Composition rules behind it
+- **One master image per card works two ways:** the wide framed window (about 13–54% down the card) and full bleed for Full Art, Gold, Prototype, secret, Glitch, Alt Art and Zero-Day. So the subject sits in the upper-middle and the lower third stays dark and calm under the text box (64–87%).
+- **Units:** one clear figure is the hero, often from a slightly low angle. **Spells/Commands:** the effect is the hero, not a caster. **Top rarities (Zero-Day and similar):** a cinematic "story moment" scene, like the Patient Zero test.
+- One flat image per card, with no layers or cut-outs (see today's tilt correction).
+
+### Notes from the test, for the art pass
+- Ultra came out a little muted in places (Cascade Purge was grey-green rather than clean cyan). Try adding "vivid, saturated faction colours" when tuning.
+- Imagen 4 does not take style-reference images, so set consistency comes from the shared prompt text.
+- Before production, confirm the model's terms allow commercial use of outputs, since cards will be sellable.
+
+### Not decided yet
+When the art pass starts, its budget, and whether a cheaper model (such as Imagen 4 Fast) is used for any cards. Propose these at a checkpoint; don't start generating production art without the owner's OK.
