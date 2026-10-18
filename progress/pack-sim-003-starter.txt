@@ -1,0 +1,70 @@
+AI-TCG starter guarantee simulation (session 46): every new owner sees a hit across the 3 starter packs
+Command (from economy/): npx tsx src/dev/starterSimulation.ts. Live table S0-odds-2; 3 starter packs per owner.
+"Hit" = Full Art or better: fullArt, glitch, altArt, gold, secret, zeroDay, prototype. Base hit rate of a shine slot: 18.4%.
+200,000 simulated new owners per method, the same seeds for every method (owner i opens seeds 3i+1..3i+3).
+Methods: none = the store before session 46; A = BUILT: the last starter pack's shine slot is a hit when the first two had none;
+B = for comparison only, not built: if none of the 3 has a hit, one of the 3 picked at random gets its shine slot upgraded.
+
+1. The 3 starter packs
+
+                                                     none          A (built)     B             
+   owners with at least one hit                      45.80%        100.00%       100.00%       
+   owners with exactly 1 pack with a hit             36.76%        90.97%        90.97%        
+   owners with 2 packs with a hit                    8.44%         8.44%         8.44%         
+   owners with 3 packs with a hit                    0.594%        0.594%        0.594%        
+   hit copies per owner (mean)                       0.555         1.098         1.098         
+   starter pack 1 has a hit                          18.51%        18.51%        36.61%        
+   starter pack 2 has a hit                          18.49%        18.49%        36.48%        
+   starter pack 3 has a hit                          18.42%        72.63%        36.54%        
+   owners the guarantee applied to                   0.00%         66.48%        54.20%        
+   owners with a Mythic card (any slot)              44.41%        49.77%        49.82%        
+
+   A applies whenever packs 1 and 2 had no hit (66.48%), so it also upgrades pack 3s that would have hit anyway; the owners
+   it rescues, who would otherwise have seen no hit at all, are the 54.20% that "none" leaves with 0.
+
+   Hit copies in the starter packs, per 100 new owners, by finish:
+                                                     none          A (built)     B             
+      fullArt                                        27.03         53.59         53.66         
+      glitch                                         12.01         23.75         23.76         
+      altArt                                         9.03          17.93         17.78         
+      gold                                           2.09          4.08          4.17          
+      secret                                         4.44          8.94          8.89          
+      zeroDay                                        0.62          1.21          1.18          
+      prototype                                      0.29          0.29          0.35          
+
+   The upgraded shine slot under A draws from the hit part of the table, in its own proportions (as hit pity does), 132,954 upgrades:
+     fullArt    set  48.9%   measured  49.06%
+     glitch     set  21.7%   measured  21.63%
+     altArt     set  16.3%   measured  16.32%
+     secret     set   8.2%   measured   8.21%
+     gold       set   3.8%   measured   3.69%
+     zeroDay    set   1.1%   measured   1.10%
+
+2. After the starters: 40,000 owners per method each open 40 more packs (the same later seeds for every method)
+
+                                                     none          A (built)     B             
+   hit pity count after the starters (mean)          2.036         0.397         0.941         
+   packs 4-43 with a hit                             20.44%        20.30%        20.34%        
+   packs 4-43 where hit pity fired                   2.422%        2.246%        2.298%        
+   first post-starter hit, mean pack number          4.55          4.82          4.74          
+
+   Hit pity counts from the owner's history, so a starter hit near the end of the starters restarts the 10-pack count
+   later. The starters are 3 packs of 43 here, so the later rows move by hundredths at most: the guarantee is a
+   one-off at sign-up, not a change to the odds of any pack an owner buys or earns.
+
+3. Supply: what the guarantee adds to the whole economy
+
+   A adds 0.543 hit copies per new owner (0.555 -> 1.098), the hits of about 2.9 ordinary packs' shine slots.
+   Zero-Day cards per 10,000 new owners: 62.0 -> 121.3. Secret illustrations per 10,000 new owners: 443.9 -> 893.7.
+   Prototypes: unchanged. The guarantee only touches the shine slot, never the bonus 6th card, so no run is used up faster.
+   Mythics: the Rare slot and the Mythic pity timer are untouched; the owners holding a Mythic card rise only because an
+   upgraded Full Art, Alt Art or Gold can land on a Mythic (15-30% of those) and a Zero-Day card is a Mythic.
+
+   An owner opening a pack sees the same pack and the same tear in every case: the guarantee is worked out when the pack
+   is opened, from the owner's own starter packs, and only the opening's record (`starterHit`) says it applied.
+   Under A an owner who knows the rule can tell, after packs 1 and 2 had no hit, that pack 3 will (pack 3: 72.6% hit).
+   Under B each of the 3 packs is equally likely to hold the guaranteed hit (36.6% / 36.5% / 36.5%), so packs 1 and 2 give less away;
+   it would need all 3 starter packs rolled when the first is opened (or seeds drawn at grant and kept secret), plus a
+   separate draw for the upgraded pack (see the note in `starters`), a bigger change to the store for the same total.
+   A needs neither: the store knows the guarantee is due before it draws pack 3's seed, as with pity, so the upgraded
+   finish comes out in the table's own proportions (section 1).

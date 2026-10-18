@@ -290,6 +290,103 @@ describe("opening packs (the store)", () => {
   });
 });
 
+describe("the starter guarantee (owner 2026-10-19: a hit across the 3 starter packs)", () => {
+  const isHit = (r: { pulls: readonly { finish: string }[] }) => r.pulls.some((p) => (FULL_ART_OR_BETTER as readonly string[]).includes(p.finish));
+  const plainSeed = (start: number) => seedWhere(NO_PITY, (r) => !isHit(r), start);
+  /** A new owner with the starter collection (3 starter packs). */
+  function starterOwner(s: EconomyStore) {
+    const o = s.createOwner({ name: `owner-${Math.random()}` }).ownerId;
+    s.grantStarterCollection(o, "Aegis");
+    return o;
+  }
+
+  it("the roller: the option makes the shine slot a hit in the table's proportions, and without it a pack rolls as before", () => {
+    let forced = 0;
+    for (let seed = 1; seed <= 2_000; seed++) {
+      const plain = rollLive(seed, NO_PITY, ALL_RUNS);
+      expect(rollPack(seed, S0, NO_PITY, ALL_RUNS, LIVE_PACK_ODDS, { starterHit: false })).toEqual(plain);
+      const g = rollPack(seed, S0, NO_PITY, ALL_RUNS, LIVE_PACK_ODDS, { starterHit: true });
+      expect(FULL_ART_OR_BETTER).toContain(g.pulls[4]!.finish);
+      expect(g.starterHit).toBe(true);
+      expect(g.pity).toEqual({ fullArt: false, mythic: false });
+      // Only the shine slot (and draws after it) can change; the first 4 cards never do.
+      expect(g.pulls.slice(0, 4)).toEqual(plain.pulls.slice(0, 4));
+      if (!FULL_ART_OR_BETTER.includes(plain.pulls[4]!.finish)) forced++;
+      expect(plain.starterHit).toBeUndefined();
+    }
+    expect(forced).toBeGreaterThan(1_400); // about 82% of shine slots aren't a hit
+    // With hit pity already due, pity forces it and the guarantee is not credited.
+    const due: PityState = { packsSinceFullArt: LIVE_PACK_ODDS.pity.fullArtAfter, packsSinceMythic: 0 };
+    const both = rollPack(7, S0, due, ALL_RUNS, LIVE_PACK_ODDS, { starterHit: true });
+    expect(both).toEqual(rollPack(7, S0, due, ALL_RUNS, LIVE_PACK_ODDS));
+    expect(both.starterHit).toBeUndefined();
+  });
+
+  it("starter packs 1 and 2 with no hit: pack 3's shine slot is a hit, logged, and reproducible from its seed", () => {
+    const s = store();
+    const o = starterOwner(s);
+    const a = s.openPack(o, undefined, { seed: plainSeed(0) });
+    const b = s.openPack(o, undefined, { seed: plainSeed(1_000) });
+    expect([a.starterHit, b.starterHit]).toEqual([false, false]);
+    const seed = seedWhere(s.pityStatus(o), (r) => r.pulls[4]!.finish === "standard" && !isHit(r), 2_000);
+    const pity = s.pityStatus(o);
+    const c = s.openPack(o, undefined, { seed });
+    expect(c.starterHit).toBe(true);
+    expect(FULL_ART_OR_BETTER).toContain(c.cards[4]!.finish);
+    const again = rollPack(seed, S0, pity, ALL_RUNS, LIVE_PACK_ODDS, { starterHit: true });
+    expect(c.cards.map((x) => [x.cardId, x.finish])).toEqual(again.pulls.map((p) => [p.cardId, p.finish]));
+    expect(s.pityStatus(o).packsSinceFullArt).toBe(0);
+  });
+
+  it("a hit in an earlier starter pack: pack 3 rolls as any pack does", () => {
+    const s = store();
+    const o = starterOwner(s);
+    s.openPack(o, undefined, { seed: seedWhere(NO_PITY, (r) => isHit(r)) });
+    s.openPack(o, undefined, { seed: plainSeed(0) });
+    const seed = seedWhere(s.pityStatus(o), (r) => !isHit(r), 5_000);
+    const c = s.openPack(o, undefined, { seed });
+    expect(c.starterHit).toBe(false);
+    expect(c.cards.some((x) => FULL_ART_OR_BETTER.includes(x.finish))).toBe(false);
+  });
+
+  it("only starter packs count: a hit in another pack doesn't cancel it, and it lands on the last starter pack whatever the order", () => {
+    const s = store();
+    const o = starterOwner(s);
+    const bought = s.grantPack(o, "S0", "weeklyChallenge");
+    const starters = s.unopenedPacks(o).filter((p) => p.source === "starter");
+    expect(starters).toHaveLength(3);
+    // The other pack first, with a hit; then the starters out of order.
+    expect(s.openPack(o, bought.packId, { seed: seedWhere(NO_PITY, (r) => isHit(r)) }).starterHit).toBe(false);
+    expect(s.openPack(o, starters[2]!.packId, { seed: plainSeed(0) }).starterHit).toBe(false);
+    expect(s.openPack(o, starters[0]!.packId, { seed: plainSeed(1_000) }).starterHit).toBe(false);
+    const last = s.openPack(o, starters[1]!.packId, { seed: plainSeed(2_000) });
+    expect(last.starterHit).toBe(true);
+    expect(FULL_ART_OR_BETTER).toContain(last.cards[4]!.finish);
+    // A free pack that isn't a starter pack never gets it.
+    const other = s.grantPack(o, "S0", "ownerDaily");
+    expect(s.openPack(o, other.packId, { seed: plainSeed(3_000) }).starterHit).toBe(false);
+  });
+
+  it("in a 10-pack open, the guarantee lands on the third starter pack", () => {
+    const s = store();
+    const o = starterOwner(s);
+    for (let i = 0; i < 7; i++) s.grantPack(o, "S0", "weeklyChallenge");
+    const seeds = [plainSeed(0), plainSeed(1_000), plainSeed(2_000), ...Array.from({ length: 7 }, (_, i) => plainSeed(3_000 + i * 1_000))];
+    const bulk = s.openPacks(o, 10, { seeds });
+    expect(bulk.packs.map((p) => p.starterHit)).toEqual([false, false, true, false, false, false, false, false, false, false]);
+  });
+
+  it("every new owner sees a hit: 60 owners, consecutive seeds", () => {
+    const s = store();
+    for (let i = 0; i < 60; i++) {
+      const o = starterOwner(s);
+      const packs = [0, 1, 2].map((k) => s.openPack(o, undefined, { seed: 50_000 + i * 3 + k }));
+      expect(packs.some((p) => p.cards.some((c) => FULL_ART_OR_BETTER.includes(c.finish)))).toBe(true);
+      expect(packs.filter((p) => p.starterHit).length).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
 describe("crafting with pack points", () => {
   const MYTHIC = S0.cards.find((c) => c.rarity === "Mythic")!.cardId;
 

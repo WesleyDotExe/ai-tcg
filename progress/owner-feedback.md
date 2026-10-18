@@ -3130,7 +3130,7 @@ Answers the [OWNER CHECK-IN] "Why a signature card helps Aegis most, and what to
 
 ---
 
-## 2026-10-19 — Owner: answers to render session 28 (slice 3, the first-time flow) (GAME-LANE ASKS: ability text HANDLED 2026-10-19, session 45 — every signature ability prints its option's full wording in `engine/src/data/signatureMenu.ts`, fingerprints unchanged, pinned by tests; ECONOMY.md's candidate wording updated (no art with the candidates). Call 9, the starter-pack hit guarantee, is NOT done yet: next game session's first job. Calls 5 and the rest are the render lane's own)
+## 2026-10-19 — Owner: answers to render session 28 (slice 3, the first-time flow) (GAME-LANE ASKS: ability text HANDLED 2026-10-19, session 45 — every signature ability prints its option's full wording in `engine/src/data/signatureMenu.ts`, fingerprints unchanged, pinned by tests; ECONOMY.md's candidate wording updated (no art with the candidates). Call 9 HANDLED 2026-10-19, session 46 — the starter guarantee is built as option A, your example: the owner's last unopened starter pack gets a hit in its shine slot when their opened starter packs had none, drawn like hit pity, worked out from pack history at opening; the pack and tear never change, the opening records `starterHit`. Rates and the wider economy at the new [OWNER CHECK-IN] in notes-for-owner.md; evidence `progress/pack-sim-003-starter.txt` (45.8% -> 100% of owners see a hit) and `progress/economy-demo-011.txt`. Calls 5 and the rest are the render lane's own)
 
 Owner decisions on the 10 calls in `progress/render/checkpoints.md` (2026-10-18, "Pack opening, slice 3: the first-time flow, and the signature card is made in front of you"; PR #74), and on the two game-lane asks in `progress/render/notes-for-owner.md` (session 28, items 3 and 4).
 
@@ -3154,7 +3154,7 @@ Owner decisions on the 10 calls in `progress/render/checkpoints.md` (2026-10-18,
 
 ---
 
-## 2026-10-19 — Owner: answers to game session 45 (option C results)
+## 2026-10-19 — Owner: answers to game session 45 (option C results) (NOTED 2026-10-19, session 46 — N1 not shipped, nothing to change; the 3 calls stand; the starter guarantee was this session's first job)
 
 Answers the optional [OWNER CHECK-IN] "N1, the neutral card-draw list" in `progress/notes-for-owner.md` (PR #75, `progress/balance-report-032-aegis-late-deck.txt`).
 
@@ -3172,7 +3172,7 @@ Next game session: the starter-pack hit guarantee, as its first job (method, sta
 
 ---
 
-## 2026-10-19 — Owner: answers to render session 29 (name your agent), keep all 5
+## 2026-10-19 — Owner: answers to render session 29 (name your agent), keep all 5 (render lane's own; nothing for the game lane, noted session 46; the live "is it free" endpoint comes with the real site)
 
 Owner decisions on the 5 calls in `progress/render/checkpoints.md` (2026-10-19, "The first-time flow: name your agent when it's made"; PR #76).
 1. **Keep:** the name field appears after an agent is picked, and a typed name stays if the owner switches agents.
@@ -3183,7 +3183,7 @@ Owner decisions on the 5 calls in `progress/render/checkpoints.md` (2026-10-19, 
 
 ---
 
-## 2026-10-19 — Owner: new feature, victory boasts (a cosmetic)
+## 2026-10-19 — Owner: new feature, victory boasts (a cosmetic) (GAME-LANE PLAN PROPOSED 2026-10-19, session 46 — not built, as asked: catalogue, ownership, the 4 free starter boasts, the per-agent loadout, the loadout saved on the match record, and an optional store-picked "close win" slot, with the 6 open decisions and suggested defaults, in the new [OWNER CHECK-IN] in notes-for-owner.md. The render half is the render lane's own)
 
 A **victory boast** is a short animation that plays when an agent wins a match. A few are standard and free; each season, new ones can be bought in the store, alongside the other cosmetics (arena backgrounds, card backs and avatars).
 

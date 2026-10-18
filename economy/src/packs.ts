@@ -159,6 +159,18 @@ export interface PackRoll {
   pity: { fullArt: boolean; mythic: boolean };
   /** A Prototype was due but every run was used up, so the bonus is Gold. */
   prototypeFallbackGold: boolean;
+  /** The starter guarantee made the shine slot a hit: the owner's last
+   * starter pack, after starter packs with none (owner 2026-10-19, render
+   * session 28 call 9). Absent when it didn't apply, or when hit pity was
+   * already due and forced the same thing. */
+  starterHit?: true;
+}
+
+/** What the store asks of one roll beyond pity. */
+export interface RollOptions {
+  /** Make the shine slot Full Art or better, as hit pity does, in the
+   * table's own proportions (the starter guarantee). */
+  starterHit?: boolean;
 }
 
 /** Finishes that count as a hit, "Full Art or better", for the pity timer
@@ -210,6 +222,10 @@ export function nextPity(state: PityState, pulls: readonly Pick<PackPull, "finis
  * `prototypesLeft` is how many copies each run still has; a Prototype's run
  * is picked in proportion to them, and if all are used up the bonus is a
  * Gold instead. Same arguments, same pack.
+ *
+ * `options.starterHit` (the starter guarantee) makes the shine slot a hit
+ * exactly as a due hit pity does: the same draws, so a pack without it
+ * rolls as it always has.
  */
 export function rollPack(
   seed: number,
@@ -217,9 +233,12 @@ export function rollPack(
   pity: PityState,
   prototypesLeft: ReadonlyMap<string, number>,
   odds: PackOdds,
+  options: RollOptions = {},
 ): PackRoll {
   const rng = new Rng(seed);
   const due = pityDue(pity, odds);
+  const starterHit = options.starterHit === true && !due.fullArt;
+  const hitDue = due.fullArt || starterHit;
   const byRarity = new Map<Rarity, SetCard[]>(RARITIES.map((r) => [r, set.cards.filter((c) => c.rarity === r)]));
   const pickOf = (rarity: Rarity) => rng.pick(byRarity.get(rarity)!);
   const jackpot = rng.next() < odds.jackpotPack;
@@ -241,11 +260,11 @@ export function rollPack(
 
   // The shine slot: the finish first, then a card that can carry it.
   if (odds.version === "S0-odds-1") {
-    const finish = due.fullArt ? fullArtOrBetterV1(rng, odds) : jackpot ? foilOrBetterV1(rng, odds, undefined) : anyFinishV1(rng, odds);
+    const finish = hitDue ? fullArtOrBetterV1(rng, odds) : jackpot ? foilOrBetterV1(rng, odds, undefined) : anyFinishV1(rng, odds);
     const rarities = finish === "altArt" ? (["Rare", "Mythic"] as const) : RARITIES;
     add(pickOf(weightedPick(rng, rarities.map((r) => [r, odds.shineRarity[r]] as const))), "shine", finish);
   } else {
-    const finish = shineFinishV2(rng, odds, due.fullArt ? "hit" : jackpot ? "foilOrBetter" : "any");
+    const finish = shineFinishV2(rng, odds, hitDue ? "hit" : jackpot ? "foilOrBetter" : "any");
     if (finish === "secret" || finish === "zeroDay") {
       const s = rng.pick(set.secrets.filter((x) => (finish === "secret" ? x.kind === "illustration" : x.kind === "zeroDay")));
       pulls.push({ cardId: s.cardId, rarity: s.rarity, slot: "shine", finish, collectorNumber: s.collectorNumber, secret: s.code });
@@ -275,7 +294,7 @@ export function rollPack(
       pulls.push({ cardId: card.cardId, rarity: card.rarity, slot: "bonus", finish: "prototype", collectorNumber: card.collectorNumber, prototypeRun: code });
     }
   }
-  return { pulls, jackpot, pity: due, prototypeFallbackGold };
+  return { pulls, jackpot, pity: due, prototypeFallbackGold, ...(starterHit ? { starterHit: true as const } : {}) };
 }
 
 // S0-odds-1's finish rolls.

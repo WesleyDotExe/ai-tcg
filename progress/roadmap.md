@@ -368,7 +368,12 @@ start a step until the one before works and its tests pass):
    Still open: general promo issuing (milestones, quests), retiring unpulled
    Prototype runs at season end, the published-odds page, an owner interface.
    DONE already: ownership-gated decks (session 28), starter collections and
-   salvage (session 29).
+   salvage (session 29), the starter guarantee (a hit across the 3 starter
+   packs, session 46).
+   NEXT after the owner's answers: victory boasts and the cosmetics loadout
+   (owner 2026-10-19; game-lane plan proposed session 46: catalogue,
+   ownership, 4 free starter boasts, per-agent loadout, loadout saved on the
+   match record). Cosmetic only, never in the engine or the ring.
 7. Unique Mythic (signature card), owner-decided 2026-10-05 (Neutral, 3
    generated candidates, 3 cost tiers, 16-option menu, the signature zone,
    ring re-baseline). Built with build-order step 2. Plus daily

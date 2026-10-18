@@ -3310,3 +3310,48 @@ plays" means mostly 3-drops: only Lockdown Field is a 4+ cost card with room. Th
 rests on two neutral lists; it isn't tested with an Aegis card. 2,500 seeds per trial cell.
 
 **Blocked:** nothing. Optional owner check-in on N1 (recommended: leave it).
+
+## 2026-10-19 — Session 46 (the starter-pack hit guarantee; a plan for victory boasts)
+
+Game-lane session: the last merged PR (#76) was render. Owner feedback first: render session 28's
+call 9 (the starter guarantee) handled; the session-45 answers (leave N1) noted, nothing to change;
+render session 29's answers are the render lane's own; the victory-boast entry asked each lane for a
+plan at a check-in before building, so the game lane's plan is proposed, not built. Not a hardening
+pass: the owner named the guarantee as this session's first job (the overdue pass is next, unless
+the owner's boast answers come first).
+
+**Built:**
+- `rollPack(seed, set, pity, runs, odds, { starterHit })`: the option makes the shine slot a hit
+  through the same branch a due hit pity takes, so it draws the same random numbers; without it a
+  pack is unchanged (the 20,000-seed pins still pass, and a test checks 2,000 seeds both ways).
+  `starterHit` is on the roll only when it forced something (not when pity was already due).
+- The store's `starterHitDue`: due on the owner's last unopened starter pack when none of their
+  opened starter packs holds a hit copy. Two queries, starter packs only. `PackOpening.starterHit`
+  and `starterHit` in `pity_json`.
+- 6 tests; `starterSimulation.ts` (none / A / B); `starterGuaranteeDemo.ts`; ECONOMY.md.
+
+**Ran it:**
+- `progress/pack-sim-003-starter.txt` (200,000 owners per method, ~40 s): owners with a starter hit
+  45.8% -> 100% (A and B); exactly one pack with a hit 36.8% -> 91.0%; hit copies per owner 0.555 ->
+  1.098; pack 3 hits 72.6% under A, each pack 36.5% under B. The upgraded slot's finishes match the
+  hit table (Full Art 49.1% vs 48.9% set ... Zero-Day 1.10% vs 1.09%). Later packs: hit pity count
+  after starters 2.04 -> 0.40, packs 4-43 hit rate 20.44% -> 20.30%.
+- My first B simulation re-rolled the upgraded pack from its own seed, which can only give Full Art,
+  Glitch or Alt Art (a plain miss rules out the top of the hit table). Caught by the finish table
+  (B's Gold and secrets equal to "none"), fixed with a separate draw, and written into the B
+  option's cost. A doesn't have the problem: the store knows the guarantee is due before it draws
+  the seed.
+- `progress/economy-demo-011.txt` (the store, a real file, ~2 min): two misses then a Full Art on
+  pack 3 (the same seed without it: a standard Barrier Drone); an early hit gets nothing; a weekly
+  pack with a Glitch first, starters out of order, a store restart between them, the guarantee on
+  the last starter opened; the raw `pity_json`; 1,000 owners, 1,000 with a hit, 673 guaranteed, all
+  on pack 3.
+- `npm test`: all six workspaces pass (817); typecheck clean everywhere.
+
+**Worked:** reusing pity's branch made the guarantee a one-line change to the roller with no new
+odds version. **Didn't / honest limits:** A is predictable to an owner who knows the rule; the render
+doesn't show `starterHit` (its lane); boasts are a plan only.
+
+**Evidence:** `progress/pack-sim-003-starter.txt`, `progress/economy-demo-011.txt`.
+
+**Blocked:** nothing. Boasts wait on the owner's six decisions (defaults proposed).

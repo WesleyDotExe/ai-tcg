@@ -1,20 +1,88 @@
 # Notes for the owner
 
-**Updated 2026-10-19, session 45 (your 2026-10-19 answers: option C, with A as the fallback).**
-Nothing is blocking. No deck or card was changed. **Your fallback (A) applies**, as you set it: no
-Aegis list built from real Aegis cards gets Null > Aegis meaningfully closer without pushing another
-edge out. One small **[OWNER CHECK-IN]** below (an optional extra, not needed for anything).
-Evidence: `progress/balance-report-032-aegis-late-deck.txt`.
+**Updated 2026-10-19, session 46 (the starter-pack hit guarantee; a plan for victory boasts).**
+Nothing is blocking. **The starter guarantee is built and live in the store** (your render-session-28
+call 9): every new owner now sees at least one hit across the 3 starter packs. One
+**[OWNER CHECK-IN]** below: the method I used, the starter rates, what it does to the wider pack
+economy, and the game lane's plan for victory boasts (not built; your entry asked for a plan first).
+Evidence: `progress/pack-sim-003-starter.txt`, `progress/economy-demo-011.txt`.
 
-Also done this session (your render-session-28 asks):
-- **Signature abilities print their full wording at the source** (`engine/src/data/signatureMenu.ts`),
-  e.g. Inspire a0 now reads "At the start of your turn, a random ally gets +0/+1 permanently." Rush
-  on Hunter isn't printed twice. Every card's fingerprint is unchanged (a test checks all 14
-  approved lines), so owners' stored cards still match. The render lane's committed pages show the
-  old wording until it regenerates them.
-- **ECONOMY.md** no longer says the 3 candidates come with their art.
-- **Not done yet: the starter-pack hit guarantee.** It's next session's first job (method, starter
-  rates and the wider pack economy at a check-in).
+Your session-45 answer (leave N1) needed nothing: the Aegis list is unchanged.
+
+### [OWNER CHECK-IN] The starter guarantee (built), and the plan for victory boasts (not built)
+
+**1. The method: your example, option A.** When an owner opens their last unopened starter pack and
+none of their opened starter packs had a hit, that pack's shine slot is made a hit. It works like
+the hit pity timer: the same hit table in its own proportions (Full Art 49%, Glitch 22%, Alt Art
+16%, secret illustration 8%, Gold 4%, Zero-Day 1%), worked out from the owner's pack history when
+the pack is opened. Other packs opened in between don't count, the starter packs can be opened in
+any order, and a 10-pack open that includes them works too. **The tell stays honest:** the pack
+and the tear look the same; only the opened pack's record says the guarantee applied
+(`starterHit`, logged with the opening). The render lane can show that after the reveal if you want
+(it currently shows "Pity: this pack was due a hit" for pity, after the reveal).
+
+**2. Starter rates** (200,000 simulated owners, `progress/pack-sim-003-starter.txt`):
+
+| | before | with the guarantee |
+|---|---|---|
+| owners with a hit in their 3 starter packs | 45.8% | **100%** |
+| owners with exactly 1 / 2 / 3 packs with a hit | 36.8% / 8.4% / 0.6% | 91.0% / 8.4% / 0.6% |
+| hit copies per new owner | 0.555 | 1.098 |
+| starter pack 3 has a hit | 18.4% | 72.6% |
+| owners the guarantee applies to | | 66.5% (it rescues the 54.2% who'd see none) |
+| owners with a Mythic card in their starters | 44.4% | 49.8% (upgraded hits can land on Mythics) |
+
+Through the real store: 1,000 new owners, 1,000 saw a hit; it applied to 673, always on pack 3.
+
+**3. The wider pack economy:** small and one-off. Each new owner gets about 0.54 extra hit copies,
+the hits of about 2.9 ordinary packs, once. Zero-Day cards from starters: 62 -> 121 per 10,000 new
+owners; secret illustrations 444 -> 894 per 10,000. Prototype runs, the Rare slot and the Mythic
+timer are untouched. Hit pity counts from history, so owners start their paid packs with a lower
+count (2.04 -> 0.40), which shifts packs 4-43 by hundredths (hit rate 20.44% -> 20.30%; pity firing
+2.42% -> 2.25%). No odds table changed, so this isn't a new odds version.
+
+**Calls you may want to overrule:**
+1. **Option A, not B.** B would upgrade one of the 3 packs at random when none has a hit, so each
+   pack has the same chance (36.5% each) and packs 1 and 2 give nothing away about pack 3 (under A,
+   an owner who knows the rule knows pack 3 will hit after two misses). B needs all 3 starter packs
+   rolled when the first is opened (or their seeds drawn at the grant and kept secret), plus a
+   separate draw for the upgraded pack, or its upgrades would never be Gold or a secret card. Same
+   totals. Say "B" and I'll build it.
+2. **The guarantee counts any hit in a starter pack**, including a Jackpot card or a Prototype bonus,
+   not only the shine slot.
+3. **Owners who already opened starter packs** (none outside tests yet) get it only if they still
+   have one unopened.
+4. **A Zero-Day card can be the guaranteed hit** (1.1% of upgrades), as pity allows. If you'd rather
+   the starter hit stop at Gold, say so.
+
+**4. Victory boasts: the game lane's plan** (your 2026-10-19 entry; nothing built, the render lane
+proposes its own half). A boast never reaches the engine, the agents, the ring or any CI check.
+- **Catalogue:** one cosmetics catalogue for all four kinds you named (boast, card back, avatar, arena
+  background): item id, kind, name, season (or "standard"), faction theme, price in credits, sale
+  window, and an art reference the render lane draws from (code-drawn now, art pass later).
+- **Ownership:** an owned-cosmetics table per owner (account-bound, never sold or moved; source
+  `starter` or `purchase`, with the ledger row). Bought with credits, the one shop currency.
+- **Starter boasts:** all 4 faction boasts granted free to every owner with the starter collection,
+  not only the starting faction's (agents can switch factions). Existing owners get them once by
+  migration.
+- **Per-agent loadout:** one slot per kind (boast, card back, avatar, arena); refused unless the owner
+  owns the item. A new agent starts with its faction's starter boast.
+- **The match record:** each side's loadout at match time is saved with the match (boast, card back,
+  avatar, arena), so a replay always shows what the agents had then. The server reads it when it
+  records the match; a match from before the change shows defaults.
+- **Optional extra (proposal):** a second "close win" boast slot. The store picks it when the winner
+  ends on 5 health or less, otherwise the main boast, and records which one played. The agent doesn't
+  choose, so it costs no agent code and no protocol change.
+
+**Decisions I need for boasts (suggested defaults in brackets):**
+1. **Price** [300 credits per season boast, 3 packs' worth].
+2. **After its season** [retired: never sold again, as the shop spec's "limited edition = a sale
+   window" rule says; owners keep theirs].
+3. **Account-bound** [yes, like starter decks].
+4. **Season reset** [cosmetics carry over: the reset clears the collection, credits and pack points,
+   but not cosmetics].
+5. **The close-win slot** [yes, as above].
+6. **When** [the next game session after your answer, after this guarantee is accepted].
 
 ### Option C: what happened (test only, 2,500 games a cell, 10,000 for the confirmation)
 
@@ -45,7 +113,7 @@ already has and cuts cheap ones. Every list passed the deck rules and the lint.
    late play that refills its hand, rather than more mid-cost bodies, and give Null an answer to one
    durable attacker. Null > Aegis stays the real-match check's one accepted-out-of-band edge.
 
-### [OWNER CHECK-IN] (optional) N1, the neutral card-draw list
+### [ANSWERED 2026-10-19: leave N1] N1, the neutral card-draw list
 
 N1 is the one list that passes both CI checks and halves Aegis's signature gain, but it's built
 from neutral cards, which is outside what you asked for, and it only moves Null > Aegis +3.5 (at
