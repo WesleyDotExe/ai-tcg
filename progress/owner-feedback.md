@@ -3028,3 +3028,10 @@ Addition to today's entry "a new feature: hold and drag a card to tilt it (paral
 - **Keep the tell honest:** tilting must never hint at what's inside. A pack looks and behaves exactly the same whether or not it holds a hit; sparks come only from the tear, as decided.
 - **Ten-pack fan:** propose whether the packs in the fan can be tilted too, or only the pack being opened.
 - Same input rules as the card tilt: touch and mouse, phone and desktop, a quick tap still does what it does now, and reduced-motion is respected.
+
+
+---
+
+## 2026-10-18 — Owner: ten-pack fan tilt answered
+
+Answers the open point in today's addendum "the hold-to-tilt effect works on the booster pack too": in a ten-pack opening, **only the pack being opened can be tilted.** The other packs in the fan stay still.
