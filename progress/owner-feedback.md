@@ -3126,3 +3126,27 @@ Answers the [OWNER CHECK-IN] "Why a signature card helps Aegis most, and what to
 1. **Keep:** the real-match check's baseline records Null > Aegis as out of band, and CI accepts it as long as it doesn't get worse.
 2. **Keep:** the draw gives each of the 14 approved lines to each side equally, half going first and half second, never the same line on both sides in one game.
 3. **Keep:** session 43's report keeps its old numbers, with a correction note at the top.
+
+
+---
+
+## 2026-10-19 — Owner: answers to render session 28 (slice 3, the first-time flow)
+
+Owner decisions on the 10 calls in `progress/render/checkpoints.md` (2026-10-18, "Pack opening, slice 3: the first-time flow, and the signature card is made in front of you"; PR #74), and on the two game-lane asks in `progress/render/notes-for-owner.md` (session 28, items 3 and 4).
+
+### The 10 calls: keep 8, change 2
+1. **Keep:** the order is faction, starter deck, the 3 starter packs, then the agent and its signature card, with the mint as the finale.
+2. **Keep:** no art on the signature pick screen. The art-pool piece is drawn when the card is made and arrives during the mint.
+3. **Keep:** the mint takes about 6.5 s and can't be skipped.
+4. **Keep:** the terminal prints the technical record (the fairness line's id, "passed at 10,000 games").
+5. **Change: add a name field when the agent is created.** The owner can type the agent's name on the agent screen, using the store's own name rules (free at creation, as the store already allows). Leaving it blank keeps the generated name. Render lane, in the first-time flow.
+6. **Keep:** no going back from the card pick to the agents (one pick per draft).
+7. **Keep:** long names shrink to fit on every card (down to 66%) instead of "...".
+8. **Keep:** the signature card prints its ability's full wording. Also fix it at the source (see the game-lane asks below).
+9. **Change: guarantee one hit across the 3 starter packs.** Every new owner sees at least one hit (Full Art or better) in their 3 starter packs. This is a game-lane change in the economy store; the render keeps showing whatever the store rolled. The game lane proposes the method (for example, upgrading the last pack's top slot if packs 1 and 2 had no hit). It also reports the resulting starter-pack rates and any effect on the wider pack economy at its checkpoint. The tell stays honest: a pack's look and the tear never hint at a hit.
+10. **Keep:** with reduced motion the mint is over in about a second, with no spin, flight or shake.
+
+### Game-lane asks
+- **Yes: fix the signature ability text at the source.** In `engine/src/data/signatureMenu.ts`, each signature ability gets its menu option's full wording, including the trigger (for example, Inspire: "At the start of your turn, a random ally gets +0/+1 permanently."). Replays and anything else that prints `card.abilities[].text` then show the full wording.
+- **No: keep drawing the art piece when the card is made, not when the 3 candidates are offered** (matches call 2). Update ECONOMY.md's wording that each candidate comes with its art.
+- **Order:** the session-44 option C test (the Aegis deck with real late-game cards) stays the next game session's priority. These two asks (the starter-pack hit and the ability text) come alongside it or in the session after.
