@@ -4,7 +4,8 @@
 
 import { test, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { RING_EDGES, edgeName, judgeEdge } from "../src/dev/ringRegression.js";
+import { RING_EDGES, DECK_MODES, edgeName, judgeEdge } from "../src/dev/ringRegression.js";
+import { APPROVED_SIGNATURE_CARDS, approvedSignatureFor } from "../src/dev/edgeMeasure.js";
 
 const NULL_AEGIS = RING_EDGES[0]!; // W edge, band 55-60
 const NULL_CORTEX = RING_EDGES[4]!; // even edge, band 45-55
@@ -24,6 +25,34 @@ test("the signature-zone baseline covers the same six edges and says which decks
   expect(base.edges.map((e: { edge: string; games: number }) => [e.edge, e.games])).toEqual(
     RING_EDGES.map((e) => [edgeName(e), e.seeds]),
   );
+});
+
+test("the real-match baseline covers the same six edges and says which decks it played", () => {
+  const base = JSON.parse(readFileSync(new URL("../src/dev/ringBaselineReal.json", import.meta.url), "utf8"));
+  expect(base.decks).toBe(DECK_MODES.approved.label);
+  expect(base.edges.map((e: { edge: string; games: number }) => [e.edge, e.games])).toEqual(
+    RING_EDGES.map((e) => [edgeName(e), e.seeds]),
+  );
+});
+
+test("the real-match draw gives each seat every approved line twice per 28 seeds, once going first and once second", () => {
+  const n = APPROVED_SIGNATURE_CARDS.length;
+  expect(n).toBe(14);
+  for (const seat of [0, 1] as const) {
+    for (const start of [1, 29, 2493]) {
+      const odd = new Map<string, number>(), even = new Map<string, number>();
+      for (let seed = start; seed < start + 2 * n; seed++) {
+        const tally = seed % 2 === 1 ? odd : even;
+        const id = approvedSignatureFor(seed, seat).id;
+        tally.set(id, (tally.get(id) ?? 0) + 1);
+      }
+      expect(odd.size, `seat ${seat} from seed ${start}, odd seeds`).toBe(n);
+      expect(even.size, `seat ${seat} from seed ${start}, even seeds`).toBe(n);
+    }
+  }
+  for (let seed = 1; seed <= 2500; seed++) expect(approvedSignatureFor(seed, 0).id).not.toBe(approvedSignatureFor(seed, 1).id);
+  // Session 43's draw, (seed * 7 + seat * 3) % 14, reached 2 lines per seat. Pinned so it can't come back.
+  expect(new Set(Array.from({ length: 2500 }, (_, i) => approvedSignatureFor(i + 1, 0).id)).size).toBe(n);
 });
 
 test("an IN edge that slips to OUT fails; one that stays IN passes", () => {

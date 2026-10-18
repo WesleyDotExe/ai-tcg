@@ -1,5 +1,79 @@
 # Notes for the owner
 
+**Updated 2026-10-18, session 44 (your 2026-10-18 answers to session 43: option A).** Nothing is
+blocking. One new **[OWNER CHECK-IN]** below. No card or signature option was changed. Evidence:
+`progress/balance-report-031-real-ring-aegis-gain.txt`.
+
+Done:
+- **The ring's second CI check now measures real matches** (`npm run ring:real`): set Mythics in
+  the deck, an approved menu card each side. Its baseline is recorded and CI runs it in place of
+  the set-Mythic mode. The set-Mythic mode still runs as a report (`npm run ring:signature`).
+- **A correction: session 43's "even draw" wasn't even.** It reached 2 of the 14 approved lines per
+  side, not 14 (your smaller call 1 accepted what the check-in said, which wasn't true). A new test
+  caught it. The draw now uses all 14 lines equally, half going first and half going second. The
+  headline barely moved: Null > Aegis 45.2% -> 45.4%.
+
+### [OWNER CHECK-IN] Why a signature card helps Aegis most, and what to do about Null > Aegis
+
+**With all 14 lines, a signature card is worth +9.9 points to Aegis on average, and +0.9 to +3.1
+to the other factions** (a faction alone holding one, against the gate; 2,500 games a cell).
+
+| faction | vs each opponent | mean |
+|---|---|---|
+| Aegis | +10.2 Null, +12.8 Cortex, +6.7 Swarm | **+9.9** |
+| Null | +5.1 Aegis, +0.5 Swarm, +3.8 Cortex | +3.1 |
+| Swarm | +3.3 Cortex, -2.1 Null, +4.5 Aegis | +1.9 |
+| Cortex | +5.5 Aegis, -2.8 Swarm, -0.1 Null | +0.9 |
+
+**What drives it:**
+1. **Spare energy.** Aegis's deck is mostly 1-3 cost cards. Late in a game (5+ energy) without a
+   signature card, Aegis ends its turn with 2.9 energy unspent; the others leave 1.8-2.2. Nearly half
+   of Aegis's late turns end with 3 or more unspent. A signature card is a 5-cost play that is always
+   there, so for Aegis it costs almost nothing it would otherwise use. **Checked:** a heavier Aegis
+   deck (3 Cadets swapped for 3 plain 5-drops, for the test only) cuts the gain by about 3 points on
+   every edge. So this is about a third of the gap.
+2. **The card becomes Aegis's attacker.** Aegis's signature card makes the most attacks and deals the
+   most damage to the opponent of any faction's (up to 5.5 a game against Cortex), and opponents
+   attack it most. Aegis's own deck is walls with little attack. (This one is a correlation; I
+   haven't tested it directly.)
+3. **Not tools.** Aegis puts the most tools on it, but a rule that no signature card can carry tools
+   moves Null > Aegis only +1.4, within noise.
+
+**What I tried for Null > Aegis** (45.4%, band 55-60, so 9.6 points short; each change patched for
+the test only):
+
+| change | Null > Aegis | side effects |
+|---|---|---|
+| T1: no tools on a signature card (a rule) | +1.4 (noise) | none |
+| T2: Kernel Panic kills up to 5 health (was 4) | +0.0 | none (it comes out in ~11% of Null's games against Aegis) |
+| T3: Kernel Panic kills up to 6 health | +0.4 (noise) | none |
+| T4: Plating Module +0/+2 (was +0/+3) | +1.5 (noise) | Aegis > Cortex -1.8 (gate -2.7) |
+| **T5: Null Singularity costs 6 (was 7)** | **+3.8 -> 49.2%** (gate +3.3 -> 53.9%) | Swarm > Null -3.3 -> 52.4%, out of band |
+| T6: every signature card costs 6 (a rule) | +2.8 (borderline) | Aegis > Cortex -3.3 -> 52.8%, out of band |
+
+No single change reaches the band. The best one, T5, closes 3.8 of the 9.6 points and pushes Swarm >
+Null out of band.
+
+**Question: what should I do about Null > Aegis?**
+- **A (my recommendation).** No card change now. Keep Null > Aegis as the real-match check's one
+  accepted-out-of-band edge (CI already treats it that way: it fails only if the edge gets worse).
+  Fix it with the next set, aimed at the cause: give Aegis a real late-game play, so its late turns
+  aren't empty and a signature card adds less, and give Null an answer to one durable attacker.
+- **B.** Apply T5 now (Null Singularity costs 6): Null > Aegis +3.8, and accept Swarm > Null slipping
+  to 52.4%. I'd re-record both baselines with it.
+- **C.** Have me test the cause directly first: an Aegis deck change that adds late plays using real
+  Aegis cards (not test stand-ins), measured on all six edges, before anything goes in.
+
+Smaller calls you may want to overrule:
+1. **The new check's baseline records Null > Aegis as out of band,** so CI accepts it as long as it
+   doesn't get worse. That's the rule the gate uses for its own out-of-band edges.
+2. **The draw gives each of the 14 lines to each side equally,** half going first and half second,
+   and the two sides never hold the same line in one game. Real owners pick 1 of 3, so the real
+   mix may lean to some lines.
+3. **Session 43's report keeps its old numbers** with a correction note at the top, not a rewrite.
+
+---
+
 **Updated 2026-10-18, session 43 (your 2026-10-18 answers to session 42: leave Mainframe Core; look
 into the signature-mode ring).** Nothing is blocking. One new **[OWNER CHECK-IN]** below. No card,
 signature option or baseline was changed. Evidence:

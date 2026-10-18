@@ -20,28 +20,32 @@
 // with --write-baseline and commit the new baseline next to the balance
 // report that justifies it, so the baseline only ever moves on purpose.
 //
-// Two modes since the signature zone landed (session 31):
-//  - the GATE (default): decks as shipped, set Mythic in the deck. This is
-//    how every real match plays today, and ringBaseline.json is unchanged.
+// Three modes:
+//  - the GATE (default): decks as shipped, set Mythic in the deck, no
+//    signature card. ringBaseline.json.
+//  - --real (owner 2026-10-18, option A on session 43's check-in): the set
+//    Mythic stays in the deck and each side gets one of the approved menu
+//    lines as its signature card, drawn per seed and seat
+//    (edgeMeasure.approvedSignatureFor). This is how a real match plays: the
+//    store's match setup grants every agent its generated Neutral signature
+//    card. ringBaselineReal.json. CI runs it beside the gate.
 //  - --signature: each set Mythic leaves the deck and stands in as its
-//    signature card (owner 2026-10-05, the unique Mythic). Its baseline is
-//    ringBaselineSignature.json. The owner asked for the gate itself to be
-//    re-baselined this way, but the move was far larger than expected (4 of
-//    6 edges moved 10-24 points; progress/balance-report-022-signature-zone.txt),
-//    so it is recorded beside the gate and the switch is left to the owner.
-//    CI runs both, so neither can drift unnoticed.
+//    signature card (session 31's "what if", owner 2026-10-05). No real match
+//    plays this way, so since option A it is a REPORT, not a CI check; it
+//    still runs against ringBaselineSignature.json so its numbers stay
+//    comparable.
 //
 // Usage:
 //   npx tsx src/dev/ringRegression.ts                  all six edges
 //   npx tsx src/dev/ringRegression.ts --write-baseline measure all six and record them
-//   add --signature to either for the signature-zone mode
+//   add --real (or --signature) to either for that mode
 // Exit code 1 on any failing edge. All six edges (11,800 games) take about
-// 15 seconds, so CI runs the whole thing on every engine change
+// 15 seconds, so CI runs the gate and --real on every engine change
 // (.github/workflows/test.yml).
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { measurePairing, wilson, bandVerdict, ringBand, newcombeDiff } from "./edgeMeasure.js";
+import { measurePairing, wilson, bandVerdict, ringBand, newcombeDiff, type SignatureMode } from "./edgeMeasure.js";
 import type { DeckFaction as Faction } from "../cards/types.js";
 
 export interface RingEdge {
@@ -128,10 +132,11 @@ export function formatJudgement(j: EdgeJudgement, games: number): string {
   );
 }
 
-const DECK_MODES = {
-  deck: { label: "set Mythic in the deck", file: "./ringBaseline.json" },
-  signature: { label: "set Mythic as signature card", file: "./ringBaselineSignature.json" },
-} as const;
+export const DECK_MODES: Record<SignatureMode, { label: string; file: string }> = {
+  none: { label: "set Mythic in the deck", file: "./ringBaseline.json" },
+  approved: { label: "set Mythic in the deck, an approved menu line as each side's signature card", file: "./ringBaselineReal.json" },
+  setMythic: { label: "set Mythic as signature card", file: "./ringBaselineSignature.json" },
+};
 
 interface BaselineFile {
   _about: string;
@@ -144,8 +149,9 @@ interface BaselineFile {
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const write = args.includes("--write-baseline");
-  const signature = args.includes("--signature");
-  const mode = DECK_MODES[signature ? "signature" : "deck"];
+  if (args.includes("--real") && args.includes("--signature")) throw new Error("pick one of --real and --signature");
+  const signature: SignatureMode = args.includes("--real") ? "approved" : args.includes("--signature") ? "setMythic" : "none";
+  const mode = DECK_MODES[signature];
   const baselinePath = fileURLToPath(new URL(mode.file, import.meta.url));
   const edges = RING_EDGES;
 
@@ -162,7 +168,7 @@ async function main(): Promise<void> {
         "Lookahead vs Lookahead, seeds 1..games. Only rewrite with --write-baseline for an owner-approved change, " +
         "committed alongside the balance report that justifies it.",
       recorded: new Date().toISOString().slice(0, 10),
-      ...(signature ? { decks: mode.label } : {}),
+      ...(signature !== "none" ? { decks: mode.label } : {}),
       edges: measured,
     };
     writeFileSync(baselinePath, JSON.stringify(file, null, 2) + "\n");
@@ -170,8 +176,8 @@ async function main(): Promise<void> {
   }
 
   const baseline = JSON.parse(readFileSync(baselinePath, "utf8")) as BaselineFile;
-  if ((baseline.decks ?? DECK_MODES.deck.label) !== mode.label) {
-    throw new Error(`${mode.file} was recorded with decks "${baseline.decks ?? DECK_MODES.deck.label}", this run plays "${mode.label}"`);
+  if ((baseline.decks ?? DECK_MODES.none.label) !== mode.label) {
+    throw new Error(`${mode.file} was recorded with decks "${baseline.decks ?? DECK_MODES.none.label}", this run plays "${mode.label}"`);
   }
   console.log(`Ring regression (${mode.label}) vs baseline recorded ${baseline.recorded} (Lookahead vs Lookahead, seeds from 1)`);
   let failed = 0;

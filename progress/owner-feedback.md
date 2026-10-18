@@ -3077,7 +3077,7 @@ When the art pass starts, its budget, and whether a cheaper model (such as Image
 
 ---
 
-## 2026-10-18 — Owner: answers to game session 43 (the signature-mode ring)
+## 2026-10-18 — Owner: answers to game session 43 (the signature-mode ring) (HANDLED 2026-10-18, session 44 — option A built: `ringRegression.ts --real` (`npm run ring:real`) plays set Mythics in the deck and an approved menu card each side, its baseline `ringBaselineReal.json` is recorded, CI runs it in place of `--signature`, and `--signature` stays runnable as a report. Session 43's draw turned out to reach only 2 of the 14 lines per seat; the new draw is truly even (each line twice per seat per 28 seeds, once going first and once second), pinned by a test; Null > Aegis is 45.4% with it (was 45.2%). Why Aegis gains most: spare late energy (measured, about a third of the gap by an ablation), the body becoming Aegis's attacker (correlational), not tools (a no-tools rule moves it +1.4). Six trials, none reaches the band; the best (Null Singularity cost 6) gives +3.8 and pushes Swarm > Null out. No card changed. Proposal in the new [OWNER CHECK-IN]; evidence `progress/balance-report-031-real-ring-aegis-gain.txt`. The 3 smaller calls stand, with call 1 now true. Render session 27's answers below are the render lane's own)
 
 Answers the [OWNER CHECK-IN] "The signature-mode ring: what drives Aegis > Cortex at 71.5%, and what to do" in `progress/notes-for-owner.md` (PR #71, `progress/balance-report-030-signature-ring-drivers.txt`).
 
@@ -3095,7 +3095,7 @@ Answers the [OWNER CHECK-IN] "The signature-mode ring: what drives Aegis > Corte
 
 ---
 
-## 2026-10-18 — Owner: answers to render session 27 (hold to tilt), keep all 8
+## 2026-10-18 — Owner: answers to render session 27 (hold to tilt), keep all 8 (render lane's own; nothing for the game lane, noted session 44)
 
 Owner decisions on the 8 calls in `progress/render/checkpoints.md` (2026-10-18, "Hold to tilt: the card and the pack lean as one piece"; PR #72).
 1. **Keep:** a press held still for 0.2 s, or moved 8 px, starts the tilt; on the card stack only the 0.2 s hold starts it, so a quick sideways move is still the swipe.

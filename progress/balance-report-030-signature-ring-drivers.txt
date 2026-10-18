@@ -1,5 +1,9 @@
 # Balance report 030: why Aegis beats Cortex so heavily in the ring's signature mode, and the other far-out edges (session 43)
 
+CORRECTION (session 44): the "approved" columns below used a draw that reached only 2 of the 14 lines per seat
+((seed * 7 + seat * 3) % 14). The corrected numbers are in balance-report-031; the driver now uses the fixed draw,
+so re-running it reproduces 031's approved numbers, not these.
+
 Owner 2026-10-18 (answers to session 42, item 2): "find out why Aegis beats Cortex so heavily (71.5%) once
 signature cards are in play. Also report any other signature-mode edges that are far outside their bands.
 Show what drives it ... measured the same way as balance-report-029. Then propose fixes at an [OWNER

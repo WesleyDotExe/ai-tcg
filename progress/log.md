@@ -3231,3 +3231,44 @@ approved mode draws lines evenly; real owners pick 1 of 3. 2,500 seeds, not 10,0
 
 **Blocked:** nothing. The ring's second check waits on the owner's pick (default A: measure real
 matches).
+
+## 2026-10-18 — Session 44 (owner's 2026-10-18 answers to session 43: option A; why Aegis gains most from a signature card)
+
+Game-lane session: the last merged PR (#72) was render. Owner feedback first: the session-43
+answers handled (option A built, investigation done, the 3 smaller calls stand); render session 27's
+answers are the render lane's own, marked so. Not a hardening pass (session 45 is the next 5th).
+
+**Built:**
+- The ring's real-match check: `ringRegression.ts --real` / `npm run ring:real` (set Mythic in the
+  deck, an approved menu card each side), baseline `ringBaselineReal.json`; CI runs it in place of
+  `--signature`, which stays runnable as a report. `measurePairing` takes a `SignatureMode`.
+- **A fix to session 43's draw:** `(seed * 7 + seat * 3) % 14` reached only 2 of the 14 approved
+  lines per seat (7 * seed mod 14 is 0 or 7). The new ring test caught it on its first run. The
+  shared `approvedSignatureFor` now gives each line twice per seat per 28 seeds, once going first
+  and once second, and the seats never share a line. Tests pin all three.
+- `engine/src/dev/aegisSignatureGain.ts`: the gain table, late-turn spare energy (an agent wrapper
+  that only records what the player was shown when it ended its turn), what happens to the signature
+  card, six trials, a heavier-deck cause check. No card changed.
+
+**Ran it** (2,500 seeds a cell, ~7 min; `progress/balance-report-031-real-ring-aegis-gain.txt`):
+- Real-match ring with the corrected draw: Null > Aegis 45.4% OUT (was 45.2% with the 4-line draw),
+  Aegis > Cortex 56.1%, Cortex > Swarm 53.4% (OUT -> UNRESOLVED), Swarm > Null 55.8%, Null ~ Cortex
+  50.7% IN, Aegis ~ Swarm 56.2%. Gate, `--real` and `--signature` all PASS.
+- Gain from a signature card: Aegis +9.9 mean (+10.2 / +12.8 / +6.7); Null +3.1, Swarm +1.9, Cortex
+  +0.9. Late turns: Aegis leaves 2.93 energy unspent (others 1.84-2.17), 47.8% with 3+.
+- Cause check: a heavier Aegis deck cuts the gain ~3 points per edge. No-tools rule: +1.4 (noise).
+- Trials for Null > Aegis: Kernel Panic reach 5 / 6 +0.0 / +0.4; Plating Module +0/+2 +1.5; Null
+  Singularity cost 6 +3.8 (Swarm > Null -3.3, OUT); signature cards cost 6 +2.8 (Aegis > Cortex
+  -3.3, OUT).
+- `npm test` all six workspaces; typecheck clean.
+
+**Worked:** the draw test paid for itself immediately. The spare-energy measure answers the owner's
+"why" with a number and an ablation in the same direction.
+**Didn't / honest limits:** no trial reaches the band. The cause check explains about a third of the
+gap; the "body becomes Aegis's attacker" reading is correlational. The heavier deck is a test stand-in
+that also weakens Aegis's gate. 2,500 seeds, not 10,000.
+
+**Evidence:** `progress/balance-report-031-real-ring-aegis-gain.txt`, `engine/src/dev/ringBaselineReal.json`.
+
+**Blocked:** nothing. The Null > Aegis fix waits on the owner's pick (default A: no change now, fix it
+in the next set's design).
