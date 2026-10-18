@@ -2943,3 +2943,29 @@ Owner decisions on the 8 calls in `progress/render/checkpoints.md` (2026-10-18, 
 8. **Keep:** the showcase tens are each a fresh owner's first ten packs.
 
 As with slice 1, this hasn't been tried on a real phone yet. The owner may come back with feel notes (call 1 especially). Until then, carry on with slice 3, the first-time flow.
+
+
+---
+
+## 2026-10-18 — Owner: feel notes on the pack-opening page (slices 1 and 2): full-size art for the top finishes; a tap-driven ten-pack opening
+
+The owner tried `render/output/pack-opening.html` (as merged after render session 25). Two changes for the render lane. Do them before slice 3 (the first-time flow), or as the first part of that session.
+
+### 1. Full-size artwork for every finish rarer than Full Art
+**Rule:** a finish rarer than Full Art always shows its artwork across the whole card (full bleed, like Full Art). A rarer card must never look smaller than a Full Art.
+- **Gold:** full-bleed art in gold tones, with gold edges and gold lettering. Today it's a gold frame with normal-size, sepia-tinted art.
+- **Prototype:** full-bleed art (each run's own unique art, as decided 2026-10-04), with the serial plate (`07/50`, `PROTOTYPE · S1`) on top. Today it's the normal frame plus the plate.
+- **Secret illustrations:** full-bleed.
+- **Zero-Day:** full-bleed.
+- This applies everywhere these cards are drawn: the pack reveal, the summary grid and any card viewer. Placeholder art is fine until the art pass.
+
+### 2. The ten-pack opening is tap-driven, with no stop-and-re-tear
+This replaces slice 2's calls 1 (a big pull waits for a hand tear under a "BIG PULL" tag) and 6 (the fast sequence plays automatically at 1× by default).
+- **Nothing plays on its own.** Each tap or swipe tears the next pack. Its cards deal into the row, and the owner taps to flip the face-down ones, then moves on to the next pack.
+- **Big pulls stay in the same flow.** A big-pull pack is torn the same way as any other (it still sparks only when it holds a hit). Its full reveal then plays right there. No pause, and no second tear or swipe.
+- **Remove the "BIG PULL" tag**, since there's no pause to explain.
+- **Keep "Skip to summary".** It still never skips past a big pull (slice 2's call 2 stands).
+- **Add an "Auto" switch, off by default,** for owners who want the old automatic sequence. The 1× / 2× / 4× speeds apply to Auto.
+- Every other slice-2 call stands. Propose any new timings at the checkpoint.
+
+Please show both changes with phone and desktop stills or recordings at the next checkpoint.
