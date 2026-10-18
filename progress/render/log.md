@@ -3079,3 +3079,120 @@ Mutation checks:
 **Next render-lane slice:** slice 3, the first-time flow: an agent's first
 packs and the signature (leader) card reveal. Hold to tilt is then already
 there for the signature card.
+
+## 2026-10-18 — Session 28: slice 3, the first-time flow (the starter packs and the signature card's reveal)
+
+Render session by the alternation rule: the last merged PR (#73) was a game
+slice. Owner feedback read first. The render-lane entry left is the answers
+to render session 27 (keep all 8 tilt calls, "next render session: slice 3,
+the first-time flow, as planned"); nothing in it to change. The answers to
+game session 44 (an Aegis deck trial) are the game lane's own.
+
+**Built** (`render/src/firstTime.ts`, `firstTimePage.ts`, `firstTimeDemo.ts`;
+`npm run first-time` writes `render/output/first-time.html`):
+- **The data is the store's, every branch.** The page plays back the Season
+  0 sign-up as the economy store does it: `grantStarterCollection` per
+  faction (each in its own store, because NEW depends on the starter deck),
+  `openPack` for the 3 starter packs (fixed seeds 101-103, not searched),
+  and "Generate a new agent" for all 9 branches (3 agents x 3 cards), each a
+  fresh store replaying the same seeded `startAgentDraft`, `pickDraftAgent`
+  (agent k uses its own seed, as the site draws one per pick) and
+  `confirmAgentDraft`. A branch shown a different draft throws.
+- **Eight screens, one rail** (Faction, Packs, Agent, Signature):
+  1. Welcome: a fan of card backs, the logo, the three steps.
+  2. Four faction plates, each with its starter Mythic's face and one line
+     of identity; a tap selects, the button names the pick.
+  3. The starter deck: the box drops in (40 on it), its 5 rarest cards fan
+     out of it, the 3 packs slide in.
+  4. The 3 starter packs through the real pack opening (tear, stack,
+     reveals, summary), with a "STARTER PACK n OF 3" badge; the summary's
+     buttons lead on, and the last one says what the owner now holds.
+  5. Three agents: the replay's avatar for each name, the name typing
+     itself, the persona.
+  6. That agent's 3 signature cards, full faces, with their art windows
+     empty ("ART PIECE · DRAWN WHEN MADE"): the store draws the art-pool
+     piece only on confirm. Phones stack them as rows.
+  7. **The mint** (the reveal): the other two cards fall away; the chosen
+     one turns face down and flies to the middle while the screen goes
+     black; a terminal prints what the store recorded (agent, card, the
+     fairness line it passed, the art piece, the number); the card's own
+     ward (the fallback ward generator, seeded from its name: the same
+     ward its matches draw) draws itself in behind it and spins up; the
+     card turns face up as the made card, its face burning in from the art
+     outward while the art develops; the PR-001 / 1 OF 1 plate slams in
+     (shake, stamp, motes); the plate lifts into the card's own number,
+     the ward folds into a halo, the new signature light comes on. About
+     6.5 s, nothing skips it; then it can be held and tilted.
+  8. Ready: the agent, its card (tap for the viewer), and the holdings:
+     starter deck + pack cards + 1 signature.
+- **The signature face** (`packFaceHtml`, reveal `signature`): full bleed,
+  a white-gold edge and lettering, a SIGNATURE mark, "PR-001 · 1 OF 1",
+  "Signature · S0". Its placeholder art (`packSignatureArt`): a figure of
+  light standing in rings over a horizon grid, in a hue from its art-pool
+  piece, so two cards that drew the same piece share the picture, as the
+  pool means.
+- **A `signature` shader** (`packFx.ts`): white-gold rays, a rune ring
+  around the art's centre that brightens under the light, round glints.
+  The only finish with rays.
+- **The rules text a signature card prints** is the menu option's own
+  wording, taken from the generator's concept: the engine's built abilities
+  carry a shorter text without the trigger ("Draw a card." for "On arrival,
+  if you have 2 or fewer cards in hand, draw a card."). Asked of the game
+  lane.
+- **Names shrink to fit** on every card face (`packFitName`, down to 66%),
+  instead of being cut off with "...". The pack page and the face sheet get
+  it too (they share the face).
+- **The pack runtime grew two hooks, nothing else changed in it:** a
+  summary hook for a flow's own buttons, and `window.PACK` (its opening,
+  faces, tilt, viewer, layers, sound) for the flow to drive.
+
+**Ran it:**
+- `npm run first-time`; transcript `v2-s28-first-time-transcript.txt`.
+- `first-time-check.mjs` (new; output `first-time-check.txt`): desktop with
+  a mouse, phone with CDP touch, phone with touch and reduced motion, each
+  through the whole flow by hand (a different faction, agent and card each
+  run). All pass. See the checkpoint for what it checks.
+- A measurement for the owner (2,000 fresh sign-ups through the store, one
+  seed per pack): **55.1% of new owners see no hit in their 3 starter
+  packs**, and 15.2% see nothing but Standard cards. The demo's fixed seeds
+  are such an opening (two Foils, no hit).
+- Rebuilt `pack-opening.html` and `card-faces.html` (shared face source).
+
+**Bugs found and fixed while building:**
+- The mint overlay covered the page while hidden (`display: grid` beat the
+  `hidden` attribute).
+- The ward canvas showed as a dark square: the overlay is its own stacking
+  context, so the canvas's screen blend only sees the overlay's background,
+  which must be opaque.
+- The signature shader's glints were 6 px squares; now round and sparser.
+- The name fit used `scrollWidth`, which rounds, so a name a fraction of a
+  pixel too wide kept its "..."; it now measures the text against its box.
+- A mouse drag on the card during the mint selected its text (blue
+  highlight in the first recorded stills): the overlay sits outside the
+  stage's no-select rule. It has its own now, and the check asserts no
+  selection.
+- With reduced motion the mint was over before its terminal had typed its
+  values (the check caught it); with reduced motion they now print whole.
+- Check-script only: Playwright waits for the bobbing pack to stop moving
+  (it never does), and a phone's confirm button sits below the fold.
+
+**Tests:** render 402 (+14, `firstTime.test.ts`): the starter data per
+faction, NEW counted against each faction's own starter deck, every
+branch made what was picked (number, bound promo copy, art piece, flavour,
+picture from the art piece), reproducible; the signature face once made and
+on the pick screen; the printed rules text over 180 generated candidates;
+the mint's terminal against the store's values, its beats in order and its
+length (5.5-7.5 s to settled, under 8.5 s to free even at the longest
+names); the page ships the flow only on the first-time page.
+Mutation checks: printing the engine's bare concept (the cost and stats
+left in) fails the rules-text test; showing art on the pick screen fails
+the pick-screen test.
+
+**Named honestly** (in the debt list): no real phone, GPU or ears; the
+mint's feel and length untried by a person; the placeholder signature art
+is a stand-in for the art pass; no name field at creation; no "back" from
+the card pick (one pick per draft, as the store).
+
+**Next render-lane slice:** the owner's call on slice 3; then the render
+debt list (the turn-cap ending and the momentum gauge's pending threat were
+waiting behind the pack-opening work).

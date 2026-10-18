@@ -1,0 +1,46 @@
+
+> @ai-tcg/render@0.1.0 first-time
+> tsx src/firstTimeDemo.ts
+
+First-time flow (render session 28): Season 0 sign-up through the economy store, every branch.
+Username "first-light", odds S0-odds-2. * = a hit (Full Art or better).
+
+Aegis: starter deck 40 copies, 23 cards (Mythic: Prime Aegis); after the packs 55 copies, 32 distinct cards
+  Starter pack 1 of 3: seed 101, no sparks, +5 pack points: Stray Fragment NEW, Bulwark Chassis, Intercept Routine, Decay Ward NEW, Recursive Construct (foil) NEW
+  Starter pack 2 of 3: seed 102, no sparks, +5 pack points: Bulwark Chassis, Stray Fragment, Power Reserve NEW, Decay Ward, Warren Guardian (foil) NEW
+  Starter pack 3 of 3: seed 103, no sparks, +5 pack points: Spare Cycles NEW, Hotfix NEW, Null Shell NEW, Recursive Construct, Segfault Handler NEW
+Cortex: starter deck 40 copies, 26 cards (Mythic: Quorum Arbiter); after the packs 55 copies, 35 distinct cards
+  Starter pack 1 of 3: seed 101, no sparks, +5 pack points: Stray Fragment NEW, Bulwark Chassis NEW, Intercept Routine NEW, Decay Ward NEW, Recursive Construct (foil)
+  Starter pack 2 of 3: seed 102, no sparks, +5 pack points: Bulwark Chassis, Stray Fragment, Power Reserve NEW, Decay Ward, Warren Guardian (foil) NEW
+  Starter pack 3 of 3: seed 103, no sparks, +5 pack points: Spare Cycles NEW, Hotfix, Null Shell NEW, Recursive Construct, Segfault Handler NEW
+Swarm: starter deck 40 copies, 20 cards (Mythic: Hive Mother); after the packs 55 copies, 30 distinct cards
+  Starter pack 1 of 3: seed 101, no sparks, +5 pack points: Stray Fragment NEW, Bulwark Chassis NEW, Intercept Routine NEW, Decay Ward NEW, Recursive Construct (foil) NEW
+  Starter pack 2 of 3: seed 102, no sparks, +5 pack points: Bulwark Chassis, Stray Fragment, Power Reserve NEW, Decay Ward, Warren Guardian (foil)
+  Starter pack 3 of 3: seed 103, no sparks, +5 pack points: Spare Cycles NEW, Hotfix NEW, Null Shell NEW, Recursive Construct, Segfault Handler NEW
+Null: starter deck 36 copies, 20 cards (Mythic: Null Singularity); after the packs 51 copies, 27 distinct cards
+  Starter pack 1 of 3: seed 101, no sparks, +5 pack points: Stray Fragment, Bulwark Chassis NEW, Intercept Routine NEW, Decay Ward, Recursive Construct (foil) NEW
+  Starter pack 2 of 3: seed 102, no sparks, +5 pack points: Bulwark Chassis, Stray Fragment, Power Reserve NEW, Decay Ward, Warren Guardian (foil) NEW
+  Starter pack 3 of 3: seed 103, no sparks, +5 pack points: Spare Cycles NEW, Hotfix NEW, Null Shell, Recursive Construct, Segfault Handler
+
+Generate a new agent (3 agents; 3 signature cards each; what confirming each one makes):
+  agent 1: Laserferret's Turbo Champion, "A superstitious strategist that hums while it waits for priority."
+    card 1: Hexpython's Arcade Pep Talk, Hexpython's Arcade Pep Talk: cost 5, 3/5. On arrival, your units get +0/+1 this turn. [sig5-3x5-rally.a0, worst edge 0.01 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 124/500, copy promo bound SIGNATURE; flavour "One signal from Laserferret's Turbo Champion and the whole board leans forward."
+    card 2: Hyperhound's Data Mule, Hyperhound's Data Mule: cost 5, 3/6. When it dies, draw 2 cards. [sig5-3x6-recycle, worst edge 0.01 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 161/500, copy promo bound SIGNATURE; flavour "Nothing Laserferret's Turbo Champion loses stays lost."
+    card 3: Mainframe Key of the Blackout, Mainframe Key of the Blackout: cost 5, 3/5. At the start of your turn, a random ally gets +0/+1 permanently. [sig5-3x5-inspire.a0, worst edge 0.01 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 198/500, copy promo bound SIGNATURE; flavour "Under Laserferret's Turbo Champion's eye, every unit grows."
+  agent 2: Coiljackal's Croupier, "A curious showboat that narrates its own moves to the crowd."
+    card 1: Novamanta's Synth, Novamanta's Synth: cost 5, 3/6. Enemy Commands cost 1 more. [sig5-3x6-tax, worst edge 0.01 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 255/500, copy promo bound SIGNATURE; flavour "Spells pass Coiljackal's Croupier's gate at a price."
+    card 2: Turboheron's Denim Rave, Turboheron's Denim Rave: cost 5, 3/5. At the start of your turn, a random ally gets +0/+1 permanently. [sig5-3x5-inspire.a0, worst edge 0.01 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 292/500, copy promo bound SIGNATURE; flavour "Under Coiljackal's Croupier's eye, every unit grows."
+    card 3: Nightoutlaw's Warez Drop, Nightoutlaw's Warez Drop: cost 5, 3/6. On arrival, if you have 2 or fewer cards in hand, draw a card. [sig5-3x6-supply-line.low, worst edge 0.01 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 329/500, copy promo bound SIGNATURE; flavour "Coiljackal's Croupier never runs out of plans, only of patience."
+  agent 3: Shellfixer's Sleepless Flywheel, "A restless forecaster that plays its biggest threat one turn earlier than it should."
+    card 1: Fluxbadger's Obsidian Torrent, Fluxbadger's Obsidian Torrent: cost 5, 3/6. When it dies, draw a card. [sig5-3x6-recycle.c1, worst edge 0.01 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 386/500, copy promo bound SIGNATURE; flavour "Nothing Shellfixer's Sleepless Flywheel loses stays lost."
+    card 2: Stormgator's Vinyl Ghost, Stormgator's Vinyl Ghost: cost 5, 3/5. Barrier. [sig5-3x5-guardian, worst edge 0.02 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 423/500, copy promo bound SIGNATURE; flavour "Shellfixer's Sleepless Flywheel shrugs off what would end lesser machines."
+    card 3: Stackcrow's Magenta Safe Mode, Stackcrow's Magenta Safe Mode: cost 5, 3/6. At the end of your turn, restore 1 health to a random unit of yours. [sig5-3x6-restore.r1, worst edge 0.02 over 10000 seeds]
+      minted PR-001 sig-PR-001, art S0 piece 460/500, copy promo bound SIGNATURE; flavour "Every scratch on Shellfixer's Sleepless Flywheel's side gets a ticket and a fix."

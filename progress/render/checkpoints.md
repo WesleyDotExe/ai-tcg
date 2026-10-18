@@ -7,6 +7,69 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-18 — Pack opening, slice 3: the first-time flow, and the signature card is made in front of you — AWAITING FEEDBACK
+
+Slice 3 of your pack-opening plan. Open `render/output/first-time.html`, press Begin, and go all the way through: pick a faction, open the 3 starter packs, pick an agent, pick its card, and watch the card being made. Every screen plays back what the economy store returned for that choice; nothing on the page rolls anything.
+
+**What this delivers:**
+- **The Season 0 sign-up as one flow**, with a rail at the top (Faction · Packs · Agent · Signature):
+  1. **Welcome.**
+  2. **Pick a starting faction:** four plates, each with one line about the faction and its starter Mythic.
+  3. **Your starter deck:** the deck box drops in, its 5 rarest cards fan out of it, and the 3 starter packs slide in beside it. "Account-bound: yours to play, never to sell."
+  4. **The 3 starter packs**, through the real pack opening (tear, swipe, reveals, summary, hold to tilt), one after another. After the last one: "You now hold 55 cards: 40 from the starter deck and 15 from your packs."
+  5. **Generate your agent:** three generated agents, each with its avatar (the same one its matches show), its name typing itself, its persona. "Connect your own AI agent: after Season 0" sits under them, as your spec says.
+  6. **Its signature card:** three cards to pick from, with their name, cost, stats and rules text. Their art window is empty ("ART PIECE · DRAWN WHEN MADE") because the store draws the card's art-pool piece only when the card is made (call 2).
+  7. **The mint, the signature card's reveal** (your "leader reveal"):
+     - the other two cards fall away;
+     - the chosen card turns face down and flies to the middle while the screen goes black;
+     - a terminal prints what the store recorded: the agent, the card, the fairness test it passed, its art piece ("pool S0 · piece 292 of 500"), its number;
+     - the card's own ward draws itself in behind it and spins up. It's the same ward the card shows in its matches;
+     - the card turns face up as the made card: its face burns in from the middle of the art outward and the art develops;
+     - a "PR-001 · 1 OF 1" plate slams in, with a shake, a stamp and a burst of light;
+     - the plate lifts away into the card's own number, the ward folds into a halo behind it, and the card's new signature light comes on: "SIGNATURE · 1 OF 1. Made for Coiljackal's Croupier alone."
+     - About 6.5 s from the tap to the settled card. Then you can hold and tilt it.
+  8. **Ready:** the agent, its card (tap it for the viewer) and what you now hold: starter deck + pack cards + 1 signature card.
+- **The signature card's own look:** full bleed, a white-gold edge and white-gold lettering, a SIGNATURE mark, "PR-001 · 1 OF 1" in the corner, and a new white-gold light (rays and a turning ring of light around the art), the only finish with rays.
+- **Placeholder signature art:** a figure of light standing in rings over a 90s horizon grid, coloured by its art-pool piece. Two cards that drew the same piece share the picture, as the pool means. It's a stand-in for the art pass.
+- **Long names now shrink to fit** on every card, instead of ending in "..." (call 7).
+- **Phone and desktop.** On a phone the three signature cards stack as rows (card beside its text) so the text is readable.
+
+**Evidence:**
+- **Recordings:** `progress/render/evidence/v2-s28-first-time-desktop.webm` and `v2-s28-first-time-phone.webm`, the whole flow by hand, mint included. As before, the headless browser's software GPU makes it run slower than on a real device.
+- **Stills** (`v2-s28-*-{desktop,phone}.jpg`): every screen, plus the mint at three moments (the terminal with the ward spinning up, the plate pressing in, the settled card) and the made card mid-tilt.
+- **Browser check** (`first-time-check.mjs` / `.txt`): desktop with a mouse, phone with real touch events, phone with reduced motion, each a different faction, agent and card. All pass. It checks:
+  - each starter pack's summary is exactly the store's opening, NEW badges included;
+  - the terminal prints the store's values;
+  - the made card is the one picked, with its number, its art piece and the agent's name in its flavour line;
+  - taps, Escape, Enter and a hold during the mint change nothing, and Continue appears only once the card has settled;
+  - the beats run in order, and the ward really draws;
+  - the made card leans 15° (6° with reduced motion);
+  - no name is cut off;
+  - the ready screen's totals add up.
+- **Transcript:** `v2-s28-first-time-transcript.txt`, everything the store returned for every choice.
+- **Tests:** render 402 (+14).
+
+**Decisions you may want to overrule:**
+1. **The order:** faction, starter deck, the 3 packs, then the agent and its card, with the card being made as the finale. The packs warm you up; the card that's yours alone ends it. Alternative: the agent and its card first, then the packs.
+2. **No art on the pick screen.** The store draws the card's art-pool piece when you confirm it, not before, so the three cards show an empty art window and the art arrives during the mint. That makes the art part of the reveal. ECONOMY.md's earlier wording says each candidate has its art, though. Alternative: the store draws a piece for each of the 3 candidates when it offers them (a game-lane change), and the pick screen shows them.
+3. **The mint takes about 6.5 s and can't be skipped.** You make a signature card once per agent. Proposed beats: gather 0.8 s, terminal about 2.9 s with the ward spinning up under it, forge 1.3 s, plate 0.5 s, settle 0.9 s, then 1.1 s before Continue. Alternative: skippable from a second agent on.
+4. **The terminal prints the technical record:** the fairness line's id ("sig5-3x5-inspire.a0") and "passed at 10,000 games". It reads as the machine making the card, and it is honest. Alternative: plain words only ("fairness: passed").
+5. **No name field when the agent is created.** The store lets you type a name for free at creation. The page says "You can type it a new name later; the first rename is free", which is also true, but it doesn't offer the field. Alternative: a name field on the agent screen (website work, using the store's own name rules).
+6. **No going back from the card pick to the agents.** The store allows one pick per draft; seeing other agents means a new draft. Alternative: a "New draft" button.
+7. **Long names shrink to fit on every card** (down to 66% of the size), not only signature cards, instead of being cut off with "...". It changes how long set-card names look on the pack page too.
+8. **The signature card prints its ability's full wording** ("At the start of your turn, a random ally gets +0/+1 permanently."), taken from the card generator, because the engine's own ability text leaves out when it happens ("A random unit of yours gets +0/+1."). Asked of the game lane (notes-for-owner).
+9. **The starter packs aren't special:** the demo's 3 packs hold two Foils and no hit, and that is typical. Measured over 2,000 fresh sign-ups, **55% of new owners see no hit in their 3 starter packs**, and 15% see only Standard cards. You said the first packs should be the most polished moment; the reveal can't make a pack better than it is. Alternative (a game-lane change): guarantee one hit across the 3 starter packs.
+10. **With reduced motion** the mint is over in about a second (the pack page's rule: every beat cut to a flash), with no spin, flight or shake.
+
+**Thin spots (in the debt list):**
+- Not yet tried by a person on a real phone, and not heard.
+- The placeholder art is a stand-in until the art pass.
+- The page plays a fixed set of choices (4 factions, 9 agent-and-card branches); the site will call the store live.
+
+**Next:** your call on these; then back to the render debt list (the turn-cap ending and the momentum gauge's pending threat, which waited behind the pack-opening work).
+
+---
+
 ## 2026-10-18 — Hold to tilt: the card and the pack lean as one piece — AWAITING FEEDBACK
 
 Your 2026-10-18 feature, with its addendum (the booster pack), the fan answer and the correction (no art depth), built just before slice 3. Open `render/output/pack-opening.html`. Hold a sealed pack below its TEAR strip and drag. Then tear it, hold a revealed card and drag. Then open the viewer from a summary tile, and try the "×10" fan.

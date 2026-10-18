@@ -150,7 +150,7 @@ describe("the page", () => {
     expect(JSON.parse(json).packs).toEqual(JSON.parse(JSON.stringify(showcase)));
     const shaders = /<script type="application\/json" id="pack-shaders">([\s\S]*?)<\/script>/.exec(html)![1]!;
     expect(JSON.parse(shaders)).toEqual(PACK_FX_SHADERS);
-    expect(Object.keys(PACK_FX_SHADERS).sort()).toEqual(["foil", "glitch", "gold", "pack", "zeroDay"]);
+    expect(Object.keys(PACK_FX_SHADERS).sort()).toEqual(["foil", "glitch", "gold", "pack", "signature", "zeroDay"]);
     expect(html).toContain(PACK_FX_RUNTIME_SOURCE);
     expect(html).toContain("SND.mount(");
     expect(html).toContain("var SFX_PACK_KINDS");

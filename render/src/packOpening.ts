@@ -214,6 +214,12 @@ export function cardFaceOf(c: Pick<OpenedCard, "cardId" | "name" | "rarity">): C
       visualPattern: visualPatternFor(c.cardId),
     };
   }
+  return faceOfCard(card);
+}
+
+/** The printed face of any card the engine can build, set card or not (an
+ * agent's signature card is in no set, so getCard doesn't know it). */
+export function faceOfCard(card: Card): CardFace {
   const keywords = card.type === "Unit" ? card.keywords : card.type === "Tool" ? card.grantedKeywords.map((k) => `Grants ${k}`) : [];
   const text = [...(keywords.length ? [keywords.join(", ")] : []), ...card.abilities.map((a) => a.text)];
   if (card.type === "Tool") text.unshift(`+${card.attackBonus}/+${card.healthBonus}`);

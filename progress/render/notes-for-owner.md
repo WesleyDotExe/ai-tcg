@@ -626,3 +626,39 @@ separate from the shared `progress/notes-for-owner.md`).
 1. **Hold to tilt is built and waiting for your hands.** The 8 calls are in `checkpoints.md`. The two that most need a real phone are the 0.2 s hold (call 1) and the lean direction (call 2). The recordings are `progress/render/evidence/v2-s27-tilt-*.webm`.
 2. **For the art pass (from your correction):** one flat image per card is enough. The tilt never moves the art inside the frame, so no foreground/background layers or cut-outs are needed.
 3. **Nothing needed from the game lane** for this.
+
+---
+
+## 2026-10-18 — Session 28 (pack opening, slice 3: the first-time flow)
+
+1. **Quickest look:** open `render/output/first-time.html`, press Begin and
+   go through to the end. Or watch `progress/render/evidence/v2-s28-first-time-desktop.webm`.
+   The 10 calls are in `checkpoints.md`. The ones that most need your eye:
+   the order (call 1), no art on the pick screen (call 2), and the starter
+   packs (call 9).
+2. **Something to know about the starter packs (game lane, your call):**
+   measured over 2,000 fresh sign-ups through the store, 55% of new owners
+   see no hit (Full Art or better) in their 3 starter packs, and 15% see
+   only Standard cards. The demo's fixed seeds happen to be such an opening.
+   If the first packs are meant to be a high point, the store would need a
+   rule for it (for example, one hit guaranteed across the 3 starter packs).
+   The render shows whatever the store rolled.
+3. **Ask for the game lane, not blocking: signature ability text.** The
+   engine builds a signature card's abilities with a shorter text than the
+   menu option prints. Inspire's is "A random unit of yours gets +0/+1." for
+   "At the start of your turn, a random ally gets +0/+1 permanently.";
+   Supply Line's is "Draw a card." for "On arrival, if you have 2 or fewer
+   cards in hand, draw a card." The first-time page prints the option's own
+   wording (taken from the generator's concept). The replays and anything
+   else that prints `card.abilities[].text` still show the short one. The
+   fix would be in `engine/src/data/signatureMenu.ts`: give each ability the
+   option's (or size's) text.
+4. **Ask for the game lane, your call first: the art piece at pick time.**
+   ECONOMY.md says each of the 3 candidates comes with its art, but
+   `confirmAgentDraft` draws the art-pool piece only when the card is made.
+   The page follows the store: the art window is empty on the pick screen
+   and the art arrives during the mint (call 2). If you want the art on the
+   pick screen, `pickDraftAgent` would draw a piece for each candidate and
+   `confirmAgentDraft` would keep the chosen one's.
+5. **No engine or economy file was changed.** The render reads the store
+   (in-memory databases, fixed seeds) and the engine's public generators.

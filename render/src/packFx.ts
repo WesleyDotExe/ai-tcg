@@ -114,6 +114,32 @@ void main() {
   float a = clamp(u_amt * (trail * glyph * 0.9 + ring * 0.7 + flick), 0.0, 1.0);
   gl_FragColor = vec4(c * a, a);
 }`,
+  // An agent's signature card (render session 28): Neutral white-gold light
+  // radiating from the art, slow-turning rays, one thin rune ring around the
+  // art's centre that brightens where the light falls, and sparse glints. It
+  // has to read as above every pack finish, so it is the only one with
+  // rays.
+  signature: `${HEAD}
+void main() {
+  vec2 uv = gl_FragCoord.xy / u_res;
+  vec2 c = vec2(0.5, 0.66);
+  vec2 p = (uv - c) * vec2(u_res.x / u_res.y, 1.0);
+  float r = length(p);
+  float ang = atan(p.y, p.x);
+  float rays = pow(0.5 + 0.5 * sin(ang * 12.0 + u_time * 0.35), 6.0) * exp(-r * 2.2);
+  float ring = exp(-pow((r - 0.27) * 70.0, 2.0)) * (0.55 + 0.45 * sin(ang * 24.0 - u_time * 0.8));
+  vec2 d = uv - u_ptr;
+  float glare = exp(-dot(d, d) * 6.0);
+  vec2 g = gl_FragCoord.xy / 9.0;
+  vec2 cell = floor(g);
+  float h = hash(cell);
+  float dot1 = max(0.0, 1.0 - length(fract(g) - 0.5) * 3.2);
+  float glint = step(0.992, h) * dot1 * dot1 * pow(0.5 + 0.5 * sin(u_time * 2.6 + h * 60.0), 12.0);
+  vec3 warm = vec3(1.0, 0.94, 0.76);
+  vec3 col = warm * (rays * 0.8 + ring * (0.5 + glare)) + vec3(1.0, 0.98, 0.9) * (glare * 0.3 + glint);
+  float a = clamp(u_amt * (rays * 0.45 + ring * 0.5 + glare * 0.22 + glint), 0.0, 1.0);
+  gl_FragColor = vec4(col * a, a);
+}`,
   // The sealed pack: a slow diagonal glare sweep over a faint holo, the
   // light leaning toward the pointer.
   pack: `${HEAD}
