@@ -3073,3 +3073,21 @@ Each image uses `[card type, name and subject + faction colours]` followed by th
 
 ### Not decided yet
 When the art pass starts, its budget, and whether a cheaper model (such as Imagen 4 Fast) is used for any cards. Propose these at a checkpoint; don't start generating production art without the owner's OK.
+
+
+---
+
+## 2026-10-18 — Owner: answers to game session 43 (the signature-mode ring)
+
+Answers the [OWNER CHECK-IN] "The signature-mode ring: what drives Aegis > Cortex at 71.5%, and what to do" in `progress/notes-for-owner.md` (PR #71, `progress/balance-report-030-signature-ring-drivers.txt`).
+
+### Decision: option A
+- **The ring's second CI check measures real matches:** set Mythics stay in the deck, and each side gets an approved menu card in the signature zone (the "real match stand-in" column). Re-record that check's baseline from the session-43 driver.
+- **The set-Mythic signature mode becomes a report only,** not a CI check. Keep it runnable.
+- **No card changes now.** Prime Aegis stays as it is.
+- **Next game session:** find out why Aegis gains about twice as much from a signature card as the other factions (+10–12 points against 4–6), and propose a fix for Null > Aegis (45.2%, band 55–60) in the real-match mode at a check-in. Change no cards without the owner's OK.
+
+### Smaller calls: keep all 3
+1. **Keep:** the real-match stand-in draws each side's signature card evenly from the 14 approved lines.
+2. **Keep:** all six edges measured at 2,500 games each.
+3. **Keep:** no set Mythic can be a signature card in a real match. If set Mythics ever go in the zone, option B (Prime Aegis at cost 7) is the starting point.
