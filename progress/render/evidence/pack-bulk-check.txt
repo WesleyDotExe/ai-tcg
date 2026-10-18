@@ -1,0 +1,9 @@
+desktop run A (10 packs, 4x): ok — 5.1 s to the summary; big pulls at pack none; 0 packs skipped; 39 tiles for 50 cards, 38 NEW
+desktop run B (10 packs, big pull, 1x): ok — 29.1 s to the summary; big pulls at pack 6; 0 packs skipped; 39 tiles for 50 cards, 39 NEW
+desktop run C (10 packs, big pull, 2x, skip): ok — 9.0 s to the summary; big pulls at pack 6; 7 packs skipped; 39 tiles for 50 cards, 39 NEW
+desktop: speed remembered across a reload (2x): ok
+phone run A (10 packs, 4x): ok — 5.2 s to the summary; big pulls at pack none; 0 packs skipped; 39 tiles for 50 cards, 38 NEW
+phone run B (10 packs, big pull, 1x): ok — 26.8 s to the summary; big pulls at pack 6; 0 packs skipped; 39 tiles for 50 cards, 39 NEW
+phone run C (10 packs, big pull, 2x, skip): ok — 7.9 s to the summary; big pulls at pack 6; 8 packs skipped; 39 tiles for 50 cards, 39 NEW
+phone: speed remembered across a reload (2x): ok
+all pass

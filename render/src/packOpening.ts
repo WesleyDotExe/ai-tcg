@@ -16,7 +16,7 @@
 // it imports their public types and lookups, never changes them.
 
 import { getCard, type Card } from "@ai-tcg/engine";
-import { FULL_ART_OR_BETTER, type Finish, type OpenedCard, type PackOpening } from "@ai-tcg/economy";
+import { FULL_ART_OR_BETTER, type BulkOpening, type Finish, type OpenedCard, type PackOpening } from "@ai-tcg/economy";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 
 /** How a card is revealed. One per finish: the owner's 2026-10-18 list
@@ -225,4 +225,111 @@ export function cardFaceOf(c: Pick<OpenedCard, "cardId" | "name" | "rarity">): C
     visualSeed: visualSeedFor(card.id),
     visualPattern: visualPatternFor(card.id),
   };
+}
+
+// ---------- the ten-pack opening (slice 2) ----------
+
+/** The ten-pack fast sequence (owner 2026-10-05 and 2026-10-18: "fast flips
+ * with skip and speed-up controls, a summary grid at the end, and full
+ * reveals only for the big pulls"). Proposed timings in milliseconds at 1x;
+ * each speed divides them. A pack the store marks `fullReveal` leaves the
+ * fast sequence and plays the single-pack reveal at its own timings, at
+ * every speed. */
+export const BULK_TIMINGS = {
+  /** The pack sitting sealed before it tears by itself. */
+  sealed: 260,
+  /** The tear, and the sparks when the pack holds a hit. */
+  tear: 380,
+  /** The cards dealing out of the pack into a row, one after another. */
+  deal: 70,
+  /** One face-down card turning over; they turn one after another. */
+  flip: 230,
+  /** How long a pack's row stays before the next pack: longer with a hit. */
+  hold: 520,
+  hitHold: 1100,
+} as const;
+
+/** The speeds the owner can pick. */
+export const BULK_SPEEDS = [1, 2, 4] as const;
+
+/** One tile of the ten-pack summary grid: every copy of the same card in
+ * the same finish, folded into one tile with a count. A Prototype copy is
+ * always its own tile (its serial is its own). */
+export interface SummaryTile {
+  cardId: string;
+  face: CardFace;
+  finish: Finish;
+  reveal: RevealKind;
+  hit: boolean;
+  collectorNumber: string;
+  /** Copies in this tile. */
+  count: number;
+  /** The packs (1-based, in opening order) the copies came out of. */
+  packs: number[];
+  /** The first copy of a collection entry the owner didn't have before this
+   * open. One badge per entry: a card new in pack 2 isn't new again in pack
+   * 5, and a Glitch or secret copy is its own entry (as the store counts). */
+  isNew: boolean;
+  /** Copies of the card held after the whole open. */
+  ownedAfter: number;
+  prototype: OpenedCard["prototype"];
+  secret: OpenedCard["secret"];
+}
+
+export interface BulkReveal {
+  /** Each pack's own reveal plan, in opening order. */
+  packs: PackReveal[];
+  /** The store's own summary of the open, as returned. */
+  summary: BulkOpening["summary"];
+  /** The summary grid, best first. */
+  tiles: SummaryTile[];
+}
+
+/** Best first: the finish's place on the ladder, then rarity, then the
+ * order the cards came out. */
+const FINISH_RANK: Record<Finish, number> = {
+  zeroDay: 0, prototype: 1, tournament: 1, secret: 2, gold: 3, glitch: 4, altArt: 5, fullArt: 6, foil: 7, standard: 8,
+};
+const RARITY_RANK: Record<string, number> = { Mythic: 0, Rare: 1, Uncommon: 2, Common: 3 };
+
+/** The collection entry a copy fills (the store's own rule, economy
+ * store.ts collectionEntryKey, which it doesn't export). */
+export function entryKeyOf(c: Pick<OpenedCard, "cardId" | "finish" | "secret">): string {
+  if (c.secret) return `secret:${c.secret.code}`;
+  if (c.finish === "glitch") return `glitch:${c.cardId}`;
+  return `card:${c.cardId}`;
+}
+
+export function planBulkReveal(bulk: BulkOpening): BulkReveal {
+  const packs = bulk.packs.map(planReveal);
+  const tiles: SummaryTile[] = [];
+  const byKey = new Map<string, SummaryTile>();
+  const newEntries = new Set<string>();
+  const ownedAfter = new Map<string, number>();
+  packs.forEach((p, pi) => {
+    for (const c of p.cards) {
+      ownedAfter.set(c.cardId, Math.max(ownedAfter.get(c.cardId) ?? 0, c.ownedAfter));
+      const entry = entryKeyOf(c);
+      const isNew = c.isNew && !newEntries.has(entry);
+      if (isNew) newEntries.add(entry);
+      const key = c.prototype ? `proto:${c.copyId}` : `${entry}|${c.finish}`;
+      const had = byKey.get(key);
+      if (had) {
+        had.count++;
+        if (!had.packs.includes(pi + 1)) had.packs.push(pi + 1);
+        had.isNew ||= isNew;
+        continue;
+      }
+      const t: SummaryTile = {
+        cardId: c.cardId, face: c.face, finish: c.finish, reveal: c.reveal, hit: c.hit, collectorNumber: c.collectorNumber,
+        count: 1, packs: [pi + 1], isNew, ownedAfter: 0, prototype: c.prototype, secret: c.secret,
+      };
+      byKey.set(key, t);
+      tiles.push(t);
+    }
+  });
+  for (const t of tiles) t.ownedAfter = ownedAfter.get(t.cardId)!;
+  const order = new Map(tiles.map((t, i) => [t, i]));
+  tiles.sort((a, b) => FINISH_RANK[a.finish] - FINISH_RANK[b.finish] || RARITY_RANK[a.face.rarity]! - RARITY_RANK[b.face.rarity]! || order.get(a)! - order.get(b)!);
+  return { packs, summary: bulk.summary, tiles };
 }

@@ -7,7 +7,22 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## Pack opening (slice 1, session 24)
+## Pack opening (slices 1-2, sessions 24-25)
+
+- **The ten-pack sequence hasn't been timed on a real, slow phone.** Five
+  cards of CSS animation per pack were smooth in headless Chromium; a
+  low-end phone may drop frames at 4×.
+- **The fast row's finishes are the CSS stand-ins** (the summary's), not
+  shaders; a Glitch or Full Art in the row reads as "special" but not as
+  its own full look. Only a big pull gets the shaders.
+- **Only two showcase tens, both a fresh owner's first ten packs,** so most
+  cards wear NEW. A ten-pack open by a collector with a full binder (few
+  NEW, many ×N) has only been seen in the tests.
+- **The "BIG PULL" tag gives the pull away before the tear** (checkpoint
+  call 1). That's honest, but it takes the surprise from the sparks.
+- **Slice 1's committed stills show the shared-gradient bug** (fixed in
+  session 25): every card on a page painted the first card's background.
+  They are left as the record; the page itself is fixed.
 
 - **Only checked in headless Chromium with a software GPU (SwiftShader).**
   The shaders compile and light pixels there, but nothing has run on a
@@ -21,14 +36,15 @@ items are removed, with the fix in `log.md`.
 - **The Glitch "RGB split" is two filtered DOM copies of the card**, not a
   per-pixel channel split (a shader can't read DOM). It reads as a split
   in motion; a still mid-flip mostly shows the card edge-on.
-- **The page runtime (about 500 lines) is one string.** Its pure helpers
-  are tested in Node; the rest only by the browser check.
+- **The page runtime (about 700 lines with the ten-pack flow) is one
+  string.** Its pure helpers are tested in Node; the rest only by the two
+  browser checks.
 - **The committed page changes on every rebuild** (the store's random pack
   and copy ids), even with the same packs. Asked of the game lane.
 - **The showcase packs are found by seed search**, so the page shows one
   of each finish; it is not a sample of what a typical opening looks like.
-- **Single pack only.** The ten-pack opening (slice 2) and the first-time
-  flow with the signature reveal (slice 3) don't exist yet.
+- **No first-time flow yet** (slice 3): an agent's first packs and the
+  signature (leader) card reveal don't exist.
 
 ## Layout and legibility
 
