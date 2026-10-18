@@ -63,6 +63,8 @@ export const MUSIC_PURE_SOURCE = String.raw`
   var MUS_AT = { kick1: 0.6, kick3: 1.2, arp: 1.3, drive: 1.45, hats: 1.6, arp16: 2.2, kick4: 2.3, offHats: 2.4, snare: 2.5 };
   // An effect dips the music to this share of its level, then it recovers.
   var MUS_DUCK_TO = 0.8;
+  // A victory boast's sting dips it further, for the sting only (duckHold).
+  var MUS_BOAST_DUCK_TO = 0.55;
   // Scheduling: steps are queued this far ahead of the audio clock, by a
   // timer firing this often.
   var MUS_LOOKAHEAD_S = 0.12;
@@ -314,9 +316,24 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
       if (!MU.on || !MU.duck) return false;
       var C = core().ctx, t = C.currentTime;
       if (MU.lastDuck >= 0 && t - MU.lastDuck < 0.06) return false;
+      if (MU.holdUntil && t < MU.holdUntil) return false;
       MU.lastDuck = t;
       var g = MU.duck.gain;
       g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_DUCK_TO, t, 0.01); g.setTargetAtTime(1, t + 0.1, 0.2);
+      counts.ducks++;
+      return true;
+    }
+    // duckHold(sec): a victory boast's sting is playing. The music dips to
+    // MUS_BOAST_DUCK_TO under it for sec seconds and recovers (owner
+    // 2026-10-19, boast decision 8: "a short sting ... with the music ducked
+    // under it"). The one place the music goes below MUS_DUCK_TO; a kill
+    // still never does. Effect ducks inside the hold are skipped so they
+    // don't lift it early.
+    function duckHold(sec) {
+      if (!MU.on || !MU.duck || !(sec > 0)) return false;
+      var C = core().ctx, t = C.currentTime, g = MU.duck.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_BOAST_DUCK_TO, t, 0.04); g.setTargetAtTime(1, t + sec, 0.25);
+      MU.holdUntil = t + sec;
       counts.ducks++;
       return true;
     }
@@ -396,7 +413,7 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
     // (even with effects muted) and, when it actually sounds, ducks.
     SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
-      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, setScene: setScene, tick: tick,
+      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,
       stats: function () { return { on: MU.on, state: state(), volume: MU.vol, I: +MU.I.toFixed(3), faction: MU.faction, mythic: MU.mythic,
         layers: musLayers(MU.I), step: MU.step, steps: counts.steps, voices: counts.voices, ducks: counts.ducks, bumps: counts.bumps,
@@ -442,7 +459,7 @@ export interface MusPref {
 }
 
 const pure = new Function(
-  `${SOUND_FX_PURE_SOURCE}; ${MUSIC_PURE_SOURCE}; return { MUS_BPM: MUS_BPM, MUS_S16: MUS_S16, MUS_PROG: MUS_PROG, MUS_ARP: MUS_ARP, MUS_I_MAX: MUS_I_MAX, MUS_REST_S: MUS_REST_S, MUS_MYTHIC_LIFT: MUS_MYTHIC_LIFT, MUS_BUMP: MUS_BUMP, MUS_AT: MUS_AT, MUS_DUCK_TO: MUS_DUCK_TO, MUS_LOOKAHEAD_S: MUS_LOOKAHEAD_S, MUS_PREF_KEY: MUS_PREF_KEY, MUS_DEFAULT_VOLUME: MUS_DEFAULT_VOLUME, musFreq: musFreq, musBase: musBase, musRest: musRest, musBump: musBump, musLayers: musLayers, musMeter: musMeter, musStep: musStep, musPrefParse: musPrefParse, musPrefSerialize: musPrefSerialize, MUS_FOLLOW: MUS_FOLLOW, musSceneSide: musSceneSide };`,
+  `${SOUND_FX_PURE_SOURCE}; ${MUSIC_PURE_SOURCE}; return { MUS_BPM: MUS_BPM, MUS_S16: MUS_S16, MUS_PROG: MUS_PROG, MUS_ARP: MUS_ARP, MUS_I_MAX: MUS_I_MAX, MUS_REST_S: MUS_REST_S, MUS_MYTHIC_LIFT: MUS_MYTHIC_LIFT, MUS_BUMP: MUS_BUMP, MUS_AT: MUS_AT, MUS_DUCK_TO: MUS_DUCK_TO, MUS_BOAST_DUCK_TO: MUS_BOAST_DUCK_TO, MUS_LOOKAHEAD_S: MUS_LOOKAHEAD_S, MUS_PREF_KEY: MUS_PREF_KEY, MUS_DEFAULT_VOLUME: MUS_DEFAULT_VOLUME, musFreq: musFreq, musBase: musBase, musRest: musRest, musBump: musBump, musLayers: musLayers, musMeter: musMeter, musStep: musStep, musPrefParse: musPrefParse, musPrefSerialize: musPrefSerialize, MUS_FOLLOW: MUS_FOLLOW, musSceneSide: musSceneSide };`,
 )() as {
   MUS_BPM: number;
   MUS_S16: number;
@@ -454,6 +471,7 @@ const pure = new Function(
   MUS_BUMP: Record<string, number>;
   MUS_AT: Record<string, number>;
   MUS_DUCK_TO: number;
+  MUS_BOAST_DUCK_TO: number;
   MUS_LOOKAHEAD_S: number;
   MUS_PREF_KEY: string;
   MUS_DEFAULT_VOLUME: number;
@@ -471,7 +489,7 @@ const pure = new Function(
 };
 
 export const {
-  MUS_BPM, MUS_S16, MUS_PROG, MUS_ARP, MUS_I_MAX, MUS_REST_S, MUS_MYTHIC_LIFT, MUS_BUMP, MUS_AT, MUS_DUCK_TO, MUS_LOOKAHEAD_S, MUS_PREF_KEY,
+  MUS_BPM, MUS_S16, MUS_PROG, MUS_ARP, MUS_I_MAX, MUS_REST_S, MUS_MYTHIC_LIFT, MUS_BUMP, MUS_AT, MUS_DUCK_TO, MUS_BOAST_DUCK_TO, MUS_LOOKAHEAD_S, MUS_PREF_KEY,
   MUS_DEFAULT_VOLUME, musFreq, musBase, musRest, musBump, musLayers, musMeter, musStep, musPrefParse, musPrefSerialize,
   MUS_FOLLOW, musSceneSide,
 } = pure;

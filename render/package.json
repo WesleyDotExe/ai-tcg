@@ -14,7 +14,8 @@
     "test": "vitest run",
     "pack-opening": "tsx src/packDemo.ts",
     "card-faces": "tsx src/faceSheet.ts",
-    "first-time": "tsx src/firstTimeDemo.ts"
+    "first-time": "tsx src/firstTimeDemo.ts",
+    "boast-sheet": "tsx src/boastSheet.ts"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",

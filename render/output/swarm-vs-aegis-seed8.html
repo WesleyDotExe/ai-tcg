@@ -666,6 +666,25 @@ html, body {
  * 4, 2026-09-26): the viewer sees the actual card, not just a sigil. */
 .card.fx-flycard { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
   box-shadow: 0 0 18px var(--fx-tint), 0 0 0 2px var(--fx-tint); }
+/* Victory boasts (render/src/boastFx.ts). */
+
+.boast-dim { opacity: 0.7; transition: opacity 300ms ease; }
+.hud.boast-panel { box-shadow: 0 0 0 1px var(--fc, #fff), 0 0 22px var(--fc, #fff); transition: box-shadow 250ms ease; }
+.boast-name { position: absolute; z-index: 96; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; color: var(--fc); border-radius: 6px;
+  background: linear-gradient(90deg, rgba(4,6,12,0), rgba(4,6,12,0.78) 14%, rgba(4,6,12,0.78) 86%, rgba(4,6,12,0)); animation: boast-rise 420ms cubic-bezier(.2,.9,.3,1.2) both; transition: opacity 320ms ease; }
+.boast-name .boast-who { font-weight: bold; font-size: 28px; letter-spacing: 0.12em; white-space: nowrap; line-height: 1.1;
+  text-shadow: 0 0 10px var(--fc), 0 0 2px #000, 0 2px 4px #000; }
+.boast-name .boast-tag { font-size: 10px; letter-spacing: 0.3em; color: var(--ink, #dfe7ff); opacity: 0.85; margin-top: 2px; text-shadow: 0 1px 3px #000; }
+.boast-name.gone, .boast-skip.gone { opacity: 0; }
+@keyframes boast-rise { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
+.boast-skip { position: absolute; z-index: 97; font: inherit; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--ink, #dfe7ff);
+  background: rgba(10,12,22,0.82); border: 1px solid var(--line, #334); border-radius: 4px; padding: 4px 9px; cursor: pointer; transition: opacity 320ms ease; }
+.boast-skip:hover, .boast-skip:focus-visible { border-color: var(--ink, #dfe7ff); }
+.turnbar .win.land { display: inline-block; animation: boast-land 520ms cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes boast-land { from { opacity: 0; transform: translateY(6px) scale(1.25); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .boast-name, .turnbar .win.land { animation: none; } }
+
 </style>
 </head>
 <body>
@@ -2310,7 +2329,7 @@ html, body {
     var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear, plug: plug,
       // What a plug-in may draw with: the same glow, rings, shockwaves,
       // sprites, sparks and grid pushes the effects use.
-      kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,
+      kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, tex: tex, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,
         gridForce: gridForce, gridTint: gridTint, rand: rand, mix: mix, rgba: rgba, kick: kick, docCentre: docCentre },
       isReady: function () { return ready && !failed; },
       stats: function () { return { ready: ready && !failed, particles: P.length, projectiles: proj.length, beams: beams.length, timers: timers.length, frames: frames, peak: peak, fps: fps, tinted: Object.keys(tcache).length, gridLive: G.live, camera: camLive, reduced: REDUCED,
@@ -2330,6 +2349,10 @@ html, body {
   // dropped: a Swarm volley is many shots but should read as one chitter
   // cloud, not a wall of identical clicks.
   var SFX_REPEAT_GAP_MS = 28;
+  // The pack opening's sounds (render session 24, owner 2026-10-18: "a tear
+  // sound, flip ticks and a rising tone on hits"). Same player, same
+  // settings; the voice is the card's faction where there is one.
+  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp'];
   var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast', 'ward', 'wardPulse', 'wardBreak'];
   // Ward moments (slice 6, the lab's wardIn / wardPulse / wardBreak): each
   // faction's chord, low to high. Neutral has no ward; it gets Cortex's.
@@ -2468,6 +2491,23 @@ html, body {
       // Glass pings, then the chord falling apart, high to low.
       for (var wb = 0; wb < 14; wb++) T({ type: 'sine', f0: r(1800, 5200), dur: 0.09, g: 0.035, delay: wb * 0.022 });
       SFX_WARD_CHORD[v].slice().reverse().forEach(function (n, i) { T({ type: 'triangle', f0: n * 2, f1: n * 1.4, dur: 0.7, g: 0.06, delay: 0.08 + i * 0.09 }); });
+    } else if (kind === 'boast') {
+      // A victory boast's sting (render slice: victory boasts). Meaning,
+      // in every voice: it rises. The faction's chord climbs as a fanfare
+      // and lands an octave up on a held chord, over a low swell; the voice
+      // adds its own colour on the landing. Not one of SFX_KINDS: it plays
+      // once, at the end of a match.
+      var bc = SFX_WARD_CHORD[v], bt = { cortex: 'square', aegis: 'sawtooth', swarm: 'triangle', null: 'sawtooth' }[v] || 'triangle';
+      var bg = bt === 'square' ? 0.03 : 0.055;
+      bc.concat([bc[1] * 2]).forEach(function (n, i) { T({ type: bt, f0: n, dur: 0.24, g: bg, delay: i * 0.11, filt: 'lowpass', ff: 3200 }); });
+      bc.forEach(function (n) { T({ type: bt, f0: n * 4, dur: 1.2, g: bg * 0.8, att: 0.04, delay: 0.44, filt: 'lowpass', ff: 3600 }); });
+      T({ type: 'sine', f0: 55, f1: 110, dur: 1.3, g: 0.3, att: 0.35 });
+      T({ type: 'sine', f0: 110, f1: 45, dur: 0.6, g: 0.4, delay: 0.44 });
+      if (v === 'aegis') SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 220 * p, dur: 1.1, g: 0.07 / p, delay: 0.44 }); });
+      else if (v === 'cortex') for (var bi = 0; bi < 6; bi++) T({ type: 'square', f0: 1760 + bi * 220, dur: 0.04, g: 0.025, delay: 0.44 + bi * 0.05 });
+      else if (v === 'swarm') for (var bs = 0; bs < 8; bs++) N({ type: 'bandpass', f0: r(2600, 4800), q: 9, dur: 0.035, g: 0.12, delay: 0.44 + bs * 0.04 });
+      else if (v === 'null') T({ type: 'square', f0: 880, dur: 0.5, g: 0.03, steps: 6, delay: 0.44 });
+      else SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 880 * p, dur: 1.2, g: 0.04 / p, delay: 0.44 }); });
     } else if (kind === 'cast') {
       // A power's cast flourish: a rising whoosh, the voice on top.
       N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });
@@ -2476,6 +2516,43 @@ html, body {
       else if (v === 'swarm') for (var c = 0; c < 3; c++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.03, g: 0.1, delay: 0.1 + c * 0.04 });
       else if (v === 'null') T({ type: 'sawtooth', f0: 330, dur: 0.25, g: 0.04, steps: 5, filt: 'bandpass', ff: 1200, q: 2 });
       else T({ type: 'sine', f0: 1320, dur: 0.45, g: 0.04, delay: 0.1 });
+    } else if (kind === 'tear') {
+      // Foil ripping: a bright noise sweep with a crackle on top, and a
+      // low pop as the strip comes free.
+      N({ type: 'bandpass', f0: 5200, f1: 1400, q: 1.4, dur: 0.32, g: 0.28 });
+      for (var ti = 0; ti < 7; ti++) N({ type: 'highpass', f0: r(3500, 7000), q: 2, dur: 0.02, g: 0.12, delay: ti * 0.04 });
+      T({ type: 'sine', f0: 220, f1: 90, dur: 0.18, g: 0.18, delay: 0.3 });
+    } else if (kind === 'flip') {
+      // One card moving: a short dry tick; the voice tints it.
+      N({ type: 'bandpass', f0: v === 'aegis' ? 1700 : v === 'swarm' ? 2600 : 3200, q: 6, dur: 0.035, g: 0.2 });
+      T({ type: v === 'cortex' || v === 'null' ? 'square' : 'triangle', f0: v === 'null' ? r(700, 1400) : 1100, dur: 0.03, g: 0.025 });
+    } else if (kind === 'rise') {
+      // A hit: a rising tone. Always rises (meaning); the tier sets how far
+      // and how long (a Foil is a small lift, a Gold or a secret a long climb).
+      var big = tier === 'spectacle';
+      T({ type: 'sine', f0: 330, f1: big ? 1320 : 880, dur: big ? 1.1 : 0.55, g: 0.12, att: 0.08 });
+      T({ type: 'triangle', f0: 495, f1: big ? 1980 : 1320, dur: big ? 1.1 : 0.55, g: 0.05, att: 0.08 });
+      if (big) [1, 1.25, 1.5, 2].forEach(function (p, i) { T({ type: 'sine', f0: 1320 * p, dur: 0.7, g: 0.035, delay: 1.0 + i * 0.07 }); });
+    } else if (kind === 'sparkle') {
+      // Sparks off the tear, or a Gold card's stars: high bell pings.
+      for (var si = 0; si < 9; si++) T({ type: 'sine', f0: r(2400, 5200), dur: 0.12, g: 0.03, delay: si * 0.045 + r(0, 0.02) });
+    } else if (kind === 'type') {
+      // A terminal key: a click with a little body.
+      N({ type: 'bandpass', f0: r(1800, 2600), q: 8, dur: 0.025, g: 0.16 });
+      T({ type: 'square', f0: r(160, 220), dur: 0.02, g: 0.03 });
+    } else if (kind === 'breach') {
+      // The Zero-Day breach: a falling alarm over a low drone.
+      for (var bi = 0; bi < 3; bi++) T({ type: 'sawtooth', f0: 880, f1: 440, dur: 0.22, g: 0.05, delay: bi * 0.26, filt: 'lowpass', ff: 2400 });
+      T({ type: 'sawtooth', f0: 55, f1: 41, dur: 1.4, g: 0.12, filt: 'lowpass', ff: 300, att: 0.1 });
+    } else if (kind === 'glitch') {
+      // Corruption: broken pitch blips and a crunch.
+      for (var gi = 0; gi < 6; gi++) T({ type: 'square', f0: r(150, 3200), dur: 0.03, g: 0.05, delay: gi * 0.05 });
+      N({ type: 'bandpass', f0: 900, f1: 3000, q: 3, dur: 0.25, g: 0.18 });
+    } else if (kind === 'stamp') {
+      // A Prototype's serial plate pressing in: a heavy thunk and a ring.
+      T({ type: 'sine', f0: 140, f1: 45, dur: 0.35, g: 0.4 });
+      N({ type: 'lowpass', f0: 2600, f1: 300, dur: 0.18, g: 0.25 });
+      SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 523 * p, dur: 0.9, g: 0.04 / p, delay: 0.05 }); });
     }
     return out;
   }
@@ -2707,6 +2784,8 @@ html, body {
   var MUS_AT = { kick1: 0.6, kick3: 1.2, arp: 1.3, drive: 1.45, hats: 1.6, arp16: 2.2, kick4: 2.3, offHats: 2.4, snare: 2.5 };
   // An effect dips the music to this share of its level, then it recovers.
   var MUS_DUCK_TO = 0.8;
+  // A victory boast's sting dips it further, for the sting only (duckHold).
+  var MUS_BOAST_DUCK_TO = 0.55;
   // Scheduling: steps are queued this far ahead of the audio clock, by a
   // timer firing this often.
   var MUS_LOOKAHEAD_S = 0.12;
@@ -2957,9 +3036,24 @@ html, body {
       if (!MU.on || !MU.duck) return false;
       var C = core().ctx, t = C.currentTime;
       if (MU.lastDuck >= 0 && t - MU.lastDuck < 0.06) return false;
+      if (MU.holdUntil && t < MU.holdUntil) return false;
       MU.lastDuck = t;
       var g = MU.duck.gain;
       g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_DUCK_TO, t, 0.01); g.setTargetAtTime(1, t + 0.1, 0.2);
+      counts.ducks++;
+      return true;
+    }
+    // duckHold(sec): a victory boast's sting is playing. The music dips to
+    // MUS_BOAST_DUCK_TO under it for sec seconds and recovers (owner
+    // 2026-10-19, boast decision 8: "a short sting ... with the music ducked
+    // under it"). The one place the music goes below MUS_DUCK_TO; a kill
+    // still never does. Effect ducks inside the hold are skipped so they
+    // don't lift it early.
+    function duckHold(sec) {
+      if (!MU.on || !MU.duck || !(sec > 0)) return false;
+      var C = core().ctx, t = C.currentTime, g = MU.duck.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_BOAST_DUCK_TO, t, 0.04); g.setTargetAtTime(1, t + sec, 0.25);
+      MU.holdUntil = t + sec;
       counts.ducks++;
       return true;
     }
@@ -3039,7 +3133,7 @@ html, body {
     // (even with effects muted) and, when it actually sounds, ducks.
     SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
-      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, setScene: setScene, tick: tick,
+      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,
       stats: function () { return { on: MU.on, state: state(), volume: MU.vol, I: +MU.I.toFixed(3), faction: MU.faction, mythic: MU.mythic,
         layers: musLayers(MU.I), step: MU.step, steps: counts.steps, voices: counts.voices, ducks: counts.ducks, bumps: counts.bumps,
@@ -4129,6 +4223,498 @@ html, body {
     return api;
   })();
 
+  // Victory boasts (render/src/boastFx.ts, embedded verbatim; a CFX
+  // plug-in): the winner's boast plays after the lethal beat, before the
+  // result line.
+
+  // How long a boast may run, the reduced-motion still, and the wait after
+  // the lethal beat (the lethal flash peaks, the winner's HP bar settles).
+  var BOAST_MS_MAX = 3200, BOAST_STILL_MS = 1000, BOAST_LEAD_MS = 900;
+  // The catalogue's starter boast per faction (economy/src/cosmetics.ts
+  // STARTER_BOASTS; a test keeps the ids and names in step).
+  var BOAST_STARTER = { Aegis: 'boast-aegis-shield-slam', Swarm: 'boast-swarm-hive-burst', Null: 'boast-null-void-collapse', Cortex: 'boast-cortex-data-cascade' };
+  var BOAST_PRIMS = ['panel', 'wall', 'embers', 'flash', 'veil', 'gather', 'lock', 'name'];
+  // Each boast as data. Times in ms from the boast's start; sizes as a share
+  // of a slot's width; sprites are names in the FX atlases (FX_SP).
+  var BOAST_SPECS = {
+    'boast-aegis-shield-slam': {
+      id: 'boast-aegis-shield-slam', name: 'Shield Slam', faction: 'Aegis', ms: 3000,
+      beats: [
+        // The winner's panel lights first; the loser's side dims (the host).
+        { p: 'panel', at: 0 },
+        // Hex plates slam UP out of the floor of every slot, centre first,
+        // two to a slot, into a wall along the winner's row.
+        { p: 'wall', at: 120, sprite: 'hexPlate', perSlot: 2, rise: 170, stagger: 70, size: 0.56, order: 'centreOut', sound: 'impact' },
+        // Embers lift off the wall while it stands.
+        { p: 'embers', at: 360, until: 2350, every: 70 },
+        // The wall locks as one: a flat shock runs along the row.
+        { p: 'flash', at: 1180 },
+        // A dark wash over the winner's own row, so the crest and the name
+        // read over the cards (it never reaches the loser's side).
+        { p: 'veil', at: 1440, ms: 360, a: 0.62 },
+        // The bottom plates lift into a hex crest over the name; the top
+        // plates rise away and fade.
+        { p: 'gather', at: 1480, ms: 560, stagger: 45, formation: 'hexRing' },
+        // The crest locks: shock, flare, a ring, sparks up, the sting.
+        { p: 'lock', at: 2120, sound: 'boast' },
+        // The winner's name, under the crest.
+        { p: 'name', at: 2160 }
+      ]
+    }
+  };
+
+  // Which boast plays: the match record's (once slice 3 reads it) when the
+  // render can draw it, else the winner's faction starter boast, else none.
+  function boastIdFor(recordId, faction) {
+    if (recordId && BOAST_SPECS[recordId]) return recordId;
+    var s = BOAST_STARTER[faction];
+    return s && BOAST_SPECS[s] ? s : null;
+  }
+
+  // Why a spec can't be played, or null.
+  function boastSpecProblem(spec) {
+    if (!spec || typeof spec.id !== 'string' || !spec.id) return 'a boast needs an id';
+    if (!(spec.ms > 0) || spec.ms > BOAST_MS_MAX) return spec.id + ': length must be 1-' + BOAST_MS_MAX + ' ms';
+    if (!spec.beats || !spec.beats.length) return spec.id + ': no beats';
+    var last = -1, named = false, i;
+    for (i = 0; i < spec.beats.length; i++) {
+      var b = spec.beats[i];
+      if (BOAST_PRIMS.indexOf(b.p) < 0) return spec.id + ': unknown primitive "' + b.p + '"';
+      if (!(b.at >= 0) || b.at < last) return spec.id + ': beats must be in time order';
+      if (b.at >= spec.ms) return spec.id + ': beat "' + b.p + '" starts after the boast ends';
+      if (b.p === 'gather' && !spec.beats.some(function (x) { return x.p === 'wall' && x.at < b.at; })) return spec.id + ': gather needs a wall before it';
+      if (b.p === 'name') named = true;
+      last = b.at;
+    }
+    if (!named) return spec.id + ': a boast ends on the winner\'s name';
+    return null;
+  }
+
+  function boastRng(seed) {
+    var a = (seed >>> 0) || 1;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function boastCx(r) { return (r.l + r.r) / 2; }
+  function boastCy(r) { return (r.t + r.b) / 2; }
+
+  // boastPlan(spec, geom, seed) -> { id, faction, ms, pieces, marks, anchor }
+  //   geom: { band, panel, slots: [{ l, t, r, b, filled }], loser: [rects] }
+  //     in document pixels (rects as { l, t, r, b }). band is the winner's
+  //     side of the board, panel the winner's HUD panel.
+  //   pieces: sprites that move along keyframes [{ t, x, y, s, a }] (the
+  //     runtime eases between keys; key.e names the easing into that key).
+  //   marks: one-shot moments at time t: shock, flare, ring, sparks, grid,
+  //     sound, duck, panel, pulse, name, end.
+  function boastPlan(spec, geom, seed) {
+    var rand = boastRng(seed == null ? 1 : seed);
+    var band = geom.band, bw = band.r - band.l, bh = band.b - band.t, cx = boastCx(band);
+    var slots = (geom.slots || []).slice();
+    var pieces = [], marks = [], crestPieces = [];
+    var slotW = slots.length ? Math.min.apply(null, slots.map(function (s) { return s.r - s.l; })) : Math.min(118, bw / 6);
+    var slotH = slots.length ? Math.min.apply(null, slots.map(function (s) { return s.b - s.t; })) : Math.min(158, bh * 0.85);
+    // The crest sits in the upper part of the winner's side, the name under it.
+    var crest = { x: cx, y: band.t + bh * 0.34, r: Math.max(12, Math.min(bh * 0.19, bw * 0.12, 50)) };
+    var nameY = band.t + bh * 0.8;
+    var wallBeat = null, ends = spec.ms;
+    // Sparks fly upward only as far as the winner's side reaches: a burst
+    // near the top of the side flies slower (or not at all).
+    function mark(m) {
+      if (m.k === 'sparks') {
+        var room = Math.min(m.y - band.t - 3, (Math.min(m.x - band.l, band.r - m.x) - 3) / Math.sin(m.spread));
+        var reach = m.spd * 1.05 * m.life * 1.15;
+        if (reach > room) m.spd = m.spd * room / reach;
+        if (!(m.spd >= 25)) return null;
+      }
+      marks.push(m); return m;
+    }
+
+    spec.beats.forEach(function (b) {
+      if (b.p === 'panel') mark({ k: 'panel', t: b.at });
+      else if (b.p === 'wall') {
+        wallBeat = b;
+        var order = slots.map(function (s, i) { return i; });
+        if (b.order === 'centreOut') order.sort(function (x, y) { return Math.abs(boastCx(slots[x]) - cx) - Math.abs(boastCx(slots[y]) - cx) || boastCx(slots[x]) - boastCx(slots[y]); });
+        order.forEach(function (si, k) {
+          var s = slots[si], sh = s.b - s.t, sw = s.r - s.l;
+          var size = Math.min(sw * b.size, sh * 0.8 / b.perSlot);
+          var T = b.at + k * b.stagger;
+          for (var j = 0; j < b.perSlot; j++) {
+            // Rest a little above the slot's floor so even the bottom plate
+            // has room to rise; it starts smaller, just above the side's edge.
+            var restY = s.b - sh * (0.32 + j * 0.8 / b.perSlot), x = boastCx(s);
+            var fromY = Math.max(restY, Math.min(band.b - size * 0.35 - 1, restY + sh * 0.5));
+            var t0 = T + j * 40, t1 = t0 + b.rise;
+            pieces.push({ sp: b.sprite, rot: 0, row: j, slot: si, keys: [
+              { t: t0, x: x, y: fromY, s: size * 0.7, a: 0 },
+              { t: t1, x: x, y: restY, s: size, a: 1, e: 'slam' }
+            ] });
+            // The landing: a small shock and sparks thrown upward.
+            mark({ k: 'shock', t: t1, x: x, y: restY, R: size * 0.42, sx: 1, sy: 0.6 });
+            mark({ k: 'sparks', t: t1, x: x, y: restY - size * 0.3, n: 5, spd: 150, life: 0.45, angle: -Math.PI / 2, spread: 0.7 });
+            if (j === 0) {
+              mark({ k: 'grid', t: t1, x: x, y: restY, f: 260, r: Math.min(60, sh * 0.2) });
+              if (b.sound) mark({ k: 'sound', t: t1, kind: b.sound, tier: 'subtle', x: x });
+            }
+          }
+        });
+      } else if (b.p === 'embers') {
+        var until = Math.min(b.until || ends, ends);
+        for (var t = b.at; t < until && pieces.length; t += b.every) {
+          var pc = pieces[(rand() * pieces.length) | 0], last = pc.keys[pc.keys.length - 1];
+          if (last.t > t) continue;
+          mark({ k: 'sparks', t: t, x: last.x + (rand() - 0.5) * last.s * 0.6, y: last.y - last.s * 0.35, n: 2, spd: 70, life: 0.7, angle: -Math.PI / 2, spread: 0.35, ember: true });
+        }
+      } else if (b.p === 'flash') {
+        var rowY = slots.length ? boastCy({ t: Math.min.apply(null, slots.map(function (s) { return s.t; })), b: Math.max.apply(null, slots.map(function (s) { return s.b; })) }) : boastCy(band);
+        mark({ k: 'pulse', t: b.at, ms: 380 });
+        mark({ k: 'shock', t: b.at, x: cx, y: rowY, R: Math.min(bw * 0.2, 150), sx: 2.2, sy: 0.25 });
+        mark({ k: 'sound', t: b.at, kind: 'block', tier: 'normal', x: cx });
+      } else if (b.p === 'veil') {
+        mark({ k: 'veil', t: b.at, ms: b.ms, a: b.a, l: band.l + 4, t2: band.t + 4, r: band.r - 4, b: band.b - 4 });
+      } else if (b.p === 'gather') {
+        // Hex ring around the crest: six places, flat top. Each takes the
+        // nearest plate that sits at or below it (a piece only ever rises).
+        var targets = [];
+        for (var q = 0; q < 6; q++) {
+          var an = -Math.PI / 2 + q * Math.PI / 3;
+          targets.push({ x: crest.x + Math.cos(an) * crest.r * 1.15, y: crest.y + Math.sin(an) * crest.r * 1.15 });
+        }
+        targets.sort(function (u, v) { return v.y - u.y; });
+        var free = pieces.slice();
+        var crestSize = crest.r * 1.05;
+        targets.forEach(function (tg, n) {
+          var best = -1, bd = Infinity;
+          free.forEach(function (pc, i) {
+            var k = pc.keys[pc.keys.length - 1];
+            if (k.y + 0.5 < tg.y) return;
+            var d = Math.hypot(k.x - tg.x, k.y - tg.y);
+            if (d < bd) { bd = d; best = i; }
+          });
+          var t0 = b.at + n * b.stagger, t1 = t0 + b.ms;
+          if (best >= 0) {
+            var pc = free.splice(best, 1)[0], k0 = pc.keys[pc.keys.length - 1];
+            pc.keys.push({ t: t0, x: k0.x, y: k0.y, s: k0.s, a: 1 });
+            pc.keys.push({ t: t1, x: tg.x, y: tg.y, s: crestSize, a: 1, e: 'out' });
+            crestPieces.push(pc);
+          } else {
+            // Nothing below this place (an empty board has its plates, but
+            // a strange layout might not): the plate forms in place.
+            var np = { sp: wallBeat ? wallBeat.sprite : 'hexPlate', rot: 0, keys: [{ t: t1 - 160, x: tg.x, y: tg.y, s: crestSize * 0.6, a: 0 }, { t: t1, x: tg.x, y: tg.y, s: crestSize, a: 1, e: 'out' }] };
+            pieces.push(np); crestPieces.push(np);
+          }
+        });
+        // The rest rise away and fade, never past the top of the side.
+        free.forEach(function (pc, n) {
+          var k0 = pc.keys[pc.keys.length - 1], t0 = b.at + (n % 6) * b.stagger;
+          var topY = Math.min(k0.y, band.t + k0.s * 0.5 + 2);
+          pc.keys.push({ t: t0, x: k0.x, y: k0.y, s: k0.s, a: 1 });
+          pc.keys.push({ t: t0 + b.ms * 0.9, x: k0.x, y: topY, s: k0.s * 0.8, a: 0, e: 'out' });
+        });
+      } else if (b.p === 'lock') {
+        // The crest's centre plate forms; the moment radiates outward.
+        var cp = { sp: wallBeat ? wallBeat.sprite : 'hexPlate', rot: 0, centre: true, keys: [
+          { t: b.at, x: crest.x, y: crest.y, s: crest.r * 0.7, a: 0 },
+          { t: b.at + 140, x: crest.x, y: crest.y, s: crest.r * 1.25, a: 1, e: 'out' }
+        ] };
+        pieces.push(cp); crestPieces.push(cp);
+        mark({ k: 'shock', t: b.at, x: crest.x, y: crest.y, R: crest.r * 1.1, sx: 1, sy: 1 });
+        mark({ k: 'flare', t: b.at, x: crest.x, y: crest.y, s: crest.r * 2.2 });
+        mark({ k: 'ring', t: b.at, x: crest.x, y: crest.y, R: crest.r * 1.6 });
+        mark({ k: 'sparks', t: b.at, x: crest.x, y: crest.y - crest.r * 0.4, n: 18, spd: 190, life: 0.5, angle: -Math.PI / 2, spread: 1.2 });
+        mark({ k: 'grid', t: b.at, x: crest.x, y: crest.y, f: 900, r: Math.min(bh * 0.3, 90) });
+        mark({ k: 'pulse', t: b.at, ms: 420 });
+        if (b.sound) {
+          mark({ k: 'sound', t: b.at, kind: b.sound, tier: 'spectacle', x: crest.x });
+          mark({ k: 'duck', t: b.at, ms: Math.max(600, ends - b.at + 300) });
+        }
+      } else if (b.p === 'name') {
+        mark({ k: 'name', t: b.at, x: cx, y: nameY, w: Math.min(bw * 0.86, 640), h: Math.min(bh * 0.26, 46) });
+      }
+    });
+
+    // Everything holds its last key to the end, then the crest fades as the
+    // result line lands.
+    pieces.forEach(function (pc) {
+      var k = pc.keys[pc.keys.length - 1];
+      if (k.a > 0) {
+        if (k.t < ends) pc.keys.push({ t: ends, x: k.x, y: k.y, s: k.s, a: k.a });
+        pc.keys.push({ t: Math.max(k.t, ends) + 320, x: k.x, y: k.y, s: k.s, a: 0 });
+      }
+    });
+    mark({ k: 'end', t: ends });
+    marks.sort(function (u, v) { return u.t - v.t; });
+    return { id: spec.id, faction: spec.faction, name: spec.name, ms: ends, pieces: pieces, marks: marks, crest: crest, crestPieces: crestPieces.length };
+  }
+
+  // The reduced-motion still: the plan's final pose (everything that still
+  // shows at the end), held for BOAST_STILL_MS, with the panel and the name.
+  // No shocks, sparks, grid or flares.
+  function boastStill(plan) {
+    var pieces = [], ms = BOAST_STILL_MS;
+    plan.pieces.forEach(function (pc) {
+      var at = boastPieceAt(pc, plan.ms);
+      if (!at || at.a < 0.5) return;
+      pieces.push({ sp: pc.sp, rot: pc.rot, centre: pc.centre, keys: [
+        { t: 0, x: at.x, y: at.y, s: at.s, a: at.a },
+        { t: ms, x: at.x, y: at.y, s: at.s, a: at.a },
+        { t: ms + 200, x: at.x, y: at.y, s: at.s, a: 0 }
+      ] });
+    });
+    var marks = plan.marks.filter(function (m) { return m.k === 'panel' || m.k === 'name' || m.k === 'veil' || (m.k === 'sound' && m.tier === 'spectacle'); })
+      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'veil') c.ms = 0; return c; });
+    marks.push({ k: 'end', t: ms });
+    return { id: plan.id, faction: plan.faction, name: plan.name, ms: ms, pieces: pieces, marks: marks, crest: plan.crest, still: true };
+  }
+
+  // The victory grammar, checked on a laid-out plan. Returns the first
+  // problem, or null. A piece's whole sprite and every shock, flare, ring,
+  // spark reach, grid push and the name plate stay inside the winner's side
+  // (the panel only lights, it draws nothing); none touches a loser rect;
+  // no piece ever moves down; sparks only fly upward.
+  function boastPlanProblem(plan, geom) {
+    var band = geom.band, tol = 2, loser = geom.loser || [];
+    function inside(l, t, r, b) { return l >= band.l - tol && r <= band.r + tol && t >= band.t - tol && b <= band.b + tol; }
+    function hitsLoser(l, t, r, b) { return loser.some(function (x) { return l < x.r && r > x.l && t < x.b && b > x.t; }); }
+    function box(l, t, r, b, what) {
+      if (!inside(l, t, r, b)) return what + ' leaves the winner\'s side';
+      if (hitsLoser(l, t, r, b)) return what + ' touches the loser';
+      return null;
+    }
+    var i, j, p;
+    for (i = 0; i < plan.pieces.length; i++) {
+      var pc = plan.pieces[i];
+      for (j = 0; j < pc.keys.length; j++) {
+        var k = pc.keys[j], h = k.s / 2;
+        if (k.a > 0 || (j > 0 && pc.keys[j - 1].a > 0)) { p = box(k.x - h, k.y - h, k.x + h, k.y + h, 'piece ' + i); if (p) return p; }
+        if (j > 0 && k.y > pc.keys[j - 1].y + 0.5) return 'piece ' + i + ' moves down';
+        if (j > 0 && k.t < pc.keys[j - 1].t) return 'piece ' + i + ' keys out of order';
+      }
+    }
+    for (i = 0; i < plan.marks.length; i++) {
+      var m = plan.marks[i];
+      if (m.t > plan.ms + 1) return m.k + ' after the boast ends';
+      if (m.k === 'shock') {
+        var hx = m.R * 1.05 * (m.sx || 1), hy = m.R * 1.05 * (m.sy || 1);
+        p = box(m.x - hx, m.y - hy, m.x + hx, m.y + hy, 'shock'); if (p) return p;
+      } else if (m.k === 'flare') {
+        var fh = m.s * 0.55; p = box(m.x - fh, m.y - fh, m.x + fh, m.y + fh, 'flare'); if (p) return p;
+      } else if (m.k === 'ring') {
+        p = box(m.x - m.R, m.y - m.R, m.x + m.R, m.y + m.R, 'ring'); if (p) return p;
+      } else if (m.k === 'sparks') {
+        if (Math.abs(m.angle + Math.PI / 2) > 1e-9 || !(m.spread < Math.PI / 2)) return 'sparks must fly upward';
+        var reach = m.spd * 1.05 * m.life * 1.15, side = reach * Math.sin(m.spread);
+        p = box(m.x - side, m.y - reach, m.x + side, m.y, 'sparks'); if (p) return p;
+      } else if (m.k === 'grid') {
+        p = box(m.x - m.r, m.y - m.r, m.x + m.r, m.y + m.r, 'grid push'); if (p) return p;
+      } else if (m.k === 'name') {
+        p = box(m.x - m.w / 2, m.y - m.h / 2, m.x + m.w / 2, m.y + m.h / 2, 'name'); if (p) return p;
+      } else if (m.k === 'veil') {
+        p = box(m.l, m.t2, m.r, m.b, 'veil'); if (p) return p;
+      }
+    }
+    if (!plan.marks.some(function (m) { return m.k === 'name'; })) return 'no name';
+    return null;
+  }
+
+  // Where a piece is at time t (ms): eased between its keys.
+  //   slam: accelerates into the key and stops dead (a plate hitting home);
+  //   out: decelerates into it.
+  function boastPieceAt(pc, t) {
+    var ks = pc.keys;
+    if (t < ks[0].t) return null;
+    for (var i = 1; i < ks.length; i++) {
+      if (t <= ks[i].t) {
+        var a = ks[i - 1], b = ks[i], u = b.t > a.t ? (t - a.t) / (b.t - a.t) : 1;
+        var e = b.e === 'slam' ? u * u * u : b.e === 'out' ? 1 - Math.pow(1 - u, 3) : u;
+        return { x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e, s: a.s + (b.s - a.s) * e, a: a.a + (b.a - a.a) * (b.e === 'slam' ? Math.min(1, u * 3) : u) };
+      }
+    }
+    return null;
+  }
+
+
+  var BOAST = (function () {
+    var cur = null, plugged = false, stats = { played: 0, skipped: 0, still: 0, refused: 0, last: null };
+    function rect(el) {
+      if (!el) return null;
+      var r = el.getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
+      return { l: r.left + sx, t: r.top + sy, r: r.right + sx, b: r.bottom + sy };
+    }
+    // The winner's geometry, read from the elements the host passes:
+    //   { band, panel, row, loser: [elements] }
+    function geomOf(els) {
+      var slots = [];
+      // The row's children are its slots: an empty slot, or the card that
+      // fills one (a replay puts the card itself in the row).
+      if (els.row) Array.prototype.forEach.call(els.row.children, function (s) {
+        if (!s.classList.contains('slot') && !s.classList.contains('card')) return;
+        var r = rect(s); if (r.r - r.l < 4) return;
+        r.filled = s.classList.contains('card') || !!s.querySelector('.card'); slots.push(r);
+      });
+      return { band: rect(els.band), panel: rect(els.panel), slots: slots, loser: (els.loser || []).filter(Boolean).map(rect) };
+    }
+    function rgbOf(f) { return fxRgbOf(f); }
+    function plugin() {
+      return {
+        update: function () {
+          if (!cur) return;
+          var now = performance.now();
+          cur.t = now - cur.t0;
+          while (cur.next < cur.plan.marks.length && cur.plan.marks[cur.next].t <= cur.t) fire(cur.plan.marks[cur.next++]);
+          if (cur && cur.t > cur.plan.ms + 400 && cur.ended) cur = null;
+        },
+        drawFloor: function () {},
+        drawTop: function (ctx) {
+          if (!cur) return;
+          var K = CFX.kit, c = cur.rgb, glow = 0;
+          cur.pulses = cur.pulses.filter(function (p) { return cur.t < p.t + p.ms; });
+          cur.pulses.forEach(function (p) { glow = Math.max(glow, 1 - (cur.t - p.t) / p.ms); });
+          if (cur.veil) {
+            var v = cur.veil, va = v.a * (v.ms > 0 ? Math.min(1, (cur.t - v.t) / v.ms) : 1);
+            if (cur.t > cur.plan.ms) va *= Math.max(0, 1 - (cur.t - cur.plan.ms) / 320);
+            if (cur.ended && !cur.fadeOut) va = 0;
+            if (va > 0.003) {
+              ctx.globalCompositeOperation = 'source-over';
+              ctx.fillStyle = 'rgba(4,6,12,' + va.toFixed(3) + ')';
+              var vr = Math.min(10, (v.r - v.l) / 8), vw = v.r - v.l, vh = v.b - v.t2;
+              ctx.beginPath();
+              if (ctx.roundRect) ctx.roundRect(v.l, v.t2, vw, vh, vr); else ctx.rect(v.l, v.t2, vw, vh);
+              ctx.fill();
+              ctx.globalCompositeOperation = 'lighter';
+            }
+          }
+          var n = 0;
+          for (var i = 0; i < cur.plan.pieces.length; i++) {
+            var pc = cur.plan.pieces[i], at = boastPieceAt(pc, cur.t);
+            if (!at || at.a <= 0.003 || at.s <= 0) continue;
+            n++;
+            var tx = K.tex(FX_SP[pc.sp], c);
+            K.drawGlow(ctx, at.x, at.y, at.s * (0.75 + glow * 0.5), c, at.a * (0.35 + glow * 0.6));
+            ctx.globalAlpha = Math.min(1, at.a);
+            ctx.save(); ctx.translate(at.x, at.y); ctx.rotate(pc.rot || 0);
+            ctx.drawImage(tx, -at.s / 2, -at.s / 2, at.s, at.s);
+            if (glow > 0 || pc.centre) { ctx.globalAlpha = Math.min(1, at.a) * Math.max(glow * 0.8, pc.centre ? 0.45 : 0); ctx.drawImage(K.tex(FX_SP[pc.sp], K.mix(c, [255, 255, 255], 0.6)), -at.s / 2, -at.s / 2, at.s, at.s); }
+            ctx.restore();
+          }
+          ctx.globalAlpha = 1;
+          if (n > stats.peakPieces) stats.peakPieces = n;
+          stats.drawn++;
+        },
+        alive: function () { return !!cur; },
+        hasTop: function () { return !!cur; },
+        clear: function () {}
+      };
+    }
+    function fire(m) {
+      var K = CFX.kit, c = cur.rgb, still = cur.plan.still;
+      stats.fired[m.k] = (stats.fired[m.k] || 0) + 1;
+      if (m.k === 'shock' && !still) K.shock(m.x, m.y, c, m.R, 0.42, m.sx, m.sy);
+      else if (m.k === 'flare' && !still) K.flare(m.x, m.y, c, m.s, 0.5);
+      else if (m.k === 'ring' && !still) K.ring(m.x, m.y, c, m.R, 0.6, 2.5);
+      else if (m.k === 'sparks' && !still) K.sparks(m.x, m.y, m.ember ? K.mix(c, [255, 220, 150], 0.35) : c, m.n, m.spd, { angle: m.angle, spread: m.spread, life: m.life, size: m.ember ? 1.6 : undefined });
+      else if (m.k === 'grid' && !still) { K.gridForce(m.x, m.y, m.f, m.r); K.gridTint(m.x, m.y, c, m.r); }
+      else if (m.k === 'pulse') cur.pulses.push({ t: m.t, ms: m.ms });
+      else if (m.k === 'veil') cur.veil = m;
+      else if (m.k === 'sound' && typeof SND !== 'undefined') SND.play(m.kind, cur.plan.faction, m.tier, { left: m.x - window.scrollX, width: 0 });
+      else if (m.k === 'duck' && typeof MUS !== 'undefined' && MUS.duckHold) MUS.duckHold(m.ms / 1000);
+      else if (m.k === 'panel') { if (cur.els.panel) { cur.els.panel.style.setProperty('--fc', fxKitOf(cur.plan.faction).col); cur.els.panel.classList.add('boast-panel'); } }
+      else if (m.k === 'name') showName(m);
+      else if (m.k === 'end') finish('end');
+    }
+    function showName(m) {
+      var el = document.createElement('div');
+      el.className = 'boast-name' + (cur.plan.still ? ' still' : '');
+      el.style.setProperty('--fc', fxKitOf(cur.plan.faction).col);
+      el.style.left = (m.x - m.w / 2) + 'px'; el.style.top = (m.y - m.h / 2) + 'px';
+      el.style.width = m.w + 'px'; el.style.height = m.h + 'px';
+      var nm = document.createElement('div'); nm.className = 'boast-who'; nm.textContent = cur.who;
+      var tag = document.createElement('div'); tag.className = 'boast-tag'; tag.textContent = cur.plan.name.toUpperCase() + ' · VICTORY';
+      el.appendChild(nm); el.appendChild(tag);
+      document.body.appendChild(el);
+      // Long names shrink to fit the plate, never cut off.
+      var max = parseFloat(getComputedStyle(nm).fontSize) || 28;
+      for (var fs = max; fs > 11 && nm.scrollWidth > m.w; fs -= 1) nm.style.fontSize = fs + 'px';
+      cur.dom.push(el);
+    }
+    function onKey(e) { if (e.key === 'Escape' && cur && !cur.ended) { e.preventDefault(); skip(); } }
+    function onDown(e) { if (cur && !cur.ended) skip(); }
+    function teardown() {
+      if (!cur) return;
+      document.removeEventListener('keydown', onKey, true);
+      document.removeEventListener('pointerdown', onDown, true);
+      cur.dom.forEach(function (d) { d.classList.add('gone'); setTimeout(function () { d.remove(); }, 340); });
+      cur.dom = [];
+      if (cur.els.panel) cur.els.panel.classList.remove('boast-panel');
+      (cur.els.dim || []).forEach(function (d) { if (d) d.classList.remove('boast-dim'); });
+    }
+    function finish(reason) {
+      if (!cur || cur.ended) return;
+      cur.ended = true;
+      stats.last = { id: cur.plan.id, reason: reason, t: Math.round(cur.t), still: !!cur.plan.still };
+      var done = cur.onEnd;
+      teardown();
+      // Skipped or cancelled: the pieces go at once. Ended: they fade out
+      // on their own last keys while the result lands.
+      if (reason !== 'end') cur = null; else cur.fadeOut = true;
+      if (done) done(reason);
+    }
+    function skip() { if (cur && !cur.ended) { stats.skipped++; finish('skip'); } }
+    function cancel() { if (cur) { var c0 = cur; c0.onEnd = null; finish('cancel'); cur = null; } }
+    // play(id, els, opts): opts { who (the winner's name), onEnd(reason),
+    // reduced, seed }. Returns the plan played (or null when nothing can be).
+    function play(id, els, opts) {
+      opts = opts || {};
+      cancel();
+      var spec = BOAST_SPECS[id];
+      if (!spec || boastSpecProblem(spec)) { stats.refused++; if (opts.onEnd) opts.onEnd('none'); return null; }
+      var reduced = opts.reduced != null ? !!opts.reduced : CFX.kit.reduced;
+      // A boast the viewer can't see is no boast: on a phone the winner's
+      // side may be scrolled away, so bring it into view first. The plan is
+      // in document coordinates, so the scroll doesn't move it.
+      if (els.band && els.band.scrollIntoView) {
+        var vr = els.band.getBoundingClientRect(), vh = window.innerHeight || 0;
+        if (vr.top < 0 || vr.bottom > vh) els.band.scrollIntoView({ block: vr.height > vh ? 'start' : 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+      }
+      var geom = geomOf(els);
+      if (!geom.band) { stats.refused++; if (opts.onEnd) opts.onEnd('none'); return null; }
+      var plan = boastPlan(spec, geom, opts.seed || 1);
+      var problem = boastPlanProblem(plan, geom);
+      var canDraw = CFX.isReady();
+      if (problem || reduced || !canDraw) plan = boastStill(plan);
+      if (plan.still) stats.still++;
+      stats.played++;
+      stats.problem = problem;
+      stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0;
+      cur = { plan: plan, els: els, who: opts.who || '', onEnd: opts.onEnd || null, rgb: rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], ended: false };
+      (els.dim || []).forEach(function (d) { if (d) d.classList.add('boast-dim'); });
+      // The Skip button sits at the top right of the winner's side.
+      var sk = document.createElement('button');
+      sk.type = 'button'; sk.className = 'boast-skip'; sk.textContent = 'Skip ▸▸';
+      sk.style.top = (geom.band.t + 6) + 'px';
+      document.body.appendChild(sk); cur.dom.push(sk);
+      sk.style.left = (geom.band.r - sk.offsetWidth - 8) + 'px';
+      document.addEventListener('keydown', onKey, true);
+      document.addEventListener('pointerdown', onDown, true);
+      if (!plugged && canDraw) { CFX.plug(plugin()); plugged = true; }
+      if (canDraw) CFX.kit.kick();
+      else {
+        // No canvas: the DOM parts still play (panel, name, end) on timers.
+        plan.marks.forEach(function (m) { var me = cur; setTimeout(function () { if (cur === me && !me.ended) fire(m); }, m.t); });
+        cur.next = plan.marks.length;
+      }
+      return plan;
+    }
+    return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur && !cur.ended; }, geomOf: geomOf,
+      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
+  })();
+
+  window.__boast = BOAST; // read by the browser checks (progress/render/evidence/boast-check.mjs)
   // Board rows fit the screen (render/src/boardFit.ts, embedded verbatim).
 
   var BOARD_CARD_W = 118;
@@ -4472,8 +5058,8 @@ html, body {
   function renderTurnbar(frame) {
     const el = document.getElementById('turnbar');
     let text = 'TURN ' + frame.turnNumber + ' (of up to ' + replay.turnCap + ')  \u2014  active: ' + playerHtml(frame.activePlayer) + '  \u2014  priority: ' + playerHtml(frame.priority);
-    if (frame.winner) {
-      text += '  \u2014  <span class="win">GAME OVER: ' + (frame.winner === 'draw' ? 'DRAW' : escapeHtml(pname(frame.winner)) + ' WINS') + '</span>';
+    if (frame.winner && !boastHold) {
+      text += '  \u2014  <span class="win' + (resultLanding ? ' land' : '') + '">GAME OVER: ' + (frame.winner === 'draw' ? 'DRAW' : escapeHtml(pname(frame.winner)) + ' WINS') + '</span>';
     }
     el.innerHTML = text;
   }
@@ -5529,7 +6115,13 @@ html, body {
     });
 
     tiers.push(tierFromScore(momentumSwingScore(prevFrame.momentum.score, newFrame.momentum.score)));
-    if (justEnded) { tiers.push('spectacle'); later(Math.max(effectT, counterT), showLethalFlash); }
+    if (justEnded) {
+      tiers.push('spectacle');
+      later(Math.max(effectT, counterT), showLethalFlash);
+      // The boast waits for the lethal beat and the HP bar (not through
+      // later(): a step away cancels it in endBoast instead of flushing it).
+      if (boastHold) boastTimer = setTimeout(startBoast, Math.max(effectT, counterT) + BOAST_LEAD_MS);
+    }
 
     return maxTierOf(tiers);
   }
@@ -5550,8 +6142,45 @@ html, body {
     return map;
   }
 
+  // ---- victory boasts (render/src/boastFx.ts) ---------------------------
+  // Stepping into a win, the result line waits: the lethal beat plays, the
+  // winner's HP bar settles, the boast plays (about 3 s; a tap, Escape or
+  // Skip ends it), then "GAME OVER: X WINS" lands as the boast ends. A
+  // jump to the end has no in between, so it shows the result at once.
+  // A draw has no boast. The record's boast comes with slice 3; until then
+  // the winner's faction starter boast plays (boastIdFor).
+  let boastHold = false, resultLanding = false, boastTimer = 0;
+  function boastIdOf(frame) {
+    if (!frame.winner || frame.winner === 'draw') return null;
+    return boastIdFor(null, frame.players[frame.winner].faction);
+  }
+  function endBoast() {
+    clearTimeout(boastTimer); boastTimer = 0;
+    BOAST.cancel();
+    boastHold = false; resultLanding = false;
+  }
+  function startBoast() {
+    boastTimer = 0;
+    const frame = frames[i], w = frame.winner, id = boastIdOf(frame);
+    if (!id || i !== frames.length - 1) { releaseResult(); return; }
+    const l = w === 'p1' ? 'p2' : 'p1';
+    BOAST.play(id, {
+      band: document.getElementById('side-' + w), panel: document.getElementById('hud-' + w),
+      row: document.getElementById('board-' + w),
+      loser: [document.getElementById('side-' + l), document.getElementById('hud-' + l)],
+      dim: [document.getElementById('side-' + l), document.getElementById('hud-' + l), document.getElementById('hand-' + l)]
+    }, { who: pname(w), seed: replay.seed, onEnd: releaseResult });
+  }
+  function releaseResult() {
+    if (!boastHold) return;
+    boastHold = false; resultLanding = true;
+    renderTurnbar(frames[i]);
+    resultLanding = false;
+  }
+
   function goTo(n) {
     const target = Math.max(0, Math.min(frames.length - 1, n));
+    endBoast();
     if (target === i + 1) {
       // Anything move i was still waiting to show plays now, on move i's
       // board, before move i+1 replaces it.
@@ -5563,6 +6192,7 @@ html, body {
       const prevStackRects = stackRects();
       const prevHandRects = handRects();
       i = target;
+      boastHold = !!boastIdOf(frames[i]) && !prevFrame.winner;
       stepping = true;
       renderFrame();
       stepping = false;

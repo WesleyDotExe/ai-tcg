@@ -1023,7 +1023,7 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
     var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear, plug: plug,
       // What a plug-in may draw with: the same glow, rings, shockwaves,
       // sprites, sparks and grid pushes the effects use.
-      kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,
+      kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, tex: tex, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,
         gridForce: gridForce, gridTint: gridTint, rand: rand, mix: mix, rgba: rgba, kick: kick, docCentre: docCentre },
       isReady: function () { return ready && !failed; },
       stats: function () { return { ready: ready && !failed, particles: P.length, projectiles: proj.length, beams: beams.length, timers: timers.length, frames: frames, peak: peak, fps: fps, tinted: Object.keys(tcache).length, gridLive: G.live, camera: camLive, reduced: REDUCED,

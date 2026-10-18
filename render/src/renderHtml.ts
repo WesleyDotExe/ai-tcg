@@ -11,6 +11,7 @@ import { FALLBACK_WARD_PURE_SOURCE, FALLBACK_WARD_RUNTIME_SOURCE } from "./fallb
 import { SIG_WARD_PURE_SOURCE, SIG_WARD_RUNTIME_SOURCE, sigWardDataFor } from "./sigWardFx.js";
 import { SIG_ZONE_SOURCE } from "./sigZoneFx.js";
 import { BOARD_FIT_SOURCE } from "./boardFit.js";
+import { BOAST_CSS, BOAST_PURE_SOURCE, BOAST_RUNTIME_SOURCE } from "./boastFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -775,6 +776,8 @@ html, body {
  * 4, 2026-09-26): the viewer sees the actual card, not just a sigil. */
 .card.fx-flycard { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
   box-shadow: 0 0 18px var(--fx-tint), 0 0 0 2px var(--fx-tint); }
+/* Victory boasts (render/src/boastFx.ts). */
+${BOAST_CSS}
 `;
 
 const JS = `
@@ -945,6 +948,12 @@ ${WARD_FX_RUNTIME_SOURCE}
   // render/src/sigWardFx.ts, embedded verbatim; also a CFX plug-in.
 ${SIG_WARD_PURE_SOURCE}
 ${SIG_WARD_RUNTIME_SOURCE}
+  // Victory boasts (render/src/boastFx.ts, embedded verbatim; a CFX
+  // plug-in): the winner's boast plays after the lethal beat, before the
+  // result line.
+${BOAST_PURE_SOURCE}
+${BOAST_RUNTIME_SOURCE}
+  window.__boast = BOAST; // read by the browser checks (progress/render/evidence/boast-check.mjs)
   // Board rows fit the screen (render/src/boardFit.ts, embedded verbatim).
 ${BOARD_FIT_SOURCE}
   // Zoom each side's row so its slots fit the side's width: one line while
@@ -1205,8 +1214,8 @@ ${SIG_ZONE_SOURCE}
   function renderTurnbar(frame) {
     const el = document.getElementById('turnbar');
     let text = 'TURN ' + frame.turnNumber + ' (of up to ' + replay.turnCap + ')  \\u2014  active: ' + playerHtml(frame.activePlayer) + '  \\u2014  priority: ' + playerHtml(frame.priority);
-    if (frame.winner) {
-      text += '  \\u2014  <span class="win">GAME OVER: ' + (frame.winner === 'draw' ? 'DRAW' : escapeHtml(pname(frame.winner)) + ' WINS') + '</span>';
+    if (frame.winner && !boastHold) {
+      text += '  \\u2014  <span class="win' + (resultLanding ? ' land' : '') + '">GAME OVER: ' + (frame.winner === 'draw' ? 'DRAW' : escapeHtml(pname(frame.winner)) + ' WINS') + '</span>';
     }
     el.innerHTML = text;
   }
@@ -2262,7 +2271,13 @@ ${SIG_ZONE_SOURCE}
     });
 
     tiers.push(tierFromScore(momentumSwingScore(prevFrame.momentum.score, newFrame.momentum.score)));
-    if (justEnded) { tiers.push('spectacle'); later(Math.max(effectT, counterT), showLethalFlash); }
+    if (justEnded) {
+      tiers.push('spectacle');
+      later(Math.max(effectT, counterT), showLethalFlash);
+      // The boast waits for the lethal beat and the HP bar (not through
+      // later(): a step away cancels it in endBoast instead of flushing it).
+      if (boastHold) boastTimer = setTimeout(startBoast, Math.max(effectT, counterT) + BOAST_LEAD_MS);
+    }
 
     return maxTierOf(tiers);
   }
@@ -2283,8 +2298,45 @@ ${SIG_ZONE_SOURCE}
     return map;
   }
 
+  // ---- victory boasts (render/src/boastFx.ts) ---------------------------
+  // Stepping into a win, the result line waits: the lethal beat plays, the
+  // winner's HP bar settles, the boast plays (about 3 s; a tap, Escape or
+  // Skip ends it), then "GAME OVER: X WINS" lands as the boast ends. A
+  // jump to the end has no in between, so it shows the result at once.
+  // A draw has no boast. The record's boast comes with slice 3; until then
+  // the winner's faction starter boast plays (boastIdFor).
+  let boastHold = false, resultLanding = false, boastTimer = 0;
+  function boastIdOf(frame) {
+    if (!frame.winner || frame.winner === 'draw') return null;
+    return boastIdFor(null, frame.players[frame.winner].faction);
+  }
+  function endBoast() {
+    clearTimeout(boastTimer); boastTimer = 0;
+    BOAST.cancel();
+    boastHold = false; resultLanding = false;
+  }
+  function startBoast() {
+    boastTimer = 0;
+    const frame = frames[i], w = frame.winner, id = boastIdOf(frame);
+    if (!id || i !== frames.length - 1) { releaseResult(); return; }
+    const l = w === 'p1' ? 'p2' : 'p1';
+    BOAST.play(id, {
+      band: document.getElementById('side-' + w), panel: document.getElementById('hud-' + w),
+      row: document.getElementById('board-' + w),
+      loser: [document.getElementById('side-' + l), document.getElementById('hud-' + l)],
+      dim: [document.getElementById('side-' + l), document.getElementById('hud-' + l), document.getElementById('hand-' + l)]
+    }, { who: pname(w), seed: replay.seed, onEnd: releaseResult });
+  }
+  function releaseResult() {
+    if (!boastHold) return;
+    boastHold = false; resultLanding = true;
+    renderTurnbar(frames[i]);
+    resultLanding = false;
+  }
+
   function goTo(n) {
     const target = Math.max(0, Math.min(frames.length - 1, n));
+    endBoast();
     if (target === i + 1) {
       // Anything move i was still waiting to show plays now, on move i's
       // board, before move i+1 replaces it.
@@ -2296,6 +2348,7 @@ ${SIG_ZONE_SOURCE}
       const prevStackRects = stackRects();
       const prevHandRects = handRects();
       i = target;
+      boastHold = !!boastIdOf(frames[i]) && !prevFrame.winner;
       stepping = true;
       renderFrame();
       stepping = false;

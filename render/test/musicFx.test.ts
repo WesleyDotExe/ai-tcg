@@ -22,6 +22,7 @@ import {
   MUS_BUMP,
   MUS_DEFAULT_VOLUME,
   MUS_DUCK_TO,
+  MUS_BOAST_DUCK_TO,
   MUS_I_MAX,
   MUS_LOOKAHEAD_S,
   MUS_MYTHIC_LIFT,
@@ -265,6 +266,7 @@ function boot(doc: unknown = undefined) {
       state: () => "muted" | "armed" | "on";
       event: (k: string, t: string) => number;
       duck: () => boolean;
+      duckHold: (sec: number) => boolean;
       setScene: (f: string, m: boolean) => void;
       tick: () => number;
       setVolume: (v: number) => number;
@@ -360,6 +362,26 @@ describe("the music runtime the page embeds", () => {
     expect(MUS.stats().ducks).toBe(2);
     // Nothing ever sets the duck below 80%, nor the bus to 0, while music is on.
     expect(duck.gain.calls.filter((c) => c.fn === "setTargetAtTime").every((c) => c.args[0]! >= MUS_DUCK_TO)).toBe(true);
+  });
+
+  it("a boast's sting holds the music at 55% for its length, then it recovers; effect dips inside the hold don't lift it early", () => {
+    const { SND, MUS, made, clock } = boot();
+    SND.setOn(true);
+    MUS.setOn(true);
+    const { duck } = musicGraph(made);
+    expect(MUS.duckHold(1.2)).toBe(true);
+    const targets = () => duck.gain.calls.filter((c) => c.fn === "setTargetAtTime").map((c) => c.args);
+    expect(targets()).toEqual([[MUS_BOAST_DUCK_TO, clock.t, 0.04], [1, clock.t + 1.2, 0.25]]);
+    expect(MUS_BOAST_DUCK_TO).toBe(0.55);
+    clock.t += 0.5;
+    SND.play("impact", "Aegis", "subtle", null);
+    expect(targets()).toHaveLength(2);
+    clock.t += 1;
+    SND.play("bolt", "Cortex", "normal", null);
+    expect(targets()).toHaveLength(4);
+    expect(targets()[2]![0]).toBe(MUS_DUCK_TO);
+    MUS.setOn(false);
+    expect(MUS.duckHold(1)).toBe(false);
   });
 
   it("with effects muted, nothing ducks the music", () => {
