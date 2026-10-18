@@ -7,6 +7,51 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-18 — Hold to tilt: the card and the pack lean as one piece — AWAITING FEEDBACK
+
+Your 2026-10-18 feature, with its addendum (the booster pack), the fan answer and the correction (no art depth), built just before slice 3. Open `render/output/pack-opening.html`. Hold a sealed pack below its TEAR strip and drag. Then tear it, hold a revealed card and drag. Then open the viewer from a summary tile, and try the "×10" fan.
+
+**What this delivers:**
+- **Hold, then drag:** the card leans in 3D towards your finger or pointer, up to **15°** each way, reached at the card's edge. It moves as one solid piece: no art shift, no layers. The finish's shine (Foil holo, Gold sheen, Glitch, secret, Zero-Day) follows your finger the same way it follows the device's tilt.
+- **Let go:** it springs back flat, with a small overshoot (0.56 s).
+- **Where:** the revealed card in a single pack and in a big pull, the card viewer, the sealed pack, and in a ten-pack only the front pack of the fan. A face-down card, or one still flipping, doesn't lean.
+- **The sealed pack:** a drag that starts on the TEAR strip tears it, as before, and never leans. A hold or drag anywhere else tilts it. A quick tap anywhere still tears it. The strip is now marked: a lit band and a "TEAR" tab where the cut line starts.
+- **The tell stays honest:** the tilt never looks at what is in the pack. A pack with a Zero-Day leans exactly like one with nothing, step for step (checked). Sparks still come only from the tear.
+- **Touch and mouse, phone and desktop.** On a phone the long-press menu is suppressed while you hold.
+- **Reduced motion:** at most 6°, and a plain 0.15 s ease back with no spring.
+
+**Evidence:**
+- **Recordings** (`progress/render/evidence/v2-s27-tilt-desktop.webm`, `v2-s27-tilt-phone.webm`): the Gold pack tilted in a circle, torn along the strip, the Gold card tilted, the Zero-Day card in the viewer. A white dot shows the finger. The scripted drag runs slower than a hand, because the headless browser renders on a software GPU.
+- **Stills:** `v2-s27-tilt-foil-*.jpg` (the Foil card mid-tilt, the holo following the finger), `v2-s27-tilt-viewer-*.jpg`, `v2-s27-tilt-fan-*.jpg`, each at desktop, phone and phone with reduced motion.
+- **Browser check** (`pack-tilt-check.mjs` / `.txt`): desktop with a mouse, phone with real touch events, and phone with reduced motion. All pass:
+  - the leans hit the predicted angles;
+  - nothing tears or moves on when a tilt is let go;
+  - a tap and a swipe still work;
+  - the light follows the finger;
+  - the viewer stays open when you let go over its backdrop;
+  - three packs lean identically.
+- **Re-runs:** slice 1's and session 26's checks, re-run on the new page.
+- **Tests:** render 388 (+13).
+
+**Decisions you may want to overrule:**
+1. **The threshold:** a press held still for **0.2 s**, or moved **8 px**, starts the tilt. On the card stack a quick sideways move is still the swipe to the next card, so there only the 0.2 s hold starts it. Alternative: a longer hold (0.3 s) if quick taps end up tilting.
+2. **The lean direction:** the side under your finger dips away from you, as if you pressed it. Alternative: the side under your finger comes towards you.
+3. **15° at the card's edge,** proportional in between. A finger past the edge stays at 15°.
+4. **The spring:** 0.56 s with a small overshoot.
+5. **A mouse hovering no longer leans the card.** Before, hovering leaned it a little. Now only a hold does, as your spec says. Hovering still moves the shine. The device's tilt on a phone still leans the card as before. Alternative: keep the small hover lean on desktop.
+6. **Tear versus tilt on the pack:** told apart by where the press starts. The top strip, about a third of the pack, tears; anywhere else tilts. Marked with the lit band and the TEAR tab.
+7. **In a ten-pack, only the fan's front pack tilts,** since each later pack tears on the same tap that brings it up. There is no sealed moment to hold it.
+8. **Letting go of a tilt over the viewer's backdrop doesn't close the viewer.** Only a tap there does.
+
+**Thin spots (in the debt list):**
+- Not yet held by a person on a real phone.
+- The tilt doesn't change how the card's own face is lit, beyond the shader's light point.
+- The ten-pack row's cards don't tilt.
+
+**Next:** slice 3, the first-time flow: an agent's first packs and the signature card reveal, with hold to tilt already in place for the signature card.
+
+---
+
 ## 2026-10-18 — Pack opening feel notes: full-size art for the top finishes, a tap-driven ten-pack, modal card faces — AWAITING FEEDBACK
 
 Your 2026-10-18 feel notes, plus the render side task from your answers to game session 42. Open `render/output/pack-opening.html` (any "×10" pack, the Gold / Prototype / Zero-Day packs, then tap a summary tile) and `render/output/card-faces.html` (every finish side by side, and all 3 Zero-Day cards).
