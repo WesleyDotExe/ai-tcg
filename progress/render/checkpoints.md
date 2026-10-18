@@ -7,6 +7,53 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-19 — The starter guarantee on the page; the plan for victory boasts — AWAITING FEEDBACK
+
+Two things this session: your side task on the starter guarantee (built), and the render half of
+victory boasts (a plan, at a check-in, as your entry asks).
+
+**1. The starter guarantee, on the page (built).** Open `render/output/first-time.html` and go
+through the 3 starter packs.
+- On these seeds, packs 1 and 2 hold no hit for any faction, so the store upgrades pack 3's shine
+  slot (a Full Art Static Ward Beacon for every faction). Before the guarantee, the demo's 3 packs
+  held no hit at all.
+- **After the reveal only**, pack 3's summary reads "Starter guarantee: this pack was due a hit.",
+  the same way a pity pack reads "Pity: this pack was due a hit."
+- **The pack and the tear never change:** the sealed pack's markup is the same on all 3 packs, and
+  pack 3's tear throws sparks like any pack with a hit.
+- The ordinary pack page (`render/output/pack-opening.html`) never shows the note (its packs aren't
+  starter packs). Rebuilt; only its data changed (`starterHit: false` on each pack).
+
+**Evidence:**
+- Browser check (`first-time-check.mjs`, output `first-time-check-s30.txt`): desktop (Swarm), phone
+  (Aegis) and phone with reduced motion (Null), all pass. New check I: every faction's packs hold a
+  hit; no note while a pack is sealed, torn or revealing; on the summary the note shows exactly on
+  the pack the store upgraded; the 3 sealed packs look the same.
+- Stills: `v2-s30-4-pack-{desktop,phone}.jpg` (the sealed pack) and
+  `v2-s30-4b-last-summary-{desktop,phone}.jpg` (the note).
+- Store transcript: `v2-s30-first-time-transcript.txt` (pack 3 marked "starter guarantee" for all 4
+  factions).
+- Tests: render 410 (+3). Every faction gets a hit on the demo's seeds, upgraded in pack 3; over 40
+  other seed sets, the note marks exactly the pack the store upgraded and never one where pack 1 or
+  2 already hit (both cases occur); only the summary reads the flag.
+
+**2. Victory boasts, the render half: a plan, not built.** Full plan and 9 decisions with suggested
+defaults in `progress/render/notes-for-owner.md` (session 30). In short: a new "victory" event
+category in EFFECTS.md that always rises from the winner's side and never touches the loser; the 4
+starter boasts as data over the existing primitives; the boast plays after the lethal beat and before
+the result line, about 3 s, skippable; the render plays what the match record says and falls back to
+the winner's faction starter boast; the loadout picker comes last. Four slices.
+
+**Decisions you may want to overrule (this session's build):**
+1. **The note's wording** mirrors the pity note: "Starter guarantee: this pack was due a hit."
+   Alternative: "Starter guarantee: every new owner's starter packs hold a hit."
+2. **The note is on the summary only**, not on the card's reveal (the pity note is summary-only too).
+
+**Next:** your answers on the boast plan, then slice 1 of it. Otherwise the render debt list (the
+turn-cap ending and the momentum gauge's pending threat).
+
+---
+
 ## 2026-10-19 — The first-time flow: name your agent when it's made — AWAITING FEEDBACK
 
 Your call 5 on slice 3. Open `render/output/first-time.html`, go through to "Generate your agent", pick one, and type a name.

@@ -89,6 +89,50 @@ describe("the starter collection, per faction (store: grantStarterCollection, op
   });
 });
 
+describe("the starter guarantee (game session 46; the note, render session 30)", () => {
+  it("gives every faction a hit across its 3 starter packs, on the demo's seeds", () => {
+    for (const f of data.factions) {
+      const hits = f.packs.map((p) => p.reveal.cards.some((c) => c.hit));
+      expect(hits.some(Boolean), f.faction).toBe(true);
+      // Packs 1 and 2 hold none on these seeds, so the store upgraded pack 3.
+      expect(f.packs.map((p) => p.reveal.starterHit), f.faction).toEqual([false, false, true]);
+      // The tell stays honest: the upgraded pack throws sparks like any hit.
+      expect(f.packs[2]!.reveal.sparks).toBe(true);
+    }
+  });
+
+  it("marks only the pack the store upgraded, over many seeds (a hit already in pack 1 or 2 leaves pack 3 alone)", () => {
+    let upgraded = 0;
+    let natural = 0;
+    for (let k = 0; k < 40; k++) {
+      const seeds = { ...FIRST_TIME_SEEDS, packs: [5000 + 3 * k, 5001 + 3 * k, 5002 + 3 * k] as const };
+      const f = factionStart("Swarm", seeds as unknown as typeof FIRST_TIME_SEEDS);
+      const reveals = f.packs.map((p) => p.reveal);
+      expect(reveals.some((r) => r.cards.some((c) => c.hit)), `seeds ${seeds.packs}`).toBe(true);
+      expect(reveals[0]!.starterHit || reveals[1]!.starterHit).toBe(false);
+      const earlier = reveals[0]!.sparks || reveals[1]!.sparks;
+      expect(reveals[2]!.starterHit).toBe(!earlier && !reveals[2]!.pity.fullArt);
+      if (reveals[2]!.starterHit) upgraded++;
+      else natural++;
+    }
+    // Both cases occur on these seeds (about half each, as measured: 45.8% hit by chance).
+    expect(upgraded).toBeGreaterThan(5);
+    expect(natural).toBeGreaterThan(5);
+  });
+
+  it("shows the note on the summary only, after the reveal, worded like the pity note", () => {
+    const html = renderPackOpeningHtml({ title: "t", packs: [], flow: data });
+    expect(html.split("Starter guarantee: this pack was due a hit.").length - 1).toBe(1);
+    const summary = html.slice(html.indexOf("function summary()"));
+    const end = summary.indexOf("\n  function ", 10);
+    expect(summary.slice(0, end > 0 ? end : undefined)).toContain("r.starterHit ? 'Starter guarantee: this pack was due a hit. '");
+    // No other code reads it (the data carries it as "starterHit": ...): the
+    // sealed pack, the tear and the reveals never change.
+    expect(html.match(/\.starterHit\b/g)).toHaveLength(2);
+    expect(summary.slice(0, end > 0 ? end : undefined).match(/\.starterHit\b/g)).toHaveLength(2);
+  });
+});
+
 describe("Generate a new agent, every branch (store: startAgentDraft, pickDraftAgent, confirmAgentDraft)", () => {
   it("shows 3 agents, 3 cards each, and one made card per choice", () => {
     expect(data.agents).toHaveLength(3);

@@ -662,3 +662,75 @@ separate from the shared `progress/notes-for-owner.md`).
    `confirmAgentDraft` would keep the chosen one's.
 5. **No engine or economy file was changed.** The render reads the store
    (in-memory databases, fixed seeds) and the engine's public generators.
+
+---
+
+## 2026-10-19 — Session 30: [OWNER CHECK-IN] the render lane's plan for victory boasts (not built)
+
+Your 2026-10-19 entry asks each lane to propose its half before building. The game lane's half
+(catalogue, ownership, loadout, the loadout saved on the match record, the close-win slot) is
+approved. This is the render half: the boast animations, the end-of-match moment, and the loadout
+picker. Nothing below is built yet.
+
+**How a boast fits the effects language (EFFECTS.md).** A boast is a new event category,
+**victory**, with its own grammar, the same for every boast: it *rises and radiates from the
+winner's side of the board* and ends on the winner's name. It never moves toward the loser and never
+touches the loser's cards or panel. This matters because some starter themes borrow shapes that
+already mean something: Null's vortex means removal, Aegis's breach charge means a kill. In a boast
+they play outward and upward (the Null void collapses, then blooms out of the winner's side), so a
+viewer never reads a boast as "the loser's cards are being destroyed". Each boast is data over the
+existing primitives (faction material kit, wards, particles, the background grid), not a
+hand-drawn clip, as your entry asks ("code-drawn and self-contained").
+
+**The 4 starter boasts (first drafts of the idea):**
+- **Aegis, shield slam:** hex plates slam down in a wall along the winner's row, embers off each
+  plate, then the wall locks into a crest over the winner's name.
+- **Swarm, hive burst:** egg sacs bloom in every slot of the winner's row and burst into a rising
+  spore column that spells out the name.
+- **Null, void collapse:** a dark star pulls the winner's side's light in, holds a beat, and blooms
+  out in glitch bars that settle into the name.
+- **Cortex, data cascade:** columns of pixels rain onto the winner's row and assemble into the name
+  as wireframe blocks.
+
+**The end-of-match moment, in order:** the lethal hit and its existing full-screen beat play as now;
+the winner's HP bar settles; then the boast (about 3 s); then the existing "X WINS" result lands
+where the boast ends. A tap, Escape or a Skip button jumps straight to the result.
+
+**Where the render reads it from:** each side's loadout on the match record (the game lane's
+schema change). Until that lands, and for matches recorded before it, the render uses the
+winner's faction starter boast. With the close-win slot, the render plays whichever boast the
+record says played; it never picks one itself.
+
+**The loadout picker:** an owner page in the same family as the pack page. It shows the agent's 4
+slots (boast, card back, avatar, arena), each owned item with a looping preview, and a locked
+"in the store" plate for items the owner doesn't own. Saving goes through the store's loadout call,
+which refuses unowned items. This page comes last.
+
+**Build order (one slice per render session):**
+1. EFFECTS.md "victory" grammar; a boast spec format; the Aegis boast in the replays, with a sheet
+   of it on a full and an empty winning board; skip; reduced motion. Checkpoint.
+2. The other 3 starter boasts; the "hide cosmetics" toggle.
+3. Read the loadout from the match record once the game lane's schema lands; the close-win slot.
+4. The loadout picker.
+
+**Decisions I'd like (suggested defaults in brackets):**
+1. **When it plays** [after the lethal beat and the HP bar settle, before the result line, which
+   lands as the boast ends].
+2. **Length** [about 3 s; skippable by tap, Escape or a Skip button; it plays every time a replay
+   reaches its end, not only the first time].
+3. **Space** [the winner's half of the board and the winner's panel; the loser's side dims to
+   about 70% but nothing moves on it].
+4. **A draw** [no boast; the result line only].
+5. **A turn-cap win** [still a win: the boast plays. With the close-win slot, a turn-cap win on 5
+   health or less plays the close-win boast, as the store records].
+6. **Old matches and missing loadouts** [the winner's faction starter boast. Alternative: none].
+7. **The "hide cosmetics" toggle** [one "Cosmetics: on / off" switch for spectators that hides both
+   sides' boasts, card backs, avatars and arenas; your entry says "a viewer can hide the other
+   side's cosmetics", which for a spectator watching two agents I read as both sides. On the owner's
+   own pages it hides only the other side's].
+8. **Sound** [a short sting in the faction's procedural voice, with the music ducked under it; muted
+   when sound is off].
+9. **Reduced motion** [the boast's final pose as a still, with the name, for about 1 s].
+
+Nothing for the game lane here beyond what's already approved: the render needs each side's loadout
+(boast id) on the match record and the catalogue item's id to look up the boast's spec.
