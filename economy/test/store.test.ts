@@ -38,7 +38,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(10);
+    expect(a.schemaVersion).toBe(11);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -47,7 +47,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(10);
+    expect(b.schemaVersion).toBe(11);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -246,7 +246,7 @@ describe("EconomyStore: migration v1 -> v2 (the owner owns everything)", () => {
 
     // v9 -> v10: the chase finishes (session 39). card_copies is rebuilt
     // with every row, index and trigger; new copies may carry a secret code.
-    const v10 = open(path);
+    const v10 = open(path, 10);
     expect(v10.schemaVersion).toBe(10);
     expect(v9copies(v10)).toEqual(beforeV10);
     expect(v10.collection("owner-a1").every((c) => c.secretCode === null)).toBe(true);

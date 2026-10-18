@@ -370,10 +370,16 @@ start a step until the one before works and its tests pass):
    DONE already: ownership-gated decks (session 28), starter collections and
    salvage (session 29), the starter guarantee (a hit across the 3 starter
    packs, session 46).
-   NEXT after the owner's answers: victory boasts and the cosmetics loadout
-   (owner 2026-10-19; game-lane plan proposed session 46: catalogue,
-   ownership, 4 free starter boasts, per-agent loadout, loadout saved on the
-   match record). Cosmetic only, never in the engine or the ring.
+   DONE (session 47, game-lane half): victory boasts and the cosmetics
+   backend (owner 2026-10-19, plan approved with all 6 defaults): schema
+   v11, the code catalogue (4 free starter boasts), owned cosmetics
+   (account-bound), 300-credit season items in sale windows then retired,
+   per-agent loadouts (5 slots incl. close-win), each side's loadout and the
+   boast played saved on the match record. Evidence
+   `progress/economy-demo-012.txt`. Still open: which Season 0 items go on
+   sale (owner's call), carrying cosmetics over a season reset (the reset
+   itself isn't built), the server passing final health when it records
+   matches (item 6b). The render half is the render lane's.
 7. Unique Mythic (signature card), owner-decided 2026-10-05 (Neutral, 3
    generated candidates, 3 cost tiers, 16-option menu, the signature zone,
    ring re-baseline). Built with build-order step 2. Plus daily

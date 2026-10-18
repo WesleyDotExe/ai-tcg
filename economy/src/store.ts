@@ -41,6 +41,19 @@ import { customAgentNameProblem, nameKey, tidyAgentName } from "./agentNames.js"
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./passwords.js";
 import { CARD_SETS, FULL_ART_OR_BETTER, nextPity, rollPack, secretCardOf, type PackSlot, type PityState } from "./packs.js";
 import type { SecretCard } from "./chase.js";
+import {
+  CLOSE_WIN_HEALTH,
+  COSMETICS,
+  KIND_LABEL,
+  LOADOUT_SLOTS,
+  SLOT_KIND,
+  STARTER_BOASTS,
+  catalogueProblem,
+  onSale,
+  type CosmeticItem,
+  type CosmeticKind,
+  type LoadoutSlot,
+} from "./cosmetics.js";
 import { matchCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 import {
   BOUND_ORIGINS,
@@ -344,6 +357,38 @@ export interface RecordMatchInput {
   /** ISO time the match ended. Its UTC date is the "day" the daily win
    * schedule counts against. Defaults to the store's clock. */
   endedAt?: string;
+  /** Each side's health when the match ended (schema v11). For a win it
+   * decides the boast: the close-win boast plays when the winner ends on
+   * CLOSE_WIN_HEALTH or less. Without it, a win plays the main boast. */
+  finalHealth?: { p1: number; p2: number } | null;
+}
+
+/** An owned cosmetic (schema v11): account-bound, kept for good. */
+export interface OwnedCosmetic {
+  ownerId: string;
+  itemId: string;
+  kind: CosmeticKind;
+  source: "starter" | "purchase";
+  /** The credits payment, for a bought item. */
+  ledgerEntryId: number | null;
+  acquiredAt: string;
+  /** The catalogue entry (null only if a later catalogue dropped it). */
+  item: CosmeticItem | null;
+}
+
+/** What an agent has equipped, by slot: an item id, or null for an empty
+ * slot (an empty boast slot plays the deck faction's starter boast). */
+export type Loadout = Record<LoadoutSlot, string | null>;
+
+/** Which boast played at the end of a won match (schema v11), so a replay
+ * plays the same one. `slot` says why: the winner's main boast, its
+ * close-win boast (it ended on CLOSE_WIN_HEALTH or less), or, with the
+ * boast slot empty, the starter boast of the faction its deck played. */
+export interface MatchBoast {
+  agentId: string;
+  itemId: string;
+  slot: "boast" | "closeWinBoast" | "factionStarter";
+  winnerHealth: number | null;
 }
 
 export interface MatchRecord {
@@ -365,6 +410,13 @@ export interface MatchRecord {
   p1Credits: number;
   p2Credits: number;
   endedAt: string;
+  /** Each side's loadout at match time (schema v11); null for a match
+   * recorded before v11. */
+  loadouts: { p1: Loadout; p2: Loadout } | null;
+  /** The boast that played; null for a draw, a void match, a match from
+   * before v11, or a win whose boast slot was empty and whose deck isn't
+   * known (the render falls back to the winner's faction starter boast). */
+  boast: MatchBoast | null;
 }
 
 export interface PlayableDeck {
@@ -380,6 +432,8 @@ export interface PlayableDeck {
 export interface StarterGrant {
   copies: CardCopy[];
   packs: PackRecord[];
+  /** (v11) The four free faction starter boasts. */
+  cosmetics: OwnedCosmetic[];
 }
 
 /** A saved deck that uses more copies of a card than the owner would hold. */
@@ -466,6 +520,9 @@ export interface LiveSide {
   ownerId: string;
   agentId: string;
   deck: PlayableDeck;
+  /** (v11) The agent's loadout as the match starts; it can't change until
+   * the match is recorded. */
+  loadout: Loadout;
 }
 
 export interface LiveMatch {
@@ -670,24 +727,33 @@ export interface OpenOptions {
   /** Stop migrating at this schema version. Only for the migration tests,
    * which build an old file to upgrade; application code never sets it. */
   migrateTo?: number;
+  /** The cosmetics catalogue (default: the shipped COSMETICS). Tests and
+   * demos pass one with a season item for sale; it must still list the
+   * four starter boasts. */
+  cosmetics?: readonly CosmeticItem[];
 }
 
 export class EconomyStore {
   private readonly db: DatabaseSync;
   private readonly now: () => Date;
+  private readonly catalogue: ReadonlyMap<string, CosmeticItem>;
   private inTransaction = false;
 
-  private constructor(db: DatabaseSync, now: () => Date) {
+  private constructor(db: DatabaseSync, now: () => Date, catalogue: readonly CosmeticItem[]) {
     this.db = db;
     this.now = now;
+    this.catalogue = new Map(catalogue.map((item) => [item.itemId, item]));
   }
 
   /** Opens (creating if needed) the database file at `path` and brings its
    * schema up to date. `":memory:"` gives a throwaway store for tests. */
   static open(path: string, options: OpenOptions = {}): EconomyStore {
+    const catalogue = options.cosmetics ?? COSMETICS;
+    const problem = catalogueProblem(catalogue);
+    if (problem) throw new EconomyError(`bad cosmetics catalogue: ${problem}`);
     const db = new DatabaseSync(path);
     if (path !== ":memory:") db.exec("PRAGMA journal_mode = WAL;");
-    const store = new EconomyStore(db, options.now ?? (() => new Date()));
+    const store = new EconomyStore(db, options.now ?? (() => new Date()), catalogue);
     store.migrate(options.season ?? DEFAULT_SEASON, options.migrateTo ?? MIGRATIONS.length);
     db.exec("PRAGMA foreign_keys = ON;");
     return store;
@@ -824,7 +890,7 @@ export class EconomyStore {
         Array.from({ length: n }, () => this.grantCopy({ ownerId, cardId, origin: "starter", originRef: `starter:${faction}` })),
       );
       const packs = Array.from({ length: STARTER_PACKS }, () => this.grantPack(ownerId, setCode, "starter"));
-      return { copies, packs };
+      return { copies, packs, cosmetics: this.grantStarterBoasts(ownerId, at) };
     });
   }
 
@@ -989,6 +1055,7 @@ export class EconomyStore {
             .run(agent.agentId, agent.ownerId, agent.name, agent.persona, agent.createdAt);
         }
         if (this.schemaVersion >= 9) this.logAgentName(agent.agentId, agent.name, kind, 0, byOwnerId, null, agent.createdAt);
+        if (this.schemaVersion >= 11) this.equipFactionBoast(agent.ownerId, agent.agentId, agent.createdAt);
       } catch (err) {
         if (/UNIQUE.*agents\.name|agents_name_nocase/.test(err instanceof Error ? err.message : "")) throw new EconomyError(`the agent name "${agent.name}" is taken`);
         refused(err);
@@ -1389,6 +1456,163 @@ export class EconomyStore {
     return { activeDeckFits: faction === null || (active !== null && this.deckFactionOf(active) === faction) };
   }
 
+  // ---- cosmetics (schema v11; owner 2026-10-19, victory boasts) ----
+  //
+  // Cosmetic only: none of this reaches the engine, the agents or any
+  // balance check. The owner owns cosmetics (account-bound, kept across
+  // season resets); each agent wears a loadout of them, one item per slot.
+
+  /** The catalogue this store sells from (cosmetics.ts, or the one passed
+   * to `open`). */
+  cosmeticsCatalogue(): CosmeticItem[] {
+    return [...this.catalogue.values()];
+  }
+
+  /** What the store sells right now, in this season's sale windows, each
+   * with whether the owner already has it. Retired items never show. */
+  cosmeticsOnSale(ownerId: string): (CosmeticItem & { owned: boolean })[] {
+    const at = this.stamp();
+    const owned = new Set(this.ownedCosmetics(ownerId).map((c) => c.itemId));
+    return this.cosmeticsCatalogue()
+      .filter((item) => onSale(item, this.season, at))
+      .map((item) => ({ ...item, owned: owned.has(item.itemId) }));
+  }
+
+  ownedCosmetics(ownerId: string): OwnedCosmetic[] {
+    if (this.schemaVersion < 11) return [];
+    return (this.db.prepare("SELECT * FROM owned_cosmetics WHERE owner_id = ? ORDER BY acquired_at, item_id").all(ownerId) as Row[]).map((r) => ({
+      ownerId: str(r.owner_id),
+      itemId: str(r.item_id),
+      kind: str(r.kind) as CosmeticKind,
+      source: str(r.source) as OwnedCosmetic["source"],
+      ledgerEntryId: numOrNull(r.ledger_entry_id),
+      acquiredAt: str(r.acquired_at),
+      item: this.catalogue.get(str(r.item_id)) ?? null,
+    }));
+  }
+
+  private ownsCosmetic(ownerId: string, itemId: string): boolean {
+    return this.db.prepare("SELECT 1 FROM owned_cosmetics WHERE owner_id = ? AND item_id = ?").get(ownerId, itemId) !== undefined;
+  }
+
+  /** Buys a cosmetic with credits, the one shop currency: debited and
+   * granted together or not at all. Refused: an item that isn't sold (the
+   * free starter boasts), one from another season or outside its sale
+   * window (retired items are never sold again, owner 2026-10-19 decision
+   * 2), one the owner already has, and too few credits. */
+  buyCosmetic(ownerId: string, itemId: string): OwnedCosmetic {
+    const item = this.catalogue.get(itemId);
+    if (!item) throw new EconomyError(`no cosmetic "${itemId}"`);
+    const at = this.stamp();
+    if (!onSale(item, this.season, at)) {
+      if (item.priceCredits === null) throw new EconomyError(`"${item.name}" is free with the starter collection; it isn't sold`);
+      if (item.season !== this.season) throw new EconomyError(`"${item.name}" is a ${item.season} item; it isn't sold in ${this.season}`);
+      throw new EconomyError(`"${item.name}" isn't on sale now`);
+    }
+    return this.transaction(() => {
+      this.getOwner(ownerId);
+      if (this.ownsCosmetic(ownerId, itemId)) throw new EconomyError(`the owner already has "${item.name}"`);
+      if (this.balance(ownerId, "credits") < item.priceCredits!) {
+        throw new EconomyError(`"${item.name}" costs ${item.priceCredits} credits; the owner has ${this.balance(ownerId, "credits")}`);
+      }
+      const entryId = this.appendLedger(ownerId, null, "credits", -item.priceCredits!, "cosmeticPurchase", itemId, at);
+      try {
+        this.db
+          .prepare("INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, ledger_entry_id, acquired_at) VALUES (?, ?, ?, 'purchase', ?, ?)")
+          .run(ownerId, itemId, item.kind, entryId, at);
+      } catch (err) {
+        refused(err);
+      }
+      return this.ownedCosmetics(ownerId).find((c) => c.itemId === itemId)!;
+    });
+  }
+
+  /** The four faction starter boasts, with the starter collection (all
+   * four, since agents can switch factions). The owner's agents made
+   * before it start wearing the faction's boast. */
+  private grantStarterBoasts(ownerId: string, at: string): OwnedCosmetic[] {
+    if (this.schemaVersion < 11) return [];
+    const insert = this.db.prepare("INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, acquired_at) VALUES (?, ?, 'boast', 'starter', ?)");
+    for (const boast of Object.values(STARTER_BOASTS)) {
+      try {
+        insert.run(ownerId, boast.itemId, at);
+      } catch (err) {
+        refused(err);
+      }
+    }
+    for (const agent of this.listAgents(ownerId)) this.equipFactionBoast(ownerId, agent.agentId, at);
+    return this.ownedCosmetics(ownerId);
+  }
+
+  /** A new agent's boast slot: the starter boast of the owner's faction
+   * lock, else its starting faction, if the owner has it. An agent that
+   * already wears a boast keeps it. */
+  private equipFactionBoast(ownerId: string, agentId: string, at: string): void {
+    const owner = this.getOwner(ownerId);
+    const faction = owner.factionLock ?? owner.startingFaction;
+    if (faction === null) return;
+    const itemId = STARTER_BOASTS[faction].itemId;
+    if (!this.ownsCosmetic(ownerId, itemId)) return;
+    this.db.prepare("INSERT INTO agent_loadouts (agent_id, slot, item_id, set_at) VALUES (?, 'boast', ?, ?) ON CONFLICT DO NOTHING").run(agentId, itemId, at);
+  }
+
+  /** What the agent has equipped, by slot (null = empty). */
+  loadout(agentId: string): Loadout {
+    const loadout = Object.fromEntries(LOADOUT_SLOTS.map((slot) => [slot, null])) as Loadout;
+    if (this.schemaVersion < 11) return loadout;
+    for (const r of this.db.prepare("SELECT slot, item_id FROM agent_loadouts WHERE agent_id = ?").all(agentId) as Row[]) {
+      loadout[str(r.slot) as LoadoutSlot] = str(r.item_id);
+    }
+    return loadout;
+  }
+
+  /** Equips an owned item in one of the agent's slots, or empties the slot
+   * (null). Refused: another owner's agent, an item of the wrong kind for
+   * the slot, an item the owner doesn't own, and any change while the
+   * owner is in a live match (the match records the loadout it started
+   * with). */
+  setLoadout(ownerId: string, agentId: string, slot: LoadoutSlot, itemId: string | null): Loadout {
+    if (!LOADOUT_SLOTS.includes(slot)) throw new EconomyError(`no loadout slot "${slot}"`);
+    const agent = this.getAgent(agentId);
+    if (agent.ownerId !== ownerId) throw new EconomyError("an owner can only dress its own agents");
+    if (this.liveMatchOf(ownerId) !== null) throw new EconomyError("no loadout changes during a live match");
+    if (itemId !== null) {
+      const item = this.catalogue.get(itemId);
+      if (!item) throw new EconomyError(`no cosmetic "${itemId}"`);
+      if (item.kind !== SLOT_KIND[slot]) throw new EconomyError(`"${item.name}" is ${KIND_LABEL[item.kind]}; the ${slot} slot takes ${KIND_LABEL[SLOT_KIND[slot]]}`);
+      if (!this.ownsCosmetic(ownerId, itemId)) throw new EconomyError(`the owner doesn't own "${item.name}"`);
+    }
+    this.transaction(() => {
+      try {
+        if (itemId === null) {
+          this.db.prepare("DELETE FROM agent_loadouts WHERE agent_id = ? AND slot = ?").run(agentId, slot);
+        } else {
+          this.db
+            .prepare("INSERT INTO agent_loadouts (agent_id, slot, item_id, set_at) VALUES (?, ?, ?, ?) ON CONFLICT (agent_id, slot) DO UPDATE SET item_id = excluded.item_id, set_at = excluded.set_at")
+            .run(agentId, slot, itemId, this.stamp());
+        }
+      } catch (err) {
+        refused(err);
+      }
+    });
+    return this.loadout(agentId);
+  }
+
+  /** The boast a won match plays (owner 2026-10-19 decision 5): the
+   * close-win boast when the winner ended on CLOSE_WIN_HEALTH or less and
+   * has one, else the main boast, else the starter boast of the faction its
+   * deck played (render session 30 call 6). Null when none of those is
+   * known. The agent never chooses. */
+  private chooseBoast(agentId: string, loadout: Loadout, deckId: string | null, winnerHealth: number | null): MatchBoast | null {
+    if (winnerHealth !== null && winnerHealth <= CLOSE_WIN_HEALTH && loadout.closeWinBoast !== null) {
+      return { agentId, itemId: loadout.closeWinBoast, slot: "closeWinBoast", winnerHealth };
+    }
+    if (loadout.boast !== null) return { agentId, itemId: loadout.boast, slot: "boast", winnerHealth };
+    if (deckId === null) return null;
+    const faction = this.deckFactionOf(deckId);
+    return { agentId, itemId: STARTER_BOASTS[faction].itemId, slot: "factionStarter", winnerHealth };
+  }
+
   // ---- live matches ----
 
   /** Starts a match between two owners (opponents are server-assigned).
@@ -1417,7 +1641,7 @@ export class EconomyStore {
         // zone: switching agents changes only this (owner app spec B).
         const signature = this.signatureCard(owner.connectedAgentId);
         if (signature) deck.spec.signature = signature.card;
-        return { ownerId, agentId: owner.connectedAgentId, deck };
+        return { ownerId, agentId: owner.connectedAgentId, deck, loadout: this.loadout(owner.connectedAgentId) };
       };
       const p1 = side(input.p1OwnerId);
       const p2 = side(input.p2OwnerId);
@@ -1506,12 +1730,13 @@ export class EconomyStore {
     reason: string,
     ref: string | null,
     at: string,
-  ): void {
+  ): number {
     if (!Number.isInteger(delta) || delta === 0) throw new EconomyError(`a ledger entry needs a non-zero whole delta, got ${delta}`);
     try {
-      this.db
+      const result = this.db
         .prepare("INSERT INTO ledger (owner_id, played_by, currency, delta, reason, ref, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
         .run(ownerId, playedBy, currency, delta, reason, ref, at);
+      return num(result.lastInsertRowid);
     } catch (err) {
       refused(err);
     }
@@ -2356,6 +2581,10 @@ export class EconomyStore {
       throw new EconomyError(`agent "${agentId}" did not play match "${input.matchId}"`);
     };
     const winnerOwner = outcome.kind === "win" ? ownerOfSide(outcome.winnerAgentId) : null;
+    const health = input.finalHealth ?? null;
+    if (health !== null && (!Number.isInteger(health.p1) || !Number.isInteger(health.p2))) {
+      throw new EconomyError(`final health is whole numbers, got ${health.p1} / ${health.p2}`);
+    }
     const abandonedByOwner = outcome.kind === "abandoned" ? ownerOfSide(outcome.byAgentId) : null;
     const resultFor = (ownerId: string): MatchResultForAgent => {
       switch (outcome.kind) {
@@ -2405,6 +2634,8 @@ export class EconomyStore {
         p1Credits,
         p2Credits,
         endedAt,
+        loadouts: null,
+        boast: null,
       };
       try {
         this.db
@@ -2434,6 +2665,32 @@ export class EconomyStore {
       } catch (err) {
         refused(err);
       }
+      if (this.schemaVersion >= 11) {
+        // The loadouts as the match ends: the same as it started, since a
+        // live match's owners can't change them.
+        record.loadouts = { p1: this.loadout(p1), p2: this.loadout(p2) };
+        const insertLoadout = this.db.prepare(
+          `INSERT INTO match_loadouts (match_id, seat, agent_id, boast, close_win_boast, card_back, avatar, arena)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        );
+        if (outcome.kind === "win") {
+          const seat = outcome.winnerAgentId === p1 ? "p1" : "p2";
+          record.boast = this.chooseBoast(outcome.winnerAgentId, record.loadouts[seat], seat === "p1" ? record.p1DeckId : record.p2DeckId, health?.[seat] ?? null);
+        }
+        try {
+          for (const seat of ["p1", "p2"] as const) {
+            const l = record.loadouts[seat];
+            insertLoadout.run(input.matchId, seat, seat === "p1" ? p1 : p2, l.boast, l.closeWinBoast, l.cardBack, l.avatar, l.arena);
+          }
+          if (record.boast !== null) {
+            this.db
+              .prepare("INSERT INTO match_boasts (match_id, agent_id, item_id, slot, winner_health) VALUES (?, ?, ?, ?, ?)")
+              .run(input.matchId, record.boast.agentId, record.boast.itemId, record.boast.slot, record.boast.winnerHealth);
+          }
+        } catch (err) {
+          refused(err);
+        }
+      }
       const reason = (r: MatchResultForAgent) => (r === "win" ? "matchWin" : r === "draw" ? "matchDraw" : "matchLoss");
       if (p1Credits > 0) this.appendLedger(owner1, p1, "credits", p1Credits, reason(resultFor(owner1)), input.matchId, endedAt);
       if (p2Credits > 0) this.appendLedger(owner2, p2, "credits", p2Credits, reason(resultFor(owner2)), input.matchId, endedAt);
@@ -2455,7 +2712,33 @@ export class EconomyStore {
       params.a = filter.agentId;
     }
     const sql = `SELECT * FROM matches ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY ended_at, rowid`;
-    return (this.db.prepare(sql).all(params) as Row[]).map((r) => {
+    const rows = this.db.prepare(sql).all(params) as Row[];
+    const loadouts = new Map<string, { p1: Loadout; p2: Loadout }>();
+    const boasts = new Map<string, MatchBoast>();
+    if (this.schemaVersion >= 11 && rows.length > 0) {
+      const ids = rows.map((r) => str(r.match_id));
+      const marks = ids.map(() => "?").join(", ");
+      for (const l of this.db.prepare(`SELECT * FROM match_loadouts WHERE match_id IN (${marks})`).all(...ids) as Row[]) {
+        const entry = loadouts.get(str(l.match_id)) ?? ({} as { p1: Loadout; p2: Loadout });
+        entry[str(l.seat) as "p1" | "p2"] = {
+          boast: strOrNull(l.boast),
+          closeWinBoast: strOrNull(l.close_win_boast),
+          cardBack: strOrNull(l.card_back),
+          avatar: strOrNull(l.avatar),
+          arena: strOrNull(l.arena),
+        };
+        loadouts.set(str(l.match_id), entry);
+      }
+      for (const b of this.db.prepare(`SELECT * FROM match_boasts WHERE match_id IN (${marks})`).all(...ids) as Row[]) {
+        boasts.set(str(b.match_id), {
+          agentId: str(b.agent_id),
+          itemId: str(b.item_id),
+          slot: str(b.slot) as MatchBoast["slot"],
+          winnerHealth: numOrNull(b.winner_health),
+        });
+      }
+    }
+    return rows.map((r) => {
       const winnerOwner = strOrNull(r.winner_owner);
       return {
         matchId: str(r.match_id),
@@ -2475,6 +2758,8 @@ export class EconomyStore {
         p1Credits: num(r.p1_credits),
         p2Credits: num(r.p2_credits),
         endedAt: str(r.ended_at),
+        loadouts: loadouts.get(str(r.match_id)) ?? null,
+        boast: boasts.get(str(r.match_id)) ?? null,
       };
     });
   }

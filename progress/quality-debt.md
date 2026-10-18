@@ -40,9 +40,39 @@ re-baselined, the Zero-Day cards tuned to the cap), and session 42 (the Zero-Day
 Aegis vs Cortex investigation), and session 43 (the signature-mode ring investigation), and session 44
 (the real-match ring check; why a signature card helps Aegis most), and session 45 (option C: the
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
-victory-boast plan).
+victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 47
+
+- **Season 0 sells nothing:** the shipped catalogue is only the 4 free starter boasts. The purchase
+  path, sale windows and retirement are tested only with test and demo items. No card back, avatar
+  or arena item exists, so those 3 slots can't be filled yet.
+- **The close-win rule depends on the caller passing `finalHealth`.** Only the demo does; the real
+  server doesn't record matches yet (roadmap 6b). Without it a close win plays the main boast and
+  nothing flags it. When 6b lands, make `finalHealth` required for a win from the server path.
+- **Season-reset carry-over is a rule on paper:** no reset code exists (a new season is a new file),
+  so nothing yet copies `owned_cosmetics` / `agent_loadouts` (or the unique Mythic) across.
+- **The catalogue is checked when the store opens, not against the database:** an item id that
+  later leaves the catalogue still shows as owned (with `item: null`) and can stay equipped; nothing
+  stops a catalogue edit from orphaning it. Never remove an item; retire it with its sale window.
+- **The "no loadout change during a live match" rule is in the store, not the schema** (like the
+  agent-switch rule): a raw SQL write could change a loadout mid-match. The match record would then
+  show the changed loadout.
+- **`matchHistory` now runs two extra queries with an IN list of every match id;** fine at demo
+  scale, untested at ladder scale (part of the standing storage load-test gate).
+- **Hardening pass now three sessions overdue** (45 option C, 46 the starter guarantee, 47 boasts,
+  each by the owner's direction). Still open from session 46: the approved signature list's
+  10,000-game re-check with the session-41 agent; smoke tests for `signatureRingDrivers.ts` and
+  `aegisSignatureGain.ts`; `grantStarterCollection` inserts copy by copy.
+
+## Session 46 debt, status after session 47
+
+- "Victory boasts and the whole cosmetics backend are unbuilt": the game lane's half is BUILT (the
+  render half is the render lane's). The shop spec's owned-cosmetics inventory and sale windows
+  exist now.
+- The render lane's `starterHit` note: the render lane's (owner answered in render session 30).
 
 ## New debt from session 46
 
