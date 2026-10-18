@@ -1,0 +1,6 @@
+Render session 30: first-time-check.mjs . render/output/first-time.html "" v2-s30 (the starter guarantee, check I; typed names as session 29).
+desktop: pass (faction Swarm, starter guarantee on pack 3, agent Coiljackal's Croupier typed as "Night Shift 99", card Turboheron's Denim Rave; mint 7439 ms tap-to-free, beats gather@15 ward@1140 forge@3604 stamp@4902 settle@6094 free@7421; lean [15,15]; ward lit 2491)
+phone: pass (faction Aegis, starter guarantee on pack 3, agent Shellfixer's Sleepless Flywheel typed as "Bit by Bit", card Fluxbadger's Obsidian Torrent; mint 7438 ms tap-to-free, beats gather@11 ward@1132 forge@3633 stamp@4923 settle@5940 free@7443; lean [15,15]; ward lit 1797)
+phone-reduced: pass (faction Null, starter guarantee on pack 3, agent Laserferret's Turbo Champion, card Mainframe Key of the Blackout; mint 1018 ms tap-to-free, beats gather@12 ward@81 forge@142 stamp@149 settle@901 free@940; lean [6,6]; ward lit 4035)
+all pass
+

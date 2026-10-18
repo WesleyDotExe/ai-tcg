@@ -37,6 +37,12 @@
 //      the second the wanted one, and the plates not picked stay in place
 //      and visible (they were taken out of the layout and hidden by the
 //      pack page's full-screen .dim rule).
+//   I. (render session 30, the starter guarantee) Every faction's 3 packs
+//      hold a hit. The "Starter guarantee" note is nowhere on the page
+//      while a pack is sealed, torn or revealing; on the summary it shows
+//      exactly on the pack the store upgraded (reveal.starterHit). The
+//      sealed pack looks the same on all 3 packs (same markup, same
+//      classes), so nothing hints at the upgrade before the tear.
 // Stills of every screen go to outDir; with "video", a desktop and a phone
 // clip of the agent pick, the card pick, the mint and the ready screen.
 import { chromium } from '/opt/node-tools/node_modules/playwright-core/index.mjs';
@@ -44,7 +50,8 @@ import { mkdirSync, renameSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 const [outDir, fileArg, video, tag = 'v2-s28'] = process.argv.slice(2);
 // Session 29 keeps only the stills its change touches.
-const STILLS = tag === 'v2-s28' ? null : new Set(['5b-name-refused', '5c-name-typed', '6-sigs', '7d-mint-settled', '8-ready']);
+// Session 30 keeps only the pack stills (the note on the last summary).
+const STILLS = tag === 'v2-s28' ? null : tag === 'v2-s30' ? new Set(['4-pack', '4b-last-summary']) : new Set(['5b-name-refused', '5c-name-typed', '6-sigs', '7d-mint-settled', '8-ready']);
 const tidy = (n) => n.trim().replace(/\s+/g, ' ');
 const file = resolve(fileArg);
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
@@ -113,8 +120,14 @@ async function run(name, size, touch, reduce, F_I, A_I, S_I, TYPED = null) {
   check((await S(p, () => document.querySelectorAll('.ft-sc').length)) === 5, 'A: the starter fan is not 5 cards');
   await tapSel('#ft-open');
   // The 3 starter packs, through the real opening.
+  check(fac.packs.some((pk) => pk.reveal.cards.some((c) => c.hit)), `I: ${fac.faction}'s starter packs hold no hit`);
+  const noteShown = () => /Starter guarantee/.test(document.body.innerText);
+  const sealed = [];
   for (let k = 0; k < fac.packs.length; k++) {
     check(await waitFor(p, () => window.__pack.phase === 'pack'), `A: pack ${k + 1} not sealed`);
+    await p.waitForTimeout(150);
+    sealed.push(await S(p, () => document.getElementById('pack').outerHTML.replace(/style="[^"]*"/g, '')));
+    check(!(await S(p, noteShown)), `I: the guarantee note shows on sealed pack ${k + 1}`);
     check((await S(p, () => document.getElementById('ftbadge').textContent)) === `STARTER PACK ${k + 1} OF ${3}`, `A: pack ${k + 1} badge`);
     if (k === 0) await still('4-pack');
     await p.waitForTimeout(300);
@@ -122,6 +135,7 @@ async function run(name, size, touch, reduce, F_I, A_I, S_I, TYPED = null) {
     check(await waitFor(p, () => window.__pack.phase === 'cards' || window.__pack.phase === 'summary'), `A: pack ${k + 1} did not tear`);
     for (let guard = 0; guard < 40; guard++) {
       if ((await S(p, () => window.__pack.phase)) === 'summary') break;
+      check(!(await S(p, noteShown)), `I: the guarantee note shows before pack ${k + 1}'s summary`);
       await waitFor(p, () => performance.now() >= window.__pack.busyUntil, null, 8000);
       const st = await centre(p, '.stack'); if (st) await P.tap(st.x, st.y);
       await p.waitForTimeout(260);
@@ -130,9 +144,11 @@ async function run(name, size, touch, reduce, F_I, A_I, S_I, TYPED = null) {
     const shown = await S(p, () => window.__pack.log.filter((e) => e.kind === 'summary').pop().cards);
     const want = fac.packs[k].reveal.cards.map((c) => ({ name: c.face.name, finish: c.finish, isNew: c.isNew }));
     check(JSON.stringify(shown) === JSON.stringify(want), `B: pack ${k + 1}'s summary is not the store's opening`);
+    check((await S(p, noteShown)) === fac.packs[k].reveal.starterHit, `I: pack ${k + 1}'s summary note is not the store's starterHit (${fac.packs[k].reveal.starterHit})`);
     if (k === fac.packs.length - 1) { await p.waitForTimeout(600); await still('4b-last-summary'); check(/You now hold \d+ cards/.test(await S(p, () => document.querySelector('.ft-held')?.textContent || '')), 'F: no holdings line after the last pack'); }
     await tapSel('#ft-next');
   }
+  check(sealed.every((h) => h === sealed[0]), 'I: the sealed packs differ: ' + sealed.map((h) => h.length).join(','));
   check(await waitFor(p, () => window.__ft.step === 'agents'), 'A: no agent screen after the packs');
   check(await waitFor(p, () => document.querySelectorAll('.ft-aname.typed').length === 3), 'A: the agent names never finished typing');
   const names = await S(p, () => [...document.querySelectorAll('.ft-aname')].map((n) => n.textContent));
@@ -249,7 +265,7 @@ async function run(name, size, touch, reduce, F_I, A_I, S_I, TYPED = null) {
   check(await waitFor(p, () => !document.getElementById('viewer').hidden), 'A: the card viewer did not open');
   await p.waitForTimeout(500); await still('9-viewer');
   check(errs.length === 0, 'page errors: ' + errs.join(' | '));
-  say(`${name}: ${problems.length ? 'FAIL' : 'pass'} (faction ${fac.faction}, agent ${a.name}${agentName !== gen ? ` typed as "${agentName}"` : ''}, card ${c.name}; mint ${took} ms tap-to-free, beats ${log.filter((e) => order.includes(e.kind) && e.kind !== 'line').map((e) => e.kind + '@' + e.t).join(' ')}; lean ${JSON.stringify(lean)}; ward lit ${lit})`);
+  say(`${name}: ${problems.length ? 'FAIL' : 'pass'} (faction ${fac.faction}, starter guarantee on pack ${fac.packs.findIndex((pk) => pk.reveal.starterHit) + 1 || 'none'}, agent ${a.name}${agentName !== gen ? ` typed as "${agentName}"` : ''}, card ${c.name}; mint ${took} ms tap-to-free, beats ${log.filter((e) => order.includes(e.kind) && e.kind !== 'line').map((e) => e.kind + '@' + e.t).join(' ')}; lean ${JSON.stringify(lean)}; ward lit ${lit})`);
   problems.forEach((x) => say('  - ' + x));
   fails += problems.length;
   const v = video && !reduce ? p.video() : null;

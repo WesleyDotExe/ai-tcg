@@ -1368,7 +1368,9 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     var r = S.cur;
     var hits = r.cards.filter(function (c) { return c.hit; }).length;
     var tiles = r.cards.map(function (c, i) { return tileHtml(c, i, ''); }).join('');
-    var pity = r.pity.fullArt || r.pity.mythic ? '<div class="sub">' + (r.pity.fullArt ? 'Pity: this pack was due a hit. ' : '') + (r.pity.mythic ? 'Pity: this pack was due a Mythic.' : '') + '</div>' : '';
+    // After the reveal only, never before: the pack and the tear look the
+    // same whether pity or the starter guarantee applied.
+    var pity = r.pity.fullArt || r.pity.mythic || r.starterHit ? '<div class="sub">' + (r.pity.fullArt ? 'Pity: this pack was due a hit. ' : '') + (r.starterHit ? 'Starter guarantee: this pack was due a hit. ' : '') + (r.pity.mythic ? 'Pity: this pack was due a Mythic.' : '') + '</div>' : '';
     scene.innerHTML = '<div class="summary"><h2>PACK COMPLETE</h2><p class="sub">' + r.cards.length + ' cards · ' + (hits ? hits + ' hit' + (hits > 1 ? 's' : '') : 'no hits') + (r.jackpot ? ' · Jackpot pack' : '') + '</p>' + pity +
       '<div class="grid">' + tiles + '</div><p class="points">+<b>' + r.packPoints + '</b> pack points</p>' +
       '<div class="btns"><button class="pri" id="again">Open another</button><button id="done">Done</button></div></div>';

@@ -142,6 +142,11 @@ export interface PackReveal {
    * own flag). Unused by a single-pack open, which always reveals fully. */
   fullReveal: boolean;
   pity: PackOpening["pity"];
+  /** The starter guarantee upgraded this pack's shine slot to a hit (the
+   * owner's last starter pack, when the earlier ones held none). Shown only
+   * on the summary, after the reveal, like pity: the pack and the tear
+   * never look different (owner 2026-10-19). */
+  starterHit: boolean;
   packPoints: number;
   /** In reveal order: the four plain slots as rolled, then the shine slot,
    * then a Prototype's bonus 6th card. */
@@ -169,6 +174,7 @@ export function planReveal(opening: PackOpening): PackReveal {
     sparks: cards.some((c) => c.hit),
     fullReveal: opening.fullReveal,
     pity: opening.pity,
+    starterHit: opening.starterHit,
     packPoints: opening.packPoints,
     cards,
   };

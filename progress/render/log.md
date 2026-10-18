@@ -3259,3 +3259,47 @@ store's, a little technical.
 turn-cap ending and the momentum gauge's pending threat). Once the game lane lands the starter-pack
 hit guarantee, rebuild `first-time.html` and re-run the check (the starter packs change).
 
+
+## 2026-10-19 — Session 30: the starter guarantee on the page; the plan for victory boasts
+
+Render session by the alternation rule: the last merged PR (#77) was the game lane's (session 46,
+the starter guarantee). Owner feedback read: the 2026-10-19 answers to game session 46 hold a
+render side task (a "Starter guarantee" note after the reveal) and approve the game lane's boast
+plan; the render lane proposes its own half before building. Render session 29's answers (keep all
+5) needed nothing.
+
+**Built: the starter guarantee note.**
+- `packOpening.ts`: `PackReveal.starterHit`, from the store's `PackOpening.starterHit`.
+- `packPage.ts`: the summary shows "Starter guarantee: this pack was due a hit." when it applied,
+  next to the pity notes. Nothing else in the page reads the flag, so the sealed pack, the tear and
+  the reveals are unchanged.
+- `firstTime.ts`: the transcript marks the upgraded pack.
+- Rebuilt `first-time.html` (now with the guarantee: on the demo's seeds every faction's pack 3
+  becomes a Full Art Static Ward Beacon; before it, all 3 packs held no hit for every faction) and
+  `pack-opening.html` (data only: `starterHit: false`).
+
+**Ran it:**
+- `npm run first-time`; transcript `v2-s30-first-time-transcript.txt`.
+- `first-time-check.mjs . first-time.html "" v2-s30` (output `first-time-check-s30.txt`): new check
+  I (a hit in every faction's packs; no note while sealed, torn or revealing; the note on exactly
+  the upgraded pack's summary; the 3 sealed packs' markup identical). Desktop, phone and reduced
+  motion all pass, with the session-29 name checks. Stills `v2-s30-4-pack-*`, `v2-s30-4b-last-summary-*`.
+- `npm test`: every workspace passes (render 410, +3); typecheck clean everywhere. The two
+  committed-page tests failed until `pack-opening.html` was rebuilt (its data gained the flag), as
+  they should.
+
+**Tests (+3, `firstTime.test.ts`):** the demo's seeds give every faction a hit, upgraded in pack 3;
+40 other Swarm seed sets: a hit every time, the flag only ever on pack 3 and exactly when packs 1-2
+had none (and pity hadn't already made it a hit); both upgraded and natural cases occur; the note
+text appears once in the page and only the summary reads `.starterHit`.
+
+**Planned, not built: victory boasts, the render half.** An [OWNER CHECK-IN] in
+`notes-for-owner.md`: a "victory" event category (rises from the winner's side, never touches the
+loser, so a Null collapse can't read as removal), the 4 starter boasts as data over the existing
+primitives, the end-of-match order (lethal beat, HP settles, boast about 3 s, then the result line;
+skippable), the fallback to the winner's faction starter boast for old matches, the loadout picker
+last; four slices and 9 decisions with defaults.
+
+**Next render-lane slice:** the owner's answers on the boast plan, then boast slice 1 (EFFECTS.md
+grammar, the spec format, the Aegis boast in the replays). Without answers: the render debt list
+(the turn-cap ending and the momentum gauge's pending threat).

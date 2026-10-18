@@ -303,7 +303,7 @@ export function firstTimeTranscript(d: FirstTimeData): string {
     for (const p of f.packs) {
       const r = p.reveal;
       const cards = r.cards.map((c) => `${c.hit ? "*" : ""}${c.face.name}${c.finish === "standard" ? "" : ` (${c.finish})`}${c.isNew ? " NEW" : ""}`).join(", ");
-      lines.push(`  ${p.label}: seed ${r.seed}, ${r.sparks ? "SPARKS" : "no sparks"}, +${r.packPoints} pack points: ${cards}`);
+      lines.push(`  ${p.label}: seed ${r.seed}, ${r.sparks ? "SPARKS" : "no sparks"}${r.starterHit ? ", starter guarantee" : ""}, +${r.packPoints} pack points: ${cards}`);
     }
   }
   lines.push("", "Generate a new agent (3 agents; 3 signature cards each; what confirming each one makes):");

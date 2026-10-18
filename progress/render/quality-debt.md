@@ -29,10 +29,13 @@ items are removed, with the fix in `log.md`.
   the signature screen (or ask the store as you type, a game-lane endpoint).
 - **The refusal reasons are the store's wording** ("An agent name never
   runs punctuation together."): correct, a little technical.
-- **The starter packs read flat more often than not** (55% hold no hit,
-  measured). The owner chose a guarantee of one hit across the 3 (call 9);
-  it is the game lane's next job, and the page will show whatever the store
-  then rolls. Rebuild the page and re-run the check once it lands.
+- **The starter guarantee note has only been seen on pack 3** (session 30). The demo's seeds
+  never hit in packs 1-2, so the page never shows a natural hit with no note; the tests cover that
+  case in Node, not in the browser. The Cortex branch isn't walked in the browser (the 3 runs pick
+  Swarm, Aegis and Null); its data is tested.
+- **The demo's starter packs now always end on the same card** (a Full Art Static Ward Beacon for
+  every faction, seeds 101-103). Honest to the store, but a viewer comparing factions sees the same
+  pack 3.
 - **Reduced motion cuts the mint to about a second.** It keeps every piece
   of information but none of the build-up; nobody using reduced motion has
   said whether that's right.
@@ -201,6 +204,10 @@ items are removed, with the fix in `log.md`.
   and tested; the page glue isn't.
 
 ## Deferred by design (not debt, listed so it isn't forgotten)
+
+- **Victory boasts (render half)** are planned, not built (session 30): no "victory" event
+  category, no boast animation, no end-of-match moment beyond the lethal beat and the result line,
+  no loadout picker. Waiting on the owner's answers to the plan.
 
 - Real card art (the late owner-funded pass) and the 500-piece signature
   art pool (game lane first). The card centre is still a placeholder motif.
