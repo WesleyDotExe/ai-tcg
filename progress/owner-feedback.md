@@ -3253,3 +3253,25 @@ The plan as proposed: a new "victory" event category in EFFECTS.md that always r
 9. **Reduced motion:** the boast's final pose as a still, with the name, for about 1 s.
 
 Next render session: slice 1 of the boast plan.
+
+
+---
+
+## 2026-10-19 — Owner: answers to render session 31 (boast slice 1, Shield Slam), keep all 7; and the Season 0 boasts
+
+### Render session 31: keep all 7
+Owner decisions on the 7 calls in `progress/render/checkpoints.md` (2026-10-19, "Victory boasts, slice 1: the victory grammar and Aegis's Shield Slam"; PR #80).
+1. **Keep:** the plates slam up out of the slot floors, not down (down is the debuff direction).
+2. **Keep:** a jump to the end (|> or the scrubber) plays no boast; stepping or playing into the win does, every time.
+3. **Keep:** the winner's own row darkens under the crest and name.
+4. **Keep:** the crest is a hex ring of plates around a centre plate, as a first take.
+5. **Keep:** the match feed still says "X wins" while the boast plays; only the turn bar waits.
+6. **Keep:** on a phone the page scrolls to the winner's side if it's out of view.
+7. **Keep:** the music dips to 55% under the sting.
+
+### What Season 0 sells (answers the game lane's session-47 question 1)
+Season 0 sells **two season boasts**, at 300 credits each (the approved price), **on sale for the whole of Season 0**, then retired. Both are neutral (any faction's agent can equip them). No card backs, avatars or arenas go on sale in Season 0 until the render lane can draw them.
+- **Boot Sequence:** the screen flickers like an old CRT powering on, a retro BIOS screen types out the winner's name line by line, then a chunky "SYSTEM READY" flash.
+- **Dial-Up Fireworks:** a modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.
+
+Both follow the approved victory grammar (rise from the winner's side, never touch the loser) and are code-drawn. **Game lane:** add both to the cosmetics catalogue with the Season 0 sale window. **Render lane:** draw both after the 4 starter boasts (slice 2). Neither goes on sale until the render lane has drawn it.
