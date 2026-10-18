@@ -332,8 +332,13 @@ describe("modal and Zero-Day lint", () => {
     ).toThrow(/can't be modal/);
   });
 
-  it("is not live: the card registry doesn't hold them, so the economy keeps its reserved entries", () => {
-    for (const card of ZERO_DAY_CARDS) expect(getCard(card.id)).toBeUndefined();
+  it("is live (owner 2026-10-18, session 42): the card registry holds each one, at the approved numbers", () => {
+    for (const card of ZERO_DAY_CARDS) expect(getCard(card.id)).toBe(card);
+    expect(ZERO_DAY_CARDS.map((c) => c.id)).toEqual(["S0-ZD1", "S0-ZD2", "S0-ZD3"]);
+    const modeText = (card: Card, id: string) => card.modes!.find((m) => m.id === id)!.text;
+    expect(modeText(patientZero, "carrier")).toBe("Your other units get +1/+0.");
+    expect(modeText(getCard("S0-ZD2")!, "privilege-escalation")).toBe("This unit's attack equals the number of other units in play.");
+    expect(modeText(getCard("S0-ZD3")!, "wipe")).toBe("Deal 3 damage to all enemy units, then draw a card.");
   });
 });
 

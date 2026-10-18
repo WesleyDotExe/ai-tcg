@@ -338,8 +338,11 @@ start a step until the one before works and its tests pass):
      (2 modes, the fairness test with a cap above the band, 1 per deck,
      ranked and tournaments allowed): built (session 40), the agent fixed
      and the cards tuned to the owner's cap (session 41, balance-report-028);
-     NEXT: live with the owner's OK (one registry line + an economy test);
-     then 2b; then modal cards in every faction with the next set work.
+     LIVE (session 42, owner OK 2026-10-18): in the card registry, a pulled
+     copy plays, Zero-Day crafting open at 3,000; evidence economy-demo-010.
+     NEXT: 2b (the deck-building agent); then modal cards in every faction
+     with the next set work. Side item: the Aegis vs Cortex check-in
+     (balance-report-029).
   3. Server endpoints for the website (wallet, collection, packs and pack
      opening, live/featured matches, ladder, tournament, stats,
      notifications, saved board layout). Needs item 5's pack contents and

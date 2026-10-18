@@ -2909,7 +2909,7 @@ Not yet checked on a real phone, with device tilt or by ear. The owner may come 
 
 ---
 
-## 2026-10-18 — Owner: answers to session 41 (Zero-Day cards go live; look at Aegis vs Cortex)
+## 2026-10-18 — Owner: answers to session 41 (Zero-Day cards go live; look at Aegis vs Cortex) (HANDLED 2026-10-18, session 42 — 1: the 3 cards are in `CARD_REGISTRY` at the approved numbers; the set leaves them out of the base numbering (still 96) and they stay secret cards 226-228/096 named from the card; a pulled copy plays (saved, loaded and played in a real match) and `craftSecret` crafts them at 3,000; a Zero-Day card has no version but its Zero-Day finish (plain/Foil/Gold refused) and `craftCard` refuses it; economy tests for both; evidence `progress/economy-demo-010.txt`. 2: investigated, no card changed: the whole move is Cortex's pilot (Aegis's pilot changes nothing), led by Mainframe Core being played more; three fixes measured, proposed at the new [OWNER CHECK-IN] in notes-for-owner.md; evidence `progress/balance-report-029-aegis-cortex-shift.txt`. 3: the four calls stand)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 41, "The 3 Zero-Day cards: final numbers, and going live").
 
@@ -2928,7 +2928,7 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
 
 ---
 
-## 2026-10-18 — Owner: answers to render session 25 (pack opening, slice 2)
+## 2026-10-18 — Owner: answers to render session 25 (pack opening, slice 2) (render lane's own; nothing for the game lane, noted session 42)
 
 Owner decisions on the 8 calls in `progress/render/checkpoints.md` (2026-10-18, "Pack opening, slice 2: ten packs at once, and the summary grid").
 

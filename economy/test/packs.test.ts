@@ -48,7 +48,9 @@ function seedWhereV1(pity: PityState, want: (roll: ReturnType<typeof rollPack>) 
 
 describe("the Season 0 set", () => {
   it("numbers every ownable card once, with Gold numbers above the set total", () => {
-    expect(S0.cards.length).toBe(CARD_REGISTRY.size);
+    // Every registry card but the Zero-Day cards, which are secret cards.
+    expect(S0.cards.length).toBe([...CARD_REGISTRY.values()].filter((c) => !c.topTier).length);
+    expect(S0.cards.length).toBe(96);
     const total = String(S0.cards.length).padStart(3, "0");
     expect(new Set(S0.cards.map((c) => c.cardId)).size).toBe(S0.cards.length);
     expect(S0.cards[0]!.collectorNumber).toBe(`001/${total}`);

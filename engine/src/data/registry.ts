@@ -3,9 +3,15 @@ import { CORTEX_CARDS, SWARM_CARDS } from "./cards.js";
 import { AEGIS_CARDS } from "./aegisCards.js";
 import { NULL_CARDS } from "./nullCards.js";
 import { NEUTRAL_POOL } from "./neutralCards.js";
+import { ZERO_DAY_CARDS } from "./zeroDayCards.js";
 
 /** Every card a player can own today, by card id: the four shipped faction
- * pools plus the neutral pool. This is what the economy (`@ai-tcg/economy`)
+ * pools, the neutral pool and the 3 Zero-Day cards (live since session 42,
+ * owner 2026-10-18: "go live at the proposed numbers"). A Zero-Day card is a
+ * secret card, not a base-set card: the economy's set leaves `topTier`
+ * cards out of the base numbering and lists them at the top of the secret
+ * cards (226/096 to 228/096), and only ever records them in the Zero-Day
+ * finish. This is what the economy (`@ai-tcg/economy`)
  * checks a card id against before it records an owned copy, so a typo or a
  * trimmed card can't enter a collection. Cards cut from the pools (trimmed
  * in Phase 5) are not here on purpose: they can't be owned until a set puts
@@ -18,6 +24,7 @@ export const CARD_REGISTRY: ReadonlyMap<string, Card> = (() => {
     ...AEGIS_CARDS.map((p) => p.card),
     ...NULL_CARDS.map((p) => p.card),
     ...NEUTRAL_POOL,
+    ...ZERO_DAY_CARDS,
   ];
   for (const card of all) {
     const existing = map.get(card.id);

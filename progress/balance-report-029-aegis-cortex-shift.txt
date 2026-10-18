@@ -1,0 +1,144 @@
+# Balance report 029: why Aegis > Cortex moved, and three ways to restore it (session 42)
+
+Owner 2026-10-18 (answers to session 41, item 2): "investigate why the edge moved and propose a fix
+at a check-in. Don't change any cards for it without the owner's OK." No card is changed by this
+report; every trial below patches card data for one run only.
+
+Context: session 41's agent fix moved the gate edge Aegis > Cortex from 52.2% to 49.3% (band 55-60%).
+The same session measured the new agent +4.2 points better piloting Cortex, no change piloting Aegis.
+
+== 1. Split by pilot (dev/aegisCortexShift.ts, gate seeds 1..2,500 per cell) ==
+Reproduce: git show 7a1151c:engine/src/agents/lookaheadAgent.ts > src/agents/lookaheadAgentPrev.ts
+           npx tsx src/dev/aegisCortexShift.ts ../agents/lookaheadAgentPrev.js 2500   (in engine/, ~20 s)
+
+  Aegis piloted by the old agent, Cortex by the old: Aegis wins 52.2% [50.3, 54.2]  draws 0  turn-cap ends 0  mean turns 16.0  (5 s)
+  Aegis piloted by the old agent, Cortex by the new: Aegis wins 48.9% [47.0, 50.9]  draws 0  turn-cap ends 0  mean turns 15.8  (4 s)
+  Aegis piloted by the new agent, Cortex by the old: Aegis wins 52.3% [50.3, 54.2]  draws 0  turn-cap ends 0  mean turns 16.0  (4 s)
+  Aegis piloted by the new agent, Cortex by the new: Aegis wins 49.3% [47.4, 51.3]  draws 0  turn-cap ends 0  mean turns 15.8  (4 s)
+
+## Where the move comes from (Aegis win rate, change in points, Newcombe 95%)
+  both agents changed (the gate's move)                      -2.9 [-5.7, -0.1]  real
+  only Cortex's pilot changed                                -3.3 [-6.1, -0.5]  real
+  only Aegis's pilot changed                                 +0.0 [-2.7, 2.8]
+  Cortex's pilot changed, Aegis already new                  -3.0 [-5.7, -0.2]  real
+  Aegis's pilot changed, Cortex already new                  +0.4 [-2.4, 3.2]
+
+## Cortex's cards: share of games played, old/old -> new/new (Aegis's win rate in those games)
+  Mainframe Core            38.5% ( 42.8%) ->  45.7% ( 41.5%)   +7.2
+  Load Balancer             47.7% ( 53.0%) ->  43.9% ( 50.0%)   -3.8
+  Rate Limiter              38.2% ( 63.4%) ->  35.6% ( 61.4%)   -2.7
+  Cortex Engineer           49.1% ( 53.3%) ->  46.7% ( 51.6%)   -2.4
+  Force Quit                18.0% ( 52.7%) ->  20.2% ( 48.0%)   +2.2
+  Recursive Construct       45.8% ( 49.2%) ->  47.8% ( 46.1%)   +1.9
+  Diagnostic Loop           25.9% ( 55.0%) ->  24.7% ( 54.8%)   -1.2
+  Retaliation Node          27.1% ( 50.7%) ->  26.0% ( 50.3%)   -1.1
+  Rollback Point            18.7% ( 54.3%) ->  17.6% ( 51.2%)   -1.1
+  Compiled Daemon           26.6% ( 42.0%) ->  25.8% ( 39.8%)   -0.8
+  Watchtower Relay          64.8% ( 52.5%) ->  64.1% ( 50.0%)   -0.7
+  Signal Drone              26.9% ( 52.6%) ->  26.3% ( 50.5%)   -0.6
+  Cascade Purge             28.4% ( 53.5%) ->  27.8% ( 51.7%)   -0.6
+  Fail-safe Unit            48.0% ( 51.9%) ->  48.5% ( 47.7%)   +0.5
+  Overload Capacitor        29.1% ( 50.3%) ->  28.6% ( 48.4%)   -0.5
+  Hotfix                    28.5% ( 50.9%) ->  28.0% ( 48.9%)   -0.5
+  Dormant Exploit           20.3% ( 52.8%) ->  19.8% ( 52.4%)   -0.5
+  Init Daemon               62.4% ( 48.7%) ->  61.9% ( 45.7%)   -0.4
+  Surge Protector           27.5% ( 58.7%) ->  27.1% ( 55.2%)   -0.4
+  Deadlock Detector         26.5% ( 54.5%) ->  26.1% ( 47.9%)   -0.4
+  Backup Protocol           24.2% ( 53.5%) ->  23.8% ( 52.4%)   -0.4
+  Diagnostic Pulse          27.3% ( 54.3%) ->  26.9% ( 51.1%)   -0.4
+  Interrupt Handler         27.4% ( 55.1%) ->  27.1% ( 54.1%)   -0.3
+  Overclock Shunt           28.2% ( 51.6%) ->  27.9% ( 51.0%)   -0.2
+  Firewall Sentinel         62.6% ( 45.3%) ->  62.6% ( 43.5%)   -0.0
+  Quorum Arbiter            28.6% ( 47.5%) ->  28.6% ( 45.1%)   +0.0
+  units lost a game: 2.71 -> 2.59
+
+## Aegis's cards: share of games played, old/old -> new/new (Aegis's win rate in those games)
+  Static Ward Beacon        17.2% ( 54.4%) ->  26.0% ( 43.2%)   +8.8
+  Lockdown Field            21.6% ( 44.1%) ->  25.0% ( 46.2%)   +3.4
+  Latent Ward               26.4% ( 46.5%) ->  24.8% ( 43.6%)   -1.6
+  Aegis Warden              12.1% ( 61.6%) ->  13.3% ( 67.8%)   +1.2
+  Aegis Sentinel            35.8% ( 66.3%) ->  34.8% ( 65.2%)   -1.0
+  Tariff Field              24.6% ( 42.7%) ->  23.6% ( 38.6%)   -1.0
+  Bulwark Chassis           64.6% ( 47.1%) ->  63.7% ( 45.1%)   -0.9
+  Failover Custodian        49.9% ( 46.5%) ->  49.2% ( 43.7%)   -0.7
+  Feedback Plating          27.9% ( 52.4%) ->  27.2% ( 49.0%)   -0.7
+  Barrier Shim              25.8% ( 43.7%) ->  25.2% ( 43.9%)   -0.6
+  Reinforced Bastion        48.3% ( 54.8%) ->  47.8% ( 53.0%)   -0.6
+  Barrier Drone             47.6% ( 46.9%) ->  47.2% ( 45.1%)   -0.4
+  Prime Aegis               29.4% ( 82.3%) ->  29.0% ( 80.2%)   -0.4
+  Plating Module            62.8% ( 51.0%) ->  62.4% ( 48.2%)   -0.4
+  Aegis Line Trooper        49.5% ( 49.2%) ->  49.2% ( 47.5%)   -0.4
+  Perimeter Turret          62.2% ( 53.8%) ->  61.9% ( 50.5%)   -0.3
+  Guard Directive Chip      60.4% ( 55.8%) ->  60.2% ( 52.8%)   -0.2
+  Diagnostic Ward           25.7% ( 42.3%) ->  25.5% ( 40.7%)   -0.2
+  Intercept Routine         26.5% ( 40.6%) ->  26.4% ( 37.4%)   -0.1
+  Breach Charge             17.5% ( 52.6%) ->  17.6% ( 51.8%)   +0.1
+  Uplink Tower              28.5% ( 52.8%) ->  28.6% ( 50.4%)   +0.1
+  Salvage Reflex            28.3% ( 54.8%) ->  28.4% ( 51.5%)   +0.0
+  Aegis Cadet               64.8% ( 57.4%) ->  64.8% ( 54.8%)   +0.0
+  units lost a game: 3.17 -> 3.13
+
+Reading: the whole move is Cortex's pilot (-3.3 with the old Aegis pilot, -3.0 with the new one; Aegis's
+pilot changes nothing either way). The card whose use moved most is Mainframe Core (3-energy Directive,
+"Your units get +1/+1"): played in 38.5% -> 45.7% of games. It is exactly the kind of card the old agent
+under-valued (an aura counted for one turn only). Aegis played Static Ward Beacon (its own +0/+1 aura)
+more too, but Aegis's side shows no net gain. So the old 52.2% measured Aegis against a Cortex that
+under-played its best engine card; the soft counter was thinner than it looked all along.
+
+== 2. Trials on Mainframe Core, gate mode (dev/cortexAuraTrials.ts 2500, ~75 s) ==
+  shipped (Mainframe Core 3 energy, +1/+1, 2 copies)  (16 s)
+      Aegis > Cortex 49.3% OUT (band 55.0-60.0)
+      Null ~ Cortex 45.6% UNRESOLVED (band 45.0-55.0)
+      Cortex > Swarm 58.2% UNRESOLVED (band 55.0-60.0)
+  A: Mainframe Core costs 4  (14 s)
+      Aegis > Cortex 50.3% OUT (band 55.0-60.0) +1.0 [-1.8, 3.7]
+      Null ~ Cortex 47.3% IN (band 45.0-55.0) +1.6 [-1.1, 4.4]
+      Cortex > Swarm 57.0% IN (band 55.0-60.0) -1.2 [-3.9, 1.5]
+  B: Mainframe Core +1/+0  (15 s)
+      Aegis > Cortex 53.0% OUT (band 55.0-60.0) +3.7 [0.9, 6.5]
+      Null ~ Cortex 48.3% IN (band 45.0-55.0) +2.7 [-0.1, 5.4]
+      Cortex > Swarm 55.9% UNRESOLVED (band 55.0-60.0) -2.4 [-5.1, 0.4]
+  C: Mainframe Core 1 copy (+1 Signal Drone)  (14 s)
+      Aegis > Cortex 51.2% OUT (band 55.0-60.0) +1.8 [-0.9, 4.6]
+      Null ~ Cortex 43.9% UNRESOLVED (band 45.0-55.0) -1.7 [-4.5, 1.0]
+      Cortex > Swarm 58.6% UNRESOLVED (band 55.0-60.0) +0.4 [-2.4, 3.1]
+  context: no Mainframe Core (+2 Signal Drone)  (14 s)
+      Aegis > Cortex 52.3% OUT (band 55.0-60.0) +3.0 [0.2, 5.8]
+      Null ~ Cortex 44.6% UNRESOLVED (band 45.0-55.0) -1.1 [-3.8, 1.7]
+      Cortex > Swarm 58.0% IN (band 55.0-60.0) -0.2 [-3.0, 2.5]
+
+== 3. The same trials, signature mode (dev/cortexAuraTrials.ts 2500 --signature) ==
+  shipped (Mainframe Core 3 energy, +1/+1, 2 copies)  (14 s)
+      Aegis > Cortex 71.5% OUT (band 55.0-60.0)
+      Null ~ Cortex 45.1% UNRESOLVED (band 45.0-55.0)
+      Cortex > Swarm 43.9% OUT (band 55.0-60.0)
+  A: Mainframe Core costs 4  (12 s)
+      Aegis > Cortex 73.3% OUT (band 55.0-60.0) +1.8 [-0.7, 4.3]
+      Null ~ Cortex 45.3% UNRESOLVED (band 45.0-55.0) +0.2 [-2.5, 3.0]
+      Cortex > Swarm 43.3% OUT (band 55.0-60.0) -0.6 [-3.3, 2.1]
+  B: Mainframe Core +1/+0  (13 s)
+      Aegis > Cortex 74.8% OUT (band 55.0-60.0) +3.4 [0.9, 5.8]
+      Null ~ Cortex 45.6% UNRESOLVED (band 45.0-55.0) +0.6 [-2.2, 3.3]
+      Cortex > Swarm 42.2% OUT (band 55.0-60.0) -1.7 [-4.5, 1.0]
+  C: Mainframe Core 1 copy (+1 Signal Drone)  (13 s)
+      Aegis > Cortex 71.4% OUT (band 55.0-60.0) -0.1 [-2.6, 2.4]
+      Null ~ Cortex 43.1% UNRESOLVED (band 45.0-55.0) -2.0 [-4.7, 0.8]
+      Cortex > Swarm 45.6% OUT (band 55.0-60.0) +1.6 [-1.1, 4.4]
+  context: no Mainframe Core (+2 Signal Drone)  (15 s)
+      Aegis > Cortex 72.9% OUT (band 55.0-60.0) +1.4 [-1.1, 3.9]
+      Null ~ Cortex 42.4% OUT (band 45.0-55.0) -2.7 [-5.5, 0.0]
+      Cortex > Swarm 45.4% OUT (band 55.0-60.0) +1.4 [-1.3, 4.2]
+
+Reading:
+  B (+1/+0) is the only trial that restores Aegis > Cortex by a real amount in the gate (+3.7 [0.9, 6.5],
+  to 53.0%, just above the 52.2% the owner accepted as OUT on 2026-10-04). It also moves Null ~ Cortex
+  into band (48.3% IN) and leaves Cortex > Swarm inside its band (55.9%, CI straddling 55). It does not
+  reach the 55-60% band; no single Mainframe Core change measured here does.
+  A (cost 4) and C (one copy) move the edge less than noise.
+  In signature mode B pushes Aegis > Cortex further out (71.5 -> 74.8, +3.4 [0.9, 5.8]); that edge is
+  already far over its band there, and the CI signature check would fail on it, so shipping B needs
+  both baselines re-recorded on purpose, as the gate's rules allow for an owner-approved change.
+  Removing Mainframe Core entirely (context row) moves the gate edge about as much as B (+3.0), so
+  B keeps the card and its role (wide board pressure) and takes out the +1 health. Why the health half
+  matters against Aegis specifically is a reading, not measured here (a guess: Aegis's turrets and
+  attackers deal 1-2 damage, which +1 health turns from kills into chip).

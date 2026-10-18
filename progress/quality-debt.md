@@ -36,9 +36,41 @@ signature ability ids, game-over causes as data, the free first rename, the chas
 and session 39 (the chase cards live: schema v10, S0-odds-2, one roller, secret crafting, the
 binder; Intercept Routine fizzle causes), and session 40 (the generic "choose one" mechanic; the 3
 Zero-Day cards built and measured, not live), and session 41 (the reference agent fixed, the ring
-re-baselined, the Zero-Day cards tuned to the cap).
+re-baselined, the Zero-Day cards tuned to the cap), and session 42 (the Zero-Day cards live; the
+Aegis vs Cortex investigation).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 42
+
+- **Aegis > Cortex is still OUT, now explained but not fixed.** The fix waits on the owner. Even the
+  best trial (Mainframe Core +1/+0, 53.0%) stays under the 55-60% band, and it pushes the
+  signature-mode edge further out (74.8%). The ring's Aegis > Cortex counter is weak in the gate and
+  far too strong in signature mode: the two modes disagree on this edge by over 20 points, and that
+  gap is not explained yet (the signature switch is still the owner's open call).
+- **The trials were 2,500 seeds per edge,** the gate's own size, not the 10,000 used for Zero-Day.
+  B's +3.7 interval is [0.9, 6.5]; A and C may have small real effects this size can't see.
+- **The Zero-Day cards are ownable, but no agent builds decks with them.** Shipped decks and the
+  starter collections don't hold them; only an owner's hand-saved deck does. The deck-building
+  agent (roadmap 2b) must handle 1 per deck and the removal share.
+- **The Zero-Day face in the render pack page has no rules text.** `cardFaceOf` reads `abilities`,
+  which is empty on a modal card. Render lane's to fix (flagged in notes-for-owner).
+- **Copies pulled before go-live were not checked in a real owner's database.** They should become
+  the cards with no migration (the card id was the code all along), and the tests show it for new
+  copies, but owners' own database files are not reachable from the repo.
+- **The registry now holds cards that aren't base-set cards.** Anything new that walks
+  `CARD_REGISTRY` as "the set" has to skip `topTier` cards, as the set builder now does. Render's
+  `capture.ts` and the name-collision checks walk it too; both are fine with Zero-Day names, but it
+  is a trap for the next reader.
+
+## Session 41 debt, status after session 42
+
+- The ring moved and was re-baselined, not fixed: INVESTIGATED (the move is Cortex's pilot,
+  Mainframe Core); a fix is proposed, not shipped.
+- The Zero-Day cards not live: FIXED (live).
+- The rest of session 41's list stands (the signature approved list's stale 10,000-game numbers,
+  onAttack/onDamaged triggers unvalued, the self-targeting onPlay gap, unfitted constants, the flat
+  Lockout value, committed evidence that no longer regenerates).
 
 ## New debt from session 41
 
