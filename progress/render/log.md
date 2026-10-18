@@ -2968,3 +2968,114 @@ untested by a human; the fit shrinks text rather than reflowing the layout.
 
 **Next render-lane slice:** slice 3, the first-time flow (an agent's first
 packs and the signature card reveal).
+
+## 2026-10-18 — Session 27: hold to tilt (the owner's new feature, as corrected), before slice 3
+
+Render session by the alternation rule: the last merged PR (#71) was a game
+slice. Owner feedback read first. The render-lane entries left are the
+2026-10-18 hold-to-tilt feature, its booster-pack addendum, the fan answer
+("only the pack being opened") and the correction ("the card moves as one
+piece, no art depth"). The owner said to build it "alongside slice 3, or
+just before it". This session builds it just before slice 3 and finishes
+it. Slice 3 (the first-time flow) is next. The game-lane entries (answers to
+game session 43) and the art-model decision belong to the game lane and the
+art pass.
+
+**Built** (`render/src/packPage.ts`, `packOpening.ts` `TILT`):
+- **Hold to tilt.** Press and hold, then drag. The card leans in 3D
+  towards the finger as one solid piece: no art offset and no depth layer,
+  per the correction. It leans up to 15° each way, reached at the card's
+  edge (`packTiltAngles`). The finish's shader light follows the finger,
+  the same way it follows the device's tilt. Letting go springs it back
+  flat (560 ms with a small overshoot).
+- **Where:** the revealed card on the stack (single pack and big pull),
+  the card viewer, the sealed pack, and the ten-pack fan's front pack only.
+  The other nine packs stay still. A face-down card never leans, and
+  neither does a card mid-flip (it has to have landed).
+- **Tap versus hold** (`packHoldState`):
+  - A press held still for 200 ms starts the tilt.
+  - Where a move means nothing else (the viewer, the pack below its strip,
+    the fan), a move of 8 px starts it at once.
+  - On the stack, a quick sideways move is still the swipe to the next
+    card, so only the hold starts the tilt there.
+  - A release after a tilt is never a tap or a swipe. Its trailing click
+    is dropped, so it doesn't close the viewer or tear the fan, but a new
+    press always goes through.
+- **The tear strip vs tilt:** a drag that starts on the strip (the top 32%)
+  tears, as before, and never leans. Anywhere else, a hold or drag tilts
+  and a tap tears. The strip now reads as the place to drag: a lit band and
+  a "TEAR" tab at the start of the cut line. The hint reads "Drag along the
+  TEAR strip to open it, or tap / Hold and drag the pack to tilt it".
+- **The honest tell:** the tilt code reads nothing about the pack. A test
+  checks that its source never names sparks, hits, finishes or the current
+  pack, and the browser check leans three packs (no hit, Gold, Zero-Day)
+  with the same gesture and gets the same transform at every step.
+- **Hover no longer leans a card** with a mouse, since only a hold tilts
+  now. It still moves the shine. The device's own tilt still leans the
+  card as before. Call 5 at the checkpoint.
+- **Reduced motion:** the lean stops at 6°, and the card eases back in
+  150 ms with no spring.
+- **On a phone:** no long-press menu or text callout on the stage or the
+  viewer.
+- `.stack` now has a perspective, so the lean (and the flip) reads in 3D.
+  Before, the hover lean was flat.
+
+**Ran it:**
+- `pack-tilt-check.mjs` (new; output `pack-tilt-check.txt`), each run from
+  a fresh profile, all pass:
+  - three runs: 1280 × 800 with a mouse; 390 × 844 with real touch events
+    (CDP touch, so the page sees `pointerType` touch); and 390 × 844 with
+    touch and reduced motion.
+  - The pack leans -15/15 toward a finger past its corner. It stays untorn
+    when let go and comes back flat. A drag on the strip tears it and never
+    leans it.
+  - A card leans 15/15 at its corner. The release keeps it on screen, a tap
+    still moves on, and a flick still swipes without leaning.
+  - On the Foil card, the shader's light ends where the finger ends
+    ([0.10, 0.90]).
+  - The viewer card leans to the angles predicted from the finger's spot
+    (rx 9, ry 13.5). Let go over the backdrop, the viewer stays open; a tap
+    on the backdrop closes it.
+  - The no-hit, Gold and Zero-Day packs lean the same, step for step.
+  - On the fan, the front pack leans and 9 others stay still. The release
+    doesn't tear, and a tap 0.12 s later does.
+  - With reduced motion: a 6° maximum and a 150 ms ease.
+- **Recordings:** `v2-s27-tilt-desktop.webm` and `v2-s27-tilt-phone.webm`
+  show the Gold pack tilted in a circle, torn along the strip, the Gold
+  card tilted, then the Zero-Day card in the viewer. A dot marks the finger
+  (the script draws it; the page doesn't). The input is slower than a
+  person's, since the software GPU slows each scripted step. Stills:
+  `v2-s27-tilt-{foil,viewer,fan}-{desktop,phone,phone-reduced}.jpg`.
+- **Regression:** slice 1's `pack-opening-check` and session 26's
+  `pack-tap-check` were re-run on the new page (`pack-opening-check-s27.txt`,
+  `pack-tap-check-s27.txt`).
+
+**Two bugs this check found, fixed before committing:**
+- **The trailing-click guard was too long.** It lasted 400 ms, so a real
+  tap on the fan within 0.4 s of letting go of a tilt was dropped. Now a
+  new press clears the guard.
+- **Two harness bugs, not page bugs:**
+  - Under the software GPU, a scripted 60 ms "tap" arrived as 219 ms,
+    longer than a hold. Taps are now sent back to back.
+  - The viewer was measured mid-rise. The check now waits for its
+    animation to finish.
+
+**Tests:** render 388 (+13, `packTilt.test.ts`): the press rule, the lean
+(flat at the centre, toward the finger, capped even far off the card,
+smooth), the page ships `TILT`, exactly four things tilt, the tilt code
+never reads the pack's contents, no art depth, and the strip is marked.
+Mutation checks:
+- dropping the clamp fails 1 test;
+- letting a hit change the lean fails 2.
+
+**Named honestly** (in the debt list):
+- It still hasn't been held by a person on a real phone, and the 200 ms
+  hold may feel slow or eat slow taps.
+- The tilted card doesn't light differently from its own angle; only the
+  shader's light point moves.
+- The ten-pack row's cards can't be tilted (the owner listed the reveal,
+  big pull and viewer).
+
+**Next render-lane slice:** slice 3, the first-time flow: an agent's first
+packs and the signature (leader) card reveal. Hold to tilt is then already
+there for the signature card.

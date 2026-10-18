@@ -1,0 +1,19 @@
+desktop 0: Auto off by default, the speeds hidden until it is on: ok
+desktop run A (10 packs, hand): ok — 32.4 s; 13 row taps/swipes; big pulls at pack none; 0 skipped; 39 tiles for 50 cards
+desktop run B (10 packs, big pull, hand): ok — 24.5 s; 12 row taps/swipes; big pulls at pack 6; 0 skipped; 39 tiles for 50 cards
+desktop run C (10 packs, big pull, skip 2x): ok — 11.1 s; 0 row taps/swipes; big pulls at pack 6; 7 skipped; 39 tiles for 50 cards
+desktop run D (10 packs, auto 4x): ok — 5.0 s; 0 row taps/swipes; big pulls at pack none; 0 skipped; 39 tiles for 50 cards
+desktop run E (10 packs, switchOff 1x): ok — 17.1 s; 11 row taps/swipes; big pulls at pack none; 0 skipped; 39 tiles for 50 cards
+desktop: Auto on and 4x remembered across a reload: ok
+desktop F (Zero-Day summary and viewer): ok — modes Outbreak / Carrier; 5 tile faces audited
+desktop G (card-face sheet, 12 faces): ok
+phone 0: Auto off by default, the speeds hidden until it is on: ok
+phone run A (10 packs, hand): ok — 29.0 s; 13 row taps/swipes; big pulls at pack none; 0 skipped; 39 tiles for 50 cards
+phone run B (10 packs, big pull, hand): ok — 21.2 s; 12 row taps/swipes; big pulls at pack 6; 0 skipped; 39 tiles for 50 cards
+phone run C (10 packs, big pull, skip 2x): ok — 10.7 s; 0 row taps/swipes; big pulls at pack 6; 7 skipped; 39 tiles for 50 cards
+phone run D (10 packs, auto 4x): ok — 4.8 s; 0 row taps/swipes; big pulls at pack none; 0 skipped; 39 tiles for 50 cards
+phone run E (10 packs, switchOff 1x): ok — 15.6 s; 11 row taps/swipes; big pulls at pack none; 0 skipped; 39 tiles for 50 cards
+phone: Auto on and 4x remembered across a reload: ok
+phone F (Zero-Day summary and viewer): ok — modes Outbreak / Carrier; 5 tile faces audited
+phone G (card-face sheet, 12 faces): ok
+all pass

@@ -7,7 +7,26 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## Pack opening (slices 1-2, sessions 24-26)
+## Pack opening (slices 1-2, sessions 24-26; hold to tilt, session 27)
+
+- **Hold to tilt hasn't been held by a person** (session 27).
+  - The 0.2 s hold, the 8 px drag start, the lean direction and the spring
+    were all chosen without a human thumb.
+  - The check proves the rules with scripted touch events, not the feel.
+  - A slow tapper may find taps turning into tilts.
+- **The tilt moves the shader's light point, not the lighting of the face
+  itself** (session 27). A plain card leans with no change in shading, so a
+  plain card tilted reads flatter than a real card held to the light.
+- **The ten-pack row's cards and the summary tiles can't be tilted**
+  (session 27). Only the stack, the viewer, the sealed pack and the fan's
+  front pack can.
+- **Headless Chromium draws its focus ring around the sealed pack** in the
+  stills and recordings (since session 24). The page asks for no visible
+  focus on a pointer, but the headless browser shows it anyway. It probably
+  won't appear on a real phone; unconfirmed.
+- **The recordings run slower than a person's hand.** The software GPU
+  slows each scripted step, so the clips show the motion, not its real
+  pace.
 
 - **The tap-driven ten-pack's feel is untested by a person** (session 26).
   The 0.6 s guard after a hit, the 0.5 s wait for a deal to land, and the
@@ -60,7 +79,7 @@ items are removed, with the fix in `log.md`.
 - **The showcase packs are found by seed search**, so the page shows one
   of each finish; it is not a sample of what a typical opening looks like.
 - **No first-time flow yet** (slice 3): an agent's first packs and the
-  signature (leader) card reveal don't exist.
+  signature (leader) card reveal don't exist. Next render session.
 
 ## Layout and legibility
 

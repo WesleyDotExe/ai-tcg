@@ -278,6 +278,33 @@ export const BULK_TAP_TIMINGS = {
   autoStackBeat: 700,
 } as const;
 
+/** Hold to tilt (owner 2026-10-18, as corrected the same day): press and
+ * hold a revealed card (or the sealed pack being opened), then drag, and it
+ * tilts in 3D towards the finger as one solid piece (no art depth), the
+ * finish's shine following the tilt; letting go springs it back flat. A
+ * quick tap still does what it did. Proposed, in milliseconds, pixels and
+ * degrees. */
+export const TILT = {
+  /** A press held this long without moving starts the tilt. */
+  holdMs: 200,
+  /** A press that moves this far starts the tilt straight away, where a
+   * move has no other meaning (the viewer, the sealed pack below its tear
+   * strip, the ten-pack's front pack). On the reveal stack a quick sideways
+   * move is still the swipe to the next card; there only the hold starts
+   * the tilt. */
+  dragPx: 8,
+  /** The most the card leans, side to side and up and down. */
+  maxDeg: 15,
+  /** With reduced motion: a smaller lean, and no spring. */
+  reducedMaxDeg: 6,
+  /** How fast the card catches up with the finger while held. */
+  followMs: 70,
+  /** The spring back to flat on release (it overshoots a little). */
+  springMs: 560,
+  /** With reduced motion: a short, plain ease back (no overshoot). */
+  reducedReturnMs: 150,
+} as const;
+
 /** One tile of the ten-pack summary grid: every copy of the same card in
  * the same finish, folded into one tile with a count. A Prototype copy is
  * always its own tile (its serial is its own). */

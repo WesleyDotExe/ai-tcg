@@ -70,6 +70,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pack .cutline { position: absolute; left: 6%; right: 6%; top: 16%; height: 0; border-top: 1px dashed rgba(255,255,255,0.35); z-index: 3; }
 .pack .cutline i { position: absolute; left: 0; top: -2px; height: 3px; width: 0; background: linear-gradient(90deg, #fff, #bfe3ff); box-shadow: 0 0 10px #bfe3ff, 0 0 22px #6a8cff; border-radius: 2px; }
 .pack .grip { position: absolute; left: 0; right: 0; top: 0; height: 26%; z-index: 4; }
+/* The tear strip, marked so it reads as the place to drag (a drag anywhere
+   else on the pack tilts it instead): a lit band over the strip and a TEAR
+   tab at the cut line's start. */
+.pack .strip { position: absolute; left: 0; right: 0; top: 0; height: 26%; z-index: 3; border-radius: 10px 10px 0 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(191,227,255,0.10), rgba(191,227,255,0.04) 70%, transparent); box-shadow: inset 0 -1px 0 rgba(191,227,255,0.18); }
+.pack .tab { position: absolute; left: 6%; top: calc(16% - 1.2em); z-index: 4; pointer-events: none; font-size: calc(var(--pw) * 0.047); font-weight: 900; letter-spacing: 0.16em; color: #e6f2ff; padding: 0.15em 0.55em; border-radius: 3px; background: rgba(106,140,255,0.35); border: 1px solid rgba(191,227,255,0.55); }
+.pack.torn .tab, .pack.torn .strip { opacity: 0; transition: opacity 0.15s; }
 .pack .fxgl { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; mix-blend-mode: screen; pointer-events: none; z-index: 2; }
 .pack.fx-css-pack .half.body::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%); background-size: 250% 100%; animation: sheen 3.6s linear infinite; mix-blend-mode: screen; }
 .pack.torn .half.top { animation: stripoff 0.65s cubic-bezier(.3,.7,.4,1) forwards; }
@@ -86,7 +93,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes sheen { from { background-position: 120% 0; } to { background-position: -120% 0; } }
 
 /* ---------- the stack ---------- */
-.stack { position: relative; width: var(--cw); height: calc(var(--cw) * 1.4); }
+.stack { position: relative; width: var(--cw); height: calc(var(--cw) * 1.4); perspective: 1100px; }
+/* Hold to tilt: no long-press menu or text callout on a phone. */
+.stage, .viewer { -webkit-touch-callout: none; }
 .cslot { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.3s cubic-bezier(.2,.8,.3,1), opacity 0.3s; will-change: transform; }
 .cslot.rise { animation: rise 0.7s cubic-bezier(.2,.9,.3,1) both; }
 @keyframes rise { from { transform: translateY(65%) scale(0.86); opacity: 0; } }
@@ -270,6 +279,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .bskip { border: 1px solid var(--line); background: rgba(13,19,36,0.85); border-radius: 7px; padding: 4px 11px; font-size: 12px; font-weight: 700; color: var(--ink); }
 /* A small sealed pack: the fan of ten, and the one about to tear in the fast sequence. */
 .mpack { --mw: min(30vw, 120px, calc((100dvh - 260px) * 0.4)); width: var(--mw); height: calc(var(--mw) * 1.6); position: relative; }
+.mpack .mtilt { position: absolute; inset: 0; transform-style: preserve-3d; }
+.fan .mpack.front { perspective: 700px; }
 .mpack .mtop, .mpack .mbody { position: absolute; left: 0; right: 0; border-radius: 7px; overflow: hidden; background: linear-gradient(135deg, #1b2a6b 0%, #3a1f7a 32%, #11163a 55%, #2a1150 78%, #0f2a5e 100%); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1), 0 10px 26px rgba(0,0,0,0.55); }
 .mpack .mtop { top: 0; height: 16%; border-radius: 7px 7px 0 0; background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0 3px, rgba(0,0,0,0.25) 3px 6px), linear-gradient(135deg, #1b2a6b, #3a1f7a); }
 .mpack .mbody { top: 16%; bottom: 0; border-radius: 0 0 7px 7px; display: grid; place-items: center; align-content: center; gap: 6px; }
@@ -411,6 +422,26 @@ h2 { font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform:
     if (dist < 10 && ms < 600) return 'tap';
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) return dx < 0 ? 'swipeLeft' : 'swipeRight';
     return 'none';
+  }
+  // Hold to tilt (owner 2026-10-18): what a press that hasn't been let go
+  // has become. 'tilt' once it has been held still for T.holdMs, or (where
+  // a move means nothing else, swipe false) once it has moved T.dragPx;
+  // 'move' when it moved first where a move is a swipe (the reveal stack:
+  // the swipe keeps it); else still 'pending'. Release on 'pending' or
+  // 'move' is read by packGesture as before; release on 'tilt' never counts
+  // as a tap or a swipe.
+  function packHoldState(dx, dy, ms, swipe, T) {
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist >= T.dragPx) return swipe ? 'move' : 'tilt';
+    return ms >= T.holdMs ? 'tilt' : 'pending';
+  }
+  // The lean for a finger at (x, y) over the card (0-1 each, may run off
+  // the card): the side under the finger dips away, up to max degrees
+  // each way, reached at the card's edge.
+  function packTiltAngles(x, y, max) {
+    function c(v) { return Math.max(-1, Math.min(1, v)); }
+    var ry = c((x - 0.5) * 2) * max, rx = c((0.5 - y) * 2) * max;
+    return { rx: Math.round(rx * 10) / 10 || 0, ry: Math.round(ry * 10) / 10 || 0 };
   }
   // A finish's sound tier: small hits lift, big ones climb.
   function packRiseTier(kind) {

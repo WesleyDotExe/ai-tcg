@@ -618,3 +618,11 @@ separate from the shared `progress/notes-for-owner.md`).
    the feed's text table. No committed replay has a modal card, so none
    changed.
 5. **No engine change was made.**
+
+---
+
+## 2026-10-18 — Session 27 (hold to tilt)
+
+1. **Hold to tilt is built and waiting for your hands.** The 8 calls are in `checkpoints.md`. The two that most need a real phone are the 0.2 s hold (call 1) and the lean direction (call 2). The recordings are `progress/render/evidence/v2-s27-tilt-*.webm`.
+2. **For the art pass (from your correction):** one flat image per card is enough. The tilt never moves the art inside the frame, so no foreground/background layers or cut-outs are needed.
+3. **Nothing needed from the game lane** for this.

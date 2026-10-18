@@ -23,7 +23,7 @@
 // plans it was given (packOpening.ts), each one a real opening.
 
 import { PACK_FX_RUNTIME_SOURCE, PACK_FX_SHADERS } from "./packFx.js";
-import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
+import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, TILT, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 
 export interface PackPageData {
@@ -35,7 +35,7 @@ export interface PackPageData {
 
 export function renderPackOpeningHtml(data: PackPageData): string {
   const embed = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
-  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS };
+  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT };
   data = { ...data, bulks: data.bulks ?? [] };
   return `<!doctype html>
 <html lang="en" data-theme="dark">
@@ -159,6 +159,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pack .cutline { position: absolute; left: 6%; right: 6%; top: 16%; height: 0; border-top: 1px dashed rgba(255,255,255,0.35); z-index: 3; }
 .pack .cutline i { position: absolute; left: 0; top: -2px; height: 3px; width: 0; background: linear-gradient(90deg, #fff, #bfe3ff); box-shadow: 0 0 10px #bfe3ff, 0 0 22px #6a8cff; border-radius: 2px; }
 .pack .grip { position: absolute; left: 0; right: 0; top: 0; height: 26%; z-index: 4; }
+/* The tear strip, marked so it reads as the place to drag (a drag anywhere
+   else on the pack tilts it instead): a lit band over the strip and a TEAR
+   tab at the cut line's start. */
+.pack .strip { position: absolute; left: 0; right: 0; top: 0; height: 26%; z-index: 3; border-radius: 10px 10px 0 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(191,227,255,0.10), rgba(191,227,255,0.04) 70%, transparent); box-shadow: inset 0 -1px 0 rgba(191,227,255,0.18); }
+.pack .tab { position: absolute; left: 6%; top: calc(16% - 1.2em); z-index: 4; pointer-events: none; font-size: calc(var(--pw) * 0.047); font-weight: 900; letter-spacing: 0.16em; color: #e6f2ff; padding: 0.15em 0.55em; border-radius: 3px; background: rgba(106,140,255,0.35); border: 1px solid rgba(191,227,255,0.55); }
+.pack.torn .tab, .pack.torn .strip { opacity: 0; transition: opacity 0.15s; }
 .pack .fxgl { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; mix-blend-mode: screen; pointer-events: none; z-index: 2; }
 .pack.fx-css-pack .half.body::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%); background-size: 250% 100%; animation: sheen 3.6s linear infinite; mix-blend-mode: screen; }
 .pack.torn .half.top { animation: stripoff 0.65s cubic-bezier(.3,.7,.4,1) forwards; }
@@ -175,7 +182,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes sheen { from { background-position: 120% 0; } to { background-position: -120% 0; } }
 
 /* ---------- the stack ---------- */
-.stack { position: relative; width: var(--cw); height: calc(var(--cw) * 1.4); }
+.stack { position: relative; width: var(--cw); height: calc(var(--cw) * 1.4); perspective: 1100px; }
+/* Hold to tilt: no long-press menu or text callout on a phone. */
+.stage, .viewer { -webkit-touch-callout: none; }
 .cslot { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.3s cubic-bezier(.2,.8,.3,1), opacity 0.3s; will-change: transform; }
 .cslot.rise { animation: rise 0.7s cubic-bezier(.2,.9,.3,1) both; }
 @keyframes rise { from { transform: translateY(65%) scale(0.86); opacity: 0; } }
@@ -359,6 +368,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .bskip { border: 1px solid var(--line); background: rgba(13,19,36,0.85); border-radius: 7px; padding: 4px 11px; font-size: 12px; font-weight: 700; color: var(--ink); }
 /* A small sealed pack: the fan of ten, and the one about to tear in the fast sequence. */
 .mpack { --mw: min(30vw, 120px, calc((100dvh - 260px) * 0.4)); width: var(--mw); height: calc(var(--mw) * 1.6); position: relative; }
+.mpack .mtilt { position: absolute; inset: 0; transform-style: preserve-3d; }
+.fan .mpack.front { perspective: 700px; }
 .mpack .mtop, .mpack .mbody { position: absolute; left: 0; right: 0; border-radius: 7px; overflow: hidden; background: linear-gradient(135deg, #1b2a6b 0%, #3a1f7a 32%, #11163a 55%, #2a1150 78%, #0f2a5e 100%); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1), 0 10px 26px rgba(0,0,0,0.55); }
 .mpack .mtop { top: 0; height: 16%; border-radius: 7px 7px 0 0; background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0 3px, rgba(0,0,0,0.25) 3px 6px), linear-gradient(135deg, #1b2a6b, #3a1f7a); }
 .mpack .mbody { top: 16%; bottom: 0; border-radius: 0 0 7px 7px; display: grid; place-items: center; align-content: center; gap: 6px; }
@@ -435,6 +446,26 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     if (dist < 10 && ms < 600) return 'tap';
     if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) return dx < 0 ? 'swipeLeft' : 'swipeRight';
     return 'none';
+  }
+  // Hold to tilt (owner 2026-10-18): what a press that hasn't been let go
+  // has become. 'tilt' once it has been held still for T.holdMs, or (where
+  // a move means nothing else, swipe false) once it has moved T.dragPx;
+  // 'move' when it moved first where a move is a swipe (the reveal stack:
+  // the swipe keeps it); else still 'pending'. Release on 'pending' or
+  // 'move' is read by packGesture as before; release on 'tilt' never counts
+  // as a tap or a swipe.
+  function packHoldState(dx, dy, ms, swipe, T) {
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist >= T.dragPx) return swipe ? 'move' : 'tilt';
+    return ms >= T.holdMs ? 'tilt' : 'pending';
+  }
+  // The lean for a finger at (x, y) over the card (0-1 each, may run off
+  // the card): the side under the finger dips away, up to max degrees
+  // each way, reached at the card's edge.
+  function packTiltAngles(x, y, max) {
+    function c(v) { return Math.max(-1, Math.min(1, v)); }
+    var ry = c((x - 0.5) * 2) * max, rx = c((0.5 - y) * 2) * max;
+    return { rx: Math.round(rx * 10) / 10 || 0, ry: Math.round(ry * 10) / 10 || 0 };
   }
   // A finish's sound tier: small hits lift, big ones climb.
   function packRiseTier(kind) {
@@ -743,16 +774,18 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     var r = S.cur;
     skipBtn.hidden = true; counter.textContent = ''; dim.style.opacity = 0;
     var wrap = '<div class="wrap"><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div><div class="meta">' + r.cards.length + ' CARDS · ' + esc(r.setCode) + '</div><div class="crimp b"></div></div>';
-    scene.innerHTML = '<div class="pack" id="pack" tabindex="0" role="button" aria-label="Sealed Season Zero pack. Drag across the top to tear it open, or tap."><div class="tilt"><div class="half top">' + wrap + '</div><div class="half body">' + wrap + '</div><div class="cutline"><i id="cutp"></i></div><div class="grip"></div><div class="finger"></div></div></div>';
-    hint.innerHTML = 'Drag across the top of the pack to tear it open<br>or tap it';
+    scene.innerHTML = '<div class="pack" id="pack" tabindex="0" role="button" aria-label="Sealed Season Zero pack. Drag across the top to tear it open, or tap."><div class="tilt"><div class="half top">' + wrap + '</div><div class="half body">' + wrap + '</div><div class="strip"></div><div class="cutline"><i id="cutp"></i></div><span class="tab">TEAR</span><div class="grip"></div><div class="finger"></div></div></div>';
+    hint.innerHTML = 'Drag along the TEAR strip to open it, or tap<br>Hold and drag the pack to tilt it';
     var pack = document.getElementById('pack'), tilt = pack.querySelector('.tilt'), cutp = document.getElementById('cutp');
     var shimmer = FXGL.layer(tilt, 'pack', { amt: 1, seed: S.pack + S.bp + 2 });
     if (shimmer) S.layers.push(shimmer); else pack.classList.add('fx-css-pack');
     var drag = null, progress = 0;
+    // Hovering only moves the light; the pack leans only while held (hold
+    // to tilt, below), and a held tilt drives the shimmer itself.
     pack.addEventListener('pointermove', function (e) {
+      if (tilting()) return;
       var rc = pack.getBoundingClientRect();
       var x = (e.clientX - rc.left) / rc.width, y = (e.clientY - rc.top) / rc.height;
-      if (!drag) tilt.style.transform = 'rotateY(' + ((x - 0.5) * 16).toFixed(1) + 'deg) rotateX(' + ((0.5 - y) * 12).toFixed(1) + 'deg)';
       if (shimmer) shimmer.ptr(x, y);
       if (drag && drag.top) {
         progress = packTearProgress(progress, drag.x0, e.clientX, rc.width);
@@ -768,11 +801,16 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       var prc = pack.getBoundingClientRect();
       drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), top: (e.clientY - prc.top) / prc.height < 0.32 };
       pack.classList.add('held');
+      // Below the strip, a hold or a drag tilts the pack (owner 2026-10-18).
+      // Nothing about the tilt reads what the pack holds: a pack with a hit
+      // leans exactly like one without (the only tell is the tear's sparks).
+      if (!drag.top) pressTilt(e, { el: tilt, box: pack, layers: function () { return shimmer ? [shimmer] : []; }, swipe: false, what: 'pack', can: function () { return S.phase === 'pack'; } });
       var f = pack.querySelector('.finger'); if (f) f.remove();
       log('tearStart', {});
     });
     pack.addEventListener('pointerup', function (e) {
       if (!drag) return;
+      if (upWasTilt) { drag = null; pack.classList.remove('held'); return; }
       var g = packGesture(e.clientX - drag.x0, e.clientY - drag.y0, performance.now() - drag.at);
       drag = null;
       if (S.phase !== 'pack') return;
@@ -903,12 +941,17 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       var el = slotEl(S.i); if (!el) return;
       stack.setPointerCapture && stack.setPointerCapture(e.pointerId);
       drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), el: el };
+      // Hold to tilt, once the card has landed face up. A quick sideways
+      // move is still the swipe; only a hold starts the tilt here.
+      var k = S.i;
+      pressTilt(e, { el: el.querySelector('.flipper'), box: el, layers: function () { return S.layers; }, swipe: true, what: 'card', can: function () { return S.phase === 'cards' && S.i === k && S.tilt === k; } });
     });
     stack.addEventListener('pointermove', function (e) {
       var el = slotEl(S.i); if (!el) return;
       var rc = el.getBoundingClientRect();
       var x = (e.clientX - rc.left) / rc.width, y = (e.clientY - rc.top) / rc.height;
-      setLight(x, y);
+      if (tilting()) return;
+      setLight(x, y, false);
       var top = S.cur.cards[S.i];
       if (drag && (!top.faceDown || S.revealed[S.i])) {
         var dx = e.clientX - drag.x0;
@@ -919,10 +962,11 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       if (!drag) return;
       var d = drag; drag = null;
       d.el.classList.remove('dragging');
+      if (upWasTilt) return;
       var g = packGesture(e.clientX - d.x0, e.clientY - d.y0, performance.now() - d.at);
       act(g === 'swipeRight' ? 'r' : g === 'swipeLeft' ? 'l' : g === 'tap' ? 'tap' : 'none');
     });
-    stack.addEventListener('pointerleave', function () { setLight(0.5, 0.4); });
+    stack.addEventListener('pointerleave', function () { if (!tilting()) setLight(0.5, 0.4, false); });
   }
   function canLeave() { return performance.now() >= S.busyUntil; }
   // A tap or a swipe on the top card: reveal it if it waits face down,
@@ -957,11 +1001,14 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
 
   // ---------- the light: the pointer, or the device's tilt ----------
   var light = { x: 0.5, y: 0.4 };
-  function setLight(x, y) {
+  // rotate: the device's own tilt leans the card as before; a hovering
+  // pointer only moves the light (the card leans only while held).
+  function setLight(x, y, rotate) {
+    if (tilting()) return;
     light.x = Math.max(0, Math.min(1, x)); light.y = Math.max(0, Math.min(1, y));
     S.layers.forEach(function (l) { l.ptr(light.x, light.y); });
     var el = slotEl(S.i);
-    if (el && S.tilt === S.i && !el.classList.contains('dragging')) {
+    if (rotate && el && S.tilt === S.i && !el.classList.contains('dragging')) {
       var f = el.querySelector('.flipper');
       f.style.transform = 'rotateY(' + ((light.x - 0.5) * 14).toFixed(1) + 'deg) rotateX(' + ((0.5 - light.y) * 10).toFixed(1) + 'deg)';
     }
@@ -975,8 +1022,79 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   document.addEventListener('pointerdown', askTilt, { once: true });
   window.addEventListener('deviceorientation', function (e) {
     if (e.gamma === null || e.beta === null) return;
-    setLight(0.5 + Math.max(-30, Math.min(30, e.gamma)) / 60, 0.5 + Math.max(-30, Math.min(30, e.beta - 35)) / 60);
+    setLight(0.5 + Math.max(-30, Math.min(30, e.gamma)) / 60, 0.5 + Math.max(-30, Math.min(30, e.beta - 35)) / 60, true);
   });
+
+  // ---------- hold to tilt (owner 2026-10-18, as corrected) ----------
+  // Press and hold a revealed card (or the sealed pack being opened), then
+  // drag: it leans in 3D towards the finger, up to TM.tilt.maxDeg, as one
+  // solid piece (no art depth), and the finish's shine follows the finger
+  // as it follows the device's tilt. Letting go springs it back flat. A
+  // release after a tilt is never a tap or a swipe. Reduced motion: a
+  // smaller lean and a plain ease back, no spring.
+  var TT = TM.tilt, TMAX = REDUCE ? TT.reducedMaxDeg : TT.maxDeg;
+  var press = null, held = null, upWasTilt = false, swallowUntil = 0;
+  S.tiltPeak = 0;
+  function tilting() { return !!held; }
+  // o: { el: what leans, box: what the finger is measured over, layers():
+  // the shine layers to steer, swipe: a move is a swipe here, what: for the
+  // log, can(): whether it may lean now }.
+  function pressTilt(e, o) {
+    if (press) clearTimeout(press.timer);
+    var p = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, at: performance.now(), o: o, state: 'pending' };
+    p.timer = setTimeout(function () { if (press === p && p.state === 'pending') holdNow(p); }, TT.holdMs);
+    press = p;
+  }
+  function holdNow(p) {
+    if (!p.o.can()) { p.state = 'move'; return; }
+    p.state = 'tilt';
+    held = { el: p.o.el, box: p.o.box, o: p.o, peak: 0, moves: 0 };
+    held.el.classList.add('tilting');
+    held.el.style.transition = 'transform ' + TT.followMs + 'ms linear';
+    log('tiltStart', { what: p.o.what, after: Math.round(performance.now() - p.at) });
+    leanTo(p.x, p.y);
+  }
+  function leanTo(cx, cy) {
+    var rc = held.box.getBoundingClientRect();
+    var x = (cx - rc.left) / rc.width, y = (cy - rc.top) / rc.height;
+    var a = packTiltAngles(x, y, TMAX);
+    held.el.style.transform = 'rotateX(' + a.rx + 'deg) rotateY(' + a.ry + 'deg)';
+    held.peak = Math.max(held.peak, Math.abs(a.rx), Math.abs(a.ry)); held.moves++;
+    var lx = Math.max(0, Math.min(1, x)), ly = Math.max(0, Math.min(1, y));
+    held.o.layers().forEach(function (l) { l.ptr(lx, ly); });
+  }
+  function letGo() {
+    var h = held; held = null;
+    h.el.classList.remove('tilting');
+    h.el.style.transition = 'transform ' + (REDUCE ? TT.reducedReturnMs + 'ms ease-out' : TT.springMs + 'ms cubic-bezier(.3,1.7,.5,1)');
+    h.el.style.transform = '';
+    S.tiltPeak = h.peak;
+    log('tiltEnd', { what: h.o.what, peak: h.peak, moves: h.moves });
+  }
+  // The capture phase runs before the elements' own handlers, so they see
+  // whether the release ended a tilt (upWasTilt) and ignore it.
+  document.addEventListener('pointermove', function (e) {
+    var p = press; if (!p) return;
+    p.x = e.clientX; p.y = e.clientY;
+    if (p.state === 'pending') {
+      var st = packHoldState(p.x - p.x0, p.y - p.y0, performance.now() - p.at, p.o.swipe, TT);
+      if (st === 'tilt') holdNow(p); else if (st === 'move') { p.state = 'move'; clearTimeout(p.timer); }
+    } else if (p.state === 'tilt' && held) leanTo(p.x, p.y);
+  }, true);
+  function endPress() {
+    var p = press; press = null; upWasTilt = false;
+    if (!p) return;
+    clearTimeout(p.timer);
+    if (p.state === 'tilt' && held) { upWasTilt = true; swallowUntil = performance.now() + 400; letGo(); }
+  }
+  // A new press is never part of the last tilt: its click goes through.
+  document.addEventListener('pointerdown', function () { swallowUntil = 0; }, true);
+  document.addEventListener('pointerup', endPress, true);
+  document.addEventListener('pointercancel', function () { endPress(); upWasTilt = false; }, true);
+  // A click straight after a tilt (the fan's, the viewer backdrop's) is
+  // part of the tilt, not a tap.
+  document.addEventListener('click', function (e) { if (performance.now() < swallowUntil) { swallowUntil = 0; e.stopPropagation(); e.preventDefault(); } }, true);
+  document.addEventListener('contextmenu', function (e) { if (press || held) e.preventDefault(); });
 
   // ---------- the reveals ----------
   function addLayer(host, name, amt, seed) {
@@ -1248,12 +1366,20 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     markPicker(); footer(); bulkControls(true); skipBtn.hidden = true;
     counter.textContent = B.packs.length + ' packs';
     var fan = '';
-    for (var k = B.packs.length - 1; k >= 0; k--) fan += '<div class="mpack" style="--k:' + k + ';--n:' + B.packs.length + '">' + miniPackHtml() + '</div>';
+    // Only the pack being opened (the front one) can be tilted; the rest of
+    // the fan stays still (owner 2026-10-18).
+    for (var k = B.packs.length - 1; k >= 0; k--) fan += '<div class="mpack' + (k === 0 ? ' front' : '') + '" style="--k:' + k + ';--n:' + B.packs.length + '">' + (k === 0 ? '<div class="mtilt">' + miniPackHtml() + '</div>' : miniPackHtml()) + '</div>';
     scene.innerHTML = '<div class="fan" id="fan" tabindex="0" role="button" aria-label="Ten sealed Season Zero packs. Tap to tear the first one.">' + fan + '</div>';
     hint.innerHTML = 'Ten packs. Tap to tear the first one';
     var f = document.getElementById('fan');
     function go() { if (S.phase !== 'fan') return; S.phase = 'bulk'; f.classList.add('go'); sfx('tear'); log('bulkGo', {}); fast(bulkNext, 420); }
     f.addEventListener('click', go);
+    f.addEventListener('pointerdown', function (e) {
+      if (S.phase !== 'fan') return;
+      f.setPointerCapture && f.setPointerCapture(e.pointerId);
+      var front = f.querySelector('.mpack.front');
+      pressTilt(e, { el: front.querySelector('.mtilt'), box: front, layers: function () { return []; }, swipe: false, what: 'fan', can: function () { return S.phase === 'fan'; } });
+    });
     f.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
     f.focus({ preventScroll: true, focusVisible: false });
     log('bulkStart', { packs: B.packs.length, label: DATA.bulks[b].label, auto: S.auto });
@@ -1471,11 +1597,16 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   document.getElementById('vclose').addEventListener('click', closeViewer);
   viewer.addEventListener('click', function (e) { if (e.target === viewer) closeViewer(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeViewer(); });
+  // Hovering moves the light; holding (or dragging) the card tilts it.
   viewer.addEventListener('pointermove', function (e) {
-    var t = vcard.querySelector('.tiltv'); if (!t) return;
+    if (tilting()) return;
     var rc = vcard.getBoundingClientRect(), x = Math.max(0, Math.min(1, (e.clientX - rc.left) / rc.width)), y = Math.max(0, Math.min(1, (e.clientY - rc.top) / rc.height));
-    t.style.transform = 'rotateY(' + ((x - 0.5) * 14).toFixed(1) + 'deg) rotateX(' + ((0.5 - y) * 10).toFixed(1) + 'deg)';
     vLayers.forEach(function (l) { l.ptr(x, y); });
+  });
+  vcard.addEventListener('pointerdown', function (e) {
+    var t = vcard.querySelector('.tiltv'); if (!t) return;
+    vcard.setPointerCapture && vcard.setPointerCapture(e.pointerId);
+    pressTilt(e, { el: t, box: vcard, layers: function () { return vLayers; }, swipe: false, what: 'viewer', can: function () { return !viewer.hidden; } });
   });
 
   // ?pack=N opens that pack straight away (1-based), ?bulk=N that ten-pack
