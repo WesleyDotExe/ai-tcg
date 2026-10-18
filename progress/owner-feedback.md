@@ -3035,3 +3035,13 @@ Addition to today's entry "a new feature: hold and drag a card to tilt it (paral
 ## 2026-10-18 — Owner: ten-pack fan tilt answered
 
 Answers the open point in today's addendum "the hold-to-tilt effect works on the booster pack too": in a ten-pack opening, **only the pack being opened can be tilted.** The other packs in the fan stay still.
+
+
+---
+
+## 2026-10-18 — Owner: correction to the hold-to-tilt feature, the card moves as one piece (no art depth)
+
+This corrects today's entry "a new feature: hold and drag a card to tilt it (parallax)" and its booster-pack addendum.
+- **The whole card tilts as one solid object.** The artwork must not shift, move or project out inside the frame. Drop the "parallax" layer depth: no art-behind-the-frame offset, and no layered art.
+- **Everything else stays:** press-and-hold then drag to tilt in 3D (up to about 15°), the spring back on release, the finish shine following the tilt, tap versus hold, touch and mouse, reduced motion, and the same behaviour on the sealed pack (only the pack being opened, in a ten-pack).
+- **For the art pass:** one flat image per card is enough. No foreground/background layers or cut-outs are needed.
