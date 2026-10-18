@@ -33,8 +33,9 @@ jobs:
       # accepted-OUT edge moves further out. About 15 seconds.
       - name: balance ring regression
         run: npm run ring -w @ai-tcg/engine
-      # The same six edges with each set Mythic played from the signature
-      # zone (session 31), against ringBaselineSignature.json. A reference
-      # for the unique-Mythic fairness test, not yet the gate. About 12 s.
-      - name: balance ring regression (signature zone)
-        run: npm run ring:signature -w @ai-tcg/engine
+      # The same six edges the way a real match plays (owner 2026-10-18,
+      # option A): set Mythic in the deck, each side an approved menu line
+      # as its signature card, against ringBaselineReal.json. The set-Mythic
+      # signature mode (npm run ring:signature) is a report now, not a check.
+      - name: balance ring regression (real matches)
+        run: npm run ring:real -w @ai-tcg/engine

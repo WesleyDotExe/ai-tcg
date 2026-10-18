@@ -1,0 +1,176 @@
+# Balance report 031: the ring's real-match check, and why a signature card is worth most to Aegis (session 44)
+
+Owner 2026-10-18 (answers to session 43, option A): "The ring's second CI check measures real matches: set
+Mythics stay in the deck, and each side gets an approved menu card in the signature zone ... Re-record that
+check's baseline ... The set-Mythic signature mode becomes a report only ... No card changes now ... find out
+why Aegis gains about twice as much from a signature card as the other factions (+10-12 points against 4-6),
+and propose a fix for Null > Aegis (45.2%, band 55-60) in the real-match mode at a check-in. Change no cards
+without the owner's OK."
+No card or signature option is changed by this report. Trials patch card data or the rules for the run only.
+
+Reproduce (in engine/): npx tsx src/dev/aegisSignatureGain.ts 2500    (~7 min; sections 1-5)
+                         npx tsx src/dev/ringRegression.ts --real      (~25 s; the new CI check)
+
+FIRST: A FIX TO SESSION 43'S DRAW.
+  Session 43's real-match stand-in drew each side's line as (seed * 7 + seat * 3) % 14. Because 7 * seed mod 14
+  is only ever 0 or 7, that reached 2 of the 14 approved lines per seat (lines 0 and 7 for the first-named side,
+  3 and 10 for the other), not all 14 as its check-in said (and the owner's smaller call 1 accepted). The new
+  ring test caught it. The draw is now edgeMeasure.approvedSignatureFor: over each block of 28 seeds every line
+  is drawn twice per seat, once going first and once going second, and the two seats never draw the same line
+  on a seed. The test pins all three properties over seeds 1-2,500.
+  What it changed (2,500 seeds per edge; 4 lines -> 14 lines):
+    Null > Aegis    45.2% -> 45.4%   (the headline stands)
+    Aegis > Cortex  54.2% -> 56.1%
+    Cortex > Swarm  52.9% -> 53.4%   (OUT -> UNRESOLVED)
+    Swarm > Null    56.3% -> 55.8%
+  The per-faction gains from section 2b of balance-report-030 change more (below): with all 14 lines a signature
+  card is worth +9.9 points to Aegis on average and +0.9 to +3.1 to the others; the "twice as much" was closer to
+  three to ten times as much.
+
+THE NEW CI CHECK (ringRegression.ts --real, npm run ring:real; ringBaselineReal.json, recorded 2026-10-18):
+  Null > Aegis      2500 seeds  45.4% (CI 43.5-47.4) OUT OF BAND
+  Aegis > Cortex    2500 seeds  56.1% (CI 54.1-58.0) UNRESOLVED
+  Cortex > Swarm    2500 seeds  53.4% (CI 51.4-55.3) UNRESOLVED
+  Swarm > Null      2500 seeds  55.8% (CI 53.8-57.7) UNRESOLVED
+  Null ~ Cortex      900 seeds  50.7% (CI 47.4-53.9) IN BAND
+  Aegis ~ Swarm      900 seeds  56.2% (CI 53.0-59.4) UNRESOLVED
+  CI runs it in place of --signature. --signature still runs (npm run ring:signature) against
+  ringBaselineSignature.json, as a report. The gate is unchanged and still passes.
+  Note: Null > Aegis enters this baseline as OUT, so the check treats it as an accepted-OUT edge (it fails only
+  on a real move further out), the same rule the gate applies to its own OUT edges.
+
+# Aegis's signature gain (2500 gate seeds per cell, the ring's real-match mode, current LookaheadAgent both sides)
+
+== 1. What a signature card is worth to each faction (the corrected draw: all 14 lines) ==
+  Gain = the faction's win rate with only it holding a signature card, minus the gate. Newcombe 95%.
+  Cortex mean  +0.9   vs Aegis   +5.5 [2.7, 8.2] real   vs Swarm   -2.8 [-5.6, -0.1] real   vs Null    -0.1 [-2.8, 2.7]     
+  Swarm  mean  +1.9   vs Cortex  +3.3 [0.6, 6.1] real   vs Null    -2.1 [-4.9, 0.6]        vs Aegis   +4.5 [1.7, 7.2] real
+  Aegis  mean  +9.9   vs Null   +10.2 [7.5, 13.0] real   vs Cortex +12.8 [10.1, 15.6] real   vs Swarm   +6.7 [3.9, 9.4] real
+  Null   mean  +3.1   vs Aegis   +5.1 [2.4, 7.9] real   vs Swarm   +0.5 [-2.2, 3.3]        vs Cortex  +3.8 [1.0, 6.6] real
+
+  The ring's six edges, real-match mode (both sides hold one), against the gate:
+  Null > Aegis     gate 50.6%  real 45.4% OUT    change  -5.2 [-8.0, -2.5] real
+  Aegis > Cortex   gate 49.3%  real 56.1% UNRES  change  +6.8 [4.0, 9.5] real
+  Cortex > Swarm   gate 58.2%  real 53.4% UNRES  change  -4.8 [-7.6, -2.1] real
+  Swarm > Null     gate 57.1%  real 55.8% UNRES  change  -1.3 [-4.1, 1.4]     
+  Null ~ Cortex    gate 45.6%  real 49.3% IN     change  +3.7 [0.9, 6.4] real
+  Aegis ~ Swarm    gate 51.9%  real 54.8% UNRES  change  +2.9 [0.1, 5.6] real
+
+== 2. Spare energy: what each faction leaves unspent late in a game, with and without its signature card ==
+  Own turns at 5+ max energy (the signature card costs 5): mean energy left at the end of the turn,
+  share of those turns ending with 3+ unspent, share ending with an empty hand. Over the faction's three edges.
+  Cortex gate:  1.84 left, 3+  27.6%, empty hand  10.9% (2.7 turns/game)
+         + sig: 0.71 left, 3+   8.6%, empty hand   1.8% (2.4 turns/game)   energy put to use: 1.13 a late turn
+  Swarm  gate:  2.13 left, 3+  35.2%, empty hand   9.2% (2.2 turns/game)
+         + sig: 0.96 left, 3+  14.5%, empty hand   1.9% (2.1 turns/game)   energy put to use: 1.16 a late turn
+  Aegis  gate:  2.93 left, 3+  47.8%, empty hand  12.5% (2.9 turns/game)
+         + sig: 1.21 left, 3+  18.0%, empty hand   3.3% (2.5 turns/game)   energy put to use: 1.72 a late turn
+  Null   gate:  2.17 left, 3+  35.0%, empty hand   5.9% (2.3 turns/game)
+         + sig: 0.90 left, 3+  12.8%, empty hand   1.3% (2.2 turns/game)   energy put to use: 1.28 a late turn
+
+== 3. What happens to the signature card itself (only the faction holds one), per game it was played ==
+  tools = tools attached to it; buffs = buff events on it; attacks made; face damage dealt;
+  attacked = attacks aimed at it; redirected = attacks redirected onto it (Intercept Routine).
+  Cortex vs Aegis  played  97.4%  tools 0.17  buffs 0.53  attacks 1.96  face dmg 4.16  attacked 0.12  redirected 0.00
+  Cortex vs Swarm  played  90.9%  tools 0.11  buffs 0.28  attacks 1.45  face dmg 3.36  attacked 0.03  redirected 0.00
+  Cortex vs Null   played  94.2%  tools 0.12  buffs 0.36  attacks 1.55  face dmg 3.90  attacked 0.02  redirected 0.00
+  Swarm  vs Cortex played  89.0%  tools 0.07  buffs 0.28  attacks 1.29  face dmg 2.86  attacked 0.09  redirected 0.00
+  Swarm  vs Null   played  81.8%  tools 0.04  buffs 0.23  attacks 0.90  face dmg 1.97  attacked 0.01  redirected 0.00
+  Swarm  vs Aegis  played  90.8%  tools 0.08  buffs 0.40  attacks 1.37  face dmg 2.59  attacked 0.10  redirected 0.00
+  Aegis  vs Null   played  99.6%  tools 0.45  buffs 0.33  attacks 1.89  face dmg 4.67  attacked 0.29  redirected 0.02
+  Aegis  vs Cortex played  99.5%  tools 0.51  buffs 0.29  attacks 2.11  face dmg 5.53  attacked 0.36  redirected 0.03
+  Aegis  vs Swarm  played  98.5%  tools 0.38  buffs 0.24  attacks 1.60  face dmg 3.59  attacked 0.26  redirected 0.02
+  Null   vs Aegis  played  98.6%  tools 0.44  buffs 0.36  attacks 1.67  face dmg 3.28  attacked 0.14  redirected 0.00
+  Null   vs Swarm  played  94.4%  tools 0.18  buffs 0.19  attacks 0.93  face dmg 1.68  attacked 0.03  redirected 0.00
+  Null   vs Cortex played  98.5%  tools 0.36  buffs 0.25  attacks 1.48  face dmg 3.51  attacked 0.12  redirected 0.00
+
+
+== 4. Trial fixes for Null > Aegis (patched for the run only; nothing is written) ==
+  Each cell: the trial's rate for the edge's first-named faction, verdict, and the change from the same mode as shipped.
+  T1: a signature card can't carry tools (a rule, both sides)
+    Null > Aegis     real  46.8% OUT    +1.4 [-1.4, 4.2]     
+    Aegis > Cortex   real  54.6% UNRES  -1.4 [-4.2, 1.3]     
+    Swarm > Null     real  55.5% UNRES  -0.3 [-3.0, 2.5]     
+    Null ~ Cortex    real  49.0% IN     -0.3 [-3.0, 2.5]     
+    Aegis ~ Swarm    real  54.4% UNRES  -0.4 [-3.2, 2.3]     
+  T2: Kernel Panic destroys a unit with 5 or less health (was 4; session 10's number)
+    Null > Aegis     real  45.4% OUT    +0.0 [-2.7, 2.8]        gate  50.7% OUT    +0.1 [-2.7, 2.8]     
+    Aegis > Cortex   real  56.1% UNRES  +0.0 [-2.7, 2.7]        gate  49.3% OUT    +0.0 [-2.8, 2.8]     
+    Swarm > Null     real  55.6% UNRES  -0.2 [-2.9, 2.6]        gate  57.1% IN     +0.0 [-2.7, 2.7]     
+    Null ~ Cortex    real  49.7% IN     +0.4 [-2.4, 3.1]        gate  45.8% UNRES  +0.2 [-2.6, 3.0]     
+    Aegis ~ Swarm    real  54.8% UNRES  +0.0 [-2.8, 2.8]        gate  51.9% IN     +0.0 [-2.8, 2.8]     
+  T3: Kernel Panic destroys a unit with 6 or less health (reaches every 3/6 signature line)
+    Null > Aegis     real  45.8% OUT    +0.4 [-2.4, 3.2]        gate  50.7% OUT    +0.1 [-2.7, 2.8]     
+    Aegis > Cortex   real  56.1% UNRES  +0.0 [-2.7, 2.7]        gate  49.3% OUT    +0.0 [-2.8, 2.8]     
+    Swarm > Null     real  55.6% UNRES  -0.2 [-2.9, 2.6]        gate  56.9% UNRES  -0.2 [-2.9, 2.5]     
+    Null ~ Cortex    real  49.8% IN     +0.5 [-2.3, 3.3]        gate  46.0% UNRES  +0.4 [-2.4, 3.2]     
+    Aegis ~ Swarm    real  54.8% UNRES  +0.0 [-2.8, 2.8]        gate  51.9% IN     +0.0 [-2.8, 2.8]     
+  T4: Plating Module gives +0/+2 (was +0/+3)
+    Null > Aegis     real  46.9% OUT    +1.5 [-1.2, 4.3]        gate  52.1% OUT    +1.4 [-1.3, 4.2]     
+    Aegis > Cortex   real  54.3% UNRES  -1.8 [-4.6, 1.0]        gate  46.6% OUT    -2.7 [-5.4, 0.1]     
+    Swarm > Null     real  55.8% UNRES  +0.0 [-2.8, 2.8]        gate  57.1% IN     +0.0 [-2.7, 2.7]     
+    Null ~ Cortex    real  49.3% IN     +0.0 [-2.8, 2.8]        gate  45.6% UNRES  +0.0 [-2.8, 2.8]     
+    Aegis ~ Swarm    real  53.5% UNRES  -1.3 [-4.0, 1.5]        gate  50.0% IN     -1.9 [-4.7, 0.9]     
+  T5: Null Singularity costs 6 (was 7)
+    Null > Aegis     real  49.2% OUT    +3.8 [1.0, 6.6] real   gate  53.9% UNRES  +3.3 [0.5, 6.0] real
+    Aegis > Cortex   real  56.1% UNRES  +0.0 [-2.7, 2.7]        gate  49.3% OUT    +0.0 [-2.8, 2.8]     
+    Swarm > Null     real  52.4% OUT    -3.3 [-6.1, -0.6] real   gate  53.2% UNRES  -3.9 [-6.6, -1.1] real
+    Null ~ Cortex    real  52.6% IN     +3.3 [0.5, 6.0] real   gate  48.5% IN     +2.8 [0.1, 5.6] real
+    Aegis ~ Swarm    real  54.8% UNRES  +0.0 [-2.8, 2.8]        gate  51.9% IN     +0.0 [-2.8, 2.8]     
+  T6: every signature card costs 6 (was 5; a rule, both sides)
+    Null > Aegis     real  48.2% OUT    +2.8 [-0.0, 5.5]     
+    Aegis > Cortex   real  52.8% OUT    -3.3 [-6.0, -0.5] real
+    Swarm > Null     real  56.1% UNRES  +0.3 [-2.4, 3.1]     
+    Null ~ Cortex    real  46.8% UNRES  -2.6 [-5.3, 0.2]     
+    Aegis ~ Swarm    real  53.8% UNRES  -1.0 [-3.8, 1.7]     
+
+== 5. The cause check: the same gain with a heavier Aegis deck (3 Aegis Cadets -> 3 vanilla 5-cost 3/6) ==
+  Per Aegis edge: Aegis's win rate in the gate and with only Aegis holding a signature card, shipped and heavier,
+  and what Aegis leaves unspent on late turns (5+ max energy) in each.
+  vs Null   shipped: gate 49.4% (2.83 left), + sig 59.6%, gain +10.2 [7.5, 13.0] real
+            heavier: gate 44.2% (2.31 left), + sig 51.1%, gain  +6.9 [4.2, 9.7] real
+  vs Cortex shipped: gate 49.3% (3.23 left), + sig 62.2%, gain +12.8 [10.1, 15.6] real
+            heavier: gate 42.3% (2.76 left), + sig 51.9%, gain  +9.6 [6.9, 12.4] real
+  vs Swarm  shipped: gate 51.9% (2.64 left), + sig 58.6%, gain  +6.7 [3.9, 9.4] real
+            heavier: gate 44.6% (2.08 left), + sig 48.7%, gain  +4.2 [1.4, 6.9] real
+
+(sections 1-4: 316 s; section 5: 123 s)
+
+== Reading ==
+
+1. Why a signature card is worth most to Aegis. Three measurements, one negative:
+   a. SPARE ENERGY (measured, and partly confirmed by an ablation). On late turns (5+ max energy) without a
+      signature card, Aegis ends its turn with 2.93 energy unspent; the others leave 1.84-2.17. Aegis ends 47.8%
+      of those turns with 3+ unspent (others 27.6-35.2%) and 12.5% with an empty hand. Aegis's deck is built
+      around 1-3 cost cards; once its hand is spent it has nothing to do with 5+ energy. A signature card is a
+      5-cost play that is always there, so for Aegis it is close to free: it puts 1.72 energy a late turn to use,
+      against 1.13-1.28 for the others. Section 5 checks the cause: a heavier Aegis deck (3 Cadets swapped for
+      3 vanilla 5-drops) leaves ~0.5 less unspent and cuts Aegis's gain by about 3 points on each edge
+      (+10.2 -> +6.9, +12.8 -> +9.6, +6.7 -> +4.2). So spare energy is about a third of the gap, not all of it.
+   b. THE BODY BECOMES AEGIS'S ATTACKER (measured, correlational). Aegis's signature card makes the most attacks
+      (1.60-2.11 a game) and deals the most face damage (3.59-5.53 a game; Cortex 3.36-4.16, Swarm 1.97-2.86,
+      Null 1.68-3.51), and draws the most attacks aimed at it (0.26-0.36 a game; others 0.01-0.14). Aegis's own
+      deck is walls and low attack; a 3-attack body looks like the closer Aegis otherwise lacks. Not tested by an ablation this session.
+   c. NOT TOOLS. Aegis's signature card carries the most tools (0.38-0.51 a game; Null 0.18-0.44, Cortex
+      0.11-0.17, Swarm 0.04-0.08), but a rule that no signature card can carry tools (T1) moves Null > Aegis only
+      +1.4 (within noise). Tool stacking is not what drives it.
+
+2. Proposed fixes for Null > Aegis (real-match mode, 45.4%, 9.6 under 55). None of six trials reaches the band:
+     T1 no tools on a signature card (rule)      Null > Aegis +1.4 (noise); nothing else moves
+     T2 Kernel Panic reach 4 -> 5                 +0.0 everywhere (it evolves in ~11% of Null's games vs Aegis)
+     T3 Kernel Panic reach 4 -> 6                 +0.4 (noise)
+     T4 Plating Module +0/+3 -> +0/+2             Null > Aegis +1.5 (noise), Aegis > Cortex -1.8 real / -2.7 gate
+     T5 Null Singularity cost 7 -> 6              Null > Aegis +3.8 real / +3.3 gate (49.2% / 53.9%), Null ~ Cortex
+                                                  +3.3 (stays IN), but Swarm > Null -3.3 real (52.4%, OUT) / -3.9 gate
+     T6 every signature card costs 6 (rule)      Null > Aegis +2.8 (borderline), Aegis > Cortex -3.3 (52.8%, OUT)
+   The best single change, T5, closes 3.8 of the 9.6 points and pushes Swarm > Null out of band.
+
+3. Recommendation (at the check-in): no card change now. Keep Null > Aegis as the real-match check's one
+   accepted-OUT edge, and design the fix into the next set where it fits the cause: give Aegis a real late-game
+   play so its late turns aren't empty (section 5 says this shrinks the signature gain), and give Null an answer
+   to a durable attacker. T5 is the one-card partial fix if the owner wants movement now.
+
+4. Limits: 2,500 seeds per cell. Section 5's heavier deck is a measuring tool (vanilla units, outside the lint),
+   and it also makes Aegis weaker in the gate (-5 to -7 points), so it shows the direction of the cause, not its
+   exact size. The approved draw is even over the 14 lines; real owners pick 1 of 3. The "body becomes the
+   attacker" reading is correlational.

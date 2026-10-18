@@ -37,16 +37,34 @@ and session 39 (the chase cards live: schema v10, S0-odds-2, one roller, secret 
 binder; Intercept Routine fizzle causes), and session 40 (the generic "choose one" mechanic; the 3
 Zero-Day cards built and measured, not live), and session 41 (the reference agent fixed, the ring
 re-baselined, the Zero-Day cards tuned to the cap), and session 42 (the Zero-Day cards live; the
-Aegis vs Cortex investigation), and session 43 (the signature-mode ring investigation).
+Aegis vs Cortex investigation), and session 43 (the signature-mode ring investigation), and session 44
+(the real-match ring check; why a signature card helps Aegis most).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
+## New debt from session 44
+
+- **Null > Aegis is 45.4% in the real-match check, 9.6 under its band, and nothing fixes it yet.**
+  It is recorded as accepted-OUT, so CI only stops it getting worse. Six trials; the best (Null
+  Singularity cost 6) closes 3.8 points and pushes Swarm > Null out. The owner's call.
+- **Session 43's real-match numbers were measured on 4 approved lines, not 14,** and its check-in
+  said 14. Caught and fixed this session; report 030 has a correction note. The lesson: a stand-in
+  draw needs a test of its spread before any number is read from it. Other dev drivers with ad-hoc
+  draws have not been audited the same way.
+- **About two thirds of Aegis's extra signature gain is unexplained by measurement.** Spare energy
+  is about a third (ablation); "the card becomes Aegis's attacker" is a correlation only.
+- **The real-match check draws lines evenly,** not as real owners pick them (1 of 3); the agent
+  generator's pick is not modelled.
+- **The dev report drivers run their work at top level and have no smoke test.** A broken driver
+  (like session 43's draw) is only found when someone runs it. `aegisSignatureGain.ts` and
+  `signatureRingDrivers.ts` both follow this pattern.
+- Session 43's debt stands otherwise (Prime Aegis's health does nothing; Aegis > Cortex OUT in the
+  gate, accepted for now; 2,500-seed trials; no agent builds decks with Zero-Day cards).
+
 ## New debt from session 43
 
-- **The CI's second ring check measures a mode no real match plays.** `--signature` puts set Mythics
-  in the zone; real matches carry a generated Neutral menu card. Its 4 far-out edges measure how
-  strong each Mythic is when guaranteed, not the factions. Nothing in CI measures the real-match
-  mode yet; the fix is the owner's call (check-in option A).
+- ~~**The CI's second ring check measures a mode no real match plays.**~~ FIXED session 44: CI runs
+  `--real` (set Mythic in the deck, an approved menu card each side); `--signature` is a report.
 - **In the real-match stand-in, Null > Aegis is 45.2%, 9.8 under its band,** and Cortex > Swarm
   52.9% slips OUT. A signature card is worth ~2x more to Aegis than to the others; why is
   unmeasured. The 14 approved lines passed a fairness test that measured each line against the

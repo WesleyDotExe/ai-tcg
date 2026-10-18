@@ -31,11 +31,9 @@
 
 import { buildDeck, buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDeck, withSetMythicSignature } from "../data/decks.js";
 import { primeAegis } from "../data/aegisCards.js";
-import { APPROVED_SIGNATURE_LINES } from "../data/signatureApproved.js";
-import { buildSignatureCard } from "../data/signatureMenu.js";
 import { LookaheadAgent } from "../agents/lookaheadAgent.js";
 import { runMatch } from "../engine/match.js";
-import { FACTIONS, ringBand, wilson, compareTwoProportions, shippedPool } from "./edgeMeasure.js";
+import { FACTIONS, ringBand, wilson, compareTwoProportions, shippedPool, APPROVED_SIGNATURE_CARDS as APPROVED_CARDS, approvedSignatureFor } from "./edgeMeasure.js";
 import { RING_EDGES, edgeName, type RingEdge } from "./ringRegression.js";
 import { REFERENCE_SIGNATURE } from "./signatureFairness.js";
 import type { DeckSpec } from "../state/init.js";
@@ -60,8 +58,6 @@ const MYTHIC: Record<Faction, UnitCard> = Object.fromEntries(
   FACTIONS.map((f) => [f, withSetMythicSignature(SHIPPED[f]("p1", f)).signature!]),
 ) as Record<Faction, UnitCard>;
 
-const APPROVED_CARDS = APPROVED_SIGNATURE_LINES.map((l) => buildSignatureCard(l.spec, { id: `SIG-${l.id}`, name: l.id, anyStats: !l.onTable }));
-
 /** Builds one side's deck for one game. `seat` is 0 for the edge's first
  * faction, 1 for the other, so a per-seed draw differs by side. */
 type DeckMaker = (f: Faction, seed: number, seat: 0 | 1) => DeckSpec;
@@ -74,8 +70,8 @@ function modesFor(b: Builders): Record<string, DeckMaker> {
     plain: (f) => ({ ...b[f]("p1", `${f} Deck`), signature: REFERENCE_SIGNATURE }),
     approved: (f, seed, seat) => ({
       ...b[f]("p1", `${f} Deck`),
-      // A fixed, seat-dependent draw: every line appears equally often over the seeds.
-      signature: APPROVED_CARDS[(seed * 7 + seat * 3) % APPROVED_CARDS.length]!,
+      // The ring's --real draw: every line appears equally often over the seeds.
+      signature: approvedSignatureFor(seed, seat),
     }),
   };
 }

@@ -12,6 +12,7 @@
     "match": "tsx src/cli.ts",
     "balance": "tsx src/dev/balanceReport.ts",
     "ring": "tsx src/dev/ringRegression.ts",
+    "ring:real": "tsx src/dev/ringRegression.ts --real",
     "ring:signature": "tsx src/dev/ringRegression.ts --signature",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

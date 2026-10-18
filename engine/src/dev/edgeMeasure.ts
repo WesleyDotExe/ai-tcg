@@ -18,10 +18,12 @@ import { buildDeck, buildCortexDeck, buildSwarmDeck, buildAegisDeck, buildNullDe
 import { CORTEX_CARDS, SWARM_CARDS } from "../data/cards.js";
 import { AEGIS_CARDS } from "../data/aegisCards.js";
 import { NULL_CARDS } from "../data/nullCards.js";
+import { APPROVED_SIGNATURE_LINES } from "../data/signatureApproved.js";
+import { buildSignatureCard } from "../data/signatureMenu.js";
 import { LookaheadAgent } from "../agents/lookaheadAgent.js";
 import { runMatch } from "../engine/match.js";
 import type { DeckSpec } from "../state/init.js";
-import type { Card, DeckFaction as Faction } from "../cards/types.js";
+import type { Card, DeckFaction as Faction, UnitCard } from "../cards/types.js";
 import type { GameState, PlayerId } from "../state/types.js";
 
 export const FACTIONS: Faction[] = ["Cortex", "Swarm", "Aegis", "Null"];
@@ -76,6 +78,45 @@ export async function measureEdges(
   return results;
 }
 
+/** Every approved signature menu line as the card an agent would be granted
+ * (the ids are the line ids, so a log names which line was drawn). */
+export const APPROVED_SIGNATURE_CARDS: readonly UnitCard[] = APPROVED_SIGNATURE_LINES.map((l) =>
+  buildSignatureCard(l.spec, { id: `SIG-${l.id}`, name: l.id, anyStats: !l.onTable }),
+);
+
+/** The real-match stand-in's draw (owner 2026-10-18, option A): the approved
+ * line one side plays on one seed. `seat` is 0 for the edge's first-named
+ * faction and 1 for the other. Over each block of 28 seeds (from seed 1)
+ * every line is drawn twice per seat, once on an odd seed and once on an
+ * even one, so no line is tied to going first or second; and the two seats
+ * never draw the same line on a seed (their indices differ by 4k + 3, which
+ * is odd).
+ *
+ * Session 43's driver drew `(seed * 7 + seat * 3) % 14`, which reaches only
+ * 2 of the 14 lines per seat (7 * seed mod 14 is 0 or 7); this replaced it
+ * in session 44 (balance-report-031). */
+export function approvedSignatureFor(seed: number, seat: 0 | 1): UnitCard {
+  const n = APPROVED_SIGNATURE_CARDS.length;
+  const k = seed - 1;
+  const block = Math.floor(k / n);
+  const i = seat === 0 ? k + block : 5 * k + 3 + block;
+  return APPROVED_SIGNATURE_CARDS[((i % n) + n) % n]!;
+}
+
+/**
+ * How a measured deck carries a signature card:
+ *  - "none" (or false): decks as shipped, no signature card (the gate).
+ *  - "setMythic" (or true): each deck's set Mythic leaves the deck and
+ *    stands in as its signature card (withSetMythicSignature). Session 31's
+ *    "what if"; a report since owner 2026-10-18 option A, not how a real
+ *    match plays.
+ *  - "approved": the set Mythic stays in the deck and each side gets an
+ *    approved menu line (approvedSignatureFor), the way the store's match
+ *    setup gives every agent its generated Neutral signature card. The
+ *    ring's real-match mode.
+ */
+export type SignatureMode = "none" | "setMythic" | "approved";
+
 /**
  * One pairing of measureEdges, on its own: `faction` against `opponent` on
  * seeds [firstSeed, firstSeed + count), both LookaheadAgent, same seeding
@@ -90,16 +131,14 @@ export async function measurePairing(
   opts: {
     builders?: Record<Faction, DeckBuilder>;
     trackCard?: string;
-    signature?: boolean;
+    signature?: boolean | SignatureMode;
     /** Sees every finished game, for reports that need more than the win count. */
     onGame?: (state: GameState, selfPid: PlayerId) => void;
   } = {},
 ): Promise<EdgeResult> {
   const base = opts.builders ?? defaultBuilders;
-  // `signature`: each deck's set Mythic leaves the deck and stands in as its
-  // signature card (withSetMythicSignature), the way the ring regression
-  // check measures since the signature zone landed (session 31).
-  const builders: Record<Faction, DeckBuilder> = opts.signature
+  const mode: SignatureMode = opts.signature === true ? "setMythic" : opts.signature === false || opts.signature === undefined ? "none" : opts.signature;
+  const builders: Record<Faction, DeckBuilder> = mode === "setMythic"
     ? (Object.fromEntries(FACTIONS.map((f) => [f, (id: DeckSpec["id"], name: string) => withSetMythicSignature(base[f](id, name))])) as Record<Faction, DeckBuilder>)
     : base;
   // balanceReport.ts puts the earlier faction in FACTIONS order in slot A.
@@ -108,8 +147,12 @@ export async function measurePairing(
   const r: EdgeResult = { opponent, games: count, selfWins: 0, draws: 0, trackedPlays: 0 };
   for (let seed = firstSeed; seed < firstSeed + count; seed++) {
     const aGoesFirst = seed % 2 === 1;
-    const deckA = builders[factionA]("p1", `${factionA} Deck`);
-    const deckB = builders[factionB]("p2", `${factionB} Deck`);
+    let deckA = builders[factionA]("p1", `${factionA} Deck`);
+    let deckB = builders[factionB]("p2", `${factionB} Deck`);
+    if (mode === "approved") {
+      deckA = { ...deckA, signature: approvedSignatureFor(seed, aIsSelf ? 0 : 1) };
+      deckB = { ...deckB, signature: approvedSignatureFor(seed, aIsSelf ? 1 : 0) };
+    }
     const agentA = new LookaheadAgent(`Lookahead-${factionA}`, seed * 104729 + 31);
     const agentB = new LookaheadAgent(`Lookahead-${factionB}`, seed * 104729 + 31);
     const { state } = aGoesFirst
