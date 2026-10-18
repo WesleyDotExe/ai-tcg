@@ -39,7 +39,7 @@ import {
 } from "./config.js";
 import { customAgentNameProblem, nameKey, tidyAgentName } from "./agentNames.js";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./passwords.js";
-import { CARD_SETS, nextPity, rollPack, secretCardOf, type PackSlot, type PityState } from "./packs.js";
+import { CARD_SETS, FULL_ART_OR_BETTER, nextPity, rollPack, secretCardOf, type PackSlot, type PityState } from "./packs.js";
 import type { SecretCard } from "./chase.js";
 import { matchCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 import {
@@ -291,6 +291,10 @@ export interface PackOpening {
   pity: { fullArt: boolean; mythic: boolean };
   /** A Prototype was due but every run was used up, so the bonus was Gold. */
   prototypeFallbackGold: boolean;
+  /** The starter guarantee made this pack's shine slot a hit: it was the
+   * owner's last starter pack and the others had none (owner 2026-10-19).
+   * Known only once the pack is open; the pack never looks different. */
+  starterHit: boolean;
   cards: OpenedCard[];
   packPoints: number;
   /** Gold, a Prototype, a secret card, a Zero-Day card or a Jackpot pack: a
@@ -1982,7 +1986,7 @@ export class EconomyStore {
       // whatever its season (owner 2026-10-18, answer 6A); the opening
       // records which table that was.
       const odds = LIVE_PACK_ODDS;
-      const roll = rollPack(seed, set, pityBefore, this.prototypesLeft(set.code), odds);
+      const roll = rollPack(seed, set, pityBefore, this.prototypesLeft(set.code), odds, { starterHit: this.starterHitDue(pack) });
       const at = this.stamp();
       try {
         this.db
@@ -1990,7 +1994,7 @@ export class EconomyStore {
             `INSERT INTO pack_openings (pack_id, owner_id, odds_version, seed, jackpot, pity_json, opened_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
           )
-          .run(pack.packId, ownerId, odds.version, seed, roll.jackpot ? 1 : 0, JSON.stringify({ ...roll.pity, prototypeFallbackGold: roll.prototypeFallbackGold }), at);
+          .run(pack.packId, ownerId, odds.version, seed, roll.jackpot ? 1 : 0, JSON.stringify({ ...roll.pity, prototypeFallbackGold: roll.prototypeFallbackGold, starterHit: roll.starterHit === true }), at);
         this.db.prepare("UPDATE packs SET opened_at = ? WHERE pack_id = ?").run(at, pack.packId);
       } catch (err) {
         refused(err);
@@ -2054,6 +2058,7 @@ export class EconomyStore {
         jackpot: roll.jackpot,
         pity: roll.pity,
         prototypeFallbackGold: roll.prototypeFallbackGold,
+        starterHit: roll.starterHit === true,
         cards,
         packPoints: PACK_POINTS_PER_PACK,
         fullReveal: roll.jackpot || roll.pulls.some((p) => FULL_REVEAL_FINISHES.includes(p.finish)),
@@ -2138,6 +2143,27 @@ export class EconomyStore {
     for (const pulls of packs.values()) state = nextPity(state, pulls);
     const next = { fullArt: state.packsSinceFullArt >= pity.fullArtAfter, mythic: state.packsSinceMythic >= pity.mythicAfter };
     return { ...state, next };
+  }
+
+  /** The starter guarantee (owner 2026-10-19, render session 28 call 9):
+   * every owner sees at least one hit (Full Art or better) across their
+   * starter packs. It is due on the owner's last unopened starter pack when
+   * none of their opened starter packs had a hit, whatever else they opened
+   * in between. Worked out from pack history, like pity. */
+  private starterHitDue(pack: PackRecord): boolean {
+    if (pack.source !== "starter") return false;
+    const unopened = this.db
+      .prepare("SELECT COUNT(*) AS n FROM packs WHERE owner_id = ? AND source = 'starter' AND opened_at IS NULL")
+      .get(pack.ownerId) as Row;
+    if (num(unopened.n) !== 1) return false;
+    const hits = this.db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM packs p JOIN card_copies c ON c.origin_ref = 'pack:' || p.pack_id
+         WHERE p.owner_id = ? AND p.source = 'starter' AND p.opened_at IS NOT NULL
+           AND c.finish IN (${FULL_ART_OR_BETTER.map(() => "?").join(", ")})`,
+      )
+      .get(pack.ownerId, ...FULL_ART_OR_BETTER) as Row;
+    return num(hits.n) === 0;
   }
 
   /** Copies of a Prototype run found so far (the card viewer shows it). */

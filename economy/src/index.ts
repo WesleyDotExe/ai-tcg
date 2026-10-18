@@ -89,6 +89,7 @@ export {
   type PrototypeRun,
   type PackPull,
   type PackRoll,
+  type RollOptions,
   type PackSlot,
   type PityState,
 } from "./packs.js";
