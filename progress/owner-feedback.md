@@ -3091,3 +3091,20 @@ Answers the [OWNER CHECK-IN] "The signature-mode ring: what drives Aegis > Corte
 1. **Keep:** the real-match stand-in draws each side's signature card evenly from the 14 approved lines.
 2. **Keep:** all six edges measured at 2,500 games each.
 3. **Keep:** no set Mythic can be a signature card in a real match. If set Mythics ever go in the zone, option B (Prime Aegis at cost 7) is the starting point.
+
+
+---
+
+## 2026-10-18 — Owner: answers to render session 27 (hold to tilt), keep all 8
+
+Owner decisions on the 8 calls in `progress/render/checkpoints.md` (2026-10-18, "Hold to tilt: the card and the pack lean as one piece"; PR #72).
+1. **Keep:** a press held still for 0.2 s, or moved 8 px, starts the tilt; on the card stack only the 0.2 s hold starts it, so a quick sideways move is still the swipe.
+2. **Keep:** the side under the finger dips away, as if pressed.
+3. **Keep:** 15° at the card's edge, proportional in between, capped past the edge.
+4. **Keep:** the 0.56 s spring back with a small overshoot.
+5. **Keep:** a mouse hover no longer leans the card on desktop (hover still moves the shine; device tilt on a phone still leans it).
+6. **Keep:** tear versus tilt on the pack is told apart by where the press starts: the top strip (about a third of the pack) tears, anywhere else tilts, marked with the lit band and the TEAR tab.
+7. **Keep:** in a ten-pack only the fan's front pack tilts.
+8. **Keep:** letting go of a tilt over the viewer's backdrop doesn't close the viewer; only a tap does.
+
+Next render session: slice 3 (the first-time flow), as planned.
