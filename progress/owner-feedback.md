@@ -2969,3 +2969,23 @@ This replaces slice 2's calls 1 (a big pull waits for a hand tear under a "BIG P
 - Every other slice-2 call stands. Propose any new timings at the checkpoint.
 
 Please show both changes with phone and desktop stills or recordings at the next checkpoint.
+
+
+---
+
+## 2026-10-18 — Owner: answers to session 42 (leave Mainframe Core; investigate the signature-mode ring) and a render side task
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 42, "Aegis vs Cortex: why it moved, and a proposed fix").
+
+### Game lane
+1. **B: leave it.** Mainframe Core stays "Your units get +1/+1". Accept Aegis > Cortex at 49.3% in gate mode for now, and look again with the next set. Don't re-record the baselines for this.
+   - **Why:** real matches are played with signature cards in their zone. In that mode Aegis > Cortex is already 71.5%, far over its band, and B would push it to 74.8%. Weakening Cortex to fix the gate-mode number would make the mode owners actually watch more lopsided.
+2. **New: investigate the signature-mode ring.** In the next game session, find out why Aegis beats Cortex so heavily (71.5%) once signature cards are in play. Also report any other signature-mode edges that are far outside their bands. Show what drives it (for example, particular signature menu options, Aegis's signature cards, or how the agent plays them), measured the same way as balance-report-029. Then propose fixes at an [OWNER CHECK-IN]. **Don't change any cards or signature options without the owner's OK.**
+3. **Keep all 4 calls:**
+   - A Zero-Day card exists only in its Zero-Day finish (no plain, Foil or Gold copies).
+   - `craftCard` refuses Zero-Day cards and points to `craftSecret` (3,000 pack points).
+   - The regenerated pack-opening page and the two updated render tests stand.
+   - The note for the render lane about Zero-Day card faces (handled below).
+
+### Render lane: small side task
+Show both modes on a modal card's face (Zero-Day cards today, and future "choose one" cards), with each mode's name and rules text. Today a Zero-Day card's face shows no rules text, because the face only reads `abilities`, which is empty on a modal card. Do this alongside the 2026-10-18 pack-opening changes (full-size art, tap-driven ten-pack), in the pack page, the summary and any card viewer.
