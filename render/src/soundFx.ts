@@ -195,6 +195,23 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
       // Glass pings, then the chord falling apart, high to low.
       for (var wb = 0; wb < 14; wb++) T({ type: 'sine', f0: r(1800, 5200), dur: 0.09, g: 0.035, delay: wb * 0.022 });
       SFX_WARD_CHORD[v].slice().reverse().forEach(function (n, i) { T({ type: 'triangle', f0: n * 2, f1: n * 1.4, dur: 0.7, g: 0.06, delay: 0.08 + i * 0.09 }); });
+    } else if (kind === 'boast') {
+      // A victory boast's sting (render slice: victory boasts). Meaning,
+      // in every voice: it rises. The faction's chord climbs as a fanfare
+      // and lands an octave up on a held chord, over a low swell; the voice
+      // adds its own colour on the landing. Not one of SFX_KINDS: it plays
+      // once, at the end of a match.
+      var bc = SFX_WARD_CHORD[v], bt = { cortex: 'square', aegis: 'sawtooth', swarm: 'triangle', null: 'sawtooth' }[v] || 'triangle';
+      var bg = bt === 'square' ? 0.03 : 0.055;
+      bc.concat([bc[1] * 2]).forEach(function (n, i) { T({ type: bt, f0: n, dur: 0.24, g: bg, delay: i * 0.11, filt: 'lowpass', ff: 3200 }); });
+      bc.forEach(function (n) { T({ type: bt, f0: n * 4, dur: 1.2, g: bg * 0.8, att: 0.04, delay: 0.44, filt: 'lowpass', ff: 3600 }); });
+      T({ type: 'sine', f0: 55, f1: 110, dur: 1.3, g: 0.3, att: 0.35 });
+      T({ type: 'sine', f0: 110, f1: 45, dur: 0.6, g: 0.4, delay: 0.44 });
+      if (v === 'aegis') SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 220 * p, dur: 1.1, g: 0.07 / p, delay: 0.44 }); });
+      else if (v === 'cortex') for (var bi = 0; bi < 6; bi++) T({ type: 'square', f0: 1760 + bi * 220, dur: 0.04, g: 0.025, delay: 0.44 + bi * 0.05 });
+      else if (v === 'swarm') for (var bs = 0; bs < 8; bs++) N({ type: 'bandpass', f0: r(2600, 4800), q: 9, dur: 0.035, g: 0.12, delay: 0.44 + bs * 0.04 });
+      else if (v === 'null') T({ type: 'square', f0: 880, dur: 0.5, g: 0.03, steps: 6, delay: 0.44 });
+      else SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 880 * p, dur: 1.2, g: 0.04 / p, delay: 0.44 }); });
     } else if (kind === 'cast') {
       // A power's cast flourish: a rising whoosh, the voice on top.
       N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });

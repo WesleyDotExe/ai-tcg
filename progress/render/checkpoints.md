@@ -7,6 +7,88 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-19 — Victory boasts, slice 1: the victory grammar and Aegis's Shield Slam — AWAITING FEEDBACK
+
+Slice 1 of the boast plan you approved (all 9 defaults). Open `render/output/aegis-vs-null-seed3.html`,
+drag the scrubber to the second-last move and press > (or press Play from near the end). Or open
+`render/output/boast-sheet.html` and press Play on any scene.
+
+**What this delivers:**
+- **The victory grammar, enforced in code.** A boast rises and radiates from the winner's side and ends
+  on the winner's name. It never moves toward the loser and never touches the loser's cards or panel.
+  Before playing, the page checks the boast's whole layout against the real board:
+  - every plate, spark, shockwave and the name stay inside the winner's side;
+  - nothing ever moves down (the debuff grammar);
+  - sparks only fly up, and only as far as the side reaches.
+  
+  A boast that would break the grammar plays as its still instead.
+- **Shield Slam (Aegis's free starter boast), about 3 s:**
+  - the winner's panel lights and the loser's side, panel and hand dim to 70%, with nothing moving on them;
+  - 12 hex plates slam up out of the winner's slots, two to a slot, centre first, each with a clang;
+  - embers lift off the wall, and the wall flashes as one;
+  - the winner's row darkens; the bottom six plates lift into a hex crest and the top six rise away and fade;
+  - the crest locks with a sting while the music dips under it;
+  - the winner's name rises in under the crest ("SHIELD SLAM · VICTORY");
+  - at 3 s "GAME OVER: X WINS" lands in the turn bar and the crest fades.
+- **When it plays:** stepping or playing into the end. The lethal hit and its flash play as before, the
+  boast starts about 1.2 s after the step, and the result line waits for it. A tap anywhere, Escape or
+  the Skip button (top right of the winner's side) ends it at once.
+- **Reduced motion:** the final pose (the crest), still, with the name, for 1 s.
+- **On a phone,** if the winner's side is scrolled away, it scrolls into view first.
+- **Boasts are data:** each one is a list of beats over a few shared "victory" pieces (plates slamming
+  up, embers, a flash, a gather into a crest, the lock, the name). The other three starter boasts are
+  new data plus a few new pieces, not new drawing code.
+- Only Aegis has a boast so far. A win by another faction shows the result as before, until slice 2.
+
+**Evidence:**
+- **Recordings:** `progress/render/evidence/v2-s31-desktop-seat1.webm` (Aegis wins from the bottom side)
+  and `v2-s31-desktop-seat2.webm` (from the top side).
+- **Stills** (`v2-s31-*.jpg`): each beat (the wall rising, the wall locked, the gather, the crest and name,
+  the result) on desktop and phone, both seats; reduced motion; after a skip; the sheet's scenes.
+- **Browser check** (`boast-check.mjs`; output `boast-check-s31.txt`): 136 checks, all pass. It checks:
+  - the timings (start 1.2 s after the step, the name at 2.2 s, the result at 3.0 s);
+  - the grammar on every real layout;
+  - the loser's side dimmed and unchanged, and nothing drawn on it once the lethal hit's own sparks are gone;
+  - skip by Escape and by a phone tap (the result within 18 ms);
+  - reduced motion;
+  - a jump to the end, and a Cortex win (no boast).
+- **Tests:** render 440 (+30). They check the grammar on both seats, full and empty rows, desktop and
+  phone, and 300 random layouts. Each kind of break is caught (a sinking plate, a plate crossing to the
+  loser, downward sparks, a name on the loser's side, and so on). The ids and names match the store's
+  catalogue.
+- **All 14 replays were regenerated, and they show different matches now.** The game lane's card
+  changes since session 23 changed every match on the same seeds. One replay is new:
+  `cortex-vs-aegis-seed1.html`, where Aegis wins from the top side.
+
+**Decisions you may want to overrule:**
+1. **Plates slam UP, not down.** Your plan said "hex plates slam down in a wall". But down is the
+   debuff's direction in the grammar, so they rise out of the slot floors and stop dead with a clang.
+   Alternative: drop them from above onto the row (it would read like Aegis's buff).
+2. **A jump to the end plays no boast.** The boast plays when the replay steps or plays into the win,
+   every time. Pressing |> or dragging the scrubber to the end shows the result at once.
+   Alternative: play it on a jump too.
+3. **The winner's own row darkens** under the crest and name, so they read over the cards (it's on the
+   winner's side only). Alternative: no darkening, with a smaller name plate.
+4. **The crest is a hex ring of six plates around a centre plate.** It's a first take on "locks into a
+   crest". Alternative: a shield shape, or the faction's ward.
+5. **The match feed still says "X wins" while the boast plays.** Only the turn bar waits for the boast.
+   Alternative: hold the feed's last line too.
+6. **On a phone the page scrolls to the winner's side** if it's out of view when the boast starts.
+   Alternative: never scroll (the boast may play off screen).
+7. **The music dips to 55% under the sting.** That's your decision 8; it's the one place the music goes
+   below 80%. Alternative: a lighter dip.
+
+**Thin spots (in the debt list):**
+- Nobody has watched or heard it at full speed on a real screen.
+- Only Aegis has a boast.
+- The crest is a first take.
+- The skip hint is only the button: there's no "tap to skip" text.
+
+**Next:** your call on these; then slice 2, the other three starter boasts and the "Cosmetics: on / off"
+toggle.
+
+---
+
 ## 2026-10-19 — The starter guarantee on the page; the plan for victory boasts — AWAITING FEEDBACK
 
 Two things this session: your side task on the starter guarantee (built), and the render half of

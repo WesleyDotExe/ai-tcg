@@ -7,6 +7,27 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## Victory boasts (slice 1, session 31)
+
+- **Nobody has watched or heard a boast.** Its 3 s length, the slam timing, the sting and whether it
+  feels like a celebration (not a second lethal hit) were judged from stills, two recordings and timed
+  checks. The sting was only checked as data (it rises; its length), never listened to.
+- **Only Aegis has a boast.** A Swarm, Null or Cortex win shows the result as before, until slice 2.
+- **The crest is a hex flower** of seven plates, a first take on "locks into a crest", not a designed
+  emblem. It is about 110 px across on desktop: readable, not grand.
+- **The boast reads the winner's faction, not the match record.** Slice 3 passes the record's boast
+  (and the close-win slot); until then a loadout change can't show in a replay.
+- **The match feed spoils the result:** its last line ("X wins") prints while the boast plays; only the
+  turn bar waits.
+- **The lethal hit's ground mark sits on the loser's side during the boast** (correct for the hit, and
+  it is the attack's mark, not the boast's), and its sparks are still flying on the loser's side for the
+  first ~1 s of the boast. The check only asserts "nothing on the loser's side" from 1.25 s on.
+- **The browser check's "lit" count includes the veil** (a dark fill is still non-transparent canvas),
+  so its winner-side numbers after 1.4 s measure the veil plus the plates, not the plates alone.
+- **No "tap to skip" hint** beyond the Skip button; a viewer may not know a tap ends it.
+- **Headless runs before this session used SwiftShader GL at ~5 fps.** Earlier recordings (sessions
+  24-30) look slower than the pages are; their checks were not re-run with the CPU canvas.
+
 ## The first-time flow (slice 3, session 28)
 
 - **The mint has not been watched by a person.** Its 6.5 s length, the

@@ -666,6 +666,25 @@ html, body {
  * 4, 2026-09-26): the viewer sees the actual card, not just a sigil. */
 .card.fx-flycard { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
   box-shadow: 0 0 18px var(--fx-tint), 0 0 0 2px var(--fx-tint); }
+/* Victory boasts (render/src/boastFx.ts). */
+
+.boast-dim { opacity: 0.7; transition: opacity 300ms ease; }
+.hud.boast-panel { box-shadow: 0 0 0 1px var(--fc, #fff), 0 0 22px var(--fc, #fff); transition: box-shadow 250ms ease; }
+.boast-name { position: absolute; z-index: 96; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; color: var(--fc); border-radius: 6px;
+  background: linear-gradient(90deg, rgba(4,6,12,0), rgba(4,6,12,0.78) 14%, rgba(4,6,12,0.78) 86%, rgba(4,6,12,0)); animation: boast-rise 420ms cubic-bezier(.2,.9,.3,1.2) both; transition: opacity 320ms ease; }
+.boast-name .boast-who { font-weight: bold; font-size: 28px; letter-spacing: 0.12em; white-space: nowrap; line-height: 1.1;
+  text-shadow: 0 0 10px var(--fc), 0 0 2px #000, 0 2px 4px #000; }
+.boast-name .boast-tag { font-size: 10px; letter-spacing: 0.3em; color: var(--ink, #dfe7ff); opacity: 0.85; margin-top: 2px; text-shadow: 0 1px 3px #000; }
+.boast-name.gone, .boast-skip.gone { opacity: 0; }
+@keyframes boast-rise { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
+.boast-skip { position: absolute; z-index: 97; font: inherit; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--ink, #dfe7ff);
+  background: rgba(10,12,22,0.82); border: 1px solid var(--line, #334); border-radius: 4px; padding: 4px 9px; cursor: pointer; transition: opacity 320ms ease; }
+.boast-skip:hover, .boast-skip:focus-visible { border-color: var(--ink, #dfe7ff); }
+.turnbar .win.land { display: inline-block; animation: boast-land 520ms cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes boast-land { from { opacity: 0; transform: translateY(6px) scale(1.25); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .boast-name, .turnbar .win.land { animation: none; } }
+
 
 body { padding: 12px 16px; }
 h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weight: normal; margin: 4px 0 2px; }
@@ -1701,7 +1720,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear, plug: plug,
       // What a plug-in may draw with: the same glow, rings, shockwaves,
       // sprites, sparks and grid pushes the effects use.
-      kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,
+      kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, tex: tex, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,
         gridForce: gridForce, gridTint: gridTint, rand: rand, mix: mix, rgba: rgba, kick: kick, docCentre: docCentre },
       isReady: function () { return ready && !failed; },
       stats: function () { return { ready: ready && !failed, particles: P.length, projectiles: proj.length, beams: beams.length, timers: timers.length, frames: frames, peak: peak, fps: fps, tinted: Object.keys(tcache).length, gridLive: G.live, camera: camLive, reduced: REDUCED,
@@ -1721,6 +1740,10 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
   // dropped: a Swarm volley is many shots but should read as one chitter
   // cloud, not a wall of identical clicks.
   var SFX_REPEAT_GAP_MS = 28;
+  // The pack opening's sounds (render session 24, owner 2026-10-18: "a tear
+  // sound, flip ticks and a rising tone on hits"). Same player, same
+  // settings; the voice is the card's faction where there is one.
+  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp'];
   var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast', 'ward', 'wardPulse', 'wardBreak'];
   // Ward moments (slice 6, the lab's wardIn / wardPulse / wardBreak): each
   // faction's chord, low to high. Neutral has no ward; it gets Cortex's.
@@ -1859,6 +1882,23 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       // Glass pings, then the chord falling apart, high to low.
       for (var wb = 0; wb < 14; wb++) T({ type: 'sine', f0: r(1800, 5200), dur: 0.09, g: 0.035, delay: wb * 0.022 });
       SFX_WARD_CHORD[v].slice().reverse().forEach(function (n, i) { T({ type: 'triangle', f0: n * 2, f1: n * 1.4, dur: 0.7, g: 0.06, delay: 0.08 + i * 0.09 }); });
+    } else if (kind === 'boast') {
+      // A victory boast's sting (render slice: victory boasts). Meaning,
+      // in every voice: it rises. The faction's chord climbs as a fanfare
+      // and lands an octave up on a held chord, over a low swell; the voice
+      // adds its own colour on the landing. Not one of SFX_KINDS: it plays
+      // once, at the end of a match.
+      var bc = SFX_WARD_CHORD[v], bt = { cortex: 'square', aegis: 'sawtooth', swarm: 'triangle', null: 'sawtooth' }[v] || 'triangle';
+      var bg = bt === 'square' ? 0.03 : 0.055;
+      bc.concat([bc[1] * 2]).forEach(function (n, i) { T({ type: bt, f0: n, dur: 0.24, g: bg, delay: i * 0.11, filt: 'lowpass', ff: 3200 }); });
+      bc.forEach(function (n) { T({ type: bt, f0: n * 4, dur: 1.2, g: bg * 0.8, att: 0.04, delay: 0.44, filt: 'lowpass', ff: 3600 }); });
+      T({ type: 'sine', f0: 55, f1: 110, dur: 1.3, g: 0.3, att: 0.35 });
+      T({ type: 'sine', f0: 110, f1: 45, dur: 0.6, g: 0.4, delay: 0.44 });
+      if (v === 'aegis') SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 220 * p, dur: 1.1, g: 0.07 / p, delay: 0.44 }); });
+      else if (v === 'cortex') for (var bi = 0; bi < 6; bi++) T({ type: 'square', f0: 1760 + bi * 220, dur: 0.04, g: 0.025, delay: 0.44 + bi * 0.05 });
+      else if (v === 'swarm') for (var bs = 0; bs < 8; bs++) N({ type: 'bandpass', f0: r(2600, 4800), q: 9, dur: 0.035, g: 0.12, delay: 0.44 + bs * 0.04 });
+      else if (v === 'null') T({ type: 'square', f0: 880, dur: 0.5, g: 0.03, steps: 6, delay: 0.44 });
+      else SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 880 * p, dur: 1.2, g: 0.04 / p, delay: 0.44 }); });
     } else if (kind === 'cast') {
       // A power's cast flourish: a rising whoosh, the voice on top.
       N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });
@@ -1867,6 +1907,43 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       else if (v === 'swarm') for (var c = 0; c < 3; c++) N({ type: 'bandpass', f0: r(2600, 4200), q: 9, dur: 0.03, g: 0.1, delay: 0.1 + c * 0.04 });
       else if (v === 'null') T({ type: 'sawtooth', f0: 330, dur: 0.25, g: 0.04, steps: 5, filt: 'bandpass', ff: 1200, q: 2 });
       else T({ type: 'sine', f0: 1320, dur: 0.45, g: 0.04, delay: 0.1 });
+    } else if (kind === 'tear') {
+      // Foil ripping: a bright noise sweep with a crackle on top, and a
+      // low pop as the strip comes free.
+      N({ type: 'bandpass', f0: 5200, f1: 1400, q: 1.4, dur: 0.32, g: 0.28 });
+      for (var ti = 0; ti < 7; ti++) N({ type: 'highpass', f0: r(3500, 7000), q: 2, dur: 0.02, g: 0.12, delay: ti * 0.04 });
+      T({ type: 'sine', f0: 220, f1: 90, dur: 0.18, g: 0.18, delay: 0.3 });
+    } else if (kind === 'flip') {
+      // One card moving: a short dry tick; the voice tints it.
+      N({ type: 'bandpass', f0: v === 'aegis' ? 1700 : v === 'swarm' ? 2600 : 3200, q: 6, dur: 0.035, g: 0.2 });
+      T({ type: v === 'cortex' || v === 'null' ? 'square' : 'triangle', f0: v === 'null' ? r(700, 1400) : 1100, dur: 0.03, g: 0.025 });
+    } else if (kind === 'rise') {
+      // A hit: a rising tone. Always rises (meaning); the tier sets how far
+      // and how long (a Foil is a small lift, a Gold or a secret a long climb).
+      var big = tier === 'spectacle';
+      T({ type: 'sine', f0: 330, f1: big ? 1320 : 880, dur: big ? 1.1 : 0.55, g: 0.12, att: 0.08 });
+      T({ type: 'triangle', f0: 495, f1: big ? 1980 : 1320, dur: big ? 1.1 : 0.55, g: 0.05, att: 0.08 });
+      if (big) [1, 1.25, 1.5, 2].forEach(function (p, i) { T({ type: 'sine', f0: 1320 * p, dur: 0.7, g: 0.035, delay: 1.0 + i * 0.07 }); });
+    } else if (kind === 'sparkle') {
+      // Sparks off the tear, or a Gold card's stars: high bell pings.
+      for (var si = 0; si < 9; si++) T({ type: 'sine', f0: r(2400, 5200), dur: 0.12, g: 0.03, delay: si * 0.045 + r(0, 0.02) });
+    } else if (kind === 'type') {
+      // A terminal key: a click with a little body.
+      N({ type: 'bandpass', f0: r(1800, 2600), q: 8, dur: 0.025, g: 0.16 });
+      T({ type: 'square', f0: r(160, 220), dur: 0.02, g: 0.03 });
+    } else if (kind === 'breach') {
+      // The Zero-Day breach: a falling alarm over a low drone.
+      for (var bi = 0; bi < 3; bi++) T({ type: 'sawtooth', f0: 880, f1: 440, dur: 0.22, g: 0.05, delay: bi * 0.26, filt: 'lowpass', ff: 2400 });
+      T({ type: 'sawtooth', f0: 55, f1: 41, dur: 1.4, g: 0.12, filt: 'lowpass', ff: 300, att: 0.1 });
+    } else if (kind === 'glitch') {
+      // Corruption: broken pitch blips and a crunch.
+      for (var gi = 0; gi < 6; gi++) T({ type: 'square', f0: r(150, 3200), dur: 0.03, g: 0.05, delay: gi * 0.05 });
+      N({ type: 'bandpass', f0: 900, f1: 3000, q: 3, dur: 0.25, g: 0.18 });
+    } else if (kind === 'stamp') {
+      // A Prototype's serial plate pressing in: a heavy thunk and a ring.
+      T({ type: 'sine', f0: 140, f1: 45, dur: 0.35, g: 0.4 });
+      N({ type: 'lowpass', f0: 2600, f1: 300, dur: 0.18, g: 0.25 });
+      SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 523 * p, dur: 0.9, g: 0.04 / p, delay: 0.05 }); });
     }
     return out;
   }
@@ -2098,6 +2175,8 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
   var MUS_AT = { kick1: 0.6, kick3: 1.2, arp: 1.3, drive: 1.45, hats: 1.6, arp16: 2.2, kick4: 2.3, offHats: 2.4, snare: 2.5 };
   // An effect dips the music to this share of its level, then it recovers.
   var MUS_DUCK_TO = 0.8;
+  // A victory boast's sting dips it further, for the sting only (duckHold).
+  var MUS_BOAST_DUCK_TO = 0.55;
   // Scheduling: steps are queued this far ahead of the audio clock, by a
   // timer firing this often.
   var MUS_LOOKAHEAD_S = 0.12;
@@ -2348,9 +2427,24 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       if (!MU.on || !MU.duck) return false;
       var C = core().ctx, t = C.currentTime;
       if (MU.lastDuck >= 0 && t - MU.lastDuck < 0.06) return false;
+      if (MU.holdUntil && t < MU.holdUntil) return false;
       MU.lastDuck = t;
       var g = MU.duck.gain;
       g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_DUCK_TO, t, 0.01); g.setTargetAtTime(1, t + 0.1, 0.2);
+      counts.ducks++;
+      return true;
+    }
+    // duckHold(sec): a victory boast's sting is playing. The music dips to
+    // MUS_BOAST_DUCK_TO under it for sec seconds and recovers (owner
+    // 2026-10-19, boast decision 8: "a short sting ... with the music ducked
+    // under it"). The one place the music goes below MUS_DUCK_TO; a kill
+    // still never does. Effect ducks inside the hold are skipped so they
+    // don't lift it early.
+    function duckHold(sec) {
+      if (!MU.on || !MU.duck || !(sec > 0)) return false;
+      var C = core().ctx, t = C.currentTime, g = MU.duck.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_BOAST_DUCK_TO, t, 0.04); g.setTargetAtTime(1, t + sec, 0.25);
+      MU.holdUntil = t + sec;
       counts.ducks++;
       return true;
     }
@@ -2430,7 +2524,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     // (even with effects muted) and, when it actually sounds, ducks.
     SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
-      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, setScene: setScene, tick: tick,
+      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,
       stats: function () { return { on: MU.on, state: state(), volume: MU.vol, I: +MU.I.toFixed(3), faction: MU.faction, mythic: MU.mythic,
         layers: musLayers(MU.I), step: MU.step, steps: counts.steps, voices: counts.voices, ducks: counts.ducks, bumps: counts.bumps,

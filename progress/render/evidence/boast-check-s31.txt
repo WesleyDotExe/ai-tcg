@@ -1,0 +1,195 @@
+
+aegis-vs-null-seed3.html — desktop-seat1
+  PASS A. result held when the win lands
+  boast starts 1263 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS boast is Shield Slam (the winner's faction starter)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 4091, loser 26
+  1250 ms: lit winner 13532, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2166 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3012 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-aegis-seed1.html — desktop-seat2
+  PASS A. result held when the win lands
+  boast starts 1227 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS boast is Shield Slam (the winner's faction starter)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 3126, loser 1380
+  1250 ms: lit winner 13686, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2168 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3013 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-cortex-seed6.html — phone-seat1
+  PASS A. result held when the win lands
+  boast starts 1216 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS boast is Shield Slam (the winner's faction starter)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 2842, loser 1635
+  1250 ms: lit winner 11921, loser 0
+  1800 ms: lit winner 27905, loser 0
+  2500 ms: lit winner 27905, loser 0
+  PASS D. the boast draws on the winner's side (27905 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2171 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3003 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-aegis-seed1.html — phone-seat2
+  PASS A. result held when the win lands
+  boast starts 1210 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS boast is Shield Slam (the winner's faction starter)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 2919, loser 0
+  1250 ms: lit winner 12349, loser 0
+  1800 ms: lit winner 27903, loser 0
+  2500 ms: lit winner 27903, loser 0
+  PASS D. the boast draws on the winner's side (27903 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2164 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3010 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-cortex-seed3.html — desktop-reduced
+  PASS A. result held when the win lands
+  boast starts 1228 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS boast is Shield Slam (the winner's faction starter)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS F. reduced motion plays the still
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  120 ms: lit winner 47621, loser 291
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  name plate at 45 ms
+  PASS B. name plate at once
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 1012 ms into the boast
+  PASS B. result lands as the boast ends (~1 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-aegis-seed1.html — desktop-escape
+  PASS A. result held when the win lands
+  boast starts 1212 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS boast is Shield Slam (the winner's faction starter)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  skip seen by the boast at 990 ms (skip)
+  PASS E. the boast ended by the skip
+  skip pressed 1007 ms in; result 21 ms after the boast saw it
+  PASS E. skip lands the result at once
+  PASS E. no name, no Skip after a skip
+  PASS E. the dim goes
+  PASS E. boast no longer active
+
+aegis-vs-null-seed3.html — phone-tap
+  PASS A. result held when the win lands
+  boast starts 1211 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS boast is Shield Slam (the winner's faction starter)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  skip seen by the boast at 1031 ms (skip)
+  PASS E. the boast ended by the skip
+  skip pressed 1005 ms in; result 9 ms after the boast saw it
+  PASS E. skip lands the result at once
+  PASS E. no name, no Skip after a skip
+  PASS E. the dim goes
+  PASS E. boast no longer active
+
+aegis-vs-null-seed3.html — jump to the end
+  PASS G. a jump to the end shows the result at once, no boast
+
+cortex-vs-swarm-seed6.html — a Cortex win (no boast until slice 2)
+  PASS G. the result shows at once
+  PASS G. no boast plays
+
+boast-sheet.html — every scene
+  PASS H. boast-aegis-shield-slam-full: plays, no grammar problem
+  PASS H. boast-aegis-shield-slam-full: result after the boast
+  PASS H. boast-aegis-shield-slam-empty: plays, no grammar problem
+  PASS H. boast-aegis-shield-slam-empty: result after the boast
+  PASS H. boast-aegis-shield-slam-top: plays, no grammar problem
+  PASS H. boast-aegis-shield-slam-top: result after the boast
+  PASS H. boast-aegis-shield-slam-phone: plays, no grammar problem
+  PASS H. boast-aegis-shield-slam-phone: result after the boast
+  PASS H. boast-aegis-shield-slam-reduced: plays (still), no grammar problem
+  PASS H. boast-aegis-shield-slam-reduced: result after the boast
+
+ALL PASS

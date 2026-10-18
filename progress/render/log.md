@@ -3303,3 +3303,84 @@ last; four slices and 9 decisions with defaults.
 **Next render-lane slice:** the owner's answers on the boast plan, then boast slice 1 (EFFECTS.md
 grammar, the spec format, the Aegis boast in the replays). Without answers: the render debt list
 (the turn-cap ending and the momentum gauge's pending threat).
+
+## 2026-10-19 — Session 31: victory boasts, slice 1 (the victory grammar, the spec format, Shield Slam)
+
+Render session by the alternation rule: the last merged PR (#79) was the game lane's (session 47, the
+cosmetics backend). Owner feedback read: the answers to render session 30 approve the boast plan with
+all 9 defaults and name slice 1 as this session's work; the game lane's schema has landed, so slice 3
+can read `MatchRecord.loadouts` / `.boast` later. Nothing else for this lane.
+
+**Built:**
+- `render/src/boastFx.ts`: the victory grammar as code. Boasts are data (`BOAST_SPECS`, keyed by the
+  catalogue's item id) over eight victory primitives (panel, wall, embers, flash, veil, gather, lock,
+  name). `boastPlan` lays a spec on the winner's live geometry; `boastPlanProblem` checks the grammar
+  on that plan (everything inside the winner's side and off the loser's, no piece moves down, sparks
+  only upward and only as far as the side reaches); `boastStill` is the reduced-motion final pose;
+  `BOAST` plays a plan as a CFX plug-in with the DOM parts (panel lit, loser dimmed to 0.7, name plate,
+  Skip button, tap / Escape / Skip to end it). The page refuses to play a plan that breaks the grammar
+  (it plays the still instead).
+- **Shield Slam** (Aegis's starter boast, 3.0 s): 12 hex plates slam up out of the winner's slots,
+  centre first; embers; the wall flashes as one; a dark veil over the winner's row; the bottom plates
+  lift into a hex crest, the top ones rise away; the crest locks with the sting; the name plate under it.
+- In the replay (`renderHtml.ts`): stepping into a win holds "GAME OVER: X WINS"; the boast starts
+  `BOAST_LEAD_MS` (0.9 s) after the lethal beat and the result lands (class `land`) as it ends. A jump
+  to the end and a draw show the result at once. Any navigation cancels a boast. The winner's side is
+  scrolled into view first when it isn't (a phone).
+- Sound: a `boast` sting recipe in every faction voice (always rises); `MUS.duckHold` holds the music
+  at 55% under it (decision 8), the one dip below 80%. `CFX.kit.tex` exposed for plug-ins.
+- `render/src/boastSheet.ts` -> `render/output/boast-sheet.html` (`npm run boast-sheet`): full row,
+  empty row, winner above, phone width, the still.
+- EFFECTS.md: "victory" in axis 1 and "Victory boasts as built".
+- Regenerated all 14 replays, both older sheets, and added `cortex-vs-aegis-seed1.html` (Aegis wins
+  from seat 2, the top side; none of the 14 had that). **The 14 replays now show different matches
+  from session 23's:** the game lane's card and agent changes since then change every match (same
+  seeds). The four Aegis wins among them (aegis-vs-aegis 1, aegis-vs-cortex 3 and 6, aegis-vs-null 3)
+  all play the boast.
+
+**Bugs found on the way (all caught by the browser check, fixed before committing):**
+- The wall never rose in a replay: the boast looked for `.slot` elements, but a replay puts a filled
+  slot's `.card` straight in the row. Only the crest showed. The geometry now reads the row's children.
+- On a phone the winner's bottom side was scrolled out of view, so the whole boast played off screen
+  (lit pixels 0). It now scrolls the side into view first.
+- The Skip button stuck out past the side's right edge (fixed offset); now placed by its own width.
+- The crest was small and the name sat on busy card art: added the veil primitive, a slightly larger
+  crest, and a backing on the name plate (seen in the stills).
+
+**A finding for every later browser check:** the lane's headless runs have used SwiftShader GL
+(`--use-angle=swiftshader`), which runs any FX move at about 5 fps (measured: ordinary moves 4-14 fps,
+the boast sheet 5 fps). With `--disable-gpu --disable-accelerated-2d-canvas` (Chromium's CPU canvas)
+the same pages run at 62 fps. Past notes that "the headless browser's software GPU makes it slower"
+were about that flag, not the pages. `boast-check.mjs` uses the CPU canvas.
+
+**Ran it:**
+- `node progress/render/evidence/boast-check.mjs progress/render/evidence render/output video`
+  (output `boast-check-s31.txt`): 136 checks, ALL PASS. Desktop and phone, seat 1 and seat 2; the
+  boast starts 1.21-1.26 s after the step, the name at 2.16-2.17 s, the result at 3.00-3.01 s; the
+  page's plan passes the grammar on every live layout; loser side, panel and hand at 0.7 and their
+  markup unchanged; on the top canvas, lit samples on the winner's side (up to 13.5k during the wall)
+  and 0 on the loser's side from 1.25 s on (the lethal hit's own particles are there before that);
+  Escape at 1.0 s and a phone tap at 1.0 s land the result within 18 ms; reduced motion: the still,
+  the name at once, the result at 1.0 s; a jump to the end and a Cortex win: the result at once, no
+  boast; every sheet scene plays without a grammar problem. Stills `v2-s31-*.jpg`, recordings
+  `v2-s31-desktop-seat1.webm` and `v2-s31-desktop-seat2.webm`.
+- `npm test`: all six workspaces pass (render 440, +30); typecheck clean everywhere.
+
+**Tests (+30):** `boastFx.test.ts` (29): specs valid and in step with `STARTER_BOASTS` (ids, names,
+factions, art refs); `boastIdFor` (record, fallback, none); six broken specs refused; the grammar over
+both seats x full / 3 / empty rows x desktop / phone, a narrow one-line layout, and 300 random layouts
+and seeds, plan and still; every piece sampled every 10 ms never moves down or leaves the side;
+mutations (a sinking piece, a piece crossing to the loser, downward or too-wide sparks, a huge shock,
+a veil or name on the loser's side, a late mark, no name, a stray loser rect) are each caught; Shield
+Slam's shape (3 s, the name before the end, the sting at the crest with the duck, the panel first,
+12 plates centre-first with 6 impacts on full and empty rows, a crest of 7 over the name that fades as
+the result lands); deterministic per seed; the still (1 s, 7 still plates, panel / veil / name / sting);
+the slam's ease; the sting rises in every voice and isn't a match-event sound; the sheet has every
+scene and the replay's sources. `musicFx.test.ts` (+1): `duckHold` holds 55% for its length, effect
+dips inside it are skipped, after it they dip to 80% as before.
+
+**Named honestly** (debt list): nobody has watched or heard it; only Aegis has a boast; the crest is a
+hex flower, not yet a designed emblem; the match feed still prints "X wins" while the boast plays.
+
+**Next render-lane slice:** the owner's call on this checkpoint; then boast slice 2 (Swarm's Hive
+Burst, Null's Void Collapse, Cortex's Data Cascade, and the "Cosmetics: on / off" toggle).
