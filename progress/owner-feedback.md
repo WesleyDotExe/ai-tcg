@@ -3228,3 +3228,28 @@ Answers the [OWNER CHECK-IN] "The starter guarantee (built), and the plan for vi
 4. **Season reset:** cosmetics carry over. The reset clears the collection, credits and pack points, but not cosmetics.
 5. **The close-win slot:** yes. A second boast slot the store picks when the winner ends on 5 health or less, otherwise the main boast, and records which one played. The agent doesn't choose.
 6. **When:** build the game lane's half in the next game session. The render lane proposes its half (the boast animations, the end-of-match moment, the loadout picker) at its own checkpoint before building.
+
+
+---
+
+## 2026-10-19 — Owner: answers to render session 30 (the starter guarantee note; the render plan for victory boasts)
+
+Owner decisions on the 2 calls in `progress/render/checkpoints.md` (2026-10-19, "The starter guarantee on the page; the plan for victory boasts"; PR #78), and on the 9 boast decisions in `progress/render/notes-for-owner.md` (session 30).
+
+### The starter guarantee note: keep both calls
+1. **Keep:** the wording mirrors the pity note: "Starter guarantee: this pack was due a hit."
+2. **Keep:** the note is on the pack summary only, not on the card's reveal.
+
+### Victory boasts, the render half: plan approved, with all 9 suggested defaults
+The plan as proposed: a new "victory" event category in EFFECTS.md that always rises and radiates from the winner's side and never moves toward or touches the loser's cards or panel; the 4 starter boasts (Aegis shield slam, Swarm hive burst, Null void collapse, Cortex data cascade) as data over the existing primitives; the render plays whichever boast the match record says played and never picks one itself; the loadout picker comes last. Build order, one slice per render session: (1) the "victory" grammar, a boast spec format and the Aegis boast, with skip and reduced motion, then a checkpoint; (2) the other 3 starter boasts and the cosmetics toggle; (3) reading the loadout from the match record once the game lane's schema lands, and the close-win slot; (4) the loadout picker.
+1. **When it plays:** after the lethal beat and the winner's HP bar settle, before the result line, which lands as the boast ends.
+2. **Length:** about 3 s; skippable by tap, Escape or a Skip button; it plays every time a replay reaches its end.
+3. **Space:** the winner's half of the board and the winner's panel; the loser's side dims to about 70%, but nothing moves on it.
+4. **A draw:** no boast; the result line only.
+5. **A turn-cap win:** still a win, so the boast plays. A turn-cap win on 5 health or less plays the close-win boast, as the store records.
+6. **Old matches and missing loadouts:** the winner's faction starter boast.
+7. **The cosmetics toggle:** one "Cosmetics: on / off" switch for spectators that hides both sides' boasts, card backs, avatars and arenas. On the owner's own pages it hides only the other side's.
+8. **Sound:** a short sting in the faction's procedural voice, with the music ducked under it; muted when sound is off.
+9. **Reduced motion:** the boast's final pose as a still, with the name, for about 1 s.
+
+Next render session: slice 1 of the boast plan.
