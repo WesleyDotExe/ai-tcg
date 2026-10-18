@@ -7,6 +7,49 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-18 — Pack opening, slice 2: ten packs at once, and the summary grid — AWAITING FEEDBACK
+
+Your 2026-10-18 priority, slice 2 of 3. Open `render/output/pack-opening.html` and pick a "×10" pack (or the "Ten at once" row on the shelf). Both tens are real opens from the economy store: `openPacks(owner, 10)`, each pack its own seeded opening. The page only plays back what was rolled.
+
+**What this delivers:**
+- **Ten packs, one tap:** a fan of ten sealed packs; a tap opens them all.
+- **A fast sequence:** each pack tears by itself, throwing sparks only when it holds a hit, as in a single pack. Its cards deal into a row: plain cards face up, the rest face down and turned one after another. A hit pops, glows, and shows its finish name under it. NEW badges appear as cards land. A pack with a hit holds a little longer before the next.
+- **Pips:** a row of ten shows which pack is up. A pip turns pink for a hit or gold for a big pull, but only after that pack has opened, so nothing is given away early.
+- **Speed: 1×, 2×, 4×,** remembered per viewer. A tap on the row moves straight on to the next pack.
+- **Big pulls keep their full reveal.** A pack the store marks as a full reveal (Gold, Prototype, secret, Zero-Day, Jackpot) stops the sequence. It comes up as its own sealed pack under a "BIG PULL" tag, you tear it by hand, and every reveal plays at full length at any speed. Then the sequence carries on.
+- **Skip** runs ahead to the next big pull, which still gets its full reveal. With none left, it goes to the summary. Inside a big pull, "Skip this pack" is the way out.
+- **The summary grid:** "TEN PACKS OPENED", with cards, new cards, hits and big pulls, then chips by finish and by rarity. "Best pulls" (the hits) come first, larger. Then everything else, best first, with copies of the same card in the same finish folded into one tile ("×2", "packs 3, 8"). Pack points, then "Open 10 more", "Open one pack" or "Done".
+
+**Two bugs this found in slice 1 (fixed):**
+- **The placeholder art shared one gradient across the page,** so every card on screen painted the first card's background colour. That includes a single pack's five cards and its summary. Each card now has its own. Slice 1's stills show the old look.
+- **"Skip to summary" during a reveal could leave the secret number or a colour wash on screen.** That's fixed for both slices.
+
+**Evidence:**
+- **The page:** `render/output/pack-opening.html` (`npm run pack-opening -w @ai-tcg/render`). The two tens it opens: `progress/render/evidence/v2-s25-ten-pack-showcase.txt`.
+- **Browser check** (`pack-bulk-check.mjs` / `.txt`), at 1280 × 800 and 390 × 844, three runs each, all pass:
+  - **A:** the everyday ten at 4×, hands off: about 5 s to the summary.
+  - **B:** the big-pull ten at 1×: about 27 s, including tearing and tapping through the big pull.
+  - **C:** 2× with Skip pressed straight away: it stopped at the big pull, then reached the summary.
+  - Every run checks: packs in order; only the store's big pulls left the fast sequence, and every one of them did; sparks iff a hit; each row equals its pack; every face-down card turned; the summary holds all 50 cards with the store's new count and pack points; nothing left over on screen; speed remembered after a reload; no sideways scroll; no page errors.
+- **Stills** (`progress/render/evidence/v2-s25-*.jpg`): the shelf, the fan, a fast row with a hit, the big pull sealed and revealed, and the summary top and bottom, at desktop and phone width.
+- **Tests:** render 362 (+13), checked over 400 real packs.
+
+**Decisions you may want to overrule:**
+1. **A big pull waits for you to tear it, under a "BIG PULL" tag.** The pause gives it away before the sparks do; it is always honest, never a fake-out. Alternative: tear it automatically like the others, so the sparks are the first tell, then slow down for the reveal.
+2. **Skip never skips a big pull.** It runs ahead to the next one. Alternative: Skip goes straight to the summary, and the big pulls are only seen there.
+3. **Big pulls play at full length whatever the speed.** Alternative: at 4×, shorten their holds too.
+4. **The summary folds duplicates** (same card, same finish) into one tile with ×N and the pack numbers, best first. Alternative: one tile per card, in pack order (50 tiles).
+5. **NEW is one badge per collection entry,** as the binder counts. The header shows the store's own count, which is by card. The two differ only when a new card comes out both plain and as a Glitch or secret copy in one open.
+6. **Timings** (proposed, in `packOpening.ts` `BULK_TIMINGS`): sealed 0.26 s, tear 0.38 s, 0.07 s between dealt cards, 0.23 s per face-down turn, hold 0.52 s (1.1 s with a hit). An everyday pack takes about 1.7 s at 1×; ten take about 17 s at 1× and about 4-5 s at 4×. The default speed is 1×.
+7. **The fast row uses the CSS finish looks** (the summary's), not a shader per card. That keeps ten packs light on a phone; the big pull keeps its shaders.
+8. **The showcase tens are each a fresh owner's first ten packs,** so most cards show NEW (38 and 39 of 50).
+
+**Thin spots (in the debt list):** checked only in headless Chromium with a software GPU; no real phone, tilt or ears; the fast sequence has not been timed on a slow phone; only two showcase tens.
+
+**Next:** slice 3, the first-time flow: an agent's first packs and the leader (signature card) reveal.
+
+---
+
 ## 2026-10-17 — Pack opening, slice 1: one pack and every finish reveal — AWAITING FEEDBACK
 
 Your 2026-10-18 priority, slice 1 of 3. Open `render/output/pack-opening.html` in a browser (phone or desktop). Every pack on it is a real opening from the economy store (`openPack`, seeded, S0-odds-2); the page only plays back what was rolled.

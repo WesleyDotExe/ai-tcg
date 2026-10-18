@@ -1,0 +1,30 @@
+Ten-pack showcase (render session 25): real opens through EconomyStore.openPacks(owner, 10),
+each a fresh owner's first ten packs, odds S0-odds-2. * = a hit (Full Art or better).
+
+10 packs: seeds 1-10; 50 cards, 38 new, +50 pack points
+  by finish: standard 47, foil 2, fullArt 1
+  pack  1: seed 1 fast        no sparks  Reflex Spike (foil)
+  pack  2: seed 2 fast        no sparks  all standard
+  pack  3: seed 3 fast        no sparks  all standard
+  pack  4: seed 4 fast        no sparks  all standard
+  pack  5: seed 5 fast        no sparks  Scrap Recycler (foil)
+  pack  6: seed 6 fast        no sparks  all standard
+  pack  7: seed 7 fast        no sparks  all standard
+  pack  8: seed 8 fast        sparks     *Aegis Sentinel (fullArt)
+  pack  9: seed 9 fast        no sparks  all standard
+  pack 10: seed 10 fast        no sparks  all standard
+  summary grid: 39 tiles for 50 cards, 38 NEW badges, 10 folded duplicates
+
+10 packs, big pull: seeds 21-30; 50 cards, 39 new, +50 pack points
+  by finish: standard 47, fullArt 2, secret 1
+  pack  1: seed 21 fast        sparks     *Reflex Spike (fullArt)
+  pack  2: seed 22 fast        no sparks  all standard
+  pack  3: seed 23 fast        no sparks  all standard
+  pack  4: seed 24 fast        no sparks  all standard
+  pack  5: seed 25 fast        no sparks  all standard
+  pack  6: seed 26 FULL REVEAL sparks     *Entropy Harvester (secret)
+  pack  7: seed 27 fast        no sparks  all standard
+  pack  8: seed 28 fast        no sparks  all standard
+  pack  9: seed 29 fast        no sparks  all standard
+  pack 10: seed 30 fast        sparks     *Watchdog Timer (fullArt)
+  summary grid: 39 tiles for 50 cards, 39 NEW badges, 10 folded duplicates

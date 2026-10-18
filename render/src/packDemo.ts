@@ -15,14 +15,17 @@
 // records and returns it, and the page reveals exactly that. Nothing on the
 // page rolls anything.
 //
+// Then the ten-pack showcases (slice 2, openBulkShowcase): real 10-at-once
+// opens, one fresh owner each.
+//
 // Also prints a transcript (each pack's cards and its tells) for the
 // evidence folder.
 
 import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { cardSet, EconomyStore, FULL_ART_OR_BETTER, LIVE_PACK_ODDS, rollPack, type PackRoll, type PityState } from "@ai-tcg/economy";
-import { planReveal, type PackReveal } from "./packOpening.js";
+import { BULK_OPEN_COUNT, cardSet, EconomyStore, FULL_ART_OR_BETTER, LIVE_PACK_ODDS, rollPack, type BulkOpening, type PackRoll, type PityState } from "@ai-tcg/economy";
+import { planBulkReveal, planReveal, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { renderPackOpeningHtml } from "./packPage.js";
 
 /** One showcase pack: what the picker calls it, and what its roll must have. */
@@ -84,6 +87,70 @@ export function openShowcase(wants: readonly ShowcaseWant[] = SHOWCASE): Showcas
   }
 }
 
+/** One ten-pack showcase: what the picker calls it, and what the open must
+ * have. */
+export interface BulkWant {
+  label: string;
+  want: (b: BulkOpening) => boolean;
+}
+
+const hits = (b: BulkOpening) => b.packs.flatMap((p) => p.cards).filter((c) => FULL_ART_OR_BETTER.includes(c.finish)).length;
+
+export const BULK_SHOWCASE: readonly BulkWant[] = [
+  // The everyday ten: no big pull, so the whole open is the fast sequence,
+  // but at least one hit so its short flourish shows.
+  { label: "10 packs", want: (b) => b.summary.fullReveals.length === 0 && hits(b) >= 1 },
+  // A ten with a big pull in it (about 1 open in 4 has one), and a smaller
+  // hit besides, so the fast sequence and a full reveal both show.
+  { label: "10 packs, big pull", want: (b) => b.summary.fullReveals.length >= 1 && hits(b) >= 2 },
+];
+
+export interface BulkShowcase {
+  label: string;
+  reveal: BulkReveal;
+}
+
+/** Opens the ten-pack showcases. Each is a fresh owner's first ten packs in
+ * a fresh database (`EconomyStore.openPacks`, 10 at once), seeded with ten
+ * consecutive seeds from a base. The search tries bases 1, 11, 21, ... and
+ * keeps the first open that has what the showcase wants; the open it keeps
+ * is the store's own, not a re-roll. */
+export function openBulkShowcase(wants: readonly BulkWant[] = BULK_SHOWCASE): BulkShowcase[] {
+  return wants.map((w) => {
+    for (let base = 1; ; base += BULK_OPEN_COUNT) {
+      const store = EconomyStore.open(":memory:", { now: () => new Date("2026-10-18T12:00:00.000Z") });
+      try {
+        const owner = store.createOwner({ name: "pack-demo" }).ownerId;
+        for (let i = 0; i < BULK_OPEN_COUNT; i++) store.grantPack(owner, "S0", "weeklyChallenge");
+        const bulk = store.openPacks(owner, BULK_OPEN_COUNT, { seeds: Array.from({ length: BULK_OPEN_COUNT }, (_, k) => base + k) });
+        if (w.want(bulk)) return { label: w.label, reveal: planBulkReveal(bulk) };
+      } finally {
+        store.close();
+      }
+    }
+  });
+}
+
+export function bulkTranscript(bulks: readonly BulkShowcase[]): string {
+  const lines = [
+    "Ten-pack showcase (render session 25): real opens through EconomyStore.openPacks(owner, 10),",
+    `each a fresh owner's first ten packs, odds ${LIVE_PACK_ODDS.version}. * = a hit (Full Art or better).`,
+    "",
+  ];
+  for (const b of bulks) {
+    const r = b.reveal, sm = r.summary;
+    lines.push(`${b.label}: seeds ${r.packs[0]!.seed}-${r.packs[r.packs.length - 1]!.seed}; ${sm.cards} cards, ${sm.newCards} new, +${sm.packPoints} pack points`);
+    lines.push(`  by finish: ${Object.entries(sm.byFinish).map(([f, n]) => `${f} ${n}`).join(", ")}`);
+    r.packs.forEach((p, i) => {
+      const best = p.cards.filter((c) => c.finish !== "standard").map((c) => `${c.hit ? "*" : ""}${c.face.name} (${c.finish})`).join(", ") || "all standard";
+      lines.push(`  pack ${String(i + 1).padStart(2)}: seed ${p.seed} ${p.fullReveal ? "FULL REVEAL" : "fast       "} ${p.sparks ? "sparks   " : "no sparks"}  ${best}`);
+    });
+    lines.push(`  summary grid: ${r.tiles.length} tiles for ${sm.cards} cards, ${r.tiles.filter((t) => t.isNew).length} NEW badges, ${r.tiles.filter((t) => t.count > 1).length} folded duplicates`);
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
 export function transcript(showcase: readonly Showcase[]): string {
   const lines = [
     "Pack-opening showcase (render session 24): real openings through EconomyStore.openPack,",
@@ -106,9 +173,10 @@ const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(imp
 if (isMain) {
   const here = dirname(fileURLToPath(import.meta.url));
   const showcase = openShowcase();
+  const bulks = openBulkShowcase();
   const out = join(here, "..", "output", "pack-opening.html");
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, renderPackOpeningHtml({ title: "Season Zero pack opening", packs: showcase }));
-  process.stdout.write(transcript(showcase));
+  writeFileSync(out, renderPackOpeningHtml({ title: "Season Zero pack opening", packs: showcase, bulks }));
+  process.stdout.write(transcript(showcase) + "\n" + bulkTranscript(bulks));
   process.stderr.write(`wrote ${out}\n`);
 }

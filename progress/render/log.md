@@ -2730,3 +2730,125 @@ rebuild.
 **Next render-lane slice:** slice 2, the ten-pack opening: fast flips with
 skip and speed-up, full reveals only for the big pulls (the store's
 `fullReveal`), and the summary grid.
+
+---
+
+## 2026-10-18 — Session 25: pack opening, slice 2 (ten packs at once, and the summary grid)
+
+Render session by the alternation rule: the last merged PR (#67) was a game
+slice. Owner feedback read first:
+- 2026-10-18 (answers to render session 24): all 6 slice-1 calls kept;
+  "carry on with slice 2 (the ten-pack opening and its summary grid)".
+  This is slice 2.
+- 2026-10-18 (answers to game session 41: Zero-Day cards go live, Aegis vs
+  Cortex): game-lane work. The Zero-Day reveal already shows whatever the
+  registry has, so it picks the real cards up when they go live.
+
+**Built:**
+- `packOpening.ts`: `planBulkReveal(BulkOpening)`. Each pack is planned as
+  a single pack would be, and the store's own summary is carried through. It
+  also builds the summary grid (`SummaryTile`): copies of one card in one
+  finish fold into a tile with a count and the packs they came from; a
+  Prototype is always its own tile. The grid runs best first (finish, then
+  rarity), with one NEW badge per collection entry the owner lacked
+  (`entryKeyOf` copies the store's rule, which it doesn't export).
+  `BULK_TIMINGS` and `BULK_SPEEDS` (1×, 2×, 4×) are the proposed timings
+  and speeds.
+- `packDemo.ts`: `openBulkShowcase()`. There are two real ten-pack opens
+  (`EconomyStore.openPacks(owner, 10)`), each a fresh owner's first ten
+  packs. The search tries base seeds 1, 11, 21, … and keeps the first open
+  that has what the showcase wants: "10 packs" (no big pull, one hit, seeds
+  1-10) and "10 packs, big pull" (a secret in pack 6 and two Full Arts,
+  seeds 21-30). The transcript gains a ten-pack section.
+- `packPage.ts`, the ten-pack flow:
+  - **The fan:** ten sealed packs; one tap opens them all.
+  - **The fast sequence:** each pack tears by itself, with sparks exactly
+    when it holds a hit. Its cards deal into a row: plain cards face up, the
+    rest face down, turned one after another. A hit pops, glows and shows
+    its finish name; NEW badges show as cards land. The row holds a little
+    longer on a hit, then the next pack comes.
+  - **Pips:** a strip of ten shows which pack is up. A pip shows gold for a
+    big pull and pink for a hit, but only once that pack is open.
+  - **Controls:** 1× / 2× / 4× (remembered per viewer) and Skip. A tap on
+    the row moves straight on to the next pack.
+  - **Big pulls:** a pack the store marks `fullReveal` (Gold, Prototype,
+    secret, Zero-Day, Jackpot) leaves the fast sequence. It becomes the
+    single-pack flow: the sealed pack under a "BIG PULL" tag, torn by hand,
+    the stack, and every reveal at its own full length whatever the speed.
+    Its skip button reads "Skip this pack". Then the fast sequence carries on.
+  - **Skip** runs ahead to the next big pull, which still gets its full
+    reveal. With none left, it goes to the summary.
+  - **The summary:** "TEN PACKS OPENED"; cards, new (the store's count),
+    hits and big pulls; chips by finish and by rarity; "Best pulls" (the
+    hits, larger); then everything else, folded with ×N and the pack
+    numbers; pack points. The buttons are "Open 10 more", "Open one pack"
+    and "Done".
+  - The shelf gains a "Ten at once" row; the picker gains "×10" entries;
+    `?bulk=N` opens one directly.
+  - Refactor: the reveal code reads the pack from `S.cur`, not
+    `DATA.packs[S.pack]`, so one code path reveals a single pack and a big
+    pull inside a ten.
+
+**Bugs found and fixed:**
+- **The placeholder art shared one gradient id (`id="g"`) across the
+  page,** so every card painted the first card's background. This was
+  already in slice 1: a single pack's five cards and its summary tiles all
+  took one colour. It showed up here as a summary grid tinted entirely in
+  the first tile's magenta. Each art now names its gradient by what draws it
+  (seed, pattern, variant, hue). Slice 1's committed stills show the old
+  bug; they are left as the record.
+- **Overlays left behind:** cancelling the timers (skip, or a big pull
+  ending) also cancelled the ones that take the wash, the secret number
+  and the Jackpot banner off the stage, so the "217/096" callout and a pink
+  wash sat over the ten-pack summary. Slice 1's "Skip to summary"
+  mid-reveal had the same flaw. `clearTimers` now removes them.
+- **Controls that never hid:** `.speed { display: inline-flex }` overrode
+  the `hidden` attribute, so the speed buttons stayed on the summary and
+  during a big pull.
+- Phone layout: the controls covered the pips, and the second row of cards
+  sat left. The pips moved down, and the row is now a centred flex wrap.
+  The ×2 badges were clipped at the grid's edge.
+- Check-script bugs (not page bugs): stepping past the last card, and a
+  pack cut short by Skip read as "never dealt".
+
+**Ran it:**
+- `npm run pack-opening`: both tens in
+  `progress/render/evidence/v2-s25-ten-pack-showcase.txt`.
+- The browser check (`pack-bulk-check.mjs`, output in `.txt`) ran at
+  1280 × 800 and 390 × 844. Run A: the everyday ten at 4× took about 5 s
+  from the tap to the summary. Run B: the big-pull ten at 1× took about
+  27 s, including tapping through the big pull. Run C: 2× with Skip, which
+  stopped at the big pull and then reached the summary. All pass: packs in
+  order; only the store's big pulls left the fast sequence, every one did,
+  and Skip included; sparks iff a hit; dealt cards equal the plan; every
+  face-down card turned; the big pull's reveals all played; the summary's
+  tiles add up to the 50 cards, with the store's new count and pack points;
+  no overlays left; controls hidden; speed remembered across a reload; no
+  sideways scroll; no page errors.
+- Slice 1's own browser check (`pack-opening-check.mjs`), re-run against
+  the refactored page: all 10 single packs pass at both widths
+  (`pack-opening-check-s25-rerun.txt`).
+
+**Tests:** render 362 (+13), in `packBulk.test.ts`:
+- Over 40 real tens (400 packs): the plan holds exactly the store's packs
+  and summary. The grid holds every copy once, folded correctly, with the
+  pack numbers true. There is one NEW per new entry, and the grid is best
+  first.
+- The showcase is reproducible and the committed page matches it. The page
+  embeds the tens, the timings and the speeds.
+- The pure helpers: finish order, pack labels, fast-pack length by speed.
+- One art gradient per card.
+
+Mutation: reverting the gradient id fails the art test. Removing the NEW
+de-duplication survived the 400-pack tests (a new card pulled plain and
+Foil in one pack never happened there), so a targeted test was added from a
+real opening with one copy added; it now fails that mutation.
+
+**Named honestly** (in the debt list):
+- No real phone, GPU or ears.
+- The fast row's finishes are CSS stand-ins, not shaders.
+- The showcase is two tens found by search, both a fresh owner's first, so
+  most cards are NEW.
+
+**Next render-lane slice:** slice 3, the first-time flow (an agent's first
+packs and the leader, the signature card, reveal).

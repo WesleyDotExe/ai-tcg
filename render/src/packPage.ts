@@ -23,17 +23,20 @@
 // plans it was given (packOpening.ts), each one a real opening.
 
 import { PACK_FX_RUNTIME_SOURCE, PACK_FX_SHADERS } from "./packFx.js";
-import { PACK_TIMINGS, REVEAL_TIMINGS, ZERO_DAY_TIMINGS, type PackReveal } from "./packOpening.js";
+import { BULK_SPEEDS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 
 export interface PackPageData {
   title: string;
   packs: { label: string; reveal: PackReveal }[];
+  /** Ten-pack opens (slice 2). */
+  bulks?: { label: string; reveal: BulkReveal }[];
 }
 
 export function renderPackOpeningHtml(data: PackPageData): string {
   const embed = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
-  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS };
+  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, speeds: BULK_SPEEDS };
+  data = { ...data, bulks: data.bulks ?? [] };
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
@@ -66,6 +69,7 @@ export function renderPackOpeningHtml(data: PackPageData): string {
   <div class="hint" id="hint" aria-live="polite"></div>
   <div class="counter" id="counter"></div>
   <button class="skip" id="skip" hidden>Skip to summary</button>
+  <div class="bctl"><span class="speed" id="speed" role="group" aria-label="Speed" hidden></span><button class="bskip" id="bskip" hidden title="Runs ahead to the next big pull, which still gets its full reveal; with none left, to the summary">Skip</button></div>
 </main>
 <div class="zd" id="zd" hidden><div class="zd-term" id="zd-term"></div></div>
 <p class="sr" id="announce" aria-live="assertive"></p>
@@ -301,8 +305,74 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 14px; width: min(760px, calc(100vw - 32px)); }
 .shelf button { border: 1px solid var(--line); background: rgba(13,19,36,0.7); border-radius: 10px; padding: 10px 6px; font-size: 12px; color: var(--ink); }
 .shelf .mp { width: 54px; height: 86px; margin: 0 auto 6px; border-radius: 5px; background: linear-gradient(135deg, #1b2a6b, #3a1f7a 40%, #11163a 60%, #0f2a5e); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); }
+/* ---------- ten packs at once ---------- */
+.stage { --sp: 1; }
+.picker button.ten { border-style: dashed; }
+.shelf-wrap { width: min(760px, calc(100vw - 32px)); max-height: calc(100% - 70px); overflow-y: auto; touch-action: pan-y; }
+.shelf-wrap h3 { margin: 6px 0 8px; font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform: uppercase; }
+.shelf-wrap .shelf { width: 100%; margin-bottom: 12px; }
+.shelf .mp.ten { position: relative; background: none; box-shadow: none; }
+.shelf .mp.ten i { position: absolute; inset: 0; border-radius: 5px; background: linear-gradient(135deg, #1b2a6b, #3a1f7a 40%, #11163a 60%, #0f2a5e); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15), 0 2px 6px rgba(0,0,0,0.5); }
+.shelf .mp.ten i:nth-child(1) { transform: translateX(-9px) rotate(-8deg); } .shelf .mp.ten i:nth-child(3) { transform: translateX(9px) rotate(8deg); }
+.bctl [hidden] { display: none !important; }
+.bctl { position: absolute; top: 34px; right: 16px; z-index: 7; display: flex; gap: 8px; align-items: center; }
+.speed { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.speed button { border: 0; background: rgba(13,19,36,0.85); padding: 4px 10px; font-size: 12px; font-weight: 700; color: var(--dim); font-variant-numeric: tabular-nums; }
+.speed button[aria-pressed="true"] { background: #2a3a8a; color: #fff; }
+.bskip { border: 1px solid var(--line); background: rgba(13,19,36,0.85); border-radius: 7px; padding: 4px 11px; font-size: 12px; font-weight: 700; color: var(--ink); }
+/* A small sealed pack: the fan of ten, and the one about to tear in the fast sequence. */
+.mpack { --mw: min(30vw, 120px, calc((100dvh - 260px) * 0.4)); width: var(--mw); height: calc(var(--mw) * 1.6); position: relative; }
+.mpack .mtop, .mpack .mbody { position: absolute; left: 0; right: 0; border-radius: 7px; overflow: hidden; background: linear-gradient(135deg, #1b2a6b 0%, #3a1f7a 32%, #11163a 55%, #2a1150 78%, #0f2a5e 100%); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.1), 0 10px 26px rgba(0,0,0,0.55); }
+.mpack .mtop { top: 0; height: 16%; border-radius: 7px 7px 0 0; background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0 3px, rgba(0,0,0,0.25) 3px 6px), linear-gradient(135deg, #1b2a6b, #3a1f7a); }
+.mpack .mbody { top: 16%; bottom: 0; border-radius: 0 0 7px 7px; display: grid; place-items: center; align-content: center; gap: 6px; }
+.mpack .mbody span { font-weight: 900; letter-spacing: 0.1em; font-size: calc(var(--mw) * 0.15); background: linear-gradient(180deg, #fff, #bfe3ff 45%, #6a8cff 55%, #e6d2ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mpack .mbody svg { width: 34%; aspect-ratio: 1; color: #bfe3ff; }
+.fan { position: relative; width: calc(min(30vw, 120px, calc((100dvh - 260px) * 0.4)) * 2.4); height: calc(min(30vw, 120px, calc((100dvh - 260px) * 0.4)) * 1.9); cursor: pointer; display: grid; place-items: center; }
+.fan:focus { outline: none; }
+.fan .mpack { position: absolute; transform: rotate(calc((var(--k) - (var(--n) - 1) / 2) * 5deg)) translateX(calc((var(--k) - (var(--n) - 1) / 2) * 10px)); transform-origin: 50% 120%; transition: transform 0.4s cubic-bezier(.3,.7,.2,1), opacity 0.4s; animation: bob 3.4s ease-in-out infinite; animation-delay: calc(var(--k) * -0.3s); }
+.fan.go .mpack { transform: translateY(-40%) rotate(calc((var(--k) - (var(--n) - 1) / 2) * 14deg)) translateX(calc((var(--k) - (var(--n) - 1) / 2) * 30px)); opacity: 0; }
+.bulk { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; height: 100%; justify-content: center; padding: 50px 16px 60px; }
+.pips { display: flex; gap: 6px; }
+.pips i { width: 14px; height: 6px; border-radius: 3px; background: #1f2a4d; transition: background 0.2s; }
+.pips i.cur { background: #6a8cff; box-shadow: 0 0 8px #6a8cff; }
+.pips i.done { background: #3b4c80; }
+.pips i.done.hit { background: linear-gradient(90deg, #7a5cff, #ff5cc8); }
+.pips i.done.big { background: linear-gradient(90deg, var(--gold2), var(--gold4)); box-shadow: 0 0 8px rgba(246,215,122,0.7); }
+.brow { flex: 1; width: 100%; display: grid; place-items: center; min-height: 0; cursor: pointer; }
+.mpack.solo { animation: rise calc(0.35s / var(--sp)) cubic-bezier(.2,.9,.3,1) both; }
+.mpack.torn .mtop { animation: stripoff calc(0.4s / var(--sp)) cubic-bezier(.3,.7,.4,1) forwards; }
+.mpack.torn .mbody { animation: packdown calc(0.4s / var(--sp)) calc(0.15s / var(--sp)) cubic-bezier(.5,0,.8,.4) forwards; }
+.bcards { --bw: min(150px, calc((100vw - 72px) / 5), calc((100dvh - 290px) / 1.45)); display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: calc(var(--bw) * 5 + 32px); }
+.bcards.n6 { --bw: min(140px, calc((100vw - 80px) / 6), calc((100dvh - 290px) / 1.45)); max-width: calc(var(--bw) * 6 + 40px); }
+.bcard { --cw: var(--bw); position: relative; width: var(--bw); height: calc(var(--bw) * 1.4); perspective: 900px; animation: deal calc(0.3s / var(--sp)) cubic-bezier(.2,.9,.3,1) both; animation-delay: calc(var(--d) * 70ms / var(--sp)); }
+@keyframes deal { from { transform: translateY(40%) scale(0.6) rotate(-6deg); opacity: 0; } }
+.bcard .flipper { transition: transform calc(0.23s / var(--sp)) cubic-bezier(.3,.6,.3,1); }
+.bcard.down .flipper { transform: rotateY(180deg); }
+.bcard.down .back { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) #1c2350, 0 0 14px 3px rgba(150,190,255,0.6); }
+.bcard .face { border-radius: calc(var(--cw) * 0.05); }
+.bcard.pop { z-index: 3; animation: bpop calc(0.6s / var(--sp)) cubic-bezier(.2,1.5,.4,1); }
+@keyframes bpop { 40% { transform: scale(1.14); } }
+.bcard.pop .face { box-shadow: 0 0 22px 4px rgba(255,92,200,0.55), 0 0 40px 8px rgba(122,92,255,0.35); }
+.bcard .blab { position: absolute; left: 0; right: 0; top: calc(100% + 4px); text-align: center; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: #cfe0ff; opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
+.bcard.shown .blab:not(:empty) { opacity: 1; }
+.bcard .blab.hit { color: #ffb3ec; text-shadow: 0 0 8px rgba(255,92,200,0.8); }
+.bcard .new { position: absolute; top: -6px; right: -6px; z-index: 9; background: #ff3d7f; color: #fff; font-weight: 900; font-size: 9px; letter-spacing: 0.1em; padding: 1px 5px; border-radius: 3px; opacity: 0; transition: opacity 0.2s; }
+.bcard:not(.down) .new { opacity: 1; }
+.bulk-sum h3 { margin: 18px 0 10px; font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform: uppercase; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.chip { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; background: #121a33; border: 1px solid var(--line); color: #cfe0ff; }
+.chip b { color: #fff; margin-left: 2px; }
+.chip.f-fullArt, .chip.f-altArt, .chip.f-glitch { border-color: #a46cff; } .chip.f-gold, .chip.f-prototype, .chip.f-secret, .chip.f-zeroDay { border-color: var(--gold2); color: var(--gold4); }
+.bulk-sum .grid { padding: 8px 8px 0; }
+.grid.best { grid-template-columns: repeat(auto-fill, minmax(min(190px, 44vw), 1fr)); }
+.tile.big { max-width: 220px; }
+.tile .cnt { position: absolute; top: -7px; left: -7px; z-index: 9; background: #2a3a8a; color: #fff; font-weight: 900; font-size: 11px; padding: 2px 6px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,255,255,0.25); }
+@media (max-width: 560px) {
+  .bcards, .bcards.n6 { --bw: min(108px, calc((100vw - 48px) / 3), calc((100dvh - 330px) / 2.9)); max-width: calc(var(--bw) * 3 + 16px); row-gap: 22px; }
+  .bulk { padding-top: 76px; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .pack, .stage::before, .back, .cslot.reach::before, .face.zdface .art { animation: none !important; }
+  .pack, .stage::before, .back, .cslot.reach::before, .face.zdface .art, .fan .mpack { animation: none !important; }
 }
 @media (max-width: 520px) {
   .brand span { display: none; }
@@ -335,6 +405,24 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
   function packFinishLabel(finish) {
     return { standard: '', foil: 'FOIL', fullArt: 'FULL ART', altArt: 'ALT ART', glitch: 'GLITCH', secret: 'SECRET', gold: 'GOLD', prototype: 'PROTOTYPE', tournament: 'PRIZE', zeroDay: 'ZERO-DAY' }[finish] || '';
   }
+  // The finishes, best first (the ten-pack summary's chips and order).
+  function packFinishOrder() {
+    return ['zeroDay', 'prototype', 'tournament', 'secret', 'gold', 'glitch', 'altArt', 'fullArt', 'foil', 'standard'];
+  }
+  // Which packs of a ten-pack open a summary tile came from: "pack 3",
+  // "packs 2, 7", "packs 1, 4 +3" past three.
+  function packListLabel(packs) {
+    if (packs.length === 1) return 'pack ' + packs[0];
+    var head = packs.slice(0, 3).join(', ');
+    return 'packs ' + head + (packs.length > 3 ? ' +' + (packs.length - 3) : '');
+  }
+  // How long a fast (not full-reveal) pack of a ten-pack open takes at a
+  // speed: sealed, torn, dealt, each face-down card turned in turn, held.
+  // Mirrors the page's own beats (fastPack, dealRow).
+  function packFastDuration(cards, sparks, T, speed) {
+    var downs = cards.filter(function (c) { return c.faceDown; }).length;
+    return (T.sealed + T.tear + cards.length * T.deal + 160 + downs * T.flip + (sparks ? T.hitHold : T.hold)) / speed;
+  }
   // A small seeded generator for the placeholder art (mulberry32).
   function packRng(seed) {
     var a = seed >>> 0;
@@ -355,8 +443,12 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     function hsl(h, s, l, a) { return 'hsla(' + Math.round(((h % 360) + 360) % 360) + ',' + s + '%,' + l + '%,' + (a === undefined ? 1 : a) + ')'; }
     var W = 100, H = 76, out = [];
     out.push('<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">');
-    out.push('<defs><radialGradient id="g" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="' + hsl(hue, 70, light + 8) + '"/><stop offset="0.55" stop-color="' + hsl(hue + 25, 65, 22) + '"/><stop offset="1" stop-color="' + hsl(hue + 40, 60, 8) + '"/></radialGradient></defs>');
-    out.push('<rect width="' + W + '" height="' + H + '" fill="url(#g)"/>');
+    // The gradient's id is page-wide, so it is named by what draws it: with
+    // one shared id, every card on the page painted the first card's
+    // background (render session 25 found it in the ten-pack row).
+    var gid = 'pa' + face.visualSeed + '-' + face.visualPattern + '-' + (variant || 'n') + '-' + Math.round(hue);
+    out.push('<defs><radialGradient id="' + gid + '" cx="50%" cy="45%" r="75%"><stop offset="0" stop-color="' + hsl(hue, 70, light + 8) + '"/><stop offset="0.55" stop-color="' + hsl(hue + 25, 65, 22) + '"/><stop offset="1" stop-color="' + hsl(hue + 40, 60, 8) + '"/></radialGradient></defs>');
+    out.push('<rect width="' + W + '" height="' + H + '" fill="url(#' + gid + ')"/>');
     if (variant === 'illustration') {
       out.push('<circle cx="' + (30 + rnd() * 40).toFixed(1) + '" cy="' + (18 + rnd() * 10).toFixed(1) + '" r="' + (10 + rnd() * 6).toFixed(1) + '" fill="' + hsl(hue + 180, 90, 75, 0.85) + '"/>');
       for (var layer = 0; layer < 5; layer++) {
@@ -425,11 +517,16 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // The page's state, and a log of every beat, for the headless check.
   // tilt: the card that follows the light (only once it has landed, so a
   // flip is never pulled off course).
-  var S = { pack: 0, phase: 'shelf', i: 0, busyUntil: 0, revealed: {}, tilt: -1, layers: [], log: [], timers: [] };
+  // mode: 'single' (one pack) or 'bulk' (a ten-pack open: bulk is which
+  // one, bp the pack in it). cur is the pack being revealed either way.
+  var S = { mode: 'single', pack: 0, bulk: -1, bp: -1, cur: null, phase: 'shelf', i: 0, busyUntil: 0, revealed: {}, tilt: -1, layers: [], log: [], timers: [], speed: 1, skipping: false };
   window.__pack = S;
-  function log(kind, o) { var e = { kind: kind, t: Math.round(performance.now() - t0), pack: S.pack }; for (var k in o) e[k] = o[k]; S.log.push(e); }
+  function log(kind, o) { var e = { kind: kind, t: Math.round(performance.now() - t0), mode: S.mode, pack: S.pack, bulk: S.bulk, bp: S.bp }; for (var k in o) e[k] = o[k]; S.log.push(e); }
   function later(fn, ms) { var id = setTimeout(fn, REDUCE ? Math.min(ms, 120) : ms); S.timers.push(id); return id; }
-  function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; }
+  // Cancelling the timers also cancels the ones that would have taken a
+  // reveal's overlays (the wash, the secret number, the Jackpot banner) off
+  // the stage, so they go here too.
+  function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; stage.querySelectorAll('.wash, .callout, .banner').forEach(function (e) { e.remove(); }); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function stopLayers() { S.layers.forEach(function (l) { l.stop(); }); S.layers = []; }
   function sfx(kind, faction, tier) { if (window.SND) SND.play(kind, faction || 'Neutral', tier || 'normal', null); }
@@ -442,13 +539,32 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   DATA.packs.forEach(function (p, i) {
     var b = document.createElement('button');
     b.textContent = (i + 1) + '. ' + p.label;
+    b.setAttribute('data-pack', i);
     b.addEventListener('click', function () { openPack(i); });
     picker.appendChild(b);
   });
-  function markPicker() { Array.prototype.forEach.call(picker.children, function (b, i) { b.classList.toggle('on', i === S.pack && S.phase !== 'shelf'); }); }
+  DATA.bulks.forEach(function (p, i) {
+    var b = document.createElement('button');
+    b.className = 'ten';
+    b.textContent = '×10 ' + p.label;
+    b.setAttribute('data-bulk', i);
+    b.addEventListener('click', function () { openBulk(i); });
+    picker.appendChild(b);
+  });
+  function markPicker() {
+    Array.prototype.forEach.call(picker.children, function (b) {
+      var on = S.phase !== 'shelf' && (S.mode === 'bulk' ? b.getAttribute('data-bulk') === String(S.bulk) : b.getAttribute('data-pack') === String(S.pack));
+      b.classList.toggle('on', on);
+    });
+  }
   function footer() {
-    var r = DATA.packs[S.pack].reveal;
-    document.getElementById('foot').innerHTML = 'A real opening from the economy store: seed <b>' + r.seed + '</b>, odds <b>' + esc(r.oddsVersion) + '</b>. The reveal only shows what was rolled; nothing on this page rolls anything. Placeholder card art until the art pass.';
+    var r = S.cur, foot = document.getElementById('foot');
+    if (S.mode === 'bulk') {
+      var B = DATA.bulks[S.bulk].reveal;
+      foot.innerHTML = 'A real ten-pack open from the economy store (openPacks, 10 at once): seeds <b>' + B.packs[0].seed + '-' + B.packs[B.packs.length - 1].seed + '</b>, odds <b>' + esc(B.packs[0].oddsVersion) + '</b>. Each pack is its own opening; the reveal only shows what was rolled. Placeholder card art until the art pass.';
+      return;
+    }
+    foot.innerHTML = 'A real opening from the economy store: seed <b>' + r.seed + '</b>, odds <b>' + esc(r.oddsVersion) + '</b>. The reveal only shows what was rolled; nothing on this page rolls anything. Placeholder card art until the art pass.';
   }
 
   // ---------- card faces ----------
@@ -459,7 +575,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     var variant = c.reveal === 'altArt' ? 'alt' : c.reveal === 'secret' ? 'illustration' : '';
     var cls = 'face faction-' + f.faction + (opts.settled && full ? ' full' : '') + (opts.settled && c.reveal === 'gold' ? ' goldframe' : '') + (opts.settled && c.reveal === 'glitch' ? ' corrupt' : '') + (opts.settled && c.reveal === 'zeroDay' ? ' zdface' : '') + (c.prototype ? ' proto' : '');
     var type = f.type === 'Reserved' ? 'Zero-Day · Reserved' : f.type + ' · ' + f.faction;
-    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + esc(DATA.packs[S.pack] ? DATA.packs[S.pack].reveal.setCode : 'S0') + '</span>' : esc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '');
+    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + esc(S.cur ? S.cur.setCode : 'S0') + '</span>' : esc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '');
     var mark = c.reveal === 'altArt' ? 'ALT ART' : c.reveal === 'glitch' ? 'GL1TCH' : c.reveal === 'secret' ? 'SECRET' : c.reveal === 'zeroDay' ? 'ZERO-DAY' : '';
     return '<div class="' + cls + '">' +
       '<div class="art">' + packArtSvg(f, variant) + '</div>' +
@@ -479,23 +595,33 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     clearTimers(); stopLayers(); S.phase = 'shelf'; markPicker();
     skipBtn.hidden = true; counter.textContent = ''; dim.style.opacity = 0;
     hint.innerHTML = 'Pick a pack to open. Each one is a real opening.';
-    scene.innerHTML = '<div class="shelf">' + DATA.packs.map(function (p, i) { return '<button data-i="' + i + '"><div class="mp"></div>' + (i + 1) + '. ' + esc(p.label) + '</button>'; }).join('') + '</div>';
-    scene.querySelectorAll('.shelf button').forEach(function (b) { b.addEventListener('click', function () { openPack(Number(b.getAttribute('data-i'))); }); });
+    bulkControls(false);
+    scene.innerHTML = '<div class="shelf-wrap"><h3>One pack</h3><div class="shelf">' + DATA.packs.map(function (p, i) { return '<button data-i="' + i + '"><div class="mp"></div>' + (i + 1) + '. ' + esc(p.label) + '</button>'; }).join('') + '</div>' +
+      (DATA.bulks.length ? '<h3>Ten at once</h3><div class="shelf">' + DATA.bulks.map(function (p, i) { return '<button data-b="' + i + '"><div class="mp ten"><i></i><i></i><i></i></div>×10 ' + esc(p.label) + '</button>'; }).join('') + '</div>' : '') + '</div>';
+    scene.querySelectorAll('.shelf button[data-i]').forEach(function (b) { b.addEventListener('click', function () { openPack(Number(b.getAttribute('data-i'))); }); });
+    scene.querySelectorAll('.shelf button[data-b]').forEach(function (b) { b.addEventListener('click', function () { openBulk(Number(b.getAttribute('data-b'))); }); });
     log('shelf', {});
   }
 
   // ---------- the sealed pack and the tear ----------
   function openPack(i) {
     clearTimers(); stopLayers(); zd.hidden = true; zd.className = 'zd';
-    S.pack = i; S.phase = 'pack'; S.i = 0; S.revealed = {}; S.busyUntil = 0;
+    S.mode = 'single'; S.pack = i; S.bulk = -1; S.bp = -1; S.cur = DATA.packs[i].reveal;
+    bulkControls(false);
+    sealed(DATA.packs[i].label);
+  }
+  // The sealed pack S.cur, waiting to be torn: a single pack, or a big pull
+  // inside a ten-pack open.
+  function sealed(label) {
+    S.phase = 'pack'; S.i = 0; S.revealed = {}; S.busyUntil = 0;
     markPicker(); footer();
-    var r = DATA.packs[i].reveal;
-    skipBtn.hidden = true; counter.textContent = ''; dim.style.opacity = 0;
+    var r = S.cur;
+    skipBtn.hidden = true; counter.textContent = S.mode === 'bulk' ? 'Pack ' + (S.bp + 1) + ' / ' + DATA.bulks[S.bulk].reveal.packs.length : ''; dim.style.opacity = 0;
     var wrap = '<div class="wrap"><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div><div class="meta">' + r.cards.length + ' CARDS · ' + esc(r.setCode) + '</div><div class="crimp b"></div></div>';
     scene.innerHTML = '<div class="pack" id="pack" tabindex="0" role="button" aria-label="Sealed Season Zero pack. Drag across the top to tear it open, or tap."><div class="tilt"><div class="half top">' + wrap + '</div><div class="half body">' + wrap + '</div><div class="cutline"><i id="cutp"></i></div><div class="grip"></div><div class="finger"></div></div></div>';
-    hint.innerHTML = 'Drag across the top of the pack to tear it open<br>or tap it';
+    hint.innerHTML = (S.mode === 'bulk' ? '<span class="slot bonus">BIG PULL</span><br>This pack gets its full reveal. ' : '') + 'Drag across the top of the pack to tear it open<br>or tap it';
     var pack = document.getElementById('pack'), tilt = pack.querySelector('.tilt'), cutp = document.getElementById('cutp');
-    var shimmer = FXGL.layer(tilt, 'pack', { amt: 1, seed: i + 1 });
+    var shimmer = FXGL.layer(tilt, 'pack', { amt: 1, seed: S.pack + S.bp + 2 });
     if (shimmer) S.layers.push(shimmer); else pack.classList.add('fx-css-pack');
     var drag = null, progress = 0;
     pack.addEventListener('pointermove', function (e) {
@@ -530,7 +656,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     });
     pack.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); autoTear(cutp, 'key'); } });
     pack.focus({ preventScroll: true, focusVisible: false });
-    log('packShown', { label: DATA.packs[i].label });
+    log('packShown', { label: label });
   }
   function autoTear(cutp, via) {
     if (S.phase !== 'pack') return;
@@ -542,7 +668,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   function tear(via) {
     if (S.phase !== 'pack') return;
     S.phase = 'torn';
-    var r = DATA.packs[S.pack].reveal, pack = document.getElementById('pack');
+    var r = S.cur, pack = document.getElementById('pack');
     pack.classList.add('torn');
     stopLayers();
     sfx('tear');
@@ -597,7 +723,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
 
   // ---------- the stack ----------
   function dealStack() {
-    var r = DATA.packs[S.pack].reveal;
+    var r = S.cur;
     S.phase = 'cards'; S.i = 0;
     scene.innerHTML = '<div class="stack" id="stack"></div>';
     var stack = document.getElementById('stack');
@@ -613,13 +739,14 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     }
     layoutStack();
     skipBtn.hidden = false;
+    skipBtn.textContent = S.mode === 'bulk' ? 'Skip this pack' : 'Skip to summary';
     S.busyUntil = performance.now() + TM.pack.rise;
     later(function () { stack.querySelectorAll('.cslot').forEach(function (e) { e.classList.remove('rise'); }); showTop(); }, TM.pack.rise);
     bindStack(stack);
   }
   function slotEl(k) { return document.querySelector('.cslot[data-k="' + k + '"]'); }
   function layoutStack() {
-    var r = DATA.packs[S.pack].reveal;
+    var r = S.cur;
     for (var k = S.i; k < r.cards.length; k++) {
       var el = slotEl(k); if (!el) continue;
       var d = Math.min(4, k - S.i);
@@ -628,8 +755,8 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     }
   }
   function showTop() {
-    var r = DATA.packs[S.pack].reveal, c = r.cards[S.i];
-    counter.textContent = (S.i + 1) + ' / ' + r.cards.length;
+    var r = S.cur, c = r.cards[S.i];
+    counter.textContent = (S.mode === 'bulk' ? 'Pack ' + (S.bp + 1) + ' · ' : '') + (S.i + 1) + ' / ' + r.cards.length;
     var slot = c.slot === 'shine' ? '<span class="slot">SHINE SLOT</span><br>' : c.slot === 'bonus' ? '<span class="slot bonus">BONUS 6TH CARD</span><br>' : '';
     if (c.faceDown && !S.revealed[S.i]) hint.innerHTML = slot + 'Something special… tap to reveal';
     else hint.innerHTML = slot + (S.i === r.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
@@ -650,7 +777,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       var rc = el.getBoundingClientRect();
       var x = (e.clientX - rc.left) / rc.width, y = (e.clientY - rc.top) / rc.height;
       setLight(x, y);
-      var top = DATA.packs[S.pack].reveal.cards[S.i];
+      var top = S.cur.cards[S.i];
       if (drag && (!top.faceDown || S.revealed[S.i])) {
         var dx = e.clientX - drag.x0;
         if (Math.abs(dx) > 10 && canLeave()) { el.classList.add('dragging'); el.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx * 0.05) + 'deg)'; }
@@ -670,14 +797,14 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // otherwise send it off (once its reveal has had its moment).
   function act(how) {
     if (S.phase !== 'cards') return;
-    var r = DATA.packs[S.pack].reveal, c = r.cards[S.i], el = slotEl(S.i);
+    var r = S.cur, c = r.cards[S.i], el = slotEl(S.i);
     if (!el) return;
     if (c.faceDown && !S.revealed[S.i]) { if (how !== 'none' && canLeave()) reveal(S.i); else layoutStack(); return; }
     if (how === 'none' || !canLeave()) { layoutStack(); return; }
     leave(how === 'r' ? 'r' : 'l');
   }
   function leave(dir) {
-    var r = DATA.packs[S.pack].reveal, el = slotEl(S.i);
+    var r = S.cur, el = slotEl(S.i);
     S.tilt = -1;
     el.classList.add(dir === 'r' ? 'gone-r' : 'gone-l');
     log('cardLeft', { idx: S.i, dir: dir });
@@ -692,6 +819,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   document.addEventListener('keydown', function (e) {
     if (S.phase === 'cards' && (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); act('tap'); }
     if (S.phase === 'cards' && e.key === 'ArrowLeft') { e.preventDefault(); act('l'); }
+    if (S.phase === 'bulk' && (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); bulkTap(); }
   });
   skipBtn.addEventListener('click', function () { if (S.phase === 'cards') { log('skip', { at: S.i }); summary(); } });
 
@@ -743,7 +871,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     return null;
   }
   function reveal(k) {
-    var r = DATA.packs[S.pack].reveal, c = r.cards[k], el = slotEl(k);
+    var r = S.cur, c = r.cards[k], el = slotEl(k);
     S.revealed[k] = true;
     var t = TM.reveal[c.reveal];
     el.classList.remove('glow');
@@ -795,7 +923,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     }
     S.tilt = k;
     log('landed', { idx: k, as: c.reveal });
-    hint.innerHTML += '<br>' + (k === DATA.packs[S.pack].reveal.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
+    hint.innerHTML += '<br>' + (k === S.cur.cards.length - 1 ? 'Tap for the summary' : 'Swipe or tap for the next card');
   }
   // Glitch: the card corrupts as it flips (RGB split, jumping block tears,
   // scanlines), then settles with a faint glitch loop.
@@ -830,9 +958,9 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     })();
   }
   function glitchLoop(el, face, gl) {
-    var k = S.i, pack = S.pack;
+    var k = S.i, pack = S.pack, bp = S.bp;
     (function burst() {
-      if (S.pack !== pack || S.i !== k || S.phase !== 'cards') return;
+      if (S.pack !== pack || S.bp !== bp || S.i !== k || S.phase !== 'cards') return;
       if (gl) { gl.set(0.85); later(function () { gl.set(0.18); }, 160); }
       face.style.transform = 'translateX(' + ((Math.random() - 0.5) * 6).toFixed(1) + 'px)';
       later(function () { face.style.transform = ''; }, 90);
@@ -843,7 +971,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // types "ZERO-DAY DETECTED", a short breach sequence plays, then the
   // animated card arrives.
   function zeroDay(k) {
-    var r = DATA.packs[S.pack].reveal, c = r.cards[k], el = slotEl(k), Z = TM.zeroDay;
+    var r = S.cur, c = r.cards[k], el = slotEl(k), Z = TM.zeroDay;
     S.busyUntil = Infinity;
     log('reveal', { idx: k, as: 'zeroDay', finish: c.finish });
     zd.hidden = false; zd.className = 'zd'; zdTerm.innerHTML = '';
@@ -893,14 +1021,12 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // ---------- the summary ----------
   function summary() {
     clearTimers(); stopLayers(); dim.style.opacity = 0;
+    // A big pull inside a ten-pack open: back to the fast sequence.
+    if (S.mode === 'bulk') { skipBtn.hidden = true; log('bulkFullDone', { cards: S.i }); bulkResume(); return; }
     S.phase = 'summary'; skipBtn.hidden = true; counter.textContent = ''; hint.innerHTML = '';
-    var r = DATA.packs[S.pack].reveal;
+    var r = S.cur;
     var hits = r.cards.filter(function (c) { return c.hit; }).length;
-    var tiles = r.cards.map(function (c, i) {
-      var lab = packFinishLabel(c.finish);
-      var cap = (lab ? '<span class="fin' + (c.hit ? ' hit' : '') + '">' + lab + '</span><br>' : '') + esc(c.face.name) + '<br>' + esc(c.prototype ? 'serial ' + c.prototype.serial + ' of ' + c.prototype.runSize : c.collectorNumber) + ' · x' + c.ownedAfter + ' owned';
-      return '<div class="tile" style="--i:' + i + '" data-finish="' + c.finish + '">' + (c.isNew ? '<span class="new">NEW</span>' : '') + '<div class="mini">' + faceHtml(c, { settled: true }).replace('class="face ', 'class="face ' + (c.reveal === 'foil' || c.reveal === 'fullArt' || c.reveal === 'altArt' || c.reveal === 'secret' ? 'fx-css-foil ' : c.reveal === 'gold' || c.reveal === 'prototype' ? 'fx-css-gold ' : c.reveal === 'glitch' ? 'fx-css-glitch ' : c.reveal === 'zeroDay' ? 'fx-css-zeroDay ' : '')) + '</div><div class="cap">' + cap + '</div></div>';
-    }).join('');
+    var tiles = r.cards.map(function (c, i) { return tileHtml(c, i, ''); }).join('');
     var pity = r.pity.fullArt || r.pity.mythic ? '<div class="sub">' + (r.pity.fullArt ? 'Pity: this pack was due a hit. ' : '') + (r.pity.mythic ? 'Pity: this pack was due a Mythic.' : '') + '</div>' : '';
     scene.innerHTML = '<div class="summary"><h2>PACK COMPLETE</h2><p class="sub">' + r.cards.length + ' cards · ' + (hits ? hits + ' hit' + (hits > 1 ? 's' : '') : 'no hits') + (r.jackpot ? ' · Jackpot pack' : '') + '</p>' + pity +
       '<div class="grid">' + tiles + '</div><p class="points">+<b>' + r.packPoints + '</b> pack points</p>' +
@@ -910,8 +1036,176 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     log('summary', { cards: r.cards.map(function (c) { return { name: c.face.name, finish: c.finish, isNew: c.isNew }; }), packPoints: r.packPoints });
   }
 
-  // ?pack=N opens that pack straight away (1-based); otherwise the shelf.
-  var m = /[?&]pack=(\d+)/.exec(location.search);
-  if (m && DATA.packs[Number(m[1]) - 1]) openPack(Number(m[1]) - 1); else shelf();
+  // A card face that is settled and wears its finish's CSS look (a summary
+  // tile, a card in a ten-pack row: too many for a shader each).
+  function settledFaceHtml(c) {
+    return faceHtml(c, { settled: true }).replace('class="face ', 'class="face ' + (c.reveal === 'foil' || c.reveal === 'fullArt' || c.reveal === 'altArt' || c.reveal === 'secret' ? 'fx-css-foil ' : c.reveal === 'gold' || c.reveal === 'prototype' ? 'fx-css-gold ' : c.reveal === 'glitch' ? 'fx-css-glitch ' : c.reveal === 'zeroDay' ? 'fx-css-zeroDay ' : ''));
+  }
+  // One summary tile: a revealed card, or a ten-pack tile (count, packs).
+  function tileHtml(c, i, extra) {
+    var lab = packFinishLabel(c.finish);
+    var where = c.packs ? ' · ' + packListLabel(c.packs) : '';
+    var cap = (lab ? '<span class="fin' + (c.hit ? ' hit' : '') + '">' + lab + '</span><br>' : '') + esc(c.face.name) + '<br>' + esc(c.prototype ? 'serial ' + c.prototype.serial + ' of ' + c.prototype.runSize : c.collectorNumber) + where + ' · x' + c.ownedAfter + ' owned';
+    return '<div class="tile' + extra + '" style="--i:' + Math.min(i, 14) + '" data-finish="' + c.finish + '"' + (c.count ? ' data-count="' + c.count + '"' : '') + '>' + (c.isNew ? '<span class="new">NEW</span>' : '') + (c.count > 1 ? '<span class="cnt">×' + c.count + '</span>' : '') + '<div class="mini">' + settledFaceHtml(c) + '</div><div class="cap">' + cap + '</div></div>';
+  }
+
+  // ---------- ten packs at once ----------
+  // owner 2026-10-05 / 2026-10-18: fast flips with skip and speed-up
+  // controls, full reveals only for the big pulls (the store's fullReveal:
+  // Gold, Prototype, secret, Zero-Day, Jackpot), a summary grid at the end.
+  var speedEl = document.getElementById('speed'), bskip = document.getElementById('bskip');
+  var SPEED_KEY = 'aitcg.packSpeed';
+  try { var sv = Number(localStorage.getItem(SPEED_KEY)); if (TM.speeds.indexOf(sv) >= 0) S.speed = sv; } catch (e) {}
+  TM.speeds.forEach(function (v) {
+    var b = document.createElement('button');
+    b.textContent = v + '×'; b.setAttribute('data-speed', v);
+    b.addEventListener('click', function (e) { e.stopPropagation(); setSpeed(v); });
+    speedEl.appendChild(b);
+  });
+  function setSpeed(v) {
+    S.speed = v;
+    try { localStorage.setItem(SPEED_KEY, String(v)); } catch (e) {}
+    stage.style.setProperty('--sp', String(v));
+    Array.prototype.forEach.call(speedEl.children, function (b) { b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-speed')) === v)); });
+    log('speed', { speed: v });
+  }
+  setSpeed(S.speed);
+  // A fast-sequence beat: the 1x time over the speed.
+  function fast(fn, ms) { return later(fn, ms / S.speed); }
+  function bulkControls(on) { speedEl.hidden = !on; bskip.hidden = !on; }
+  bskip.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (S.mode !== 'bulk' || (S.phase !== 'bulk' && S.phase !== 'fan')) return;
+    // Skip runs ahead to the next big pull, which still gets its full
+    // reveal; with none left, to the summary.
+    log('bulkSkip', { from: S.bp });
+    clearTimers(); S.skipping = true; bulkNext();
+  });
+  function openBulk(b) {
+    clearTimers(); stopLayers(); zd.hidden = true; zd.className = 'zd'; dim.style.opacity = 0;
+    var B = DATA.bulks[b].reveal;
+    S.mode = 'bulk'; S.bulk = b; S.bp = -1; S.cur = B.packs[0]; S.phase = 'fan'; S.skipping = false;
+    markPicker(); footer(); bulkControls(true); skipBtn.hidden = true;
+    counter.textContent = B.packs.length + ' packs';
+    var fan = '';
+    for (var k = B.packs.length - 1; k >= 0; k--) fan += '<div class="mpack" style="--k:' + k + ';--n:' + B.packs.length + '">' + miniPackHtml() + '</div>';
+    scene.innerHTML = '<div class="fan" id="fan" tabindex="0" role="button" aria-label="Ten sealed Season Zero packs. Tap to open them all.">' + fan + '</div>';
+    hint.innerHTML = 'Ten packs. Tap to open them all';
+    var f = document.getElementById('fan');
+    function go() { if (S.phase !== 'fan') return; S.phase = 'bulk'; f.classList.add('go'); sfx('tear'); log('bulkGo', {}); fast(bulkNext, 420); }
+    f.addEventListener('click', go);
+    f.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    f.focus({ preventScroll: true, focusVisible: false });
+    log('bulkStart', { packs: B.packs.length, label: DATA.bulks[b].label });
+  }
+  function miniPackHtml() {
+    return '<div class="mtop"></div><div class="mbody"><span>AI·TCG</span><svg><use href="#setsym"/></svg></div>';
+  }
+  function bulkFrame() {
+    var B = DATA.bulks[S.bulk].reveal;
+    if (!document.getElementById('brow')) {
+      scene.innerHTML = '<div class="bulk"><div class="pips" id="pips">' + B.packs.map(function (_, k) { return '<i data-p="' + k + '"></i>'; }).join('') + '</div><div class="brow" id="brow"></div></div>';
+      document.getElementById('brow').addEventListener('click', bulkTap);
+    }
+    // A pip only says what a pack held once it has been opened: no spoilers.
+    Array.prototype.forEach.call(document.getElementById('pips').children, function (el, k) {
+      var p = B.packs[k];
+      el.className = k < S.bp ? 'done' + (p.fullReveal ? ' big' : p.sparks ? ' hit' : '') : k === S.bp ? 'cur' : '';
+    });
+    return document.getElementById('brow');
+  }
+  function bulkNext() {
+    var B = DATA.bulks[S.bulk].reveal;
+    S.bp++;
+    if (S.bp >= B.packs.length) { S.skipping = false; bulkSummary(); return; }
+    var r = B.packs[S.bp];
+    S.cur = r;
+    if (S.skipping && !r.fullReveal) { log('bulkPack', { fast: true, skipped: true, sparks: r.sparks }); bulkNext(); return; }
+    S.skipping = false;
+    if (r.fullReveal) {
+      log('bulkPack', { fast: false, sparks: r.sparks });
+      // A big pull leaves the fast sequence: its own sealed pack, torn by
+      // hand, and every reveal at full length, whatever the speed.
+      bulkControls(false);
+      sealed('pack ' + (S.bp + 1));
+      return;
+    }
+    log('bulkPack', { fast: true, sparks: r.sparks });
+    S.phase = 'bulk';
+    fastPack(r);
+  }
+  function bulkResume() {
+    S.phase = 'bulk'; bulkControls(true);
+    scene.innerHTML = '';
+    bulkFrame();
+    hint.innerHTML = '';
+    fast(bulkNext, 300);
+  }
+  // A tap on a fast pack moves straight on to the next one.
+  function bulkTap() { if (S.phase !== 'bulk') return; log('bulkTap', {}); clearTimers(); bulkNext(); }
+  function fastPack(r) {
+    var T = TM.bulk, row = bulkFrame();
+    counter.textContent = 'Pack ' + (S.bp + 1) + ' / ' + DATA.bulks[S.bulk].reveal.packs.length;
+    hint.innerHTML = 'Tap to move on · Skip runs ahead to the next big pull';
+    row.innerHTML = '<div class="mpack solo" id="mpack">' + miniPackHtml() + '</div>';
+    fast(function () {
+      var mp = document.getElementById('mpack'); if (!mp) return;
+      mp.classList.add('torn'); sfx('tear');
+      log('tear', { via: 'auto', sparks: r.sparks, jackpot: r.jackpot });
+      // The honest tell holds in the fast sequence too.
+      if (r.sparks) {
+        var rc = mp.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+        sparks(rc.left - sr.left, rc.top - sr.top + rc.height * 0.16, rc.width, 50);
+        sfx('sparkle', 'Neutral', 'normal'); log('sparks', {});
+      }
+      fast(function () { dealRow(r, row); }, T.tear);
+    }, T.sealed);
+  }
+  function dealRow(r, row) {
+    var T = TM.bulk;
+    row.innerHTML = '<div class="bcards n' + r.cards.length + '">' + r.cards.map(function (c, k) {
+      return '<div class="bcard' + (c.faceDown ? ' down' : '') + '" data-k="' + k + '" style="--d:' + k + '"><div class="flipper"><div class="front">' + settledFaceHtml(c) + '</div>' + backHtml() + '</div><span class="blab' + (c.hit ? ' hit' : '') + '">' + (c.slot === 'bonus' ? 'BONUS · ' : '') + packFinishLabel(c.finish) + '</span>' + (c.isNew ? '<span class="new">NEW</span>' : '') + '</div>';
+    }).join('') + '</div>';
+    log('bulkDealt', { cards: r.cards.map(function (c) { return { finish: c.finish, faceDown: c.faceDown, slot: c.slot }; }) });
+    var t = r.cards.length * T.deal + 160, downs = [];
+    r.cards.forEach(function (c, k) { if (c.faceDown) downs.push(k); });
+    downs.forEach(function (k, j) {
+      fast(function () {
+        var c = r.cards[k], el = row.querySelector('.bcard[data-k="' + k + '"]'); if (!el) return;
+        el.classList.remove('down'); el.classList.add('shown');
+        sfx('flip', c.face.faction);
+        if (c.hit) { el.classList.add('pop'); sfx('rise', c.face.faction, 'normal'); }
+        log('bulkFlip', { idx: k, finish: c.finish, hit: c.hit });
+      }, t + j * T.flip);
+    });
+    var end = t + downs.length * T.flip + (r.sparks ? T.hitHold : T.hold);
+    fast(function () { log('bulkPackDone', {}); bulkNext(); }, end);
+  }
+  function bulkSummary() {
+    clearTimers(); stopLayers(); dim.style.opacity = 0;
+    S.phase = 'summary'; S.mode = 'bulk'; bulkControls(false); skipBtn.hidden = true; counter.textContent = ''; hint.innerHTML = '';
+    var B = DATA.bulks[S.bulk].reveal, sm = B.summary;
+    var best = B.tiles.filter(function (t) { return t.hit; }), rest = B.tiles.filter(function (t) { return !t.hit; });
+    var chips = packFinishOrder().filter(function (f) { return sm.byFinish[f]; }).map(function (f) { return '<span class="chip f-' + f + '">' + (packFinishLabel(f) || 'STANDARD') + ' <b>' + sm.byFinish[f] + '</b></span>'; }).join('') +
+      ['Mythic', 'Rare', 'Uncommon', 'Common'].filter(function (q) { return sm.byRarity[q]; }).map(function (q) { return '<span class="chip r">' + RAR[q] + ' <b>' + sm.byRarity[q] + '</b></span>'; }).join('');
+    var hitsN = best.reduce(function (n, t) { return n + t.count; }, 0);
+    scene.innerHTML = '<div class="summary bulk-sum"><h2>TEN PACKS OPENED</h2><p class="sub">' + sm.cards + ' cards · ' + sm.newCards + ' new · ' + (hitsN ? hitsN + ' hit' + (hitsN > 1 ? 's' : '') : 'no hits') + (sm.fullReveals.length ? ' · ' + sm.fullReveals.length + ' big pull' + (sm.fullReveals.length > 1 ? 's' : '') : '') + '</p>' +
+      '<div class="chips">' + chips + '</div>' +
+      (best.length ? '<h3>Best pulls</h3><div class="grid best">' + best.map(function (t, i) { return tileHtml(t, i, ' big'); }).join('') + '</div>' : '') +
+      '<h3>' + (best.length ? 'Everything else' : 'Every card') + '</h3><div class="grid">' + rest.map(function (t, i) { return tileHtml(t, i + best.length, ''); }).join('') + '</div>' +
+      '<p class="points">+<b>' + sm.packPoints + '</b> pack points</p>' +
+      '<div class="btns"><button class="pri" id="again">Open 10 more</button><button id="one">Open one pack</button><button id="done">Done</button></div></div>';
+    document.getElementById('again').addEventListener('click', function () { openBulk((S.bulk + 1) % DATA.bulks.length); });
+    document.getElementById('one').addEventListener('click', function () { openPack(0); });
+    document.getElementById('done').addEventListener('click', shelf);
+    log('bulkSummary', { tiles: B.tiles.length, copies: B.tiles.reduce(function (n, t) { return n + t.count; }, 0), newBadges: B.tiles.filter(function (t) { return t.isNew; }).length, best: best.length, packPoints: sm.packPoints });
+  }
+
+  // ?pack=N opens that pack straight away (1-based), ?bulk=N that ten-pack
+  // open; otherwise the shelf.
+  var m = /[?&]pack=(\d+)/.exec(location.search), mb = /[?&]bulk=(\d+)/.exec(location.search);
+  if (m && DATA.packs[Number(m[1]) - 1]) openPack(Number(m[1]) - 1);
+  else if (mb && DATA.bulks[Number(mb[1]) - 1]) openBulk(Number(mb[1]) - 1);
+  else shelf();
 })();
 `;
