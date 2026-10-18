@@ -2924,3 +2924,22 @@ Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (sessio
    - A trimmed body is measured against the designed body.
    - The 10% rule is checked for each faction separately.
    - Render's replay pages made with the old agent will look slightly different when regenerated.
+
+
+---
+
+## 2026-10-18 — Owner: answers to render session 25 (pack opening, slice 2)
+
+Owner decisions on the 8 calls in `progress/render/checkpoints.md` (2026-10-18, "Pack opening, slice 2: ten packs at once, and the summary grid").
+
+**Keep all 8, as built:**
+1. **Keep:** a big pull waits for a hand tear under a "BIG PULL" tag.
+2. **Keep:** Skip never skips a big pull; it runs ahead to the next one.
+3. **Keep:** big pulls play at full length at every speed.
+4. **Keep:** the summary folds duplicates (same card, same finish) into one tile with ×N and the pack numbers, best first.
+5. **Keep:** NEW is one badge per collection entry, as the binder counts.
+6. **Keep:** the proposed timings in `BULK_TIMINGS`, as starting points, with 1× as the default speed.
+7. **Keep:** the fast row uses the CSS finish looks; the big pull keeps its shaders.
+8. **Keep:** the showcase tens are each a fresh owner's first ten packs.
+
+As with slice 1, this hasn't been tried on a real phone yet. The owner may come back with feel notes (call 1 especially). Until then, carry on with slice 3, the first-time flow.
