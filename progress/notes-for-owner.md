@@ -1,5 +1,78 @@
 # Notes for the owner
 
+**Updated 2026-10-18, session 43 (your 2026-10-18 answers to session 42: leave Mainframe Core; look
+into the signature-mode ring).** Nothing is blocking. One new **[OWNER CHECK-IN]** below. No card,
+signature option or baseline was changed. Evidence:
+`progress/balance-report-030-signature-ring-drivers.txt`.
+
+### [OWNER CHECK-IN] The signature-mode ring: what drives Aegis > Cortex at 71.5%, and what to do
+
+**First, a correction.** The 71.5% is not how a real match plays, and my session-42 note said
+"with signature cards in their zone" without making that clear. Sorry. The ring's "signature mode"
+puts each faction's **set Mythic** in the signature zone (Prime Aegis, Quorum Arbiter, Hive Mother,
+Null Singularity). It was recorded in session 31 as a "what if" (your option A, 2026-10-11). A real
+match gives each agent its **generated Neutral signature card** from the approved menu, and a set
+Mythic, if the owner has one, is an ordinary deck card. So I measured the six ring edges four ways
+(2,500 games per edge, the same games and agent as balance-report-029):
+
+| edge (band) | gate: no signature card | set Mythic as signature card (the 71.5%) | real match stand-in: Mythic in deck + an approved menu card each |
+|---|---|---|---|
+| Null > Aegis (55-60) | 50.6% | **30.5%** (24.5 under) | **45.2%** (9.8 under) |
+| Aegis > Cortex (55-60) | 49.3% | **71.5%** (11.5 over) | 54.2% (0.8 under) |
+| Cortex > Swarm (55-60) | 58.2% | **43.9%** (11.1 under) | 52.9% (2.1 under) |
+| Swarm > Null (55-60) | 57.1%, in band | 64.8% (4.8 over) | 56.3% |
+| Null ~ Cortex (45-55) | 45.6% | 45.1% | 47.9%, in band |
+| Aegis ~ Swarm (45-55) | 51.9%, in band | 56.1% (1.1 over) | 55.2% |
+
+**Why Aegis > Cortex is 71.5% in the set-Mythic mode: Prime Aegis is always available.**
+- Moving Prime Aegis alone into the zone is worth **+33 points** to Aegis against Cortex. Quorum
+  Arbiter in Cortex's zone gives back only 11.
+- Prime Aegis comes down on Aegis's 6th turn in 95% of games and dies in 1.4% of them. Cortex has
+  nothing that removes a 4/8 that makes itself 5/9 and gives every Cortex unit -1 attack. Aegis
+  wins 75% of the games where it sticks.
+- It is not the replay rule (it almost never dies, so it is almost never replayed), and not the
+  agent's play (it plays it on curve whenever it can). It is a card balanced as a 1-in-4 draw
+  being guaranteed every game.
+- The other far-out edges in that mode follow the same ranking of Mythics in the zone:
+  Prime Aegis (worth 23-33 points) > Hive Mother (14-20) > Null Singularity and Quorum Arbiter
+  (4-11). Null > Aegis (30.5%) is Prime Aegis again. Cortex > Swarm (43.9%) is Hive Mother.
+
+**In the real-match stand-in, Aegis > Cortex is fine (54.2%, just under 55). The edge that is far
+out there is Null > Aegis (45.2%).** A signature card is worth more to Aegis than to anyone:
++11.6 points against Cortex and +10.6 against Null, where the other factions gain 4-6. I haven't
+measured why yet. My guess: Aegis's auras and buffs stack on one more durable body.
+
+**What I tried on Prime Aegis** (patched for the test only):
+
+| change | set-Mythic mode | real-match stand-in | gate |
+|---|---|---|---|
+| P1: costs 7 | Aegis > Cortex 56.3% (-15), Null > Aegis 46.7% (+16) | Null > Aegis +3.2, but Aegis > Cortex 51.9% (-2.3) | Aegis > Cortex 45.8% (-3.5, further out) |
+| P2: loses "Enemy units get -1/-0" | Aegis > Cortex 62.8% (-8.7) | Null > Aegis +3.2, Aegis > Cortex -3.0 | Aegis > Cortex -3.8 |
+| P3: 4/8 -> 4/6 | no change | no change | no change |
+
+Every Prime Aegis cut fixes Null > Aegis but pushes Aegis > Cortex further under its band in the
+gate. One card can't fix both Aegis edges.
+
+**Question: what should the ring's second check measure, and what should I do next?**
+- **A (my recommendation).** Make the CI's second check measure **real matches**: set Mythics in
+  the deck, each side an approved menu card (the right-hand column). Keep the set-Mythic numbers
+  as a report only, not a CI check. Change no cards now. Next game session: find out why Aegis
+  gains twice as much from a signature card as anyone, and propose a fix for Null > Aegis in that
+  mode at a check-in.
+- **B.** Keep the set-Mythic mode as the second check, and nerf Prime Aegis (P1, cost 7) so that
+  mode comes closer to its bands. This costs the gate's Aegis > Cortex 3.5 more points.
+- **C.** Leave everything as it is until the next set, as with Mainframe Core.
+
+Smaller calls you may want to overrule:
+1. **The real-match stand-in draws each side's signature card evenly from the 14 approved lines.**
+   Real agents pick 1 of 3 candidates, so the real mix may lean to some lines.
+2. **All six edges were measured at 2,500 games,** including the two even edges the gate measures at
+   900. The set-Mythic column still matches the recorded baseline exactly.
+3. **No set Mythic can be a signature card in a real match today.** If you ever want set Mythics in
+   the zone (session 31's "what if"), option B becomes the starting point.
+
+---
+
 **Updated 2026-10-18, session 42 (your 2026-10-18 answers to session 41: Zero-Day goes live; look
 at Aegis vs Cortex).** Nothing is blocking. One new **[OWNER CHECK-IN]** below, on Aegis vs Cortex.
 Evidence: `progress/economy-demo-010.txt`, `progress/balance-report-029-aegis-cortex-shift.txt`.
@@ -19,7 +92,7 @@ Done:
   - Still 1 per deck. They count toward the 10 neutral cards and the 25% removal share.
 - **Aegis vs Cortex: investigated, no card changed.** See the check-in.
 
-### [OWNER CHECK-IN] Aegis vs Cortex: why it moved, and a proposed fix
+### [ANSWERED 2026-10-18: B, leave it] Aegis vs Cortex: why it moved, and a proposed fix
 
 **Why it moved.** I replayed the same 2,500 gate games four ways, with each side played by the old
 agent or the new one:

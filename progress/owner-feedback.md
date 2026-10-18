@@ -2947,7 +2947,7 @@ As with slice 1, this hasn't been tried on a real phone yet. The owner may come 
 
 ---
 
-## 2026-10-18 — Owner: feel notes on the pack-opening page (slices 1 and 2): full-size art for the top finishes; a tap-driven ten-pack opening
+## 2026-10-18 — Owner: feel notes on the pack-opening page (slices 1 and 2): full-size art for the top finishes; a tap-driven ten-pack opening (render lane's own; nothing for the game lane, noted session 43)
 
 The owner tried `render/output/pack-opening.html` (as merged after render session 25). Two changes for the render lane. Do them before slice 3 (the first-time flow), or as the first part of that session.
 
@@ -2973,7 +2973,7 @@ Please show both changes with phone and desktop stills or recordings at the next
 
 ---
 
-## 2026-10-18 — Owner: answers to session 42 (leave Mainframe Core; investigate the signature-mode ring) and a render side task
+## 2026-10-18 — Owner: answers to session 42 (leave Mainframe Core; investigate the signature-mode ring) and a render side task (GAME LANE HANDLED 2026-10-18, session 43 — 1: left as is, baselines not re-recorded. 2: investigated, no card or option changed: the ring's signature mode puts each SET MYTHIC in the zone, which real matches don't do (they carry a generated Neutral menu card; the Mythic stays a deck card). In that mode the 71.5% is Prime Aegis's guaranteed access (+33 points alone; it dies in 1.4% of games); Null > Aegis 30.5% is Prime Aegis again and Cortex > Swarm 43.9% is Hive Mother. In a real-match stand-in Aegis > Cortex is 54.2% and the far-out edge is Null > Aegis 45.2%, because a signature card is worth twice as much to Aegis. Trials on Prime Aegis and options A/B/C in the new [OWNER CHECK-IN]; evidence `progress/balance-report-030-signature-ring-drivers.txt`. 3: the four calls stand. The render side task is the render lane's own)
 
 Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 42, "Aegis vs Cortex: why it moved, and a proposed fix").
 
@@ -2993,7 +2993,7 @@ Show both modes on a modal card's face (Zero-Day cards today, and future "choose
 
 ---
 
-## 2026-10-18 — Owner: answers to render session 26, and a new feature: hold and drag a card to tilt it (parallax)
+## 2026-10-18 — Owner: answers to render session 26, and a new feature: hold and drag a card to tilt it (parallax) (render lane's own; nothing for the game lane, noted session 43)
 
 ### Render session 26: keep all 9, as built
 Owner decisions on the 9 calls in `progress/render/checkpoints.md` (2026-10-18, "Pack opening feel notes: full-size art for the top finishes, a tap-driven ten-pack, modal card faces").
@@ -3020,7 +3020,7 @@ Once a card is revealed (in a single-pack reveal, a big pull, and the card viewe
 
 ---
 
-## 2026-10-18 — Owner: addendum, the hold-to-tilt effect works on the booster pack too
+## 2026-10-18 — Owner: addendum, the hold-to-tilt effect works on the booster pack too (render lane's own; nothing for the game lane, noted session 43)
 
 Addition to today's entry "a new feature: hold and drag a card to tilt it (parallax)". Same feature, also on the sealed pack.
 - **Before tearing**, the owner can press and hold the sealed Season 0 pack and drag to tilt it in 3D, with the same spring back on release. The pack's shimmer and foil catch the light as it tilts, and the pack art or logo gets the same depth effect.
@@ -3032,14 +3032,14 @@ Addition to today's entry "a new feature: hold and drag a card to tilt it (paral
 
 ---
 
-## 2026-10-18 — Owner: ten-pack fan tilt answered
+## 2026-10-18 — Owner: ten-pack fan tilt answered (render lane's own; nothing for the game lane, noted session 43)
 
 Answers the open point in today's addendum "the hold-to-tilt effect works on the booster pack too": in a ten-pack opening, **only the pack being opened can be tilted.** The other packs in the fan stay still.
 
 
 ---
 
-## 2026-10-18 — Owner: correction to the hold-to-tilt feature, the card moves as one piece (no art depth)
+## 2026-10-18 — Owner: correction to the hold-to-tilt feature, the card moves as one piece (no art depth) (render lane's own; nothing for the game lane, noted session 43)
 
 This corrects today's entry "a new feature: hold and drag a card to tilt it (parallax)" and its booster-pack addendum.
 - **The whole card tilts as one solid object.** The artwork must not shift, move or project out inside the frame. Drop the "parallax" layer depth: no art-behind-the-frame offset, and no layered art.
@@ -3049,7 +3049,7 @@ This corrects today's entry "a new feature: hold and drag a card to tilt it (par
 
 ---
 
-## 2026-10-18 — Owner: card art model chosen, Imagen 4 Ultra
+## 2026-10-18 — Owner: card art model chosen, Imagen 4 Ultra (NOTED 2026-10-18, session 43 — recorded in progress/roadmap.md item 8 with the open points; the art pass has not started and no image is generated without your OK)
 
 The owner ran a two-round art bake-off outside the sessions (Replicate, 18 Oct 2026, under $5 total). Round 1 compared six models. Round 2 re-tested Seedream 4, Imagen 4 Ultra and Recraft V4 Pro with a composition-aware prompt, on Hive Mother, Prime Aegis, Kernel Panic, Cascade Purge and Patient Zero.
 
