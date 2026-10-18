@@ -2905,3 +2905,22 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (2026-10-17, 
 6. **Keep:** the showcase packs are chosen by seed search, opened and recorded by the store.
 
 Not yet checked on a real phone, with device tilt or by ear. The owner may come back with feel notes on the pace, tilt and sound after trying the page; until then, carry on with slice 2 (the ten-pack opening and its summary grid).
+
+
+---
+
+## 2026-10-18 — Owner: answers to session 41 (Zero-Day cards go live; look at Aegis vs Cortex)
+
+Owner decisions on the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (session 41, "The 3 Zero-Day cards: final numbers, and going live").
+
+1. **A: go live at the proposed numbers.**
+   - **Patient Zero:** Carrier becomes "Your other units get +1/+0" (was +1/+1). Outbreak and the 2/4 body are unchanged.
+   - **Root Access:** Privilege Escalation becomes "This unit's attack equals the number of other units in play" (was 1 plus). Lockout and the 3/6 body are unchanged.
+   - **Kill Switch:** as designed.
+   - The next game session adds the 3 cards to the card list. A pulled reserved copy becomes the real card, and Zero-Day crafting opens at 3,000 pack points, with an economy test for both.
+2. **Aegis vs Cortex: look at it soon, not at the next set.** With the better agent, Aegis no longer beats Cortex (gate 52.2 to 49.3). The ring's soft counters are what keep the metagame self-disrupting. As a side task in the next game session (after the go-live), investigate why the edge moved and propose a fix at a check-in. Don't change any cards for it without the owner's OK.
+3. **Keep all 4 calls:**
+   - A stun turn is worth the unit's full attack.
+   - A trimmed body is measured against the designed body.
+   - The 10% rule is checked for each faction separately.
+   - Render's replay pages made with the old agent will look slightly different when regenerated.
