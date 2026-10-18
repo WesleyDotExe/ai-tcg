@@ -3112,7 +3112,7 @@ Next render session: slice 3 (the first-time flow), as planned.
 
 ---
 
-## 2026-10-19 — Owner: answers to game session 44 (Null > Aegis in the real-match ring)
+## 2026-10-19 — Owner: answers to game session 44 (Null > Aegis in the real-match ring) (HANDLED 2026-10-19, session 45 — option C tested, test only: four lists built only from Aegis cards already in the list (copy changes, linted) plus two neutral comparisons, on all six real-match edges and the gate, 10,000-seed confirmation of the best two. None of the Aegis lists gets Null > Aegis meaningfully closer without pushing another edge out (best C3: +4.8 at 10,000, Aegis > Cortex -3.9 real / -2.9 gate; C4 reaches the band only by gutting Aegis). So fallback A applies: no card changed, Null > Aegis stays accepted-OUT, and the cause is noted in roadmap.md for the next set. New finding: heavier Aegis lists use up the spare energy but don't shrink the signature gain; card draw does (+10.0 -> +5.9). Evidence `progress/balance-report-032-aegis-late-deck.txt`; an optional check-in about the neutral list N1 in notes-for-owner.md. The 3 smaller calls stand)
 
 Answers the [OWNER CHECK-IN] "Why a signature card helps Aegis most, and what to do about Null > Aegis" in `progress/notes-for-owner.md` (PR #73, `progress/balance-report-031-real-ring-aegis-gain.txt`).
 
@@ -3130,7 +3130,7 @@ Answers the [OWNER CHECK-IN] "Why a signature card helps Aegis most, and what to
 
 ---
 
-## 2026-10-19 — Owner: answers to render session 28 (slice 3, the first-time flow)
+## 2026-10-19 — Owner: answers to render session 28 (slice 3, the first-time flow) (GAME-LANE ASKS: ability text HANDLED 2026-10-19, session 45 — every signature ability prints its option's full wording in `engine/src/data/signatureMenu.ts`, fingerprints unchanged, pinned by tests; ECONOMY.md's candidate wording updated (no art with the candidates). Call 9, the starter-pack hit guarantee, is NOT done yet: next game session's first job. Calls 5 and the rest are the render lane's own)
 
 Owner decisions on the 10 calls in `progress/render/checkpoints.md` (2026-10-18, "Pack opening, slice 3: the first-time flow, and the signature card is made in front of you"; PR #74), and on the two game-lane asks in `progress/render/notes-for-owner.md` (session 28, items 3 and 4).
 

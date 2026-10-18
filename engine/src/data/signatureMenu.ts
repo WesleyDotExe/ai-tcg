@@ -372,8 +372,55 @@ function withSizedIds(option: MenuOption): MenuOption {
   };
 }
 
-/** All 16 options, in the owner's order, every size with its own ability ids. */
-export const SIGNATURE_MENU: MenuOption[] = MENU_AS_WRITTEN.map(withSizedIds);
+// Full wording (owner 2026-10-19, answers to render session 28: "each
+// signature ability gets its menu option's full wording, including the
+// trigger"). The abilities above are written with the effect alone ("A
+// random unit of yours gets +0/+1."), and the trigger lived only in the
+// option's text, so a replay printing `abilities[].text` lost "At the start
+// of your turn". Each option's one ability now carries the option's (or the
+// size's) text, less any keyword the card already prints as a keyword
+// ("Rush. Whenever ..." prints Rush once). The old wording is kept, by
+// legacy id, only so signatureFingerprint hashes what it always hashed: a
+// wording change doesn't change what the card does, and every fingerprint
+// recorded before it (the approved list, owners' databases) still matches.
+
+/** `${legacy ability id}|${full wording}` -> the wording before session 45. */
+const WORDING_BEFORE_SESSION_45 = new Map<string, string>();
+
+/** `text` without a leading sentence naming one of `keywords`. */
+function withoutKeywordSentences(text: string, keywords: readonly Keyword[]): string {
+  let out = text;
+  for (const k of keywords) if (out.startsWith(`${k}. `)) out = out.slice(k.length + 2);
+  return out;
+}
+
+function worded(abilities: Ability[], text: string, keywords: readonly Keyword[]): Ability[] {
+  // A keyword-only option (Guardian) has no ability to word; every other
+  // option is one ability (test/signatureMenu.test.ts holds it to that).
+  if (abilities.length !== 1) return abilities;
+  const a = abilities[0]!;
+  const full = withoutKeywordSentences(text, keywords);
+  WORDING_BEFORE_SESSION_45.set(`${legacySignatureAbilityId(a.id)}|${full}`, a.text);
+  return [{ ...a, text: full }];
+}
+
+function withFullWording(option: MenuOption): MenuOption {
+  return {
+    ...option,
+    abilities: worded(option.abilities, option.text, option.keywords),
+    sizes: option.sizes.map((size) => ({ ...size, abilities: worded(size.abilities, size.text, size.keywords ?? option.keywords) })),
+  };
+}
+
+/** The wording `ability` had before session 45 (its effect alone), for the
+ * fingerprint. Abilities that aren't signature menu abilities pass through. */
+export function legacySignatureAbilityText(ability: Ability): string {
+  return WORDING_BEFORE_SESSION_45.get(`${legacySignatureAbilityId(ability.id)}|${ability.text}`) ?? ability.text;
+}
+
+/** All 16 options, in the owner's order, every size with its own ability
+ * ids, every ability with its full wording. */
+export const SIGNATURE_MENU: MenuOption[] = MENU_AS_WRITTEN.map(withSizedIds).map(withFullWording);
 
 /** The id an ability had before session 38 (the size key dropped):
  * "sig-recycle.c3" -> "sig-recycle". Ids that aren't signature ids pass
@@ -565,8 +612,9 @@ export function signatureFingerprint(card: UnitCard): string {
   };
   // Ability ids go in as they were before session 38's unique ids: an id
   // names an ability, it doesn't change what the card does, and this keeps
-  // every fingerprint recorded before the change valid.
-  const abilities = card.abilities.map((a) => ({ ...a, id: legacySignatureAbilityId(a.id) }));
+  // every fingerprint recorded before the change valid. Wording the same
+  // way, for session 45's full wording.
+  const abilities = card.abilities.map((a) => ({ ...a, id: legacySignatureAbilityId(a.id), text: legacySignatureAbilityText(a) }));
   const text = canonical({ cost: card.cost, attack: card.attack, health: card.health, keywords: card.keywords, abilities });
   let h = 0x811c9dc5;
   for (let i = 0; i < text.length; i++) {
