@@ -3108,3 +3108,21 @@ Owner decisions on the 8 calls in `progress/render/checkpoints.md` (2026-10-18, 
 8. **Keep:** letting go of a tilt over the viewer's backdrop doesn't close the viewer; only a tap does.
 
 Next render session: slice 3 (the first-time flow), as planned.
+
+
+---
+
+## 2026-10-19 — Owner: answers to game session 44 (Null > Aegis in the real-match ring)
+
+Answers the [OWNER CHECK-IN] "Why a signature card helps Aegis most, and what to do about Null > Aegis" in `progress/notes-for-owner.md` (PR #73, `progress/balance-report-031-real-ring-aegis-gain.txt`).
+
+### Decision: option C, with A as the fallback
+- **Next game session: test the cause directly.** Try an Aegis deck change that adds late-game plays using real Aegis cards (not test stand-ins), so Aegis's late turns aren't empty and a signature card adds less. Measure it on all six edges of the real-match ring, and the gate.
+- **Test only.** Don't put any deck or card change in without the owner's OK. Bring the results and a proposal to a check-in.
+- **Fallback (option A):** if no deck change built from real Aegis cards gets Null > Aegis meaningfully closer to its band without pushing other edges out, change no cards now. Keep Null > Aegis as the real-match check's one accepted-out-of-band edge, and fix it in the next set's design: give Aegis a real late-game play, and give Null an answer to one durable attacker.
+- Not option B: Null Singularity stays at cost 7 for now.
+
+### Smaller calls: keep all 3
+1. **Keep:** the real-match check's baseline records Null > Aegis as out of band, and CI accepts it as long as it doesn't get worse.
+2. **Keep:** the draw gives each of the 14 approved lines to each side equally, half going first and half second, never the same line on both sides in one game.
+3. **Keep:** session 43's report keeps its old numbers, with a correction note at the top.
