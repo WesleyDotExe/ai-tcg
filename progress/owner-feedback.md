@@ -3150,3 +3150,21 @@ Owner decisions on the 10 calls in `progress/render/checkpoints.md` (2026-10-18,
 - **Yes: fix the signature ability text at the source.** In `engine/src/data/signatureMenu.ts`, each signature ability gets its menu option's full wording, including the trigger (for example, Inspire: "At the start of your turn, a random ally gets +0/+1 permanently."). Replays and anything else that prints `card.abilities[].text` then show the full wording.
 - **No: keep drawing the art piece when the card is made, not when the 3 candidates are offered** (matches call 2). Update ECONOMY.md's wording that each candidate comes with its art.
 - **Order:** the session-44 option C test (the Aegis deck with real late-game cards) stays the next game session's priority. These two asks (the starter-pack hit and the ability text) come alongside it or in the session after.
+
+
+---
+
+## 2026-10-19 — Owner: answers to game session 45 (option C results)
+
+Answers the optional [OWNER CHECK-IN] "N1, the neutral card-draw list" in `progress/notes-for-owner.md` (PR #75, `progress/balance-report-032-aegis-late-deck.txt`).
+
+### Decision: leave N1
+- **Don't ship N1.** The Aegis list stays as it is. Fallback A stands: no card change now, Null > Aegis stays the real-match check's one accepted-out-of-band edge.
+- Use what N1 shows (card draw roughly halves Aegis's signature gain) in the next set's Aegis design, as in the roadmap note: give Aegis its own card flow or a real late play that refills its hand, and give Null an answer to one durable attacker.
+
+### Smaller calls: keep all 3
+1. **Keep:** fallback A applied without waiting, with the roadmap note written.
+2. **Keep:** the 10,000-game confirmation run on C3 and N1, not C4.
+3. **Keep:** the full signature wording keeps the old text inside the fingerprint, so every stored fingerprint still matches.
+
+Next game session: the starter-pack hit guarantee, as its first job (method, starter rates and the wider pack economy at a check-in).
