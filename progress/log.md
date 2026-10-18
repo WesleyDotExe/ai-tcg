@@ -3161,3 +3161,39 @@ pages and older sample logs no longer regenerate identically.
 `progress/sample-match-034-modal-cards-agent-fix.txt`, `engine/test/lookaheadValuation.test.ts`.
 
 **Blocked:** going live waits on the owner's OK (one registry line + an economy test).
+
+## 2026-10-18 — Session 42 (owner's 2026-10-18 answers to session 41: Zero-Day live; Aegis vs Cortex)
+
+Game-lane session: the last merged PR (#68) was render. Owner feedback first: one game entry open
+(answers to session 41), handled; the render session 25 entry is the render lane's own, marked so.
+
+**Built:**
+- **The 3 Zero-Day cards are live.** `ZERO_DAY_CARDS` joined `CARD_REGISTRY`. Doing only that would
+  have made them base-set cards (the set is built from the registry: 99 cards, Gold versions, plain
+  rolls), so the set now leaves `topTier` cards out and they stay secret cards 226-228/096, named
+  from the cards. `craftCard` would have crafted them at the Mythic price; it now refuses. A
+  Zero-Day card can only be recorded in its Zero-Day finish.
+- **Aegis vs Cortex investigation** (`dev/aegisCortexShift.ts`, `dev/cortexAuraTrials.ts`): the
+  gate games replayed with each side on the old or new agent, card use per side, and three trial
+  patches on Mainframe Core measured on every Cortex edge in both ring modes. No card changed.
+
+**Ran it:**
+- `economy-demo-010`: a pulled Patient Zero saved in a deck, loaded and played in a real match
+  (the agent chooses Carrier); a second owner opens 600 packs (3,000 pack points) and crafts one;
+  plain/Gold copies, a second craft and two copies in one deck refused.
+- Pilot split (2,500 seeds a cell): old/old 52.2, new Aegis/old Cortex 52.3, old Aegis/new Cortex
+  48.9, new/new 49.3. Only Cortex's pilot matters (-3.3 [-6.1, -0.5]).
+- Trials (2,500 seeds per edge): Mainframe Core +1/+0 -> Aegis > Cortex 53.0 (+3.7, real), Null ~
+  Cortex 48.3 IN, Cortex > Swarm 55.9; cost 4 and one copy within noise. Signature mode: +1/+0
+  pushes Aegis > Cortex 71.5 -> 74.8 (further out of band).
+- Both ring modes PASS unchanged; `npm test` all six workspaces; `tsc` clean.
+
+**Worked:** the go-live needed three guards beyond the registry line, and tests now pin each. The
+split answers the owner's "why" in one table.
+**Didn't / honest limits:** no Mainframe Core change reaches the 55-60% band; the best one costs the
+signature mode. The trials are 2,500 seeds, the gate's size, not 10,000. The Zero-Day face in the
+render pack page has no rules text (modal cards keep it in modes); flagged for the render lane.
+
+**Evidence:** `progress/economy-demo-010.txt`, `progress/balance-report-029-aegis-cortex-shift.txt`.
+
+**Blocked:** nothing. The Aegis vs Cortex fix waits on the owner's pick (default A: +1/+0).

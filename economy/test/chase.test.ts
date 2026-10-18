@@ -5,7 +5,7 @@
 
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { getCard } from "@ai-tcg/engine";
+import { LookaheadAgent, buildAegisDeck, getCard, runMatch } from "@ai-tcg/engine";
 import {
   EconomyStore,
   FULL_ART_OR_BETTER,
@@ -272,7 +272,7 @@ describe("live: openPack rolls S0-odds-2", () => {
     expect(s.binder(o, "S0").glitch.entries.find((e) => e.cardId === card.cardId)!.owned).toBe(2);
   });
 
-  it("a Zero-Day card: its code is its card id, it counts as a Mythic for pity, and it isn't playable until designed", () => {
+  it("a Zero-Day card: its code is its card id, it counts as a Mythic for pity, and the pulled copy plays (live since session 42)", async () => {
     const s = store();
     const o = ownerWithPacks(s, 41);
     // 40 packs with no Mythic, so the Mythic timer is due ...
@@ -295,13 +295,40 @@ describe("live: openPack rolls S0-odds-2", () => {
     const entry = S0.secrets.find((x) => x.code === zd.cardId)!;
     expect(entry.kind).toBe("zeroDay");
     expect(zd).toMatchObject({ finish: "zeroDay", rarity: "Mythic", name: entry.name, secret: { code: entry.code, kind: "zeroDay", animated: true }, isNew: true });
+    // The entry is the live card: its name, and the same art slot.
+    const card = getCard(entry.code)!;
+    expect(card).toMatchObject({ name: entry.name, rarity: "Mythic", faction: "Neutral", topTier: "zeroDay", art: entry.art });
     expect(opened.fullReveal).toBe(true);
     expect(s.pityStatus(o)).toMatchObject({ packsSinceMythic: 0 });
     expect(s.getCopy(zd.copyId)).toMatchObject({ cardId: entry.code, secretCode: entry.code, finish: "zeroDay" });
     expect(s.cardHoldings(o, entry.code)).toMatchObject({ rarity: "Mythic", owned: 1, salvageable: 0 });
-    // A deck can't hold it yet.
-    const starter = s.grantStarterCollection(o, "Cortex").copies.map((c) => c.copyId);
-    expect(() => s.saveDeck(o, "with zero-day", [...starter.slice(0, 29), zd.copyId])).toThrow(/isn't designed yet/);
+    // A deck holds it now: one starter card out, the Zero-Day card in. A
+    // removal Zero-Day card (Kill Switch) swaps for one of the starter's
+    // removal cards so the deck stays inside the 25% removal share.
+    const starter = s.grantStarterCollection(o, "Aegis").copies;
+    const out = card.type === "Command" ? starter.findIndex((c) => getCard(c.cardId)!.type === "Command") : 0;
+    const listed = [...starter.filter((_, i) => i !== out).map((c) => c.copyId), zd.copyId];
+    const saved = s.saveDeck(o, "with zero-day", listed);
+    const playable = s.loadDeck(saved.deckId);
+    expect(playable.spec.cards.filter((c) => c.id === entry.code)).toHaveLength(1);
+    // ... and a match with it resolves end to end.
+    const { state } = await runMatch({ ...playable.spec, id: "p1" }, buildAegisDeck("p2", "Aegis"), new LookaheadAgent("zd", 7), new LookaheadAgent("ag", 7), 7);
+    expect(state.winner).not.toBeNull();
+    // A second copy (pulled again) can't go in the same deck: 1 per deck.
+    const second = s.grantCopy({ ownerId: o, cardId: entry.code, origin: "pack", finish: "zeroDay", secretCode: entry.code });
+    expect(() => s.saveDeck(o, "two", [...listed.slice(1), second.copyId])).toThrow(/copies of/);
+  });
+
+  it("a Zero-Day card has no version but its Zero-Day finish, and never rolls as a base-set card", () => {
+    const s = store();
+    const o = ownerWithPacks(s, 0);
+    for (const finish of ["standard", "foil", "fullArt", "gold"] as const) {
+      expect(() => s.grantCopy({ ownerId: o, cardId: "S0-ZD1", origin: "pack", finish })).toThrow(/only version is the Zero-Day finish/);
+    }
+    expect(S0.cards.some((c) => c.cardId.startsWith("S0-ZD"))).toBe(false);
+    for (let seed = 0; seed < 3000; seed++) {
+      for (const p of roll(seed).pulls) if (p.cardId.startsWith("S0-ZD")) expect(p.finish).toBe("zeroDay");
+    }
   });
 
   it("v10's rules: a secret or Zero-Day copy names a fitting secret card, nothing else does, and a copy's identity never changes", () => {
@@ -370,18 +397,39 @@ describe("crafting secret cards (owner 2026-10-18, answer 5A)", () => {
     expect(s.binder(o, "S0").secrets.entries.find((e) => e.secretCode === target.code)!.owned).toBe(1);
   });
 
-  it("refuses without the points, an unknown code, and a Zero-Day card not designed yet", () => {
+  it("refuses without the points, an unknown code, and a Zero-Day card through craftCard", () => {
     const s = store();
     const o = ownerWithPacks(s, 0);
     const illus = S0.secrets.find((x) => x.kind === "illustration")!;
     const zd = S0.secrets.find((x) => x.kind === "zeroDay")!;
     expect(() => s.craftSecret(o, illus.code)).toThrow(/costs 750 pack points; you have 0/);
     expect(() => s.craftSecret(o, "S0-SR99")).toThrow(/no secret card/);
-    expect(getCard(zd.code)).toBeUndefined();
-    expect(() => s.craftSecret(o, zd.code)).toThrow(/isn't designed yet/);
+    expect(() => s.craftSecret(o, zd.code)).toThrow(/costs 3000 pack points; you have 0/);
     expect(() => s.craftCard(o, zd.code)).toThrow(/craftSecret/);
     expect(s.ledger(o).filter((e) => e.reason === "craftSecret")).toEqual([]);
   });
+
+  it("Zero-Day crafting is open (live since session 42): 3,000 pack points, a bound crafted copy, once per card, and it plays", () => {
+    const s = store();
+    const o = ownerWithPoints(s, 3000);
+    const held = new Set(s.collection(o).map((c) => c.secretCode));
+    const zd = S0.secrets.find((x) => x.kind === "zeroDay" && !held.has(x.code))!;
+    expect(zd.name).toBe(getCard(zd.code)!.name);
+    const before = s.balance(o, "packPoints");
+    const copy = s.craftSecret(o, zd.code);
+    expect(copy).toMatchObject({ cardId: zd.code, finish: "zeroDay", secretCode: zd.code, origin: "crafted", accountBound: true });
+    expect(s.balance(o, "packPoints")).toBe(before - 3000);
+    expect(s.ledger(o).filter((e) => e.reason === "craftSecret").map((e) => [e.delta, e.ref])).toEqual([[-3000, copy.copyId]]);
+    expect(() => s.craftSecret(o, zd.code)).toThrow(/already hold/);
+    expect(s.binder(o, "S0").secrets.entries.find((e) => e.secretCode === zd.code)!.owned).toBe(1);
+    expect(s.cardHoldings(o, zd.code)).toMatchObject({ owned: 1, salvageable: 0 });
+    // The crafted copy goes in a deck like a pulled one.
+    const starter = s.grantStarterCollection(o, "Cortex").copies;
+    const card = getCard(zd.code)!;
+    const out = card.type === "Command" ? starter.findIndex((c) => getCard(c.cardId)!.type === "Command") : 0;
+    const deck = s.saveDeck(o, "crafted zero-day", [...starter.filter((_, i) => i !== out).map((c) => c.copyId), copy.copyId]);
+    expect(s.loadDeck(deck.deckId).spec.cards.some((c) => c.id === zd.code)).toBe(true);
+  }, 60_000);
 });
 
 describe("the binder and the set checklist", () => {

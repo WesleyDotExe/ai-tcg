@@ -55,9 +55,12 @@ export interface CardSet {
 
 /** Season 0's set: every ownable card (the four faction pools and the
  * neutral pool), numbered by faction, then rarity, then name. The card id
- * and copy id never appear on a card; only the collector number does. */
+ * and copy id never appear on a card; only the collector number does. The
+ * Zero-Day cards are ownable too but are secret cards, numbered at the top
+ * of the secret list (chase.ts), never base-set cards: no base number, no
+ * Gold version, never rolled in a plain slot. */
 function seasonZeroSet(): CardSet {
-  const cards = [...CARD_REGISTRY.values()].sort(
+  const cards = [...CARD_REGISTRY.values()].filter((c) => !c.topTier).sort(
     (a, b) =>
       FACTION_ORDER.indexOf(a.faction) - FACTION_ORDER.indexOf(b.faction) ||
       RARITIES.indexOf(a.rarity) - RARITIES.indexOf(b.rarity) ||

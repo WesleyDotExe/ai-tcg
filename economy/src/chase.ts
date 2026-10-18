@@ -8,10 +8,11 @@
 //    Zero-Day cards, numbered above the Gold numbers, each its own
 //    collection entry with a placeholder art slot until the art pass;
 //  - the Glitch tier: which cards have a Glitch version, and how it looks.
-// The 3 Zero-Day cards themselves are designed with build-order step 2 (the
-// "choose one" mechanic first); until then they are reserved entries.
+// The 3 Zero-Day cards were reserved entries until they were designed
+// (session 40) and went live (session 42): an entry takes its card's name
+// from the engine's registry once the card is there.
 
-import type { Rarity } from "@ai-tcg/engine";
+import { getCard, type Rarity } from "@ai-tcg/engine";
 import type { CardSet } from "./packs.js";
 
 // ---- the secret cards ----
@@ -21,8 +22,8 @@ export interface SecretCard {
   code: string;
   kind: "illustration" | "zeroDay";
   /** The card a copy of this entry plays as: an illustration's base card.
-   * A Zero-Day card is its own card, designed with build-order step 2 under
-   * this id, which is its code ("S0-ZD1"). */
+   * A Zero-Day card is its own card under this id, which is its code
+   * ("S0-ZD1" is Patient Zero). */
   cardId: string;
   name: string;
   /** Gameplay rarity: the base card's for an illustration; Zero-Day cards
@@ -102,7 +103,9 @@ export function secretCards(set: Pick<CardSet, "code" | "cards">, illustrations:
   });
   for (let i = 1; i <= ZERO_DAY_PER_SEASON; i++) {
     const code = `${set.code}-ZD${i}`;
-    out.push({ code, kind: "zeroDay", cardId: code, name: `Zero-Day ${i} (not designed yet)`, rarity: "Mythic", collectorNumber: `${pad(next++)}/${pad(total)}`, art: `placeholder:zero-day/${code}`, animated: true });
+    const card = getCard(code);
+    if (card && (card.topTier !== "zeroDay" || card.rarity !== "Mythic")) throw new Error(`${code}: the registry's card under this id is not a Mythic Zero-Day card`);
+    out.push({ code, kind: "zeroDay", cardId: code, name: card?.name ?? `Zero-Day ${i} (not designed yet)`, rarity: "Mythic", collectorNumber: `${pad(next++)}/${pad(total)}`, art: `placeholder:zero-day/${code}`, animated: true });
   }
   if (new Set(illustrations).size !== illustrations.length) throw new Error("an illustration is listed twice");
   return out;

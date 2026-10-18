@@ -85,12 +85,16 @@ describe("the reveal plan shows only what was rolled (400 real store openings)",
     for (const f of FINISHES) expect(REVEAL_TIMINGS[revealKindOf(f)]).toBeDefined();
   });
 
-  it("a card face is the printed card; a Zero-Day pull shows its reserved entry", () => {
+  it("a card face is the printed card; a Zero-Day card not live yet shows its reserved entry", () => {
     const f = cardFaceOf({ cardId: "AG-007", name: "Aegis Sentinel", rarity: "Uncommon" });
     expect(f.type).toBe("Unit");
     expect(f.attack).not.toBeNull();
     expect(f.text.length).toBeGreaterThan(0);
-    const zd = cardFaceOf({ cardId: "S0-ZD1", name: "Zero-Day 1 (not designed yet)", rarity: "Mythic" });
+    // Season 0's Zero-Day cards are live (game session 42): the real card.
+    const live = cardFaceOf({ cardId: "S0-ZD1", name: "Patient Zero", rarity: "Mythic" });
+    expect(live).toMatchObject({ name: "Patient Zero", type: "Unit", faction: "Neutral", cost: 3 });
+    // An entry whose card isn't in the registry still shows as reserved.
+    const zd = cardFaceOf({ cardId: "S1-ZD1", name: "Zero-Day 1 (not designed yet)", rarity: "Mythic" });
     expect(zd.type).toBe("Reserved");
     expect(zd.name).toBe("Zero-Day 1 (not designed yet)");
     expect(zd.cost).toBeNull();
@@ -118,7 +122,9 @@ describe("the showcase: one real pack per finish", () => {
     expect(proto.prototype!.serial).toBeGreaterThanOrEqual(1);
     expect(by("Jackpot").jackpot).toBe(true);
     expect(by("Jackpot").cards.every((c) => c.faceDown)).toBe(true);
-    expect(by("Zero-Day").cards[4]!.face.type).toBe("Reserved");
+    // Live since game session 42: the pulled Zero-Day card is the real card.
+    expect(["Unit", "Command"]).toContain(by("Zero-Day").cards[4]!.face.type);
+    expect(by("Zero-Day").cards[4]!.face.name).not.toMatch(/not designed yet/);
   });
 
   it("opens the same packs every run (only the store's random ids differ)", () => {

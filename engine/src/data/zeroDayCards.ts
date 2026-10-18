@@ -10,13 +10,17 @@
 // numbers, unchanged; the fairness test (with a strength cap above the
 // 2-point band, to be proposed with the measurements) decides them.
 //
-// NOT LIVE. These cards are not in data/registry.ts's CARD_REGISTRY, so the
-// economy still sees its reserved "Zero-Day N (not designed yet)" entries:
-// a pulled copy stays unplayable and Zero-Day crafting stays closed until
-// the measurements are in and the cap is agreed. Adding them to the registry
-// is the one step that makes them live (economy/src/store.ts reads
-// getCard). Their ids are the reserved entries' codes, so pulled copies
-// become these cards with no migration.
+// LIVE since session 42 (owner 2026-10-18, answers to session 41: "go live
+// at the proposed numbers"). They are in data/registry.ts's CARD_REGISTRY,
+// so a pulled copy plays (a Zero-Day copy's card id is its code, which is
+// the card's id, so copies pulled while the entries were reserved became
+// these cards with no migration) and Zero-Day crafting is open at 3,000
+// pack points (economy/src/store.ts craftSecret).
+//
+// Numbers as measured and approved (progress/balance-report-028): Carrier
+// is +1/+0 (designed +1/+1) and Privilege Escalation counts the other units
+// in play (designed 1 plus that), each trimmed to pass the 4-point cap;
+// Kill Switch as designed.
 //
 // They are not neutral-pool cards: the pool's identity rules (no removal, no
 // statics) would refuse all three, and the owner made them Neutral knowing
@@ -174,8 +178,8 @@ export const killSwitch: CommandCard = {
   ],
 };
 
-/** Season 0's Zero-Day cards, in number order. Not in the card registry
- * (see the header). */
+/** Season 0's Zero-Day cards, in number order (live: in the card registry,
+ * see the header). */
 export const ZERO_DAY_CARDS: readonly Card[] = [patientZero, rootAccess, killSwitch];
 
 {

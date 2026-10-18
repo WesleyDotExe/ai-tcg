@@ -618,8 +618,9 @@ function knownSet(setCode: string) {
 }
 
 /** A Zero-Day card's secret entry, by the card id its copies carry (its
- * code, "S0-ZD1"). The card itself is designed with build-order step 2; until
- * then a copy is a collection entry that can't be played yet. */
+ * code, "S0-ZD1"). Season 0's three are designed and live (in the engine's
+ * registry, so getCard finds them); an entry whose card isn't designed yet
+ * is a collection entry that can't be played or crafted. */
 function zeroDayEntry(cardId: string): SecretCard | undefined {
   const s = secretCardOf(cardId);
   return s?.kind === "zeroDay" ? s : undefined;
@@ -643,6 +644,9 @@ function chaseCopyProblem(cardId: string, finish: Finish, secretCode: string | n
     return null;
   }
   if (secretCode !== null) return `only secret and Zero-Day copies name a secret card`;
+  // A Zero-Day card is in the registry like any card, but it is a secret
+  // card: no plain, Foil, Gold or other version of it exists.
+  if (zeroDayEntry(cardId)) return `"${cardId}" is a Zero-Day card; its only version is the Zero-Day finish`;
   if (finish === "glitch" && ![...CARD_SETS.values()].some((set) => set.glitch.includes(cardId))) return `"${cardId}" has no Glitch version`;
   return null;
 }
@@ -1792,7 +1796,7 @@ export class EconomyStore {
         throw new EconomyError(`deck "${name}": a signature card plays from its own zone, never from the deck`);
       }
       if (!card && zeroDayEntry(c.cardId)) {
-        throw new EconomyError(`deck "${name}": Zero-Day card ${c.cardId} isn't designed yet; it becomes playable when it is (build-order step 2)`);
+        throw new EconomyError(`deck "${name}": Zero-Day card ${c.cardId} isn't designed yet; it becomes playable when it is`);
       }
       if (!card) throw new EconomyError(`deck "${name}": card "${c.cardId}" is not ownable any more`);
       const entry = byCard.get(c.cardId) ?? { card, copies: 0 };
@@ -2154,8 +2158,8 @@ export class EconomyStore {
    * (3 / 3 / 2 / 1), counting every copy held, and refused without the
    * points (the schema refuses an overdraw too). */
   craftCard(ownerId: string, cardId: string): CardCopy {
+    if (zeroDayEntry(cardId)) throw new EconomyError(`"${cardId}" is a Zero-Day card: craft it with craftSecret`);
     const card = getCard(cardId);
-    if (!card && zeroDayEntry(cardId)) throw new EconomyError(`"${cardId}" is a Zero-Day card: craft it with craftSecret`);
     if (!card) throw new EconomyError(`"${cardId}" is not a set card; only set cards can be crafted`);
     return this.transaction(() => {
       const held = this.collection(ownerId).filter((c) => c.cardId === cardId).length;
@@ -2175,14 +2179,14 @@ export class EconomyStore {
    * (config.ts SECRET_CRAFT_PACK_POINTS). Crafting completes a collection,
    * it doesn't farm one: refused while the owner holds a copy of that secret
    * card. The copy is crafted, so account-bound like every crafted copy:
-   * played, never sold, never salvaged. A Zero-Day card can be crafted only
-   * once it is designed (build-order step 2); until then it can only be
-   * pulled. */
+   * played, never sold, never salvaged. A Zero-Day card can be crafted once
+   * it is designed and live (Season 0's three since session 42); an entry
+   * not designed yet can only be pulled. */
   craftSecret(ownerId: string, secretCode: string): CardCopy {
     const secret = secretCardOf(secretCode);
     if (!secret) throw new EconomyError(`no secret card "${secretCode}"`);
     if (secret.kind === "zeroDay" && !getCard(secret.cardId)) {
-      throw new EconomyError(`${secret.code} isn't designed yet (build-order step 2); until it is, it can only be pulled from a pack`);
+      throw new EconomyError(`${secret.code} isn't designed yet; until it is, it can only be pulled from a pack`);
     }
     return this.transaction(() => {
       if (this.collection(ownerId).some((c) => c.secretCode === secret.code)) {

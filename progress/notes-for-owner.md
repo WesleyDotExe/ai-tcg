@@ -1,5 +1,85 @@
 # Notes for the owner
 
+**Updated 2026-10-18, session 42 (your 2026-10-18 answers to session 41: Zero-Day goes live; look
+at Aegis vs Cortex).** Nothing is blocking. One new **[OWNER CHECK-IN]** below, on Aegis vs Cortex.
+Evidence: `progress/economy-demo-010.txt`, `progress/balance-report-029-aegis-cortex-shift.txt`.
+
+Done:
+- **The 3 Zero-Day cards are live,** at the numbers you approved (Carrier +1/+0, Privilege
+  Escalation "the number of other units", Kill Switch as designed).
+  - They are in the card list. A copy pulled from a pack is the real card. It goes in a saved deck
+    and plays. The demo plays a real match where the agent plays Patient Zero, choosing Carrier.
+  - Copies pulled before today become the cards too. A copy's card id was already the card's id,
+    so nothing in an owner's database changes.
+  - Zero-Day crafting is open at 3,000 pack points. One copy per card, account-bound, never
+    salvaged, as for secret illustrations.
+  - The secret list names them: 226/096 Patient Zero, 227/096 Root Access, 228/096 Kill Switch.
+  - The base set is still 96 cards. The Zero-Day cards don't get a base number, a Gold version or
+    a plain version, and never come up in a normal slot.
+  - Still 1 per deck. They count toward the 10 neutral cards and the 25% removal share.
+- **Aegis vs Cortex: investigated, no card changed.** See the check-in.
+
+### [OWNER CHECK-IN] Aegis vs Cortex: why it moved, and a proposed fix
+
+**Why it moved.** I replayed the same 2,500 gate games four ways, with each side played by the old
+agent or the new one:
+
+| Aegis played by | Cortex played by | Aegis wins |
+|---|---|---|
+| old agent | old agent | 52.2% |
+| new agent | old agent | 52.3% |
+| old agent | new agent | 48.9% |
+| new agent | new agent | 49.3% |
+
+- The whole move comes from **Cortex being played better.** How Aegis is played makes no
+  difference.
+- The card that changed most is **Mainframe Core** (3 energy, "Your units get +1/+1"). The new agent
+  plays it in 46% of games, up from 39%. The old agent counted an aura for one turn only, so it
+  under-played this card.
+- So the 52.2% was measured against a Cortex that under-played its best engine card. The soft
+  counter was thinner than it looked all along.
+
+**What I measured** (gate mode, 2,500 games per edge; nothing shipped):
+
+| change | Aegis > Cortex (band 55-60) | Null ~ Cortex (45-55) | Cortex > Swarm (55-60) |
+|---|---|---|---|
+| as shipped | 49.3% | 45.6% | 58.2% |
+| **B: Mainframe Core +1/+0** | **53.0%** (+3.7, a real move) | 48.3%, in band | 55.9% |
+| A: Mainframe Core costs 4 | 50.3% (within noise) | 47.3% | 57.0% |
+| C: one copy, not two | 51.2% (within noise) | 43.9% | 58.6% |
+
+- **B is the only change that moves Aegis vs Cortex by a real amount.** It takes the edge back above
+  the 52.2% you accepted on 2026-10-04. It also brings Null vs Cortex into band, and Cortex vs
+  Swarm stays in its band.
+- No single Mainframe Core change I measured reaches the 55-60% band.
+- **The catch:** with signature cards in their zone, B moves Aegis vs Cortex from 71.5% to 74.8%.
+  That edge is already far over its band in that mode. The CI check for that mode would fail, so
+  shipping B also means re-recording both baselines on purpose, as the gate's rules allow for a
+  change you approve.
+
+**Question: what should happen to Aegis vs Cortex?**
+- **A (default): ship B.** Mainframe Core becomes "Your units get +1/+0". I re-record both ring
+  baselines and commit a balance report.
+- **B: leave it.** Accept 49.3% as the edge for now and look again with the next set.
+- **C: fix it on Aegis's side instead.** Name the direction (for example, an answer to Directives),
+  and I design and measure options first.
+
+**Calls I made (overrule any):**
+1. **A Zero-Day card has no version but its Zero-Day finish.** No plain, Foil or Gold copy of it can
+   exist. Packs never rolled one; this makes it a rule in the store, so nothing else can grant one.
+2. **`craftCard` refuses Zero-Day cards** and points to `craftSecret` (3,000). Without this,
+   Zero-Day cards could have been crafted at the Mythic price (800) now that they're in the card
+   list.
+3. **The render lane's pack-opening page is regenerated** (only the Zero-Day pull changed: it now
+   shows Patient Zero, not the reserved entry). Two render tests that checked for the reserved
+   entry now check for the real card. The reserved face is still tested with a card id that doesn't
+   exist.
+4. **For the render lane:** a Zero-Day card's face shows no rules text in the pack page. Its text is
+   in its two modes, and the face only reads `abilities`, which is empty on a modal card. The render
+   lane can show both modes on the face.
+
+---
+
 **Updated 2026-10-17, session 41 (your 2026-10-18 answers: fix the agent first, then the cap).**
 Nothing is blocking. One new **[OWNER CHECK-IN]** below: OK to make the 3 Zero-Day cards live at the
 tuned numbers. Evidence: `progress/balance-report-028-agent-fix-zero-day-tuned.txt`,
