@@ -3016,3 +3016,15 @@ Once a card is revealed (in a single-pack reveal, a big pull, and the card viewe
 - **Input:** works with touch and mouse, at phone and desktop sizes. Respect reduced-motion settings (a smaller tilt, no spring).
 - **Art:** with placeholder art, a simple art-behind-the-frame depth is enough. When real art arrives, the art pass can supply layered art (background and foreground) for a deeper effect; note this for the art pass rather than building it now.
 - **When:** build this alongside slice 3 (the first-time flow), or just before it. Show it with phone and desktop recordings at the checkpoint.
+
+
+---
+
+## 2026-10-18 — Owner: addendum, the hold-to-tilt effect works on the booster pack too
+
+Addition to today's entry "a new feature: hold and drag a card to tilt it (parallax)". Same feature, also on the sealed pack.
+- **Before tearing**, the owner can press and hold the sealed Season 0 pack and drag to tilt it in 3D, with the same spring back on release. The pack's shimmer and foil catch the light as it tilts, and the pack art or logo gets the same depth effect.
+- **Tilt versus tear:** dragging along the tear strip at the top still tears the pack, as now. A hold or drag anywhere else on the pack tilts it. Make the tear strip clearly visible, and propose how the two are told apart at the checkpoint.
+- **Keep the tell honest:** tilting must never hint at what's inside. A pack looks and behaves exactly the same whether or not it holds a hit; sparks come only from the tear, as decided.
+- **Ten-pack fan:** propose whether the packs in the fan can be tilted too, or only the pack being opened.
+- Same input rules as the card tilt: touch and mouse, phone and desktop, a quick tap still does what it does now, and reduced-motion is respected.
