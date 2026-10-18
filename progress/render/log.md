@@ -2852,3 +2852,119 @@ real opening with one copy added; it now fails that mutation.
 
 **Next render-lane slice:** slice 3, the first-time flow (an agent's first
 packs and the leader, the signature card, reveal).
+
+## 2026-10-18 — Session 26: the owner's pack-opening feel notes (full-bleed top finishes, a tap-driven ten-pack) and modal card faces
+
+Render session by the alternation rule: the last merged PR (#69) was a game
+slice. Owner feedback read first:
+- 2026-10-18 (feel notes on slices 1-2): two changes "before slice 3, or as
+  the first part of that session": full-size art for every finish rarer
+  than Full Art, and a tap-driven ten-pack with an "Auto" switch. Both done
+  here; slice 3 (the first-time flow) is next.
+- 2026-10-18 (answers to game session 42), render side task: show both
+  modes on a modal card's face. Done here, in the pack page, the summary
+  and a new card viewer.
+- The game-lane items in that entry (the signature-mode ring) are the game
+  lane's own.
+
+**Built:**
+- **Modal faces.** `packOpening.ts` `CardFace.modes` carries each mode's
+  printed name and rules text from the engine's `CardMode`. The face prints
+  "CHOOSE ONE", then each mode as its name in bold and its text, with an
+  accent bar. On a full-bleed face the rules box starts higher (the type
+  line at 47%), since two modes need the room and the art is behind it
+  anyway. All 3 Zero-Day cards fit with their flavor line.
+- **The face moved into the page's pure source** (`packFaceHtml`,
+  `packRulesHtml`, `packFullBleed`, `packFinishLayerName/Amt`), so Node
+  tests and the new face sheet run the same code the page does.
+- **Full bleed.** `packFullBleed`: every finish but Standard and Foil. Owner's
+  rule: "a finish rarer than Full Art always shows its artwork across the
+  whole card". By the live S0-odds-2 shine table, Glitch (4%) and Alt Art
+  (3%) are rarer than Full Art (9%) too, so they are full bleed with Gold,
+  Prototype, the secret illustrations and Zero-Day. A full face gets its edge
+  ring drawn over the art (the face's own inset ring sits under it).
+  - **Gold:** the art in gold tones, a gold gradient edge, the name in gold
+    lettering, gold-on-brown text panels, a gold cost coin.
+  - **Prototype:** full-bleed art with the serial plate stamped on top.
+  - **Zero-Day / secret / Glitch:** full bleed, with their own rings.
+  - In the reveal, the card still turns over plain and grows to full bleed
+    as it lands (Gold, Prototype and Glitch now grow like Full Art does).
+- **The tap-driven ten-pack** (replaces slice 2's calls 1 and 6):
+  - Nothing plays on its own. The fan tap tears pack 1; after that each tap
+    or swipe on the row tears the next pack. Its cards deal into the row;
+    a tap on a face-down card turns it, a tap elsewhere turns the first one
+    left; once all are turned, a tap or swipe moves on (`packRowTap`, a pure
+    helper).
+  - A big pull tears in the row like any pack (sparks only when it holds a
+    hit), then its full reveal plays right there: no sealed pack, no second
+    tear. The "BIG PULL" tag is gone. After it, the next pack waits sealed
+    in the row for a tap.
+  - "Skip to summary" (the old "Skip", renamed as the owner put it) still
+    stops at every big pull.
+  - **Auto**, a switch, off by default and remembered per viewer: the old
+    automatic sequence, with 1×/2×/4× (the speed buttons only show while it
+    is on). In Auto a big pull tears itself and steps through its reveal by
+    itself, each step at full length plus a 0.7 s beat. Switching Auto off
+    mid-open stops at once; switching it on carries on from where you are.
+  - Proposed tap beats (`BULK_TAP_TIMINGS`): the tapped pack shows sealed
+    0.14 s; taps wait for the deal to land (about 0.5 s); after a hit turns,
+    a tap waits 0.6 s before moving on, so a double tap can't cut its pop.
+- **Card viewer.** A tap on any summary tile (single or ten-pack) shows the
+  card full size with its finish's shader and the light following the
+  pointer: the place to read a card, its modes included. Esc, Close or a tap
+  outside closes it.
+- **Text fit.** A long card's flavor line was cut off at the bottom or ran
+  under the attack/health boxes (seen on Zombie Process and the Prototype
+  while building the face sheet; it predates this session). `packFitText`
+  steps the rules text down (to 68% at most, as a share of the card size,
+  so it holds at every size) until it fits and its last line clears the
+  boxes. A MutationObserver fits every face as it is put on the page.
+- **Wording fix:** a big pull's last card inside a ten said "Tap for the
+  summary" but went back to the packs; it now says "Tap to carry on with the
+  packs".
+- **Card-face sheet** (`src/faceSheet.ts`, `npm run card-faces`,
+  `render/output/card-faces.html`): the 3 Zero-Day cards with their set
+  numbers, and one real pull per finish from the showcase, side by side.
+
+**Ran it:**
+- `npm run pack-opening` and `npm run card-faces`: the page and the sheet.
+  The showcase packs are the same as session 25 (same seeds), so no new
+  transcript.
+- `pack-tap-check.mjs` (new; output `pack-tap-check.txt`) at 1280 × 800 and
+  390 × 844, fresh profile each: all pass.
+  - 0: Auto off by default, speeds hidden.
+  - A: the everyday ten by hand. Left alone 1.2 s after every deal and after
+    every fully-turned row, nothing moved. Every tear and every turn came
+    from a tap or swipe.
+  - B: the big-pull ten by hand. The big pull (pack 6, a secret) tore like
+    the others and its reveal followed with no sealed pack. Then the summary
+    and the viewer.
+  - C: Auto at 2× with Skip: stopped at the big pull, which stepped itself,
+    every card held at least its reveal's full time.
+  - D: Auto at 4×, hands off: about 5 s to the summary (as session 25).
+  - E: Auto at 1×, switched off in pack 2: nothing moved for 2 s; finished
+    by hand.
+  - Auto and 4× survived a reload. F: the Zero-Day summary's tile opened the
+    viewer with Outbreak / Carrier readable. G: the face sheet's 12 faces all
+    fit their box and are full bleed on exactly the 10 rarer finishes.
+- Slice 1's `pack-opening-check.mjs` (now takes a still prefix) re-run on the
+  new page: all 10 packs pass at both widths (`pack-opening-check-s26.txt`).
+- Two check-script bugs fixed on the way, not page bugs: run C's Skip
+  landing in a pack's sealed beat (cut before its tear, on purpose), and the
+  big pull's first card measured mid-rise.
+
+**Tests:** render 375 (+13), in `packFaces.test.ts`: modal faces match the
+engine's modes for every modal card in the registry, escaped; full bleed is
+exactly the finishes no commoner than Full Art in the live shine table
+(read from `LIVE_PACK_ODDS`, so a new table re-checks it); a settled face is
+full bleed on those and an unsettled one never is; the row-tap rules; the
+page ships the tap timings, an Auto switch that starts off, and no "BIG
+PULL"; the face sheet's entries. Mutations: reverting full bleed to the old
+three finishes fails 3 tests; dropping the mode block fails 2.
+
+**Named honestly** (in the debt list): still no real phone, GPU or ears;
+the tap flow's feel (the 0.6 s pop guard, flips-before-moving-on) is
+untested by a human; the fit shrinks text rather than reflowing the layout.
+
+**Next render-lane slice:** slice 3, the first-time flow (an agent's first
+packs and the signature card reveal).

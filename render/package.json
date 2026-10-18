@@ -12,7 +12,8 @@
     "feed-transcript": "tsx src/feedTranscript.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "pack-opening": "tsx src/packDemo.ts"
+    "pack-opening": "tsx src/packDemo.ts",
+    "card-faces": "tsx src/faceSheet.ts"
   },
   "dependencies": {
     "@ai-tcg/engine": "*",

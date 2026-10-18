@@ -1,0 +1,33 @@
+desktop: shader foil: ok (100.0% of pixels lit)
+desktop: shader gold: ok (100.0% of pixels lit)
+desktop: shader glitch: ok (79.9% of pixels lit)
+desktop: shader zeroDay: ok (56.4% of pixels lit)
+desktop: shader pack: ok (97.8% of pixels lit)
+desktop: No hit     torn by drag, sparks no  (hit no ), 5 cards, reveals [], 0 early taps ignored, shaders pack: ok
+desktop: Foil       torn by tap, sparks no  (hit no ), 5 cards, reveals [foil], 1 early taps ignored, shaders foil+pack: ok
+desktop: Full Art   torn by drag, sparks yes (hit yes), 5 cards, reveals [fullArt], 1 early taps ignored, shaders foil+pack: ok
+desktop: Alt Art    torn by tap, sparks yes (hit yes), 5 cards, reveals [altArt], 1 early taps ignored, shaders foil+pack: ok
+desktop: Glitch     torn by drag, sparks yes (hit yes), 5 cards, reveals [glitch], 1 early taps ignored, shaders glitch+pack: ok
+desktop: Secret     torn by tap, sparks yes (hit yes), 5 cards, reveals [secret], 1 early taps ignored, shaders foil+pack: ok
+desktop: Gold       torn by drag, sparks yes (hit yes), 5 cards, reveals [gold], 1 early taps ignored, shaders gold+pack: ok
+desktop: Zero-Day   torn by tap, sparks yes (hit yes), 5 cards, reveals [zeroDay], 1 early taps ignored, shaders pack+zeroDay: ok
+desktop: Prototype  torn by drag, sparks yes (hit yes), 6 cards, reveals [prototype], 1 early taps ignored, shaders gold+pack: ok
+desktop: Jackpot    torn by tap, sparks yes (hit yes), 5 cards, reveals [foil, foil, foil, foil, glitch], 5 early taps ignored, shaders foil+glitch+pack: ok
+desktop: page errors none
+phone: shader foil: ok (100.0% of pixels lit)
+phone: shader gold: ok (100.0% of pixels lit)
+phone: shader glitch: ok (82.7% of pixels lit)
+phone: shader zeroDay: ok (41.6% of pixels lit)
+phone: shader pack: ok (97.8% of pixels lit)
+phone: No hit     torn by drag, sparks no  (hit no ), 5 cards, reveals [], 0 early taps ignored, shaders pack: ok
+phone: Foil       torn by tap, sparks no  (hit no ), 5 cards, reveals [foil], 1 early taps ignored, shaders foil+pack: ok
+phone: Full Art   torn by drag, sparks yes (hit yes), 5 cards, reveals [fullArt], 1 early taps ignored, shaders foil+pack: ok
+phone: Alt Art    torn by tap, sparks yes (hit yes), 5 cards, reveals [altArt], 1 early taps ignored, shaders foil+pack: ok
+phone: Glitch     torn by drag, sparks yes (hit yes), 5 cards, reveals [glitch], 1 early taps ignored, shaders glitch+pack: ok
+phone: Secret     torn by tap, sparks yes (hit yes), 5 cards, reveals [secret], 1 early taps ignored, shaders foil+pack: ok
+phone: Gold       torn by drag, sparks yes (hit yes), 5 cards, reveals [gold], 1 early taps ignored, shaders gold+pack: ok
+phone: Zero-Day   torn by tap, sparks yes (hit yes), 5 cards, reveals [zeroDay], 1 early taps ignored, shaders pack+zeroDay: ok
+phone: Prototype  torn by drag, sparks yes (hit yes), 6 cards, reveals [prototype], 1 early taps ignored, shaders gold+pack: ok
+phone: Jackpot    torn by tap, sparks yes (hit yes), 5 cards, reveals [foil, foil, foil, foil, glitch], 5 early taps ignored, shaders foil+glitch+pack: ok
+phone: page errors none
+all pass

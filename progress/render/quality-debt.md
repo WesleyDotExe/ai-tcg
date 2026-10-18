@@ -7,7 +7,24 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## Pack opening (slices 1-2, sessions 24-25)
+## Pack opening (slices 1-2, sessions 24-26)
+
+- **The tap-driven ten-pack's feel is untested by a person** (session 26).
+  The 0.6 s guard after a hit, the 0.5 s wait for a deal to land, and the
+  rule that every face-down card is turned before moving on were all chosen
+  without a human thumb on a phone. The browser check proves the rules, not
+  the feel.
+- **The text fit shrinks, it doesn't reflow** (session 26). A long card's
+  rules text steps down to as little as 68% of its size to fit its box and
+  clear the stat boxes. On a summary tile that is very small text; the
+  viewer is where to read it. A real fix is a layout that gives long cards
+  more room (or the art pass's own frame).
+- **Auto in a big pull steps at fixed beats** (0.7 s after each reveal's
+  hold). Nobody has watched a Zero-Day or a secret play out hands-off and
+  judged whether it lingers enough.
+- **The card viewer opens only from summary tiles.** The ten-pack row and
+  the stack have no "look closer"; the binder (website work) will want the
+  same viewer.
 
 - **The ten-pack sequence hasn't been timed on a real, slow phone.** Five
   cards of CSS animation per pack were smooth in headless Chromium; a
@@ -18,8 +35,6 @@ items are removed, with the fix in `log.md`.
 - **Only two showcase tens, both a fresh owner's first ten packs,** so most
   cards wear NEW. A ten-pack open by a collector with a full binder (few
   NEW, many ×N) has only been seen in the tests.
-- **The "BIG PULL" tag gives the pull away before the tear** (checkpoint
-  call 1). That's honest, but it takes the surprise from the sparks.
 - **Slice 1's committed stills show the shared-gradient bug** (fixed in
   session 25): every card on a page painted the first card's background.
   They are left as the record; the page itself is fixed.
@@ -36,9 +51,10 @@ items are removed, with the fix in `log.md`.
 - **The Glitch "RGB split" is two filtered DOM copies of the card**, not a
   per-pixel channel split (a shader can't read DOM). It reads as a split
   in motion; a still mid-flip mostly shows the card edge-on.
-- **The page runtime (about 700 lines with the ten-pack flow) is one
-  string.** Its pure helpers are tested in Node; the rest only by the two
-  browser checks.
+- **The page runtime (about 800 lines with the tap flow and the viewer) is
+  one string.** Its pure helpers (now including the card face, the full-
+  bleed rule and the row-tap rule) are tested in Node; the rest only by the
+  three browser checks.
 - **The committed page changes on every rebuild** (the store's random pack
   and copy ids), even with the same packs. Asked of the game lane.
 - **The showcase packs are found by seed search**, so the page shows one

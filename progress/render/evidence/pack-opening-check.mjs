@@ -1,7 +1,7 @@
 // Render session 24: the pack-opening page, driven like an owner would in a
 // real (headless) Chromium. Not a repo dependency: run from a scratch
 // folder with playwright-core installed, against the preinstalled Chromium:
-//   node pack-opening-check.mjs <shotDir> <render/output/pack-opening.html>
+//   node pack-opening-check.mjs <shotDir> <render/output/pack-opening.html> [still prefix, default v2-s24]
 // For every showcase pack, at 1280 x 800 and at 390 x 844 (a phone):
 //   - opens it: a drag across the top on odd packs, a tap on even ones;
 //   - checks the honest tell: the tear throws sparks iff the pack holds a
@@ -17,7 +17,7 @@
 //   - no horizontal scroll, the card fits on screen, no page errors.
 // Stills of each reveal at both widths go to shotDir.
 import { chromium } from 'playwright-core';
-const [shotDir, file] = process.argv.slice(2);
+const [shotDir, file, prefix = 'v2-s24'] = process.argv.slice(2);
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
 let fails = 0;
 const out = [];
@@ -67,7 +67,7 @@ for (const [w, h, tag] of [[1280, 800, 'desktop'], [390, 844, 'phone']]) {
     await p.goto('file://' + file + '?pack=' + (i + 1));
     await p.waitForTimeout(350);
     const pk = await p.locator('#pack').boundingBox();
-    if (i === 0) await p.screenshot({ path: `${shotDir}/v2-s24-pack-sealed-${tag}.png` });
+    if (i === 0) await p.screenshot({ path: `${shotDir}/${prefix}-pack-sealed-${tag}.png` });
     const via = i % 2 === 0 ? 'drag' : 'tap';
     if (via === 'drag') {
       const y = pk.y + pk.height * 0.1;
@@ -78,8 +78,8 @@ for (const [w, h, tag] of [[1280, 800, 'desktop'], [390, 844, 'phone']]) {
       await p.mouse.click(pk.x + pk.width / 2, pk.y + pk.height / 2);
     }
     await p.waitForTimeout(via === 'tap' ? 520 : 80);
-    if (plan.sparks && tag === 'desktop' && label === 'Full Art') { await p.waitForTimeout(120); await p.screenshot({ path: `${shotDir}/v2-s24-tear-sparks-${tag}.png` }); }
-    if (plan.jackpot) { await p.waitForTimeout(700); await p.screenshot({ path: `${shotDir}/v2-s24-jackpot-banner-${tag}.png` }); }
+    if (plan.sparks && tag === 'desktop' && label === 'Full Art') { await p.waitForTimeout(120); await p.screenshot({ path: `${shotDir}/${prefix}-tear-sparks-${tag}.png` }); }
+    if (plan.jackpot) { await p.waitForTimeout(700); await p.screenshot({ path: `${shotDir}/${prefix}-jackpot-banner-${tag}.png` }); }
     // Wait for the stack.
     for (let k = 0; k < 60; k++) { if ((await p.evaluate(() => window.__pack.phase)) === 'cards') break; await p.waitForTimeout(100); }
     await p.waitForTimeout(800);
@@ -108,18 +108,18 @@ for (const [w, h, tag] of [[1280, 800, 'desktop'], [390, 844, 'phone']]) {
         if ((await p.evaluate(() => window.__pack.i)) !== before) problems.push(`card ${st.i}: a tap during the reveal skipped it`); else ignoredTaps++;
         if (c.reveal === 'zeroDay') {
           for (let k = 0; k < 40; k++) { if (await p.evaluate(() => window.__pack.log.some((e) => e.kind === 'zeroDayTyped'))) break; await p.waitForTimeout(100); }
-          await p.screenshot({ path: `${shotDir}/v2-s24-zero-day-terminal-${tag}.png` });
+          await p.screenshot({ path: `${shotDir}/${prefix}-zero-day-terminal-${tag}.png` });
           await p.waitForTimeout(1000);
-          await p.screenshot({ path: `${shotDir}/v2-s24-zero-day-breach-${tag}.png` });
+          await p.screenshot({ path: `${shotDir}/${prefix}-zero-day-breach-${tag}.png` });
           for (let k = 0; k < 40; k++) { if (await p.evaluate(() => window.__pack.log.some((e) => e.kind === 'zeroDayArrive'))) break; await p.waitForTimeout(100); }
           await p.waitForTimeout(1500);
-          await p.screenshot({ path: `${shotDir}/v2-s24-zero-day-card-${tag}.png` });
+          await p.screenshot({ path: `${shotDir}/${prefix}-zero-day-card-${tag}.png` });
         } else {
-          if (c.reveal === 'glitch') { await p.waitForTimeout(380); await p.screenshot({ path: `${shotDir}/v2-s24-glitch-corrupting-${tag}.png` }); }
+          if (c.reveal === 'glitch') { await p.waitForTimeout(380); await p.screenshot({ path: `${shotDir}/${prefix}-glitch-corrupting-${tag}.png` }); }
           const want = STILL[c.reveal];
           for (let k = 0; k < 60; k++) { if (await p.evaluate((x) => window.__pack.log.some((e) => e.kind === x.want && (x.want !== 'landed' || e.idx === x.i)), { want, i: st.i })) break; await p.waitForTimeout(80); }
           await p.waitForTimeout(c.reveal === 'secret' ? 250 : c.reveal === 'prototype' ? 400 : 650);
-          if (!(plan.jackpot && st.i > 0 && c.slot !== "shine")) await p.screenshot({ path: `${shotDir}/v2-s24-${c.reveal}${plan.jackpot ? '-jackpot' : ''}-${tag}.png` });
+          if (!(plan.jackpot && st.i > 0 && c.slot !== "shine")) await p.screenshot({ path: `${shotDir}/${prefix}-${c.reveal}${plan.jackpot ? '-jackpot' : ''}-${tag}.png` });
         }
       }
       // Wait out the hold, then move on.
@@ -156,7 +156,7 @@ for (const [w, h, tag] of [[1280, 800, 'desktop'], [390, 844, 'phone']]) {
       const badges = await p.evaluate(() => document.querySelectorAll('.tile .new').length);
       if (badges !== plan.cards.filter((c) => c.isNew).length) problems.push(`NEW badges ${badges}`);
     }
-    if (['Gold', 'Zero-Day', 'Prototype'].includes(label) || (tag === 'phone' && label === 'Secret')) await p.screenshot({ path: `${shotDir}/v2-s24-summary-${slug}-${tag}.png`, fullPage: false });
+    if (['Gold', 'Zero-Day', 'Prototype'].includes(label) || (tag === 'phone' && label === 'Secret')) await p.screenshot({ path: `${shotDir}/${prefix}-summary-${slug}-${tag}.png`, fullPage: false });
     const overflow = await p.evaluate(() => document.scrollingElement.scrollWidth - window.innerWidth);
     if (overflow > 0) problems.push(`horizontal overflow ${overflow}px`);
     const fx = await p.evaluate(() => window.__packfx);

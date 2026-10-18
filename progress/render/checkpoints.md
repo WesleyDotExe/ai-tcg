@@ -7,6 +7,62 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-18 — Pack opening feel notes: full-size art for the top finishes, a tap-driven ten-pack, modal card faces — AWAITING FEEDBACK
+
+Your 2026-10-18 feel notes, plus the render side task from your answers to game session 42. Open `render/output/pack-opening.html` (any "×10" pack, the Gold / Prototype / Zero-Day packs, then tap a summary tile) and `render/output/card-faces.html` (every finish side by side, and all 3 Zero-Day cards).
+
+**What this delivers:**
+- **Full-size art above Full Art.** Every finish rarer than Full Art shows its art across the whole card, everywhere a card is drawn (the reveal, the ten-pack row, the summary, the new viewer):
+  - **Gold:** full-bleed art in gold tones, a gold edge, gold lettering, gold-on-brown text panels.
+  - **Prototype:** full-bleed art with the serial plate (`1/250`, `PROTOTYPE · S0`) on top.
+  - **Secret illustrations, Zero-Day:** full bleed.
+  - **Glitch and Alt Art too** (call 1 below).
+  - In the reveal the card still turns over plain and grows to full bleed as it lands.
+- **The ten-pack is tap-driven.** Nothing plays on its own:
+  - Tapping the fan tears pack 1. Each later tap or swipe tears the next pack.
+  - Its cards deal into the row. Tap a face-down card to turn it, or tap anywhere on the row to turn the next one. Once all are turned, a tap or swipe moves on.
+  - **A big pull is torn the same way, and its full reveal plays right there:** no sealed pack to tear again, no pause, no "BIG PULL" tag (removed).
+  - **"Skip to summary"** still never skips a big pull.
+  - **Auto** (a switch, off by default) plays the old automatic sequence. The 1× / 2× / 4× speeds appear when it is on. Switching it off mid-open stops straight away; switching it on carries on from where you are.
+- **Modal card faces.** A "choose one" card's face prints CHOOSE ONE and each mode's name and rules text (Patient Zero: **Outbreak** When this dies, deal 2 damage to all enemy units. / **Carrier** Your other units get +1/+0.). All 3 Zero-Day cards fit, flavor included.
+- **A card viewer.** Tap any summary tile to see that card full size with its own shader: the place to read a card, its modes included, after the reveal.
+- **Fix found on the way:** long cards' flavor lines were cut off, or ran under the attack/health boxes (it predates this session). Their text now steps down in size until it fits.
+
+**Evidence:**
+- **Pages:** `render/output/pack-opening.html` (`npm run pack-opening -w @ai-tcg/render`), `render/output/card-faces.html` (`npm run card-faces -w @ai-tcg/render`).
+- **Browser check** (`progress/render/evidence/pack-tap-check.mjs` / `.txt`), at 1280 × 800 and 390 × 844, all pass. It checks:
+  - Auto is off by default.
+  - By hand, nothing moved in 1.2 s left alone after any deal or any fully turned row. Every tear and turn came from a tap or swipe.
+  - The big pull tore like the others, with its reveal straight after.
+  - Auto at 2× with Skip stopped at the big pull and played it at full length. Auto at 4× ran hands off in about 5 s.
+  - Switching Auto off mid-open stopped it. Auto and the speed are remembered after a reload.
+  - The Zero-Day tile opens the viewer with both modes readable.
+  - All 12 faces on the sheet fit, and are full bleed on exactly the 10 rarer finishes.
+  - Slice 1's check re-run on the new page: all 10 packs pass (`pack-opening-check-s26.txt`).
+- **Stills, phone and desktop** (`progress/render/evidence/v2-s26-*.jpg`):
+  - the ten-pack fan, the row waiting with a face-down card, the row after a hit turns, Auto switched on, the big pull revealed in the flow, the summary;
+  - the viewer (secret, Zero-Day);
+  - the Gold, Prototype, Glitch, secret and Zero-Day reveals and summaries;
+  - the face sheet.
+- **Tests:** render 375 (+13).
+
+**Decisions you may want to overrule:**
+1. **Glitch and Alt Art are full bleed too.** Your rule names Gold, Prototype, secret and Zero-Day, but by the live odds Glitch (4% of shine slots) and Alt Art (3%) are rarer than Full Art (9%), and "a rarer card must never look smaller than a Full Art". Alt Art already was. Glitch was the card's own frame, corrupted. Alternative: keep Glitch framed.
+2. **The fan tap tears pack 1 straight away.** It does not wait for a second tap. Alternative: the fan opens into pack 1 sealed, which then waits for a tap.
+3. **Every face-down card is turned before a tap moves on.** A tap never skips a turn. A tap on the row turns the cards left to right. Alternative: a swipe moves on and turns the rest at once.
+4. **Proposed tap timings** (`BULK_TAP_TIMINGS`): the tapped pack shows sealed for 0.14 s; taps wait for the deal to land (about 0.5 s); after a hit turns, a tap waits 0.6 s before moving on, so a double tap can't cut its pop. Turning another card is never held up.
+5. **Auto is remembered per viewer**, like the speed. It still starts off for anyone who hasn't switched it on. The speed buttons show only while Auto is on.
+6. **In Auto, a big pull plays itself:** it tears, then steps through its reveal at full length with a 0.7 s beat between steps. A tap still moves on as soon as each reveal has had its moment.
+7. **The card viewer is new:** tap a summary tile to see the card full size. Alternative: no viewer (the modes are then only readable during the reveal).
+8. **Long rules text shrinks** (down to 68%) rather than being cut off. This only changes cards that didn't fit before.
+9. **Modal face layout:** CHOOSE ONE, then each mode with its name in bold and an accent bar. On a full-bleed face, the rules box starts higher to make room.
+
+**Thin spots (in the debt list):** headless Chromium with a software GPU only; no real phone, tilt or ears; the tap flow's feel (call 4) is untested by a person; the shrink keeps the layout and only resizes text.
+
+**Next:** slice 3, the first-time flow: an agent's first packs and the signature card reveal.
+
+---
+
 ## 2026-10-18 — Pack opening, slice 2: ten packs at once, and the summary grid — AWAITING FEEDBACK
 
 Your 2026-10-18 priority, slice 2 of 3. Open `render/output/pack-opening.html` and pick a "×10" pack (or the "Ten at once" row on the shelf). Both tens are real opens from the economy store: `openPacks(owner, 10)`, each pack its own seeded opening. The page only plays back what was rolled.
