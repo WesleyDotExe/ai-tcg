@@ -1,15 +1,47 @@
 # Notes for the owner
 
-**Updated 2026-10-19, session 46 (the starter-pack hit guarantee; a plan for victory boasts).**
-Nothing is blocking. **The starter guarantee is built and live in the store** (your render-session-28
-call 9): every new owner now sees at least one hit across the 3 starter packs. One
-**[OWNER CHECK-IN]** below: the method I used, the starter rates, what it does to the wider pack
-economy, and the game lane's plan for victory boasts (not built; your entry asked for a plan first).
-Evidence: `progress/pack-sim-003-starter.txt`, `progress/economy-demo-011.txt`.
+**Updated 2026-10-19, session 47 (victory boasts and the cosmetics backend, the game lane's half).**
+Nothing is blocking. **Built as you approved, with all 6 defaults:** the cosmetics catalogue, the four
+free starter boasts, 300-credit season boasts sold in their season's window then retired,
+account-bound ownership, a per-agent loadout (with the close-win slot), and each side's loadout plus
+the boast that played saved on the match record. One small **[OWNER CHECK-IN]** below: what Season 0
+should sell, and five calls I made that you may want to overrule. Evidence:
+`progress/economy-demo-012.txt`.
 
-Your session-45 answer (leave N1) needed nothing: the Aegis list is unchanged.
+Your session-46 answers needed nothing else: the starter guarantee stays as built.
 
-### [OWNER CHECK-IN] The starter guarantee (built), and the plan for victory boasts (not built)
+### [OWNER CHECK-IN] Victory boasts: what Season 0 sells, and 5 calls made while building
+
+**What's built** (ECONOMY.md, "Victory boasts and the cosmetics backend"): schema v11; a Season 0 file
+made before it gives every owner who had a starter collection all four starter boasts and their
+agents the faction's boast. In the evidence run, 62 real matches between two owners paid for a
+300-credit season boast; after it was equipped with a close-win boast, 24 of 24 wins played the
+right boast (11 main, 4 close-win, 9 the faction starter for an empty slot), and the history read
+back unchanged after the loadout changed. A boast never reaches the engine, the agents or the ring
+(the engine is untouched; both ring checks are unaffected).
+
+**What I need from you:**
+1. **What Season 0 sells.** The shipped catalogue holds only the four free starter boasts, so
+   the store sells nothing yet. The purchase path is built and tested with a demo item. Tell me
+   which season boasts (and card backs, avatars, arenas, if any) Season 0 should sell, with names
+   and a one-line look each, and their sale window [suggestion: 2 Season 0 boasts on sale for the
+   whole season; no card backs, avatars or arenas until the render lane can draw them]. The render
+   lane has to draw each one before it goes on sale.
+
+**Calls you may want to overrule:**
+1. **A new agent's boast** is its owner's faction lock's starter boast, else its starting faction's
+   (agents have no faction of their own). Agents made before the starter collection get it then.
+2. **An empty boast slot** is allowed. A win with it plays the starter boast of the faction the
+   deck played, and the record says so (`factionStarter`). The alternative: no empty slot.
+3. **No loadout changes during a live match,** like switching agents, so the record is the
+   loadout the match started with.
+4. **The close-win rule reads each side's final health,** passed in when the match is recorded.
+   The real server doesn't record matches yet (roadmap 6b); when it does, it passes this. Without
+   it, a win plays the main boast.
+5. **Season reset carry-over is a rule on paper:** the season reset itself isn't built yet. When it
+   is, owned cosmetics and loadouts go to the new file with the unique Mythic.
+
+### [ANSWERED 2026-10-19: keep A and all 4 calls; boasts plan approved with all 6 defaults] The starter guarantee (built), and the plan for victory boasts (not built)
 
 **1. The method: your example, option A.** When an owner opens their last unopened starter pack and
 none of their opened starter packs had a hit, that pack's shine slot is made a hit. It works like

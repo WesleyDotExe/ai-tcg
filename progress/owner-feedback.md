@@ -3183,7 +3183,7 @@ Owner decisions on the 5 calls in `progress/render/checkpoints.md` (2026-10-19, 
 
 ---
 
-## 2026-10-19 — Owner: new feature, victory boasts (a cosmetic) (GAME-LANE PLAN PROPOSED 2026-10-19, session 46 — not built, as asked: catalogue, ownership, the 4 free starter boasts, the per-agent loadout, the loadout saved on the match record, and an optional store-picked "close win" slot, with the 6 open decisions and suggested defaults, in the new [OWNER CHECK-IN] in notes-for-owner.md. The render half is the render lane's own)
+## 2026-10-19 — Owner: new feature, victory boasts (a cosmetic) (GAME-LANE HALF BUILT 2026-10-19, session 47, see the session-46 answers entry below; GAME-LANE PLAN PROPOSED 2026-10-19, session 46 — not built, as asked: catalogue, ownership, the 4 free starter boasts, the per-agent loadout, the loadout saved on the match record, and an optional store-picked "close win" slot, with the 6 open decisions and suggested defaults, in the new [OWNER CHECK-IN] in notes-for-owner.md. The render half is the render lane's own)
 
 A **victory boast** is a short animation that plays when an agent wins a match. A few are standard and free; each season, new ones can be bought in the store, alongside the other cosmetics (arena backgrounds, card backs and avatars).
 
@@ -3208,7 +3208,7 @@ Plan it now; build it after the current pack-opening and starter work (including
 
 ---
 
-## 2026-10-19 — Owner: answers to game session 46 (the starter guarantee, and the victory boasts plan)
+## 2026-10-19 — Owner: answers to game session 46 (the starter guarantee, and the victory boasts plan) (HANDLED 2026-10-19, session 47 — the starter guarantee: kept as built, all 4 calls, nothing to change; the render note is the render lane's. Victory boasts, the game lane's half, BUILT as approved with all 6 defaults: schema v11 (`owned_cosmetics`, `agent_loadouts`, `match_loadouts`, `match_boasts`, all integrity rules in the schema); the code catalogue with the 4 free starter boasts, granted with the starter collection and once by migration to existing owners; `buyCosmetic` at 300 credits per season boast, only in its season's sale window, then retired; account-bound; per-agent loadout with 5 slots (boast, close-win boast, card back, avatar, arena), refused unless owned or during a live match, a new agent starting on its faction's boast; each side's loadout and the boast played (main, close-win on 5 health or less, or the deck faction's starter for an empty slot) saved on the match record. Evidence `progress/economy-demo-012.txt` (62 real matches, 24 of 24 boasts right); 15 tests. Season 0 sells nothing yet; the open points are in notes-for-owner.md)
 
 Answers the [OWNER CHECK-IN] "The starter guarantee (built), and the plan for victory boasts (not built)" in `progress/notes-for-owner.md` (PR #77, `progress/pack-sim-003-starter.txt`, `progress/economy-demo-011.txt`).
 
@@ -3232,7 +3232,7 @@ Answers the [OWNER CHECK-IN] "The starter guarantee (built), and the plan for vi
 
 ---
 
-## 2026-10-19 — Owner: answers to render session 30 (the starter guarantee note; the render plan for victory boasts)
+## 2026-10-19 — Owner: answers to render session 30 (the starter guarantee note; the render plan for victory boasts) (render lane's own; noted session 47 — the game lane's schema has landed, so the render's slice 3 can read `MatchRecord.loadouts` and `MatchRecord.boast`; boast ids are the `STARTER_BOASTS` item ids in `economy/src/cosmetics.ts`)
 
 Owner decisions on the 2 calls in `progress/render/checkpoints.md` (2026-10-19, "The starter guarantee on the page; the plan for victory boasts"; PR #78), and on the 9 boast decisions in `progress/render/notes-for-owner.md` (session 30).
 

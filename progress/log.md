@@ -3355,3 +3355,50 @@ doesn't show `starterHit` (its lane); boasts are a plan only.
 **Evidence:** `progress/pack-sim-003-starter.txt`, `progress/economy-demo-011.txt`.
 
 **Blocked:** nothing. Boasts wait on the owner's six decisions (defaults proposed).
+
+## 2026-10-19 — Session 47 (victory boasts: the game lane's half, the cosmetics backend)
+
+Read `progress/owner-feedback.md` first. Two new entries: the owner's answers to session 46 (keep the
+starter guarantee as built; the boast plan approved with all 6 defaults, "build the game lane's half
+in the next game session") and to render session 30 (render lane's own). The alternation put this
+session in the game lane (the last merged PR, #78, was render). The owner's decision 6 named this
+session for boasts, so the overdue hardening pass moves to session 48 again.
+
+**Built (schema v11):**
+- `economy/src/cosmetics.ts`: the catalogue in code (kinds, slots, `STARTER_BOASTS`, 300-credit
+  season boast price, `CLOSE_WIN_HEALTH` 5, `catalogueProblem`, `onSale`).
+- Migration 11: `owned_cosmetics` (account-bound; a purchase names its credits ledger row for that
+  item), `agent_loadouts` (owned items of the slot's kind only), `match_loadouts` and `match_boasts`
+  (written once; a boast only for a win, by the winner). Existing owners with a starter collection
+  get the 4 boasts and their agents the faction boast.
+- Store: `cosmeticsCatalogue`, `cosmeticsOnSale`, `ownedCosmetics`, `buyCosmetic`, `loadout`,
+  `setLoadout`; starter boasts with `grantStarterCollection`; a new agent's default boast;
+  `startMatch` returns loadouts; `recordMatch` saves loadouts and picks the boast from
+  `finalHealth`; `matchHistory` reads them back. `appendLedger` now returns the entry id.
+- 15 tests (`economy/test/cosmetics.test.ts`): catalogue checks, grants, defaults, purchases and
+  windows, schema guards under raw SQL, loadout refusals, live-match lock, boast choice at 5 vs 6
+  health, empty slot, draws, history after changes, payouts unchanged, the v10 -> v11 migration.
+
+**Ran it:**
+- `progress/economy-demo-012.txt` (~2 s, reproducible): a v10 file with two owners and a match,
+  reopened and migrated: both owners own the 4 starter boasts, the agents wear Data Cascade / Shield
+  Slam, the old match has no loadout. 38 real matches (startMatch -> runMatch -> recordMatch with
+  final health) earn ada 304 credits; the demo season boast costs 300 (ledger row
+  `cosmeticPurchase`); ada equips it plus Void Collapse as the close-win boast, bo empties the boast
+  slot. 24 more matches: 11 main, 4 close-win (winner on 1, 5, 5, 2), 9 `factionStarter`; 24 of 24
+  match the rule. History reads back unchanged after ada's loadout changes. 13 refusals, none
+  allowed.
+- First demo run printed two "ALLOWED (bug)" lines: both were the demo's scenario (bo had earned
+  enough credits by then and had just bought the item), not the store; the refusals now use a
+  third owner with no credits.
+- `npm test`: all six workspaces pass (835); typecheck clean everywhere.
+
+**Worked:** putting every rule in the schema made the raw-SQL tests cheap; using the ledger's existing
+once-per-reason-and-ref index made a double purchase impossible without a new constraint.
+**Didn't / honest limits:** Season 0 sells nothing (the owner names items); the season reset that
+carries cosmetics over isn't built; the server doesn't record matches yet, so `finalHealth` is only
+passed by the demo; no card back, avatar or arena items exist yet.
+
+**Evidence:** `progress/economy-demo-012.txt`.
+
+**Blocked:** nothing.

@@ -43,6 +43,13 @@
 //    its secret card, and a copy's card, finish and secret code never
 //    change. None of them salvage (v2's rule: only standard copies do).
 //
+//  - (v11) cosmetics: an owned cosmetic is account-bound (never changed,
+//    moved or deleted), and a bought one names its owner's credits payment
+//    for that very item, so it can't be had twice or for free; an agent
+//    equips only what its owner owns, in a slot of the item's kind; a
+//    match's loadouts and the boast it played are written once, the boast
+//    only for a won match and only by the winning side's agent.
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -111,6 +118,17 @@ const V3_DECK_FACTIONS = ["Cortex", "Swarm", "Aegis", "Null"] as const;
 const V10_FINISHES = ["standard", "foil", "fullArt", "altArt", "gold", "prototype", "tournament", "glitch", "secret", "zeroDay"] as const;
 const V10_SERIES_KINDS = ["set", "promo", "prototype", "tournament"] as const;
 const V10_COPY_ORIGINS = ["pack", "crafted", "starter", "promo", "prize"] as const;
+// Migration 11's lists, frozen (cosmetics.ts's live lists may grow).
+const V11_COSMETIC_KINDS = ["boast", "cardBack", "avatar", "arena"] as const;
+const V11_LOADOUT_SLOTS = ["boast", "closeWinBoast", "cardBack", "avatar", "arena"] as const;
+const V11_STARTER_BOASTS = {
+  Aegis: "boast-aegis-shield-slam",
+  Swarm: "boast-swarm-hive-burst",
+  Null: "boast-null-void-collapse",
+  Cortex: "boast-cortex-data-cascade",
+} as const;
+const v11BoastFor = (factionSql: string) =>
+  `CASE ${factionSql} ${Object.entries(V11_STARTER_BOASTS).map(([f, id]) => `WHEN '${f}' THEN '${id}'`).join(" ")} END`;
 // Migration 8's pool size, frozen (config.ts's SIGNATURE_ART_POOL_SIZE may change for a later season).
 const SIGNATURE_ART_POOL_SIZE_V8 = 500;
 
@@ -893,5 +911,116 @@ export const MIGRATIONS: readonly string[] = [
     SELECT 1 FROM card_copies c JOIN decks d ON d.deck_id = NEW.deck_id
     WHERE c.copy_id = NEW.copy_id AND c.owner_id = d.owner_id AND c.disposed_at IS NULL)
   BEGIN SELECT RAISE(ABORT, 'a deck can only hold copies its owner owns'); END;
+  `,
+  // 11: cosmetics and victory boasts (session 47; owner 2026-10-19, the
+  // game lane's plan approved with all 6 suggested defaults). The catalogue
+  // itself is code (cosmetics.ts); the database holds who owns what, what
+  // each agent has equipped, and what each side had in each match.
+  //  - owned_cosmetics: one row per owner and item, account-bound (owner
+  //    decision 3): never changed, moved or deleted. A season reset carries
+  //    them over (decision 4). Source "starter" (the four free faction
+  //    boasts, granted with the starter collection) or "purchase", which
+  //    names the owner's credits ledger row for that item; the ledger's own
+  //    once-per-reason-and-ref index makes a second purchase impossible.
+  //  - agent_loadouts: one item per agent and slot; refused unless the
+  //    agent's owner owns it and it is of the slot's kind. An empty slot is
+  //    no row (a boast slot left empty plays the deck faction's starter).
+  //  - match_loadouts / match_boasts: each side's loadout at match time and
+  //    the boast that played, so a replay always shows what the agents had
+  //    then. Written once; matches from before v11 have none (the render
+  //    falls back to the winner's faction starter boast).
+  //  - Existing owners with a starter collection get the four boasts once,
+  //    here, and their agents start with the boast of the owner's faction
+  //    lock, else its starting faction.
+  `
+  CREATE TABLE owned_cosmetics (
+    owner_id        TEXT NOT NULL REFERENCES owners(owner_id),
+    item_id         TEXT NOT NULL,
+    kind            TEXT NOT NULL CHECK (kind IN ${inList(V11_COSMETIC_KINDS)}),
+    source          TEXT NOT NULL CHECK (source IN ('starter', 'purchase')),
+    ledger_entry_id INTEGER REFERENCES ledger(entry_id),
+    acquired_at     TEXT NOT NULL,
+    PRIMARY KEY (owner_id, item_id),
+    CHECK ((source = 'purchase') = (ledger_entry_id IS NOT NULL))
+  );
+  CREATE TRIGGER cosmetic_purchase_paid BEFORE INSERT ON owned_cosmetics
+  WHEN NEW.source = 'purchase' AND NOT EXISTS (
+    SELECT 1 FROM ledger l WHERE l.entry_id = NEW.ledger_entry_id AND l.owner_id = NEW.owner_id
+      AND l.currency = 'credits' AND l.delta < 0 AND l.reason = 'cosmeticPurchase' AND l.ref = NEW.item_id)
+  BEGIN SELECT RAISE(ABORT, 'a bought cosmetic names its owner''s credits payment for that item'); END;
+  CREATE TRIGGER cosmetic_kept BEFORE UPDATE ON owned_cosmetics
+  BEGIN SELECT RAISE(ABORT, 'an owned cosmetic is account-bound: it never changes or moves'); END;
+  CREATE TRIGGER cosmetic_no_delete BEFORE DELETE ON owned_cosmetics
+  BEGIN SELECT RAISE(ABORT, 'an owned cosmetic is account-bound: it is never removed'); END;
+
+  CREATE TABLE agent_loadouts (
+    agent_id TEXT NOT NULL REFERENCES agents(agent_id),
+    slot     TEXT NOT NULL CHECK (slot IN ${inList(V11_LOADOUT_SLOTS)}),
+    item_id  TEXT NOT NULL,
+    set_at   TEXT NOT NULL,
+    PRIMARY KEY (agent_id, slot)
+  );
+  CREATE TRIGGER loadout_owned BEFORE INSERT ON agent_loadouts
+  WHEN NOT EXISTS (
+    SELECT 1 FROM owned_cosmetics c JOIN agents a ON a.owner_id = c.owner_id
+    WHERE a.agent_id = NEW.agent_id AND c.item_id = NEW.item_id
+      AND c.kind = CASE NEW.slot WHEN 'closeWinBoast' THEN 'boast' ELSE NEW.slot END)
+  BEGIN SELECT RAISE(ABORT, 'an agent equips only a cosmetic its owner owns, in a slot of its kind'); END;
+  CREATE TRIGGER loadout_owned_on_change BEFORE UPDATE ON agent_loadouts
+  WHEN NEW.agent_id IS NOT OLD.agent_id OR NEW.slot IS NOT OLD.slot OR NOT EXISTS (
+    SELECT 1 FROM owned_cosmetics c JOIN agents a ON a.owner_id = c.owner_id
+    WHERE a.agent_id = NEW.agent_id AND c.item_id = NEW.item_id
+      AND c.kind = CASE NEW.slot WHEN 'closeWinBoast' THEN 'boast' ELSE NEW.slot END)
+  BEGIN SELECT RAISE(ABORT, 'an agent equips only a cosmetic its owner owns, in a slot of its kind'); END;
+
+  CREATE TABLE match_loadouts (
+    match_id        TEXT NOT NULL REFERENCES matches(match_id),
+    seat            TEXT NOT NULL CHECK (seat IN ('p1', 'p2')),
+    agent_id        TEXT NOT NULL REFERENCES agents(agent_id),
+    boast           TEXT,
+    close_win_boast TEXT,
+    card_back       TEXT,
+    avatar          TEXT,
+    arena           TEXT,
+    PRIMARY KEY (match_id, seat)
+  );
+  CREATE TRIGGER match_loadout_seat BEFORE INSERT ON match_loadouts
+  WHEN NOT EXISTS (
+    SELECT 1 FROM matches m WHERE m.match_id = NEW.match_id
+      AND NEW.agent_id = CASE NEW.seat WHEN 'p1' THEN m.p1_agent ELSE m.p2_agent END)
+  BEGIN SELECT RAISE(ABORT, 'a match loadout is the loadout of the agent in that seat'); END;
+  CREATE TRIGGER match_loadout_kept BEFORE UPDATE ON match_loadouts
+  BEGIN SELECT RAISE(ABORT, 'a match''s loadouts are written once'); END;
+  CREATE TRIGGER match_loadout_no_delete BEFORE DELETE ON match_loadouts
+  BEGIN SELECT RAISE(ABORT, 'a match''s loadouts are written once'); END;
+
+  CREATE TABLE match_boasts (
+    match_id      TEXT PRIMARY KEY REFERENCES matches(match_id),
+    agent_id      TEXT NOT NULL REFERENCES agents(agent_id),
+    item_id       TEXT NOT NULL,
+    slot          TEXT NOT NULL CHECK (slot IN ('boast', 'closeWinBoast', 'factionStarter')),
+    winner_health INTEGER,
+    CHECK (slot <> 'closeWinBoast' OR winner_health IS NOT NULL)
+  );
+  CREATE TRIGGER match_boast_winner BEFORE INSERT ON match_boasts
+  WHEN NOT EXISTS (
+    SELECT 1 FROM matches m WHERE m.match_id = NEW.match_id AND m.outcome = 'win'
+      AND NEW.agent_id = CASE m.winner_owner WHEN m.p1_owner THEN m.p1_agent ELSE m.p2_agent END)
+  BEGIN SELECT RAISE(ABORT, 'a boast plays only for a won match, by the winning side''s agent'); END;
+  CREATE TRIGGER match_boast_kept BEFORE UPDATE ON match_boasts
+  BEGIN SELECT RAISE(ABORT, 'a match''s boast is written once'); END;
+  CREATE TRIGGER match_boast_no_delete BEFORE DELETE ON match_boasts
+  BEGIN SELECT RAISE(ABORT, 'a match''s boast is written once'); END;
+
+  INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, acquired_at)
+    SELECT o.owner_id, b.item_id, 'boast', 'starter', o.starter_granted_at
+    FROM owners o CROSS JOIN (${Object.values(V11_STARTER_BOASTS).map((id) => `SELECT '${id}' AS item_id`).join(" UNION ALL ")}) b
+    WHERE o.starter_granted_at IS NOT NULL
+    ORDER BY o.created_at, o.owner_id, b.item_id;
+  INSERT INTO agent_loadouts (agent_id, slot, item_id, set_at)
+    SELECT a.agent_id, 'boast', ${v11BoastFor("COALESCE(o.faction_lock, o.starting_faction)")}, MAX(a.created_at, o.starter_granted_at)
+    FROM agents a JOIN owners o ON o.owner_id = a.owner_id
+    WHERE o.starter_granted_at IS NOT NULL AND COALESCE(o.faction_lock, o.starting_faction) IS NOT NULL
+    ORDER BY a.created_at, a.agent_id;
   `,
 ];

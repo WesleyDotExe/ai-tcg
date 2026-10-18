@@ -1,7 +1,8 @@
 // Public surface of @ai-tcg/economy: the persistent store (owners, their
 // Season 0 logins and sessions, the agents that play for them and which one
 // is connected, live matches, the credits and pack-points ledger, owned
-// copies, packs and their openings, decks, match history), the card sets
+// copies, packs and their openings, decks, match history, and (v11) owned
+// cosmetics and agent loadouts), the cosmetics catalogue, the card sets
 // and pack odds, the payout rule and the economy config.
 // The engine knows nothing about this package; the server will call it to
 // record matches (roadmap item 6b).
@@ -51,7 +52,25 @@ export {
   type MatchRecord,
   type PlayableDeck,
   type OpenOptions,
+  type OwnedCosmetic,
+  type Loadout,
+  type MatchBoast,
 } from "./store.js";
+export {
+  COSMETIC_KINDS,
+  LOADOUT_SLOTS,
+  SLOT_KIND,
+  KIND_LABEL,
+  CLOSE_WIN_HEALTH,
+  SEASON_BOAST_PRICE_CREDITS,
+  STARTER_BOASTS,
+  COSMETICS,
+  catalogueProblem,
+  onSale,
+  type CosmeticKind,
+  type LoadoutSlot,
+  type CosmeticItem,
+} from "./cosmetics.js";
 export { matchCredits, winCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 export {
   WIN_CREDITS,
