@@ -74,6 +74,32 @@ export const FIRST_TIME_PURE_SOURCE = String.raw`
   // number yet), and as it is made.
   function ftCandidate(choice) { return { face: choice.face, reveal: 'signature', finish: 'signature', collectorNumber: 'PR-···', artPending: true, hit: true }; }
   function ftMinted(minted) { return { face: minted.face, reveal: 'signature', finish: 'signature', collectorNumber: minted.collectorNumber, artPending: false, hit: true }; }
+  // The name typed on the agent screen (render session 29; owner
+  // 2026-10-19, call 5), taken the way confirmAgentDraft takes it: tidied
+  // (trimmed, runs of spaces made one), then the generated name if it is
+  // blank or the same, else checked by the store's typed-name rules (FTN,
+  // the store's own code, nameRules.ts). The checks that need the store's
+  // database (taken names, other owners' usernames) are the store's, when
+  // the card is made.
+  function ftNameCheck(N, generated, raw) {
+    var typed = N.tidyAgentName(raw || '');
+    if (!typed || typed === generated) return { name: generated, typed: false, problem: null };
+    var problem = N.customAgentNameProblem(typed);
+    return { name: typed, typed: true, problem: problem ? problem.charAt(0).toUpperCase() + problem.slice(1) + '.' : null };
+  }
+  // What confirming the card makes under a typed name: the store prints
+  // the card's flavour line with the name the agent is created with (it
+  // replaces the generated name in it); nothing else on the card changes.
+  function ftNamedMint(minted, generated, name) {
+    if (name === generated) return minted;
+    var face = {}, k;
+    for (k in minted.face) face[k] = minted.face[k];
+    face.flavor = String(face.flavor).split(generated).join(name);
+    var out = {};
+    for (k in minted) out[k] = minted[k];
+    out.agentName = name; out.face = face; out.named = true;
+    return out;
+  }
   // A starter deck card's face entry.
   function ftStarterCard(c) { return { face: c.face, reveal: 'plain', finish: 'standard', collectorNumber: c.collectorNumber }; }
 `;
@@ -87,6 +113,10 @@ export const FIRST_TIME_CSS = `
 .rail li.cur { color: var(--ink); border-color: #6a8cff; background: #17204a; }
 .ftbadge { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 6; font-size: 11px; letter-spacing: 0.16em; font-weight: 800; color: var(--neutral); background: rgba(13,19,36,0.8); border: 1px solid rgba(255,240,194,0.35); border-radius: 999px; padding: 3px 12px; white-space: nowrap; }
 .ftbadge:empty { display: none; }
+/* The pack page's hint strip sits over the stage's bottom edge; empty (as
+   on every flow screen) it must not catch the taps meant for a confirm
+   button scrolled under it (session 29, found by the phone check). */
+.hint:empty { pointer-events: none; }
 .ft-pane { width: min(1040px, calc(100vw - 32px)); max-height: calc(100% - 16px); overflow-y: auto; padding: 18px 0 64px; text-align: center; touch-action: pan-y; }
 .ft-pane h2 { margin: 0 0 4px; font-size: clamp(18px, 4.6vw, 26px); letter-spacing: 0.14em; }
 .ft-pane .sub { margin: 0 auto 16px; max-width: 640px; color: var(--dim); font-size: 13px; }
@@ -112,7 +142,7 @@ export const FIRST_TIME_CSS = `
 .ft-fac { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 10px 12px; border-radius: 12px; border: 1px solid #24314f; background: linear-gradient(180deg, color-mix(in srgb, var(--fc) 16%, #0d1324), #0a0e1c 70%); animation: ftin 0.5s cubic-bezier(.2,.9,.3,1) both; animation-delay: calc(var(--i) * var(--stagger, 90ms)); transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
 .ft-fac:hover { transform: translateY(-2px); }
 .ft-fac.sel { border-color: var(--fc); box-shadow: 0 0 0 1px var(--fc), 0 0 28px color-mix(in srgb, var(--fc) 45%, transparent); transform: translateY(-4px); }
-.ft-fac.dim { opacity: 0.55; }
+.ft-fac.ft-dim { opacity: 0.55; }
 .ft-fname { font-weight: 900; letter-spacing: 0.24em; color: var(--fc); font-size: 15px; }
 .ft-fline { font-size: 12px; color: var(--ink); min-height: 3em; }
 .ft-fmini { position: relative; width: min(130px, 34vw); aspect-ratio: 5 / 7; --cw: 100%; }
@@ -143,7 +173,7 @@ export const FIRST_TIME_CSS = `
 @media (max-width: 700px) { .ft-agents { grid-template-columns: 1fr; } }
 .ft-agent { display: grid; grid-template-columns: 64px 1fr; grid-template-rows: auto 1fr; column-gap: 12px; text-align: left; padding: 12px; border-radius: 12px; border: 1px solid #24314f; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px), #0a0f1f; font-family: ui-monospace, Menlo, Consolas, monospace; animation: ftin 0.5s cubic-bezier(.2,.9,.3,1) both; animation-delay: calc(var(--i) * var(--stagger, 90ms)); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
 .ft-agent.sel { border-color: var(--neutral); box-shadow: 0 0 0 1px var(--neutral), 0 0 26px rgba(255,240,194,0.3); transform: translateY(-3px); }
-.ft-agent.dim { opacity: 0.55; }
+.ft-agent.ft-dim { opacity: 0.55; }
 .ft-av { grid-row: 1 / 3; width: 64px; height: 64px; color: var(--neutral); }
 .ft-av svg { width: 100%; height: 100%; }
 .ft-aname { font-weight: 800; color: #fff; font-size: 14px; min-height: 1.4em; }
@@ -151,6 +181,24 @@ export const FIRST_TIME_CSS = `
 .ft-aname.typed::after { content: ""; }
 .ft-apers { color: var(--dim); font-size: 12px; margin-top: 4px; }
 .ft-later { color: #5b6b8f; font-size: 12px; margin: 12px 0 0; }
+/* the name field (render session 29): a terminal prompt under the dossiers */
+.ft-nm { max-width: 520px; margin: 16px auto 0; text-align: left; font-family: ui-monospace, Menlo, Consolas, monospace; animation: ftin 0.4s cubic-bezier(.2,.9,.3,1) both; }
+.ft-nm[hidden] { display: none; }
+.ft-nm label { display: block; font-size: 11px; letter-spacing: 0.16em; color: var(--dim); margin: 0 0 6px; }
+.ft-nmrow { display: flex; align-items: center; gap: 8px; border: 1px solid #2c3a5e; border-radius: 10px; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px), #070b17; padding: 0 6px 0 12px; transition: border-color 0.2s, box-shadow 0.2s; }
+.ft-nmrow::before { content: ">"; color: var(--neutral); font-weight: 800; }
+.ft-nmrow:focus-within { border-color: #6a8cff; box-shadow: 0 0 0 1px #6a8cff, 0 0 20px rgba(106,140,255,0.3); }
+.ft-nm.bad .ft-nmrow { border-color: #ff5d7a; box-shadow: 0 0 0 1px #ff5d7a; }
+.ft-nm input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: #fff; font: 700 16px/1 ui-monospace, Menlo, Consolas, monospace; padding: 12px 0; caret-color: var(--neutral); user-select: text; -webkit-user-select: text; touch-action: manipulation; }
+.ft-nm input::placeholder { color: #4d5c80; font-weight: 400; }
+.ft-nm .ft-nmkeep { flex: none; font: 600 11px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; letter-spacing: 0.04em; padding: 7px 10px; border-radius: 7px; border: 1px solid #2c3a5e; background: #111a33; color: var(--dim); cursor: pointer; }
+.ft-nm .ft-nmkeep:hover { color: var(--ink); border-color: #6a8cff; }
+.ft-nm .ft-nmkeep[hidden] { display: none; }
+.ft-nmmsg { min-height: 2.8em; margin: 6px 2px 0; font-size: 12px; color: var(--dim); }
+.ft-nmmsg b { color: var(--ink); }
+.ft-nm.bad .ft-nmmsg { color: #ff8da2; }
+.ft-nm.good .ft-nmmsg::before { content: "OK "; color: #7ce0a0; font-weight: 800; }
+.ft-aname .was { display: block; font-weight: 400; font-size: 11px; color: #5b6b8f; text-decoration: line-through; }
 
 /* 6. signature cards */
 .ft-sigs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start; }
@@ -159,7 +207,7 @@ export const FIRST_TIME_CSS = `
 .ft-sigcard .face { border-radius: 9px; }
 .ft-sig.sel { border-color: rgba(255,240,194,0.5); transform: translateY(-6px); }
 .ft-sig.sel .ft-sigcard .face { box-shadow: 0 0 0 2px var(--neutral), 0 0 34px rgba(255,240,194,0.55); }
-.ft-sig.dim { opacity: 0.5; }
+.ft-sig.ft-dim { opacity: 0.5; }
 .ft-sigcap { font-size: 12px; color: var(--dim); line-height: 1.35; }
 .ft-sigcap b { color: var(--ink); }
 .ft-sigcap small { color: #6f82a8; }
@@ -230,7 +278,7 @@ export const FIRST_TIME_RUNTIME_SOURCE = String.raw`
   var esc = P.esc, later = P.later, sfx = P.sfx;
   // The flow's state, for the page and the headless check: the screen, and
   // the owner's picks (faction, agent, signature card; -1 until made).
-  var F = { step: 'welcome', f: -1, a: -1, s: -1, p: -1, mintLog: [] };
+  var F = { step: 'welcome', f: -1, a: -1, s: -1, p: -1, typed: '', mintLog: [] };
   window.__ft = F;
   stage.style.setProperty('--stagger', FL.stagger + 'ms');
   stage.style.setProperty('--drop', FL.boxDrop + 'ms');
@@ -251,26 +299,40 @@ export const FIRST_TIME_RUNTIME_SOURCE = String.raw`
     S.phase = 'flow'; dim.style.opacity = 0; counter.textContent = ''; hint.innerHTML = ''; skipBtn.hidden = true; badge.textContent = '';
     P.bulkControls(false);
     scene.innerHTML = html;
+    // The pack opening writes its own footer (the pack's seed); a flow
+    // screen puts the flow's back.
+    footer(FOOT);
     var pane = scene.firstElementChild; if (pane) pane.scrollTop = 0;
   }
   function on(sel, fn) { var el = scene.querySelector(sel) || document.querySelector(sel); if (el) el.addEventListener('click', fn); return el; }
   function footer(t) { foot.innerHTML = t; }
+  // The picked agent under the name the owner typed (or its generated one):
+  // its name, its avatar (the one its matches will draw for that name) and
+  // what confirming card s makes.
+  function nameNow() { return ftNameCheck(FTN, FT.agents[F.a].name, F.typed); }
+  function agentNow() {
+    var a = FT.agents[F.a], n = nameNow();
+    return { name: n.name, typed: n.typed, persona: a.persona, avatar: n.typed ? FTN.avatarSvg(n.name) : a.avatar };
+  }
+  function mintedNow(s) { var a = FT.agents[F.a]; return ftNamedMint(a.minted[s], a.name, nameNow().name); }
   // A pick among plates: the tapped one is selected, the others dim, and
-  // the confirm button names the pick.
-  function picker(sel, label, set) {
+  // the confirm button names the pick (then after, if given, may refine it).
+  function picker(sel, label, set, after) {
     var ok = scene.querySelector('#ft-ok');
     scene.querySelectorAll(sel).forEach(function (b) {
       b.addEventListener('click', function () {
         var i = Number(b.getAttribute('data-i'));
-        scene.querySelectorAll(sel).forEach(function (o) { o.classList.toggle('sel', o === b); o.classList.toggle('dim', o !== b); });
+        scene.querySelectorAll(sel).forEach(function (o) { o.classList.toggle('sel', o === b); o.classList.toggle('ft-dim', o !== b); });
         set(i); ok.disabled = false; ok.textContent = label(i);
+        if (after) after(i);
         sfx('flip', 'Neutral');
         P.log('ftPick', { step: F.step, i: i });
       });
     });
     return ok;
   }
-  footer('Season 0 sign-up, played through the economy store (grantStarterCollection, openPack, startAgentDraft, pickDraftAgent, confirmAgentDraft) for every choice on this page, with fixed seeds. The page only shows what the store returned. Placeholder art until the art pass.');
+  var FOOT = 'Season 0 sign-up, played through the economy store (grantStarterCollection, openPack, startAgentDraft, pickDraftAgent, confirmAgentDraft) for every choice on this page, with fixed seeds. The page only shows what the store returned. Placeholder art until the art pass.';
+  footer(FOOT);
 
   // ---------- 1. welcome ----------
   function welcome() {
@@ -339,31 +401,67 @@ export const FIRST_TIME_RUNTIME_SOURCE = String.raw`
     var cards = FT.agents.map(function (a, i) {
       return '<button class="ft-agent" data-i="' + i + '" style="--i:' + i + '"><span class="ft-av">' + a.avatar + '</span><span class="ft-aname" data-name="' + esc(a.name) + '"></span><span class="ft-apers">' + esc(a.persona) + '</span></button>';
     }).join('');
-    screen('<div class="ft-pane"><h2>GENERATE YOUR AGENT</h2><p class="sub">Three agents, generated for you. Pick the one that plays for you. You can type it a new name later; the first rename is free.</p>' +
-      '<div class="ft-agents">' + cards + '</div><p class="ft-later">Connect your own AI agent: after Season 0</p>' +
+    screen('<div class="ft-pane"><h2>GENERATE YOUR AGENT</h2><p class="sub">Three agents, generated for you. Pick the one that plays for you, then keep its name or type your own. Naming it now is free.</p>' +
+      '<div class="ft-agents">' + cards + '</div>' +
+      '<div class="ft-nm" id="ft-nm" hidden><label for="ft-name">ITS NAME</label><div class="ft-nmrow"><input id="ft-name" type="text" maxlength="40" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" aria-describedby="ft-nmmsg"><button class="ft-nmkeep" id="ft-nmkeep" type="button" hidden>Keep generated</button></div><p class="ft-nmmsg" id="ft-nmmsg" aria-live="polite"></p></div>' +
+      '<p class="ft-later">Connect your own AI agent: after Season 0</p>' +
       '<div class="btns"><button class="pri" id="ft-ok" disabled>Pick an agent</button></div></div>');
     go('agents');
-    // Each name types itself onto its dossier, one after another.
+    // Each name types itself onto its dossier, one after another; a name
+    // the owner already typed takes over once it has.
     scene.querySelectorAll('.ft-aname').forEach(function (el, k) {
       var name = el.getAttribute('data-name'), n = 0;
       later(function type() {
         if (n < name.length) { el.textContent = name.slice(0, ++n); if (n % 3 === 0) sfx('type', 'Neutral'); later(type, FL.namePerChar); return; }
         el.classList.add('typed');
+        if (k === F.a) showName();
       }, 250 + k * (FL.stagger * 4));
     });
-    var ok = picker('.ft-agent', function (i) { return 'Pick ' + FT.agents[i].name; }, function (i) { F.a = i; });
-    ok.addEventListener('click', function () { if (F.a >= 0) sigs(); });
+    var box = scene.querySelector('#ft-nm'), input = scene.querySelector('#ft-name'), keep = scene.querySelector('#ft-nmkeep'), msg = scene.querySelector('#ft-nmmsg');
+    var ok = picker('.ft-agent', function (i) { return 'Pick ' + FT.agents[i].name; }, function (i) { F.a = i; box.hidden = false; }, showName);
+    input.value = F.typed;
+    // The picked dossier, the field's hint and the confirm button follow
+    // what is typed; a name the rules refuse can't be confirmed.
+    function showName() {
+      if (F.a < 0) return;
+      var a = FT.agents[F.a], n = nameNow(), now = agentNow();
+      input.placeholder = a.name;
+      scene.querySelectorAll('.ft-agent').forEach(function (el, i) {
+        var g = FT.agents[i], nm = el.querySelector('.ft-aname'), av = el.querySelector('.ft-av');
+        if (!nm.classList.contains('typed')) return;
+        var mine = i === F.a && n.typed;
+        nm.innerHTML = mine ? esc(n.name) + '<span class="was">' + esc(g.name) + '</span>' : esc(g.name);
+        av.innerHTML = i === F.a ? now.avatar : g.avatar;
+      });
+      keep.hidden = !n.typed;
+      box.classList.toggle('bad', !!n.problem);
+      box.classList.toggle('good', n.typed && !n.problem);
+      if (n.problem) msg.textContent = n.problem;
+      else if (n.typed) msg.innerHTML = '<b>' + esc(n.name) + '</b> follows the name rules. The store checks no other agent has it when the card is made.';
+      else msg.innerHTML = 'Leave it blank to keep <b>' + esc(a.name) + '</b>. 3 to ' + FTN.AGENT_NAME_MAX_LENGTH + ' letters, digits, spaces and \' . - _';
+      ok.disabled = !!n.problem;
+      ok.textContent = n.problem ? 'Name not allowed' : 'Pick ' + n.name;
+    }
+    input.addEventListener('input', function () {
+      F.typed = input.value; showName();
+      if (input.value.length % 2 === 1) sfx('type', 'Neutral');
+      P.log('ftName', { typed: F.typed, name: nameNow().name, problem: nameNow().problem });
+    });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !ok.disabled) { e.preventDefault(); input.blur(); ok.click(); } });
+    keep.addEventListener('click', function () { F.typed = ''; input.value = ''; showName(); input.focus(); });
+    if (F.a >= 0) { scene.querySelector('.ft-agent[data-i="' + F.a + '"]').click(); }
+    ok.addEventListener('click', function () { if (F.a >= 0 && !nameNow().problem) sigs(); });
   }
 
   // ---------- 6. its signature card ----------
   function sigs() {
-    var a = FT.agents[F.a];
+    var a = FT.agents[F.a], who = agentNow();
     var cards = a.signatures.map(function (c, i) {
       return '<button class="ft-sig" data-i="' + i + '" style="--i:' + i + ';--r:' + (i === 0 ? -7 : 7) + 'deg"><span class="ft-sigcard">' + P.faceHtml(ftCandidate(c), { settled: true }) + '</span>' +
         '<span class="ft-sigcap"><b>' + esc(c.name) + '</b><br>' + esc(ftConceptTail(c.name, c.concept)) + '<br><small>Passed the fairness test at ' + c.measured.seeds.toLocaleString('en-US') + ' games</small></span></button>';
     }).join('');
-    screen('<div class="ft-pane"><h2>' + esc(a.name.toUpperCase()) + '’S SIGNATURE CARD</h2>' +
-      '<p class="sub">Pick one. It is made for ' + esc(a.name) + ' alone: numbered, bound to it forever, never sold. It plays from its own zone in every match. Its art is drawn when it is made.</p>' +
+    screen('<div class="ft-pane"><h2>' + esc(who.name.toUpperCase()) + '’S SIGNATURE CARD</h2>' +
+      '<p class="sub">Pick one. It is made for ' + esc(who.name) + ' alone: numbered, bound to it forever, never sold. It plays from its own zone in every match. Its art is drawn when it is made.</p>' +
       '<div class="ft-sigs">' + cards + '</div><div class="btns"><button class="pri" id="ft-ok" disabled>Pick a card</button></div></div>');
     go('sigs');
     var ok = picker('.ft-sig', function (i) { return 'Make ' + a.signatures[i].name; }, function (i) { F.s = i; });
@@ -374,7 +472,7 @@ export const FIRST_TIME_RUNTIME_SOURCE = String.raw`
   var mintLayers = [], wardRun = null;
   function mlog(kind, o) { var e = { kind: kind, t: Math.round(performance.now() - F.mintAt) }; for (var k in o) e[k] = o[k]; F.mintLog.push(e); P.log('mint', e); }
   function mintIt() {
-    var a = FT.agents[F.a], c = a.signatures[F.s], m = a.minted[F.s];
+    var a = FT.agents[F.a], c = a.signatures[F.s], m = mintedNow(F.s);
     var lines = ftMintLines(FT.setCode || DATA.flow.setCode || 'S0', a, c, m);
     var plan = ftMintSchedule(lines, MT);
     if (REDUCE) plan = { lines: lines.map(function (_, i) { return 60 + i * 40; }), ward: 60, forge: 400, stamp: 650, settle: 800, done: 950, free: 1100 };
@@ -515,7 +613,7 @@ export const FIRST_TIME_RUNTIME_SOURCE = String.raw`
 
   // ---------- 8. ready ----------
   function ready() {
-    var f = FT.factions[F.f], a = FT.agents[F.a], m = a.minted[F.s];
+    var f = FT.factions[F.f], a = agentNow(), m = mintedNow(F.s);
     mint.hidden = true; mint.innerHTML = ''; wardRun = null; mintLayers.forEach(function (l) { l.stop(); }); mintLayers = [];
     screen('<div class="ft-pane"><h2>' + esc(m.agentName.toUpperCase()) + ' IS READY</h2><p class="sub">Connect it from the menu and it plays its first match with your ' + f.faction + ' starter deck and its signature card.</p>' +
       '<div class="ft-ready"><div><div class="ft-agent sel"><span class="ft-av">' + a.avatar + '</span><span class="ft-aname typed">' + esc(m.agentName) + '</span><span class="ft-apers">' + esc(m.persona) + '</span></div>' +
@@ -524,14 +622,15 @@ export const FIRST_TIME_RUNTIME_SOURCE = String.raw`
       '<div class="btns"><button id="ft-again">Start over</button></div></div>');
     go('ready');
     on('#ft-view', function () { P.openViewer(ftMinted(m)); });
-    on('#ft-again', function () { F.f = F.a = F.s = F.p = -1; welcome(); });
+    on('#ft-again', function () { F.f = F.a = F.s = F.p = -1; F.typed = ''; welcome(); });
   }
 
-  // ?step=faction|agents|sigs|mint|ready (with f=, a=, s= as 0-based picks)
+  // ?step=faction|agents|sigs|mint|ready (with f=, a=, s= as 0-based picks,
+  // and name= for a typed name)
   // jumps straight there, for the checks and the stills.
   var q = function (k, d) { var r = new RegExp('[?&]' + k + '=([^&]+)').exec(location.search); return r ? decodeURIComponent(r[1]) : d; };
   var step = q('step', 'welcome');
-  F.f = Number(q('f', -1)); F.a = Number(q('a', -1)); F.s = Number(q('s', -1));
+  F.f = Number(q('f', -1)); F.a = Number(q('a', -1)); F.s = Number(q('s', -1)); F.typed = q('name', '');
   if (step === 'faction') factions();
   else if (step === 'starter' && F.f >= 0) starter();
   else if (step === 'packs' && F.f >= 0) packs(Number(q('p', 0)));

@@ -3196,3 +3196,66 @@ the card pick (one pick per draft, as the store).
 **Next render-lane slice:** the owner's call on slice 3; then the render
 debt list (the turn-cap ending and the momentum gauge's pending threat were
 waiting behind the pack-opening work).
+
+## 2026-10-19 — Session 29: name your agent when it's made (the owner's call 5 on slice 3)
+
+**Read first:** owner-feedback.md's answers to render session 28: keep 8, change 2. Call 5 (a name field
+at creation) is this lane's. Call 9 (a guaranteed hit across the starter packs) is the game lane's,
+next. Game session 45 fixed the signature ability text at the source, so the render can use it.
+The alternation rule put this run on the render lane (the last PR, #75, was the game lane's).
+
+**Built:**
+- **The name field** (`render/src/firstTimePage.ts`, the agent screen). It shows once an agent is
+  picked, a terminal prompt with the generated name as placeholder. Blank keeps the generated name.
+  It is checked as you type by the store's own code: `render/src/nameRules.ts` bundles
+  `economy/src/agentNames.ts` (`customAgentNameProblem`, `tidyAgentName`) and the engine's
+  blocked-word filter (only `signatureNames.ts`, by aliasing the engine package to it) with esbuild,
+  plus the replay's `avatar.ts`, into one global `FTN` (11 KB) that the first-time page inlines.
+  `ftNameCheck` takes a name the way `confirmAgentDraft` does (tidied; blank or the same name =
+  generated), and `ftNamedMint` makes what the store makes under it (the flavour line with the
+  generated name replaced). A refused name disables the confirm with the store's reason, and
+  "Keep generated" clears it. The picked dossier shows the typed name over the struck-through
+  generated one, with the avatar redrawn for it. The name then carries to the signature screen, the
+  mint's terminal, the made card's flavour line and the ready screen. `?name=` jumps there for stills.
+- **Signature rules text from the card itself:** `printedText` (the concept-derived text) is gone;
+  the face is `faceOfCard(sig.card)`. Over 1,200 generated candidates the only difference from the
+  concept was keyword-only cards ("Barrier." -> "Barrier", as every set card prints a keyword).
+- **The transcript** ends with 12 typed names through `confirmAgentDraft` (`typedNameResults`):
+  tidied, repeated words, and each kind of refusal.
+- `esbuild` (0.28.2, already in the tree under tsx) is a render devDependency now.
+
+**Bugs found and fixed (all from slice 3):**
+- **A pick couldn't be changed:** the plates' `dim` class matched the pack page's full-screen `.dim`
+  rule (absolute, inset 0, opacity 0, no pointer events), so unpicked plates left the layout and
+  couldn't be tapped. Renamed `ft-dim`. Slice 3's check never re-picked, so it never saw it; the
+  check now does (H), and fails 3 x 3 times without the fix (reproduced).
+- **On the phone the Make button was untappable** at the bottom of a scrolled pane: the pack page's
+  empty `#hint` strip (z-index 5) sat over it. `.hint:empty` takes no pointer events on the flow page.
+  Found only once the fixed plates made the pane taller.
+- **The flow's screens kept the last pack's footer** after the packs; `screen()` puts the flow's back.
+- The "Keep generated" button first rendered as a blank white box (unstyled); seen in a still,
+  styled, and the check asserts it reads.
+
+**Ran it:**
+- `npm run first-time`; transcript `v2-s29-first-time-transcript.txt`.
+- `first-time-check.mjs ... video v2-s29` (output `first-time-check-s29.txt`): desktop types
+  "  Night   Shift 99 " (tidied to "Night Shift 99"), phone (CDP touch) "Bit by Bit", reduced motion
+  leaves it blank. All pass, including the new G (name) and H (re-pick) checks; slice 3's mode
+  (no typing) also passes. Stills and recordings `v2-s29-*`.
+- `npm test`: all six workspaces pass (811; render 407, +5); typecheck clean everywhere.
+
+**Tests (+5, `firstTime.test.ts`):** the bundle agrees with the store on tidy and on every name in
+a ~50-name corpus (at least 8 kinds of verdict); for every name the store accepts, the page shows
+its agent name and flavour line, and for every one it refuses, the same reason; blank or the same
+name keeps the made card untouched; the avatar is the replay's; only the first-time page ships the
+bundle. The rules-text test now checks the face against the card's abilities. Mutations: the
+flavour line left unchanged, and a length-only check, each fail a test.
+
+**Named honestly** (debt list): not typed on a real phone (the on-screen keyboard is untried);
+"is the name free" isn't live, and this demo never shows that refusal; the refusal wording is the
+store's, a little technical.
+
+**Next render-lane slice:** the owner's call on this check-in; then the render debt list (the
+turn-cap ending and the momentum gauge's pending threat). Once the game lane lands the starter-pack
+hit guarantee, rebuild `first-time.html` and re-run the check (the starter packs change).
+

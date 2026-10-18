@@ -27,6 +27,7 @@ import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMIN
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { FLOW_TIMINGS, MINT_TIMINGS, type FirstTimeData } from "./firstTime.js";
 import { FIRST_TIME_CSS, FIRST_TIME_PURE_SOURCE, FIRST_TIME_RUNTIME_SOURCE, FIRST_TIME_WARD_SOURCE } from "./firstTimePage.js";
+import { nameRulesSource } from "./nameRules.js";
 
 export interface PackPageData {
   title: string;
@@ -89,7 +90,7 @@ ${SOUND_FX_RUNTIME_SOURCE}
 var PACK_FX_SHADERS = JSON.parse(document.getElementById('pack-shaders').textContent);
 ${PACK_FX_RUNTIME_SOURCE}
 ${PACK_PAGE_PURE_SOURCE}
-${PACK_PAGE_RUNTIME_SOURCE}${flow ? `\n${FIRST_TIME_WARD_SOURCE}\n${FIRST_TIME_PURE_SOURCE}\n${FIRST_TIME_RUNTIME_SOURCE}` : ""}</script>
+${PACK_PAGE_RUNTIME_SOURCE}${flow ? `\n${FIRST_TIME_WARD_SOURCE}\n${nameRulesSource()}\n${FIRST_TIME_PURE_SOURCE}\n${FIRST_TIME_RUNTIME_SOURCE}` : ""}</script>
 </body>
 </html>
 `;
