@@ -3403,3 +3403,25 @@ Fix alongside Match Boot slice 1 (both predate slice 3, but they show right as t
 - The lethal attack's smoke lingers on the loser's row. It should clear before (or as) the boast starts, so nothing is drawn on the loser's side during the boast.
 
 Next render session: Match Boot slice 1 with these two fixes; then the loadout picker (boast slice 4).
+
+
+---
+
+## 2026-10-19 — Owner: answers to game session 51 (the deck-building agent), keep all 5, and a firm to-do
+
+Answers "The deck-building agent: built decks beat the shipped decks" in `progress/notes-for-owner.md` (PR #87, `progress/deckbuilder-report-001.txt`, `progress/economy-demo-014.txt`).
+
+### Keep all 5
+1. **Keep:** "best" means best against the four shipped decks (mirror included), until there is a ladder.
+2. **Keep:** two starting points, the card-rating deck and the designed list as far as the owner holds it.
+3. **Keep:** the agent rebuilds when the owner's cards or faction lock change, not before every match.
+4. **Keep:** owners who already had an active deck became "forced"; new owners start on "agent".
+5. **Keep:** the agent's deck is one saved deck called "Agent's deck", rebuilt in place; the owner's own decks are never touched.
+
+### Firm to-do: measure the balance with built decks before public launch
+This is a launch requirement, not an optional later item. Add it to the roadmap as a gate before the public launch.
+- Measure the faction ring (all six edges) with **built decks** on both sides, not only the shipped decks: from full collections, and from realistic collections (for example a starter plus a typical number of packs).
+- Measure it with today's agent, at the same bar as the ring check (enough games for tight intervals), and report the results against the ring's bands.
+- Pay particular attention to Aegis: its built deck is +14.3 points over its shipped deck (62.7% against the field), and Null > Aegis is already the real-match ring's one accepted-out-of-band edge.
+- Bring the results and any proposed fixes to an owner check-in. No card or deck changes without the owner's OK.
+- Timing: plan it into the roadmap before launch; it does not have to be the very next session.
