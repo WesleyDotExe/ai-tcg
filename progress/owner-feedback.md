@@ -3275,3 +3275,22 @@ Season 0 sells **two season boasts**, at 300 credits each (the approved price), 
 - **Dial-Up Fireworks:** a modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.
 
 Both follow the approved victory grammar (rise from the winner's side, never touch the loser) and are code-drawn. **Game lane:** add both to the cosmetics catalogue with the Season 0 sale window. **Render lane:** draw both after the 4 starter boasts (slice 2). Neither goes on sale until the render lane has drawn it.
+
+
+---
+
+## 2026-10-19 — Owner: answers to game session 48 (Guardian 3/5) and the session-47 boast calls
+
+### The approved signature lines re-check: Guardian 3/5, option C
+Answers question 1 of the [OWNER CHECK-IN] "The approved signature lines re-checked: 13 of 14 pass; Guardian 3/5 is just over" in `progress/notes-for-owner.md` (PR #81, `progress/balance-report-033-signature-recheck.txt`).
+- **Take Guardian 3/5 (`sig5-3x5-guardian`) off the approved list:** new agents draw from the other 13. Agents that already have a Guardian 3/5 card keep it.
+- **Have the tuner look for a Guardian line that passes with today's agent** (about an hour of games), so the menu keeps a Guardian option. Report what it finds at a check-in. If none passes, the list stays at 13.
+- Question 2 (whether the approved-list generator reads today's agent's results from now on) is not answered in this entry.
+
+### Session 47's 5 boast calls: keep all 5
+Answers the "Calls you may want to overrule" in the session-47 check-in "Victory boasts: what Season 0 sells, and 5 calls made while building".
+1. **Keep:** a new agent's boast is its owner's faction lock's starter boast, else its starting faction's. Agents made before the starter collection get it then.
+2. **Keep:** an empty boast slot is allowed. A win with it plays the starter boast of the faction the deck played, and the record says so (`factionStarter`).
+3. **Keep:** no loadout changes during a live match.
+4. **Keep:** the close-win rule reads each side's final health, passed in when the match is recorded. The real server passes it once it records matches (roadmap 6b).
+5. **Keep:** season reset carry-over stays a written rule until the season reset is built; then owned cosmetics and loadouts go to the new file.
