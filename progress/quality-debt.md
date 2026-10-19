@@ -47,6 +47,10 @@ real, but here is where it's thin.
 
 ## New debt from session 48
 
+- **The approved signature list holds one line that fails with today's agent:** Guardian 3/5,
+  Aegis > Cortex +2.1 (balance report 033). New agents can still draw it until the owner answers
+  the check-in. The generator still reads the session-35 measurements; the new ones sit in
+  `progress/signature-fairness/agent41/` and aren't read by it yet.
 - **The `drawn` flag is kept in step with the render by a test, not by the render itself.** The
   economy test reads `render/src/boastFx.ts` by relative path (the economy workspace can't depend on
   the render, which depends on it). If the render moves or renames `BOAST_SPECS`, that test breaks at

@@ -1,46 +1,37 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 47 (game lane) built the game lane's half
-of victory boasts as the owner approved (all 6 defaults): the cosmetics backend, schema v11. One
-small [OWNER CHECK-IN] is in notes-for-owner.md (what Season 0 sells; 5 calls).**
-- **Catalogue** (`economy/src/cosmetics.ts`, code like the card sets): four kinds (boast, card back,
-  avatar, arena); the 4 free faction starter boasts; nothing on sale in Season 0 until the owner
-  names the items. The store checks the catalogue when it opens.
-- **Ownership** (`owned_cosmetics`): account-bound in the schema; starter boasts granted with the
-  starter collection (and once by migration 11 to existing owners); `buyCosmetic` at 300 credits,
-  only in the item's season and sale window, then retired; the purchase names its ledger row.
-- **Loadout** (`agent_loadouts`, `setLoadout`, `loadout`): 5 slots (boast, closeWinBoast, cardBack,
-  avatar, arena); only owned items of the slot's kind; no changes during a live match; a new agent
-  starts on its owner's faction boast. `startMatch` returns each side's loadout.
-- **Match record** (`match_loadouts`, `match_boasts`; `MatchRecord.loadouts` / `.boast`): each side's
-  loadout and the boast that played: close-win when the winner ends on 5 health or less, else the
-  main boast, else the deck faction's starter (`factionStarter`). `RecordMatchInput.finalHealth`.
-- **Evidence** `progress/economy-demo-012.txt` (a v10 file migrated; 62 real LookaheadAgent matches;
-  a purchase; 24 of 24 boasts right; history unchanged after a loadout change; 13 refusals).
+**Build-order stage: Stage 4+ (the living system). Session 48 (game lane): the owner's Season 0 boasts
+added to the catalogue, gated on the render lane drawing them; then the overdue hardening pass. One
+small [OWNER CHECK-IN] in notes-for-owner.md (Guardian 3/5 fails the re-check by 0.1).**
+- **Season 0 sells** (`SEASON_0_BOASTS`, `economy/src/cosmetics.ts`): Boot Sequence and Dial-Up
+  Fireworks, neutral, 300 credits, the whole season, then retired. Every item has `drawn`; nothing
+  undrawn is on sale; `economy/test/cosmetics.test.ts` fails if `drawn` disagrees with the render's
+  `BOAST_SPECS`. Today only Shield Slam is drawn, so the store sells nothing until render slice 2.
+- **Hardening:** driver smoke tests (`engine/test/devDrivers.test.ts`); reports 023 and 026
+  regenerate; `grantStarterCollection` measured at ~5.5 ms (left as is); the fairness reference
+  re-measured with today's agent; the 14 approved lines re-checked (13 pass, balance report 033).
 
-## What stands (this session's work; sessions 1-46 otherwise unchanged)
+## What stands (this session's work; sessions 1-47 otherwise unchanged)
 
-- `economy/src/cosmetics.ts` (new), `economy/src/schema.ts` migration 11, `economy/src/store.ts`
-  (cosmetics section, `recordMatch` / `matchHistory` / `startMatch` / `grantStarterCollection` /
-  agent creation), `economy/src/index.ts` exports.
-- `economy/src/dev/boastDemo.ts` (new, reproducible output).
-- `economy/test/cosmetics.test.ts` (new, 15 tests); `store.test.ts` updated for v11.
-- ECONOMY.md "Victory boasts and the cosmetics backend"; tables and schema rules.
-- `npm test`: all six workspaces pass (835 tests); typecheck clean in every workspace. Engine
-  untouched, so both ring checks are unaffected.
+- `economy/src/cosmetics.ts`, `economy/src/store.ts` (the undrawn refusal), `economy/src/index.ts`,
+  `economy/src/dev/season0BoastsDemo.ts` (new), `economy/test/cosmetics.test.ts` (+3 tests).
+- `engine/test/devDrivers.test.ts` (new); `engine/src/dev/signatureRecheckReport.ts` (new);
+  `engine/src/dev/signatureReference.json` (today's agent), `signatureReference-s37.json` (the old
+  one, read by reports 023 and 026); `progress/signature-fairness/agent41/`.
+- ECONOMY.md, "What Season 0 sells" and the `drawn` rule.
+- `npm test`: all six workspaces pass (870 tests); typecheck clean everywhere. No card, deck or
+  agent changed, so the ring checks are unaffected.
 
 ## Concrete next step
 
-Check the alternation first: this PR follows render's #78, so the next session is **render**
-(its boast slice 1; slice 3 can now read `MatchRecord.loadouts` and `MatchRecord.boast`).
+Check the alternation first: this PR follows render's #80, so the next session is **render** (boast
+slice 2: the other 3 starter boasts, then the two Season 0 boasts; when it ships a spec it sets that
+item's `drawn: true` in `economy/src/cosmetics.ts`, or the economy test fails).
 
-The next **game-lane** session (session 48):
-1. The owner's answers to the session-47 check-in, if any: if Season 0's items are named, add them to
-   the catalogue (only once the render lane can draw them) with tests.
-2. Otherwise **a hardening pass** (three sessions overdue, no new features): re-run the signature
-   approved list's 10,000-game check with the session-41 agent; give `signatureRingDrivers.ts` and
-   `aegisSignatureGain.ts` a main guard and a smoke test; speed up `grantStarterCollection` (copy by
-   copy inserts); work down quality-debt.md.
-3. Then roadmap 2b: the deck-building agent.
+The next **game-lane** session (session 49):
+1. The owner's answer on Guardian 3/5 and question 2, if any: under the suggestions, point
+   `signatureApprovedList.ts` at `progress/signature-fairness/agent41/`, regenerate, and drop
+   Guardian 3/5 (option C adds a tuner run first).
+2. Otherwise roadmap 2b: the deck-building agent.
 
 **Blocked:** nothing.
