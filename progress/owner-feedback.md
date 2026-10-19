@@ -3376,7 +3376,7 @@ Sayings 1–8 have equal odds. The pick comes from the match's own seed, so a re
 
 ---
 
-## 2026-10-19 — Owner: answers to render session 34 (boast slice 3; the Match Boot plan), keep all 3, all 10 Match Boot defaults, and a small fix
+## 2026-10-19 — Owner: answers to render session 34 (boast slice 3; the Match Boot plan), keep all 3, all 10 Match Boot defaults, and a small fix (render calls, Match Boot and the side task: the render lane's own. NOTED BY THE GAME LANE 2026-10-19, session 51 — nothing for the game lane: the sayings are frozen as "list 1" and come from the seed, so nothing goes on the match record until the list changes)
 
 ### Render session 34, boast slice 3: keep all 3
 Owner decisions on the 3 calls in `progress/render/checkpoints.md` (2026-10-19, victory boasts slice 3; PR #86).

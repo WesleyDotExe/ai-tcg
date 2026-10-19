@@ -1,0 +1,167 @@
+Deck-building agent report (roadmap 2b)
+Search: 60 one-copy changes per faction, each measured on 100 games per shipped opponent (400 games).
+Confirm: 500 games per shipped opponent (2000 games) on fresh seeds from 1000001; the shipped deck plays the same seeds.
+Every game is Lookahead vs Lookahead; the opponents are the four shipped decks, mirror included. Win rates count draws as not won.
+
+== 1. A full collection, each faction forced ==
+-- Cortex --
+  Cortex: starts rating 40 cards, designed 40 cards
+  Cortex: searching from the rating start (209 of 400)
+  Cortex: kept -1 Diagnostic Pulse +1 Rollback Point: 209 -> 230 of 400
+  Cortex: kept -1 Retaliation Node +1 Cascade Purge: 230 -> 239 of 400
+  Cortex: kept -1 Force Quit: 239 -> 257 of 400
+  Cortex: kept -1 Spare Cycles +1 Load Balancer: 257 -> 263 of 400
+  Cortex: fresh seeds, rating 1151, designed 1085, searched 1191 (of 2000): searched deck kept
+  shipped deck   54.3% [52.1, 56.4] (Cortex 49.8, Swarm 59.6, Aegis 50.4, Null 57.2)
+  rating start   57.6% [55.4, 59.7] (Cortex 54.6, Swarm 55.2, Aegis 57.4, Null 63.0)
+  designed start 54.3% [52.1, 56.4] (Cortex 49.8, Swarm 59.6, Aegis 50.4, Null 57.2)
+  built deck     59.6% [57.4, 61.7] (Cortex 60.8, Swarm 59.6, Aegis 59.2, Null 58.6)  (searched from the rating start; searched deck kept; 4 of 60 changes kept)
+  built list:
+    1x Burst Credit (Neutral Command 0, Uncommon)
+    3x Init Daemon (Cortex Unit 1, Common)
+    1x Overclock Shunt (Cortex Tool 1, Uncommon)
+    3x Signal Drone (Cortex Unit 1, Common)
+    2x Spare Cycles (Neutral Command 1, Common)
+    2x Dormant Exploit (Cortex Unit 2, Rare)
+    3x Fail-safe Unit (Cortex Unit 2, Common)
+    2x Force Quit (Cortex Command 2, Uncommon)
+    2x Recursive Construct (Cortex Unit 2, Rare)
+    1x Relay Courier (Neutral Unit 2, Common)
+    1x Retaliation Node (Cortex Unit 2, Rare)
+    3x Compiled Daemon (Cortex Unit 3, Uncommon)
+    3x Firewall Sentinel (Cortex Unit 3, Uncommon)
+    1x Load Balancer (Cortex Unit 3, Uncommon)
+    2x Overload Capacitor (Cortex Unit 3, Rare)
+    1x Patient Zero (Neutral Unit 3, Mythic)
+    1x Rollback Point (Neutral Command 3, Common)
+    3x Watchtower Relay (Cortex Unit 3, Uncommon)
+    1x Cascade Purge (Cortex Command 4, Uncommon)
+    2x Uplink Tower (Neutral Unit 4, Rare)
+    1x Root Access (Neutral Unit 5, Mythic)
+
+-- Swarm --
+  Swarm: starts rating 40 cards, designed 40 cards
+  Swarm: searching from the designed start (199 of 400)
+  Swarm: kept -1 Brood Reserves: 199 -> 218 of 400
+  Swarm: kept -1 Overgrown Carapace +1 Warren Guardian: 218 -> 227 of 400
+  Swarm: kept -1 Spore Cluster +1 Barrier Node: 227 -> 235 of 400
+  Swarm: fresh seeds, rating 758, designed 914, searched 1067 (of 2000): searched deck kept
+  shipped deck   45.7% [43.5, 47.9] (Cortex 35.2, Swarm 45.4, Aegis 46.2, Null 56.0)
+  rating start   37.9% [35.8, 40.0] (Cortex 36.6, Swarm 35.2, Aegis 40.6, Null 39.2)
+  designed start 45.7% [43.5, 47.9] (Cortex 35.2, Swarm 45.4, Aegis 46.2, Null 56.0)
+  built deck     53.3% [51.2, 55.5] (Cortex 45.8, Swarm 54.0, Aegis 51.0, Null 62.6)  (searched from the designed start; searched deck kept; 3 of 60 changes kept)
+  built list:
+    3x Brood Skitterer (Swarm Unit 1, Common)
+    1x Chitin Plating (Swarm Tool 1, Common)
+    3x Colony Broodling (Swarm Unit 1, Common)
+    2x Reflex Spike (Swarm Command 1, Uncommon)
+    1x Spore Cluster (Swarm Unit 1, Uncommon)
+    3x Swarm Larva (Swarm Unit 1, Common)
+    2x Barrier Node (Swarm Unit 2, Uncommon)
+    2x Bore Swarm (Swarm Command 2, Uncommon)
+    3x Carapace Grunt (Swarm Unit 2, Common)
+    3x Corrosive Spitter (Swarm Unit 2, Uncommon)
+    1x Dormant Egg Sac (Swarm Unit 2, Rare)
+    1x Rally Cry (Swarm Command 2, Uncommon)
+    3x Broodcaller (Swarm Unit 3, Common)
+    2x Molted Stalker (Swarm Unit 3, Uncommon)
+    1x Overgrown Carapace (Swarm Unit 3, Uncommon)
+    3x Warren Guardian (Swarm Unit 3, Uncommon)
+    2x Bloodswarm Alpha (Swarm Unit 4, Rare)
+    2x Overclock Beast (Swarm Unit 4, Rare)
+    1x Hive Mother (Swarm Unit 5, Mythic)
+
+-- Aegis --
+  Aegis: starts rating 40 cards, designed 40 cards
+  Aegis: searching from the rating start (228 of 400)
+  Aegis: kept -1 Aegis Sentinel +1 Guard Directive Chip: 228 -> 246 of 400
+  Aegis: kept -1 Barrier Drone +1 Guard Directive Chip: 246 -> 253 of 400
+  Aegis: fresh seeds, rating 1147, designed 968, searched 1255 (of 2000): searched deck kept
+  shipped deck   48.4% [46.2, 50.6] (Cortex 48.8, Swarm 46.4, Aegis 49.4, Null 49.0)
+  rating start   57.4% [55.2, 59.5] (Cortex 60.2, Swarm 55.2, Aegis 59.6, Null 54.4)
+  designed start 48.4% [46.2, 50.6] (Cortex 48.8, Swarm 46.4, Aegis 49.4, Null 49.0)
+  built deck     62.7% [60.6, 64.8] (Cortex 66.0, Swarm 61.2, Aegis 62.8, Null 61.0)  (searched from the rating start; searched deck kept; 2 of 60 changes kept)
+  built list:
+    3x Aegis Cadet (Aegis Unit 1, Common)
+    3x Aegis Line Trooper (Aegis Unit 1, Common)
+    2x Barrier Drone (Aegis Unit 1, Common)
+    2x Spare Cycles (Neutral Command 1, Common)
+    3x Breach Charge (Aegis Command 2, Uncommon)
+    1x Diagnostic Ward (Aegis Command 2, Common)
+    3x Feedback Plating (Aegis Unit 2, Uncommon)
+    2x Guard Directive Chip (Aegis Tool 2, Uncommon)
+    3x Perimeter Turret (Aegis Unit 2, Uncommon)
+    3x Salvage Reflex (Aegis Unit 2, Uncommon)
+    2x Aegis Sentinel (Aegis Unit 3, Uncommon)
+    3x Cache Warmup (Neutral Command 3, Uncommon)
+    2x Latent Ward (Aegis Unit 3, Rare)
+    1x Patient Zero (Neutral Unit 3, Mythic)
+    3x Reinforced Bastion (Aegis Unit 3, Uncommon)
+    2x Uplink Tower (Neutral Unit 4, Rare)
+    1x Root Access (Neutral Unit 5, Mythic)
+    1x Prime Aegis (Aegis Unit 6, Mythic)
+
+-- Null --
+  Null: starts rating 40 cards, designed 40 cards
+  Null: searching from the designed start (182 of 400)
+  Null: kept -1 Deprecated Routine +1 Segmentation Fault: 182 -> 193 of 400
+  Null: kept -1 Watchdog Timer +1 Zombie Process: 193 -> 199 of 400
+  Null: fresh seeds, rating 820, designed 926, searched 1000 (of 2000): searched deck kept
+  shipped deck   47.8% [45.6, 50.0] (Cortex 46.0, Swarm 43.2, Aegis 54.0, Null 48.0)
+  rating start   41.0% [38.9, 43.2] (Cortex 40.4, Swarm 31.2, Aegis 48.8, Null 43.6)
+  designed start 46.3% [44.1, 48.5] (Cortex 46.2, Swarm 39.4, Aegis 50.2, Null 49.4)
+  built deck     50.0% [47.8, 52.2] (Cortex 49.0, Swarm 42.8, Aegis 56.2, Null 52.0)  (searched from the designed start; searched deck kept; 2 of 60 changes kept)
+  built list:
+    1x Bit Rot (Null Command 1, Uncommon)
+    3x Corruption Patch (Null Tool 1, Common)
+    3x Glitch Seed (Null Unit 1, Common)
+    1x Null Shell (Null Tool 1, Uncommon)
+    3x Stray Fragment (Null Unit 1, Common)
+    2x Dangling Pointer (Null Unit 2, Common)
+    1x Decay Ward (Null Tool 2, Rare)
+    3x Fork Bomb (Null Unit 2, Uncommon)
+    3x Null Pointer (Null Command 2, Uncommon)
+    1x Segfault Handler (Null Command 2, Common)
+    3x Zombie Process (Null Unit 2, Common)
+    2x Corrupted Process (Null Unit 3, Uncommon)
+    2x Entropy Harvester (Null Unit 3, Rare)
+    2x Garbage Collector (Null Unit 3, Uncommon)
+    1x Patient Zero (Neutral Unit 3, Mythic)
+    3x Propagating Exploit (Null Unit 3, Uncommon)
+    2x Segmentation Fault (Null Directive 4, Rare)
+    1x Uplink Tower (Neutral Unit 4, Rare)
+    2x Kernel Panic (Null Unit 6, Rare)
+    1x Null Singularity (Null Unit 7, Mythic)
+
+Summary (fresh seeds, against the four shipped decks):
+  Cortex: built 59.6% vs shipped 54.3% (+5.3)
+  Swarm: built 53.3% vs shipped 45.7% (+7.6)
+  Aegis: built 62.7% vs shipped 48.4% (+14.3)
+  Null: built 50.0% vs shipped 47.8% (+2.2)
+
+== 2. A full collection, no faction forced (the free pick) ==
+  Without games (rating only): Cortex
+  With games: the pick is the best fresh-seed score in section 1, by construction (chooseDeck runs the same
+  buildFaction per faction and keeps the highest).
+
+== 3. One faction's starter list alone (a new owner before opening packs) ==
+-- Cortex starter: picks Cortex; Swarm, Aegis, Null can't be built --
+  shipped deck 54.3% [52.1, 56.4] (Cortex 49.8, Swarm 59.6, Aegis 50.4, Null 57.2)
+  built deck   54.3% [52.1, 56.4] (Cortex 49.8, Swarm 59.6, Aegis 50.4, Null 57.2)  (rating deck kept; 0 of 30 changes kept; 40 cards)
+-- Swarm starter: picks Swarm; Cortex, Aegis, Null can't be built --
+  shipped deck 45.7% [43.5, 47.9] (Cortex 35.2, Swarm 45.4, Aegis 46.2, Null 56.0)
+  built deck   49.3% [47.1, 51.5] (Cortex 41.2, Swarm 49.6, Aegis 49.0, Null 57.4)  (searched deck kept; 2 of 30 changes kept; 39 cards)
+    kept -1 Brood Reserves: 199 -> 218 of 400
+    kept -1 Chitin Plating +1 Brood Reserves: 218 -> 223 of 400
+-- Aegis starter: picks Aegis; Cortex, Swarm, Null can't be built --
+  shipped deck 48.4% [46.2, 50.6] (Cortex 48.8, Swarm 46.4, Aegis 49.4, Null 49.0)
+  built deck   50.7% [48.5, 52.9] (Cortex 50.4, Swarm 51.2, Aegis 51.2, Null 50.0)  (searched deck kept; 1 of 30 changes kept; 39 cards)
+    kept -1 Barrier Drone: 192 -> 208 of 400
+-- Null starter: picks Null; Cortex, Swarm, Aegis can't be built --
+  shipped deck 47.8% [45.6, 50.0] (Cortex 46.0, Swarm 43.2, Aegis 54.0, Null 48.0)
+  built deck   49.2% [47.0, 51.4] (Cortex 47.0, Swarm 46.2, Aegis 51.4, Null 52.2)  (searched deck kept; 3 of 30 changes kept; 34 cards)
+    kept -1 Kernel Panic: 185 -> 201 of 400
+    kept -1 Deprecated Routine +1 Kernel Panic: 201 -> 209 of 400
+    kept -1 Decay Ward: 209 -> 221 of 400
+
+Ran in 320 s.

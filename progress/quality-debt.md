@@ -42,9 +42,42 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 51 (the deck-building agent)
+
+- **The built decks are stronger than the shipped decks the balance checks measure.** From a full
+  collection the builder's decks beat the shipped decks of their own faction by several points (up to
+  +14 in Aegis; `progress/deckbuilder-report-001.txt`). The ring check, the fairness test and every
+  balance report measure the shipped decks, but real agents will play built decks once collections
+  grow. The ring among built decks has never been measured. Raised with the owner (notes-for-owner).
+- **The opponents are the shipped decks only.** "Best" means best against the four designed lists.
+  It does not adapt to what the ladder actually plays (built decks, a meta). Fine for Season 0 with
+  in-house agents; a real metagame needs the gauntlet to include what is being played.
+- **The card rating is hand-priced.** `cardRating.ts` prices effects in stat points by judgment
+  (draw 2.5, destroy 6, an aura 3.75x its size...). It is only the first guess (the games decide), and
+  measured it is wrong in places: the rating start loses to the designed list in Swarm and Null by 8
+  points, and from a big partial collection it built an Aegis deck 10-14 points under the designed one.
+  The second start covers this; the rating itself is not fitted to any data.
+- **The search is shallow and noisy.** 60 one-copy changes at 400 games each, accepted at about one
+  standard deviation, keeps 2-4 changes per faction. Each accepted change is a selection from noise
+  as much as a real gain; only the fresh-seed confirm (2,000 games) protects the result, and it
+  compares the final deck with the starts, not each change. Larger moves (swapping a package, a new
+  curve) are never tried. Any change to the deck reshuffles every game, so the "paired" comparison
+  is weaker than its name.
+- **No signature card in the measurement.** The builder's games give neither side a signature card,
+  though every real match has one. A deck that plays well beside a particular signature card is not
+  looked for.
+- **Cost is seconds to minutes.** The store default (40 games, 24 trials, 100 confirm) is about 20-60 s
+  for an owner who can build several factions. Fine run when holdings change; nothing schedules it yet
+  (the server doesn't exist as a ladder). The 2,000-game report took several minutes per faction.
+- **The rating-only pick (`games: 0`) is a weak faction choice.** It reads the mean card rating; tests
+  and the store tests use it for speed. A production path should always run games.
+- **Deck choice migration call:** owners with an active deck before v12 became `forced`. Every Season 0
+  owner today is a house owner whose deck was set by a demo or test, so this mostly keeps old demos
+  playing as they did; flagged in notes-for-owner.
 
 ## New debt from session 50 (hardening pass)
 

@@ -45,6 +45,23 @@ export {
   withSetMythicSignature,
 } from "./data/decks.js";
 export { CARD_REGISTRY, SHIPPED_DECK_LISTS, getCard } from "./data/registry.js";
+export {
+  chooseDeck,
+  buildFaction,
+  constructDeck,
+  deckSpec,
+  holdingsOf,
+  listProblem,
+  playableCopies,
+  DECK_FACTIONS,
+  type BuiltDeck,
+  type DeckBuildOptions,
+  type DeckList,
+  type FactionBuild,
+  type GauntletScore,
+  type Holdings,
+} from "./deckbuilder/deckBuilder.js";
+export { cardRating } from "./deckbuilder/cardRating.js";
 export { NEUTRAL_POOL } from "./data/neutralCards.js";
 export {
   buildSignatureCard,

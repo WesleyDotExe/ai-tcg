@@ -318,9 +318,12 @@ start a step until the one before works and its tests pass):
   2b. ACCEPTED (owner 2026-10-16). DONE (session 36): item 5's pack contents
      and opening (set S0, the odds table, pity, Prototypes, NEW and "x N
      owned", 1- or 10-pack opening, pack points, crafting; schema v8, also
-     the signature art-pool slot; pack-sim-001, economy-demo-006). NEXT: the
-     deck-building agent (best faction and deck from the
-     owner's holdings, or the owner's forced deck/faction); then ~6 play
+     the signature art-pool slot; pack-sim-001, economy-demo-006). DONE
+     (session 51): the deck-building agent (best faction and deck from the
+     owner's holdings, or the owner's forced deck/faction): the engine's
+     `chooseDeck` (two starts, a measured search, a fresh-seed confirm) and
+     the store's deck choice and agent deck (schema v12); evidence
+     deckbuilder-report-001, economy-demo-014. NEXT: ~6 play
      styles with a fairness ring (owner-picked preset, applies from the
      next match). Then step 3, exposing both settings.
   2c. DONE (session 37, owner 2026-10-16): owners name their agents (free
@@ -340,8 +343,8 @@ start a step until the one before works and its tests pass):
      and the cards tuned to the owner's cap (session 41, balance-report-028);
      LIVE (session 42, owner OK 2026-10-18): in the card registry, a pulled
      copy plays, Zero-Day crafting open at 3,000; evidence economy-demo-010.
-     NEXT: 2b (the deck-building agent); then modal cards in every faction
-     with the next set work. Side item: the Aegis vs Cortex check-in
+     NEXT: 2b (the deck-building agent: DONE session 51); then modal cards
+     in every faction with the next set work. Side item: the Aegis vs Cortex check-in
      (balance-report-029).
      **For the next set's design (owner 2026-10-19, fallback A, session 45):**
      Null > Aegis stays the real-match check's accepted-OUT edge (45.4%,

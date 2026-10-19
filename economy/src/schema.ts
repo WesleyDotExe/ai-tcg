@@ -1023,4 +1023,18 @@ export const MIGRATIONS: readonly string[] = [
     WHERE o.starter_granted_at IS NOT NULL AND COALESCE(o.faction_lock, o.starting_faction) IS NOT NULL
     ORDER BY a.created_at, a.agent_id;
   `,
+  // 12: the deck-building agent (session 51; owner 2026-10-15: "the owner
+  // can force a specific deck or faction. Otherwise the agent picks the best
+  // faction and deck it can build from the cards the owner holds"). An
+  // owner's deck choice is 'agent' (the connected agent plays the deck it
+  // built) or 'forced' (it plays the deck the owner made active). Owners who
+  // already picked an active deck by hand keep it, as forced. The agent's
+  // deck is an ordinary saved deck marked built_by_agent, one per owner,
+  // rebuilt in place.
+  `
+  ALTER TABLE owners ADD COLUMN deck_choice TEXT NOT NULL DEFAULT 'agent' CHECK (deck_choice IN ('agent', 'forced'));
+  UPDATE owners SET deck_choice = 'forced' WHERE active_deck_id IS NOT NULL;
+  ALTER TABLE decks ADD COLUMN built_by_agent INTEGER NOT NULL DEFAULT 0 CHECK (built_by_agent IN (0, 1));
+  CREATE UNIQUE INDEX decks_one_agent_deck ON decks (owner_id) WHERE built_by_agent = 1;
+  `,
 ];
