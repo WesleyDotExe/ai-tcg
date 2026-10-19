@@ -3425,3 +3425,20 @@ This is a launch requirement, not an optional later item. Add it to the roadmap 
 - Pay particular attention to Aegis: its built deck is +14.3 points over its shipped deck (62.7% against the field), and Null > Aegis is already the real-match ring's one accepted-out-of-band edge.
 - Bring the results and any proposed fixes to an owner check-in. No card or deck changes without the owner's OK.
 - Timing: plan it into the roadmap before launch; it does not have to be the very next session.
+
+
+---
+
+## 2026-10-20 — Owner: answers to render session 35 (Match Boot slice 1; two end-of-match fixes), keep all 8
+
+Owner decisions on the 8 calls in `progress/render/checkpoints.md` (Match Boot slice 1 and the two end-of-match fixes; PR #88).
+1. **Keep:** the saying swells (8%) and fades at the end, rather than fading upward.
+2. **Keep:** the shorter agent line is padded with blanks, so both cursors stop together.
+3. **Keep:** a tap on the playback controls doesn't skip (pause stops the intro on move 0; a step or a jump goes past it); a tap anywhere else skips.
+4. **Keep:** the reduced-motion still puts HANDSHAKE OK under the saying, and drops it on a very short board.
+5. **Keep:** at a win the momentum gauge jumps to full toward the winner, with "<loser> out of health" (or "<winner> won the match" for a turn-cap win).
+6. **Keep:** Play at the end replays from move 0 with the intro.
+7. **Keep:** OVERCLOCK, BREACH and ACCESS GRANTED stay on list 1; they share a word with a card but are not a card name. The test refuses only a saying that is, or contains, a whole card name.
+8. **Keep:** the music is held at 55% under the intro for now; the "music starts after" timing belongs to Match Boot slice 2 (sound polish).
+
+Next render-lane slices, as set: boast slice 4 (the loadout picker), then Match Boot slice 2 (sound and the phone).
