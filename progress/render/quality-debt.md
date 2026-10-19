@@ -7,11 +7,27 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## Victory boasts (slices 1-2, sessions 31-32)
+## Victory boasts (slices 1-2b, sessions 31-33)
 
-- **Nobody has watched or heard a boast.** All four were judged from stills, recordings and timed
+- **Nobody has watched or heard a boast.** All six were judged from stills, recordings and timed
   checks: their 3 s length, whether each feels like a celebration (not a second lethal hit), Null's
-  silent beat, and the stings (checked only as data: they rise; their length).
+  silent beat, and the stings (checked only as data: they rise; their length). The Season 0 sounds
+  (the tube, the POST beep, the modem, the rockets) are checked only as recipes: the modem is a
+  0.9 s caricature of a handshake (four dial tones, the answer tone, a screech), not a recording.
+- **The Season 0 boasts can't be seen in a replay yet** except by forcing them (the browser check
+  wraps `BOAST.play`): a replay plays the winner's faction starter until slice 3 reads the match
+  record. On the page they live only in the boast sheet. They are on sale in the store now.
+- **Dial-Up Fireworks' spelled name is busy on a crowded board:** over bright cards and a Mythic
+  ward the dot letters compete with the ward's rings and the lock's flare (session 33 raised its veil
+  from 0.7 to 0.8 after seeing it). A long name on a phone spells at 3-4 px dots: the plate under it
+  stays the legible name, so the name shows twice.
+- **Boot Sequence's type is the system monospace** (ui-monospace, Menlo, Consolas, DejaVu Sans
+  Mono): it looks different per OS, and a wider font is squeezed to fit the planned width. The text's
+  phosphor bleed draws 1 px either side of the box the checker measured (inside its 2 px tolerance).
+- **The checker's piece box is the sprite, not its halo:** an atlas piece's soft glow
+  (`drawGlow`, radius up to 1.25 x its size) reaches past the box `boastPlanProblem` checks. It has
+  never shown up as loser-side light in a browser check, but the code doesn't prove it. (Session 33
+  closed the same gap for a flare's bloom and for tilted flat shocks.)
 - **The crests are small:** about 100-120 px across on desktop (Shield Slam's hex flower, Hive Burst's
   spore column, Data Cascade's block stack, Null's bloomed star). Readable, not grand; the crest size is
   capped by the side's height (0.19 of it).
@@ -19,8 +35,6 @@ items are removed, with the fix in `log.md`.
   pixels over cyan cards. The later beats read well.
 - **The boast reads the winner's faction, not the match record.** Slice 3 passes the record's boast
   (and the close-win slot); until then a loadout change can't show in a replay.
-- **The Season 0 boasts aren't drawn,** so the store still sells nothing (by design: undrawn items
-  are off sale). Next slice.
 - **The cosmetics switch hides boasts only** (nothing else cosmetic is drawn), and only the spectator
   rule is wired into a page; the owner-page rule is a tested function with no page yet.
 - **The match feed spoils the result:** its last line ("X wins") prints while the boast plays; only the

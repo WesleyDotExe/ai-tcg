@@ -1,0 +1,498 @@
+
+aegis-vs-null-seed3.html — boot-desktop-seat1
+  PASS A. result held when the win lands
+  boast starts 1274 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-boot-sequence (got boast-s0-boot-sequence)
+  PASS K. five BIOS lines (5)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 47622, loser 4
+  1250 ms: lit winner 47622, loser 0
+  1800 ms: lit winner 47622, loser 0
+  2500 ms: lit winner 47622, loser 0
+  PASS D. the boast draws on the winner's side (47622 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 1550 ms
+  PASS B. name plate about 1.5 s in
+  plate: 16 texts, "" first, the whole name 600 ms later (ui-monospace)
+  PASS K. the name types in, a prefix at a time
+  PASS K. the whole name within 0.9 s (0.6 s of typing, plus timer slack on a loaded CPU)
+  PASS K. the whole name, behind a block cursor
+  PASS K. the CRT screen came up
+  PASS K. in the BIOS type (ui-monospace)
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3009 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-swarm-seed11.html — boot-desktop-seat2
+  PASS A. result held when the win lands
+  boast starts 1223 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-boot-sequence (got boast-s0-boot-sequence)
+  PASS K. five BIOS lines (5)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47622, loser 0
+  2500 ms: lit winner 47622, loser 0
+  PASS D. the boast draws on the winner's side (47622 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 1548 ms
+  PASS B. name plate about 1.5 s in
+  plate: 16 texts, "" first, the whole name 645 ms later (ui-monospace)
+  PASS K. the name types in, a prefix at a time
+  PASS K. the whole name within 0.9 s (0.6 s of typing, plus timer slack on a loaded CPU)
+  PASS K. the whole name, behind a block cursor
+  PASS K. the CRT screen came up
+  PASS K. in the BIOS type (ui-monospace)
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3005 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+null-vs-swarm-seed2.html — boot-phone-seat2
+  PASS A. result held when the win lands
+  boast starts 1211 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-boot-sequence (got boast-s0-boot-sequence)
+  PASS K. five BIOS lines (5)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 27903, loser 0
+  2500 ms: lit winner 27903, loser 0
+  PASS D. the boast draws on the winner's side (27903 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 1542 ms
+  PASS B. name plate about 1.5 s in
+  plate: 16 texts, "" first, the whole name 602 ms later (ui-monospace)
+  PASS K. the name types in, a prefix at a time
+  PASS K. the whole name within 0.9 s (0.6 s of typing, plus timer slack on a loaded CPU)
+  PASS K. the whole name, behind a block cursor
+  PASS K. the CRT screen came up
+  PASS K. in the BIOS type (ui-monospace)
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3008 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+swarm-vs-null-seed8.html — boot-reduced
+  PASS A. result held when the win lands
+  boast starts 1219 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-boot-sequence (got boast-s0-boot-sequence)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS F. reduced motion plays the still
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  120 ms: lit winner 47622, loser 0
+  PASS D. the boast draws on the winner's side (47622 lit samples)
+  name plate at 11 ms
+  PASS B. name plate at once
+  plate: 1 texts, "Lookahead-Swarm" first, the whole name 0 ms later (ui-monospace)
+  PASS K. the whole name, behind a block cursor
+  PASS K. the CRT screen came up
+  PASS K. in the BIOS type (ui-monospace)
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 1008 ms into the boast
+  PASS B. result lands as the boast ends (~1 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+null-vs-cortex-seed4.html — dialup-desktop-seat1
+  PASS A. result held when the win lands
+  boast starts 1244 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  groups {"tower":11,"rocket":5,"letter":205,"fan":40}
+  PASS L. a skyline of towers (11)
+  PASS L. one rocket per burst (5)
+  PASS L. the name spelled in pixels (205 dots)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 47627, loser 0
+  1250 ms: lit winner 47629, loser 0
+  1800 ms: lit winner 47629, loser 0
+  2500 ms: lit winner 47629, loser 0
+  PASS D. the boast draws on the winner's side (47629 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2370 ms
+  PASS B. name plate about 2.3 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3015 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+swarm-vs-null-seed4.html — dialup-desktop-seat2
+  PASS A. result held when the win lands
+  boast starts 1224 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  groups {"tower":11,"rocket":5,"letter":205,"fan":40}
+  PASS L. a skyline of towers (11)
+  PASS L. one rocket per burst (5)
+  PASS L. the name spelled in pixels (205 dots)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47629, loser 0
+  2500 ms: lit winner 47629, loser 0
+  PASS D. the boast draws on the winner's side (47629 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2354 ms
+  PASS B. name plate about 2.3 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3012 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-cortex-seed1.html — dialup-phone-seat2
+  PASS A. result held when the win lands
+  boast starts 1228 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  groups {"tower":11,"rocket":6,"letter":240,"fan":48}
+  PASS L. a skyline of towers (11)
+  PASS L. one rocket per burst (6)
+  PASS L. the name spelled in pixels (240 dots)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 27916, loser 0
+  2500 ms: lit winner 27917, loser 0
+  PASS D. the boast draws on the winner's side (27917 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2353 ms
+  PASS B. name plate about 2.3 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3016 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-swarm-seed6.html — dialup-reduced
+  PASS A. result held when the win lands
+  boast starts 1214 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS F. reduced motion plays the still
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  120 ms: lit winner 47637, loser 0
+  PASS D. the boast draws on the winner's side (47637 lit samples)
+  name plate at 5 ms
+  PASS B. name plate at once
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 1013 ms into the boast
+  PASS B. result lands as the boast ends (~1 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-aegis-sig-seed2.html — boot-escape-typing
+  PASS A. result held when the win lands
+  boast starts 1217 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-boot-sequence (got boast-s0-boot-sequence)
+  PASS K. five BIOS lines (5)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  skip seen by the boast at 1683 ms (skip)
+  PASS E. the boast ended by the skip
+  skip pressed 1680 ms in; result 30 ms after the boast saw it
+  PASS E. skip lands the result at once
+  plate text when skipped: "Flu"; texts recorded 5 then 5 0.5 s later
+  PASS K. skipped while the name was still typing
+  PASS K. the typing stops with the skip
+  PASS E. no name, no Skip after a skip
+  PASS E. the dim goes
+  PASS E. boast no longer active
+
+swarm-vs-aegis-seed8.html — dialup-phone-tap
+  PASS A. result held when the win lands
+  boast starts 1223 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  groups {"tower":12,"rocket":5,"letter":237,"fan":40}
+  PASS L. a skyline of towers (12)
+  PASS L. one rocket per burst (5)
+  PASS L. the name spelled in pixels (237 dots)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  skip seen by the boast at 1539 ms (skip)
+  PASS E. the boast ended by the skip
+  skip pressed 1508 ms in; result 6 ms after the boast saw it
+  PASS E. skip lands the result at once
+  PASS E. no name, no Skip after a skip
+  PASS E. the dim goes
+  PASS E. boast no longer active
+
+aegis-vs-null-seed3.html — shield-unforced
+  PASS A. result held when the win lands
+  boast starts 1219 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-aegis-shield-slam (got boast-aegis-shield-slam)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2171 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3003 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-null-seed3.html — fps-boot
+  PASS A. result held when the win lands
+  boast starts 1235 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-boot-sequence (got boast-s0-boot-sequence)
+  PASS K. five BIOS lines (5)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47622, loser 0
+  2500 ms: lit winner 47622, loser 0
+  PASS D. the boast draws on the winner's side (47622 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 1542 ms
+  PASS B. name plate about 1.5 s in
+  plate: 16 texts, "" first, the whole name 607 ms later (ui-monospace)
+  PASS K. the name types in, a prefix at a time
+  PASS K. the whole name within 0.9 s (0.6 s of typing, plus timer slack on a loaded CPU)
+  PASS K. the whole name, behind a block cursor
+  PASS K. the CRT screen came up
+  PASS K. in the BIOS type (ui-monospace)
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 2997 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+  M. frames in 1 s: during the boast 62, after it 62
+
+null-vs-cortex-seed4.html — fps-dialup
+  PASS A. result held when the win lands
+  boast starts 1219 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  groups {"tower":11,"rocket":5,"letter":205,"fan":40}
+  PASS L. a skyline of towers (11)
+  PASS L. one rocket per burst (5)
+  PASS L. the name spelled in pixels (205 dots)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47629, loser 0
+  2500 ms: lit winner 47629, loser 0
+  PASS D. the boast draws on the winner's side (47629 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2362 ms
+  PASS B. name plate about 2.3 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3025 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+  M. frames in 1 s: during the boast 55, after it 55
+
+aegis-vs-null-seed3.html — fps-shield
+  PASS A. result held when the win lands
+  boast starts 1232 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-aegis-shield-slam (got boast-aegis-shield-slam)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2177 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3009 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+  M. frames in 1 s: during the boast 63, after it 62
+
+boast-sheet.html — every scene
+  PASS H. the sheet has 30 scenes (30)
+  PASS H. boast-aegis-shield-slam-full: plays, no grammar problem
+  PASS D. boast-aegis-shield-slam-full: lit on the winner's side (34590), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-aegis-shield-slam-full: result after the boast
+  PASS H. boast-aegis-shield-slam-empty: plays, no grammar problem
+  PASS D. boast-aegis-shield-slam-empty: lit on the winner's side (34590), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-aegis-shield-slam-empty: result after the boast
+  PASS H. boast-aegis-shield-slam-top: plays, no grammar problem
+  PASS D. boast-aegis-shield-slam-top: lit on the winner's side (34590), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-aegis-shield-slam-top: result after the boast
+  PASS H. boast-aegis-shield-slam-phone: plays, no grammar problem
+  PASS D. boast-aegis-shield-slam-phone: lit on the winner's side (20963), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-aegis-shield-slam-phone: result after the boast
+  PASS H. boast-aegis-shield-slam-reduced: plays (still), no grammar problem
+  PASS H. boast-aegis-shield-slam-reduced: result after the boast
+  PASS H. boast-swarm-hive-burst-full: plays, no grammar problem
+  PASS D. boast-swarm-hive-burst-full: lit on the winner's side (34794), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-swarm-hive-burst-full: result after the boast
+  PASS H. boast-swarm-hive-burst-empty: plays, no grammar problem
+  PASS D. boast-swarm-hive-burst-empty: lit on the winner's side (34794), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-swarm-hive-burst-empty: result after the boast
+  PASS H. boast-swarm-hive-burst-top: plays, no grammar problem
+  PASS D. boast-swarm-hive-burst-top: lit on the winner's side (34794), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-swarm-hive-burst-top: result after the boast
+  PASS H. boast-swarm-hive-burst-phone: plays, no grammar problem
+  PASS D. boast-swarm-hive-burst-phone: lit on the winner's side (20954), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-swarm-hive-burst-phone: result after the boast
+  PASS H. boast-swarm-hive-burst-reduced: plays (still), no grammar problem
+  PASS H. boast-swarm-hive-burst-reduced: result after the boast
+  PASS H. boast-null-void-collapse-full: plays, no grammar problem
+  PASS D. boast-null-void-collapse-full: lit on the winner's side (34590), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-null-void-collapse-full: result after the boast
+  PASS H. boast-null-void-collapse-empty: plays, no grammar problem
+  PASS D. boast-null-void-collapse-empty: lit on the winner's side (34590), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-null-void-collapse-empty: result after the boast
+  PASS H. boast-null-void-collapse-top: plays, no grammar problem
+  PASS D. boast-null-void-collapse-top: lit on the winner's side (34590), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-null-void-collapse-top: result after the boast
+  PASS H. boast-null-void-collapse-phone: plays, no grammar problem
+  PASS D. boast-null-void-collapse-phone: lit on the winner's side (20953), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-null-void-collapse-phone: result after the boast
+  PASS H. boast-null-void-collapse-reduced: plays (still), no grammar problem
+  PASS H. boast-null-void-collapse-reduced: result after the boast
+  PASS H. boast-cortex-data-cascade-full: plays, no grammar problem
+  PASS D. boast-cortex-data-cascade-full: lit on the winner's side (34794), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-cortex-data-cascade-full: result after the boast
+  PASS H. boast-cortex-data-cascade-empty: plays, no grammar problem
+  PASS D. boast-cortex-data-cascade-empty: lit on the winner's side (34794), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-cortex-data-cascade-empty: result after the boast
+  PASS H. boast-cortex-data-cascade-top: plays, no grammar problem
+  PASS D. boast-cortex-data-cascade-top: lit on the winner's side (34794), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-cortex-data-cascade-top: result after the boast
+  PASS H. boast-cortex-data-cascade-phone: plays, no grammar problem
+  PASS D. boast-cortex-data-cascade-phone: lit on the winner's side (20954), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-cortex-data-cascade-phone: result after the boast
+  PASS H. boast-cortex-data-cascade-reduced: plays (still), no grammar problem
+  PASS H. boast-cortex-data-cascade-reduced: result after the boast
+  PASS H. boast-s0-boot-sequence-full: plays, no grammar problem
+  PASS D. boast-s0-boot-sequence-full: lit on the winner's side (34592), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-s0-boot-sequence-full: result after the boast
+  PASS H. boast-s0-boot-sequence-empty: plays, no grammar problem
+  PASS D. boast-s0-boot-sequence-empty: lit on the winner's side (34592), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-s0-boot-sequence-empty: result after the boast
+  PASS H. boast-s0-boot-sequence-top: plays, no grammar problem
+  PASS D. boast-s0-boot-sequence-top: lit on the winner's side (34592), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-s0-boot-sequence-top: result after the boast
+  PASS H. boast-s0-boot-sequence-phone: plays, no grammar problem
+  PASS D. boast-s0-boot-sequence-phone: lit on the winner's side (21029), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-s0-boot-sequence-phone: result after the boast
+  PASS H. boast-s0-boot-sequence-reduced: plays (still), no grammar problem
+  PASS H. boast-s0-boot-sequence-reduced: result after the boast
+  PASS H. boast-s0-dial-up-fireworks-full: plays, no grammar problem
+  PASS D. boast-s0-dial-up-fireworks-full: lit on the winner's side (34802), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-s0-dial-up-fireworks-full: result after the boast
+  PASS H. boast-s0-dial-up-fireworks-empty: plays, no grammar problem
+  PASS D. boast-s0-dial-up-fireworks-empty: lit on the winner's side (34802), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-s0-dial-up-fireworks-empty: result after the boast
+  PASS H. boast-s0-dial-up-fireworks-top: plays, no grammar problem
+  PASS D. boast-s0-dial-up-fireworks-top: lit on the winner's side (34802), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-s0-dial-up-fireworks-top: result after the boast
+  PASS H. boast-s0-dial-up-fireworks-phone: plays, no grammar problem
+  PASS D. boast-s0-dial-up-fireworks-phone: lit on the winner's side (20968), nothing on the loser's (0) at 2.5 s
+  PASS H. boast-s0-dial-up-fireworks-phone: result after the boast
+  PASS H. boast-s0-dial-up-fireworks-reduced: plays (still), no grammar problem
+  PASS H. boast-s0-dial-up-fireworks-reduced: result after the boast
+
+ALL PASS

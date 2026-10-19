@@ -7,6 +7,83 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-19 — Victory boasts, slice 2b: the Season 0 boasts, Boot Sequence and Dial-Up Fireworks — AWAITING FEEDBACK
+
+The two neutral Season 0 boasts you named, drawn, and so on sale in the store (300 credits each, the
+whole of Season 0). Open `render/output/boast-sheet.html` and press Play on any of the ten Season 0
+scenes (each shows a different faction winning: they are neutral). A replay plays them once slice 3
+reads the match record; until then it plays the winner's faction starter.
+
+**What this delivers (each about 3 s, the same grammar: from the winner's side, nothing toward the
+loser, ending on the name):**
+- **Boot Sequence** (phosphor green):
+  - the winner's side powers on like an old CRT: a bright dot widens into a line, the picture opens
+    from it, flickers, then a dark screen with scanlines; a tube's thump and whine, then the POST beep;
+  - five BIOS lines print and scroll up like a terminal ("AI-TCG ARENA BIOS REV S0", "MEMORY TEST
+    65536K OK", "AGENT <the winner's faction> ONLINE", "LOADING VICTORY.SYS", "BOOT >"), each with
+    key clicks, then the screen clears;
+  - the winner's name types into the plate, a key at a time, in the BIOS type behind a block cursor;
+  - SYSTEM READY in chunky dot letters flashes twice and holds, with the sting.
+- **Dial-Up Fireworks** (neon):
+  - night falls on the winner's side; a modem handshake (dial tones, the answer tone, the screech)
+    while a neon skyline rises out of the winner's row, its windows flickering like data;
+  - rockets whistle up from the rooftops, left to right, and pop; each burst's pixels fly up and
+    spell its letters of the winner's name, in a 5x7 pixel font, one colour per burst;
+  - the name lights as one with the sting; the name plate under the skyline.
+- Each has a reduced-motion still (Boot: the screen on, SYSTEM READY and the whole name; Dial-Up: the
+  skyline and the spelled name), skip by tap, Escape or Skip, and a phone layout (SYSTEM READY and a
+  two-word name break onto two lines when that makes them larger).
+- **Two fixes to the victory grammar's checker** that these boasts exposed (they apply to all six):
+  - a flare is now checked to the edge of its glow, not just its core;
+  - a squashed shock ring (a flat flash along a row) stays level instead of turning at random. Tilted,
+    it reached into the loser's side. This also levels the existing flat ring under a hit on a
+    player's side, as a ring on the floor was always meant to look.
+
+**Evidence:**
+- **Recordings:** `progress/render/evidence/v2-s33-boot-desktop-seat1.webm`,
+  `v2-s33-dialup-desktop-seat1.webm` (a real replay's last move, the boast forced, as described).
+- **Stills** (`v2-s33-*.jpg`): each beat of both on desktop; the name moment from the top side and on
+  a phone; reduced motion; after a skip; all ten sheet scenes.
+- **Browser check** (`boast-check-s33.mjs`, output `boast-check-s33.txt`): 385 checks, ALL PASS. Each boast in a real replay's last move (forced, as noted) from seat 1 and
+  seat 2 on desktop and on a phone, and in reduced motion; Escape during Boot Sequence's typing (the
+  typing stops with it); a phone tap during Dial-Up Fireworks; Shield Slam unforced (the starter still
+  plays); all 30 sheet scenes, each with nothing lit on the loser's side at 2.5 s. Boasts start 1.2-1.3 s
+  after the step; Boot's name types in from 1.55 s and is whole 0.60-0.65 s later; Dial-Up's plate at
+  2.35 s; the result at 3.00-3.02 s (1.0 s for the stills). Frame rate (CPU canvas, 1 s): Boot 62 during
+  vs 62 after, Dial-Up 55 vs 55, Shield Slam 63 vs 62.
+- **Tests:** render 548 (+48): the font (every character an agent name may use, letters and digits
+  distinct), the layout (one line or two), each boast's shape (the screen, five lines that only ever
+  step up, the typed name within 0.6 s, SYSTEM READY's two flashes; a skyline whose feet stay on the
+  floor, every dot of the name landing on its cell, one colour per letter, bursts left to right), the
+  grammar on both seats, three row fills, desktop and phone, 300 random layouts, and 120 random
+  layouts with names from 2 to 24 characters; the new sounds.
+
+**Decisions you may want to overrule:**
+1. **"Types out the winner's name line by line":** I read it as the BIOS printing its lines one at a
+   time, ending in the name typed out a key at a time (in the plate, so it stays legible).
+   Alternative: the name itself as a big pixel banner printed row by row.
+2. **The BIOS lines scroll UP,** as a terminal does (each new line at the bottom pushes the others up),
+   rather than printing downward: down is the debuff's direction. The CRT's picture opens up and down
+   from its centre line, since that is the screen switching on, inside the winner's side.
+3. **Phosphor green** for Boot Sequence (not amber or white BIOS text).
+4. **The name shows twice in Dial-Up Fireworks:** spelled in firework pixels and on the plate. On a
+   phone a long name's pixels are 3-4 px, so the plate is the legible copy. Alternative: the plate
+   shows only "DIAL-UP FIREWORKS · VICTORY" under the spelled name.
+5. **The fireworks never fall:** each burst fans up and out and fades, with no falling sparkles (down
+   is the debuff's direction). Real fireworks droop; these don't.
+6. **A neutral boast keeps the winner's faction** for the lit panel and the sting's voice; the boast's
+   own colour is for its pieces and the name plate.
+7. **The modem screech is about 0.9 s,** a compressed handshake, with the music held down under it.
+
+**Thin spots (in the debt list):** nobody has watched or heard them at full speed; they show in a
+replay only once slice 3 lands; the spelled name is busy over a Mythic ward; the BIOS type is the
+system's monospace font.
+
+**Next:** your call on these; then slice 3 (the replay reads the boast from the match record, and the
+close-win slot).
+
+---
+
 ## 2026-10-19 — Victory boasts, slice 2: Hive Burst, Void Collapse, Data Cascade, and the cosmetics switch — AWAITING FEEDBACK
 
 Slice 2 of the boast plan. Every faction's win now plays its free starter boast. Open

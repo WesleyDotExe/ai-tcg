@@ -56,7 +56,9 @@ const LATE_BACK: CosmeticItem = {
   sale: { from: "2026-12-01T00:00:00.000Z", until: null },
 };
 const S1_AVATAR: CosmeticItem = { ...SEASON_BOAST, itemId: "avatar-s1-test", kind: "avatar", name: "Test S1 Avatar", season: "S1", priceCredits: 200, sale: null };
-const CATALOGUE: readonly CosmeticItem[] = [...COSMETICS, SEASON_BOAST, QUIET_BOAST, LATE_BACK, S1_AVATAR];
+// The free starter boasts and test items only: what the shipped seasons sell
+// is checked on its own above, so these tests don't move when it changes.
+const CATALOGUE: readonly CosmeticItem[] = [...Object.values(STARTER_BOASTS), SEASON_BOAST, QUIET_BOAST, LATE_BACK, S1_AVATAR];
 
 const open = (path = ":memory:", migrateTo?: number) => EconomyStore.open(path, { now: () => clock, migrateTo, cosmetics: CATALOGUE });
 const tmpFile = () => {
@@ -116,12 +118,15 @@ describe("cosmetics: the catalogue", () => {
   });
 
   it("sells the Season 0 boasts only once drawn: for the whole season, never in another", () => {
-    const boot = SEASON_0_BOASTS[0]!;
+    // Both are drawn since render session 33; the undrawn case is kept with
+    // the item marked undrawn, so the rule stays tested for later seasons.
+    const boot = { ...SEASON_0_BOASTS[0]!, drawn: false };
     // Not drawn: never on sale, at any time in Season 0.
     for (const at of ["2026-10-01T00:00:00.000Z", "2026-11-15T00:00:00.000Z", "2027-06-01T00:00:00.000Z"]) {
       expect(onSale(boot, "S0", at)).toBe(false);
     }
-    const s = EconomyStore.open(":memory:", { now: () => clock });
+    const undrawn = Object.values(STARTER_BOASTS).concat(SEASON_0_BOASTS.map((c) => ({ ...c, drawn: false })));
+    const s = EconomyStore.open(":memory:", { now: () => clock, cosmetics: undrawn });
     const o = s.createOwner({ name: "o" });
     credit(s, o.ownerId, 1000);
     expect(s.cosmeticsOnSale(o.ownerId)).toEqual([]);
@@ -135,7 +140,7 @@ describe("cosmetics: the catalogue", () => {
       expect(onSale(drawnBoot, "S0", at)).toBe(true);
       expect(onSale(drawnBoot, "S1", at)).toBe(false);
     }
-    const catalogue = COSMETICS.map((c) => (c.itemId === boot.itemId ? drawnBoot : c));
+    const catalogue = undrawn.map((c) => (c.itemId === boot.itemId ? drawnBoot : c));
     const s0 = EconomyStore.open(":memory:", { now: () => clock, cosmetics: catalogue });
     const buyer = s0.createOwner({ name: "buyer" });
     credit(s0, buyer.ownerId, 1000);

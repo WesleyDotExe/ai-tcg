@@ -3434,3 +3434,66 @@ on desktop. The switch hides boasts only, since nothing else cosmetic is drawn y
 
 **Next render-lane slice:** the owner's call on this checkpoint; then the two Season 0 boasts (Boot
 Sequence, Dial-Up Fireworks), flipping each one's `drawn` in the same change.
+
+## 2026-10-19 — Session 33: victory boasts, slice 2b (the Season 0 boasts: Boot Sequence, Dial-Up Fireworks)
+
+Render session by the alternation rule: the last merged PR (#83) was the game lane's (session 49).
+Owner feedback read: the newest entry (answers to game session 49) is the game lane's, left for it;
+the render answers stand (session 32's six calls kept, done). The open render work from the
+owner-approved plan: the two Season 0 boasts the owner named ("draw both after the 4 starter boasts
+(slice 2)"; "neither goes on sale until the render lane has drawn it"). This session draws both and
+flips their `drawn` in the same change, as the catalogue's test asks.
+
+**Built:**
+- `render/src/boastFx.ts`: five primitives (`crt`, `scroll`, `banner`, `skyline`, `rockets`) whose
+  pieces are drawn as code, not atlas sprites (`shape`: `text`, `bits`, `dot`, `tower`; `w` fixes a
+  piece's width, `rgb` colours it). A 5x7 dot font (`BOAST_FONT`, every character an agent name may
+  use) with `boastBits` / `boastBitsFit` (one line, or two split at the middle space when that is
+  larger). `lock` can skip its piece; the name plate can be `mono` and `type`d. A neutral spec carries
+  its own `col`; `boastPlan` takes the winner (`{ name, faction }`) for the spelled or typed name and
+  for the panel and sting of a neutral boast. The runtime draws the CRT (dot, line, raster, flicker,
+  scanlines), the text, the dot blocks and the towers (silhouette, neon edge, windows that flicker in
+  the data window, a blinking antenna); the plate types behind a block cursor.
+- **Boot Sequence** and **Dial-Up Fireworks**, 3.0 s each, as data. `stats()` now reports the plan's
+  pieces by group and the winner's name (for the checks).
+- `render/src/soundFx.ts`: `crt`, `post`, `modem`, `whistle`, `pop` (outside `SFX_KINDS`, like `boast`).
+- `render/src/boastSheet.ts`: 30 scenes; a neutral boast shows a different faction winning per scene.
+  The replay passes the winner's faction to `BOAST.play`.
+- `economy/src/cosmetics.ts`: `drawn: true` on both (so both are on sale in Season 0). One economy
+  test assumed them undrawn; it now marks a copy undrawn for that half, and the store tests' own
+  catalogue no longer includes the shipped season items (note for the game lane in notes-for-owner).
+- All 16 replays and the boast and FX sheets regenerated (same matches: the embedded match data is
+  byte-identical, only the sources changed, checked per file).
+
+**Found in the browser and fixed (both in the grammar checker's blind spots, both now tested):**
+- SYSTEM READY's flat shock tilted into the loser's side on the sheet: `CFX.kit.shock` gave every
+  shock a random turn, so a squashed ring (sx != sy) could sweep past the axis-aligned box the checker
+  measured. A squashed ring now stays level (`render/src/canvasFx.ts`); this also levels the existing
+  face-hit ring (sx 1.9, sy 0.55), which was meant to lie on the floor.
+- A flare's bloom reaches 0.72 of its size, the checker counted 0.55 (the sprite): now
+  `BOAST_FLARE_REACH`, and the planner sizes flares to it. All four starter boasts still pass.
+- A grid push close to the top of the side bent the background grid's lines over into the loser's
+  side: the banner has no grid push.
+- The typed plate measured its width while still scaled by its rise animation (92%), so the cursor
+  overflowed; it measures `scrollWidth` now.
+- Boot Sequence's text glow by `shadowBlur` cost a third of the frame rate on the CPU canvas (34 fps
+  while the lines printed); a 1 px bleed pass either side looks the same and costs nothing measurable.
+
+**Ran it:**
+- `node progress/render/evidence/boast-check-s33.mjs <out> render/output video` (output
+  `boast-check-s33.txt`): 385 checks, ALL PASS. Each boast in a real replay's last move (forced, as noted) from seat 1 and
+  seat 2 on desktop and on a phone, and in reduced motion; Escape during Boot Sequence's typing (the
+  typing stops with it); a phone tap during Dial-Up Fireworks; Shield Slam unforced (the starter still
+  plays); all 30 sheet scenes, each with nothing lit on the loser's side at 2.5 s. Boasts start 1.2-1.3 s
+  after the step; Boot's name types in from 1.55 s and is whole 0.60-0.65 s later; Dial-Up's plate at
+  2.35 s; the result at 3.00-3.02 s (1.0 s for the stills). Frame rate (CPU canvas, 1 s): Boot 62 during
+  vs 62 after, Dial-Up 55 vs 55, Shield Slam 63 vs 62.
+- `npm test`: all six workspaces pass (980: render 548, +48; economy 125); typecheck clean everywhere.
+
+**Named honestly** (debt list): nobody has watched or heard either boast; a replay shows them only
+when forced until slice 3; the spelled name is busy over a Mythic ward; the BIOS type is the system
+monospace; the checker still doesn't count an atlas sprite's soft glow halo.
+
+**Next render-lane slice:** the owner's call on this checkpoint; then slice 3 (the replay reads each
+side's loadout and the boast played from the match record; the close-win slot).
+

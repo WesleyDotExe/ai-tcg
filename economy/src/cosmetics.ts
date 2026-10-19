@@ -147,7 +147,7 @@ export const SEASON_0_BOASTS: readonly CosmeticItem[] = [
     sale: null,
     artRef: "code:boast/s0-boot-sequence",
     description: "The screen flickers on like an old CRT, a retro BIOS types out the winner's name line by line, then a chunky SYSTEM READY flash.",
-    drawn: false,
+    drawn: true,
   },
   {
     itemId: "boast-s0-dial-up-fireworks",
@@ -159,7 +159,7 @@ export const SEASON_0_BOASTS: readonly CosmeticItem[] = [
     sale: null,
     artRef: "code:boast/s0-dial-up-fireworks",
     description: "A modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.",
-    drawn: false,
+    drawn: true,
   },
 ];
 

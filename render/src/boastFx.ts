@@ -13,7 +13,12 @@
 //     victory primitives (slice 1: panel, wall, embers, flash, veil, gather,
 //     lock, name; slice 2: bloom, burst, stream, star, pull, bars). Adding a
 //     boast is a new spec, not new drawing code. All four starter boasts are
-//     drawn (slice 2); the Season 0 boasts come next.
+//     drawn (slice 2). Slice 2b (render session 33) adds the two neutral
+//     Season 0 boasts, Boot Sequence and Dial-Up Fireworks, and the
+//     primitives they need: crt, scroll, banner, skyline and rockets, drawn
+//     by the runtime as code-drawn shapes (text, a 5x7 dot font, towers,
+//     pixels) rather than atlas sprites. A neutral boast carries its own
+//     colour; its panel and sting take the winner's faction.
 //   boastPlan(spec, geom, seed): the beats laid out on the winner's real
 //     geometry (their row of slots, their side of the board, their panel) as
 //     plain marks with absolute times. boastPlanProblem(plan, geom) checks the
@@ -37,13 +42,82 @@ export const BOAST_PURE_SOURCE = String.raw`
   // How long a boast may run, the reduced-motion still, and the wait after
   // the lethal beat (the lethal flash peaks, the winner's HP bar settles).
   var BOAST_MS_MAX = 3200, BOAST_STILL_MS = 1000, BOAST_LEAD_MS = 900;
+  // How far a flare of size s lights, from its centre: CFX's flare blooms
+  // to 0.6 s x 1.2 (canvasFx.ts, flare()).
+  var BOAST_FLARE_REACH = 0.72;
   // The catalogue's starter boast per faction (economy/src/cosmetics.ts
   // STARTER_BOASTS; a test keeps the ids and names in step).
   var BOAST_STARTER = { Aegis: 'boast-aegis-shield-slam', Swarm: 'boast-swarm-hive-burst', Null: 'boast-null-void-collapse', Cortex: 'boast-cortex-data-cascade' };
   // The victory primitives. Slice 1: panel, wall, embers, flash, veil,
   // gather, lock, name. Slice 2: bloom and burst (Swarm), star, pull and
-  // bars (Null), stream (Cortex).
-  var BOAST_PRIMS = ['panel', 'wall', 'embers', 'flash', 'veil', 'gather', 'lock', 'name', 'bloom', 'burst', 'stream', 'star', 'pull', 'bars'];
+  // bars (Null), stream (Cortex). Slice 2b, the Season 0 boasts: crt,
+  // scroll and banner (Boot Sequence), skyline and rockets (Dial-Up
+  // Fireworks).
+  var BOAST_PRIMS = ['panel', 'wall', 'embers', 'flash', 'veil', 'gather', 'lock', 'name', 'bloom', 'burst', 'stream', 'star', 'pull', 'bars', 'crt', 'scroll', 'banner', 'skyline', 'rockets'];
+  // Dial-Up Fireworks' colours, one per burst, and its neon skyline's edges.
+  var BOAST_NEON = ['#ff4fd8', '#4ff0ff', '#ffe14f', '#7dff7a', '#ff9a3d', '#b18cff'];
+  function boastHex(h) { return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]; }
+  // A 5x7 dot font for the boasts that spell in pixels (Boot Sequence's
+  // SYSTEM READY, Dial-Up Fireworks' name). It covers every character an
+  // agent name may use (letters, digits, space and ' . - _) and a little
+  // more: seven rows of five bits, two hex digits a row, the left column
+  // the high bit. Anything else draws as an empty box.
+  var BOAST_FONT = {
+    A: '0e11111f111111', B: '1e11111e11111e', C: '0e11101010110e', D: '1e11111111111e', E: '1f10101e10101f',
+    F: '1f10101e101010', G: '0e11101711110f', H: '1111111f111111', I: '0e04040404040e', J: '0702020202120c',
+    K: '11121418141211', L: '1010101010101f', M: '111b1515111111', N: '11111915131111', O: '0e11111111110e',
+    P: '1e11111e101010', Q: '0e11111115120d', R: '1e11111e141211', S: '0f10100e01011e', T: '1f040404040404',
+    U: '1111111111110e', V: '11111111110a04', W: '1111111515150a', X: '11110a040a1111', Y: '1111110a040404',
+    Z: '1f01020408101f',
+    '0': '0e11131519110e', '1': '040c040404040e', '2': '0e11010204081f', '3': '1f02040201110e', '4': '02060a121f0202',
+    '5': '1f101e0101110e', '6': '0608101e11110e', '7': '1f010204080808', '8': '0e11110e11110e', '9': '0e11110f01020c',
+    ' ': '00000000000000', '-': '0000001f000000', '.': '00000000000c0c', "'": '0c040800000000', '_': '0000000000001f',
+    '!': '04040404040004', '?': '0e110102040004', ':': '000c0c000c0c00', ',': '000000000c0408', '&': '0c12140815120d',
+    '/': '01010204081010', '#': '0a0a1f0a1f0a0a', '+': '0004041f040400', '(': '02040808080402', ')': '08040202020408'
+  };
+  function boastGlyph(ch) {
+    var s = BOAST_FONT[ch];
+    // An accented letter draws as its plain letter.
+    if (s == null && ch.normalize) s = BOAST_FONT[ch.normalize('NFD').charAt(0)];
+    if (s == null) s = '1f11111111111f';
+    var rows = [];
+    for (var i = 0; i < 7; i++) rows.push(parseInt(s.substr(i * 2, 2), 16));
+    return rows;
+  }
+  // boastBits(lines) -> { cols, rows, chars, dots: [[col, row, char], ...] }:
+  // lines of text in the dot font (upper case), a blank column between
+  // characters, two blank rows between lines, each line centred. char
+  // numbers the drawn characters (not spaces) in reading order; chars is
+  // how many there are.
+  function boastBits(lines) {
+    var widths = lines.map(function (l) { return l.length ? l.length * 6 - 1 : 0; });
+    var cols = Math.max.apply(null, widths.concat([1])), rows = lines.length * 9 - 2, dots = [], n = 0;
+    lines.forEach(function (line, li) {
+      var off = Math.floor((cols - widths[li]) / 2);
+      for (var ci = 0; ci < line.length; ci++) {
+        var ch = line.charAt(ci).toUpperCase();
+        if (ch === ' ') continue;
+        var g = boastGlyph(ch);
+        for (var r = 0; r < 7; r++) for (var c = 0; c < 5; c++) if (g[r] & (16 >> c)) dots.push([off + ci * 6 + c, li * 9 + r, n]);
+        n++;
+      }
+    });
+    return { cols: cols, rows: rows, chars: n, dots: dots };
+  }
+  // The text in the dot font as large as it fits a w x h box: on one line,
+  // or on two (split at the space nearest the middle) when that gives
+  // bigger dots. cell: a dot's pitch in px, at most maxCell.
+  function boastBitsFit(text, w, h, maxCell) {
+    var one = boastBits([text]), best = { bits: one, cell: Math.min(w / one.cols, h / one.rows) };
+    var sp = -1, mid = (text.length - 1) / 2;
+    for (var i = 0; i < text.length; i++) if (text.charAt(i) === ' ' && (sp < 0 || Math.abs(i - mid) < Math.abs(sp - mid))) sp = i;
+    if (sp > 0) {
+      var two = boastBits([text.slice(0, sp), text.slice(sp + 1)]), c2 = Math.min(w / two.cols, h / two.rows);
+      if (c2 > best.cell) best = { bits: two, cell: c2 };
+    }
+    best.cell = Math.min(best.cell, maxCell || Infinity);
+    return best;
+  }
   // The beats whose pieces a later gather can lift into a formation.
   var BOAST_CARRIERS = { wall: 'wall', burst: 'spore', stream: 'head' };
   // The shapes a gather lifts pieces into, over the name. Units are the
@@ -152,6 +226,49 @@ export const BOAST_PURE_SOURCE = String.raw`
         { p: 'lock', at: 2120, sprite: 'cube', sound: 'boast' },
         { p: 'name', at: 2160 }
       ]
+    },
+    // The Season 0 boasts (owner 2026-10-19): neutral, so any faction's
+    // agent can equip them. Each carries its own colour (col); the winner's
+    // panel and the sting's voice stay the winner's faction.
+    'boast-s0-boot-sequence': {
+      id: 'boast-s0-boot-sequence', name: 'Boot Sequence', faction: null, col: '#7dffa8', ms: 3000,
+      beats: [
+        { p: 'panel', at: 0 },
+        // The winner's side powers on like an old CRT: a dot, a line, the
+        // raster opening and a flicker, then a dark screen with scanlines to
+        // the end. The POST beep as it settles.
+        { p: 'crt', at: 60, on: 380, flicker: 480, a: 0.88, sound: 'crt', beep: 'post' },
+        // BIOS lines print one at a time at the bottom of the screen and
+        // scroll UP, as a terminal does; then the screen clears upward.
+        { p: 'scroll', at: 560, every: 180, type: 110, clear: 1660,
+          lines: ['AI-TCG ARENA BIOS  REV S0', 'MEMORY TEST  65536K  OK', 'AGENT  {FACTION}  ONLINE', 'LOADING  VICTORY.SYS', 'BOOT >'] },
+        // The winner's name types out in the plate under the last line, in
+        // the BIOS's own type, a key at a time.
+        { p: 'name', at: 1540, mono: true, type: 40 },
+        // SYSTEM READY in chunky dot letters over the name: it flashes
+        // twice and holds, with the sting.
+        { p: 'banner', at: 2200, text: 'SYSTEM READY', sound: 'boast' }
+      ]
+    },
+    'boast-s0-dial-up-fireworks': {
+      id: 'boast-s0-dial-up-fireworks', name: 'Dial-Up Fireworks', faction: null, col: '#ff4fd8', ms: 3000,
+      beats: [
+        { p: 'panel', at: 0 },
+        // Night falls on the winner's side (dark enough that the dot letters
+        // read over bright cards and a Mythic ward).
+        { p: 'veil', at: 0, ms: 380, a: 0.8 },
+        // The modem handshake screeches (the music dips under it) while a
+        // neon skyline rises out of the winner's row, centre first; its
+        // windows flicker like data until the line connects.
+        { p: 'skyline', at: 60, ms: 520, stagger: 30, data: [360, 1060], sound: 'modem', duck: 1050 },
+        // Rockets go up from the rooftops and burst, left to right; each
+        // burst's pixels fly up into its part of the winner's name, spelled
+        // in the dot font, and the rest fan up and fade.
+        { p: 'rockets', at: 1000, stagger: 100, rise: 340, fly: 460, extra: 8, sound: 'whistle', pop: 'pop' },
+        // The name lights as one, with the sting.
+        { p: 'lock', at: 2300, piece: false, sound: 'boast' },
+        { p: 'name', at: 2340 }
+      ]
     }
   };
 
@@ -176,6 +293,7 @@ export const BOAST_PURE_SOURCE = String.raw`
   // Why a spec can't be played, or null.
   function boastSpecProblem(spec) {
     if (!spec || typeof spec.id !== 'string' || !spec.id) return 'a boast needs an id';
+    if (!spec.faction && !/^#[0-9a-f]{6}$/i.test(spec.col || '')) return spec.id + ': a neutral boast needs its own colour (col)';
     if (!(spec.ms > 0) || spec.ms > BOAST_MS_MAX) return spec.id + ': length must be 1-' + BOAST_MS_MAX + ' ms';
     if (!spec.beats || !spec.beats.length) return spec.id + ': no beats';
     var last = -1, named = false, i;
@@ -190,6 +308,10 @@ export const BOAST_PURE_SOURCE = String.raw`
       if (b.p === 'burst' && !before(b, ['bloom'])) return spec.id + ': burst needs a bloom before it';
       if (b.p === 'pull' && !before(b, ['star'])) return spec.id + ': pull needs a star before it';
       if (b.p === 'star' && !(b.at + b.grow <= b.collapse && b.collapse + 220 <= b.gone)) return spec.id + ': a star grows, then collapses, then goes';
+      if (b.p === 'scroll' && !before(b, ['crt'])) return spec.id + ': scroll needs a crt screen before it';
+      if (b.p === 'scroll' && !(b.lines && b.lines.length)) return spec.id + ': scroll needs lines';
+      if (b.p === 'rockets' && !before(b, ['skyline'])) return spec.id + ': rockets need a skyline to go up from';
+      if (b.p === 'banner' && !(typeof b.text === 'string' && b.text)) return spec.id + ': banner needs its text';
       if (b.p === 'name') named = true;
       last = b.at;
     }
@@ -210,17 +332,27 @@ export const BOAST_PURE_SOURCE = String.raw`
   function boastCx(r) { return (r.l + r.r) / 2; }
   function boastCy(r) { return (r.t + r.b) / 2; }
 
-  // boastPlan(spec, geom, seed) -> { id, faction, ms, pieces, marks, anchor }
+  // boastPlan(spec, geom, seed, who) -> { id, faction, ms, pieces, marks, anchor }
   //   geom: { band, panel, slots: [{ l, t, r, b, filled }], loser: [rects] }
   //     in document pixels (rects as { l, t, r, b }). band is the winner's
   //     side of the board, panel the winner's HUD panel.
+  //   who: { name, faction }: the winner (a boast that spells or types the
+  //     name lays it out here; a neutral boast takes the winner's faction
+  //     for its panel and its sting's voice).
   //   pieces: sprites that move along keyframes [{ t, x, y, s, a }] (the
   //     runtime eases between keys; key.e names the easing into that key).
-  //     s is the sprite's height; sx (optional) stretches it sideways.
+  //     s is the sprite's height; sx (optional) stretches it sideways, or w
+  //     fixes its width in px. A piece with a shape is code-drawn, not an
+  //     atlas sprite: 'text' (txt, in the BIOS type), 'bits' (a block of the
+  //     dot font), 'dot' (one pixel) or 'tower' (a skyline building); rgb
+  //     colours a piece other than the boast's colour.
   //   marks: one-shot moments at time t: shock, flare, ring, sparks, grid,
-  //     sound, duck, panel, pulse, name, end.
-  function boastPlan(spec, geom, seed) {
+  //     sound, duck, panel, pulse, veil, crt, name, end (rgb, optional,
+  //     colours a shock, flare, ring or sparks).
+  function boastPlan(spec, geom, seed, who) {
     var rand = boastRng(seed == null ? 1 : seed);
+    who = who || {};
+    var winName = String(who.name || 'WINNER'), faction = spec.faction || who.faction || 'Neutral';
     var band = geom.band, bw = band.r - band.l, bh = band.b - band.t, cx = boastCx(band);
     var slots = (geom.slots || []).slice();
     var pieces = [], marks = [], crestPieces = [], groups = {};
@@ -402,6 +534,142 @@ export const BOAST_PURE_SOURCE = String.raw`
             ] }, 'bar');
           }
         });
+      } else if (b.p === 'crt') {
+        // The whole side is the screen (inset like the veil). The runtime
+        // draws the power-on from the mark; the plan only places it.
+        mark({ k: 'crt', t: b.at, on: b.on, flick: b.flicker || 0, a: b.a, l: band.l + 4, t2: band.t + 4, r: band.r - 4, b: band.b - 4 });
+        mark({ k: 'flare', t: b.at, x: cx, y: boastCy(band), s: Math.min(bh * 0.5, 60) });
+        if (b.sound) mark({ k: 'sound', t: b.at, kind: b.sound, tier: 'normal', x: cx });
+        if (b.beep) mark({ k: 'sound', t: b.at + b.on, kind: b.beep, tier: 'normal', x: cx });
+      } else if (b.p === 'scroll') {
+        // Each line prints at the bottom of a text window and every earlier
+        // line steps UP one line (a terminal's scroll: nothing ever moves
+        // down). The type shrinks to fit a short or narrow side.
+        var lines = b.lines.map(function (l) { return l.replace('{FACTION}', faction.toUpperCase()); });
+        var nl = lines.length, maxCh = Math.max.apply(null, lines.map(function (l) { return l.length + 1; }));
+        var y0 = band.t + bh * 0.6, avail = y0 - band.t - 4;
+        var fs = Math.min(14, bh * 0.075, avail / ((nl - 1) * 1.3 + 0.5), bw * 0.9 / (0.62 * maxCh));
+        var lh = fs * 1.3, x0 = cx - Math.min(bw * 0.9, 0.62 * fs * Math.max(maxCh, 26)) / 2;
+        lines.forEach(function (txt, i) {
+          var T = b.at + i * b.every, last = i === nl - 1;
+          // The last line keeps a blinking cursor (one character's room).
+          var wch = 0.62 * (txt.length + (last ? 1 : 0)), x = x0 + fs * wch / 2, y = y0;
+          var keys = [{ t: T, x: x, y: y, s: fs, a: 0 }, { t: T + 30, x: x, y: y, s: fs, a: 1 }];
+          for (var j = i + 1; j < nl; j++) {
+            var Tj = b.at + j * b.every;
+            keys.push({ t: Tj, x: x, y: y, s: fs, a: 1 });
+            y -= lh;
+            keys.push({ t: Tj + 70, x: x, y: y, s: fs, a: 1, e: 'out' });
+          }
+          // The screen clears: the lines lift and fade, the top one first.
+          var Tc = Math.max(b.clear + i * 30, keys[keys.length - 1].t), yc = Math.min(y, Math.max(band.t + fs / 2 + 2, y - lh));
+          keys.push({ t: Tc, x: x, y: y, s: fs, a: 1 });
+          keys.push({ t: Tc + 260, x: x, y: yc, s: fs, a: 0, e: 'out' });
+          var pc = { shape: 'text', txt: txt, sx: wch, rot: 0, type: { t0: T, ms: Math.min(b.type, txt.length * 14) }, keys: keys };
+          if (last) pc.cursor = true;
+          add(pc, 'line');
+          for (var q = 0; q < 3; q++) mark({ k: 'sound', t: T + q * 35, kind: 'type', tier: 'subtle', x: x });
+        });
+      } else if (b.p === 'banner') {
+        // Chunky dot letters over the name: they rise a little into place,
+        // flash twice and hold.
+        var H = Math.min(bh * 0.4, crest.r * 2.4), fit = boastBitsFit(b.text, bw * 0.8, H, 9);
+        var bwid = fit.bits.cols * fit.cell, bhgt = fit.bits.rows * fit.cell;
+        var bny = Math.max(crest.y, band.t + 3 + bhgt / 2), bnx = crest.x;
+        var lift = Math.max(0, Math.min(fit.cell * 1.5, band.b - 3 - bhgt / 2 - bny)), T0 = b.at;
+        var flick = [[130, 0.12], [190, 0.12], [200, 1], [260, 1], [270, 0.12], [320, 0.12], [330, 1]];
+        var bkeys = [{ t: T0, x: bnx, y: bny + lift, s: bhgt, a: 0 }, { t: T0 + 40, x: bnx, y: bny + lift * 0.4, s: bhgt, a: 1, e: 'out' }, { t: T0 + 120, x: bnx, y: bny, s: bhgt, a: 1, e: 'out' }];
+        flick.forEach(function (f) { bkeys.push({ t: T0 + f[0], x: bnx, y: bny, s: bhgt, a: f[1] }); });
+        crestPieces.push(add({ shape: 'bits', bits: fit.bits, sx: fit.bits.cols / fit.bits.rows, rot: 0, centre: true, keys: bkeys }, 'crest'));
+        // A flat shock along it (as tall as the side allows), a flare, sparks
+        // up off its top edge, the sting and the music ducked. No grid push:
+        // the screen is dark glass, and a push this near the side's top edge
+        // bent the background grid's lines over into the loser's side (seen
+        // in the browser check, render session 33).
+        var R = Math.min(bwid / 2, bw * 0.45) / 2.31;
+        R = Math.min(R, (Math.min(bny - band.t, band.b - bny) - 3) / 0.315);
+        if (R > 4) mark({ k: 'shock', t: T0, x: bnx, y: bny, R: R, sx: 2.2, sy: 0.3 });
+        mark({ k: 'flare', t: T0, x: bnx, y: bny, s: Math.min(crest.r * 2.2, (bny - band.t - 2) / BOAST_FLARE_REACH, (band.b - bny - 2) / BOAST_FLARE_REACH) });
+        for (var sq = 0; sq < 4; sq++) mark({ k: 'sparks', t: T0 + 20, x: bnx + (sq - 1.5) / 1.5 * bwid * 0.38, y: bny - bhgt / 2, n: 4, spd: 160, life: 0.45, angle: -Math.PI / 2, spread: 0.5 });
+        mark({ k: 'pulse', t: T0, ms: 420 });
+        if (b.sound) {
+          mark({ k: 'sound', t: T0, kind: b.sound, tier: 'spectacle', x: bnx });
+          mark({ k: 'duck', t: T0, ms: Math.max(600, ends - T0 + 300) });
+        }
+      } else if (b.p === 'skyline') {
+        // Towers across the whole side, 5-11% of its width each, rising out
+        // of the floor, centre first. A tower's foot stays on the floor as
+        // it grows (its centre and height ease together), so it only rises.
+        var floor = band.b - 4, W = bw - 12, acc = 0, towers = [];
+        while (acc < W - 6) {
+          var tw = Math.min(W * (0.05 + rand() * 0.06), W - acc);
+          if (tw < 6) break;
+          towers.push({ x: band.l + 6 + acc + tw / 2, w: tw, h: bh * (0.14 + rand() * 0.2), ant: rand() < 0.3, seed: (rand() * 1e9) | 0 });
+          acc += tw + 2 + rand() * 4;
+        }
+        towers.sort(function (u, v) { return Math.abs(u.x - cx) - Math.abs(v.x - cx) || u.x - v.x; });
+        towers.forEach(function (tw, k) {
+          var T = b.at + k * b.stagger;
+          add({ shape: 'tower', w: tw.w - 1, rgb: boastHex(BOAST_NEON[[1, 0, 5][k % 3]]), ant: tw.ant, seed: tw.seed, data: b.data, rot: 0, keys: [
+            { t: T, x: tw.x, y: floor - 1, s: 2, a: 0 },
+            { t: T + b.ms, x: tw.x, y: floor - tw.h / 2, s: tw.h, a: 1, e: 'out' }
+          ] }, 'tower');
+        });
+        if (b.sound) mark({ k: 'sound', t: b.at, kind: b.sound, tier: 'normal', x: cx });
+        if (b.duck) mark({ k: 'duck', t: b.at, ms: b.duck });
+      } else if (b.p === 'rockets') {
+        // The winner's name in the dot font, over the skyline where the crest
+        // would be. One rocket per stretch of columns, left to right; each
+        // bursts under its stretch, and its pixels fly up into those letters.
+        var fitN = boastBitsFit(winName.toUpperCase(), bw * 0.9, bh * 0.34, 8), cellN = fitN.cell, bits = fitN.bits;
+        var blkW = bits.cols * cellN, blkH = bits.rows * cellN;
+        var bcy = Math.max(crest.y, band.t + 4 + blkH / 2), bx0 = cx - blkW / 2, by0 = bcy - blkH / 2;
+        // A burst spells whole letters (a letter is never two colours).
+        var nb = Math.max(1, Math.min(6, bits.chars, Math.ceil(bits.chars / 3)));
+        var rs = Math.max(3, cellN * 1.2), burstY = Math.min(by0 + blkH + Math.max(cellN * 2.5, 8), band.b - 4 - rs);
+        var stg = nb > 1 ? Math.min(b.stagger, 480 / (nb - 1)) : 0, towersG = groups.tower || [];
+        for (var g = 0; g < nb; g++) {
+          var c0 = Math.floor(bits.chars * g / nb), c1 = Math.floor(bits.chars * (g + 1) / nb);
+          var mine = bits.dots.filter(function (d) { return d[2] >= c0 && d[2] < c1; });
+          var bxg = bx0 + (mine.reduce(function (a, d) { return a + d[0] + 0.5; }, 0) / Math.max(1, mine.length)) * cellN, col = boastHex(BOAST_NEON[g % BOAST_NEON.length]);
+          var tL = b.at + g * stg, tB = tL + b.rise;
+          // It goes up from the nearest rooftop (or the side's floor).
+          var lx = bxg, ly = band.b - 6, bd2 = Infinity;
+          towersG.forEach(function (tw) { var k = lastKey(tw); if (Math.abs(k.x - bxg) < bd2) { bd2 = Math.abs(k.x - bxg); lx = k.x; ly = k.y - k.s / 2 - 2; } });
+          ly = Math.max(burstY, Math.min(band.b - 6, Math.max(ly, burstY + 10)));
+          add({ shape: 'dot', rgb: col, rot: 0, keys: [
+            { t: tL, x: lx, y: ly, s: rs, a: 0 },
+            { t: tL + 40, x: lx + (bxg - lx) * 0.1, y: ly - (ly - burstY) * 0.12, s: rs, a: 1 },
+            { t: tB, x: bxg, y: burstY, s: rs, a: 1, e: 'out' },
+            { t: tB + 50, x: bxg, y: burstY, s: rs * 2, a: 0 }
+          ] }, 'rocket');
+          for (var tr = 1; tr <= 3; tr++) {
+            var u = tr / 4, ue = 1 - Math.pow(1 - u, 3);
+            mark({ k: 'sparks', t: tL + b.rise * u, x: lx + (bxg - lx) * ue, y: ly - (ly - burstY) * ue, n: 2, spd: 40, life: 0.3, angle: -Math.PI / 2, spread: 0.25, rgb: col });
+          }
+          if (b.sound) mark({ k: 'sound', t: tL, kind: b.sound, tier: 'subtle', x: lx });
+          // The burst.
+          mark({ k: 'flare', t: tB, x: bxg, y: burstY, s: Math.min(cellN * 9, 70, (band.b - burstY - 2) / BOAST_FLARE_REACH, (burstY - band.t - 2) / BOAST_FLARE_REACH, (bxg - band.l - 2) / BOAST_FLARE_REACH, (band.r - bxg - 2) / BOAST_FLARE_REACH), rgb: col });
+          mark({ k: 'sparks', t: tB, x: bxg, y: burstY, n: 12, spd: 150, life: 0.45, angle: -Math.PI / 2, spread: 1.1, rgb: col });
+          if (b.pop) mark({ k: 'sound', t: tB, kind: b.pop, tier: 'subtle', x: bxg });
+          mine.forEach(function (d) {
+            var dl = rand() * 60;
+            crestPieces.push(add({ shape: 'dot', rgb: col, twinkle: true, ph: rand() * 6.28, rot: 0, keys: [
+              { t: tB + dl, x: bxg, y: burstY, s: cellN * 0.4, a: 0 },
+              { t: tB + dl + b.fly, x: bx0 + (d[0] + 0.5) * cellN, y: by0 + (d[1] + 0.5) * cellN, s: cellN * 0.86, a: 1, e: 'out' }
+            ] }, 'letter'));
+          });
+          // The rest of the burst fans up and fades.
+          for (var ex = 0; ex < b.extra; ex++) {
+            var th = (rand() * 2 - 1) * 1.2, dist = cellN * (6 + rand() * 10);
+            var exx = Math.max(band.l + 6, Math.min(band.r - 6, bxg + Math.sin(th) * dist)), exy = Math.max(band.t + 6, burstY - Math.cos(th) * dist);
+            add({ shape: 'dot', rgb: col, rot: 0, keys: [
+              { t: tB, x: bxg, y: burstY, s: cellN * 0.7, a: 0 },
+              { t: tB + b.fly * 0.35, x: bxg + (exx - bxg) * 0.6, y: burstY + (exy - burstY) * 0.6, s: cellN * 0.7, a: 1, e: 'out' },
+              { t: tB + b.fly * 1.1, x: exx, y: exy, s: cellN * 0.5, a: 0, e: 'out' }
+            ] }, 'fan');
+          }
+        }
       } else if (b.p === 'embers') {
         var until = Math.min(b.until || ends, ends);
         for (var t = b.at; t < until && pieces.length; t += b.every) {
@@ -465,13 +733,17 @@ export const BOAST_PURE_SOURCE = String.raw`
         // The formation's lock piece forms; the moment radiates outward.
         var lx = crest.x + form.lock[0] * crest.r, ly = crest.y + form.lock[1] * crest.r;
         var ls = crest.r * (b.size || form.lock[2]);
-        var lp = { sp: b.sprite || carrierSprite, rot: 0, centre: true, keys: [
-          { t: b.at, x: lx, y: ly, s: ls * 0.56, a: 0 },
-          { t: b.at + 140, x: lx, y: ly, s: ls, a: 1, e: 'out' }
-        ] };
-        if (b.core) lp.core = true;
-        if (b.spin) lp.spin = b.spin;
-        crestPieces.push(add(lp, 'crest'));
+        // piece: false (Dial-Up Fireworks): the formation is already whole;
+        // only the moment radiates.
+        if (b.piece !== false) {
+          var lp = { sp: b.sprite || carrierSprite, rot: 0, centre: true, keys: [
+            { t: b.at, x: lx, y: ly, s: ls * 0.56, a: 0 },
+            { t: b.at + 140, x: lx, y: ly, s: ls, a: 1, e: 'out' }
+          ] };
+          if (b.core) lp.core = true;
+          if (b.spin) lp.spin = b.spin;
+          crestPieces.push(add(lp, 'crest'));
+        }
         mark({ k: 'shock', t: b.at, x: crest.x, y: crest.y, R: crest.r * 1.1, sx: 1, sy: 1 });
         mark({ k: 'flare', t: b.at, x: crest.x, y: crest.y, s: crest.r * 2.2 });
         mark({ k: 'ring', t: b.at, x: crest.x, y: crest.y, R: crest.r * 1.6 });
@@ -483,7 +755,13 @@ export const BOAST_PURE_SOURCE = String.raw`
           mark({ k: 'duck', t: b.at, ms: Math.max(600, ends - b.at + 300) });
         }
       } else if (b.p === 'name') {
-        mark({ k: 'name', t: b.at, x: cx, y: nameY, w: nameW, h: nameH });
+        var nmk = mark({ k: 'name', t: b.at, x: cx, y: nameY, w: nameW, h: nameH });
+        if (b.mono) nmk.mono = true;
+        if (b.type) {
+          // Typed a key at a time (in at most 0.6 s), a key's click each.
+          nmk.type = Math.min(b.type, 600 / Math.max(1, winName.length));
+          for (var ki = 0; ki < Math.min(winName.length, 16); ki++) mark({ k: 'sound', t: b.at + ki * nmk.type * winName.length / Math.min(winName.length, 16), kind: 'type', tier: 'subtle', x: cx });
+        }
       }
     });
 
@@ -498,7 +776,9 @@ export const BOAST_PURE_SOURCE = String.raw`
     });
     mark({ k: 'end', t: ends });
     marks.sort(function (u, v) { return u.t - v.t; });
-    return { id: spec.id, faction: spec.faction, name: spec.name, ms: ends, pieces: pieces, marks: marks, crest: crest, crestPieces: crestPieces.length };
+    var out = { id: spec.id, faction: faction, name: spec.name, ms: ends, pieces: pieces, marks: marks, crest: crest, crestPieces: crestPieces.length };
+    if (spec.col) { out.col = spec.col; out.rgb = boastHex(spec.col); }
+    return out;
   }
 
   // The reduced-motion still: the plan's final pose (everything that still
@@ -516,12 +796,17 @@ export const BOAST_PURE_SOURCE = String.raw`
       ] };
       if (pc.sx) sp.sx = pc.sx;
       if (pc.core) sp.core = true;
+      // A code-drawn piece keeps its shape; text shows whole (no typing),
+      // and nothing twinkles or flickers.
+      ['shape', 'w', 'rgb', 'txt', 'bits', 'seed', 'ant'].forEach(function (f) { if (pc[f] !== undefined) sp[f] = pc[f]; });
       pieces.push(sp);
     });
-    var marks = plan.marks.filter(function (m) { return m.k === 'panel' || m.k === 'name' || m.k === 'veil' || (m.k === 'sound' && m.tier === 'spectacle'); })
-      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'veil') c.ms = 0; return c; });
+    var marks = plan.marks.filter(function (m) { return m.k === 'panel' || m.k === 'name' || m.k === 'veil' || m.k === 'crt' || (m.k === 'sound' && m.tier === 'spectacle'); })
+      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'veil') c.ms = 0; if (c.k === 'crt') { c.on = 0; c.flick = 0; } if (c.k === 'name') delete c.type; return c; });
     marks.push({ k: 'end', t: ms });
-    return { id: plan.id, faction: plan.faction, name: plan.name, ms: ms, pieces: pieces, marks: marks, crest: plan.crest, still: true };
+    var out = { id: plan.id, faction: plan.faction, name: plan.name, ms: ms, pieces: pieces, marks: marks, crest: plan.crest, still: true };
+    if (plan.col) { out.col = plan.col; out.rgb = plan.rgb; }
+    return out;
   }
 
   // The victory grammar, checked on a laid-out plan. Returns the first
@@ -543,7 +828,7 @@ export const BOAST_PURE_SOURCE = String.raw`
       var pc = plan.pieces[i];
       for (j = 0; j < pc.keys.length; j++) {
         // A spinning sprite sweeps its square's corners.
-        var k = pc.keys[j], h = k.s / 2 * (pc.spin ? Math.SQRT2 : 1), w = h * (pc.sx || 1);
+        var k = pc.keys[j], h = k.s / 2 * (pc.spin ? Math.SQRT2 : 1), w = pc.w ? pc.w / 2 : h * (pc.sx || 1);
         if (k.a > 0 || (j > 0 && pc.keys[j - 1].a > 0)) { p = box(k.x - w, k.y - h, k.x + w, k.y + h, 'piece ' + i); if (p) return p; }
         if (j > 0 && k.y > pc.keys[j - 1].y + 0.5) return 'piece ' + i + ' moves down';
         if (j > 0 && k.t < pc.keys[j - 1].t) return 'piece ' + i + ' keys out of order';
@@ -556,7 +841,9 @@ export const BOAST_PURE_SOURCE = String.raw`
         var hx = m.R * 1.05 * (m.sx || 1), hy = m.R * 1.05 * (m.sy || 1);
         p = box(m.x - hx, m.y - hy, m.x + hx, m.y + hy, 'shock'); if (p) return p;
       } else if (m.k === 'flare') {
-        var fh = m.s * 0.55; p = box(m.x - fh, m.y - fh, m.x + fh, m.y + fh, 'flare'); if (p) return p;
+        // The flare's sprite reaches 0.55 s; its bloom (a fading glow drawn
+        // under it) reaches 0.72 s, so the bloom is what must stay inside.
+        var fh = m.s * BOAST_FLARE_REACH; p = box(m.x - fh, m.y - fh, m.x + fh, m.y + fh, 'flare'); if (p) return p;
       } else if (m.k === 'ring') {
         p = box(m.x - m.R, m.y - m.R, m.x + m.R, m.y + m.R, 'ring'); if (p) return p;
       } else if (m.k === 'sparks') {
@@ -569,6 +856,8 @@ export const BOAST_PURE_SOURCE = String.raw`
         p = box(m.x - m.w / 2, m.y - m.h / 2, m.x + m.w / 2, m.y + m.h / 2, 'name'); if (p) return p;
       } else if (m.k === 'veil') {
         p = box(m.l, m.t2, m.r, m.b, 'veil'); if (p) return p;
+      } else if (m.k === 'crt') {
+        p = box(m.l, m.t2, m.r, m.b, 'crt screen'); if (p) return p;
       }
     }
     if (!plan.marks.some(function (m) { return m.k === 'name'; })) return 'no name';
@@ -644,11 +933,13 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
               ctx.globalCompositeOperation = 'lighter';
             }
           }
+          if (cur.crt) drawCrt(ctx, cur.crt, c);
           var n = 0;
           for (var i = 0; i < cur.plan.pieces.length; i++) {
             var pc = cur.plan.pieces[i], at = boastPieceAt(pc, cur.t);
             if (!at || at.a <= 0.003 || at.s <= 0) continue;
             n++;
+            if (pc.shape) { drawShape(ctx, pc, at, pc.rgb || c, glow); continue; }
             var tx = K.tex(FX_SP[pc.sp], c), w = at.s * (pc.sx || 1);
             K.drawGlow(ctx, at.x, at.y, at.s * (0.75 + glow * 0.5), c, at.a * (0.35 + glow * 0.6));
             if (pc.core) {
@@ -677,8 +968,112 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
         clear: function () {}
       };
     }
+    function css(c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a.toFixed(3) + ')'; }
+    function hash3(a, b, d) {
+      var x = Math.imul(a | 0, 374761393) ^ Math.imul(b | 0, 668265263) ^ Math.imul(d | 0, 1274126177);
+      x = Math.imul(x ^ (x >>> 13), 1274126177);
+      return ((x ^ (x >>> 16)) >>> 0) / 4294967296;
+    }
+    // How strongly the boast still shows (its own fade after the end; gone
+    // at once when skipped).
+    function fadeNow() {
+      var f = 1;
+      if (cur.t > cur.plan.ms) f = Math.max(0, 1 - (cur.t - cur.plan.ms) / 320);
+      if (cur.ended && !cur.fadeOut) f = 0;
+      return f;
+    }
+    // Boot Sequence's screen: the winner's side powers on like a tube. A
+    // dot widens into a line, the raster opens from it and dims, a flicker;
+    // then a dark screen with scanlines until the boast ends.
+    function drawCrt(ctx, m, c) {
+      var u = m.on > 0 ? (cur.t - m.t) / m.on : 1, fade = fadeNow();
+      if (u < 0 || fade <= 0.003) return;
+      var W = m.r - m.l, H = m.b - m.t2, mx = (m.l + m.r) / 2, my = (m.t2 + m.b) / 2, rr = Math.min(14, W / 10);
+      var sa = m.a * Math.min(1, u * 3) * fade, ft = cur.t - m.t - m.on;
+      if (ft > 0 && ft < m.flick) sa *= 0.8 + 0.2 * hash3(Math.floor(ft / 45), 7, 3);
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(2,7,5,' + sa.toFixed(3) + ')';
+      ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(m.l, m.t2, W, H, rr); else ctx.rect(m.l, m.t2, W, H); ctx.fill();
+      ctx.globalCompositeOperation = 'lighter';
+      var open = H;
+      if (u < 0.35) {
+        var lw = Math.max(4, W * u / 0.35);
+        ctx.fillStyle = css(c, 0.25 * fade); ctx.fillRect(mx - lw / 2, my - 4, lw, 8);
+        ctx.fillStyle = css(CFX.kit.mix(c, [255, 255, 255], 0.7), 0.95 * fade); ctx.fillRect(mx - lw / 2, my - 1, lw, 2);
+        open = 2;
+      } else if (u < 1) {
+        var v = (u - 0.35) / 0.65;
+        open = H * (0.02 + 0.98 * (1 - Math.pow(1 - v, 3)));
+        ctx.fillStyle = css(c, (0.45 * (1 - v) + 0.04) * fade); ctx.fillRect(m.l, my - open / 2, W, open);
+      } else {
+        // The phosphor's faint haze, brighter while it flickers.
+        ctx.fillStyle = css(c, (ft < m.flick ? 0.06 : 0.035) * fade); ctx.fillRect(m.l, m.t2, W, H);
+      }
+      // Scanlines over the lit part: a dark line every 3 px.
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(0,0,0,' + (0.3 * fade).toFixed(3) + ')';
+      for (var y = Math.ceil(my - open / 2); y < my + open / 2; y += 3) ctx.fillRect(m.l, y, W, 1);
+      ctx.globalCompositeOperation = 'lighter';
+    }
+    // The code-drawn pieces (Season 0): text in the BIOS type, a block of
+    // the dot font, one pixel, a skyline tower. Each stays inside its
+    // piece's box (s high, w or s x sx wide), which is what the grammar
+    // check measured.
+    function drawShape(ctx, pc, at, c, glow) {
+      var K = CFX.kit, a = Math.min(1, at.a), still = cur.plan.still, t = cur.t;
+      var hot = K.mix(c, [255, 255, 255], 0.3 + glow * 0.5);
+      if (pc.shape === 'dot') {
+        var tw = pc.twinkle && !still ? 0.86 + 0.14 * Math.sin(t * 0.018 + (pc.ph || 0)) : 1, s = at.s;
+        ctx.fillStyle = css(c, a * 0.35 * tw); ctx.fillRect(at.x - s / 2, at.y - s / 2, s, s);
+        ctx.fillStyle = css(hot, a * tw); ctx.fillRect(at.x - s * 0.31, at.y - s * 0.31, s * 0.62, s * 0.62);
+      } else if (pc.shape === 'bits') {
+        var bt = pc.bits, cell = at.s / bt.rows, x0 = at.x - bt.cols * cell / 2, y0 = at.y - at.s / 2, d, i;
+        ctx.fillStyle = css(c, a * 0.32);
+        for (i = 0; i < bt.dots.length; i++) { d = bt.dots[i]; ctx.fillRect(x0 + d[0] * cell, y0 + d[1] * cell, cell, cell); }
+        ctx.fillStyle = css(hot, a);
+        var ins = cell * 0.12;
+        for (i = 0; i < bt.dots.length; i++) { d = bt.dots[i]; ctx.fillRect(x0 + d[0] * cell + ins, y0 + d[1] * cell + ins, cell - ins * 2, cell - ins * 2); }
+      } else if (pc.shape === 'text') {
+        var fs = at.s, Wt = fs * pc.sx, full = pc.txt, shown = full;
+        if (pc.type && !still) shown = full.slice(0, Math.max(0, Math.min(full.length, Math.ceil(full.length * (t - pc.type.t0) / pc.type.ms))));
+        ctx.save();
+        ctx.font = '600 ' + fs.toFixed(1) + 'px ui-monospace, Menlo, Consolas, "DejaVu Sans Mono", monospace';
+        ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        // Squeeze the line if this font runs wider than the plan allowed.
+        var room = Wt - (pc.cursor ? fs * 0.62 : 0), mw = ctx.measureText(full).width, sc = mw > room ? room / mw : 1;
+        ctx.translate(at.x - Wt / 2, at.y); ctx.scale(sc, 1);
+        // The phosphor's bleed: the text a pixel either side, dimmer, under
+        // the bright pass (shadowBlur looked the same and cost a third of
+        // the frame rate on a CPU canvas).
+        ctx.globalAlpha = a * 0.4; ctx.fillStyle = css(c, 1);
+        ctx.fillText(shown, -1, 0); ctx.fillText(shown, 1, 0);
+        ctx.globalAlpha = a; ctx.fillStyle = css(hot, 1); ctx.fillText(shown, 0, 0);
+        if (pc.cursor && shown.length === full.length && (still || Math.floor(t / 260) % 2 === 0)) ctx.fillRect(ctx.measureText(full).width + fs * 0.12, -fs * 0.42, fs * 0.5, fs * 0.84);
+        ctx.restore(); ctx.globalAlpha = 1;
+      } else if (pc.shape === 'tower') {
+        var tw2 = pc.w, bodyH = at.s * (pc.ant ? 0.84 : 1), bot = at.y + at.s / 2, top = bot - bodyH, l = at.x - tw2 / 2;
+        // A dark silhouette (drawn over, so it hides the card behind), a
+        // neon edge, lit windows.
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(6,4,18,' + (0.94 * a).toFixed(3) + ')'; ctx.fillRect(l, top, tw2, bodyH);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = css(c, a * (0.8 + glow * 0.2)); ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(l + 0.75, bot); ctx.lineTo(l + 0.75, top + 0.75); ctx.lineTo(l + tw2 - 0.75, top + 0.75); ctx.lineTo(l + tw2 - 0.75, bot); ctx.stroke();
+        var dw = pc.data, phase = dw && !still && t >= dw[0] && t < dw[1] ? Math.floor(t / 70) : -1;
+        var cols = Math.max(1, Math.floor((tw2 - 4) / 7)), rows = Math.floor((bodyH - 6) / 9), wx0 = l + (tw2 - cols * 7 + 3) / 2;
+        ctx.fillStyle = 'rgba(255,214,120,' + (0.8 * a).toFixed(3) + ')';
+        for (var r = 0; r < rows; r++) for (var q = 0; q < cols; q++) {
+          if (hash3(pc.seed, r * 31 + q, phase) < (phase >= 0 ? 0.5 : 0.38)) ctx.fillRect(wx0 + q * 7, top + 5 + r * 9, 3, 4);
+        }
+        if (pc.ant) {
+          var ah = at.s - bodyH;
+          ctx.fillStyle = css(c, a * 0.8); ctx.fillRect(at.x - 0.75, top - ah + 2, 1.5, ah - 2);
+          if (still || Math.floor(t / 400) % 2 === 0) { ctx.fillStyle = 'rgba(255,60,60,' + a.toFixed(3) + ')'; ctx.fillRect(at.x - 1.5, top - ah, 3, 3); }
+        }
+      }
+    }
     function fire(m) {
-      var K = CFX.kit, c = cur.rgb, still = cur.plan.still;
+      var K = CFX.kit, c = m.rgb || cur.rgb, still = cur.plan.still;
       stats.fired[m.k] = (stats.fired[m.k] || 0) + 1;
       if (m.k === 'shock' && !still) K.shock(m.x, m.y, c, m.R, 0.42, m.sx, m.sy);
       else if (m.k === 'flare' && !still) K.flare(m.x, m.y, c, m.s, 0.5);
@@ -687,6 +1082,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       else if (m.k === 'grid' && !still) { K.gridForce(m.x, m.y, m.f, m.r); K.gridTint(m.x, m.y, c, m.r); }
       else if (m.k === 'pulse') cur.pulses.push({ t: m.t, ms: m.ms });
       else if (m.k === 'veil') cur.veil = m;
+      else if (m.k === 'crt') cur.crt = m;
       else if (m.k === 'sound' && typeof SND !== 'undefined') SND.play(m.kind, cur.plan.faction, m.tier, { left: m.x - window.scrollX, width: 0 });
       else if (m.k === 'duck' && typeof MUS !== 'undefined' && MUS.duckHold) MUS.duckHold(m.ms / 1000);
       else if (m.k === 'panel') { if (cur.els.panel) { cur.els.panel.style.setProperty('--fc', fxKitOf(cur.plan.faction).col); cur.els.panel.classList.add('boast-panel'); } }
@@ -695,18 +1091,36 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
     }
     function showName(m) {
       var el = document.createElement('div');
-      el.className = 'boast-name' + (cur.plan.still ? ' still' : '');
-      el.style.setProperty('--fc', fxKitOf(cur.plan.faction).col);
+      el.className = 'boast-name' + (cur.plan.still ? ' still' : '') + (m.mono ? ' mono' : '');
+      el.style.setProperty('--fc', cur.plan.col || fxKitOf(cur.plan.faction).col);
       el.style.left = (m.x - m.w / 2) + 'px'; el.style.top = (m.y - m.h / 2) + 'px';
       el.style.width = m.w + 'px'; el.style.height = m.h + 'px';
       var nm = document.createElement('div'); nm.className = 'boast-who'; nm.textContent = cur.who;
       var tag = document.createElement('div'); tag.className = 'boast-tag'; tag.textContent = cur.plan.name.toUpperCase() + ' · VICTORY';
       el.appendChild(nm); el.appendChild(tag);
+      // Boot Sequence's plate ends on a block cursor; it is measured with it.
+      var cu = null;
+      if (m.mono) { cu = document.createElement('span'); cu.className = 'boast-cur'; nm.appendChild(cu); }
       document.body.appendChild(el);
       // Long names shrink to fit the plate, never cut off.
       var max = parseFloat(getComputedStyle(nm).fontSize) || 28;
       for (var fs = max; fs > 11 && nm.scrollWidth > m.w; fs -= 1) nm.style.fontSize = fs + 'px';
       cur.dom.push(el);
+      if (m.type && !cur.plan.still) {
+        // Typed a key at a time, left to right, behind the cursor: the
+        // plate keeps the whole name's width so the text doesn't shift.
+        var full = cur.who, k = 0, me = cur;
+        // (scrollWidth, not the rect: the plate is still scaled by its rise.)
+        nm.style.width = (nm.scrollWidth + 1) + 'px';
+        nm.textContent = ''; nm.appendChild(cu);
+        var iv = setInterval(function () {
+          if (cur !== me || me.ended) { clearInterval(iv); return; }
+          k++;
+          nm.textContent = full.slice(0, k); nm.appendChild(cu);
+          if (k >= full.length) clearInterval(iv);
+        }, m.type);
+        cur.timers.push(iv);
+      }
     }
     function onKey(e) { if (e.key === 'Escape' && cur && !cur.ended) { e.preventDefault(); skip(); } }
     function onDown(e) { if (cur && !cur.ended) skip(); }
@@ -716,6 +1130,8 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       document.removeEventListener('pointerdown', onDown, true);
       cur.dom.forEach(function (d) { d.classList.add('gone'); setTimeout(function () { d.remove(); }, 340); });
       cur.dom = [];
+      cur.timers.forEach(function (iv) { clearInterval(iv); });
+      cur.timers = [];
       if (cur.els.panel) cur.els.panel.classList.remove('boast-panel');
       (cur.els.dim || []).forEach(function (d) { if (d) d.classList.remove('boast-dim'); });
     }
@@ -732,8 +1148,9 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
     }
     function skip() { if (cur && !cur.ended) { stats.skipped++; finish('skip'); } }
     function cancel() { if (cur) { var c0 = cur; c0.onEnd = null; finish('cancel'); cur = null; } }
-    // play(id, els, opts): opts { who (the winner's name), onEnd(reason),
-    // reduced, seed }. Returns the plan played (or null when nothing can be).
+    // play(id, els, opts): opts { who (the winner's name), faction (the
+    // winner's: a neutral boast's panel and sting), onEnd(reason), reduced,
+    // seed }. Returns the plan played (or null when nothing can be).
     function play(id, els, opts) {
       opts = opts || {};
       cancel();
@@ -749,15 +1166,16 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       }
       var geom = geomOf(els);
       if (!geom.band) { stats.refused++; if (opts.onEnd) opts.onEnd('none'); return null; }
-      var plan = boastPlan(spec, geom, opts.seed || 1);
+      var plan = boastPlan(spec, geom, opts.seed || 1, { name: opts.who, faction: opts.faction });
       var problem = boastPlanProblem(plan, geom);
       var canDraw = CFX.isReady();
       if (problem || reduced || !canDraw) plan = boastStill(plan);
       if (plan.still) stats.still++;
       stats.played++;
       stats.problem = problem;
-      stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0;
-      cur = { plan: plan, els: els, who: opts.who || '', onEnd: opts.onEnd || null, rgb: rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], ended: false };
+      stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0; stats.groups = {};
+      plan.pieces.forEach(function (pc) { var g = pc.grp || pc.shape || pc.sp; stats.groups[g] = (stats.groups[g] || 0) + 1; });
+      cur = { plan: plan, els: els, who: opts.who || '', onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false };
       (els.dim || []).forEach(function (d) { if (d) d.classList.add('boast-dim'); });
       // The Skip button sits at the top right of the winner's side.
       var sk = document.createElement('button');
@@ -777,7 +1195,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       return plan;
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur && !cur.ended; }, geomOf: geomOf,
-      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
+      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
   })();
 `;
 
@@ -799,29 +1217,42 @@ export const BOAST_CSS = `
 .boast-skip:hover, .boast-skip:focus-visible { border-color: var(--ink, #dfe7ff); }
 .turnbar .win.land { display: inline-block; animation: boast-land 520ms cubic-bezier(.2,.9,.3,1.3) both; }
 @keyframes boast-land { from { opacity: 0; transform: translateY(6px) scale(1.25); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .boast-name, .turnbar .win.land { animation: none; } }
+/* Boot Sequence's plate: the name in the BIOS's type, behind a block cursor. */
+.boast-name.mono .boast-who { font-family: ui-monospace, Menlo, Consolas, "DejaVu Sans Mono", monospace; letter-spacing: 0.04em; text-align: left; }
+.boast-name .boast-cur { display: inline-block; width: 0.55em; height: 0.85em; margin-left: 0.1em; vertical-align: -0.06em; background: var(--fc); box-shadow: 0 0 8px var(--fc); animation: boast-blink 0.52s steps(1) infinite; }
+@keyframes boast-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .boast-name, .turnbar .win.land, .boast-name .boast-cur { animation: none; } }
 `;
 
 export interface BoastRect { l: number; t: number; r: number; b: number }
 export interface BoastSlot extends BoastRect { filled?: boolean }
 export interface BoastGeom { band: BoastRect; panel?: BoastRect | null; slots: BoastSlot[]; loser?: BoastRect[] }
 export interface BoastKey { t: number; x: number; y: number; s: number; a: number; e?: "slam" | "in" | "out" }
-export interface BoastPiece { sp: string; rot: number; centre?: boolean; row?: number; slot?: number; grp?: string; sx?: number; frame?: boolean; core?: boolean; spin?: number; keys: BoastKey[] }
+export interface BoastBits { cols: number; rows: number; chars: number; dots: [number, number, number][] }
+export interface BoastPiece {
+  sp?: string; rot: number; centre?: boolean; row?: number; slot?: number; grp?: string; sx?: number; frame?: boolean; core?: boolean; spin?: number;
+  /** Code-drawn (Season 0): text, a dot-font block, one pixel or a tower. */
+  shape?: "text" | "bits" | "dot" | "tower"; w?: number; rgb?: [number, number, number];
+  txt?: string; type?: { t0: number; ms: number }; cursor?: boolean; bits?: BoastBits;
+  twinkle?: boolean; ph?: number; seed?: number; ant?: boolean; data?: [number, number];
+  keys: BoastKey[];
+}
 export interface BoastMark {
-  k: "shock" | "flare" | "ring" | "sparks" | "grid" | "sound" | "duck" | "panel" | "pulse" | "veil" | "name" | "end";
+  k: "shock" | "flare" | "ring" | "sparks" | "grid" | "sound" | "duck" | "panel" | "pulse" | "veil" | "crt" | "name" | "end";
   t: number;
   [key: string]: unknown;
 }
 export interface BoastBeat { p: string; at: number; [key: string]: unknown }
-export interface BoastSpec { id: string; name: string; faction: string; ms: number; beats: BoastBeat[] }
+export interface BoastSpec { id: string; name: string; faction: string | null; col?: string; ms: number; beats: BoastBeat[] }
+export interface BoastWho { name?: string; faction?: string }
 export interface BoastPlan {
-  id: string; faction: string; name: string; ms: number;
+  id: string; faction: string; name: string; ms: number; col?: string; rgb?: [number, number, number];
   pieces: BoastPiece[]; marks: BoastMark[];
   crest: { x: number; y: number; r: number };
   crestPieces?: number; still?: boolean;
 }
 
-const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS_MAX, BOAST_STILL_MS: BOAST_STILL_MS, BOAST_LEAD_MS: BOAST_LEAD_MS, BOAST_STARTER: BOAST_STARTER, BOAST_PRIMS: BOAST_PRIMS, BOAST_FORMATIONS: BOAST_FORMATIONS, BOAST_SPECS: BOAST_SPECS, boastIdFor: boastIdFor, boastCosmeticsShown: boastCosmeticsShown, boastSpecProblem: boastSpecProblem, boastPlan: boastPlan, boastStill: boastStill, boastPlanProblem: boastPlanProblem, boastPieceAt: boastPieceAt };`)() as {
+const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS_MAX, BOAST_STILL_MS: BOAST_STILL_MS, BOAST_LEAD_MS: BOAST_LEAD_MS, BOAST_STARTER: BOAST_STARTER, BOAST_PRIMS: BOAST_PRIMS, BOAST_FORMATIONS: BOAST_FORMATIONS, BOAST_SPECS: BOAST_SPECS, BOAST_FONT: BOAST_FONT, BOAST_NEON: BOAST_NEON, boastBits: boastBits, boastBitsFit: boastBitsFit, boastIdFor: boastIdFor, boastCosmeticsShown: boastCosmeticsShown, boastSpecProblem: boastSpecProblem, boastPlan: boastPlan, boastStill: boastStill, boastPlanProblem: boastPlanProblem, boastPieceAt: boastPieceAt };`)() as {
   BOAST_MS_MAX: number;
   BOAST_STILL_MS: number;
   BOAST_LEAD_MS: number;
@@ -829,10 +1260,14 @@ const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS
   BOAST_PRIMS: string[];
   BOAST_FORMATIONS: Record<string, { size: number; lock: [number, number, number]; cells: [number, number][] }>;
   BOAST_SPECS: Record<string, BoastSpec>;
+  BOAST_FONT: Record<string, string>;
+  BOAST_NEON: string[];
+  boastBits: (lines: string[]) => BoastBits;
+  boastBitsFit: (text: string, w: number, h: number, maxCell?: number) => { bits: BoastBits; cell: number };
   boastIdFor: (recordId: string | null | undefined, faction: string) => string | null;
   boastCosmeticsShown: (viewer: string | null | undefined, side: string, on: boolean) => boolean;
   boastSpecProblem: (spec: BoastSpec) => string | null;
-  boastPlan: (spec: BoastSpec, geom: BoastGeom, seed?: number) => BoastPlan;
+  boastPlan: (spec: BoastSpec, geom: BoastGeom, seed?: number, who?: BoastWho) => BoastPlan;
   boastStill: (plan: BoastPlan) => BoastPlan;
   boastPlanProblem: (plan: BoastPlan, geom: BoastGeom) => string | null;
   boastPieceAt: (pc: BoastPiece, t: number) => { x: number; y: number; s: number; a: number } | null;
@@ -845,6 +1280,10 @@ export const BOAST_STARTER = impl.BOAST_STARTER;
 export const BOAST_PRIMS = impl.BOAST_PRIMS;
 export const BOAST_FORMATIONS = impl.BOAST_FORMATIONS;
 export const BOAST_SPECS = impl.BOAST_SPECS;
+export const BOAST_FONT = impl.BOAST_FONT;
+export const BOAST_NEON = impl.BOAST_NEON;
+export const boastBits = impl.boastBits;
+export const boastBitsFit = impl.boastBitsFit;
 export const boastIdFor = impl.boastIdFor;
 export const boastCosmeticsShown = impl.boastCosmeticsShown;
 export const boastSpecProblem = impl.boastSpecProblem;

@@ -350,7 +350,11 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
     function embersRise(x, y, c, n, rad, lm) {
       for (var i = 0; i < n; i++) { var a = rand(0, 6.283), d = rand(0, rad); addP({ kind: 'ember', x: x + Math.cos(a) * d, y: y + Math.sin(a) * d, vx: rand(-25, 25), vy: rand(-80, -20), life: rand(1.2, 2.4) * (lm || 1), c: c, size: rand(1.6, 3.2), fric: 0.97, grav: -8 }); }
     }
-    function shock(x, y, c, R, life, sx, sy, delay) { spr(FX_SP.shock, c, x, y, { s0: R * 0.25, s1: R * 2.1, life: life, fade: 'out', sx: sx || 1, sy: sy || 1, delay: delay || 0 }); }
+    // A squashed shock (sx != sy) is a flat ring on the floor (a face hit, a
+    // boast's flash along a row): it stays level. Only a round one turns at
+    // random. (Render session 33: a tilted flat ring reached past the side a
+    // boast's checker had measured it in.)
+    function shock(x, y, c, R, life, sx, sy, delay) { spr(FX_SP.shock, c, x, y, { s0: R * 0.25, s1: R * 2.1, life: life, fade: 'out', sx: sx || 1, sy: sy || 1, delay: delay || 0, rot: (sx || 1) !== (sy || 1) ? 0 : undefined }); }
     function flare(x, y, c, s, life) { spr(FX_SP.flare, c, x, y, { s0: s * 0.7, s1: s * 1.1, life: life, rot: 0 }); addP({ kind: 'bloom', x: x, y: y, c: c, r: s * 0.6, life: life, vx: 0, vy: 0, fric: 1, grav: 0 }); }
     function decal(x, y, id, c, s, life, a) { spr(id, c, x, y, { s0: s * 0.8, s1: s, life: life, fade: 'late', a: a, layer: 0 }); }
     function ring(x, y, c, maxR, dur, w, o) { o = o || {}; rings.push({ x: x, y: y, c: c, maxR: maxR, t: 0, dur: dur, w: w, dy: o.dy || 0, squash: o.squash || 1 }); }
