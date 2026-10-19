@@ -1,13 +1,54 @@
 # Notes for the owner
 
-**Updated 2026-10-19, session 48 (the Season 0 boasts; a hardening pass).** Nothing is blocking.
-**Built as you named it:** Boot Sequence and Dial-Up Fireworks are in the catalogue (neutral, 300
-credits, the whole of Season 0, then retired), and neither can be bought until the render lane has
-drawn it. Evidence: `progress/economy-demo-013.txt`. **One small [OWNER CHECK-IN] below:** the
-overdue re-check of the 14 approved signature lines with today's agent passes 13; Guardian 3/5 is now
-0.1 points over your limit. Evidence: `progress/balance-report-033-signature-recheck.txt`.
+**Updated 2026-10-19, session 49 (your session-48 answers: the approved list from today's agent; a
+Guardian line).** Nothing is blocking. **Done as you answered:** the approved list is now read only
+from today's agent's results; Guardian 3/5 is off it; the tuner found a Guardian line that passes,
+**Guardian 3/4**, so the list is 14 lines over 7 options and the menu keeps a Guardian option. The
+store wording of the starter boasts now describes them as drawn. **One small [OWNER CHECK-IN] below.**
+Evidence: `progress/balance-report-034-guardian-search.txt`.
 
-### [OWNER CHECK-IN] The approved signature lines re-checked: 13 of 14 pass; Guardian 3/5 is just over
+### [OWNER CHECK-IN] Guardian 3/4 passes and is on the list; the real-match ring re-recorded
+
+**What happened:** with today's agent, the tuner measured every cost-5 Guardian body (attack 2-4,
+health 3-9) at 1,000 games per edge, ran the lever tuner over costs 5, 6 and 7, and re-measured the
+nearest two lines at 10,000 games per edge, the same bar as every line on the list.
+- **Attack 2 is too weak** (2 to 4 points worse than the plain 3/6) and **attack 4 too strong** (5 to 9
+  points better). Costs 6 and 7 are far off (best: 4.0 points over at 500 games).
+- **Guardian 3/4 passes:** worst edge 2.00 (Cortex > Swarm, 95% interval +1.5 to +2.5), exactly on your
+  limit, like Supply Line 3/7. Every other edge is 1.8 or less; net +1.0 (a little stronger than the
+  stand-in, as the other lines are).
+- **Guardian 3/6 fails** (3.2 points, Aegis > Cortex). Guardian 3/5 stays off (2.10 at 10,000).
+- So the generator, which takes every line that passes at its largest measurement, put **Guardian 3/4**
+  on the list: **14 lines over 7 options**, the same size as before, with Guardian 3/4 in place of 3/5.
+  Agents that already hold a Guardian 3/5 card keep it.
+
+**Knock-on: the real-match ring check.** That check gives each side an approved line as its signature
+card, so a new list changes its matches. Its seat draw only worked for an even number of lines (13
+would have given each seat 7 of them), so it now works for any number. With the new list, five edges
+held their verdict and **Cortex > Swarm moved 53.4% -> 53.0%**. That is a -0.4 change, well inside
+noise (-3.2 to +2.3), but its interval now sits just under the band, so the check read it as worse. No
+card changed, and the check has to follow the list, so **I re-recorded its baseline** (every edge
+within 1.7 points; the table is in section 5 of the report). The gate (decks as shipped) is unaffected
+and passes.
+
+**What I need from you (both optional; the defaults are what's built):**
+1. **Guardian 3/4 on the list?** [suggestion: **keep it**, as built. It passes the same way Supply Line 3/7
+   does. Alternative: take it off and leave the list at 13 with no Guardian option.]
+2. **The real-match ring's re-recorded baseline** [suggestion: **keep it**. The alternative is to keep the
+   old baseline and accept Cortex > Swarm as noise, but CI would fail on every engine change until it
+   was re-recorded.]
+
+**Calls you may want to overrule:**
+1. **Starter boast wording:** besides the two lines the render lane named, Hive Burst's said the spores
+   "spell the name" (your kept call 2 says they don't), so it now says "a zig-zag column over the
+   name"; Void Collapse's now says the glitch bars "frame the name". Wording only.
+
+**For the render lane:** the list change alters which signature cards the seeded replays generate.
+Two render tests were moved to seeds that still show what they test: the feed's renamed-card test uses
+Cortex vs Aegis seed 7, and the zone net adds seeds 11 and 12. Committed replays with generated
+signature cards will differ when they're next regenerated.
+
+### [ANSWERED 2026-10-19: option C, and yes to today's agent; built session 49] The approved signature lines re-checked: 13 of 14 pass; Guardian 3/5 is just over
 
 **What happened:** the 14 lines new agents draw their signature card from were measured in session 35,
 before session 41 taught the agent to value signature abilities. This session measured the fairness

@@ -41,11 +41,42 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 (the real-match ring check; why a signature card helps Aegis most), and session 45 (option C: the
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
-(the Season 0 boasts; a hardening pass).
+(the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
-## New debt from session 48
+## New debt from session 49
+
+- **Two lines on the approved list pass exactly on the limit** (Guardian 3/4 and Supply Line 3/7,
+  worst 2.00 at 10,000 games; both intervals reach 2.5). The owner's rule reads the point estimate,
+  so they pass, but the next agent change could tip either over, as it tipped Guardian 3/5.
+- **The real-match ring baseline was re-recorded on a judgement, not a card change.** Cortex > Swarm
+  flipped UNRESOLVED -> OUT on a -0.4 change. The check judges verdicts on intervals, so a list change
+  alone can flip an edge sitting near its band. The ring check has no way to tell "the stand-in's
+  draw changed" from "a card changed"; any future list change will need the same re-record.
+- **Removing a line on the owner's word has no mechanism.** Guardian 3/5 left the list because its
+  data fails; if the owner takes off a line that passes (e.g. Guardian 3/4), the generator needs an
+  owner-removed set, which doesn't exist yet.
+- **Committed render replays with generated signature cards no longer match a fresh run** (the
+  seeded generator draws from the new list). No test compares them; the render lane regenerates.
+- **The username-in-the-name test was asserting a rate (1 in 30) the code hasn't used since
+  2026-10-16** and passed by luck. Fixed this session (300 drafts, 1 in 100), but it shows the seeded
+  count tests elsewhere may also sit closer to chance than their comments say. Not audited.
+
+## Session 48 debt, status after session 49
+
+- "The approved list holds one line that fails with today's agent" and "the generator still reads
+  the session-35 measurements": FIXED (owner 2026-10-19): the list reads only `agent41/`, Guardian
+  3/5 is off, Guardian 3/4 is on.
+- "The 3 starter boasts not yet drawn are owned and equippable": moot, render slice 2 drew them.
+- "The approved list trusts file names to tell old Guardian and Bulwark results from new ones" (an
+  older item below): FIXED in effect, since only `agent41/` is read; the result files still don't
+  carry their own fingerprint.
+- The rest of session 48's list stands (the `drawn` test reads the render by path;
+  `grantStarterCollection` timing; dev drivers smoke-tested at 2 seeds; older reports 001-022 not
+  checked for regeneration).
+
+## Debt from session 48
 
 - **The approved signature list holds one line that fails with today's agent:** Guardian 3/5,
   Aegis > Cortex +2.1 (balance report 033). New agents can still draw it until the owner answers

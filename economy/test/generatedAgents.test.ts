@@ -117,7 +117,7 @@ describe("generating a new agent", () => {
     // One login; each new draft replaces the last.
     const o = s.createAccount({ name: "u", username: "neonfan", password: "correct horse battery" }).ownerId;
     const plain = s.createOwner({ name: "house" }).ownerId;
-    for (let i = 0; i < 90; i++) {
+    for (let i = 0; i < 300; i++) {
       const d = s.startAgentDraft(o, { seed: 500 + i });
       const p = s.pickDraftAgent(o, d.draftId, 0, { seed: 900 + i });
       for (const c of p.signatures!) {
@@ -128,10 +128,13 @@ describe("generating a new agent", () => {
       const dh = s.startAgentDraft(plain, { seed: 500 + i });
       for (const c of s.pickDraftAgent(plain, dh.draftId, 0, { seed: 900 + i }).signatures!) expect(c.name).not.toMatch(/^Neonfan's /);
     }
-    // 1 in 30 per candidate: about 9 of 270 (seeded, so this count is fixed).
+    // 1 in USERNAME_HANDLE_ODDS (100) per candidate: about 9 of 900 (seeded,
+    // so this count is fixed). At 90 drafts the expected count was 2.7 and a
+    // change to the approved list (session 49) drew 1; 300 drafts keeps the
+    // bounds well clear of chance.
     expect(withName).toBeGreaterThan(2);
     expect(withName).toBeLessThan(25);
-    expect(shown).toBe(270);
+    expect(shown).toBe(900);
   });
 
   it("refuses a confirm when the shown card was taken in the meantime", () => {

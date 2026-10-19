@@ -3,9 +3,9 @@
 ## 1. The shipped catalogue
 
 boast-aegis-shield-slam      Shield Slam        standard Aegis   free (starter)  drawn: yes  on sale in S0 now: no
-boast-swarm-hive-burst       Hive Burst         standard Swarm   free (starter)  drawn: no   on sale in S0 now: no
-boast-null-void-collapse     Void Collapse      standard Null    free (starter)  drawn: no   on sale in S0 now: no
-boast-cortex-data-cascade    Data Cascade       standard Cortex  free (starter)  drawn: no   on sale in S0 now: no
+boast-swarm-hive-burst       Hive Burst         standard Swarm   free (starter)  drawn: yes  on sale in S0 now: no
+boast-null-void-collapse     Void Collapse      standard Null    free (starter)  drawn: yes  on sale in S0 now: no
+boast-cortex-data-cascade    Data Cascade       standard Cortex  free (starter)  drawn: yes  on sale in S0 now: no
 boast-s0-boot-sequence       Boot Sequence      S0       neutral 300 credits     drawn: no   on sale in S0 now: no
 boast-s0-dial-up-fireworks   Dial-Up Fireworks  S0       neutral 300 credits     drawn: no   on sale in S0 now: no
 

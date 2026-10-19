@@ -24,8 +24,21 @@ describe("the approved signature lines", () => {
     expect(new Set(APPROVED_SIGNATURE_LINES.map((l) => l.id)).size).toBe(APPROVED_SIGNATURE_LINES.length);
   });
 
+  it("are read from today's agent's results, without Guardian 3/5 (owner 2026-10-19)", () => {
+    for (const l of APPROVED_SIGNATURE_LINES) expect(l.source, l.id).toMatch(/^progress\/signature-fairness\/agent41\//);
+    expect(APPROVED_SIGNATURE_LINES.map((l) => l.id)).not.toContain("sig5-3x5-guardian");
+  });
+
+  it("a card no longer on the list still builds from its own spec, as a stored agent's does", () => {
+    const spec = { ability: "guardian", tier: 5, attack: 3, health: 5 } as const;
+    const card = signatureCardFor({ spec, name: "Old Guard", flavor: "" }, "SIG-OLD");
+    expect([card.attack, card.health, card.keywords]).toEqual([3, 5, ["Barrier"]]);
+    expect(signatureFingerprint(card)).toBe("efed547e"); // its fingerprint when it was approved (session 35)
+  });
+
   it("the fingerprint ignores id, name, art and flavour, and catches any change to what the card does", () => {
-    const spec = APPROVED_SIGNATURE_LINES[0]!.spec;
+    // A line with an ability (Guardian is a keyword only), so the last check has one to change.
+    const spec = APPROVED_SIGNATURE_LINES.find((l) => buildSignatureCard(l.spec, { anyStats: true }).abilities.length > 0)!.spec;
     const base = buildSignatureCard(spec, { anyStats: true });
     const fp = signatureFingerprint(base);
     expect(signatureFingerprint({ ...base, id: "x", name: "y", art: "z", flavor: "w" })).toBe(fp);

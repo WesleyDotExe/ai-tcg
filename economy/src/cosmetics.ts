@@ -90,7 +90,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     priceCredits: null,
     sale: null,
     artRef: "code:boast/aegis-shield-slam",
-    description: "Hex plates slam down along the winner's row and lock into a crest over the name.",
+    description: "Hex plates slam up along the winner's row and lock into a crest over the name.",
     drawn: true,
   },
   Swarm: {
@@ -102,7 +102,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     priceCredits: null,
     sale: null,
     artRef: "code:boast/swarm-hive-burst",
-    description: "Egg sacs bloom in the winner's slots and burst into a rising spore column that spells the name.",
+    description: "Egg sacs swell in the winner's slots and burst, throwing spores up into a zig-zag column over the name.",
     drawn: true,
   },
   Null: {
@@ -114,7 +114,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     priceCredits: null,
     sale: null,
     artRef: "code:boast/null-void-collapse",
-    description: "A dark star pulls in the winner's light, holds a beat, and blooms out in glitch bars into the name.",
+    description: "A dark star pulls in the winner's light, holds a silent beat, and blooms out in glitch bars that frame the name.",
     drawn: true,
   },
   Cortex: {
@@ -126,7 +126,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     priceCredits: null,
     sale: null,
     artRef: "code:boast/cortex-data-cascade",
-    description: "Columns of pixels rain onto the winner's row and assemble into the name as wireframe blocks.",
+    description: "Columns of pixels stream up out of the winner's row and snap into a stack of wireframe blocks over the name.",
     drawn: true,
   },
 };

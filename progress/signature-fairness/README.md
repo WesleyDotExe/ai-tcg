@@ -73,3 +73,17 @@ doesn't mix measurements from two agents. The reference these lines pair with is
 |---|---|
 | (reference) | `npx tsx src/dev/signatureFairness.ts reference --seeds 10000` |
 | `agent41/recheck-10k-0.jsonl` … `agent41/recheck-10k-3.jsonl` | `npx tsx src/dev/signatureFairness.ts remeasure --approved --seeds 10000 --shard i/4 --out ../progress/signature-fairness/agent41/recheck-10k-i.jsonl` (i = 0..3, in parallel) |
+
+## Session 49 (owner 2026-10-19: the approved list from today's agent; a Guardian line)
+
+From this session `signatureApprovedList.ts` reads **only** `agent41/` (owner 2026-10-19, answering
+session 48's question 2): the files directly in this folder are the older agent's and count for no
+line. When the measuring agent changes again, re-measure into a new subfolder and point the
+generator's `AGENT_RESULTS` at it. Printed into `progress/balance-report-034-guardian-search.txt` by
+`engine/src/dev/signatureGuardianReport.ts`.
+
+| file | command (from `engine/`) |
+|---|---|
+| `agent41/guardian-grid-0.jsonl` … `-3.jsonl` | `npx tsx src/dev/signatureFairness.ts grid --abilities guardian --seeds 1000 --shard i/4 --out ../progress/signature-fairness/agent41/guardian-grid-i.jsonl` (every cost-5 body, compact lines) |
+| `agent41/guardian-levers.jsonl` | `npx tsx src/dev/signatureFairness.ts levers --ability guardian --coarse 300 --seeds 500 --confirm 2500 --out ../progress/signature-fairness/agent41/guardian-levers.jsonl` |
+| `agent41/guardian-confirm-10k-0.jsonl`, `-1.jsonl` | `npx tsx src/dev/signatureFairness.ts remeasure --ids sig5-3x4-guardian,sig5-3x6-guardian --seeds 10000 --shard i/2 --out ../progress/signature-fairness/agent41/guardian-confirm-10k-i.jsonl` |

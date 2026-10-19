@@ -153,9 +153,12 @@ describe("in real matches (oracle: the engine's own events)", () => {
   // Cortex vs Aegis seed 5 is the committed showcase: both cards played, one
   // dies, returns at 7 and is played again. The rest widen the net
   // (Cortex vs Aegis seed 10, two returns, added in game session 41 when the
-  // reference agent's fix left the other five with two returns between them).
+  // reference agent's fix left the other five with two returns between them;
+  // seeds 11 and 12 added in game session 49, when the approved list went to
+  // 13 lines and the six above were left with one return between them).
   const cases: [DeckFaction, DeckFaction, number][] = [
     ["Cortex", "Aegis", 5], ["Aegis", "Swarm", 5], ["Null", "Cortex", 2], ["Swarm", "Null", 1], ["Cortex", "Aegis", 1], ["Cortex", "Aegis", 10],
+    ["Cortex", "Aegis", 11], ["Cortex", "Aegis", 12],
   ];
   const replaysP = Promise.all(cases.map(([a, b, s]) => sigReplay(a, b, s)));
 
