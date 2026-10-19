@@ -4507,6 +4507,25 @@ html, body {
     return s && BOAST_SPECS[s] ? s : null;
   }
 
+  // The boast a replay plays at its end (slice 3), from the match record's
+  // boast (replay.record.boast: { side, itemId, slot, winnerHealth }), which
+  // the store chose as the match ended: the winner's main boast, its
+  // close-win boast (it ended on 5 health or less) or, with the boast slot
+  // empty, its deck faction's starter. The render never chooses: it only
+  // falls back to the winner's faction starter when the record can't be
+  // played here (no record: a match from before the record, or a sample
+  // replay; a record whose boast is another side's; a boast this render
+  // can't draw). Returns { id, slot, close } or null for no boast. slot is
+  // the record's, or 'fallback'; close is true for a close-win boast.
+  function boastFromRecord(boast, winner, faction) {
+    if (!winner || winner === 'draw') return null;
+    if (boast && boast.side === winner && BOAST_SPECS[boast.itemId]) {
+      return { id: boast.itemId, slot: boast.slot, close: boast.slot === 'closeWinBoast' };
+    }
+    var id = boastIdFor(null, faction);
+    return id ? { id: id, slot: 'fallback', close: false } : null;
+  }
+
   // The "Cosmetics: on / off" switch (owner decision 7, render session 30):
   // whether a side's cosmetics (its boast; later its card back, avatar and
   // arena) show. viewer: null for a spectator, or the side the viewing
@@ -5322,7 +5341,7 @@ html, body {
       el.style.left = (m.x - m.w / 2) + 'px'; el.style.top = (m.y - m.h / 2) + 'px';
       el.style.width = m.w + 'px'; el.style.height = m.h + 'px';
       var nm = document.createElement('div'); nm.className = 'boast-who'; nm.textContent = cur.who;
-      var tag = document.createElement('div'); tag.className = 'boast-tag'; tag.textContent = cur.plan.name.toUpperCase() + ' · VICTORY';
+      var tag = document.createElement('div'); tag.className = 'boast-tag'; tag.textContent = cur.plan.name.toUpperCase() + (cur.close ? ' · CLOSE WIN' : ' · VICTORY');
       el.appendChild(nm); el.appendChild(tag);
       // Boot Sequence's plate ends on a block cursor; it is measured with it.
       var cu = null;
@@ -5376,7 +5395,7 @@ html, body {
     function cancel() { if (cur) { var c0 = cur; c0.onEnd = null; finish('cancel'); cur = null; } }
     // play(id, els, opts): opts { who (the winner's name), faction (the
     // winner's: a neutral boast's panel and sting), onEnd(reason), reduced,
-    // seed }. Returns the plan played (or null when nothing can be).
+    // seed, close (a close win: the plate says CLOSE WIN, not VICTORY) }. Returns the plan played (or null when nothing can be).
     function play(id, els, opts) {
       opts = opts || {};
       cancel();
@@ -5401,7 +5420,7 @@ html, body {
       stats.problem = problem;
       stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0; stats.groups = {};
       plan.pieces.forEach(function (pc) { var g = pc.grp || pc.shape || pc.sp; stats.groups[g] = (stats.groups[g] || 0) + 1; });
-      cur = { plan: plan, els: els, who: opts.who || '', onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false };
+      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false };
       (els.dim || []).forEach(function (d) { if (d) d.classList.add('boast-dim'); });
       // The Skip button sits at the top right of the winner's side.
       var sk = document.createElement('button');
@@ -5421,7 +5440,7 @@ html, body {
       return plan;
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur && !cur.ended; }, geomOf: geomOf,
-      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
+      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
   })();
 
   window.__boast = BOAST; // read by the browser checks (progress/render/evidence/boast-check.mjs)
@@ -6857,8 +6876,10 @@ html, body {
   // winner's HP bar settles, the boast plays (about 3 s; a tap, Escape or
   // Skip ends it), then "GAME OVER: X WINS" lands as the boast ends. A
   // jump to the end has no in between, so it shows the result at once.
-  // A draw has no boast. The record's boast comes with slice 3; until then
-  // the winner's faction starter boast plays (boastIdFor).
+  // A draw has no boast. Which boast plays is the match record's
+  // (replay.record.boast, chosen by the store as the match ended: the main
+  // boast, the close-win boast or the deck faction's starter); a replay
+  // without a record plays the winner's faction starter (boastFromRecord).
   let boastHold = false, resultLanding = false, boastTimer = 0;
   // "Cosmetics: on / off" (owner decision 7): a replay is a spectator's
   // view, so the switch hides both sides' cosmetics (today, the boast; card
@@ -6883,10 +6904,10 @@ html, body {
     // still waiting on the lethal beat finds no boast and does the same.)
     if (!cosmeticsOn && BOAST.active()) BOAST.skip();
   });
-  function boastIdOf(frame) {
+  function boastOf(frame) {
     if (!frame.winner || frame.winner === 'draw') return null;
     if (!boastCosmeticsShown(null, frame.winner, cosmeticsOn)) return null;
-    return boastIdFor(null, frame.players[frame.winner].faction);
+    return boastFromRecord(replay.record ? replay.record.boast : null, frame.winner, frame.players[frame.winner].faction);
   }
   function endBoast() {
     clearTimeout(boastTimer); boastTimer = 0;
@@ -6895,15 +6916,15 @@ html, body {
   }
   function startBoast() {
     boastTimer = 0;
-    const frame = frames[i], w = frame.winner, id = boastIdOf(frame);
-    if (!id || i !== frames.length - 1) { releaseResult(); return; }
+    const frame = frames[i], w = frame.winner, pick = boastOf(frame);
+    if (!pick || i !== frames.length - 1) { releaseResult(); return; }
     const l = w === 'p1' ? 'p2' : 'p1';
-    BOAST.play(id, {
+    BOAST.play(pick.id, {
       band: document.getElementById('side-' + w), panel: document.getElementById('hud-' + w),
       row: document.getElementById('board-' + w),
       loser: [document.getElementById('side-' + l), document.getElementById('hud-' + l)],
       dim: [document.getElementById('side-' + l), document.getElementById('hud-' + l), document.getElementById('hand-' + l)]
-    }, { who: pname(w), faction: frame.players[w].faction, seed: replay.seed, onEnd: releaseResult });
+    }, { who: pname(w), faction: frame.players[w].faction, seed: replay.seed, close: pick.close, onEnd: releaseResult });
   }
   function releaseResult() {
     if (!boastHold) return;
@@ -6926,7 +6947,7 @@ html, body {
       const prevStackRects = stackRects();
       const prevHandRects = handRects();
       i = target;
-      boastHold = !!boastIdOf(frames[i]) && !prevFrame.winner;
+      boastHold = !!boastOf(frames[i]) && !prevFrame.winner;
       stepping = true;
       renderFrame();
       stepping = false;

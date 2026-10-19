@@ -1,0 +1,288 @@
+
+recorded-boot-sequence.html — rec-boot-desktop
+  PASS A. result held when the win lands
+  boast starts 1323 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-boot-sequence (got boast-s0-boot-sequence)
+  PASS I. it is the record's boast (boast-s0-boot-sequence, slot boast)
+  PASS N. close win false as the record's slot says
+  PASS K. five BIOS lines (5)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 47638, loser 151
+  1250 ms: lit winner 47622, loser 0
+  1800 ms: lit winner 47622, loser 0
+  2500 ms: lit winner 47622, loser 0
+  PASS D. the boast draws on the winner's side (47638 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 1580 ms
+  PASS B. name plate about 1.5 s in
+  plate: 13 texts, "" first, the whole name 520 ms later (ui-monospace)
+  PASS K. the name types in, a prefix at a time
+  PASS K. the whole name within 0.9 s (0.6 s of typing, plus timer slack on a loaded CPU)
+  PASS K. the whole name, behind a block cursor
+  PASS K. the CRT screen came up
+  PASS K. in the BIOS type (ui-monospace)
+  PASS N. plate says "BOOT SEQUENCE · VICTORY" ("BOOT SEQUENCE · VICTORY")
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3010 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+recorded-boot-sequence.html — rec-boot-phone
+  PASS A. result held when the win lands
+  boast starts 1236 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-boot-sequence (got boast-s0-boot-sequence)
+  PASS I. it is the record's boast (boast-s0-boot-sequence, slot boast)
+  PASS N. close win false as the record's slot says
+  PASS K. five BIOS lines (5)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 27899, loser 0
+  2500 ms: lit winner 27899, loser 0
+  PASS D. the boast draws on the winner's side (27899 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 1554 ms
+  PASS B. name plate about 1.5 s in
+  plate: 13 texts, "" first, the whole name 495 ms later (ui-monospace)
+  PASS K. the name types in, a prefix at a time
+  PASS K. the whole name within 0.9 s (0.6 s of typing, plus timer slack on a loaded CPU)
+  PASS K. the whole name, behind a block cursor
+  PASS K. the CRT screen came up
+  PASS K. in the BIOS type (ui-monospace)
+  PASS N. plate says "BOOT SEQUENCE · VICTORY" ("BOOT SEQUENCE · VICTORY")
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3007 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+recorded-close-win.html — rec-close-desktop
+  PASS A. result held when the win lands
+  boast starts 1248 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  PASS I. it is the record's boast (boast-s0-dial-up-fireworks, slot closeWinBoast)
+  PASS N. close win true as the record's slot says
+  groups {"tower":12,"rocket":4,"letter":178,"fan":32}
+  PASS L. a skyline of towers (12)
+  PASS L. one rocket per burst (4)
+  PASS L. the name spelled in pixels (178 dots)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 47655, loser 440
+  1250 ms: lit winner 47634, loser 0
+  1800 ms: lit winner 47634, loser 0
+  2500 ms: lit winner 47635, loser 0
+  PASS D. the boast draws on the winner's side (47655 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2366 ms
+  PASS B. name plate about 2.3 s in
+  PASS N. plate says "DIAL-UP FIREWORKS · CLOSE WIN" ("DIAL-UP FIREWORKS · CLOSE WIN")
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3009 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+recorded-close-win.html — rec-close-phone
+  PASS A. result held when the win lands
+  boast starts 1217 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  PASS I. it is the record's boast (boast-s0-dial-up-fireworks, slot closeWinBoast)
+  PASS N. close win true as the record's slot says
+  groups {"tower":11,"rocket":4,"letter":178,"fan":32}
+  PASS L. a skyline of towers (11)
+  PASS L. one rocket per burst (4)
+  PASS L. the name spelled in pixels (178 dots)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 27918, loser 0
+  2500 ms: lit winner 27920, loser 0
+  PASS D. the boast draws on the winner's side (27920 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2347 ms
+  PASS B. name plate about 2.3 s in
+  PASS N. plate says "DIAL-UP FIREWORKS · CLOSE WIN" ("DIAL-UP FIREWORKS · CLOSE WIN")
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3013 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+recorded-close-win.html — rec-close-reduced
+  PASS A. result held when the win lands
+  boast starts 1225 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  PASS I. it is the record's boast (boast-s0-dial-up-fireworks, slot closeWinBoast)
+  PASS N. close win true as the record's slot says
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS F. reduced motion plays the still
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  120 ms: lit winner 47634, loser 0
+  PASS D. the boast draws on the winner's side (47634 lit samples)
+  name plate at 7 ms
+  PASS B. name plate at once
+  PASS N. plate says "DIAL-UP FIREWORKS · CLOSE WIN" ("DIAL-UP FIREWORKS · CLOSE WIN")
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 1024 ms into the boast
+  PASS B. result lands as the boast ends (~1 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+recorded-close-win.html — rec-close-escape
+  PASS A. result held when the win lands
+  boast starts 1244 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-s0-dial-up-fireworks (got boast-s0-dial-up-fireworks)
+  PASS I. it is the record's boast (boast-s0-dial-up-fireworks, slot closeWinBoast)
+  PASS N. close win true as the record's slot says
+  groups {"tower":12,"rocket":4,"letter":178,"fan":32}
+  PASS L. a skyline of towers (12)
+  PASS L. one rocket per burst (4)
+  PASS L. the name spelled in pixels (178 dots)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  PASS N. plate says "DIAL-UP FIREWORKS · CLOSE WIN" before the skip ("DIAL-UP FIREWORKS · CLOSE WIN")
+  skip seen by the boast at 2544 ms (skip)
+  PASS E. the boast ended by the skip
+  skip pressed 2539 ms in; result 12 ms after the boast saw it
+  PASS E. skip lands the result at once
+  PASS E. no name, no Skip after a skip
+  PASS E. the dim goes
+  PASS E. boast no longer active
+
+recorded-other-starter.html — rec-other-starter
+  PASS A. result held when the win lands
+  boast starts 1244 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-null-void-collapse (got boast-null-void-collapse)
+  PASS I. it is the record's boast (boast-null-void-collapse, slot boast)
+  PASS N. close win false as the record's slot says
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2195 ms
+  PASS B. name plate about 2.2 s in
+  PASS N. plate says "VOID COLLAPSE · VICTORY" ("VOID COLLAPSE · VICTORY")
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3015 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+recorded-empty-slot.html — rec-empty-slot-seat2
+  PASS A. result held when the win lands
+  boast starts 1228 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-cortex-data-cascade (got boast-cortex-data-cascade)
+  PASS I. it is the record's boast (boast-cortex-data-cascade, slot factionStarter)
+  PASS N. close win false as the record's slot says
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2175 ms
+  PASS B. name plate about 2.2 s in
+  PASS N. plate says "DATA CASCADE · VICTORY" ("DATA CASCADE · VICTORY")
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3016 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-null-seed3.html — no-record-starter
+  PASS A. result held when the win lands
+  boast starts 1216 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-aegis-shield-slam (got boast-aegis-shield-slam)
+  PASS I. no record on this replay: the faction starter plays
+  PASS N. close win false as the record's slot says
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2201 ms
+  PASS B. name plate about 2.2 s in
+  PASS N. plate says "SHIELD SLAM · VICTORY" ("SHIELD SLAM · VICTORY")
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3002 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+recorded-boot-sequence.html — cosmetics off
+  PASS G. cosmetics off: no boast played (0)
+  PASS G. cosmetics off: the result lands without the boast (25 ms)
+
+ALL PASS

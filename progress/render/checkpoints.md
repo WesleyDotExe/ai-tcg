@@ -7,6 +7,63 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-19 — Victory boasts, slice 3: the replay plays the match record's boast, and the close-win slot — AWAITING FEEDBACK
+
+The replay now plays the boast the economy store recorded for that match, never one it picks. Open the
+four new replays in `render/output/` and press `>|` then step back and forward into the last move (or
+play them through):
+- `recorded-boot-sequence.html`: the Cortex winner bought Boot Sequence (with credits earned in 37
+  real recorded matches) and wears it: Boot Sequence plays, not Data Cascade.
+- `recorded-close-win.html`: the Swarm winner ends on 3 health; its close-win slot holds Dial-Up
+  Fireworks (bought), so that plays instead of its main boast, Hive Burst, and the plate says
+  "DIAL-UP FIREWORKS · CLOSE WIN".
+- `recorded-other-starter.html`: an Aegis agent wearing Null's free Void Collapse; its close-win boast
+  (Hive Burst) stays unused because the win, on 14 health, isn't close.
+- `recorded-empty-slot.html`: the Cortex winner's boast slot is empty, so the store records Cortex's
+  starter (slot "factionStarter"), from the top seat.
+The 16 older replays have no record and still play the winner's faction starter.
+
+**How it's made:** each replay runs through the real store (in memory, fixed clock): starter
+collections with the free boasts, an agent each, starter decks, season boasts earned in real matches
+and bought, loadouts equipped; then the replayed match is started with `startMatch` (each side plays
+the deck the store loaded), captured move by move, and recorded with both sides' final health. The
+record read back from the store's history goes into the replay. A record that doesn't match its
+replay (seed, winner, winner's health) is refused when the page is built.
+
+**Evidence:**
+- `progress/render/evidence/recorded-matches-s34.txt`: each scenario's loadouts, earnings, result and
+  the record's boast and slot.
+- **Browser check** (`boast-check-s34.mjs`, output `boast-check-s34.txt`): 216 checks, ALL PASS, with
+  nothing forced (earlier checks wrapped the page's boast call). The boast is the page's own record's,
+  from either seat, on desktop and a phone, in reduced motion; CLOSE WIN only for the close-win slot;
+  Escape mid-boast; a replay without a record; the cosmetics switch off.
+- **Recordings:** `v2-s34-rec-boot-desktop.webm`, `v2-s34-rec-close-desktop.webm`; stills
+  `v2-s34-*.jpg` (the plate on desktop and phone, the reduced-motion still).
+- **Tests:** render 557 (+9): the picker (every slot, the fallbacks, never re-deciding a close win from
+  health, a draw), the store end to end (the main, close-win and empty slots, the same every run, the
+  record on the page), and the refused mismatches.
+
+**Decisions you may want to overrule:**
+1. **A close win is shown by the plate line only:** "<BOAST> · CLOSE WIN" instead of "· VICTORY". The
+   boast plays the same as it does as a main boast. Alternative: nothing (the close-win boast just
+   plays, as any boast), or a louder marker (the plate in the warning colour of a low HP bar).
+2. **A record the render can't use falls back to the faction starter:** a record whose boast is the
+   other side's, or a boast this render can't draw yet (a future season item on an old page). The
+   page never shows "no boast" for a won match. Alternative: no boast in those cases.
+3. **The recorded replays are the four above, beside the 16 samples** (the samples stay recordless,
+   so the "old match" path stays visible). Alternative: re-make the samples through the store so every
+   replay carries a record.
+
+**Thin spots (in the debt list):** nobody has watched any boast at full speed; there is still no server,
+so the records come from an in-memory store; at the end of the close-win replay the momentum gauge
+calls the loser ahead (on board) and the lethal attack's smoke lingers on the loser's row (both
+predate this slice).
+
+**Next:** your calls on the Match Boot plan in `progress/render/notes-for-owner.md` (defaults stand if
+there's no answer); then Match Boot slice 1; then the loadout picker (boast slice 4).
+
+---
+
 ## 2026-10-19 — Victory boasts, slice 2b: the Season 0 boasts, Boot Sequence and Dial-Up Fireworks — AWAITING FEEDBACK
 
 The two neutral Season 0 boasts you named, drawn, and so on sale in the store (300 credits each, the

@@ -2305,8 +2305,10 @@ ${SIG_ZONE_SOURCE}
   // winner's HP bar settles, the boast plays (about 3 s; a tap, Escape or
   // Skip ends it), then "GAME OVER: X WINS" lands as the boast ends. A
   // jump to the end has no in between, so it shows the result at once.
-  // A draw has no boast. The record's boast comes with slice 3; until then
-  // the winner's faction starter boast plays (boastIdFor).
+  // A draw has no boast. Which boast plays is the match record's
+  // (replay.record.boast, chosen by the store as the match ended: the main
+  // boast, the close-win boast or the deck faction's starter); a replay
+  // without a record plays the winner's faction starter (boastFromRecord).
   let boastHold = false, resultLanding = false, boastTimer = 0;
   // "Cosmetics: on / off" (owner decision 7): a replay is a spectator's
   // view, so the switch hides both sides' cosmetics (today, the boast; card
@@ -2331,10 +2333,10 @@ ${SIG_ZONE_SOURCE}
     // still waiting on the lethal beat finds no boast and does the same.)
     if (!cosmeticsOn && BOAST.active()) BOAST.skip();
   });
-  function boastIdOf(frame) {
+  function boastOf(frame) {
     if (!frame.winner || frame.winner === 'draw') return null;
     if (!boastCosmeticsShown(null, frame.winner, cosmeticsOn)) return null;
-    return boastIdFor(null, frame.players[frame.winner].faction);
+    return boastFromRecord(replay.record ? replay.record.boast : null, frame.winner, frame.players[frame.winner].faction);
   }
   function endBoast() {
     clearTimeout(boastTimer); boastTimer = 0;
@@ -2343,15 +2345,15 @@ ${SIG_ZONE_SOURCE}
   }
   function startBoast() {
     boastTimer = 0;
-    const frame = frames[i], w = frame.winner, id = boastIdOf(frame);
-    if (!id || i !== frames.length - 1) { releaseResult(); return; }
+    const frame = frames[i], w = frame.winner, pick = boastOf(frame);
+    if (!pick || i !== frames.length - 1) { releaseResult(); return; }
     const l = w === 'p1' ? 'p2' : 'p1';
-    BOAST.play(id, {
+    BOAST.play(pick.id, {
       band: document.getElementById('side-' + w), panel: document.getElementById('hud-' + w),
       row: document.getElementById('board-' + w),
       loser: [document.getElementById('side-' + l), document.getElementById('hud-' + l)],
       dim: [document.getElementById('side-' + l), document.getElementById('hud-' + l), document.getElementById('hand-' + l)]
-    }, { who: pname(w), faction: frame.players[w].faction, seed: replay.seed, onEnd: releaseResult });
+    }, { who: pname(w), faction: frame.players[w].faction, seed: replay.seed, close: pick.close, onEnd: releaseResult });
   }
   function releaseResult() {
     if (!boastHold) return;
@@ -2374,7 +2376,7 @@ ${SIG_ZONE_SOURCE}
       const prevStackRects = stackRects();
       const prevHandRects = handRects();
       i = target;
-      boastHold = !!boastIdOf(frames[i]) && !prevFrame.winner;
+      boastHold = !!boastOf(frames[i]) && !prevFrame.winner;
       stepping = true;
       renderFrame();
       stepping = false;
