@@ -3557,3 +3557,58 @@ kept if the list ever changes.
 
 **Next render-lane slice:** the owner's calls on the Match Boot plan (the defaults stand if there is no
 answer); then Match Boot slice 1. Boast slice 4 (the loadout picker) after it.
+
+
+## 2026-10-19 — Session 35: Match Boot, slice 1 (the intro at the start of every match); the two end-of-match fixes
+
+Render session by the alternation rule: the last merged PR (#87) was the game lane's (session 51, the
+deck-building agent). Owner feedback read: the answers to render session 34 keep all 3 boast calls and
+approve the Match Boot plan with all 10 defaults, and set this session's work: Match Boot slice 1 with
+two end-of-match fixes (the gauge calling the loser ahead; the lethal smoke on the loser's row). The
+newest entry (answers to game session 51 and a pre-launch balance gate) is the game lane's.
+
+**Built:**
+- `render/src/matchBootFx.ts` (new): list 1 of the sayings and `bootSaying(seed)` (a 32-bit hash; 1 in
+  100 is `> SUDO FIGHT`, the rest even over eight); `bootPlan` (the intro laid out from distances to the
+  centre line between the halves), `bootStill`, `bootPlanProblem` (the "intro" grammar as code); the
+  `BOOT` runtime drawing on its own canvas over the board (code-drawn type and the dot font, no atlas),
+  its sounds, Skip, Escape, a tap.
+- `render/src/renderHtml.ts`: `board-area` has an id; `play()` at move 0 starts the intro and its end
+  (or a skip) plays move 1 at once; `goTo` and `stop` cancel it; Play at the end now shows move 0 before
+  replaying (it used to set the index without redrawing). The boast start fades the loser's side.
+- `render/src/canvasFx.ts`: `CFX.fadeOutIn(rect, ms)` and `CFX.countIn(rect)`.
+- `render/src/momentum.ts` / `capture.ts`: the gauge reads the winner at full once the match is won.
+- `render/src/soundFx.ts`: `handshake` (a two-tone chirp) and `bootHit` (a hit and a rising chord),
+  the same for every faction. `render/src/boastFx.ts`: the dot font's `>`, `BOAST_CLEAR_MS`.
+- `render/src/bootSheet.ts` (new; `npm run boot-sheet`): all nine sayings over all four factions and a
+  mirror match, two phone scenes, the still. EFFECTS.md: the "intro" category, "Match Boot as built",
+  "End-of-match fixes".
+- No engine, agent, card or economy file changed.
+
+**Ran it:**
+- `npx tsx progress/render/evidence/boot-check-s35.mjs <out> render/output video` (output
+  `boot-check-s35.txt`): 53 checks, ALL PASS. Highlights: on `cortex-vs-swarm-seed6` the intro starts at
+  the click, shows the seed's saying (ENGAGE) and both agents' lines, ends on its own at 2,601 ms, move 1
+  follows at once and playback goes on; Escape, Skip and a phone tap skip at about 1 s with move 1 in
+  79-134 ms; pause cancels it on move 0; no intro on open, a step or a resume at move 20; |< and Play,
+  and Play at the end, play it again; reduced motion plays the still for 1,015 ms; the Cosmetics switch
+  doesn't touch it; on a phone the board is scrolled into view. End of match: 167 (close win, winner
+  below) and 183 (`aegis-vs-cortex-seed1`, winner above) particles on the loser's side after the lethal
+  hit, 0 from 0.41 s into the boast; the gauge full toward the winner with "<loser> out of health".
+  Every sheet scene lays out with no grammar problem.
+- The first run of the check (scratch) caught the power-on in its recording; the committed run's
+  recording dropped those frames (software rendering), so the power-on strip is from the first run, the
+  typing strip from the committed one.
+- The 16 sample replays and the 4 recorded ones regenerated: in all 20 the embedded match data changed
+  only in the final frame's momentum (checked per file); `recorded-matches-s35.txt` reproduces s34's
+  byte for byte. The FX, boast, pack-opening, first-time and skin sheets regenerated (they embed the
+  changed canvas and sound sources; some were stale from earlier sessions).
+- Saying odds over 200,000 seeds: `> SUDO FIGHT` 1.02%, each of the eight 12.3-12.4%.
+- `npm test`: all six workspaces pass (1,035: render 574, +17); typecheck clean everywhere.
+
+**Found on the way:** the close-win replay wasn't the only one ending on the loser "AHEAD":
+`aegis-vs-cortex-seed1` did too. Play at the end jumped to move 0 without drawing it, so the first step
+animated from the last board.
+
+**Next render-lane slice:** boast slice 4 (the loadout picker), as the owner set; Match Boot slice 2
+(sound and the phone) after the owner's notes on slice 1.

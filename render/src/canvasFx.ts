@@ -849,6 +849,26 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
       return true;
     }
 
+    // fadeOutIn(rect, ms): every particle inside a document rect fades out
+    // over ms (one not yet started there never starts). A victory boast
+    // clears the loser's side with it, so the lethal attack's smoke and
+    // scorch don't linger there under the boast (owner 2026-10-19).
+    // countIn(rect): how many particles sit inside one, for the checks.
+    function within(p, r) { return p.x >= r.l && p.x <= r.r && p.y >= r.t && p.y <= r.b; }
+    function fadeOutIn(r, ms) {
+      var n = 0, life = Math.max(0.001, (ms || 0) / 1000);
+      for (var i = P.length - 1; i >= 0; i--) {
+        var p = P[i];
+        if (!within(p, r)) continue;
+        n++;
+        if (p.age < 0) P.splice(i, 1);
+        else if (!p.ko || p.ko - p.kt > life) { p.ko = life; p.kt = 0; }
+      }
+      kick();
+      return n;
+    }
+    function countIn(r) { var n = 0; for (var i = 0; i < P.length; i++) if (within(P[i], r)) n++; return n; }
+
     function clear() { P.length = 0; proj.length = 0; rings.length = 0; beams.length = 0; timers.length = 0; resetCamera(); plugins.forEach(function (pl) { if (pl.clear) pl.clear(); }); }
 
     // ---- plug-ins (slice 6: render/src/wardFx.ts) ----
@@ -895,6 +915,7 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
       for (i = P.length - 1; i >= 0; i--) {
         p = P[i]; p.age += dt;
         if (p.age >= p.life) { P.splice(i, 1); continue; }
+        if (p.ko) { p.kt += dt; if (p.kt >= p.ko) { P.splice(i, 1); continue; } }
         if (p.age < 0) continue;
         var f = Math.pow(p.fric, dt * 60);
         p.vx *= f; p.vy *= f; p.vy += p.grav * dt; p.x += p.vx * dt; p.y += p.vy * dt;
@@ -934,6 +955,7 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
       else if (p.fade === 'late') a *= k < 0.65 ? 1 : (1 - k) / 0.35;
       else if (p.fade === 'in') a *= Math.min(1, k * 4);
       if (p.blink && Math.random() < p.blink) a *= 0.15;
+      if (p.ko) a *= 1 - p.kt / p.ko;
       return Math.max(0, a);
     }
     function drawP(c, p) {
@@ -1024,7 +1046,7 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
     }
 
     size();
-    var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear, plug: plug,
+    var api = { travel: travel, impact: impact, effect: effect, kill: kill, clear: clear, plug: plug, fadeOutIn: fadeOutIn, countIn: countIn,
       // What a plug-in may draw with: the same glow, rings, shockwaves,
       // sprites, sparks and grid pushes the effects use.
       kit: { ok: ok, reduced: REDUCED, dpr: DPR, drawGlow: drawGlow, tex: tex, ring: ring, shock: shock, flare: flare, spr: spr, sparks: sparks,

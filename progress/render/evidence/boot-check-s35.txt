@@ -1,0 +1,78 @@
+
+[A-F] cortex-vs-swarm-seed6.html: Play at move 0 (seed 6)
+  PASS A. the saying is the seed's: "ENGAGE" (expected "ENGAGE")
+  PASS B. both agents' lines, seat 2 above and seat 1 below: ["LOADING AGENT: Lookahead-Swarm [SWARM]","LOADING AGENT: Lookahead-Cortex [CORTEX]"]
+  PASS C. the board stays on move 0 while the intro plays
+  PASS D. the intro starts at once (25 ms after the click)
+  PASS D. it ends on its own at about 2600 ms (2622 ms)
+  PASS E. move 1 shows as it ends (0 ms after)
+  PASS E. playback goes on (move 2 350 ms after move 1)
+  PASS F. sounds: the thump, 24 key clicks, the chirp, the hit; the music ducked once
+
+[G] aegis-vs-null-seed3.html: skip by escape
+  PASS G. escape: skipped at 1036 ms
+  PASS G. escape: move 1 at once (69 ms)
+  PASS G. escape: the intro's canvas and Skip are gone
+
+[G] aegis-vs-null-seed3.html: skip by button
+  PASS G. button: skipped at 1105 ms
+  PASS G. button: move 1 at once (115 ms)
+  PASS G. button: the intro's canvas and Skip are gone
+
+[G] null-vs-swarm-seed2.html: skip by tap
+  PASS G. tap: skipped at 1108 ms
+  PASS G. tap: move 1 at once (125 ms)
+  PASS G. tap: the intro's canvas and Skip are gone
+
+[H] aegis-vs-null-seed3.html: pause during the intro
+  PASS H. pause cancels the intro (cancelled 1, ended 0)
+  PASS H. and the board stays on move 0
+  PASS H. the play button reads Play again
+
+[I] swarm-vs-aegis-seed8.html: page open, a step, a resume, |< then Play, Play at the end
+  PASS I. no intro on page open
+  PASS I. no intro on a step (move 1 shows)
+  PASS I. no intro on a resume mid-match (now move 22)
+  PASS I. |< then Play plays it again
+  PASS I. Play at the end replays from move 0, with the intro
+
+[J] cortex-vs-null-seed5.html: reduced motion
+  PASS J. reduced motion plays the still
+  PASS J. about 1000 ms (1001 ms), then move 1
+  PASS J. the still shows the seed's saying ("FIGHT")
+
+[K] cortex-vs-swarm-seed11.html: Cosmetics off
+  PASS K. cosmetics switched off
+  PASS K. the intro still plays (it is standard, not a cosmetic)
+
+[L] null-vs-swarm-seed2.html: a phone (seed 2: "ACCESS GRANTED")
+  PASS L. the board is scrolled into view (89-755 of 844)
+  PASS L. the intro stays inside the screen's width
+
+[M] recorded-close-win.html: the end of the match (winner Moth Protocol, seat 1)
+  PASS M. the lethal beat leaves particles on the loser's side (169 at most)
+  PASS M. none left there from 0.4 s into the boast (37 at its start, then [[0,37],[61,32],[115,32],[148,32],[206,31],[262,28]]...)
+  PASS M. the gauge reads the winner ahead: "Moth Protocol AHEADQuiet Lattice out of health"
+  PASS M. the gauge is full toward the winner (left 50%, width 50%)
+
+[M] aegis-vs-cortex-seed1.html: the end of the match (winner Lookahead-Cortex, seat 2)
+  PASS M. the lethal beat leaves particles on the loser's side (184 at most)
+  PASS M. none left there from 0.4 s into the boast (104 at its start, then [[0,104],[49,93],[138,71],[204,47],[269,39],[330,0]]...)
+  PASS M. the gauge reads the winner ahead: "Lookahead-Cortex AHEADLookahead-Aegis out of health"
+  PASS M. the gauge is full toward the winner (left 0%, width 50%)
+
+[N] match-boot-sheet.html: every scene
+  PASS N. say-1: "FIGHT" laid out, no grammar problem
+  PASS N. say-2: "ENGAGE" laid out, no grammar problem
+  PASS N. say-3: "> RUN MATCH.EXE" laid out, no grammar problem
+  PASS N. say-4: "EXECUTE" laid out, no grammar problem
+  PASS N. say-5: "LINK ESTABLISHED" laid out, no grammar problem
+  PASS N. say-6: "ACCESS GRANTED" laid out, no grammar problem
+  PASS N. say-7: "OVERCLOCK" laid out, no grammar problem
+  PASS N. say-8: "BREACH" laid out, no grammar problem
+  PASS N. say-9: "> SUDO FIGHT" laid out, no grammar problem
+  PASS N. phone-link: "LINK ESTABLISHED" laid out, no grammar problem
+  PASS N. phone-run: "> RUN MATCH.EXE" laid out, no grammar problem
+  PASS N. reduced: "OVERCLOCK" laid out (the still), no grammar problem
+
+ALL PASS

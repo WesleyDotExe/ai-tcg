@@ -60,4 +60,23 @@ describe("computeMomentum", () => {
     expect(reading.score).toBeLessThanOrEqual(100);
     expect(reading.score).toBeGreaterThanOrEqual(-100);
   });
+  // Render session 35 (owner 2026-10-19): at the end of the close-win replay
+  // the board terms had the loser ahead while the boast played.
+  it("reads the result once the match is won, even when the board favours the loser", () => {
+    const loserBoard: PlayerSnapshot["board"] = [
+      { instanceId: "u1", cardId: "X", name: "Big", faction: "Swarm", rarity: "Common", flavor: "", attack: 9, health: 9, maxHealth: 9, keywords: [], pending: false, isEvolved: false, canAttackThisTurn: true, tools: [], statuses: [], visualSeed: 0, visualPattern: 0 },
+    ];
+    const p1 = player({ id: "p1", name: "Kestrel", health: 3 }), p2 = player({ id: "p2", name: "Mote", health: 0, board: loserBoard, hand: new Array(6).fill(null) as any });
+    expect(computeMomentum(p1, p2).leader).toBe("p2");
+    const won = computeMomentum(p1, p2, "p1");
+    expect(won).toEqual({ score: 100, leader: "p1", reasons: ["Mote out of health"] });
+    const wonTop = computeMomentum(player({ id: "p1", name: "Kestrel", health: 4 }), player({ id: "p2", name: "Mote", health: 2 }), "p2");
+    expect(wonTop).toEqual({ score: -100, leader: "p2", reasons: ["Mote won the match"] });
+  });
+
+  it("a draw or a match still running reads the board", () => {
+    const a = player({ id: "p1", name: "Kestrel", health: 20 }), b = player({ id: "p2", name: "Mote", health: 5 });
+    expect(computeMomentum(a, b, "draw")).toEqual(computeMomentum(a, b));
+    expect(computeMomentum(a, b, null)).toEqual(computeMomentum(a, b));
+  });
 });

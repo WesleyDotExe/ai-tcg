@@ -7,6 +7,28 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## Match Boot (slice 1, session 35)
+
+- **Nobody has watched or heard it.** Its 2.6 s, the beats' order, whether the saying "slams", and the
+  sounds (the tube thump, the clicks, the chirp, the hit and chord) were judged from stills, two
+  recordings and timed checks; the sounds only as recipes.
+- **The headless browser drops frames:** the power-on (a line, then the picture opening) shows in the
+  first recording run and not in the second; the stills' times drift by up to 0.25 s from screenshot
+  latency. Timings are taken in the page, so the checks hold; the pictures are approximate.
+- **The faction colour is faint on the screens:** the haze is 6% and the scanlines darken it; the colour
+  reads mostly in the agent lines, the opening flash and the edge glow. Swarm green and Cortex cyan are
+  told apart; a dim monitor may not.
+- **The music is held at 55% under the intro, not stopped** (call 8 in the checkpoint).
+- **No autoplay exists,** so "the page starting playback on its own" has nothing to hook yet; the intro
+  lives in `play()` at move 0, so an autoplay that calls `play()` gets it.
+- **No live match:** the intro plays on replays only; a live broadcast doesn't exist yet.
+- **The agent lines use the system monospace** (as Boot Sequence does): a wider font is squeezed to fit.
+  A long three-part name on a phone types at about 9-12 px.
+- **The saying's backing is a plain dark box,** and the "chrome" is a flat white-to-steel gradient per
+  dot, not a lit chrome material.
+- **The saying is only stable while list 1 stands:** a test pins the list and eleven seed-to-saying
+  picks, but nothing on the match record holds the saying; a list change needs the game lane first.
+
 ## Victory boasts (slices 1-3, sessions 31-34)
 
 - **Nobody has watched or heard a boast.** All six were judged from stills, recordings and timed
@@ -37,19 +59,14 @@ items are removed, with the fix in `log.md`.
   the network. The 16 older sample replays have no record and still play the faction starter.
 - **A close win is told by one plate line:** "· CLOSE WIN" in place of "· VICTORY". The boast itself
   plays exactly as it does as a main boast; nothing says the winner was on 3 health beyond the HP bar.
-- **The final frame's momentum gauge can name the loser "AHEAD":** in `recorded-close-win.html` the
-  gauge reads "Quiet Lattice AHEAD ... ahead on board" while Moth Protocol's boast plays (the winner
-  ended on 3 health with a smaller board). Older than this slice, but the boast puts it on screen for 3 s.
-- **The lethal move's smoke lingers on the loser's side** in the close-win replay's stills (Swarm's
-  green plume over the loser's row at 2.5 s). The check's canvas sample doesn't count it, so it is drawn
-  somewhere the check doesn't look (a DOM layer, or below the top canvas). Not traced yet.
 - **The cosmetics switch hides boasts only** (nothing else cosmetic is drawn), and only the spectator
   rule is wired into a page; the owner-page rule is a tested function with no page yet.
 - **The match feed spoils the result:** its last line ("X wins") prints while the boast plays; only the
   turn bar waits (you kept this call).
-- **The lethal hit's ground mark sits on the loser's side during the boast** (correct for the hit, and
-  it is the attack's mark, not the boast's), and its sparks are still flying on the loser's side for the
-  first ~1 s of the boast. The check only asserts "nothing on the loser's side" from 1.25 s on.
+- **The loser's side is cleared by particle position:** `CFX.fadeOutIn` fades every particle whose
+  centre sits in the loser's side (reaching 40 px out sideways and 160 px away from the board). A big
+  smoke sprite centred just outside that box would still show its edge; none did in the two replays
+  checked (session 35). Rings and the grid's tint aren't particles and fade on their own (under 1 s).
 - **The browser check's "lit" count includes the veil** (a dark fill is still non-transparent canvas),
   so its winner-side numbers measure the veil plus the pieces, not the pieces alone. With the early
   wash in Hive Burst and Data Cascade that is true from 0.5 s on.

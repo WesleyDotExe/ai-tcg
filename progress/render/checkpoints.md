@@ -7,6 +7,82 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-19 — Match Boot, slice 1: the intro at the start of every match, and the two end-of-match fixes — AWAITING FEEDBACK
+
+Every replay now opens with Match Boot when it plays from its first move. Open any replay in
+`render/output/` and press Play (or space) at move 0; `render/output/match-boot-sheet.html` shows all
+nine sayings (a Play button on each, or "Play all in turn").
+- **The beats, 2.6 s:** the board goes dark; both halves power on together like CRTs, each in its own
+  faction's colour (a line along the half's middle, the picture opening from it, a flicker, scanlines),
+  one tube thump; each half types `LOADING AGENT: <name> [<FACTION>]` at the same time and speed (the
+  shorter line padded so both cursors stop together); `HANDSHAKE OK` types on the centre line in
+  white-chrome with a two-tone chirp; at 1.6 s a white line runs out from the centre and the saying slams
+  in across it in the dot font, with a hit and a rising chord, while both agent lines lift away from the
+  centre and fade; the saying swells and fades as the screens go, and the first move plays at once.
+- **The saying** comes from the match's seed: one of eight, equally likely, or `> SUDO FIGHT` for 1 seed
+  in 100 (measured: 1.02% of 200,000 seeds). Every viewer and every replay of a match sees the same one.
+  The list is frozen as list 1, pinned by a test.
+- **When:** Play at move 0, or Play at the end (it replays from the start). Not on page open, a step, a
+  jump, the scrubber or a resume mid-match. A tap, Escape or Skip starts the first move at once; pause
+  stops it and stays on move 0. The Cosmetics switch doesn't touch it.
+- **Reduced motion:** a 1 s still (both screens lit, both lines, the saying, HANDSHAKE OK under it).
+- **The grammar is checked in code** (EFFECTS.md's new "intro" category, symmetric and centre-out): the
+  two halves mirror images in place, size and time; anything moving in a half moves away from the centre;
+  the saying and HANDSHAKE OK centred; every sound panned to the centre. Tested on desktop, phone, uneven
+  and gapless layouts for every saying and faction pair; the page checks each plan before it plays it.
+
+**The two end-of-match fixes:**
+- The gauge reads the result once the match is won: full toward the winner, "<loser> out of health". It
+  had read the loser ahead at the end of the close-win replay, and of `aegis-vs-cortex-seed1` too.
+- Whatever the lethal beat leaves on the loser's side (smoke, scorch, sparks) fades out in 0.28 s as the
+  boast starts. Measured in the browser: 167-183 particles there after the lethal hit, none from 0.41 s
+  into the boast, on a win from below and a win from above.
+
+**Evidence:**
+- **Browser check** (`boot-check-s35.mjs`, output `boot-check-s35.txt`): 53 checks, ALL PASS. The seed's
+  saying and both agents' lines on a real replay; ends on its own at 2,601 ms and move 1 shows 0-300 ms
+  later; Escape, Skip and a phone tap; pause; no intro on open/step/resume; |< and Play; Play at the end;
+  the reduced still (1,015 ms); Cosmetics off; a phone (scrolled into view, inside the width); the two
+  end-of-match fixes; every sheet scene.
+- **Recording** `v2-s35-boot-desktop.webm`; stills `v2-s35-boot-desktop-*.jpg` (the power-on strip, the
+  typing strip, the handshake, the saying, the outro), `v2-s35-boot-phone-*.jpg`,
+  `v2-s35-boot-reduced-still.jpg`, `v2-s35-sheet-*.jpg` (all nine sayings, the phone scenes, the still),
+  `v2-s35-end-*-boast.jpg` (the loser's side clean under the boast, the gauge on the winner).
+- **Tests:** render 574 (+17): list 1 and its pinned picks, the 1-in-100 rate within 4 sd over 100,000
+  seeds, no saying a card name, the grammar on every layout and the checker catching nine kinds of
+  break, the still, the two sounds (the same for every faction), the page's wiring; the gauge at a win.
+
+**Decisions you may want to overrule:**
+1. **The saying swells (8%) and fades at the end** rather than fading upward, as my plan said: a centre
+   piece moving up would drift into the top half. Alternative: fade upward a few pixels.
+2. **The shorter agent line is padded with blanks,** so its cursor runs on through empty space until both
+   stop together. Alternative: centre each line in its half (the cursors then stop at different places but
+   at the same time).
+3. **A tap on the playback controls doesn't skip:** pause stops the intro and stays on move 0; a step or a
+   jump goes past it. A tap anywhere else skips. Alternative: any tap skips (as the boasts do).
+4. **The still puts HANDSHAKE OK under the saying** (the saying fills the centre line), and drops it when
+   it would reach the bottom agent's line (a very short board).
+5. **The gauge at a win jumps to full toward the winner** with "<loser> out of health" (or "<winner> won
+   the match" for a turn-cap win). Alternative: keep the board read, but never let it favour the loser.
+6. **Play at the end now replays from move 0 with the intro.** (Before, it jumped to move 0 without
+   redrawing it, so the first step animated from the final board; fixed on the way.)
+7. **Three sayings share a word with a card** (OVERCLOCK with Overclock Shunt and Overclock Beast, BREACH
+   with Breach Charge, ACCESS GRANTED with Root Access). None is a card name, and they are your list, so
+   they stay; the test refuses only a saying that is, or contains, a whole card name.
+8. **The music is held down under the intro, not silent:** Play is usually the first gesture, so the
+   music starts then, at 55% until the intro ends. A true "music starts after" would wait to start it;
+   that fits slice 2 (sound polish).
+
+**Thin spots (in the debt list):** nobody has watched or heard it at full speed; the headless browser
+drops frames, so the power-on beat shows in one of the two recordings only; the page has no autoplay
+yet, so "the page starting playback on its own" has nothing to hook; the screens' faction haze is faint
+(the colour reads mostly in the agent lines and the opening flash).
+
+**Next render-lane slice:** boast slice 4 (the loadout picker), as you set; Match Boot slice 2 (sound and
+the phone) after your notes on this one.
+
+---
+
 ## 2026-10-19 — Victory boasts, slice 3: the replay plays the match record's boast, and the close-win slot — AWAITING FEEDBACK
 
 The replay now plays the boast the economy store recorded for that match, never one it picks. Open the

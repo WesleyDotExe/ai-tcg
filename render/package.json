@@ -16,7 +16,8 @@
     "card-faces": "tsx src/faceSheet.ts",
     "first-time": "tsx src/firstTimeDemo.ts",
     "boast-sheet": "tsx src/boastSheet.ts",
-    "recorded": "tsx src/recordedDemo.ts"
+    "recorded": "tsx src/recordedDemo.ts",
+    "boot-sheet": "tsx src/bootSheet.ts"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",
