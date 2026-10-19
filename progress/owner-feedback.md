@@ -3303,3 +3303,20 @@ Answers the "Calls you may want to overrule" in the session-47 check-in "Victory
 Answers question 2 of the [OWNER CHECK-IN] "The approved signature lines re-checked: 13 of 14 pass; Guardian 3/5 is just over" (PR #81), left open in the entry above.
 - **Yes: from now on, the approved signature list is read from today's agent's results** (the session-48 re-check, balance report 033), not the session-35 results.
 - The next game session regenerates the approved list from the new results. This also applies the Guardian 3/5 answer (option C): Guardian 3/5 comes off, leaving 13, while the tuner looks for a Guardian line that passes with today's agent.
+
+
+---
+
+## 2026-10-19 — Owner: answers to render session 32 (boast slice 2), keep all 6; store wording fix for the game lane
+
+### Render session 32: keep all 6
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` (2026-10-19, "Victory boasts, slice 2: Hive Burst, Void Collapse, Data Cascade, and the cosmetics switch"; PR #82).
+1. **Keep:** Data Cascade streams up out of the row, not down (down is the debuff direction).
+2. **Keep:** Hive Burst's spores form a zig-zag column of seven over the name; they don't spell the name.
+3. **Keep:** Null's star is a black hole with a purple corona, turning slowly.
+4. **Keep:** the silent beat of about 0.2 s between the collapse and the bloom.
+5. **Keep:** Hive Burst and Data Cascade darken the winner's row from the start.
+6. **Keep:** the "Cosmetics: on / off" switch is a button in the replay's controls, next to the sound buttons (it can move under a settings menu once there is one).
+
+### Game-lane side task: update the starter boasts' store wording
+The render lane's session-32 note (`progress/render/notes-for-owner.md`) says two starter boasts' descriptions in the cosmetics catalogue (`economy/src/cosmetics.ts`) still describe the first drafts. Update them to describe the boasts as drawn (see the slice 1 and slice 2 checkpoints). Wording only; no other catalogue change.
