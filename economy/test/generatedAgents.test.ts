@@ -129,10 +129,13 @@ describe("generating a new agent", () => {
       for (const c of s.pickDraftAgent(plain, dh.draftId, 0, { seed: 900 + i }).signatures!) expect(c.name).not.toMatch(/^Neonfan's /);
     }
     // 1 in USERNAME_HANDLE_ODDS (100) per candidate: about 9 of 900 (seeded,
-    // so this count is fixed). At 90 drafts the expected count was 2.7 and a
-    // change to the approved list (session 49) drew 1; 300 drafts keeps the
-    // bounds well clear of chance.
-    expect(withName).toBeGreaterThan(2);
+    // so this count is fixed). The rate itself is pinned at 10,000 names in
+    // engine/test/signatureNames.test.ts; here only that the username gets
+    // through. Bounds about 4 sd out (session 50 audit): a count of 9 is 0
+    // with odds near 1 in 8,000 and 25 or more near 1 in 100,000; the old
+    // lower bound (more than 2) was about 1 in 160 from chance, too close for
+    // a count any change to the approved list redraws.
+    expect(withName).toBeGreaterThan(0);
     expect(withName).toBeLessThan(25);
     expect(shown).toBe(900);
   });

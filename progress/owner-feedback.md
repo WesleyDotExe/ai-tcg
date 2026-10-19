@@ -3324,7 +3324,7 @@ The render lane's session-32 note (`progress/render/notes-for-owner.md`) says tw
 
 ---
 
-## 2026-10-19 — Owner: answers to game session 49 (Guardian 3/4 and the re-recorded real-match ring), keep all 3
+## 2026-10-19 — Owner: answers to game session 49 (Guardian 3/4 and the re-recorded real-match ring), keep all 3 (NOTED 2026-10-19, session 50 — all 3 stand as built, nothing to change)
 
 Answers the [OWNER CHECK-IN] "Guardian 3/4 passes and is on the list; the real-match ring re-recorded" in `progress/notes-for-owner.md` (PR #83, `progress/balance-report-034-guardian-search.txt`).
 1. **Keep Guardian 3/4 on the approved list,** as built: 14 lines over 7 options, with Guardian 3/4 in place of 3/5. It passes the same way Supply Line 3/7 does (worst edge exactly 2.00). Agents that already hold a Guardian 3/5 card keep it.
@@ -3334,7 +3334,7 @@ Answers the [OWNER CHECK-IN] "Guardian 3/4 passes and is on the list; the real-m
 
 ---
 
-## 2026-10-19 — Owner: answers to render session 33 (the Season 0 boasts), keep all 7; and a new feature, Match Boot
+## 2026-10-19 — Owner: answers to render session 33 (the Season 0 boasts), keep all 7; and a new feature, Match Boot (render calls and Match Boot: the render lane's own. GAME-LANE SIDE TASK HANDLED 2026-10-19, session 50 — `economy/src/dev/season0BoastsDemo.ts` steps 2-4 open with an undrawn copy of the catalogue (both Season 0 boasts' `drawn` false, as the economy test does), step 3 marks only Boot Sequence drawn, and a new step 5 shows the shipped catalogue selling both; step 1 still prints the shipped catalogue (now "drawn: yes" for both). No store code change; `progress/economy-demo-013.txt` regenerated and reproduces byte for byte. Nothing on the match record is needed for Match Boot unless the render lane names it)
 
 ### Render session 33: keep all 7
 Owner decisions on the 7 calls in `progress/render/checkpoints.md` (2026-10-19, victory boasts slice 2b, Boot Sequence and Dial-Up Fireworks; PR #84).

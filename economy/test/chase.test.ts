@@ -161,8 +161,12 @@ describe("rollPack under S0-odds-2", () => {
     expect(hits / N).toBeLessThan(0.192);
     expect(N / zd).toBeGreaterThan(400);
     expect(N / zd).toBeLessThan(620);
-    expect(N / jackpots).toBeGreaterThan(1500);
-    expect(N / jackpots).toBeLessThan(2700);
+    // Jackpot: 100 expected in 200,000 (1 in 2,000), sd about 10. Seeded,
+    // so the count is fixed, but an unrelated change to how the roller uses
+    // its seed redraws it: each bound sits 4 sd out (session 50 audit; the
+    // old 1,500-2,700 ratio bounds sat 2.6 sd below, closer to chance than a
+    // fixed count should).
+    expect(Math.abs(jackpots - N / 2000)).toBeLessThan(4 * Math.sqrt(N * (1 / 2000) * (1 - 1 / 2000)));
   });
 });
 

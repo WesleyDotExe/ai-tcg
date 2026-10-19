@@ -1,0 +1,35 @@
+# Seeded rate and count tests: how far each bound sits from chance (session 50, hardening)
+
+Why: session 49 found a test asserting "about 9 in 270" whose real expectation was 2.7, passing by
+luck until a list change drew 1. Seeded tests never flake, but any change to how a seed is used
+(a new draw, a list change) redraws their counts, so a bound close to the expectation is a test
+that fails for no reason later. Rule used here: each bound at least ~4 standard deviations (sd)
+from the true rate, or the matching tail probability for a small count.
+
+Expected rates are the code's own (weights, odds tables); "observed" was measured where the
+expectation wasn't plain from the table (2,000,000 packs, `rollPack` under S0-odds-2, seeds
+9,000,000+).
+
+| test | n | expected | bounds | bound distance | verdict |
+|---|---|---|---|---|---|
+| economy chase.test "measures near the table": packs with a hit | 200,000 | 0.1849 per pack (observed over 2M; the shine slot alone is 0.1839, the table's 18.4%) | 0.178 - 0.192 | -8 / +8 sd | fine |
+| same: packs with a Zero-Day card | 200,000 | 1 in 503 (observed over 2M) = 398 | 322 - 500 packs (ratio 400-620) | -3.8 / +5.1 sd | fine |
+| same: Jackpot packs | 200,000 | 1 in 2,000 = 100 (2M observed: 1 in 1,940, +1 sd) | 74 - 133 (ratio 1,500-2,700) | **-2.6** / +3.3 sd | **FIXED**: count within 4 sd of 100 (60-140); observed 88 |
+| economy generatedAgents.test username in a signature name | 900 candidates | 1 in 100 = 9 (Poisson) | more than 2, under 25 | P(<=2) = 1 in 160 | **FIXED**: more than 0 (P = 1 in 8,100); under 25 kept (1 in 115,600). The rate itself is the engine test's job (below) |
+| economy packs.test S0-odds-1 rates (8 rates) | 100,000 | the table | +/- tol each | 3.8 - 5.3 sd | fine |
+| engine signatureNames.test username handle | 10,000 | 100 | 50 - 200 | -5 / +10 sd | fine |
+| same: card templates handle share | 20,000 | 0.61 (41 + 20) | 0.57 - 0.64 | -11.6 / +8.7 sd | fine |
+| same: "of the Place" | 20,000 | 0.30 | 0.27 - 0.33 | +/- 9.3 sd | fine |
+| same: modThing + edition | 20,000 | 0.09 (5 + 4) | <= 0.10 | +4.9 sd | fine (the "10" in the test name is the owner's rounded split; the weights are 9) |
+| engine signatureNames.test agent templates handle share | 10,000 | 0.61 | 0.58 - 0.64 | -6.2 / +6.2 sd | fine |
+| same: handleModProgram | 10,000 | 0.41 | > 0.38 | -6.1 sd | fine |
+| same: handleOfPlace | 10,000 | 0.30 | 0.27 - 0.33 | +/- 6.5 sd | fine |
+| agents randomDecision.test passes | 500 | 0.15 | < 0.30 | +9.4 sd | fine |
+
+Searched: every `*.test.ts` in engine, economy, agents, server and protocol for rate or count
+bounds (toBeGreaterThan / toBeLessThan / toBeCloseTo over a seeded loop). The render lane's tests
+are its own and were not audited. Not covered: tests that pin exact seeded outcomes (a named seed
+plays a named way); those are meant to change with the code and are regenerated, not bounded.
+
+After the two fixes: `npx vitest run test/chase.test.ts test/generatedAgents.test.ts` (economy):
+29 passed.

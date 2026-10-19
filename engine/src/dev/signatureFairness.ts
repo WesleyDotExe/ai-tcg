@@ -57,6 +57,7 @@ import {
   buildSignatureCard,
   menuOption,
   optionAtSize,
+  signatureFingerprint,
   signatureComboId,
   onTable,
   parseSignatureComboId,
@@ -160,6 +161,30 @@ export interface Reference {
 
 const REFERENCE_FILE = fileURLToPath(new URL("./signatureReference.json", import.meta.url));
 
+/** The reference's win rate per "Self>Opponent" edge, computed as
+ * pairedChange computes `refRate`, so the two compare exactly. */
+export function referenceRates(reference: Reference): Record<string, number> {
+  return Object.fromEntries(Object.entries(reference.results).map(([k, v]) => [k, [...v].filter((c) => c === "1").length / v.length]));
+}
+
+/** A short hash (FNV-1a) of the reference's per-seed results at its seed
+ * count. The results depend on the agent, the decks and the stand-in, so a
+ * result measured against another agent's reference carries another stamp
+ * (session 50: result lines carry their own provenance, so the approved
+ * list no longer has to trust which folder or file name they sit in). */
+export function referenceStamp(reference: Reference): string {
+  let h = 0x811c9dc5;
+  const text = `${reference.seeds};${Object.keys(reference.results)
+    .sort()
+    .map((k) => `${k}=${reference.results[k]}`)
+    .join(";")}`;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
+}
+
 export async function measureReference(seeds: number): Promise<Reference> {
   const builders = buildersWith();
   const results: Record<string, string> = {};
@@ -259,6 +284,11 @@ export interface CandidateResult {
   /** Largest |change| over all twelve edges. */
   worst: number;
   pass: boolean;
+  /** signatureFingerprint of the card measured, and referenceStamp of the
+   * reference it was measured against (both since session 50; lines
+   * written before carry neither). */
+  fingerprint?: string;
+  reference?: string;
 }
 
 /** The owner's test for one candidate, against a measured reference. */
@@ -275,7 +305,16 @@ export async function testCandidate(card: UnitCard, spec: SignatureSpec, referen
     factions.push({ faction, edges, worst, pass: worst <= FAIRNESS_LIMIT + 1e-9 });
   }
   const worst = Math.max(...factions.map((f) => f.worst));
-  return { id: signatureComboId(spec), spec, seeds: reference.seeds, factions, worst, pass: factions.every((f) => f.pass) };
+  return {
+    id: signatureComboId(spec),
+    spec,
+    seeds: reference.seeds,
+    factions,
+    worst,
+    pass: factions.every((f) => f.pass),
+    fingerprint: signatureFingerprint(card),
+    reference: referenceStamp(reference),
+  };
 }
 
 /** One lever setting short of the stat line: the ability's size, its cost
@@ -380,12 +419,15 @@ export interface GridLine {
   worst: number;
   /** "Faction>Opponent" -> paired change. */
   edges: Record<string, number>;
+  /** As on CandidateResult (session 50 on). */
+  fingerprint?: string;
+  reference?: string;
 }
 
 export function compactResult(r: CandidateResult): GridLine {
   const edges: Record<string, number> = {};
   for (const f of r.factions) for (const e of f.edges) edges[`${f.faction}>${e.opponent}`] = Math.round(e.change.diff * 10000) / 10000;
-  return { id: r.id, spec: r.spec, seeds: r.seeds, net: netChange(r), worst: r.worst, edges };
+  return { id: r.id, spec: r.spec, seeds: r.seeds, net: netChange(r), worst: r.worst, edges, fingerprint: r.fingerprint, reference: r.reference };
 }
 
 /**
@@ -425,7 +467,8 @@ function arg(name: string): string | undefined {
 const pct = (x: number) => (x * 100).toFixed(1);
 const signed = (x: number) => `${x >= 0 ? "+" : ""}${pct(x)}`;
 
-function loadReference(seeds: number): Reference {
+/** The cached reference, cut to its first `seeds` games. */
+export function loadReference(seeds: number): Reference {
   if (!existsSync(REFERENCE_FILE)) throw new Error(`No ${REFERENCE_FILE}; run the "reference" command first`);
   const ref = JSON.parse(readFileSync(REFERENCE_FILE, "utf8")) as Reference;
   if (ref.seeds < seeds) throw new Error(`Cached reference has ${ref.seeds} seeds, need ${seeds}`);
