@@ -212,6 +212,35 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
       else if (v === 'swarm') for (var bs = 0; bs < 8; bs++) N({ type: 'bandpass', f0: r(2600, 4800), q: 9, dur: 0.035, g: 0.12, delay: 0.44 + bs * 0.04 });
       else if (v === 'null') T({ type: 'square', f0: 880, dur: 0.5, g: 0.03, steps: 6, delay: 0.44 });
       else SFX_BELL.forEach(function (p) { T({ type: 'sine', f0: 880 * p, dur: 1.2, g: 0.04 / p, delay: 0.44 }); });
+    } else if (kind === 'crt') {
+      // The Season 0 boasts' sounds (render session 33), like 'boast' not
+      // match-event sounds. An old tube powering on: a low thump, a crackle
+      // of static and the faint flyback whine.
+      T({ type: 'sine', f0: 90, f1: 40, dur: 0.3, g: 0.35 });
+      N({ type: 'highpass', f0: 2500, dur: 0.35, g: 0.12 });
+      for (var ci = 0; ci < 5; ci++) N({ type: 'bandpass', f0: r(3000, 6000), q: 6, dur: 0.02, g: 0.12, delay: 0.05 + ci * 0.05 });
+      T({ type: 'sine', f0: 7800, dur: 0.9, g: 0.012, att: 0.2, delay: 0.1 });
+    } else if (kind === 'post') {
+      // The power-on self test passed: one short beep.
+      T({ type: 'square', f0: 1000, dur: 0.14, g: 0.05, att: 0.004 });
+    } else if (kind === 'modem') {
+      // A dial-up handshake in under a second: four dial tones, the answer
+      // tone, then the screech (jumping tones over a sweeping hiss).
+      [[697, 1209], [770, 1336], [852, 1477], [941, 1336]].forEach(function (p2, i) { p2.forEach(function (f) { T({ type: 'sine', f0: f, dur: 0.06, g: 0.05, att: 0.004, delay: i * 0.075 }); }); });
+      T({ type: 'sine', f0: 2100, dur: 0.18, g: 0.05, att: 0.01, delay: 0.32 });
+      T({ type: 'square', f0: 980, dur: 0.12, g: 0.025, steps: 4, delay: 0.5, filt: 'bandpass', ff: 1800, q: 1 });
+      T({ type: 'sawtooth', f0: 1650, dur: 0.35, g: 0.03, steps: 10, delay: 0.55, filt: 'bandpass', ff: 2200, q: 2 });
+      N({ type: 'bandpass', f0: 1800, f1: 3200, q: 3, dur: 0.38, g: 0.14, delay: 0.52 });
+      N({ type: 'bandpass', f0: 600, q: 4, dur: 0.12, g: 0.1, delay: 0.75 });
+    } else if (kind === 'whistle') {
+      // A rocket going up: a rising whistle over a hiss.
+      T({ type: 'sine', f0: 900, f1: 2600, dur: 0.32, g: 0.04, att: 0.05 });
+      N({ type: 'highpass', f0: 3000, dur: 0.3, g: 0.06, att: 0.05 });
+    } else if (kind === 'pop') {
+      // A firework bursting: a soft thump, a pop, then a crackle.
+      T({ type: 'sine', f0: 140, f1: 50, dur: 0.25, g: 0.3 });
+      N({ type: 'lowpass', f0: 3000, f1: 400, dur: 0.15, g: 0.25 });
+      for (var pi = 0; pi < 6; pi++) N({ type: 'highpass', f0: r(3000, 7000), q: 2, dur: 0.02, g: 0.08, delay: 0.12 + pi * r(0.03, 0.06) });
     } else if (kind === 'cast') {
       // A power's cast flourish: a rising whoosh, the voice on top.
       N({ type: 'bandpass', f0: 500, f1: 2400, q: 3, dur: 0.3, g: 0.12, att: 0.15 });

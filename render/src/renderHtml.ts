@@ -2351,7 +2351,7 @@ ${SIG_ZONE_SOURCE}
       row: document.getElementById('board-' + w),
       loser: [document.getElementById('side-' + l), document.getElementById('hud-' + l)],
       dim: [document.getElementById('side-' + l), document.getElementById('hud-' + l), document.getElementById('hand-' + l)]
-    }, { who: pname(w), seed: replay.seed, onEnd: releaseResult });
+    }, { who: pname(w), faction: frame.players[w].faction, seed: replay.seed, onEnd: releaseResult });
   }
   function releaseResult() {
     if (!boastHold) return;

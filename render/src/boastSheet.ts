@@ -1,4 +1,4 @@
-// The victory boast sheet (render slice: victory boasts, slices 1-2 evidence).
+// The victory boast sheet (render slice: victory boasts, slices 1-2b evidence).
 // Each boast on a full and an empty winning row, the winner below (seat 1)
 // and above (seat 2), on a phone-width board (two lines of three), and the
 // reduced-motion still. It runs the replay page's own sources verbatim
@@ -27,15 +27,19 @@ export interface BoastScene {
 
 export function boastScenes(): BoastScene[] {
   const scenes: BoastScene[] = [];
+  // A neutral boast (Season 0) is shown on a different faction's win in
+  // each scene: any agent can equip it, and its panel and sting follow the
+  // winner's faction.
+  const NEUTRAL_WINNERS = ["Cortex", "Aegis", "Swarm", "Null", "Cortex"];
   for (const spec of Object.values(BOAST_SPECS)) {
-    const f = spec.faction;
-    const foe = f === "Swarm" ? "Null" : "Swarm";
+    const fOf = (k: number) => spec.faction ?? NEUTRAL_WINNERS[k]!;
+    const foeOf = (k: number) => (fOf(k) === "Swarm" ? "Null" : "Swarm");
     scenes.push(
-      { key: `${spec.id}-full`, title: `${spec.name}: full row, winner below`, boast: spec.id, winner: { name: "Bastion Relay", faction: f, seat: "p1", cards: 6 }, loser: { name: "Brood Signal", faction: foe, cards: 4 } },
-      { key: `${spec.id}-empty`, title: `${spec.name}: empty row, winner below`, boast: spec.id, winner: { name: "Bastion Relay", faction: f, seat: "p1", cards: 0 }, loser: { name: "Brood Signal", faction: foe, cards: 5 } },
-      { key: `${spec.id}-top`, title: `${spec.name}: winner above (seat 2), 3 cards`, boast: spec.id, winner: { name: "Coiljackal's Croupier", faction: f, seat: "p2", cards: 3 }, loser: { name: "Brood Signal", faction: foe, cards: 2 } },
-      { key: `${spec.id}-phone`, title: `${spec.name}: phone width, two lines of three`, boast: spec.id, winner: { name: "Bastion Relay", faction: f, seat: "p1", cards: 4 }, loser: { name: "Brood Signal", faction: foe, cards: 3 }, phone: true },
-      { key: `${spec.id}-reduced`, title: `${spec.name}: reduced motion (the still, about 1 s)`, boast: spec.id, winner: { name: "Bastion Relay", faction: f, seat: "p1", cards: 6 }, loser: { name: "Brood Signal", faction: foe, cards: 4 }, reduced: true },
+      { key: `${spec.id}-full`, title: `${spec.name}: full row, winner below`, boast: spec.id, winner: { name: "Bastion Relay", faction: fOf(0), seat: "p1", cards: 6 }, loser: { name: "Brood Signal", faction: foeOf(0), cards: 4 } },
+      { key: `${spec.id}-empty`, title: `${spec.name}: empty row, winner below`, boast: spec.id, winner: { name: "Bastion Relay", faction: fOf(1), seat: "p1", cards: 0 }, loser: { name: "Brood Signal", faction: foeOf(1), cards: 5 } },
+      { key: `${spec.id}-top`, title: `${spec.name}: winner above (seat 2), 3 cards`, boast: spec.id, winner: { name: "Coiljackal's Croupier", faction: fOf(2), seat: "p2", cards: 3 }, loser: { name: "Brood Signal", faction: foeOf(2), cards: 2 } },
+      { key: `${spec.id}-phone`, title: `${spec.name}: phone width, two lines of three`, boast: spec.id, winner: { name: "Bastion Relay", faction: fOf(3), seat: "p1", cards: 4 }, loser: { name: "Brood Signal", faction: foeOf(3), cards: 3 }, phone: true },
+      { key: `${spec.id}-reduced`, title: `${spec.name}: reduced motion (the still, about 1 s)`, boast: spec.id, winner: { name: "Bastion Relay", faction: fOf(4), seat: "p1", cards: 6 }, loser: { name: "Brood Signal", faction: foeOf(4), cards: 4 }, reduced: true },
     );
   }
   return scenes;
@@ -58,7 +62,7 @@ function sceneHtml(s: BoastScene): string {
   const hudW = `<div class="hud faction-${w.faction}" id="${s.key}-hud-w"><div class="name"><span style="color:var(--fc)">${w.name}</span><span class="faction-tag">${w.faction}</span></div><div class="meta">HP 4 / 30</div></div>`;
   const hudL = `<div class="hud faction-${l.faction}" id="${s.key}-hud-l"><div class="name"><span style="color:var(--fc)">${l.name}</span><span class="faction-tag">${l.faction}</span></div><div class="meta">HP 0 / 30</div></div>`;
   const huds = w.seat === "p1" ? hudW + hudL : hudL + hudW;
-  return `<section class="scene${s.phone ? " phone" : ""}" id="${s.key}" data-boast="${s.boast}" data-seat="${w.seat}" data-who="${w.name}"${s.reduced ? ' data-reduced="1"' : ""}>
+  return `<section class="scene${s.phone ? " phone" : ""}" id="${s.key}" data-boast="${s.boast}" data-seat="${w.seat}" data-who="${w.name}" data-faction="${w.faction}"${s.reduced ? ' data-reduced="1"' : ""}>
 <h2>${s.title} <button class="go" data-scene="${s.key}">Play</button></h2>
 <div class="scene-body"><div class="huds">${huds}</div>${top}<div class="midline"></div>${bottom}<div class="turnbar" id="${s.key}-result"></div></div>
 </section>`;
@@ -92,8 +96,8 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
 </style>
 </head>
 <body>
-<h1>AI·TCG // VICTORY BOASTS (render slices 1-2: the victory grammar and the four starter boasts)</h1>
-<p class="note">A victory boast plays when an agent wins, after the lethal beat and before the result line. Every boast follows one grammar: it rises and radiates from the winner's side of the board and ends on the winner's name. Nothing moves toward the loser or touches the loser's cards or panel; the loser's side dims to 70% and stays still. Each faction's free starter boast, about 3 s each. <b>Shield Slam</b> (Aegis): hex plates slam up out of every slot into a wall, centre first; the wall locks as one; the bottom plates lift into a hex crest and the rest rise away; the crest locks with the sting. <b>Hive Burst</b> (Swarm): an egg sac swells in every slot, centre first, then each bursts, throwing spores straight up; the spores climb into a zig-zag column and a last spore crowns it with the sting. <b>Void Collapse</b> (Null): a dark star opens over the row and pulls motes of light out of every slot (the side goes dark); it collapses to a point and holds a silent beat, then blooms with the sting, tearing glitch bars out sideways; four bars slide in and frame the name. <b>Data Cascade</b> (Cortex): columns of pixels stream up out of every slot (an upload; down is the debuff's direction); the row flashes as one; each column's lead pixel climbs and snaps into a wireframe block, stacked three then two; the top block locks with the sting. A tap, Escape or Skip ends it. Reduced motion shows the final pose, still, with the name, for about 1 s. The result line under each scene lands as the boast ends.</p>
+<h1>AI·TCG // VICTORY BOASTS (render slices 1-2b: the victory grammar, the four starter boasts and the two Season 0 boasts)</h1>
+<p class="note">A victory boast plays when an agent wins, after the lethal beat and before the result line. Every boast follows one grammar: it rises and radiates from the winner's side of the board and ends on the winner's name. Nothing moves toward the loser or touches the loser's cards or panel; the loser's side dims to 70% and stays still. Each faction's free starter boast, about 3 s each. <b>Shield Slam</b> (Aegis): hex plates slam up out of every slot into a wall, centre first; the wall locks as one; the bottom plates lift into a hex crest and the rest rise away; the crest locks with the sting. <b>Hive Burst</b> (Swarm): an egg sac swells in every slot, centre first, then each bursts, throwing spores straight up; the spores climb into a zig-zag column and a last spore crowns it with the sting. <b>Void Collapse</b> (Null): a dark star opens over the row and pulls motes of light out of every slot (the side goes dark); it collapses to a point and holds a silent beat, then blooms with the sting, tearing glitch bars out sideways; four bars slide in and frame the name. <b>Data Cascade</b> (Cortex): columns of pixels stream up out of every slot (an upload; down is the debuff's direction); the row flashes as one; each column's lead pixel climbs and snaps into a wireframe block, stacked three then two; the top block locks with the sting. Two neutral <b>Season 0</b> boasts, sold in the store (any faction can equip them; each scene shows a different faction winning). <b>Boot Sequence</b>: the winner's side powers on like an old CRT (a dot, a line, the raster opening, a flicker, scanlines); BIOS lines print and scroll up; the winner's name types out in the plate behind a block cursor; SYSTEM READY flashes twice in chunky dot letters with the sting. <b>Dial-Up Fireworks</b>: a modem handshake screeches while a neon skyline rises out of the winner's row, its windows flickering like data; rockets go up from the rooftops and burst, and their pixels fly up and spell the winner's name; the name lights as one with the sting. A tap, Escape or Skip ends it. Reduced motion shows the final pose, still, with the name, for about 1 s. The result line under each scene lands as the boast ends.</p>
 <div class="ctl"><span data-audio-ctl><button id="snd">Sound on</button> <input type="range" id="sndvol" min="0" max="100" value="80" aria-label="Effects volume"> <button id="mus">Music on</button> <input type="range" id="musvol" min="0" max="100" value="60" aria-label="Music volume"> <span id="musmeter"></span></span>
  <button id="all">Play all in turn</button> <span id="st"></span></div>
 ${scenes.map(sceneHtml).join("\n")}
@@ -123,7 +127,7 @@ ${BOAST_RUNTIME_SOURCE}
       dim: [document.getElementById(key + '-side-l'), document.getElementById(key + '-hud-l')]
     };
     var plan = BOAST.play(sc.getAttribute('data-boast'), els, {
-      who: sc.getAttribute('data-who'), seed: 7, reduced: sc.hasAttribute('data-reduced') ? true : undefined,
+      who: sc.getAttribute('data-who'), faction: sc.getAttribute('data-faction'), seed: 7, reduced: sc.hasAttribute('data-reduced') ? true : undefined,
       onEnd: function (reason) {
         res.innerHTML = '<span class="win land">GAME OVER: ' + sc.getAttribute('data-who') + ' WINS</span>';
         st.textContent = key + ': ' + reason + ' at ' + (BOAST.stats().last || {}).t + ' ms';

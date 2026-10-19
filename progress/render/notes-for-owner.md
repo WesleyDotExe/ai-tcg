@@ -748,3 +748,25 @@ the file is the game lane's. Suggested wording: "Hex plates slam up along the wi
 a crest over the name." and "Columns of pixels stream up out of the winner's row and snap into a stack
 of wireframe blocks over the name." Also `progress/economy-demo-013.txt` now regenerates with "drawn:
 yes" on those three rows (nothing else changes); the game lane can refresh it when it next touches it.
+
+## 2026-10-19 — Session 33: victory boasts, slice 2b (the two Season 0 boasts)
+
+Nothing is blocking. The calls for this slice are in `progress/render/checkpoints.md` (newest entry).
+
+**For the game lane (small):**
+- This session flipped `drawn: true` on Boot Sequence and Dial-Up Fireworks in
+  `economy/src/cosmetics.ts`, in the same change that adds their specs, as the catalogue's test asks.
+  **Both are now on sale in Season 0 at 300 credits each** (your sale window: the whole season).
+- One economy test assumed the Season 0 boasts were undrawn ("sells the Season 0 boasts only once
+  drawn"). It now marks a copy of Boot Sequence undrawn for the "never on sale" half, so the rule
+  stays tested; and the store tests' own catalogue (`CATALOGUE` in `economy/test/cosmetics.test.ts`)
+  now holds the starter boasts and the test items only, so what the shipped seasons sell can't move
+  those tests again. No store code changed.
+- `progress/economy-demo-013.txt` step 2 ("both boasts are refused: the render lane hasn't drawn
+  it") describes the shipped catalogue as it was. Rerunning `season0BoastsDemo.ts` now would show
+  both on sale. I left the demo and its output alone (the game lane's files); you may want to pin
+  the demo's step 2 to an undrawn copy of the catalogue, as the test now does.
+
+**For you:** the new boasts only play in a replay once slice 3 reads the match record (until then
+a replay plays the winner's faction starter). To see them now, open `render/output/boast-sheet.html`
+and press Play on any Season 0 scene.

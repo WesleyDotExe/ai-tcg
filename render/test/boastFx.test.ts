@@ -1,6 +1,8 @@
-// Victory boasts, render slices 1-2: the victory grammar, the spec format
+// Victory boasts, render slices 1-2b: the victory grammar, the spec format
 // and the four starter boasts (Shield Slam; slice 2: Hive Burst, Void
-// Collapse, Data Cascade), and the cosmetics switch. Four layers:
+// Collapse, Data Cascade), the cosmetics switch, and (slice 2b) the two
+// neutral Season 0 boasts, Boot Sequence and Dial-Up Fireworks, with the
+// dot font they spell in. Four layers:
 //  1. the specs: valid, in step with the economy catalogue's starter boasts,
 //     and boastIdFor plays the record's boast or the winner's faction
 //     starter, never one of its own choosing;
@@ -18,7 +20,7 @@
 //  4. the sting's sound and the pages: the replay embeds the runtime and
 //     holds the result line; the sheet carries every scene.
 import { describe, expect, it } from "vitest";
-import { STARTER_BOASTS } from "@ai-tcg/economy";
+import { SEASON_0_BOASTS, STARTER_BOASTS } from "@ai-tcg/economy";
 import {
   BOAST_MS_MAX,
   BOAST_PURE_SOURCE,
@@ -27,6 +29,9 @@ import {
   BOAST_STARTER,
   BOAST_STILL_MS,
   BOAST_FORMATIONS,
+  BOAST_FONT,
+  boastBits,
+  boastBitsFit,
   boastCosmeticsShown,
   boastIdFor,
   boastPieceAt,
@@ -46,6 +51,8 @@ const SHIELD = BOAST_SPECS["boast-aegis-shield-slam"]!;
 const HIVE = BOAST_SPECS["boast-swarm-hive-burst"]!;
 const VOID = BOAST_SPECS["boast-null-void-collapse"]!;
 const CASCADE = BOAST_SPECS["boast-cortex-data-cascade"]!;
+const BOOT = BOAST_SPECS["boast-s0-boot-sequence"]!;
+const DIALUP = BOAST_SPECS["boast-s0-dial-up-fireworks"]!;
 const ALL: [string, BoastSpec][] = Object.values(BOAST_SPECS).map((s) => [s.name, s]);
 
 // A replay-like layout: two sides of the board stacked (seat 2 above, seat 1
@@ -103,8 +110,16 @@ describe("boast specs", () => {
         expect(item.artRef).toBe(`code:boast/${item.itemId.replace(/^boast-/, "")}`);
       }
     }
-    // Slice 2: all four starter boasts are drawn (the Season 0 boasts next).
-    expect(Object.keys(BOAST_SPECS).sort()).toEqual(Object.values(STARTER_BOASTS).map((i) => i.itemId).sort());
+    // Slice 2: all four starter boasts are drawn; slice 2b: the two Season 0
+    // boasts, neutral (no faction), each with its own colour.
+    expect(Object.keys(BOAST_SPECS).sort()).toEqual([...Object.values(STARTER_BOASTS), ...SEASON_0_BOASTS].map((i) => i.itemId).sort());
+    for (const item of SEASON_0_BOASTS) {
+      const spec = BOAST_SPECS[item.itemId]!;
+      expect(spec.name).toBe(item.name);
+      expect(spec.faction).toBeNull();
+      expect(spec.col).toMatch(/^#[0-9a-f]{6}$/);
+      expect(item.artRef).toBe(`code:boast/${item.itemId.replace(/^boast-/, "")}`);
+    }
   });
 
   it("boastIdFor plays the record's boast, else the winner's faction starter, else none", () => {
@@ -201,20 +216,22 @@ describe("the victory grammar on laid-out plans", () => {
     for (const [name, geom] of cases) {
       const plan = boastPlan(spec, geom, 5);
       for (const pc of plan.pieces) {
-        const half = (s: number) => (s / 2) * (pc.sx ?? 1);
+        const half = (s: number) => (pc.w ? pc.w / 2 : (s / 2) * (pc.sx ?? 1));
         let lastY = Infinity;
+        // Collected, then asserted once (Dial-Up Fireworks has hundreds of
+        // pixels; an expect per sample is too slow).
+        const bad: string[] = [];
         for (let t = 0; t <= plan.ms + 400; t += 10) {
           const at = boastPieceAt(pc, t);
           if (!at) continue;
-          expect(at.y, name).toBeLessThanOrEqual(lastY + 1e-6);
+          if (at.y > lastY + 1e-6) bad.push(`${name}: down at ${t}`);
           lastY = at.y;
           if (at.a > 0.01) {
-            expect(at.y - at.s / 2, name).toBeGreaterThanOrEqual(geom.band.t - 2);
-            expect(at.y + at.s / 2, name).toBeLessThanOrEqual(geom.band.b + 2);
-            expect(at.x - half(at.s), name).toBeGreaterThanOrEqual(geom.band.l - 2);
-            expect(at.x + half(at.s), name).toBeLessThanOrEqual(geom.band.r + 2);
+            const b = geom.band;
+            if (at.y - at.s / 2 < b.t - 2 || at.y + at.s / 2 > b.b + 2 || at.x - half(at.s) < b.l - 2 || at.x + half(at.s) > b.r + 2) bad.push(`${name}: outside at ${t}`);
           }
         }
+        expect(bad).toEqual([]);
       }
     }
   });
@@ -237,6 +254,18 @@ describe("the victory grammar on laid-out plans", () => {
     expect(broken((p) => { const m = p.marks.find((x) => x.k === "veil")!; m.t2 = geom.loser![0]!.t; })).toMatch(/veil/);
     // The name plate on the loser's side.
     expect(broken((p) => { const m = p.marks.find((x) => x.k === "name")!; m.y = geom.loser![0]!.t + 40; })).toMatch(/name/);
+    // A flare whose sprite fits but whose bloom (0.72 of its size) doesn't
+    // (render session 33: the check had only counted the sprite).
+    expect(broken((p) => { p.marks.push({ k: "flare", t: 100, x: geom.band.l + 200, y: geom.band.t + 30, s: 50 }); })).toMatch(/flare/);
+    expect(broken((p) => { p.marks.push({ k: "flare", t: 100, x: geom.band.l + 200, y: geom.band.t + 40, s: 50 }); })).toBeNull();
+    // Season 0: a CRT screen stretched past the side, and a tower whose
+    // fixed width (w, not s x sx) reaches past it.
+    const bplan = boastPlan(BOOT, geom, 1, { name: "Bo", faction: "Aegis" });
+    const crt = clone(bplan); crt.marks.find((m) => m.k === "crt")!.r = geom.band.r + 30;
+    expect(boastPlanProblem(crt, geom)).toMatch(/crt screen/);
+    const dplan = boastPlan(DIALUP, geom, 1, { name: "Bo", faction: "Aegis" });
+    const wide2 = clone(dplan); wide2.pieces.find((pc) => pc.shape === "tower")!.w = 4000;
+    expect(boastPlanProblem(wide2, geom)).toMatch(/leaves the winner's side/);
     // A mark after the end, and no name at all.
     expect(broken((p) => { p.marks.push({ k: "flare", t: p.ms + 100, x: geom.band.l + 100, y: geom.band.t + 60, s: 10 }); })).toMatch(/after the boast ends/);
     expect(broken((p) => { p.marks = p.marks.filter((m) => m.k !== "name"); })).toMatch(/no name/);
@@ -526,6 +555,224 @@ describe("Data Cascade", () => {
   });
 });
 
+describe("the dot font (Season 0)", () => {
+  it("draws every character an agent name may use, each letter and digit distinct", () => {
+    const needed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 '.-_";
+    for (const ch of needed) {
+      expect(BOAST_FONT[ch], ch).toMatch(/^[0-9a-f]{14}$/);
+      // Five columns: no row sets a bit past the fifth.
+      for (let r = 0; r < 7; r++) expect(parseInt(BOAST_FONT[ch]!.slice(r * 2, r * 2 + 2), 16), ch).toBeLessThan(32);
+    }
+    const alnum = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"].map((c) => BOAST_FONT[c]);
+    expect(new Set(alnum).size).toBe(alnum.length);
+  });
+
+  it("lays text out a character every six columns, lines centred, spaces drawing nothing", () => {
+    const ab = boastBits(["AB"]);
+    expect([ab.cols, ab.rows, ab.chars]).toEqual([11, 7, 2]);
+    expect(ab.dots.every(([c, r, n]) => c >= n * 6 && c < n * 6 + 5 && r >= 0 && r < 7)).toBe(true);
+    const two = boastBits(["A B", "C"]);
+    expect([two.cols, two.rows, two.chars]).toEqual([17, 16, 3]);
+    // "C" is centred under the 17-column first line, on rows 9-15.
+    const c = two.dots.filter((d) => d[2] === 2);
+    expect(Math.min(...c.map((d) => d[0]))).toBe(6);
+    expect(c.every((d) => d[1] >= 9)).toBe(true);
+    // An unknown character draws a box, an accented letter its plain letter.
+    expect(boastBits(["É"]).dots).toEqual(boastBits(["E"]).dots);
+    expect(boastBits(["@"]).dots).toHaveLength(5 + 5 + 2 * 5);
+  });
+
+  it("fits text as large as it can: one line, or two split at the middle space when the dots get bigger", () => {
+    expect(boastBitsFit("SYSTEM READY", 720, 70, 9).bits.rows).toBe(7);
+    const phone = boastBitsFit("SYSTEM READY", 288, 99, 9);
+    expect(phone.bits.rows).toBe(16);
+    expect(phone.cell).toBeCloseTo(99 / 16);
+    expect(boastBitsFit("Bastion Relay", 900, 59, 8).cell).toBe(8);
+    // No space: one line, however small.
+    expect(boastBitsFit("Coiljackal", 100, 100).bits.rows).toBe(7);
+  });
+});
+
+describe("Boot Sequence (Season 0)", () => {
+  const geom = layout({ seat: "p1" });
+  const who = { name: "Bastion Relay", faction: "Cortex" };
+  const plan = boastPlan(BOOT, geom, 1, who);
+  const lines = plan.pieces.filter((pc) => pc.grp === "line");
+  const banner = plan.pieces.find((pc) => pc.shape === "bits")!;
+  const bannerAt = BOOT.beats.find((b) => b.p === "banner")!.at;
+
+  it("is neutral: its own phosphor colour, the winner's faction for the panel and the sting", () => {
+    expect(plan.faction).toBe("Cortex");
+    expect(boastPlan(BOOT, geom, 1, { name: "x", faction: "Aegis" }).faction).toBe("Aegis");
+    expect(plan.col).toBe(BOOT.col);
+    expect(plan.rgb).toEqual([0x7d, 0xff, 0xa8]);
+    const sting = plan.marks.find((m) => m.k === "sound" && m.kind === "boast")!;
+    expect([sting.t, sting.tier]).toEqual([bannerAt, "spectacle"]);
+    expect(plan.marks.find((m) => m.k === "duck" && m.t === bannerAt)).toBeTruthy();
+  });
+
+  it("powers the winner's side on like a CRT, with the tube's sound and the POST beep as it settles", () => {
+    const crt = plan.marks.filter((m) => m.k === "crt");
+    expect(crt).toHaveLength(1);
+    expect([crt[0]!.l, crt[0]!.t2, crt[0]!.r, crt[0]!.b]).toEqual([geom.band.l + 4, geom.band.t + 4, geom.band.r - 4, geom.band.b - 4]);
+    const snd = plan.marks.filter((m) => m.k === "sound").map((m) => [m.kind, m.t]);
+    expect(snd).toContainEqual(["crt", crt[0]!.t]);
+    expect(snd).toContainEqual(["post", crt[0]!.t + (crt[0]!.on as number)]);
+  });
+
+  it("prints five BIOS lines that scroll UP a line at a time, naming the winner's faction, then clear before the banner", () => {
+    expect(lines.map((l) => l.txt)).toEqual(["AI-TCG ARENA BIOS  REV S0", "MEMORY TEST  65536K  OK", "AGENT  CORTEX  ONLINE", "LOADING  VICTORY.SYS", "BOOT >"]);
+    expect(lines.every((l) => l.shape === "text")).toBe(true);
+    // Each prints at the same bottom line, in order.
+    const y0 = lines[0]!.keys[0]!.y;
+    for (let i = 0; i < lines.length; i++) {
+      expect(lines[i]!.keys[0]!.y).toBe(y0);
+      if (i) expect(lines[i]!.keys[0]!.t).toBeGreaterThan(lines[i - 1]!.keys[0]!.t);
+    }
+    // When the last prints, every line sits one line height above the next.
+    const at = (pc: (typeof lines)[number], t: number) => boastPieceAt(pc, t)!;
+    const tLast = lines[4]!.keys[0]!.t + 100;
+    const ys = lines.map((l) => at(l, tLast).y);
+    const lh = ys[3]! - ys[2]!;
+    expect(lh).toBeGreaterThan(0);
+    for (let i = 1; i < 5; i++) expect(ys[i]! - ys[i - 1]!).toBeCloseTo(lh);
+    // The last keeps a cursor; all are gone before SYSTEM READY.
+    expect(lines.filter((l) => l.cursor)).toEqual([lines[4]]);
+    for (const l of lines) expect(boastPieceAt(l, bannerAt)?.a ?? 0).toBe(0);
+    // Each line clicks as it prints.
+    expect(plan.marks.filter((m) => m.k === "sound" && m.kind === "type" && (m.t as number) < bannerAt - 600).length).toBeGreaterThanOrEqual(15);
+  });
+
+  it("types the winner's name into the plate in the BIOS's type, in at most 0.6 s, before the banner", () => {
+    const name = plan.marks.find((m) => m.k === "name")!;
+    expect(name.mono).toBe(true);
+    expect((name.type as number) * who.name.length).toBeLessThanOrEqual(600);
+    expect(name.t).toBeLessThan(bannerAt);
+    const long = boastPlan(BOOT, geom, 1, { name: "A Very Long Agent Name Here", faction: "Null" }).marks.find((m) => m.k === "name")!;
+    expect((long.type as number) * 27).toBeLessThanOrEqual(600 + 1e-9);
+  });
+
+  it("flashes SYSTEM READY twice in chunky dot letters over the name and holds it", () => {
+    expect(banner.bits).toEqual(boastBits(["SYSTEM READY"]));
+    expect(plan.crestPieces).toBe(1);
+    const name = plan.marks.find((m) => m.k === "name")!;
+    const b = boastPieceAt(banner, plan.ms - 1)!;
+    expect(b.y + b.s / 2).toBeLessThan((name.y as number) - (name.h as number) / 2);
+    expect(b.s).toBeGreaterThanOrEqual(7 * 6);
+    // Two dips, then held lit.
+    const alphas = banner.keys.filter((k) => k.t > bannerAt + 100 && k.t < plan.ms).map((k) => k.a);
+    expect(alphas.filter((a, i) => a < 0.2 && (i === 0 || alphas[i - 1]! >= 0.2))).toHaveLength(2);
+    expect(alphas[alphas.length - 1]).toBe(1);
+    // It never sinks: it rises a little into place and holds.
+    for (let i = 1; i < banner.keys.length; i++) expect(banner.keys[i]!.y).toBeLessThanOrEqual(banner.keys[i - 1]!.y);
+    expect(showingAtEnd(plan)).toEqual([banner]);
+    // On a phone it breaks onto two lines, larger.
+    const ph = boastPlan(BOOT, layout({ seat: "p2", width: 360, slotW: 85, slotH: 114, lines: 2, pad: 6 }), 1, who);
+    expect(ph.pieces.find((pc) => pc.shape === "bits")!.bits!.rows).toBe(16);
+  });
+
+  it("reduced motion: the screen already on, SYSTEM READY and the name, nothing typed or flickering", () => {
+    const st = boastStill(plan);
+    expect(st.pieces).toHaveLength(1);
+    expect(st.pieces[0]!.shape).toBe("bits");
+    const crt = st.marks.find((m) => m.k === "crt")!;
+    expect([crt.t, crt.on, crt.flick]).toEqual([0, 0, 0]);
+    const name = st.marks.find((m) => m.k === "name")!;
+    expect(name.type).toBeUndefined();
+    expect(name.mono).toBe(true);
+    expect(st.col).toBe(BOOT.col);
+    expect(boastPlanProblem(st, geom)).toBeNull();
+  });
+});
+
+describe("Dial-Up Fireworks (Season 0)", () => {
+  const geom = layout({ seat: "p1" });
+  const who = { name: "Bastion Relay", faction: "Aegis" };
+  const plan = boastPlan(DIALUP, geom, 1, who);
+  const towers = plan.pieces.filter((pc) => pc.grp === "tower");
+  const letters = plan.pieces.filter((pc) => pc.grp === "letter");
+  const rockets = plan.pieces.filter((pc) => pc.grp === "rocket");
+
+  it("raises a neon skyline across the winner's side, centre first, every tower's foot on the floor", () => {
+    const band = geom.band, bh = band.b - band.t, bw = band.r - band.l;
+    expect(towers.length).toBeGreaterThanOrEqual(9);
+    expect(towers.reduce((a, t) => a + t.w!, 0)).toBeGreaterThan(bw * 0.8);
+    for (const t of towers) {
+      expect(t.shape).toBe("tower");
+      const feet = new Set<number>();
+      for (let ms = t.keys[0]!.t; ms <= plan.ms; ms += 25) { const at = boastPieceAt(t, ms)!; feet.add(Math.round((at.y + at.s / 2) * 1000)); }
+      expect(feet.size).toBe(1);
+      const top = t.keys[1]!;
+      expect(top.s).toBeLessThanOrEqual(bh * 0.34 + 1e-9);
+      expect(top.s).toBeGreaterThanOrEqual(bh * 0.14 - 1e-9);
+    }
+    const first = [...towers].sort((a, b) => a.keys[0]!.t - b.keys[0]!.t);
+    const cx = (band.l + band.r) / 2;
+    expect(Math.abs(first[0]!.keys[0]!.x - cx)).toBeLessThan(Math.abs(first[first.length - 1]!.keys[0]!.x - cx));
+    const modem = plan.marks.find((m) => m.k === "sound" && m.kind === "modem")!;
+    expect(modem.t).toBeLessThan(200);
+    expect(plan.marks.find((m) => m.k === "duck" && m.t === modem.t)).toBeTruthy();
+  });
+
+  it("spells the winner's name: every dot of it lands on its cell, a letter all one colour, the bursts left to right", () => {
+    const fit = boastBitsFit("BASTION RELAY", (geom.band.r - geom.band.l) * 0.9, (geom.band.b - geom.band.t) * 0.34, 8);
+    expect(letters).toHaveLength(fit.bits.dots.length);
+    expect(plan.crestPieces).toBe(letters.length);
+    const ends = letters.map((l) => l.keys[l.keys.length - 1]!);
+    const xs = ends.map((k) => k.x), ys = ends.map((k) => k.y);
+    // The spelled block is exactly the font's block at its cell size.
+    expect(Math.round((Math.max(...xs) - Math.min(...xs)) / fit.cell)).toBe(Math.max(...fit.bits.dots.map((d) => d[0])) - Math.min(...fit.bits.dots.map((d) => d[0])));
+    expect(Math.round((Math.max(...ys) - Math.min(...ys)) / fit.cell)).toBe(6);
+    // Every dot flies up (or across) from its burst.
+    for (const l of letters) expect(l.keys[1]!.y).toBeLessThanOrEqual(l.keys[0]!.y);
+    // One colour per letter: dots that share a column band of 6 share an rgb.
+    const byChar = new Map<number, Set<string>>();
+    letters.forEach((l, i) => { const ch = fit.bits.dots[i]![2]; (byChar.get(ch) ?? byChar.set(ch, new Set()).get(ch)!).add(String(l.rgb)); });
+    expect([...byChar.values()].every((set) => set.size === 1)).toBe(true);
+    // 12 letters, 4 bursts of 3, left to right in time.
+    expect(rockets).toHaveLength(4);
+    const launch = rockets.map((r) => [r.keys[0]!.t, r.keys[2]!.x]).sort((a, b) => a[0]! - b[0]!);
+    for (let i = 1; i < launch.length; i++) expect(launch[i]![1]).toBeGreaterThan(launch[i - 1]![1]!);
+    // Each rocket rises from a rooftop to its burst.
+    for (const r of rockets) expect(r.keys[2]!.y).toBeLessThan(r.keys[0]!.y);
+    expect(plan.marks.filter((m) => m.k === "sound" && m.kind === "whistle")).toHaveLength(4);
+    expect(plan.marks.filter((m) => m.k === "sound" && m.kind === "pop")).toHaveLength(4);
+  });
+
+  it("ends on the skyline and the spelled name: the rockets and the fans are gone; the lock adds no piece", () => {
+    const showing = showingAtEnd(plan);
+    expect(showing).toHaveLength(towers.length + letters.length);
+    expect(plan.pieces.filter((pc) => pc.grp === "fan").every((pc) => pc.keys[pc.keys.length - 1]!.a === 0)).toBe(true);
+    for (const l of letters) expect(l.keys[1]!.t).toBeLessThanOrEqual(DIALUP.beats.find((b) => b.p === "lock")!.at);
+    const st = boastStill(plan);
+    expect(st.pieces).toHaveLength(towers.length + letters.length);
+    expect(st.pieces.every((pc) => pc.shape === "tower" || pc.shape === "dot")).toBe(true);
+    expect(boastPlanProblem(st, geom)).toBeNull();
+  });
+
+  it("breaks a two-word name onto two lines on a phone", () => {
+    const ph = boastPlan(DIALUP, layout({ seat: "p1", width: 360, slotW: 85, slotH: 114, lines: 2, pad: 6 }), 1, who);
+    const ys = new Set(ph.pieces.filter((pc) => pc.grp === "letter").map((l) => Math.round(l.keys[1]!.y)));
+    expect(ys.size).toBe(14);
+  });
+});
+
+describe("the Season 0 boasts keep the grammar for any winner's name", () => {
+  const names = ["Bo", "Coiljackal's Croupier", "A Very Long Agent Name 24", "X_9.Q-7", "Static Static Static"];
+  it.each([["Boot Sequence", BOOT], ["Dial-Up Fireworks", DIALUP]] as [string, BoastSpec][])("%s over 120 random layouts and names", (_n, spec) => {
+    const rand = seeded(23);
+    for (let n = 0; n < 120; n++) {
+      const lines = rand() < 0.3 ? 2 : 1;
+      const slotW = 60 + rand() * 70, slotH = slotW * (1.25 + rand() * 0.2);
+      const width = Math.max((lines === 1 ? 6 : 3) * (slotW + 8) + 20, 300 + rand() * 1200);
+      const geom = layout({ seat: rand() < 0.5 ? "p1" : "p2", lines, slotW, slotH, width, filled: Math.floor(rand() * 7), pad: 4 + rand() * 10 });
+      const plan = boastPlan(spec, geom, n, { name: names[n % names.length], faction: ["Aegis", "Swarm", "Null", "Cortex"][n % 4] });
+      expect(boastPlanProblem(plan, geom), `layout ${n}`).toBeNull();
+      expect(boastPlanProblem(boastStill(plan), geom), `still ${n}`).toBeNull();
+    }
+  });
+});
+
 describe("the sting and the pages", () => {
   it("the sting rises in every voice and is not one of the match-event sounds", () => {
     expect(SFX_KINDS).not.toContain("boast");
@@ -542,6 +789,23 @@ describe("the sting and the pages", () => {
     }
   });
 
+  it("the Season 0 sounds: a tube, a beep, a modem under a second, a rising whistle, a pop; none a match-event sound", () => {
+    for (const k of ["crt", "post", "modem", "whistle", "pop"]) {
+      expect(SFX_KINDS).not.toContain(k);
+      const v = sfxRecipe(k, "Cortex", "normal", seeded(5));
+      expect(v.length, k).toBeGreaterThan(0);
+      expect(v.length, k).toBeLessThanOrEqual(20);
+    }
+    const modem = sfxRecipe("modem", "Aegis", "normal", seeded(5));
+    expect(Math.max(...modem.map((x) => (x.delay ?? 0) + x.dur))).toBeLessThan(1);
+    // The dial tones are true two-tone pairs, then the 2100 Hz answer tone.
+    expect(modem.filter((x) => x.k === "tone" && (x.delay ?? 0) < 0.3)).toHaveLength(8);
+    expect(modem.some((x) => x.f0 === 2100)).toBe(true);
+    const wh = sfxRecipe("whistle", "Null", "subtle", seeded(5)).find((x) => x.k === "tone")!;
+    expect(wh.f1!).toBeGreaterThan(wh.f0);
+    expect(sfxRecipe("post", "Swarm", "normal", seeded(5))).toHaveLength(1);
+  });
+
   it("the sheet carries every scene and the replay's own sources", () => {
     const html = renderBoastSheet();
     expect(html).toContain(BOAST_PURE_SOURCE);
@@ -549,7 +813,13 @@ describe("the sting and the pages", () => {
     const scenes = boastScenes();
     for (const spec of Object.values(BOAST_SPECS)) {
       expect(scenes.filter((s) => s.boast === spec.id).map((s) => s.key.replace(/^.*-/, ""))).toEqual(["full", "empty", "top", "phone", "reduced"]);
-      expect(scenes.filter((s) => s.boast === spec.id).every((s) => s.winner.faction === spec.faction && s.loser.faction !== spec.faction)).toBe(true);
+      const mine = scenes.filter((s) => s.boast === spec.id);
+      if (spec.faction) expect(mine.every((s) => s.winner.faction === spec.faction && s.loser.faction !== spec.faction)).toBe(true);
+      // A neutral boast is shown on every faction's win, never a mirror.
+      else {
+        expect(new Set(mine.map((s) => s.winner.faction))).toEqual(new Set(["Cortex", "Aegis", "Swarm", "Null"]));
+        expect(mine.every((s) => s.loser.faction !== s.winner.faction)).toBe(true);
+      }
     }
     for (const s of scenes) expect(html).toContain(`id="${s.key}"`);
   });
