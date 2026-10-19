@@ -3372,3 +3372,34 @@ The owner likes Boot Sequence and wants a similar short intro at the start of ev
 Sayings 1–8 have equal odds. The pick comes from the match's own seed, so a replay always shows the same saying the match had, and everyone watching sees the same one. Sayings must never use card names. Not "JACK IN" (the owner left it out).
 
 **When:** after boast slice 3 (the replay reads the boast from the match record, and the close-win slot). Render lane builds it; if the saying needs to be stored on the match record rather than derived from the seed, the render lane names that for the game lane at its checkpoint.
+
+
+---
+
+## 2026-10-19 — Owner: answers to render session 34 (boast slice 3; the Match Boot plan), keep all 3, all 10 Match Boot defaults, and a small fix
+
+### Render session 34, boast slice 3: keep all 3
+Owner decisions on the 3 calls in `progress/render/checkpoints.md` (2026-10-19, victory boasts slice 3; PR #86).
+1. **Keep:** a close win is shown by the plate line only ("<BOAST> · CLOSE WIN" instead of "· VICTORY"); the boast plays as it does as a main boast.
+2. **Keep:** a record the render can't use (the other side's boast, or a boast this page can't draw yet) falls back to the winner's faction starter boast. A won match never shows "no boast".
+3. **Keep:** the four recorded replays sit beside the 16 recordless samples, so the "old match" path stays visible.
+
+### Match Boot: the render plan approved, with all 10 suggested defaults
+Answers the [OWNER CHECK-IN] "the plan for Match Boot" in `progress/render/notes-for-owner.md` (session 34). The plan as proposed: a new "intro" event category in EFFECTS.md, symmetric and centre-out; the beats (both halves power on together, both agent lines type at the same time, `HANDSHAKE OK` and the saying on the centre line, then the first board); and the build order (slice 1, then a sound and phone polish slice).
+1. **Length:** about 2.6 s.
+2. **Colour:** `HANDSHAKE OK` and the saying in neutral white-chrome; each half's own agent line in its faction's colour.
+3. **Both agents' lines print at the same time,** one in each half, so neither side goes first.
+4. **Line format:** `LOADING AGENT: <name> [<FACTION>]`.
+5. **When it plays:** Play from move 0, or the page starting playback on its own from the start; not on page open without play, a jump, a scrub or a resume.
+6. **Skip:** a tap, Escape or Skip, as the boasts do; the first move starts at once.
+7. **The rare saying:** `> SUDO FIGHT` exactly 1 in 100 by the seed's hash; the other eight equally likely.
+8. **Sound:** a tube thump, key clicks, a short chirp for `HANDSHAKE OK`, a hit and a rising chord under the saying; music starts after; muted when sound is off.
+9. **The sayings are frozen as "list 1".** Any later change to the list asks the game lane to store the saying (or the list's version) on the match record.
+10. **Name:** "Match Boot" in the code and notes; viewers never see the name.
+
+### Render side task: two end-of-match glitches
+Fix alongside Match Boot slice 1 (both predate slice 3, but they show right as the boast plays):
+- At the end of the close-win replay, the momentum gauge says the loser is ahead. At the end of a match the gauge should show the winner ahead, or at least never show the loser ahead once the match is won.
+- The lethal attack's smoke lingers on the loser's row. It should clear before (or as) the boast starts, so nothing is drawn on the loser's side during the boast.
+
+Next render session: Match Boot slice 1 with these two fixes; then the loadout picker (boast slice 4).
