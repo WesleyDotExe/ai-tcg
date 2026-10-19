@@ -3320,3 +3320,13 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (2026-10-19, 
 
 ### Game-lane side task: update the starter boasts' store wording
 The render lane's session-32 note (`progress/render/notes-for-owner.md`) says two starter boasts' descriptions in the cosmetics catalogue (`economy/src/cosmetics.ts`) still describe the first drafts. Update them to describe the boasts as drawn (see the slice 1 and slice 2 checkpoints). Wording only; no other catalogue change.
+
+
+---
+
+## 2026-10-19 — Owner: answers to game session 49 (Guardian 3/4 and the re-recorded real-match ring), keep all 3
+
+Answers the [OWNER CHECK-IN] "Guardian 3/4 passes and is on the list; the real-match ring re-recorded" in `progress/notes-for-owner.md` (PR #83, `progress/balance-report-034-guardian-search.txt`).
+1. **Keep Guardian 3/4 on the approved list,** as built: 14 lines over 7 options, with Guardian 3/4 in place of 3/5. It passes the same way Supply Line 3/7 does (worst edge exactly 2.00). Agents that already hold a Guardian 3/5 card keep it.
+2. **Keep the real-match ring's re-recorded baseline,** as built (every edge within 1.7 points; the gate is unaffected).
+3. **Keep the starter boast wording call:** Hive Burst's description now says a zig-zag column over the name, and Void Collapse's says the glitch bars frame the name, alongside the two lines the render lane named. Wording only.
