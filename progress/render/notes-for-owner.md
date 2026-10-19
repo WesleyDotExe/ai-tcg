@@ -854,3 +854,19 @@ saying (or the list's version) on the match record. Nothing is needed until then
 9. **The sayings are frozen as list 1** [yes; any later change to the list asks the game lane to
    store the saying on the match record].
 10. **Name** ["Match Boot" in the code and the notes; viewers never see the name].
+
+---
+
+## 2026-10-19 — Session 35: Match Boot slice 1 built, and the two end-of-match fixes
+
+Nothing is blocking. The calls are in `progress/render/checkpoints.md` (newest entry, 8 calls, each
+with the default I built).
+
+**Worth watching, with sound on:** any replay from move 0 (Play at the start), and
+`render/output/match-boot-sheet.html` ("Play all in turn" runs all nine sayings). No one has heard the
+chirp, the hit and its rising chord, or seen the 2.6 s at full speed: the headless browser drops frames.
+
+**For the game lane, nothing now:** the saying comes from the seed, as you agreed (list 1). If the list
+ever changes, the saying (or the list's version) needs storing on the match record first; a render test
+pins the list so a change can't slip through.
+

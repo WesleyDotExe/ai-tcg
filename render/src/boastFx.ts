@@ -42,6 +42,9 @@ export const BOAST_PURE_SOURCE = String.raw`
   // How long a boast may run, the reduced-motion still, and the wait after
   // the lethal beat (the lethal flash peaks, the winner's HP bar settles).
   var BOAST_MS_MAX = 3200, BOAST_STILL_MS = 1000, BOAST_LEAD_MS = 900;
+  // How fast whatever the lethal beat left on the loser's side fades as the
+  // boast starts (the page's CFX.fadeOutIn).
+  var BOAST_CLEAR_MS = 280;
   // How far a flare of size s lights, from its centre: CFX's flare blooms
   // to 0.6 s x 1.2 (canvasFx.ts, flare()).
   var BOAST_FLARE_REACH = 0.72;
@@ -73,7 +76,8 @@ export const BOAST_PURE_SOURCE = String.raw`
     '5': '1f101e0101110e', '6': '0608101e11110e', '7': '1f010204080808', '8': '0e11110e11110e', '9': '0e11110f01020c',
     ' ': '00000000000000', '-': '0000001f000000', '.': '00000000000c0c', "'": '0c040800000000', '_': '0000000000001f',
     '!': '04040404040004', '?': '0e110102040004', ':': '000c0c000c0c00', ',': '000000000c0408', '&': '0c12140815120d',
-    '/': '01010204081010', '#': '0a0a1f0a1f0a0a', '+': '0004041f040400', '(': '02040808080402', ')': '08040202020408'
+    '/': '01010204081010', '#': '0a0a1f0a1f0a0a', '+': '0004041f040400', '(': '02040808080402', ')': '08040202020408',
+    '>': '10080402040810'
   };
   function boastGlyph(ch) {
     var s = BOAST_FONT[ch];
@@ -1273,8 +1277,9 @@ export interface BoastPlan {
   crestPieces?: number; still?: boolean;
 }
 
-const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS_MAX, BOAST_STILL_MS: BOAST_STILL_MS, BOAST_LEAD_MS: BOAST_LEAD_MS, BOAST_STARTER: BOAST_STARTER, BOAST_PRIMS: BOAST_PRIMS, BOAST_FORMATIONS: BOAST_FORMATIONS, BOAST_SPECS: BOAST_SPECS, BOAST_FONT: BOAST_FONT, BOAST_NEON: BOAST_NEON, boastBits: boastBits, boastBitsFit: boastBitsFit, boastIdFor: boastIdFor, boastFromRecord: boastFromRecord, boastCosmeticsShown: boastCosmeticsShown, boastSpecProblem: boastSpecProblem, boastPlan: boastPlan, boastStill: boastStill, boastPlanProblem: boastPlanProblem, boastPieceAt: boastPieceAt };`)() as {
+const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS_MAX, BOAST_CLEAR_MS: BOAST_CLEAR_MS, BOAST_STILL_MS: BOAST_STILL_MS, BOAST_LEAD_MS: BOAST_LEAD_MS, BOAST_STARTER: BOAST_STARTER, BOAST_PRIMS: BOAST_PRIMS, BOAST_FORMATIONS: BOAST_FORMATIONS, BOAST_SPECS: BOAST_SPECS, BOAST_FONT: BOAST_FONT, BOAST_NEON: BOAST_NEON, boastBits: boastBits, boastBitsFit: boastBitsFit, boastIdFor: boastIdFor, boastFromRecord: boastFromRecord, boastCosmeticsShown: boastCosmeticsShown, boastSpecProblem: boastSpecProblem, boastPlan: boastPlan, boastStill: boastStill, boastPlanProblem: boastPlanProblem, boastPieceAt: boastPieceAt };`)() as {
   BOAST_MS_MAX: number;
+  BOAST_CLEAR_MS: number;
   BOAST_STILL_MS: number;
   BOAST_LEAD_MS: number;
   BOAST_STARTER: Record<string, string>;
@@ -1296,6 +1301,7 @@ const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS
 };
 
 export const BOAST_MS_MAX = impl.BOAST_MS_MAX;
+export const BOAST_CLEAR_MS = impl.BOAST_CLEAR_MS;
 export const BOAST_STILL_MS = impl.BOAST_STILL_MS;
 export const BOAST_LEAD_MS = impl.BOAST_LEAD_MS;
 export const BOAST_STARTER = impl.BOAST_STARTER;

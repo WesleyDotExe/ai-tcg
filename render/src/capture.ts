@@ -189,7 +189,7 @@ function buildFrame(state: GameState, index: number, slotsMax: number, newEvents
     stack: state.stack.map(describeStackItem),
     players,
     newEvents: newEvents.map((event) => ({ event, text: formatEvent(event) })),
-    momentum: computeMomentum(players.p1, players.p2),
+    momentum: computeMomentum(players.p1, players.p2, state.winner),
   };
 }
 

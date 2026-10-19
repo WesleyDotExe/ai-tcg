@@ -24,7 +24,16 @@ function boardPower(p: PlayerSnapshot): number {
  * tell for "who has more options"; energy is minor, tie-breaking texture. */
 const WEIGHTS = { health: 1.0, board: 0.6, hand: 1.5, energy: 0.5 };
 
-export function computeMomentum(p1: PlayerSnapshot, p2: PlayerSnapshot): MomentumReading {
+export function computeMomentum(p1: PlayerSnapshot, p2: PlayerSnapshot, winner?: PlayerId | "draw" | null): MomentumReading {
+  // Once the match is won the gauge reads the result, not the board
+  // (owner 2026-10-19, render session 34's side task: at the end of a close
+  // win the board terms had the loser ahead while the boast played). A
+  // draw falls through to the board read.
+  if (winner === "p1" || winner === "p2") {
+    const won = winner === "p1" ? p1 : p2, lost = winner === "p1" ? p2 : p1;
+    const why = lost.health <= 0 ? `${lost.name} out of health` : `${won.name} won the match`;
+    return { score: winner === "p1" ? 100 : -100, leader: winner, reasons: [why] };
+  }
   const healthDelta = p1.health - p2.health;
   const boardDelta = boardPower(p1) - boardPower(p2);
   const handDelta = p1.hand.length - p2.hand.length;

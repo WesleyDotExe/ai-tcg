@@ -12,6 +12,7 @@ import { SIG_WARD_PURE_SOURCE, SIG_WARD_RUNTIME_SOURCE, sigWardDataFor } from ".
 import { SIG_ZONE_SOURCE } from "./sigZoneFx.js";
 import { BOARD_FIT_SOURCE } from "./boardFit.js";
 import { BOAST_CSS, BOAST_PURE_SOURCE, BOAST_RUNTIME_SOURCE } from "./boastFx.js";
+import { MATCH_BOOT_CSS, MATCH_BOOT_PURE_SOURCE, MATCH_BOOT_RUNTIME_SOURCE } from "./matchBootFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -54,7 +55,7 @@ export function renderMatchHtml(replay: MatchReplay): string {
 
   <section class="turnbar" id="turnbar"></section>
 
-  <section class="board-area">
+  <section class="board-area" id="board-area">
     <div class="side" id="side-p2"><div class="sigzone" id="sig-p2" hidden></div><div class="board-row" id="board-p2"></div></div>
     <div class="stackzone" id="stackzone"></div>
     <div class="side" id="side-p1"><div class="sigzone" id="sig-p1" hidden></div><div class="board-row" id="board-p1"></div></div>
@@ -780,6 +781,8 @@ html, body {
   box-shadow: 0 0 18px var(--fx-tint), 0 0 0 2px var(--fx-tint); }
 /* Victory boasts (render/src/boastFx.ts). */
 ${BOAST_CSS}
+/* Match Boot (render/src/matchBootFx.ts). */
+${MATCH_BOOT_CSS}
 `;
 
 const JS = `
@@ -956,6 +959,11 @@ ${SIG_WARD_RUNTIME_SOURCE}
 ${BOAST_PURE_SOURCE}
 ${BOAST_RUNTIME_SOURCE}
   window.__boast = BOAST; // read by the browser checks (progress/render/evidence/boast-check.mjs)
+  // Match Boot (render/src/matchBootFx.ts, embedded verbatim): the intro
+  // when playback starts from the first move.
+${MATCH_BOOT_PURE_SOURCE}
+${MATCH_BOOT_RUNTIME_SOURCE}
+  window.__boot = BOOT; // read by the browser checks (progress/render/evidence/boot-check-s35.mjs)
   // Board rows fit the screen (render/src/boardFit.ts, embedded verbatim).
 ${BOARD_FIT_SOURCE}
   // Zoom each side's row so its slots fit the side's width: one line while
@@ -2348,6 +2356,12 @@ ${SIG_ZONE_SOURCE}
     const frame = frames[i], w = frame.winner, pick = boastOf(frame);
     if (!pick || i !== frames.length - 1) { releaseResult(); return; }
     const l = w === 'p1' ? 'p2' : 'p1';
+    // Nothing is drawn on the loser's side during the boast: the lethal
+    // attack's smoke and scorch fade out as it starts (owner 2026-10-19).
+    // The loser's side, reaching out from the board (smoke rises), never in
+    // toward the winner's.
+    const lr = document.getElementById('side-' + l).getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
+    CFX.fadeOutIn({ l: lr.left + sx - 40, r: lr.right + sx + 40, t: lr.top + sy - (l === 'p2' ? 160 : 0), b: lr.bottom + sy + (l === 'p1' ? 160 : 0) }, BOAST_CLEAR_MS);
     BOAST.play(pick.id, {
       band: document.getElementById('side-' + w), panel: document.getElementById('hud-' + w),
       row: document.getElementById('board-' + w),
@@ -2364,6 +2378,7 @@ ${SIG_ZONE_SOURCE}
 
   function goTo(n) {
     const target = Math.max(0, Math.min(frames.length - 1, n));
+    BOOT.cancel();
     endBoast();
     if (target === i + 1) {
       // Anything move i was still waiting to show plays now, on move i's
@@ -2391,7 +2406,7 @@ ${SIG_ZONE_SOURCE}
     if (i === frames.length - 1) stop();
   }
 
-  function stop() { playing = false; clearTimeout(timer); document.getElementById('btn-play').textContent = '\\u25B6'; }
+  function stop() { playing = false; clearTimeout(timer); BOOT.cancel(); document.getElementById('btn-play').textContent = '\\u25B6'; }
 
   // Adaptive pacing (owner feedback 2026-09-25, item 4): a fixed-interval
   // timer gives a lethal blow and a 1-damage ping the same amount of screen
@@ -2416,12 +2431,37 @@ ${SIG_ZONE_SOURCE}
   }
 
   function play() {
-    if (i >= frames.length - 1) i = 0;
+    // Play at the end replays from the first move (shown first, so the
+    // first step animates from move 0's board, not the last one's).
+    if (i >= frames.length - 1) goTo(0);
     playing = true;
     lastTransitionTier = 'normal';
     document.getElementById('btn-play').textContent = '\\u23F8';
     clearTimeout(timer);
+    // From the first move, Match Boot plays first; its end (or a skip)
+    // starts the first move at once. Resuming mid-match goes straight on.
+    if (i === 0 && startBoot()) return;
     scheduleTick();
+  }
+
+  // ---- Match Boot (render/src/matchBootFx.ts) ----------------------------
+  // Plays when playback starts from move 0: Play there (or at the end, which
+  // replays from the start). Not on page open, a step, a jump, a scrub or a
+  // resume; any of those (and pause) cancels it. Standard for every match,
+  // so the "Cosmetics" switch doesn't touch it. The saying comes from the
+  // match's seed, so every viewer and every replay sees the same one.
+  function startBoot() {
+    if (frames.length < 2) return false;
+    const plan = BOOT.play({ top: document.getElementById('side-p2'), bot: document.getElementById('side-p1'), area: document.getElementById('board-area') }, {
+      who: { top: { name: pname('p2'), faction: replay.factions.p2 }, bot: { name: pname('p1'), faction: replay.factions.p1 } },
+      seed: replay.seed,
+      onEnd: function () {
+        if (!playing || i !== 0) return;
+        goTo(1);
+        if (playing) scheduleTick();
+      }
+    });
+    return !!plan;
   }
 
   document.getElementById('btn-first').onclick = function () { stop(); goTo(0); };

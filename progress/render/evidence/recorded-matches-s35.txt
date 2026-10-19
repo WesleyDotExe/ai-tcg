@@ -1,0 +1,48 @@
+# Victory boasts, slice 3: replays read the boast from the match record
+
+Each scenario runs through an in-memory economy store (fixed clock and seeds): starter collections
+(with the four free starter boasts), an agent each, starter decks; season items earned in real
+matches and bought; loadouts equipped; then the replayed match started with startMatch, captured
+move by move and recorded with each side's final health. The replay plays the record's boast.
+
+## recorded-boot-sequence (Cortex vs Aegis, seed 2)
+a bought season boast in the main slot: the Cortex winner plays Boot Sequence, not its faction's Data Cascade
+
+earning: 37 real matches over 4 days (Kestrel Nine won 24, Velvet Static 13)
+bought: Kestrel Nine buys Boot Sequence; credits left 1
+p1 Kestrel Nine (Cortex): boast=Boot Sequence  closeWinBoast=-
+p2 Velvet Static (Aegis): boast=Shield Slam  closeWinBoast=-
+match: 97 moves over 13 turns; Kestrel Nine wins on 11 health
+record recorded-boot-sequence: boast Boot Sequence (slot boast, p1, winner on 11)
+wrote render/output/recorded-boot-sequence.html
+
+## recorded-close-win (Swarm vs Null, seed 5)
+the close-win slot: the Swarm winner ends on 5 health or less, so its close-win boast (Dial-Up Fireworks, bought) plays instead of its main boast (Hive Burst)
+
+earning: 35 real matches over 4 days (Moth Protocol won 26, Quiet Lattice 9)
+bought: Moth Protocol buys Dial-Up Fireworks; credits left 8
+p1 Moth Protocol (Swarm): boast=Hive Burst  closeWinBoast=Dial-Up Fireworks
+p2 Quiet Lattice (Null): boast=Void Collapse  closeWinBoast=-
+match: 110 moves over 13 turns; Moth Protocol wins on 3 health
+record recorded-close-win: boast Dial-Up Fireworks (slot closeWinBoast, p1, winner on 3)
+wrote render/output/recorded-close-win.html
+
+## recorded-other-starter (Aegis vs Swarm, seed 4)
+a free starter boast of another faction: the Aegis winner wears Void Collapse; its close-win boast (Hive Burst) is set but the win is not close
+
+earning: none (only free starter boasts)
+p1 Bastion Echo (Aegis): boast=Void Collapse  closeWinBoast=Hive Burst
+p2 Spore Relay (Swarm): boast=Hive Burst  closeWinBoast=-
+match: 108 moves over 13 turns; Bastion Echo wins on 14 health
+record recorded-other-starter: boast Void Collapse (slot boast, p1, winner on 14)
+wrote render/output/recorded-other-starter.html
+
+## recorded-empty-slot (Null vs Cortex, seed 5)
+an empty boast slot: the store records the deck faction's starter (Cortex's Data Cascade, slot factionStarter)
+
+earning: none (only free starter boasts)
+p1 Hollow Index (Null): boast=Void Collapse  closeWinBoast=-
+p2 Prism Daemon (Cortex): boast=-  closeWinBoast=-
+match: 120 moves over 14 turns; Prism Daemon wins on 7 health
+record recorded-empty-slot: boast Data Cascade (slot factionStarter, p2, winner on 7)
+wrote render/output/recorded-empty-slot.html

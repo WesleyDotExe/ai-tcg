@@ -232,6 +232,20 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
       T({ type: 'sawtooth', f0: 1650, dur: 0.35, g: 0.03, steps: 10, delay: 0.55, filt: 'bandpass', ff: 2200, q: 2 });
       N({ type: 'bandpass', f0: 1800, f1: 3200, q: 3, dur: 0.38, g: 0.14, delay: 0.52 });
       N({ type: 'bandpass', f0: 600, q: 4, dur: 0.12, g: 0.1, delay: 0.75 });
+    } else if (kind === 'handshake') {
+      // Match Boot (render session 35), like 'crt' not a match-event sound:
+      // HANDSHAKE OK, a two-tone modem chirp, far shorter than Dial-Up
+      // Fireworks' screech.
+      T({ type: 'sine', f0: 1180, dur: 0.07, g: 0.05, att: 0.004 });
+      T({ type: 'sine', f0: 2100, dur: 0.1, g: 0.05, att: 0.004, delay: 0.08 });
+    } else if (kind === 'bootHit') {
+      // Match Boot: the saying slams in. A hit, then a short chord rising
+      // a note at a time. One voice whatever the factions: the intro
+      // favours neither side.
+      T({ type: 'sine', f0: 150, f1: 42, dur: 0.38, g: 0.42 });
+      N({ type: 'lowpass', f0: 2600, f1: 300, dur: 0.16, g: 0.24 });
+      [261.6, 329.6, 392, 523.3].forEach(function (n, i) { T({ type: 'triangle', f0: n, dur: 0.62 - i * 0.07, g: 0.05, att: 0.01, delay: 0.06 + i * 0.07, filt: 'lowpass', ff: 3000 }); });
+      T({ type: 'sine', f0: 1046.5, dur: 0.5, g: 0.02, att: 0.05, delay: 0.3 });
     } else if (kind === 'whistle') {
       // A rocket going up: a rising whistle over a hiss.
       T({ type: 'sine', f0: 900, f1: 2600, dur: 0.32, g: 0.04, att: 0.05 });
