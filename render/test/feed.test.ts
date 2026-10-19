@@ -225,7 +225,9 @@ describe("rules text", () => {
   });
 
   it("follows the id, not the card name (a renamed agent's card keeps its text)", async () => {
-    const { r, abilityText } = await replay("Cortex", "Aegis", 5, true);
+    // Seed 7: seed 5's cards fire no signature trigger since the approved
+    // list went to 13 lines (game session 49).
+    const { r, abilityText } = await replay("Cortex", "Aegis", 7, true);
     const sigEvent = r.frames.flatMap((f) => f.newEvents.map((e) => e.event)).find((e) => e.type === "abilityTrigger" && e.ability.startsWith("sig-"));
     expect(sigEvent).toBeTruthy();
     const ev = { ...(sigEvent as Extract<GameEvent, { type: "abilityTrigger" }>), source: "A Renamed Card" };

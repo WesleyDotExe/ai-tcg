@@ -86,21 +86,24 @@ export const APPROVED_SIGNATURE_CARDS: readonly UnitCard[] = APPROVED_SIGNATURE_
 
 /** The real-match stand-in's draw (owner 2026-10-18, option A): the approved
  * line one side plays on one seed. `seat` is 0 for the edge's first-named
- * faction and 1 for the other. Over each block of 28 seeds (from seed 1)
- * every line is drawn twice per seat, once on an odd seed and once on an
- * even one, so no line is tied to going first or second; and the two seats
- * never draw the same line on a seed (their indices differ by 4k + 3, which
- * is odd).
+ * faction and 1 for the other. Over each block of 2n seeds (n approved
+ * lines, blocks from seed 1) every line is drawn twice per seat, once on an
+ * odd seed and once on an even one, so no line is tied to going first or
+ * second; and the two seats never draw the same line on a seed (seat 1 is
+ * 1..n-1 lines ahead of seat 0, a step that changes each block so the
+ * pairings vary).
  *
  * Session 43's driver drew `(seed * 7 + seat * 3) % 14`, which reaches only
- * 2 of the 14 lines per seat (7 * seed mod 14 is 0 or 7); this replaced it
- * in session 44 (balance-report-031). */
+ * 2 of the 14 lines per seat (7 * seed mod 14 is 0 or 7); session 44's
+ * replacement only worked for an even n and broke when the list went to 13
+ * (session 49: 7 lines per seat); this one holds for any n of 2 or more. */
 export function approvedSignatureFor(seed: number, seat: 0 | 1): UnitCard {
   const n = APPROVED_SIGNATURE_CARDS.length;
   const k = seed - 1;
-  const block = Math.floor(k / n);
-  const i = seat === 0 ? k + block : 5 * k + 3 + block;
-  return APPROVED_SIGNATURE_CARDS[((i % n) + n) % n]!;
+  const block = Math.floor(k / (2 * n));
+  const line = Math.floor((k - block * 2 * n) / 2);
+  const i = seat === 0 ? line : line + 1 + (block % (n - 1));
+  return APPROVED_SIGNATURE_CARDS[i % n]!;
 }
 
 /**

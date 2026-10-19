@@ -3447,3 +3447,53 @@ decides). The smoke tests prove the drivers run, not that their numbers are righ
 **Evidence:** `progress/economy-demo-013.txt`, `progress/balance-report-033-signature-recheck.txt`.
 
 **Blocked:** nothing. Optional owner check-in on Guardian 3/5.
+
+## 2026-10-19 — Session 49 (owner's answers to session 48: the approved list from today's agent; a Guardian line)
+
+Read `progress/owner-feedback.md` first. Three new entries for the game lane: session 48's
+question 1 (option C: Guardian 3/5 off; the tuner looks for a Guardian line that passes with today's
+agent), question 2 (yes: read the approved list from today's agent's results; regenerate it), and a
+side task in the render-session-32 answers (the starter boasts' store wording). The 5 boast calls
+stand. The last merged PR (#82) was render, so this session is game lane.
+
+**Built:**
+- `signatureApprovedList.ts` reads only `progress/signature-fairness/agent41/` (`AGENT_RESULTS`);
+  the session-34 file-name rule for Guardian/Bulwark is gone (nothing older is read). The list
+  regenerates to 13 lines without Guardian 3/5 from the session-48 re-check alone, then to 14 with
+  the tuner's Guardian 3/4.
+- The Guardian search with today's agent: the 21 cost-5 bodies at 1,000 games, the lever tuner over
+  costs 5-7 (300 / 500 / 2,500), and 3/4 and 3/6 at 10,000. Report: `signatureGuardianReport.ts`.
+- `approvedSignatureFor` (the real-match ring's draw) rewritten for any list size: each line twice
+  per seat per 2n seeds, once odd and once even, seats never equal, seat 1's step changing per block
+  (a new test checks all n(n-1) pairings occur in 2,500 seeds). Session 44's formula assumed n even.
+- Store wording: all four starter boasts' descriptions as drawn (wording only).
+- Tests: the list's source folder and no Guardian 3/5; an off-list card still builds from its spec
+  with its old fingerprint; the fingerprint test now picks a line with an ability (Guardian has none).
+
+**Ran it:**
+- `progress/balance-report-034-guardian-search.txt`: attack 2 bodies are 2-4 points weaker than the
+  stand-in, attack 4 5-9 stronger; costs 6-7 best 4.0 at 500. At 10,000: **Guardian 3/4 passes, worst
+  2.00** (Cortex > Swarm [+1.5, +2.5]); 3/6 fails 3.21 (Aegis > Cortex). The lever tuner's 2,500-game
+  confirm passed 3/5 at 2.00, but its 10,000-game re-check (2.10) decides, as the rule says.
+- `ring:real` with 13 lines (before the Guardian result): PASS against the old baseline. With the
+  final 14: Cortex > Swarm 53.4 -> 53.0 (change -0.4 [-3.2, +2.3]) flipped UNRESOLVED -> OUT on the
+  interval; no card changed, so the baseline was re-recorded (every edge within 1.7 points). Gate:
+  PASS. Both re-run green after.
+- `progress/economy-demo-013.txt` regenerated (the three starter boasts render drew now say "drawn: yes").
+- `npm test`: all six workspaces pass (932); typecheck clean everywhere.
+
+**Caught on the way:** the list change broke four tests that leaned on it. The ring draw test (n
+fixed at 14) exposed the even-n formula. An economy test expected ~9 username-named cards in 270
+("1 in 30") but the odds have been 1 in 100 since 2026-10-16: it expected 2.7 and asserted more than
+2, and the new list drew 1 (measured over 60,000 candidates: 1.02% old list, 0.94% new, so the
+generator is fine); it now runs 300 drafts. Two render tests replay seeded matches with generated
+signature cards; they moved to seeds that still show what they test (game session 41 did the same).
+
+**Worked:** "the largest measurement decides" handled 3/5 (pass at 2,500, fail at 10,000) with no
+special case. **Didn't / honest limits:** Guardian 3/4 passes on the limit, inside the noise; the
+ring re-record is a judgement (flagged); committed render replays with generated signature cards
+will differ when next regenerated.
+
+**Evidence:** `progress/balance-report-034-guardian-search.txt`, `progress/economy-demo-013.txt`.
+
+**Blocked:** nothing. Optional owner check-in on Guardian 3/4 and the ring baseline.

@@ -35,11 +35,11 @@ test("the real-match baseline covers the same six edges and says which decks it 
   );
 });
 
-test("the real-match draw gives each seat every approved line twice per 28 seeds, once going first and once second", () => {
+test("the real-match draw gives each seat every approved line twice per 2n seeds, once going first and once second", () => {
   const n = APPROVED_SIGNATURE_CARDS.length;
   expect(n).toBe(14);
   for (const seat of [0, 1] as const) {
-    for (const start of [1, 29, 2493]) {
+    for (const start of [1, 2 * n + 1, 2 * n * 95 + 1]) {
       const odd = new Map<string, number>(), even = new Map<string, number>();
       for (let seed = start; seed < start + 2 * n; seed++) {
         const tally = seed % 2 === 1 ? odd : even;
@@ -51,6 +51,9 @@ test("the real-match draw gives each seat every approved line twice per 28 seeds
     }
   }
   for (let seed = 1; seed <= 2500; seed++) expect(approvedSignatureFor(seed, 0).id).not.toBe(approvedSignatureFor(seed, 1).id);
+  // Seat 1's step changes block to block, so the pairings vary.
+  const pairs = new Set(Array.from({ length: 2500 }, (_, i) => `${approvedSignatureFor(i + 1, 0).id}|${approvedSignatureFor(i + 1, 1).id}`));
+  expect(pairs.size).toBe(n * (n - 1));
   // Session 43's draw, (seed * 7 + seat * 3) % 14, reached 2 lines per seat. Pinned so it can't come back.
   expect(new Set(Array.from({ length: 2500 }, (_, i) => approvedSignatureFor(i + 1, 0).id)).size).toBe(n);
 });

@@ -3279,7 +3279,7 @@ Both follow the approved victory grammar (rise from the winner's side, never tou
 
 ---
 
-## 2026-10-19 — Owner: answers to game session 48 (Guardian 3/5) and the session-47 boast calls
+## 2026-10-19 — Owner: answers to game session 48 (Guardian 3/5) and the session-47 boast calls (HANDLED 2026-10-19, session 49 — Guardian 3/5 is off the approved list (it fails its 10,000-game re-check, and the list now reads only today's agent's results); agents that hold one keep it (a stored card is rebuilt from its spec, pinned by a test). The tuner ran with today's agent (every cost-5 body at 1,000 games, the lever tuner over costs 5-7, the nearest two at 10,000): **Guardian 3/4 passes** (worst 2.00, Cortex > Swarm, exactly on the limit), so the list is 14 lines over 7 options again, Guardian kept. Evidence `progress/balance-report-034-guardian-search.txt`; the result and two calls in the new [OWNER CHECK-IN] in notes-for-owner.md. The 5 boast calls stand, nothing to change)
 
 ### The approved signature lines re-check: Guardian 3/5, option C
 Answers question 1 of the [OWNER CHECK-IN] "The approved signature lines re-checked: 13 of 14 pass; Guardian 3/5 is just over" in `progress/notes-for-owner.md` (PR #81, `progress/balance-report-033-signature-recheck.txt`).
@@ -3298,7 +3298,7 @@ Answers the "Calls you may want to overrule" in the session-47 check-in "Victory
 
 ---
 
-## 2026-10-19 — Owner: session 48, question 2 answered (read the approved list with today's agent)
+## 2026-10-19 — Owner: session 48, question 2 answered (read the approved list with today's agent) (HANDLED 2026-10-19, session 49 — `signatureApprovedList.ts` reads only `progress/signature-fairness/agent41/` (today's agent; a new agent gets a new subfolder) and the list is regenerated from it; a test pins every line's source to that folder. Knock-on: the real-match ring draws from the list, so its seat draw was rewritten to work for any list size (session 44's needed an even one) and its baseline re-recorded, every edge within 1.7 points; see balance report 034, section 5)
 
 Answers question 2 of the [OWNER CHECK-IN] "The approved signature lines re-checked: 13 of 14 pass; Guardian 3/5 is just over" (PR #81), left open in the entry above.
 - **Yes: from now on, the approved signature list is read from today's agent's results** (the session-48 re-check, balance report 033), not the session-35 results.
@@ -3307,7 +3307,7 @@ Answers question 2 of the [OWNER CHECK-IN] "The approved signature lines re-chec
 
 ---
 
-## 2026-10-19 — Owner: answers to render session 32 (boast slice 2), keep all 6; store wording fix for the game lane
+## 2026-10-19 — Owner: answers to render session 32 (boast slice 2), keep all 6; store wording fix for the game lane (render calls: the render lane's own. GAME-LANE SIDE TASK HANDLED 2026-10-19, session 49 — wording only: Shield Slam and Data Cascade take the render lane's suggested lines (plates slam up; pixels stream up into a stack of blocks); Hive Burst's also said the spores "spell the name", which your kept call 2 says they don't, so it now says a zig-zag column over the name, and Void Collapse's says the bars frame the name. No other catalogue change; `progress/economy-demo-013.txt` regenerated (the three "drawn: yes" rows))
 
 ### Render session 32: keep all 6
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` (2026-10-19, "Victory boasts, slice 2: Hive Burst, Void Collapse, Data Cascade, and the cosmetics switch"; PR #82).
