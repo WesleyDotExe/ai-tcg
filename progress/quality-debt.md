@@ -40,9 +40,46 @@ re-baselined, the Zero-Day cards tuned to the cap), and session 42 (the Zero-Day
 Aegis vs Cortex investigation), and session 43 (the signature-mode ring investigation), and session 44
 (the real-match ring check; why a signature card helps Aegis most), and session 45 (option C: the
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
-victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11).
+victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
+(the Season 0 boasts; a hardening pass).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 48
+
+- **The approved signature list holds one line that fails with today's agent:** Guardian 3/5,
+  Aegis > Cortex +2.1 (balance report 033). New agents can still draw it until the owner answers
+  the check-in. The generator still reads the session-35 measurements; the new ones sit in
+  `progress/signature-fairness/agent41/` and aren't read by it yet.
+- **The `drawn` flag is kept in step with the render by a test, not by the render itself.** The
+  economy test reads `render/src/boastFx.ts` by relative path (the economy workspace can't depend on
+  the render, which depends on it). If the render moves or renames `BOAST_SPECS`, that test breaks at
+  import, loudly; it can't drift silently. It covers boasts only: a card back, avatar or arena has no
+  render registry yet, so `drawn` on those kinds would be unchecked.
+- **The 3 starter boasts not yet drawn (Hive Burst, Void Collapse, Data Cascade) are owned and
+  equippable** (free, granted, never sold, so the gate doesn't apply). A win with one plays whatever
+  the render does for a boast without a spec until render slice 2 draws them.
+- **`grantStarterCollection` is ~5.5 ms per owner (measured, not changed).** About 57 µs of that per
+  copy is SQLite's insert into `card_copies` (random UUID key, 3 indexes, 6 insert triggers), the
+  rest JS around 40 inserts; a prepared-statement cache measured no gain end to end, so it wasn't
+  shipped. 1,000 new owners ≈ 6 s, fine for Season 0; a bulk insert is the fix if sign-ups ever
+  arrive in bursts (part of the standing storage load-test gate).
+- **Dev drivers are smoke-tested only at 2 seeds.** `devDrivers.test.ts` proves both drivers run
+  every section with whole numbers; it can't catch a wrong number. Other report drivers (most of
+  `engine/src/dev/`) still have no test at all.
+- **Committed evidence that no longer regenerates,** narrowed: report 023 regenerates again (it
+  reads the first 2,500 seeds of the kept session-37 reference) and 026 still does. The older
+  reports (001-022) were not checked this session.
+
+## Session 47 debt, status after session 48
+
+- "Season 0 sells nothing": FIXED as the owner named it (2 boasts, on sale once drawn).
+- "Hardening pass now three sessions overdue": DONE this session alongside the owner's catalogue
+  ask: the approved list's 10,000-game re-check with session 41's agent (balance report 033), smoke
+  tests for both drivers, `grantStarterCollection` measured (see above).
+- The rest of session 47's list stands (close-win needs `finalHealth` from a server that doesn't
+  record matches yet; season-reset carry-over on paper; catalogue vs database orphans; the
+  live-match loadout rule in the store, not the schema; `matchHistory`'s IN lists).
 
 ## New debt from session 47
 

@@ -1,16 +1,36 @@
 # Notes for the owner
 
-**Updated 2026-10-19, session 47 (victory boasts and the cosmetics backend, the game lane's half).**
-Nothing is blocking. **Built as you approved, with all 6 defaults:** the cosmetics catalogue, the four
-free starter boasts, 300-credit season boasts sold in their season's window then retired,
-account-bound ownership, a per-agent loadout (with the close-win slot), and each side's loadout plus
-the boast that played saved on the match record. One small **[OWNER CHECK-IN]** below: what Season 0
-should sell, and five calls I made that you may want to overrule. Evidence:
-`progress/economy-demo-012.txt`.
+**Updated 2026-10-19, session 48 (the Season 0 boasts; a hardening pass).** Nothing is blocking.
+**Built as you named it:** Boot Sequence and Dial-Up Fireworks are in the catalogue (neutral, 300
+credits, the whole of Season 0, then retired), and neither can be bought until the render lane has
+drawn it. Evidence: `progress/economy-demo-013.txt`. **One small [OWNER CHECK-IN] below:** the
+overdue re-check of the 14 approved signature lines with today's agent passes 13; Guardian 3/5 is now
+0.1 points over your limit. Evidence: `progress/balance-report-033-signature-recheck.txt`.
 
-Your session-46 answers needed nothing else: the starter guarantee stays as built.
+### [OWNER CHECK-IN] The approved signature lines re-checked: 13 of 14 pass; Guardian 3/5 is just over
 
-### [OWNER CHECK-IN] Victory boasts: what Season 0 sells, and 5 calls made while building
+**What happened:** the 14 lines new agents draw their signature card from were measured in session 35,
+before session 41 taught the agent to value signature abilities. This session measured the fairness
+reference again and all 14 lines again, at 10,000 games per edge, with today's agent. 13 still pass
+(every edge moves 2 points or less). **Guardian 3/5 (`sig5-3x5-guardian`) fails on one edge:**
+Aegis > Cortex +2.1 points (95% interval +1.7 to +2.5; it was 1.87 before). Supply Line 3/7 sits
+exactly on the limit (2.0) and passes. The mean worst edge improved, 1.34 -> 1.24.
+
+**Nothing changed yet.** The list and the generator are as they were; agents that already have a
+Guardian 3/5 card keep it either way.
+
+**What I need from you:**
+1. **Guardian 3/5:** [suggestion **A**]
+   - **A.** Take it off the approved list: new agents draw from the other 13. Existing cards stay.
+   - **B.** Keep it: 0.1 points over, and the interval reaches below 2.
+   - **C.** Take it off, and have the tuner look for a Guardian line that passes with today's agent
+     (about an hour of games), so the menu keeps a Guardian option.
+2. **From now on, read the approved list with today's agent?** [suggestion: yes. The approved-list
+   generator only reads the session-35 results (the new ones are in a subfolder, so the two agents'
+   numbers don't mix). Under "yes", the next session regenerates the list from the new results,
+   which also applies your Guardian answer.]
+
+### [ANSWERED 2026-10-19: Season 0 sells Boot Sequence and Dial-Up Fireworks; built session 48] Victory boasts: what Season 0 sells, and 5 calls made while building
 
 **What's built** (ECONOMY.md, "Victory boasts and the cosmetics backend"): schema v11; a Season 0 file
 made before it gives every owner who had a starter collection all four starter boasts and their

@@ -3257,7 +3257,7 @@ Next render session: slice 1 of the boast plan.
 
 ---
 
-## 2026-10-19 — Owner: answers to render session 31 (boast slice 1, Shield Slam), keep all 7; and the Season 0 boasts
+## 2026-10-19 — Owner: answers to render session 31 (boast slice 1, Shield Slam), keep all 7; and the Season 0 boasts (render calls: the render lane's own. GAME-LANE PART HANDLED 2026-10-19, session 48 — Boot Sequence and Dial-Up Fireworks are in the cosmetics catalogue (`SEASON_0_BOASTS` in `economy/src/cosmetics.ts`): neutral, 300 credits, sale window the whole of Season 0, retired after. "Neither goes on sale until the render lane has drawn it" is enforced: every item carries `drawn`, an undrawn item is never on sale and a purchase is refused with "the render lane hasn't drawn it"; a test reads the render's `BOAST_SPECS` and fails if `drawn` and the specs disagree, so the render lane flips `drawn` in the change that adds each spec. No card backs, avatars or arenas. Evidence `progress/economy-demo-013.txt`)
 
 ### Render session 31: keep all 7
 Owner decisions on the 7 calls in `progress/render/checkpoints.md` (2026-10-19, "Victory boasts, slice 1: the victory grammar and Aegis's Shield Slam"; PR #80).

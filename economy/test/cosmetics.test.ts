@@ -16,10 +16,13 @@ import {
   EconomyStore,
   LOADOUT_SLOTS,
   SEASON_BOAST_PRICE_CREDITS,
+  SEASON_0_BOASTS,
   STARTER_BOASTS,
   catalogueProblem,
+  onSale,
   type CosmeticItem,
 } from "../src/index.js";
+import { BOAST_SPECS } from "../../render/src/boastFx.js";
 
 const DAY1 = "2026-10-19T10:00:00.000Z";
 let clock = new Date(DAY1);
@@ -29,9 +32,8 @@ afterEach(() => {
   for (const d of tmpDirs.splice(0)) rmSync(d, { recursive: true, force: true });
 });
 
-/** A test catalogue: the shipped one plus Season 0 items for sale. The
- * shipped catalogue sells nothing yet (which items go on sale is the
- * owner's call). */
+/** A test catalogue: the shipped one plus drawn test items for sale (the
+ * shipped Season 0 boasts aren't drawn yet, so they aren't on sale). */
 const SEASON_BOAST: CosmeticItem = {
   itemId: "boast-s0-test-overclock",
   kind: "boast",
@@ -42,6 +44,7 @@ const SEASON_BOAST: CosmeticItem = {
   sale: { from: "2026-10-01T00:00:00.000Z", until: "2026-11-01T00:00:00.000Z" },
   artRef: "code:boast/test-overclock",
   description: "A test season boast.",
+  drawn: true,
 };
 const QUIET_BOAST: CosmeticItem = { ...SEASON_BOAST, itemId: "boast-s0-test-quiet", name: "Test Quiet", sale: null };
 const LATE_BACK: CosmeticItem = {
@@ -78,17 +81,74 @@ function seat(s: EconomyStore, name: string, faction: DeckFaction) {
 }
 
 describe("cosmetics: the catalogue", () => {
-  it("ships the four free faction starter boasts and nothing for sale yet", () => {
+  it("ships the four free faction starter boasts and Season 0's two season boasts", () => {
     expect(catalogueProblem(COSMETICS)).toBeNull();
-    expect(COSMETICS.map((c) => c.itemId).sort()).toEqual(Object.values(STARTER_BOASTS).map((b) => b.itemId).sort());
+    expect(COSMETICS.map((c) => c.itemId).sort()).toEqual(
+      [...Object.values(STARTER_BOASTS), ...SEASON_0_BOASTS].map((b) => b.itemId).sort(),
+    );
     for (const [faction, boast] of Object.entries(STARTER_BOASTS)) {
       expect(boast).toMatchObject({ kind: "boast", faction, season: "standard", priceCredits: null, sale: null });
       expect(boast.artRef).toMatch(/^code:boast\//);
     }
+    // Owner 2026-10-19: two neutral boasts, 300 credits each, on sale for the
+    // whole of Season 0, then retired; no card backs, avatars or arenas yet.
+    expect(SEASON_0_BOASTS.map((b) => [b.itemId, b.name])).toEqual([
+      ["boast-s0-boot-sequence", "Boot Sequence"],
+      ["boast-s0-dial-up-fireworks", "Dial-Up Fireworks"],
+    ]);
+    for (const boast of SEASON_0_BOASTS) {
+      expect(boast).toMatchObject({ kind: "boast", season: "S0", faction: null, priceCredits: SEASON_BOAST_PRICE_CREDITS, sale: null });
+      expect(boast.artRef).toBe(`code:boast/${boast.itemId.replace(/^boast-/, "")}`);
+    }
+    expect(COSMETICS.every((c) => c.kind === "boast")).toBe(true);
+  });
+
+  it("each item is marked drawn exactly when the render lane has drawn it", () => {
+    // The render's specs are keyed by item id. A boast the render draws but
+    // the catalogue still marks undrawn (or the other way round) fails here:
+    // flip `drawn` in economy/src/cosmetics.ts in the change that adds the spec.
+    for (const item of COSMETICS) {
+      expect({ itemId: item.itemId, drawn: item.drawn }).toEqual({ itemId: item.itemId, drawn: item.itemId in BOAST_SPECS });
+      const spec = BOAST_SPECS[item.itemId];
+      if (spec) expect(spec.name).toBe(item.name);
+    }
+    for (const id of Object.keys(BOAST_SPECS)) expect(COSMETICS.map((c) => c.itemId)).toContain(id);
+  });
+
+  it("sells the Season 0 boasts only once drawn: for the whole season, never in another", () => {
+    const boot = SEASON_0_BOASTS[0]!;
+    // Not drawn: never on sale, at any time in Season 0.
+    for (const at of ["2026-10-01T00:00:00.000Z", "2026-11-15T00:00:00.000Z", "2027-06-01T00:00:00.000Z"]) {
+      expect(onSale(boot, "S0", at)).toBe(false);
+    }
     const s = EconomyStore.open(":memory:", { now: () => clock });
     const o = s.createOwner({ name: "o" });
+    credit(s, o.ownerId, 1000);
     expect(s.cosmeticsOnSale(o.ownerId)).toEqual([]);
+    expect(() => s.buyCosmetic(o.ownerId, boot.itemId)).toThrow(/isn't on sale yet: the render lane hasn't drawn it/);
+    expect(s.balance(o.ownerId)).toBe(1000);
     s.close();
+    // Drawn (as the render lane will mark it): on sale for all of Season 0,
+    // retired in Season 1; the owner keeps it.
+    const drawnBoot = { ...boot, drawn: true };
+    for (const at of ["2026-10-01T00:00:00.000Z", "2026-11-15T00:00:00.000Z", "2027-06-01T00:00:00.000Z"]) {
+      expect(onSale(drawnBoot, "S0", at)).toBe(true);
+      expect(onSale(drawnBoot, "S1", at)).toBe(false);
+    }
+    const catalogue = COSMETICS.map((c) => (c.itemId === boot.itemId ? drawnBoot : c));
+    const s0 = EconomyStore.open(":memory:", { now: () => clock, cosmetics: catalogue });
+    const buyer = s0.createOwner({ name: "buyer" });
+    credit(s0, buyer.ownerId, 1000);
+    expect(s0.cosmeticsOnSale(buyer.ownerId).map((i) => [i.itemId, i.priceCredits])).toEqual([[boot.itemId, 300]]);
+    expect(s0.buyCosmetic(buyer.ownerId, boot.itemId)).toMatchObject({ itemId: boot.itemId, source: "purchase" });
+    expect(s0.balance(buyer.ownerId)).toBe(700);
+    s0.close();
+    const s1 = EconomyStore.open(":memory:", { now: () => clock, cosmetics: catalogue, season: "S1" });
+    const later = s1.createOwner({ name: "later" });
+    credit(s1, later.ownerId, 1000);
+    expect(s1.cosmeticsOnSale(later.ownerId)).toEqual([]);
+    expect(() => s1.buyCosmetic(later.ownerId, boot.itemId)).toThrow(/S0 item; it isn't sold in S1/);
+    s1.close();
   });
 
   it("refuses a catalogue it can't use", () => {

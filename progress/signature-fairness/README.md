@@ -60,3 +60,16 @@ out, a miss at 2,500 that passes at 10,000 is in.
 | `s35-confirm-0.jsonl` … `s35-confirm-3.jsonl` | `npx tsx src/dev/signatureFairness.ts confirm --in s35-grid-0..3.jsonl --top 2 --seeds 10000 --shard i/4 --out ../progress/signature-fairness/s35-confirm-i.jsonl` |
 
 The new files are prefixed `s35-` so report 025's `grid-` reader still prints as committed.
+
+## Session 48 (hardening: the approved list re-checked with session 41's agent)
+
+Printed into `progress/balance-report-033-signature-recheck.txt` by `engine/src/dev/signatureRecheckReport.ts`. These
+files are in `agent41/`, a subfolder, so `signatureApprovedList.ts` (which reads only this folder's own `.jsonl` files)
+doesn't mix measurements from two agents. The reference these lines pair with is the new
+`engine/src/dev/signatureReference.json` (10,000 seeds, today's agent); the session-35 one is kept as
+`engine/src/dev/signatureReference-s37.json` for the older reports.
+
+| file | command (from `engine/`) |
+|---|---|
+| (reference) | `npx tsx src/dev/signatureFairness.ts reference --seeds 10000` |
+| `agent41/recheck-10k-0.jsonl` … `agent41/recheck-10k-3.jsonl` | `npx tsx src/dev/signatureFairness.ts remeasure --approved --seeds 10000 --shard i/4 --out ../progress/signature-fairness/agent41/recheck-10k-i.jsonl` (i = 0..3, in parallel) |

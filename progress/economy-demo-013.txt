@@ -1,0 +1,79 @@
+# What Season 0 sells: the two Season 0 boasts (session 48)
+
+## 1. The shipped catalogue
+
+boast-aegis-shield-slam      Shield Slam        standard Aegis   free (starter)  drawn: yes  on sale in S0 now: no
+boast-swarm-hive-burst       Hive Burst         standard Swarm   free (starter)  drawn: no   on sale in S0 now: no
+boast-null-void-collapse     Void Collapse      standard Null    free (starter)  drawn: no   on sale in S0 now: no
+boast-cortex-data-cascade    Data Cascade       standard Cortex  free (starter)  drawn: no   on sale in S0 now: no
+boast-s0-boot-sequence       Boot Sequence      S0       neutral 300 credits     drawn: no   on sale in S0 now: no
+boast-s0-dial-up-fireworks   Dial-Up Fireworks  S0       neutral 300 credits     drawn: no   on sale in S0 now: no
+
+Boot Sequence: The screen flickers on like an old CRT, a retro BIOS types out the winner's name line by line, then a chunky SYSTEM READY flash.
+Dial-Up Fireworks: A modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.
+
+## 2. A Season 0 file with the shipped catalogue: ada earns 300 credits in real matches
+
+s0-m001  T14  bo wins   ada +2   boast: Void Collapse (boast, winner on 15)
+s0-m002  T12  bo wins   ada +2   boast: Void Collapse (boast, winner on 20)
+s0-m003  T13  ada wins  ada +30  boast: Hive Burst (boast, winner on 5)
+s0-m004  T12  bo wins   ada +2   boast: Void Collapse (boast, winner on 3)
+s0-m005  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 20)
+s0-m006  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 11)
+s0-m007  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 15)
+s0-m008  T11  ada wins  ada +5   boast: Hive Burst (boast, winner on 9)
+s0-m009  T13  ada wins  ada +5   boast: Hive Burst (boast, winner on 2)
+s0-m010  T13  ada wins  ada +5   boast: Hive Burst (boast, winner on 6)
+s0-m011  T14  bo wins   ada +2   boast: Void Collapse (boast, winner on 14)
+s0-m012  T13  ada wins  ada +30  boast: Hive Burst (boast, winner on 4)
+s0-m013  T14  bo wins   ada +2   boast: Void Collapse (boast, winner on 5)
+s0-m014  T12  bo wins   ada +2   boast: Void Collapse (boast, winner on 14)
+s0-m015  T14  bo wins   ada +2   boast: Void Collapse (boast, winner on 2)
+s0-m016  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 14)
+s0-m017  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 18)
+s0-m018  T15  ada wins  ada +10  boast: Hive Burst (boast, winner on 4)
+s0-m019  T11  ada wins  ada +5   boast: Hive Burst (boast, winner on 14)
+s0-m020  T11  ada wins  ada +5   boast: Hive Burst (boast, winner on 11)
+s0-m021  T13  ada wins  ada +30  boast: Hive Burst (boast, winner on 15)
+s0-m022  T12  bo wins   ada +2   boast: Void Collapse (boast, winner on 4)
+s0-m023  T12  bo wins   ada +2   boast: Void Collapse (boast, winner on 1)
+s0-m024  T13  ada wins  ada +10  boast: Hive Burst (boast, winner on 4)
+s0-m025  T12  bo wins   ada +2   boast: Void Collapse (boast, winner on 4)
+s0-m026  T12  bo wins   ada +2   boast: Void Collapse (boast, winner on 2)
+s0-m027  T14  bo wins   ada +2   boast: Void Collapse (boast, winner on 3)
+s0-m028  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 8)
+s0-m029  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 10)
+s0-m030  T13  ada wins  ada +5   boast: Hive Burst (boast, winner on 6)
+s0-m031  T13  ada wins  ada +30  boast: Hive Burst (boast, winner on 9)
+s0-m032  T13  ada wins  ada +10  boast: Hive Burst (boast, winner on 3)
+s0-m033  T16  bo wins   ada +2   boast: Void Collapse (boast, winner on 7)
+s0-m034  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 10)
+s0-m035  T11  ada wins  ada +10  boast: Hive Burst (boast, winner on 15)
+s0-m036  T 9  ada wins  ada +5   boast: Hive Burst (boast, winner on 14)
+
+ada's credits: 301
+on sale for ada: nothing
+buy Boot Sequence: refused: "Boot Sequence" isn't on sale yet: the render lane hasn't drawn it
+buy Dial-Up Fireworks: refused: "Dial-Up Fireworks" isn't on sale yet: the render lane hasn't drawn it
+ada's credits after: 301 (nothing debited)
+
+## 3. The same file, reopened with Boot Sequence marked drawn (the render lane's change when it ships the spec)
+
+on sale for ada: Boot Sequence (300 credits)
+buy Dial-Up Fireworks: refused: "Dial-Up Fireworks" isn't on sale yet: the render lane hasn't drawn it
+buy Boot Sequence: bought (ledger row 73, purchase)
+  ledger: -300 credits, cosmeticPurchase, ref boast-s0-boot-sequence; ada's credits now 1
+buy Boot Sequence again: refused: the owner already has "Boot Sequence"
+on sale for ada: Boot Sequence (300 credits, owned)
+ada's agent loadout: boast=Boot Sequence  (bo's: boast=Void Collapse)
+
+Real matches until ada's agent wins:
+s0-m037  T11  ada wins  ada +5   boast: Boot Sequence (boast, winner on 15)
+
+the win's record: boast boast-s0-boot-sequence (boast); ada's saved loadout boast=Boot Sequence
+
+## 4. A Season 1 file with the same catalogue: both Season 0 boasts are retired
+
+on sale for cy (1000 credits): nothing
+buy Boot Sequence: refused: "Boot Sequence" is a S0 item; it isn't sold in S1
+buy Dial-Up Fireworks: refused: "Dial-Up Fireworks" is a S0 item; it isn't sold in S1

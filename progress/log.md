@@ -3402,3 +3402,48 @@ passed by the demo; no card back, avatar or arena items exist yet.
 **Evidence:** `progress/economy-demo-012.txt`.
 
 **Blocked:** nothing.
+
+## 2026-10-19 — Session 48 (the Season 0 boasts; a hardening pass)
+
+Read `progress/owner-feedback.md` first. One new entry: render session 31's answers (the render
+lane's own) plus what Season 0 sells, which is the game lane's: add Boot Sequence and Dial-Up
+Fireworks to the catalogue, and neither goes on sale until the render lane has drawn it. The last
+merged PR (#80) was render, so this session is game lane. The owner's ask was small, so the rest of
+the session was the hardening pass, now four sessions overdue (no new features).
+
+**Built:**
+- `SEASON_0_BOASTS` in `economy/src/cosmetics.ts`: both boasts, neutral, 300 credits, `sale: null`
+  (the whole season), season S0 (retired after it by the existing season rule). Every item gets
+  `drawn`; `onSale` needs it, and `buyCosmetic` refuses an undrawn item with its own message. A test
+  reads the render's `BOAST_SPECS` (relative import; the economy can't depend on the render) and
+  fails when `drawn` and the specs disagree. Only Shield Slam is drawn today.
+- Hardening: `engine/test/devDrivers.test.ts` runs `signatureRingDrivers.ts` and
+  `aegisSignatureGain.ts` as subprocesses at 2 seeds with every section (whole output, no NaN) and
+  checks that a broken driver fails the test. Report 023 regenerates byte for byte again (it reads
+  the first 2,500 seeds of the kept session-37 reference, `signatureReference-s37.json`), and so
+  does 026.
+- `grantStarterCollection` measured, not changed: ~5.5 ms per owner, ~57 µs of it per copy in
+  SQLite's insert. A prepared-statement cache measured no gain end to end, so I reverted it.
+- The approved list's 10,000-game re-check: the reference re-measured with today's agent
+  (`signatureReference.json`, 3 min 17 s), then all 14 lines (4 shards, ~25 min), printed by
+  `signatureRecheckReport.ts`.
+
+**Ran it:**
+- `progress/economy-demo-013.txt` (reproducible): with the shipped catalogue ada earns 301 credits
+  in 36 real matches and both boasts are refused ("the render lane hasn't drawn it"), with nothing
+  debited. Reopened with Boot Sequence marked drawn, it is bought (-300, `cosmeticPurchase`), Dial-Up
+  is still refused, a second purchase is refused, and the next real win records
+  `boast-s0-boot-sequence`. A Season 1 file sells neither. Demo 012 still reproduces.
+- `progress/balance-report-033-signature-recheck.txt`: the reference moved with the agent (Cortex >
+  Aegis 39.8 -> 45.1, Aegis > Cortex 60.2 -> 54.9). 13 of 14 lines pass; Guardian 3/5 fails on
+  Aegis > Cortex +2.1 [+1.7, +2.5]; Supply Line 3/7 is exactly at 2.0. Mean worst 1.34 -> 1.24.
+- `npm test`: all six workspaces pass (870); typecheck clean everywhere.
+
+**Worked:** the drawn gate is one boolean and one test that ties the two lanes together without a
+package dependency. **Didn't / honest limits:** the timing work ended in "leave it" (the honest
+result, but no speed-up). The re-check finds one failing line that I didn't remove (the owner
+decides). The smoke tests prove the drivers run, not that their numbers are right.
+
+**Evidence:** `progress/economy-demo-013.txt`, `progress/balance-report-033-signature-recheck.txt`.
+
+**Blocked:** nothing. Optional owner check-in on Guardian 3/5.
