@@ -3294,3 +3294,12 @@ Answers the "Calls you may want to overrule" in the session-47 check-in "Victory
 3. **Keep:** no loadout changes during a live match.
 4. **Keep:** the close-win rule reads each side's final health, passed in when the match is recorded. The real server passes it once it records matches (roadmap 6b).
 5. **Keep:** season reset carry-over stays a written rule until the season reset is built; then owned cosmetics and loadouts go to the new file.
+
+
+---
+
+## 2026-10-19 — Owner: session 48, question 2 answered (read the approved list with today's agent)
+
+Answers question 2 of the [OWNER CHECK-IN] "The approved signature lines re-checked: 13 of 14 pass; Guardian 3/5 is just over" (PR #81), left open in the entry above.
+- **Yes: from now on, the approved signature list is read from today's agent's results** (the session-48 re-check, balance report 033), not the session-35 results.
+- The next game session regenerates the approved list from the new results. This also applies the Guardian 3/5 answer (option C): Guardian 3/5 comes off, leaving 13, while the tuner looks for a Guardian line that passes with today's agent.
