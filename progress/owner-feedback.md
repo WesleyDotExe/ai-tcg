@@ -3330,3 +3330,45 @@ Answers the [OWNER CHECK-IN] "Guardian 3/4 passes and is on the list; the real-m
 1. **Keep Guardian 3/4 on the approved list,** as built: 14 lines over 7 options, with Guardian 3/4 in place of 3/5. It passes the same way Supply Line 3/7 does (worst edge exactly 2.00). Agents that already hold a Guardian 3/5 card keep it.
 2. **Keep the real-match ring's re-recorded baseline,** as built (every edge within 1.7 points; the gate is unaffected).
 3. **Keep the starter boast wording call:** Hive Burst's description now says a zig-zag column over the name, and Void Collapse's says the glitch bars frame the name, alongside the two lines the render lane named. Wording only.
+
+
+---
+
+## 2026-10-19 — Owner: answers to render session 33 (the Season 0 boasts), keep all 7; and a new feature, Match Boot
+
+### Render session 33: keep all 7
+Owner decisions on the 7 calls in `progress/render/checkpoints.md` (2026-10-19, victory boasts slice 2b, Boot Sequence and Dial-Up Fireworks; PR #84).
+1. **Keep:** Boot Sequence prints its BIOS lines one at a time, ending in the name typed out a key at a time in the plate.
+2. **Keep:** the BIOS lines scroll up like a terminal; the CRT picture opens from its centre line.
+3. **Keep:** phosphor green for Boot Sequence.
+4. **Keep:** the name shows twice in Dial-Up Fireworks (spelled in firework pixels and on the plate).
+5. **Keep:** the fireworks never fall; bursts fan up and out and fade.
+6. **Keep:** a neutral boast keeps the winner's faction for the lit panel and the sting's voice.
+7. **Keep:** the modem screech is about 0.9 s, with the music held down under it.
+
+**Game-lane side task (small):** `progress/economy-demo-013.txt` step 2 still says both Season 0 boasts are refused because they aren't drawn. Pin the demo's step 2 to an undrawn copy of the catalogue (as the economy test now does) and regenerate the demo output. No store code change.
+
+### New feature: Match Boot (an intro at the start of every match)
+The owner likes Boot Sequence and wants a similar short intro at the start of every match, ending on a word that starts the fight.
+
+**Defaults to plan with (the render lane proposes the details at a checkpoint before building):**
+- **About 2–3 s at the start of every match and replay:** both halves of the board power on together like CRTs, each in its own faction's colour; a short terminal readout prints both agents (for example `LOADING AGENT: <name> [<FACTION>]` for each side, then `HANDSHAKE OK`); then the starting saying slams in at the centre with a sound, and the match begins.
+- **Standard and free for every match,** part of the game's identity, not a store item. It is not hidden by the "Cosmetics: on / off" switch. (Sayings or intros sold as cosmetics could come later; not now.)
+- **Clearly different from the Boot Sequence boast,** so the 300-credit boast stays special: the intro is split-screen, symmetric and shows both agents; the boast is the winner's solo moment with its own "SYSTEM READY" finish.
+- **Neutral:** it favours neither side.
+- **Like the boasts:** skippable (tap, Escape or Skip); plays when a replay starts from the beginning, not when scrubbing or jumping; a short still with reduced motion; code-drawn and self-contained, in the chunky dot font.
+
+**The starting sayings (a mix; each match picks one):**
+1. FIGHT
+2. ENGAGE
+3. \> RUN MATCH.EXE
+4. EXECUTE
+5. LINK ESTABLISHED
+6. ACCESS GRANTED
+7. OVERCLOCK
+8. BREACH
+9. \> SUDO FIGHT (rare easter egg, about 1 in 100 matches)
+
+Sayings 1–8 have equal odds. The pick comes from the match's own seed, so a replay always shows the same saying the match had, and everyone watching sees the same one. Sayings must never use card names. Not "JACK IN" (the owner left it out).
+
+**When:** after boast slice 3 (the replay reads the boast from the match record, and the close-win slot). Render lane builds it; if the saying needs to be stored on the match record rather than derived from the seed, the render lane names that for the game lane at its checkpoint.
