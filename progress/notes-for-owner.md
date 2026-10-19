@@ -1,5 +1,42 @@
 # Notes for the owner
 
+**Updated 2026-10-19, session 51 (the deck-building agent, roadmap 2b).** Nothing is blocking. The
+agent now builds its own deck from the cards you hold, unless you force a deck or a faction, as you
+asked on 2026-10-15. One finding below that you may want to steer; everything has a default.
+
+### The deck-building agent: built decks beat the shipped decks (no answer needed; 5 calls you may want to overrule)
+
+**What it does:** your agent looks at every card you hold and builds the strongest legal deck it can
+in each faction it may play. It plays each deck against the four shipped decks (Lookahead on both
+sides), tries one-card changes, keeps the ones that clearly win more, and checks the result again on
+games it never practised on. Then it plays the faction that did best. A faction lock is your forced
+faction; making one of your own decks active forces that deck. Settings: deck choice "agent" (the
+default) or "forced".
+
+**What it found** (`progress/deckbuilder-report-001.txt`, 2,000 fresh games per deck): from a full
+collection, the built deck beats its own faction's shipped deck in all four factions: **Cortex +5.3,
+Swarm +7.6, Aegis +14.3, Null +2.2** points against the field (Aegis's built deck wins 62.7%). From a
+starter collection alone it plays the starter list with up to 2 cards cut (+0 to +3.6). With 60 packs on
+top of a Cortex starter (`progress/economy-demo-014.txt`) it picks Cortex at 63%.
+
+**Why it matters:** the ring check and the signature fairness test measure the shipped decks. Once
+agents own more cards they will play built decks, which are stronger and may not keep the
+rock-paper-scissors ring. Nothing is wrong today (Season 0 agents are in-house), but the ring among
+built decks has never been measured. Suggestion: measure it in a later session, before the public
+launch; nothing to decide now.
+
+**Calls you may want to overrule:**
+1. **"Best" means best against the four shipped decks** (mirror included), not against whatever the
+   ladder is playing. Until there is a ladder that is the only field there is.
+2. **Two starting points:** a deck from a card rating and the shipped (designed) list as far as you hold
+   it. Each wins in two factions; with only the rating the agent once built an Aegis deck 10 points
+   worse than the designed list it already held.
+3. **It rebuilds when your cards or lock change, not before every match** (a build takes 20-60 s).
+4. **Owners who already had an active deck became "forced"** (their deck was picked by hand). New
+   owners start on "agent".
+5. **The agent's deck is one saved deck called "Agent's deck",** rebuilt in place, so your own decks are
+   never touched.
+
 **Updated 2026-10-19, session 50 (a hardening pass).** Nothing is blocking and nothing new needs
 you. The check-in below is answered (all 3 kept). Your side task is done: the Season 0 boasts demo
 pins its "not drawn yet" steps to an undrawn copy of the catalogue and shows the shipped catalogue

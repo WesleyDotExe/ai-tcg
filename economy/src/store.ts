@@ -2,6 +2,9 @@ import { createHash, randomBytes, randomInt, randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import {
   buildDeck,
+  chooseDeck,
+  holdingsOf,
+  type DeckBuildOptions,
   CARD_REGISTRY,
   deckFaction,
   agentName as generatedAgentName,
@@ -122,7 +125,34 @@ export interface OwnerRecord {
   /** The owner's faction lock setting: the connected agent may only play a
    * deck of this faction. Null is the default, free. */
   factionLock: DeckFaction | null;
+  /** Who picks the deck (schema v12): "agent", the connected agent plays
+   * the deck it built from the owner's cards (`buildAgentDeck`), in the
+   * faction lock if one is set; "forced", it plays the deck the owner made
+   * active (`setActiveDeck`). New owners start on "agent". */
+  deckChoice: DeckChoice;
   createdAt: string;
+}
+
+export type DeckChoice = "agent" | "forced";
+
+/** The name of the deck the agent builds (one per owner, rebuilt in place). */
+export const AGENT_DECK_NAME = "Agent's deck";
+
+/** What `buildAgentDeck` did: the saved deck, the faction it picked, and
+ * every faction it weighed (with its fresh-seed score when games ran). */
+export interface AgentDeckBuild {
+  deck: PlayableDeck;
+  faction: DeckFaction;
+  factions: {
+    faction: DeckFaction;
+    infeasible?: string;
+    /** Fresh-seed win rate against the shipped decks, when games ran. */
+    winRate?: number;
+    /** Which deck the faction kept: a start ("rating", "designed") or the search's. */
+    chosen?: string;
+    starts?: { from: string; winRate?: number }[];
+    kept: string[];
+  }[];
 }
 
 export interface AgentRecord {
@@ -833,6 +863,7 @@ export class EconomyStore {
       activeDeckId: null,
       connectedAgentId: null,
       factionLock: null,
+      deckChoice: "agent",
       createdAt: this.stamp(),
     };
     if (!OWNER_KINDS.includes(owner.kind)) throw new EconomyError(`unknown owner kind "${owner.kind}"`);
@@ -866,6 +897,9 @@ export class EconomyStore {
       activeDeckId: strOrNull(row.active_deck_id),
       connectedAgentId: strOrNull(row.connected_agent_id),
       factionLock: strOrNull(row.faction_lock) as DeckFaction | null,
+      // A file older than v12 (only the migration tests open one) has no
+      // deck choice: its active deck was always picked by hand.
+      deckChoice: (strOrNull(row.deck_choice) ?? "forced") as DeckChoice,
       createdAt: str(row.created_at),
     };
   }
@@ -1633,7 +1667,11 @@ export class EconomyStore {
       const side = (ownerId: string): LiveSide => {
         const owner = this.getOwner(ownerId);
         if (owner.connectedAgentId === null) throw new EconomyError(`owner "${owner.name}" has no connected agent`);
-        if (owner.activeDeckId === null) throw new EconomyError(`owner "${owner.name}" has no active deck`);
+        if (owner.activeDeckId === null) {
+          throw new EconomyError(
+            owner.deckChoice === "agent" ? `owner "${owner.name}" has no active deck: the agent hasn't built one yet` : `owner "${owner.name}" has no active deck`,
+          );
+        }
         if (this.liveMatchOf(ownerId) !== null) throw new EconomyError(`owner "${owner.name}" is already in a live match`);
         const deck = this.loadDeck(owner.activeDeckId);
         if (owner.factionLock !== null && deckFaction(deck.spec.cards) !== owner.factionLock) {
@@ -2041,11 +2079,19 @@ export class EconomyStore {
     }
   }
 
-  /** The owner's active deck: whichever agent is connected plays it. With a
-   * faction lock set, only a deck of that faction can be made active. */
+  /** The owner forces a deck: whichever agent is connected plays it, and
+   * the deck choice becomes "forced" (owner 2026-10-15). With a faction
+   * lock set, only a deck of that faction can be made active. */
   setActiveDeck(ownerId: string, deckId: string): void {
+    this.transaction(() => {
+      this.activateDeck(ownerId, deckId);
+      this.db.prepare("UPDATE owners SET deck_choice = 'forced' WHERE owner_id = ?").run(ownerId);
+    });
+  }
+
+  private activateDeck(ownerId: string, deckId: string | null): void {
     const lock = this.getOwner(ownerId).factionLock;
-    if (lock !== null) {
+    if (lock !== null && deckId !== null) {
       const faction = this.deckFactionOf(deckId);
       if (faction !== lock) throw new EconomyError(`the owner's faction lock is ${lock}; this deck is ${faction}`);
     }
@@ -2054,6 +2100,82 @@ export class EconomyStore {
     } catch (err) {
       refused(err);
     }
+  }
+
+  /** Who picks the deck (Settings -> Play). "agent" hands it back to the
+   * agent: its built deck becomes active if there is one that fits the
+   * faction lock, else none is active until `buildAgentDeck` runs.
+   * "forced" keeps the active deck the owner has (refused with none). */
+  setDeckChoice(ownerId: string, choice: DeckChoice): void {
+    if (choice !== "agent" && choice !== "forced") throw new EconomyError(`unknown deck choice "${choice as string}"`);
+    this.transaction(() => {
+      const owner = this.getOwner(ownerId);
+      if (choice === "forced") {
+        if (owner.activeDeckId === null) throw new EconomyError(`owner "${owner.name}" has no active deck to force; make one active`);
+      } else {
+        const built = this.agentDeckId(ownerId);
+        const fits = built !== null && (owner.factionLock === null || this.deckFactionOf(built) === owner.factionLock);
+        this.activateDeck(ownerId, fits ? built : null);
+      }
+      this.db.prepare("UPDATE owners SET deck_choice = ? WHERE owner_id = ?").run(choice, ownerId);
+    });
+  }
+
+  /** The id of the deck the agent built for this owner, if any. */
+  agentDeckId(ownerId: string): string | null {
+    const row = this.db.prepare("SELECT deck_id FROM decks WHERE owner_id = ? AND built_by_agent = 1").get(ownerId) as Row | undefined;
+    return row ? str(row.deck_id) : null;
+  }
+
+  /**
+   * The deck-building agent (roadmap 2b; owner 2026-10-15): builds the best
+   * deck it can from the cards the owner holds now, in the faction lock if
+   * one is set, else in whichever faction plays best (the engine's
+   * `chooseDeck`, measured by games against the shipped decks; `options`
+   * sets how many). Saves it as the owner's agent deck (created once, then
+   * rebuilt in place) and makes it active. Refused while the owner forces
+   * a deck. Run it when the holdings change (packs opened, crafting,
+   * salvage) or the faction lock does; a match never waits on it.
+   */
+  async buildAgentDeck(ownerId: string, options: Omit<DeckBuildOptions, "faction"> = {}): Promise<AgentDeckBuild> {
+    const owner = this.getOwner(ownerId);
+    if (owner.deckChoice === "forced") throw new EconomyError(`owner "${owner.name}" forces a deck; set the deck choice to the agent first`);
+    const held = this.collection(ownerId);
+    const built = await (async () => {
+      try {
+        return await chooseDeck(holdingsOf(held.map((c) => c.cardId)), { ...options, faction: owner.factionLock ?? undefined });
+      } catch (err) {
+        throw new EconomyError(err instanceof Error ? err.message : String(err));
+      }
+    })();
+    // Copies for the list, oldest held first (the collection's order).
+    const copyIds: string[] = [];
+    for (const [cardId, n] of built.list) copyIds.push(...held.filter((c) => c.cardId === cardId).slice(0, n).map((c) => c.copyId));
+    const deck = this.transaction(() => {
+      const existing = this.agentDeckId(ownerId);
+      let saved: PlayableDeck;
+      if (existing !== null) {
+        saved = this.updateDeck(ownerId, existing, copyIds);
+      } else {
+        saved = this.saveDeck(ownerId, AGENT_DECK_NAME, copyIds);
+        this.db.prepare("UPDATE decks SET built_by_agent = 1 WHERE deck_id = ?").run(saved.deckId);
+      }
+      // The owner may have switched to a forced deck while the agent built.
+      if (this.getOwner(ownerId).deckChoice === "agent") this.activateDeck(ownerId, saved.deckId);
+      return saved;
+    });
+    return {
+      deck,
+      faction: built.faction,
+      factions: built.factions.map((b) => ({
+        faction: b.faction,
+        ...(b.infeasible ? { infeasible: b.infeasible } : {}),
+        ...(b.score ? { winRate: b.score.wins / b.score.games } : {}),
+        ...(b.chosen ? { chosen: b.chosen } : {}),
+        ...(b.starts.length ? { starts: b.starts.map((st) => ({ from: st.from, ...(st.score ? { winRate: st.score.wins / st.score.games } : {}) })) } : {}),
+        kept: b.kept,
+      })),
+    };
   }
 
   private deckFactionOf(deckId: string): DeckFaction {

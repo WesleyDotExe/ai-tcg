@@ -9,6 +9,9 @@
 
 export {
   EconomyStore,
+  AGENT_DECK_NAME,
+  type AgentDeckBuild,
+  type DeckChoice,
   EconomyError,
   SalvageNeedsConfirmation,
   salvageBlockReason,

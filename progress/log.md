@@ -3549,3 +3549,50 @@ the game lane's tests only.
 `progress/signature-fairness/agent41/stamped-s50.jsonl`.
 
 **Blocked:** nothing.
+
+## 2026-10-19 — Session 51 (the deck-building agent, roadmap 2b)
+
+Game-lane session (the last merged PR, #86, was render's). The owner's newest entry (render session
+34's answers and the Match Boot defaults) has no game-lane part; marked noted. Roadmap 2b next: the
+deck-building agent ("the owner can force a specific deck or faction. Otherwise the agent picks the
+best faction and deck it can build from the cards the owner holds", 2026-10-15).
+
+**Built:** `engine/src/deckbuilder/`. `cardRating.ts` prices any card from its data alone (stats,
+keywords, every trigger and effect kind, statics, modes, evolution and telegraph discounts) in stat
+points above a vanilla unit. `deckBuilder.ts`: `constructDeck` builds a legal deck from holdings
+under every rule (copies held and limits, 1 per Zero-Day card, 10 neutral, 25% removal, a faction
+card that draws, 20-40 cards, no evolution without its base); `buildFaction` makes two starts (greedy
+by rating and the shipped decks' curve; the designed list as far as held, topped up), searches
+one-copy changes measured by paired-seed Lookahead games against the four shipped decks (kept at
+about one standard deviation), then replays the searched deck and both starts on fresh seeds and
+keeps the best; `chooseDeck` does that for the forced faction or every faction and picks the best.
+The store (schema v12): the deck choice (`agent` default, `forced`; the migration keeps owners with
+an active deck as forced), the agent's one deck (`built_by_agent`, rebuilt in place), and
+`buildAgentDeck`, `setDeckChoice`, `agentDeckId`; `setActiveDeck` now forces.
+
+**Ran it:**
+- `progress/deckbuilder-report-001.txt` (60 trials x 400 games per faction, 2,000-game confirm; 320
+  s): full collection, built vs shipped on the same fresh seeds: Cortex 59.6 vs 54.3, Swarm 53.3 vs
+  45.7, Aegis 62.7 vs 48.4, Null 50.0 vs 47.8. Starter list alone: picks that faction (the others
+  can't be built), plays the list with up to 2 cards cut, +0 to +3.6. A re-run reproduces it.
+- The first run of the store demo found a real flaw: with only the rating start, an owner with 63
+  packs got an Aegis deck at 34.8% while the designed list they held scored 44.5%, and Swarm 20%
+  vs 41%. The designed start was added for it; the same holdings now give Aegis 49.0% and Swarm
+  41.3%. The rating start still wins in Cortex and Aegis from a full collection, so both stay.
+- `progress/economy-demo-014.txt`: ada (Swarm starter + 3 packs) plays Swarm 48.8%; bo (Cortex
+  starter + 60 packs) weighs all four and plays Cortex 63.2%, then locked to Aegis rebuilds the same
+  deck id in Aegis; cy forces a deck (the build is refused), hands it back, and the agent builds Null;
+  12 recorded matches with the built decks. Re-run: byte for byte.
+- Mutation check: removing the evolution-base rule fails the random-collections test.
+- `npm test`: all six workspaces pass (1,018, +21); typecheck clean everywhere. `ring`/`ring:real` not
+  re-run (no card, rule or agent changed); CI runs both.
+
+**Worked:** measuring both starts and the searched deck on fresh seeds made the builder safe against
+its own prior. **Didn't / honest limits:** the opponents are the shipped decks only; the rating is
+hand-priced; the search is shallow (2-4 kept changes per faction) and its acceptance noisy; no
+signature card in the games; built decks are stronger than the shipped ones the balance checks
+measure (raised with the owner). Nothing schedules the rebuild yet (no ladder).
+
+**Evidence:** `progress/deckbuilder-report-001.txt`, `progress/economy-demo-014.txt`.
+
+**Blocked:** nothing.

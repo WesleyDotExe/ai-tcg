@@ -430,7 +430,7 @@ describe("cosmetics: migration v10 -> v11", () => {
     v10.close();
 
     clock = new Date("2026-10-20T09:00:00.000Z");
-    const v11 = open(path);
+    const v11 = open(path, 11);
     expect(v11.schemaVersion).toBe(11);
     for (const o of [a, locked]) {
       const owned = v11.ownedCosmetics(o.ownerId);
