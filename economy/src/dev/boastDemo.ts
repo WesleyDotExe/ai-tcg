@@ -34,6 +34,7 @@ const DEMO_BOAST: CosmeticItem = {
   sale: { from: "2026-10-01T00:00:00.000Z", until: "2026-11-01T00:00:00.000Z" },
   artRef: "code:boast/demo-overclock",
   description: "A demo season boast (not a shipped item).",
+  drawn: true,
 };
 const CATALOGUE = [...COSMETICS, DEMO_BOAST];
 

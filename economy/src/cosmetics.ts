@@ -67,6 +67,13 @@ export interface CosmeticItem {
   artRef: string;
   /** One line for the store and the loadout picker. */
   description: string;
+  /** Whether the render lane has drawn it (for a boast, a spec under its
+   * item id in render/src/boastFx.ts's BOAST_SPECS). An item that isn't
+   * drawn is never on sale, whatever its window (owner 2026-10-19: "neither
+   * goes on sale until the render lane has drawn it"). The render lane
+   * flips this in the same change that adds the spec; a test in
+   * economy/test/cosmetics.test.ts fails if the two disagree. */
+  drawn: boolean;
 }
 
 /** The four free starter boasts, one per faction (owner 2026-10-19): every
@@ -84,6 +91,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     sale: null,
     artRef: "code:boast/aegis-shield-slam",
     description: "Hex plates slam down along the winner's row and lock into a crest over the name.",
+    drawn: true,
   },
   Swarm: {
     itemId: "boast-swarm-hive-burst",
@@ -95,6 +103,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     sale: null,
     artRef: "code:boast/swarm-hive-burst",
     description: "Egg sacs bloom in the winner's slots and burst into a rising spore column that spells the name.",
+    drawn: false,
   },
   Null: {
     itemId: "boast-null-void-collapse",
@@ -106,6 +115,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     sale: null,
     artRef: "code:boast/null-void-collapse",
     description: "A dark star pulls in the winner's light, holds a beat, and blooms out in glitch bars into the name.",
+    drawn: false,
   },
   Cortex: {
     itemId: "boast-cortex-data-cascade",
@@ -117,14 +127,45 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     sale: null,
     artRef: "code:boast/cortex-data-cascade",
     description: "Columns of pixels rain onto the winner's row and assemble into the name as wireframe blocks.",
+    drawn: false,
   },
 };
 
-/** The shipped catalogue. Season 0 sells nothing yet: which season boasts,
- * card backs, avatars and arenas go on sale (and when) is the owner's call,
- * asked in notes-for-owner.md. The purchase path is built and tested with a
- * catalogue passed to `EconomyStore.open`. */
-export const COSMETICS: readonly CosmeticItem[] = Object.values(STARTER_BOASTS);
+/** What Season 0 sells (owner 2026-10-19, answering session 47's
+ * question 1): two neutral season boasts at the season boast price, on sale
+ * for the whole of Season 0 (no window inside it), then retired. No card
+ * backs, avatars or arenas in Season 0 until the render lane can draw them.
+ * `sale: null` is the whole season. Each goes on sale only once the render lane has drawn it (`drawn`). */
+export const SEASON_0_BOASTS: readonly CosmeticItem[] = [
+  {
+    itemId: "boast-s0-boot-sequence",
+    kind: "boast",
+    name: "Boot Sequence",
+    season: "S0",
+    faction: null,
+    priceCredits: SEASON_BOAST_PRICE_CREDITS,
+    sale: null,
+    artRef: "code:boast/s0-boot-sequence",
+    description: "The screen flickers on like an old CRT, a retro BIOS types out the winner's name line by line, then a chunky SYSTEM READY flash.",
+    drawn: false,
+  },
+  {
+    itemId: "boast-s0-dial-up-fireworks",
+    kind: "boast",
+    name: "Dial-Up Fireworks",
+    season: "S0",
+    faction: null,
+    priceCredits: SEASON_BOAST_PRICE_CREDITS,
+    sale: null,
+    artRef: "code:boast/s0-dial-up-fireworks",
+    description: "A modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.",
+    drawn: false,
+  },
+];
+
+/** The shipped catalogue: the free starter boasts and what each season
+ * sells. */
+export const COSMETICS: readonly CosmeticItem[] = [...Object.values(STARTER_BOASTS), ...SEASON_0_BOASTS];
 
 /** Why a catalogue can't be used, or null when it can: ids unique, every
  * starter boast present and free, prices whole and positive, sale windows
@@ -152,9 +193,10 @@ export function catalogueProblem(items: readonly CosmeticItem[]): string | null 
   return null;
 }
 
-/** Whether `item` can be bought in `season` at time `at`. */
+/** Whether `item` can be bought in `season` at time `at`: priced, drawn, in
+ * its own season and inside its sale window. */
 export function onSale(item: CosmeticItem, season: string, at: string): boolean {
-  if (item.priceCredits === null || item.season !== season) return false;
+  if (item.priceCredits === null || !item.drawn || item.season !== season) return false;
   const t = Date.parse(at);
   if (item.sale?.from && t < Date.parse(item.sale.from)) return false;
   if (item.sale?.until && t >= Date.parse(item.sale.until)) return false;

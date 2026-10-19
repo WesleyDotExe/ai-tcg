@@ -14,7 +14,7 @@ import { menuOption, optionAtSize, signatureComboId, type SignatureSpec } from "
 import { APPROVED_SIGNATURE_LINES } from "../data/signatureApproved.js";
 
 const DIR = fileURLToPath(new URL("../../../progress/signature-fairness/", import.meta.url));
-const REFERENCE = fileURLToPath(new URL("./signatureReference.json", import.meta.url));
+const REFERENCE = fileURLToPath(new URL("./signatureReference-s37.json", import.meta.url));
 const pct = (x: number) => (x * 100).toFixed(1);
 const pct2 = (x: number) => (x * 100).toFixed(2);
 const signed = (x: number) => `${x >= 0 ? "+" : ""}${pct(x)}`;

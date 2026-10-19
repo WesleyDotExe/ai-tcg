@@ -17,7 +17,12 @@ const lines = (file: string) => readFileSync(DIR + file, "utf8").trim().split("\
 const pct = (x: number) => (x * 100).toFixed(1);
 const signed = (x: number) => `${x >= 0 ? "+" : ""}${pct(x)}`;
 
-const reference = JSON.parse(readFileSync(fileURLToPath(new URL("./signatureReference.json", import.meta.url)), "utf8")) as Reference;
+// The report was measured against a 2,500-seed reference. Session 35
+// re-measured it at 10,000 seeds (signatureReference-s37.json keeps that
+// file, from before session 41's agent fix); its first 2,500 seeds are the
+// same games, so reading only those reproduces the committed report exactly.
+const cached = JSON.parse(readFileSync(fileURLToPath(new URL("./signatureReference-s37.json", import.meta.url)), "utf8")) as Reference;
+const reference: Reference = { seeds: 2500, results: Object.fromEntries(Object.entries(cached.results).map(([k, v]) => [k, v.slice(0, 2500)])) };
 const table = readdirSync(DIR)
   .filter((f) => f.startsWith("on-table-900"))
   .flatMap((f) => lines(f).map((l) => JSON.parse(l) as CandidateResult));

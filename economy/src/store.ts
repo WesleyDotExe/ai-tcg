@@ -1499,7 +1499,8 @@ export class EconomyStore {
    * granted together or not at all. Refused: an item that isn't sold (the
    * free starter boasts), one from another season or outside its sale
    * window (retired items are never sold again, owner 2026-10-19 decision
-   * 2), one the owner already has, and too few credits. */
+   * 2), one the render lane hasn't drawn yet, one the owner already has,
+   * and too few credits. */
   buyCosmetic(ownerId: string, itemId: string): OwnedCosmetic {
     const item = this.catalogue.get(itemId);
     if (!item) throw new EconomyError(`no cosmetic "${itemId}"`);
@@ -1507,6 +1508,7 @@ export class EconomyStore {
     if (!onSale(item, this.season, at)) {
       if (item.priceCredits === null) throw new EconomyError(`"${item.name}" is free with the starter collection; it isn't sold`);
       if (item.season !== this.season) throw new EconomyError(`"${item.name}" is a ${item.season} item; it isn't sold in ${this.season}`);
+      if (!item.drawn) throw new EconomyError(`"${item.name}" isn't on sale yet: the render lane hasn't drawn it`);
       throw new EconomyError(`"${item.name}" isn't on sale now`);
     }
     return this.transaction(() => {
