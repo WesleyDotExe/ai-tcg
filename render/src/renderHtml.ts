@@ -97,6 +97,7 @@ export function renderMatchHtml(replay: MatchReplay): string {
         <option value="ahead">arp: whoever is ahead</option>
       </select>
     </span>
+    <button id="btn-cosmetics" class="cosmetics-ctl" aria-pressed="true" title="Cosmetics are on: the winner's victory boast plays. Click to hide both sides' cosmetics.">Cosmetics: on</button>
   </section>
 </main>
 
@@ -418,6 +419,7 @@ html, body {
 /* Armed: on, waiting for the viewer's first click or key press to start. */
 .controls #btn-sound.armed, .controls #btn-music.armed { border-style: dashed; }
 .sound-ctl { display: inline-flex; align-items: center; gap: 6px; }
+.cosmetics-ctl[aria-pressed=false] { color: var(--ink-dim); }
 .sound-ctl input[type=range] { width: 80px; accent-color: var(--good); }
 .sound-ctl input[type=range]:disabled { opacity: 0.4; }
 .music-meter { font-size: 0.7rem; color: var(--ink-dim); min-width: 92px; letter-spacing: 1px; }
@@ -2306,8 +2308,32 @@ ${SIG_ZONE_SOURCE}
   // A draw has no boast. The record's boast comes with slice 3; until then
   // the winner's faction starter boast plays (boastIdFor).
   let boastHold = false, resultLanding = false, boastTimer = 0;
+  // "Cosmetics: on / off" (owner decision 7): a replay is a spectator's
+  // view, so the switch hides both sides' cosmetics (today, the boast; card
+  // backs, avatars and arenas when they're drawn). Remembered per viewer.
+  // Off: a win shows the result line at once, as a draw does.
+  const COSMETICS_KEY = 'aitcg.cosmetics';
+  let cosmeticsOn = true;
+  try { cosmeticsOn = localStorage.getItem(COSMETICS_KEY) !== '0'; } catch (e) {}
+  const cosmeticsBtn = document.getElementById('btn-cosmetics');
+  function showCosmeticsBtn() {
+    cosmeticsBtn.textContent = 'Cosmetics: ' + (cosmeticsOn ? 'on' : 'off');
+    cosmeticsBtn.setAttribute('aria-pressed', cosmeticsOn ? 'true' : 'false');
+    cosmeticsBtn.title = cosmeticsOn ? "Cosmetics are on: the winner's victory boast plays. Click to hide both sides' cosmetics." : "Cosmetics are off: no victory boast. Click to show them.";
+  }
+  showCosmeticsBtn();
+  cosmeticsBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    cosmeticsOn = !cosmeticsOn;
+    try { localStorage.setItem(COSMETICS_KEY, cosmeticsOn ? '1' : '0'); } catch (err) {}
+    showCosmeticsBtn();
+    // Switched off mid-boast: it ends now and the result lands. (A boast
+    // still waiting on the lethal beat finds no boast and does the same.)
+    if (!cosmeticsOn && BOAST.active()) BOAST.skip();
+  });
   function boastIdOf(frame) {
     if (!frame.winner || frame.winner === 'draw') return null;
+    if (!boastCosmeticsShown(null, frame.winner, cosmeticsOn)) return null;
     return boastIdFor(null, frame.players[frame.winner].faction);
   }
   function endBoast() {

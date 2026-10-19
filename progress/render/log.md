@@ -3384,3 +3384,53 @@ hex flower, not yet a designed emblem; the match feed still prints "X wins" whil
 
 **Next render-lane slice:** the owner's call on this checkpoint; then boast slice 2 (Swarm's Hive
 Burst, Null's Void Collapse, Cortex's Data Cascade, and the "Cosmetics: on / off" toggle).
+
+## 2026-10-19 — Session 32: victory boasts, slice 2 (Hive Burst, Void Collapse, Data Cascade; the cosmetics switch)
+
+Render session by the alternation rule: the last merged PR (#81) was the game lane's (session 48, the
+Season 0 boasts). Owner feedback read: the answers to render session 31 keep all 7 calls; Season 0's two
+boasts (Boot Sequence, Dial-Up Fireworks) are for the render lane to draw "after the 4 starter boasts
+(slice 2)". This session is slice 2 itself; the Season 0 boasts are the next slice. The game-lane items
+(Guardian 3/5, reading the approved list with today's agent) wait for the next game session.
+
+**Built:**
+- `render/src/boastFx.ts`: six new victory primitives (`bloom`, `burst`, `stream`, `star`, `pull`,
+  `bars`) and formations (`BOAST_FORMATIONS`: `hexRing`, `sporeColumn`, `pyramid`). A `gather` lifts the
+  latest carrier's pieces, can snap each into another sprite as it lands (`into`), and copes with pieces
+  still moving when it starts. Pieces can stretch (`sx`), turn (`spin`, which the grammar check counts
+  as the square's corners) and carry a dark core (`core`). Easing `in`. The spec check knows the new
+  dependencies (a burst needs a bloom, a pull a star, a star grows, collapses, then goes; a gather needs
+  a carrier and a known formation). Shield Slam's plan is unchanged.
+- **Hive Burst** (Swarm), **Void Collapse** (Null), **Data Cascade** (Cortex), 3.0 s each, as data.
+- `boastCosmeticsShown(viewer, side, on)` and the replay's "Cosmetics: on / off" button (remembered per
+  viewer; off: no boast, the result at once; off mid-boast: ends it now).
+- `economy/src/cosmetics.ts`: `drawn: true` on the three new starter boasts (the catalogue test fails
+  otherwise). No other change there.
+- Sheet: all four boasts, 20 scenes. EFFECTS.md updated. All 15 replays regenerated (same matches, only
+  the embedded sources changed) and one added: `swarm-vs-null-seed4.html` (Null wins from seat 2, the top
+  side; none of the 15 had that).
+
+**First pass looked weak, fixed before committing (seen in the stills):** green spores on the winner's
+own green cards, cyan pixels on cyan cards and a dark star drawn additively all but vanished. Added an
+early dark wash to Hive Burst and Data Cascade, a real dark core and a slow turn to Null's star (it now
+reads as a hole in the light), and larger sacs, spores, motes, pixels and blocks; the spore column went
+from 4 + crown to 6 + crown.
+
+**Ran it:**
+- `node progress/render/evidence/boast-check-s32.mjs <out> render/output video` (output
+  `boast-check-s32.txt`): 322 checks, ALL PASS. Each new boast from seat 1 and seat 2 on desktop and on a
+  phone, reduced motion for each, Shield Slam again, Escape and a phone tap, a jump to the end, the
+  cosmetics switch (off mid-boast lands the result at once; remembered after a reload; off plays no
+  boast; on again plays it), and all 20 sheet scenes. Boasts start 1.2-1.5 s after the step, the name at
+  2.19-2.21 s, the result at 3.00-3.03 s; nothing lit on the loser's side from 1.25 s on.
+- Frame rate (CPU canvas, 1280 x 900): Data Cascade 54 fps during the boast vs 61 after it; Void Collapse
+  34 vs 36; Hive Burst 22 vs 26; Shield Slam 15 vs 17. The boast costs a few fps; the low baselines are
+  the Mythic wards on those boards under the headless CPU canvas, not the boast.
+- `npm test`: all six workspaces pass (930; render 500, +60); typecheck clean everywhere.
+
+**Named honestly** (debt list): still nobody has watched or heard any boast at full speed; the three new
+ones were judged from stills, three recordings and timed checks. The crests are about 100-120 px across
+on desktop. The switch hides boasts only, since nothing else cosmetic is drawn yet.
+
+**Next render-lane slice:** the owner's call on this checkpoint; then the two Season 0 boasts (Boot
+Sequence, Dial-Up Fireworks), flipping each one's `drawn` in the same change.

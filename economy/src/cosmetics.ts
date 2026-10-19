@@ -103,7 +103,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     sale: null,
     artRef: "code:boast/swarm-hive-burst",
     description: "Egg sacs bloom in the winner's slots and burst into a rising spore column that spells the name.",
-    drawn: false,
+    drawn: true,
   },
   Null: {
     itemId: "boast-null-void-collapse",
@@ -115,7 +115,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     sale: null,
     artRef: "code:boast/null-void-collapse",
     description: "A dark star pulls in the winner's light, holds a beat, and blooms out in glitch bars into the name.",
-    drawn: false,
+    drawn: true,
   },
   Cortex: {
     itemId: "boast-cortex-data-cascade",
@@ -127,7 +127,7 @@ export const STARTER_BOASTS: Readonly<Record<DeckFaction, CosmeticItem>> = {
     sale: null,
     artRef: "code:boast/cortex-data-cascade",
     description: "Columns of pixels rain onto the winner's row and assemble into the name as wireframe blocks.",
-    drawn: false,
+    drawn: true,
   },
 };
 

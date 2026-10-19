@@ -1,0 +1,448 @@
+
+swarm-vs-aegis-seed8.html — swarm-desktop-seat1
+  PASS A. result held when the win lands
+  boast starts 1284 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-swarm-hive-burst (the winner's faction starter; got boast-swarm-hive-burst)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 47627, loser 640
+  1250 ms: lit winner 47621, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47627 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2198 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3022 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-swarm-seed11.html — swarm-desktop-seat2
+  PASS A. result held when the win lands
+  boast starts 1218 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-swarm-hive-burst (the winner's faction starter; got boast-swarm-hive-burst)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 47620, loser 89
+  1250 ms: lit winner 47621, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2210 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3021 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+null-vs-swarm-seed2.html — swarm-phone-seat2
+  PASS A. result held when the win lands
+  boast starts 1218 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-swarm-hive-burst (the winner's faction starter; got boast-swarm-hive-burst)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 27903, loser 0
+  1250 ms: lit winner 27903, loser 0
+  1800 ms: lit winner 27903, loser 0
+  2500 ms: lit winner 27903, loser 0
+  PASS D. the boast draws on the winner's side (27903 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2193 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3010 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+swarm-vs-null-seed8.html — swarm-reduced
+  PASS A. result held when the win lands
+  boast starts 1233 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-swarm-hive-burst (the winner's faction starter; got boast-swarm-hive-burst)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS F. reduced motion plays the still
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  120 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  name plate at 16 ms
+  PASS B. name plate at once
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 1016 ms into the boast
+  PASS B. result lands as the boast ends (~1 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+null-vs-cortex-seed4.html — null-desktop-seat1
+  PASS A. result held when the win lands
+  boast starts 1262 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-null-void-collapse (the winner's faction starter; got boast-null-void-collapse)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 5056, loser 589
+  1250 ms: lit winner 47621, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2205 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3019 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+swarm-vs-null-seed4.html — null-desktop-seat2
+  PASS A. result held when the win lands
+  boast starts 1227 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-null-void-collapse (the winner's faction starter; got boast-null-void-collapse)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 1220, loser 701
+  1250 ms: lit winner 47621, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2187 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3011 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+null-vs-cortex-seed4.html — null-phone-seat1
+  PASS A. result held when the win lands
+  boast starts 1219 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-null-void-collapse (the winner's faction starter; got boast-null-void-collapse)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 27811, loser 432
+  1250 ms: lit winner 27904, loser 0
+  1800 ms: lit winner 27904, loser 0
+  2500 ms: lit winner 27904, loser 0
+  PASS D. the boast draws on the winner's side (27904 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2188 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3014 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+swarm-vs-null-seed4.html — null-reduced
+  PASS A. result held when the win lands
+  boast starts 1225 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-null-void-collapse (the winner's faction starter; got boast-null-void-collapse)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS F. reduced motion plays the still
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  120 ms: lit winner 47621, loser 3
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  name plate at 16 ms
+  PASS B. name plate at once
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 1017 ms into the boast
+  PASS B. result lands as the boast ends (~1 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-null-seed5.html — cortex-desktop-seat1
+  PASS A. result held when the win lands
+  boast starts 1261 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-cortex-data-cascade (the winner's faction starter; got boast-cortex-data-cascade)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 47621, loser 27
+  1250 ms: lit winner 47621, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2203 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3009 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-cortex-seed1.html — cortex-desktop-seat2
+  PASS A. result held when the win lands
+  boast starts 1240 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-cortex-data-cascade (the winner's faction starter; got boast-cortex-data-cascade)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 47621, loser 0
+  1250 ms: lit winner 47621, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2179 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3004 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-cortex-seed1.html — cortex-phone-seat2
+  PASS A. result held when the win lands
+  boast starts 1224 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-cortex-data-cascade (the winner's faction starter; got boast-cortex-data-cascade)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 27903, loser 0
+  1250 ms: lit winner 27903, loser 0
+  1800 ms: lit winner 27903, loser 0
+  2500 ms: lit winner 27903, loser 0
+  PASS D. the boast draws on the winner's side (27903 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2174 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3014 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-swarm-seed6.html — cortex-reduced
+  PASS A. result held when the win lands
+  boast starts 1230 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-cortex-data-cascade (the winner's faction starter; got boast-cortex-data-cascade)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS F. reduced motion plays the still
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  120 ms: lit winner 47621, loser 34
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  name plate at 13 ms
+  PASS B. name plate at once
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 1011 ms into the boast
+  PASS B. result lands as the boast ends (~1 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+aegis-vs-null-seed3.html — aegis-desktop-seat1
+  PASS A. result held when the win lands
+  boast starts 1230 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-aegis-shield-slam (the winner's faction starter; got boast-aegis-shield-slam)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  450 ms: lit winner 5137, loser 3
+  1250 ms: lit winner 13896, loser 0
+  1800 ms: lit winner 47621, loser 0
+  2500 ms: lit winner 47621, loser 0
+  PASS D. the boast draws on the winner's side (47621 lit samples)
+  PASS D. nothing drawn on the loser's side late in the boast (0)
+  name plate at 2166 ms
+  PASS B. name plate about 2.2 s in
+  PASS C. name plate inside the winner's side, off the loser's
+  PASS name fits its plate
+  PASS C. nothing changes on the loser's side
+  PASS A. result still held while the boast plays
+  result lands 3004 ms into the boast
+  PASS B. result lands as the boast ends (~3 s)
+  PASS A. the result lands (class "land")
+  PASS the dim lifts after the boast
+
+cortex-vs-aegis-sig-seed2.html — cortex-escape
+  PASS A. result held when the win lands
+  boast starts 1247 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-cortex-data-cascade (the winner's faction starter; got boast-cortex-data-cascade)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  skip seen by the boast at 988 ms (skip)
+  PASS E. the boast ended by the skip
+  skip pressed 1012 ms in; result 28 ms after the boast saw it
+  PASS E. skip lands the result at once
+  PASS E. no name, no Skip after a skip
+  PASS E. the dim goes
+  PASS E. boast no longer active
+
+swarm-vs-aegis-seed8.html — swarm-phone-tap
+  PASS A. result held when the win lands
+  boast starts 1223 ms after the step
+  PASS B. starts after the lethal beat (0.85-2.2 s)
+  PASS I. boast is boast-swarm-hive-burst (the winner's faction starter; got boast-swarm-hive-burst)
+  PASS C. the page's plan keeps the grammar on the live layout (null)
+  PASS plays in full (not the still)
+  PASS C. loser side, panel and hand dimmed to 0.7 (0.7, 0.7, 0.7)
+  PASS C. the winner's panel lit
+  PASS the winner's side is in view during the boast
+  PASS C. Skip button inside the winner's side
+  skip seen by the boast at 1037 ms (skip)
+  PASS E. the boast ended by the skip
+  skip pressed 1014 ms in; result 12 ms after the boast saw it
+  PASS E. skip lands the result at once
+  PASS E. no name, no Skip after a skip
+  PASS E. the dim goes
+  PASS E. boast no longer active
+
+null-vs-cortex-seed4.html — jump to the end
+  PASS G. a jump to the end shows the result at once, no boast
+
+swarm-vs-aegis-seed8.html — cosmetics off
+  PASS J. the switch starts on ("Cosmetics: on")
+  switched off 1070 ms into the boast (skip); result 20 ms later
+  PASS J. switching off mid-boast ends it and lands the result at once
+  PASS J. no boast active after switching off
+  PASS J. the switch reads off (Cosmetics: off, aria-pressed false)
+  PASS J. remembered after a reload
+  PASS J. off: the result shows at once
+  PASS J. off: no boast plays
+  PASS J. on again: the boast plays
+
+boast-sheet.html — every scene
+  PASS H. boast-aegis-shield-slam-full: plays, no grammar problem
+  PASS H. boast-aegis-shield-slam-full: result after the boast
+  PASS H. boast-aegis-shield-slam-empty: plays, no grammar problem
+  PASS H. boast-aegis-shield-slam-empty: result after the boast
+  PASS H. boast-aegis-shield-slam-top: plays, no grammar problem
+  PASS H. boast-aegis-shield-slam-top: result after the boast
+  PASS H. boast-aegis-shield-slam-phone: plays, no grammar problem
+  PASS H. boast-aegis-shield-slam-phone: result after the boast
+  PASS H. boast-aegis-shield-slam-reduced: plays (still), no grammar problem
+  PASS H. boast-aegis-shield-slam-reduced: result after the boast
+  PASS H. boast-swarm-hive-burst-full: plays, no grammar problem
+  PASS H. boast-swarm-hive-burst-full: result after the boast
+  PASS H. boast-swarm-hive-burst-empty: plays, no grammar problem
+  PASS H. boast-swarm-hive-burst-empty: result after the boast
+  PASS H. boast-swarm-hive-burst-top: plays, no grammar problem
+  PASS H. boast-swarm-hive-burst-top: result after the boast
+  PASS H. boast-swarm-hive-burst-phone: plays, no grammar problem
+  PASS H. boast-swarm-hive-burst-phone: result after the boast
+  PASS H. boast-swarm-hive-burst-reduced: plays (still), no grammar problem
+  PASS H. boast-swarm-hive-burst-reduced: result after the boast
+  PASS H. boast-null-void-collapse-full: plays, no grammar problem
+  PASS H. boast-null-void-collapse-full: result after the boast
+  PASS H. boast-null-void-collapse-empty: plays, no grammar problem
+  PASS H. boast-null-void-collapse-empty: result after the boast
+  PASS H. boast-null-void-collapse-top: plays, no grammar problem
+  PASS H. boast-null-void-collapse-top: result after the boast
+  PASS H. boast-null-void-collapse-phone: plays, no grammar problem
+  PASS H. boast-null-void-collapse-phone: result after the boast
+  PASS H. boast-null-void-collapse-reduced: plays (still), no grammar problem
+  PASS H. boast-null-void-collapse-reduced: result after the boast
+  PASS H. boast-cortex-data-cascade-full: plays, no grammar problem
+  PASS H. boast-cortex-data-cascade-full: result after the boast
+  PASS H. boast-cortex-data-cascade-empty: plays, no grammar problem
+  PASS H. boast-cortex-data-cascade-empty: result after the boast
+  PASS H. boast-cortex-data-cascade-top: plays, no grammar problem
+  PASS H. boast-cortex-data-cascade-top: result after the boast
+  PASS H. boast-cortex-data-cascade-phone: plays, no grammar problem
+  PASS H. boast-cortex-data-cascade-phone: result after the boast
+  PASS H. boast-cortex-data-cascade-reduced: plays (still), no grammar problem
+  PASS H. boast-cortex-data-cascade-reduced: result after the boast
+
+ALL PASS
