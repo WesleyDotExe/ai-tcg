@@ -3497,3 +3497,63 @@ monospace; the checker still doesn't count an atlas sprite's soft glow halo.
 **Next render-lane slice:** the owner's call on this checkpoint; then slice 3 (the replay reads each
 side's loadout and the boast played from the match record; the close-win slot).
 
+
+## 2026-10-19 — Session 34: victory boasts, slice 3 (the replay reads the boast from the match record; the close-win slot); the Match Boot plan
+
+Render session by the alternation rule: the last merged PR (#85) was the game lane's (session 50, a
+hardening pass). Owner feedback read: the answers to render session 33 keep all 7 calls (nothing to
+change); its game-lane side task was done in session 50. The open render work: boast slice 3, then the
+owner's new Match Boot feature, which the owner asked the render lane to plan at a checkpoint before
+building. This session builds slice 3 and writes the Match Boot plan.
+
+**Built:**
+- `render/src/types.ts`: `ReplayRecord` (`matchId`, each seat's `loadouts`, the `boast`) and
+  `ReplayBoast` (`side`, `itemId`, `slot`, `winnerHealth`); `MatchReplay.record` (optional).
+- `render/src/boastFx.ts`: `boastFromRecord(boast, winner, faction)` returns `{ id, slot, close }`: the
+  record's boast when it is the winner's and drawable, else the faction starter as `'fallback'`, else
+  null. The runtime's `play` takes `close`, and the plate then says "<BOAST> · CLOSE WIN"; `stats()`
+  reports it.
+- `render/src/renderHtml.ts`: the replay plays `boastFromRecord(replay.record.boast, ...)` and passes
+  `close`. Nothing else in the end-of-match timing changed.
+- `render/src/recordedMatch.ts` (new): `captureRecordedReplay(scenario)` plays the whole loop through
+  an in-memory `EconomyStore` (fixed clock): starter collections (with the free starter boasts), an
+  agent each, starter decks; season items earned in real matches (startMatch -> runMatch ->
+  recordMatch, a day at a time) and bought; loadouts set; then the replayed match started with
+  startMatch (each side plays the deck the store loaded), captured, and recorded with both final
+  health values. `attachRecord(replay, record)` turns agents into seats and refuses a record that
+  isn't this replay's (seed, winner, winner's final health).
+- `render/src/recordedDemo.ts` (new; `npm run recorded -w @ai-tcg/render`): four scenarios, written
+  to `render/output/recorded-*.html`: Boot Sequence bought and worn (Cortex, wins on 11); a close win
+  (Swarm wins on 3, its close-win slot holds Dial-Up Fireworks, bought: Dial-Up plays, not Hive Burst);
+  another faction's free starter (Aegis wears Void Collapse; its close-win Hive Burst stays unused at
+  14 health); an empty slot (the store records Cortex's starter as `factionStarter`, from seat 2).
+- No economy or engine file changed: the store is read through its public API.
+- The 16 sample replays and the boast sheet regenerated (the embedded match data is byte-identical in
+  all 16, checked per file; only the page source changed).
+
+**Ran it:**
+- `npm run recorded -w @ai-tcg/render -- ../progress/render/evidence/recorded-matches-s34.txt`: the
+  four scenarios with their loadouts, earnings (37 and 35 real matches over 4 days to afford the two
+  season boasts), the final health, and the record's boast and slot.
+- `node progress/render/evidence/boast-check-s34.mjs <out> render/output video` (output
+  `boast-check-s34.txt`): 216 checks, ALL PASS, nothing forced. Each recorded replay plays the boast
+  its embedded record names (checked against the page's own match data), from seat 1 and seat 2, on
+  desktop and phone, in reduced motion; the plate says CLOSE WIN only for the close-win slot (also
+  before an Escape at 2.5 s); a replay without a record still plays Shield Slam; the cosmetics switch
+  off on a recorded replay plays no boast and the result lands at once (25 ms). Boasts start 1.2-1.5 s
+  after the step; the result lands 3.00-3.05 s in (1.0 s for the still). Recordings
+  `v2-s34-rec-boot-desktop.webm`, `v2-s34-rec-close-desktop.webm`; stills `v2-s34-*.jpg`.
+- `npm test`: all six workspaces pass (989: render 557, +9 in `recordedMatch.test.ts`); typecheck
+  clean everywhere.
+
+**Seen in the stills (debt list, not fixed):** at the end of the close-win replay the momentum gauge
+says the loser is ahead (on board), and the lethal attack's green smoke lingers on the loser's row.
+Both predate this slice.
+
+**Match Boot:** planned, not built (the owner asked for a plan at a checkpoint first): the [OWNER
+CHECK-IN] is in `progress/render/notes-for-owner.md` with 10 calls and suggested defaults. The saying
+can come from the match seed; nothing is needed from the game lane unless the owner wants the saying
+kept if the list ever changes.
+
+**Next render-lane slice:** the owner's calls on the Match Boot plan (the defaults stand if there is no
+answer); then Match Boot slice 1. Boast slice 4 (the loadout picker) after it.

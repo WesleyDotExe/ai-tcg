@@ -7,16 +7,13 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## Victory boasts (slices 1-2b, sessions 31-33)
+## Victory boasts (slices 1-3, sessions 31-34)
 
 - **Nobody has watched or heard a boast.** All six were judged from stills, recordings and timed
   checks: their 3 s length, whether each feels like a celebration (not a second lethal hit), Null's
   silent beat, and the stings (checked only as data: they rise; their length). The Season 0 sounds
   (the tube, the POST beep, the modem, the rockets) are checked only as recipes: the modem is a
   0.9 s caricature of a handshake (four dial tones, the answer tone, a screech), not a recording.
-- **The Season 0 boasts can't be seen in a replay yet** except by forcing them (the browser check
-  wraps `BOAST.play`): a replay plays the winner's faction starter until slice 3 reads the match
-  record. On the page they live only in the boast sheet. They are on sale in the store now.
 - **Dial-Up Fireworks' spelled name is busy on a crowded board:** over bright cards and a Mythic
   ward the dot letters compete with the ward's rings and the lock's flare (session 33 raised its veil
   from 0.7 to 0.8 after seeing it). A long name on a phone spells at 3-4 px dots: the plate under it
@@ -33,8 +30,19 @@ items are removed, with the fix in `log.md`.
   capped by the side's height (0.19 of it).
 - **Data Cascade's columns are faint in their first half second** even with the early wash: thin
   pixels over cyan cards. The later beats read well.
-- **The boast reads the winner's faction, not the match record.** Slice 3 passes the record's boast
-  (and the close-win slot); until then a loadout change can't show in a replay.
+- **The recorded replays come from an in-memory store, not the platform's database** (slice 3,
+  session 34): `recordedMatch.ts` plays each match through the real store API (starter collections,
+  season boasts earned in 35-37 real recorded matches and bought, loadouts, startMatch, capture,
+  recordMatch), but there is no server yet, so nothing reads a record from a live database or over
+  the network. The 16 older sample replays have no record and still play the faction starter.
+- **A close win is told by one plate line:** "· CLOSE WIN" in place of "· VICTORY". The boast itself
+  plays exactly as it does as a main boast; nothing says the winner was on 3 health beyond the HP bar.
+- **The final frame's momentum gauge can name the loser "AHEAD":** in `recorded-close-win.html` the
+  gauge reads "Quiet Lattice AHEAD ... ahead on board" while Moth Protocol's boast plays (the winner
+  ended on 3 health with a smaller board). Older than this slice, but the boast puts it on screen for 3 s.
+- **The lethal move's smoke lingers on the loser's side** in the close-win replay's stills (Swarm's
+  green plume over the loser's row at 2.5 s). The check's canvas sample doesn't count it, so it is drawn
+  somewhere the check doesn't look (a DOM layer, or below the top canvas). Not traced yet.
 - **The cosmetics switch hides boasts only** (nothing else cosmetic is drawn), and only the spectator
   rule is wired into a page; the owner-page rule is a tested function with no page yet.
 - **The match feed spoils the result:** its last line ("X wins") prints while the boast plays; only the

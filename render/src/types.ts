@@ -207,6 +207,25 @@ export interface PlayerIdentity {
   avatarSvg: string;
 }
 
+/** The boast the match record says played (the economy store's
+ * `MatchBoast`, with the winning agent turned into its seat). The store
+ * chose it as the match ended; the replay only plays it. */
+export interface ReplayBoast {
+  side: PlayerId;
+  itemId: string;
+  slot: "boast" | "closeWinBoast" | "factionStarter";
+  winnerHealth: number | null;
+}
+
+/** What a replay takes from the economy store's match record (schema v11):
+ * the record it plays, each seat's loadout at match time (item ids by
+ * slot, null for an empty slot) and the boast that played. */
+export interface ReplayRecord {
+  matchId: string;
+  loadouts: Record<PlayerId, Record<string, string | null>> | null;
+  boast: ReplayBoast | null;
+}
+
 export interface MatchReplay {
   title: string;
   seed: number;
@@ -230,4 +249,9 @@ export interface MatchReplay {
    * replays captured before the zone was drawn (the page assumes 10). */
   energyCap?: number;
   frames: Frame[];
+  /** The economy store's record of this match, when it was played through
+   * the store (render/src/recordedMatch.ts). Absent on the sample replays
+   * and on any match recorded before the store kept loadouts: those play
+   * the winner's faction starter boast. */
+  record?: ReplayRecord;
 }

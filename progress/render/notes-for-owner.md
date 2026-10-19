@@ -770,3 +770,87 @@ Nothing is blocking. The calls for this slice are in `progress/render/checkpoint
 **For you:** the new boasts only play in a replay once slice 3 reads the match record (until then
 a replay plays the winner's faction starter). To see them now, open `render/output/boast-sheet.html`
 and press Play on any Season 0 scene.
+
+## 2026-10-19 — Session 34: victory boasts slice 3 built; [OWNER CHECK-IN] the plan for Match Boot (not built)
+
+Nothing is blocking. Slice 3's calls are in `progress/render/checkpoints.md` (newest entry).
+
+### Match Boot: the render lane's plan (your 2026-10-19 feature)
+
+Nothing below is built. Your defaults are kept throughout. These are the details I'd add, with the
+calls I'd like at the end.
+
+**What it is in the effects language (EFFECTS.md).** A new event category, **intro**, with its own
+grammar: *symmetric and centre-out*. Whatever happens on one half happens on the other at the same
+moment, mirrored across the centre line, and the only thing that isn't mirrored is the saying, which
+sits on the centre line itself. That keeps it neutral (your "favours neither side") and makes it the
+opposite of a boast, which rises from one side only. Like the boasts, it is data over a few
+primitives drawn by code (the CRT power-on and the dot font already exist from Boot Sequence), not a
+clip.
+
+**The beats (about 2.6 s, every match and every replay from its start):**
+1. **0-0.5 s, power on:** both halves of the board are dark. Each half switches on like a CRT, at the
+   same instant: a dot, a line along that half's centre, the picture opening from it, a flicker. Each
+   in its own faction's colour (a mirror match: both the same colour). One shared tube thump.
+2. **0.5-1.5 s, the handshake:** each half prints its own agent's line in a terminal type, at the
+   same time and at the same speed, a key at a time: `LOADING AGENT: <name> [<FACTION>]`. The shorter
+   name pads its line so both finish together. Then `HANDSHAKE OK` prints once on the centre line,
+   in neutral white, with a two-tone modem-style chirp (much shorter than Dial-Up Fireworks' screech).
+3. **1.6 s, the saying:** the centre line flashes and the saying slams in across it in the chunky dot
+   font, white-chrome (neither faction's colour), with a hit and a short rising chord. Both halves'
+   readouts clear at the same time.
+4. **2.2-2.6 s:** the saying fades upward, the scanlines go, and the first board appears. The match
+   starts (on a replay, the first move plays).
+
+**How it stays different from the Boot Sequence boast:** two halves, not one; each half in its
+faction's colour, not phosphor green; one line per agent, not five BIOS lines; no "SYSTEM READY";
+no typed name in a plate; the ending is the saying on the centre line, not the winner's name.
+
+**The saying.** Picked from the match's own seed by a fixed hash: 1 in 100 matches is `> SUDO FIGHT`,
+the other 99 are spread evenly over the eight others. Every viewer and every replay of a match sees the
+same one. No card names, no "JACK IN". Long sayings (`> RUN MATCH.EXE`, `LINK ESTABLISHED`) shrink to fit
+on a phone, or break onto two lines (as Boot Sequence's SYSTEM READY does).
+
+**When it plays.** When playback starts from the first move: pressing Play at move 0, or the page
+playing on its own from the start. Not when the page opens without playing, not on a jump or a scrub, and
+not when Play resumes mid-match. `|<` and then Play shows it again. Skippable (a tap, Escape or Skip),
+and the first move starts at once. The "Cosmetics: on / off" switch doesn't touch it.
+
+**Reduced motion:** a still for about 1 s: both halves lit, both agent lines, `HANDSHAKE OK` and the
+saying. Then the match.
+
+**Phone:** the same layout (the halves are already stacked); the agent lines shrink to fit; the saying
+breaks onto two lines when that makes it larger.
+
+**Live matches:** the same intro at the start of a live broadcast, when the site has one. Nothing to
+build now.
+
+**Does the game lane need to do anything?** Not for the plan as written. The saying comes from the
+seed, which the replay already has. One thing to know: a saying taken from the seed is only stable while
+the list stays the same. If you ever add, remove or reorder a saying, old replays would show a
+different one. So I'd freeze this list as "list 1", and if it ever changes, the game lane stores the
+saying (or the list's version) on the match record. Nothing is needed until then.
+
+**Build order (one slice per render session):**
+1. EFFECTS.md "intro" grammar, the saying picker (seeded, with the 1-in-100 rate tested over many
+   seeds), the power-on, the agent lines, `HANDSHAKE OK` and the saying in the replays; skip; reduced
+   motion; a sheet of all nine sayings over all four factions and a mirror match. Checkpoint.
+2. Sound polish and a phone pass, from your notes on slice 1.
+
+**Calls I'd like (suggested defaults in brackets):**
+1. **Length** [about 2.6 s, within your 2-3 s].
+2. **Neutral colour for `HANDSHAKE OK` and the saying** [white-chrome; each half's own line in its
+   faction's colour].
+3. **Both agents' lines print at the same time, one in each half** [yes, so nobody goes first.
+   Alternative: the top agent's line, then the bottom's, which reads like a real terminal but puts
+   one side first].
+4. **Line format** [`LOADING AGENT: <name> [<FACTION>]`, your example, unchanged].
+5. **When it plays** [Play from move 0, or the page starting playback on its own; not on page open
+   without play, a jump, a scrub or a resume].
+6. **Skip** [a tap, Escape or Skip, as the boasts do; the first move starts at once].
+7. **The rare saying** [exactly 1 in 100 by the seed's hash; the other eight equally likely].
+8. **Sound** [a tube thump, the key clicks, a short chirp for `HANDSHAKE OK`, a hit and a rising
+   chord under the saying; music starts after; muted when sound is off].
+9. **The sayings are frozen as list 1** [yes; any later change to the list asks the game lane to
+   store the saying on the match record].
+10. **Name** ["Match Boot" in the code and the notes; viewers never see the name].

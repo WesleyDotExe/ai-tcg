@@ -32,9 +32,9 @@
 //     dimmed, the name plate, the Skip button). Reduced motion (or no canvas)
 //     plays boastStill: the final pose, still, with the name, about 1 s.
 //
-// The render plays whichever boast it is told to (boastIdFor: the match
-// record's boast once slice 3 reads it, else the winner's faction starter
-// boast); it never picks one itself. Same single-source rule as the rest:
+// The render plays whichever boast it is told to (boastFromRecord: the
+// match record's boast, else the winner's faction starter boast); it never
+// picks one itself. Same single-source rule as the rest:
 // the page embeds BOAST_PURE_SOURCE verbatim and Node evaluates the same
 // text for the tests.
 
@@ -278,6 +278,25 @@ export const BOAST_PURE_SOURCE = String.raw`
     if (recordId && BOAST_SPECS[recordId]) return recordId;
     var s = BOAST_STARTER[faction];
     return s && BOAST_SPECS[s] ? s : null;
+  }
+
+  // The boast a replay plays at its end (slice 3), from the match record's
+  // boast (replay.record.boast: { side, itemId, slot, winnerHealth }), which
+  // the store chose as the match ended: the winner's main boast, its
+  // close-win boast (it ended on 5 health or less) or, with the boast slot
+  // empty, its deck faction's starter. The render never chooses: it only
+  // falls back to the winner's faction starter when the record can't be
+  // played here (no record: a match from before the record, or a sample
+  // replay; a record whose boast is another side's; a boast this render
+  // can't draw). Returns { id, slot, close } or null for no boast. slot is
+  // the record's, or 'fallback'; close is true for a close-win boast.
+  function boastFromRecord(boast, winner, faction) {
+    if (!winner || winner === 'draw') return null;
+    if (boast && boast.side === winner && BOAST_SPECS[boast.itemId]) {
+      return { id: boast.itemId, slot: boast.slot, close: boast.slot === 'closeWinBoast' };
+    }
+    var id = boastIdFor(null, faction);
+    return id ? { id: id, slot: 'fallback', close: false } : null;
   }
 
   // The "Cosmetics: on / off" switch (owner decision 7, render session 30):
@@ -1096,7 +1115,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       el.style.left = (m.x - m.w / 2) + 'px'; el.style.top = (m.y - m.h / 2) + 'px';
       el.style.width = m.w + 'px'; el.style.height = m.h + 'px';
       var nm = document.createElement('div'); nm.className = 'boast-who'; nm.textContent = cur.who;
-      var tag = document.createElement('div'); tag.className = 'boast-tag'; tag.textContent = cur.plan.name.toUpperCase() + ' · VICTORY';
+      var tag = document.createElement('div'); tag.className = 'boast-tag'; tag.textContent = cur.plan.name.toUpperCase() + (cur.close ? ' · CLOSE WIN' : ' · VICTORY');
       el.appendChild(nm); el.appendChild(tag);
       // Boot Sequence's plate ends on a block cursor; it is measured with it.
       var cu = null;
@@ -1150,7 +1169,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
     function cancel() { if (cur) { var c0 = cur; c0.onEnd = null; finish('cancel'); cur = null; } }
     // play(id, els, opts): opts { who (the winner's name), faction (the
     // winner's: a neutral boast's panel and sting), onEnd(reason), reduced,
-    // seed }. Returns the plan played (or null when nothing can be).
+    // seed, close (a close win: the plate says CLOSE WIN, not VICTORY) }. Returns the plan played (or null when nothing can be).
     function play(id, els, opts) {
       opts = opts || {};
       cancel();
@@ -1175,7 +1194,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       stats.problem = problem;
       stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0; stats.groups = {};
       plan.pieces.forEach(function (pc) { var g = pc.grp || pc.shape || pc.sp; stats.groups[g] = (stats.groups[g] || 0) + 1; });
-      cur = { plan: plan, els: els, who: opts.who || '', onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false };
+      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false };
       (els.dim || []).forEach(function (d) { if (d) d.classList.add('boast-dim'); });
       // The Skip button sits at the top right of the winner's side.
       var sk = document.createElement('button');
@@ -1195,7 +1214,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       return plan;
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur && !cur.ended; }, geomOf: geomOf,
-      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
+      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
   })();
 `;
 
@@ -1223,6 +1242,8 @@ export const BOAST_CSS = `
 @keyframes boast-blink { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .boast-name, .turnbar .win.land, .boast-name .boast-cur { animation: none; } }
 `;
+
+import type { ReplayBoast } from "./types.js";
 
 export interface BoastRect { l: number; t: number; r: number; b: number }
 export interface BoastSlot extends BoastRect { filled?: boolean }
@@ -1252,7 +1273,7 @@ export interface BoastPlan {
   crestPieces?: number; still?: boolean;
 }
 
-const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS_MAX, BOAST_STILL_MS: BOAST_STILL_MS, BOAST_LEAD_MS: BOAST_LEAD_MS, BOAST_STARTER: BOAST_STARTER, BOAST_PRIMS: BOAST_PRIMS, BOAST_FORMATIONS: BOAST_FORMATIONS, BOAST_SPECS: BOAST_SPECS, BOAST_FONT: BOAST_FONT, BOAST_NEON: BOAST_NEON, boastBits: boastBits, boastBitsFit: boastBitsFit, boastIdFor: boastIdFor, boastCosmeticsShown: boastCosmeticsShown, boastSpecProblem: boastSpecProblem, boastPlan: boastPlan, boastStill: boastStill, boastPlanProblem: boastPlanProblem, boastPieceAt: boastPieceAt };`)() as {
+const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS_MAX, BOAST_STILL_MS: BOAST_STILL_MS, BOAST_LEAD_MS: BOAST_LEAD_MS, BOAST_STARTER: BOAST_STARTER, BOAST_PRIMS: BOAST_PRIMS, BOAST_FORMATIONS: BOAST_FORMATIONS, BOAST_SPECS: BOAST_SPECS, BOAST_FONT: BOAST_FONT, BOAST_NEON: BOAST_NEON, boastBits: boastBits, boastBitsFit: boastBitsFit, boastIdFor: boastIdFor, boastFromRecord: boastFromRecord, boastCosmeticsShown: boastCosmeticsShown, boastSpecProblem: boastSpecProblem, boastPlan: boastPlan, boastStill: boastStill, boastPlanProblem: boastPlanProblem, boastPieceAt: boastPieceAt };`)() as {
   BOAST_MS_MAX: number;
   BOAST_STILL_MS: number;
   BOAST_LEAD_MS: number;
@@ -1265,6 +1286,7 @@ const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS
   boastBits: (lines: string[]) => BoastBits;
   boastBitsFit: (text: string, w: number, h: number, maxCell?: number) => { bits: BoastBits; cell: number };
   boastIdFor: (recordId: string | null | undefined, faction: string) => string | null;
+  boastFromRecord: (boast: ReplayBoast | null | undefined, winner: string | null | undefined, faction: string) => { id: string; slot: ReplayBoast["slot"] | "fallback"; close: boolean } | null;
   boastCosmeticsShown: (viewer: string | null | undefined, side: string, on: boolean) => boolean;
   boastSpecProblem: (spec: BoastSpec) => string | null;
   boastPlan: (spec: BoastSpec, geom: BoastGeom, seed?: number, who?: BoastWho) => BoastPlan;
@@ -1285,6 +1307,7 @@ export const BOAST_NEON = impl.BOAST_NEON;
 export const boastBits = impl.boastBits;
 export const boastBitsFit = impl.boastBitsFit;
 export const boastIdFor = impl.boastIdFor;
+export const boastFromRecord = impl.boastFromRecord;
 export const boastCosmeticsShown = impl.boastCosmeticsShown;
 export const boastSpecProblem = impl.boastSpecProblem;
 export const boastPlan = impl.boastPlan;
