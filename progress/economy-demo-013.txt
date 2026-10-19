@@ -6,13 +6,13 @@ boast-aegis-shield-slam      Shield Slam        standard Aegis   free (starter) 
 boast-swarm-hive-burst       Hive Burst         standard Swarm   free (starter)  drawn: yes  on sale in S0 now: no
 boast-null-void-collapse     Void Collapse      standard Null    free (starter)  drawn: yes  on sale in S0 now: no
 boast-cortex-data-cascade    Data Cascade       standard Cortex  free (starter)  drawn: yes  on sale in S0 now: no
-boast-s0-boot-sequence       Boot Sequence      S0       neutral 300 credits     drawn: no   on sale in S0 now: no
-boast-s0-dial-up-fireworks   Dial-Up Fireworks  S0       neutral 300 credits     drawn: no   on sale in S0 now: no
+boast-s0-boot-sequence       Boot Sequence      S0       neutral 300 credits     drawn: yes  on sale in S0 now: yes
+boast-s0-dial-up-fireworks   Dial-Up Fireworks  S0       neutral 300 credits     drawn: yes  on sale in S0 now: yes
 
 Boot Sequence: The screen flickers on like an old CRT, a retro BIOS types out the winner's name line by line, then a chunky SYSTEM READY flash.
 Dial-Up Fireworks: A modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.
 
-## 2. A Season 0 file with the shipped catalogue: ada earns 300 credits in real matches
+## 2. A Season 0 file with neither Season 0 boast drawn (an undrawn copy of the catalogue): ada earns 300 credits in real matches
 
 s0-m001  T14  bo wins   ada +2   boast: Void Collapse (boast, winner on 15)
 s0-m002  T12  bo wins   ada +2   boast: Void Collapse (boast, winner on 20)
@@ -57,7 +57,7 @@ buy Boot Sequence: refused: "Boot Sequence" isn't on sale yet: the render lane h
 buy Dial-Up Fireworks: refused: "Dial-Up Fireworks" isn't on sale yet: the render lane hasn't drawn it
 ada's credits after: 301 (nothing debited)
 
-## 3. The same file, reopened with Boot Sequence marked drawn (the render lane's change when it ships the spec)
+## 3. The same file, reopened with only Boot Sequence marked drawn (the render lane's change when it ships the spec)
 
 on sale for ada: Boot Sequence (300 credits)
 buy Dial-Up Fireworks: refused: "Dial-Up Fireworks" isn't on sale yet: the render lane hasn't drawn it
@@ -77,3 +77,10 @@ the win's record: boast boast-s0-boot-sequence (boast); ada's saved loadout boas
 on sale for cy (1000 credits): nothing
 buy Boot Sequence: refused: "Boot Sequence" is a S0 item; it isn't sold in S1
 buy Dial-Up Fireworks: refused: "Dial-Up Fireworks" is a S0 item; it isn't sold in S1
+
+## 5. A Season 0 file with the shipped catalogue: both boasts are drawn, so both are on sale
+
+on sale for di (1000 credits): Boot Sequence (300 credits), Dial-Up Fireworks (300 credits)
+buy Boot Sequence: bought (ledger row 2, purchase)
+buy Dial-Up Fireworks: bought (ledger row 3, purchase)
+di's credits after: 400

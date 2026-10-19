@@ -23,6 +23,11 @@
 // test/agentGenerator.test.ts fails if a later data change makes a card
 // differ from what was measured.
 //
+// Since session 50 each result line carries the fingerprint of the card it
+// measured and the stamp of the reference it was measured against; a line
+// whose stamps don't match today's card or reference is set aside as stale
+// and printed (the rule is in signatureApprovedSelect.ts).
+//
 // When the measuring agent changes again, re-measure into a new subfolder
 // and point AGENT_RESULTS at it, so two agents' numbers never mix.
 //
@@ -30,39 +35,44 @@
 
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import type { CandidateResult } from "./signatureFairness.js";
-import { buildSignatureCard, onTable, signatureComboId, signatureFingerprint, type SignatureSpec } from "../data/signatureMenu.js";
+import { loadReference, referenceRates, referenceStamp, type Reference } from "./signatureFairness.js";
+import { selectApproved } from "./signatureApprovedSelect.js";
+import { buildSignatureCard, onTable, signatureFingerprint, type SignatureSpec } from "../data/signatureMenu.js";
 
 /** Today's agent's results, relative to progress/signature-fairness/. */
 const AGENT_RESULTS = "agent41/";
 const DIR = fileURLToPath(new URL(`../../../progress/signature-fairness/${AGENT_RESULTS}`, import.meta.url));
 const OUT = fileURLToPath(new URL("../data/signatureApproved.ts", import.meta.url));
 
-/** Every full CandidateResult in a raw-results line, whatever command wrote
- * it (candidates: the line itself; tune: `best`; levers: `confirmed`). */
-function resultsIn(line: unknown): CandidateResult[] {
-  const o = line as { factions?: unknown; best?: CandidateResult; confirmed?: CandidateResult[] };
-  if (o.confirmed) return o.confirmed;
-  if (o.best) return [o.best];
-  return o.factions ? [line as CandidateResult] : [];
-}
-
-/** Per line, its deciding measurement: the most seeds, then the best. */
-const decisive = new Map<string, { spec: SignatureSpec; worst: number; seeds: number; pass: boolean; file: string }>();
-const everPassed = new Set<string>();
-for (const file of readdirSync(DIR).filter((f) => f.endsWith(".jsonl")).sort()) {
-  for (const text of readFileSync(DIR + file, "utf8").split("\n").filter(Boolean)) {
-    for (const r of resultsIn(JSON.parse(text))) {
-      if (r.seeds < 2500 || r.spec.ability.startsWith("rework:")) continue;
-      const id = signatureComboId(r.spec);
-      if (r.pass) everPassed.add(id);
-      const cur = decisive.get(id);
-      if (!cur || r.seeds > cur.seeds || (r.seeds === cur.seeds && r.worst < cur.worst)) {
-        decisive.set(id, { spec: r.spec, worst: r.worst, seeds: r.seeds, pass: r.pass, file });
-      }
+// Today's reference cut to each seed count asked for (undefined when it's
+// shorter than the result).
+const refs = new Map<number, Reference | undefined>();
+const refAt = (seeds: number): Reference | undefined => {
+  if (!refs.has(seeds)) {
+    try {
+      refs.set(seeds, loadReference(seeds));
+    } catch {
+      refs.set(seeds, undefined);
     }
   }
-}
+  return refs.get(seeds);
+};
+const { decisive, everPassed, stale } = selectApproved(
+  readdirSync(DIR)
+    .filter((f) => f.endsWith(".jsonl"))
+    .map((name) => ({ name, text: readFileSync(DIR + name, "utf8") })),
+  {
+    fingerprint: (spec) => signatureFingerprint(buildSignatureCard(spec, { anyStats: true })),
+    reference: (seeds) => {
+      const ref = refAt(seeds);
+      return ref && referenceStamp(ref);
+    },
+    refRates: (seeds) => {
+      const ref = refAt(seeds);
+      return ref && referenceRates(ref);
+    },
+  },
+);
 const passes = new Map([...decisive].filter(([, d]) => d.pass));
 
 const rows = [...passes.entries()].sort(([a], [b]) => a.localeCompare(b));
@@ -118,3 +128,4 @@ for (const id of everPassed) {
   const d = decisive.get(id)!;
   if (!d.pass) console.log(`  OUT ${id.padEnd(28)} passed at a smaller seed count; fails at ${d.seeds} (worst ${(d.worst * 100).toFixed(2)})`);
 }
+for (const st of stale) console.log(`  STALE ${st.id.padEnd(26)} at ${st.seeds} in ${st.file}: ${st.why}`);

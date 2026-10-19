@@ -5,16 +5,18 @@
 //
 //   npx tsx src/dev/season0BoastsDemo.ts > ../progress/economy-demo-013.txt
 //
-// In a real database file, with the SHIPPED catalogue: an owner earns 300
-// credits in real engine matches (LookaheadAgent both sides, starter decks,
-// startMatch -> runMatch -> recordMatch) and still can't buy either boast,
-// because neither is drawn yet. Then the same file is reopened with the
-// catalogue as it will be once the render lane draws Boot Sequence (that one
-// item's `drawn` set to true, the change the render lane makes with its
-// spec): Boot Sequence is on sale and bought, Dial-Up Fireworks still isn't,
-// and the next real win plays Boot Sequence on the match record. Last, a
-// Season 1 file with the same catalogue sells neither: retired. Seeds and the
-// clock are fixed so the output reproduces.
+// Section 1 prints the SHIPPED catalogue (both boasts drawn since render
+// session 33). Sections 2-4 pin an undrawn copy of it (both Season 0 boasts'
+// `drawn` set to false, as the economy test does), so the gate they show
+// doesn't change as the render lane draws: in a real database file an owner
+// earns 300 credits in real engine matches (LookaheadAgent both sides,
+// starter decks, startMatch -> runMatch -> recordMatch) and can't buy either
+// boast. Then the same file is reopened with only Boot Sequence marked drawn
+// (the change the render lane makes with its spec): Boot Sequence is on sale
+// and bought, Dial-Up Fireworks still isn't, and the next real win plays Boot
+// Sequence on the match record. Section 4: a Season 1 file sells neither,
+// retired. Section 5: a Season 0 file with the shipped catalogue sells both.
+// Seeds and the clock are fixed so the output reproduces.
 
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -59,8 +61,9 @@ say(`${boot.name}: ${boot.description}`);
 say(`${dialUp.name}: ${dialUp.description}`);
 say();
 
-// ---- 2. a Season 0 file, shipped catalogue: earn 300, can't buy ----
-let store = EconomyStore.open(dbPath, { now });
+// ---- 2. a Season 0 file, neither boast drawn: earn 300, can't buy ----
+const undrawn = COSMETICS.map((i) => (SEASON_0_BOASTS.includes(i) ? { ...i, drawn: false } : i));
+let store = EconomyStore.open(dbPath, { now, cosmetics: undrawn });
 function seat(name: string, faction: DeckFaction) {
   const owner = store.createOwner({ name });
   const { copies } = store.grantStarterCollection(owner.ownerId, faction);
@@ -108,7 +111,7 @@ const row = (m: MatchRecord) => {
   return `${m.matchId}  T${String(m.turns).padStart(2)}  ${result.padEnd(9)} ada +${String(m.p1Credits).padEnd(2)}  ${boast}`;
 };
 
-say("## 2. A Season 0 file with the shipped catalogue: ada earns 300 credits in real matches");
+say("## 2. A Season 0 file with neither Season 0 boast drawn (an undrawn copy of the catalogue): ada earns 300 credits in real matches");
 say();
 while (store.balance(ada.ownerId) < SEASON_BOAST_PRICE_CREDITS) say(row(await play()));
 say();
@@ -121,9 +124,9 @@ store.close();
 say();
 
 // ---- 3. the same file once the render lane has drawn Boot Sequence ----
-const bootDrawn = COSMETICS.map((i) => (i.itemId === boot.itemId ? { ...i, drawn: true } : i));
+const bootDrawn = undrawn.map((i) => (i.itemId === boot.itemId ? { ...i, drawn: true } : i));
 store = EconomyStore.open(dbPath, { now, cosmetics: bootDrawn });
-say(`## 3. The same file, reopened with ${boot.name} marked drawn (the render lane's change when it ships the spec)`);
+say(`## 3. The same file, reopened with only ${boot.name} marked drawn (the render lane's change when it ships the spec)`);
 say();
 say(`on sale for ada: ${onSaleList(store, ada.ownerId)}`);
 say(`buy ${dialUp.name}: ${tryBuy(store, ada.ownerId, dialUp)}`);
@@ -156,5 +159,18 @@ say(`on sale for cy (1000 credits): ${onSaleList(s1, cy.ownerId)}`);
 say(`buy ${boot.name}: ${tryBuy(s1, cy.ownerId, boot)}`);
 say(`buy ${dialUp.name}: ${tryBuy(s1, cy.ownerId, dialUp)}`);
 s1.close();
+say();
+
+// ---- 5. the shipped catalogue today: both drawn, both on sale ----
+say("## 5. A Season 0 file with the shipped catalogue: both boasts are drawn, so both are on sale");
+say();
+const s0 = EconomyStore.open(join(tempDir, "season-0-shipped.db"), { now });
+const di = s0.createOwner({ name: "di" });
+s0.unsafeExec(`INSERT INTO ledger (owner_id, currency, delta, reason, created_at) VALUES ('${di.ownerId}', 'credits', 1000, 'demoGrant', '${clock.toISOString()}')`);
+say(`on sale for di (1000 credits): ${onSaleList(s0, di.ownerId)}`);
+say(`buy ${boot.name}: ${tryBuy(s0, di.ownerId, boot)}`);
+say(`buy ${dialUp.name}: ${tryBuy(s0, di.ownerId, dialUp)}`);
+say(`di's credits after: ${s0.balance(di.ownerId)}`);
+s0.close();
 
 rmSync(tempDir, { recursive: true, force: true });

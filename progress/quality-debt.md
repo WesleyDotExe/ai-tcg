@@ -41,9 +41,43 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 (the real-match ring check; why a signature card helps Aegis most), and session 45 (option C: the
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
-(the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4).
+(the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
+(hardening: result provenance, the seeded-bounds audit).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## New debt from session 50 (hardening pass)
+
+- **Only one result line is stamped.** The stamps are written by every command from now on, but the
+  committed results are all unstamped except `agent41/stamped-s50.jsonl`. Unstamped lines are
+  checked by their recorded reference rates (exact, and it separates the two agents' results
+  cleanly), but that check can't see the CARD: an unstamped line whose card changed since is caught
+  only for lines on the list (the fingerprint test), not for a line that failed and would pass
+  today. Re-measuring the 14 listed lines stamped (~25 min at 10,000 in 4 shards) would close it.
+- **The rate check covers full results only.** Grid lines (compact, 1,000 seeds) record no
+  `refRate`, so an unstamped grid line can't be checked; they never decide (under 2,500 seeds) but
+  the reports that read them don't check either.
+- **Reports don't check provenance.** `signatureApprovedSelect.ts` is used by the list generator
+  only; the report drivers (023-034) still read whatever files they name.
+- **Seeded-bounds audit stopped at the game-lane workspaces.** The render lane's tests weren't
+  audited (its own). Tests that pin exact seeded outcomes weren't reviewed; they change with the
+  code by design.
+- **`ring` / `ring:real` not re-run this session**: nothing they read changed (no card, the
+  approved list regenerates byte for byte), so CI's run is the check.
+
+## Session 49 debt, status after session 50
+
+- "Removing a line on the owner's word has no mechanism": still true; not needed (the owner kept
+  Guardian 3/4).
+- "The username-in-the-name test passed by luck ... other seeded count tests not audited": AUDITED
+  (`progress/seeded-bounds-audit-050.txt`): 13 bounds over 5 test files; two too close to chance
+  (the Jackpot rate's lower bound at -2.6 sd; the username count's lower bound, 1 in 160) now sit
+  about 4 sd out. The rest stand.
+- "The approved list trusts file names / result files don't carry their own fingerprint" (session
+  34, 48): FIXED for new results (stamped) and checked for old ones by their reference rates; see
+  the new debt above for what that check can't see.
+- The rest stand (two lines exactly on the limit; the ring re-record on judgement; committed render
+  replays with generated signature cards).
 
 ## New debt from session 49
 

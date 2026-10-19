@@ -3497,3 +3497,55 @@ will differ when next regenerated.
 **Evidence:** `progress/balance-report-034-guardian-search.txt`, `progress/economy-demo-013.txt`.
 
 **Blocked:** nothing. Optional owner check-in on Guardian 3/4 and the ring baseline.
+
+## 2026-10-19 — Session 50 (hardening pass: result provenance, the seeded-bounds audit; the demo side task)
+
+Read `progress/owner-feedback.md` first. Two new entries: the owner's answers to session 49 (keep
+all 3: nothing to change, noted) and render session 33's answers, which carry a small game-lane
+side task (pin demo 013's step 2 to an undrawn copy of the catalogue) and the new Match Boot
+feature (the render lane's). The last merged PR (#84) was render, so this session is game lane;
+it is a 5th session, so a **hardening pass**: no new features.
+
+**Built:**
+- The side task: `season0BoastsDemo.ts` steps 2-4 open with an undrawn copy of the catalogue (both
+  Season 0 boasts `drawn: false`, as the economy test does); step 3 marks only Boot Sequence drawn;
+  step 5 (new) opens the shipped catalogue and buys both. No store code change.
+- Provenance for fairness results (the session-34/48 debt "result files should carry the
+  fingerprint themselves"): `testCandidate` writes `fingerprint` and `reference` (an FNV-1a stamp of
+  the reference's per-seed results at that seed count); grid lines carry both. The list's rule
+  moved into `signatureApprovedSelect.ts`: a stamped line that doesn't match today's card or
+  reference is STALE, never decides, and is printed. For the unstamped committed lines I found a
+  check that needs no re-measuring: every edge records the reference's own win rate (`refRate`),
+  so a line counts only if all 12 equal today's reference. Measured over every committed file:
+  all 19 full results in `agent41/` match today's reference, all 239 in the older folder match the
+  session-37 reference, none matches both. So the subfolder no longer has to be trusted.
+- Seeded-bounds audit (the session-49 debt): 13 rate/count bounds over 5 test files, each placed in
+  standard deviations from the true rate. Two were too close to chance: the Jackpot rate's lower
+  bound (-2.6 sd) and the username-in-a-name count (more than 2 of an expected 9, 1 in 160). Both
+  now sit about 4 sd out; the rate itself stays pinned by the engine test at 10,000 names.
+
+**Ran it:**
+- `progress/economy-demo-013.txt`: steps 2-4 read as before (both refused undrawn; Boot bought once
+  drawn; Season 1 sells neither); step 5: the shipped catalogue sells both (di buys both, 1,000 ->
+  400). Re-run: identical.
+- `signatureApprovedList.ts`: the list regenerates byte for byte (14 lines; Guardian 3/5 OUT), with
+  no STALE lines, before and after adding the first stamped result:
+  `agent41/stamped-s50.jsonl`, Tax 3/6 re-measured at 2,500 (39 s): worst 1.2, PASS, fingerprint
+  c93d5fe1 = the list's, reference 88338aaa.
+- Mutation checks: disabling the rate check fails 2 of the new tests; disabling the fingerprint
+  check fails 1.
+- Long-run pack rates for the audit (2,000,000 packs, S0-odds-2): a hit in 18.49% of packs (the
+  shine slot alone 18.39%), Zero-Day 1 in 503, Jackpot 1 in 1,940. Evidence
+  `progress/seeded-bounds-audit-050.txt`.
+- `npm test`: all six workspaces pass (988, +8); typecheck clean everywhere. `ring`/`ring:real` not
+  re-run (nothing they read changed); CI runs both.
+
+**Worked:** the `refRate` check turned the folder rule into something checked, from data already
+committed. **Didn't / honest limits:** only one result line is stamped; the rate check can't see a
+changed card on an unstamped line; the reports don't use the provenance rule; the audit covered
+the game lane's tests only.
+
+**Evidence:** `progress/economy-demo-013.txt`, `progress/seeded-bounds-audit-050.txt`,
+`progress/signature-fairness/agent41/stamped-s50.jsonl`.
+
+**Blocked:** nothing.

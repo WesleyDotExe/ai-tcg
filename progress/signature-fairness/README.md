@@ -87,3 +87,21 @@ generator's `AGENT_RESULTS` at it. Printed into `progress/balance-report-034-gua
 | `agent41/guardian-grid-0.jsonl` … `-3.jsonl` | `npx tsx src/dev/signatureFairness.ts grid --abilities guardian --seeds 1000 --shard i/4 --out ../progress/signature-fairness/agent41/guardian-grid-i.jsonl` (every cost-5 body, compact lines) |
 | `agent41/guardian-levers.jsonl` | `npx tsx src/dev/signatureFairness.ts levers --ability guardian --coarse 300 --seeds 500 --confirm 2500 --out ../progress/signature-fairness/agent41/guardian-levers.jsonl` |
 | `agent41/guardian-confirm-10k-0.jsonl`, `-1.jsonl` | `npx tsx src/dev/signatureFairness.ts remeasure --ids sig5-3x4-guardian,sig5-3x6-guardian --seeds 10000 --shard i/2 --out ../progress/signature-fairness/agent41/guardian-confirm-10k-i.jsonl` |
+
+## Session 50 (hardening: result lines carry their own provenance)
+
+Every full result written from this session on carries `fingerprint` (the card's
+`signatureFingerprint`) and `reference` (`referenceStamp` of the reference it was paired with: a
+hash of that reference's per-seed results at the line's seed count, so another agent, other decks
+or another stand-in give another stamp). Grid lines carry both too. `signatureApprovedList.ts`
+picks lines by the rule in `engine/src/dev/signatureApprovedSelect.ts`: a stamped line whose card
+or reference isn't today's is set aside as STALE and printed, whatever its seed count. Older,
+unstamped lines are checked by the reference win rate every edge records (`refRate`): all twelve
+must equal today's reference at that seed count. That check tells the two agents apart exactly:
+every line in `agent41/` matches today's reference, every line directly in this folder matches the
+session-37 one (`engine/test/signatureApprovedSelect.test.ts` runs both). So the subfolder is a
+filing convention now, not something the list has to trust.
+
+| file | command (from `engine/`) |
+|---|---|
+| `agent41/stamped-s50.jsonl` | `npx tsx src/dev/signatureFairness.ts remeasure --ids sig5-3x6-tax --seeds 2500 --out ../progress/signature-fairness/agent41/stamped-s50.jsonl` (the first stamped line: Tax 3/6 at 2,500, worst 1.2, PASS; its 10,000-game re-check still decides) |

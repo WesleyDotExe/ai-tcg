@@ -1,5 +1,11 @@
 # Notes for the owner
 
+**Updated 2026-10-19, session 50 (a hardening pass).** Nothing is blocking and nothing new needs
+you. The check-in below is answered (all 3 kept). Your side task is done: the Season 0 boasts demo
+pins its "not drawn yet" steps to an undrawn copy of the catalogue and shows the shipped catalogue
+selling both boasts (`progress/economy-demo-013.txt`). The rest was hardening: fairness results now
+carry their own provenance, and two seeded tests had bounds too close to chance (fixed).
+
 **Updated 2026-10-19, session 49 (your session-48 answers: the approved list from today's agent; a
 Guardian line).** Nothing is blocking. **Done as you answered:** the approved list is now read only
 from today's agent's results; Guardian 3/5 is off it; the tuner found a Guardian line that passes,
@@ -7,7 +13,7 @@ from today's agent's results; Guardian 3/5 is off it; the tuner found a Guardian
 store wording of the starter boasts now describes them as drawn. **One small [OWNER CHECK-IN] below.**
 Evidence: `progress/balance-report-034-guardian-search.txt`.
 
-### [OWNER CHECK-IN] Guardian 3/4 passes and is on the list; the real-match ring re-recorded
+### [ANSWERED 2026-10-19: keep all 3] Guardian 3/4 passes and is on the list; the real-match ring re-recorded
 
 **What happened:** with today's agent, the tuner measured every cost-5 Guardian body (attack 2-4,
 health 3-9) at 1,000 games per edge, ran the lever tuner over costs 5, 6 and 7, and re-measured the
