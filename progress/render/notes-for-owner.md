@@ -734,3 +734,17 @@ which refuses unowned items. This page comes last.
 
 Nothing for the game lane here beyond what's already approved: the render needs each side's loadout
 (boast id) on the match record and the catalogue item's id to look up the boast's spec.
+
+## 2026-10-19 — Session 32: victory boasts, slice 2 (the other three starter boasts; the cosmetics switch)
+
+Nothing is blocking. The calls for this slice are in `progress/render/checkpoints.md` (newest entry).
+
+**For the game lane (small, optional):** the store descriptions of two starter boasts in
+`economy/src/cosmetics.ts` describe the first drafts, not what is drawn. Shield Slam's says "Hex plates
+slam down" (they slam up; you kept that call in session 31), and Data Cascade's says "Columns of pixels
+rain onto the winner's row" (they stream up out of it, for the same reason). This session only flipped
+`drawn` on the three new starter boasts, as the catalogue's test asks. It left the wording alone because
+the file is the game lane's. Suggested wording: "Hex plates slam up along the winner's row and lock into
+a crest over the name." and "Columns of pixels stream up out of the winner's row and snap into a stack
+of wireframe blocks over the name." Also `progress/economy-demo-013.txt` now regenerates with "drawn:
+yes" on those three rows (nothing else changes); the game lane can refresh it when it next touches it.

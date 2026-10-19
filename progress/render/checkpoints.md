@@ -7,6 +7,96 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-19 — Victory boasts, slice 2: Hive Burst, Void Collapse, Data Cascade, and the cosmetics switch — AWAITING FEEDBACK
+
+Slice 2 of the boast plan. Every faction's win now plays its free starter boast. Open
+`render/output/boast-sheet.html` and press Play on any scene, or step into the last move of
+`swarm-vs-aegis-seed8.html` (Swarm), `null-vs-cortex-seed4.html` (Null) or `cortex-vs-null-seed5.html`
+(Cortex).
+
+**What this delivers (each about 3 s, same grammar as Shield Slam: rises from the winner's side, never
+touches the loser, ends on the name):**
+- **Hive Burst (Swarm):**
+  - the winner's row darkens a little, so green reads on green cards;
+  - an egg sac swells up in every slot, centre first;
+  - each sac bursts in the same order, throwing spores straight up;
+  - six spores climb into a zig-zag column over the name, and the rest rise on and fade;
+  - a seventh spore crowns the column with the sting.
+- **Void Collapse (Null):**
+  - a dark star opens over the winner's row (a black core, slowly turning) and the side goes dark;
+  - motes of light lift out of every slot and are pulled into it;
+  - it collapses to a point and holds a silent beat;
+  - then it blooms wider with the sting, tearing glitch bars out sideways;
+  - four bars slide in and frame the name.
+- **Data Cascade (Cortex):**
+  - the row darkens a little;
+  - columns of pixels stream up out of every slot, centre first;
+  - the row flashes as one;
+  - each column's lead pixel climbs and snaps into a wireframe block, stacked three, then two;
+  - the top block locks with the sting.
+- **Cosmetics: on / off** (your decision 7), a button in the replay's controls, remembered per viewer.
+  - Off: a win shows the result at once, as a draw does.
+  - Switched off mid-boast: the boast ends and the result lands.
+  - A replay is a spectator's view, so the switch hides both sides. The owner-page rule (hide only the
+    other side) is written and tested, ready for the owner pages.
+  - Today it only hides boasts: no card backs, avatars or arenas are drawn yet.
+- The store's catalogue now marks the three new boasts as drawn (they're free starters, so nothing goes
+  on sale). Boot Sequence and Dial-Up Fireworks stay undrawn and off sale until the next slice.
+
+**Evidence:**
+- **Recordings:** `progress/render/evidence/v2-s32-swarm-desktop-seat1.webm`, `v2-s32-null-desktop-seat1.webm`,
+  `v2-s32-cortex-desktop-seat1.webm`.
+- **Stills** (`v2-s32-*.jpg`):
+  - each beat of each boast on desktop;
+  - the name moment from the top side and on a phone;
+  - reduced motion;
+  - after a skip;
+  - cosmetics off;
+  - sheet scenes on an empty row and from the top side.
+- **Browser check** (`boast-check-s32.mjs`, output `boast-check-s32.txt`): 322 checks, all pass, covering:
+  - each boast from both sides on desktop and on a phone;
+  - the timings (start about 1.2 s after the step, the name at 2.2 s, the result at 3.0 s);
+  - the grammar on every real layout;
+  - nothing drawn on the loser's side;
+  - skip;
+  - reduced motion;
+  - the switch (off mid-boast, remembered after a reload, on again).
+- **Tests:** render 500 (+60). Every boast keeps the grammar on both seats, full, half and empty rows,
+  desktop and phone, and 300 random layouts each. The tests also check each boast's shape:
+  - sacs never move;
+  - the star holds silent before the bloom;
+  - motes never move down;
+  - the blocks stack 3, 2, 1;
+  - the bars frame the name.
+- **A new replay:** `swarm-vs-null-seed4.html`, where Null wins from the top side.
+
+**Decisions you may want to overrule:**
+1. **Data Cascade streams UP, not down.** Your plan said "columns of pixels rain onto the winner's row".
+   Down is the debuff's direction, so the pixels upload out of the row instead (the same call you kept for
+   Shield Slam). Alternative: rain from the top of the winner's side, stopping at the row.
+2. **The column of spores is a zig-zag of seven,** standing over the name; it doesn't spell the name out
+   (the name is the plate under it). Alternative: spores that gather along the plate's edges.
+3. **Null's star is a black hole with a purple corona,** turning slowly. It's the one boast piece drawn as
+   darkness, not light. Alternative: a bright star.
+4. **The silent beat:** about 0.2 s with nothing moving or sounding between the collapse and the bloom.
+   Alternative: a low hum under it.
+5. **Hive Burst and Data Cascade darken the winner's row from the start** (Shield Slam darkens it only
+   under the crest). Without it, green on green cards and cyan on cyan cards didn't read in the stills.
+   Alternative: brighter pieces and no early wash.
+6. **The switch is a button in the replay's controls** ("Cosmetics: on"), next to the sound buttons.
+   Alternative: under a settings menu once there is one.
+
+**Thin spots (in the debt list):**
+- Nobody has watched or heard any boast at full speed on a real screen.
+- The crests are about 100-120 px across on desktop: readable, not grand.
+- The switch has only boasts to hide so far.
+- The store wording of two starter boasts still describes the drafts (a note for the game lane in
+  notes-for-owner.md).
+
+**Next:** your call on these; then the two Season 0 boasts (Boot Sequence, Dial-Up Fireworks).
+
+---
+
 ## 2026-10-19 — Victory boasts, slice 1: the victory grammar and Aegis's Shield Slam — AWAITING FEEDBACK
 
 Slice 1 of the boast plan you approved (all 9 defaults). Open `render/output/aegis-vs-null-seed3.html`,

@@ -7,25 +7,35 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## Victory boasts (slice 1, session 31)
+## Victory boasts (slices 1-2, sessions 31-32)
 
-- **Nobody has watched or heard a boast.** Its 3 s length, the slam timing, the sting and whether it
-  feels like a celebration (not a second lethal hit) were judged from stills, two recordings and timed
-  checks. The sting was only checked as data (it rises; its length), never listened to.
-- **Only Aegis has a boast.** A Swarm, Null or Cortex win shows the result as before, until slice 2.
-- **The crest is a hex flower** of seven plates, a first take on "locks into a crest", not a designed
-  emblem. It is about 110 px across on desktop: readable, not grand.
+- **Nobody has watched or heard a boast.** All four were judged from stills, recordings and timed
+  checks: their 3 s length, whether each feels like a celebration (not a second lethal hit), Null's
+  silent beat, and the stings (checked only as data: they rise; their length).
+- **The crests are small:** about 100-120 px across on desktop (Shield Slam's hex flower, Hive Burst's
+  spore column, Data Cascade's block stack, Null's bloomed star). Readable, not grand; the crest size is
+  capped by the side's height (0.19 of it).
+- **Data Cascade's columns are faint in their first half second** even with the early wash: thin
+  pixels over cyan cards. The later beats read well.
 - **The boast reads the winner's faction, not the match record.** Slice 3 passes the record's boast
   (and the close-win slot); until then a loadout change can't show in a replay.
+- **The Season 0 boasts aren't drawn,** so the store still sells nothing (by design: undrawn items
+  are off sale). Next slice.
+- **The cosmetics switch hides boasts only** (nothing else cosmetic is drawn), and only the spectator
+  rule is wired into a page; the owner-page rule is a tested function with no page yet.
 - **The match feed spoils the result:** its last line ("X wins") prints while the boast plays; only the
-  turn bar waits.
+  turn bar waits (you kept this call).
 - **The lethal hit's ground mark sits on the loser's side during the boast** (correct for the hit, and
   it is the attack's mark, not the boast's), and its sparks are still flying on the loser's side for the
   first ~1 s of the boast. The check only asserts "nothing on the loser's side" from 1.25 s on.
 - **The browser check's "lit" count includes the veil** (a dark fill is still non-transparent canvas),
-  so its winner-side numbers after 1.4 s measure the veil plus the plates, not the plates alone.
+  so its winner-side numbers measure the veil plus the pieces, not the pieces alone. With the early
+  wash in Hive Burst and Data Cascade that is true from 0.5 s on.
+- **Frame rate on Mythic-heavy boards:** the boast costs 2-7 fps under the headless CPU canvas, but the
+  baselines on those boards are low (Shield Slam's replay 17 fps after the boast, Hive Burst's 26), set
+  by the Mythic wards. Not measured on a real GPU.
 - **No "tap to skip" hint** beyond the Skip button; a viewer may not know a tap ends it.
-- **Headless runs before this session used SwiftShader GL at ~5 fps.** Earlier recordings (sessions
+- **Headless runs before session 31 used SwiftShader GL at ~5 fps.** Earlier recordings (sessions
   24-30) look slower than the pages are; their checks were not re-run with the CPU canvas.
 
 ## The first-time flow (slice 3, session 28)
