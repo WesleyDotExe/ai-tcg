@@ -3442,3 +3442,23 @@ Owner decisions on the 8 calls in `progress/render/checkpoints.md` (Match Boot s
 8. **Keep:** the music is held at 55% under the intro for now; the "music starts after" timing belongs to Match Boot slice 2 (sound polish).
 
 Next render-lane slices, as set: boast slice 4 (the loadout picker), then Match Boot slice 2 (sound and the phone).
+
+
+---
+
+## 2026-10-20 — Owner: answers to game session 52 (play styles), option C and keep all 6
+
+Answers the [OWNER CHECK-IN] "Six play styles: fair against each other, but most are subtle" in `progress/notes-for-owner.md` (PR #89, `progress/play-style-ring-001.txt`).
+
+### Decision: option C
+- **Keep the six presets as built and keep the fairness limit** (each style within 2 points of 50% against the field). No wider limit (not option B).
+- **Give the commentary the style,** so viewers notice the difference even where it is small in the averages: the match commentary names and reflects each agent's play style (for example, noting when Fortress holds back, Rusher goes face, or Controller holds energy for a response). The style is already on the match record, so the commentary can read it.
+- Whichever lane owns the commentary proposes how it uses the style at a checkpoint before building. Cosmetic and presentational only: it never changes a move or a balance number.
+
+### Smaller calls: keep all 6
+1. **Keep:** the rule is each style's score against the field within 2 points of 50%; head-to-head and per-faction results are reported, not gated (Fortress piloting Swarm and Null is weaker, accepted as flavour).
+2. **Keep:** Calculator is the default style for every new and existing agent.
+3. **Keep:** the style belongs to the agent, not the owner.
+4. **Keep:** Controller's "hold a response" rarely matters yet; it will matter more as sets add Instants.
+5. **Keep:** Gambler is randomness among good moves, not a taste for risky cards.
+6. **Keep:** the deck builder still builds with Calculator; making it use the agent's style is the next step for 2b.
