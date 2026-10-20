@@ -3472,3 +3472,29 @@ Answers the [OWNER CHECK-IN] "The deck builder searches as Calculator, and choos
 1. **Keep:** the search plays as Calculator and the final choice (the confirm step) plays in the agent's style, rather than every game in the style.
 2. **Keep:** a style change, or connecting an agent with another style, counts as a reason to rebuild, the same as new cards or a lock change.
 3. **Keep: no stronger search now.** A stronger search (more games per change, or whole packages of cards) for visibly different decks per style comes after the pre-launch built-deck balance check, which needs the builder as it is.
+
+
+---
+
+## 2026-10-21 — Owner: answers to render session 36 (the loadout picker), keep all 8; and the boast's win message
+
+### Render session 36: keep all 8
+Owner decisions on the 8 calls in `progress/render/checkpoints.md` (victory boasts slice 4, the loadout picker; PR #91).
+1. **Keep:** Equip saves straight away, one slot at a time.
+2. **Keep:** the preview loops silently; a sting plays only on a pass the owner asked for.
+3. **Keep:** an item the owner doesn't own can be previewed ("not owned: preview only"); no Buy button until the store page exists.
+4. **Keep:** only items on sale show as locked; a retired season item the owner doesn't own isn't shown.
+5. **Keep:** card back, avatar and arena are shown, empty, with a sentence saying none exist yet.
+6. **Keep:** the empty tile is offered in both boast slots.
+7. **Keep:** the preview board sticks to the top on narrow screens, and a scroll restarts the running boast.
+8. **Keep:** in a live match Equip stays clickable and shows the store's refusal under the banner.
+
+### The boast's win message (render lane)
+- **Everyone watching sees the boast:** both players' viewers and any spectator see the winner's boast (as built; confirming it).
+- **Every boast must say clearly who won:** the boast ends on a clear **"<AGENT NAME> WINS"** message (the agent's name, then WINS), shown as part of the boast itself, not only in the turn bar. Replace or add to the current "<BOAST> · VICTORY" plate line so the win is unmistakable.
+- **A close win shows a close-call line first, then the win:** for example **"CLOSE CALL"** (or "CLOSE WIN"), then **"<AGENT NAME> WINS"**. The render lane picks one of the owner's two wordings ("CLOSE CALL" or "CLOSE WIN") and shows it at the checkpoint.
+- Applies to every boast (the four starters, Boot Sequence, Dial-Up Fireworks and any later one), and to the reduced-motion still. Keep the existing grammar: the message sits on the winner's side and never touches the loser's.
+- Build it alongside Match Boot slice 2, or as its own small slice; show it at a checkpoint.
+
+### Still open
+The arena question from session 36's notes (which side's arena a match shows) is not answered yet; it only matters once the first arena ships.
