@@ -16,6 +16,9 @@ import {
   SHIPPED_DECK_LISTS,
   signatureCardFor,
   signatureFingerprint,
+  DEFAULT_PLAY_STYLE,
+  isPlayStyleId,
+  type PlayStyleId,
   type AgentCandidate,
   type Card,
   type DeckFaction,
@@ -162,6 +165,9 @@ export interface AgentRecord {
   /** The generated one-line personality (null for an agent made by hand
    * with createAgent, e.g. before schema v6). */
   persona: string | null;
+  /** (v13) How the agent plays: a preset of the engine's PLAY_STYLES,
+   * Calculator by default. */
+  playStyle: PlayStyleId;
   createdAt: string;
 }
 
@@ -447,6 +453,9 @@ export interface MatchRecord {
    * before v11, or a win whose boast slot was empty and whose deck isn't
    * known (the render falls back to the winner's faction starter boast). */
   boast: MatchBoast | null;
+  /** Each side's play style as the match started (schema v13); null for a
+   * match recorded before v13 or one never started with startMatch. */
+  playStyles: { p1: PlayStyleId; p2: PlayStyleId } | null;
 }
 
 export interface PlayableDeck {
@@ -553,6 +562,9 @@ export interface LiveSide {
   /** (v11) The agent's loadout as the match starts; it can't change until
    * the match is recorded. */
   loadout: Loadout;
+  /** (v13) The agent's play style as the match starts. Changing it during
+   * the match applies from the next one. */
+  playStyle: PlayStyleId;
 }
 
 export interface LiveMatch {
@@ -1074,7 +1086,14 @@ export class EconomyStore {
    * the low-level path (tests, house setup) and doesn't run the typed-name
    * rules; owners name agents through confirmAgentDraft and renameAgent. */
   private insertAgent(input: { ownerId: string; name: string; persona?: string }, kind: AgentNameKind, byOwnerId: string | null): AgentRecord {
-    const agent: AgentRecord = { agentId: randomUUID(), ownerId: input.ownerId, name: input.name, persona: input.persona ?? null, createdAt: this.stamp() };
+    const agent: AgentRecord = {
+      agentId: randomUUID(),
+      ownerId: input.ownerId,
+      name: input.name,
+      persona: input.persona ?? null,
+      playStyle: DEFAULT_PLAY_STYLE,
+      createdAt: this.stamp(),
+    };
     this.transaction(() => {
       try {
         // Without a persona, the pre-v6 column list (the migration tests open
@@ -1228,7 +1247,25 @@ export class EconomyStore {
   }
 
   private agentFromRow(row: Row): AgentRecord {
-    return { agentId: str(row.agent_id), ownerId: str(row.owner_id), name: str(row.name), persona: strOrNull(row.persona ?? null), createdAt: str(row.created_at) };
+    return {
+      agentId: str(row.agent_id),
+      ownerId: str(row.owner_id),
+      name: str(row.name),
+      persona: strOrNull(row.persona ?? null),
+      playStyle: (strOrNull(row.play_style ?? null) ?? DEFAULT_PLAY_STYLE) as PlayStyleId,
+      createdAt: str(row.created_at),
+    };
+  }
+
+  /** (v13) Sets how an agent plays (owner 2026-10-15). Allowed at any
+   * time: a live match keeps the style it started with, so a change made
+   * during one applies from the next. */
+  setPlayStyle(agentId: string, style: string): AgentRecord {
+    if (this.schemaVersion < 13) throw new EconomyError("play styles need schema v13");
+    if (!isPlayStyleId(style)) throw new EconomyError(`"${style}" is not a play style`);
+    const agent = this.getAgent(agentId);
+    this.db.prepare("UPDATE agents SET play_style = ? WHERE agent_id = ?").run(style, agentId);
+    return { ...agent, playStyle: style };
   }
 
   // ---- generating a new agent (owner app spec B; schema v6) ----
@@ -1681,15 +1718,29 @@ export class EconomyStore {
         // zone: switching agents changes only this (owner app spec B).
         const signature = this.signatureCard(owner.connectedAgentId);
         if (signature) deck.spec.signature = signature.card;
-        return { ownerId, agentId: owner.connectedAgentId, deck, loadout: this.loadout(owner.connectedAgentId) };
+        return {
+          ownerId,
+          agentId: owner.connectedAgentId,
+          deck,
+          loadout: this.loadout(owner.connectedAgentId),
+          playStyle: this.getAgent(owner.connectedAgentId).playStyle,
+        };
       };
       const p1 = side(input.p1OwnerId);
       const p2 = side(input.p2OwnerId);
       const startedAt = this.stamp();
       try {
-        this.db
-          .prepare("INSERT INTO live_matches (match_id, p1_owner, p2_owner, p1_agent, p2_agent, started_at) VALUES (?, ?, ?, ?, ?, ?)")
-          .run(input.matchId, p1.ownerId, p2.ownerId, p1.agentId, p2.agentId, startedAt);
+        if (this.schemaVersion >= 13) {
+          this.db
+            .prepare(
+              "INSERT INTO live_matches (match_id, p1_owner, p2_owner, p1_agent, p2_agent, started_at, p1_style, p2_style) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            )
+            .run(input.matchId, p1.ownerId, p2.ownerId, p1.agentId, p2.agentId, startedAt, p1.playStyle, p2.playStyle);
+        } else {
+          this.db
+            .prepare("INSERT INTO live_matches (match_id, p1_owner, p2_owner, p1_agent, p2_agent, started_at) VALUES (?, ?, ?, ?, ?, ?)")
+            .run(input.matchId, p1.ownerId, p2.ownerId, p1.agentId, p2.agentId, startedAt);
+        }
       } catch (err) {
         refused(err);
       }
@@ -2731,7 +2782,7 @@ export class EconomyStore {
       }
       // A match started with startMatch must be recorded with the agents
       // that started it, and recording it ends the live match.
-      const live = this.db.prepare("SELECT p1_agent, p2_agent FROM live_matches WHERE match_id = ?").get(input.matchId) as Row | undefined;
+      const live = this.db.prepare("SELECT * FROM live_matches WHERE match_id = ?").get(input.matchId) as Row | undefined;
       if (live) {
         if (str(live.p1_agent) !== p1 || str(live.p2_agent) !== p2) {
           throw new EconomyError(`match "${input.matchId}" was started by other agents`);
@@ -2760,7 +2811,12 @@ export class EconomyStore {
         endedAt,
         loadouts: null,
         boast: null,
+        playStyles: null,
       };
+      // The styles the match started with (v13): kept from the live row.
+      const p1Style = strOrNull(live?.p1_style ?? null);
+      const p2Style = strOrNull(live?.p2_style ?? null);
+      if (p1Style !== null && p2Style !== null) record.playStyles = { p1: p1Style as PlayStyleId, p2: p2Style as PlayStyleId };
       try {
         this.db
           .prepare(
@@ -2786,6 +2842,11 @@ export class EconomyStore {
             p2Credits,
             endedAt,
           );
+        if (record.playStyles !== null) {
+          this.db
+            .prepare("UPDATE matches SET p1_style = ?, p2_style = ? WHERE match_id = ?")
+            .run(record.playStyles.p1, record.playStyles.p2, record.matchId);
+        }
       } catch (err) {
         refused(err);
       }
@@ -2884,6 +2945,8 @@ export class EconomyStore {
         endedAt: str(r.ended_at),
         loadouts: loadouts.get(str(r.match_id)) ?? null,
         boast: boasts.get(str(r.match_id)) ?? null,
+        playStyles:
+          r.p1_style != null && r.p2_style != null ? { p1: str(r.p1_style) as PlayStyleId, p2: str(r.p2_style) as PlayStyleId } : null,
       };
     });
   }

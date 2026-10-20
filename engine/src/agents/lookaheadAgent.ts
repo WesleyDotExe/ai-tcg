@@ -9,10 +9,11 @@ import { Rng } from "../state/rng.js";
 import { hasKeyword } from "../state/queries.js";
 import { BOARD_SLOTS, SIGNATURE_REPLAY_SURCHARGE } from "../state/init.js";
 import { findMode, withMode } from "../cards/modes.js";
+import { CALCULATOR_WEIGHTS, PLAY_STYLES, type PlayStyleId, type PlayStyleWeights } from "./playStyles.js";
 
-const FACE_DAMAGE_WEIGHT = 2;
-const CARD_ADVANTAGE_WEIGHT = 1.5;
-const ENERGY_WEIGHT = 0.4;
+// The face, card-advantage and energy weights (2, 1.5 and 0.4) live in
+// playStyles.ts as CALCULATOR_WEIGHTS, the default style: a style changes
+// them, and the scoring below reads them from `this.w`.
 /** Expected number of times a Directive's recurring turn trigger fires
  * before the match ends or the Directive is removed — see scorePlayCard. */
 const DIRECTIVE_TURN_TRIGGER_HORIZON = 2;
@@ -91,17 +92,30 @@ export class LookaheadAgent implements Agent {
   name: string;
   private rng: Rng;
   private cardAdvantageWeight: number;
+  /** The play style's weights (playStyles.ts); Calculator by default. */
+  private w: PlayStyleWeights;
 
-  /** `opts.cardAdvantageWeight` overrides CARD_ADVANTAGE_WEIGHT, for
-   * instrument checks only (dev/cardAdvantageCheck.ts plays one weight
-   * against another). Every balance measurement uses the default. */
-  constructor(name: string, seed: number, opts: { cardAdvantageWeight?: number } = {}) {
+  /** `opts.style` is a play style (a preset id, or raw weights for the
+   * style ring's experiments); every balance measurement uses the default,
+   * Calculator. `opts.cardAdvantageWeight` overrides the style's card
+   * weight, for instrument checks only (dev/cardAdvantageCheck.ts plays one
+   * weight against another). */
+  constructor(name: string, seed: number, opts: { cardAdvantageWeight?: number; style?: PlayStyleId | PlayStyleWeights } = {}) {
     this.name = name;
     this.rng = new Rng(seed);
-    this.cardAdvantageWeight = opts.cardAdvantageWeight ?? CARD_ADVANTAGE_WEIGHT;
+    const style = opts.style;
+    this.w = style === undefined ? CALCULATOR_WEIGHTS : typeof style === "string" ? PLAY_STYLES[style].weights : style;
+    this.cardAdvantageWeight = opts.cardAdvantageWeight ?? this.w.cards;
   }
 
   decideMove(view: PlayerView, legalMoves: Move[]): Move {
+    if (this.w.margin > 0) return this.decideWithMargin(view, legalMoves);
+    return this.rng.pick(this.bestMoves(view, legalMoves));
+  }
+
+  /** Every move tied for the best score (the set decideMove picks from).
+   * Public so the style ring can ask what Calculator would have done. */
+  bestMoves(view: PlayerView, legalMoves: Move[]): Move[] {
     let bestScore = -Infinity;
     let bestMoves: Move[] = [];
     for (const move of legalMoves) {
@@ -113,7 +127,16 @@ export class LookaheadAgent implements Agent {
         bestMoves.push(move);
       }
     }
-    return this.rng.pick(bestMoves);
+    return bestMoves;
+  }
+
+  /** The Gambler's pick: any move scoring within `margin` of the best, at
+   * random. A move scored -Infinity (unplayable as scored) never is. */
+  private decideWithMargin(view: PlayerView, legalMoves: Move[]): Move {
+    const scored = legalMoves.map((move) => ({ move, score: this.scoreMove(view, move) }));
+    const best = Math.max(...scored.map((s) => s.score));
+    const near = scored.filter((s) => s.score > -Infinity && s.score >= best - this.w.margin - 1e-9).map((s) => s.move);
+    return this.rng.pick(near.length > 0 ? near : legalMoves);
   }
 
   private scoreMove(view: PlayerView, move: Move): number {
@@ -123,12 +146,43 @@ export class LookaheadAgent implements Agent {
       case "attack":
         return this.scoreAttack(view, move);
       case "playCard":
-        return this.scorePlayCard(view, move);
+        return this.scorePlayCard(view, move) - this.reservePenalty(view, move);
       case "playSignature":
-        return this.scorePlaySignature(view, move);
+        return this.scorePlaySignature(view, move) - this.reservePenalty(view, move);
       case "activateAbility":
-        return this.scoreActivateAbility(view, move);
+        return this.scoreActivateAbility(view, move) - this.reservePenalty(view, move);
     }
+  }
+
+  /** The `reserve` weight (Controller): on my own turn with nothing on the
+   * stack, a spend that leaves less energy than the cheapest Instant
+   * Command still in my hand (not counting the card being played) costs
+   * `reserve`, so the style holds a response up for the opponent's turn
+   * unless the play is worth more. Instants and anything cast on the
+   * opponent's turn or in response are never penalised. */
+  private reservePenalty(view: PlayerView, move: Extract<Move, { type: "playCard" | "playSignature" | "activateAbility" }>): number {
+    if (this.w.reserve <= 0) return 0;
+    if (view.activePlayer !== view.self || view.stack.length > 0) return 0;
+    let cost: number;
+    if (move.type === "playCard") {
+      const card = view.me.hand[move.handIndex];
+      if (!card || (card.type === "Command" && card.speed === "Instant")) return 0;
+      cost = card.cost;
+    } else if (move.type === "playSignature") {
+      const zone = view.me.signature;
+      if (!zone) return 0;
+      cost = zone.card.cost + SIGNATURE_REPLAY_SURCHARGE * zone.timesPlayed;
+    } else {
+      const found = this.findAbility(view, move.sourceInstanceId, move.abilityId);
+      if (!found || found.ability.speed === "Instant") return 0;
+      cost = found.ability.cost?.energy ?? 0;
+    }
+    const skip = move.type === "playCard" ? move.handIndex : -1;
+    const instantCosts = view.me.hand.flatMap((c, i) => (i !== skip && c.type === "Command" && c.speed === "Instant" ? [c.cost] : []));
+    if (instantCosts.length === 0) return 0;
+    const cheapest = Math.min(...instantCosts);
+    if (view.me.energy < cheapest) return 0; // nothing to hold up anyway
+    return view.me.energy - cost < cheapest ? this.w.reserve : 0;
   }
 
   private scoreAttack(view: PlayerView, move: Extract<Move, { type: "attack" }>): number {
@@ -138,12 +192,12 @@ export class LookaheadAgent implements Agent {
 
     const attackTarget = move.target;
     if (attackTarget.kind === "player") {
-      return atk * FACE_DAMAGE_WEIGHT;
+      return atk * this.w.face;
     }
 
     const defender = view.opponent.board.find((u) => u.instanceId === attackTarget.instanceId);
     if (!defender) return -Infinity;
-    return exchangeValue(fighter(attacker), fighter(defender));
+    return exchangeValue(fighter(attacker), fighter(defender), this.w.risk) * this.w.trade;
   }
 
   private scorePlayCard(view: PlayerView, move: Extract<Move, { type: "playCard" }>): number {
@@ -189,7 +243,7 @@ export class LookaheadAgent implements Agent {
   }
 
   private scorePlayedCard(view: PlayerView, move: Extract<Move, { type: "playCard" }>, card: Card): number {
-    let value = -card.cost * ENERGY_WEIGHT;
+    let value = -card.cost * this.w.energy;
 
     if (card.type === "Tool") {
       // The host matters (Null card-vs-agent check, session 25): scoring
@@ -273,7 +327,7 @@ export class LookaheadAgent implements Agent {
     // realised — discounted, not ignored, since board presence and the
     // opponent's need to answer it are worth something right now too.
     const telegraphDiscount = card.telegraph ? 0.4 : 1;
-    let value = (card.attack + card.health) * telegraphDiscount;
+    let value = (card.attack + card.health * this.w.toughness) * telegraphDiscount;
     const onPlay = card.abilities.find((a) => a.trigger === "onPlay");
     // A brand-new unit's own instance doesn't exist in the view yet
     // (it's created by this very move), so "self" targeting has
@@ -284,7 +338,13 @@ export class LookaheadAgent implements Agent {
     // is unaffected and scored normally.
     if (onPlay && !card.telegraph) value += this.estimateAbility(view, onPlay, target, undefined);
     value += this.estimateUnitAbilities(view, card, undefined) * telegraphDiscount;
-    return value;
+    return value * this.w.develop;
+  }
+
+  /** An effect's value on a unit, scaled by the style: `protect` on my
+   * side's units, `removal` on the opponent's (both 1 for Calculator). */
+  private sideScale(mine: boolean, value: number): number {
+    return value * (mine ? this.w.protect : this.w.removal);
   }
 
   /** The signature card (see SignatureZone): scored like the same Unit
@@ -296,13 +356,13 @@ export class LookaheadAgent implements Agent {
     const zone = view.me.signature;
     if (!zone || !zone.inZone) return -Infinity;
     const cost = zone.card.cost + SIGNATURE_REPLAY_SURCHARGE * zone.timesPlayed;
-    return -cost * ENERGY_WEIGHT + this.scoreNewUnit(view, zone.card, move.target);
+    return -cost * this.w.energy + this.scoreNewUnit(view, zone.card, move.target);
   }
 
   private scoreActivateAbility(view: PlayerView, move: Extract<Move, { type: "activateAbility" }>): number {
     const found = this.findAbility(view, move.sourceInstanceId, move.abilityId);
     if (!found) return -Infinity;
-    let value = -(found.ability.cost?.energy ?? 0) * ENERGY_WEIGHT;
+    let value = -(found.ability.cost?.energy ?? 0) * this.w.energy;
     value += this.estimateAbility(view, found.ability, move.target, found.selfRef);
     return value;
   }
@@ -433,7 +493,7 @@ export class LookaheadAgent implements Agent {
         // Same cap as the resolver: energy never rises above maxEnergy, so
         // only the spent room is worth anything (neutral pool slice: Burst
         // Credit was cast into a full pool).
-        return Math.min(effect.amount, Math.max(0, view.me.maxEnergy - view.me.energy)) * ENERGY_WEIGHT * 1.5;
+        return Math.min(effect.amount, Math.max(0, view.me.maxEnergy - view.me.energy)) * this.w.energy * 1.5;
       case "summon":
         // Flat, like drawCard/gainEnergy above — a summon always benefits
         // its own controller and has no TargetSpec to resolve (see
@@ -483,13 +543,13 @@ export class LookaheadAgent implements Agent {
         const amount = resolveAmount(effect.amount, this.scalingContext(view));
         if (target.kind === "player") {
           const mine = target.playerId === view.self;
-          return mine ? -amount * FACE_DAMAGE_WEIGHT : amount * FACE_DAMAGE_WEIGHT;
+          return mine ? -amount * this.w.face : amount * this.w.face;
         }
         const found = this.findUnit(view, target.instanceId);
         if (!found.unit) return 0;
         const lethal = amount >= approxHealth(found.unit);
         const raw = lethal ? unitValue(found.unit) : amount;
-        return found.mine ? -raw : raw;
+        return this.sideScale(found.mine, found.mine ? -raw : raw);
       }
       case "heal": {
         // Only the health that can actually come back counts: the resolver
@@ -507,12 +567,12 @@ export class LookaheadAgent implements Agent {
           const mine = target.playerId === view.self;
           const p = mine ? view.me : view.opponent;
           const healed = Math.min(amount, Math.max(0, p.maxHealth - p.health - pending));
-          return (mine ? healed : -healed) * 0.5;
+          return mine ? healed * 0.5 * this.w.protect : -healed * 0.5;
         }
         const found = this.findUnit(view, target.instanceId);
         if (!found.unit) return 0;
         const healed = Math.min(amount, Math.max(0, found.unit.damageTaken - pending));
-        return (found.mine ? healed : -healed) * 0.5;
+        return this.sideScale(found.mine, (found.mine ? healed : -healed) * 0.5);
       }
       case "buff": {
         if (target.kind !== "unit") return 0;
@@ -520,20 +580,20 @@ export class LookaheadAgent implements Agent {
         if (!found.unit) return 0;
         if (effect.duration === "turn") return this.estimateTurnBuff(view, effect, found.unit, found.mine);
         const magnitude = effect.attack + effect.health;
-        return found.mine ? magnitude : -magnitude;
+        return this.sideScale(found.mine, found.mine ? magnitude : -magnitude);
       }
       case "destroy": {
         if (target.kind === "unit") {
           const found = this.findUnit(view, target.instanceId);
           if (!found.unit) return 0;
           const value = unitValue(found.unit);
-          return found.mine ? -value : value;
+          return this.sideScale(found.mine, found.mine ? -value : value);
         }
         if (target.kind === "directive") {
           // A Directive has no attack/health for unitValue's shape to read
           // — its only visible signal in a PlayerView is its own cost, the
           // same proxy the rest of this file already leans on elsewhere
-          // (e.g. this class's own -card.cost * ENERGY_WEIGHT play cost).
+          // (e.g. this class's own -card.cost * energy-weight play cost).
           // Named, not silent: an ongoing aura's real value depends on how
           // long it has left to matter, which a one-shot estimate can't see.
           const found = this.findDirective(view, target.instanceId);
@@ -548,7 +608,7 @@ export class LookaheadAgent implements Agent {
         const found = this.findUnit(view, target.instanceId);
         if (!found.unit) return 0;
         const value = statusValue(found.unit, effect);
-        return found.mine ? -value : value;
+        return this.sideScale(found.mine, found.mine ? -value : value);
       }
       case "redirectAttack": {
         const pending = [...view.stack].reverse().find((s): s is Extract<StackItem, { kind: "combatDamage" }> => s.kind === "combatDamage");
@@ -603,12 +663,12 @@ export class LookaheadAgent implements Agent {
       if (combat.target.kind === "player") {
         const before = fighter(attacker.unit).atk;
         const after = buffed(attacker.unit).atk;
-        return (after - before) * FACE_DAMAGE_WEIGHT * sign;
+        return (after - before) * this.w.face * sign;
       }
       const defender = this.findUnit(view, combat.target.instanceId).unit;
       if (!defender) return 0;
-      const before = exchangeValue(fighter(attacker.unit), fighter(defender));
-      const after = exchangeValue(buffed(attacker.unit), buffed(defender));
+      const before = exchangeValue(fighter(attacker.unit), fighter(defender), this.w.risk);
+      const after = exchangeValue(buffed(attacker.unit), buffed(defender), this.w.risk);
       return (after - before) * sign;
     }
     if (view.activePlayer !== view.self || view.stack.length > 0) return 0;
@@ -620,8 +680,8 @@ export class LookaheadAgent implements Agent {
     const bestAttack = (a: UnitInstance, stats: (u: UnitInstance) => Fighter) =>
       Math.max(
         0,
-        targets.face ? stats(a).atk * FACE_DAMAGE_WEIGHT : -Infinity,
-        ...targets.units.map((d) => exchangeValue(stats(a), stats(d))),
+        targets.face ? stats(a).atk * this.w.face : -Infinity,
+        ...targets.units.map((d) => exchangeValue(stats(a), stats(d), this.w.risk) * this.w.trade),
       );
     const attackers = mine ? [unit] : view.me.board;
     let gain = 0;
@@ -816,9 +876,9 @@ function fighter(unit: UnitInstance): Fighter {
  * it's still standing — even a defender that's about to die deals its
  * return hit first, since death processing is deferred until after both
  * sides have applied damage. */
-function exchangeValue(attacker: Fighter, defender: Fighter): number {
+function exchangeValue(attacker: Fighter, defender: Fighter, risk = 1): number {
   let value = attacker.atk >= defender.health ? defender.value : attacker.atk;
-  if (defender.atk >= attacker.health) value -= attacker.value;
+  if (defender.atk >= attacker.health) value -= attacker.value * risk;
   return value;
 }
 

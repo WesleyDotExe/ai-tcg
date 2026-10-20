@@ -3596,3 +3596,48 @@ measure (raised with the owner). Nothing schedules the rebuild yet (no ladder).
 **Evidence:** `progress/deckbuilder-report-001.txt`, `progress/economy-demo-014.txt`.
 
 **Blocked:** nothing.
+
+## 2026-10-20 — Session 52 (play styles, roadmap 2b part 2)
+
+Game-lane session (the last merged PR, #88, was render's). Read `progress/owner-feedback.md` first.
+Two entries were open: the owner's answers to session 51 (keep all 5; a firm to-do: measure the
+balance with built decks before the public launch) and render session 35's answers (the render
+lane's own; noted). The to-do went on the roadmap as a hard gate before launch, with the owner's
+terms; the entry is marked handled. Then roadmap 2b part 2: about 6 play styles with a fairness ring
+(owner 2026-10-15: presets, applies from the next match, play visibly differently, fair against each
+other "tested the same way as signature cards").
+
+**Built:** `playStyles.ts`, six presets of the LookaheadAgent's weights; the agent reads them (face,
+cards and energy were constants; trade, risk, removal, protect, develop and toughness multiply what
+were already its terms; reserve and margin are new). Calculator is the old constants, and a check of
+960 games (and a test of 16) shows its logs byte-identical to the agent before the change. The ring
+harness plays every style pair on the same deal with the styles swapped, so deck, seat and shuffle
+cancel; it records behaviour, including how often a style leaves Calculator's best moves (a shadow
+Calculator scores each decision). The store: schema v13, a style per agent, snapshotted on the live
+match and kept on the record.
+
+**Ran it:**
+- First draft (30 seeds): Calculator +3.1, Rusher +5.1, Controller -6.3, Tempo +5.7, Fortress +0.9,
+  Gambler -8.6 points against the field. A one-weight-at-a-time scan against Calculator (100 seeds
+  each) showed which weights cost games (trade up -5.6, face down -3.8, a wide margin -8.5, reserve
+  -2.7) and which barely change a decision (heal/buff, card draw: under 1.5% of decisions), so Fortress
+  got a new weight, toughness. Four rounds of adjustment; a confirm at seeds 1001-1300 failed Controller
+  (-2.1); after one more change the final confirm on seeds 5001-5300 (48,000 games per style): all six
+  within 1.5 points (`progress/play-style-ring-001.txt`, reproduced byte for byte from the presets).
+- `progress/play-style-demo-001.txt`: four deals, each played by every style against Calculator, with
+  the first moves where each style departed. `progress/economy-demo-015.txt`: styles picked in the
+  store, five recorded matches, a mid-match change that waits for the next match. Both reproduce.
+- Mutation checks: disabling the reserve penalty or the Gambler's margin fails its test.
+- `npm test`: all six workspaces pass (1,047, +12 new, plus two schema-version assertions moved to 13);
+  typecheck clean everywhere; `ring` and `ring:real`: PASS, every edge +0.0.
+
+**Worked:** the shadow-Calculator measure turned "plays visibly differently" into a number. **Didn't /
+honest limits:** fair made most styles subtle (Tempo, Fortress and Gambler leave Calculator's choice in
+about 1 decision in 10 but their averages barely move; Controller in 1 in 20); raised with the owner
+as a trade-off. Controller's reserve rarely bites (few Instants in the shipped decks). The deck builder
+still builds with Calculator. Styles were tuned on the shipped decks only.
+
+**Evidence:** `progress/play-style-ring-001.txt`, `progress/play-style-demo-001.txt`,
+`progress/economy-demo-015.txt`.
+
+**Blocked:** nothing. Optional owner check-in on the presets.

@@ -42,9 +42,38 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
+
+## Launch gate (owner 2026-10-19, firm): built-deck balance
+
+- **The ring with built decks on both sides has never been measured.** A hard gate before the public
+  launch (roadmap "Standing: built-deck balance before launch"). Open until measured and taken to the
+  owner.
+
+## New debt from session 52 (play styles)
+
+- **Fair made most styles subtle.** Tempo, Fortress and Gambler leave Calculator's best move in about
+  1 decision in 10, Controller in 1 in 20, and their per-game averages (attacks at health, cards,
+  units lost, unspent energy) barely differ from Calculator's. Only Rusher is plain to see (84% of
+  attacks at health vs 76%). The bold first draft was visible but cost Controller 6 and Gambler 9
+  points. Raised with the owner (options A/B/C); "plays visibly differently" is only half met.
+- **The styles were tuned by hand on the shipped decks.** Four manual rounds, judged on 30-150 seeds,
+  then one fresh-seed confirm (which failed once and was re-tuned, so the final confirm is the second
+  look at fresh seeds). Built decks, new cards or a changed Calculator can move every number; nothing
+  re-runs the style ring automatically (it is not a CI gate yet; ~1 minute on 4 cores at 300 seeds).
+- **Per faction, some styles are weak.** Against Calculator, Fortress piloting Swarm or Null scores
+  45-46%; the overall rule hides it. The signature-style per-edge rule would fail it.
+- **Controller's reserve rarely matters.** About 0.15 Instants cast on the opponent's turn per game,
+  any style: the shipped decks carry few Instants, so "keeps a response ready" is mostly a label today.
+- **Gambler's dice is a margin, not a taste for risk.** No card or effect is scored as risky; the
+  style is "random among good moves".
+- **The deck builder ignores the style.** `chooseDeck` measures with Calculator; a Rusher plays a
+  deck built for Calculator. Next game-lane step.
+- **The behaviour measure counts every multi-move decision equally.** Order-only differences
+  (attacking before playing a card) count as departures, so "off Calculator" overstates how different
+  a plan is; the demo says so.
 
 ## New debt from session 51 (the deck-building agent)
 

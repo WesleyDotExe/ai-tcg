@@ -129,6 +129,8 @@ const V11_STARTER_BOASTS = {
 } as const;
 const v11BoastFor = (factionSql: string) =>
   `CASE ${factionSql} ${Object.entries(V11_STARTER_BOASTS).map(([f, id]) => `WHEN '${f}' THEN '${id}'`).join(" ")} END`;
+// Migration 13's play styles, frozen (the engine's PLAY_STYLE_IDS may grow).
+const V13_PLAY_STYLES = ["calculator", "rusher", "controller", "tempo", "fortress", "gambler"] as const;
 // Migration 8's pool size, frozen (config.ts's SIGNATURE_ART_POOL_SIZE may change for a later season).
 const SIGNATURE_ART_POOL_SIZE_V8 = 500;
 
@@ -1036,5 +1038,19 @@ export const MIGRATIONS: readonly string[] = [
   UPDATE owners SET deck_choice = 'forced' WHERE active_deck_id IS NOT NULL;
   ALTER TABLE decks ADD COLUMN built_by_agent INTEGER NOT NULL DEFAULT 0 CHECK (built_by_agent IN (0, 1));
   CREATE UNIQUE INDEX decks_one_agent_deck ON decks (owner_id) WHERE built_by_agent = 1;
+  `,
+  // 13: play styles (session 52; owner 2026-10-15: "owners pick their
+  // agent's play style from a set of presets; a change made during a live
+  // match applies from the next match"). Each agent has a style, Calculator
+  // (today's agent) by default. A live match keeps each side's style as it
+  // started, and the match record keeps it, so a change mid-match waits for
+  // the next one and live win rates can be read per style. Matches recorded
+  // before v13 have none.
+  `
+  ALTER TABLE agents ADD COLUMN play_style TEXT NOT NULL DEFAULT 'calculator' CHECK (play_style IN ${inList(V13_PLAY_STYLES)});
+  ALTER TABLE live_matches ADD COLUMN p1_style TEXT CHECK (p1_style IN ${inList(V13_PLAY_STYLES)});
+  ALTER TABLE live_matches ADD COLUMN p2_style TEXT CHECK (p2_style IN ${inList(V13_PLAY_STYLES)});
+  ALTER TABLE matches ADD COLUMN p1_style TEXT CHECK (p1_style IN ${inList(V13_PLAY_STYLES)});
+  ALTER TABLE matches ADD COLUMN p2_style TEXT CHECK (p2_style IN ${inList(V13_PLAY_STYLES)});
   `,
 ];

@@ -1,10 +1,64 @@
 # Notes for the owner
 
+**Updated 2026-10-20, session 52 (play styles, roadmap 2b part 2).** Nothing is blocking. Your
+session-51 answers are in (all 5 kept) and the built-deck balance measurement is now a pre-launch gate
+on the roadmap. The six play styles are built, measured and selectable per agent. **One
+[OWNER CHECK-IN] below**: the presets and a trade-off between "fair" and "plays visibly differently".
+Every call has a default, and the styles work as they stand.
+
+### [OWNER CHECK-IN] Six play styles: fair against each other, but most are subtle
+
+**What they are:** each style is a preset of the same agent (no card names, no special cases): how
+much it values damage to the opponent's health, cards, energy, trades, safety, removal, protection,
+new units, holding a response, and a little dice. Calculator is today's agent, move for move (a test
+pins it), so every balance number so far still stands. The owner picks a style per agent; a change
+during a live match applies from the next match, and every match record keeps both sides' styles.
+
+| Style | What it does differently | Against the field | Picks a move Calculator wouldn't |
+|---|---|---|---|
+| Calculator | the reference | 50.8% | - |
+| Rusher | damage to health counts 1.5x, spends freely, trades less | 51.2% | 10.7% |
+| Controller | cards, removal and trades count more, holds energy for an Instant | 49.2% | 4.9% |
+| Tempo | spends freely, new units count 1.5x | 51.0% | 9.9% |
+| Fortress | values a body's health 1.8x, protects its side, avoids losing attackers | 48.5% | 8.8% |
+| Gambler | picks at random among moves within 0.6 of the best | 49.3% | 10.1% |
+
+Measured on seeds no tuning used (48,000 games per style: every pair of styles, all 16 faction
+pairings, both seats, real-match signature cards): **all six within 1.5 points of 50%**
+(`progress/play-style-ring-001.txt`). Same deal, each style in turn: `progress/play-style-demo-001.txt`.
+In the store: `progress/economy-demo-015.txt`.
+
+**The trade-off you may want to steer:** the bold first draft was clearly visible but not fair:
+Controller lost 6.3 points and Gambler 8.6 (holding up responses, attacking units instead of health
+and a wide random pick all cost games). Making them fair made most styles subtle. Rusher is easy to
+see (84% of its attacks go at health, against 76%); Controller a little (73%); Tempo, Fortress and
+Gambler change about 1 decision in 10 but their averages barely move.
+- **A (default): keep these.** Fair first; the difference shows in single moves, not in the averages.
+- **B: allow a wider limit (say 4 points)** for bolder styles that a viewer can see.
+- **C: keep the limit, and give the commentary the style** (the persona already shapes how the agent
+  sounds), so the difference is told even where it is small.
+
+**Calls you may want to overrule:**
+1. **The rule:** each style's score against the field (the other five styles, every faction, both
+   seats; a draw counts half) within 2 points of 50%, your signature-card limit applied to the
+   overall rate. Head-to-head and per-faction results are reported, not gated: a style beating
+   another is the rock-paper-scissors you asked for. Read per faction against Calculator, the way a
+   signature card is tested, Fortress would fail (piloting Swarm 45.8%, Null 45.0%): it suits some
+   factions less.
+2. **Calculator is the default style** for every new agent and every agent that existed before.
+3. **The style belongs to the agent,** not the owner: an owner with two agents can give them
+   different styles, and switching agents switches style.
+4. **Controller's "hold a response" rarely matters yet:** the shipped decks carry few Instants (about
+   0.15 cast on the opponent's turn per game, any style). It will matter more as sets add Instants.
+5. **Gambler is randomness among good moves,** not a taste for risky cards (no card is "risky" to the
+   agent yet).
+6. **The deck builder doesn't use the style yet** (it builds with Calculator). Next step for 2b.
+
 **Updated 2026-10-19, session 51 (the deck-building agent, roadmap 2b).** Nothing is blocking. The
 agent now builds its own deck from the cards you hold, unless you force a deck or a faction, as you
 asked on 2026-10-15. One finding below that you may want to steer; everything has a default.
 
-### The deck-building agent: built decks beat the shipped decks (no answer needed; 5 calls you may want to overrule)
+### [ANSWERED 2026-10-19: keep all 5] The deck-building agent: built decks beat the shipped decks
 
 **What it does:** your agent looks at every card you hold and builds the strongest legal deck it can
 in each faction it may play. It plays each deck against the four shipped decks (Lookahead on both
