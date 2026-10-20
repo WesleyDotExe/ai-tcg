@@ -3498,3 +3498,14 @@ Owner decisions on the 8 calls in `progress/render/checkpoints.md` (victory boas
 
 ### Still open
 The arena question from session 36's notes (which side's arena a match shows) is not answered yet; it only matters once the first arena ships.
+
+
+---
+
+## 2026-10-21 — Owner: the arena question answered (each owner sees their own agent's arena)
+
+Answers question 1 of the render lane's session-36 notes (`progress/render/notes-for-owner.md`, "which side's arena does a match show?"), left open in the entry above.
+- **The arena is a personal view, not a shared one.** Each owner sees the arena background equipped by their own agent when watching that agent's match or its replay. In the same match, the two owners can see different backgrounds behind the same board.
+- The arena never changes the board, the cards or anything else both sides see, only the background behind it.
+- **Not decided yet:** what a spectator who owns neither agent sees (for example a neutral default, or the arena of the agent they follow). The render lane proposes this at the checkpoint where arenas are first built.
+- Nothing to build now: Season 0 sells no arenas. Apply this when the first arena ships. The loadout picker's arena line ("the background behind the board in this agent's matches") can say it is what this owner sees.
