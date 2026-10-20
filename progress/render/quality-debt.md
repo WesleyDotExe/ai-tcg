@@ -7,6 +7,30 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The loadout picker (boast slice 4, session 36)
+
+- **It saves nowhere real.** No server endpoint for loadouts exists (game lane roadmap 2b step 3), so
+  the page carries the real store's answer to every choice, computed when the page is built, and
+  applies those. That is honest for one page view (a test drives 300 random choices per scenario
+  through the page's model and the store and they end the same), but a reload forgets every change,
+  and an answer that depends on time (a sale window closing, a match starting while the page is open)
+  is frozen at build time. The page has to send the choice once the endpoint exists.
+- **Card back, avatar and arena are empty slots with a sentence.** Nothing of those kinds exists in the
+  catalogue, so three of the five slots have nothing to pick. Their explainers ("the back of this
+  agent's cards", "the background behind the board in this agent's matches") are guesses at how
+  they'll be drawn; which side's arena a match shows is undecided (asked in notes-for-owner).
+- **No buying here.** A locked item says "In the store · 300 credits" but there is no store page to
+  send the owner to; the store's purchase flow has no render yet.
+- **The tile emblems are small hand-made SVGs,** one per boast (a crest, a spore column, a framed
+  star, a block stack, a prompt, a skyline burst). A new boast without one falls back to a plain hex;
+  the test only checks today's six have one.
+- **The preview board is a sketch of a board,** not the replay's: plain faction-gradient cards with
+  name, cost and stats (the sheet's style), no card art placeholder motif, no real HUD (just name and
+  HP). On a phone it is about 330 px of an 800 px screen, sticky.
+- **A scroll restarts the preview** rather than letting it follow the board, because the effects
+  canvas plans in page pixels. Scrolling the list on a phone therefore cuts the boast short each time.
+- **Nobody has watched it at full speed or heard it;** judged from stills and the browser check.
+
 ## Match Boot (slice 1, session 35)
 
 - **Nobody has watched or heard it.** Its 2.6 s, the beats' order, whether the saying "slams", and the
@@ -274,10 +298,6 @@ items are removed, with the fix in `log.md`.
   and tested; the page glue isn't.
 
 ## Deferred by design (not debt, listed so it isn't forgotten)
-
-- **Victory boasts (render half)** are planned, not built (session 30): no "victory" event
-  category, no boast animation, no end-of-match moment beyond the lethal beat and the result line,
-  no loadout picker. Waiting on the owner's answers to the plan.
 
 - Real card art (the late owner-funded pass) and the 500-piece signature
   art pool (game lane first). The card centre is still a placeholder motif.

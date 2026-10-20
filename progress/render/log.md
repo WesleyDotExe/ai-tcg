@@ -3612,3 +3612,59 @@ animated from the last board.
 
 **Next render-lane slice:** boast slice 4 (the loadout picker), as the owner set; Match Boot slice 2
 (sound and the phone) after the owner's notes on slice 1.
+
+## 2026-10-20 — Session 36: victory boasts, slice 4 (the loadout picker)
+
+Render session by the alternation rule: the last merged PR (#90) was the game lane's (session 53, the
+agent's deck in the agent's play style). Owner feedback read: the answers to render session 35 keep
+all 8 Match Boot calls and set the next render slices: boast slice 4 (the loadout picker), then Match
+Boot slice 2. The newest entry (answers to game session 53, keep all 3) is the game lane's.
+
+**Built:**
+- `render/src/loadoutPicker.ts` (new): the owner page where an owner dresses one agent. The five slots
+  the store keeps (victory boast, close-win boast, card back, avatar, arena) as a rail; each slot's
+  tiles: the owner's items (free starter or bought), an item on sale the owner doesn't have as a locked
+  "In the store · 300 credits" plate with the owner's balance, and the empty slot (saying what it
+  plays). A tap on a boast tile previews it; Equip saves it. A preview board (the agent's deck's real
+  units, its panel, a dimmed strip for the other agent) runs the replay's own `BOAST`, looping while in
+  view, silent on repeats, sticky so it stays on screen. The close-win slot previews with the CLOSE WIN
+  plate and the panel on 3 health. A live match shows a banner, and Equip shows the store's refusal.
+  Card back, avatar and arena say plainly that none exist yet. A small SVG emblem per boast.
+- The model (`LOADOUT_PURE_SOURCE`, shared by the page and the tests): `loadoutApply` (applies the
+  store's answer for a choice), `loadoutPreview` / `loadoutTilePreview` (the store's boast rule),
+  `loadoutSlotLine`, `loadoutSavedLine`, `loadoutGlyph`.
+- `render/src/loadoutDemo.ts` (new; `npm run loadout -w @ai-tcg/render`): three real store states,
+  each its own in-memory store on a fixed clock: a new Null owner (starter only); a Cortex owner that
+  earned 303 credits in 34 real Lookahead matches (25 won), bought Boot Sequence and wears it, with Data
+  Cascade as its close-win boast; a Swarm owner in a live match. For every choice in every slot the real
+  `setLoadout` is called and its answer kept (new value or refusal message), then the slot is put back;
+  the page applies those answers and decides none. No server endpoint exists yet (roadmap 2b step 3).
+
+**Ran it:**
+- `progress/render/evidence/loadout-picker-s36.txt`: each scenario's state, every tile and every store
+  answer (e.g. `refused: the owner doesn't own "Boot Sequence"`, `refused: no loadout changes during a
+  live match`). The page regenerates byte for byte.
+- Browser check (`loadout-check-s36.mjs`, output `loadout-check-s36.txt`): 48 checks, ALL PASS, run
+  three times. The equipped boast previews on open with no grammar problem and loops; the loop's
+  repeats make no sound and a pass the viewer asked for does; a tap previews, Equip saves (toast, rail,
+  state); a locked item has no Equip, shows its price and "you have 0", and previews marked "not owned";
+  the close-win slot shows CLOSE WIN on 3 health, its empty tile the main boast; emptying the boast slot
+  plays the deck's faction starter; the three empty kinds; the bought owner; the live owner's refusal
+  with nothing changed; Escape ends a pass and the loop returns; on a phone no sideways scroll, the
+  board stays at the top, a scroll restarts the pass and the plate lands on the board; reduced motion
+  plays the still once, no loop. Stills `v2-s36-loadout-*.jpg`.
+- Tests: render 587 (+13): the model; the preview against the store's own choice over 16 real recorded
+  matches (main/close-win slot empty or set, health 3/5/6/18); the page data (every choice answered,
+  owned/locked/empty, the refusals, every offered boast drawable and with an emblem, the same page
+  every run, self-contained); and 300 random choices per scenario through the page's model and the real
+  store, ending the same at every step. Mutation checks: treating a refusal as accepted fails 4 tests;
+  ignoring the close-win slot in the preview fails 2. `npm test`: all six workspaces pass (1,070);
+  typecheck clean.
+
+**Found on the way:** the first browser check muted the sound it was testing (sound starts armed; the
+button mutes it), and two plate checks raced a restart caused by Playwright scrolling to the tile; the
+check now waits for the plate. The agent's random store id leaked into the page data (unused), so the
+page differed run to run; dropped.
+
+**Next render-lane slice:** Match Boot slice 2 (sound and the phone), as the owner set. The picker's
+calls are in the checkpoint; it needs the game lane's loadout endpoint to save for real.

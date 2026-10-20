@@ -1,0 +1,137 @@
+Loadout picker (victory boasts, slice 4; render session 36): the page's data, from real store states.
+Every answer below is the real store's setLoadout, asked once per choice and put back. The page applies these; it decides none.
+Regenerate: npm run loadout -w @ai-tcg/render
+
+== new: A new owner ==
+A Null owner with only the starter collection: the four free starter boasts, its faction's equipped by the store.
+agent Static Vesper (Null deck); credits 0
+preview row: Glitch Seed (1), Stray Fragment (1), Dangling Pointer (2), Fork Bomb (2), Zombie Process (2), Corrupted Process (3)
+  [Victory boast] equipped: boast-null-void-collapse
+    - Shield Slam <boast-aegis-shield-slam>: owned (starter)
+    - Hive Burst <boast-swarm-hive-burst>: owned (starter)
+    - Void Collapse <boast-null-void-collapse>: owned (starter)
+    - Data Cascade <boast-cortex-data-cascade>: owned (starter)
+    - Boot Sequence <boast-s0-boot-sequence>: locked: in the store, 300 credits
+    - Dial-Up Fireworks <boast-s0-dial-up-fireworks>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for boast-aegis-shield-slam: accepted -> boast-aegis-shield-slam
+      store answer for boast-swarm-hive-burst: accepted -> boast-swarm-hive-burst
+      store answer for boast-null-void-collapse: accepted -> boast-null-void-collapse
+      store answer for boast-cortex-data-cascade: accepted -> boast-cortex-data-cascade
+      store answer for boast-s0-boot-sequence: refused: the owner doesn't own "Boot Sequence"
+      store answer for boast-s0-dial-up-fireworks: refused: the owner doesn't own "Dial-Up Fireworks"
+  [Close-win boast] equipped: (empty)
+    - Shield Slam <boast-aegis-shield-slam>: owned (starter)
+    - Hive Burst <boast-swarm-hive-burst>: owned (starter)
+    - Void Collapse <boast-null-void-collapse>: owned (starter)
+    - Data Cascade <boast-cortex-data-cascade>: owned (starter)
+    - Boot Sequence <boast-s0-boot-sequence>: locked: in the store, 300 credits
+    - Dial-Up Fireworks <boast-s0-dial-up-fireworks>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for boast-aegis-shield-slam: accepted -> boast-aegis-shield-slam
+      store answer for boast-swarm-hive-burst: accepted -> boast-swarm-hive-burst
+      store answer for boast-null-void-collapse: accepted -> boast-null-void-collapse
+      store answer for boast-cortex-data-cascade: accepted -> boast-cortex-data-cascade
+      store answer for boast-s0-boot-sequence: refused: the owner doesn't own "Boot Sequence"
+      store answer for boast-s0-dial-up-fireworks: refused: the owner doesn't own "Dial-Up Fireworks"
+  [Card back] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+  [Avatar] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+  [Arena] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+
+== bought: Bought Boot Sequence ==
+A Cortex owner that earned 303 credits in 34 real matches (25 won) against a Swarm agent, bought Boot Sequence for 300, and wears it.
+agent Quillon Array (Cortex deck); credits 3; earned 303 in 34 real matches (25 won)
+preview row: Init Daemon (1), Signal Drone (1), Cortex Engineer (2), Deadlock Detector (2), Diagnostic Loop (2), Dormant Exploit (2)
+  [Victory boast] equipped: boast-s0-boot-sequence
+    - Shield Slam <boast-aegis-shield-slam>: owned (starter)
+    - Hive Burst <boast-swarm-hive-burst>: owned (starter)
+    - Void Collapse <boast-null-void-collapse>: owned (starter)
+    - Data Cascade <boast-cortex-data-cascade>: owned (starter)
+    - Boot Sequence <boast-s0-boot-sequence>: owned (purchase)
+    - Dial-Up Fireworks <boast-s0-dial-up-fireworks>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for boast-aegis-shield-slam: accepted -> boast-aegis-shield-slam
+      store answer for boast-swarm-hive-burst: accepted -> boast-swarm-hive-burst
+      store answer for boast-null-void-collapse: accepted -> boast-null-void-collapse
+      store answer for boast-cortex-data-cascade: accepted -> boast-cortex-data-cascade
+      store answer for boast-s0-boot-sequence: accepted -> boast-s0-boot-sequence
+      store answer for boast-s0-dial-up-fireworks: refused: the owner doesn't own "Dial-Up Fireworks"
+  [Close-win boast] equipped: boast-cortex-data-cascade
+    - Shield Slam <boast-aegis-shield-slam>: owned (starter)
+    - Hive Burst <boast-swarm-hive-burst>: owned (starter)
+    - Void Collapse <boast-null-void-collapse>: owned (starter)
+    - Data Cascade <boast-cortex-data-cascade>: owned (starter)
+    - Boot Sequence <boast-s0-boot-sequence>: owned (purchase)
+    - Dial-Up Fireworks <boast-s0-dial-up-fireworks>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for boast-aegis-shield-slam: accepted -> boast-aegis-shield-slam
+      store answer for boast-swarm-hive-burst: accepted -> boast-swarm-hive-burst
+      store answer for boast-null-void-collapse: accepted -> boast-null-void-collapse
+      store answer for boast-cortex-data-cascade: accepted -> boast-cortex-data-cascade
+      store answer for boast-s0-boot-sequence: accepted -> boast-s0-boot-sequence
+      store answer for boast-s0-dial-up-fireworks: refused: the owner doesn't own "Dial-Up Fireworks"
+  [Card back] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+  [Avatar] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+  [Arena] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+
+== live: In a live match ==
+A Swarm owner with the starter collection, its close-win slot set to Aegis's free Shield Slam, now in a live match against a Cortex agent.
+agent Brood Signal (Swarm deck); credits 0
+live match: loadout-live-live since 2026-10-20T10:00:00.000Z
+preview row: Brood Skitterer (1), Colony Broodling (1), Spore Cluster (1), Swarm Larva (1), Barrier Node (2), Carapace Grunt (2)
+  [Victory boast] equipped: boast-swarm-hive-burst
+    - Shield Slam <boast-aegis-shield-slam>: owned (starter)
+    - Hive Burst <boast-swarm-hive-burst>: owned (starter)
+    - Void Collapse <boast-null-void-collapse>: owned (starter)
+    - Data Cascade <boast-cortex-data-cascade>: owned (starter)
+    - Boot Sequence <boast-s0-boot-sequence>: locked: in the store, 300 credits
+    - Dial-Up Fireworks <boast-s0-dial-up-fireworks>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): refused: no loadout changes during a live match
+      store answer for boast-aegis-shield-slam: refused: no loadout changes during a live match
+      store answer for boast-swarm-hive-burst: refused: no loadout changes during a live match
+      store answer for boast-null-void-collapse: refused: no loadout changes during a live match
+      store answer for boast-cortex-data-cascade: refused: no loadout changes during a live match
+      store answer for boast-s0-boot-sequence: refused: no loadout changes during a live match
+      store answer for boast-s0-dial-up-fireworks: refused: no loadout changes during a live match
+  [Close-win boast] equipped: boast-aegis-shield-slam
+    - Shield Slam <boast-aegis-shield-slam>: owned (starter)
+    - Hive Burst <boast-swarm-hive-burst>: owned (starter)
+    - Void Collapse <boast-null-void-collapse>: owned (starter)
+    - Data Cascade <boast-cortex-data-cascade>: owned (starter)
+    - Boot Sequence <boast-s0-boot-sequence>: locked: in the store, 300 credits
+    - Dial-Up Fireworks <boast-s0-dial-up-fireworks>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): refused: no loadout changes during a live match
+      store answer for boast-aegis-shield-slam: refused: no loadout changes during a live match
+      store answer for boast-swarm-hive-burst: refused: no loadout changes during a live match
+      store answer for boast-null-void-collapse: refused: no loadout changes during a live match
+      store answer for boast-cortex-data-cascade: refused: no loadout changes during a live match
+      store answer for boast-s0-boot-sequence: refused: no loadout changes during a live match
+      store answer for boast-s0-dial-up-fireworks: refused: no loadout changes during a live match
+  [Card back] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): refused: no loadout changes during a live match
+  [Avatar] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): refused: no loadout changes during a live match
+  [Arena] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): refused: no loadout changes during a live match
+

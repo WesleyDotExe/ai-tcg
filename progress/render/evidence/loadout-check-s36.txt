@@ -1,0 +1,52 @@
+Loadout picker browser check (render session 36): render/output/loadout-picker.html
+
+PASS  A page opens on "A new owner" with no errors
+PASS  A the equipped boast previews on its own  — {"id":"boast-null-void-collapse","close":false,"still":false}
+PASS  A no grammar problem on the preview board  — none
+PASS  A the plate names the boast  — VOID COLLAPSE · VICTORY
+PASS  A ...and the agent
+PASS  A sound is on after the first press
+PASS  A it loops  — loops 3, previews 3
+PASS  A the loop's repeats are silent  — sounds 0 -> 0
+PASS  B a tap on a tile previews it  — A win plays Shield Slam
+PASS  B the tile is marked as previewing
+PASS  B a pass the viewer asked for sounds (sound on)  — sounds 0 -> 8
+PASS  B Equip saves it (the store's answer)  — Saved: Shield Slam is this agent's victory boast.
+PASS  B the rail shows it
+PASS  B the tile now says Equipped
+PASS  C a locked item has no Equip
+PASS  C the plate shows the price and the balance  — In the store · 300 creditsyou have 0
+PASS  C a tap previews it, marked not owned  — A win plays Boot Sequence not owned: preview only
+PASS  D a close-win item previews with the CLOSE WIN plate  — DATA CASCADE · CLOSE WIN
+PASS  D ... with the winner on 3 health  — HP 3 / 30
+PASS  D the caption says a close win  — A close win (5 health or less) plays Data Cascade
+PASS  D its empty tile previews the main boast, VICTORY  — boast-aegis-shield-slam SHIELD SLAM · VICTORY
+PASS  E emptying the boast slot is saved  — {"boast":null,"closeWinBoast":null,"cardBack":null,"avatar":null,"arena":null}
+PASS  E the rail says the deck's faction starter plays
+PASS  E the preview plays it
+PASS  F cardBack: nothing to equip yet, said plainly  — No card backs exist yet: Season 0 sells none, and the render
+PASS  F avatar: nothing to equip yet, said plainly  — No avatars exist yet: Season 0 sells none. Until one ships, 
+PASS  F arena: nothing to equip yet, said plainly  — No arena backgrounds exist yet: Season 0 sells none. Until o
+PASS  I Escape ends the pass  — {"id":"boast-null-void-collapse","reason":"skip","t":485,"still":false}
+PASS  I the loop starts again  — previews 17 -> 18
+PASS  A-I no page errors
+PASS  G the bought owner wears Boot Sequence
+PASS  G it is marked Bought and Equipped
+PASS  G Dial-Up Fireworks is locked, with what the owner has left  — In the store · 300 creditsyou have 3
+PASS  H the live-match banner shows  — In a live match (loadout-live-live, since 10:00 UTC). The store refuses loadout 
+PASS  H Equip shows the store's refusal; nothing changes  — Not saved: no loadout changes during a live match
+PASS  G-H no page errors
+PASS  J no sideways scroll on a phone  — scrollWidth 390
+PASS  J the preview plays on a phone with no grammar problem  — none
+PASS  J the board stays at the top while the list scrolls  — stage top 0
+PASS  J a scroll restarts a running preview  — restarts 0 -> 1
+PASS  J ...which plays again where the board is
+PASS  J the name plate is on the board after the scroll  — {"inside":true}
+PASS  J a tap previews on a phone
+PASS  J no page errors
+PASS  K reduced motion plays the still  — {"id":"boast-null-void-collapse","close":false,"still":true}
+PASS  K ...once: no loop  — previews 1
+PASS  K a tap shows that item's still
+PASS  K no page errors
+
+48 passed, 0 failed
