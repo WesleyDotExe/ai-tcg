@@ -3462,3 +3462,13 @@ Answers the [OWNER CHECK-IN] "Six play styles: fair against each other, but most
 4. **Keep:** Controller's "hold a response" rarely matters yet; it will matter more as sets add Instants.
 5. **Keep:** Gambler is randomness among good moves, not a taste for risky cards.
 6. **Keep:** the deck builder still builds with Calculator; making it use the agent's style is the next step for 2b.
+
+
+---
+
+## 2026-10-20 — Owner: answers to game session 53 (the agent's deck in the agent's play style), keep all 3
+
+Answers the [OWNER CHECK-IN] "The deck builder searches as Calculator, and chooses in the agent's style" in `progress/notes-for-owner.md` (PR #90, `progress/deckbuilder-styles-report-001.txt`, `-002.txt`).
+1. **Keep:** the search plays as Calculator and the final choice (the confirm step) plays in the agent's style, rather than every game in the style.
+2. **Keep:** a style change, or connecting an agent with another style, counts as a reason to rebuild, the same as new cards or a lock change.
+3. **Keep: no stronger search now.** A stronger search (more games per change, or whole packages of cards) for visibly different decks per style comes after the pre-launch built-deck balance check, which needs the builder as it is.
