@@ -154,7 +154,7 @@ describe("migration v11 -> v12", () => {
     const fresh = v11.createOwner({ name: "fresh" });
     v11.close();
 
-    const v12 = open(path);
+    const v12 = open(path, 12);
     expect(v12.schemaVersion).toBe(12);
     expect(v12.getOwner(picked.ownerId)).toMatchObject({ deckChoice: "forced", activeDeckId: deck.deckId });
     expect(v12.getOwner(fresh.ownerId).deckChoice).toBe("agent");

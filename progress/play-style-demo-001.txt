@@ -1,0 +1,80 @@
+AI-TCG play styles side by side: the same deal, p1 played by each style, p2 always Calculator.
+Shipped decks, an approved signature card each side. 'Departs' lists the first moves where the style
+chose differently from what Calculator would have played in the same position (often the same plan in a
+different order, like attacking before playing a card). Signature stand-ins are named by their menu line id.
+
+== seed 7: p1 Cortex vs p2 Swarm (Calculator)
+  Calculator  WIN  in 13 turns; health 12 to 0; attacks 9 at health, 0 at units; 7 cards; 0 departures
+  Rusher      WIN  in 13 turns; health 12 to 0; attacks 9 at health, 0 at units; 6 cards; 4 departures
+      departs turn 7: attack the opponent's health with Firewall Sentinel (Calculator: play Rate Limiter)
+      departs turn 7: attack the opponent's health with Fail-safe Unit (Calculator: play Rate Limiter)
+      departs turn 13: attack the opponent's health with Load Balancer (Calculator: play Deadlock Detector)
+  Controller  WIN  in 13 turns; health 3 to 0; attacks 9 at health, 0 at units; 7 cards; 1 departures
+      departs turn 5: play Rate Limiter (Calculator: play Firewall Sentinel)
+  Tempo       WIN  in 13 turns; health 9 to 0; attacks 11 at health, 1 at units; 7 cards; 3 departures
+      departs turn 7: play Load Balancer (Calculator: play Rate Limiter)
+      departs turn 9: play Dormant Exploit (Calculator: play Backup Protocol)
+      departs turn 13: play Deadlock Detector (Calculator: attack the enemy sig5-3x5-recycle with sig5-3x5-rally.a0)
+  Fortress    WIN  in 15 turns; health 7 to -1; attacks 10 at health, 1 at units; 8 cards; 3 departures
+      departs turn 7: play Load Balancer (Calculator: play Rate Limiter)
+      departs turn 13: play Deadlock Detector (Calculator: attack the enemy sig5-3x5-recycle with sig5-3x5-rally.a0)
+      departs turn 13: play Load Balancer (Calculator: attack the enemy sig5-3x5-recycle with sig5-3x5-rally.a0)
+  Gambler     WIN  in 13 turns; health 12 to 0; attacks 9 at health, 0 at units; 7 cards; 0 departures
+
+== seed 12: p1 Aegis vs p2 Null (Calculator)
+  Calculator  loss in 14 turns; health -1 to 14; attacks 4 at health, 3 at units; 9 cards; 0 departures
+  Rusher      loss in 14 turns; health 0 to 8; attacks 10 at health, 0 at units; 9 cards; 4 departures
+      departs turn 5: attack the opponent's health with Bulwark Chassis (Calculator: play Aegis Line Trooper)
+      departs turn 11: attack the opponent's health with Bulwark Chassis (Calculator: play Barrier Drone)
+      departs turn 11: attack the opponent's health with Bulwark Chassis (Calculator: play Barrier Drone)
+  Controller  loss in 14 turns; health -1 to 14; attacks 4 at health, 3 at units; 9 cards; 1 departures
+      departs turn 5: attack the opponent's health with Bulwark Chassis (Calculator: play Aegis Line Trooper)
+  Tempo       loss in 16 turns; health -4 to 9; attacks 7 at health, 5 at units; 12 cards; 4 departures
+      departs turn 7: play Tariff Field (Calculator: play Diagnostic Ward)
+      departs turn 11: play Barrier Drone (Calculator: play Guard Directive Chip on its sig5-3x5-recycle.c3)
+      departs turn 13: play Perimeter Turret (Calculator: attack the opponent's health with Bulwark Chassis)
+  Fortress    loss in 14 turns; health -1 to 14; attacks 4 at health, 3 at units; 9 cards; 1 departures
+      departs turn 11: play Barrier Drone (Calculator: play Guard Directive Chip on its sig5-3x5-recycle.c3)
+  Gambler     loss in 14 turns; health -1 to 14; attacks 4 at health, 3 at units; 10 cards; 3 departures
+      departs turn 5: play Aegis Line Trooper (Calculator: play Bulwark Chassis)
+      departs turn 11: attack the opponent's health with Bulwark Chassis (Calculator: play Barrier Drone)
+      departs turn 13: play Uplink Tower (Calculator: play the signature card sig5-3x5-recycle.c3)
+
+== seed 31: p1 Cortex vs p2 Swarm (Calculator)
+  Calculator  WIN  in 15 turns; health 13 to 0; attacks 9 at health, 4 at units; 8 cards; 0 departures
+  Rusher      WIN  in 15 turns; health 11 to 0; attacks 11 at health, 3 at units; 9 cards; 4 departures
+      departs turn 5: attack the opponent's health with Cortex Engineer (Calculator: attack the enemy Corrosive Spitter with Cortex Engineer)
+      departs turn 7: attack the opponent's health with Cortex Engineer (Calculator: attack the enemy Corrosive Spitter with Cortex Engineer)
+      departs turn 9: attack the opponent's health with Cortex Engineer (Calculator: attack the enemy Corrosive Spitter with Cortex Engineer)
+  Controller  WIN  in 17 turns; health 17 to 0; attacks 8 at health, 7 at units; 10 cards; 2 departures
+      departs turn 3: play Diagnostic Pulse on the enemy Brood Skitterer (Calculator: play Cortex Engineer)
+      departs turn 9: attack the enemy Overclock Beast with Firewall Sentinel (Calculator: play the signature card sig5-3x4-inspire.a0)
+  Tempo       WIN  in 13 turns; health 16 to 0; attacks 8 at health, 3 at units; 8 cards; 1 departures
+      departs turn 11: play Load Balancer (Calculator: attack the opponent's health with sig5-3x4-inspire.a0)
+  Fortress    WIN  in 13 turns; health 16 to 0; attacks 8 at health, 3 at units; 8 cards; 1 departures
+      departs turn 11: play Load Balancer (Calculator: attack the opponent's health with sig5-3x4-inspire.a0)
+  Gambler     WIN  in 19 turns; health 12 to 0; attacks 8 at health, 8 at units; 8 cards; 23 departures
+      departs turn 3: play Diagnostic Pulse on the enemy Brood Skitterer (Calculator: play Cortex Engineer)
+      departs turn 11: attack the opponent's health with sig5-3x4-inspire.a0 (Calculator: play Mainframe Core)
+      departs turn 11: pass (Calculator: activate Cortex Engineer)
+
+== seed 44: p1 Aegis vs p2 Null (Calculator)
+  Calculator  loss in 14 turns; health -1 to 2; attacks 12 at health, 4 at units; 7 cards; 0 departures
+  Rusher      loss in 12 turns; health 0 to 6; attacks 9 at health, 1 at units; 7 cards; 6 departures
+      departs turn 7: attack the opponent's health with Failover Custodian (Calculator: attack the enemy Dangling Pointer with Failover Custodian)
+      departs turn 9: attack the opponent's health with Failover Custodian (Calculator: attack the enemy Dangling Pointer with Failover Custodian)
+      departs turn 9: attack the opponent's health with Bulwark Chassis (Calculator: attack the enemy Dangling Pointer with Bulwark Chassis)
+  Controller  WIN  in 15 turns; health 1 to 0; attacks 13 at health, 5 at units; 8 cards; 3 departures
+      departs turn 5: attack the enemy Stray Fragment with Salvage Reflex (Calculator: play Failover Custodian)
+      departs turn 5: play Plating Module on its Salvage Reflex (Calculator: play Failover Custodian)
+      departs turn 7: attack the enemy Dangling Pointer with Failover Custodian (Calculator: play Bulwark Chassis)
+  Tempo       loss in 14 turns; health -1 to 2; attacks 12 at health, 4 at units; 7 cards; 2 departures
+      departs turn 7: play Bulwark Chassis (Calculator: attack the opponent's health with Salvage Reflex)
+      departs turn 11: play Aegis Line Trooper (Calculator: attack the opponent's health with Salvage Reflex)
+  Fortress    loss in 14 turns; health -1 to 2; attacks 12 at health, 4 at units; 7 cards; 1 departures
+      departs turn 7: play Bulwark Chassis (Calculator: attack the opponent's health with Salvage Reflex)
+  Gambler     loss in 14 turns; health -1 to 2; attacks 12 at health, 4 at units; 7 cards; 5 departures
+      departs turn 5: attack the enemy Stray Fragment with Salvage Reflex (Calculator: play Failover Custodian)
+      departs turn 5: play Plating Module on its Salvage Reflex (Calculator: play Failover Custodian)
+      departs turn 7: attack the enemy Dangling Pointer with Failover Custodian (Calculator: play Bulwark Chassis)
+

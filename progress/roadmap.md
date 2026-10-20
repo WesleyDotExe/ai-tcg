@@ -323,9 +323,15 @@ start a step until the one before works and its tests pass):
      owner's holdings, or the owner's forced deck/faction): the engine's
      `chooseDeck` (two starts, a measured search, a fresh-seed confirm) and
      the store's deck choice and agent deck (schema v12); evidence
-     deckbuilder-report-001, economy-demo-014. NEXT: ~6 play
-     styles with a fairness ring (owner-picked preset, applies from the
-     next match). Then step 3, exposing both settings.
+     deckbuilder-report-001, economy-demo-014. BUILT (session 52,
+     [OWNER CHECK-IN] on the presets): 6 play styles as presets of the
+     Lookahead agent (Calculator = today's agent, move for move), the
+     style ring (all six within 1.5 points of 50% against the field on
+     fresh seeds), per-agent style in the store (schema v13), kept on the
+     live match and the match record; evidence play-style-ring-001,
+     play-style-demo-001, economy-demo-015. NEXT: the deck builder plays
+     the owner's style when it measures decks; then step 3, exposing both
+     settings.
   2c. DONE (session 37, owner 2026-10-16): owners name their agents (free
      at creation, 100 pack points to rename (proposal), the rules in the
      store, the name log with "formerly", reserved old names, an admin
@@ -399,6 +405,18 @@ release candidate. (3) HARD GATE before the public Season 1 launch: replace
 or back the single SQLite file with storage that handles many players at
 once (self-hosted, e.g. Postgres, or SQLite proven by a load test at launch
 scale), proven by that load test. Tracked in quality-debt.md until passed.
+
+**Standing: built-deck balance before launch (owner 2026-10-19, firm).**
+HARD GATE before the public launch: measure the faction ring (all six
+edges) with built decks on both sides (the deck-building agent's decks),
+from full collections and from realistic ones (e.g. a starter plus a
+typical number of packs), with today's agent, at the ring check's bar
+(enough games for tight intervals), reported against the ring's bands.
+Watch Aegis (its built deck is +14.3 over its shipped deck; Null > Aegis
+is already the real-match ring's one accepted-out-of-band edge). Results
+and any proposed fixes go to an owner check-in; no card or deck change
+without the owner's OK. Any session before launch; tracked in
+quality-debt.md until done.
 
 **Standing: live operations, balancing never stops (owner 2026-10-05).**
 Once live: track faction popularity and win rates from real ladder and

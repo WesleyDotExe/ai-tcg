@@ -32,6 +32,17 @@ export { buildPlayerView } from "./agents/agent.js";
 export { RandomAgent } from "./agents/randomAgent.js";
 export { AggressiveAgent } from "./agents/aggressiveAgent.js";
 export { LookaheadAgent } from "./agents/lookaheadAgent.js";
+export {
+  PLAY_STYLES,
+  PLAY_STYLE_IDS,
+  DEFAULT_PLAY_STYLE,
+  CALCULATOR_WEIGHTS,
+  isPlayStyleId,
+  playStyle,
+  type PlayStyle,
+  type PlayStyleId,
+  type PlayStyleWeights,
+} from "./agents/playStyles.js";
 
 export {
   buildCortexDeck,

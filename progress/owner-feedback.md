@@ -3407,7 +3407,7 @@ Next render session: Match Boot slice 1 with these two fixes; then the loadout p
 
 ---
 
-## 2026-10-19 — Owner: answers to game session 51 (the deck-building agent), keep all 5, and a firm to-do
+## 2026-10-19 — Owner: answers to game session 51 (the deck-building agent), keep all 5, and a firm to-do (HANDLED 2026-10-20, session 52 — the 5 calls stand as built, nothing to change; the firm to-do is on `progress/roadmap.md` as a HARD GATE before the public launch ("Standing: built-deck balance before launch"): the six ring edges with built decks on both sides, from full and from realistic collections, with today's agent at the ring check's bar, Aegis called out, results and any fixes to an owner check-in, no card or deck change without your OK. Not scheduled for a particular session; tracked in quality-debt.md until done)
 
 Answers "The deck-building agent: built decks beat the shipped decks" in `progress/notes-for-owner.md` (PR #87, `progress/deckbuilder-report-001.txt`, `progress/economy-demo-014.txt`).
 
@@ -3429,7 +3429,7 @@ This is a launch requirement, not an optional later item. Add it to the roadmap 
 
 ---
 
-## 2026-10-20 — Owner: answers to render session 35 (Match Boot slice 1; two end-of-match fixes), keep all 8
+## 2026-10-20 — Owner: answers to render session 35 (Match Boot slice 1; two end-of-match fixes), keep all 8 (render lane's own; nothing for the game lane, noted session 52)
 
 Owner decisions on the 8 calls in `progress/render/checkpoints.md` (Match Boot slice 1 and the two end-of-match fixes; PR #88).
 1. **Keep:** the saying swells (8%) and fades at the end, rather than fading upward.
