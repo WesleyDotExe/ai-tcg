@@ -6,6 +6,9 @@
 // a driver fails here instead of in the next long report run.
 
 import { execFileSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
@@ -43,4 +46,26 @@ describe("balance-report drivers (smoke, 2 seeds, every section)", () => {
   it("a driver that fails exits non-zero (the smoke test can see a break)", () => {
     expect(() => run("noSuchDriver.ts")).toThrow();
   });
+
+  it("deckBuilderStyleReport.ts builds, crosses and reports (2 styles, a few games)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ai-tcg-dbstyle-"));
+    try {
+      mkdirSync(join(dir, "builds"));
+      mkdirSync(join(dir, "cross"));
+      for (const style of ["calculator", "rusher"]) {
+        run("deckBuilderStyleReport.ts", "build", style, "--games", "1", "--trials", "1", "--confirm", "1", "--out", join(dir, "builds", `${style}.json`));
+      }
+      for (const pilot of ["calculator", "rusher"]) {
+        run("deckBuilderStyleReport.ts", "cross", pilot, "--builds", join(dir, "builds"), "--games", "2", "--out", join(dir, "cross", `${pilot}.json`));
+      }
+      const out = run("deckBuilderStyleReport.ts", "report", "--builds", join(dir, "builds"), "--cross", join(dir, "cross"));
+      for (const h of ["1. What each style built", "2. Cross", "3. The gain", "4. The decks"]) expect(out, h).toContain(`== ${h}`);
+      expect(out).not.toMatch(/NaN|undefined|Infinity/);
+      // A gain row for Rusher over all four factions, and every faction's cross table.
+      expect(out).toMatch(/^Rusher\s+.*[+-]\d+\.\d ±\d+\.\d\s*$/m);
+      expect(out.match(/^-- (Cortex|Swarm|Aegis|Null) --$/gm)!.length).toBeGreaterThanOrEqual(4);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 150_000);
 });

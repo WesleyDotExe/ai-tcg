@@ -112,7 +112,7 @@ describe("migration v12 -> v13", () => {
     expect(() => v12.setPlayStyle(a.agentId, "rusher")).toThrow(/v13/);
     v12.close();
 
-    const v13 = open(path);
+    const v13 = open(path, 13);
     expect(v13.schemaVersion).toBe(13);
     expect(v13.getAgent(a.agentId).playStyle).toBe("calculator");
     expect(v13.matchHistory()[0]!.playStyles).toBeNull();

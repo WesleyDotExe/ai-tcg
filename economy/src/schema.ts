@@ -1053,4 +1053,16 @@ export const MIGRATIONS: readonly string[] = [
   ALTER TABLE matches ADD COLUMN p1_style TEXT CHECK (p1_style IN ${inList(V13_PLAY_STYLES)});
   ALTER TABLE matches ADD COLUMN p2_style TEXT CHECK (p2_style IN ${inList(V13_PLAY_STYLES)});
   `,
+  // 14: the agent's deck remembers what it was built from (session 53;
+  // owner 2026-10-20: the deck builder uses the agent's play style). The
+  // play style it was measured in, the faction lock it was built under
+  // ('none' for none) and a fingerprint of the cards held, so the store can
+  // say when it needs a rebuild (the holdings, the lock or the connected
+  // agent's style changed). All three are set together, only on the
+  // agent's deck; null for a deck built before v14 or edited by hand since.
+  `
+  ALTER TABLE decks ADD COLUMN built_style TEXT CHECK (built_style IS NULL OR (built_by_agent = 1 AND built_style IN ${inList(V13_PLAY_STYLES)}));
+  ALTER TABLE decks ADD COLUMN built_lock TEXT CHECK (built_lock IS NULL OR built_lock IN ${inList(["none", ...V3_DECK_FACTIONS])});
+  ALTER TABLE decks ADD COLUMN built_holdings TEXT CHECK ((built_holdings IS NULL) = (built_style IS NULL) AND (built_lock IS NULL) = (built_style IS NULL));
+  `,
 ];

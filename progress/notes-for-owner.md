@@ -1,12 +1,46 @@
 # Notes for the owner
 
-**Updated 2026-10-20, session 52 (play styles, roadmap 2b part 2).** Nothing is blocking. Your
-session-51 answers are in (all 5 kept) and the built-deck balance measurement is now a pre-launch gate
-on the roadmap. The six play styles are built, measured and selectable per agent. **One
-[OWNER CHECK-IN] below**: the presets and a trade-off between "fair" and "plays visibly differently".
-Every call has a default, and the styles work as they stand.
+**Updated 2026-10-20, session 53 (the agent's deck in the agent's play style, roadmap 2b part 3).**
+Nothing is blocking. Your play-style answers are in (option C, keep all 6); the commentary part is on
+the roadmap for whichever lane builds the commentators (none exists yet). The deck builder now picks
+the agent's deck in the agent's style, and the store says when the deck needs a rebuild. **One
+[OWNER CHECK-IN] below**, with a default.
 
-### [OWNER CHECK-IN] Six play styles: fair against each other, but most are subtle
+### [OWNER CHECK-IN] The deck builder searches as Calculator, and chooses in the agent's style
+
+**What was asked:** your call 6 (session 52): the deck builder should use the agent's play style.
+
+**What I measured first** (`progress/deckbuilder-styles-report-001.txt`): the obvious version, where
+every game of the build is played in the agent's style. From a full collection, each of the six styles
+built a deck per faction; then every style played every style's deck on fresh seeds (2,000 games per
+cell). **Every style did worse with its own deck than with the deck Calculator built**, by 2.1 to 2.7
+points across the four factions, and Calculator playing those decks lost about as much. So the decks
+weren't "made for the style", they were just worse: the styles differ too little for the builder's
+search to see, and it kept changes on noise.
+
+**What is built instead** (`progress/deckbuilder-styles-report-002.txt`): the search plays as
+Calculator, and the final choice (the confirm step: the searched deck against the two starting decks
+on 2,000 fresh games) plays in the agent's style. Result: no style is worse off. From a full collection
+every style keeps the same deck as Calculator in all four factions; from a partial collection the style
+sometimes keeps a different one (in `progress/economy-demo-016.txt` a Rusher and a Fortress keep a
+different Null deck). In plain words: **today the style rarely changes the deck**, which matches what
+you saw in the style ring (the styles are fair, so they're subtle).
+
+**The store:** the agent deck remembers the style, faction lock and cards it was built from. It
+reports why a rebuild is due: new cards, a lock change, a style change, or a different agent
+connected. It rebuilds only when there is a reason. Nothing calls this yet; the ladder will.
+
+**Calls (each has a default):**
+1. Search as Calculator and choose in the style (built), rather than doing every game in the style
+   (measured worse). **Default: keep.**
+2. Changing the style or connecting an agent with another style counts as a reason to rebuild, the
+   same as new cards or a lock change. **Default: keep.**
+3. If you want styles to get visibly different decks, that needs a stronger search (more games per
+   change, or trying whole packages of cards), which also helps every deck. It costs build time
+   (now seconds to a minute per owner). **Default: not now.** I'd do it after the pre-launch
+   built-deck balance check, which needs the builder as it is.
+
+### [ANSWERED 2026-10-20: option C, keep all 6] Six play styles: fair against each other, but most are subtle
 
 **What they are:** each style is a preset of the same agent (no card names, no special cases): how
 much it values damage to the opponent's health, cards, energy, trades, safety, removal, protection,

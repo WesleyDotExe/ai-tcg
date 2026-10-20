@@ -1,54 +1,54 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 52 (game lane): roadmap 2b part 2, play
-styles, built and measured. Nothing is blocking.** One [OWNER CHECK-IN] in notes-for-owner.md (the
-presets and the fair-vs-visible trade-off; every call has a default). The owner's built-deck balance
-measurement is on the roadmap as a hard gate before the public launch.
+**Build-order stage: Stage 4+ (the living system). Session 53 (game lane): roadmap 2b part 3, the
+agent's deck in the agent's play style, built and measured. Nothing is blocking.** The owner's
+play-style answers (option C, keep all 6) are handled; the commentary part is on the roadmap (item 8)
+for whichever lane builds the commentators. One new [OWNER CHECK-IN] in notes-for-owner.md (the
+search plays Calculator, not the style; it has a default). The built-deck balance measurement is still
+a hard gate before the public launch.
 
-- **The styles** (`engine/src/agents/playStyles.ts`): six presets of the LookaheadAgent's weights:
-  Calculator (today's agent, move for move: a test replays 16 matches and compares logs), Rusher,
-  Controller, Tempo, Fortress, Gambler. The weights: face, cards, energy, trade, risk, removal,
-  protect, develop, toughness, reserve (hold energy for an Instant in hand), margin (Gambler's pick
-  among near-best moves). `LookaheadAgent(name, seed, { style })` takes a preset id or raw weights;
-  `bestMoves(view, legal)` is public (the ring asks what Calculator would have done).
-- **The ring** (`engine/src/dev/playStyleRing.ts`): every pair of styles x 16 faction pairings x both
-  seats (styles swapped on the same deal), approved signature cards as in a real match; score against
-  the field, head to head, by faction, against Calculator, and behaviour (attacks at health, cards,
-  units lost, unspent energy, share of decisions off Calculator's best). Sharded (`--shard i/k`) and
-  merged by `report`. Proposed rule: each style within 2 points of 50% against the field.
-- **Measured** (`progress/play-style-ring-001.txt`, seeds 5001-5300, 48,000 games per style): Calculator
-  50.8, Rusher 51.2, Controller 49.2, Tempo 51.0, Fortress 48.5, Gambler 49.3. Off Calculator's best:
-  4.9% (Controller) to 10.7% (Rusher). `progress/play-style-demo-001.txt`: the same deal, each style.
-- **The store** (schema v13): `agents.play_style` (default calculator), `setPlayStyle` (any time; a
-  live match keeps the style it started with: `LiveSide.playStyle`, `live_matches.p1/p2_style`), and
-  `MatchRecord.playStyles` (null before v13 or for matches never started live).
-  `progress/economy-demo-015.txt`.
+- **The engine** (`engine/src/deckbuilder/deckBuilder.ts`): `DeckBuildOptions.style` is the play style
+  the confirm step plays the built deck in, so the deck kept is the one that style plays best;
+  `searchStyle` (default Calculator) is the style the search plays. `playGauntlet(list, seed, games,
+  style)`; the shipped opponents always play Calculator. `BuiltDeck.style`. Calculator's builds are
+  byte-identical to session 51's (`deckbuilder-report-001` section 1 reproduces).
+- **Why the search stays Calculator** (`progress/deckbuilder-styles-report-001.txt`): searching in
+  each style kept decks 2-3 points worse than Calculator's for every style, that style included (all
+  five gains negative, -2.1 to -2.7 over 8,000 paired games each). The styles are too close for the
+  search's noise. With the Calculator search (`progress/deckbuilder-styles-report-002.txt`), every
+  style keeps Calculator's deck in all four factions from a full collection (gain 0, lift over the
+  shipped deck +5.2 to +7.0 per style). From a partial collection the style can change the pick
+  (economy-demo-016: Rusher and Fortress keep a different Null deck).
+- **The store** (schema v14): `buildAgentDeck` builds in the connected agent's style (Calculator with
+  none); the agent deck records `built_style`, `built_lock`, `built_holdings` (a fingerprint of copies
+  per card id); `agentDeckBuiltFrom`, `agentDeckRebuildReasons` (no deck; cards held changed; lock
+  changed; style changed, incl. by connecting another agent; unknown for pre-v14 or hand-edited) and
+  `rebuildAgentDeckIfNeeded` (for the ladder to call between matches). `progress/economy-demo-016.txt`.
 
-## What stands (this session's work; sessions 1-51 otherwise unchanged)
+## What stands (this session's work; sessions 1-52 otherwise unchanged)
 
-- New: `engine/src/agents/playStyles.ts`, `engine/src/dev/playStyleRing.ts`,
-  `engine/src/dev/playStyleDemo.ts`, `economy/src/dev/playStyleDemo.ts`, migration 13. Changed:
-  `lookaheadAgent.ts` (weights from the style; `reservePenalty`, `decideWithMargin`, `sideScale`,
-  `bestMoves`), `economy/src/store.ts` (agent style, live and recorded styles).
-- Tests: `engine/test/playStyles.test.ts` (8: presets, Calculator identical, Rusher, Fortress, reserve,
-  Gambler, every style finishes, the ring's sharding and point sum) and `economy/test/playStyle.test.ts`
-  (4: default and refusals, mid-match change applies next match, offline matches, v12 -> v13).
-- `npm test`: all six workspaces pass (1,047); typecheck clean everywhere. `ring` and `ring:real`
-  re-run: PASS, every edge change +0.0 (Calculator is unchanged).
+- New: `engine/src/dev/deckBuilderStyleReport.ts` (build / cross / report, sharded by style),
+  `economy/src/dev/agentDeckStyleDemo.ts`, migration 14, `economy/test/agentDeckStyle.test.ts` (7),
+  results in `progress/deckbuilder-styles/` (own-search/ is the experiment). Changed: `deckBuilder.ts`,
+  `store.ts`, `schema.ts`, ECONOMY.md.
+- Tests: +2 engine deck-builder tests (style reaches the games, the search is Calculator's whatever the
+  style), +1 driver smoke test, +7 store tests. `npm test`: all six workspaces pass (1,057); typecheck
+  clean everywhere. Mutation checks: dropping the store's style pass-through fails 1 test; making the
+  search play the style fails 1. `ring`/`ring:real` not re-run (no card, rule or agent change).
 
 ## Concrete next step
 
-Check the alternation first: this PR follows render's #88, so the next session is **render** (boast
-slice 4, the loadout picker, per the owner's render-session-35 answers).
+Check the alternation first: if the last merged PR is this one (game lane), the next session is
+**render** (boast slice 4, the loadout picker, per the owner's render-session-35 answers).
 
-The next **game-lane** session (session 53):
-1. The owner's word, if any (the play-style check-in has 6 calls and options A/B/C, default A).
-2. Roadmap 2b, part 3: the deck builder measures with the owner's style (pass the style into
-   `playGauntlet`/`chooseDeck` so a Rusher builds the deck it plays best), and the store's
-   `buildAgentDeck` uses the connected agent's style; rebuild when the style changes.
-3. Or, if a session has room: the pre-launch built-deck ring (roadmap "Standing: built-deck balance
-   before launch"), which needs no new code beyond a driver: `chooseDeck` per faction from full and
-   from starter-plus-packs collections, then the six ring edges with built decks on both sides.
+The next **game-lane** session (session 54):
+1. The owner's word, if any (this session's check-in has a default: keep the Calculator search).
+2. The pre-launch built-deck ring (roadmap "Standing: built-deck balance before launch"): a driver
+   that builds each faction's deck with `chooseDeck` from full collections and from starter-plus-packs
+   collections (e.g. 3 and 30 packs, several seeds), then the six ring edges with built decks on both
+   sides at the ring check's bar, Aegis called out; results to an owner check-in, no card change.
+   `deckBuilderStyleReport.ts`'s build/cross sharding is the pattern to copy.
+3. Or roadmap 2b step 3 (exposing the settings: server endpoints, item 3).
 4. Session 55 is a hardening pass (every 5th).
 
 **Blocked:** nothing.

@@ -11,6 +11,8 @@ export {
   EconomyStore,
   AGENT_DECK_NAME,
   type AgentDeckBuild,
+  type AgentDeckBuiltFrom,
+  holdingsFingerprint,
   type DeckChoice,
   EconomyError,
   SalvageNeedsConfirmation,

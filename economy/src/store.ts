@@ -17,6 +17,7 @@ import {
   signatureCardFor,
   signatureFingerprint,
   DEFAULT_PLAY_STYLE,
+  PLAY_STYLES,
   isPlayStyleId,
   type PlayStyleId,
   type AgentCandidate,
@@ -138,6 +139,24 @@ export interface OwnerRecord {
 
 export type DeckChoice = "agent" | "forced";
 
+/** (v14) What the agent's deck was built from. */
+export interface AgentDeckBuiltFrom {
+  /** The play style it was measured in. */
+  style: PlayStyleId;
+  /** The faction lock it was built under (null: none). */
+  factionLock: DeckFaction | null;
+  /** `holdingsFingerprint` of the cards held. */
+  holdings: string;
+}
+
+/** A fingerprint of the cards an owner holds (copies per card id; finishes
+ * and which copy don't matter to the deck builder, and ids the engine
+ * doesn't know are left out as the builder leaves them out). */
+export function holdingsFingerprint(cardIds: Iterable<string>): string {
+  const counts = [...holdingsOf(cardIds)].sort(([a], [b]) => a.localeCompare(b));
+  return createHash("sha256").update(counts.map(([id, n]) => `${id}:${n}`).join(",")).digest("hex").slice(0, 16);
+}
+
 /** The name of the deck the agent builds (one per owner, rebuilt in place). */
 export const AGENT_DECK_NAME = "Agent's deck";
 
@@ -146,6 +165,9 @@ export const AGENT_DECK_NAME = "Agent's deck";
 export interface AgentDeckBuild {
   deck: PlayableDeck;
   faction: DeckFaction;
+  /** (v14) The play style every measuring game was played in: the
+   * connected agent's, Calculator with none connected. */
+  style: PlayStyleId;
   factions: {
     faction: DeckFaction;
     infeasible?: string;
@@ -2084,6 +2106,9 @@ export class EconomyStore {
       try {
         this.db.prepare("DELETE FROM deck_copies WHERE deck_id = ?").run(deckId);
         this.writeDeckCopies(deckId, copyIds);
+        // An edit forgets what the agent built it from (buildAgentDeck sets
+        // it again right after its own edit).
+        if (this.schemaVersion >= 14) this.db.prepare("UPDATE decks SET built_style = NULL, built_lock = NULL, built_holdings = NULL WHERE deck_id = ?").run(deckId);
       } catch (err) {
         refused(err);
       }
@@ -2172,6 +2197,54 @@ export class EconomyStore {
     });
   }
 
+  /** (v14) What the agent's deck was built from, or null when the store
+   * doesn't know (no agent deck, built before v14, or edited by hand). */
+  agentDeckBuiltFrom(ownerId: string): AgentDeckBuiltFrom | null {
+    if (this.schemaVersion < 14) return null;
+    const row = this.db.prepare("SELECT built_style, built_lock, built_holdings FROM decks WHERE owner_id = ? AND built_by_agent = 1").get(ownerId) as Row | undefined;
+    if (!row || row.built_style === null) return null;
+    const lock = str(row.built_lock);
+    return { style: str(row.built_style) as PlayStyleId, factionLock: lock === "none" ? null : (lock as DeckFaction), holdings: str(row.built_holdings) };
+  }
+
+  /** What the agent would build from now: the connected agent's style
+   * (Calculator with none connected), the faction lock and the cards held. */
+  private agentDeckInputs(ownerId: string): AgentDeckBuiltFrom & { held: CardCopy[] } {
+    const owner = this.getOwner(ownerId);
+    const held = this.collection(ownerId);
+    const style = owner.connectedAgentId === null ? DEFAULT_PLAY_STYLE : this.getAgent(owner.connectedAgentId).playStyle;
+    return { style, factionLock: owner.factionLock, holdings: holdingsFingerprint(held.map((c) => c.cardId)), held };
+  }
+
+  /**
+   * (v14) Why the agent's deck should be rebuilt, or [] when it is up to
+   * date (owner 2026-10-15/-20: the agent rebuilds when the owner's cards,
+   * the faction lock or its play style change, not before every match).
+   * Always [] while the owner forces a deck: the agent's deck isn't played.
+   */
+  agentDeckRebuildReasons(ownerId: string): string[] {
+    if (this.schemaVersion < 14) throw new EconomyError("rebuild tracking needs schema v14");
+    if (this.getOwner(ownerId).deckChoice === "forced") return [];
+    if (this.agentDeckId(ownerId) === null) return ["the agent hasn't built a deck yet"];
+    const was = this.agentDeckBuiltFrom(ownerId);
+    if (was === null) return ["the store doesn't know what the deck was built from (built before v14, or edited by hand)"];
+    const now = this.agentDeckInputs(ownerId);
+    const reasons: string[] = [];
+    if (was.holdings !== now.holdings) reasons.push("the cards held changed");
+    if (was.factionLock !== now.factionLock) reasons.push(`the faction lock changed (${was.factionLock ?? "none"} -> ${now.factionLock ?? "none"})`);
+    if (was.style !== now.style) reasons.push(`the play style changed (${PLAY_STYLES[was.style].name} -> ${PLAY_STYLES[now.style].name})`);
+    return reasons;
+  }
+
+  /** (v14) Rebuilds the agent's deck if `agentDeckRebuildReasons` names a
+   * reason, else does nothing (null). What a scheduler (the ladder, item
+   * 6b) calls between matches. */
+  async rebuildAgentDeckIfNeeded(ownerId: string, options: Omit<DeckBuildOptions, "faction" | "style"> = {}): Promise<{ reasons: string[]; build: AgentDeckBuild } | null> {
+    const reasons = this.agentDeckRebuildReasons(ownerId);
+    if (reasons.length === 0) return null;
+    return { reasons, build: await this.buildAgentDeck(ownerId, options) };
+  }
+
   /** The id of the deck the agent built for this owner, if any. */
   agentDeckId(ownerId: string): string | null {
     const row = this.db.prepare("SELECT deck_id FROM decks WHERE owner_id = ? AND built_by_agent = 1").get(ownerId) as Row | undefined;
@@ -2183,18 +2256,21 @@ export class EconomyStore {
    * deck it can from the cards the owner holds now, in the faction lock if
    * one is set, else in whichever faction plays best (the engine's
    * `chooseDeck`, measured by games against the shipped decks; `options`
-   * sets how many). Saves it as the owner's agent deck (created once, then
+   * sets how many), played in the connected agent's play style (v14;
+   * Calculator with none connected or before v14). Saves it as the owner's agent deck (created once, then
    * rebuilt in place) and makes it active. Refused while the owner forces
    * a deck. Run it when the holdings change (packs opened, crafting,
    * salvage) or the faction lock does; a match never waits on it.
    */
-  async buildAgentDeck(ownerId: string, options: Omit<DeckBuildOptions, "faction"> = {}): Promise<AgentDeckBuild> {
+  async buildAgentDeck(ownerId: string, options: Omit<DeckBuildOptions, "faction" | "style"> = {}): Promise<AgentDeckBuild> {
     const owner = this.getOwner(ownerId);
     if (owner.deckChoice === "forced") throw new EconomyError(`owner "${owner.name}" forces a deck; set the deck choice to the agent first`);
-    const held = this.collection(ownerId);
+    const inputs = this.agentDeckInputs(ownerId);
+    const held = inputs.held;
+    const style = this.schemaVersion >= 14 ? inputs.style : DEFAULT_PLAY_STYLE;
     const built = await (async () => {
       try {
-        return await chooseDeck(holdingsOf(held.map((c) => c.cardId)), { ...options, faction: owner.factionLock ?? undefined });
+        return await chooseDeck(holdingsOf(held.map((c) => c.cardId)), { ...options, faction: owner.factionLock ?? undefined, style });
       } catch (err) {
         throw new EconomyError(err instanceof Error ? err.message : String(err));
       }
@@ -2211,6 +2287,13 @@ export class EconomyStore {
         saved = this.saveDeck(ownerId, AGENT_DECK_NAME, copyIds);
         this.db.prepare("UPDATE decks SET built_by_agent = 1 WHERE deck_id = ?").run(saved.deckId);
       }
+      // What it was built from, as read before the games (a change made
+      // while the agent built shows up as a rebuild reason).
+      if (this.schemaVersion >= 14) {
+        this.db
+          .prepare("UPDATE decks SET built_style = ?, built_lock = ?, built_holdings = ? WHERE deck_id = ?")
+          .run(style, owner.factionLock ?? "none", inputs.holdings, saved.deckId);
+      }
       // The owner may have switched to a forced deck while the agent built.
       if (this.getOwner(ownerId).deckChoice === "agent") this.activateDeck(ownerId, saved.deckId);
       return saved;
@@ -2218,6 +2301,7 @@ export class EconomyStore {
     return {
       deck,
       faction: built.faction,
+      style,
       factions: built.factions.map((b) => ({
         faction: b.faction,
         ...(b.infeasible ? { infeasible: b.infeasible } : {}),

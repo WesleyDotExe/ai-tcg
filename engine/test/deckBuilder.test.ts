@@ -14,6 +14,7 @@ import {
   fullHoldings,
   holdingsOf,
   listProblem,
+  playGauntlet,
   playableCopies,
   shippedList,
   type DeckList,
@@ -199,5 +200,41 @@ describe("chooseDeck (the deck-building agent)", () => {
       expect(a.score!.wins).toBeGreaterThanOrEqual(st.score!.wins);
     }
     expect(a.score!.games).toBe(12);
+  });
+
+  it("plays the built deck in the given style; Calculator is the default and plays the games it always did", async () => {
+    const list = shippedList("Cortex");
+    const plain = await playGauntlet(list, 21, 6);
+    const calc = await playGauntlet(list, 21, 6, "calculator");
+    expect(calc).toEqual(plain);
+    // Another style plays different games on the same seeds (the opponents,
+    // Calculator on the shipped decks, are unchanged).
+    const rusher = await playGauntlet(list, 21, 6, "rusher");
+    expect(rusher.results).not.toEqual(plain.results);
+    expect(await playGauntlet(list, 21, 6, "rusher")).toEqual(rusher);
+
+    const opts = { games: 3, trials: 2, confirmGames: 3, seed: 5 };
+    const c = await chooseDeck(shippedList("Swarm"), opts);
+    const r = await chooseDeck(shippedList("Swarm"), { ...opts, style: "rusher" });
+    expect(c.style).toBe("calculator");
+    expect(r.style).toBe("rusher");
+    const scores = (x: typeof c) => x.factions.find((f) => f.faction === "Swarm")!.starts.map((st) => st.score);
+    expect(scores(r)).not.toEqual(scores(c));
+  });
+
+  it("searches as Calculator whatever the style; only the confirm step plays the style", async () => {
+    const holdings = fullHoldings();
+    const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11 };
+    const lines = { calc: [] as string[], rusher: [] as string[] };
+    const calc = await buildFaction("Swarm", holdings, { ...opts, log: (l) => lines.calc.push(l) });
+    const rusher = await buildFaction("Swarm", holdings, { ...opts, style: "rusher", log: (l) => lines.rusher.push(l) });
+    // The same search: the same start searched from, at the same score, and
+    // the same changes kept (the log's search lines carry the search's wins).
+    const search = (ls: string[]) => ls.filter((l) => !l.includes("fresh seeds"));
+    expect(search(lines.rusher)).toEqual(search(lines.calc));
+    expect(search(lines.calc).some((l) => /searching from the \w+ start \(\d+ of 12\)/.test(l))).toBe(true);
+    expect(rusher.searchedFrom).toBe(calc.searchedFrom);
+    // The confirm step played Rusher's games.
+    expect(rusher.starts.map((st) => st.score)).not.toEqual(calc.starts.map((st) => st.score));
   });
 });

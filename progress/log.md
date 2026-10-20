@@ -3641,3 +3641,48 @@ still builds with Calculator. Styles were tuned on the shipped decks only.
 `progress/economy-demo-015.txt`.
 
 **Blocked:** nothing. Optional owner check-in on the presets.
+
+## 2026-10-20 — Session 53 (the agent's deck in the agent's play style, roadmap 2b part 3)
+
+Game-lane session (the last merged PR, #89, was the game lane's own, but render's routine runs
+separately and has nothing open for this lane). Read `progress/owner-feedback.md` first: the owner's
+answers to session 52 (play styles): option C and keep all 6. Nothing to change in the styles; the
+commentary part has no owner yet (no commentator exists, stage 7), so it went on the roadmap (item 8)
+as a requirement: the lane that builds the commentators proposes how it uses the style at a checkpoint
+first. Call 6 named the next step, built here: the deck builder uses the agent's style.
+
+**Built:** `DeckBuildOptions.style` (the confirm step plays the built deck in the style) and
+`searchStyle` (default Calculator); `playGauntlet(..., style)`. The store (schema v14) builds the agent's
+deck in the connected agent's style and records what it was built from (style, faction lock, a holdings
+fingerprint), so `agentDeckRebuildReasons` can say why it should be rebuilt and
+`rebuildAgentDeckIfNeeded` rebuilds only then. A hand edit forgets the record; a forced deck never asks.
+
+**Ran it:**
+- First design (search and confirm both in the style), `progress/deckbuilder-styles-report-001.txt`:
+  from a full collection, 6 styles x 4 factions (60 trials x 400 games, 2,000-game confirm), then every
+  style piloting every style's deck on unseen seeds (2,000 games per cell). Every style played its own
+  deck WORSE than Calculator's deck: -2.1 to -2.7 points over all four factions (paired, ±0.4-0.6), and
+  Calculator piloting those decks lost about as much, so the decks were simply worse: the per-style
+  search was choosing on noise (the styles differ by less than its one-sd acceptance). Controller's
+  Aegis deck was 7.6 points worse.
+- So the search stays Calculator and only the confirm step plays the style. Re-run,
+  `progress/deckbuilder-styles-report-002.txt`: every style keeps Calculator's deck in all four
+  factions (gain 0); each style's lift over its shipped deck is +5.2 to +7.0 (was +2.7 to +4.7).
+  Calculator's build reproduces session 51's byte for byte; every style's search log equals
+  Calculator's.
+- `progress/economy-demo-016.txt`: a Cortex owner with 33 packs builds as Calculator, switches to
+  Rusher (reason named, rebuilt in place; Cortex deck unchanged, but Rusher keeps a different Null deck),
+  connects a Fortress agent, opens packs and locks Aegis (three reasons, one rebuild), a forced owner
+  (no reasons), 8 recorded matches with each side's deck and style. Reproduces byte for byte.
+- `npm test`: all six workspaces pass (1,057, +10); typecheck clean. Two mutation checks fail their tests.
+
+**Worked:** the cross step turned "build in the style" into a measured question and caught a design
+that would have cost every non-Calculator owner 2-3 points. **Didn't / honest limits:** today the style
+almost never changes the deck (none from a full collection); the gauntlet is still the shipped decks
+only; nothing calls `rebuildAgentDeckIfNeeded` yet (no ladder); one migration test that opened at the
+latest version was pinned to v13.
+
+**Evidence:** `progress/deckbuilder-styles-report-001.txt`, `progress/deckbuilder-styles-report-002.txt`,
+`progress/deckbuilder-styles/`, `progress/economy-demo-016.txt`.
+
+**Blocked:** nothing. One owner check-in (the search plays Calculator), with a default.

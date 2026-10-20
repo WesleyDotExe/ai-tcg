@@ -3446,7 +3446,7 @@ Next render-lane slices, as set: boast slice 4 (the loadout picker), then Match 
 
 ---
 
-## 2026-10-20 — Owner: answers to game session 52 (play styles), option C and keep all 6
+## 2026-10-20 — Owner: answers to game session 52 (play styles), option C and keep all 6 (HANDLED 2026-10-20, session 53 — option C: the six presets and the 2-point limit stand as built, nothing to change in the engine or store. The commentary part has no owner yet: no commentator exists (build stage 7, after the render), so it is written on `progress/roadmap.md` item 8 as a requirement for whichever lane builds the commentators: propose how the commentary reads `MatchRecord.playStyles` / `LiveSide.playStyle` at a checkpoint before building, presentational only. The 6 calls stand; call 6's next step BUILT this session: the deck builder measures in the agent's style, the store builds the agent's deck in the connected agent's style and names when it needs a rebuild (schema v14); evidence `progress/deckbuilder-styles-report-002.txt` (and -001, the experiment that set the search to Calculator))
 
 Answers the [OWNER CHECK-IN] "Six play styles: fair against each other, but most are subtle" in `progress/notes-for-owner.md` (PR #89, `progress/play-style-ring-001.txt`).
 
