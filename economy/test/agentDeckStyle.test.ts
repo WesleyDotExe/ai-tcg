@@ -1,0 +1,170 @@
+// The agent's deck in the agent's play style (schema v14; owner 2026-10-20,
+// call 6: "the deck builder still builds with Calculator; making it use the
+// agent's style is the next step"). The deck is measured in the connected
+// agent's style, remembers what it was built from (style, faction lock, the
+// cards held), and the store names why it needs a rebuild when any of those
+// change (owner 2026-10-15: rebuilt when they change, not before every match).
+
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
+import { SHIPPED_DECK_LISTS, chooseDeck, holdingsOf } from "@ai-tcg/engine";
+import { EconomyStore, holdingsFingerprint } from "../src/index.js";
+
+let clock = new Date("2026-10-20T10:00:00.000Z");
+const open = (path = ":memory:", migrateTo?: number) => EconomyStore.open(path, { now: () => clock, migrateTo });
+const tmpDirs: string[] = [];
+afterEach(() => {
+  for (const d of tmpDirs.splice(0)) rmSync(d, { recursive: true, force: true });
+});
+const tmpFile = () => {
+  const d = mkdtempSync(join(tmpdir(), "ai-tcg-deckstyle-"));
+  tmpDirs.push(d);
+  return join(d, "s0.db");
+};
+const FAST = { games: 0 };
+
+function owner(s: EconomyStore, name: string, faction: "Cortex" | "Swarm" | "Aegis" | "Null") {
+  const o = s.createOwner({ name, kind: "house" });
+  s.grantStarterCollection(o.ownerId, faction);
+  const agent = s.createAgent({ ownerId: o.ownerId, name: `${name}-a` });
+  s.connectAgent(o.ownerId, agent.agentId);
+  return { ownerId: o.ownerId, agentId: agent.agentId };
+}
+
+function grantList(s: EconomyStore, ownerId: string, faction: "Cortex" | "Swarm" | "Aegis" | "Null") {
+  for (const { cardId, copies } of SHIPPED_DECK_LISTS[faction]) {
+    for (let i = 0; i < copies; i++) s.grantCopy({ ownerId, cardId, origin: "pack", originRef: "test" });
+  }
+}
+
+describe("the agent's deck in the agent's style", () => {
+  it("is measured in the connected agent's style: the same games chooseDeck plays in that style", async () => {
+    const s = open();
+    const { ownerId, agentId } = owner(s, "a", "Swarm");
+    s.setPlayStyle(agentId, "rusher");
+    const opts = { games: 3, trials: 2, confirmGames: 3 };
+    const built = await s.buildAgentDeck(ownerId, opts);
+    expect(built.style).toBe("rusher");
+
+    const holdings = holdingsOf(s.collection(ownerId).map((c) => c.cardId));
+    const rusher = await chooseDeck(holdings, { ...opts, style: "rusher" });
+    const calculator = await chooseDeck(holdings, { ...opts, style: "calculator" });
+    const swarm = (b: typeof rusher) => b.factions.find((f) => f.faction === "Swarm")!;
+    const stored = built.factions.find((f) => f.faction === "Swarm")!;
+    expect(stored.winRate).toBe(swarm(rusher).score!.wins / swarm(rusher).score!.games);
+    expect(stored.starts).toEqual(swarm(rusher).starts.map((st) => ({ from: st.from, winRate: st.score!.wins / st.score!.games })));
+    // And the style reached the games: Calculator's games came out differently.
+    const results = (b: typeof rusher) => [swarm(b).score!.wins, ...swarm(b).starts.map((st) => st.score!.wins)];
+    expect(results(rusher)).not.toEqual(results(calculator));
+  });
+
+  it("remembers what it was built from, and is up to date right after a build", async () => {
+    const s = open();
+    const { ownerId, agentId } = owner(s, "a", "Cortex");
+    s.setPlayStyle(agentId, "fortress");
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the agent hasn't built a deck yet"]);
+    const built = await s.buildAgentDeck(ownerId, FAST);
+    expect(built.style).toBe("fortress");
+    expect(s.agentDeckBuiltFrom(ownerId)).toEqual({
+      style: "fortress",
+      factionLock: null,
+      holdings: holdingsFingerprint(s.collection(ownerId).map((c) => c.cardId)),
+    });
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    expect(await s.rebuildAgentDeckIfNeeded(ownerId, FAST)).toBeNull();
+  });
+
+  it("names a style change, rebuilds in the new style, then is up to date", async () => {
+    const s = open();
+    const { ownerId, agentId } = owner(s, "a", "Null");
+    const first = await s.buildAgentDeck(ownerId, FAST);
+    expect(first.style).toBe("calculator");
+    s.setPlayStyle(agentId, "controller");
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the play style changed (Calculator -> Controller)"]);
+    const again = await s.rebuildAgentDeckIfNeeded(ownerId, FAST);
+    expect(again!.reasons).toEqual(["the play style changed (Calculator -> Controller)"]);
+    expect(again!.build.style).toBe("controller");
+    expect(again!.build.deck.deckId).toBe(first.deck.deckId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+  });
+
+  it("follows the connected agent: switching to an agent of another style, or none, is a style change", async () => {
+    const s = open();
+    const { ownerId } = owner(s, "a", "Aegis");
+    const gambler = s.createAgent({ ownerId, name: "a-gambler" });
+    s.setPlayStyle(gambler.agentId, "gambler");
+    const same = s.createAgent({ ownerId, name: "a-calc" });
+    await s.buildAgentDeck(ownerId, FAST);
+
+    s.connectAgent(ownerId, same.agentId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    s.connectAgent(ownerId, gambler.agentId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the play style changed (Calculator -> Gambler)"]);
+    expect((await s.buildAgentDeck(ownerId, FAST)).style).toBe("gambler");
+    s.disconnectAgent(ownerId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the play style changed (Gambler -> Calculator)"]);
+  });
+
+  it("names a change in the cards held and in the faction lock, together", async () => {
+    const s = open();
+    const { ownerId } = owner(s, "a", "Swarm");
+    await s.buildAgentDeck(ownerId, FAST);
+    grantList(s, ownerId, "Aegis");
+    s.setFactionLock(ownerId, "Aegis");
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the cards held changed", "the faction lock changed (none -> Aegis)"]);
+    const r = await s.rebuildAgentDeckIfNeeded(ownerId, FAST);
+    expect(r!.build.faction).toBe("Aegis");
+    expect(s.agentDeckBuiltFrom(ownerId)!.factionLock).toBe("Aegis");
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    // Only the cards' counts matter, not which copy or its finish.
+    const extra = s.grantCopy({ ownerId, cardId: SHIPPED_DECK_LISTS.Aegis[0]!.cardId, origin: "pack", originRef: "t" });
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the cards held changed"]);
+    expect(extra.cardId).toBe(SHIPPED_DECK_LISTS.Aegis[0]!.cardId);
+  });
+
+  it("asks nothing while the owner forces a deck; a hand edit forgets what it was built from", async () => {
+    const s = open();
+    const { ownerId, agentId } = owner(s, "a", "Cortex");
+    const built = await s.buildAgentDeck(ownerId, FAST);
+    const hand = s.saveDeck(ownerId, "by hand", s.collection(ownerId).map((c) => c.copyId));
+    s.setActiveDeck(ownerId, hand.deckId);
+    s.setPlayStyle(agentId, "tempo");
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    expect(await s.rebuildAgentDeckIfNeeded(ownerId, FAST)).toBeNull();
+
+    s.setDeckChoice(ownerId, "agent");
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the play style changed (Calculator -> Tempo)"]);
+    s.updateDeck(ownerId, built.deck.deckId, built.deck.copyIds.slice(0, 30));
+    expect(s.agentDeckBuiltFrom(ownerId)).toBeNull();
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the store doesn't know what the deck was built from (built before v14, or edited by hand)"]);
+  });
+});
+
+describe("migration v13 -> v14", () => {
+  it("leaves an agent deck built before v14 unknown (so it is rebuilt), and the schema guards the columns", async () => {
+    const path = tmpFile();
+    const v13 = open(path, 13);
+    const { ownerId } = owner(v13, "a", "Swarm");
+    const built = await v13.buildAgentDeck(ownerId, FAST);
+    expect(built.style).toBe("calculator");
+    expect(v13.agentDeckBuiltFrom(ownerId)).toBeNull();
+    expect(() => v13.agentDeckRebuildReasons(ownerId)).toThrow(/needs schema v14/);
+    const hand = v13.saveDeck(ownerId, "by hand", v13.collection(ownerId).map((c) => c.copyId));
+    v13.close();
+
+    const v14 = open(path, 14);
+    expect(v14.schemaVersion).toBe(14);
+    expect(v14.agentDeckId(ownerId)).toBe(built.deck.deckId);
+    expect(v14.agentDeckRebuildReasons(ownerId)).toEqual(["the store doesn't know what the deck was built from (built before v14, or edited by hand)"]);
+    // Only the agent's deck carries a build record, and all three fields go together.
+    expect(() => v14.unsafeExec(`UPDATE decks SET built_style = 'rusher', built_lock = 'none', built_holdings = 'x' WHERE deck_id = '${hand.deckId}'`)).toThrow(/CHECK/);
+    expect(() => v14.unsafeExec(`UPDATE decks SET built_style = 'rusher' WHERE deck_id = '${built.deck.deckId}'`)).toThrow(/CHECK/);
+    expect(() => v14.unsafeExec(`UPDATE decks SET built_style = 'bold', built_lock = 'none', built_holdings = 'x' WHERE deck_id = '${built.deck.deckId}'`)).toThrow(/CHECK/);
+    expect(() => v14.unsafeExec(`UPDATE decks SET built_style = 'rusher', built_lock = 'Neutral', built_holdings = 'x' WHERE deck_id = '${built.deck.deckId}'`)).toThrow(/CHECK/);
+    await v14.rebuildAgentDeckIfNeeded(ownerId, FAST);
+    expect(v14.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    v14.close();
+  });
+});

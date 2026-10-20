@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -51,6 +51,25 @@ real, but here is where it's thin.
 - **The ring with built decks on both sides has never been measured.** A hard gate before the public
   launch (roadmap "Standing: built-deck balance before launch"). Open until measured and taken to the
   owner.
+
+## New debt from session 53 (the agent's deck in the agent's play style)
+
+- **The style almost never changes the deck.** From a full collection every style keeps Calculator's
+  deck in all four factions (`progress/deckbuilder-styles-report-002.txt`); the confirm step can only
+  choose among three candidates (the searched deck and two starts), all found by Calculator. A deck
+  shaped for a style (say, more cheap attackers for Rusher) can only appear if Calculator's search
+  happens to find it. Building "for the style" is wired and safe, not yet meaningful.
+- **Searching in the style failed, and the reason is the search's noise.** One-sd acceptance on 400
+  games kept changes that cost 2-3 points for every style (report 001). The same noise is in the
+  Calculator search; it just happened to land better on the search seeds used. A sturdier search
+  (more games per trial, a second confirm per kept change, or package-level moves) would help both.
+- **One build per style, one seed set.** Each report builds from one search seed (1); "every style
+  keeps Calculator's deck" is true for that search, not shown across searches.
+- **Nothing calls the rebuild.** `rebuildAgentDeckIfNeeded` exists for the ladder (item 6b), which
+  doesn't exist; until then a stale agent deck stays stale unless something calls it.
+- **The holdings fingerprint counts every live card,** including cards of factions the owner can't
+  build or the lock excludes, so a pack with only off-faction cards still asks for a rebuild (cheap to
+  over-ask; a rebuild is seconds to a minute).
 
 ## New debt from session 52 (play styles)
 
@@ -69,8 +88,7 @@ real, but here is where it's thin.
   any style: the shipped decks carry few Instants, so "keeps a response ready" is mostly a label today.
 - **Gambler's dice is a margin, not a taste for risk.** No card or effect is scored as risky; the
   style is "random among good moves".
-- **The deck builder ignores the style.** `chooseDeck` measures with Calculator; a Rusher plays a
-  deck built for Calculator. Next game-lane step.
+- ~~**The deck builder ignores the style.**~~ Fixed session 53: it measures in the agent's style.
 - **The behaviour measure counts every multi-move decision equally.** Order-only differences
   (attacking before playing a card) count as departures, so "off Calculator" overstates how different
   a plan is; the demo says so.

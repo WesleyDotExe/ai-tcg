@@ -329,9 +329,16 @@ start a step until the one before works and its tests pass):
      style ring (all six within 1.5 points of 50% against the field on
      fresh seeds), per-agent style in the store (schema v13), kept on the
      live match and the match record; evidence play-style-ring-001,
-     play-style-demo-001, economy-demo-015. NEXT: the deck builder plays
-     the owner's style when it measures decks; then step 3, exposing both
-     settings.
+     play-style-demo-001, economy-demo-015. Owner 2026-10-20: option C,
+     presets and limit kept. DONE (session 53): the deck builder picks the
+     deck in the agent's style (`options.style`: the confirm step plays
+     the style, the search stays Calculator, which measured better; the
+     shipped opponents stay Calculator), the store builds in the connected agent's
+     style and records what the deck was built from (schema v14: style,
+     faction lock, holdings fingerprint) with `agentDeckRebuildReasons` /
+     `rebuildAgentDeckIfNeeded` for the ladder to call; evidence
+     deckbuilder-styles-report-001 and -002, economy-demo-016. NEXT: step 3,
+     exposing both settings (server endpoints, item 3).
   2c. DONE (session 37, owner 2026-10-16): owners name their agents (free
      at creation, 100 pack points to rename (proposal), the rules in the
      store, the name log with "formerly", reserved old names, an admin
@@ -430,7 +437,14 @@ a collector viewer, trading/real money. Season 0 in-house; Season 1 fresh
 at public launch (collections/currency/ranks reset, Season 0 archived).
 
 ### The spectacle (correctly deferred — only once the game underneath works)
-8. Spectator render (watchable match view), then AI commentators, then the
+8. **Commentary and play styles (owner 2026-10-20, option C):** the
+   commentary names and reflects each agent's play style (e.g. Fortress
+   holding back, Rusher going face, Controller holding energy for a
+   response); the style is on the match record (`MatchRecord.playStyles`)
+   and the live match (`LiveSide.playStyle`). Whichever lane builds the
+   commentators PROPOSES how it uses the style at a checkpoint before
+   building. Presentational only: never changes a move or a balance number.
+   Spectator render (watchable match view), then AI commentators, then the
    public web platform, then monthly set cadence. [OWNER CHECK-IN] on the art
    pipeline when the render stage arrives (real generated art is a late,
    owner-funded pass per DESIGN.md). Art model DECIDED (owner 2026-10-18):

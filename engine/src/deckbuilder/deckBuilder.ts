@@ -34,7 +34,16 @@
 // Every game is Lookahead against Lookahead, the agent every real match
 // uses. The opponents are the shipped decks (the ring's decks), so "best"
 // means "best against the designed decks of every faction, mirror
-// included". Nothing here reads a card's name or id: a new set's cards are
+// included". The owner's play style (`options.style`; owner 2026-10-20:
+// "the deck builder still builds with Calculator; making it use the agent's
+// style is the next step") plays the built deck in the confirm step, so the
+// deck kept is the one that style plays best; the shipped decks are always
+// played by Calculator, the field every balance measurement uses. The
+// search itself plays Calculator (`options.searchStyle`): measured session
+// 53 (progress/deckbuilder-styles-report-001.txt), a search played in each
+// style kept decks 2-3 points worse than Calculator's for every style,
+// that style included, so the style's signal is smaller than the search's
+// noise and only the larger confirm step should read it. Nothing here reads a card's name or id: a new set's cards are
 // built with the day they exist. A forced deck is the store's business (it
 // is a saved deck); a forced faction is `options.faction`.
 
@@ -44,6 +53,7 @@ import { isRemovalOrDebuffCard } from "../cards/poolLint.js";
 import { buildDeck, COPY_LIMITS, MAX_NEUTRAL_COPIES, TOP_TIER_COPY_LIMIT } from "../data/decks.js";
 import { CARD_REGISTRY, SHIPPED_DECK_LISTS, getCard } from "../data/registry.js";
 import { LookaheadAgent } from "../agents/lookaheadAgent.js";
+import { DEFAULT_PLAY_STYLE, type PlayStyleId } from "../agents/playStyles.js";
 import { runMatch } from "../engine/match.js";
 import type { DeckSpec } from "../state/init.js";
 import { Rng } from "../state/rng.js";
@@ -78,6 +88,13 @@ export interface DeckBuildOptions {
   confirmGames?: number;
   /** The search's first seed; the confirm seeds start 1,000,000 later. */
   seed?: number;
+  /** The play style the built deck is played in, in every game (the
+   * owner's agent's style). Calculator by default; the shipped opponents
+   * always play Calculator. */
+  style?: PlayStyleId;
+  /** The play style the search (step 2) plays the deck in. Calculator by
+   * default, whatever `style` is (see the header). */
+  searchStyle?: PlayStyleId;
   /** Narrates the build, one line per step. */
   log?: (line: string) => void;
 }
@@ -115,6 +132,8 @@ export interface FactionBuild {
 
 export interface BuiltDeck {
   faction: DeckFaction;
+  /** The play style every game was played in. */
+  style: PlayStyleId;
   list: DeckList;
   spec: DeckSpec;
   /** Every faction considered, the picked one included. */
@@ -326,8 +345,15 @@ const SHIPPED_SPECS: Record<DeckFaction, (id: DeckSpec["id"]) => DeckSpec> = Obj
 
 /** One game per seed against each shipped deck: true where `list` won.
  * The deck goes first on odd seeds. The same seeds give the same games to
- * any two lists, so two lists' results compare game by game. */
-export async function playGauntlet(list: DeckList, firstSeed: number, games: number): Promise<{ results: boolean[]; score: GauntletScore }> {
+ * any two lists, so two lists' results compare game by game. `style` is
+ * how the list is played (the shipped decks play Calculator); Calculator
+ * plays exactly the games it played before styles existed. */
+export async function playGauntlet(
+  list: DeckList,
+  firstSeed: number,
+  games: number,
+  style: PlayStyleId = DEFAULT_PLAY_STYLE,
+): Promise<{ results: boolean[]; score: GauntletScore }> {
   const results: boolean[] = [];
   const byOpponent = {} as Record<DeckFaction, number>;
   for (const opponent of DECK_FACTIONS) {
@@ -335,7 +361,7 @@ export async function playGauntlet(list: DeckList, firstSeed: number, games: num
     for (let seed = firstSeed; seed < firstSeed + games; seed++) {
       const mine = deckSpec(list, "p1", "Built deck");
       const theirs = SHIPPED_SPECS[opponent]("p2");
-      const a = new LookaheadAgent("Builder", seed * 104729 + 31);
+      const a = new LookaheadAgent("Builder", seed * 104729 + 31, { style });
       const b = new LookaheadAgent(`Shipped-${opponent}`, seed * 104729 + 31);
       const first = seed % 2 === 1;
       const { state } = first ? await runMatch(mine, { ...theirs, id: "p2" }, a, b, seed) : await runMatch({ ...theirs, id: "p1" }, { ...mine, id: "p2" }, b, a, seed);
@@ -416,6 +442,8 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
   const trials = options.trials ?? 24;
   const confirmGames = options.confirmGames ?? 100;
   const seed = options.seed ?? 1;
+  const style = options.style ?? DEFAULT_PLAY_STYLE;
+  const searchStyle = options.searchStyle ?? DEFAULT_PLAY_STYLE;
   const built = constructDeck(faction, holdings);
   if ("infeasible" in built) {
     log(`${faction}: ${built.infeasible}`);
@@ -429,9 +457,9 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
 
   // Search from the start that plays best on the search's seeds.
   let from = starts[0]!;
-  let base = await playGauntlet(from.list, seed, games);
+  let base = await playGauntlet(from.list, seed, games, searchStyle);
   for (const st of starts.slice(1)) {
-    const g = await playGauntlet(st.list, seed, games);
+    const g = await playGauntlet(st.list, seed, games, searchStyle);
     if (g.score.wins > base.score.wins) {
       from = st;
       base = g;
@@ -448,7 +476,7 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
     if (next.done) break;
     const change = next.value;
     const candidate = apply(list, change);
-    const trial = await playGauntlet(candidate, seed, games);
+    const trial = await playGauntlet(candidate, seed, games, searchStyle);
     // Paired: only the seeds where the two lists' games came out
     // differently say anything. Keep the change when it wins at least one
     // standard deviation more of those (sign test), and at least 2 more.
@@ -471,8 +499,8 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
   // Confirm on seeds the search never played: the searched deck and every
   // start; the best wins (the searched deck on a tie, then the earlier start).
   const fresh = seed + 1_000_000;
-  for (const st of starts) st.score = (await playGauntlet(st.list, fresh, confirmGames)).score;
-  const searched = kept.length === 0 ? from.score! : (await playGauntlet(list, fresh, confirmGames)).score;
+  for (const st of starts) st.score = (await playGauntlet(st.list, fresh, confirmGames, style)).score;
+  const searched = kept.length === 0 ? from.score! : (await playGauntlet(list, fresh, confirmGames, style)).score;
   let best: { chosen: StartKind | "searched"; list: DeckList; score: GauntletScore } = { chosen: kept.length === 0 ? from.from : "searched", list, score: searched };
   for (const st of starts) if (st.score!.wins > best.score.wins) best = { chosen: st.from, list: st.list, score: st.score! };
   log(
@@ -504,9 +532,9 @@ function meanRating(list: DeckList): number {
 }
 
 /**
- * The deck-building agent: the best deck `holdings` can build, in the
- * forced faction or, without one, in whichever faction plays best on the
- * confirm step's fresh seeds (ties go to the earlier faction in
+ * The deck-building agent: the best deck `holdings` can build for
+ * `options.style`, in the forced faction or, without one, in whichever
+ * faction that style plays best on the confirm step's fresh seeds (ties go to the earlier faction in
  * DECK_FACTIONS). Throws when no faction can be built.
  */
 export async function chooseDeck(holdings: Holdings, options: DeckBuildOptions = {}): Promise<BuiltDeck> {
@@ -519,7 +547,7 @@ export async function chooseDeck(holdings: Holdings, options: DeckBuildOptions =
   }
   const value = (b: FactionBuild) => (b.score ? b.score.wins / b.score.games : meanRating(b.deck!));
   const best = feasible.reduce((a, b) => (value(b) > value(a) ? b : a));
-  return { faction: best.faction, list: best.deck!, spec: deckSpec(best.deck!, "p1", `${best.faction} (built)`), factions: builds };
+  return { faction: best.faction, style: options.style ?? DEFAULT_PLAY_STYLE, list: best.deck!, spec: deckSpec(best.deck!, "p1", `${best.faction} (built)`), factions: builds };
 }
 
 /** Holdings as copies per card id, from any list of owned card ids (one
