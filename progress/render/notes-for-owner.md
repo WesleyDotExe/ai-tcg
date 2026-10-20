@@ -870,3 +870,19 @@ chirp, the hit and its rising chord, or seen the 2.6 s at full speed: the headle
 ever changes, the saying (or the list's version) needs storing on the match record first; a render test
 pins the list so a change can't slip through.
 
+
+## 2026-10-20 — Session 36: victory boasts, slice 4 (the loadout picker)
+
+Nothing is blocking. The calls for this slice are in `progress/render/checkpoints.md` (newest entry).
+
+1. **One question for later (no default needed now): which side's arena does a match show?** The
+   store keeps an arena slot per agent, but a match has two agents. Nothing can be equipped there yet
+   (Season 0 sells no arenas), so this only matters when the first arena ships. Options: the home side's
+   (whoever the server lists first), each half of the board in its own agent's arena, or the arena of
+   the agent the viewer follows. The picker says only "the background behind the board in this agent's
+   matches".
+2. **For the game lane (when it builds roadmap 2b step 3, the settings endpoints):** the picker is ready
+   to send its choices to a loadout endpoint. Today it carries the store's answer to every choice,
+   computed when the page is built (`render/src/loadoutDemo.ts`, `outcomesFor`), because there is no
+   endpoint. The page's model (`loadoutApply`) takes the answer in the same shape the endpoint would
+   return: the slot's new value, or the store's refusal message.

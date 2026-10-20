@@ -7,6 +7,66 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-20 — Victory boasts, slice 4: the loadout picker — AWAITING FEEDBACK
+
+Open `render/output/loadout-picker.html`. It is the owner page where an owner dresses one agent, built
+from three real store states (tabs at the top): **A new owner** (Null, starter collection only),
+**Bought Boot Sequence** (a Cortex owner that earned 303 credits in 34 real matches, bought it and wears
+it, with Data Cascade as its close-win boast) and **In a live match** (Swarm).
+- **The five slots** the store keeps, as a rail: victory boast, close-win boast, card back, avatar,
+  arena. Each says what's equipped, or what an empty slot plays ("Empty: plays Void Collapse").
+- **The tiles:** each owned item (free starter, or marked Bought), each item on sale that the owner
+  doesn't have as a locked plate ("In the store · 300 credits", and "you have 0" when it's short), and
+  the empty slot. Each boast has a small emblem of how it ends.
+- **The preview:** a small winning board, the agent's deck's real units and its panel, a dimmed strip
+  for the other agent. It plays whichever boast a win would play, with the replay's own boast player,
+  and loops. A tap on a tile previews that one; a tap on a locked one previews it marked "not owned:
+  preview only". The close-win slot previews with the CLOSE WIN plate and the panel on 3 health.
+- **Equip saves at once,** with a line saying what was saved, or the store's refusal. In a live match a
+  red banner says changes wait until it ends, and Equip shows "Not saved: no loadout changes during a
+  live match".
+- **The page never decides what the store accepts.** No server endpoint for loadouts exists yet, so
+  when the page is built every choice in every slot is put to the real store's `setLoadout`, the answer
+  kept (the new value or the refusal), and the slot put back; Equip applies that answer.
+
+**Evidence:**
+- `progress/render/evidence/loadout-picker-s36.txt`: each scenario, every tile and every store answer.
+- **Browser check** (`loadout-check-s36.mjs`, output `loadout-check-s36.txt`): 48 checks, ALL PASS:
+  preview on open with no grammar problem, loops, silent repeats; tap to preview, Equip to save; the
+  locked plate; the close-win plate; emptying a slot; the empty kinds; the bought and live owners;
+  Escape; a phone (no sideways scroll, the board stays at the top, the boast on the board after a
+  scroll); reduced motion.
+- **Stills:** `v2-s36-loadout-desk-new.jpg`, `-equipped`, `-locked-preview`, `-closewin`, `-cardback`,
+  `-bought`, `-live`, `v2-s36-loadout-phone-top.jpg`, `-phone-scrolled`, `v2-s36-loadout-reduced-still.jpg`.
+- **Tests:** render 587 (+13), incl. the preview against the store's own choice over 16 real recorded
+  matches, and 300 random choices per scenario through the page and the real store ending the same.
+
+**Decisions you may want to overrule:**
+1. **Equip saves straight away,** one slot at a time (as the store's call works). Alternative: pick
+   freely, then one Save button for all slots.
+2. **The preview loops silently;** a sting plays only on a pass you asked for (a tap on an item, a slot
+   or Replay). Alternative: silent always, or every loop with sound.
+3. **An item you don't own can be previewed,** marked "not owned: preview only", and there is no Buy
+   button here (the store page isn't built). Alternative: no preview of unowned items; or a Buy button.
+4. **Only items on sale show as locked.** A retired season item you don't own isn't shown at all.
+   Alternative: show it as "retired" so owners see what they missed.
+5. **Card back, avatar and arena are shown, empty,** with a sentence saying none exist yet, rather than
+   hidden until the first ships.
+6. **The empty tile is offered in both boast slots** (the store allows it): an empty victory boast plays
+   the deck's faction starter; an empty close-win boast plays the victory boast.
+7. **The preview board sticks to the top** (on a phone and a narrow screen), and a scroll restarts the
+   running boast (the effects are drawn in page pixels, so they can't follow a scroll mid-pass).
+8. **In a live match Equip stays clickable** and shows the store's refusal, under the banner.
+   Alternative: grey every Equip out.
+
+**Thin spots (in the debt list):** a reload forgets changes (nothing saves to a server yet); three of
+the five slots have nothing to pick; no buying; the preview board is a sketch, not the replay's board;
+nobody has watched or heard it at full speed.
+
+**Next render-lane slice:** Match Boot slice 2 (sound and the phone), as you set.
+
+---
+
 ## 2026-10-19 — Match Boot, slice 1: the intro at the start of every match, and the two end-of-match fixes — AWAITING FEEDBACK
 
 Every replay now opens with Match Boot when it plays from its first move. Open any replay in
