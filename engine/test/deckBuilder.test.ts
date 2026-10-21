@@ -1,8 +1,10 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CARD_REGISTRY, getCard } from "../src/data/registry.js";
 import { MAX_NEUTRAL_COPIES } from "../src/data/decks.js";
 import { isRemovalOrDebuffCard } from "../src/cards/poolLint.js";
-import type { Card, UnitCard } from "../src/cards/types.js";
+import type { Card, DeckFaction, UnitCard } from "../src/cards/types.js";
 import { Rng } from "../src/state/rng.js";
 import { cardRating } from "../src/deckbuilder/cardRating.js";
 import {
@@ -236,5 +238,32 @@ describe("chooseDeck (the deck-building agent)", () => {
     expect(rusher.searchedFrom).toBe(calc.searchedFrom);
     // The confirm step played Rusher's games.
     expect(rusher.starts.map((st) => st.score)).not.toEqual(calc.starts.map((st) => st.score));
+  });
+});
+
+describe("a collection that runs out short of 40 cards (session 54)", () => {
+  // A Null owner on day one (the starter deck plus its 3 starter packs,
+  // progress/built-deck-ring/collections.json): the owned cards stop at 37,
+  // and the rating fill had put in 10 removal cards, the cap for a 40-card
+  // deck but over 25% of 37. The builder said no deck could be built,
+  // though the owner holds the whole (legal) shipped Null list.
+  const file = JSON.parse(readFileSync(fileURLToPath(new URL("../../progress/built-deck-ring/collections.json", import.meta.url)), "utf8")) as {
+    collections: { faction: string; owner: number; packs: number; holdings: [string, number][] }[];
+  };
+  const holdings = new Map(file.collections.find((c) => c.faction === "Null" && c.owner === 1 && c.packs === 3)!.holdings);
+
+  it("builds a legal deck, trimming removal to the share of the smaller deck", () => {
+    const built = constructDeck("Null", holdings);
+    expect("list" in built).toBe(true);
+    const list = (built as { list: Map<string, number> }).list;
+    expect(listProblem(list, "Null", holdings)).toBeUndefined();
+    expect(() => deckSpec(list, "p1", "Null (built)")).not.toThrow();
+  });
+
+  it("gives every day-one owner of every faction a deck, never 'no deck'", async () => {
+    for (const c of file.collections.filter((x) => x.packs === 3)) {
+      const b = await buildFaction(c.faction as DeckFaction, new Map(c.holdings), { games: 0 });
+      expect(b.infeasible, `${c.faction} owner ${c.owner}`).toBeUndefined();
+    }
   });
 });
