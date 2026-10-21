@@ -14,7 +14,8 @@
 //       - "rating": greedy by cardRating's prior, shaped to the shipped
 //         decks' mana curve.
 //       - "designed": the faction's shipped list (the set's designed deck)
-//         as far as the owner holds it, the gaps filled the same greedy way.
+//         as far as the owner holds it, its gaps filled the same greedy way
+//         up to the designed list's own size (Null's is 36).
 //     Two starts because neither prior is right everywhere: from a full
 //     collection the rating deck beats the designed one in Cortex and
 //     Aegis and loses to it in Swarm and Null (progress/
@@ -245,17 +246,25 @@ function candidates(faction: DeckFaction, holdings: Holdings): Card[] {
  * with the best-rated cards that fit, then fills to 40 by rating. A card
  * is added only while the list stays within the rules that adding can
  * break (copies, neutral cap, removal share at 40, evolution base).
+ *
+ * With a `start` list (the designed start), the list goes in first and only
+ * its gaps are filled: the deck is filled to the start's own size, not to
+ * 40, so an owner who holds the whole designed list gets exactly that list
+ * (found session 54: Null's 36-card designed list was padded to 40 with the
+ * four best-rated spares, and the padded deck played 3-4 points under the
+ * designed one, so no owner's built Null deck could match it).
  */
 export function constructDeck(faction: DeckFaction, holdings: Holdings, start?: DeckList): { list: DeckList } | { infeasible: string } {
   const pool = candidates(faction, holdings);
   const list: DeckList = new Map();
+  const target = start ? Math.min(MAX_DECK, Math.max(MIN_DECK, size(start))) : MAX_DECK;
   const removalCap = Math.floor(REMOVAL_SHARE * MAX_DECK);
   const count = { neutral: 0, removal: 0 };
   const byBucket = [0, 0, 0, 0, 0, 0, 0];
   const canAdd = (card: Card): boolean => {
     const have = list.get(card.id) ?? 0;
     if (have >= playableCopies(card, holdings.get(card.id) ?? 0)) return false;
-    if (size(list) >= MAX_DECK) return false;
+    if (size(list) >= target) return false;
     if (isNeutral(card) && count.neutral >= MAX_NEUTRAL_COPIES) return false;
     if (isRemovalOrDebuffCard(card) && count.removal >= removalCap) return false;
     if (card.type === "Unit" && card.evolvesFrom && !(list.get(card.evolvesFrom) ?? 0)) return false;
@@ -303,15 +312,15 @@ export function constructDeck(faction: DeckFaction, holdings: Holdings, start?: 
     grew = false;
     for (const card of pool) {
       const b = bucket(card);
-      while (byBucket[b]! < Math.round(CURVE[b]! * MAX_DECK) && canAdd(card)) {
+      while (byBucket[b]! < Math.round(CURVE[b]! * target) && canAdd(card)) {
         add(card);
         grew = true;
       }
     }
   }
-  // Then fill to 40 by rating alone (again until nothing more fits).
+  // Then fill to the target by rating alone (again until nothing more fits).
   grew = true;
-  while (grew && size(list) < MAX_DECK) {
+  while (grew && size(list) < target) {
     grew = false;
     for (const card of pool) {
       while (canAdd(card)) {
@@ -319,6 +328,23 @@ export function constructDeck(faction: DeckFaction, holdings: Holdings, start?: 
         grew = true;
       }
     }
+  }
+  // The removal cap above assumed a full 40. When the owned cards run out
+  // short of that, the 25% share is of a smaller deck, so take out the
+  // lowest-rated removal copies until it holds (found session 54: a Null
+  // owner's day-one collection stopped at 37 cards with 10 removal).
+  const removalIn = () => cardsOf(list).filter(({ card }) => isRemovalOrDebuffCard(card));
+  while (count.removal > REMOVAL_SHARE * size(list) && size(list) > MIN_DECK) {
+    const isBase = (id: string) => [...list.keys()].some((k) => { const c = getCard(k)!; return c.type === "Unit" && c.evolvesFrom === id; });
+    const out = removalIn()
+      .filter(({ card }) => !isBase(card.id))
+      .sort((a, b) => cardRating(a.card) - cardRating(b.card) || a.card.id.localeCompare(b.card.id))[0];
+    if (!out) break;
+    const n = list.get(out.card.id)! - 1;
+    if (n > 0) list.set(out.card.id, n);
+    else list.delete(out.card.id);
+    count.removal--;
+    if (isNeutral(out.card)) count.neutral--;
   }
   const problem = listProblem(list, faction, holdings);
   if (problem) return { infeasible: `can't build a legal deck from the owned cards (${problem})` };
@@ -435,25 +461,32 @@ function* proposals(faction: DeckFaction, holdings: Holdings, rng: Rng, current:
   }
 }
 
+/** The build's sizes when the options leave them out: what the store's
+ * agent deck is built with. */
+export const DEFAULT_BUILD = { games: 40, trials: 24, confirmGames: 100, seed: 1 } as const;
+
 /** Builds, searches and confirms one faction's deck. */
 export async function buildFaction(faction: DeckFaction, holdings: Holdings, options: DeckBuildOptions = {}): Promise<FactionBuild> {
   const log = options.log ?? (() => {});
-  const games = options.games ?? 40;
-  const trials = options.trials ?? 24;
-  const confirmGames = options.confirmGames ?? 100;
-  const seed = options.seed ?? 1;
+  const games = options.games ?? DEFAULT_BUILD.games;
+  const trials = options.trials ?? DEFAULT_BUILD.trials;
+  const confirmGames = options.confirmGames ?? DEFAULT_BUILD.confirmGames;
+  const seed = options.seed ?? DEFAULT_BUILD.seed;
   const style = options.style ?? DEFAULT_PLAY_STYLE;
   const searchStyle = options.searchStyle ?? DEFAULT_PLAY_STYLE;
+  // Either start alone is enough: one that can't be built is left out.
   const built = constructDeck(faction, holdings);
-  if ("infeasible" in built) {
-    log(`${faction}: ${built.infeasible}`);
-    return { faction, infeasible: built.infeasible, starts: [], kept: [], tried: 0 };
-  }
-  const starts: FactionBuild["starts"] = [{ from: "rating", list: built.list }];
   const designed = constructDeck(faction, holdings, shippedList(faction));
-  if ("list" in designed && !sameList(designed.list, built.list)) starts.push({ from: "designed", list: designed.list });
+  const starts: FactionBuild["starts"] = [];
+  if ("list" in built) starts.push({ from: "rating", list: built.list });
+  if ("list" in designed && !("list" in built && sameList(designed.list, built.list))) starts.push({ from: "designed", list: designed.list });
+  if (starts.length === 0) {
+    const why = "infeasible" in built ? built.infeasible : "no legal start";
+    log(`${faction}: ${why}`);
+    return { faction, infeasible: why, starts: [], kept: [], tried: 0 };
+  }
   log(`${faction}: starts ${starts.map((st) => `${st.from} ${size(st.list)} cards`).join(", ")}`);
-  if (games === 0) return { faction, starts, deck: built.list, chosen: "rating", kept: [], tried: 0 };
+  if (games === 0) return { faction, starts, deck: starts[0]!.list, chosen: starts[0]!.from, kept: [], tried: 0 };
 
   // Search from the start that plays best on the search's seeds.
   let from = starts[0]!;

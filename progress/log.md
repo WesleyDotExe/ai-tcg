@@ -3686,3 +3686,48 @@ latest version was pinned to v13.
 `progress/deckbuilder-styles/`, `progress/economy-demo-016.txt`.
 
 **Blocked:** nothing. One owner check-in (the search plays Calculator), with a default.
+
+## 2026-10-21 — Session 54 (the pre-launch built-deck ring; two deck-builder fixes)
+
+Game-lane session (the last merged PR, #91, was render's). Read `progress/owner-feedback.md` first.
+The owner's session-53 answers (keep all 3) need no change and are marked handled. The render-36
+answers and the arena answer are the render lane's (noted). Next work, per session 53's thread: the
+owner's firm pre-launch to-do, the faction ring with built decks on both sides.
+
+**Built:** `economy/src/dev/realisticCollections.ts`: 8 simulated owners per faction, each the
+faction's starter collection plus packs from the live roller, with pity and the starter guarantee as
+the store has them. Collections are read off at 3, 17 and 37 packs, nested.
+`engine/src/dev/builtDeckRing.ts`: build each faction's decks with the store's own build at each level
+(plus a full collection, plus session 53's stronger full build read from its file), then the six ring
+edges at the ring check's seeds, built deck against built deck, in real-match and gate modes. At a pack
+level each seed pair seats one owner per side, so every owner plays equally often on both seats.
+Then a report beside the shipped baselines.
+
+**Ran it, and it found two bugs first:**
+- The first build pass failed: a day-one Null owner's cards ran out at 37, with 10 removal (the cap
+  for 40), so "no deck can be built", though the owner held the legal shipped list. Fixed: removal is
+  trimmed to 25% of the real size, and either start may stand alone.
+- The first report showed every built Null deck *below* the shipped list (-3.5 to -4.0). The cause:
+  the designed start was always padded to 40, and Null's designed list is 36. Fixed: the designed
+  start fills only its gaps, up to the list's own size. The full build was redone, and only Null's
+  files changed. Built Null now sits at +0.3 to +1.2 over its list.
+- With both fixes, `progress/built-deck-ring-001.txt` (118,000 ring games): built decks keep the
+  ring's shape. Every faction averages 46.6-54.5 against the field at every level. Real mode has no
+  more OUT edges than the shipped decks except at 37 packs (3 vs 2). Aegis, called out, is not the
+  outlier with built decks on both sides (53.3 full, 50.7-54.5 realistic). Its gauntlet lift is
+  against shipped opponents. The old problems stay: Null > Aegis inverted (45-50) and Cortex > Swarm
+  under its band (50.4-54.9). Session 53's padded-Null build shows what the bug cost: Null at 40.8.
+- Re-ran `progress/economy-demo-014.txt` and `-016.txt`. Only Null lines change: the designed start is
+  now offered where it was missing, or is the unpadded list. In 014, bo's Null deck keeps the
+  designed start at 45.8% (it was 48.0% with a searched padded deck). That is a 2-point loss on one
+  partial collection, within the 100-game confirm's noise (±2.5). Nobody in the demos plays Null. `npm test`: 1,083
+  pass; typecheck clean; `ring` and `ring:real` PASS. Mutation checks fail their tests.
+
+**Worked:** measuring with realistic collections caught two launch bugs that the earlier reports
+had not surfaced. **Didn't / honest limits:** owners are forced to their starting faction; 8 owners
+per faction; no salvage or crafting; older deck-builder reports still carry the padded Null deck (not
+re-run).
+
+**Evidence:** `progress/built-deck-ring-001.txt`, `progress/built-deck-ring/`.
+
+**Blocked:** nothing. One owner check-in (does the gate pass; the two old edges), with defaults.

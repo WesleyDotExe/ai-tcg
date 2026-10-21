@@ -1,10 +1,13 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CARD_REGISTRY, getCard } from "../src/data/registry.js";
 import { MAX_NEUTRAL_COPIES } from "../src/data/decks.js";
 import { isRemovalOrDebuffCard } from "../src/cards/poolLint.js";
-import type { Card, UnitCard } from "../src/cards/types.js";
+import type { Card, DeckFaction, UnitCard } from "../src/cards/types.js";
 import { Rng } from "../src/state/rng.js";
 import { cardRating } from "../src/deckbuilder/cardRating.js";
+import { allAbilities } from "../src/cards/modes.js";
 import {
   DECK_FACTIONS,
   buildFaction,
@@ -114,13 +117,19 @@ describe("constructDeck (the first deck)", () => {
   });
 
   it("starts from a designed list as far as it is owned, topped up from the rest", () => {
-    // Half the Aegis list (every other entry) plus a full set of everything else.
-    const half = new Map([...shippedList("Aegis")].filter((_, i) => i % 2 === 0));
+    // The owner lacks four of the Aegis list's non-Unit entries (and holds a
+    // full set of everything else): the rest go in, and the gaps fill back
+    // up to 40.
+    const designed = shippedList("Aegis");
     const holdings = fullHoldings();
-    const r = constructDeck("Aegis", holdings, half);
+    const draws = (id: string) => JSON.stringify(allAbilities(getCard(id)!)).includes('"drawCard"');
+    const lacking = [...designed.keys()].filter((id) => getCard(id)!.type !== "Unit" && !draws(id)).slice(0, 4);
+    expect(lacking).toHaveLength(4);
+    for (const id of lacking) holdings.set(id, 0);
+    const r = constructDeck("Aegis", holdings, designed);
     if ("infeasible" in r) throw new Error(r.infeasible);
     expectLegal(r.list, "Aegis", holdings);
-    for (const [id, n] of half) expect(r.list.get(id) ?? 0).toBeGreaterThanOrEqual(n);
+    for (const [id, n] of designed) if (!lacking.includes(id)) expect(r.list.get(id) ?? 0).toBeGreaterThanOrEqual(n);
     expect([...r.list.values()].reduce((a, b) => a + b, 0)).toBe(40);
   });
 
@@ -236,5 +245,59 @@ describe("chooseDeck (the deck-building agent)", () => {
     expect(rusher.searchedFrom).toBe(calc.searchedFrom);
     // The confirm step played Rusher's games.
     expect(rusher.starts.map((st) => st.score)).not.toEqual(calc.starts.map((st) => st.score));
+  });
+});
+
+describe("a collection that runs out short of 40 cards (session 54)", () => {
+  // A Null owner on day one (the starter deck plus its 3 starter packs,
+  // progress/built-deck-ring/collections.json): the owned cards stop at 37,
+  // and the rating fill had put in 10 removal cards, the cap for a 40-card
+  // deck but over 25% of 37. The builder said no deck could be built,
+  // though the owner holds the whole (legal) shipped Null list.
+  const file = JSON.parse(readFileSync(fileURLToPath(new URL("../../progress/built-deck-ring/collections.json", import.meta.url)), "utf8")) as {
+    collections: { faction: string; owner: number; packs: number; holdings: [string, number][] }[];
+  };
+  const holdings = new Map(file.collections.find((c) => c.faction === "Null" && c.owner === 1 && c.packs === 3)!.holdings);
+
+  it("builds a legal deck, trimming removal to the share of the smaller deck", () => {
+    const built = constructDeck("Null", holdings);
+    expect("list" in built).toBe(true);
+    const list = (built as { list: Map<string, number> }).list;
+    expect(listProblem(list, "Null", holdings)).toBeUndefined();
+    expect(() => deckSpec(list, "p1", "Null (built)")).not.toThrow();
+  });
+
+  it("gives every day-one owner of every faction a deck, never 'no deck'", async () => {
+    for (const c of file.collections.filter((x) => x.packs === 3)) {
+      const b = await buildFaction(c.faction as DeckFaction, new Map(c.holdings), { games: 0 });
+      expect(b.infeasible, `${c.faction} owner ${c.owner}`).toBeUndefined();
+    }
+  });
+});
+
+describe("the designed start is the designed list when the owner holds it all (session 54)", () => {
+  it("is each faction's shipped list exactly, from a full collection (Null's 36 cards included)", () => {
+    for (const f of DECK_FACTIONS) {
+      const built = constructDeck(f, fullHoldings(), shippedList(f));
+      expect("list" in built, f).toBe(true);
+      expect([...(built as { list: DeckList }).list].sort(), f).toEqual([...shippedList(f)].sort());
+    }
+  });
+
+  it("fills only the gaps when copies are missing, to the designed list's size", () => {
+    const holdings = fullHoldings();
+    const designed = shippedList("Null");
+    // A card no evolution builds on, so taking it out takes out nothing else.
+    const missing = [...designed.keys()].find((id) => getCard(id)!.type !== "Unit");
+    holdings.set(missing!, 0);
+    const built = constructDeck("Null", holdings, designed) as { list: DeckList };
+    const total = [...built.list.values()].reduce((s, n) => s + n, 0);
+    // Never past the designed size; short of it only where no owned spare
+    // fits the rules (Null's spares are mostly removal, at its cap).
+    const designedSize = [...designed.values()].reduce((s, n) => s + n, 0);
+    expect(total).toBeLessThanOrEqual(designedSize);
+    expect(total).toBeGreaterThanOrEqual(designedSize - designed.get(missing!)!);
+    expect(listProblem(built.list, "Null", holdings)).toBeUndefined();
+    expect(built.list.has(missing!)).toBe(false);
   });
 });

@@ -68,4 +68,28 @@ describe("balance-report drivers (smoke, 2 seeds, every section)", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   }, 150_000);
+
+  it("builtDeckRing.ts builds, rings and reports (two levels, a few games)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ai-tcg-bdring-"));
+    const collections = fileURLToPath(new URL("../../progress/built-deck-ring/collections.json", import.meta.url));
+    try {
+      mkdirSync(join(dir, "builds"));
+      mkdirSync(join(dir, "rings"));
+      for (const level of ["full", "3"]) {
+        for (const f of ["Cortex", "Swarm", "Aegis", "Null"]) {
+          run("builtDeckRing.ts", "build", level, f, "--collections", collections, "--games", "1", "--trials", "1", "--confirm", "1", "--out", join(dir, "builds", `${level}-${f}.json`));
+        }
+        for (const mode of ["real", "gate"]) run("builtDeckRing.ts", "ring", level, "--mode", mode, "--builds", join(dir, "builds"), "--seeds", "16", "--out", join(dir, "rings", `${level}-${mode}.json`));
+      }
+      const out = run("builtDeckRing.ts", "report", "--builds", join(dir, "builds"), "--rings", join(dir, "rings"));
+      for (const h of ["REAL-MATCH MODE", "GATE MODE", "The built decks"]) expect(out, h).toContain(`== ${h}`);
+      expect(out).not.toMatch(/NaN|undefined|Infinity/);
+      // Every edge in both modes, with the shipped baseline and both levels.
+      expect(out.match(/^Null > Aegis \(55-60\)(\s+\d+\.\d \[[\d.]+-[\d.]+\] (IN|OUT|unres\.)){3}$/gm)).toHaveLength(2);
+      // The day-one level spreads its games over the 8 owners of each faction.
+      expect(out).toMatch(/^ {2}3 packs {3}Null > Aegis\s+min \d/m);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 300_000);
 });

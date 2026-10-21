@@ -3466,7 +3466,7 @@ Answers the [OWNER CHECK-IN] "Six play styles: fair against each other, but most
 
 ---
 
-## 2026-10-20 — Owner: answers to game session 53 (the agent's deck in the agent's play style), keep all 3
+## 2026-10-20 — Owner: answers to game session 53 (the agent's deck in the agent's play style), keep all 3 (HANDLED 2026-10-21, session 54 — the 3 calls stand as built, nothing to change: the search stays Calculator, a style change asks for a rebuild, no stronger search until after the pre-launch built-deck check. That check was run this session with the builder as it is: `progress/built-deck-ring-001.txt`)
 
 Answers the [OWNER CHECK-IN] "The deck builder searches as Calculator, and chooses in the agent's style" in `progress/notes-for-owner.md` (PR #90, `progress/deckbuilder-styles-report-001.txt`, `-002.txt`).
 1. **Keep:** the search plays as Calculator and the final choice (the confirm step) plays in the agent's style, rather than every game in the style.
@@ -3476,7 +3476,7 @@ Answers the [OWNER CHECK-IN] "The deck builder searches as Calculator, and choos
 
 ---
 
-## 2026-10-21 — Owner: answers to render session 36 (the loadout picker), keep all 8; and the boast's win message
+## 2026-10-21 — Owner: answers to render session 36 (the loadout picker), keep all 8; and the boast's win message (render lane's own; nothing for the game lane, noted session 54)
 
 ### Render session 36: keep all 8
 Owner decisions on the 8 calls in `progress/render/checkpoints.md` (victory boasts slice 4, the loadout picker; PR #91).
@@ -3502,7 +3502,7 @@ The arena question from session 36's notes (which side's arena a match shows) is
 
 ---
 
-## 2026-10-21 — Owner: the arena question answered (each owner sees their own agent's arena)
+## 2026-10-21 — Owner: the arena question answered (each owner sees their own agent's arena) (render lane's own; nothing for the game lane until arenas are sold, noted session 54)
 
 Answers question 1 of the render lane's session-36 notes (`progress/render/notes-for-owner.md`, "which side's arena does a match show?"), left open in the entry above.
 - **The arena is a personal view, not a shared one.** Each owner sees the arena background equipped by their own agent when watching that agent's match or its replay. In the same match, the two owners can see different backgrounds behind the same board.
