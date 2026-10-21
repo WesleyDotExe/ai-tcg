@@ -435,13 +435,17 @@ function* proposals(faction: DeckFaction, holdings: Holdings, rng: Rng, current:
   }
 }
 
+/** The build's sizes when the options leave them out: what the store's
+ * agent deck is built with. */
+export const DEFAULT_BUILD = { games: 40, trials: 24, confirmGames: 100, seed: 1 } as const;
+
 /** Builds, searches and confirms one faction's deck. */
 export async function buildFaction(faction: DeckFaction, holdings: Holdings, options: DeckBuildOptions = {}): Promise<FactionBuild> {
   const log = options.log ?? (() => {});
-  const games = options.games ?? 40;
-  const trials = options.trials ?? 24;
-  const confirmGames = options.confirmGames ?? 100;
-  const seed = options.seed ?? 1;
+  const games = options.games ?? DEFAULT_BUILD.games;
+  const trials = options.trials ?? DEFAULT_BUILD.trials;
+  const confirmGames = options.confirmGames ?? DEFAULT_BUILD.confirmGames;
+  const seed = options.seed ?? DEFAULT_BUILD.seed;
   const style = options.style ?? DEFAULT_PLAY_STYLE;
   const searchStyle = options.searchStyle ?? DEFAULT_PLAY_STYLE;
   const built = constructDeck(faction, holdings);
