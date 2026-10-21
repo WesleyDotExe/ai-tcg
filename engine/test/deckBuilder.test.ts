@@ -7,6 +7,7 @@ import { isRemovalOrDebuffCard } from "../src/cards/poolLint.js";
 import type { Card, DeckFaction, UnitCard } from "../src/cards/types.js";
 import { Rng } from "../src/state/rng.js";
 import { cardRating } from "../src/deckbuilder/cardRating.js";
+import { allAbilities } from "../src/cards/modes.js";
 import {
   DECK_FACTIONS,
   buildFaction,
@@ -116,13 +117,19 @@ describe("constructDeck (the first deck)", () => {
   });
 
   it("starts from a designed list as far as it is owned, topped up from the rest", () => {
-    // Half the Aegis list (every other entry) plus a full set of everything else.
-    const half = new Map([...shippedList("Aegis")].filter((_, i) => i % 2 === 0));
+    // The owner lacks four of the Aegis list's non-Unit entries (and holds a
+    // full set of everything else): the rest go in, and the gaps fill back
+    // up to 40.
+    const designed = shippedList("Aegis");
     const holdings = fullHoldings();
-    const r = constructDeck("Aegis", holdings, half);
+    const draws = (id: string) => JSON.stringify(allAbilities(getCard(id)!)).includes('"drawCard"');
+    const lacking = [...designed.keys()].filter((id) => getCard(id)!.type !== "Unit" && !draws(id)).slice(0, 4);
+    expect(lacking).toHaveLength(4);
+    for (const id of lacking) holdings.set(id, 0);
+    const r = constructDeck("Aegis", holdings, designed);
     if ("infeasible" in r) throw new Error(r.infeasible);
     expectLegal(r.list, "Aegis", holdings);
-    for (const [id, n] of half) expect(r.list.get(id) ?? 0).toBeGreaterThanOrEqual(n);
+    for (const [id, n] of designed) if (!lacking.includes(id)) expect(r.list.get(id) ?? 0).toBeGreaterThanOrEqual(n);
     expect([...r.list.values()].reduce((a, b) => a + b, 0)).toBe(40);
   });
 
@@ -265,5 +272,32 @@ describe("a collection that runs out short of 40 cards (session 54)", () => {
       const b = await buildFaction(c.faction as DeckFaction, new Map(c.holdings), { games: 0 });
       expect(b.infeasible, `${c.faction} owner ${c.owner}`).toBeUndefined();
     }
+  });
+});
+
+describe("the designed start is the designed list when the owner holds it all (session 54)", () => {
+  it("is each faction's shipped list exactly, from a full collection (Null's 36 cards included)", () => {
+    for (const f of DECK_FACTIONS) {
+      const built = constructDeck(f, fullHoldings(), shippedList(f));
+      expect("list" in built, f).toBe(true);
+      expect([...(built as { list: DeckList }).list].sort(), f).toEqual([...shippedList(f)].sort());
+    }
+  });
+
+  it("fills only the gaps when copies are missing, to the designed list's size", () => {
+    const holdings = fullHoldings();
+    const designed = shippedList("Null");
+    // A card no evolution builds on, so taking it out takes out nothing else.
+    const missing = [...designed.keys()].find((id) => getCard(id)!.type !== "Unit");
+    holdings.set(missing!, 0);
+    const built = constructDeck("Null", holdings, designed) as { list: DeckList };
+    const total = [...built.list.values()].reduce((s, n) => s + n, 0);
+    // Never past the designed size; short of it only where no owned spare
+    // fits the rules (Null's spares are mostly removal, at its cap).
+    const designedSize = [...designed.values()].reduce((s, n) => s + n, 0);
+    expect(total).toBeLessThanOrEqual(designedSize);
+    expect(total).toBeGreaterThanOrEqual(designedSize - designed.get(missing!)!);
+    expect(listProblem(built.list, "Null", holdings)).toBeUndefined();
+    expect(built.list.has(missing!)).toBe(false);
   });
 });

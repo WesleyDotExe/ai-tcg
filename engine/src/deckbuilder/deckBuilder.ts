@@ -14,7 +14,8 @@
 //       - "rating": greedy by cardRating's prior, shaped to the shipped
 //         decks' mana curve.
 //       - "designed": the faction's shipped list (the set's designed deck)
-//         as far as the owner holds it, the gaps filled the same greedy way.
+//         as far as the owner holds it, its gaps filled the same greedy way
+//         up to the designed list's own size (Null's is 36).
 //     Two starts because neither prior is right everywhere: from a full
 //     collection the rating deck beats the designed one in Cortex and
 //     Aegis and loses to it in Swarm and Null (progress/
@@ -245,17 +246,25 @@ function candidates(faction: DeckFaction, holdings: Holdings): Card[] {
  * with the best-rated cards that fit, then fills to 40 by rating. A card
  * is added only while the list stays within the rules that adding can
  * break (copies, neutral cap, removal share at 40, evolution base).
+ *
+ * With a `start` list (the designed start), the list goes in first and only
+ * its gaps are filled: the deck is filled to the start's own size, not to
+ * 40, so an owner who holds the whole designed list gets exactly that list
+ * (found session 54: Null's 36-card designed list was padded to 40 with the
+ * four best-rated spares, and the padded deck played 3-4 points under the
+ * designed one, so no owner's built Null deck could match it).
  */
 export function constructDeck(faction: DeckFaction, holdings: Holdings, start?: DeckList): { list: DeckList } | { infeasible: string } {
   const pool = candidates(faction, holdings);
   const list: DeckList = new Map();
+  const target = start ? Math.min(MAX_DECK, Math.max(MIN_DECK, size(start))) : MAX_DECK;
   const removalCap = Math.floor(REMOVAL_SHARE * MAX_DECK);
   const count = { neutral: 0, removal: 0 };
   const byBucket = [0, 0, 0, 0, 0, 0, 0];
   const canAdd = (card: Card): boolean => {
     const have = list.get(card.id) ?? 0;
     if (have >= playableCopies(card, holdings.get(card.id) ?? 0)) return false;
-    if (size(list) >= MAX_DECK) return false;
+    if (size(list) >= target) return false;
     if (isNeutral(card) && count.neutral >= MAX_NEUTRAL_COPIES) return false;
     if (isRemovalOrDebuffCard(card) && count.removal >= removalCap) return false;
     if (card.type === "Unit" && card.evolvesFrom && !(list.get(card.evolvesFrom) ?? 0)) return false;
@@ -303,15 +312,15 @@ export function constructDeck(faction: DeckFaction, holdings: Holdings, start?: 
     grew = false;
     for (const card of pool) {
       const b = bucket(card);
-      while (byBucket[b]! < Math.round(CURVE[b]! * MAX_DECK) && canAdd(card)) {
+      while (byBucket[b]! < Math.round(CURVE[b]! * target) && canAdd(card)) {
         add(card);
         grew = true;
       }
     }
   }
-  // Then fill to 40 by rating alone (again until nothing more fits).
+  // Then fill to the target by rating alone (again until nothing more fits).
   grew = true;
-  while (grew && size(list) < MAX_DECK) {
+  while (grew && size(list) < target) {
     grew = false;
     for (const card of pool) {
       while (canAdd(card)) {

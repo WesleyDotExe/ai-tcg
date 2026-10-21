@@ -18,6 +18,9 @@
 //         collection with the stronger settings (100 games, 60 changes,
 //         500-game confirm; progress/deckbuilder-styles/builds/calculator.json),
 //         read, not rebuilt: is a better-searched deck a different balance?
+//         Built before session 54's two builder fixes (a short deck's removal
+//         share; the designed start no longer padded to 40), so its Null deck
+//         is a padded one.
 //       - a pack count (3, 17, 37): one deck per simulated owner who started
 //         in that faction (economy/src/dev/realisticCollections.ts: the
 //         faction's starter collection plus packs from the live roller).
@@ -199,7 +202,7 @@ const pct = (x: number) => (x * 100).toFixed(1);
 const signed = (x: number) => `${x >= 0 ? "+" : ""}${(x * 100).toFixed(1)}`;
 const LEVEL_ORDER = ["full-report", "full", "37", "17", "3"];
 const LEVEL_NAME: Record<string, string> = {
-  "full-report": "full collection, the report's stronger build (session 53)",
+  "full-report": "full collection, session 53's stronger build (before this session's builder fixes)",
   full: "full collection, the store's build",
   "37": "starter + 37 packs (about two weeks)",
   "17": "starter + 17 packs (about a week)",
@@ -256,7 +259,7 @@ function report(builds: BuiltDeckFile[], rings: RingFile[]): void {
         rateBy.get(c)!.set(name, m.selfWins / m.games);
         cells.push(`${pct(m.selfWins / m.games)} [${pct(ci.lo)}-${pct(ci.hi)}] ${verdictShort(bandVerdict(m.selfWins, m.games, band))}`.padStart(24));
       }
-      console.log(`${`${name} (${band.lo * 100}-${band.hi * 100})`.padEnd(24)}${cells.join("")}`);
+      console.log(`${`${name} (${Math.round(band.lo * 100)}-${Math.round(band.hi * 100)})`.padEnd(24)}${cells.join("")}`);
     }
     console.log(`${"in band / unres. / out".padEnd(24)}${cols
       .map((c) => {
