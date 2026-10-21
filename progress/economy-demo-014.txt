@@ -16,7 +16,7 @@ Every build: 16 one-copy changes tried per faction, 40 games per shipped opponen
   Cortex: 63.2% against the four shipped decks on fresh seeds (rating start 61.3%, designed start 60.3%); keeps the searched deck, changes: -1 Uplink Tower +1 Mainframe Core: 80 -> 89 of 160
   Swarm: 41.3% against the four shipped decks on fresh seeds (rating start 20.3%, designed start 41.3%); keeps the designed deck
   Aegis: 49.0% against the four shipped decks on fresh seeds (rating start 34.8%, designed start 44.5%); keeps the searched deck, changes: -1 Tariff Field +1 Feedback Plating: 80 -> 83 of 160
-  Null: 48.0% against the four shipped decks on fresh seeds (rating start 37.3%, designed start 47.5%); keeps the searched deck, changes: -1 Segmentation Fault: 63 -> 72 of 160; -1 Watchdog Timer +1 Relay Courier: 72 -> 76 of 160; -1 Decay Ward +1 Null Shell: 76 -> 81 of 160
+  Null: 45.8% against the four shipped decks on fresh seeds (rating start 37.3%, designed start 45.8%); keeps the designed deck
   -> bo's agent plays Cortex: "Agent's deck", 40 cards, active: true
      against the Cortex starter list: +1 Compiled Daemon, +1 Diagnostic Pulse, +1 Dormant Exploit, +1 Fail-safe Unit, +1 Force Quit, +1 Overload Capacitor, +1 Retaliation Node, +1 Uplink Tower, +2 Relay Courier, +2 Signal Drone, +3 Spare Cycles, -1 Backup Protocol, -1 Cascade Purge, -1 Deadlock Detector, -1 Diagnostic Loop, -1 Hotfix, -1 Interrupt Handler, -1 Load Balancer, -1 Mainframe Core, -1 Overclock Shunt, -1 Rollback Point, -1 Surge Protector, -2 Cortex Engineer, -2 Rate Limiter
 

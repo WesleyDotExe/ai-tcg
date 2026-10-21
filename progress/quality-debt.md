@@ -42,15 +42,36 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
 ## Launch gate (owner 2026-10-19, firm): built-deck balance
 
-- **The ring with built decks on both sides has never been measured.** A hard gate before the public
-  launch (roadmap "Standing: built-deck balance before launch"). Open until measured and taken to the
-  owner.
+- **Measured session 54, with the owner for a decision** (`progress/built-deck-ring-001.txt`, check-in
+  in notes-for-owner.md). It stays open until the owner calls it, and it is a standing re-run: any card
+  change, and the last session before launch, re-runs `builtDeckRing.ts`. Nothing runs it automatically
+  (about 25 minutes on 4 cores, too slow for CI).
+
+## New debt from session 54 (the built-deck ring)
+
+- **Two builder bugs reached main before anything measured realistic collections:** a short collection
+  hit the removal share and got "no deck" (a day-one Null owner), and the designed start was padded to
+  40, so Null's 36-card designed list was never tried. Both are fixed and tested. Before them, every
+  economy demo, `deckbuilder-report-001` and `deckbuilder-styles-report-*` built Null decks with the
+  padded start. Those reports stand as history and were not re-run (only 014 and 016 were). Their Null
+  numbers understate Null by about 3-4 points.
+- **Owners are forced to their starting faction.** A real owner on "agent" with no lock may switch
+  faction when its packs favour another, and this ring doesn't model that. Starter-faction owners only.
+- **8 owners per faction, one pack history each.** The spread between owners on one edge reaches about
+  19 points. The averages are the claim; one owner's experience can be far from them.
+- **Collections ignore salvage, crafting and the shared Prototype runs.** An owner who salvages spares
+  and crafts gaps would build closer to the full-collection deck. Not modelled.
+- **The two long-standing out-of-band edges are unchanged:** Null > Aegis inverted (Aegis wins) and
+  Cortex > Swarm below its band, with shipped and built decks alike. Owner call pending on whether to
+  fix them with cards before launch.
+- **The full-collection report build (session 53) has the padded Null deck.** The report shows it as
+  history, labelled; it was not rebuilt with the stronger settings (that costs about 4x the store build).
 
 ## New debt from session 53 (the agent's deck in the agent's play style)
 

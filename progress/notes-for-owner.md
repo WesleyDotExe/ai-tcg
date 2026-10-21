@@ -1,10 +1,74 @@
 # Notes for the owner
 
-**Updated 2026-10-20, session 53 (the agent's deck in the agent's play style, roadmap 2b part 3).**
-Nothing is blocking. Your play-style answers are in (option C, keep all 6); the commentary part is on
-the roadmap for whichever lane builds the commentators (none exists yet). The deck builder now picks
-the agent's deck in the agent's style, and the store says when the deck needs a rebuild. **One
-[OWNER CHECK-IN] below**, with a default.
+**Updated 2026-10-21, session 54 (the pre-launch built-deck ring, your 2026-10-19 firm to-do).**
+Nothing is blocking. Your session-53 answers (keep all 3) are in. The built-deck ring is measured;
+**one [OWNER CHECK-IN] below** with the results, as you asked, with a default. Measuring it also found
+and fixed two real bugs in the deck builder (no card, deck or rule changed).
+
+### [OWNER CHECK-IN] The built-deck ring: built decks keep the ring's shape; no new problem, two old ones
+
+**What was asked:** measure the faction ring (all six edges) with built decks on both sides, from full
+and realistic collections, with today's agent, at the ring check's bar, Aegis called out; results and
+any fixes to you; no card or deck change without your OK.
+
+**What ran** (`progress/built-deck-ring-001.txt`): the store's own deck build (what an owner gets),
+forced to the owner's starting faction. Four collection levels: a full collection, and 8 simulated
+owners per faction holding their starter deck plus 3 packs (day one), 17 packs (about a week) and 37
+packs (about two weeks), with packs from the live roller. Each edge at the ring check's 2,500 seeds (900
+for the two even ones), built deck against built deck, in real-match mode (each side also gets its
+approved signature card) and in the gate's decks-only mode: 118,000 ring games, plus about half a
+million games of deck building.
+
+**Results, real-match mode** (win rate of the first-named faction; band in brackets):
+
+| edge (band) | shipped decks | full collection | 37 packs | 17 packs | day one |
+|---|---|---|---|---|---|
+| Null > Aegis (55-60) | 45.3 OUT | 46.6 OUT | 49.6 OUT | 45.2 OUT | 45.7 OUT |
+| Aegis > Cortex (55-60) | 55.6 | 55.2 | 51.4 OUT | 53.9 | 54.0 |
+| Cortex > Swarm (55-60) | 53.0 OUT | 50.4 OUT | 52.5 OUT | 54.7 | 54.9 |
+| Swarm > Null (55-60) | 55.5 | 56.3 | 53.6 | 56.9 | 55.2 |
+| Null ~ Cortex (45-55) | 49.0 IN | 49.9 IN | 50.2 IN | 52.7 | 49.4 IN |
+| Aegis ~ Swarm (45-55) | 56.2 | 51.4 IN | 50.1 IN | 54.3 | 55.2 |
+
+**In plain words:**
+- **Built decks don't break the ring.** At every level, every faction's average against the field
+  stays between 46.6 and 54.5. The direction of five edges holds, and the even edges stay even. Real
+  mode has as many or fewer OUT edges than the shipped decks at every level except 37 packs.
+- **Aegis:** with built decks on *both* sides, Aegis is not the outlier. Its +11.8-point lift against
+  the shipped decks doesn't survive opponents who also build: Aegis averages 53.3 from a full
+  collection (55.5 with shipped decks) and 50.7 to 54.5 at the realistic levels. In decks-only mode
+  (no signature card) a full-collection Aegis averages 54.6 (+4.3 over shipped), so the signature card
+  is what holds it level.
+- **The two old problems stay:** Null > Aegis is OUT at every level (Aegis wins this predator edge,
+  as with the shipped decks; already your accepted-OUT edge). Cortex > Swarm sits under its band at
+  every level (50.4 to 54.9 instead of 55-60), clearly OUT at the full and 37-pack levels, as with the
+  shipped decks (53.0 OUT).
+- **The spread between owners is wide:** one owner's win rate on an edge ranges up to about 19
+  points from another's (luck of the packs). That's expected, but it means the ring holds on
+  average, not for every owner.
+
+**Two builder bugs found and fixed while measuring** (both only touch the deck-building agent):
+1. A day-one Null owner got "no deck can be built". Their cards ran out at 37, and the removal limit
+   was counted for a 40-card deck. Now fixed. Had this shipped, every new Null owner with unlucky
+   packs would have had no deck.
+2. The "designed" starting deck was always padded to 40 cards, and Null's designed list is 36. So no
+   owner's agent could ever play the real Null list, and built Null decks were 3-4 points weaker than
+   the shipped list. With the fix, Null's built decks are at or above the shipped list (+0.3 to +1.2).
+   Before the fix, from a full collection, Null averaged 40.8 against the field (the "full (report)"
+   column, session 53's build).
+
+**Calls (each has a default):**
+1. **Do the built decks pass the launch gate?** My read: they pass in the sense you asked about. Built
+   decks add no new out-of-band edge in real mode and no dominant faction, and Aegis is not a problem
+   with built decks on both sides. The gate stays a standing check: re-run it after any card change
+   and before launch. **Default: pass, and re-run before launch.**
+2. **The two old edges (Null > Aegis inverted, Cortex > Swarm too even)** show up the same with built
+   decks. Any fix is a card change, so it's yours to call. I'd propose candidates in a balance session
+   (one or two cards per edge, measured on the ring check and on this built-deck ring) only if you want
+   it before launch. **Default: no card change now; keep them as the accepted-out edges.**
+3. **The measure uses the store's own build** (40 games per test, a few seconds per owner), not the
+   stronger one. A stronger build gave the same ring within noise (the "full (report)" column, apart
+   from its padded Null deck). **Default: keep the store's build as the measured one.**
 
 ### [OWNER CHECK-IN] The deck builder searches as Calculator, and chooses in the agent's style
 

@@ -1,54 +1,49 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 53 (game lane): roadmap 2b part 3, the
-agent's deck in the agent's play style, built and measured. Nothing is blocking.** The owner's
-play-style answers (option C, keep all 6) are handled; the commentary part is on the roadmap (item 8)
-for whichever lane builds the commentators. One new [OWNER CHECK-IN] in notes-for-owner.md (the
-search plays Calculator, not the style; it has a default). The built-deck balance measurement is still
-a hard gate before the public launch.
+**Build-order stage: Stage 4+ (the living system). Session 54 (game lane): the pre-launch built-deck
+ring (the owner's 2026-10-19 firm to-do), measured. Two deck-builder bugs found and fixed. Nothing is
+blocking.** The owner's session-53 answers (keep all 3) are handled. One new [OWNER CHECK-IN] in
+notes-for-owner.md (does the gate pass; the two old out-of-band edges), with defaults.
 
-- **The engine** (`engine/src/deckbuilder/deckBuilder.ts`): `DeckBuildOptions.style` is the play style
-  the confirm step plays the built deck in, so the deck kept is the one that style plays best;
-  `searchStyle` (default Calculator) is the style the search plays. `playGauntlet(list, seed, games,
-  style)`; the shipped opponents always play Calculator. `BuiltDeck.style`. Calculator's builds are
-  byte-identical to session 51's (`deckbuilder-report-001` section 1 reproduces).
-- **Why the search stays Calculator** (`progress/deckbuilder-styles-report-001.txt`): searching in
-  each style kept decks 2-3 points worse than Calculator's for every style, that style included (all
-  five gains negative, -2.1 to -2.7 over 8,000 paired games each). The styles are too close for the
-  search's noise. With the Calculator search (`progress/deckbuilder-styles-report-002.txt`), every
-  style keeps Calculator's deck in all four factions from a full collection (gain 0, lift over the
-  shipped deck +5.2 to +7.0 per style). From a partial collection the style can change the pick
-  (economy-demo-016: Rusher and Fortress keep a different Null deck).
-- **The store** (schema v14): `buildAgentDeck` builds in the connected agent's style (Calculator with
-  none); the agent deck records `built_style`, `built_lock`, `built_holdings` (a fingerprint of copies
-  per card id); `agentDeckBuiltFrom`, `agentDeckRebuildReasons` (no deck; cards held changed; lock
-  changed; style changed, incl. by connecting another agent; unknown for pre-v14 or hand-edited) and
-  `rebuildAgentDeckIfNeeded` (for the ladder to call between matches). `progress/economy-demo-016.txt`.
+- **The ring with built decks** (`progress/built-deck-ring-001.txt`): store builds, forced to the
+  starting faction, at four levels (full; 8 owners per faction at 3, 17 and 37 packs). Six edges at
+  the ring check's seeds, built against built, real-match and gate modes. Built decks keep the
+  ring's shape: every faction averages 46.6-54.5 against the field. In real mode Aegis is not the
+  outlier (53.3 from a full collection, 55.5 with shipped decks). Null > Aegis stays OUT (inverted)
+  and Cortex > Swarm stays under its band, as with the shipped decks.
+- **The builder fixes** (`engine/src/deckbuilder/deckBuilder.ts`): (1) a list that runs out short of
+  40 trims removal to 25% of its real size, and either start may stand alone, so a day-one Null owner
+  no longer gets "no deck"; (2) the designed start fills only its gaps, up to the designed list's own
+  size, so an owner holding Null's whole 36-card list gets it (it was padded to 40 and played 3-4
+  points under the list). Only Null builds changed (checked file by file).
 
-## What stands (this session's work; sessions 1-52 otherwise unchanged)
+## What stands (this session's work; sessions 1-53 otherwise unchanged)
 
-- New: `engine/src/dev/deckBuilderStyleReport.ts` (build / cross / report, sharded by style),
-  `economy/src/dev/agentDeckStyleDemo.ts`, migration 14, `economy/test/agentDeckStyle.test.ts` (7),
-  results in `progress/deckbuilder-styles/` (own-search/ is the experiment). Changed: `deckBuilder.ts`,
-  `store.ts`, `schema.ts`, ECONOMY.md.
-- Tests: +2 engine deck-builder tests (style reaches the games, the search is Calculator's whatever the
-  style), +1 driver smoke test, +7 store tests. `npm test`: all six workspaces pass (1,057); typecheck
-  clean everywhere. Mutation checks: dropping the store's style pass-through fails 1 test; making the
-  search play the style fails 1. `ring`/`ring:real` not re-run (no card, rule or agent change).
+- New: `economy/src/dev/realisticCollections.ts` (starter + live-roller packs, nested levels),
+  `engine/src/dev/builtDeckRing.ts` (build / ring / report, sharded), results in
+  `progress/built-deck-ring/` (collections.json, builds/, rings/), `DEFAULT_BUILD` exported from the
+  deck builder. Re-run: `progress/economy-demo-014.txt` and `-016.txt`, whose Null decks change
+  with the fixes.
+- Tests: +4 engine deck-builder tests (the short-collection and designed-start fixes; one older test
+  rewritten to pass the whole designed list, as real use does), +4 seating tests, +1 driver smoke
+  test, +4 collection tests. `npm test`: all six workspaces pass (1,083). Typecheck clean everywhere.
+  `ring` and `ring:real`: PASS (no card, rule or agent change). Mutation checks: reverting the short-deck
+  fix fails both short-collection tests; padding the designed start to 40 again fails both
+  designed-start tests.
 
 ## Concrete next step
 
-Check the alternation first: if the last merged PR is this one (game lane), the next session is
-**render** (boast slice 4, the loadout picker, per the owner's render-session-35 answers).
+Check the alternation first. If the last merged PR is this one (game lane), the next session is
+**render** (the boast's "<AGENT> WINS" message and Match Boot slice 2, per the owner's 2026-10-21
+entry).
 
-The next **game-lane** session (session 54):
-1. The owner's word, if any (this session's check-in has a default: keep the Calculator search).
-2. The pre-launch built-deck ring (roadmap "Standing: built-deck balance before launch"): a driver
-   that builds each faction's deck with `chooseDeck` from full collections and from starter-plus-packs
-   collections (e.g. 3 and 30 packs, several seeds), then the six ring edges with built decks on both
-   sides at the ring check's bar, Aegis called out; results to an owner check-in, no card change.
-   `deckBuilderStyleReport.ts`'s build/cross sharding is the pattern to copy.
-3. Or roadmap 2b step 3 (exposing the settings: server endpoints, item 3).
-4. Session 55 is a hardening pass (every 5th).
+The next **game-lane** session (session 55) is a **HARDENING pass** (every 5th session):
+1. The owner's word on this check-in, if any. Default: the gate passes, with no card change, and is
+   re-run before launch.
+2. Hardening candidates: re-run `deckbuilder-report-001` / `deckbuilder-styles-report-002` with the
+   fixed builder so no committed report carries the padded Null deck; make `rebuildAgentDeckIfNeeded`
+   over-ask less (count only cards the faction lock allows); look for other places that assume a
+   40-card deck (grep for MAX_DECK and 40 in the builder and the store).
+3. After that: roadmap 2b step 3 (exposing the settings: server endpoints, item 3).
 
 **Blocked:** nothing.

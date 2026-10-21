@@ -424,6 +424,9 @@ is already the real-match ring's one accepted-out-of-band edge). Results
 and any proposed fixes go to an owner check-in; no card or deck change
 without the owner's OK. Any session before launch; tracked in
 quality-debt.md until done.
+MEASURED session 54 (`progress/built-deck-ring-001.txt`,
+`engine/src/dev/builtDeckRing.ts`): built decks keep the ring's shape;
+owner check-in open. Re-run after any card change and before launch.
 
 **Standing: live operations, balancing never stops (owner 2026-10-05).**
 Once live: track faction popularity and win rates from real ladder and
