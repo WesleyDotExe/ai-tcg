@@ -3524,3 +3524,11 @@ Answers the [OWNER CHECK-IN] "The built-deck ring: built decks keep the ring's s
    - If no candidate fixes an edge cleanly (without pushing another edge out or making a faction dominant), both edges stay as the accepted-out edges.
    - It does not have to be the very next game session, but it must happen before launch; plan it on the roadmap alongside the gate.
 3. **Keep:** the measure uses the store's own deck build (the one owners get), not the stronger build.
+
+
+---
+
+## 2026-10-23 — Owner: answers to game session 55 (a rebuild waits for usable cards), keep
+
+Answers the [OWNER CHECK-IN] "A rebuild now waits for cards the deck could use" in `progress/notes-for-owner.md` (PR #93, `progress/economy-demo-016.txt` section 7).
+- **Keep:** a deck saved before session 55 keeps the old rule (any card change is a reason to rebuild) until its next rebuild; nothing is migrated. From its next rebuild on, only cards the deck could use count.
