@@ -3509,3 +3509,18 @@ Answers question 1 of the render lane's session-36 notes (`progress/render/notes
 - The arena never changes the board, the cards or anything else both sides see, only the background behind it.
 - **Not decided yet:** what a spectator who owns neither agent sees (for example a neutral default, or the arena of the agent they follow). The render lane proposes this at the checkpoint where arenas are first built.
 - Nothing to build now: Season 0 sells no arenas. Apply this when the first arena ships. The loadout picker's arena line ("the background behind the board in this agent's matches") can say it is what this owner sees.
+
+
+---
+
+## 2026-10-22 — Owner: answers to game session 54 (the pre-launch built-deck ring)
+
+Answers the [OWNER CHECK-IN] "The built-deck ring: built decks keep the ring's shape; no new problem, two old ones" in `progress/notes-for-owner.md` (PR #92, `progress/built-deck-ring-001.txt`).
+
+1. **The built decks pass the launch gate,** as built. The gate stays a standing check: re-run the built-deck ring before launch and after any card change.
+2. **The two old edges (Null > Aegis inverted, Cortex > Swarm too even): a test-only balance session before launch.**
+   - Before the public launch, run a balance session that tests one or two candidate card fixes per edge, measured on both the ring check (shipped decks, real-match and gate modes) and this built-deck ring, at every collection level.
+   - Test only: no card, deck or rule changes without the owner's OK. Bring the candidates and their full results to an owner check-in.
+   - If no candidate fixes an edge cleanly (without pushing another edge out or making a faction dominant), both edges stay as the accepted-out edges.
+   - It does not have to be the very next game session, but it must happen before launch; plan it on the roadmap alongside the gate.
+3. **Keep:** the measure uses the store's own deck build (the one owners get), not the stronger build.
