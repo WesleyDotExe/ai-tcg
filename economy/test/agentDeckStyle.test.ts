@@ -9,8 +9,8 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { SHIPPED_DECK_LISTS, chooseDeck, holdingsOf } from "@ai-tcg/engine";
-import { EconomyStore, holdingsFingerprint } from "../src/index.js";
+import { CARD_REGISTRY, SHIPPED_DECK_LISTS, chooseDeck, getCard, holdingsOf, playableCopies } from "@ai-tcg/engine";
+import { EconomyStore, holdingsFingerprint, playableHoldingsFingerprint } from "../src/index.js";
 
 let clock = new Date("2026-10-20T10:00:00.000Z");
 const open = (path = ":memory:", migrateTo?: number) => EconomyStore.open(path, { now: () => clock, migrateTo });
@@ -70,7 +70,7 @@ describe("the agent's deck in the agent's style", () => {
     expect(s.agentDeckBuiltFrom(ownerId)).toEqual({
       style: "fortress",
       factionLock: null,
-      holdings: holdingsFingerprint(s.collection(ownerId).map((c) => c.cardId)),
+      holdings: playableHoldingsFingerprint(s.collection(ownerId).map((c) => c.cardId), null),
     });
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
     expect(await s.rebuildAgentDeckIfNeeded(ownerId, FAST)).toBeNull();
@@ -118,10 +118,11 @@ describe("the agent's deck in the agent's style", () => {
     expect(r!.build.faction).toBe("Aegis");
     expect(s.agentDeckBuiltFrom(ownerId)!.factionLock).toBe("Aegis");
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
-    // Only the cards' counts matter, not which copy or its finish.
-    const extra = s.grantCopy({ ownerId, cardId: SHIPPED_DECK_LISTS.Aegis[0]!.cardId, origin: "pack", originRef: "t" });
+    // Only the cards' counts matter, not which copy or its finish; and only
+    // cards the deck could use (below).
+    const { cardId } = SHIPPED_DECK_LISTS.Aegis.find((e) => heldBelowLimit(s, ownerId, e.cardId))!;
+    s.grantCopy({ ownerId, cardId, origin: "pack", originRef: "t" });
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the cards held changed"]);
-    expect(extra.cardId).toBe(SHIPPED_DECK_LISTS.Aegis[0]!.cardId);
   });
 
   it("asks nothing while the owner forces a deck; a hand edit forgets what it was built from", async () => {
@@ -139,6 +140,91 @@ describe("the agent's deck in the agent's style", () => {
     s.updateDeck(ownerId, built.deck.deckId, built.deck.copyIds.slice(0, 30));
     expect(s.agentDeckBuiltFrom(ownerId)).toBeNull();
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the store doesn't know what the deck was built from (built before v14, or edited by hand)"]);
+  });
+});
+
+/** Copies of a card the owner holds. */
+const held = (s: EconomyStore, ownerId: string, cardId: string) => s.collection(ownerId).filter((c) => c.cardId === cardId).length;
+/** Whether one more copy could still go in a deck. */
+const heldBelowLimit = (s: EconomyStore, ownerId: string, cardId: string) =>
+  playableCopies(getCard(cardId)!, held(s, ownerId, cardId) + 1) > held(s, ownerId, cardId);
+const pack = (s: EconomyStore, ownerId: string, cardId: string) => s.grantCopy({ ownerId, cardId, origin: "pack", originRef: "t" });
+
+describe("'the cards held changed' counts only cards the deck could use (session 55)", () => {
+  it("under a lock: a spare past a card's limit or another faction's card is no reason; a usable copy is", async () => {
+    const s = open();
+    const { ownerId } = owner(s, "a", "Aegis");
+    grantList(s, ownerId, "Aegis");
+    s.setFactionLock(ownerId, "Aegis");
+    await s.buildAgentDeck(ownerId, FAST);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+
+    // A copy past the limit of a card already held to it.
+    const full = SHIPPED_DECK_LISTS.Aegis.find((e) => !heldBelowLimit(s, ownerId, e.cardId))!.cardId;
+    pack(s, ownerId, full);
+    // A card the lock rules out.
+    pack(s, ownerId, SHIPPED_DECK_LISTS.Swarm[0]!.cardId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    expect(await s.rebuildAgentDeckIfNeeded(ownerId, FAST)).toBeNull();
+
+    // A Neutral card the deck could use.
+    const neutral = [...CARD_REGISTRY.values()].find((c) => c.faction === "Neutral" && held(s, ownerId, c.id) === 0)!;
+    pack(s, ownerId, neutral.id);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the cards held changed"]);
+    await s.rebuildAgentDeckIfNeeded(ownerId, FAST);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+
+    // Lifting the lock: every faction is usable again, so the Swarm card
+    // counts, but the lock change is the reason named (the cards are read
+    // under the lock the deck was built with).
+    s.setFactionLock(ownerId, null);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the faction lock changed (Aegis -> none)"]);
+  });
+
+  it("with no lock: any faction's card is a reason, a spare past the limit is not", async () => {
+    const s = open();
+    const { ownerId } = owner(s, "a", "Cortex");
+    grantList(s, ownerId, "Cortex");
+    await s.buildAgentDeck(ownerId, FAST);
+    pack(s, ownerId, SHIPPED_DECK_LISTS.Cortex.find((e) => !heldBelowLimit(s, ownerId, e.cardId))!.cardId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    pack(s, ownerId, SHIPPED_DECK_LISTS.Null[0]!.cardId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the cards held changed"]);
+  });
+
+  it("a salvage that leaves the agent's deck short is always a reason", async () => {
+    const s = open();
+    const { ownerId } = owner(s, "a", "Swarm");
+    grantList(s, ownerId, "Swarm");
+    s.setFactionLock(ownerId, "Swarm");
+    const built = await s.buildAgentDeck(ownerId, FAST);
+    // A card the deck plays at its full limit, with salvageable pack copies.
+    const inDeck = new Map<string, number>();
+    for (const c of s.collection(ownerId)) if (built.deck.copyIds.includes(c.copyId)) inDeck.set(c.cardId, (inDeck.get(c.cardId) ?? 0) + 1);
+    const cardId = [...inDeck].find(([id, n]) => n === held(s, ownerId, id) && s.cardHoldings(ownerId, id).salvageable > 0)![0];
+    s.salvage(ownerId, cardId, 1, { confirmDeckImpact: true });
+    expect(s.deckStatus(built.deck.deckId).complete).toBe(false);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the cards held changed"]);
+    await s.rebuildAgentDeckIfNeeded(ownerId, FAST);
+    expect(s.deckStatus(built.deck.deckId).complete).toBe(true);
+  });
+
+  it("a deck built before session 55 is read with the fingerprint it recorded, every card counted", async () => {
+    const s = open();
+    const { ownerId } = owner(s, "a", "Aegis");
+    grantList(s, ownerId, "Aegis");
+    s.setFactionLock(ownerId, "Aegis");
+    const built = await s.buildAgentDeck(ownerId, FAST);
+    const legacy = holdingsFingerprint(s.collection(ownerId).map((c) => c.cardId));
+    s.unsafeExec(`UPDATE decks SET built_holdings = '${legacy}' WHERE deck_id = '${built.deck.deckId}'`);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    // The old rule asked for a rebuild on any card; it still does, once.
+    pack(s, ownerId, SHIPPED_DECK_LISTS.Swarm[0]!.cardId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the cards held changed"]);
+    await s.rebuildAgentDeckIfNeeded(ownerId, FAST);
+    expect(s.agentDeckBuiltFrom(ownerId)!.holdings).toMatch(/^p:/);
+    pack(s, ownerId, SHIPPED_DECK_LISTS.Swarm[0]!.cardId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
   });
 });
 

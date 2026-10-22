@@ -50,8 +50,8 @@
 
 import type { Card, DeckFaction, EffectSpec } from "../cards/types.js";
 import { allAbilities } from "../cards/modes.js";
-import { isRemovalOrDebuffCard } from "../cards/poolLint.js";
-import { buildDeck, COPY_LIMITS, MAX_NEUTRAL_COPIES, TOP_TIER_COPY_LIMIT } from "../data/decks.js";
+import { REMOVAL_DEBUFF_MAX_SHARE, isRemovalOrDebuffCard } from "../cards/poolLint.js";
+import { buildDeck, COPY_LIMITS, MAX_DECK_SIZE, MAX_NEUTRAL_COPIES, MIN_DECK_SIZE, TOP_TIER_COPY_LIMIT } from "../data/decks.js";
 import { CARD_REGISTRY, SHIPPED_DECK_LISTS, getCard } from "../data/registry.js";
 import { LookaheadAgent } from "../agents/lookaheadAgent.js";
 import { DEFAULT_PLAY_STYLE, type PlayStyleId } from "../agents/playStyles.js";
@@ -63,11 +63,13 @@ import { cardRating } from "./cardRating.js";
 export const DECK_FACTIONS: readonly DeckFaction[] = ["Cortex", "Swarm", "Aegis", "Null"];
 
 /** The deck rules the builder holds itself to. The size range and the
- * removal share are the engine's (data/decks.ts, cards/poolLint.ts);
- * buildDeck re-checks every one of them on the result. */
-export const MIN_DECK = 20;
-export const MAX_DECK = 40;
-const REMOVAL_SHARE = 0.25;
+ * removal share are the engine's own constants (data/decks.ts,
+ * cards/poolLint.ts), imported rather than copied since session 55, so a
+ * rule change reaches the builder; buildDeck re-checks every one of them on
+ * the result. */
+export const MIN_DECK = MIN_DECK_SIZE;
+export const MAX_DECK = MAX_DECK_SIZE;
+const REMOVAL_SHARE = REMOVAL_DEBUFF_MAX_SHARE;
 
 /** What an owner holds: copies per card id. Ids the registry doesn't know
  * (a signature card, a reserved card) are ignored. */
@@ -588,6 +590,25 @@ export async function chooseDeck(holdings: Holdings, options: DeckBuildOptions =
 export function holdingsOf(cardIds: Iterable<string>): Map<string, number> {
   const out = new Map<string, number>();
   for (const id of cardIds) if (CARD_REGISTRY.has(id)) out.set(id, (out.get(id) ?? 0) + 1);
+  return out;
+}
+
+/**
+ * What the builder can see of `holdings`: each card a deck of `faction`
+ * (of any faction when none is given) may use, at most its deck limit.
+ * Copies past a card's limit and cards of other factions never reach a
+ * deck, so `chooseDeck` builds the same decks from this as from the whole
+ * holdings (pinned by a test). The store reads it to tell whether a change
+ * in the cards held can change the agent's deck (session 55).
+ */
+export function playableHoldings(holdings: Holdings, faction?: DeckFaction): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const [id, owned] of holdings) {
+    const card = getCard(id);
+    if (!card || (faction && !eligible(card, faction))) continue;
+    const n = playableCopies(card, owned);
+    if (n > 0) out.set(id, n);
+  }
   return out;
 }
 

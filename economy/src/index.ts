@@ -13,6 +13,7 @@ export {
   type AgentDeckBuild,
   type AgentDeckBuiltFrom,
   holdingsFingerprint,
+  playableHoldingsFingerprint,
   type DeckChoice,
   EconomyError,
   SalvageNeedsConfirmation,

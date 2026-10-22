@@ -3731,3 +3731,47 @@ re-run).
 **Evidence:** `progress/built-deck-ring-001.txt`, `progress/built-deck-ring/`.
 
 **Blocked:** nothing. One owner check-in (does the gate pass; the two old edges), with defaults.
+
+## 2026-10-22 — Session 55 (hardening pass: rebuilds only for usable cards; the reports re-run)
+
+Game-lane session, and the every-5th-session HARDENING pass: no new features. Read
+`progress/owner-feedback.md` first. The owner's session-54 answers: (1) the built-deck gate passes and
+stays a standing re-run, now marked PASSED on the roadmap and in quality-debt.md; (2) a test-only
+balance session for Null > Aegis and Cortex > Swarm before launch, now planned on the roadmap beside
+the gate, with the owner's terms (both ring modes plus the built-deck ring at every level, no change
+without the owner's OK); (3) keep the store's build, nothing to change. Entry marked handled.
+
+**Raised:**
+- **Rebuild requests.** The store asked for a rebuild whenever any card count changed. The engine
+  now exports `playableHoldings(holdings, faction?)` (the cards a deck of that faction may use, each
+  capped at its deck limit) and the store fingerprints that under the deck's lock
+  (`playableHoldingsFingerprint`, prefixed "p:"). The holdings are compared under the lock the deck
+  was built with, so a lock change names only the lock. A deck recorded before today keeps the old
+  fingerprint until its next rebuild. Tests: the builder makes identical decks (forced faction and free
+  pick, two collections with spares past every limit and an unknown id) from playable and whole
+  holdings; under a lock a spare past the limit and an off-faction card ask nothing and a usable
+  Neutral asks; with no lock any faction's card asks; a confirmed salvage that shortens the deck
+  always asks; a legacy fingerprint is read the old way and replaced on rebuild.
+- **One source for the deck rules.** The builder's size range and removal share now import the
+  engine's constants instead of copying them. A grep of every workspace found no other 40-card
+  assumption.
+- **The padded-Null reports re-run.** `progress/deckbuilder-report-002.txt` (235 s) and
+  `progress/deckbuilder-styles-report-003.txt` (6 builds + 6 crosses, 9 minutes on 4 cores).
+
+**Ran it:** `progress/economy-demo-016.txt` re-run, with a new section 7: an Aegis-locked owner with 40
+packs opens 20 more one at a time and is asked to rebuild 3 times (the old rule: 20); an unlocked
+owner 17 times (old: 20). Sections 1-6 are unchanged apart from the fingerprint strings. The reports:
+only Null's lines changed. The designed start is the 36-card list (47.8% against the shipped decks,
+was 46.3% padded), and the built deck is 48.0% on the confirm seeds (was 50.0%) and 51.7% on the
+styles report's unseen cross seeds (was 50.5%): level within noise. So session 54's note that the old
+reports understated Null by 3-4 points was wrong for the built deck; corrected in quality-debt.md.
+`npm test`: 1,089 pass; typecheck clean; `ring` and `ring:real` PASS. Mutation checks fail their tests.
+
+**Worked:** the exactness test makes the cheaper check safe: a rebuild it skips could not have changed
+the deck. **Didn't / honest limits:** a usable but weak card still asks for a rebuild that keeps the
+same deck; old decks over-ask once; the older reports are left as history, not annotated.
+
+**Evidence:** `progress/economy-demo-016.txt` (section 7), `progress/deckbuilder-report-002.txt`,
+`progress/deckbuilder-styles-report-003.txt`.
+
+**Blocked:** nothing. One small owner check-in (a rebuild waits for usable cards), default keep.

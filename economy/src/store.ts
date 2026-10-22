@@ -4,6 +4,7 @@ import {
   buildDeck,
   chooseDeck,
   holdingsOf,
+  playableHoldings,
   type DeckBuildOptions,
   CARD_REGISTRY,
   deckFaction,
@@ -145,16 +146,32 @@ export interface AgentDeckBuiltFrom {
   style: PlayStyleId;
   /** The faction lock it was built under (null: none). */
   factionLock: DeckFaction | null;
-  /** `holdingsFingerprint` of the cards held. */
+  /** `playableHoldingsFingerprint` of the cards held under that lock
+   * (`holdingsFingerprint` for a deck built before session 55). */
   holdings: string;
+}
+
+function fingerprint(counts: Iterable<[string, number]>): string {
+  const sorted = [...counts].sort(([a], [b]) => a.localeCompare(b));
+  return createHash("sha256").update(sorted.map(([id, n]) => `${id}:${n}`).join(",")).digest("hex").slice(0, 16);
 }
 
 /** A fingerprint of the cards an owner holds (copies per card id; finishes
  * and which copy don't matter to the deck builder, and ids the engine
- * doesn't know are left out as the builder leaves them out). */
+ * doesn't know are left out as the builder leaves them out). What an agent
+ * deck built before session 55 recorded. */
 export function holdingsFingerprint(cardIds: Iterable<string>): string {
-  const counts = [...holdingsOf(cardIds)].sort(([a], [b]) => a.localeCompare(b));
-  return createHash("sha256").update(counts.map(([id, n]) => `${id}:${n}`).join(",")).digest("hex").slice(0, 16);
+  return fingerprint(holdingsOf(cardIds));
+}
+
+/** A fingerprint of only the cards the deck builder can use under a faction
+ * lock (null: none): the lock's faction and Neutral cards, each counted up
+ * to its deck limit (the engine's `playableHoldings`). A spare copy past a
+ * card's limit, or a card of a faction the lock rules out, can't change the
+ * agent's deck, so it doesn't ask for a rebuild (session 55). Prefixed "p:"
+ * so it is never mistaken for an older `holdingsFingerprint`. */
+export function playableHoldingsFingerprint(cardIds: Iterable<string>, factionLock: DeckFaction | null): string {
+  return `p:${fingerprint(playableHoldings(holdingsOf(cardIds), factionLock ?? undefined))}`;
 }
 
 /** The name of the deck the agent builds (one per owner, rebuilt in place). */
@@ -2213,13 +2230,16 @@ export class EconomyStore {
     const owner = this.getOwner(ownerId);
     const held = this.collection(ownerId);
     const style = owner.connectedAgentId === null ? DEFAULT_PLAY_STYLE : this.getAgent(owner.connectedAgentId).playStyle;
-    return { style, factionLock: owner.factionLock, holdings: holdingsFingerprint(held.map((c) => c.cardId)), held };
+    return { style, factionLock: owner.factionLock, holdings: playableHoldingsFingerprint(held.map((c) => c.cardId), owner.factionLock), held };
   }
 
   /**
    * (v14) Why the agent's deck should be rebuilt, or [] when it is up to
    * date (owner 2026-10-15/-20: the agent rebuilds when the owner's cards,
    * the faction lock or its play style change, not before every match).
+   * "The cards held" counts only cards the builder could put in the deck
+   * (session 55): a spare past a card's deck limit, or a card of a faction
+   * the lock rules out, is not a reason.
    * Always [] while the owner forces a deck: the agent's deck isn't played.
    */
   agentDeckRebuildReasons(ownerId: string): string[] {
@@ -2230,7 +2250,12 @@ export class EconomyStore {
     if (was === null) return ["the store doesn't know what the deck was built from (built before v14, or edited by hand)"];
     const now = this.agentDeckInputs(ownerId);
     const reasons: string[] = [];
-    if (was.holdings !== now.holdings) reasons.push("the cards held changed");
+    // The cards are read the way the deck was built: under the lock it was
+    // built with (a lock change is its own reason), and in the fingerprint
+    // it recorded (a deck built before session 55 counted every card).
+    const ids = now.held.map((c) => c.cardId);
+    const held = was.holdings.startsWith("p:") ? playableHoldingsFingerprint(ids, was.factionLock) : holdingsFingerprint(ids);
+    if (was.holdings !== held) reasons.push("the cards held changed");
     if (was.factionLock !== now.factionLock) reasons.push(`the faction lock changed (${was.factionLock ?? "none"} -> ${now.factionLock ?? "none"})`);
     if (was.style !== now.style) reasons.push(`the play style changed (${PLAY_STYLES[was.style].name} -> ${PLAY_STYLES[now.style].name})`);
     return reasons;

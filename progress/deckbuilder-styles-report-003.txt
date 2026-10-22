@@ -1,0 +1,288 @@
+Deck builder by play style (roadmap 2b part 3)
+From a full collection. Build: 60 one-copy changes per faction, 100 games per shipped opponent each; confirm on 500 per opponent (fresh seeds from 1000001).
+Cross: every style pilots every style's deck, 500 games per shipped opponent (2000 per cell), seeds from 3000001, unseen by any build.
+The search plays the built deck as Calculator (the builder's default); the confirm step, which picks the deck kept, plays it in the style.
+The four shipped opponents always play Calculator. Win rates count draws as not won.
+
+== 1. What each style built (confirm-step win rate against the four shipped decks) ==
+style          Cortex    Swarm    Aegis     Null   free pick
+Calculator       59.6     53.3     62.7     48.0   Aegis
+Rusher           58.4     53.7     62.1     48.0   Aegis
+Controller       59.5     52.9     61.0     47.8   Aegis
+Tempo            59.8     53.7     63.4     48.2   Aegis
+Fortress         58.3     50.1     62.7     46.5   Aegis
+Gambler          58.9     53.8     62.4     48.9   Aegis
+
+How each style's deck differs from Calculator's (the deck it kept: a start, or the searched deck):
+-- Rusher --
+  Cortex searched same deck as Calculator
+  Swarm  searched same deck as Calculator
+  Aegis  searched same deck as Calculator
+  Null   searched same deck as Calculator
+-- Controller --
+  Cortex searched same deck as Calculator
+  Swarm  searched same deck as Calculator
+  Aegis  searched same deck as Calculator
+  Null   searched same deck as Calculator
+-- Tempo --
+  Cortex searched same deck as Calculator
+  Swarm  searched same deck as Calculator
+  Aegis  searched same deck as Calculator
+  Null   searched same deck as Calculator
+-- Fortress --
+  Cortex searched same deck as Calculator
+  Swarm  searched same deck as Calculator
+  Aegis  searched same deck as Calculator
+  Null   searched same deck as Calculator
+-- Gambler --
+  Cortex searched same deck as Calculator
+  Swarm  searched same deck as Calculator
+  Aegis  searched same deck as Calculator
+  Null   searched same deck as Calculator
+
+== 2. Cross: each pilot style with each style's deck (win rate % on the cross seeds) ==
+-- Cortex --
+pilot \ deck    shipped Calculator     Rusher Controller      Tempo   Fortress    Gambler
+Calculator        55.3       60.8*      60.8       60.8       60.8       60.8       60.8 
+Rusher            54.8       61.0       61.0*      61.0       61.0       61.0       61.0 
+Controller        53.8       59.7       59.7       59.7*      59.7       59.7       59.7 
+Tempo             55.9       61.1       61.1       61.1       61.1*      61.1       61.1 
+Fortress          54.0       60.3       60.3       60.3       60.3       60.3*      60.3 
+Gambler           53.0       59.5       59.5       59.5       59.5       59.5       59.5*
+-- Swarm --
+pilot \ deck    shipped Calculator     Rusher Controller      Tempo   Fortress    Gambler
+Calculator        52.6       53.7*      53.7       53.7       53.7       53.7       53.7 
+Rusher            52.7       54.6       54.6*      54.6       54.6       54.6       54.6 
+Controller        52.3       54.3       54.3       54.3*      54.3       54.3       54.3 
+Tempo             52.4       54.5       54.5       54.5       54.5*      54.5       54.5 
+Fortress          47.9       50.0       50.0       50.0       50.0       50.0*      50.0 
+Gambler           51.2       54.3       54.3       54.3       54.3       54.3       54.3*
+-- Aegis --
+pilot \ deck    shipped Calculator     Rusher Controller      Tempo   Fortress    Gambler
+Calculator        50.9       66.1*      66.1       66.1       66.1       66.1       66.1 
+Rusher            54.3       64.9       64.9*      64.9       64.9       64.9       64.9 
+Controller        49.0       61.9       61.9       61.9*      61.9       61.9       61.9 
+Tempo             50.7       66.6       66.6       66.6       66.6*      66.6       66.6 
+Fortress          49.1       65.0       65.0       65.0       65.0       65.0*      65.0 
+Gambler           48.6       65.3       65.3       65.3       65.3       65.3       65.3*
+-- Null --
+pilot \ deck    shipped Calculator     Rusher Controller      Tempo   Fortress    Gambler
+Calculator        48.5       51.7*      51.7       51.7       51.7       51.7       51.7 
+Rusher            48.4       51.6       51.6*      51.6       51.6       51.6       51.6 
+Controller        47.9       50.6       50.6       50.6*      50.6       50.6       50.6 
+Tempo             48.6       51.4       51.4       51.4       51.4*      51.4       51.4 
+Fortress          46.0       48.6       48.6       48.6       48.6       48.6*      48.6 
+Gambler           48.2       51.2       51.2       51.2       51.2       51.2       51.2*
+(* = the pilot's own deck)
+
+== 3. The gain: each pilot with its own deck vs with Calculator's deck (paired, points, ± 1 s.e.) ==
+pilot                Cortex          Swarm          Aegis           Null       all four
+Rusher                 same           same           same           same      +0.0 ±0.0
+Controller             same           same           same           same      +0.0 ±0.0
+Tempo                  same           same           same           same      +0.0 ±0.0
+Fortress               same           same           same           same      +0.0 ±0.0
+Gambler                same           same           same           same      +0.0 ±0.0
+
+Calculator piloting each style's deck (does a style's deck only suit its style?), vs Calculator's own deck:
+  Rusher's                 same           same           same           same
+  Controller's             same           same           same           same
+  Tempo's                  same           same           same           same
+  Fortress's               same           same           same           same
+  Gambler's                same           same           same           same
+
+Shipped deck vs each pilot's own deck, all four factions (the built-deck lift each style gets):
+  Calculator  own 58.1 [57.0, 59.2]  shipped 51.8  lift +6.3
+  Rusher      own 58.0 [57.0, 59.1]  shipped 52.5  lift +5.5
+  Controller  own 56.6 [55.5, 57.7]  shipped 50.8  lift +5.8
+  Tempo       own 58.4 [57.4, 59.5]  shipped 51.9  lift +6.5
+  Fortress    own 56.0 [54.9, 57.1]  shipped 49.2  lift +6.7
+  Gambler     own 57.6 [56.5, 58.6]  shipped 50.3  lift +7.3
+
+== 4. The decks ==
+-- Calculator --
+  Cortex: searched deck kept (searched from the rating start; 4 of 60 changes kept); confirm 59.6%, rating start 57.6%, designed start 54.3%
+    kept -1 Diagnostic Pulse +1 Rollback Point: 209 -> 230 of 400
+    kept -1 Retaliation Node +1 Cascade Purge: 230 -> 239 of 400
+    kept -1 Force Quit: 239 -> 257 of 400
+    kept -1 Spare Cycles +1 Load Balancer: 257 -> 263 of 400
+    1x Burst Credit (Neutral Command 0, Uncommon)
+    3x Init Daemon (Cortex Unit 1, Common)
+    1x Overclock Shunt (Cortex Tool 1, Uncommon)
+    3x Signal Drone (Cortex Unit 1, Common)
+    2x Spare Cycles (Neutral Command 1, Common)
+    2x Dormant Exploit (Cortex Unit 2, Rare)
+    3x Fail-safe Unit (Cortex Unit 2, Common)
+    2x Force Quit (Cortex Command 2, Uncommon)
+    2x Recursive Construct (Cortex Unit 2, Rare)
+    1x Relay Courier (Neutral Unit 2, Common)
+    1x Retaliation Node (Cortex Unit 2, Rare)
+    3x Compiled Daemon (Cortex Unit 3, Uncommon)
+    3x Firewall Sentinel (Cortex Unit 3, Uncommon)
+    1x Load Balancer (Cortex Unit 3, Uncommon)
+    2x Overload Capacitor (Cortex Unit 3, Rare)
+    1x Patient Zero (Neutral Unit 3, Mythic)
+    1x Rollback Point (Neutral Command 3, Common)
+    3x Watchtower Relay (Cortex Unit 3, Uncommon)
+    1x Cascade Purge (Cortex Command 4, Uncommon)
+    2x Uplink Tower (Neutral Unit 4, Rare)
+    1x Root Access (Neutral Unit 5, Mythic)
+  Swarm: searched deck kept (searched from the designed start; 3 of 60 changes kept); confirm 53.3%, rating start 37.9%, designed start 45.7%
+    kept -1 Brood Reserves: 199 -> 218 of 400
+    kept -1 Overgrown Carapace +1 Warren Guardian: 218 -> 227 of 400
+    kept -1 Spore Cluster +1 Barrier Node: 227 -> 235 of 400
+    3x Brood Skitterer (Swarm Unit 1, Common)
+    1x Chitin Plating (Swarm Tool 1, Common)
+    3x Colony Broodling (Swarm Unit 1, Common)
+    2x Reflex Spike (Swarm Command 1, Uncommon)
+    1x Spore Cluster (Swarm Unit 1, Uncommon)
+    3x Swarm Larva (Swarm Unit 1, Common)
+    2x Barrier Node (Swarm Unit 2, Uncommon)
+    2x Bore Swarm (Swarm Command 2, Uncommon)
+    3x Carapace Grunt (Swarm Unit 2, Common)
+    3x Corrosive Spitter (Swarm Unit 2, Uncommon)
+    1x Dormant Egg Sac (Swarm Unit 2, Rare)
+    1x Rally Cry (Swarm Command 2, Uncommon)
+    3x Broodcaller (Swarm Unit 3, Common)
+    2x Molted Stalker (Swarm Unit 3, Uncommon)
+    1x Overgrown Carapace (Swarm Unit 3, Uncommon)
+    3x Warren Guardian (Swarm Unit 3, Uncommon)
+    2x Bloodswarm Alpha (Swarm Unit 4, Rare)
+    2x Overclock Beast (Swarm Unit 4, Rare)
+    1x Hive Mother (Swarm Unit 5, Mythic)
+  Aegis: searched deck kept (searched from the rating start; 2 of 60 changes kept); confirm 62.7%, rating start 57.4%, designed start 48.4%
+    kept -1 Aegis Sentinel +1 Guard Directive Chip: 228 -> 246 of 400
+    kept -1 Barrier Drone +1 Guard Directive Chip: 246 -> 253 of 400
+    3x Aegis Cadet (Aegis Unit 1, Common)
+    3x Aegis Line Trooper (Aegis Unit 1, Common)
+    2x Barrier Drone (Aegis Unit 1, Common)
+    2x Spare Cycles (Neutral Command 1, Common)
+    3x Breach Charge (Aegis Command 2, Uncommon)
+    1x Diagnostic Ward (Aegis Command 2, Common)
+    3x Feedback Plating (Aegis Unit 2, Uncommon)
+    2x Guard Directive Chip (Aegis Tool 2, Uncommon)
+    3x Perimeter Turret (Aegis Unit 2, Uncommon)
+    3x Salvage Reflex (Aegis Unit 2, Uncommon)
+    2x Aegis Sentinel (Aegis Unit 3, Uncommon)
+    3x Cache Warmup (Neutral Command 3, Uncommon)
+    2x Latent Ward (Aegis Unit 3, Rare)
+    1x Patient Zero (Neutral Unit 3, Mythic)
+    3x Reinforced Bastion (Aegis Unit 3, Uncommon)
+    2x Uplink Tower (Neutral Unit 4, Rare)
+    1x Root Access (Neutral Unit 5, Mythic)
+    1x Prime Aegis (Aegis Unit 6, Mythic)
+  Null: searched deck kept (searched from the designed start; 4 of 60 changes kept); confirm 48.0%, rating start 41.0%, designed start 47.8%
+    kept -1 Watchdog Timer +1 Power Reserve: 185 -> 191 of 400
+    kept -1 Power Reserve +1 Patient Zero: 191 -> 203 of 400
+    kept -1 Stray Fragment +1 Commodity Rack: 203 -> 214 of 400
+    kept -1 Kernel Panic +1 Segmentation Fault: 214 -> 218 of 400
+    1x Bit Rot (Null Command 1, Uncommon)
+    3x Corruption Patch (Null Tool 1, Common)
+    3x Glitch Seed (Null Unit 1, Common)
+    1x Null Shell (Null Tool 1, Uncommon)
+    2x Stray Fragment (Null Unit 1, Common)
+    2x Dangling Pointer (Null Unit 2, Common)
+    1x Decay Ward (Null Tool 2, Rare)
+    2x Fork Bomb (Null Unit 2, Uncommon)
+    2x Null Pointer (Null Command 2, Uncommon)
+    1x Segfault Handler (Null Command 2, Common)
+    2x Zombie Process (Null Unit 2, Common)
+    1x Commodity Rack (Neutral Unit 3, Common)
+    2x Corrupted Process (Null Unit 3, Uncommon)
+    1x Deprecated Routine (Null Unit 3, Rare)
+    2x Entropy Harvester (Null Unit 3, Rare)
+    2x Garbage Collector (Null Unit 3, Uncommon)
+    1x Patient Zero (Neutral Unit 3, Mythic)
+    3x Propagating Exploit (Null Unit 3, Uncommon)
+    2x Segmentation Fault (Null Directive 4, Rare)
+    1x Kernel Panic (Null Unit 6, Rare)
+    1x Null Singularity (Null Unit 7, Mythic)
+-- Rusher --
+  Cortex: searched deck kept (searched from the rating start; 4 of 60 changes kept); confirm 58.4%, rating start 56.6%, designed start 53.8%
+    kept -1 Diagnostic Pulse +1 Rollback Point: 209 -> 230 of 400
+    kept -1 Retaliation Node +1 Cascade Purge: 230 -> 239 of 400
+    kept -1 Force Quit: 239 -> 257 of 400
+    kept -1 Spare Cycles +1 Load Balancer: 257 -> 263 of 400
+  Swarm: searched deck kept (searched from the designed start; 3 of 60 changes kept); confirm 53.7%, rating start 37.2%, designed start 46.2%
+    kept -1 Brood Reserves: 199 -> 218 of 400
+    kept -1 Overgrown Carapace +1 Warren Guardian: 218 -> 227 of 400
+    kept -1 Spore Cluster +1 Barrier Node: 227 -> 235 of 400
+  Aegis: searched deck kept (searched from the rating start; 2 of 60 changes kept); confirm 62.1%, rating start 55.4%, designed start 52.0%
+    kept -1 Aegis Sentinel +1 Guard Directive Chip: 228 -> 246 of 400
+    kept -1 Barrier Drone +1 Guard Directive Chip: 246 -> 253 of 400
+  Null: searched deck kept (searched from the designed start; 4 of 60 changes kept); confirm 48.0%, rating start 40.0%, designed start 47.1%
+    kept -1 Watchdog Timer +1 Power Reserve: 185 -> 191 of 400
+    kept -1 Power Reserve +1 Patient Zero: 191 -> 203 of 400
+    kept -1 Stray Fragment +1 Commodity Rack: 203 -> 214 of 400
+    kept -1 Kernel Panic +1 Segmentation Fault: 214 -> 218 of 400
+-- Controller --
+  Cortex: searched deck kept (searched from the rating start; 4 of 60 changes kept); confirm 59.5%, rating start 57.3%, designed start 51.7%
+    kept -1 Diagnostic Pulse +1 Rollback Point: 209 -> 230 of 400
+    kept -1 Retaliation Node +1 Cascade Purge: 230 -> 239 of 400
+    kept -1 Force Quit: 239 -> 257 of 400
+    kept -1 Spare Cycles +1 Load Balancer: 257 -> 263 of 400
+  Swarm: searched deck kept (searched from the designed start; 3 of 60 changes kept); confirm 52.9%, rating start 36.4%, designed start 46.1%
+    kept -1 Brood Reserves: 199 -> 218 of 400
+    kept -1 Overgrown Carapace +1 Warren Guardian: 218 -> 227 of 400
+    kept -1 Spore Cluster +1 Barrier Node: 227 -> 235 of 400
+  Aegis: searched deck kept (searched from the rating start; 2 of 60 changes kept); confirm 61.0%, rating start 54.4%, designed start 47.5%
+    kept -1 Aegis Sentinel +1 Guard Directive Chip: 228 -> 246 of 400
+    kept -1 Barrier Drone +1 Guard Directive Chip: 246 -> 253 of 400
+  Null: searched deck kept (searched from the designed start; 4 of 60 changes kept); confirm 47.8%, rating start 37.8%, designed start 47.3%
+    kept -1 Watchdog Timer +1 Power Reserve: 185 -> 191 of 400
+    kept -1 Power Reserve +1 Patient Zero: 191 -> 203 of 400
+    kept -1 Stray Fragment +1 Commodity Rack: 203 -> 214 of 400
+    kept -1 Kernel Panic +1 Segmentation Fault: 214 -> 218 of 400
+-- Tempo --
+  Cortex: searched deck kept (searched from the rating start; 4 of 60 changes kept); confirm 59.8%, rating start 57.6%, designed start 54.0%
+    kept -1 Diagnostic Pulse +1 Rollback Point: 209 -> 230 of 400
+    kept -1 Retaliation Node +1 Cascade Purge: 230 -> 239 of 400
+    kept -1 Force Quit: 239 -> 257 of 400
+    kept -1 Spare Cycles +1 Load Balancer: 257 -> 263 of 400
+  Swarm: searched deck kept (searched from the designed start; 3 of 60 changes kept); confirm 53.7%, rating start 37.8%, designed start 47.0%
+    kept -1 Brood Reserves: 199 -> 218 of 400
+    kept -1 Overgrown Carapace +1 Warren Guardian: 218 -> 227 of 400
+    kept -1 Spore Cluster +1 Barrier Node: 227 -> 235 of 400
+  Aegis: searched deck kept (searched from the rating start; 2 of 60 changes kept); confirm 63.4%, rating start 58.3%, designed start 49.5%
+    kept -1 Aegis Sentinel +1 Guard Directive Chip: 228 -> 246 of 400
+    kept -1 Barrier Drone +1 Guard Directive Chip: 246 -> 253 of 400
+  Null: searched deck kept (searched from the designed start; 4 of 60 changes kept); confirm 48.2%, rating start 42.7%, designed start 48.1%
+    kept -1 Watchdog Timer +1 Power Reserve: 185 -> 191 of 400
+    kept -1 Power Reserve +1 Patient Zero: 191 -> 203 of 400
+    kept -1 Stray Fragment +1 Commodity Rack: 203 -> 214 of 400
+    kept -1 Kernel Panic +1 Segmentation Fault: 214 -> 218 of 400
+-- Fortress --
+  Cortex: searched deck kept (searched from the rating start; 4 of 60 changes kept); confirm 58.3%, rating start 55.9%, designed start 52.9%
+    kept -1 Diagnostic Pulse +1 Rollback Point: 209 -> 230 of 400
+    kept -1 Retaliation Node +1 Cascade Purge: 230 -> 239 of 400
+    kept -1 Force Quit: 239 -> 257 of 400
+    kept -1 Spare Cycles +1 Load Balancer: 257 -> 263 of 400
+  Swarm: searched deck kept (searched from the designed start; 3 of 60 changes kept); confirm 50.1%, rating start 34.8%, designed start 42.4%
+    kept -1 Brood Reserves: 199 -> 218 of 400
+    kept -1 Overgrown Carapace +1 Warren Guardian: 218 -> 227 of 400
+    kept -1 Spore Cluster +1 Barrier Node: 227 -> 235 of 400
+  Aegis: searched deck kept (searched from the rating start; 2 of 60 changes kept); confirm 62.7%, rating start 56.8%, designed start 47.8%
+    kept -1 Aegis Sentinel +1 Guard Directive Chip: 228 -> 246 of 400
+    kept -1 Barrier Drone +1 Guard Directive Chip: 246 -> 253 of 400
+  Null: searched deck kept (searched from the designed start; 4 of 60 changes kept); confirm 46.5%, rating start 41.1%, designed start 46.0%
+    kept -1 Watchdog Timer +1 Power Reserve: 185 -> 191 of 400
+    kept -1 Power Reserve +1 Patient Zero: 191 -> 203 of 400
+    kept -1 Stray Fragment +1 Commodity Rack: 203 -> 214 of 400
+    kept -1 Kernel Panic +1 Segmentation Fault: 214 -> 218 of 400
+-- Gambler --
+  Cortex: searched deck kept (searched from the rating start; 4 of 60 changes kept); confirm 58.9%, rating start 56.9%, designed start 52.3%
+    kept -1 Diagnostic Pulse +1 Rollback Point: 209 -> 230 of 400
+    kept -1 Retaliation Node +1 Cascade Purge: 230 -> 239 of 400
+    kept -1 Force Quit: 239 -> 257 of 400
+    kept -1 Spare Cycles +1 Load Balancer: 257 -> 263 of 400
+  Swarm: searched deck kept (searched from the designed start; 3 of 60 changes kept); confirm 53.8%, rating start 38.0%, designed start 45.6%
+    kept -1 Brood Reserves: 199 -> 218 of 400
+    kept -1 Overgrown Carapace +1 Warren Guardian: 218 -> 227 of 400
+    kept -1 Spore Cluster +1 Barrier Node: 227 -> 235 of 400
+  Aegis: searched deck kept (searched from the rating start; 2 of 60 changes kept); confirm 62.4%, rating start 57.4%, designed start 47.8%
+    kept -1 Aegis Sentinel +1 Guard Directive Chip: 228 -> 246 of 400
+    kept -1 Barrier Drone +1 Guard Directive Chip: 246 -> 253 of 400
+  Null: searched deck kept (searched from the designed start; 4 of 60 changes kept); confirm 48.9%, rating start 39.6%, designed start 47.1%
+    kept -1 Watchdog Timer +1 Power Reserve: 185 -> 191 of 400
+    kept -1 Power Reserve +1 Patient Zero: 191 -> 203 of 400
+    kept -1 Stray Fragment +1 Commodity Rack: 203 -> 214 of 400
+    kept -1 Kernel Panic +1 Segmentation Fault: 214 -> 218 of 400

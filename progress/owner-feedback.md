@@ -3513,7 +3513,7 @@ Answers question 1 of the render lane's session-36 notes (`progress/render/notes
 
 ---
 
-## 2026-10-22 — Owner: answers to game session 54 (the pre-launch built-deck ring)
+## 2026-10-22 — Owner: answers to game session 54 (the pre-launch built-deck ring) (HANDLED 2026-10-22, session 55 — 1: the gate is marked PASSED on `progress/roadmap.md` and stays a standing re-run before launch and after any card change (also in quality-debt.md). 2: the test-only balance session is planned on the roadmap beside the gate ("Standing: a test-only balance session before launch"), with your terms: one or two candidates per edge, measured on the ring check in both modes and on the built-deck ring at every level, no change without your OK, both edges stay accepted-out if nothing fixes them cleanly. Not run this session (a hardening pass). 3: the measure keeps the store's own build, nothing to change)
 
 Answers the [OWNER CHECK-IN] "The built-deck ring: built decks keep the ring's shape; no new problem, two old ones" in `progress/notes-for-owner.md` (PR #92, `progress/built-deck-ring-001.txt`).
 
