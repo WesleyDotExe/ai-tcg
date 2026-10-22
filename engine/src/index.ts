@@ -64,6 +64,7 @@ export {
   holdingsOf,
   listProblem,
   playableCopies,
+  playableHoldings,
   DECK_FACTIONS,
   type BuiltDeck,
   type DeckBuildOptions,

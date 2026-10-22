@@ -19,6 +19,7 @@ import {
   listProblem,
   playGauntlet,
   playableCopies,
+  playableHoldings,
   shippedList,
   type DeckList,
   type Holdings,
@@ -299,5 +300,49 @@ describe("the designed start is the designed list when the owner holds it all (s
     expect(total).toBeGreaterThanOrEqual(designedSize - designed.get(missing!)!);
     expect(listProblem(built.list, "Null", holdings)).toBeUndefined();
     expect(built.list.has(missing!)).toBe(false);
+  });
+});
+
+describe("playableHoldings: what the builder can see of the cards held (session 55)", () => {
+  // Holdings with copies past every limit, cards of every faction and an id
+  // no live card has: everything the builder must ignore.
+  function excess(seed: number): Map<string, number> {
+    const out = randomHoldings(seed, 0.6);
+    for (const [id, n] of out) out.set(id, n + 2);
+    out.set("sig-not-a-live-card", 1);
+    return out;
+  }
+
+  it("keeps only the faction's and Neutral cards, each at most its deck limit", () => {
+    const holdings = excess(3);
+    for (const f of DECK_FACTIONS) {
+      const seen = playableHoldings(holdings, f);
+      for (const [id, n] of seen) {
+        const card = getCard(id)!;
+        expect([f, "Neutral"]).toContain(card.faction);
+        expect(n).toBe(playableCopies(card, holdings.get(id)!));
+        expect(n).toBeGreaterThan(0);
+      }
+      for (const [id, owned] of holdings) {
+        const card = getCard(id);
+        if (card && (card.faction === f || card.faction === "Neutral")) expect(seen.get(id)).toBe(playableCopies(card, owned));
+      }
+    }
+    // With no faction, every live card, capped; the unknown id is gone.
+    const all = playableHoldings(holdings);
+    expect(all.has("sig-not-a-live-card")).toBe(false);
+    expect(all.size).toBe(holdings.size - 1);
+  });
+
+  it("builds exactly the decks the whole holdings build, in a forced faction and with none", async () => {
+    const opts = { games: 2, trials: 3, confirmGames: 2, seed: 5 };
+    // Seeds whose collections hold an Aegis card that draws.
+    for (const seed of [1, 4]) {
+      const holdings = excess(seed);
+            const forced = await chooseDeck(holdings, { ...opts, faction: "Aegis" });
+      expect(await chooseDeck(playableHoldings(holdings, "Aegis"), { ...opts, faction: "Aegis" })).toEqual(forced);
+      const any = await chooseDeck(holdings, opts);
+      expect(await chooseDeck(playableHoldings(holdings), opts)).toEqual(any);
+    }
   });
 });

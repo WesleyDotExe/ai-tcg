@@ -34,8 +34,8 @@ export const COPY_LIMITS: Readonly<Record<Rarity, number>> = {
  * inside the range too. These numbers are a first proposal, not a
  * playtested target — flagged as an open parameter at the stage-3
  * checkpoint alongside BOARD_SLOTS. */
-const MIN_DECK_SIZE = 20;
-const MAX_DECK_SIZE = 40;
+export const MIN_DECK_SIZE = 20;
+export const MAX_DECK_SIZE = 40;
 
 /** Neutral share cap (Phase 5 item 10, "faction cards carry identity;
  * neutral cards carry utility"): at most a quarter of a full 40-card deck

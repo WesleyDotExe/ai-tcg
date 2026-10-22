@@ -42,16 +42,45 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
 ## Launch gate (owner 2026-10-19, firm): built-deck balance
 
-- **Measured session 54, with the owner for a decision** (`progress/built-deck-ring-001.txt`, check-in
-  in notes-for-owner.md). It stays open until the owner calls it, and it is a standing re-run: any card
-  change, and the last session before launch, re-runs `builtDeckRing.ts`. Nothing runs it automatically
-  (about 25 minutes on 4 cores, too slow for CI).
+- **PASSED (owner 2026-10-22)** on `progress/built-deck-ring-001.txt`. It stays a standing re-run: any
+  card change, and the last session before launch, re-runs `builtDeckRing.ts`. Nothing runs it
+  automatically (about 25 minutes on 4 cores, too slow for CI).
+- **Still owed before launch (owner 2026-10-22):** the test-only balance session for Null > Aegis
+  (inverted) and Cortex > Swarm (under band), candidates measured on the ring in both modes and on the
+  built-deck ring at every level, results to an owner check-in. Planned on the roadmap; not run yet.
+
+## Session 55 (hardening pass): what was raised, and what is still thin
+
+- **Raised: rebuild requests.** `agentDeckRebuildReasons` counted every card held, so a locked owner
+  was told to rebuild after almost every pack (20 of 20 in the demo) even when nothing the builder
+  could use changed. It now fingerprints only `playableHoldings` (the lock's faction and Neutral, each
+  capped at its deck limit): 3 of 20. A test pins that `chooseDeck` builds identical decks from the
+  playable holdings and from the whole holdings, forced faction and free pick; mutation checks (no cap;
+  the old fingerprint) fail the new tests.
+- **Raised: one source for the deck rules.** The builder's MIN_DECK/MAX_DECK and removal share were
+  copies of the engine's numbers; they now import `MIN_DECK_SIZE`/`MAX_DECK_SIZE` (data/decks.ts) and
+  `REMOVAL_DEBUFF_MAX_SHARE` (poolLint.ts). No other 40-card assumption found in the store, server or
+  agents (grep of every workspace's src).
+- **Raised: the padded-Null reports re-run.** `progress/deckbuilder-report-002.txt` and
+  `progress/deckbuilder-styles-report-003.txt` (data in `progress/deckbuilder-styles/s55/`) replace 001
+  and 002 for Null; every other faction's line reproduces byte for byte. Correction to session 54's
+  debt note: the old reports did NOT understate Null's *built* deck by 3-4 points. The designed start
+  rose (46.3 -> 47.8 in report 001's terms), but the full build came out 48.0 against the padded 50.0
+  on the confirm seeds and 51.7 against 50.5 on the styles report's unseen cross seeds: a wash within
+  noise (±2.2). The 3-4 point loss was in the built-deck ring's starts, where it was measured.
+- **Thin: old decks keep the old rule.** A deck whose record predates session 55 is read with the
+  old fingerprint (any card counts) until its next rebuild; harmless (it over-asks once), not migrated.
+- **Thin: the rebuild check still over-asks a little.** A card the builder could use but would never
+  pick (a weak spare under its limit) is still a reason. Only a build can tell, and a build is what
+  the check is meant to save; no cheaper exact test exists.
+- **Thin: deckbuilder-report-001 and styles-report-002 stay as committed history**, not annotated
+  (they are reproducible outputs), so a reader must know 002/003 replace them for Null.
 
 ## New debt from session 54 (the built-deck ring)
 
@@ -59,8 +88,8 @@ real, but here is where it's thin.
   hit the removal share and got "no deck" (a day-one Null owner), and the designed start was padded to
   40, so Null's 36-card designed list was never tried. Both are fixed and tested. Before them, every
   economy demo, `deckbuilder-report-001` and `deckbuilder-styles-report-*` built Null decks with the
-  padded start. Those reports stand as history and were not re-run (only 014 and 016 were). Their Null
-  numbers understate Null by about 3-4 points.
+  padded start. Re-run session 55 (report 002, styles report 003); the "3-4 points" estimate did not
+  hold for the built deck, see session 55 above.
 - **Owners are forced to their starting faction.** A real owner on "agent" with no lock may switch
   faction when its packs favour another, and this ring doesn't model that. Starter-faction owners only.
 - **8 owners per faction, one pack history each.** The spread between owners on one edge reaches about

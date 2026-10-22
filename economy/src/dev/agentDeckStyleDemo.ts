@@ -9,14 +9,16 @@
 // owner changes the style, connects another agent, opens packs and locks a
 // faction, and the store names each reason to rebuild and rebuilds only
 // when there is one. Real matches are then played with each side's deck
-// and style and recorded. Seeds and the clock are fixed so the output
-// reproduces.
+// and style and recorded. Section 7 (session 55) counts the pack openings
+// that ask for a rebuild when only cards the deck could use count, against
+// the session-53 rule that counted every card. Seeds and the clock are
+// fixed so the output reproduces.
 
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { getCard, LookaheadAgent, PLAY_STYLES, runMatch, type DeckFaction } from "@ai-tcg/engine";
-import { EconomyStore, type AgentDeckBuild } from "../index.js";
+import { EconomyStore, holdingsFingerprint, type AgentDeckBuild } from "../index.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "agent-deck-style-demo-"));
 const store = EconomyStore.open(join(tempDir, "season-0.db"), { now: () => new Date("2026-10-20T09:00:00.000Z") });
@@ -169,6 +171,32 @@ for (let i = 1; i <= 8; i++) {
 }
 say(`  wins: ada ${wins.ada}, bo ${wins.bo} (8 matches; a showcase, not a measurement)`);
 say(`  rebuild reasons after the matches: ada ${reasons(ada.ownerId)}; bo ${reasons(bo.ownerId)} (match credits buy packs, but a match grants no cards)`);
+
+say();
+
+say("## 7. Which pack openings ask for a rebuild (session 55: only cards the deck could use count)");
+// A locked owner opens packs one at a time and the agent rebuilds whenever
+// it is asked to. The session-53 rule asked whenever any card count changed
+// (every pack); now a pack whose cards are all another faction's, or spares
+// past a card's deck limit, asks for nothing.
+for (const [name, faction, lock] of [["cy", "Aegis", "Aegis"], ["di", "Swarm", null]] as const) {
+  const o = seat(name, faction);
+  if (lock) store.setFactionLock(o.ownerId, lock);
+  for (let i = 0; i < 40; i++) store.grantPack(o.ownerId, "S0", "weeklyChallenge");
+  openAll(o.ownerId);
+  await store.buildAgentDeck(o.ownerId, BUILD);
+  let asked = 0;
+  let oldRule = 0;
+  const opened = 20;
+  for (let i = 0; i < opened; i++) {
+    const before = holdingsFingerprint(store.collection(o.ownerId).map((c) => c.cardId));
+    store.grantPack(o.ownerId, "S0", "weeklyChallenge");
+    openAll(o.ownerId);
+    if (holdingsFingerprint(store.collection(o.ownerId).map((c) => c.cardId)) !== before) oldRule++;
+    if ((await store.rebuildAgentDeckIfNeeded(o.ownerId, BUILD)) !== null) asked++;
+  }
+  say(`  ${name} (${faction} starter + 40 packs, lock ${lock ?? "none"}, ${store.collection(o.ownerId).length} copies after): ${opened} more packs opened one at a time; ${asked} asked for a rebuild (the session-53 rule: ${oldRule})`);
+}
 
 store.close();
 rmSync(tempDir, { recursive: true, force: true });

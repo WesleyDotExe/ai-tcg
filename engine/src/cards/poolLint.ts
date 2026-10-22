@@ -27,7 +27,7 @@ import type {
 } from "./types.js";
 import { allAbilities, playVariants } from "./modes.js";
 
-const REMOVAL_DEBUFF_MAX_SHARE = 0.25;
+export const REMOVAL_DEBUFF_MAX_SHARE = 0.25;
 const TARGETED_DAMAGE_COST_THRESHOLD = 3;
 const TARGETED_DAMAGE_MARGIN = 1;
 const CHEAP_AURA_COST_THRESHOLD = 4;

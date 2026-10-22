@@ -425,8 +425,27 @@ and any proposed fixes go to an owner check-in; no card or deck change
 without the owner's OK. Any session before launch; tracked in
 quality-debt.md until done.
 MEASURED session 54 (`progress/built-deck-ring-001.txt`,
-`engine/src/dev/builtDeckRing.ts`): built decks keep the ring's shape;
-owner check-in open. Re-run after any card change and before launch.
+`engine/src/dev/builtDeckRing.ts`): built decks keep the ring's shape.
+PASSED (owner 2026-10-22, call 1): the built decks pass the gate as
+built. It stays a STANDING check: re-run `builtDeckRing.ts` before launch
+and after any card change. The measure keeps the store's own deck build,
+the one owners get (call 3).
+
+**Standing: a test-only balance session before launch (owner 2026-10-22,
+call 2).** Before the public launch, one game-lane session tests one or
+two candidate card fixes for each of the two old out-of-band edges
+(Null > Aegis inverted: Aegis wins it; Cortex > Swarm under its 55-60
+band). Every candidate is measured on the ring check (shipped decks,
+real-match and gate modes) AND on the built-deck ring at every collection
+level (full, 37, 17 and 3 packs). TEST ONLY: no card, deck or rule change
+without the owner's OK; candidates and their full results go to an owner
+check-in. If no candidate fixes an edge cleanly (without pushing another
+edge out or making a faction dominant), both edges stay the accepted-out
+edges. Not necessarily the next game session, but before launch, beside
+the gate above. Tools in hand: `ringRegression.ts` (`npm run ring`,
+`ring:real`), `builtDeckRing.ts` (about 25 minutes on 4 cores per full
+run), the lever tuner (session 49) and balance reports 030-032 for the
+causes already found (Aegis's spare late energy and signature gain).
 
 **Standing: live operations, balancing never stops (owner 2026-10-05).**
 Once live: track faction popularity and win rates from real ladder and

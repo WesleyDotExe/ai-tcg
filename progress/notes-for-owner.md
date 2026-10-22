@@ -1,11 +1,30 @@
 # Notes for the owner
 
-**Updated 2026-10-21, session 54 (the pre-launch built-deck ring, your 2026-10-19 firm to-do).**
-Nothing is blocking. Your session-53 answers (keep all 3) are in. The built-deck ring is measured;
-**one [OWNER CHECK-IN] below** with the results, as you asked, with a default. Measuring it also found
-and fixed two real bugs in the deck builder (no card, deck or rule changed).
+**Updated 2026-10-22, session 55 (a hardening pass).** Nothing is blocking. Your session-54 answers are
+in: the built decks pass the gate (it stays a standing re-run before launch and after any card change),
+and the test-only balance session for the two old edges is now on the roadmap beside the gate, to run
+before launch. **One small [OWNER CHECK-IN] below**, with a default: a deck rebuild now waits for cards
+the deck could actually use.
 
-### [OWNER CHECK-IN] The built-deck ring: built decks keep the ring's shape; no new problem, two old ones
+### [OWNER CHECK-IN] A rebuild now waits for cards the deck could use
+
+**What changed (session 55):** your rule is that the agent rebuilds its deck when the owner's cards,
+the faction lock or its play style change. Until today "the cards changed" meant any card at all, so
+an owner locked to Aegis who opened a pack of Swarm cards, or got a 4th copy of a card a deck can only
+hold 3 of, was told to rebuild, and the rebuild could not change anything. Now only cards the deck
+builder could put in the deck count: the lock's faction and Neutral cards (every faction with no lock),
+each up to its deck limit. A test pins that the builder makes exactly the same deck from those cards
+as from the whole collection, so no real change is missed. A salvage that leaves the deck short is
+still always a reason.
+
+**Measured** (`progress/economy-demo-016.txt`, section 7): an owner locked to Aegis, with 40 packs
+open, opens 20 more one at a time. The old rule asked for 20 rebuilds; now 3. An owner with no lock:
+17 of 20 (every faction's cards count for them).
+
+**Call:** a deck saved before today keeps the old rule until its next rebuild (its record can't be
+read the new way), so nothing has to be migrated. **Default: keep.**
+
+### [ANSWERED 2026-10-22: gate passes; a test-only balance session before launch; keep call 3] The built-deck ring: built decks keep the ring's shape; no new problem, two old ones
 
 **What was asked:** measure the faction ring (all six edges) with built decks on both sides, from full
 and realistic collections, with today's agent, at the ring check's bar, Aegis called out; results and
