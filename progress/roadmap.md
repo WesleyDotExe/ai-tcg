@@ -337,8 +337,12 @@ start a step until the one before works and its tests pass):
      style and records what the deck was built from (schema v14: style,
      faction lock, holdings fingerprint) with `agentDeckRebuildReasons` /
      `rebuildAgentDeckIfNeeded` for the ladder to call; evidence
-     deckbuilder-styles-report-001 and -002, economy-demo-016. NEXT: step 3,
-     exposing both settings (server endpoints, item 3).
+     deckbuilder-styles-report-001 and -002, economy-demo-016. DONE
+     (session 56): step 3, both settings exposed as server endpoints (the
+     owner API, `server/src/ownerApi.ts`, spec `server/OWNER_API.md`):
+     sign-in, deck choice, faction lock, forced deck, play style, rebuild
+     reasons and "rebuild now" on a worker thread; evidence
+     owner-api-demo-001.
   2c. DONE (session 37, owner 2026-10-16): owners name their agents (free
      at creation, 100 pack points to rename (proposal), the rules in the
      store, the name log with "formerly", reserved old names, an admin
@@ -371,6 +375,9 @@ start a step until the one before works and its tests pass):
      opening, live/featured matches, ladder, tournament, stats,
      notifications, saved board layout). Needs item 5's pack contents and
      opening first.
+     STARTED (session 56): the owner API with sign-in and the deck settings.
+     NEXT: wallet and collection (balance, ledger, copies, binder), then
+     packs and pack opening, as endpoints on the same server.
   4-6. Website basics; the widget board and look; live play features
      (render lane builds the visuals; see owner-feedback 2026-10-05).
 

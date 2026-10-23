@@ -66,6 +66,7 @@ export {
   playableCopies,
   playableHoldings,
   DECK_FACTIONS,
+  DEFAULT_BUILD,
   type BuiltDeck,
   type DeckBuildOptions,
   type DeckList,

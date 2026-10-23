@@ -3528,7 +3528,7 @@ Answers the [OWNER CHECK-IN] "The built-deck ring: built decks keep the ring's s
 
 ---
 
-## 2026-10-23 — Owner: answers to game session 55 (a rebuild waits for usable cards), keep
+## 2026-10-23 — Owner: answers to game session 55 (a rebuild waits for usable cards), keep (NOTED 2026-10-23, session 56 — kept as built, nothing to change: old decks keep the old rule until their next rebuild)
 
 Answers the [OWNER CHECK-IN] "A rebuild now waits for cards the deck could use" in `progress/notes-for-owner.md` (PR #93, `progress/economy-demo-016.txt` section 7).
 - **Keep:** a deck saved before session 55 keeps the old rule (any card change is a reason to rebuild) until its next rebuild; nothing is migrated. From its next rebuild on, only cards the deck could use count.
@@ -3536,7 +3536,7 @@ Answers the [OWNER CHECK-IN] "A rebuild now waits for cards the deck could use" 
 
 ---
 
-## 2026-10-23 — Owner: answers to render session 37 (the boast's win message), keep all 8
+## 2026-10-23 — Owner: answers to render session 37 (the boast's win message), keep all 8 (render lane's own; nothing for the game lane, noted session 56)
 
 Owner decisions on the 8 calls in `progress/render/checkpoints.md` (the boast's win message, "<AGENT NAME> WINS" and CLOSE CALL first; PR #94).
 1. **Keep:** CLOSE CALL, not CLOSE WIN.

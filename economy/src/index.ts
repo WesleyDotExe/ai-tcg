@@ -15,6 +15,7 @@ export {
   holdingsFingerprint,
   playableHoldingsFingerprint,
   type DeckChoice,
+  type DeckChooser,
   EconomyError,
   SalvageNeedsConfirmation,
   salvageBlockReason,
