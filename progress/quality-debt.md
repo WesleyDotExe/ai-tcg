@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -54,6 +54,31 @@ real, but here is where it's thin.
 - **Still owed before launch (owner 2026-10-22):** the test-only balance session for Null > Aegis
   (inverted) and Cortex > Swarm (under band), candidates measured on the ring in both modes and on the
   built-deck ring at every level, results to an owner check-in. Planned on the roadmap; not run yet.
+
+## Session 56 (the owner API, deck settings): what is still thin
+
+- **Only the deck settings are served.** `server/src/ownerApi.ts` has sign-in/out and Settings -> Play
+  (deck choice, faction lock, forced deck, play style, rebuild reasons, rebuild now). Wallet,
+  collection, packs, matches, ladder, stats, notifications and layout (the rest of roadmap item 3) are
+  not built; nor are account creation or agent generation over HTTP (the store has both).
+- **Rebuild jobs live in memory.** A restart forgets the latest job (the saved deck survives). Fine on
+  one always-on host; a second server process would not see the first one's jobs.
+- **The API repeats two store rules** for clearer answers: "refused while forcing a deck" (before
+  starting a job) and "only your own agent/deck" (404). The play-style ownership check is ONLY in the
+  API: `store.setPlayStyle(agentId, style)` takes no owner, so any other caller must check it itself.
+  Moving that check into the store is the cleaner fix.
+- **The worker needs tsx at run time.** `server/src/deckBuild/worker.mjs` registers tsx inside the
+  thread (the server already runs under tsx; tsx moved to the server's dependencies). A compiled build
+  of the server would need this replaced.
+- **One worker per build, no pool or cap.** Many owners pressing "rebuild now" at once start that many
+  threads, each minutes of CPU. Needs a queue (size from the host's cores) before many owners exist.
+- **No rate limit beyond the sign-in lockout; no HTTPS or CORS of its own** (meant for same-origin
+  behind the host's proxy). Status codes are a first proposal (OWNER_API.md).
+- **Raised: a salvage during a build.** `buildAgentDeck` picked copies from the collection read before
+  its games; with builds now taking ~25 s on a worker, a salvage in that window could save a list the
+  owner no longer holds (it would have failed with a confusing copy error). The copies are now read
+  again at save time and a short list is refused with a clear reason; a mutation check (stale read)
+  fails the new test.
 
 ## Session 55 (hardening pass): what was raised, and what is still thin
 

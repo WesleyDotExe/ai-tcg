@@ -6,6 +6,8 @@ import {
   holdingsOf,
   playableHoldings,
   type DeckBuildOptions,
+  type BuiltDeck,
+  type Holdings,
   CARD_REGISTRY,
   deckFaction,
   agentName as generatedAgentName,
@@ -173,6 +175,11 @@ export function holdingsFingerprint(cardIds: Iterable<string>): string {
 export function playableHoldingsFingerprint(cardIds: Iterable<string>, factionLock: DeckFaction | null): string {
   return `p:${fingerprint(playableHoldings(holdingsOf(cardIds), factionLock ?? undefined))}`;
 }
+
+/** What plays the deck builder's games: the engine's `chooseDeck`, or a
+ * caller's stand-in that runs the same function somewhere else (the
+ * server's worker thread). */
+export type DeckChooser = (holdings: Holdings, options: DeckBuildOptions) => Promise<BuiltDeck>;
 
 /** The name of the deck the agent builds (one per owner, rebuilt in place). */
 export const AGENT_DECK_NAME = "Agent's deck";
@@ -2264,10 +2271,14 @@ export class EconomyStore {
   /** (v14) Rebuilds the agent's deck if `agentDeckRebuildReasons` names a
    * reason, else does nothing (null). What a scheduler (the ladder, item
    * 6b) calls between matches. */
-  async rebuildAgentDeckIfNeeded(ownerId: string, options: Omit<DeckBuildOptions, "faction" | "style"> = {}): Promise<{ reasons: string[]; build: AgentDeckBuild } | null> {
+  async rebuildAgentDeckIfNeeded(
+    ownerId: string,
+    options: Omit<DeckBuildOptions, "faction" | "style"> = {},
+    choose: DeckChooser = chooseDeck,
+  ): Promise<{ reasons: string[]; build: AgentDeckBuild } | null> {
     const reasons = this.agentDeckRebuildReasons(ownerId);
     if (reasons.length === 0) return null;
-    return { reasons, build: await this.buildAgentDeck(ownerId, options) };
+    return { reasons, build: await this.buildAgentDeck(ownerId, options, choose) };
   }
 
   /** The id of the deck the agent built for this owner, if any. */
@@ -2286,8 +2297,11 @@ export class EconomyStore {
    * rebuilt in place) and makes it active. Refused while the owner forces
    * a deck. Run it when the holdings change (packs opened, crafting,
    * salvage) or the faction lock does; a match never waits on it.
+   * `choose` is the engine's `chooseDeck` unless the caller runs the same
+   * games elsewhere (the server runs them on a worker thread, session 56,
+   * so a build that takes minutes never stalls its other requests).
    */
-  async buildAgentDeck(ownerId: string, options: Omit<DeckBuildOptions, "faction" | "style"> = {}): Promise<AgentDeckBuild> {
+  async buildAgentDeck(ownerId: string, options: Omit<DeckBuildOptions, "faction" | "style"> = {}, choose: DeckChooser = chooseDeck): Promise<AgentDeckBuild> {
     const owner = this.getOwner(ownerId);
     if (owner.deckChoice === "forced") throw new EconomyError(`owner "${owner.name}" forces a deck; set the deck choice to the agent first`);
     const inputs = this.agentDeckInputs(ownerId);
@@ -2295,15 +2309,24 @@ export class EconomyStore {
     const style = this.schemaVersion >= 14 ? inputs.style : DEFAULT_PLAY_STYLE;
     const built = await (async () => {
       try {
-        return await chooseDeck(holdingsOf(held.map((c) => c.cardId)), { ...options, faction: owner.factionLock ?? undefined, style });
+        return await choose(holdingsOf(held.map((c) => c.cardId)), { ...options, faction: owner.factionLock ?? undefined, style });
       } catch (err) {
         throw new EconomyError(err instanceof Error ? err.message : String(err));
       }
     })();
-    // Copies for the list, oldest held first (the collection's order).
-    const copyIds: string[] = [];
-    for (const [cardId, n] of built.list) copyIds.push(...held.filter((c) => c.cardId === cardId).slice(0, n).map((c) => c.copyId));
     const deck = this.transaction(() => {
+      // Copies for the list, oldest held first (the collection's order),
+      // read again here: the owner may have salvaged a card while the agent
+      // built, and a list the cards held now can't fill isn't saved.
+      const now = this.collection(ownerId);
+      const copyIds: string[] = [];
+      const short: string[] = [];
+      for (const [cardId, n] of built.list) {
+        const copies = now.filter((c) => c.cardId === cardId).slice(0, n);
+        if (copies.length < n) short.push(`${getCard(cardId)?.name ?? cardId} (uses ${n}, holds ${copies.length})`);
+        copyIds.push(...copies.map((c) => c.copyId));
+      }
+      if (short.length > 0) throw new EconomyError(`the cards held changed while the agent built (${short.join(", ")}); build again`);
       const existing = this.agentDeckId(ownerId);
       let saved: PlayableDeck;
       if (existing !== null) {

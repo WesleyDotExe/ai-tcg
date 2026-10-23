@@ -254,3 +254,45 @@ describe("migration v13 -> v14", () => {
     v14.close();
   });
 });
+
+describe("the deck chooser runs elsewhere (session 56: the server's worker thread)", () => {
+  function packOwner(s: EconomyStore) {
+    const o = s.createOwner({ name: "p", kind: "house" });
+    grantList(s, o.ownerId, "Swarm");
+    const agent = s.createAgent({ ownerId: o.ownerId, name: "p-a" });
+    s.connectAgent(o.ownerId, agent.agentId);
+    return o.ownerId;
+  }
+
+  it("builds with the chooser it is given, on the same holdings and options chooseDeck would get", async () => {
+    const s = open();
+    const ownerId = packOwner(s);
+    s.setFactionLock(ownerId, "Swarm");
+    const calls: { holdings: [string, number][]; options: object }[] = [];
+    const built = await s.buildAgentDeck(ownerId, FAST, async (holdings, options) => {
+      calls.push({ holdings: [...holdings], options });
+      return chooseDeck(holdings, options);
+    });
+    expect(calls).toEqual([{ holdings: [...holdingsOf(s.collection(ownerId).map((c) => c.cardId))], options: { games: 0, faction: "Swarm", style: "calculator" } }]);
+    expect(built.deck.deckId).toBe(s.agentDeckId(ownerId));
+  });
+
+  it("refuses to save when the cards held changed while the agent built, and saves nothing", async () => {
+    const s = open();
+    const ownerId = packOwner(s);
+    const before = s.collection(ownerId).length;
+    const salvaging = async (holdings: Parameters<typeof chooseDeck>[0], options: Parameters<typeof chooseDeck>[1]) => {
+      const built = await chooseDeck(holdings, options);
+      // The owner salvages every copy of one card the deck uses, mid-build.
+      const [cardId, n] = [...built.list][0]!;
+      s.salvage(ownerId, cardId, n, { confirmDeckImpact: true });
+      return built;
+    };
+    await expect(s.buildAgentDeck(ownerId, FAST, salvaging)).rejects.toThrow(/the cards held changed while the agent built \(.+ \(uses \d, holds 0\)\); build again/);
+    expect(s.agentDeckId(ownerId)).toBeNull();
+    expect(s.collection(ownerId).length).toBeLessThan(before);
+    // Built again from what is held now, it saves.
+    await s.buildAgentDeck(ownerId, FAST);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+  });
+});

@@ -3775,3 +3775,47 @@ same deck; old decks over-ask once; the older reports are left as history, not a
 `progress/deckbuilder-styles-report-003.txt`.
 
 **Blocked:** nothing. One small owner check-in (a rebuild waits for usable cards), default keep.
+
+## 2026-10-23 — Session 56 (the owner API: the deck settings over HTTP, roadmap 2b step 3)
+
+**Read first:** `progress/owner-feedback.md`. The owner's session-55 answer (keep the rebuild rule
+as built; old decks keep the old rule until their next rebuild): noted, nothing to change. Render
+session 37's answers are the render lane's. Both entries marked. The last merged PR was the render
+lane's, so this is a game-lane session; not a hardening session (55 was).
+
+**Built:** the first website endpoints (roadmap item 3), starting where 2b step 3 pointed: the owner
+API in the server workspace (`server/src/ownerApi.ts`, node:http + JSON, no new framework), spec in
+`server/OWNER_API.md`. Sign in/out with the Season 0 session token; `GET /api/play` (deck choice,
+faction lock, active and agent deck with what it was built from, rebuild reasons and the latest job,
+the owner's agents and the six play styles, saved decks, live match); `PUT` deck choice, faction lock,
+forced deck and an agent's play style; `POST /api/play/rebuild` (202 with a job) and
+`GET /api/play/rebuild`. Every rule stays in the store; the API checks only that a named deck or agent
+is the caller's own (404 otherwise, so nothing about another owner's leaks) and maps store refusals to
+409, sign-in to 401/429.
+- **Rebuild on a worker thread.** A build at the store's settings plays thousands of synchronous
+  games; run in the server's thread it held every other request until it ended (a test shows the GET
+  sent right after "rebuild now" sees the job already done). `server/src/deckBuild/` runs the engine's
+  own `chooseDeck` on a worker (a tiny .mjs entry registers tsx in the thread), passed to the store as
+  a new optional `choose` argument of `buildAgentDeck`; a test pins that the worker builds the same deck
+  and scores as this thread.
+- **Store fix found on the way:** `buildAgentDeck` picked copies from the collection read before its
+  games; with ~25 s builds a salvage in that window could save a list the owner no longer holds. Copies
+  are now read at save time; a short list is refused with a clear reason (mutation check: fails).
+- `DEFAULT_BUILD` exported from the engine (the demo prints it); tsx moved to the server's
+  dependencies (the worker needs it at run time).
+
+**Ran it:** `progress/owner-api-demo-001.txt`: a real database file, a real owner (Cortex starter + 10
+packs), every step an HTTP request. The first full build (no lock) took ~22 s; the server answered
+109 settings requests meanwhile, slowest 8 ms. It built Cortex (62.0% vs the shipped decks; Swarm
+infeasible, Aegis 16.0, Null 50.0). Style change -> reason named; a Swarm lock -> the rebuild fails with
+the engine's reason; a Null lock in Controller -> a 26-card Null deck (50.5%); forcing the starter ->
+rebuild refused; handed back; signed out -> 401. `npm test`: all six workspaces pass (13 new server
+tests, 2 new economy tests); typecheck clean everywhere.
+
+**Worked:** the worker makes a minutes-long job harmless to the rest of the server, with no change to
+what is built. **Didn't / honest limits:** jobs are in memory; no worker pool or cap; the play-style
+ownership check lives only in the API; the rest of item 3 (wallet, collection, packs...) is not built.
+
+**Evidence:** `progress/owner-api-demo-001.txt`, `server/test/ownerApi.test.ts`.
+
+**Blocked:** nothing. One small owner check-in (four calls, defaults keep).

@@ -1,39 +1,37 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 55 (game lane): a HARDENING pass (every 5th
-session). No new features. Nothing is blocking.** The owner's session-54 answers are handled: the
-built-deck gate PASSED and stays a standing re-run; a test-only balance session for the two old
-out-of-band edges is planned on `progress/roadmap.md`, before launch. One small [OWNER CHECK-IN] in
-notes-for-owner.md (a rebuild waits for usable cards), default keep.
+**Build-order stage: Stage 4+ (the living system). Session 56 (game lane): roadmap 2b step 3 done,
+roadmap item 3 (the website's server endpoints) started. Nothing is blocking.** The owner's session-55
+answer (keep) is noted. One small [OWNER CHECK-IN] in notes-for-owner.md (four calls on the deck
+settings API, all defaults keep).
 
-- **Rebuild requests now count only usable cards** (`economy/src/store.ts`
-  `agentDeckRebuildReasons`, engine `playableHoldings`): the lock's faction and Neutral cards, each up
-  to its deck limit. A locked owner opening 20 packs is asked to rebuild 3 times instead of 20
-  (`progress/economy-demo-016.txt`, section 7). A test pins that the builder's decks are identical
-  from the playable holdings and the whole holdings; decks saved before session 55 keep the old
-  fingerprint ("p:" marks the new one) until their next rebuild.
-- **The builder's deck-rule constants come from the engine's rule files** (no copies left).
-- **Reports re-run with the fixed builder:** `progress/deckbuilder-report-002.txt`,
-  `progress/deckbuilder-styles-report-003.txt` (+ `progress/deckbuilder-styles/s55/`). Only Null
-  changed; the built Null deck is level with the padded one within noise.
+- **The owner API** (`server/src/ownerApi.ts`, spec `server/OWNER_API.md`, `npm run owner-api -w
+  server -- <db file> [port]`): sign in/out; `GET /api/play`; `PUT` deck choice, faction lock, forced
+  deck, an agent's play style; `POST`/`GET /api/play/rebuild` ("rebuild now" as a background job).
+- **Rebuilds run on a worker thread** (`server/src/deckBuild/`), the engine's own `chooseDeck`, passed
+  to the store's `buildAgentDeck` as its new optional `choose` argument. The server keeps answering
+  during a build (demo: ~110 requests in a 22 s build, all under 20 ms).
+- **Store fix:** the agent's deck picks copies at save time; a salvage during a build is refused with
+  a reason instead of saving cards no longer held.
 
-## What stands (this session's work; sessions 1-54 otherwise unchanged)
+## What stands (this session's work; sessions 1-55 otherwise unchanged)
 
-- Tests: +2 engine deck-builder tests, +4 economy tests (one older test tightened). `npm test`: all six
-  workspaces pass (1,089). Typecheck clean everywhere. `ring` and `ring:real`: PASS. Mutation checks:
-  removing the deck-limit cap fails 3 tests; reverting to the old fingerprint fails 4.
+- Tests: +13 server tests (real HTTP), +2 economy tests. `npm test`: all six workspaces pass.
+  Typecheck clean everywhere. Evidence: `progress/owner-api-demo-001.txt`.
 
 ## Concrete next step
 
 Check the alternation first: if the last merged PR is this one (game lane), the next session is
-**render** (the boast's "<AGENT> WINS" message and Match Boot slice 2, per the owner's 2026-10-21
-entry).
+**render** (Match Boot slice 2, sound and the phone, per the owner's 2026-10-23 entry).
 
-The next **game-lane** session (session 56):
-1. The owner's word on the rebuild check-in, if any (default: keep).
-2. Roadmap 2b step 3: expose the deck settings (deck choice, faction lock, play style, rebuild
-   reasons, "rebuild now") as server endpoints, item 3 on the roadmap, with tests through the server.
-3. Before launch, not necessarily next: the test-only balance session (roadmap, "Standing: a
+The next **game-lane** session (session 57):
+1. The owner's word on the session-56 check-in, if any (default: keep all 4).
+2. Roadmap item 3 continued on the same server: wallet and collection endpoints (balance, ledger,
+   copies, the binder), then packs and pack opening (buy, open one / ten, pity). Same pattern: rules
+   in the store, tests through HTTP, a demo.
+3. Small debt worth folding in: move the play-style ownership check into the store; a cap/queue on
+   concurrent rebuild workers.
+4. Before launch, not necessarily next: the test-only balance session (roadmap, "Standing: a
    test-only balance session before launch").
 
 **Blocked:** nothing.

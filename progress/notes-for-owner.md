@@ -1,12 +1,31 @@
 # Notes for the owner
 
-**Updated 2026-10-22, session 55 (a hardening pass).** Nothing is blocking. Your session-54 answers are
-in: the built decks pass the gate (it stays a standing re-run before launch and after any card change),
-and the test-only balance session for the two old edges is now on the roadmap beside the gate, to run
-before launch. **One small [OWNER CHECK-IN] below**, with a default: a deck rebuild now waits for cards
-the deck could actually use.
+**Updated 2026-10-23, session 56.** Nothing is blocking. Your session-55 answer (keep) is noted. This
+session built the first website endpoints: signing in and the deck settings of Settings -> Play over
+HTTP. **One small [OWNER CHECK-IN] below**, all defaults keep.
 
-### [OWNER CHECK-IN] A rebuild now waits for cards the deck could use
+### [OWNER CHECK-IN] The deck settings over HTTP: four small calls
+
+**What was built (session 56):** the owner API (`server/src/ownerApi.ts`, spec `server/OWNER_API.md`):
+sign in and out, then read and change who picks the deck (agent or forced), the faction lock, the
+forced deck, each agent's play style, see why the agent's deck wants a rebuild, and "rebuild now".
+A rebuild answers at once and runs in the background on its own thread: in the demo a full build
+took about 22 seconds and the server answered every one of ~110 requests meanwhile in under 20 ms
+(`progress/owner-api-demo-001.txt`). Run on the server's main thread instead, the same request waits
+out the whole build; a test shows both.
+
+**Calls (defaults in bold):**
+1. **Keep:** "rebuild now" builds even when nothing asks for it (the owner pressed it). The
+   alternative is to answer "already up to date" and do nothing.
+2. **Keep:** a faction lock the owner's cards can't build (e.g. Swarm with no Swarm card that draws)
+   is accepted; the rebuild then fails with the reason, and no match starts until the active deck
+   fits the lock (the store's existing rule). The alternative is to refuse such a lock.
+3. **Keep:** another owner's deck or agent answers "not found", not "not yours", so nothing about it
+   leaks.
+4. **Keep:** the latest rebuild is remembered in memory only (a restart forgets the job, never the
+   deck). A saved job history can come with the notifications endpoints.
+
+### [ANSWERED 2026-10-23: keep] A rebuild now waits for cards the deck could use
 
 **What changed (session 55):** your rule is that the agent rebuilds its deck when the owner's cards,
 the faction lock or its play style change. Until today "the cards changed" meant any card at all, so
