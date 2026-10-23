@@ -3,7 +3,9 @@
 //
 // A boast is a new event category, "victory" (EFFECTS.md), with one grammar
 // for every boast: it RISES and RADIATES from the winner's side of the board
-// and ends on the winner's name. It never moves toward the loser and never
+// and ends on the winner's name, on a plate that says "<NAME> WINS" (owner
+// 2026-10-21; a close win shows "CLOSE CALL" on the plate first). It never
+// moves toward the loser and never
 // touches the loser's cards or panel, so a boast can borrow shapes that
 // already mean something elsewhere (Aegis plates, Null's dark star) without
 // a viewer reading "the loser's cards are being destroyed".
@@ -45,6 +47,14 @@ export const BOAST_PURE_SOURCE = String.raw`
   // How fast whatever the lethal beat left on the loser's side fades as the
   // boast starts (the page's CFX.fadeOutIn).
   var BOAST_CLEAR_MS = 280;
+  // A close win (owner 2026-10-21): the plate shows the close-call line
+  // first, alone, for this long, then the winner's line. Everything else in
+  // the boast keeps its time, so a close win runs this much longer and the
+  // winner's line holds as long as in any other win.
+  var BOAST_CLOSE_MS = 600;
+  // The plate's words. Every boast ends on "<AGENT NAME> WINS"; a close win
+  // shows BOAST_CLOSE_LINE before it.
+  var BOAST_WINS = 'WINS', BOAST_CLOSE_LINE = 'CLOSE CALL';
   // How far a flare of size s lights, from its centre: CFX's flare blooms
   // to 0.6 s x 1.2 (canvasFx.ts, flare()).
   var BOAST_FLARE_REACH = 0.72;
@@ -359,9 +369,11 @@ export const BOAST_PURE_SOURCE = String.raw`
   //   geom: { band, panel, slots: [{ l, t, r, b, filled }], loser: [rects] }
   //     in document pixels (rects as { l, t, r, b }). band is the winner's
   //     side of the board, panel the winner's HUD panel.
-  //   who: { name, faction }: the winner (a boast that spells or types the
-  //     name lays it out here; a neutral boast takes the winner's faction
-  //     for its panel and its sting's voice).
+  //   who: { name, faction, close }: the winner (a boast that spells or
+  //     types the name lays it out here; a neutral boast takes the winner's
+  //     faction for its panel and its sting's voice). close: a close win;
+  //     the plate holds the close-call line BOAST_CLOSE_MS before the
+  //     winner's line, and the boast ends that much later.
   //   pieces: sprites that move along keyframes [{ t, x, y, s, a }] (the
   //     runtime eases between keys; key.e names the easing into that key).
   //     s is the sprite's height; sx (optional) stretches it sideways, or w
@@ -376,6 +388,7 @@ export const BOAST_PURE_SOURCE = String.raw`
     var rand = boastRng(seed == null ? 1 : seed);
     who = who || {};
     var winName = String(who.name || 'WINNER'), faction = spec.faction || who.faction || 'Neutral';
+    var closeMs = who.close ? BOAST_CLOSE_MS : 0;
     var band = geom.band, bw = band.r - band.l, bh = band.b - band.t, cx = boastCx(band);
     var slots = (geom.slots || []).slice();
     var pieces = [], marks = [], crestPieces = [], groups = {};
@@ -384,7 +397,7 @@ export const BOAST_PURE_SOURCE = String.raw`
     // The crest sits in the upper part of the winner's side, the name under it.
     var crest = { x: cx, y: band.t + bh * 0.34, r: Math.max(12, Math.min(bh * 0.19, bw * 0.12, 50)) };
     var nameY = band.t + bh * 0.8, nameW = Math.min(bw * 0.86, 640), nameH = Math.min(bh * 0.26, 46);
-    var carrier = null, carrierSprite = 'hexPlate', form = BOAST_FORMATIONS.hexRing, ends = spec.ms;
+    var carrier = null, carrierSprite = 'hexPlate', form = BOAST_FORMATIONS.hexRing, ends = spec.ms + closeMs;
     // Sparks fly upward only as far as the winner's side reaches: a burst
     // near the top of the side flies slower (or not at all).
     function mark(m) {
@@ -778,12 +791,17 @@ export const BOAST_PURE_SOURCE = String.raw`
           mark({ k: 'duck', t: b.at, ms: Math.max(600, ends - b.at + 300) });
         }
       } else if (b.p === 'name') {
+        // The plate: the winner's line, "<NAME> WINS"; on a close win the
+        // close-call line first, alone (close: how long it holds).
         var nmk = mark({ k: 'name', t: b.at, x: cx, y: nameY, w: nameW, h: nameH });
+        if (closeMs) nmk.close = closeMs;
         if (b.mono) nmk.mono = true;
         if (b.type) {
-          // Typed a key at a time (in at most 0.6 s), a key's click each.
-          nmk.type = Math.min(b.type, 600 / Math.max(1, winName.length));
-          for (var ki = 0; ki < Math.min(winName.length, 16); ki++) mark({ k: 'sound', t: b.at + ki * nmk.type * winName.length / Math.min(winName.length, 16), kind: 'type', tier: 'subtle', x: cx });
+          // The winner's line typed a key at a time (in at most 0.6 s), a
+          // key's click each.
+          var line = winName + ' ' + BOAST_WINS, t1 = b.at + closeMs;
+          nmk.type = Math.min(b.type, 600 / line.length);
+          for (var ki = 0; ki < Math.min(line.length, 16); ki++) mark({ k: 'sound', t: t1 + ki * nmk.type * line.length / Math.min(line.length, 16), kind: 'type', tier: 'subtle', x: cx });
         }
       }
     });
@@ -800,15 +818,18 @@ export const BOAST_PURE_SOURCE = String.raw`
     mark({ k: 'end', t: ends });
     marks.sort(function (u, v) { return u.t - v.t; });
     var out = { id: spec.id, faction: faction, name: spec.name, ms: ends, pieces: pieces, marks: marks, crest: crest, crestPieces: crestPieces.length };
+    if (closeMs) out.close = true;
     if (spec.col) { out.col = spec.col; out.rgb = boastHex(spec.col); }
     return out;
   }
 
   // The reduced-motion still: the plan's final pose (everything that still
   // shows at the end), held for BOAST_STILL_MS, with the panel and the name.
-  // No shocks, sparks, grid or flares.
+  // No shocks, sparks, grid or flares. A close win's plate still shows the
+  // close-call line first (a swap of words, no motion), so its still holds
+  // BOAST_CLOSE_MS longer.
   function boastStill(plan) {
-    var pieces = [], ms = BOAST_STILL_MS;
+    var pieces = [], ms = BOAST_STILL_MS + (plan.close ? BOAST_CLOSE_MS : 0);
     plan.pieces.forEach(function (pc) {
       var at = boastPieceAt(pc, plan.ms);
       if (!at || at.a < 0.5) return;
@@ -828,6 +849,7 @@ export const BOAST_PURE_SOURCE = String.raw`
       .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'veil') c.ms = 0; if (c.k === 'crt') { c.on = 0; c.flick = 0; } if (c.k === 'name') delete c.type; return c; });
     marks.push({ k: 'end', t: ms });
     var out = { id: plan.id, faction: plan.faction, name: plan.name, ms: ms, pieces: pieces, marks: marks, crest: plan.crest, still: true };
+    if (plan.close) out.close = true;
     if (plan.col) { out.col = plan.col; out.rgb = plan.rgb; }
     return out;
   }
@@ -1112,34 +1134,62 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       else if (m.k === 'name') showName(m);
       else if (m.k === 'end') finish('end');
     }
+    // The plate: "<NAME> WINS" (the name in the boast's colour, WINS in
+    // white) over the boast's own name. On a close win the plate opens on
+    // the close-call line alone and swaps to the winner's line m.close ms
+    // later (in the still too: a swap of words, no motion).
     function showName(m) {
       var el = document.createElement('div');
       el.className = 'boast-name' + (cur.plan.still ? ' still' : '') + (m.mono ? ' mono' : '');
       el.style.setProperty('--fc', cur.plan.col || fxKitOf(cur.plan.faction).col);
       el.style.left = (m.x - m.w / 2) + 'px'; el.style.top = (m.y - m.h / 2) + 'px';
       el.style.width = m.w + 'px'; el.style.height = m.h + 'px';
-      var nm = document.createElement('div'); nm.className = 'boast-who'; nm.textContent = cur.who;
-      var tag = document.createElement('div'); tag.className = 'boast-tag'; tag.textContent = cur.plan.name.toUpperCase() + (cur.close ? ' · CLOSE WIN' : ' · VICTORY');
-      el.appendChild(nm); el.appendChild(tag);
+      var tag = document.createElement('div'); tag.className = 'boast-tag'; tag.textContent = cur.plan.name.toUpperCase();
+      el.appendChild(tag);
+      document.body.appendChild(el);
+      cur.dom.push(el);
+      if (!m.close) { showWho(el, tag, m); return; }
+      var cl = document.createElement('div'); cl.className = 'boast-close'; cl.textContent = BOAST_CLOSE_LINE;
+      el.insertBefore(cl, tag);
+      var me = cur;
+      cur.timers.push(setTimeout(function () {
+        if (cur !== me || me.ended) return;
+        cl.remove();
+        el.classList.add('swapped');
+        showWho(el, tag, m);
+      }, m.close));
+    }
+    function showWho(el, tag, m) {
+      var nm = document.createElement('div'); nm.className = 'boast-who';
+      var who = document.createElement('span'); who.className = 'boast-wn'; who.textContent = cur.who;
+      var wins = document.createElement('span'); wins.className = 'boast-wins'; wins.textContent = ' ' + BOAST_WINS;
+      nm.appendChild(who); nm.appendChild(wins);
+      el.insertBefore(nm, tag);
       // Boot Sequence's plate ends on a block cursor; it is measured with it.
       var cu = null;
       if (m.mono) { cu = document.createElement('span'); cu.className = 'boast-cur'; nm.appendChild(cu); }
-      document.body.appendChild(el);
-      // Long names shrink to fit the plate, never cut off.
+      // Long names shrink to fit the plate, never cut off. Measured by
+      // layout width: WINS starts its stamp scaled up, which scrollWidth
+      // would count.
+      function lineW() {
+        var w = 0;
+        for (var c = nm.firstChild; c; c = c.nextSibling) { var cs = getComputedStyle(c); w += c.offsetWidth + (parseFloat(cs.marginLeft) || 0) + (parseFloat(cs.marginRight) || 0); }
+        return w;
+      }
       var max = parseFloat(getComputedStyle(nm).fontSize) || 28;
-      for (var fs = max; fs > 11 && nm.scrollWidth > m.w; fs -= 1) nm.style.fontSize = fs + 'px';
-      cur.dom.push(el);
+      for (var fs = max; fs > 11 && lineW() > m.w; fs -= 1) nm.style.fontSize = fs + 'px';
       if (m.type && !cur.plan.still) {
         // Typed a key at a time, left to right, behind the cursor: the
-        // plate keeps the whole name's width so the text doesn't shift.
-        var full = cur.who, k = 0, me = cur;
+        // plate keeps the whole line's width so the text doesn't shift.
+        var name = cur.who, full = name + ' ' + BOAST_WINS, k = 0, me = cur;
         // (scrollWidth, not the rect: the plate is still scaled by its rise.)
-        nm.style.width = (nm.scrollWidth + 1) + 'px';
-        nm.textContent = ''; nm.appendChild(cu);
+        nm.style.width = (lineW() + 1) + 'px';
+        who.textContent = ''; wins.textContent = '';
         var iv = setInterval(function () {
           if (cur !== me || me.ended) { clearInterval(iv); return; }
           k++;
-          nm.textContent = full.slice(0, k); nm.appendChild(cu);
+          who.textContent = full.slice(0, Math.min(k, name.length));
+          wins.textContent = k > name.length ? full.slice(name.length, k) : '';
           if (k >= full.length) clearInterval(iv);
         }, m.type);
         cur.timers.push(iv);
@@ -1153,7 +1203,8 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       document.removeEventListener('pointerdown', onDown, true);
       cur.dom.forEach(function (d) { d.classList.add('gone'); setTimeout(function () { d.remove(); }, 340); });
       cur.dom = [];
-      cur.timers.forEach(function (iv) { clearInterval(iv); });
+      // (Intervals and the close-call swap's timeout: one id pool.)
+      cur.timers.forEach(function (iv) { clearInterval(iv); clearTimeout(iv); });
       cur.timers = [];
       if (cur.els.panel) cur.els.panel.classList.remove('boast-panel');
       (cur.els.dim || []).forEach(function (d) { if (d) d.classList.remove('boast-dim'); });
@@ -1173,7 +1224,9 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
     function cancel() { if (cur) { var c0 = cur; c0.onEnd = null; finish('cancel'); cur = null; } }
     // play(id, els, opts): opts { who (the winner's name), faction (the
     // winner's: a neutral boast's panel and sting), onEnd(reason), reduced,
-    // seed, close (a close win: the plate says CLOSE WIN, not VICTORY) }. Returns the plan played (or null when nothing can be).
+    // seed, close (a close win: the close-call line before the winner's
+    // line, the boast BOAST_CLOSE_MS longer) }. Returns the plan played (or
+    // null when nothing can be).
     function play(id, els, opts) {
       opts = opts || {};
       cancel();
@@ -1189,7 +1242,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       }
       var geom = geomOf(els);
       if (!geom.band) { stats.refused++; if (opts.onEnd) opts.onEnd('none'); return null; }
-      var plan = boastPlan(spec, geom, opts.seed || 1, { name: opts.who, faction: opts.faction });
+      var plan = boastPlan(spec, geom, opts.seed || 1, { name: opts.who, faction: opts.faction, close: !!opts.close });
       var problem = boastPlanProblem(plan, geom);
       var canDraw = CFX.isReady();
       if (problem || reduced || !canDraw) plan = boastStill(plan);
@@ -1232,6 +1285,13 @@ export const BOAST_CSS = `
   background: linear-gradient(90deg, rgba(4,6,12,0), rgba(4,6,12,0.78) 14%, rgba(4,6,12,0.78) 86%, rgba(4,6,12,0)); animation: boast-rise 420ms cubic-bezier(.2,.9,.3,1.2) both; transition: opacity 320ms ease; }
 .boast-name .boast-who { font-weight: bold; font-size: 28px; letter-spacing: 0.12em; white-space: nowrap; line-height: 1.1;
   text-shadow: 0 0 10px var(--fc), 0 0 2px #000, 0 2px 4px #000; }
+.boast-name .boast-wins { white-space: pre; color: #f4f7ff; text-shadow: 0 0 10px rgba(220,232,255,0.75), 0 0 2px #000, 0 2px 4px #000; }
+.boast-name:not(.mono) .boast-wins { display: inline-block; animation: boast-wins 300ms 160ms cubic-bezier(.2,.9,.3,1.4) both; }
+@keyframes boast-wins { from { opacity: 0; transform: scale(1.5); } to { opacity: 1; transform: none; } }
+.boast-name .boast-close { font-weight: bold; font-size: 26px; letter-spacing: 0.24em; white-space: nowrap; line-height: 1.1; color: #ffcf4a;
+  text-shadow: 0 0 12px rgba(255,190,40,0.8), 0 0 2px #000, 0 2px 4px #000; animation: boast-close 260ms cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes boast-close { from { opacity: 0; transform: scale(1.35); } to { opacity: 1; transform: none; } }
+.boast-name.swapped .boast-who { animation: boast-rise 320ms cubic-bezier(.2,.9,.3,1.2) both; }
 .boast-name .boast-tag { font-size: 10px; letter-spacing: 0.3em; color: var(--ink, #dfe7ff); opacity: 0.85; margin-top: 2px; text-shadow: 0 1px 3px #000; }
 .boast-name.gone, .boast-skip.gone { opacity: 0; }
 @keyframes boast-rise { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
@@ -1244,7 +1304,7 @@ export const BOAST_CSS = `
 .boast-name.mono .boast-who { font-family: ui-monospace, Menlo, Consolas, "DejaVu Sans Mono", monospace; letter-spacing: 0.04em; text-align: left; }
 .boast-name .boast-cur { display: inline-block; width: 0.55em; height: 0.85em; margin-left: 0.1em; vertical-align: -0.06em; background: var(--fc); box-shadow: 0 0 8px var(--fc); animation: boast-blink 0.52s steps(1) infinite; }
 @keyframes boast-blink { 50% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .boast-name, .turnbar .win.land, .boast-name .boast-cur { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .boast-name, .turnbar .win.land, .boast-name .boast-cur, .boast-name .boast-wins, .boast-name .boast-close, .boast-name.swapped .boast-who { animation: none; } }
 `;
 
 import type { ReplayBoast } from "./types.js";
@@ -1269,17 +1329,20 @@ export interface BoastMark {
 }
 export interface BoastBeat { p: string; at: number; [key: string]: unknown }
 export interface BoastSpec { id: string; name: string; faction: string | null; col?: string; ms: number; beats: BoastBeat[] }
-export interface BoastWho { name?: string; faction?: string }
+export interface BoastWho { name?: string; faction?: string; close?: boolean }
 export interface BoastPlan {
   id: string; faction: string; name: string; ms: number; col?: string; rgb?: [number, number, number];
   pieces: BoastPiece[]; marks: BoastMark[];
   crest: { x: number; y: number; r: number };
-  crestPieces?: number; still?: boolean;
+  crestPieces?: number; still?: boolean; close?: boolean;
 }
 
-const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS_MAX, BOAST_CLEAR_MS: BOAST_CLEAR_MS, BOAST_STILL_MS: BOAST_STILL_MS, BOAST_LEAD_MS: BOAST_LEAD_MS, BOAST_STARTER: BOAST_STARTER, BOAST_PRIMS: BOAST_PRIMS, BOAST_FORMATIONS: BOAST_FORMATIONS, BOAST_SPECS: BOAST_SPECS, BOAST_FONT: BOAST_FONT, BOAST_NEON: BOAST_NEON, boastBits: boastBits, boastBitsFit: boastBitsFit, boastIdFor: boastIdFor, boastFromRecord: boastFromRecord, boastCosmeticsShown: boastCosmeticsShown, boastSpecProblem: boastSpecProblem, boastPlan: boastPlan, boastStill: boastStill, boastPlanProblem: boastPlanProblem, boastPieceAt: boastPieceAt };`)() as {
+const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS_MAX, BOAST_CLEAR_MS: BOAST_CLEAR_MS, BOAST_CLOSE_MS: BOAST_CLOSE_MS, BOAST_WINS: BOAST_WINS, BOAST_CLOSE_LINE: BOAST_CLOSE_LINE, BOAST_STILL_MS: BOAST_STILL_MS, BOAST_LEAD_MS: BOAST_LEAD_MS, BOAST_STARTER: BOAST_STARTER, BOAST_PRIMS: BOAST_PRIMS, BOAST_FORMATIONS: BOAST_FORMATIONS, BOAST_SPECS: BOAST_SPECS, BOAST_FONT: BOAST_FONT, BOAST_NEON: BOAST_NEON, boastBits: boastBits, boastBitsFit: boastBitsFit, boastIdFor: boastIdFor, boastFromRecord: boastFromRecord, boastCosmeticsShown: boastCosmeticsShown, boastSpecProblem: boastSpecProblem, boastPlan: boastPlan, boastStill: boastStill, boastPlanProblem: boastPlanProblem, boastPieceAt: boastPieceAt };`)() as {
   BOAST_MS_MAX: number;
   BOAST_CLEAR_MS: number;
+  BOAST_CLOSE_MS: number;
+  BOAST_WINS: string;
+  BOAST_CLOSE_LINE: string;
   BOAST_STILL_MS: number;
   BOAST_LEAD_MS: number;
   BOAST_STARTER: Record<string, string>;
@@ -1302,6 +1365,9 @@ const impl = new Function(`${BOAST_PURE_SOURCE}; return { BOAST_MS_MAX: BOAST_MS
 
 export const BOAST_MS_MAX = impl.BOAST_MS_MAX;
 export const BOAST_CLEAR_MS = impl.BOAST_CLEAR_MS;
+export const BOAST_CLOSE_MS = impl.BOAST_CLOSE_MS;
+export const BOAST_WINS = impl.BOAST_WINS;
+export const BOAST_CLOSE_LINE = impl.BOAST_CLOSE_LINE;
 export const BOAST_STILL_MS = impl.BOAST_STILL_MS;
 export const BOAST_LEAD_MS = impl.BOAST_LEAD_MS;
 export const BOAST_STARTER = impl.BOAST_STARTER;

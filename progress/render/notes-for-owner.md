@@ -886,3 +886,16 @@ Nothing is blocking. The calls for this slice are in `progress/render/checkpoint
    computed when the page is built (`render/src/loadoutDemo.ts`, `outcomesFor`), because there is no
    endpoint. The page's model (`loadoutApply`) takes the answer in the same shape the endpoint would
    return: the slot's new value, or the store's refusal message.
+
+## 2026-10-23 — Session 37: the boast's win message
+
+Nothing is blocking. The 8 calls are in `progress/render/checkpoints.md` (newest entry), each with the
+default I built. The quickest look: `progress/render/evidence/v2-s37-forced-aegis-shield-slam-close-c-close.jpg`
+then `-close-d-name.jpg` (a close win: CLOSE CALL, then "Lookahead-Aegis WINS"), or step onto the last
+move of `render/output/recorded-close-win.html`.
+
+I picked **CLOSE CALL** of your two wordings, because "CLOSE WIN" followed by "<NAME> WINS" says win
+twice. A close win's boast now runs 3.6 s (CLOSE CALL holds 0.6 s first) so the winner's line stays up
+as long as in any other win.
+
+**For the game lane, nothing.**

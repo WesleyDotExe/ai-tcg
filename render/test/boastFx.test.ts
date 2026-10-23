@@ -23,6 +23,9 @@ import { describe, expect, it } from "vitest";
 import { SEASON_0_BOASTS, STARTER_BOASTS } from "@ai-tcg/economy";
 import {
   BOAST_MS_MAX,
+  BOAST_CLOSE_LINE,
+  BOAST_CLOSE_MS,
+  BOAST_WINS,
   BOAST_PURE_SOURCE,
   BOAST_RUNTIME_SOURCE,
   BOAST_SPECS,
@@ -646,10 +649,11 @@ describe("Boot Sequence (Season 0)", () => {
   it("types the winner's name into the plate in the BIOS's type, in at most 0.6 s, before the banner", () => {
     const name = plan.marks.find((m) => m.k === "name")!;
     expect(name.mono).toBe(true);
-    expect((name.type as number) * who.name.length).toBeLessThanOrEqual(600);
+    // The whole line, "<NAME> WINS", types in at most 0.6 s.
+    expect((name.type as number) * (who.name.length + 5)).toBeLessThanOrEqual(600 + 1e-9);
     expect(name.t).toBeLessThan(bannerAt);
     const long = boastPlan(BOOT, geom, 1, { name: "A Very Long Agent Name Here", faction: "Null" }).marks.find((m) => m.k === "name")!;
-    expect((long.type as number) * 27).toBeLessThanOrEqual(600 + 1e-9);
+    expect((long.type as number) * 32).toBeLessThanOrEqual(600 + 1e-9);
   });
 
   it("flashes SYSTEM READY twice in chunky dot letters over the name and holds it", () => {
@@ -770,6 +774,100 @@ describe("the Season 0 boasts keep the grammar for any winner's name", () => {
       expect(boastPlanProblem(plan, geom), `layout ${n}`).toBeNull();
       expect(boastPlanProblem(boastStill(plan), geom), `still ${n}`).toBeNull();
     }
+  });
+});
+
+// Render session 37 (owner 2026-10-21): every boast says clearly who won.
+// The plate's line is "<NAME> WINS"; a close win shows the close-call line
+// alone first, then the winner's line, and every other beat keeps its time.
+describe("the win message", () => {
+  const geom = layout({ seat: "p1" });
+  const who = { name: "Bastion Relay", faction: "Aegis" };
+
+  it("the plate's words: <NAME> WINS, and CLOSE CALL first on a close win (one of the owner's two wordings)", () => {
+    expect(BOAST_WINS).toBe("WINS");
+    expect(["CLOSE CALL", "CLOSE WIN"]).toContain(BOAST_CLOSE_LINE);
+    expect(BOAST_CLOSE_MS).toBeGreaterThanOrEqual(400);
+    expect(BOAST_CLOSE_MS).toBeLessThanOrEqual(800);
+  });
+
+  it.each(ALL)("%s: a close win holds the close-call line, then plays the same boast 0.6 s longer", (_bn, spec) => {
+    const win = boastPlan(spec, geom, 4, who), close = boastPlan(spec, geom, 4, { ...who, close: true });
+    expect(win.close).toBeUndefined();
+    expect(close.close).toBe(true);
+    expect(win.ms).toBe(spec.ms);
+    expect(close.ms).toBe(spec.ms + BOAST_CLOSE_MS);
+    const n0 = win.marks.find((m) => m.k === "name")!, n1 = close.marks.find((m) => m.k === "name")!;
+    expect(n0.close).toBeUndefined();
+    expect(n1.close).toBe(BOAST_CLOSE_MS);
+    // The plate is the same box at the same moment (the close-call line takes
+    // the winner's line's place), so the name still shows for as long after
+    // the swap as it does in any other win.
+    expect([n1.t, n1.x, n1.y, n1.w, n1.h]).toEqual([n0.t, n0.x, n0.y, n0.w, n0.h]);
+    expect(close.ms - ((n1.t as number) + BOAST_CLOSE_MS)).toBe(win.ms - (n0.t as number));
+    // Every other moment keeps its time: only the typed line's clicks move
+    // (by the close-call line's hold), the end, and the music held to it.
+    const shape = (p: BoastPlan) => p.marks
+      .filter((m) => m.k !== "end" && m.k !== "duck" && m.k !== "name" && !(m.k === "sound" && m.kind === "type" && (m.t as number) >= (n0.t as number)))
+      .map((m) => JSON.stringify(m));
+    expect(shape(close)).toEqual(shape(win));
+    const clicks = (p: BoastPlan) => p.marks.filter((m) => m.k === "sound" && m.kind === "type" && (m.t as number) >= (n0.t as number)).map((m) => m.t as number);
+    expect(clicks(close)).toEqual(clicks(win).map((t) => t + BOAST_CLOSE_MS));
+    expect(close.marks.find((m) => m.k === "end")!.t).toBe(close.ms);
+    // Every piece is where it was until the plain boast ends, then holds.
+    expect(close.pieces).toHaveLength(win.pieces.length);
+    const off: string[] = [];
+    win.pieces.forEach((pc, i) => {
+      for (let t = 0; t < spec.ms; t += 50) {
+        if (JSON.stringify(boastPieceAt(pc, t)) !== JSON.stringify(boastPieceAt(close.pieces[i]!, t))) off.push(`${i} at ${t}`);
+      }
+      const end0 = boastPieceAt(pc, spec.ms - 1), end1 = boastPieceAt(close.pieces[i]!, close.ms - 1);
+      if (JSON.stringify(end0) !== JSON.stringify(end1)) off.push(`${i} at the end`);
+    });
+    expect(off).toEqual([]);
+  });
+
+  it.each(ALL)("%s: a close win keeps the grammar on every layout, still included", (_bn, spec) => {
+    for (const seat of ["p1", "p2"] as const) {
+      for (const g of [layout({ seat }), layout({ seat, filled: 0 }), layout({ seat, width: 360, slotW: 85, slotH: 114, lines: 2, pad: 6 })]) {
+        const plan = boastPlan(spec, g, 9, { ...who, close: true });
+        expect(boastPlanProblem(plan, g)).toBeNull();
+        expect(boastPlanProblem(boastStill(plan), g)).toBeNull();
+      }
+    }
+  });
+
+  it("a typed plate (Boot Sequence) types the whole line, NAME WINS, after the close-call line, in at most 0.6 s", () => {
+    for (const close of [false, true]) {
+      const plan = boastPlan(BOOT, geom, 1, { ...who, close });
+      const name = plan.marks.find((m) => m.k === "name")!;
+      const line = `${who.name} ${BOAST_WINS}`;
+      expect((name.type as number) * line.length).toBeLessThanOrEqual(600 + 1e-9);
+      const clicks = plan.marks.filter((m) => m.k === "sound" && m.kind === "type" && (m.t as number) >= (name.t as number)).map((m) => m.t as number);
+      expect(clicks).toHaveLength(Math.min(line.length, 16));
+      expect(clicks[0]).toBe((name.t as number) + (close ? BOAST_CLOSE_MS : 0));
+      expect(clicks[clicks.length - 1]!).toBeLessThan((name.t as number) + (close ? BOAST_CLOSE_MS : 0) + 600);
+    }
+  });
+
+  it("reduced motion: the still swaps the words too (no motion) and holds 0.6 s longer on a close win", () => {
+    for (const spec of [SHIELD, BOOT, DIALUP]) {
+      const st = boastStill(boastPlan(spec, geom, 2, who)), sc = boastStill(boastPlan(spec, geom, 2, { ...who, close: true }));
+      expect(st.ms).toBe(BOAST_STILL_MS);
+      expect(sc.ms).toBe(BOAST_STILL_MS + BOAST_CLOSE_MS);
+      expect(sc.close).toBe(true);
+      const nm = sc.marks.find((m) => m.k === "name")!;
+      expect([nm.t, nm.close, nm.type]).toEqual([0, BOAST_CLOSE_MS, undefined]);
+      expect(st.marks.find((m) => m.k === "name")!.close).toBeUndefined();
+    }
+  });
+
+  it("the runtime draws the line: the name, then WINS; the close-call line first; no VICTORY left", () => {
+    expect(BOAST_RUNTIME_SOURCE).toContain("boast-wins");
+    expect(BOAST_RUNTIME_SOURCE).toContain("BOAST_CLOSE_LINE");
+    expect(BOAST_RUNTIME_SOURCE).not.toContain("VICTORY'");
+    expect(BOAST_RUNTIME_SOURCE).not.toContain("CLOSE WIN");
+    expect(BOAST_RUNTIME_SOURCE).toMatch(/close: !!opts\.close/);
   });
 });
 

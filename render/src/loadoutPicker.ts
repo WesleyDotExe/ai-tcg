@@ -24,7 +24,7 @@
 // sources), on a small winning board: the agent's row with its deck's real
 // units and its panel. It shows which boast a win would play: the boast
 // slot's item, or with that slot empty the starter boast of the faction the
-// deck plays; the close-win slot's item with the CLOSE WIN plate, or with
+// deck plays; the close-win slot's item with the CLOSE CALL plate, or with
 // that slot empty the main boast (the store's own rule, `chooseBoast`, which
 // a test checks this against through real recorded matches).
 
@@ -122,7 +122,7 @@ export const LOADOUT_PURE_SOURCE = String.raw`
     return { ok: true, state: next, error: null };
   }
   // The boast a win would play, by the store's rule: for the close-win slot
-  // its item (a CLOSE WIN plate), or with it empty the main boast; for the
+  // its item (the CLOSE CALL plate), or with it empty the main boast; for the
   // main slot its item, or with it empty the starter boast of the deck's
   // faction. Null when nothing is known.
   function loadoutPreview(state, slot, deckFaction, starters) {
