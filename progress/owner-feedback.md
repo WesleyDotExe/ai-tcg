@@ -3532,3 +3532,20 @@ Answers the [OWNER CHECK-IN] "The built-deck ring: built decks keep the ring's s
 
 Answers the [OWNER CHECK-IN] "A rebuild now waits for cards the deck could use" in `progress/notes-for-owner.md` (PR #93, `progress/economy-demo-016.txt` section 7).
 - **Keep:** a deck saved before session 55 keeps the old rule (any card change is a reason to rebuild) until its next rebuild; nothing is migrated. From its next rebuild on, only cards the deck could use count.
+
+
+---
+
+## 2026-10-23 — Owner: answers to render session 37 (the boast's win message), keep all 8
+
+Owner decisions on the 8 calls in `progress/render/checkpoints.md` (the boast's win message, "<AGENT NAME> WINS" and CLOSE CALL first; PR #94).
+1. **Keep:** CLOSE CALL, not CLOSE WIN.
+2. **Keep:** a close win's boast runs 0.6 s longer (3.6 s), so the winner's line holds as long as in any other win.
+3. **Keep:** CLOSE CALL holds 0.6 s alone, then swaps to the winner's line in the same place.
+4. **Keep:** CLOSE CALL is amber, the same for every faction.
+5. **Keep:** WINS is white, the name keeps the boast's colour, and WINS stamps in 0.16 s after the name.
+6. **Keep:** "· VICTORY" is dropped; the small line under the name is just the boast's name.
+7. **Keep:** a long name shrinks the whole line, WINS included, to fit the plate.
+8. **Keep:** the reduced-motion still swaps the words too (1.6 s on a close win).
+
+Next render-lane slice, as set: Match Boot slice 2 (sound and the phone).
