@@ -3549,3 +3549,22 @@ Owner decisions on the 8 calls in `progress/render/checkpoints.md` (the boast's 
 8. **Keep:** the reduced-motion still swaps the words too (1.6 s on a close win).
 
 Next render-lane slice, as set: Match Boot slice 2 (sound and the phone).
+
+
+---
+
+## 2026-10-24 — Owner: answers to game session 56 (the owner API), keep all 4; and a question on the minimum deck size
+
+Answers the [OWNER CHECK-IN] "The deck settings over HTTP: four small calls" in `progress/notes-for-owner.md` (PR #95, `progress/owner-api-demo-001.txt`).
+
+### Keep all 4
+1. **Keep:** "rebuild now" builds even when nothing asks for it.
+2. **Keep:** a faction lock the owner's cards can't build is accepted; the rebuild then fails with the reason, and no match starts until the active deck fits the lock.
+3. **Keep:** another owner's deck or agent answers "not found", not "not yours".
+4. **Keep:** the latest rebuild job is remembered in memory only; a saved job history can come with the notifications endpoints.
+
+### Game-lane question: confirm the minimum deck size rule
+In the owner API demo, a Null-locked owner (starter plus 10 packs, Controller style) got a **26-card** agent deck. Please confirm, at the next owner check-in:
+- What the minimum (and maximum) legal deck size is today, where it is defined, and whether a deck under 40 cards is intended (for example only when the owner doesn't hold enough usable cards) or a builder choice the builder can make even when 40 are available.
+- Whether a shorter deck gives an advantage (drawing its best cards more often), measured against 40-card decks built from the same holdings, and whether the deck builder prefers short decks when it doesn't have to.
+- A recommendation, if anything should change (for example a higher minimum, or building to 40 whenever the owner holds enough usable cards). Test only: no rule change without the owner's OK.
