@@ -7,6 +7,70 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-23 — The boast's win message: "<AGENT NAME> WINS", and CLOSE CALL first on a close win — AWAITING FEEDBACK
+
+Your 2026-10-21 ask, built as its own small slice. Open any replay in `render/output/` and step onto the
+last move (`>|`, then `<` and `>`), or `render/output/recorded-close-win.html` for a close win.
+- **Every boast ends on "<AGENT NAME> WINS"** on its plate: the name in the boast's colour, then WINS
+  in white, stamped in a beat after the name. All six boasts (the four starters, Boot Sequence, Dial-Up
+  Fireworks) and any later one: it is the plate, not part of each boast's drawing.
+- **The line under it is now just the boast's name** ("SHIELD SLAM"). "· VICTORY" is gone: WINS says it.
+- **A close win:** the plate opens on **CLOSE CALL** alone (amber), holds 0.6 s, then swaps to
+  "<AGENT NAME> WINS". Every other beat of the boast keeps its time, and the boast ends 0.6 s later
+  (3.6 s instead of 3.0 s), so the winner's line stays up as long as in any other win.
+- **Boot Sequence** types the whole line, "<NAME> WINS", behind its cursor (after CLOSE CALL on a
+  close win).
+- **Reduced motion:** the still shows the same thing, words only, no motion: CLOSE CALL, then the
+  winner's line; 1.6 s on a close win, 1 s otherwise.
+- **The grammar holds:** the plate is the same box as before, on the winner's side; it never touches
+  the loser's. The loadout picker's close-win preview shows the new plate too.
+
+**Evidence:**
+- **Browser check** (`progress/render/evidence/boast-check-s37.mjs`, output `boast-check-s37.txt`):
+  637 checks, ALL PASS, run twice. The four recorded replays (the close win also on a phone, in reduced
+  motion, and skipped during CLOSE CALL), and every one of the six boasts forced as a plain win and as a
+  close win. Each run: the line reads "<NAME> WINS", the name then WINS inside the plate with a visible
+  space, WINS in its own colour; no VICTORY or CLOSE WIN anywhere; on a close win CLOSE CALL shows first
+  and alone, the winner's line about 0.6 s later, and the result lands at about 3.6 s.
+- **Stills:** `v2-s37-forced-aegis-shield-slam-d-name.jpg` (a plain win),
+  `v2-s37-forced-aegis-shield-slam-close-c-close.jpg` then `-close-d-name.jpg` (a close win),
+  `v2-s37-forced-boot-sequence-close-c-close.jpg` / `-d-name.jpg`, `v2-s37-rec-close-desktop-*.jpg`,
+  `v2-s37-rec-close-phone-d-name.jpg`, `v2-s37-rec-close-reduced-still-close.jpg` / `-still-wins.jpg`,
+  and the other boasts' `-d-name.jpg`.
+- **Tests:** render 603 (+16): for every boast, a close win is the same boast with the close-call line
+  and 0.6 s more (every other mark and piece unchanged), the grammar on every layout, the typed line's
+  timing, the still. Mutation checks: not lengthening a close win fails 6 tests; dropping the close-call
+  line fails 7; typing over CLOSE CALL fails 2.
+
+**Found on the way (fixed):** the stamped WINS lost its space ("Lookahead-AegisWINS": an inline block
+drops a leading space), and a long name on a phone shrank more than needed because WINS's stamp starts
+scaled up. Both seen in the browser, fixed, and now checked.
+
+**Decisions you may want to overrule:**
+1. **CLOSE CALL, not CLOSE WIN** (your two wordings): "CLOSE WIN" followed by "<NAME> WINS" says win
+   twice.
+2. **A close win's boast runs 0.6 s longer** (3.6 s) so the winner's line holds as long as in any
+   other win. Alternative: keep 3.0 s and show CLOSE CALL earlier, over the boast's own beats.
+3. **CLOSE CALL holds 0.6 s alone,** then swaps to the winner's line in the same place. Alternative:
+   both lines at once, CLOSE CALL above.
+4. **CLOSE CALL is amber** (a warning colour, on the winner's side, the same for every faction).
+   Alternative: white-chrome, or the boast's own colour.
+5. **WINS is white,** the name keeps the boast's colour, and WINS stamps in 0.16 s after the name.
+   Alternative: the whole line in the boast's colour.
+6. **"· VICTORY" is dropped;** the small line under the name is just the boast's name. Alternative:
+   drop the small line too, or keep "· VICTORY".
+7. **A long name shrinks the whole line,** WINS included, to fit the plate (no second line).
+8. **The reduced-motion still swaps the words too** (CLOSE CALL, then the winner's line, no motion),
+   1.6 s on a close win.
+
+**Thin spots (in the debt list):** nobody has seen it at full speed or judged whether 0.6 s of CLOSE
+CALL is long enough to read; the turn bar's own "wins" line still lands after the boast, so the
+win is now said twice, a second apart.
+
+**Next render-lane slice:** Match Boot slice 2 (sound and the phone), as you set.
+
+---
+
 ## 2026-10-20 — Victory boasts, slice 4: the loadout picker — AWAITING FEEDBACK
 
 Open `render/output/loadout-picker.html`. It is the owner page where an owner dresses one agent, built

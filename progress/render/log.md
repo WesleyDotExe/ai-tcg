@@ -3668,3 +3668,47 @@ page differed run to run; dropped.
 
 **Next render-lane slice:** Match Boot slice 2 (sound and the phone), as the owner set. The picker's
 calls are in the checkpoint; it needs the game lane's loadout endpoint to save for real.
+
+## 2026-10-23 — Session 37: the boast's win message ("<AGENT NAME> WINS"; CLOSE CALL first on a close win)
+
+Render session by the alternation rule: the last merged PR (#93) was the game lane's (session 55, a
+hardening pass). Owner feedback read: the 2026-10-21 entry asks every boast to end on a clear
+"<AGENT NAME> WINS", a close win to show a close-call line first ("CLOSE CALL" or "CLOSE WIN", the
+render lane's pick), the reduced-motion still included, "alongside Match Boot slice 2, or as its own
+small slice". Built as its own slice. The newest entry (answers to game session 55, keep) is the game
+lane's; the arena entry is for when arenas ship.
+
+**Built (`render/src/boastFx.ts`):**
+- The plate's main line is "<NAME> WINS" (`BOAST_WINS`): the name (`.boast-wn`) in the boast's colour,
+  WINS (`.boast-wins`) in white, stamped 0.16 s after the name. The small line under it is the boast's
+  name alone; "· VICTORY" and "· CLOSE WIN" are gone.
+- A close win: `boastPlan(spec, geom, seed, { name, faction, close })` adds `close: BOAST_CLOSE_MS`
+  (600) to the name mark and ends the plan 600 ms later (`plan.close`). The runtime opens the plate on
+  `BOAST_CLOSE_LINE` ("CLOSE CALL", amber) alone and swaps to the winner's line after 600 ms. Every
+  other beat keeps its time. The replay already passed `close` from the record; `play()` now hands it
+  to the plan.
+- Boot Sequence types the whole line ("<NAME> WINS"); its clicks start after CLOSE CALL.
+- `boastStill`: the still also swaps (no motion) and holds 600 ms longer on a close win.
+- Fit: a long name shrinks the whole line, measured by layout width (see below).
+- `render/EFFECTS.md` ("The win message"), the loadout picker's comments.
+
+**Ran it:**
+- `progress/render/evidence/boast-check-s37.mjs` (from the s34 harness), output `boast-check-s37.txt`:
+  637 checks, ALL PASS, run twice. 21 runs: the four recorded replays (the close win on desktop, a
+  phone, reduced motion, and Escape during CLOSE CALL), the recordless sample, all six boasts forced as
+  plain and close wins, Boot Sequence close on a phone, and the cosmetics switch. New checks W (the line,
+  the space, WINS's colour, no old words) and X (CLOSE CALL first and alone, the swap at about 0.6 s,
+  the result at about 3.6 s). 15 stills kept.
+- Tests: render 603 (+16). `npm test`: all six workspaces pass (1,105); typecheck clean. Mutation
+  checks: 6, 7 and 2 failures for the three mutations named in the checkpoint.
+- All 16 sample replays, the 4 recorded replays, the FX, boast, Match Boot and skin sheets and the
+  loadout picker regenerated. The embedded match data is unchanged; `npm run recorded` prints the same
+  as `recorded-matches-s35.txt`, and the picker's `loadout-picker-s36.txt` is unchanged.
+
+**Found on the way:** the first browser run failed on a phone: WINS's stamp starts at scale 1.5, and
+the fit loop's `scrollWidth` counted the scaled box, so names shrank more than needed. Now measured by
+layout width plus margins (the first try missed the cursor's margin: Boot Sequence's plate overflowed
+by 3 px, also caught by the check). The stills then showed "Lookahead-AegisWINS" with no space: an
+inline block drops its leading space. Fixed with `white-space: pre`, and a check now measures the gap.
+
+**Next render-lane slice:** Match Boot slice 2 (sound and the phone), as the owner set.

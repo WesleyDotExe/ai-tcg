@@ -7,6 +7,20 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The win message (session 37)
+
+- **Nobody has seen it at full speed.** Whether 0.6 s is long enough to read CLOSE CALL, and whether
+  WINS's stamp (0.16 s after the name) reads as one line or two beats, were judged from stills and
+  timed checks in a headless browser that runs at about 5 fps during a boast.
+- **The win is said twice, a second apart:** the plate's "<NAME> WINS", then the turn bar's
+  "GAME OVER: <NAME> WINS" as the boast ends. Not wrong, but not designed together.
+- **A close win's boast is 3.6 s,** past the 3.2 s cap a boast's own beats keep to (`BOAST_MS_MAX`
+  checks specs, not the close-win plan). The close-call line is the only thing in the extra 0.6 s.
+- **A very long name on a phone** shrinks the whole line, WINS included, down to 11 px; there is no
+  second line for the name. The longest recorded name ("Moth Protocol WINS") fits at 24 px.
+- **CLOSE CALL's amber is a new colour** in the boast grammar, the same for every faction; it has
+  not been checked against every faction's lit panel side by side.
+
 ## The loadout picker (boast slice 4, session 36)
 
 - **It saves nowhere real.** No server endpoint for loadouts exists (game lane roadmap 2b step 3), so
