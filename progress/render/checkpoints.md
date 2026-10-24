@@ -7,6 +7,73 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-24 — Match Boot, slice 2: the sound and the phone — AWAITING FEEDBACK
+
+The polish slice you set after slice 1. Open any replay in `render/output/` with sound on and press Play at
+move 0; on a phone, `cortex-vs-swarm-seed6.html` shows the new two-row lines; `match-boot-sheet.html` has
+the rare saying (`> SUDO FIGHT`) with its flourish and a long name on a phone.
+- **The music starts after the intro** (your call 8 from slice 1). It is silent under the intro, nothing
+  is queued, and it starts from the top of its progression as the intro ends, fading in over about a
+  second. A skip, a pause or a jump brings it in at once. Music switched on during the intro waits for its
+  end too.
+- **Every intro sound is queued on the audio clock** at its exact time, a little ahead, instead of being
+  fired from the animation frames. A dropped frame or a busy page no longer makes a key click late or
+  merges two. Measured from the page's own audio output: every sound lands within 3 ms of its planned
+  distance from the others, also with the page stalled for 100 ms mid-typing (slice 1, same stall: the
+  clicks bunched and gapped, 1 of 16 intervals on time).
+- **Dead centre:** the intro's sounds play at pan 0 (left and right measured equal to 0.01 dB).
+- **A skip cuts them:** Escape, Skip, a tap, pause or a jump fades all the intro's sounds out in 30 ms (no
+  click). At its own end the last chord rings out into the first move.
+- **Its own power-on sound:** two tubes at once, a deeper thump and the low hum of a 90s monitor
+  degaussing, under a crackle. Boot Sequence keeps its own tube sound, so the 300-credit boast stays
+  distinct.
+- **The rare saying is heard too:** `> SUDO FIGHT` adds a short "root access granted" over the hit: a
+  glitch, then three blips climbing an octave.
+- **The phone:** when one row squeezes an agent's line (under 15 px), it breaks after `LOADING AGENT:`
+  onto two rows, both halves alike, typed as one line. On a phone in portrait a typical name now reads at
+  20 px instead of about 13.5. Landscape and desktop keep one row. Skip is finger-sized (88 x 44 px) on a
+  touch screen.
+
+**Evidence:**
+- **Browser check** (`progress/render/evidence/boot-check-s38.mjs`, output `boot-check-s38.txt`): 42
+  checks, ALL PASS, run twice. It records the page's real audio (an AudioWorklet on the master bus), so
+  it checks what is heard, not what the page meant to play: onsets, left/right balance, no clipping, the
+  music silent then playing, silence after a pause, the stall before/after against slice 1's page, the
+  rare flourish (+5.8 dB in its band against a plain saying). Plus the phone in portrait and landscape,
+  the desktop, reduced motion, muted effects, and music switched on mid-intro.
+- **Stills:** `v2-s38-phone-rows.jpg` (the two rows), `v2-s38-phone-saying.jpg`,
+  `v2-s38-phone-landscape.jpg`, `v2-s38-desktop-lines.jpg`, `v2-s38-sheet-rare.jpg`,
+  `v2-s38-sheet-phone-rows.jpg`.
+- **Tests:** render 612 (+9). Mutation checks: ignoring the scheduled time fails 1 test; letting music
+  queue under the intro fails 3; never breaking onto two rows fails 2.
+
+**Decisions you may want to overrule:**
+1. **The music starts from the top of its progression** when the intro ends, fading in over about a
+   second (a 0.3 s time constant). Alternative: a quicker fade, or pick up mid-phrase.
+2. **At its own end the intro's last sounds ring out** (the saying's chord tail overlaps the first move);
+   only a skip, pause or jump cuts them. Alternative: cut at the end too.
+3. **The intro's own power-on (a degauss hum)** instead of Boot Sequence's tube. Alternative: share the
+   boast's sound (slice 1 did).
+4. **The rare saying gets a sound of its own** (three blips climbing an octave, about 0.4 s). Alternative:
+   rare in the words only.
+5. **All intro sounds at pan 0,** dead centre, wherever the board sits in the window.
+6. **Two rows on a phone** only when the board's width squeezes one row under 15 px and two rows come out
+   at least a fifth bigger; up to 20 px. Alternative: always one row (slice 1), or two rows on every phone.
+7. **Finger-sized Skip on touch screens only,** for the intro. The boasts' Skip is unchanged (it can
+   follow in the same way).
+8. **A sound that can't be queued in time is dropped, never played late** (more than 120 ms late: only
+   when the audio is still waking up). The cold start on the phone run queued all 27 in time.
+
+**Thin spots (in the debt list):** nobody has heard it on a real device or judged the hum, the flourish or
+the music's fade-in by ear; the audio is checked against itself, not against the picture (device output
+latency varies); the four clicks under the HANDSHAKE OK chirp can't be told apart in the recording; the
+boasts still fire their sounds from the frames.
+
+**Next render-lane slice:** none set. Suggested: move the boasts' sounds onto the same audio-clock
+scheduling, or whatever you name.
+
+---
+
 ## 2026-10-23 — The boast's win message: "<AGENT NAME> WINS", and CLOSE CALL first on a close win — AWAITING FEEDBACK
 
 Your 2026-10-21 ask, built as its own small slice. Open any replay in `render/output/` and step onto the

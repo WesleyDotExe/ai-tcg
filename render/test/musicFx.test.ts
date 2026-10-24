@@ -255,10 +255,11 @@ function boot(doc: unknown = undefined) {
   )(env.win, env.perf, doc, env.fakeSetInterval, env.fakeClearInterval) as {
     SND: {
       play: (k: string, f: string, t: string, rect: null, o?: object) => boolean;
+      group: () => { node: FakeNode & { gain: FakeParam }; cut: () => boolean; isCut: () => boolean } | null;
       setOn: (on: boolean) => boolean;
       setHidden: (h: boolean) => void;
       mount: (btn: FakeEl, slider: FakeEl | null, store?: object) => Ctl;
-      stats: () => { ctxState: string | null; on: boolean };
+      stats: () => { ctxState: string | null; on: boolean; scheduled: number; cuts: number; repeats: number };
     };
     MUS: {
       setOn: (on: boolean) => boolean;
@@ -267,11 +268,12 @@ function boot(doc: unknown = undefined) {
       event: (k: string, t: string) => number;
       duck: () => boolean;
       duckHold: (sec: number) => boolean;
+      startAfter: (sec: number) => boolean;
       setScene: (f: string, m: boolean) => void;
       tick: () => number;
       setVolume: (v: number) => number;
       mount: (btn: FakeEl, slider: FakeEl | null, meter: FakeEl | null, store?: object) => Ctl;
-      stats: () => { on: boolean; I: number; faction: string; mythic: boolean; step: number; steps: number; voices: number; ducks: number; bumps: number; layers: ReturnType<typeof musLayers> };
+      stats: () => { on: boolean; I: number; faction: string; mythic: boolean; step: number; steps: number; voices: number; ducks: number; bumps: number; waits: number; waiting: boolean; busGain: number | null; layers: ReturnType<typeof musLayers> };
     };
   };
   return { ...out, ...env };
@@ -382,6 +384,91 @@ describe("the music runtime the page embeds", () => {
     expect(targets()[2]![0]).toBe(MUS_DUCK_TO);
     MUS.setOn(false);
     expect(MUS.duckHold(1)).toBe(false);
+  });
+
+  it("Match Boot: silent under the intro, then it starts from the top of the progression, fading in (owner call 8)", () => {
+    const { SND, MUS, made, clock, advanceMs } = boot();
+    SND.setOn(true);
+    MUS.setOn(true);
+    clock.t = 5; MUS.tick();
+    const { bus } = musicGraph(made);
+    const before = bus.gain.calls.length;
+    expect(MUS.startAfter(2.6)).toBe(true);
+    const targets = bus.gain.calls.slice(before).filter((c) => c.fn === "setTargetAtTime").map((c) => c.args);
+    // Down to silence at once, back to its level at the intro's end.
+    expect(targets[0]![0]).toBe(0);
+    expect(targets[0]![1]).toBe(5);
+    expect(targets[1]![0]).toBeGreaterThan(0);
+    expect(targets[1]![1]).toBe(5 + 2.6);
+    expect(MUS.stats().waiting).toBe(true);
+    // Nothing is queued under the intro.
+    const voicesAt = MUS.stats().voices;
+    for (let k = 0; k < 20; k++) { clock.t += 0.12; advanceMs(120); MUS.tick(); }
+    expect(clock.t).toBeLessThan(5 + 2.6 - 0.12);
+    expect(MUS.stats().voices).toBe(voicesAt);
+    expect(MUS.stats().step).toBe(0);
+    // After it, the first step queued is step 0 (the top of Am), at or after the end
+    // (the steps queued before the intro, at most one lookahead ahead, sound into the fade).
+    clock.t = 5 + 2.6; advanceMs(400); MUS.tick();
+    expect(MUS.stats().steps).toBeGreaterThan(0);
+    const firstNew = made.filter((n) => (n.kind === "osc" || n.kind === "noise") && typeof n.started === "number" && (n.started as number) > 5 + 0.12);
+    expect(firstNew.length).toBeGreaterThan(0);
+    expect(Math.min(...firstNew.map((n) => n.started as number))).toBeGreaterThanOrEqual(5 + 2.6);
+    expect(MUS.stats().waiting).toBe(false);
+  });
+
+  it("Match Boot skipped: startAfter(0) brings the music in at once; a volume change or switching it on under the intro waits", () => {
+    const { SND, MUS, made, clock, advanceMs } = boot();
+    SND.setOn(true);
+    MUS.setOn(true);
+    clock.t = 2;
+    MUS.startAfter(2.6);
+    const { bus } = musicGraph(made);
+    // A volume change under the intro holds the bus at 0 until the end.
+    const n0 = bus.gain.calls.length;
+    MUS.setVolume(0.3);
+    const vol = bus.gain.calls.slice(n0);
+    expect(vol.find((c) => c.fn === "setValueAtTime")!.args[0]).toBe(0);
+    expect(vol.find((c) => c.fn === "setTargetAtTime")!.args[1]).toBeCloseTo(4.6);
+    // The skip at 1 s.
+    clock.t = 3; advanceMs(1000);
+    const n1 = bus.gain.calls.length;
+    expect(MUS.startAfter(0)).toBe(true);
+    const back = bus.gain.calls.slice(n1).filter((c) => c.fn === "setTargetAtTime").map((c) => c.args);
+    expect(back).toHaveLength(1);
+    expect(back[0]![0]).toBeGreaterThan(0);
+    expect(back[0]![1]).toBe(3);
+    MUS.tick();
+    expect(MUS.stats().steps).toBeGreaterThan(0);
+    // Music off when the intro starts, switched on under it: it waits for the end.
+    const e2 = boot();
+    e2.SND.setOn(true);
+    e2.clock.t = 1;
+    expect(e2.MUS.startAfter(2.6)).toBe(false);
+    e2.clock.t = 2; e2.advanceMs(1000);
+    e2.MUS.setOn(true);
+    const bus2 = musicGraph(e2.made).bus;
+    const up = bus2.gain.calls.filter((c) => c.fn === "setTargetAtTime" && c.args[0]! > 0).map((c) => c.args[1]!);
+    expect(Math.max(...up)).toBeCloseTo(2 + 1.6, 5);
+    e2.MUS.tick();
+    expect(e2.MUS.stats().voices).toBe(0);
+  });
+
+  it("Match Boot ends on its own: a second intro later waits again from scratch", () => {
+    const { SND, MUS, clock, advanceMs } = boot();
+    SND.setOn(true);
+    MUS.setOn(true);
+    clock.t = 1; MUS.startAfter(2.6);
+    clock.t = 3.7; advanceMs(2700);
+    for (let k = 0; k < 10; k++) { clock.t += 0.1; MUS.tick(); }
+    expect(MUS.stats().step).toBeGreaterThan(0);
+    clock.t = 20; advanceMs(16000);
+    MUS.startAfter(2.6);
+    expect(MUS.stats().step).toBe(0);
+    const steps = MUS.stats().steps;
+    MUS.tick();
+    expect(MUS.stats().steps).toBe(steps);
+    expect(MUS.stats().waiting).toBe(true);
   });
 
   it("with effects muted, nothing ducks the music", () => {
@@ -630,5 +717,39 @@ describe("the replay page and the FX sheet", () => {
 
   it("keeps the layer thresholds in one place", () => {
     expect(Object.keys(MUS_AT)).toEqual(["kick1", "kick3", "arp", "drive", "hats", "arp16", "kick4", "offHats", "snare"]);
+  });
+});
+
+describe("sounds scheduled on the audio clock (Match Boot, render session 38)", () => {
+  it("a group: each sound starts at its given time, dead centre, through the group's bus; the repeat gap doesn't drop them", () => {
+    const { SND, made, clock } = boot();
+    expect(SND.group()).toBeNull();
+    SND.setOn(true);
+    clock.t = 10;
+    const g = SND.group()!;
+    const comp = made.find((n) => n.kind === "compressor")!;
+    const master = made.find((n) => n.kind === "gain" && n.to.includes(comp))!;
+    expect(g.node.to).toEqual([master]);
+    const before = made.length;
+    for (let k = 0; k < 6; k++) expect(SND.play("type", "Neutral", "subtle", null, { at: 10.1 + k * 0.01, pan: 0, group: g })).toBe(true);
+    const fresh = made.slice(before);
+    const srcs = fresh.filter((n) => n.kind === "osc" || n.kind === "noise");
+    expect(srcs).toHaveLength(12);
+    expect(srcs.map((n) => n.started).sort()).toEqual([10.1, 10.1, 10.11, 10.11, 10.12, 10.12, 10.13, 10.13, 10.14, 10.14, 10.15, 10.15].map((x) => expect.closeTo(x, 9)));
+    const pans = fresh.filter((n) => n.kind === "panner") as (FakeNode & { pan: FakeParam })[];
+    expect(pans.every((p) => p.pan.value === 0 && p.to[0] === g.node)).toBe(true);
+    expect(SND.stats()).toMatchObject({ scheduled: 6, repeats: 0 });
+  });
+
+  it("a cut fades the group out in 30 ms (no click), once", () => {
+    const { SND, clock } = boot();
+    SND.setOn(true);
+    clock.t = 4;
+    const g = SND.group()!;
+    expect(g.cut()).toBe(true);
+    expect(g.cut()).toBe(false);
+    const ramp = g.node.gain.calls.find((c) => c.fn === "linearRampToValueAtTime")!;
+    expect(ramp.args).toEqual([0, 4.03]);
+    expect(SND.stats().cuts).toBe(1);
   });
 });

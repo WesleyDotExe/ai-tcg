@@ -899,3 +899,17 @@ twice. A close win's boast now runs 3.6 s (CLOSE CALL holds 0.6 s first) so the 
 as long as in any other win.
 
 **For the game lane, nothing.**
+
+## 2026-10-24 — Session 38: Match Boot slice 2 (sound and the phone)
+
+Nothing is blocking. The 8 calls are in `progress/render/checkpoints.md` (newest entry), each with the
+default I built.
+
+**Worth hearing, with sound and music on:** any replay from move 0. The music now waits for the intro and
+starts as it ends. Then `render/output/match-boot-sheet.html`, the `> SUDO FIGHT` scene, for the rare
+flourish. On a phone, `render/output/cortex-vs-swarm-seed6.html` shows the agent lines on two rows. The
+timing was measured from the page's real audio output in a headless browser; nobody has listened yet.
+
+**For the game lane, nothing.** (Your 2026-10-24 question on the minimum deck size is the game lane's,
+for its next session.)
+

@@ -38,6 +38,14 @@
 //     atlases), plays its sounds, and the Skip button. Reduced motion plays
 //     bootStill: everything lit and still for about 1 s.
 //
+// Slice 2 (render session 38, sound and the phone): the sounds are queued on
+// the audio clock (a dropped frame can't make one late), dead centre, and a
+// skip cuts them; the intro has its own power-on (two tubes and a degauss
+// hum) instead of Boot Sequence's; the rare saying has its own flourish; the
+// music is silent under the intro and starts when it ends (owner call 8); on
+// a narrow board the agent lines break after LOADING AGENT: so they read
+// bigger; Skip is finger-sized on a touch screen.
+//
 // The page embeds MATCH_BOOT_PURE_SOURCE verbatim after BOAST_PURE_SOURCE
 // (it reuses the dot font) and Node evaluates the same text for the tests.
 
@@ -71,12 +79,16 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     if (h % 100 === 0) return BOOT_RARE;
     return BOOT_SAYINGS[Math.floor(h / 100) % BOOT_SAYINGS.length];
   }
-  function bootLine(name, faction) {
-    return 'LOADING AGENT: ' + String(name || 'AGENT') + ' [' + String(faction || 'Neutral').toUpperCase() + ']';
-  }
+  var BOOT_HEAD = 'LOADING AGENT: ';
+  function bootTail(name, faction) { return String(name || 'AGENT') + ' [' + String(faction || 'Neutral').toUpperCase() + ']'; }
+  function bootLine(name, faction) { return BOOT_HEAD + bootTail(name, faction); }
   // A monospace character's width, as a share of the type size (the BIOS
   // type Boot Sequence uses; the runtime squeezes a wider font to fit).
   var BOOT_CH = 0.62;
+  // The agent lines' type size: at most 15 px on one line. When the board's
+  // width is what squeezes one line (a phone), the line breaks after
+  // LOADING AGENT: and the two rows may reach 20 px (render session 38).
+  var BOOT_FS_MAX = 15, BOOT_FS2_MAX = 20, BOOT_LH = 1.3;
 
   // bootPlan(geom, who, seed, opts) -> the intro on this page's layout.
   //   geom: { top, bot, area } in document pixels ({ l, t, r, b }): the top
@@ -95,26 +107,37 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     var l = Math.max(top.l, bot.l), r = Math.min(top.r, bot.r), cx = (l + r) / 2, W = r - l;
     var dNear = Math.max(mid - top.b, bot.t - mid), dFar = Math.min(mid - top.t, bot.b - mid), H = dFar - dNear;
     var saying = opts.saying || bootSaying(seed);
+    function pad(t, k) { while (t.length < k) t += ' '; return t; }
     var lines = { top: bootLine(who.top && who.top.name, who.top && who.top.faction), bot: bootLine(who.bot && who.bot.name, who.bot && who.bot.faction) };
+    var tails = { top: bootTail(who.top && who.top.name, who.top && who.top.faction), bot: bootTail(who.bot && who.bot.name, who.bot && who.bot.faction) };
     // The shorter line is padded so both type for the same time.
     var n = Math.max(lines.top.length, lines.bot.length);
-    var fs = Math.max(7, Math.min(15, H * 0.12, (W - 24) / (BOOT_CH * (n + 1))));
-    var lineW = BOOT_CH * fs * (n + 1), x0 = cx - lineW / 2;
+    var fit1 = (W - 24) / (BOOT_CH * (n + 1)), fs = Math.max(7, Math.min(BOOT_FS_MAX, H * 0.12, fit1));
+    // Two rows, LOADING AGENT: over the name, when the width squeezes one
+    // row and two come out a fifth bigger or more. Both halves break the
+    // same way (the rows padded to one length), so they stay mirror images.
+    var nTail = Math.max(tails.top.length, tails.bot.length), nRow = Math.max(BOOT_HEAD.length, nTail);
+    var fs2 = Math.min(BOOT_FS2_MAX, H * 0.1, (W - 24) / (BOOT_CH * (nRow + 1)));
+    var two = fit1 < BOOT_FS_MAX && fs2 >= fs * 1.2;
+    if (two) { fs = fs2; n = BOOT_HEAD.length + nTail; }
+    var lineW = BOOT_CH * fs * ((two ? nRow : n) + 1), x0 = cx - lineW / 2;
     var dLine = dNear + H * 0.5;
     var typeAt = 560, typeMs = Math.min(720, n * 22);
     function half(side) {
       var s = side === 'top' ? -1 : 1, f = (who[side] && who[side].faction) || 'Neutral';
       var nearY = mid + s * (dNear + 4), farY = mid + s * (dFar - 4);
-      var txt = lines[side];
-      while (txt.length < n) txt += ' ';
+      var line = { txt: pad(lines[side], two ? 0 : n), len: lines[side].length, x0: x0, w: lineW, y: mid + s * dLine, fs: fs, t0: typeAt, ms: typeMs,
+        // The readouts clear as the saying lands: each lifts AWAY from the
+        // centre line and fades.
+        clear: { t: 1600, ms: 260, dy: s * fs * 1.2 } };
+      // Two rows type one after the other, as one line of n characters;
+      // y is the middle of the pair, the rows BOOT_LH type sizes apart.
+      if (two) line.rows = [pad(BOOT_HEAD.replace(/ $/, ''), BOOT_HEAD.length), pad(tails[side], nTail)];
       return {
         side: side, faction: f,
         screen: { l: l + 4, r: r - 4, t: Math.min(nearY, farY), b: Math.max(nearY, farY) },
         on: { t: 0, ms: 420, flick: 520 },
-        line: { txt: txt, len: lines[side].length, x0: x0, w: lineW, y: mid + s * dLine, fs: fs, t0: typeAt, ms: typeMs,
-          // The readouts clear as the saying lands: each lifts AWAY from the
-          // centre line and fades.
-          clear: { t: 1600, ms: 260, dy: s * fs * 1.2 } }
+        line: line
       };
     }
     var halves = [half('top'), half('bot')];
@@ -128,17 +151,23 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     var say = { text: saying, rare: saying === BOOT_RARE, bits: fit.bits, cell: fit.cell, x: cx, y: mid,
       w: fit.bits.cols * fit.cell, h: fit.bits.rows * fit.cell, t: 1600, slam: 140, out: [BOOT_OUT_AT, BOOT_MS], grow: 0.08 };
     var marks = [];
-    // Every sound sits on the centre: its pan favours neither side.
+    // Every sound sits on the centre: its pan favours neither side (x is
+    // the board's centre line; the runtime plays them at pan 0, dead centre
+    // of the speakers, wherever the board sits in the window).
     function snd(t, kind, tier) { marks.push({ k: 'sound', t: t, kind: kind, tier: tier || 'normal', x: cx }); }
-    snd(0, 'crt');
+    // Its own power-on (two tubes and a degauss hum), not Boot Sequence's.
+    snd(0, 'bootOn');
     // One key click for each pair of characters, shared by both lines (they
     // type in step).
     for (var q = 0; q < n; q += 2) snd(typeAt + typeMs * q / n, 'type', 'subtle');
     snd(handshake.t0, 'handshake');
     for (var q2 = 0; q2 < 4; q2++) snd(handshake.t0 + q2 * 30, 'type', 'subtle');
     snd(say.t, 'bootHit', 'spectacle');
-    // The music waits under the whole intro and comes up after it.
-    marks.push({ k: 'duck', t: 0, ms: BOOT_MS + 200 });
+    // The rare saying is heard too: root access granted, over the hit.
+    if (say.rare) snd(say.t + 60, 'bootRoot', 'normal');
+    // The music is silent under the whole intro and starts when it ends
+    // (the owner's call 8, "music starts after").
+    marks.push({ k: 'music', t: 0, ms: BOOT_MS });
     marks.push({ k: 'end', t: BOOT_MS });
     marks.sort(function (u, v) { return u.t - v.t; });
     return { ms: BOOT_MS, out: BOOT_OUT_AT, list: BOOT_LIST_VERSION, saying: saying, mid: mid, cx: cx, area: { l: area.l, t: area.t, r: area.r, b: area.b },
@@ -157,8 +186,8 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     hs.y = plan.mid + out.say.h / 2 + out.say.cell * 1.5 + hs.fs * 0.9; hs.t0 = 0; hs.ms = 0; hs.gone = Infinity;
     if (hs.y + hs.fs / 2 > bl.y - bl.fs * 0.7) out.handshake = null;
     out.say.t = 0; out.say.slam = 0; out.say.grow = 0; out.say.out = [out.out, out.ms];
-    out.marks = out.marks.filter(function (m) { return m.k === 'duck' || (m.k === 'sound' && (m.kind === 'crt' || m.kind === 'bootHit')); })
-      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'duck') c.ms = BOOT_STILL_MS + 200; return c; });
+    out.marks = out.marks.filter(function (m) { return m.k === 'music' || (m.k === 'sound' && (m.kind === 'bootOn' || m.kind === 'bootHit' || m.kind === 'bootRoot')); })
+      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'music') c.ms = BOOT_STILL_MS; return c; });
     out.marks.push({ k: 'end', t: BOOT_STILL_MS });
     return out;
   }
@@ -180,7 +209,8 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     for (var i = 0; i < 2; i++) {
       var h = plan.halves[i], ln = h.line;
       if (!inBox(h.screen, halfBoxes[h.side])) return h.side + ' screen leaves its half';
-      var lb = { l: ln.x0, r: ln.x0 + ln.w, t: ln.y - ln.fs * 0.6, b: ln.y + ln.fs * 0.6 };
+      var hh = ln.fs * 0.6 + (ln.rows ? ln.fs * BOOT_LH / 2 : 0);
+      var lb = { l: ln.x0, r: ln.x0 + ln.w, t: ln.y - hh, b: ln.y + hh };
       if (!inBox(lb, h.screen)) return h.side + ' agent line leaves its screen';
       if (ln.t0 < h.on.t + h.on.ms) return h.side + ' agent line types before its screen is on';
       if (ln.clear) {
@@ -195,7 +225,8 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     if (!near(ts.l, bs.l) || !near(ts.r, bs.r) || !near(mid - ts.b, bs.t - mid) || !near(mid - ts.t, bs.b - mid)) return 'the screens are not mirror images';
     if (T.on.t !== B.on.t || T.on.ms !== B.on.ms || T.on.flick !== B.on.flick) return 'the halves power on at different times';
     var tl = T.line, bl = B.line;
-    if (tl.txt.length !== bl.txt.length) return 'the agent lines are padded to different lengths';
+    if (!!tl.rows !== !!bl.rows) return 'one agent line breaks onto two rows and the other does not';
+    if (tl.rows ? (tl.rows[0].length !== bl.rows[0].length || tl.rows[1].length !== bl.rows[1].length) : tl.txt.length !== bl.txt.length) return 'the agent lines are padded to different lengths';
     if (tl.t0 !== bl.t0 || tl.ms !== bl.ms) return 'the agent lines type at different times';
     if (!near(tl.fs, bl.fs) || !near(tl.x0, bl.x0) || !near(tl.w, bl.w) || !near(mid - tl.y, bl.y - mid)) return 'the agent lines are not mirror images';
     if (!!tl.clear !== !!bl.clear || (tl.clear && (tl.clear.t !== bl.clear.t || tl.clear.ms !== bl.clear.ms || !near(-tl.clear.dy, bl.clear.dy)))) return 'the agent lines clear differently';
@@ -218,6 +249,8 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
       if (m.k === 'sound' && !near(m.x, cx)) return 'a sound is panned off centre';
     }
     if (!plan.marks.some(function (m) { return m.k === 'end'; })) return 'no end';
+    var mu = plan.marks.filter(function (m) { return m.k === 'music'; });
+    if (mu.length !== 1 || mu[0].t !== 0 || mu[0].ms !== plan.ms) return 'the music does not wait for the whole intro';
     return null;
   }
 `;
@@ -306,7 +339,17 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       }
       // The cursor runs on through a shorter line's padding, so both stop
       // together; then it blinks until the line clears.
-      var typing = k < ln.txt.length, blink = cur.plan.still || Math.floor(t / 260) % 2 === 0;
+      var blink = cur.plan.still || Math.floor(t / 260) % 2 === 0;
+      if (ln.rows) {
+        // Two rows typed as one line: the first row, then the second.
+        var r0 = ln.rows[0], r1 = ln.rows[1], all = r0.length + r1.length, gap = ln.fs * BOOT_LH / 2;
+        var kk = ln.ms > 0 ? Math.min(all, Math.ceil(all * (t - ln.t0) / ln.ms)) : all;
+        var k0 = Math.min(kk, r0.length), k1 = Math.max(0, kk - r0.length);
+        drawType(ctx, r0, r0.slice(0, k0), ln.x0, y - gap, ln.fs, ln.w, h.rgb, a, k0 < r0.length);
+        if (kk >= r0.length) drawType(ctx, r1, r1.slice(0, k1), ln.x0, y + gap, ln.fs, ln.w, h.rgb, a, k1 < r1.length || blink);
+        return;
+      }
+      var typing = k < ln.txt.length;
       drawType(ctx, ln.txt, shown, ln.x0, y, ln.fs, ln.w, h.rgb, a, typing || blink);
     }
     function drawHandshake(ctx, hs, t, fade) {
@@ -371,16 +414,52 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       ctx.globalCompositeOperation = 'source-over';
       stats.drawn = (stats.drawn || 0) + 1;
     }
+    // The sounds run on the audio clock, not the frames (render session 38):
+    // a lookahead scheduler queues each sound a little ahead at its exact
+    // time, so a dropped or late frame can't make a key click late or merge
+    // two into one. The audio clock is tied to the intro's clock once the
+    // context is running; a sound whose time passed more than SND_LATE_S
+    // before it could be queued (the context still waking up) is dropped,
+    // never played late. All of them go through one group, so a skip cuts
+    // them all at once, ringing or queued.
+    var SND_AHEAD_S = 0.15, SND_TICK_MS = 25, SND_LATE_S = 0.12;
+    function schedule() {
+      if (!cur) return;
+      var c = cur, sounds = c.sounds;
+      if (c.nextSound >= sounds.length) return;
+      if (!c.aud) {
+        if (typeof SND === 'undefined' || !SND.group || !SND.isOn()) return;
+        c.aud = SND.group();
+        if (!c.aud) return;
+      }
+      var C = c.aud.ctx;
+      if (C.state && C.state !== 'running') return;
+      var el = (performance.now() - c.t0) / 1000;
+      if (c.base == null) stats.base = c.base = C.currentTime - el;
+      var now = C.currentTime;
+      while (c.nextSound < sounds.length) {
+        var m = sounds[c.nextSound], at = c.base + m.t / 1000;
+        if (at > now + SND_AHEAD_S) break;
+        c.nextSound++;
+        var late = Math.max(0, now - at);
+        if (late > SND_LATE_S) { stats.late++; continue; }
+        SND.play(m.kind, 'Neutral', m.tier, null, { at: Math.max(at, now), pan: 0, group: c.aud });
+        stats.fired['sound:' + m.kind] = (stats.fired['sound:' + m.kind] || 0) + 1;
+        stats.sched.push({ kind: m.kind, t: m.t, at: Math.round((Math.max(at, now) - c.base) * 1000), lead: Math.round((at - now) * 1000) });
+      }
+    }
+    // The other marks run on the frames (sounds are schedule()'s).
     function fire(m) {
-      stats.fired[m.k + (m.kind ? ':' + m.kind : '')] = (stats.fired[m.k + (m.kind ? ':' + m.kind : '')] || 0) + 1;
-      if (m.k === 'sound' && typeof SND !== 'undefined') SND.play(m.kind, 'Neutral', m.tier, { left: m.x - window.scrollX, width: 0 });
-      else if (m.k === 'duck' && typeof MUS !== 'undefined' && MUS.duckHold) MUS.duckHold(m.ms / 1000);
+      if (m.k === 'sound') return;
+      stats.fired[m.k] = (stats.fired[m.k] || 0) + 1;
+      if (m.k === 'music' && typeof MUS !== 'undefined' && MUS.startAfter) { MUS.startAfter(m.ms / 1000); cur.music = true; }
       else if (m.k === 'end') finish('end');
     }
     function frame() {
       if (!cur) return;
       var me = cur;
       cur.t = performance.now() - cur.t0;
+      schedule();
       while (cur && cur.next < cur.plan.marks.length && cur.plan.marks[cur.next].t <= cur.t) fire(cur.plan.marks[cur.next++]);
       if (cur !== me) return;
       draw();
@@ -394,6 +473,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       document.removeEventListener('keydown', onKey, true);
       document.removeEventListener('pointerdown', onDown, true);
       cancelAnimationFrame(c.raf);
+      clearInterval(c.timer);
       c.cv.remove();
       c.dom.forEach(function (d) { d.remove(); });
     }
@@ -402,6 +482,13 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       var c = cur;
       cur = null;
       teardown(c);
+      // A skip or a cancel cuts the intro's sounds (a 30 ms fade) and starts
+      // the music now; at its own end the last sounds ring out and the
+      // music is already coming in.
+      if (reason !== 'end') {
+        if (c.aud) c.aud.cut();
+        if (c.music && typeof MUS !== 'undefined' && MUS.startAfter) MUS.startAfter(0);
+      }
       stats.last = { reason: reason, t: Math.round(c.t), saying: c.plan.saying, still: !!c.plan.still };
       if (reason === 'skip') stats.skipped++;
       else if (reason === 'cancel') stats.cancelled++;
@@ -442,8 +529,11 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       cv.width = Math.round((A.r - A.l) * dpr); cv.height = Math.round((A.b - A.t) * dpr);
       document.body.appendChild(cv);
       stats.played++; if (plan.still) stats.still++;
-      stats.problem = problem || null; stats.fired = {}; stats.drawn = 0;
-      cur = { plan: plan, cv: cv, ctx: cv.getContext('2d'), dpr: dpr, ox: A.l, oy: A.t, t0: performance.now(), t: 0, next: 0, raf: 0, dom: [], onEnd: opts.onEnd || null };
+      stats.problem = problem || null; stats.fired = {}; stats.drawn = 0; stats.sched = []; stats.late = 0;
+      cur = { plan: plan, cv: cv, ctx: cv.getContext('2d'), dpr: dpr, ox: A.l, oy: A.t, t0: performance.now(), t: 0, next: 0, raf: 0, dom: [], onEnd: opts.onEnd || null,
+        sounds: plan.marks.filter(function (m) { return m.k === 'sound'; }), nextSound: 0, aud: null, base: null, music: false, timer: 0 };
+      stats.planned = cur.sounds.length; stats.base = null;
+      cur.timer = setInterval(schedule, SND_TICK_MS);
       var sk = document.createElement('button');
       sk.type = 'button'; sk.className = 'boast-skip boot-skip'; sk.textContent = 'Skip ▸▸';
       sk.addEventListener('click', function (e) { e.stopPropagation(); skip(); });
@@ -452,6 +542,9 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       sk.style.left = (A.r - sk.offsetWidth - 8) + 'px';
       document.addEventListener('keydown', onKey, true);
       document.addEventListener('pointerdown', onDown, true);
+      // The music mark (at 0) and the first sounds go out at once.
+      while (cur.next < plan.marks.length && plan.marks[cur.next].t <= 0 && plan.marks[cur.next].k !== 'end') fire(plan.marks[cur.next++]);
+      schedule();
       draw();
       cur.raf = requestAnimationFrame(frame);
       return plan;
@@ -459,7 +552,8 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; },
       stats: function () { return { active: !!cur, t: cur ? Math.round(cur.t) : null, saying: cur ? cur.plan.saying : null, still: cur ? !!cur.plan.still : null,
         lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still,
-        cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last }; } };
+        cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last,
+        sched: (stats.sched || []).slice(), late: stats.late || 0, planned: stats.planned == null ? null : stats.planned, audioBase: stats.base == null ? null : stats.base, rows: cur ? !!cur.plan.halves[0].line.rows : null, fs: cur ? cur.plan.halves[0].line.fs : null }; } };
   })();
 `;
 
@@ -467,22 +561,24 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
 // canvas, under the boast's plate and Skip).
 export const MATCH_BOOT_CSS = `
 .boot-canvas { position: absolute; z-index: 92; pointer-events: none; }
+/* A finger-sized Skip on a touch screen (render session 38). */
+@media (pointer: coarse) { .boot-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
 `;
 
 export interface BootRect { l: number; t: number; r: number; b: number }
 export interface BootGeom { top: BootRect; bot: BootRect; area: BootRect }
 export interface BootWho { top?: { name?: string; faction?: string }; bot?: { name?: string; faction?: string } }
-export interface BootLine { txt: string; len: number; x0: number; w: number; y: number; fs: number; t0: number; ms: number; clear: { t: number; ms: number; dy: number } | null }
+export interface BootLine { txt: string; len: number; x0: number; w: number; y: number; fs: number; t0: number; ms: number; clear: { t: number; ms: number; dy: number } | null; rows?: [string, string] }
 export interface BootHalf { side: "top" | "bot"; faction: string; screen: BootRect; on: { t: number; ms: number; flick: number }; line: BootLine }
 export interface BootPlan {
   ms: number; out: number; list: number; saying: string; mid: number; cx: number; area: BootRect; still?: boolean;
   halves: BootHalf[];
   handshake: { txt: string; x: number; y: number; fs: number; t0: number; ms: number; gone: number } | null;
   say: { text: string; rare: boolean; bits: { cols: number; rows: number; chars: number; dots: [number, number, number][] }; cell: number; x: number; y: number; w: number; h: number; t: number; slam: number; out: [number, number]; grow: number };
-  marks: { k: "sound" | "duck" | "end"; t: number; kind?: string; tier?: string; x?: number; ms?: number }[];
+  marks: { k: "sound" | "music" | "end"; t: number; kind?: string; tier?: string; x?: number; ms?: number }[];
 }
 
-const impl = new Function(`${BOAST_PURE_SOURCE}${MATCH_BOOT_PURE_SOURCE}; return { BOOT_MS: BOOT_MS, BOOT_STILL_MS: BOOT_STILL_MS, BOOT_OUT_AT: BOOT_OUT_AT, BOOT_LIST_VERSION: BOOT_LIST_VERSION, BOOT_SAYINGS: BOOT_SAYINGS, BOOT_RARE: BOOT_RARE, BOOT_CH: BOOT_CH, bootHash: bootHash, bootSaying: bootSaying, bootLine: bootLine, bootPlan: bootPlan, bootStill: bootStill, bootPlanProblem: bootPlanProblem };`)() as {
+const impl = new Function(`${BOAST_PURE_SOURCE}${MATCH_BOOT_PURE_SOURCE}; return { BOOT_MS: BOOT_MS, BOOT_STILL_MS: BOOT_STILL_MS, BOOT_OUT_AT: BOOT_OUT_AT, BOOT_LIST_VERSION: BOOT_LIST_VERSION, BOOT_SAYINGS: BOOT_SAYINGS, BOOT_RARE: BOOT_RARE, BOOT_CH: BOOT_CH, BOOT_FS_MAX: BOOT_FS_MAX, BOOT_FS2_MAX: BOOT_FS2_MAX, BOOT_LH: BOOT_LH, BOOT_HEAD: BOOT_HEAD, bootHash: bootHash, bootSaying: bootSaying, bootLine: bootLine, bootPlan: bootPlan, bootStill: bootStill, bootPlanProblem: bootPlanProblem };`)() as {
   BOOT_MS: number;
   BOOT_STILL_MS: number;
   BOOT_OUT_AT: number;
@@ -490,6 +586,10 @@ const impl = new Function(`${BOAST_PURE_SOURCE}${MATCH_BOOT_PURE_SOURCE}; return
   BOOT_SAYINGS: string[];
   BOOT_RARE: string;
   BOOT_CH: number;
+  BOOT_FS_MAX: number;
+  BOOT_FS2_MAX: number;
+  BOOT_LH: number;
+  BOOT_HEAD: string;
   bootHash: (seed: number) => number;
   bootSaying: (seed: number) => string;
   bootLine: (name: string, faction: string) => string;
@@ -505,6 +605,10 @@ export const BOOT_LIST_VERSION = impl.BOOT_LIST_VERSION;
 export const BOOT_SAYINGS = impl.BOOT_SAYINGS;
 export const BOOT_RARE = impl.BOOT_RARE;
 export const BOOT_CH = impl.BOOT_CH;
+export const BOOT_FS_MAX = impl.BOOT_FS_MAX;
+export const BOOT_FS2_MAX = impl.BOOT_FS2_MAX;
+export const BOOT_LH = impl.BOOT_LH;
+export const BOOT_HEAD = impl.BOOT_HEAD;
 export const bootHash = impl.bootHash;
 export const bootSaying = impl.bootSaying;
 export const bootLine = impl.bootLine;

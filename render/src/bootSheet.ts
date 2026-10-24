@@ -41,6 +41,7 @@ export function bootScenes(): BootScene[] {
   scenes.push(
     { key: "phone-link", title: "LINK ESTABLISHED on a phone: the saying breaks onto two lines", saying: "LINK ESTABLISHED", top: { name: "Coiljackal's Croupier", faction: "Null", cards: 0 }, bot: { name: "Bastion Relay", faction: "Aegis", cards: 0 }, phone: true },
     { key: "phone-run", title: "> RUN MATCH.EXE on a phone", saying: "> RUN MATCH.EXE", top: { name: "Brood Signal", faction: "Swarm", cards: 0 }, bot: { name: "Prism Daemon", faction: "Cortex", cards: 0 }, phone: true },
+    { key: "phone-rows", title: "A long name on a phone: each agent line breaks after LOADING AGENT: (both halves alike)", saying: "EXECUTE", top: { name: "Coiljackal's Croupier of the Ninth Relay", faction: "Swarm", cards: 0 }, bot: { name: "Lookahead-Aegis", faction: "Aegis", cards: 0 }, phone: true },
     { key: "reduced", title: "Reduced motion: the still, about 1 s", saying: "OVERCLOCK", top: { name: "Hollow Index", faction: "Null", cards: 0 }, bot: { name: "Velvet Static", faction: "Cortex", cards: 0 }, reduced: true },
   );
   return scenes;
@@ -88,8 +89,9 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
 </style>
 </head>
 <body>
-<h1>AI·TCG // MATCH BOOT (render slice 1: the intro at the start of every match)</h1>
+<h1>AI·TCG // MATCH BOOT (render slices 1-2: the intro at the start of every match; its sound and the phone)</h1>
 <p class="note">Match Boot plays when a match or a replay starts from its first move, about 2.6 s, free and standard for every match (the Cosmetics switch doesn't touch it). Its grammar is symmetric and centre-out: both halves of the board power on together like CRTs, each in its own faction's colour (a mirror match: both the same); each half types its agent's line at the same time and speed, <code>LOADING AGENT: &lt;name&gt; [&lt;FACTION&gt;]</code>, padded so both finish together; <code>HANDSHAKE OK</code> types once on the centre line in neutral white-chrome, with a chirp; the centre line flashes and the saying slams in across it in the dot font, with a hit and a rising chord, while both agent lines lift away from the centre and fade; the saying swells and fades, the screens go and the first board shows. Every sound sits on the centre, so neither side is favoured. The saying comes from the match's seed (list 1, frozen): one of eight, equally likely, or <code>&gt; SUDO FIGHT</code> for 1 match in 100. A tap, Escape or Skip ends it and the first move starts at once. Reduced motion shows everything lit and still for about 1 s. Each scene here forces its saying; a replay always shows its own seed's.</p>
+<p class="note">Slice 2 (sound and the phone): the intro has its own power-on (two tubes and a degauss hum, not Boot Sequence's tube); every sound is queued on the audio clock at its exact time, dead centre, and a skip cuts them in a 30 ms fade; the rare saying adds a short "root access granted" flourish; the music is silent under the intro and starts from the top when it ends (or at once on a skip). On a narrow board an agent line that one row would squeeze breaks after <code>LOADING AGENT:</code>, so it reads bigger; Skip is finger-sized on a touch screen.</p>
 <div class="ctl"><span data-audio-ctl><button id="snd">Sound on</button> <input type="range" id="sndvol" min="0" max="100" value="80" aria-label="Effects volume"> <button id="mus">Music on</button> <input type="range" id="musvol" min="0" max="100" value="60" aria-label="Music volume"> <span id="musmeter"></span></span>
  <button id="all">Play all in turn</button> <span id="st"></span></div>
 ${scenes.map(sceneHtml).join("\n")}

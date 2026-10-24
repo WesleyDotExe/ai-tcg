@@ -700,6 +700,8 @@ html, body {
 /* Match Boot (render/src/matchBootFx.ts). */
 
 .boot-canvas { position: absolute; z-index: 92; pointer-events: none; }
+/* A finger-sized Skip on a touch screen (render session 38). */
+@media (pointer: coarse) { .boot-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
 
 
 
@@ -2028,6 +2030,24 @@ body { padding: 12px 16px 40px; }
       // Fireworks' screech.
       T({ type: 'sine', f0: 1180, dur: 0.07, g: 0.05, att: 0.004 });
       T({ type: 'sine', f0: 2100, dur: 0.1, g: 0.05, att: 0.004, delay: 0.08 });
+    } else if (kind === 'bootOn') {
+      // Match Boot (render session 38): its own power-on, not Boot
+      // Sequence's 'crt', so the 300-credit boast keeps its sound. Two tubes
+      // at once: a deeper thump, the degauss hum of a 90s monitor (mains
+      // buzz, low and fading) under a crackle of static, and the flyback
+      // whine. One voice whatever the factions.
+      T({ type: 'sine', f0: 72, f1: 30, dur: 0.42, g: 0.42 });
+      T({ type: 'sawtooth', f0: 50, dur: 0.95, g: 0.07, att: 0.03, filt: 'lowpass', ff: 240 });
+      T({ type: 'sawtooth', f0: 100, dur: 0.7, g: 0.035, att: 0.03, filt: 'lowpass', ff: 420 });
+      N({ type: 'highpass', f0: 3000, dur: 0.28, g: 0.09 });
+      for (var oi = 0; oi < 6; oi++) N({ type: 'bandpass', f0: 2800 + oi * 520, q: 6, dur: 0.02, g: 0.1, delay: 0.04 + oi * 0.045 });
+      T({ type: 'sine', f0: 7800, dur: 0.8, g: 0.01, att: 0.2, delay: 0.12 });
+    } else if (kind === 'bootRoot') {
+      // Match Boot, the rare saying (> SUDO FIGHT, 1 match in 100): root
+      // access granted. A glitch, then three square blips climbing an
+      // octave, under the saying's own hit.
+      for (var ri = 0; ri < 4; ri++) T({ type: 'square', f0: [1450, 380, 2600, 720][ri], dur: 0.025, g: 0.05, delay: ri * 0.03 });
+      [523.3, 784, 1046.5].forEach(function (n, i) { T({ type: 'square', f0: n, dur: 0.1, g: 0.08, att: 0.004, delay: 0.16 + i * 0.08, filt: 'lowpass', ff: 4200 }); });
     } else if (kind === 'bootHit') {
       // Match Boot: the saying slams in. A hit, then a short chord rising
       // a note at a time. One voice whatever the factions: the intro
@@ -2102,7 +2122,7 @@ body { padding: 12px 16px 40px; }
     // The master bus level at full volume (the lab's 0.6); the effects
     // volume scales it.
     var MASTER = 0.6;
-    var counts = { played: 0, voices: 0, capped: 0, repeats: 0 }, byKind = {}, last = {};
+    var counts = { played: 0, voices: 0, capped: 0, repeats: 0, scheduled: 0, cuts: 0 }, byKind = {}, last = {};
     // Who needs the context running besides the effects (the music, slice
     // 4), and who hears about every event (the music's intensity and duck).
     var holds = {}, listeners = [];
@@ -2124,10 +2144,10 @@ body { padding: 12px 16px 40px; }
       AU.noise = buf;
       return true;
     }
-    function bus(pan) {
-      var C = AU.ctx, g = C.createGain();
-      if (C.createStereoPanner) { var p = C.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(AU.master); }
-      else g.connect(AU.master);
+    function bus(pan, dest) {
+      var C = AU.ctx, g = C.createGain(), out = dest || AU.master;
+      if (C.createStereoPanner) { var p = C.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(out); }
+      else g.connect(out);
       return g;
     }
     function env(g, t, peak, att, dur) {
@@ -2136,8 +2156,10 @@ body { padding: 12px 16px 40px; }
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     }
     function done() { AU.active--; }
-    function tone(o, pan) {
-      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+    // at: when the sound starts on the context's clock (now if not given);
+    // dest: the bus it goes to (the master, or a group's).
+    function tone(o, pan, at, dest) {
+      var C = AU.ctx, t = (at != null ? at : C.currentTime) + (o.delay || 0), dur = o.dur || 0.2;
       var osc = C.createOscillator();
       osc.type = o.type || 'sine';
       osc.frequency.setValueAtTime(o.f0 || 440, t);
@@ -2148,12 +2170,12 @@ body { padding: 12px 16px 40px; }
       env(e, t, o.g || 0.2, o.att || 0.005, dur);
       var n = osc;
       if (o.filt) { var f = C.createBiquadFilter(); f.type = o.filt; f.frequency.value = o.ff || 2000; f.Q.value = o.q || 1; osc.connect(f); n = f; }
-      n.connect(e); e.connect(bus(pan));
+      n.connect(e); e.connect(bus(pan, dest));
       osc.start(t); osc.stop(t + dur + 0.05);
       AU.active++; osc.onended = done;
     }
-    function noise(o, pan) {
-      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+    function noise(o, pan, at, dest) {
+      var C = AU.ctx, t = (at != null ? at : C.currentTime) + (o.delay || 0), dur = o.dur || 0.2;
       var s = C.createBufferSource();
       s.buffer = AU.noise; s.loop = true;
       var f = C.createBiquadFilter();
@@ -2162,14 +2184,19 @@ body { padding: 12px 16px 40px; }
       if (o.f1) f.frequency.exponentialRampToValueAtTime(Math.max(30, o.f1), t + dur);
       var e = C.createGain();
       env(e, t, o.g || 0.2, o.att || 0.003, dur);
-      s.connect(f); f.connect(e); e.connect(bus(pan));
+      s.connect(f); f.connect(e); e.connect(bus(pan, dest));
       s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
       AU.active++; s.onended = done;
     }
     // play(kind, faction, tier, rect, o): one event's sound, panned by the
     // centre of rect (where it happens). Silent while sound is off. Every
     // call reaches the listeners, played or not (the music follows the
-    // match even with effects muted).
+    // match even with effects muted). Besides the recipe's own options, o
+    // may carry (render session 38, for Match Boot's scheduled sounds):
+    //   at: the start time on the context's clock (a sound scheduled
+    //     ahead; the repeat gap doesn't apply, the caller placed it);
+    //   pan: a fixed pan instead of one from rect;
+    //   group: a group from group(), so it can be cut with the others.
     function play(kind, faction, tier, rect, o) {
       var played = sound(kind, faction, tier, rect, o);
       for (var i = 0; i < listeners.length; i++) listeners[i](kind, faction, tier, played);
@@ -2178,16 +2205,20 @@ body { padding: 12px 16px 40px; }
     function sound(kind, faction, tier, rect, o) {
       if (!AU.on || !AU.ctx) return false;
       var now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-      var key = kind + ':' + sfxVoiceOf(faction);
-      if (last[key] !== undefined && now - last[key] < SFX_REPEAT_GAP_MS) { counts.repeats++; return false; }
-      last[key] = now;
+      var key = kind + ':' + sfxVoiceOf(faction), at = o && typeof o.at === 'number' ? o.at : null;
+      if (at === null) {
+        if (last[key] !== undefined && now - last[key] < SFX_REPEAT_GAP_MS) { counts.repeats++; return false; }
+        last[key] = now;
+      }
       var x = rect ? rect.left + rect.width / 2 : (window.innerWidth || 1) / 2;
-      var pan = sfxPan(x, window.innerWidth || 1);
+      var pan = o && typeof o.pan === 'number' ? o.pan : sfxPan(x, window.innerWidth || 1);
+      var dest = o && o.group && o.group.node ? o.group.node : null;
       var voices = sfxRecipe(kind, faction, tier, Math.random, o);
       counts.played++; byKind[kind] = (byKind[kind] || 0) + 1;
+      if (at !== null) counts.scheduled++;
       for (var i = 0; i < voices.length; i++) {
         if (AU.active >= SFX_VOICE_CAP) { counts.capped += voices.length - i; break; }
-        if (voices[i].k === 'tone') tone(voices[i], pan); else noise(voices[i], pan);
+        if (voices[i].k === 'tone') tone(voices[i], pan, at, dest); else noise(voices[i], pan, at, dest);
         counts.voices++;
       }
       return true;
@@ -2212,6 +2243,22 @@ body { padding: 12px 16px 40px; }
     // use (only ever from a gesture), or null without WebAudio.
     function core() { return init() ? { ctx: AU.ctx, comp: AU.comp, noise: AU.noise } : null; }
     function hold(name, on) { holds[name] = !!on; refresh(); }
+    // group() -> { node, ctx, cut() }, or null while sound is off: a bus on
+    // the master that a run of scheduled sounds goes through (Match Boot's),
+    // so a skip can cut every one of them at once, the ones already ringing
+    // and the ones scheduled ahead, in a 30 ms fade (no click).
+    function group() {
+      if (!AU.on || !AU.ctx) return null;
+      var C = AU.ctx, g = C.createGain(), cut = false;
+      g.gain.value = 1; g.connect(AU.master);
+      return { node: g, ctx: C, cut: function () {
+        if (cut) return false;
+        cut = true; counts.cuts++;
+        var t = C.currentTime;
+        g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + 0.03);
+        return true;
+      }, isCut: function () { return cut; } };
+    }
     function listen(fn) { listeners.push(fn); }
     // arm(pref): at page load, before any gesture. Remembers what the viewer
     // wants without making a context (browsers refuse audio until a gesture).
@@ -2294,8 +2341,8 @@ body { padding: 12px 16px 40px; }
     }
     var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
-      core: core, hold: hold, listen: listen,
-      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, byKind: k }; } };
+      core: core, hold: hold, listen: listen, group: group,
+      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, scheduled: counts.scheduled, cuts: counts.cuts, byKind: k }; } };
     window.__sfx = api;
     return api;
   })();

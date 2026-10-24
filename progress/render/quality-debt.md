@@ -45,23 +45,40 @@ items are removed, with the fix in `log.md`.
   canvas plans in page pixels. Scrolling the list on a phone therefore cuts the boast short each time.
 - **Nobody has watched it at full speed or heard it;** judged from stills and the browser check.
 
-## Match Boot (slice 1, session 35)
+## Match Boot (slice 1, session 35; slice 2, sound and the phone, session 38)
 
-- **Nobody has watched or heard it.** Its 2.6 s, the beats' order, whether the saying "slams", and the
-  sounds (the tube thump, the clicks, the chirp, the hit and chord) were judged from stills, two
-  recordings and timed checks; the sounds only as recipes.
-- **The headless browser drops frames:** the power-on (a line, then the picture opening) shows in the
-  first recording run and not in the second; the stills' times drift by up to 0.25 s from screenshot
-  latency. Timings are taken in the page, so the checks hold; the pictures are approximate.
+- **Nobody has watched or heard it on a real device.** Session 38 measured the sound from the page's
+  own output in a headless browser (every sound within 3 ms of its planned distance from the others,
+  left and right equal, no clipping, the music silent until the end), but that proves timing and
+  levels, not taste: whether the degauss hum reads as "two old monitors", whether the rare flourish is
+  noticeable without being cute, and whether the music's fade-in after the saying feels like a start
+  or a gap, are all unjudged.
+- **The audio is timed against itself, not against the picture.** The scheduler ties the audio clock
+  to the intro's clock at its first pass, and the check proves the sounds' spacing; nothing measures
+  a sound against the frame it belongs to (the browser's output latency is unknown and varies by
+  device; on Bluetooth headphones the sounds will land late against the picture).
+- **The four key clicks under HANDSHAKE OK's chirp can't be told apart in the recording** (the chirp's
+  2.1 kHz tone fills the same band); they are checked as queued at their times, not as heard.
+- **A cold first Play could drop the power-on.** A sound whose time passed more than 120 ms before the
+  context was running is dropped, not played late. In the browser the cold start (the phone run, no
+  warm-up) queued all 27 sounds in time, but a slow device waking its audio could lose the thump.
+- **The boasts still fire their sounds from the frames** (slice 1's way). They play mid-match, where
+  the frame rate is usually fine, but a stall during a boast would bunch its sounds as slice 1's
+  intro did (measured before/after in session 38: 1 of 16 click intervals on the grid then, 19 of 19
+  now). Moving them to `SND.group` scheduling is the obvious follow-up.
+- **The headless browser drops frames:** the power-on (a line, then the picture opening) shows in some
+  recordings and not others; the stills' times drift by up to 0.25 s from screenshot latency. Timings
+  are taken in the page, so the checks hold; the pictures are approximate.
 - **The faction colour is faint on the screens:** the haze is 6% and the scanlines darken it; the colour
-  reads mostly in the agent lines, the opening flash and the edge glow. Swarm green and Cortex cyan are
-  told apart; a dim monitor may not.
-- **The music is held at 55% under the intro, not stopped** (call 8 in the checkpoint).
+  reads mostly in the agent lines, the opening flash and the edge glow. Not changed in slice 2: on the
+  phone stills the green, cyan, purple and orange screens are told apart, but a dim monitor may not.
 - **No autoplay exists,** so "the page starting playback on its own" has nothing to hook yet; the intro
   lives in `play()` at move 0, so an autoplay that calls `play()` gets it.
 - **No live match:** the intro plays on replays only; a live broadcast doesn't exist yet.
 - **The agent lines use the system monospace** (as Boot Sequence does): a wider font is squeezed to fit.
-  A long three-part name on a phone types at about 9-12 px.
+  On a phone a squeezed line now breaks onto two rows (20 px for a typical name, about 13.5 px on one
+  row before); a very long name still shrinks (a 40-character name: about 11 px on two rows in the
+  sheet's zoomed phone scene). Landscape phones keep one row (the board is wide enough at 15 px).
 - **The saying's backing is a plain dark box,** and the "chrome" is a flat white-to-steel gradient per
   dot, not a lit chrome material.
 - **The saying is only stable while list 1 stands:** a test pins the list and eleven seed-to-saying

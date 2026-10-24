@@ -208,7 +208,7 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
     // The music bus at full volume: the lab's 0.84 bus through its 0.6
     // master, so the default volume (0.6) matches the lab's default mix.
     var LEVEL = 0.84 * 0.6;
-    var counts = { steps: 0, voices: 0, ducks: 0, bumps: 0, peakI: 1 };
+    var counts = { steps: 0, voices: 0, ducks: 0, bumps: 0, peakI: 1, waits: 0 };
     function core() { return SND.core(); }
     function init() {
       if (MU.bus) return true;
@@ -296,6 +296,9 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
         var t = core().ctx.currentTime;
         MU.next = t + 0.1; MU.step = 0; MU.lastT = t;
         if (!MU.timer) MU.timer = setInterval(tick, MUS_TICK_MS);
+        // Switched on under Match Boot: it waits for the intro's end.
+        var left = waitLeft();
+        if (left > 0) startAfter(left);
       } else if (MU.timer) { clearInterval(MU.timer); MU.timer = null; }
       showMeter();
       return MU.on;
@@ -337,6 +340,36 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
       counts.ducks++;
       return true;
     }
+    // startAfter(sec): Match Boot is playing (render session 38; the owner's
+    // Match Boot call 8, "music starts after"). The music goes silent under
+    // the intro and starts again from the top of the progression when it
+    // ends, fading in. startAfter(0) starts it now (a skip, a pause). While
+    // it waits, a volume change or switching the music on waits too.
+    // Nothing happens while the music is off or muted, except remembering
+    // the wait, so music switched on mid-intro still waits for its end.
+    function startAfter(sec) {
+      sec = Math.max(0, Number(sec) || 0);
+      var wall = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      MU.waitWall = wall + sec * 1000;
+      if (!MU.on || !MU.bus) return false;
+      var C = core().ctx, t = C.currentTime, g = MU.bus.gain, start = t + sec;
+      // Steps already queued since the wait began (a release in the last
+      // lookahead before its end) stay where they are, so nothing doubles.
+      var queued = MU.waiting && t < MU.waitUntil && MU.step > 0;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+      if (sec > 0) g.setTargetAtTime(0, t, 0.03);
+      if (!queued) { MU.next = start + 0.02; MU.step = 0; }
+      g.setTargetAtTime(LEVEL * MU.vol, queued ? t : start, 0.3);
+      MU.waitUntil = start; MU.waiting = sec > 0;
+      MU.holdUntil = Math.max(MU.holdUntil || 0, start);
+      counts.waits++;
+      return true;
+    }
+    function waitLeft() {
+      if (!MU.waitWall) return 0;
+      var wall = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      return Math.max(0, (MU.waitWall - wall) / 1000);
+    }
     // setScene(faction, mythic): who is acting (the arpeggio's voice) and
     // whether that side has a Mythic in play (the bells, a higher rest).
     function setScene(faction, mythic) { MU.faction = faction || 'Neutral'; MU.mythic = !!mythic; }
@@ -353,7 +386,10 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
     }
     function setVolume(v) {
       MU.vol = musClampVolume(v);
-      if (MU.bus && MU.on) ramp(LEVEL * MU.vol, 0.1);
+      if (MU.bus && MU.on && waitLeft() > 0) {
+        var C = core().ctx, g = MU.bus.gain;
+        g.cancelScheduledValues(C.currentTime); g.setValueAtTime(0, C.currentTime); g.setTargetAtTime(LEVEL * MU.vol, MU.waitUntil, 0.3);
+      } else if (MU.bus && MU.on) ramp(LEVEL * MU.vol, 0.1);
       return MU.vol;
     }
     function state() { return MU.on ? 'on' : MU.want ? 'armed' : 'muted'; }
@@ -413,11 +449,11 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
     // (even with effects muted) and, when it actually sounds, ducks.
     SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
-      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, setScene: setScene, tick: tick,
+      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, startAfter: startAfter, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,
       stats: function () { return { on: MU.on, state: state(), volume: MU.vol, I: +MU.I.toFixed(3), faction: MU.faction, mythic: MU.mythic,
         layers: musLayers(MU.I), step: MU.step, steps: counts.steps, voices: counts.voices, ducks: counts.ducks, bumps: counts.bumps,
-        peakI: +counts.peakI.toFixed(3), duckGain: MU.duck ? MU.duck.gain.value : null, busGain: MU.bus ? MU.bus.gain.value : null }; } };
+        peakI: +counts.peakI.toFixed(3), waits: counts.waits, waiting: waitLeft() > 0, duckGain: MU.duck ? MU.duck.gain.value : null, busGain: MU.bus ? MU.bus.gain.value : null }; } };
     window.__music = api;
     return api;
   })();
