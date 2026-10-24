@@ -700,6 +700,8 @@ html, body {
 /* Match Boot (render/src/matchBootFx.ts). */
 
 .boot-canvas { position: absolute; z-index: 92; pointer-events: none; }
+/* A finger-sized Skip on a touch screen (render session 38). */
+@media (pointer: coarse) { .boot-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
 
 </style>
 </head>
@@ -2577,6 +2579,24 @@ html, body {
       // Fireworks' screech.
       T({ type: 'sine', f0: 1180, dur: 0.07, g: 0.05, att: 0.004 });
       T({ type: 'sine', f0: 2100, dur: 0.1, g: 0.05, att: 0.004, delay: 0.08 });
+    } else if (kind === 'bootOn') {
+      // Match Boot (render session 38): its own power-on, not Boot
+      // Sequence's 'crt', so the 300-credit boast keeps its sound. Two tubes
+      // at once: a deeper thump, the degauss hum of a 90s monitor (mains
+      // buzz, low and fading) under a crackle of static, and the flyback
+      // whine. One voice whatever the factions.
+      T({ type: 'sine', f0: 72, f1: 30, dur: 0.42, g: 0.42 });
+      T({ type: 'sawtooth', f0: 50, dur: 0.95, g: 0.07, att: 0.03, filt: 'lowpass', ff: 240 });
+      T({ type: 'sawtooth', f0: 100, dur: 0.7, g: 0.035, att: 0.03, filt: 'lowpass', ff: 420 });
+      N({ type: 'highpass', f0: 3000, dur: 0.28, g: 0.09 });
+      for (var oi = 0; oi < 6; oi++) N({ type: 'bandpass', f0: 2800 + oi * 520, q: 6, dur: 0.02, g: 0.1, delay: 0.04 + oi * 0.045 });
+      T({ type: 'sine', f0: 7800, dur: 0.8, g: 0.01, att: 0.2, delay: 0.12 });
+    } else if (kind === 'bootRoot') {
+      // Match Boot, the rare saying (> SUDO FIGHT, 1 match in 100): root
+      // access granted. A glitch, then three square blips climbing an
+      // octave, under the saying's own hit.
+      for (var ri = 0; ri < 4; ri++) T({ type: 'square', f0: [1450, 380, 2600, 720][ri], dur: 0.025, g: 0.05, delay: ri * 0.03 });
+      [523.3, 784, 1046.5].forEach(function (n, i) { T({ type: 'square', f0: n, dur: 0.1, g: 0.08, att: 0.004, delay: 0.16 + i * 0.08, filt: 'lowpass', ff: 4200 }); });
     } else if (kind === 'bootHit') {
       // Match Boot: the saying slams in. A hit, then a short chord rising
       // a note at a time. One voice whatever the factions: the intro
@@ -2651,7 +2671,7 @@ html, body {
     // The master bus level at full volume (the lab's 0.6); the effects
     // volume scales it.
     var MASTER = 0.6;
-    var counts = { played: 0, voices: 0, capped: 0, repeats: 0 }, byKind = {}, last = {};
+    var counts = { played: 0, voices: 0, capped: 0, repeats: 0, scheduled: 0, cuts: 0 }, byKind = {}, last = {};
     // Who needs the context running besides the effects (the music, slice
     // 4), and who hears about every event (the music's intensity and duck).
     var holds = {}, listeners = [];
@@ -2673,10 +2693,10 @@ html, body {
       AU.noise = buf;
       return true;
     }
-    function bus(pan) {
-      var C = AU.ctx, g = C.createGain();
-      if (C.createStereoPanner) { var p = C.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(AU.master); }
-      else g.connect(AU.master);
+    function bus(pan, dest) {
+      var C = AU.ctx, g = C.createGain(), out = dest || AU.master;
+      if (C.createStereoPanner) { var p = C.createStereoPanner(); p.pan.value = pan; g.connect(p); p.connect(out); }
+      else g.connect(out);
       return g;
     }
     function env(g, t, peak, att, dur) {
@@ -2685,8 +2705,10 @@ html, body {
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     }
     function done() { AU.active--; }
-    function tone(o, pan) {
-      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+    // at: when the sound starts on the context's clock (now if not given);
+    // dest: the bus it goes to (the master, or a group's).
+    function tone(o, pan, at, dest) {
+      var C = AU.ctx, t = (at != null ? at : C.currentTime) + (o.delay || 0), dur = o.dur || 0.2;
       var osc = C.createOscillator();
       osc.type = o.type || 'sine';
       osc.frequency.setValueAtTime(o.f0 || 440, t);
@@ -2697,12 +2719,12 @@ html, body {
       env(e, t, o.g || 0.2, o.att || 0.005, dur);
       var n = osc;
       if (o.filt) { var f = C.createBiquadFilter(); f.type = o.filt; f.frequency.value = o.ff || 2000; f.Q.value = o.q || 1; osc.connect(f); n = f; }
-      n.connect(e); e.connect(bus(pan));
+      n.connect(e); e.connect(bus(pan, dest));
       osc.start(t); osc.stop(t + dur + 0.05);
       AU.active++; osc.onended = done;
     }
-    function noise(o, pan) {
-      var C = AU.ctx, t = C.currentTime + (o.delay || 0), dur = o.dur || 0.2;
+    function noise(o, pan, at, dest) {
+      var C = AU.ctx, t = (at != null ? at : C.currentTime) + (o.delay || 0), dur = o.dur || 0.2;
       var s = C.createBufferSource();
       s.buffer = AU.noise; s.loop = true;
       var f = C.createBiquadFilter();
@@ -2711,14 +2733,19 @@ html, body {
       if (o.f1) f.frequency.exponentialRampToValueAtTime(Math.max(30, o.f1), t + dur);
       var e = C.createGain();
       env(e, t, o.g || 0.2, o.att || 0.003, dur);
-      s.connect(f); f.connect(e); e.connect(bus(pan));
+      s.connect(f); f.connect(e); e.connect(bus(pan, dest));
       s.start(t, Math.random() * 0.5); s.stop(t + dur + 0.05);
       AU.active++; s.onended = done;
     }
     // play(kind, faction, tier, rect, o): one event's sound, panned by the
     // centre of rect (where it happens). Silent while sound is off. Every
     // call reaches the listeners, played or not (the music follows the
-    // match even with effects muted).
+    // match even with effects muted). Besides the recipe's own options, o
+    // may carry (render session 38, for Match Boot's scheduled sounds):
+    //   at: the start time on the context's clock (a sound scheduled
+    //     ahead; the repeat gap doesn't apply, the caller placed it);
+    //   pan: a fixed pan instead of one from rect;
+    //   group: a group from group(), so it can be cut with the others.
     function play(kind, faction, tier, rect, o) {
       var played = sound(kind, faction, tier, rect, o);
       for (var i = 0; i < listeners.length; i++) listeners[i](kind, faction, tier, played);
@@ -2727,16 +2754,20 @@ html, body {
     function sound(kind, faction, tier, rect, o) {
       if (!AU.on || !AU.ctx) return false;
       var now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-      var key = kind + ':' + sfxVoiceOf(faction);
-      if (last[key] !== undefined && now - last[key] < SFX_REPEAT_GAP_MS) { counts.repeats++; return false; }
-      last[key] = now;
+      var key = kind + ':' + sfxVoiceOf(faction), at = o && typeof o.at === 'number' ? o.at : null;
+      if (at === null) {
+        if (last[key] !== undefined && now - last[key] < SFX_REPEAT_GAP_MS) { counts.repeats++; return false; }
+        last[key] = now;
+      }
       var x = rect ? rect.left + rect.width / 2 : (window.innerWidth || 1) / 2;
-      var pan = sfxPan(x, window.innerWidth || 1);
+      var pan = o && typeof o.pan === 'number' ? o.pan : sfxPan(x, window.innerWidth || 1);
+      var dest = o && o.group && o.group.node ? o.group.node : null;
       var voices = sfxRecipe(kind, faction, tier, Math.random, o);
       counts.played++; byKind[kind] = (byKind[kind] || 0) + 1;
+      if (at !== null) counts.scheduled++;
       for (var i = 0; i < voices.length; i++) {
         if (AU.active >= SFX_VOICE_CAP) { counts.capped += voices.length - i; break; }
-        if (voices[i].k === 'tone') tone(voices[i], pan); else noise(voices[i], pan);
+        if (voices[i].k === 'tone') tone(voices[i], pan, at, dest); else noise(voices[i], pan, at, dest);
         counts.voices++;
       }
       return true;
@@ -2761,6 +2792,22 @@ html, body {
     // use (only ever from a gesture), or null without WebAudio.
     function core() { return init() ? { ctx: AU.ctx, comp: AU.comp, noise: AU.noise } : null; }
     function hold(name, on) { holds[name] = !!on; refresh(); }
+    // group() -> { node, ctx, cut() }, or null while sound is off: a bus on
+    // the master that a run of scheduled sounds goes through (Match Boot's),
+    // so a skip can cut every one of them at once, the ones already ringing
+    // and the ones scheduled ahead, in a 30 ms fade (no click).
+    function group() {
+      if (!AU.on || !AU.ctx) return null;
+      var C = AU.ctx, g = C.createGain(), cut = false;
+      g.gain.value = 1; g.connect(AU.master);
+      return { node: g, ctx: C, cut: function () {
+        if (cut) return false;
+        cut = true; counts.cuts++;
+        var t = C.currentTime;
+        g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + 0.03);
+        return true;
+      }, isCut: function () { return cut; } };
+    }
     function listen(fn) { listeners.push(fn); }
     // arm(pref): at page load, before any gesture. Remembers what the viewer
     // wants without making a context (browsers refuse audio until a gesture).
@@ -2843,8 +2890,8 @@ html, body {
     }
     var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
-      core: core, hold: hold, listen: listen,
-      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, byKind: k }; } };
+      core: core, hold: hold, listen: listen, group: group,
+      stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, scheduled: counts.scheduled, cuts: counts.cuts, byKind: k }; } };
     window.__sfx = api;
     return api;
   })();
@@ -3014,7 +3061,7 @@ html, body {
     // The music bus at full volume: the lab's 0.84 bus through its 0.6
     // master, so the default volume (0.6) matches the lab's default mix.
     var LEVEL = 0.84 * 0.6;
-    var counts = { steps: 0, voices: 0, ducks: 0, bumps: 0, peakI: 1 };
+    var counts = { steps: 0, voices: 0, ducks: 0, bumps: 0, peakI: 1, waits: 0 };
     function core() { return SND.core(); }
     function init() {
       if (MU.bus) return true;
@@ -3102,6 +3149,9 @@ html, body {
         var t = core().ctx.currentTime;
         MU.next = t + 0.1; MU.step = 0; MU.lastT = t;
         if (!MU.timer) MU.timer = setInterval(tick, MUS_TICK_MS);
+        // Switched on under Match Boot: it waits for the intro's end.
+        var left = waitLeft();
+        if (left > 0) startAfter(left);
       } else if (MU.timer) { clearInterval(MU.timer); MU.timer = null; }
       showMeter();
       return MU.on;
@@ -3143,6 +3193,36 @@ html, body {
       counts.ducks++;
       return true;
     }
+    // startAfter(sec): Match Boot is playing (render session 38; the owner's
+    // Match Boot call 8, "music starts after"). The music goes silent under
+    // the intro and starts again from the top of the progression when it
+    // ends, fading in. startAfter(0) starts it now (a skip, a pause). While
+    // it waits, a volume change or switching the music on waits too.
+    // Nothing happens while the music is off or muted, except remembering
+    // the wait, so music switched on mid-intro still waits for its end.
+    function startAfter(sec) {
+      sec = Math.max(0, Number(sec) || 0);
+      var wall = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      MU.waitWall = wall + sec * 1000;
+      if (!MU.on || !MU.bus) return false;
+      var C = core().ctx, t = C.currentTime, g = MU.bus.gain, start = t + sec;
+      // Steps already queued since the wait began (a release in the last
+      // lookahead before its end) stay where they are, so nothing doubles.
+      var queued = MU.waiting && t < MU.waitUntil && MU.step > 0;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+      if (sec > 0) g.setTargetAtTime(0, t, 0.03);
+      if (!queued) { MU.next = start + 0.02; MU.step = 0; }
+      g.setTargetAtTime(LEVEL * MU.vol, queued ? t : start, 0.3);
+      MU.waitUntil = start; MU.waiting = sec > 0;
+      MU.holdUntil = Math.max(MU.holdUntil || 0, start);
+      counts.waits++;
+      return true;
+    }
+    function waitLeft() {
+      if (!MU.waitWall) return 0;
+      var wall = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      return Math.max(0, (MU.waitWall - wall) / 1000);
+    }
     // setScene(faction, mythic): who is acting (the arpeggio's voice) and
     // whether that side has a Mythic in play (the bells, a higher rest).
     function setScene(faction, mythic) { MU.faction = faction || 'Neutral'; MU.mythic = !!mythic; }
@@ -3159,7 +3239,10 @@ html, body {
     }
     function setVolume(v) {
       MU.vol = musClampVolume(v);
-      if (MU.bus && MU.on) ramp(LEVEL * MU.vol, 0.1);
+      if (MU.bus && MU.on && waitLeft() > 0) {
+        var C = core().ctx, g = MU.bus.gain;
+        g.cancelScheduledValues(C.currentTime); g.setValueAtTime(0, C.currentTime); g.setTargetAtTime(LEVEL * MU.vol, MU.waitUntil, 0.3);
+      } else if (MU.bus && MU.on) ramp(LEVEL * MU.vol, 0.1);
       return MU.vol;
     }
     function state() { return MU.on ? 'on' : MU.want ? 'armed' : 'muted'; }
@@ -3219,11 +3302,11 @@ html, body {
     // (even with effects muted) and, when it actually sounds, ducks.
     SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
-      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, setScene: setScene, tick: tick,
+      volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, startAfter: startAfter, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,
       stats: function () { return { on: MU.on, state: state(), volume: MU.vol, I: +MU.I.toFixed(3), faction: MU.faction, mythic: MU.mythic,
         layers: musLayers(MU.I), step: MU.step, steps: counts.steps, voices: counts.voices, ducks: counts.ducks, bumps: counts.bumps,
-        peakI: +counts.peakI.toFixed(3), duckGain: MU.duck ? MU.duck.gain.value : null, busGain: MU.bus ? MU.bus.gain.value : null }; } };
+        peakI: +counts.peakI.toFixed(3), waits: counts.waits, waiting: waitLeft() > 0, duckGain: MU.duck ? MU.duck.gain.value : null, busGain: MU.bus ? MU.bus.gain.value : null }; } };
     window.__music = api;
     return api;
   })();
@@ -5576,12 +5659,16 @@ html, body {
     if (h % 100 === 0) return BOOT_RARE;
     return BOOT_SAYINGS[Math.floor(h / 100) % BOOT_SAYINGS.length];
   }
-  function bootLine(name, faction) {
-    return 'LOADING AGENT: ' + String(name || 'AGENT') + ' [' + String(faction || 'Neutral').toUpperCase() + ']';
-  }
+  var BOOT_HEAD = 'LOADING AGENT: ';
+  function bootTail(name, faction) { return String(name || 'AGENT') + ' [' + String(faction || 'Neutral').toUpperCase() + ']'; }
+  function bootLine(name, faction) { return BOOT_HEAD + bootTail(name, faction); }
   // A monospace character's width, as a share of the type size (the BIOS
   // type Boot Sequence uses; the runtime squeezes a wider font to fit).
   var BOOT_CH = 0.62;
+  // The agent lines' type size: at most 15 px on one line. When the board's
+  // width is what squeezes one line (a phone), the line breaks after
+  // LOADING AGENT: and the two rows may reach 20 px (render session 38).
+  var BOOT_FS_MAX = 15, BOOT_FS2_MAX = 20, BOOT_LH = 1.3;
 
   // bootPlan(geom, who, seed, opts) -> the intro on this page's layout.
   //   geom: { top, bot, area } in document pixels ({ l, t, r, b }): the top
@@ -5600,26 +5687,37 @@ html, body {
     var l = Math.max(top.l, bot.l), r = Math.min(top.r, bot.r), cx = (l + r) / 2, W = r - l;
     var dNear = Math.max(mid - top.b, bot.t - mid), dFar = Math.min(mid - top.t, bot.b - mid), H = dFar - dNear;
     var saying = opts.saying || bootSaying(seed);
+    function pad(t, k) { while (t.length < k) t += ' '; return t; }
     var lines = { top: bootLine(who.top && who.top.name, who.top && who.top.faction), bot: bootLine(who.bot && who.bot.name, who.bot && who.bot.faction) };
+    var tails = { top: bootTail(who.top && who.top.name, who.top && who.top.faction), bot: bootTail(who.bot && who.bot.name, who.bot && who.bot.faction) };
     // The shorter line is padded so both type for the same time.
     var n = Math.max(lines.top.length, lines.bot.length);
-    var fs = Math.max(7, Math.min(15, H * 0.12, (W - 24) / (BOOT_CH * (n + 1))));
-    var lineW = BOOT_CH * fs * (n + 1), x0 = cx - lineW / 2;
+    var fit1 = (W - 24) / (BOOT_CH * (n + 1)), fs = Math.max(7, Math.min(BOOT_FS_MAX, H * 0.12, fit1));
+    // Two rows, LOADING AGENT: over the name, when the width squeezes one
+    // row and two come out a fifth bigger or more. Both halves break the
+    // same way (the rows padded to one length), so they stay mirror images.
+    var nTail = Math.max(tails.top.length, tails.bot.length), nRow = Math.max(BOOT_HEAD.length, nTail);
+    var fs2 = Math.min(BOOT_FS2_MAX, H * 0.1, (W - 24) / (BOOT_CH * (nRow + 1)));
+    var two = fit1 < BOOT_FS_MAX && fs2 >= fs * 1.2;
+    if (two) { fs = fs2; n = BOOT_HEAD.length + nTail; }
+    var lineW = BOOT_CH * fs * ((two ? nRow : n) + 1), x0 = cx - lineW / 2;
     var dLine = dNear + H * 0.5;
     var typeAt = 560, typeMs = Math.min(720, n * 22);
     function half(side) {
       var s = side === 'top' ? -1 : 1, f = (who[side] && who[side].faction) || 'Neutral';
       var nearY = mid + s * (dNear + 4), farY = mid + s * (dFar - 4);
-      var txt = lines[side];
-      while (txt.length < n) txt += ' ';
+      var line = { txt: pad(lines[side], two ? 0 : n), len: lines[side].length, x0: x0, w: lineW, y: mid + s * dLine, fs: fs, t0: typeAt, ms: typeMs,
+        // The readouts clear as the saying lands: each lifts AWAY from the
+        // centre line and fades.
+        clear: { t: 1600, ms: 260, dy: s * fs * 1.2 } };
+      // Two rows type one after the other, as one line of n characters;
+      // y is the middle of the pair, the rows BOOT_LH type sizes apart.
+      if (two) line.rows = [pad(BOOT_HEAD.replace(/ $/, ''), BOOT_HEAD.length), pad(tails[side], nTail)];
       return {
         side: side, faction: f,
         screen: { l: l + 4, r: r - 4, t: Math.min(nearY, farY), b: Math.max(nearY, farY) },
         on: { t: 0, ms: 420, flick: 520 },
-        line: { txt: txt, len: lines[side].length, x0: x0, w: lineW, y: mid + s * dLine, fs: fs, t0: typeAt, ms: typeMs,
-          // The readouts clear as the saying lands: each lifts AWAY from the
-          // centre line and fades.
-          clear: { t: 1600, ms: 260, dy: s * fs * 1.2 } }
+        line: line
       };
     }
     var halves = [half('top'), half('bot')];
@@ -5633,17 +5731,23 @@ html, body {
     var say = { text: saying, rare: saying === BOOT_RARE, bits: fit.bits, cell: fit.cell, x: cx, y: mid,
       w: fit.bits.cols * fit.cell, h: fit.bits.rows * fit.cell, t: 1600, slam: 140, out: [BOOT_OUT_AT, BOOT_MS], grow: 0.08 };
     var marks = [];
-    // Every sound sits on the centre: its pan favours neither side.
+    // Every sound sits on the centre: its pan favours neither side (x is
+    // the board's centre line; the runtime plays them at pan 0, dead centre
+    // of the speakers, wherever the board sits in the window).
     function snd(t, kind, tier) { marks.push({ k: 'sound', t: t, kind: kind, tier: tier || 'normal', x: cx }); }
-    snd(0, 'crt');
+    // Its own power-on (two tubes and a degauss hum), not Boot Sequence's.
+    snd(0, 'bootOn');
     // One key click for each pair of characters, shared by both lines (they
     // type in step).
     for (var q = 0; q < n; q += 2) snd(typeAt + typeMs * q / n, 'type', 'subtle');
     snd(handshake.t0, 'handshake');
     for (var q2 = 0; q2 < 4; q2++) snd(handshake.t0 + q2 * 30, 'type', 'subtle');
     snd(say.t, 'bootHit', 'spectacle');
-    // The music waits under the whole intro and comes up after it.
-    marks.push({ k: 'duck', t: 0, ms: BOOT_MS + 200 });
+    // The rare saying is heard too: root access granted, over the hit.
+    if (say.rare) snd(say.t + 60, 'bootRoot', 'normal');
+    // The music is silent under the whole intro and starts when it ends
+    // (the owner's call 8, "music starts after").
+    marks.push({ k: 'music', t: 0, ms: BOOT_MS });
     marks.push({ k: 'end', t: BOOT_MS });
     marks.sort(function (u, v) { return u.t - v.t; });
     return { ms: BOOT_MS, out: BOOT_OUT_AT, list: BOOT_LIST_VERSION, saying: saying, mid: mid, cx: cx, area: { l: area.l, t: area.t, r: area.r, b: area.b },
@@ -5662,8 +5766,8 @@ html, body {
     hs.y = plan.mid + out.say.h / 2 + out.say.cell * 1.5 + hs.fs * 0.9; hs.t0 = 0; hs.ms = 0; hs.gone = Infinity;
     if (hs.y + hs.fs / 2 > bl.y - bl.fs * 0.7) out.handshake = null;
     out.say.t = 0; out.say.slam = 0; out.say.grow = 0; out.say.out = [out.out, out.ms];
-    out.marks = out.marks.filter(function (m) { return m.k === 'duck' || (m.k === 'sound' && (m.kind === 'crt' || m.kind === 'bootHit')); })
-      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'duck') c.ms = BOOT_STILL_MS + 200; return c; });
+    out.marks = out.marks.filter(function (m) { return m.k === 'music' || (m.k === 'sound' && (m.kind === 'bootOn' || m.kind === 'bootHit' || m.kind === 'bootRoot')); })
+      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'music') c.ms = BOOT_STILL_MS; return c; });
     out.marks.push({ k: 'end', t: BOOT_STILL_MS });
     return out;
   }
@@ -5685,7 +5789,8 @@ html, body {
     for (var i = 0; i < 2; i++) {
       var h = plan.halves[i], ln = h.line;
       if (!inBox(h.screen, halfBoxes[h.side])) return h.side + ' screen leaves its half';
-      var lb = { l: ln.x0, r: ln.x0 + ln.w, t: ln.y - ln.fs * 0.6, b: ln.y + ln.fs * 0.6 };
+      var hh = ln.fs * 0.6 + (ln.rows ? ln.fs * BOOT_LH / 2 : 0);
+      var lb = { l: ln.x0, r: ln.x0 + ln.w, t: ln.y - hh, b: ln.y + hh };
       if (!inBox(lb, h.screen)) return h.side + ' agent line leaves its screen';
       if (ln.t0 < h.on.t + h.on.ms) return h.side + ' agent line types before its screen is on';
       if (ln.clear) {
@@ -5700,7 +5805,8 @@ html, body {
     if (!near(ts.l, bs.l) || !near(ts.r, bs.r) || !near(mid - ts.b, bs.t - mid) || !near(mid - ts.t, bs.b - mid)) return 'the screens are not mirror images';
     if (T.on.t !== B.on.t || T.on.ms !== B.on.ms || T.on.flick !== B.on.flick) return 'the halves power on at different times';
     var tl = T.line, bl = B.line;
-    if (tl.txt.length !== bl.txt.length) return 'the agent lines are padded to different lengths';
+    if (!!tl.rows !== !!bl.rows) return 'one agent line breaks onto two rows and the other does not';
+    if (tl.rows ? (tl.rows[0].length !== bl.rows[0].length || tl.rows[1].length !== bl.rows[1].length) : tl.txt.length !== bl.txt.length) return 'the agent lines are padded to different lengths';
     if (tl.t0 !== bl.t0 || tl.ms !== bl.ms) return 'the agent lines type at different times';
     if (!near(tl.fs, bl.fs) || !near(tl.x0, bl.x0) || !near(tl.w, bl.w) || !near(mid - tl.y, bl.y - mid)) return 'the agent lines are not mirror images';
     if (!!tl.clear !== !!bl.clear || (tl.clear && (tl.clear.t !== bl.clear.t || tl.clear.ms !== bl.clear.ms || !near(-tl.clear.dy, bl.clear.dy)))) return 'the agent lines clear differently';
@@ -5723,6 +5829,8 @@ html, body {
       if (m.k === 'sound' && !near(m.x, cx)) return 'a sound is panned off centre';
     }
     if (!plan.marks.some(function (m) { return m.k === 'end'; })) return 'no end';
+    var mu = plan.marks.filter(function (m) { return m.k === 'music'; });
+    if (mu.length !== 1 || mu[0].t !== 0 || mu[0].ms !== plan.ms) return 'the music does not wait for the whole intro';
     return null;
   }
 
@@ -5810,7 +5918,17 @@ html, body {
       }
       // The cursor runs on through a shorter line's padding, so both stop
       // together; then it blinks until the line clears.
-      var typing = k < ln.txt.length, blink = cur.plan.still || Math.floor(t / 260) % 2 === 0;
+      var blink = cur.plan.still || Math.floor(t / 260) % 2 === 0;
+      if (ln.rows) {
+        // Two rows typed as one line: the first row, then the second.
+        var r0 = ln.rows[0], r1 = ln.rows[1], all = r0.length + r1.length, gap = ln.fs * BOOT_LH / 2;
+        var kk = ln.ms > 0 ? Math.min(all, Math.ceil(all * (t - ln.t0) / ln.ms)) : all;
+        var k0 = Math.min(kk, r0.length), k1 = Math.max(0, kk - r0.length);
+        drawType(ctx, r0, r0.slice(0, k0), ln.x0, y - gap, ln.fs, ln.w, h.rgb, a, k0 < r0.length);
+        if (kk >= r0.length) drawType(ctx, r1, r1.slice(0, k1), ln.x0, y + gap, ln.fs, ln.w, h.rgb, a, k1 < r1.length || blink);
+        return;
+      }
+      var typing = k < ln.txt.length;
       drawType(ctx, ln.txt, shown, ln.x0, y, ln.fs, ln.w, h.rgb, a, typing || blink);
     }
     function drawHandshake(ctx, hs, t, fade) {
@@ -5875,16 +5993,52 @@ html, body {
       ctx.globalCompositeOperation = 'source-over';
       stats.drawn = (stats.drawn || 0) + 1;
     }
+    // The sounds run on the audio clock, not the frames (render session 38):
+    // a lookahead scheduler queues each sound a little ahead at its exact
+    // time, so a dropped or late frame can't make a key click late or merge
+    // two into one. The audio clock is tied to the intro's clock once the
+    // context is running; a sound whose time passed more than SND_LATE_S
+    // before it could be queued (the context still waking up) is dropped,
+    // never played late. All of them go through one group, so a skip cuts
+    // them all at once, ringing or queued.
+    var SND_AHEAD_S = 0.15, SND_TICK_MS = 25, SND_LATE_S = 0.12;
+    function schedule() {
+      if (!cur) return;
+      var c = cur, sounds = c.sounds;
+      if (c.nextSound >= sounds.length) return;
+      if (!c.aud) {
+        if (typeof SND === 'undefined' || !SND.group || !SND.isOn()) return;
+        c.aud = SND.group();
+        if (!c.aud) return;
+      }
+      var C = c.aud.ctx;
+      if (C.state && C.state !== 'running') return;
+      var el = (performance.now() - c.t0) / 1000;
+      if (c.base == null) stats.base = c.base = C.currentTime - el;
+      var now = C.currentTime;
+      while (c.nextSound < sounds.length) {
+        var m = sounds[c.nextSound], at = c.base + m.t / 1000;
+        if (at > now + SND_AHEAD_S) break;
+        c.nextSound++;
+        var late = Math.max(0, now - at);
+        if (late > SND_LATE_S) { stats.late++; continue; }
+        SND.play(m.kind, 'Neutral', m.tier, null, { at: Math.max(at, now), pan: 0, group: c.aud });
+        stats.fired['sound:' + m.kind] = (stats.fired['sound:' + m.kind] || 0) + 1;
+        stats.sched.push({ kind: m.kind, t: m.t, at: Math.round((Math.max(at, now) - c.base) * 1000), lead: Math.round((at - now) * 1000) });
+      }
+    }
+    // The other marks run on the frames (sounds are schedule()'s).
     function fire(m) {
-      stats.fired[m.k + (m.kind ? ':' + m.kind : '')] = (stats.fired[m.k + (m.kind ? ':' + m.kind : '')] || 0) + 1;
-      if (m.k === 'sound' && typeof SND !== 'undefined') SND.play(m.kind, 'Neutral', m.tier, { left: m.x - window.scrollX, width: 0 });
-      else if (m.k === 'duck' && typeof MUS !== 'undefined' && MUS.duckHold) MUS.duckHold(m.ms / 1000);
+      if (m.k === 'sound') return;
+      stats.fired[m.k] = (stats.fired[m.k] || 0) + 1;
+      if (m.k === 'music' && typeof MUS !== 'undefined' && MUS.startAfter) { MUS.startAfter(m.ms / 1000); cur.music = true; }
       else if (m.k === 'end') finish('end');
     }
     function frame() {
       if (!cur) return;
       var me = cur;
       cur.t = performance.now() - cur.t0;
+      schedule();
       while (cur && cur.next < cur.plan.marks.length && cur.plan.marks[cur.next].t <= cur.t) fire(cur.plan.marks[cur.next++]);
       if (cur !== me) return;
       draw();
@@ -5898,6 +6052,7 @@ html, body {
       document.removeEventListener('keydown', onKey, true);
       document.removeEventListener('pointerdown', onDown, true);
       cancelAnimationFrame(c.raf);
+      clearInterval(c.timer);
       c.cv.remove();
       c.dom.forEach(function (d) { d.remove(); });
     }
@@ -5906,6 +6061,13 @@ html, body {
       var c = cur;
       cur = null;
       teardown(c);
+      // A skip or a cancel cuts the intro's sounds (a 30 ms fade) and starts
+      // the music now; at its own end the last sounds ring out and the
+      // music is already coming in.
+      if (reason !== 'end') {
+        if (c.aud) c.aud.cut();
+        if (c.music && typeof MUS !== 'undefined' && MUS.startAfter) MUS.startAfter(0);
+      }
       stats.last = { reason: reason, t: Math.round(c.t), saying: c.plan.saying, still: !!c.plan.still };
       if (reason === 'skip') stats.skipped++;
       else if (reason === 'cancel') stats.cancelled++;
@@ -5946,8 +6108,11 @@ html, body {
       cv.width = Math.round((A.r - A.l) * dpr); cv.height = Math.round((A.b - A.t) * dpr);
       document.body.appendChild(cv);
       stats.played++; if (plan.still) stats.still++;
-      stats.problem = problem || null; stats.fired = {}; stats.drawn = 0;
-      cur = { plan: plan, cv: cv, ctx: cv.getContext('2d'), dpr: dpr, ox: A.l, oy: A.t, t0: performance.now(), t: 0, next: 0, raf: 0, dom: [], onEnd: opts.onEnd || null };
+      stats.problem = problem || null; stats.fired = {}; stats.drawn = 0; stats.sched = []; stats.late = 0;
+      cur = { plan: plan, cv: cv, ctx: cv.getContext('2d'), dpr: dpr, ox: A.l, oy: A.t, t0: performance.now(), t: 0, next: 0, raf: 0, dom: [], onEnd: opts.onEnd || null,
+        sounds: plan.marks.filter(function (m) { return m.k === 'sound'; }), nextSound: 0, aud: null, base: null, music: false, timer: 0 };
+      stats.planned = cur.sounds.length; stats.base = null;
+      cur.timer = setInterval(schedule, SND_TICK_MS);
       var sk = document.createElement('button');
       sk.type = 'button'; sk.className = 'boast-skip boot-skip'; sk.textContent = 'Skip ▸▸';
       sk.addEventListener('click', function (e) { e.stopPropagation(); skip(); });
@@ -5956,6 +6121,9 @@ html, body {
       sk.style.left = (A.r - sk.offsetWidth - 8) + 'px';
       document.addEventListener('keydown', onKey, true);
       document.addEventListener('pointerdown', onDown, true);
+      // The music mark (at 0) and the first sounds go out at once.
+      while (cur.next < plan.marks.length && plan.marks[cur.next].t <= 0 && plan.marks[cur.next].k !== 'end') fire(plan.marks[cur.next++]);
+      schedule();
       draw();
       cur.raf = requestAnimationFrame(frame);
       return plan;
@@ -5963,7 +6131,8 @@ html, body {
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; },
       stats: function () { return { active: !!cur, t: cur ? Math.round(cur.t) : null, saying: cur ? cur.plan.saying : null, still: cur ? !!cur.plan.still : null,
         lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still,
-        cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last }; } };
+        cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last,
+        sched: (stats.sched || []).slice(), late: stats.late || 0, planned: stats.planned == null ? null : stats.planned, audioBase: stats.base == null ? null : stats.base, rows: cur ? !!cur.plan.halves[0].line.rows : null, fs: cur ? cur.plan.halves[0].line.fs : null }; } };
   })();
 
   window.__boot = BOOT; // read by the browser checks (progress/render/evidence/boot-check-s35.mjs)

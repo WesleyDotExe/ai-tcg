@@ -700,6 +700,8 @@ html, body {
 /* Match Boot (render/src/matchBootFx.ts). */
 
 .boot-canvas { position: absolute; z-index: 92; pointer-events: none; }
+/* A finger-sized Skip on a touch screen (render session 38). */
+@media (pointer: coarse) { .boot-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
 
 
 body { padding: 12px 16px; }

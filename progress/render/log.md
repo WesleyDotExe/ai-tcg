@@ -3712,3 +3712,71 @@ by 3 px, also caught by the check). The stills then showed "Lookahead-AegisWINS"
 inline block drops its leading space. Fixed with `white-space: pre`, and a check now measures the gap.
 
 **Next render-lane slice:** Match Boot slice 2 (sound and the phone), as the owner set.
+
+## 2026-10-24 — Session 38: Match Boot, slice 2 (sound and the phone)
+
+Render session by the alternation rule: the last merged PR (#95) was the game lane's (session 56, the
+owner API). Owner feedback read: the 2026-10-23 entry keeps all 8 calls on the win message and sets
+the next render slice, Match Boot slice 2 (sound and the phone); the 2026-10-20 entry's call 8 left
+"music starts after" to this slice. The newest entry (answers to game session 56, and a question on
+the minimum deck size) is the game lane's; the render lane doesn't touch the shared files, so it is
+left for game session 57.
+
+**Built:**
+- `render/src/soundFx.ts`: `SND.play` takes `{ at, pan, group }` (a start time on the audio clock, a
+  fixed pan, a bus); a scheduled sound skips the repeat gap. `SND.group()` makes a bus on the master
+  that can be cut in a 30 ms fade. Two recipes: `bootOn` (the intro's own power-on: a deeper thump,
+  a 50/100 Hz degauss hum, a crackle, the flyback whine) and `bootRoot` (the rare saying: a glitch and
+  three square blips climbing C5-G5-C6). Boot Sequence keeps `crt`.
+- `render/src/musicFx.ts`: `MUS.startAfter(sec)`: the bus to silence, nothing queued, the progression
+  from step 0 at the end, fading in; `startAfter(0)` starts it now. Switching the music on, or a volume
+  change, during the wait waits too. The wait is remembered on the wall clock while the music is off.
+- `render/src/matchBootFx.ts`: the plan's sounds are `bootOn`, the clicks, `handshake`, `bootHit`, and
+  `bootRoot` 60 ms after the hit for `> SUDO FIGHT`; the `duck` mark became a `music` mark covering the
+  whole intro (the checker refuses one that doesn't). The runtime's lookahead scheduler (25 ms tick,
+  150 ms ahead) queues each sound at its exact audio time through one group at pan 0; a skip, pause or
+  jump cuts the group and starts the music. The agent line breaks after `LOADING AGENT:` into two rows
+  when the board's width squeezes one row under 15 px and two rows come out a fifth bigger (up to
+  20 px); both halves alike, typed as one line; the checker refuses mismatched rows. Skip is at least
+  44 x 88 px on a coarse pointer. Stats gained the queue (`sched`, `late`, `planned`, `audioBase`) and
+  the line layout (`rows`, `fs`).
+- `render/src/bootSheet.ts`: a phone scene with a long name (two-row lines); slice 2's note.
+- `render/EFFECTS.md`: "Slice 2 (render session 38): sound and the phone".
+
+**Ran it:**
+- `progress/render/evidence/boot-check-s38.mjs` (new harness: the pages served over local HTTP, the
+  page's own output recorded by an AudioWorklet on the limiter, each block stamped with its frame),
+  output `boot-check-s38.txt`: 42 checks, ALL PASS, run twice. A: all 27 sounds queued ahead at their
+  exact times; 22 onsets heard within 0-3 ms of their planned distance from the others (the 4 clicks
+  under the chirp can't be separated); left/right -0.006 dB; peak 0.41; the music 0 steps and bus 0 at
+  2.35 s, 7 steps and bus 0.29 after. B: a 100 ms main-thread stall mid-typing: all 20 typing clicks
+  still within 1 ms; slice 1's page (from HEAD) under the same stall: 1 of 16 click intervals on the
+  36 ms grid, this page 19 of 19. C/D/D2: Escape and pause cut the sounds (silence 40 ms after a pause,
+  music off) and start the music at once. E/F: effects muted; music switched on mid-intro waits. G/H/I:
+  phone portrait (two rows at 20 px; Skip 88 x 44; no sideways scroll; cold start, all sounds in
+  time), landscape (one row, 15 px), desktop (one row). J: the still. K: the rare flourish (+5.8 dB in
+  its band against FIGHT) and the sheet's phone-rows scene.
+- Stills: `v2-s38-phone-rows.jpg`, `-phone-saying`, `-phone-landscape`, `-desktop-lines`,
+  `-sheet-rare`, `-sheet-phone-rows`.
+- Tests: render 612 (+9): the music mark and no duck; the rare flourish only for the rare saying; the
+  two-row layout (both halves, bigger, typed as one line, desktop never); two new grammar breaks; the
+  new recipes (faction-independent; the power-on deeper than `crt`, with a hum `crt` lacks; the blips
+  climbing an octave); `MUS.startAfter` (silent, nothing queued, step 0 at the end; a skip; a volume
+  change and switching on during the wait; a second intro); `SND.group` (exact start times, pan 0,
+  through the group, no repeat drop; the cut's 30 ms ramp). Mutation checks: ignoring `at` fails 1
+  test, not holding the music's queue fails 3, never breaking into rows fails 2. `npm test`: all six
+  workspaces pass (1,129); typecheck clean everywhere.
+- All 16 sample replays, the 4 recorded replays and every sheet/page that embeds the sound runtime
+  regenerated. Before the change, regenerating reproduced every committed page byte for byte except
+  `first-time.html` and `pack-opening.html`, which carry random ids from the store (already true);
+  those two are regenerated here because they embed `SND`.
+
+**Found on the way:** the first measurement used a ScriptProcessor tap, which runs on the main thread:
+the stall test corrupted its own recording, and its blocks arrive late against their clock stamps.
+Switched to an AudioWorklet (audio thread), which needs the page served over HTTP. The click band had
+to move from a first-difference high-pass to a 2.2 kHz band-pass: the power-on's 7.8 kHz flyback whine
+swamped the clicks. And the first `bootRoot` was only 1.8 dB above the hit's chord in its band, too
+quiet to notice; raised (squares 0.035 -> 0.08) to +5.8 dB.
+
+**Next render-lane slice:** none set by the owner. Suggested: move the boasts' sounds onto the same
+audio-clock scheduling (they still fire from the frames), or the next item the owner names.

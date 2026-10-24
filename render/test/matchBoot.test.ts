@@ -1,6 +1,8 @@
 // Match Boot, slice 1 (render session 35): the saying picker, list 1, the
 // intro grammar (symmetric and centre-out) on many layouts, the still, the
-// two new sounds, and the replay page's wiring.
+// two new sounds, and the replay page's wiring. Slice 2 (render session 38):
+// its own power-on, the rare flourish, the music mark, the two-row agent
+// lines on a phone.
 import { describe, expect, it } from "vitest";
 import { CARD_REGISTRY } from "@ai-tcg/engine";
 import {
@@ -9,6 +11,10 @@ import {
   BOOT_RARE,
   BOOT_SAYINGS,
   BOOT_STILL_MS,
+  BOOT_CH,
+  BOOT_FS_MAX,
+  BOOT_FS2_MAX,
+  BOOT_HEAD,
   bootHash,
   bootLine,
   bootPlan,
@@ -27,9 +33,12 @@ import { captureReplay } from "../src/replaySetup.js";
 // browser check), plus layouts the page could produce.
 const DESKTOP: BootGeom = { top: { l: 16, t: 330, r: 1264, b: 520 }, bot: { l: 16, t: 546, r: 1264, b: 736 }, area: { l: 16, t: 330, r: 1264, b: 736 } };
 const PHONE: BootGeom = { top: { l: 8, t: 420, r: 382, b: 560 }, bot: { l: 8, t: 584, r: 382, b: 724 }, area: { l: 8, t: 420, r: 382, b: 724 } };
+// The replay's phone halves as the browser check measured them (render
+// session 38): each half much taller than wide.
+const PHONE_TALL: BootGeom = { top: { l: 12, t: 92, r: 378, b: 406 }, bot: { l: 12, t: 438, r: 378, b: 752 }, area: { l: 12, t: 92, r: 378, b: 752 } };
 const UNEVEN: BootGeom = { top: { l: 16, t: 329, r: 1264, b: 520 }, bot: { l: 16, t: 546, r: 1265, b: 736.5 }, area: { l: 16, t: 329, r: 1265, b: 736.5 } };
 const NO_GAP: BootGeom = { top: { l: 0, t: 0, r: 800, b: 160 }, bot: { l: 0, t: 160, r: 800, b: 320 }, area: { l: 0, t: 0, r: 800, b: 320 } };
-const LAYOUTS: [string, BootGeom][] = [["desktop", DESKTOP], ["phone", PHONE], ["uneven", UNEVEN], ["no gap", NO_GAP]];
+const LAYOUTS: [string, BootGeom][] = [["desktop", DESKTOP], ["phone", PHONE], ["phone, tall", PHONE_TALL], ["uneven", UNEVEN], ["no gap", NO_GAP]];
 const FACTIONS = ["Cortex", "Aegis", "Swarm", "Null"];
 const LONG = "Coiljackal's Croupier of the Ninth Relay";
 
@@ -124,12 +133,55 @@ describe("the intro grammar: symmetric and centre-out", () => {
     expect(p.halves[1]!.line.clear!.dy).toBeGreaterThan(0);
   });
 
-  it("every sound sits on the centre, so its pan favours neither side; the music waits under the intro", () => {
+  it("every sound sits on the centre, so its pan favours neither side; the music waits for the whole intro", () => {
     const p = bootPlan(DESKTOP, { top: { name: "A", faction: "Aegis" }, bot: { name: "B", faction: "Swarm" } }, 9);
     const sounds = p.marks.filter((m) => m.k === "sound");
-    expect(new Set(sounds.map((m) => m.kind))).toEqual(new Set(["crt", "type", "handshake", "bootHit"]));
+    // Its own power-on (session 38), not Boot Sequence's 'crt'.
+    expect(new Set(sounds.map((m) => m.kind))).toEqual(new Set(["bootOn", "type", "handshake", "bootHit"]));
     for (const m of sounds) expect(m.x).toBe(p.cx);
-    expect(p.marks.find((m) => m.k === "duck")!.ms).toBeGreaterThanOrEqual(BOOT_MS);
+    expect(p.marks.filter((m) => m.k === "music")).toEqual([{ k: "music", t: 0, ms: BOOT_MS }]);
+    expect(p.marks.some((m) => (m.k as string) === "duck")).toBe(false);
+  });
+
+  it("the rare saying, and only the rare saying, adds root access granted over the hit", () => {
+    for (const saying of [...BOOT_SAYINGS, BOOT_RARE]) {
+      const p = bootPlan(DESKTOP, {}, 1, { saying });
+      const root = p.marks.filter((m) => m.kind === "bootRoot");
+      expect(root.length, saying).toBe(saying === BOOT_RARE ? 1 : 0);
+      if (root.length) {
+        expect(root[0]!.t).toBeGreaterThan(p.say.t);
+        expect(root[0]!.t).toBeLessThan(p.say.out[0]);
+        expect(bootStill(p).marks.filter((m) => m.kind === "bootRoot")).toHaveLength(1);
+      }
+    }
+    expect(bootSaying(105)).toBe(BOOT_RARE);
+    expect(bootPlan(DESKTOP, {}, 105).marks.some((m) => m.kind === "bootRoot")).toBe(true);
+  });
+
+  it("on a phone a squeezed agent line breaks after LOADING AGENT:, both halves alike, and reads bigger", () => {
+    const who = { top: { name: "Lookahead-Swarm", faction: "Swarm" }, bot: { name: LONG, faction: "Null" } };
+    const one = bootPlan(DESKTOP, who, 1), two = bootPlan(PHONE, who, 1);
+    expect(one.halves[0]!.line.rows).toBeUndefined();
+    const [t, b] = two.halves.map((h) => h.line);
+    expect(t!.rows![0].trimEnd()).toBe(BOOT_HEAD.trimEnd());
+    expect(t!.rows![1].trimEnd()).toBe("Lookahead-Swarm [SWARM]");
+    expect(b!.rows![1].trimEnd()).toBe(`${LONG} [NULL]`);
+    expect(t!.rows!.map((r) => r.length)).toEqual(b!.rows!.map((r) => r.length));
+    // Bigger than one squeezed row would be, within the two-row cap.
+    const W = PHONE.top.r - PHONE.top.l, oneRow = (W - 24) / (BOOT_CH * (bootLine(LONG, "Null").length + 1));
+    expect(t!.fs).toBeGreaterThanOrEqual(oneRow * 1.2);
+    expect(t!.fs).toBeLessThanOrEqual(BOOT_FS2_MAX);
+    // Typed as one line: the clicks cover both rows.
+    expect(t!.ms).toBe(Math.min(720, (t!.rows![0].length + t!.rows![1].length) * 22));
+    expect(bootPlanProblem(two, PHONE)).toBeNull();
+    expect(bootPlanProblem(bootStill(two), PHONE)).toBeNull();
+    // A typical name on the replay's phone layout breaks too (one row is
+    // squeezed under 15 px; the halves there are tall).
+    const typical = bootPlan(PHONE_TALL, { top: { name: "Lookahead-Swarm", faction: "Swarm" }, bot: { name: "Lookahead-Null", faction: "Null" } }, 1);
+    expect(typical.halves[0]!.line.rows).toBeDefined();
+    expect(typical.halves[0]!.line.fs).toBe(BOOT_FS2_MAX);
+    // Short names on a wide board never break, and stay at most 15 px.
+    for (const [, g, p] of plans()) if (g === DESKTOP || g === UNEVEN || g === NO_GAP) { expect(p.halves[0]!.line.rows).toBeUndefined(); expect(p.halves[0]!.line.fs).toBeLessThanOrEqual(BOOT_FS_MAX); }
   });
 
   it("a long saying breaks onto two lines on a phone, when that is bigger", () => {
@@ -151,6 +203,8 @@ describe("the intro grammar: symmetric and centre-out", () => {
       ["a saying off the list", (p) => { p.saying = "JACK IN"; }, /not on list 1/],
       ["a screen in the other half", (p) => { p.halves[0]!.screen.b = p.mid + 20; }, /leaves its half/],
       ["too long", (p) => { p.ms = 4000; }, /2-3 s/],
+      ["the music back before the end", (p) => { p.marks.find((m) => m.k === "music")!.ms = 1000; }, /music does not wait/],
+      ["one line on two rows, the other on one", (p) => { p.halves[0]!.line.rows = ["LOADING AGENT: ", "A [AEGIS]      "]; }, /two rows and the other does not/],
     ];
     expect(bootPlanProblem(ok(), g)).toBeNull();
     for (const [what, breakIt, why] of cases) {
@@ -170,7 +224,8 @@ describe("the reduced-motion still", () => {
     expect(s.say.t).toBe(0);
     expect(s.say.slam).toBe(0);
     expect(s.handshake!.y).toBeGreaterThan(s.mid + s.say.h / 2);
-    expect(s.marks.filter((m) => m.k === "sound").map((m) => m.kind).sort()).toEqual(["bootHit", "crt"]);
+    expect(s.marks.filter((m) => m.k === "sound").map((m) => m.kind).sort()).toEqual(["bootHit", "bootOn"]);
+    expect(s.marks.filter((m) => m.k === "music")).toEqual([{ k: "music", t: 0, ms: BOOT_STILL_MS }]);
     expect(s.marks.every((m) => m.t === 0 || m.k === "end")).toBe(true);
   });
 
@@ -184,8 +239,8 @@ describe("the reduced-motion still", () => {
 
 describe("the intro's sounds", () => {
   const seeded = () => { let a = 7; return () => { a = (a * 16807) % 2147483647; return a / 2147483647; }; };
-  it("the chirp and the hit play, and sound the same whichever factions are playing", () => {
-    for (const kind of ["handshake", "bootHit"] as const) {
+  it("the power-on, the chirp, the hit and the rare flourish play, and sound the same whichever factions are playing", () => {
+    for (const kind of ["bootOn", "handshake", "bootHit", "bootRoot"] as const) {
       const base = sfxRecipe(kind as never, "Neutral", "normal", seeded());
       expect(base.length, kind).toBeGreaterThan(0);
       for (const f of FACTIONS) expect(sfxRecipe(kind as never, f, "normal", seeded()), `${kind} ${f}`).toEqual(base);
@@ -193,6 +248,24 @@ describe("the intro's sounds", () => {
     // The chirp is far shorter than Dial-Up Fireworks' screech.
     const end = (vs: { dur: number; delay?: number }[]) => Math.max(...vs.map((v) => (v.delay ?? 0) + v.dur));
     expect(end(sfxRecipe("handshake" as never, "Neutral", "normal", seeded()))).toBeLessThan(end(sfxRecipe("modem" as never, "Neutral", "normal", seeded())) / 3);
+  });
+
+  it("the power-on is its own, not Boot Sequence's tube: deeper, with a degauss hum the boast doesn't have", () => {
+    const on = sfxRecipe("bootOn" as never, "Neutral", "normal", seeded()), crt = sfxRecipe("crt" as never, "Neutral", "normal", seeded());
+    expect(on).not.toEqual(crt);
+    const thump = (vs: typeof on) => vs.find((v) => v.k === "tone" && v.type === "sine" && v.f1 !== undefined && v.f1 < v.f0)!;
+    expect(thump(on).f0).toBeLessThan(thump(crt).f0);
+    const hum = (vs: typeof on) => vs.filter((v) => v.k === "tone" && v.type === "sawtooth" && v.f0 <= 100);
+    expect(hum(on).length).toBeGreaterThan(0);
+    expect(hum(crt)).toHaveLength(0);
+  });
+
+  it("the rare flourish climbs: three blips, each higher, after a glitch", () => {
+    const r = sfxRecipe("bootRoot" as never, "Neutral", "normal", seeded()).filter((v) => (v.delay ?? 0) >= 0.15);
+    expect(r).toHaveLength(3);
+    expect(r[0]!.f0).toBeLessThan(r[1]!.f0);
+    expect(r[1]!.f0).toBeLessThan(r[2]!.f0);
+    expect(r[2]!.f0 / r[0]!.f0).toBeCloseTo(2, 1);
   });
 });
 
