@@ -6,7 +6,7 @@
 // a driver fails here instead of in the next long report run.
 
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -92,4 +92,21 @@ describe("balance-report drivers (smoke, 2 seeds, every section)", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   }, 300_000);
+  it("deckSizeCheck.ts trims and reports (every faction, 2 seeds; the committed holdings file)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ai-tcg-decksize-"));
+    const holdings = fileURLToPath(new URL("../../progress/deck-size/holdings.json", import.meta.url));
+    try {
+      copyFileSync(holdings, join(dir, "holdings.json"));
+      for (const f of ["Cortex", "Swarm", "Aegis", "Null"]) run("deckSizeCheck.ts", "trim", f, "--seeds", "2", "--out", join(dir, `trim-${f}.json`));
+      const out = run("deckSizeCheck.ts", "report", "--dir", dir);
+      for (const h of ["1. The rule today", "2. The demo's 26-card Null deck", "3. How often the cards cap the size", "4. Does a shorter deck win more?"]) expect(out, h).toContain(`== ${h}`);
+      expect(out).not.toMatch(/NaN|undefined|Infinity/);
+      // Every faction's cuts, size-alone pairs and fresh replay.
+      expect(out.match(/^ {2}20, random, mean /gm)).toHaveLength(4);
+      expect(out.match(/^ {2}13 cards x2 = 26 /gm)).toHaveLength(4);
+      expect(out.match(/^ {4}(Cortex|Swarm|Aegis|Null)\s+36: /gm)).toHaveLength(4);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 150_000);
 });

@@ -3819,3 +3819,41 @@ ownership check lives only in the API; the rest of item 3 (wallet, collection, p
 **Evidence:** `progress/owner-api-demo-001.txt`, `server/test/ownerApi.test.ts`.
 
 **Blocked:** nothing. One small owner check-in (four calls, defaults keep).
+
+## 2026-10-25 — Session 57 (the deck-size check, test only)
+
+**Read first:** `progress/owner-feedback.md`. The owner's session-56 answers: keep all 4 (noted,
+nothing to change), and a game-lane question: confirm the minimum deck size rule, measure whether a
+shorter deck gives an advantage against 40-card decks from the same holdings, say whether the builder
+prefers short decks, recommend; test only. Entry marked handled. The last merged PR was the render
+lane's, so this is a game-lane session; not a hardening session (55 was, 60 is next).
+
+**Built:** `engine/src/dev/deckSizeCheck.ts` (holdings / trim <faction> / report, sharded like the
+built-deck ring) and `economy/src/dev/deckSizeHoldings.ts`, which remakes the owner API demo's owner
+with the demo's own store calls and seeds. Tests: 12 unit tests for the study's deck makers (every cut
+and pair legal, the right size, the pairs the same cards; the demo's largest Null deck is 27) and a
+driver smoke test. Mutation checks: dropping the cut's legality check fails 4 tests, dropping the pair's
+removal cap fails 1. `drawsCards` is now exported from the builder (no behaviour change).
+
+**Ran it:** `progress/deck-size-report-001.txt` (~390,000 games; holdings.json and trim-Null.json each
+re-run and byte-identical):
+- The rule: 20-40 in `engine/src/data/decks.ts`, enforced by `buildDeck`. Shipped decks 40/40/40, Null 36.
+- The demo deck: the owner holds 17 usable Null copies + 10 neutral = 27, the largest legal Null deck.
+  The store's build re-run gives the demo's deck exactly: one search cut (-1 Power Reserve), 45.0% ->
+  50.5% on fresh seeds.
+- Realistic collections: own-faction locks make 40 in 93 of 96. Off-faction: 116 of 288 can't build,
+  111 more are under 40. The builder kept 49 of 100 ring decks short of what the cards allow, by 1-5
+  cards (Swarm 39; Null 35-36), never under 35.
+- Shorter wins: same cards at the same proportions, 20 vs 40: +5.3 Cortex, +3.3 Swarm, +5.2 Aegis,
+  +2.6 Null (z 2.8-5.6). 26 vs 39: +0.8 to +3.7. Fatigue at most 1.9% of games. Best cuts on fresh
+  seeds: +11.9 (Cortex, 20), +11.4 (Aegis, 32), +4.9 (Swarm, 20), +2.0 (Null, 36).
+
+**Worked:** the size-alone pairs separate size from card choice, which the trims alone could not
+(the random cuts at one size range from -22 to +13). **Didn't / honest limits:** the trims start from
+the rating start, not a tuned deck; one card choice per faction for the pairs; Calculator only, gate
+mode only.
+
+**Evidence:** `progress/deck-size-report-001.txt`, `progress/deck-size/`.
+
+**Blocked:** nothing. One owner check-in (deck size: recommend exactly 40; alternatives B-D; default
+no change).

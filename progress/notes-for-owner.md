@@ -1,10 +1,79 @@
 # Notes for the owner
 
-**Updated 2026-10-23, session 56.** Nothing is blocking. Your session-55 answer (keep) is noted. This
-session built the first website endpoints: signing in and the deck settings of Settings -> Play over
-HTTP. **One small [OWNER CHECK-IN] below**, all defaults keep.
+**Updated 2026-10-25, session 57.** Nothing is blocking. Your session-56 answers (keep all 4) are
+noted. This session answered your deck-size question, test only: no card, deck, rule or builder
+change. **One [OWNER CHECK-IN] below** with a recommendation; until you answer, nothing changes.
 
-### [OWNER CHECK-IN] The deck settings over HTTP: four small calls
+### [OWNER CHECK-IN] Deck size: short decks win more; recommend exactly 40 cards
+
+**Your questions, answered** (`progress/deck-size-report-001.txt`, made by
+`engine/src/dev/deckSizeCheck.ts`; about 390,000 games):
+
+1. **The rule today: 20 to 40 cards.** It is set in `engine/src/data/decks.ts` (`MIN_DECK_SIZE = 20`,
+   `MAX_DECK_SIZE = 40`). Every deck that plays is checked against it. The deck builder uses the same
+   two numbers. The 20 was picked at stage 3 so the first small test decks still worked. It was
+   called a first guess then and was never tested. Shipped decks: Cortex, Swarm and Aegis 40, Null 36.
+   Nothing in the rule says a short deck is only for owners who lack cards: any deck from 20 to 40 is
+   legal, for anyone.
+2. **Why the demo deck had 26 cards: that owner didn't have more.** The owner (Cortex starter plus
+   10 packs) holds 17 Null cards and 10 neutral cards a Null deck can use. Neutral cards are capped at
+   10, so 27 is the biggest legal Null deck. The builder started at 27. Its search then cut 1 Power
+   Reserve, which won 50.5% instead of 45.0% on new games, so 26. Across the ring's 96 realistic
+   collections, a lock to the owner's own faction can almost always make 40: 3 of 96 can't, and those
+   3 are day-one Null owners, whose starter is the 36-card list. A lock to another faction mostly
+   can't: 116 of 288 can't build a deck at all, and 111 more top out under 40. At 17 packs every one
+   of them is 20 to 35 cards.
+3. **Does the builder pick short decks when 40 is possible? Only a little.** In the built-deck ring,
+   49 of the 100 kept decks are shorter than their cards allow, by 1 to 5 cards: Swarm keeps 39,
+   Null keeps 35 or 36 (36 is its designed list). None went below 35 when 40 was possible. The search
+   is small (24 one-copy changes, about a fifth of them size changes), and it can only cut from 40,
+   since 40 is the maximum. So it drifts, but nothing pushes it back up.
+4. **Does a shorter deck win more? Yes.**
+   - **Size alone.** I took the same cards in the same proportions, at two copies each (40 cards) and
+     one copy each (20 cards). The 20-card deck wins more in every faction: +5.3 Cortex, +3.3 Swarm,
+     +5.2 Aegis, +2.6 Null (points; all four clear of chance, z 2.8 to 5.6). The same test at 39
+     against 26 cards: +3.5, +1.1, +3.7, +0.8 (two of four clear).
+   - **Why: a short deck never runs out.** Matches end around turn 13 or 14, and each side draws
+     about 10 to 15 cards in a match. A 20-card deck ran dry in at most 1.9% of games, and running dry
+     only costs 2 health per draw. Nothing makes a short deck pay, and it sees more of its own cards
+     (12 of 20 rather than 12 of 40), with fewer repeats.
+   - **Cutting the right cards is worth much more.** We cut a 40-card deck to 36, 32, 27 and 20
+     cards, by lowest rating and at random. The best cut, replayed on new games, beat the 40-card
+     deck by +11.9 points for Cortex (a 20-card cut), +11.4 for Aegis (32), +4.9 for Swarm (20) and
+     +2.0 for Null (36). Two caveats: the 40-card deck is the builder's first deck, not its tuned one;
+     and which cut is best varies a lot (at 20 cards, from -22 to +13). A stronger search, or an
+     owner saving a hand-picked 20-card deck, would find these. Forcing a saved deck is already
+     possible today.
+
+**Recommendation: every deck is exactly 40 cards** (minimum = maximum = 40), the usual TCG answer to
+"thinner is better". What that would take, all needing your OK:
+- **Null's shipped list and starter grow from 36 to 40.** That list was cut to 36 in session 23, for
+  consistency, which is this same effect. Session 55 measured the 40-card Null deck padded the
+  builder's way at 1.5 points under the 36-card one. Which 4 cards go in is a deck change, so it fits
+  the test-only balance session already planned before launch. That session would bring its
+  candidates and their ring and built-deck-ring numbers to you.
+- **Locking to another faction needs 40 usable cards.** Under your kept call 2 such a lock is
+  accepted, the rebuild fails with the reason, and no match starts until it fits. By the numbers
+  above, an owner who locks to a second faction can't play it until about two weeks of packs.
+- The builder's size changes go away (only swaps), and the store's "the deck is short" checks
+  become "the deck is not 40".
+
+**The alternatives:**
+- **B. Build to 40 when the owner holds 40 usable cards, otherwise every usable card (at least 20).**
+  This is your example. The store enforces it, since it knows the holdings. It keeps
+  second-faction locks playable early and stops the free gain for owners with full collections.
+  Owners with few cards keep a small short-deck gain, which partly makes up for their weaker cards.
+  It is harder to explain to an outside agent author, and Null's 36-card list would become illegal
+  for any Null owner who holds 40 usable cards.
+- **C. Raise the floor to 30 or 36.** This narrows the gap but doesn't close it (26 against 39 still
+  gains up to 3.7 points).
+- **D. Keep 20-40.** This keeps the measured gain for whoever looks for it.
+
+**Default if you don't answer: D (no change)**, because a rule change needs your OK. If you choose A
+or B, the next game session builds it (rule, store, builder, tests), re-runs the ring check and the
+built-deck ring, and brings Null's 4-card candidates to the balance session.
+
+### [ANSWERED 2026-10-24: keep all 4] The deck settings over HTTP: four small calls
 
 **What was built (session 56):** the owner API (`server/src/ownerApi.ts`, spec `server/OWNER_API.md`):
 sign in and out, then read and change who picks the deck (agent or forced), the faction lock, the
