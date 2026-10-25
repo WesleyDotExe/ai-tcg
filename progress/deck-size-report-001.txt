@@ -1,0 +1,233 @@
+Deck-size check (owner 2026-10-24's question). Test only: no card, deck, rule or builder change.
+Written by engine/src/dev/deckSizeCheck.ts from the files in progress/deck-size/.
+
+== 1. The rule today ==
+  Legal size: 20 to 40 cards (MIN_DECK_SIZE, MAX_DECK_SIZE in engine/src/data/decks.ts;
+  buildDeck throws outside it, so every deck that plays, built, saved or shipped, passes it).
+  The builder imports the same two constants (engine/src/deckbuilder/deckBuilder.ts, MIN_DECK/MAX_DECK).
+  The floor was set at stage 3 so the first small test pools (23 and 32 cards) still built; the
+  stage-3 note called both numbers a first proposal, not a playtested target.
+  Shipped decks: Cortex 40, Swarm 40, Aegis 40, Null 36.
+  Other rules that cap size: copy limits (3/3/2/1 by rarity, 1 per Zero-Day card), at most 10 neutral
+  cards, removal at most 25% of the deck. An empty deck does not lose: each draw from it deals 2 fatigue.
+  How the builder picks a size: the rating start fills to 40 while any usable card is left; the
+  designed start fills to the shipped list's own size (Null 36); the search's one-in-five size
+  changes grow or shrink by one copy, kept only when it wins clearly more of the same games;
+  the confirm step keeps the best of the searched deck and the starts on fresh seeds.
+
+== 2. The demo's 26-card Null deck ==
+  The demo owner (Cortex starter + 10 packs, 105 cards) holds 17 usable Null copies and 10 usable neutral ones
+  (each at its deck limit). With at most 10 neutral cards, the largest legal Null deck is 27 cards.
+  The rating start: 27 cards (every usable card, neutral capped).
+  The designed start: 27 cards (every usable card, neutral capped).
+  The store's build of it (Null lock, Controller, default settings), re-run here: 24 changes tried, kept:
+    -1 Power Reserve: 58 -> 66 of 160
+  Fresh seeds: rating start (27 cards) 180 of 400, searched (26 cards) 202 of 400; the searched deck, 26 cards, is kept.
+  Nothing could make it 40: every usable card is already in the start.
+  The rating start's list:
+    3x Glitch Seed (Null Unit 1, Common)
+    3x Stray Fragment (Null Unit 1, Common)
+    1x Surge Protector (Neutral Tool 1, Common)
+    2x Fork Bomb (Null Unit 2, Uncommon)
+    2x Null Pointer (Null Command 2, Uncommon)
+    1x Power Reserve (Neutral Directive 2, Uncommon)
+    2x Scrap Recycler (Neutral Unit 2, Common)
+    1x Zombie Process (Null Unit 2, Common)
+    2x Cache Warmup (Neutral Command 3, Uncommon)
+    1x Commodity Rack (Neutral Unit 3, Common)
+    2x Corrupted Process (Null Unit 3, Uncommon)
+    2x Entropy Harvester (Null Unit 3, Rare)
+    3x Rollback Point (Neutral Command 3, Common)
+    1x Segmentation Fault (Null Directive 4, Rare)
+    1x Null Singularity (Null Unit 7, Mythic)
+
+== 3. How often the cards cap the size (no games) ==
+  The largest legal deck per owner (8 owners each), from the built-deck ring's realistic collections
+  (each faction's starter plus packs from the live roller), under each faction lock. -- = none legal.
+  3 packs:
+    Cortex starter  Cortex: 40 40 40 40 40 40 40 40 | Swarm: -- -- -- -- -- -- -- -- | Aegis: -- -- -- -- -- -- -- -- | Null: -- -- -- -- -- -- -- --
+    Swarm starter   Cortex: -- -- -- -- -- -- -- -- | Swarm: 40 40 40 40 40 40 40 40 | Aegis: -- -- -- -- -- -- -- -- | Null: -- -- -- -- -- -- -- --
+    Aegis starter   Cortex: -- -- -- -- -- -- -- -- | Swarm: -- -- -- -- -- -- -- -- | Aegis: 40 40 40 40 40 40 40 40 | Null: -- -- -- -- -- -- -- --
+    Null starter    Cortex: -- -- -- -- -- -- -- -- | Swarm: -- -- -- -- -- -- -- -- | Aegis: -- -- -- -- -- -- -- -- | Null: 40 36 38 40 40 40 40 38
+  17 packs:
+    Cortex starter  Cortex: 40 40 40 40 40 40 40 40 | Swarm: 29 22 29 24 26 28 27 25 | Aegis: 29 31 27 28 -- 25 -- 24 | Null: -- -- 30 33 24 27 25 24
+    Swarm starter   Cortex: 23 29 20 35 30 28 30 25 | Swarm: 40 40 40 40 40 40 40 40 | Aegis: 24 -- 28 24 25 -- 20 23 | Null: 30 23 -- 24 -- 30 29 26
+    Aegis starter   Cortex: 32 -- -- 25 35 25 -- 29 | Swarm: 24 26 -- 27 -- 27 24 20 | Aegis: 40 40 40 40 40 40 40 40 | Null: 25 28 -- -- 25 24 33 --
+    Null starter    Cortex: 33 26 26 24 29 30 25 29 | Swarm: 23 26 25 24 -- 24 23 26 | Aegis: 28 29 25 26 30 28 -- 29 | Null: 40 40 40 40 40 40 40 40
+  37 packs:
+    Cortex starter  Cortex: 40 40 40 40 40 40 40 40 | Swarm: 40 40 40 40 40 40 39 34 | Aegis: 40 40 36 40 40 39 -- 40 | Null: 32 40 37 40 39 40 34 40
+    Swarm starter   Cortex: 39 40 40 40 40 40 40 40 | Swarm: 40 40 40 40 40 40 40 40 | Aegis: 40 28 40 40 37 39 40 40 | Null: 40 36 38 38 39 40 40 39
+    Aegis starter   Cortex: 40 40 40 40 40 40 -- 40 | Swarm: 40 36 39 38 32 40 39 39 | Aegis: 40 40 40 40 40 40 40 40 | Null: 40 40 40 37 40 40 40 39
+    Null starter    Cortex: 40 40 40 40 40 40 40 40 | Swarm: 38 38 38 39 40 35 35 36 | Aegis: 40 40 40 40 40 40 38 40 | Null: 40 40 40 40 40 40 40 40
+  Own faction: 3 of 96 under 40, 0 none legal. Another faction's lock: 111 of 288 under 40, 116 none legal.
+
+  What the store's builder kept in the built-deck ring (own faction, store settings), beside the largest
+  legal deck the same holdings allow:
+    3 packs  Cortex  kept 40 40 40 40 40 40 40 40  largest 40 40 40 40 40 40 40 40  chosen designed,rating,rating,designed,designed,designed,rating,searched
+    3 packs  Swarm   kept 39 39 40 39 39 39 39 39  largest 40 40 40 40 40 40 40 40  chosen searched,searched,searched,searched,searched,searched,searched,searched
+    3 packs  Aegis   kept 40 40 40 40 40 39 40 40  largest 40 40 40 40 40 40 40 40  chosen rating,searched,designed,searched,designed,searched,designed,searched
+    3 packs  Null    kept 35 35 36 36 36 35 36 36  largest 40 36 38 40 40 40 40 38  chosen searched,searched,designed,designed,designed,searched,designed,designed
+    17 packs Cortex  kept 40 40 40 40 40 40 40 40  largest 40 40 40 40 40 40 40 40  chosen designed,rating,designed,searched,designed,rating,rating,designed
+    17 packs Swarm   kept 39 39 39 40 39 39 39 39  largest 40 40 40 40 40 40 40 40  chosen searched,searched,searched,searched,searched,searched,searched,searched
+    17 packs Aegis   kept 40 40 40 40 40 39 40 40  largest 40 40 40 40 40 40 40 40  chosen searched,designed,searched,designed,designed,searched,designed,searched
+    17 packs Null    kept 35 36 35 36 36 35 40 35  largest 40 40 40 40 40 40 40 40  chosen searched,designed,searched,designed,designed,searched,rating,searched
+    37 packs Cortex  kept 40 40 40 39 40 40 40 40  largest 40 40 40 40 40 40 40 40  chosen searched,searched,designed,searched,searched,rating,searched,designed
+    37 packs Swarm   kept 39 39 40 39 39 39 39 39  largest 40 40 40 40 40 40 40 40  chosen searched,searched,rating,searched,searched,searched,searched,searched
+    37 packs Aegis   kept 40 40 40 40 40 40 40 40  largest 40 40 40 40 40 40 40 40  chosen rating,designed,searched,searched,rating,rating,searched,rating
+    37 packs Null    kept 35 35 35 35 36 35 36 36  largest 40 40 40 40 40 40 40 40  chosen searched,searched,searched,searched,designed,searched,designed,designed
+    full     Cortex  kept 40                       largest 40                       chosen rating
+    full     Swarm   kept 39                       largest 40                       chosen searched
+    full     Aegis   kept 40                       largest 40                       chosen searched
+    full     Null    kept 36                       largest 40                       chosen searched
+  49 of 100 kept decks are shorter than the holdings allow: by 1 or 2 or 4 or 5 cards.
+  Of those, 11 are Null's designed start (the shipped list's 36), the rest searched cuts.
+
+== 4. Does a shorter deck win more? (games) ==
+  A 40-card deck from a full collection (the rating start) against itself cut to 36, 32, 27, 20.
+  1000 seeds x 4 shipped opponents = 4000 games per deck, the same games for every deck;
+  z is the paired sign test against the 40-card deck (|z| > 2 is a real difference).
+  'best kept' cuts the lowest-rated copies first; 'random cut' cuts random copies (three cuts, averaged
+  in the 'random, mean' line). fatigue = games where the deck's side drew from an empty deck.
+
+  Cortex:
+  40 cards              56.5%                             Co  58 Sw  54 Ae  55 Nu  59   fatigue  0.0%  drawn 11.9  turns 13.6
+  36, best kept         60.6%  +4.2 pts (z  4.6)          Co  60 Sw  57 Ae  61 Nu  65   fatigue  0.0%  drawn 11.2  turns 13.4
+  36, random cut 1      60.0%  +3.5 pts (z  3.9)          Co  60 Sw  57 Ae  62 Nu  62   fatigue  0.0%  drawn 11.8  turns 13.4
+  36, random cut 2      58.7%  +2.2 pts (z  2.4)          Co  56 Sw  57 Ae  60 Nu  62   fatigue  0.0%  drawn 12.1  turns 13.6
+  36, random cut 3      57.1%  +0.7 pts (z  0.7)          Co  57 Sw  56 Ae  56 Nu  60   fatigue  0.0%  drawn 12.2  turns 13.8
+  36, random, mean      58.6%  +2.1 pts
+  32, best kept         62.4%  +5.9 pts (z  6.4)          Co  63 Sw  56 Ae  61 Nu  69   fatigue  0.0%  drawn 11.1  turns 13.6
+  32, random cut 1      55.3%  -1.2 pts (z -1.3)          Co  56 Sw  51 Ae  56 Nu  57   fatigue  0.0%  drawn 11.8  turns 13.6
+  32, random cut 2      62.1%  +5.7 pts (z  6.2)          Co  63 Sw  58 Ae  62 Nu  66   fatigue  0.0%  drawn 12.1  turns 13.5
+  32, random cut 3      64.5%  +8.0 pts (z  8.7)          Co  64 Sw  60 Ae  65 Nu  68   fatigue  0.0%  drawn 11.8  turns 13.4
+  32, random, mean      60.6%  +4.2 pts
+  27, best kept         59.3%  +2.8 pts (z  3.0)          Co  60 Sw  53 Ae  59 Nu  65   fatigue  0.0%  drawn 11.3  turns 13.8
+  27, random cut 1      59.3%  +2.8 pts (z  3.0)          Co  58 Sw  61 Ae  53 Nu  66   fatigue  0.0%  drawn 11.9  turns 13.6
+  27, random cut 2      52.1%  -4.3 pts (z -4.6)          Co  49 Sw  53 Ae  47 Nu  59   fatigue  0.0%  drawn 11.6  turns 13.1
+  27, random cut 3      51.3%  -5.1 pts (z -5.4)          Co  53 Sw  49 Ae  50 Nu  53   fatigue  0.0%  drawn 12.8  turns 13.7
+  27, random, mean      54.2%  -2.2 pts
+  20, best kept         41.1%  -15.3 pts (z -15.7)        Co  40 Sw  34 Ae  45 Nu  45   fatigue  0.1%  drawn 10.7  turns 13.1
+  20, random cut 1      69.8%  +13.4 pts (z 14.7)         Co  73 Sw  61 Ae  71 Nu  75   fatigue  0.0%  drawn 11.0  turns 12.7
+  20, random cut 2      44.2%  -12.3 pts (z -12.7)        Co  46 Sw  42 Ae  43 Nu  46   fatigue  0.2%  drawn 12.4  turns 13.9
+  20, random cut 3      68.6%  +12.2 pts (z 12.9)         Co  70 Sw  68 Ae  64 Nu  74   fatigue  0.1%  drawn 11.5  turns 13.6
+  20, random, mean      60.9%  +4.4 pts
+
+  Swarm:
+  40 cards              37.6%                             Co  38 Sw  32 Ae  38 Nu  43   fatigue  0.0%  drawn 13.1  turns 13.6
+  36, best kept         35.3%  -2.3 pts (z -2.4)          Co  33 Sw  32 Ae  36 Nu  39   fatigue  0.0%  drawn 12.1  turns 13.3
+  36, random cut 1      36.0%  -1.6 pts (z -1.7)          Co  35 Sw  36 Ae  35 Nu  39   fatigue  0.0%  drawn 13.8  turns 14.0
+  36, random cut 2      40.2%  +2.5 pts (z  2.7)          Co  40 Sw  38 Ae  42 Nu  41   fatigue  0.0%  drawn 13.2  turns 13.4
+  36, random cut 3      39.2%  +1.6 pts (z  1.7)          Co  40 Sw  36 Ae  40 Nu  40   fatigue  0.0%  drawn 12.8  turns 13.4
+  36, random, mean      38.5%  +0.9 pts
+  32, best kept         36.0%  -1.6 pts (z -1.7)          Co  33 Sw  33 Ae  38 Nu  41   fatigue  0.0%  drawn 12.2  turns 12.9
+  32, random cut 1      34.2%  -3.4 pts (z -3.6)          Co  28 Sw  34 Ae  34 Nu  41   fatigue  0.0%  drawn 12.5  turns 13.4
+  32, random cut 2      32.5%  -5.1 pts (z -5.4)          Co  26 Sw  38 Ae  27 Nu  39   fatigue  0.0%  drawn 14.3  turns 13.9
+  32, random cut 3      39.2%  +1.6 pts (z  1.7)          Co  36 Sw  38 Ae  38 Nu  46   fatigue  0.0%  drawn 12.1  turns 13.5
+  32, random, mean      35.3%  -2.3 pts
+  27, best kept         38.1%  +0.5 pts (z  0.6)          Co  39 Sw  34 Ae  40 Nu  39   fatigue  0.0%  drawn 12.0  turns 12.9
+  27, random cut 1      40.0%  +2.4 pts (z  2.5)          Co  39 Sw  36 Ae  43 Nu  42   fatigue  0.0%  drawn 13.1  turns 12.9
+  27, random cut 2      34.6%  -3.0 pts (z -3.2)          Co  36 Sw  30 Ae  35 Nu  38   fatigue  0.0%  drawn 11.7  turns 13.1
+  27, random cut 3      31.4%  -6.2 pts (z -6.7)          Co  29 Sw  30 Ae  33 Nu  33   fatigue  0.0%  drawn 13.1  turns 13.1
+  27, random, mean      35.3%  -2.3 pts
+  20, best kept         37.0%  -0.6 pts (z -0.6)          Co  35 Sw  34 Ae  38 Nu  42   fatigue  0.0%  drawn 10.8  turns 13.3
+  20, random cut 1      43.2%  +5.6 pts (z  5.8)          Co  38 Sw  45 Ae  42 Nu  48   fatigue  0.1%  drawn 12.3  turns 13.4
+  20, random cut 2      43.6%  +6.0 pts (z  6.3)          Co  45 Sw  40 Ae  43 Nu  47   fatigue  0.1%  drawn 11.9  turns 13.4
+  20, random cut 3      21.3%  -16.3 pts (z -17.1)        Co  17 Sw  24 Ae  18 Nu  26   fatigue  1.8%  drawn 14.0  turns 14.0
+  20, random, mean      36.0%  -1.6 pts
+
+  Aegis:
+  40 cards              58.2%                             Co  61 Sw  52 Ae  61 Nu  59   fatigue  0.0%  drawn 12.4  turns 13.7
+  36, best kept         65.3%  +7.0 pts (z  7.5)          Co  69 Sw  61 Ae  66 Nu  65   fatigue  0.0%  drawn 10.9  turns 13.5
+  36, random cut 1      56.5%  -1.8 pts (z -1.9)          Co  61 Sw  52 Ae  57 Nu  56   fatigue  0.0%  drawn 12.7  turns 13.9
+  36, random cut 2      61.6%  +3.4 pts (z  3.6)          Co  68 Sw  56 Ae  64 Nu  58   fatigue  0.0%  drawn 11.7  turns 13.7
+  36, random cut 3      62.8%  +4.6 pts (z  4.9)          Co  65 Sw  60 Ae  64 Nu  63   fatigue  0.0%  drawn 11.9  turns 13.7
+  36, random, mean      60.3%  +2.1 pts
+  32, best kept         61.5%  +3.3 pts (z  3.5)          Co  67 Sw  54 Ae  63 Nu  63   fatigue  0.0%  drawn 10.3  turns 13.0
+  32, random cut 1      55.4%  -2.8 pts (z -2.9)          Co  54 Sw  57 Ae  56 Nu  56   fatigue  0.0%  drawn 12.9  turns 14.0
+  32, random cut 2      69.3%  +11.1 pts (z 12.1)         Co  71 Sw  67 Ae  71 Nu  69   fatigue  0.0%  drawn 12.2  turns 13.6
+  32, random cut 3      62.2%  +4.0 pts (z  4.2)          Co  68 Sw  57 Ae  66 Nu  59   fatigue  0.0%  drawn 12.6  turns 14.0
+  32, random, mean      62.3%  +4.1 pts
+  27, best kept         57.0%  -1.2 pts (z -1.3)          Co  69 Sw  45 Ae  60 Nu  55   fatigue  0.0%  drawn 10.5  turns 13.2
+  27, random cut 1      52.6%  -5.6 pts (z -5.7)          Co  56 Sw  52 Ae  48 Nu  54   fatigue  0.0%  drawn 12.9  turns 13.9
+  27, random cut 2      51.4%  -6.8 pts (z -7.0)          Co  52 Sw  51 Ae  51 Nu  51   fatigue  0.1%  drawn 13.5  turns 14.4
+  27, random cut 3      63.3%  +5.1 pts (z  5.3)          Co  66 Sw  63 Ae  63 Nu  61   fatigue  0.0%  drawn 13.0  turns 14.1
+  27, random, mean      55.8%  -2.4 pts
+  20, best kept         57.6%  -0.6 pts (z -0.7)          Co  69 Sw  45 Ae  64 Nu  53   fatigue  0.1%  drawn 10.8  turns 13.6
+  20, random cut 1      36.4%  -21.8 pts (z -21.2)        Co  31 Sw  41 Ae  33 Nu  41   fatigue  1.9%  drawn 13.6  turns 14.2
+  20, random cut 2      68.6%  +10.4 pts (z 11.1)         Co  66 Sw  69 Ae  69 Nu  70   fatigue  0.1%  drawn 11.3  turns 13.7
+  20, random cut 3      57.3%  -1.0 pts (z -1.0)          Co  58 Sw  59 Ae  53 Nu  59   fatigue  0.0%  drawn 12.0  turns 14.2
+  20, random, mean      54.1%  -4.1 pts
+
+  Null:
+  40 cards              43.0%                             Co  44 Sw  32 Ae  49 Nu  47   fatigue  0.0%  drawn 11.8  turns 12.9
+  36, best kept         37.7%  -5.3 pts (z -5.7)          Co  40 Sw  27 Ae  44 Nu  40   fatigue  0.0%  drawn 12.3  turns 13.1
+  36, random cut 1      41.4%  -1.7 pts (z -1.8)          Co  42 Sw  33 Ae  44 Nu  46   fatigue  0.0%  drawn 12.0  turns 12.8
+  36, random cut 2      44.5%  +1.5 pts (z  1.6)          Co  45 Sw  35 Ae  50 Nu  49   fatigue  0.0%  drawn 11.4  turns 13.0
+  36, random cut 3      41.8%  -1.3 pts (z -1.4)          Co  44 Sw  32 Ae  47 Nu  44   fatigue  0.0%  drawn 12.1  turns 12.9
+  36, random, mean      42.6%  -0.5 pts
+  32, best kept         41.0%  -2.0 pts (z -2.2)          Co  39 Sw  30 Ae  47 Nu  48   fatigue  0.0%  drawn 12.1  turns 13.1
+  32, random cut 1      37.2%  -5.9 pts (z -6.3)          Co  38 Sw  27 Ae  43 Nu  42   fatigue  0.0%  drawn 11.8  turns 13.0
+  32, random cut 2      41.9%  -1.1 pts (z -1.2)          Co  41 Sw  32 Ae  47 Nu  48   fatigue  0.0%  drawn 12.1  turns 12.9
+  32, random cut 3      40.2%  -2.8 pts (z -3.0)          Co  42 Sw  31 Ae  46 Nu  42   fatigue  0.0%  drawn 12.0  turns 12.9
+  32, random, mean      39.8%  -3.3 pts
+  27, best kept         35.5%  -7.6 pts (z -8.0)          Co  35 Sw  28 Ae  39 Nu  40   fatigue  0.0%  drawn 11.9  turns 13.4
+  27, random cut 1      38.9%  -4.1 pts (z -4.4)          Co  42 Sw  28 Ae  45 Nu  41   fatigue  0.0%  drawn 12.0  turns 12.8
+  27, random cut 2      41.4%  -1.6 pts (z -1.7)          Co  38 Sw  37 Ae  46 Nu  45   fatigue  0.0%  drawn 11.4  turns 13.0
+  27, random cut 3      36.8%  -6.3 pts (z -6.8)          Co  35 Sw  32 Ae  42 Nu  39   fatigue  0.0%  drawn 13.3  turns 13.3
+  27, random, mean      39.0%  -4.0 pts
+  20, best kept         38.7%  -4.4 pts (z -4.5)          Co  37 Sw  30 Ae  47 Nu  41   fatigue  0.0%  drawn 10.7  turns 13.8
+  20, random cut 1      39.0%  -4.0 pts (z -4.2)          Co  37 Sw  34 Ae  43 Nu  42   fatigue  0.2%  drawn 12.7  turns 13.6
+  20, random cut 2      32.4%  -10.7 pts (z -11.3)        Co  30 Sw  27 Ae  39 Nu  34   fatigue  0.1%  drawn 13.2  turns 12.8
+  20, random cut 3      42.7%  -0.4 pts (z -0.4)          Co  40 Sw  39 Ae  44 Nu  48   fatigue  0.1%  drawn 12.9  turns 13.4
+  20, random, mean      38.0%  -5.0 pts
+
+  Size alone: the same cards in the same proportions at two sizes (20 cards at 2 copies against 1 copy;
+  13 cards at 3 copies against 2). The cards are each 40-card deck's own, most copies first, then the
+  best-rated others where too few fit; z pairs the smaller deck against the larger.
+  Cortex:
+  20 cards x2 = 40      47.3%                             Co  42 Sw  49 Ae  45 Nu  53   fatigue  0.0%  drawn 12.1  turns 14.0
+  20 cards x1 = 20      52.6%  +5.3 pts (z  5.5)          Co  49 Sw  53 Ae  51 Nu  57   fatigue  0.3%  drawn 12.2  turns 13.9
+  13 cards x3 = 39      40.4%                             Co  34 Sw  47 Ae  36 Nu  45   fatigue  0.0%  drawn 13.0  turns 14.3
+  13 cards x2 = 26      43.9%  +3.5 pts (z  3.6)          Co  38 Sw  52 Ae  34 Nu  51   fatigue  0.0%  drawn 12.8  turns 14.2
+  Swarm:
+  20 cards x2 = 40      32.8%                             Co  30 Sw  30 Ae  34 Nu  38   fatigue  0.0%  drawn 12.6  turns 13.2
+  20 cards x1 = 20      36.1%  +3.3 pts (z  3.6)          Co  33 Sw  35 Ae  36 Nu  40   fatigue  0.6%  drawn 12.6  turns 13.3
+  13 cards x3 = 39      31.1%                             Co  26 Sw  35 Ae  27 Nu  36   fatigue  0.0%  drawn 14.8  turns 13.6
+  13 cards x2 = 26      32.2%  +1.1 pts (z  1.2)          Co  27 Sw  37 Ae  26 Nu  39   fatigue  0.1%  drawn 14.9  turns 13.6
+  Aegis:
+  20 cards x2 = 40      24.8%                             Co  22 Sw  27 Ae  25 Nu  26   fatigue  0.0%  drawn 13.6  turns 14.6
+  20 cards x1 = 20      30.0%  +5.2 pts (z  5.6)          Co  29 Sw  32 Ae  31 Nu  28   fatigue  1.3%  drawn 13.6  turns 14.6
+  13 cards x3 = 39      45.5%                             Co  44 Sw  51 Ae  43 Nu  44   fatigue  0.0%  drawn 14.1  turns 14.5
+  13 cards x2 = 26      49.2%  +3.7 pts (z  3.7)          Co  48 Sw  55 Ae  45 Nu  49   fatigue  0.0%  drawn 14.0  turns 14.5
+  Null:
+  20 cards x2 = 40      34.2%                             Co  34 Sw  28 Ae  35 Nu  40   fatigue  0.0%  drawn 11.6  turns 13.3
+  20 cards x1 = 20      36.8%  +2.6 pts (z  2.8)          Co  37 Sw  29 Ae  42 Nu  40   fatigue  0.0%  drawn 11.7  turns 13.4
+  13 cards x3 = 39      40.0%                             Co  36 Sw  41 Ae  39 Nu  44   fatigue  0.0%  drawn 12.1  turns 13.1
+  13 cards x2 = 26      40.7%  +0.8 pts (z  0.8)          Co  39 Sw  42 Ae  35 Nu  47   fatigue  0.0%  drawn 12.0  turns 13.0
+
+  The best cut of each faction above, replayed on fresh seeds (from 1000001) beside the 40-card deck:
+  Cortex:
+  40 cards              58.1%                             Co  56 Sw  55 Ae  58 Nu  64   fatigue  0.0%  drawn 11.8  turns 13.5
+  20, random cut 1      70.0%  +11.9 pts (z 13.0)         Co  71 Sw  65 Ae  70 Nu  74   fatigue  0.0%  drawn 11.0  turns 12.7
+  Swarm:
+  40 cards              38.3%                             Co  36 Sw  35 Ae  41 Nu  41   fatigue  0.0%  drawn 12.9  turns 13.5
+  20, random cut 2      43.2%  +4.9 pts (z  5.1)          Co  44 Sw  40 Ae  45 Nu  44   fatigue  0.1%  drawn 11.8  turns 13.3
+  Aegis:
+  40 cards              57.1%                             Co  60 Sw  54 Ae  59 Nu  56   fatigue  0.0%  drawn 12.4  turns 13.7
+  32, random cut 2      68.5%  +11.4 pts (z 12.4)         Co  73 Sw  66 Ae  69 Nu  66   fatigue  0.0%  drawn 12.3  turns 13.6
+  Null:
+  40 cards              42.0%                             Co  42 Sw  32 Ae  50 Nu  45   fatigue  0.0%  drawn 11.7  turns 12.8
+  36, random cut 2      44.1%  +2.0 pts (z  2.2)          Co  45 Sw  34 Ae  51 Nu  46   fatigue  0.0%  drawn 11.4  turns 12.9
+
+  Summary, points against the 40-card deck (best kept / random mean):
+    Cortex  36: +4.2 / +2.1   32: +5.9 / +4.2   27: +2.8 / -2.2   20: -15.3 / +4.4
+    Swarm   36: -2.3 / +0.9   32: -1.6 / -2.3   27: +0.5 / -2.3   20: -0.6 / -1.6
+    Aegis   36: +7.0 / +2.1   32: +3.3 / +4.1   27: -1.2 / -2.4   20: -0.6 / -4.1
+    Null    36: -5.3 / -0.5   32: -2.0 / -3.3   27: -7.6 / -4.0   20: -4.4 / -5.0
+
+  The 40-card decks:
+    Cortex: 3x Signal Drone, 3x Firewall Sentinel, 2x Recursive Construct, 1x Diagnostic Pulse, 3x Fail-safe Unit, 3x Watchtower Relay, 2x Overload Capacitor, 2x Retaliation Node, 3x Init Daemon, 3x Compiled Daemon, 2x Dormant Exploit, 1x Overclock Shunt, 3x Force Quit, 3x Spare Cycles, 1x Relay Courier, 2x Uplink Tower, 1x Burst Credit, 1x Patient Zero, 1x Root Access
+    Swarm: 1x Spare Cycles, 2x Cache Warmup, 3x Relay Courier, 2x Uplink Tower, 1x Patient Zero, 1x Kill Switch, 1x Swarm Larva, 3x Broodcaller, 3x Corrosive Spitter, 1x Hive Mother, 3x Spore Cluster, 2x Barrier Node, 2x Dormant Egg Sac, 3x Molted Stalker, 3x Bore Swarm, 3x Colony Broodling, 3x Brood Skitterer, 3x Warren Guardian
+    Aegis: 3x Aegis Cadet, 3x Barrier Drone, 1x Diagnostic Ward, 3x Perimeter Turret, 3x Aegis Sentinel, 2x Latent Ward, 1x Prime Aegis, 3x Feedback Plating, 3x Breach Charge, 3x Reinforced Bastion, 3x Salvage Reflex, 3x Aegis Line Trooper, 2x Spare Cycles, 3x Cache Warmup, 2x Uplink Tower, 1x Patient Zero, 1x Root Access
+    Null: 3x Glitch Seed, 3x Stray Fragment, 3x Fork Bomb, 3x Corrupted Process, 2x Null Shell, 3x Propagating Exploit, 2x Deprecated Routine, 2x Entropy Harvester, 1x Null Singularity, 3x Null Pointer, 3x Zombie Process, 1x Dangling Pointer, 1x Garbage Collector, 3x Spare Cycles, 3x Relay Courier, 2x Uplink Tower, 1x Patient Zero, 1x Root Access
+  Removal copies stay within 25% of every cut deck (checked by listProblem on each cut).

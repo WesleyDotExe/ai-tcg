@@ -3553,7 +3553,7 @@ Next render-lane slice, as set: Match Boot slice 2 (sound and the phone).
 
 ---
 
-## 2026-10-24 — Owner: answers to game session 56 (the owner API), keep all 4; and a question on the minimum deck size
+## 2026-10-24 — Owner: answers to game session 56 (the owner API), keep all 4; and a question on the minimum deck size (HANDLED 2026-10-25, session 57 — the 4 calls stand as built, nothing to change. The deck-size question answered test only, no rule change: `progress/deck-size-report-001.txt` (`engine/src/dev/deckSizeCheck.ts`), results and a recommendation in the new [OWNER CHECK-IN] in notes-for-owner.md. In short: the rule is 20-40 cards (`engine/src/data/decks.ts`); the demo's deck was short because that owner holds only 27 usable Null cards; a shorter deck does win more, about +3 to +5 points at 20 cards against the same cards at 40, because matches end before a short deck runs out)
 
 Answers the [OWNER CHECK-IN] "The deck settings over HTTP: four small calls" in `progress/notes-for-owner.md` (PR #95, `progress/owner-api-demo-001.txt`).
 

@@ -170,7 +170,7 @@ function* walk(effects: readonly EffectSpec[]): Generator<EffectSpec> {
 }
 
 /** A card that draws (the pool lint's card flow). */
-function drawsCards(card: Card): boolean {
+export function drawsCards(card: Card): boolean {
   return allAbilities(card).some((a) => [...walk(a.effects ?? [])].some((e) => e.kind === "drawCard"));
 }
 

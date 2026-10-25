@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -54,6 +54,26 @@ real, but here is where it's thin.
 - **Still owed before launch (owner 2026-10-22):** the test-only balance session for Null > Aegis
   (inverted) and Cortex > Swarm (under band), candidates measured on the ring in both modes and on the
   built-deck ring at every level, results to an owner check-in. Planned on the roadmap; not run yet.
+
+## Session 57 (the deck-size check): what it found, and what is still thin
+
+- **Open, rules-level (owner decision pending): a short deck wins more.** With the same cards in the
+  same proportions, 20 cards beat 40 by +2.6 to +5.3 points in every faction. Fatigue never bites
+  before a match ends (each side draws ~10-15 cards; a 20-card deck ran dry in at most 1.9% of games).
+  The 20-card floor is a free advantage for anyone who picks short decks: a stronger search, an owner
+  forcing a hand-saved deck, a future external builder. The store's builder only drifts 1-5 cards
+  under 40 today. Recommendation (exactly 40) and alternatives are in notes-for-owner.md. Nothing is
+  changed until the owner answers. `progress/deck-size-report-001.txt`.
+- **Off-faction locks rarely make 40.** At 17 packs every off-faction deck that can be built is 20-35
+  cards, and 116 of 288 off-faction locks can't build at all. That is fine under today's rule. Under
+  a 40-card rule, a second faction becomes unplayable for about two weeks of packs.
+- **Limits of the check:** the trims start from the builder's rating start, not its tuned deck, so the
+  "best cut" gains (+2 to +12 on fresh seeds) overstate what a cut is worth over a well-searched
+  40. The size-alone pairs are one card choice per faction (agreeing in all four, but not resampled).
+  Only Calculator plays, against the shipped decks only; no signature card (gate mode only).
+- **The study needs a rerun after any rule change.** It is a dev driver with a smoke test
+  (`devDrivers.test.ts`) and unit tests for its deck makers. The full run is ~2.5 min on 4 cores plus
+  ~10 s for the holdings step.
 
 ## Session 56 (the owner API, deck settings): what is still thin
 
