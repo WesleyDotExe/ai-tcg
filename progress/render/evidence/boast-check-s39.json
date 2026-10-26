@@ -1,0 +1,753 @@
+{
+ "A": {
+  "boast-aegis-shield-slam": {
+   "planned": 8,
+   "heard": 4,
+   "of": 8,
+   "sched": [
+    {
+     "kind": "impact",
+     "t": 290,
+     "at": 290,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "impact",
+     "t": 360,
+     "at": 360,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "impact",
+     "t": 430,
+     "at": 430,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "impact",
+     "t": 500,
+     "at": 500,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "impact",
+     "t": 570,
+     "at": 570,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "impact",
+     "t": 640,
+     "at": 640,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "block",
+     "t": 1180,
+     "at": 1180,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "boast",
+     "t": 2120,
+     "at": 2120,
+     "err": 0,
+     "lead": 149
+    }
+   ]
+  },
+  "boast-swarm-hive-burst": {
+   "planned": 13,
+   "heard": 3,
+   "of": 13,
+   "sched": [
+    {
+     "kind": "buff",
+     "t": 328,
+     "at": 328,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "buff",
+     "t": 398,
+     "at": 398,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "buff",
+     "t": 468,
+     "at": 468,
+     "err": 0,
+     "lead": 145
+    },
+    {
+     "kind": "buff",
+     "t": 538,
+     "at": 538,
+     "err": 0,
+     "lead": 146
+    },
+    {
+     "kind": "buff",
+     "t": 608,
+     "at": 608,
+     "err": 0,
+     "lead": 146
+    },
+    {
+     "kind": "buff",
+     "t": 678,
+     "at": 678,
+     "err": 0,
+     "lead": 146
+    },
+    {
+     "kind": "impact",
+     "t": 860,
+     "at": 860,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "impact",
+     "t": 910,
+     "at": 910,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "impact",
+     "t": 960,
+     "at": 960,
+     "err": 0,
+     "lead": 150
+    },
+    {
+     "kind": "impact",
+     "t": 1010,
+     "at": 1010,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "impact",
+     "t": 1060,
+     "at": 1060,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "impact",
+     "t": 1110,
+     "at": 1110,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "boast",
+     "t": 2150,
+     "at": 2150,
+     "err": 0,
+     "lead": 150
+    }
+   ]
+  },
+  "boast-null-void-collapse": {
+   "planned": 2,
+   "heard": 2,
+   "of": 2,
+   "sched": [
+    {
+     "kind": "cast",
+     "t": 120,
+     "at": 120,
+     "err": 0,
+     "lead": 120
+    },
+    {
+     "kind": "boast",
+     "t": 1700,
+     "at": 1700,
+     "err": 0,
+     "lead": 150
+    }
+   ]
+  },
+  "boast-cortex-data-cascade": {
+   "planned": 8,
+   "heard": 3,
+   "of": 8,
+   "sched": [
+    {
+     "kind": "beam",
+     "t": 100,
+     "at": 100,
+     "err": 0,
+     "lead": 100
+    },
+    {
+     "kind": "beam",
+     "t": 160,
+     "at": 160,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "beam",
+     "t": 220,
+     "at": 220,
+     "err": 0,
+     "lead": 141
+    },
+    {
+     "kind": "beam",
+     "t": 280,
+     "at": 280,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "beam",
+     "t": 340,
+     "at": 340,
+     "err": 0,
+     "lead": 145
+    },
+    {
+     "kind": "beam",
+     "t": 400,
+     "at": 400,
+     "err": 0,
+     "lead": 141
+    },
+    {
+     "kind": "block",
+     "t": 1180,
+     "at": 1180,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "boast",
+     "t": 2120,
+     "at": 2120,
+     "err": 0,
+     "lead": 149
+    }
+   ]
+  },
+  "boast-s0-boot-sequence": {
+   "planned": 34,
+   "heard": 34,
+   "of": 34,
+   "sched": [
+    {
+     "kind": "crt",
+     "t": 60,
+     "at": 60,
+     "err": 0,
+     "lead": 60
+    },
+    {
+     "kind": "post",
+     "t": 440,
+     "at": 440,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "type",
+     "t": 560,
+     "at": 560,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 595,
+     "at": 595,
+     "err": 0,
+     "lead": 145
+    },
+    {
+     "kind": "type",
+     "t": 630,
+     "at": 630,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 740,
+     "at": 740,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 775,
+     "at": 775,
+     "err": 0,
+     "lead": 136
+    },
+    {
+     "kind": "type",
+     "t": 810,
+     "at": 810,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 920,
+     "at": 920,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 955,
+     "at": 955,
+     "err": 0,
+     "lead": 145
+    },
+    {
+     "kind": "type",
+     "t": 990,
+     "at": 990,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 1100,
+     "at": 1100,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 1135,
+     "at": 1135,
+     "err": 0,
+     "lead": 145
+    },
+    {
+     "kind": "type",
+     "t": 1170,
+     "at": 1170,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 1280,
+     "at": 1280,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 1315,
+     "at": 1315,
+     "err": 0,
+     "lead": 145
+    },
+    {
+     "kind": "type",
+     "t": 1350,
+     "at": 1350,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 1540,
+     "at": 1540,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "type",
+     "t": 1577.5,
+     "at": 1578,
+     "err": 0,
+     "lead": 146
+    },
+    {
+     "kind": "type",
+     "t": 1615,
+     "at": 1615,
+     "err": 0,
+     "lead": 146
+    },
+    {
+     "kind": "type",
+     "t": 1652.5,
+     "at": 1653,
+     "err": 0,
+     "lead": 143
+    },
+    {
+     "kind": "type",
+     "t": 1690,
+     "at": 1690,
+     "err": 0,
+     "lead": 140
+    },
+    {
+     "kind": "type",
+     "t": 1727.5,
+     "at": 1728,
+     "err": 0,
+     "lead": 148
+    },
+    {
+     "kind": "type",
+     "t": 1765,
+     "at": 1765,
+     "err": 0,
+     "lead": 145
+    },
+    {
+     "kind": "type",
+     "t": 1802.5,
+     "at": 1803,
+     "err": 0,
+     "lead": 142
+    },
+    {
+     "kind": "type",
+     "t": 1840,
+     "at": 1840,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "type",
+     "t": 1877.5,
+     "at": 1877,
+     "err": 0,
+     "lead": 147
+    },
+    {
+     "kind": "type",
+     "t": 1915,
+     "at": 1915,
+     "err": 0,
+     "lead": 144
+    },
+    {
+     "kind": "type",
+     "t": 1952.5,
+     "at": 1953,
+     "err": 0,
+     "lead": 144
+    },
+    {
+     "kind": "type",
+     "t": 1990,
+     "at": 1990,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "type",
+     "t": 2027.5,
+     "at": 2027,
+     "err": 0,
+     "lead": 146
+    },
+    {
+     "kind": "type",
+     "t": 2065,
+     "at": 2065,
+     "err": 0,
+     "lead": 146
+    },
+    {
+     "kind": "type",
+     "t": 2102.5,
+     "at": 2103,
+     "err": 0,
+     "lead": 143
+    },
+    {
+     "kind": "boast",
+     "t": 2200,
+     "at": 2200,
+     "err": 0,
+     "lead": 139
+    }
+   ]
+  },
+  "boast-s0-dial-up-fireworks": {
+   "planned": 10,
+   "heard": 7,
+   "of": 10,
+   "sched": [
+    {
+     "kind": "modem",
+     "t": 60,
+     "at": 60,
+     "err": 0,
+     "lead": 60
+    },
+    {
+     "kind": "whistle",
+     "t": 1000,
+     "at": 1000,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "whistle",
+     "t": 1100,
+     "at": 1100,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "whistle",
+     "t": 1200,
+     "at": 1200,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "whistle",
+     "t": 1300,
+     "at": 1300,
+     "err": 0,
+     "lead": 142
+    },
+    {
+     "kind": "pop",
+     "t": 1340,
+     "at": 1340,
+     "err": 0,
+     "lead": 150
+    },
+    {
+     "kind": "pop",
+     "t": 1440,
+     "at": 1440,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "pop",
+     "t": 1540,
+     "at": 1540,
+     "err": 0,
+     "lead": 149
+    },
+    {
+     "kind": "pop",
+     "t": 1640,
+     "at": 1640,
+     "err": 0,
+     "lead": 139
+    },
+    {
+     "kind": "boast",
+     "t": 2300,
+     "at": 2300,
+     "err": 0,
+     "lead": 149
+    }
+   ]
+  }
+ },
+ "B": {
+  "recorded-boot-sequence.html": {
+   "id": "boast-s0-boot-sequence",
+   "fps": 51.4,
+   "now": {
+    "n": 34,
+    "max": 0,
+    "med": 0,
+    "over20": 0
+   },
+   "old": {
+    "fps": 46.3,
+    "n": 34,
+    "max": 49,
+    "med": 14,
+    "over20": 5,
+    "errs": [
+     10,
+     30,
+     9,
+     6,
+     49,
+     9,
+     14,
+     20,
+     20,
+     6,
+     0,
+     9,
+     14,
+     20,
+     0,
+     14,
+     20,
+     19,
+     21.5,
+     5,
+     16.5,
+     20,
+     2.5,
+     6,
+     5.5,
+     20,
+     20.5,
+     15,
+     6.5,
+     10,
+     21.5,
+     13,
+     16.5,
+     9
+    ]
+   }
+  },
+  "recorded-close-win.html": {
+   "id": "boast-s0-dial-up-fireworks",
+   "fps": 56.1,
+   "now": {
+    "n": 10,
+    "max": 0,
+    "med": 0,
+    "over20": 0
+   },
+   "old": {
+    "fps": 57.6,
+    "n": 10,
+    "max": 22,
+    "med": 12,
+    "over20": 3,
+    "errs": [
+     10,
+     10,
+     12,
+     22,
+     21,
+     10,
+     11,
+     10,
+     12,
+     22
+    ]
+   }
+  },
+  "recorded-other-starter.html": {
+   "id": "boast-null-void-collapse",
+   "fps": 49.5,
+   "now": {
+    "n": 2,
+    "max": 0,
+    "med": 0,
+    "over20": 0
+   },
+   "old": {
+    "fps": 54.8,
+    "n": 2,
+    "max": 11,
+    "med": 11,
+    "over20": 0,
+    "errs": [
+     11,
+     10
+    ]
+   }
+  },
+  "recorded-empty-slot.html": {
+   "id": "boast-cortex-data-cascade",
+   "fps": 51.8,
+   "now": {
+    "n": 8,
+    "max": 0,
+    "med": 0,
+    "over20": 0
+   },
+   "old": {
+    "fps": 55.5,
+    "n": 8,
+    "max": 30,
+    "med": 19,
+    "over20": 1,
+    "errs": [
+     19,
+     20,
+     18,
+     19,
+     20,
+     18,
+     10,
+     -30
+    ]
+   }
+  }
+ },
+ "C": {
+  "now": {
+   "n": 34,
+   "max": 0,
+   "med": 0,
+   "over20": 0
+  },
+  "old": {
+   "n": 34,
+   "max": 122,
+   "med": 13.5,
+   "over20": 11,
+   "errs": [
+    13,
+    21,
+    122,
+    87,
+    52,
+    20,
+    17,
+    11,
+    0,
+    6,
+    20,
+    12,
+    6,
+    3,
+    12,
+    6,
+    11,
+    22,
+    13.5,
+    7,
+    7.5,
+    2,
+    13.5,
+    17,
+    8.5,
+    20,
+    3.5,
+    -5,
+    -42.5,
+    -69,
+    -65.5,
+    -74,
+    -70.5,
+    -70
+   ]
+  }
+ }
+}

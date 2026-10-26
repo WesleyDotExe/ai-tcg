@@ -415,40 +415,14 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       stats.drawn = (stats.drawn || 0) + 1;
     }
     // The sounds run on the audio clock, not the frames (render session 38):
-    // a lookahead scheduler queues each sound a little ahead at its exact
-    // time, so a dropped or late frame can't make a key click late or merge
-    // two into one. The audio clock is tied to the intro's clock once the
-    // context is running; a sound whose time passed more than SND_LATE_S
-    // before it could be queued (the context still waking up) is dropped,
-    // never played late. All of them go through one group, so a skip cuts
-    // them all at once, ringing or queued.
-    var SND_AHEAD_S = 0.15, SND_TICK_MS = 25, SND_LATE_S = 0.12;
-    function schedule() {
-      if (!cur) return;
-      var c = cur, sounds = c.sounds;
-      if (c.nextSound >= sounds.length) return;
-      if (!c.aud) {
-        if (typeof SND === 'undefined' || !SND.group || !SND.isOn()) return;
-        c.aud = SND.group();
-        if (!c.aud) return;
-      }
-      var C = c.aud.ctx;
-      if (C.state && C.state !== 'running') return;
-      var el = (performance.now() - c.t0) / 1000;
-      if (c.base == null) stats.base = c.base = C.currentTime - el;
-      var now = C.currentTime;
-      while (c.nextSound < sounds.length) {
-        var m = sounds[c.nextSound], at = c.base + m.t / 1000;
-        if (at > now + SND_AHEAD_S) break;
-        c.nextSound++;
-        var late = Math.max(0, now - at);
-        if (late > SND_LATE_S) { stats.late++; continue; }
-        SND.play(m.kind, 'Neutral', m.tier, null, { at: Math.max(at, now), pan: 0, group: c.aud });
-        stats.fired['sound:' + m.kind] = (stats.fired['sound:' + m.kind] || 0) + 1;
-        stats.sched.push({ kind: m.kind, t: m.t, at: Math.round((Math.max(at, now) - c.base) * 1000), lead: Math.round((at - now) * 1000) });
-      }
-    }
-    // The other marks run on the frames (sounds are schedule()'s).
+    // SND.sequence queues each one a little ahead at its exact time, so a
+    // dropped or late frame can't make a key click late or merge two into
+    // one; one too late to queue (the context still waking up) is dropped,
+    // never played late. They all go through one group, so a skip cuts
+    // them all at once, ringing or queued. (Session 39 moved the scheduler
+    // into SND, shared with the victory boasts.)
+    function schedule() { if (cur && cur.seq) cur.seq.tick(); }
+    // The other marks run on the frames (sounds are the sequence's).
     function fire(m) {
       if (m.k === 'sound') return;
       stats.fired[m.k] = (stats.fired[m.k] || 0) + 1;
@@ -473,7 +447,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       document.removeEventListener('keydown', onKey, true);
       document.removeEventListener('pointerdown', onDown, true);
       cancelAnimationFrame(c.raf);
-      clearInterval(c.timer);
+      if (c.seq) c.seq.stop();
       c.cv.remove();
       c.dom.forEach(function (d) { d.remove(); });
     }
@@ -486,7 +460,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       // the music now; at its own end the last sounds ring out and the
       // music is already coming in.
       if (reason !== 'end') {
-        if (c.aud) c.aud.cut();
+        if (c.seq) c.seq.cut();
         if (c.music && typeof MUS !== 'undefined' && MUS.startAfter) MUS.startAfter(0);
       }
       stats.last = { reason: reason, t: Math.round(c.t), saying: c.plan.saying, still: !!c.plan.still };
@@ -529,11 +503,9 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       cv.width = Math.round((A.r - A.l) * dpr); cv.height = Math.round((A.b - A.t) * dpr);
       document.body.appendChild(cv);
       stats.played++; if (plan.still) stats.still++;
-      stats.problem = problem || null; stats.fired = {}; stats.drawn = 0; stats.sched = []; stats.late = 0;
+      stats.problem = problem || null; stats.fired = {}; stats.drawn = 0;
       cur = { plan: plan, cv: cv, ctx: cv.getContext('2d'), dpr: dpr, ox: A.l, oy: A.t, t0: performance.now(), t: 0, next: 0, raf: 0, dom: [], onEnd: opts.onEnd || null,
-        sounds: plan.marks.filter(function (m) { return m.k === 'sound'; }), nextSound: 0, aud: null, base: null, music: false, timer: 0 };
-      stats.planned = cur.sounds.length; stats.base = null;
-      cur.timer = setInterval(schedule, SND_TICK_MS);
+        seq: null, music: false };
       var sk = document.createElement('button');
       sk.type = 'button'; sk.className = 'boast-skip boot-skip'; sk.textContent = 'Skip ▸▸';
       sk.addEventListener('click', function (e) { e.stopPropagation(); skip(); });
@@ -544,16 +516,20 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       document.addEventListener('pointerdown', onDown, true);
       // The music mark (at 0) and the first sounds go out at once.
       while (cur.next < plan.marks.length && plan.marks[cur.next].t <= 0 && plan.marks[cur.next].k !== 'end') fire(plan.marks[cur.next++]);
-      schedule();
+      var sounds = plan.marks.filter(function (m) { return m.k === 'sound'; });
+      stats.planned = sounds.length; stats.seq = null;
+      if (typeof SND !== 'undefined' && SND.sequence) {
+        stats.seq = cur.seq = SND.sequence(sounds, { t0: cur.t0, pan: 0, onQueue: function (m) { stats.fired['sound:' + m.kind] = (stats.fired['sound:' + m.kind] || 0) + 1; } });
+      }
       draw();
       cur.raf = requestAnimationFrame(frame);
       return plan;
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; },
-      stats: function () { return { active: !!cur, t: cur ? Math.round(cur.t) : null, saying: cur ? cur.plan.saying : null, still: cur ? !!cur.plan.still : null,
+      stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur, t: cur ? Math.round(cur.t) : null, saying: cur ? cur.plan.saying : null, still: cur ? !!cur.plan.still : null,
         lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still,
         cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last,
-        sched: (stats.sched || []).slice(), late: stats.late || 0, planned: stats.planned == null ? null : stats.planned, audioBase: stats.base == null ? null : stats.base, rows: cur ? !!cur.plan.halves[0].line.rows : null, fs: cur ? cur.plan.halves[0].line.fs : null }; } };
+        sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null, rows: cur ? !!cur.plan.halves[0].line.rows : null, fs: cur ? cur.plan.halves[0].line.fs : null }; } };
   })();
 `;
 

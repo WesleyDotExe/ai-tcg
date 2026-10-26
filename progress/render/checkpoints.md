@@ -7,6 +7,57 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-26 — The victory boasts' sounds on the audio clock — AWAITING FEEDBACK
+
+The slice you set after Match Boot slice 2. Open any recorded replay in `render/output/` (for example
+`recorded-boot-sequence.html`) with sound on and step into the last move, or play the scenes in
+`boast-sheet.html`.
+- **Every boast's sounds are queued on the audio clock** at their exact times, a little ahead, instead
+  of being fired from the animation frames: the same scheduler the intro uses, now one piece of code for
+  both. A slow or busy page no longer makes a plate's impact or a key click late or bunch two together.
+- **The music's dip under the sting starts with the sting** on the same clock (it fired on the next
+  frame before), and the small dips under other sounds land when the sound plays.
+- **A skip cuts the sounds.** Escape, Skip, a tap, a jump or the cosmetics switch fades a boast's sounds
+  out in 30 ms, the ringing ones and the queued ones, as the intro does. At its own end the sting still
+  rings out over the result.
+- Nothing else about how a boast looks or sounds changed: same sounds, same times, same panning by
+  where they happen on the winner's side.
+
+**Evidence:**
+- **Browser check** (`progress/render/evidence/boast-check-s39.mjs`, output `boast-check-s39.txt`): 65
+  checks, ALL PASS, run twice. Measured on the page's real audio output. Every sound of all six boasts
+  queued at its planned time; the ones that stand out in the recording heard within 3 ms of the same
+  sound played alone. On the four recorded replays, the same pages from before this session were 11-19
+  ms off at the median and up to 49 ms; now 0. With the page stalled for 150 ms during Boot Sequence's
+  typing, the old page's clicks were up to 122 ms late; now 0. Plus: a skip heard as silence, the sting
+  ringing at the end, effects muted, reduced motion, the music's hold, the loadout picker.
+- **Match Boot re-checked** after the shared scheduler moved: its 42 checks from session 38 all pass on
+  the regenerated pages (`boot-check-s38-rerun-s39.txt`).
+- **Tests:** render 645 (+33), with mutation checks (frame-fired sounds, a skip that doesn't cut, an end
+  that cuts, a music hold that ignores its time: each caught).
+- **Found and fixed on the way:** the loadout picker's previews would have gone silent (the page's
+  sound filter didn't pass the new scheduler); and the music's dip would have come 150 ms before each
+  sound.
+
+**Decisions you may want to overrule:**
+1. **A skip cuts a boast's sounds in 30 ms** (the sting included), the same as the intro. Before, a
+   skipped boast's sounds rang on over the result. Alternative: let a skipped boast's last sound ring.
+2. **At its own end the sting rings out** over the result line (unchanged).
+3. **The boasts keep panning by where each sound happens** on the winner's side. The intro is dead
+   centre (your call 5 for the intro). Alternative: boasts dead centre too.
+4. **A sound more than 120 ms past its time when it could be queued is dropped**, never played late
+   (switching sound on mid-boast, a hidden tab), as in the intro. Before, a boast's sounds played from
+   the next frame on whenever sound came on.
+5. **With effects muted the music is no longer held under the sting** (there is no sting to make room
+   for). Before, the music dipped under a silent sting.
+
+**Thin spots (in the debt list):** nobody has heard a boast on a real device; at the headless browser's
+frame rate the old timing errors (about 10-20 ms) were small, so the fix matters most under a stall or on
+a slow phone, which nobody has tried; the sound is timed against itself, not against the picture; most
+overlapping sounds can't be timed apart in the recording (53 of 75 can), the rest are checked as queued.
+
+---
+
 ## 2026-10-24 — Match Boot, slice 2: the sound and the phone — AWAITING FEEDBACK
 
 The polish slice you set after slice 1. Open any replay in `render/output/` with sound on and press Play at

@@ -7,6 +7,34 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The boasts' sounds on the audio clock (session 39)
+
+- **Nobody has heard a boast on a real device, before or after.** The check proves when each sound
+  starts on the audio clock and that the recording hears it there (within 3 ms of the same sound
+  played alone); it doesn't prove the fix is audible. At the frame rates the headless browser gets on
+  a recorded replay (about 50 fps) the old frame-fired sounds were 11-19 ms off at the median, which
+  few people would hear; the difference shows under a stall (up to 122 ms late before, 0 now) or on
+  a slow phone, and nobody has tried one.
+- **The audio is still timed against itself, not against the picture.** The sequence ties the audio
+  clock to the boast's clock at its first tick; nothing measures a sound against the frame it belongs
+  to. On a page whose frames lag (a slow device), the sting now lands on time while the lock's
+  flash may come a frame or more later: before, the two were late together.
+- **Most of a boast's sounds can't be heard apart in the recording:** a plate's impact under the
+  previous plate's ring, a spore under the next sac's swell. Of 75 planned sounds across the six
+  boasts, 53 stood out clearly enough to time in the committed run (Boot Sequence's 34 all do; Shield Slam 3-4 of 8, Hive
+  Burst 3-4 of 13, Data Cascade 3 of 8, Dial-Up 7 of 10); the rest are checked as queued, not as heard.
+- **A skip now cuts the sting** (30 ms fade) where it used to ring on over the result. Consistent with
+  the intro, and the owner kept that for the intro, but it is a change in how a skipped boast sounds
+  that nobody asked for directly (a checkpoint call).
+- **Sound switched on mid-boast drops what's already past** (more than 120 ms), so a viewer who
+  unmutes during the boast hears only its rest; frame-fired, they heard each sound from the next
+  frame on. Same rule the intro uses.
+- **The music is no longer held under a sting with effects muted** (no sting is heard, so nothing to
+  duck under). Before, the hold fired from the frames whether or not the sting played.
+- **The loadout picker's choice is made per pass:** the proxy gives a pass its sequence or none as
+  the pass starts. Today `SOUND_OK` only changes as a pass starts, so it is the same as before; a
+  future control that mutes mid-pass would need the sequence cut.
+
 ## The win message (session 37)
 
 - **Nobody has seen it at full speed.** Whether 0.6 s is long enough to read CLOSE CALL, and whether
@@ -62,10 +90,6 @@ items are removed, with the fix in `log.md`.
 - **A cold first Play could drop the power-on.** A sound whose time passed more than 120 ms before the
   context was running is dropped, not played late. In the browser the cold start (the phone run, no
   warm-up) queued all 27 sounds in time, but a slow device waking its audio could lose the thump.
-- **The boasts still fire their sounds from the frames** (slice 1's way). They play mid-match, where
-  the frame rate is usually fine, but a stall during a boast would bunch its sounds as slice 1's
-  intro did (measured before/after in session 38: 1 of 16 click intervals on the grid then, 19 of 19
-  now). Moving them to `SND.group` scheduling is the obvious follow-up.
 - **The headless browser drops frames:** the power-on (a line, then the picture opening) shows in some
   recordings and not others; the stills' times drift by up to 0.25 s from screenshot latency. Timings
   are taken in the page, so the checks hold; the pictures are approximate.

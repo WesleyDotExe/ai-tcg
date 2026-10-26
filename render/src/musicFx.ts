@@ -313,16 +313,22 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
       if (MU.I > counts.peakI) counts.peakI = MU.I;
       return MU.I;
     }
-    // duck(): an effect is sounding. Dip to MUS_DUCK_TO fast and recover
+    // duck(at): an effect is sounding. Dip to MUS_DUCK_TO fast and recover
     // within about 0.2 s; at most once per 60 ms so a volley doesn't pump.
-    function duck() {
+    // at: when, on the audio clock, for a sound queued ahead (render session
+    // 39: the boasts' sounds), so the dip lands with the sound, not when it
+    // was queued. A dip before a hold that is queued ahead leaves the hold
+    // in place (it recovers only if it ends before the hold begins).
+    function duck(at) {
       if (!MU.on || !MU.duck) return false;
-      var C = core().ctx, t = C.currentTime;
-      if (MU.lastDuck >= 0 && t - MU.lastDuck < 0.06) return false;
-      if (MU.holdUntil && t < MU.holdUntil) return false;
+      var C = core().ctx, now = C.currentTime, t = typeof at === 'number' && at > now ? at : now;
+      if (MU.lastDuck >= 0 && Math.abs(t - MU.lastDuck) < 0.06) return false;
+      if (MU.holdUntil && t >= (MU.holdFrom || 0) && t < MU.holdUntil) return false;
       MU.lastDuck = t;
-      var g = MU.duck.gain;
-      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_DUCK_TO, t, 0.01); g.setTargetAtTime(1, t + 0.1, 0.2);
+      var g = MU.duck.gain, before = MU.holdFrom > t;
+      if (!before) { g.cancelScheduledValues(t); if (t === now) g.setValueAtTime(g.value, t); }
+      g.setTargetAtTime(MUS_DUCK_TO, t, 0.01);
+      if (!before || t + 0.1 < MU.holdFrom) g.setTargetAtTime(1, t + 0.1, 0.2);
       counts.ducks++;
       return true;
     }
@@ -332,11 +338,13 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
     // under it"). The one place the music goes below MUS_DUCK_TO; a kill
     // still never does. Effect ducks inside the hold are skipped so they
     // don't lift it early.
-    function duckHold(sec) {
+    // at: when it starts on the audio clock (queued ahead with the sting).
+    function duckHold(sec, at) {
       if (!MU.on || !MU.duck || !(sec > 0)) return false;
-      var C = core().ctx, t = C.currentTime, g = MU.duck.gain;
-      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_BOAST_DUCK_TO, t, 0.04); g.setTargetAtTime(1, t + sec, 0.25);
-      MU.holdUntil = t + sec;
+      var C = core().ctx, now = C.currentTime, t = typeof at === 'number' && at > now ? at : now, g = MU.duck.gain;
+      g.cancelScheduledValues(t); if (t === now) g.setValueAtTime(g.value, t);
+      g.setTargetAtTime(MUS_BOAST_DUCK_TO, t, 0.04); g.setTargetAtTime(1, t + sec, 0.25);
+      MU.holdFrom = t; MU.holdUntil = t + sec;
       counts.ducks++;
       return true;
     }
@@ -362,6 +370,7 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
       g.setTargetAtTime(LEVEL * MU.vol, queued ? t : start, 0.3);
       MU.waitUntil = start; MU.waiting = sec > 0;
       MU.holdUntil = Math.max(MU.holdUntil || 0, start);
+      if (!(MU.holdFrom <= t)) MU.holdFrom = t;
       counts.waits++;
       return true;
     }
@@ -447,7 +456,7 @@ export const MUSIC_RUNTIME_SOURCE = String.raw`
     }
     // Every effect the page plays reaches the music: it bumps intensity
     // (even with effects muted) and, when it actually sounds, ducks.
-    SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
+    SND.listen(function (kind, faction, tier, played, at) { event(kind, tier); if (played) duck(at); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, startAfter: startAfter, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,

@@ -514,13 +514,16 @@ ${BOAST_PURE_SOURCE}
 ${LOADOUT_PURE_SOURCE}
   SND.mount(document.getElementById('snd'), document.getElementById('sndvol'));
   // The preview's stings sound only on a pass the viewer asked for (a tap
-  // on an item, a slot or Replay), never on the loop's repeats.
+  // on an item, a slot or Replay), never on the loop's repeats. A pass's
+  // sounds are one sequence on the audio clock (render session 39), so the
+  // choice is made as the pass starts: a repeat gets no sequence.
   var SOUND_OK = false;
   var REDUCED_PICK = CFX.kit.reduced;
   var BOAST = (function (SND) {
 ${BOAST_RUNTIME_SOURCE}
     return BOAST;
-  })({ play: function () { if (SOUND_OK) return SND.play.apply(SND, arguments); } });
+  })({ play: function () { if (SOUND_OK) return SND.play.apply(SND, arguments); },
+    sequence: function (list, o) { return SOUND_OK ? SND.sequence(list, o) : null; } });
 ${LOADOUT_RUNTIME_SOURCE}
 })();
 </script>

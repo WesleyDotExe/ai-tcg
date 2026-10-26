@@ -247,6 +247,11 @@ function makeEnv() {
   const fakeClearInterval = (id: number) => { timers[id - 1] = () => {}; };
   return { win, perf, made, clock, timers, fakeSetInterval, fakeClearInterval, contexts: () => contexts, advanceMs: (ms: number) => { now += ms; } };
 }
+interface SeqItem { t: number; kind: string; tier: string; x?: number; faction?: string }
+interface Seq {
+  tick: () => void; stop: () => void; cut: () => boolean;
+  stats: () => { planned: number; queued: number; sched: { kind: string; t: number; at: number; lead: number }[]; late: number; base: number | null; stopped: boolean };
+}
 interface Ctl { gesture: (ev?: { target?: unknown }) => void }
 function boot(doc: unknown = undefined) {
   const env = makeEnv();
@@ -256,6 +261,7 @@ function boot(doc: unknown = undefined) {
     SND: {
       play: (k: string, f: string, t: string, rect: null, o?: object) => boolean;
       group: () => { node: FakeNode & { gain: FakeParam }; cut: () => boolean; isCut: () => boolean } | null;
+      sequence: (list: SeqItem[], o?: { t0?: number; faction?: string; pan?: number; onQueue?: (m: SeqItem, at: number) => void }) => Seq;
       setOn: (on: boolean) => boolean;
       setHidden: (h: boolean) => void;
       mount: (btn: FakeEl, slider: FakeEl | null, store?: object) => Ctl;
@@ -266,8 +272,8 @@ function boot(doc: unknown = undefined) {
       isOn: () => boolean;
       state: () => "muted" | "armed" | "on";
       event: (k: string, t: string) => number;
-      duck: () => boolean;
-      duckHold: (sec: number) => boolean;
+      duck: (at?: number) => boolean;
+      duckHold: (sec: number, at?: number) => boolean;
       startAfter: (sec: number) => boolean;
       setScene: (f: string, m: boolean) => void;
       tick: () => number;
@@ -751,5 +757,158 @@ describe("sounds scheduled on the audio clock (Match Boot, render session 38)", 
     const ramp = g.node.gain.calls.find((c) => c.fn === "linearRampToValueAtTime")!;
     expect(ramp.args).toEqual([0, 4.03]);
     expect(SND.stats().cuts).toBe(1);
+  });
+});
+
+describe("SND.sequence: a run of planned sounds on the audio clock (Match Boot and the victory boasts, render session 39)", () => {
+  // The run's clock (performance.now) and the audio clock move together, as
+  // in a page; a stall moves both without a tick in between.
+  function run(list: SeqItem[], o: Parameters<ReturnType<typeof boot>["SND"]["sequence"]>[1] = {}) {
+    const env = boot();
+    env.SND.setOn(true);
+    env.clock.t = 5;
+    const seq = env.SND.sequence(list, { t0: env.perf.now(), ...o });
+    const step = (ms: number, tick = true) => { env.advanceMs(ms); env.clock.t += ms / 1000; if (tick) seq.tick(); };
+    // Time passing with the run's own 25 ms ticks.
+    const walk = (ms: number) => { for (let k = 0; k < ms / 25; k++) step(25); };
+    return { ...env, seq, step, walk };
+  }
+  const starts = (made: FakeNode[], from = 0) => made.slice(from).filter((n) => n.kind === "osc" || n.kind === "noise").map((n) => n.started as number);
+  const evenly = (n: number, every: number, kind = "impact"): SeqItem[] => Array.from({ length: n }, (_, k) => ({ t: k * every, kind, tier: "subtle", x: 500 }));
+
+  it("queues each sound at its exact time, at most 150 ms ahead, on its own 25 ms ticks", () => {
+    const { seq, step, made, timers } = run(evenly(10, 100));
+    // At the start: 0 and 100 ms (150 ms ahead), not 200.
+    expect(seq.stats().sched.map((x) => x.t)).toEqual([0, 100]);
+    expect(timers).toHaveLength(1);
+    for (let k = 0; k < 40; k++) { step(25, false); timers[0]!(); }
+    const st = seq.stats();
+    expect(st.sched.map((x) => x.t)).toEqual([0, 100, 200, 300, 400, 500, 600, 700, 800, 900]);
+    expect(st.sched.every((x) => x.at === x.t && x.lead >= 0 && x.lead <= 150)).toBe(true);
+    expect(st.late).toBe(0);
+    // Each source starts on the audio clock at base + t: 5 s + t. (The fake
+    // never frees a voice, so the cap stops the sources after six sounds.)
+    const at = [...new Set(starts(made).map((t) => Math.round(t * 1000)))].sort((a, b) => a - b);
+    expect(at).toEqual([5000, 5100, 5200, 5300, 5400, 5500]);
+  });
+
+  it("a 100 ms stall changes nothing: what falls in it was already queued, on time", () => {
+    const { seq, step, walk } = run(evenly(30, 36, "type"));
+    walk(400);
+    step(100, false); // the stall: no tick for 100 ms
+    walk(700);
+    const st = seq.stats();
+    expect(st.late).toBe(0);
+    expect(st.sched).toHaveLength(30);
+    expect(st.sched.every((x) => x.at === x.t)).toBe(true);
+  });
+
+  it("a sound more than 120 ms past when it could be queued is dropped, never played late; a later one still lands", () => {
+    const { seq, step } = run([{ t: 0, kind: "impact", tier: "subtle" }, { t: 200, kind: "beam", tier: "subtle" }, { t: 330, kind: "cast", tier: "subtle" }, { t: 800, kind: "boast", tier: "spectacle" }]);
+    step(500, true); // a 500 ms freeze: 200 is 300 ms past (dropped), 330 is 170 ms past (dropped)
+    expect(seq.stats().late).toBe(2);
+    step(200);
+    expect(seq.stats().sched.map((x) => [x.kind, x.at])).toEqual([["impact", 0], ["boast", 800]]);
+  });
+
+  it("a suspended context or sound switched off queues nothing; switched on late, only what is still to come plays", () => {
+    const env = boot();
+    env.clock.t = 2;
+    const seq = env.SND.sequence(evenly(6, 100), { t0: env.perf.now() });
+    expect(seq.stats().queued).toBe(0);
+    env.advanceMs(240); env.clock.t += 0.24;
+    env.SND.setOn(true);
+    seq.tick();
+    // Tied to the run's clock when it first could: 0 and 100 are past the
+    // 120 ms limit, 200 is 40 ms late (played now), 300 is ahead, 400 is
+    // past the lookahead.
+    expect(seq.stats().late).toBe(2);
+    expect(seq.stats().sched.map((x) => [x.t, x.at])).toEqual([[200, 240], [300, 300]]);
+  });
+
+  it("pans by each sound's x, or a fixed pan; through one group; in the run's voice", () => {
+    const a = run([{ t: 0, kind: "impact", tier: "normal", x: 100 }, { t: 10, kind: "impact", tier: "normal", x: 900 }], { faction: "Swarm" });
+    const pans = a.made.filter((n) => n.kind === "panner") as (FakeNode & { pan: FakeParam })[];
+    const vals = [...new Set(pans.map((p) => p.pan.value))];
+    expect(vals).toEqual([expect.closeTo(-0.6, 9), expect.closeTo(0.6, 9)]);
+    const grp = a.made.find((n) => n.kind === "gain" && pans.length && pans[0]!.to[0] === n);
+    expect(grp).toBeDefined();
+    expect(pans.every((p) => p.to[0] === grp)).toBe(true);
+    expect(a.SND.stats()).toMatchObject({ scheduled: 2, repeats: 0 });
+    const b = run([{ t: 0, kind: "impact", tier: "normal", x: 100 }], { pan: 0 });
+    expect((b.made.filter((n) => n.kind === "panner") as (FakeNode & { pan: FakeParam })[]).every((p) => p.pan.value === 0)).toBe(true);
+  });
+
+  it("cut() fades the group out and stops queueing; stop() stops queueing and lets what is queued ring", () => {
+    const a = run(evenly(10, 100));
+    a.step(100);
+    expect(a.seq.cut()).toBe(true);
+    const g = a.made.find((n) => n.kind === "gain" && (n as FakeNode & { gain: FakeParam }).gain.calls.some((c) => c.fn === "linearRampToValueAtTime")) as FakeNode & { gain: FakeParam };
+    expect(g.gain.calls.find((c) => c.fn === "linearRampToValueAtTime")!.args).toEqual([0, expect.closeTo(5.13, 9)]);
+    const n = a.seq.stats().queued;
+    a.step(500);
+    expect(a.seq.stats()).toMatchObject({ queued: n, stopped: true });
+    const b = run(evenly(10, 100));
+    b.step(100);
+    b.seq.stop();
+    b.step(500);
+    expect(b.seq.stats().queued).toBe(3);
+    expect(b.SND.stats().cuts).toBe(0);
+  });
+
+  it("onQueue hears each sound as it is queued, with its audio time", () => {
+    const got: [string, number][] = [];
+    const { walk } = run(evenly(3, 100, "beam"), { onQueue: (m, at) => got.push([m.kind, Math.round(at * 1000)]) });
+    walk(300);
+    expect(got).toEqual([["beam", 5000], ["beam", 5100], ["beam", 5200]]);
+  });
+});
+
+describe("the music's dips on the audio clock (the victory boasts, render session 39)", () => {
+  function on() {
+    const env = boot();
+    env.SND.setOn(true);
+    env.MUS.setOn(true);
+    env.clock.t = 5;
+    const { duck } = musicGraph(env.made);
+    const calls = () => duck.gain.calls.filter((c) => c.fn !== "cancelScheduledValues").map((c) => [c.fn, ...c.args.map((x) => +x.toFixed(4))]);
+    return { ...env, duck, calls };
+  }
+  it("a sound queued ahead dips the music when it plays, not when it was queued", () => {
+    const { SND, duck, calls } = on();
+    const g = SND.group()!;
+    SND.play("impact", "Aegis", "subtle", null, { at: 5.14, group: g });
+    expect(calls()).toEqual([["setTargetAtTime", MUS_DUCK_TO, 5.14, 0.01], ["setTargetAtTime", 1, 5.24, 0.2]]);
+    // No jump to the present value at a future time.
+    expect(duck.gain.calls.some((c) => c.fn === "setValueAtTime" && c.args[1] === 5.14)).toBe(false);
+  });
+
+  it("a sound played now dips at once, as before (the match's own sounds)", () => {
+    const { SND, calls } = on();
+    SND.play("impact", "Aegis", "subtle", null);
+    expect(calls()).toEqual([["setValueAtTime", 1, 5], ["setTargetAtTime", MUS_DUCK_TO, 5, 0.01], ["setTargetAtTime", 1, 5.1, 0.2]]);
+  });
+
+  it("a sting's hold queued ahead starts with the sting; a dip queued before it doesn't lift it; dips inside it are skipped", () => {
+    const { MUS, calls, duck } = on();
+    expect(MUS.duckHold(1.2, 5.15)).toBe(true);
+    expect(calls()).toEqual([["setTargetAtTime", MUS_BOAST_DUCK_TO, 5.15, 0.04], ["setTargetAtTime", 1, 6.35, 0.25]]);
+    // A dip at 5.1 (ends after the hold begins): it dips, but sets no
+    // recovery of its own and cancels nothing of the hold's.
+    expect(MUS.duck(5.1)).toBe(true);
+    expect(calls()).toHaveLength(3);
+    expect(duck.gain.calls.filter((c) => c.fn === "cancelScheduledValues")).toHaveLength(1);
+    // A dip well before it recovers before the hold begins.
+    expect(MUS.duck(5.01)).toBe(true);
+    expect(calls().slice(-2)).toEqual([["setTargetAtTime", MUS_DUCK_TO, 5.01, 0.01], ["setTargetAtTime", 1, 5.11, 0.2]]);
+    // Inside the hold: skipped.
+    expect(MUS.duck(5.6)).toBe(false);
+    expect(MUS.duck(6.4)).toBe(true);
+  });
+
+  it("a hold asked for now (no time, or a time already past) starts now, as before", () => {
+    const { MUS, calls } = on();
+    expect(MUS.duckHold(1, 4.9)).toBe(true);
+    expect(calls()).toEqual([["setValueAtTime", 1, 5], ["setTargetAtTime", MUS_BOAST_DUCK_TO, 5, 0.04], ["setTargetAtTime", 1, 6, 0.25]]);
   });
 });

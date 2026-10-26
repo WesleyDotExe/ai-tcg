@@ -1,0 +1,93 @@
+
+[A] boast-sheet.html: every boast, sound on
+  PASS A. boast-aegis-shield-slam: all 8 sounds queued on the audio clock, none late (8 queued)
+  PASS A. boast-aegis-shield-slam: each queued at its exact planned time, ahead of it (max error 0 ms; lead 148-149 ms)
+  PASS A. boast-aegis-shield-slam: the audio clock tied to the boast's start (0 ms from the audio clock at play)
+  PASS A. boast-aegis-shield-slam: ended on its own, nothing cut (cuts 0)
+  PASS A. boast-aegis-shield-slam: HEARD at the planned times: 4 of 8 onsets stand out (the rest start under a louder sound), -2 to 0 ms outside their kind's own range (onset delays alone, lowest-highest of 3: {"impact":[10,10],"block":[10,10],"boast":[12,12]})
+  PASS A. boast-aegis-shield-slam: no clipping (peak 0.533)
+  PASS A. boast-swarm-hive-burst: all 13 sounds queued on the audio clock, none late (13 queued)
+  PASS A. boast-swarm-hive-burst: each queued at its exact planned time, ahead of it (max error 0 ms; lead 145-150 ms)
+  PASS A. boast-swarm-hive-burst: the audio clock tied to the boast's start (0 ms from the audio clock at play)
+  PASS A. boast-swarm-hive-burst: ended on its own, nothing cut (cuts 0)
+  PASS A. boast-swarm-hive-burst: HEARD at the planned times: 3 of 13 onsets stand out (the rest start under a louder sound), -1 to 0 ms outside their kind's own range (onset delays alone, lowest-highest of 3: {"buff":[10,10],"impact":[10,10],"boast":[10,10]})
+  PASS A. boast-swarm-hive-burst: no clipping (peak 0.488)
+  PASS A. boast-null-void-collapse: all 2 sounds queued on the audio clock, none late (2 queued)
+  PASS A. boast-null-void-collapse: each queued at its exact planned time, ahead of it (max error 0 ms; lead 150-150 ms)
+  PASS A. boast-null-void-collapse: the audio clock tied to the boast's start (0 ms from the audio clock at play)
+  PASS A. boast-null-void-collapse: ended on its own, nothing cut (cuts 0)
+  PASS A. boast-null-void-collapse: HEARD at the planned times: 2 of 2 onsets stand out (the rest start under a louder sound), 0 to 0 ms outside their kind's own range (onset delays alone, lowest-highest of 3: {"cast":[10,10],"boast":[10,11]})
+  PASS A. boast-null-void-collapse: no clipping (peak 0.502)
+  PASS A. boast-cortex-data-cascade: all 8 sounds queued on the audio clock, none late (8 queued)
+  PASS A. boast-cortex-data-cascade: each queued at its exact planned time, ahead of it (max error 0 ms; lead 139-149 ms)
+  PASS A. boast-cortex-data-cascade: the audio clock tied to the boast's start (0 ms from the audio clock at play)
+  PASS A. boast-cortex-data-cascade: ended on its own, nothing cut (cuts 0)
+  PASS A. boast-cortex-data-cascade: HEARD at the planned times: 3 of 8 onsets stand out (the rest start under a louder sound), 0 to 0 ms outside their kind's own range (onset delays alone, lowest-highest of 3: {"beam":[8,8],"block":[9,9],"boast":[10,10]})
+  PASS A. boast-cortex-data-cascade: no clipping (peak 0.494)
+  PASS A. boast-s0-boot-sequence: all 34 sounds queued on the audio clock, none late (34 queued)
+  PASS A. boast-s0-boot-sequence: each queued at its exact planned time, ahead of it (max error 0 ms; lead 136-149 ms)
+  PASS A. boast-s0-boot-sequence: the audio clock tied to the boast's start (0 ms from the audio clock at play)
+  PASS A. boast-s0-boot-sequence: ended on its own, nothing cut (cuts 0)
+  PASS A. boast-s0-boot-sequence: HEARD at the planned times: 34 of 34 onsets stand out (the rest start under a louder sound), -1 to 0 ms outside their kind's own range (onset delays alone, lowest-highest of 3: {"crt":[5,10],"post":[9,9],"type":[9,9],"boast":[10,10]})
+  PASS A. boast-s0-boot-sequence: no clipping (peak 0.475)
+  PASS A. boast-s0-dial-up-fireworks: all 10 sounds queued on the audio clock, none late (10 queued)
+  PASS A. boast-s0-dial-up-fireworks: each queued at its exact planned time, ahead of it (max error 0 ms; lead 139-150 ms)
+  PASS A. boast-s0-dial-up-fireworks: the audio clock tied to the boast's start (11 ms from the audio clock at play)
+  PASS A. boast-s0-dial-up-fireworks: ended on its own, nothing cut (cuts 0)
+  PASS A. boast-s0-dial-up-fireworks: HEARD at the planned times: 7 of 10 onsets stand out (the rest start under a louder sound), -1 to 1 ms outside their kind's own range (onset delays alone, lowest-highest of 3: {"modem":[9,9],"whistle":[12,12],"pop":[9,9],"boast":[10,10]}); the soft whistles [-1] ms, the sharp sounds [0,0,1,0,1,0] ms
+  PASS A. boast-s0-dial-up-fireworks: no clipping (peak 0.502)
+
+[B] the four recorded replays, stepped into the lethal move (the boast at the real frame rate)
+  PASS B. recorded-boot-sequence.html (boast-s0-boot-sequence, 51.4 fps during the boast): all 34 sounds at their planned times (max error 0 ms, 0 late)
+  (before this session, the same page firing from the frames at 46.3 fps: 34 of 34 sounds played, median error 14 ms, max 49 ms, 5 more than 20 ms off)
+  PASS B. recorded-boot-sequence.html: on time where the old page was not (old max 49 ms, now 0 ms)
+  PASS B. recorded-close-win.html (boast-s0-dial-up-fireworks, 56.1 fps during the boast): all 10 sounds at their planned times (max error 0 ms, 0 late)
+  (before this session, the same page firing from the frames at 57.6 fps: 10 of 10 sounds played, median error 12 ms, max 22 ms, 3 more than 20 ms off)
+  PASS B. recorded-close-win.html: on time where the old page was not (old max 22 ms, now 0 ms)
+  PASS B. recorded-other-starter.html (boast-null-void-collapse, 49.5 fps during the boast): all 2 sounds at their planned times (max error 0 ms, 0 late)
+  (before this session, the same page firing from the frames at 54.8 fps: 2 of 2 sounds played, median error 11 ms, max 11 ms, 0 more than 20 ms off)
+  PASS B. recorded-other-starter.html: on time where the old page was not (old max 11 ms, now 0 ms)
+  PASS B. recorded-empty-slot.html (boast-cortex-data-cascade, 51.8 fps during the boast): all 8 sounds at their planned times (max error 0 ms, 0 late)
+  (before this session, the same page firing from the frames at 55.5 fps: 8 of 8 sounds played, median error 19 ms, max 30 ms, 1 more than 20 ms off)
+  PASS B. recorded-empty-slot.html: on time where the old page was not (old max 30 ms, now 0 ms)
+
+[C] boast-sheet.html, Boot Sequence: a 150 ms main-thread stall during the typing
+  PASS C. all 34 sounds (31 key clicks) at their planned times through the stall (max error 0 ms)
+  (before: median error 13.5 ms, max 122 ms; 11 sounds more than 20 ms late: post@440+21, type@560+122, type@595+87, type@630+52, type@1540+22)
+  PASS C. the old sheet bunched the clicks behind the stall (max 122 ms late); this one did not
+
+[D] boast-sheet.html, Dial-Up Fireworks: Escape at about 1 s
+  PASS D. skipped (skip) and the sounds cut once (cuts 1)
+  PASS D. nothing queued past the lookahead: 3 of 10 queued, the last at 1100 ms, Escape at 1015 ms
+  PASS D. silence heard after the cut: 0.00e+0 from 70 ms after Escape vs 3.76e-3 in the 0.4 s before
+
+[E] boast-sheet.html, Shield Slam: its own end
+  PASS E. no cut at the end (cuts 0)
+  PASS E. the sting (at 2120 ms) still heard ringing as the boast ends (829 ms after it: level 5.67e-3)
+
+[F] boast-sheet.html, Hive Burst: effects muted
+  PASS F. the boast plays and ends (end); nothing queued (0), none late, nothing played
+
+[G] boast-sheet.html, Void Collapse: reduced motion
+  PASS G. the still's one sound, the sting at 0 ([["boast",0]])
+
+[H] boast-sheet.html, boast-aegis-shield-slam: music on
+  PASS H. boast-aegis-shield-slam: 1 music hold(s), each queued ahead (lead 149 ms)
+  PASS H. boast-aegis-shield-slam: the hold under the sting starts with it (0.0 ms apart on the audio clock)
+  PASS H. boast-aegis-shield-slam: the music down at the hold's level 0.3 s into the sting (duck gain 0.550)
+
+[H] boast-sheet.html, boast-s0-dial-up-fireworks: music on
+  PASS H. boast-s0-dial-up-fireworks: 2 music hold(s), each queued ahead (lead 48, 149 ms)
+  PASS H. boast-s0-dial-up-fireworks: the hold under the sting starts with it (0.0 ms apart on the audio clock)
+  PASS H. boast-s0-dial-up-fireworks: the music down at the hold's level 0.3 s into the sting (duck gain 0.550)
+
+[H2] boast-sheet.html, Shield Slam: music on, effects muted
+  PASS H2. no sting heard, so no hold: 0 holds, 0 ducks (the music plays on: true)
+
+[I] loadout-picker.html: the loop silent, a tapped pass on the audio clock
+  PASS I. sound on after the first press
+  PASS I. the loop's 3 repeats queue and play nothing (played 0 -> 0, queued 0 -> 0)
+  PASS I. a tapped pass sounds: 8 sounds queued on the audio clock (played 0 -> 8)
+  PASS I. all 8 of the pass's sounds at their planned times (8 queued, 0 late)
+
+ALL PASS

@@ -955,6 +955,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
           if (!cur) return;
           var now = performance.now();
           cur.t = now - cur.t0;
+          if (cur.seq) cur.seq.tick();
           while (cur.next < cur.plan.marks.length && cur.plan.marks[cur.next].t <= cur.t) fire(cur.plan.marks[cur.next++]);
           if (cur && cur.t > cur.plan.ms + 400 && cur.ended) cur = null;
         },
@@ -1117,7 +1118,11 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
         }
       }
     }
+    // The sounds and the music's holds are the sequence's (render session
+    // 39): queued on the audio clock a little ahead at their exact times, so
+    // a stalled frame can't bunch them; the frames fire everything else.
     function fire(m) {
+      if (m.k === 'sound' || m.k === 'duck') return;
       var K = CFX.kit, c = m.rgb || cur.rgb, still = cur.plan.still;
       stats.fired[m.k] = (stats.fired[m.k] || 0) + 1;
       if (m.k === 'shock' && !still) K.shock(m.x, m.y, c, m.R, 0.42, m.sx, m.sy);
@@ -1128,8 +1133,6 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       else if (m.k === 'pulse') cur.pulses.push({ t: m.t, ms: m.ms });
       else if (m.k === 'veil') cur.veil = m;
       else if (m.k === 'crt') cur.crt = m;
-      else if (m.k === 'sound' && typeof SND !== 'undefined') SND.play(m.kind, cur.plan.faction, m.tier, { left: m.x - window.scrollX, width: 0 });
-      else if (m.k === 'duck' && typeof MUS !== 'undefined' && MUS.duckHold) MUS.duckHold(m.ms / 1000);
       else if (m.k === 'panel') { if (cur.els.panel) { cur.els.panel.style.setProperty('--fc', fxKitOf(cur.plan.faction).col); cur.els.panel.classList.add('boast-panel'); } }
       else if (m.k === 'name') showName(m);
       else if (m.k === 'end') finish('end');
@@ -1214,6 +1217,10 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       cur.ended = true;
       stats.last = { id: cur.plan.id, reason: reason, t: Math.round(cur.t), still: !!cur.plan.still };
       var done = cur.onEnd;
+      // At its own end the last sounds ring out into the result; a skip or
+      // a cancel (a jump, the cosmetics switch, a restart) cuts them all in
+      // 30 ms, the ones ringing and the ones queued ahead.
+      if (cur.seq) { if (reason === 'end') { cur.seq.tick(); cur.seq.stop(); } else cur.seq.cut(); }
       teardown();
       // Skipped or cancelled: the pieces go at once. Ended: they fade out
       // on their own last keys while the result lands.
@@ -1251,7 +1258,19 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       stats.problem = problem;
       stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0; stats.groups = {};
       plan.pieces.forEach(function (pc) { var g = pc.grp || pc.shape || pc.sp; stats.groups[g] = (stats.groups[g] || 0) + 1; });
-      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false };
+      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false, seq: null };
+      // The sounds and the music's holds under them go out on the audio
+      // clock together (a hold is queued with its sting, not a frame later).
+      var sounds = [];
+      plan.marks.forEach(function (m) {
+        if (m.k === 'sound') sounds.push(m);
+        else if (m.k === 'duck') sounds.push({ t: m.t, ms: m.ms, run: function (at) {
+          stats.fired.duck = (stats.fired.duck || 0) + 1;
+          if (typeof MUS !== 'undefined' && MUS.duckHold) MUS.duckHold(this.ms / 1000, at);
+        } });
+      });
+      stats.planned = sounds.filter(function (m) { return !m.run; }).length; stats.seq = null;
+      if (typeof SND !== 'undefined' && SND.sequence) stats.seq = cur.seq = SND.sequence(sounds, { t0: cur.t0, faction: plan.faction, onQueue: function (m) { stats.fired.sound = (stats.fired.sound || 0) + 1; } });
       (els.dim || []).forEach(function (d) { if (d) d.classList.add('boast-dim'); });
       // The Skip button sits at the top right of the winner's side.
       var sk = document.createElement('button');
@@ -1271,7 +1290,8 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       return plan;
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur && !cur.ended; }, geomOf: geomOf,
-      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
+      stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last,
+        sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null }; } };
   })();
 `;
 
