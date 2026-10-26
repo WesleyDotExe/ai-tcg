@@ -3568,3 +3568,30 @@ In the owner API demo, a Null-locked owner (starter plus 10 packs, Controller st
 - What the minimum (and maximum) legal deck size is today, where it is defined, and whether a deck under 40 cards is intended (for example only when the owner doesn't hold enough usable cards) or a builder choice the builder can make even when 40 are available.
 - Whether a shorter deck gives an advantage (drawing its best cards more often), measured against 40-card decks built from the same holdings, and whether the deck builder prefers short decks when it doesn't have to.
 - A recommendation, if anything should change (for example a higher minimum, or building to 40 whenever the owner holds enough usable cards). Test only: no rule change without the owner's OK.
+
+---
+
+## 2026-10-26 — Owner: answers to render session 38 (Match Boot slice 2, sound and the phone), keep all 8
+
+Owner decisions on the 8 calls in `progress/render/checkpoints.md` (Match Boot slice 2; PR #96).
+1. **Keep:** the music starts after the intro, from the top of the track, with about a 1 s fade-in.
+2. **Keep:** the intro's last sounds ring out at its natural end.
+3. **Keep:** the intro has its own power-on sound (the degauss hum), not Boot Sequence's tube.
+4. **Keep:** the rare "> SUDO FIGHT" saying gets its own sound (three blips climbing an octave).
+5. **Keep:** all intro sounds at pan 0 (centre).
+6. **Keep:** on a phone, agent lines break onto two rows only when one row is under 15 px and two rows come out at least a fifth bigger.
+7. **Keep:** the finger-sized Skip (at least 88×44 px) on touch screens, intro only.
+8. **Keep:** a sound more than 120 ms late is dropped, never played late.
+
+Next render-lane slice, as set: move the victory boasts' sounds onto audio-clock scheduling (the same on-time fix the intro got).
+Known gap noted: nobody has listened on a real device yet; the owner will try a match on his phone.
+
+---
+
+## 2026-10-26 — Owner: answers to game session 57 (the deck-size check), option B
+
+Answers the [OWNER CHECK-IN] on the minimum deck size in `progress/notes-for-owner.md` (PR #97).
+- **Option B:** the builder builds to exactly 40 cards whenever the owner holds 40 usable cards for the deck; otherwise the deck uses every usable card the owner holds (at least 20). The builder no longer cuts a deck short when 40 are available.
+- The legal range stays 20–40; only the builder's behaviour changes.
+- As the session proposed: the next game session builds this, re-runs both rings (the ring check and the built-deck ring), and reports the results at an owner check-in.
+- **Not decided yet:** whether Null's list and starter grow from 36 to 40. The pre-launch balance session may bring candidate cards for it alongside the two old-edge fixes; no card, deck or rule change without the owner's OK.
