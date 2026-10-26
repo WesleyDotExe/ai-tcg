@@ -2197,9 +2197,12 @@ body { padding: 12px 16px 40px; }
     //     ahead; the repeat gap doesn't apply, the caller placed it);
     //   pan: a fixed pan instead of one from rect;
     //   group: a group from group(), so it can be cut with the others.
+    // The listeners hear o.at too (null for a sound played now), so what
+    // follows a sound queued ahead (the music's dip) lands with it.
     function play(kind, faction, tier, rect, o) {
       var played = sound(kind, faction, tier, rect, o);
-      for (var i = 0; i < listeners.length; i++) listeners[i](kind, faction, tier, played);
+      var at = o && typeof o.at === 'number' ? o.at : null;
+      for (var i = 0; i < listeners.length; i++) listeners[i](kind, faction, tier, played, at);
       return played;
     }
     function sound(kind, faction, tier, rect, o) {
@@ -2258,6 +2261,59 @@ body { padding: 12px 16px 40px; }
         g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + 0.03);
         return true;
       }, isCut: function () { return cut; } };
+    }
+    // sequence(list, o) -> a run of planned sounds on the audio clock
+    // (render session 38 wrote this for Match Boot; session 39 shares it
+    // with the victory boasts). A lookahead scheduler queues each sound a
+    // little ahead at its exact time, so a dropped or late frame can't make
+    // one late or merge two. list: [{ t (ms after o.t0), kind, tier, x (the
+    // page x it pans by, unless o.pan is given) }], in time order. An item
+    // with run(at) instead of a kind is called with its audio time when its
+    // turn comes (the boasts' music holds, queued with their stings).
+    //   o: { t0 (the run's start on performance.now(); now if not given),
+    //     faction (the voice), pan (a fixed pan), onQueue(item, at) }.
+    // The audio clock is tied to the run's clock once the context is
+    // running; a sound whose time passed more than SEQ_LATE_S before it
+    // could be queued (the context still waking, sound switched on late, a
+    // hidden tab) is dropped, never played late. All go through one group,
+    // so cut() silences them all, ringing or queued; stop() only stops
+    // queueing (what is queued plays out). The run ticks itself every
+    // SEQ_TICK_MS; tick() lets a frame loop tick it too.
+    var SEQ_AHEAD_S = 0.15, SEQ_TICK_MS = 25, SEQ_LATE_S = 0.12;
+    function sequence(list, o) {
+      o = o || {};
+      var q = { next: 0, aud: null, base: null, t0: typeof o.t0 === 'number' ? o.t0 : performance.now(), timer: 0, stopped: false, sched: [], late: 0 };
+      function tick() {
+        if (q.stopped || q.next >= list.length) return;
+        if (!q.aud) {
+          if (!AU.on || !AU.ctx) return;
+          q.aud = group();
+          if (!q.aud) return;
+        }
+        var C = q.aud.ctx;
+        if (C.state && C.state !== 'running') return;
+        if (q.base == null) q.base = C.currentTime - (performance.now() - q.t0) / 1000;
+        var now = C.currentTime;
+        while (q.next < list.length) {
+          var m = list[q.next], at = q.base + m.t / 1000;
+          if (at > now + SEQ_AHEAD_S) break;
+          q.next++;
+          if (now - at > SEQ_LATE_S) { q.late++; continue; }
+          var go = Math.max(at, now), x = typeof m.x === 'number' ? m.x - (window.scrollX || 0) : null;
+          if (m.run) { m.run(go); continue; }
+          var po = { at: go, group: q.aud };
+          if (typeof o.pan === 'number') po.pan = o.pan;
+          play(m.kind, m.faction || o.faction || 'Neutral', m.tier, x == null ? null : { left: x, width: 0 }, po);
+          q.sched.push({ kind: m.kind, t: m.t, at: Math.round((go - q.base) * 1000), lead: Math.round((at - now) * 1000) });
+          if (o.onQueue) o.onQueue(m, go);
+        }
+      }
+      function stop() { if (q.stopped) return; q.stopped = true; clearInterval(q.timer); }
+      q.timer = setInterval(tick, SEQ_TICK_MS);
+      tick();
+      return { tick: tick, stop: stop,
+        cut: function () { stop(); return q.aud ? q.aud.cut() : false; },
+        stats: function () { return { planned: list.length, queued: q.next, sched: q.sched.slice(), late: q.late, base: q.base, stopped: q.stopped }; } };
     }
     function listen(fn) { listeners.push(fn); }
     // arm(pref): at page load, before any gesture. Remembers what the viewer
@@ -2341,7 +2397,7 @@ body { padding: 12px 16px 40px; }
     }
     var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
-      core: core, hold: hold, listen: listen, group: group,
+      core: core, hold: hold, listen: listen, group: group, sequence: sequence,
       stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, scheduled: counts.scheduled, cuts: counts.cuts, byKind: k }; } };
     window.__sfx = api;
     return api;
@@ -3297,7 +3353,9 @@ body { padding: 12px 16px 40px; }
 
   SND.mount(document.getElementById('snd'), document.getElementById('sndvol'));
   // The preview's stings sound only on a pass the viewer asked for (a tap
-  // on an item, a slot or Replay), never on the loop's repeats.
+  // on an item, a slot or Replay), never on the loop's repeats. A pass's
+  // sounds are one sequence on the audio clock (render session 39), so the
+  // choice is made as the pass starts: a repeat gets no sequence.
   var SOUND_OK = false;
   var REDUCED_PICK = CFX.kit.reduced;
   var BOAST = (function (SND) {
@@ -3329,6 +3387,7 @@ body { padding: 12px 16px 40px; }
           if (!cur) return;
           var now = performance.now();
           cur.t = now - cur.t0;
+          if (cur.seq) cur.seq.tick();
           while (cur.next < cur.plan.marks.length && cur.plan.marks[cur.next].t <= cur.t) fire(cur.plan.marks[cur.next++]);
           if (cur && cur.t > cur.plan.ms + 400 && cur.ended) cur = null;
         },
@@ -3491,7 +3550,11 @@ body { padding: 12px 16px 40px; }
         }
       }
     }
+    // The sounds and the music's holds are the sequence's (render session
+    // 39): queued on the audio clock a little ahead at their exact times, so
+    // a stalled frame can't bunch them; the frames fire everything else.
     function fire(m) {
+      if (m.k === 'sound' || m.k === 'duck') return;
       var K = CFX.kit, c = m.rgb || cur.rgb, still = cur.plan.still;
       stats.fired[m.k] = (stats.fired[m.k] || 0) + 1;
       if (m.k === 'shock' && !still) K.shock(m.x, m.y, c, m.R, 0.42, m.sx, m.sy);
@@ -3502,8 +3565,6 @@ body { padding: 12px 16px 40px; }
       else if (m.k === 'pulse') cur.pulses.push({ t: m.t, ms: m.ms });
       else if (m.k === 'veil') cur.veil = m;
       else if (m.k === 'crt') cur.crt = m;
-      else if (m.k === 'sound' && typeof SND !== 'undefined') SND.play(m.kind, cur.plan.faction, m.tier, { left: m.x - window.scrollX, width: 0 });
-      else if (m.k === 'duck' && typeof MUS !== 'undefined' && MUS.duckHold) MUS.duckHold(m.ms / 1000);
       else if (m.k === 'panel') { if (cur.els.panel) { cur.els.panel.style.setProperty('--fc', fxKitOf(cur.plan.faction).col); cur.els.panel.classList.add('boast-panel'); } }
       else if (m.k === 'name') showName(m);
       else if (m.k === 'end') finish('end');
@@ -3588,6 +3649,10 @@ body { padding: 12px 16px 40px; }
       cur.ended = true;
       stats.last = { id: cur.plan.id, reason: reason, t: Math.round(cur.t), still: !!cur.plan.still };
       var done = cur.onEnd;
+      // At its own end the last sounds ring out into the result; a skip or
+      // a cancel (a jump, the cosmetics switch, a restart) cuts them all in
+      // 30 ms, the ones ringing and the ones queued ahead.
+      if (cur.seq) { if (reason === 'end') { cur.seq.tick(); cur.seq.stop(); } else cur.seq.cut(); }
       teardown();
       // Skipped or cancelled: the pieces go at once. Ended: they fade out
       // on their own last keys while the result lands.
@@ -3625,7 +3690,19 @@ body { padding: 12px 16px 40px; }
       stats.problem = problem;
       stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0; stats.groups = {};
       plan.pieces.forEach(function (pc) { var g = pc.grp || pc.shape || pc.sp; stats.groups[g] = (stats.groups[g] || 0) + 1; });
-      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false };
+      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false, seq: null };
+      // The sounds and the music's holds under them go out on the audio
+      // clock together (a hold is queued with its sting, not a frame later).
+      var sounds = [];
+      plan.marks.forEach(function (m) {
+        if (m.k === 'sound') sounds.push(m);
+        else if (m.k === 'duck') sounds.push({ t: m.t, ms: m.ms, run: function (at) {
+          stats.fired.duck = (stats.fired.duck || 0) + 1;
+          if (typeof MUS !== 'undefined' && MUS.duckHold) MUS.duckHold(this.ms / 1000, at);
+        } });
+      });
+      stats.planned = sounds.filter(function (m) { return !m.run; }).length; stats.seq = null;
+      if (typeof SND !== 'undefined' && SND.sequence) stats.seq = cur.seq = SND.sequence(sounds, { t0: cur.t0, faction: plan.faction, onQueue: function (m) { stats.fired.sound = (stats.fired.sound || 0) + 1; } });
       (els.dim || []).forEach(function (d) { if (d) d.classList.add('boast-dim'); });
       // The Skip button sits at the top right of the winner's side.
       var sk = document.createElement('button');
@@ -3645,11 +3722,13 @@ body { padding: 12px 16px 40px; }
       return plan;
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur && !cur.ended; }, geomOf: geomOf,
-      stats: function () { return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last }; } };
+      stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last,
+        sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null }; } };
   })();
 
     return BOAST;
-  })({ play: function () { if (SOUND_OK) return SND.play.apply(SND, arguments); } });
+  })({ play: function () { if (SOUND_OK) return SND.play.apply(SND, arguments); },
+    sequence: function (list, o) { return SOUND_OK ? SND.sequence(list, o) : null; } });
 
   var DATA = JSON.parse(document.getElementById('loadout-data').textContent);
   var app = document.getElementById('picker');

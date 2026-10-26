@@ -2136,9 +2136,12 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     //     ahead; the repeat gap doesn't apply, the caller placed it);
     //   pan: a fixed pan instead of one from rect;
     //   group: a group from group(), so it can be cut with the others.
+    // The listeners hear o.at too (null for a sound played now), so what
+    // follows a sound queued ahead (the music's dip) lands with it.
     function play(kind, faction, tier, rect, o) {
       var played = sound(kind, faction, tier, rect, o);
-      for (var i = 0; i < listeners.length; i++) listeners[i](kind, faction, tier, played);
+      var at = o && typeof o.at === 'number' ? o.at : null;
+      for (var i = 0; i < listeners.length; i++) listeners[i](kind, faction, tier, played, at);
       return played;
     }
     function sound(kind, faction, tier, rect, o) {
@@ -2197,6 +2200,59 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
         g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.linearRampToValueAtTime(0, t + 0.03);
         return true;
       }, isCut: function () { return cut; } };
+    }
+    // sequence(list, o) -> a run of planned sounds on the audio clock
+    // (render session 38 wrote this for Match Boot; session 39 shares it
+    // with the victory boasts). A lookahead scheduler queues each sound a
+    // little ahead at its exact time, so a dropped or late frame can't make
+    // one late or merge two. list: [{ t (ms after o.t0), kind, tier, x (the
+    // page x it pans by, unless o.pan is given) }], in time order. An item
+    // with run(at) instead of a kind is called with its audio time when its
+    // turn comes (the boasts' music holds, queued with their stings).
+    //   o: { t0 (the run's start on performance.now(); now if not given),
+    //     faction (the voice), pan (a fixed pan), onQueue(item, at) }.
+    // The audio clock is tied to the run's clock once the context is
+    // running; a sound whose time passed more than SEQ_LATE_S before it
+    // could be queued (the context still waking, sound switched on late, a
+    // hidden tab) is dropped, never played late. All go through one group,
+    // so cut() silences them all, ringing or queued; stop() only stops
+    // queueing (what is queued plays out). The run ticks itself every
+    // SEQ_TICK_MS; tick() lets a frame loop tick it too.
+    var SEQ_AHEAD_S = 0.15, SEQ_TICK_MS = 25, SEQ_LATE_S = 0.12;
+    function sequence(list, o) {
+      o = o || {};
+      var q = { next: 0, aud: null, base: null, t0: typeof o.t0 === 'number' ? o.t0 : performance.now(), timer: 0, stopped: false, sched: [], late: 0 };
+      function tick() {
+        if (q.stopped || q.next >= list.length) return;
+        if (!q.aud) {
+          if (!AU.on || !AU.ctx) return;
+          q.aud = group();
+          if (!q.aud) return;
+        }
+        var C = q.aud.ctx;
+        if (C.state && C.state !== 'running') return;
+        if (q.base == null) q.base = C.currentTime - (performance.now() - q.t0) / 1000;
+        var now = C.currentTime;
+        while (q.next < list.length) {
+          var m = list[q.next], at = q.base + m.t / 1000;
+          if (at > now + SEQ_AHEAD_S) break;
+          q.next++;
+          if (now - at > SEQ_LATE_S) { q.late++; continue; }
+          var go = Math.max(at, now), x = typeof m.x === 'number' ? m.x - (window.scrollX || 0) : null;
+          if (m.run) { m.run(go); continue; }
+          var po = { at: go, group: q.aud };
+          if (typeof o.pan === 'number') po.pan = o.pan;
+          play(m.kind, m.faction || o.faction || 'Neutral', m.tier, x == null ? null : { left: x, width: 0 }, po);
+          q.sched.push({ kind: m.kind, t: m.t, at: Math.round((go - q.base) * 1000), lead: Math.round((at - now) * 1000) });
+          if (o.onQueue) o.onQueue(m, go);
+        }
+      }
+      function stop() { if (q.stopped) return; q.stopped = true; clearInterval(q.timer); }
+      q.timer = setInterval(tick, SEQ_TICK_MS);
+      tick();
+      return { tick: tick, stop: stop,
+        cut: function () { stop(); return q.aud ? q.aud.cut() : false; },
+        stats: function () { return { planned: list.length, queued: q.next, sched: q.sched.slice(), late: q.late, base: q.base, stopped: q.stopped }; } };
     }
     function listen(fn) { listeners.push(fn); }
     // arm(pref): at page load, before any gesture. Remembers what the viewer
@@ -2280,7 +2336,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     }
     var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
-      core: core, hold: hold, listen: listen, group: group,
+      core: core, hold: hold, listen: listen, group: group, sequence: sequence,
       stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, scheduled: counts.scheduled, cuts: counts.cuts, byKind: k }; } };
     window.__sfx = api;
     return api;
@@ -2556,16 +2612,22 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       if (MU.I > counts.peakI) counts.peakI = MU.I;
       return MU.I;
     }
-    // duck(): an effect is sounding. Dip to MUS_DUCK_TO fast and recover
+    // duck(at): an effect is sounding. Dip to MUS_DUCK_TO fast and recover
     // within about 0.2 s; at most once per 60 ms so a volley doesn't pump.
-    function duck() {
+    // at: when, on the audio clock, for a sound queued ahead (render session
+    // 39: the boasts' sounds), so the dip lands with the sound, not when it
+    // was queued. A dip before a hold that is queued ahead leaves the hold
+    // in place (it recovers only if it ends before the hold begins).
+    function duck(at) {
       if (!MU.on || !MU.duck) return false;
-      var C = core().ctx, t = C.currentTime;
-      if (MU.lastDuck >= 0 && t - MU.lastDuck < 0.06) return false;
-      if (MU.holdUntil && t < MU.holdUntil) return false;
+      var C = core().ctx, now = C.currentTime, t = typeof at === 'number' && at > now ? at : now;
+      if (MU.lastDuck >= 0 && Math.abs(t - MU.lastDuck) < 0.06) return false;
+      if (MU.holdUntil && t >= (MU.holdFrom || 0) && t < MU.holdUntil) return false;
       MU.lastDuck = t;
-      var g = MU.duck.gain;
-      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_DUCK_TO, t, 0.01); g.setTargetAtTime(1, t + 0.1, 0.2);
+      var g = MU.duck.gain, before = MU.holdFrom > t;
+      if (!before) { g.cancelScheduledValues(t); if (t === now) g.setValueAtTime(g.value, t); }
+      g.setTargetAtTime(MUS_DUCK_TO, t, 0.01);
+      if (!before || t + 0.1 < MU.holdFrom) g.setTargetAtTime(1, t + 0.1, 0.2);
       counts.ducks++;
       return true;
     }
@@ -2575,11 +2637,13 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     // under it"). The one place the music goes below MUS_DUCK_TO; a kill
     // still never does. Effect ducks inside the hold are skipped so they
     // don't lift it early.
-    function duckHold(sec) {
+    // at: when it starts on the audio clock (queued ahead with the sting).
+    function duckHold(sec, at) {
       if (!MU.on || !MU.duck || !(sec > 0)) return false;
-      var C = core().ctx, t = C.currentTime, g = MU.duck.gain;
-      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.setTargetAtTime(MUS_BOAST_DUCK_TO, t, 0.04); g.setTargetAtTime(1, t + sec, 0.25);
-      MU.holdUntil = t + sec;
+      var C = core().ctx, now = C.currentTime, t = typeof at === 'number' && at > now ? at : now, g = MU.duck.gain;
+      g.cancelScheduledValues(t); if (t === now) g.setValueAtTime(g.value, t);
+      g.setTargetAtTime(MUS_BOAST_DUCK_TO, t, 0.04); g.setTargetAtTime(1, t + sec, 0.25);
+      MU.holdFrom = t; MU.holdUntil = t + sec;
       counts.ducks++;
       return true;
     }
@@ -2605,6 +2669,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       g.setTargetAtTime(LEVEL * MU.vol, queued ? t : start, 0.3);
       MU.waitUntil = start; MU.waiting = sec > 0;
       MU.holdUntil = Math.max(MU.holdUntil || 0, start);
+      if (!(MU.holdFrom <= t)) MU.holdFrom = t;
       counts.waits++;
       return true;
     }
@@ -2690,7 +2755,7 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
     }
     // Every effect the page plays reaches the music: it bumps intensity
     // (even with effects muted) and, when it actually sounds, ducks.
-    SND.listen(function (kind, faction, tier, played) { event(kind, tier); if (played) duck(); });
+    SND.listen(function (kind, faction, tier, played, at) { event(kind, tier); if (played) duck(at); });
     var api = { setOn: setOn, isOn: function () { return MU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return MU.vol; }, follow: function () { return MU.follow; }, state: state, event: event, duck: duck, duckHold: duckHold, startAfter: startAfter, setScene: setScene, tick: tick,
       localStore: localStore, mount: mount,

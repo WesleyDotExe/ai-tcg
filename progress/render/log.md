@@ -3780,3 +3780,73 @@ quiet to notice; raised (squares 0.035 -> 0.08) to +5.8 dB.
 
 **Next render-lane slice:** none set by the owner. Suggested: move the boasts' sounds onto the same
 audio-clock scheduling (they still fire from the frames), or the next item the owner names.
+
+## 2026-10-26 — Session 39: the victory boasts' sounds on the audio clock
+
+Render session per the alternation (the last merged PR, #97, was the game lane's). The slice the owner
+set in the 2026-10-26 entry (answers to render session 38, keep all 8): move the victory boasts' sounds
+onto audio-clock scheduling, the on-time fix the intro got.
+
+**Built:**
+- `render/src/soundFx.ts`: `SND.sequence(list, o)`, Match Boot's lookahead scheduler moved into `SND`
+  so the intro and the boasts share one: every 25 ms it queues each planned sound up to 150 ms ahead at
+  its exact audio time, tied to the run's own start; one too late to queue within 120 ms is dropped,
+  never played late; all through one group (`cut()` silences ringing and queued; `stop()` only stops
+  queueing). Items may be `run(at)` callbacks instead of sounds. The listeners now hear a sound's `at`.
+- `render/src/matchBootFx.ts`: its own scheduler replaced by `SND.sequence` (pan 0, same stats: `sched`,
+  `late`, `planned`, `audioBase`, `fired['sound:...']`).
+- `render/src/boastFx.ts`: `BOAST.play` hands the plan's sound marks, and the music holds (`duck` marks)
+  as `run(at)` items, to one sequence in the winner's voice; the frames fire neither any more. A skip or
+  a cancel cuts the sounds; the boast's own end ticks once more and lets the sting ring. Stats gained
+  `sched`, `late`, `planned`, `audioBase`.
+- `render/src/musicFx.ts`: `MUS.duck(at)` and `MUS.duckHold(sec, at)` take an audio time: a sound queued
+  ahead dips the music when it plays, the sting's hold starts with the sting, and a dip queued just
+  before a hold neither cancels nor lifts it. The immediate path (the match's own sounds) is unchanged.
+- `render/src/loadoutPicker.ts`: found on the way, the preview's sound proxy only forwarded `play`, so
+  the change would have silenced the picker's previews entirely; it now forwards `sequence` on a pass
+  the viewer asked for and returns none on the loop's repeats.
+- `render/EFFECTS.md`: the boasts' section, "Sound on the audio clock (render session 39)".
+
+**Ran it:**
+- `progress/render/evidence/boast-check-s39.mjs` (new harness; the page's own output recorded as in
+  session 38), output `boast-check-s39.txt` (+ `.json`): 65 checks, ALL PASS, run twice with the final
+  harness (and twice more before its last calibration fix). A: each of the six boasts on the sheet: all
+  planned sounds queued at their exact times, 130-150 ms ahead, none late; 53 of 75 onsets stand out in
+  the recording and each lands within 3 ms of the same sound played alone (the rest start under a louder
+  sound); no clipping. B: the four recorded replays stepped into the lethal move (about 50 fps): every
+  sound at its planned time; the same pages from before this session, firing from the frames: median
+  11-19 ms off, up to 49 ms. C: a 150 ms main-thread stall during Boot Sequence's typing: 0 ms off; the
+  old sheet, same stall: up to 122 ms late, 11 sounds more than 20 ms. D: Escape cuts once, nothing queued
+  past the lookahead, silence heard 70 ms after. E: the boast's own end: no cut, the sting heard ringing
+  on. F: effects muted: plays and ends, nothing queued. G: reduced motion: the sting at 0. H: music on:
+  each hold queued ahead and starting with its sting (0.0 ms apart on the audio clock), the music at
+  0.55 0.3 s into the sting; with effects muted no hold. I: the loadout picker: the loop's repeats queue
+  nothing; a tapped pass queues all 8 sounds at their times.
+- Match Boot re-checked on the regenerated pages: `boot-check-s38.mjs` against them (and slice 1's page
+  for its before/after), output `boot-check-s38-rerun-s39.txt`: 42 checks, ALL PASS, as in session 38.
+- Tests: render 645 (+33): `SND.sequence` against the fake AudioContext (exact times within the
+  lookahead, a 100 ms stall, the late drop, sound switched on late, pan by x or fixed, cut and stop,
+  onQueue); the music's timed dips (a queued sound dips at its time, the immediate path unchanged, a hold
+  queued ahead and the dips around it); the boast runtime run against a fake page (every boast's sounds
+  and holds go to one sequence, the frames play none, each frame ticks it, skip and cancel cut, the end
+  stops without a cut, the still's one sound); no boast plans two sounds of one kind inside the repeat
+  gap (every boast, two layouts, three seeds, plain and close win, and the still); the picker's proxy.
+  Mutation checks: frame-fired sounds fail 6, always cutting or never cutting fail 1 each, no frame tick
+  fails 2, no start time fails 6; in the sequencer, never dropping late fails 2, ignoring `at` 2, no
+  lookahead limit 4, a stop that doesn't stop 1; in the music, the listener dropping `at` 1, a dip lifting
+  a queued hold 1, a hold ignoring `at` 1. `npm test`: all six workspaces pass (1,175); typecheck clean.
+- Before the change every committed page regenerated byte for byte (except `first-time.html` and
+  `pack-opening.html`, random store ids, as before). After it, the 26 pages that embed the sound runtime
+  regenerated; the embedded match data is identical in every replay.
+
+**Found on the way:** the picker's proxy (above). The music's dip followed every sound as it was
+*queued*, so with a 150 ms lookahead it would have come before the sound; fixed by passing `at`. The
+harness's first heard-timing check compared onsets to each other, which flagged the rocket's whistle
+(a 50 ms swell) as 12 ms late; calibrating each kind alone fixed that, but the first calibration played
+them 0.6 s apart and the modem's and the sting's tails ran into the next slot (a range of -12 to 10 ms,
+meaning nothing); 2.5 s apart, three times each, readings that don't rise out of silence left out, the
+ranges are within 3 ms and the whistle is held to the same 3 ms as the rest.
+
+**Next render-lane slice:** none set by the owner. Candidates: the boasts' Skip finger-sized on touch
+screens like the intro's (the owner's slice 2 call 7 named it as able to follow), or the next item the
+owner names.

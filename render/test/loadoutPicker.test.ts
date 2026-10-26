@@ -184,6 +184,24 @@ describe("the page's data, from real store states", () => {
     const json = html.match(/<script type="application\/json" id="loadout-data">([\s\S]*?)<\/script>/)![1]!;
     expect(JSON.parse(json).scenarios.length).toBe(3);
   });
+
+  it("the preview's sound proxy: a pass the viewer asked for gets its sequence on the audio clock; a loop's repeat gets none (render session 39)", () => {
+    const html = renderLoadoutHtml(page.data);
+    const proxy = html.match(/return BOAST;\n  \}\)\((\{ play: [\s\S]*?\} \})\);/)![1]!;
+    const made = (ok: boolean) => {
+      const calls: string[] = [];
+      const SND = { play: () => { calls.push("play"); return true; }, sequence: (list: unknown[]) => { calls.push("sequence:" + list.length); return { tick() {} }; } };
+      const p = new Function("SND", "ok", `var SOUND_OK = ok; return ${proxy};`)(SND, ok) as { play: () => unknown; sequence: (l: unknown[], o: object) => unknown };
+      return { p, calls };
+    };
+    const quiet = made(false);
+    expect(quiet.p.sequence([1, 2, 3], {})).toBeNull();
+    expect(quiet.p.play()).toBeUndefined();
+    expect(quiet.calls).toEqual([]);
+    const asked = made(true);
+    expect(asked.p.sequence([1, 2, 3], {})).not.toBeNull();
+    expect(asked.calls).toEqual(["sequence:3"]);
+  });
 });
 
 describe("the page's answers compose like the real store", () => {
