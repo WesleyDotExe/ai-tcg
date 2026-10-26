@@ -3595,3 +3595,11 @@ Answers the [OWNER CHECK-IN] on the minimum deck size in `progress/notes-for-own
 - The legal range stays 20–40; only the builder's behaviour changes.
 - As the session proposed: the next game session builds this, re-runs both rings (the ring check and the built-deck ring), and reports the results at an owner check-in.
 - **Not decided yet:** whether Null's list and starter grow from 36 to 40. The pre-launch balance session may bring candidate cards for it alongside the two old-edge fixes; no card, deck or rule change without the owner's OK.
+
+---
+
+## 2026-10-26 — Owner: every starter deck has the same number of cards (Null's grows to 40)
+
+Answers the "Not decided yet" line in the entry above (Null's starter at 36 cards).
+- **Decided:** all faction starter decks have the same number of cards. Null's starter grows from 36 to 40 to match the others, with Null's card list growing as needed to make that possible.
+- The 4 added Null cards are chosen in the pre-launch balance session: bring the candidates and their full results (ring check and built-deck ring) to an owner check-in. No cards are added without the owner's OK.
