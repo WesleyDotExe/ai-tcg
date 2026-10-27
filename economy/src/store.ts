@@ -4,6 +4,7 @@ import {
   buildDeck,
   chooseDeck,
   holdingsOf,
+  largestDeck,
   playableHoldings,
   type DeckBuildOptions,
   type BuiltDeck,
@@ -2265,6 +2266,15 @@ export class EconomyStore {
     if (was.holdings !== held) reasons.push("the cards held changed");
     if (was.factionLock !== now.factionLock) reasons.push(`the faction lock changed (${was.factionLock ?? "none"} -> ${now.factionLock ?? "none"})`);
     if (was.style !== now.style) reasons.push(`the play style changed (${PLAY_STYLES[was.style].name} -> ${PLAY_STYLES[now.style].name})`);
+    // A deck built before option B (owner 2026-10-26) may be shorter than
+    // the cards held allow; the builder now never cuts one short. Read
+    // only when nothing else already asks (any other reason rebuilds it).
+    if (reasons.length === 0) {
+      const deckId = this.agentDeckId(ownerId)!;
+      const listed = this.deckListing(deckId).listed;
+      const allow = largestDeck(this.deckFactionOf(deckId), holdingsOf(ids));
+      if (listed.length < allow) reasons.push(`the deck has ${listed.length} cards and the cards held allow ${allow} (the agent builds to that since session 58)`);
+    }
     return reasons;
   }
 
@@ -2307,13 +2317,21 @@ export class EconomyStore {
     const inputs = this.agentDeckInputs(ownerId);
     const held = inputs.held;
     const style = this.schemaVersion >= 14 ? inputs.style : DEFAULT_PLAY_STYLE;
+    const holdings = holdingsOf(held.map((c) => c.cardId));
     const built = await (async () => {
       try {
-        return await choose(holdingsOf(held.map((c) => c.cardId)), { ...options, faction: owner.factionLock ?? undefined, style });
+        return await choose(holdings, { ...options, faction: owner.factionLock ?? undefined, style });
       } catch (err) {
         throw new EconomyError(err instanceof Error ? err.message : String(err));
       }
     })();
+    // Option B (owner 2026-10-26): the agent's deck is 40 cards when the
+    // owner holds 40 usable ones, else every usable card. The engine's
+    // builder builds to that; the store checks it, since `choose` may be a
+    // stand-in (the server's worker).
+    const want = largestDeck(built.faction, holdings);
+    const got = [...built.list.values()].reduce((s, n) => s + n, 0);
+    if (got !== want) throw new EconomyError(`the agent built ${got} cards; the cards held allow ${want}, and the agent's deck uses that many`);
     const deck = this.transaction(() => {
       // Copies for the list, oldest held first (the collection's order),
       // read again here: the owner may have salvaged a card while the agent

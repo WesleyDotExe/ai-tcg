@@ -1,0 +1,149 @@
+Owner API demo 002 — the deck settings over HTTP (session 56; re-run session 58, the builder builds to the size the cards allow)
+================================================================
+Owner "Nova": the Cortex starter and 10 packs opened (105 cards held), agents
+Vector Halcyon (connected) and Quill Static. Owner "Rook" holds the Aegis starter.
+Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":24,"confirmGames":100,"seed":1}) on a worker thread.
+
+1. Signing in
+----------------------------------------------------------------
+> GET /api/play  -> 401
+  error: not signed in
+> POST /api/session {"login":"nova","password":"wrong"}  -> 401
+  error: wrong login or password
+> POST /api/session {"login":"nova","password":"a long demo password"}  -> 201
+  token: <43 characters>, expires 2026-11-22T09:00:00.000Z
+
+2. Settings -> Play, before the agent has built anything
+----------------------------------------------------------------
+> GET /api/play  -> 200
+  deck choice: agent   faction lock: none
+  connected agent: Vector Halcyon (calculator)
+  active deck: none
+  agent's deck: none
+  rebuild reasons: the agent hasn't built a deck yet
+  play styles offered: Calculator, Rusher, Controller, Tempo, Fortress, Gambler
+
+3. Rebuild now (no faction lock: the agent weighs every faction)
+----------------------------------------------------------------
+> POST /api/play/rebuild  -> 202
+  job: running; reasons when it started: the agent hasn't built a deck yet
+  [timing, varies per run] build took 8.5 s; GET /api/play answered 42 times while it ran, slowest 6 ms
+  job: done
+  saved <deck 1>: Cortex, 40 cards, played as calculator
+    Cortex  62.0% against the shipped decks (fresh seeds)
+    Swarm   can't build: no owned faction card that draws (the pool lint needs one)
+    Aegis   16.0% against the shipped decks (fresh seeds)
+    Null    45.3% against the shipped decks (fresh seeds)
+> GET /api/play  -> 200
+  deck choice: agent   faction lock: none
+  connected agent: Vector Halcyon (calculator)
+  active deck: <deck 1> "Agent's deck", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
+  rebuild reasons: none (up to date)
+
+4. A second rebuild while one runs, and a rebuild with nothing to do
+----------------------------------------------------------------
+> POST /api/play/rebuild  -> 202
+> POST /api/play/rebuild  -> 409
+  error: the agent is already building a deck
+  (the second request is refused; the first finished with no reasons: an owner may rebuild anyway)
+  the agent's deck is still <deck 1>, rebuilt in place
+
+5. The play style: the connected agent to Controller, then another owner's agent
+----------------------------------------------------------------
+> PUT /api/agents/<agent Vector Halcyon>/play-style {"style":"controller"}  -> 200
+  deck choice: agent   faction lock: none
+  connected agent: Vector Halcyon (controller)
+  active deck: <deck 1> "Agent's deck", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
+  rebuild reasons: the play style changed (Calculator -> Controller)
+> PUT /api/agents/<agent Vector Halcyon>/play-style {"style":"berserker"}  -> 409
+  error: "berserker" is not a play style
+> PUT /api/agents/<Rook's agent>/play-style {"style":"rusher"}  -> 404
+  error: no agent "<Rook's agent>"
+  Rook's agent's style is still calculator
+> PUT /api/agents/<agent Quill Static>/play-style {"style":"fortress"}  -> 200
+  deck choice: agent   faction lock: none
+  connected agent: Vector Halcyon (controller)
+  active deck: <deck 1> "Agent's deck", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
+  rebuild reasons: the play style changed (Calculator -> Controller)
+  (Quill Static isn't connected, so its style asks nothing of the deck)
+
+6. The faction lock: Swarm, which Nova's cards can't build; then something that isn't a faction
+----------------------------------------------------------------
+> PUT /api/play/faction-lock {"faction":"Swarm"}  -> 200
+  deck choice: agent   faction lock: Swarm
+  connected agent: Vector Halcyon (controller)
+  active deck: <deck 1> "Agent's deck", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
+  rebuild reasons: the faction lock changed (none -> Swarm); the play style changed (Calculator -> Controller)
+  active deck fits the lock: false
+> POST /api/play/rebuild  -> 202
+  job: running; reasons when it started: the faction lock changed (none -> Swarm); the play style changed (Calculator -> Controller)
+  [timing, varies per run] build took 0.4 s; GET /api/play answered 2 times while it ran, slowest 4 ms
+  job: failed: no deck can be built: Swarm: no owned faction card that draws (the pool lint needs one)
+> PUT /api/play/faction-lock {"faction":"Chrome"}  -> 409
+  error: can't lock to "Chrome"
+> PUT /api/play/faction-lock {}  -> 400
+  error: "faction" is required (a faction, or null for none)
+
+7. Locked to Null instead, and rebuilt in Controller
+----------------------------------------------------------------
+> PUT /api/play/faction-lock {"faction":"Null"}  -> 200
+  deck choice: agent   faction lock: Null
+  connected agent: Vector Halcyon (controller)
+  active deck: <deck 1> "Agent's deck", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 40 cards (built as calculator, lock none)
+  rebuild reasons: the faction lock changed (none -> Null); the play style changed (Calculator -> Controller)
+  active deck fits the lock: false
+> POST /api/play/rebuild  -> 202
+  job: running; reasons when it started: the faction lock changed (none -> Null); the play style changed (Calculator -> Controller)
+  [timing, varies per run] build took 1.9 s; GET /api/play answered 9 times while it ran, slowest 12 ms
+  job: done
+  saved <deck 1>: Null, 27 cards, played as controller
+    Null    45.0% against the shipped decks (fresh seeds)
+> GET /api/play  -> 200
+  deck choice: agent   faction lock: Null
+  connected agent: Vector Halcyon (controller)
+  active deck: <deck 1> "Agent's deck", 27 cards
+  agent's deck: <deck 1> "Agent's deck", 27 cards (built as controller, lock Null)
+  rebuild reasons: none (up to date)
+
+8. Forcing a deck: the owner saves the starter list and plays it
+----------------------------------------------------------------
+> PUT /api/play/faction-lock {"faction":null}  -> 200
+  deck choice: agent   faction lock: none
+  connected agent: Vector Halcyon (controller)
+  active deck: <deck 1> "Agent's deck", 27 cards
+  agent's deck: <deck 1> "Agent's deck", 27 cards (built as controller, lock Null)
+  rebuild reasons: the faction lock changed (Null -> none)
+  active deck fits the lock: true
+> PUT /api/play/active-deck {"deckId":"<deck 2>"}  -> 200
+  deck choice: forced   faction lock: none
+  connected agent: Vector Halcyon (controller)
+  active deck: <deck 2> "Cortex starter", 40 cards
+  agent's deck: <deck 1> "Agent's deck", 27 cards (built as controller, lock Null)
+  rebuild reasons: none (up to date)
+> POST /api/play/rebuild  -> 409
+  error: you force a deck; hand the deck choice to the agent first
+> PUT /api/play/active-deck {"deckId":"<Rook's deck>"}  -> 404
+  error: no deck "<Rook's deck>"
+  (another owner's deck reads as no deck: the refusal doesn't name its faction)
+
+9. Handing the deck back to the agent
+----------------------------------------------------------------
+> PUT /api/play/deck-choice {"choice":"agent"}  -> 200
+  deck choice: agent   faction lock: none
+  connected agent: Vector Halcyon (controller)
+  active deck: <deck 1> "Agent's deck", 27 cards
+  agent's deck: <deck 1> "Agent's deck", 27 cards (built as controller, lock Null)
+  rebuild reasons: the faction lock changed (Null -> none)
+
+10. Signing out
+----------------------------------------------------------------
+> DELETE /api/session  -> 204
+> GET /api/play  -> 401
+  error: not signed in
+
+Worker threads still running at the end: 0

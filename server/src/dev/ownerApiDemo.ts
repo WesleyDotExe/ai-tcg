@@ -1,7 +1,8 @@
 // Evidence for the owner API's deck settings (session 56, roadmap 2b step
 // 3: "exposing both settings (server endpoints, item 3)").
 //
-//   npx tsx src/dev/ownerApiDemo.ts > ../progress/owner-api-demo-001.txt
+//   npx tsx src/dev/ownerApiDemo.ts > ../progress/owner-api-demo-002.txt
+// (001 is session 56's run; 002 re-ran it in session 58, after option B)
 //
 // A real season database file, a real owner (a starter and 10 packs opened
 // with the live roller), the owner API listening on a real port, and every
@@ -114,7 +115,7 @@ async function rebuild() {
   }
 }
 
-say("Owner API demo 001 — the deck settings over HTTP (session 56)");
+say("Owner API demo 002 — the deck settings over HTTP (session 56; re-run session 58, the builder builds to the size the cards allow)");
 say("=".repeat(64));
 say(`Owner "Nova": the Cortex starter and 10 packs opened (${store.collection(nova.ownerId).length} cards held), agents`);
 say(`Vector Halcyon (connected) and Quill Static. Owner "Rook" holds the Aegis starter.`);

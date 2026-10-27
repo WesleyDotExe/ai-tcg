@@ -3857,3 +3857,51 @@ mode only.
 
 **Blocked:** nothing. One owner check-in (deck size: recommend exactly 40; alternatives B-D; default
 no change).
+
+## 2026-10-27 — Session 58 (option B: the builder builds to the size the cards allow; both rings re-run)
+
+**Read first:** `progress/owner-feedback.md`. Two unhandled game-lane entries: the owner's answer to
+session 57 (option B: build to 40 when the owner holds 40 usable cards, else every usable card; the
+legal range stays 20-40; re-run both rings and report), and "every starter deck has the same number
+of cards" (Null's grows to 40, its 4 cards chosen in the pre-launch balance session with the owner's
+OK). The first is built; the second is written into the roadmap's balance-session item. Both marked.
+The last merged PR (#98) was the render lane's, so this is a game-lane session; not a hardening pass.
+
+**Built:**
+- `largestDeck(faction, holdings)` in the deck builder: every usable copy (evolutions only with a
+  usable base), at most 10 neutral (plain ones first, since each raises the removal allowance), removal
+  at most a quarter of the deck, capped at 40.
+- `constructDeck` builds both starts to exactly that size: the removal cap is the size's share (it was
+  a full 40's), the designed start fills to the size (Null's 36-card list gains 4 when 40 are held), a
+  new repair step swaps a neutral removal card for a plain neutral spare when the neutral cap stops
+  the fill short, and a start that still misses the size is not built.
+- The search only swaps (the one-in-five grow/shrink branch is gone, and a swap that takes out an
+  evolution's last base is skipped since it shrinks the deck).
+- Store: `buildAgentDeck` refuses a built list whose size isn't `largestDeck` (the chooser may be the
+  server's worker), and `agentDeckRebuildReasons` names an older agent deck shorter than the cards
+  allow, so existing short decks grow on the next rebuild.
+- Tests: 7 new or rewritten engine tests and 2 economy tests. Mutation checks: turning off the neutral
+  swap fails 2 tests (random and ring collections stop 1+ card short); the store's size check and the
+  short-deck reason each fail their test when removed.
+
+**Ran it:** `npm test` all six workspaces pass (engine 322, economy 156); typecheck clean in all.
+`ring`/`ring:real` PASS, identical to baseline (shipped decks). The built-deck ring re-run on session
+54's collections and seeds (`progress/built-deck-ring-002.txt`; 100 builds about 6 minutes, the 8 rings
+about 9 minutes, on 4 cores): 0 of 100 decks short (was 49). Cortex, Swarm and Aegis keep about their
+shape (Cortex gains 2-5 points). **Null drops**: field average 39.2-44.0 real / 37.8-44.7 gate (was
+46.6-48.7 / 44.7-47.7); Null ~ Cortex OUT in real mode at full and in gate mode at full, 17 and 3
+packs. Cause: the builder pads Null's 36-card designed list with 4 rating picks (from a full
+collection Fork Bomb, Null Pointer, Uplink Tower, Patient Zero), costing ~3.5 points against the
+shipped decks. `progress/owner-api-demo-002.txt`: the Null-locked owner gets 27 cards (was 26), 45.0%
+(the cut deck was 50.5%, as session 57 measured).
+
+**Worked:** `largestDeck` matched what both starts built in all ~2,200 checked builds, so the rule
+is enforced exactly. **Didn't / honest limits:** the size is now the builder's rule only (a forced,
+hand-saved deck can still be 20); Null is weaker until its 4 cards are chosen on purpose; economy
+demos 014/016 not re-run.
+
+**Evidence:** `progress/built-deck-ring-002.txt`, `progress/built-deck-ring-002/`,
+`progress/owner-api-demo-002.txt`.
+
+**Blocked:** nothing. One owner check-in (Null falls behind under B; default keep B and run the balance
+session next).

@@ -3588,7 +3588,7 @@ Known gap noted: nobody has listened on a real device yet; the owner will try a 
 
 ---
 
-## 2026-10-26 — Owner: answers to game session 57 (the deck-size check), option B
+## 2026-10-26 — Owner: answers to game session 57 (the deck-size check), option B (HANDLED 2026-10-27, session 58 — built: the builder builds every deck to `largestDeck` (engine `deckbuilder/deckBuilder.ts`): 40 when the owner holds 40 usable cards for it, else every usable card; its search only swaps, so it never cuts a deck short. The legal range stays 20-40 (`data/decks.ts` unchanged). The store refuses an agent deck of any other size and names an older short agent deck as a rebuild reason. Both rings re-run: `ring`/`ring:real` PASS, unchanged (shipped decks); the built-deck ring in `progress/built-deck-ring-002.txt`; results at the owner check-in in notes-for-owner.md. Null's 36 -> 40 stays with the pre-launch balance session, per the next entry)
 
 Answers the [OWNER CHECK-IN] on the minimum deck size in `progress/notes-for-owner.md` (PR #97).
 - **Option B:** the builder builds to exactly 40 cards whenever the owner holds 40 usable cards for the deck; otherwise the deck uses every usable card the owner holds (at least 20). The builder no longer cuts a deck short when 40 are available.
@@ -3598,7 +3598,7 @@ Answers the [OWNER CHECK-IN] on the minimum deck size in `progress/notes-for-own
 
 ---
 
-## 2026-10-26 — Owner: every starter deck has the same number of cards (Null's grows to 40)
+## 2026-10-26 — Owner: every starter deck has the same number of cards (Null's grows to 40) (NOTED 2026-10-27, session 58 — decided, not built: the 4 cards are chosen in the pre-launch test-only balance session, written into that roadmap item; no card added without the owner's OK. Until then the Null starter stays 36 and a Null owner who holds only it builds 36 under option B)
 
 Answers the "Not decided yet" line in the entry above (Null's starter at 36 cards).
 - **Decided:** all faction starter decks have the same number of cards. Null's starter grows from 36 to 40 to match the others, with Null's card list growing as needed to make that possible.
