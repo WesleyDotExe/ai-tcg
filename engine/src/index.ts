@@ -62,6 +62,7 @@ export {
   constructDeck,
   deckSpec,
   holdingsOf,
+  largestDeck,
   listProblem,
   playableCopies,
   playableHoldings,

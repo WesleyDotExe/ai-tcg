@@ -16,6 +16,7 @@ import {
   deckSpec,
   fullHoldings,
   holdingsOf,
+  largestDeck,
   listProblem,
   playGauntlet,
   playableCopies,
@@ -276,16 +277,27 @@ describe("a collection that runs out short of 40 cards (session 54)", () => {
   });
 });
 
-describe("the designed start is the designed list when the owner holds it all (session 54)", () => {
-  it("is each faction's shipped list exactly, from a full collection (Null's 36 cards included)", () => {
+describe("the designed start: the designed list, filled to the deck's size (session 54; option B, session 58)", () => {
+  it("is each faction's shipped list exactly from a full collection, Null's 36 cards plus 4", () => {
     for (const f of DECK_FACTIONS) {
       const built = constructDeck(f, fullHoldings(), shippedList(f));
       expect("list" in built, f).toBe(true);
-      expect([...(built as { list: DeckList }).list].sort(), f).toEqual([...shippedList(f)].sort());
+      const list = (built as { list: DeckList }).list;
+      expect([...list.values()].reduce((s, n) => s + n, 0), f).toBe(40);
+      // Every designed copy is in; only Null's list (36) needed filling.
+      for (const [id, n] of shippedList(f)) expect(list.get(id) ?? 0, `${f} ${id}`).toBeGreaterThanOrEqual(n);
+      if (f !== "Null") expect([...list].sort(), f).toEqual([...shippedList(f)].sort());
     }
   });
 
-  it("fills only the gaps when copies are missing, to the designed list's size", () => {
+  it("is the designed list alone when the owner holds only that list (the Null starter stays 36)", () => {
+    for (const f of DECK_FACTIONS) {
+      const built = constructDeck(f, shippedList(f), shippedList(f)) as { list: DeckList };
+      expect([...built.list].sort(), f).toEqual([...shippedList(f)].sort());
+    }
+  });
+
+  it("fills the gaps when copies are missing, up to the deck's size", () => {
     const holdings = fullHoldings();
     const designed = shippedList("Null");
     // A card no evolution builds on, so taking it out takes out nothing else.
@@ -293,13 +305,87 @@ describe("the designed start is the designed list when the owner holds it all (s
     holdings.set(missing!, 0);
     const built = constructDeck("Null", holdings, designed) as { list: DeckList };
     const total = [...built.list.values()].reduce((s, n) => s + n, 0);
-    // Never past the designed size; short of it only where no owned spare
-    // fits the rules (Null's spares are mostly removal, at its cap).
-    const designedSize = [...designed.values()].reduce((s, n) => s + n, 0);
-    expect(total).toBeLessThanOrEqual(designedSize);
-    expect(total).toBeGreaterThanOrEqual(designedSize - designed.get(missing!)!);
+    expect(total).toBe(largestDeck("Null", holdings));
+    expect(total).toBe(40);
     expect(listProblem(built.list, "Null", holdings)).toBeUndefined();
     expect(built.list.has(missing!)).toBe(false);
+    for (const [id, n] of designed) if (id !== missing) expect(built.list.get(id) ?? 0).toBeGreaterThanOrEqual(n);
+  });
+});
+
+describe("largestDeck: every built deck is as large as the owned cards allow (owner 2026-10-26, option B)", () => {
+  const ring = JSON.parse(readFileSync(fileURLToPath(new URL("../../progress/built-deck-ring/collections.json", import.meta.url)), "utf8")) as {
+    collections: { holdings: [string, number][] }[];
+  };
+  const collections = (): Map<string, number>[] => [
+    fullHoldings(),
+    ...Array.from({ length: 120 }, (_, i) => randomHoldings(1000 + i, 0.1 + (i % 9) / 10)),
+    ...ring.collections.map((c) => new Map(c.holdings)),
+  ];
+
+  it("is 40 from a full collection and the starter's size from a starter alone", () => {
+    for (const f of DECK_FACTIONS) {
+      expect(largestDeck(f, fullHoldings()), f).toBe(40);
+      expect(largestDeck(f, shippedList(f)), f).toBe([...shippedList(f).values()].reduce((s, n) => s + n, 0));
+    }
+  });
+
+  it("is 27 for the owner API demo's Null lock (17 Null copies + 10 neutral), the deck-size report's count", () => {
+    const demo = JSON.parse(readFileSync(fileURLToPath(new URL("../../progress/deck-size/demo-owner-holdings.json", import.meta.url)), "utf8")) as { holdings: [string, number][] };
+    expect(largestDeck("Null", new Map(demo.holdings))).toBe(27);
+  });
+
+  it("is what both starts build, in every faction, over random and the ring's realistic collections", () => {
+    let built = 0;
+    for (const holdings of collections()) {
+      for (const f of DECK_FACTIONS) {
+        const target = largestDeck(f, holdings);
+        for (const start of [undefined, shippedList(f)]) {
+          const r = constructDeck(f, holdings, start);
+          if ("infeasible" in r) {
+            // Only too few cards, or no faction card that draws or attacks.
+            if (target >= 20) expect(r.infeasible, `${f} ${target}`).toMatch(/draws|attacks/);
+            continue;
+          }
+          expectLegal(r.list, f, holdings);
+          expect([...r.list.values()].reduce((s, n) => s + n, 0), f).toBe(target);
+          built++;
+        }
+      }
+    }
+    expect(built).toBeGreaterThan(500);
+  });
+
+  it("can't be beaten by one more copy: below 40, every spare added breaks a rule", () => {
+    let checked = 0;
+    for (const holdings of collections()) {
+      for (const f of DECK_FACTIONS) {
+        const r = constructDeck(f, holdings);
+        if ("infeasible" in r || largestDeck(f, holdings) === 40) continue;
+        for (const [id, owned] of holdings) {
+          const card = getCard(id);
+          if (!card || (r.list.get(id) ?? 0) >= playableCopies(card, owned)) continue;
+          const more = new Map(r.list);
+          more.set(id, (more.get(id) ?? 0) + 1);
+          expect(listProblem(more, f, holdings), `${f} +${card.name}`).toBeDefined();
+          checked++;
+        }
+      }
+    }
+    expect(checked).toBeGreaterThan(100);
+  });
+
+  it("the search only swaps: the kept deck is the size the cards allow", async () => {
+    // A partial collection under 40 usable Null cards and a full one.
+    const partial = JSON.parse(readFileSync(fileURLToPath(new URL("../../progress/deck-size/demo-owner-holdings.json", import.meta.url)), "utf8")) as { holdings: [string, number][] };
+    for (const holdings of [new Map(partial.holdings), fullHoldings()]) {
+      const lines: string[] = [];
+      const b = await buildFaction("Null", holdings, { games: 3, trials: 12, confirmGames: 3, seed: 7, log: (l) => lines.push(l) });
+      expect([...b.deck!.values()].reduce((s, n) => s + n, 0)).toBe(largestDeck("Null", holdings));
+      for (const st of b.starts) expect([...st.list.values()].reduce((s, n) => s + n, 0)).toBe(largestDeck("Null", holdings));
+      // Every kept change takes one card out and puts one in.
+      for (const k of lines.filter((l) => l.includes(": kept "))) expect(k).toMatch(/-1 .* \+1 /);
+    }
   });
 });
 

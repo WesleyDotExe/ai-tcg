@@ -1,10 +1,64 @@
 # Notes for the owner
 
-**Updated 2026-10-25, session 57.** Nothing is blocking. Your session-56 answers (keep all 4) are
-noted. This session answered your deck-size question, test only: no card, deck, rule or builder
-change. **One [OWNER CHECK-IN] below** with a recommendation; until you answer, nothing changes.
+**Updated 2026-10-27, session 58.** Nothing is blocking. Your option B is built, both rings were
+re-run, and the results are in the **[OWNER CHECK-IN]** below. It found one new problem you should
+know about: with no short decks, Null falls behind the other factions. Nothing about cards changed.
 
-### [OWNER CHECK-IN] Deck size: short decks win more; recommend exactly 40 cards
+### [OWNER CHECK-IN] Option B is built; without its short deck, Null falls behind
+
+**What was built** (your answer of 2026-10-26):
+- The deck builder builds every deck to the largest size the owner's cards allow: **40 when the
+  owner holds 40 usable cards** for that faction, **otherwise every usable card** (at least 20).
+  "Usable" means what the deck rules let in: a card's copy limit, at most 10 neutral cards, removal at
+  most a quarter of the deck, and an evolution only with its base. (`largestDeck` in
+  `engine/src/deckbuilder/deckBuilder.ts`.)
+- Its search now only swaps one card for another. It never makes a deck shorter or longer.
+- The legal range stays 20-40. A deck an owner saves and forces by hand is unchanged.
+- The store refuses to save an agent deck of any other size. It also asks for a rebuild when an
+  agent deck built before today is shorter than the owner's cards allow, so existing short decks
+  grow on their next rebuild.
+- In the owner API demo, the Null-locked owner's deck is now 27 cards (all 27 usable cards), not 26
+  (`progress/owner-api-demo-002.txt`).
+
+**The re-runs you asked for** (`progress/built-deck-ring-002.txt`):
+1. **The ring check passes, unchanged** (`ring` and `ring:real`). It uses the shipped decks, which
+   didn't change.
+2. **The built-deck ring.** All 100 built decks now use as many cards as the owner's cards allow.
+   Before, 49 of 100 were shorter. Cortex, Aegis and Swarm keep about the shape they had. **Null
+   drops.** Its average against the field, per collection level:
+
+   | | full | 37 packs | 17 packs | 3 packs |
+   |---|---|---|---|---|
+   | Null, real-match mode, session 54 | 46.7 | 48.7 | 47.0 | 46.6 |
+   | Null, real-match mode, today | **39.2** | 44.0 | 41.9 | 43.8 |
+   | Null, gate mode, session 54 | 44.7 | 47.7 | 45.4 | 46.1 |
+   | Null, gate mode, today | **37.8** | 44.1 | 42.3 | 44.7 |
+
+   The shipped Null deck averages 46.3. Null ~ Cortex (should be even, 45-55) falls out of its band:
+   39.0 in real mode with full collections, and 35.7 to 39.0 in gate mode at three levels. Cortex
+   gains in turn (real mode 51.6-54.4, was 48.5-50.5).
+   **Why:** Null's designed list is 36 cards. Session 23 cut it to 36 on purpose, for consistency. The
+   builder now has to add 4 cards. From a full collection it adds Fork Bomb, Null Pointer, Uplink
+   Tower and Patient Zero, and those 4 cards cost Null 3 to 4 points against the shipped decks. Swarm
+   loses its 39th-card cut too (about -3 against the shipped decks), but its ring edges barely move.
+
+**What I recommend:** keep option B and **make the pre-launch balance session the next game session**,
+with Null's 4 added cards as its first job. That is the change you already decided on 2026-10-26.
+Right now the builder chooses those 4 cards by rating. The balance session would choose them on
+purpose and measure them, and bring them to you for your OK. Until then, a Null owner with a full
+collection plays a weaker deck than before.
+
+**Alternatives:**
+- **B2. Allow 36 for Null until its 4 cards ship.** The builder may keep Null's designed 36-card list
+  as it is. This brings back the old Null numbers until the balance session. It is an exception to
+  the rule you just set, and only for one faction.
+- **B3. Keep today's build and change nothing until the balance session.** This is the same as my
+  recommendation, but the balance session is not moved up.
+
+**Default if you don't answer:** B as built, and the next game session starts the balance session
+with Null's 4 cards. It is test only: no card is added without your OK.
+
+### [ANSWERED 2026-10-26: option B; built session 58] Deck size: short decks win more; recommend exactly 40 cards
 
 **Your questions, answered** (`progress/deck-size-report-001.txt`, made by
 `engine/src/dev/deckSizeCheck.ts`; about 390,000 games):

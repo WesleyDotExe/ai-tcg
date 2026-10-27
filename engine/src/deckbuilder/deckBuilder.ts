@@ -9,13 +9,18 @@
 //  1. Construct (no games): two starting decks from the owned cards, under
 //     every deck rule (copy limits and what is owned, 1 per Zero-Day card,
 //     at most 10 neutral cards, the pool lint's 25% removal share, a
-//     faction card that draws, 20-40 cards) plus one rule of its own: no
-//     evolution without its base.
+//     faction card that draws, 20-40 cards) plus two rules of its own: no
+//     evolution without its base, and the deck's size is the largest the
+//     owned cards allow (`largestDeck`): 40 whenever the owner holds 40
+//     usable cards, else every usable card (owner 2026-10-26, option B;
+//     progress/deck-size-report-001.txt measured that a shorter deck of the
+//     same cards wins more, so the builder never cuts one short).
 //       - "rating": greedy by cardRating's prior, shaped to the shipped
 //         decks' mana curve.
 //       - "designed": the faction's shipped list (the set's designed deck)
 //         as far as the owner holds it, its gaps filled the same greedy way
-//         up to the designed list's own size (Null's is 36).
+//         up to the same size (Null's 36-card list gains 4 cards when the
+//         owner holds 40 usable ones).
 //     Two starts because neither prior is right everywhere: from a full
 //     collection the rating deck beats the designed one in Cortex and
 //     Aegis and loses to it in Swarm and Null (progress/
@@ -23,8 +28,8 @@
 //     rating deck alone fell 13 points under the designed list the owner
 //     could already play (economy-demo-014's first run).
 //  2. Search (games): the start that plays best on the search's seeds is
-//     changed a copy at a time (swap a card for an owned spare, or grow or
-//     shrink the deck by one), each change played against the four shipped
+//     changed a copy at a time (swap a card for an owned spare; the size
+//     never changes, since session 58), each change played against the four shipped
 //     decks on the same seeds as the current deck and kept only when it
 //     wins clearly more of those games.
 //  3. Confirm (games): the searched deck and both starts replay on fresh
@@ -242,25 +247,56 @@ function candidates(faction: DeckFaction, holdings: Holdings): Card[] {
 }
 
 /**
+ * The most cards a legal `faction` deck can hold from `holdings`, at most
+ * 40: the size every deck the builder makes has (owner 2026-10-26, option
+ * B). Below MIN_DECK no deck can be built. Every usable copy counts except
+ * an evolution whose base can't go in, under the two caps that bind a
+ * size: at most 10 neutral cards, filled with non-removal ones first (each
+ * of those also raises the removal allowance), and removal at most 25% of
+ * the deck. The flow and clock rules need one card each and don't limit
+ * the size.
+ */
+export function largestDeck(faction: DeckFaction, holdings: Holdings): number {
+  const pool = candidates(faction, holdings);
+  const ids = new Set(pool.map((c) => c.id));
+  const usable = (c: Card, depth = 0): boolean =>
+    !(c.type === "Unit" && c.evolvesFrom) || (depth < 8 && ids.has(c.evolvesFrom) && usable(getCard(c.evolvesFrom)!, depth + 1));
+  const n = { factionPlain: 0, factionRemoval: 0, neutralPlain: 0, neutralRemoval: 0 };
+  for (const card of pool) {
+    if (!usable(card)) continue;
+    const copies = playableCopies(card, holdings.get(card.id) ?? 0);
+    const key = `${isNeutral(card) ? "neutral" : "faction"}${isRemovalOrDebuffCard(card) ? "Removal" : "Plain"}` as keyof typeof n;
+    n[key] += copies;
+  }
+  const neutralPlain = Math.min(MAX_NEUTRAL_COPIES, n.neutralPlain);
+  const neutralRemoval = Math.min(MAX_NEUTRAL_COPIES - neutralPlain, n.neutralRemoval);
+  const plain = n.factionPlain + neutralPlain;
+  // removal <= share * (plain + removal)  <=>  removal <= plain * share / (1 - share)
+  const removal = Math.min(n.factionRemoval + neutralRemoval, Math.floor((plain * REMOVAL_SHARE) / (1 - REMOVAL_SHARE) + 1e-9));
+  return Math.min(MAX_DECK, plain + removal);
+}
+
+/**
  * The greedy first deck for `faction` from `holdings`, or the reason none
  * can be built. Picks the best-rated faction card that draws first (the
  * lint needs one), then fills each cost bucket toward the shipped curve
- * with the best-rated cards that fit, then fills to 40 by rating. A card
- * is added only while the list stays within the rules that adding can
- * break (copies, neutral cap, removal share at 40, evolution base).
+ * with the best-rated cards that fit, then fills to `largestDeck` by
+ * rating. A card is added only while the list stays within the rules that
+ * adding can break (copies, neutral cap, removal share of that size,
+ * evolution base). A deck that can't reach that size is not built.
  *
  * With a `start` list (the designed start), the list goes in first and only
- * its gaps are filled: the deck is filled to the start's own size, not to
- * 40, so an owner who holds the whole designed list gets exactly that list
- * (found session 54: Null's 36-card designed list was padded to 40 with the
- * four best-rated spares, and the padded deck played 3-4 points under the
- * designed one, so no owner's built Null deck could match it).
+ * its gaps are filled, to the same size. (Session 54 filled it to the
+ * start's own size instead, so a full collection's Null start was its
+ * 36-card designed list; the owner's option B, 2026-10-26, makes every
+ * built deck 40 when 40 usable cards are held, Null's included.)
  */
 export function constructDeck(faction: DeckFaction, holdings: Holdings, start?: DeckList): { list: DeckList } | { infeasible: string } {
   const pool = candidates(faction, holdings);
   const list: DeckList = new Map();
-  const target = start ? Math.min(MAX_DECK, Math.max(MIN_DECK, size(start))) : MAX_DECK;
-  const removalCap = Math.floor(REMOVAL_SHARE * MAX_DECK);
+  const target = largestDeck(faction, holdings);
+  if (target < MIN_DECK) return { infeasible: `can't build a legal deck from the owned cards (at most ${target} usable cards, under ${MIN_DECK})` };
+  const removalCap = Math.floor(REMOVAL_SHARE * target);
   const count = { neutral: 0, removal: 0 };
   const byBucket = [0, 0, 0, 0, 0, 0, 0];
   const canAdd = (card: Card): boolean => {
@@ -321,20 +357,42 @@ export function constructDeck(faction: DeckFaction, holdings: Holdings, start?: 
     }
   }
   // Then fill to the target by rating alone (again until nothing more fits).
-  grew = true;
-  while (grew && size(list) < target) {
-    grew = false;
-    for (const card of pool) {
-      while (canAdd(card)) {
-        add(card);
-        grew = true;
+  const fill = (): void => {
+    let more = true;
+    while (more && size(list) < target) {
+      more = false;
+      for (const card of pool) {
+        while (canAdd(card)) {
+          add(card);
+          more = true;
+        }
       }
     }
+  };
+  fill();
+  // A neutral removal card can fill a neutral slot a plain neutral card
+  // should have: it spends a removal slot too, so the deck stops short of
+  // the target. Swap the lowest-rated one for the best plain neutral spare
+  // and fill again, until the target is reached or no such swap is left.
+  while (size(list) < target && count.neutral >= MAX_NEUTRAL_COPIES) {
+    const out = cardsOf(list)
+      .filter(({ card }) => isNeutral(card) && isRemovalOrDebuffCard(card))
+      .sort((a, b) => cardRating(a.card) - cardRating(b.card) || a.card.id.localeCompare(b.card.id))[0];
+    const spare = pool.find((c) => isNeutral(c) && !isRemovalOrDebuffCard(c) && (list.get(c.id) ?? 0) < playableCopies(c, holdings.get(c.id) ?? 0));
+    if (!out || !spare) break;
+    const n = list.get(out.card.id)! - 1;
+    if (n > 0) list.set(out.card.id, n);
+    else list.delete(out.card.id);
+    count.neutral--;
+    count.removal--;
+    byBucket[bucket(out.card)]!--;
+    add(spare);
+    fill();
   }
-  // The removal cap above assumed a full 40. When the owned cards run out
-  // short of that, the 25% share is of a smaller deck, so take out the
-  // lowest-rated removal copies until it holds (found session 54: a Null
-  // owner's day-one collection stopped at 37 cards with 10 removal).
+  // A safety net: the removal cap above is the target's share, so this
+  // only acts if the fill went past it (found session 54, when the cap was
+  // a full 40's: a Null owner's day-one collection stopped at 37 cards with
+  // 10 removal). Take out the lowest-rated removal copies until it holds.
   const removalIn = () => cardsOf(list).filter(({ card }) => isRemovalOrDebuffCard(card));
   while (count.removal > REMOVAL_SHARE * size(list) && size(list) > MIN_DECK) {
     const isBase = (id: string) => [...list.keys()].some((k) => { const c = getCard(k)!; return c.type === "Unit" && c.evolvesFrom === id; });
@@ -350,6 +408,7 @@ export function constructDeck(faction: DeckFaction, holdings: Holdings, start?: 
   }
   const problem = listProblem(list, faction, holdings);
   if (problem) return { infeasible: `can't build a legal deck from the owned cards (${problem})` };
+  if (size(list) !== target) return { infeasible: `built ${size(list)} cards, short of the ${target} the owned cards allow` };
   return { list };
 }
 
@@ -436,8 +495,10 @@ function apply(list: DeckList, change: Change): DeckList {
 
 /** Proposes the next change to try: alternately the "obvious" swap (the
  * lowest-rated card in the deck for the best-rated owned spare, walking
- * down both lists as earlier pairs are used) and a random one, with a
- * one-in-five chance of a size change instead. */
+ * down both lists as earlier pairs are used) and a random one. Every
+ * change keeps the deck's size (session 58: the size is `largestDeck`'s;
+ * before, one change in five grew or shrank the deck by a card, and with
+ * nothing pushing it back up the kept decks drifted 1-5 cards short). */
 function* proposals(faction: DeckFaction, holdings: Holdings, rng: Rng, current: () => DeckList): Generator<Change> {
   const tried = new Set<string>();
   const key = (c: Change) => `${c.out ?? ""}>${c.in ?? ""}`;
@@ -446,17 +507,16 @@ function* proposals(faction: DeckFaction, holdings: Holdings, rng: Rng, current:
     const inDeck = [...list.keys()].sort((a, b) => cardRating(getCard(a)!) - cardRating(getCard(b)!) || a.localeCompare(b));
     const spares = candidates(faction, holdings).filter((c) => (list.get(c.id) ?? 0) < playableCopies(c, holdings.get(c.id) ?? 0)).map((c) => c.id);
     const options: Change[] = [];
-    if (rng.next() < 0.2) {
-      if (size(list) > MIN_DECK) options.push(...inDeck.map((out) => ({ out })));
-      if (size(list) < MAX_DECK) options.push(...spares.map((id) => ({ in: id })));
-    } else if (step % 2 === 0) {
+    if (step % 2 === 0) {
       for (const out of inDeck) for (const id of spares) if (out !== id) options.push({ out, in: id });
     } else {
       const outs = rng.shuffle(inDeck);
       const ins = rng.shuffle(spares);
       for (const out of outs) for (const id of ins) if (out !== id) options.push({ out, in: id });
     }
-    const next = options.find((c) => !tried.has(key(c)) && listProblem(apply(list, c), faction, holdings) === undefined);
+    // Taking out an evolution's last base takes the evolution out too,
+    // which would shrink the deck: not a swap.
+    const next = options.find((c) => !tried.has(key(c)) && size(apply(list, c)) === size(list) && listProblem(apply(list, c), faction, holdings) === undefined);
     if (!next) continue;
     tried.add(key(next));
     yield next;

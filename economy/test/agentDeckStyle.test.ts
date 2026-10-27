@@ -9,7 +9,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { CARD_REGISTRY, SHIPPED_DECK_LISTS, chooseDeck, getCard, holdingsOf, playableCopies } from "@ai-tcg/engine";
+import { CARD_REGISTRY, SHIPPED_DECK_LISTS, chooseDeck, getCard, holdingsOf, largestDeck, playableCopies } from "@ai-tcg/engine";
 import { EconomyStore, holdingsFingerprint, playableHoldingsFingerprint } from "../src/index.js";
 
 let clock = new Date("2026-10-20T10:00:00.000Z");
@@ -293,6 +293,41 @@ describe("the deck chooser runs elsewhere (session 56: the server's worker threa
     expect(s.collection(ownerId).length).toBeLessThan(before);
     // Built again from what is held now, it saves.
     await s.buildAgentDeck(ownerId, FAST);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+  });
+
+  it("saves a deck as large as the cards held allow, and refuses a shorter one (owner 2026-10-26, option B)", async () => {
+    const s = open();
+    const ownerId = packOwner(s);
+    const holdings = holdingsOf(s.collection(ownerId).map((c) => c.cardId));
+    // A stand-in chooser that cuts the engine's deck by one card.
+    const cutting = async (h: Parameters<typeof chooseDeck>[0], options: Parameters<typeof chooseDeck>[1]) => {
+      const built = await chooseDeck(h, options);
+      const list = new Map(built.list);
+      const [cardId, n] = [...list].find(([id]) => getCard(id)!.type !== "Unit")!;
+      if (n > 1) list.set(cardId, n - 1);
+      else list.delete(cardId);
+      return { ...built, list };
+    };
+    await expect(s.buildAgentDeck(ownerId, FAST, cutting)).rejects.toThrow(/the agent built \d+ cards; the cards held allow \d+/);
+    expect(s.agentDeckId(ownerId)).toBeNull();
+    const built = await s.buildAgentDeck(ownerId, FAST);
+    expect(built.deck.copyIds.length).toBe(largestDeck(built.faction, holdings));
+  });
+
+  it("names a deck shorter than the cards held allow (built before option B) as a rebuild reason", async () => {
+    const s = open();
+    const ownerId = packOwner(s);
+    const built = await s.buildAgentDeck(ownerId, FAST);
+    const allow = built.deck.copyIds.length;
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
+    // Stand in for a deck the builder cut short before session 58: one copy
+    // fewer, what it was built from unchanged.
+    const db = (s as unknown as { db: { prepare(sql: string): { run(...a: unknown[]): unknown } } }).db;
+    db.prepare("DELETE FROM deck_copies WHERE rowid = (SELECT MAX(rowid) FROM deck_copies WHERE deck_id = ?)").run(built.deck.deckId);
+    expect(s.agentDeckRebuildReasons(ownerId)).toEqual([`the deck has ${allow - 1} cards and the cards held allow ${allow} (the agent builds to that since session 58)`]);
+    const again = await s.rebuildAgentDeckIfNeeded(ownerId, FAST);
+    expect(again!.build.deck.copyIds.length).toBe(allow);
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
   });
 });

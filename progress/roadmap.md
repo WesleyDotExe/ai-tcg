@@ -437,6 +437,10 @@ PASSED (owner 2026-10-22, call 1): the built decks pass the gate as
 built. It stays a STANDING check: re-run `builtDeckRing.ts` before launch
 and after any card change. The measure keeps the store's own deck build,
 the one owners get (call 3).
+RE-RUN session 58 after option B (`progress/built-deck-ring-002.txt`):
+no short decks, but Null falls to 37.8-44.7 against the field and
+Null ~ Cortex goes OUT at several levels; flagged to the owner, fix path
+is Null's 4 added cards in the balance session below.
 
 **Standing: a test-only balance session before launch (owner 2026-10-22,
 call 2).** Before the public launch, one game-lane session tests one or
@@ -453,6 +457,13 @@ the gate above. Tools in hand: `ringRegression.ts` (`npm run ring`,
 `ring:real`), `builtDeckRing.ts` (about 25 minutes on 4 cores per full
 run), the lever tuner (session 49) and balance reports 030-032 for the
 causes already found (Aegis's spare late energy and signature gain).
+ALSO IN SCOPE (owner 2026-10-26): Null's starter and shipped list grow
+from 36 to 40 cards so every starter is the same size; the session brings
+candidates for the 4 added Null cards with the same full results (both
+ring modes, the built-deck ring at every level). No card added without the
+owner's OK. Since session 58 (option B) the builder already builds Null to
+40 whenever 40 usable cards are held, so the built-deck ring's Null decks
+are the "40 by the builder's fill" baseline the candidates must beat.
 
 **Standing: live operations, balancing never stops (owner 2026-10-05).**
 Once live: track faction popularity and win rates from real ladder and

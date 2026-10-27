@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -55,9 +55,29 @@ real, but here is where it's thin.
   (inverted) and Cortex > Swarm (under band), candidates measured on the ring in both modes and on the
   built-deck ring at every level, results to an owner check-in. Planned on the roadmap; not run yet.
 
-## Session 57 (the deck-size check): what it found, and what is still thin
+## Session 58 (option B built): what it left thin
 
-- **Open, rules-level (owner decision pending): a short deck wins more.** With the same cards in the
+- **Null is now the weakest faction with built decks (new, important).** With no short decks, the
+  builder pads Null's 36-card designed list with 4 rating picks. Null's field average falls to
+  37.8-44.7 (was 44.7-48.7) and Null ~ Cortex goes OUT of its even band at several levels
+  (`progress/built-deck-ring-002.txt`). The fix is the owner-decided 36 -> 40 Null list, chosen in the
+  pre-launch balance session; until then built Null decks are weaker than session 54's. Owner check-in
+  open (B2 would let Null keep 36 for now).
+- **The built-deck gate was passed on session 54's numbers.** The re-run shows a new OUT edge
+  (Null ~ Cortex) the owner has not seen judged as a gate result. Treat the gate as needing the owner's
+  re-read before launch.
+- **The size rule is the builder's only.** A deck an owner saves and forces can still be any size from
+  20 to 40, so the short-deck gain session 57 measured is still there for anyone who forces a short
+  deck (or an external deck builder). The owner kept the legal range; worth revisiting if forced short
+  decks show up on the ladder.
+- **`largestDeck` is checked, not proven.** It matches both starts on ~2,200 builds and one more copy
+  always breaks a rule on the built list, but its optimality is an argument in a comment, not a search.
+- **Demos not re-run:** `progress/economy-demo-014.txt` and `-016.txt` show pre-B built decks; the
+  older deck-builder reports too. History, but anyone reading them sees old sizes.
+
+## Session 57 (the deck-size check): what it found, and what is still thin (the rules question is answered: option B, built session 58)
+
+- **Answered (owner 2026-10-26, option B; built session 58): a short deck wins more.** With the same cards in the
   same proportions, 20 cards beat 40 by +2.6 to +5.3 points in every faction. Fatigue never bites
   before a match ends (each side draws ~10-15 cards; a 20-card deck ran dry in at most 1.9% of games).
   The 20-card floor is a free advantage for anyone who picks short decks: a stronger search, an owner
