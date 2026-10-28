@@ -3603,3 +3603,36 @@ Answers the [OWNER CHECK-IN] on the minimum deck size in `progress/notes-for-own
 Answers the "Not decided yet" line in the entry above (Null's starter at 36 cards).
 - **Decided:** all faction starter decks have the same number of cards. Null's starter grows from 36 to 40 to match the others, with Null's card list growing as needed to make that possible.
 - The 4 added Null cards are chosen in the pre-launch balance session: bring the candidates and their full results (ring check and built-deck ring) to an owner check-in. No cards are added without the owner's OK.
+
+---
+
+## 2026-10-29 — Owner: answers to game session 58 (option B built; Null falls behind)
+
+Answers the [OWNER CHECK-IN] "Option B is built; without its short deck, Null falls behind" in `progress/notes-for-owner.md` (PR #99, `progress/built-deck-ring-002.txt`).
+- **Keep option B as built.** No 36-card exception for Null (not B2).
+- **The pre-launch balance session is the next game session,** with Null's 4 added cards (its 36 → 40 list, so every starter is the same size) as its first job, then the two old edges (Null > Aegis, Cortex > Swarm) as planned.
+- Test only: bring the candidate cards and their full results (ring check and built-deck ring, every collection level) to an owner check-in. No card is added without the owner's OK.
+
+---
+
+## 2026-10-29 — Owner: answers to render session 39 (the victory boasts' sounds on the audio clock), keep all 5
+
+Owner decisions on the 5 calls in `progress/render/checkpoints.md` (PR #98).
+1. **Keep:** a skip cuts a boast's sounds in 30 ms, the sting included, the same as the intro.
+2. **Keep:** at its own end the sting rings out over the result line.
+3. **Keep:** the boasts keep panning by where each sound happens on the winner's side; the intro stays dead centre.
+4. **Keep:** a sound more than 120 ms past its time when it could be queued is dropped, never played late.
+5. **Keep:** with effects muted, the music is no longer held under the sting.
+
+---
+
+## 2026-10-29 — Owner: answers to render session 40 (hardening pass), keep all 3; yes to the CI browser check
+
+Owner decisions on the 3 calls in `progress/render/checkpoints.md` and the question in `progress/render/notes-for-owner.md` (PR #100).
+1. **Keep:** the halo is cut at the edge of the winner's side.
+2. **Keep:** the loser's clear also fades the winner's particles that reach the loser's side.
+3. **Keep:** one Skip size rule for the intro and every boast (touch screens only).
+
+**CI browser check: yes.** Next render-lane slice, as set: build the CI-sized headless-browser check (the six boasts' "nothing past the winner's side", the Skip sizes, one replay's intro) and run it on every push.
+- The owner OKs this slice changing the shared workflow files (`.github/workflows/test.yml` and the auto-merge workflow) for this check and the wait below only.
+- **Condition:** in the same change, lengthen the auto-merge job's wait for checks so the longer test run can't time it out. Its current 5-minute wait already timed out once (PR #88, tests green). Keep the extra run time as small as practical, and report the new test-run time and the new wait at the checkpoint.
