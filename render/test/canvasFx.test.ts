@@ -35,6 +35,7 @@ import {
   fxFlightEase,
   fxImpactRecipe,
   fxKitOf,
+  fxParticleReach,
   fxRgbOf,
   fxShotCount,
   fxTintPixels,
@@ -323,5 +324,39 @@ describe("slice 2: every category in every faction's material", () => {
     // Grid first, then the floor's own marks on top of it.
     const d = CANVAS_FX_RUNTIME_SOURCE.indexOf("function draw()");
     expect(CANVAS_FX_RUNTIME_SOURCE.indexOf("gridDraw(flc);", d)).toBeLessThan(CANVAS_FX_RUNTIME_SOURCE.indexOf("if (P[i].layer === 0) drawP(flc, P[i]);", d));
+  });
+});
+
+describe("the loser's side is cleared by a particle's reach, not its centre (render session 40)", () => {
+  it("each kind's reach is how far drawP lights pixels from the centre", () => {
+    // A sprite: its turned square at the larger size and stretch.
+    expect(fxParticleReach({ kind: "spr", s0: 40, s1: 160, sx: 1, sy: 1 })).toBeCloseTo(80 * Math.SQRT2);
+    expect(fxParticleReach({ kind: "spr", s0: 40, s1: 20, sx: 1, sy: 3 })).toBeCloseTo(60 * Math.SQRT2);
+    // A spark's tail (at most 44 px) and its widest stroke.
+    expect(fxParticleReach({ kind: "spark", size: 2 })).toBeCloseTo(44 + 4.2);
+    // A square's halo and an ember's glow (3 x size), a mote's (4 x size).
+    expect(fxParticleReach({ kind: "square", size: 1.5 })).toBeCloseTo(4.5);
+    expect(fxParticleReach({ kind: "ember", size: 3 })).toBeCloseTo(9);
+    expect(fxParticleReach({ kind: "mote", size: 1.2 })).toBeCloseTo(4.8);
+    // A shard's farthest corner, turned; a bloom's glow at its widest.
+    expect(fxParticleReach({ kind: "shard", pts: [-3, 2, 9, -1, 0, 4] })).toBeCloseTo(9 * Math.SQRT2);
+    expect(fxParticleReach({ kind: "bloom", r: 50 })).toBeCloseTo(60);
+  });
+
+  it("every particle kind the runtime makes has a reach, and the clear and the count use it", () => {
+    const kinds = new Set([...CANVAS_FX_RUNTIME_SOURCE.matchAll(/kind: '([a-z]+)'/g)].map((m) => m[1]!));
+    expect([...kinds].sort()).toEqual(["bloom", "ember", "mote", "shard", "spark", "spr", "square"]);
+    for (const k of kinds) expect(fxParticleReach({ kind: k, s0: 10, s1: 10, size: 1, pts: [1, 1, 1, 1, 1, 1], r: 10 }), k).toBeGreaterThan(0);
+    // The drawing code each reach was read from (a change there should be
+    // read back into fxParticleReach).
+    expect(CANVAS_FX_RUNTIME_SOURCE).toContain("L = Math.min(44, 3 + sp * 0.065)");
+    expect(CANVAS_FX_RUNTIME_SOURCE).toContain("if (p.kind === 'square') { var q = p.size * 3;");
+    expect(CANVAS_FX_RUNTIME_SOURCE).toContain("drawGlow(c, p.x, p.y, p.size * 3, p.c, a * 0.8)");
+    expect(CANVAS_FX_RUNTIME_SOURCE).toContain("drawGlow(c, p.x, p.y, p.size * 4, p.c, a)");
+    expect(CANVAS_FX_RUNTIME_SOURCE).toContain("drawGlow(c, p.x, p.y, p.r * (0.7 + 0.5 * k), p.c, b * 0.75)");
+    const within = CANVAS_FX_RUNTIME_SOURCE.slice(CANVAS_FX_RUNTIME_SOURCE.indexOf("function within(p, r)"));
+    expect(within.slice(0, within.indexOf("\n"))).toContain("fxParticleReach(p)");
+    expect(CANVAS_FX_RUNTIME_SOURCE).toMatch(/function fadeOutIn[\s\S]*?if \(!within\(p, r\)\) continue;/);
+    expect(CANVAS_FX_RUNTIME_SOURCE).toMatch(/function countIn\(r\) \{[^\n]*within\(P\[i\], r\)/);
   });
 });

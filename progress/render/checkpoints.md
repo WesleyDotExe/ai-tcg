@@ -7,6 +7,42 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-28 — Hardening pass: the boast stays on the winner's side by construction; Skip on a phone — AWAITING FEEDBACK
+
+No slice was set after session 39, and the lane had gone twenty sessions without a hardening pass, so
+this session raised three debt items to bar. No new features. Open `render/output/boast-sheet.html` and
+play Shield Slam; on a phone, any boast's Skip.
+- **A boast no longer lights anything past the winner's side.** Each piece's soft halo reached past the
+  box the grammar checker measured. The debt list said it had never shown on the loser's side; measured
+  this session, it did: Shield Slam lit a few hundred pixels on the loser's side of the sheet, and Shield
+  Slam, Hive Burst and Void Collapse lit pixels up to 19 px past the winner's side. Everything the boast
+  draws itself is now clipped to the winner's side: 0 for all six boasts.
+- **The loser's side is cleared by how far each particle reaches,** not only where its centre is, so a
+  big smoke puff from the lethal hit centred just outside the loser's side no longer shows its edge
+  through the boast.
+- **Every boast's Skip is finger-sized on a touch screen** (at least 88 x 44 px, was 70 x 23), the same
+  as the intro's (your session-38 call 7). Desktop unchanged.
+- The grammar checker also caps a boast's length (3.2 s, plus the 0.6 s close-call hold on a close win).
+
+**Evidence:** `progress/render/evidence/hardening-check-s40.mjs` (output `hardening-check-s40.txt`): 19
+checks, ALL PASS, run twice, each against the page from before this session. Render tests 656 (+11), with
+mutation checks (no clip fails 7 of 8 clip tests). The session-39 sound check and the session-38 intro
+check re-run on the regenerated pages (see the log).
+
+**Decisions you may want to overrule:**
+1. **The halo is cut at the edge of the winner's side** rather than each piece being kept further in.
+   The cut glow is faint, but along the midline it is a straight edge. Alternative: shrink or move the
+   pieces near the edge so their halos fade out inside.
+2. **The loser's clear also fades the winner's particles that reach the loser's side** (lethal-hit
+   debris near the midline). Alternative: only particles centred on the loser's side, clipped instead.
+3. **One Skip size rule for the intro and every boast** (touch screens only).
+
+**Thin spots (in the debt list):** the clip's edge hasn't been looked at by a person; the boast's
+shocks, flares and sparks are drawn by the shared effects layer and stay inside by the checker's
+arithmetic, not a clip; the browser checks still don't run in CI.
+
+---
+
 ## 2026-10-26 — The victory boasts' sounds on the audio clock — AWAITING FEEDBACK
 
 The slice you set after Match Boot slice 2. Open any recorded replay in `render/output/` (for example

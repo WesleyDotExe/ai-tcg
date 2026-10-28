@@ -204,6 +204,23 @@ export const CANVAS_FX_PURE_SOURCE = String.raw`
     var u = 1 - t;
     return { x: u * u * arc.a.x + 2 * u * t * arc.c.x + t * t * arc.b.x, y: u * u * arc.a.y + 2 * u * t * arc.c.y + t * t * arc.b.y };
   }
+
+  // How far from its centre a particle can light pixels over its whole
+  // life, as drawP draws it (render session 40): a sprite's turned square
+  // at its larger size and stretch, a spark's tail (at most 44 px) and
+  // stroke, a square's halo, an ember's or a mote's glow, a shard's corners,
+  // a bloom's glow at its widest. The loser's side is cleared by this reach,
+  // not by the centre alone, so a big smoke sprite just outside it is caught.
+  function fxParticleReach(p) {
+    var k = p.kind;
+    if (k === 'spr') return Math.max(p.s0 || 0, p.s1 || 0) / 2 * Math.max(p.sx || 1, p.sy || 1) * Math.SQRT2;
+    if (k === 'spark') return 44 + (p.size || 0) * 2.1;
+    if (k === 'square' || k === 'ember') return (p.size || 0) * 3;
+    if (k === 'mote') return (p.size || 0) * 4;
+    if (k === 'shard') { var m = 0; (p.pts || []).forEach(function (v) { m = Math.max(m, Math.abs(v)); }); return m * Math.SQRT2; }
+    if (k === 'bloom') return (p.r || 0) * 1.2;
+    return 0;
+  }
 `;
 
 export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
@@ -849,12 +866,13 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
       return true;
     }
 
-    // fadeOutIn(rect, ms): every particle inside a document rect fades out
+    // fadeOutIn(rect, ms): every particle reaching into a document rect (by
+    // fxParticleReach, not only its centre) fades out
     // over ms (one not yet started there never starts). A victory boast
     // clears the loser's side with it, so the lethal attack's smoke and
     // scorch don't linger there under the boast (owner 2026-10-19).
     // countIn(rect): how many particles sit inside one, for the checks.
-    function within(p, r) { return p.x >= r.l && p.x <= r.r && p.y >= r.t && p.y <= r.b; }
+    function within(p, r) { var e = fxParticleReach(p); return p.x + e >= r.l && p.x - e <= r.r && p.y + e >= r.t && p.y - e <= r.b; }
     function fadeOutIn(r, ms) {
       var n = 0, life = Math.max(0.001, (ms || 0) / 1000);
       for (var i = P.length - 1; i >= 0; i--) {
@@ -1060,7 +1078,7 @@ export const CANVAS_FX_RUNTIME_SOURCE = String.raw`
 `;
 
 const pure = new Function(
-  `${CANVAS_FX_PURE_SOURCE}; return { FX_SP: FX_SP, FX_KITS: FX_KITS, FX_TRAVEL: FX_TRAVEL, FX_IMPACT: FX_IMPACT, FX_KILL: FX_KILL, FX_CATEGORIES: FX_CATEGORIES, FX_SPELL_SHOTS: FX_SPELL_SHOTS, fxKitOf: fxKitOf, fxRgbOf: fxRgbOf, fxVariant: fxVariant, fxTintPixels: fxTintPixels, fxTravelRecipe: fxTravelRecipe, fxImpactRecipe: fxImpactRecipe, fxDecalCover: fxDecalCover, fxFlightEase: fxFlightEase, fxArcPoint: fxArcPoint, fxShotCount: fxShotCount, fxVolleySchedule: fxVolleySchedule, fxCurve: fxCurve };`,
+  `${CANVAS_FX_PURE_SOURCE}; return { FX_SP: FX_SP, FX_KITS: FX_KITS, FX_TRAVEL: FX_TRAVEL, FX_IMPACT: FX_IMPACT, FX_KILL: FX_KILL, FX_CATEGORIES: FX_CATEGORIES, FX_SPELL_SHOTS: FX_SPELL_SHOTS, fxKitOf: fxKitOf, fxRgbOf: fxRgbOf, fxVariant: fxVariant, fxTintPixels: fxTintPixels, fxTravelRecipe: fxTravelRecipe, fxImpactRecipe: fxImpactRecipe, fxDecalCover: fxDecalCover, fxFlightEase: fxFlightEase, fxArcPoint: fxArcPoint, fxParticleReach: fxParticleReach, fxShotCount: fxShotCount, fxVolleySchedule: fxVolleySchedule, fxCurve: fxCurve };`,
 )() as {
   FX_SP: Record<string, number>;
   FX_KITS: Record<string, FxKit>;
@@ -1081,6 +1099,7 @@ const pure = new Function(
   fxFlightEase: (t: number) => number;
   fxDecalCover: (tier: FxTier) => number;
   fxArcPoint: (arc: Arc, t: number) => { x: number; y: number };
+  fxParticleReach: (p: { kind: string; s0?: number; s1?: number; sx?: number; sy?: number; size?: number; pts?: number[]; r?: number }) => number;
 };
 
 export interface FxKit {
@@ -1129,6 +1148,7 @@ export const fxFlightEase = pure.fxFlightEase;
 /** How far past a hit card's larger side its floor mark reaches (0 = none). */
 export const fxDecalCover = pure.fxDecalCover;
 export const fxArcPoint = pure.fxArcPoint;
+export const fxParticleReach = pure.fxParticleReach;
 
 const ASSET_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "../assets/fx");
 export const FX_ATLAS_FILES = ["atlas-a.webp", "atlas-b.webp", "atlas-c.webp"] as const;

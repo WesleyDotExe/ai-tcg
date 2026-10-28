@@ -689,6 +689,9 @@ html, body {
 .boast-skip { position: absolute; z-index: 97; font: inherit; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--ink, #dfe7ff);
   background: rgba(10,12,22,0.82); border: 1px solid var(--line, #334); border-radius: 4px; padding: 4px 9px; cursor: pointer; transition: opacity 320ms ease; }
 .boast-skip:hover, .boast-skip:focus-visible { border-color: var(--ink, #dfe7ff); }
+/* A finger-sized Skip on a touch screen: the intro's (render session 38) and
+   every boast's (render session 40) are the same button. */
+@media (pointer: coarse) { .boast-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
 .turnbar .win.land { display: inline-block; animation: boast-land 520ms cubic-bezier(.2,.9,.3,1.3) both; }
 @keyframes boast-land { from { opacity: 0; transform: translateY(6px) scale(1.25); } to { opacity: 1; transform: none; } }
 /* Boot Sequence's plate: the name in the BIOS's type, behind a block cursor. */
@@ -700,8 +703,7 @@ html, body {
 /* Match Boot (render/src/matchBootFx.ts). */
 
 .boot-canvas { position: absolute; z-index: 92; pointer-events: none; }
-/* A finger-sized Skip on a touch screen (render session 38). */
-@media (pointer: coarse) { .boot-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
+/* Its Skip is a .boast-skip: finger-sized on a touch screen by BOAST_CSS. */
 
 
 
@@ -980,6 +982,23 @@ body { padding: 12px 16px 40px; }
   function fxArcPoint(arc, t) {
     var u = 1 - t;
     return { x: u * u * arc.a.x + 2 * u * t * arc.c.x + t * t * arc.b.x, y: u * u * arc.a.y + 2 * u * t * arc.c.y + t * t * arc.b.y };
+  }
+
+  // How far from its centre a particle can light pixels over its whole
+  // life, as drawP draws it (render session 40): a sprite's turned square
+  // at its larger size and stretch, a spark's tail (at most 44 px) and
+  // stroke, a square's halo, an ember's or a mote's glow, a shard's corners,
+  // a bloom's glow at its widest. The loser's side is cleared by this reach,
+  // not by the centre alone, so a big smoke sprite just outside it is caught.
+  function fxParticleReach(p) {
+    var k = p.kind;
+    if (k === 'spr') return Math.max(p.s0 || 0, p.s1 || 0) / 2 * Math.max(p.sx || 1, p.sy || 1) * Math.SQRT2;
+    if (k === 'spark') return 44 + (p.size || 0) * 2.1;
+    if (k === 'square' || k === 'ember') return (p.size || 0) * 3;
+    if (k === 'mote') return (p.size || 0) * 4;
+    if (k === 'shard') { var m = 0; (p.pts || []).forEach(function (v) { m = Math.max(m, Math.abs(v)); }); return m * Math.SQRT2; }
+    if (k === 'bloom') return (p.r || 0) * 1.2;
+    return 0;
   }
 
 
@@ -1625,12 +1644,13 @@ body { padding: 12px 16px 40px; }
       return true;
     }
 
-    // fadeOutIn(rect, ms): every particle inside a document rect fades out
+    // fadeOutIn(rect, ms): every particle reaching into a document rect (by
+    // fxParticleReach, not only its centre) fades out
     // over ms (one not yet started there never starts). A victory boast
     // clears the loser's side with it, so the lethal attack's smoke and
     // scorch don't linger there under the boast (owner 2026-10-19).
     // countIn(rect): how many particles sit inside one, for the checks.
-    function within(p, r) { return p.x >= r.l && p.x <= r.r && p.y >= r.t && p.y <= r.b; }
+    function within(p, r) { var e = fxParticleReach(p); return p.x + e >= r.l && p.x - e <= r.r && p.y + e >= r.t && p.y - e <= r.b; }
     function fadeOutIn(r, ms) {
       var n = 0, life = Math.max(0.001, (ms || 0) / 1000);
       for (var i = P.length - 1; i >= 0; i--) {
@@ -3232,6 +3252,10 @@ body { padding: 12px 16px 40px; }
       return null;
     }
     var i, j, p;
+    // A plan is never longer than its spec may be, plus the close-call
+    // line's hold on a close win (render session 40: only specs were capped).
+    var cap = (plan.still ? BOAST_STILL_MS : BOAST_MS_MAX) + (plan.close ? BOAST_CLOSE_MS : 0);
+    if (!(plan.ms > 0) || plan.ms > cap) return 'length ' + plan.ms + ' ms past ' + cap;
     for (i = 0; i < plan.pieces.length; i++) {
       var pc = plan.pieces[i];
       for (j = 0; j < pc.keys.length; j++) {
@@ -3397,6 +3421,13 @@ body { padding: 12px 16px 40px; }
           var K = CFX.kit, c = cur.rgb, glow = 0;
           cur.pulses = cur.pulses.filter(function (p) { return cur.t < p.t + p.ms; });
           cur.pulses.forEach(function (p) { glow = Math.max(glow, 1 - (cur.t - p.t) / p.ms); });
+          // Everything the boast draws itself stays on the winner's side: a
+          // sprite's halo reaches up to 1.25 x its size, past the box
+          // boastPlanProblem checks (up to 70 px over the edge measured in
+          // render session 40), so the side is a clip, not only a check.
+          var B = cur.clip;
+          ctx.save();
+          if (B) { ctx.beginPath(); ctx.rect(B.l, B.t, B.r - B.l, B.b - B.t); ctx.clip(); }
           if (cur.veil) {
             var v = cur.veil, va = v.a * (v.ms > 0 ? Math.min(1, (cur.t - v.t) / v.ms) : 1);
             if (cur.t > cur.plan.ms) va *= Math.max(0, 1 - (cur.t - cur.plan.ms) / 320);
@@ -3438,6 +3469,7 @@ body { padding: 12px 16px 40px; }
             ctx.restore();
           }
           ctx.globalAlpha = 1;
+          ctx.restore();
           if (n > stats.peakPieces) stats.peakPieces = n;
           stats.drawn++;
         },
@@ -3690,7 +3722,8 @@ body { padding: 12px 16px 40px; }
       stats.problem = problem;
       stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0; stats.groups = {};
       plan.pieces.forEach(function (pc) { var g = pc.grp || pc.shape || pc.sp; stats.groups[g] = (stats.groups[g] || 0) + 1; });
-      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false, seq: null };
+      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false, seq: null,
+        clip: { l: geom.band.l - 2, t: geom.band.t - 2, r: geom.band.r + 2, b: geom.band.b + 2 } };
       // The sounds and the music's holds under them go out on the audio
       // clock together (a hold is queued with its sting, not a frame later).
       var sounds = [];

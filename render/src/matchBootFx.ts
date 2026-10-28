@@ -537,8 +537,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
 // canvas, under the boast's plate and Skip).
 export const MATCH_BOOT_CSS = `
 .boot-canvas { position: absolute; z-index: 92; pointer-events: none; }
-/* A finger-sized Skip on a touch screen (render session 38). */
-@media (pointer: coarse) { .boot-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
+/* Its Skip is a .boast-skip: finger-sized on a touch screen by BOAST_CSS. */
 `;
 
 export interface BootRect { l: number; t: number; r: number; b: number }

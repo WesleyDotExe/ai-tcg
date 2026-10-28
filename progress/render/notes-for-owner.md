@@ -913,3 +913,17 @@ timing was measured from the page's real audio output in a headless browser; nob
 **For the game lane, nothing.** (Your 2026-10-24 question on the minimum deck size is the game lane's,
 for its next session.)
 
+
+---
+
+## 2026-10-28 — Session 40 (hardening pass)
+
+1. **The render's browser checks don't run in CI, and that's how the halo spill went unseen.** Every
+   visual claim (nothing drawn on the loser's side, Skip sizes, sound timing) is proven by a committed
+   Playwright script run by hand in the session (`progress/render/evidence/*.mjs`); the test workflow
+   runs only vitest. This session found the boast's halo had been lighting the loser's side since
+   slice 1, with a debt line saying it never had. Running a small set of these checks on every push
+   would need a headless Chromium in `.github/workflows/test.yml` (about 1-2 extra minutes per run).
+   That file is shared with the game lane, so it's your call: say if you want it, and the render lane
+   will build a CI-sized check (the six boasts' "nothing past the winner's side", the Skip sizes, one
+   replay's intro) as its own slice.

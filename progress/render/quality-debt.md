@@ -7,6 +7,27 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## Hardening pass (session 40)
+
+- **The boast's clip has a hard edge.** Everything the boast draws itself is clipped to the winner's
+  side (2 px over). Where a halo used to fade out past the side it is now cut at the side's edge. The
+  halo there is faint (past 55% of its radius it is under 12% opacity), and no still has been looked at by
+  a person for a visible line along the midline.
+- **The `CFX.kit` marks are still kept in by the checker, not the clip:** a boast's shocks, flares,
+  rings and sparks are drawn by the effects layer with everything else, so they can't be clipped to
+  one side without clipping the match's own effects. The checker's reach for each is conservative
+  (and measured: 0 lit pixels past the side for all six boasts on the sheet), but it's arithmetic,
+  not a guarantee.
+- **The loser's clear now also catches a few of the winner's particles:** `fadeOutIn` fades any
+  particle whose reach touches the loser's rect, so lethal-hit debris on the winner's side within a
+  sprite's reach of the midline fades with it. Harmless (it's the lethal attack's debris either way),
+  but it is a change in what fades.
+- **`fxParticleReach` is read from `drawP` by hand.** A test pins the drawing lines it was read from,
+  so a change there fails a test; but a new particle kind with no reach counts as a point (reach 0).
+  The test lists today's seven kinds, so a new kind fails it until it's added.
+- **The browser checks still aren't in CI.** This session's check (`hardening-check-s40.mjs`) is
+  committed and run twice, like the others, but nothing runs it on a push.
+
 ## The boasts' sounds on the audio clock (session 39)
 
 - **Nobody has heard a boast on a real device, before or after.** The check proves when each sound
@@ -42,8 +63,9 @@ items are removed, with the fix in `log.md`.
   timed checks in a headless browser that runs at about 5 fps during a boast.
 - **The win is said twice, a second apart:** the plate's "<NAME> WINS", then the turn bar's
   "GAME OVER: <NAME> WINS" as the boast ends. Not wrong, but not designed together.
-- **A close win's boast is 3.6 s,** past the 3.2 s cap a boast's own beats keep to (`BOAST_MS_MAX`
-  checks specs, not the close-win plan). The close-call line is the only thing in the extra 0.6 s.
+- **A close win's boast is 3.6 s,** past the 3.2 s cap a spec keeps to. Since session 40 the plan
+  checker caps a plan too (the spec cap, or the still's, plus the 0.6 s close-call hold), so nothing
+  can run longer than that by accident; whether 3.6 s is too long is still unjudged by a person.
 - **A very long name on a phone** shrinks the whole line, WINS included, down to 11 px; there is no
   second line for the name. The longest recorded name ("Moth Protocol WINS") fits at 24 px.
 - **CLOSE CALL's amber is a new colour** in the boast grammar, the same for every faction; it has
@@ -122,10 +144,6 @@ items are removed, with the fix in `log.md`.
 - **Boot Sequence's type is the system monospace** (ui-monospace, Menlo, Consolas, DejaVu Sans
   Mono): it looks different per OS, and a wider font is squeezed to fit the planned width. The text's
   phosphor bleed draws 1 px either side of the box the checker measured (inside its 2 px tolerance).
-- **The checker's piece box is the sprite, not its halo:** an atlas piece's soft glow
-  (`drawGlow`, radius up to 1.25 x its size) reaches past the box `boastPlanProblem` checks. It has
-  never shown up as loser-side light in a browser check, but the code doesn't prove it. (Session 33
-  closed the same gap for a flare's bloom and for tilted flat shocks.)
 - **The crests are small:** about 100-120 px across on desktop (Shield Slam's hex flower, Hive Burst's
   spore column, Data Cascade's block stack, Null's bloomed star). Readable, not grand; the crest size is
   capped by the side's height (0.19 of it).
@@ -142,10 +160,6 @@ items are removed, with the fix in `log.md`.
   rule is wired into a page; the owner-page rule is a tested function with no page yet.
 - **The match feed spoils the result:** its last line ("X wins") prints while the boast plays; only the
   turn bar waits (you kept this call).
-- **The loser's side is cleared by particle position:** `CFX.fadeOutIn` fades every particle whose
-  centre sits in the loser's side (reaching 40 px out sideways and 160 px away from the board). A big
-  smoke sprite centred just outside that box would still show its edge; none did in the two replays
-  checked (session 35). Rings and the grid's tint aren't particles and fade on their own (under 1 s).
 - **The browser check's "lit" count includes the veil** (a dark fill is still non-transparent canvas),
   so its winner-side numbers measure the veil plus the pieces, not the pieces alone. With the early
   wash in Hive Burst and Data Cascade that is true from 0.5 s on.

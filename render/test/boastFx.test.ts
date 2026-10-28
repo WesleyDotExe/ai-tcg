@@ -48,6 +48,8 @@ import {
   type BoastSpec,
 } from "../src/boastFx.js";
 import { SFX_KINDS, sfxRecipe } from "../src/soundFx.js";
+import { BOAST_CSS } from "../src/boastFx.js";
+import { MATCH_BOOT_CSS, MATCH_BOOT_RUNTIME_SOURCE } from "../src/matchBootFx.js";
 import { renderBoastSheet, boastScenes } from "../src/boastSheet.js";
 
 const SHIELD = BOAST_SPECS["boast-aegis-shield-slam"]!;
@@ -272,6 +274,12 @@ describe("the victory grammar on laid-out plans", () => {
     // A mark after the end, and no name at all.
     expect(broken((p) => { p.marks.push({ k: "flare", t: p.ms + 100, x: geom.band.l + 100, y: geom.band.t + 60, s: 10 }); })).toMatch(/after the boast ends/);
     expect(broken((p) => { p.marks = p.marks.filter((m) => m.k !== "name"); })).toMatch(/no name/);
+    // A plan longer than a spec may be (render session 40: only specs were
+    // capped); a close win may run the close-call line's hold longer, no more.
+    expect(broken((p) => { p.ms = BOAST_MS_MAX + 1; p.marks.find((m) => m.k === "end")!.t = p.ms; })).toMatch(/length/);
+    expect(broken((p) => { p.ms = BOAST_MS_MAX + BOAST_CLOSE_MS; p.close = true; p.marks.find((m) => m.k === "end")!.t = p.ms; })).toBeNull();
+    expect(broken((p) => { p.ms = BOAST_MS_MAX + BOAST_CLOSE_MS + 1; p.close = true; p.marks.find((m) => m.k === "end")!.t = p.ms; })).toMatch(/length/);
+    expect(boastPlanProblem({ ...boastStill(plan), ms: BOAST_STILL_MS + 1 }, geom)).toMatch(/length/);
     // A bar stretched past the side's edge (the checker reads the stretch).
     const vplan = boastPlan(VOID, geom, 1);
     const bar = vplan.pieces.findIndex((pc) => pc.frame);
@@ -920,5 +928,15 @@ describe("the sting and the pages", () => {
       }
     }
     for (const s of scenes) expect(html).toContain(`id="${s.key}"`);
+  });
+});
+
+describe("Skip on a touch screen (render session 40)", () => {
+  it("every boast's Skip is finger-sized under a coarse pointer, the same rule as the intro's", () => {
+    // The intro's Skip is a .boast-skip too, so one rule covers both.
+    expect(BOAST_CSS).toMatch(/@media \(pointer: coarse\) \{ \.boast-skip \{ min-height: 44px; min-width: 88px; font-size: 14px; \} \}/);
+    expect(BOAST_RUNTIME_SOURCE).toContain("sk.className = 'boast-skip'");
+    expect(MATCH_BOOT_RUNTIME_SOURCE).toContain("sk.className = 'boast-skip boot-skip'");
+    expect(MATCH_BOOT_CSS).not.toMatch(/pointer: coarse/);
   });
 });
