@@ -1,0 +1,34 @@
+[A] the halo clip: lit pixels on the effects' top canvas past the winner's side, every boast (sampled every 3rd frame, every 2nd pixel)
+  boast-aegis-shield-slam: now 61 samples, 0 lit past the side (0 on the loser's), farthest 0.0 px; before: 3964 lit past the side (379 on the loser's), farthest 19.0 px
+  PASS A. boast-aegis-shield-slam: sampled the whole boast
+  PASS A. boast-aegis-shield-slam: nothing lit past the winner's side
+  boast-swarm-hive-burst: now 61 samples, 0 lit past the side (0 on the loser's), farthest 0.0 px; before: 94 lit past the side (0 on the loser's), farthest 8.5 px
+  PASS A. boast-swarm-hive-burst: sampled the whole boast
+  PASS A. boast-swarm-hive-burst: nothing lit past the winner's side
+  boast-null-void-collapse: now 61 samples, 0 lit past the side (0 on the loser's), farthest 0.0 px; before: 111 lit past the side (0 on the loser's), farthest 11.0 px
+  PASS A. boast-null-void-collapse: sampled the whole boast
+  PASS A. boast-null-void-collapse: nothing lit past the winner's side
+  boast-cortex-data-cascade: now 60 samples, 0 lit past the side (0 on the loser's), farthest 0.0 px; before: 0 lit past the side (0 on the loser's), farthest 0.0 px
+  PASS A. boast-cortex-data-cascade: sampled the whole boast
+  PASS A. boast-cortex-data-cascade: nothing lit past the winner's side
+  boast-s0-boot-sequence: now 61 samples, 0 lit past the side (0 on the loser's), farthest 0.0 px; before: 0 lit past the side (0 on the loser's), farthest 0.0 px
+  PASS A. boast-s0-boot-sequence: sampled the whole boast
+  PASS A. boast-s0-boot-sequence: nothing lit past the winner's side
+  boast-s0-dial-up-fireworks: now 61 samples, 0 lit past the side (0 on the loser's), farthest 0.0 px; before: 0 lit past the side (0 on the loser's), farthest 0.0 px
+  PASS A. boast-s0-dial-up-fireworks: sampled the whole boast
+  PASS A. boast-s0-dial-up-fireworks: nothing lit past the winner's side
+
+[B] fadeOutIn by reach: a 160 px sprite centred 70 px outside the cleared rect, a control 300 px out
+  now: 2 particles, 1 counted in the rect; after the clear 1 left, 0 lit pixels inside the rect
+  before: 2 particles, 0 counted in the rect; after the clear 2 left, 8 lit pixels inside the rect
+  PASS B. the near sprite counts as in the rect (its edge reaches it), the control does not
+  PASS B. the near sprite is cleared, the control stays
+  PASS B. nothing lit inside the cleared rect
+
+[C] Skip on a touch screen (emulated phone, 390 x 844, coarse pointer) and on a desktop
+  boast, phone: 88.0 x 44.0 px (before: 69.9 x 23.0 px); boast, desktop: 69.9 x 23.0 px (before: 69.9 x 23.0 px); intro, phone: 88.0 x 44.0 px (before: 88.0 x 44.0 px)
+  PASS C. a boast's Skip is at least 88 x 44 px on a touch screen
+  PASS C. the intro's Skip still is
+  PASS C. on a desktop the boast's Skip is unchanged
+
+ALL PASS

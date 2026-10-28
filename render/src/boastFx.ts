@@ -869,6 +869,10 @@ export const BOAST_PURE_SOURCE = String.raw`
       return null;
     }
     var i, j, p;
+    // A plan is never longer than its spec may be, plus the close-call
+    // line's hold on a close win (render session 40: only specs were capped).
+    var cap = (plan.still ? BOAST_STILL_MS : BOAST_MS_MAX) + (plan.close ? BOAST_CLOSE_MS : 0);
+    if (!(plan.ms > 0) || plan.ms > cap) return 'length ' + plan.ms + ' ms past ' + cap;
     for (i = 0; i < plan.pieces.length; i++) {
       var pc = plan.pieces[i];
       for (j = 0; j < pc.keys.length; j++) {
@@ -965,6 +969,13 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
           var K = CFX.kit, c = cur.rgb, glow = 0;
           cur.pulses = cur.pulses.filter(function (p) { return cur.t < p.t + p.ms; });
           cur.pulses.forEach(function (p) { glow = Math.max(glow, 1 - (cur.t - p.t) / p.ms); });
+          // Everything the boast draws itself stays on the winner's side: a
+          // sprite's halo reaches up to 1.25 x its size, past the box
+          // boastPlanProblem checks (up to 70 px over the edge measured in
+          // render session 40), so the side is a clip, not only a check.
+          var B = cur.clip;
+          ctx.save();
+          if (B) { ctx.beginPath(); ctx.rect(B.l, B.t, B.r - B.l, B.b - B.t); ctx.clip(); }
           if (cur.veil) {
             var v = cur.veil, va = v.a * (v.ms > 0 ? Math.min(1, (cur.t - v.t) / v.ms) : 1);
             if (cur.t > cur.plan.ms) va *= Math.max(0, 1 - (cur.t - cur.plan.ms) / 320);
@@ -1006,6 +1017,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
             ctx.restore();
           }
           ctx.globalAlpha = 1;
+          ctx.restore();
           if (n > stats.peakPieces) stats.peakPieces = n;
           stats.drawn++;
         },
@@ -1258,7 +1270,8 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       stats.problem = problem;
       stats.fired = {}; stats.peakPieces = 0; stats.drawn = 0; stats.groups = {};
       plan.pieces.forEach(function (pc) { var g = pc.grp || pc.shape || pc.sp; stats.groups[g] = (stats.groups[g] || 0) + 1; });
-      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false, seq: null };
+      cur = { plan: plan, els: els, who: opts.who || '', close: !!opts.close, onEnd: opts.onEnd || null, rgb: plan.rgb || rgbOf(plan.faction), t0: performance.now(), t: 0, next: 0, pulses: [], dom: [], timers: [], ended: false, seq: null,
+        clip: { l: geom.band.l - 2, t: geom.band.t - 2, r: geom.band.r + 2, b: geom.band.b + 2 } };
       // The sounds and the music's holds under them go out on the audio
       // clock together (a hold is queued with its sting, not a frame later).
       var sounds = [];
@@ -1318,6 +1331,9 @@ export const BOAST_CSS = `
 .boast-skip { position: absolute; z-index: 97; font: inherit; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--ink, #dfe7ff);
   background: rgba(10,12,22,0.82); border: 1px solid var(--line, #334); border-radius: 4px; padding: 4px 9px; cursor: pointer; transition: opacity 320ms ease; }
 .boast-skip:hover, .boast-skip:focus-visible { border-color: var(--ink, #dfe7ff); }
+/* A finger-sized Skip on a touch screen: the intro's (render session 38) and
+   every boast's (render session 40) are the same button. */
+@media (pointer: coarse) { .boast-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
 .turnbar .win.land { display: inline-block; animation: boast-land 520ms cubic-bezier(.2,.9,.3,1.3) both; }
 @keyframes boast-land { from { opacity: 0; transform: translateY(6px) scale(1.25); } to { opacity: 1; transform: none; } }
 /* Boot Sequence's plate: the name in the BIOS's type, behind a block cursor. */
