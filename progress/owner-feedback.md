@@ -3638,3 +3638,14 @@ Owner decisions on the 3 calls in `progress/render/checkpoints.md` and the quest
 **CI browser check: yes.** Next render-lane slice, as set: build the CI-sized headless-browser check (the six boasts' "nothing past the winner's side", the Skip sizes, one replay's intro) and run it on every push.
 - The owner OKs this slice changing the shared workflow files (`.github/workflows/test.yml` and the auto-merge workflow) for this check and the wait below only.
 - **Condition:** in the same change, lengthen the auto-merge job's wait for checks so the longer test run can't time it out. Its current 5-minute wait already timed out once (PR #88, tests green). Keep the extra run time as small as practical, and report the new test-run time and the new wait at the checkpoint.
+
+---
+
+## 2026-10-30 — Owner: answers to game session 59 (Null's 4 added cards), set A
+
+Answers the [OWNER CHECK-IN] "Null's 4 added cards (36 -> 40): recommend set A" in `progress/notes-for-owner.md` (PR #101, `progress/balance-report-035-null-forty.txt`).
+- **Ship set A:** +1 Fork Bomb, +1 Segfault Handler, +2 Rollback Point. Null's starter and shipped list go from 36 to 40.
+- As the session proposed: the next game session ships it, re-records both ring baselines (the gate's Swarm > Null moves for any 40-card list), and re-runs both rings and the built-deck ring. Report the results at the next owner check-in.
+- **Keep:** A's 2 neutral cards in Null's starter. Neutral cards in a starter are fine: they are genuine tactics a deck can use.
+- **Keep:** Null at the 25% removal cap (10 of 40) is fine; it is within the rules.
+- Then, as planned: the balance session's second job (Null > Aegis and Cortex > Swarm), test only.
