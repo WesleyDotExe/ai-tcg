@@ -1,0 +1,28 @@
+ engine/src/data/nullCards.ts | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+diff --git a/engine/src/data/nullCards.ts b/engine/src/data/nullCards.ts
+index d56f77b..7400909 100644
+--- a/engine/src/data/nullCards.ts
++++ b/engine/src/data/nullCards.ts
+@@ -762,8 +762,8 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
+   { card: glitchSeed, copies: 3 },
+   { card: strayFragment, copies: 3 },
+   { card: corruptionPatch, copies: 3 },
+-  { card: segfaultHandler, copies: 1 },
+-  { card: forkBomb, copies: 2 },
++  { card: segfaultHandler, copies: 2 },
++  { card: forkBomb, copies: 3 },
+   { card: corruptedProcess, copies: 2 },
+   { card: nullShell, copies: 1 },
+   { card: propagatingExploit, copies: 3 },
+@@ -778,8 +778,8 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
+   // filling 32 -> 40 with no trims. Removal/debuff density: 9/40 = 22.5%
+   // (was 8/32 = 25.0%, exactly at the cap) — Bit Rot is the only new
+   // removal-classified card, so the pool moves AWAY from the cap.
+-  { card: zombieProcess, copies: 2 },
+-  { card: danglingPointer, copies: 2 },
++  { card: zombieProcess, copies: 3 },
++  { card: danglingPointer, copies: 3 },
+   { card: bitRot, copies: 1 },
+   { card: watchdogTimer, copies: 1 },
+   { card: garbageCollector, copies: 2 },

@@ -1,0 +1,48 @@
+Held-out: fresh seeds (from 600001; 2,500 per win/lose edge, 900 per even edge), Lookahead vs Lookahead.
+Rates are the first-named side's; [95% Wilson]; verdict against the ring band. Only Null's list differs; the other three edges cannot move.
+
+the 36 (shipped)
+  gate Null > Aegis   51.8 [49.8-53.7] OUT OF BAND
+  gate Swarm > Null   57.4 [55.5-59.4] IN BAND    
+  gate Null ~ Cortex  45.0 [41.8-48.3] UNRESOLVED 
+  real Null > Aegis   45.5 [43.6-47.5] OUT OF BAND
+  real Swarm > Null   55.7 [53.7-57.6] UNRESOLVED 
+  real Null ~ Cortex  50.0 [46.7-53.3] IN BAND    
+  objective 100.4, Null mean 46.5
+
+A (greedy line): Rollback Point + Fork Bomb + Rollback Point + Segfault Handler
+  gate Null > Aegis   49.8 [47.8-51.7] OUT OF BAND change -2.0
+  gate Swarm > Null   57.0 [55.1-59.0] IN BAND     change -0.4
+  gate Null ~ Cortex  43.1 [39.9-46.4] UNRESOLVED  change -1.9
+  real Null > Aegis   44.0 [42.0-45.9] OUT OF BAND change -1.6
+  real Swarm > Null   55.0 [53.0-56.9] UNRESOLVED  change -0.7
+  real Null ~ Cortex  47.0 [43.8-50.3] UNRESOLVED  change -3.0
+  objective 152.9, Null mean 45.3
+
+B (runner-up line): Scrap Recycler + Rollback Point + Dangling Pointer + Rollback Point
+  gate Null > Aegis   49.9 [47.9-51.8] OUT OF BAND change -1.9
+  gate Swarm > Null   54.4 [52.5-56.4] UNRESOLVED  change -3.0
+  gate Null ~ Cortex  42.4 [39.3-45.7] UNRESOLVED  change -2.6
+  real Null > Aegis   43.7 [41.7-45.6] OUT OF BAND change -1.8
+  real Swarm > Null   53.7 [51.8-55.7] UNRESOLVED  change -2.0
+  real Null ~ Cortex  47.9 [44.6-51.2] UNRESOLVED  change -2.1
+  objective 162.8, Null mean 46.0
+
+C (Null bodies only): Fork Bomb + Zombie Process + Dangling Pointer + Corrupted Process
+  gate Null > Aegis   50.6 [48.7-52.6] OUT OF BAND change -1.1
+  gate Swarm > Null   55.1 [53.1-57.0] UNRESOLVED  change -2.4
+  gate Null ~ Cortex  43.2 [40.0-46.5] UNRESOLVED  change -1.8
+  real Null > Aegis   44.1 [42.1-46.0] OUT OF BAND change -1.4
+  real Swarm > Null   55.0 [53.0-56.9] UNRESOLVED  change -0.7
+  real Null ~ Cortex  46.7 [43.4-49.9] UNRESOLVED  change -3.3
+  objective 141.4, Null mean 45.8
+
+D (Null, one removal): Fork Bomb + Zombie Process + Dangling Pointer + Segfault Handler
+  gate Null > Aegis   51.2 [49.3-53.2] OUT OF BAND change -0.5
+  gate Swarm > Null   54.2 [52.2-56.1] UNRESOLVED  change -3.2
+  gate Null ~ Cortex  44.0 [40.8-47.3] UNRESOLVED  change -1.0
+  real Null > Aegis   45.2 [43.3-47.2] OUT OF BAND change -0.3
+  real Swarm > Null   53.1 [51.1-55.0] UNRESOLVED  change -2.6
+  real Null ~ Cortex  47.8 [44.5-51.0] UNRESOLVED  change -2.2
+  objective 115.5, Null mean 46.8
+

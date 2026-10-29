@@ -1,10 +1,74 @@
 # Notes for the owner
 
-**Updated 2026-10-27, session 58.** Nothing is blocking. Your option B is built, both rings were
-re-run, and the results are in the **[OWNER CHECK-IN]** below. It found one new problem you should
-know about: with no short decks, Null falls behind the other factions. Nothing about cards changed.
+**Updated 2026-10-29, session 59.** Nothing is blocking. The balance session's first job is done:
+candidates for Null's 4 added cards, measured on both rings. Your pick is the **[OWNER CHECK-IN]**
+below. No card has changed.
 
-### [OWNER CHECK-IN] Option B is built; without its short deck, Null falls behind
+### [OWNER CHECK-IN] Null's 4 added cards (36 -> 40): recommend set A
+
+**What I measured** (`progress/balance-report-035-null-forty.txt`, files in `progress/null-forty/`):
+- A search tried every card that can legally join Null's list (more copies of Null cards, or neutral
+  cards). Zero-Day cards were left out because a starter can't hold a secret card. At most one of the 4
+  can be removal: Null already has 9, and a 10th only fits once the deck is 40 (the 25% cap).
+- Four sets went to the ring check: on the ring's own seeds, and again on fresh seeds.
+- All four went through the built-deck ring at every level (full, 37, 17 and 3 packs). Each one was run
+  on a copy of the game where the set really shipped: the Null starter, the deck builder and the shipped
+  Null deck all used the new 40.
+
+**The sets:**
+- **A: +1 Fork Bomb, +1 Segfault Handler, +2 Rollback Point** (neutral, 3 energy: restore 5 health;
+  Cortex's starter runs one).
+- **D: +1 Fork Bomb, +1 Zombie Process, +1 Dangling Pointer, +1 Segfault Handler** (Null cards only).
+- **C: +1 Fork Bomb, +1 Zombie Process, +1 Dangling Pointer, +1 Corrupted Process** (Null only, no removal).
+- **B: +1 Scrap Recycler, +1 Dangling Pointer, +2 Rollback Point** (no removal).
+
+**What I found:**
+1. **With the shipped decks, 4 more cards cost Null nothing you can measure** (its average moves -0 to
+   +1.3 points). The one real change: Null does a little better against Swarm. Because of that, for
+   every 40-card list, "Swarm > Null" in gate mode leaves its band (57.1 -> 52.9 to 54.3), so the ring
+   check would fail until its baseline is re-recorded. Set A moves no edge by a measurable amount.
+2. **With built decks, every set beats what the builder does today** (it fills Null's 4 by rating). Null's
+   average against the field, real-match mode:
+
+   | | full | 37 packs | 17 packs | 3 packs |
+   |---|---|---|---|---|
+   | session 54 (short decks allowed) | 46.7 | 48.7 | 47.0 | 46.6 |
+   | today (builder's fill) | 39.2 | 44.0 | 41.9 | 43.8 |
+   | **A** | **45.8** | **48.6** | **47.4** | **46.9** |
+   | B | 47.8 | 47.3 | 45.8 | 45.5 |
+   | D | 44.6 | 47.2 | 47.4 | 47.9 |
+   | C | 42.8 | 45.9 | 46.1 | 45.9 |
+
+3. **A keeps the four factions closest together.** The gap between the strongest and weakest faction
+   averages 5.9 points with A (session 54: 6.0; today: 13.4; B: 7.2; D: 9.9; C: 10.4). With D, Aegis's
+   full-collection deck runs away (60.4) and Swarm drops (Swarm > Null 51-53, under its band).
+4. **A helps the old Null > Aegis edge most with built decks** (47.8-49.1 at full, 37 and 17 packs;
+   today 37.2-45.3; B is next). Both sets with 2 Rollback Point (A and B) even the field best. On the
+   shipped decks no set moves that edge. Fixing it stays the balance
+   session's next job.
+
+**What I recommend:** add **A**. It changes the shipped ring the least and evens out the built-deck ring
+the most. After your OK, the next game session ships it: Null's list to 40, both ring baselines
+re-recorded, both rings and the built-deck ring re-run.
+
+**Alternatives:**
+- **D** if you want Null's starter to hold only Null cards. Null is a little stronger at the pack levels,
+  but the factions are less even.
+- **B** if you'd rather Null not sit at the removal cap. Close to A, but Swarm > Null drops under
+  Swarm's band at every level.
+- **C** (Null only, no removal). It helps the least.
+- **None yet:** keep the 36 and today's builder fill until the old edges are fixed too.
+
+**Things you might want to overrule:**
+- A puts 2 neutral cards in Null's starter (Cortex's has 2, Aegis's 1, Swarm's none).
+- A and D both put Null exactly at the 25% removal cap (10 of 40); B and C don't.
+- The full-collection column is one built deck per faction, so it is noisy. The pack columns are 8
+  owners each and are the steadier read.
+
+**Default if you don't answer:** nothing ships. The next game session is the hardening pass (session 60);
+the balance session's second job (Null > Aegis and Cortex > Swarm) follows it.
+
+### [ANSWERED 2026-10-29: keep B; balance session next] Option B is built; without its short deck, Null falls behind
 
 **What was built** (your answer of 2026-10-26):
 - The deck builder builds every deck to the largest size the owner's cards allow: **40 when the

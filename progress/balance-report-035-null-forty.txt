@@ -1,0 +1,119 @@
+Balance report 035: Null's 4 added cards (session 59, the pre-launch test-only balance session, job 1)
+=====================================================================================================
+Owner 2026-10-26 and 2026-10-29: every starter deck is the same size, so Null's starter and shipped list grow
+from 36 to 40. The 4 cards are chosen here, measured on the ring check (both modes) and on the built-deck ring
+at every collection level, and brought to an owner check-in. TEST ONLY: no card, deck or rule changed. Every
+candidate below was played in a throwaway copy of the repo; nothing in engine/src/data changed.
+
+Tools: engine/src/dev/nullFortySearch.ts (search, heldout, pool, built) and progress/null-forty/run-candidate.sh
+(the built-deck ring for one candidate). Raw files: progress/null-forty/.
+
+---- 0. What can be added ----
+One more copy of a Null card under its copy limit, or a neutral-pool card (at most 10 neutral). Zero-Day cards are
+left out: they are secret cards, never in a starter (today's builder fills Null's 40 with Patient Zero from a full
+collection; a starter can't do that). At 37-39 cards, 18 adds are legal: Null already runs 9 removal/debuff copies,
+and a 10th is over the 25% cap until the deck reaches 40 (10/40 = 25%). So at most ONE of the 4 can be removal
+(Segfault Handler, Null Pointer, Bit Rot, Kernel Panic, ...), and with it Null sits exactly at the removal cap.
+
+---- 1. The search (search seeds 300001-301500, 1,500 per edge per mode; progress/null-forty/search.txt) ----
+Every single add made Null slightly weaker on these seeds (mean 46.0 -> 43.9-46.2), the short-deck effect
+session 57 measured. Greedy picks (best ring objective with a no-sandbagging guard) were:
+  A (greedy line):     Rollback Point, Fork Bomb, Rollback Point, Segfault Handler
+  B (runner-up line):  Scrap Recycler, Rollback Point, Dangling Pointer, Rollback Point
+Honest limit: the steps' differences are mostly noise (about 1.3 points per edge on 1,500 games; one step's best
+39-card list scored better than its 38-card parent and the next step's every option scored worse). So the search
+only proposes. Two Null-only sets were added by hand for comparison, since a starter of faction cards may matter
+to the owner:
+  C (Null bodies only):    Fork Bomb, Zombie Process, Dangling Pointer, Corrupted Process
+  D (Null, one removal):   Fork Bomb, Zombie Process, Dangling Pointer, Segfault Handler
+
+---- 2. The ring check (shipped decks), held out: the ring's own seeds AND a fresh block ----
+progress/null-forty/heldout.txt (seeds from 1: exactly what `npm run ring` / `ring:real` would print with that
+list shipped) and progress/null-forty/repeat-600001.txt (fresh seeds from 600001). Pooled (pooled.txt), change
+from the 36 per edge, first-named side, [Newcombe 95%]:
+
+list                        gate Null > Aegis    gate Swarm > Null   gate Null ~ Cortex    real Null > Aegis    real Swarm > Null   real Null ~ Cortex   Null mean (change)
+the 36 (shipped)                  51.2 (5000)          57.3 (5000)          45.2 (1800)          45.4 (5000)          55.6 (5000)          49.5 (1800)   46.4
+A (greedy line)               -0.5 [-2.5,1.5]      -1.6 [-3.5,0.3]      -0.4 [-3.6,2.9]      -0.5 [-2.4,1.5]      -1.1 [-3.1,0.8]      -0.7 [-3.9,2.6]   46.5 (+0.1)
+B (runner-up line)            -1.3 [-3.3,0.6]     -3.6 [-5.5,-1.6]      -1.6 [-4.9,1.6]      -0.6 [-2.5,1.4]      -1.5 [-3.5,0.4]      -0.4 [-3.7,2.8]   46.6 (+0.2)
+C (Null bodies only)          -0.9 [-2.9,1.0]     -2.7 [-4.6,-0.8]      -1.1 [-4.4,2.1]      -1.1 [-3.0,0.9]      -0.9 [-2.8,1.0]      -0.4 [-3.7,2.8]   46.4 (+0.0)
+D (Null, one removal)         -0.5 [-2.4,1.5]     -3.6 [-5.5,-1.7]      +0.8 [-2.5,4.0]      -0.2 [-2.2,1.7]     -2.7 [-4.7,-0.8]      +1.2 [-2.0,4.5]   47.7 (+1.3)
+
+Reading: with the shipped decks, 4 more cards cost Null nothing measurable (mean -0 to +1.3). The one real move is
+Swarm > Null: with 40 cards Null does better against Swarm (B, C, D move it down 2.7-3.6 points, out of noise);
+A moves no edge by a real amount. No set helps Null > Aegis (the old inverted edge): every set leaves it where it is.
+Ring check verdicts on the ring's own seeds (heldout.txt): every set turns gate Swarm > Null from IN BAND (57.1) to
+UNRESOLVED (A 54.3, B 52.9, C 54.0, D 53.1 on those seeds), so `npm run ring` would FAIL on that edge
+for every candidate until the baseline is re-recorded with the owner's OK. D also turns real Swarm > Null from
+UNRESOLVED to OUT (52.6). Any 40 does this; it is the price of the same-size rule, not of one card.
+
+---- 3. The built-deck ring at every level (the measurement that separates them) ----
+For each candidate, run-candidate.sh played everything on a repo copy with the list actually changed: the Null
+starter collection (so every realistic Null owner holds the 4 cards), the deck builder's designed start, the
+shipped Null deck every build is searched and confirmed against, and the cost curve the rating start is shaped
+to. Same seeds, same pack rolls, same build settings as built-deck-ring-002 (session 58). About 6 minutes per
+candidate on 4 cores. Files: progress/null-forty/built-{A,B,C,D}/ (report.txt = builtDeckRing.ts's full report;
+its "shipped decks" column is the candidate's 40; ring-gate/real.txt are the candidate's shipped ring, recorded
+as its own baseline so they read PASS by construction).
+
+Side by side (built-side-by-side.txt): s54 = session 54's builder (the 36 and short decks allowed), s58fill =
+today (option B, Null's 4 filled by the builder's rating), then the candidates. Faction means over their three
+edges, and Null's three edges (first-named side):
+
+== REAL-MATCH MODE ==
+                                       s54                   s58fill                         A                         B                         C                         D
+                    full   37p   17p    3p    full   37p   17p    3p    full   37p   17p    3p    full   37p   17p    3p    full   37p   17p    3p    full   37p   17p    3p
+Cortex mean         48.5  50.3  49.4  50.5    54.4  51.6  52.5  53.0    53.2  49.7  51.1  51.4    52.5  50.8  51.8  52.4    52.8  49.8  50.9  51.9    47.6  49.4  51.4  50.0
+Swarm mean          51.5  50.3  49.3  48.4    48.7  50.4  49.4  48.8    51.0  49.1  49.2  47.3    49.2  48.2  48.6  46.8    48.6  48.4  47.5  47.0    47.4  48.9  46.8  46.5
+Aegis mean          53.3  50.7  54.4  54.5    57.7  54.0  56.2  54.4    50.0  52.5  52.4  54.3    50.5  53.8  53.8  55.3    55.8  55.9  55.5  55.1    60.4  54.4  54.4  55.6
+Null mean           46.7  48.7  47.0  46.6    39.2  44.0  41.9  43.8    45.8  48.6  47.4  46.9    47.8  47.3  45.8  45.5    42.8  45.9  46.1  45.9    44.6  47.2  47.4  47.9
+Null > Aegis        46.6  49.6  45.2  45.7    37.2  45.3  42.1  44.7    47.8  49.1  48.6  45.8    49.4  47.2  45.4  45.1    40.7  44.2  44.5  44.6    38.8  45.7  46.1  45.0
+Swarm > Null        56.3  53.6  56.9  55.2    58.7  58.2  58.2  55.4    55.4  53.5  54.3  52.6    52.8  52.7  54.3  52.9    54.7  54.5  54.3  53.4    53.1  52.2  51.0  51.5
+Null ~ Cortex       49.9  50.2  52.7  49.4    39.0  45.0  41.8  42.2    45.0  50.2  47.9  47.7    46.7  47.3  46.2  44.2    42.3  48.1  48.0  46.6    48.2  48.1  47.0  50.2
+
+== GATE MODE ==
+                                       s54                   s58fill                         A                         B                         C                         D
+                    full   37p   17p    3p    full   37p   17p    3p    full   37p   17p    3p    full   37p   17p    3p    full   37p   17p    3p    full   37p   17p    3p
+Cortex mean         50.5  54.1  55.9  55.1    56.3  56.2  58.4  57.6    54.8  55.7  56.3  56.1    54.9  55.9  58.0  56.9    54.7  55.9  56.8  58.8    50.9  54.0  55.5  54.7
+Swarm mean          50.2  49.4  48.3  50.5    47.5  48.2  48.4  48.7    50.3  47.3  48.0  47.9    48.6  46.3  47.2  47.4    47.6  47.3  47.1  47.2    45.3  46.7  46.6  46.7
+Aegis mean          54.6  48.8  50.3  48.3    58.4  51.5  50.8  49.0    52.2  50.9  48.3  48.9    50.0  51.1  49.7  50.4    57.4  51.7  51.1  48.7    62.7  52.5  50.8  50.4
+Null mean           44.7  47.7  45.4  46.1    37.8  44.1  42.3  44.7    42.6  46.2  47.5  47.1    46.5  46.8  45.0  45.3    40.3  45.1  45.0  45.4    41.1  46.7  47.1  48.2
+Null > Aegis        44.1  50.2  49.4  51.5    37.0  48.3  47.0  50.9    44.6  49.7  52.9  50.9    49.7  50.5  49.2  49.5    38.5  47.6  48.7  50.9    35.4  47.8  49.7  50.0
+Swarm > Null        57.8  54.4  57.4  58.2    59.4  58.0  57.5  55.9    57.3  54.2  54.5  53.8    52.2  51.9  52.9  53.9    55.6  54.0  54.0  54.2    54.4  51.8  51.8  51.6
+Null ~ Cortex       47.8  47.1  44.1  45.1    35.7  42.0  37.3  39.0    40.7  43.0  44.0  44.2    42.0  41.8  38.8  40.2    37.9  41.6  40.2  39.6    42.2  44.2  43.3  46.1
+
+How far the four factions sit apart (max minus min faction mean per level, averaged over the 4 levels; and the
+RMS distance of all 16 faction means from 50):
+                 real: spread  rms     gate: spread  rms     Null's lowest mean (real / gate)
+  s54                  6.0     2.40          8.9     3.32    46.6 / 44.7
+  s58fill (today)     13.4     5.19         15.4     5.95    39.2 / 37.8
+  A                    5.9     2.37          9.9     3.89    45.8 / 42.6
+  B                    7.2     2.95         10.7     4.12    45.5 / 45.0
+  C                   10.4     4.01         13.3     5.21    42.8 / 40.3
+  D                    9.9     4.07         11.4     4.97    44.6 / 41.1
+
+Reading:
+- Every candidate beats today's builder fill for Null at every level (real-match mode +1.9 to +6.6 points). The rating fill
+  was the problem session 58 found, and choosing the 4 cards fixes most of it.
+- A brings the whole field back to about where session 54's short decks had it (real spread 5.9 vs 6.0), with
+  Null within 4.2 points of 50 everywhere in real mode, and it lifts Null > Aegis with built decks the most
+  (47.8-49.1 real at full/37/17, where today's is 37.2-45.3).
+- D gives Null the highest pack-level means, but at full collection Aegis's built deck runs away (60.4 real /
+  62.7 gate) and Swarm sinks (46.5-48.9 real): Swarm > Null drops to 51-53, under Swarm's 55-60 band.
+- B (A with Scrap Recycler and Dangling Pointer for Fork Bomb and Segfault Handler) is second: close to A in real
+  mode, the steadiest Null in gate mode (45.0-46.8), but it takes Swarm > Null under Swarm's band at every level
+  (51.9-54.3). The two sets with 2 Rollback Point (A, B) even the field best; both lift Null > Aegis with built decks.
+- C (no removal) helps least.
+- Honest limits: the "full" column is ONE built deck per faction, so it carries the builder's search noise (Aegis's
+  full-collection mean ranges 50.0-60.4 real / 52.2-62.7 gate across these runs with Aegis's own cards unchanged; only the shipped Null
+  deck it is searched against differs). The pack columns (8 owners per faction) are the steadier read. A and D
+  put Null at the 25% removal cap (10 of 40); B and C don't. No candidate fixes Null > Aegis on the shipped ring check;
+  that edge stays job 2.
+
+---- 4. Recommendation (for the owner check-in) ----
+Add A: +1 Fork Bomb (2 -> 3), +1 Segfault Handler (1 -> 2), +2 Rollback Point (a neutral 3-energy "restore 5
+health" Command; Cortex's starter already runs one). It changes the shipped ring the least (no edge moves by a real
+amount) and evens out the built-deck ring the most. Alternative if the owner wants a Null-only starter: D (+1 Fork
+Bomb, +1 Zombie Process, +1 Dangling Pointer, +1 Segfault Handler), which makes Null stronger with built decks but
+leaves the field less even (Aegis high at full collection, Swarm low). Either way the ring check needs its
+baselines re-recorded with the owner's OK, since gate Swarm > Null leaves IN BAND for every 40.

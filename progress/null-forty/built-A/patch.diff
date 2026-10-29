@@ -1,0 +1,31 @@
+ engine/src/data/nullCards.ts | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+diff --git a/engine/src/data/nullCards.ts b/engine/src/data/nullCards.ts
+index d56f77b..4198bb2 100644
+--- a/engine/src/data/nullCards.ts
++++ b/engine/src/data/nullCards.ts
+@@ -25,6 +25,7 @@
+ // names/flavour only; no reproduction of existing TCGs' card identities.
+ 
+ import type { CommandCard, DirectiveCard, ToolCard, UnitCard } from "../cards/types.js";
++import { rollbackPoint } from "./neutralCards.js";
+ 
+ // --- Evolution line: Glitch Seed -> Corrupted Process -> Kernel Panic -----
+ 
+@@ -762,8 +763,8 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
+   { card: glitchSeed, copies: 3 },
+   { card: strayFragment, copies: 3 },
+   { card: corruptionPatch, copies: 3 },
+-  { card: segfaultHandler, copies: 1 },
+-  { card: forkBomb, copies: 2 },
++  { card: segfaultHandler, copies: 2 },
++  { card: forkBomb, copies: 3 },
+   { card: corruptedProcess, copies: 2 },
+   { card: nullShell, copies: 1 },
+   { card: propagatingExploit, copies: 3 },
+@@ -790,4 +791,5 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
+   // neutral card that helps Null, and on 2,500 held-out seeds the bare 36
+   // scored better on the ring objective than the old package (314 -> 249;
+   // balance-report-019). Every per-edge change is inside noise.
++  { card: rollbackPoint, copies: 2 },
+ ];

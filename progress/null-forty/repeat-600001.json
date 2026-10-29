@@ -1,0 +1,237 @@
+{
+ "the 36 (shipped)": {
+  "adds": [],
+  "objective": 0.010036800000000016,
+  "mean": 0.46526666666666666,
+  "edges": [
+   {
+    "edge": "Null > Aegis",
+    "mode": "gate",
+    "selfWins": 1294,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "gate",
+    "selfWins": 1436,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "gate",
+    "selfWins": 405,
+    "games": 900
+   },
+   {
+    "edge": "Null > Aegis",
+    "mode": "real",
+    "selfWins": 1138,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "real",
+    "selfWins": 1392,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "real",
+    "selfWins": 450,
+    "games": 900
+   }
+  ]
+ },
+ "A (greedy line)": {
+  "adds": [
+   "NT-004",
+   "NL-005",
+   "NT-004",
+   "NL-004"
+  ],
+  "objective": 0.015290710123456808,
+  "mean": 0.4529851851851851,
+  "edges": [
+   {
+    "edge": "Null > Aegis",
+    "mode": "gate",
+    "selfWins": 1244,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "gate",
+    "selfWins": 1426,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "gate",
+    "selfWins": 388,
+    "games": 900
+   },
+   {
+    "edge": "Null > Aegis",
+    "mode": "real",
+    "selfWins": 1099,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "real",
+    "selfWins": 1375,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "real",
+    "selfWins": 423,
+    "games": 900
+   }
+  ]
+ },
+ "B (runner-up line)": {
+  "adds": [
+   "NT-009",
+   "NT-004",
+   "NL-017",
+   "NT-004"
+  ],
+  "objective": 0.016283966419753094,
+  "mean": 0.45955555555555555,
+  "edges": [
+   {
+    "edge": "Null > Aegis",
+    "mode": "gate",
+    "selfWins": 1247,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "gate",
+    "selfWins": 1361,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "gate",
+    "selfWins": 382,
+    "games": 900
+   },
+   {
+    "edge": "Null > Aegis",
+    "mode": "real",
+    "selfWins": 1092,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "real",
+    "selfWins": 1343,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "real",
+    "selfWins": 431,
+    "games": 900
+   }
+  ]
+ },
+ "C (Null bodies only)": {
+  "adds": [
+   "NL-005",
+   "NL-016",
+   "NL-017",
+   "NL-006"
+  ],
+  "objective": 0.01414164938271606,
+  "mean": 0.4575481481481482,
+  "edges": [
+   {
+    "edge": "Null > Aegis",
+    "mode": "gate",
+    "selfWins": 1266,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "gate",
+    "selfWins": 1377,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "gate",
+    "selfWins": 389,
+    "games": 900
+   },
+   {
+    "edge": "Null > Aegis",
+    "mode": "real",
+    "selfWins": 1102,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "real",
+    "selfWins": 1375,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "real",
+    "selfWins": 420,
+    "games": 900
+   }
+  ]
+ },
+ "D (Null, one removal)": {
+  "adds": [
+   "NL-005",
+   "NL-016",
+   "NL-017",
+   "NL-004"
+  ],
+  "objective": 0.011550400000000013,
+  "mean": 0.4682296296296296,
+  "edges": [
+   {
+    "edge": "Null > Aegis",
+    "mode": "gate",
+    "selfWins": 1281,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "gate",
+    "selfWins": 1355,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "gate",
+    "selfWins": 396,
+    "games": 900
+   },
+   {
+    "edge": "Null > Aegis",
+    "mode": "real",
+    "selfWins": 1130,
+    "games": 2500
+   },
+   {
+    "edge": "Swarm > Null",
+    "mode": "real",
+    "selfWins": 1327,
+    "games": 2500
+   },
+   {
+    "edge": "Null ~ Cortex",
+    "mode": "real",
+    "selfWins": 430,
+    "games": 900
+   }
+  ]
+ }
+}

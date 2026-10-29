@@ -1,0 +1,103 @@
+Null's 4 added cards: greedy search on seeds 300001-301500 (1500 per edge per mode)
+Edges: Null > Aegis, Swarm > Null, Null ~ Cortex; modes gate and real. Objective: squared band misses summed (x1e4).
+Edge rates are the first-named side's, in the order above. Guard: Null's mean may not drop more than 0.5 points per add.
+
+start (36 cards): obj  104.8  Null mean 46.0  gate 50.5/58.6/44.6  real 45.8/56.7/50.2
+
+-- step 1: from (the 36 as shipped) (36 cards), 18 legal adds --
+   +Rollback Point         obj  121.7  Null mean 45.9  gate 50.1/58.1/44.8  real 45.1/56.6/49.8
+   +Fork Bomb              obj  122.7  Null mean 45.3  gate 51.9/58.4/44.3  real 44.4/57.7/47.7  (guard)
+   +Corrupted Process      obj  130.4  Null mean 45.0  gate 51.6/58.3/43.5  real 44.2/58.4/47.5  (guard)
+   +Burst Credit           obj  133.9  Null mean 45.3  gate 50.5/58.9/43.3  real 44.5/57.2/49.7  (guard)
+   +Scrap Recycler         obj  134.0  Null mean 46.1  gate 50.2/56.7/45.1  real 44.5/56.3/50.1
+   +Spare Cycles           obj  138.3  Null mean 44.8  gate 49.5/58.9/43.7  real 44.7/58.4/48.3  (guard)
+   +Zombie Process         obj  139.7  Null mean 45.6  gate 51.3/58.0/43.7  real 43.9/56.8/49.7
+   +Dangling Pointer       obj  142.0  Null mean 46.2  gate 50.9/56.0/44.0  real 43.9/55.8/50.1
+   +Null Shell             obj  142.4  Null mean 45.1  gate 51.6/58.6/44.1  real 43.6/58.0/47.8  (guard)
+   +Commodity Rack         obj  144.5  Null mean 45.4  gate 50.1/57.1/44.2  real 44.1/58.0/48.9  (guard)
+   +Garbage Collector      obj  146.6  Null mean 45.1  gate 50.4/59.2/45.1  real 43.8/59.1/49.8  (guard)
+   +Cache Warmup           obj  147.6  Null mean 44.8  gate 50.1/59.3/44.1  real 43.9/58.8/48.7  (guard)
+   +Decay Ward             obj  149.5  Null mean 44.4  gate 50.9/59.9/42.7  real 43.7/57.3/46.4  (guard)
+   +Relay Courier          obj  154.6  Null mean 45.1  gate 49.6/58.3/45.5  real 43.8/59.0/49.3  (guard)
+   +Surge Protector        obj  166.2  Null mean 44.7  gate 49.1/59.6/43.7  real 43.6/58.4/49.9  (guard)
+   +Watchdog Timer         obj  173.7  Null mean 44.0  gate 48.6/60.1/42.9  real 43.7/59.7/48.5  (guard)
+   +Uplink Tower           obj  173.8  Null mean 44.2  gate 50.1/59.5/43.9  real 42.8/60.1/48.0  (guard)
+   +Power Reserve          obj  196.3  Null mean 43.9  gate 48.1/60.1/42.0  real 43.2/58.3/48.7  (guard)
+  => +Rollback Point
+
+-- step 2: from Rollback Point (37 cards), 18 legal adds --
+   +Fork Bomb              obj  140.0  Null mean 45.6  gate 49.1/57.2/43.1  real 44.9/56.4/50.1
+   +Rollback Point         obj  146.6  Null mean 45.5  gate 48.8/57.1/45.1  real 44.6/57.6/49.1
+   +Corrupted Process      obj  150.9  Null mean 45.4  gate 48.9/56.5/43.5  real 44.5/57.3/49.3
+   +Dangling Pointer       obj  163.7  Null mean 45.3  gate 48.5/56.7/44.1  real 44.0/57.2/48.9  (guard)
+   +Scrap Recycler         obj  165.3  Null mean 45.1  gate 48.5/57.3/44.6  real 43.9/57.4/48.2  (guard)
+   +Zombie Process         obj  172.8  Null mean 44.5  gate 48.9/58.1/43.1  real 43.5/58.5/48.0  (guard)
+   +Commodity Rack         obj  173.6  Null mean 45.0  gate 48.5/57.2/44.5  real 43.5/57.9/48.7  (guard)
+   +Null Shell             obj  176.1  Null mean 44.9  gate 48.3/57.0/43.2  real 43.7/57.9/49.3  (guard)
+   +Garbage Collector      obj  178.1  Null mean 44.6  gate 49.5/58.3/44.5  real 42.9/59.8/48.7  (guard)
+   +Spare Cycles           obj  183.5  Null mean 44.8  gate 48.1/57.7/44.5  real 43.3/58.1/48.5  (guard)
+   +Decay Ward             obj  187.9  Null mean 43.9  gate 47.9/59.3/42.1  real 43.7/58.5/47.8  (guard)
+   +Burst Credit           obj  188.6  Null mean 44.7  gate 46.7/58.5/43.5  real 44.1/57.3/49.3  (guard)
+   +Relay Courier          obj  196.4  Null mean 44.7  gate 48.0/57.5/44.6  real 42.9/58.4/48.8  (guard)
+   +Surge Protector        obj  200.7  Null mean 44.2  gate 47.7/59.4/43.9  real 42.9/58.6/48.6  (guard)
+   +Cache Warmup           obj  205.1  Null mean 44.1  gate 48.4/58.9/43.9  real 42.3/59.3/48.0  (guard)
+   +Uplink Tower           obj  210.3  Null mean 44.1  gate 48.6/59.4/45.4  real 42.0/60.6/48.3  (guard)
+   +Power Reserve          obj  227.2  Null mean 43.7  gate 46.3/59.6/43.2  real 42.8/58.8/48.5  (guard)
+   +Watchdog Timer         obj  235.1  Null mean 43.4  gate 47.5/59.7/43.5  real 41.7/59.6/47.3  (guard)
+  => +Fork Bomb
+
+-- step 3: from Rollback Point + Fork Bomb (38 cards), 17 legal adds --
+   +Rollback Point         obj   91.1  Null mean 46.5  gate 51.7/55.0/41.9  real 46.6/54.7/48.8
+   +Dangling Pointer       obj   92.6  Null mean 46.8  gate 51.5/55.9/43.4  real 46.2/54.7/50.3
+   +Burst Credit           obj   94.3  Null mean 46.0  gate 50.9/56.3/40.5  real 47.4/54.7/48.4
+   +Spare Cycles           obj   98.7  Null mean 45.7  gate 51.1/56.7/41.5  real 46.5/55.9/47.7
+   +Commodity Rack         obj  104.2  Null mean 46.0  gate 50.3/55.3/41.5  real 46.7/54.5/47.4
+   +Zombie Process         obj  104.8  Null mean 46.0  gate 51.6/57.6/42.5  real 45.7/55.9/49.9
+   +Relay Courier          obj  112.0  Null mean 45.6  gate 51.3/55.8/41.3  real 45.8/55.9/47.2
+   +Scrap Recycler         obj  112.1  Null mean 46.0  gate 50.9/54.7/40.5  real 46.4/54.3/47.5
+   +Garbage Collector      obj  114.3  Null mean 45.7  gate 51.3/56.2/41.5  real 45.6/56.9/48.7
+   +Corrupted Process      obj  120.5  Null mean 45.0  gate 49.3/57.1/43.1  real 45.8/56.7/45.7  (guard)
+   +Cache Warmup           obj  128.6  Null mean 45.2  gate 50.7/56.7/40.7  real 45.4/56.6/47.9
+   +Surge Protector        obj  128.7  Null mean 44.7  gate 49.8/57.9/39.7  real 46.4/56.8/46.9  (guard)
+   +Uplink Tower           obj  140.4  Null mean 44.5  gate 50.7/57.6/40.7  real 44.8/57.8/46.0  (guard)
+   +Power Reserve          obj  160.6  Null mean 44.6  gate 49.7/57.2/38.9  real 45.2/56.0/47.0  (guard)
+   +Null Shell             obj  161.4  Null mean 44.8  gate 48.5/57.0/43.1  real 44.3/55.9/46.1  (guard)
+   +Watchdog Timer         obj  161.4  Null mean 44.5  gate 49.1/57.7/40.1  real 44.9/57.3/47.9  (guard)
+   +Decay Ward             obj  166.9  Null mean 44.3  gate 48.9/57.2/41.5  real 44.1/57.8/46.3  (guard)
+  => +Rollback Point
+
+-- step 4: from Rollback Point + Fork Bomb + Rollback Point (39 cards), 22 legal adds --
+   +Zombie Process         obj  145.2  Null mean 45.1  gate 49.4/57.0/42.9  real 44.5/56.6/47.4  (guard)
+   +Commodity Rack         obj  156.9  Null mean 44.9  gate 49.7/57.1/42.9  real 43.9/56.5/46.8  (guard)
+   +Scrap Recycler         obj  159.7  Null mean 45.0  gate 49.9/57.5/42.1  real 43.8/56.4/48.3  (guard)
+   +Segmentation Fault     obj  163.7  Null mean 44.6  gate 48.8/57.0/42.6  real 44.1/57.3/46.4  (guard)
+   +Dangling Pointer       obj  166.0  Null mean 45.2  gate 48.4/56.2/42.6  real 44.2/55.3/47.5  (guard)
+   +Rollback Point         obj  169.6  Null mean 44.9  gate 49.5/57.4/42.0  real 43.6/56.4/48.0  (guard)
+   +Segfault Handler       obj  177.1  Null mean 45.4  gate 48.5/56.8/43.8  real 43.5/55.7/49.0  (guard)
+   +Relay Courier          obj  178.4  Null mean 44.9  gate 49.5/57.5/43.5  real 42.9/56.8/47.6  (guard)
+   +Spare Cycles           obj  179.1  Null mean 44.3  gate 49.4/58.9/43.1  real 43.0/57.6/46.9  (guard)
+   +Burst Credit           obj  187.3  Null mean 44.6  gate 48.3/57.9/42.4  real 43.3/56.3/47.6  (guard)
+   +Garbage Collector      obj  187.8  Null mean 44.2  gate 48.9/58.5/43.5  real 42.8/58.6/47.2  (guard)
+   +Bit Rot                obj  189.5  Null mean 44.4  gate 47.4/58.3/42.8  real 43.7/57.1/47.7  (guard)
+   +Cache Warmup           obj  202.0  Null mean 43.9  gate 48.9/59.0/41.9  real 42.5/57.8/46.6  (guard)
+   +Deprecated Routine     obj  202.7  Null mean 44.0  gate 47.6/58.5/41.1  real 43.5/56.3/46.7  (guard)
+   +Uplink Tower           obj  204.4  Null mean 43.7  gate 48.7/59.1/42.5  real 42.4/58.9/46.5  (guard)
+   +Null Pointer           obj  206.8  Null mean 43.6  gate 47.5/59.0/42.7  real 42.9/58.2/45.8  (guard)
+   +Corrupted Process      obj  208.3  Null mean 43.8  gate 47.3/58.8/41.8  real 43.2/57.7/47.1  (guard)
+   +Surge Protector        obj  211.4  Null mean 43.8  gate 48.5/59.7/41.5  real 42.5/57.4/47.2  (guard)
+   +Null Shell             obj  216.2  Null mean 43.8  gate 46.3/59.2/41.4  real 43.7/56.7/47.1  (guard)
+   +Decay Ward             obj  224.8  Null mean 43.4  gate 47.4/59.4/41.1  real 42.7/57.2/45.7  (guard)
+   +Watchdog Timer         obj  235.2  Null mean 43.2  gate 46.5/59.6/42.5  real 42.5/59.0/46.4  (guard)
+   +Power Reserve          obj  239.8  Null mean 43.4  gate 48.0/59.3/40.9  real 41.8/57.8/46.7  (guard)
+  => +Segfault Handler (none passed the guard: the highest mean)
+
+-- second line: step 1's runner-up (+Scrap Recycler), then greedy --
+  +Rollback Point         obj  156.8  Null mean 45.3  gate 48.7/56.3/44.1  real 44.2/57.6/48.5  (best of 18)
+  +Dangling Pointer       obj  116.2  Null mean 46.0  gate 50.3/55.6/42.8  real 45.5/55.4/48.5  (best of 18)
+  +Rollback Point         obj  139.6  Null mean 45.8  gate 48.9/56.2/43.0  real 45.1/54.2/48.1  (best of 22)
+
+== the search's 40-card lists ==
+  greedy: Rollback Point + Fork Bomb + Rollback Point + Segfault Handler
+    obj  177.1  Null mean 45.4  gate 48.5/56.8/43.8  real 43.5/55.7/49.0
+  runner-up line: Scrap Recycler + Rollback Point + Dangling Pointer + Rollback Point
+    obj  139.6  Null mean 45.8  gate 48.9/56.2/43.0  real 45.1/54.2/48.1

@@ -3606,12 +3606,14 @@ Answers the "Not decided yet" line in the entry above (Null's starter at 36 card
 
 ---
 
-## 2026-10-29 — Owner: answers to game session 58 (option B built; Null falls behind)
+## 2026-10-29 — Owner: answers to game session 58 (option B built; Null falls behind) (HANDLED 2026-10-29, session 59)
 
 Answers the [OWNER CHECK-IN] "Option B is built; without its short deck, Null falls behind" in `progress/notes-for-owner.md` (PR #99, `progress/built-deck-ring-002.txt`).
 - **Keep option B as built.** No 36-card exception for Null (not B2).
 - **The pre-launch balance session is the next game session,** with Null's 4 added cards (its 36 → 40 list, so every starter is the same size) as its first job, then the two old edges (Null > Aegis, Cortex > Swarm) as planned.
 - Test only: bring the candidate cards and their full results (ring check and built-deck ring, every collection level) to an owner check-in. No card is added without the owner's OK.
+
+**Handled, session 59:** option B kept as built (no change). The balance session started with Null's 4 added cards: a search over every legal add, four sets on the ring check (the ring's own seeds and a fresh block, both modes), three on the built-deck ring at every level, each run on a repo copy where the set really shipped. Results in `progress/balance-report-035-null-forty.txt`; the candidates and a recommendation (set A) are the [OWNER CHECK-IN] in `progress/notes-for-owner.md`. No card changed. The two old edges are the balance session's next job.
 
 ---
 

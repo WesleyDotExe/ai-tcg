@@ -464,6 +464,11 @@ ring modes, the built-deck ring at every level). No card added without the
 owner's OK. Since session 58 (option B) the builder already builds Null to
 40 whenever 40 usable cards are held, so the built-deck ring's Null decks
 are the "40 by the builder's fill" baseline the candidates must beat.
+SESSION 59: job 1 run (balance-report-035-null-forty.txt): four candidate
+sets on the ring check (ring seeds + a fresh block), three on the
+built-deck ring at every level; recommend set A (+1 Fork Bomb, +1 Segfault
+Handler, +2 Rollback Point); owner check-in open, nothing shipped. Job 2
+(the two old edges) not started.
 
 **Standing: live operations, balancing never stops (owner 2026-10-05).**
 Once live: track faction popularity and win rates from real ladder and
