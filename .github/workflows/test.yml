@@ -39,3 +39,16 @@ jobs:
       # signature mode (npm run ring:signature) is a report now, not a check.
       - name: balance ring regression (real matches)
         run: npm run ring:real -w @ai-tcg/engine
+      # The render's browser check (owner 2026-10-29): the six boasts draw
+      # nothing past the winner's side, the Skip sizes, one replay's intro,
+      # in a headless browser on pages built fresh from this commit. The
+      # runner's own Chrome, driven by playwright-core installed outside the
+      # repo (not a dependency; nothing in package-lock.json). Falls back to
+      # downloading Chromium if the image ever drops Chrome. About 30 seconds.
+      - name: render browser check (headless Chrome)
+        env:
+          PW_CORE: ${{ runner.temp }}/pw/node_modules/playwright-core/index.mjs
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pw" --no-save --no-package-lock playwright-core@1.63.0
+          if command -v google-chrome >/dev/null; then export PW_CHANNEL=chrome; else node "$RUNNER_TEMP/pw/node_modules/playwright-core/cli.js" install --with-deps chromium; fi
+          node render/ci/browser-check.mjs

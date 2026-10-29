@@ -1,0 +1,37 @@
+
+> @ai-tcg/render@0.1.0 browser-check
+> node ci/browser-check.mjs
+
+Wrote <tmp>/boast-sheet.html
+Wrote <tmp>/cortex-vs-swarm-seed6.html
+[A] the six boasts: nothing lit past the winner's side (winner below, then above)
+  PASS A. boast-aegis-shield-slam-full: 59 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-aegis-shield-slam-top: 59 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-swarm-hive-burst-full: 60 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-swarm-hive-burst-top: 61 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-null-void-collapse-full: 61 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-null-void-collapse-top: 61 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-cortex-data-cascade-full: 61 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-cortex-data-cascade-top: 61 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-s0-boot-sequence-full: 61 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-s0-boot-sequence-top: 61 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-s0-dial-up-fireworks-full: 61 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-s0-dial-up-fireworks-top: 61 samples, 0 lit past the side (0 on the loser's)
+
+[B] the Skip sizes (phone: 390 x 844, coarse pointer)
+  PASS B. a boast's Skip on a phone: 88.0 x 44.0 px (at least 88 x 44)
+  PASS B. the intro's Skip on a phone: 88.0 x 44.0 px (at least 88 x 44)
+  PASS B. a boast's Skip on a desktop stays small: 69.9 x 23.0 px
+
+[C] cortex-vs-swarm-seed6.html: the intro
+  PASS C. desktop: plays from Play at move 0, laid out with no problem, saying "ENGAGE"
+  PASS C. desktop: the agent lines on one row at 15.0 px
+  PASS C. desktop: the music waits under the intro (0 steps at 1.5 s)
+  PASS C. desktop: the intro ends by itself (1107 ms after 1.5 s)
+  PASS C. Escape skips it and the music starts (active false, skipped 1, music waiting false)
+  PASS C. phone: the agent lines on two rows at 20.0 px, no problem
+  PASS C. phone: no sideways scroll (390 <= 390)
+  PASS C. reduced motion: the still
+
+23 passed, 0 failed (pages 0.8 s, browser 19.9 s)
+ALL PASS

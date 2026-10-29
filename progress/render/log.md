@@ -3906,3 +3906,48 @@ new features, three debt items raised to bar, each proven in the browser against
 **Next render-lane slice:** none set by the owner. Candidates: the next item the owner names; or the
 next debt item worth a slice (a "tap to skip" hint; the browser checks in CI, which needs Chromium in
 the test workflow, an owner call).
+
+## 2026-10-30 — Session 41: the CI browser check
+
+Render session per the alternation (the last merged PR, #101, was the game lane's session 59). Owner
+feedback read: the answers to render session 40 (keep all 3) and "yes to the CI browser check", with
+the OK to change `.github/workflows/test.yml` and `auto-merge.yml` for this check and the wait only, on
+the condition that the auto-merge wait is lengthened in the same change. The game lane's set-A entry
+is the game lane's own (its next session ships it); not touched here.
+
+**Built:**
+- `render/src/ciPages.ts` (`npm run ci-pages -w @ai-tcg/render -- <dir>`): builds the boast sheet and
+  one replay (Cortex vs Swarm, seed 6) from the current source into a directory. Today both are byte for
+  byte the committed pages.
+- `render/ci/browser-check.mjs` (`npm run browser-check -w @ai-tcg/render`): with no argument it builds
+  the pages into a temp dir, serves them over local HTTP and drives them in a headless browser. 23
+  checks: A, the six boasts at `full` (winner below) and `top` (winner above), nothing lit past the
+  winner's side (the session-40 method: the top canvas every 3rd frame, every 2nd pixel, more than 3 px
+  out counts), three pages at a time; B, Skip sizes (boast and intro on a phone at least 88 x 44, the
+  boast's on a desktop under 44 tall); C, the intro (plays with no problem and the saying ENGAGE, one row
+  on a desktop, the music waiting at 1.5 s, ends by itself; Escape skips and the music starts; a phone's
+  two rows and no sideways scroll; reduced motion's still). Any page error fails. Playwright is found by
+  `PW_CORE`, then the installed package, then the container's copy; `PW_CHANNEL=chrome` uses Chrome.
+  Plain JS on purpose: tsx adds helpers to functions that `page.evaluate` can't carry into the page.
+- `.github/workflows/test.yml`: a last step installs playwright-core 1.63.0 into `$RUNNER_TEMP` (no
+  repo dependency, no lockfile change) and runs the check on the runner's Chrome (downloads Chromium only
+  if the image has no Chrome). `auto-merge.yml`: the wait for checks from 30 polls to 72 (5 to 12 min).
+- `render/test/ciPages.test.ts` (+3): the pages are the two the check opens; every scene id and side id
+  the check reads exists on the sheet; the replay has the intro's hooks. It deliberately doesn't compare
+  with `render/output/`, so a game-lane card change can't fail the render's tests.
+
+**Ran it:**
+- `progress/render/evidence/ci-browser-check-s41.txt`: 23 passed, ALL PASS, pages 0.8 s, browser 19.9 s
+  (one boast at a time it was 56.7 s). Run three times, with the container's playwright and with
+  playwright-core installed the way CI does (`PW_CORE`); same result.
+- Mutation: `boastFx.ts` without the session-40 clip and without the coarse-pointer Skip rule, then
+  reverted: 8 FAIL (`ci-browser-check-s41-mutant.txt`): Shield Slam, Hive Burst and Void Collapse in
+  both positions, both phone Skips (84.8 x 27). Winner above, Shield Slam lit 893 pixels on the loser's
+  own side, more than the 148 with the winner below (session 40 only measured below).
+- CI baseline from the last 8 PR runs of `test`: 1 min 45 s to 2 min 45 s. The first run with the
+  check is this PR's; its time wasn't known when this was written.
+- `npm test`: all six workspaces pass, render 659 (+3); typecheck clean.
+
+**Next render-lane slice:** none set by the owner. Candidates: a replay's end (the lethal beat, then
+the boast) in the CI check; a "tap to skip" hint; the next item the owner names. Next render session:
+read this PR's `test` run and record the step's CI time and Chrome version here.

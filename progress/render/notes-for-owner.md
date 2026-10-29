@@ -927,3 +927,15 @@ for its next session.)
    That file is shared with the game lane, so it's your call: say if you want it, and the render lane
    will build a CI-sized check (the six boasts' "nothing past the winner's side", the Skip sizes, one
    replay's intro) as its own slice.
+
+## 2026-10-30 — Session 41 (the CI browser check)
+
+1. **Built, as you set it.** The render's browser check now runs on every push and PR, as the last step
+   of `.github/workflows/test.yml`. Calls are in `progress/render/checkpoints.md` (newest entry).
+2. **The two shared workflow files changed only as you OK'd:** the new step in `test.yml`, and the
+   auto-merge wait in `auto-merge.yml` raised from 5 to 12 minutes. Nothing else in either file, and
+   nothing in `package.json` or `package-lock.json` at the root (playwright-core is installed outside
+   the repo in CI, not added as a dependency).
+3. **Nothing for the game lane,** except that its PRs now run the check too. It builds its pages from
+   the current source, so a game change that breaks the replay page (not one that only changes how a
+   match plays out) fails it.

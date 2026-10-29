@@ -7,6 +7,53 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-30 — The CI browser check — AWAITING FEEDBACK
+
+The slice you set after the session-40 hardening pass. Every push and PR now runs a headless-browser
+check of the render, the last step of the `test` workflow.
+- **What it checks (23 checks):** each of the six boasts, the winner below and above, draws nothing past
+  the winner's side (the effects' top canvas read through the whole boast); a boast's and the intro's
+  Skip at least 88 x 44 px on a phone, a boast's small on a desktop; and Cortex vs Swarm seed 6's intro:
+  it plays from Play at move 0 with no layout problem, holds the music, ends by itself; Escape skips it
+  and starts the music; a phone gets two rows and no sideways scroll; reduced motion gets the still. Any
+  page error fails it too.
+- **It checks this commit, not the committed pages:** it builds the boast sheet and the replay fresh from
+  the source (`render/src/ciPages.ts`), so a source change that wasn't regenerated into `render/output/`
+  is still caught.
+- **It catches the bug that started this:** with session 40's halo clip and the phone Skip rule taken
+  back out, it fails 8 checks (Shield Slam lights up to 893 pixels on the loser's own side with the winner
+  above, a position session 40 didn't measure). `progress/render/evidence/ci-browser-check-s41-mutant.txt`.
+- **Time:** locally the step takes about 21 s (pages 0.8 s, browser 20 s; three boasts play at once to
+  keep it short; one at a time took 57 s). Installing playwright-core adds about 1-2 s. The test run on
+  CI was 1 min 45 s to 2 min 45 s over the last 8 PRs; expected after: about 2 min 15 s to 3 min 30 s.
+  The first CI run's real figure is read off this PR and goes in the next render session's log.
+- **The auto-merge wait:** 5 minutes to 12 (72 polls, 10 s apart). It only waits as long as the checks
+  take; the 12 is the ceiling before it gives up.
+
+**Evidence:** `progress/render/evidence/ci-browser-check-s41.txt` (ALL PASS) and the mutant run above.
+`render/test/ciPages.test.ts` (+3) pins the ids and hooks the check drives, so a rename fails in vitest
+with a clear message instead of a browser timeout. `npm test`: all six workspaces pass, render 659.
+
+**Decisions you may want to overrule:**
+1. **No audio in CI.** The sound checks (queued on time, heard on time) stay by-hand session evidence:
+   an audio clock on a shared runner is the likeliest source of a flaky red. Alternative: add the
+   intro's "every sound queued, none late" check (one line, about 1 s).
+2. **The runner's own Chrome, not a downloaded Chromium.** Faster (no download) and nothing added to the
+   repo's dependencies; but Chrome updates with GitHub's image, so a Chrome change could turn it red
+   with no code change. Alternative: download a pinned Chromium each run (about 20-30 s more).
+3. **12 minutes for the auto-merge wait.** Generous against a 3-4 minute run, so a slow runner queue
+   doesn't strand a green PR again. Alternative: 8 minutes.
+4. **Three boasts at a time** to keep it near 20 s. Alternative: one at a time (about 57 s locally),
+   which samples more frames on a slow runner.
+
+**Thin spots (in the debt list):** most of the session checks (sound, the pack opening, the feed, the
+narrow layouts) are still by hand; the real end of a replay (lethal hit, then the boast) isn't in it.
+
+**Next render-lane slice:** none set. Candidates: one replay's end (the lethal beat and the boast) in
+the CI check; a "tap to skip" hint; or the next item you name.
+
+---
+
 ## 2026-10-28 — Hardening pass: the boast stays on the winner's side by construction; Skip on a phone — AWAITING FEEDBACK
 
 No slice was set after session 39, and the lane had gone twenty sessions without a hardening pass, so
