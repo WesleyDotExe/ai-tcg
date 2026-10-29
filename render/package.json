@@ -18,7 +18,9 @@
     "boast-sheet": "tsx src/boastSheet.ts",
     "recorded": "tsx src/recordedDemo.ts",
     "boot-sheet": "tsx src/bootSheet.ts",
-    "loadout": "tsx src/loadoutDemo.ts"
+    "loadout": "tsx src/loadoutDemo.ts",
+    "ci-pages": "tsx src/ciPages.ts",
+    "browser-check": "node ci/browser-check.mjs"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",

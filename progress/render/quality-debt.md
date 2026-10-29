@@ -7,6 +7,27 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The CI browser check (session 41)
+
+- **Only a small part of the browser evidence runs in CI.** `render/ci/browser-check.mjs` (23 checks)
+  guards the boasts' spill, the Skip sizes and one replay's intro. The deeper session checks (sound as
+  heard, timing under a stall, the pack opening, the feed, the narrow layouts, the loadout picker) are
+  still by-hand scripts under `progress/render/evidence/`; a regression there would pass CI.
+- **No audio is checked in CI.** The intro's sound queue and the heard-timing checks were left out on
+  purpose (an audio clock on a shared runner is the likeliest flake); a boast's or the intro's sounds
+  could break and CI would stay green.
+- **The first CI run's time is not in this session's evidence.** Locally the step takes about 21 s
+  (pages 0.8 s, browser 20 s on 4 cores); the runner's time and Chrome version are read off the PR's
+  first run and belong in the next render session's log.
+- **CI uses the runner's Chrome, the sessions use the container's Chromium.** Same playwright-core
+  (1.63.0), different browsers; the image's Chrome moves with GitHub's updates, so a Chrome change can
+  turn the check red with no code change. The fallback (download Chromium) runs only if Chrome is gone.
+- **Three pages animate at once in section A,** to keep the step short. Each page still samples its
+  whole boast (55-61 samples, against a minimum of 10), but a slower runner samples fewer frames, and a
+  one-frame flash past the side could fall between samples (as it could before, every 3rd frame).
+- **Only the replay's intro is checked, not its end.** The boast at a real replay's end (a lethal attack,
+  then the boast) is checked on the sheet only.
+
 ## Hardening pass (session 40)
 
 - **The boast's clip has a hard edge.** Everything the boast draws itself is clipped to the winner's
@@ -25,8 +46,6 @@ items are removed, with the fix in `log.md`.
 - **`fxParticleReach` is read from `drawP` by hand.** A test pins the drawing lines it was read from,
   so a change there fails a test; but a new particle kind with no reach counts as a point (reach 0).
   The test lists today's seven kinds, so a new kind fails it until it's added.
-- **The browser checks still aren't in CI.** This session's check (`hardening-check-s40.mjs`) is
-  committed and run twice, like the others, but nothing runs it on a push.
 
 ## The boasts' sounds on the audio clock (session 39)
 

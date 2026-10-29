@@ -27,7 +27,10 @@ jobs:
           script: |
             const pr = context.payload.pull_request;
             const sha = pr.head.sha;
-            for (let i = 0; i < 30; i++) {
+            // Up to 12 minutes (72 polls, 10 s apart). It was 5, which timed
+            // out once with tests green (PR #88); the render's browser check
+            // (owner 2026-10-29) adds about a minute to the test run.
+            for (let i = 0; i < 72; i++) {
               const { data } = await github.rest.checks.listForRef({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
