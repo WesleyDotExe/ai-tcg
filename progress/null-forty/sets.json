@@ -1,0 +1,6 @@
+{
+  "A (greedy line)": ["NT-004", "NL-005", "NT-004", "NL-004"],
+  "B (runner-up line)": ["NT-009", "NT-004", "NL-017", "NT-004"],
+  "C (Null bodies only)": ["NL-005", "NL-016", "NL-017", "NL-006"],
+  "D (Null, one removal)": ["NL-005", "NL-016", "NL-017", "NL-004"]
+}

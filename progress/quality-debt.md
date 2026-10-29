@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -53,7 +53,29 @@ real, but here is where it's thin.
   automatically (about 25 minutes on 4 cores, too slow for CI).
 - **Still owed before launch (owner 2026-10-22):** the test-only balance session for Null > Aegis
   (inverted) and Cortex > Swarm (under band), candidates measured on the ring in both modes and on the
-  built-deck ring at every level, results to an owner check-in. Planned on the roadmap; not run yet.
+  built-deck ring at every level, results to an owner check-in. Session 59 ran its first job (Null's 4
+  added cards, owner check-in open); the two edges themselves are not run yet.
+
+## Session 59 (the balance session, job 1: Null's 4 added cards): what is still thin
+
+- **Null's built decks are still weaker than session 54's until the owner picks a set.** The shipped
+  list is still 36 and the builder still fills it with rating picks (incl. a Zero-Day card). Candidate A
+  measures back at session 54's field spread (`progress/balance-report-035-null-forty.txt`), but nothing
+  ships without the owner's OK.
+- **Any 40-card Null list fails today's ring check on gate Swarm > Null** (IN BAND -> UNRESOLVED, 57.1 ->
+  52.9-54.3 on the ring's seeds). Shipping a set needs the baselines re-recorded, with the owner's OK.
+- **The "full collection" column is one deck per faction and noisy.** Aegis's full-collection mean ran
+  50.0-60.4 (real) across the candidate runs with its own cards unchanged; only the shipped Null deck its
+  search plays against differed. The pack columns (8 owners) are the steadier read; nobody has measured
+  how much one full build swings by search seed alone.
+- **The search is noise-bound.** 1,500 games per edge per mode can't separate one add from another
+  (about 1.3 points of noise per edge); the shortlist was finished by hand (C, D) and judged on held-out
+  and built-deck results. B was never run on the built-deck ring.
+- **The candidate runner patches source with a regex** (`progress/null-forty/run-candidate.sh`). It is
+  checked (the economy must see a 40-card Null list, else it stops), but a reformatted `NULL_CARDS` would
+  break it. It found one real bug in itself on the way: a shared node_modules made the economy read the
+  unpatched engine (first D run discarded).
+- **Job 2 not started:** candidate fixes for Null > Aegis and Cortex > Swarm.
 
 ## Session 58 (option B built): what it left thin
 

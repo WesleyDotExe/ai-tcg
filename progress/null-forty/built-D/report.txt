@@ -1,0 +1,134 @@
+The built-deck ring (pre-launch gate, owner 2026-10-19): the six ring edges with the deck-building agent's decks on both sides
+Lookahead vs Lookahead, Calculator style, ring seeds (2,500 for the win/lose edges, 900 for the even ones, seeds from 1).
+Builds: the store's own (chooseDeck's defaults: 40 games per shipped opponent, 24 one-copy changes, 100-game confirm, search seed 1), forced to the owner's starting faction.
+Realistic owners: 8 per faction, each the faction's starter collection plus packs from the live roller (economy/src/dev/realisticCollections.ts);
+at a pack level each seed seats one owner per side, every owner equally often and on both seats.
+Bands: predator 55-60%, prey 40-45%, even 45-55%. Verdicts on the 95% Wilson interval: IN only when it sits inside the band, OUT only when it misses it.
+No card, deck or rule changed: this only measures.
+
+== REAL-MATCH MODE (how a real match plays: an approved signature card per side; ring:real's mode) ==
+Decks: set Mythic in the deck, an approved menu line as each side's signature card.
+edge (band)                        shipped decks            full (store)                37 packs                17 packs                 3 packs
+Null > Aegis (55-60)        45.2 [43.2-47.1] OUT    38.8 [36.9-40.7] OUT    45.7 [43.8-47.7] OUT    46.1 [44.2-48.1] OUT    45.0 [43.0-46.9] OUT
+Aegis > Cortex (55-60)   55.6 [53.6-57.5] unres. 61.2 [59.3-63.1] unres. 54.4 [52.5-56.4] unres.    52.9 [51.0-54.9] OUT 54.5 [52.6-56.5] unres.
+Cortex > Swarm (55-60)      53.0 [51.0-54.9] OUT    52.2 [50.2-54.1] OUT    50.9 [48.9-52.8] OUT 54.2 [52.2-56.1] unres. 54.7 [52.8-56.7] unres.
+Swarm > Null (55-60)        52.6 [50.7-54.6] OUT 53.1 [51.1-55.0] unres.    52.2 [50.2-54.2] OUT    51.0 [49.1-53.0] OUT    51.5 [49.5-53.4] OUT
+Null ~ Cortex (45-55)    53.7 [50.4-56.9] unres. 48.2 [45.0-51.5] unres. 48.1 [44.9-51.4] unres. 47.0 [43.8-50.3] unres.     50.2 [47.0-53.5] IN
+Aegis ~ Swarm (45-55)    56.2 [53.0-59.4] unres.    58.8 [55.5-61.9] OUT 54.6 [51.3-57.8] unres. 56.3 [53.1-59.5] unres. 57.2 [54.0-60.4] unres.
+in band / unres. / out                 0 / 3 / 3               0 / 3 / 3               0 / 3 / 3               0 / 3 / 3               1 / 3 / 2
+
+Each faction's mean win rate over its three edges (50 = even with the field; the ring itself is built to be even):
+faction                                  shipped                    full                      37                      17                       3
+Cortex                                      47.9             47.6 (-0.3)             49.4 (+1.5)             51.4 (+3.5)             50.0 (+2.1)
+Swarm                                       47.8             47.4 (-0.4)             48.9 (+1.1)             46.8 (-1.0)             46.5 (-1.3)
+Aegis                                       55.6             60.4 (+4.9)             54.4 (-1.1)             54.4 (-1.2)             55.6 (+0.0)
+Null                                        48.7             44.6 (-4.1)             47.2 (-1.5)             47.4 (-1.4)             47.9 (-0.8)
+
+Each edge's move from the shipped decks (points, first-named side), and how far outside its band it lands:
+  Null > Aegis    full: -6.4 (-16.2 outside)   37: +0.6 (-9.3 outside)   17: +1.0 (-8.9 outside)   3: -0.2 (-10.0 outside)
+  Aegis > Cortex  full: +5.6 (+1.2 outside)   37: -1.2 (-0.6 outside)   17: -2.7 (-2.1 outside)   3: -1.1 (-0.5 outside)
+  Cortex > Swarm  full: -0.8 (-2.8 outside)   37: -2.1 (-4.1 outside)   17: +1.2 (-0.8 outside)   3: +1.8 (-0.3 outside)
+  Swarm > Null    full: +0.4 (-1.9 outside)   37: -0.4 (-2.8 outside)   17: -1.6 (-4.0 outside)   3: -1.2 (-3.5 outside)
+  Null ~ Cortex   full: -5.4   37: -5.6   17: -6.7   3: -3.4
+  Aegis ~ Swarm   full: +2.6 (+3.8 outside)   37: -1.7   17: +0.1 (+1.3 outside)   3: +1.0 (+2.2 outside)
+
+Spread between owners (the first-named side's win rate per owner of that side; at a pack level every owner plays ~1/8 of the edge):
+  37 packs  Null > Aegis    min 42.9  max 51.3  (44.3 45.2 43.6 44.6 48.4 42.9 45.5 51.3)
+  37 packs  Aegis > Cortex  min 43.9  max 59.3  (43.9 47.8 55.1 57.7 58.0 59.3 56.4 57.4)
+  37 packs  Cortex > Swarm  min 49.4  max 54.5  (52.5 50.3 50.0 49.4 50.0 50.0 54.5 50.3)
+  37 packs  Swarm > Null    min 50.0  max 54.5  (54.5 50.6 53.2 52.2 51.0 54.2 50.0 51.9)
+  37 packs  Null ~ Cortex   min 43.8  max 53.6  (49.1 48.2 43.8 47.3 53.6 44.6 50.9 47.3)
+  37 packs  Aegis ~ Swarm   min 45.6  max 64.3  (45.6 48.2 56.3 54.5 54.5 62.5 64.3 50.9)
+  17 packs  Null > Aegis    min 42.9  max 47.8  (46.5 47.5 44.6 46.5 42.9 47.8 47.4 45.8)
+  17 packs  Aegis > Cortex  min 47.8  max 59.6  (59.6 51.0 52.6 53.8 53.5 47.8 48.7 56.4)
+  17 packs  Cortex > Swarm  min 48.1  max 59.0  (51.0 58.3 51.9 48.1 51.3 56.7 59.0 57.4)
+  17 packs  Swarm > Null    min 40.8  max 55.7  (55.7 40.8 52.9 51.3 51.0 53.2 50.0 53.5)
+  17 packs  Null ~ Cortex   min 42.0  max 51.8  (48.2 43.9 47.3 49.1 51.8 42.0 46.4 47.3)
+  17 packs  Aegis ~ Swarm   min 43.8  max 63.4  (62.3 58.8 56.3 50.9 58.0 43.8 63.4 57.1)
+  3 packs   Null > Aegis    min 42.6  max 47.8  (46.8 47.5 44.9 47.8 43.6 42.6 43.3 43.3)
+  3 packs   Aegis > Cortex  min 49.4  max 58.7  (55.1 55.7 49.4 56.4 54.5 58.7 51.9 54.5)
+  3 packs   Cortex > Swarm  min 50.3  max 58.7  (54.8 56.1 54.5 53.5 50.3 58.7 56.7 53.2)
+  3 packs   Swarm > Null    min 48.1  max 54.5  (54.5 50.0 51.3 48.1 50.0 53.5 51.6 52.9)
+  3 packs   Null ~ Cortex   min 46.4  max 55.3  (49.1 55.3 48.2 49.1 46.4 49.1 53.6 50.9)
+  3 packs   Aegis ~ Swarm   min 47.3  max 61.6  (57.0 60.5 58.0 47.3 61.6 57.1 59.8 56.3)
+
+== GATE MODE (decks only, no signature card; the shipped gate's mode) ==
+Decks: set Mythic in the deck.
+edge (band)                        shipped decks            full (store)                37 packs                17 packs                 3 packs
+Null > Aegis (55-60)        50.2 [48.2-52.2] OUT    35.4 [33.6-37.3] OUT    47.8 [45.8-49.7] OUT    49.7 [47.7-51.6] OUT    50.0 [48.1-52.0] OUT
+Aegis > Cortex (55-60)      49.3 [47.4-51.3] OUT 60.2 [58.3-62.1] unres.    49.5 [47.5-51.4] OUT    48.2 [46.2-50.2] OUT    48.8 [46.9-50.8] OUT
+Cortex > Swarm (55-60)   58.2 [56.3-60.2] unres. 55.2 [53.2-57.1] unres. 55.8 [53.8-57.7] unres.     58.0 [56.0-59.9] IN 59.2 [57.3-61.1] unres.
+Swarm > Null (55-60)     53.1 [51.2-55.1] unres. 54.4 [52.4-56.3] unres.    51.8 [49.9-53.8] OUT    51.8 [49.8-53.7] OUT    51.6 [49.7-53.6] OUT
+Null ~ Cortex (45-55)    48.0 [44.8-51.3] unres. 42.2 [39.0-45.5] unres. 44.2 [41.0-47.5] unres. 43.3 [40.1-46.6] unres. 46.1 [42.9-49.4] unres.
+Aegis ~ Swarm (45-55)    52.4 [49.2-55.7] unres.    63.3 [60.1-66.4] OUT 55.9 [52.6-59.1] unres. 54.0 [50.7-57.2] unres. 52.3 [49.1-55.6] unres.
+in band / unres. / out                 0 / 4 / 2               0 / 4 / 2               0 / 3 / 3               1 / 2 / 3               0 / 3 / 3
+
+Each faction's mean win rate over its three edges (50 = even with the field; the ring itself is built to be even):
+faction                                  shipped                    full                      37                      17                       3
+Cortex                                      53.6             50.9 (-2.7)             54.0 (+0.4)             55.5 (+1.8)             54.7 (+1.1)
+Swarm                                       47.5             45.3 (-2.2)             46.7 (-0.8)             46.6 (-0.9)             46.7 (-0.8)
+Aegis                                       50.5            62.7 (+12.2)             52.5 (+2.0)             50.8 (+0.3)             50.4 (-0.1)
+Null                                        48.4             41.1 (-7.3)             46.7 (-1.6)             47.1 (-1.3)             48.2 (-0.2)
+
+Each edge's move from the shipped decks (points, first-named side), and how far outside its band it lands:
+  Null > Aegis    full: -14.8 (-19.6 outside)   37: -2.4 (-7.2 outside)   17: -0.5 (-5.3 outside)   3: -0.2 (-5.0 outside)
+  Aegis > Cortex  full: +10.9 (+0.2 outside)   37: +0.2 (-5.5 outside)   17: -1.1 (-6.8 outside)   3: -0.5 (-6.2 outside)
+  Cortex > Swarm  full: -3.1   37: -2.4   17: -0.3   3: +1.0
+  Swarm > Null    full: +1.2 (-0.6 outside)   37: -1.3 (-3.2 outside)   17: -1.4 (-3.2 outside)   3: -1.5 (-3.4 outside)
+  Null ~ Cortex   full: -5.8 (-2.8 outside)   37: -3.8 (-0.8 outside)   17: -4.7 (-1.7 outside)   3: -1.9
+  Aegis ~ Swarm   full: +10.9 (+8.3 outside)   37: +3.4 (+0.9 outside)   17: +1.6   3: -0.1
+
+Spread between owners (the first-named side's win rate per owner of that side; at a pack level every owner plays ~1/8 of the edge):
+  37 packs  Null > Aegis    min 42.3  max 52.9  (50.3 49.7 47.4 42.3 49.0 42.3 48.1 52.9)
+  37 packs  Aegis > Cortex  min 44.9  max 55.8  (46.5 44.9 48.4 49.0 51.0 55.8 46.5 53.8)
+  37 packs  Cortex > Swarm  min 50.0  max 61.5  (51.6 57.6 58.7 57.7 50.0 56.7 61.5 52.6)
+  37 packs  Swarm > Null    min 48.4  max 56.4  (50.3 50.6 51.9 56.4 48.4 50.6 53.8 52.6)
+  37 packs  Null ~ Cortex   min 42.1  max 46.5  (42.1 46.5 43.8 43.8 44.6 46.4 43.8 42.9)
+  37 packs  Aegis ~ Swarm   min 49.1  max 61.6  (54.4 49.1 52.7 56.3 55.4 61.6 58.9 58.9)
+  17 packs  Null > Aegis    min 47.1  max 52.5  (50.0 52.5 49.7 50.0 47.1 49.7 50.3 48.1)
+  17 packs  Aegis > Cortex  min 45.5  max 52.9  (51.3 45.9 47.4 49.0 47.4 45.5 46.2 52.9)
+  17 packs  Cortex > Swarm  min 51.6  max 62.2  (51.6 61.5 62.2 51.9 55.1 61.9 61.5 58.0)
+  17 packs  Swarm > Null    min 41.7  max 55.8  (52.5 41.7 53.5 55.8 50.6 50.3 55.8 53.8)
+  17 packs  Null ~ Cortex   min 38.6  max 49.1  (41.2 38.6 42.9 39.3 48.2 42.0 45.5 49.1)
+  17 packs  Aegis ~ Swarm   min 48.2  max 61.4  (61.4 49.1 57.1 48.2 53.6 49.1 58.0 55.4)
+  3 packs   Null > Aegis    min 44.9  max 56.4  (56.4 52.5 49.7 49.0 49.7 44.9 50.0 48.1)
+  3 packs   Aegis > Cortex  min 45.2  max 52.2  (48.4 47.8 45.2 51.9 48.4 49.7 47.1 52.2)
+  3 packs   Cortex > Swarm  min 56.4  max 62.1  (60.5 62.1 58.3 58.0 56.4 59.3 58.7 60.3)
+  3 packs   Swarm > Null    min 48.7  max 54.8  (51.6 50.3 51.6 52.6 48.7 52.2 54.8 51.3)
+  3 packs   Null ~ Cortex   min 41.1  max 55.3  (41.2 55.3 45.5 43.8 44.6 41.1 50.9 46.4)
+  3 packs   Aegis ~ Swarm   min 47.4  max 58.0  (53.5 47.4 50.9 50.9 50.0 55.4 58.0 52.7)
+
+== The built decks ==
+Confirm-step win rate against the four shipped decks (100 games each, fresh seeds), beside the shipped list on the same seeds:
+-- full collection, the store's build --
+  Cortex built 62.5  shipped 58.3  lift +4.2  kept: rating  sizes: 40
+  Swarm  built 51.7  shipped 44.5  lift +7.2  kept: searched  sizes: 40
+  Aegis  built 64.5  shipped 50.5  lift +14.0  kept: searched  sizes: 40
+  Null   built 54.0  shipped 53.3  lift +0.8  kept: searched  sizes: 40
+-- starter + 37 packs (about two weeks) --
+  Cortex built 61.5 (owners 58.3-64.5)  shipped 58.3  lift +3.3  kept: searched rating designed rating rating rating designed rating  sizes: 40 40 40 40 40 40 40 40
+  Swarm  built 44.5 (owners 44.5-44.8)  shipped 44.5  lift +0.0  kept: designed designed designed designed searched designed designed designed  sizes: 40 40 40 40 40 40 40 40
+  Aegis  built 54.6 (owners 51.7-57.5)  shipped 50.5  lift +4.1  kept: rating rating searched searched searched searched searched searched  sizes: 40 40 40 40 40 40 40 40
+  Null   built 53.4 (owners 53.3-53.8)  shipped 53.3  lift +0.1  kept: designed searched designed designed designed searched designed designed  sizes: 40 40 40 40 40 40 40 40
+-- starter + 17 packs (about a week) --
+  Cortex built 60.2 (owners 58.3-63.0)  shipped 58.3  lift +2.0  kept: rating rating searched rating designed searched searched designed  sizes: 40 40 40 40 40 40 40 40
+  Swarm  built 44.5 (owners 44.5-44.8)  shipped 44.5  lift +0.0  kept: designed rating designed designed designed designed designed designed  sizes: 40 40 40 40 40 40 40 40
+  Aegis  built 51.9 (owners 50.5-55.8)  shipped 50.5  lift +1.4  kept: searched searched searched searched designed rating designed designed  sizes: 40 40 40 40 40 40 40 40
+  Null   built 53.2 (owners 53.3-53.3)  shipped 53.3  lift -0.0  kept: designed designed designed designed designed designed designed designed  sizes: 40 40 40 40 40 40 40 40
+-- starter + its 3 starter packs (day one) --
+  Cortex built 59.7 (owners 58.3-62.5)  shipped 58.3  lift +1.5  kept: designed searched rating rating designed rating rating searched  sizes: 40 40 40 40 40 40 40 40
+  Swarm  built 46.8 (owners 44.5-51.2)  shipped 44.5  lift +2.3  kept: designed rating rating rating searched searched rating designed  sizes: 40 40 40 40 40 40 40 40
+  Aegis  built 50.8 (owners 50.5-52.3)  shipped 50.5  lift +0.3  kept: designed designed designed searched designed searched designed searched  sizes: 40 40 40 40 40 40 40 40
+  Null   built 53.6 (owners 53.3-55.5)  shipped 53.3  lift +0.3  kept: designed rating rating designed rating designed designed designed  sizes: 40 40 40 40 40 40 40 40
+
+How each full-collection deck differs from its shipped list:
+  full        Cortex +2 Signal Drone, +1 Diagnostic Pulse, -1 Cascade Purge, -1 Backup Protocol, -2 Mainframe Core, +1 Fail-safe Unit, -2 Cortex Engineer, +1 Overload Capacitor, -1 Diagnostic Loop, +1 Retaliation Node, -1 Interrupt Handler, +1 Dormant Exploit, -1 Overclock Shunt, +1 Force Quit, -2 Rate Limiter, -2 Load Balancer, -1 Hotfix, -1 Deadlock Detector, -1 Quorum Arbiter, +3 Spare Cycles, +2 Relay Courier, -1 Rollback Point, -1 Surge Protector, +2 Uplink Tower, +1 Burst Credit, +1 Patient Zero, +1 Root Access
+  full        Swarm  +1 Patient Zero, -1 Brood Skitterer
+  full        Aegis  +1 Barrier Drone, -2 Plating Module, -1 Guard Directive Chip, -1 Aegis Sentinel, -1 Static Ward Beacon, -2 Failover Custodian, -1 Barrier Shim, +1 Latent Ward, -1 Lockdown Field, -1 Aegis Warden, -1 Intercept Routine, -1 Tariff Field, +2 Feedback Plating, +1 Breach Charge, -3 Bulwark Chassis, +1 Reinforced Bastion, +2 Salvage Reflex, +1 Aegis Line Trooper, +2 Spare Cycles, +1 Cache Warmup, +1 Relay Courier, +1 Patient Zero, +1 Root Access
+  full        Null   +1 Null Shell, -1 Watchdog Timer
+
+Cards the realistic owners' decks use that their shipped list doesn't (owners of 8 playing it, at the largest pack level):
+  Cortex Relay Courier 6, Uplink Tower 6, Spare Cycles 5, Burst Credit 4, Scrap Recycler 1, Kill Switch 1
+  Swarm  (none)
+  Aegis  Spare Cycles 3, Relay Courier 3, Commodity Rack 3, Cache Warmup 2, Surge Protector 1
+  Null   (none)

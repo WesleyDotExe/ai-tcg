@@ -1,43 +1,43 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 58 (game lane): the owner's option B for
-deck size, built; both rings re-run. Nothing is blocking.** One [OWNER CHECK-IN] in
-notes-for-owner.md: without short decks Null falls behind (default: keep B, run the balance session
-next with Null's 4 added cards first).
+**Build-order stage: Stage 4+ (the living system). Session 59 (game lane): the pre-launch test-only
+balance session, job 1: candidates for Null's 4 added cards (36 -> 40), measured. Nothing is
+blocking.** One [OWNER CHECK-IN] in notes-for-owner.md: which 4 cards (recommend set A: +1 Fork Bomb,
++1 Segfault Handler, +2 Rollback Point; alternatives D, C, none yet). No card changed.
 
-- **Option B** (`engine/src/deckbuilder/deckBuilder.ts`): `largestDeck(faction, holdings)` is the
-  largest legal deck the owned cards allow, capped at 40. Both starts (rating and designed) are built
-  to exactly that size, with a neutral-removal swap so the greedy fill can reach it; the search only
-  swaps cards. The legal range is unchanged (20-40). The store (`economy/src/store.ts`) refuses an
-  agent deck of any other size and names an older short agent deck as a rebuild reason.
-- **Evidence:** `progress/built-deck-ring-002.txt` (+ `progress/built-deck-ring-002/`): 0 of 100
-  built decks short (was 49); `ring`/`ring:real` PASS unchanged; Null's average against the field drops
-  to 37.8-44.7 (was 44.7-48.7), Null ~ Cortex OUT at several levels. `progress/owner-api-demo-002.txt`:
-  the Null-locked owner's deck is 27 cards (was 26).
+- **Tools:** `engine/src/dev/nullFortySearch.ts` (search / heldout / pool / built) and
+  `progress/null-forty/run-candidate.sh` (the built-deck ring for one candidate, on a throwaway git
+  worktree with `NULL_CARDS` patched, so the starter, the designed start, the shipped opponent and the
+  cost curve all see the 40; about 6 minutes on 4 cores).
+- **Evidence:** `progress/balance-report-035-null-forty.txt`, `progress/null-forty/`. Shipped ring: 4
+  more cards cost Null nothing measurable; every 40 takes gate Swarm > Null out of IN BAND (the ring
+  check fails until re-baselined). Built-deck ring: every candidate beats today's rating fill; A brings
+  the field spread back to session 54's (real 5.9 vs 6.0; today 13.4).
 
-## What stands (this session's work; sessions 1-57 otherwise unchanged)
+## What stands (this session's work; sessions 1-58 otherwise unchanged)
 
-- Tests: engine `deckBuilder.test.ts` (largestDeck: full/starter/demo sizes, both starts reach it over
-  ~600 collections, one more copy always breaks a rule, the search only swaps; the designed-start
-  tests rewritten for option B), economy `agentDeckStyle.test.ts` (+2: a short chooser is refused,
-  an old short deck asks for a rebuild). `npm test`: all six workspaces pass. Typecheck clean.
+- Tests: engine `nullFortySearch.test.ts` (4: candidates are Null/neutral and never Zero-Day; adds are
+  exact and don't touch the shipped list; deck rules incl. removal fitting only at 40; the measure step
+  plays Null's three edges in both modes). `npm test`: all six workspaces pass. Typecheck clean.
 
 ## Concrete next step
 
 Check the alternation first: if the last merged PR is this one (game lane), the next session is
-**render** (whatever the render lane's own notes set after its session 39).
+**render** (the CI-sized headless-browser check the owner OK'd on 2026-10-29, with the longer
+auto-merge wait).
 
-The next **game-lane** session (session 59):
-1. Read the owner's word on the session-58 check-in. Unless they say otherwise (B2: let Null keep its
-   36-card designed list for now), start the **pre-launch test-only balance session**
-   (`progress/roadmap.md`, "Standing: a test-only balance session before launch"), first job **Null's
-   4 added cards**: candidate sets of 4 measured with the shipped Null list at 40 on `ring`/`ring:real`
-   AND on the built-deck ring at every level (`builtDeckRing.ts`, about 15 minutes on 4 cores; see
-   built-deck-ring-002.txt for the commands' inputs). Then the two old edges. No card change without
-   the owner's OK: bring results to a check-in.
-2. Session 60 is the next hardening pass (every 5th; 55 was the last). If 59 is the balance session,
-   60 hardens.
-3. Small debt worth folding in: the play-style ownership check into the store; a cap/queue on
-   concurrent rebuild workers; re-run economy-demo-014/016 (built decks changed size).
+The next **game-lane** session (session 60) is the **hardening pass** (every 5th; 55 was the last):
+1. Read the owner's word on the session-59 check-in. If they OK a set: ship it in that session as the
+   one allowed change (it's owner-approved, so it isn't "new width"): `NULL_CARDS` to 40, re-record
+   `ringBaseline.json` and `ringBaselineReal.json` with `--write-baseline` (commit beside a short note
+   pointing at balance-report-035), run `ring`/`ring:real`, re-run the built-deck ring on the shipped
+   list (`builtDeckRing.ts`, collections regenerated since the Null starter changes), update the tests
+   that pin Null's size at 36 (`grep -rn "36" engine/test economy/test` for Null).
+2. Hardening work from quality-debt.md: the play-style ownership check into the store; a cap/queue on
+   concurrent rebuild workers; re-run economy-demo-014/016; measure how much one full-collection build
+   swings by search seed alone (the "full" column's noise).
+3. Session 61 (game lane): the balance session's second job, the two old edges (Null > Aegis inverted,
+   Cortex > Swarm under band): one or two candidate card fixes each, on both rings at every level
+   (run-candidate.sh can be generalised to patch any faction's list), results to an owner check-in.
 
 **Blocked:** nothing.

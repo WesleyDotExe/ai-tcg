@@ -3905,3 +3905,37 @@ demos 014/016 not re-run.
 
 **Blocked:** nothing. One owner check-in (Null falls behind under B; default keep B and run the balance
 session next).
+
+## 2026-10-29 — Session 59 (the pre-launch balance session, job 1: Null's 4 added cards; test only)
+
+**Read first:** `progress/owner-feedback.md`. One unhandled game-lane entry (2026-10-29: keep option B, no
+36-card exception; the balance session is next, Null's 4 added cards first; test only). Acted on, marked. The
+two render-lane entries of the same day are for the render lane. The last merged PR (#100) was the render
+lane's, so this is a game-lane session; not a hardening pass (60 is).
+
+**Built:** `engine/src/dev/nullFortySearch.ts` (search: greedy adds to the 36 on fresh seeds, both ring modes,
+the neutralPackageSearch objective and guard; heldout: candidate lists on the ring's own seeds; pool; built:
+built-deck rings side by side) with `engine/test/nullFortySearch.test.ts` (4 tests), and
+`progress/null-forty/run-candidate.sh`, which runs the built-deck ring for one candidate on a throwaway git
+worktree with `NULL_CARDS` patched, so the starter collections, the designed start, the shipped opponent and the
+cost curve all see the 40. Nothing in `engine/src/data` changed.
+
+**Ran it:** search (about 10 minutes on 4 cores), held-out on the ring's seeds and on a fresh block, and the
+built-deck ring for four candidates (about 6 minutes each). Results in
+`progress/balance-report-035-null-forty.txt`. On the shipped ring, 4 more cards cost Null nothing measurable
+(mean -0 to +1.3); the one real move is Null doing better against Swarm, which takes gate Swarm > Null out of IN
+BAND for every 40 (the ring check would fail until re-baselined). With built decks every candidate beats today's
+rating fill at every level; **A (+1 Fork Bomb, +1 Segfault Handler, +2 Rollback Point)** puts the field back to
+session 54's spread (real 5.9 vs 6.0; today 13.4) and lifts Null > Aegis with built decks to 47.8-49.1 (real,
+full/37/17). D (Null cards only) gives Null more at pack levels but leaves Aegis high at full and Swarm low.
+
+**Worked:** the worktree runner measures a deck change the way it would really ship. **Didn't / honest limits:**
+the first D run was wrong (the worktree's shared node_modules made the economy read the unpatched engine, so
+Null owners still got the 36-card starter); caught from the 36-card day-one decks, fixed with a per-worktree
+node_modules and a stop-check, and re-run. The search can't separate single adds from noise at 1,500 games, so
+C and D were added by hand. The full-collection column is one deck per faction and swings a lot. `npm test`
+all workspaces pass; typecheck clean.
+
+**Evidence:** `progress/balance-report-035-null-forty.txt`, `progress/null-forty/`.
+
+**Blocked:** nothing. One owner check-in (Null's 4 cards: recommend A; alternatives D, C, none yet).
