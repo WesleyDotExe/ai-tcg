@@ -3649,3 +3649,15 @@ Answers the [OWNER CHECK-IN] "Null's 4 added cards (36 -> 40): recommend set A" 
 - **Keep:** A's 2 neutral cards in Null's starter. Neutral cards in a starter are fine: they are genuine tactics a deck can use.
 - **Keep:** Null at the 25% removal cap (10 of 40) is fine; it is within the rules.
 - Then, as planned: the balance session's second job (Null > Aegis and Cortex > Swarm), test only.
+
+---
+
+## 2026-10-31 — Owner: answers to render session 41 (the CI browser check)
+
+Owner decisions on the 4 calls in `progress/render/checkpoints.md` (PR #102).
+1. **Keep:** no audio in CI; the sound checks stay by-hand session evidence.
+2. **Change: download a pinned Chromium each run** instead of using the runner's own Chrome. A Chrome update on GitHub's image must not turn the check red with no code change, because a false red strands an overnight PR until the owner steps in. The extra 20-30 s is accepted (well inside the 12-minute wait). Keep it outside the repo's dependencies, as now. The owner OKs this change to `.github/workflows/test.yml` for this purpose only.
+3. **Keep:** the auto-merge wait at 12 minutes.
+4. **Keep:** three boasts at a time.
+
+Next render-lane slice, as set: add one replay's end (the lethal beat, then the boast) to the CI browser check. Do the pinned-Chromium change (call 2) in the same slice. Report the CI step's time and the whole test run's time on that PR's own CI run.
