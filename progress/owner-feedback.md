@@ -3672,3 +3672,15 @@ Answers the [OWNER CHECK-IN] "Set A is shipped; both rings re-run" in `progress/
 3. **Keep:** the realistic collections file updated in place (session 54's version stays in git history).
 
 Next game session, as planned: the balance session's job 2 (Null > Aegis and Cortex > Swarm), test only, to an owner check-in. Read the full-collection column as noisy (one deck per faction); weight the pack columns.
+
+---
+
+## 2026-10-31 — Owner: answers to render session 42 (one replay's end in the CI check; a pinned Chromium), keep all 4
+
+Owner decisions on the 4 calls in `progress/render/checkpoints.md` (PR #104).
+1. **Keep:** the boast's lead after the lethal beat is checked at half its length (at least 450 ms).
+2. **Keep:** the loser's clear stays on the effects' own clock, as built; the check measures from when the clear really ends.
+3. **Keep:** the system libraries come from the image, installed only if the browser can't start.
+4. **Keep:** the four end-of-replay runs go at once.
+
+Next render-lane slice, as set: a "tap to skip" hint.
