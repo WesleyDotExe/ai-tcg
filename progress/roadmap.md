@@ -467,8 +467,12 @@ are the "40 by the builder's fill" baseline the candidates must beat.
 SESSION 59: job 1 run (balance-report-035-null-forty.txt): four candidate
 sets on the ring check (ring seeds + a fresh block), three on the
 built-deck ring at every level; recommend set A (+1 Fork Bomb, +1 Segfault
-Handler, +2 Rollback Point); owner check-in open, nothing shipped. Job 2
-(the two old edges) not started.
+Handler, +2 Rollback Point); owner check-in open, nothing shipped.
+SHIPPED session 60 (owner 2026-10-30, set A): `NULL_CARDS` and the Null
+starter are 40; both ring baselines re-recorded (gate Swarm > Null left IN
+BAND as predicted); the built-deck ring on the shipped list
+(`progress/built-deck-ring-003.txt`) is byte-identical to session 59's
+candidate-A run. Job 2 (the two old edges) is the next game session's.
 
 **Standing: live operations, balancing never stops (owner 2026-10-05).**
 Once live: track faction popularity and win rates from real ladder and

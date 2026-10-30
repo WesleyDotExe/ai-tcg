@@ -37,7 +37,8 @@
 //   npx tsx src/dev/builtDeckRing.ts report --builds dir --rings dir
 //
 // (`--games`/`--trials`/`--confirm` on build and `--seeds` on ring shrink a
-// run for the smoke test; the files record what ran.)
+// run for the smoke test; `--search-seed` on build changes the builder's
+// search seed for a noise check; the files record what ran.)
 //
 // Nothing here changes a card, a deck or a rule; it only measures.
 
@@ -60,7 +61,7 @@ const STORE_BUILD = DEFAULT_BUILD;
 export interface BuiltDeckFile {
   level: string;
   faction: DeckFaction;
-  settings: { games: number; trials: number; confirmGames: number };
+  settings: { games: number; trials: number; confirmGames: number; searchSeed?: number };
   decks: {
     owner: number;
     /** Copies the owner held (all factions). */
@@ -98,13 +99,16 @@ function factionArg(x: string | undefined): DeckFaction {
 }
 
 /** The build settings: the store's, unless a smoke test asks for fewer
- * games (`--games`, `--trials`, `--confirm`; recorded in the file). */
+ * games (`--games`, `--trials`, `--confirm`; recorded in the file), or a
+ * noise check asks for another search seed (`--search-seed`, session 60:
+ * how much one full-collection build swings by its seed alone; the confirm
+ * seeds stay the same). */
 function buildSettings(): { games: number; trials: number; confirmGames: number; seed: number } {
   return {
     games: Number(arg("games") ?? STORE_BUILD.games),
     trials: Number(arg("trials") ?? STORE_BUILD.trials),
     confirmGames: Number(arg("confirm") ?? STORE_BUILD.confirmGames),
-    seed: STORE_BUILD.seed,
+    seed: Number(arg("search-seed") ?? STORE_BUILD.seed),
   };
 }
 
@@ -136,7 +140,7 @@ async function build(level: string, faction: DeckFaction, collectionsPath: strin
     for (const c of file.collections) if (c.faction === faction && c.packs === packs) owners.push({ owner: c.owner, copies: c.copies, holdings: new Map(c.holdings) });
     if (owners.length === 0) throw new Error(`no ${faction} collections at ${packs} packs in ${collectionsPath}`);
   }
-  const out: BuiltDeckFile = { level, faction, settings: { games: settings.games, trials: settings.trials, confirmGames: settings.confirmGames }, decks: [] };
+  const out: BuiltDeckFile = { level, faction, settings: { games: settings.games, trials: settings.trials, confirmGames: settings.confirmGames, ...(settings.seed !== STORE_BUILD.seed ? { searchSeed: settings.seed } : {}) }, decks: [] };
   for (const o of owners) {
     const b = await buildFaction(faction, o.holdings, { ...settings, log: (l) => console.error(`[${level} ${faction} #${o.owner}] ${l}`) });
     if (!b.deck) throw new Error(`${faction} owner ${o.owner} at ${level}: ${b.infeasible}`);

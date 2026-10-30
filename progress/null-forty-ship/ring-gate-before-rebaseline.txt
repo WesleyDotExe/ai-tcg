@@ -1,0 +1,19 @@
+
+> @ai-tcg/engine@0.1.0 ring
+> tsx src/dev/ringRegression.ts
+
+Ring regression (set Mythic in the deck) vs baseline recorded 2026-10-17 (Lookahead vs Lookahead, seeds from 1)
+  Null > Aegis      2500 seeds  51.6% (CI 49.7-53.6) OUT OF BAND | baseline 50.6% OUT OF BAND change +1.0 [-1.8, 3.8]  PASS (accepted OUT; did not move further out)
+  Aegis > Cortex    2500 seeds  49.3% (CI 47.4-51.3) OUT OF BAND | baseline 49.3% OUT OF BAND change +0.0 [-2.8, 2.8]  PASS (accepted OUT; did not move further out)
+  Cortex > Swarm    2500 seeds  58.2% (CI 56.3-60.2) UNRESOLVED  | baseline 58.2% UNRESOLVED  change +0.0 [-2.7, 2.7]  PASS (verdict held or improved)
+  Swarm > Null      2500 seeds  54.3% (CI 52.3-56.2) UNRESOLVED  | baseline 57.1% IN BAND     change -2.8 [-5.5, -0.0]  FAIL (verdict worsened: IN BAND -> UNRESOLVED)
+  Null ~ Cortex      900 seeds  46.6% (CI 43.3-49.8) UNRESOLVED  | baseline 45.4% UNRESOLVED  change +1.1 [-3.5, 5.7]  PASS (verdict held or improved)
+  Aegis ~ Swarm      900 seeds  52.4% (CI 49.2-55.7) UNRESOLVED  | baseline 52.4% UNRESOLVED  change +0.0 [-4.6, 4.6]  PASS (verdict held or improved)
+RING REGRESSION: FAIL (1 edge(s))
+npm error Lifecycle script `ring` failed with error:
+npm error code 1
+npm error path /home/user/ai-tcg/engine
+npm error workspace @ai-tcg/engine@0.1.0
+npm error location /home/user/ai-tcg/engine
+npm error command failed
+npm error command sh -c tsx src/dev/ringRegression.ts

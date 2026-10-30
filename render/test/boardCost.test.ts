@@ -33,8 +33,13 @@ async function replay(a: DeckFaction, b: DeckFaction, seed: number, signatures: 
   return { r, sigCost };
 }
 
+// A token (a summon effect's "token-..." unit) is no set card: the engine
+// makes it at cost 0 (effects/resolver.ts's summonTokens). Null's 40-card
+// list (session 60) brought Fork Bomb's Fork Child tokens into these replays.
+const isToken = (cardId: string) => cardId.startsWith("token-");
+
 function expectedCost(cardId: string, sigCost: Map<string, number>): number | undefined {
-  return sigCost.get(cardId) ?? CARD_REGISTRY.get(cardId)?.cost;
+  return sigCost.get(cardId) ?? CARD_REGISTRY.get(cardId)?.cost ?? (isToken(cardId) ? 0 : undefined);
 }
 
 describe("the cost circle on board cards", () => {
@@ -44,7 +49,7 @@ describe("the cost circle on board cards", () => {
   const replaysP = Promise.all(cases.map(([a, b, s, sig]) => replay(a, b, s, sig)));
 
   it("every unit and Directive on every frame carries its printed cost, as the engine has it", async () => {
-    let units = 0, directives = 0, signatures = 0, nonZero = 0;
+    let units = 0, directives = 0, signatures = 0, nonZero = 0, tokens = 0;
     for (const { r, sigCost } of await replaysP) {
       for (const f of r.frames) {
         for (const pid of ["p1", "p2"] as const) {
@@ -52,6 +57,10 @@ describe("the cost circle on board cards", () => {
             const want = expectedCost(u.cardId, sigCost);
             expect(want, `${r.title} move ${f.index}: ${u.cardId} is a known card`).toBeDefined();
             expect(u.printedCost, `${r.title} move ${f.index}: ${u.name}`).toBe(want);
+            if (isToken(u.cardId)) {
+              tokens++;
+              continue;
+            }
             units++;
             if (u.printedCost > 0) nonZero++;
             if (u.isSignature) signatures++;
@@ -67,6 +76,7 @@ describe("the cost circle on board cards", () => {
     expect(units).toBeGreaterThan(500);
     expect(directives).toBeGreaterThan(0);
     expect(signatures).toBeGreaterThan(0);
+    expect(tokens).toBeGreaterThan(0);
     expect(nonZero).toBeGreaterThan(units * 0.9);
   }, 120_000);
 

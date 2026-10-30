@@ -66,9 +66,27 @@ function arg(name: string): string | undefined {
   return i < 0 ? undefined : process.argv[i + 1];
 }
 
-/** The shipped Null list plus `adds` (card ids; repeats are copies). */
-export function withAdds(adds: readonly string[]): Pool {
+/** Set A, the 4 cards the owner shipped on 2026-10-30 (session 60): +1 Fork
+ * Bomb, +1 Segfault Handler, +2 Rollback Point. */
+export const SET_A: readonly string[] = ["NL-005", "NL-004", "NT-004", "NT-004"];
+
+/** The 36-card Null list this search started from: the shipped list without
+ * set A. The search measured adds to the 36, so it keeps measuring them now
+ * that the 40 ships, and every number in balance-report-035 stays
+ * reproducible. */
+export function base36(): Pool {
   const pool = shippedPool(SELF);
+  for (const id of SET_A) {
+    const entry = pool.find((p) => p.card.id === id);
+    if (!entry || entry.copies < 1) throw new Error(`the shipped Null list has no ${id} to take back out`);
+    entry.copies--;
+  }
+  return pool.filter((p) => p.copies > 0);
+}
+
+/** The 36-card Null list plus `adds` (card ids; repeats are copies). */
+export function withAdds(adds: readonly string[]): Pool {
+  const pool = base36();
   for (const id of adds) {
     const card = getCard(id);
     if (!card) throw new Error(`no card "${id}"`);
@@ -190,7 +208,7 @@ function size(pool: Pool): number {
 async function search(): Promise<void> {
   const seeds = Number(arg("seeds") ?? 1000);
   const outPath = arg("out");
-  const start = shippedPool(SELF);
+  const start = base36();
   console.log(`Null's 4 added cards: greedy search on seeds ${SEARCH_FIRST}-${SEARCH_FIRST + seeds - 1} (${seeds} per edge per mode)`);
   console.log(`Edges: ${NULL_EDGES.map(edgeName).join(", ")}; modes gate and real. Objective: squared band misses summed (x1e4).`);
   console.log(`Edge rates are the first-named side's, in the order above. Guard: Null's mean may not drop more than ${pct(MAX_MEAN_DROP)} points per add.\n`);
@@ -243,7 +261,7 @@ async function heldout(): Promise<void> {
   const setsPath = arg("sets");
   if (!setsPath) throw new Error("heldout needs --sets f.json ({ \"label\": [card ids] })");
   const sets = JSON.parse(readFileSync(setsPath, "utf8")) as Record<string, string[]>;
-  const labels = ["the 36 (shipped)", ...Object.keys(sets)];
+  const labels = ["the 36 (shipped until session 60)", ...Object.keys(sets)];
   const lists = [[], ...Object.values(sets)];
   for (const [i, l] of lists.entries()) if (i > 0 && (!legal(withAdds(l)) || size(withAdds(l)) !== TARGET)) throw new Error(`${labels[i]} is not a legal 40-card list`);
   // --first moves the block (a repeat on fresh seeds); the counts stay the ring's.

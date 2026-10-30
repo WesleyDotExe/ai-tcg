@@ -278,19 +278,18 @@ describe("a collection that runs out short of 40 cards (session 54)", () => {
 });
 
 describe("the designed start: the designed list, filled to the deck's size (session 54; option B, session 58)", () => {
-  it("is each faction's shipped list exactly from a full collection, Null's 36 cards plus 4", () => {
+  it("is each faction's shipped list exactly from a full collection (every list is 40 since session 60)", () => {
     for (const f of DECK_FACTIONS) {
       const built = constructDeck(f, fullHoldings(), shippedList(f));
       expect("list" in built, f).toBe(true);
       const list = (built as { list: DeckList }).list;
       expect([...list.values()].reduce((s, n) => s + n, 0), f).toBe(40);
-      // Every designed copy is in; only Null's list (36) needed filling.
-      for (const [id, n] of shippedList(f)) expect(list.get(id) ?? 0, `${f} ${id}`).toBeGreaterThanOrEqual(n);
-      if (f !== "Null") expect([...list].sort(), f).toEqual([...shippedList(f)].sort());
+      // Every designed list is 40, so the start is the designed list, no fill.
+      expect([...list].sort(), f).toEqual([...shippedList(f)].sort());
     }
   });
 
-  it("is the designed list alone when the owner holds only that list (the Null starter stays 36)", () => {
+  it("is the designed list alone when the owner holds only that list (a 40-card starter)", () => {
     for (const f of DECK_FACTIONS) {
       const built = constructDeck(f, shippedList(f), shippedList(f)) as { list: DeckList };
       expect([...built.list].sort(), f).toEqual([...shippedList(f)].sort());

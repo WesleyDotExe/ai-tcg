@@ -3939,3 +3939,41 @@ all workspaces pass; typecheck clean.
 **Evidence:** `progress/balance-report-035-null-forty.txt`, `progress/null-forty/`.
 
 **Blocked:** nothing. One owner check-in (Null's 4 cards: recommend A; alternatives D, C, none yet).
+
+## 2026-10-30 — Session 60 (hardening pass; set A shipped: Null's list and starter are 40)
+
+**Read first:** `progress/owner-feedback.md`. One unhandled game-lane entry (2026-10-30: ship set A; re-record
+both ring baselines; re-run both rings and the built-deck ring; neutral cards in the starter and the 10/40
+removal cap are fine). Acted on, marked handled. The last merged PR (#102) was the render lane's, so this is a
+game-lane session, and the every-5th hardening pass (55 was the last). Shipping A was the one allowed change:
+owner-approved, not new width.
+
+**Built:**
+- `NULL_CARDS` 36 -> 40 (set A). Tests that pinned Null at 36 updated (nullPoolExpansion now pins 38 own + 2
+  Rollback Point, 10/40 removal; deckBuilder: every designed start from a full collection is the shipped 40).
+- `nullFortySearch.ts` keeps measuring from the 36 (`base36()`, `SET_A`); new test: 36 + A = shipped list.
+- Hardening: `store.setPlayStyle` takes the owner and refuses another owner's agent (was the API's check
+  only); `workerChooser` caps concurrent builds (every core but one) and queues the rest; `builtDeckRing.ts
+  build --search-seed` for a noise check.
+- Render fallout: the 40 changes every replay that plays Null. boardCost's oracle now knows tokens (cost 0, as
+  the engine makes them; Fork Bomb's Fork Child reaches these boards now); sigWardFx's coverage list gained
+  two seeds (the Null replays no longer fire Deprecated Routine or Dormant Egg Sac); wardFx's replay seed 8 ->
+  1; the recorded close-win scenario seed 5 -> 3 (seed 5 now ends in a Null win). Six committed Null replays
+  and two recorded scenarios regenerated (`progress/render/evidence/recorded-matches-s60-game.txt`).
+
+**Ran it:** `ring` before re-baselining FAILED on gate Swarm > Null (57.1 IN BAND -> 54.3 UNRESOLVED), exactly
+session 59's held-out number; `ring:real` passed. Re-recorded both; both PASS. The built-deck ring on the shipped
+list (about 20 minutes on 4 cores): `progress/built-deck-ring-003.txt`, byte-identical to session 59's
+candidate-A report, collections identical too. The seed-swing check (12 more full builds, 6 full rings, about
+20 minutes): one full build per faction swings 4-6 points of faction mean and up to 8.7 on an edge by its
+search seed, from 1-3 swapped cards. Mutation checks: dropping the store's ownership line fails the new test;
+ignoring `maxWorkers` fails the queue test. `npm test` all six workspaces pass; typecheck clean.
+
+**Worked:** the worktree runner's numbers were exactly the shipped game's, so session 59's measurement of A
+was the real thing. **Didn't / honest limits:** economy demos 014/016 still not re-run; the swing check is 4
+seeds on one collection; job 2 not started. The session started with no node_modules (ran `npm ci`).
+
+**Evidence:** `progress/balance-report-036-null-forty-shipped.txt`, `progress/null-forty-ship/`,
+`progress/built-deck-ring-003.txt`, `progress/built-deck-ring-003/`, `progress/full-seed-swing/`.
+
+**Blocked:** nothing. One owner check-in (set A's results; no decision needed).

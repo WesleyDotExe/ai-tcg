@@ -229,7 +229,7 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
         const ownerId = ownerOf(req);
         const style = field(body, "style", "string");
         if (!store.listAgents(ownerId).some((a) => a.agentId === agentId)) throw new HttpError(404, `no agent "${agentId}"`);
-        store.setPlayStyle(agentId!, style);
+        store.setPlayStyle(ownerId, agentId!, style);
         return { body: playSettings(ownerId) };
       },
     },

@@ -72,7 +72,7 @@ RebuildJob {
 ```
 
 - One build at a time per owner; refused while the owner forces a deck.
-- The build is the store's `buildAgentDeck` at the store's settings (minutes of games). The server runs its games on a worker thread (`server/src/deckBuild/`), so every other request is still answered while it runs. The worker runs the engine's own `chooseDeck`, so it builds the same deck the engine would.
+- The build is the store's `buildAgentDeck` at the store's settings (minutes of games). The server runs its games on a worker thread (`server/src/deckBuild/`), so every other request is still answered while it runs. The worker runs the engine's own `chooseDeck`, so it builds the same deck the engine would. At most one build per core but one runs at once (`workerChooser`'s `maxWorkers`, at least 1); further builds wait in line, first come first served, and their job reads `running` while they wait.
 - If the owner's cards change while the agent builds (a salvage), the store refuses to save a list it can no longer fill, and the job fails with that reason; build again.
 
 ## Not built yet

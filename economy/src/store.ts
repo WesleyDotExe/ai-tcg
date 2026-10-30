@@ -1306,11 +1306,13 @@ export class EconomyStore {
 
   /** (v13) Sets how an agent plays (owner 2026-10-15). Allowed at any
    * time: a live match keeps the style it started with, so a change made
-   * during one applies from the next. */
-  setPlayStyle(agentId: string, style: string): AgentRecord {
+   * during one applies from the next. Only the agent's owner can set it
+   * (session 60: the check was the owner API's alone before). */
+  setPlayStyle(ownerId: string, agentId: string, style: string): AgentRecord {
     if (this.schemaVersion < 13) throw new EconomyError("play styles need schema v13");
     if (!isPlayStyleId(style)) throw new EconomyError(`"${style}" is not a play style`);
     const agent = this.getAgent(agentId);
+    if (agent.ownerId !== ownerId) throw new EconomyError("only the agent's owner can set its play style");
     this.db.prepare("UPDATE agents SET play_style = ? WHERE agent_id = ?").run(style, agentId);
     return { ...agent, playStyle: style };
   }

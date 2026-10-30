@@ -43,7 +43,7 @@ describe("the agent's deck in the agent's style", () => {
   it("is measured in the connected agent's style: the same games chooseDeck plays in that style", async () => {
     const s = open();
     const { ownerId, agentId } = owner(s, "a", "Swarm");
-    s.setPlayStyle(agentId, "rusher");
+    s.setPlayStyle(ownerId, agentId, "rusher");
     const opts = { games: 3, trials: 2, confirmGames: 3 };
     const built = await s.buildAgentDeck(ownerId, opts);
     expect(built.style).toBe("rusher");
@@ -63,7 +63,7 @@ describe("the agent's deck in the agent's style", () => {
   it("remembers what it was built from, and is up to date right after a build", async () => {
     const s = open();
     const { ownerId, agentId } = owner(s, "a", "Cortex");
-    s.setPlayStyle(agentId, "fortress");
+    s.setPlayStyle(ownerId, agentId, "fortress");
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the agent hasn't built a deck yet"]);
     const built = await s.buildAgentDeck(ownerId, FAST);
     expect(built.style).toBe("fortress");
@@ -81,7 +81,7 @@ describe("the agent's deck in the agent's style", () => {
     const { ownerId, agentId } = owner(s, "a", "Null");
     const first = await s.buildAgentDeck(ownerId, FAST);
     expect(first.style).toBe("calculator");
-    s.setPlayStyle(agentId, "controller");
+    s.setPlayStyle(ownerId, agentId, "controller");
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual(["the play style changed (Calculator -> Controller)"]);
     const again = await s.rebuildAgentDeckIfNeeded(ownerId, FAST);
     expect(again!.reasons).toEqual(["the play style changed (Calculator -> Controller)"]);
@@ -94,7 +94,7 @@ describe("the agent's deck in the agent's style", () => {
     const s = open();
     const { ownerId } = owner(s, "a", "Aegis");
     const gambler = s.createAgent({ ownerId, name: "a-gambler" });
-    s.setPlayStyle(gambler.agentId, "gambler");
+    s.setPlayStyle(gambler.ownerId, gambler.agentId, "gambler");
     const same = s.createAgent({ ownerId, name: "a-calc" });
     await s.buildAgentDeck(ownerId, FAST);
 
@@ -131,7 +131,7 @@ describe("the agent's deck in the agent's style", () => {
     const built = await s.buildAgentDeck(ownerId, FAST);
     const hand = s.saveDeck(ownerId, "by hand", s.collection(ownerId).map((c) => c.copyId));
     s.setActiveDeck(ownerId, hand.deckId);
-    s.setPlayStyle(agentId, "tempo");
+    s.setPlayStyle(ownerId, agentId, "tempo");
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
     expect(await s.rebuildAgentDeckIfNeeded(ownerId, FAST)).toBeNull();
 

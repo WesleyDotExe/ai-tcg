@@ -14,7 +14,9 @@ import { renderMatchHtml } from "./renderHtml.js";
 const [BOOT, DIALUP] = SEASON_0_BOASTS.map((b) => b.itemId) as [string, string];
 
 /** The four scenarios (seeds picked for their endings: a win on plenty of
- * health, a win on 3, a win on 14, a win on 7). */
+ * health, a close win, a win on 14, a win on 7). The close win's seed moved
+ * 5 -> 3 when Null's list grew to 40 (session 60): seed 5 now ends in a Null
+ * win; seed 3 is a Swarm win on 4. */
 export const RECORDED_SCENARIOS: (RecordedScenario & { about: string })[] = [
   {
     id: "recorded-boot-sequence",
@@ -26,7 +28,7 @@ export const RECORDED_SCENARIOS: (RecordedScenario & { about: string })[] = [
   {
     id: "recorded-close-win",
     about: `the close-win slot: the Swarm winner ends on ${CLOSE_WIN_HEALTH} health or less, so its close-win boast (Dial-Up Fireworks, bought) plays instead of its main boast (Hive Burst)`,
-    seed: 5,
+    seed: 3,
     p1: { faction: "Swarm", agent: "Moth Protocol", buy: [DIALUP], loadout: { closeWinBoast: DIALUP } },
     p2: { faction: "Null", agent: "Quiet Lattice" },
   },

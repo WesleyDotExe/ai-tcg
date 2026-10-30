@@ -3641,7 +3641,7 @@ Owner decisions on the 3 calls in `progress/render/checkpoints.md` and the quest
 
 ---
 
-## 2026-10-30 — Owner: answers to game session 59 (Null's 4 added cards), set A
+## 2026-10-30 — Owner: answers to game session 59 (Null's 4 added cards), set A (HANDLED 2026-10-30, session 60 — shipped: `NULL_CARDS` is 40 (+1 Fork Bomb, +1 Segfault Handler, +2 Rollback Point), so the Null starter is 40 too. Before re-baselining, `npm run ring` failed on exactly the predicted edge (gate Swarm > Null 57.1 IN BAND -> 54.3 UNRESOLVED); both baselines re-recorded, `ring`/`ring:real` PASS. The built-deck ring on the shipped list (`progress/built-deck-ring-003.txt`) is byte-identical to session 59's candidate-A run. Results at the owner check-in in notes-for-owner.md; neutral cards in the starter and the 10/40 removal cap kept as told. Job 2 (Null > Aegis, Cortex > Swarm) is the next game session's)
 
 Answers the [OWNER CHECK-IN] "Null's 4 added cards (36 -> 40): recommend set A" in `progress/notes-for-owner.md` (PR #101, `progress/balance-report-035-null-forty.txt`).
 - **Ship set A:** +1 Fork Bomb, +1 Segfault Handler, +2 Rollback Point. Null's starter and shipped list go from 36 to 40.

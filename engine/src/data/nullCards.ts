@@ -25,6 +25,7 @@
 // names/flavour only; no reproduction of existing TCGs' card identities.
 
 import type { CommandCard, DirectiveCard, ToolCard, UnitCard } from "../cards/types.js";
+import { rollbackPoint } from "./neutralCards.js";
 
 // --- Evolution line: Glitch Seed -> Corrupted Process -> Kernel Panic -----
 
@@ -762,8 +763,8 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
   { card: glitchSeed, copies: 3 },
   { card: strayFragment, copies: 3 },
   { card: corruptionPatch, copies: 3 },
-  { card: segfaultHandler, copies: 1 },
-  { card: forkBomb, copies: 2 },
+  { card: segfaultHandler, copies: 2 },
+  { card: forkBomb, copies: 3 },
   { card: corruptedProcess, copies: 2 },
   { card: nullShell, copies: 1 },
   { card: propagatingExploit, copies: 3 },
@@ -790,4 +791,12 @@ export const NULL_CARDS: { card: UnitCard | CommandCard | DirectiveCard | ToolCa
   // neutral card that helps Null, and on 2,500 held-out seeds the bare 36
   // scored better on the ring objective than the old package (314 -> 249;
   // balance-report-019). Every per-edge change is inside noise.
+  // 2026-10-30 (session 60; owner-feedback 2026-10-26 "every starter deck
+  // has the same number of cards" and 2026-10-30 "ship set A"): 36 -> 40 with
+  // set A from balance-report-035: +1 Fork Bomb (2 -> 3), +1 Segfault Handler
+  // (1 -> 2), and the 2 Rollback Point below. On the shipped ring no edge
+  // moved by a real amount; with built decks it evened the field the most of
+  // the four candidates. Removal/debuff density: 10/40 = 25.0%, exactly at the
+  // cap (Segfault Handler is the one removal add; the owner OK'd the cap).
+  { card: rollbackPoint, copies: 2 },
 ];

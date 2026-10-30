@@ -86,11 +86,11 @@ try {
   const ada = await seat("ada", "Swarm");
   const bo = await seat("bo", "Null");
   say(`2. New agents play ${PLAY_STYLES[store.getAgent(ada.agentId).playStyle].name} until their owner picks: ada's agent ${store.getAgent(ada.agentId).playStyle}, bo's agent ${store.getAgent(bo.agentId).playStyle}.`);
-  store.setPlayStyle(ada.agentId, "rusher");
-  store.setPlayStyle(bo.agentId, "fortress");
+  store.setPlayStyle(ada.ownerId, ada.agentId, "rusher");
+  store.setPlayStyle(bo.ownerId, bo.agentId, "fortress");
   say(`   ada picks Rusher, bo picks Fortress. A made-up style is refused: ${(() => {
     try {
-      store.setPlayStyle(ada.agentId, "berserker");
+      store.setPlayStyle(ada.ownerId, ada.agentId, "berserker");
       return "accepted (wrong)";
     } catch (e) {
       return (e as Error).message;
@@ -101,7 +101,7 @@ try {
   for (let i = 1; i <= 3; i++) await play(`m${i}`, i % 2 ? ada : bo, i % 2 ? bo : ada, 40 + i);
   say("");
   say("4. ada switches to Controller while m4 is live: m4 still plays Rusher, m5 plays Controller.");
-  await play("m4", ada, bo, 44, () => store.setPlayStyle(ada.agentId, "controller"));
+  await play("m4", ada, bo, 44, () => store.setPlayStyle(ada.ownerId, ada.agentId, "controller"));
   await play("m5", bo, ada, 45);
   say("");
   say("5. The match history keeps each side's style:");
