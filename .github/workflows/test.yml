@@ -40,15 +40,23 @@ jobs:
       - name: balance ring regression (real matches)
         run: npm run ring:real -w @ai-tcg/engine
       # The render's browser check (owner 2026-10-29): the six boasts draw
-      # nothing past the winner's side, the Skip sizes, one replay's intro,
-      # in a headless browser on pages built fresh from this commit. The
-      # runner's own Chrome, driven by playwright-core installed outside the
-      # repo (not a dependency; nothing in package-lock.json). Falls back to
-      # downloading Chromium if the image ever drops Chrome. About 30 seconds.
-      - name: render browser check (headless Chrome)
+      # nothing past the winner's side, the Skip sizes, one replay's intro
+      # and its end (the lethal beat, then the boast), in a headless browser
+      # on pages built fresh from this commit. Driven by playwright-core
+      # installed outside the repo (not a dependency; nothing in
+      # package-lock.json). The browser is the Chromium that playwright-core
+      # version pins, downloaded each run into the runner's temp dir (owner
+      # 2026-10-31: not the image's Chrome, so an image update can't turn
+      # this red with no code change). Its system libraries come with the
+      # image; only if the browser can't start without more are they
+      # installed. About 45-60 seconds.
+      - name: render browser check (pinned Chromium)
         env:
           PW_CORE: ${{ runner.temp }}/pw/node_modules/playwright-core/index.mjs
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/pw-browsers
         run: |
           npm install --prefix "$RUNNER_TEMP/pw" --no-save --no-package-lock playwright-core@1.63.0
-          if command -v google-chrome >/dev/null; then export PW_CHANNEL=chrome; else node "$RUNNER_TEMP/pw/node_modules/playwright-core/cli.js" install --with-deps chromium; fi
+          PW_CLI="$RUNNER_TEMP/pw/node_modules/playwright-core/cli.js"
+          node "$PW_CLI" install --only-shell chromium
+          node -e 'import(process.env.PW_CORE).then((m) => m.chromium.launch()).then((b) => b.close())' || node "$PW_CLI" install-deps chromium
           node render/ci/browser-check.mjs

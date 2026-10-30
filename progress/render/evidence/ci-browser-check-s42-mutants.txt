@@ -1,0 +1,33 @@
+=== mutant: no loser's clear as the boast starts (CFX.fadeOutIn removed from startBoast)
+  FAIL D. desktop: the lethal attack's leftovers cleared (2780 lit off the winner's side before the clear), then 34 samples, 13905 lit past the winner's side, farthest 211.0 px
+  FAIL D. phone: the lethal attack's leftovers cleared (2874 lit off the winner's side before the clear), then 36 samples, 11300 lit past the winner's side, farthest 279.7 px
+39 passed, 2 failed (pages 0.8 s, browser 25.2 s)
+BROWSER CHECK FAILED
+
+=== mutant: the result not held (boastHold never set on a step into the win: no boast plays)
+  FAIL D. desktop: the lethal beat, then the boast at least 450 ms later (? ms; the lead is 900)
+  FAIL D. desktop: the winner's faction starter plays in full, laid out with no problem (null, "null", problem never read)
+  FAIL D. desktop: the plate says "null"
+  FAIL D. desktop: the loser's side, panel and hand dimmed (null), the winner's panel lit, Skip on the winner's side
+  FAIL D. desktop: the lethal attack's leftovers cleared (0 lit off the winner's side before the clear), then 0 samples, 0 lit past the winner's side
+  FAIL D. desktop: the loser's side unchanged through the boast
+  FAIL D. desktop: the result held through the boast, then "GAME OVER: Lookahead-Cortex WINS" lands as it ends (? ms after)
+  FAIL D. phone: the lethal beat, then the boast at least 450 ms later (? ms; the lead is 900)
+  FAIL D. phone: the winner's faction starter plays in full, laid out with no problem (null, "null", problem never read)
+  FAIL D. phone: the plate says "null"
+  FAIL D. phone: the loser's side, panel and hand dimmed (null), the winner's panel lit, Skip on the winner's side
+  FAIL D. phone: the lethal attack's leftovers cleared (0 lit off the winner's side before the clear), then 0 samples, 0 lit past the winner's side
+  FAIL D. phone: the loser's side unchanged through the boast
+  FAIL D. phone: the result held through the boast, then "GAME OVER: Lookahead-Cortex WINS" lands as it ends (? ms after)
+  FAIL D. Escape at 1 s ends the boast and the result lands at once (? ms after)
+26 passed, 15 failed (pages 0.9 s, browser 41.0 s)
+BROWSER CHECK FAILED
+
+=== mutant: no lead after the lethal beat (BOAST_LEAD_MS dropped from the boast's timer)
+  FAIL D. desktop: the lethal beat, then the boast at least 450 ms later (0 ms; the lead is 900)
+  FAIL D. desktop: the lethal attack's leftovers cleared (5582 lit off the winner's side before the clear), then 30 samples, 1245 lit past the winner's side, farthest 187.2 px
+  FAIL D. phone: the lethal beat, then the boast at least 450 ms later (0 ms; the lead is 900)
+  FAIL D. phone: the lethal attack's leftovers cleared (6153 lit off the winner's side before the clear), then 32 samples, 1164 lit past the winner's side, farthest 260.0 px
+37 passed, 4 failed (pages 0.8 s, browser 24.4 s)
+BROWSER CHECK FAILED
+
