@@ -7,6 +7,54 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-30 — One replay's end in the CI check; a pinned Chromium — AWAITING FEEDBACK
+
+The slice you set after render session 41, with your call 2 change in the same slice.
+- **The end of a real replay is now checked on every push (18 new checks, 41 in all).** Cortex vs Swarm
+  seed 6, stepped into its lethal move on a desktop and a phone: the lethal flash, then the winner's
+  boast (the Cortex starter, as the replay has no record), the result line held; the loser's side dimmed
+  and left alone, the winner's panel lit, Skip on the winner's side; the lethal attack's smoke cleared
+  off the loser's side as the boast starts, then nothing lit past the winner's side; "GAME OVER:
+  Lookahead-Cortex WINS" lands as the boast ends. Escape mid-boast lands the result at once; a jump to the
+  end shows it at once, with no boast.
+- **It catches what it should:** with the loser's clear removed, the result hold removed or the lead
+  after the lethal beat removed, it fails 2, 15 and 4 checks
+  (`progress/render/evidence/ci-browser-check-s42-mutants.txt`).
+- **A pinned Chromium each run:** the step downloads the Chromium that playwright-core 1.63.0 pins
+  (Chromium 153.0.8010.12) into the runner's temp dir, so the image's Chrome or caches are never used.
+  Still nothing in the repo's dependencies.
+- **Time:** locally the check takes about 26 s (was 21 s). On CI: session 41's PR took 35 s for the step
+  and 3 min 35 s for the whole run. This PR's own run (the download included) is written into the PR
+  description once it finishes, since the PR merges itself when it goes green.
+
+**Evidence:** `progress/render/evidence/ci-browser-check-s42.txt` (ALL PASS), the mutants above, and
+`ci-browser-check-s42-load.txt` (6 of 6 pass with two checks at once). `npm test`: all six workspaces
+pass, render 662 (+3).
+
+**Decisions you may want to overrule:**
+1. **The boast's lead is checked at half its length.** The boast waits 900 ms after the lethal beat;
+   the check asks for at least 450 ms between the flash and the boast. Under load the flash lands late
+   (down to about 610 ms measured), and a check at 800 ms failed there with nothing wrong. A boast that
+   doesn't wait measures 0. Alternative: 800 ms, with a rare false red on a slow runner.
+2. **The check keeps the effects' own clock to know when the loser's clear has finished.** On a slow
+   machine the effects slow down rather than skip frames, so the 280 ms clear takes longer in real time
+   and the lethal smoke lingers on the loser's side for a moment. I left the render as built (it's the
+   effects' slow-motion, not a spill) and measure from when the clear really ends. Alternative: make
+   the clear run on the wall clock so it always ends at 280 ms (a render change, its own slice).
+3. **The system libraries come from the image, installed only if the browser can't start.** Installing
+   them every run (`--with-deps`) adds an apt step that could itself fail on a mirror hiccup.
+   Alternative: install them every run.
+4. **The four end-of-replay runs go at once** (each its own page), to keep the step near 26 s locally.
+   Alternative: one at a time (about 10 s more).
+
+**Thin spots (in the debt list):** one replay, one boast, a plain win; the close win and the recorded
+boasts on a real board are still by-hand; no audio in CI (as you kept it).
+
+**Next render-lane slice:** none set. Candidates: a close win on a real board in the CI check; a "tap to
+skip" hint; or the next item you name.
+
+---
+
 ## 2026-10-30 — The CI browser check — AWAITING FEEDBACK
 
 The slice you set after the session-40 hardening pass. Every push and PR now runs a headless-browser

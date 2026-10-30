@@ -3951,3 +3951,68 @@ is the game lane's own (its next session ships it); not touched here.
 **Next render-lane slice:** none set by the owner. Candidates: a replay's end (the lethal beat, then
 the boast) in the CI check; a "tap to skip" hint; the next item the owner names. Next render session:
 read this PR's `test` run and record the step's CI time and Chrome version here.
+
+## 2026-10-30 — Session 42: one replay's end in the CI browser check; a pinned Chromium
+
+Render session per the alternation (the last merged PR, #103, was the game lane's session 60). Owner
+feedback read: the answers to render session 41 (keep calls 1, 3, 4; change call 2: download a pinned
+Chromium each run, with the OK to change `.github/workflows/test.yml` for that only) and the slice set:
+add one replay's end (the lethal beat, then the boast) to the CI check, in the same slice as call 2, and
+report the CI step's time and the whole test run's time on that PR's own CI run. The game lane's entries
+(S60 keep all 3; balance job 2 next) are the game lane's; not touched.
+
+**Session 41's PR on CI (owed from last session):** run 246 for PR #102, the step "render browser check
+(headless Chrome)" 35 s (the check's own report: pages 0.9 s, browser 32.9 s), the whole job 3 min 35 s
+(the 8 PR runs before it: 1 min 45 s to 2 min 45 s). The check didn't print the browser's version, so
+the runner's Chrome version isn't known; it does now.
+
+**Built:**
+- `render/ci/browser-check.mjs`, section D (18 checks), on the same replay (Cortex vs Swarm seed 6, a
+  Cortex win, no record). Stepped from the second-last move into the lethal one, on a desktop and a
+  phone, everything read on the page's own frames: the lethal flash, then the boast at least half its
+  900 ms lead later; the boast is the winner's faction starter (Data Cascade), in full, no layout
+  problem, the plate "Lookahead-Cortex WINS"; the loser's side, panel and hand dim to 0.7 (their lowest
+  point through the boast), the winner's panel lit, Skip inside the winner's side; the lethal attack's
+  smoke is on the top canvas off the winner's side before the loser's clear has run (so the clear is
+  shown to have work to do), and from 60 ms after it nothing is lit past the winner's side; the loser's
+  side's DOM is unchanged through the boast; the result line is held through it and "GAME OVER:
+  Lookahead-Cortex WINS" lands as it ends (0-1 ms after). Plus: Escape at 1 s ends the boast and lands
+  the result at once; a jump to the end shows the result at once with no boast. The four runs go at once
+  (each its own context). The check prints the browser and its version.
+- `.github/workflows/test.yml`: the step is now "render browser check (pinned Chromium)". It installs
+  playwright-core 1.63.0 outside the repo as before, then `install --only-shell chromium` into
+  `$RUNNER_TEMP/pw-browsers` (`PLAYWRIGHT_BROWSERS_PATH`), so every run downloads the build that version
+  pins and nothing from the image's caches is used. A one-line launch test; only if it fails,
+  `install-deps chromium` (the image's libraries are there for its own Chrome today). `PW_CHANNEL`
+  stays in the script for a local run only; CI no longer sets it. Nothing else in the file changed.
+- `render/test/ciPages.test.ts` (+3): section D's hooks exist on the replay (scrubber, turnbar,
+  match-data, `fx-lethal-overlay`, `GAME OVER: `, `boast-who`, `boast-panel`, the side/hud/hand ids);
+  the replay ends in a win with no record (so a game-lane change that makes seed 6 a draw is named in
+  vitest, not as a missing boast in CI); the check's starter map equals `STARTER_BOASTS` and
+  `boastFromRecord`, and its `LEAD_MS`/`CLEAR_MS` are `BOAST_LEAD_MS`/`BOAST_CLEAR_MS`. The sheet test
+  now reads the six boasts from the check's `BOASTS` list (the new quoted ids would have confused it).
+
+**Ran it:**
+- `progress/render/evidence/ci-browser-check-s42.txt`: 41 passed, ALL PASS, pages 0.8 s, browser 25.2 s
+  (was 20 s with 23 checks). 8 runs in a row, all pass.
+- Under load (`ci-browser-check-s42-load.txt`): two whole checks at once on 4 cores, 3 rounds, 6 of 6
+  pass. This is what found the first version's three flakes, each fixed before the evidence run: (1) the
+  spill count started on the boast's wall clock, but the loser's clear runs on the effects' clock
+  (canvasFx caps a frame's step at 50 ms), so under load the lethal smoke was still fading at 300-540 ms
+  of boast time; the check now keeps the effects' clock itself; (2) the dim was read once at 400 ms and
+  caught the 300 ms CSS fade mid-way (0.72); now its lowest point; (3) the lead bound at 800 ms failed at
+  612-774 ms because the lethal flash, on the effects' frame timer, lands late under load while the
+  boast's setTimeout doesn't; now half the lead (a boast that doesn't wait measures 0 ms).
+- Mutants (`ci-browser-check-s42-mutants.txt`), each on `renderHtml.ts`, reverted after: no loser's
+  clear as the boast starts: 2 FAIL (11,300-13,905 pixels lit past the side); no result hold (no boast
+  plays): 15 FAIL; no lead after the lethal beat: 4 FAIL (0 ms, and the lethal smoke not yet cleared).
+- The pinned download itself couldn't run here (the container can't reach Playwright's download host).
+  The session runs used the container's copy, the same build 1.63.0 pins: chromium-headless-shell 1243,
+  Chromium 153.0.8010.12. The PR's own CI run is the first real download; its figures go in the PR
+  description.
+- `npm test`: all six workspaces pass, render 662 (+3); typecheck clean.
+
+**Next render-lane slice:** none set by the owner. First, read this PR's `test` run (the step's time,
+the whole run's time, the Chromium version printed) from its description and copy them here.
+Candidates: a close win (CLOSE CALL first) on a real board in the CI check, or a recorded loadout boast;
+a "tap to skip" hint; the next item the owner names.
