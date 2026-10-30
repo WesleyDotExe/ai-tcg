@@ -3661,3 +3661,14 @@ Owner decisions on the 4 calls in `progress/render/checkpoints.md` (PR #102).
 4. **Keep:** three boasts at a time.
 
 Next render-lane slice, as set: add one replay's end (the lethal beat, then the boast) to the CI browser check. Do the pinned-Chromium change (call 2) in the same slice. Report the CI step's time and the whole test run's time on that PR's own CI run.
+
+---
+
+## 2026-10-31 — Owner: answers to game session 60 (set A shipped; hardening pass), keep all 3
+
+Answers the [OWNER CHECK-IN] "Set A is shipped; both rings re-run" in `progress/notes-for-owner.md` (PR #103, `progress/balance-report-036-null-forty-shipped.txt`).
+1. **Keep:** only the gate and real-match ring baselines were re-recorded; the signature-mode ring keeps its old baseline.
+2. **Keep:** the render replays with Null in them regenerated, and the close-win scenario's seed moved from 5 to 3.
+3. **Keep:** the realistic collections file updated in place (session 54's version stays in git history).
+
+Next game session, as planned: the balance session's job 2 (Null > Aegis and Cortex > Swarm), test only, to an owner check-in. Read the full-collection column as noisy (one deck per faction); weight the pack columns.
