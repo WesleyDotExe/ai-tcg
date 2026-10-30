@@ -247,6 +247,36 @@ describe("owner API: rebuild now on a worker thread", () => {
     expect(worker.running).toBe(0);
   }, 60_000);
 
+  it("runs at most maxWorkers builds at once; the rest wait in line and still build the same decks", async () => {
+    const { store, ada } = setup();
+    const holdings = holdingsOf(store.collection(ada.ownerId).map((c) => c.cardId));
+    const worker = workerChooser({ maxWorkers: 1 });
+    const styles = ["tempo", "rusher", "fortress"] as const;
+    const builds = styles.map((style) => worker.choose(holdings, { ...BUILD, style }));
+    expect(worker.running).toBe(1);
+    expect(worker.queued).toBe(2);
+    const done = await Promise.all(builds);
+    expect(worker.running).toBe(0);
+    expect(worker.queued).toBe(0);
+    for (const [i, style] of styles.entries()) {
+      const here = await chooseDeck(holdings, { ...BUILD, style });
+      expect([...done[i]!.list], style).toEqual([...here.list]);
+    }
+    expect(() => workerChooser({ maxWorkers: 0 })).toThrow(/at least 1/);
+  }, 120_000);
+
+  it("terminateAll stops the running build and drops the waiting ones", async () => {
+    const { store, ada } = setup();
+    const holdings = holdingsOf(store.collection(ada.ownerId).map((c) => c.cardId));
+    const worker = workerChooser({ maxWorkers: 1 });
+    const builds = [0, 1, 2].map(() => worker.choose(holdings, BUILD).then(() => "built", (e: Error) => e.message));
+    await worker.terminateAll();
+    const outcomes = await Promise.all(builds);
+    expect(outcomes[0]).toMatch(/stopped/);
+    expect(outcomes.slice(1)).toEqual(["the deck build was cancelled before it started", "the deck build was cancelled before it started"]);
+    expect(worker.running + worker.queued).toBe(0);
+  }, 60_000);
+
   it("the server keeps answering while the agent builds (on this thread it can't)", async () => {
     // What a GET sees when it is sent right after "rebuild now".
     const stateSeenDuringBuild = async (options: Omit<OwnerApiOptions, "store">) => {

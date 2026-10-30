@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -53,16 +53,38 @@ real, but here is where it's thin.
   automatically (about 25 minutes on 4 cores, too slow for CI).
 - **Still owed before launch (owner 2026-10-22):** the test-only balance session for Null > Aegis
   (inverted) and Cortex > Swarm (under band), candidates measured on the ring in both modes and on the
-  built-deck ring at every level, results to an owner check-in. Session 59 ran its first job (Null's 4
-  added cards, owner check-in open); the two edges themselves are not run yet.
+  built-deck ring at every level, results to an owner check-in. Its first job (Null's 4 added cards) is
+  done: set A shipped in session 60, re-run on `progress/built-deck-ring-003.txt`. The two edges themselves
+  are not run yet.
+
+## Session 60 (hardening pass; set A shipped): what was raised, and what is still thin
+
+- **Raised: Null's 40.** Set A shipped; every starter is 40; both ring baselines re-recorded; the built-deck
+  ring on the shipped list is byte-identical to the candidate run (`progress/built-deck-ring-003.txt`).
+- **Raised: the play-style ownership check is in the store** (`setPlayStyle(ownerId, agentId, style)`).
+- **Raised: rebuild workers are capped and queued** (`workerChooser`, every core but one). Still thin: a
+  queued job reads `running` in the API (no `queued` state of its own), the queue is in memory and per
+  process, and nothing stops one owner from re-queuing right after their build ends (only "already
+  building" is refused).
+- **Raised: the full-collection noise is measured, not fixed.** One full build swings a faction's mean
+  4-6 points by search seed (`progress/full-seed-swing/report.txt`). `builtDeckRing.ts`'s report still
+  shows one deck per faction at full; averaging several seeds there is not built.
+- **Still owed before launch:** job 2 of the balance session (Null > Aegis inverted, Cortex > Swarm under
+  band), not started.
+- **The render's Null replays changed under the render lane.** Six committed replays and two recorded
+  scenarios were regenerated and three render tests re-seeded; the render lane's own evidence files from
+  earlier sessions (e.g. `recorded-matches-s35.txt`) describe the old replays.
+- **Economy demos 014/016 still not re-run** since option B and set A.
+- **`ring:signature`'s baseline was not re-recorded** (it passes; a report, not a CI check).
 
 ## Session 59 (the balance session, job 1: Null's 4 added cards): what is still thin
 
-- **Null's built decks are still weaker than session 54's until the owner picks a set.** The shipped
+- ~~**Null's built decks are still weaker than session 54's until the owner picks a set.**~~ Fixed
+  session 60 (set A shipped). The shipped
   list is still 36 and the builder still fills it with rating picks (incl. a Zero-Day card). Candidate A
   measures back at session 54's field spread (`progress/balance-report-035-null-forty.txt`), but nothing
   ships without the owner's OK.
-- **Any 40-card Null list fails today's ring check on gate Swarm > Null** (IN BAND -> UNRESOLVED, 57.1 ->
+- ~~**Any 40-card Null list fails today's ring check on gate Swarm > Null**~~ (re-baselined session 60) (IN BAND -> UNRESOLVED, 57.1 ->
   52.9-54.3 on the ring's seeds). Shipping a set needs the baselines re-recorded, with the owner's OK.
 - **The "full collection" column is one deck per faction and noisy.** Aegis's full-collection mean ran
   50.0-60.4 (real) across the candidate runs with its own cards unchanged; only the shipped Null deck its

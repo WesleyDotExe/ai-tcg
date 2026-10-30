@@ -19,8 +19,9 @@
 //         decks' mana curve.
 //       - "designed": the faction's shipped list (the set's designed deck)
 //         as far as the owner holds it, its gaps filled the same greedy way
-//         up to the same size (Null's 36-card list gains 4 cards when the
-//         owner holds 40 usable ones).
+//         up to the same size (every designed list is 40 since session
+//         60, so from a full collection the designed start is the shipped
+//         list; an owner missing copies gets the gaps filled).
 //     Two starts because neither prior is right everywhere: from a full
 //     collection the rating deck beats the designed one in Cortex and
 //     Aegis and loses to it in Swarm and Null (progress/

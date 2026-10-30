@@ -132,19 +132,26 @@ test("Garbage Collector's activated ability spends 2 energy to heal a damaged al
   expect(again, "with 1 energy the 2-cost ability must not be offered").toHaveLength(0);
 });
 
-test("Null's own cards: 36 copies of 20 unique cards after the 2026-09-28 consistency trim", () => {
+test("Null's list: 38 own copies of 20 unique cards plus 2 Rollback Point, 40 in all (set A, session 60)", () => {
   const deck = buildNullDeck("p1", "Null Test Deck");
   const own = NULL_CARDS.filter((p) => p.card.faction === "Null");
-  expect(own.reduce((n, p) => n + p.copies, 0), "the trim takes Null's own cards from 40 back to 36").toBe(36);
-  expect(deck.cards.length, "no neutral package since session 25: the deck is Null's own 36").toBe(36);
+  // The 2026-09-28 trim took Null's own cards to 36; set A (owner 2026-10-30)
+  // adds a 3rd Fork Bomb and a 2nd Segfault Handler.
+  expect(own.reduce((n, p) => n + p.copies, 0)).toBe(38);
+  const neutral = NULL_CARDS.filter((p) => p.card.faction === "Neutral");
+  expect(neutral.map((p) => [p.card.name, p.copies])).toEqual([["Rollback Point", 2]]);
+  expect(deck.cards.length, "every starter deck is the same size (owner 2026-10-26)").toBe(40);
   const uniqueCount = new Set(own.map((p) => p.card.id)).size;
-  expect(uniqueCount, "the trim cuts copies, not cards: all 20 unique cards stay").toBe(20);
+  expect(uniqueCount, "the trim cut copies, not cards: all 20 unique cards stay").toBe(20);
+  expect(NULL_CARDS.find((p) => p.card.name === "Fork Bomb")?.copies).toBe(3);
+  expect(NULL_CARDS.find((p) => p.card.name === "Segfault Handler")?.copies).toBe(2);
   expect(
     NULL_CARDS.find((p) => p.card.name === "Kernel Panic")?.copies,
     "Kernel Panic is protected by the trim (its visibility is part of the reason for it)",
   ).toBe(2);
-  // Every trim cut was non-removal, so density sits at the cap (9/36).
+  // Segfault Handler is the one removal add: 10/40, exactly at the cap.
   const removal = NULL_CARDS.filter((p) => isRemovalOrDebuffCard(p.card)).reduce((s, p) => s + p.copies, 0);
+  expect(removal).toBe(10);
   expect(removal / deck.cards.length).toBeLessThanOrEqual(0.25);
 });
 

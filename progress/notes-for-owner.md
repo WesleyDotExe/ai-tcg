@@ -1,10 +1,49 @@
 # Notes for the owner
 
-**Updated 2026-10-29, session 59.** Nothing is blocking. The balance session's first job is done:
-candidates for Null's 4 added cards, measured on both rings. Your pick is the **[OWNER CHECK-IN]**
-below. No card has changed.
+**Updated 2026-10-30, session 60.** Nothing is blocking. Set A is shipped: Null's list and starter are 40.
+The results you asked for are the **[OWNER CHECK-IN]** below. Nothing in it needs a decision unless you
+want to change one of the calls listed at its end.
 
-### [OWNER CHECK-IN] Null's 4 added cards (36 -> 40): recommend set A
+### [OWNER CHECK-IN] Set A is shipped; both rings re-run
+
+**What changed** (`progress/balance-report-036-null-forty-shipped.txt`):
+- Null's list: Fork Bomb 2 -> 3, Segfault Handler 1 -> 2, plus 2 Rollback Point. 40 cards; every starter
+  deck is now 40. Removal is 10 of 40, exactly the cap, as you OK'd. No other card changed.
+
+**The ring check (shipped decks):**
+- Before I re-recorded the baselines, the check failed on exactly the edge session 59 predicted: gate
+  "Swarm > Null" went from 57.1 (in band) to 54.3 (not sure). Nothing else moved by a real amount. The
+  real-match check passed as it was.
+- Both baselines are re-recorded (dated 2026-10-30). Both checks pass.
+
+**The built-deck ring (every collection level):**
+- The result is **byte for byte the same** as session 59's run of set A. That run used a copy of the game
+  with A patched in; this one is the real shipped game. So the numbers you chose A on are the shipped
+  numbers: Null at 45.8 / 48.6 / 47.4 / 46.9 (real-match mode; full, 37, 17, 3 packs), and the field's
+  spread back to 5.9 points (session 58's fill: 13.4).
+- Still out of band, as before: Null > Aegis (Aegis wins it) and, in gate mode, Aegis > Cortex (already
+  an accepted out-of-band edge). Null > Aegis and Cortex > Swarm are the balance session's job 2, next
+  game session.
+
+**New this session: how noisy the "full collection" column is.** I rebuilt every faction's full-collection
+deck with three other search seeds and played the ring again. The decks differ by only 1-3 cards, but a
+faction's average moves by 4-6 points and one edge by up to 8.7. So one full-collection deck is one draw;
+the pack columns (8 owners, 8 searches) are the numbers to trust. I'll read job 2's full-collection
+results with that in mind.
+
+**Calls I made you might want to overrule:**
+1. **Only the gate and real baselines were re-recorded.** The signature-mode ring (a report, not a CI
+   check) still passes against its old baseline, so I left it.
+2. **The render replays with Null in them were regenerated** (six replays and two recorded boast
+   scenarios). The close-win scenario needed a new seed (5 -> 3): on seed 5 Null now wins. It is still a
+   Swarm win on 4 health that plays Dial-Up Fireworks.
+3. **The realistic collections file was updated in place** (`progress/built-deck-ring/collections.json`,
+   the one the tools read). Session 54's version is in git history.
+
+**Default if you don't answer:** all three stand. The next game session runs job 2 (Null > Aegis and
+Cortex > Swarm), test only, to a check-in.
+
+### [ANSWERED 2026-10-30: ship set A; shipped session 60] Null's 4 added cards (36 -> 40): recommend set A
 
 **What I measured** (`progress/balance-report-035-null-forty.txt`, files in `progress/null-forty/`):
 - A search tried every card that can legally join Null's list (more copies of Null cards, or neutral

@@ -122,6 +122,9 @@ describe("the role comes from what the power did", () => {
     const runs: [string, string, number][] = [
       ["Aegis", "Aegis", 1], ["Aegis", "Cortex", 6], ["Aegis", "Null", 3], ["Null", "Cortex", 4], ["Swarm", "Null", 8],
       ["Aegis", "Cortex", 1], ["Aegis", "Cortex", 3], ["Cortex", "Swarm", 6], ["Cortex", "Aegis", 7],
+      // Since Null's list grew to 40 (game session 60), the two Null replays
+      // above no longer fire Deprecated Routine or Dormant Egg Sac; these do.
+      ["Aegis", "Null", 8], ["Swarm", "Null", 1],
     ];
     for (const [a, b, s] of runs) for (const f of flat(signatureFires(await match(a, b, s)))) (seen[f.name] ??= new Set()).add(f.role);
     expect(Object.fromEntries(Object.entries(seen).map(([k, v]) => [k, [...v].sort()]))).toEqual({

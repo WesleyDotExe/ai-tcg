@@ -41,11 +41,16 @@ describe("play styles", () => {
     expect(a.playStyle).toBe("calculator");
     expect(s.getAgent(a.agentId).playStyle).toBe("calculator");
     for (const id of PLAY_STYLE_IDS) {
-      expect(s.setPlayStyle(a.agentId, id).playStyle).toBe(id);
+      expect(s.setPlayStyle(a.ownerId, a.agentId, id).playStyle).toBe(id);
       expect(s.listAgents(o.ownerId)[0]!.playStyle).toBe(id);
     }
-    expect(() => s.setPlayStyle(a.agentId, "berserker")).toThrow(/not a play style/);
-    expect(() => s.setPlayStyle("no-such-agent", "rusher")).toThrow();
+    expect(() => s.setPlayStyle(a.ownerId, a.agentId, "berserker")).toThrow(/not a play style/);
+    expect(() => s.setPlayStyle(o.ownerId, "no-such-agent", "rusher")).toThrow();
+    // Only the agent's owner can set it, in the store itself (session 60),
+    // not only behind the owner API.
+    const other = s.createOwner({ name: "bo" });
+    expect(() => s.setPlayStyle(other.ownerId, a.agentId, "rusher")).toThrow(/only the agent's owner/);
+    expect(s.getAgent(a.agentId).playStyle).toBe(PLAY_STYLE_IDS.at(-1));
     // The schema holds the same list for any caller.
     expect(() => s.unsafeExec(`UPDATE agents SET play_style = 'berserker' WHERE agent_id = '${a.agentId}'`)).toThrow(/CHECK/);
   });
@@ -54,13 +59,13 @@ describe("play styles", () => {
     const s = open();
     const a = await seat(s, "a", "Swarm");
     const b = await seat(s, "b", "Null");
-    s.setPlayStyle(a.agentId, "rusher");
+    s.setPlayStyle(a.ownerId, a.agentId, "rusher");
     const live = s.startMatch({ matchId: "m1", p1OwnerId: a.ownerId, p2OwnerId: b.ownerId });
     expect(live.p1.playStyle).toBe("rusher");
     expect(live.p2.playStyle).toBe("calculator");
 
     // The owner switches mid-match: allowed, and the running match is untouched.
-    s.setPlayStyle(a.agentId, "fortress");
+    s.setPlayStyle(a.ownerId, a.agentId, "fortress");
     expect(live.p1.playStyle).toBe("rusher");
     const { state } = await runMatch(
       { ...live.p1.deck.spec, id: "p1" },
@@ -109,14 +114,14 @@ describe("migration v12 -> v13", () => {
     const b = await seat(v12, "b", "Null");
     v12.startMatch({ matchId: "old", p1OwnerId: a.ownerId, p2OwnerId: b.ownerId });
     v12.recordMatch({ matchId: "old", seed: 1, p1AgentId: a.agentId, p2AgentId: b.agentId, outcome: { kind: "draw" } });
-    expect(() => v12.setPlayStyle(a.agentId, "rusher")).toThrow(/v13/);
+    expect(() => v12.setPlayStyle(a.ownerId, a.agentId, "rusher")).toThrow(/v13/);
     v12.close();
 
     const v13 = open(path, 13);
     expect(v13.schemaVersion).toBe(13);
     expect(v13.getAgent(a.agentId).playStyle).toBe("calculator");
     expect(v13.matchHistory()[0]!.playStyles).toBeNull();
-    expect(v13.setPlayStyle(a.agentId, "tempo").playStyle).toBe("tempo");
+    expect(v13.setPlayStyle(a.ownerId, a.agentId, "tempo").playStyle).toBe("tempo");
     v13.close();
   });
 });

@@ -92,7 +92,7 @@ say(`  rebuild reasons now: ${reasons(ada.ownerId)}; rebuildAgentDeckIfNeeded ->
 say();
 
 say("## 2. The owner switches the agent to Rusher");
-store.setPlayStyle(ada.agentId, "rusher");
+store.setPlayStyle(ada.ownerId, ada.agentId, "rusher");
 say(`  rebuild reasons: ${reasons(ada.ownerId)}`);
 const rush = (await store.rebuildAgentDeckIfNeeded(ada.ownerId, BUILD))!;
 report("ada", rush.build);
@@ -103,7 +103,7 @@ say();
 
 say("## 3. The owner connects a second agent, a Fortress");
 const fort = store.createAgent({ ownerId: ada.ownerId, name: "ada's wall" });
-store.setPlayStyle(fort.agentId, "fortress");
+store.setPlayStyle(fort.ownerId, fort.agentId, "fortress");
 store.connectAgent(ada.ownerId, fort.agentId);
 say(`  rebuild reasons: ${reasons(ada.ownerId)}`);
 const fortress = (await store.rebuildAgentDeckIfNeeded(ada.ownerId, BUILD))!;
@@ -129,7 +129,7 @@ say("## 5. An owner who forces a deck: nothing to rebuild, whatever changes");
 const bo = seat("bo", "Null");
 const hand = store.saveDeck(bo.ownerId, "bo's own", store.collection(bo.ownerId).map((c) => c.copyId));
 store.setActiveDeck(bo.ownerId, hand.deckId);
-store.setPlayStyle(bo.agentId, "controller");
+store.setPlayStyle(bo.ownerId, bo.agentId, "controller");
 say(`  bo forces "${hand.name}", agent style controller; rebuild reasons: ${reasons(bo.ownerId)}`);
 store.setDeckChoice(bo.ownerId, "agent");
 say(`  bo hands the deck back to the agent; rebuild reasons: ${reasons(bo.ownerId)}`);

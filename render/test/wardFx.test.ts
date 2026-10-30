@@ -173,11 +173,12 @@ describe("which Mythics, and what their wards see", () => {
   });
 
   it("embeds only the sheets of Mythics that reach the board in this replay", async () => {
-    // Swarm vs Null, seed 8: Hive Mother arrives and later dies; no other
-    // Mythic reaches the board (the committed replay of the same seed).
+    // Swarm vs Null, seed 1: Hive Mother reaches the board; no other Mythic
+    // does. (Seed 8 until game session 60: with Null's 40-card list seed 8
+    // no longer fires Dormant Egg Sac's hatch, so its Swarm ring is gone.)
     const replay = await captureMatch({
-      title: "wards", seed: 8, deckA: buildSwarmDeck("p1", "Swarm"), deckB: buildNullDeck("p2", "Null"),
-      agentA: new LookaheadAgent("Lookahead-Swarm", 17), agentB: new LookaheadAgent("Lookahead-Null", 18), boardSlots: BOARD_SLOTS,
+      title: "wards", seed: 1, deckA: buildSwarmDeck("p1", "Swarm"), deckB: buildNullDeck("p2", "Null"),
+      agentA: new LookaheadAgent("Lookahead-Swarm", 3), agentB: new LookaheadAgent("Lookahead-Null", 4), boardSlots: BOARD_SLOTS,
     });
     expect(mythicsInReplay(replay)).toEqual(["Hive Mother"]);
     const data = wardDataFor(replay);

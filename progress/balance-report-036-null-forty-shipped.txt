@@ -1,0 +1,62 @@
+Balance report 036: set A shipped, Null's list and starter are 40 (session 60, game lane; a hardening pass)
+==========================================================================================================
+Owner 2026-10-30 (answer to session 59's check-in): ship set A, +1 Fork Bomb, +1 Segfault Handler, +2 Rollback
+Point. Re-record both ring baselines, re-run both rings and the built-deck ring, report at the next check-in.
+Keep A's 2 neutral cards in the starter; Null at the 25% removal cap (10 of 40) is fine.
+
+---- 1. What changed ----
+engine/src/data/nullCards.ts NULL_CARDS: Fork Bomb 2 -> 3, Segfault Handler 1 -> 2, + Rollback Point x2 (neutral).
+38 Null copies of 20 unique cards + 2 neutral = 40. Removal/debuff 10/40 = 25.0% (the cap; the lint passes).
+The Null starter collection is the shipped list, so a new Null owner now gets these 40. Every starter is 40.
+No other card, deck or rule changed.
+
+---- 2. The ring check (shipped decks), before and after re-baselining ----
+Files: progress/null-forty-ship/.
+Before (old baselines, the 40 shipped): `npm run ring` FAILED on exactly the edge session 59 predicted:
+  gate Swarm > Null  57.1% IN BAND -> 54.3% [52.3-56.2] UNRESOLVED  (change -2.8 [-5.5, -0.0])
+  every other gate edge PASS; Null > Aegis 50.6 -> 51.6, Null ~ Cortex 45.4 -> 46.6 (both inside noise).
+  `npm run ring:real` PASSED unchanged: real Swarm > Null 55.5 -> 53.9 (UNRESOLVED both), Null > Aegis
+  45.3 -> 45.9, Null ~ Cortex 49.0 -> 50.7 (IN BAND both).
+  `ring:signature` (a report, not a CI check) PASSED; its baseline is left as recorded.
+These are the same numbers session 59's held-out run gave for A on the ring's seeds (heldout.txt: gate
+Swarm > Null 54.3), as they must be: the held-out step played exactly what the ring check plays.
+Re-recorded with --write-baseline (engine/src/dev/ringBaseline.json, ringBaselineReal.json, both dated
+2026-10-30); this report is the justification. After: `ring` and `ring:real` PASS, every change +0.0.
+
+---- 3. The built-deck ring on the shipped list (progress/built-deck-ring-003.txt) ----
+Collections regenerated (the Null owners' starter is now the 40): progress/built-deck-ring-003/collections.json,
+also copied to progress/built-deck-ring/collections.json, the path the tools and tests read (session 54's
+version is in git history). Same seeds and build settings as built-deck-ring-002.
+The report is BYTE-IDENTICAL to session 59's candidate-A run (progress/null-forty/built-A/report.txt), and the
+collections file is identical too: the worktree runner measured exactly what ships. So the session-59 numbers
+stand as the shipped state:
+  real mode, faction means (full / 37 / 17 / 3 packs):
+    Cortex 53.2 49.7 51.1 51.4   Swarm 51.0 49.1 49.2 47.3   Aegis 50.0 52.5 52.4 54.3   Null 45.8 48.6 47.4 46.9
+  gate mode:
+    Cortex 54.8 55.7 56.3 56.1   Swarm 50.3 47.3 48.0 47.9   Aegis 52.2 50.9 48.3 48.9   Null 42.6 46.2 47.5 47.1
+  real spread (max - min faction mean, averaged over levels) 5.9 (session 58's builder fill: 13.4; session 54: 6.0).
+  Every built deck is 40 (all 100). From a full collection the Null build is the shipped 40 with one swap
+  (-1 Segmentation Fault, +1 Patient Zero); its confirm lift over the shipped list is +0.2.
+Still out of band, as before set A: Null > Aegis (inverted, every level, both modes) and the gate's
+Aegis > Cortex; the gate's Null ~ Cortex is OUT at full collection (40.7). That is job 2's territory.
+
+---- 4. How much one full-collection build swings by its search seed (progress/full-seed-swing/report.txt) ----
+A hardening item since session 59: the "full" column is one built deck per faction. Rebuilt every faction at
+full with search seeds 2, 3, 4 (`builtDeckRing.ts build ... --search-seed N`, new), same collections and
+confirm seeds, and played the full ring in both modes for each:
+  faction mean range over the 4 seeds, real:  Cortex 48.4-53.2 (4.7)  Swarm 45.9-51.0 (5.1)  Aegis 50.0-56.2 (6.2)  Null 45.7-49.5 (3.8)
+                                       gate:  Cortex 50.1-54.8 (4.7)  Swarm 45.2-50.3 (5.1)  Aegis 52.2-56.5 (4.2)  Null 42.6-48.2 (5.5)
+  single edges swing up to 8.7 points (gate Null ~ Cortex 40.7-49.3; real Aegis ~ Swarm 48.7-57.3).
+  The decks differ from seed 1's by only 1-3 swapped cards.
+Reading: the full-collection column's per-faction numbers carry about +-3 points of search noise, the same
+size as most of the differences between session 59's candidates at full (Aegis 50.0-60.4 across those runs
+was mostly this). Seed 1 (the store's) happens to sit at or near the low end for Null and Aegis and at the high end for
+Cortex. The pack columns (8 owners each, so 8 searches) are the read to trust; a single full build should
+be read as one draw, or the column should average several search seeds. The gate's full Null ~ Cortex OUT
+(40.7) is seed 1's draw: seeds 2-4 give 42.7-49.3.
+
+---- 5. Honest limits ----
+- The swing measure is 4 seeds, one collection: it bounds the noise, it does not average it away in the report.
+- Job 2 (Null > Aegis and Cortex > Swarm candidates) is not started.
+- Render replays that play Null changed (six committed replays and two recorded scenarios regenerated);
+  the recorded close-win scenario moved to seed 3 (seed 5 now ends in a Null win).
