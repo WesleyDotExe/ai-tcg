@@ -1,0 +1,36 @@
+Render session 42: render/ci/browser-check.mjs under load, two whole checks at once on 4 cores (each runs up to 4 pages at once), 3 rounds.
+Two flakes this found on the first version of section D were fixed before this run (see progress/render/log.md, session 42):
+  - the clear's time read on the boast's wall clock (fixed: the effects' own clock, 50 ms per frame cap)
+  - the dim read once at 400 ms, mid-transition (fixed: its lowest point through the boast)
+  - the lead bound at 800 ms (fixed: half the lead, 450 ms; the flash lands late under load)
+
+par1-a: 41 passed, 0 failed (pages 0.8 s, browser 27.9 s)
+  PASS D. desktop: the lethal beat, then the boast at least 450 ms later (917 ms; the lead is 900)
+  PASS D. desktop: the lethal attack's leftovers cleared (6792 lit off the winner's side before the clear), then 18 samples, 0 lit past the winner's side
+  PASS D. phone: the lethal beat, then the boast at least 450 ms later (1108 ms; the lead is 900)
+  PASS D. phone: the lethal attack's leftovers cleared (7164 lit off the winner's side before the clear), then 27 samples, 0 lit past the winner's side
+par1-b: 41 passed, 0 failed (pages 0.9 s, browser 27.8 s)
+  PASS D. desktop: the lethal beat, then the boast at least 450 ms later (826 ms; the lead is 900)
+  PASS D. desktop: the lethal attack's leftovers cleared (6339 lit off the winner's side before the clear), then 21 samples, 0 lit past the winner's side
+  PASS D. phone: the lethal beat, then the boast at least 450 ms later (921 ms; the lead is 900)
+  PASS D. phone: the lethal attack's leftovers cleared (6121 lit off the winner's side before the clear), then 32 samples, 0 lit past the winner's side
+par2-a: 41 passed, 0 failed (pages 0.9 s, browser 27.8 s)
+  PASS D. desktop: the lethal beat, then the boast at least 450 ms later (937 ms; the lead is 900)
+  PASS D. desktop: the lethal attack's leftovers cleared (7247 lit off the winner's side before the clear), then 17 samples, 0 lit past the winner's side
+  PASS D. phone: the lethal beat, then the boast at least 450 ms later (968 ms; the lead is 900)
+  PASS D. phone: the lethal attack's leftovers cleared (6337 lit off the winner's side before the clear), then 20 samples, 0 lit past the winner's side
+par2-b: 41 passed, 0 failed (pages 0.9 s, browser 27.6 s)
+  PASS D. desktop: the lethal beat, then the boast at least 450 ms later (1118 ms; the lead is 900)
+  PASS D. desktop: the lethal attack's leftovers cleared (7207 lit off the winner's side before the clear), then 19 samples, 0 lit past the winner's side
+  PASS D. phone: the lethal beat, then the boast at least 450 ms later (837 ms; the lead is 900)
+  PASS D. phone: the lethal attack's leftovers cleared (6770 lit off the winner's side before the clear), then 23 samples, 0 lit past the winner's side
+par3-a: 41 passed, 0 failed (pages 0.9 s, browser 28.1 s)
+  PASS D. desktop: the lethal beat, then the boast at least 450 ms later (1119 ms; the lead is 900)
+  PASS D. desktop: the lethal attack's leftovers cleared (7240 lit off the winner's side before the clear), then 26 samples, 0 lit past the winner's side
+  PASS D. phone: the lethal beat, then the boast at least 450 ms later (958 ms; the lead is 900)
+  PASS D. phone: the lethal attack's leftovers cleared (6343 lit off the winner's side before the clear), then 29 samples, 0 lit past the winner's side
+par3-b: 41 passed, 0 failed (pages 0.9 s, browser 27.9 s)
+  PASS D. desktop: the lethal beat, then the boast at least 450 ms later (1093 ms; the lead is 900)
+  PASS D. desktop: the lethal attack's leftovers cleared (6803 lit off the winner's side before the clear), then 20 samples, 0 lit past the winner's side
+  PASS D. phone: the lethal beat, then the boast at least 450 ms later (813 ms; the lead is 900)
+  PASS D. phone: the lethal attack's leftovers cleared (7845 lit off the winner's side before the clear), then 26 samples, 0 lit past the winner's side

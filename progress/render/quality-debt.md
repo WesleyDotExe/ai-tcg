@@ -7,26 +7,38 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The CI browser check (session 41)
+## The CI browser check (sessions 41-42)
 
-- **Only a small part of the browser evidence runs in CI.** `render/ci/browser-check.mjs` (23 checks)
-  guards the boasts' spill, the Skip sizes and one replay's intro. The deeper session checks (sound as
-  heard, timing under a stall, the pack opening, the feed, the narrow layouts, the loadout picker) are
-  still by-hand scripts under `progress/render/evidence/`; a regression there would pass CI.
-- **No audio is checked in CI.** The intro's sound queue and the heard-timing checks were left out on
-  purpose (an audio clock on a shared runner is the likeliest flake); a boast's or the intro's sounds
+- **Only a small part of the browser evidence runs in CI.** `render/ci/browser-check.mjs` (41 checks)
+  guards the boasts' spill, the Skip sizes, one replay's intro and that replay's end. The deeper session
+  checks (sound as heard, timing under a stall, the pack opening, the feed, the narrow layouts, the
+  loadout picker, the recorded replays' boasts and close wins) are still by-hand scripts under
+  `progress/render/evidence/`; a regression there would pass CI.
+- **No audio is checked in CI** (owner kept this, session 41 call 1): the boasts' and the intro's sounds
   could break and CI would stay green.
-- **The first CI run's time is not in this session's evidence.** Locally the step takes about 21 s
-  (pages 0.8 s, browser 20 s on 4 cores); the runner's time and Chrome version are read off the PR's
-  first run and belong in the next render session's log.
-- **CI uses the runner's Chrome, the sessions use the container's Chromium.** Same playwright-core
-  (1.63.0), different browsers; the image's Chrome moves with GitHub's updates, so a Chrome change can
-  turn the check red with no code change. The fallback (download Chromium) runs only if Chrome is gone.
-- **Three pages animate at once in section A,** to keep the step short. Each page still samples its
-  whole boast (55-61 samples, against a minimum of 10), but a slower runner samples fewer frames, and a
-  one-frame flash past the side could fall between samples (as it could before, every 3rd frame).
-- **Only the replay's intro is checked, not its end.** The boast at a real replay's end (a lethal attack,
-  then the boast) is checked on the sheet only.
+- **The replay's end is one replay, one boast, a plain win.** Cortex vs Swarm seed 6 ends in a Cortex
+  win with no record, so CI sees the faction starter Data Cascade on a real board only. The close win
+  (CLOSE CALL first), a recorded loadout boast, and the other five boasts on a real board are by-hand
+  only (`boast-check-s37.mjs`, `-s39.mjs`).
+- **Two of section D's bounds are loosened for slow runners, and they're judgement calls.** The lead
+  after the lethal flash is checked at half its 900 ms (the flash fires on the effects' frame timer and
+  lands late under load; measured down to about 610 ms with two checks at once); a boast that doesn't
+  wait at all (0 ms) still fails. The spill count starts 60 ms after the clear's 280 ms on the effects'
+  own clock, which the check keeps itself (the same 50 ms-per-frame cap as canvasFx); if canvasFx's cap
+  changes, the check's copy must too (nothing pins it).
+- **What section D found about the render under load, not fixed:** on a slow machine the loser's clear
+  (280 ms by design) runs on the effects' capped clock, so in wall time the lethal smoke lingers longer
+  on the loser's side (up to about 540 ms into the boast with four pages at once). The same for the
+  lethal flash, which lands late. Neither is a spill past the winner's side once the clear ends; both
+  are "slow-motion when frames drop" as canvasFx was built.
+- **The pinned Chromium's download wasn't run in a session.** The session container can't reach the
+  Playwright download host; the session runs used the container's copy, which is the same build
+  (chromium-headless-shell 1243, Chromium 153.0.8010.12, what playwright-core 1.63.0 pins). The PR's own
+  CI run is the first real download. The system-library fallback (`install-deps`, only if the browser
+  can't start) has never run.
+- **Up to four pages animate at once** (three in section A, four in D), to keep the step short. Each page
+  samples its whole boast, but a slower runner samples fewer frames, and a one-frame flash past the side
+  could fall between samples.
 
 ## Hardening pass (session 40)
 

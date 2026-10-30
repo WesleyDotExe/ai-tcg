@@ -2,7 +2,8 @@
 // fresh from the current source into a scratch directory, so the check sees
 // what this commit renders, not whatever was last committed to
 // render/output/. Two pages: the boast sheet (all six boasts, the phone
-// scene) and one replay (Cortex vs Swarm, seed 6: its intro).
+// scene) and one replay (Cortex vs Swarm, seed 6: its intro, and its end,
+// the lethal beat then the boast).
 // Usage: npm run ci-pages -w @ai-tcg/render -- <outDir>
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -11,7 +12,8 @@ import { renderBoastSheet } from "./boastSheet.js";
 import { captureReplay } from "./replaySetup.js";
 import { renderMatchHtml } from "./renderHtml.js";
 
-/** The replay the check plays the intro of; its saying is ENGAGE. */
+/** The replay the check plays the intro and the end of; its saying is
+ * ENGAGE, and it ends in a Cortex win with no record (the starter boast). */
 export const CI_REPLAY = { a: "Cortex", b: "Swarm", seed: 6, file: "cortex-vs-swarm-seed6.html" } as const;
 
 export async function ciPages(): Promise<Record<string, string>> {

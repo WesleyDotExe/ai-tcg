@@ -939,3 +939,16 @@ for its next session.)
 3. **Nothing for the game lane,** except that its PRs now run the check too. It builds its pages from
    the current source, so a game change that breaks the replay page (not one that only changes how a
    match plays out) fails it.
+
+## 2026-10-30 — Session 42 (one replay's end in the CI check; a pinned Chromium)
+
+1. **Built as you set it.** Calls are in `progress/render/checkpoints.md` (newest entry): mainly the
+   lead after the lethal beat checked at half its length (call 1) and leaving the render's slow-motion
+   clear as built (call 2).
+2. **`.github/workflows/test.yml` changed only for the pinned Chromium,** as you OK'd: the render step's
+   install lines, its name and its comment. Nothing else in the file; `auto-merge.yml` untouched.
+3. **The CI times you asked for are in the PR's description,** not in this file: the PR merges itself
+   when its checks pass, so they can't be committed into it after its run. The next render session
+   copies them into `progress/render/log.md`.
+4. **Nothing for the game lane.** Its PRs run the longer check too; a card change that turns Cortex vs
+   Swarm seed 6 into a draw would fail a vitest test that says so.
