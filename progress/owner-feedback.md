@@ -3684,3 +3684,18 @@ Owner decisions on the 4 calls in `progress/render/checkpoints.md` (PR #104).
 4. **Keep:** the four end-of-replay runs go at once.
 
 Next render-lane slice, as set: a "tap to skip" hint.
+
+---
+
+## 2026-11-01 — Owner: answers to game session 61 (the two old edges), ship NA12 and CS7
+
+Answers the [OWNER CHECK-IN] "The two old edges: one partial fix, one fix with a cost" in `progress/notes-for-owner.md` (PR #105, `progress/balance-report-037-old-edges.txt`).
+1. **Null > Aegis: ship NA12 as a partial fix.** Null Pointer becomes "choose one": Dereference (destroy target enemy directive), or Null Out (target enemy unit gets -3/-3 permanently). Still 2 energy, instant speed, Uncommon. The full-collection Null > Aegis gap stays open: design the full fix into the next set, as planned.
+2. **Cortex > Swarm: ship CS7.** Force Quit becomes "choose one": Terminate (destroy target enemy directive), or Kill All (deal 1 damage to all enemy units). Still 2 energy, instant speed. The gate-mode overshoot (61-63%, no signature cards) is accepted, because real matches always have signature cards and the ring check still passes.
+3. **Both ship: OK** with Null slightly ahead of Cortex (55.3% on shipped decks, 51-52% with built decks).
+
+**Keep** the three calls: the fixes are new card modes rather than number changes (fine before launch); no Aegis-side candidate taken further; Null ~ Cortex read as "still even" while it stays inside 45-55.
+
+**Check to add when shipping:** Null is exactly at the 25% removal cap (10 of 40). Confirm whether Null Pointer's new -3/-3 mode changes how it counts against the removal cap, and that Null's list and starter still fit the cap. If it doesn't fit, don't ship NA12; bring the options to an owner check-in.
+
+As the session proposed: the next game session ships them, re-records both ring baselines, re-runs both rings and the built-deck ring, and regenerates the render replays that change. Report the results at the next owner check-in.
