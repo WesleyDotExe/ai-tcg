@@ -3729,3 +3729,24 @@ Launch-scale storage and its load test (still a hard gate for the public Season 
 
 ### Tracking
 Add a **Season 0 checklist** near the top of `progress/roadmap.md` with every item above marked done or not, and keep it current each session, so the owner can see how far Season 0 is at a glance.
+
+---
+
+## 2026-11-01 — Owner: the Season 0 website is the 2026-10-05 desktop spec, trimmed (amends the entry above)
+
+This amends the render lane's list in "Season 0 is the MVP" above. That entry's "website basics" means **the desktop website the owner approved on 2026-10-05** ("website first, with a customisable widget board", and its build order steps 3-6). Build to that spec and to `render/reference/owner-web-mockup.html`: a desktop browser, no phone app, the phone layout still parked. Every rule in that entry still applies.
+
+### In the Season 0 MVP (render lane, in this order)
+1. **Site layout and the full pages:** the glass sidebar and top bar (credits, pack points, the Open button, theme, notifications, account); full-screen pack opening; Agent match and Watch live (big board left, play-by-play and controls right); Collection (the wide binder); Store (packs and cosmetics, with the existing loadout picker); Stats; Settings; Connect agent; the admin view; dark mode.
+2. **The look:** the frosted-glass style, the liquid WebGL backgrounds with the background picker (Glacier default; Ocean, Aurora, Sunset, Lavender, Graphite; Plain black and Plain purple), and the accessibility and performance rules in that entry.
+3. **Home as the widget board:** the 12-column grid, S/M/L sizes, Customise mode (move, resize, remove, Add widget, Background, Recommended layout), the empty state, the layout saved to the owner's account, the widget limits and narrow-window stacking. **Season 0 widgets:** My agent, Live match, Watch live, Packs, Collection, Showcase, Ladder, Rating & form, Match history, Notifications and Store, plus Daily rewards showing the earnings bar and rewarded wins only (no quests yet). The Recommended layout swaps the Tournament slot for one of these.
+4. **Live play:** auto-play, the 2× vote (both owners must agree) and Watch live, as full pages and widgets.
+5. **The ladder** as its full page.
+
+### After Season 0
+The Tournament page and widget, quests (and the quest parts of Daily rewards), the League pull feed, the title screen and its live ticker, and the phone layout (still parked). The Tournament entry in the sidebar can be hidden or shown as "coming soon" for Season 0: propose which at a checkpoint.
+
+### Game lane: endpoints the Season 0 website needs
+In addition to the endpoints listed in the entry above: the saved board layout and background choice; notifications; the match feed and live state Watch live and the Live match widget need. Tournament endpoints wait until after Season 0.
+
+Update the Season 0 checklist in `progress/roadmap.md` to match.
