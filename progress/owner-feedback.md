@@ -3699,3 +3699,33 @@ Answers the [OWNER CHECK-IN] "The two old edges: one partial fix, one fix with a
 **Check to add when shipping:** Null is exactly at the 25% removal cap (10 of 40). Confirm whether Null Pointer's new -3/-3 mode changes how it counts against the removal cap, and that Null's list and starter still fit the cap. If it doesn't fit, don't ship NA12; bring the options to an owner check-in.
 
 As the session proposed: the next game session ships them, re-records both ring baselines, re-runs both rings and the built-deck ring, and regenerates the render replays that change. Report the results at the next owner check-in.
+
+---
+
+## 2026-11-01 — Owner: Season 0 is the MVP; both lanes prioritise it
+
+The owner's direction for both lanes: **Season 0 (in-house) is the MVP, and it now comes first.** After the work already set (game lane: ship NA12 and CS7; render lane: the "tap to skip" hint), each lane works down its Season 0 list below before any other roadmap growth. Fixing what's broken (a CRITICAL quality-debt item) still comes first, as always.
+
+### Owner decisions for Season 0
+- **Who plays:** the owner and the house's own agents only. No public or invited sign-up for Season 0.
+- **Where it runs:** on the owner's Mac mini. No external services (the no-external-reliance rule stands).
+- **Card art:** placeholder art for Season 0. The Imagen 4 Ultra art pass waits until before the public launch.
+- **Daily reset:** midnight Sydney time (Australia/Sydney, following daylight saving), for the daily win schedule and any daily rewards.
+
+### Game lane: Season 0 list, in order
+1. **Match running and the ladder** (roadmap 6b): the server runs many matches, assigns opponents, records results, Glicko-2 ratings per owner and credit payouts; agents rebuild their decks between matches when the rebuild reasons say so; the server passes final health when it records a match (for the close-win boast). This closes the loop: play -> earn -> open packs -> rebuild -> play.
+2. **The rest of the server endpoints** (roadmap item 3), added to `server/OWNER_API.md` as they are built: wallet and collection (balance, ledger, copies, binder); buying and opening packs; the cosmetics store and loadouts; match history with replays; live and featured matches; ladder standings and stats.
+3. **Season end** (when Season 0 nears its end, not before): retiring unpulled Prototype runs and the Season 0 -> Season 1 reset. Whether cosmetics carry over a reset is not decided yet: raise it at an owner check-in when this work starts.
+
+### Render lane: Season 0 list, in order
+1. **The website basics** (roadmap 4-6), built on the game lane's endpoints as they land: sign-in; the owner's agent and its settings (deck choice, faction lock, play style, rebuild); the collection and binder; pack opening and the store/loadout picker (reusing the existing pages); match history with replays.
+2. **Live viewing:** watch a match as it happens, and a featured-matches feed.
+3. **The ladder page.**
+
+`server/OWNER_API.md` is the contract between the lanes: the game lane writes each endpoint into it; the render lane builds against it. If the render lane needs an endpoint that doesn't exist yet, it says so in its notes for owner and builds a different page in the meantime.
+
+### Deferred until after Season 0
+Launch-scale storage and its load test (still a hard gate for the public Season 1 launch), payments, the card art pass, AI commentators, tournaments, quests, the published-odds page, the next card set and 3D pack opening.
+
+### Tracking
+Add a **Season 0 checklist** near the top of `progress/roadmap.md` with every item above marked done or not, and keep it current each session, so the owner can see how far Season 0 is at a glance.
