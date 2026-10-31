@@ -152,7 +152,7 @@ function report(dir: string, firstSeed: number): void {
 function ablationTable(dir: string): void {
   const read = (f: string) => JSON.parse(readFileSync(join(dir, f), "utf8")) as RunFile;
   const base = read("shipped-1.json");
-  const cuts = readdirSync(dir).filter((f) => f.startsWith("cut:") && f.endsWith("-1.json")).map(read);
+  const cuts = readdirSync(dir).filter((f) => f.startsWith("cut_") && f.endsWith("-1.json")).map(read);
   const short = ["N>A", "A>C", "C>S", "S>N", "N~C", "A~S"];
   console.log("# Ablation: one copy cut from a shipped list (39 cards), ring seeds from 1, both modes.");
   console.log("# Each cell: the edge's change in points for its FIRST-named faction (N>A = Null's rate vs Aegis).");
