@@ -1,0 +1,28 @@
+Screen, both seed blocks pooled (5,000 games a W edge, 1,800 an even edge): rate (change from shipped)
+NA8
+  real: Null > Aegis 48.7 (+2.9) | Aegis > Cortex 56.1 (+0.0) | Cortex > Swarm 52.7 (+0.0) | Swarm > Null 53.0 (-1.6) | Null ~ Cortex 53.3 (+3.4) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 53.9 (+3.2) | Aegis > Cortex 48.7 (+0.0) | Cortex > Swarm 58.1 (+0.0) | Swarm > Null 53.1 (-1.7) | Null ~ Cortex 48.6 (+3.1) | Aegis ~ Swarm 50.4 (+0.0)
+NA10
+  real: Null > Aegis 48.0 (+2.2) | Aegis > Cortex 56.1 (+0.0) | Cortex > Swarm 52.7 (+0.0) | Swarm > Null 51.9 (-2.7) | Null ~ Cortex 52.8 (+2.9) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 53.1 (+2.4) | Aegis > Cortex 48.7 (+0.0) | Cortex > Swarm 58.1 (+0.0) | Swarm > Null 51.3 (-3.4) | Null ~ Cortex 48.6 (+3.1) | Aegis ~ Swarm 50.4 (+0.0)
+NA11
+  real: Null > Aegis 49.3 (+3.5) | Aegis > Cortex 56.1 (+0.0) | Cortex > Swarm 52.7 (+0.0) | Swarm > Null 52.3 (-2.3) | Null ~ Cortex 52.9 (+3.1) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 54.0 (+3.3) | Aegis > Cortex 48.7 (+0.0) | Cortex > Swarm 58.1 (+0.0) | Swarm > Null 52.1 (-2.6) | Null ~ Cortex 48.6 (+3.1) | Aegis ~ Swarm 50.4 (+0.0)
+NA12
+  real: Null > Aegis 50.3 (+4.5) | Aegis > Cortex 56.1 (+0.0) | Cortex > Swarm 52.7 (+0.0) | Swarm > Null 53.6 (-1.0) | Null ~ Cortex 53.8 (+3.9) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 56.3 (+5.6) | Aegis > Cortex 48.7 (+0.0) | Cortex > Swarm 58.1 (+0.0) | Swarm > Null 53.2 (-1.5) | Null ~ Cortex 49.2 (+3.7) | Aegis ~ Swarm 50.4 (+0.0)
+CS3
+  real: Null > Aegis 45.8 (+0.0) | Aegis > Cortex 55.8 (-0.3) | Cortex > Swarm 54.0 (+1.3) | Swarm > Null 54.6 (+0.0) | Null ~ Cortex 49.3 (-0.6) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 50.7 (+0.0) | Aegis > Cortex 47.6 (-1.1) | Cortex > Swarm 59.5 (+1.4) | Swarm > Null 54.7 (+0.0) | Null ~ Cortex 44.6 (-0.9) | Aegis ~ Swarm 50.4 (+0.0)
+CS7
+  real: Null > Aegis 45.8 (+0.0) | Aegis > Cortex 56.2 (+0.1) | Cortex > Swarm 55.0 (+2.3) | Swarm > Null 54.6 (+0.0) | Null ~ Cortex 50.8 (+0.9) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 50.7 (+0.0) | Aegis > Cortex 48.3 (-0.4) | Cortex > Swarm 61.3 (+3.2) | Swarm > Null 54.7 (+0.0) | Null ~ Cortex 45.6 (+0.1) | Aegis ~ Swarm 50.4 (+0.0)
+CS8
+  real: Null > Aegis 45.8 (+0.0) | Aegis > Cortex 56.1 (+0.1) | Cortex > Swarm 54.2 (+1.5) | Swarm > Null 54.6 (+0.0) | Null ~ Cortex 50.9 (+1.1) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 50.7 (+0.0) | Aegis > Cortex 47.1 (-1.6) | Cortex > Swarm 60.3 (+2.2) | Swarm > Null 54.7 (+0.0) | Null ~ Cortex 46.3 (+0.8) | Aegis ~ Swarm 50.4 (+0.0)
+NA8+CS7
+  real: Null > Aegis 48.7 (+2.9) | Aegis > Cortex 56.2 (+0.1) | Cortex > Swarm 55.0 (+2.3) | Swarm > Null 53.0 (-1.6) | Null ~ Cortex 54.7 (+4.8) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 53.9 (+3.2) | Aegis > Cortex 48.3 (-0.4) | Cortex > Swarm 61.3 (+3.2) | Swarm > Null 53.1 (-1.7) | Null ~ Cortex 48.9 (+3.4) | Aegis ~ Swarm 50.4 (+0.0)
+NA12+CS7
+  real: Null > Aegis 50.3 (+4.5) | Aegis > Cortex 56.2 (+0.1) | Cortex > Swarm 55.0 (+2.3) | Swarm > Null 53.6 (-1.0) | Null ~ Cortex 55.3 (+5.4) | Aegis ~ Swarm 56.4 (+0.0)
+  gate: Null > Aegis 56.3 (+5.6) | Aegis > Cortex 48.3 (-0.4) | Cortex > Swarm 61.3 (+3.2) | Swarm > Null 53.2 (-1.5) | Null ~ Cortex 49.6 (+4.1) | Aegis ~ Swarm 50.4 (+0.0)

@@ -1,51 +1,42 @@
 # Current status
 
-**Build-order stage: Stage 4+ (the living system). Session 60 (game lane): a hardening pass, plus the
-one owner-approved change, set A shipped (Null's list and starter 36 -> 40). Nothing is blocking.** One
-[OWNER CHECK-IN] in notes-for-owner.md: the results of shipping A (no decision needed; three small calls
-listed to overrule if wanted).
+**Build-order stage: Stage 4+ (the living system). Session 61 (game lane): the balance session's job 2,
+the two old edges, test only. Nothing is blocking.** One [OWNER CHECK-IN] in notes-for-owner.md: ship NA12
+(a partial fix for Null > Aegis)? ship CS7 (fixes Cortex > Swarm in real matches, overshoots the gate)? both?
 
-- **Set A:** `NULL_CARDS` is 40 (+1 Fork Bomb, +1 Segfault Handler, +2 Rollback Point). Before
-  re-baselining, `npm run ring` failed on exactly the predicted edge (gate Swarm > Null 57.1 IN BAND ->
-  54.3 UNRESOLVED); both baselines re-recorded, `ring`/`ring:real` PASS. The built-deck ring on the
-  shipped list (`progress/built-deck-ring-003.txt`) is byte-identical to session 59's candidate-A run.
-- **Evidence:** `progress/balance-report-036-null-forty-shipped.txt`, `progress/null-forty-ship/`,
-  `progress/built-deck-ring-003/`, `progress/full-seed-swing/`.
+- **Null > Aegis:** not fixed. Best candidate NA12 (Null Pointer becomes "choose one": destroy target enemy
+  directive, or target enemy unit gets -3/-3 permanently): real 45.9 -> 50.3 on shipped decks, +3.2 to +4.1 at
+  the pack levels, gate 51.6 -> 56.3; Swarm > Null -1.0. Nothing from a full collection (3 search seeds).
+- **Cortex > Swarm:** CS7 (Force Quit becomes "choose one": destroy target enemy directive, or deal 1 damage to
+  all enemy units): real 53.0 -> 55.0, 56.2-56.8 at 37/17 packs; gate overshoots to 61-63.
+- **Why those cards:** a one-copy ablation of all 89 shipped cards. Aegis's cards carry it equally vs Null and
+  vs Cortex (no clean Aegis trim exists); Null Pointer and Force Quit are dead cards in exactly the off matchups.
+- **Evidence:** `progress/balance-report-037-old-edges.txt`, `progress/old-edges/` (screen, ablation, mode use,
+  built-deck runs, full-column seeds).
 
-## What stands (this session's work; sessions 1-59 otherwise unchanged)
+## What stands (this session's work; sessions 1-60 otherwise unchanged)
 
-- **Hardening, raised:**
-  - `store.setPlayStyle(ownerId, agentId, style)` checks ownership in the store (was the owner API's
-    check only). Test + mutation check.
-  - `workerChooser({ maxWorkers })`: at most every core but one build at once, the rest queued first come
-    first served; `running`/`queued` counts; `terminateAll` drops the waiting ones. 2 tests + mutation
-    check. OWNER_API.md says so.
-  - The full-collection build noise measured: `builtDeckRing.ts build --search-seed N`; 4 seeds swing a
-    faction's mean 4-6 points and one edge up to 8.7 (`progress/full-seed-swing/report.txt`).
-  - `nullFortySearch.ts` measures from the 36 (`base36()` = shipped minus `SET_A`), so balance report 035
-    stays reproducible; a test pins that 36 + A is the shipped list.
-- **Fallout fixed:** render tests that replay Null matches (a token oracle in boardCost, two coverage
-  seeds in sigWardFx, the ward replay seed 8 -> 1, the recorded close-win seed 5 -> 3); six committed Null
-  replays and two recorded scenarios regenerated; `progress/built-deck-ring/collections.json` regenerated.
-- `npm test`: all six workspaces pass (engine 327, economy 156, render 659). Typecheck clean.
+- `engine/src/dev/oldEdgesCandidates.ts` (21 candidate errata, `applyCandidate`, "A+B" pairs) and
+  `engine/src/dev/oldEdgesScreen.ts` (run / report / ablation / modes / side). Test:
+  `engine/test/oldEdgesCandidates.test.ts` (5 tests, mutation-checked).
+- `progress/old-edges/run-candidate.sh`: the worktree runner for any erratum on any faction, with a stop-check
+  that fails unless the economy sees changed cards; `LEVELS=full BUILD_ARGS="--search-seed N"` for the
+  full-column noise check.
+- No card, deck, rule or baseline changed. `npm run ring` / `ring:real` PASS unchanged. `npm test`: all six
+  workspaces pass (engine 332, economy 156, render 662). Typecheck clean.
 
 ## Concrete next step
 
-Check the alternation first: if the last merged PR is this one (game lane), the next session is
-**render**.
+Check the alternation first: the last merged PR before this one was the render lane's (#104), so this was the
+game lane; if this PR is the last merged, the next session is **render** ("tap to skip" hint, as the owner set).
 
-The next **game-lane** session (session 61): **the balance session's job 2, test only.** The two old
-edges, Null > Aegis (inverted: Aegis wins ~54%) and Cortex > Swarm (under its 55-60 band in real mode).
-1. Generalise `progress/null-forty/run-candidate.sh` to patch any faction's list (today it patches only
-   `NULL_CARDS`), keeping its stop-check (the economy must see the patched list).
-2. One or two candidate card fixes per edge (look at balance reports 030-032 for the known causes:
-   Aegis's spare late energy, its signature gain). Measure each on the ring (both modes, ring seeds and a
-   fresh block) and on the built-deck ring at every level.
-3. Read the full-collection column as one draw (+-3 points, report 036 section 4); if a decision hangs
-   on it, build at 2-3 search seeds and average.
-4. Results to an owner check-in; no card change without the owner's OK.
-
-Still open from the hardening list: re-run economy-demo-014/016 (the economy demos before option B and
-set A).
+The next **game-lane** session (62):
+1. If the owner answered the check-in with "ship": apply the chosen errata to the real card files
+   (`nullCards.ts` Null Pointer modes; `cards.ts` Force Quit modes), write tests for the new modes, re-record
+   `ringBaseline.json` and `ringBaselineReal.json` with the report as justification, re-run `ring`, `ring:real`
+   and the built-deck ring (`builtDeckRing.ts`, the result must match `progress/old-edges/built-<key>/`), and
+   regenerate the render replays and recorded scenarios that change (as session 60 did for set A).
+2. If no answer: the hardening list. Re-run economy demos 014/016 (still owed since option B and set A);
+   `builtDeckRing.ts` averaging several search seeds at full (built twice now by hand).
 
 **Blocked:** nothing.

@@ -1,0 +1,9 @@
+Wrote <worktree dir>/old-edges-NA12/engine/src/dev/ringBaselineReal.json
+Ring regression (set Mythic in the deck, an approved menu line as each side's signature card) vs baseline recorded 2026-10-31 (Lookahead vs Lookahead, seeds from 1)
+  Null > Aegis      2500 seeds  51.2% (CI 49.3-53.2) OUT OF BAND | baseline 51.2% OUT OF BAND change +0.0 [-2.8, 2.8]  PASS (accepted OUT; did not move further out)
+  Aegis > Cortex    2500 seeds  55.6% (CI 53.6-57.5) UNRESOLVED  | baseline 55.6% UNRESOLVED  change +0.0 [-2.8, 2.8]  PASS (verdict held or improved)
+  Cortex > Swarm    2500 seeds  53.0% (CI 51.0-54.9) OUT OF BAND | baseline 53.0% OUT OF BAND change +0.0 [-2.8, 2.8]  PASS (accepted OUT; did not move further out)
+  Swarm > Null      2500 seeds  53.7% (CI 51.7-55.6) UNRESOLVED  | baseline 53.7% UNRESOLVED  change +0.0 [-2.8, 2.8]  PASS (verdict held or improved)
+  Null ~ Cortex      900 seeds  54.8% (CI 51.5-58.0) UNRESOLVED  | baseline 54.8% UNRESOLVED  change +0.0 [-4.6, 4.6]  PASS (verdict held or improved)
+  Aegis ~ Swarm      900 seeds  56.2% (CI 53.0-59.4) UNRESOLVED  | baseline 56.2% UNRESOLVED  change +0.0 [-4.6, 4.6]  PASS (verdict held or improved)
+RING REGRESSION: PASS

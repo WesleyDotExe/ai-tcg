@@ -3977,3 +3977,39 @@ seeds on one collection; job 2 not started. The session started with no node_mod
 `progress/built-deck-ring-003.txt`, `progress/built-deck-ring-003/`, `progress/full-seed-swing/`.
 
 **Blocked:** nothing. One owner check-in (set A's results; no decision needed).
+
+## 2026-10-31 — Session 61 (the balance session's job 2: the two old edges, test only)
+
+**Read first:** `progress/owner-feedback.md`. One unhandled game-lane entry (2026-10-31: answers to session 60,
+keep all 3; next, job 2, test only, weight the pack columns). Nothing to change for the 3; marked handled. The
+last merged PR (#104) was the render lane's, so this is a game-lane session (not a hardening one: 60 was).
+
+**Built:**
+- `engine/src/dev/oldEdgesCandidates.ts`: 21 candidate errata in a module that imports no card data, applied
+  with `applyCandidate(key, getCard)` ("A+B" for a pair); `engine/src/dev/oldEdgesScreen.ts`: the ring screen
+  (six edges, both modes, ring seed counts), a CI-rule report, a one-copy ablation table, a mode-use count and a
+  built-deck side-by-side. Test `engine/test/oldEdgesCandidates.test.ts` (5 tests; an applyCandidate that
+  applies nothing fails 2).
+- `progress/old-edges/run-candidate.sh`: session 59's worktree runner for any erratum, with a stop-check that
+  hashes the card registry the economy sees against the main tree's.
+
+**Ran it:** the ablation (76 legal one-copy cuts, both modes, about 15 minutes): Aegis's cards help it about
+equally vs Null and vs Cortex, so an Aegis trim can't move Null > Aegis alone; Null Pointer and Force Quit are
+dead in exactly the off matchups. The screen: 21 candidates on ring seeds, the leaders on a fresh block. Simple
+number changes moved their edge 2 points or less; the modal ones moved it most. The built-deck ring (every level)
+for NA12, CS7 and both, plus NA12's full column at 2 more search seeds. Results: NA12 lifts Null > Aegis +4.5
+real / +5.6 gate on shipped decks and +3-4 at the pack levels (still under the band in real matches; in the gate
+it reaches it), nothing from a full collection; CS7 takes Cortex > Swarm into its band in real matches (55.0;
+56-57 at packs) and over the top in the gate (61-63). The agent casts the new modes about 0.5 a game but nearly
+stops using the printed ones. `npm test` all six workspaces pass; typecheck clean; `ring` / `ring:real` PASS
+unchanged.
+
+**Worked:** aiming by ablation instead of guessing; the worktree's re-recorded gate equals the in-process screen
+to the game. **Didn't / honest limits:** neither edge is fixed cleanly (NA12 is half a fix, CS7 overshoots the
+gate); together they put Null slightly ahead of Cortex (55.3 real, shipped decks); 13 Null cards couldn't be
+ablated (the removal cap); NA8/CS8 stopped at the screen. The sandbox clock ran oddly (timestamps in the logs
+don't match wall time), so no run times are claimed beyond "the screen is ~35 s a candidate".
+
+**Evidence:** `progress/balance-report-037-old-edges.txt`, `progress/old-edges/`.
+
+**Blocked:** nothing. One owner check-in (ship NA12? ship CS7? both?).

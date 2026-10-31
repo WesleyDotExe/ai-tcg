@@ -1,0 +1,168 @@
+Balance report 037: the balance session's job 2, the two old edges (session 61, game lane; test only)
+=====================================================================================================
+Owner 2026-10-22 (call 2), restated 2026-10-31: one or two candidate card fixes for each of the two old
+out-of-band edges, Null > Aegis (inverted: Aegis wins it) and Cortex > Swarm (under its 55-60 band in the
+real-match mode). Every candidate on the ring check (shipped decks, both modes) AND the built-deck ring at
+every collection level (full, 37, 17, 3 packs). TEST ONLY: no card, deck or rule change without the owner's
+OK. Read the full-collection column as noisy (one deck per faction); weight the pack columns.
+NOTHING WAS CHANGED. Every number below comes from an erratum applied in the measuring process only (the ring
+screen), or on a throwaway git worktree that is deleted after the run (the built-deck ring).
+
+Where the edges stand today (ring check, shipped decks, seeds 1..2,500):
+  Null > Aegis    real 45.9% OUT (band 55-60; 9.1 under)   gate 51.6% OUT (3.4 under)
+  Cortex > Swarm  real 53.0% OUT (2.0 under)               gate 58.2% UNRESOLVED (in reach of the band)
+
+---- 1. Tools (new this session) ----
+engine/src/dev/oldEdgesCandidates.ts  the candidate errata, one per key, in a module that imports no card data
+                                      (applyCandidate(key, getCard); "A+B" applies two). Tested:
+                                      engine/test/oldEdgesCandidates.test.ts (every candidate builds legal decks
+                                      for all four factions; each changes exactly the card it names; the shipped
+                                      cards of another process are untouched; mutation-checked: an applyCandidate
+                                      that applies nothing fails 2 of the 5 tests).
+engine/src/dev/oldEdgesScreen.ts      run <key> <firstSeed>  the six ring edges at the ring's own seed counts,
+                                      both modes (with firstSeed 1 exactly the ring check's games: "shipped"
+                                      reproduces both baselines to the game); report (judged the way CI judges,
+                                      judgeEdge against shipped at the same seeds); ablation; modes (how often the
+                                      agent casts each mode); side (the built-deck ring side by side).
+progress/old-edges/run-candidate.sh   session 59's worktree runner generalised: any candidate, any faction. In
+                                      the worktree it appends applyCandidate(<key>) to data/registry.ts and makes
+                                      data/decks.ts import the registry, so the economy, the deck builder, the
+                                      rings and the dev tools all see the erratum. Stop-checks: prints every
+                                      touched card as the economy sees it, and fails unless the card registry the
+                                      economy loads hashes differently from the main tree's. Cross-check: the
+                                      worktree's re-recorded gate for NA12 is the screen's NA12 gate to the game
+                                      (Null > Aegis 56.6, Swarm > Null 53.4).
+
+---- 2. Where to aim: a one-copy ablation of every shipped card (progress/old-edges/ablation.txt) ----
+Every shipped card cut by one copy (39-card deck), all six edges, both modes, ring seeds. Any cut makes a shorter
+deck, which draws its good cards more often (session 57), so the table also shows each card against its
+faction's average cut. 76 of 89 cards ran; 13 Null cuts are not legal decks (Null sits on the 10/40 removal cap,
+so cutting a non-removal card puts it over 25%), so only Null's removal cards were ablated.
+Findings that decided the candidates:
+  a. Aegis's cards carry it about EQUALLY against Null and against Cortex. Against the average cut, Prime Aegis
+     is +7.3 for Null (real) and -7.0 for Aegis vs Cortex; the rest pair the same way within noise (Barrier
+     Drone -2.2/+1.7, Static Ward Beacon -1.9/+1.7, Reinforced Bastion +1.8/-2.0 ...). So an Aegis trim moves
+     Aegis > Cortex (already OUT low in the gate, 49.3%) along with Null > Aegis. That is why report 031's
+     Plating Module trim and report 032's Aegis lists never came out clean. No Aegis-side candidate this time
+     (one, NA6, as a check: Aegis Warden without its full heal moves nothing).
+  b. Null Pointer (destroy target enemy directive) is Null's dead card: Null does +1.4 better vs Aegis and
+     about the same vs Swarm without it (Aegis runs 2 directives, Swarm none); the shipped agent casts it 0.15
+     a game vs Aegis, 0.00 vs Swarm (progress/old-edges/mode-use.txt).
+  c. Force Quit is Cortex's dead card vs Swarm the same way (Swarm runs no directives): cast 0.00 a game.
+So the lead candidates keep each dead card's printed answer and add a second mode ("choose one", the engine's
+modal mechanic, session 40) that is live in exactly the matchup the edge needs.
+
+---- 3. The ring screen (progress/old-edges/screen-1.txt, screen-800001.txt, pooled.txt) ----
+21 candidates on the ring's own seeds, the leading ones again on a fresh block (seeds from 800001). Pooled
+(5,000 games a W edge, 1,800 an even edge; change from shipped at the same seeds):
+                                                   Null>Aegis    Swarm>Null    Null~Cortex   Cortex>Swarm  Aegis>Cortex
+                                                   real  gate    real  gate    real  gate    real  gate    real  gate
+  NA12 Null Pointer: + Null Out (-3/-3 permanently) 50.3  56.3    53.6  53.2    53.8  49.2    -     -       -     -
+                                                   +4.5  +5.6    -1.0  -1.5    +3.9  +3.7
+  NA8  Null Pointer: + Null Out (-2/-2 permanently) 48.7  53.9    53.0  53.1    53.3  48.6
+                                                   +2.9  +3.2    -1.6  -1.7    +3.4  +3.1
+  NA11 Null Singularity costs 6 (report 031's T5)  49.3  54.0    52.3  52.1    52.9  48.6
+                                                   +3.5  +3.3    -2.3  -2.6    +3.1  +3.1
+  NA10 Null Pointer: + Disarm (-3/-0 permanently)  +2.2  +2.4    -2.7  -3.4    +2.9  +3.1
+  CS7  Force Quit: + Kill All (1 damage to all                                               55.0  61.3    56.2  48.3
+       enemy units)                                                            +0.9  +0.1    +2.3  +3.2    +0.1  -0.4
+  CS8  Force Quit: + Kill (2 damage to one)                                    +1.1  +0.8    +1.5  +2.2    +0.1  -1.6
+  CS3  Retaliation Node 1/4                                                    -0.6  -0.9    +1.3  +1.4    -0.3  -1.1
+  NA12+CS7 together                                50.3  56.3    53.6  53.2    55.3  49.6    55.0  61.3    56.2  48.3
+                                                   +4.5  +5.6    -1.0  -1.5    +5.4  +4.1    +2.3  +3.2    +0.1  -0.4
+Single-number errata moved almost nothing (ring seeds, real/gate on the target edge): Bit Rot permanent +0.6/-0.2
+(cost 2: -0.3/-0.3), Segfault Handler 4 damage at cost 3 +0.0/+0.2, Deprecated Routine -3/-3 +0.2/+0.2, Kernel
+Panic cost 5 +0.2/+0.2, Aegis Warden no heal -0.0/+0.1; Cascade Purge cost 3 +0.3/-0.5, Rate Limiter at 2+ units
++0.3/+0.6, Deadlock Detector 2-turn stun -0.2/-0.1, Load Balancer pings 2 +0.7/+1.5, Quorum Arbiter cost 4
++1.8/+2.2 (but Null ~ Cortex -3.0 real). Segmentation Fault at cost 3 is not a legal card (the lint forbids a
+permanent enemy-stat aura under 4 mana).
+Reading: NA12 is the strongest Null > Aegis fix found in three sessions (+4.5 real, report 031's best was +3.8)
+and the only one that costs Swarm > Null almost nothing (-1.0; NA11, the same size of lift, costs -2.3 and
+pushes it OUT on the fresh block). It still leaves Null > Aegis 4.7 under its band in the real-match mode; in
+the gate it reaches the band (56.3). CS7 is the one Cortex > Swarm fix that reaches the band in the real-match
+mode (55.0) without touching Aegis > Cortex, but it overshoots the gate (61.3, band top 60).
+CI's rule would fail every candidate that moves Null ~ Cortex by 1+ points on the real-match check: its baseline
+is IN BAND by a hair (50.7%, interval 47.4-53.9 at 900 games), so any move to UNRESOLVED counts as "worsened",
+even 51.8. Read those cells as "still even" unless the rate leaves 45-55. NA12+CS7 does leave it on the
+real-match check (55.3 pooled, 57.1 on the ring's seeds): together the two fixes make Null a little strong vs
+Cortex.
+
+---- 4. The agent plays the new modes (progress/old-edges/mode-use.txt; 300 games a pairing, real-match mode) ----
+Casts a game by the card's faction, shipped vs NA12+CS7:
+  Null Pointer vs Cortex 0.19 -> Dereference 0.01 + Null Out 0.46     vs Aegis 0.15 -> 0.01 + 0.50
+               vs Swarm  0.00 -> Dereference 0.00 + Null Out 0.44
+  Force Quit   vs Swarm  0.00 -> Terminate 0.00 + Kill All 0.51       vs Aegis 0.13 -> 0.06 + 0.47
+               vs Null   0.09 -> Terminate 0.03 + Kill All 0.46
+So the lift is real play, not a stat on an unplayed card. But the agent almost stops using the printed mode
+(Null's directive kills vs Cortex drop from 0.19 a game to 0.01): it rates the new mode above the old one
+nearly every time. Whether that is right or an agent valuation gap (directive removal underrated) is not
+tested here. It also means Null Pointer's lift vs Swarm is not zero: it is now a live card there too (-1.0
+Swarm > Null, inside noise).
+
+---- 5. The built-deck ring, every level (progress/old-edges/built-side-by-side.txt; reports in built-*/report.txt) ----
+Each candidate run on a worktree where the erratum really shipped: the starter collections, every realistic
+owner, the builder's ratings and every confirm see it. Change from the shipped game (built-deck-ring-003) at the
+same level; * = real at 95%. Pack columns (8 owners each) are the ones to weigh:
+  REAL-MATCH MODE                full          37p           17p           3p
+  NA12  Null > Aegis        44.2 -3.6*    52.5 +3.4*    51.8 +3.2*    49.8 +4.1*
+        Swarm > Null        53.7 -1.7     53.0 -0.5     55.8 +1.4     52.1 -0.5
+        Null ~ Cortex       53.6 +8.6*    53.0 +2.8     50.3 +2.4     52.9 +5.2*
+        Aegis > Cortex      56.4 +7.2*    52.8 -0.6     51.8 -0.4     52.7 -0.7
+  CS7   Cortex > Swarm      54.7 +1.0     56.2 +3.4*    56.8 +3.5*    56.4 +1.0
+        Aegis > Cortex      53.9 +4.7*    53.1 -0.3     53.7 +1.5     53.6 +0.2
+        Null ~ Cortex       48.1 +3.1     48.3 -1.9     47.4 -0.4     49.7 +2.0
+  both  Null > Aegis        49.2 +1.4     50.3 +1.2     50.8 +2.2     50.8 +5.0*
+        Cortex > Swarm      53.3 -0.4     55.4 +2.6     56.3 +3.0*    57.3 +1.9
+        Null ~ Cortex       52.3 +7.3*    51.3 +1.1     51.1 +3.2     51.0 +3.3
+  GATE MODE
+  NA12  Null > Aegis        42.0 -2.5     54.2 +4.5*    57.1 +4.2*    55.4 +4.6*
+  CS7   Cortex > Swarm      59.1 +4.4*    61.2 +3.6*    63.3 +4.0*    62.5 +4.0*
+  both  Null > Aegis        47.6 +3.0*    53.8 +4.0*    57.0 +4.1*    55.9 +5.0*
+        Cortex > Swarm      58.1 +3.4*    61.9 +4.2*    62.7 +3.4*    63.4 +4.9*
+  Faction means, real-match mode (shipped -> candidate), 37/17/3 packs:
+    NA12  Cortex 49.7/51.1/51.4 -> 49.5/50.7/50.0   Swarm 49.1/49.2/47.3 -> 48.1/49.3/46.8
+          Aegis  52.5/52.4/54.3 -> 51.6/51.2/53.1   Null  48.6/47.4/46.9 -> 50.8/48.8/50.2
+    CS7   Cortex -> 51.6/51.9/51.1   Swarm -> 47.9/47.9/47.6   Aegis -> 52.7/53.2/53.8   Null -> 47.8/47.0/47.5
+  No faction mean leaves 46.7-53.8 at any pack level for any candidate (shipped: 46.9-54.3).
+The full column, read as noisy: NA12's full column is the one that disagrees (Null > Aegis -3.6, Aegis mean
++6.0). Its full builds differ from the shipped ones by 1-4 swapped cards per faction, the size of change that
+moved that column 4-6 points on search seed alone (session 60). Rebuilt at search seeds 2 and 3 and set beside
+the shipped game's seeds 1-3 (progress/old-edges/full-seeds.txt; seed 3 converged on seed 1's lists), the
+3-seed means: Null > Aegis 45.8 -> 44.9 (-0.9) real, 44.0 -> 43.3 (-0.7) gate; Aegis mean 53.5 -> 55.0;
+Null ~ Cortex 48.7 -> 53.6. So from a FULL collection NA12 does not lift Null > Aegis at all (noise either way):
+a full-collection Aegis build is already the strongest Aegis, and the shrink doesn't reach it. The lift is at the
+pack levels and with shipped decks.
+
+---- 6. Verdict per edge (owner's rule: "if no candidate fixes an edge cleanly, without pushing another edge out
+or making a faction dominant, both edges stay the accepted-out edges") ----
+Null > Aegis: NOT fixed. The best candidate (NA12) closes about half the real-match gap (45.9 -> 50.3 on shipped
+  decks; +3.2 to +4.1 at the pack levels), reaches the band in the gate (56.3; 54.2-57.1 at the pack levels), and
+  is clean everywhere else (Swarm > Null -1.0, Null ~ Cortex stays even at 50-54, no faction mean leaves 46.8-53.1)
+  but does nothing from a full collection. It is a real partial fix, not a fix. The cause on file stands: in the
+  real-match mode Aegis gets ~+10 from its signature card, and no Null card answers that in full.
+Cortex > Swarm: FIXED in the real-match mode by CS7, with a cost. 53.0 -> 55.0 on shipped decks, 56.2-56.8 at
+  37/17 packs and 56.4 at 3 (inside 55-60; the intervals still touch 55, so UNRESOLVED, no longer OUT); Aegis > Cortex and Null ~ Cortex hold. But the gate overshoots: 61.3 on
+  shipped decks, 61.2-63.3 at the pack levels (band top 60). The ring check would pass it as built (UNRESOLVED,
+  not OUT, on the ring's seeds), but the edge would sit above its band whenever no signature cards are in play.
+Both together: the two lifts add up on their own edges, and Null ~ Cortex climbs to 55.3 (real, shipped decks,
+  pooled) / 51-52 at the pack levels. Shipping both needs that watched.
+
+---- 7. Limits ----
+- The screen is 21 candidates; the built-deck ring ran 3 (NA12, CS7, both) plus NA12's full column at 2 more
+  search seeds. NA8 (the softer -2/-2) and CS8 went no further than the screen.
+- 2,500 / 900 games a cell on the ring seeds, plus one fresh block for the leaders; each edge's interval is about
+  +-2 points (+-3.3 at 900).
+- The agent's use of the new modes is measured but not judged (section 4); a better-valued Dereference would
+  change NA12's numbers vs Cortex.
+- Null's 13 non-removal cards could not be ablated one copy at a time (the removal cap); a swap-based ablation
+  would be needed for those.
+- One collections file (8 realistic owners per faction), as in reports 035/036.
+
+Reproduce (in engine/; the screen ~35 s a candidate, a built-deck run ~5 min of wall time here, 4 cores):
+  npx tsx src/dev/oldEdgesScreen.ts run NA12 1 --out ../progress/old-edges/screen/NA12-1.json
+  npx tsx src/dev/oldEdgesScreen.ts report ../progress/old-edges/screen 1
+  ../progress/old-edges/ablate.sh && npx tsx src/dev/oldEdgesScreen.ts ablation ../progress/old-edges/ablation
+  npx tsx src/dev/oldEdgesScreen.ts modes NA12+CS7 1 300
+  ../progress/old-edges/run-candidate.sh NA12 ../progress/old-edges/built-NA12
+  npx tsx src/dev/oldEdgesScreen.ts side ../progress/built-deck-ring-003/rings NA12=../progress/old-edges/built-NA12/rings ...
+  node ../progress/old-edges/full-seeds.mjs; python3 ../progress/old-edges/pooled.py

@@ -3664,7 +3664,7 @@ Next render-lane slice, as set: add one replay's end (the lethal beat, then the 
 
 ---
 
-## 2026-10-31 — Owner: answers to game session 60 (set A shipped; hardening pass), keep all 3
+## 2026-10-31 — Owner: answers to game session 60 (set A shipped; hardening pass), keep all 3 (HANDLED 2026-10-31, session 61 — all 3 kept, nothing to change; job 2 run as told, test only: candidates screened on the ring check, the lead ones through the built-deck ring at every level, results in `progress/balance-report-037-old-edges.txt` and the [OWNER CHECK-IN] in notes-for-owner.md; the full-collection column read as noisy, the pack columns weighted. No card changed)
 
 Answers the [OWNER CHECK-IN] "Set A is shipped; both rings re-run" in `progress/notes-for-owner.md` (PR #103, `progress/balance-report-036-null-forty-shipped.txt`).
 1. **Keep:** only the gate and real-match ring baselines were re-recorded; the signature-mode ring keeps its old baseline.
