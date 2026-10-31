@@ -1,0 +1,75 @@
+The built-deck ring (pre-launch gate, owner 2026-10-19): the six ring edges with the deck-building agent's decks on both sides
+Lookahead vs Lookahead, Calculator style, ring seeds (2,500 for the win/lose edges, 900 for the even ones, seeds from 1).
+Builds: the store's own (chooseDeck's defaults: 40 games per shipped opponent, 24 one-copy changes, 100-game confirm, search seed 1), forced to the owner's starting faction.
+Realistic owners: 8 per faction, each the faction's starter collection plus packs from the live roller (economy/src/dev/realisticCollections.ts);
+at a pack level each seed seats one owner per side, every owner equally often and on both seats.
+Bands: predator 55-60%, prey 40-45%, even 45-55%. Verdicts on the 95% Wilson interval: IN only when it sits inside the band, OUT only when it misses it.
+No card, deck or rule changed: this only measures.
+
+== REAL-MATCH MODE (how a real match plays: an approved signature card per side; ring:real's mode) ==
+Decks: set Mythic in the deck, an approved menu line as each side's signature card.
+edge (band)                        shipped decks            full (store)
+Null > Aegis (55-60)        51.2 [49.3-53.2] OUT    46.2 [44.3-48.2] OUT
+Aegis > Cortex (55-60)   55.6 [53.6-57.5] unres. 53.5 [51.5-55.4] unres.
+Cortex > Swarm (55-60)      53.0 [51.0-54.9] OUT    52.1 [50.2-54.1] OUT
+Swarm > Null (55-60)     53.7 [51.7-55.6] unres. 54.0 [52.0-55.9] unres.
+Null ~ Cortex (45-55)    54.8 [51.5-58.0] unres. 53.6 [50.3-56.8] unres.
+Aegis ~ Swarm (45-55)    56.2 [53.0-59.4] unres.     51.2 [48.0-54.5] IN
+in band / unres. / out                 0 / 4 / 2               1 / 3 / 2
+
+Each faction's mean win rate over its three edges (50 = even with the field; the ring itself is built to be even):
+faction                                  shipped                    full
+Cortex                                      47.5             48.4 (+0.8)
+Swarm                                       48.2             50.2 (+2.1)
+Aegis                                       53.5             52.8 (-0.7)
+Null                                        50.8             48.6 (-2.2)
+
+Each edge's move from the shipped decks (points, first-named side), and how far outside its band it lands:
+  Null > Aegis    full: -5.0 (-8.8 outside)
+  Aegis > Cortex  full: -2.1 (-1.5 outside)
+  Cortex > Swarm  full: -0.8 (-2.9 outside)
+  Swarm > Null    full: +0.3 (-1.0 outside)
+  Null ~ Cortex   full: -1.2
+  Aegis ~ Swarm   full: -5.0
+
+== GATE MODE (decks only, no signature card; the shipped gate's mode) ==
+Decks: set Mythic in the deck.
+edge (band)                        shipped decks            full (store)
+Null > Aegis (55-60)     56.6 [54.6-58.5] unres.    45.7 [43.8-47.7] OUT
+Aegis > Cortex (55-60)      49.3 [47.4-51.3] OUT    51.8 [49.8-53.7] OUT
+Cortex > Swarm (55-60)   58.2 [56.3-60.2] unres. 55.2 [53.2-57.1] unres.
+Swarm > Null (55-60)     53.4 [51.5-55.4] unres. 54.3 [52.4-56.3] unres.
+Null ~ Cortex (45-55)        50.7 [47.4-53.9] IN 47.2 [44.0-50.5] unres.
+Aegis ~ Swarm (45-55)    52.4 [49.2-55.7] unres. 54.0 [50.7-57.2] unres.
+in band / unres. / out                 1 / 4 / 1               0 / 4 / 2
+
+Each faction's mean win rate over its three edges (50 = even with the field; the ring itself is built to be even):
+faction                                  shipped                    full
+Cortex                                      52.8             52.1 (-0.7)
+Swarm                                       47.6             48.4 (+0.8)
+Aegis                                       48.4             53.3 (+4.9)
+Null                                        51.3             46.2 (-5.1)
+
+Each edge's move from the shipped decks (points, first-named side), and how far outside its band it lands:
+  Null > Aegis    full: -10.8 (-9.3 outside)
+  Aegis > Cortex  full: +2.4 (-3.2 outside)
+  Cortex > Swarm  full: -3.1
+  Swarm > Null    full: +0.9 (-0.7 outside)
+  Null ~ Cortex   full: -3.4
+  Aegis ~ Swarm   full: +1.6
+
+== The built decks ==
+Confirm-step win rate against the four shipped decks (100 games each, fresh seeds), beside the shipped list on the same seeds:
+-- full collection, the store's build --
+  Cortex built 64.0  shipped 58.8  lift +5.2  kept: rating  sizes: 40
+  Swarm  built 44.8  shipped 43.5  lift +1.3  kept: searched  sizes: 40
+  Aegis  built 62.0  shipped 48.3  lift +13.8  kept: searched  sizes: 40
+  Null   built 54.5  shipped 55.0  lift -0.5  kept: designed  sizes: 40
+
+How each full-collection deck differs from its shipped list:
+  full        Cortex +2 Signal Drone, -1 Cascade Purge, -1 Backup Protocol, -2 Mainframe Core, +1 Fail-safe Unit, -2 Cortex Engineer, +1 Overload Capacitor, -1 Diagnostic Loop, +1 Retaliation Node, -1 Interrupt Handler, +1 Compiled Daemon, +1 Dormant Exploit, +1 Force Quit, -2 Rate Limiter, -2 Load Balancer, -1 Hotfix, -1 Deadlock Detector, -1 Quorum Arbiter, +3 Spare Cycles, +1 Relay Courier, -1 Rollback Point, -1 Surge Protector, +2 Uplink Tower, +1 Burst Credit, +1 Patient Zero, +1 Root Access
+  full        Swarm  +1 Warren Guardian, -1 Bloodswarm Alpha
+  full        Aegis  +1 Barrier Drone, -2 Plating Module, -3 Guard Directive Chip, -1 Static Ward Beacon, -2 Failover Custodian, -1 Barrier Shim, +1 Latent Ward, -1 Lockdown Field, -2 Aegis Warden, -1 Intercept Routine, -1 Tariff Field, +2 Feedback Plating, +2 Breach Charge, -3 Bulwark Chassis, +1 Reinforced Bastion, +2 Salvage Reflex, +1 Aegis Line Trooper, +2 Spare Cycles, +1 Cache Warmup, +1 Uplink Tower, +1 Scrap Recycler, +1 Patient Zero, +1 Root Access
+  full        Null   the shipped list
+
+Cards the realistic owners' decks use that their shipped list doesn't (owners of 8 playing it, at the largest pack level):

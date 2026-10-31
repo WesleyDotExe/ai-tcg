@@ -1,10 +1,71 @@
 # Notes for the owner
 
-**Updated 2026-10-30, session 60.** Nothing is blocking. Set A is shipped: Null's list and starter are 40.
-The results you asked for are the **[OWNER CHECK-IN]** below. Nothing in it needs a decision unless you
-want to change one of the calls listed at its end.
+**Updated 2026-10-31, session 61.** Nothing is blocking. Job 2 of the balance session (the two old edges) is
+measured, test only; no card changed. The results are the **[OWNER CHECK-IN]** below: one decision per edge.
 
-### [OWNER CHECK-IN] Set A is shipped; both rings re-run
+### [OWNER CHECK-IN] The two old edges: one partial fix, one fix with a cost
+
+**What I did** (`progress/balance-report-037-old-edges.txt`, files in `progress/old-edges/`):
+- Screened 21 candidate card changes on the ring check, both modes, on the ring's seeds and on fresh seeds.
+- First found where to aim: I cut one copy of every shipped card in turn and measured all six edges. Aegis's
+  cards help it about equally against Null and against Cortex, so weakening an Aegis card drags Aegis > Cortex
+  (already under its band in the gate) down with it. That is why the earlier attempts never came out clean.
+- The useful finding: two cards are dead in exactly the matchups that are off. Null Pointer (destroy an enemy
+  directive) is almost never castable against Aegis or Swarm, and Cortex's Force Quit (same text) is never
+  castable against Swarm, which has no directives.
+- So the two lead candidates keep each card's printed effect and add a second "choose one" mode. The three
+  leaders went through the built-deck ring at every level, each on a copy of the game where the change really
+  shipped (starter decks, the deck builder, every realistic owner).
+
+**Null > Aegis — not fixed; the best partial fix found so far (NA12):**
+- **Null Pointer becomes "choose one": Dereference (destroy target enemy directive), or Null Out (target enemy
+  unit gets -3/-3 permanently).** Still 2 energy, instant speed, Uncommon.
+- Real-match mode, shipped decks: Null 45.9% -> 50.3% (the band is 55-60). Built decks at 37/17/3 packs: +3.4,
+  +3.2, +4.1. In gate mode it reaches the band: 56.3%.
+- Clean elsewhere: Swarm > Null -1.0 (noise), Null and Cortex stay even, no faction's average leaves 46.8-53.1.
+- **But from a full collection it does nothing.** I rebuilt that column with two more search seeds: Null >
+  Aegis -0.9 over three seeds, i.e. no change. A full-collection Aegis deck is the strong one, and the shrink
+  doesn't reach it.
+- The agent really plays it (about 0.5 a game, against 0.15 before), but it nearly stops using the old mode:
+  directive kills against Cortex drop from 0.19 to 0.01 a game.
+- For comparison: the softer -2/-2 version gives about +3; Null Singularity at cost 6 gives +3.5 but costs
+  Swarm > Null -2.3. Twelve simple number changes (costs, damage, stats, across both edges) moved
+  their edge 2 points or less.
+
+**Cortex > Swarm — fixed in real matches, but it overshoots without signature cards (CS7):**
+- **Force Quit becomes "choose one": Terminate (destroy target enemy directive), or Kill All (deal 1 damage to
+  all enemy units).** Still 2 energy, instant speed.
+- Real-match mode: 53.0% -> 55.0% on shipped decks, 56.2-56.8% at 37/17 packs, 56.4% at 3 packs (inside
+  55-60). Aegis > Cortex and Null ~ Cortex don't move.
+- The cost: in gate mode (no signature cards) Cortex > Swarm goes from 58.2% to 61.3% on shipped decks and to
+  61-63% at the pack levels, above the band's top (60). The ring check would still pass it.
+
+**Both together:** each lift stays the same, but Null vs Cortex goes to 55.3% for Null (real, shipped decks),
+just over the even band (45-55), and 51-52% at the pack levels.
+
+**Decisions for you:**
+1. **Null > Aegis:** ship NA12 as a partial fix, or keep the edge as the accepted out-of-band edge and design
+   the full fix into the next set (as planned: Aegis's own card flow, and a Null answer to one big attacker)?
+   **My recommendation: ship NA12.** It is the first fix in three sessions that halves the gap without
+   hurting another edge.
+2. **Cortex > Swarm:** ship CS7 (fixes real matches; the gate goes over the top of the band), or keep the
+   edge accepted-out? **My recommendation: ship CS7.** Real matches always have signature cards, so the gate
+   overshoot never happens in a real game. The gate's job is catching regressions, and it would still pass.
+3. **If both ship:** OK with Null slightly ahead of Cortex (55% on shipped decks, 51-52% with built decks)?
+
+**Calls I made you might want to overrule:**
+- Lead fixes are new card modes, not number changes: these are bigger errata than a cost tweak.
+- I took no Aegis-side candidate further than one check (Aegis Warden without its full heal), because of the
+  ablation finding above.
+- CI's rule calls every candidate that moves Null ~ Cortex a "fail": that edge's baseline is in band by a hair
+  (50.7%), so any move to "not sure" counts as worse, even 51.8%. I read it as "still even" unless the rate
+  leaves 45-55.
+
+**Default if you don't answer:** nothing ships; both edges stay accepted-out. If you say ship, the next game
+session ships them, re-records both ring baselines, re-runs both rings and the built-deck ring, and
+regenerates the render replays that change.
+
+### [ANSWERED 2026-10-31: keep all 3] Set A is shipped; both rings re-run
 
 **What changed** (`progress/balance-report-036-null-forty-shipped.txt`):
 - Null's list: Fork Bomb 2 -> 3, Segfault Handler 1 -> 2, plus 2 Rollback Point. 40 cards; every starter

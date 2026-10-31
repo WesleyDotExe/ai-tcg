@@ -54,8 +54,26 @@ real, but here is where it's thin.
 - **Still owed before launch (owner 2026-10-22):** the test-only balance session for Null > Aegis
   (inverted) and Cortex > Swarm (under band), candidates measured on the ring in both modes and on the
   built-deck ring at every level, results to an owner check-in. Its first job (Null's 4 added cards) is
-  done: set A shipped in session 60, re-run on `progress/built-deck-ring-003.txt`. The two edges themselves
-  are not run yet.
+  done: set A shipped in session 60, re-run on `progress/built-deck-ring-003.txt`. Job 2 (the two edges) is
+  run (session 61, `progress/balance-report-037-old-edges.txt`); the owner's call on its candidates is open.
+  Until then both edges stay out of band: Null > Aegis real 45.9, Cortex > Swarm real 53.0.
+
+## Session 61 (the balance session, job 2: the two old edges): what is still thin
+
+- **Neither edge is fixed cleanly.** Null > Aegis's best candidate (NA12) closes about half the real-match
+  gap and does nothing from a full collection; Cortex > Swarm's (CS7) overshoots the gate (61-63, band top 60).
+  Both stay out of band until the owner decides; nothing shipped.
+- **The agent's mode choice is unjudged.** With NA12/CS7 the agent casts the new mode ~0.5 a game and the printed
+  one almost never (Null's directive kills vs Cortex 0.19 -> 0.01 a game). Whether the LookaheadAgent underrates
+  directive removal is not tested; a better valuation would change NA12's numbers vs Cortex.
+- **The ablation is cut-only.** 13 of Null's 20 own cards can't be cut one copy at a time (Null sits on the
+  10/40 removal cap), so Null's non-removal cards have no ablation numbers. A swap-based ablation is not built.
+- **CI's rule on Null ~ Cortex is a hair trigger.** Its real-match baseline is IN BAND by 0.3 points of
+  interval (50.7%, 47.4-53.9 at 900 games), so any change that moves it to UNRESOLVED fails the check, even one
+  that stays near 50. Any card change will need that baseline re-recorded; the rule itself is unchanged.
+- **The full-column seed check is by hand again** (`progress/old-edges/full-seeds.mjs`); `builtDeckRing.ts`
+  still reports one deck per faction at full.
+- **Still owed:** economy demos 014/016 not re-run since option B and set A.
 
 ## Session 60 (hardening pass; set A shipped): what was raised, and what is still thin
 

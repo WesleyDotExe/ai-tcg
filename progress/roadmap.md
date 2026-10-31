@@ -473,6 +473,15 @@ starter are 40; both ring baselines re-recorded (gate Swarm > Null left IN
 BAND as predicted); the built-deck ring on the shipped list
 (`progress/built-deck-ring-003.txt`) is byte-identical to session 59's
 candidate-A run. Job 2 (the two old edges) is the next game session's.
+SESSION 61: job 2 run (balance-report-037-old-edges.txt, progress/old-edges/):
+21 candidates screened on the ring check (both modes, ring seeds + a fresh
+block), a one-copy ablation of every shipped card, the three leaders on the
+built-deck ring at every level. Null > Aegis: best partial fix NA12 (Null
+Pointer gains a "-3/-3 permanently" mode; real 45.9 -> 50.3, +3-4 at the pack
+levels, nothing from a full collection). Cortex > Swarm: CS7 (Force Quit
+gains a "1 damage to all enemy units" mode) reaches the band in real mode
+(55.0; 56-57 at packs) but the gate overshoots (61-63). Owner check-in open
+(ship NA12? ship CS7? both?); nothing shipped.
 
 **Standing: live operations, balancing never stops (owner 2026-10-05).**
 Once live: track faction popularity and win rates from real ladder and

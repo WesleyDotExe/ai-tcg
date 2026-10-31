@@ -1,0 +1,14 @@
+# Mode use for NA12+CS7, real-match mode, seeds 1-300 per pairing (casts per game by the card's faction)
+  Null Pointer (Null) vs Cortex  Dereference 0.01   Null Out 0.46
+  Null Pointer (Null) vs Swarm   Dereference 0.00   Null Out 0.44
+  Null Pointer (Null) vs Aegis   Dereference 0.01   Null Out 0.50
+  Force Quit   (Cortex) vs Swarm   Terminate 0.00   Kill All 0.51
+  Force Quit   (Cortex) vs Aegis   Terminate 0.06   Kill All 0.47
+  Force Quit   (Cortex) vs Null    Terminate 0.03   Kill All 0.46
+# Mode use for shipped, real-match mode, seeds 1-300 per pairing (casts per game by the card's faction)
+  Null Pointer (Null) vs Cortex  cast 0.19
+  Null Pointer (Null) vs Swarm   cast 0.00
+  Null Pointer (Null) vs Aegis   cast 0.15
+  Force Quit   (Cortex) vs Swarm   cast 0.00
+  Force Quit   (Cortex) vs Aegis   cast 0.13
+  Force Quit   (Cortex) vs Null    cast 0.09
