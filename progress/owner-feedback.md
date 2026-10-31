@@ -3750,3 +3750,16 @@ The Tournament page and widget, quests (and the quest parts of Daily rewards), t
 In addition to the endpoints listed in the entry above: the saved board layout and background choice; notifications; the match feed and live state Watch live and the Live match widget need. Tournament endpoints wait until after Season 0.
 
 Update the Season 0 checklist in `progress/roadmap.md` to match.
+
+---
+
+## 2026-11-01 — Owner: answers to render session 43 (the "tap to skip" hint)
+
+Owner decisions on the 5 calls in `progress/render/checkpoints.md` (PR #106).
+1. **Keep:** the words, "or tap anywhere" on a touch screen and "or click anywhere · Esc" with a mouse, in lower case under the button (but see call 4 for the intro).
+2. **Keep for now, then change on the website:** on standalone pages the hint shows until the first skip on that page, not stored. **Once the owner website exists, remember it on the owner's account:** after the owner's first skip, the hint isn't shown again in the website. Build that with the website's account settings; no browser-storage version.
+3. **Keep:** shown from the start of the boast or intro, for its whole length.
+4. **Change:** the intro's hint reads **"or click the board · Esc"** with a mouse, because a click on the playback controls does the control's job rather than skip. Touch stays "or tap anywhere" only if a tap anywhere really skips the intro; otherwise use "or tap the board". Boasts keep "or click anywhere · Esc".
+5. **Keep:** left out, not moved, when it doesn't fit.
+
+Small follow-ups (calls 2 and 4) go into the next render session alongside its Season 0 work; the next slice stays the owner's Season 0 list, item 1 (the desktop website).
