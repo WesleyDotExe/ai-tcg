@@ -19,6 +19,12 @@
 //      winner's side; "GAME OVER: <winner> WINS" lands as the boast ends.
 //      Escape mid-boast lands the result at once; a jump to the end shows
 //      it at once with no boast. On a desktop and a phone.
+//   E  the "tap to skip" hint (render session 43): under every boast's
+//      Skip on the sheet (all 30 scenes), inside the winner's side, the
+//      desktop words; on a phone the tap words; clear of the name plate
+//      once it shows; gone with Skip at the boast's end. The replay's
+//      intro shows it inside the board (desktop and phone words); after
+//      the viewer has skipped the intro, the replay's boast shows none.
 // Every page also fails the check on any uncaught page error.
 //
 // Usage (from the repo root or render/):
@@ -324,6 +330,99 @@ log(`\n[D] ${REPLAY}: the end (the lethal beat, then the boast)`);
   const r = esc.r;
   check(!!r && r.escaped && r.end != null && r.result != null && r.result - r.end <= 50 && r.heldThrough, `D. Escape at 1 s ends the boast and the result lands at once (${r ? gap(r.end, r.result) : '?'} ms after)`);
   check(j.over && !j.active && j.played === 0, `D. a jump to the end shows the result at once, no boast (boasts played ${j.played})`);
+}
+
+// ---- E: the "tap to skip" hint ----------------------------------------------
+// Words from render/src/skipHint.ts (render/test/ciPages.test.ts keeps them
+// in step).
+const HINT_KEY = 'or click anywhere \u00b7 Esc', HINT_TAP = 'or tap anywhere';
+// The hint, its Skip and a box on the page, read in the page.
+const hintRead = (page, boxSel) => page.evaluate((boxSel) => {
+  const R = (el) => { if (!el) return null; const q = el.getBoundingClientRect(); return { l: q.left, t: q.top, r: q.right, b: q.bottom }; };
+  const hs = document.querySelectorAll('.skip-hint:not(.gone)'), h = hs[hs.length - 1] || null;
+  const ks = document.querySelectorAll('.boast-skip:not(.gone)'), k = ks[ks.length - 1] || null;
+  const plate = document.querySelector('.boast-name:not(.gone)');
+  return { n: hs.length, text: h ? h.textContent : null, hint: R(h), skip: R(k), box: R(document.querySelector(boxSel)), plate: R(plate),
+    font: h ? parseFloat(getComputedStyle(h).fontSize) : null, op: h ? Number(getComputedStyle(h).opacity) : null, label: k ? k.getAttribute('aria-label') : null };
+}, boxSel);
+const inside = (a, b) => !!a && !!b && a.l >= b.l - 1 && a.r <= b.r + 1 && a.t >= b.t - 1 && a.b <= b.b + 1;
+const apart = (a, b) => !!a && !!b && (a.r <= b.l || a.l >= b.r || a.b <= b.t || a.t >= b.b);
+const under = (h, k) => !!h && !!k && Math.abs(h.r - k.r) <= 1 && h.t >= k.b && h.t - k.b <= 6;
+log('\n[E] the "tap to skip" hint');
+{
+  // Every sheet scene, one page: play, read, cancel (a cancel isn't a skip).
+  const { ctx, page } = await open('boast-sheet.html');
+  const keys = await page.evaluate(() => Array.prototype.map.call(document.querySelectorAll('.scene'), (x) => x.id));
+  const bad = [];
+  for (const key of keys) {
+    await page.evaluate((key) => { document.getElementById(key).scrollIntoView({ block: 'center' }); }, key);
+    await page.evaluate((key) => window.playBoastScene(key), key);
+    await page.waitForFunction(() => window.__boast.stats().active, null, { timeout: 5000 });
+    const r = await hintRead(page, `#${key}-side-w`);
+    if (!(r.text === HINT_KEY && under(r.hint, r.skip) && inside(r.hint, r.box) && r.font >= 11)) bad.push(`${key} (${r.text}, ${JSON.stringify(r.hint)})`);
+    await page.evaluate(() => window.__boast.cancel());
+  }
+  const seen = await page.evaluate(() => window.__boast.stats().hintSeen);
+  check(keys.length === 30 && bad.length === 0, `E. the sheet: all ${keys.length} scenes show the hint under Skip, inside the winner's side, the desktop words${bad.length ? ': ' + bad.join('; ') : ''}`);
+  check(seen === false, 'E. the sheet: a cancel is not a skip (the hint stays on for the next boast)');
+  await ctx.close();
+}
+async function hintToPlate(key, phone) {
+  // One scene played to its end: the hint clear of the plate once it
+  // shows, then gone with Skip.
+  const { ctx, page } = await open('boast-sheet.html', { phone });
+  await page.evaluate((key) => document.getElementById(key).scrollIntoView({ block: 'center' }), key);
+  await page.evaluate((key) => window.playBoastScene(key), key);
+  await page.waitForFunction(() => window.__boast.stats().active, null, { timeout: 5000 });
+  const first = await hintRead(page, `#${key}-side-w`);
+  await page.waitForFunction(() => { const w = document.querySelector('.boast-name:not(.gone) .boast-who'); return w && w.textContent.length > 3; }, null, { timeout: 10000 });
+  await page.waitForTimeout(450);
+  const plated = await hintRead(page, `#${key}-side-w`);
+  await page.waitForFunction(() => !window.__boast.stats().active, null, { timeout: 15000 });
+  await page.waitForTimeout(500);
+  const after = await hintRead(page, `#${key}-side-w`);
+  await ctx.close();
+  return { first, plated, after };
+}
+{
+  const runs = [['boast-aegis-shield-slam-full', false], ['boast-s0-boot-sequence-top', false], ['boast-swarm-hive-burst-phone', true], ['boast-null-void-collapse-phone', true]];
+  const res = await Promise.all(runs.map(([k, ph]) => hintToPlate(k, ph)));
+  runs.forEach(([key, phone], i) => {
+    const { first, plated, after } = res[i], words = phone ? HINT_TAP : HINT_KEY;
+    check(first.text === words && first.label === 'Skip, ' + words && under(first.hint, first.skip) && inside(first.hint, first.box) && first.font >= (phone ? 12 : 11),
+      `E. ${key}${phone ? ' (phone)' : ''}: "${first.text}" under Skip, inside the winner's side, ${first.font} px, the button labelled "${first.label}"`);
+    check(!!plated.plate && plated.text === words && apart(plated.hint, plated.plate), `E. ${key}: clear of the name plate (hint ${JSON.stringify(plated.hint)}, plate ${JSON.stringify(plated.plate)})`);
+    check(after.n === 0 && after.text === null, `E. ${key}: gone with Skip at the boast's end`);
+  });
+}
+async function introHint(phone) {
+  const { ctx, page } = await open(REPLAY, { phone });
+  await playIntro(page, phone);
+  const r = await page.evaluate(() => {
+    const R = (el) => { if (!el) return null; const q = el.getBoundingClientRect(); return { l: q.left, t: q.top, r: q.right, b: q.bottom }; };
+    const cv = document.querySelector('.boot-canvas'), h = document.querySelector('.skip-hint'), k = document.querySelector('.boot-skip');
+    return { text: h ? h.textContent : null, hint: R(h), skip: R(k), box: R(cv), stat: window.__boot.stats().hint };
+  });
+  // The viewer skips the intro (a tap, or Escape) ...
+  if (phone) await page.tap('#side-p2'); else await page.keyboard.press('Escape');
+  await page.waitForTimeout(150);
+  const after = await page.evaluate(() => ({ active: window.__boot.stats().active, hints: document.querySelectorAll('.skip-hint').length, seen: window.__boast.stats().hintSeen }));
+  // ... so the boast at the end shows no hint.
+  const e = await endOf(page);
+  await toSecondLast(page);
+  await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' })));
+  await page.waitForFunction(() => window.__boast.stats().active, null, { timeout: 15000 });
+  const end = await page.evaluate(() => ({ hint: window.__boast.stats().hint, hints: document.querySelectorAll('.skip-hint').length, skip: !!document.querySelector('.boast-skip') }));
+  await ctx.close();
+  return { r, after, end, e };
+}
+{
+  const [d, p] = await Promise.all([introHint(false), introHint(true)]);
+  for (const [where, x, words] of [['desktop', d, HINT_KEY], ['phone', p, HINT_TAP]]) {
+    check(x.r.text === words && x.r.stat === words && under(x.r.hint, x.r.skip) && inside(x.r.hint, x.r.box), `E. ${REPLAY} intro, ${where}: "${x.r.text}" under Skip, inside the board`);
+    check(!x.after.active && x.after.hints === 0 && x.after.seen === true, `E. ${REPLAY} intro, ${where}: ${where === 'phone' ? 'a tap' : 'Escape'} skips it, the hint goes, the page remembers`);
+    check(x.end.hint === null && x.end.hints === 0 && x.end.skip, `E. ${REPLAY} end, ${where}: after that skip the boast shows Skip and no hint`);
+  }
 }
 
 await browser.close();

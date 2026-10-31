@@ -456,7 +456,7 @@ body { padding: 12px 16px 40px; }
 .toast.no { border-color: color-mix(in srgb, var(--bad) 70%, transparent); color: #ffd7de; }
 /* The preview loops: a Skip button would only interrupt a loop. Escape and
  * a tap still end the current pass (it starts again). */
-.boast-skip { display: none !important; }
+.boast-skip, .skip-hint { display: none !important; }
 @media (max-width: 1180px) {
   .pk-grid { grid-template-columns: minmax(0, 1fr); }
   .stage { max-width: 800px; }

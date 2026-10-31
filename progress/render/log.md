@@ -4016,3 +4016,71 @@ the runner's Chrome version isn't known; it does now.
 the whole run's time, the Chromium version printed) from its description and copy them here.
 Candidates: a close win (CLOSE CALL first) on a real board in the CI check, or a recorded loadout boast;
 a "tap to skip" hint; the next item the owner names.
+
+## 2026-10-31 — Session 43: the "tap to skip" hint
+
+Render session per the alternation (the last merged PR, #105, was the game lane's session 61). Owner
+feedback read: the answers to render session 42 (keep all 4) and the slice set: a "tap to skip" hint.
+The two 2026-11-01 entries ("Season 0 is the MVP", and the website as the 2026-10-05 desktop spec,
+trimmed) set the render lane's list after this slice: the website, in the order given. Not started
+here; it is the next render session's. The game lane's entries (ship NA12 and CS7; the Season 0
+endpoints; the Season 0 checklist in the shared roadmap) are the game lane's; not touched (the render
+lane doesn't write `progress/roadmap.md`).
+
+**Session 42's PR on CI (owed from last session), from PR #104's description:** test run #250, the step
+"render browser check (pinned Chromium)" 36 s (playwright-core install 1 s; Chrome Headless Shell
+153.0.8010.12, playwright chromium-headless-shell v1243, about 4 s to download with FFmpeg; the launch
+test 2 s and passed, so `install-deps` didn't run; the check: pages 0.9 s, browser 28.9 s, 41 passed).
+The whole `test` job 3 min 21 s (session 41's: 35 s and 3 min 35 s). The browser printed
+`chromium 153.0.8010.12`.
+
+**Built:**
+- `render/src/skipHint.ts`: one small line under the Skip button of a boast and of the intro, right-
+  aligned with it: "or tap anywhere" on a touch screen (pointer: coarse), "or click anywhere · Esc" with
+  a mouse. Placed by a pure rule (`skipHintPlace`): under the button, inside the button's own box (the
+  winner's side for a boast, the board for the intro, less a 4 px margin) and clear of what it must
+  avoid (the boast's planned name plate; the intro's two agent lines and its saying); if it can't, it is
+  left out and the button stays. Once the viewer skips anything on the page (a boast or the intro, by
+  tap, click, Escape or the button), it isn't shown again on that page; a cancel (a jump, a restart)
+  or a boast's own end isn't a skip. The button's `aria-label` carries the words; the hint is
+  `aria-hidden`. It fades with the button. The source rides inside `BOAST_PURE_SOURCE`, so every page
+  with a boast or the intro carries it with no other wiring; the CSS inside `BOAST_CSS`.
+- `boastFx.ts` and `matchBootFx.ts`: each shows the hint after placing its Skip, marks it seen on a skip,
+  and reports `hint` / `hintSeen` in its stats. `loadoutPicker.ts`: hides the hint with the Skip (its
+  preview loops).
+- `render/ci/browser-check.mjs`, section E (20 checks, 61 in all): all 30 boast-sheet scenes show the
+  hint under Skip, inside the winner's side, with the desktop words (and a cancel doesn't count as a
+  skip); four scenes played to their end (Shield Slam full, Boot Sequence above, Hive Burst and Void
+  Collapse on a phone): the words for the pointer, the button's label, at least 11 px (12 on a phone),
+  clear of the name plate once it shows, gone with Skip at the end; the replay's intro on a desktop and a
+  phone: the hint inside the board; Escape (desktop) or a tap (phone) skips it, the hint goes, and the
+  boast at the replay's end then shows Skip and no hint.
+- Tests (+15, render 677): `render/test/skipHint.test.ts` (the words; the placement rule's edges: too
+  wide, too low, touching the plate, just clear, nothing to place; every page's sources carry it; the
+  loadout picker hides it; on the boast's fake page: shown under Skip inside the side and clear of the
+  plate, the tap words, gone at the end, not again after a tap, Escape counts and a cancel doesn't, the
+  still shows it, a side too short drops it). `ciPages.test.ts` (+2): section E's words are the
+  render's own; the sheet has the 30 scenes section E counts. The boast's fake page (`boastPage.ts`)
+  now places an element it made where its style puts it, removes a removed element, and has a pointer
+  query.
+
+**Ran it:**
+- `progress/render/evidence/ci-browser-check-s43.txt`: 61 passed, ALL PASS, pages 0.7 s, browser 34.5 s
+  (was 25 s with 41 checks).
+- Mutants (`ci-browser-check-s43-mutants.txt`), each reverted after: the intro's skip not marking the
+  hint seen: 4 FAIL; the boast showing no hint: 9 FAIL; the boast's Skip moved to the bottom of the
+  winner's side (the hint then has no room under it and is dropped): 10 FAIL (one of them D's "Skip on
+  the winner's side" on a phone). The mutants ran before the hint's type went from 10 to 11 px and its
+  backing from 0.62 to 0.86 (the first desktop still read weakly over the card art); the final run is
+  the one above.
+- Stills: `progress/render/evidence/v2-s43-hint-{boast,intro}-{desktop,phone}.jpg`.
+- Before the change every committed page regenerated byte for byte; after it, the 25 pages that embed
+  the boast or the intro (16 replays, 4 recorded, the boast, boot, FX and skin sheets, the loadout
+  picker) regenerated; the embedded match data is unchanged in every one.
+- `npm test`: all six workspaces pass, render 677 (+15); typecheck clean.
+
+**Next render-lane slice:** the owner's Season 0 list, item 1 (the 2026-11-01 entries): the desktop
+website to the 2026-10-05 spec and `render/reference/owner-web-mockup.html`, starting with the site
+layout (the glass sidebar and top bar) and the full pages, built against `server/OWNER_API.md`. Read
+which endpoints exist first; where one is missing, say so in notes-for-owner.md and build a page that
+doesn't need it.

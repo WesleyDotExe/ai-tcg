@@ -929,7 +929,7 @@ export const BOAST_PURE_SOURCE = String.raw`
     }
     return null;
   }
-`;
+` + SKIP_HINT_SOURCE;
 
 export const BOAST_RUNTIME_SOURCE = String.raw`
   var BOAST = (function () {
@@ -1239,7 +1239,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       if (reason !== 'end') cur = null; else cur.fadeOut = true;
       if (done) done(reason);
     }
-    function skip() { if (cur && !cur.ended) { stats.skipped++; finish('skip'); } }
+    function skip() { if (cur && !cur.ended) { stats.skipped++; skipHintSeen(); finish('skip'); } }
     function cancel() { if (cur) { var c0 = cur; c0.onEnd = null; finish('cancel'); cur = null; } }
     // play(id, els, opts): opts { who (the winner's name), faction (the
     // winner's: a neutral boast's panel and sting), onEnd(reason), reduced,
@@ -1291,6 +1291,13 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       sk.style.top = (geom.band.t + 6) + 'px';
       document.body.appendChild(sk); cur.dom.push(sk);
       sk.style.left = (geom.band.r - sk.offsetWidth - 8) + 'px';
+      // Under it, the "tap to skip" hint (skipHint.ts): inside the winner's
+      // side and clear of the name plate, until the viewer has skipped once.
+      var nmk = null;
+      plan.marks.forEach(function (m) { if (m.k === 'name') nmk = m; });
+      var hint = skipHintShow(sk, geom.band, nmk ? [{ l: nmk.x - nmk.w / 2, t: nmk.y - nmk.h / 2, r: nmk.x + nmk.w / 2, b: nmk.y + nmk.h / 2 }] : []);
+      if (hint) cur.dom.push(hint);
+      stats.hint = hint ? hint.textContent : null;
       document.addEventListener('keydown', onKey, true);
       document.addEventListener('pointerdown', onDown, true);
       if (!plugged && canDraw) { CFX.plug(plugin()); plugged = true; }
@@ -1303,7 +1310,7 @@ export const BOAST_RUNTIME_SOURCE = String.raw`
       return plan;
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur && !cur.ended; }, geomOf: geomOf,
-      stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last,
+      stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, hint: cur && !cur.ended ? (stats.hint || null) : null, hintSeen: SKIP_HINT_STATE.seen, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last,
         sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null }; } };
   })();
 `;
@@ -1334,6 +1341,7 @@ export const BOAST_CSS = `
 /* A finger-sized Skip on a touch screen: the intro's (render session 38) and
    every boast's (render session 40) are the same button. */
 @media (pointer: coarse) { .boast-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
+${SKIP_HINT_CSS}
 .turnbar .win.land { display: inline-block; animation: boast-land 520ms cubic-bezier(.2,.9,.3,1.3) both; }
 @keyframes boast-land { from { opacity: 0; transform: translateY(6px) scale(1.25); } to { opacity: 1; transform: none; } }
 /* Boot Sequence's plate: the name in the BIOS's type, behind a block cursor. */
@@ -1344,6 +1352,7 @@ export const BOAST_CSS = `
 `;
 
 import type { ReplayBoast } from "./types.js";
+import { SKIP_HINT_CSS, SKIP_HINT_SOURCE } from "./skipHint.js";
 
 export interface BoastRect { l: number; t: number; r: number; b: number }
 export interface BoastSlot extends BoastRect { filled?: boolean }

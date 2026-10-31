@@ -7,6 +7,49 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-10-31 — The "tap to skip" hint — AWAITING FEEDBACK
+
+The slice you set after render session 42. Open `render/output/boast-sheet.html` and press any Play, or
+open a replay and press Play from the start.
+- **Under every boast's and the intro's Skip button, one small line:** "or tap anywhere" on a touch
+  screen, "or click anywhere · Esc" with a mouse. Right-aligned under the button, on a dark chip, 11 px
+  on a desktop and 12 px on a phone. It fades with the button.
+- **It never goes where it doesn't belong:** inside the winner's side for a boast (inside the board for
+  the intro), clear of the name plate and the intro's lines. If it can't fit, it's left out and the
+  button stays. On every real layout today it fits (all 30 sheet scenes, the replay on a desktop and a
+  phone).
+- **Once the viewer has skipped anything on the page, it isn't shown again** on that page. A jump or a
+  restart doesn't count as a skip; neither does a boast that plays to its end.
+- **Screen readers:** the button's label carries the words ("Skip, or tap anywhere").
+- **The loadout picker** hides it with the Skip button, as before.
+
+**Evidence:** `progress/render/evidence/ci-browser-check-s43.txt` (61 checks, ALL PASS; section E is
+the hint's 20), the mutants (`-mutants.txt`: 4, 9 and 10 FAIL), and the stills
+`v2-s43-hint-boast-desktop.jpg`, `-boast-phone.jpg`, `-intro-desktop.jpg`, `-intro-phone.jpg`. The CI
+check now takes about 35 s locally (was 26 s). `npm test`: all six workspaces pass, render 677 (+15).
+
+**Decisions you may want to overrule:**
+1. **The words.** "or tap anywhere" / "or click anywhere · Esc", under the button, in lower case so it
+   reads as the button's caption. Alternative: one line for both ("tap anywhere to skip"), or the words
+   inside the button ("Skip ▸▸ · tap anywhere").
+2. **Shown until the first skip, per page.** Not stored, so a new replay shows it again until the viewer
+   skips there. Alternative: remember it in the browser (it would then never show again on that
+   device), or, on the website, on the owner's account.
+3. **Shown from the start of the boast or intro, for its whole length.** Alternative: fade it in after
+   about 0.5 s and out after about 1.5 s, so it's gone by the time the name plate lands.
+4. **"Click anywhere" for the intro too,** although a click on the playback controls does the control's
+   job (pause, step) rather than skip, as built in session 35. Alternative: "click the board".
+5. **Left out, not moved, when it doesn't fit.** Alternative: move it beside the button. Today no layout
+   drops it.
+
+**Thin spots (in the debt list):** not seen on a real screen; per-page memory only; the plate check in
+CI covers 4 of the 30 scenes (the placement rule covers the rest by construction).
+
+**Next render-lane slice:** your Season 0 list, item 1: the desktop website (the 2026-10-05 spec, as
+trimmed), starting with the site layout and the full pages against `server/OWNER_API.md`.
+
+---
+
 ## 2026-10-30 — One replay's end in the CI check; a pinned Chromium — AWAITING FEEDBACK
 
 The slice you set after render session 41, with your call 2 change in the same slice.

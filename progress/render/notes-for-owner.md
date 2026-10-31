@@ -952,3 +952,14 @@ for its next session.)
    copies them into `progress/render/log.md`.
 4. **Nothing for the game lane.** Its PRs run the longer check too; a card change that turns Cortex vs
    Swarm seed 6 into a draw would fail a vitest test that says so.
+
+## 2026-10-31 — Session 43 (the "tap to skip" hint)
+
+1. **Built as you set it.** Calls are in `progress/render/checkpoints.md` (newest entry): mainly the
+   words (call 1) and "shown until the first skip, on that page" (call 2).
+2. **Season 0 read.** The render lane's next sessions follow your Season 0 list (the desktop website to
+   the 2026-10-05 spec, as trimmed), starting next render session. The Season 0 checklist you asked for
+   goes in `progress/roadmap.md`, which the render lane doesn't write (RENDER.md guardrail 4); the game
+   lane keeps it, and the render lane will say what it has done in its own log for the game lane to tick.
+3. **No shared files changed this session** (no workflow, no root package files). Nothing for the game
+   lane: its PRs run the longer CI check (61 checks, about 10 s more).
