@@ -692,6 +692,13 @@ html, body {
 /* A finger-sized Skip on a touch screen: the intro's (render session 38) and
    every boast's (render session 40) are the same button. */
 @media (pointer: coarse) { .boast-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
+
+.skip-hint { position: absolute; z-index: 97; pointer-events: none; white-space: nowrap; font-size: 11px; letter-spacing: 0.05em; line-height: 1.25;
+  color: var(--ink, #dfe7ff); opacity: 0.88; padding: 1px 6px; border-radius: 3px; background: rgba(10,12,22,0.86);
+  text-shadow: 0 1px 2px #000; transition: opacity 320ms ease; }
+.skip-hint.gone { opacity: 0; }
+@media (pointer: coarse) { .skip-hint { font-size: 12px; } }
+
 .turnbar .win.land { display: inline-block; animation: boast-land 520ms cubic-bezier(.2,.9,.3,1.3) both; }
 @keyframes boast-land { from { opacity: 0; transform: translateY(6px) scale(1.25); } to { opacity: 1; transform: none; } }
 /* Boot Sequence's plate: the name in the BIOS's type, behind a block cursor. */
@@ -5370,6 +5377,50 @@ html, body {
     return null;
   }
 
+  // The words: a touch screen taps, a desktop clicks or presses Escape.
+  var SKIP_HINT_TAP = 'or tap anywhere', SKIP_HINT_KEY = 'or click anywhere · Esc';
+  // The gap under the button, and the margin the hint keeps from its box.
+  var SKIP_HINT_GAP = 3, SKIP_HINT_PAD = 4;
+  // Page state shared by the boast and the intro: has the viewer skipped?
+  var SKIP_HINT_STATE = { seen: false, shown: 0, dropped: 0 };
+  function skipHintText(coarse) { return coarse ? SKIP_HINT_TAP : SKIP_HINT_KEY; }
+  // Where the hint goes: right-aligned under the button sk {l,t,r,b}, w x h.
+  // Returns {l,t,r,b}, or null when it would leave inside {l,t,r,b} (less
+  // SKIP_HINT_PAD) or touch any rect in avoid.
+  function skipHintPlace(sk, w, h, inside, avoid) {
+    if (!sk || !inside || !(w > 0) || !(h > 0)) return null;
+    var r = { l: sk.r - w, t: sk.b + SKIP_HINT_GAP, r: sk.r, b: sk.b + SKIP_HINT_GAP + h };
+    if (r.l < inside.l + SKIP_HINT_PAD || r.r > inside.r - SKIP_HINT_PAD + 0.5 || r.t < inside.t || r.b > inside.b - SKIP_HINT_PAD) return null;
+    for (var i = 0; avoid && i < avoid.length; i++) {
+      var a = avoid[i];
+      if (a && r.l < a.r && r.r > a.l && r.t < a.b && r.b > a.t) return null;
+    }
+    return r;
+  }
+  // Puts the hint under the Skip button sk (an element already on the
+  // page), inside the box inside, clear of the rects in avoid. Returns the element,
+  // or null (the viewer has skipped before, or it doesn't fit). The caller
+  // removes it with the button.
+  function skipHintShow(sk, inside, avoid) {
+    if (SKIP_HINT_STATE.seen || typeof document === 'undefined' || !sk) return null;
+    var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    var el = document.createElement('div');
+    el.className = 'skip-hint'; el.setAttribute('aria-hidden', 'true');
+    el.textContent = skipHintText(coarse);
+    el.style.left = '0px'; el.style.top = '0px'; el.style.visibility = 'hidden';
+    document.body.appendChild(el);
+    var sr = sk.getBoundingClientRect(), sx = window.scrollX || 0, sy = window.scrollY || 0;
+    var box = { l: sr.left + sx, t: sr.top + sy, r: sr.right + sx, b: sr.bottom + sy };
+    var at = skipHintPlace(box, el.offsetWidth, el.offsetHeight, inside, avoid);
+    if (!at) { el.remove(); SKIP_HINT_STATE.dropped++; return null; }
+    el.style.left = at.l + 'px'; el.style.top = at.t + 'px'; el.style.visibility = '';
+    // The button tells screen readers too (the hint itself is decoration).
+    sk.setAttribute('aria-label', 'Skip, ' + el.textContent);
+    SKIP_HINT_STATE.shown++;
+    return el;
+  }
+  function skipHintSeen() { SKIP_HINT_STATE.seen = true; }
+
 
   var BOAST = (function () {
     var cur = null, plugged = false, stats = { played: 0, skipped: 0, still: 0, refused: 0, last: null };
@@ -5678,7 +5729,7 @@ html, body {
       if (reason !== 'end') cur = null; else cur.fadeOut = true;
       if (done) done(reason);
     }
-    function skip() { if (cur && !cur.ended) { stats.skipped++; finish('skip'); } }
+    function skip() { if (cur && !cur.ended) { stats.skipped++; skipHintSeen(); finish('skip'); } }
     function cancel() { if (cur) { var c0 = cur; c0.onEnd = null; finish('cancel'); cur = null; } }
     // play(id, els, opts): opts { who (the winner's name), faction (the
     // winner's: a neutral boast's panel and sting), onEnd(reason), reduced,
@@ -5730,6 +5781,13 @@ html, body {
       sk.style.top = (geom.band.t + 6) + 'px';
       document.body.appendChild(sk); cur.dom.push(sk);
       sk.style.left = (geom.band.r - sk.offsetWidth - 8) + 'px';
+      // Under it, the "tap to skip" hint (skipHint.ts): inside the winner's
+      // side and clear of the name plate, until the viewer has skipped once.
+      var nmk = null;
+      plan.marks.forEach(function (m) { if (m.k === 'name') nmk = m; });
+      var hint = skipHintShow(sk, geom.band, nmk ? [{ l: nmk.x - nmk.w / 2, t: nmk.y - nmk.h / 2, r: nmk.x + nmk.w / 2, b: nmk.y + nmk.h / 2 }] : []);
+      if (hint) cur.dom.push(hint);
+      stats.hint = hint ? hint.textContent : null;
       document.addEventListener('keydown', onKey, true);
       document.addEventListener('pointerdown', onDown, true);
       if (!plugged && canDraw) { CFX.plug(plugin()); plugged = true; }
@@ -5742,7 +5800,7 @@ html, body {
       return plan;
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur && !cur.ended; }, geomOf: geomOf,
-      stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last,
+      stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur && !cur.ended, t: cur ? Math.round(cur.t) : null, id: cur ? cur.plan.id : null, who: cur ? cur.who : null, close: cur ? cur.close : null, still: cur ? !!cur.plan.still : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, refused: stats.refused, hint: cur && !cur.ended ? (stats.hint || null) : null, hintSeen: SKIP_HINT_STATE.seen, problem: stats.problem || null, fired: stats.fired || {}, groups: stats.groups || {}, peakPieces: stats.peakPieces || 0, drawn: stats.drawn || 0, last: stats.last,
         sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null }; } };
   })();
 
@@ -6166,7 +6224,7 @@ html, body {
       else stats.ended++;
       if (c.onEnd && reason !== 'cancel') c.onEnd(reason);
     }
-    function skip() { if (cur) finish('skip'); }
+    function skip() { if (cur) { skipHintSeen(); finish('skip'); } }
     function cancel() { if (cur) finish('cancel'); }
     // play(els, opts) -> the plan played, or null when the page can't lay
     // one out.
@@ -6209,6 +6267,13 @@ html, body {
       sk.style.top = (A.t + 6) + 'px';
       document.body.appendChild(sk); cur.dom.push(sk);
       sk.style.left = (A.r - sk.offsetWidth - 8) + 'px';
+      // Under it, the "tap to skip" hint (skipHint.ts, shared with the
+      // boast): inside the board, clear of the agent lines and the saying.
+      var avoid = plan.halves.map(function (h) { var L = h.line, k = L.rows ? 2.2 : 1.4; return { l: L.x0, t: L.y - L.fs * k, r: L.x0 + L.w, b: L.y + L.fs * k }; });
+      if (plan.say) avoid.push({ l: plan.say.x - plan.say.w / 2 - 4, t: plan.say.y - plan.say.h / 2 - 4, r: plan.say.x + plan.say.w / 2 + 4, b: plan.say.y + plan.say.h / 2 + 4 });
+      var hint = skipHintShow(sk, A, avoid);
+      if (hint) cur.dom.push(hint);
+      cur.hint = hint ? hint.textContent : null;
       document.addEventListener('keydown', onKey, true);
       document.addEventListener('pointerdown', onDown, true);
       // The music mark (at 0) and the first sounds go out at once.
@@ -6224,7 +6289,7 @@ html, body {
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; },
       stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur, t: cur ? Math.round(cur.t) : null, saying: cur ? cur.plan.saying : null, still: cur ? !!cur.plan.still : null,
-        lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still,
+        lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, hint: cur ? cur.hint : null, hintSeen: SKIP_HINT_STATE.seen,
         cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last,
         sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null, rows: cur ? !!cur.plan.halves[0].line.rows : null, fs: cur ? cur.plan.halves[0].line.fs : null }; } };
   })();

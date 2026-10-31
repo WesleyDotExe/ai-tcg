@@ -7,10 +7,32 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The CI browser check (sessions 41-42)
+## The "tap to skip" hint (session 43)
 
-- **Only a small part of the browser evidence runs in CI.** `render/ci/browser-check.mjs` (41 checks)
-  guards the boasts' spill, the Skip sizes, one replay's intro and that replay's end. The deeper session
+- **Nobody has judged it on a real screen.** Its words, size (11 px on a desktop, 12 px on a touch
+  screen) and backing were judged from headless stills (`v2-s43-hint-*.jpg`). On a desktop it sits
+  over the top-right card of the winner's row, on a dark chip.
+- **"Click anywhere" is not quite true for the intro:** a click on the playback controls does the
+  control's job (pause, step) and doesn't skip, as built in session 35. The boast does skip on any
+  click, the controls included. The hint says the same words for both.
+- **"Once skipped, never again" lasts one page load.** It is page memory, not stored: a viewer who
+  opens another replay sees the hint again until they skip there. Stored memory (browser storage, or
+  the owner's account on the site) is an owner call, raised at the checkpoint.
+- **It is left out, not moved, when it doesn't fit** (under Skip, inside the winner's side or the
+  board, clear of the name plate and the intro's lines). No real layout drops it today (all 30 sheet
+  scenes, both replay layouts), but nothing tells the viewer when it is dropped; the page counts it
+  (`SKIP_HINT_STATE.dropped`) and nothing reads that count.
+- **The plate check in CI uses 4 of the 30 scenes** (Shield Slam full, Boot Sequence above, Hive Burst
+  and Void Collapse on a phone); the other 26 are checked for place and words only, before the plate
+  shows. The runtime's own rule (it never places the hint over the plate's planned box) covers them by
+  construction, tested in vitest.
+- **The pack opening and the first-time flow have their own skip controls** ("Skip to summary"); this
+  hint isn't on them. Only the boast and the intro end on a tap anywhere.
+
+## The CI browser check (sessions 41-43)
+
+- **Only a small part of the browser evidence runs in CI.** `render/ci/browser-check.mjs` (61 checks)
+  guards the boasts' spill, the Skip sizes, one replay's intro and that replay's end, and the skip hint. The deeper session
   checks (sound as heard, timing under a stall, the pack opening, the feed, the narrow layouts, the
   loadout picker, the recorded replays' boasts and close wins) are still by-hand scripts under
   `progress/render/evidence/`; a regression there would pass CI.
@@ -197,7 +219,6 @@ items are removed, with the fix in `log.md`.
 - **Frame rate on Mythic-heavy boards:** the boast costs 2-7 fps under the headless CPU canvas, but the
   baselines on those boards are low (Shield Slam's replay 17 fps after the boast, Hive Burst's 26), set
   by the Mythic wards. Not measured on a real GPU.
-- **No "tap to skip" hint** beyond the Skip button; a viewer may not know a tap ends it.
 - **Headless runs before session 31 used SwiftShader GL at ~5 fps.** Earlier recordings (sessions
   24-30) look slower than the pages are; their checks were not re-run with the CPU canvas.
 

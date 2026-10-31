@@ -8,7 +8,9 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { STARTER_BOASTS } from "@ai-tcg/economy";
 import { BOAST_CLEAR_MS, BOAST_LEAD_MS, boastFromRecord } from "../src/boastFx.js";
+import { SKIP_HINT_KEY, SKIP_HINT_TAP } from "../src/skipHint.js";
 import { CI_REPLAY, ciPages } from "../src/ciPages.js";
+import { renderBoastSheet } from "../src/boastSheet.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const check = readFileSync(resolve(here, "../ci/browser-check.mjs"), "utf8");
@@ -63,5 +65,20 @@ describe("the CI browser check's pages", () => {
     expect(parsed).toEqual(Object.fromEntries(Object.entries(STARTER_BOASTS).map(([f, b]) => [f, b.itemId])));
     for (const [f, id] of Object.entries(parsed)) expect(boastFromRecord(null, "p1", f)?.id, f).toBe(id);
     expect(check).toContain(`const LEAD_MS = ${BOAST_LEAD_MS}, CLEAR_MS = ${BOAST_CLEAR_MS};`);
+  });
+
+  it("section E's hint words are the render's own (render session 43)", () => {
+    const m = /const HINT_KEY = '([^']+)', HINT_TAP = '([^']+)';/.exec(check)!;
+    expect(m, "the words line in browser-check.mjs").toBeTruthy();
+    expect(JSON.parse(`"${m[1]}"`)).toBe(SKIP_HINT_KEY);
+    expect(m[2]).toBe(SKIP_HINT_TAP);
+  });
+
+  it("the sheet has the 30 scenes section E counts, each with its winner's side", () => {
+    expect(check).toContain("keys.length === 30");
+    const sheet = renderBoastSheet();
+    const scenes = [...sheet.matchAll(/<section class="scene[^"]*" id="([^"]+)"/g)].map((x) => x[1]!);
+    expect(scenes.length).toBe(30);
+    for (const k of scenes) expect(sheet, k).toContain(`id="${k}-side-w"`);
   });
 });

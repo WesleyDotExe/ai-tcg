@@ -1,0 +1,32 @@
+=== mutant 1: the intro's skip doesn't mark the hint seen (matchBootFx.ts) ===
+  FAIL E. cortex-vs-swarm-seed6.html intro, desktop: Escape skips it, the hint goes, the page remembers
+  FAIL E. cortex-vs-swarm-seed6.html end, desktop: after that skip the boast shows Skip and no hint
+  FAIL E. cortex-vs-swarm-seed6.html intro, phone: a tap skips it, the hint goes, the page remembers
+  FAIL E. cortex-vs-swarm-seed6.html end, phone: after that skip the boast shows Skip and no hint
+57 passed, 4 failed (pages 1.0 s, browser 34.5 s)
+BROWSER CHECK FAILED
+=== mutant 2: the boast shows no hint (boastFx.ts) ===
+  FAIL E. the sheet: all 30 scenes show the hint under Skip, inside the winner's side, the desktop words: boast-aegis-shield-slam-full (null, null); boast-aegis-shield-slam-empty (null, null); boast-aegis-shield-slam-top (null, null); boast-aegis-shield-slam-phone (null, null); boast-aegis-shield-slam-reduced (null, null); boast-swarm-hive-burst-full (null, null); boast-swarm-hive-burst-empty (null, null); boast-swarm-hive-burst-top (null, null); boast-swarm-hive-burst-phone (null, null); boast-swarm-hive-burst-reduced (null, null); boast-null-void-collapse-full (null, null); boast-null-void-collapse-empty (null, null); boast-null-void-collapse-top (null, null); boast-null-void-collapse-phone (null, null); boast-null-void-collapse-reduced (null, null); boast-cortex-data-cascade-full (null, null); boast-cortex-data-cascade-empty (null, null); boast-cortex-data-cascade-top (null, null); boast-cortex-data-cascade-phone (null, null); boast-cortex-data-cascade-reduced (null, null); boast-s0-boot-sequence-full (null, null); boast-s0-boot-sequence-empty (null, null); boast-s0-boot-sequence-top (null, null); boast-s0-boot-sequence-phone (null, null); boast-s0-boot-sequence-reduced (null, null); boast-s0-dial-up-fireworks-full (null, null); boast-s0-dial-up-fireworks-empty (null, null); boast-s0-dial-up-fireworks-top (null, null); boast-s0-dial-up-fireworks-phone (null, null); boast-s0-dial-up-fireworks-reduced (null, null)
+  FAIL E. boast-aegis-shield-slam-full: "null" under Skip, inside the winner's side, null px, the button labelled "null"
+  FAIL E. boast-aegis-shield-slam-full: clear of the name plate (hint null, plate {"l":126,"t":603.578125,"r":766,"b":648.8125})
+  FAIL E. boast-s0-boot-sequence-top: "null" under Skip, inside the winner's side, null px, the button labelled "null"
+  FAIL E. boast-s0-boot-sequence-top: clear of the name plate (hint null, plate {"l":126,"t":415.109375,"r":766,"b":460.34375})
+  FAIL E. boast-swarm-hive-burst-phone (phone): "null" under Skip, inside the winner's side, null px, the button labelled "null"
+  FAIL E. boast-swarm-hive-burst-phone: clear of the name plate (hint null, plate {"l":48.796875,"t":649.953125,"r":341.1875,"b":695.953125})
+  FAIL E. boast-null-void-collapse-phone (phone): "null" under Skip, inside the winner's side, null px, the button labelled "null"
+  FAIL E. boast-null-void-collapse-phone: clear of the name plate (hint null, plate {"l":48.796875,"t":650.5625,"r":341.1875,"b":696.5625})
+52 passed, 9 failed (pages 0.9 s, browser 34.5 s)
+BROWSER CHECK FAILED
+=== mutant 3: the boast's Skip moved to the bottom of the winner's side, the hint's fit rule left in (boastFx.ts) ===
+  FAIL D. phone: the loser's side, panel and hand dimmed (0.7, 0.7, 0.7), the winner's panel lit, Skip on the winner's side
+  FAIL E. the sheet: all 30 scenes show the hint under Skip, inside the winner's side, the desktop words: boast-aegis-shield-slam-full (null, null); boast-aegis-shield-slam-empty (null, null); boast-aegis-shield-slam-top (null, null); boast-aegis-shield-slam-phone (null, null); boast-aegis-shield-slam-reduced (null, null); boast-swarm-hive-burst-full (null, null); boast-swarm-hive-burst-empty (null, null); boast-swarm-hive-burst-top (null, null); boast-swarm-hive-burst-phone (null, null); boast-swarm-hive-burst-reduced (null, null); boast-null-void-collapse-full (null, null); boast-null-void-collapse-empty (null, null); boast-null-void-collapse-top (null, null); boast-null-void-collapse-phone (null, null); boast-null-void-collapse-reduced (null, null); boast-cortex-data-cascade-full (null, null); boast-cortex-data-cascade-empty (null, null); boast-cortex-data-cascade-top (null, null); boast-cortex-data-cascade-phone (null, null); boast-cortex-data-cascade-reduced (null, null); boast-s0-boot-sequence-full (null, null); boast-s0-boot-sequence-empty (null, null); boast-s0-boot-sequence-top (null, null); boast-s0-boot-sequence-phone (null, null); boast-s0-boot-sequence-reduced (null, null); boast-s0-dial-up-fireworks-full (null, null); boast-s0-dial-up-fireworks-empty (null, null); boast-s0-dial-up-fireworks-top (null, null); boast-s0-dial-up-fireworks-phone (null, null); boast-s0-dial-up-fireworks-reduced (null, null)
+  FAIL E. boast-aegis-shield-slam-full: "null" under Skip, inside the winner's side, null px, the button labelled "null"
+  FAIL E. boast-aegis-shield-slam-full: clear of the name plate (hint null, plate {"l":125.94171142578125,"t":603.55126953125,"r":766.0582885742188,"b":648.7938842773438})
+  FAIL E. boast-s0-boot-sequence-top: "null" under Skip, inside the winner's side, null px, the button labelled "null"
+  FAIL E. boast-s0-boot-sequence-top: clear of the name plate (hint null, plate {"l":126,"t":415.109375,"r":766,"b":460.34375})
+  FAIL E. boast-swarm-hive-burst-phone (phone): "null" under Skip, inside the winner's side, null px, the button labelled "null"
+  FAIL E. boast-swarm-hive-burst-phone: clear of the name plate (hint null, plate {"l":48.796875,"t":649.953125,"r":341.1875,"b":695.953125})
+  FAIL E. boast-null-void-collapse-phone (phone): "null" under Skip, inside the winner's side, null px, the button labelled "null"
+  FAIL E. boast-null-void-collapse-phone: clear of the name plate (hint null, plate {"l":48.796875,"t":650.5625,"r":341.1875,"b":696.5625})
+51 passed, 10 failed (pages 0.9 s, browser 34.7 s)
+BROWSER CHECK FAILED

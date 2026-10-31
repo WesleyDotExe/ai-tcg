@@ -469,7 +469,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       else stats.ended++;
       if (c.onEnd && reason !== 'cancel') c.onEnd(reason);
     }
-    function skip() { if (cur) finish('skip'); }
+    function skip() { if (cur) { skipHintSeen(); finish('skip'); } }
     function cancel() { if (cur) finish('cancel'); }
     // play(els, opts) -> the plan played, or null when the page can't lay
     // one out.
@@ -512,6 +512,13 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       sk.style.top = (A.t + 6) + 'px';
       document.body.appendChild(sk); cur.dom.push(sk);
       sk.style.left = (A.r - sk.offsetWidth - 8) + 'px';
+      // Under it, the "tap to skip" hint (skipHint.ts, shared with the
+      // boast): inside the board, clear of the agent lines and the saying.
+      var avoid = plan.halves.map(function (h) { var L = h.line, k = L.rows ? 2.2 : 1.4; return { l: L.x0, t: L.y - L.fs * k, r: L.x0 + L.w, b: L.y + L.fs * k }; });
+      if (plan.say) avoid.push({ l: plan.say.x - plan.say.w / 2 - 4, t: plan.say.y - plan.say.h / 2 - 4, r: plan.say.x + plan.say.w / 2 + 4, b: plan.say.y + plan.say.h / 2 + 4 });
+      var hint = skipHintShow(sk, A, avoid);
+      if (hint) cur.dom.push(hint);
+      cur.hint = hint ? hint.textContent : null;
       document.addEventListener('keydown', onKey, true);
       document.addEventListener('pointerdown', onDown, true);
       // The music mark (at 0) and the first sounds go out at once.
@@ -527,7 +534,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
     }
     return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; },
       stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur, t: cur ? Math.round(cur.t) : null, saying: cur ? cur.plan.saying : null, still: cur ? !!cur.plan.still : null,
-        lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still,
+        lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, hint: cur ? cur.hint : null, hintSeen: SKIP_HINT_STATE.seen,
         cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last,
         sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null, rows: cur ? !!cur.plan.halves[0].line.rows : null, fs: cur ? cur.plan.halves[0].line.fs : null }; } };
   })();
