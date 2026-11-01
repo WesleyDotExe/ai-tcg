@@ -13,6 +13,7 @@
 // how a widget looks: its name, icon, colour, the shape its Large size takes,
 // the page its open button goes to, and what each size shows.
 
+import type { SiteDailyPack } from "./siteApi.js";
 import type { PageId } from "./siteModel.js";
 
 export type WidgetType = "agent" | "live" | "watch" | "packs" | "daily" | "collection" | "showcase" | "ladder" | "form" | "history" | "notif" | "store";
@@ -381,6 +382,8 @@ export interface SitePacks {
   /** The pity timers: packs opened since each, and whether the next pack
    * is guaranteed one (the thresholds are the store's, not sent). */
   pity: { packsSinceFullArt: number; packsSinceMythic: number; next: { fullArt: boolean; mythic: boolean } };
+  /** The owner's free daily pack (session 65), the same as `GET /api/packs/daily`. */
+  dailyPack: SiteDailyPack;
 }
 
 export interface PacksView {

@@ -30,6 +30,7 @@ import {
   type WidgetType,
 } from "./siteBoard.js";
 import { amount } from "./siteLook.js";
+import { dailyPackView } from "./siteStore.js";
 import { FACTION_HEX, PAGE_TITLES, agentStatus, deckLine, esc, hashOf, icon, rebuildView, styleName } from "./siteModel.js";
 
 export type WidgetSource = "packs" | "collection" | "daily" | "store";
@@ -102,7 +103,7 @@ export function miniCard(c: MiniCard, opts: { count?: number } = {}): string {
 }
 
 /** The sealed pack, drawn in CSS (no image). */
-function packArt(setCode: string | null, size: "s" | "m"): string {
+export function packArt(setCode: string | null, size: "s" | "m" | "l"): string {
   return `<div class="pk pk-${size}" aria-hidden="true"><span class="pk-foil"></span><b>${esc(setCode ?? "S0")}</b><small>AI·TCG</small></div>`;
 }
 
@@ -160,11 +161,13 @@ function packsBody(w: SiteWidget, d: WidgetData): string {
   const l = loading(d, "packs");
   if (l) return l;
   const v = packsView(d.packs!, d.wallet?.credits ?? 0);
-  const open = `<a class="btn pri sm${v.canOpen ? "" : " off"}" href="#/store"${v.canOpen ? "" : ' aria-disabled="true"'}>Open</a>`;
+  // Session 47: Open opens the oldest pack, Open 10 the ten oldest, full screen.
+  const open = `<button type="button" class="btn pri sm" data-act="open-packs" data-count="1"${v.canOpen ? "" : " disabled"}>Open</button>`;
   if (w.size === "S") return `<div class="row nowrap">${packArt(v.setCode, "s")}<div><b>${esc(v.head)}</b><div class="row">${open}</div></div></div>`;
   const buy = v.price !== null ? `<button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode!)}" data-count="1"${v.canBuy ? "" : " disabled"}>Buy · ${amount(v.price)}</button>` : "";
-  const open10 = `<a class="btn sm${v.canOpenBulk ? "" : " off"}" href="#/store"${v.canOpenBulk ? "" : ' aria-disabled="true"'}>Open ${v.bulk}</a>`;
-  const m = `<div class="row nowrap top">${packArt(v.setCode, "m")}<div class="wcol"><h4>${esc(v.head)}</h4><div class="muted small">${esc(v.setName)} · 5 cards</div><div class="muted small">${esc(v.pity)}</div><div class="muted small">Free daily pack: comes with its claim on the server.</div><div class="row">${open}${open10}${buy}</div></div></div>`;
+  const open10 = `<button type="button" class="btn sm" data-act="open-packs" data-count="${v.bulk}"${v.canOpenBulk ? "" : ` disabled title="Needs ${v.bulk} packs waiting"`}>Open ${v.bulk}</button>`;
+  const daily = dailyPackView(d.packs!.dailyPack, d.now);
+  const m = `<div class="row nowrap top">${packArt(v.setCode, "m")}<div class="wcol"><h4>${esc(v.head)}</h4><div class="muted small">${esc(v.setName)} · 5 cards</div><div class="muted small">${esc(v.pity)}</div><div class="muted small">Free daily pack: ${esc(daily.line)}</div><div class="row">${open}${open10}${buy}</div></div></div>`;
   if (w.size === "M") return m;
   const c = d.collection;
   const last = c?.recentPulls[0];
@@ -217,12 +220,13 @@ function storeBody(w: SiteWidget, d: WidgetData): string {
   const l = loading(d, "packs") ?? (w.size === "L" ? loading(d, "store") : null);
   if (l) return l;
   const v = packsView(d.packs!, d.wallet?.credits ?? 0);
-  const claim = `<button type="button" class="btn pri sm" disabled title="The daily pack's claim isn't served yet">Claim free daily pack</button>`;
-  if (w.size === "S") return `<div class="muted small">Free daily pack: comes with its claim on the server.</div><div class="row">${claim}</div>`;
+  const daily = dailyPackView(d.packs!.dailyPack, d.now);
+  const claim = `<button type="button" class="btn pri sm" data-act="claim-daily"${daily.canClaim ? "" : " disabled"}>${esc(daily.button)}</button>`;
+  if (w.size === "S") return `<div class="row">${claim}</div><div class="muted small">${esc(daily.line)}</div>`;
   const buy = v.price !== null
     ? `<button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode!)}" data-count="1"${v.canBuy ? "" : " disabled"}>Buy 1 pack · ${amount(v.price)}</button><button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode!)}" data-count="10"${v.canBuy10 ? "" : " disabled"}>Buy 10 · ${amount(v.price * 10)}</button>`
     : "";
-  const m = `<div class="row">${claim}${buy}</div><div class="muted small">${v.unopened} unopened · ${amount(d.wallet?.credits ?? 0)} credits</div>`;
+  const m = `<div class="row">${claim}${buy}</div><div class="muted small">${esc(daily.line)}</div><div class="muted small">${v.unopened} unopened · ${amount(d.wallet?.credits ?? 0)} credits</div>`;
   if (w.size === "M") return m;
   const cos = d.store!.cosmetics;
   const items = cos.length

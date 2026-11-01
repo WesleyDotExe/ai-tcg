@@ -43,7 +43,12 @@ export async function startSiteDemo(options: { port?: number; full?: boolean } =
   // Settings shows Admin; Rook is a player and doesn't see it.
   const nova = store.createAccount({ name: "Nova", username: DEMO_LOGIN, password: DEMO_PASSWORD, isAdmin: true });
   store.grantStarterCollection(nova.ownerId, "Cortex");
-  for (let i = 0; i < 10; i++) store.grantPack(nova.ownerId, "S0", "ownerDaily");
+  // Demo-only extra packs, so the collection has some width. Session 47:
+  // granted as weekly challenge packs, not "ownerDaily": the store works the
+  // free daily pack out from the owner's ownerDaily packs, so ten of those
+  // granted on the first day would leave nothing to claim, and the Store's
+  // claim would have nothing to show.
+  for (let i = 0; i < 10; i++) store.grantPack(nova.ownerId, "S0", "weeklyChallenge");
   let seed = 4400;
   while (store.unopenedPacks(nova.ownerId).length > 0) store.openPack(nova.ownerId, undefined, { seed: seed++ });
   const first = store.createAgent({ ownerId: nova.ownerId, name: "Vector Halcyon" });
@@ -52,14 +57,19 @@ export async function startSiteDemo(options: { port?: number; full?: boolean } =
   const rook = store.createAccount({ name: "Rook", username: "rook", password: DEMO_PASSWORD });
   store.grantStarterCollection(rook.ownerId, "Aegis");
   const rookAgent = store.createAgent({ ownerId: rook.ownerId, name: "Rook's agent" });
-  // The wallet in the top bar, from real store calls: five days of one win
-  // each for Nova's agent over Rook's (the daily win schedule's credits),
-  // and three packs waiting to be opened (the Open button's count).
-  for (let i = 0; i < 5; i++) {
-    const endedAt = new Date(Date.parse("2026-10-27T10:00:00.000Z") + i * 86_400_000).toISOString();
+  // The wallet in the top bar, from real store calls: ten days of one win
+  // each for Nova's agent over Rook's (the daily win schedule's credits;
+  // five days before session 47), enough to buy a pack below and still
+  // afford two more on the page, and packs waiting to be opened (the Open
+  // button's count).
+  for (let i = 0; i < 10; i++) {
+    const endedAt = new Date(Date.parse("2026-10-20T10:00:00.000Z") + i * 86_400_000).toISOString();
     store.recordMatch({ matchId: `demo-${i}`, seed: i, p1AgentId: first.agentId, p2AgentId: rookAgent.agentId, outcome: { kind: "win", winnerAgentId: first.agentId }, endedAt });
   }
-  for (let i = 0; i < 3; i++) store.grantPack(nova.ownerId, "S0", "ownerDaily");
+  // Ten waiting (session 47; three before), so "Open 10" can be tried.
+  for (let i = 0; i < 10; i++) store.grantPack(nova.ownerId, "S0", "weeklyChallenge");
+  // One bought with those credits (the Store lists it as "Bought").
+  store.buyPacks(nova.ownerId, "S0", 1);
   // Today (session 46, the Daily rewards widget): two wins and a loss in the
   // last hours, recorded the same way, so today's earnings are real. (Run
   // within 70 min after a Sydney midnight, some fall on yesterday.)

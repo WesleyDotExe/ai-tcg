@@ -45,6 +45,8 @@ const RULES: SiteBoardRules = {
   maxWidgets: MAX_WIDGETS,
   recommendedWidgets: RECOMMENDED_LAYOUT.map((w) => ({ ...w })),
 };
+// The free daily pack as the server sends it (session 65): one waiting.
+const DAILY_PACK = { setCode: "S0", waiting: 1, cap: 2, day: "2026-11-01", timeZone: "Australia/Sydney", resetsAt: "2026-11-01T13:00:00.000Z", nextPackAt: "2026-11-01T13:00:00.000Z", claimedToday: 0, lastClaimedAt: null };
 const W = (id: string, type: WidgetType, size: WidgetSize = "M"): SiteWidget => ({ id, type, size });
 
 describe("the widget catalogue", () => {
@@ -247,7 +249,7 @@ describe("what the widgets show", () => {
     expect(pityLine(pity)).toBe("3 packs since a Full Art · 1 pack since a Mythic");
     expect(pityLine({ ...pity, next: { fullArt: true, mythic: false } })).toBe("Your next pack is sure to hold a Full Art or better.");
     expect(pityLine({ ...pity, next: { fullArt: true, mythic: true } })).toBe("Your next pack is sure to hold a Full Art or better and a Mythic.");
-    const p = { offer: [{ setCode: "S0", name: "Season Zero", priceCredits: 100 }], bulkOpenCount: 10, unopened: [], pity };
+    const p = { offer: [{ setCode: "S0", name: "Season Zero", priceCredits: 100 }], bulkOpenCount: 10, unopened: [], pity, dailyPack: DAILY_PACK };
     expect(packsView(p, 99)).toMatchObject({ head: "No packs waiting", canBuy: false, canOpen: false, price: 100 });
     expect(packsView(p, 1000)).toMatchObject({ canBuy: true, canBuy10: true });
   });
@@ -268,7 +270,7 @@ describe("what the widgets show", () => {
   const DATA: WidgetData = {
     play: PLAY,
     wallet: { credits: 250, packPoints: 40, unopenedPacks: [] },
-    packs: { offer: [{ setCode: "S0", name: "Season Zero", priceCredits: 100 }], bulkOpenCount: 10, unopened: [{ packId: "p", setCode: "S0", source: "ownerDaily", acquiredAt: "" }], pity: { packsSinceFullArt: 2, packsSinceMythic: 2, next: { fullArt: false, mythic: false } } },
+    packs: { offer: [{ setCode: "S0", name: "Season Zero", priceCredits: 100 }], bulkOpenCount: 10, unopened: [{ packId: "p", setCode: "S0", source: "ownerDaily", acquiredAt: "" }], pity: { packsSinceFullArt: 2, packsSinceMythic: 2, next: { fullArt: false, mythic: false } }, dailyPack: DAILY_PACK },
     collection: COLLECTION,
     daily: DAILY,
     store: { packs: [], cosmetics: [{ itemId: "boast.s0", kind: "boast", name: "Overclock", faction: "Cortex", priceCredits: 300, owned: false }], wallet: { credits: 250, packPoints: 40, unopenedPacks: [] } },

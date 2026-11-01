@@ -16,14 +16,26 @@ items are removed, with the fix in `log.md`.
 - **Six of the twelve widgets only say what they wait on:** Live match, Watch live, Ladder, Rating & form,
   Match history, Notifications (all after match running). My agent has no rating, record, Start/Watch,
   persona or signature card; no auto-play switch anywhere.
-- **Pages are still missing:** Collection, Store (so no pack opening in the site: Open and the Packs
-  widget's Open go to a waiting Store page), Agent match, Watch live, Stats, Admin.
+- **Pages are still missing:** Collection, Agent match, Watch live, Stats, Admin. The Store (session 47)
+  has no loadout picker (cosmetics can be bought, not equipped, in the site) and no "Watch again" (the
+  logged opening lacks the reveal's fields; raised with the game lane).
+- **The site's pack opening is a frame around the standalone page:** two documents, two sound players
+  (the site has none of its own yet), and the frame is loaded once and kept. Proven in Chromium only. A
+  reload mid-reveal loses the show (the cards are safe: they're in the collection).
+- **The site's bundle grew from about 150 KB to 300 KB:** it now carries the engine's card registry, so
+  the planner can draw card faces. Fine on home Wi-Fi; never measured on a slow link.
+- **Session 25's ten-pack check script is stale** (`pack-bulk-check.mjs` times out on the speed buttons,
+  on main's page too); session 47's site check plays a ten-pack open instead, but not every speed or the
+  auto mode.
+- **Check E of `site-check-s47` failed once in four runs** (a second pack's reveal against its logged
+  copies), five clean runs since; cause unproven (likely the script's own taps). It now prints what it
+  saw when it fails.
 - **The board's drag is HTML5 drag and drop:** proven with a real mouse in Chromium; not tried in Safari
   or with a trackpad. No drop-position preview beyond the outlined target; the mockup has none either.
 - **Wide windows pack densely**, so a Small can sit ahead of its place in the owner's order (narrow ones
   keep the order). A screen reader reads the DOM order, which is the owner's order.
-- **Widget data refreshes every 15 s** (daily and packs only); the collection is read once on entering
-  Home and after a purchase, not after a pack is opened elsewhere.
+- **Widget data refreshes every 15 s** (daily and packs only); the collection is read on entering Home,
+  after a purchase and after an opening (session 47).
 - **The mini cards are a small placeholder face,** not the full card frame (no cost, stats or text).
 - **The liquid's frame rate was only ever measured in software WebGL.** The step-down threshold (20 fps)
   and the steps are first guesses.

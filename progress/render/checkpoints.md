@@ -7,6 +7,47 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-01 — The Store page, and pack opening on the site — AWAITING FEEDBACK
+
+The slice you named after session 46. Try it: `npm run site-demo -w @ai-tcg/render`, open
+http://127.0.0.1:8080/, sign in as `nova` / `a long demo password`.
+- **Open opens packs, full screen.** The top bar's Open, the Packs widget's Open and Open 10, and the
+  Store's buttons open real packs on the server and play them with the pack opening you approved
+  (sessions 24-30: every finish's reveal, the honest sparks, the ten-pack fan with Auto and Skip, the card
+  viewer). It's the same page, in a frame over the whole website.
+- **After a pack:** "Open another" and Done; after ten: "Open 10 more", "Open one pack" and Done. A
+  button whose packs aren't there is greyed with the reason. Done, Close (top right, any time) or Esc (on
+  the summary only) go back to where you were, with your credits, packs and widgets read again.
+- **The Store page:** the Season 0 pack (price, pity, Buy 1 to 10 with the total and how many credits
+  short), the free daily pack (what waits, when the next comes in, Claim), the packs waiting grouped by
+  where they came from (each row opens its oldest), your last six openings' cards, and the cosmetics on
+  sale.
+- **"Claim free daily pack" works** on the Store page and the Store widget (your call 7 from session 46:
+  greyed until the game lane's claim; it landed in session 65).
+- **Sound in the opening is your account's Sound setting**, and muting it there saves to your account.
+
+**Evidence:** `progress/render/evidence/site-check-s47.txt` (50 browser checks against the real owner
+API, ALL PASS; every revealed card checked against the copies the server logged for that pack) and stills
+`v2-s47-store-*.jpg` (the page light and dark, a sealed pack, a pack's summary, a ten-pack summary);
+render tests 758 (+17).
+
+**Decisions you may want to overrule:**
+1. **The opening happens on the server first, then the show.** The cards are in your collection the moment
+   you press Open; the reveal only shows them. So Close works at any time and loses nothing; a closed
+   pack's cards are under "Recent openings". Alternative: none safe (the server must roll it).
+2. **Esc closes only on the summary** (Close works any time), so a stray key never cuts a reveal short.
+3. **Open (one) is the oldest pack waiting; each row in "Waiting to be opened" opens that kind's oldest**
+   (a starter, a bought one, a free daily one). No per-pack list: they're all Season 0 packs.
+4. **Buying is a 1-10 stepper and one Buy button** with the total, after a confirm (as on Home).
+5. **Recent openings show the last six packs' cards**, with no "Watch again": the server's logged opening
+   doesn't carry what the reveal needs (see notes-for-owner).
+6. **Equipping cosmetics (the loadout picker) isn't on the Store page yet**: buying works; equipping comes
+   next with the Collection slice, or its own.
+
+**Next render-lane slice:** Collection's wide binder, and the loadout picker in the Store.
+
+---
+
 ## 2026-11-01 — Home as the widget board, saved to your account — AWAITING FEEDBACK
 
 Your Season 0 list, render item 3. Try it: `npm run site-demo -w @ai-tcg/render`, open

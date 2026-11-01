@@ -11,7 +11,12 @@
 // Session 46 (Home as the widget board): the board (`GET`/`PUT /api/board`)
 // and what its widgets read: packs (and buying them), the collection, the
 // store (and buying a cosmetic), today's earnings.
+//
+// Session 47 (the Store page and pack opening on the site): opening packs
+// (one, ten or a chosen one) and the owner's free daily pack (read and
+// claim).
 
+import type { BulkOpening, PackOpening } from "@ai-tcg/economy";
 import type { SiteBoard, SiteCollection, SiteDaily, SitePacks, SiteWidget } from "./siteBoard.js";
 
 /** A faction the owner can lock the agent to (OWNER_API.md, the play settings). */
@@ -119,9 +124,35 @@ export interface SiteCosmetic {
 /** `GET /api/store`. */
 export interface SiteStore {
   packs: SitePacks["offer"];
+  dailyPack: SiteDailyPack;
   cosmetics: SiteCosmetic[];
   wallet: SiteWallet;
 }
+
+/** The owner's free daily pack (`GET /api/packs/daily`, session 65): how
+ * many wait to be claimed and when the next comes in (midnight Sydney). */
+export interface SiteDailyPack {
+  setCode: string;
+  waiting: number;
+  cap: number;
+  day: string;
+  timeZone: string;
+  resetsAt: string;
+  /** null while `cap` wait: nothing comes in until one is claimed. */
+  nextPackAt: string | null;
+  claimedToday: number;
+  lastClaimedAt: string | null;
+}
+
+/** `POST /api/packs/open`: one store `PackOpening` per pack, and the
+ * ten-pack summary (null for one pack). */
+export interface SiteOpenAnswer {
+  packs: PackOpening[];
+  summary: BulkOpening["summary"] | null;
+  wallet: SiteWallet;
+}
+/** What to open: the oldest pack, the ten oldest, or a chosen one. */
+export type SiteOpenRequest = { count: 1 | 10 } | { packId: string };
 
 export interface SiteSession {
   token: string;
@@ -171,6 +202,9 @@ export interface SiteApi {
   buyPacks(token: string, setCode: string, count: number): Promise<{ bought: { packId: string }[]; wallet: SiteWallet }>;
   store(token: string): Promise<SiteStore>;
   buyCosmetic(token: string, itemId: string): Promise<{ wallet: SiteWallet }>;
+  openPacks(token: string, what: SiteOpenRequest): Promise<SiteOpenAnswer>;
+  dailyPack(token: string): Promise<SiteDailyPack>;
+  claimDailyPack(token: string): Promise<{ pack: { packId: string; setCode: string; source: string }; dailyPack: SiteDailyPack; wallet: SiteWallet }>;
 }
 
 /** The API at `base` ("" for the page's own origin; the site is served
@@ -226,5 +260,8 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     buyPacks: (token, setCode, count) => call("POST", "/api/packs/buy", { token, body: { setCode, count } }),
     store: (token) => call("GET", "/api/store", { token }),
     buyCosmetic: (token, itemId) => call("POST", `/api/store/cosmetics/${encodeURIComponent(itemId)}/buy`, { token }),
+    openPacks: (token, what) => call("POST", "/api/packs/open", { token, body: what }),
+    dailyPack: (token) => call("GET", "/api/packs/daily", { token }),
+    claimDailyPack: (token) => call("POST", "/api/packs/daily/claim", { token }),
   };
 }

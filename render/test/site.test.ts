@@ -62,7 +62,7 @@ describe("the sidebar and routes", () => {
     for (const id of Object.keys(PAGE_TITLES) as PageId[]) expect(pageFromHash(hashOf(id))).toBe(id);
   });
   it("the pages this slice serves are not on the waits list; every other page is", () => {
-    const served: PageId[] = ["home", "settings", "connect"];
+    const served: PageId[] = ["home", "settings", "connect", "store"]; // the Store: session 47
     for (const id of Object.keys(PAGE_TITLES) as PageId[]) expect(Object.prototype.hasOwnProperty.call(PAGE_WAITS, id), id).toBe(!served.includes(id));
   });
 });
