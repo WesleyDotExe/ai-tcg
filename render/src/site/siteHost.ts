@@ -14,7 +14,7 @@ import { createServer, request, type IncomingMessage, type ServerResponse } from
 import type { AddressInfo } from "node:net";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { renderSitePage } from "./sitePage.js";
+import { renderSitePackPage, renderSitePage } from "./sitePage.js";
 
 export interface SiteHostOptions {
   /** The owner API's origin, e.g. "http://localhost:8081". */
@@ -25,6 +25,8 @@ export interface SiteHostOptions {
   host?: string;
   /** The page to serve (defaults to renderSitePage()). */
   page?: string;
+  /** The full-screen pack opening's page (defaults to renderSitePackPage()). */
+  packPage?: string;
 }
 
 export interface RunningSiteHost {
@@ -37,9 +39,18 @@ export interface RunningSiteHost {
 const PAGE_HEADERS = {
   "Content-Type": "text/html; charset=utf-8",
   "Cache-Control": "no-store",
-  "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  // frame-src 'self': the full-screen pack opening is this host's own
+  // /pack-opening page in a frame (session 47).
+  "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
+};
+/** The pack opening's page: the same rules, but it may only be framed by
+ * this origin (the website), and it fetches nothing at all (the website
+ * hands it the openings). */
+const PACK_PAGE_HEADERS = {
+  ...PAGE_HEADERS,
+  "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
 };
 
 /** The request headers passed to the API: what the owner API reads. */
@@ -47,6 +58,7 @@ const FORWARD = ["authorization", "content-type", "content-length", "accept"];
 
 export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost> {
   const page = options.page ?? renderSitePage();
+  const packPage = options.packPage ?? renderSitePackPage();
   const api = new URL(options.api);
 
   const proxy = (req: IncomingMessage, res: ServerResponse) => {
@@ -76,13 +88,14 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
   const server = createServer((req, res) => {
     const path = new URL(req.url ?? "/", "http://site").pathname;
     if (path === "/api" || path.startsWith("/api/")) return proxy(req, res);
-    if (path === "/" || path === "/index.html") {
+    const served = path === "/" || path === "/index.html" ? { body: page, headers: PAGE_HEADERS } : path === "/pack-opening" ? { body: packPage, headers: PACK_PAGE_HEADERS } : null;
+    if (served) {
       if (req.method !== "GET" && req.method !== "HEAD") {
         res.writeHead(405, { Allow: "GET, HEAD" });
         return res.end();
       }
-      res.writeHead(200, PAGE_HEADERS);
-      return res.end(req.method === "HEAD" ? undefined : page);
+      res.writeHead(200, served.headers);
+      return res.end(req.method === "HEAD" ? undefined : served.body);
     }
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Not found");

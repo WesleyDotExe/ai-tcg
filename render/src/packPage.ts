@@ -37,6 +37,16 @@ export interface PackPageData {
   /** The first-time flow (slice 3, firstTimePage.ts): the page becomes the
    * Season 0 sign-up, with the pack opening inside it. */
   flow?: FirstTimeData;
+  /** The owner website's full-screen pack opening (render session 47): the
+   * page starts empty (no shelf, no picker) and the website drives it
+   * through `window.PACK` with real openings it just made (POST
+   * /api/packs/open): it sets the packs, opens them, and puts its own
+   * buttons on the summaries. A Close button in the bar hands back to the
+   * website (the cards are already in the collection by then; closing
+   * early only stops the show). The sound setting comes from the owner's
+   * account, through `window.PACK_SITE_HOST` on the website (the page's
+   * same-origin parent; packSiteHost). */
+  site?: boolean;
 }
 
 export function renderPackOpeningHtml(data: PackPageData): string {
@@ -44,8 +54,9 @@ export function renderPackOpeningHtml(data: PackPageData): string {
   const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT, mint: MINT_TIMINGS, flow: FLOW_TIMINGS };
   data = { ...data, bulks: data.bulks ?? [] };
   const flow = !!data.flow;
+  const site = !!data.site;
   return `<!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark"${site ? ' class="site"' : ""}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -67,7 +78,7 @@ export function renderPackOpeningHtml(data: PackPageData): string {
   <span class="sound-ctl" data-audio-ctl>
     <button id="btn-sound" aria-pressed="true" title="Sound is on. Click to mute.">Sound on</button>
     <input type="range" id="sound-vol" min="0" max="100" step="1" value="80" aria-label="Effects volume" title="Effects volume">
-  </span>
+  </span>${site ? '\n  <button class="close" id="close" title="Back to the website. Your cards are already in your collection.">Close</button>' : ""}
 </header>
 <main class="stage" id="stage">
   <div class="dim" id="dim"></div>
@@ -125,6 +136,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .sound-ctl { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 .sound-ctl button { border: 1px solid var(--line); background: #0d1324; border-radius: 6px; padding: 4px 9px; }
 .sound-ctl input { width: 70px; }
+/* The website's full-screen opening: no picker, a Close button at the end of the bar. */
+.site .picker { visibility: hidden; }
+.close { border: 1px solid #6a8cff; background: #17204a; border-radius: 7px; padding: 4px 14px; font-weight: 700; }
+.summary .btns button[disabled] { opacity: 0.45; cursor: default; }
+.summary .why { color: var(--dim); font-size: 12px; margin-top: 8px; }
 
 .stage { position: relative; flex: 1; min-height: calc(100dvh - 120px); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
   background: radial-gradient(ellipse at 50% 38%, #1d2350 0%, #0b0e24 48%, #05060d 100%); }
@@ -451,6 +467,21 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /** The page's pure helpers, evaluated in Node by the tests (the same
  * source the page runs). */
 export const PACK_PAGE_PURE_SOURCE = String.raw`
+  // The owner website's hooks, when the page runs inside it (site mode): the
+  // website (same origin, the page's parent) sets window.PACK_SITE_HOST =
+  // { sound: { read, write }, close() } before it loads the page. Anything
+  // else (a standalone page, a parent on another origin) is no host.
+  function packSiteHost() {
+    try { if (window.parent && window.parent !== window && window.parent.PACK_SITE_HOST) return window.parent.PACK_SITE_HOST; } catch (e) { /* another origin */ }
+    return null;
+  }
+  // The sound store the site mode mounts: the account's setting through the
+  // host; without one, nothing remembered (sound on, the default volume).
+  function packSiteSoundStore() {
+    var h = packSiteHost();
+    if (h && h.sound) return h.sound;
+    return { read: function () { return null; }, write: function () {} };
+  }
   // How far a drag across the pack's top has torn it, 0-1: the horizontal
   // distance over 70% of the pack's width. Dragging back doesn't un-tear.
   function packTearProgress(prev, x0, x, width) {
@@ -797,7 +828,9 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   packFitWatch(document.body);
 
   // ---------- sound ----------
-  SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'));
+  // On the owner website the setting is the account's (the host's sound, a
+  // { read, write } store the website hands over); standalone, the browser's.
+  SND.mount(document.getElementById('btn-sound'), document.getElementById('sound-vol'), DATA.site ? packSiteSoundStore() : undefined);
 
   // ---------- the picker and footer ----------
   var picker = document.getElementById('picker');
@@ -1659,9 +1692,12 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       '<h3>' + (best.length ? 'Everything else' : 'Every card') + '</h3><div class="grid">' + rest.map(function (t, i) { return tileHtml(t, i + best.length, ''); }).join('') + '</div>' +
       '<p class="points">+<b>' + sm.packPoints + '</b> pack points</p>' +
       '<div class="btns"><button class="pri" id="again">Open 10 more</button><button id="one">Open one pack</button><button id="done">Done</button></div></div>';
-    document.getElementById('again').addEventListener('click', function () { openBulk((S.bulk + 1) % DATA.bulks.length); });
-    document.getElementById('one').addEventListener('click', function () { openPack(0); });
-    document.getElementById('done').addEventListener('click', shelf);
+    if (S.onBulkSummary) S.onBulkSummary(scene.querySelector('.btns'), B);
+    else {
+      document.getElementById('again').addEventListener('click', function () { openBulk((S.bulk + 1) % DATA.bulks.length); });
+      document.getElementById('one').addEventListener('click', function () { openPack(0); });
+      document.getElementById('done').addEventListener('click', shelf);
+    }
     bindViewer(best.concat(rest));
     log('bulkSummary', { tiles: B.tiles.length, copies: B.tiles.reduce(function (n, t) { return n + t.count; }, 0), newBadges: B.tiles.filter(function (t) { return t.isNew; }).length, best: best.length, packPoints: sm.packPoints });
   }
@@ -1713,10 +1749,24 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   window.PACK = {
     S: S, log: log, later: later, clearTimers: clearTimers, stopLayers: stopLayers, sfx: sfx, esc: esc,
     setPacks: function (list) { DATA.packs = list; }, openPack: openPack,
+    setBulks: function (list) { DATA.bulks = list; }, openBulk: openBulk,
     faceHtml: faceHtml, backHtml: backHtml, addLayer: addLayer, sparks: sparks, openViewer: openViewer,
     pressTilt: pressTilt, tilting: tilting, bulkControls: bulkControls,
   };
   if (DATA.flow) return;
+  // The website drives the page: it waits, empty, for the first opening.
+  if (DATA.site) {
+    S.phase = 'idle';
+    var closeBtn = document.getElementById('close');
+    var siteClose = function (via) { if (!viewer.hidden) return closeViewer(); clearTimers(); stopLayers(); log('close', { via: via, phase: S.phase }); S.phase = 'idle'; scene.innerHTML = ''; hint.innerHTML = ''; counter.textContent = ''; skipBtn.hidden = true; bulkControls(false); zd.hidden = true; zd.className = 'zd'; var h = packSiteHost(); if (h && h.close) h.close(); };
+    closeBtn.addEventListener('click', function () { siteClose('button'); });
+    // Esc closes only once the pack is done (the summary), so a stray key
+    // can't cut a reveal short; the Close button works at any time.
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.phase === 'summary' && viewer.hidden) { e.preventDefault(); siteClose('key'); } });
+    window.PACK.close = siteClose;
+    log('siteReady', {});
+    return;
+  }
   // ?pack=N opens that pack straight away (1-based), ?bulk=N that ten-pack
   // open; otherwise the shelf.
   var m = /[?&]pack=(\d+)/.exec(location.search), mb = /[?&]bulk=(\d+)/.exec(location.search);

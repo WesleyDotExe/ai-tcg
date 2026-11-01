@@ -14,6 +14,7 @@
 //   npm run site-page -w @ai-tcg/render [-- <out file>]   (default render/output/site/index.html)
 
 import { buildSync } from "esbuild";
+import { renderPackOpeningHtml } from "../packPage.js";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,6 +33,16 @@ export function siteScript(): string {
     target: "es2019",
     platform: "browser",
     legalComments: "none",
+    // Session 47: the client plans each pack's reveal from the API's answer
+    // (packOpening.ts planReveal / planBulkReveal, the same code the
+    // standalone pages run). That file reads one value from the economy,
+    // the store's own list of hit finishes (FULL_ART_OR_BETTER, in
+    // economy/src/packs.ts); the economy's barrel also exports the SQLite
+    // store, which can't run in a browser. So the bundle resolves the
+    // economy to packs.ts alone, which holds that list and imports only the
+    // engine. Any other economy value the client ever imports fails this
+    // build loudly ("No matching export"), never silently.
+    alias: { "@ai-tcg/economy": join(here, "..", "..", "..", "economy", "src", "packs.ts") },
   });
   const text = out.outputFiles[0]!.text;
   if (/<\/script/i.test(text)) throw new Error("the site bundle contains </script");
@@ -84,6 +95,7 @@ body[data-theme="dark"] #bg { background: linear-gradient(135deg, rgb(13,18,36),
 .pp { border-radius: 5px; transform: rotate(45deg) scale(.82); background: linear-gradient(135deg, #7ad8ff, #8b5cff); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.4); }
 .obtn { position: relative; display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px 0 13px; border-radius: 99px; font: 800 14px system-ui; color: #3b2600;
   background: linear-gradient(135deg, #ffd66b, #f0a92a); box-shadow: 0 4px 14px rgba(230,150,20,.35), inset 0 1px 0 rgba(255,255,255,.6); }
+button.obtn { border: 0; cursor: pointer; } button.obtn[disabled] { cursor: default; }
 .obtn.none { color: var(--muted); background: var(--soft); box-shadow: var(--soft-edge); }
 .ocount { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; display: grid; place-items: center; font: 800 11px system-ui; color: #fff; background: var(--live); box-shadow: 0 0 0 2px var(--solid); }
 
@@ -219,6 +231,22 @@ body[data-theme="dark"] .topbar { background: rgba(10,12,30,.15); }
 .pk::before, .pk::after { content: ""; position: absolute; left: 0; right: 0; height: 7px; background: repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 3px, transparent 3px 6px); }
 .pk::before { top: 0; } .pk::after { bottom: 0; }
 .pk-s { width: 52px; height: 78px; } .pk-m { width: 96px; height: 144px; } .pk-m b { font-size: 26px; }
+.pk-l { width: 132px; height: 198px; } .pk-l b { font-size: 34px; }
+/* The Store page (session 47): packs and buying, the daily pack, the packs waiting, recent openings, cosmetics. */
+.st-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.st-grid > .panel { margin: 0; }
+.st-packs { grid-column: span 8; } .st-daily { grid-column: span 4; } .st-open { grid-column: span 5; } .st-recent { grid-column: span 7; } .st-cos { grid-column: span 12; }
+.st-grid h3 { margin: 0 0 6px; font-size: 17px; } .st-grid p { margin: 6px 0; }
+.st-buy { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.stepper { display: inline-flex; align-items: center; gap: 6px; } .stepper output { min-width: 2ch; text-align: center; font: 700 18px ui-rounded, system-ui; }
+.big-n { font: 800 30px ui-rounded, "SF Pro Rounded", system-ui; }
+.st-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.st-row, .st-rec { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; background: var(--soft); box-shadow: var(--soft-edge); }
+.st-row .dn, .st-rec .dn { flex: 1; min-width: 0; display: flex; flex-direction: column; } .st-row small, .st-rec small { color: var(--muted); }
+.st-rec { flex-wrap: wrap; } .st-rec .dn { flex: 0 0 150px; } .st-rec .mrow { flex: 1; min-width: 0; }
+.st-recent { display: flex; flex-direction: column; gap: 8px; }
+.pk-dot { width: 14px; height: 20px; border-radius: 3px; background: linear-gradient(135deg, #ffd36b, #c7871e); box-shadow: 0 1px 4px rgba(0,0,0,.2); flex: none; }
+@media (max-width: 1100px) { .st-packs, .st-daily, .st-open, .st-recent, .st-cos { grid-column: span 12; } }
 .shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .si { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; padding: 10px; border-radius: 16px; background: var(--soft); box-shadow: var(--soft-edge); }
 .si-pv { width: 100%; height: 54px; border-radius: 10px; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 70%, #fff), color-mix(in srgb, var(--c) 60%, #11152e)); }
@@ -311,6 +339,10 @@ body[data-theme="dark"] .dlg { background: rgba(20,24,56,.8); }
 .dlg h2 { margin: 0 0 6px; font: 800 19px system-ui; } .dlg p { margin: 0 0 18px; color: var(--muted); }
 .toast { position: fixed; left: 50%; bottom: 26px; z-index: 30; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; max-width: min(560px, calc(100vw - 32px));
   padding: 12px 18px; border-radius: 14px; color: #fff; background: rgba(20,22,48,.92); box-shadow: 0 8px 30px rgba(0,0,0,.3); transition: opacity .2s, transform .2s; font-weight: 600; }
+/* Pack opening is full screen (2026-10-05 B, session 47): the pack-opening page in a frame over everything. */
+.opening { position: fixed; inset: 0; z-index: 40; background: #05060d; }
+.opening iframe { display: block; width: 100%; height: 100%; border: 0; }
+.opening .op-wait { position: absolute; inset: 0; display: grid; place-items: center; color: #a3acd0; font: 600 14px system-ui; letter-spacing: .04em; }
 .toast.on { opacity: 1; transform: translate(-50%, 0); } .toast.error { background: rgba(150,24,52,.95); }
 
 /* Narrow windows: the panels stack in order (the phone layout stays parked). */
@@ -386,11 +418,20 @@ export function renderSitePage(): string {
 </div>
 
 <div id="dialog" class="dim"></div>
+<div id="opening" class="opening" hidden role="dialog" aria-modal="true" aria-label="Pack opening"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script>${siteScript()}</script>
 </body>
 </html>
 `;
+}
+
+/** The full-screen pack opening's page (session 47): the standalone
+ * pack-opening page in its site mode, empty until the website hands it a
+ * real opening. Served by the site host at /pack-opening, framed by the
+ * website (same origin). */
+export function renderSitePackPage(): string {
+  return renderPackOpeningHtml({ title: "Pack opening · AI·TCG", packs: [], site: true });
 }
 
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);

@@ -1010,3 +1010,19 @@ for its next session.)
    65; live matches, ladder, ratings, match history and notifications fill the waiting widgets after match
    running. Nothing else is needed for the board.
 4. **No shared files changed** (no workflow, no root package files, no server or economy code).
+
+## 2026-11-01 — Session 47 (the Store page and pack opening on the site)
+
+1. **Built: the Store page, and pack opening full screen on the site.** Calls are in
+   `progress/render/checkpoints.md` (newest entry).
+2. **A small ask for the game lane (only if you want "Watch again"):** `GET /api/packs/:packId/opening`
+   answers the logged copies (card, finish, serial), not the opening as `POST /api/packs/open` answered it
+   (each card's slot, the NEW badge, "x N owned", pity, the starter guarantee, pack points). The reveal
+   needs those to replay a pack honestly (slot order puts the shine card last; NEW and "x N owned" were
+   true at the time). If the endpoint answered the same `PackOpening` shape (or the store kept it), the
+   Store's recent openings could each have "Watch again", and a reload in the middle of a reveal could
+   pick it up again. Until then the Store shows those openings' cards only.
+3. **The liquid on the Mac mini:** nothing changed (your 2026-11-01 answer: fallback (a) only if you see
+   it stutter). The opening pauses the liquid while it covers the page.
+4. **No shared files changed** (no workflow, no root package files, no server or economy code). The site's
+   bundle reads one file of the economy (`economy/src/packs.ts`, the hit-finish list) read-only.

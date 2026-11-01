@@ -4262,3 +4262,85 @@ signature card; the skip hint on the account (nothing in the site skips yet).
 **Next render-lane slice:** the Store page with pack opening on the site (so Open and the Packs widget
 open packs, the standalone pack opening brought in), then Collection's wide binder. If the owner answers
 the frame-rate note first, that answer goes in the same slice.
+
+## 2026-11-01 — Session 47: the Store page and pack opening on the site
+
+Owner feedback read: the answers to render session 46 keep all 7 calls; fallback (a) for the liquid only
+if the owner reports a stutter on the Mac mini (no report yet, so nothing changed); the next slice named
+there is this one, "the Store page with pack opening on the site (so Open opens packs)". The game lane's
+session 65 built the free daily pack's claim, so call 7's greyed button is now live. The 2026-11-01 entry
+after that (answers to game session 65) is the game lane's. No CRITICAL item in the render debt list. Not
+a hardening pass: the owner set the slice. Alternation: the last merged PR (#113) was the game lane's.
+
+**Session 46's PR on CI (owed):** PR #112 merged to main (squash commit 4e1f35d); its CI run wasn't read
+this session.
+
+**Built:**
+- **Pack opening, full screen, on the site.** The standalone pack-opening page (`packPage.ts`) has a site
+  mode (`site: true`): empty at load, no picker, a Close button; the website drives it through the
+  existing `window.PACK` seam (`setPacks`/`openPack`, now also `setBulks`/`openBulk`, and an
+  `onBulkSummary` hook beside `onSummary`). The site host serves it at `/pack-opening`; the website
+  frames it (same origin) in a full-screen overlay. The reveal itself is unchanged: every finish's reveal,
+  the honest sparks, the ten-pack fan, auto and skip, the viewer.
+- **Real openings.** The top bar's Open, the Packs widget's Open / Open 10 and the Store's buttons call
+  `POST /api/packs/open` (`{count: 1|10}` or `{packId}`); the client plans the reveal from the answer with
+  the same planner the standalone pages use (`siteStore.revealOf` -> `planReveal` / `planBulkReveal`). To
+  bundle that planner for the browser, the site's esbuild resolves `@ai-tcg/economy` to the economy's pure
+  `packs.ts` (the one value it reads is the store's hit-finish list); any other economy value would fail
+  the build loudly.
+- **The summary's buttons are the website's** (`siteStore.summaryButtons`): one pack, "Open another" and
+  Done; ten, "Open 10 more", "Open one pack" and Done; a button whose packs aren't there is greyed with the
+  reason under it. Done, Close or Esc (on the summary only, so a stray key can't cut a reveal short) go
+  back; the wallet, Home's widgets and the Store read again; focus goes back to what opened it.
+- **The Store page** (`storePage` in `siteClient.ts`, the lines in `siteStore.ts`): the season's pack
+  (price, pity, Buy with a 1-10 stepper, the total and how many credits short), the free daily pack (what
+  waits, when the next comes in, Claim), the packs waiting grouped by where they came from (each row opens
+  its oldest one: `{packId}`), the last six openings' cards, the cosmetics on sale (Buy).
+- **Widgets:** Store's "Claim free daily pack" is live (call 7 from session 46 done); Packs says the daily
+  pack's state instead of "comes with its claim".
+- **Sound:** the reveal's player reads the account's sound setting (on/off, volume) and a change in the
+  opening is saved back to the account (`PATCH /api/account/settings`, after 0.5 s). The standalone pages
+  keep browser storage.
+- **Host:** the site's CSP gains `frame-src 'self'`; `/pack-opening` may be framed only by the site
+  (`frame-ancestors 'self'`) and has no `connect-src` (it fetches nothing).
+- **Demo:** the demo's extra packs are granted as weekly challenge packs, not owner-daily ones (ten
+  owner-daily packs on day one left nothing to claim); ten waiting (three before), one really bought.
+- Tests (+17, render 758): `render/test/siteStore.test.ts` (the plan equals the standalone planner's on
+  real store openings, single and ten, through JSON; refusals; the summary's buttons; the daily line; the
+  stepper; the grouping; recent openings; sound both ways; the site mode's page; the bundle; the host's
+  page and headers; opening one, a chosen one and ten, the claim and its 409, over the real owner API).
+
+**Ran it:** `progress/render/evidence/site-check-s47.mjs` -> `site-check-s47.txt`: 50 browser checks
+against the real owner API, ALL PASS (stills `v2-s47-store-*.jpg`). Each single pack's reveal is checked
+against the copies the server logged for it (`GET /api/packs/:id/opening`) and the slot order. Also
+re-run: session 46's board check (38, ALL PASS), the CI browser check (61, ALL PASS), session 24's
+standalone pack-opening check (all pass). Session 25's ten-pack check (`pack-bulk-check.mjs`) times out
+on the speed buttons on main's committed page too: the script is stale (not this change); the new check
+plays a ten-pack open through to its summary instead.
+
+**Mutants:** the ten-pack button enabled with any pack waiting; no guard against a summary with one pack;
+no `frame-src`; the account's sound read inverted: each fails a unit test. Before their fixes the browser
+check caught two real bugs: focus lost after an opening (every wallet redraw, the 15 s poll included,
+dropped focus off the Open button; `drawWallet` now keeps it), and the Store showing packs opened elsewhere
+(Home's Open) when you came back to it (stale reads; `afterChange` now re-reads the Store once it has
+been read), which made "Open one" on a row ask for an opened pack (404).
+
+**Found, not mine to fix (raised):** "Watch again" for a recent opening was built and taken out: the
+logged opening (`GET /api/packs/:id/opening`) returns the copies only, not the opening as the reveal
+plays it (slots, NEW badges, "x N owned", pity, pack points). Raised in notes-for-owner as a small
+game-lane ask.
+
+**Found from a still (fixed):** the ten-pack summary opened scrolled to its bottom, cards out of sight:
+focusing its main button scrolled the summary. Now focused with `preventScroll`; check G asserts the
+summary opens at its top.
+
+**Flake seen, not explained:** check E (the second pack's reveal against its logged copies) failed once
+in the first four runs, before the check printed what it saw; five runs since, all pass. Likely the
+script's own tapping racing a card's leave animation (it taps by position), but unproven. The check now
+prints the shown order and slots when it fails.
+
+**Not done (named):** the loadout picker in the Store (owning a cosmetic works; equipping waits for the
+next slice); "Watch again"; the Collection page; the ten-pack check script's repair.
+
+**Next render-lane slice:** Collection's wide binder (the server serves it all: copies, finishes, sets,
+salvage and crafting), with the loadout picker brought into the Store if it fits.

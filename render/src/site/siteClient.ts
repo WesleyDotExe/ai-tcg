@@ -22,10 +22,21 @@
 // Customise mode (drag or arrow keys to move, S/M/L, "−", + Add widget,
 // Background, Recommended layout; Done saves), the empty state, the widget
 // limits the server sends, at most two live boards, narrow-window stacking.
+//
+// Session 47 (the Store page and pack opening on the site): the Store page
+// (buying 1 to 10 packs, the packs waiting and where they came from, the
+// free daily pack's claim, the recent openings' cards, the cosmetics on
+// sale), and pack opening full screen: the top bar's Open, the Packs
+// widget's Open and Open 10 and the Store's buttons open real packs (POST
+// /api/packs/open) and the standalone pack-opening page, in its site mode
+// in a frame over everything, plays the server's answer (siteStore.ts
+// revealOf). Its summary's buttons open the next pack or ten more, or close.
+// The reveal's sound is the account's sound setting.
 
 import { avatarSvg } from "../avatar.js";
 import { startLiquid, type Liquid } from "./liquid.js";
-import { SiteApiError, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
+import { SiteApiError, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
+import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
 import {
   WIDGET_INFO,
   addBlock,
@@ -45,7 +56,7 @@ import {
   type WidgetSize,
   type WidgetType,
 } from "./siteBoard.js";
-import { sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
+import { miniCard, packArt, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
   FACTION_HEX,
@@ -105,9 +116,17 @@ const state: {
   /** What the widgets read, each fetched only when a widget on the board needs it. */
   home: { packs: SitePacks | null; collection: SiteCollection | null; daily: SiteDaily | null; store: SiteStore | null; errors: Partial<Record<WidgetSource, string>> };
   colFilter: string;
+  /** The Store page's own reads: the packs (with the daily pack), the store,
+   * and the collection's recent openings. */
+  shop: { packs: (SitePacks & { wallet: SiteWallet }) | null; store: SiteStore | null; recent: SiteCollection | null; error: string | null };
+  /** How many packs the Store's Buy button buys (1 to 10). */
+  buyCount: number;
+  /** A pack opening is on screen (or its request is out). */
+  opening: boolean;
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
   board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, errors: {} }, colFilter: "All",
+  shop: { packs: null, store: null, recent: null, error: null }, buyCount: 1, opening: false,
 };
 
 let liquid: Liquid | null = null;
@@ -129,7 +148,11 @@ let liquid: Liquid | null = null;
     editing: state.draft !== null,
     saving: state.saving,
     home: state.home,
+    shop: state.shop,
+    opening: state.opening,
   }),
+  /** The pack-opening frame's own state (its log of every beat), or null. */
+  pack: () => (frame?.contentWindow as unknown as { __pack?: unknown } | null)?.__pack ?? null,
   liquid: () => liquid?.stats() ?? null,
 };
 
@@ -275,6 +298,8 @@ function signedOut(message: string): void {
   state.boardError = null;
   state.draft = null;
   state.home = { packs: null, collection: null, daily: null, store: null, errors: {} };
+  state.shop = { packs: null, store: null, recent: null, error: null };
+  closeOpening();
   saveSession(null);
   clearTimeout(state.poll);
   showSignIn(message);
@@ -418,6 +443,7 @@ async function refresh(): Promise<void> {
     drawAgentCard();
     if (!state.busy && !dragging) drawPage();
     if (state.page === "home") void loadHome(["daily", "packs"]);
+    if (state.page === "store" && !state.opening) void loadShop();
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
   }
@@ -447,8 +473,8 @@ function drawShell(): void {
   applyTheme();
 }
 
-/** The top bar's credits, pack points and Open button (the wallet). The
- * Open button opens the Store page until pack opening comes to the site. */
+/** The top bar's credits, pack points and Open button (the wallet). Open
+ * opens the oldest waiting pack, full screen (session 47). */
 function drawWallet(): void {
   const el = $("#wallet");
   const w = state.wallet;
@@ -457,9 +483,13 @@ function drawWallet(): void {
     return;
   }
   const open = openButton(w.unopenedPacks.length);
+  // A redraw (the poll, a purchase, an opening) keeps focus on the Open
+  // button if it had it.
+  const hadFocus = document.activeElement?.id === "open-btn";
   el.innerHTML = `<span class="cur" title="Credits"><i class="coin" aria-hidden="true"></i><b>${amount(w.credits)}</b><span class="vh"> credits</span></span>`
     + `<span class="cur" title="Pack points"><i class="pp" aria-hidden="true"></i><b>${amount(w.packPoints)}</b><span class="vh"> pack points</span></span>`
-    + `<a class="obtn${open.enabled ? "" : " none"}" id="open-btn" href="#/store" aria-label="${esc(open.label)}" title="${esc(open.label)}">${icon("store", 16)}<span>Open</span>${open.enabled ? `<b class="ocount">${open.count}</b>` : ""}</a>`;
+    + `<button type="button" class="obtn${open.enabled ? "" : " none"}" id="open-btn" data-act="open-packs" data-count="1"${open.enabled ? "" : " disabled"} aria-label="${esc(open.label)}" title="${esc(open.label)}">${icon("store", 16)}<span>Open</span>${open.enabled ? `<b class="ocount">${open.count}</b>` : ""}</button>`;
+  if (hadFocus) (document.getElementById("open-btn") as HTMLElement | null)?.focus();
 }
 
 function avatar(name: string, faction: string | null, size: number): string {
@@ -504,6 +534,7 @@ function route(): void {
   document.title = `${PAGE_TITLES[page]} · AI·TCG`;
   drawPage();
   ($("#page") as HTMLElement).scrollTop = 0;
+  if (page === "store") void loadShop();
 }
 window.addEventListener("hashchange", () => {
   if (state.session && state.play) route();
@@ -518,6 +549,7 @@ function drawPage(): void {
   if (page === "home") el.innerHTML = homePage(p);
   else if (page === "settings") el.innerHTML = settingsPage(p);
   else if (page === "connect") el.innerHTML = connectPage(p);
+  else if (page === "store") el.innerHTML = storePage();
   else el.innerHTML = waitsPage(page);
   applyTheme();
 }
@@ -674,7 +706,7 @@ function sheet(html: string, onPick: (el: HTMLElement) => boolean, size: "" | "w
 }
 
 async function buyPacks(setCode: string, count: number): Promise<void> {
-  const price = state.home.packs?.offer.find((o) => o.setCode === setCode)?.priceCredits;
+  const price = (state.shop.packs ?? state.home.packs)?.offer.find((o) => o.setCode === setCode)?.priceCredits;
   if (!state.session || price === undefined) return;
   const total = price * count;
   if (!(await confirmDialog(count === 1 ? "Buy a pack?" : `Buy ${count} packs?`, `${count === 1 ? "One pack" : `${count} packs`} for ${amount(total)} credits. You have ${amount(state.wallet?.credits ?? 0)}.`, `Buy · ${amount(total)}`))) return;
@@ -686,7 +718,7 @@ async function buyPacks(setCode: string, count: number): Promise<void> {
   } catch (err) {
     fail(err);
   }
-  await loadHome(["packs", "store"]);
+  await afterChange();
 }
 
 async function buyCosmetic(itemId: string, name: string, price: number): Promise<void> {
@@ -700,7 +732,7 @@ async function buyCosmetic(itemId: string, name: string, price: number): Promise
   } catch (err) {
     fail(err);
   }
-  await loadHome(["packs", "store"]);
+  await afterChange();
 }
 
 // Drag to move (Customise mode): HTML5 drag and drop on the tiles; the drop
@@ -846,6 +878,304 @@ async function retryBoard(): Promise<void> {
   void loadHome();
 }
 
+// ---- the Store page (session 47) ---------------------------------------------
+/** Reads what the Store page shows: the packs (with the free daily pack),
+ * what's on sale, and the last few openings. */
+async function loadShop(): Promise<void> {
+  if (!state.session) return;
+  const token = state.session.token;
+  try {
+    const [packs, store, recent] = await Promise.all([api.packs(token), api.store(token), api.collection(token, 6)]);
+    state.shop = { packs, store, recent, error: null };
+    state.wallet = packs.wallet;
+    drawWallet();
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    state.shop = { ...state.shop, error: err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong." };
+  }
+  if (state.page === "store" && !state.busy) drawPage();
+}
+
+/** After anything that changes packs or credits: the wallet, Home's
+ * widgets and the Store page read again. */
+async function afterChange(): Promise<void> {
+  const reads: Promise<unknown>[] = [loadHome(["packs", "store", "collection"])];
+  // The Store's reads too, once it has been read: so coming back to it
+  // never shows packs that were opened elsewhere (Home's Open, the top bar).
+  if (state.page === "store" || state.shop.packs) reads.push(loadShop());
+  else if (state.session)
+    reads.push(
+      api.wallet(state.session.token).then(
+        (w) => {
+          state.wallet = w;
+          drawWallet();
+        },
+        () => undefined,
+      ),
+    );
+  await Promise.all(reads);
+}
+
+function storePage(): string {
+  const sh = state.shop;
+  if (!sh.packs || !sh.store) {
+    return `<div class="pg-wide"><div class="wempty glass"><h3>${sh.error ? "The Store couldn't be read" : "Loading the Store…"}</h3>${sh.error ? `<p class="muted">${esc(sh.error)}</p><button type="button" class="btn pri" data-act="retry-shop">Try again</button>` : ""}</div></div>`;
+  }
+  const credits = state.wallet?.credits ?? sh.packs.wallet.credits;
+  const offer = sh.packs.offer[0];
+  const now = Date.now();
+  // Buying: the set's pack, 1 to 10 at once (all or none).
+  let buy = '<p class="muted">No packs on sale right now.</p>';
+  if (offer) {
+    const b = buyView(offer, state.buyCount, credits);
+    state.buyCount = b.count;
+    buy = `<div class="st-buy"><div class="stepper" role="group" aria-label="How many packs"><button type="button" class="btn sm" data-act="buy-step" data-d="-1"${b.count <= 1 ? " disabled" : ""} aria-label="One fewer">−</button><output id="buy-n" aria-live="polite">${b.count}</output><button type="button" class="btn sm" data-act="buy-step" data-d="1"${b.count >= BUY_MAX ? " disabled" : ""} aria-label="One more">+</button></div>`
+      + `<button type="button" class="btn pri" id="buy-btn" data-act="buy-packs" data-set="${esc(offer.setCode)}" data-count="${b.count}"${b.canAfford ? "" : " disabled"}>Buy ${b.count === 1 ? "1 pack" : `${b.count} packs`} · ${amount(b.total)}</button></div>`
+      + `<p class="muted small">${b.canAfford ? `You have ${amount(credits)} credits.` : `${amount(b.short)} credits short: you have ${amount(credits)}.`} Win matches to earn more.</p>`;
+  }
+  const packsHead = `<section class="panel glass st-packs"><div class="row nowrap top">${packArt(offer?.setCode ?? "S0", "l")}<div class="wcol"><h3>${esc(offer?.name ?? "Packs")}</h3><p class="muted small">5 cards a pack${offer ? ` · ${amount(offer.priceCredits)} credits each` : ""} · every pack also pays 5 pack points</p><p class="muted small">${esc(pityText(sh.packs))}</p>${buy}</div></div></section>`;
+  // The free daily pack.
+  const dv = dailyPackView(sh.packs.dailyPack, now);
+  const daily = `<section class="panel glass st-daily"><h3>Free daily pack</h3><p>${esc(dv.line)}</p><p class="muted small">One a day, only you can claim it, up to ${dv.cap} can wait. The day turns at midnight ${esc(sh.packs.dailyPack.timeZone.split("/").pop() ?? "")} time.</p><button type="button" class="btn pri" id="claim-btn" data-act="claim-daily"${dv.canClaim ? "" : " disabled"}>${esc(dv.button)}</button></section>`;
+  // The packs waiting, by where they came from.
+  const n = sh.packs.unopened.length;
+  const bulk = sh.packs.bulkOpenCount;
+  const groups = unopenedGroups(sh.packs.unopened);
+  const rows = groups
+    .map((g) => `<div class="st-row"><span class="pk-dot" aria-hidden="true"></span><div class="dn"><b>${esc(g.name)}</b><small>${g.count} waiting · ${esc(g.setCode)} · the oldest from ${esc(shortWhen(g.oldestAt))}</small></div><button type="button" class="btn sm" data-act="open-packs" data-pack="${esc(g.oldestPackId)}" aria-label="Open a ${esc(g.name.toLowerCase())}">Open one</button></div>`)
+    .join("");
+  const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><p><b class="big-n">${n}</b> pack${n === 1 ? "" : "s"}</p><div class="row"><button type="button" class="btn pri" id="open1-btn" data-act="open-packs" data-count="1"${n ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk ? "" : " disabled"}>Open ${bulk}</button></div>${n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
+  // Recent openings: when, the best finish, the cards.
+  const rec = sh.recent ? recentOpenings(sh.recent, 6) : [];
+  const recent = `<section class="panel glass st-recent"><h3>Recent openings</h3>${rec.length ? rec.map((o) => `<div class="st-rec"><div class="dn"><b>${esc(shortWhen(o.openedAt))}</b><small>${esc(o.setCode)}${o.best ? ` · best: ${esc(o.best)}` : ""}${o.jackpot ? " · Jackpot pack" : ""}</small></div><div class="mrow">${o.cards.map((c) => miniCard(c)).join("")}</div></div>`).join("") : '<p class="muted small">No packs opened yet.</p>'}</section>`;
+  // Cosmetics on sale.
+  const cos = sh.store.cosmetics;
+  const items = cos.length
+    ? `<div class="shop">${cos.map((c) => `<div class="si"><span class="si-pv" style="--c:${(c.faction && FACTION_HEX[c.faction]) || "#8f8cff"}"></span><b class="small">${esc(c.name)}</b><span class="muted small">${esc(cosmeticKind(c.kind))}${c.faction ? ` · ${esc(c.faction)}` : ""}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${credits >= c.priceCredits ? "" : " disabled"}>Buy · ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>`
+    : '<p class="muted small">No cosmetics on sale right now.</p>';
+  const cosmetics = `<section class="panel glass st-cos"><h3>Cosmetics</h3>${items}<p class="muted small">Equipping what you own (the loadout picker) comes to this page next.</p></section>`;
+  return `<div class="pg-wide"><div class="st-grid">${packsHead}${daily}${waiting}${recent}${cosmetics}</div></div>`;
+}
+
+function pityText(p: SitePacks): string {
+  const sure = [p.pity.next.fullArt ? "a Full Art or better" : "", p.pity.next.mythic ? "a Mythic" : ""].filter(Boolean);
+  if (sure.length) return `Your next pack is sure to hold ${sure.join(" and ")}.`;
+  return `${p.pity.packsSinceFullArt} pack${p.pity.packsSinceFullArt === 1 ? "" : "s"} since a Full Art · ${p.pity.packsSinceMythic} since a Mythic`;
+}
+function cosmeticKind(kind: string): string {
+  return kind === "boast" ? "Victory boast" : kind.charAt(0).toUpperCase() + kind.slice(1);
+}
+
+async function claimDaily(): Promise<void> {
+  if (!state.session) return;
+  try {
+    const r = await api.claimDailyPack(state.session.token);
+    state.wallet = r.wallet;
+    drawWallet();
+    toast("Free daily pack claimed. It's waiting to be opened.");
+  } catch (err) {
+    fail(err);
+  }
+  await afterChange();
+}
+
+// ---- pack opening, full screen (session 47) ---------------------------------
+// The standalone pack-opening page in its site mode (packPage.ts), served by
+// the site host at /pack-opening and framed here, same origin. The website
+// makes the opening (the server rolls it and the cards are in the collection
+// at once), plans the reveal from the answer, and hands the plan to the
+// frame's window.PACK. The frame reads the account's sound through
+// window.PACK_SITE_HOST and calls its close() when it's done.
+interface PackApi {
+  S: { onSummary?: (btns: HTMLElement, r: unknown) => void; onBulkSummary?: (btns: HTMLElement, r: unknown) => void; phase: string };
+  setPacks(list: { label: string; reveal: unknown }[]): void;
+  setBulks(list: { label: string; reveal: unknown }[]): void;
+  openPack(i: number): void;
+  openBulk(i: number): void;
+  close(via: string): void;
+}
+let frame: HTMLIFrameElement | null = null;
+let frameReady: Promise<PackApi> | null = null;
+/** What opened the overlay, to give focus back to: the element, and a way
+ * to find its redrawn twin (the top bar and the pages redraw meanwhile). */
+let openedFrom: { el: HTMLElement; sel: string | null } | null = null;
+let soundTimer = 0;
+/** An opening's request is out: a second click waits for it. */
+let inflight = false;
+
+(window as unknown as { PACK_SITE_HOST: unknown }).PACK_SITE_HOST = {
+  sound: {
+    read: () => (state.settings ? soundPrefOf(state.settings.sound) : null),
+    // The player writes on every click and slider step: saved to the
+    // account once it settles.
+    write: (v: string) => {
+      const sound = soundPatchOf(v);
+      if (!sound || !state.session) return;
+      if (state.settings) state.settings = { ...state.settings, sound };
+      clearTimeout(soundTimer);
+      soundTimer = window.setTimeout(() => {
+        if (!state.session) return;
+        api.updateAccountSettings(state.session.token, { sound }).then(
+          (s) => (state.settings = s),
+          (err: unknown) => fail(err),
+        );
+      }, 500);
+    },
+  },
+  close: () => closeOpening(),
+};
+
+function packFrame(): Promise<PackApi> {
+  if (frameReady) return frameReady;
+  const host = $("#opening");
+  frame = document.createElement("iframe");
+  frame.title = "Pack opening";
+  frameReady = new Promise<PackApi>((resolve, reject) => {
+    frame!.addEventListener(
+      "load",
+      () => {
+        const P = (frame!.contentWindow as unknown as { PACK?: PackApi } | null)?.PACK;
+        if (P) resolve(P);
+        else reject(new Error("the pack opening didn't load"));
+      },
+      { once: true },
+    );
+  });
+  // A failed load is tried again next time.
+  frameReady.catch(() => {
+    frame?.remove();
+    frame = null;
+    frameReady = null;
+  });
+  frame.src = "/pack-opening";
+  host.appendChild(frame);
+  return frameReady;
+}
+
+function showOpening(waitText: string | null): void {
+  const el = $("#opening");
+  let w = el.querySelector(".op-wait") as HTMLElement | null;
+  if (waitText) {
+    if (!w) {
+      w = document.createElement("div");
+      w.className = "op-wait";
+      el.appendChild(w);
+    }
+    w.textContent = waitText;
+  } else w?.remove();
+  if (el.hidden) {
+    el.hidden = false;
+    liquid?.refresh();
+  }
+}
+
+/** Opens packs (the oldest, the ten oldest or a chosen one) and plays them
+ * full screen. Called again from the summary for the next pack. */
+async function openPacks(what: SiteOpenRequest, from?: HTMLElement): Promise<void> {
+  if (!state.session || inflight) return;
+  inflight = true;
+  if (from && $("#opening").hidden) openedFrom = { el: from, sel: twinSelector(from) };
+  state.opening = true;
+  if ($("#opening").hidden) showOpening("Opening…");
+  try {
+    const [answer, P] = await Promise.all([api.openPacks(state.session.token, what), packFrame()]);
+    state.wallet = answer.wallet;
+    drawWallet();
+    play(P, revealOf(answer));
+  } catch (err) {
+    // Nothing was opened (or the page couldn't show it: the cards are in
+    // the collection either way). Back to the website, with the reason.
+    forceClose();
+    fail(err);
+  } finally {
+    inflight = false;
+  }
+}
+
+/** A selector for the same button after a redraw: its id, or its action. */
+function twinSelector(el: HTMLElement): string | null {
+  if (el.id) return `#${el.id}`;
+  const a = el.dataset.act;
+  if (!a) return null;
+  const inWidget = el.closest(".wg") as HTMLElement | null;
+  const scope = inWidget?.dataset.id ? `.wg[data-id="${inWidget.dataset.id}"] ` : "";
+  return `${scope}[data-act="${a}"]${el.dataset.count ? `[data-count="${el.dataset.count}"]` : ""}${el.dataset.pack ? `[data-pack="${el.dataset.pack}"]` : ""}`;
+}
+
+/** Closes whatever the frame is doing, then the overlay. */
+function forceClose(): void {
+  const P = packApi();
+  if (P && P.S.phase !== "idle") P.close("error");
+  else closeOpening();
+}
+
+function play(P: PackApi, r: SiteReveal): void {
+  showOpening(null);
+  P.S.onSummary = (btns) => summaryHere(btns, "single");
+  P.S.onBulkSummary = (btns) => summaryHere(btns, "bulk");
+  if (r.kind === "single") {
+    P.setPacks([{ label: r.label, reveal: r.reveal }]);
+    P.openPack(0);
+  } else {
+    P.setBulks([{ label: r.label, reveal: r.reveal }]);
+    P.openBulk(0);
+  }
+  frame?.focus();
+  frame?.contentWindow?.focus();
+}
+
+/** The summary's buttons: the website's own (siteStore.summaryButtons),
+ * from the packs still waiting. */
+function summaryHere(btns: HTMLElement, kind: SiteReveal["kind"]): void {
+  const n = state.wallet?.unopenedPacks.length ?? 0;
+  const bulk = (state.shop.packs ?? state.home.packs)?.bulkOpenCount ?? 10;
+  const list = summaryButtons(kind, n, bulk);
+  btns.innerHTML = list.map((b) => `<button type="button"${b.primary ? ' class="pri"' : ""} data-site="${b.act}"${b.enabled ? "" : " disabled"}>${esc(b.label)}</button>`).join("");
+  const why = summaryWhy(list);
+  btns.parentElement?.querySelector(".why")?.remove();
+  if (why.length) btns.insertAdjacentHTML("afterend", `<p class="why">${why.map(esc).join(" ")}</p>`);
+  btns.onclick = (e) => {
+    const b = (e.target as HTMLElement).closest("[data-site]") as HTMLButtonElement | null;
+    if (!b || b.disabled) return;
+    const act = b.dataset.site as SummaryAction;
+    if (act === "done") return void packApi()?.close("done");
+    btns.querySelectorAll("button").forEach((x) => ((x as HTMLButtonElement).disabled = true));
+    void openPacks({ count: act === "ten" ? 10 : 1 });
+  };
+  // Focus the main button for the keyboard, without scrolling the summary
+  // (a ten-pack summary is taller than the window: the cards come first).
+  (btns.querySelector("button.pri:not([disabled])") as HTMLElement | null)?.focus({ preventScroll: true });
+}
+
+function packApi(): PackApi | null {
+  return (frame?.contentWindow as unknown as { PACK?: PackApi } | null)?.PACK ?? null;
+}
+
+/** Back to the website (Done, the frame's Close, Esc on the summary). The
+ * cards are already in the collection; everything that shows packs or
+ * credits reads again. */
+function closeOpening(): void {
+  const el = document.getElementById("opening");
+  if (!el || el.hidden) {
+    state.opening = false;
+    return;
+  }
+  const P = packApi();
+  // The frame's own close() calls back here: only once.
+  if (P && P.S.phase !== "idle") {
+    P.close("site");
+    return;
+  }
+  el.hidden = true;
+  el.querySelector(".op-wait")?.remove();
+  state.opening = false;
+  liquid?.refresh();
+  const back = openedFrom?.el.isConnected ? openedFrom.el : openedFrom?.sel ? document.querySelector<HTMLElement>(openedFrom.sel) : null;
+  (back && !(back as HTMLButtonElement).disabled ? back : ($("#page") as HTMLElement)).focus();
+  openedFrom = null;
+  if (state.session) void afterChange();
+}
+
 // ---- actions ----------------------------------------------------------------
 async function act(fn: (token: string) => Promise<SitePlay>, ok?: string): Promise<void> {
   if (!state.session || state.busy) return;
@@ -915,6 +1245,15 @@ document.addEventListener("click", (e) => {
     }
     if (act === "buy-packs") return void buyPacks(actEl.dataset.set!, Number(actEl.dataset.count));
     if (act === "buy-cosmetic") return void buyCosmetic(actEl.dataset.item!, actEl.dataset.name ?? "this", Number(actEl.dataset.price));
+    if (act === "open-packs") return void openPacks(actEl.dataset.pack ? { packId: actEl.dataset.pack } : { count: Number(actEl.dataset.count) === 10 ? 10 : 1 }, actEl);
+    if (act === "claim-daily") return void claimDaily();
+    if (act === "buy-step") {
+      state.buyCount = Math.max(1, Math.min(BUY_MAX, state.buyCount + Number(actEl.dataset.d)));
+      drawPage();
+      (document.querySelector(`[data-act="buy-step"][data-d="${actEl.dataset.d}"]`) as HTMLElement | null)?.focus();
+      return;
+    }
+    if (act === "retry-shop") return void loadShop();
   }
   const segBtn = t.closest(".seg button") as HTMLElement | null;
   if (segBtn) {
@@ -1004,7 +1343,8 @@ liquid = startLiquid($("#liquid") as HTMLCanvasElement, {
   background: () => backgroundOf(state.background),
   dark: () => document.body.dataset.theme === "dark",
   // The sign-in screen is opaque and covers the whole background.
-  covered: () => $("#signin").hidden !== true || $("#shell").hidden === true,
+  // So does a pack opening (full screen, session 47).
+  covered: () => $("#signin").hidden !== true || $("#shell").hidden === true || $("#opening").hidden !== true,
   reduceMotion: () => !!motionQuery?.matches,
 });
 applyTheme();
