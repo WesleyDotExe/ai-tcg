@@ -3872,3 +3872,32 @@ Answers the three calls under "The daily pack is built (from your 2026-10-04 spe
 3. **Keep:** while 2 wait, nothing more comes in; claiming one starts the timer to the next midnight Sydney again.
 
 Next game session, as planned: 66, Season 0 game item 1 (match running and the ladder).
+
+---
+
+## 2026-11-02 — Owner: answers to game session 66 (match running and the ladder), keep 1-4; house owners buy and open packs (a)
+
+Answers the [OWNER CHECK-IN] "Match running and the ladder: the calls I made (defaults built)" in `progress/notes-for-owner.md` (PR #115, `progress/ladder-demo-001.txt`).
+1. **Keep:** the tiers (Bronze < 1350, Silver 1350, Gold 1500 start, Platinum 1650, Diamond 1800, Mythic 1950+; 150 points each), and "Placement" (not ranked) until 5 rated matches.
+2. **Keep:** an abandon is a rated loss for the side that walked out (a win for the other) and pays nothing; a cancel isn't rated.
+3. **Keep:** the matchmaker settings (closest rating, up to 75 points of seeded jitter, rematch penalties 300 and 150, the odd one sits out and goes first next round, a coin flip for the first seat). **Add a check:** the first seat won 56% in the demo (72 matches). Measure the first-seat win rate over a larger ladder run and report it at the next owner check-in, with whether it is inside noise.
+4. **Keep:** RD grows for each whole Sydney day without a rated match; the rating itself doesn't decay.
+5. **Option (a):** the house owners automatically spend their agents' earned credits on Season 0 packs and open them at once, so their agents rebuild and the house shows the full loop. Make it the server's policy for house owners (not only the demo's), and leave real owners' credits alone: only the owner spends their credits.
+
+Next game session, as planned: 67, rounds on a timer at watch speed with the live state for Watch live, auto-play for owners, and match history with replays.
+
+---
+
+## 2026-11-02 — Owner: answers to render session 47 (the Store page and pack opening on the site), keep all 6; "Watch again" after session 67
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #114).
+1. **Keep:** the opening happens on the server first, then the reveal; Close at any time loses nothing.
+2. **Keep:** Esc closes only on the summary; Close works any time.
+3. **Keep:** Open opens the oldest waiting pack; each "Waiting to be opened" row opens that kind's oldest.
+4. **Keep:** buying is a 1-10 stepper and one Buy button with the total, after a confirm.
+5. **Keep for now:** recent openings show the cards only.
+6. **Keep:** the loadout picker comes with the next slice.
+
+**"Watch again" (render notes item 2): yes, as a small game-lane job after session 67's match work** (don't delay the live features). Keep each opening as `POST /api/packs/open` answered it (each card's slot, NEW, "x N owned", pity, the starter guarantee, pack points) and have `GET /api/packs/:packId/opening` answer that same `PackOpening` shape, written into `server/OWNER_API.md`. Then the render lane adds "Watch again" to recent openings, and a reload mid-reveal can pick it up again.
+
+Next render-lane slice, as planned: Collection's wide binder, and the loadout picker in the Store.
