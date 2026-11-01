@@ -1,0 +1,88 @@
+Balance report 038: NA12 and CS7 shipped, Null Pointer and Force Quit are "choose one" (session 62, game lane)
+=============================================================================================================
+Owner 2026-11-01 (answer to session 61's check-in): ship NA12 (a partial fix for Null > Aegis) and CS7 (Cortex >
+Swarm). The gate overshoot is accepted; Null slightly ahead of Cortex is OK. Check the removal cap: if Null
+Pointer's new mode doesn't fit it, don't ship NA12. Re-record both ring baselines, re-run both rings and the
+built-deck ring, regenerate the render replays that change, report at the next check-in.
+Files: progress/old-edges-ship/, progress/built-deck-ring-004.txt, progress/built-deck-ring-004/.
+
+---- 1. What changed ----
+engine/src/data/nullCards.ts  Null Pointer (NL-015), 2 energy, Instant, Uncommon, "choose one":
+  Dereference  Destroy target enemy directive. (the printed ability, unchanged, same ability id)
+  Null Out     Target enemy unit gets -3/-3 permanently.
+engine/src/data/cards.ts      Force Quit (CX-019), 2 energy, Instant, Uncommon, "choose one":
+  Terminate    Destroy target enemy directive. (the printed ability, unchanged, same ability id)
+  Kill All     Deal 1 damage to all enemy units.
+No other card, deck, copy count or rule changed.
+The card registry's hash is 5d6c142f...0759, the exact hash session 61's worktree run of "NA12+CS7" recorded
+in its stop-check (progress/old-edges/built-NA12+CS7/stop-check.txt). So what ships is byte for byte what was
+measured.
+
+---- 2. The removal cap (the owner's check) ----
+engine/src/dev/removalCapCheck.ts -> progress/old-edges-ship/removal-cap.txt (before: removal-cap-before.txt).
+The pool lint (cards/poolLint.ts rule 1) counts a card's copies once if ANY way of playing it is removal or
+debuff. Null Pointer was already counted, through Dereference (destroy an enemy directive). Null Out (-3/-3 on
+an enemy unit) is a debuff too, so each mode counts on its own, but the card still counts once:
+  Null    10/40 copies (25.0%), cap 10: unchanged, exactly at the cap; the lint passes.
+  Cortex   9/40 (22.5%): unchanged (Force Quit was already counted the same way).
+  Swarm 3/40, Aegis 7/40: unchanged.
+The Null starter collection is the shipped list, so the starter is also 10/40. Every built deck goes through
+buildDeck, which runs the lint, so no built deck can go over the cap either. The only line that differs between
+before and after is each card's mode list. NA12 fits the cap, so it ships.
+
+---- 3. One finding: Null Out never kills an undamaged unit ----
+The engine floors max health at 1 (state/queries.ts currentMaxHealth; the same rule already pinned for
+Deprecated Routine in nullFaction.test.ts: "decay" kills only together with damage). So Null Out on an
+undamaged 3/3 leaves a 0/1, alive. It kills any unit of 4 or less health that has taken any damage. Session 61's
+candidate note ("kills a 3-health body") was wrong about this. Its NUMBERS are still right: the candidate was
+measured under the same floor, so the shipped card is the one measured. Now pinned by tests
+(engine/test/oldEdgesShipped.test.ts). Raised for the owner: the card text "-3/-3" reads as if it kills a
+3-health unit.
+
+---- 4. The ring check (shipped decks), before and after re-baselining ----
+Files: progress/old-edges-ship/ring-*-before-rebaseline.txt, rebaseline-*.txt, ring-signature.txt.
+Before (baselines of 2026-10-30, the new cards):
+  `npm run ring` (gate) PASSED. Null > Aegis 51.6 -> 56.6 (OUT -> not sure); Cortex > Swarm 58.2 -> 61.6
+  (not sure); Null ~ Cortex 46.6 -> 51.3 (IN BAND); the others inside noise.
+  `npm run ring:real` FAILED on one edge, the one session 61 named: Null ~ Cortex 50.7 IN BAND -> 57.1
+  not sure (+6.4). The other real edges: Null > Aegis 45.9 -> 51.2, Cortex > Swarm 53.0 -> 55.2, Aegis >
+  Cortex 55.6 -> 56.2, Swarm > Null 53.9 -> 53.7, Aegis ~ Swarm 56.2 unchanged.
+  These are exactly session 61's numbers for NA12+CS7 on the ring's seeds (old-edges/built-NA12+CS7/
+  ring-*.txt), to the decimal. The owner OK'd Null slightly ahead of Cortex (session 61: 55.3 pooled, 57.1 on
+  the ring's seeds).
+Re-recorded with --write-baseline (engine/src/dev/ringBaseline.json, ringBaselineReal.json, both dated
+2026-11-01); this report is the justification. After: `ring` and `ring:real` PASS, every change +0.0.
+`ring:signature` (a report, not a CI check) PASSES against its 2026-10-17 baseline; not re-recorded (the owner
+kept that baseline on 2026-10-31). Its Null ~ Cortex moves 45.8 -> 53.1, the same direction.
+
+---- 5. The built-deck ring on the shipped cards (progress/built-deck-ring-004.txt) ----
+Run on the main tree with progress/old-edges-ship/run-built-deck-ring.sh (session 61's steps, no erratum: the
+cards are the change now). The report, the regenerated collections and all 16 builds and 8 rings are
+BYTE-IDENTICAL to session 61's worktree run of NA12+CS7. The realistic collections are unchanged
+(progress/built-deck-ring/collections.json: same file; it holds card ids, not card text).
+  real mode, faction means (shipped / full / 37 / 17 / 3 packs):
+    Cortex 47.3  49.0 50.0 50.5 50.7    (report 036: 48.9  53.2 49.7 51.1 51.4)
+    Swarm  47.4  51.3 48.1 48.6 46.7    (48.2  51.0 49.1 49.2 47.3)
+    Aegis  53.7  51.1 52.9 52.2 52.8    (55.3  50.0 52.5 52.4 54.3)
+    Null   51.6  48.5 49.0 48.6 49.8    (47.5  45.8 48.6 47.4 46.9)
+  real spread (max - min faction mean, averaged over the four built levels): 4.3 (report 036: 5.9).
+  real Null > Aegis: 51.2 shipped, 49.2 / 50.3 / 50.8 / 50.8 built (still OUT of 55-60 everywhere).
+  real Cortex > Swarm: 55.2 shipped, 53.3 / 55.4 / 56.3 / 57.3 built (IN at 3 packs).
+  gate Cortex > Swarm: 61.6 shipped, 58.1 / 61.9 / 62.7 / 63.4 built (over the band at 17 and 3 packs: the
+  overshoot the owner accepted).
+  gate Aegis > Cortex: 48.5 shipped, 52.4 / 45.7 / 46.3 / 44.0 built (OUT, as before; under the band).
+  Every built deck is 40. From a full collection the Null build is the shipped list.
+
+---- 6. Render fallout (regenerated, as session 60 did) ----
+Nine committed replays that play Cortex or Null now play differently and were regenerated:
+aegis-vs-cortex-seed1/6, cortex-vs-aegis-seed1, cortex-vs-aegis-sig-seed5, cortex-vs-null-seed5,
+cortex-vs-swarm-seed11, null-vs-swarm-seed2, swarm-vs-null-seed4/8 (the other replays came out byte-identical).
+Also first-time.html (the starter cards show the two modes; it also still showed Null's old 36-card starter)
+and loadout-picker.html (its Cortex owner's earnings come from real matches). The recorded empty-slot scenario
+moved from seed 5 (now a Null win) to seed 9, the first non-close Cortex win (16 health, as before):
+progress/old-edges-ship/recorded-matches.txt. Render tests: Deprecated Routine's role coverage gained a replay
+that fires it (Cortex vs Null seed 3). The modal-face list now includes the two cards. A response-tracking test
+now matches a resolve by stack id, because the engine names a modal Command's mode in the resolve ("Force Quit
+(Kill All)") and this is the first Instant modal Command. The render code already did this (feed.ts); only the
+test compared descriptions. Not regenerated: fx-sheet and skin-sheet (only render session 43's skip-hint CSS
+differs, the render lane's to refresh) and pack-opening (only random pack ids differ).

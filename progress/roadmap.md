@@ -5,6 +5,54 @@ owner feedback, work down this list: do the highest unfinished item that is
 unblocked. This replaces "pick one of several options" guesswork with a
 standing direction, so the owner doesn't have to choose every session.
 
+## Season 0 checklist (the MVP; owner 2026-11-01, kept current every session)
+
+Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
+In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
+art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
+Updated 2026-11-01, game session 62.
+
+**Set before Season 0 work**
+- [x] Game: ship NA12 and CS7 (session 62).
+- [x] Render: the "tap to skip" hint (render session 43). Follow-ups (remembered on the account; "or click the
+  board" on the intro) go with the website.
+
+**Game lane, in order**
+1. [ ] Match running and the ladder (6b below): many matches, server-assigned opponents, results recorded,
+   Glicko-2 ratings per owner, credit payouts; agents rebuild between matches when the rebuild reasons say so
+   (`rebuildAgentDeckIfNeeded` exists, nothing calls it yet); final health passed when a match is recorded
+   (for the close-win boast).
+2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
+   and the deck settings (session 56). Not built:
+   - [ ] wallet and collection (balance, ledger, copies, binder)
+   - [ ] buying and opening packs
+   - [ ] the cosmetics store and loadouts
+   - [ ] match history with replays
+   - [ ] live and featured matches; the match feed and live state (Watch live, the Live match widget)
+   - [ ] ladder standings and stats
+   - [ ] notifications
+   - [ ] the saved board layout and background choice
+   - [ ] the 2× vote (both owners agree) for live play
+3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
+   Cosmetics over a reset: raise at an owner check-in when this starts.
+
+**Render lane, in order** (the 2026-10-05 desktop spec, trimmed; `render/reference/owner-web-mockup.html`)
+1. [ ] Site layout and the full pages: glass sidebar and top bar; full-screen pack opening; Agent match and Watch
+   live; Collection (wide binder); Store (packs, cosmetics, the loadout picker); Stats; Settings; Connect agent;
+   the admin view; dark mode. (Standalone pages exist to reuse: pack opening, first-time, loadout picker,
+   the replays.)
+2. [ ] The look: frosted glass; the liquid WebGL backgrounds and picker (Glacier default; Ocean, Aurora,
+   Sunset, Lavender, Graphite; Plain black, Plain purple); the accessibility and performance rules.
+3. [ ] Home as the widget board: 12-column grid, S/M/L, Customise mode, empty state, layout saved to the
+   account, widget limits, narrow-window stacking; the Season 0 widgets (My agent, Live match, Watch live,
+   Packs, Collection, Showcase, Ladder, Rating & form, Match history, Notifications, Store, Daily rewards).
+4. [ ] Live play: auto-play, the 2× vote, Watch live, as pages and widgets.
+5. [ ] The ladder page.
+
+**After Season 0:** launch-scale storage and its load test (hard gate for Season 1), payments, the art pass,
+AI commentators, tournaments, quests, the published-odds page, the next set, 3D pack opening, the title screen,
+the League pull feed, the phone layout.
+
 ## Overriding rule
 If quality-debt.md has a CRITICAL item (a crash, a broken core system, a
 failing/absent test on something load-bearing), FIX THAT FIRST regardless of
@@ -482,6 +530,11 @@ levels, nothing from a full collection). Cortex > Swarm: CS7 (Force Quit
 gains a "1 damage to all enemy units" mode) reaches the band in real mode
 (55.0; 56-57 at packs) but the gate overshoots (61-63). Owner check-in open
 (ship NA12? ship CS7? both?); nothing shipped.
+SHIPPED session 62 (owner 2026-11-01, both): Null Pointer and Force Quit are
+modal; the removal cap holds (Null 10/40); both ring baselines re-recorded;
+the built-deck ring (`progress/built-deck-ring-004.txt`) byte-identical to
+session 61's run. The balance session is done; Null > Aegis's full fix goes
+into the next set (after Season 0).
 
 **Standing: live operations, balancing never stops (owner 2026-10-05).**
 Once live: track faction popularity and win rates from real ladder and

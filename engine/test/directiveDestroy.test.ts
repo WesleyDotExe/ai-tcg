@@ -64,16 +64,18 @@ test("a 'directive' filter never offers the controller's own directives, only th
   expect(options[0]!.type === "playCard" && options[0]!.target).toEqual({ kind: "directive", instanceId: enemyDirectiveId });
 });
 
-test("Force Quit offers no legal play at all when the opponent has no directive to destroy", () => {
+test("Force Quit's Terminate mode offers no legal play when the opponent has no directive to destroy", () => {
+  // Since session 62 Force Quit is modal (Terminate / Kill All). Terminate
+  // keeps the old rule: no legal target means no legal play, same as any
+  // other chosen-target card. Kill All hits every enemy unit (scope "all"),
+  // so, like any board-wide card, it stays castable into an empty board.
   const state = emptyState();
   state.players.p1.hand.push(forceQuit);
   state.players.p1.energy = 2;
   state.players.p1.maxEnergy = 2;
 
-  const legal = getLegalMoves(state);
-  expect(legal.some((m) => m.type === "playCard" && m.handIndex === 0), "no legal target means no legal play, same as any other chosen-target card").toBe(
-    false,
-  );
+  const plays = getLegalMoves(state).filter((m) => m.type === "playCard" && m.handIndex === 0);
+  expect(plays.map((m) => m.type === "playCard" && m.mode)).toEqual(["kill-all"]);
 });
 
 test.each([
@@ -114,23 +116,21 @@ test("LookaheadAgent destroys a valuable enemy directive rather than passing", (
   expect(move.type, "destroying a real enemy aura should beat passing").toBe("playCard");
 });
 
-test("LookaheadAgent does not prefer a fizzled Force Quit over passing when nothing is offered", () => {
-  // With no enemy directive at all, getLegalMoves never offers Force Quit
-  // (see the "no legal play at all" test above) — so the agent's only
-  // choice here is to pass, proving the earlier "all"/"self" zero-scoring
-  // bug class (session 12) has no equivalent hole for "directive" targeting:
-  // there's no move to mis-score in the first place.
+test("LookaheadAgent does not cast Force Quit into nothing when there is nothing to hit", () => {
+  // With no enemy directive Terminate is never offered (the test above), so
+  // the session-12 zero-scoring bug class has no hole for "directive"
+  // targeting. Kill All is offered into an empty enemy board: the agent must
+  // see it does nothing and pass rather than spend 2 energy on it.
   const state = emptyState();
   state.players.p1.hand.push(forceQuit);
   state.players.p1.energy = 2;
   state.players.p1.maxEnergy = 2;
 
   const legal = getLegalMoves(state);
-  expect(legal.every((m) => !(m.type === "playCard" && m.handIndex === 0))).toBe(true);
+  expect(legal.some((m) => m.type === "playCard" && m.handIndex === 0 && m.mode === "terminate")).toBe(false);
 
   const view = buildPlayerView(state, "p1");
   const agent = new LookaheadAgent("test", 10);
   const move = agent.decideMove(view, legal);
   expect(move.type).toBe("passPriority");
 });
-

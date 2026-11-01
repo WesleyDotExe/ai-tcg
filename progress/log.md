@@ -4013,3 +4013,42 @@ don't match wall time), so no run times are claimed beyond "the screen is ~35 s 
 **Evidence:** `progress/balance-report-037-old-edges.txt`, `progress/old-edges/`.
 
 **Blocked:** nothing. One owner check-in (ship NA12? ship CS7? both?).
+
+## 2026-11-01 — Session 62 (NA12 and CS7 shipped; the Season 0 checklist)
+
+**Read first:** `progress/owner-feedback.md`. Unhandled game-lane entries (all 2026-11-01): ship NA12 and CS7,
+check the removal cap first; Season 0 is the MVP; the Season 0 website spec (amends it). Acted on, marked
+handled/noted. The last merged PR (#106) was the render lane's, so this is a game-lane session (not a hardening
+one: 60 was).
+
+**Built:**
+- Null Pointer and Force Quit are modal in the real card files (`nullCards.ts`, `cards.ts`): the printed
+  directive answer kept as the first mode, the new unit mode second. The card registry hashes to exactly what
+  session 61's worktree run measured.
+- `engine/src/dev/removalCapCheck.ts`: per faction, the removal cards, their copies and how each mode
+  classifies. Null 10/40, unchanged (the card already counted); so NA12 ships.
+- `engine/test/oldEdgesShipped.test.ts` (16 tests). Three engine tests that pinned the one-mode cards updated
+  (Terminate offers no play with no directive; Kill All can be cast into an empty board and the agent passes;
+  Cortex's deck now carries a modal card). `oldEdgesCandidates.ts` rebuilds candidates from the shipped modal
+  cards.
+- Both ring baselines re-recorded (2026-11-01). Render fallout: 9 replays and 2 pages regenerated, the recorded
+  empty-slot scenario on seed 9, three render tests updated.
+- The Season 0 checklist at the top of `progress/roadmap.md`.
+
+**Ran it:** before re-baselining, `ring` PASS and `ring:real` FAIL on Null ~ Cortex (50.7 -> 57.1), every number
+equal to session 61's; after, both PASS, and `ring:signature` PASS. The built-deck ring on the main tree:
+report, collections, builds and rings byte-identical to session 61's. Mutation checks: -2/-2 for Null Out fails 3
+tests; Kill All aimed at both sides fails 1. `npm test` all six workspaces pass; typecheck clean.
+
+**Worked:** session 61's worktree runner measured exactly what shipped, again. **Didn't / honest limits:** a test
+showed Null Out does not kill an undamaged 3/3 (max health floors at 1); session 61's note said it would. The
+numbers stand (measured under the same rule), but the owner was told "kills a 3-health body" in the candidate
+file, never in the check-in; raised at the new check-in. A render test assumed a response's resolve and its stack
+item share a description; the first Instant modal Command broke that (test fixed; render code already used
+stack ids). Economy demos 014/016 still not re-run. The sandbox clock is unreliable again (the built-deck ring
+"took" under 5 minutes), so no run times are claimed.
+
+**Evidence:** `progress/balance-report-038-old-edges-shipped.txt`, `progress/old-edges-ship/`,
+`progress/built-deck-ring-004.txt`, `progress/built-deck-ring-004/`.
+
+**Blocked:** nothing. One owner check-in (results; the Null Out finding; no decision needed to continue).

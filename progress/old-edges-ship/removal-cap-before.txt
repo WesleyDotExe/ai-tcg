@@ -1,0 +1,31 @@
+Removal/debuff cap: 25% of a list's copies (cards/poolLint.ts rule 1).
+
+Cortex: 9/40 copies removal (22.5%), cap 10; lint passes
+  1 x Diagnostic Pulse (CX-004)
+  1 x Cascade Purge (CX-005)
+  1 x Interrupt Handler (CX-014)
+  2 x Compiled Daemon (CX-016)
+  1 x Dormant Exploit (CX-017)
+  2 x Force Quit (CX-019)
+  1 x Deadlock Detector (CX-023)
+
+Swarm: 3/40 copies removal (7.5%), cap 10; lint passes
+  1 x Dormant Egg Sac (SW-010)
+  2 x Bore Swarm (SW-013)
+
+Aegis: 7/40 copies removal (17.5%), cap 10; lint passes
+  3 x Perimeter Turret (AG-005)
+  1 x Lockdown Field (AG-012)
+  1 x Prime Aegis (AG-014)
+  1 x Tariff Field (AG-016)
+  1 x Breach Charge (AG-018)
+
+Null: 10/40 copies removal (25.0%), cap 10; lint passes
+  2 x Segfault Handler (NL-004)
+  1 x Deprecated Routine (NL-009)
+  1 x Segmentation Fault (NL-012)
+  2 x Kernel Panic (NL-013)
+  1 x Null Singularity (NL-014)
+  2 x Null Pointer (NL-015)
+  1 x Bit Rot (NL-018)
+

@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -55,8 +55,24 @@ real, but here is where it's thin.
   (inverted) and Cortex > Swarm (under band), candidates measured on the ring in both modes and on the
   built-deck ring at every level, results to an owner check-in. Its first job (Null's 4 added cards) is
   done: set A shipped in session 60, re-run on `progress/built-deck-ring-003.txt`. Job 2 (the two edges) is
-  run (session 61, `progress/balance-report-037-old-edges.txt`); the owner's call on its candidates is open.
-  Until then both edges stay out of band: Null > Aegis real 45.9, Cortex > Swarm real 53.0.
+  run (session 61, `progress/balance-report-037-old-edges.txt`) and its two fixes SHIPPED (session 62,
+  `progress/balance-report-038-old-edges-shipped.txt`, `progress/built-deck-ring-004.txt`). Still out:
+  Null > Aegis is a partial fix only (real 51.2 shipped decks, 49-51 built, band 55-60; nothing from a full
+  collection), its full fix designed into the next set; Cortex > Swarm overshoots the gate (61.6 shipped,
+  up to 63.4 built, accepted); Null ~ Cortex real 57.1 on the ring's seeds ("not sure", owner OK'd).
+- **Null Out's text vs the engine's health floor (session 62).** Max health floors at 1
+  (`state/queries.ts`), so "-3/-3 permanently" never kills an undamaged unit (a 3/3 ends 0/1). Pinned by
+  tests and raised with the owner, but the printed text still reads like a kill to a spectator or a
+  commentator, and agents that read text (an LLM agent later) could misjudge it. Session 61's candidate note
+  claimed a kill: that note was never checked in a whitebox test before the owner saw it. Lesson: test a
+  candidate's claimed effect, not just its win rate.
+- **Instant modal Commands are new territory (session 62).** Force Quit and Null Pointer are the first modal
+  cards cast as responses. The render's stack snapshot names a Command by card name while the engine's
+  resolve names the mode; the feed handles it by stack id, and a render test did not until this session.
+  Other render code that matches on stack descriptions (castFx) was only checked by the existing tests
+  passing, not by a dedicated test of a modal response.
+- **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
+  it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
 ## Session 61 (the balance session, job 2: the two old edges): what is still thin
 
@@ -92,7 +108,7 @@ real, but here is where it's thin.
 - **The render's Null replays changed under the render lane.** Six committed replays and two recorded
   scenarios were regenerated and three render tests re-seeded; the render lane's own evidence files from
   earlier sessions (e.g. `recorded-matches-s35.txt`) describe the old replays.
-- **Economy demos 014/016 still not re-run** since option B and set A.
+- **Economy demos 014/016 still not re-run** since option B, set A, and now NA12/CS7 (session 62).
 - **`ring:signature`'s baseline was not re-recorded** (it passes; a report, not a CI check).
 
 ## Session 59 (the balance session, job 1: Null's 4 added cards): what is still thin

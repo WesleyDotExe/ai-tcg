@@ -3687,7 +3687,7 @@ Next render-lane slice, as set: a "tap to skip" hint.
 
 ---
 
-## 2026-11-01 — Owner: answers to game session 61 (the two old edges), ship NA12 and CS7
+## 2026-11-01 — Owner: answers to game session 61 (the two old edges), ship NA12 and CS7 (HANDLED 2026-11-01, session 62 — both shipped as measured: `nullCards.ts` Null Pointer and `cards.ts` Force Quit are modal, the registry byte-identical to session 61's measured NA12+CS7 (same hash). Removal cap checked (`engine/src/dev/removalCapCheck.ts`, `progress/old-edges-ship/removal-cap.txt`): both of Null Pointer's modes count as removal, but the card already counted through its printed mode and the lint counts a card once, so Null stays 10/40, exactly at the cap; starter = list; lint passes. Both ring baselines re-recorded; `ring`/`ring:real` PASS; the built-deck ring (`progress/built-deck-ring-004.txt`) byte-identical to session 61's; render replays regenerated. One finding for the owner: the engine floors max health at 1, so Null Out never kills an undamaged unit (it leaves a 3/3 at 0/1); it was measured that way. Results at the owner check-in in notes-for-owner.md)
 
 Answers the [OWNER CHECK-IN] "The two old edges: one partial fix, one fix with a cost" in `progress/notes-for-owner.md` (PR #105, `progress/balance-report-037-old-edges.txt`).
 1. **Null > Aegis: ship NA12 as a partial fix.** Null Pointer becomes "choose one": Dereference (destroy target enemy directive), or Null Out (target enemy unit gets -3/-3 permanently). Still 2 energy, instant speed, Uncommon. The full-collection Null > Aegis gap stays open: design the full fix into the next set, as planned.
@@ -3702,7 +3702,7 @@ As the session proposed: the next game session ships them, re-records both ring 
 
 ---
 
-## 2026-11-01 — Owner: Season 0 is the MVP; both lanes prioritise it
+## 2026-11-01 — Owner: Season 0 is the MVP; both lanes prioritise it (NOTED 2026-11-01, session 62 — standing direction for both lanes; the Season 0 checklist is at the top of `progress/roadmap.md`, kept current each game session; the next game session starts game item 1, match running and the ladder)
 
 The owner's direction for both lanes: **Season 0 (in-house) is the MVP, and it now comes first.** After the work already set (game lane: ship NA12 and CS7; render lane: the "tap to skip" hint), each lane works down its Season 0 list below before any other roadmap growth. Fixing what's broken (a CRITICAL quality-debt item) still comes first, as always.
 
@@ -3732,7 +3732,7 @@ Add a **Season 0 checklist** near the top of `progress/roadmap.md` with every it
 
 ---
 
-## 2026-11-01 — Owner: the Season 0 website is the 2026-10-05 desktop spec, trimmed (amends the entry above)
+## 2026-11-01 — Owner: the Season 0 website is the 2026-10-05 desktop spec, trimmed (amends the entry above) (NOTED 2026-11-01, session 62 — the checklist in `progress/roadmap.md` follows this list, incl. the extra game-lane endpoints: board layout and background, notifications, the match feed and live state)
 
 This amends the render lane's list in "Season 0 is the MVP" above. That entry's "website basics" means **the desktop website the owner approved on 2026-10-05** ("website first, with a customisable widget board", and its build order steps 3-6). Build to that spec and to `render/reference/owner-web-mockup.html`: a desktop browser, no phone app, the phone layout still parked. Every rule in that entry still applies.
 
