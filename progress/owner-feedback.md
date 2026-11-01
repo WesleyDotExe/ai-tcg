@@ -3844,3 +3844,20 @@ Answers the [OWNER CHECK-IN] "The board and the economy endpoints: the calls I m
 6. **Add the daily pack in session 65.** The owner's 2026-10-05 website spec has "Claim free daily pack" in the Store widget and a daily timer on the Packs widget. If the economy already has a free daily pack (per owner, resetting at midnight Sydney), add the endpoints to claim it and to read when the next one is ready, written into `server/OWNER_API.md` with tests. **If the economy has no free daily pack, don't invent one:** bring the question (how many packs, which pack, any streak) to an owner check-in.
 
 **Accepted:** session 65 is the hardening pass (re-run, fix and regenerate the six stale economy demos and the crashing `boastDemo.ts`), with item 6 in the same session. Match running and the ladder follow in session 66. Update the Season 0 checklist in `progress/roadmap.md` to match.
+
+---
+
+## 2026-11-01 — Owner: answers to render session 46 (Home as the widget board), keep all 7; fallback (a) if the liquid stutters
+
+Owner decisions on the 7 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #112).
+1. **Keep:** Customise edits are held until Done; leaving Home while customising saves too; "+ Add widget" outside Customise and the empty board's buttons save at once.
+2. **Keep:** the striped "board here" placeholder in Live match (M/L) and Watch live (L) until live matches are served.
+3. **Keep:** mini placeholder card faces in the Collection, Showcase and Packs widgets.
+4. **Keep:** Showcase picks the rarest finishes first, then rarity; pinning waits for the Collection page.
+5. **Keep:** wide windows pack densely; narrow windows keep the owner's order exactly.
+6. **Keep:** Daily rewards' bar ends at what wins can pay in a day (read from the server's schedule), with losses listed beside it.
+7. **Keep:** "Claim free daily pack" greyed until the game lane's claim lands (session 65).
+
+**The liquid behind a full board (notes item 2):** the owner will check it on the Mac mini. **If it isn't smooth there, use option (a):** the liquid goes still on Home when it can't hold 20 fps at its lowest resolution, and keeps moving on lighter pages. Not (b) or (c). Until the owner reports back, change nothing; if the owner reports it smooth, nothing changes.
+
+Next render-lane slice, as planned: the Store page with pack opening on the site (so Open opens packs), then Collection's wide binder.
