@@ -3763,3 +3763,16 @@ Owner decisions on the 5 calls in `progress/render/checkpoints.md` (PR #106).
 5. **Keep:** left out, not moved, when it doesn't fit.
 
 Small follow-ups (calls 2 and 4) go into the next render session alongside its Season 0 work; the next slice stays the owner's Season 0 list, item 1 (the desktop website).
+
+---
+
+## 2026-11-01 — Owner: answers to game session 62 (NA12 and CS7 shipped)
+
+Answers the [OWNER CHECK-IN] "NA12 and CS7 are shipped; both rings re-run" in `progress/notes-for-owner.md` (PR #107, `progress/balance-report-038-old-edges-shipped.txt`).
+1. **Keep the health rule:** a stat change never takes a unit's max health below 1; a shrink kills only together with damage. No rule change. **Change the card text** so it says so: Null Out reads "target enemy unit gets -3/-3 permanently (it can't take health below 1)". Text only: the card's behaviour and the measured numbers don't change. Use the same wording on any other -X/-X card the rule affects (for example Deprecated Routine) if its text would otherwise suggest a kill.
+2. **Keep:** the recorded "empty boast slot" scenario moved to seed 9 (a non-close Cortex win).
+3. **Keep:** the three render pages (fx-sheet, skin-sheet, pack-opening) are left for the render lane to refresh.
+
+**Accepted:** Null ~ Cortex at 57.1% for Null in real matches with shipped decks (above the 55.3% quoted at session 61's check-in, and above the even band's top of 55). With built decks the factions are closer together than before (spread 4.3). Keep watching this edge: flag it at a check-in if it moves further out, or if built decks put it above 55 at any level.
+
+Next game session, as planned: Season 0, game item 1 (match running and the ladder).
