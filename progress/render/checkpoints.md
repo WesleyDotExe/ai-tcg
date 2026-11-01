@@ -7,6 +7,48 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-01 — The owner website, first slice — AWAITING FEEDBACK
+
+Your Season 0 list, render item 1, begun. Try it: `npm run site-demo -w @ai-tcg/render`, open
+http://127.0.0.1:8080/ and sign in as `nova` / `a long demo password` (a fresh demo database; every click
+goes to the game lane's real owner API).
+- **Sign-in**, then the **glass sidebar** (Home, Agent match, Watch live, Collection, Store, Tournament,
+  Stats; Settings, Connect agent; the agent card at the bottom with its live status) and the **top bar**
+  (title, theme, account with Sign out). Light and dark.
+- **Settings -> Play works end to end:** who picks the deck, the faction lock, forcing a saved deck,
+  each agent's play style, and "Rebuild now" with its job shown while it runs and summarised after.
+- **Home** shows My agent and the Deck; **Connect agent** lists your agents.
+- **The pages without data yet** (Collection, Store, Agent match, Watch live, Stats) say what they'll hold
+  and which endpoint they wait on, rather than showing made-up numbers.
+- **Your call 4 from session 43:** the intro's hint now says "or click the board · Esc" (mouse) and "or
+  tap the board" (touch); boasts unchanged.
+
+**Evidence:** `progress/render/evidence/site-check-s44.txt` (32 browser checks, ALL PASS) and stills
+`v2-s44-site-signin.jpg`, `-home-light.jpg`, `-home-dark.jpg`, `-settings-building.jpg`,
+`-settings-built.jpg`, `-settings-dark.jpg`, `-dialog.jpg`, `-narrow.jpg`; `ci-browser-check-s44.txt`
+(61, ALL PASS); render tests 696 (+19).
+
+**Decisions you may want to overrule:**
+1. **Tournament in the sidebar: shown greyed with a "Soon" badge** (you asked for hidden or coming soon
+   to be proposed). Clicking it says "Tournaments come after Season 0". Alternative: hide it until then.
+2. **Pages without an endpoint say what they wait on** in plain words, instead of being hidden or showing
+   sample data. Alternative: hide them from the sidebar until they work.
+3. **A small host in the render lane serves the page and passes /api through** to the owner API, so the
+   browser sees one origin. Alternative: the owner API serves the page itself (a game-lane change), and
+   the host goes away. Either works on the Mac mini.
+4. **Signed in for the life of the tab** (the token in the tab's session storage): a reload stays signed
+   in, closing the tab doesn't keep it. Alternative: memory only (every reload signs in again), or longer.
+5. **The theme isn't saved anywhere yet** (it resets on reload, System by default), because there's no
+   account-settings endpoint; I didn't use browser storage, per your session-43 call 2.
+6. **The title screen is trimmed for now:** the badge, logo, tagline and sign-in panel on the cosmic
+   colours; the card fan, foil logo, stat tiles and ticker come with the look (item 2) and live data.
+
+**Thin spots (in the debt list):** a still gradient, not the liquid background; no widgets beyond two
+panels; no credits, pack points, notifications or auto-play in the bars (no endpoints); only judged in a
+headless browser; the site's browser check is by hand, not in CI.
+
+**Next render-lane slice:** item 2, the look: the liquid WebGL backgrounds and the picker.
+
 ## 2026-10-31 — The "tap to skip" hint — AWAITING FEEDBACK
 
 The slice you set after render session 42. Open `render/output/boast-sheet.html` and press any Play, or

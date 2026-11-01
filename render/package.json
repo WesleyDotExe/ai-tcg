@@ -20,7 +20,10 @@
     "boot-sheet": "tsx src/bootSheet.ts",
     "loadout": "tsx src/loadoutDemo.ts",
     "ci-pages": "tsx src/ciPages.ts",
-    "browser-check": "node ci/browser-check.mjs"
+    "browser-check": "node ci/browser-check.mjs",
+    "site": "tsx src/site/siteHost.ts",
+    "site-page": "tsx src/site/sitePage.ts",
+    "site-demo": "tsx src/site/siteDemo.ts"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",

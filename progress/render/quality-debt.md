@@ -7,17 +7,32 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
+## The owner website (session 44)
+
+- **It is a shell with one working settings page.** Sign-in, sidebar, top bar, Home's two panels,
+  Settings -> Play and Connect agent's list are real; Collection, Store, Agent match, Watch live and Stats
+  are "waiting on the server" panels. No widget board, no Customise, no pack opening in the site yet.
+- **The look is a still CSS gradient,** not the liquid WebGL background; no background picker; the title
+  screen has no card fan, foil logo, stat tiles or ticker.
+- **Missing from the bars for lack of endpoints:** credits, pack points, the Open button, notifications,
+  the auto-play switch, the owner's name (the account shows the login typed), Admin.
+- **Nothing is saved to the account:** the theme resets each load; the skip hint isn't remembered (owner
+  call 2 from session 43 is open until an account-settings endpoint exists).
+- **The site's browser check is by hand** (`progress/render/evidence/site-check-s44.mjs`, 32 checks); CI
+  runs only the vitest half (host + client over the real owner API).
+- **Judged from headless stills only;** the glass over a still gradient reads flatter than the mockup.
+- **The faction colour of the agent** comes from the lock or the last rebuild's result (the API has no
+  deck faction); after a reload with no lock and no job in memory, the avatar is the neutral violet.
+- **The rebuild poll is every 1.5 s while running and 15 s otherwise;** a match starting shows up to 15 s
+  late. Live state wants a push channel when Watch live is built.
+
 ## The "tap to skip" hint (session 43)
 
 - **Nobody has judged it on a real screen.** Its words, size (11 px on a desktop, 12 px on a touch
   screen) and backing were judged from headless stills (`v2-s43-hint-*.jpg`). On a desktop it sits
   over the top-right card of the winner's row, on a dark chip.
-- **"Click anywhere" is not quite true for the intro:** a click on the playback controls does the
-  control's job (pause, step) and doesn't skip, as built in session 35. The boast does skip on any
-  click, the controls included. The hint says the same words for both.
-- **"Once skipped, never again" lasts one page load.** It is page memory, not stored: a viewer who
-  opens another replay sees the hint again until they skip there. Stored memory (browser storage, or
-  the owner's account on the site) is an owner call, raised at the checkpoint.
+- **"Once skipped, never again" lasts one page load.** The owner chose the account (session 43 call 2);
+  it waits on an account-settings endpoint (session 44 notes).
 - **It is left out, not moved, when it doesn't fit** (under Skip, inside the winner's side or the
   board, clear of the name plate and the intro's lines). No real layout drops it today (all 30 sheet
   scenes, both replay layouts), but nothing tells the viewer when it is dropped; the page counts it

@@ -2,7 +2,7 @@
 // and how the boast's runtime shows it (the exact text the page embeds,
 // on the fake page the boast's other runtime tests use).
 import { describe, expect, it } from "vitest";
-import { SKIP_HINT_GAP, SKIP_HINT_KEY, SKIP_HINT_PAD, SKIP_HINT_SOURCE, SKIP_HINT_TAP, skipHintPlace, skipHintText } from "../src/skipHint.js";
+import { SKIP_HINT_BOARD_KEY, SKIP_HINT_BOARD_TAP, SKIP_HINT_GAP, SKIP_HINT_KEY, SKIP_HINT_PAD, SKIP_HINT_SOURCE, SKIP_HINT_TAP, skipHintPlace, skipHintText } from "../src/skipHint.js";
 import { BOAST_CSS, BOAST_PURE_SOURCE, BOAST_RUNTIME_SOURCE } from "../src/boastFx.js";
 import { MATCH_BOOT_RUNTIME_SOURCE } from "../src/matchBootFx.js";
 import { readFileSync } from "node:fs";
@@ -17,6 +17,13 @@ describe("the words", () => {
     expect(skipHintText(false)).toBe(SKIP_HINT_KEY);
     expect(SKIP_HINT_TAP).toBe("or tap anywhere");
     expect(SKIP_HINT_KEY).toBe("or click anywhere · Esc");
+  });
+
+  it("the intro names the board, on a mouse and on a touch screen (owner, session 43 call 4)", () => {
+    expect(skipHintText(false, "board")).toBe(SKIP_HINT_BOARD_KEY);
+    expect(skipHintText(true, "board")).toBe(SKIP_HINT_BOARD_TAP);
+    expect(SKIP_HINT_BOARD_KEY).toBe("or click the board · Esc");
+    expect(SKIP_HINT_BOARD_TAP).toBe("or tap the board");
   });
 });
 
@@ -61,7 +68,7 @@ describe("on the page", () => {
     expect(BOAST_CSS).toContain(".skip-hint {");
     expect(BOAST_RUNTIME_SOURCE).toContain("skipHintShow(sk, geom.band");
     expect(BOAST_RUNTIME_SOURCE).toContain("skipHintSeen(); finish('skip')");
-    expect(MATCH_BOOT_RUNTIME_SOURCE).toContain("skipHintShow(sk, A, avoid)");
+    expect(MATCH_BOOT_RUNTIME_SOURCE).toContain("skipHintShow(sk, A, avoid, 'board')");
     expect(MATCH_BOOT_RUNTIME_SOURCE).toContain("skipHintSeen(); finish('skip')");
   });
 

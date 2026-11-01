@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { STARTER_BOASTS } from "@ai-tcg/economy";
 import { BOAST_CLEAR_MS, BOAST_LEAD_MS, boastFromRecord } from "../src/boastFx.js";
-import { SKIP_HINT_KEY, SKIP_HINT_TAP } from "../src/skipHint.js";
+import { SKIP_HINT_BOARD_KEY, SKIP_HINT_BOARD_TAP, SKIP_HINT_KEY, SKIP_HINT_TAP } from "../src/skipHint.js";
 import { CI_REPLAY, ciPages } from "../src/ciPages.js";
 import { renderBoastSheet } from "../src/boastSheet.js";
 
@@ -72,6 +72,10 @@ describe("the CI browser check's pages", () => {
     expect(m, "the words line in browser-check.mjs").toBeTruthy();
     expect(JSON.parse(`"${m[1]}"`)).toBe(SKIP_HINT_KEY);
     expect(m[2]).toBe(SKIP_HINT_TAP);
+    const b = /const BOARD_KEY = '([^']+)', BOARD_TAP = '([^']+)';/.exec(check)!;
+    expect(b, "the intro's words line in browser-check.mjs").toBeTruthy();
+    expect(JSON.parse(`"${b[1]}"`)).toBe(SKIP_HINT_BOARD_KEY);
+    expect(b[2]).toBe(SKIP_HINT_BOARD_TAP);
   });
 
   it("the sheet has the 30 scenes section E counts, each with its winner's side", () => {

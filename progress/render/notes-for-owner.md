@@ -963,3 +963,21 @@ for its next session.)
    lane keeps it, and the render lane will say what it has done in its own log for the game lane to tick.
 3. **No shared files changed this session** (no workflow, no root package files). Nothing for the game
    lane: its PRs run the longer CI check (61 checks, about 10 s more).
+
+## 2026-11-01 — Session 44 (the owner website, first slice)
+
+1. **Built: sign-in, the shell and Settings -> Play,** against the owner API as it is. Calls are in
+   `progress/render/checkpoints.md` (newest entry). Try it with `npm run site-demo -w @ai-tcg/render`.
+2. **Endpoints the website needs that don't exist yet** (for the game lane; the pages say so meanwhile):
+   - **Account settings** (theme, background, sound/music, and "the skip hint has been seen", your
+     session-43 call 2): the hint can't be remembered on the account until this exists, so call 2 is not
+     done yet; the hint still shows until the first skip on each page.
+   - **Who am I** (the owner's display name, and whether they're the house admin, for the Admin entry):
+     the account button shows the login typed at sign-in for now, and there is no Admin entry yet.
+   - Wallet (credits, pack points, the Open button), notifications, connecting/switching agents, auto-
+     play, and the rest already on the Season 0 list.
+3. **Serving the page (call 3 in the checkpoint):** OWNER_API.md assumes the site shares the API's origin.
+   `render/src/site/siteHost.ts` does that now. If you'd rather the owner API serve the page, that's a
+   small game-lane change and the host can go.
+4. **No shared files changed** (no workflow, no root package files, no server or economy code). The
+   render tests import the owner API's source to test against it, read-only.

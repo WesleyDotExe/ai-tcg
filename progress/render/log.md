@@ -4084,3 +4084,69 @@ website to the 2026-10-05 spec and `render/reference/owner-web-mockup.html`, sta
 layout (the glass sidebar and top bar) and the full pages, built against `server/OWNER_API.md`. Read
 which endpoints exist first; where one is missing, say so in notes-for-owner.md and build a page that
 doesn't need it.
+
+## 2026-11-01 — Session 44: the owner website, first slice (sign-in, the shell, Settings -> Play)
+
+Render session per the alternation (the last merged PR, #107, was the game lane's session 62). Owner
+feedback read: the answers to render session 43 (keep 1, 3, 5; call 2 "remember on the account in the
+website"; call 4 "the intro says click the board"), and the Season 0 list (2026-11-01, both entries): the
+render lane's item 1 is the desktop website to the 2026-10-05 spec and `owner-web-mockup.html`. No
+CRITICAL item in the render debt list.
+
+**Session 43's PR on CI (owed):** PR #106, the `test` job 3 min 1 s, passed; auto-merge 3 min 14 s.
+
+**Built:**
+- **Call 4 (the intro's hint):** `skipHint.ts` has the intro's own words, "or click the board · Esc" with
+  a mouse and "or tap the board" on a touch screen (a tap on the playback controls doesn't skip the intro,
+  so "anywhere" wasn't true there either). `skipHintShow(..., 'board')` from `matchBootFx.ts`; boasts keep
+  "or click anywhere · Esc" / "or tap anywhere". CI check section E and its vitest twin updated.
+- **The owner website** (`render/src/site/`):
+  - `siteApi.ts`: the client for `server/OWNER_API.md` (every endpoint that exists today: session,
+    play settings, deck choice, faction lock, active deck, play style, rebuild and its job). Browser-safe;
+    refusals are `SiteApiError(status, the server's words)`, 0 when nothing answered.
+  - `siteModel.ts`: pure logic, tested: the sidebar (the spec's order; Tournament greyed "Soon"), hash
+    routes (`#/settings`; unknown is Home), System/Light/Dark, the agent's status, "which deck plays",
+    the rebuild panel's state, a finished build in words, refusals in words, and `PAGE_WAITS`: what each
+    page without an endpoint waits on, in OWNER_API.md's words.
+  - `siteClient.ts` (bundled inline by esbuild): sign-in (the cosmic title colours, no card fan yet); the
+    glass sidebar with the agent card (avatar from `avatar.ts`, play style, Ready / In a match); the top bar
+    (title, theme, account menu with Sign out); Home with My agent and Deck panels; **Settings -> Play,
+    complete:** who picks the deck, faction lock (with the API's `activeDeckFits` said in words), saved
+    decks (pick one to force it; incomplete decks refused with why), "Rebuild now" (confirm dialog when
+    up to date; the job polled every 1.5 s while it runs, then the build summarised), play style per agent,
+    and Display -> Theme; Connect agent lists the agents. Collection, Store, Agent match, Watch live and
+    Stats say plainly what they wait on. Confirmations are centred dialogs; refusals are toasts in the
+    store's words; a 401 anywhere returns to sign-in. The session token lives in sessionStorage (the tab).
+  - `sitePage.ts`: the self-contained page (system fonts, inline CSS/JS, no external request; reduce
+    transparency/motion rules; narrow windows fold the sidebar to icons). `render/output/site/index.html`.
+  - `siteHost.ts`: serves the page at / and passes /api through to the owner API unchanged (one origin,
+    as OWNER_API.md assumes; the owner API serves only /api). CSP: own origin only.
+  - `siteDemo.ts`: a fresh season database, the game lane's owner API (its code, read-only) and the host:
+    `npm run site-demo -w @ai-tcg/render`, sign in as nova / "a long demo password".
+- Tests (+19, render 696): `render/test/site.test.ts` (model, page self-containment, host + client over
+  the real owner API: sign-in, settings, a rebuild to done, refusals, the API down = 502, no server = 0).
+
+**Ran it:**
+- `progress/render/evidence/site-check-s44.txt`: 32 browser checks against the live demo, ALL PASS
+  (sign-in incl. a wrong password; the shell; a real rebuild job polled to a 40-card deck; the confirm
+  dialog; faction lock's mismatch; forcing a deck and handing it back; a play style change; the theme
+  incl. System following the computer; reload stays signed in; sign-out; a revoked token back to sign-in;
+  a 700 px window; no page errors; no request leaves the origin). Stills `v2-s44-site-*.jpg`.
+- Found on the way: `#/constructor` routed to a non-page (the `in` check saw the prototype): fixed, tested.
+  The first browser run caught the "Last build" summary reading a stale job copy: fixed.
+- Mutants (reverted): the host not forwarding Authorization (3 FAIL); the "can't reach" wording (1 FAIL).
+- `progress/render/evidence/ci-browser-check-s44.txt`: 61 passed, ALL PASS (section E has the intro's new
+  words on desktop and phone).
+- Pages regenerated: the 25 that embed the boast or the intro (the hint source), plus `pack-opening.html`
+  and `first-time.html` (random store ids, and the game lane's session-62 card text), which with
+  `fx-sheet.html`/`skin-sheet.html` were owed per the owner's answer 3 to game session 62.
+- `npm test`: all six workspaces; typecheck clean.
+
+**Not done (named):** owner call 2 (the hint remembered on the account) needs an account-settings endpoint
+that doesn't exist yet: raised in notes-for-owner. No widget board, liquid background, title card fan,
+credits/pack points, notifications or auto-play yet: each waits on an endpoint or a later Season 0 item.
+
+**Next render-lane slice:** Season 0 item 2, the look: the liquid WebGL background (Glacier default, the
+other colours and the two plain ones, low resolution, about 30 fps, paused when hidden, still under reduce
+motion) behind the existing glass, and the background picker in Settings -> Display (kept in the page until
+the account endpoint exists). Then the widget board (item 3), as the game lane's endpoints land.

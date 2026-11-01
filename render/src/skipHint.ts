@@ -26,11 +26,19 @@
 export const SKIP_HINT_SOURCE = String.raw`
   // The words: a touch screen taps, a desktop clicks or presses Escape.
   var SKIP_HINT_TAP = 'or tap anywhere', SKIP_HINT_KEY = 'or click anywhere · Esc';
+  // The intro's words (owner, render session 43 call 4): a click or tap on
+  // the playback controls does the control's job, not a skip, so the intro
+  // names the board instead of "anywhere", on a mouse and on a touch screen.
+  var SKIP_HINT_BOARD_TAP = 'or tap the board', SKIP_HINT_BOARD_KEY = 'or click the board · Esc';
   // The gap under the button, and the margin the hint keeps from its box.
   var SKIP_HINT_GAP = 3, SKIP_HINT_PAD = 4;
   // Page state shared by the boast and the intro: has the viewer skipped?
   var SKIP_HINT_STATE = { seen: false, shown: 0, dropped: 0 };
-  function skipHintText(coarse) { return coarse ? SKIP_HINT_TAP : SKIP_HINT_KEY; }
+  // where: 'board' for the intro, anything else for a boast.
+  function skipHintText(coarse, where) {
+    if (where === 'board') return coarse ? SKIP_HINT_BOARD_TAP : SKIP_HINT_BOARD_KEY;
+    return coarse ? SKIP_HINT_TAP : SKIP_HINT_KEY;
+  }
   // Where the hint goes: right-aligned under the button sk {l,t,r,b}, w x h.
   // Returns {l,t,r,b}, or null when it would leave inside {l,t,r,b} (less
   // SKIP_HINT_PAD) or touch any rect in avoid.
@@ -47,13 +55,13 @@ export const SKIP_HINT_SOURCE = String.raw`
   // Puts the hint under the Skip button sk (an element already on the
   // page), inside the box inside, clear of the rects in avoid. Returns the element,
   // or null (the viewer has skipped before, or it doesn't fit). The caller
-  // removes it with the button.
-  function skipHintShow(sk, inside, avoid) {
+  // removes it with the button. where: as skipHintText.
+  function skipHintShow(sk, inside, avoid, where) {
     if (SKIP_HINT_STATE.seen || typeof document === 'undefined' || !sk) return null;
     var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
     var el = document.createElement('div');
     el.className = 'skip-hint'; el.setAttribute('aria-hidden', 'true');
-    el.textContent = skipHintText(coarse);
+    el.textContent = skipHintText(coarse, where);
     el.style.left = '0px'; el.style.top = '0px'; el.style.visibility = 'hidden';
     document.body.appendChild(el);
     var sr = sk.getBoundingClientRect(), sx = window.scrollX || 0, sy = window.scrollY || 0;
@@ -80,17 +88,21 @@ export const SKIP_HINT_CSS = `
 
 export interface SkipRect { l: number; t: number; r: number; b: number }
 
-const impl = new Function(`${SKIP_HINT_SOURCE}; return { SKIP_HINT_TAP: SKIP_HINT_TAP, SKIP_HINT_KEY: SKIP_HINT_KEY, SKIP_HINT_GAP: SKIP_HINT_GAP, SKIP_HINT_PAD: SKIP_HINT_PAD, skipHintText: skipHintText, skipHintPlace: skipHintPlace };`)() as {
+const impl = new Function(`${SKIP_HINT_SOURCE}; return { SKIP_HINT_TAP: SKIP_HINT_TAP, SKIP_HINT_KEY: SKIP_HINT_KEY, SKIP_HINT_BOARD_TAP: SKIP_HINT_BOARD_TAP, SKIP_HINT_BOARD_KEY: SKIP_HINT_BOARD_KEY, SKIP_HINT_GAP: SKIP_HINT_GAP, SKIP_HINT_PAD: SKIP_HINT_PAD, skipHintText: skipHintText, skipHintPlace: skipHintPlace };`)() as {
   SKIP_HINT_TAP: string;
   SKIP_HINT_KEY: string;
+  SKIP_HINT_BOARD_TAP: string;
+  SKIP_HINT_BOARD_KEY: string;
   SKIP_HINT_GAP: number;
   SKIP_HINT_PAD: number;
-  skipHintText(coarse: boolean): string;
+  skipHintText(coarse: boolean, where?: "board"): string;
   skipHintPlace(sk: SkipRect, w: number, h: number, inside: SkipRect, avoid?: (SkipRect | null)[]): SkipRect | null;
 };
 
 export const SKIP_HINT_TAP = impl.SKIP_HINT_TAP;
 export const SKIP_HINT_KEY = impl.SKIP_HINT_KEY;
+export const SKIP_HINT_BOARD_TAP = impl.SKIP_HINT_BOARD_TAP;
+export const SKIP_HINT_BOARD_KEY = impl.SKIP_HINT_BOARD_KEY;
 export const SKIP_HINT_GAP = impl.SKIP_HINT_GAP;
 export const SKIP_HINT_PAD = impl.SKIP_HINT_PAD;
 export const skipHintText = impl.skipHintText;
