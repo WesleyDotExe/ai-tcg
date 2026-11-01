@@ -14,9 +14,15 @@
 // and why. The match history is read back after the loadout changes, then
 // the refusals. Seeds and the clock are fixed so the output reproduces.
 //
-// The shipped catalogue sells nothing yet (which Season 0 items go on sale
-// is the owner's call); the season boast here is a DEMO item passed to the
-// store as its catalogue, priced and windowed like a real one.
+// The season boast bought here is a DEMO item passed to the store as its
+// catalogue, priced and windowed like a real one. (When this demo was
+// written the shipped catalogue sold nothing; since session 48 it sells the
+// two Season 0 boasts, which now show on sale beside it. That one is the
+// season-0 boasts demo, economy-demo-013.txt.)
+//
+// Session 65: this demo crashed on main ("no such column: deck_choice"):
+// the v10 file met setActiveDeck's v12 write. The store now skips that write
+// before v12, the way its other version-gated paths do.
 
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

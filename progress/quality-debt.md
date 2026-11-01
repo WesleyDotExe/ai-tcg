@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -77,7 +77,8 @@ real, but here is where it's thin.
 
 ## Session 64 (the Home board, the economy endpoints, the Sydney day): what is still thin
 
-- **Several committed economy demos no longer reproduce, and one crashes on main.** Checked this session:
+- **Several committed economy demos no longer reproduce, and one crashes on main.** DONE session 65 (all eight
+  re-run, read, two crashes fixed, regenerated). Was: checked this session:
   `economy-demo-005`, `-006`, `-008`, `-012`, `-013` and `-015` all differ from a fresh run, and the drift
   predates this session (008 still prints "schema v9"; `boastDemo.ts`, demo 012, crashes on main with "no such
   column: deck_choice" after building a v10 file and calling a v12 code path). The Sydney-day change may add to
@@ -91,9 +92,8 @@ real, but here is where it's thin.
   `server/OWNER_API.md`. No cross-lane test beyond the render tests importing the owner API's source.
 - **The collection answer is the whole collection in one response** (every copy). Fine for Season 0 (an owner
   holds a few hundred copies); a heavy collector at launch scale wants paging or a per-set read. Not measured.
-- **The ledger pages in memory**: `GET /api/ledger` reads the owner's whole ledger and slices it. Fine for
-  Season 0; at launch scale it wants a SQL `LIMIT`/`before` query.
-- **No owner's daily pack claim.** The owner's daily pack (spec: owner-claimed, stacks to 2) has no store method
+- **The ledger pages in memory**: DONE session 65 (`store.ledgerPage`, SQL `LIMIT`/`before`).
+- **No owner's daily pack claim.** DONE session 65 (`claimDailyPack`, `/api/packs/daily`). Was: no store method
   or endpoint; the demo grants packs through the store. Not in the owner's list this time; the Daily rewards
   widget has only the earnings bar and the rewarded wins in Season 0.
 - **The board doesn't store positions, only order.** The mockup's grid packs widgets in list order (CSS
@@ -104,6 +104,25 @@ real, but here is where it's thin.
   future caller that passed it in production would make packs predictable. Only the demo and no test pass it.
 - **The match runner (Season 0 game item 1) is still not started**: credits in the demo and tests come from wins
   recorded through the store. Next game session.
+
+## Session 65 (hardening; the owner's daily pack): what is still thin
+
+- **Demos drift silently.** Session 64 found six stale demo files by chance; this session found a second crash
+  (006) only by re-running. Nothing runs the committed demos in CI or compares them to their files. The fast
+  ones (all but 014 and 016, which take 0.5 and 7 minutes) could be a test that re-runs and diffs them;
+  not built.
+- **`grantPack(..., "ownerDaily")` is still open.** Demos and tests grant daily packs directly; those count as
+  claims (they empty the bank, never owe). Nothing but the claim should make one in production; the store doesn't
+  enforce that.
+- **The daily-pack bank reads every daily pack the owner ever had** on each status call (one indexed query plus
+  one time-zone conversion per row). A season is a few hundred rows; not measured beyond that.
+- **The ledger page sorts in SQL but has no (owner, entry) index**: the `ledger_by_owner` index is
+  (owner_id, currency), so SQLite sorts the owner's rows. Fine for Season 0; a migration for the index would
+  bump the schema (and every demo's schema line), left for launch-scale storage.
+- **The collection answer is still the whole collection in one response** (session 64's item, not done).
+- **No "daily pack ready" notification**: notifications wait on match running.
+- **Session 64's other items stand** (board order only, `packSeed` test hook, the website not yet calling the
+  endpoints). The daily-pack and ledger-paging items there are done.
 
 ## Session 63 (who am I, account settings, the wallet): what is still thin
 

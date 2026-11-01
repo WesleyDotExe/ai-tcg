@@ -3,7 +3,7 @@
 ## 1. A Season 0 file made at schema v10, opened by this code (migration 11)
 
 before: schema v10; ada owns 0 cosmetics; match "pre-v11" recorded
-after:  schema v11
+after:  schema v16
   ada (Cortex starter): owns Shield Slam [starter], Data Cascade [starter], Void Collapse [starter], Hive Burst [starter]
     agent loadout: boast=Data Cascade  closeWinBoast=-  cardBack=-  avatar=-  arena=-
   bo (Aegis starter): owns Shield Slam [starter], Data Cascade [starter], Void Collapse [starter], Hive Burst [starter]
@@ -15,21 +15,21 @@ ada and bo play until ada has 300 credits, 10 matches a day; both agents wear th
 
 s0-b001  T16  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 20)
 s0-b002  T12  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 19)
-s0-b003  T15  ada wins  ada +30 bo +2   boast: Data Cascade (boast, winner on 9)
+s0-b003  T15  ada wins  ada +30 bo +2   boast: Data Cascade (boast, winner on 6)
 s0-b004  T11  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 15)
 s0-b005  T11  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 15)
-s0-b006  T17  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 9)
-s0-b007  T16  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 11)
+s0-b006  T17  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 15)
+s0-b007  T18  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 7)
 s0-b008  T16  bo wins   ada +2  bo +5   boast: Shield Slam (boast, winner on 17)
 s0-b009  T14  bo wins   ada +2  bo +5   boast: Shield Slam (boast, winner on 14)
 s0-b010  T16  bo wins   ada +2  bo +5   boast: Shield Slam (boast, winner on 7)
 s0-b011  T16  bo wins   ada +2  bo +30  boast: Shield Slam (boast, winner on 20)
-s0-b012  T23  ada wins  ada +30 bo +2   boast: Data Cascade (boast, winner on 1)
-s0-b013  T17  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 7)
+s0-b012  T20  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 3)
+s0-b013  T17  ada wins  ada +30 bo +2   boast: Data Cascade (boast, winner on 7)
 s0-b014  T16  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 2)
 s0-b015  T13  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 16)
-s0-b016  T17  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 3)
-s0-b017  T21  ada wins  ada +5  bo +2   boast: Data Cascade (boast, winner on 10)
+s0-b016  T15  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 5)
+s0-b017  T21  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 1)
 s0-b018  T11  ada wins  ada +5  bo +2   boast: Data Cascade (boast, winner on 14)
 s0-b019  T11  ada wins  ada +5  bo +2   boast: Data Cascade (boast, winner on 19)
 s0-b020  T15  ada wins  ada +5  bo +2   boast: Data Cascade (boast, winner on 18)
@@ -38,26 +38,26 @@ s0-b022  T15  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 16
 s0-b023  T19  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 14)
 s0-b024  T16  bo wins   ada +2  bo +30  boast: Shield Slam (boast, winner on 18)
 s0-b025  T17  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 19)
-s0-b026  T23  ada wins  ada +5  bo +2   boast: Data Cascade (boast, winner on 13)
+s0-b026  T23  ada wins  ada +5  bo +2   boast: Data Cascade (boast, winner on 15)
 s0-b027  T16  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 20)
-s0-b028  T14  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 6)
-s0-b029  T18  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 4)
+s0-b028  T18  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 8)
+s0-b029  T18  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 8)
 s0-b030  T22  bo wins   ada +2  bo +5   boast: Shield Slam (boast, winner on 5)
 s0-b031  T17  ada wins  ada +30 bo +2   boast: Data Cascade (boast, winner on 9)
 s0-b032  T16  bo wins   ada +2  bo +30  boast: Shield Slam (boast, winner on 18)
 s0-b033  T18  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 10)
 s0-b034  T15  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 19)
 s0-b035  T15  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 1)
-s0-b036  T14  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 8)
+s0-b036  T14  bo wins   ada +2  bo +10  boast: Shield Slam (boast, winner on 4)
 s0-b037  T15  ada wins  ada +10 bo +2   boast: Data Cascade (boast, winner on 6)
-s0-b038  T17  ada wins  ada +5  bo +2   boast: Data Cascade (boast, winner on 19)
+s0-b038  T21  ada wins  ada +5  bo +2   boast: Data Cascade (boast, winner on 18)
 
-ada's credits: 304; bo's: 274
+ada's credits: 301; bo's: 282
 
 ## 3. ada buys a season boast and sets a close-win boast
 
-on sale for ada: DEMO Overclock (300 credits)
-bought DEMO Overclock: ledger #79 -300 credits "cosmeticPurchase" ref boast-s0-demo-overclock; credits now 4
+on sale for ada: Boot Sequence (300 credits), Dial-Up Fireworks (300 credits), DEMO Overclock (300 credits)
+bought DEMO Overclock: ledger #79 -300 credits "cosmeticPurchase" ref boast-s0-demo-overclock; credits now 1
 ada's agent: boast=DEMO Overclock  closeWinBoast=Void Collapse  cardBack=-  avatar=-  arena=-
 bo empties the boast slot: boast=-  closeWinBoast=-  cardBack=-  avatar=-  arena=-
 (close win = the winner ends on 5 health or less; an empty boast slot plays the deck faction's starter)
@@ -76,20 +76,20 @@ s0-b047  T12  bo wins   ada +2  bo +10  boast: Shield Slam (factionStarter, winn
 s0-b048  T13  ada wins  ada +5  bo +2   boast: Void Collapse (closeWinBoast, winner on 5)
 s0-b049  T11  ada wins  ada +5  bo +2   boast: DEMO Overclock (boast, winner on 18)
 s0-b050  T18  bo wins   ada +2  bo +10  boast: Shield Slam (factionStarter, winner on 19)
-s0-b051  T24  bo wins   ada +2  bo +30  boast: Shield Slam (factionStarter, winner on 16)
-s0-b052  T11  ada wins  ada +30 bo +2   boast: DEMO Overclock (boast, winner on 19)
-s0-b053  T16  bo wins   ada +2  bo +10  boast: Shield Slam (factionStarter, winner on 4)
+s0-b051  T25  ada wins  ada +30 bo +2   boast: Void Collapse (closeWinBoast, winner on 1)
+s0-b052  T11  ada wins  ada +10 bo +2   boast: DEMO Overclock (boast, winner on 19)
+s0-b053  T16  bo wins   ada +2  bo +30  boast: Shield Slam (factionStarter, winner on 5)
 s0-b054  T15  ada wins  ada +10 bo +2   boast: DEMO Overclock (boast, winner on 20)
 s0-b055  T21  ada wins  ada +10 bo +2   boast: DEMO Overclock (boast, winner on 9)
-s0-b056  T15  ada wins  ada +10 bo +2   boast: DEMO Overclock (boast, winner on 20)
+s0-b056  T15  ada wins  ada +5  bo +2   boast: DEMO Overclock (boast, winner on 20)
 s0-b057  T21  ada wins  ada +5  bo +2   boast: DEMO Overclock (boast, winner on 10)
 s0-b058  T11  ada wins  ada +5  bo +2   boast: DEMO Overclock (boast, winner on 19)
 s0-b059  T20  bo wins   ada +2  bo +10  boast: Shield Slam (factionStarter, winner on 18)
-s0-b060  T16  bo wins   ada +2  bo +10  boast: Shield Slam (factionStarter, winner on 2)
-s0-b061  T23  ada wins  ada +5  bo +2   boast: Void Collapse (closeWinBoast, winner on 2)
-s0-b062  T18  bo wins   ada +2  bo +5   boast: Shield Slam (factionStarter, winner on 14)
+s0-b060  T14  bo wins   ada +2  bo +10  boast: Shield Slam (factionStarter, winner on 9)
+s0-b061  T19  ada wins  ada +5  bo +2   boast: DEMO Overclock (boast, winner on 11)
+s0-b062  T20  bo wins   ada +2  bo +10  boast: Shield Slam (factionStarter, winner on 16)
 
-tally: ada: boast x11, ada: closeWinBoast x4, bo: factionStarter x9
+tally: ada: boast x12, ada: closeWinBoast x4, bo: factionStarter x8
 checked against the rule: 24 of 24 matches right
 
 ## 5. ada changes the loadout; the history still shows what each match had
@@ -116,6 +116,6 @@ every section-4 match reads back as recorded: true
   raw SQL: move an owned cosmetic: refused: an owned cosmetic is account-bound: it never changes or moves
   raw SQL: rewrite a match's boast: refused: a match's boast is written once
   raw SQL: grant a 'bought' boast with no payment: refused: a bought cosmetic names its owner's credits payment for that item
-  bo has 429 credits
+  bo has 434 credits
   bo buys the boast after its sale window (retired): refused: "DEMO Overclock" isn't on sale now
   ada still owns it after retirement: true

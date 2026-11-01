@@ -1,11 +1,33 @@
 # Notes for the owner
 
-**Updated 2026-11-01, session 64.** Nothing is blocking. Both of your 2026-11-01 game-lane entries are done:
-the saved Home board and all five economy endpoints, in your order, in one session. They're written into
-`server/OWNER_API.md` for the render lane. The run of them, including a server restart that keeps the board and
-the packs, is `progress/owner-api-demo-004-economy.txt`.
+**Updated 2026-11-01, session 65 (a hardening pass, plus the daily pack).** Nothing is blocking; no decision
+is needed to continue.
 
-### [OWNER CHECK-IN] The board and the economy endpoints: the calls I made (defaults built)
+### The daily pack is built (from your 2026-10-04 spec)
+
+Your item 6 said to build it only if the economy already had one. It did: section 6 of your 2026-10-04 economy
+spec says "one free pack a day that only the owner can claim, stacking up to 2". So it is built:
+`GET /api/packs/daily` (how many wait, when the next comes in) and `POST /api/packs/daily/claim`, plus the same
+status inside `GET /api/packs` and `GET /api/store` for the Packs and Store widgets. The run is
+`progress/owner-api-demo-005-daily-pack.txt`. Three small calls I made; tell me if any is wrong:
+1. **A new owner's first day counts:** someone who signs up at 11 pm can claim one straight away, and another
+   at midnight.
+2. **The pack is the current season's set** (S0 now).
+3. **While 2 wait, nothing comes in,** so the Packs widget shows "2 ready" with no timer. Claiming one starts the
+   timer to the next midnight again. (The cap is `OWNER_DAILY_PACK_CAP` in `economy/src/config.ts`.)
+
+### The hardening pass
+
+- All eight older economy demos re-run and read line by line. Two crashed and are fixed: `boastDemo.ts` (an
+  old-file path in the store; fixed in the store, with a test) and `packOpeningDemo.ts` (its clock crossed
+  Sydney midnight, so the day's credits split in two). The rest had drifted for known reasons: the balance
+  changes since (Null at 40, NA12/CS7), the newer agent-name generator, and the second odds table. All eight
+  regenerated; nothing in them points to a bug.
+- The ledger's pages are now read with SQL, not by loading the whole ledger.
+
+Next game session: 66, match running and the ladder.
+
+### [OWNER CHECK-IN] The board and the economy endpoints: the calls I made (defaults built) (answered 2026-11-01: keep 1-5)
 
 1. **The daily reset now really is midnight Sydney.** You set it on 2026-11-01, but the store still counted UTC
    days, so a win at 10 past midnight in Sydney counted on the day before. The day now runs midnight to

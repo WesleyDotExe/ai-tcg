@@ -4138,3 +4138,44 @@ pass, with 014/016. No daily-pack claim (not asked for). The collection and ledg
 **Evidence:** `progress/owner-api-demo-004-economy.txt`.
 
 **Blocked:** nothing. One owner check-in (defaults built; no decision needed to continue).
+
+## 2026-11-01 — Session 65 (hardening pass; the owner's daily pack)
+
+**Read first:** `progress/owner-feedback.md`. One unhandled game-lane entry (answers to session 64): keep calls
+1-5; session 65 is the hardening pass, with the daily pack in the same session if the economy already has one.
+It does (the owner's 2026-10-04 spec, section 6). Acted on, marked handled. The last merged PR (#112) was the
+render lane's, so this is the game lane; 65 is the planned hardening pass.
+
+**Hardening:**
+- Re-ran the eight economy demos named in session 64 (005, 006, 008, 012, 013, 014, 015, 016) into scratch
+  files and read each diff. 012 (`boastDemo.ts`) crashed: "no such column: deck_choice", a v10 file meeting
+  `setActiveDeck`'s v12 write. Fixed in the store (skip the write before v12, the same thing migration 12 does to
+  an owner with an active deck; `setDeckChoice` refuses before v12), with a regression test. 006
+  (`packOpeningDemo.ts`) also crashed, found by the re-run: its clock started at 09:00 UTC (20:00 Sydney), so
+  since the Sydney day its 12 wins split across two days, paid 120, and the next day's buy failed. Clock moved to
+  09:00 Sydney. The other six had drifted for known reasons (balance changes since, the agent-name generator,
+  S0-odds-2, the schema line). 005, 008, 013, 014, 015 checked byte-identical across two runs; 016 (seven
+  minutes) run once. All eight regenerated. Owner-API demos 003 and 004 still byte-identical.
+- The ledger pages in SQL (`store.ledgerPage`), off the session-64 debt list.
+
+**Built (owner item 6):** the owner's daily pack. `economy/src/dailyPack.ts` (`dailyPacksWaiting`, pure: a
+pack comes in each Sydney day unless 2 wait; claims come out), `OWNER_DAILY_PACK_CAP = 2`, store
+`dailyPackStatus` and `claimDailyPack` (no schema change; the bank comes from the owner's `ownerDaily` packs and
+creation day), `GET /api/packs/daily`, `POST /api/packs/daily/claim` (409 with the next time when none waits),
+`dailyPack` inside `GET /api/packs` and `GET /api/store`. Written into `server/OWNER_API.md` and ECONOMY.md.
+
+**Ran it:** `server/src/dev/dailyPackApiDemo.ts` -> `progress/owner-api-demo-005-daily-pack.txt`: 401s; a new
+owner claims its first-day pack, a second claim refused; 23:59 Sydney still none, midnight one; a second owner's
+untouched bank at the cap; API and store restarted on the same file (bank kept); four days away stops at 2, two
+claimed, the third refused; a claimed pack opened. Two runs byte-identical. Mutation checks: seven mutations
+each fail a test; one (counting the claim on the UTC date) first survived, the test was tightened. `npm test`
+all six workspaces pass; typecheck clean.
+
+**Worked:** no new table: the bank is derived from rows the store already writes, like the daily win count.
+**Didn't / honest limits:** packs granted through `grantPack(..., "ownerDaily")` (demos and tests do this) count
+as claims; the bank reads every daily pack the owner ever had on each call (fine for a season, not measured at
+scale); the collection answer is still one response.
+
+**Evidence:** `progress/owner-api-demo-005-daily-pack.txt`, the regenerated `progress/economy-demo-005`..`016`.
+
+**Blocked:** nothing.

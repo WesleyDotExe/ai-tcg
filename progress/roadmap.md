@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-01, game session 64.
+Updated 2026-11-01, game session 65 (hardening pass, plus the daily pack).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -25,7 +25,9 @@ Updated 2026-11-01, game session 64.
    (`/api/board`, schema v16), the collection, binder, card viewer, salvage and crafting, the ledger, buying and
    opening packs, the store, cosmetics and loadouts, today's earnings (`/api/daily`). The daily reset is now
    midnight Sydney in the store, as set.
-1. [ ] Match running and the ladder (6b below): many matches, server-assigned opponents, results recorded,
+0c. [x] Hardening pass (session 65): the eight stale economy demos re-run, two crashes fixed, all regenerated;
+   the ledger paged in SQL.
+1. [ ] Match running and the ladder (6b below; next game session, 66): many matches, server-assigned opponents, results recorded,
    Glicko-2 ratings per owner, credit payouts; agents rebuild between matches when the rebuild reasons say so
    (`rebuildAgentDeckIfNeeded` exists, nothing calls it yet); final health passed when a match is recorded
    (for the close-win boast).
@@ -36,7 +38,8 @@ Updated 2026-11-01, game session 64.
      and crafting (session 64)
    - [x] buying and opening packs (session 64)
    - [x] the cosmetics store and loadouts (session 64)
-   - [x] daily earnings for the Daily rewards widget (session 64); the owner's daily pack claim not built
+   - [x] daily earnings for the Daily rewards widget (session 64); the owner's daily pack: status and claim
+     (`GET /api/packs/daily`, `POST /api/packs/daily/claim`, session 65)
    - [ ] match history with replays
    - [ ] live and featured matches; the match feed and live state (Watch live, the Live match widget)
    - [ ] ladder standings and stats
