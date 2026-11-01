@@ -3861,3 +3861,14 @@ Owner decisions on the 7 calls in `progress/render/checkpoints.md` and the notes
 **The liquid behind a full board (notes item 2):** the owner will check it on the Mac mini. **If it isn't smooth there, use option (a):** the liquid goes still on Home when it can't hold 20 fps at its lowest resolution, and keeps moving on lighter pages. Not (b) or (c). Until the owner reports back, change nothing; if the owner reports it smooth, nothing changes.
 
 Next render-lane slice, as planned: the Store page with pack opening on the site (so Open opens packs), then Collection's wide binder.
+
+---
+
+## 2026-11-01 — Owner: answers to game session 65 (the daily pack), keep all 3
+
+Answers the three calls under "The daily pack is built (from your 2026-10-04 spec)" in `progress/notes-for-owner.md` (PR #113, `progress/owner-api-demo-005-daily-pack.txt`).
+1. **Keep:** a new owner's first day counts (sign up at 11 pm, claim one at once, another at midnight Sydney).
+2. **Keep:** the daily pack is the current season's set (S0 now).
+3. **Keep:** while 2 wait, nothing more comes in; claiming one starts the timer to the next midnight Sydney again.
+
+Next game session, as planned: 66, Season 0 game item 1 (match running and the ladder).
