@@ -3798,3 +3798,20 @@ Next render-lane slice, as planned: Season 0 render item 2, the look (the liquid
 3. **Wallet:** credits and pack points, and the packs waiting to be opened (for the top bar's Open button).
 
 Then Season 0 game item 1 (match running and the ladder), then the rest of the endpoints as listed. Update the Season 0 checklist in `progress/roadmap.md` to match.
+
+---
+
+## 2026-11-01 — Owner: answers to render session 45 (the look), keep all 6; board-layout endpoint before match running
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #110).
+1. **Keep:** on a slow machine the liquid lowers its own resolution (0.3 -> 0.2 -> 0.14 under 20 fps).
+2. **Keep:** a plain background draws dark but keeps the owner's theme choice for when a liquid is chosen again.
+3. **Keep:** the Open button opens the Store page until pack opening comes to the site.
+4. **Keep:** Admin is a section at the bottom of Settings, shown only to the house admin.
+5. **Keep:** no sound or music controls until the first site page that plays sound.
+6. **Keep:** without WebGL, a still gradient of the chosen colours.
+
+Next render-lane slice, as planned: Season 0 render item 3, Home as the widget board.
+
+### Game lane: one more small endpoint before match running
+**Before match running and the ladder, add the saved board layout endpoint** (the Home widget board's layout and the widgets' sizes, saved to the owner's account; Customise -> Background uses the account-settings endpoint that already exists). Write it into `server/OWNER_API.md` with tests, as session 63 did for the account settings. Then Season 0 game item 1 (match running and the ladder). Update the Season 0 checklist in `progress/roadmap.md` to match.
