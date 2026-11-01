@@ -1119,4 +1119,48 @@ export const MIGRATIONS: readonly string[] = [
   WHEN ${V16_BAD_WIDGET}
   BEGIN SELECT RAISE(ABORT, 'a board holds only known widgets, each S, M or L'); END;
   `,
+  // 17: the ladder's Glicko-2 ratings (session 66; owner 2026-10-05:
+  // "a skill rating (Glicko-2) drives matchmaking", per owner). `ratings`
+  // is each owner's current rating, written the first time a rated match
+  // ends for it (no row reads as the start: 1500 / 350 / 0.06); `last_day`
+  // is the reset day (midnight Sydney) of that match, so the store can grow
+  // the RD for each empty day since. `match_ratings` is every rated match's
+  // before and after for each side, written once with the match: never
+  // changed or deleted, so the ratings can be replayed from it.
+  `
+  CREATE TABLE ratings (
+    owner_id     TEXT PRIMARY KEY REFERENCES owners(owner_id),
+    rating       REAL NOT NULL CHECK (rating BETWEEN 0 AND 5000),
+    rd           REAL NOT NULL CHECK (rd > 0 AND rd <= 350),
+    volatility   REAL NOT NULL CHECK (volatility > 0 AND volatility < 1),
+    matches      INTEGER NOT NULL CHECK (typeof(matches) = 'integer' AND matches >= 1),
+    last_day     TEXT NOT NULL CHECK (last_day GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'),
+    updated_at   TEXT NOT NULL
+  );
+  CREATE TABLE match_ratings (
+    match_id       TEXT NOT NULL REFERENCES matches(match_id),
+    owner_id       TEXT NOT NULL REFERENCES owners(owner_id),
+    seat           TEXT NOT NULL CHECK (seat IN ('p1', 'p2')),
+    score          REAL NOT NULL CHECK (score IN (0, 0.5, 1)),
+    rating_before  REAL NOT NULL,
+    rd_before      REAL NOT NULL CHECK (rd_before > 0 AND rd_before <= 350),
+    vol_before     REAL NOT NULL CHECK (vol_before > 0 AND vol_before < 1),
+    rating_after   REAL NOT NULL CHECK (rating_after BETWEEN 0 AND 5000),
+    rd_after       REAL NOT NULL CHECK (rd_after > 0 AND rd_after <= 350),
+    vol_after      REAL NOT NULL CHECK (vol_after > 0 AND vol_after < 1),
+    PRIMARY KEY (match_id, seat),
+    UNIQUE (match_id, owner_id)
+  );
+  CREATE TRIGGER match_ratings_no_update BEFORE UPDATE ON match_ratings
+  BEGIN SELECT RAISE(ABORT, 'a match rating is written once'); END;
+  CREATE TRIGGER match_ratings_no_delete BEFORE DELETE ON match_ratings
+  BEGIN SELECT RAISE(ABORT, 'a match rating is written once'); END;
+  CREATE TRIGGER match_ratings_seat_owner BEFORE INSERT ON match_ratings
+  WHEN NOT EXISTS (
+    SELECT 1 FROM matches m WHERE m.match_id = NEW.match_id
+      AND m.outcome IN ('win', 'draw', 'abandoned')
+      AND ((NEW.seat = 'p1' AND m.p1_owner = NEW.owner_id) OR (NEW.seat = 'p2' AND m.p2_owner = NEW.owner_id))
+  )
+  BEGIN SELECT RAISE(ABORT, 'a rating belongs to a rated match side: its own owner, in a win, draw or abandon'); END;
+  `,
 ];

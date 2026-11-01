@@ -9,7 +9,9 @@
     "owner-api": "tsx src/ownerApiCli.ts",
     "demo:owner-api": "tsx src/dev/ownerApiDemo.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "ladder": "tsx src/ladderCli.ts",
+    "demo:ladder": "tsx src/dev/ladderDemo.ts"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",

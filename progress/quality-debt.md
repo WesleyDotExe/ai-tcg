@@ -75,6 +75,39 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 66 (match running and the ladder): what is still thin
+
+- **Only in-process house agents play on the ladder.** The `AgentSeater` seam exists, but nothing seats a
+  network agent (`RemoteAgent`) yet: the WebSocket server (`server/src/server.ts`) is still the stage-2
+  one-match server on fixed test decks. Wiring connected agents into the ladder (who is connected, a timeout for
+  a seat that never answers, reconnects) is real work, not done.
+- **No auto-play.** Every owner with a connected agent is queued every round (fine for Season 0's house agents).
+  The owner's spec (2026-10-05 E: queue back to back while the switch is on, switch off once the day's rewards are
+  maxed, "turning it off lets the current match finish") isn't built, so a player owner can't opt in or out.
+- **Nothing runs the ladder on a timer.** `npm run ladder -- <db> <rounds>` runs rounds and stops; a long-lived
+  scheduler (rounds paced to the 5-6 minute watch time, the 2x vote, live state for Watch live) is the next
+  slice. Matches run at engine speed (about 10 ms each), not at watch speed.
+- **An abandoned or cancelled match has no log.** The runner writes a log only for a match the engine finished;
+  when a seat faults mid-match the partial game is lost (`runMatch` throws away its state). Replays of
+  abandons need `runMatch` to hand back the state on a throw (an engine change) or a log hook.
+- **The matchmaker is tuned for 8 agents and unmeasured beyond.** The jitter (75) and rematch penalties
+  (300/150) are guesses checked on the demo (18 of 28 pairings in 72 matches, 1 immediate rematch; same-faction
+  pairs happen when two owners of one faction sit close in rating). With a large queue the greedy pick is
+  O(n^2) per round; fine for Season 0, not measured at scale.
+- **The first seat wins more**: 40 of 71 decided in the demo (56%), seats a coin flip. Known from the balance
+  work; not the ladder's to fix, but it now lands on ratings.
+- **The season soft reset isn't built** (Season end, game item 3). `ratings` has no season column; the reset
+  will rewrite it from `match_ratings`.
+- **`ratings` rows can be deleted with raw SQL** (only `match_ratings` is write-once). The table is current
+  state, replayable from `match_ratings`; no replay tool exists yet beyond the demo's check.
+- **The house's pack buying is the demo's policy, not the server's.** In the demo each house owner spends every
+  100 credits on a pack and opens it at once, so its agent rebuilds. Whether house owners do that in Season 0 is
+  an owner question (notes-for-owner.md); the ladder itself never buys or opens packs.
+- **Rebuilds use the store's full search (minutes per owner on a real collection) and happen inside a round**,
+  side by side on worker threads in the CLI. A round waits for the slowest rebuild. The demo uses a small search.
+- **Session 65's items stand** (demos drift silently, `grantPack("ownerDaily")`, the daily-pack bank read, the
+  ledger index, the collection in one response).
+
 ## Session 64 (the Home board, the economy endpoints, the Sydney day): what is still thin
 
 - **Several committed economy demos no longer reproduce, and one crashes on main.** DONE session 65 (all eight

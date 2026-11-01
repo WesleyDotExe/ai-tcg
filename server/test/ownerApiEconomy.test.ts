@@ -74,6 +74,8 @@ const ENDPOINTS: [string, string, unknown?][] = [
   ["GET", "/api/cosmetics"],
   ["GET", "/api/agents/x/loadout"],
   ["PUT", "/api/agents/x/loadout/boast", { itemId: null }],
+  ["GET", "/api/ladder"],
+  ["GET", "/api/rating"],
 ];
 
 describe("owner API: every board and economy endpoint needs a live session", () => {
@@ -405,5 +407,47 @@ describe("owner API: the owner's daily pack (session 65)", () => {
     expect((await call("POST", "/api/packs/daily/claim", { token: bobToken })).status).toBe(201);
     expect((await call("GET", "/api/packs/daily", { token: bobToken })).body.waiting).toBe(0);
     expect((await call("GET", "/api/packs/daily", { token: adaToken })).body.waiting).toBe(1);
+  });
+});
+
+describe("owner API: the ladder and the owner's rating (session 66)", () => {
+  it("answers the standings with you in them, the tiers, and the owner's rating and form", async () => {
+    const { call, signIn, adaWins, ada, bob, store } = await setup();
+    const ada1 = await signIn("ada");
+    // Before any rated match: an empty list, and you at the start.
+    let res = await call("GET", "/api/ladder", { token: ada1 });
+    expect(res.status).toBe(200);
+    expect(res.body.standings).toEqual([]);
+    expect(res.body.you).toMatchObject({ rank: null, ownerId: ada.ownerId, ownerName: "Ada Lovecode", rating: 1500, rd: 350, tier: "Placement", ratedMatches: 0 });
+    expect(res.body.tiers[0]).toEqual({ tier: "Bronze", from: null });
+    expect(res.body.tiers.map((t: { tier: string }) => t.tier)).toEqual(["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Mythic"]);
+    expect(res.body.placementMatches).toBe(5);
+    adaWins(5);
+    res = await call("GET", "/api/ladder", { token: ada1 });
+    expect(res.body.owners).toBe(2);
+    expect(res.body.standings.map((r: { ownerId: string; rank: number }) => [r.ownerId, r.rank])).toEqual([
+      [ada.ownerId, 1],
+      [bob.ownerId, 2],
+    ]);
+    expect(res.body.you).toEqual(res.body.standings[0]);
+    expect(res.body.you).toMatchObject({ wins: 5, losses: 0, ratedMatches: 5, agent: null }); // no agent connected in this setup
+    expect(res.body.you.tier).not.toBe("Placement");
+    // Bob's view: limit 1 leaves Bob off the list but still answers him.
+    const bob1 = await signIn("bob");
+    res = await call("GET", "/api/ladder?limit=1", { token: bob1 });
+    expect(res.body.standings.map((r: { ownerId: string }) => r.ownerId)).toEqual([ada.ownerId]);
+    expect(res.body.you).toMatchObject({ ownerId: bob.ownerId, rank: 2, losses: 5 });
+    expect((await call("GET", "/api/ladder?limit=0", { token: bob1 })).status).toBe(400);
+    expect((await call("GET", "/api/ladder?limit=101", { token: bob1 })).status).toBe(400);
+    // The rating and its form, newest first.
+    res = await call("GET", "/api/rating?recent=3", { token: ada1 });
+    expect(res.status).toBe(200);
+    expect(res.body.rating).toMatchObject({ ownerId: ada.ownerId, ratedMatches: 5 });
+    expect(res.body.rating.rating).toBeCloseTo(store.rating(ada.ownerId).rating, 9);
+    expect(res.body.recent).toHaveLength(3);
+    expect(res.body.recent.map((r: { matchId: string }) => r.matchId)).toEqual(["m5", "m4", "m3"]);
+    expect(res.body.recent[0]).toMatchObject({ score: 1, opponentOwnerId: bob.ownerId });
+    expect(res.body.recent[0].before.rating).toBeCloseTo(res.body.recent[1].after.rating, 9);
+    expect((await call("GET", "/api/rating?recent=0", { token: ada1 })).status).toBe(400);
   });
 });

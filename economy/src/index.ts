@@ -17,6 +17,11 @@ export {
   type DeckChoice,
   type DeckChooser,
   EconomyError,
+  tierOf,
+  type LadderTier,
+  type OwnerRating,
+  type RatingChange,
+  type LadderRow,
   SalvageNeedsConfirmation,
   salvageBlockReason,
   DEFAULT_SEASON,
@@ -103,6 +108,9 @@ export {
 export {
   WIN_CREDITS,
   LOSS_CREDITS,
+  LADDER_TIERS,
+  PLACEMENT_MATCHES,
+  LADDER_LIST_SIZE,
   MAX_PAID_LOSSES_PER_DAY,
   STARTER_PACKS,
   SALVAGE_PACK_POINTS,
@@ -182,3 +190,4 @@ export {
 } from "./schema.js";
 export { customAgentNameProblem, tidyAgentName, nameKey, AGENT_NAME_MIN_LENGTH } from "./agentNames.js";
 export { dailyPacksWaiting } from "./dailyPack.js";
+export { GLICKO_SCALE, GLICKO_TAU, RATING_START, idle, ratePeriod, rateMatch, winProbability, type Glicko2Game, type Glicko2Rating } from "./glicko2.js";

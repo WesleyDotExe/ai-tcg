@@ -3,7 +3,7 @@
 ## 1. A Season 0 file made at schema v10, opened by this code (migration 11)
 
 before: schema v10; ada owns 0 cosmetics; match "pre-v11" recorded
-after:  schema v16
+after:  schema v17
   ada (Cortex starter): owns Shield Slam [starter], Data Cascade [starter], Void Collapse [starter], Hive Burst [starter]
     agent loadout: boast=Data Cascade  closeWinBoast=-  cardBack=-  avatar=-  arena=-
   bo (Aegis starter): owns Shield Slam [starter], Data Cascade [starter], Void Collapse [starter], Hive Burst [starter]

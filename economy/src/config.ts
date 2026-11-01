@@ -161,3 +161,24 @@ export const SECRET_CRAFT_PACK_POINTS = { illustration: 750, zeroDay: 3000 } as 
  * sits between crafting an Uncommon (80) and a Rare (250): about 20 packs'
  * worth from opening alone, so a rename is a choice, not a whim. */
 export const AGENT_RENAME_PACK_POINTS = 100;
+
+/** The ladder's named tiers (owner 2026-10-05: "spectators see named tiers
+ * (e.g. Bronze to Mythic)"), lowest first, each from its Glicko-2 rating up.
+ * Proposed session 66 (150 points a tier, Gold at the 1500 start); an owner
+ * check-in item. */
+export const LADDER_TIERS = [
+  { tier: "Bronze", from: -Infinity },
+  { tier: "Silver", from: 1350 },
+  { tier: "Gold", from: 1500 },
+  { tier: "Platinum", from: 1650 },
+  { tier: "Diamond", from: 1800 },
+  { tier: "Mythic", from: 1950 },
+] as const;
+
+/** Rated matches before an owner's tier shows (it reads "Placement" until
+ * then) and before it is ranked on the ladder's list. Proposed session 66. */
+export const PLACEMENT_MATCHES = 5;
+
+/** How many owners the ladder's public list shows (owner 2026-10-05: "a
+ * top-100 list"). */
+export const LADDER_LIST_SIZE = 100;

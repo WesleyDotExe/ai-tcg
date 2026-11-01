@@ -48,7 +48,11 @@ import {
   SIGN_IN_LOCKOUT,
   SECRET_CRAFT_PACK_POINTS,
   STARTER_PACKS,
+  LADDER_LIST_SIZE,
+  LADDER_TIERS,
+  PLACEMENT_MATCHES,
 } from "./config.js";
+import { idle, rateMatch, RATING_START, type Glicko2Rating } from "./glicko2.js";
 
 import { customAgentNameProblem, nameKey, tidyAgentName } from "./agentNames.js";
 import {
@@ -548,6 +552,9 @@ export interface MatchRecord {
   /** Each side's play style as the match started (schema v13); null for a
    * match recorded before v13 or one never started with startMatch. */
   playStyles: { p1: PlayStyleId; p2: PlayStyleId } | null;
+  /** (v17) Each side's Glicko-2 change; null for a cancelled match (never
+   * rated) or one recorded before v17. */
+  ratings: { p1: RatingChange; p2: RatingChange } | null;
 }
 
 export interface PlayableDeck {
@@ -783,6 +790,57 @@ export interface OwnerStats {
 }
 
 export class EconomyError extends Error {}
+
+/** A ladder tier name (config LADDER_TIERS), or "Placement" before an owner
+ * has PLACEMENT_MATCHES rated matches. */
+export type LadderTier = (typeof LADDER_TIERS)[number]["tier"] | "Placement";
+
+/** The tier a rating shows, after placement. */
+export function tierOf(rating: number, ratedMatches: number): LadderTier {
+  if (ratedMatches < PLACEMENT_MATCHES) return "Placement";
+  let tier: LadderTier = LADDER_TIERS[0].tier;
+  for (const t of LADDER_TIERS) if (rating >= t.from) tier = t.tier;
+  return tier;
+}
+
+/** An owner's Glicko-2 rating now (schema v17): the stored one with its RD
+ * grown for each empty reset day since its last rated match, or the start
+ * (1500 / 350 / 0.06) before any. */
+export interface OwnerRating extends Glicko2Rating {
+  ownerId: string;
+  /** Rated matches: wins, losses, draws and abandons (not cancels). */
+  ratedMatches: number;
+  tier: LadderTier;
+  /** The reset day of the last rated match, or null before one. */
+  lastDay: string | null;
+}
+
+/** One side's rating change in a rated match (schema v17). */
+export interface RatingChange {
+  ownerId: string;
+  score: 0 | 0.5 | 1;
+  before: Glicko2Rating;
+  after: Glicko2Rating;
+}
+
+/** One row of the ladder's standings. */
+export interface LadderRow {
+  /** 1-based, by rating, among placed owners; null while in placement. */
+  rank: number | null;
+  ownerId: string;
+  ownerName: string;
+  ownerKind: OwnerKind;
+  /** The connected agent, who plays at the owner's rating. */
+  agent: { agentId: string; name: string } | null;
+  rating: number;
+  rd: number;
+  tier: LadderTier;
+  ratedMatches: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  lastDay: string | null;
+}
 
 /** One place in a set's binder. */
 export interface BinderEntry {
@@ -3386,6 +3444,7 @@ export class EconomyStore {
         loadouts: null,
         boast: null,
         playStyles: null,
+        ratings: null,
       };
       // The styles the match started with (v13): kept from the live row.
       const p1Style = strOrNull(live?.p1_style ?? null);
@@ -3450,6 +3509,45 @@ export class EconomyStore {
           refused(err);
         }
       }
+      if (this.schemaVersion >= 17 && outcome.kind !== "cancelled") {
+        // A win, a draw or an abandon is rated (an abandon as a loss for the
+        // side that abandoned it: walking out never protects a rating); a
+        // cancel isn't. Both sides from their pre-match ratings.
+        const score1: 0 | 0.5 | 1 =
+          outcome.kind === "draw" ? 0.5 : outcome.kind === "win" ? (winnerOwner === owner1 ? 1 : 0) : abandonedByOwner === owner1 ? 0 : 1;
+        const day = resetDayOf(endedAt).day;
+        const before1 = this.rating(owner1, endedAt);
+        const before2 = this.rating(owner2, endedAt);
+        const after = rateMatch(before1, before2, score1);
+        const change = (r: OwnerRating, a: Glicko2Rating, score: 0 | 0.5 | 1): RatingChange => ({
+          ownerId: r.ownerId,
+          score,
+          before: { rating: r.rating, rd: r.rd, volatility: r.volatility },
+          after: a,
+        });
+        record.ratings = { p1: change(before1, after.a, score1), p2: change(before2, after.b, (1 - score1) as 0 | 0.5 | 1) };
+        const insert = this.db.prepare(
+          `INSERT INTO match_ratings (match_id, owner_id, seat, score, rating_before, rd_before, vol_before, rating_after, rd_after, vol_after)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        );
+        const upsert = this.db.prepare(
+          `INSERT INTO ratings (owner_id, rating, rd, volatility, matches, last_day, updated_at) VALUES (?, ?, ?, ?, 1, ?, ?)
+           ON CONFLICT (owner_id) DO UPDATE SET rating = excluded.rating, rd = excluded.rd, volatility = excluded.volatility,
+             matches = ratings.matches + 1, last_day = excluded.last_day, updated_at = excluded.updated_at`,
+        );
+        try {
+          for (const seat of ["p1", "p2"] as const) {
+            const c = record.ratings[seat];
+            insert.run(input.matchId, c.ownerId, seat, c.score, c.before.rating, c.before.rd, c.before.volatility, c.after.rating, c.after.rd, c.after.volatility);
+            // A match recorded out of order (an earlier end time than the
+            // owner's last rated one) still rates, but never moves last_day back.
+            const lastDay = this.storedRating(c.ownerId)?.lastDay;
+            upsert.run(c.ownerId, c.after.rating, c.after.rd, c.after.volatility, lastDay !== undefined && lastDay > day ? lastDay : day, endedAt);
+          }
+        } catch (err) {
+          refused(err);
+        }
+      }
       const reason = (r: MatchResultForAgent) => (r === "win" ? "matchWin" : r === "draw" ? "matchDraw" : "matchLoss");
       if (p1Credits > 0) this.appendLedger(owner1, p1, "credits", p1Credits, reason(resultFor(owner1)), input.matchId, endedAt);
       if (p2Credits > 0) this.appendLedger(owner2, p2, "credits", p2Credits, reason(resultFor(owner2)), input.matchId, endedAt);
@@ -3474,6 +3572,20 @@ export class EconomyStore {
     const rows = this.db.prepare(sql).all(params) as Row[];
     const loadouts = new Map<string, { p1: Loadout; p2: Loadout }>();
     const boasts = new Map<string, MatchBoast>();
+    const ratings = new Map<string, { p1: RatingChange; p2: RatingChange }>();
+    if (this.schemaVersion >= 17 && rows.length > 0) {
+      const ids = rows.map((r) => str(r.match_id));
+      for (const r of this.db.prepare(`SELECT * FROM match_ratings WHERE match_id IN (${ids.map(() => "?").join(", ")})`).all(...ids) as Row[]) {
+        const entry = ratings.get(str(r.match_id)) ?? ({} as { p1: RatingChange; p2: RatingChange });
+        entry[str(r.seat) as "p1" | "p2"] = {
+          ownerId: str(r.owner_id),
+          score: num(r.score) as 0 | 0.5 | 1,
+          before: { rating: num(r.rating_before), rd: num(r.rd_before), volatility: num(r.vol_before) },
+          after: { rating: num(r.rating_after), rd: num(r.rd_after), volatility: num(r.vol_after) },
+        };
+        ratings.set(str(r.match_id), entry);
+      }
+    }
     if (this.schemaVersion >= 11 && rows.length > 0) {
       const ids = rows.map((r) => str(r.match_id));
       const marks = ids.map(() => "?").join(", ");
@@ -3521,8 +3633,107 @@ export class EconomyStore {
         boast: boasts.get(str(r.match_id)) ?? null,
         playStyles:
           r.p1_style != null && r.p2_style != null ? { p1: str(r.p1_style) as PlayStyleId, p2: str(r.p2_style) as PlayStyleId } : null,
+        ratings: ratings.get(str(r.match_id)) ?? null,
       };
     });
+  }
+
+  // ---- the ladder (schema v17) ----
+
+  private storedRating(ownerId: string): { rating: Glicko2Rating; matches: number; lastDay: string } | null {
+    const row = this.db.prepare("SELECT * FROM ratings WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    if (!row) return null;
+    return {
+      rating: { rating: num(row.rating), rd: num(row.rd), volatility: num(row.volatility) },
+      matches: num(row.matches),
+      lastDay: str(row.last_day),
+    };
+  }
+
+  /** The owner's Glicko-2 rating at `at` (default now): the stored rating
+   * with its RD grown once for each whole reset day (midnight Sydney)
+   * between its last rated match's day and `at`'s day, or the start before
+   * any rated match. A newly connected agent plays at this rating. */
+  rating(ownerId: string, at: string = this.stamp()): OwnerRating {
+    if (this.schemaVersion < 17) throw new EconomyError("ratings need schema v17");
+    this.getOwner(ownerId);
+    const stored = this.storedRating(ownerId);
+    if (stored === null) {
+      return { ownerId, ...RATING_START, ratedMatches: 0, tier: tierOf(RATING_START.rating, 0), lastDay: null };
+    }
+    const today = this.resetDay(at).day;
+    const gap = Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${stored.lastDay}T00:00:00Z`)) / 86_400_000);
+    const now = idle(stored.rating, Math.max(0, gap - 1));
+    return { ownerId, ...now, ratedMatches: stored.matches, tier: tierOf(now.rating, stored.matches), lastDay: stored.lastDay };
+  }
+
+  /** The ladder's standings at `at` (default now): every owner with a rated
+   * match, by rating (highest first; ties by fewer RD, then name). Placed
+   * owners (PLACEMENT_MATCHES rated matches or more) are ranked 1, 2, ...;
+   * owners still in placement follow, unranked. `limit` is the public list's
+   * length (default LADDER_LIST_SIZE, the top 100). */
+  ladder(options: { at?: string; limit?: number } = {}): LadderRow[] {
+    if (this.schemaVersion < 17) throw new EconomyError("ratings need schema v17");
+    const at = options.at ?? this.stamp();
+    const limit = options.limit ?? LADDER_LIST_SIZE;
+    if (!Number.isInteger(limit) || limit < 1) throw new EconomyError(`a ladder limit is a whole number of at least 1, got ${limit}`);
+    const tallies = new Map<string, { wins: number; losses: number; draws: number }>();
+    for (const r of this.db.prepare("SELECT owner_id, score, COUNT(*) AS n FROM match_ratings GROUP BY owner_id, score").all() as Row[]) {
+      const t = tallies.get(str(r.owner_id)) ?? { wins: 0, losses: 0, draws: 0 };
+      const score = num(r.score);
+      if (score === 1) t.wins += num(r.n);
+      else if (score === 0) t.losses += num(r.n);
+      else t.draws += num(r.n);
+      tallies.set(str(r.owner_id), t);
+    }
+    const rows = (this.db.prepare("SELECT owner_id FROM ratings").all() as Row[]).map((r) => {
+      const ownerId = str(r.owner_id);
+      const owner = this.getOwner(ownerId);
+      const rating = this.rating(ownerId, at);
+      const agent = owner.connectedAgentId === null ? null : this.getAgent(owner.connectedAgentId);
+      return {
+        rank: null as number | null,
+        ownerId,
+        ownerName: owner.name,
+        ownerKind: owner.kind,
+        agent: agent === null ? null : { agentId: agent.agentId, name: agent.name },
+        rating: rating.rating,
+        rd: rating.rd,
+        tier: rating.tier,
+        ratedMatches: rating.ratedMatches,
+        ...(tallies.get(ownerId) ?? { wins: 0, losses: 0, draws: 0 }),
+        lastDay: rating.lastDay,
+      };
+    });
+    const placed = (r: LadderRow) => r.ratedMatches >= PLACEMENT_MATCHES;
+    rows.sort((a, b) => Number(placed(b)) - Number(placed(a)) || b.rating - a.rating || a.rd - b.rd || a.ownerName.localeCompare(b.ownerName));
+    let rank = 0;
+    for (const r of rows) if (placed(r)) r.rank = ++rank;
+    return rows.slice(0, limit);
+  }
+
+  /** The owner's last `limit` rated matches, newest first, each with its
+   * rating change (the Rating & form widget). */
+  ratingHistory(ownerId: string, limit = 10): (RatingChange & { matchId: string; endedAt: string; opponentOwnerId: string })[] {
+    if (this.schemaVersion < 17) throw new EconomyError("ratings need schema v17");
+    if (!Number.isInteger(limit) || limit < 1) throw new EconomyError(`a history limit is a whole number of at least 1, got ${limit}`);
+    this.getOwner(ownerId);
+    const rows = this.db
+      .prepare(
+        `SELECT r.*, m.ended_at, CASE WHEN r.seat = 'p1' THEN m.p2_owner ELSE m.p1_owner END AS opponent
+         FROM match_ratings r JOIN matches m ON m.match_id = r.match_id
+         WHERE r.owner_id = ? ORDER BY m.ended_at DESC, m.rowid DESC LIMIT ?`,
+      )
+      .all(ownerId, limit) as Row[];
+    return rows.map((r) => ({
+      matchId: str(r.match_id),
+      endedAt: str(r.ended_at),
+      opponentOwnerId: str(r.opponent),
+      ownerId,
+      score: num(r.score) as 0 | 0.5 | 1,
+      before: { rating: num(r.rating_before), rd: num(r.rd_before), volatility: num(r.vol_before) },
+      after: { rating: num(r.rating_after), rd: num(r.rd_after), volatility: num(r.vol_after) },
+    }));
   }
 
   /** The owner's match stats, all agents or one (owner app spec, Stats:

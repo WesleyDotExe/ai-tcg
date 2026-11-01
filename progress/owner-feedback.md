@@ -3864,7 +3864,7 @@ Next render-lane slice, as planned: the Store page with pack opening on the site
 
 ---
 
-## 2026-11-01 — Owner: answers to game session 65 (the daily pack), keep all 3
+## 2026-11-01 — Owner: answers to game session 65 (the daily pack), keep all 3 (HANDLED 2026-11-01, session 66 — all 3 kept, nothing changed; session 66 built match running and the ladder as planned)
 
 Answers the three calls under "The daily pack is built (from your 2026-10-04 spec)" in `progress/notes-for-owner.md` (PR #113, `progress/owner-api-demo-005-daily-pack.txt`).
 1. **Keep:** a new owner's first day counts (sign up at 11 pm, claim one at once, another at midnight Sydney).

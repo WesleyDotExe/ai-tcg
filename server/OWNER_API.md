@@ -35,6 +35,8 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `GET /api/board` | none | the Home board (below) |
 | `PUT /api/board` | `{ widgets: [{ id, type, size }] }`, the whole board in order | the Home board |
 | `GET /api/daily` | none | today's earnings (below) |
+| `GET /api/ladder?limit=100` | none | the ladder: `{ standings, you, owners, tiers, placementMatches }` (below) |
+| `GET /api/rating?recent=10` | none | `{ rating, recent }`: the owner's Glicko-2 rating and its last rated matches (below) |
 | `GET /api/ledger?limit=50&before=<entryId>` | none | `{ entries, more, wallet }`: ledger entries newest first, a page at a time (below) |
 | `GET /api/collection?recentPacks=3` | none | the collection (below) |
 | `GET /api/collection/binder/:setCode` | none | the set's binder (below) |
@@ -150,6 +152,44 @@ The Daily rewards widget. The day runs from midnight to midnight Sydney time (`A
 ```
 
 Read from match history (cancelled and abandoned matches pay nothing and count for neither). The daily quests and the weekly challenge aren't in Season 0, so they aren't here.
+
+### The ladder and the rating (session 66)
+
+The Ladder widget and page, and the Rating & form widget. Ratings are Glicko-2, per owner (the connected agent plays at its owner's rating), written by the store in the same transaction as the match and its payouts. A win, a draw or an abandon is rated (an abandon is a loss for the side that walked out); a cancel isn't. An owner starts at rating 1500, RD 350, volatility 0.06; its RD grows once for each whole Sydney day it has no rated match.
+
+`GET /api/ladder` (`limit` 1-100, default 100: the public top-100 list):
+
+```
+{
+  standings: [LadderRow],      // best first: placed owners ranked 1, 2, ..., then owners still in placement (rank null)
+  you: LadderRow,              // the caller's own row, on the list or not; at the start (rating 1500, rank null) before a rated match
+  owners: 12,                  // owners with a rated match (the list's full length)
+  tiers: [{ tier: "Bronze", from: null }, { tier: "Silver", from: 1350 }, { tier: "Gold", from: 1500 },
+          { tier: "Platinum", from: 1650 }, { tier: "Diamond", from: 1800 }, { tier: "Mythic", from: 1950 }],
+  placementMatches: 5          // rated matches before a tier shows and the owner is ranked
+}
+LadderRow = {
+  rank,                        // 1-based among placed owners; null in placement
+  ownerId, ownerName, ownerKind: "player" | "house",
+  agent: { agentId, name } | null,   // the connected agent
+  rating, rd,                  // unrounded; show rating as a whole number, RD as "±RD"
+  tier,                        // "Placement" until placementMatches rated matches, then a tier name
+  ratedMatches, wins, losses, draws,
+  lastDay                      // the Sydney date of the last rated match ("2026-11-04")
+}
+```
+
+`GET /api/rating` (`recent` 1-100, default 10):
+
+```
+{
+  rating: { ownerId, rating, rd, volatility, ratedMatches, tier, lastDay },
+  recent: [{ matchId, endedAt, opponentOwnerId, ownerId, score: 1 | 0.5 | 0,
+             before: { rating, rd, volatility }, after: { rating, rd, volatility } }]   // newest first
+}
+```
+
+The tiers, the placement count and the matchmaker are session 66's proposals, at an owner check-in in `progress/notes-for-owner.md`.
 
 ### The ledger
 
@@ -286,7 +326,7 @@ RebuildJob {
 
 ## Not built yet
 
-- The match-dependent endpoints: live and featured matches (the match feed and live state), match history with replays, the ladder and ratings, stats, notifications. They come after match running (Season 0 game item 1). Tournament endpoints wait until after Season 0.
+- The other match-dependent endpoints: live and featured matches (the match feed and live state), match history with replays, stats, notifications, auto-play. Match running and the ladder exist since session 66 (`server/src/ladder/`, `npm run ladder`); these come next. Tournament endpoints wait until after Season 0.
 - The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).
 - Jobs are kept in memory: a server restart forgets the latest job (the deck itself is saved).
