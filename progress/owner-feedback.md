@@ -3833,7 +3833,7 @@ If it doesn't all fit in one session, do them in this order and continue in the 
 
 ---
 
-## 2026-11-01 — Owner: answers to game session 64 (the board and the economy endpoints), keep calls 1-5; the daily pack in session 65
+## 2026-11-01 — Owner: answers to game session 64 (the board and the economy endpoints), keep calls 1-5; the daily pack in session 65 (HANDLED 2026-11-01, session 65 — calls 1-5 kept, nothing changed. Item 6: the economy already had the daily pack, in your 2026-10-04 spec ("one free pack a day that only the owner can claim, stacking up to 2"), so it is built, not brought to a check-in: `dailyPackStatus` / `claimDailyPack` in the store (`economy/src/dailyPack.ts`, no schema change), `GET /api/packs/daily`, `POST /api/packs/daily/claim`, and `dailyPack` in `GET /api/packs` and `GET /api/store`, written into `server/OWNER_API.md`, tested, evidence `progress/owner-api-demo-005-daily-pack.txt`. The hardening pass in the same session: all eight economy demos re-run and read, `boastDemo.ts` fixed (and `packOpeningDemo.ts`, which also crashed on the Sydney day), all regenerated. The Season 0 checklist updated; match running is session 66)
 
 Answers the [OWNER CHECK-IN] "The board and the economy endpoints: the calls I made (defaults built)" in `progress/notes-for-owner.md` (PR #111, `progress/owner-api-demo-004-economy.txt`).
 1. **Keep:** the daily reset is midnight Sydney (Australia/Sydney, with daylight saving) for payouts and daily earnings.

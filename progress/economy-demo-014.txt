@@ -4,50 +4,50 @@ Every build: 16 one-copy changes tried per faction, 40 games per shipped opponen
 
 ## 1. A new owner: the Swarm starter collection and its 3 starter packs
   ada opens 3 packs; holds 55 copies; deck choice: agent
-  Cortex: can't build: no owned faction card that draws (the pool lint needs one)
-  Swarm: 48.8% against the four shipped decks on fresh seeds (rating start 47.0%, designed start 45.5%); keeps the searched deck, changes: -1 Rollback Point: 76 -> 88 of 160
-  Aegis: can't build: no owned faction card that draws (the pool lint needs one)
-  Null: can't build: no owned faction card that draws (the pool lint needs one)
-  -> ada's agent plays Swarm: "Agent's deck", 39 cards, active: true
-     against the Swarm starter list: +1 Chitin Plating, +1 Spare Cycles, -1 Bloodswarm Alpha, -2 Reflex Spike
+  Cortex: can't build: can't build a legal deck from the owned cards (at most 5 usable cards, under 20)
+  Swarm: 46.3% against the four shipped decks on fresh seeds (rating start 46.3%, designed start 43.0%); keeps the rating deck
+  Aegis: can't build: can't build a legal deck from the owned cards (at most 7 usable cards, under 20)
+  Null: can't build: can't build a legal deck from the owned cards (at most 4 usable cards, under 20)
+  -> ada's agent plays Swarm: "Agent's deck", 40 cards, active: true
+     against the Swarm starter list: +1 Chitin Plating, +1 Rollback Point, +1 Spare Cycles, -1 Bloodswarm Alpha, -2 Reflex Spike
 
 ## 2. An owner with the Cortex starter and 60 more packs: the free pick
   bo opens 63 packs; holds 355 copies
-  Cortex: 63.2% against the four shipped decks on fresh seeds (rating start 61.3%, designed start 60.3%); keeps the searched deck, changes: -1 Uplink Tower +1 Mainframe Core: 80 -> 89 of 160
-  Swarm: 41.3% against the four shipped decks on fresh seeds (rating start 20.3%, designed start 41.3%); keeps the designed deck
-  Aegis: 49.0% against the four shipped decks on fresh seeds (rating start 34.8%, designed start 44.5%); keeps the searched deck, changes: -1 Tariff Field +1 Feedback Plating: 80 -> 83 of 160
-  Null: 45.8% against the four shipped decks on fresh seeds (rating start 37.3%, designed start 45.8%); keeps the designed deck
+  Cortex: 61.5% against the four shipped decks on fresh seeds (rating start 61.5%, designed start 57.5%); keeps the rating deck
+  Swarm: 40.3% against the four shipped decks on fresh seeds (rating start 16.8%, designed start 40.3%); keeps the designed deck
+  Aegis: 45.0% against the four shipped decks on fresh seeds (rating start 34.8%, designed start 44.0%); keeps the searched deck, changes: -1 Tariff Field +1 Intercept Routine: 77 -> 79 of 160
+  Null: 54.5% against the four shipped decks on fresh seeds (rating start 41.5%, designed start 54.5%); keeps the designed deck
   -> bo's agent plays Cortex: "Agent's deck", 40 cards, active: true
-     against the Cortex starter list: +1 Compiled Daemon, +1 Diagnostic Pulse, +1 Dormant Exploit, +1 Fail-safe Unit, +1 Force Quit, +1 Overload Capacitor, +1 Retaliation Node, +1 Uplink Tower, +2 Relay Courier, +2 Signal Drone, +3 Spare Cycles, -1 Backup Protocol, -1 Cascade Purge, -1 Deadlock Detector, -1 Diagnostic Loop, -1 Hotfix, -1 Interrupt Handler, -1 Load Balancer, -1 Mainframe Core, -1 Overclock Shunt, -1 Rollback Point, -1 Surge Protector, -2 Cortex Engineer, -2 Rate Limiter
+     against the Cortex starter list: +1 Compiled Daemon, +1 Diagnostic Pulse, +1 Dormant Exploit, +1 Fail-safe Unit, +1 Force Quit, +1 Overload Capacitor, +1 Retaliation Node, +2 Relay Courier, +2 Signal Drone, +2 Uplink Tower, +3 Spare Cycles, -1 Backup Protocol, -1 Cascade Purge, -1 Deadlock Detector, -1 Diagnostic Loop, -1 Hotfix, -1 Interrupt Handler, -1 Load Balancer, -1 Overclock Shunt, -1 Rollback Point, -1 Surge Protector, -2 Cortex Engineer, -2 Mainframe Core, -2 Rate Limiter
 
 ## 3. The same owner locks Aegis (the forced faction): the agent rebuilds in place
-  Aegis: 49.0% against the four shipped decks on fresh seeds (rating start 34.8%, designed start 44.5%); keeps the searched deck, changes: -1 Tariff Field +1 Feedback Plating: 80 -> 83 of 160
+  Aegis: 45.0% against the four shipped decks on fresh seeds (rating start 34.8%, designed start 44.0%); keeps the searched deck, changes: -1 Tariff Field +1 Intercept Routine: 77 -> 79 of 160
   -> bo's agent plays Aegis: "Agent's deck", 40 cards, active: true
-     against the Aegis starter list: +1 Commodity Rack, +1 Feedback Plating, +1 Latent Ward, +3 Cache Warmup, -1 Aegis Sentinel, -1 Perimeter Turret, -1 Reinforced Bastion, -1 Tariff Field, -2 Failover Custodian
+     against the Aegis starter list: +1 Commodity Rack, +1 Intercept Routine, +1 Latent Ward, +3 Cache Warmup, -1 Aegis Sentinel, -1 Perimeter Turret, -1 Reinforced Bastion, -1 Tariff Field, -2 Failover Custodian
   same deck id as before: true; bo's saved decks: 1
 
 ## 4. A forced deck: the owner makes their own deck active
   cy forces "cy's own": deck choice forced
   buildAgentDeck refused: owner "cy" forces a deck; set the deck choice to the agent first
   back to the agent: choice agent, active deck none (the agent hasn't built one yet)
-  Cortex: can't build: no owned faction card that draws (the pool lint needs one)
-  Swarm: can't build: no owned faction card that draws (the pool lint needs one)
-  Aegis: can't build: no owned faction card that draws (the pool lint needs one)
-  Null: 53.3% against the four shipped decks on fresh seeds (rating start 53.3%); keeps the searched deck, changes: -1 Segmentation Fault: 68 -> 77 of 160; -1 Deprecated Routine +1 Segmentation Fault: 77 -> 83 of 160
-  -> cy's agent plays Null: "Agent's deck", 35 cards, active: true
-     against the Null starter list: -1 Deprecated Routine
+  Cortex: can't build: can't build a legal deck from the owned cards (at most 2 usable cards, under 20)
+  Swarm: can't build: can't build a legal deck from the owned cards (at most 2 usable cards, under 20)
+  Aegis: can't build: can't build a legal deck from the owned cards (at most 2 usable cards, under 20)
+  Null: 54.5% against the four shipped decks on fresh seeds (rating start 54.5%); keeps the rating deck
+  -> cy's agent plays Null: "Agent's deck", 40 cards, active: true
+     against the Null starter list: (the starter list, unchanged)
 
 ## 5. Real matches with the built decks (startMatch -> runMatch -> recordMatch)
-  s0-d001  ada (Agent's deck) vs bo (Agent's deck)  T15  ada wins
-  s0-d002  bo (Agent's deck) vs cy (Agent's deck)  T15  bo wins
-  s0-d003  cy (Agent's deck) vs ada (Agent's deck)  T11  cy wins
-  s0-d004  ada (Agent's deck) vs bo (Agent's deck)  T14  bo wins
-  s0-d005  bo (Agent's deck) vs cy (Agent's deck)  T15  bo wins
-  s0-d006  cy (Agent's deck) vs ada (Agent's deck)  T12  ada wins
-  s0-d007  ada (Agent's deck) vs bo (Agent's deck)  T11  ada wins
+  s0-d001  ada (Agent's deck) vs bo (Agent's deck)  T16  bo wins
+  s0-d002  bo (Agent's deck) vs cy (Agent's deck)  T14  cy wins
+  s0-d003  cy (Agent's deck) vs ada (Agent's deck)  T13  cy wins
+  s0-d004  ada (Agent's deck) vs bo (Agent's deck)  T16  bo wins
+  s0-d005  bo (Agent's deck) vs cy (Agent's deck)  T16  cy wins
+  s0-d006  cy (Agent's deck) vs ada (Agent's deck)  T14  ada wins
+  s0-d007  ada (Agent's deck) vs bo (Agent's deck)  T17  ada wins
   s0-d008  bo (Agent's deck) vs cy (Agent's deck)  T15  bo wins
-  s0-d009  cy (Agent's deck) vs ada (Agent's deck)  T11  cy wins
-  s0-d010  ada (Agent's deck) vs bo (Agent's deck)  T13  ada wins
-  s0-d011  bo (Agent's deck) vs cy (Agent's deck)  T12  cy wins
-  s0-d012  cy (Agent's deck) vs ada (Agent's deck)  T11  cy wins
+  s0-d009  cy (Agent's deck) vs ada (Agent's deck)  T18  ada wins
+  s0-d010  ada (Agent's deck) vs bo (Agent's deck)  T14  bo wins
+  s0-d011  bo (Agent's deck) vs cy (Agent's deck)  T14  cy wins
+  s0-d012  cy (Agent's deck) vs ada (Agent's deck)  T14  ada wins
   wins: ada 4, bo 4, cy 4 (12 matches; a showcase, not a measurement)

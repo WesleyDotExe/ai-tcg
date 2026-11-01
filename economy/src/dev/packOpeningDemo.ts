@@ -25,7 +25,10 @@ import { EconomyError, EconomyStore, LIVE_PACK_ODDS, PACK_PRICE_CREDITS, type Pa
 
 const tempDir = mkdtempSync(join(tmpdir(), "pack-opening-demo-"));
 const dbPath = join(tempDir, "season-0.db");
-let clock = new Date("2026-10-16T09:00:00.000Z");
+// 09:00 in Sydney, where the store's day starts and ends (session 65: the
+// clock was 09:00 UTC, which is 20:00 Sydney, so the 12 wins below crossed
+// Sydney midnight once the store counted the Sydney day, and the demo crashed).
+let clock = new Date("2026-10-15T22:00:00.000Z");
 const tick = (minutes: number) => (clock = new Date(clock.getTime() + minutes * 60_000));
 let store = EconomyStore.open(dbPath, { now: () => clock });
 const say = (line = "") => console.log(line);

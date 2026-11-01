@@ -219,6 +219,7 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
     bulkOpenCount: BULK_OPEN_COUNT,
     unopened: store.unopenedPacks(ownerId),
     pity: store.pityStatus(ownerId),
+    dailyPack: store.dailyPackStatus(ownerId),
     wallet: store.wallet(ownerId),
   });
 
@@ -305,11 +306,10 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       handler: (req, _body, _params, query) => {
         const ownerId = ownerOf(req);
         const limit = intParam(query, "limit", LEDGER_PAGE_DEFAULT, 1, LEDGER_PAGE_MAX);
-        const all = store.ledger(ownerId);
-        // Newest first; `before` pages back from an entry id.
+        // Newest first; `before` pages back from an entry id. Paged in SQL.
         const before = query.has("before") ? intParam(query, "before", 0, 1, Number.MAX_SAFE_INTEGER) : null;
-        const older = all.filter((e) => before === null || e.entryId < before).reverse();
-        return { body: { entries: older.slice(0, limit), more: older.length > limit, wallet: store.wallet(ownerId) } };
+        const page = store.ledgerPage(ownerId, { limit, before });
+        return { body: { ...page, wallet: store.wallet(ownerId) } };
       },
     },
     {
@@ -368,6 +368,16 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       },
     },
     { method: "GET", path: /^\/api\/packs$/, handler: (req) => ({ body: packs(ownerOf(req)) }) },
+    { method: "GET", path: /^\/api\/packs\/daily$/, handler: (req) => ({ body: store.dailyPackStatus(ownerOf(req)) }) },
+    {
+      method: "POST",
+      path: /^\/api\/packs\/daily\/claim$/,
+      handler: (req) => {
+        const ownerId = ownerOf(req);
+        const { pack, status } = store.claimDailyPack(ownerId);
+        return { status: 201, body: { pack, dailyPack: status, wallet: store.wallet(ownerId) } };
+      },
+    },
     {
       method: "POST",
       path: /^\/api\/packs\/buy$/,
@@ -423,7 +433,7 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       path: /^\/api\/store$/,
       handler: (req) => {
         const ownerId = ownerOf(req);
-        return { body: { packs: packOffer(), cosmetics: store.cosmeticsOnSale(ownerId), wallet: store.wallet(ownerId) } };
+        return { body: { packs: packOffer(), dailyPack: store.dailyPackStatus(ownerId), cosmetics: store.cosmeticsOnSale(ownerId), wallet: store.wallet(ownerId) } };
       },
     },
     {

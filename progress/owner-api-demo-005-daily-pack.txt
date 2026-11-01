@@ -1,0 +1,83 @@
+Owner API demo 005 — the owner's daily pack over HTTP (session 65)
+========================================================================
+Rule (owner 2026-10-04): one free pack a day that only the owner can claim, stacking up to 2.
+The day runs midnight to midnight Sydney (owner 2026-11-01). The database is a real file.
+
+1. Not signed in: both daily-pack endpoints answer 401
+------------------------------------------------------------------------
+> GET /api/packs/daily  -> 401
+  error: not signed in
+> POST /api/packs/daily/claim  -> 401
+  error: not signed in
+
+2. A new owner's first day: one waiting; claim it; a second claim is refused
+------------------------------------------------------------------------
+
+[clock 2026-11-01T09:00:00.000Z = Sun, 1 Nov, 20:00 in Sydney]
+> GET /api/packs/daily  -> 200
+  Nova: 1 of 2 waiting (set S0), day 2026-11-01 Australia/Sydney, resets 2026-11-01T13:00:00.000Z; next pack 2026-11-01T13:00:00.000Z; claimed today 0; last claim never
+> POST /api/packs/daily/claim  -> 201
+  claimed <pack 1>: set S0, source ownerDaily, acquired 2026-11-01T09:00:00.000Z
+  Nova: 0 of 2 waiting (set S0), day 2026-11-01 Australia/Sydney, resets 2026-11-01T13:00:00.000Z; next pack 2026-11-01T13:00:00.000Z; claimed today 1; last claim 2026-11-01T09:00:00.000Z
+  wallet: <pack 1> (ownerDaily)
+> POST /api/packs/daily/claim  -> 409
+  error: no daily pack to claim; the next one comes in at 2026-11-01T13:00:00.000Z
+  Nova still has 1 unopened pack(s).
+
+3. The Packs and Store widgets read the same status with what they already load
+------------------------------------------------------------------------
+> GET /api/packs  -> 200
+> GET /api/store  -> 200
+  /api/packs dailyPack: 0 waiting, next 2026-11-01T13:00:00.000Z
+  /api/store dailyPack: 0 waiting, next 2026-11-01T13:00:00.000Z
+
+4. One minute before Sydney midnight: still none. At midnight (UTC is still 1 Nov): one in
+------------------------------------------------------------------------
+
+[clock 2026-11-01T12:59:00.000Z = Sun, 1 Nov, 23:59 in Sydney]
+> GET /api/packs/daily  -> 200
+  Nova: 0 of 2 waiting (set S0), day 2026-11-01 Australia/Sydney, resets 2026-11-01T13:00:00.000Z; next pack 2026-11-01T13:00:00.000Z; claimed today 1; last claim 2026-11-01T09:00:00.000Z
+
+[clock 2026-11-01T13:00:00.000Z = Mon, 2 Nov, 00:00 in Sydney]
+> GET /api/packs/daily  -> 200
+  Nova: 1 of 2 waiting (set S0), day 2026-11-02 Australia/Sydney, resets 2026-11-02T13:00:00.000Z; next pack 2026-11-02T13:00:00.000Z; claimed today 0; last claim 2026-11-01T09:00:00.000Z
+> POST /api/packs/daily/claim  -> 201
+  Nova: 0 of 2 waiting (set S0), day 2026-11-02 Australia/Sydney, resets 2026-11-02T13:00:00.000Z; next pack 2026-11-02T13:00:00.000Z; claimed today 1; last claim 2026-11-01T13:00:00.000Z
+
+5. Per owner: Rook keeps a separate bank; Nova's claims didn't touch it
+------------------------------------------------------------------------
+> GET /api/packs/daily  -> 200
+  Rook: 2 of 2 waiting (set S0), day 2026-11-02 Australia/Sydney, resets 2026-11-02T13:00:00.000Z; next pack none while full (claim one to start the clock); claimed today 0; last claim never
+  (Rook was made on 1 Nov and never claimed: the 1 Nov and 2 Nov packs both wait, the cap.)
+
+6. The API and the store closed and reopened on the same file
+------------------------------------------------------------------------
+> GET /api/packs/daily  -> 200
+  Nova: 0 of 2 waiting (set S0), day 2026-11-02 Australia/Sydney, resets 2026-11-02T13:00:00.000Z; next pack 2026-11-02T13:00:00.000Z; claimed today 1; last claim 2026-11-01T13:00:00.000Z
+> POST /api/packs/daily/claim  -> 409
+  error on a claim: no daily pack to claim; the next one comes in at 2026-11-02T13:00:00.000Z
+
+7. Nova away four days: the bank stops at 2; claim both; then none until midnight
+------------------------------------------------------------------------
+
+[clock 2026-11-06T02:00:00.000Z = Fri, 6 Nov, 13:00 in Sydney]
+> GET /api/packs/daily  -> 200
+  Nova: 2 of 2 waiting (set S0), day 2026-11-06 Australia/Sydney, resets 2026-11-06T13:00:00.000Z; next pack none while full (claim one to start the clock); claimed today 0; last claim 2026-11-01T13:00:00.000Z
+> POST /api/packs/daily/claim  -> 201
+  Nova: 1 of 2 waiting (set S0), day 2026-11-06 Australia/Sydney, resets 2026-11-06T13:00:00.000Z; next pack 2026-11-06T13:00:00.000Z; claimed today 1; last claim 2026-11-06T02:00:00.000Z
+> POST /api/packs/daily/claim  -> 201
+  Nova: 0 of 2 waiting (set S0), day 2026-11-06 Australia/Sydney, resets 2026-11-06T13:00:00.000Z; next pack 2026-11-06T13:00:00.000Z; claimed today 2; last claim 2026-11-06T02:00:00.000Z
+> POST /api/packs/daily/claim  -> 409
+  error: no daily pack to claim; the next one comes in at 2026-11-06T13:00:00.000Z
+
+8. A claimed daily pack opens like any other
+------------------------------------------------------------------------
+> POST /api/packs/open {"packId":"<pack 1>"}  -> 200
+  <pack 1>: 5 cards (Common, Common, Uncommon, Rare, Common)
+
+9. Nova's daily packs, from the store
+------------------------------------------------------------------------
+  <pack 2>  unopened, acquired 2026-11-01T13:00:00.000Z
+  <pack 3>  unopened, acquired 2026-11-06T02:00:00.000Z
+  <pack 4>  unopened, acquired 2026-11-06T02:00:00.000Z
+  plus 1 opened (section 8): 4 daily packs claimed over 6 Sydney days (1 to 6 Nov), at most 2 waiting at any time.

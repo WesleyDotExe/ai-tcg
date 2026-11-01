@@ -36,6 +36,7 @@ import {
 import {
   AGENT_RENAME_PACK_POINTS,
   BULK_OPEN_COUNT,
+  OWNER_DAILY_PACK_CAP,
   CRAFT_PACK_POINTS,
   LIVE_PACK_ODDS,
   PACK_POINTS_PER_PACK,
@@ -77,6 +78,7 @@ import {
 } from "./cosmetics.js";
 import { matchCredits, MAX_PAID_LOSSES_PER_DAY, WIN_SCHEDULE, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 import { resetDayOf } from "./dailyReset.js";
+import { dailyPacksWaiting } from "./dailyPack.js";
 import { boardLayoutProblem, boardWidgets, RECOMMENDED_LAYOUT, type BoardLayout, type Widget } from "./boardLayout.js";
 import {
   BOUND_ORIGINS,
@@ -101,6 +103,19 @@ import {
 /** A signature card's art reference: its slot in its season's pool. Still a
  * placeholder (the image arrives with the late art pass), but it already
  * names the piece the card will show. */
+function ledgerEntryOf(r: Row): LedgerEntry {
+  return {
+    entryId: num(r.entry_id),
+    ownerId: str(r.owner_id),
+    playedBy: strOrNull(r.played_by),
+    currency: str(r.currency) as Currency,
+    delta: num(r.delta),
+    reason: str(r.reason),
+    ref: strOrNull(r.ref),
+    createdAt: str(r.created_at),
+  };
+}
+
 export function signatureArtRef(art: { pool: string; slot: number }): string {
   return `placeholder:signature-pool/${art.pool}/${String(art.slot).padStart(3, "0")}`;
 }
@@ -151,6 +166,23 @@ export interface OwnerRecord {
    * active (`setActiveDeck`). New owners start on "agent". */
   deckChoice: DeckChoice;
   createdAt: string;
+}
+
+/** The owner's daily pack, for the Store and Packs widgets. */
+export interface DailyPackStatus {
+  /** The set a claim gives a pack of: the current season's. */
+  setCode: string;
+  /** Packs waiting to be claimed now, 0 to `cap`. */
+  waiting: number;
+  cap: number;
+  /** Today's reset day and when it ends. */
+  day: string;
+  timeZone: string;
+  resetsAt: string;
+  /** When the next pack comes in; null while `cap` are waiting. */
+  nextPackAt: string | null;
+  claimedToday: number;
+  lastClaimedAt: string | null;
 }
 
 export type DeckChoice = "agent" | "forced";
@@ -2043,16 +2075,22 @@ export class EconomyStore {
   }
 
   ledger(ownerId: string): LedgerEntry[] {
-    return (this.db.prepare("SELECT * FROM ledger WHERE owner_id = ? ORDER BY entry_id").all(ownerId) as Row[]).map((r) => ({
-      entryId: num(r.entry_id),
-      ownerId: str(r.owner_id),
-      playedBy: strOrNull(r.played_by),
-      currency: str(r.currency) as Currency,
-      delta: num(r.delta),
-      reason: str(r.reason),
-      ref: strOrNull(r.ref),
-      createdAt: str(r.created_at),
-    }));
+    return (this.db.prepare("SELECT * FROM ledger WHERE owner_id = ? ORDER BY entry_id").all(ownerId) as Row[]).map(ledgerEntryOf);
+  }
+
+  /** One page of the owner's ledger, newest first: at most `limit` entries
+   * older than entry `before` (all of them when it's null), and whether
+   * older ones remain. Paged in SQL (session 65; it used to read the whole
+   * ledger and slice it in the API). */
+  ledgerPage(ownerId: string, options: { limit: number; before?: number | null }): { entries: LedgerEntry[]; more: boolean } {
+    const { limit } = options;
+    const before = options.before ?? null;
+    if (!Number.isInteger(limit) || limit < 1) throw new EconomyError(`a ledger page needs a whole limit of at least 1, got ${limit}`);
+    if (before !== null && !Number.isInteger(before)) throw new EconomyError(`"before" must be a whole entry id, got ${before}`);
+    const rows = this.db
+      .prepare("SELECT * FROM ledger WHERE owner_id = :o AND (:before IS NULL OR entry_id < :before) ORDER BY entry_id DESC LIMIT :n")
+      .all({ o: ownerId, before, n: limit + 1 }) as Row[];
+    return { entries: rows.slice(0, limit).map(ledgerEntryOf), more: rows.length > limit };
   }
 
   private appendLedger(
@@ -2381,7 +2419,9 @@ export class EconomyStore {
   setActiveDeck(ownerId: string, deckId: string): void {
     this.transaction(() => {
       this.activateDeck(ownerId, deckId);
-      this.db.prepare("UPDATE owners SET deck_choice = 'forced' WHERE owner_id = ?").run(ownerId);
+      // A file before v12 has no deck choice; migration 12 marks every owner
+      // with an active deck "forced", so skipping the write here is the same.
+      if (this.schemaVersion >= 12) this.db.prepare("UPDATE owners SET deck_choice = 'forced' WHERE owner_id = ?").run(ownerId);
     });
   }
 
@@ -2404,6 +2444,7 @@ export class EconomyStore {
    * "forced" keeps the active deck the owner has (refused with none). */
   setDeckChoice(ownerId: string, choice: DeckChoice): void {
     if (choice !== "agent" && choice !== "forced") throw new EconomyError(`unknown deck choice "${choice as string}"`);
+    if (this.schemaVersion < 12) throw new EconomyError("the deck choice needs schema v12");
     this.transaction(() => {
       const owner = this.getOwner(ownerId);
       if (choice === "forced") {
@@ -2699,6 +2740,46 @@ export class EconomyStore {
     const pack: PackRecord = { packId: randomUUID(), ownerId, setCode, source, acquiredAt: this.stamp(), openedAt: null };
     this.insertPack(pack);
     return pack;
+  }
+
+  /** The owner's daily pack (owner 2026-10-04: one free pack a day that
+   * only the owner can claim, stacking up to OWNER_DAILY_PACK_CAP; the day
+   * resets at midnight Sydney). Worked out from the owner's "ownerDaily"
+   * packs and the day it was created (see dailyPack.ts). `nextPackAt` is
+   * when the next one comes in: the next reset while the bank has room, null
+   * while it is full (claiming one starts it again). */
+  dailyPackStatus(ownerId: string, at: string = this.stamp()): DailyPackStatus {
+    const owner = this.getOwner(ownerId);
+    const today = this.resetDay(at);
+    const claimed = (
+      this.db.prepare("SELECT acquired_at FROM packs WHERE owner_id = ? AND source = 'ownerDaily' ORDER BY acquired_at, rowid").all(ownerId) as Row[]
+    ).map((r) => str(r.acquired_at));
+    const claimDays = claimed.map((t) => this.resetDay(t).day);
+    const waiting = dailyPacksWaiting(this.resetDay(owner.createdAt).day, claimDays, today.day, OWNER_DAILY_PACK_CAP);
+    return {
+      setCode: this.season,
+      waiting,
+      cap: OWNER_DAILY_PACK_CAP,
+      day: today.day,
+      timeZone: today.timeZone,
+      resetsAt: today.endsAt,
+      nextPackAt: waiting < OWNER_DAILY_PACK_CAP ? today.endsAt : null,
+      claimedToday: claimDays.filter((d) => d === today.day).length,
+      lastClaimedAt: claimed.length ? claimed[claimed.length - 1]! : null,
+    };
+  }
+
+  /** The owner claims one daily pack of the current set: it joins the
+   * unopened packs (source "ownerDaily"). Refused when none is waiting. */
+  claimDailyPack(ownerId: string): { pack: PackRecord; status: DailyPackStatus } {
+    return this.transaction(() => {
+      const before = this.dailyPackStatus(ownerId);
+      if (before.waiting < 1) {
+        throw new EconomyError(`no daily pack to claim; the next one comes in at ${before.resetsAt}`);
+      }
+      const pack = this.grantPack(ownerId, before.setCode, "ownerDaily");
+      return { pack, status: this.dailyPackStatus(ownerId) };
+    });
   }
 
   private insertPack(pack: PackRecord): void {

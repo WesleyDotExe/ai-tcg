@@ -67,6 +67,8 @@ const ENDPOINTS: [string, string, unknown?][] = [
   ["POST", "/api/packs/buy", { setCode: "S0" }],
   ["POST", "/api/packs/open", {}],
   ["GET", "/api/packs/x/opening"],
+  ["GET", "/api/packs/daily"],
+  ["POST", "/api/packs/daily/claim"],
   ["GET", "/api/store"],
   ["POST", "/api/store/cosmetics/x/buy"],
   ["GET", "/api/cosmetics"],
@@ -360,5 +362,48 @@ describe("owner API: the store, cosmetics and loadouts", () => {
     expect((await call("GET", `/api/agents/${bobAgent.agentId}/loadout`, { token })).status).toBe(404);
     expect((await call("PUT", `/api/agents/${bobAgent.agentId}/loadout/boast`, { token, body: { itemId: null } })).status).toBe(404);
     expect(store.ownedCosmetics(ada.ownerId).length).toBeGreaterThan(0);
+  });
+});
+
+describe("owner API: the owner's daily pack (session 65)", () => {
+  it("reads the bank, claims one, refuses a second, and refills at Sydney midnight", async () => {
+    const { call, signIn, store, ada, setClock } = await setup();
+    const token = await signIn("ada");
+    const unopened = store.unopenedPacks(ada.ownerId).length;
+
+    const status = await call("GET", "/api/packs/daily", { token });
+    expect(status.status).toBe(200);
+    expect(status.body).toMatchObject({ setCode: "S0", waiting: 1, cap: 2, day: "2026-11-01", resetsAt: "2026-11-01T13:00:00.000Z", claimedToday: 0 });
+    // The Packs and Store widgets get it with what they already read.
+    expect((await call("GET", "/api/packs", { token })).body.dailyPack).toEqual(status.body);
+    expect((await call("GET", "/api/store", { token })).body.dailyPack).toEqual(status.body);
+
+    const claimed = await call("POST", "/api/packs/daily/claim", { token });
+    expect(claimed.status).toBe(201);
+    expect(claimed.body.pack).toMatchObject({ ownerId: ada.ownerId, setCode: "S0", source: "ownerDaily", openedAt: null });
+    expect(claimed.body.dailyPack).toMatchObject({ waiting: 0, claimedToday: 1, nextPackAt: "2026-11-01T13:00:00.000Z" });
+    expect(claimed.body.wallet.unopenedPacks).toHaveLength(unopened + 1);
+
+    const again = await call("POST", "/api/packs/daily/claim", { token });
+    expect(again.status).toBe(409);
+    expect(again.body.error).toMatch(/no daily pack to claim; the next one comes in at 2026-11-01T13:00:00.000Z/);
+    expect(store.unopenedPacks(ada.ownerId)).toHaveLength(unopened + 1);
+
+    // The claimed pack opens like any other.
+    const opened = await call("POST", "/api/packs/open", { token, body: { packId: claimed.body.pack.packId } });
+    expect(opened.status).toBe(200);
+    expect(opened.body.packs[0].packId).toBe(claimed.body.pack.packId);
+
+    setClock("2026-11-01T13:00:00.000Z");
+    expect((await call("GET", "/api/packs/daily", { token })).body).toMatchObject({ day: "2026-11-02", waiting: 1 });
+  });
+
+  it("is the signed-in owner's own: bob's claim leaves ada's bank alone", async () => {
+    const { call, signIn } = await setup();
+    const bobToken = await signIn("bob");
+    const adaToken = await signIn("ada");
+    expect((await call("POST", "/api/packs/daily/claim", { token: bobToken })).status).toBe(201);
+    expect((await call("GET", "/api/packs/daily", { token: bobToken })).body.waiting).toBe(0);
+    expect((await call("GET", "/api/packs/daily", { token: adaToken })).body.waiting).toBe(1);
   });
 });

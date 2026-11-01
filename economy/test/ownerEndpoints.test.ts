@@ -309,3 +309,57 @@ describe("buying packs, the recent pulls and the collection summary", () => {
     }
   });
 });
+
+describe("the ledger, paged in SQL (session 65)", () => {
+  it("every page matches the whole ledger read newest first, for every limit and starting point", () => {
+    const s = open();
+    const ada = player(s, "ada");
+    const bo = player(s, "bo");
+    s.grantStarterCollection(ada.ownerId, "Swarm");
+    for (let i = 0; i < 12; i++) win(s, i % 3 ? ada.agentId : bo.agentId, i % 3 ? bo.agentId : ada.agentId, `2026-10-${String(10 + i).padStart(2, "0")}T01:00:00.000Z`);
+    s.openPack(ada.ownerId);
+    const newestFirst = s.ledger(ada.ownerId).reverse();
+    expect(newestFirst.length).toBeGreaterThan(10);
+    // Another owner's entries never show.
+    expect(newestFirst.every((e) => e.ownerId === ada.ownerId)).toBe(true);
+    const ids = [null, ...newestFirst.map((e) => e.entryId), newestFirst[0]!.entryId + 1000, 1];
+    for (const limit of [1, 2, 3, 5, 50]) {
+      for (const before of ids) {
+        const want = newestFirst.filter((e) => before === null || e.entryId < before);
+        expect(s.ledgerPage(ada.ownerId, { limit, before })).toEqual({ entries: want.slice(0, limit), more: want.length > limit });
+      }
+    }
+    // Walking the pages visits every entry once, in order.
+    const walked: number[] = [];
+    let before: number | null = null;
+    for (;;) {
+      const page = s.ledgerPage(ada.ownerId, { limit: 4, before });
+      walked.push(...page.entries.map((e) => e.entryId));
+      if (!page.more) break;
+      before = page.entries[page.entries.length - 1]!.entryId;
+    }
+    expect(walked).toEqual(newestFirst.map((e) => e.entryId));
+    expect(() => s.ledgerPage(ada.ownerId, { limit: 0 })).toThrow(/limit/);
+    expect(() => s.ledgerPage(ada.ownerId, { limit: 5, before: 1.5 })).toThrow(/before/);
+  });
+});
+
+describe("a file before v12 (no deck choice) (session 65)", () => {
+  it("setActiveDeck works on a v10 file and the migration then marks the owner forced; setDeckChoice says it needs v12", () => {
+    const path = tmpFile();
+    let s = open(path, 10);
+    expect(s.schemaVersion).toBe(10);
+    const ada = player(s, "ada");
+    const { copies } = s.grantStarterCollection(ada.ownerId, "Cortex");
+    const deck = s.saveDeck(ada.ownerId, "Cortex starter", copies.map((c) => c.copyId));
+    // This threw "no such column: deck_choice" before (boastDemo.ts crashed).
+    s.setActiveDeck(ada.ownerId, deck.deckId);
+    expect(s.getOwner(ada.ownerId).activeDeckId).toBe(deck.deckId);
+    expect(() => s.setDeckChoice(ada.ownerId, "agent")).toThrow("the deck choice needs schema v12");
+    s.close();
+    s = open(path);
+    expect(s.schemaVersion).toBeGreaterThanOrEqual(12);
+    expect(s.getOwner(ada.ownerId)).toMatchObject({ activeDeckId: deck.deckId, deckChoice: "forced" });
+    s.close();
+  });
+});

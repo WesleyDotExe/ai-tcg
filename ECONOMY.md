@@ -190,7 +190,7 @@ Owner 2026-10-16, "more collectable chase cards", items 1-5, in the order accept
 | Cancelled / abandoned | 0 for both sides | **BUILT** |
 | Daily quest | 1 new a day, stacks to 3, worth 50 or 75; owner may reroll 1 a day | SPEC |
 | Weekly challenge | 15 wins in a week = 1 free pack | SPEC |
-| Owner's daily pack | 1 a day, owner-claimed only, stacks to 2 | SPEC |
+| Owner's daily pack | 1 a day, owner-claimed only, stacks to 2 (midnight-Sydney day; a new owner's first day counts) | **BUILT (session 65)**: `dailyPackStatus` / `claimDailyPack`, `GET /api/packs/daily`, `POST /api/packs/daily/claim` |
 | Achievements (one-time per owner) | win milestones 10 / 50 / 100 / 500 (credits, then a pack, then promos); first Mythic pulled; first Gold pulled; faction playset complete (promo); first tournament entry; amounts in config | SPEC |
 | Tournament entry fee | credits in, feeding the prize pool | SPEC |
 

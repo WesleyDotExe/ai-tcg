@@ -58,6 +58,12 @@ export const PACK_POINTS_PER_PACK = 5;
  * once"; same odds, no discount, no bonus). */
 export const BULK_OPEN_COUNT = 10;
 
+/** The owner's daily pack (owner 2026-10-04, ECONOMY.md "Earning": "one
+ * free pack a day that only the owner can claim, stacking up to 2"): one
+ * pack of the current set comes in at each reset (midnight Sydney), and at
+ * most this many wait unclaimed; a day that finds the bank full adds none. */
+export const OWNER_DAILY_PACK_CAP = 2;
+
 /** Pieces in a season's signature art pool (owner 2026-10-16: 500,
  * accepted as planned). Each signature card records one slot at creation;
  * the images arrive with the late art pass. */

@@ -1,60 +1,60 @@
 # Generate a new agent (sessions 34-35)
-database: <temp>/season-0.db  schema v7  season S0
+database: <temp>/season-0.db  schema v16  season S0
 approved signature lines: 14, over 7 menu options (only these are ever shown)
 
 ## 1. Ada generates a first agent
 Generate a new agent: 3 generated agents
-  [0] Juno Lattice: A proud forecaster that re-reads the rules text of every card it sees.
-  [1] Ilsa Delta: A ruthless archivist that estimates its win chance out loud, to three decimals.
-  [2] Seren Delta: A cold-blooded strategist that keeps a grudge log of every unit that hit it.
-  owner picks [1] Ilsa Delta
+  [0] Deltaclaw of the Open Port: A theatrical forecaster that re-reads the rules text of every card it sees.
+  [1] Kernelwarden's Redacted Second: A cold-blooded archivist that estimates its win chance out loud, to three decimals.
+  [2] Neonhornet of the Last Arcade: A playful strategist that keeps a grudge log of every unit that hit it.
+  owner picks [1] Kernelwarden's Redacted Second
 Its signature card: 3 candidates, each a line that passed the fairness test
-  [0] Chrome Mixer: cost 5, 3/6. On arrival, your units get +0/+1 this turn.  (sig5-3x6-rally.a0; worst edge 1.2 pts at 10000 seeds)
-        "One signal from Ilsa Delta and the whole board leans forward."
-  [1] Reboot of the Lost Floppy: cost 5, 3/6. At the end of your turn, restore 1 health to a random unit of yours.  (sig5-3x6-restore.r1; worst edge 1.6 pts at 10000 seeds)
-        "Every scratch on Ilsa Delta's side gets a ticket and a fix."
-  [2] Recycle Bin of the Glass Tower: cost 5, 3/7. On arrival, if you have 2 or fewer cards in hand, draw a card.  (sig5-3x7-supply-line.low; worst edge 1.9 pts at 10000 seeds)
-        "When the hand runs thin, Ilsa Delta sends for more."
+  [0] Mixer of the Underpass: cost 5, 3/6. On arrival, your units get +0/+1 this turn.  (sig5-3x6-rally.a0; worst edge 1.4 pts at 10000 seeds)
+        "One signal from Kernelwarden's Redacted Second and the whole board leans forward."
+  [1] Cybertiger's Restore Point: cost 5, 3/6. At the end of your turn, restore 1 health to a random unit of yours.  (sig5-3x6-restore.r1; worst edge 1.5 pts at 10000 seeds)
+        "Every scratch on Kernelwarden's Redacted Second's side gets a ticket and a fix."
+  [2] Recycle Bin of the Glass Tower: cost 5, 3/7. On arrival, if you have 2 or fewer cards in hand, draw a card.  (sig5-3x7-supply-line.low; worst edge 2.0 pts at 10000 seeds)
+        "When the hand runs thin, Kernelwarden's Redacted Second sends for more."
   owner picks [0] and confirms
-Created: agent Ilsa Delta ("A ruthless archivist that estimates its win chance out loud, to three decimals.")
-  signature card Chrome Mixer, PR-001 (card id sig-PR-001), Neutral Mythic, cost 5, 3/6
+Created: agent Kernelwarden's Redacted Second ("A cold-blooded archivist that estimates its win chance out loud, to three decimals.")
+  signature card Mixer of the Underpass, PR-001 (card id sig-PR-001), Neutral Mythic, cost 5, 3/6
   granted copy: origin promo, promo PR-001, stamp SIGNATURE, originRef signature:<agent id>, account-bound true
   card viewer: owned 1, salvageable 0 (Account-bound (promo copy): it can be played, never salvaged)
   wallet after: 0 credits, 3 unopened packs from the starter (a new agent brings nothing but its card)
 
 ## 2. Ada connects it and plays a recorded match (the card plays from the signature zone)
-  startMatch demo-1: p1 deck "Aegis starter" (40 copies), signature card in the zone: Chrome Mixer
+  startMatch demo-1: p1 deck "Aegis starter" (40 copies), signature card in the zone: Mixer of the Underpass
   the signature card in the match log (2 event(s)):
-    turn  9: p1 plays Chrome Mixer from the signature zone for 5 energy (u21)
-    turn  9: ability: Chrome Mixer — sig-rally (onPlay)
+    turn  9: p1 plays Mixer of the Underpass from the signature zone for 5 energy (u22)
+    turn  9: ability: Mixer of the Underpass — sig-rally.a0 (onPlay)
   result: Ada's agent wins on turn 13; Ada credited 30
 
 ## 3. A second agent
 Generate a new agent: 3 generated agents
-  [0] Talis Echo: A restless strategist that hums while it waits for priority.
-  [1] Sable Ninefold: A superstitious showboat that narrates its own moves to the crowd.
-  [2] Anselm Ninefold: A curious forecaster that plays its biggest threat one turn earlier than it should.
-  owner picks [0] Talis Echo
+  [0] Laserferret's Turbo Champion: A superstitious strategist that hums while it waits for priority.
+  [1] Coiljackal's Croupier: A curious showboat that narrates its own moves to the crowd.
+  [2] Shellfixer's Sleepless Flywheel: A restless forecaster that plays its biggest threat one turn earlier than it should.
+  owner picks [0] Laserferret's Turbo Champion
 Its signature card: 3 candidates, each a line that passed the fairness test
-  [0] Synthpilot's Titanium Anthem: cost 5, 3/6. On arrival, your units get +0/+1 this turn.  (sig5-3x6-rally.a0; worst edge 1.2 pts at 10000 seeds)
-        "Talis Echo doesn't fight alone; it never has."
-  [1] Graveyard Download v2: cost 5, 3/7. On arrival, if you have 2 or fewer cards in hand, draw a card.  (sig5-3x7-supply-line.low; worst edge 1.9 pts at 10000 seeds)
-        "Talis Echo never runs out of plans, only of patience."
-  [2] Off-World Hotfix v2: cost 5, 3/6. At the end of your turn, restore 1 health to a random unit of yours.  (sig5-3x6-restore.r1; worst edge 1.6 pts at 10000 seeds)
-        "Every scratch on Talis Echo's side gets a ticket and a fix."
+  [0] Onyxsquid's Overcast Broadcast: cost 5, 3/6. On arrival, your units get +0/+1 this turn.  (sig5-3x6-rally.a0; worst edge 1.4 pts at 10000 seeds)
+        "Laserferret's Turbo Champion doesn't fight alone; it never has."
+  [1] Data Heist of the Junkyard: cost 5, 3/7. On arrival, if you have 2 or fewer cards in hand, draw a card.  (sig5-3x7-supply-line.low; worst edge 2.0 pts at 10000 seeds)
+        "Laserferret's Turbo Champion never runs out of plans, only of patience."
+  [2] Switchboard of the Deep Web: cost 5, 3/6. At the end of your turn, restore 1 health to a random unit of yours.  (sig5-3x6-restore.r1; worst edge 1.5 pts at 10000 seeds)
+        "Every scratch on Laserferret's Turbo Champion's side gets a ticket and a fix."
   owner picks [2] and confirms
-Created: agent Talis Echo ("A restless strategist that hums while it waits for priority.")
-  signature card Off-World Hotfix v2, PR-002 (card id sig-PR-002), Neutral Mythic, cost 5, 3/6
+Created: agent Laserferret's Turbo Champion ("A superstitious strategist that hums while it waits for priority.")
+  signature card Switchboard of the Deep Web, PR-002 (card id sig-PR-002), Neutral Mythic, cost 5, 3/6
   granted copy: origin promo, promo PR-002, stamp SIGNATURE, originRef signature:<agent id>, account-bound true
   card viewer: owned 1, salvageable 0 (Account-bound (promo copy): it can be played, never salvaged)
-  names: "Chrome Mixer" and "Off-World Hotfix v2" (never the same); combinations sig5-3x6-rally.a0 and sig5-3x6-restore.r1 (may be the same since v7)
+  names: "Mixer of the Underpass" and "Switchboard of the Deep Web" (never the same); combinations sig5-3x6-rally.a0 and sig5-3x6-restore.r1 (may be the same since v7)
 
 ## 4. Switching agents changes only the signature card
-  startMatch demo-2: p1 deck "Aegis starter" (40 copies), signature card in the zone: Off-World Hotfix v2
+  startMatch demo-2: p1 deck "Aegis starter" (40 copies), signature card in the zone: Switchboard of the Deep Web
   the signature card in the match log (3 event(s)):
-    turn  9: p1 plays Off-World Hotfix v2 from the signature zone for 5 energy (u18)
-    turn  9: ability: Off-World Hotfix v2 — sig-restore (onTurnEnd)
-    turn 11: ability: Off-World Hotfix v2 — sig-restore (onTurnEnd)
+    turn  9: p1 plays Switchboard of the Deep Web from the signature zone for 5 energy (u17)
+    turn  9: ability: Switchboard of the Deep Web — sig-restore.r1 (onTurnEnd)
+    turn 11: ability: Switchboard of the Deep Web — sig-restore.r1 (onTurnEnd)
   result: House wins on turn 12; Ada credited 2
 
 ## 5. A crowded season: 40 more owners generate an agent each (combinations may repeat; names never)
@@ -62,22 +62,22 @@ Created: agent Talis Echo ("A restless strategist that hums while it waits for p
   most shared combination: sig5-3x7-supply-line.low x 6 agents
   promo numbers PR-001 .. PR-042, none reused: true
   the first 16 of the crowd:
-    PR-003  Circuitdroid's Drumline         sig5-3x5-inspire.a0        (Hollis Mk IV)
-    PR-004  Overclocked Repair Kit          sig5-3x6-restore.r1        (Fennick Echo)
-    PR-005  Echosmith's Atomic Terminal     sig5-3x6-rally.a0          (Talis Vector)
-    PR-006  Obsolete Tariff                 sig5-3x6-tax               (Merrow Halting)
-    PR-007  Solar Undelete Gold             sig5-3x6-recycle           (Ember Mk IV)
-    PR-008  Gatekeeper of the Phone Lines   sig5-3x6-tax               (Talis Halting)
-    PR-009  Ultraviolet Courier Max         sig5-3x7-supply-line.low   (Odalys Delta)
-    PR-010  Chrome Panic Room               sig5-3x5-guardian          (Kael Relay)
-    PR-011  Deluxe Ghost                    sig5-3x6-rally.a0          (Briar Mk II)
-    PR-012  Afterimage of the Back Alley    sig5-3x6-supply-line.low   (Mireth Twelve)
-    PR-013  Nimbus's Obsolete Repair Kit    sig5-3x6-restore.r1        (Tamsin Eleven)
-    PR-014  Faraday Cage of Sector Eleven   sig5-3x5-guardian          (Zephan Vector)
-    PR-015  Pixelated Circuit Board Deluxe  sig5-3x7-supply-line.low   (Orrin Zero)
-    PR-016  Pingmoth's Obsolete Bass Drop   sig5-3x5-rally.a0          (Pell Relay)
-    PR-017  Undelete of Sector Eleven       sig5-3x6-recycle.c1        (Odalys Mk IV)
-    PR-018  Late Fee of the Error Log       sig5-3x6-tax               (Riven Twelve)
+    PR-003  Drumline of the Parking Garage  sig5-3x5-inspire.a0        (Ionwidow of the Server Farm)
+    PR-004  Shellmonk's Looping Firmware    sig5-3x6-restore.r1        (Astrocat's Replica)
+    PR-005  Echonewt's Payphone Line        sig5-3x6-rally.a0          (Dialgull's Prizefighter)
+    PR-006  Bytebear's Iridescent Late Fee  sig5-3x6-tax               (Ironsparrow of the Night Market)
+    PR-007  Download of the Burned CD       sig5-3x6-recycle           (Vaporcondor's Leather Twin)
+    PR-008  Payphone Line of the Underpass  sig5-3x6-tax               (Coilsparrow of the Night Market)
+    PR-009  Dial-Up Courier Max             sig5-3x7-supply-line.low   (Codesprite's Storm-Lit Villain)
+    PR-010  Sandbox of the Laser Tag Arena  sig5-3x4-guardian          (Jadeorca's Hidden Butler)
+    PR-011  Macrolynx's Basement Anthem     sig5-3x6-rally.a0          (Rustboar of the Night Bus)
+    PR-012  Afterimage of the Back Alley    sig5-3x6-supply-line.low   (Shellsage's Recursive Revenant)
+    PR-013  Checkpoint of the Rain City     sig5-3x6-restore.r1        (Gigawolf of the Rooftops)
+    PR-014  Smoggy Shield                   sig5-3x4-guardian          (Duskgecko's Fast-Forward Engine)
+    PR-015  Deltafixer's Hi-Fi Afterimage   sig5-3x7-supply-line.low   (Ghostboar's Storm-Lit Haunt)
+    PR-016  Bitmanta's Concrete Bass Drop   sig5-3x5-rally.a0          (Cacheorca of the Chatroom)
+    PR-017  Rasterstag's Torrent            sig5-3x6-recycle.c1        (Sigmarat's Accomplice)
+    PR-018  Late Fee of the Error Log       sig5-3x6-tax               (Legacy Shellhawk)
 
 ## 6. The rules hold
   putting the signature card in a deck: refused (deck "with signature": a signature card plays from its own zone, never from the deck)
@@ -88,7 +88,7 @@ Created: agent Talis Echo ("A restless strategist that hums while it waits for p
   confirming a draft replaced by a newer one: refused (this draft is closed (confirmed, or replaced by a newer one))
 
 ## 7. After closing and reopening the database file
-  Ilsa Delta: Chrome Mixer (PR-001, sig5-3x6-rally.a0)
-  Talis Echo: Off-World Hotfix v2 (PR-002, sig5-3x6-restore.r1)  [connected]
+  Kernelwarden's Redacted Second: Mixer of the Underpass (PR-001, sig5-3x6-rally.a0)
+  Laserferret's Turbo Champion: Switchboard of the Deep Web (PR-002, sig5-3x6-restore.r1)  [connected]
   Ada's recorded matches: 2
-  schema v7; signature cards in the season: 42
+  schema v16; signature cards in the season: 42

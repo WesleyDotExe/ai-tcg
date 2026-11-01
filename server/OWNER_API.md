@@ -47,7 +47,9 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `POST /api/packs/buy` | `{ setCode, count?: 1..10 }` (count 1 by default) | 201 `{ bought: PackRecord[], wallet }` |
 | `POST /api/packs/open` | `{ count?: 1 \| 10 }` or `{ packId }` | `{ packs: PackOpening[], summary, wallet }` (below) |
 | `GET /api/packs/:packId/opening` | none | the logged opening, seed and all (the caller's packs only) |
-| `GET /api/store` | none | `{ packs, cosmetics, wallet }`: what's on sale |
+| `GET /api/packs/daily` | none | the owner's daily pack: how many wait, when the next comes in (below) |
+| `POST /api/packs/daily/claim` | none | 201 `{ pack: PackRecord, dailyPack, wallet }`; 409 when none waits |
+| `GET /api/store` | none | `{ packs, dailyPack, cosmetics, wallet }`: what's on sale |
 | `POST /api/store/cosmetics/:itemId/buy` | none | 201 `{ cosmetic, wallet }` |
 | `GET /api/cosmetics` | none | `{ owned: OwnedCosmetic[] }` |
 | `GET /api/agents/:agentId/loadout` | none | the agent's loadout (below) |
@@ -189,6 +191,7 @@ Read from match history (cancelled and abandoned matches pay nothing and count f
   bulkOpenCount: 10,
   unopened: PackRecord[],                     // oldest first
   pity: { packsSinceFullArt, packsSinceMythic, next: { fullArt, mythic } },
+  dailyPack: DailyPackStatus,                 // the same as GET /api/packs/daily
   wallet
 }
 ```
@@ -199,9 +202,33 @@ Read from match history (cancelled and abandoned matches pay nothing and count f
 - The summary: `{ cards, newCards, packPoints, byRarity, byFinish, fullReveals: [packId] }`.
 - Each pack's seed is drawn by the server when it opens and is shown only after (`GET /api/packs/:packId/opening` reads the logged opening back).
 
+### The owner's daily pack (session 65)
+
+The rule is the owner's (2026-10-04): one free pack a day that only the owner can claim, stacking up to 2. The day is the store's reset day, midnight to midnight Sydney.
+
+`GET /api/packs/daily` (also sent as `dailyPack` with `GET /api/packs` and `GET /api/store`):
+
+```
+{
+  setCode: "S0",            // a claim gives a pack of the current season's set
+  waiting: 0 | 1 | 2,       // packs to claim now
+  cap: 2,
+  day: "2026-11-02", timeZone: "Australia/Sydney",
+  resetsAt: ISO,            // when today ends
+  nextPackAt: ISO | null,   // when the next one comes in: resetsAt, or null while 2 wait (nothing comes in until one is claimed)
+  claimedToday: number,
+  lastClaimedAt: ISO | null
+}
+```
+
+- One pack comes in at the start of every Sydney day, the owner's first day included, unless 2 are already waiting.
+- `POST /api/packs/daily/claim` adds one pack (source `ownerDaily`) to the owner's unopened packs; it opens like any other (`POST /api/packs/open`). With none waiting it is 409: `no daily pack to claim; the next one comes in at <resetsAt>`.
+- Nothing extra is stored: the store works the bank out from the owner's `ownerDaily` packs and the day the owner was created (`economy/src/dailyPack.ts`), so it survives restarts and can't drift from the packs it paid out.
+- Per owner, not per agent: making agents gives no more daily packs. Agents can't claim (they don't sign in to this API).
+
 ### The store and cosmetics
 
-- `GET /api/store`: `{ packs: <the pack offer>, cosmetics: [CosmeticItem & { owned }], wallet }`. Cosmetics listed are those on sale now (this season, inside their sale window, drawn by the render lane); Season 0 sells two boasts at 300 credits.
+- `GET /api/store`: `{ packs: <the pack offer>, dailyPack, cosmetics: [CosmeticItem & { owned }], wallet }`. Cosmetics listed are those on sale now (this season, inside their sale window, drawn by the render lane); Season 0 sells two boasts at 300 credits.
 - `POST /api/store/cosmetics/:itemId/buy` pays credits and grants the item together, or refuses (409): not on sale, already owned, too few credits.
 - `GET /api/cosmetics`: every item the owner owns (`{ ownerId, itemId, kind, source: "starter" | "purchase", ledgerEntryId, acquiredAt, item }`), the four starter boasts included.
 
@@ -260,7 +287,7 @@ RebuildJob {
 ## Not built yet
 
 - The match-dependent endpoints: live and featured matches (the match feed and live state), match history with replays, the ladder and ratings, stats, notifications. They come after match running (Season 0 game item 1). Tournament endpoints wait until after Season 0.
-- The owner's daily pack (claimed by the owner, stacks to 2) has no claim endpoint yet; the store can grant one, nothing claims it.
+- The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).
 - Jobs are kept in memory: a server restart forgets the latest job (the deck itself is saved).
 - No HTTPS of its own (meant to sit behind the host's proxy), no CORS (the website is served from the same origin), no rate limit beyond the sign-in lockout.
