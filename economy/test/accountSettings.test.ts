@@ -126,7 +126,7 @@ describe("account settings (schema v15)", () => {
     const v14 = open(path, 14);
     const o = v14.createOwner({ name: "old" });
     v14.close();
-    const v15 = open(path);
+    const v15 = open(path, 15);
     expect(v15.schemaVersion).toBe(15);
     expect(v15.accountSettings(o.ownerId)).toEqual({ ...DEFAULTS, updatedAt: null });
     v15.updateAccountSettings(o.ownerId, { theme: "dark" });

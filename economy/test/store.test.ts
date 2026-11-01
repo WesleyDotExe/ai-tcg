@@ -38,7 +38,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(15);
+    expect(a.schemaVersion).toBe(16);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -47,7 +47,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(15);
+    expect(b.schemaVersion).toBe(16);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -307,20 +307,25 @@ describe("EconomyStore: the ledger", () => {
     expect(s.balance(a.ownerId)).toBe(90);
     // b lost 12: losses pay 2 each up to the 10-loss cap.
     expect(s.balance(b.ownerId)).toBe(20);
-    // A new UTC day resets the schedule.
+    // A new day (midnight Sydney; DAY1 is 21:00 there) resets the schedule.
     expect(win(s, "next-day", a.agentId, b.agentId, "2026-10-06T00:00:01.000Z").p1Credits).toBe(30);
     // Zero-credit matches are in history but write no ledger entry.
     expect(s.ledger(a.ownerId).filter((e) => e.reason === "matchWin")).toHaveLength(11);
     expect(s.matchHistory({ ownerId: a.ownerId })).toHaveLength(13);
   });
 
-  it("counts the day in UTC whatever offset the end time is written with", () => {
+  it("counts the day on the Sydney clock whatever offset the end time is written with", () => {
     const s = open();
     const a = player(s, "a");
     const b = player(s, "b");
     win(s, "m1", a.agentId, b.agentId, "2026-10-05T23:30:00.000Z");
-    // 01:30 on the 6th in +02:00 is 23:30 UTC on the 5th: same day, 2nd win.
+    // 01:30 on the 6th in +02:00 is 23:30 UTC on the 5th, 10:30 on the 6th in
+    // Sydney: the same day, so the 2nd win.
     expect(win(s, "m2", a.agentId, b.agentId, "2026-10-06T01:30:00+02:00").p1Credits).toBe(10);
+    // 12:59 UTC on the 6th is 23:59 in Sydney (AEDT, +11): still the same day.
+    expect(win(s, "m3", a.agentId, b.agentId, "2026-10-06T12:59:00.000Z").p1Credits).toBe(10);
+    // 13:00 UTC is Sydney midnight: a new day, the 1st win again.
+    expect(win(s, "m4", a.agentId, b.agentId, "2026-10-06T13:00:00.000Z").p1Credits).toBe(30);
   });
 
   it("pays nothing to either side for a cancelled or abandoned match, and the schema forbids otherwise", () => {

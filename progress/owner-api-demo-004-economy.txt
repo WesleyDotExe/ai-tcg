@@ -1,0 +1,163 @@
+Owner API demo 004 — the Home board and the economy endpoints over HTTP (session 64)
+================================================================================
+Owner "Nova Kestrel" (login nova) holds the Cortex starter and its 3 starter packs; "The House" is the opponent.
+The database is a real file; the store's clock starts at 2026-11-01T09:00:00.000Z (20:00 in Sydney).
+
+1. Not signed in: refused (one of each family shown)
+------------------------------------------------------------------------
+> GET /api/board  -> 401
+  error: not signed in
+> GET /api/collection  -> 401
+  error: not signed in
+> POST /api/packs/open  -> 401
+  error: not signed in
+> GET /api/store  -> 401
+  error: not signed in
+> GET /api/daily  -> 401
+  error: not signed in
+> POST /api/session {"login":"nova","password":"a long demo password"}  -> 201
+
+2. The Home board: the recommended layout until saved, then Nova's own
+------------------------------------------------------------------------
+> GET /api/board  -> 200
+  agent:M  live:M  packs:M  daily:S  store:S  watch:M  collection:M  ladder:M  form:M   [recommended, never saved]
+  rules: agent, live, watch x2, packs, daily, collection, showcase, ladder, form, history, notif, store; sizes S/M/L; at most 13 widgets
+> PUT /api/board {"widgets":[{"id":"w1","type":"agent","size":"L"},{"id":"w2","type":"packs","size":"M"},{"id":"w3","type":"daily","size":"S"},{"id":"w4","type":"watch","size":"M"},{"id":"w5","type":"watch","size":"S"},{"id":"w6","type":"collection","size":"M"}]}  -> 200
+  agent:L  packs:M  daily:S  watch:M  watch:S  collection:M   [saved 2026-11-01T09:01:00.000Z]
+  Bad boards are refused with the reason (400) and nothing is saved:
+> PUT /api/board {"widgets":[{"id":"w1","type":"tournament","size":"M"}]}  -> 400
+  error: widget 1: the Tournament widget comes after Season 0
+> PUT /api/board {"widgets":[{"id":"w1","type":"watch","size":"M"},{"id":"w2","type":"watch","size":"M"},{"id":"w3","type":"watch","size":"S"}]}  -> 400
+  error: widget 3: a board holds 2 "watch" widgets
+> PUT /api/board {"widgets":[{"id":"w1","type":"packs","size":"XL"}]}  -> 400
+  error: widget 1: "size" must be S, M or L
+> PUT /api/board {"widgets":[{"id":"w1","type":"packs","size":"M"},{"id":"w1","type":"store","size":"M"}]}  -> 400
+  error: widget 2: the id "w1" is already on the board
+
+3. Today's earnings on the Sydney day (the Daily rewards widget)
+------------------------------------------------------------------------
+  (results recorded through the store: Nova's agent wins at 11:30 and 12:50 UTC on 1 Nov,
+   22:30 and 23:50 in Sydney, then at 13:10 UTC, ten past midnight on 2 Nov in Sydney)
+> GET /api/daily  -> 200
+  day 2026-11-01 (Australia/Sydney), started 2026-10-31T13:00:00.000Z, resets 2026-11-01T13:00:00.000Z; wins +30 +10; credits today 40; next win pays 10, next loss 2
+  schedule: wins 1: 30; wins 2-4: 10; wins 5-10: 5; wins 11+: 0
+> GET /api/daily  -> 200
+  day 2026-11-02 (Australia/Sydney), started 2026-11-01T13:00:00.000Z, resets 2026-11-02T13:00:00.000Z; wins +30; credits today 30; next win pays 10, next loss 2
+  -> the win ten minutes after Sydney midnight is the 1st of a new day and pays 30 (in UTC it would have been the 3rd, paying 10).
+
+4. Packs: what's sold, buying with credits (all or none), opening
+------------------------------------------------------------------------
+> GET /api/packs  -> 200
+  offer: S0 "Season Zero" 100 credits; open 1 or 10
+  pity: 0 pack(s) since a Full Art, 0 since a Mythic
+  wallet: credits 550, pack points 0, 3 pack(s) to open
+> POST /api/packs/buy {"setCode":"S0","count":10}  -> 409
+  error: 10 pack(s) cost 1000 credits; the owner has 550
+> POST /api/packs/buy {"setCode":"S0","count":2}  -> 201
+  bought <pack 1>, <pack 2>
+  wallet: credits 350, pack points 0, 5 pack(s) to open
+> POST /api/packs/open {}  -> 200
+  <pack 3> (seed logged, +5 pack points):
+    001/096 Cortex Engineer (Common) x3 owned
+    045/096 Aegis Cadet (Common) NEW x1 owned
+    039/096 Spore Cluster (Uncommon) NEW x1 owned
+    018/096 Dormant Exploit (Rare) x2 owned
+    087/096 Commodity Rack (Common) NEW x1 owned
+  wallet: credits 350, pack points 5, 4 pack(s) to open
+
+5. The server restarts on the same file: the board and the packs are on the account
+------------------------------------------------------------------------
+> POST /api/session {"login":"nova","password":"a long demo password"}  -> 201
+> GET /api/board  -> 200
+  agent:L  packs:M  daily:S  watch:M  watch:S  collection:M   [saved 2026-11-01T09:01:00.000Z]
+> GET /api/wallet  -> 200
+  wallet: credits 350, pack points 5, 4 pack(s) to open
+> POST /api/packs/open {"packId":"<pack 2>"}  -> 200
+  opened the chosen pack, <pack 2>, not the oldest:
+    025/096 Brood Skitterer (Common) NEW x1 owned
+    004/096 Fail-safe Unit (Common) x3 owned
+    079/096 Propagating Exploit (Uncommon) NEW x1 owned
+    044/096 Hive Mother (Mythic) NEW x1 owned
+    026/096 Broodcaller (Common, foil) NEW x1 owned
+> POST /api/packs/open {"count":10}  -> 409
+  error: only 3 unopened pack(s); can't open 10
+  (eight of the owner's daily packs granted through the store, as the daily-pack reward would)
+> POST /api/packs/open {"count":10}  -> 200
+  ten packs: 50 cards, 23 new, +50 pack points; by rarity Common 25, Uncommon 11, Rare 11, Mythic 3
+  by finish standard 45, glitch 1, foil 3, altArt 1; full reveals: 0
+    <pack 4>: 022/096 Recursive Construct (Rare, glitch) NEW x3 owned
+    <pack 5>: 070/096 Segfault Handler (Common, foil) NEW x1 owned
+    <pack 6>: 066/096 Prime Aegis (Mythic) NEW x2 owned; 066/096 Prime Aegis (Mythic, altArt) NEW x2 owned
+    <pack 8>: 024/096 Quorum Arbiter (Mythic, foil) x2 owned
+    <pack 11>: 092/096 Surge Protector (Common, foil) x2 owned
+  wallet: credits 350, pack points 60, 1 pack(s) to open
+
+6. The collection: by card, by set, and the recent pulls
+------------------------------------------------------------------------
+> GET /api/collection?recentPacks=2  -> 200
+  100 copies of 55 cards
+  set S0: base 55/96, secrets 0/36, Glitch 1/20, Gold 0/96, Prototype runs 0/15
+  Cortex Engineer (Common, Cortex): 5 owned, 3 salvageable; origin starter 2, pack 3; finish standard 5
+  Init Daemon (Common, Cortex): 5 owned, 2 salvageable; origin starter 3, pack 2; finish standard 5
+  Recursive Construct (Rare, Cortex): 5 owned, 2 salvageable; origin starter 2, pack 3; finish standard 4, glitch 1
+  recent pulls: <pack 12> (5 cards), <pack 11> (5 cards)
+> GET /api/collection/binder/S0  -> 200
+  binder, first held places: 001/096 Cortex Engineer x5; 002/096 Deadlock Detector x1; 003/096 Diagnostic Pulse x2; 004/096 Fail-safe Unit x3
+
+7. Salvage (plan first, then do it) and crafting with pack points
+------------------------------------------------------------------------
+> GET /api/collection/cards/AG-001  -> 200
+  Aegis Cadet: 4 owned, 4 salvageable at 5 each; not salvageable: none
+> GET /api/collection/cards/AG-001/salvage?quantity=2  -> 200
+  plan: 2 go for 10 pack points, 2 left; decks left short: 0
+> POST /api/collection/cards/AG-001/salvage {"quantity":2}  -> 200
+  salvaged 2 for +10; now 2 owned
+  wallet: credits 350, pack points 70, 1 pack(s) to open
+> POST /api/collection/cards/AG-001/salvage {"quantity":99}  -> 409
+  error: can't salvage 99 of "AG-001": 2 of 2 held can be salvaged
+> POST /api/collection/cards/SW-018/craft  -> 201
+  crafted Carapace Grunt: origin crafted, account-bound true; now 1 owned
+  wallet: credits 350, pack points 30, 1 pack(s) to open
+> POST /api/collection/secrets/S0-SR01/craft  -> 409
+  error: crafting Quorum Arbiter (S0-SR01) costs 750 pack points; you have 30
+
+8. The store, cosmetics and the loadout
+------------------------------------------------------------------------
+> GET /api/store  -> 200
+  on sale: Boot Sequence (boast) 300 credits
+  on sale: Dial-Up Fireworks (boast) 300 credits
+  wallet: credits 350, pack points 30, 1 pack(s) to open
+> POST /api/store/cosmetics/boast-s0-dial-up-fireworks/buy  -> 201
+  bought Dial-Up Fireworks (purchase)
+  wallet: credits 50, pack points 30, 1 pack(s) to open
+> POST /api/store/cosmetics/boast-s0-boot-sequence/buy  -> 409
+  error: "Boot Sequence" costs 300 credits; the owner has 50
+> GET /api/agents/<agent Vector Halcyon>/loadout  -> 200
+  slot boast (boast): boast-cortex-data-cascade; owned choices: boast-aegis-shield-slam, boast-cortex-data-cascade, boast-null-void-collapse, boast-swarm-hive-burst, boast-s0-dial-up-fireworks
+  slot closeWinBoast (boast): empty; owned choices: boast-aegis-shield-slam, boast-cortex-data-cascade, boast-null-void-collapse, boast-swarm-hive-burst, boast-s0-dial-up-fireworks
+  slot cardBack (cardBack): empty; owned choices: none
+  slot avatar (avatar): empty; owned choices: none
+  slot arena (arena): empty; owned choices: none
+> PUT /api/agents/<agent Vector Halcyon>/loadout/boast {"itemId":"boast-s0-dial-up-fireworks"}  -> 200
+  boast slot now boast-s0-dial-up-fireworks
+> PUT /api/agents/<agent Vector Halcyon>/loadout/cardBack {"itemId":"boast-s0-dial-up-fireworks"}  -> 409
+  error: "Dial-Up Fireworks" is a victory boast; the cardBack slot takes a card back
+> GET /api/agents/<agent Glasshouse>/loadout  -> 404
+  error: no agent "<agent Glasshouse>"  (the house's agent reads as missing to Nova)
+
+9. The ledger, newest first (the wallet's history)
+------------------------------------------------------------------------
+> GET /api/ledger?limit=12  -> 200
+  #56 2026-11-01T13:15:00.000Z credits -300 cosmeticPurchase boast-s0-dial-up-fireworks
+  #55 2026-11-01T13:15:00.000Z packPoints -40 craft <copy 1>
+  #54 2026-11-01T13:15:00.000Z packPoints +5 salvage <copy 2>
+  #53 2026-11-01T13:15:00.000Z packPoints +5 salvage <copy 3>
+  #52 2026-11-01T13:15:00.000Z packPoints +5 packOpened <pack 12>
+  #51 2026-11-01T13:15:00.000Z packPoints +5 packOpened <pack 11>
+  #50 2026-11-01T13:15:00.000Z packPoints +5 packOpened <pack 10>
+  #49 2026-11-01T13:15:00.000Z packPoints +5 packOpened <pack 9>
+  #48 2026-11-01T13:15:00.000Z packPoints +5 packOpened <pack 8>
+  #47 2026-11-01T13:15:00.000Z packPoints +5 packOpened <pack 7>
+  #46 2026-11-01T13:15:00.000Z packPoints +5 packOpened <pack 6>
+  #45 2026-11-01T13:15:00.000Z packPoints +5 packOpened <pack 1>
+  more: true

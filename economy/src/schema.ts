@@ -138,6 +138,16 @@ const V13_PLAY_STYLES = ["calculator", "rusher", "controller", "tempo", "fortres
 // Migration 15's account-settings lists, frozen (accountSettings.ts's live lists may grow).
 const V15_THEMES = ["system", "light", "dark"] as const;
 const V15_BACKGROUNDS = ["glacier", "ocean", "aurora", "sunset", "lavender", "graphite", "black", "purple"] as const;
+// Migration 16's widget types, frozen (boardLayout.ts's live list may grow).
+const V16_WIDGET_TYPES = ["agent", "live", "watch", "packs", "daily", "collection", "showcase", "ladder", "form", "history", "notif", "store"] as const;
+const V16_MAX_WIDGETS = 13;
+// True when a board row's list holds anything but { type, size } objects of a
+// known type and size. CASE, not AND, so nothing reads a value as an object
+// before it is known to be one (the table's CHECK refuses a non-list).
+const V16_BAD_WIDGET = `CASE WHEN NOT json_valid(NEW.widgets) THEN 0 WHEN json_type(NEW.widgets) <> 'array' THEN 0 ELSE EXISTS (
+    SELECT 1 FROM json_each(NEW.widgets) w WHERE CASE WHEN w.type <> 'object' THEN 1
+      ELSE coalesce(json_extract(w.value, '$.type') NOT IN ${inList(V16_WIDGET_TYPES)}, 1)
+        OR coalesce(json_extract(w.value, '$.size') NOT IN ('S', 'M', 'L'), 1) END) END`;
 // Migration 8's pool size, frozen (config.ts's SIGNATURE_ART_POOL_SIZE may change for a later season).
 const SIGNATURE_ART_POOL_SIZE_V8 = 500;
 
@@ -1088,5 +1098,25 @@ export const MIGRATIONS: readonly string[] = [
     skip_hint_seen  INTEGER NOT NULL CHECK (skip_hint_seen IN (0, 1)),
     updated_at      TEXT NOT NULL
   );
+  `,
+  // 16: the Home widget board's saved layout (session 64; owner 2026-11-01:
+  // "the Home widget board's layout and the widgets' sizes, saved to the
+  // owner's account"). One row per owner, written the first time the owner
+  // saves a board; no row reads as the recommended layout (boardLayout.ts).
+  // The widgets are a JSON list of { id, type, size } in board order; the
+  // store checks it in full (boardLayoutProblem), and the schema refuses a
+  // row that isn't a list of at most 13 known widgets of a known size.
+  `
+  CREATE TABLE board_layouts (
+    owner_id    TEXT PRIMARY KEY REFERENCES owners(owner_id),
+    widgets     TEXT NOT NULL CHECK (json_valid(widgets) AND json_type(widgets) = 'array' AND json_array_length(widgets) <= ${V16_MAX_WIDGETS}),
+    updated_at  TEXT NOT NULL
+  );
+  CREATE TRIGGER board_layouts_known_widgets_insert BEFORE INSERT ON board_layouts
+  WHEN ${V16_BAD_WIDGET}
+  BEGIN SELECT RAISE(ABORT, 'a board holds only known widgets, each S, M or L'); END;
+  CREATE TRIGGER board_layouts_known_widgets_update BEFORE UPDATE ON board_layouts
+  WHEN ${V16_BAD_WIDGET}
+  BEGIN SELECT RAISE(ABORT, 'a board holds only known widgets, each S, M or L'); END;
   `,
 ];

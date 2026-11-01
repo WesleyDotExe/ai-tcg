@@ -1,22 +1,36 @@
 # Notes for the owner
 
-**Updated 2026-11-01, session 63.** Nothing is blocking and nothing needs a decision. Both of your 2026-11-01
-game-lane entries are done:
+**Updated 2026-11-01, session 64.** Nothing is blocking. Both of your 2026-11-01 game-lane entries are done:
+the saved Home board and all five economy endpoints, in your order, in one session. They're written into
+`server/OWNER_API.md` for the render lane. The run of them, including a server restart that keeps the board and
+the packs, is `progress/owner-api-demo-004-economy.txt`.
 
-- **Null Out's text** now says what it does: "Target enemy unit gets -3/-3 permanently (it can't take health
-  below 1)." Deprecated Routine, the one other -X/-X card, says the same after its -2/-2. Text only: the ring
-  check gives every number +0.0.
-- **The three endpoints the website waits on** are built and written into `server/OWNER_API.md` for the render
-  lane: who am I (`GET /api/me`: your display name, login, and whether you're the admin), account settings
-  (`GET`/`PATCH /api/account/settings`: theme, background, sound and music on/off with a volume, and "the skip
-  hint has been seen"; saved on your account, so every browser reads the same) and the wallet
-  (`GET /api/wallet`: credits, pack points, the packs waiting to be opened). The run of it, including a server
-  restart that keeps the settings, is `progress/owner-api-demo-003-account.txt`.
-- **Defaults I picked (easy to change):** theme System, background Glacier, sound on at 80, music on at 60 (the
-  replays' own slider defaults), skip hint not seen. Only the settings you listed are stored; haptics, reduce
-  motion and the notification switches in the mockup are not, until the website needs them.
+### [OWNER CHECK-IN] The board and the economy endpoints: the calls I made (defaults built)
 
-Next game session: Season 0 game item 1, match running and the ladder.
+1. **The daily reset now really is midnight Sydney.** You set it on 2026-11-01, but the store still counted UTC
+   days, so a win at 10 past midnight in Sydney counted on the day before. The day now runs midnight to
+   midnight Sydney time, with daylight saving (23 hours on the first Sunday of October, 25 on the first Sunday
+   of April). `GET /api/daily` shows the day, when it resets, the schedule, each win today with what it paid,
+   and what the next win and loss would pay. Season 0 has no real matches yet, so nothing old changes.
+2. **The recommended board gives the Tournament slot (Small) to Store.** Your spec said to swap it for one of
+   the Season 0 widgets. Store fits a small slot and its data exists today. Other choices: Match history or
+   Notifications, which have no data until match running.
+3. **The board is saved as an ordered list with sizes.** That's how the mockup's grid lays itself out. If the
+   render lane later wants free placement (gaps, pinned columns), the format grows. Tournament and the League
+   pull feed are refused for now with "comes after Season 0".
+4. **Buying packs:** 1 to 10 at once, all or none (a 10-pack buy never stops at 6). Opening is 1, 10, or one
+   pack you pick.
+5. **Salvage asks first.** If a salvage would leave a saved deck short, the endpoint refuses and lists the
+   decks. The website then asks you, and sends it again confirmed. Same rule as the store's card viewer.
+6. **Not built, because it wasn't on your list:** claiming the owner's daily pack. The Daily rewards widget has
+   the earnings bar and the rewarded wins only, as your Season 0 spec says.
+
+**One thing I found:** six of the older economy demo files (`progress/economy-demo-005`, `-006`, `-008`,
+`-012`, `-013`, `-015`) no longer match a fresh run. This started before this session. One demo script
+(`boastDemo.ts`, demo 012) now crashes. Nothing in the game is affected; the tests all pass. Session 65 is a
+hardening pass and will re-run, fix and regenerate them.
+
+Next game session: 65, the hardening pass; then 66, match running and the ladder.
 
 The session 62 check-in below stays for the record (answered 2026-11-01).
 

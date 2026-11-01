@@ -4088,3 +4088,53 @@ by hand, since the match runner is still not started.
 **Evidence:** `progress/owner-api-demo-003-account.txt`.
 
 **Blocked:** nothing.
+
+## 2026-11-01 — Session 64 (the Home board and the economy endpoints; the Sydney day)
+
+**Read first:** `progress/owner-feedback.md`. Two unhandled game-lane entries (2026-11-01): after render session
+45, the saved board layout before match running; and its extension, the economy endpoints (collection and
+binder, packs, store and cosmetics, daily earnings) with the board, before match running. Both acted on, marked
+handled. The last merged PR (#110) was the render lane's, so this is a game-lane session (not a hardening one:
+60 was, 65 will be).
+
+**Built:**
+- `economy/src/boardLayout.ts` (the 12 Season 0 widgets, S/M/L, limits, the recommended layout,
+  `boardLayoutProblem`); migration 16 (`board_layouts`, a JSON list the schema checks with a CHECK and two
+  triggers); store `boardLayout`, `saveBoardLayout`.
+- The daily reset at midnight Sydney: `economy/src/dailyReset.ts` (`resetDayOf`, Node's Intl, no package),
+  `DAILY_RESET_TIME_ZONE` in config.ts; `dailyTally` counts the Sydney day. The owner set this on 2026-11-01,
+  but the store still counted UTC days; the daily-earnings endpoint would otherwise have shown the wrong day.
+  `WIN_SCHEDULE` in payouts.ts is now the one table `winCredits` and the widget both read.
+- Store reads/actions: `dailyEarnings`, `collectionSummary`, `recentPulls`, `buyPacks` (1-10, all or none).
+- Owner API routes (`server/src/ownerApi.ts`): `/api/board`, `/api/daily`, `/api/ledger`, `/api/collection`
+  (+ binder, card viewer, salvage plan/do, craft, craft secret), `/api/packs` (+ buy, open, opening),
+  `/api/store` (+ buy cosmetic), `/api/cosmetics`, `/api/agents/:id/loadout` (+ set a slot). 404 for a named
+  card, set, cosmetic, secret or slot that doesn't exist; a salvage that leaves decks short is 409 with
+  `needsConfirmation` and `affectedDecks`. A `packSeed` option for the demo only. All written into
+  `server/OWNER_API.md`; ECONOMY.md updated for the Sydney day.
+- Tests: `economy/test/ownerEndpoints.test.ts` (9: the reset day incl. both daylight-saving days and every day
+  of 2026, the payouts at Sydney midnight, today's earnings vs the ledger, the board and its schema guard, the
+  v15 -> v16 migration, buying all-or-none, recent pulls and the summary), `server/test/ownerApiEconomy.test.ts`
+  (8: 401 on all 20 routes, then each family over HTTP). Two store tests reworded for the Sydney day.
+- `server/src/dev/economyApiDemo.ts` -> `progress/owner-api-demo-004-economy.txt`.
+
+**Ran it:** the demo over a real database file and port: 401s; the recommended board, a saved one, four
+refused boards; today's earnings either side of Sydney midnight (the win at 13:10 UTC opens a new day and pays
+30, where UTC would have paid 10); a 10-pack buy refused (550 credits), 2 bought, the oldest opened, the API and
+store restarted on the same file (board and packs kept), a chosen pack opened, ten opened with the summary; the
+collection by card and set, the binder; salvage planned then done, an over-salvage refused, a Common crafted,
+a secret refused for points; a boast bought, the loadout read and set, a wrong-slot item refused, the house's
+agent reading as missing; the ledger newest first. Two runs byte-identical. Mutation checks: four mutations
+(no board 400, no pack-opening owner check, the UTC day back, a buy that stops halfway) each fail a test. A
+first draft of the salvage HTTP test passed while skipping its confirmation branch (the owner had no saved deck);
+rewritten to build a deck so the branch always runs. `npm test` all six workspaces pass; typecheck clean.
+
+**Worked:** the rules were all in the store already, so the API stayed thin; the one place the owner's rule
+wasn't built (the Sydney day) was found by writing the endpoint that shows it. **Didn't / honest limits:** six
+committed economy demos (005, 006, 008, 012, 013, 015) don't reproduce from a fresh run, drift that predates
+this session; `boastDemo.ts` (012) crashes on main. Not regenerated: a named job for the session-65 hardening
+pass, with 014/016. No daily-pack claim (not asked for). The collection and ledger answers aren't paged in SQL.
+
+**Evidence:** `progress/owner-api-demo-004-economy.txt`.
+
+**Blocked:** nothing. One owner check-in (defaults built; no decision needed to continue).

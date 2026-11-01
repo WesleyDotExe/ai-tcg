@@ -10,32 +10,38 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-01, game session 63.
+Updated 2026-11-01, game session 64.
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
 - [x] Render: the "tap to skip" hint (render session 43). Follow-ups (remembered on the account; "or click the
   board" on the intro) go with the website.
 
-**Game lane, in order** (owner 2026-11-01, after render session 44: the small website endpoints first)
+**Game lane, in order** (owner 2026-11-01, after render sessions 44 and 45: the website endpoints first)
 0. [x] The small endpoints the website waits on (session 63), in `server/OWNER_API.md`: who am I
    (`GET /api/me`), the account settings (`GET`/`PATCH /api/account/settings`: theme, background, sound and
    music, the skip hint seen; schema v15) and the wallet (`GET /api/wallet`: credits, pack points, unopened packs).
+0b. [x] The board layout and the economy endpoints (session 64), in `server/OWNER_API.md`: the saved Home board
+   (`/api/board`, schema v16), the collection, binder, card viewer, salvage and crafting, the ledger, buying and
+   opening packs, the store, cosmetics and loadouts, today's earnings (`/api/daily`). The daily reset is now
+   midnight Sydney in the store, as set.
 1. [ ] Match running and the ladder (6b below): many matches, server-assigned opponents, results recorded,
    Glicko-2 ratings per owner, credit payouts; agents rebuild between matches when the rebuild reasons say so
    (`rebuildAgentDeckIfNeeded` exists, nothing calls it yet); final health passed when a match is recorded
    (for the close-win boast).
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
-   and the deck settings (session 56); who am I, account settings, the wallet (session 63). Not built:
-   - [~] wallet and collection: balances and unopened packs built (session 63); the ledger, copies, binder not
-   - [ ] buying and opening packs
-   - [ ] the cosmetics store and loadouts
+   and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
+   economy endpoints (session 64). What's left waits on match running:
+   - [x] wallet and collection: balances and unopened packs (session 63); the ledger, copies, binder, salvage
+     and crafting (session 64)
+   - [x] buying and opening packs (session 64)
+   - [x] the cosmetics store and loadouts (session 64)
+   - [x] daily earnings for the Daily rewards widget (session 64); the owner's daily pack claim not built
    - [ ] match history with replays
    - [ ] live and featured matches; the match feed and live state (Watch live, the Live match widget)
    - [ ] ladder standings and stats
    - [ ] notifications
-   - [~] the saved board layout and background choice: the background is in the account settings (session 63);
-     the board layout not
+   - [x] the saved board layout (session 64) and background choice (in the account settings, session 63)
    - [ ] the 2× vote (both owners agree) for live play
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.
