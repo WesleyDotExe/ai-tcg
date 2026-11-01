@@ -60,6 +60,25 @@ export async function startSiteDemo(options: { port?: number; full?: boolean } =
     store.recordMatch({ matchId: `demo-${i}`, seed: i, p1AgentId: first.agentId, p2AgentId: rookAgent.agentId, outcome: { kind: "win", winnerAgentId: first.agentId }, endedAt });
   }
   for (let i = 0; i < 3; i++) store.grantPack(nova.ownerId, "S0", "ownerDaily");
+  // Today (session 46, the Daily rewards widget): two wins and a loss in the
+  // last hours, recorded the same way, so today's earnings are real. (Run
+  // within 70 min after a Sydney midnight, some fall on yesterday.)
+  const now = Date.now();
+  const today = [
+    { at: now - 3 * 60_000, win: true },
+    { at: now - 40 * 60_000, win: false },
+    { at: now - 70 * 60_000, win: true },
+  ].sort((a, b) => a.at - b.at);
+  today.forEach((m, i) =>
+    store.recordMatch({
+      matchId: `demo-today-${i}`,
+      seed: 100 + i,
+      p1AgentId: first.agentId,
+      p2AgentId: rookAgent.agentId,
+      outcome: { kind: "win", winnerAgentId: m.win ? first.agentId : rookAgent.agentId },
+      endedAt: new Date(m.at).toISOString(),
+    }),
+  );
 
   const chooser = workerChooser();
   const api = await startOwnerApi({ store, port: 0, chooser: chooser.choose, ...(options.full ? {} : { build: DEMO_BUILD }) });

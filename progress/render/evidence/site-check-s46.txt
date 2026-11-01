@@ -1,0 +1,40 @@
+PASS  A. a new owner sees the recommended board (GET /api/board recommended: true): agent:M live:M packs:M daily:S store:S watch:M collection:M ladder:M form:M
+PASS  A. ... with the note that it is the recommended layout
+PASS  A. it packs as the mockup does: My agent | Live match; Packs | Daily rewards, Store; Watch live under those two (agent 278,151; daily 854,495; store 1142,495; watch 854,667)
+PASS  A. S is 3 columns x 2 rows and M is 6 x 4 (S 268x152, M 556x324)
+PASS  B. Daily rewards shows 40/90 (GET /api/daily: 40 from 2 rewarded wins; the schedule's paying wins add to 90)
+PASS  B. Packs shows "3 unopened packs" (GET /api/packs: 3 unopened)
+PASS  B. Collection shows 61/96 of the set (GET /api/collection: 61/96)
+PASS  B. ... and the last 5 pulls as placeholder card faces (5)
+PASS  B. the widgets with no data yet say what they wait on, and draw nothing made up: form, ladder, live, watch
+PASS  B. a widget's open button opens its page (Packs -> Store)
+PASS  C. Customise: the tiles jiggle (jig), each has "−" (9) and S/M/L in place of its open button
+PASS  C. S/M/L resizes: Daily rewards at L is the tall shape, 6 x 8 (557x669)
+PASS  C. "−" removes Live match
+PASS  C. + Add widget: the gallery lists the 12 Season 0 widgets; the ones on the board greyed "Already on your board" (agent, collection, daily, form, ladder, packs, store); Live match, removed, can come back
+PASS  C. the gallery is a centred dialog, and the jiggle behind it pauses while it's open (paused)
+PASS  C. Watch live can be on the board twice, then the gallery greys it: "2 already on your board"
+PASS  C. added widgets start at M, at the end of the board
+PASS  C. drag and drop: Showcase dropped on My agent's left half goes before it (showcase, agent, packs...)
+PASS  C. the arrow keys move a focused widget one place, and it keeps the focus
+PASS  C. nothing is saved while customising (GET /api/board still the recommended layout)
+PASS  C. Done saves the whole board to the account: agent:M showcase:M packs:M daily:L store:S watch:M collection:M ladder:M form:M watch:M
+PASS  C. a reload draws the saved board, from the account
+PASS  D. (a board with three live widgets at L, saved over the API)
+PASS  D. at most two live boards draw; the third live widget drops to the scoreboard with the note (live:board watch:board watch:capped daily:-)
+PASS  E. a refused save says the server's words ("Widget 4: a test refusal.") and stays in Customise mode with the edit kept
+PASS  E. leaving Home while customising saves the board (Daily rewards now M on the account)
+PASS  F. an empty board saves and shows "Your board is empty" with Add widget and Use recommended layout
+PASS  F. Use recommended layout saves the recommended board
+PASS  F. Recommended layout asks first ("Use the recommended layout?"): Cancel keeps the board (8 widgets), confirming replaces it (9)
+PASS  G. Customise -> Background: the picker's 8 backgrounds; Aurora picked is saved to the account (aurora)
+PASS  H. Buy in the Packs widget asks first ("One pack for 100 credits. You have 192."), then the pack is bought: credits 192 -> 92, the widget and the Open button both say 4
+PASS  I. the Large Collection widget's faction filter (Cortex: 24 cards held)
+PASS  J. (wide, dense packing lets the Small Store fill the hole beside Daily rewards: daily@278,151 packs@566,151 store@1142,151 agent@278,495 collection@278,323)
+PASS  J. at 1000 px (6 columns) the widgets read in the owner's order: daily, packs, store, agent, collection
+PASS  J. at 700 px one column, top to bottom in the owner's order, nothing spills sideways (0 px)
+PASS  K. under reduce motion the tiles don't jiggle in Customise mode (none); a dashed outline marks them (dashed)
+PASS  Z. no page errors (0)
+PASS  Z. no request leaves the site's origin (0)
+
+38 passed, 0 failed: ALL PASS

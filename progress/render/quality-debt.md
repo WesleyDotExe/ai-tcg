@@ -7,28 +7,35 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The owner website (sessions 44-45)
+## The owner website (sessions 44-46)
 
-- **It is a shell with one working settings page.** Sign-in, sidebar, top bar, Home's two panels,
-  Settings -> Play and Display, and Connect agent's list are real; Collection, Store, Agent match, Watch
-  live, Stats and Admin are "waiting on the server" panels. No widget board, no Customise (so no
-  Customise -> Background), no pack opening in the site yet.
-- **The liquid's frame rate was only measured in software WebGL** (SwiftShader: 11.7 fps at 0.3, 23.7 at
-  0.14 after stepping down). Never seen on a GPU, on Safari, or on the Mac mini. The step-down threshold
-  (20 fps) and the steps are first guesses.
+- **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
+  tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
+  tiles' `backdrop-filter` is the whole cost. Session 45's check fails its 20 fps bar on this branch
+  (`site-check-s45-rerun-s46.txt`). Never measured on a GPU; options with the owner (notes, session 46).
+- **Six of the twelve widgets only say what they wait on:** Live match, Watch live, Ladder, Rating & form,
+  Match history, Notifications (all after match running). My agent has no rating, record, Start/Watch,
+  persona or signature card; no auto-play switch anywhere.
+- **Pages are still missing:** Collection, Store (so no pack opening in the site: Open and the Packs
+  widget's Open go to a waiting Store page), Agent match, Watch live, Stats, Admin.
+- **The board's drag is HTML5 drag and drop:** proven with a real mouse in Chromium; not tried in Safari
+  or with a trackpad. No drop-position preview beyond the outlined target; the mockup has none either.
+- **Wide windows pack densely**, so a Small can sit ahead of its place in the owner's order (narrow ones
+  keep the order). A screen reader reads the DOM order, which is the owner's order.
+- **Widget data refreshes every 15 s** (daily and packs only); the collection is read once on entering
+  Home and after a purchase, not after a pack is opened elsewhere.
+- **The mini cards are a small placeholder face,** not the full card frame (no cost, stats or text).
+- **The liquid's frame rate was only ever measured in software WebGL.** The step-down threshold (20 fps)
+  and the steps are first guesses.
 - **The title screen has no liquid, card fan, foil logo, stat tiles or ticker** (still the trimmed one).
 - **The skip hint isn't remembered on the account** (owner call 2 from session 43): the site has nothing
-  to skip yet; the API's `skipHintSeen` waits for the first replay in the site.
+  to skip yet.
 - **Sound and music settings exist on the account but have no controls** (the site plays nothing yet).
-- **Missing from the bars for lack of endpoints:** notifications, the auto-play switch. The Open button
-  goes to a Store page that can't open packs yet.
-- **The site's browser checks are by hand** (`site-check-s44.mjs`, `site-check-s45.mjs`); CI runs only the
-  vitest half (host + client over the real owner API, and the pure look module).
+- **The site's browser checks are by hand** (`site-check-s44/45/46.mjs`); CI runs only the vitest half.
 - **Judged from headless stills only.**
 - **The faction colour of the agent** comes from the lock or the last rebuild's result (the API has no
   deck faction); after a reload with no lock and no job in memory, the avatar is the neutral violet.
-- **The poll is every 1.5 s while a rebuild runs and 15 s otherwise** (play settings and the wallet); a
-  match starting shows up to 15 s late. Live state wants a push channel when Watch live is built.
+- **Live state is polled** (15 s, 1.5 s while a rebuild runs); live matches want a push channel.
 
 ## The "tap to skip" hint (session 43)
 

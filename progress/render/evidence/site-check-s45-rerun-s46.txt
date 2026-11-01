@@ -1,0 +1,42 @@
+PASS  A. on sign-in the liquid is paused (covered), no animation frame requested (pause covered, pending 0)
+PASS  A. ... and draws no frames while sign-in is up (0 in 0.8 s)
+PASS  B. GET /api/me: display name "Nova", house admin true
+PASS  B. the account button shows the display name's letter, labelled with the name
+PASS  B. the account menu: "Nova", "@nova · House admin"
+PASS  B. the top bar shows the wallet's credits 192 and pack points 65 (GET /api/wallet: 192, 65)
+PASS  B. the Open button counts the 3 unopened packs ("Open 3 packs")
+PASS  B. GET /api/account/settings: a new account reads Glacier and System
+PASS  C. the liquid draws at 0.3 of the window: 432 x 270 for 1440 x 900 (pause null)
+      resolution steps (s, scale, last window's fps, canvas): 1s 0.3 - 432x270 | 2s 0.2 10.6 288x180 | 5s 0.14 11.6 202x126
+FAIL  C. too slow at 0.3 (software WebGL), it stepped down to 0.14 (202 x 126) and now draws 15.7 fps
+PASS  C. ... never more than about 30 a second (15.7 over 3 s)
+PASS  C. the liquid's clock ran with real time while drawing (3.00 s in 3 s)
+PASS  C. the background moves: two screenshots 1.5 s apart differ
+PASS  D. tab hidden: paused (hidden), no frame requested (0), 0 frames in 1.5 s
+PASS  D. tab shown again: drawing, and the clock carried on (+0.39 s for 0.4 s shown, not the 1.5 s hidden)
+PASS  E. Settings -> Display: 8 swatches, in order (Glacier, Ocean, Aurora, Sunset, Lavender, Graphite, Plain black, Plain purple)
+PASS  E. Glacier is checked; the picker is a radio group
+PASS  E. ocean: PATCH saved it (the server answered "ocean"), the page draws it, its swatch is checked
+PASS  E. aurora: PATCH saved it (the server answered "aurora"), the page draws it, its swatch is checked
+PASS  E. sunset: PATCH saved it (the server answered "sunset"), the page draws it, its swatch is checked
+PASS  E. lavender: PATCH saved it (the server answered "lavender"), the page draws it, its swatch is checked
+PASS  E. graphite: PATCH saved it (the server answered "graphite"), the page draws it, its swatch is checked
+PASS  E. each pick sent one PATCH naming only the background (5: ocean, aurora, sunset, lavender, graphite)
+PASS  E. keyboard: ArrowLeft from Graphite picks and focuses Lavender
+PASS  F. Dark saved to the account; the liquid fades to its dark version over about a second (darkness 0.60 at 0.25 s, 0.96 at 1.2 s, 1 at 3 s)
+PASS  G. Plain purple with the theme set to Light: the page draws dark (dark); the owner's Light is kept for when a liquid comes back
+PASS  G. ... the canvas is hidden, nothing drawn (0 frames), the background is the plain colour (rgb(36, 23, 79))
+PASS  H. a second browser, signed in fresh: Sunset and Dark from the account (drawn sunset, dark)
+PASS  H. Rook (a player): no Admin section, "@rook · Owner account", their own Glacier (settings are per account)
+PASS  H. Rook's own wallet: the starter's 3 packs on the Open button
+PASS  H. Nova (the house admin) sees Settings -> Admin
+PASS  I. the server refuses a pick: the page goes back to Sunset and says why (""background" must be one of glacier, ocean.")
+PASS  J. reduce motion: still (still), 1 frame drawn, 0 more in 2 s, two screenshots identical
+PASS  J. ... a new background draws exactly one new frame, at the dark version straight away (no fade): frames 1 -> 2
+PASS  K. reduce transparency: panels and sidebar unblurred and solid (rgb(29, 35, 72), backdrop none)
+PASS  L. no WebGL: the canvas hides and the account's Sunset (dark) shows as its still gradient (linear-gradient(135deg, rgb(26, 13, 20), rgb(51, 20, 51) 55%, rgb(77, 33, 26)))
+PASS  M. a 700 px window: nothing spills sideways (0 px); the canvas follows to 98 x 126 (scale 0.14)
+PASS  Z. no page errors (0)
+PASS  Z. no request leaves the site's origin (0)
+
+38 passed, 1 failed: FAIL

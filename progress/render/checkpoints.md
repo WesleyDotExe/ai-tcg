@@ -7,6 +7,57 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-01 — Home as the widget board, saved to your account — AWAITING FEEDBACK
+
+Your Season 0 list, render item 3. Try it: `npm run site-demo -w @ai-tcg/render`, open
+http://127.0.0.1:8080/, sign in as `nova` / `a long demo password`.
+- **The board** (spec C): the 12-column grid, S (3x2), M (6x4), L wide (12x6) or tall (6x8). A new owner
+  sees the recommended layout (the game lane's, with Store in the Tournament slot).
+- **Customise:** the tiles jiggle; drag to move (or click a tile and use the arrow keys); S/M/L; "−" (or
+  Delete) removes; + Add widget opens the gallery (one of each, Watch live twice, the limits the server
+  sends); Background opens the picker; Recommended layout asks first. **Done saves the whole board to your
+  account**; a reload or another browser shows it.
+- **The empty state:** "Your board is empty" with Add widget and Use recommended layout.
+- **At most two live boards**; a third live widget drops to the scoreboard with the note.
+- **Narrow windows** stack the widgets in your order (6 columns, then one).
+- **The widgets with data draw the server's numbers:** My agent; Packs (unopened count, the pity timers,
+  Buy, which really buys after asking; Open goes to the Store page for now); Daily rewards (credits from
+  wins against what the schedule can pay, rewarded wins, the reset at midnight Sydney); Collection (set
+  completion, secrets, Prototypes, last 5 pulls; at L a binder with a faction filter); Showcase (your
+  rarest finishes); Store (Buy 1, Buy 10; at L the cosmetics on sale, buyable). **Live match, Watch live,
+  Ladder, Rating & form, Match history and Notifications say what they wait on** (match running) and show
+  nothing made up.
+
+**Evidence:** `progress/render/evidence/site-check-s46.txt` (38 browser checks against the real owner API,
+ALL PASS; two mutants, each caught) and stills `v2-s46-board-*.jpg` (recommended, customise, gallery,
+saved, live cap, empty, background, large in light and dark, narrow 1000 and 700); render tests 741 (+25).
+
+**Decisions you may want to overrule:**
+1. **Edits in Customise are held until Done** (as the API intends); leaving Home while customising saves
+   too. "+ Add widget" outside Customise and the empty board's buttons save at once. Alternative: save
+   every change as it happens.
+2. **The Live board placeholder:** a Live match at M or L and a Watch live at L draw a striped "board
+   here" panel until live matches are served, so the two-board limit can be seen and checked now.
+3. **The cards in the Collection, Showcase and Packs widgets are mini placeholder faces** (faction colour,
+   the card's own hue and pattern, a rarity gem, the finish named), not the full card frame.
+4. **Showcase picks your rarest finishes first** (Zero-Day, Prototype, secret, Glitch, Gold, Alt Art,
+   Full Art...), then rarity. Pinning cards waits for the Collection page.
+5. **Wide windows pack densely** (a Small fills a hole, as the mockup does), so on a wide screen a Small
+   can sit ahead of where it is in your order; narrow windows keep your order exactly (your spec's words).
+6. **Daily rewards' bar ends at what wins can pay in a day** (90 credits on today's schedule, read from the
+   server's schedule), not the old mockup's "~cap"; losses are listed beside it.
+7. **The free daily pack isn't claimable yet:** Store's "Claim free daily pack" is greyed and Packs says
+   it comes with its claim; the game lane builds the claim in session 65.
+
+**One finding, measured, not changed (needs your eye on the Mac mini):** with the full board up, the
+liquid background draws 16 fps in software WebGL here, against 25 with session 45's two panels. The cost
+is the tiles' frosted glass (`backdrop-filter`): with it off, 24.7 fps; the blur radius makes no
+difference. A GPU composites that blur cheaply, so the Mac may be fine; if it isn't smooth there, options
+in `progress/render/notes-for-owner.md`. Session 45's own check now fails its 20 fps bar on this machine.
+
+**Next render-lane slice:** the pages these endpoints feed: the Store page with pack opening on the site
+(so Open opens packs), then Collection's wide binder.
+
 ## 2026-11-01 — The look: the liquid background and its picker, saved to your account — AWAITING FEEDBACK
 
 Your Season 0 list, render item 2. Try it: `npm run site-demo -w @ai-tcg/render`, open

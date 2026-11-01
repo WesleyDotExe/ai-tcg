@@ -1,0 +1,14 @@
+Render session 46: the liquid's frame rate on Home under the board's glass, software WebGL (SwiftShader), 1440 x 900.
+(node progress/render/evidence/board-glass-cost-s46.mjs; one run)
+
+as_built                 scale 0.14 fps 16.0
+no_grid                  scale 0.2 fps 30.0
+no_backdrop              scale 0.14 fps 24.7
+no_before_blend          scale 0.14 fps 15.7
+no_backdrop_no_before    scale 0.2 fps 27.0
+no_mc_pk                 scale 0.14 fps 16.0
+
+Also measured by hand: the tiles' blur at 16 px instead of the mockup's 30 px drew 13.7 and 13.3 fps (as built: 14.7 to 16.0),
+so the radius isn't the cost. Session 45's check (site-check-s45.mjs) on main, same machine, same day: C 25.0 fps, all 39 pass;
+on this branch C draws 15.7 fps and fails its 20 fps bar (site-check-s45-rerun-s46.txt). Not changed: the glass is the owner's
+look; raised in progress/render/notes-for-owner.md with the options.

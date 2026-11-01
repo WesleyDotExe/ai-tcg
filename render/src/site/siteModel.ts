@@ -49,18 +49,25 @@ export const PAGE_TITLES: Record<PageId, string> = {
   connect: "Connect agent",
 };
 
-/** The pages whose data isn't served yet: what each waits on, in the words
- * of OWNER_API.md's "Not built yet" list, and what the page will hold. The
- * page says so plainly instead of drawing made-up numbers. When the game
- * lane adds an endpoint, its page leaves this list. */
+/** The pages not built yet: what each waits on, in the words of
+ * OWNER_API.md's "Not built yet" list, and what the page will hold. The
+ * page says so plainly instead of drawing made-up numbers. An empty `needs`
+ * means the server already serves the page's data (session 64) and the page
+ * itself is the render lane's next work. When a page is built it leaves
+ * this list. */
 export const PAGE_WAITS: Partial<Record<PageId, { needs: string[]; will: string }>> = {
   match: { needs: ["live and featured matches"], will: "Your agent's match on a big board, with the play-by-play, auto-play and the 2× vote beside it." },
   live: { needs: ["live and featured matches"], will: "The featured matches, and any one of them on the big board with its play-by-play." },
-  collection: { needs: ["wallet and collection"], will: "The wide binder: every card you hold, its copies and finishes, by faction." },
-  store: { needs: ["wallet and collection", "packs and pack opening"], will: "Packs and the daily claim, and the cosmetics with the loadout picker." },
+  collection: { needs: [], will: "The wide binder: every card you hold, its copies and finishes, by faction." },
+  store: { needs: [], will: "Packs and pack opening, and the cosmetics with the loadout picker." },
   tournament: { needs: ["tournament"], will: "Tournaments come after Season 0." },
   stats: { needs: ["ladder", "stats"], will: "Your rating and form, results by faction, and the ladder." },
 };
+
+/** The waiting page's last line. */
+export function waitsLine(needs: string[]): string {
+  return needs.length ? `Waiting on the server for: ${needs.join(", ")}.` : "The server serves this now; the page is being built next.";
+}
 
 /** Routes are the URL's hash ("#/settings"), so a reload stays on the page
  * and the browser's back button works. Anything unknown is Home. */
@@ -181,6 +188,10 @@ export const ICONS = {
   auto: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>',
   out: '<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
   arrow: '<path d="M7 17 17 7M9 7h8v8"/>',
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/>',
+  spark: '<path d="M12 3l2.2 6.3L20.5 12l-6.3 2.2L12 21l-2.2-6.8L3.5 12l6.3-2.7z"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
 } as const;
 
 export function icon(name: keyof typeof ICONS, size = 20): string {

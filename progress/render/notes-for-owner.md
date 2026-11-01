@@ -994,3 +994,19 @@ for its next session.)
 3. **For the game lane:** the widget board (next render slice) needs the saved board layout endpoint
    (already on your Season 0 list). Until it exists the board's layout can only live in the page.
 4. **No shared files changed** (no workflow, no root package files, no server or economy code).
+
+## 2026-11-01 — Session 46 (Home as the widget board)
+
+1. **Built: the widget board, saved to your account,** with Customise, the gallery, the empty state, the
+   limits and the twelve Season 0 widgets. Calls are in `progress/render/checkpoints.md` (newest entry).
+2. **Please look on the Mac mini: is the liquid still smooth behind a full board?** Measured here without a
+   GPU (`progress/render/evidence/board-glass-cost-s46.txt`): 16 fps with nine glass tiles, 25 with
+   session 45's two panels, 24.7 with the tiles' blur switched off; a smaller blur radius doesn't help. If
+   it stutters on the Mac, the options are (a) the liquid goes still on Home when it can't hold 20 fps at
+   its lowest resolution (it keeps moving on lighter pages), (b) the tiles drop the live blur for a
+   frosted tint that doesn't re-blur each frame, or (c) the liquid draws slower (15 fps) under a full
+   board. I'd try (a) first. Nothing changed until you say.
+3. **For the game lane:** the free daily pack's claim (Store and Packs widgets) is planned for its session
+   65; live matches, ladder, ratings, match history and notifications fill the waiting widgets after match
+   running. Nothing else is needed for the board.
+4. **No shared files changed** (no workflow, no root package files, no server or economy code).
