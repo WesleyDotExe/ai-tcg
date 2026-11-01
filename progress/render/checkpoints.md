@@ -7,6 +7,48 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-02 — The Collection page: the wide binder and the card viewer — AWAITING FEEDBACK
+
+The slice you named after session 47. Try it: `npm run site-demo -w @ai-tcg/render`, open
+http://127.0.0.1:8080/#/collection, sign in as `nova` / `a long demo password`.
+- **The binder** (your spec, Screens 5): every place in the set in its number order. A card you hold is its
+  printed card face (the same face the pack opening draws, in the best finish you hold, with ×N and the
+  finish named under it); a card you're missing is a numbered empty slot with its name. The summary on top:
+  the set's completion ring, then Secrets, Glitch, Gold and Prototypes held of each total, copies, and your
+  pack points.
+- **Tabs Set, Secrets, Prototypes, Promos**, a faction filter, and All / Owned / Missing. Secrets holds the
+  secret cards, then the Glitch versions, then the Gold versions. Prototypes shows the 15 runs with each
+  run's size and how many were found. Promos says it waits on the server (signature cards and earned promos
+  aren't in the collection API yet).
+- **The card viewer** (click any place): the card big, tilting under the pointer; every copy you hold with
+  its finish, where it came from and the Account-bound tag; the saved decks that use it; **Craft** for pack
+  points; **Salvage** for pack points (pick how many, then a confirm that names any saved deck it would
+  leave short). Arrow keys walk the cards; Esc closes.
+
+**Evidence:** `progress/render/evidence/site-check-s48.txt` (40 browser checks against the real owner API,
+ALL PASS: the server's counts, the filters, the tabs, the viewer and its keys, a missing Common crafted for
+40 pp, a salvage that leaves a saved deck short, confirmed, and the server then reporting that deck
+incomplete; the binder read again after an opening; 720 px; dark; reduce motion) and stills
+`v2-s48-col-*.jpg`; render tests 779 (+21, incl. "Craft is offered exactly when the real store crafts").
+
+**Decisions you may want to overrule:**
+1. **Glitch and Gold sit under the Secrets tab** (as three blocks: secret cards, Glitch, Gold), keeping your
+   four tabs. Alternative: a fifth "Glitch & Gold" tab.
+2. **A held place shows the best finish you hold** (a Gold or Full Art copy shows as Gold or Full Art in the
+   base set too, with the finish named under it). Secret illustrations stay in their own places.
+3. **Missing places show the number and the card's name** (a checklist). Alternative: the number only.
+4. **Salvage is in the viewer of a base-set place only** (the server salvages per card, and takes only
+   extra standard pack copies); Glitch, Gold and Prototype places say they can't be crafted.
+5. **The binder's finishes stand still; they move in the viewer** (dozens of moving shines next to the
+   liquid background cost frames). Reduce motion: no tilt and no shine.
+6. **Craft costs shown are read from the economy's config** (the store's own numbers), since the API
+   doesn't send a craft price; the store still checks and its refusal is what shows if they ever differ.
+
+**Next render-lane slice:** the loadout picker in the Store (it didn't fit this session), then the match
+pages once the game lane serves live state and match history.
+
+---
+
 ## 2026-11-01 — The Store page, and pack opening on the site — AWAITING FEEDBACK
 
 The slice you named after session 46. Try it: `npm run site-demo -w @ai-tcg/render`, open

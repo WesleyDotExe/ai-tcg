@@ -1026,3 +1026,20 @@ for its next session.)
    it stutter). The opening pauses the liquid while it covers the page.
 4. **No shared files changed** (no workflow, no root package files, no server or economy code). The site's
    bundle reads one file of the economy (`economy/src/packs.ts`, the hit-finish list) read-only.
+
+## 2026-11-02 — Session 48 (the Collection page)
+
+1. **Built: the Collection page** (the wide binder and the card viewer, with craft and salvage). Calls are in
+   `progress/render/checkpoints.md` (newest entry).
+2. **Two small asks for the game lane (no hurry; the page works without them):**
+   - **A craft price in the card viewer's answer** (`GET /api/collection/cards/:cardId`: the craft cost and
+     the playable limit). The page reads them from `economy/src/config.ts` and the engine's copy limits
+     today, the same constants the store uses, but the API would be the one source.
+   - **Signature cards and earned promos in the collection API**, for the Promos tab (it says what it waits
+     on until then).
+3. **The demo now has one deck saved by hand** (Nova's "Cortex, my tweak": the starter with one copy
+   swapped for a pulled one), so salvage can be tried on a deck it would leave short. Only the demo.
+4. **The liquid on the Mac mini:** nothing changed (no report yet). The Collection page has one glass panel
+   and the binder's cards are opaque faces, so it's lighter than Home's nine tiles.
+5. **No shared files changed** (no workflow, no root package files, no server or economy code). The site
+   reads `economy/src/config.ts` (the craft prices) read-only.

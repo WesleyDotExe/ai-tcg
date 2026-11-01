@@ -1,0 +1,42 @@
+PASS  A  the Set tab: 61 faces held, 35 numbered empty places (the server: 61 of 96)
+PASS  A  a missing card's place shows its number and name (025/096 Brood Skitterer)
+PASS  A  a held place is the card's printed face (Cortex Engineer) with its count (×2)
+PASS  A  the summary is the server's: 63%, 61 / 96, secrets, Glitch, 105 copies
+PASS  A  a finish better than Standard is named under its card (Foil)
+PASS  B  Aegis shows only Aegis places (22; factions shown: Aegis)
+PASS  B  Missing shows only the 35 missing places
+PASS  B  Owned shows only the 61 held places
+PASS  B  a filter keeps focus on its button after the redraw
+PASS  C  Secrets: the secret cards, Glitch and Gold, each with the server's count (secrets 0 / 36; glitch 1 / 20; gold 0 / 96)
+PASS  C  the held Glitch version wears the Glitch face (Prime Aegis)
+PASS  C  Prototypes: the 15 runs, each with its size and how many were found
+PASS  C  Promos says what it waits on (no made-up cards)
+PASS  D  the viewer: Cortex Engineer, its face, "You hold 2"
+PASS  D  every copy listed with its origin; Account-bound on the 2 bound ones (2 tags)
+PASS  D  focus goes to Close
+PASS  D  the card tilts under the pointer (rotateX(7.2deg) rotateY(9.6deg))
+PASS  D  the rules text is fitted to its box, as the pack page fits it (--fit 1)
+PASS  D  ArrowRight moves to the next place (base:CX-023)
+PASS  D  Escape closes; focus goes back to the place it was opened from
+PASS  D  a missing card opens too: its face greyed, "Not in your collection yet"
+PASS  E  Craft offers a missing Common for 40 pack points (you have 65): "Craft · 40 pp"
+PASS  E  crafted: pack points 65 -> 25, the viewer says "You hold 1 · Crafted · Account-bound"
+PASS  E  the top bar's pack points follow (25)
+PASS  E  its place in the binder is a face now (025/096 Brood Skitterer)
+PASS  F  the agent builds its deck (POST /api/play/rebuild: 202)
+PASS  F  a card the saved deck uses with salvageable copies: Load Balancer, 1 salvageable, deck "Cortex, my tweak"
+PASS  F  the stepper goes to the salvageable count: "Salvage 1 · +10 pp"
+PASS  F  and stops there
+PASS  F  the confirm names the deck it would leave short: "Salvage a copy?One copy of Load Balancer for 10 pack points. You'll hold 2. This deck would be short until you hold the copies again or change it: Cortex, my tw…"
+PASS  F  salvaged: pack points 25 -> 35 (+10)
+PASS  F  the viewer reads the holdings again: you hold 2, nothing left to salvage
+PASS  F  the server now reports that deck incomplete (as the owner confirmed): CX-021 2/3
+PASS  G  after a pack opened from the top bar, the binder is read again (105 -> 110 copies; held 62 -> 64, the server: 64)
+PASS  H  at 720 px nothing runs off the side (0 px)
+PASS  H  the viewer stacks the card over its details (1 column)
+PASS  H  dark mode draws (dark)
+PASS  I  under reduce motion the card doesn't tilt
+PASS  J  no request left the site (0)
+PASS  J  no page errors
+
+40 passed, 0 failed

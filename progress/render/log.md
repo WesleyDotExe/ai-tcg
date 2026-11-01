@@ -4344,3 +4344,67 @@ next slice); "Watch again"; the Collection page; the ten-pack check script's rep
 
 **Next render-lane slice:** Collection's wide binder (the server serves it all: copies, finishes, sets,
 salvage and crafting), with the loadout picker brought into the Store if it fits.
+
+## 2026-11-02 — Session 48: the Collection page (the wide binder and the card viewer)
+
+Owner feedback read: the answers to render session 47 keep all 6 calls and name this slice ("Collection's
+wide binder, and the loadout picker in the Store"); "Watch again" is a game-lane job after its session 67,
+so not this lane's. The 2026-11-02 answers to game session 66 are the game lane's. No CRITICAL item in the
+render debt list. Not a hardening pass: the owner set the slice. Alternation: the last merged PR (#115) was
+the game lane's (session 66).
+
+**Session 47's PR on CI (owed):** PR #114 merged to main (squash commit df9174c); its CI run wasn't read
+this session.
+
+**Built:**
+- **The Collection page** (`collectionPage` in `siteClient.ts`; the model `render/src/site/siteCollection.ts`
+  and the HTML `siteCollectionHtml.ts`, both pure): the owner's spec (2026-10-05, Screens 5). The summary
+  (the set's completion ring, Secrets, Glitch, Gold and Prototypes held of each total, copies, pack
+  points), the set (S0 · Season 0, "Next set · coming"), the tabs Set, Secrets, Prototypes, Promos, the
+  faction filter and All / Owned / Missing. Every place in the server's binder (`GET
+  /api/collection/binder/:setCode`) in its order: a held place is the card's printed face in the best
+  finish held (the count, and the finish named under it), a missing place a numbered empty slot with the
+  card's name and a rarity dot. Secrets holds the secret cards, then Glitch, then Gold (each its own block
+  with the server's count); Prototypes the 15 runs (size and how many found); Promos says what it waits on.
+- **The card viewer:** the card, which tilts under the pointer (the pack page's own angles; still under
+  reduce motion), its text fitted as the pack page fits it; every copy you hold with its finish, origin and
+  the Account-bound tag; the saved decks that use it; **Craft** (cost and the playable limit read from the
+  economy's config and the engine's copy limits, the store's own constants; greyed with the reason) and
+  **Salvage** on base places (a 1 to N stepper, the plan read first, its affected decks put to the owner in
+  the confirm, then sent confirmed; a 409 that still finds decks is put to the owner again). ‹ › and the
+  arrow keys walk the places as filtered; Escape closes and focus goes back to the place. A missing card
+  opens too, greyed, with Craft.
+- **One face, not two:** `render/src/site/siteFaces.ts` hands the website the pack page's own face code
+  (`PACK_PAGE_PURE_SOURCE` run in its own scope: `window.SITE_FACE`) and its CSS cut to the `.face` rules
+  (parsed out of `PACK_CSS`, scoped under `.cface`, with the keyframes they name) and its set symbol read
+  out of its page. The binder's finishes stand still; the viewer's shine moves.
+- `siteApi.ts`: binder, cardHoldings, salvagePlan, salvage, craftCard, craftSecret; `SiteApiError` keeps the
+  refusal's body, and `salvageNeedsConfirmation` reads salvage's 409.
+- After a craft, a salvage or any pack opening, the collection and binder are read again (and Home's
+  Collection widget).
+- `siteDemo.ts`: Nova has one deck saved by hand (the starter with one copy swapped for a pulled pack copy,
+  a real `saveDeck`), so salvage can meet a saved deck it would leave short.
+- Tests (+21, render 779): `render/test/siteCollection.test.ts`: the slots against real store binders
+  (order, counts, filters, tabs, unique keys, the arrows' order, best finish); the face equals the card-face
+  sheet's for the same card; craft offered exactly when the real store crafts (60 places, both ways);
+  Glitch/Gold/Prototype never craftable; salvage's clamp and reasons; the page's HTML (faces held, numbered
+  empty places, counts, Promos waits); the viewer's copies and Account-bound tags; the Prototype caption;
+  the face CSS keeps every `.face` rule of the pack page and only scoped ones; the script's exports; over
+  the real owner API: the binder and holdings, salvage's 409 naming the deck, then confirmed and paid,
+  crafting and the store's refusal words. `site.test.ts`: Collection left the waits list.
+
+**Ran it:** `progress/render/evidence/site-check-s48.mjs` -> `site-check-s48.txt`: 40 browser checks
+against the real owner API, ALL PASS. Stills `v2-s48-col-*.jpg` (the binder, Missing, Secrets, the viewer,
+crafted, the salvage confirm, narrow, dark). Re-run on this branch: session 47's Store check and session
+46's board check (results below).
+
+**Found on the way (fixed):** the ×N count sat on the card's cost gem (moved to the bottom corner). The
+demo had no saved deck a salvage could leave short (the agent's deck uses the starter's bound copies), so
+the confirm path was unreachable in the browser until the demo saved one by hand.
+
+**Not done (named):** the loadout picker in the Store (the slice's "if it fits": it didn't); Promos (no
+signature cards or earned promos in the collection API); "Watch again" (game lane).
+
+**Next render-lane slice:** the loadout picker in the Store (equip what you own: `GET`/`PUT
+/api/agents/:agentId/loadout`), then the match pages once the game lane's session 67 serves live state and
+match history.

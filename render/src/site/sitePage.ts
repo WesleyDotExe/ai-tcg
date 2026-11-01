@@ -13,6 +13,7 @@
 //
 //   npm run site-page -w @ai-tcg/render [-- <out file>]   (default render/output/site/index.html)
 
+import { FACE_CSS, FACE_SCRIPT, faceSymbols } from "./siteFaces.js";
 import { buildSync } from "esbuild";
 import { renderPackOpeningHtml } from "../packPage.js";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -359,6 +360,56 @@ body[data-theme="dark"] .dlg { background: rgba(20,24,56,.8); }
    (and the liquid: liquid.ts draws one frame and stops). */
 @media (prefers-reduced-transparency: reduce) { .glass, .wg, .panel, .side, .topbar, .dlg, .cur { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--solid); }
   .wg.hero, .wg-dark { background: #1d2348; } .addtile, .wli { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--solid); } }
+/* ---- the Collection page (session 48): the wide binder and the card viewer ---- */
+.col-pg { display: flex; flex-direction: column; gap: 14px; }
+.col-pg > .panel { margin: 0; }
+.col-sum { display: flex; gap: 18px; align-items: center; padding: 16px 20px; }
+.col-sum h3 { margin: 0; font-size: 17px; } .col-sum p { margin: 0; }
+.ring.big { width: 84px; height: 84px; } .ring.big b { width: 66px; height: 66px; font-size: 17px; }
+.cs-lines { display: flex; flex-wrap: wrap; gap: 4px 14px; } .cs-lines b { color: var(--ink); }
+.col-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.col-sets { display: flex; gap: 6px; flex-wrap: wrap; } .col-sets .pill.on { background: var(--accent); color: #fff; } .col-sets .pill.off { opacity: .6; }
+.col-filters { display: flex; flex-wrap: wrap; gap: 10px; }
+.col-block { padding: 4px 2px; }
+.col-block .bh { display: flex; align-items: baseline; gap: 12px; } .col-block h3 { margin: 0; font: 800 18px system-ui; }
+.bheld { font: 600 13px system-ui; color: var(--muted); } .bheld b { color: var(--ink); }
+.bbar { flex: 0 1 160px; height: 6px; border-radius: 3px; background: var(--soft); overflow: hidden; align-self: center; } .bbar i { display: block; height: 100%; background: linear-gradient(90deg, #4f6bff, #8b5cff); }
+.col-block > p { margin: 4px 0 12px; }
+.binder { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 16px 12px; }
+.bslot { position: relative; display: block; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 8px; aspect-ratio: 5 / 7; font: inherit; color: inherit; transition: transform .15s; }
+.bslot:hover { transform: translateY(-3px); } .bslot:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.bslot .cface { display: block; width: 100%; height: 100%; }
+/* Many faces on one page: the finishes' shine stands still in the binder (it moves in the viewer). */
+.binder .cface .face::after { animation: none !important; }
+.binder .cface .face .art { transition: none; }
+.bcount { position: absolute; right: -6px; bottom: -6px; z-index: 6; min-width: 26px; padding: 2px 7px; border-radius: 99px; background: #141a33; color: #fff; font: 800 12px ui-rounded, system-ui; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.bfin { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); z-index: 6; white-space: nowrap; padding: 2px 8px; border-radius: 99px; background: linear-gradient(90deg, #7a5cff, #ff5cc8); color: #fff; font: 800 10px system-ui; letter-spacing: .06em; text-transform: uppercase; }
+.bmiss { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 10px; border-radius: 8px; border: 2px dashed color-mix(in srgb, var(--c) 45%, var(--line)); background: color-mix(in srgb, var(--c) 6%, var(--soft)); color: var(--muted); text-align: center; }
+.bmiss b { font: 800 15px ui-monospace, Menlo, Consolas, monospace; color: var(--ink); opacity: .7; }
+.bmiss small { font: 600 11px system-ui; line-height: 1.25; }
+.bmiss i { width: 8px; height: 8px; border-radius: 50%; background: #9aa6bf; } .bmiss i.r-Uncommon { background: #5fd0ff; } .bmiss i.r-Rare { background: #f6c445; } .bmiss i.r-Mythic { background: #ff5cc8; }
+.bempty { padding: 18px 0; }
+#viewer { position: fixed; inset: 0; z-index: 18; display: grid; place-items: center; padding: 16px; background: rgba(10,10,40,.42); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+#viewer[hidden] { display: none; }
+.cvdlg { width: min(860px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 22px; background: rgba(245,247,255,.86); }
+body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
+.cv { display: grid; grid-template-columns: minmax(220px, 320px) minmax(0, 1fr); gap: 26px; align-items: start; }
+.cv-stage { display: flex; flex-direction: column; align-items: center; gap: 8px; perspective: 900px; }
+.cv-card { width: 100%; transition: transform .25s cubic-bezier(.2,.8,.3,1); transform-style: preserve-3d; will-change: transform; }
+.cv-card .cface { display: block; } .cv-card .face { box-shadow: 0 18px 46px rgba(0,0,0,.45); }
+.cv-card.missing .face { filter: grayscale(.85) brightness(.75); }
+.cv-hint { font-size: 12px; }
+.cv-info h2 { margin: 0 0 2px; font: 800 22px system-ui; } .cv-info > p { margin: 0 0 8px; }
+.cv-info h4 { margin: 14px 0 6px; font: 800 13px system-ui; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.cv-copies { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.tag.bound { display: inline-block; margin-left: 4px; padding: 1px 7px; border-radius: 99px; font: 700 11px system-ui; background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+.cv-act { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.cv-why { margin: 6px 0 0; padding-left: 18px; }
+.cv-foot { margin-top: 18px; } .cv-foot .sp { flex: 1; }
+.btn.warn { background: color-mix(in srgb, var(--warn) 22%, var(--soft)); color: var(--ink); }
+@media (max-width: 760px) { .cv { grid-template-columns: minmax(0, 1fr); } .cv-stage { max-width: 260px; margin: 0 auto; } .binder { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .bslot, .cv-card { transition: none; } .cv-card .face::after { animation: none !important; } .bslot:hover { transform: none; } .cv-hint { display: none; } }
+@media (prefers-reduced-transparency: reduce) { #viewer { backdrop-filter: none; -webkit-backdrop-filter: none; } .cvdlg { background: var(--solid); } }
 @media (prefers-reduced-motion: reduce) { .spin, .status.live i, .wgrid.editing .wg { animation: none; } .toast { transition: none; }
   .wgrid.editing .wg { outline: 2px dashed color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: -2px; } }
 `;
@@ -371,6 +422,7 @@ export function renderSitePage(): string {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AI·TCG</title>
 <style>${SITE_CSS}</style>
+<style>${FACE_CSS}</style>
 </head>
 <body data-theme="light">
 <div id="bg" aria-hidden="true"></div>
@@ -417,9 +469,12 @@ export function renderSitePage(): string {
   </main>
 </div>
 
+<div id="viewer" hidden></div>
 <div id="dialog" class="dim"></div>
 <div id="opening" class="opening" hidden role="dialog" aria-modal="true" aria-label="Pack opening"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+${faceSymbols()}
+<script>${FACE_SCRIPT}</script>
 <script>${siteScript()}</script>
 </body>
 </html>

@@ -16,6 +16,7 @@
 // (one, ten or a chosen one) and the owner's free daily pack (read and
 // claim).
 
+import type { SiteBinder, SiteCopy, SiteDeckShortfall, SiteHoldings, SiteSalvagePlan } from "./siteCollection.js";
 import type { BulkOpening, PackOpening } from "@ai-tcg/economy";
 import type { SiteBoard, SiteCollection, SiteDaily, SitePacks, SiteWidget } from "./siteBoard.js";
 
@@ -166,6 +167,9 @@ export class SiteApiError extends Error {
   constructor(
     readonly status: number,
     message: string,
+    /** The refusal's whole body (session 48: salvage's 409 carries
+     * needsConfirmation and the decks it would leave short). */
+    readonly body: unknown = null,
   ) {
     super(message);
   }
@@ -205,6 +209,21 @@ export interface SiteApi {
   openPacks(token: string, what: SiteOpenRequest): Promise<SiteOpenAnswer>;
   dailyPack(token: string): Promise<SiteDailyPack>;
   claimDailyPack(token: string): Promise<{ pack: { packId: string; setCode: string; source: string }; dailyPack: SiteDailyPack; wallet: SiteWallet }>;
+  // The Collection page (session 48).
+  binder(token: string, setCode: string): Promise<SiteBinder>;
+  cardHoldings(token: string, cardId: string): Promise<SiteHoldings>;
+  salvagePlan(token: string, cardId: string, quantity: number): Promise<SiteSalvagePlan>;
+  salvage(token: string, cardId: string, quantity: number, confirmDeckImpact: boolean): Promise<{ packPoints: number; incompleteDecks: SiteDeckShortfall[]; holdings: SiteHoldings; wallet: SiteWallet }>;
+  craftCard(token: string, cardId: string): Promise<{ copy: SiteCopy; holdings: SiteHoldings; wallet: SiteWallet }>;
+  craftSecret(token: string, code: string): Promise<{ copy: SiteCopy; wallet: SiteWallet }>;
+}
+
+/** Salvage's refusal when it would leave saved decks short (409): the
+ * decks, to put to the owner before sending it again confirmed. */
+export function salvageNeedsConfirmation(err: unknown): SiteDeckShortfall[] | null {
+  if (!(err instanceof SiteApiError) || err.status !== 409) return null;
+  const b = err.body as { needsConfirmation?: unknown; affectedDecks?: unknown } | null;
+  return b && b.needsConfirmation === true && Array.isArray(b.affectedDecks) ? (b.affectedDecks as SiteDeckShortfall[]) : null;
 }
 
 /** The API at `base` ("" for the page's own origin; the site is served
@@ -230,7 +249,7 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     }
     if (res.status >= 400) {
       const message = body && typeof body === "object" && typeof (body as { error?: unknown }).error === "string" ? (body as { error: string }).error : `HTTP ${res.status}`;
-      throw new SiteApiError(res.status, message);
+      throw new SiteApiError(res.status, message, body);
     }
     return body as T;
   }
@@ -263,5 +282,12 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     openPacks: (token, what) => call("POST", "/api/packs/open", { token, body: what }),
     dailyPack: (token) => call("GET", "/api/packs/daily", { token }),
     claimDailyPack: (token) => call("POST", "/api/packs/daily/claim", { token }),
+    binder: (token, setCode) => call("GET", `/api/collection/binder/${encodeURIComponent(setCode)}`, { token }),
+    cardHoldings: (token, cardId) => call("GET", `/api/collection/cards/${encodeURIComponent(cardId)}`, { token }),
+    salvagePlan: (token, cardId, quantity) => call("GET", `/api/collection/cards/${encodeURIComponent(cardId)}/salvage?quantity=${quantity}`, { token }),
+    salvage: (token, cardId, quantity, confirmDeckImpact) =>
+      call("POST", `/api/collection/cards/${encodeURIComponent(cardId)}/salvage`, { token, body: confirmDeckImpact ? { quantity, confirmDeckImpact: true } : { quantity } }),
+    craftCard: (token, cardId) => call("POST", `/api/collection/cards/${encodeURIComponent(cardId)}/craft`, { token }),
+    craftSecret: (token, code) => call("POST", `/api/collection/secrets/${encodeURIComponent(code)}/craft`, { token }),
   };
 }
