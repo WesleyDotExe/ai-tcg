@@ -3776,3 +3776,25 @@ Answers the [OWNER CHECK-IN] "NA12 and CS7 are shipped; both rings re-run" in `p
 **Accepted:** Null ~ Cortex at 57.1% for Null in real matches with shipped decks (above the 55.3% quoted at session 61's check-in, and above the even band's top of 55). With built decks the factions are closer together than before (spread 4.3). Keep watching this edge: flag it at a check-in if it moves further out, or if built decks put it above 55 at any level.
 
 Next game session, as planned: Season 0, game item 1 (match running and the ladder).
+
+---
+
+## 2026-11-01 — Owner: answers to render session 44 (the owner website, first slice), keep all 6; small website endpoints before match running
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #108).
+1. **Keep:** Tournament shown greyed in the sidebar with a "Soon" badge; clicking it says tournaments come after Season 0.
+2. **Keep:** pages without an endpoint say in plain words what they'll hold and which endpoint they wait on (no sample data, not hidden).
+3. **Keep:** the render lane's small host (`render/src/site/siteHost.ts`) serves the page and passes /api through, so the browser sees one origin.
+4. **Keep:** signed in for the life of the tab (session storage).
+5. **Keep:** the theme isn't saved until the account-settings endpoint exists; then it saves to the owner's account (no browser storage).
+6. **Keep:** the trimmed title screen for now; the full title screen and ticker stay after Season 0.
+
+Next render-lane slice, as planned: Season 0 render item 2, the look (the liquid WebGL backgrounds and the background picker).
+
+### Game lane: change to the Season 0 order
+**Before match running and the ladder, add the small endpoints the website is waiting on,** written into `server/OWNER_API.md` with tests, so the render lane isn't blocked:
+1. **Who am I:** the signed-in owner's display name and whether they are the house admin.
+2. **Account settings:** theme, background choice, sound and music, and "the skip hint has been seen" (the owner's session-43 call 2), saved to the owner's account.
+3. **Wallet:** credits and pack points, and the packs waiting to be opened (for the top bar's Open button).
+
+Then Season 0 game item 1 (match running and the ladder), then the rest of the endpoints as listed. Update the Season 0 checklist in `progress/roadmap.md` to match.
