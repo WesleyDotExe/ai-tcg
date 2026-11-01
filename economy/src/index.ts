@@ -46,6 +46,8 @@ export {
   type SignInResult,
   type SessionInfo,
   type LoginInput,
+  type WhoAmI,
+  type Wallet,
   type LiveMatch,
   type LiveSide,
   type HouseOwnerRow,
@@ -129,6 +131,17 @@ export {
   type SecretCard,
 } from "./chase.js";
 export { hashPassword, verifyPassword, needsRehash } from "./passwords.js";
+export {
+  THEMES,
+  BACKGROUNDS,
+  DEFAULT_ACCOUNT_SETTINGS,
+  accountSettingsProblem,
+  type Theme,
+  type Background,
+  type AudioSetting,
+  type AccountSettings,
+  type AccountSettingsPatch,
+} from "./accountSettings.js";
 export {
   FINISHES,
   COPY_ORIGINS,

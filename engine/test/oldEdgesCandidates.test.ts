@@ -76,10 +76,10 @@ describe("the old-edges candidates", () => {
     const m = await fresh();
     m.applyCandidate("NA8+CS8", m.getCard);
     expect(m.getCard("NL-015")!.modes![1]!.name).toBe("Null Out");
-    expect(m.getCard("NL-015")!.modes![1]!.text).toBe("Target enemy unit gets -2/-2 permanently.");
+    expect(m.getCard("NL-015")!.modes![1]!.text).toBe("Target enemy unit gets -2/-2 permanently (it can't take health below 1).");
     expect(m.getCard("CX-019")!.modes![1]!.name).toBe("Kill");
     // The shipped modules (loaded before any reset) keep the shipped modes.
-    expect(shippedGetCard("NL-015")!.modes![1]!.text).toBe("Target enemy unit gets -3/-3 permanently.");
+    expect(shippedGetCard("NL-015")!.modes![1]!.text).toBe("Target enemy unit gets -3/-3 permanently (it can't take health below 1).");
     expect(shippedGetCard("CX-019")!.modes![1]!.name).toBe("Kill All");
   });
 

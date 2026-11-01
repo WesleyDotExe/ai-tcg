@@ -61,7 +61,7 @@ describe("Null Pointer (NA12): Dereference or Null Out", () => {
     expect(nullPointer.abilities).toEqual([]);
     expect(nullPointer.modes!.map((m) => [m.id, m.name, m.text])).toEqual([
       ["dereference", "Dereference", "Destroy target enemy directive. Instant speed."],
-      ["null-out", "Null Out", "Target enemy unit gets -3/-3 permanently."],
+      ["null-out", "Null Out", "Target enemy unit gets -3/-3 permanently (it can't take health below 1)."],
     ]);
   });
 

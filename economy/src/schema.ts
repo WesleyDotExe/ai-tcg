@@ -50,6 +50,10 @@
 //    match's loadouts and the boast it played are written once, the boast
 //    only for a won match and only by the winning side's agent.
 //
+//  - (v15) an owner's account settings are one row per owner: a theme and
+//    a background from their lists, sound and music each on/off with a
+//    whole volume from 0 to 100, and whether the skip hint has been seen.
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -131,6 +135,9 @@ const v11BoastFor = (factionSql: string) =>
   `CASE ${factionSql} ${Object.entries(V11_STARTER_BOASTS).map(([f, id]) => `WHEN '${f}' THEN '${id}'`).join(" ")} END`;
 // Migration 13's play styles, frozen (the engine's PLAY_STYLE_IDS may grow).
 const V13_PLAY_STYLES = ["calculator", "rusher", "controller", "tempo", "fortress", "gambler"] as const;
+// Migration 15's account-settings lists, frozen (accountSettings.ts's live lists may grow).
+const V15_THEMES = ["system", "light", "dark"] as const;
+const V15_BACKGROUNDS = ["glacier", "ocean", "aurora", "sunset", "lavender", "graphite", "black", "purple"] as const;
 // Migration 8's pool size, frozen (config.ts's SIGNATURE_ART_POOL_SIZE may change for a later season).
 const SIGNATURE_ART_POOL_SIZE_V8 = 500;
 
@@ -1064,5 +1071,22 @@ export const MIGRATIONS: readonly string[] = [
   ALTER TABLE decks ADD COLUMN built_style TEXT CHECK (built_style IS NULL OR (built_by_agent = 1 AND built_style IN ${inList(V13_PLAY_STYLES)}));
   ALTER TABLE decks ADD COLUMN built_lock TEXT CHECK (built_lock IS NULL OR built_lock IN ${inList(["none", ...V3_DECK_FACTIONS])});
   ALTER TABLE decks ADD COLUMN built_holdings TEXT CHECK ((built_holdings IS NULL) = (built_style IS NULL) AND (built_lock IS NULL) = (built_style IS NULL));
+  `,
+  // 15: account settings (session 63; owner 2026-11-01: "theme, background
+  // choice, sound and music, and 'the skip hint has been seen', saved to the
+  // owner's account"). One row per owner, written the first time the owner
+  // changes a setting; no row reads as the defaults (accountSettings.ts).
+  `
+  CREATE TABLE account_settings (
+    owner_id        TEXT PRIMARY KEY REFERENCES owners(owner_id),
+    theme           TEXT NOT NULL CHECK (theme IN ${inList(V15_THEMES)}),
+    background      TEXT NOT NULL CHECK (background IN ${inList(V15_BACKGROUNDS)}),
+    sound_on        INTEGER NOT NULL CHECK (sound_on IN (0, 1)),
+    sound_volume    INTEGER NOT NULL CHECK (typeof(sound_volume) = 'integer' AND sound_volume BETWEEN 0 AND 100),
+    music_on        INTEGER NOT NULL CHECK (music_on IN (0, 1)),
+    music_volume    INTEGER NOT NULL CHECK (typeof(music_volume) = 'integer' AND music_volume BETWEEN 0 AND 100),
+    skip_hint_seen  INTEGER NOT NULL CHECK (skip_hint_seen IN (0, 1)),
+    updated_at      TEXT NOT NULL
+  );
   `,
 ];

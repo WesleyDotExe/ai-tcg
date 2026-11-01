@@ -3766,7 +3766,7 @@ Small follow-ups (calls 2 and 4) go into the next render session alongside its S
 
 ---
 
-## 2026-11-01 — Owner: answers to game session 62 (NA12 and CS7 shipped)
+## 2026-11-01 — Owner: answers to game session 62 (NA12 and CS7 shipped) (HANDLED 2026-11-01, session 63 — text only, as told: Null Out reads "Target enemy unit gets -3/-3 permanently (it can't take health below 1)." (`nullCards.ts`, the mode and its ability), and Deprecated Routine, the one other -X/-X card, gets the same words ("... gets -2/-2 permanently (it can't take health below 1)."); the measured candidates NA12/NA8 in `oldEdgesCandidates.ts` match. No effect changed: `npm run ring` PASS with every number +0.0. The five replays that print the text regenerated (only the text differs, plus first-time's random pack ids). Calls 2 and 3 kept; the Null ~ Cortex edge stays on watch)
 
 Answers the [OWNER CHECK-IN] "NA12 and CS7 are shipped; both rings re-run" in `progress/notes-for-owner.md` (PR #107, `progress/balance-report-038-old-edges-shipped.txt`).
 1. **Keep the health rule:** a stat change never takes a unit's max health below 1; a shrink kills only together with damage. No rule change. **Change the card text** so it says so: Null Out reads "target enemy unit gets -3/-3 permanently (it can't take health below 1)". Text only: the card's behaviour and the measured numbers don't change. Use the same wording on any other -X/-X card the rule affects (for example Deprecated Routine) if its text would otherwise suggest a kill.
@@ -3779,7 +3779,7 @@ Next game session, as planned: Season 0, game item 1 (match running and the ladd
 
 ---
 
-## 2026-11-01 — Owner: answers to render session 44 (the owner website, first slice), keep all 6; small website endpoints before match running
+## 2026-11-01 — Owner: answers to render session 44 (the owner website, first slice), keep all 6; small website endpoints before match running (game-lane part HANDLED 2026-11-01, session 63 — built, tested and written into `server/OWNER_API.md`: `GET /api/me` (display name, login, kind, isAdmin); `GET`/`PATCH /api/account/settings` (theme, background, sound and music on/off + volume, skipHintSeen; schema v15, saved on the account, all-or-nothing patches, 400 with the reason for a bad one); `GET /api/wallet` (credits, pack points, unopened packs oldest first). Evidence `progress/owner-api-demo-003-account.txt`, incl. a server restart on the same file. The Season 0 checklist updated; match running is next. Calls 1-6 are the render lane's)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #108).
 1. **Keep:** Tournament shown greyed in the sidebar with a "Soon" badge; clicking it says tournaments come after Season 0.

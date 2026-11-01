@@ -4,6 +4,8 @@
 // faction lock, the forced deck, each agent's play style, why the agent's
 // deck wants a rebuild, and "rebuild now". Plain HTTP + JSON on node:http,
 // signed in with a Season 0 session token (`Authorization: Bearer <token>`).
+// Session 63 added what the website's shell waits on (owner 2026-11-01):
+// who am I, the account settings, and the wallet.
 // Every rule stays in the store (`@ai-tcg/economy`); this layer reads the
 // request, checks the caller may touch what it names, calls the store and
 // answers. The endpoint list and error codes are in server/OWNER_API.md.
@@ -11,7 +13,15 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { PLAY_STYLES, type DeckBuildOptions, type DeckFaction } from "@ai-tcg/engine";
-import { EconomyError, LOCKABLE_FACTIONS, type DeckChooser, type DeckStatus, type EconomyStore } from "@ai-tcg/economy";
+import {
+  accountSettingsProblem,
+  EconomyError,
+  LOCKABLE_FACTIONS,
+  type AccountSettingsPatch,
+  type DeckChooser,
+  type DeckStatus,
+  type EconomyStore,
+} from "@ai-tcg/economy";
 
 /** The longest request body read (the API's bodies are a few fields). */
 const MAX_BODY_BYTES = 16 * 1024;
@@ -185,6 +195,21 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
         return { status: 204 };
       },
     },
+    { method: "GET", path: /^\/api\/me$/, handler: (req) => ({ body: store.whoAmI(ownerOf(req)) }) },
+    { method: "GET", path: /^\/api\/account\/settings$/, handler: (req) => ({ body: store.accountSettings(ownerOf(req)) }) },
+    {
+      method: "PATCH",
+      path: /^\/api\/account\/settings$/,
+      handler: (req, body) => {
+        const ownerId = ownerOf(req);
+        // A bad setting is a bad request (400), not a store refusal (409);
+        // the store checks the same rule again before it writes.
+        const problem = accountSettingsProblem(body);
+        if (problem) throw new HttpError(400, problem);
+        return { body: store.updateAccountSettings(ownerId, body as AccountSettingsPatch) };
+      },
+    },
+    { method: "GET", path: /^\/api\/wallet$/, handler: (req) => ({ body: store.wallet(ownerOf(req)) }) },
     { method: "GET", path: /^\/api\/play$/, handler: (req) => ({ body: playSettings(ownerOf(req)) }) },
     {
       method: "PUT",

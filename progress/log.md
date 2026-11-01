@@ -4052,3 +4052,39 @@ stack ids). Economy demos 014/016 still not re-run. The sandbox clock is unrelia
 `progress/built-deck-ring-004.txt`, `progress/built-deck-ring-004/`.
 
 **Blocked:** nothing. One owner check-in (results; the Null Out finding; no decision needed to continue).
+
+## 2026-11-01 — Session 63 (who am I, account settings, the wallet; Null Out's text)
+
+**Read first:** `progress/owner-feedback.md`. Two unhandled game-lane entries (2026-11-01): answers to session 62
+(change Null Out's text so it says it can't take health below 1, same words on any other -X/-X card), and answers
+to render session 44 (before match running, add who am I, account settings and the wallet). Both acted on and
+marked handled. The last merged PR (#108) was the render lane's, so this is a game-lane session (not a hardening
+one: 60 was, 65 will be).
+
+**Built:**
+- Card text: Null Out (the mode and its ability) and Deprecated Routine's arm ability now end "(it can't take
+  health below 1)."; the NA8/NA12 candidates in `oldEdgesCandidates.ts` match; three test expectations updated.
+- `economy/src/accountSettings.ts` (themes, the eight backgrounds, defaults, `accountSettingsProblem`, the patch
+  merge); migration 15 (`account_settings`, CHECKs on every column, FK to owners); store `whoAmI`,
+  `accountSettings`, `updateAccountSettings` (all-or-nothing, an empty patch writes nothing), `wallet`.
+- Owner API: `GET /api/me`, `GET`/`PATCH /api/account/settings` (400 with the reason for a bad patch),
+  `GET /api/wallet`; written into `server/OWNER_API.md`.
+- Tests: `economy/test/accountSettings.test.ts` (7), `server/test/ownerApiAccount.test.ts` (6).
+- `server/src/dev/accountApiDemo.ts` -> `progress/owner-api-demo-003-account.txt`.
+
+**Ran it:** the demo over a real database file and port: 401s unsigned, who am I for an owner and the admin,
+defaults, three patches, five refused patches (nothing changed), the API and store closed and reopened on the same
+file (settings kept), and the wallet following an open, six recorded wins (180 credits) and a bought pack (80
+left). `npm run ring` PASS with every number +0.0 after the text change. Five replays regenerated, only the text
+differs (plus first-time's random pack ids). Mutation checks: three mutations each failed a test; one
+(audio merged from the defaults) first survived, the test was tightened until it failed. `npm test` all six
+workspaces pass; typecheck clean.
+
+**Worked:** the store-holds-the-rule seam: the API and the store share one validator. **Didn't / honest limits:**
+only the settings the owner listed are stored (no haptics, reduce motion, notification switches); the website
+doesn't call these yet (render lane); the wallet is read-only and the credits in the demo come from wins recorded
+by hand, since the match runner is still not started.
+
+**Evidence:** `progress/owner-api-demo-003-account.txt`.
+
+**Blocked:** nothing.
