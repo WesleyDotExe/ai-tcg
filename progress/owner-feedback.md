@@ -3815,3 +3815,18 @@ Next render-lane slice, as planned: Season 0 render item 3, Home as the widget b
 
 ### Game lane: one more small endpoint before match running
 **Before match running and the ladder, add the saved board layout endpoint** (the Home widget board's layout and the widgets' sizes, saved to the owner's account; Customise -> Background uses the account-settings endpoint that already exists). Write it into `server/OWNER_API.md` with tests, as session 63 did for the account settings. Then Season 0 game item 1 (match running and the ladder). Update the Season 0 checklist in `progress/roadmap.md` to match.
+
+---
+
+## 2026-11-01 — Owner: the economy endpoints come with the board layout, before match running (extends the entry above)
+
+To keep the render lane unblocked for its next slices, the game lane's next session builds **all of these endpoints together with the saved board layout**, before match running and the ladder. The economy behind each already exists, so this is wiring: write each into `server/OWNER_API.md` with tests, as session 63 did.
+1. **Saved board layout** (from the entry above).
+2. **Collection and binder:** the owner's copies (with finish, origin and bound/unbound), counts per card, set completion, secrets and Prototypes, and the last pulls (for Collection, Showcase and the Collection widget). Salvage and crafting as actions, with the rules the store already enforces.
+3. **Packs:** buying packs and opening them (one or ten), returning the pulled cards with NEW and "x N owned", pity and pack points, as `openPack` does (for the Packs widget, the pack-opening page and the top bar's Open button).
+4. **Store and cosmetics:** what's on sale (packs and the season's cosmetics), buying a cosmetic, the owner's owned cosmetics and each agent's loadout, read and set (for the Store page and widget and the loadout picker).
+5. **Daily earnings:** today's credits from wins against the daily win schedule, and when it resets (midnight Sydney, as set), for the Daily rewards widget.
+
+If it doesn't all fit in one session, do them in this order and continue in the next game session before match running. Then Season 0 game item 1 (match running and the ladder), then the match-dependent endpoints (live state, match history and replays, ladder and ratings, notifications). Update the Season 0 checklist in `progress/roadmap.md` to match.
+
+**Render lane:** after the widget board, build the pages these endpoints feed (Collection, Store and pack opening on the site, and the widgets that use this data) as they land, then the match pages once match running exists.
