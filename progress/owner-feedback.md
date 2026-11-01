@@ -3830,3 +3830,17 @@ To keep the render lane unblocked for its next slices, the game lane's next sess
 If it doesn't all fit in one session, do them in this order and continue in the next game session before match running. Then Season 0 game item 1 (match running and the ladder), then the match-dependent endpoints (live state, match history and replays, ladder and ratings, notifications). Update the Season 0 checklist in `progress/roadmap.md` to match.
 
 **Render lane:** after the widget board, build the pages these endpoints feed (Collection, Store and pack opening on the site, and the widgets that use this data) as they land, then the match pages once match running exists.
+
+---
+
+## 2026-11-01 — Owner: answers to game session 64 (the board and the economy endpoints), keep calls 1-5; the daily pack in session 65
+
+Answers the [OWNER CHECK-IN] "The board and the economy endpoints: the calls I made (defaults built)" in `progress/notes-for-owner.md` (PR #111, `progress/owner-api-demo-004-economy.txt`).
+1. **Keep:** the daily reset is midnight Sydney (Australia/Sydney, with daylight saving) for payouts and daily earnings.
+2. **Keep:** the recommended board gives the Tournament slot (Small) to Store.
+3. **Keep:** the board is saved as an ordered list with sizes; Tournament and the League pull feed are refused until after Season 0.
+4. **Keep:** buying packs is 1 to 10 at once, all or none; opening is 1, 10, or one chosen pack.
+5. **Keep:** salvage asks first when it would leave a saved deck short (409 with needsConfirmation and the decks).
+6. **Add the daily pack in session 65.** The owner's 2026-10-05 website spec has "Claim free daily pack" in the Store widget and a daily timer on the Packs widget. If the economy already has a free daily pack (per owner, resetting at midnight Sydney), add the endpoints to claim it and to read when the next one is ready, written into `server/OWNER_API.md` with tests. **If the economy has no free daily pack, don't invent one:** bring the question (how many packs, which pack, any streak) to an owner check-in.
+
+**Accepted:** session 65 is the hardening pass (re-run, fix and regenerate the six stale economy demos and the crashing `boastDemo.ts`), with item 6 in the same session. Match running and the ladder follow in session 66. Update the Season 0 checklist in `progress/roadmap.md` to match.
