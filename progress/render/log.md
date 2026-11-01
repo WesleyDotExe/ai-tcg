@@ -4204,3 +4204,61 @@ Customise -> Background (comes with the widget board). The title screen's cosmic
 **Next render-lane slice:** Season 0 item 3, Home as the widget board (12 columns, S/M/L, Customise, the
 empty state) as far as the endpoints allow; the saved board layout needs a game-lane endpoint, which it
 doesn't have yet, so the first slice may build the board with its layout held in the page and say so.
+
+## 2026-11-01 — Session 46: Home as the widget board (saved to the account; the twelve Season 0 widgets)
+
+Owner feedback read: the answers to render session 45 keep all 6 calls and name this slice (Season 0
+render item 3, Home as the widget board). The game lane's session 64 built the saved board (`GET`/`PUT
+/api/board`) and the economy endpoints, so the layout is saved to the account from the start and the
+widgets with data draw it. The 2026-11-01 entries after that are the game lane's (its session 65). No
+CRITICAL item in the render debt list. Not a hardening pass: the owner set the slice. Alternation: the
+last merged PR (#111) was the game lane's.
+
+**Session 45's PR on CI (owed):** PR #110, the `test` job 3 min 51 s, passed; auto-merge 3 min 57 s.
+
+**Built:**
+- `render/src/site/siteBoard.ts` (pure, tested): the widget catalogue (names, icons, colours, L wide or
+  tall, the page each opens, which are live), sizes and spans, Customise's edits (add at M at the end,
+  remove, resize, drag-move, arrow-key move, never reusing an id), the limits applied from the server's
+  `rules` (never restated), the two-live-board rule, the grid as CSS packs it (for the tests), and the
+  views: Daily rewards (the bar's end from the server's schedule), Collection, Showcase, Packs (the pity
+  timers from the server's counters and flags).
+- `render/src/site/siteWidgets.ts` (pure): each widget as HTML at S/M/L, editing or not; a widget waiting
+  on match running says so; a widget still loading or whose read failed says that; mini placeholder card
+  faces and a CSS pack.
+- `siteApi.ts`: board, saveBoard, daily, collection, packs, buyPacks, store, buyCosmetic.
+- `siteClient.ts`: Home is the board: Customise (held until Done; leaving Home saves), the gallery,
+  Background and Recommended layout dialogs, the empty state, drag and drop and the arrow keys and
+  Delete, buying packs and cosmetics after a confirm; only the reads the board's widgets need, refreshed
+  with the poll. `siteModel.ts`: Collection and Store now say the server serves their data and the page
+  comes next.
+- `sitePage.ts`: the board's CSS (the mockup's grid, the jiggle, "−", the add tile, narrow stacking
+  without dense packing, reduce motion: no jiggle, a dashed outline; a dialog pauses the jiggle).
+- `siteDemo.ts`: two wins and a loss today, so Daily rewards has real numbers.
+- Tests (+25, render 741): `render/test/siteBoard.test.ts` (the edits checked against the store's own
+  `boardLayoutProblem`; the recommended grid; every widget at every size; the client against the real
+  owner API: save, read back, a refused third Watch live, buying a pack).
+
+**Ran it:** `progress/render/evidence/site-check-s46.mjs` -> `site-check-s46.txt`: 38 browser checks, ALL
+PASS. Stills `v2-s46-board-*.jpg`. Mutants: dropping the save on leaving Home stops the run at check E;
+keeping dense packing in narrow windows fails J.
+
+**Found on the way:**
+- **Fixed:** the greyed rows of the gallery drew ghosts of the page behind them over Customise mode's
+  turned tiles (whole-element opacity over a blurred, rotated layer); greyed by colour now.
+- **Fixed:** the pity line read "within false packs": the API sends the timers' counters and "next pack
+  is sure" flags, not thresholds; the line uses those.
+- **Measured, not changed:** with the full board, session 45's check fails its frame-rate bar here: 15.7
+  fps against 25.0 on main the same day (`site-check-s45-rerun-s46.txt`). `board-glass-cost-s46.mjs`
+  pins it on the tiles' `backdrop-filter` (off: 24.7 fps; a 16 px blur instead of 30 px: no better).
+  Raised with the owner with options; software WebGL only.
+- Playwright never finds a jiggling tile "stable", so the check forces its clicks there; the drag uses
+  a real mouse in a window tall enough not to scroll mid-drag.
+
+**Not done (named):** the free daily pack's claim (game session 65); pack opening and the Store and
+Collection pages; the six widgets waiting on match running; My agent's rating, record, Start/Watch and
+signature card; the skip hint on the account (nothing in the site skips yet).
+
+**Next render-lane slice:** the Store page with pack opening on the site (so Open and the Packs widget
+open packs, the standalone pack opening brought in), then Collection's wide binder. If the owner answers
+the frame-rate note first, that answer goes in the same slice.

@@ -15,10 +15,37 @@
 // /api/account/settings), so they follow the owner to any browser; the
 // owner's display name and, for the house admin, Settings -> Admin (who am
 // I); credits, pack points and the Open button in the top bar (the wallet).
+//
+// Session 46 (Season 0 render item 3): Home is the widget board, saved to
+// the owner's account (`GET`/`PUT /api/board`): the twelve Season 0 widgets
+// at S/M/L (siteWidgets.ts draws them from the owner API's answers),
+// Customise mode (drag or arrow keys to move, S/M/L, "−", + Add widget,
+// Background, Recommended layout; Done saves), the empty state, the widget
+// limits the server sends, at most two live boards, narrow-window stacking.
 
 import { avatarSvg } from "../avatar.js";
 import { startLiquid, type Liquid } from "./liquid.js";
-import { SiteApiError, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SitePlay, type SiteSettingsPatch, type SiteWallet } from "./siteApi.js";
+import { SiteApiError, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
+import {
+  WIDGET_INFO,
+  addBlock,
+  addWidget,
+  liveViews,
+  moveBy,
+  moveWidget,
+  recommendedWidgets,
+  removeWidget,
+  resizeWidget,
+  sameBoard,
+  type SiteBoard,
+  type SiteCollection,
+  type SiteDaily,
+  type SitePacks,
+  type SiteWidget,
+  type WidgetSize,
+  type WidgetType,
+} from "./siteBoard.js";
+import { sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
   FACTION_HEX,
@@ -38,6 +65,7 @@ import {
   pageFromHash,
   rebuildView,
   styleName,
+  waitsLine,
   type NavItem,
   type PageId,
   type ThemePref,
@@ -68,7 +96,19 @@ const state: {
   background: string;
   busy: boolean;
   poll: number;
-} = { session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0 };
+  /** The saved board (null: not read, or the read failed: boardError). */
+  board: SiteBoard | null;
+  boardError: string | null;
+  /** Customise mode's working copy; null when not customising. */
+  draft: SiteWidget[] | null;
+  saving: boolean;
+  /** What the widgets read, each fetched only when a widget on the board needs it. */
+  home: { packs: SitePacks | null; collection: SiteCollection | null; daily: SiteDaily | null; store: SiteStore | null; errors: Partial<Record<WidgetSource, string>> };
+  colFilter: string;
+} = {
+  session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
+  board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, errors: {} }, colFilter: "All",
+};
 
 let liquid: Liquid | null = null;
 
@@ -84,6 +124,11 @@ let liquid: Liquid | null = null;
     me: state.me,
     settings: state.settings,
     wallet: state.wallet,
+    board: state.board,
+    draft: state.draft,
+    editing: state.draft !== null,
+    saving: state.saving,
+    home: state.home,
   }),
   liquid: () => liquid?.stats() ?? null,
 };
@@ -226,6 +271,10 @@ function signedOut(message: string): void {
   state.me = null;
   state.settings = null;
   state.wallet = null;
+  state.board = null;
+  state.boardError = null;
+  state.draft = null;
+  state.home = { packs: null, collection: null, daily: null, store: null, errors: {} };
   saveSession(null);
   clearTimeout(state.poll);
   showSignIn(message);
@@ -281,11 +330,18 @@ async function enter(): Promise<void> {
     return null;
   });
   try {
-    const [play, me, settings, wallet] = await Promise.all([api.play(token), soft(api.me(token)), soft(api.accountSettings(token)), soft(api.wallet(token))]);
+    const boardRead = api.board(token).catch((err: unknown) => {
+      if (err instanceof SiteApiError && err.signedOut) throw err;
+      state.boardError = err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong.";
+      return null;
+    });
+    const [play, me, settings, wallet, board] = await Promise.all([api.play(token), soft(api.me(token)), soft(api.accountSettings(token)), soft(api.wallet(token)), boardRead]);
     state.play = play;
     state.me = me;
     state.settings = settings;
     state.wallet = wallet;
+    state.board = board;
+    if (board) state.boardError = null;
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
     showSignIn(err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong.");
@@ -300,6 +356,38 @@ async function enter(): Promise<void> {
   drawShell();
   route();
   schedulePoll();
+  void loadHome();
+}
+
+/** Reads what the widgets on the board show (only what they need), then
+ * redraws Home. `only` limits it to some reads (after a purchase, the poll). */
+async function loadHome(only?: WidgetSource[]): Promise<void> {
+  if (!state.session) return;
+  const widgets = state.draft ?? state.board?.widgets ?? [];
+  const need = sourcesFor(widgets).filter((x) => !only || only.includes(x));
+  if (!need.length) return;
+  const token = state.session.token;
+  const reads: Record<WidgetSource, () => Promise<unknown>> = {
+    packs: () => api.packs(token),
+    collection: () => api.collection(token, 3),
+    daily: () => api.daily(token),
+    store: () => api.store(token),
+  };
+  let signedOutNow = false;
+  await Promise.all(
+    need.map(async (src) => {
+      try {
+        const v = await reads[src]();
+        (state.home as Record<string, unknown>)[src] = v;
+        delete state.home.errors[src];
+      } catch (err) {
+        if (err instanceof SiteApiError && err.signedOut) signedOutNow = true;
+        else state.home.errors[src] = err instanceof SiteApiError ? errorText(err.status, err.message) : "something went wrong";
+      }
+    }),
+  );
+  if (signedOutNow) return signedOut("Your session ended. Sign in again.");
+  if (state.page === "home" && !dragging) drawPage();
 }
 
 /** Keeps the agent's status current (a match starting or ending, a rebuild
@@ -328,7 +416,8 @@ async function refresh(): Promise<void> {
       toast(now.state === "done" ? "Your agent finished building its deck." : `The rebuild failed: ${now.error ?? "no reason given"}`, now.state === "done" ? "info" : "error");
     }
     drawAgentCard();
-    if (!state.busy) drawPage();
+    if (!state.busy && !dragging) drawPage();
+    if (state.page === "home") void loadHome(["daily", "packs"]);
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
   }
@@ -402,6 +491,8 @@ function route(): void {
     history.replaceState(null, "", hashOf(state.page));
     return;
   }
+  // Leaving Home while customising keeps the changes: it saves, as Done does.
+  if (page !== "home" && state.draft) void finishCustomise();
   state.page = page;
   document.querySelectorAll<HTMLElement>("#nav .navb").forEach((b) => {
     const on = b.dataset.page === page;
@@ -431,35 +522,231 @@ function drawPage(): void {
   applyTheme();
 }
 
-function panelHead(ic: Parameters<typeof icon>[0], title: string, grad: string, open?: PageId): string {
-  return `<div class="wgh"><span class="wic" style="--g:${grad}">${icon(ic, 12)}</span><span>${esc(title)}</span>${open ? `<a class="wopen" href="${hashOf(open)}" aria-label="Open ${esc(PAGE_TITLES[open])}">${icon("arrow", 14)}</a>` : ""}</div>`;
-}
-
+// ---- Home: the widget board ------------------------------------------------
 function homePage(p: SitePlay): string {
-  const a = p.connectedAgent;
-  const st = agentStatus(p);
-  const fac = agentFaction(p);
-  const my = a
-    ? `<div class="mya">${avatar(a.name, fac, 64)}<div><div class="mya-n">${esc(a.name)}${fac ? `<span class="ftag" style="--c:${FACTION_HEX[fac]}">${esc(fac.toUpperCase())}</span>` : ""}</div><div class="muted">${esc(styleName(p, a.playStyle))} play style</div></div></div>
-       <div class="row"><span class="status ${st.tone}"><i></i>${esc(st.label)}</span>${p.liveMatch ? `<span class="muted small">since ${esc(timeOf(p.liveMatch.startedAt))}</span>` : ""}</div>`
-    : `<p class="muted">No agent is connected.</p><a class="btn pri" href="#/connect">Connect agent</a>`;
-  const rv = rebuildView(p);
-  const deck = `<div class="big-line">${esc(deckLine(p))}</div>
-    <div class="muted small">${p.factionLock ? `Locked to ${esc(p.factionLock)}` : "Any faction"} · ${p.decks.length} saved deck${p.decks.length === 1 ? "" : "s"}</div>
-    <div class="rb-note ${rv.kind}">${esc(rv.kind === "wanted" ? `${rv.text} ${rv.reasons[0]}${rv.reasons.length > 1 ? ` (+${rv.reasons.length - 1} more)` : ""}` : rv.text)}</div>
-    <a class="btn" href="#/settings">Deck settings</a>`;
-  return `<div class="boardbar"><h2>Your board</h2></div>
-  <div class="wgrid">
-    <section class="wg sz-M hero" style="--c:${(fac && FACTION_HEX[fac]) || "#8f8cff"}">${panelHead("link", "My agent", "linear-gradient(135deg,#6a7bff,#9a5cff)", "connect")}<div class="wgb">${my}</div></section>
-    <section class="wg sz-M">${panelHead("col", "Deck", "linear-gradient(135deg,#25b0ff,#3d6bff)", "settings")}<div class="wgb">${deck}</div></section>
-  </div>
-  <p class="muted small board-note">More of your board (packs, the live match, the ladder) comes as the server serves it. Customising the board comes with it.</p>`;
+  const editing = state.draft !== null;
+  const widgets = state.draft ?? state.board?.widgets ?? [];
+  const bar = `<div class="boardbar"><h2>Your board</h2><span class="sp"></span>${
+    !state.board
+      ? ""
+      : editing
+        ? `<button type="button" class="btn" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="background">Background</button><button type="button" class="btn" data-act="recommended">Recommended layout</button><button type="button" class="btn pri" data-act="done"${state.saving ? " disabled" : ""}>${state.saving ? "Saving…" : "Done"}</button>`
+        : `<button type="button" class="btn" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="customise">Customise</button>`
+  }</div>${editing ? '<p class="hint2">Drag a widget to move it, or click it and use the arrow keys. Pick S, M or L to resize; "−" or Delete removes it. Done saves your board.</p>' : ""}`;
+  if (!state.board) {
+    return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>${state.boardError ? "Your board couldn't be read" : "Loading your board…"}</h3>${state.boardError ? `<p class="muted">${esc(state.boardError)}</p><button type="button" class="btn pri" data-act="retry-board">Try again</button>` : ""}</div></div>`;
+  }
+  if (!widgets.length) {
+    return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
+  }
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, now: Date.now(), colFilter: state.colFilter };
+  const { views, capped } = liveViews(widgets);
+  const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id) })).join("");
+  const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
+  const note = !editing && state.board.recommended ? `<p class="muted small board-note">This is the recommended layout. Customise it and it's saved to your account.</p>` : "";
+  return `<div class="pg-wide">${bar}<div class="wgrid${editing ? " editing" : ""}" id="wgrid">${tiles}${addTile}</div>${note}</div>`;
 }
 
-function timeOf(iso: string): string {
-  const d = new Date(iso);
-  return isNaN(d.getTime()) ? iso : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+/** True when no widget at all can be added (the board is full). */
+function addBlockAll(widgets: SiteWidget[]): boolean {
+  const rules = state.board!.rules;
+  return rules.widgetTypes.every((t) => addBlock(widgets, t.type, rules) !== null);
 }
+
+function startCustomise(): void {
+  if (!state.board) return;
+  state.draft = state.board.widgets.map((w) => ({ ...w }));
+  drawPage();
+}
+
+/** Done: saves the board if it changed. A refusal keeps Customise mode open
+ * with the server's words, so nothing is lost. */
+async function finishCustomise(): Promise<void> {
+  if (!state.draft || !state.board || state.saving) return;
+  const draft = state.draft;
+  if (sameBoard(draft, state.board.widgets)) {
+    state.draft = null;
+    if (state.page === "home") drawPage();
+    return;
+  }
+  const ok = await saveBoard(draft);
+  if (ok) state.draft = null;
+  if (state.page === "home") drawPage();
+}
+
+/** Saves a board (the whole list) to the account. */
+async function saveBoard(widgets: SiteWidget[], message = "Board saved."): Promise<boolean> {
+  if (!state.session) return false;
+  state.saving = true;
+  if (state.page === "home") drawPage();
+  try {
+    state.board = await api.saveBoard(state.session.token, widgets);
+    toast(message);
+    return true;
+  } catch (err) {
+    fail(err);
+    return false;
+  } finally {
+    state.saving = false;
+  }
+}
+
+/** Changes the board: in Customise mode the working copy (saved on Done);
+ * otherwise (+ Add widget, the empty board's buttons) saved at once. */
+async function changeBoard(next: SiteWidget[], message?: string): Promise<void> {
+  if (state.draft) {
+    state.draft = next;
+    drawPage();
+    if (message) toast(message);
+    void loadHome();
+    return;
+  }
+  if (await saveBoard(next, message)) void loadHome();
+  drawPage();
+}
+
+/** The widget gallery: every Season 0 widget, the ones that can't be added
+ * greyed with the reason (the server's limits). Widgets start at Medium. */
+function addWidgetDialog(): void {
+  if (!state.board) return;
+  const widgets = state.draft ?? state.board.widgets;
+  const rules = state.board.rules;
+  const items = rules.widgetTypes
+    .map(({ type }) => {
+      const info = WIDGET_INFO[type];
+      const block = addBlock(widgets, type, rules);
+      return `<button type="button" class="wli" data-add="${type}"${block ? " disabled" : ""}><span class="wic big2" style="--g:${info.grad}">${icon(info.icon, 18)}</span><span><b>${esc(info.name)}</b><small>${esc(block ?? info.desc)}</small></span></button>`;
+    })
+    .join("");
+  sheet(`<h2 id="dlg-t">Add a widget</h2><p>Widgets start at medium size. Resize them in Customise.</p><div class="wlib">${items}</div><div class="row end"><button type="button" class="btn" data-a="close">Close</button></div>`, (el) => {
+    const t = el.closest("[data-add]") as HTMLButtonElement | null;
+    if (!t || t.disabled) return false;
+    const type = t.dataset.add as WidgetType;
+    const now = state.draft ?? state.board!.widgets;
+    void changeBoard(addWidget(now, type, state.board!.rules), `${WIDGET_INFO[type].name} added.`).then(() => {
+      // The new widget is the last one: bring it into view.
+      const last = document.querySelector<HTMLElement>("#wgrid .wg:last-of-type");
+      last?.scrollIntoView({ block: "nearest" });
+    });
+    return true;
+  });
+}
+
+/** Customise -> Background: the same picker as Settings -> Display. */
+function backgroundDialog(): void {
+  sheet(`<h2 id="dlg-t">Background</h2><p>A liquid colour or a plain background. Saved to your account.</p>${bgPicker()}<p class="muted small">Plain backgrounds always use dark mode.</p><div class="row end"><button type="button" class="btn pri" data-a="close">Done</button></div>`, () => false, "wide");
+}
+
+async function recommendedDialog(): Promise<void> {
+  if (!state.board) return;
+  if (!(await confirmDialog("Use the recommended layout?", "This replaces your board with the recommended widgets and sizes. You can customise it again afterwards.", "Use recommended"))) return;
+  void changeBoard(recommendedWidgets(state.board.rules), "Recommended layout applied.");
+}
+
+/** A centred dialog with any content (the gallery, the background). `onPick`
+ * answers true to close it. Escape, the dim and data-a="close" close it. */
+function sheet(html: string, onPick: (el: HTMLElement) => boolean, size: "" | "wide" = ""): void {
+  const d = $("#dialog");
+  const opener = document.activeElement as HTMLElement | null;
+  d.innerHTML = `<div class="dlg glass${size ? ` ${size}` : ""}" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${html}</div>`;
+  d.className = "dim on";
+  const close = () => {
+    d.className = "dim";
+    d.innerHTML = "";
+    d.onclick = null;
+    document.removeEventListener("keydown", onKey, true);
+    opener?.focus?.();
+  };
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      close();
+    }
+  };
+  document.addEventListener("keydown", onKey, true);
+  d.onclick = (e) => {
+    const t = e.target as HTMLElement;
+    if (e.target === d || t.closest('[data-a="close"]')) return close();
+    // The background picker inside a dialog is handled by the page's own click handler.
+    if (onPick(t)) close();
+  };
+  (d.querySelector("button:not([disabled])") as HTMLElement | null)?.focus();
+}
+
+async function buyPacks(setCode: string, count: number): Promise<void> {
+  const price = state.home.packs?.offer.find((o) => o.setCode === setCode)?.priceCredits;
+  if (!state.session || price === undefined) return;
+  const total = price * count;
+  if (!(await confirmDialog(count === 1 ? "Buy a pack?" : `Buy ${count} packs?`, `${count === 1 ? "One pack" : `${count} packs`} for ${amount(total)} credits. You have ${amount(state.wallet?.credits ?? 0)}.`, `Buy · ${amount(total)}`))) return;
+  try {
+    const r = await api.buyPacks(state.session.token, setCode, count);
+    state.wallet = r.wallet;
+    drawWallet();
+    toast(count === 1 ? "Pack bought. It's waiting to be opened." : `${count} packs bought. They're waiting to be opened.`);
+  } catch (err) {
+    fail(err);
+  }
+  await loadHome(["packs", "store"]);
+}
+
+async function buyCosmetic(itemId: string, name: string, price: number): Promise<void> {
+  if (!state.session) return;
+  if (!(await confirmDialog(`Buy ${name}?`, `${amount(price)} credits. You have ${amount(state.wallet?.credits ?? 0)}.`, `Buy · ${amount(price)}`))) return;
+  try {
+    const r = await api.buyCosmetic(state.session.token, itemId);
+    state.wallet = r.wallet;
+    drawWallet();
+    toast(`${name} is yours. Equip it in the loadout.`);
+  } catch (err) {
+    fail(err);
+  }
+  await loadHome(["packs", "store"]);
+}
+
+// Drag to move (Customise mode): HTML5 drag and drop on the tiles; the drop
+// lands before or after the tile under the pointer, by which half it's in.
+let dragging: string | null = null;
+document.addEventListener("dragstart", (e) => {
+  const tile = (e.target as HTMLElement).closest?.("#wgrid.editing .wg") as HTMLElement | null;
+  if (!tile || !state.draft) return;
+  dragging = tile.dataset.id ?? null;
+  tile.classList.add("dragging");
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = "move";
+    try {
+      e.dataTransfer.setData("text/plain", dragging ?? "");
+    } catch {
+      /* some browsers refuse; the id is kept here anyway */
+    }
+  }
+});
+document.addEventListener("dragover", (e) => {
+  if (!dragging) return;
+  const tile = (e.target as HTMLElement).closest?.("#wgrid .wg") as HTMLElement | null;
+  e.preventDefault();
+  document.querySelectorAll(".dropb").forEach((x) => x.classList.remove("dropb"));
+  if (tile && tile.dataset.id !== dragging) tile.classList.add("dropb");
+});
+document.addEventListener("drop", (e) => {
+  if (!dragging || !state.draft) return;
+  e.preventDefault();
+  const tile = (e.target as HTMLElement).closest?.("#wgrid .wg") as HTMLElement | null;
+  const from = dragging;
+  dragging = null;
+  if (tile && tile.dataset.id && tile.dataset.id !== from) {
+    const r = tile.getBoundingClientRect();
+    state.draft = moveWidget(state.draft, from, tile.dataset.id, e.clientX - r.left > r.width / 2);
+  } else if ((e.target as HTMLElement).closest?.(".addtile")) {
+    // Dropped on the "+ Add widget" tile: to the end.
+    const w = state.draft.find((x) => x.id === from)!;
+    state.draft = [...state.draft.filter((x) => x.id !== from), w];
+  }
+  drawPage();
+});
+document.addEventListener("dragend", () => {
+  dragging = null;
+  document.querySelectorAll(".dragging,.dropb").forEach((x) => x.classList.remove("dragging", "dropb"));
+});
 
 function seg(id: string, options: [string, string][], value: string, label: string): string {
   return `<div class="seg" id="${id}" role="group" aria-label="${esc(label)}">${options.map(([v, t]) => `<button type="button" data-v="${esc(v)}" aria-pressed="${v === value}">${esc(t)}</button>`).join("")}</div>`;
@@ -543,7 +830,20 @@ function waitsPage(page: PageId): string {
   const w = PAGE_WAITS[page];
   if (!w) return "";
   const n = [...NAV_MAIN, ...NAV_LOWER].find((x) => x.id === page)!;
-  return `<div class="pg"><div class="waits-hero glass"><span class="wic big" style="--g:linear-gradient(135deg,#6a7bff,#9a5cff)">${icon(n.icon, 26)}</span><h2>${esc(PAGE_TITLES[page])}</h2><p>${esc(w.will)}</p><p class="muted small">Waiting on the server for: ${w.needs.map(esc).join(", ")}.</p><a class="btn" href="#/">Back to Home</a></div></div>`;
+  return `<div class="pg"><div class="waits-hero glass"><span class="wic big" style="--g:linear-gradient(135deg,#6a7bff,#9a5cff)">${icon(n.icon, 26)}</span><h2>${esc(PAGE_TITLES[page])}</h2><p>${esc(w.will)}</p><p class="muted small">${esc(waitsLine(w.needs))}</p><a class="btn" href="#/">Back to Home</a></div></div>`;
+}
+
+async function retryBoard(): Promise<void> {
+  if (!state.session) return;
+  try {
+    state.board = await api.board(state.session.token);
+    state.boardError = null;
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    state.boardError = err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong.";
+  }
+  drawPage();
+  void loadHome();
 }
 
 // ---- actions ----------------------------------------------------------------
@@ -581,6 +881,41 @@ async function onRebuild(): Promise<void> {
 
 document.addEventListener("click", (e) => {
   const t = e.target as HTMLElement;
+  // A greyed link (Open with no packs) does nothing.
+  const off = t.closest('a[aria-disabled="true"]');
+  if (off && !off.classList.contains("navb")) {
+    e.preventDefault();
+    return;
+  }
+  const actEl = t.closest("[data-act]") as HTMLElement | null;
+  if (actEl && !(actEl as HTMLButtonElement).disabled) {
+    const act = actEl.dataset.act!;
+    const tile = actEl.closest(".wg") as HTMLElement | null;
+    const id = tile?.dataset.id;
+    if (act === "customise") return startCustomise();
+    if (act === "done") return void finishCustomise();
+    if (act === "add") return addWidgetDialog();
+    if (act === "background") return backgroundDialog();
+    if (act === "recommended") return void recommendedDialog();
+    if (act === "use-recommended" && state.board) return void changeBoard(recommendedWidgets(state.board.rules), "Recommended layout applied.");
+    if (act === "retry-board") return void retryBoard();
+    if (act === "remove" && id && state.draft) {
+      state.draft = removeWidget(state.draft, id);
+      return drawPage();
+    }
+    if (act === "resize" && id && state.draft) {
+      state.draft = resizeWidget(state.draft, id, actEl.dataset.size as WidgetSize);
+      drawPage();
+      void loadHome();
+      return;
+    }
+    if (act === "col-filter") {
+      state.colFilter = actEl.dataset.f ?? "All";
+      return drawPage();
+    }
+    if (act === "buy-packs") return void buyPacks(actEl.dataset.set!, Number(actEl.dataset.count));
+    if (act === "buy-cosmetic") return void buyCosmetic(actEl.dataset.item!, actEl.dataset.name ?? "this", Number(actEl.dataset.price));
+  }
   const segBtn = t.closest(".seg button") as HTMLElement | null;
   if (segBtn) {
     const group = segBtn.parentElement!.id;
@@ -629,6 +964,26 @@ document.addEventListener("click", (e) => {
 });
 // The picker is a radio group: arrow keys move the choice.
 document.addEventListener("keydown", (e) => {
+  // Customise mode: a focused widget moves with the arrow keys; Delete removes it.
+  const tile = (e.target as HTMLElement).closest?.("#wgrid.editing .wg") as HTMLElement | null;
+  if (tile && state.draft && e.target === tile) {
+    const id = tile.dataset.id!;
+    const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+    if (step) {
+      e.preventDefault();
+      state.draft = moveBy(state.draft, id, step);
+      drawPage();
+      (document.querySelector(`#wgrid .wg[data-id="${id}"]`) as HTMLElement | null)?.focus();
+      return;
+    }
+    if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault();
+      state.draft = removeWidget(state.draft, id);
+      drawPage();
+      (document.querySelector("#wgrid .wg") as HTMLElement | null)?.focus();
+      return;
+    }
+  }
   const sw = (e.target as HTMLElement).closest?.("#bg-picker .sw") as HTMLElement | null;
   if (!sw) return;
   const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
