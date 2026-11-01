@@ -1,4 +1,5 @@
-// The owner website's first slice (render session 44): the pure model, the
+// The owner website's first slice (render session 44; session 45 added the
+// look's account calls and the page's canvas and wallet): the pure model, the
 // page, and the host with the API client against the game lane's real
 // owner API (its own code, unchanged, over an in-memory store).
 
@@ -130,9 +131,17 @@ describe("the page", () => {
     expect([...urls]).toEqual(["http://www.w3.org/2000/svg"]);
   });
   it("carries the sign-in form, the shell, a dialog layer and a polite status for toasts", () => {
-    for (const id of ["signin", "si-form", "si-login", "si-pass", "shell", "nav", "agent-card", "title", "theme-btn", "acct-btn", "page", "dialog", "toast"]) expect(html).toContain(`id="${id}"`);
+    for (const id of ["signin", "si-form", "si-login", "si-pass", "shell", "nav", "agent-card", "title", "theme-btn", "acct-btn", "page", "dialog", "toast", "bg", "liquid", "wallet", "acct-kind"]) expect(html).toContain(`id="${id}"`);
     expect(html).toMatch(/id="toast"[^>]*aria-live="polite"/);
     expect(html).toContain('autocomplete="current-password"');
+  });
+  it("the liquid canvas sits over the still background and under the shell, and is hidden from screen readers", () => {
+    expect(html.indexOf('id="bg"')).toBeLessThan(html.indexOf('id="liquid"'));
+    expect(html.indexOf('id="liquid"')).toBeLessThan(html.indexOf('id="shell"'));
+    expect(html).toMatch(/<canvas id="liquid" aria-hidden="true">/);
+    // The shader is in the bundle; the page asks for WebGL 1 (the widest support).
+    expect(siteScript()).toContain("gl_FragColor");
+    expect(siteScript()).toContain('getContext("webgl"');
   });
   it("the inline bundle can't close its own script tag, and has the accessibility rules", () => {
     expect(siteScript()).not.toMatch(/<\/script/i);
@@ -200,6 +209,33 @@ describe("the host and the API client, over the real owner API", () => {
     const p = await client.play(token);
     expect(p.agentDeck?.deckId).toBe(done.result!.deckId);
     expect(p.decks.map((d) => d.deckId)).toContain(done.result!.deckId);
+  });
+
+  it("who am I, the account settings and the wallet, through the host (session 45)", async () => {
+    const { client, store } = await stack();
+    const { token } = await client.signIn("ada", PW);
+    const me = await client.me(token);
+    expect(me).toMatchObject({ name: "ada", username: "ada", isAdmin: false });
+    const first = await client.accountSettings(token);
+    expect(first).toMatchObject({ theme: "system", background: "glacier", updatedAt: null });
+    // The look's two fields, saved in part: the rest stay as they were.
+    const saved = await client.updateAccountSettings(token, { background: "aurora", theme: "dark" });
+    expect(saved).toMatchObject({ theme: "dark", background: "aurora", sound: first.sound, music: first.music, skipHintSeen: false });
+    expect(saved.updatedAt).not.toBeNull();
+    // On the account: a new session (another browser) reads the same.
+    const other = await client.signIn("ada", PW);
+    expect(await client.accountSettings(other.token)).toMatchObject({ theme: "dark", background: "aurora" });
+    // A background the server doesn't take is refused with its reason, and nothing changes.
+    const err = await client.updateAccountSettings(token, { background: "neon" }).catch((e: unknown) => e);
+    expect(err).toMatchObject({ status: 400 });
+    expect((err as SiteApiError).message).toContain("background");
+    expect((await client.accountSettings(token)).background).toBe("aurora");
+    // The wallet: the starter grants no packs; one granted shows on the Open button's count.
+    const w0 = await client.wallet(token);
+    expect(w0).toMatchObject({ credits: 0, packPoints: 0 });
+    store.grantPack(me.ownerId, "S0", "ownerDaily");
+    const w1 = await client.wallet(token);
+    expect(w1.unopenedPacks).toHaveLength(w0.unopenedPacks.length + 1);
   });
 
   it("refusals come back as SiteApiError with the store's words", async () => {

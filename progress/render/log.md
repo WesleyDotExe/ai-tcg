@@ -4150,3 +4150,57 @@ credits/pack points, notifications or auto-play yet: each waits on an endpoint o
 other colours and the two plain ones, low resolution, about 30 fps, paused when hidden, still under reduce
 motion) behind the existing glass, and the background picker in Settings -> Display (kept in the page until
 the account endpoint exists). Then the widget board (item 3), as the game lane's endpoints land.
+
+## 2026-11-01 — Session 45: the look (the liquid WebGL background and its picker, saved to the account; who am I; the wallet)
+
+Owner feedback read: the answers to render session 44 keep all 6 calls and set this slice (Season 0 render
+item 2, the look). The game lane's session 63 built the endpoints the last log asked for (`GET /api/me`,
+`GET`/`PATCH /api/account/settings`, `GET /api/wallet`), so this slice also saves the theme and background to
+the account (call 5), shows the display name and Settings -> Admin, and puts the wallet in the top bar. No
+CRITICAL item in the render debt list. Not a hardening pass: the owner set the slice.
+
+**Session 44's PR on CI (owed):** PR #108, the `test` job 3 min 52 s, passed; auto-merge 4 min 8 s.
+
+**Built:**
+- `render/src/site/siteLook.ts` (pure, tested): the eight backgrounds (the mockup's colours, unchanged; the
+  account settings' ids and order), `drawnTheme` (plain always dark), `liquidColours` (light/dark blend),
+  `easeDarkness` (time-based), `stillGradient` (swatches; the background before the first frame or with no
+  WebGL), the pacing (`LIQUID_SCALE` 0.3, `LIQUID_FRAME_MS` 28, `liquidPause`, `shouldDrawFrame`, and the
+  slow-machine step-down `LIQUID_SCALES` 0.3 -> 0.2 -> 0.14 below 20 fps), and the wallet's numbers.
+- `render/src/site/liquid.ts`: the WebGL driver around the mockup's shader. No animation frame is even
+  requested while paused (sign-in covering it, a hidden tab, a plain background); reduce motion draws one
+  frame and redraws only when the colours or size change; the liquid's clock runs only while it draws, so a
+  tab coming back carries on rather than jumping; a lost WebGL context falls back to the still gradient.
+- `siteApi.ts`: `me`, `accountSettings`, `updateAccountSettings`, `wallet`.
+- `siteClient.ts`: settings, who-am-I and wallet loaded with the play settings on entry (only the play
+  settings are required; the others degrade); theme and background saved by PATCH (drawn at once, put back
+  with the server's words on a refusal); Settings -> Display has the picker (a radio group, arrow keys);
+  Settings -> Admin for the house admin (it says what it waits on); the top bar has credits, pack points and
+  the Open button with its count (it opens the Store page, which says it waits on pack opening). The wallet
+  refreshes with the 15 s poll.
+- `siteDemo.ts`: Nova is the house admin, has 150 credits from five recorded wins over Rook, and 3 packs.
+- Tests (+20, render 716): `render/test/siteLook.test.ts` (18; the background list equals the economy's),
+  `site.test.ts` (+2: the account calls through the host over the real owner API; the canvas in the page).
+
+**Ran it:** `progress/render/evidence/site-check-s45.mjs` -> `site-check-s45.txt`: 39 browser checks, ALL PASS,
+in software WebGL (SwiftShader; this machine has no GPU). Stills `v2-s45-site-*.jpg` (Home in each liquid
+colour, Glacier and Aurora dark, Plain purple, the picker, a narrow window, no WebGL).
+
+**Found on the way (fixed):**
+- At 0.3 scale software WebGL drew only 11.7 fps, and the light/dark fade was per frame, so it took three
+  times as long. The fade is now time-based (the same second at 12, 30 or 60 fps), and the liquid measures
+  itself and steps down a scale when under 20 fps: in the check it went 0.3 -> 0.2 -> 0.14 in 4 s and then
+  drew 23.7 fps. A Mac's GPU should stay at 0.3 and 30 fps; that's unmeasured here.
+- A 32 ms frame gate lost about 4% of a 60 Hz screen's frames to 1.5 ms of jitter (unit test); now 28 ms.
+- Reduce motion redrew three times on one pick (every refresh drew); now only when the colours change.
+- **Mutants:** removing the loop's pause guard alone survives (refresh() cancels the frame anyway: the two
+  are a deliberate pair); removing both fails 3 checks (D twice, G). Unit mutants are the tests' own cases.
+
+**Not done (named):** the skip hint remembered on the account (owner call 2 from session 43): the website
+shows no boast or intro yet, so there's nothing to skip in it; `skipHintSeen` waits for the first replay in
+the site. Sound and music settings: the API has them, but the site plays no sound yet, so no controls.
+Customise -> Background (comes with the widget board). The title screen's cosmic liquid and card fan.
+
+**Next render-lane slice:** Season 0 item 3, Home as the widget board (12 columns, S/M/L, Customise, the
+empty state) as far as the endpoints allow; the saved board layout needs a game-lane endpoint, which it
+doesn't have yet, so the first slice may build the board with its layout held in the page and say so.

@@ -60,6 +60,46 @@ export interface SitePlay {
   activeDeckFits?: boolean;
 }
 
+/** `GET /api/me`. */
+export interface SiteMe {
+  ownerId: string;
+  /** The display name (not the login). */
+  name: string;
+  username: string | null;
+  email: string | null;
+  kind: "player" | "house";
+  /** true: Settings shows Admin. */
+  isAdmin: boolean;
+}
+
+export interface SiteAudio {
+  on: boolean;
+  volume: number;
+}
+
+/** `GET /api/account/settings`, saved on the owner's account. */
+export interface SiteAccountSettings {
+  theme: "system" | "light" | "dark";
+  background: string;
+  sound: SiteAudio;
+  music: SiteAudio;
+  skipHintSeen: boolean;
+  updatedAt: string | null;
+}
+
+/** A `PATCH`: only the fields it names change; sound and music in part. */
+export type SiteSettingsPatch = Partial<Pick<SiteAccountSettings, "theme" | "background" | "skipHintSeen">> & {
+  sound?: Partial<SiteAudio>;
+  music?: Partial<SiteAudio>;
+};
+
+/** `GET /api/wallet`. */
+export interface SiteWallet {
+  credits: number;
+  packPoints: number;
+  unopenedPacks: { packId: string; ownerId: string; setCode: string; source: string; acquiredAt: string; openedAt: null }[];
+}
+
 export interface SiteSession {
   token: string;
   ownerId: string;
@@ -89,6 +129,10 @@ type Fetch = (input: string, init?: { method?: string; headers?: Record<string, 
 export interface SiteApi {
   signIn(login: string, password: string): Promise<SiteSession>;
   signOut(token: string): Promise<void>;
+  me(token: string): Promise<SiteMe>;
+  accountSettings(token: string): Promise<SiteAccountSettings>;
+  updateAccountSettings(token: string, patch: SiteSettingsPatch): Promise<SiteAccountSettings>;
+  wallet(token: string): Promise<SiteWallet>;
   play(token: string): Promise<SitePlay>;
   setDeckChoice(token: string, choice: "agent" | "forced"): Promise<SitePlay>;
   setFactionLock(token: string, faction: SiteFaction | null): Promise<SitePlay>;
@@ -130,6 +174,10 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     signOut: async (token) => {
       await call("DELETE", "/api/session", { token });
     },
+    me: (token) => call("GET", "/api/me", { token }),
+    accountSettings: (token) => call("GET", "/api/account/settings", { token }),
+    updateAccountSettings: (token, patch) => call("PATCH", "/api/account/settings", { token, body: patch }),
+    wallet: (token) => call("GET", "/api/wallet", { token }),
     play: (token) => call("GET", "/api/play", { token }),
     setDeckChoice: (token, choice) => call("PUT", "/api/play/deck-choice", { token, body: { choice } }),
     setFactionLock: (token, faction) => call("PUT", "/api/play/faction-lock", { token, body: { faction } }),
