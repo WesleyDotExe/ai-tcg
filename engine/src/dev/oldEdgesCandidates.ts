@@ -153,7 +153,7 @@ export const CANDIDATES: Candidate[] = [
     label: "Null Pointer becomes modal: Dereference (destroy target enemy directive) or Null Out (target enemy unit gets -2/-2 permanently)",
     why: "the dead card gets a permanent shrink: a 3/6 signature line ends 1/4; a damaged body of 3 health or less dies (max health floors at 1)",
     apply: () => modal("NL-015", "dereference", "Dereference", {
-      id: "null-pointer-null-out", name: "Null Out", text: "Target enemy unit gets -2/-2 permanently.",
+      id: "null-pointer-null-out", name: "Null Out", text: "Target enemy unit gets -2/-2 permanently (it can't take health below 1).",
       effects: [{ kind: "buff", attack: -2, health: -2, duration: "permanent" }],
     }),
   },
@@ -180,9 +180,10 @@ export const CANDIDATES: Candidate[] = [
     label: "Null Pointer becomes modal: Dereference (destroy target enemy directive) or Null Out (target enemy unit gets -3/-3 permanently)",
     // Session 62: max health floors at 1 (state/queries.ts), so an undamaged
     // 3-health body ends 0/1, not dead; it kills a damaged one of 4 or less.
+    // The text says so (owner 2026-11-01); text only, the measure is unchanged.
     why: "NA8 one step stronger: a 3/6 signature line ends 0/3; a damaged body of 4 health or less dies",
     apply: () => modal("NL-015", "dereference", "Dereference", {
-      id: "null-pointer-null-out", name: "Null Out", text: "Target enemy unit gets -3/-3 permanently.",
+      id: "null-pointer-null-out", name: "Null Out", text: "Target enemy unit gets -3/-3 permanently (it can't take health below 1).",
       effects: [{ kind: "buff", attack: -3, health: -3, duration: "permanent" }],
     }),
   },

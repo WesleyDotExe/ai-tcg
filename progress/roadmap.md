@@ -10,28 +10,32 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-01, game session 62.
+Updated 2026-11-01, game session 63.
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
 - [x] Render: the "tap to skip" hint (render session 43). Follow-ups (remembered on the account; "or click the
   board" on the intro) go with the website.
 
-**Game lane, in order**
+**Game lane, in order** (owner 2026-11-01, after render session 44: the small website endpoints first)
+0. [x] The small endpoints the website waits on (session 63), in `server/OWNER_API.md`: who am I
+   (`GET /api/me`), the account settings (`GET`/`PATCH /api/account/settings`: theme, background, sound and
+   music, the skip hint seen; schema v15) and the wallet (`GET /api/wallet`: credits, pack points, unopened packs).
 1. [ ] Match running and the ladder (6b below): many matches, server-assigned opponents, results recorded,
    Glicko-2 ratings per owner, credit payouts; agents rebuild between matches when the rebuild reasons say so
    (`rebuildAgentDeckIfNeeded` exists, nothing calls it yet); final health passed when a match is recorded
    (for the close-win boast).
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
-   and the deck settings (session 56). Not built:
-   - [ ] wallet and collection (balance, ledger, copies, binder)
+   and the deck settings (session 56); who am I, account settings, the wallet (session 63). Not built:
+   - [~] wallet and collection: balances and unopened packs built (session 63); the ledger, copies, binder not
    - [ ] buying and opening packs
    - [ ] the cosmetics store and loadouts
    - [ ] match history with replays
    - [ ] live and featured matches; the match feed and live state (Watch live, the Live match widget)
    - [ ] ladder standings and stats
    - [ ] notifications
-   - [ ] the saved board layout and background choice
+   - [~] the saved board layout and background choice: the background is in the account settings (session 63);
+     the board layout not
    - [ ] the 2× vote (both owners agree) for live play
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.

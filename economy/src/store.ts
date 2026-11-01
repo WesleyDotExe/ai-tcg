@@ -49,6 +49,15 @@ import {
   STARTER_PACKS,
 } from "./config.js";
 import { customAgentNameProblem, nameKey, tidyAgentName } from "./agentNames.js";
+import {
+  accountSettingsProblem,
+  applyAccountSettingsPatch,
+  DEFAULT_ACCOUNT_SETTINGS,
+  type AccountSettings,
+  type AccountSettingsPatch,
+  type Background,
+  type Theme,
+} from "./accountSettings.js";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./passwords.js";
 import { CARD_SETS, FULL_ART_OR_BETTER, nextPity, rollPack, secretCardOf, type PackSlot, type PityState } from "./packs.js";
 import type { SecretCard } from "./chase.js";
@@ -595,6 +604,28 @@ export interface SessionInfo {
   expiresAt: string;
 }
 
+/** The signed-in owner, as the website's account button and sidebar need
+ * it (owner 2026-11-01, "who am I"). */
+export interface WhoAmI {
+  ownerId: string;
+  /** The owner's display name (the account's name, not the login). */
+  name: string;
+  /** The login's username and email; null for an owner without a login. */
+  username: string | null;
+  email: string | null;
+  kind: OwnerKind;
+  /** The house admin sees Settings -> Admin (owner app spec C.9). */
+  isAdmin: boolean;
+}
+
+/** The top bar's wallet (owner 2026-11-01): both balances, and the packs
+ * waiting to be opened, oldest first (the Open button opens the first). */
+export interface Wallet {
+  credits: number;
+  packPoints: number;
+  unopenedPacks: PackRecord[];
+}
+
 export interface LoginInput {
   username: string;
   email?: string | null;
@@ -1119,6 +1150,76 @@ export class EconomyStore {
   isAdmin(ownerId: string): boolean {
     const row = this.db.prepare("SELECT is_admin FROM logins WHERE owner_id = ?").get(ownerId) as Row | undefined;
     return row !== undefined && num(row.is_admin) === 1;
+  }
+
+  /** The signed-in owner: display name, login and whether they are the
+   * admin (owner 2026-11-01, "who am I"). */
+  whoAmI(ownerId: string): WhoAmI {
+    const owner = this.getOwner(ownerId);
+    const login = this.db.prepare("SELECT username, email, is_admin FROM logins WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    return {
+      ownerId,
+      name: owner.name,
+      username: login ? str(login.username) : null,
+      email: login ? strOrNull(login.email) : null,
+      kind: owner.kind,
+      isAdmin: login !== undefined && num(login.is_admin) === 1,
+    };
+  }
+
+  // ---- account settings (schema v15; owner 2026-11-01) ----
+
+  /** The owner's settings: the saved row, or the defaults when the owner
+   * has never changed one. */
+  accountSettings(ownerId: string): AccountSettings {
+    this.getOwner(ownerId);
+    const row = this.db.prepare("SELECT * FROM account_settings WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    if (!row) {
+      const d = DEFAULT_ACCOUNT_SETTINGS;
+      return { theme: d.theme, background: d.background, sound: { ...d.sound }, music: { ...d.music }, skipHintSeen: d.skipHintSeen, updatedAt: null };
+    }
+    return {
+      theme: str(row.theme) as Theme,
+      background: str(row.background) as Background,
+      sound: { on: num(row.sound_on) === 1, volume: num(row.sound_volume) },
+      music: { on: num(row.music_on) === 1, volume: num(row.music_volume) },
+      skipHintSeen: num(row.skip_hint_seen) === 1,
+      updatedAt: str(row.updated_at),
+    };
+  }
+
+  /** Changes some of the owner's settings and returns them all. Refused,
+   * changing nothing, when any part of the patch is invalid
+   * (`accountSettingsProblem`). An empty patch changes nothing and writes
+   * nothing. */
+  updateAccountSettings(ownerId: string, patch: AccountSettingsPatch): AccountSettings {
+    const problem = accountSettingsProblem(patch);
+    if (problem) throw new EconomyError(problem);
+    if (Object.keys(patch).length === 0) return this.accountSettings(ownerId);
+    return this.transaction(() => {
+      const { updatedAt: _, ...current } = this.accountSettings(ownerId);
+      const next = applyAccountSettingsPatch(current, patch);
+      this.db
+        .prepare(
+          `INSERT INTO account_settings (owner_id, theme, background, sound_on, sound_volume, music_on, music_volume, skip_hint_seen, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT (owner_id) DO UPDATE SET theme = excluded.theme, background = excluded.background,
+             sound_on = excluded.sound_on, sound_volume = excluded.sound_volume, music_on = excluded.music_on,
+             music_volume = excluded.music_volume, skip_hint_seen = excluded.skip_hint_seen, updated_at = excluded.updated_at`,
+        )
+        .run(
+          ownerId,
+          next.theme,
+          next.background,
+          next.sound.on ? 1 : 0,
+          next.sound.volume,
+          next.music.on ? 1 : 0,
+          next.music.volume,
+          next.skipHintSeen ? 1 : 0,
+          this.stamp(),
+        );
+      return this.accountSettings(ownerId);
+    });
   }
 
   // ---- agents ----
@@ -1840,6 +1941,12 @@ export class EconomyStore {
   }
 
   // ---- ledger ----
+
+  /** The top bar's wallet: both balances and the unopened packs. */
+  wallet(ownerId: string): Wallet {
+    this.getOwner(ownerId);
+    return { credits: this.balance(ownerId, "credits"), packPoints: this.balance(ownerId, "packPoints"), unopenedPacks: this.unopenedPacks(ownerId) };
+  }
 
   /** A balance is never stored: it's the sum of the owner's ledger. */
   balance(ownerId: string, currency: Currency = "credits"): number {

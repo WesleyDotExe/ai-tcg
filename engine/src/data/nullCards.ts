@@ -232,7 +232,7 @@ export const deprecatedRoutine: UnitCard = {
       // harmlessly rather than picking a substitute — a deliberate
       // consequence of choosing 2 turns in advance, not a bug; see
       // progress/quality-debt.md.
-      text: "When this arms, target enemy unit chosen when this was deployed gets -2/-2 permanently.",
+      text: "When this arms, target enemy unit chosen when this was deployed gets -2/-2 permanently (it can't take health below 1).",
       targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
       effects: [{ kind: "buff", attack: -2, health: -2, duration: "permanent" }],
     },
@@ -530,12 +530,12 @@ export const nullPointer: CommandCard = {
     {
       id: "null-out",
       name: "Null Out",
-      text: "Target enemy unit gets -3/-3 permanently.",
+      text: "Target enemy unit gets -3/-3 permanently (it can't take health below 1).",
       abilities: [
         {
           id: "null-pointer-null-out",
           trigger: "onPlay",
-          text: "Target enemy unit gets -3/-3 permanently.",
+          text: "Target enemy unit gets -3/-3 permanently (it can't take health below 1).",
           targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
           effects: [{ kind: "buff", attack: -3, health: -3, duration: "permanent" }],
         },

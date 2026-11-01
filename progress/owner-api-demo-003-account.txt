@@ -1,0 +1,91 @@
+Owner API demo 003 — who am I, account settings and the wallet over HTTP (session 63)
+========================================================================
+Owner "Nova Kestrel" (login nova) holds the Cortex starter and its 3 starter packs.
+Owner "The House" (login house) is the house admin. The database is a real file; the store's clock reads 2026-11-01T09:00:00.000Z.
+
+1. Not signed in: every account endpoint answers 401
+----------------------------------------------------------------
+> GET /api/me  -> 401
+  error: not signed in
+> GET /api/account/settings  -> 401
+  error: not signed in
+> PATCH /api/account/settings {"theme":"dark"}  -> 401
+  error: not signed in
+> GET /api/wallet  -> 401
+  error: not signed in
+
+2. Who am I (the account button and the Admin entry)
+----------------------------------------------------------------
+> POST /api/session {"login":"nova","password":"a long demo password"}  -> 201
+> GET /api/me  -> 200
+  {"ownerId":"<owner Nova>","name":"Nova Kestrel","username":"nova","email":"nova@example.test","kind":"player","isAdmin":false}
+> POST /api/session {"login":"house","password":"a long demo password"}  -> 201
+> GET /api/me  -> 200
+  {"ownerId":"<owner The House>","name":"The House","username":"house","email":null,"kind":"house","isAdmin":true}
+  -> Nova gets no Admin entry; The House does.
+
+3. Account settings: the defaults, then the owner's changes
+----------------------------------------------------------------
+> GET /api/account/settings  -> 200
+  theme system, background glacier, sound on 80, music on 60, skip hint seen: no, saved: never (defaults)
+> PATCH /api/account/settings {"theme":"dark","background":"aurora"}  -> 200
+  theme dark, background aurora, sound on 80, music on 60, skip hint seen: no, saved: 2026-11-01T09:05:00.000Z
+> PATCH /api/account/settings {"music":{"volume":25},"sound":{"on":false}}  -> 200
+  theme dark, background aurora, sound off 80, music on 25, skip hint seen: no, saved: 2026-11-01T09:06:00.000Z
+  (the boast's Skip is pressed for the first time in the website:)
+> PATCH /api/account/settings {"skipHintSeen":true}  -> 200
+  theme dark, background aurora, sound off 80, music on 25, skip hint seen: yes, saved: 2026-11-01T09:07:00.000Z
+
+4. Bad settings are refused with the reason (400), and nothing changes
+----------------------------------------------------------------
+> PATCH /api/account/settings {"theme":"pink"}  -> 400
+  error: "theme" must be one of system, light, dark
+> PATCH /api/account/settings {"background":"neon"}  -> 400
+  error: "background" must be one of glacier, ocean, aurora, sunset, lavender, graphite, black, purple
+> PATCH /api/account/settings {"music":{"volume":140}}  -> 400
+  error: "music.volume" must be a whole number from 0 to 100
+> PATCH /api/account/settings {"sound":{"on":"yes"}}  -> 400
+  error: "sound.on" must be true or false
+> PATCH /api/account/settings {"colour":"red"}  -> 400
+  error: unknown setting "colour" (settings: theme, background, sound, music, skipHintSeen)
+> GET /api/account/settings  -> 200
+  theme dark, background aurora, sound off 80, music on 25, skip hint seen: yes, saved: 2026-11-01T09:07:00.000Z
+> GET /api/account/settings  -> 200
+  The House's settings are its own:
+  theme system, background glacier, sound on 80, music on 60, skip hint seen: no, saved: never (defaults)
+
+5. The server restarts on the same database file: the settings are on the account
+----------------------------------------------------------------
+  (API closed, store closed, both reopened on the same file; Nova signs in again, as from another browser)
+> POST /api/session {"login":"nova@example.test","password":"a long demo password"}  -> 201
+> GET /api/account/settings  -> 200
+  theme dark, background aurora, sound off 80, music on 25, skip hint seen: yes, saved: 2026-11-01T09:07:00.000Z
+
+6. The wallet (the top bar: credits, pack points, the Open button)
+----------------------------------------------------------------
+> GET /api/wallet  -> 200
+  credits 0, pack points 0, 3 pack(s) to open
+    <pack 1>  starter, since 2026-11-01T09:00:00.000Z
+    <pack 2>  starter, since 2026-11-01T09:00:00.000Z
+    <pack 3>  starter, since 2026-11-01T09:00:00.000Z
+  (Nova opens the first pack listed, as the Open button would; pack opening's endpoint comes later)
+  opened <pack 1>: 5 cards, +5 pack points
+> GET /api/wallet  -> 200
+  credits 0, pack points 5, 2 pack(s) to open
+    <pack 2>  starter, since 2026-11-01T09:00:00.000Z
+    <pack 3>  starter, since 2026-11-01T09:00:00.000Z
+  (six days of one win each for Nova's agent over the house's, recorded through the store;
+   the server's match runner is the next game-lane item, so nothing plays these yet)
+> GET /api/wallet  -> 200
+  credits 180, pack points 5, 2 pack(s) to open
+    <pack 2>  starter, since 2026-11-01T09:00:00.000Z
+    <pack 3>  starter, since 2026-11-01T09:00:00.000Z
+  (Nova buys a pack with credits: <pack 4>)
+> GET /api/wallet  -> 200
+  credits 80, pack points 5, 3 pack(s) to open
+    <pack 2>  starter, since 2026-11-01T09:00:00.000Z
+    <pack 3>  starter, since 2026-11-01T09:00:00.000Z
+    <pack 4>  purchase, since 2026-11-01T09:07:00.000Z
+> GET /api/wallet  -> 200
+  The House's wallet:
+  credits 12, pack points 0, 0 pack(s) to open

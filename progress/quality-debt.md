@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -60,7 +60,8 @@ real, but here is where it's thin.
   Null > Aegis is a partial fix only (real 51.2 shipped decks, 49-51 built, band 55-60; nothing from a full
   collection), its full fix designed into the next set; Cortex > Swarm overshoots the gate (61.6 shipped,
   up to 63.4 built, accepted); Null ~ Cortex real 57.1 on the ring's seeds ("not sure", owner OK'd).
-- **Null Out's text vs the engine's health floor (session 62).** Max health floors at 1
+- ~~**Null Out's text vs the engine's health floor (session 62).**~~ Text fixed session 63 (owner: "it can't take
+  health below 1", on Null Out and Deprecated Routine). Kept for the lesson: Max health floors at 1
   (`state/queries.ts`), so "-3/-3 permanently" never kills an undamaged unit (a 3/3 ends 0/1). Pinned by
   tests and raised with the owner, but the printed text still reads like a kill to a spectator or a
   commentator, and agents that read text (an LLM agent later) could misjudge it. Session 61's candidate note
@@ -73,6 +74,27 @@ real, but here is where it's thin.
   passing, not by a dedicated test of a modal response.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
+
+## Session 63 (who am I, account settings, the wallet): what is still thin
+
+- **The settings are a flat list, not the website's whole Settings page.** Theme, background, sound, music and
+  the skip hint, as the owner listed. The mockup's other toggles (haptics, reduce motion, notification
+  switches, the 2x vote default) are not stored; reduce motion in particular is an accessibility rule the
+  website may want on the account rather than per browser. Added when the render lane asks, not guessed.
+- **The website doesn't use them yet.** The render lane builds against `server/OWNER_API.md`; until it does,
+  the theme still isn't saved and the skip hint still shows until the first skip on each page. Nothing tests
+  the two lanes together beyond the render tests importing the owner API's source.
+- **The wallet is read-only.** Buying and opening packs over HTTP are later endpoints; the demo opens and buys
+  through store calls. The ledger (why the balance is what it is) is not exposed yet.
+- **No concurrency test for PATCH.** Two simultaneous patches each read-then-write inside one store transaction
+  (SQLite serialises them, and node:sqlite is synchronous on one thread), so the last one wins field by field
+  as applied; not exercised by a test with two servers on one file.
+- **`whoAmI` returns the email** to its own owner. Fine for the account page; if a later view shows another
+  owner's "who", it must not reuse this shape.
+- **The match runner (Season 0 game item 1) is still not started**: the credits in the demo come from wins
+  recorded by hand through the store.
+- **Still owed:** economy demos 014/016 not re-run since option B, set A and NA12/CS7. The next hardening pass is
+  session 65 (60 was the last).
 
 ## Session 61 (the balance session, job 2: the two old edges): what is still thin
 

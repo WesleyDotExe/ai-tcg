@@ -1,8 +1,24 @@
 # Notes for the owner
 
-**Updated 2026-11-01, session 62.** Nothing is blocking. NA12 and CS7 are shipped as you said; the results
-are the **[OWNER CHECK-IN]** below (one finding about Null Out, two small calls). The Season 0 checklist is
-now at the top of `progress/roadmap.md`.
+**Updated 2026-11-01, session 63.** Nothing is blocking and nothing needs a decision. Both of your 2026-11-01
+game-lane entries are done:
+
+- **Null Out's text** now says what it does: "Target enemy unit gets -3/-3 permanently (it can't take health
+  below 1)." Deprecated Routine, the one other -X/-X card, says the same after its -2/-2. Text only: the ring
+  check gives every number +0.0.
+- **The three endpoints the website waits on** are built and written into `server/OWNER_API.md` for the render
+  lane: who am I (`GET /api/me`: your display name, login, and whether you're the admin), account settings
+  (`GET`/`PATCH /api/account/settings`: theme, background, sound and music on/off with a volume, and "the skip
+  hint has been seen"; saved on your account, so every browser reads the same) and the wallet
+  (`GET /api/wallet`: credits, pack points, the packs waiting to be opened). The run of it, including a server
+  restart that keeps the settings, is `progress/owner-api-demo-003-account.txt`.
+- **Defaults I picked (easy to change):** theme System, background Glacier, sound on at 80, music on at 60 (the
+  replays' own slider defaults), skip hint not seen. Only the settings you listed are stored; haptics, reduce
+  motion and the notification switches in the mockup are not, until the website needs them.
+
+Next game session: Season 0 game item 1, match running and the ladder.
+
+The session 62 check-in below stays for the record (answered 2026-11-01).
 
 ### [OWNER CHECK-IN] NA12 and CS7 are shipped; both rings re-run
 
