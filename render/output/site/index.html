@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI·TCG</title>
+<style>
+:root { color-scheme: light; --ink: #141a33; --muted: #4f5a78; --line: rgba(60,70,120,.14); --accent: #4f6bff; --accent2: #8b5cff;
+  --glass: rgba(255,255,255,.44); --glass-edge: rgba(255,255,255,.6); --glass-shadow: 0 10px 34px rgba(50,40,140,.16), inset 0 1px 0 rgba(255,255,255,.75);
+  --side: rgba(255,255,255,.26); --side-edge: rgba(255,255,255,.45); --soft: rgba(255,255,255,.5); --soft-edge: inset 0 1px 0 rgba(255,255,255,.8);
+  --ok: #2fae66; --live: #ff4d6d; --warn: #c7771a; --solid: #f4f6fc; }
+body[data-theme="dark"] { color-scheme: dark; --ink: #eef1ff; --muted: #a3acd0; --line: rgba(255,255,255,.1);
+  --glass: rgba(24,28,66,.42); --glass-edge: rgba(255,255,255,.12); --glass-shadow: 0 10px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.14);
+  --side: rgba(12,14,38,.32); --side-edge: rgba(255,255,255,.08); --soft: rgba(255,255,255,.1); --soft-edge: inset 0 1px 0 rgba(255,255,255,.12);
+  --ok: #4fd98a; --warn: #f0a54a; --solid: #1a2140; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { font: 15px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif; color: var(--ink);
+  background: #dfe6f6; overflow: hidden; }
+body[data-theme="dark"] { background: #0b0f1e; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.muted { color: var(--muted); } .small { font-size: 12.5px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* The background: Glacier, still (the liquid WebGL version is the next slice of the look). */
+#bg { position: fixed; inset: 0; z-index: 0;
+  background: radial-gradient(60% 70% at 15% 20%, #f3f6ff 0, transparent 60%), radial-gradient(50% 60% at 85% 30%, #cfdaf2 0, transparent 70%),
+    radial-gradient(70% 60% at 60% 90%, #d9d4f2 0, transparent 70%), linear-gradient(135deg, #dfe6f6, #e3e1f4 50%, #d6e4f6); }
+body[data-theme="dark"] #bg { background: radial-gradient(60% 70% at 15% 20%, #1b2550 0, transparent 60%), radial-gradient(50% 60% at 85% 30%, #142a48 0, transparent 70%),
+    radial-gradient(70% 60% at 60% 90%, #231c4a 0, transparent 70%), linear-gradient(135deg, #0b0f1e, #151a33 50%, #0e1a32); }
+
+/* Glass */
+.glass, .wg, .panel { background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(30px) saturate(190%); -webkit-backdrop-filter: blur(30px) saturate(190%); border-radius: 26px; }
+
+/* ---- sign-in ---- */
+#signin { position: fixed; inset: 0; z-index: 2; display: grid; place-items: center; overflow: auto; color: #eef1ff;
+  background: radial-gradient(50% 60% at 70% 40%, rgba(120,70,255,.35), transparent 70%), radial-gradient(45% 50% at 20% 80%, rgba(20,160,200,.25), transparent 70%), linear-gradient(160deg, #0a0b24, #120c33 55%, #061a2a); }
+#signin .stars { position: absolute; inset: 0; pointer-events: none; opacity: .7;
+  background-image: radial-gradient(1.5px 1.5px at 12% 18%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 33% 72%, #cfd8ff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 58% 12%, #ffe9b0 50%, transparent 51%),
+    radial-gradient(1px 1px at 76% 64%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 88% 22%, #d9c8ff 50%, transparent 51%), radial-gradient(1px 1px at 45% 40%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 48%, #bfe8ff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 66% 86%, #fff 50%, transparent 51%); }
+.si-wrap { position: relative; width: min(440px, calc(100vw - 32px)); padding: 40px 0; }
+.badge-live { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 99px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.06); font: 600 13px system-ui; }
+.badge-live i { width: 8px; height: 8px; border-radius: 50%; background: #3cc47c; box-shadow: 0 0 8px #3cc47c; }
+.logo { font: 900 76px/1 system-ui; letter-spacing: -2px; margin: 18px 0 6px; background: linear-gradient(100deg, #ffe9a8, #fff 40%, #cdd7ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.logo-sub { font: 700 13px system-ui; letter-spacing: .5em; color: #f4c95d; }
+.tagline { font-size: 18px; color: #dfe4ff; margin: 14px 0 26px; }
+.si-panel { padding: 22px; border-radius: 22px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+.si-panel h1 { margin: 0; font: 700 20px system-ui; } .si-panel p { margin: 4px 0 14px; color: #b8c0e6; font-size: 13px; }
+.si-panel label { display: block; margin-bottom: 10px; }
+.si-panel input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.22); background: rgba(5,8,24,.45); color: #fff; font: inherit; }
+.si-panel input:focus { outline: 2px solid #7d8bff; outline-offset: 0; }
+.si-go { width: 100%; margin-top: 6px; padding: 13px; border: 0; border-radius: 14px; font: 700 16px system-ui; color: #fff; cursor: pointer; background: linear-gradient(90deg, #4f6bff, #8b5cff); box-shadow: 0 6px 22px rgba(100,90,255,.45); }
+.si-go:disabled { opacity: .6; cursor: progress; }
+.si-msg { margin: 12px 0 0; color: #ffb4c1; font-size: 13.5px; }
+.si-foot { margin-top: 14px; font-size: 12px; color: #8d95bd; }
+
+/* ---- shell ---- */
+#shell { position: relative; z-index: 1; display: grid; grid-template-columns: 248px minmax(0, 1fr); height: 100vh; }
+.side { display: flex; flex-direction: column; gap: 4px; padding: 22px 14px 14px; background: var(--side); border-right: 1px solid var(--side-edge);
+  backdrop-filter: blur(34px) saturate(180%); -webkit-backdrop-filter: blur(34px) saturate(180%); min-height: 0; }
+.brand { font: 900 22px system-ui; letter-spacing: .5px; padding: 0 12px 16px; }
+.brand small { font: 700 9.5px system-ui; letter-spacing: .3em; color: #c79a2b; margin-left: 8px; vertical-align: middle; }
+#nav { display: flex; flex-direction: column; gap: 3px; overflow: auto; }
+.navb { display: flex; align-items: center; gap: 13px; padding: 10px 14px; border-radius: 13px; font: 600 15px system-ui; color: var(--ink); opacity: .86; }
+.navb:hover { background: var(--soft); opacity: 1; }
+.navb.on { background: linear-gradient(90deg, #4f6bff, #8b5cff); color: #fff; opacity: 1; box-shadow: 0 6px 18px rgba(100,90,255,.35); }
+.navb.is-soon { opacity: .45; cursor: default; } .navb.is-soon:hover { background: none; }
+.nbadge { margin-left: auto; font: 800 9.5px system-ui; letter-spacing: .08em; padding: 2px 7px; border-radius: 6px; background: var(--soft); text-transform: uppercase; }
+.nav-rule { border: 0; border-top: 1px solid var(--line); margin: 10px 8px; width: auto; }
+#agent-card { margin-top: auto; padding: 14px; border-radius: 20px; color: #fff; background: linear-gradient(150deg, rgba(60,40,140,.92), rgba(18,16,48,.92)); border: 1px solid rgba(255,255,255,.18); box-shadow: 0 10px 30px rgba(30,20,90,.35); }
+.ac-top { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.ac-name b { display: block; font-size: 15px; } .ac-name small { color: #c9c4f3; }
+.ac-none { font-weight: 600; margin-bottom: 10px; }
+.av { display: inline-grid; place-items: center; flex: none; border-radius: 30%; overflow: hidden; color: var(--c); background: rgba(10,12,30,.85); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--c) 70%, transparent); }
+.av svg { width: 100%; height: 100%; display: block; }
+.status { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 99px; font: 700 12.5px system-ui; background: rgba(255,255,255,.14); }
+.status i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.status.ready i { background: #3cc47c; } .status.live i { background: var(--live); animation: pulse 1.4s ease-in-out infinite; } .status.none i { background: #9aa0b8; }
+.wg .status, .panel .status { background: var(--soft); }
+@keyframes pulse { 50% { opacity: .35; } }
+
+main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.topbar { height: 70px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 30px; border-bottom: 1px solid var(--side-edge);
+  background: rgba(255,255,255,.12); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); position: relative; z-index: 3; }
+body[data-theme="dark"] .topbar { background: rgba(10,12,30,.15); }
+.topbar h1 { font: 800 23px system-ui; margin: 0; } .topbar .sp { flex: 1; }
+.tbtn { position: relative; width: 42px; height: 42px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer; background: var(--soft); box-shadow: 0 2px 10px rgba(40,30,120,.12), var(--soft-edge); }
+.auto-dot { position: absolute; right: 7px; bottom: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--solid); }
+#acct-btn { background: linear-gradient(135deg, #4f6bff, #8b5cff); color: #fff; font: 800 17px system-ui; }
+#acct-menu { position: absolute; right: 30px; top: 62px; min-width: 220px; padding: 10px; border-radius: 18px; }
+#acct-menu .who { padding: 6px 10px 10px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+#acct-menu .who small { display: block; color: var(--muted); }
+.mitem { display: flex; gap: 10px; align-items: center; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: none; cursor: pointer; text-align: left; font-weight: 600; }
+.mitem:hover { background: var(--soft); }
+#page { flex: 1; overflow: auto; padding: 28px 30px 40px; }
+
+/* ---- panels and controls ---- */
+.boardbar h2 { font: 700 22px system-ui; margin: 0 0 16px; }
+.wgrid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 20px; }
+.wg { position: relative; grid-column: span 6; min-height: 250px; }
+.wg::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(160deg, rgba(255,255,255,.35), rgba(255,255,255,0) 38%); mix-blend-mode: soft-light; }
+.wg.hero { color: #fff; background: linear-gradient(140deg, color-mix(in srgb, var(--c) 32%, rgba(20,24,52,.62)), rgba(18,22,48,.6) 70%); border-color: rgba(255,255,255,.22); }
+.wg.hero .muted { color: #c6cbe8; }
+.wgh { display: flex; align-items: center; gap: 8px; padding: 14px 14px 0 16px; font: 600 13px system-ui; position: relative; z-index: 1; }
+.wic { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: var(--g); color: #fff; flex: none; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.wic.big { width: 54px; height: 54px; border-radius: 15px; }
+.wopen { margin-left: auto; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; opacity: .7; } .wopen:hover { opacity: 1; background: var(--soft); }
+.wgb { position: relative; z-index: 1; padding: 12px 18px 18px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.mya { display: flex; gap: 14px; align-items: center; }
+.mya-n { font: 800 24px system-ui; display: flex; align-items: center; gap: 10px; }
+.ftag { font: 800 10px system-ui; letter-spacing: .08em; padding: 3px 7px; border-radius: 6px; color: #fff; background: color-mix(in srgb, var(--c) 55%, rgba(0,0,0,.35)); }
+.big-line { font: 700 18px system-ui; }
+.board-note { margin-top: 18px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; } .row.end { justify-content: flex-end; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 12px; border: 0; cursor: pointer; font: 700 14px system-ui; background: var(--soft); box-shadow: var(--soft-edge); color: var(--ink); }
+.wg.hero .btn:not(.pri) { background: rgba(255,255,255,.14); color: #fff; }
+.btn.pri { background: linear-gradient(90deg, #4f6bff, #8b5cff); color: #fff; box-shadow: 0 4px 14px rgba(100,90,255,.35); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.sm { padding: 6px 12px; font-size: 13px; }
+.pg { max-width: 860px; }
+.pg h3 { font: 700 13px system-ui; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 26px 4px 10px; }
+.pg h3:first-child { margin-top: 0; }
+.panel { padding: 8px 20px; }
+.field { display: flex; gap: 20px; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.field:last-child { border-bottom: 0; }
+.field b { display: block; } .field small { display: block; color: var(--muted); margin-top: 2px; max-width: 420px; }
+.seg { display: inline-flex; flex: none; padding: 3px; border-radius: 12px; background: var(--soft); box-shadow: var(--soft-edge); }
+.seg button { border: 0; background: none; padding: 7px 13px; border-radius: 9px; cursor: pointer; font: 600 13.5px system-ui; }
+.seg button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 4px rgba(30,30,80,.18); }
+body[data-theme="dark"] .seg button[aria-pressed="true"] { background: rgba(255,255,255,.2); }
+.decks { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.decks > p { margin: 2px 6px 6px; }
+.deckrow { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; border-radius: 14px; border: 1px solid transparent; background: none; cursor: pointer; text-align: left; }
+.deckrow:hover { background: var(--soft); }
+.deckrow.on { border-color: color-mix(in srgb, var(--accent) 55%, transparent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.deckrow[aria-disabled="true"] { opacity: .6; cursor: not-allowed; }
+.radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); flex: none; }
+.deckrow.on .radio { border-color: var(--accent); box-shadow: inset 0 0 0 4px var(--solid), inset 0 0 0 9px var(--accent); }
+.dn { flex: 1; min-width: 0; } .dn b { display: block; } .dn small { display: block; color: var(--muted); }
+.warn-t { color: var(--warn) !important; }
+.pill { font: 700 12px system-ui; padding: 4px 10px; border-radius: 99px; background: var(--soft); }
+.pill.on { background: color-mix(in srgb, var(--ok) 20%, transparent); color: var(--ok); }
+.agrow { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.agrow:last-of-type { border-bottom: 0; }
+.sel select { font: 600 14px system-ui; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--soft); color: var(--ink); }
+.styles { padding: 4px 0 12px; } .styles summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.styles ul, .rb-note ul, .job ul { margin: 6px 0 0; padding-left: 20px; } .styles li { margin: 4px 0; }
+.rb-note { display: block; padding: 12px 0 4px; } .rb-note.wanted { color: var(--warn); } .rb-note.wanted li { color: var(--ink); }
+.rb-note.failed { color: var(--live); }
+.panel > .btn { margin: 8px 0 14px; }
+.job { padding: 8px 0; }
+.spin { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -2px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.banner { padding: 12px 16px; border-radius: 16px; margin-bottom: 18px; background: color-mix(in srgb, var(--live) 12%, transparent); border: 1px solid color-mix(in srgb, var(--live) 35%, transparent); }
+.waits { padding: 18px 20px; margin-top: 20px; } .waits p { margin: 6px 0 0; }
+.waits-hero { padding: 36px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 620px; margin: 20px auto; }
+.waits-hero h2 { margin: 12px 0 0; font: 800 26px system-ui; } .waits-hero p { margin: 4px 0; max-width: 460px; } .waits-hero .btn { margin-top: 14px; }
+body.busy .seg, body.busy .deckrow, body.busy select { pointer-events: none; opacity: .7; }
+
+/* ---- dialog and toast ---- */
+.dim { position: fixed; inset: 0; z-index: 20; display: none; place-items: center; background: rgba(20,20,60,.18); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.dim.on { display: grid; }
+.dlg { width: min(420px, calc(100vw - 32px)); padding: 22px 22px 18px; background: rgba(245,247,255,.8); }
+body[data-theme="dark"] .dlg { background: rgba(20,24,56,.8); }
+.dlg h2 { margin: 0 0 6px; font: 800 19px system-ui; } .dlg p { margin: 0 0 18px; color: var(--muted); }
+.toast { position: fixed; left: 50%; bottom: 26px; z-index: 30; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; max-width: min(560px, calc(100vw - 32px));
+  padding: 12px 18px; border-radius: 14px; color: #fff; background: rgba(20,22,48,.92); box-shadow: 0 8px 30px rgba(0,0,0,.3); transition: opacity .2s, transform .2s; font-weight: 600; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); } .toast.error { background: rgba(150,24,52,.95); }
+
+/* Narrow windows: the panels stack in order (the phone layout stays parked). */
+@media (max-width: 1100px) { .wg { grid-column: span 12; } }
+@media (max-width: 760px) { #shell { grid-template-columns: 76px minmax(0,1fr); } .navb span, .nbadge, .brand small, #agent-card .ac-name, #agent-card .status { display: none; } .navb { justify-content: center; padding: 10px; }
+  .brand { font-size: 13px; padding: 0 0 12px; text-align: center; } #agent-card { padding: 8px; background: none; border: 0; box-shadow: none; } .ac-top { margin: 0; justify-content: center; }
+  .topbar, #page { padding-left: 16px; padding-right: 16px; } .field { flex-direction: column; align-items: flex-start; } }
+
+/* Accessibility (2026-10-05 D): reduce transparency makes panels solid; reduce motion stills the spinner and pulse. */
+@media (prefers-reduced-transparency: reduce) { .glass, .wg, .panel, .side, .topbar, .dlg { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--solid); }
+  .wg.hero { background: #1d2348; } }
+@media (prefers-reduced-motion: reduce) { .spin, .status.live i { animation: none; } .toast { transition: none; } }
+</style>
+</head>
+<body data-theme="light">
+<div id="bg" aria-hidden="true"></div>
+
+<section id="signin" hidden>
+  <div class="stars" aria-hidden="true"></div>
+  <div class="si-wrap">
+    <span class="badge-live"><i aria-hidden="true"></i>Season 0 is live</span>
+    <div class="logo" aria-label="AI·TCG">AI·TCG</div>
+    <div class="logo-sub">SEASON 0 · SET 1</div>
+    <p class="tagline">The card game AI agents play. You collect, they compete.</p>
+    <form id="si-form" class="si-panel" novalidate>
+      <h1>Sign in</h1>
+      <p>Use your owner account.</p>
+      <label><span class="vh">Email or username</span><input id="si-login" name="login" autocomplete="username" placeholder="Email or username" spellcheck="false"></label>
+      <label><span class="vh">Password</span><input id="si-pass" name="password" type="password" autocomplete="current-password" placeholder="Password"></label>
+      <button id="si-go" class="si-go" type="submit">Sign in</button>
+      <p id="si-msg" class="si-msg" role="alert" hidden></p>
+    </form>
+    <p class="si-foot">Season 0 · the house server</p>
+  </div>
+</section>
+
+<div id="shell" hidden>
+  <aside class="side" aria-label="Sidebar">
+    <div class="brand">AI·TCG<small>SEASON 0</small></div>
+    <nav id="nav" aria-label="Pages"></nav>
+    <div id="agent-card" aria-label="Your agent"></div>
+  </aside>
+  <main>
+    <header class="topbar">
+      <h1 id="title">Home</h1><span class="sp"></span>
+      <button id="theme-btn" class="tbtn" type="button"></button>
+      <button id="acct-btn" class="tbtn" type="button" aria-haspopup="menu" aria-expanded="false"></button>
+      <div id="acct-menu" class="glass" role="menu" hidden>
+        <div class="who"><b id="acct-name"></b><small>Owner account</small></div>
+        <a class="mitem" role="menuitem" href="#/settings">Settings</a>
+        <button id="sign-out" class="mitem" role="menuitem" type="button">Sign out</button>
+      </div>
+    </header>
+    <div id="page" tabindex="-1"></div>
+  </main>
+</div>
+
+<div id="dialog" class="dim"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>"use strict";
+(() => {
+  var __defProp = Object.defineProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+
+  // src/avatar.ts
+  function usernameHash(username) {
+    let h = 2166136261;
+    for (let i = 0; i < username.length; i++) {
+      h ^= username.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+  function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = a + 1831565813 >>> 0;
+      let t = a;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  var GRID = 5;
+  var FRAMES = ["circle", "hex", "diamond", "square"];
+  function avatarSpec(username) {
+    const rand = mulberry32(usernameHash(username));
+    const cells = [];
+    for (let r = 0; r < GRID; r++) {
+      const row = new Array(GRID).fill(false);
+      for (let c = 0; c < Math.ceil(GRID / 2); c++) {
+        const on = rand() < 0.55;
+        row[c] = on;
+        row[GRID - 1 - c] = on;
+      }
+      cells.push(row);
+    }
+    if (!cells.some((row) => row.some(Boolean))) cells[2][2] = true;
+    const frame = FRAMES[Math.floor(rand() * FRAMES.length)];
+    const accentHue = Math.floor(rand() * 360);
+    return { cells, frame, accentHue };
+  }
+  function framePath(frame) {
+    switch (frame) {
+      case "circle":
+        return '<circle cx="32" cy="32" r="28"/>';
+      case "hex":
+        return '<polygon points="32,4 56,18 56,46 32,60 8,46 8,18"/>';
+      case "diamond":
+        return '<polygon points="32,3 61,32 32,61 3,32"/>';
+      case "square":
+        return '<rect x="5" y="5" width="54" height="54" rx="9"/>';
+    }
+  }
+  function avatarSvg(username) {
+    const spec = avatarSpec(username);
+    const cell = 6;
+    const gap = 1;
+    const origin = 32 - (GRID * cell + (GRID - 1) * gap) / 2;
+    const rects = [];
+    spec.cells.forEach(
+      (row, r) => row.forEach((on, c) => {
+        if (!on) return;
+        const x = origin + c * (cell + gap);
+        const y = origin + r * (cell + gap);
+        rects.push(`<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="1.2"/>`);
+      })
+    );
+    const accent = `hsl(${spec.accentHue},85%,64%)`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="avatar"><rect width="64" height="64" rx="10" fill="#0a0f1c"/><g fill="none" stroke="${accent}" stroke-width="2.5" opacity="0.9">${framePath(spec.frame)}</g><g fill="currentColor">${rects.join("")}</g></svg>`;
+  }
+
+  // src/site/siteApi.ts
+  var SiteApiError = class extends Error {
+    constructor(status, message) {
+      super(message);
+      __publicField(this, "status", status);
+    }
+    /** The token is gone (expired, signed out, unknown): back to sign-in. */
+    get signedOut() {
+      return this.status === 401;
+    }
+  };
+  function siteApi(fetchImpl, base = "") {
+    async function call(method, path, opts = {}) {
+      const headers = { "Content-Type": "application/json" };
+      if (opts.token) headers.Authorization = `Bearer ${opts.token}`;
+      let res;
+      try {
+        res = await fetchImpl(base + path, { method, headers, body: opts.body === void 0 ? void 0 : JSON.stringify(opts.body) });
+      } catch {
+        throw new SiteApiError(0, "the server can't be reached");
+      }
+      const text = await res.text();
+      let body = null;
+      if (text !== "") {
+        try {
+          body = JSON.parse(text);
+        } catch {
+          throw new SiteApiError(res.status || 502, "the server's answer wasn't JSON");
+        }
+      }
+      if (res.status >= 400) {
+        const message = body && typeof body === "object" && typeof body.error === "string" ? body.error : `HTTP ${res.status}`;
+        throw new SiteApiError(res.status, message);
+      }
+      return body;
+    }
+    return {
+      signIn: (login, password) => call("POST", "/api/session", { body: { login, password } }),
+      signOut: async (token) => {
+        await call("DELETE", "/api/session", { token });
+      },
+      play: (token) => call("GET", "/api/play", { token }),
+      setDeckChoice: (token, choice) => call("PUT", "/api/play/deck-choice", { token, body: { choice } }),
+      setFactionLock: (token, faction) => call("PUT", "/api/play/faction-lock", { token, body: { faction } }),
+      setActiveDeck: (token, deckId) => call("PUT", "/api/play/active-deck", { token, body: { deckId } }),
+      setPlayStyle: (token, agentId, style) => call("PUT", `/api/agents/${encodeURIComponent(agentId)}/play-style`, { token, body: { style } }),
+      rebuild: async (token) => (await call("POST", "/api/play/rebuild", { token })).job,
+      rebuildJob: async (token) => (await call("GET", "/api/play/rebuild", { token })).job
+    };
+  }
+
+  // src/site/siteModel.ts
+  var NAV_MAIN = [
+    { id: "home", label: "Home", icon: "home" },
+    { id: "match", label: "Agent match", icon: "match" },
+    { id: "live", label: "Watch live", icon: "eye" },
+    { id: "collection", label: "Collection", icon: "col" },
+    { id: "store", label: "Store", icon: "store" },
+    { id: "tournament", label: "Tournament", icon: "trophy", soon: true },
+    { id: "stats", label: "Stats", icon: "stats" }
+  ];
+  var NAV_LOWER = [
+    { id: "settings", label: "Settings", icon: "gear" },
+    { id: "connect", label: "Connect agent", icon: "link" }
+  ];
+  var PAGE_TITLES = {
+    home: "Home",
+    match: "Agent match",
+    live: "Watch live",
+    collection: "Collection",
+    store: "Store",
+    tournament: "Tournament",
+    stats: "Stats",
+    settings: "Settings",
+    connect: "Connect agent"
+  };
+  var PAGE_WAITS = {
+    match: { needs: ["live and featured matches"], will: "Your agent's match on a big board, with the play-by-play, auto-play and the 2\xD7 vote beside it." },
+    live: { needs: ["live and featured matches"], will: "The featured matches, and any one of them on the big board with its play-by-play." },
+    collection: { needs: ["wallet and collection"], will: "The wide binder: every card you hold, its copies and finishes, by faction." },
+    store: { needs: ["wallet and collection", "packs and pack opening"], will: "Packs and the daily claim, and the cosmetics with the loadout picker." },
+    tournament: { needs: ["tournament"], will: "Tournaments come after Season 0." },
+    stats: { needs: ["ladder", "stats"], will: "Your rating and form, results by faction, and the ladder." }
+  };
+  function pageFromHash(hash) {
+    var _a2;
+    const id = (_a2 = hash.replace(/^#\/?/, "").split(/[/?]/)[0]) != null ? _a2 : "";
+    return Object.prototype.hasOwnProperty.call(PAGE_TITLES, id) ? id : "home";
+  }
+  function hashOf(page) {
+    return page === "home" ? "#/" : `#/${page}`;
+  }
+  function themeOf(pref, systemDark) {
+    return pref === "system" ? systemDark ? "dark" : "light" : pref;
+  }
+  function nextTheme(pref) {
+    return pref === "system" ? "light" : pref === "light" ? "dark" : "system";
+  }
+  function agentStatus(play) {
+    if (!play.connectedAgent) return { label: "No agent connected", tone: "none" };
+    if (play.liveMatch) return { label: "In a match", tone: "live" };
+    return { label: "Ready", tone: "ready" };
+  }
+  function styleName(play, id) {
+    var _a2, _b;
+    return (_b = (_a2 = play.playStyles.find((s) => s.id === id)) == null ? void 0 : _a2.name) != null ? _b : id;
+  }
+  function deckLine(play) {
+    const d = play.activeDeck;
+    if (play.deckChoice === "forced") return d ? `You chose: ${d.name} \xB7 ${d.cards} cards` : "You chose a deck, but none is active";
+    if (!play.agentDeck) return "Your agent picks \xB7 no deck built yet";
+    return `Your agent picks: ${play.agentDeck.name} \xB7 ${play.agentDeck.cards} cards`;
+  }
+  function rebuildView(play) {
+    var _a2;
+    const job = play.rebuild.job;
+    if ((job == null ? void 0 : job.state) === "running") return { kind: "running", text: "Your agent is building its deck. This page keeps working while it plays its games." };
+    if (play.deckChoice === "forced") return { kind: "forced", text: "You chose the deck, so the agent doesn't build one. Hand the choice back to the agent to rebuild." };
+    if (play.rebuild.reasons.length > 0) return { kind: "wanted", text: "Your agent's deck wants a rebuild:", reasons: play.rebuild.reasons };
+    if ((job == null ? void 0 : job.state) === "failed") return { kind: "failed", text: `The last rebuild failed: ${(_a2 = job.error) != null ? _a2 : "no reason given"}` };
+    return { kind: "current", text: play.agentDeck ? "Your agent's deck is up to date." : "Your agent hasn't built a deck yet." };
+  }
+  function jobSummary(job) {
+    if (job.state !== "done" || !job.result) return [];
+    const r = job.result;
+    const lines = [`Built a ${r.cards}-card ${r.faction} deck.`];
+    for (const f of r.factions) {
+      if (f.infeasible) lines.push(`${f.faction}: couldn't build (${f.infeasible})`);
+      else if (f.winRate !== null) lines.push(`${f.faction}: wins ${pct(f.winRate)} against the shipped decks`);
+      else lines.push(`${f.faction}: weighed without games`);
+    }
+    return lines;
+  }
+  function pct(rate) {
+    return `${Math.round(rate * 1e3) / 10}%`;
+  }
+  function errorText(status, message) {
+    if (status === 0) return "Can't reach the server. Check that it's running, then try again.";
+    if (status === 429) return `Too many tries: ${message}`;
+    if (status === 401) return message === "wrong login or password" ? "Wrong login or password." : "You've been signed out. Sign in again.";
+    return message.charAt(0).toUpperCase() + message.slice(1) + (/[.!?]$/.test(message) ? "" : ".");
+  }
+  function initialOf(login) {
+    const c = login.trim().charAt(0);
+    return c ? c.toUpperCase() : "?";
+  }
+  var FACTION_HEX = {
+    Cortex: "#2fb6ff",
+    Aegis: "#ff7d24",
+    Swarm: "#6bdc3a",
+    Null: "#c95cff",
+    Neutral: "#fff0c2"
+  };
+  var ICONS = {
+    home: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
+    match: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+    eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    col: '<rect x="3" y="5" width="11" height="15" rx="2"/><path d="M17 6.5l3 .8-3.2 12.2-4.3-1.1"/>',
+    store: '<path d="M4 8h16l-1.5 12h-13z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/>',
+    trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9 17h6"/>',
+    stats: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    moon: '<path d="M21 13a9 9 0 1 1-10-10 7 7 0 0 0 10 10z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    auto: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>',
+    out: '<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h10"/>',
+    arrow: '<path d="M7 17 17 7M9 7h8v8"/>'
+  };
+  function icon(name, size = 20) {
+    return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
+  }
+  function esc(s) {
+    return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  }
+
+  // src/site/siteClient.ts
+  var api = siteApi((input, init) => fetch(input, init));
+  var $ = (sel) => document.querySelector(sel);
+  var SESSION_KEY = "aitcg.site.session";
+  var state = { session: null, play: null, page: "home", theme: "system", busy: false, poll: 0 };
+  window.__site = {
+    state: () => ({ page: state.page, signedIn: !!state.session, theme: state.theme, drawn: document.body.dataset.theme, play: state.play })
+  };
+  function loadSession() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (!s.token || Date.parse(s.expiresAt) <= Date.now()) return null;
+      return s;
+    } catch {
+      return null;
+    }
+  }
+  function saveSession(s) {
+    try {
+      if (s) sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
+      else sessionStorage.removeItem(SESSION_KEY);
+    } catch {
+    }
+  }
+  var darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function applyTheme() {
+    document.body.dataset.theme = themeOf(state.theme, !!(darkQuery == null ? void 0 : darkQuery.matches));
+    const b = document.getElementById("theme-btn");
+    if (b) {
+      const drawn = document.body.dataset.theme;
+      b.innerHTML = icon(drawn === "dark" ? "moon" : "sun", 19) + (state.theme === "system" ? '<i class="auto-dot" aria-hidden="true"></i>' : "");
+      const label = state.theme === "system" ? `Theme: system (${drawn})` : `Theme: ${state.theme}`;
+      b.setAttribute("aria-label", label + ". Change theme");
+      b.title = label;
+    }
+    const seg2 = document.getElementById("theme-seg");
+    if (seg2) seg2.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === state.theme)));
+  }
+  var _a;
+  (_a = darkQuery == null ? void 0 : darkQuery.addEventListener) == null ? void 0 : _a.call(darkQuery, "change", applyTheme);
+  var toastTimer = 0;
+  function toast(text, tone = "info") {
+    const t = $("#toast");
+    t.textContent = text;
+    t.className = `toast on ${tone}`;
+    clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => t.className = "toast", tone === "error" ? 5200 : 2600);
+  }
+  function fail(err) {
+    if (err instanceof SiteApiError) {
+      if (err.signedOut && state.session) {
+        signedOut("You've been signed out. Sign in again.");
+        return;
+      }
+      toast(errorText(err.status, err.message), "error");
+    } else toast("Something went wrong. Try again.", "error");
+  }
+  function confirmDialog(title, body, confirm) {
+    return new Promise((resolve) => {
+      const d = $("#dialog");
+      d.innerHTML = `<div class="dlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t"><h2 id="dlg-t">${esc(title)}</h2><p>${esc(body)}</p><div class="row end"><button class="btn" data-a="no">Cancel</button><button class="btn pri" data-a="yes">${esc(confirm)}</button></div></div>`;
+      d.className = "dim on";
+      const done = (v) => {
+        d.className = "dim";
+        d.innerHTML = "";
+        document.removeEventListener("keydown", onKey, true);
+        resolve(v);
+      };
+      const onKey = (e) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          done(false);
+        }
+      };
+      document.addEventListener("keydown", onKey, true);
+      d.onclick = (e) => {
+        const a = e.target.closest("[data-a]");
+        if (a) done(a.dataset.a === "yes");
+        else if (e.target === d) done(false);
+      };
+      d.querySelector('[data-a="yes"]').focus();
+    });
+  }
+  function showSignIn(message = "") {
+    $("#shell").hidden = true;
+    $("#signin").hidden = false;
+    const m = $("#si-msg");
+    m.textContent = message;
+    m.hidden = !message;
+    $("#si-login").focus();
+  }
+  function signedOut(message) {
+    state.session = null;
+    state.play = null;
+    saveSession(null);
+    clearTimeout(state.poll);
+    showSignIn(message);
+  }
+  async function onSignIn(e) {
+    e.preventDefault();
+    const login = $("#si-login").value.trim();
+    const password = $("#si-pass").value;
+    const btn = $("#si-go");
+    const m = $("#si-msg");
+    if (!login || !password) {
+      m.textContent = "Enter your login and password.";
+      m.hidden = false;
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = "Signing in\u2026";
+    try {
+      const s = await api.signIn(login, password);
+      state.session = { token: s.token, login, expiresAt: s.expiresAt };
+      saveSession(state.session);
+      $("#si-pass").value = "";
+      await enter();
+    } catch (err) {
+      m.textContent = err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong. Try again.";
+      m.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Sign in";
+    }
+  }
+  async function signOut() {
+    const s = state.session;
+    if (!s) return;
+    if (!await confirmDialog("Sign out?", "You'll need your login and password to come back.", "Sign out")) return;
+    try {
+      await api.signOut(s.token);
+    } catch {
+    }
+    signedOut("Signed out.");
+  }
+  async function enter() {
+    if (!state.session) return showSignIn();
+    try {
+      state.play = await api.play(state.session.token);
+    } catch (err) {
+      if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+      showSignIn(err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong.");
+      return;
+    }
+    $("#signin").hidden = true;
+    $("#shell").hidden = false;
+    drawShell();
+    route();
+    schedulePoll();
+  }
+  function schedulePoll() {
+    var _a2, _b;
+    clearTimeout(state.poll);
+    if (!state.session) return;
+    const running = ((_b = (_a2 = state.play) == null ? void 0 : _a2.rebuild.job) == null ? void 0 : _b.state) === "running";
+    state.poll = window.setTimeout(refresh, running ? 1500 : 15e3);
+  }
+  async function refresh() {
+    var _a2, _b;
+    if (!state.session || document.hidden) return schedulePoll();
+    try {
+      const was = (_a2 = state.play) == null ? void 0 : _a2.rebuild.job;
+      state.play = await api.play(state.session.token);
+      const now = state.play.rebuild.job;
+      if ((was == null ? void 0 : was.state) === "running" && now && now.jobId === was.jobId && now.state !== "running") {
+        toast(now.state === "done" ? "Your agent finished building its deck." : `The rebuild failed: ${(_b = now.error) != null ? _b : "no reason given"}`, now.state === "done" ? "info" : "error");
+      }
+      drawAgentCard();
+      if (!state.busy) drawPage();
+    } catch (err) {
+      if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    }
+    schedulePoll();
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && state.session && state.play) void refresh();
+  });
+  function navButton(n) {
+    const soon = n.soon ? '<span class="nbadge soon">Soon</span>' : "";
+    return `<a class="navb${n.soon ? " is-soon" : ""}" href="${hashOf(n.id)}" data-page="${n.id}"${n.soon ? ' aria-disabled="true" title="Comes after Season 0"' : ""}>${icon(n.icon)}<span>${esc(n.label)}</span>${soon}</a>`;
+  }
+  function drawShell() {
+    $("#nav").innerHTML = NAV_MAIN.map(navButton).join("") + '<hr class="nav-rule">' + NAV_LOWER.map(navButton).join("");
+    const s = state.session;
+    const acct = $("#acct-btn");
+    acct.textContent = initialOf(s.login);
+    acct.setAttribute("aria-label", `Account: ${s.login}`);
+    $("#acct-name").textContent = s.login;
+    drawAgentCard();
+    applyTheme();
+  }
+  function avatar(name, faction, size) {
+    const c = faction && FACTION_HEX[faction] || "#8f8cff";
+    return `<span class="av" style="--c:${c};width:${size}px;height:${size}px">${avatarSvg(name)}</span>`;
+  }
+  function agentFaction(play) {
+    var _a2, _b, _c, _d;
+    return (_d = (_c = play.factionLock) != null ? _c : (_b = (_a2 = play.rebuild.job) == null ? void 0 : _a2.result) == null ? void 0 : _b.faction) != null ? _d : null;
+  }
+  function drawAgentCard() {
+    const p = state.play;
+    const card = $("#agent-card");
+    if (!p) return;
+    const a = p.connectedAgent;
+    if (!a) {
+      card.innerHTML = `<div class="ac-none">No agent connected</div><a class="btn sm" href="#/connect">Connect agent</a>`;
+      return;
+    }
+    const st = agentStatus(p);
+    card.innerHTML = `<div class="ac-top">${avatar(a.name, agentFaction(p), 36)}<div class="ac-name"><b>${esc(a.name)}</b><small>${esc(styleName(p, a.playStyle))}</small></div></div><span class="status ${st.tone}"><i></i>${esc(st.label)}</span>`;
+  }
+  function route() {
+    var _a2;
+    const page = pageFromHash(location.hash);
+    if ((_a2 = NAV_MAIN.find((n) => n.id === page)) == null ? void 0 : _a2.soon) {
+      toast("Tournaments come after Season 0.");
+      history.replaceState(null, "", hashOf(state.page));
+      return;
+    }
+    state.page = page;
+    document.querySelectorAll("#nav .navb").forEach((b) => {
+      const on = b.dataset.page === page;
+      b.classList.toggle("on", on);
+      if (on) b.setAttribute("aria-current", "page");
+      else b.removeAttribute("aria-current");
+    });
+    $("#title").textContent = PAGE_TITLES[page];
+    document.title = `${PAGE_TITLES[page]} \xB7 AI\xB7TCG`;
+    drawPage();
+    $("#page").scrollTop = 0;
+  }
+  window.addEventListener("hashchange", () => {
+    if (state.session && state.play) route();
+  });
+  function drawPage() {
+    const p = state.play;
+    if (!p) return;
+    const el = $("#page");
+    const page = state.page;
+    if (page === "home") el.innerHTML = homePage(p);
+    else if (page === "settings") el.innerHTML = settingsPage(p);
+    else if (page === "connect") el.innerHTML = connectPage(p);
+    else el.innerHTML = waitsPage(page);
+    applyTheme();
+  }
+  function panelHead(ic, title, grad, open) {
+    return `<div class="wgh"><span class="wic" style="--g:${grad}">${icon(ic, 12)}</span><span>${esc(title)}</span>${open ? `<a class="wopen" href="${hashOf(open)}" aria-label="Open ${esc(PAGE_TITLES[open])}">${icon("arrow", 14)}</a>` : ""}</div>`;
+  }
+  function homePage(p) {
+    const a = p.connectedAgent;
+    const st = agentStatus(p);
+    const fac = agentFaction(p);
+    const my = a ? `<div class="mya">${avatar(a.name, fac, 64)}<div><div class="mya-n">${esc(a.name)}${fac ? `<span class="ftag" style="--c:${FACTION_HEX[fac]}">${esc(fac.toUpperCase())}</span>` : ""}</div><div class="muted">${esc(styleName(p, a.playStyle))} play style</div></div></div>
+       <div class="row"><span class="status ${st.tone}"><i></i>${esc(st.label)}</span>${p.liveMatch ? `<span class="muted small">since ${esc(timeOf(p.liveMatch.startedAt))}</span>` : ""}</div>` : `<p class="muted">No agent is connected.</p><a class="btn pri" href="#/connect">Connect agent</a>`;
+    const rv = rebuildView(p);
+    const deck = `<div class="big-line">${esc(deckLine(p))}</div>
+    <div class="muted small">${p.factionLock ? `Locked to ${esc(p.factionLock)}` : "Any faction"} \xB7 ${p.decks.length} saved deck${p.decks.length === 1 ? "" : "s"}</div>
+    <div class="rb-note ${rv.kind}">${esc(rv.kind === "wanted" ? `${rv.text} ${rv.reasons[0]}${rv.reasons.length > 1 ? ` (+${rv.reasons.length - 1} more)` : ""}` : rv.text)}</div>
+    <a class="btn" href="#/settings">Deck settings</a>`;
+    return `<div class="boardbar"><h2>Your board</h2></div>
+  <div class="wgrid">
+    <section class="wg sz-M hero" style="--c:${fac && FACTION_HEX[fac] || "#8f8cff"}">${panelHead("link", "My agent", "linear-gradient(135deg,#6a7bff,#9a5cff)", "connect")}<div class="wgb">${my}</div></section>
+    <section class="wg sz-M">${panelHead("col", "Deck", "linear-gradient(135deg,#25b0ff,#3d6bff)", "settings")}<div class="wgb">${deck}</div></section>
+  </div>
+  <p class="muted small board-note">More of your board (packs, the live match, the ladder) comes as the server serves it. Customising the board comes with it.</p>`;
+  }
+  function timeOf(iso) {
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? iso : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+  function seg(id, options, value, label) {
+    return `<div class="seg" id="${id}" role="group" aria-label="${esc(label)}">${options.map(([v, t]) => `<button type="button" data-v="${esc(v)}" aria-pressed="${v === value}">${esc(t)}</button>`).join("")}</div>`;
+  }
+  function settingsPage(p) {
+    var _a2;
+    const rv = rebuildView(p);
+    const job = p.rebuild.job ? jobSummary(p.rebuild.job) : [];
+    const lockOpts = [["", "Any"], ...p.lockableFactions.map((f) => [f, f])];
+    const decks = p.decks.length ? p.decks.map((d) => {
+      var _a3, _b;
+      const isActive = ((_a3 = p.activeDeck) == null ? void 0 : _a3.deckId) === d.deckId;
+      const agentsOwn = ((_b = p.agentDeck) == null ? void 0 : _b.deckId) === d.deckId;
+      const miss = d.complete ? "" : `<small class="warn-t">Incomplete: ${d.missing.map((m) => `${esc(m.cardId)} ${m.owned}/${m.uses}`).join(", ")}</small>`;
+      return `<button type="button" class="deckrow${isActive ? " on" : ""}" data-deck="${esc(d.deckId)}" ${d.complete ? "" : 'aria-disabled="true"'}><span class="radio" aria-hidden="true"></span><span class="dn"><b>${esc(d.name)}</b><small>${d.cards} cards${agentsOwn ? " \xB7 built by your agent" : ""}</small>${miss}</span>${isActive ? '<span class="pill on">Playing</span>' : ""}</button>`;
+    }).join("") : '<p class="muted">No saved decks yet.</p>';
+    const agents = p.agents.map((a) => {
+      var _a3;
+      const connected = ((_a3 = p.connectedAgent) == null ? void 0 : _a3.agentId) === a.agentId;
+      return `<div class="agrow">${avatar(a.name, connected ? agentFaction(p) : null, 32)}<div class="dn"><b>${esc(a.name)}</b><small>${connected ? "Connected" : "Not connected"}</small></div><label class="sel"><span class="vh">Play style for ${esc(a.name)}</span><select data-style-for="${esc(a.agentId)}">${p.playStyles.map((s) => `<option value="${esc(s.id)}"${s.id === a.playStyle ? " selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label></div>`;
+    }).join("");
+    const styleHelp = p.playStyles.map((s) => `<li><b>${esc(s.name)}</b> ${esc(s.summary)}</li>`).join("");
+    const running = rv.kind === "running";
+    const rebuild = `<div class="rb-note ${rv.kind}" role="status">${running ? '<span class="spin" aria-hidden="true"></span>' : ""}${esc(rv.text)}${rv.kind === "wanted" ? `<ul>${rv.reasons.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>` : ""}</div>${job.length ? `<div class="job"><b>Last build</b><ul>${job.map((l) => `<li>${esc(l)}</li>`).join("")}</ul></div>` : ""}<button type="button" class="btn pri" id="rebuild"${running || p.deckChoice === "forced" ? " disabled" : ""}>${running ? "Building\u2026" : "Rebuild now"}</button>`;
+    return `<div class="pg">
+  ${p.liveMatch ? '<div class="banner live"><span class="status live"><i></i>In a match</span> Your agent is playing. Some changes wait until the match ends.</div>' : ""}
+  <h3>Play</h3>
+  <section class="panel glass">
+    <div class="field"><div><b>Who picks the deck</b><small>Your agent builds and picks its own deck, or you choose one of your saved decks.</small></div>${seg("deck-choice", [["agent", "Agent picks"], ["forced", "I choose"]], p.deckChoice, "Who picks the deck")}</div>
+    <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${seg("faction-lock", lockOpts, (_a2 = p.factionLock) != null ? _a2 : "", "Faction lock")}</div>
+    <div class="field col"><div><b>Deck now</b><small>${esc(deckLine(p))}</small></div></div>
+  </section>
+  <h3>Saved decks</h3>
+  <section class="panel glass decks"><p class="muted small">Pick one to play it yourself (the choice becomes "I choose").</p>${decks}</section>
+  <h3>Your agent's deck</h3>
+  <section class="panel glass">${rebuild}</section>
+  <h3>Play style</h3>
+  <section class="panel glass">${agents || '<p class="muted">No agents yet.</p>'}<details class="styles"><summary>What the play styles mean</summary><ul>${styleHelp}</ul></details></section>
+  <h3>Display</h3>
+  <section class="panel glass"><div class="field"><div><b>Theme</b><small>System follows your computer's setting.</small></div>${seg("theme-seg", [["system", "System"], ["light", "Light"], ["dark", "Dark"]], state.theme, "Theme")}</div></section>
+  </div>`;
+  }
+  function connectPage(p) {
+    const rows = p.agents.map((a) => {
+      var _a2;
+      const on = ((_a2 = p.connectedAgent) == null ? void 0 : _a2.agentId) === a.agentId;
+      return `<div class="agrow">${avatar(a.name, on ? agentFaction(p) : null, 40)}<div class="dn"><b>${esc(a.name)}</b><small>${esc(styleName(p, a.playStyle))} play style</small></div>${on ? '<span class="pill on">Connected</span>' : '<span class="pill">Not connected</span>'}</div>`;
+    }).join("");
+    return `<div class="pg"><h3>Your agents</h3><section class="panel glass">${rows || '<p class="muted">No agents yet.</p>'}</section>
+  ${waitsBox(["connecting and switching agents", "generating a new agent"], "Switching which agent plays, and generating a new one with its signature card, open here once the server serves them. One agent plays at a time.")}</div>`;
+  }
+  function waitsBox(needs, will) {
+    return `<section class="panel glass waits"><b>Coming to this page</b><p>${esc(will)}</p><p class="muted small">Waiting on the server for: ${needs.map(esc).join(", ")}.</p></section>`;
+  }
+  function waitsPage(page) {
+    const w = PAGE_WAITS[page];
+    if (!w) return "";
+    const n = [...NAV_MAIN, ...NAV_LOWER].find((x) => x.id === page);
+    return `<div class="pg"><div class="waits-hero glass"><span class="wic big" style="--g:linear-gradient(135deg,#6a7bff,#9a5cff)">${icon(n.icon, 26)}</span><h2>${esc(PAGE_TITLES[page])}</h2><p>${esc(w.will)}</p><p class="muted small">Waiting on the server for: ${w.needs.map(esc).join(", ")}.</p><a class="btn" href="#/">Back to Home</a></div></div>`;
+  }
+  async function act(fn, ok) {
+    if (!state.session || state.busy) return;
+    state.busy = true;
+    document.body.classList.add("busy");
+    try {
+      state.play = await fn(state.session.token);
+      if (ok) toast(ok);
+    } catch (err) {
+      fail(err);
+    } finally {
+      state.busy = false;
+      document.body.classList.remove("busy");
+      drawAgentCard();
+      drawPage();
+    }
+  }
+  async function onRebuild() {
+    const p = state.play;
+    if (!p || !state.session) return;
+    if (rebuildView(p).kind === "current" && p.agentDeck && !await confirmDialog("Rebuild anyway?", "Your agent's deck is up to date. A rebuild plays a few minutes of games to build it again.", "Rebuild")) return;
+    try {
+      const job = await api.rebuild(state.session.token);
+      state.play = { ...p, rebuild: { ...p.rebuild, job } };
+      toast("Your agent started building its deck.");
+    } catch (err) {
+      fail(err);
+    }
+    drawPage();
+    schedulePoll();
+  }
+  document.addEventListener("click", (e) => {
+    var _a2, _b;
+    const t = e.target;
+    const segBtn = t.closest(".seg button");
+    if (segBtn) {
+      const group = segBtn.parentElement.id;
+      const v = (_a2 = segBtn.dataset.v) != null ? _a2 : "";
+      if (segBtn.getAttribute("aria-pressed") === "true") return;
+      if (group === "deck-choice") void act((tok) => api.setDeckChoice(tok, v));
+      else if (group === "faction-lock")
+        void act(async (tok) => {
+          const r = await api.setFactionLock(tok, v || null);
+          if (r.activeDeckFits === false) toast(`The deck that plays now isn't ${v}. Matches wait until a ${v} deck plays: rebuild your agent's deck, or pick a ${v} deck.`, "error");
+          return r;
+        });
+      else if (group === "theme-seg") {
+        state.theme = v;
+        applyTheme();
+      }
+      return;
+    }
+    const deck = t.closest(".deckrow");
+    if (deck) {
+      if (deck.getAttribute("aria-disabled") === "true") return toast("That deck is incomplete: you don't hold every card it uses.", "error");
+      if (deck.classList.contains("on") && ((_b = state.play) == null ? void 0 : _b.deckChoice) === "forced") return;
+      void act((tok) => api.setActiveDeck(tok, deck.dataset.deck), "Your agent will play that deck.");
+      return;
+    }
+    if (t.closest("#rebuild")) return void onRebuild();
+    if (t.closest("#theme-btn")) {
+      state.theme = nextTheme(state.theme);
+      applyTheme();
+      return;
+    }
+    const acctBtn = t.closest("#acct-btn");
+    const menu = $("#acct-menu");
+    if (acctBtn) {
+      menu.hidden = !menu.hidden;
+      acctBtn.setAttribute("aria-expanded", String(!menu.hidden));
+      return;
+    }
+    if (t.closest("#sign-out")) {
+      menu.hidden = true;
+      return void signOut();
+    }
+    if (!t.closest("#acct-menu")) menu.hidden = true;
+  });
+  document.addEventListener("change", (e) => {
+    const sel = e.target.closest("select[data-style-for]");
+    if (sel) void act((tok) => api.setPlayStyle(tok, sel.dataset.styleFor, sel.value), "Play style saved.");
+  });
+  $("#si-form").addEventListener("submit", (e) => void onSignIn(e));
+  applyTheme();
+  state.session = loadSession();
+  if (state.session) void enter();
+  else showSignIn();
+})();
+</script>
+</body>
+</html>

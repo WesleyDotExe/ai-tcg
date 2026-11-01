@@ -336,6 +336,8 @@ log(`\n[D] ${REPLAY}: the end (the lethal beat, then the boast)`);
 // Words from render/src/skipHint.ts (render/test/ciPages.test.ts keeps them
 // in step).
 const HINT_KEY = 'or click anywhere \u00b7 Esc', HINT_TAP = 'or tap anywhere';
+// The intro's words name the board (owner, render session 43 call 4).
+const BOARD_KEY = 'or click the board \u00b7 Esc', BOARD_TAP = 'or tap the board';
 // The hint, its Skip and a box on the page, read in the page.
 const hintRead = (page, boxSel) => page.evaluate((boxSel) => {
   const R = (el) => { if (!el) return null; const q = el.getBoundingClientRect(); return { l: q.left, t: q.top, r: q.right, b: q.bottom }; };
@@ -418,7 +420,7 @@ async function introHint(phone) {
 }
 {
   const [d, p] = await Promise.all([introHint(false), introHint(true)]);
-  for (const [where, x, words] of [['desktop', d, HINT_KEY], ['phone', p, HINT_TAP]]) {
+  for (const [where, x, words] of [['desktop', d, BOARD_KEY], ['phone', p, BOARD_TAP]]) {
     check(x.r.text === words && x.r.stat === words && under(x.r.hint, x.r.skip) && inside(x.r.hint, x.r.box), `E. ${REPLAY} intro, ${where}: "${x.r.text}" under Skip, inside the board`);
     check(!x.after.active && x.after.hints === 0 && x.after.seen === true, `E. ${REPLAY} intro, ${where}: ${where === 'phone' ? 'a tap' : 'Escape'} skips it, the hint goes, the page remembers`);
     check(x.end.hint === null && x.end.hints === 0 && x.end.skip, `E. ${REPLAY} end, ${where}: after that skip the boast shows Skip and no hint`);

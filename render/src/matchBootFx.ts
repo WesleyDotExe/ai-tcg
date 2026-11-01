@@ -516,7 +516,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       // boast): inside the board, clear of the agent lines and the saying.
       var avoid = plan.halves.map(function (h) { var L = h.line, k = L.rows ? 2.2 : 1.4; return { l: L.x0, t: L.y - L.fs * k, r: L.x0 + L.w, b: L.y + L.fs * k }; });
       if (plan.say) avoid.push({ l: plan.say.x - plan.say.w / 2 - 4, t: plan.say.y - plan.say.h / 2 - 4, r: plan.say.x + plan.say.w / 2 + 4, b: plan.say.y + plan.say.h / 2 + 4 });
-      var hint = skipHintShow(sk, A, avoid);
+      var hint = skipHintShow(sk, A, avoid, 'board');
       if (hint) cur.dom.push(hint);
       cur.hint = hint ? hint.textContent : null;
       document.addEventListener('keydown', onKey, true);

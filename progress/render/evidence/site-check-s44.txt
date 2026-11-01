@@ -1,0 +1,34 @@
+PASS  A. a fresh browser opens on sign-in
+PASS  A. empty fields: asks for both, sends nothing
+PASS  A. a wrong password: "Wrong login or password." (the API's 401)
+PASS  A. signed in: Home, with the connected agent from GET /api/play
+PASS  B. the sidebar, in the spec's order: Home | Agent match | Watch live | Collection | Store | TournamentSoon | Stats | Settings | Connect agent
+PASS  B. the agent card: name, play style, Ready
+PASS  B. the top bar: page title, account initial
+PASS  B. Home's Deck panel: no deck yet, and the store's rebuild reason
+PASS  B. Tournament is "Soon": it stays on the page and says why
+PASS  B. Collection says plainly what it waits on (no made-up numbers)
+PASS  C. Rebuild now: a running job, the button waits
+PASS  C. the site keeps working while the agent builds
+PASS  C. the job ends (polled): done, a 40-card Cortex deck
+PASS  C. the page shows the build and "up to date"
+PASS  C. the saved decks list the built deck (1)
+PASS  C. rebuilding an up-to-date deck asks first, in a centred dialog
+PASS  C. Escape cancels it, no new job
+PASS  D. locking to Swarm (the deck is Cortex): the API's activeDeckFits=false, said in words
+PASS  D. the store's new rebuild reason shows: "the faction lock changed (none -> Swarm)"
+PASS  D. back to Any: the reason goes with the lock
+PASS  E. picking a saved deck forces it; Rebuild now is off while forced
+PASS  E. Agent picks: the choice goes back to the agent, Rebuild now is on again
+PASS  F. a play style change saves (PUT /api/agents/:id/play-style) and the agent card says Rusher
+PASS  G. Dark from Settings -> Display
+PASS  G. the top bar button cycles on to System
+PASS  G. System follows the computer (dark, then light)
+PASS  H. a reload stays signed in, on the same page (#/settings)
+PASS  H. Sign out (confirmed): DELETE /api/session, back to sign-in
+PASS  H. a revoked token: the next request (401) returns to sign-in
+PASS  I. a 700 px window: the sidebar folds to icons, nothing spills sideways (0 px)
+PASS  Z. no page errors (0)
+PASS  Z. no request leaves the site's origin (0)
+
+32 passed, 0 failed: ALL PASS
