@@ -20,7 +20,7 @@ Schema v2 (`economy/src/schema.ts`, migration 2) keys everything on the owner:
 - Card copies, ledger entries, packs and decks key on `owner_id`. Match-payout ledger rows carry `played_by` (the agent), which must be one of that owner's own agents. Owner actions (a purchase, a salvage) have none.
 - Matches record both owners and both agents. Each side must be played by its own owner's agent and deck, and **the two owners must differ**: an owner's agents never meet in rewarded play.
 - **Daily caps count per owner** from match history (`dailyTally(ownerId)`). Switching agents mid-day carries on from the owner's tally; it can't reset or double the caps (shown in `progress/economy-demo-002.txt`: the Cortex owner's second agent paid 10 for its first win, the owner's 4th that day).
-- **Stats are per owner** (`ownerStats`), with the Stats page's agent filter: matches, wins, losses, draws, void, win rate, best win streak, credits from matches. **Rating** (Glicko-2) isn't built yet; when it is, it keys on the owner, and a newly connected agent plays at the owner's rating.
+- **Stats are per owner** (`ownerStats`), with the Stats page's agent filter: matches, wins, losses, draws, void, win rate, best win streak, credits from matches. **Rating** (Glicko-2, BUILT session 66, see "Match running and the ladder") keys on the owner, and a newly connected agent plays at the owner's rating.
 - A session-28 (v1) file migrates in place: each v1 agent becomes a house owner (`owner-<agent id>`) with that agent, its faction becomes the owner's starting faction, `packPoints` copies become `crafted`, `tournament` copies become `prize`, and every row carries across (tested).
 
 ## Accounts and agents — BUILT (session 30; build-order step 2, part 1)
@@ -204,6 +204,14 @@ A typical active day is ~140 credits (~1.4 packs) plus the owner's daily pack: ~
 - **Losses stop paying after 10 a day,** so a stream of losses can't become an income.
 - **A draw pays as a loss to both sides.** Draws are rare: the engine's turn cap has a decisive tiebreak.
 - **An abandoned match pays nothing to either side,** including the player who stayed. Paying the other side would let two colluding agents farm forfeit wins. The server assigns opponents, which makes that farming hard but not impossible.
+
+## Match running and the ladder — BUILT (session 66; Season 0 game item 1)
+
+- **The ladder runner** (`server/src/ladder/ladderRunner.ts`, `npm run ladder -- <db> [rounds] [log dir]`) plays rounds of ranked matches between every owner with a connected agent. Each round: rebuild each queued agent deck the store says needs it (`rebuildAgentDeckIfNeeded`: packs opened, crafting, salvage, a lock or style change), pair the queue (below), and for each pair `startMatch` -> the engine's `runMatch` -> `recordMatch` with the result, turns, moves and each side's final health (the close-win boast). Each match's log is written for replays. A seat that throws, plays an illegal move or can't be seated abandons the match (no credits for either side; a rating loss for the side that walked out); an engine error cancels it (no credits, not rated). Season 0's house agents play in-process (the LookaheadAgent in the agent's play style); the `AgentSeater` is the seam for network agents.
+- **Ratings: Glicko-2 per owner** (`economy/src/glicko2.ts`, schema v17: `ratings`, and `match_ratings`, write-once per match side). Start 1500 / RD 350 / volatility 0.06, tau 0.5. Every rated match is its own rating period for both sides, from their pre-match ratings; a whole Sydney day without a rated match is an empty period (RD grows by the volatility, capped at 350). Rated: win, draw, abandon (a loss for the side that abandoned). Not rated: cancel. Glickman's worked example is pinned by a test.
+- **Tiers** (proposed, owner check-in): Bronze < 1350, Silver 1350, Gold 1500, Platinum 1650, Diamond 1800, Mythic 1950+; "Placement" until 5 rated matches. The ladder list is the top 100.
+- **Matchmaking** (proposed, owner check-in; `server/src/ladder/pairing.ts`): owners who sat out pick first, then by rating; each picks the unpaired owner with the lowest |rating gap| + a rematch penalty (300 for the last opponent, 150 for the one before) + up to 75 points of seeded jitter; an odd queue sits one out; seats are a coin flip.
+- **Not built yet:** auto-play (player owners queue only while it's on, and it turns itself off once the day's rewards are maxed), the season soft reset, network agents in the ladder.
 
 ## Decks — BUILT (session 28)
 

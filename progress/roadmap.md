@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-01, game session 65 (hardening pass, plus the daily pack).
+Updated 2026-11-01, game session 66 (match running and the ladder).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -27,10 +27,14 @@ Updated 2026-11-01, game session 65 (hardening pass, plus the daily pack).
    midnight Sydney in the store, as set.
 0c. [x] Hardening pass (session 65): the eight stale economy demos re-run, two crashes fixed, all regenerated;
    the ledger paged in SQL.
-1. [ ] Match running and the ladder (6b below; next game session, 66): many matches, server-assigned opponents, results recorded,
-   Glicko-2 ratings per owner, credit payouts; agents rebuild between matches when the rebuild reasons say so
-   (`rebuildAgentDeckIfNeeded` exists, nothing calls it yet); final health passed when a match is recorded
-   (for the close-win boast).
+1. [~] Match running and the ladder (6b below). Session 66 built the core: the ladder runner
+   (`server/src/ladder/`, `npm run ladder`) pairs every owner with a connected agent by Glicko-2 rating
+   (server-assigned opponents), plays and records each match with final health (the close-win boast), the store
+   pays credits on the daily win schedule and rates both sides (schema v17); agent decks rebuild between matches
+   when the rebuild reasons say so; seat faults abandon, engine errors cancel. Evidence
+   `progress/ladder-demo-001.txt` (72 matches, 8 house owners, 3 Sydney days, a restart, the packs-to-rebuild
+   loop). Left: a long-lived scheduler paced to watch speed (with live state for Watch live), auto-play for
+   player owners, network agents in the ladder.
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
    and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
    economy endpoints (session 64). What's left waits on match running:
@@ -42,7 +46,8 @@ Updated 2026-11-01, game session 65 (hardening pass, plus the daily pack).
      (`GET /api/packs/daily`, `POST /api/packs/daily/claim`, session 65)
    - [ ] match history with replays
    - [ ] live and featured matches; the match feed and live state (Watch live, the Live match widget)
-   - [ ] ladder standings and stats
+   - [~] ladder standings and stats: `GET /api/ladder` and `GET /api/rating` (session 66); the Stats page's
+     endpoint not yet
    - [ ] notifications
    - [x] the saved board layout (session 64) and background choice (in the account settings, session 63)
    - [ ] the 2× vote (both owners agree) for live play

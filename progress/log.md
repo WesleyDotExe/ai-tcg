@@ -4179,3 +4179,42 @@ scale); the collection answer is still one response.
 **Evidence:** `progress/owner-api-demo-005-daily-pack.txt`, the regenerated `progress/economy-demo-005`..`016`.
 
 **Blocked:** nothing.
+
+## 2026-11-01 — Session 66 (match running and the ladder)
+
+**Read first:** `progress/owner-feedback.md`. One unhandled game-lane entry (answers to session 65): keep all
+3; next is session 66, match running and the ladder. Nothing to change; marked handled. The last merged PR
+(#114) was the render lane's, so this is the game lane.
+
+**Built:** Season 0 game item 1's core.
+- `economy/src/glicko2.ts`: Glicko-2 (Glickman 2013, steps 1-8, Illinois volatility), `idle` (empty periods
+  grow RD, capped at 350), `rateMatch`, `winProbability`. Schema v17: `ratings` and the write-once
+  `match_ratings` (a trigger allows a row only for a rated side of a win, draw or abandon, on its own seat).
+  `recordMatch` rates both owners from their pre-match ratings inside the match's transaction; abandon = a loss
+  for the side that walked out, cancel unrated. Store `rating` (with the empty-day RD growth on the Sydney day),
+  `ratingHistory`, `ladder`; `tierOf` and the proposed tiers/placement count in config.
+- `server/src/ladder/pairing.ts` (the matchmaker) and `ladderRunner.ts` (`Ladder.runRound`): rebuild what the
+  store says needs it, pair, play, record with final health, write the log; seat faults abandon, engine errors
+  cancel. `npm run ladder` CLI on a real file with worker-thread rebuilds. `GET /api/ladder`, `GET /api/rating`.
+
+**Ran it:** `server/src/dev/ladderDemo.ts` -> `progress/ladder-demo-001.txt`: 8 house owners (two per faction,
+six play styles), 3 Sydney days x 6 rounds = 72 matches; first builds in round 1, then each pack bought with
+earned credits triggers a rebuild the next round ("the cards held changed"), 16 rebuilds in all; a restart on
+day 2 (recent opponents read back from history); a seat's process dies on the last round -> abandoned, +0/+0,
+rating loss. Checks against the store all PASS: 72 played = 72 recorded, no self-play, every non-cancel rated,
+match credits = ledger, every rating replayed from the results alone, 72 logs on disk. 22 close wins played the
+close-win boast. Byte-identical across runs. Also ran `npm run ladder` on a fresh 4-owner file (default search,
+worker threads): 2 rounds, 4 matches, standings printed.
+
+**Found on the way:** the pairing's tie-break by owner id made the demo differ run to run (owner ids are random
+UUIDs); ties now keep the queue's order (the store's, oldest owner first). The first demo draft's broken seat
+never broke (it needed 41 moves; the match ended sooner); now 21.
+
+**Worked:** the loop closes in one process: play -> credits -> packs -> rebuild -> play. The fault paths each
+have a test (throw, illegal move, can't be seated, engine error via a mocked `runMatch`).
+**Didn't / honest limits:** no network agents on the ladder yet, no auto-play, no long-lived scheduler or watch
+speed, no log for an abandoned match; the matchmaker is tuned on 8 agents only. All in quality-debt.md.
+
+**Evidence:** `progress/ladder-demo-001.txt`. `npm test` all six workspaces pass; typecheck clean.
+
+**Blocked:** nothing. Owner check-in open (tiers, matchmaker, abandon rating, the house buying packs).

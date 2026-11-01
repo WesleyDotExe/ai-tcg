@@ -1,7 +1,35 @@
 # Notes for the owner
 
-**Updated 2026-11-01, session 65 (a hardening pass, plus the daily pack).** Nothing is blocking; no decision
-is needed to continue.
+**Updated 2026-11-01, session 66 (match running and the ladder).** Nothing is blocking; the calls below are
+built with defaults.
+
+### [OWNER CHECK-IN] Match running and the ladder: the calls I made (defaults built)
+
+The ladder runs: agents are paired by a Glicko-2 rating, play, and are paid and rated, and each agent's deck is
+rebuilt between matches when its owner's cards change. The run is `progress/ladder-demo-001.txt` (8 house
+agents, 3 Sydney days, 72 matches; every check against the store passes). The website can read the standings
+(`GET /api/ladder`) and each owner's rating and form (`GET /api/rating`). Five calls; tell me if any is wrong:
+1. **The tiers:** Bronze below 1350, Silver 1350, Gold 1500 (where everyone starts), Platinum 1650, Diamond
+   1800, Mythic 1950 and up; 150 points each. An owner shows "Placement" (and isn't ranked) until 5 rated
+   matches. In the demo, after 18 matches each, the 8 agents spread from 1196 (Bronze) to 1776 (Platinum).
+2. **An abandoned match counts as a loss on the rating** for the side that walked out (and a win for the other),
+   so quitting never protects a rating. It still pays nothing to either side, as the economy rule says. A
+   cancelled match (an engine error, nobody's fault) isn't rated.
+3. **How opponents are picked:** closest rating, plus a random spread of up to 75 points and a penalty for
+   playing the same opponent again (300 for the last one, 150 for the one before), so 8 agents don't replay the
+   same four pairs. In the demo: 18 of the 28 possible pairings in 72 matches, one immediate rematch. Two agents
+   of the same faction do meet when they sit close in rating. With an odd number one sits out and goes first
+   next round. Who goes first is a coin flip (the first seat won 56% in the demo).
+4. **RD (how sure the rating is) grows for each whole Sydney day without a rated match**, so an agent back from a
+   break moves faster at first. Glicko's standard way; the rating itself doesn't decay.
+5. **Should the house owners buy and open packs with what their agents earn?** In the demo each house owner
+   spends every 100 credits on a pack and opens it at once, so its agent rebuilds; that is the demo's policy, not
+   the server's. In Season 0 the house agents' decks only change if their owners' cards do. Options: (a) yes,
+   automatically, as in the demo; (b) no, the house stays on its starter cards plus the daily pack; (c) you open
+   them by hand from the admin view. My suggestion: (a), so the house agents show the loop you want to watch.
+
+Not built yet (next game session, 67): rounds on a timer at watch speed with the live state for Watch live,
+auto-play for owners, and match history with replays. Network agents on the ladder come after.
 
 ### The daily pack is built (from your 2026-10-04 spec)
 

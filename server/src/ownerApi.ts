@@ -23,7 +23,10 @@ import {
   CARD_SETS,
   EconomyError,
   LOADOUT_SLOTS,
+  LADDER_LIST_SIZE,
+  LADDER_TIERS,
   LOCKABLE_FACTIONS,
+  PLACEMENT_MATCHES,
   MAX_WIDGETS,
   PACK_PRICE_CREDITS,
   RECOMMENDED_LAYOUT,
@@ -300,6 +303,56 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       },
     },
     { method: "GET", path: /^\/api\/daily$/, handler: (req) => ({ body: store.dailyEarnings(ownerOf(req)) }) },
+    {
+      method: "GET",
+      path: /^\/api\/ladder$/,
+      handler: (req, _body, _params, query) => {
+        const ownerId = ownerOf(req);
+        const limit = intParam(query, "limit", LADDER_LIST_SIZE, 1, LADDER_LIST_SIZE);
+        const all = store.ladder({ limit: Number.MAX_SAFE_INTEGER });
+        const mine = all.find((r) => r.ownerId === ownerId) ?? null;
+        // The caller's own row, ranked or not (the widget's "plus you"); an
+        // owner without a rated match yet gets the same shape at the start.
+        const unrated = () => {
+          const owner = store.getOwner(ownerId);
+          const agent = owner.connectedAgentId === null ? null : store.getAgent(owner.connectedAgentId);
+          const r = store.rating(ownerId);
+          return {
+            rank: null,
+            ownerId,
+            ownerName: owner.name,
+            ownerKind: owner.kind,
+            agent: agent === null ? null : { agentId: agent.agentId, name: agent.name },
+            rating: r.rating,
+            rd: r.rd,
+            tier: r.tier,
+            ratedMatches: 0,
+            wins: 0,
+            losses: 0,
+            draws: 0,
+            lastDay: null,
+          };
+        };
+        return {
+          body: {
+            standings: all.slice(0, limit),
+            you: mine ?? unrated(),
+            owners: all.length,
+            tiers: LADDER_TIERS.map((t) => ({ tier: t.tier, from: Number.isFinite(t.from) ? t.from : null })),
+            placementMatches: PLACEMENT_MATCHES,
+          },
+        };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/rating$/,
+      handler: (req, _body, _params, query) => {
+        const ownerId = ownerOf(req);
+        const recent = intParam(query, "recent", 10, 1, 100);
+        return { body: { rating: store.rating(ownerId), recent: store.ratingHistory(ownerId, recent) } };
+      },
+    },
     {
       method: "GET",
       path: /^\/api\/ledger$/,

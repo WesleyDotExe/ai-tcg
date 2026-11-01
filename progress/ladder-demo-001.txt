@@ -1,0 +1,230 @@
+# Match running and the ladder (session 66)
+
+Eight house owners, two per faction; every deck is built by the owner's agent (search: {"games":4,"trials":8,"confirmGames":8}).
+3 Sydney days x 6 rounds; 7 minutes of clock per match. Ratings start at 1500±350.
+
+## The cast
+
+Lattice Warden      House Cortex A  starter Cortex Calculator 40 starter copies, 3 packs
+Quiet Theorem       House Cortex B  starter Cortex Controller 40 starter copies, 3 packs
+Hive Courier        House Swarm A   starter Swarm  Rusher     40 starter copies, 3 packs
+Brood Cartographer  House Swarm B   starter Swarm  Tempo      40 starter copies, 3 packs
+Chrome Bastion      House Aegis A   starter Aegis  Fortress   40 starter copies, 3 packs
+Mirror Sentry       House Aegis B   starter Aegis  Calculator 40 starter copies, 3 packs
+Static Widow        House Null A    starter Null   Gambler    40 starter copies, 3 packs
+Dead Channel        House Null B    starter Null   Tempo      40 starter copies, 3 packs
+
+## The run
+
+Before round 1 each house owner opens its 3 starter packs:
+  Chrome Bastion      opened 3 packs: 15 cards, 10 new to the collection
+  Mirror Sentry       opened 3 packs: 15 cards, 12 new to the collection
+  Lattice Warden      opened 3 packs: 15 cards, 11 new to the collection
+  Quiet Theorem       opened 3 packs: 15 cards, 9 new to the collection
+  Static Widow        opened 3 packs: 15 cards, 9 new to the collection
+  Dead Channel        opened 3 packs: 15 cards, 8 new to the collection
+  Hive Courier        opened 3 packs: 15 cards, 11 new to the collection
+  Brood Cartographer  opened 3 packs: 15 cards, 14 new to the collection
+
+### Day 1, round 1 (from Mon, 2 Nov, 09:00 Sydney)
+  rebuilt Chrome Bastion's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
+  rebuilt Mirror Sentry's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
+  rebuilt Lattice Warden's deck: Cortex, 40 cards (the agent hasn't built a deck yet)
+  rebuilt Quiet Theorem's deck: Cortex, 40 cards (the agent hasn't built a deck yet)
+  rebuilt Static Widow's deck: Null, 40 cards (the agent hasn't built a deck yet)
+  rebuilt Dead Channel's deck: Null, 40 cards (the agent hasn't built a deck yet)
+  rebuilt Hive Courier's deck: Swarm, 40 cards (the agent hasn't built a deck yet)
+  rebuilt Brood Cartographer's deck: Swarm, 40 cards (the agent hasn't built a deck yet)
+  s0-001 T20 Lattice Warden [1500±350 -> 1338] vs Chrome Bastion [1500±350 -> 1662] p(p1)=0.50: Chrome Bastion wins, +2/+30 boast:boast
+  s0-002 T13 Mirror Sentry [1500±350 -> 1662] vs Static Widow [1500±350 -> 1338] p(p1)=0.50: Mirror Sentry wins, +30/+2 boast:boast
+  s0-003 T15 Quiet Theorem [1500±350 -> 1662] vs Hive Courier [1500±350 -> 1338] p(p1)=0.50: Quiet Theorem wins, +30/+2 boast:closeWinBoast
+  s0-004 T11 Dead Channel [1500±350 -> 1662] vs Brood Cartographer [1500±350 -> 1338] p(p1)=0.50: Dead Channel wins, +30/+2 boast:boast
+
+### Day 1, round 2 (from Mon, 2 Nov, 09:28 Sydney)
+  s0-005 T13 Quiet Theorem [1662±290 -> 1792] vs Chrome Bastion [1662±290 -> 1533] p(p1)=0.50: Quiet Theorem wins, +10/+2 boast:boast
+  s0-006 T15 Dead Channel [1662±290 -> 1792] vs Mirror Sentry [1662±290 -> 1533] p(p1)=0.50: Dead Channel wins, +10/+2 boast:boast
+  s0-007 T13 Static Widow [1338±290 -> 1467] vs Lattice Warden [1338±290 -> 1208] p(p1)=0.50: Static Widow wins, +30/+2 boast:boast
+  s0-008 T10 Hive Courier [1338±290 -> 1208] vs Brood Cartographer [1338±290 -> 1467] p(p1)=0.50: Brood Cartographer wins, +2/+30 boast:closeWinBoast
+
+### Day 1, round 3 (from Mon, 2 Nov, 09:56 Sydney)
+  s0-009 T18 Quiet Theorem [1792±247 -> 1686] vs Dead Channel [1792±247 -> 1898] p(p1)=0.50: Dead Channel wins, +2/+10 boast:boast
+  s0-010 T14 Chrome Bastion [1533±247 -> 1427] vs Mirror Sentry [1533±247 -> 1638] p(p1)=0.50: Mirror Sentry wins, +2/+10 boast:boast
+  s0-011 T17 Brood Cartographer [1467±247 -> 1573] vs Static Widow [1467±247 -> 1362] p(p1)=0.50: Brood Cartographer wins, +10/+2 boast:closeWinBoast
+  s0-012 T11 Lattice Warden [1208±247 -> 1314] vs Hive Courier [1208±247 -> 1102] p(p1)=0.50: Lattice Warden wins, +30/+2 boast:boast
+
+### Day 1, round 4 (from Mon, 2 Nov, 10:24 Sydney)
+  s0-013 T12 Dead Channel [1898±216 -> 1739] vs Brood Cartographer [1573±216 -> 1732] p(p1)=0.79: Brood Cartographer wins, +2/+10 boast:closeWinBoast
+  s0-014 T20 Mirror Sentry [1638±216 -> 1560] vs Quiet Theorem [1686±216 -> 1764] p(p1)=0.45: Quiet Theorem wins, +2/+10 boast:boast
+  s0-015 T19 Static Widow [1362±216 -> 1464] vs Chrome Bastion [1427±216 -> 1325] p(p1)=0.43: Static Widow wins, +10/+2 boast:boast
+  s0-016 T12 Lattice Warden [1314±216 -> 1179] vs Hive Courier [1102±216 -> 1237] p(p1)=0.71: Hive Courier wins, +2/+30 boast:closeWinBoast
+
+### Day 1, round 5 (from Mon, 2 Nov, 10:52 Sydney)
+  s0-017 T16 Quiet Theorem [1764±193 -> 1684] vs Brood Cartographer [1732±201 -> 1818] p(p1)=0.54: Brood Cartographer wins, +2/+10 boast:closeWinBoast
+  s0-018 T13 Mirror Sentry [1560±193 -> 1668] vs Dead Channel [1739±201 -> 1622] p(p1)=0.32: Mirror Sentry wins, +10/+2 boast:boast
+  s0-019 T13 Hive Courier [1237±197 -> 1359] vs Static Widow [1464±193 -> 1346] p(p1)=0.27: Hive Courier wins, +10/+2 boast:closeWinBoast
+  s0-020 T16 Lattice Warden [1179±197 -> 1127] vs Chrome Bastion [1325±193 -> 1375] p(p1)=0.35: Chrome Bastion wins, +2/+10 boast:boast
+
+### Day 1, round 6 (from Mon, 2 Nov, 11:20 Sydney)
+  s0-021 T14 Mirror Sentry [1668±177 -> 1625] vs Brood Cartographer [1818±181 -> 1863] p(p1)=0.34: Brood Cartographer wins, +2/+5 boast:boast
+  s0-022 T14 Quiet Theorem [1684±175 -> 1610] vs Dead Channel [1622±184 -> 1703] p(p1)=0.57: Dead Channel wins, +2/+10 boast:boast
+  s0-023 T16 Hive Courier [1359±182 -> 1293] vs Chrome Bastion [1375±177 -> 1438] p(p1)=0.48: Chrome Bastion wins, +2/+10 boast:boast
+  s0-024 T18 Static Widow [1346±179 -> 1242] vs Lattice Warden [1127±179 -> 1232] p(p1)=0.73: Lattice Warden wins, +2/+10 boast:closeWinBoast
+
+## Standings after day 1
+
+rank  agent               faction rating  RD   tier       W-L-D   credits  today (Sydney day)
+   1  Brood Cartographer  Swarm     1863  167  Diamond    5-1-0        67  5 wins, 1 losses, +67
+   2  Dead Channel        Null      1703  167  Platinum   4-2-0        64  4 wins, 2 losses, +64
+   3  Mirror Sentry       Aegis     1625  164  Gold       3-3-0        56  3 wins, 3 losses, +56
+   4  Quiet Theorem       Cortex    1610  161  Gold       3-3-0        56  3 wins, 3 losses, +56
+   5  Chrome Bastion      Aegis     1438  162  Silver     3-3-0        56  3 wins, 3 losses, +56
+   6  Hive Courier        Swarm     1293  166  Bronze     2-4-0        48  2 wins, 4 losses, +48
+   7  Static Widow        Null      1242  167  Bronze     2-4-0        48  2 wins, 4 losses, +48
+   8  Lattice Warden      Cortex    1232  168  Bronze     2-4-0        48  2 wins, 4 losses, +48
+
+[next day: Tue, 3 Nov, 09:00 Sydney]
+
+### Day 2, round 1 (from Tue, 3 Nov, 09:00 Sydney)
+  s0-025 T12 Dead Channel [1703±167 -> 1665] vs Brood Cartographer [1863±167 -> 1901] p(p1)=0.32: Brood Cartographer wins, +2/+30 boast:boast
+  s0-026 T20 Quiet Theorem [1610±161 -> 1555] vs Mirror Sentry [1625±164 -> 1681] p(p1)=0.48: Mirror Sentry wins, +2/+30 boast:boast
+  s0-027 T17 Chrome Bastion [1438±162 -> 1470] vs Static Widow [1242±167 -> 1208] p(p1)=0.71: Chrome Bastion wins, +30/+2 boast:boast
+  s0-028 T11 Hive Courier [1293±166 -> 1344] vs Lattice Warden [1232±168 -> 1181] p(p1)=0.57: Hive Courier wins, +30/+2 boast:boast
+
+### Day 2, round 2 (from Tue, 3 Nov, 09:28 Sydney)
+  s0-029 T11 Brood Cartographer [1901±156 -> 1917] vs Quiet Theorem [1555±149 -> 1540] p(p1)=0.84: Brood Cartographer wins, +10/+2 boast:boast
+  s0-030 T13 Mirror Sentry [1681±152 -> 1731] vs Dead Channel [1665±156 -> 1613] p(p1)=0.52: Mirror Sentry wins, +10/+2 boast:boast
+  s0-031 T11 Hive Courier [1344±153 -> 1414] vs Chrome Bastion [1470±152 -> 1400] p(p1)=0.35: Hive Courier wins, +10/+2 boast:boast
+  s0-032 T16 Lattice Warden [1181±155 -> 1131] vs Static Widow [1208±156 -> 1259] p(p1)=0.47: Static Widow wins, +2/+30 boast:boast
+  after the round:
+  Brood Cartographer  bought 1, opened 1 pack: 5 cards, 2 new to the collection
+
+### Day 2, round 3 (from Tue, 3 Nov, 09:56 Sydney)
+  rebuilt Brood Cartographer's deck: Swarm, 40 cards (the cards held changed)
+  s0-033 T15 Brood Cartographer [1917±150 -> 1946] vs Mirror Sentry [1731±142 -> 1705] p(p1)=0.71: Brood Cartographer wins, +10/+2 boast:closeWinBoast
+  s0-034 T11 Quiet Theorem [1540±144 -> 1597] vs Dead Channel [1613±145 -> 1555] p(p1)=0.41: Quiet Theorem wins, +30/+2 boast:boast
+  s0-035 T11 Hive Courier [1414±144 -> 1444] vs Static Widow [1259±145 -> 1228] p(p1)=0.68: Hive Courier wins, +10/+2 boast:boast
+  s0-036 T11 Lattice Warden [1131±144 -> 1212] vs Chrome Bastion [1400±143 -> 1321] p(p1)=0.21: Lattice Warden wins, +30/+2 boast:boast
+
+[restart: the ladder and the store are closed and reopened on the same file]
+
+### Day 2, round 4 (from Tue, 3 Nov, 10:24 Sydney)
+  s0-037 T16 Dead Channel [1555±136 -> 1545] vs Brood Cartographer [1946±142 -> 1958] p(p1)=0.13: Brood Cartographer wins, +2/+10 boast:closeWinBoast
+  s0-038 T13 Quiet Theorem [1597±136 -> 1653] vs Mirror Sentry [1705±135 -> 1650] p(p1)=0.37: Quiet Theorem wins, +10/+2 boast:closeWinBoast
+  s0-039 T14 Hive Courier [1444±136 -> 1374] vs Lattice Warden [1212±138 -> 1283] p(p1)=0.76: Lattice Warden wins, +2/+10 boast:closeWinBoast
+  s0-040 T13 Static Widow [1228±137 -> 1284] vs Chrome Bastion [1321±137 -> 1266] p(p1)=0.39: Static Widow wins, +10/+2 boast:boast
+  after the round:
+  Mirror Sentry       bought 1, opened 1 pack: 5 cards, 1 new to the collection
+  Quiet Theorem       bought 1, opened 1 pack: 5 cards, 4 new to the collection
+  Hive Courier        bought 1, opened 1 pack: 5 cards, 3 new to the collection
+
+### Day 2, round 5 (from Tue, 3 Nov, 10:52 Sydney)
+  rebuilt Mirror Sentry's deck: Aegis, 40 cards (the cards held changed)
+  rebuilt Quiet Theorem's deck: Cortex, 40 cards (the cards held changed)
+  rebuilt Hive Courier's deck: Swarm, 40 cards (the cards held changed)
+  s0-041 T14 Brood Cartographer [1958±138 -> 1878] vs Quiet Theorem [1653±129 -> 1722] p(p1)=0.82: Quiet Theorem wins, +2/+10 boast:closeWinBoast
+  s0-042 T17 Dead Channel [1545±133 -> 1599] vs Mirror Sentry [1650±128 -> 1600] p(p1)=0.37: Dead Channel wins, +30/+2 boast:boast
+  s0-043 T16 Hive Courier [1374±131 -> 1322] vs Chrome Bastion [1266±130 -> 1318] p(p1)=0.63: Chrome Bastion wins, +2/+10 boast:boast
+  s0-044 T13 Lattice Warden [1283±133 -> 1325] vs Static Widow [1284±130 -> 1243] p(p1)=0.50: Lattice Warden wins, +10/+2 boast:boast
+  after the round:
+  Chrome Bastion      bought 1, opened 1 pack: 5 cards, 5 new to the collection
+  Lattice Warden      bought 1, opened 1 pack: 5 cards, 4 new to the collection
+  Dead Channel        bought 1, opened 1 pack: 5 cards, 3 new to the collection
+
+### Day 2, round 6 (from Tue, 3 Nov, 11:20 Sydney)
+  rebuilt Chrome Bastion's deck: Aegis, 40 cards (the cards held changed)
+  rebuilt Lattice Warden's deck: Cortex, 40 cards (the cards held changed)
+  rebuilt Dead Channel's deck: Null, 40 cards (the cards held changed)
+  s0-045 T18 Brood Cartographer [1878±134 -> 1805] vs Mirror Sentry [1600±122 -> 1660] p(p1)=0.80: Mirror Sentry wins, +2/+10 boast:closeWinBoast
+  s0-046 T23 Quiet Theorem [1722±125 -> 1748] vs Dead Channel [1599±126 -> 1572] p(p1)=0.65: Quiet Theorem wins, +10/+2 boast:boast
+  s0-047 T13 Chrome Bastion [1318±124 -> 1356] vs Lattice Warden [1325±125 -> 1286] p(p1)=0.49: Chrome Bastion wins, +10/+2 boast:boast
+  s0-048 T11 Hive Courier [1322±124 -> 1351] vs Static Widow [1243±123 -> 1214] p(p1)=0.60: Hive Courier wins, +10/+2 boast:boast
+
+## Standings after day 2
+
+rank  agent               faction rating  RD   tier       W-L-D   credits  today (Sydney day)
+   1  Brood Cartographer  Swarm     1805  129  Diamond    9-3-0        31  4 wins, 2 losses, +64
+   2  Quiet Theorem       Cortex    1748  120  Platinum   7-5-0        20  4 wins, 2 losses, +64
+   3  Mirror Sentry       Aegis     1660  119  Platinum   6-6-0        12  3 wins, 3 losses, +56
+   4  Dead Channel        Null      1572  121  Gold       5-7-0         4  1 wins, 5 losses, +40
+   5  Chrome Bastion      Aegis     1356  118  Silver     6-6-0        12  3 wins, 3 losses, +56
+   6  Hive Courier        Swarm     1351  119  Silver     6-6-0        12  4 wins, 2 losses, +64
+   7  Lattice Warden      Cortex    1286  119  Bronze     5-7-0         4  3 wins, 3 losses, +56
+   8  Static Widow        Null      1214  118  Bronze     4-8-0        96  2 wins, 4 losses, +48
+
+[next day: Wed, 4 Nov, 09:00 Sydney]
+
+### Day 3, round 1 (from Wed, 4 Nov, 09:00 Sydney)
+  s0-049 T17 Quiet Theorem [1748±120 -> 1788] vs Brood Cartographer [1805±129 -> 1758] p(p1)=0.43: Quiet Theorem wins, +30/+2 boast:boast
+  s0-050 T13 Mirror Sentry [1660±119 -> 1687] vs Dead Channel [1572±121 -> 1545] p(p1)=0.61: Mirror Sentry wins, +30/+2 boast:boast
+  s0-051 T16 Chrome Bastion [1356±118 -> 1308] vs Static Widow [1214±118 -> 1261] p(p1)=0.67: Static Widow wins, +2/+30 boast:boast
+  s0-052 T13 Lattice Warden [1286±119 -> 1328] vs Hive Courier [1351±119 -> 1311] p(p1)=0.42: Lattice Warden wins, +30/+2 boast:closeWinBoast
+  after the round:
+  Static Widow        bought 1, opened 1 pack: 5 cards, 3 new to the collection
+
+### Day 3, round 2 (from Wed, 4 Nov, 09:28 Sydney)
+  rebuilt Static Widow's deck: Null, 40 cards (the cards held changed)
+  s0-053 T15 Mirror Sentry [1687±114 -> 1728] vs Quiet Theorem [1788±114 -> 1746] p(p1)=0.37: Mirror Sentry wins, +10/+2 boast:boast
+  s0-054 T12 Dead Channel [1545±115 -> 1528] vs Brood Cartographer [1758±123 -> 1776] p(p1)=0.25: Brood Cartographer wins, +2/+30 boast:boast
+  s0-055 T15 Static Widow [1261±113 -> 1299] vs Lattice Warden [1328±114 -> 1289] p(p1)=0.42: Static Widow wins, +10/+2 boast:boast
+  s0-056 T19 Chrome Bastion [1308±113 -> 1341] vs Hive Courier [1311±114 -> 1278] p(p1)=0.50: Chrome Bastion wins, +30/+2 boast:boast
+
+### Day 3, round 3 (from Wed, 4 Nov, 09:56 Sydney)
+  s0-057 T16 Mirror Sentry [1728±109 -> 1702] vs Brood Cartographer [1776±118 -> 1806] p(p1)=0.44: Brood Cartographer wins, +2/+10 boast:closeWinBoast
+  s0-058 T13 Dead Channel [1528±112 -> 1578] vs Quiet Theorem [1746±110 -> 1699] p(p1)=0.25: Dead Channel wins, +30/+2 boast:closeWinBoast
+  s0-059 T16 Lattice Warden [1289±110 -> 1263] vs Chrome Bastion [1341±109 -> 1366] p(p1)=0.43: Chrome Bastion wins, +2/+10 boast:boast
+  s0-060 T15 Static Widow [1299±109 -> 1327] vs Hive Courier [1278±109 -> 1250] p(p1)=0.53: Static Widow wins, +10/+2 boast:closeWinBoast
+
+### Day 3, round 4 (from Wed, 4 Nov, 10:24 Sydney)
+  s0-061 T16 Brood Cartographer [1806±113 -> 1765] vs Quiet Theorem [1699±107 -> 1736] p(p1)=0.64: Quiet Theorem wins, +2/+10 boast:closeWinBoast
+  s0-062 T16 Dead Channel [1578±109 -> 1557] vs Mirror Sentry [1702±105 -> 1721] p(p1)=0.34: Mirror Sentry wins, +2/+10 boast:boast
+  s0-063 T13 Chrome Bastion [1366±105 -> 1391] vs Static Widow [1327±105 -> 1302] p(p1)=0.55: Chrome Bastion wins, +10/+2 boast:boast
+  s0-064 T14 Lattice Warden [1263±105 -> 1234] vs Hive Courier [1250±105 -> 1279] p(p1)=0.52: Hive Courier wins, +2/+30 boast:closeWinBoast
+
+### Day 3, round 5 (from Wed, 4 Nov, 10:52 Sydney)
+  s0-065 T13 Brood Cartographer [1765±109 -> 1780] vs Dead Channel [1557±105 -> 1543] p(p1)=0.75: Brood Cartographer wins, +10/+2 boast:boast
+  s0-066 T18 Quiet Theorem [1736±104 -> 1707] vs Mirror Sentry [1721±102 -> 1749] p(p1)=0.52: Mirror Sentry wins, +2/+10 boast:boast
+  s0-067 T12 Chrome Bastion [1391±101 -> 1357] vs Hive Courier [1279±101 -> 1314] p(p1)=0.64: Hive Courier wins, +2/+10 boast:closeWinBoast
+  s0-068 T11 Static Widow [1302±101 -> 1324] vs Lattice Warden [1234±102 -> 1212] p(p1)=0.59: Static Widow wins, +10/+2 boast:boast
+
+### Day 3, round 6 (from Wed, 4 Nov, 11:20 Sydney)
+  s0-069 Brood Cartographer [1780±106 -> 1749] vs Mirror Sentry [1749±99 -> 1776] p(p1)=0.54: abandoned by Brood Cartographer, +0/+0
+    note: Brood Cartographer gave no move: connection to the agent's process lost
+  s0-070 T27 Quiet Theorem [1707±100 -> 1723] vs Dead Channel [1543±103 -> 1528] p(p1)=0.70: Quiet Theorem wins, +10/+2 boast:boast
+  s0-071 T13 Chrome Bastion [1357±98 -> 1373] vs Lattice Warden [1212±99 -> 1196] p(p1)=0.68: Chrome Bastion wins, +10/+2 boast:boast
+  s0-072 T12 Static Widow [1324±98 -> 1298] vs Hive Courier [1314±98 -> 1339] p(p1)=0.51: Hive Courier wins, +2/+10 boast:closeWinBoast
+
+## Standings after day 3
+
+rank  agent               faction rating  RD   tier       W-L-D   credits  today (Sydney day)
+   1  Mirror Sentry       Aegis     1776   96  Platinum   11-7-0       74  4 wins, 1 losses, +62
+   2  Brood Cartographer  Swarm     1749  102  Platinum   12-6-0       85  3 wins, 2 losses, +54
+   3  Quiet Theorem       Cortex    1723   98  Platinum   10-8-0       76  3 wins, 3 losses, +56
+   4  Dead Channel        Null      1528  100  Gold       6-12-0       44  1 wins, 5 losses, +40
+   5  Chrome Bastion      Aegis     1373   96  Silver     10-8-0       76  4 wins, 2 losses, +64
+   6  Hive Courier        Swarm     1339   95  Bronze     9-9-0        68  3 wins, 3 losses, +56
+   7  Static Widow        Null      1298   95  Bronze     8-10-0       60  4 wins, 2 losses, +64
+   8  Lattice Warden      Cortex    1196   96  Bronze     6-12-0       44  1 wins, 5 losses, +40
+
+## Checks against the store
+
+PASS  72 matches played, 72 recorded
+PASS  no owner ever met itself
+PASS  every match but cancels is rated (72 rated, 0 cancelled)
+PASS  each owner's match credits equal its ledger's match payouts
+PASS  the abandoned match (1) paid nothing to either side
+PASS  ratings replayed from the results alone match every stored after-rating
+PASS  every owner's stored rating is its last replayed one
+PASS  a match log on disk for every played match (71)
+PASS  everyone placed (5+ rated matches)
+PASS  no one is in a live match at the end
+
+## The run in numbers
+
+matches: 72; turns: median 14, range 10-27
+first seat won 40 of 71 decided
+close wins (winner on 5 health or less): 22
+close-win boasts: 22; main boasts: 49; faction starter: 0
+win rate by the faction each side's agent built (a small sample, not a balance measure): Cortex 16/36, Aegis 20/35, Null 14/36, Swarm 21/35
+distinct pairings: 18 of 28 possible; most played: Chrome Bastion v Lattice Warden x6, Brood Cartographer v Dead Channel x6, Dead Channel v Mirror Sentry x6
+immediate rematches (both sides' previous match was against each other): 1
+one match's log, as written for replays: s0-001.txt, on disk
