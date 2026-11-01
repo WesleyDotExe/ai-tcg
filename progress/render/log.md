@@ -4395,8 +4395,14 @@ this session.
 
 **Ran it:** `progress/render/evidence/site-check-s48.mjs` -> `site-check-s48.txt`: 40 browser checks
 against the real owner API, ALL PASS. Stills `v2-s48-col-*.jpg` (the binder, Missing, Secrets, the viewer,
-crafted, the salvage confirm, narrow, dark). Re-run on this branch: session 47's Store check and session
-46's board check (results below).
+crafted, the salvage confirm, narrow, dark). Re-run on this branch (with the demo's saved deck): session 47's
+Store check, 50 ALL PASS; session 46's board check, 38 ALL PASS. `npm test -w @ai-tcg/render`: 779 pass;
+typecheck clean.
+
+**Mutants:** craft allowed at the playable limit; a Glitch place counting every copy of its card; the
+base place showing a secret copy's finish; the face CSS cut dropping rules with several selectors; salvage's
+409 read without its needsConfirmation flag: each fails a test (the second and fifth only after this
+session tightened the tests).
 
 **Found on the way (fixed):** the ×N count sat on the card's cost gem (moved to the bottom corner). The
 demo had no saved deck a salvage could leave short (the agent's deck uses the starter's bound copies), so

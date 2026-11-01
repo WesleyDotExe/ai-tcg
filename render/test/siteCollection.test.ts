@@ -86,6 +86,8 @@ describe("the binder's slots", () => {
       expect(s.finish === null).toBe(s.owned === 0);
     }
     expect(base!.held).toBe(b.base.held);
+    // Every place on every tab: its count is its own copies (a Glitch place counts only Glitch copies, ...).
+    for (const s of allSlots(b, c)) expect(s.owned, s.key).toBe(copiesOfSlot(s, copiesByCard(c)).length);
   });
   it("the faction filter keeps the engine's faction; Owned and Missing split the places", () => {
     for (const faction of ["Cortex", "Aegis", "Swarm", "Null", "Neutral"] as const) {
@@ -352,6 +354,7 @@ describe("the collection, through the API client, over the real owner API", () =
     expect((await t.client.cardHoldings(t.token, swapped)).owned).toBe(h.owned);
     // Another refusal isn't read as one.
     expect(salvageNeedsConfirmation(new SiteApiError(409, "x", { error: "x" }))).toBe(null);
+    expect(salvageNeedsConfirmation(new SiteApiError(409, "x", { error: "x", affectedDecks: [] }))).toBe(null);
     const before = t.store.wallet(t.ownerId).packPoints;
     const r = await t.client.salvage(t.token, swapped, q, true);
     expect(r.packPoints).toBe(q * h.packPointsEach);
