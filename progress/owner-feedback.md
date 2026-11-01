@@ -3801,7 +3801,7 @@ Then Season 0 game item 1 (match running and the ladder), then the rest of the e
 
 ---
 
-## 2026-11-01 — Owner: answers to render session 45 (the look), keep all 6; board-layout endpoint before match running
+## 2026-11-01 — Owner: answers to render session 45 (the look), keep all 6; board-layout endpoint before match running (game-lane part HANDLED 2026-11-01, session 64 — built with the entry below: `GET`/`PUT /api/board`, schema v16, in `server/OWNER_API.md`; calls 1-6 are the render lane's)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #110).
 1. **Keep:** on a slow machine the liquid lowers its own resolution (0.3 -> 0.2 -> 0.14 under 20 fps).
@@ -3818,7 +3818,7 @@ Next render-lane slice, as planned: Season 0 render item 3, Home as the widget b
 
 ---
 
-## 2026-11-01 — Owner: the economy endpoints come with the board layout, before match running (extends the entry above)
+## 2026-11-01 — Owner: the economy endpoints come with the board layout, before match running (extends the entry above) (HANDLED 2026-11-01, session 64 — all five built in one session, tested and written into `server/OWNER_API.md`: 1. the saved board, `GET`/`PUT /api/board` (schema v16; the 12 Season 0 widgets, S/M/L, Watch live twice, Tournament and the pull feed refused as after Season 0; the recommended layout gives the Tournament slot to Store); 2. the collection (`GET /api/collection`: every copy with finish, origin and bound, counts per card, each set's completion incl. secrets, Glitch, Gold and Prototype runs, the recent pulls), the binder, the card viewer, salvage (plan, then do it; 409 with the decks it would leave short until confirmed) and crafting (cards and secrets), plus the ledger; 3. packs: `GET /api/packs`, buying 1-10 at once (all or none), opening one, a chosen one, or ten, with NEW, "x N owned", pity and pack points as `openPack` gives them; 4. the store and cosmetics (`GET /api/store`, buying a cosmetic, the owned cosmetics) and each agent's loadout, read and set; 5. today's earnings, `GET /api/daily`. For 5 the store's day moved from UTC to midnight Sydney, as you set it on 2026-11-01 (it was still UTC). Evidence `progress/owner-api-demo-004-economy.txt`. The Season 0 checklist updated; match running is next)
 
 To keep the render lane unblocked for its next slices, the game lane's next session builds **all of these endpoints together with the saved board layout**, before match running and the ladder. The economy behind each already exists, so this is wiring: write each into `server/OWNER_API.md` with tests, as session 63 did.
 1. **Saved board layout** (from the entry above).

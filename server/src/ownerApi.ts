@@ -5,7 +5,10 @@
 // deck wants a rebuild, and "rebuild now". Plain HTTP + JSON on node:http,
 // signed in with a Season 0 session token (`Authorization: Bearer <token>`).
 // Session 63 added what the website's shell waits on (owner 2026-11-01):
-// who am I, the account settings, and the wallet.
+// who am I, the account settings, and the wallet. Session 64 added the saved
+// Home board and the economy endpoints (owner 2026-11-01): the collection
+// and binder, salvage and crafting, the ledger, buying and opening packs,
+// the store and cosmetics, loadouts, and today's earnings.
 // Every rule stays in the store (`@ai-tcg/economy`); this layer reads the
 // request, checks the caller may touch what it names, calls the store and
 // answers. The endpoint list and error codes are in server/OWNER_API.md.
@@ -15,12 +18,26 @@ import type { AddressInfo } from "node:net";
 import { PLAY_STYLES, type DeckBuildOptions, type DeckFaction } from "@ai-tcg/engine";
 import {
   accountSettingsProblem,
+  boardLayoutProblem,
+  BULK_OPEN_COUNT,
+  CARD_SETS,
   EconomyError,
+  LOADOUT_SLOTS,
   LOCKABLE_FACTIONS,
+  MAX_WIDGETS,
+  PACK_PRICE_CREDITS,
+  RECOMMENDED_LAYOUT,
+  SalvageNeedsConfirmation,
+  SLOT_KIND,
+  WIDGET_LIMITS,
+  WIDGET_SIZES,
+  WIDGET_TYPES,
   type AccountSettingsPatch,
   type DeckChooser,
   type DeckStatus,
   type EconomyStore,
+  type LoadoutSlot,
+  type Widget,
 } from "@ai-tcg/economy";
 
 /** The longest request body read (the API's bodies are a few fields). */
@@ -36,6 +53,10 @@ export interface OwnerApiOptions {
   /** What plays the build's games. The server passes its worker-thread
    * chooser; left out, the engine's `chooseDeck` runs on this thread. */
   chooser?: DeckChooser;
+  /** Each pack opened over the API draws its seed from here. For the demo
+   * and tests only (a reproducible run); left out, the store draws a fresh
+   * random seed per pack, as it must in play. */
+  packSeed?: () => number;
 }
 
 export type RebuildState = "running" | "done" | "failed";
@@ -80,12 +101,19 @@ class HttpError extends Error {
 }
 
 /** How a store refusal reads over HTTP: signing in and being signed in are
- * 401 (429 while locked out), everything else the store refuses is 409. */
+ * 401 (429 while locked out); naming a card, set, cosmetic, secret card or
+ * loadout slot that doesn't exist is 404; everything else the store refuses
+ * is 409. */
 function statusOf(err: EconomyError): number {
   if (/^not signed in$|^wrong login or password$/.test(err.message)) return 401;
   if (/^too many failed sign-ins/.test(err.message)) return 429;
+  if (/^no ownable card with id |^no card set "|^no cosmetic "|^no secret card "|^no loadout slot "/.test(err.message)) return 404;
   return 409;
 }
+
+/** The longest ledger page, and the default. */
+const LEDGER_PAGE_MAX = 500;
+const LEDGER_PAGE_DEFAULT = 50;
 
 export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi> {
   const { store } = options;
@@ -174,7 +202,55 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
     return job;
   };
 
-  type Handler = (req: IncomingMessage, body: Record<string, unknown>, params: string[]) => { status?: number; body?: unknown };
+  /** The board's rules, sent with it so the page and the store agree. */
+  const boardRules = {
+    widgetTypes: WIDGET_TYPES.map((type) => ({ type, limit: WIDGET_LIMITS[type] })),
+    sizes: [...WIDGET_SIZES],
+    maxWidgets: MAX_WIDGETS,
+    recommendedWidgets: RECOMMENDED_LAYOUT.map((w) => ({ ...w })),
+  };
+  const board = (ownerId: string) => ({ ...store.boardLayout(ownerId), rules: boardRules });
+
+  /** What packs the store sells: every set, at the one price. */
+  const packOffer = () => [...CARD_SETS.values()].map((set) => ({ setCode: set.code, name: set.name, priceCredits: PACK_PRICE_CREDITS }));
+
+  const packs = (ownerId: string) => ({
+    offer: packOffer(),
+    bulkOpenCount: BULK_OPEN_COUNT,
+    unopened: store.unopenedPacks(ownerId),
+    pity: store.pityStatus(ownerId),
+    wallet: store.wallet(ownerId),
+  });
+
+  /** One of the caller's agents, or 404 (another owner's reads as missing). */
+  const ownAgent = (ownerId: string, agentId: string) => {
+    if (!store.listAgents(ownerId).some((a) => a.agentId === agentId)) throw new HttpError(404, `no agent "${agentId}"`);
+  };
+
+  /** The loadout picker's data for one agent: what is equipped in each
+   * slot, and the owned items that fit it. */
+  const loadoutOf = (ownerId: string, agentId: string) => {
+    const owned = store.ownedCosmetics(ownerId);
+    const loadout = store.loadout(agentId);
+    return {
+      agentId,
+      loadout,
+      slots: LOADOUT_SLOTS.map((slot) => ({
+        slot,
+        kind: SLOT_KIND[slot],
+        itemId: loadout[slot],
+        choices: owned.filter((c) => c.kind === SLOT_KIND[slot]).map((c) => c.itemId),
+      })),
+      locked: store.liveMatchOf(ownerId) !== null,
+    };
+  };
+
+  type Handler = (
+    req: IncomingMessage,
+    body: Record<string, unknown>,
+    params: string[],
+    query: URLSearchParams,
+  ) => { status?: number; body?: unknown };
   const routes: { method: string; path: RegExp; handler: Handler }[] = [
     {
       method: "POST",
@@ -210,6 +286,178 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       },
     },
     { method: "GET", path: /^\/api\/wallet$/, handler: (req) => ({ body: store.wallet(ownerOf(req)) }) },
+    { method: "GET", path: /^\/api\/board$/, handler: (req) => ({ body: board(ownerOf(req)) }) },
+    {
+      method: "PUT",
+      path: /^\/api\/board$/,
+      handler: (req, body) => {
+        const ownerId = ownerOf(req);
+        const problem = boardLayoutProblem(body);
+        if (problem) throw new HttpError(400, problem);
+        store.saveBoardLayout(ownerId, body as { widgets: Widget[] });
+        return { body: board(ownerId) };
+      },
+    },
+    { method: "GET", path: /^\/api\/daily$/, handler: (req) => ({ body: store.dailyEarnings(ownerOf(req)) }) },
+    {
+      method: "GET",
+      path: /^\/api\/ledger$/,
+      handler: (req, _body, _params, query) => {
+        const ownerId = ownerOf(req);
+        const limit = intParam(query, "limit", LEDGER_PAGE_DEFAULT, 1, LEDGER_PAGE_MAX);
+        const all = store.ledger(ownerId);
+        // Newest first; `before` pages back from an entry id.
+        const before = query.has("before") ? intParam(query, "before", 0, 1, Number.MAX_SAFE_INTEGER) : null;
+        const older = all.filter((e) => before === null || e.entryId < before).reverse();
+        return { body: { entries: older.slice(0, limit), more: older.length > limit, wallet: store.wallet(ownerId) } };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/collection$/,
+      handler: (req, _body, _params, query) =>
+        ({ body: store.collectionSummary(ownerOf(req), { recentPacks: intParam(query, "recentPacks", 3, 1, 50) }) }),
+    },
+    {
+      method: "GET",
+      path: /^\/api\/collection\/binder\/([^/]+)$/,
+      handler: (req, _body, [setCode]) => ({ body: store.binder(ownerOf(req), setCode!) }),
+    },
+    {
+      method: "GET",
+      path: /^\/api\/collection\/cards\/([^/]+)$/,
+      handler: (req, _body, [cardId]) => ({ body: store.cardHoldings(ownerOf(req), cardId!) }),
+    },
+    {
+      method: "GET",
+      path: /^\/api\/collection\/cards\/([^/]+)\/salvage$/,
+      handler: (req, _body, [cardId], query) => {
+        const ownerId = ownerOf(req);
+        if (!query.has("quantity")) throw new HttpError(400, `"quantity" is required (?quantity=N)`);
+        return { body: store.salvagePlan(ownerId, cardId!, intParam(query, "quantity", 1, 1, Number.MAX_SAFE_INTEGER)) };
+      },
+    },
+    {
+      method: "POST",
+      path: /^\/api\/collection\/cards\/([^/]+)\/salvage$/,
+      handler: (req, body, [cardId]) => {
+        const ownerId = ownerOf(req);
+        const quantity = body.quantity;
+        if (!Number.isInteger(quantity) || (quantity as number) < 1) throw new HttpError(400, `"quantity" must be a whole number of at least 1`);
+        if ("confirmDeckImpact" in body && typeof body.confirmDeckImpact !== "boolean") throw new HttpError(400, `"confirmDeckImpact" must be true or false`);
+        const result = store.salvage(ownerId, cardId!, quantity as number, { confirmDeckImpact: body.confirmDeckImpact === true });
+        return { body: { ...result, holdings: store.cardHoldings(ownerId, cardId!), wallet: store.wallet(ownerId) } };
+      },
+    },
+    {
+      method: "POST",
+      path: /^\/api\/collection\/cards\/([^/]+)\/craft$/,
+      handler: (req, _body, [cardId]) => {
+        const ownerId = ownerOf(req);
+        const copy = store.craftCard(ownerId, cardId!);
+        return { status: 201, body: { copy, holdings: store.cardHoldings(ownerId, cardId!), wallet: store.wallet(ownerId) } };
+      },
+    },
+    {
+      method: "POST",
+      path: /^\/api\/collection\/secrets\/([^/]+)\/craft$/,
+      handler: (req, _body, [code]) => {
+        const ownerId = ownerOf(req);
+        const copy = store.craftSecret(ownerId, code!);
+        return { status: 201, body: { copy, wallet: store.wallet(ownerId) } };
+      },
+    },
+    { method: "GET", path: /^\/api\/packs$/, handler: (req) => ({ body: packs(ownerOf(req)) }) },
+    {
+      method: "POST",
+      path: /^\/api\/packs\/buy$/,
+      handler: (req, body) => {
+        const ownerId = ownerOf(req);
+        const setCode = field(body, "setCode", "string");
+        const count = body.count ?? 1;
+        if (!Number.isInteger(count) || (count as number) < 1 || (count as number) > BULK_OPEN_COUNT) {
+          throw new HttpError(400, `"count" must be a whole number from 1 to ${BULK_OPEN_COUNT}`);
+        }
+        const bought = store.buyPacks(ownerId, setCode, count as number);
+        return { status: 201, body: { bought, wallet: store.wallet(ownerId) } };
+      },
+    },
+    {
+      method: "POST",
+      path: /^\/api\/packs\/open$/,
+      handler: (req, body) => {
+        const ownerId = ownerOf(req);
+        const count = body.count ?? 1;
+        if (count !== 1 && count !== BULK_OPEN_COUNT) throw new HttpError(400, `"count" must be 1 or ${BULK_OPEN_COUNT}`);
+        if ("packId" in body) {
+          const packId = field(body, "packId", "string");
+          if (count !== 1) throw new HttpError(400, `"packId" opens one pack; leave out "count" or send 1`);
+          if (!store.unopenedPacks(ownerId).some((p) => p.packId === packId)) throw new HttpError(404, `no unopened pack "${packId}"`);
+          const opening = store.openPack(ownerId, packId, { seed: options.packSeed?.() });
+          return { body: { packs: [opening], summary: null, wallet: store.wallet(ownerId) } };
+        }
+        const seeds = options.packSeed ? Array.from({ length: count as number }, () => options.packSeed!()) : undefined;
+        const bulk = store.openPacks(ownerId, count as number, { seeds });
+        return { body: { packs: bulk.packs, summary: count === 1 ? null : bulk.summary, wallet: store.wallet(ownerId) } };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/packs\/([^/]+)\/opening$/,
+      handler: (req, _body, [packId]) => {
+        const ownerId = ownerOf(req);
+        let opening;
+        try {
+          opening = store.packOpening(packId!);
+        } catch (err) {
+          if (err instanceof EconomyError) throw new HttpError(404, `no opened pack "${packId}"`);
+          throw err;
+        }
+        // Another owner's pack reads as missing.
+        if (opening.ownerId !== ownerId) throw new HttpError(404, `no opened pack "${packId}"`);
+        return { body: opening };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/store$/,
+      handler: (req) => {
+        const ownerId = ownerOf(req);
+        return { body: { packs: packOffer(), cosmetics: store.cosmeticsOnSale(ownerId), wallet: store.wallet(ownerId) } };
+      },
+    },
+    {
+      method: "POST",
+      path: /^\/api\/store\/cosmetics\/([^/]+)\/buy$/,
+      handler: (req, _body, [itemId]) => {
+        const ownerId = ownerOf(req);
+        const cosmetic = store.buyCosmetic(ownerId, itemId!);
+        return { status: 201, body: { cosmetic, wallet: store.wallet(ownerId) } };
+      },
+    },
+    { method: "GET", path: /^\/api\/cosmetics$/, handler: (req) => ({ body: { owned: store.ownedCosmetics(ownerOf(req)) } }) },
+    {
+      method: "GET",
+      path: /^\/api\/agents\/([^/]+)\/loadout$/,
+      handler: (req, _body, [agentId]) => {
+        const ownerId = ownerOf(req);
+        ownAgent(ownerId, agentId!);
+        return { body: loadoutOf(ownerId, agentId!) };
+      },
+    },
+    {
+      method: "PUT",
+      path: /^\/api\/agents\/([^/]+)\/loadout\/([^/]+)$/,
+      handler: (req, body, [agentId, slot]) => {
+        const ownerId = ownerOf(req);
+        ownAgent(ownerId, agentId!);
+        if (!(LOADOUT_SLOTS as readonly string[]).includes(slot!)) throw new HttpError(404, `no loadout slot "${slot}"`);
+        if (!("itemId" in body)) throw new HttpError(400, `"itemId" is required (an item id, or null to empty the slot)`);
+        if (body.itemId !== null && typeof body.itemId !== "string") throw new HttpError(400, `"itemId" must be a string or null`);
+        store.setLoadout(ownerId, agentId!, slot as LoadoutSlot, body.itemId as string | null);
+        return { body: loadoutOf(ownerId, agentId!) };
+      },
+    },
     { method: "GET", path: /^\/api\/play$/, handler: (req) => ({ body: playSettings(ownerOf(req)) }) },
     {
       method: "PUT",
@@ -280,7 +528,8 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
 
   async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
-      const path = new URL(req.url ?? "/", "http://localhost").pathname;
+      const url = new URL(req.url ?? "/", "http://localhost");
+      const path = url.pathname;
       const onPath = routes.filter((r) => r.path.test(path));
       if (onPath.length === 0) throw new HttpError(404, `no endpoint ${path}`);
       const route = onPath.find((r) => r.method === req.method);
@@ -290,10 +539,11 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       }
       const body = await readJson(req);
       const params = route.path.exec(path)!.slice(1).map(decodeURIComponent);
-      const out = route.handler(req, body, params);
+      const out = route.handler(req, body, params, url.searchParams);
       send(res, out.status ?? 200, out.body);
     } catch (err) {
       if (err instanceof HttpError) send(res, err.status, { error: err.message });
+      else if (err instanceof SalvageNeedsConfirmation) send(res, 409, { error: err.message, affectedDecks: err.affectedDecks, needsConfirmation: true });
       else if (err instanceof EconomyError) send(res, statusOf(err), { error: err.message });
       else {
         console.error("[owner-api] unexpected error:", err);
@@ -353,4 +603,16 @@ function field(body: Record<string, unknown>, name: string, type: "string"): str
   const value = body[name];
   if (typeof value !== type) throw new HttpError(400, `"${name}" must be a ${type}`);
   return value as string;
+}
+
+/** A whole-number query parameter from `min` to `max`, or `fallback` when
+ * it isn't sent. */
+function intParam(query: URLSearchParams, name: string, fallback: number, min: number, max: number): number {
+  const raw = query.get(name);
+  if (raw === null) return fallback;
+  const n = /^-?\d+$/.test(raw) ? Number(raw) : NaN;
+  if (!Number.isSafeInteger(n) || n < min || n > max) {
+    throw new HttpError(400, `"${name}" must be a whole number from ${min}${max === Number.MAX_SAFE_INTEGER ? " up" : ` to ${max}`}`);
+  }
+  return n;
 }

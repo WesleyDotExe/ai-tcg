@@ -1,10 +1,10 @@
 # Owner API
 
-The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. The collection, packs, matches, ladder, stats and the rest come in later sessions, on the same server.
+The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Matches, the ladder, stats and notifications come in later sessions, on the same server.
 
 - Code: `server/src/ownerApi.ts` (`startOwnerApi`); run it with `npm run owner-api -w server -- <season database file> [port]` (default port 8081).
 - Every rule lives in the economy store (`economy/src/store.ts`). The API reads the request, checks the caller may touch what it names, calls the store and answers. It never writes SQL.
-- Tests: `server/test/ownerApi.test.ts` and `server/test/ownerApiAccount.test.ts` (real HTTP against a real port). Evidence: `progress/owner-api-demo-001.txt` (deck settings), `progress/owner-api-demo-003-account.txt` (who am I, account settings, wallet; `npx tsx src/dev/accountApiDemo.ts` in `server/`).
+- Tests: `server/test/ownerApi.test.ts`, `server/test/ownerApiAccount.test.ts` and `server/test/ownerApiEconomy.test.ts` (real HTTP against a real port). Evidence: `progress/owner-api-demo-001.txt` (deck settings), `progress/owner-api-demo-003-account.txt` (who am I, account settings, wallet; `npx tsx src/dev/accountApiDemo.ts` in `server/`), `progress/owner-api-demo-004-economy.txt` (the board and the economy endpoints; `npx tsx src/dev/economyApiDemo.ts`).
 
 ## Requests and answers
 
@@ -14,11 +14,11 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 
 | Code | When |
 |---|---|
-| 400 | The body isn't a JSON object, or a field is missing, unknown or the wrong type, or a setting's value isn't allowed. |
+| 400 | The body isn't a JSON object, or a field is missing, unknown or the wrong type, or a setting's or a board's value isn't allowed, or a query parameter (`limit`, `quantity`...) isn't a whole number in range. |
 | 401 | Not signed in (no token, unknown, expired or signed out), or a wrong login or password. |
-| 404 | No such endpoint, or the deck or agent named isn't one of the caller's (another owner's reads as missing, so nothing about it leaks). |
+| 404 | No such endpoint; the deck, agent, pack or opening named isn't one of the caller's (another owner's reads as missing, so nothing about it leaks); or the card, set, secret card, cosmetic or loadout slot named doesn't exist. |
 | 405 | Wrong method for the endpoint (`Allow` lists the right ones). |
-| 409 | The store refuses (for example a faction that can't be locked, forcing with no active deck, a rebuild while one runs or while a deck is forced). |
+| 409 | The store refuses (for example a faction that can't be locked, forcing with no active deck, a rebuild while one runs or while a deck is forced, too few credits or pack points, a cosmetic already owned, a loadout change during a live match). A salvage that would leave saved decks short is 409 with `needsConfirmation: true` and `affectedDecks` (below). |
 | 413 | The body is over 16 KB. |
 | 429 | Too many failed sign-ins; the store's lockout window applies. |
 
@@ -32,6 +32,26 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `GET /api/account/settings` | none | the account settings (below) |
 | `PATCH /api/account/settings` | any of the settings' fields (below); each of `sound` and `music` in part | the account settings, all of them |
 | `GET /api/wallet` | none | the wallet (below) |
+| `GET /api/board` | none | the Home board (below) |
+| `PUT /api/board` | `{ widgets: [{ id, type, size }] }`, the whole board in order | the Home board |
+| `GET /api/daily` | none | today's earnings (below) |
+| `GET /api/ledger?limit=50&before=<entryId>` | none | `{ entries, more, wallet }`: ledger entries newest first, a page at a time (below) |
+| `GET /api/collection?recentPacks=3` | none | the collection (below) |
+| `GET /api/collection/binder/:setCode` | none | the set's binder (below) |
+| `GET /api/collection/cards/:cardId` | none | the card viewer's holdings (below) |
+| `GET /api/collection/cards/:cardId/salvage?quantity=N` | none | what salvaging N would do, without doing it |
+| `POST /api/collection/cards/:cardId/salvage` | `{ quantity, confirmDeckImpact?: boolean }` | `{ copies, packPoints, incompleteDecks, holdings, wallet }` |
+| `POST /api/collection/cards/:cardId/craft` | none | 201 `{ copy, holdings, wallet }` |
+| `POST /api/collection/secrets/:code/craft` | none | 201 `{ copy, wallet }` |
+| `GET /api/packs` | none | the packs page (below) |
+| `POST /api/packs/buy` | `{ setCode, count?: 1..10 }` (count 1 by default) | 201 `{ bought: PackRecord[], wallet }` |
+| `POST /api/packs/open` | `{ count?: 1 \| 10 }` or `{ packId }` | `{ packs: PackOpening[], summary, wallet }` (below) |
+| `GET /api/packs/:packId/opening` | none | the logged opening, seed and all (the caller's packs only) |
+| `GET /api/store` | none | `{ packs, cosmetics, wallet }`: what's on sale |
+| `POST /api/store/cosmetics/:itemId/buy` | none | 201 `{ cosmetic, wallet }` |
+| `GET /api/cosmetics` | none | `{ owned: OwnedCosmetic[] }` |
+| `GET /api/agents/:agentId/loadout` | none | the agent's loadout (below) |
+| `PUT /api/agents/:agentId/loadout/:slot` | `{ itemId }` (an item id, or null to empty the slot) | the agent's loadout |
 | `GET /api/play` | none | the play settings (below) |
 | `PUT /api/play/deck-choice` | `{ choice: "agent" \| "forced" }` | the play settings |
 | `PUT /api/play/faction-lock` | `{ faction: "Cortex" \| "Swarm" \| "Aegis" \| "Null" \| null }` | the play settings, plus `activeDeckFits` |
@@ -83,7 +103,120 @@ Saved on the owner's account (schema v15, `account_settings`), so every browser 
 }
 ```
 
-`source` is `"purchase" | "starter" | "weeklyChallenge" | "ownerDaily"`. The Open button's count is `unopenedPacks.length`; it opens the first one listed. Balances are the sums of the owner's ledger (never stored); the ledger itself comes with the collection endpoints.
+`source` is `"purchase" | "starter" | "weeklyChallenge" | "ownerDaily"`. The Open button's count is `unopenedPacks.length`; it opens the first one listed. Balances are the sums of the owner's ledger (never stored); the ledger itself is `GET /api/ledger` (below).
+
+### The Home board
+
+Saved on the owner's account (schema v16, `board_layouts`). An owner who has never saved a board reads the recommended layout with `recommended: true`.
+
+```
+{
+  widgets: [{ id, type, size }],   // in board order: the 12-column grid fills left to right, top to bottom
+  recommended: boolean,            // true: never saved, this is the recommended layout
+  updatedAt: string | null,
+  rules: {
+    widgetTypes: [{ type, limit }],   // the 12 Season 0 widgets; limit 1 each, "watch" 2
+    sizes: ["S", "M", "L"],
+    maxWidgets: 13,
+    recommendedWidgets: [{ id, type, size }]
+  }
+}
+```
+
+- Types (the mockup's ids): `agent` (My agent), `live` (Live match), `watch` (Watch live), `packs`, `daily` (Daily rewards), `collection`, `showcase`, `ladder`, `form` (Rating & form), `history` (Match history), `notif` (Notifications), `store`. `tournament` and `feed` are refused: they come after Season 0.
+- `PUT` saves the whole board (Customise mode's Done). An empty list saves an empty board (the page shows its empty state); sending `rules.recommendedWidgets` is "Recommended layout". The page owns the ids (1 to 32 of `A-Z a-z 0-9 - _`, unique on the board).
+- Refused with 400 and the reason, nothing saved: an unknown field, a type not on the list, a size not S/M/L, a repeated id, more of a widget than its limit, more than 13 widgets.
+- The recommended layout is the mockup's with its Tournament slot (Small) given to Store: agent M, live M, packs M, daily S, store S, watch M, collection M, ladder M, form M.
+- The background is in the account settings (`PATCH /api/account/settings`), not here.
+
+### Today's earnings
+
+The Daily rewards widget. The day runs from midnight to midnight Sydney time (`Australia/Sydney`, following daylight saving; owner 2026-11-01), the same day `recordMatch` pays the win schedule by.
+
+```
+{
+  day: "2026-11-01",                 // the date on the Sydney clock
+  timeZone: "Australia/Sydney",
+  startedAt, resetsAt,               // UTC ISO; resetsAt is the next midnight in Sydney
+  schedule: [{ fromWin, toWin, credits }],   // 1: 30; 2-4: 10; 5-10: 5; 11 and after (toWin null): 0
+  wins: [{ nth, matchId, endedAt, credits }],   // every win today, oldest first
+  rewardedWins: [...],               // the wins that paid something: what the widget lists
+  losses, maxPaidLosses,             // losses and draws today; losses stop paying after maxPaidLosses
+  creditsFromWins, creditsFromLosses, credits,
+  nextWinPays, nextLossPays
+}
+```
+
+Read from match history (cancelled and abandoned matches pay nothing and count for neither). The daily quests and the weekly challenge aren't in Season 0, so they aren't here.
+
+### The ledger
+
+`GET /api/ledger` answers the owner's ledger entries newest first, `limit` at a time (default 50, at most 500); `more` is true when older entries exist; the next page is `?before=<the last entryId shown>`. Each entry is `{ entryId, ownerId, playedBy, currency: "credits" | "packPoints", delta, reason, ref, createdAt }`. Reasons: `matchWin`, `matchLoss`, `matchDraw` (ref: the match, playedBy: the agent), `packPurchase`, `packOpened` (ref: the pack), `salvage`, `craft`, `craftSecret` (ref: the copy), `cosmeticPurchase` (ref: the item), `agentRename`, and the starter grant's.
+
+### The collection
+
+```
+{
+  copies, distinctCards,
+  cards: [{ cardId, name, rarity, faction, owned, salvageable,
+            copies: [{ copyId, cardId, finish, seriesKind, seriesCode, serial, runSize, stamp,
+                       origin, originRef, accountBound, acquiredAt, secretCode }] }],   // by name
+  sets: [{ setCode, base: { held, total }, secrets: {...}, glitch: {...}, gold: {...},
+           prototypes: { runsHeld, runs, copiesHeld } }],
+  recentPulls: [{ packId, setCode, openedAt, jackpot,
+                  cards: [{ copyId, cardId, name, rarity, finish, secretCode, serial, held }] }]   // newest first
+}
+```
+
+- Every copy is its own item (origin `pack`, `starter`, `crafted`, `promo`, ...; `accountBound` copies play but never sell or salvage). A secret copy's `secretCode` names the secret card it is; its `cardId` is the card it plays as.
+- `recentPacks` (1 to 50, default 3) is how many openings `recentPulls` lists; a pulled copy since salvaged shows `held: false`.
+- `GET /api/collection/binder/:setCode` is the store's binder: `{ setCode, base, secrets, glitch, gold, prototypes }`, each section `{ title, held, total, entries: [{ number, kind, cardId, secretCode, name, rarity, owned }] }`, and the Prototype runs with the serials held.
+- `GET /api/collection/cards/:cardId` is the card viewer: `{ cardId, rarity, owned, salvageable, packPointsEach, notSalvageable: [{ reason, count }], decks: [{ deckId, name, uses, active }] }`.
+
+### Salvage and crafting
+
+- Salvage is the owner's own choice, never automatic: read the plan first (`GET .../salvage?quantity=N`: `{ cardId, quantity, copies, packPoints, ownedAfter, affectedDecks }`), then `POST` it. Only unbound standard-finish pack copies salvage (Common 5, Uncommon 10, Rare 30, Mythic 100 pack points each); copies no deck lists go first.
+- If it would leave saved decks using more copies than the owner would hold, the `POST` answers 409 `{ error, needsConfirmation: true, affectedDecks: [{ deckId, name, uses, owned, active }] }` and salvages nothing; send it again with `confirmDeckImpact: true` to go ahead (those decks are then incomplete until fixed; no deck is edited).
+- Crafting makes one standard copy of a set card for pack points (Common 40, Uncommon 80, Rare 250, Mythic 800), refused at the card's playable limit; a secret card costs 750 (illustration) or 3,000 (Zero-Day), refused while the owner holds it. Crafted copies are account-bound.
+
+### Packs
+
+`GET /api/packs`:
+
+```
+{
+  offer: [{ setCode, name, priceCredits }],   // Season 0: S0 at 100 credits
+  bulkOpenCount: 10,
+  unopened: PackRecord[],                     // oldest first
+  pity: { packsSinceFullArt, packsSinceMythic, next: { fullArt, mythic } },
+  wallet
+}
+```
+
+- `POST /api/packs/buy` buys `count` packs (1 to 10) in one go, all or none: 409 with the price and the balance when the credits don't cover them all.
+- `POST /api/packs/open` opens the oldest pack (`{}` or `{ count: 1 }`), the ten oldest (`{ count: 10 }`; 409 unless ten are waiting), or a chosen one (`{ packId }`; 404 if it isn't one of the caller's unopened packs). The answer is `{ packs, summary, wallet }`: `packs` is one `PackOpening` per pack, `summary` is the ten-pack summary (null for one pack).
+- `PackOpening` is the store's: `{ packId, ownerId, setCode, oddsVersion, seed, openedAt, jackpot, pity: { fullArt, mythic }, prototypeFallbackGold, starterHit, packPoints, fullReveal, cards: [{ copyId, cardId, name, rarity, slot, finish, collectorNumber, prototype, secret, isNew, ownedAfter }] }`. `isNew` is the NEW badge, `ownedAfter` the "x N owned", `fullReveal` says the pack keeps its full reveal in a ten-pack open. Every pack also pays 5 pack points.
+- The summary: `{ cards, newCards, packPoints, byRarity, byFinish, fullReveals: [packId] }`.
+- Each pack's seed is drawn by the server when it opens and is shown only after (`GET /api/packs/:packId/opening` reads the logged opening back).
+
+### The store and cosmetics
+
+- `GET /api/store`: `{ packs: <the pack offer>, cosmetics: [CosmeticItem & { owned }], wallet }`. Cosmetics listed are those on sale now (this season, inside their sale window, drawn by the render lane); Season 0 sells two boasts at 300 credits.
+- `POST /api/store/cosmetics/:itemId/buy` pays credits and grants the item together, or refuses (409): not on sale, already owned, too few credits.
+- `GET /api/cosmetics`: every item the owner owns (`{ ownerId, itemId, kind, source: "starter" | "purchase", ledgerEntryId, acquiredAt, item }`), the four starter boasts included.
+
+### The loadout
+
+```
+{
+  agentId,
+  loadout: { boast, closeWinBoast, cardBack, avatar, arena },   // item ids or null
+  slots: [{ slot, kind, itemId, choices: [itemId] }],          // the owned items that fit each slot
+  locked: boolean                                              // true during a live match: changes are refused
+}
+```
+
+`PUT /api/agents/:agentId/loadout/:slot` with `{ itemId }` equips an owned item of the slot's kind, or empties the slot with `null`. Refused: another owner's agent (404), a slot that doesn't exist (404), an item of the wrong kind or not owned (409), any change during a live match (409).
 
 ### The play settings
 
@@ -126,7 +259,8 @@ RebuildJob {
 
 ## Not built yet
 
-- The other step-3 endpoints: the ledger and the collection, buying and opening packs, live and featured matches, ladder, tournament, stats, notifications, the saved board layout. (The background choice is in the account settings.)
+- The match-dependent endpoints: live and featured matches (the match feed and live state), match history with replays, the ladder and ratings, stats, notifications. They come after match running (Season 0 game item 1). Tournament endpoints wait until after Season 0.
+- The owner's daily pack (claimed by the owner, stacks to 2) has no claim endpoint yet; the store can grant one, nothing claims it.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).
 - Jobs are kept in memory: a server restart forgets the latest job (the deck itself is saved).
 - No HTTPS of its own (meant to sit behind the host's proxy), no CORS (the website is served from the same origin), no rate limit beyond the sign-in lockout.

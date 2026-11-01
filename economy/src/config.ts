@@ -5,7 +5,12 @@
 
 import type { Rarity } from "@ai-tcg/engine";
 
-/** Credits for the 1st win of a UTC day, wins 2-4, wins 5-10, and after the
+/** The daily reset (owner 2026-11-01): midnight Sydney time, following
+ * daylight saving, for the daily win schedule and every daily reward.
+ * dailyReset.ts turns it into each day's start and end. */
+export const DAILY_RESET_TIME_ZONE = "Australia/Sydney";
+
+/** Credits for the 1st win of a reset day, wins 2-4, wins 5-10, and after the
  * 10th (owner 2026-10-05, trimmed from 40/15/5). */
 export const WIN_CREDITS = { first: 30, secondToFourth: 10, fifthToTenth: 5, afterTenth: 0 } as const;
 
@@ -13,7 +18,7 @@ export const WIN_CREDITS = { first: 30, secondToFourth: 10, fifthToTenth: 5, aft
  * the smallest paying win so a win always pays more than a loss. */
 export const LOSS_CREDITS = 2;
 
-/** Losses stop paying after this many in a UTC day (owner-approved). */
+/** Losses stop paying after this many in a reset day (owner-approved). */
 export const MAX_PAID_LOSSES_PER_DAY = 10;
 
 /** Price of one pack in credits. */

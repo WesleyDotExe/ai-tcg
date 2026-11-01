@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -75,6 +75,36 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 64 (the Home board, the economy endpoints, the Sydney day): what is still thin
+
+- **Several committed economy demos no longer reproduce, and one crashes on main.** Checked this session:
+  `economy-demo-005`, `-006`, `-008`, `-012`, `-013` and `-015` all differ from a fresh run, and the drift
+  predates this session (008 still prints "schema v9"; `boastDemo.ts`, demo 012, crashes on main with "no such
+  column: deck_choice" after building a v10 file and calling a v12 code path). The Sydney-day change may add to
+  some of them. Not regenerated this session (no time to read each diff honestly); with 014/016 this is now a
+  named job for the session-65 hardening pass: run each, read the diff, fix the crash, regenerate.
+- **The Sydney day is new and changes payouts near midnight.** A match ending between 13:00 and 24:00 UTC
+  (summer; 14:00 in winter) now counts on the next day. Tested at the boundary, across both daylight-saving
+  days and every day of 2026; no old data needed migrating (Season 0 has no real matches yet). The time zone
+  comes from Node's built-in Intl data: a Node built without full ICU would fail (the shipped Node has it).
+- **The endpoints are wiring; the website doesn't call them yet.** The render lane builds the pages against
+  `server/OWNER_API.md`. No cross-lane test beyond the render tests importing the owner API's source.
+- **The collection answer is the whole collection in one response** (every copy). Fine for Season 0 (an owner
+  holds a few hundred copies); a heavy collector at launch scale wants paging or a per-set read. Not measured.
+- **The ledger pages in memory**: `GET /api/ledger` reads the owner's whole ledger and slices it. Fine for
+  Season 0; at launch scale it wants a SQL `LIMIT`/`before` query.
+- **No owner's daily pack claim.** The owner's daily pack (spec: owner-claimed, stacks to 2) has no store method
+  or endpoint; the demo grants packs through the store. Not in the owner's list this time; the Daily rewards
+  widget has only the earnings bar and the rewarded wins in Season 0.
+- **The board doesn't store positions, only order.** The mockup's grid packs widgets in list order (CSS
+  auto-flow), so order plus size is the layout. If the render lane wants free placement (gaps, a widget pinned
+  to a column), the shape has to grow.
+- **The recommended layout's Tournament slot went to Store (Small).** A judgment call, raised at the check-in.
+- **`packSeed` is a test hook on the API.** Left out (as the CLI does), every pack draws a random seed; a
+  future caller that passed it in production would make packs predictable. Only the demo and no test pass it.
+- **The match runner (Season 0 game item 1) is still not started**: credits in the demo and tests come from wins
+  recorded through the store. Next game session.
+
 ## Session 63 (who am I, account settings, the wallet): what is still thin
 
 - **The settings are a flat list, not the website's whole Settings page.** Theme, background, sound, music and
@@ -84,8 +114,7 @@ real, but here is where it's thin.
 - **The website doesn't use them yet.** The render lane builds against `server/OWNER_API.md`; until it does,
   the theme still isn't saved and the skip hint still shows until the first skip on each page. Nothing tests
   the two lanes together beyond the render tests importing the owner API's source.
-- **The wallet is read-only.** Buying and opening packs over HTTP are later endpoints; the demo opens and buys
-  through store calls. The ledger (why the balance is what it is) is not exposed yet.
+- **The wallet is read-only.** (Session 64: buying and opening packs and the ledger are now endpoints.)
 - **No concurrency test for PATCH.** Two simultaneous patches each read-then-write inside one store transaction
   (SQLite serialises them, and node:sqlite is synchronous on one thread), so the last one wins field by field
   as applied; not exercised by a test with two servers on one file.

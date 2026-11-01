@@ -48,6 +48,7 @@ import {
   SECRET_CRAFT_PACK_POINTS,
   STARTER_PACKS,
 } from "./config.js";
+
 import { customAgentNameProblem, nameKey, tidyAgentName } from "./agentNames.js";
 import {
   accountSettingsProblem,
@@ -74,7 +75,9 @@ import {
   type CosmeticKind,
   type LoadoutSlot,
 } from "./cosmetics.js";
-import { matchCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
+import { matchCredits, MAX_PAID_LOSSES_PER_DAY, WIN_SCHEDULE, type DailyTally, type MatchResultForAgent } from "./payouts.js";
+import { resetDayOf } from "./dailyReset.js";
+import { boardLayoutProblem, boardWidgets, RECOMMENDED_LAYOUT, type BoardLayout, type Widget } from "./boardLayout.js";
 import {
   BOUND_ORIGINS,
   COPY_ORIGINS,
@@ -446,7 +449,8 @@ export interface RecordMatchInput {
   outcome: RecordedOutcome;
   turns?: number | null;
   moves?: number | null;
-  /** ISO time the match ended. Its UTC date is the "day" the daily win
+  /** ISO time the match ended. The reset day it falls in (midnight to
+   * midnight Sydney time, owner 2026-11-01) is the "day" the daily win
    * schedule counts against. Defaults to the store's clock. */
   endedAt?: string;
   /** Each side's health when the match ended (schema v11). For a win it
@@ -626,6 +630,60 @@ export interface Wallet {
   unopenedPacks: PackRecord[];
 }
 
+/** One recent pack opening, as the Collection widget lists it. `held` is
+ * false for a pulled copy since salvaged. */
+export interface RecentPull {
+  packId: string;
+  setCode: string;
+  openedAt: string;
+  jackpot: boolean;
+  cards: { copyId: string; cardId: string; name: string; rarity: Rarity; finish: Finish; secretCode: string | null; serial: number | null; held: boolean }[];
+}
+
+/** The Collection page's data (owner 2026-11-01). */
+export interface CollectionSummary {
+  copies: number;
+  distinctCards: number;
+  /** By card name. Each copy is listed (the owner holds every copy as its
+   * own item), without the owner id. */
+  cards: { cardId: string; name: string; rarity: Rarity; faction: string | null; owned: number; salvageable: number; copies: Omit<CardCopy, "ownerId">[] }[];
+  /** Each set's completion, as `binder` counts it. */
+  sets: {
+    setCode: string;
+    base: { held: number; total: number };
+    secrets: { held: number; total: number };
+    glitch: { held: number; total: number };
+    gold: { held: number; total: number };
+    prototypes: { runsHeld: number; runs: number; copiesHeld: number };
+  }[];
+  recentPulls: RecentPull[];
+}
+
+/** Today's match earnings (owner 2026-11-01, the Daily rewards widget). */
+export interface DailyEarnings {
+  /** The reset day's date on the Sydney clock ("2026-11-02"). */
+  day: string;
+  timeZone: string;
+  /** Its start, and the next reset (UTC ISO). */
+  startedAt: string;
+  resetsAt: string;
+  /** The daily win schedule: wins fromWin..toWin (null: and after) pay
+   * `credits` each. */
+  schedule: { fromWin: number; toWin: number | null; credits: number }[];
+  /** Every win today, oldest first, with what it paid (0 past the 10th). */
+  wins: { nth: number; matchId: string; endedAt: string; credits: number }[];
+  /** The wins that paid something: what the widget lists. */
+  rewardedWins: { nth: number; matchId: string; endedAt: string; credits: number }[];
+  /** Losses and draws today (a draw pays as a loss). */
+  losses: number;
+  maxPaidLosses: number;
+  creditsFromWins: number;
+  creditsFromLosses: number;
+  credits: number;
+  nextWinPays: number;
+  nextLossPays: number;
+}
+
 export interface LoginInput {
   username: string;
   email?: string | null;
@@ -783,12 +841,6 @@ function num(v: unknown): number {
 }
 function numOrNull(v: unknown): number | null {
   return v === null || v === undefined ? null : num(v);
-}
-
-function utcDay(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) throw new EconomyError(`not a valid time: "${iso}"`);
-  return d.toISOString().slice(0, 10);
 }
 
 /** The card set a pack belongs to; refused for a set that doesn't exist. */
@@ -1219,6 +1271,40 @@ export class EconomyStore {
           this.stamp(),
         );
       return this.accountSettings(ownerId);
+    });
+  }
+
+  // ---- the Home widget board (schema v16; owner 2026-11-01) ----
+
+  /** The owner's saved board, or the recommended layout when the owner has
+   * never saved one. */
+  boardLayout(ownerId: string): BoardLayout {
+    this.getOwner(ownerId);
+    const row = this.db.prepare("SELECT * FROM board_layouts WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    if (!row) return { widgets: RECOMMENDED_LAYOUT.map((w) => ({ ...w })), recommended: true, updatedAt: null };
+    return { widgets: JSON.parse(str(row.widgets)) as Widget[], recommended: false, updatedAt: str(row.updated_at) };
+  }
+
+  /** Saves the whole board (`{ widgets }`, in board order) and returns it.
+   * Refused, saving nothing, when any part is invalid
+   * (`boardLayoutProblem`). An empty list saves an empty board; saving the
+   * recommended widgets saves them as the owner's own board. */
+  saveBoardLayout(ownerId: string, body: { widgets: readonly Widget[] }): BoardLayout {
+    const problem = boardLayoutProblem(body);
+    if (problem) throw new EconomyError(problem);
+    return this.transaction(() => {
+      this.getOwner(ownerId);
+      try {
+        this.db
+          .prepare(
+            `INSERT INTO board_layouts (owner_id, widgets, updated_at) VALUES (?, ?, ?)
+             ON CONFLICT (owner_id) DO UPDATE SET widgets = excluded.widgets, updated_at = excluded.updated_at`,
+          )
+          .run(ownerId, JSON.stringify(boardWidgets(body)), this.stamp());
+      } catch (err) {
+        refused(err);
+      }
+      return this.boardLayout(ownerId);
     });
   }
 
@@ -2589,6 +2675,23 @@ export class EconomyStore {
     return pack;
   }
 
+  /** Buys `count` packs of a set (1 to BULK_OPEN_COUNT) in one go: all of
+   * them or none, so a 10-pack buy never stops at 6 for want of credits. */
+  buyPacks(ownerId: string, setCode: string, count: number): PackRecord[] {
+    if (!Number.isInteger(count) || count < 1 || count > BULK_OPEN_COUNT) {
+      throw new EconomyError(`buy 1 to ${BULK_OPEN_COUNT} packs at once, not ${count}`);
+    }
+    knownSet(setCode);
+    return this.transaction(() => {
+      this.getOwner(ownerId);
+      const have = this.balance(ownerId, "credits");
+      if (have < count * PACK_PRICE_CREDITS) {
+        throw new EconomyError(`${count} pack(s) cost ${count * PACK_PRICE_CREDITS} credits; the owner has ${have}`);
+      }
+      return Array.from({ length: count }, () => this.buyPack(ownerId, setCode));
+    });
+  }
+
   /** A pack that costs nothing (starter, weekly challenge, owner's daily). */
   grantPack(ownerId: string, setCode: string, source: Exclude<PackSource, "purchase">): PackRecord {
     if (!PACK_SOURCES.includes(source) || (source as PackSource) === "purchase") throw new EconomyError(`not a free pack source: "${source}"`);
@@ -2775,6 +2878,78 @@ export class EconomyStore {
       openedAt: str(row.opened_at),
       copies,
     };
+  }
+
+  /** The owner's last `packs` openings, newest first, with the cards each
+   * gave (the Collection widget's recent pulls). Names are as of now. */
+  recentPulls(ownerId: string, packs = 3): RecentPull[] {
+    if (!Number.isInteger(packs) || packs < 1 || packs > 50) throw new EconomyError(`recent pulls reads 1 to 50 packs, not ${packs}`);
+    this.getOwner(ownerId);
+    const openings = this.db
+      .prepare(
+        `SELECT o.pack_id, o.jackpot, o.opened_at, p.set_code FROM pack_openings o JOIN packs p ON p.pack_id = o.pack_id
+         WHERE o.owner_id = ? ORDER BY o.opening_no DESC LIMIT ?`,
+      )
+      .all(ownerId, packs) as Row[];
+    return openings.map((o) => ({
+      packId: str(o.pack_id),
+      setCode: str(o.set_code),
+      openedAt: str(o.opened_at),
+      jackpot: num(o.jackpot) === 1,
+      cards: (this.db.prepare("SELECT * FROM card_copies WHERE origin_ref = ? ORDER BY rowid").all(`pack:${str(o.pack_id)}`) as Row[]).map((r) => {
+        const c = this.copyFromRow(r);
+        const info = this.cardInfo(c.cardId, c.secretCode);
+        return { copyId: c.copyId, cardId: c.cardId, name: info.name, rarity: info.rarity, finish: c.finish, secretCode: c.secretCode, serial: c.serial, held: r.disposed_at === null };
+      }),
+    }));
+  }
+
+  /** A card's name, rarity and faction for the collection's lists: a set
+   * card, a Zero-Day card, a signature card, or (with its code) a secret
+   * card's own name. */
+  private cardInfo(cardId: string, secretCode: string | null = null): { name: string; rarity: Rarity; faction: string | null } {
+    const card = getCard(cardId) ?? this.signatureCardById(cardId)?.card;
+    const secret = secretCode === null ? undefined : secretCardOf(secretCode);
+    if (card) return { name: secret?.name ?? card.name, rarity: card.rarity, faction: card.faction };
+    const zd = zeroDayEntry(cardId);
+    if (zd) return { name: zd.name, rarity: zd.rarity, faction: null };
+    throw new EconomyError(`no ownable card with id "${cardId}"`);
+  }
+
+  /** The Collection page's data (owner 2026-11-01): every card the owner
+   * holds with each copy (finish, origin, bound or not), how many of it
+   * salvage, each set's completion (base, secrets, Glitch, Gold and the
+   * Prototype runs, as the binder counts them) and the recent pulls. */
+  collectionSummary(ownerId: string, options: { recentPacks?: number } = {}): CollectionSummary {
+    const copies = this.collection(ownerId);
+    const byCard = new Map<string, CardCopy[]>();
+    for (const c of copies) byCard.set(c.cardId, [...(byCard.get(c.cardId) ?? []), c]);
+    const cards = [...byCard].map(([cardId, held]) => {
+      const info = this.cardInfo(cardId);
+      return {
+        cardId,
+        name: info.name,
+        rarity: info.rarity,
+        faction: info.faction,
+        owned: held.length,
+        salvageable: held.filter((c) => salvageBlockReason(c) === null).length,
+        copies: held.map(({ ownerId: _, ...c }) => c),
+      };
+    });
+    cards.sort((a, b) => a.name.localeCompare(b.name) || a.cardId.localeCompare(b.cardId));
+    const sets = [...CARD_SETS.keys()].map((setCode) => {
+      const b = this.binder(ownerId, setCode);
+      const part = (x: BinderSection) => ({ held: x.held, total: x.total });
+      return {
+        setCode,
+        base: part(b.base),
+        secrets: part(b.secrets),
+        glitch: part(b.glitch),
+        gold: part(b.gold),
+        prototypes: { runsHeld: b.prototypes.filter((r) => r.serialsHeld.length > 0).length, runs: b.prototypes.length, copiesHeld: b.prototypes.reduce((t, r) => t + r.serialsHeld.length, 0) },
+      };
+    });
+    return { copies: copies.length, distinctCards: cards.length, cards, sets, recentPulls: this.recentPulls(ownerId, options.recentPacks ?? 3) };
   }
 
   /** The owner's pity timers, from opening history: packs in a row (most
@@ -2974,21 +3149,80 @@ export class EconomyStore {
   // ---- matches ----
 
   /** Wins and losses (draws count as losses) this owner already has on the
-   * UTC day of `at`, whichever of its agents played them. Counted from match
-   * history, so a win that paid 0 (past the daily cap) still counts, and
-   * switching agents can neither reset nor double the caps. */
+   * reset day of `at` (midnight to midnight Sydney time, owner 2026-11-01),
+   * whichever of its agents played them. Counted from match history, so a
+   * win that paid 0 (past the daily cap) still counts, and switching agents
+   * can neither reset nor double the caps. */
   dailyTally(ownerId: string, at: string): DailyTally {
-    const day = utcDay(at);
+    const day = this.resetDay(at);
     const row = this.db
       .prepare(
         `SELECT
            COALESCE(SUM(CASE WHEN outcome = 'win' AND winner_owner = :o THEN 1 ELSE 0 END), 0) AS wins,
            COALESCE(SUM(CASE WHEN (outcome = 'win' AND winner_owner <> :o) OR outcome = 'draw' THEN 1 ELSE 0 END), 0) AS losses
          FROM matches
-         WHERE (p1_owner = :o OR p2_owner = :o) AND substr(ended_at, 1, 10) = :day`,
+         WHERE (p1_owner = :o OR p2_owner = :o) AND ended_at >= :start AND ended_at < :end`,
       )
-      .get({ o: ownerId, day }) as Row;
+      .get({ o: ownerId, start: day.startsAt, end: day.endsAt }) as Row;
     return { winsToday: num(row.wins), lossesToday: num(row.losses) };
+  }
+
+  /** The reset day `at` falls in; an invalid time is the store's refusal. */
+  private resetDay(at: string) {
+    try {
+      return resetDayOf(at);
+    } catch {
+      throw new EconomyError(`not a valid time: "${at}"`);
+    }
+  }
+
+  /** Today's match earnings for the Daily rewards widget (owner
+   * 2026-11-01): the reset day now (or at `at`), when it resets, the win
+   * schedule, each rewarded win with what it paid, the losses and what they
+   * paid, and what the next win and the next loss would pay. Read from
+   * match history, the same count `recordMatch` pays by; cancelled and
+   * abandoned matches pay nothing and count for neither. */
+  dailyEarnings(ownerId: string, at: string = this.stamp()): DailyEarnings {
+    this.getOwner(ownerId);
+    const day = this.resetDay(at);
+    const rows = this.db
+      .prepare(
+        `SELECT match_id, outcome, winner_owner, p1_owner, p1_credits, p2_credits, ended_at FROM matches
+         WHERE (p1_owner = :o OR p2_owner = :o) AND ended_at >= :start AND ended_at < :end
+         ORDER BY ended_at, rowid`,
+      )
+      .all({ o: ownerId, start: day.startsAt, end: day.endsAt }) as Row[];
+    const wins: DailyEarnings["wins"] = [];
+    let losses = 0;
+    let creditsFromLosses = 0;
+    for (const r of rows) {
+      const credits = num(str(r.p1_owner) === ownerId ? r.p1_credits : r.p2_credits);
+      const outcome = str(r.outcome);
+      if (outcome === "win" && str(r.winner_owner) === ownerId) {
+        wins.push({ nth: wins.length + 1, matchId: str(r.match_id), endedAt: str(r.ended_at), credits });
+      } else if (outcome === "win" || outcome === "draw") {
+        losses++;
+        creditsFromLosses += credits;
+      }
+    }
+    const tally: DailyTally = { winsToday: wins.length, lossesToday: losses };
+    const creditsFromWins = wins.reduce((t, w) => t + w.credits, 0);
+    return {
+      day: day.day,
+      timeZone: day.timeZone,
+      startedAt: day.startsAt,
+      resetsAt: day.endsAt,
+      schedule: WIN_SCHEDULE.map((r) => ({ ...r })),
+      wins,
+      rewardedWins: wins.filter((w) => w.credits > 0),
+      losses,
+      maxPaidLosses: MAX_PAID_LOSSES_PER_DAY,
+      creditsFromWins,
+      creditsFromLosses,
+      credits: creditsFromWins + creditsFromLosses,
+      nextWinPays: matchCredits("win", tally),
+      nextLossPays: matchCredits("loss", tally),
+    };
   }
 
   /** Records a finished match and pays both owners for it, in one
@@ -2999,10 +3233,10 @@ export class EconomyStore {
    * match id that was never started is still recorded, for offline history
    * and tests; the server records only matches it started. */
   recordMatch(input: RecordMatchInput): MatchRecord {
-    // Normalised to ISO UTC so the day the tally counts is the string's
-    // first ten characters.
+    // Normalised to ISO UTC so the tally's day window (also ISO UTC)
+    // compares as text.
     const raw = input.endedAt ?? this.stamp();
-    utcDay(raw);
+    this.resetDay(raw);
     const endedAt = new Date(raw).toISOString();
     const { p1AgentId: p1, p2AgentId: p2, outcome } = input;
     if (p1 === p2) throw new EconomyError("an agent cannot play itself");

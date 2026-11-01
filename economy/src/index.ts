@@ -48,6 +48,9 @@ export {
   type LoginInput,
   type WhoAmI,
   type Wallet,
+  type DailyEarnings,
+  type RecentPull,
+  type CollectionSummary,
   type LiveMatch,
   type LiveSide,
   type HouseOwnerRow,
@@ -81,7 +84,21 @@ export {
   type LoadoutSlot,
   type CosmeticItem,
 } from "./cosmetics.js";
-export { matchCredits, winCredits, type DailyTally, type MatchResultForAgent } from "./payouts.js";
+export { matchCredits, winCredits, WIN_SCHEDULE, type DailyTally, type MatchResultForAgent } from "./payouts.js";
+export { resetDayOf, type ResetDay } from "./dailyReset.js";
+export {
+  boardLayoutProblem,
+  LATER_WIDGET_TYPES,
+  MAX_WIDGETS,
+  RECOMMENDED_LAYOUT,
+  WIDGET_LIMITS,
+  WIDGET_SIZES,
+  WIDGET_TYPES,
+  type BoardLayout,
+  type Widget,
+  type WidgetSize,
+  type WidgetType,
+} from "./boardLayout.js";
 export {
   WIN_CREDITS,
   LOSS_CREDITS,
@@ -103,6 +120,7 @@ export {
   SCRYPT_COST,
   SESSION_DAYS,
   SIGN_IN_LOCKOUT,
+  DAILY_RESET_TIME_ZONE,
 } from "./config.js";
 export {
   CARD_SETS,
