@@ -436,13 +436,39 @@ export const forceQuit: CommandCard = {
   speed: "Instant",
   art: "placeholder:cortex/force-quit",
   flavor: "SIGKILL doesn't ask the process to finish what it was doing.",
-  abilities: [
+  // Modal since session 62 (owner 2026-11-01, "ship CS7", for Cortex > Swarm;
+  // progress/balance-report-037-old-edges.txt): the printed directive answer
+  // is the first mode, unchanged; Kill All is an instant ping on a board of
+  // 1-health bodies, Swarm's whole plan.
+  abilities: [],
+  modes: [
     {
-      id: "force-quit-cast",
-      trigger: "onPlay",
+      id: "terminate",
+      name: "Terminate",
       text: "Destroy target enemy directive. Instant speed.",
-      targeting: { scope: "chosen", filter: { side: "opponent", kind: "directive" } },
-      effects: [{ kind: "destroy" }],
+      abilities: [
+        {
+          id: "force-quit-cast",
+          trigger: "onPlay",
+          text: "Destroy target enemy directive. Instant speed.",
+          targeting: { scope: "chosen", filter: { side: "opponent", kind: "directive" } },
+          effects: [{ kind: "destroy" }],
+        },
+      ],
+    },
+    {
+      id: "kill-all",
+      name: "Kill All",
+      text: "Deal 1 damage to all enemy units.",
+      abilities: [
+        {
+          id: "force-quit-kill-all",
+          trigger: "onPlay",
+          text: "Deal 1 damage to all enemy units.",
+          targeting: { scope: "all", filter: { side: "opponent", kind: "unit" } },
+          effects: [{ kind: "damage", amount: { mode: "flat", value: 1 } }],
+        },
+      ],
     },
   ],
 };

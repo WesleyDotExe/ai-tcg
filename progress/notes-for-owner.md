@@ -1,9 +1,54 @@
 # Notes for the owner
 
-**Updated 2026-10-31, session 61.** Nothing is blocking. Job 2 of the balance session (the two old edges) is
-measured, test only; no card changed. The results are the **[OWNER CHECK-IN]** below: one decision per edge.
+**Updated 2026-11-01, session 62.** Nothing is blocking. NA12 and CS7 are shipped as you said; the results
+are the **[OWNER CHECK-IN]** below (one finding about Null Out, two small calls). The Season 0 checklist is
+now at the top of `progress/roadmap.md`.
 
-### [OWNER CHECK-IN] The two old edges: one partial fix, one fix with a cost
+### [OWNER CHECK-IN] NA12 and CS7 are shipped; both rings re-run
+
+**What changed** (`progress/balance-report-038-old-edges-shipped.txt`, files in `progress/old-edges-ship/`):
+- **Null Pointer:** choose one: Dereference (destroy target enemy directive) or Null Out (target enemy unit
+  gets -3/-3 permanently). **Force Quit:** choose one: Terminate (destroy target enemy directive) or Kill All
+  (deal 1 damage to all enemy units). Both still cost 2 energy and are instant speed. No other card changed.
+- The shipped cards are byte for byte the ones session 61 measured (same fingerprint).
+
+**The removal cap (your check):** it fits, so NA12 shipped. Null Pointer already counted as removal through
+its old mode. The lint counts a card once, whatever its modes do, so Null is still 10 of 40, exactly the cap,
+in the list and in the starter. Cortex is still 9 of 40. Every deck the builder makes goes through the same
+check (`progress/old-edges-ship/removal-cap.txt`).
+
+**One finding: Null Out doesn't kill an undamaged unit.** The engine never lets a unit's max health drop
+below 1 from stat changes; a shrink kills only together with damage (the same rule Deprecated Routine
+already plays by). So Null Out on a fresh 3/3 leaves a 0/1. It kills any unit with 4 health or less that has
+taken any damage. Session 61's note said "kills a 3-health body", and that was wrong. The numbers were
+measured under this rule, so the shipped card is the card that was measured.
+
+**The rings:**
+- Before I re-recorded the baselines, the real-match check failed on the edge session 61 named: Null ~ Cortex
+  50.7% -> 57.1% (in band -> not sure). The gate check passed. Every number matches session 61's run to the
+  decimal.
+- Real matches, shipped decks: Null > Aegis 45.9 -> 51.2; Cortex > Swarm 53.0 -> 55.2; the other edges inside
+  noise. Gate: Null > Aegis 51.6 -> 56.6, Cortex > Swarm 58.2 -> 61.6 (the overshoot you accepted).
+- Both baselines are re-recorded (dated 2026-11-01). Both checks pass.
+- The built-deck ring (`progress/built-deck-ring-004.txt`) is byte-identical to session 61's run. Faction
+  averages are closer together than before (real-match spread 4.3 points, was 5.9). Null > Aegis is still
+  under its band at every collection level (49-51%); Cortex > Swarm is 53-57% in real matches.
+
+**Calls I made you might want to overrule:**
+1. I shipped Null Out under the existing health rule rather than changing it. The other option is a rule
+   change: let a permanent shrink kill (max health may reach 0). That changes Deprecated Routine and any
+   future -X/-X card too, so it needs a new measurement and your OK. **My recommendation: keep the rule.**
+   It is what was measured. If the text should say so, the card could read "-3/-3 permanently (it can't take
+   health below 1)".
+2. The recorded "empty boast slot" scenario moved from seed 5 (now a Null win) to seed 9, a Cortex win on
+   16 health like the old one. Seeds 2 and 7 were also Cortex wins, but on 1 and 2 health, so they would also
+   have been close wins.
+3. I left three render pages alone: fx-sheet and skin-sheet only differ by the render lane's own new skip-hint
+   style, and pack-opening only by random ids. Those are the render lane's to refresh.
+
+**Next game session:** Season 0, game item 1, match running and the ladder (no decision needed to start).
+
+### [ANSWERED 2026-11-01: ship NA12 and CS7; shipped session 62] The two old edges: one partial fix, one fix with a cost
 
 **What I did** (`progress/balance-report-037-old-edges.txt`, files in `progress/old-edges/`):
 - Screened 21 candidate card changes on the ring check, both modes, on the ring's seeds and on fresh seeds.

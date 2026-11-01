@@ -39,8 +39,8 @@ const faceClass = (html: string) => /^<div class="([^"]+)"/.exec(html)![1]!.spli
 describe("a modal card's face prints each mode (owner side task, 2026-10-18)", () => {
   const modal = [...CARD_REGISTRY.values()].filter((c) => c.modes && c.modes.length);
 
-  it("covers the 3 Zero-Day cards, whose abilities list is empty", () => {
-    expect(modal.map((c) => c.id).sort()).toEqual(["S0-ZD1", "S0-ZD2", "S0-ZD3"]);
+  it("covers the 3 Zero-Day cards and, since game session 62, Force Quit and Null Pointer; every one's abilities list is empty", () => {
+    expect(modal.map((c) => c.id).sort()).toEqual(["CX-019", "NL-015", "S0-ZD1", "S0-ZD2", "S0-ZD3"]);
     for (const c of modal) expect(c.abilities).toEqual([]);
   });
 

@@ -5,7 +5,9 @@
 // oldEdgesScreen.ts applies them in-process for the ring screen.
 //
 // NO CARD IS CHANGED by this file: applyCandidate mutates the card objects
-// it is handed, in the calling process only.
+// it is handed, in the calling process only. Session 62 shipped NA12 and CS7
+// in the real card files (owner 2026-11-01), so against today's cards those
+// two keys change nothing; the rest still measure from today's cards.
 
 import type { Card, UnitCard } from "../cards/types.js";
 
@@ -25,9 +27,20 @@ const ability = (id: string, abilityId: string): any => {
 
 /** Makes a one-ability card modal: its printed ability becomes the first
  * mode (same ability, same text), `extra` the second, aimed at one enemy
- * unit (or every enemy unit with scope "all"), same speed and cost. */
+ * unit (or every enemy unit with scope "all"), same speed and cost.
+ * Since session 62 NA12 and CS7 ship, so Null Pointer and Force Quit are
+ * already modal: the first mode's ability is then the printed one and the
+ * second mode is replaced, so NA12 and CS7 change nothing and the other
+ * modal candidates still measure "the printed answer + their own mode". */
 function modal(id: string, firstId: string, firstName: string, extra: { id: string; name: string; text: string; scope?: "all"; effects: unknown[] }): void {
   const c = card(id);
+  if (c.modes) {
+    if (c.abilities.length !== 0 || c.modes.length !== 2 || c.modes[0].id !== firstId || c.modes[0].abilities.length !== 1) {
+      throw new Error(`${c.name}: modal() expects the shipped two-mode card with "${firstId}" first`);
+    }
+    c.abilities = [...c.modes[0].abilities];
+    delete c.modes;
+  }
   const [printed] = c.abilities;
   if (c.abilities.length !== 1) throw new Error(`${c.name}: modal() expects one printed ability`);
   c.abilities = [];
@@ -138,7 +151,7 @@ export const CANDIDATES: Candidate[] = [
   {
     key: "NA8", edge: "NA",
     label: "Null Pointer becomes modal: Dereference (destroy target enemy directive) or Null Out (target enemy unit gets -2/-2 permanently)",
-    why: "the dead card gets a permanent shrink: kills a 2-health body, a 3/6 signature line ends 1/4",
+    why: "the dead card gets a permanent shrink: a 3/6 signature line ends 1/4; a damaged body of 3 health or less dies (max health floors at 1)",
     apply: () => modal("NL-015", "dereference", "Dereference", {
       id: "null-pointer-null-out", name: "Null Out", text: "Target enemy unit gets -2/-2 permanently.",
       effects: [{ kind: "buff", attack: -2, health: -2, duration: "permanent" }],
@@ -165,7 +178,9 @@ export const CANDIDATES: Candidate[] = [
   {
     key: "NA12", edge: "NA",
     label: "Null Pointer becomes modal: Dereference (destroy target enemy directive) or Null Out (target enemy unit gets -3/-3 permanently)",
-    why: "NA8 one step stronger: kills a 3-health body, a 3/6 signature line ends 0/3",
+    // Session 62: max health floors at 1 (state/queries.ts), so an undamaged
+    // 3-health body ends 0/1, not dead; it kills a damaged one of 4 or less.
+    why: "NA8 one step stronger: a 3/6 signature line ends 0/3; a damaged body of 4 health or less dies",
     apply: () => modal("NL-015", "dereference", "Dereference", {
       id: "null-pointer-null-out", name: "Null Out", text: "Target enemy unit gets -3/-3 permanently.",
       effects: [{ kind: "buff", attack: -3, health: -3, duration: "permanent" }],

@@ -39,10 +39,11 @@ describe("the old-edges candidates", () => {
     const expected: Record<string, string[]> = {
       shipped: [],
       NA1: ["NL-018"], NA2: ["NL-018"], NA3: ["NL-004"], NA4: ["NL-009"], NA6: ["AG-013"], NA7: ["NL-013"],
-      NA8: ["NL-015"], NA9: ["NL-015"], NA10: ["NL-015"], NA12: ["NL-015"], NA11: ["NL-014"],
+      // NA12 and CS7 shipped in session 62: against today's cards they change nothing.
+      NA8: ["NL-015"], NA9: ["NL-015"], NA10: ["NL-015"], NA12: [], NA11: ["NL-014"],
       CS1: ["CX-005"], CS2: ["CX-020"], CS3: ["CX-013"], CS4: ["CX-023"], CS5: ["CX-021"], CS6: ["CX-024"],
-      CS7: ["CX-019"], CS8: ["CX-019"],
-      "NA12+CS7": ["CX-019", "NL-015"],
+      CS7: [], CS8: ["CX-019"],
+      "NA12+CS7": [], "NA8+CS8": ["CX-019", "NL-015"],
     };
     const { CANDIDATES } = await fresh();
     expect(Object.keys(expected).filter((k) => !k.includes("+")).sort()).toEqual(CANDIDATES.map((c) => c.key).sort());
@@ -73,9 +74,20 @@ describe("the old-edges candidates", () => {
 
   it("never changes the shipped cards of a process that didn't apply one", async () => {
     const m = await fresh();
+    m.applyCandidate("NA8+CS8", m.getCard);
+    expect(m.getCard("NL-015")!.modes![1]!.name).toBe("Null Out");
+    expect(m.getCard("NL-015")!.modes![1]!.text).toBe("Target enemy unit gets -2/-2 permanently.");
+    expect(m.getCard("CX-019")!.modes![1]!.name).toBe("Kill");
+    // The shipped modules (loaded before any reset) keep the shipped modes.
+    expect(shippedGetCard("NL-015")!.modes![1]!.text).toBe("Target enemy unit gets -3/-3 permanently.");
+    expect(shippedGetCard("CX-019")!.modes![1]!.name).toBe("Kill All");
+  });
+
+  it("NA12 and CS7 rebuilt from the shipped cards are the shipped cards (session 62)", async () => {
+    const m = await fresh();
+    const before = JSON.stringify([m.getCard("NL-015"), m.getCard("CX-019")]);
     m.applyCandidate("NA12+CS7", m.getCard);
-    expect(shippedGetCard("NL-015")!.modes).toBeUndefined();
-    expect(shippedGetCard("CX-019")!.modes).toBeUndefined();
+    expect(JSON.stringify([m.getCard("NL-015"), m.getCard("CX-019")])).toBe(before);
   });
 
   it("refuses an unknown key", async () => {

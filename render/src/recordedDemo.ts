@@ -42,7 +42,11 @@ export const RECORDED_SCENARIOS: (RecordedScenario & { about: string })[] = [
   {
     id: "recorded-empty-slot",
     about: "an empty boast slot: the store records the deck faction's starter (Cortex's Data Cascade, slot factionStarter)",
-    seed: 5,
+    // 5 until game session 62: with Null Pointer and Force Quit modal, seed 5
+    // ends in a Null win. Seed 9 is the first a Cortex win that isn't close
+    // (16 health, as seed 5's was; seeds 2 and 7 end on 1 and 2), so this
+    // stays a plain empty-slot case.
+    seed: 9,
     p1: { faction: "Null", agent: "Hollow Index" },
     p2: { faction: "Cortex", agent: "Prism Daemon", loadout: { boast: null } },
   },

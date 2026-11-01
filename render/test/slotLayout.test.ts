@@ -170,7 +170,12 @@ describe("response beat bookkeeping — real matches", () => {
           seen.set(sid, seen.get(sid)! + 1);
           tally.resolved++;
           const item = prev.stack.find((p) => p.stackId === sid)!;
-          expect(events.some((e) => e.type === "stackResolve" && e.description === item.description)).toBe(true);
+          // By stack id. The engine's resolve names a modal Command's mode
+          // ("Force Quit (Kill All)"); the snapshot names the card. Instant
+          // modal Commands (game session 62) made that a response for the
+          // first time.
+          expect(events.some((e) => e.type === "stackResolve" && e.stackId === sid
+            && (e.description === item.description || e.description.startsWith(`${item.description} (`)))).toBe(true);
         }
       }
       const last = replay.frames[replay.frames.length - 1]!;

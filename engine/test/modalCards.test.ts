@@ -386,9 +386,10 @@ describe("agents and real matches", () => {
     for (const n of names) expect(seen.get(n) ?? 0, n).toBeGreaterThan(0);
   });
 
-  it("the shipped decks are untouched: no deck carries a modal card yet", () => {
-    for (const build of [buildCortexDeck, buildSwarmDeck]) {
-      expect(build("p1" as PlayerId, "x").cards.some((c) => c.modes)).toBe(false);
-    }
+  it("the shipped decks carry exactly the modal cards shipped in session 62 (Force Quit in Cortex, none in Swarm)", () => {
+    const modalIn = (build: typeof buildCortexDeck) =>
+      [...new Set(build("p1" as PlayerId, "x").cards.filter((c) => c.modes).map((c) => c.name))];
+    expect(modalIn(buildCortexDeck)).toEqual(["Force Quit"]);
+    expect(modalIn(buildSwarmDeck)).toEqual([]);
   });
 });

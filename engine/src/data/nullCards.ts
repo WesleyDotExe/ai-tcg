@@ -507,13 +507,39 @@ export const nullPointer: CommandCard = {
   speed: "Instant",
   art: "placeholder:null/null-pointer",
   flavor: "It dereferences whatever's still standing at that address.",
-  abilities: [
+  // Modal since session 62 (owner 2026-11-01, "ship NA12", a partial fix for
+  // Null > Aegis; progress/balance-report-037-old-edges.txt): the printed
+  // directive answer is the first mode, unchanged; Null Out answers one
+  // durable unit, which Aegis has many of and few directives.
+  abilities: [],
+  modes: [
     {
-      id: "null-pointer-cast",
-      trigger: "onPlay",
+      id: "dereference",
+      name: "Dereference",
       text: "Destroy target enemy directive. Instant speed.",
-      targeting: { scope: "chosen", filter: { side: "opponent", kind: "directive" } },
-      effects: [{ kind: "destroy" }],
+      abilities: [
+        {
+          id: "null-pointer-cast",
+          trigger: "onPlay",
+          text: "Destroy target enemy directive. Instant speed.",
+          targeting: { scope: "chosen", filter: { side: "opponent", kind: "directive" } },
+          effects: [{ kind: "destroy" }],
+        },
+      ],
+    },
+    {
+      id: "null-out",
+      name: "Null Out",
+      text: "Target enemy unit gets -3/-3 permanently.",
+      abilities: [
+        {
+          id: "null-pointer-null-out",
+          trigger: "onPlay",
+          text: "Target enemy unit gets -3/-3 permanently.",
+          targeting: { scope: "chosen", filter: { side: "opponent", kind: "unit" } },
+          effects: [{ kind: "buff", attack: -3, health: -3, duration: "permanent" }],
+        },
+      ],
     },
   ],
 };
