@@ -8,9 +8,18 @@
 // Home's My agent and Deck panels, Settings -> Play (who picks the deck,
 // the faction lock, the forced deck, each agent's play style, "rebuild
 // now" with its job), Connect agent's list, and the theme.
+//
+// Session 45 (Season 0 render item 2, the look): the liquid WebGL
+// background (liquid.ts) and the background picker in Settings -> Display;
+// the theme and background saved to the owner's account (PATCH
+// /api/account/settings), so they follow the owner to any browser; the
+// owner's display name and, for the house admin, Settings -> Admin (who am
+// I); credits, pack points and the Open button in the top bar (the wallet).
 
 import { avatarSvg } from "../avatar.js";
-import { SiteApiError, siteApi, type SiteFaction, type SitePlay } from "./siteApi.js";
+import { startLiquid, type Liquid } from "./liquid.js";
+import { SiteApiError, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SitePlay, type SiteSettingsPatch, type SiteWallet } from "./siteApi.js";
+import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
   FACTION_HEX,
   NAV_LOWER,
@@ -29,7 +38,6 @@ import {
   pageFromHash,
   rebuildView,
   styleName,
-  themeOf,
   type NavItem,
   type PageId,
   type ThemePref,
@@ -51,15 +59,33 @@ interface Session {
 const state: {
   session: Session | null;
   play: SitePlay | null;
+  me: SiteMe | null;
+  /** The account settings as the server last answered (null: not read). */
+  settings: SiteAccountSettings | null;
+  wallet: SiteWallet | null;
   page: PageId;
   theme: ThemePref;
+  background: string;
   busy: boolean;
   poll: number;
-} = { session: null, play: null, page: "home", theme: "system", busy: false, poll: 0 };
+} = { session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0 };
+
+let liquid: Liquid | null = null;
 
 // The page's test hook (the evidence script reads it).
 (window as unknown as { __site: unknown }).__site = {
-  state: () => ({ page: state.page, signedIn: !!state.session, theme: state.theme, drawn: document.body.dataset.theme, play: state.play }),
+  state: () => ({
+    page: state.page,
+    signedIn: !!state.session,
+    theme: state.theme,
+    background: state.background,
+    drawn: document.body.dataset.theme,
+    play: state.play,
+    me: state.me,
+    settings: state.settings,
+    wallet: state.wallet,
+  }),
+  liquid: () => liquid?.stats() ?? null,
 };
 
 function loadSession(): Session | null {
@@ -82,22 +108,59 @@ function saveSession(s: Session | null): void {
   }
 }
 
-// ---- theme ------------------------------------------------------------------
+// ---- theme and background ---------------------------------------------------
 const darkQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+const motionQuery = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
 function applyTheme(): void {
-  document.body.dataset.theme = themeOf(state.theme, !!darkQuery?.matches);
+  const bg = backgroundOf(state.background);
+  const drawn = drawnTheme(state.theme, bg.id, !!darkQuery?.matches);
+  document.body.dataset.theme = drawn;
+  document.body.dataset.bg = bg.id;
+  document.body.classList.toggle("bg-plain", bg.kind === "plain");
+  // Under the canvas: the still version (before the first frame, under
+  // reduce motion's single frame, and the whole background without WebGL).
+  const still = document.getElementById("bg");
+  if (still) still.style.background = stillGradient(bg, drawn === "dark");
   const b = document.getElementById("theme-btn");
   if (b) {
-    const drawn = document.body.dataset.theme;
     b.innerHTML = icon(drawn === "dark" ? "moon" : "sun", 19) + (state.theme === "system" ? '<i class="auto-dot" aria-hidden="true"></i>' : "");
-    const label = state.theme === "system" ? `Theme: system (${drawn})` : `Theme: ${state.theme}`;
+    const label = bg.kind === "plain" ? `Theme: ${state.theme} (${bg.name} always draws dark)` : state.theme === "system" ? `Theme: system (${drawn})` : `Theme: ${state.theme}`;
     b.setAttribute("aria-label", label + ". Change theme");
     b.title = label;
   }
   const seg = document.getElementById("theme-seg");
   if (seg) seg.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.v === state.theme)));
+  document.querySelectorAll<HTMLElement>("#bg-picker .sw").forEach((x) => {
+    const on = x.dataset.bg === bg.id;
+    x.classList.toggle("on", on);
+    x.setAttribute("aria-checked", String(on));
+    const i = x.querySelector("i");
+    if (i) (i as HTMLElement).style.background = stillGradient(backgroundOf(x.dataset.bg), drawn === "dark");
+  });
+  liquid?.refresh();
 }
 darkQuery?.addEventListener?.("change", applyTheme);
+motionQuery?.addEventListener?.("change", () => liquid?.refresh());
+
+/** Saves look settings to the account: drawn at once, sent, and put back
+ * as they were (with the server's words) if the server refuses. */
+async function saveLook(patch: SiteSettingsPatch): Promise<void> {
+  const before = { theme: state.theme, background: state.background };
+  if (patch.theme) state.theme = patch.theme;
+  if (patch.background) state.background = patch.background;
+  applyTheme();
+  if (!state.session) return;
+  try {
+    state.settings = await api.updateAccountSettings(state.session.token, patch);
+    state.theme = state.settings.theme;
+    state.background = state.settings.background;
+  } catch (err) {
+    state.theme = before.theme;
+    state.background = before.background;
+    fail(err);
+  }
+  applyTheme();
+}
 
 // ---- toasts and dialogs -----------------------------------------------------
 let toastTimer = 0;
@@ -151,6 +214,7 @@ function confirmDialog(title: string, body: string, confirm: string): Promise<bo
 function showSignIn(message = ""): void {
   $("#shell").hidden = true;
   $("#signin").hidden = false;
+  liquid?.refresh();
   const m = $("#si-msg");
   m.textContent = message;
   m.hidden = !message;
@@ -159,6 +223,9 @@ function showSignIn(message = ""): void {
 function signedOut(message: string): void {
   state.session = null;
   state.play = null;
+  state.me = null;
+  state.settings = null;
+  state.wallet = null;
   saveSession(null);
   clearTimeout(state.poll);
   showSignIn(message);
@@ -202,15 +269,31 @@ async function signOut(): Promise<void> {
   signedOut("Signed out.");
 }
 
-/** Signed in: load the play settings, then draw the shell. */
+/** Signed in: load the play settings, who the owner is, their account
+ * settings and wallet, then draw the shell. Only the play settings are
+ * needed to go in; if one of the others fails (other than a sign-out) the
+ * page goes in without it and says so where it would show. */
 async function enter(): Promise<void> {
   if (!state.session) return showSignIn();
+  const token = state.session.token;
+  const soft = <T,>(p: Promise<T>) => p.catch((err: unknown) => {
+    if (err instanceof SiteApiError && err.signedOut) throw err;
+    return null;
+  });
   try {
-    state.play = await api.play(state.session.token);
+    const [play, me, settings, wallet] = await Promise.all([api.play(token), soft(api.me(token)), soft(api.accountSettings(token)), soft(api.wallet(token))]);
+    state.play = play;
+    state.me = me;
+    state.settings = settings;
+    state.wallet = wallet;
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
     showSignIn(err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong.");
     return;
+  }
+  if (state.settings) {
+    state.theme = state.settings.theme;
+    state.background = state.settings.background;
   }
   $("#signin").hidden = true;
   $("#shell").hidden = false;
@@ -232,7 +315,14 @@ async function refresh(): Promise<void> {
   if (!state.session || document.hidden) return schedulePoll();
   try {
     const was = state.play?.rebuild.job;
-    state.play = await api.play(state.session.token);
+    const token = state.session.token;
+    const [play, wallet] = await Promise.all([api.play(token), api.wallet(token).catch((err: unknown) => {
+      if (err instanceof SiteApiError && err.signedOut) throw err;
+      return state.wallet;
+    })]);
+    state.play = play;
+    state.wallet = wallet;
+    drawWallet();
     const now = state.play.rebuild.job;
     if (was?.state === "running" && now && now.jobId === was.jobId && now.state !== "running") {
       toast(now.state === "done" ? "Your agent finished building its deck." : `The rebuild failed: ${now.error ?? "no reason given"}`, now.state === "done" ? "info" : "error");
@@ -256,12 +346,31 @@ function navButton(n: NavItem): string {
 function drawShell(): void {
   $("#nav").innerHTML = NAV_MAIN.map(navButton).join("") + '<hr class="nav-rule">' + NAV_LOWER.map(navButton).join("");
   const s = state.session!;
+  // Who am I: the display name; until it answers, the login typed at sign-in.
+  const name = state.me?.name ?? s.login;
   const acct = $("#acct-btn");
-  acct.textContent = initialOf(s.login);
-  acct.setAttribute("aria-label", `Account: ${s.login}`);
-  $("#acct-name").textContent = s.login;
+  acct.textContent = initialOf(name);
+  acct.setAttribute("aria-label", `Account: ${name}`);
+  $("#acct-name").textContent = name;
+  $("#acct-kind").textContent = state.me ? `${state.me.username ? `@${state.me.username} · ` : ""}${state.me.isAdmin ? "House admin" : "Owner account"}` : "Owner account";
+  drawWallet();
   drawAgentCard();
   applyTheme();
+}
+
+/** The top bar's credits, pack points and Open button (the wallet). The
+ * Open button opens the Store page until pack opening comes to the site. */
+function drawWallet(): void {
+  const el = $("#wallet");
+  const w = state.wallet;
+  if (!w) {
+    el.innerHTML = "";
+    return;
+  }
+  const open = openButton(w.unopenedPacks.length);
+  el.innerHTML = `<span class="cur" title="Credits"><i class="coin" aria-hidden="true"></i><b>${amount(w.credits)}</b><span class="vh"> credits</span></span>`
+    + `<span class="cur" title="Pack points"><i class="pp" aria-hidden="true"></i><b>${amount(w.packPoints)}</b><span class="vh"> pack points</span></span>`
+    + `<a class="obtn${open.enabled ? "" : " none"}" id="open-btn" href="#/store" aria-label="${esc(open.label)}" title="${esc(open.label)}">${icon("store", 16)}<span>Open</span>${open.enabled ? `<b class="ocount">${open.count}</b>` : ""}</a>`;
 }
 
 function avatar(name: string, faction: string | null, size: number): string {
@@ -396,8 +505,24 @@ function settingsPage(p: SitePlay): string {
   <h3>Play style</h3>
   <section class="panel glass">${agents || '<p class="muted">No agents yet.</p>'}<details class="styles"><summary>What the play styles mean</summary><ul>${styleHelp}</ul></details></section>
   <h3>Display</h3>
-  <section class="panel glass"><div class="field"><div><b>Theme</b><small>System follows your computer's setting.</small></div>${seg("theme-seg", [["system", "System"], ["light", "Light"], ["dark", "Dark"]], state.theme, "Theme")}</div></section>
+  <section class="panel glass">
+    <div class="field"><div><b>Theme</b><small>System follows your computer's setting.</small></div>${seg("theme-seg", [["system", "System"], ["light", "Light"], ["dark", "Dark"]], state.theme, "Theme")}</div>
+    <div class="field col"><div><b>Background</b><small>A liquid colour or a plain background. ${state.settings ? "Saved to your account, so it follows you to any browser." : "Couldn't read your account's settings: changes show here but may not be saved."}</small></div>${bgPicker()}<small class="muted">Plain backgrounds always use dark mode. Liquid backgrounds follow your theme.</small></div>
+  </section>
+  ${state.me?.isAdmin ? `<h3>Admin</h3>${waitsBox(["the house agents' admin endpoints"], "The admin view: the house agents, their decks and their matches. You see this because your account is the house admin.")}` : ""}
   </div>`;
+}
+
+/** The background picker: one swatch per background, in the account
+ * settings' order; a radio group (arrow keys move it, as a radio does). */
+function bgPicker(): string {
+  const dark = document.body.dataset.theme === "dark";
+  const cur = backgroundOf(state.background).id;
+  return `<div class="bgsw" id="bg-picker" role="radiogroup" aria-label="Background">${BACKGROUND_IDS.map((id) => {
+    const b = backgroundOf(id);
+    const on = id === cur;
+    return `<button type="button" class="sw${on ? " on" : ""}" role="radio" aria-checked="${on}" tabindex="${on ? 0 : -1}" data-bg="${id}"><i style="background:${stillGradient(b, b.kind === "plain" || dark)}"></i><span>${esc(b.name)}</span></button>`;
+  }).join("")}</div>`;
 }
 
 function connectPage(p: SitePlay): string {
@@ -469,10 +594,12 @@ document.addEventListener("click", (e) => {
         if (r.activeDeckFits === false) toast(`The deck that plays now isn't ${v}. Matches wait until a ${v} deck plays: rebuild your agent's deck, or pick a ${v} deck.`, "error");
         return r;
       });
-    else if (group === "theme-seg") {
-      state.theme = v as ThemePref;
-      applyTheme();
-    }
+    else if (group === "theme-seg") void saveLook({ theme: v as ThemePref });
+    return;
+  }
+  const sw = t.closest("#bg-picker .sw") as HTMLElement | null;
+  if (sw) {
+    if (sw.dataset.bg && sw.dataset.bg !== state.background) void saveLook({ background: sw.dataset.bg });
     return;
   }
   const deck = t.closest(".deckrow") as HTMLElement | null;
@@ -484,8 +611,7 @@ document.addEventListener("click", (e) => {
   }
   if (t.closest("#rebuild")) return void onRebuild();
   if (t.closest("#theme-btn")) {
-    state.theme = nextTheme(state.theme);
-    applyTheme();
+    void saveLook({ theme: nextTheme(state.theme) });
     return;
   }
   const acctBtn = t.closest("#acct-btn");
@@ -501,6 +627,17 @@ document.addEventListener("click", (e) => {
   }
   if (!t.closest("#acct-menu")) menu.hidden = true;
 });
+// The picker is a radio group: arrow keys move the choice.
+document.addEventListener("keydown", (e) => {
+  const sw = (e.target as HTMLElement).closest?.("#bg-picker .sw") as HTMLElement | null;
+  if (!sw) return;
+  const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+  if (!step) return;
+  e.preventDefault();
+  const ids = BACKGROUND_IDS as readonly string[];
+  const next = ids[(ids.indexOf(sw.dataset.bg ?? "") + step + ids.length) % ids.length]!;
+  void saveLook({ background: next }).then(() => (document.querySelector(`#bg-picker .sw[data-bg="${next}"]`) as HTMLElement | null)?.focus());
+});
 document.addEventListener("change", (e) => {
   const sel = (e.target as HTMLElement).closest("select[data-style-for]") as HTMLSelectElement | null;
   if (sel) void act((tok) => api.setPlayStyle(tok, sel.dataset.styleFor!, sel.value), "Play style saved.");
@@ -508,6 +645,13 @@ document.addEventListener("change", (e) => {
 
 // ---- start --------------------------------------------------------------------
 $("#si-form").addEventListener("submit", (e) => void onSignIn(e));
+liquid = startLiquid($("#liquid") as HTMLCanvasElement, {
+  background: () => backgroundOf(state.background),
+  dark: () => document.body.dataset.theme === "dark",
+  // The sign-in screen is opaque and covers the whole background.
+  covered: () => $("#signin").hidden !== true || $("#shell").hidden === true,
+  reduceMotion: () => !!motionQuery?.matches,
+});
 applyTheme();
 state.session = loadSession();
 if (state.session) void enter();

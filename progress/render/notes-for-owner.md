@@ -981,3 +981,16 @@ for its next session.)
    small game-lane change and the host can go.
 4. **No shared files changed** (no workflow, no root package files, no server or economy code). The
    render tests import the owner API's source to test against it, read-only.
+
+## 2026-11-01 — Session 45 (the look)
+
+1. **Built: the liquid background and its picker, saved to your account,** plus your name, Admin and the
+   wallet in the top bar. Calls are in `progress/render/checkpoints.md` (newest entry): mainly the
+   liquid lowering its own resolution on a slow machine (call 1) and a plain background keeping your
+   theme choice (call 2).
+2. **Worth a look on the Mac mini:** the frame rate was only measured without a GPU (software WebGL, 12
+   fps before it stepped down). Open the demo there and see if it feels smooth; it should hold 30 fps at
+   full (0.3) resolution on a GPU.
+3. **For the game lane:** the widget board (next render slice) needs the saved board layout endpoint
+   (already on your Season 0 list). Until it exists the board's layout can only live in the page.
+4. **No shared files changed** (no workflow, no root package files, no server or economy code).

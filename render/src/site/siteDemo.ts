@@ -1,5 +1,5 @@
 // The owner website against a real owner API, for trying it by hand and for
-// the session's browser evidence (render session 44).
+// the session's browser evidence (render sessions 44 and 45).
 //
 // A fresh season database in a temp folder, one owner made the way sign-up
 // will (store calls: a Cortex starter, 10 daily packs opened with the live
@@ -39,7 +39,9 @@ export interface RunningDemo {
 export async function startSiteDemo(options: { port?: number; full?: boolean } = {}): Promise<RunningDemo> {
   const dir = mkdtempSync(join(tmpdir(), "site-demo-"));
   const store = EconomyStore.open(join(dir, "season-0.db"));
-  const nova = store.createAccount({ name: "Nova", username: DEMO_LOGIN, password: DEMO_PASSWORD });
+  // Nova is the house admin (Season 0: the owner runs the house), so
+  // Settings shows Admin; Rook is a player and doesn't see it.
+  const nova = store.createAccount({ name: "Nova", username: DEMO_LOGIN, password: DEMO_PASSWORD, isAdmin: true });
   store.grantStarterCollection(nova.ownerId, "Cortex");
   for (let i = 0; i < 10; i++) store.grantPack(nova.ownerId, "S0", "ownerDaily");
   let seed = 4400;
@@ -49,7 +51,15 @@ export async function startSiteDemo(options: { port?: number; full?: boolean } =
   store.connectAgent(nova.ownerId, first.agentId);
   const rook = store.createAccount({ name: "Rook", username: "rook", password: DEMO_PASSWORD });
   store.grantStarterCollection(rook.ownerId, "Aegis");
-  store.createAgent({ ownerId: rook.ownerId, name: "Rook's agent" });
+  const rookAgent = store.createAgent({ ownerId: rook.ownerId, name: "Rook's agent" });
+  // The wallet in the top bar, from real store calls: five days of one win
+  // each for Nova's agent over Rook's (the daily win schedule's credits),
+  // and three packs waiting to be opened (the Open button's count).
+  for (let i = 0; i < 5; i++) {
+    const endedAt = new Date(Date.parse("2026-10-27T10:00:00.000Z") + i * 86_400_000).toISOString();
+    store.recordMatch({ matchId: `demo-${i}`, seed: i, p1AgentId: first.agentId, p2AgentId: rookAgent.agentId, outcome: { kind: "win", winnerAgentId: first.agentId }, endedAt });
+  }
+  for (let i = 0; i < 3; i++) store.grantPack(nova.ownerId, "S0", "ownerDaily");
 
   const chooser = workerChooser();
   const api = await startOwnerApi({ store, port: 0, chooser: chooser.choose, ...(options.full ? {} : { build: DEMO_BUILD }) });

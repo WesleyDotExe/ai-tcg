@@ -7,24 +7,28 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The owner website (session 44)
+## The owner website (sessions 44-45)
 
 - **It is a shell with one working settings page.** Sign-in, sidebar, top bar, Home's two panels,
-  Settings -> Play and Connect agent's list are real; Collection, Store, Agent match, Watch live and Stats
-  are "waiting on the server" panels. No widget board, no Customise, no pack opening in the site yet.
-- **The look is a still CSS gradient,** not the liquid WebGL background; no background picker; the title
-  screen has no card fan, foil logo, stat tiles or ticker.
-- **Missing from the bars for lack of endpoints:** credits, pack points, the Open button, notifications,
-  the auto-play switch, the owner's name (the account shows the login typed), Admin.
-- **Nothing is saved to the account:** the theme resets each load; the skip hint isn't remembered (owner
-  call 2 from session 43 is open until an account-settings endpoint exists).
-- **The site's browser check is by hand** (`progress/render/evidence/site-check-s44.mjs`, 32 checks); CI
-  runs only the vitest half (host + client over the real owner API).
-- **Judged from headless stills only;** the glass over a still gradient reads flatter than the mockup.
+  Settings -> Play and Display, and Connect agent's list are real; Collection, Store, Agent match, Watch
+  live, Stats and Admin are "waiting on the server" panels. No widget board, no Customise (so no
+  Customise -> Background), no pack opening in the site yet.
+- **The liquid's frame rate was only measured in software WebGL** (SwiftShader: 11.7 fps at 0.3, 23.7 at
+  0.14 after stepping down). Never seen on a GPU, on Safari, or on the Mac mini. The step-down threshold
+  (20 fps) and the steps are first guesses.
+- **The title screen has no liquid, card fan, foil logo, stat tiles or ticker** (still the trimmed one).
+- **The skip hint isn't remembered on the account** (owner call 2 from session 43): the site has nothing
+  to skip yet; the API's `skipHintSeen` waits for the first replay in the site.
+- **Sound and music settings exist on the account but have no controls** (the site plays nothing yet).
+- **Missing from the bars for lack of endpoints:** notifications, the auto-play switch. The Open button
+  goes to a Store page that can't open packs yet.
+- **The site's browser checks are by hand** (`site-check-s44.mjs`, `site-check-s45.mjs`); CI runs only the
+  vitest half (host + client over the real owner API, and the pure look module).
+- **Judged from headless stills only.**
 - **The faction colour of the agent** comes from the lock or the last rebuild's result (the API has no
   deck faction); after a reload with no lock and no job in memory, the avatar is the neutral violet.
-- **The rebuild poll is every 1.5 s while running and 15 s otherwise;** a match starting shows up to 15 s
-  late. Live state wants a push channel when Watch live is built.
+- **The poll is every 1.5 s while a rebuild runs and 15 s otherwise** (play settings and the wallet); a
+  match starting shows up to 15 s late. Live state wants a push channel when Watch live is built.
 
 ## The "tap to skip" hint (session 43)
 

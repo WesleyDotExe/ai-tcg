@@ -7,6 +7,45 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-01 — The look: the liquid background and its picker, saved to your account — AWAITING FEEDBACK
+
+Your Season 0 list, render item 2. Try it: `npm run site-demo -w @ai-tcg/render`, open
+http://127.0.0.1:8080/, sign in as `nova` / `a long demo password`, then Settings -> Display.
+- **The liquid background** (the mockup's shader and colours) behind the glass: Glacier by default; Ocean,
+  Aurora, Sunset, Lavender, Graphite, each with a light and dark version that fade into each other over
+  about a second; Plain black and Plain purple, which always draw dark.
+- **The picker** in Settings -> Display: eight swatches. The background **and the theme save to your
+  account** (your session-44 call 5): another browser opens with them.
+- **The spec's performance and accessibility rules:** low resolution, at most about 30 fps, paused while
+  the tab is hidden, while sign-in covers it and on a plain background (no frames drawn at all); reduce
+  motion keeps it still; reduce transparency makes panels solid.
+- **Also, since the endpoints arrived:** your display name on the account button and menu; Settings ->
+  Admin for the house admin; credits, pack points and the Open button with its count in the top bar.
+
+**Evidence:** `progress/render/evidence/site-check-s45.txt` (39 browser checks, ALL PASS) and stills
+`v2-s45-site-home-*.jpg` (each colour), `-picker-light.jpg`, `-narrow-picker.jpg`, `-no-webgl-sunset.jpg`;
+render tests 716 (+20).
+
+**Decisions you may want to overrule:**
+1. **On a slow machine the liquid lowers its own resolution** (0.3 -> 0.2 -> 0.14 of the window when it
+   draws under 20 fps; never back up in that page). It's blurred, so the lower steps look nearly the same.
+   Alternative: keep 0.3 and accept a slower liquid, or fall back to the still gradient instead.
+2. **A plain background keeps your theme choice** (say Light) and draws dark only while it's chosen; going
+   back to a liquid brings your Light back. Alternative: picking a plain background sets the theme to Dark.
+3. **The Open button opens the Store page** (which says it waits on pack opening) until pack opening comes
+   to the site. Alternative: hide the button until then.
+4. **Admin is a section at the bottom of Settings**, shown only to the house admin, saying what it waits on.
+   Alternative: its own sidebar entry.
+5. **No sound or music controls yet:** the account stores them, but the site plays nothing. They come with
+   the first page that plays sound (match viewing or pack opening).
+6. **Without WebGL the background is a still gradient of the chosen colours**, not an error.
+
+**Thin spots (in the debt list):** frame rate only measured in software WebGL (12 fps at 0.3, 24 at 0.14),
+never on a real GPU; the skip hint isn't remembered yet (nothing in the site skips); no Customise ->
+Background (comes with the widget board); the title screen still has no liquid or card fan.
+
+**Next render-lane slice:** item 3, Home as the widget board. Its saved layout needs a game-lane endpoint.
+
 ## 2026-11-01 — The owner website, first slice — AWAITING FEEDBACK
 
 Your Season 0 list, render item 1, begun. Try it: `npm run site-demo -w @ai-tcg/render`, open

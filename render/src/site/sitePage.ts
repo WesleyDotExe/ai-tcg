@@ -5,9 +5,11 @@
 // render/reference/owner-web-mockup.html (the frosted-glass sidebar, top bar
 // and panels over a soft gradient, light and dark).
 //
-// The liquid WebGL background and its picker are the Season 0 list's item
-// 2 ("the look"); until then the page draws the Glacier colours as a still
-// CSS gradient, which is also what reduce-motion will keep.
+// Session 45 (the look): the liquid WebGL background is a canvas (#liquid,
+// drawn by liquid.ts) over a still CSS gradient of the same colours (#bg,
+// set by the client from siteLook.stillGradient): the still one shows
+// before the first frame, and is the whole background if the browser has
+// no WebGL. A plain background hides the canvas.
 //
 //   npm run site-page -w @ai-tcg/render [-- <out file>]   (default render/output/site/index.html)
 
@@ -58,12 +60,32 @@ button { font: inherit; color: inherit; }
 .muted { color: var(--muted); } .small { font-size: 12.5px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* The background: Glacier, still (the liquid WebGL version is the next slice of the look). */
-#bg { position: fixed; inset: 0; z-index: 0;
-  background: radial-gradient(60% 70% at 15% 20%, #f3f6ff 0, transparent 60%), radial-gradient(50% 60% at 85% 30%, #cfdaf2 0, transparent 70%),
-    radial-gradient(70% 60% at 60% 90%, #d9d4f2 0, transparent 70%), linear-gradient(135deg, #dfe6f6, #e3e1f4 50%, #d6e4f6); }
-body[data-theme="dark"] #bg { background: radial-gradient(60% 70% at 15% 20%, #1b2550 0, transparent 60%), radial-gradient(50% 60% at 85% 30%, #142a48 0, transparent 70%),
-    radial-gradient(70% 60% at 60% 90%, #231c4a 0, transparent 70%), linear-gradient(135deg, #0b0f1e, #151a33 50%, #0e1a32); }
+/* The background (2026-10-05 D): the liquid canvas, drawn at low resolution and stretched, over the still
+   gradient of the same colours (the client sets #bg's colours; these are Glacier's, before it runs). */
+#bg, #liquid { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; }
+#bg { background: linear-gradient(135deg, rgb(222,230,247), rgb(212,207,242) 55%, rgb(191,219,247)); }
+body[data-theme="dark"] #bg { background: linear-gradient(135deg, rgb(13,18,36), rgb(38,36,77) 55%, rgb(18,43,87)); }
+#liquid { display: block; pointer-events: none; }
+
+/* The background picker: the mockup's swatches, four to a row. */
+.bgsw { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: 100%; margin: 12px 0 8px; }
+.sw { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px; border-radius: 16px; border: 2px solid transparent; background: none; cursor: pointer; font: 600 12.5px system-ui; color: var(--ink); }
+.sw i { width: 100%; aspect-ratio: 16 / 10; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 2px 8px rgba(0,0,0,.15); }
+.sw.on { border-color: var(--accent); }
+.sw:hover:not(.on) { border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+.field.col { flex-direction: column; align-items: stretch; gap: 4px; }
+
+/* The wallet in the top bar: credits, pack points, Open. */
+#wallet { display: flex; align-items: center; gap: 8px; }
+.cur { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px 0 10px; border-radius: 99px; background: var(--soft); box-shadow: 0 2px 10px rgba(40,30,120,.12), var(--soft-edge);
+  font: 700 15px ui-rounded, -apple-system, "SF Pro Rounded", system-ui; font-variant-numeric: tabular-nums; }
+.coin, .pp { width: 18px; height: 18px; border-radius: 50%; flex: none; }
+.coin { background: radial-gradient(circle at 35% 30%, #fff3c4, #f6c445 45%, #c98a12); box-shadow: inset 0 0 0 1.5px rgba(150,95,0,.45); }
+.pp { border-radius: 5px; transform: rotate(45deg) scale(.82); background: linear-gradient(135deg, #7ad8ff, #8b5cff); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.4); }
+.obtn { position: relative; display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 16px 0 13px; border-radius: 99px; font: 800 14px system-ui; color: #3b2600;
+  background: linear-gradient(135deg, #ffd66b, #f0a92a); box-shadow: 0 4px 14px rgba(230,150,20,.35), inset 0 1px 0 rgba(255,255,255,.6); }
+.obtn.none { color: var(--muted); background: var(--soft); box-shadow: var(--soft-edge); }
+.ocount { position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; display: grid; place-items: center; font: 800 11px system-ui; color: #fff; background: var(--live); box-shadow: 0 0 0 2px var(--solid); }
 
 /* Glass */
 .glass, .wg, .panel { background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow);
@@ -207,12 +229,14 @@ body[data-theme="dark"] .dlg { background: rgba(20,24,56,.8); }
 
 /* Narrow windows: the panels stack in order (the phone layout stays parked). */
 @media (max-width: 1100px) { .wg { grid-column: span 12; } }
-@media (max-width: 760px) { #shell { grid-template-columns: 76px minmax(0,1fr); } .navb span, .nbadge, .brand small, #agent-card .ac-name, #agent-card .status { display: none; } .navb { justify-content: center; padding: 10px; }
+@media (max-width: 1000px) { .cur { padding: 0 10px 0 8px; font-size: 13.5px; } .obtn span { display: none; } .obtn { padding: 0 11px; } }
+@media (max-width: 760px) { #wallet .cur:nth-child(2) { display: none; } .bgsw { grid-template-columns: repeat(2, minmax(0, 1fr)); } #shell { grid-template-columns: 76px minmax(0,1fr); } .navb span, .nbadge, .brand small, #agent-card .ac-name, #agent-card .status { display: none; } .navb { justify-content: center; padding: 10px; }
   .brand { font-size: 13px; padding: 0 0 12px; text-align: center; } #agent-card { padding: 8px; background: none; border: 0; box-shadow: none; } .ac-top { margin: 0; justify-content: center; }
   .topbar, #page { padding-left: 16px; padding-right: 16px; } .field { flex-direction: column; align-items: flex-start; } }
 
-/* Accessibility (2026-10-05 D): reduce transparency makes panels solid; reduce motion stills the spinner and pulse. */
-@media (prefers-reduced-transparency: reduce) { .glass, .wg, .panel, .side, .topbar, .dlg { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--solid); }
+/* Accessibility (2026-10-05 D): reduce transparency makes panels solid; reduce motion stills the spinner and pulse
+   (and the liquid: liquid.ts draws one frame and stops). */
+@media (prefers-reduced-transparency: reduce) { .glass, .wg, .panel, .side, .topbar, .dlg, .cur { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--solid); }
   .wg.hero { background: #1d2348; } }
 @media (prefers-reduced-motion: reduce) { .spin, .status.live i { animation: none; } .toast { transition: none; } }
 `;
@@ -228,6 +252,7 @@ export function renderSitePage(): string {
 </head>
 <body data-theme="light">
 <div id="bg" aria-hidden="true"></div>
+<canvas id="liquid" aria-hidden="true"></canvas>
 
 <section id="signin" hidden>
   <div class="stars" aria-hidden="true"></div>
@@ -257,10 +282,11 @@ export function renderSitePage(): string {
   <main>
     <header class="topbar">
       <h1 id="title">Home</h1><span class="sp"></span>
+      <div id="wallet" aria-label="Wallet"></div>
       <button id="theme-btn" class="tbtn" type="button"></button>
       <button id="acct-btn" class="tbtn" type="button" aria-haspopup="menu" aria-expanded="false"></button>
       <div id="acct-menu" class="glass" role="menu" hidden>
-        <div class="who"><b id="acct-name"></b><small>Owner account</small></div>
+        <div class="who"><b id="acct-name"></b><small id="acct-kind">Owner account</small></div>
         <a class="mitem" role="menuitem" href="#/settings">Settings</a>
         <button id="sign-out" class="mitem" role="menuitem" type="button">Sign out</button>
       </div>
