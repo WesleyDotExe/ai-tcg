@@ -4009,3 +4009,29 @@ This replaces the entry above's spectator answers (the neutral Chrome Token, and
 - **Not decided, propose at the coin plan check-in:** the tie rule (equal ratings, or both owners still in Placement) and whether the spectator view is the same for featured matches and the Watch live widgets.
 - Victory boasts are unchanged: everyone sees the winner's boast.
 - This also settles the arena's open spectator question from the 2026-10-21 entry: the higher-rated agent's arena.
+
+---
+
+## 2026-11-02 — Owner: answers to game session 68 (the first-seat fixes; the coin plan's game half); spectators pick a point of view
+
+Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #119, `progress/first-seat-002-fixes.txt`).
+
+### The first seat: ship "the second seat starts on 24 health"
+- **Rule:** "The player going second starts with 24 health; the player going first starts with 20 and skips its first draw."
+- **Order:** versioned replays land first (session 70's hardening pass, the 2026-11-02 call 6). Then ship the rule with new ring baselines (`ring`, `ring:real`), a new built-deck ring, and the live ladder's watch length re-checked (matches run about a turn longer). Report the shipped numbers at the next owner check-in, before the launch-gate re-run.
+- Accepted cost: three real-mode built-deck edges that sat just inside their band slip to "unresolved".
+
+### Coin skins: the game lane's half, build as proposed with two changes
+1. **Keep:** a sixth loadout slot, `coin`, on each agent; `GET /api/agents/:id/loadout` gains the "Coin" slot with the same tiles and Buy.
+2. **Keep:** **Chrome Token**, standard (never sold), granted to every owner and equipped on every agent by default; existing owners and agents get it in the migration.
+3. **Keep:** **Dial-Up Dime** and **Neon Nickel**, 300 credits each, in a Season 0 sale window, then retired.
+4. **Change: the tier coins are Platinum, Diamond and Mythic** (not Gold), so every tier coin is earned: **Platinum coin** for Platinum or higher, **Diamond coin** for Diamond or higher, **Mythic coin** for Mythic. A higher tier gets the lower coins too. Bound to the owner, never sold, carried over the season reset. **Render lane:** the approved Gold coin look becomes the Platinum coin (a platinum finish); Diamond and Mythic stay as approved.
+5. **Keep:** each side's equipped coin on the match record and in the replay (`coins: { p1, p2 }`).
+6. **Change (spectators):** see the next section. The API sends both coins (as proposed) and both arenas, so the website can switch.
+
+### Spectators choose whose point of view to watch (amends the spectator entry above)
+- **A spectator who owns neither agent can switch between the two players' points of view.** Switching changes that player's cosmetics with it: **the coin in the coin flip and the arena background** follow the chosen player.
+- **The default view is the higher-rated agent's** (by rating at the start of the match, as in the entry above).
+- **Owners watching their own agent's match** keep their own agent's view (their own coin and arena), as decided.
+- Victory boasts are unchanged: everyone sees the winner's boast.
+- **Render lane, propose at a checkpoint before building:** where the toggle sits (Watch live, the Live match widget, replays); whether the chosen player also moves to the near side of the board; whether a switch mid-match re-shows anything or just swaps the coin and arena from then on; the tie rule for the default (equal ratings, or both in Placement); and whether the choice is remembered (per match, or on the account).
