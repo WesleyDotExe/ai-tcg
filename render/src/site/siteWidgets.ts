@@ -11,7 +11,7 @@
 import { avatarSvg } from "../avatar.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
 import type { SiteHistory, SiteLive, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
-import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveLineHtml, myLiveMatch, recordOf, scoreboardHtml, scoreboardOf, tidyLines } from "./siteMatches.js";
+import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveLineHtml, myLiveMatch, recordOf, scoreboardHtml, scoreboardOf, tidyLines, watchAsHtml } from "./siteMatches.js";
 import {
   FINISH_NAMES,
   WIDGET_INFO,
@@ -80,6 +80,9 @@ export interface WidgetData {
   history: SiteHistory | null;
   /** The viewer (to mark their own side on a scoreboard). */
   ownerId: string | null;
+  /** The side the viewer chose to watch a match as (render session 52; kept
+   * for the tab), or null for the default. Absent: always the default. */
+  viewOf?: (matchId: string) => "p1" | "p2" | null;
   /** A read that failed, with the words to show. */
   errors: Partial<Record<WidgetSource, string>>;
   now: number;
@@ -169,8 +172,10 @@ function liveBody(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
     if (!live.matches.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
     // S: the first match's scoreboard; M: its scoreboard and the others as
     // one line each; L: the first on the compact board, the list alongside.
-    const sbs = live.matches.map((m) => scoreboardOf(m, d.ownerId));
-    const first = scoreboardHtml(sbs[0]!, { small: w.size !== "L" }) + (w.size === "L" && view === "board" ? compactBoard(live.matches[0]!, sbs[0]!.mine) : "");
+    const sbs = live.matches.map((m) => scoreboardOf(m, d.ownerId, d.viewOf?.(m.matchId) ?? null));
+    // The point of view (owner 2026-11-02): the "Watch as" switch on the
+    // first match at M and L (S has no room); never on the viewer's own match.
+    const first = scoreboardHtml(sbs[0]!, { small: w.size !== "L" }) + (w.size === "L" && view === "board" ? compactBoard(live.matches[0]!, sbs[0]!.near) : "") + (w.size === "S" ? "" : watchAsHtml(sbs[0]!, `wa-${w.id}`));
     const rest = sbs.slice(1);
     const list = w.size === "S" || !rest.length ? "" : `<ul class="lines">${rest.map(liveLineHtml).join("")}</ul>`;
     const boards = w.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
@@ -189,7 +194,7 @@ function liveBody(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
   }
   const sb = scoreboardOf(m, d.ownerId);
   if (w.size === "S") return scoreboardHtml(sb, { small: true });
-  const board = view === "board" ? compactBoard(m, sb.mine) : "";
+  const board = view === "board" ? compactBoard(m, sb.near) : "";
   if (w.size === "M") return scoreboardHtml(sb) + board + note;
   const feed = `<ol class="pbp small">${tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).map((x) => `<li>${esc(x)}</li>`).join("")}</ol>`;
   return `<div class="wsplit wide-l"><div class="wcol">${scoreboardHtml(sb, { small: true })}${board}${note}</div><div class="wcol"><h4>Play-by-play</h4>${feed}<div class="row">${autoPlaySwitch(ap, `ap-${w.id}`)}<a class="btn sm" href="#/match">Open</a></div><p class="muted small">The 2× vote comes with its endpoint.</p></div></div>`;

@@ -62,7 +62,7 @@ import {
 import { DEFAULT_FILTERS, binderBlocks, craftView, copiesByCard, neighbours, salvageConfirmText, salvageView, type BinderSlot, type CollectionFilters, type FactionFilter, type ShowFilter, type CollectionTab, type SiteBinder } from "./siteCollection.js";
 import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRenderer, type ViewerState } from "./siteCollectionHtml.js";
 import { miniCard, packArt, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
-import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, recordOf, scoreboardHtml, scoreboardOf, tidyLines } from "./siteMatches.js";
+import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, tidyLines, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
   FACTION_HEX,
@@ -199,6 +199,35 @@ function loadSession(): Session | null {
     return null;
   }
 }
+// ---- the spectator point of view (render session 52) ------------------------
+// The side a spectator chose to watch each match as (owner 2026-11-02):
+// remembered per match in this tab only, never on the account; the next
+// match starts from its default (the higher-rated side) again.
+const VIEW_KEY = "ai-tcg.watchAs";
+const viewChoices = new Map<string, "p1" | "p2">(loadViews());
+function loadViews(): [string, "p1" | "p2"][] {
+  try {
+    const raw = JSON.parse(sessionStorage.getItem(VIEW_KEY) ?? "{}") as Record<string, unknown>;
+    return Object.entries(raw).filter((e): e is [string, "p1" | "p2"] => e[1] === "p1" || e[1] === "p2");
+  } catch {
+    return [];
+  }
+}
+function viewOf(matchId: string): "p1" | "p2" | null {
+  return viewChoices.get(matchId) ?? null;
+}
+function setViewOf(matchId: string, seat: "p1" | "p2"): void {
+  viewChoices.delete(matchId);
+  viewChoices.set(matchId, seat);
+  // The newest 50 matches are plenty for a tab.
+  while (viewChoices.size > 50) viewChoices.delete(viewChoices.keys().next().value as string);
+  try {
+    sessionStorage.setItem(VIEW_KEY, JSON.stringify(Object.fromEntries(viewChoices)));
+  } catch {
+    /* storage blocked: the choice lasts this page load */
+  }
+}
+
 function saveSession(s: Session | null): void {
   try {
     if (s) sessionStorage.setItem(SESSION_KEY, JSON.stringify(s));
@@ -639,7 +668,7 @@ function homePage(p: SitePlay): string {
   if (!widgets.length) {
     return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
   }
-  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, now: Date.now(), colFilter: state.colFilter };
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter };
   const { views, capped } = liveViews(widgets);
   const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id) })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -1766,7 +1795,7 @@ function drawLive(): void {
     const p = state.play;
     if (!p) return;
     const widgets = state.board.widgets;
-    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, now: Date.now(), colFilter: state.colFilter };
+    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter };
     const { views, capped } = liveViews(widgets);
     for (const w of widgets) {
       if (w.type !== "live" && w.type !== "watch") continue;
@@ -1804,7 +1833,7 @@ function mLiveHtml(p: SitePlay): string {
   const names = { p1: m.p1.agentName, p2: m.p2.agentName };
   const lines = state.follow?.matchId === m.matchId ? state.follow.lines.slice(-60) : tidyLines(m.recentLines, names);
   const feed = lines.map((x) => `<li>${esc(x)}</li>`).join("");
-  return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${compactBoard(m, sb.mine)}${arenaButton(m.matchId)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
+  return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${compactBoard(m, sb.near)}${arenaButton(m.matchId)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
 }
 
 function histHtml(): string {
@@ -1831,9 +1860,9 @@ function liveListHtml(): string {
   const me = state.me?.ownerId ?? null;
   return live.matches
     .map((m) => {
-      const sb = scoreboardOf(m, me);
+      const sb = scoreboardOf(m, me, viewOf(m.matchId));
       const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
-      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : ""}${scoreboardHtml(sb)}${compactBoard(m, sb.mine)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
+      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : watchAsHtml(sb, "wa-live")}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
     })
     .join("");
 }
@@ -1871,6 +1900,33 @@ function arenaButton(matchId: string): string {
   return `<button type="button" class="btn sm" id="arena-${esc(matchId)}" data-act="watch-arena" data-match="${esc(matchId)}">Watch on the arena</button>`;
 }
 
+/** The point of view the arena opens with (render session 52), as the
+ * page's hash: `view` the side at the bottom, `switch=1` when the viewer
+ * may switch it (a match they don't own: their own agent's side otherwise,
+ * no switch). The arena tells the website when the viewer switches
+ * ('ai-tcg-view'), so the scoreboards follow once it closes. */
+function arenaHash(matchId: string, mine: "p1" | "p2" | null, defaultView: "p1" | "p2" | null | undefined): string {
+  const near = nearSeat(mine, viewOf(matchId), defaultView);
+  return `#view=${near}&switch=${mine ? 0 : 1}`;
+}
+function arenaView(matchId: string): string {
+  const m = state.home.live?.matches.find((x) => x.matchId === matchId) ?? null;
+  const me = state.me?.ownerId ?? null;
+  const mine = m && me ? (m.p1.ownerId === me ? "p1" : m.p2.ownerId === me ? "p2" : null) : null;
+  return arenaHash(matchId, mine, m?.defaultView);
+}
+function replayView(matchId: string): string {
+  // Match history is the viewer's own: their agent's seat near, no switch.
+  const row = state.hist.rows.find((r) => r.matchId === matchId) ?? state.home.history?.matches.find((r) => r.matchId === matchId) ?? null;
+  return arenaHash(matchId, row ? row.seat : null, null);
+}
+window.addEventListener("message", (e) => {
+  if (!replayFrame || e.source !== replayFrame.contentWindow || e.origin !== location.origin) return;
+  const d = e.data as { type?: unknown; view?: unknown } | null;
+  if (!d || d.type !== "ai-tcg-view" || (d.view !== "p1" && d.view !== "p2") || !state.replay) return;
+  setViewOf(state.replay, d.view);
+});
+
 /** The live arena's feeding: the page's key, how many frames it has, the poll. */
 let arenaLive: { key: string; have: number; poll: number; ended: boolean } | null = null;
 
@@ -1899,7 +1955,7 @@ async function openLiveArena(matchId: string, from: HTMLElement | null): Promise
       replayFrame?.focus();
       void feedArena();
     }, { once: true });
-    replayFrame.src = page.url;
+    replayFrame.src = page.url + arenaView(matchId);
     el.insertBefore(replayFrame, el.firstChild);
   } catch (err) {
     closeReplay();
@@ -1950,7 +2006,7 @@ async function openReplay(matchId: string, from: HTMLElement | null): Promise<vo
       el.querySelector(".op-wait")?.remove();
       replayFrame?.focus();
     }, { once: true });
-    replayFrame.src = page.url;
+    replayFrame.src = page.url + replayView(matchId);
     el.insertBefore(replayFrame, el.firstChild);
   } catch (err) {
     closeReplay();
@@ -2059,6 +2115,15 @@ document.addEventListener("click", (e) => {
     if (act === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
     if (act === "replay" && actEl.dataset.match) return void openReplay(actEl.dataset.match, actEl);
     if (act === "watch-arena" && actEl.dataset.match) return void openLiveArena(actEl.dataset.match, actEl);
+    if (act === "watch-as" && actEl.dataset.match && (actEl.dataset.seat === "p1" || actEl.dataset.seat === "p2")) {
+      setViewOf(actEl.dataset.match, actEl.dataset.seat);
+      const focusId = actEl.id;
+      // A Home tile with focus inside isn't redrawn (drawLive): this one must be.
+      actEl.blur();
+      drawLive();
+      if (focusId) document.getElementById(focusId)?.focus();
+      return;
+    }
     if (act === "close-replay") return closeReplay();
     if (act === "match-log" && actEl.dataset.match) return void showLog(actEl.dataset.match);
     if (act === "more-hist") return void loadHistory(false);

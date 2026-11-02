@@ -7,6 +7,58 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-02 — The spectator point of view: "Watch as" on the website and the arena — AWAITING FEEDBACK
+
+The point of view you approved after session 50, built as specified. Try it: `npm run site-demo -w
+@ai-tcg/render -- --ladder --speed 4`, open http://127.0.0.1:8080/#/live, sign in as `nova` / `a long demo
+password`.
+- **"Watch as: <A> | <B>"** on every Watch live card for a match you don't play in, on the Watch live widget
+  at M and L (its first match), and in the arena's top bar (replay or live). Never on your own agent's match:
+  Agent match, the Live match widget, your history's replays and your own Watch live card always put your
+  agent near, with no switch.
+- **The default is the higher-rated agent** (the server's `defaultView`; p1 on a tie). The choice is kept per
+  match for this browser tab only; a new tab or the next match starts from the default again.
+- **The chosen player moves to the near side:** on the website, first (left) on the scoreboard and the top
+  row of the compact board; on the arena, its units at the bottom, its HUD and hand on the left, its name
+  first in the header. The momentum gauge mirrors with it.
+- **A switch re-shows nothing:** the board flips on the move shown and playback goes on. If the Match Boot
+  intro or a victory boast is playing, the switch waits (it shows that it's waiting) and flips the moment it
+  ends; a tap on the switch doesn't skip the intro (it is treated like the playback buttons).
+- **"Watch on the arena" opens with your choice**, and switching inside the arena carries back: on Close the
+  card shows what you picked there.
+
+**Evidence:** `progress/render/evidence/pov-check-s52.txt`: 48 browser checks, ALL PASS. The arena on its own
+(rows, HUDs, hands, header and gauge flip; every row keeps its own player's cards; the boast plays on the
+winner's side from either view with nothing lit past it; playback continues; the intro waits; a reload keeps
+the choice, a new tab doesn't; a phone fits), and the website with the real ladder at 4x (defaultView
+pressed on every other match's card, a tap flips the card, a reload keeps it, the arena opens with it and
+hands a switch back, Nova's own match/arena/replay keep Nova near with no switch). Stills
+`v2-s52-pov-*.jpg`, e.g. `v2-s52-pov-arena-as-p2.jpg`, `v2-s52-pov-end-as-p2.jpg` (the winner's boast on
+the top side) and `v2-s52-pov-watch-live-switched.jpg`. The CI browser check still 61/61
+(`ci-check-s52.txt`): the default view is unchanged. Render tests 829 (+6, `render/test/watchAs.test.ts`).
+
+**Decisions you may want to overrule:**
+1. **A switch during the intro or a boast waits for it to end**, rather than cutting it short or flipping the
+   effects mid-flight (both are drawn on the sides where they started).
+2. **A tap on "Watch as" doesn't skip the intro** (every other tap on the board does). It waits, as above.
+3. **The momentum gauge mirrors with the view.** Its existing convention is kept for p1 near (p1 ahead fills
+   to the right of centre); watching as p2, p2 ahead fills to the right. Alternative: always fill toward the
+   leader's HUD (the near one is on the left), which would change how the gauge reads today.
+4. **The Watch live widget shows the switch for its first match only** (M and L), not the one-line list of
+   other matches under it; S has no switch (no room).
+5. **A replay opened on its own (a committed `render/output` page) shows the switch and starts at p1**: the
+   file has no ratings to pick the default by. It remembers the choice for the tab.
+6. **A replay of a match you don't own isn't reachable from the site yet** (match history is your own), so the
+   replay's switch is only seen on standalone pages and the live arena for now; it is built and tested for
+   when a featured match can be watched again.
+
+**Next render-lane slice:** hands live, face up (your answer to render 51: rebuild them from the feed's draw
+events), together with the first coin slice (the flip in Match Boot, the Chrome Token, reduced motion and
+sound), which the point of view now has a place for. A render hardening pass is overdue (last: session 40)
+and should be the next session you leave unnamed.
+
+---
+
 ## 2026-11-02 — The big live board: a live match on the arena — AWAITING FEEDBACK
 
 The slice you named after session 50. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder --speed 4`,

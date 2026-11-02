@@ -155,6 +155,11 @@ export interface Scoreboard {
   lastLine: string | null;
   /** Which side is the viewer's agent (null: watching someone else's). */
   mine: "p1" | "p2" | null;
+  /** The side shown near (first, left; on the arena, at the bottom): the
+   * viewer's own agent, else the side the viewer chose to watch as, else
+   * the server's `defaultView` (the higher rating at the start, p1 on a
+   * tie), else p1 (render session 52, the spectator point of view). */
+  near: "p1" | "p2";
   moves: number;
 }
 
@@ -175,17 +180,28 @@ function scoreSide(side: SiteLiveMatch["p1"], pub: SitePublicSide, isTurn: boole
   };
 }
 
-export function scoreboardOf(m: SiteLiveMatch, viewerOwnerId: string | null): Scoreboard {
+/** The side a viewer sees near: their own agent's seat always (owner
+ * 2026-11-02: an owner keeps their own agent's view); a spectator's choice
+ * for this match; the server's `defaultView`; p1. */
+export function nearSeat(mine: "p1" | "p2" | null, chosen: "p1" | "p2" | null | undefined, defaultView: "p1" | "p2" | null | undefined): "p1" | "p2" {
+  if (mine) return mine;
+  if (chosen === "p1" || chosen === "p2") return chosen;
+  return defaultView === "p2" ? "p2" : "p1";
+}
+
+export function scoreboardOf(m: SiteLiveMatch, viewerOwnerId: string | null, chosen: "p1" | "p2" | null = null): Scoreboard {
   const n = m.now;
   const name = (s: "p1" | "p2") => m[s].agentName;
   const status = n.winner === "draw" ? "Draw" : n.winner ? `${name(n.winner)} wins` : `Turn ${n.turn} · ${name(n.activePlayer)} to play`;
+  const mine = viewerOwnerId === null ? null : m.p1.ownerId === viewerOwnerId ? "p1" : m.p2.ownerId === viewerOwnerId ? "p2" : null;
   return {
     matchId: m.matchId,
     p1: scoreSide(m.p1, n.p1, !n.winner && n.activePlayer === "p1", n.winner === "p1"),
     p2: scoreSide(m.p2, n.p2, !n.winner && n.activePlayer === "p2", n.winner === "p2"),
     status,
     lastLine: tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).pop() ?? null,
-    mine: viewerOwnerId === null ? null : m.p1.ownerId === viewerOwnerId ? "p1" : m.p2.ownerId === viewerOwnerId ? "p2" : null,
+    mine,
+    near: nearSeat(mine, chosen, m.defaultView),
     moves: m.released,
   };
 }
@@ -223,15 +239,30 @@ function sideHtml(s: ScoreSide, seat: "near" | "far", mine: boolean): string {
  * the turn, and (unless `small`) the last log line released. */
 export function scoreboardHtml(sb: Scoreboard, opts: { small?: boolean } = {}): string {
   // The owner's own agent is always on the near (left) side (owner
-  // 2026-11-02: owners keep their own agent's view); a spectator sees p1 left.
-  const [a, b] = nearFirst(sb.mine);
+  // 2026-11-02: owners keep their own agent's view); a spectator sees the
+  // side they watch as (render session 52), by default the higher-rated.
+  const [a, b] = nearFirst(sb.near);
   return `<div class="sb${opts.small ? " sb-s" : ""}" data-match="${esc(sb.matchId)}" data-near="${a}">${sideHtml(sb[a], "near", sb.mine === a)}<div class="sb-mid"><span class="live-dot" aria-hidden="true"></span><b>${esc(sb.status)}</b></div>${sideHtml(sb[b], "far", sb.mine === b)}</div>`
     + (opts.small || !sb.lastLine ? "" : `<p class="sb-line small" title="The last play released">${esc(sb.lastLine)}</p>`);
 }
 
-/** Which seat shows first (near) and second: the viewer's own seat first. */
-export function nearFirst(mine: "p1" | "p2" | null): ["p1" | "p2", "p1" | "p2"] {
-  return mine === "p2" ? ["p2", "p1"] : ["p1", "p2"];
+/** Which seat shows first (near) and second. */
+export function nearFirst(near: "p1" | "p2" | null): ["p1" | "p2", "p1" | "p2"] {
+  return near === "p2" ? ["p2", "p1"] : ["p1", "p2"];
+}
+
+/** The spectator's "Watch as: <A> | <B>" switch (owner 2026-11-02, the
+ * point of view): one two-button group with the agents' names, the side
+ * watched as pressed. On every view of a match the viewer doesn't own; none
+ * on their own agent's match (they always see their own side), so "" there.
+ * `idPrefix` keeps the buttons' ids unique per place (focus survives a redraw). */
+export function watchAsHtml(sb: Scoreboard, idPrefix: string): string {
+  if (sb.mine) return "";
+  const btn = (seat: "p1" | "p2") => {
+    const on = sb.near === seat;
+    return `<button type="button" class="wa-b${on ? " on" : ""}" id="${esc(`${idPrefix}-${sb.matchId}-${seat}`)}" data-act="watch-as" data-match="${esc(sb.matchId)}" data-seat="${seat}" aria-pressed="${on}" title="${esc(`Watch as ${sb[seat].agentName}: their side near`)}">${esc(sb[seat].agentName)}</button>`;
+  };
+  return `<div class="watch-as" role="group" aria-label="Watch as"><span class="wa-l small">Watch as:</span>${btn("p1")}${btn("p2")}</div>`;
 }
 
 /** A released log line (the engine's formatEvent text, OWNER_API.md
@@ -272,14 +303,14 @@ function unitChips(side: SitePublicSide): string {
 
 /** The compact board (Live match M and L): each side's units by name and
  * stats, as released. Counts only for the hand (the server sends no hand). */
-export function compactBoard(m: SiteLiveMatch, mine: "p1" | "p2" | null = null): string {
-  const [a, b] = nearFirst(mine);
+export function compactBoard(m: SiteLiveMatch, near: "p1" | "p2" | null = null): string {
+  const [a, b] = nearFirst(near);
   return `<div class="cboard"><div class="cb-row" data-seat="${a}">${unitChips(m.now[a])}</div><div class="cb-row" data-seat="${b}">${unitChips(m.now[b])}</div></div>`;
 }
 
 /** One live match as a single line (the Watch live widget's list). */
 export function liveLineHtml(sb: Scoreboard): string {
-  const [a, b] = nearFirst(sb.mine);
+  const [a, b] = nearFirst(sb.near);
   return `<li class="lline"><span class="live-dot" aria-hidden="true"></span><b>${esc(sb[a].agentName)}</b> <span class="lhp">${sb[a].health}–${sb[b].health}</span> <b>${esc(sb[b].agentName)}</b> <small class="muted">${esc(sb.status)}</small></li>`;
 }
 

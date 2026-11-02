@@ -1162,3 +1162,17 @@ for its next session.)
 4. **No shared files changed** (no workflow, no root package files, no server or economy code). The site
    now also reads `server/src/ladder/timeline.ts` (the feed's types; the tests use its recorder), read-only.
 
+
+## 2026-11-02 — Session 52 (the spectator point of view)
+
+1. **Built: "Watch as"** on Watch live, the Watch live widget (M and L) and the arena's top bar, as you
+   approved it after session 50. Six calls in `progress/render/checkpoints.md` (newest entry); the one most
+   worth a look is 3, which way the momentum gauge fills.
+2. **Your answer to render 51 (hands live, face up) isn't built yet.** The render lane will rebuild live hands
+   from the feed's `draw` events, as you said; it is the next slice, with the first coin slice. Nothing is
+   needed from the game lane for it unless rebuilding turns out unreliable (then: the hand contents in the
+   live view, as you allowed).
+3. **Nothing new needed from the game lane** for the point of view: `defaultView` on `GET /api/live` and the
+   history row's `seat` were enough. The match record's `defaultView` (`GET /api/matches/:id`) will be read
+   when the site can open a replay of a match you don't own (a featured match), which it can't yet.
+4. **No shared files changed** (no workflow, no root package files, no server or economy code).

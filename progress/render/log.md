@@ -4678,3 +4678,56 @@ Watch live widget and the replay's top bar; the chosen player to the near side, 
 `defaultView`; remembered per match in the tab) together with the first coin slice (the flip in Match Boot,
 the Chrome Token, reduced motion and sound), on the coins and `defaultView` the game lane serves since
 session 69. Both pages (replay and live) take the same switch.
+
+## 2026-11-02 — Session 52: the spectator point of view ("Watch as")
+
+Owner feedback read: the answers to render session 51 keep all 6 calls, approve three live-feed asks for the
+game lane, and choose "show hands live" (b), the render lane drawing live hands face up from the feed. The
+point of view was approved after session 50 to follow once the coin slot and the ratings-at-start field
+existed (both since game session 69), so it is this slice. Alternation: the last merged PR (#123) was the game
+lane's (session 70). No CRITICAL item in the render debt list. Not a hardening pass: the owner set the slice
+(the overdue pass is still named in quality-debt).
+
+**Built:**
+- **The website** (`site/siteMatches.ts`, `siteClient.ts`, `siteWidgets.ts`, `sitePage.ts`): `nearSeat`
+  (own seat, else the tab's choice, else `defaultView`, else p1) gives every `Scoreboard` a `near`; the
+  scoreboard, compact board and one-line list put `near` first. `watchAsHtml` is the "Watch as: <A> | <B>"
+  group (aria-pressed, ids per place so focus survives redraws), on each Watch live card the viewer doesn't
+  play in and on the Watch live widget's first match at M and L; none on the viewer's own match, Agent match
+  or the Live match widget. The choice is kept per match in `sessionStorage` (`ai-tcg.watchAs`, newest 50).
+  The arena opens with `#view=<seat>&switch=<0|1>` (own seat and no switch for Agent match and history
+  replays); a switch inside the arena comes back by `postMessage` (`ai-tcg-view`, checked against the frame
+  and the origin).
+- **The arena** (`renderHtml.ts`): the switch in the top bar, in each player's faction colour; `near` from the
+  hash (or, opened on its own, the tab's last choice). `placeSides()` moves the rows, HUDs and hands into
+  place; every element keeps its player's id, so code that finds a player's row by id is untouched. The six
+  places that assumed p1 at the bottom now ask `near`: the attack lunge's direction, the cast tag's lane and
+  anchor, the boast's loser-side clear, Match Boot's top and bottom, the header order, and the momentum
+  gauge (mirrored). A switch drops effects still in flight and redraws the move shown; playback continues.
+  During Match Boot or a boast it waits and flips when they end. `matchBootFx.ts`: a tap on the switch no
+  longer skips the intro (like the playback buttons).
+
+**Tests (+6, render 829):** `render/test/watchAs.test.ts`: `nearSeat`'s order; over the real owner API with
+the ladder and a third account that only watches, the spectator's scoreboard, compact board and line follow
+`defaultView` and the choice, the owner's own match has no switch whatever was chosen; a server without
+`defaultView` gives p1; the Watch live widget at S/M/L with and without a choice; the site script keeps the
+choice in the tab only and passes the hash; the arena page carries the switch, keeps every id, and no longer
+holds the p1-at-the-bottom lines.
+
+**Ran it:** `progress/render/evidence/pov-check-s52.mjs` -> `pov-check-s52.txt`: 48 browser checks, ALL PASS
+(stills `v2-s52-pov-*.jpg`). The first run had 7 FAIL: 5 were the check's own (it compared rows with units
+only, Directives sit there too; the boast spill sampler drew too few frames in software WebGL, so the arena
+half now launches as the CI check does), 1 was real (a tap on the switch during the intro skipped the intro,
+fixed in `matchBootFx.ts`), and the arena's switch cut the names short ("LOOKAHEAD-..."), seen in a still and
+fixed (no capitals, wider). The website half passed first time. CI browser check re-run: 61 ALL PASS
+(`ci-check-s52.txt`), so the default view is unchanged.
+
+**Not done (named):** hands live face up (the owner's render-51 answer; next); the coin flip (the first coin
+slice; next); a replay of a match the viewer doesn't own can't be opened from the site yet, so the replay's
+switch is only reachable on standalone pages and the live arena; the render hardening pass (overdue since
+session 40).
+
+**Next render-lane slice:** hands live, face up, rebuilt from the feed's draw events, with the first coin
+slice (the flip in Match Boot, the Chrome Token, reduced motion and sound), both on the near side the point
+of view now gives.
+

@@ -442,7 +442,9 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
     function onKey(e) { if (e.key === 'Escape' && cur) { e.preventDefault(); e.stopPropagation(); skip(); } }
     // A tap anywhere skips it, except on the playback controls: there the
     // control does its own job (pause stops the intro; a step jumps past it).
-    function onDown(e) { if (cur && !(e.target && e.target.closest && e.target.closest('.controls'))) skip(); }
+    // The same for the "Watch as" switch (render session 52): it waits for
+    // the intro to end, then flips the board.
+    function onDown(e) { if (cur && !(e.target && e.target.closest && e.target.closest('.controls, .pov'))) skip(); }
     function teardown(c) {
       document.removeEventListener('keydown', onKey, true);
       document.removeEventListener('pointerdown', onDown, true);
