@@ -3920,3 +3920,24 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the asks 
 Write both into `server/OWNER_API.md` with tests.
 
 Next render-lane slice, as planned: the loadout picker in the Store, then the match pages once the game lane serves live state and match history.
+
+---
+
+## 2026-11-02 — Owner: answers to game session 67 (the live ladder), measure all four first-seat fixes; keep 1-5; versioned replays first
+
+Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #117, `progress/first-seat-001.txt`, `progress/ladder-demo-002-live.txt`).
+
+### The first seat (about 65%)
+- **Measure all four options in session 68, test only:** (a) the second player draws one extra card in its opening hand; (b) the second player gets +1 energy on its first turn only; (c) the second player starts with more health (for example 22 instead of 20); (d) the first player can't attack on its first turn. Measure each on the shipped-deck mirrors (same agent both seats) and on the ladder's seat split; take the leaders through the ring check and the built-deck ring; bring every number to an owner check-in. No rule change ships without the owner's OK.
+- Session 68 does this together with the small asks already approved (the craft price and copy limit, signature cards and promos in the collection API, "Watch again"). The chosen fix ships well before the launch-gate re-run.
+
+### Watch live, auto-play and match history
+1. **Keep:** the watch pace (6 s per action, 1 s per pass, 3 s more for a new turn, 8 s on the result). The render lane may propose other holds once it times its animations against them.
+2. **Keep:** a restart mid-match cancels the matches on screen (no credits, not rated).
+3. **Keep:** a round waits for its slowest match, then 60 s. A rolling queue can come later.
+4. **Keep:** auto-play goes off after the match that maxes the day's rewards, until midnight Sydney; house owners always play.
+5. **Keep:** any signed-in owner can watch any live match and open any recorded match; match history lists only the owner's own matches.
+6. **Change: version replays before any card or rule change ships in Season 0.** A replay names cards by id, so the first card or rule change (the first-seat fix is one) would make every replay recorded so far fail to rebuild. Before that fix (or any other card or rule change) ships, make replays carry the card and rule versions they were played under, and keep old replays rebuildable. The session 70 hardening pass is a natural place, as long as it lands before the first-seat fix ships.
+
+### Correction to the 2026-11-02 session 66 entry
+That entry's call 3 said the owner who sits out "goes first next round". Per `server/src/ladder/pairing.ts`, sitting out only means the owner **picks its opponent first** in the next round's pairing. **Who goes first in a match is a coin flip for every match.**
