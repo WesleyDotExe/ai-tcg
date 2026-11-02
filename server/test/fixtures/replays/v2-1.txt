@@ -1,0 +1,232 @@
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Compiled Daemon
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Aegis Line Trooper
+--- Turn 3 (p1) ---
+p1 plays Aegis Line Trooper (u1)
+  Plating Module attaches to Aegis Line Trooper
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Retaliation Node
+--- Turn 4 (p2) ---
+p2 plays Recursive Construct (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Bulwark Chassis
+--- Turn 5 (p1) ---
+Aegis Line Trooper attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Plasmawitch's Graveyard Ringer
+p1 plays Bulwark Chassis (u4)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Compiled Daemon
+--- Turn 6 (p2) ---
+p2 plays Deadlock Detector (u5)
+  ability: Deadlock Detector — deadlock-detector-play (onPlay)
+Recursive Construct attacks Golden Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 2 damage to Golden Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Failover Custodian
+--- Turn 7 (p1) ---
+Aegis Line Trooper attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Plasmawitch's Graveyard Ringer
+p1 plays Failover Custodian (u8)
+  Guard Directive Chip attaches to Bulwark Chassis
+Bulwark Chassis attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 2 damage to Plasmawitch's Graveyard Ringer
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Diagnostic Loop
+--- Turn 8 (p2) ---
+p2 plays Diagnostic Loop (u10)
+p2 plays Retaliation Node (u11)
+Deadlock Detector attacks Bulwark Chassis
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Deadlock Detector's attack
+  Deadlock Detector deals 1 damage to Bulwark Chassis (unit)
+  Bulwark Chassis deals 2 damage to Deadlock Detector (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+p1 draws Perimeter Turret
+--- Turn 9 (p1) ---
+Aegis Line Trooper attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Plasmawitch's Graveyard Ringer
+Failover Custodian attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Plasmawitch's Graveyard Ringer
+Bulwark Chassis attacks Deadlock Detector
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Bulwark Chassis's attack
+  Bulwark Chassis deals 2 damage to Deadlock Detector (unit)
+  Deadlock Detector deals 1 damage to Bulwark Chassis (unit)
+  Deadlock Detector (p2) dies
+p1 plays Perimeter Turret (u16)
+  Perimeter Turret deploys, dormant — arms in 1 of its controller's turn(s)
+p1 plays Tariff Field (d17)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Force Quit
+--- Turn 10 (p2) ---
+p2 casts Force Quit, choosing Kill All [Instant] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Force Quit (Kill All)
+  ability: Force Quit — force-quit-kill-all (onPlay)
+  Force Quit deals 1 damage to Aegis Line Trooper (unit)
+  Force Quit deals 1 damage to Bulwark Chassis (unit)
+  Force Quit deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Force Quit deals 1 damage to Perimeter Turret (unit)
+Diagnostic Loop attacks Bulwark Chassis
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Diagnostic Loop's attack
+  Diagnostic Loop deals 1 damage to Bulwark Chassis (unit)
+  Bulwark Chassis deals 2 damage to Diagnostic Loop (unit)
+  Bulwark Chassis (p1) dies
+Retaliation Node attacks Aegis Line Trooper
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Aegis Line Trooper (unit)
+  Aegis Line Trooper deals 2 damage to Retaliation Node (unit)
+  ability: Retaliation Node — retaliation-node-damaged (onDamaged)
+  Retaliation Node deals 1 damage to Aegis Line Trooper (unit)
+  Retaliation Node deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Retaliation Node deals 1 damage to Perimeter Turret (unit)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+  ability: Diagnostic Loop — diagnostic-loop-turnend (onTurnEnd)
+  Diagnostic Loop restores 1 health to Diagnostic Loop
+p1 draws Bulwark Chassis
+--- Turn 11 (p1) ---
+  Perimeter Turret arms
+  ability: Perimeter Turret — perimeter-turret-arm (onPlay)
+  Perimeter Turret deals 3 damage to Diagnostic Loop (unit)
+  Diagnostic Loop (p2) dies
+Perimeter Turret attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Plasmawitch's Graveyard Ringer
+Aegis Line Trooper attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Plasmawitch's Graveyard Ringer
+p1 plays Bulwark Chassis (u23)
+Failover Custodian attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Plasmawitch's Graveyard Ringer
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Overload Capacitor
+--- Turn 12 (p2) ---
+p2 plays Quorum Arbiter (u25)
+Retaliation Node attacks Golden Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Retaliation Node's attack
+  Retaliation Node deals 1 damage to Golden Aegis
+Recursive Construct attacks Bulwark Chassis
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 3 damage to Bulwark Chassis (unit)
+  Bulwark Chassis deals 1 damage to Recursive Construct (unit)
+  Bulwark Chassis (p1) dies
+  p2 passes priority
+  p1 passes priority
+[end of turn 12 for p2]
+p1 draws Reinforced Bastion
+--- Turn 13 (p1) ---
+p1 plays Reinforced Bastion (u28)
+Perimeter Turret attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Perimeter Turret's attack
+  Perimeter Turret deals 2 damage to Plasmawitch's Graveyard Ringer
+Aegis Line Trooper attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Plasmawitch's Graveyard Ringer
+Failover Custodian attacks Retaliation Node
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Failover Custodian's attack
+  Failover Custodian deals 1 damage to Retaliation Node (unit)
+  Retaliation Node deals 1 damage to Failover Custodian (unit)
+  ability: Failover Custodian — failover-custodian-damaged (onDamaged)
+  Failover Custodian restores 1 health to Failover Custodian
+  Retaliation Node (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 13 for p1]
+p2 draws Firewall Sentinel
+--- Turn 14 (p2) ---
+p2 plays Terahare's Overcast Upgrade from the signature zone for 6 energy (u32)
+Quorum Arbiter attacks Reinforced Bastion
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Quorum Arbiter's attack
+  Quorum Arbiter deals 5 damage to Reinforced Bastion (unit)
+  Reinforced Bastion deals 2 damage to Quorum Arbiter (unit)
+  Reinforced Bastion (p1) dies
+Recursive Construct attacks Golden Aegis (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Recursive Construct's attack
+  Recursive Construct deals 3 damage to Golden Aegis
+  p2 passes priority
+  p1 passes priority
+[end of turn 14 for p2]
+p1 draws Aegis Sentinel
+--- Turn 15 (p1) ---
+Aegis Line Trooper attacks Plasmawitch's Graveyard Ringer (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Plasmawitch's Graveyard Ringer
+=== GAME OVER: p1 wins (p2's health reached 0) ===

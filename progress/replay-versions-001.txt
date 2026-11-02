@@ -1,0 +1,46 @@
+Versioned replays (session 70)
+==============================
+
+1. The versions the game is on
+  rules rules-1 (current): Both players start with 20 health. The player going first skips its first draw.
+  cards cards-1 (current): digest 6b0c6e22247bc341, 99 cards today. The Season 0 cards as they stood for every ai-tcg-replay/1 file (session 67 to session 70): the four faction pools, the neutral pool and the 3 Zero-Day cards.
+  today's registry digest: 6b0c6e22247bc341
+  [PASS] today's registry is the current card version
+
+2. The golden replays, rebuilt today
+  v1-1: ai-tcg-replay/1, 97 moves, rules rules-1, cards cards-1; Steelslinger's Echo vs Golden Aegis, Steelslinger's Echo wins on turn 15, 16-0; log equals the ladder's: yes
+  [PASS] today: v1-1 rebuilds byte for byte
+  v1-2: ai-tcg-replay/1, 101 moves, rules rules-1, cards cards-1; Golden Null vs Golden Swarm, Golden Null wins on turn 15, 14--6; log equals the ladder's: yes
+  [PASS] today: v1-2 rebuilds byte for byte
+  v2-1: ai-tcg-replay/2, 109 moves, rules rules-1, cards cards-1; Golden Aegis vs Plasmawitch's Graveyard Ringer, Golden Aegis wins on turn 15, 14-0; log equals the ladder's: yes
+  [PASS] today: v2-1 rebuilds byte for byte
+  v2-2: ai-tcg-replay/2, 78 moves, rules rules-1, cards cards-1; Golden Swarm vs Golden Null, Golden Swarm wins on turn 11, 8-0; log equals the ladder's: yes
+  [PASS] today: v2-2 rebuilds byte for byte
+  an /2 file carries 49 card definitions (28102 bytes in all); an /1 file names ids only (5342 bytes)
+
+3. A later set, simulated: two cards rebalanced in the registry (this process only)
+  AG-001 "Aegis Cadet": 1/2 -> 3/3
+  AG-005 "Perimeter Turret": 2/4 -> 4/5
+  registry digest now 854baf275ac9251f (cards-1 is 6b0c6e22247bc341)
+  [PASS] the changed registry matches no published card version
+  v1-1: ai-tcg-replay/1, 97 moves, rules rules-1, cards cards-1; Steelslinger's Echo vs Golden Aegis, Steelslinger's Echo wins on turn 15, 16-0; log equals the ladder's: yes
+  [PASS] after the change: v1-1 rebuilds byte for byte
+  v1-2: ai-tcg-replay/1, 101 moves, rules rules-1, cards cards-1; Golden Null vs Golden Swarm, Golden Null wins on turn 15, 14--6; log equals the ladder's: yes
+  [PASS] after the change: v1-2 rebuilds byte for byte
+  v2-1: ai-tcg-replay/2, 109 moves, rules rules-1, cards cards-1; Golden Aegis vs Plasmawitch's Graveyard Ringer, Golden Aegis wins on turn 15, 14-0; log equals the ladder's: yes
+  [PASS] after the change: v2-1 rebuilds byte for byte
+  v2-2: ai-tcg-replay/2, 78 moves, rules rules-1, cards cards-1; Golden Swarm vs Golden Null, Golden Swarm wins on turn 11, 8-0; log equals the ladder's: yes
+  [PASS] after the change: v2-2 rebuilds byte for byte
+  without versions (v1-1's moves read against the changed registry): plays on: Steelslinger's Echo wins, 14-0 (recorded: 16-0); its log equals the ladder's: NO
+  [PASS] unversioned, the old moves would show a different match: the frozen cards are what keep it
+  a match played now: versions {"rules":"rules-1","cards":null,"cardsDigest":"3a9db051b0f98d20"}; carries the changed AG-001 and AG-005 as they are now
+  [PASS] a match played on unpublished cards names no card version, and carries the cards it was played with
+  registry restored (digest 6b0c6e22247bc341)
+  that new file, rebuilt after the registry went back: log equals the match's: yes
+  [PASS] a file plays its own cards whatever the registry says
+
+4. A rules version this engine doesn't know
+  a file naming rules-2: rules version "rules-2" isn't one this engine knows (it knows rules-1)
+  [PASS] an unknown rules version is refused with the reason
+
+14/14 checks PASS

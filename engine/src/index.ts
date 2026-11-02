@@ -122,3 +122,23 @@ export {
 } from "./data/signatureNames.js";
 
 export { formatEvent, formatLog } from "./log/format.js";
+
+// Versioned replays (session 70): the rules and card versions a match is
+// played under, and the frozen cards an ai-tcg-replay/1 file reads.
+export {
+  RULES_VERSIONS,
+  CURRENT_RULES_VERSION,
+  rulesVersion,
+  rulesOfVersion,
+  CARDS_VERSIONS,
+  CURRENT_CARDS_VERSION,
+  CARDS_1_BY_ID,
+  canonicalJson,
+  digest,
+  cardDigest,
+  cardSetDigest,
+  registryDigest,
+  publishedCardsVersion,
+  type RulesVersion,
+  type CardsVersion,
+} from "./engine/versions.js";

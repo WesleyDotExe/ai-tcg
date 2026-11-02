@@ -27,13 +27,13 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
 ----------------------------------------------------------------
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the agent hasn't built a deck yet
-  [timing, varies per run] build took 8.5 s; GET /api/play answered 42 times while it ran, slowest 6 ms
+  [timing, varies per run] build took 12.2 s; GET /api/play answered 60 times while it ran, slowest 9 ms
   job: done
   saved <deck 1>: Cortex, 40 cards, played as calculator
-    Cortex  62.0% against the shipped decks (fresh seeds)
+    Cortex  58.0% against the shipped decks (fresh seeds)
     Swarm   can't build: no owned faction card that draws (the pool lint needs one)
-    Aegis   16.0% against the shipped decks (fresh seeds)
-    Null    45.3% against the shipped decks (fresh seeds)
+    Aegis   14.0% against the shipped decks (fresh seeds)
+    Null    54.5% against the shipped decks (fresh seeds)
 > GET /api/play  -> 200
   deck choice: agent   faction lock: none
   connected agent: Vector Halcyon (calculator)
@@ -81,7 +81,7 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
   active deck fits the lock: false
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the faction lock changed (none -> Swarm); the play style changed (Calculator -> Controller)
-  [timing, varies per run] build took 0.4 s; GET /api/play answered 2 times while it ran, slowest 4 ms
+  [timing, varies per run] build took 0.6 s; GET /api/play answered 3 times while it ran, slowest 8 ms
   job: failed: no deck can be built: Swarm: no owned faction card that draws (the pool lint needs one)
 > PUT /api/play/faction-lock {"faction":"Chrome"}  -> 409
   error: can't lock to "Chrome"
@@ -99,10 +99,10 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
   active deck fits the lock: false
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the faction lock changed (none -> Null); the play style changed (Calculator -> Controller)
-  [timing, varies per run] build took 1.9 s; GET /api/play answered 9 times while it ran, slowest 12 ms
+  [timing, varies per run] build took 3.0 s; GET /api/play answered 14 times while it ran, slowest 14 ms
   job: done
   saved <deck 1>: Null, 27 cards, played as controller
-    Null    45.0% against the shipped decks (fresh seeds)
+    Null    54.8% against the shipped decks (fresh seeds)
 > GET /api/play  -> 200
   deck choice: agent   faction lock: Null
   connected agent: Vector Halcyon (controller)

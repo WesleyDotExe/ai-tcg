@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -75,6 +75,38 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 70 (hardening: versioned replays; the drifted demos): what is still thin
+
+- **The engine's own code is versioned only by the golden replays.** Cards travel in an `/2` file and rules
+  versions name the start of a match, but a change to how the engine resolves something (combat, the stack, a
+  trigger's timing) isn't data: nothing stops it from changing an old match except
+  `server/test/fixtures/replays/` failing. Four golden files (two per format, 78-109 moves each, all four
+  factions, one signature card) are a thin net: a change to a mechanic none of them uses would pass. More,
+  varied golden files (a Zero-Day card, telegraph, evolution, tools, a draw, the turn cap) would widen it; a
+  replay of every ladder match on the Mac mini before a deploy would be the real check.
+- **When a rules change must keep old behaviour, the engine has to keep both.** `rules-1` is `{}` (the base
+  rules). Shipping 24 health as `rules-2` is one `MatchRules` field; but a later engine fix that changes play
+  will need a flag in `MatchRules` for the old way, kept forever. That is the price of rebuildable replays; it
+  isn't paid yet because nothing has changed.
+- **An `/2` file is ~5x an `/1` file** (23-28 KB against 5 KB: about 49 card definitions in full). Fine for
+  Season 0; at launch scale a shared card table per version (the file naming `cards-N` and only carrying
+  cards that differ) would cut it. Not done: self-contained was the safer first step.
+- **`cards-1` is a frozen 46 KB snapshot in the engine**, generated once. It must never be edited; a test checks
+  its digest. If the `Card` type gains a required field, the snapshot (and every `/2` file's cards) won't have
+  it: card-type changes will need a reader that fills defaults by version.
+- **The render reads replays through the server's `replaySetup`** (a small change in `render/src/capture.ts` and
+  `render/src/site/siteReplay.ts`, flagged for the render lane): `captureMatch` takes the file's rules now. The
+  render's own tests only build `/2` files from the ladder; no render test reads an `/1` file through the site
+  (the server's tests do, with the same reader).
+- **`economy-demo-016` was not re-run** (over 10 minutes, as in session 69). Every other demo touched by
+  replays (ladder-demo-002, owner-api-demo-007) changed only in the format line.
+- ~~`economy-demo-009.txt` is stale~~ Fixed: its check now says a deck may hold the live Zero-Day card.
+- ~~`owner-api-demo-002.txt` no longer matches~~ Fixed: regenerated; the cause was two shipped card changes it
+  was never re-run for (sessions 60 and 62; confirmed by running it at each commit). The lesson stands: a card
+  change should re-run every demo that prints win rates, and nothing lists which those are.
+- **The 24-health rule is still not shipped.** The first seat still wins ~65% in every match the game plays.
+  Session 71.
+
 ## Session 69 (coin skins, the game lane's half; starting ratings on the match): what is still thin
 
 - **No coin can be seen yet.** Every coin is `drawn: false`: the flip in Match Boot and the coin looks are the
@@ -101,14 +133,12 @@ real, but here is where it's thin.
   have none.** The match view falls back to the ratings' "before" (the same number, since a rating only moves
   when a match ends) and to null for an older cancel, so `defaultView` is p1 there. The live view's `rating`
   now reads the stored starting rating (the same number it computed before).
-- **Replays carry `coins` inside format `ai-tcg-replay/1`** as an optional field (absent in older files). That's
-  additive, but it is exactly the kind of change versioned replays (session 70) should put on a proper footing.
+- ~~**Replays carry `coins` inside format `ai-tcg-replay/1`**~~ Session 70: replays are `ai-tcg-replay/2`, versioned;
+  `coins` stays optional (absent in old `/1` files).
 - **The coin doesn't reach the engine at all** (tested: one seed, two coins, the same match, credits and
   rating). The flip's result the render shows must come from the record's p1 (who went first); nothing in the
   API says "won the flip" separately, since the seat is the flip.
-- **`economy-demo-009.txt` is stale (pre-existing):** re-run, it prints "a deck holding the Zero-Day card before
-  it is designed: ALLOWED (this is a bug)" because the Zero-Day cards are designed and live now; the demo's
-  check, not the store, is out of date. Left committed as it was; fix the demo in session 70.
+- ~~**`economy-demo-009.txt` is stale**~~ Fixed in session 70.
 - **Still queued from the owner's render-50 entry, not built:** the 2x vote, featured picks ("Top rated", a rule
   to propose at a check-in) and viewer counts. Only the starting ratings were built this session.
 
@@ -130,8 +160,7 @@ real, but here is where it's thin.
 - **The ladder split per variant is unpaired.** The ladder's pairings and rebuilds drift apart as results
   differ, so two variants' ladder rows aren't the same matches (the mirrors are). Each row is 2,400 matches, so
   the interval is about +/-2 points; differences smaller than that between variants mean nothing.
-- **Versioned replays are not built (owner call 6).** Any card or rule change, the first-seat fix included,
-  would make every recorded replay fail to rebuild. Session 70's hardening pass, before the fix ships.
+- ~~**Versioned replays are not built (owner call 6).**~~ Built, session 70 (`ai-tcg-replay/2`).
 - **"Watch again" has nothing for packs opened before schema v19** (410). Only house/test data predates it, but
   the website should say "this opening can't be replayed" for a 410, not fail.
 - **The reveal is stored as JSON**, a copy of what was answered: if `OpenedCard` gains a field later, old reveals
@@ -173,14 +202,12 @@ real, but here is where it's thin.
   launch scale.
 - **Logs and replays live in a directory beside the database**, not in it: a backup of the `.db` alone loses
   them, and nothing cleans them up. Each replay is about 20-40 KB.
-- **A replay needs this engine's cards.** It names cards by id, so a card change after a match makes its
-  replay throw (`replayMatch` refuses an illegal move). Versioned card data (or the full deck in the file) is
-  needed before the first card change in a live season.
+- ~~**A replay needs this engine's cards.**~~ Session 70: an `/2` file carries its cards, an `/1` file reads the
+  frozen `cards-1`. (The demo found it was worse than this said: read against changed cards, an old file's
+  moves can stay legal and play on to a different match, with nothing to say so.)
 - **Abandoned matches have a log but no replay**, and the live feed of an abandoned match ends where the seat
   walked out without saying so in the snapshot (the record's note says it). The render will need a line for it.
-- **`owner-api-demo-002.txt` no longer matches a fresh run** (its fresh-seed win rates differ); the same
-  difference shows on the commit before this session, so it predates it. Not regenerated; worth a look in the
-  next hardening pass (session 70).
+- ~~**`owner-api-demo-002.txt` no longer matches a fresh run**~~ Fixed in session 70 (two card changes it missed).
 - **Session 66's items stand**, less the three this session closed (auto-play, the timer, the house policy):
   no network agents on the ladder, the season reset, raw-SQL deletable `ratings`, rebuilds inside a round.
 

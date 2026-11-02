@@ -4373,3 +4373,47 @@ additive inside format /1; the 2x vote, featured picks and viewer counts are sti
 quality-debt.md.
 
 **Blocked:** nothing. No owner check-in open; six build calls in notes-for-owner.md.
+
+## 2026-11-02 — Session 70 (hardening pass: versioned replays; two drifted demos)
+
+**Read first:** `progress/owner-feedback.md`. Unhandled game-lane entries: the answers to session 69 (keep all 6;
+nothing to change) and the render 51 answers (three live-feed asks to queue; hands shown live, with a safety rule
+for real-time network agents later). Both marked; the asks are on the Season 0 checklist (2c). The session 67
+entry's call 6 (versioned replays) is this session's work and is marked done. The last merged PR (#122) was the
+render lane's, so this is the game lane: session 70, the hardening pass the plan set.
+
+**Built:**
+- Engine `engine/src/engine/versions.ts`: `RULES_VERSIONS` (`rules-1`, its printed text), `CARDS_VERSIONS`
+  (`cards-1` with the registry's digest), canonical JSON and a pure 64-bit digest (no node built-ins, the render
+  bundles the engine), `publishedCardsVersion()`, and `cards-1` frozen (`data/cardSnapshots/cards1.ts`, the 99
+  cards, generated once).
+- Server `server/src/ladder/replayFile.ts`: `ai-tcg-replay/2` (versions, every deck card in full, the measuring
+  rules if any); `replaySetup` reads `/1` and `/2`; `rebuildReplay` replays and checks winner, turns, moves and
+  final health. The ladder writes `/2` (a deck card that isn't the registry's no longer stops a replay).
+- Golden replays: `server/src/dev/replayGolden.ts` ran once with the session-69 writer put back (two genuine `/1`
+  files) and once with today's (two `/2`), with the logs the ladder wrote; committed under
+  `server/test/fixtures/replays/`.
+- Readers moved: owner-API tests and demos, the render's `siteReplay.ts` / `siteHost.ts`, `captureMatch`'s
+  `rules` option (small, additive; flagged for the render lane).
+- Hardening: `owner-api-demo-002` regenerated after finding its cause (run at sessions 59, 60 and 62: 45.3% ->
+  47.0% -> today's 54.5% for Null; session 60's 40-card Null and session 62's NA12/CS7, never re-run for).
+  `economy-demo-009`'s stale Zero-Day check corrected (a deck may hold the live card).
+
+**Ran it:** `progress/replay-versions-001.txt` (`npm run demo:replay-versions -w server`): the versions; the four
+golden files rebuilt byte for byte; a later set simulated in-process (Aegis Cadet 1/2 -> 3/3, Perimeter Turret
+2/4 -> 4/5): the registry matches no version, all four still rebuild; read by id against the changed cards
+instead, v1-1's moves stay legal and play on to 14-0 instead of the recorded 16-0 (the silent wrong match
+versioning prevents); a match played then names no card version and carries the changed cards, and still
+rebuilds after the registry goes back; an unknown `rules-2` is refused. 14/14 PASS, byte-identical across runs.
+Re-run: ladder-demo-002 and owner-api-demo-007 (the format line only), owner-api-demo-002 (timing lines vary, as
+labelled), economy-demo-009 (twice, identical).
+`npm test`: engine 361, server 103, render 823 pass (protocol, agents, economy untouched); typecheck clean.
+Mutation check: reading `/1` files from today's registry instead of `cards-1` fails two tests.
+
+**Found on the way:** the old debt line "a card change makes a replay throw" was too kind: often it doesn't throw,
+it plays a different match. And demos that print win rates aren't re-run after card changes; nothing lists them.
+
+**Didn't / honest limits:** engine code changes are guarded only by four golden files; `/2` is ~5x the size;
+the 24-health rule is not shipped (session 71). All in quality-debt.md.
+
+**Blocked:** nothing. No owner check-in open; five build calls in notes-for-owner.md.

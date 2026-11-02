@@ -16,11 +16,11 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { formatLog, replayMatch } from "@ai-tcg/engine";
+import { formatLog } from "@ai-tcg/engine";
 import { COSMETICS, EconomyStore, SEASON_0_COINS, type CosmeticItem } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
 import { LiveLadder } from "../ladder/liveLadder.js";
-import { Ladder, replayDeckSpec, type ReplayFile } from "../ladder/ladderRunner.js";
+import { Ladder, rebuildReplay, type ReplayFile } from "../ladder/ladderRunner.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "coin-skins-demo-"));
 const say = (line = "") => console.log(line);
@@ -166,7 +166,7 @@ try {
   const replay = (await call("GET", `/api/matches/${id}/replay`)).body as ReplayFile;
   say(`  replay ${replay.format}: coins ${JSON.stringify(replay.coins)}`);
   const log = (await call("GET", `/api/matches/${id}/log`)).body as string;
-  const { state } = replayMatch(replayDeckSpec(replay.decks.p1, "p1"), replayDeckSpec(replay.decks.p2, "p2"), replay.names, replay.seed, replay.moves);
+  const { state } = rebuildReplay(replay);
   const rebuilt = `${formatLog(state.log)}\n` === log;
   say(`  the replay rebuilt in the engine equals the served log: ${rebuilt ? "IDENTICAL" : "DIFFERENT"}`);
   check("the replay carries the record's coins", JSON.stringify(replay.coins) === JSON.stringify(rec.coins));

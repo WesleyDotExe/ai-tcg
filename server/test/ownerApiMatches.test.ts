@@ -7,11 +7,11 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { formatLog, replayMatch } from "@ai-tcg/engine";
+import { formatLog } from "@ai-tcg/engine";
 import { EconomyStore } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../src/ownerApi.js";
 import { LiveLadder } from "../src/ladder/liveLadder.js";
-import { replayDeckSpec, type ReplayFile } from "../src/ladder/ladderRunner.js";
+import { rebuildReplay, type ReplayFile } from "../src/ladder/ladderRunner.js";
 
 const PW = "correct horse battery";
 const running: RunningOwnerApi[] = [];
@@ -137,7 +137,7 @@ describe("the match endpoints", () => {
     const log = await call("GET", `/api/matches/${id}/log`, { token: t });
     expect(log.type).toMatch(/^text\/plain/);
     const replay = (await call("GET", `/api/matches/${id}/replay`, { token: t })).body as ReplayFile;
-    const { state } = replayMatch(replayDeckSpec(replay.decks.p1, "p1"), replayDeckSpec(replay.decks.p2, "p2"), replay.names, replay.seed, replay.moves);
+    const { state } = rebuildReplay(replay);
     expect(`${formatLog(state.log)}\n`).toBe(log.body);
     expect((await call("GET", "/api/matches/nope", { token: t })).status).toBe(404);
     expect((await call("GET", "/api/matches/nope/log", { token: t })).status).toBe(404);
@@ -175,7 +175,7 @@ describe("the match endpoints", () => {
     expect(replay.coins).toEqual({ p1: "coin-chrome-token", p2: "coin-chrome-token" });
     // The coin is cosmetic: the replay still rebuilds the same match.
     const log = (await call("GET", `/api/matches/${m.matchId}/log`, { token: t })).body;
-    const { state } = replayMatch(replayDeckSpec(replay.decks.p1, "p1"), replayDeckSpec(replay.decks.p2, "p2"), replay.names, replay.seed, replay.moves);
+    const { state } = rebuildReplay(replay);
     expect(`${formatLog(state.log)}\n`).toBe(log);
   });
 

@@ -19,7 +19,7 @@ import {
   MAX_ENERGY_CAP,
   CARD_REGISTRY,
 } from "@ai-tcg/engine";
-import type { Agent, DeckSpec, GameState, PlayerId, Card, UnitInstance } from "@ai-tcg/engine";
+import type { Agent, DeckSpec, GameState, PlayerId, Card, UnitInstance, MatchRules } from "@ai-tcg/engine";
 import {
   currentAttack,
   currentHealth,
@@ -204,11 +204,15 @@ export interface CaptureOptions {
    * than hardcoded so a future engine change to the constant can't silently
    * desync the render's "slots used / N" display. */
   boardSlots: number;
+  /** The start-of-match rules a recorded match was played under (a replay
+   * file's rules version, read by the server's replaySetup; game session
+   * 70). Left out: the base rules, as every sample match is played. */
+  rules?: MatchRules;
 }
 
 export async function captureMatch(opts: CaptureOptions): Promise<MatchReplay> {
   const rng = new Rng(opts.seed);
-  const state = createInitialState(opts.deckA, opts.deckB, rng);
+  const state = createInitialState(opts.deckA, opts.deckB, rng, opts.rules);
   state.players.p1.name = opts.agentA.name;
   state.players.p2.name = opts.agentB.name;
   state.turnNumber = 1;

@@ -8,9 +8,9 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { formatLog, getCard, LookaheadAgent, replayMatch, SHIPPED_DECK_LISTS, type DeckFaction } from "@ai-tcg/engine";
+import { formatLog, getCard, LookaheadAgent, SHIPPED_DECK_LISTS, type DeckFaction } from "@ai-tcg/engine";
 import { EconomyStore, RATING_START } from "@ai-tcg/economy";
-import { houseSeater, Ladder, replayDeckSpec, type AgentSeater, type ReplayFile } from "../src/ladder/ladderRunner.js";
+import { houseSeater, Ladder, rebuildReplay, type AgentSeater, type ReplayFile } from "../src/ladder/ladderRunner.js";
 
 const engineState = vi.hoisted(() => ({ explode: false }));
 vi.mock("@ai-tcg/engine", async (importOriginal) => {
@@ -221,7 +221,7 @@ describe("the ladder", () => {
     expect(readFileSync(m.logPath!, "utf8")).toMatch(/Agent 0|Agent 1/);
   });
 
-  it("writes a replay beside the log that rebuilds the match exactly with the engine's replayMatch", async () => {
+  it("writes a versioned replay beside the log that rebuilds the match exactly with the engine's replayMatch", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ladder-replay-"));
     dirs.push(dir);
     const { store, owners, ladder } = setup(["Aegis", "Null"]);
@@ -233,12 +233,17 @@ describe("the ladder", () => {
     const m = (await ladder(houseSeater, { logDir: dir }).runRound()).matches[0]!;
     expect(m.replayPath).toBe(join(dir, `${m.record.matchId}.replay.json`));
     const replay = JSON.parse(readFileSync(m.replayPath!, "utf8")) as ReplayFile;
-    expect(replay.format).toBe("ai-tcg-replay/1");
+    // (session 70) Versioned: the rules and card versions, every deck card in full.
+    expect(replay.format).toBe("ai-tcg-replay/2");
+    if (replay.format !== "ai-tcg-replay/2") throw new Error("unreachable");
+    expect(replay.versions.rules).toBe("rules-1");
+    expect(replay.versions.cards).toBe("cards-1");
+    for (const id of [...replay.decks.p1.cardIds, ...replay.decks.p2.cardIds]) expect(replay.cards.find((c) => c.id === id)).toEqual(getCard(id));
     expect(replay.moves).toHaveLength(m.record.moves!);
     // The generated agent's own signature card travels in full.
     const seatOf0 = m.record.p1OwnerId === owners[0]!.ownerId ? "p1" : "p2";
     expect(replay.decks[seatOf0].signature?.id).toBe(store.signatureCard(agent.agentId)!.card.id);
-    const { state } = replayMatch(replayDeckSpec(replay.decks.p1, "p1"), replayDeckSpec(replay.decks.p2, "p2"), replay.names, replay.seed, replay.moves);
+    const { state } = rebuildReplay(replay);
     expect(`${formatLog(state.log)}\n`).toBe(readFileSync(m.logPath!, "utf8"));
     expect(state.turnNumber).toBe(m.record.turns);
     expect(replay.result.winner === "p1" ? m.record.p1OwnerId : m.record.p2OwnerId).toBe(m.record.winnerOwnerId);

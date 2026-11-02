@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-02, game session 69 (coin skins, the game lane's half; starting ratings on the match record).
+Updated 2026-11-02, game session 70 (the hardening pass: versioned replays; two drifted demos fixed).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -38,10 +38,12 @@ Updated 2026-11-02, game session 69 (coin skins, the game lane's half; starting 
    `progress/ladder-demo-002-live.txt`. Left: the 2x vote, network agents in the ladder. Found: the first seat
    wins ~65% (`progress/first-seat-001.txt`). Session 68: all four fixes the owner named measured, test only
    (`progress/first-seat-002-fixes.txt`, owner check-in); no rule changed.
-1b. [ ] Versioned replays (owner 2026-11-02 call 6): replays carry the card and rule versions they were played
-   under, old ones stay rebuildable. Session 70's hardening pass, BEFORE the first-seat fix (or any card or
-   rule change) ships.
-1c. [ ] Ship the first-seat fix the owner picks (after 1b), re-record the ring baselines, regenerate the
+1b. [x] Versioned replays (owner 2026-11-02 call 6), session 70: `ai-tcg-replay/2` carries its rules version,
+   card version and every deck card in full; `/1` files read the frozen `cards-1` and still rebuild; golden replays
+   of both formats in the tests (`server/test/fixtures/replays/`). Evidence `progress/replay-versions-001.txt`.
+   A card change now needs a new `CARDS_VERSIONS` entry, a rule change a new `RULES_VERSIONS` entry
+   (`engine/src/engine/versions.ts`).
+1c. [ ] NEXT (session 71). Ship the first-seat fix the owner picked, 24 health for the second seat, as `rules-2` (after 1b), re-record the ring baselines, regenerate the
    built-deck ring, before the launch-gate re-run.
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
    and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
@@ -77,6 +79,11 @@ Updated 2026-11-02, game session 69 (coin skins, the game lane's half; starting 
    - [ ] featured picks ("Top rated"; propose the rule at a check-in)
    - [ ] viewer counts
    - [ ] any small additions the render lane's live-board slice names (unit badges: statuses, tool bonuses)
+   - [ ] (owner 2026-11-03, render 51) the signature card on the live view (`PublicSide.signature`: the card,
+     `timesPlayed`, `inZone`, `nextCost`), each side's deck faction (`LiveSideView.faction`), the boast on the live
+     view once the last move is out
+   - [ ] (owner 2026-11-03) hands hidden live (counts only, no card in draw events) for any match with a real-time
+     network agent seat, until it ends: built when network agents join the ladder
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.
    Grant the tier coins FIRST (`store.grantSeasonTierCoins()`, built session 69), before the reset clears the

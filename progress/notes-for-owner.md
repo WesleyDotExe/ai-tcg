@@ -1,6 +1,39 @@
 # Notes for the owner
 
-**Updated 2026-11-02, session 69 (coin skins, the game lane's half; starting ratings on the match).** Nothing
+**Updated 2026-11-02, session 70 (the hardening pass: versioned replays).** Nothing is blocking. Replays are
+versioned, as your call 6 asked, so the 24-health rule can ship next game session (71) without breaking a single
+recorded match. Evidence `progress/replay-versions-001.txt` (14 checks PASS). Five calls I made, each with what I
+did; tell me any to change:
+
+1. **A replay carries every card it uses, in full** (new format `ai-tcg-replay/2`), plus the rules version
+   (`rules-1`) and the card version (`cards-1`). It plays its own cards, never today's, so rebalancing a card can't
+   change an old match. The cost is size: about 25 KB a match against 5 KB before. The other way would be a
+   shared card table per version, which is smaller but needs every version kept on the server. Self-contained
+   seemed the safer first step for Season 0.
+2. **Old replays (`/1`, sessions 67-69) read a frozen copy of today's cards** (`cards-1`, saved in the engine once,
+   never edited). They name cards by id only, so this is what keeps them right after a card change. The demo
+   shows why it matters: read against changed cards, an old replay's moves can stay legal and quietly play a
+   different match (one ended 14-0 instead of the recorded 16-0).
+3. **A card change now fails a test until it gets a new card version** (`CARDS_VERSIONS` in
+   `engine/src/engine/versions.ts`). That's deliberate friction: no card can change without a new version for
+   the replays to name.
+4. **A replay played on cards that aren't a published version names no card version** (`cards: null`) but still
+   carries those cards and plays. This only happens in tests and measuring tools today.
+5. **I made a small change in the render lane's replay reader** (`render/src/capture.ts`, `render/src/site/siteReplay.ts`,
+   `siteHost.ts`, one test): it reads both formats through the server's reader and passes the file's rules
+   through. Nothing they draw changed.
+
+Also fixed in the hardening pass: two demos that had drifted. `owner-api-demo-002`'s win rates moved with two
+card changes it was never re-run for (sessions 60 and 62), and `economy-demo-009` printed a stale "bug" about the
+Zero-Day cards, which went live in session 42.
+
+Queued, in order: the 24-health rule as `rules-2` (session 71, the shipped numbers to you before the launch-gate
+re-run); then the 2x vote, featured picks (the "Top rated" rule to a check-in), viewer counts, and your three
+live-feed asks from render 51 (the signature card, the deck's faction, the boast on the live view).
+
+<details><summary>Session 69's six calls (all kept, 2026-11-03)</summary>
+
+**Session 69 (coin skins, the game lane's half; starting ratings on the match).** Nothing
 is blocking. Coin skins' game half is built as you answered (`progress/owner-api-demo-007-coins.txt`, 13
 checks PASS). The 24-health rule is not shipped: session 70 builds versioned replays first, then ships it.
 Six calls I made while building, each with what I did; tell me any to change:
@@ -28,6 +61,9 @@ Six calls I made while building, each with what I did; tell me any to change:
 
 Not built yet from your render-50 list (queued, in order): the 2x vote, featured picks (I'll bring the "Top
 rated" rule to a check-in), viewer counts, and the live board's unit badges once the render lane names them.
+
+
+</details>
 
 ### ~~[OWNER CHECK-IN] The first-seat fixes, measured: my pick is the second seat starting on 24 health~~ (ANSWERED 2026-11-02: ship 24 health after versioned replays; session 70)
 

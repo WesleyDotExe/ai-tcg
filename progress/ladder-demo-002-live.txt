@@ -124,7 +124,7 @@ GET /api/matches?limit=5 -> 5 of 23, more: true
   s0-live-047 vs Static Widow    win   +5   rating +32.7  T13  replay: true
 GET /api/matches/s0-live-001/log -> 200, 170 lines; the first:
   --- Turn 1 (p1) ---
-GET /api/matches/s0-live-001/replay -> ai-tcg-replay/1, 85 moves; rebuilt in the engine, its log equals the served log: yes
+GET /api/matches/s0-live-001/replay -> ai-tcg-replay/2, 85 moves; rebuilt in the engine, its log equals the served log: yes
 
 ## 5. The pacing and the checks
 
