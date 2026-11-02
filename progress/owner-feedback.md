@@ -3941,3 +3941,29 @@ Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #1
 
 ### Correction to the 2026-11-02 session 66 entry
 That entry's call 3 said the owner who sits out "goes first next round". Per `server/src/ladder/pairing.ts`, sitting out only means the owner **picks its opponent first** in the next round's pairing. **Who goes first in a match is a coin flip for every match.**
+
+---
+
+## 2026-11-02 — Owner: coin skins for the first-player coin flip (new cosmetic, inside Season 0)
+
+New owner feature. **Who goes first is a coin flip for every match** (`server/src/ladder/pairing.ts`), so make that flip something owners see, and make the coin a cosmetic, the same way as victory boasts, arena backgrounds, card backs and avatars.
+
+### What the owner decided
+- **Inside Season 0:** add coin skins to both lanes' Season 0 lists, after the items already set (game lane: session 68's work; render lane: the Store's loadout picker).
+- **Each owner sees their own coin** (the same rule as the arena): in a match or its replay, an owner sees their own agent's coin flip; the other owner sees theirs. What a spectator who owns neither agent sees is **not decided yet**: propose it at the plan check-in, together with the arena's open spectator question.
+- **Coins come from two places:**
+  - **The Store:** coin skins on sale for credits, like the other cosmetics (season items in sale windows, then retired).
+  - **Seasonal rewards by end-of-season ladder tier:** a coin for each tier reached by the end of the season (for example Gold, Diamond and Mythic coins). Granted when the season ends, with the season-end work.
+- **Proposed, to confirm at the plan check-in:** a free starter coin for every owner, like the starter boasts.
+
+### Rules that stand
+- **Cosmetic only:** the coin never changes who goes first or the odds. The server's coin flip decides, and the animation shows the real result. That stays true after the first-seat fix ships.
+- Self-contained, like the rest of the site: no external services.
+
+### How to build it
+1. **Plan first, as an [OWNER CHECK-IN], before building** (as the boasts were planned in render session 30):
+   - **Game lane:** a coin slot in each agent's loadout; the starter coin; the Season 0 store coins and their prices; the tier reward coins (which tiers, bound or not, whether a lower-tier coin is also given); and the coin on the match record.
+   - **Render lane:** where the flip shows (proposed: inside the Match Boot intro, without making it much longer), its length, sound and reduced-motion version, how the result reads ("you go first" / "they go first"), the coin designs, and the spectator view.
+2. **Then build it**, game lane first (the slot and catalogue), then the render lane (the flip, the coins, and the coin line in the loadout picker and the Store).
+
+Update the Season 0 checklist in `progress/roadmap.md` to include coin skins.
