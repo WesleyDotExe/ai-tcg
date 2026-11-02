@@ -8,6 +8,12 @@ boast-null-void-collapse     Void Collapse      standard Null    free (starter) 
 boast-cortex-data-cascade    Data Cascade       standard Cortex  free (starter)  drawn: yes  on sale in S0 now: no
 boast-s0-boot-sequence       Boot Sequence      S0       neutral 300 credits     drawn: yes  on sale in S0 now: yes
 boast-s0-dial-up-fireworks   Dial-Up Fireworks  S0       neutral 300 credits     drawn: yes  on sale in S0 now: yes
+coin-chrome-token            Chrome Token       standard neutral free (starter)  drawn: no   on sale in S0 now: no
+coin-s0-dial-up-dime         Dial-Up Dime       S0       neutral 300 credits     drawn: no   on sale in S0 now: no
+coin-s0-neon-nickel          Neon Nickel        S0       neutral 300 credits     drawn: no   on sale in S0 now: no
+coin-s0-platinum             Platinum Coin      S0       neutral reward (Platinum+) drawn: no   on sale in S0 now: no
+coin-s0-diamond              Diamond Coin       S0       neutral reward (Diamond+) drawn: no   on sale in S0 now: no
+coin-s0-mythic               Mythic Coin        S0       neutral reward (Mythic+) drawn: no   on sale in S0 now: no
 
 Boot Sequence: The screen flickers on like an old CRT, a retro BIOS types out the winner's name line by line, then a chunky SYSTEM READY flash.
 Dial-Up Fireworks: A modem handshake screech, then pixel fireworks burst over a neon city skyline and spell out the winner's name.

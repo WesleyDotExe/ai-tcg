@@ -75,6 +75,10 @@ import {
   LOADOUT_SLOTS,
   SLOT_KIND,
   STARTER_BOASTS,
+  STARTER_COIN,
+  SEASON_REWARD_TIERS,
+  tierCoinsFor,
+  type SeasonRewardTier,
   catalogueProblem,
   onSale,
   type CosmeticItem,
@@ -501,9 +505,12 @@ export interface OwnedCosmetic {
   ownerId: string;
   itemId: string;
   kind: CosmeticKind;
-  source: "starter" | "purchase";
+  source: "starter" | "purchase" | "seasonReward";
   /** The credits payment, for a bought item. */
   ledgerEntryId: number | null;
+  /** (v20) For a season reward, which one: "<season>:<tier>", e.g.
+   * "S0:Platinum"; null otherwise. */
+  rewardRef: string | null;
   acquiredAt: string;
   /** The catalogue entry (null only if a later catalogue dropped it). */
   item: CosmeticItem | null;
@@ -556,6 +563,11 @@ export interface MatchRecord {
   /** (v17) Each side's Glicko-2 change; null for a cancelled match (never
    * rated) or one recorded before v17. */
   ratings: { p1: RatingChange; p2: RatingChange } | null;
+  /** (v20) Each side's owner's rating as the match started (a spectator's
+   * default point of view is the higher-rated side's; owner 2026-11-02),
+   * kept for every outcome, a cancel too; null for a match recorded before
+   * v20. */
+  ratingsAtStart: { p1: number; p2: number } | null;
 }
 
 export interface PlayableDeck {
@@ -805,6 +817,9 @@ export interface LiveMatch {
   startedAt: string;
   p1: LiveSide;
   p2: LiveSide;
+  /** (v20) Each side's owner's rating as the match started; null before
+   * v20. */
+  ratingsAtStart: { p1: number; p2: number } | null;
 }
 
 /** One house owner as the admin view shows it (owner app spec C.10). */
@@ -1214,7 +1229,7 @@ export class EconomyStore {
         Array.from({ length: n }, () => this.grantCopy({ ownerId, cardId, origin: "starter", originRef: `starter:${faction}` })),
       );
       const packs = Array.from({ length: STARTER_PACKS }, () => this.grantPack(ownerId, setCode, "starter"));
-      return { copies, packs, cosmetics: this.grantStarterBoasts(ownerId, at) };
+      return { copies, packs, cosmetics: this.grantStarterCosmetics(ownerId, at) };
     });
   }
 
@@ -1553,6 +1568,7 @@ export class EconomyStore {
         }
         if (this.schemaVersion >= 9) this.logAgentName(agent.agentId, agent.name, kind, 0, byOwnerId, null, agent.createdAt);
         if (this.schemaVersion >= 11) this.equipFactionBoast(agent.ownerId, agent.agentId, agent.createdAt);
+        if (this.schemaVersion >= 20) this.equipStarterCoin(agent.ownerId, agent.agentId, agent.createdAt);
       } catch (err) {
         if (/UNIQUE.*agents\.name|agents_name_nocase/.test(err instanceof Error ? err.message : "")) throw new EconomyError(`the agent name "${agent.name}" is taken`);
         refused(err);
@@ -2003,6 +2019,7 @@ export class EconomyStore {
       kind: str(r.kind) as CosmeticKind,
       source: str(r.source) as OwnedCosmetic["source"],
       ledgerEntryId: numOrNull(r.ledger_entry_id),
+      rewardRef: this.schemaVersion >= 20 ? strOrNull(r.reward_ref) : null,
       acquiredAt: str(r.acquired_at),
       item: this.catalogue.get(str(r.item_id)) ?? null,
     }));
@@ -2023,6 +2040,7 @@ export class EconomyStore {
     if (!item) throw new EconomyError(`no cosmetic "${itemId}"`);
     const at = this.stamp();
     if (!onSale(item, this.season, at)) {
+      if (item.tierReward !== undefined) throw new EconomyError(`"${item.name}" is a season reward for finishing ${item.tierReward} or higher; it isn't sold`);
       if (item.priceCredits === null) throw new EconomyError(`"${item.name}" is free with the starter collection; it isn't sold`);
       if (item.season !== this.season) throw new EconomyError(`"${item.name}" is a ${item.season} item; it isn't sold in ${this.season}`);
       if (!item.drawn) throw new EconomyError(`"${item.name}" isn't on sale yet: the render lane hasn't drawn it`);
@@ -2046,21 +2064,88 @@ export class EconomyStore {
     });
   }
 
-  /** The four faction starter boasts, with the starter collection (all
-   * four, since agents can switch factions). The owner's agents made
-   * before it start wearing the faction's boast. */
-  private grantStarterBoasts(ownerId: string, at: string): OwnedCosmetic[] {
+  /** The free starter cosmetics, with the starter collection: the four
+   * faction starter boasts (all four, since agents can switch factions)
+   * and (v20) the Chrome Token coin. The owner's agents made before it
+   * start wearing the faction's boast and the Chrome Token. */
+  private grantStarterCosmetics(ownerId: string, at: string): OwnedCosmetic[] {
     if (this.schemaVersion < 11) return [];
-    const insert = this.db.prepare("INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, acquired_at) VALUES (?, ?, 'boast', 'starter', ?)");
-    for (const boast of Object.values(STARTER_BOASTS)) {
+    const insert = this.db.prepare("INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, acquired_at) VALUES (?, ?, ?, 'starter', ?)");
+    const starters: { itemId: string; kind: CosmeticKind }[] = Object.values(STARTER_BOASTS);
+    if (this.schemaVersion >= 20) starters.push(STARTER_COIN);
+    for (const item of starters) {
       try {
-        insert.run(ownerId, boast.itemId, at);
+        insert.run(ownerId, item.itemId, item.kind, at);
       } catch (err) {
         refused(err);
       }
     }
-    for (const agent of this.listAgents(ownerId)) this.equipFactionBoast(ownerId, agent.agentId, at);
+    for (const agent of this.listAgents(ownerId)) {
+      this.equipFactionBoast(ownerId, agent.agentId, at);
+      if (this.schemaVersion >= 20) this.equipStarterCoin(ownerId, agent.agentId, at);
+    }
     return this.ownedCosmetics(ownerId);
+  }
+
+  /** (v20) A new agent's coin slot: the Chrome Token, if the owner has it.
+   * An agent that already has a coin keeps it. */
+  private equipStarterCoin(ownerId: string, agentId: string, at: string): void {
+    if (!this.ownsCosmetic(ownerId, STARTER_COIN.itemId)) return;
+    this.db.prepare("INSERT INTO agent_loadouts (agent_id, slot, item_id, set_at) VALUES (?, 'coin', ?, ?) ON CONFLICT DO NOTHING").run(agentId, STARTER_COIN.itemId, at);
+  }
+
+  /** (v20) The tier coins the owner's ladder tier would earn if the season
+   * ended now (owner 2026-11-02: Platinum or higher earns the Platinum
+   * coin, Diamond or higher the Diamond coin, Mythic the Mythic coin), each
+   * with whether the owner already has it. Placement earns none. */
+  seasonTierCoins(ownerId: string, at: string = this.stamp()): { tier: string; coins: { itemId: string; name: string; tier: SeasonRewardTier; owned: boolean }[] } {
+    const { tier } = this.rating(ownerId, at);
+    return {
+      tier,
+      coins: this.tierCoinsOfSeason(tier).map((item) => ({ itemId: item.itemId, name: item.name, tier: item.tierReward!, owned: this.ownsCosmetic(ownerId, item.itemId) })),
+    };
+  }
+
+  /** This season's tier coins (from the catalogue) that `tier` earns,
+   * lowest first. */
+  private tierCoinsOfSeason(tier: string): CosmeticItem[] {
+    const coins = Object.fromEntries(
+      this.cosmeticsCatalogue()
+        .filter((i) => i.kind === "coin" && i.season === this.season && i.tierReward !== undefined)
+        .map((i) => [i.tierReward!, i]),
+    ) as Record<SeasonRewardTier, CosmeticItem>;
+    if (!SEASON_REWARD_TIERS.every((t) => coins[t] !== undefined)) return [];
+    return tierCoinsFor(tier, coins);
+  }
+
+  /** (v20) Grants every owner the season's tier coins its end-of-season
+   * ladder tier earns, all in one transaction, each once (a second run
+   * grants nothing new). For the season-end work (roadmap item 3): nothing
+   * calls it before then. A season with no tier coins in the catalogue
+   * grants nothing. Returns what each owner was given. */
+  grantSeasonTierCoins(at: string = this.stamp()): { ownerId: string; tier: string; granted: string[] }[] {
+    if (this.schemaVersion < 20) throw new EconomyError("season reward coins need schema v20");
+    return this.transaction(() => {
+      const out: { ownerId: string; tier: string; granted: string[] }[] = [];
+      const insert = this.db.prepare(
+        "INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, reward_ref, acquired_at) VALUES (?, ?, 'coin', 'seasonReward', ?, ?) ON CONFLICT DO NOTHING",
+      );
+      const owners = this.db.prepare("SELECT owner_id FROM owners ORDER BY created_at, rowid").all() as Row[];
+      for (const o of owners) {
+        const ownerId = str(o.owner_id);
+        const { tier } = this.rating(ownerId, at);
+        const granted: string[] = [];
+        for (const item of this.tierCoinsOfSeason(tier)) {
+          try {
+            if (num(insert.run(ownerId, item.itemId, `${this.season}:${item.tierReward}`, at).changes) > 0) granted.push(item.itemId);
+          } catch (err) {
+            refused(err);
+          }
+        }
+        if (granted.length > 0 || this.tierCoinsOfSeason(tier).length > 0) out.push({ ownerId, tier, granted });
+      }
+      return out;
+    });
   }
 
   /** A new agent's boast slot: the starter boast of the owner's faction
@@ -2175,8 +2260,17 @@ export class EconomyStore {
       const p1 = side(input.p1OwnerId);
       const p2 = side(input.p2OwnerId);
       const startedAt = this.stamp();
+      const ratingsAtStart =
+        this.schemaVersion >= 20 ? { p1: this.rating(p1.ownerId, startedAt).rating, p2: this.rating(p2.ownerId, startedAt).rating } : null;
       try {
-        if (this.schemaVersion >= 13) {
+        if (ratingsAtStart !== null) {
+          this.db
+            .prepare(
+              `INSERT INTO live_matches (match_id, p1_owner, p2_owner, p1_agent, p2_agent, started_at, p1_style, p2_style, p1_rating_start, p2_rating_start)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            )
+            .run(input.matchId, p1.ownerId, p2.ownerId, p1.agentId, p2.agentId, startedAt, p1.playStyle, p2.playStyle, ratingsAtStart.p1, ratingsAtStart.p2);
+        } else if (this.schemaVersion >= 13) {
           this.db
             .prepare(
               "INSERT INTO live_matches (match_id, p1_owner, p2_owner, p1_agent, p2_agent, started_at, p1_style, p2_style) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -2190,7 +2284,7 @@ export class EconomyStore {
       } catch (err) {
         refused(err);
       }
-      return { matchId: input.matchId, startedAt, p1, p2 };
+      return { matchId: input.matchId, startedAt, p1, p2, ratingsAtStart };
     });
   }
 
@@ -2203,7 +2297,15 @@ export class EconomyStore {
   }
 
   /** Every live match, oldest first (Watch live's source list). */
-  liveMatches(): { matchId: string; p1OwnerId: string; p2OwnerId: string; p1AgentId: string; p2AgentId: string; startedAt: string }[] {
+  liveMatches(): {
+    matchId: string;
+    p1OwnerId: string;
+    p2OwnerId: string;
+    p1AgentId: string;
+    p2AgentId: string;
+    startedAt: string;
+    ratingsAtStart: { p1: number; p2: number } | null;
+  }[] {
     return (this.db.prepare("SELECT * FROM live_matches ORDER BY started_at, rowid").all() as Row[]).map((r) => ({
       matchId: str(r.match_id),
       p1OwnerId: str(r.p1_owner),
@@ -2211,6 +2313,7 @@ export class EconomyStore {
       p1AgentId: str(r.p1_agent),
       p2AgentId: str(r.p2_agent),
       startedAt: str(r.started_at),
+      ratingsAtStart: r.p1_rating_start != null && r.p2_rating_start != null ? { p1: num(r.p1_rating_start), p2: num(r.p2_rating_start) } : null,
     }));
   }
 
@@ -3646,6 +3749,7 @@ export class EconomyStore {
         boast: null,
         playStyles: null,
         ratings: null,
+        ratingsAtStart: null,
       };
       // The styles the match started with (v13): kept from the live row.
       const p1Style = strOrNull(live?.p1_style ?? null);
@@ -3681,6 +3785,16 @@ export class EconomyStore {
             .prepare("UPDATE matches SET p1_style = ?, p2_style = ? WHERE match_id = ?")
             .run(record.playStyles.p1, record.playStyles.p2, record.matchId);
         }
+        if (this.schemaVersion >= 20) {
+          // As the live match started; a match recorded without one (the
+          // tests' direct records) goes in on the ratings it is rated from,
+          // which are the same: a rating moves only when a match ends.
+          const start = (seat: "p1" | "p2", ownerId: string) => numOrNull(live?.[`${seat}_rating_start`] ?? null) ?? this.rating(ownerId, endedAt).rating;
+          record.ratingsAtStart = { p1: start("p1", owner1), p2: start("p2", owner2) };
+          this.db
+            .prepare("UPDATE matches SET p1_rating_start = ?, p2_rating_start = ? WHERE match_id = ?")
+            .run(record.ratingsAtStart.p1, record.ratingsAtStart.p2, record.matchId);
+        }
       } catch (err) {
         refused(err);
       }
@@ -3689,8 +3803,11 @@ export class EconomyStore {
         // live match's owners can't change them.
         record.loadouts = { p1: this.loadout(p1), p2: this.loadout(p2) };
         const insertLoadout = this.db.prepare(
-          `INSERT INTO match_loadouts (match_id, seat, agent_id, boast, close_win_boast, card_back, avatar, arena)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          this.schemaVersion >= 20
+            ? `INSERT INTO match_loadouts (match_id, seat, agent_id, boast, close_win_boast, card_back, avatar, arena, coin)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            : `INSERT INTO match_loadouts (match_id, seat, agent_id, boast, close_win_boast, card_back, avatar, arena)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         );
         if (outcome.kind === "win") {
           const seat = outcome.winnerAgentId === p1 ? "p1" : "p2";
@@ -3699,7 +3816,8 @@ export class EconomyStore {
         try {
           for (const seat of ["p1", "p2"] as const) {
             const l = record.loadouts[seat];
-            insertLoadout.run(input.matchId, seat, seat === "p1" ? p1 : p2, l.boast, l.closeWinBoast, l.cardBack, l.avatar, l.arena);
+            const values = [input.matchId, seat, seat === "p1" ? p1 : p2, l.boast, l.closeWinBoast, l.cardBack, l.avatar, l.arena];
+            insertLoadout.run(...(this.schemaVersion >= 20 ? [...values, l.coin] : values));
           }
           if (record.boast !== null) {
             this.db
@@ -3807,6 +3925,7 @@ export class EconomyStore {
           cardBack: strOrNull(l.card_back),
           avatar: strOrNull(l.avatar),
           arena: strOrNull(l.arena),
+          coin: this.schemaVersion >= 20 ? strOrNull(l.coin) : null,
         };
         loadouts.set(str(l.match_id), entry);
       }
@@ -3844,6 +3963,8 @@ export class EconomyStore {
         playStyles:
           r.p1_style != null && r.p2_style != null ? { p1: str(r.p1_style) as PlayStyleId, p2: str(r.p2_style) as PlayStyleId } : null,
         ratings: ratings.get(str(r.match_id)) ?? null,
+        ratingsAtStart:
+          r.p1_rating_start != null && r.p2_rating_start != null ? { p1: num(r.p1_rating_start), p2: num(r.p2_rating_start) } : null,
       };
     });
   }

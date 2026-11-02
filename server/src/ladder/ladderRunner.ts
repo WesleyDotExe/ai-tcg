@@ -35,7 +35,7 @@ import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { formatLog, getCard, isShippedRules, LookaheadAgent, runMatch, type Agent, type UnitCard, type DeckBuildOptions, type DeckSpec, type Move, type PlayerId, type PlayStyleId, type MatchRules } from "@ai-tcg/engine";
-import { EconomyError, PACK_PRICE_CREDITS, type DeckChooser, type EconomyStore, type LiveMatch, type MatchRecord, type RecordedOutcome } from "@ai-tcg/economy";
+import { coinOf, EconomyError, PACK_PRICE_CREDITS, type DeckChooser, type EconomyStore, type LiveMatch, type MatchRecord, type RecordedOutcome } from "@ai-tcg/economy";
 import { deepEqual } from "../deepEqual.js";
 import { pairRound, seededRandom, type Pairing, type QueueEntry, type Random } from "./pairing.js";
 import { timelineRecorder, type Timeline } from "./timeline.js";
@@ -121,6 +121,11 @@ export interface ReplayFile {
   decks: { p1: ReplayDeck; p2: ReplayDeck };
   moves: Move[];
   result: { outcome: string; winner: PlayerId | "draw" | null; turns: number; moves: number; finalHealth: { p1: number; p2: number } };
+  /** (v20) The coin each side flipped (owner 2026-11-02: "each side's
+   * equipped coin on the match record and in the replay"), so a replay
+   * shows the coins the match was played with. Cosmetic only: who went
+   * first is the server's coin flip. Absent in replays written before. */
+  coins?: { p1: string; p2: string };
 }
 
 /** A deck as the replay keeps it: card ids, one per copy, in list order
@@ -404,6 +409,9 @@ export class Ladder {
           moves: movesPlayed,
           finalHealth: { p1: state.players.p1.health, p2: state.players.p2.health },
         },
+        // The loadouts can't change during a live match: these are the
+        // coins the record keeps too.
+        coins: { p1: coinOf(live.p1.loadout), p2: coinOf(live.p2.loadout) },
       }, specs);
       turns = state.turnNumber;
       moves = movesPlayed;

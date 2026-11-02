@@ -30,7 +30,7 @@
 // moment, so tests and the demo run hours of ladder in milliseconds. The
 // real server calls `start()`, which ticks on a timer.
 
-import type { EconomyStore } from "@ai-tcg/economy";
+import { coinOf, defaultPointOfView, type EconomyStore } from "@ai-tcg/economy";
 import { Ladder, type LadderMatch, type LadderOptions, type PlayedMatch, type RoundReport } from "./ladderRunner.js";
 import type { Pairing } from "./pairing.js";
 import { stepHoldMs, WATCH_PACE_MS, watchLengthMs, type PublicSnapshot, type TimelineStep } from "./timeline.js";
@@ -59,8 +59,14 @@ export interface LiveSideView {
   agentId: string;
   agentName: string;
   playStyle: string;
+  /** The owner's rating as the match started. */
   rating: number;
   tier: string;
+  /** (v20) The coin this side flips (its equipped coin, else the Chrome
+   * Token) and its arena background (null: none equipped). Both are sent so
+   * a spectator can switch point of view (owner 2026-11-02). */
+  coin: string;
+  arena: string | null;
 }
 
 /** A live match as Watch live and the Live match widget read it. */
@@ -74,6 +80,9 @@ export interface LiveMatchView {
   nextAt: string | null;
   p1: LiveSideView;
   p2: LiveSideView;
+  /** Whose point of view a spectator who owns neither agent starts on: the
+   * higher-rated side as the match started, p1 on a tie. */
+  defaultView: "p1" | "p2";
   /** The board now (after the last released move). */
   now: PublicSnapshot;
   /** The last few log lines released, oldest first. */
@@ -206,7 +215,17 @@ export class LiveLadder implements LiveSource {
     const owner = this.store.getOwner(live.ownerId);
     const agent = this.store.getAgent(live.agentId);
     const r = this.store.rating(live.ownerId);
-    return { ownerId: owner.ownerId, ownerName: owner.name, agentId: agent.agentId, agentName: agent.name, playStyle: live.playStyle, rating: r.rating, tier: r.tier };
+    return {
+      ownerId: owner.ownerId,
+      ownerName: owner.name,
+      agentId: agent.agentId,
+      agentName: agent.name,
+      playStyle: live.playStyle,
+      rating: played.live.ratingsAtStart?.[seat] ?? r.rating,
+      tier: r.tier,
+      coin: coinOf(live.loadout),
+      arena: live.loadout.arena,
+    };
   }
 
   private view(s: Shown): LiveMatchView {
@@ -220,6 +239,7 @@ export class LiveLadder implements LiveSource {
       nextAt: s.released < t.steps.length ? new Date(s.nextAt).toISOString() : null,
       p1: s.sides.p1,
       p2: s.sides.p2,
+      defaultView: defaultPointOfView({ p1: s.sides.p1.rating, p2: s.sides.p2.rating }),
       now: s.released === 0 ? t.start : t.steps[s.released - 1]!.after,
       recentLines: lines.slice(-RECENT_LINES),
     };

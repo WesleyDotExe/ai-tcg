@@ -166,7 +166,7 @@ describe("ratings (schema v17)", () => {
     expect(() => v16.rating(a.ownerId)).toThrow(/v17/);
     v16.close();
     const v17 = open(path);
-    expect(v17.schemaVersion).toBe(19);
+    expect(v17.schemaVersion).toBe(20);
     expect(v17.matchHistory()[0]!.ratings).toBeNull();
     expect(v17.rating(a.ownerId)).toMatchObject({ ...RATING_START, ratedMatches: 0 });
     expect(v17.ladder()).toEqual([]);

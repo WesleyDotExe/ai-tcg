@@ -1,9 +1,35 @@
 # Notes for the owner
 
-**Updated 2026-11-02, session 68 (the four first-seat fixes measured; the small collection and deck asks).**
-Nothing is blocking. Two check-ins: pick the first-seat fix, and the coin skins plan's game half.
+**Updated 2026-11-02, session 69 (coin skins, the game lane's half; starting ratings on the match).** Nothing
+is blocking. Coin skins' game half is built as you answered (`progress/owner-api-demo-007-coins.txt`, 13
+checks PASS). The 24-health rule is not shipped: session 70 builds versioned replays first, then ships it.
+Six calls I made while building, each with what I did; tell me any to change:
 
-### [OWNER CHECK-IN] The first-seat fixes, measured: my pick is the second seat starting on 24 health
+1. **The tier coins belong to a season.** Their ids are `coin-s0-platinum`, `coin-s0-diamond`,
+   `coin-s0-mythic` (names "Platinum Coin", "Diamond Coin", "Mythic Coin"). I read "a coin for each tier
+   reached by the end of the season" as each season having its own three, so Season 1 would add
+   `coin-s1-...` (a new look, or the same look with a season mark: the render lane's call). The other reading
+   is one Platinum coin for all time, given once. Tell me if you want that instead.
+2. **An empty coin slot flips the Chrome Token.** An owner can empty the slot like any other (boasts work the
+   same way), and the flip still shows the Chrome Token. Matches recorded before today also read as the
+   Chrome Token. The alternative is to refuse an empty coin slot.
+3. **The tier is read when the season-end work runs**, from the owner's rating then (placement done; 5 rated
+   matches). It has to run before the reset clears the ratings; I wrote that into the season-end item.
+4. **The starting rating is kept for every match, cancels too** (`ratingAtStart` on each side, and
+   `defaultView`: the higher one, p1 on a tie). For matches from before today, a rated match gives the
+   rating it went in with, and an older cancel gives none (so its default view is p1).
+5. **The replay keeps the coins as a new optional field** (`coins: { p1, p2 }`) in the same format,
+   `ai-tcg-replay/1`. Older replays don't have it and still play. Session 70's versioned replays will give
+   this a proper version number.
+6. **I made a small change in the render lane's loadout picker.** It built its slots from the economy's list,
+   which now has six, and it had no "Coin" label. It now leaves the coin slot out until the render lane's
+   second coin slice adds the Coin line, so the picker looks as it did yesterday. That's two files and two
+   tests under `render/`, nothing else of theirs.
+
+Not built yet from your render-50 list (queued, in order): the 2x vote, featured picks (I'll bring the "Top
+rated" rule to a check-in), viewer counts, and the live board's unit badges once the render lane names them.
+
+### ~~[OWNER CHECK-IN] The first-seat fixes, measured: my pick is the second seat starting on 24 health~~ (ANSWERED 2026-11-02: ship 24 health after versioned replays; session 70)
 
 All four you named, test only, and five extras (doses and pairs) so you can see how far each lever goes. Full
 numbers: `progress/first-seat-002-fixes.txt`. No rule changed: each fix is a test-only option the measuring
@@ -62,7 +88,7 @@ Then the fix ships with new ring baselines and a new built-deck ring, before the
 Rules text if you pick it: "The player going second starts with 24 health; the player going first starts with
 20 and skips its first draw."
 
-### [OWNER CHECK-IN] Coin skins: the game lane's half of the plan (not built; waits for you)
+### ~~[OWNER CHECK-IN] Coin skins: the game lane's half of the plan (not built; waits for you)~~ (ANSWERED 2026-11-02 with two changes; BUILT session 69)
 
 Your render-half answers are noted (Match Boot placement, Chrome Token for every owner and for spectators, the
 coin looks). What I propose for the slot, catalogue, prices and records:

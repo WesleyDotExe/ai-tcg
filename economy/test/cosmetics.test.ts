@@ -18,6 +18,9 @@ import {
   SEASON_BOAST_PRICE_CREDITS,
   SEASON_0_BOASTS,
   STARTER_BOASTS,
+  STARTER_COIN,
+  SEASON_0_COINS,
+  SEASON_0_TIER_COINS,
   catalogueProblem,
   onSale,
   type CosmeticItem,
@@ -58,7 +61,7 @@ const LATE_BACK: CosmeticItem = {
 const S1_AVATAR: CosmeticItem = { ...SEASON_BOAST, itemId: "avatar-s1-test", kind: "avatar", name: "Test S1 Avatar", season: "S1", priceCredits: 200, sale: null };
 // The free starter boasts and test items only: what the shipped seasons sell
 // is checked on its own above, so these tests don't move when it changes.
-const CATALOGUE: readonly CosmeticItem[] = [...Object.values(STARTER_BOASTS), SEASON_BOAST, QUIET_BOAST, LATE_BACK, S1_AVATAR];
+const CATALOGUE: readonly CosmeticItem[] = [...Object.values(STARTER_BOASTS), STARTER_COIN, SEASON_BOAST, QUIET_BOAST, LATE_BACK, S1_AVATAR];
 
 const open = (path = ":memory:", migrateTo?: number) => EconomyStore.open(path, { now: () => clock, migrateTo, cosmetics: CATALOGUE });
 const tmpFile = () => {
@@ -83,10 +86,10 @@ function seat(s: EconomyStore, name: string, faction: DeckFaction) {
 }
 
 describe("cosmetics: the catalogue", () => {
-  it("ships the four free faction starter boasts and Season 0's two season boasts", () => {
+  it("ships the four free faction starter boasts and Season 0's two season boasts (and the coins, in coins.test.ts)", () => {
     expect(catalogueProblem(COSMETICS)).toBeNull();
     expect(COSMETICS.map((c) => c.itemId).sort()).toEqual(
-      [...Object.values(STARTER_BOASTS), ...SEASON_0_BOASTS].map((b) => b.itemId).sort(),
+      [...Object.values(STARTER_BOASTS), ...SEASON_0_BOASTS, STARTER_COIN, ...SEASON_0_COINS, ...Object.values(SEASON_0_TIER_COINS)].map((b) => b.itemId).sort(),
     );
     for (const [faction, boast] of Object.entries(STARTER_BOASTS)) {
       expect(boast).toMatchObject({ kind: "boast", faction, season: "standard", priceCredits: null, sale: null });
@@ -102,7 +105,8 @@ describe("cosmetics: the catalogue", () => {
       expect(boast).toMatchObject({ kind: "boast", season: "S0", faction: null, priceCredits: SEASON_BOAST_PRICE_CREDITS, sale: null });
       expect(boast.artRef).toBe(`code:boast/${boast.itemId.replace(/^boast-/, "")}`);
     }
-    expect(COSMETICS.every((c) => c.kind === "boast")).toBe(true);
+    // No card backs, avatars or arenas yet; boasts and (v20) coins.
+    expect([...new Set(COSMETICS.map((c) => c.kind))].sort()).toEqual(["boast", "coin"]);
   });
 
   it("each item is marked drawn exactly when the render lane has drawn it", () => {
@@ -125,7 +129,7 @@ describe("cosmetics: the catalogue", () => {
     for (const at of ["2026-10-01T00:00:00.000Z", "2026-11-15T00:00:00.000Z", "2027-06-01T00:00:00.000Z"]) {
       expect(onSale(boot, "S0", at)).toBe(false);
     }
-    const undrawn = Object.values(STARTER_BOASTS).concat(SEASON_0_BOASTS.map((c) => ({ ...c, drawn: false })));
+    const undrawn = [...Object.values(STARTER_BOASTS), STARTER_COIN].concat(SEASON_0_BOASTS.map((c) => ({ ...c, drawn: false })));
     const s = EconomyStore.open(":memory:", { now: () => clock, cosmetics: undrawn });
     const o = s.createOwner({ name: "o" });
     credit(s, o.ownerId, 1000);
@@ -174,7 +178,7 @@ describe("cosmetics: starter boasts and the default loadout", () => {
     const o = s.createOwner({ name: "o" });
     expect(s.ownedCosmetics(o.ownerId)).toEqual([]);
     const grant = s.grantStarterCollection(o.ownerId, "Swarm");
-    expect(grant.cosmetics.map((c) => c.itemId).sort()).toEqual(Object.values(STARTER_BOASTS).map((b) => b.itemId).sort());
+    expect(grant.cosmetics.map((c) => c.itemId).sort()).toEqual([...Object.values(STARTER_BOASTS), STARTER_COIN].map((b) => b.itemId).sort());
     expect(grant.cosmetics.every((c) => c.source === "starter" && c.ledgerEntryId === null && c.item !== null)).toBe(true);
     // Free: no ledger rows at all.
     expect(s.ledger(o.ownerId)).toEqual([]);
@@ -184,7 +188,7 @@ describe("cosmetics: starter boasts and the default loadout", () => {
     expect(() => s.unsafeExec(`DELETE FROM owned_cosmetics`)).toThrow(/account-bound/);
     // A second starter grant is still refused, with no second set of boasts.
     expect(() => s.grantStarterCollection(o.ownerId, "Null")).toThrow(/already has/);
-    expect(s.ownedCosmetics(o.ownerId)).toHaveLength(4);
+    expect(s.ownedCosmetics(o.ownerId)).toHaveLength(5);
   });
 
   it("starts each agent on its owner's faction boast: lock first, then starting faction", () => {
@@ -200,7 +204,7 @@ describe("cosmetics: starter boasts and the default loadout", () => {
     expect(s.loadout(later.agentId).boast).toBe(STARTER_BOASTS.Aegis.itemId);
     s.setFactionLock(o.ownerId, "Null");
     const locked = s.createAgent({ ownerId: o.ownerId, name: "locked" });
-    expect(s.loadout(locked.agentId)).toMatchObject({ boast: STARTER_BOASTS.Null.itemId, closeWinBoast: null, cardBack: null, avatar: null, arena: null });
+    expect(s.loadout(locked.agentId)).toMatchObject({ boast: STARTER_BOASTS.Null.itemId, closeWinBoast: null, cardBack: null, avatar: null, arena: null, coin: STARTER_COIN.itemId });
     // An owner without a starter collection: the slot stays empty.
     const bare = s.createOwner({ name: "bare" });
     expect(s.loadout(s.createAgent({ ownerId: bare.ownerId, name: "bare-agent" }).agentId).boast).toBeNull();
@@ -341,8 +345,8 @@ describe("cosmetics: the match record", () => {
     const { s, a, b, play } = setup();
     const big = play("a", { p1: 17, p2: -3 });
     expect(big.loadouts).toEqual({
-      p1: { boast: SEASON_BOAST.itemId, closeWinBoast: QUIET_BOAST.itemId, cardBack: null, avatar: null, arena: null },
-      p2: { boast: STARTER_BOASTS.Aegis.itemId, closeWinBoast: null, cardBack: null, avatar: null, arena: null },
+      p1: { boast: SEASON_BOAST.itemId, closeWinBoast: QUIET_BOAST.itemId, cardBack: null, avatar: null, arena: null, coin: STARTER_COIN.itemId },
+      p2: { boast: STARTER_BOASTS.Aegis.itemId, closeWinBoast: null, cardBack: null, avatar: null, arena: null, coin: STARTER_COIN.itemId },
     });
     expect(big.boast).toEqual({ agentId: a.agentId, itemId: SEASON_BOAST.itemId, slot: "boast", winnerHealth: 17 });
     expect(play("a", { p1: CLOSE_WIN_HEALTH + 1, p2: 0 }).boast!.slot).toBe("boast");

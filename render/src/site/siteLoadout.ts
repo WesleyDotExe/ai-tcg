@@ -131,6 +131,12 @@ export interface LoadoutInputs {
  * slot: the owned items the server lists as its choices (the starters by
  * faction, then the rest), the items on sale the owner doesn't have
  * (locked, with Buy), and the empty tile. */
+// The picker draws the slots it has looks for. The coin slot (schema v20,
+// game session 69) joins with the render lane's second coin slice ("the
+// coin line in the picker and the Store"); until then it is left out here,
+// and its Equip goes through the same endpoint when it comes.
+const PICKER_SLOTS = LOADOUT_SLOTS.filter((s) => s !== "coin");
+
 export function loadoutPayload(x: LoadoutInputs): PickerSitePayload {
   const text = loadoutSlotText(CLOSE_WIN_HEALTH);
   const ownedBy = new Map(x.owned.map((o) => [o.itemId, o]));
@@ -144,7 +150,7 @@ export function loadoutPayload(x: LoadoutInputs): PickerSitePayload {
   const rowFaction = deckFaction ?? starterFactionOf(x.collection);
   const rank = (i: SiteCosmeticItem, owned: boolean) => (owned ? 0 : 100) + (i.season === "standard" ? Math.max(0, FACTION_ORDER.indexOf(i.faction ?? "")) : 10);
 
-  const slots: PickerSlotView[] = LOADOUT_SLOTS.map((slot) => {
+  const slots: PickerSlotView[] = PICKER_SLOTS.map((slot) => {
     const kind = SLOT_KIND[slot];
     const server = x.loadout.slots.find((s) => s.slot === slot);
     const choices = new Set(server?.choices ?? []);

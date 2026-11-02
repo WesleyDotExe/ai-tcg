@@ -1,5 +1,5 @@
 # Pack contents and opening (session 36)
-database: <temp>/season-0.db  schema v19  season S0  odds table S0-odds-2
+database: <temp>/season-0.db  schema v20  season S0  odds table S0-odds-2
 
 ## 1. Starter collection: 40 bound Swarm copies and 3 starter packs
 

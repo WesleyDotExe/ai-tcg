@@ -4319,3 +4319,57 @@ longer; the variants are test-only code to remove when a fix ships; no reveal fo
 are listed but none are issued yet; coin skins planned only. All in quality-debt.md.
 
 **Blocked:** nothing. Owner check-ins open: the first-seat fix, the coin skins plan (game half).
+
+## 2026-11-02 — Session 69 (coin skins, the game lane's half; starting ratings on the match record)
+
+**Read first:** `progress/owner-feedback.md`. Unhandled game-lane entries: the answers to session 68 (ship 24
+health after versioned replays; build the coin plan's game half with two changes: tier coins Platinum, Diamond
+and Mythic; spectators pick a point of view, so send both coins and both arenas), the spectator amendment
+(higher-rated side's cosmetics by the rating at the start), and the render 50 answers (queue the starting
+ratings, the 2x vote, featured picks, viewer counts after the coin build). The last merged PR (#120) was the
+render lane's, so this is the game lane. All four entries marked; the 24-health rule stays queued behind
+session 70's versioned replays, as the owner set.
+
+**Built (schema v20):**
+- Catalogue (`economy/src/cosmetics.ts`): kind `coin`, slot `coin`; `STARTER_COIN` (Chrome Token, standard),
+  `SEASON_0_COINS` (Dial-Up Dime, Neon Nickel, 300 credits), `SEASON_0_TIER_COINS` (Platinum, Diamond, Mythic,
+  `tierReward`), `coinOf`, `tierCoinsFor`, `defaultPointOfView`; the catalogue check refuses a priced or
+  seasonless tier coin, two coins for one tier, and a missing starter coin. No coin is drawn yet.
+- Migration 20: `owned_cosmetics` and `agent_loadouts` rebuilt (coin kind and slot; source `seasonReward` with
+  `reward_ref`), the loadout triggers dropped and made again; `match_loadouts.coin`; `p1/p2_rating_start` on
+  `live_matches` and `matches` (written once); the Chrome Token granted to every owner with a starter
+  collection and equipped on their agents.
+- Store: the starter grant and new agents get the Chrome Token; the match record keeps each coin and
+  `ratingsAtStart` (cancels too); `seasonTierCoins(owner)` and `grantSeasonTierCoins()` (one transaction, once
+  each); a tier coin is refused at the shop with its reason.
+- Server: `coin`, `arena` per side and `defaultView` on the live view; `ratingAtStart`, `coin`, `arena`,
+  `coins`, `defaultView` on `GET /api/matches/:id`; `coins` in the replay file (optional, `ai-tcg-replay/1`);
+  `server/OWNER_API.md` and ECONOMY.md updated.
+- Render (a guard only): the loadout picker built its slots from the economy's list, now six, with no "Coin"
+  label; it leaves the coin slot out until the render lane's second coin slice (`render/src/site/siteLoadout.ts`,
+  `render/src/loadoutDemo.ts`, the picker's tile `source` type, two tests pointed at the picker's own slots).
+  For the render lane: the coin line, its label and tiles are yours to add; remove the filter then.
+
+**Ran it:**
+- `progress/owner-api-demo-007-coins.txt` (`npm run demo:coins -w server`): a v19 file migrated; the six slots;
+  the store's coins and refusals; a live match (Vex 1712.4 against Nova 1337.7: `defaultView` p1, both coins);
+  the record and replay keep the coins and starting ratings, and the replay rebuilds the served log; one seed
+  with two different coins plays an identical 317-line match with the same credits and rating; the tier coins
+  granted (Mythic 3, Diamond 2, Platinum 1; Gold, Bronze, Placement none), a second run grants 0. 13 checks
+  PASS; byte-identical across two runs.
+- Demos re-run (economy 005, 006, 008-015, owner-API 003-006, ladder 001): committed changes are the schema
+  line (005, 006, 008, 011 (it said v10), 012, owner-API 006), the Chrome Token in 012's loadouts and 004's slot
+  list, and the six coins in 013's catalogue (its price column now says "reward (Tier+)" for a tier coin).
+  014, 015, 010, owner-API 003/005 and ladder 001 are byte-identical.
+- Found: `economy-demo-009.txt` has drifted since before this session (the Zero-Day cards went live after it
+  was written, so it now prints "ALLOWED (this is a bug)" for a check that is stale, not a bug). Left as
+  committed, for session 70's hardening pass. `economy-demo-016` takes longer than 10 minutes; not re-run.
+- `npm test`: engine 356, protocol 7, server 86, agents 17, economy 220, render 802, all pass; typecheck clean in
+  all six. The engine is untouched, so the ring checks are unaffected.
+
+**Didn't / honest limits:** no coin is visible until the render lane draws one; nothing grants tier coins
+until the season-end work; tier coins are per season by id (a call flagged to the owner); the replay field is
+additive inside format /1; the 2x vote, featured picks and viewer counts are still queued. All in
+quality-debt.md.
+
+**Blocked:** nothing. No owner check-in open; six build calls in notes-for-owner.md.

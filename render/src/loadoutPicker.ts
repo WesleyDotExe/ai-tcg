@@ -45,7 +45,7 @@ export interface PickerTile {
   season: string | null;
   owned: boolean;
   /** How the owner came to have it. */
-  source: "starter" | "purchase" | null;
+  source: "starter" | "purchase" | "seasonReward" | null;
   /** Unowned and on sale now: the locked "in the store" plate. */
   priceCredits: number | null;
   description: string;

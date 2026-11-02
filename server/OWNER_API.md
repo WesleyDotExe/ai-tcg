@@ -1,6 +1,6 @@
 # Owner API
 
-The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Stats and notifications come in later sessions, on the same server.
+The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Stats and notifications come in later sessions, on the same server.
 
 - Code: `server/src/ownerApi.ts` (`startOwnerApi`); run it with `npm run owner-api -w server -- <season database file> [port]` (default port 8081).
 - Every rule lives in the economy store (`economy/src/store.ts`). The API reads the request, checks the caller may touch what it names, calls the store and answers. It never writes SQL.
@@ -285,20 +285,30 @@ The rule is the owner's (2026-10-04): one free pack a day that only the owner ca
 
 ### The store and cosmetics
 
-- `GET /api/store`: `{ packs: <the pack offer>, dailyPack, cosmetics: [CosmeticItem & { owned }], wallet }`. Cosmetics listed are those on sale now (this season, inside their sale window, drawn by the render lane); Season 0 sells two boasts at 300 credits.
-- `POST /api/store/cosmetics/:itemId/buy` pays credits and grants the item together, or refuses (409): not on sale, already owned, too few credits.
-- `GET /api/cosmetics`: every item the owner owns (`{ ownerId, itemId, kind, source: "starter" | "purchase", ledgerEntryId, acquiredAt, item }`), the four starter boasts included.
+- `GET /api/store`: `{ packs: <the pack offer>, dailyPack, cosmetics: [CosmeticItem & { owned }], wallet }`. Cosmetics listed are those on sale now (this season, inside their sale window, drawn by the render lane); Season 0 sells two boasts at 300 credits, and two coins at 300 credits each (Dial-Up Dime, Neon Nickel) once the render lane has drawn them (until then they aren't listed and buying one is 409).
+- `POST /api/store/cosmetics/:itemId/buy` pays credits and grants the item together, or refuses (409): not on sale, already owned, too few credits, a free starter item, a season reward (the tier coins are never sold).
+- `GET /api/cosmetics`: every item the owner owns (`{ ownerId, itemId, kind, source: "starter" | "purchase" | "seasonReward", ledgerEntryId, rewardRef, acquiredAt, item }`), the four starter boasts and the Chrome Token included. `rewardRef` names a season reward (`"S0:Platinum"`), else null.
+
+#### Coin skins (schema v20, session 69)
+
+Who goes first is the server's coin flip for every match; the coin is only how that flip looks. It never changes who goes first or the odds.
+- `kind: "coin"`. Item ids: `coin-chrome-token` (**Chrome Token**, standard, free: every owner gets it with the starter collection and every agent starts with it equipped; existing owners got it in the v20 migration), `coin-s0-dial-up-dime` and `coin-s0-neon-nickel` (Season 0 store coins, 300 credits each, all season, then retired), `coin-s0-platinum`, `coin-s0-diamond`, `coin-s0-mythic` (the Season 0 tier coins: `tierReward` on the item names the tier).
+- **Tier coins** are granted when the season ends, by the owner's ladder tier then (placement done): Platinum or higher gets the Platinum coin, Diamond or higher the Diamond coin too, Mythic all three. Source `seasonReward`; bound to the owner like every cosmetic, never sold, kept over the season reset. Nothing grants them before the season-end work runs (the store's `grantSeasonTierCoins`).
+- An empty coin slot flips the Chrome Token, and so does every match recorded before v20.
+- No coin is drawn by the render lane yet (`drawn: false`), so the store sells none until its coin slice marks them.
 
 ### The loadout
 
 ```
 {
   agentId,
-  loadout: { boast, closeWinBoast, cardBack, avatar, arena },   // item ids or null
+  loadout: { boast, closeWinBoast, cardBack, avatar, arena, coin },   // item ids or null
   slots: [{ slot, kind, itemId, choices: [itemId] }],          // the owned items that fit each slot
   locked: boolean                                              // true during a live match: changes are refused
 }
 ```
+
+`slots` lists the six slots in this order: `boast`, `closeWinBoast`, `cardBack`, `avatar`, `arena`, `coin` (v20: the "Coin" slot, kind `coin`).
 
 `PUT /api/agents/:agentId/loadout/:slot` with `{ itemId }` equips an owned item of the slot's kind, or empties the slot with `null`. Refused: another owner's agent (404), a slot that doesn't exist (404), an item of the wrong kind or not owned (409), any change during a live match (409).
 
@@ -372,10 +382,16 @@ LiveMatchView {
   released,                      // moves released so far
   nextAt: string | null,         // when the next move comes out (null: the last is out, the result holds, then it is recorded)
   p1: LiveSideView, p2: LiveSideView,
+  defaultView: "p1" | "p2",      // (v20) the spectator's starting point of view: the higher rating at the start, p1 on a tie
   now: PublicSnapshot,           // the board after the last released move
   recentLines: string[]          // the last 6 log lines released, oldest first
 }
-LiveSideView { ownerId, ownerName, agentId, agentName, playStyle, rating, tier }   // as the match started
+LiveSideView {
+  ownerId, ownerName, agentId, agentName, playStyle,
+  rating, tier,                  // as the match started
+  coin: string,                  // (v20) the coin this side flips: its equipped coin, else "coin-chrome-token"
+  arena: string | null           // (v20) its arena background, null when none is equipped
+}
 PublicSnapshot {
   turn, activePlayer: "p1" | "p2", priority: "p1" | "p2", stack: number,
   winner: "p1" | "p2" | "draw" | null,
@@ -431,11 +447,17 @@ HistoryRow {
 ```
 MatchView {
   matchId, endedAt, outcome: "win" | "draw" | "cancelled" | "abandoned",
-  p1: { ownerId, ownerName, ownerKind, agentId, agentName, credits, rating: RatingChange | null, playStyle },
+  p1: { ownerId, ownerName, ownerKind, agentId, agentName, credits, rating: RatingChange | null, playStyle,
+        ratingAtStart: number | null,   // (v20) the owner's rating as the match started
+        coin: string, arena: string | null },   // (v20) as on LiveSideView, from the match's own loadout
   p2: { ...the same },
+  coins: { p1, p2 },             // (v20) both coins again, as the replay has them
+  defaultView: "p1" | "p2",      // (v20) the higher ratingAtStart, p1 on a tie or when unknown
   winnerOwnerId, abandonedByOwnerId, turns, moves, boast, hasLog, hasReplay
 }
 ```
+
+`ratingAtStart` is kept for every outcome from v20 on (a cancel too). A rated match from before v20 gives its ratings' `before`; an older cancel gives null (and `defaultView` is p1). Both coins and both arenas are sent so a spectator who owns neither agent can switch point of view (owner 2026-11-02); an owner watching their own agent's match keeps their own side's.
 
 `GET /api/matches/:matchId/log` answers the match log as plain text. `GET /api/matches/:matchId/replay` answers the replay file:
 
@@ -446,7 +468,8 @@ MatchView {
   names: { p1, p2 },             // the agents' names, as the engine had them
   decks: { p1: ReplayDeck, p2: ReplayDeck },
   moves: Move[],                 // every move, in order
-  result: { outcome, winner, turns, moves, finalHealth: { p1, p2 } }
+  result: { outcome, winner, turns, moves, finalHealth: { p1, p2 } },
+  coins: { p1, p2 }              // (v20) the coin each side flipped; absent in replays written before
 }
 ReplayDeck { name, cardIds: string[] /* one per copy, in list order */, signature: UnitCard | null /* the agent's own card, in full */ }
 ```
@@ -455,7 +478,7 @@ The engine rebuilds the match exactly from it: `replayMatch(replayDeckSpec(decks
 
 ## Not built yet
 
-- The rest of the match-dependent endpoints: featured matches (who is "Top rated" in Watch live), the 2x vote, stats, notifications. Tournament endpoints wait until after Season 0.
+- The rest of the match-dependent endpoints: featured matches (who is "Top rated" in Watch live), the 2x vote, viewer counts, stats, notifications. Tournament endpoints wait until after Season 0.
 - `GET /api/matches` reads the owner's whole history and pages it in memory (fine for a season of in-house play; to move into SQL before launch scale).
 - The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).

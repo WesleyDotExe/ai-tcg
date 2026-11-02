@@ -54,6 +54,9 @@
 //    a background from their lists, sound and music each on/off with a
 //    whole volume from 0 to 100, and whether the skip hint has been seen.
 //
+//  - (v20) a cosmetic may be a coin and may be a season reward, which
+//    names its reward; a match's starting ratings are written once.
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -134,6 +137,10 @@ const V11_STARTER_BOASTS = {
 const v11BoastFor = (factionSql: string) =>
   `CASE ${factionSql} ${Object.entries(V11_STARTER_BOASTS).map(([f, id]) => `WHEN '${f}' THEN '${id}'`).join(" ")} END`;
 // Migration 13's play styles, frozen (the engine's PLAY_STYLE_IDS may grow).
+// Migration 20's lists, frozen.
+const V20_COSMETIC_KINDS = ["boast", "cardBack", "avatar", "arena", "coin"] as const;
+const V20_LOADOUT_SLOTS = ["boast", "closeWinBoast", "cardBack", "avatar", "arena", "coin"] as const;
+const V20_STARTER_COIN = "coin-chrome-token";
 const V13_PLAY_STYLES = ["calculator", "rusher", "controller", "tempo", "fortress", "gambler"] as const;
 // Migration 15's account-settings lists, frozen (accountSettings.ts's live lists may grow).
 const V15_THEMES = ["system", "light", "dark"] as const;
@@ -1196,5 +1203,103 @@ export const MIGRATIONS: readonly string[] = [
   BEGIN SELECT RAISE(ABORT, 'a pack reveal is written once'); END;
   CREATE TRIGGER pack_reveals_no_delete BEFORE DELETE ON pack_reveals
   BEGIN SELECT RAISE(ABORT, 'a pack reveal is written once'); END;
+  `,
+  // 20: coin skins (session 69; owner 2026-11-02, "coin skins for the
+  // first-player coin flip", the game lane's plan built as approved with
+  // two changes). The coin is cosmetic only: the server's coin flip decides
+  // who goes first, and nothing here reaches the engine.
+  //  - owned_cosmetics takes the kind 'coin' and the source 'seasonReward'
+  //    (the tier coins, granted when a season ends), which names its reward
+  //    in `reward_ref` ("<season>:<tier>"); still account-bound, never
+  //    changed, moved or deleted. SQLite can't change a CHECK, so the table
+  //    is rebuilt with its rows; agent_loadouts likewise for the slot
+  //    'coin'. The loadout triggers name owned_cosmetics, so they are
+  //    dropped first and made again (as in migration 7).
+  //  - match_loadouts gains `coin`: each side's coin at match time, written
+  //    once with the rest. Matches from before v20 have none (they read as
+  //    the Chrome Token).
+  //  - live_matches and matches gain each side's rating at the start of the
+  //    match (owner 2026-11-02, render session 50: a spectator's default
+  //    point of view is the higher-rated agent's, and a replay must pick
+  //    the same one later). Matches from before v20 have none.
+  //  - Every owner with a starter collection gets the Chrome Token once,
+  //    here, and every agent of theirs starts with it equipped.
+  `
+  DROP TRIGGER loadout_owned;
+  DROP TRIGGER loadout_owned_on_change;
+  DROP TRIGGER cosmetic_purchase_paid;
+  DROP TRIGGER cosmetic_kept;
+  DROP TRIGGER cosmetic_no_delete;
+
+  CREATE TABLE owned_cosmetics_v20 (
+    owner_id        TEXT NOT NULL REFERENCES owners(owner_id),
+    item_id         TEXT NOT NULL,
+    kind            TEXT NOT NULL CHECK (kind IN ${inList(V20_COSMETIC_KINDS)}),
+    source          TEXT NOT NULL CHECK (source IN ('starter', 'purchase', 'seasonReward')),
+    ledger_entry_id INTEGER REFERENCES ledger(entry_id),
+    reward_ref      TEXT,
+    acquired_at     TEXT NOT NULL,
+    PRIMARY KEY (owner_id, item_id),
+    CHECK ((source = 'purchase') = (ledger_entry_id IS NOT NULL)),
+    CHECK ((source = 'seasonReward') = (reward_ref IS NOT NULL)),
+    CHECK (reward_ref IS NULL OR reward_ref GLOB '?*:?*')
+  );
+  INSERT INTO owned_cosmetics_v20 (owner_id, item_id, kind, source, ledger_entry_id, acquired_at)
+    SELECT owner_id, item_id, kind, source, ledger_entry_id, acquired_at FROM owned_cosmetics ORDER BY rowid;
+  DROP TABLE owned_cosmetics;
+  ALTER TABLE owned_cosmetics_v20 RENAME TO owned_cosmetics;
+
+  CREATE TABLE agent_loadouts_v20 (
+    agent_id TEXT NOT NULL REFERENCES agents(agent_id),
+    slot     TEXT NOT NULL CHECK (slot IN ${inList(V20_LOADOUT_SLOTS)}),
+    item_id  TEXT NOT NULL,
+    set_at   TEXT NOT NULL,
+    PRIMARY KEY (agent_id, slot)
+  );
+  INSERT INTO agent_loadouts_v20 SELECT agent_id, slot, item_id, set_at FROM agent_loadouts ORDER BY rowid;
+  DROP TABLE agent_loadouts;
+  ALTER TABLE agent_loadouts_v20 RENAME TO agent_loadouts;
+
+  CREATE TRIGGER cosmetic_purchase_paid BEFORE INSERT ON owned_cosmetics
+  WHEN NEW.source = 'purchase' AND NOT EXISTS (
+    SELECT 1 FROM ledger l WHERE l.entry_id = NEW.ledger_entry_id AND l.owner_id = NEW.owner_id
+      AND l.currency = 'credits' AND l.delta < 0 AND l.reason = 'cosmeticPurchase' AND l.ref = NEW.item_id)
+  BEGIN SELECT RAISE(ABORT, 'a bought cosmetic names its owner''s credits payment for that item'); END;
+  CREATE TRIGGER cosmetic_kept BEFORE UPDATE ON owned_cosmetics
+  BEGIN SELECT RAISE(ABORT, 'an owned cosmetic is account-bound: it never changes or moves'); END;
+  CREATE TRIGGER cosmetic_no_delete BEFORE DELETE ON owned_cosmetics
+  BEGIN SELECT RAISE(ABORT, 'an owned cosmetic is account-bound: it is never removed'); END;
+  CREATE TRIGGER loadout_owned BEFORE INSERT ON agent_loadouts
+  WHEN NOT EXISTS (
+    SELECT 1 FROM owned_cosmetics c JOIN agents a ON a.owner_id = c.owner_id
+    WHERE a.agent_id = NEW.agent_id AND c.item_id = NEW.item_id
+      AND c.kind = CASE NEW.slot WHEN 'closeWinBoast' THEN 'boast' ELSE NEW.slot END)
+  BEGIN SELECT RAISE(ABORT, 'an agent equips only a cosmetic its owner owns, in a slot of its kind'); END;
+  CREATE TRIGGER loadout_owned_on_change BEFORE UPDATE ON agent_loadouts
+  WHEN NEW.agent_id IS NOT OLD.agent_id OR NEW.slot IS NOT OLD.slot OR NOT EXISTS (
+    SELECT 1 FROM owned_cosmetics c JOIN agents a ON a.owner_id = c.owner_id
+    WHERE a.agent_id = NEW.agent_id AND c.item_id = NEW.item_id
+      AND c.kind = CASE NEW.slot WHEN 'closeWinBoast' THEN 'boast' ELSE NEW.slot END)
+  BEGIN SELECT RAISE(ABORT, 'an agent equips only a cosmetic its owner owns, in a slot of its kind'); END;
+
+  ALTER TABLE match_loadouts ADD COLUMN coin TEXT;
+
+  ALTER TABLE live_matches ADD COLUMN p1_rating_start REAL CHECK (p1_rating_start IS NULL OR p1_rating_start BETWEEN 0 AND 5000);
+  ALTER TABLE live_matches ADD COLUMN p2_rating_start REAL CHECK (p2_rating_start IS NULL OR p2_rating_start BETWEEN 0 AND 5000);
+  ALTER TABLE matches ADD COLUMN p1_rating_start REAL CHECK (p1_rating_start IS NULL OR p1_rating_start BETWEEN 0 AND 5000);
+  ALTER TABLE matches ADD COLUMN p2_rating_start REAL CHECK (p2_rating_start IS NULL OR p2_rating_start BETWEEN 0 AND 5000);
+  CREATE TRIGGER match_rating_start_kept BEFORE UPDATE OF p1_rating_start, p2_rating_start ON matches
+  WHEN OLD.p1_rating_start IS NOT NULL OR OLD.p2_rating_start IS NOT NULL
+  BEGIN SELECT RAISE(ABORT, 'a match''s starting ratings are written once'); END;
+
+  INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, acquired_at)
+    SELECT o.owner_id, '${V20_STARTER_COIN}', 'coin', 'starter', o.starter_granted_at
+    FROM owners o WHERE o.starter_granted_at IS NOT NULL
+    ORDER BY o.created_at, o.owner_id;
+  INSERT INTO agent_loadouts (agent_id, slot, item_id, set_at)
+    SELECT a.agent_id, 'coin', '${V20_STARTER_COIN}', MAX(a.created_at, o.starter_granted_at)
+    FROM agents a JOIN owners o ON o.owner_id = a.owner_id
+    WHERE o.starter_granted_at IS NOT NULL
+    ORDER BY a.created_at, a.agent_id;
   `,
 ];

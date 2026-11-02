@@ -3,11 +3,11 @@
 ## 1. A Season 0 file made at schema v10, opened by this code (migration 11)
 
 before: schema v10; ada owns 0 cosmetics; match "pre-v11" recorded
-after:  schema v19
-  ada (Cortex starter): owns Shield Slam [starter], Data Cascade [starter], Void Collapse [starter], Hive Burst [starter]
-    agent loadout: boast=Data Cascade  closeWinBoast=-  cardBack=-  avatar=-  arena=-
-  bo (Aegis starter): owns Shield Slam [starter], Data Cascade [starter], Void Collapse [starter], Hive Burst [starter]
-    agent loadout: boast=Shield Slam  closeWinBoast=-  cardBack=-  avatar=-  arena=-
+after:  schema v20
+  ada (Cortex starter): owns Shield Slam [starter], Data Cascade [starter], Void Collapse [starter], Hive Burst [starter], Chrome Token [starter]
+    agent loadout: boast=Data Cascade  closeWinBoast=-  cardBack=-  avatar=-  arena=-  coin=Chrome Token
+  bo (Aegis starter): owns Shield Slam [starter], Data Cascade [starter], Void Collapse [starter], Hive Burst [starter], Chrome Token [starter]
+    agent loadout: boast=Shield Slam  closeWinBoast=-  cardBack=-  avatar=-  arena=-  coin=Chrome Token
   match "pre-v11": loadouts none (recorded before v11), boast none (the render falls back to the winner's faction starter)
 
 ## 2. Real matches (LookaheadAgent, starter decks, startMatch -> runMatch -> recordMatch)
@@ -58,8 +58,8 @@ ada's credits: 301; bo's: 282
 
 on sale for ada: Boot Sequence (300 credits), Dial-Up Fireworks (300 credits), DEMO Overclock (300 credits)
 bought DEMO Overclock: ledger #79 -300 credits "cosmeticPurchase" ref boast-s0-demo-overclock; credits now 1
-ada's agent: boast=DEMO Overclock  closeWinBoast=Void Collapse  cardBack=-  avatar=-  arena=-
-bo empties the boast slot: boast=-  closeWinBoast=-  cardBack=-  avatar=-  arena=-
+ada's agent: boast=DEMO Overclock  closeWinBoast=Void Collapse  cardBack=-  avatar=-  arena=-  coin=Chrome Token
+bo empties the boast slot: boast=-  closeWinBoast=-  cardBack=-  avatar=-  arena=-  coin=Chrome Token
 (close win = the winner ends on 5 health or less; an empty boast slot plays the deck faction's starter)
 
 ## 4. More real matches: which boast each win played, and why
@@ -94,12 +94,12 @@ checked against the rule: 24 of 24 matches right
 
 ## 5. ada changes the loadout; the history still shows what each match had
 
-ada's agent now: boast=Hive Burst  closeWinBoast=-  cardBack=-  avatar=-  arena=-
+ada's agent now: boast=Hive Burst  closeWinBoast=-  cardBack=-  avatar=-  arena=-  coin=Chrome Token
   pre-v11: ada had (no loadout on record)
            no boast on record
-  s0-b039: ada had boast=DEMO Overclock  closeWinBoast=Void Collapse  cardBack=-  avatar=-  arena=-
+  s0-b039: ada had boast=DEMO Overclock  closeWinBoast=Void Collapse  cardBack=-  avatar=-  arena=-  coin=Chrome Token
            ada won and played DEMO Overclock (boast)
-  s0-b062: ada had boast=DEMO Overclock  closeWinBoast=Void Collapse  cardBack=-  avatar=-  arena=-
+  s0-b062: ada had boast=DEMO Overclock  closeWinBoast=Void Collapse  cardBack=-  avatar=-  arena=-  coin=Chrome Token
            bo won and played Shield Slam (factionStarter)
 every section-4 match reads back as recorded: true
 

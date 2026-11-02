@@ -1,0 +1,104 @@
+Owner API demo 007 — coin skins, the game lane's half (session 69)
+========================================================================
+
+1. A season file from before coins (schema v19), opened by this code (v20)
+------------------------------------------------------------------------
+  v19: Nova owns boast-aegis-shield-slam, boast-cortex-data-cascade, boast-null-void-collapse, boast-swarm-hive-burst
+  v19: one match recorded ("before-v20")
+  reopened: schema v20
+> POST /api/session  -> 201
+> GET /api/cosmetics  -> 200
+  Nova now owns 5 cosmetics; the coin: coin-chrome-token (coin, source starter, acquired 2026-11-02T02:00:00.000Z)
+> GET /api/matches/before-v20  -> 200
+  the old match: coins {"p1":"coin-chrome-token","p2":"coin-chrome-token"}, ratingAtStart p1 1500 / p2 1500, defaultView p1
+    (no coin was recorded before v20, so it reads as the Chrome Token; the v19 match was rated, so its starting ratings come from its ratings' "before")
+
+2. The loadout's sixth slot: Coin
+------------------------------------------------------------------------
+> GET /api/agents/<agent Nova-unit>/loadout  -> 200
+  boast         kind boast    equipped boast-swarm-hive-burst       choices [boast-aegis-shield-slam, boast-cortex-data-cascade, boast-null-void-collapse, boast-swarm-hive-burst]
+  closeWinBoast kind boast    equipped null                         choices [boast-aegis-shield-slam, boast-cortex-data-cascade, boast-null-void-collapse, boast-swarm-hive-burst]
+  cardBack      kind cardBack equipped null                         choices []
+  avatar        kind avatar   equipped null                         choices []
+  arena         kind arena    equipped null                         choices []
+  coin          kind coin     equipped coin-chrome-token            choices [coin-chrome-token]
+
+3. The store's coins (marked drawn here, as the render lane will mark them)
+------------------------------------------------------------------------
+> GET /api/store  -> 200
+  on sale: coin-s0-dial-up-dime "Dial-Up Dime", 300 credits, season S0
+  on sale: coin-s0-neon-nickel "Neon Nickel", 300 credits, season S0
+> POST /api/store/cosmetics/coin-chrome-token/buy  -> 409  ("Chrome Token" is free with the starter collection; it isn't sold)
+> POST /api/store/cosmetics/coin-s0-mythic/buy  -> 409  ("Mythic Coin" is a season reward for finishing Mythic or higher; it isn't sold)
+> POST /api/store/cosmetics/coin-s0-neon-nickel/buy  -> 201
+  bought coin-s0-neon-nickel; credits left 102
+> POST /api/store/cosmetics/coin-s0-dial-up-dime/buy  -> 409  ("Dial-Up Dime" costs 300 credits; the owner has 102)
+> PUT /api/agents/<agent Nova-unit>/loadout/coin  -> 409  ("Hive Burst" is a victory boast; the coin slot takes a coin)
+> PUT /api/agents/<agent Nova-unit>/loadout/coin  -> 200
+  Nova-unit's coin: coin-s0-neon-nickel
+
+4. A live match: both coins, both arenas, starting ratings, the default view
+------------------------------------------------------------------------
+> POST /api/session  -> 201
+> PUT /api/play/auto-play  -> 200
+> GET /api/live  -> 200
+  p1: Vex   rating 1712.4 (Platinum), coin coin-chrome-token, arena null
+  p2: Nova  rating 1337.7 (Placement), coin coin-s0-neon-nickel, arena null
+  defaultView: p1 (the higher-rated side: Vex is p1)
+> PUT /api/agents/<agent Nova-unit>/loadout/coin  -> 409  (no loadout changes during a live match)
+
+5. The recorded match and its replay
+------------------------------------------------------------------------
+> GET /api/matches/live-1  -> 200
+  outcome win, winner <owner Nova>, turns 12
+  coins {"p1":"coin-chrome-token","p2":"coin-s0-neon-nickel"}
+  ratingAtStart p1 1712.4 / p2 1337.7; rating now p1 1468.0 / p2 1582.1
+  defaultView p1
+> GET /api/matches/live-1/replay  -> 200
+  replay ai-tcg-replay/1: coins {"p1":"coin-chrome-token","p2":"coin-s0-neon-nickel"}
+> GET /api/matches/live-1/log  -> 200
+  the replay rebuilt in the engine equals the served log: IDENTICAL
+
+6. The coin is cosmetic only: one seed, two coins, the same match
+------------------------------------------------------------------------
+  Ada flips the Dial-Up Dime: replay coins {"p1":"coin-s0-dial-up-dime","p2":"coin-chrome-token"}
+  Ada flips the Chrome Token: replay coins {"p1":"coin-chrome-token","p2":"coin-chrome-token"}
+  match log: IDENTICAL (317 lines); credits [2,30] vs [2,30]; Ada's new rating 1337.689 vs 1337.689
+
+7. Season end: the Season 0 tier coins (Platinum, Diamond, Mythic)
+------------------------------------------------------------------------
+  <owner Mira>: tier Mythic    earns [Platinum Coin, Diamond Coin, Mythic Coin]
+  <owner Dax>: tier Diamond   earns [Platinum Coin, Diamond Coin]
+  <owner Pell>: tier Platinum  earns [Platinum Coin]
+  <owner Gus>: tier Gold      earns []
+  <owner Boz>: tier Bronze    earns []
+  <owner Ivo>: tier Placement earns []
+  grantSeasonTierCoins():
+    <owner Mira> (Mythic): coin-s0-platinum, coin-s0-diamond, coin-s0-mythic
+    <owner Dax> (Diamond): coin-s0-platinum, coin-s0-diamond
+    <owner Pell> (Platinum): coin-s0-platinum
+  run again: 0 coins granted
+> POST /api/session  -> 201
+> GET /api/cosmetics  -> 200
+  Mira owns coin-chrome-token  source starter      rewardRef null
+  Mira owns coin-s0-diamond    source seasonReward rewardRef S0:Diamond
+  Mira owns coin-s0-mythic     source seasonReward rewardRef S0:Mythic
+  Mira owns coin-s0-platinum   source seasonReward rewardRef S0:Platinum
+> PUT /api/agents/<agent Mira-unit>/loadout/coin  -> 200
+  Mira-unit's coin: coin-s0-mythic
+
+Checks
+------------------------------------------------------------------------
+  PASS  the migration gives the Chrome Token with the starter collection's time
+  PASS  six slots, the coin last, the Chrome Token equipped
+  PASS  Neon Nickel bought for 300 and equipped
+  PASS  the live view's default is the higher-rated side
+  PASS  the live view sends both coins
+  PASS  no coin change during the live match
+  PASS  the record keeps the live view's coins and default
+  PASS  the record keeps the starting ratings, not the new ones
+  PASS  the replay carries the record's coins
+  PASS  the replay rebuilds the served log
+  PASS  the same seed plays the same match whatever the coin
+  PASS  Mythic gets all three, Diamond two, Platinum one; Gold, Bronze and Placement none
+  PASS  a second run grants nothing

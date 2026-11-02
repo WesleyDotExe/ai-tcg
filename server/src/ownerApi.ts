@@ -27,6 +27,8 @@ import {
   CARD_SETS,
   EconomyError,
   LOADOUT_SLOTS,
+  coinOf,
+  defaultPointOfView,
   LADDER_LIST_SIZE,
   LADDER_TIERS,
   LOCKABLE_FACTIONS,
@@ -279,20 +281,28 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
   };
 
   /** One match as the match pages show it. */
-  const matchView = (m: MatchRecord) => ({
-    matchId: m.matchId,
-    endedAt: m.endedAt,
-    outcome: m.outcome,
-    p1: { ...sideOf(m.p1OwnerId, m.p1AgentId), credits: m.p1Credits, rating: m.ratings?.p1 ?? null, playStyle: m.playStyles?.p1 ?? null },
-    p2: { ...sideOf(m.p2OwnerId, m.p2AgentId), credits: m.p2Credits, rating: m.ratings?.p2 ?? null, playStyle: m.playStyles?.p2 ?? null },
-    winnerOwnerId: m.winnerOwnerId,
-    abandonedByOwnerId: m.abandonedByOwnerId,
-    turns: m.turns,
-    moves: m.moves,
-    boast: m.boast,
-    hasLog: matchFile(m.matchId, ".txt") !== null,
-    hasReplay: matchFile(m.matchId, ".replay.json") !== null,
-  });
+  const matchView = (m: MatchRecord) => {
+    // (v20) The starting ratings; a rated match from before v20 has them
+    // as its ratings' "before". Null for an older cancel.
+    const ratingsAtStart = m.ratingsAtStart ?? (m.ratings ? { p1: m.ratings.p1.before.rating, p2: m.ratings.p2.before.rating } : null);
+    const cosmetics = (seat: "p1" | "p2") => ({ coin: coinOf(m.loadouts?.[seat]), arena: m.loadouts?.[seat].arena ?? null });
+    return {
+      matchId: m.matchId,
+      endedAt: m.endedAt,
+      outcome: m.outcome,
+      p1: { ...sideOf(m.p1OwnerId, m.p1AgentId), credits: m.p1Credits, rating: m.ratings?.p1 ?? null, playStyle: m.playStyles?.p1 ?? null, ratingAtStart: ratingsAtStart?.p1 ?? null, ...cosmetics("p1") },
+      p2: { ...sideOf(m.p2OwnerId, m.p2AgentId), credits: m.p2Credits, rating: m.ratings?.p2 ?? null, playStyle: m.playStyles?.p2 ?? null, ratingAtStart: ratingsAtStart?.p2 ?? null, ...cosmetics("p2") },
+      coins: { p1: cosmetics("p1").coin, p2: cosmetics("p2").coin },
+      defaultView: defaultPointOfView(ratingsAtStart),
+      winnerOwnerId: m.winnerOwnerId,
+      abandonedByOwnerId: m.abandonedByOwnerId,
+      turns: m.turns,
+      moves: m.moves,
+      boast: m.boast,
+      hasLog: matchFile(m.matchId, ".txt") !== null,
+      hasReplay: matchFile(m.matchId, ".replay.json") !== null,
+    };
+  };
 
   /** The same, from one owner's side: you, the opponent, your result. */
   const historyRow = (m: MatchRecord, ownerId: string) => {

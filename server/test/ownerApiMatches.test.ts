@@ -143,6 +143,42 @@ describe("the match endpoints", () => {
     expect((await call("GET", "/api/matches/nope/log", { token: t })).status).toBe(404);
   });
 
+  it("(v20) both sides' coins, arenas and starting ratings on the live view, the match and the replay; the default view is the higher-rated side", async () => {
+    const { clock, store, live, ada, house, call, signIn } = await setup();
+    // House goes in rated higher than Ada (who has no rating yet: 1500).
+    store.unsafeExec(`INSERT INTO ratings (owner_id, rating, rd, volatility, matches, last_day, updated_at) VALUES ('${house}', 1720, 80, 0.06, 6, '2026-11-02', '2026-11-01T22:00:00.000Z')`);
+    const houseAgent = store.getOwner(house).connectedAgentId!;
+    store.setLoadout(house, houseAgent, "coin", null); // an empty slot flips the Chrome Token
+    const t = await signIn("ada");
+    await call("PUT", "/api/play/auto-play", { token: t, body: { on: true } });
+    await live.tick();
+    const m = (await call("GET", "/api/live", { token: t })).body.matches[0];
+    const seatOf = (ownerId: string) => (m.p1.ownerId === ownerId ? "p1" : "p2");
+    expect(m[seatOf(house)]).toMatchObject({ rating: 1720, coin: "coin-chrome-token", arena: null });
+    expect(m[seatOf(ada)]).toMatchObject({ rating: 1500, coin: "coin-chrome-token", arena: null });
+    expect(m.defaultView).toBe(seatOf(house));
+    const feed = (await call("GET", `/api/live/${m.matchId}?from=0`, { token: t })).body;
+    expect(feed.defaultView).toBe(seatOf(house));
+    expect(feed.p1.coin).toBe("coin-chrome-token");
+
+    clock.t += 60 * 60_000;
+    await live.tick();
+    const one = (await call("GET", `/api/matches/${m.matchId}`, { token: t })).body;
+    expect(one.coins).toEqual({ p1: "coin-chrome-token", p2: "coin-chrome-token" });
+    expect(one[seatOf(house)]).toMatchObject({ ratingAtStart: 1720, coin: "coin-chrome-token", arena: null });
+    expect(one[seatOf(ada)].ratingAtStart).toBe(1500);
+    expect(one.defaultView).toBe(seatOf(house));
+    // The record kept the raw loadouts: House's empty coin slot, Ada's Chrome Token.
+    expect(store.matchById(m.matchId)!.loadouts![seatOf(house)].coin).toBeNull();
+    expect(store.matchById(m.matchId)!.loadouts![seatOf(ada)].coin).toBe("coin-chrome-token");
+    const replay = (await call("GET", `/api/matches/${m.matchId}/replay`, { token: t })).body as ReplayFile;
+    expect(replay.coins).toEqual({ p1: "coin-chrome-token", p2: "coin-chrome-token" });
+    // The coin is cosmetic: the replay still rebuilds the same match.
+    const log = (await call("GET", `/api/matches/${m.matchId}/log`, { token: t })).body;
+    const { state } = replayMatch(replayDeckSpec(replay.decks.p1, "p1"), replayDeckSpec(replay.decks.p2, "p2"), replay.names, replay.seed, replay.moves);
+    expect(`${formatLog(state.log)}\n`).toBe(log);
+  });
+
   it("history pages newest first with `before`, and refuses a match id that isn't yours", async () => {
     const { clock, live, store, call, signIn } = await setup();
     const t = await signIn("ada");
