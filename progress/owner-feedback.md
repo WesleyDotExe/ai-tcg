@@ -4062,3 +4062,37 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes
 Queue them after the coin skins build, and keep session 70's versioned replays ahead of the 24-health rule as already set.
 
 Next render-lane slice, as planned: the big live board (the arena fed from the live feed) on Agent match and Watch live. The point-of-view toggle follows once the coin slot and the ratings-at-start field exist.
+
+---
+
+## 2026-11-03 — Owner: answers to game session 69 (coin skins, the game half), keep all 6
+
+Answers the six calls in `progress/notes-for-owner.md` (PR #121, `progress/owner-api-demo-007-coins.txt`).
+1. **Keep:** the tier coins belong to a season (`coin-s0-platinum`, `coin-s0-diamond`, `coin-s0-mythic`); each season adds its own three. Whether Season 1's are a new look or the same look with a season mark is the render lane's call.
+2. **Keep:** an empty coin slot flips the Chrome Token; matches recorded before the coin slot read as the Chrome Token.
+3. **Keep:** the tier is read when the season-end work runs, from the owner's rating then (placement done), before the reset clears ratings.
+4. **Keep:** `ratingAtStart` on each side of every match, cancels too, and `defaultView` (the higher one, p1 on a tie).
+5. **Keep:** the coins as an optional field in `ai-tcg-replay/1` until session 70's versioned replays give it a version.
+6. **Keep:** the small change in the render lane's loadout picker (the coin slot left out until the render lane's coin slice adds the Coin line).
+
+---
+
+## 2026-11-03 — Owner: answers to render session 51 (the big live board), keep all 6; three live-feed asks; show hands live
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #122).
+1. **Keep:** the arena opens full screen from "Watch on the arena" on Agent match and each Watch live card; the scoreboard, compact board and play-by-play stay on the pages and widgets.
+2. **Keep:** joining mid-match starts at the newest move; joining before the first move plays the Match Boot intro.
+3. **Keep for now:** live, GAME OVER lands before the boast (until the boast ask below lands, then boast-then-result as in replays).
+4. **Keep:** the catch-up rules (quick steps beyond 3 moves behind, a skip beyond 12).
+5. **Keep for now:** a side shows Neutral until it plays a faction card (until the faction ask below lands).
+6. **Keep:** the live page's Match Boot saying is seeded by the match id; the seed is never sent live.
+
+### Game lane: three live-feed asks, approved
+Queue them with the 2× vote, featured picks and viewer counts, written into `server/OWNER_API.md` with tests:
+1. **The signature card in `PublicSide.signature`:** the card itself (cardId, cost, attack, health, keywords, rules text), `timesPlayed`, `inZone` and `nextCost`, as the engine's SignatureZone has it.
+2. **The deck's faction on each side** (`LiveSideView.faction`).
+3. **The boast on the live view once the last move is out** (the record's boast, or the loadout's boast and close-win boast with the rule), so the live arena plays boast-then-result as replays do.
+
+### Hands in live matches: show them (option (b))
+- **Spectators see both hands live, face up, as replays do.** The draw events keep naming the card. The render lane draws live hands face up, rebuilding them from the feed, or asks the game lane for the hand contents in the live view if that is simpler (a small ask in its notes).
+- **Safety rule:** for any match where a seat is a network agent playing in real time (not a match the engine has already decided before it is shown), hands stay hidden in the live feed (counts only, no card in draw events) until the match ends. The game lane builds this rule when network agents join the ladder; until then every ladder match is decided before it is shown, so hands are shown.
