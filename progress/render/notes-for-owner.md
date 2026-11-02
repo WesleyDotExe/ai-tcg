@@ -1092,3 +1092,42 @@ for its next session.)
    script is stale; the page isn't broken. In the debt list.
 5. **No shared files changed** (no workflow, no root package files, no server or economy code). The site's
    bundle now also reads `economy/src/cosmetics.ts` (the slot list and the close-win health), read-only.
+
+## 2026-11-02 — Session 50 (the match pages)
+
+1. **Built: Agent match, Watch live, match history with full arena replays, the auto-play switch,** and
+   the Live match, Watch live and Match history widgets. Calls are in `progress/render/checkpoints.md`
+   (newest entry). Try it with `npm run site-demo -w @ai-tcg/render -- --ladder` (the real ladder plays in
+   the demo; add `--speed 8` to watch a match in under a minute).
+2. **[OWNER CHECK-IN] The spectator point of view (your 2026-11-02 entry: propose before building).** My
+   proposal, nothing built:
+   - **Where the toggle sits:** on every view of a match the viewer doesn't own: each Watch live card, the
+     Watch live widget at M and L, and the replay (in its top bar, beside the agents' names). Not on the
+     Live match widget or Agent match: those are always your own agent's match, so your own view. One
+     two-button switch with the agents' names ("Watch as: Static Widow | Hive Courier").
+   - **The chosen player moves to the near side: yes.** It is what "their point of view" means on a board,
+     and it matches what owners already get (this session puts your own agent on the near side of every
+     scoreboard). On the arena replay that means the board flips: the chosen player's units, hand and
+     health bar come to the bottom. That's a render change only (the arena draws either way round).
+   - **A switch mid-match re-shows nothing:** the coin and arena (and the near side) swap from then on. A
+     coin flip already played isn't played again; a replay scrubbed back to the start shows the chosen
+     player's coin.
+   - **The tie rule for the default** (equal ratings, or both still in Placement): **the player who goes
+     first** (p1, the seat the server's coin flip gave the first move). It's on the match record, it never
+     changes, and it puts the opening move on the near side.
+   - **Remembered per match, in the browser tab only** (not on the account): the next match starts from
+     the higher-rated agent again, as you set as the default. Reopening the same replay in the same tab
+     keeps the choice.
+   - **What the render needs from the game lane:** both agents' ratings at the start of the match on the
+     match record (`GET /api/matches/:id`), so a replay picks the same default later (the live list has
+     them already), plus the coins and arenas from the coin plan.
+3. **Next render slice: the big live board.** The arena (the same page that plays replays) fed from the
+   live feed, so Agent match and Watch live show the real board as moves come out. The live feed sends the
+   public board (hand counts, not hands) and the engine's events with instance ids, which is enough for the
+   board, the units' live stats and most effects; the hands would show as card backs with counts. Statuses
+   and tool bonuses aren't in the public board, so a few unit badges may need a small addition from the game
+   lane; I'll name exactly which once the slice finds them.
+4. **Not built (no endpoint yet):** featured picks ("Top rated"), viewer counts and the 2× vote.
+5. **No shared files changed** (no workflow, no root package files, no server or economy code). The site
+   now also reads `server/src/ladder/ladderRunner.ts` (`replayDeckSpec`, the replay file's types) and, in the
+   demo only, `server/src/ladder/liveLadder.ts`, read-only, as it already reads the owner API.

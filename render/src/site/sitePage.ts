@@ -348,6 +348,7 @@ body[data-theme="dark"] .dlg { background: rgba(20,24,56,.8); }
 /* The loadout picker (session 49) is the same kind of overlay; its Buy asks with the website's own confirm, and the website's toasts show, above it. */
 body:has(#dress:not([hidden])) #dialog { z-index: 45; }
 body:has(#dress:not([hidden])) .toast { z-index: 46; }
+body:has(#replay:not([hidden])) .toast { z-index: 46; }
 .st-col { grid-column: span 5; display: flex; flex-direction: column; gap: 16px; min-width: 0; } .st-col > .panel { margin: 0; }
 @media (max-width: 1100px) { .st-col { grid-column: span 12; } }
 .st-agent .dn small { display: block; }
@@ -420,6 +421,59 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 @media (prefers-reduced-transparency: reduce) { #viewer { backdrop-filter: none; -webkit-backdrop-filter: none; } .cvdlg { background: var(--solid); } }
 @media (prefers-reduced-motion: reduce) { .spin, .status.live i, .wgrid.editing .wg { animation: none; } .toast { transition: none; }
   .wgrid.editing .wg { outline: 2px dashed color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: -2px; } }
+/* ---- the match pages (render session 50): auto-play, the live scoreboard, match history, the replay ---- */
+.switch { display: inline-flex; align-items: center; gap: 8px; border: 0; background: none; padding: 2px 0; font: 700 13px system-ui; color: inherit; cursor: pointer; }
+.switch i { position: relative; width: 38px; height: 22px; border-radius: 11px; background: rgba(120,128,160,.45); transition: background .2s; flex: none; }
+.switch i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .2s; }
+.switch.on i { background: var(--ok); } .switch.on i::after { transform: translateX(16px); }
+.switch[disabled] { opacity: .5; cursor: default; } .switch:focus-visible i { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wcol.right { align-items: flex-end; text-align: right; max-width: 300px; }
+.banner.warn { background: color-mix(in srgb, var(--warn) 14%, transparent); border-color: color-mix(in srgb, var(--warn) 40%, transparent); }
+.panel.dark, .live-card { color: #fff; background: linear-gradient(140deg, rgba(20,26,62,.86), rgba(38,28,92,.82)); border: 1px solid rgba(255,255,255,.14); padding: 14px 18px; border-radius: 22px; }
+.panel.dark .muted, .live-card .muted { color: #c6cbe8; } .panel.dark a { color: #b9c4ff; }
+.live-card { margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+.sb { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 12px; align-items: center; width: 100%; }
+.sb-side { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 8px 10px; border-radius: 14px; background: rgba(255,255,255,.07); border: 1px solid transparent; }
+.sb-side.far { text-align: right; align-items: flex-end; }
+.sb-side.turn { border-color: rgba(255,207,92,.7); box-shadow: 0 0 0 1px rgba(255,207,92,.25) inset; }
+.sb-side.won { border-color: #3cc47c; background: rgba(60,196,124,.16); }
+.sb-side.mine .sb-name b::after { content: " (you)"; font-weight: 600; opacity: .7; }
+.sb-name { display: flex; flex-direction: column; min-width: 0; } .sb-name b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.sb-hp { display: flex; align-items: center; gap: 8px; width: 100%; } .sb-side.far .sb-hp { flex-direction: row-reverse; }
+.sb-hp b { font: 800 22px system-ui; font-variant-numeric: tabular-nums; min-width: 2ch; }
+.sb-hp .bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(255,255,255,.14); overflow: hidden; display: block; }
+.sb-hp .bar i { display: block; height: 100%; background: linear-gradient(90deg,#ff5d73,#ffcf5c,#3cc47c); background-size: 300% 100%; background-position: 100% 0; border-radius: 4px; transition: width .4s; }
+.sb-side.far .sb-hp .bar { transform: scaleX(-1); }
+.sb-mid { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12.5px; text-align: center; max-width: 160px; }
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--live); animation: pulse 1.4s ease-in-out infinite; }
+.sb-s .sb-meta { display: none; } .sb-s .sb-hp b { font-size: 17px; } .sb-s { gap: 6px; } .sb-s .sb-mid { max-width: 90px; }
+.sb-line { margin: 6px 2px 0; color: #dfe4ff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wg:not(.wg-dark) .sb-side { background: var(--soft); } .wg:not(.wg-dark) .sb-line { color: inherit; }
+.cboard { display: flex; flex-direction: column; gap: 6px; width: 100%; margin-top: 6px; padding: 8px; border-radius: 14px; background: rgba(0,0,0,.18); }
+.cb-row { display: flex; gap: 5px; flex-wrap: wrap; min-height: 26px; align-items: center; } .cb-row + .cb-row { border-top: 1px dashed rgba(255,255,255,.18); padding-top: 6px; }
+.uc { font: 600 11.5px system-ui; padding: 3px 8px; border-radius: 8px; background: rgba(255,255,255,.14); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.uc b { font-weight: 700; } .uc.pend { border: 1px dashed rgba(255,207,92,.8); background: transparent; }
+.lines { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; width: 100%; }
+.lline { display: flex; align-items: center; gap: 6px; font-size: 13px; white-space: nowrap; overflow: hidden; } .lline small { overflow: hidden; text-overflow: ellipsis; }
+.lhp { font: 800 13px system-ui; font-variant-numeric: tabular-nums; padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,.14); }
+.pbp { margin: 0; padding: 0 0 0 30px; display: flex; flex-direction: column; gap: 3px; max-height: 220px; overflow: auto; width: 100%; }
+.m-live-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 20px; width: 100%; }
+.m-agent { padding: 14px 20px; } .m-agent .mya-n { font: 800 18px system-ui; }
+.hlist { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.hrow { display: grid; grid-template-columns: 26px minmax(0,1fr) auto auto; gap: 10px; align-items: center; padding: 6px 4px; border-bottom: 1px solid var(--line); }
+.hrow:last-child { border-bottom: 0; }
+.hr-main { display: flex; flex-direction: column; min-width: 0; } .hr-main .hr-vs { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hr-num { display: flex; flex-direction: column; align-items: flex-end; font-size: 13px; white-space: nowrap; }
+.hr-act { display: flex; gap: 6px; align-items: center; }
+.rt.up { color: var(--ok); } .rt.down { color: var(--live); } .rt.flat, .rt.none { color: var(--muted); }
+.wl.d { background: #8f8cff; } .wl.x { background: #9aa0b8; } .wl.big { width: 40px; height: 40px; border-radius: 12px; font-size: 18px; flex: none; }
+.btn.ghost { background: transparent; box-shadow: none; border: 1px solid var(--line); }
+.sz-M .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .sz-M .hrow .hr-act { grid-column: 2 / 4; justify-content: flex-start; } .sz-M .hlist { gap: 2px; }
+.mlog { max-height: 60vh; overflow: auto; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; background: rgba(0,0,0,.06); padding: 12px; border-radius: 12px; }
+.rp-close { position: absolute; bottom: 14px; right: 16px; z-index: 2; border: 1px solid rgba(255,255,255,.3); background: rgba(10,12,30,.82); color: #fff; font: 700 13px system-ui; padding: 8px 14px; border-radius: 99px; cursor: pointer; }
+.rp-close:focus-visible { outline: 2px solid #8f8cff; outline-offset: 2px; }
+@media (max-width: 760px) { .m-live-grid { grid-template-columns: 1fr; } .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .hrow .hr-act { grid-column: 2 / 4; } .sb-meta { display: none; } }
+
 `;
 
 export function renderSitePage(): string {
@@ -481,6 +535,7 @@ export function renderSitePage(): string {
 <div id="dialog" class="dim"></div>
 <div id="opening" class="opening" hidden role="dialog" aria-modal="true" aria-label="Pack opening"></div>
 <div id="dress" class="opening" hidden role="dialog" aria-modal="true" aria-label="Agent loadout"></div>
+<div id="replay" class="opening" hidden role="dialog" aria-modal="true" aria-label="Match replay"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 ${faceSymbols()}
 <script>${FACE_SCRIPT}</script>

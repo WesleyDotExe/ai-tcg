@@ -69,8 +69,136 @@ export interface SitePlay {
   playStyles: { id: string; name: string; summary: string }[];
   decks: SiteDeck[];
   liveMatch: { matchId: string; startedAt: string } | null;
+  /** The auto-play switch (session 67; read by the site from render session 50). */
+  autoPlay: SiteAutoPlay;
   /** Only on the faction-lock answer. */
   activeDeckFits?: boolean;
+}
+
+/** Auto-play (OWNER_API.md "Auto-play", session 67). */
+export interface SiteAutoPlay {
+  on: boolean;
+  changedAt: string | null;
+  stopped: { reason: string; day: string } | null;
+  dailyRewardsMaxed: boolean;
+  canTurnOn: boolean;
+  house: boolean;
+}
+
+/** One side of a live match, as it started (OWNER_API.md LiveSideView). */
+export interface SiteLiveSide {
+  ownerId: string;
+  ownerName: string;
+  agentId: string;
+  agentName: string;
+  playStyle: string;
+  rating: number;
+  tier: string;
+}
+
+/** One side of the board now (OWNER_API.md PublicSide): counts only for
+ * the hand, deck and graveyard. */
+export interface SitePublicSide {
+  name: string;
+  health: number;
+  maxHealth: number;
+  energy: number;
+  maxEnergy: number;
+  hand: number;
+  deck: number;
+  graveyard: number;
+  board: { instanceId: string; cardId: string; name: string; attack: number; health: number; maxHealth: number; pending: boolean; tools: string[] }[];
+  directives: { instanceId: string; cardId: string; name: string }[];
+  signature: { name: string; played: boolean } | null;
+}
+
+export interface SitePublicSnapshot {
+  turn: number;
+  activePlayer: "p1" | "p2";
+  priority: "p1" | "p2";
+  stack: number;
+  winner: "p1" | "p2" | "draw" | null;
+  p1: SitePublicSide;
+  p2: SitePublicSide;
+}
+
+/** A live match (OWNER_API.md LiveMatchView). */
+export interface SiteLiveMatch {
+  matchId: string;
+  startedAt: string;
+  released: number;
+  nextAt: string | null;
+  p1: SiteLiveSide;
+  p2: SiteLiveSide;
+  now: SitePublicSnapshot;
+  recentLines: string[];
+}
+
+/** `GET /api/live/:matchId?from=N` (OWNER_API.md LiveMatchFeed). Each
+ * step's `move` and `events` are the engine's; the page reads `lines`. */
+export interface SiteLiveFeed extends SiteLiveMatch {
+  start: SitePublicSnapshot | null;
+  startLines: string[] | null;
+  from: number;
+  steps: { n: number; by: "p1" | "p2"; lines: string[]; after: SitePublicSnapshot }[];
+}
+
+/** `GET /api/live`. */
+export interface SiteLive {
+  running: boolean;
+  matches: SiteLiveMatch[];
+  mine: string | null;
+}
+
+export type SiteHistoryResult = "win" | "loss" | "draw" | "cancelled" | "abandonedByYou" | "abandonedByOpponent";
+
+/** One row of `GET /api/matches` (OWNER_API.md HistoryRow). */
+export interface SiteHistoryRow {
+  matchId: string;
+  endedAt: string;
+  seat: "p1" | "p2";
+  result: SiteHistoryResult;
+  credits: number;
+  rating: { before: number; after: number; change: number } | null;
+  opponent: { ownerId: string; ownerName: string; agentName: string };
+  agentName: string;
+  turns: number | null;
+  hasLog: boolean;
+  hasReplay: boolean;
+}
+
+export interface SiteHistory {
+  matches: SiteHistoryRow[];
+  total: number;
+  more: boolean;
+}
+
+/** One side of a recorded match (OWNER_API.md MatchView). */
+export interface SiteMatchSide {
+  ownerId: string;
+  ownerName: string;
+  ownerKind: "player" | "house";
+  agentId: string;
+  agentName: string;
+  credits: number;
+  rating: { before: { rating: number; rd: number; volatility: number }; after: { rating: number; rd: number; volatility: number } } | null;
+  playStyle: string | null;
+}
+
+/** `GET /api/matches/:matchId`. */
+export interface SiteMatchView {
+  matchId: string;
+  endedAt: string;
+  outcome: "win" | "draw" | "cancelled" | "abandoned";
+  p1: SiteMatchSide;
+  p2: SiteMatchSide;
+  winnerOwnerId: string | null;
+  abandonedByOwnerId: string | null;
+  turns: number | null;
+  moves: number | null;
+  boast: { agentId: string; itemId: string; slot: "boast" | "closeWinBoast" | "factionStarter"; winnerHealth: number | null } | null;
+  hasLog: boolean;
+  hasReplay: boolean;
 }
 
 /** `GET /api/me`. */
@@ -216,6 +344,19 @@ export interface SiteApi {
   cosmetics(token: string): Promise<{ owned: SiteOwnedCosmetic[] }>;
   loadout(token: string, agentId: string): Promise<SiteLoadout>;
   setLoadout(token: string, agentId: string, slot: string, itemId: string | null): Promise<SiteLoadout>;
+  // The match pages (render session 50).
+  setAutoPlay(token: string, on: boolean): Promise<{ autoPlay: SiteAutoPlay }>;
+  live(token: string): Promise<SiteLive>;
+  /** `GET /api/live/:matchId?from=N`: the match now and the moves released from N on. */
+  liveFeed(token: string, matchId: string, from: number): Promise<SiteLiveFeed>;
+  matches(token: string, limit?: number, before?: string): Promise<SiteHistory>;
+  match(token: string, matchId: string): Promise<SiteMatchView>;
+  matchLog(token: string, matchId: string): Promise<string>;
+  /** The site host's replay page for a recorded match (siteHost.ts
+   * `POST /replay-page/:matchId`): the host reads the replay over the API
+   * with the caller's token, rebuilds it in the engine and answers where
+   * the full arena page is served. */
+  replayPage(token: string, matchId: string): Promise<{ url: string; moves: number; turns: number }>;
 }
 
 /** Salvage's refusal when it would leave saved decks short (409): the
@@ -252,6 +393,27 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
       throw new SiteApiError(res.status, message, body);
     }
     return body as T;
+  }
+  /** A plain-text answer (the match log); a refusal is still JSON. */
+  async function text(method: string, path: string, token: string): Promise<string> {
+    let res: Awaited<ReturnType<Fetch>>;
+    try {
+      res = await fetchImpl(base + path, { method, headers: { Authorization: `Bearer ${token}` } });
+    } catch {
+      throw new SiteApiError(0, "the server can't be reached");
+    }
+    const body = await res.text();
+    if (res.status >= 400) {
+      let message = `HTTP ${res.status}`;
+      try {
+        const j = JSON.parse(body) as { error?: unknown };
+        if (typeof j.error === "string") message = j.error;
+      } catch {
+        /* not JSON: keep the status */
+      }
+      throw new SiteApiError(res.status, message);
+    }
+    return body;
   }
   return {
     signIn: (login, password) => call("POST", "/api/session", { body: { login, password } }),
@@ -292,5 +454,15 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     cosmetics: (token) => call("GET", "/api/cosmetics", { token }),
     loadout: (token, agentId) => call("GET", `/api/agents/${encodeURIComponent(agentId)}/loadout`, { token }),
     setLoadout: (token, agentId, slot, itemId) => call("PUT", `/api/agents/${encodeURIComponent(agentId)}/loadout/${encodeURIComponent(slot)}`, { token, body: { itemId } }),
+    setAutoPlay: (token, on) => call("PUT", "/api/play/auto-play", { token, body: { on } }),
+    live: (token) => call("GET", "/api/live", { token }),
+    liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
+    matches: (token, limit, before) => {
+      const q = [limit ? `limit=${limit}` : "", before ? `before=${encodeURIComponent(before)}` : ""].filter(Boolean).join("&");
+      return call("GET", `/api/matches${q ? `?${q}` : ""}`, { token });
+    },
+    match: (token, matchId) => call("GET", `/api/matches/${encodeURIComponent(matchId)}`, { token }),
+    matchLog: (token, matchId) => text("GET", `/api/matches/${encodeURIComponent(matchId)}/log`, token),
+    replayPage: (token, matchId) => call("POST", `/replay-page/${encodeURIComponent(matchId)}`, { token }),
   };
 }

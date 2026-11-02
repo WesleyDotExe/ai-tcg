@@ -10,7 +10,8 @@
 
 import { avatarSvg } from "../avatar.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
-import type { SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
+import type { SiteHistory, SiteLive, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
+import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveLineHtml, myLiveMatch, recordOf, scoreboardHtml, scoreboardOf, tidyLines } from "./siteMatches.js";
 import {
   FINISH_NAMES,
   WIDGET_INFO,
@@ -33,7 +34,7 @@ import { amount } from "./siteLook.js";
 import { dailyPackView } from "./siteStore.js";
 import { FACTION_HEX, PAGE_TITLES, agentStatus, deckLine, esc, hashOf, icon, rebuildView, styleName } from "./siteModel.js";
 
-export type WidgetSource = "packs" | "collection" | "daily" | "store";
+export type WidgetSource = "packs" | "collection" | "daily" | "store" | "live" | "history";
 
 /** Which server reads a widget needs at its size (the page fetches only
  * what the board shows). */
@@ -50,6 +51,12 @@ export function sourcesOf(w: Pick<SiteWidget, "type" | "size">): WidgetSource[] 
       return ["collection"];
     case "store":
       return w.size === "L" ? ["packs", "store"] : ["packs"];
+    // Render session 50: the match widgets read the live matches and the history.
+    case "live":
+    case "watch":
+      return ["live"];
+    case "history":
+      return ["history"];
     default:
       return [];
   }
@@ -68,6 +75,11 @@ export interface WidgetData {
   collection: SiteCollection | null;
   daily: SiteDaily | null;
   store: SiteStore | null;
+  /** `GET /api/live` and the first page of `GET /api/matches` (session 50). */
+  live: SiteLive | null;
+  history: SiteHistory | null;
+  /** The viewer (to mark their own side on a scoreboard). */
+  ownerId: string | null;
   /** A read that failed, with the words to show. */
   errors: Partial<Record<WidgetSource, string>>;
   now: number;
@@ -130,31 +142,72 @@ function agentBody(w: SiteWidget, d: WidgetData): string {
   const st = agentStatus(p);
   const top = `<div class="mya">${avatar(a.name, fac, w.size === "S" ? 40 : 60)}<div class="mya-t"><div class="mya-n">${esc(a.name)}${fac ? `<span class="ftag" style="--c:${FACTION_HEX[fac]}">${esc(fac.toUpperCase())}</span>` : ""}</div>${w.size === "S" ? "" : `<div class="muted small">${esc(styleName(p, a.playStyle))} play style</div>`}</div></div>`;
   const status = `<span class="status ${st.tone}"><i></i>${esc(st.label)}</span>`;
-  if (w.size === "S") return top + `<div class="row">${status}</div>`;
+  // Session 50: the auto-play switch (spec C: S has it), and Watch when live.
+  const ap = autoPlayView(p.autoPlay, true);
+  const sw = autoPlaySwitch(ap, `ap-${w.id}`);
+  const watch = p.liveMatch ? `<a class="btn sm" href="#/match">Watch</a>` : "";
+  if (w.size === "S") return top + `<div class="row">${status}${sw}</div>`;
   const deck = `<div class="small">${esc(deckLine(p))}</div>`;
-  const later = `<p class="muted small">Rating, record, Start and Watch come with match running.</p>`;
-  if (w.size === "M") return top + `<div class="row">${status}</div>` + deck + later;
+  const apNote = `<p class="muted small">${esc(ap.stopped ?? ap.note)}</p>`;
+  const later = `<p class="muted small">Rating and record: the Stats page's endpoint comes next.</p>`;
+  if (w.size === "M") return top + `<div class="row">${status}${sw}${watch}</div>` + deck + apNote;
   const rv = rebuildView(p);
   const dv = d.daily ? dailyView(d.daily, d.now) : null;
   const today = dv ? `Today: ${dv.fromWins}/${dv.winCap} credits from wins` : d.errors.daily ? "Today's earnings couldn't be read" : "Today: loading…";
-  return `<div class="wsplit"><div class="wcol">${top}<div class="row">${status}</div>${deck}<div class="small">${p.factionLock ? `Faction locked to ${esc(p.factionLock)}` : `Faction chosen by ${esc(a.name)}`}</div><div class="small">${esc(today)}</div>${later}</div>`
+  return `<div class="wsplit"><div class="wcol">${top}<div class="row">${status}${sw}${watch}</div>${apNote}${deck}<div class="small">${p.factionLock ? `Faction locked to ${esc(p.factionLock)}` : `Faction chosen by ${esc(a.name)}`}</div><div class="small">${esc(today)}</div>${later}</div>`
     + `<div class="wcol"><div class="rb-note ${rv.kind} small">${esc(rv.kind === "wanted" ? `${rv.text} ${rv.reasons[0]}` : rv.text)}</div><a class="btn sm" href="#/settings">Deck settings</a><p class="muted small">The signature card shows here once agents carry one (generating an agent comes with sign-up).</p></div></div>`;
 }
 
 function liveBody(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
   const view = o.live ?? "scoreboard";
   const note = o.capped ? `<p class="muted small wcap">Scoreboard only: two live boards are already showing.</p>` : "";
+  const l = loading(d, "live");
   if (w.type === "watch") {
-    const body = view === "board" ? `<div class="lboard"><span>The featured match plays here</span></div>` : "";
-    return body + waitsBody("watch", w.size) + note;
+    if (l) return l + note;
+    const live = d.live!;
+    if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so nothing is live.</p>${note}`;
+    if (!live.matches.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
+    // S: the first match's scoreboard; M: its scoreboard and the others as
+    // one line each; L: the first on the compact board, the list alongside.
+    const sbs = live.matches.map((m) => scoreboardOf(m, d.ownerId));
+    const first = scoreboardHtml(sbs[0]!, { small: w.size !== "L" }) + (w.size === "L" && view === "board" ? compactBoard(live.matches[0]!, sbs[0]!.mine) : "");
+    const rest = sbs.slice(1);
+    const list = w.size === "S" || !rest.length ? "" : `<ul class="lines">${rest.map(liveLineHtml).join("")}</ul>`;
+    const boards = w.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
+    return `${boards}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live · featured picks come later</span></div>${note}`;
   }
   const p = d.play;
   const a = p.connectedAgent;
   if (!a) return `<b>No agent connected</b><p class="muted small">Connect an agent to play.</p><a class="btn pri sm" href="#/connect">Connect agent</a>`;
-  const st = agentStatus(p);
-  const line = `<div class="row">${avatar(a.name, agentFaction(p), w.size === "S" ? 30 : 40)}<div><b>${esc(a.name)}</b><div class="small"><span class="status ${st.tone}"><i></i>${esc(st.label)}</span>${p.liveMatch ? ` <span class="muted">since ${esc(clock(p.liveMatch.startedAt))}</span>` : ""}</div></div></div>`;
-  const board = view === "board" ? `<div class="lboard"><span>${p.liveMatch ? "The live board shows here" : "No match right now"}</span></div>` : "";
-  return line + board + waitsBody("live", w.size) + note;
+  if (l) return l;
+  const m = myLiveMatch(d.live);
+  const ap = autoPlayView(p.autoPlay, true);
+  if (!m) {
+    const st = agentStatus(p);
+    const why = p.liveMatch ? "Your agent's match is starting." : ap.on || !ap.shown ? "No match right now. Your agent joins the next ladder round." : "No match right now. Auto-play is off.";
+    return `<div class="row">${avatar(a.name, agentFaction(p), w.size === "S" ? 30 : 40)}<div><b>${esc(a.name)}</b><div class="small"><span class="status ${st.tone}"><i></i>${esc(st.label)}</span></div></div></div><p class="muted small">${esc(why)}</p>${w.size === "S" ? "" : `<div class="row">${autoPlaySwitch(ap, `ap-${w.id}`)}</div>`}`;
+  }
+  const sb = scoreboardOf(m, d.ownerId);
+  if (w.size === "S") return scoreboardHtml(sb, { small: true });
+  const board = view === "board" ? compactBoard(m, sb.mine) : "";
+  if (w.size === "M") return scoreboardHtml(sb) + board + note;
+  const feed = `<ol class="pbp small">${tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).map((x) => `<li>${esc(x)}</li>`).join("")}</ol>`;
+  return `<div class="wsplit wide-l"><div class="wcol">${scoreboardHtml(sb, { small: true })}${board}${note}</div><div class="wcol"><h4>Play-by-play</h4>${feed}<div class="row">${autoPlaySwitch(ap, `ap-${w.id}`)}<a class="btn sm" href="#/match">Open</a></div><p class="muted small">The 2× vote comes with its endpoint.</p></div></div>`;
+}
+
+function historyBody(w: SiteWidget, d: WidgetData): string {
+  const l = loading(d, "history");
+  if (l) return l;
+  const h = d.history!;
+  if (!h.matches.length) return `<p class="muted small">No matches yet. Your results and their replays show here.</p>`;
+  const rows = h.matches.map((r) => historyRowView(r, d.now));
+  if (w.size === "S") {
+    const r = rows[0]!;
+    return `<div class="row nowrap"><span class="wl big ${r.tone}" aria-hidden="true">${esc(r.letter)}</span><div><b>${esc(r.word)}</b><div class="small">${esc(r.versus)}</div><div class="muted small">${esc(r.credits)} · ${esc(r.rating)}</div></div></div>`;
+  }
+  const shown = w.size === "M" ? rows.slice(0, 6) : rows;
+  const rec = recordOf(h.matches.slice(0, shown.length));
+  return `<div class="muted small">Last ${shown.length} of ${h.total} · ${esc(rec.line)}</div><ul class="hlist">${shown.map((v) => historyRowHtml(v, { compact: w.size === "M" })).join("")}</ul>${w.size === "L" && h.more ? `<a class="btn sm" href="#/match">All matches</a>` : ""}`;
 }
 
 function packsBody(w: SiteWidget, d: WidgetData): string {
@@ -252,6 +305,8 @@ function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
       return showcaseBody(w, d);
     case "store":
       return storeBody(w, d);
+    case "history":
+      return historyBody(w, d);
     default:
       return waitsBody(w.type, w.size);
   }
