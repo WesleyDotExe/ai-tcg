@@ -7,6 +7,51 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-02 — The big live board: a live match on the arena — AWAITING FEEDBACK
+
+The slice you named after session 50. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder --speed 4`,
+open http://127.0.0.1:8080/#/match, sign in as `nova` / `a long demo password`, and when Nova's match is
+live press **Watch on the arena** (or on any card on Watch live).
+- **The live match plays on the real arena, full screen:** the same page every replay uses (the board with
+  each unit's live stats, keywords, tools, Barrier, arming, the stack and its aim lines, the effects, the
+  feed, sound and music), fed move by move as the server releases them. The header says SPECTATOR LIVE and a
+  **LIVE** badge sits where a replay shows its seed.
+- **It follows the newest move.** Pause or step back and the badge says "LIVE · 9 behind"; tap it to go back
+  to live. A burst of moves (or a tab left in the background) is caught up quickly instead of piling up.
+- **Hands are card backs** with the count ("5 cards, face down"): the live feed sends counts, not cards.
+- **The end:** GAME OVER on the last move, then the record's victory boast (the same one the replay plays)
+  when the server records the match, a few seconds later; the badge says ENDED.
+
+**Evidence:** `progress/render/evidence/site-check-s51.txt` (28 browser checks with the real ladder at 4x,
+ALL PASS; stills `v2-s51-live-*.jpg`, e.g. `v2-s51-live-following.jpg`); render tests 823 (+21): eleven real matches converted from the server's own
+live timeline equal the engine's own frames field by field, and over the real owner API a whole live match
+read a few moves at a time equals the recorded replay of it, frame for frame.
+
+**Decisions you may want to overrule:**
+1. **The arena opens full screen from a button** ("Watch on the arena") on Agent match and on each Watch live
+   card, as replays do; the scoreboard, compact board and play-by-play stay on the pages and the Home
+   widgets. Alternative: the arena inline on Agent match.
+2. **Joining mid-match starts at the newest move**, not the first; the scrubber goes back. Joining before the
+   first move plays the Match Boot intro.
+3. **Live, the result comes before the boast.** In a replay the boast plays, then GAME OVER lands. Live, the
+   boast is only known when the server records the match (about 8 s after the last move), so GAME OVER lands
+   at once and the boast plays when the record arrives. A small addition from the game lane would restore
+   the replay's order (notes item 2).
+4. **Catching up:** more than 3 moves behind live, the arena steps quickly (0.16 s a move); more than 12
+   behind, it skips to the move before the newest and plays on. At 1x the server releases a move every
+   1-9 s, so this only shows after a tab was hidden, or at demo speeds.
+5. **Until a side shows a faction card, its colours are Neutral.** The live feed doesn't say the deck's
+   faction (notes item 2 asks for it).
+6. **The live page's saying (Match Boot) is seeded by the match id**, not the engine's seed: the live feed
+   doesn't send the seed (it would let anyone replay the shuffle). Every viewer of that match sees the same
+   saying; the replay of the same match may show a different one.
+
+**Next render-lane slice:** the spectator point of view (approved after session 50) together with the first
+coin slice (the flip in Match Boot, the Chrome Token, reduced motion and sound): both read `defaultView` and
+the coins the game lane now serves.
+
+---
+
 ## 2026-11-02 — The match pages: Agent match, Watch live, match history with full replays, auto-play — AWAITING FEEDBACK
 
 The slice you named after session 49. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder`, open

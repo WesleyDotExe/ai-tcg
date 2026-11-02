@@ -7,16 +7,43 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The owner website (sessions 44-50)
+## The owner website (sessions 44-51)
 
+- **A render hardening pass is overdue:** the last was session 40; sessions 41-51 each built the slice the
+  owner named. Sessions 36's and 45's browser checks are stale or fail on main (below). The next session
+  the owner leaves unnamed should be one.
 - **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
   tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
   tiles' `backdrop-filter` is the whole cost. Session 45's check fails its 20 fps bar on this branch
   (`site-check-s45-rerun-s46.txt`). Never measured on a GPU; options with the owner (notes, session 46).
-- **The live view isn't the arena yet (session 50):** Agent match, Watch live and the live widgets show a
-  scoreboard, a compact board (unit names and stats as chips) and the play-by-play. The owner's spec says
-  "use the existing match renderer for the real board": recorded matches do (the full arena replay), live
-  ones don't. Next slice.
+- **The live arena draws less than a replay (session 51):** no signature zone (the feed has the card's name
+  only), a signature unit's printed Barrier and ability text unknown, each side Neutral until it shows a
+  faction card, hands as card backs, no Command flight from the hand (there's no card in the hand to fly).
+  Each is a small game-lane addition (notes, session 51) or the owner's hands call. Statuses and this-turn
+  buffs take their duration from the source card's abilities: exact in every tested match, but a future
+  card with two different durations for the same status or buff would leave it out (listed in
+  `LiveFrameBuilder.unknown`, never shown wrong; nothing reports it outside the tests).
+- **Live, the boast plays after GAME OVER** (the record comes ~8 s after the last move), the reverse of the
+  replay's order; and the live page's Match Boot saying is seeded by the match id, so the replay of the same
+  match may show a different saying.
+- **The live arena is fed by polling** (the website reads `/live-frames` every 3 s, the host reads the API's
+  feed only for new moves): up to 3 s behind the server's watch clock, plus the arena's own step pace.
+  Each read rebuilds the slots and the spectator feed over the whole match so far (about 120 frames: fine;
+  never measured with many viewers). Live pages are kept in the host's memory (8 at most, 10 minutes after
+  the last read); a host restart drops them (the viewer reopens).
+- **Catching up is a fixed rule** (hurry past 3 behind, skip past 12); in software WebGL at 8x the arena
+  can't keep up with every move's effects, so it skips. Never measured on the Mac mini's GPU.
+- **A second live arena in the same site page can be slow to start (unexplained):** in the session 51 check,
+  after a whole live match had been watched to its end, opening another from Watch live took 28-34 s to
+  parse in headless software WebGL (served in 35 ms; on its own the page answers in about 1 s; three opens
+  in a row in a fresh site page take 2-5 s). Not caused by Watch live's redraws (stopped under the overlay
+  now; no change). Never seen on a GPU; needs a profile.
+- **Session 50's browser check flaked once** (check 37: the 720 px history's Replay button "not visible" to
+  the click for 30 s, on this branch; the re-run passed 40 of 40). Watch for it.
+- **The live arena's own match feed shows each draw** ("draws Watchtower Relay"): the feed is built from the
+  engine's events, which name the card (notes, session 51, item 3), while the hands show card backs.
+- **The Home widgets don't open the arena** (only Agent match and Watch live do); the arena's sides are the
+  engine's (p1 at the bottom), not the viewer's, live as in replays: the point-of-view slice.
 - **The play-by-play is the engine's log text tidied by regexes** (`tidyLine`), not the arena's own feed
   (`feed.ts`, built from frames): an ability shows as "X's ability triggers" with no rules text, and a new
   log line shape from the engine would pass through untidied (a test pins today's shapes).

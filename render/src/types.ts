@@ -108,6 +108,10 @@ export interface CardRef {
   flavor: string;
   visualSeed: number;
   visualPattern: number;
+  /** A card the viewer can't see (a live match's hand: the public feed
+   * sends the count only). The page draws a card back; the other fields
+   * are blanks. */
+  hidden?: true;
 }
 
 export interface PlayerSnapshot {

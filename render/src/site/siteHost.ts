@@ -17,7 +17,11 @@ import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
 import { renderSiteLoadoutPage, renderSitePackPage, renderSitePage } from "./sitePage.js";
 import { renderMatchHtml } from "../renderHtml.js";
-import { replayOfFile } from "./siteReplay.js";
+import { replayOfFile, recordOf } from "./siteReplay.js";
+import { LiveFrameBuilder, type PublicSnapshot, type TimelineStep } from "./liveFrames.js";
+import { BOARD_SLOTS, MAX_ENERGY_CAP, TURN_CAP, replayMatch } from "@ai-tcg/engine";
+import { timelineRecorder } from "../../../server/src/ladder/timeline.js";
+import { replayDeckSpec } from "../../../server/src/ladder/ladderRunner.js";
 import type { SiteMatchView } from "./siteApi.js";
 import type { ReplayFile } from "../../../server/src/ladder/ladderRunner.js";
 
@@ -37,6 +41,9 @@ export interface SiteHostOptions {
   /** How many built replay pages are kept (default 6; each is about 2 MB). */
   replayPages?: number;
 }
+
+/** A live page lives this long after its last read of new moves (10 min). */
+export const LIVE_PAGE_TTL_MS = 10 * 60_000;
 
 /** A built replay page lives this long after it was built (10 min). */
 export const REPLAY_PAGE_TTL_MS = 10 * 60_000;
@@ -89,19 +96,19 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
     res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
     res.end(JSON.stringify(body));
   };
+  const getWith = (auth: string | undefined) => async (path: string): Promise<{ status: number; body: unknown }> => {
+    const r = await fetch(new URL(path, api), { headers: auth ? { authorization: auth } : {} });
+    const text = await r.text();
+    let body: unknown = null;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = { error: `the owner API's answer wasn't JSON (HTTP ${r.status})` };
+    }
+    return { status: r.status, body };
+  };
   const buildReplay = async (req: IncomingMessage, res: ServerResponse, matchId: string) => {
-    const auth = req.headers.authorization;
-    const get = async (path: string): Promise<{ status: number; body: unknown }> => {
-      const r = await fetch(new URL(path, api), { headers: auth ? { authorization: auth } : {} });
-      const text = await r.text();
-      let body: unknown = null;
-      try {
-        body = JSON.parse(text);
-      } catch {
-        body = { error: `the owner API's answer wasn't JSON (HTTP ${r.status})` };
-      }
-      return { status: r.status, body };
-    };
+    const get = getWith(req.headers.authorization);
     let view: { status: number; body: unknown };
     let file: { status: number; body: unknown };
     try {
@@ -131,6 +138,93 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
     const key = randomBytes(18).toString("base64url");
     built.set(key, { html, at: now });
     return json(res, 201, { url: `/replay/${key}`, moves: frames, turns });
+  };
+
+  // Render session 51: a live match on the arena. `POST /live-page/:matchId`
+  // reads the live feed from the first move (`GET /api/live/:id?from=0`,
+  // public), turns it into arena frames (liveFrames.ts) and keeps the page
+  // and its builder under a random key. The website frames `/live/<key>` and
+  // asks `GET /live-frames/<key>?from=N` every few seconds: the host reads
+  // only the moves released since its last read, adds them, and answers the
+  // frames from N on. When the feed says the match has ended (404), the host
+  // reads the record (`GET /api/matches/:id`, with the caller's token) for
+  // the boast, checked against the last frame as a replay's is.
+  interface LivePage { html: string; at: number; builder: LiveFrameBuilder; matchId: string; ended: boolean; record: unknown; busy: Promise<void> }
+  const livePages = new Map<string, LivePage>();
+  const LIVE_KEEP = 8;
+  type LiveFeedBody = { start: PublicSnapshot | null; startLines: string[] | null; steps: TimelineStep[]; from: number; p1: { agentName: string }; p2: { agentName: string } };
+  const buildLive = async (req: IncomingMessage, res: ServerResponse, matchId: string) => {
+    const get = getWith(req.headers.authorization);
+    let feed: { status: number; body: unknown };
+    try {
+      feed = await get(`/api/live/${encodeURIComponent(matchId)}?from=0`);
+    } catch {
+      return json(res, 502, { error: "the owner API can't be reached" });
+    }
+    if (feed.status !== 200) return json(res, feed.status, feed.body);
+    const f = feed.body as LiveFeedBody;
+    if (!f.start) return json(res, 409, { error: "this match hasn't started yet" });
+    let builder: LiveFrameBuilder;
+    let html: string;
+    try {
+      builder = new LiveFrameBuilder({ matchId, names: { p1: f.p1.agentName, p2: f.p2.agentName }, start: f.start, startLines: f.startLines ?? [], boardSlots: BOARD_SLOTS, turnCap: TURN_CAP, energyCap: MAX_ENERGY_CAP });
+      for (const step of f.steps) builder.push(step);
+      html = renderMatchHtml(builder.replay(), { live: true });
+    } catch (err) {
+      return json(res, 422, { error: `this match can't be drawn: ${err instanceof Error ? err.message : String(err)}` });
+    }
+    const now = Date.now();
+    for (const [k, v] of livePages) if (now - v.at > LIVE_PAGE_TTL_MS) livePages.delete(k);
+    while (livePages.size >= LIVE_KEEP) livePages.delete(livePages.keys().next().value!);
+    const key = randomBytes(18).toString("base64url");
+    livePages.set(key, { html, at: now, builder, matchId, ended: false, record: null, busy: Promise.resolve() });
+    return json(res, 201, { url: `/live/${key}`, key, released: builder.released });
+  };
+  const liveFrames = async (req: IncomingMessage, res: ServerResponse, key: string, from: number) => {
+    const page = livePages.get(key);
+    if (!page || Date.now() - page.at > LIVE_PAGE_TTL_MS) return json(res, 404, { error: "this live page has expired. Open the match again." });
+    page.at = Date.now();
+    // One read of the feed at a time per page: two polls never add a move twice.
+    const run = page.busy.then(async () => {
+      if (page.ended) return;
+      const get = getWith(req.headers.authorization);
+      const feed = await get(`/api/live/${encodeURIComponent(page.matchId)}?from=${page.builder.released}`);
+      if (feed.status === 404) {
+        page.ended = true;
+        // The match was recorded after the last read: the moves released in
+        // between are no longer in the live feed. They are in the replay
+        // file: the engine replays it with the server's own timeline recorder
+        // (exactly what the ladder released), and the missing steps are added.
+        const file = await get(`/api/matches/${encodeURIComponent(page.matchId)}/replay`);
+        if (file.status === 200) {
+          const f = file.body as ReplayFile;
+          if (f.matchId === page.matchId && f.moves.length > page.builder.released) {
+            const rec = timelineRecorder();
+            replayMatch(replayDeckSpec(f.decks.p1, "p1"), replayDeckSpec(f.decks.p2, "p2"), f.names, f.seed, f.moves, rec.hooks);
+            for (const step of rec.timeline.steps.slice(page.builder.released)) page.builder.push(step);
+          }
+        }
+        const view = await get(`/api/matches/${encodeURIComponent(page.matchId)}`);
+        if (view.status === 200) {
+          try {
+            page.record = recordOf(page.builder.replay(), view.body as SiteMatchView);
+          } catch {
+            page.record = null; // A record that doesn't match the board shows no boast, never a wrong one.
+          }
+        }
+        return;
+      }
+      if (feed.status !== 200) throw new Error(`the live feed answered HTTP ${feed.status}`);
+      for (const step of (feed.body as LiveFeedBody).steps) if (step.n === page.builder.released + 1) page.builder.push(step);
+    });
+    page.busy = run.catch(() => {});
+    try {
+      await run;
+    } catch (err) {
+      return json(res, 502, { error: err instanceof Error ? err.message : "the owner API can't be reached" });
+    }
+    const start = Math.max(0, Math.min(from, page.builder.released + 1));
+    return json(res, 200, { frames: page.builder.framesFrom(start), released: page.builder.released, ended: page.ended, record: page.record });
   };
 
   const proxy = (req: IncomingMessage, res: ServerResponse) => {
@@ -168,6 +262,40 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
       }
       req.resume();
       void buildReplay(req, res, ask[1]!);
+      return;
+    }
+    const askLive = /^\/live-page\/([A-Za-z0-9_-]{1,128})$/.exec(path);
+    if (askLive) {
+      if (req.method !== "POST") {
+        res.writeHead(405, { Allow: "POST" });
+        return res.end();
+      }
+      req.resume();
+      void buildLive(req, res, askLive[1]!);
+      return;
+    }
+    const liveShown = /^\/live\/([A-Za-z0-9_-]{24})$/.exec(path);
+    if (liveShown) {
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        res.writeHead(405, { Allow: "GET, HEAD" });
+        return res.end();
+      }
+      const page = livePages.get(liveShown[1]!);
+      if (!page || Date.now() - page.at > LIVE_PAGE_TTL_MS) {
+        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+        return res.end("This live page has expired. Open the match again from Watch live.");
+      }
+      res.writeHead(200, PACK_PAGE_HEADERS);
+      return res.end(req.method === "HEAD" ? undefined : page.html);
+    }
+    const liveMore = /^\/live-frames\/([A-Za-z0-9_-]{24})$/.exec(path);
+    if (liveMore) {
+      if (req.method !== "GET") {
+        res.writeHead(405, { Allow: "GET" });
+        return res.end();
+      }
+      const from = Number(new URL(req.url ?? "/", "http://site").searchParams.get("from") ?? "0");
+      void liveFrames(req, res, liveMore[1]!, Number.isInteger(from) && from >= 0 ? from : 0);
       return;
     }
     const shown = /^\/replay\/([A-Za-z0-9_-]{24})$/.exec(path);

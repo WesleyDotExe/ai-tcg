@@ -4575,3 +4575,106 @@ only); coin skins (the game half comes first).
 
 **Next render-lane slice:** the big live board on Agent match and Watch live (the arena fed from the live
 feed), unless the owner's answers on the POV proposal or the coin plan come first.
+
+## 2026-11-02 — Session 51: the big live board (the arena fed from the live feed)
+
+Owner feedback read: the answers to render session 50 keep all 6 calls, approve the spectator point of
+view as proposed, and name this slice ("the big live board (the arena fed from the live feed) on Agent
+match and Watch live"); the point-of-view toggle "follows once the coin slot and the ratings-at-start
+field exist" (both exist since game session 69, so it is the next slice, with the first coin slice). No
+CRITICAL item in the render debt list. Not a hardening pass: the owner set the slice (the last render
+hardening pass was session 40; see quality-debt). Alternation: the last merged PR (#121) was the game
+lane's (session 69).
+
+**Built:**
+- **`site/liveFrames.ts`: the live feed as arena frames.** `LiveFrameBuilder` takes the feed's board before
+  the first move and each released step (the engine's move, its events, the public board after it) and
+  makes the same `Frame`s the arena draws a replay from, without the engine state: the public board gives
+  health, energy, counts and every unit's live numbers; the card registry (read-only) gives each card's
+  faction, rarity, printed stats, keywords, base armor and each tool's bonuses (tokens rebuilt the way the
+  engine builds them); the engine's events give the stack (`cast`/`attack` push, `attackRedirected`
+  retargets, `stackResolve` pops), Barrier, arm turns, who has attacked this turn, and statuses and
+  this-turn buffs with the duration their source card gives (left out, and listed, when the card doesn't
+  settle it; it never happened in the tests). Frame 0's opening event is rebuilt and checked against the
+  feed's `startLines`. Not invented: hands (card backs, the count only), the signature zone (the feed has
+  its name only), the deck's faction before a card shows (Neutral until then); a signature unit is drawn
+  as the Neutral Mythic every signature card is, with its live numbers.
+- **The arena's live mode** (`renderMatchHtml(replay, { live: true })`): SPECTATOR LIVE, a LIVE badge in
+  place of the seed; frames arrive from the website by `postMessage` (only from its parent frame) and the
+  page follows the newest move at its own pace; more than 3 behind it hurries (160 ms a move), more than
+  12 behind it skips to just before the newest and plays on. Pause or a step back: the badge says "LIVE ·
+  N behind", a tap goes live again. Joining mid-match starts at the newest move (scrub back for the rest);
+  joining before the first move plays Match Boot. Hands are card backs with "N cards, face down". The
+  boast is the record's: the record comes after the last move (the server records the match 8 s after
+  showing it), so live the result lands first and the boast plays when the record arrives; ENDED then.
+  The page carries every Mythic ward sheet and every faction ring (any may still arrive).
+- **The site host** (`siteHost.ts`): `POST /live-page/:matchId` reads the feed from 0 with the caller's
+  token, builds the frames and the page, keeps both under a random key (8 at most, 10 minutes after the
+  last read); `GET /live/<key>` serves it (framed by the site only, fetches nothing); `GET
+  /live-frames/<key>?from=N` reads only the moves released since its last read (one read at a time per
+  page), answers the frames from N on, and when the feed says the match has ended reads the record and
+  hands over its boast, checked against the last frame as a replay's is (a record that doesn't match shows
+  no boast, never a wrong one).
+- **The website** (`siteClient.ts`): "Watch on the arena" on Agent match's live panel and on every Watch
+  live card opens the live page full screen (the replay's overlay; Close, or Escape on the website, and
+  focus goes back to the button); it reads new frames every 3 s (15 s in a hidden tab) and hands them over.
+  `siteApi.ts`: `livePage`, `liveFrames`.
+- `wardDataFor` and `sigWardDataFor` take `{ all }` for the live page.
+
+**Tests (+21, render 823):** `render/test/liveFrames.test.ts` (17): eight real matches (every faction,
+random, aggressive and lookahead agents) played through `captureMatch` with the moves kept, replayed
+through the engine with the server's own timeline recorder, converted, and every frame compared with the
+captured one field by field: equal everywhere but hands (card backs, the right count), the signature zone
+(not drawn) and the faction before it shows; three more with signature cards (equal but a signature
+card's Barrier and its ability text); the matches exercise every tracked kind (redirects, Barrier
+absorbed, statuses, turn buffs, telegraphs, tools, evolutions, tokens); no duration left unsettled;
+frames never change once given; a step out of order is refused; the live page carries every sheet, a
+replay page is unchanged. `render/test/siteLiveArena.test.ts` (4): over the real owner API with the
+`LiveLadder` on a moved clock: the page starts at the moves released, the frames come a read at a time
+with no gap or repeat, the end hands over the record's boast, and the live frames equal, frame for frame,
+the replay the host rebuilds from the server's file (the public parts); refusals (no such match 404, an
+unknown key 404, wrong methods 405); a match recorded between two reads still ends on its last move (from
+the replay file), equal to the replay; the buttons are in the site.
+
+**Ran it:** `progress/render/evidence/site-check-s51.mjs` -> `site-check-s51.txt`: 28 browser checks with
+the real ladder at 4x in the demo, ALL PASS (stills `v2-s51-live-*.jpg`): Agent match's "Watch on the arena"
+opens Nova's live match full screen within a few moves of the newest; health, energy, hand counts and units
+are the server's at the move shown; hands are card backs; new moves play; pause says "LIVE · N behind" and a
+tap goes live; it keeps within 12 moves of live at 4x; the header's factions follow the board; ENDED, GAME
+OVER on the last of 120 moves (the replay file's 120), the record handed over is the replay's; Close;
+Watch live's cards each have the button, one opens that match, Escape closes it, focus back on its button;
+the live page's headers (framed by the site only, fetches nothing); no external requests, no page errors.
+`v2-s51-live-ended.jpg` (the record's boast, Void Collapse, playing over the final board after GAME OVER,
+the badge ENDED) is from an earlier run of the same check, before the header fix (its header still says
+"[NEUTRAL]"): in the final run that still timed out three times while the boast's canvas ran.
+Re-run on this branch: the CI browser check 61 ALL PASS; session 50's check (replays and the match pages)
+40 ALL PASS (its first run on this branch stopped at check 37 of 40: in the 720 px window the history's
+Replay button was "not visible" to the click for 30 s; the re-run passed; the same click never failed
+before, so it is in quality-debt as a flake to watch). Measured (software WebGL, headless): a live page on its own is 2.2 MB (a replay is about 2 MB)
+and answers in about 1 s; in a fresh site page three opens in a row from Watch live take 2-5 s each; in
+the check, after a whole live match was watched to its end in the same page, the second open took 28-34 s
+to parse (served in 35 ms). Not explained (quality-debt).
+
+**Found on the way (fixed):** **a match recorded between two reads lost its last moves on the arena** (the
+feed answers 404 once the match is recorded, and the moves released since the last read are gone from it;
+at 4x the check ended on move 117 of 120): the host now finishes the match from the replay file, replayed
+in the engine with the server's own timeline recorder (a test opens a page, reads nothing until the match
+is recorded, then gets every move, equal to the replay). The header kept the faction it had when the page
+was built ("[NEUTRAL]" beside a Cortex HUD): it follows the board now. At 8x in software WebGL the arena
+fell 27 moves behind (each step's effects take longer than the moves come out): the hurry and skip rules
+above. Live, a Mythic without a sheet that arrives later gets its fallback ward drawn as it arrives. The first check runs asked
+`/live-page` without a token (the owner API wants one on every route) and took a still while the boast's
+canvas ran (it retries now). **Found, not fixed (the game lane's):** the live feed's `events` include the
+engine's `draw` events, which name every card drawn, so the hands the public board leaves out can be
+rebuilt from the feed (notes item 3).
+
+**Not done (named):** the spectator point of view (approved; next); the coin flip (the first coin slice);
+the signature zone, the faction from the first move, and the boast before the result live (each needs a
+small addition from the game lane: notes); the Live match and Watch live widgets on Home keep the
+scoreboard (the arena opens from the pages).
+
+**Next render-lane slice:** the spectator point of view (approved: the "Watch as" switch on Watch live, the
+Watch live widget and the replay's top bar; the chosen player to the near side, the board flipped; default
+`defaultView`; remembered per match in the tab) together with the first coin slice (the flip in Match Boot,
+the Chrome Token, reduced motion and sound), on the coins and `defaultView` the game lane serves since
+session 69. Both pages (replay and live) take the same switch.

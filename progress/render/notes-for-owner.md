@@ -1131,3 +1131,34 @@ for its next session.)
 5. **No shared files changed** (no workflow, no root package files, no server or economy code). The site
    now also reads `server/src/ladder/ladderRunner.ts` (`replayDeckSpec`, the replay file's types) and, in the
    demo only, `server/src/ladder/liveLadder.ts`, read-only, as it already reads the owner API.
+
+## 2026-11-02 — Session 51 (the big live board)
+
+1. **Built: a live match on the full arena** ("Watch on the arena" on Agent match and Watch live). Calls are
+   in `progress/render/checkpoints.md` (newest entry). Try it with `npm run site-demo -w @ai-tcg/render --
+   --ladder --speed 4`.
+2. **For the game lane: four small additions to the live feed** (`GET /api/live/:id`, `server/src/ladder/
+   timeline.ts`'s `PublicSide`), each so the live arena draws what the replay draws. In order of value:
+   - **The signature card in `PublicSide.signature`**: the card itself (cardId, cost, attack, health,
+     keywords, rules text), `timesPlayed`, `inZone` and `nextCost`, as the engine's own SignatureZone has it
+     (it is public information in the engine). Today the feed sends its name and whether it was played, so
+     the live arena draws no signature zone, and a signature unit's Barrier (from its printed keyword) and
+     its ability's rules text in the feed are missing.
+   - **The deck's faction on each side** (`LiveSideView.faction`): the arena colours each side by it; until
+     a side plays a faction card it shows Neutral.
+   - **The boast on the live view once the last move is out** (the record's `boast`, or the loadout's boast
+     and close-win boast with the rule), so the live arena plays boast-then-result as replays do, instead of
+     result-then-boast about 8 s later.
+   - **The coin and `defaultView`** are already there (session 69); nothing more needed for the point of view.
+3. **Found: the live feed shows the hands it means to hide.** `PublicSide` sends hand counts only ("no hand or
+   deck contents"), but each step's `events` are the engine's whole log for that move, and its `draw` events
+   name the card drawn (`{ type: "draw", player, card }`). Anyone reading the feed can rebuild both hands.
+   The match is already decided in the engine when it is shown, so nobody can gain in the match from it;
+   it is a question of what spectators should see. **Your call:** (a) keep hands hidden live: the game lane
+   strips the card from `draw` events in the feed (the replay keeps them); or (b) show hands live, as the
+   replay does: the render can then draw them face up. The live arena draws card backs until you decide,
+   but its match feed (built from those same events) already says "draws Watchtower Relay" on each turn,
+   as replays do: with (a) that line becomes "draws a card" by itself, with no render change.
+4. **No shared files changed** (no workflow, no root package files, no server or economy code). The site
+   now also reads `server/src/ladder/timeline.ts` (the feed's types; the tests use its recorder), read-only.
+

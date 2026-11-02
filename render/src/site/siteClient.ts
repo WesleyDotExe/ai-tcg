@@ -1750,6 +1750,11 @@ function redrawPart(sel: string, html: string): void {
 }
 
 function drawLive(): void {
+  // Under a full-screen replay or live arena the live parts aren't seen, and
+  // each redraw beneath it costs the arena frames (render session 51: opened
+  // from Watch live, the arena took 28 s to start in software WebGL while the
+  // cards redrew every 3 s; 5 s from Agent match). Closing it redraws them.
+  if (state.replay) return;
   if (state.page === "match" && state.play) {
     redrawPart("#m-live", mLiveHtml(state.play));
     // The play-by-play follows its newest line.
@@ -1799,7 +1804,7 @@ function mLiveHtml(p: SitePlay): string {
   const names = { p1: m.p1.agentName, p2: m.p2.agentName };
   const lines = state.follow?.matchId === m.matchId ? state.follow.lines.slice(-60) : tidyLines(m.recentLines, names);
   const feed = lines.map((x) => `<li>${esc(x)}</li>`).join("");
-  return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${compactBoard(m, sb.mine)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
+  return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${compactBoard(m, sb.mine)}${arenaButton(m.matchId)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
 }
 
 function histHtml(): string {
@@ -1828,7 +1833,7 @@ function liveListHtml(): string {
     .map((m) => {
       const sb = scoreboardOf(m, me);
       const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
-      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : ""}${scoreboardHtml(sb)}${compactBoard(m, sb.mine)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol></section>`;
+      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : ""}${scoreboardHtml(sb)}${compactBoard(m, sb.mine)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
     })
     .join("");
 }
@@ -1859,6 +1864,67 @@ async function showLog(matchId: string): Promise<void> {
   } catch (err) {
     fail(err);
   }
+}
+
+/** The live match on the full arena (render session 51). */
+function arenaButton(matchId: string): string {
+  return `<button type="button" class="btn sm" id="arena-${esc(matchId)}" data-act="watch-arena" data-match="${esc(matchId)}">Watch on the arena</button>`;
+}
+
+/** The live arena's feeding: the page's key, how many frames it has, the poll. */
+let arenaLive: { key: string; have: number; poll: number; ended: boolean } | null = null;
+
+/** A live match full screen, on the arena (render session 51): the host
+ * builds the page from the live feed; this page reads the new frames every
+ * 3 s (15 s in a hidden tab) and hands them to the arena, which follows
+ * the newest move. When the match is recorded the host says so, with the
+ * record's boast; the arena plays it and shows ENDED. */
+async function openLiveArena(matchId: string, from: HTMLElement | null): Promise<void> {
+  if (!state.session || state.replay) return;
+  state.replay = matchId;
+  replayFrom = from;
+  const el = $("#replay");
+  el.innerHTML = `<div class="op-wait">Joining the match…</div><button type="button" class="rp-close" data-act="close-replay">Close</button>`;
+  el.hidden = false;
+  liquid?.refresh();
+  (el.querySelector(".rp-close") as HTMLElement).focus();
+  try {
+    const page = await api.livePage(state.session.token, matchId);
+    if (state.replay !== matchId) return;
+    arenaLive = { key: page.key, have: page.released + 1, poll: 0, ended: false };
+    replayFrame = document.createElement("iframe");
+    replayFrame.title = "Live match on the arena";
+    replayFrame.addEventListener("load", () => {
+      el.querySelector(".op-wait")?.remove();
+      replayFrame?.focus();
+      void feedArena();
+    }, { once: true });
+    replayFrame.src = page.url;
+    el.insertBefore(replayFrame, el.firstChild);
+  } catch (err) {
+    closeReplay();
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    // 404: the match ended between the list and the tap.
+    if (err instanceof SiteApiError && err.status === 404) return toast("That match has just ended: its replay is in the match history.");
+    fail(err);
+  }
+}
+
+async function feedArena(): Promise<void> {
+  const live = arenaLive;
+  if (!live || !state.session || !replayFrame) return;
+  clearTimeout(live.poll);
+  try {
+    const r = await api.liveFrames(state.session.token, live.key, live.have);
+    if (arenaLive !== live || !replayFrame?.contentWindow) return;
+    live.have += r.frames.length;
+    live.ended = r.ended;
+    if (r.frames.length || r.ended) replayFrame.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record }, location.origin);
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    if (err instanceof SiteApiError && err.status === 404) return; // the page expired: Close and open it again
+  }
+  if (arenaLive === live && !live.ended) live.poll = window.setTimeout(() => void feedArena(), document.hidden ? 15000 : 3000);
 }
 
 /** A replay full screen: the host rebuilds the match from the server's
@@ -1900,10 +1966,14 @@ function closeReplay(): void {
   el.innerHTML = "";
   replayFrame = null;
   state.replay = null;
+  if (arenaLive) clearTimeout(arenaLive.poll);
+  arenaLive = null;
   liquid?.refresh();
+  drawLive();
   // The row may have been redrawn while the replay played: its twin.
   const id = replayFrom?.dataset.match;
-  const back = replayFrom && replayFrom.isConnected ? replayFrom : id ? document.querySelector<HTMLElement>(`#page [data-act="replay"][data-match="${CSS.escape(id)}"]`) : null;
+  const act = replayFrom?.dataset.act ?? "replay";
+  const back = replayFrom && replayFrom.isConnected ? replayFrom : id ? document.querySelector<HTMLElement>(`#page [data-act="${CSS.escape(act)}"][data-match="${CSS.escape(id)}"]`) : null;
   back?.focus();
   replayFrom = null;
 }
@@ -1988,6 +2058,7 @@ document.addEventListener("click", (e) => {
     if (act === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
     if (act === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
     if (act === "replay" && actEl.dataset.match) return void openReplay(actEl.dataset.match, actEl);
+    if (act === "watch-arena" && actEl.dataset.match) return void openLiveArena(actEl.dataset.match, actEl);
     if (act === "close-replay") return closeReplay();
     if (act === "match-log" && actEl.dataset.match) return void showLog(actEl.dataset.match);
     if (act === "more-hist") return void loadHistory(false);

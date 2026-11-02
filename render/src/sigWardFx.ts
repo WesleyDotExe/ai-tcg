@@ -535,10 +535,17 @@ export function signatureFires(replay: MatchReplay, table = signatureTable()): R
 
 /** The page's #sigward-data block: the signature table, plus a faction's
  * ring sheet only when one of its signature wards plays in this replay. */
-export function sigWardDataFor(replay: MatchReplay): { table: Record<string, Record<string, true>>; atlases: Record<string, string> } {
+export function sigWardDataFor(replay: MatchReplay, opts: { all?: boolean } = {}): { table: Record<string, Record<string, true>>; atlases: Record<string, string> } {
   const table = signatureTable();
   const fires = signatureFires(replay, table);
   const atlases: Record<string, string> = {};
+  // A live match (render session 51): any faction's ring may still fire.
+  if (opts.all) {
+    for (const [faction, file] of Object.entries(SIG_WARD_FACTIONS as Record<string, string>)) {
+      atlases[faction] = `data:image/webp;base64,${readFileSync(resolve(RENDER_DIR, "assets/wards/faction", `${file}.webp`)).toString("base64")}`;
+    }
+    return { table, atlases };
+  }
   for (const list of Object.values(fires)) for (const f of list) {
     if (!f.ward || !f.faction || atlases[f.faction]) continue;
     // A Mythic with its own ward flares that ward instead.

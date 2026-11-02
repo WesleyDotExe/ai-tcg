@@ -21,29 +21,37 @@ import { MATCH_BOOT_CSS, MATCH_BOOT_PURE_SOURCE, MATCH_BOOT_RUNTIME_SOURCE } fro
  * all interactivity is one inline <script>, vanilla DOM, no framework —
  * matching the project's own zero-dependency instinct (see agents/'s own
  * package.json comment) for something this self-contained. */
-export function renderMatchHtml(replay: MatchReplay): string {
+export interface MatchPageOptions {
+  /** A live match (render session 51, the big live board): the page starts
+   * with the moves released so far and takes the rest from the page that
+   * frames it (the website), following the newest move as it comes. */
+  live?: boolean;
+}
+
+export function renderMatchHtml(replay: MatchReplay, opts: MatchPageOptions = {}): string {
+  const live = opts.live === true;
   const dataJson = JSON.stringify(replay).replace(/</g, "\\u003c");
   // EFFECTS.md v2 sprite atlases, embedded so the page stays self-contained.
   const atlasJson = JSON.stringify(fxAtlasDataUris());
   // Slice 6: Mythic ward sheets, only for the Mythics this match puts on the board.
-  const wardJson = JSON.stringify(wardDataFor(replay)).replace(/</g, "\\u003c");
+  const wardJson = JSON.stringify(wardDataFor(replay, { all: live })).replace(/</g, "\\u003c");
   // Slice 5: the signature table, and faction ring sheets only for the
   // factions whose signature ward plays in this match.
-  const sigWardJson = JSON.stringify(sigWardDataFor(replay)).replace(/</g, "\\u003c");
+  const sigWardJson = JSON.stringify(sigWardDataFor(replay, { all: live })).replace(/</g, "\\u003c");
   return `<!doctype html>
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(replay.title)} — AI-TCG replay</title>
+<title>${escapeHtml(replay.title)} — AI-TCG ${live ? "live" : "replay"}</title>
 <style>${CSS}</style>
 </head>
 <body>
 <div class="crt-overlay" aria-hidden="true"></div>
 <header class="matchbar">
-  <div class="brand">AI·TCG // SPECTATOR REPLAY</div>
+  <div class="brand">AI·TCG // ${live ? "SPECTATOR LIVE" : "SPECTATOR REPLAY"}</div>
   <div class="matchup" id="matchup"></div>
-  <div class="seed">seed ${replay.seed}</div>
+  ${live ? `<button type="button" class="live-badge" id="btn-live" title="Follow the newest move">LIVE</button>` : `<div class="seed">seed ${replay.seed}</div>`}
 </header>
 
 <main id="app">
@@ -103,6 +111,7 @@ export function renderMatchHtml(replay: MatchReplay): string {
 </main>
 
 <script type="application/json" id="match-data">${dataJson}</script>
+<script type="application/json" id="live-data">${live ? "true" : "false"}</script>
 <script type="application/json" id="fx-atlases">${atlasJson}</script>
 <script type="application/json" id="ward-data">${wardJson}</script>
 <script type="application/json" id="sigward-data">${sigWardJson}</script>
@@ -379,6 +388,16 @@ html, body {
 .hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }
 .hand .minicard { font-size: 0.62rem; padding: 3px 6px; border-radius: 3px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); }
 .hand .minicard b { color: var(--fc, var(--ink)); }
+.hand .minicard.back { width: 20px; height: 28px; padding: 0; border-color: var(--line); background: repeating-linear-gradient(135deg, var(--panel-2) 0 4px, var(--panel) 4px 8px); box-shadow: inset 0 0 0 2px var(--panel); }
+.hand-count { font-size: 0.6rem; color: var(--ink-dim); align-self: center; margin-left: 4px; }
+.live-badge { font: inherit; font-size: 0.7rem; letter-spacing: 0.14em; padding: 3px 10px; border-radius: 4px; border: 1px solid #ff4d6d; color: #ff4d6d; background: transparent; cursor: pointer; }
+.live-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
+.live-badge.on::before { animation: live-dot 1.4s ease-in-out infinite; }
+.live-badge.behind { color: var(--ink-dim); border-color: var(--line); }
+.live-badge.ended { color: var(--ink-dim); border-color: var(--line); cursor: default; }
+.live-badge.ended::before { display: none; }
+@keyframes live-dot { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .live-badge.on::before { animation: none; } }
 .hand-label { width: 100%; font-size: 0.6rem; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 2px; }
 
 .eventlog { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 0.72rem; max-height: 260px; display: flex; flex-direction: column; min-width: 0; }
@@ -789,6 +808,16 @@ const JS = `
 (function () {
   const replay = JSON.parse(document.getElementById('match-data').textContent);
   const frames = replay.frames;
+  // A live match (render session 51): frames arrive from the website
+  // (postMessage, 'ai-tcg-live'); the page follows the newest one until
+  // the viewer pauses or steps back. liveEnded: the server has recorded
+  // the match, nothing more comes.
+  const LIVE = JSON.parse(document.getElementById('live-data').textContent || 'false') === true;
+  let following = LIVE, waiting = false, liveEnded = false;
+  // Following live: more than LIVE_CATCH_UP moves behind, the page steps at
+  // LIVE_CATCH_UP_MS; more than LIVE_JUMP behind, it jumps to just before
+  // the newest and plays on from there.
+  const LIVE_CATCH_UP = 3, LIVE_CATCH_UP_MS = 160, LIVE_JUMP = 12;
   let i = 0;
   let playing = false;
   let timer = null;
@@ -813,10 +842,13 @@ const JS = `
     return '<b class="fp faction-' + replay.factions[pid] + '" style="color:var(--fc)">' + escapeHtml(pname(pid)) + '</b>';
   }
 
-  document.getElementById('matchup').innerHTML =
-    '<span class="faction-' + replay.factions.p1 + '" style="color:var(--fc)">' + avatarHtml('p1') + escapeHtml(replay.identities.p1.username) + ' [' + replay.factions.p1 + ']</span>' +
-    '<span class="vs">vs</span>' +
-    '<span class="faction-' + replay.factions.p2 + '" style="color:var(--fc)">' + avatarHtml('p2') + escapeHtml(replay.identities.p2.username) + ' [' + replay.factions.p2 + ']</span>';
+  function renderMatchup() {
+    document.getElementById('matchup').innerHTML =
+      '<span class="faction-' + replay.factions.p1 + '" style="color:var(--fc)">' + avatarHtml('p1') + escapeHtml(replay.identities.p1.username) + ' [' + replay.factions.p1 + ']</span>' +
+      '<span class="vs">vs</span>' +
+      '<span class="faction-' + replay.factions.p2 + '" style="color:var(--fc)">' + avatarHtml('p2') + escapeHtml(replay.identities.p2.username) + ' [' + replay.factions.p2 + ']</span>';
+  }
+  renderMatchup();
 
   const scrubber = document.getElementById('scrubber');
   scrubber.max = String(frames.length - 1);
@@ -994,8 +1026,8 @@ ${BOARD_FIT_SOURCE}
   // The signature zone (render/src/sigZoneFx.ts, embedded verbatim).
 ${SIG_ZONE_SOURCE}
   const ENERGY_CAP = replay.energyCap || 10;
-  const SIG_FIRES = signatureFires(frames, (JSON.parse(document.getElementById('sigward-data').textContent || '{}').table) || {}, replay.cardFactions, replay.cardRarities || {});
-  const SIG_GUARDS = signatureGuards(frames, SIG_FIRES);
+  let SIG_FIRES = signatureFires(frames, (JSON.parse(document.getElementById('sigward-data').textContent || '{}').table) || {}, replay.cardFactions, replay.cardRarities || {});
+  let SIG_GUARDS = signatureGuards(frames, SIG_FIRES);
 
   const TIER_RANK = { subtle: 0, normal: 1, spectacle: 2 };
   function maxTierOf(tiers) { return tiers.reduce(function (m, t) { return TIER_RANK[t] > TIER_RANK[m] ? t : m; }, 'subtle'); }
@@ -1141,6 +1173,16 @@ ${SIG_ZONE_SOURCE}
   function renderHand(elId, snapshot, label) {
     const el = document.getElementById(elId);
     el.innerHTML = '<div class="hand-label">' + label + '</div>';
+    // A live match's hand is the count only (the public feed): card backs.
+    const hidden = snapshot.hand.filter(function (c) { return c.hidden; }).length;
+    if (hidden) {
+      snapshot.hand.forEach(function () { const b = document.createElement('div'); b.className = 'minicard back'; b.setAttribute('aria-hidden', 'true'); el.appendChild(b); });
+      const n = document.createElement('span');
+      n.className = 'hand-count';
+      n.textContent = hidden + (hidden === 1 ? ' card' : ' cards') + ', face down';
+      el.appendChild(n);
+      return;
+    }
     snapshot.hand.forEach(function (c) {
       const chip = document.createElement('div');
       chip.className = 'minicard faction-' + c.faction;
@@ -2344,6 +2386,9 @@ ${SIG_ZONE_SOURCE}
   function boastOf(frame) {
     if (!frame.winner || frame.winner === 'draw') return null;
     if (!boastCosmeticsShown(null, frame.winner, cosmeticsOn)) return null;
+    // Live, the boast is the record's, and the record comes after the last
+    // move: the result lands first, the boast plays when the record does.
+    if (LIVE && !replay.record) return null;
     return boastFromRecord(replay.record ? replay.record.boast : null, frame.winner, frame.players[frame.winner].faction);
   }
   function endBoast() {
@@ -2403,10 +2448,11 @@ ${SIG_ZONE_SOURCE}
       renderFrame();
       lastTransitionTier = 'normal'; // a jump has no "in between" to weigh, so pacing falls back to normal
     }
-    if (i === frames.length - 1) stop();
+    if (i === frames.length - 1 && !(LIVE && following && !liveEnded)) stop();
+    showLive();
   }
 
-  function stop() { playing = false; clearTimeout(timer); BOOT.cancel(); document.getElementById('btn-play').textContent = '\\u25B6'; }
+  function stop() { playing = false; following = false; waiting = false; clearTimeout(timer); BOOT.cancel(); document.getElementById('btn-play').textContent = '\\u25B6'; showLive(); }
 
   // Adaptive pacing (owner feedback 2026-09-25, item 4): a fixed-interval
   // timer gives a lethal blow and a 1-damage ping the same amount of screen
@@ -2423,18 +2469,28 @@ ${SIG_ZONE_SOURCE}
 
   function scheduleTick() {
     const speed = Number(document.getElementById('speed').value);
+    let delay = nextDelay(speed);
+    // Live and more than a few moves behind the newest (a burst of passes,
+    // or a tab that was hidden): catch up at a quick step until close again.
+    if (LIVE && following && frames.length - 1 - i > LIVE_CATCH_UP) delay = Math.min(delay, LIVE_CATCH_UP_MS);
     timer = setTimeout(function () {
-      if (i >= frames.length - 1) { stop(); return; }
+      if (i >= frames.length - 1) {
+        // Live and following: wait at the newest move for the next one.
+        if (LIVE && following && !liveEnded) { waiting = true; return; }
+        stop(); return;
+      }
       goTo(i + 1);
       if (playing) scheduleTick();
-    }, nextDelay(speed));
+    }, delay);
   }
 
   function play() {
     // Play at the end replays from the first move (shown first, so the
     // first step animates from move 0's board, not the last one's).
-    if (i >= frames.length - 1) goTo(0);
+    if (i >= frames.length - 1 && !(LIVE && !liveEnded)) goTo(0);
     playing = true;
+    following = LIVE && !liveEnded;
+    showLive();
     lastTransitionTier = 'normal';
     document.getElementById('btn-play').textContent = '\\u23F8';
     clearTimeout(timer);
@@ -2468,6 +2524,66 @@ ${SIG_ZONE_SOURCE}
   document.getElementById('btn-prev').onclick = function () { stop(); goTo(i - 1); };
   document.getElementById('btn-next').onclick = function () { stop(); goTo(i + 1); };
   document.getElementById('btn-last').onclick = function () { stop(); goTo(frames.length - 1); };
+
+  // ---- the live match (render session 51) ----------------------------------
+  // The badge says LIVE while the page follows the newest move, how far
+  // behind it is when the viewer paused or stepped back (a tap goes back to
+  // live), and ENDED once the match is recorded.
+  function showLive() {
+    if (!LIVE) return;
+    const b = document.getElementById('btn-live');
+    const behind = frames.length - 1 - i;
+    b.className = 'live-badge ' + (liveEnded ? 'ended' : following ? 'on' : 'behind');
+    b.textContent = liveEnded ? 'ENDED' : following ? 'LIVE' : 'LIVE \\u00b7 ' + behind + ' behind';
+    b.disabled = liveEnded;
+    b.setAttribute('aria-label', liveEnded ? 'The match has ended' : following ? 'Live: following the newest move' : behind + ' moves behind live. Go live');
+  }
+  function goLive() {
+    if (!LIVE || liveEnded) return;
+    stop();
+    goTo(frames.length - 1);
+    play();
+  }
+  if (LIVE) {
+    document.getElementById('btn-live').onclick = goLive;
+    window.addEventListener('message', function (e) {
+      if (e.source !== window.parent || !e.data || e.data.type !== 'ai-tcg-live') return;
+      const d = e.data;
+      let added = 0;
+      (Array.isArray(d.frames) ? d.frames : []).forEach(function (f) {
+        if (f && f.index === frames.length) { frames.push(f); added++; }
+      });
+      if (added) {
+        scrubber.max = String(frames.length - 1);
+        // A Mythic with no sheet that just arrived: its ward drawn now, not mid-move.
+        WARDS.prepare(fallbackWardsNeeded(frames.slice(-added), (JSON.parse(document.getElementById('ward-data').textContent || '{}').atlases) || {}));
+        SIG_FIRES = signatureFires(frames, (JSON.parse(document.getElementById('sigward-data').textContent || '{}').table) || {}, replay.cardFactions, replay.cardRarities || {});
+        SIG_GUARDS = signatureGuards(frames, SIG_FIRES);
+        replay.movesPlayed = frames.length - 1;
+        // A side's faction shows once it plays a faction card (liveFrames.ts): the header follows.
+        const lastF = frames[frames.length - 1];
+        if (lastF.players.p1.faction !== replay.factions.p1 || lastF.players.p2.faction !== replay.factions.p2) {
+          replay.factions = { p1: lastF.players.p1.faction, p2: lastF.players.p2.faction };
+          renderMatchup();
+        }
+        document.getElementById('framecount').textContent = 'move ' + i + ' / ' + (frames.length - 1);
+      }
+      if (d.ended) liveEnded = true;
+      if (d.record && !replay.record) {
+        replay.record = d.record;
+        // At the end already: the winner's boast plays now, over the final board.
+        if (i === frames.length - 1 && frames[i].winner && !boastHold && !BOAST.active()) startBoast();
+      }
+      if (following && playing && frames.length - 1 - i > LIVE_JUMP) {
+        clearTimeout(timer);
+        goTo(frames.length - 2);
+        waiting = true;
+      }
+      if (waiting && playing && added) { waiting = false; scheduleTick(); }
+      else if (liveEnded && waiting) { waiting = false; stop(); }
+      showLive();
+    });
+  }
   document.getElementById('btn-play').onclick = function () { playing ? stop() : play(); };
   // Sound (EFFECTS.md v2 slice 3, render/src/soundFx.ts) is on by default
   // (owner 2026-10-07): armed at load, started by the viewer's first click
@@ -2492,5 +2608,10 @@ ${SIG_ZONE_SOURCE}
 
   fitBoards();
   renderFrame();
+  if (LIVE) {
+    // Joining mid-match starts at the newest move; from the first, Match Boot plays.
+    if (frames.length > 1) goTo(frames.length - 1);
+    play();
+  }
 })();
 `;
