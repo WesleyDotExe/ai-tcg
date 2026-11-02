@@ -357,6 +357,15 @@ export interface SiteApi {
    * with the caller's token, rebuilds it in the engine and answers where
    * the full arena page is served. */
   replayPage(token: string, matchId: string): Promise<{ url: string; moves: number; turns: number }>;
+  /** The site host's live arena page (render session 51, `POST
+   * /live-page/:matchId`): the host reads the live feed from the first move
+   * and answers where the page is served, and its key for the frames. */
+  livePage(token: string, matchId: string): Promise<{ url: string; key: string; released: number }>;
+  /** `GET /live-frames/<key>?from=N`: the arena frames from N on (the host
+   * reads only the moves released since its last read); `ended` once the
+   * match is recorded, with the record's boast for the arena (`record`, or
+   * null when there is none to show). */
+  liveFrames(token: string, key: string, from: number): Promise<{ frames: unknown[]; released: number; ended: boolean; record: unknown }>;
 }
 
 /** Salvage's refusal when it would leave saved decks short (409): the
@@ -464,5 +473,7 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     match: (token, matchId) => call("GET", `/api/matches/${encodeURIComponent(matchId)}`, { token }),
     matchLog: (token, matchId) => text("GET", `/api/matches/${encodeURIComponent(matchId)}/log`, token),
     replayPage: (token, matchId) => call("POST", `/replay-page/${encodeURIComponent(matchId)}`, { token }),
+    livePage: (token, matchId) => call("POST", `/live-page/${encodeURIComponent(matchId)}`, { token }),
+    liveFrames: (token, key, from) => call("GET", `/live-frames/${encodeURIComponent(key)}?from=${from}`, { token }),
   };
 }

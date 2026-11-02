@@ -511,10 +511,12 @@ export function mythicsInReplay(replay: MatchReplay, specs: Record<string, Mythi
 }
 
 /** The page's #ward-data block: specs for every ward Mythic, sheets only for the ones in this replay. */
-export function wardDataFor(replay: MatchReplay): { specs: Record<string, MythicSpec>; atlases: Record<string, string> } {
+export function wardDataFor(replay: MatchReplay, opts: { all?: boolean } = {}): { specs: Record<string, MythicSpec>; atlases: Record<string, string> } {
   const specs = mythicSpecs();
   const atlases: Record<string, string> = {};
-  for (const name of mythicsInReplay(replay, specs)) {
+  // A live match (render session 51) can still put any ward Mythic on the
+  // board, so its page carries every sheet.
+  for (const name of opts.all ? Object.keys(specs).sort() : mythicsInReplay(replay, specs)) {
     const file = specs[name]!.ward;
     if (!file) continue;
     atlases[name] = `data:image/webp;base64,${readFileSync(resolve(REPO_DIR, file)).toString("base64")}`;
