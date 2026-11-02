@@ -4096,3 +4096,16 @@ Queue them with the 2× vote, featured picks and viewer counts, written into `se
 ### Hands in live matches: show them (option (b))
 - **Spectators see both hands live, face up, as replays do.** The draw events keep naming the card. The render lane draws live hands face up, rebuilding them from the feed, or asks the game lane for the hand contents in the live view if that is simpler (a small ask in its notes).
 - **Safety rule:** for any match where a seat is a network agent playing in real time (not a match the engine has already decided before it is shown), hands stay hidden in the live feed (counts only, no card in draw events) until the match ends. The game lane builds this rule when network agents join the ladder; until then every ladder match is decided before it is shown, so hands are shown.
+
+---
+
+## 2026-11-03 — Owner: answers to game session 70 (versioned replays), keep all 5; a storage note for later
+
+Answers the five calls in `progress/notes-for-owner.md` (PR #123, `progress/replay-versions-001.txt`).
+1. **Keep:** a replay carries every card it uses, in full (`ai-tcg-replay/2`, with `rules` and `cards` versions), and plays its own cards and rules. **Note for later, not now:** at about 25 KB a match, the live ladder's pace adds up to a few hundred MB a month on the Mac mini. That is fine for Season 0. Revisit it with the storage gate before the public launch: a shared card table per card version (or compressing replays) is the option to measure then. Add this to the storage item in `progress/quality-debt.md`.
+2. **Keep:** old `/1` replays read the frozen `cards-1` copy under `rules-1`.
+3. **Keep:** a card change fails a test until it gets a new card version in `CARDS_VERSIONS`.
+4. **Keep:** a replay on unpublished cards names no card version (`cards: null`) but carries and plays its cards (tests and tools only).
+5. **Keep:** the small change in the render lane's replay reader (both formats through the server's reader; the file's rules passed through).
+
+Next game session, as planned: 71, the 24-health rule as `rules-2`, with new ring baselines, a new built-deck ring and the live ladder's watch length re-checked; the shipped numbers to the owner before the launch-gate re-run. Then the queued small asks in order: the 2× vote, featured picks (the "Top rated" rule to a check-in), viewer counts, and the three live-feed asks from render 51.
