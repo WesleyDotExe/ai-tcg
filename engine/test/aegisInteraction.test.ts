@@ -11,7 +11,6 @@ import { effectiveCardCost } from "../src/state/queries.js";
 import { applyMove } from "../src/engine/engine.js";
 import { getLegalMoves } from "../src/engine/moves.js";
 import { applyDamage } from "../src/effects/resolver.js";
-import { STARTING_HEALTH } from "../src/state/init.js";
 import { aegisSentinel, aegisWarden, aegisCadet, interceptRoutine, tariffField, feedbackPlating } from "../src/data/aegisCards.js";
 import { emptyState, putUnit, drainStack } from "./helpers.js";
 
@@ -36,7 +35,7 @@ test("Intercept Routine redirects a pending attack away from the player, onto a 
   drainStack(state, rng); // Intercept Routine is a Command — it resolves off the stack, not immediately
 
   expect(state.log.some((e) => e.type === "attackRedirected"), "the redirect should be logged, real evidence, not just an inferred effect").toBe(true);
-  expect(state.players.p2.health, "the original target (p2's face) must take zero damage — it was redirected away").toBe(STARTING_HEALTH);
+  expect(state.players.p2.health, "the original target (p2's face) must take zero damage — it was redirected away").toBe(state.players.p2.maxHealth);
   expect(guardian.damageTaken, "the new target should take the attacker's full power instead").toBe(3);
   // Unit-vs-unit combat is mutual (see engine.ts's resolveCombatDamage) —
   // stepping in front of an attack means the interceptor fights back too,

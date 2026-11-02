@@ -465,7 +465,7 @@ MatchView {
 {
   format: "ai-tcg-replay/2",     // (session 70) versioned; files written before answer "ai-tcg-replay/1"
   versions: {
-    rules: "rules-1",            // the rules version it was played under (engine RULES_VERSIONS)
+    rules: "rules-2",            // the rules version it was played under (engine RULES_VERSIONS); "measure" only for a measuring tool's variant
     cards: "cards-1" | null,     // the published card version the game was on; null if a deck card wasn't that version's
     cardsDigest                  // the hash of `cards` below, so a reader can check them
   },
@@ -481,6 +481,8 @@ ReplayDeck { name, cardIds: string[] /* one per copy, in list order */, signatur
 ```
 
 **Versions** (owner 2026-11-02 call 6: "replays carry the card and rule versions they were played under, old ones stay rebuildable"). An `/2` file is self-contained: it plays its own `cards` and its own rules version, never today's registry, so a card rebalanced in a later set or a new rule can't change an old match. An `/1` file (sessions 67-69) names card ids only: those ids mean the frozen `cards-1` (`engine/src/data/cardSnapshots/cards1.ts`, the cards as they stood for every `/1` file) and the rules `rules-1`. A file naming a rules version the engine doesn't know, cards that don't match their digest, or another format is refused with the reason, never guessed at. The versions themselves live in `engine/src/engine/versions.ts`: a card change needs a new `CARDS_VERSIONS` entry (a test fails until it has one), and a change to how matches play needs a new `RULES_VERSIONS` entry with the old behaviour kept for the old version.
+
+**Rules versions so far.** `rules-1`: "Both players start with 20 health. The player going first skips its first draw." Every match up to session 70, so every `/1` file and the `/2` files written before session 71. `rules-2` (session 71, owner 2026-11-02): "The player going second starts with 24 health; the player going first starts with 20 and skips its first draw." Every match from session 71. Each version's rules are written out in full in the engine (`rules-1` is `{ secondSeatExtraHealth: 0 }`), so an old file keeps playing 20 and 20 now that the engine's default is 24 for the second seat. The second seat is always `p2`, so a page drawing health should read `maxHealth` from the state (the live view and the replay both send it), not assume 20.
 
 The engine rebuilds the match exactly from either format: `rebuildReplay(file, hooks?)` (`server/src/ladder/replayFile.ts`) reads it (`replaySetup`: the decks, names, seed, moves and rules) and replays it with the engine's `replayMatch`, giving every state and log event, and checks it ends as `result` says (winner, turns, moves, final health). Golden replays of both formats (`server/test/fixtures/replays/`, real files the ladder wrote) are rebuilt byte for byte by the tests, also against a registry where every unit has changed. A match that ended before a move (a seat never seated) has neither file; an abandoned one has a log but no replay (only a match that resolved has one). Logs and replays live in the ladder's match directory, not the database.
 

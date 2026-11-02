@@ -15,8 +15,10 @@ import {
   CURRENT_RULES_VERSION,
   formatLog,
   LookaheadAgent,
+  rulesOfVersion,
   runMatch,
   type Card,
+  type MatchRules,
 } from "@ai-tcg/engine";
 import { makeReplayFile, rebuildReplay, replaySetup, type ReplayFile, type ReplayFileV2 } from "../src/ladder/replayFile.js";
 
@@ -27,8 +29,12 @@ const golden = readdirSync(DIR)
   .map((f) => ({ name: f.replace(".replay.json", ""), file: JSON.parse(readFileSync(join(DIR, f), "utf8")) as ReplayFile, log: readFileSync(join(DIR, f.replace(".replay.json", ".txt")), "utf8") }));
 
 describe("the golden replays", () => {
-  it("are both formats, two of each", () => {
-    expect(golden.map((g) => `${g.name}:${g.file.format}`)).toEqual(["v1-1:ai-tcg-replay/1", "v1-2:ai-tcg-replay/1", "v2-1:ai-tcg-replay/2", "v2-2:ai-tcg-replay/2"]);
+  // The rules version each golden file was played under: v1 and v2 before
+  // session 71 (both on 20), r2 from session 71 (the second seat on 24).
+  const playedUnder = (name: string) => (name.startsWith("r2-") ? "rules-2" : "rules-1");
+
+  it("are both formats and both rules versions, two of each", () => {
+    expect(golden.map((g) => `${g.name}:${g.file.format}`)).toEqual(["r2-1:ai-tcg-replay/2", "r2-2:ai-tcg-replay/2", "v1-1:ai-tcg-replay/1", "v1-2:ai-tcg-replay/1", "v2-1:ai-tcg-replay/2", "v2-2:ai-tcg-replay/2"]);
   });
 
   it.each(golden.map((g) => [g.name, g] as const))("%s rebuilds the log the ladder wrote, byte for byte, and ends as recorded", (_name, g) => {
@@ -38,7 +44,8 @@ describe("the golden replays", () => {
     const { state, movesPlayed, setup } = rebuildReplay(g.file);
     expect(`${formatLog(state.log)}\n`).toBe(g.log);
     expect(movesPlayed).toBe(g.file.moves.length);
-    expect(setup.rulesVersion).toBe("rules-1");
+    expect(setup.rulesVersion).toBe(playedUnder(g.name));
+    expect(state.players.p2.maxHealth).toBe(playedUnder(g.name) === "rules-2" ? 24 : 20);
     expect(setup.cardsVersion).toBe("cards-1");
   });
 
@@ -47,13 +54,13 @@ describe("the golden replays", () => {
     expect("cards" in g.file).toBe(false);
     const setup = replaySetup(g.file);
     for (const c of [...setup.decks.p1.cards, ...setup.decks.p2.cards]) expect(c).toEqual(CARDS_1_BY_ID.get(c.id));
-    expect(setup.rules).toBeUndefined();
+    expect(setup.rules).toEqual({ secondSeatExtraHealth: 0 }); // rules-1, both on 20, named explicitly
   });
 
   it("an /2 file stamps the versions and carries every deck card in full", () => {
     for (const g of golden.filter((x) => x.file.format === "ai-tcg-replay/2")) {
       const f = g.file as ReplayFileV2;
-      expect(f.versions.rules).toBe("rules-1");
+      expect(f.versions.rules).toBe(playedUnder(g.name));
       expect(f.versions.cards).toBe("cards-1");
       expect(f.versions.cardsDigest).toBe(cardSetDigest(f.cards));
       const ids = new Set([...f.decks.p1.cardIds, ...f.decks.p2.cardIds]);
@@ -96,9 +103,8 @@ describe("a replay plays its own cards and rules", () => {
     expect(() => rebuildReplay({ ...v2, moves: v2.moves.slice(0, -2) })).toThrow(/doesn't rebuild as recorded/);
   });
 
-  it("a measuring instrument's seat variant travels in the file and plays back", async () => {
+  const playAndWrite = async (rules?: MatchRules) => {
     const decks = { p1: buildCortexDeck("p1", "Cortex"), p2: buildSwarmDeck("p2", "Swarm") };
-    const rules = { secondSeatExtraHealth: 4 };
     const moves: unknown[] = [];
     const { state, movesPlayed } = await runMatch(decks.p1, decks.p2, new LookaheadAgent("A", 1), new LookaheadAgent("B", 2), 5, { onMove: (_s, m) => moves.push(m) }, rules);
     const file = makeReplayFile(
@@ -112,13 +118,46 @@ describe("a replay plays its own cards and rules", () => {
       decks,
       rules,
     );
+    return { state, file };
+  };
+
+  it("a match the game plays today names rules-2 and rebuilds with the second seat on 24", async () => {
+    const { state, file } = await playAndWrite();
+    expect(file.versions.rules).toBe("rules-2");
+    expect("rules" in file).toBe(false);
+    const back = rebuildReplay(JSON.parse(JSON.stringify(file)));
+    expect([back.state.players.p1.maxHealth, back.state.players.p2.maxHealth]).toEqual([20, 24]);
+    expect(formatLog(back.state.log)).toBe(formatLog(state.log));
+  });
+
+  it("a match played under rules-1 names rules-1 (not \"measure\") and rebuilds on 20 and 20", async () => {
+    const { state, file } = await playAndWrite(rulesOfVersion("rules-1"));
+    expect(file.versions.rules).toBe("rules-1");
+    expect("rules" in file).toBe(false);
+    const back = rebuildReplay(JSON.parse(JSON.stringify(file)));
+    expect(back.state.players.p2.maxHealth).toBe(20);
+    expect(formatLog(back.state.log)).toBe(formatLog(state.log));
+    // The same moves under today's rules are not the same match.
+    expect(() => rebuildReplay({ ...file, versions: { ...file.versions, rules: CURRENT_RULES_VERSION } })).toThrow();
+  });
+
+  it("a measuring instrument's seat variant travels in the file, every field named, and plays back", async () => {
+    const rules = { secondSeatExtraHealth: 2 };
+    const { state, file } = await playAndWrite(rules);
     expect(file.versions.rules).toBe("measure");
     expect(file.rules).toEqual(rules);
     const back = rebuildReplay(JSON.parse(JSON.stringify(file)));
-    expect(back.state.players.p2.maxHealth).toBe(24);
+    expect(back.state.players.p2.maxHealth).toBe(22);
     expect(formatLog(back.state.log)).toBe(formatLog(state.log));
     // Without the variant the same moves are not the same match.
     expect(() => rebuildReplay({ ...file, versions: { ...file.versions, rules: CURRENT_RULES_VERSION }, rules: undefined })).toThrow();
+  });
+
+  it("refuses a measuring file that leaves a field out or names a variant the engine dropped, never guessing", async () => {
+    const { file } = await playAndWrite({ secondSeatExtraHealth: 2 });
+    expect(() => replaySetup({ ...file, rules: {} })).toThrow(/leaves out secondSeatExtraHealth/);
+    expect(() => replaySetup({ ...file, rules: undefined })).toThrow(/without its seat rules/);
+    expect(() => replaySetup({ ...file, rules: { secondSeatExtraHealth: 0, secondSeatFirstTurnEnergy: 1 } as MatchRules })).toThrow(/no longer plays: secondSeatFirstTurnEnergy/);
   });
 
   it("a deck card that isn't the published version's is still written (its own definition), with no card version", () => {

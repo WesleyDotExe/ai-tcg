@@ -534,9 +534,6 @@ export function beginTurn(state: GameState, pid: PlayerId, rng: Rng, options: { 
   const player = state.players[pid];
   player.maxEnergy = Math.min(MAX_ENERGY_CAP, player.maxEnergy + 1);
   player.energy = player.maxEnergy;
-  // Seat variant (b), measured only (types.ts MatchRules): the second seat's
-  // first turn is turn 2.
-  if (pid === "p2" && state.turnNumber === 2 && state.rules?.secondSeatFirstTurnEnergy) player.energy += state.rules.secondSeatFirstTurnEnergy;
   for (const unit of player.board) unit.hasAttackedThisTurn = false;
   state.priority = pid;
   state.passes = 0;

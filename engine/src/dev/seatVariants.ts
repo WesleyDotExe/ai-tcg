@@ -1,39 +1,30 @@
-// The first-seat fixes the owner asked to measure (2026-11-02, on session
-// 67's check-in: the first seat wins about 65%). Test only: these are the
-// `rules` the measuring instruments pass to runMatch; no match the game
-// plays uses one until the owner picks a fix.
+// Seat rules the measuring instruments can play (`--rules <id>`), beside the
+// rules the game plays today.
 //
-//   (a) the second player draws one extra card in its opening hand;
-//   (b) the second player gets +1 energy on its first turn only;
-//   (c) the second player starts with more health (22 instead of 20);
-//   (d) the first player can't attack on its first turn.
+// Session 68 measured four first-seat fixes here, test only (owner
+// 2026-11-02). The owner picked "the player going second starts with 24
+// health" and session 71 shipped it as rules-2 (engine/src/engine/versions.ts),
+// so the losing three ((a) an extra opening card, (b) first-turn energy,
+// (d) no first-turn attack) left the engine. Their numbers stay in
+// progress/first-seat-002-fixes.txt and progress/first-seat-fixes/, where
+// "shipped" means rules-1 (they were measured before the change).
 //
-// Besides the four as asked, a few doses and pairs, labelled as extras, so
-// the check-in can say how far each lever moves the seat and whether one
-// alone is enough.
+// What is left: "shipped" (today's rules, rules-2) and "rules-1" (the old
+// 20 and 20), so any instrument can show what the change did on the same
+// seeds and deals.
 
 import type { MatchRules } from "../state/types.js";
+import { rulesOfVersion } from "../engine/versions.js";
 
 export interface SeatVariant {
   id: string;
   label: string;
   rules: MatchRules;
-  /** One of the four the owner named (the rest are extras). */
-  asked: boolean;
 }
 
 export const SEAT_VARIANTS: SeatVariant[] = [
-  { id: "shipped", label: "the rules as shipped", rules: {}, asked: true },
-  { id: "a", label: "(a) second seat +1 card in the opening hand", rules: { secondSeatExtraOpeningCards: 1 }, asked: true },
-  { id: "b", label: "(b) second seat +1 energy on its first turn", rules: { secondSeatFirstTurnEnergy: 1 }, asked: true },
-  { id: "c", label: "(c) second seat starts on 22 health", rules: { secondSeatExtraHealth: 2 }, asked: true },
-  { id: "d", label: "(d) first seat can't attack on its first turn", rules: { firstSeatNoFirstTurnAttack: true }, asked: true },
-  { id: "c4", label: "extra: second seat starts on 24 health", rules: { secondSeatExtraHealth: 4 }, asked: false },
-  { id: "a2", label: "extra: second seat +2 cards in the opening hand", rules: { secondSeatExtraOpeningCards: 2 }, asked: false },
-  { id: "b2", label: "extra: second seat +2 energy on its first turn", rules: { secondSeatFirstTurnEnergy: 2 }, asked: false },
-  { id: "ab", label: "extra: (a) and (b) together", rules: { secondSeatExtraOpeningCards: 1, secondSeatFirstTurnEnergy: 1 }, asked: false },
-  { id: "ac", label: "extra: (a) and (c) together", rules: { secondSeatExtraOpeningCards: 1, secondSeatExtraHealth: 2 }, asked: false },
-  { id: "bc", label: "extra: (b) and (c) together", rules: { secondSeatFirstTurnEnergy: 1, secondSeatExtraHealth: 2 }, asked: false },
+  { id: "shipped", label: "the rules as shipped (rules-2: second seat on 24)", rules: {} },
+  { id: "rules-1", label: "rules-1 (before session 71: both on 20)", rules: rulesOfVersion("rules-1") },
 ];
 
 export function seatVariant(id: string): SeatVariant {

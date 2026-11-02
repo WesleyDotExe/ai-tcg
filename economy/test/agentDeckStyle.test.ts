@@ -44,7 +44,7 @@ describe("the agent's deck in the agent's style", () => {
     const s = open();
     const { ownerId, agentId } = owner(s, "a", "Swarm");
     s.setPlayStyle(ownerId, agentId, "rusher");
-    const opts = { games: 3, trials: 2, confirmGames: 3 };
+    const opts = { games: 3, trials: 2, confirmGames: 10 };
     const built = await s.buildAgentDeck(ownerId, opts);
     expect(built.style).toBe("rusher");
 

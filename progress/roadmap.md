@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-02, game session 70 (the hardening pass: versioned replays; two drifted demos fixed).
+Updated 2026-11-02, game session 71 (the 24-health rule shipped as rules-2).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -43,8 +43,13 @@ Updated 2026-11-02, game session 70 (the hardening pass: versioned replays; two 
    of both formats in the tests (`server/test/fixtures/replays/`). Evidence `progress/replay-versions-001.txt`.
    A card change now needs a new `CARDS_VERSIONS` entry, a rule change a new `RULES_VERSIONS` entry
    (`engine/src/engine/versions.ts`).
-1c. [ ] NEXT (session 71). Ship the first-seat fix the owner picked, 24 health for the second seat, as `rules-2` (after 1b), re-record the ring baselines, regenerate the
-   built-deck ring, before the launch-gate re-run.
+1c. [x] The first-seat fix the owner picked, shipped (session 71): the second seat starts on 24 health, `rules-2`
+   (the engine's base; `rules-1` explicit, every older replay rebuilds). Ring baselines re-recorded; the built-deck
+   ring rebuilt (`progress/built-deck-ring-005.txt`); the first seat 53.6% on the ladder, 54.4% in mirrors
+   (`progress/first-seat-003-rules-2.txt`); watch time median 6.7 min. Numbers at an [OWNER CHECK-IN] before the
+   launch-gate re-run.
+1d. [ ] NEXT (session 72, per the owner's answer). The full-collection Null deck the builder picks under rules-2
+   (test only, then the built-deck ring re-run); the watch pace if the owner wants it back near 6 minutes.
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
    and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
    economy endpoints (session 64). What's left waits on match running:

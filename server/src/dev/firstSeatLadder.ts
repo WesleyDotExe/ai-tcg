@@ -8,9 +8,12 @@
 // The same run as session 67's firstSeatMeasure.ts (eight house owners, two
 // per starting faction, six play styles; the house pack policy on, decks
 // rebuilding as packs open; 7 minutes of clock a match; ladder seed 6701),
-// so "shipped" here reproduces progress/first-seat-001.txt's 64.8% exactly.
-// Variants change only the match rules: deck builds still play the rules as
-// shipped (they are what a store would build today).
+// so before session 71 "shipped" reproduced progress/first-seat-001.txt's
+// 64.8% exactly. Variants change only the match rules: deck builds still
+// play the rules as shipped (they are what a store would build today). Since
+// session 71 "shipped" is rules-2 (builds and matches), and "rules-1" plays
+// its matches on 20 and 20 with decks a store builds today, so it is near
+// session 67's run but not byte for byte.
 
 import { PLAY_STYLES, seatVariant, type DeckFaction, type PlayStyleId } from "@ai-tcg/engine";
 import { EconomyStore } from "@ai-tcg/economy";

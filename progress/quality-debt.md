@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -75,6 +75,36 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 71 (the 24-health rule shipped as rules-2): what is still thin
+
+- **The built-deck ring got worse in real-match mode (serious, launch gate).** 3 edge-levels in band, 7 out (was 5
+  and 5; `progress/built-deck-ring-005.txt`). Nearly all of it is the full-collection Null deck: under rules-2 the
+  builder keeps a deck that beats the designed list on its confirm step (vs the shipped decks) and loses badly to
+  the built Swarm (Swarm > Null 63-69 on three search seeds, `progress/rules-2-ship/null-noise/README.txt`). The
+  builder scores against shipped decks only, so it can't see this. Not fixed; at the owner check-in (call 1).
+- **Watch time is past the target.** Median 6.7 min on the live ladder (was 5.9; target 5-6), 63% of matches in
+  4-7 minutes (was 69%), on a sample of 56. Pacing is DESIGN principle 4. Fix proposed (the watch pace), not made.
+- **The first seat still wins 53.6% on the ladder** [51.6-55.6]: outside noise, small. Mirrors 54.4%; Swarm mirrors
+  58.7%. Accepted for now by the owner's pick; worth watching once Season 0 has real data.
+- **The rule is a constant, not data.** `SECOND_SEAT_EXTRA_HEALTH` is the engine's base and rules-2's field. A
+  later rules version that changes it must add a new version and keep rules-1 and rules-2 explicit (they are).
+  The test "every version names every field" guards the next field added to `MatchRules`.
+- **Committed outputs played under rules-1 now differ from what their scripts print.** Re-run this session:
+  ladder-demo-001, -002-live, owner-api-demo-006, -007, replay-versions-001, the ring files, built-deck-ring-005,
+  first-seat-003. NOT re-run: the economy demos (005-016), owner-api-demo-002 to -005, the engine's sample
+  matches and balance reports, and every render sample under `progress/render/` (the render lane's; they are
+  records of rules-1 matches and stay right as records, but regenerating one now plays rules-2). Nothing lists
+  which demos play matches; still true.
+- **The render lane's `recorded-close-win` scenario was moved** from seed 3 to seed 1 by the game lane
+  (`render/src/recordedDemo.ts`), as session 62 did for another scenario. Its committed evidence files under
+  `progress/render/evidence/` describe the old seed.
+- **Two style tests had tiny samples that tied under the new rule** (deck builder, economy agent deck); their
+  confirm steps were raised (6 and 10 games). They pass on a property of a few games and could tie again on the
+  next rule or card change; a test on the games' moves rather than their win count would be sturdier.
+- **The signature-mode report** (not a CI check) moves Aegis > Cortex further out, 72.4 -> 75.8.
+- **Measuring files written before session 71 that leave out `secondSeatExtraHealth` are refused** (they'd be
+  ambiguous now). None exist outside tests: the ladder never writes a measuring replay to disk.
+
 ## Session 70 (hardening: versioned replays; the drifted demos): what is still thin
 
 - **The engine's own code is versioned only by the golden replays.** Cards travel in an `/2` file and rules
@@ -84,8 +114,8 @@ real, but here is where it's thin.
   factions, one signature card) are a thin net: a change to a mechanic none of them uses would pass. More,
   varied golden files (a Zero-Day card, telegraph, evolution, tools, a draw, the turn cap) would widen it; a
   replay of every ladder match on the Mac mini before a deploy would be the real check.
-- **When a rules change must keep old behaviour, the engine has to keep both.** `rules-1` is `{}` (the base
-  rules). Shipping 24 health as `rules-2` is one `MatchRules` field; but a later engine fix that changes play
+- **When a rules change must keep old behaviour, the engine has to keep both.** Session 71: `rules-1` is now
+  explicit (`{ secondSeatExtraHealth: 0 }`) and `rules-2` shipped as the base. A later engine fix that changes play
   will need a flag in `MatchRules` for the old way, kept forever. That is the price of rebuildable replays; it
   isn't paid yet because nothing has changed.
 - **An `/2` file is ~5x an `/1` file** (23-28 KB against 5 KB: about 49 card definitions in full). Fine for
@@ -104,8 +134,7 @@ real, but here is where it's thin.
 - ~~`owner-api-demo-002.txt` no longer matches~~ Fixed: regenerated; the cause was two shipped card changes it
   was never re-run for (sessions 60 and 62; confirmed by running it at each commit). The lesson stands: a card
   change should re-run every demo that prints win rates, and nothing lists which those are.
-- **The 24-health rule is still not shipped.** The first seat still wins ~65% in every match the game plays.
-  Session 71.
+- ~~**The 24-health rule is still not shipped.**~~ Shipped in session 71 (`rules-2`); the first seat 53.6% on the ladder.
 
 ## Session 69 (coin skins, the game lane's half; starting ratings on the match): what is still thin
 
@@ -144,7 +173,7 @@ real, but here is where it's thin.
 
 ## Session 68 (the first-seat fixes measured; the small collection and deck asks): what is still thin
 
-- **The first seat still wins about 65% in every match the game plays (serious, balance).** Session 68 measured
+- ~~**The first seat still wins about 65% in every match the game plays (serious, balance).**~~ Fixed session 71 (rules-2: 53.6% on the ladder). Session 68 measured
   the owner's four fixes and five extras (`progress/first-seat-002-fixes.txt`); none ships until the owner
   picks one, and versioned replays (below) must land first. Until then the debt above stands unchanged.
 - **The measurements use one agent.** Mirrors and the ring use the LookaheadAgent; the ladder run uses the
@@ -173,7 +202,7 @@ real, but here is where it's thin.
 
 ## Session 67 (the long-lived ladder, Watch live, auto-play, match history): what is still thin
 
-- **The first seat wins about 65% (serious, balance; the fix waits on the owner's pick, then gets measured).** Measured this session at the owner's
+- ~~**The first seat wins about 65% (serious, balance).**~~ Fixed session 71 (rules-2). Measured this session at the owner's
   ask: 1,554 of 2,400 ladder matches (95% interval 62.8-66.7%), stable over time, in every faction pairing but
   one, and 58-72% in shipped-deck mirrors with the same agent both sides (`progress/first-seat-001.txt`). It is
   the game's, not the ladder's. Every balance number so far alternated seats, so it was averaged away; the
@@ -1261,6 +1290,11 @@ items below are kept as written, with those four now resolved.)
   (2026-10-05):** before the public Season 1 launch, replace or back the single SQLite file with
   self-hosted storage that handles many players, and prove it with a load test at launch scale.
   Not started. This stays here until that gate passes.
+  **Replay storage, for the same gate (owner 2026-11-03, on session 70's call 1):** an `ai-tcg-replay/2`
+  file is about 25 KB (every deck card in full), so the live ladder's pace adds a few hundred MB a month
+  on the Mac mini. Fine for Season 0. Revisit with this gate before the public launch: measure a shared
+  card table per card version (a file naming `cards-N` and carrying only cards that differ) or compressing
+  replays (or both). Not now.
 - **There are no owner/agent permissions.** "The owner buys packs" is a function anyone holding
   the store can call. That's fine in-process for Season 0, but the server and the owner page
   will need a real boundary.

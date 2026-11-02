@@ -20,7 +20,7 @@
 // Pure TypeScript, no node built-ins: the render bundles the engine.
 
 import type { Card } from "../cards/types.js";
-import type { MatchRules } from "../state/types.js";
+import { isShippedRules, secondSeatExtraHealth, SECOND_SEAT_EXTRA_HEALTH, type MatchRules } from "../state/types.js";
 import { CARD_REGISTRY } from "../data/registry.js";
 import { CARDS_1 } from "../data/cardSnapshots/cards1.js";
 
@@ -32,25 +32,31 @@ export interface RulesVersion {
   /** The rule as printed, for the match pages and the owner. */
   text: string;
   /** The start-of-match rules this version plays, as `runMatch` and
-   * `replayMatch` take them ({} = the base rules). */
+   * `replayMatch` take them, every field named. */
   rules: MatchRules;
 }
 
 /** Every published rules version, oldest first. Never edit or remove one:
  * replays name them.
  *
- * rules-1's `{}` means the engine's base rules (20 and 20). Shipping the
- * next version (the 24-health rule, owner 2026-11-02) has two ways: add
- * rules-2 with its `MatchRules` and have the ladder play
- * `rulesOfVersion(CURRENT_RULES_VERSION)` (the base stays 20/20), or change
- * the engine's base, in which case rules-1 must FIRST get explicit fields
- * that keep 20/20, because `{}` would then mean the new rule. The golden
- * replays fail if this is got wrong. */
+ * Each version names its start-of-match rules EXPLICITLY (every
+ * `MatchRules` field), never as `{}`: `{}` means "the rules the game plays
+ * today", which moves when a new version ships. Session 71 shipped rules-2
+ * by changing the engine's base (types.ts SECOND_SEAT_EXTRA_HEALTH), so
+ * every match anywhere (the ladder, the network server, the economy's
+ * matches, the measuring rings) plays it without passing anything; rules-1
+ * got its explicit 0 first, and the golden replays (/1 and /2 files written
+ * under rules-1) still rebuild byte for byte. */
 export const RULES_VERSIONS: readonly RulesVersion[] = [
   {
     id: "rules-1",
     text: "Both players start with 20 health. The player going first skips its first draw.",
-    rules: {},
+    rules: { secondSeatExtraHealth: 0 },
+  },
+  {
+    id: "rules-2",
+    text: "The player going second starts with 24 health; the player going first starts with 20 and skips its first draw.",
+    rules: { secondSeatExtraHealth: SECOND_SEAT_EXTRA_HEALTH },
   },
 ];
 
@@ -61,6 +67,14 @@ export function rulesVersion(id: string): RulesVersion {
   const v = RULES_VERSIONS.find((r) => r.id === id);
   if (!v) throw new Error(`rules version "${id}" isn't one this engine knows (it knows ${RULES_VERSIONS.map((r) => r.id).join(", ")})`);
   return v;
+}
+
+/** The published rules version `rules` is, or null for a measuring
+ * variant that is none of them. Absent rules are today's version. */
+export function rulesVersionOf(rules: MatchRules | undefined): string | null {
+  if (isShippedRules(rules)) return CURRENT_RULES_VERSION;
+  const explicit = canonicalJson({ secondSeatExtraHealth: secondSeatExtraHealth(rules) });
+  return RULES_VERSIONS.find((v) => canonicalJson(v.rules) === explicit)?.id ?? null;
 }
 
 /** The `MatchRules` a rules version plays, as a fresh copy. */

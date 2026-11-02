@@ -5,6 +5,14 @@
 // ring; bring every number to an owner check-in. No rule change ships
 // without the owner's OK."). Nothing here changes a card, a deck or a rule.
 //
+// Session 71 shipped the owner's pick (the second seat on 24 health, rules-2)
+// and dropped the other variants from the engine, so the variants are now
+// "shipped" (rules-2) and "rules-1" (seatVariants.ts). The same instrument
+// shows what the change did: progress/first-seat-003-rules-2.txt. In the
+// session-68 files (progress/first-seat-fixes/) "shipped" means rules-1 and
+// the other ids are the dropped variants; the report prints those ids as
+// they are.
+//
 //   npx tsx src/dev/firstSeatFixes.ts mirrors <id> > mirrors/<id>.json
 //   npx tsx src/dev/firstSeatFixes.ts ring <id> gate|real > ring/<id>-<mode>.json
 //   npx tsx src/dev/firstSeatFixes.ts report <dir> > report.txt
@@ -12,7 +20,8 @@
 // The ladder's seat split comes from server/src/dev/firstSeatLadder.ts
 // (<dir>/ladder/<id>.json), the built-deck rings from builtDeckRing.ts's
 // `ring ... --rules <id>` (<dir>/built/<level>-<mode>-<id>.json), compared
-// with the shipped rings in progress/built-deck-ring-004/rings.
+// with the rings in progress/built-deck-ring-004/rings (rules-1). A ring file
+// with no `rules` field is today's rules ("shipped").
 //
 // Mirrors: each faction's shipped deck against itself, the LookaheadAgent
 // (default style) both seats, p1 always first, seeds 50,001-51,000: session
@@ -118,7 +127,7 @@ function readJson<T>(dir: string): T[] {
 }
 const ORDER = SEAT_VARIANTS.map((v) => v.id);
 const byOrder = <T extends { variant: string }>(xs: T[]) => [...xs].sort((a, b) => ORDER.indexOf(a.variant) - ORDER.indexOf(b.variant));
-const label = (id: string) => seatVariant(id).label;
+const label = (id: string) => SEAT_VARIANTS.find((v) => v.id === id)?.label ?? `session 68's variant "${id}" (dropped in session 71)`;
 
 function report(dir: string): void {
   const say = (s = "") => console.log(s);
@@ -128,17 +137,16 @@ function report(dir: string): void {
   const built = readJson<BuiltRingFile>(join(dir, "built"));
   const shippedBuilt = readJson<BuiltRingFile>(fileURLToPath(new URL("../../../progress/built-deck-ring-004/rings", import.meta.url)));
 
-  say("# The four first-seat fixes, measured (session 68)");
+  say("# The first seat, measured (engine/src/dev/firstSeatFixes.ts)");
   say();
-  say("Owner 2026-11-02: measure (a)-(d) on the shipped-deck mirrors and the ladder's seat split, the leaders through");
-  say("the ring check and the built-deck ring, test only. No rule changed: each variant is a `rules` option the");
-  say("measuring instruments pass to runMatch (engine/src/state/types.ts MatchRules); no match the game plays sets it.");
-  say("The second seat is always p2. Extras (doses and pairs) are marked; the four asked are (a)-(d).");
-  say("50% is a fair seat. The aim is the variant whose first-seat share is closest to 50% without moving the ring.");
+  say("Rows are seat rules: \"shipped\" is the rules the game plays today (rules-2 since session 71: the second seat");
+  say("starts on 24 health, the first on 20 and skips its first draw); \"rules-1\" is both on 20, as before session 71.");
+  say("A row is a `rules` option the instrument passes to runMatch (engine/src/state/types.ts MatchRules).");
+  say("The second seat is always p2. 50% is a fair seat.");
   say();
   say("## 1. Shipped-deck mirrors (same deck, same agent both seats; p1 always first)");
   say();
-  say(`${MIRROR_SEEDS} seeds per faction (seeds 50,001-51,000; the first 400 are session 67's), the same deals for every variant.`);
+  say(`${MIRROR_SEEDS} seeds per faction (seeds 50,001-51,000; the first 400 are session 67's), the same deals for every row.`);
   say("First-seat share of decided games, % [95% Wilson interval]; median turns over all four.");
   say();
   say(`${"variant".padEnd(52)} ${"all four".padEnd(19)} ${FACTIONS.map((f) => f.padEnd(7)).join(" ")} turns`);
@@ -168,10 +176,10 @@ function report(dir: string): void {
     for (const l of ladders) say(`${label(l.variant).padEnd(52)} ${styles.map((s) => pct(l.byFirstStyle[s]!.firstWins, l.byFirstStyle[s]!.decided).padEnd(11)).join(" ")}`);
   }
   say();
-  say("## 3. The ring check (the six edges, shipped decks, ring seeds; judged against the shipped baselines)");
+  say("## 3. The ring check (the six edges, shipped decks, ring seeds; judged against the ring baselines)");
   say();
   say("Each edge: the first-named side's win rate, its band verdict, and the ring check's PASS/FAIL against the");
-  say("shipped baseline (FAIL = the verdict got worse, or an OUT edge moved further out by a real amount).");
+  say("baseline files, rules-2 since session 71 (FAIL = the verdict got worse, or an OUT edge moved further out).");
   say("The ring alternates seats, so a seat rule should move it little; this checks it doesn't.");
   for (const mode of ["gate", "real"] as const) {
     const rs = byOrder(rings.filter((r) => r.mode === mode));
@@ -193,10 +201,11 @@ function report(dir: string): void {
     say();
     say("## 4. The built-deck ring (session 62's builds: the store's decks at full, 37, 17 and 3 packs)");
     say();
-    say("Each edge's move from the same ring under the shipped rules (progress/built-deck-ring-004), points, and how");
-    say("many of the 24 edge-levels per mode stay in or reach their band. Same seeds and decks; only the rule differs.");
+    say("Each edge's move from the same ring under rules-1 (progress/built-deck-ring-004), points, and how many of");
+    say("the 24 edge-levels per mode stay in or reach their band. Same seeds and collections; a row whose decks were");
+    say("rebuilt under its own rules (session 71's rules-2 ring, built-deck-ring-005) also differs by its decks.");
     for (const mode of ["real", "gate"] as const) {
-      const variants = [...new Set(built.filter((b) => b.mode === mode).map((b) => b.rules!))].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+      const variants = [...new Set(built.filter((b) => b.mode === mode).map((b) => b.rules ?? "shipped"))].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
       if (!variants.length) continue;
       say();
       say(`### ${mode}`);
@@ -211,9 +220,9 @@ function report(dir: string): void {
         return `${inB} in / ${un} unres. / ${out} out`;
       };
       const shippedFiles = levels.map((l) => shippedBuilt.find((b) => b.level === l && b.mode === mode)!).filter(Boolean);
-      say(`shipped rules: ${verdictCount(shippedFiles)}`);
+      say(`rules-1 (built-deck-ring-004): ${verdictCount(shippedFiles)}`);
       for (const id of variants) {
-        const files = levels.map((l) => built.find((b) => b.level === l && b.mode === mode && b.rules === id)).filter((x): x is BuiltRingFile => !!x);
+        const files = levels.map((l) => built.find((b) => b.level === l && b.mode === mode && (b.rules ?? "shipped") === id)).filter((x): x is BuiltRingFile => !!x);
         say(`${label(id)}: ${verdictCount(files)}`);
         let worst = 0;
         for (const e of RING_EDGES) {

@@ -16,7 +16,7 @@ export type {
   SignatureZone,
   MatchRules,
 } from "./state/types.js";
-export { otherPlayer, isShippedRules } from "./state/types.js";
+export { otherPlayer, isShippedRules, secondSeatExtraHealth, SECOND_SEAT_EXTRA_HEALTH, MATCH_RULES_FIELDS } from "./state/types.js";
 export type { DeckSpec } from "./state/init.js";
 export { createInitialState, MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP, BOARD_SLOTS, SIGNATURE_REPLAY_SURCHARGE } from "./state/init.js";
 export { signatureCost, currentAttack, currentHealth, currentMaxHealth } from "./state/queries.js";
@@ -130,6 +130,7 @@ export {
   CURRENT_RULES_VERSION,
   rulesVersion,
   rulesOfVersion,
+  rulesVersionOf,
   CARDS_VERSIONS,
   CURRENT_CARDS_VERSION,
   CARDS_1_BY_ID,

@@ -1,5 +1,5 @@
 import type { Card, UnitCard } from "../cards/types.js";
-import { isShippedRules, type GameState, type MatchRules, type PlayerId, type PlayerState } from "./types.js";
+import { isShippedRules, secondSeatExtraHealth, type GameState, type MatchRules, type PlayerId, type PlayerState } from "./types.js";
 import type { Rng } from "./rng.js";
 
 const STARTING_HEALTH = 20;
@@ -70,19 +70,12 @@ function freshPlayerState(spec: DeckSpec, rng: Rng): PlayerState {
 export function createInitialState(deckA: DeckSpec, deckB: DeckSpec, rng: Rng, rules?: MatchRules): GameState {
   const p1 = freshPlayerState(deckA, rng);
   const p2 = freshPlayerState(deckB, rng);
-  // The seat variants under measurement (types.ts MatchRules). Drawing more
-  // and adding health take nothing from the RNG, so both decks shuffle
-  // exactly as in a shipped match on the same seed.
-  if (rules?.secondSeatExtraOpeningCards) {
-    for (let i = 0; i < rules.secondSeatExtraOpeningCards; i++) {
-      const card = p2.deck.shift();
-      if (card) p2.hand.push(card);
-    }
-  }
-  if (rules?.secondSeatExtraHealth) {
-    p2.health += rules.secondSeatExtraHealth;
-    p2.maxHealth += rules.secondSeatExtraHealth;
-  }
+  // The second seat's extra health (rules-2: 24 against 20; types.ts
+  // MatchRules). It takes nothing from the RNG, so both decks shuffle exactly
+  // as under any other rules version on the same seed.
+  const extra = secondSeatExtraHealth(rules);
+  p2.health += extra;
+  p2.maxHealth += extra;
   return {
     turnNumber: 0,
     activePlayer: "p1",

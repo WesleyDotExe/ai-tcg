@@ -1,0 +1,174 @@
+--- Turn 1 (p1) ---
+p1 plays Colony Broodling (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Aegis Line Trooper
+--- Turn 2 (p2) ---
+p2 plays Aegis Line Trooper (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Spore Cluster
+--- Turn 3 (p1) ---
+p1 plays Spore Cluster (u3)
+p1 plays Brood Skitterer (u4)
+Colony Broodling attacks Golden Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Golden Aegis
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Lockdown Field
+--- Turn 4 (p2) ---
+p2 plays Salvage Reflex (u6)
+Aegis Line Trooper attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Golden Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Dormant Egg Sac
+--- Turn 5 (p1) ---
+p1 plays Corrosive Spitter (u8)
+Colony Broodling attacks Golden Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Colony Broodling's attack
+  Colony Broodling deals 1 damage to Golden Aegis
+Brood Skitterer attacks Golden Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Brood Skitterer's attack
+  Brood Skitterer deals 1 damage to Golden Aegis
+Spore Cluster attacks Golden Aegis (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Barrier Drone
+--- Turn 6 (p2) ---
+p2 plays Reinforced Bastion (u12)
+Salvage Reflex attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Golden Swarm
+Aegis Line Trooper attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Golden Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Swarm Larva
+--- Turn 7 (p1) ---
+p1 plays Overclock Beast (u15)
+Spore Cluster attacks Reinforced Bastion
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Spore Cluster's attack
+  Reinforced Bastion deals 2 damage to Spore Cluster (unit)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Aegis Warden
+--- Turn 8 (p2) ---
+p2 casts Lockdown Field [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Lockdown Field
+  ability: Lockdown Field — lockdown-field-cast (onPlay)
+  Lockdown Field applies Stasis to Colony Broodling
+  Lockdown Field applies Stasis to Spore Cluster
+  Lockdown Field applies Stasis to Brood Skitterer
+  Lockdown Field applies Stasis to Corrosive Spitter
+  Lockdown Field applies Stasis to Overclock Beast
+Aegis Line Trooper attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Golden Swarm
+Reinforced Bastion attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Reinforced Bastion's attack
+  Reinforced Bastion deals 2 damage to Golden Swarm
+Salvage Reflex attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Golden Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Corrosive Spitter
+--- Turn 9 (p1) ---
+p1 plays Corrosive Spitter (u21)
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Barrier Drone
+--- Turn 10 (p2) ---
+Salvage Reflex attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Salvage Reflex's attack
+  Salvage Reflex deals 2 damage to Golden Swarm
+Reinforced Bastion attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Reinforced Bastion's attack
+  Reinforced Bastion deals 2 damage to Golden Swarm
+Aegis Line Trooper attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Aegis Line Trooper's attack
+  Aegis Line Trooper deals 2 damage to Golden Swarm
+p2 plays Barrier Drone (u25)
+p2 plays Barrier Drone (u26)
+p2 plays Tariff Field (d27)
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Colony Broodling
+--- Turn 11 (p1) ---
+Overclock Beast attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Overclock Beast's attack
+  Overclock Beast deals 4 damage to Barrier Drone (unit)
+  Barrier Drone (p2) dies
+  ability: Corrosive Spitter — corrosive-spitter-attack (onAttack)
+  Corrosive Spitter applies Stasis to Barrier Drone
+Corrosive Spitter attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrosive Spitter's attack
+  Corrosive Spitter deals 2 damage to Barrier Drone (unit)
+  ability: Corrosive Spitter — corrosive-spitter-attack (onAttack)
+  Corrosive Spitter applies Stasis to Aegis Line Trooper
+Corrosive Spitter attacks Barrier Drone
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Corrosive Spitter's attack
+  Corrosive Spitter deals 2 damage to Barrier Drone (unit)
+  Barrier Drone (p2) dies
+  p1 passes priority
+  p2 passes priority
+[end of turn 11 for p1]
+p2 draws Aegis Sentinel
+--- Turn 12 (p2) ---
+Reinforced Bastion attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Reinforced Bastion's attack
+  Reinforced Bastion deals 2 damage to Golden Swarm
+=== GAME OVER: p2 wins (p1's health reached 0) ===

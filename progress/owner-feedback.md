@@ -4012,7 +4012,7 @@ This replaces the entry above's spectator answers (the neutral Chrome Token, and
 
 ---
 
-## 2026-11-02 — Owner: answers to game session 68 (the first-seat fixes; the coin plan's game half); spectators pick a point of view (game-lane part HANDLED 2026-11-02, session 69 — coin skins built, calls 1-6 as answered: the `coin` slot; Chrome Token granted and equipped, existing owners and agents in the v20 migration; Dial-Up Dime and Neon Nickel at 300 credits for Season 0 (on sale once the render lane draws them); change 4: the tier coins are Platinum, Diamond and Mythic, a higher tier gets the lower ones, bound, never sold, granted at season end (`grantSeasonTierCoins`, called by the season-end work); each side's coin on the match record and in the replay (`coins: { p1, p2 }`); change 6: both coins and both arenas sent, with `defaultView`. Tests `economy/test/coins.test.ts`, server tests; `server/OWNER_API.md`; evidence `progress/owner-api-demo-007-coins.txt`. The 24-health rule is NOT shipped: it waits for session 70's versioned replays, as set. The render half is the render lane's)
+## 2026-11-02 — Owner: answers to game session 68 (the first-seat fixes; the coin plan's game half); spectators pick a point of view (game-lane part HANDLED 2026-11-02, session 69 — coin skins built, calls 1-6 as answered: the `coin` slot; Chrome Token granted and equipped, existing owners and agents in the v20 migration; Dial-Up Dime and Neon Nickel at 300 credits for Season 0 (on sale once the render lane draws them); change 4: the tier coins are Platinum, Diamond and Mythic, a higher tier gets the lower ones, bound, never sold, granted at season end (`grantSeasonTierCoins`, called by the season-end work); each side's coin on the match record and in the replay (`coins: { p1, p2 }`); change 6: both coins and both arenas sent, with `defaultView`. Tests `economy/test/coins.test.ts`, server tests; `server/OWNER_API.md`; evidence `progress/owner-api-demo-007-coins.txt`. The 24-health rule is NOT shipped: it waits for session 70's versioned replays, as set. The render half is the render lane's. **24-health rule SHIPPED 2026-11-02, session 71** as `rules-2` (the engine's base; `rules-1` kept explicit so every older replay rebuilds), with new ring baselines, a new built-deck ring (`progress/built-deck-ring-005.txt`), the live ladder's watch length re-checked and the first seat re-measured (`progress/first-seat-003-rules-2.txt`); the shipped numbers are at the [OWNER CHECK-IN] at the top of `progress/notes-for-owner.md`, before the launch-gate re-run)
 
 Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #119, `progress/first-seat-002-fixes.txt`).
 
@@ -4099,7 +4099,7 @@ Queue them with the 2× vote, featured picks and viewer counts, written into `se
 
 ---
 
-## 2026-11-03 — Owner: answers to game session 70 (versioned replays), keep all 5; a storage note for later
+## 2026-11-03 — Owner: answers to game session 70 (versioned replays), keep all 5; a storage note for later (HANDLED 2026-11-02, session 71 — all 5 kept, nothing changed; the storage note is on the storage gate item in `progress/quality-debt.md` (the launch storage gate). Session 71 shipped the 24-health rule as `rules-2`, as planned)
 
 Answers the five calls in `progress/notes-for-owner.md` (PR #123, `progress/replay-versions-001.txt`).
 1. **Keep:** a replay carries every card it uses, in full (`ai-tcg-replay/2`, with `rules` and `cards` versions), and plays its own cards and rules. **Note for later, not now:** at about 25 KB a match, the live ladder's pace adds up to a few hundred MB a month on the Mac mini. That is fine for Season 0. Revisit it with the storage gate before the public launch: a shared card table per card version (or compressing replays) is the option to measure then. Add this to the storage item in `progress/quality-debt.md`.
@@ -4112,7 +4112,7 @@ Next game session, as planned: 71, the 24-health rule as `rules-2`, with new rin
 
 ---
 
-## 2026-11-03 — Owner: answers to render session 52 (the spectator point of view), keep all 6; a hardening pass after the hands-and-coins slice
+## 2026-11-03 — Owner: answers to render session 52 (the spectator point of view), keep all 6; a hardening pass after the hands-and-coins slice (render lane only; game lane: nothing to do, read session 71)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #124).
 1. **Keep:** a switch during the Match Boot intro or a boast waits for it to end, then flips.
