@@ -229,10 +229,13 @@ describe("owner API: buying and opening packs", () => {
     expect(bulk.body.summary.cards).toBe(bulk.body.packs.reduce((t: number, p: { cards: unknown[] }) => t + p.cards.length, 0));
     expect(bulk.body.wallet.unopenedPacks).toHaveLength(0);
     // The logged opening, seed and all, for the owner only.
+    // "Watch again" (session 68): the same PackOpening the open answered,
+    // NEW badges and "x N owned" as of then, for a single and a bulk open.
     const log = await call("GET", `/api/packs/${chosen}/opening`, { token });
     expect(log.status).toBe(200);
-    expect(log.body).toMatchObject({ packId: chosen, ownerId: ada.ownerId });
+    expect(log.body).toEqual(picked.body.packs[0]);
     expect(typeof log.body.seed).toBe("number");
+    for (const p of bulk.body.packs) expect((await call("GET", `/api/packs/${p.packId}/opening`, { token })).body).toEqual(p);
     expect((await call("GET", `/api/packs/${chosen}/opening`, { token: await signIn("bob") })).status).toBe(404);
     expect((await call("GET", "/api/packs/nope/opening", { token })).status).toBe(404);
   });
@@ -270,6 +273,14 @@ describe("owner API: the collection, binder, salvage and crafting", () => {
     const holdings = await call("GET", `/api/collection/cards/${common}`, { token });
     expect(holdings.body).toMatchObject({ cardId: common, owned: 4, salvageable: 4, packPointsEach: 5 });
     expect(holdings.body.decks).toEqual([{ deckId: deck.deckId, name: "main", uses: 3, active: false }]);
+    // The craft price and copy limit (session 68): the API is the one source.
+    expect(holdings.body.copyLimit).toBe(3);
+    expect(holdings.body.craft).toEqual({ packPoints: 40, available: false, reason: expect.stringMatching(/already hold 4 .*playable limit of 3/) });
+    // The deck's faction and list in Settings -> Play (session 68).
+    const play = await call("GET", "/api/play", { token });
+    const listed = play.body.decks.find((d: { deckId: string }) => d.deckId === deck.deckId);
+    expect(listed.faction).toBe("Swarm");
+    expect(listed.list).toEqual(swarm.map((e) => ({ cardId: e.cardId, copies: e.copies })));
     expect((await call("GET", "/api/collection/cards/not-a-card", { token })).status).toBe(404);
 
     // The plan: one goes freely, two would leave the deck short.

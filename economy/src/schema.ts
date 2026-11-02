@@ -1180,4 +1180,21 @@ export const MIGRATIONS: readonly string[] = [
     stopped_day     TEXT CHECK ((stopped_day IS NULL) = (stopped_reason IS NULL) AND (stopped_day IS NULL OR stopped_day GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'))
   );
   `,
+  // 19: pack reveals (session 68; owner 2026-11-02, "Watch again": "keep
+  // each opening as POST /api/packs/open answered it ... and have GET
+  // /api/packs/:packId/opening answer that same PackOpening shape"). The
+  // reveal is written in the opening's own transaction and never changed:
+  // its NEW badges and "x N owned" are as of the opening, which nothing in
+  // the copy history could give back later (copies are salvaged, sold and
+  // traded). An opening from before v19 has no row.
+  `
+  CREATE TABLE pack_reveals (
+    pack_id      TEXT PRIMARY KEY REFERENCES pack_openings(pack_id),
+    reveal_json  TEXT NOT NULL CHECK (json_valid(reveal_json))
+  );
+  CREATE TRIGGER pack_reveals_no_update BEFORE UPDATE ON pack_reveals
+  BEGIN SELECT RAISE(ABORT, 'a pack reveal is written once'); END;
+  CREATE TRIGGER pack_reveals_no_delete BEFORE DELETE ON pack_reveals
+  BEGIN SELECT RAISE(ABORT, 'a pack reveal is written once'); END;
+  `,
 ];

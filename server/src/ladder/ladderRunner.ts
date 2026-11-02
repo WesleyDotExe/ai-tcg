@@ -34,7 +34,7 @@
 import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { formatLog, getCard, LookaheadAgent, runMatch, type Agent, type UnitCard, type DeckBuildOptions, type DeckSpec, type Move, type PlayerId, type PlayStyleId } from "@ai-tcg/engine";
+import { formatLog, getCard, isShippedRules, LookaheadAgent, runMatch, type Agent, type UnitCard, type DeckBuildOptions, type DeckSpec, type Move, type PlayerId, type PlayStyleId, type MatchRules } from "@ai-tcg/engine";
 import { EconomyError, PACK_PRICE_CREDITS, type DeckChooser, type EconomyStore, type LiveMatch, type MatchRecord, type RecordedOutcome } from "@ai-tcg/economy";
 import { deepEqual } from "../deepEqual.js";
 import { pairRound, seededRandom, type Pairing, type QueueEntry, type Random } from "./pairing.js";
@@ -187,6 +187,10 @@ export interface LadderOptions {
   /** Called after each match is recorded (the demo moves its clock here). */
   afterMatch?: (m: LadderMatch) => void | Promise<void>;
   onEvent?: (e: LadderEvent) => void;
+  /** A seat-rule variant under measurement (session 68, the first-seat
+   * fixes): for the measuring instruments only. A replay doesn't record it
+   * yet, so it can't be combined with `logDir`. */
+  seatRules?: MatchRules;
 }
 
 export class Ladder {
@@ -198,6 +202,7 @@ export class Ladder {
   private rounds = 0;
 
   constructor(opts: LadderOptions) {
+    if (opts.seatRules && !isShippedRules(opts.seatRules) && opts.logDir) throw new Error("seatRules is for measuring only: its replays wouldn't rebuild, so it can't write a logDir");
     this.opts = opts;
     this.store = opts.store;
     this.seater = opts.seater ?? houseSeater;
@@ -385,7 +390,7 @@ export class Ladder {
       const [a1, a2] = [await seat("p1"), await seat("p2")];
       const recorder = timelineRecorder();
       timeline = recorder.timeline;
-      const { state, movesPlayed } = await runMatch(specs.p1, specs.p2, a1, a2, seed, recorder.hooks);
+      const { state, movesPlayed } = await runMatch(specs.p1, specs.p2, a1, a2, seed, recorder.hooks, this.opts.seatRules);
       replay = makeReplay({
         format: "ai-tcg-replay/1",
         matchId,

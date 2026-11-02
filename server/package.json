@@ -14,7 +14,9 @@
     "demo:ladder": "tsx src/dev/ladderDemo.ts",
     "season": "tsx src/seasonCli.ts",
     "demo:live-ladder": "tsx src/dev/liveLadderDemo.ts",
-    "measure:first-seat": "tsx src/dev/firstSeatMeasure.ts"
+    "measure:first-seat": "tsx src/dev/firstSeatMeasure.ts",
+    "demo:collection-asks": "tsx src/dev/collectionAsksApiDemo.ts",
+    "measure:first-seat-ladder": "tsx src/dev/firstSeatLadder.ts"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",

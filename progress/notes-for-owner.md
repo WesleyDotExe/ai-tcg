@@ -1,9 +1,94 @@
 # Notes for the owner
 
+**Updated 2026-11-02, session 68 (the four first-seat fixes measured; the small collection and deck asks).**
+Nothing is blocking. Two check-ins: pick the first-seat fix, and the coin skins plan's game half.
+
+### [OWNER CHECK-IN] The first-seat fixes, measured: my pick is the second seat starting on 24 health
+
+All four you named, test only, and five extras (doses and pairs) so you can see how far each lever goes. Full
+numbers: `progress/first-seat-002-fixes.txt`. No rule changed: each fix is a test-only option the measuring
+tools pass to the engine, and no match the game plays uses one.
+
+First seat's share of decided games (50% is fair):
+
+| fix | mirrors (4,000) | ladder (2,400) | ring check gate / real |
+|---|---|---|---|
+| as shipped | 64.4% | 64.8% | PASS / PASS |
+| (a) second seat +1 opening card | 59.6% | 59.1% | FAIL 2 / FAIL 2 |
+| (b) second seat +1 energy, first turn | 55.7% | 55.1% | FAIL 3 / FAIL 1 |
+| (c) second seat starts on 22 health | 59.4% | 58.5% | PASS / PASS |
+| (d) first seat can't attack turn 1 | 64.4% | 65.6% | PASS / PASS |
+| extra: 24 health | 54.4% | **52.3%** (50.3-54.3) | **PASS / PASS** |
+| extra: +2 opening cards | 54.3% | 55.0% | FAIL 3 / FAIL 1 |
+| extra: +2 energy | 43.8% | 42.3% | FAIL 2 / FAIL 1 |
+| extra: (a)+(b) | 49.1% | 48.5% | FAIL 2 / FAIL 2 |
+| extra: (a)+(c) | 54.4% | 53.9% | FAIL 3 / FAIL 1 |
+| extra: (b)+(c) | 50.7% | 47.8% | FAIL 2 / FAIL 1 |
+
+What it shows:
+- **(d) does nothing.** On turn 1 the first player has one energy and no unit that can attack yet (only a Rush
+  unit could). The shuffles are the same, so the mirrors come out identical game for game.
+- **Cards and energy are the strongest levers, but they move the faction ring.** (a), (b) and every pair with
+  them push Cortex > Swarm above its band and Swarm > Null below its band. They help some decks' second seat
+  more than others: an extra card does nothing for the Swarm mirror (72% before and after), and energy helps
+  Swarm most. The ring check fails, so shipping one would need card changes too.
+- **Health moves the seat and nothing else.** (c) passes both ring checks with every edge within about a point,
+  and so does 24 health. But 22 health only gets the seat to about 59%. 24 gets it to 52-54%, close to fair:
+  the ladder's interval is 50.3-54.3%, and the faction mirrors are inside noise (48.3%).
+- **What 24 health costs:** matches run a little longer (median 15.5 turns in the mirrors against 14.5). That is
+  still inside the watch-time target; the live ladder's watch length should be re-checked when it ships.
+
+Built-deck ring for the leaders (the store's decks at full, 37, 17 and 3 packs; 24 edge-levels per mode;
+counts are in band / unresolved / out):
+
+| fix | real mode | gate mode | largest edge move |
+|---|---|---|---|
+| as shipped | 5 / 14 / 5 | 3 / 14 / 7 | - |
+| (b) +1 energy | 3 / 15 / 6 | 1 / 13 / 10 | 3.6 points |
+| (c) 22 health | 2 / 18 / 4 | 2 / 14 / 8 | 2.9 |
+| 24 health | 2 / 17 / 5 | 3 / 14 / 7 | 3.3 |
+| (b)+(c) | 3 / 15 / 6 | 1 / 14 / 9 | 4.3 |
+
+24 health keeps the gate mode exactly as it is and leaves the same number of edges out of band in real mode.
+Three real-mode edges that sat just inside their band slip to "unresolved" (most of the move is Null ~ Cortex
+and Cortex > Swarm at 3 packs, +3 points). That's a real cost, but the smallest of the options that fix the seat.
+(b) and (b)+(c) push three more gate edges out of band.
+
+**My pick: the second seat starts on 24 health (4 more than the first).** It's the only option measured that
+brings the seat near 50% and leaves the ring where it is. Your other choices: (c) as you wrote it (22, about 59%,
+ring unchanged), or (a)+(b) (about 49%, but the ring moves and the cards would need retuning).
+**Nothing ships until you pick**, and versioned replays (your call 6) land first, in session 70's hardening pass.
+Then the fix ships with new ring baselines and a new built-deck ring, before the launch-gate re-run.
+Rules text if you pick it: "The player going second starts with 24 health; the player going first starts with
+20 and skips its first draw."
+
+### [OWNER CHECK-IN] Coin skins: the game lane's half of the plan (not built; waits for you)
+
+Your render-half answers are noted (Match Boot placement, Chrome Token for every owner and for spectators, the
+coin looks). What I propose for the slot, catalogue, prices and records:
+1. **The slot:** a sixth loadout slot, `coin`, on each agent (beside boast, close-win boast, card back, avatar,
+   arena). The cosmetic kind `coin`. `GET /api/agents/:id/loadout` gains the "Coin" slot with the same tiles and
+   Buy as the others.
+2. **The starter coin:** **Chrome Token**, standard (never sold), granted to every owner and equipped on every
+   agent by default, the way the starter boast is. Existing owners and agents get it in the migration.
+3. **Season 0 store coins:** **Dial-Up Dime** and **Neon Nickel**, **300 credits each** (the season boast's
+   price, three packs), in a Season 0 sale window, then retired like the other season cosmetics.
+4. **Tier coins** at season end, by the owner's end-of-season ladder tier, placement done:
+   **Gold coin** for Gold or higher, **Diamond coin** for Diamond or higher, **Mythic coin** for Mythic.
+   A higher tier gets the lower coins too (a Mythic finisher gets all three). Bound to the owner, never sold,
+   carried over the season reset with the owner's cosmetics. One thing to know: **Gold is the starting rating's
+   tier (1500)**, so nearly every owner who finishes placement gets the Gold coin. If you want Gold to be earned,
+   use Platinum, Diamond and Mythic as the three coin tiers instead (and name the coins after those).
+5. **The coin on the match record:** each side's equipped coin is written with the match, like the boasts, and
+   into the replay (`coins: { p1, p2 }`), so a replay shows the coins the match was played with. The seat is
+   still the server's coin flip; the coin never changes who goes first. The record already says who went first.
+6. **Spectators:** the API sends both coins; the website shows a spectator the neutral Chrome Token (your answer).
+Tell me "build it as proposed" or change any number.
+
 **Updated 2026-11-02, session 67 (the long-lived ladder, Watch live, auto-play, match history).** Nothing is
 blocking. One finding needs your decision (the first seat); the other calls are built with defaults.
 
-### [OWNER CHECK-IN] The first seat wins about 65% of matches: pick a fix to measure
+### ~~[OWNER CHECK-IN] The first seat wins about 65% of matches: pick a fix to measure~~ (ANSWERED 2026-11-02: measure all four; done in session 68, below)
 
 You asked me to measure the first seat over a larger run (`progress/first-seat-001.txt`, `npm run
 measure:first-seat -w server`). Over 2,400 ladder matches (8 house agents, 12 Sydney days, decks rebuilt as
@@ -31,7 +116,7 @@ ship the one you pick through the ring and the built-deck ring. This touches eve
 land before the launch-gate re-run, not after. Tell me if you'd rather it wait behind the small asks
 (the craft price, promos, "Watch again").
 
-### [OWNER CHECK-IN] Watch live, auto-play and match history: the calls I made (defaults built)
+### ~~[OWNER CHECK-IN] Watch live, auto-play and match history: the calls I made (defaults built)~~ (ANSWERED 2026-11-02: keep 1-5, version replays first)
 
 The ladder now runs inside the server (`npm run season -- <db> [port]`: the owner API and the ladder in one
 process). The engine plays each match at once, then the server releases it a move at a time at watch speed;

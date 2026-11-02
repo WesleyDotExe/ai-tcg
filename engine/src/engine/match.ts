@@ -5,7 +5,7 @@ import { getLegalMoves, type Move } from "./moves.js";
 import { applyMove, beginTurn } from "./engine.js";
 import type { Agent } from "../agents/agent.js";
 import { buildPlayerView } from "../agents/agent.js";
-import type { GameState } from "../state/types.js";
+import type { GameState, MatchRules } from "../state/types.js";
 
 export interface MatchResult {
   state: GameState;
@@ -38,9 +38,9 @@ const MAX_MOVES_SAFETY = 5000;
 /** A match's state before the first move: both decks shuffled from the
  * seed, turn 1 begun for p1. runMatch and replayMatch share it, so a replay
  * starts from exactly the state the match did. */
-function setupMatch(deckA: DeckSpec, deckB: DeckSpec, nameA: string, nameB: string, seed: number): { state: GameState; rng: Rng } {
+function setupMatch(deckA: DeckSpec, deckB: DeckSpec, nameA: string, nameB: string, seed: number, rules?: MatchRules): { state: GameState; rng: Rng } {
   const rng = new Rng(seed);
-  const state = createInitialState(deckA, deckB, rng);
+  const state = createInitialState(deckA, deckB, rng, rules);
   // Players are agents (see DESIGN.md) — display names follow the agent,
   // not the deck list.
   state.players.p1.name = nameA;
@@ -65,8 +65,9 @@ export function replayMatch(
   seed: number,
   moves: readonly Move[],
   hooks: MatchHooks = {},
+  rules?: MatchRules,
 ): MatchResult {
-  const { state, rng } = setupMatch(deckA, deckB, names.p1, names.p2, seed);
+  const { state, rng } = setupMatch(deckA, deckB, names.p1, names.p2, seed, rules);
   hooks.onMatchStart?.(state);
   let movesPlayed = 0;
   for (const move of moves) {
@@ -88,8 +89,11 @@ export async function runMatch(
   agentB: Agent,
   seed: number,
   hooks: MatchHooks = {},
+  /** Seat-rule variants under measurement (types.ts MatchRules); left out,
+   * the rules as shipped. */
+  rules?: MatchRules,
 ): Promise<MatchResult> {
-  const { state, rng } = setupMatch(deckA, deckB, agentA.name, agentB.name, seed);
+  const { state, rng } = setupMatch(deckA, deckB, agentA.name, agentB.name, seed, rules);
   hooks.onMatchStart?.(state);
 
   const agents: Record<GameState["activePlayer"], Agent> = { p1: agentA, p2: agentB };

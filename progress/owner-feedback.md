@@ -3888,7 +3888,7 @@ Next game session, as planned: 67, rounds on a timer at watch speed with the liv
 
 ---
 
-## 2026-11-02 — Owner: answers to render session 47 (the Store page and pack opening on the site), keep all 6; "Watch again" after session 67
+## 2026-11-02 — Owner: answers to render session 47 (the Store page and pack opening on the site), keep all 6; "Watch again" after session 67 (game-lane part HANDLED 2026-11-02, session 68 — schema v19 `pack_reveals`: each opening kept as `POST /api/packs/open` answered it, in the open's own transaction, write-once; `GET /api/packs/:packId/opening` answers that same `PackOpening`, as of the opening (410 for a pack opened before v19). Tests `economy/test/collectionAsks.test.ts`, `server/test/ownerApiEconomy.test.ts`; in `server/OWNER_API.md`. Calls 1-6 are the render lane's)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #114).
 1. **Keep:** the opening happens on the server first, then the reveal; Close at any time loses nothing.
@@ -3904,7 +3904,7 @@ Next render-lane slice, as planned: Collection's wide binder, and the loadout pi
 
 ---
 
-## 2026-11-02 — Owner: answers to render session 48 (the Collection page), keep all 6; two small game-lane asks after session 67
+## 2026-11-02 — Owner: answers to render session 48 (the Collection page), keep all 6; two small game-lane asks after session 67 (game-lane part HANDLED 2026-11-02, session 68 — `GET /api/collection/cards/:cardId` now carries `copyLimit` and `craft: { packPoints, available, reason }` (null for signature and Zero-Day cards); `GET /api/collection` carries `promos: { signatureCards, earned }`. Tested, in `server/OWNER_API.md`. Calls 1-6 are the render lane's)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the asks in `progress/render/notes-for-owner.md` (PR #116).
 1. **Keep:** Glitch and Gold sit under the Secrets tab (secret cards, then Glitch, then Gold), keeping the four tabs.
@@ -3923,7 +3923,7 @@ Next render-lane slice, as planned: the loadout picker in the Store, then the ma
 
 ---
 
-## 2026-11-02 — Owner: answers to game session 67 (the live ladder), measure all four first-seat fixes; keep 1-5; versioned replays first
+## 2026-11-02 — Owner: answers to game session 67 (the live ladder), measure all four first-seat fixes; keep 1-5; versioned replays first (HANDLED 2026-11-02, session 68, except call 6 — all four measured, test only, plus five doses and pairs, on the mirrors, the ladder split, the ring check (both modes) and the leaders through the built-deck ring: `progress/first-seat-002-fixes.txt`, at the [OWNER CHECK-IN] in notes-for-owner.md. No rule changed. Calls 1-5 kept, nothing changed. Call 6 (versioned replays) is NOT done yet: it is session 70's hardening pass, before any fix ships. The correction is noted)
 
 Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #117, `progress/first-seat-001.txt`, `progress/ladder-demo-002-live.txt`).
 
@@ -3944,7 +3944,7 @@ That entry's call 3 said the owner who sits out "goes first next round". Per `se
 
 ---
 
-## 2026-11-02 — Owner: coin skins for the first-player coin flip (new cosmetic, inside Season 0)
+## 2026-11-02 — Owner: coin skins for the first-player coin flip (new cosmetic, inside Season 0) (game-lane plan WRITTEN 2026-11-02, session 68 — the [OWNER CHECK-IN] in notes-for-owner.md: the coin slot, Chrome Token, store coins and prices, tier coins, the coin on the match record. Not built: it waits for your answer, as asked. Season 0 checklist updated)
 
 New owner feature. **Who goes first is a coin flip for every match** (`server/src/ladder/pairing.ts`), so make that flip something owners see, and make the coin a cosmetic, the same way as victory boasts, arena backgrounds, card backs and avatars.
 
@@ -3970,7 +3970,7 @@ Update the Season 0 checklist in `progress/roadmap.md` to include coin skins.
 
 ---
 
-## 2026-11-02 — Owner: answers to render session 49 (the loadout picker in the Store), keep all 6; the deck's faction ask; the coin plan's render half approved
+## 2026-11-02 — Owner: answers to render session 49 (the loadout picker in the Store), keep all 6; the deck's faction ask; the coin plan's render half approved (game-lane part HANDLED 2026-11-02, session 68 — `DeckStatus` carries `faction` and `list: [{ cardId, copies }]` in `GET /api/play` (`activeDeck`, `agentDeck`, `decks`); tested, in `server/OWNER_API.md`. The coin slot in the loadout and the coin on the match record are in the game-lane plan at the check-in; the rest is the render lane's)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #118).
 1. **Keep:** the picker opens full screen over the website from a row per agent on the Store.

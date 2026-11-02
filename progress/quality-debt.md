@@ -75,6 +75,36 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 68 (the first-seat fixes measured; the small collection and deck asks): what is still thin
+
+- **The first seat still wins about 65% in every match the game plays (serious, balance).** Session 68 measured
+  the owner's four fixes and five extras (`progress/first-seat-002-fixes.txt`); none ships until the owner
+  picks one, and versioned replays (below) must land first. Until then the debt above stands unchanged.
+- **The measurements use one agent.** Mirrors and the ring use the LookaheadAgent; the ladder run uses the
+  house's six play styles. A different agent (a model-backed one) may value an extra card, energy or health
+  differently, so a fix that reads 52% here could read differently against real agents. Re-measure once
+  network agents play the ladder.
+- **The seat variants are test-only code in the engine** (`MatchRules`, `state.rules`, three small checks in
+  `init.ts`, `engine.ts`, `moves.ts`). When a fix ships it should become the printed rule (a constant), and the
+  variants that lost should be removed, not left as dead options. `SEAT_VARIANTS` is exported from the engine's
+  barrel only so the server's ladder instrument can name them.
+- **24 health makes matches about one turn longer** (median 15.5 against 14.5 in the mirrors). The watch-time
+  distribution of the live ladder hasn't been re-measured under it.
+- **The ladder split per variant is unpaired.** The ladder's pairings and rebuilds drift apart as results
+  differ, so two variants' ladder rows aren't the same matches (the mirrors are). Each row is 2,400 matches, so
+  the interval is about +/-2 points; differences smaller than that between variants mean nothing.
+- **Versioned replays are not built (owner call 6).** Any card or rule change, the first-seat fix included,
+  would make every recorded replay fail to rebuild. Session 70's hardening pass, before the fix ships.
+- **"Watch again" has nothing for packs opened before schema v19** (410). Only house/test data predates it, but
+  the website should say "this opening can't be replayed" for a 410, not fail.
+- **The reveal is stored as JSON**, a copy of what was answered: if `OpenedCard` gains a field later, old reveals
+  won't have it. The website should treat missing fields as absent.
+- **Earned promos: the list is built, the issuing is not.** Season 0 issues no milestone, quest or tournament
+  promos yet, so `promos.earned` is always empty in real use; only the test grants one by hand.
+- **`DeckStatus.faction` is worked out from the card ids on every call**, and `list` reads the deck's listing a
+  second time (`deckStatus` already resolves it once). Fine at Season 0 size.
+- **The coin skins are only planned** (owner check-in); nothing is built.
+
 ## Session 67 (the long-lived ladder, Watch live, auto-play, match history): what is still thin
 
 - **The first seat wins about 65% (serious, balance; the fix waits on the owner's pick, then gets measured).** Measured this session at the owner's

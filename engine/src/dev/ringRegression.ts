@@ -39,6 +39,8 @@
 //   npx tsx src/dev/ringRegression.ts                  all six edges
 //   npx tsx src/dev/ringRegression.ts --write-baseline measure all six and record them
 //   add --real (or --signature) to either for that mode
+//   add --rules <id> to measure a seat variant (seatVariants.ts) against the
+//   shipped baseline; a report only, it never writes a baseline
 // Exit code 1 on any failing edge. All six edges (11,800 games) take about
 // 15 seconds, so CI runs the gate and --real on every engine change
 // (.github/workflows/test.yml).
@@ -47,6 +49,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { measurePairing, wilson, bandVerdict, ringBand, newcombeDiff, type SignatureMode } from "./edgeMeasure.js";
 import type { DeckFaction as Faction } from "../cards/types.js";
+import { seatVariant } from "./seatVariants.js";
 
 export interface RingEdge {
   /** The side whose win rate the band is about (the predator for a W edge). */
@@ -152,12 +155,15 @@ async function main(): Promise<void> {
   if (args.includes("--real") && args.includes("--signature")) throw new Error("pick one of --real and --signature");
   const signature: SignatureMode = args.includes("--real") ? "approved" : args.includes("--signature") ? "setMythic" : "none";
   const mode = DECK_MODES[signature];
+  const rulesAt = args.indexOf("--rules");
+  const variant = rulesAt >= 0 ? seatVariant(args[rulesAt + 1] ?? "") : undefined;
+  if (variant && write) throw new Error("--rules measures a variant against the shipped baseline; it never writes one");
   const baselinePath = fileURLToPath(new URL(mode.file, import.meta.url));
   const edges = RING_EDGES;
 
   const measured: EdgeMeasurement[] = [];
   for (const e of edges) {
-    const r = await measurePairing(e.self, e.opponent, 1, e.seeds, { signature });
+    const r = await measurePairing(e.self, e.opponent, 1, e.seeds, { signature, rules: variant?.rules });
     measured.push({ edge: edgeName(e), selfWins: r.selfWins, games: r.games });
   }
 
@@ -179,6 +185,7 @@ async function main(): Promise<void> {
   if ((baseline.decks ?? DECK_MODES.none.label) !== mode.label) {
     throw new Error(`${mode.file} was recorded with decks "${baseline.decks ?? DECK_MODES.none.label}", this run plays "${mode.label}"`);
   }
+  if (variant) console.log(`Seat variant: ${variant.label}`);
   console.log(`Ring regression (${mode.label}) vs baseline recorded ${baseline.recorded} (Lookahead vs Lookahead, seeds from 1)`);
   let failed = 0;
   edges.forEach((e, i) => {

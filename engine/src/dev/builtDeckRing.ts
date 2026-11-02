@@ -33,7 +33,7 @@
 //  3. report: every level beside the shipped-deck baseline of the same mode.
 //
 //   npx tsx src/dev/builtDeckRing.ts build <level> <faction> --collections f.json --out f.json
-//   npx tsx src/dev/builtDeckRing.ts ring <level> --mode real|gate --builds dir --out f.json
+//   npx tsx src/dev/builtDeckRing.ts ring <level> --mode real|gate --builds dir --out f.json [--rules <seat variant>]
 //   npx tsx src/dev/builtDeckRing.ts report --builds dir --rings dir
 //
 // (`--games`/`--trials`/`--confirm` on build and `--seeds` on ring shrink a
@@ -50,6 +50,7 @@ import { getCard } from "../data/registry.js";
 import { DECK_FACTIONS, DEFAULT_BUILD, buildFaction, deckSpec, fullHoldings, playGauntlet, shippedList, type DeckList, type GauntletScore } from "../deckbuilder/deckBuilder.js";
 import { bandVerdict, measurePairing, ringBand, wilson, type DeckBuilder, type SignatureMode } from "./edgeMeasure.js";
 import { DECK_MODES, RING_EDGES, edgeName } from "./ringRegression.js";
+import { seatVariant, type SeatVariant } from "./seatVariants.js";
 
 export type RingMode = "real" | "gate";
 const SIGNATURE: Record<RingMode, SignatureMode> = { real: "approved", gate: "none" };
@@ -80,6 +81,8 @@ export interface RingFile {
   level: string;
   mode: RingMode;
   owners: number;
+  /** The seat variant played (seatVariants.ts id; session 68), absent for the rules as shipped. */
+  rules?: string;
   edges: { edge: string; selfWins: number; draws: number; games: number; perSelfOwner: number[]; perSelfOwnerGames: number[] }[];
 }
 
@@ -163,7 +166,7 @@ export function ownersFor(seed: number, n: number): { self: number; opponent: nu
 }
 
 /** Step 2 for one level and mode. */
-async function ring(level: string, mode: RingMode, builds: BuiltDeckFile[], maxSeeds = Infinity): Promise<RingFile> {
+export async function ring(level: string, mode: RingMode, builds: BuiltDeckFile[], maxSeeds = Infinity, variant?: SeatVariant): Promise<RingFile> {
   const decks = {} as Record<DeckFaction, DeckList[]>;
   for (const f of DECK_FACTIONS) {
     const b = builds.find((x) => x.level === level && x.faction === f);
@@ -172,7 +175,7 @@ async function ring(level: string, mode: RingMode, builds: BuiltDeckFile[], maxS
   }
   const n = decks.Cortex.length;
   if (DECK_FACTIONS.some((f) => decks[f].length !== n)) throw new Error(`level ${level}: factions have different owner counts`);
-  const out: RingFile = { level, mode, owners: n, edges: [] };
+  const out: RingFile = { level, mode, owners: n, ...(variant && variant.id !== "shipped" ? { rules: variant.id } : {}), edges: [] };
   for (const ringEdge of RING_EDGES) {
     const e = { ...ringEdge, seeds: Math.min(ringEdge.seeds, maxSeeds) };
     let selfWins = 0;
@@ -183,7 +186,7 @@ async function ring(level: string, mode: RingMode, builds: BuiltDeckFile[], maxS
       const who = ownersFor(seed, n);
       const builder = (f: DeckFaction, owner: number): DeckBuilder => (id, name) => deckSpec(decks[f][owner]!, id, name);
       const builders = { ...Object.fromEntries(DECK_FACTIONS.map((f) => [f, builder(f, 0)])), [e.self]: builder(e.self, who.self), [e.opponent]: builder(e.opponent, who.opponent) } as Record<DeckFaction, DeckBuilder>;
-      const r = await measurePairing(e.self, e.opponent, seed, 1, { builders, signature: SIGNATURE[mode] });
+      const r = await measurePairing(e.self, e.opponent, seed, 1, { builders, signature: SIGNATURE[mode], rules: variant?.rules });
       selfWins += r.selfWins;
       draws += r.draws;
       perSelfOwner[who.self]! += r.selfWins;
@@ -369,7 +372,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   } else if (mode === "ring") {
     const m = arg("mode") ?? "real";
     if (m !== "real" && m !== "gate") throw new Error(`--mode is real or gate, got "${m}"`);
-    const r = await ring(a!, m, readDir<BuiltDeckFile>(arg("builds") ?? "."), Number(arg("seeds") ?? Infinity));
+    const rules = arg("rules");
+    const r = await ring(a!, m, readDir<BuiltDeckFile>(arg("builds") ?? "."), Number(arg("seeds") ?? Infinity), rules ? seatVariant(rules) : undefined);
     writeFileSync(outFile ?? `ring-${a}-${m}.json`, `${JSON.stringify(r)}\n`);
   } else if (mode === "report") {
     report(readDir<BuiltDeckFile>(arg("builds") ?? "."), readDir<RingFile>(arg("rings") ?? "."));

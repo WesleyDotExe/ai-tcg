@@ -4277,3 +4277,45 @@ name cards by id. All in quality-debt.md.
 **Evidence:** `progress/ladder-demo-002-live.txt`, `progress/first-seat-001.txt`, `progress/ladder-demo-001.txt`.
 
 **Blocked:** nothing. Owner check-ins open: the first seat (pick fixes to measure) and six live-ladder calls.
+
+## 2026-11-02 — Session 68 (the four first-seat fixes measured; the small collection and deck asks)
+
+**Read first:** `progress/owner-feedback.md`. Five unhandled entries touch the game lane: answers to session 67
+(measure all four first-seat fixes, test only; keep 1-5; version replays before any card or rule change ships),
+the render 47 / 48 / 49 asks ("Watch again", the craft price and copy limit, signature cards and promos, the
+deck's faction), and coin skins (plan first, an [OWNER CHECK-IN]). All marked; call 6 (versioned replays) left
+for session 70 as the owner allowed. The last merged PR (#118) was the render lane's, so this is the game lane.
+
+**Built:**
+- Engine: `MatchRules` (`state.rules`, test-only): (a) second seat extra opening cards, (b) second seat
+  first-turn energy, (c) second seat extra health, (d) no first-seat attack on turn 1. Absent in every match the
+  game plays; with none set a match keeps no `rules` field and plays byte-identically (test, and both ring
+  checks PASS unchanged). `runMatch`/`replayMatch` take it as an optional last argument.
+- Instruments: `engine/src/dev/seatVariants.ts` (the four plus five extras), `firstSeatFixes.ts` (mirrors, the
+  ring check per variant, the report), `server/src/dev/firstSeatLadder.ts` (the ladder's `seatRules` measuring
+  option; refused with a log dir), `--rules` on `builtDeckRing.ts ring` and `ringRegression.ts` (report only).
+- Economy: schema v19 `pack_reveals` (write-once; the reveal stored in the open's transaction), `packReveal`;
+  `cardHoldings` + `copyLimit`, `craft`; `collectionSummary` + `promos`; `DeckStatus` + `faction`, `list`.
+- Server: `GET /api/packs/:packId/opening` answers the stored `PackOpening` (410 before v19). OWNER_API.md.
+
+**Ran it:**
+- `progress/first-seat-002-fixes.txt` (data `progress/first-seat-fixes/`): mirrors 4,000 games a variant (same
+  deals), the ladder 2,400 matches a variant (the shipped row reproduces session 67's 64.8% exactly), the ring
+  check in both modes for all 11, the built-deck ring (32 rings) for 24 health, (c), (b) and (b)+(c). Result:
+  (d) changes nothing; cards and energy fail the ring check; health passes; 24 health brings the ladder to 52.3%
+  (50.3-54.3%) and the mirrors to 54.4%, gate mode of the built-deck ring unchanged, real mode 2 in band
+  against 5 (largest move 3.3 points). My pick at the check-in: 24 health. Nothing shipped.
+- `progress/owner-api-demo-006-collection-asks.txt`: two packs opened, the API restarted on the file, both
+  reveals read back identical; the card viewer's limits and prices; two signature cards (one connected) and an
+  earned promo; the starter deck's faction and list. 5 checks PASS; byte-identical across runs.
+- Economy demos 005, 006, 008, 012 regenerated: the schema line only (v18 -> v19).
+- `npm test`: engine 356, protocol 7, server 84, agents 17, economy 208, render 792, all pass; typecheck clean in
+  all six. `ring` and `ring:real` PASS.
+
+**Found on the way:** (d) is a no-op as the engine stands (turn 1 has one energy and summoning sickness; only
+Rush could attack); the mirrors are game-for-game identical. An extra card does nothing for the Swarm mirror.
+**Didn't / honest limits:** one agent family measured; the ladder rows aren't paired; 24 health is ~1 turn
+longer; the variants are test-only code to remove when a fix ships; no reveal for pre-v19 packs; earned promos
+are listed but none are issued yet; coin skins planned only. All in quality-debt.md.
+
+**Blocked:** nothing. Owner check-ins open: the first-seat fix, the coin skins plan (game half).
