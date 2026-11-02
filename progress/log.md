@@ -4417,3 +4417,69 @@ it plays a different match. And demos that print win rates aren't re-run after c
 the 24-health rule is not shipped (session 71). All in quality-debt.md.
 
 **Blocked:** nothing. No owner check-in open; five build calls in notes-for-owner.md.
+
+## 2026-11-02 — Session 71 (the 24-health rule shipped as rules-2)
+
+**Read first:** `progress/owner-feedback.md`. Unhandled game-lane entry: the answers to session 70 (keep all 5; a
+storage note for later), handled (the note is on the storage gate item in quality-debt.md). The render-52 answers
+are the render lane's only. The last merged PR (#124) was the render lane's, so this is the game lane: session 71,
+the 24-health rule the owner picked on 2026-11-02, after session 70's versioned replays as set.
+
+**Built:**
+- The rule as the engine's base: `SECOND_SEAT_EXTRA_HEALTH = 4` (`engine/src/state/types.ts`), so every match
+  anywhere (the ladder, the network server, the economy's matches, the measuring rings) plays "The player going
+  second starts with 24 health; the player going first starts with 20 and skips its first draw." No caller passes
+  anything. It takes nothing from the RNG (the same seed deals the same hands under both versions; tested).
+- `RULES_VERSIONS` (`engine/src/engine/versions.ts`): `rules-1` now names its 20 and 20 explicitly
+  (`{ secondSeatExtraHealth: 0 }`) BEFORE the base changed; `rules-2` added and current. Every version names every
+  `MatchRules` field (a test), so no version leans on today's default. `rulesVersionOf(rules)` names the published
+  version a rules object is.
+- Session 68's other three variants (an extra opening card, first-turn energy, no first-turn attack) left
+  `MatchRules`, `init.ts`, `engine.ts` and `moves.ts`; a test shows nothing still plays them. `seatVariants.ts` is
+  now `shipped` (rules-2) and `rules-1`, so every instrument can show the change on the same seeds.
+- Replays (`server/src/ladder/replayFile.ts`): today's matches write `rules-2`; a match played under `rules-1`
+  writes `rules-1` (not "measure"); `/1` files read rules-1's explicit rules. A measuring file now names every
+  field, and one that leaves a field out (ambiguous since the base moved) or names a dropped variant is refused.
+  Two rules-2 golden replays (`server/test/fixtures/replays/r2-*`, seed 7101) beside the four rules-1 ones.
+- Tests that assumed 20 against 20 now read `maxHealth` (signature menu, Aegis interaction); two style tests whose
+  tiny samples happened to tie under the new rule got larger confirm steps (deck builder 3 -> 6, economy agent
+  deck 3 -> 10); the render's `recorded-close-win` scenario moved from seed 3 to seed 1 (seed 3 is now a Null win;
+  the same kind of change session 62 made to its empty-slot scenario). `server/OWNER_API.md` lists both versions.
+
+**Ran it:**
+- `ring` / `ring:real` under rules-2 against the rules-1 baselines: both PASS, identical to session 68's c4
+  numbers (`progress/rules-2-ship/ring-vs-rules-1-baseline.txt`). Gate: 3 IN / 2 unresolved / 1 OUT (was 1 / 4 /
+  1); real: the same verdicts. Baselines re-recorded in all three modes. The signature-mode report (not a CI
+  check) moves Aegis > Cortex 72.4 -> 75.8 (`progress/rules-2-ship/ring-signature-rules-1.txt` for rules-1).
+- First seat (`progress/first-seat-003-rules-2.txt`, `progress/rules-2-ship/run-first-seat.sh`): shipped-deck
+  mirrors 54.4% [52.9-55.9] (rules-1 64.4%), byte-identical to session 68's c4 and shipped rows; the ladder's
+  seat split over 2,400 matches 53.6% [51.6-55.6] (rules-1 63.8%; the decks now rebuild under rules-2).
+- The built-deck ring rebuilt under rules-2 (`progress/built-deck-ring-005.txt`, `progress/rules-2-ship/
+  run-built-deck-ring.sh`, same collections as 004): real 3 in / 14 unresolved / 7 out (004: 5 / 14 / 5), gate
+  5 / 11 / 8 (004: 3 / 14 / 7). Nearly all of the movement is one deck: from a full collection the builder now
+  keeps a rated Null list over the designed one (214 against 212 of 400 on its confirm step, inside noise), and
+  that deck loses to the built Swarm (Swarm > Null 69.4 real). The rule on the same decks (session 68's c4) moved
+  no faction mean more than 1.6 points. Noise check below.
+- Live ladder watch length (`progress/ladder-demo-002-live.txt`): median 5.9 -> 6.7 min, 10th-90th 5.0-8.1, within
+  4-7 minutes 35 of 56 (was 42 of 61). Every check PASS.
+- Demos re-run: replay-versions-001 (21/21 PASS, a new section 5 for rules-2; byte-identical across runs),
+  ladder-demo-001 (all PASS; matches changed), owner-api-demo-006 and -007 (byte-identical).
+- The render browser check (`render/ci/browser-check.mjs`, on the sandbox's Chromium, not CI's pinned one): 61 PASS.
+- `npm test`: engine 365, server 110, economy 220, render 829, agents 17, protocol 7, all pass; typecheck clean in
+  all six. Mutation checks: the rule off (`SECOND_SEAT_EXTRA_HEALTH = 0`) fails 5 engine and 4 golden tests;
+  rules-1 back to `{}` fails 3 engine and 7 server tests.
+- Noise check on the full-collection Null deck (`progress/rules-2-ship/null-noise/README.txt`): rebuilt with search
+  seeds 2 and 3 and played in the real ring at full, Null's mean is 45.3 and 43.7 (seed 1: 39.2; the designed list
+  on the same rule: 49.2). Every rebuilt deck is worse than the designed one, so it isn't one unlucky seed.
+
+**Worked:** the versioning held: the rules-1 golden files rebuilt byte for byte the moment rules-1 got its explicit
+field, and the measuring instruments reproduced session 68's numbers exactly (rules-2 = its c4 rows, rules-1 = its
+shipped rows), so every number here is the rule, not drift. **Didn't / honest limits:** the builder's Null pick
+is a real launch-gate regression the rule exposed; the watch time is past the target; the economy demos, older
+owner-API demos and the render's committed samples weren't re-run (they record rules-1 matches). All in
+quality-debt.md. One slip during the mutation check: a restore step failed and the rule sat at 0 in the working
+tree for about a minute while two ladder runs were in flight; they had loaded every module at start (no workers,
+no dynamic imports on that path), and their numbers match the expected shape, so they stand.
+
+**Blocked:** nothing. One [OWNER CHECK-IN] (the shipped numbers; seven calls, recommendations given) in
+notes-for-owner.md.

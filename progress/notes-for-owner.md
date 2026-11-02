@@ -1,5 +1,57 @@
 # Notes for the owner
 
+**Updated 2026-11-02, session 71 (the 24-health rule shipped). [OWNER CHECK-IN] (the shipped numbers, before the
+launch-gate re-run, as you asked).** Nothing is blocking; the next sessions go on as planned whatever you answer.
+
+Every match the game plays now runs your rule: "The player going second starts with 24 health; the player going
+first starts with 20 and skips its first draw." It is `rules-2`. Every older replay still plays exactly as
+recorded under `rules-1` (both on 20).
+
+**The numbers**
+- **The first seat:** 53.6% over 2,400 ladder matches (95% interval 51.6-55.6), down from 63.8% under the old rule.
+  In mirror matches (same deck, same agent on both sides) it is 54.4%, down from 64.4%. Still a small first-seat
+  edge, but no longer a big one. `progress/first-seat-003-rules-2.txt`.
+- **The ring check (shipped decks):** both CI checks pass. Gate mode gets better: 3 edges in band, up from 1
+  (Null > Aegis and Aegis ~ Swarm move into band). Real-match mode keeps the same verdicts. New baselines recorded.
+- **The built-deck ring (the launch gate's own measure):** real-match mode gets worse, 3 edge-levels in band and
+  7 out (was 5 and 5). Gate mode: 5 in, 8 out (was 3 and 7). `progress/built-deck-ring-005.txt`. Almost all of this
+  is **one deck**, explained in call 1.
+- **Match length:** matches run about a turn longer (median 15.5 turns in the mirrors, was 14.5). On the live
+  ladder the median watch time goes from 5.9 to **6.7 minutes**, past the 5-6 minute target. 35 of 56 matches
+  last 4-7 minutes (was 42 of 61). `progress/ladder-demo-002-live.txt`. See call 2.
+
+**Your calls (I recommend the first option in each; nothing waits on them):**
+1. **The full-collection Null deck.** Under the new rule the store's deck builder, given every card, now picks a
+   different Null deck. It looked slightly better on the builder's own test (214 wins of 400 against 212 for the
+   designed deck, which is inside noise), but it loses badly to the built Swarm deck (Swarm > Null 69.4%). The
+   rule itself barely moves balance: on the same decks, no faction's average moves more than 1.6 points.
+   I rebuilt it with two other search seeds: Null's average over its edges is 45.3 and 43.7, against 39.2 for
+   the first deck and 49.2 for the designed deck on the same rule. So every deck the builder picks is worse than
+   the designed one (`progress/rules-2-ship/null-noise/README.txt`).
+   **Recommend:** a test-only builder session before the launch-gate re-run. The builder would keep the designed
+   deck unless another deck beats it by more than noise, then the built-deck ring would be re-run. Other options:
+   accept it, or score the builder against built decks as well as shipped ones (bigger change, slower builds).
+2. **Watch time 6.7 minutes.** **Recommend:** speed up the live watch pace a little so the median comes back to
+   about 6 minutes, for example a move's wait from 6 s to 5.4 s (`WATCH_PACE_MS`, `server/src/ladder/timeline.ts`;
+   the rules don't change). Other options: accept 6.7 minutes, or wait for a bigger sample first (this one is 56
+   matches).
+3. **I changed the engine's default** rather than having the ladder pass the rule in. That way every match
+   anywhere plays it (the ladder, the network server, the economy, the balance tools), and no caller can forget
+   it. The cost: the tests that assumed 20 against 20 now read the real maximum health, and the render lane's `recorded-close-win`
+   scenario moved from seed 3 to seed 1 (seed 3 is now a Null win). `rules-1` lists its 20 and 20 explicitly, so
+   old replays can't drift.
+4. **The other three first-seat ideas are removed from the engine** (the extra opening card, the first-turn
+   energy, no first-turn attack). Their numbers stay in `progress/first-seat-002-fixes.txt`. A measuring file
+   that names one of them is refused, not guessed at.
+5. **A replay played under an older rules version names that version** (`rules-1`) rather than "measure". Only a
+   variant that is no published version is "measure", and it must name every rule field.
+6. **The close-win boast still triggers at 5 health or less for both seats.** The second seat starts 4 higher,
+   so its close wins may be a little rarer. I left it alone; say if you want it relative to starting health.
+7. **The signature-mode report** (not a CI check; no real match plays it) moves Aegis > Cortex from 72.4% to
+   75.8%. Noted only.
+
+<details><summary>Session 70's five calls (all kept, 2026-11-03)</summary>
+
 **Updated 2026-11-02, session 70 (the hardening pass: versioned replays).** Nothing is blocking. Replays are
 versioned, as your call 6 asked, so the 24-health rule can ship next game session (71) without breaking a single
 recorded match. Evidence `progress/replay-versions-001.txt` (14 checks PASS). Five calls I made, each with what I
@@ -30,6 +82,8 @@ Zero-Day cards, which went live in session 42.
 Queued, in order: the 24-health rule as `rules-2` (session 71, the shipped numbers to you before the launch-gate
 re-run); then the 2x vote, featured picks (the "Top rated" rule to a check-in), viewer counts, and your three
 live-feed asks from render 51 (the signature card, the deck's faction, the boast on the live view).
+
+</details>
 
 <details><summary>Session 69's six calls (all kept, 2026-11-03)</summary>
 

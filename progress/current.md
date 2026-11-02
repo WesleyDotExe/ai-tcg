@@ -1,45 +1,40 @@
 # Current status
 
 **Build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
-`progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP). Session 70 (game lane) was the hardening pass:
-versioned replays (the owner's call 6), and two drifted demos fixed. Nothing is blocking. No owner check-in is
-open; five build calls are listed in notes-for-owner.md to keep or change.**
+`progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP). Session 71 (game lane) shipped the 24-health rule
+as `rules-2`. Nothing is blocking. One [OWNER CHECK-IN] is open (the shipped numbers, before the launch-gate
+re-run; seven calls with recommendations at the top of notes-for-owner.md); nothing waits on it.**
 
-- **Versioned replays** (`server/src/ladder/replayFile.ts`, `engine/src/engine/versions.ts`): the ladder writes
-  `ai-tcg-replay/2`: `versions: { rules: "rules-1", cards: "cards-1", cardsDigest }` and every deck card in full,
-  so a file plays its own cards and rules, never today's. `/1` files (sessions 67-69) read the frozen `cards-1`
-  snapshot (`engine/src/data/cardSnapshots/cards1.ts`) and `rules-1`. `rebuildReplay(file, hooks?)` reads either
-  and checks the end as recorded; unknown formats, rules versions and tampered cards are refused with the reason.
-- **Guards:** a card change fails `engine/test/versions.test.ts` until it gets a new `CARDS_VERSIONS` entry; four
-  golden replays (two real `/1` files from the session-69 writer, two `/2`; `server/test/fixtures/replays/`) are
-  rebuilt byte for byte in `server/test/replayGolden.test.ts`, and again against a registry where every unit has
-  changed (`replayRegistryChange.test.ts`).
-- **Readers moved to it:** the owner-API tests and demos, and the render's match pages (`siteReplay.ts`,
-  `siteHost.ts`; `captureMatch` takes `rules`). `server/OWNER_API.md` documents `/2`.
-- Evidence: `progress/replay-versions-001.txt` (14 checks PASS, byte-identical across runs), including a simulated
-  later set where, read without versions, an old file's moves play on to a different match.
-- **Drifted demos fixed:** `owner-api-demo-002` (two shipped card changes it missed, sessions 60 and 62, confirmed
-  at each commit), `economy-demo-009` (a stale Zero-Day check).
+- **The rule** (owner 2026-11-02): "The player going second starts with 24 health; the player going first starts
+  with 20 and skips its first draw." It is the engine's base (`SECOND_SEAT_EXTRA_HEALTH`, `engine/src/state/
+  types.ts`), so every match anywhere plays it. `RULES_VERSIONS` (`engine/src/engine/versions.ts`): `rules-1`
+  names its 20 and 20 explicitly; `rules-2` is current. Every rules-1 replay (the four golden files) rebuilds byte
+  for byte; two rules-2 golden files added (`server/test/fixtures/replays/r2-*`).
+- **Session 68's other seat variants are gone** from the engine; `seatVariants.ts` is `shipped` and `rules-1`.
+  Measuring replays name every rule field or are refused.
+- **The numbers** (owner check-in): first seat 53.6% on the ladder (was 63.8%), 54.4% in mirrors (was 64.4%),
+  `progress/first-seat-003-rules-2.txt`. Ring and ring:real PASS; new baselines in all three modes. Built-deck
+  ring `progress/built-deck-ring-005.txt`: real mode 3 in / 7 out (was 5 / 5), nearly all from the
+  full-collection Null deck the builder now picks (noise check `progress/rules-2-ship/null-noise/README.txt`:
+  every search seed's pick is worse than the designed list). Watch time median 6.7 min (was 5.9).
 
 ## Concrete next step
 
-Check the alternation first: this was the game lane (the last merged PR, #122, was the render lane's). If this
-PR is the last merged, the next session is **render** (its first coin slice, or the next live-board slice).
+Check the alternation first: this was the game lane (the last merged PR, #124, was the render lane's). If this
+PR is the last merged, the next session is **render** (its next slice per its own plan: hands live with the first
+coin slice, then its hardening pass).
 
-The next **game-lane** session is **71: ship the 24-health rule** (owner 2026-11-02): "The player going second
-starts with 24 health; the player going first starts with 20 and skips its first draw."
-1. Add `rules-2` to `RULES_VERSIONS` (`{ secondSeatExtraHealth: 4 }`, the text as the owner wrote it) and make it
-   current. Decide (and write in versions.ts) whether the ladder passes `rulesOfVersion(CURRENT_RULES_VERSION)` or
-   the engine's base changes; if the base changes, give `rules-1` explicit 20/20 fields FIRST. The golden replays
-   must stay green either way.
-2. Remove the losing test-only variants (a, b, d) from `MatchRules`, `init.ts`, `engine.ts`, `moves.ts`,
-   `seatVariants.ts` and the instruments that name them.
-3. Re-record the `ring` / `ring:real` baselines under rules-2, re-run the built-deck ring (about 25 minutes on 4
-   cores), re-check the live ladder's watch length (`npm run demo:live-ladder -w server`), re-measure the first
-   seat (`npm run measure:first-seat -w server`).
-4. The shipped numbers to an owner check-in before the launch-gate re-run. Watch the render lane's committed
-   samples: if the engine's base changes they drift (flag it for the render lane; don't regenerate theirs).
-Then (session 72+): the 2x vote, featured picks (rule to a check-in), viewer counts, the three render-51 live-feed
-asks.
+The next **game-lane** session is **72**. First read the owner's answers to the session-71 check-in. Unless they
+say otherwise:
+1. If the owner takes call 1's recommendation (or hasn't answered): a test-only builder session for the
+   full-collection Null deck: keep the designed list unless a start or search beats it by more than noise on
+   the confirm step (say a Wilson interval on the difference), measured on `builtDeckRing.ts` at every level in
+   both modes, against built-deck-ring-005. Ship only with the owner's OK.
+2. If the owner takes call 2: `WATCH_PACE_MS.action` 6000 -> about 5400 (`server/src/ladder/timeline.ts`), re-run
+   `npm run demo:live-ladder -w server` and check the median is back near 6 minutes.
+3. Then the queued small asks in order: the 2x vote, featured picks (the "Top rated" rule to a check-in), viewer
+   counts, the three render-51 live-feed asks (the signature card in `PublicSide.signature`, `LiveSideView.faction`,
+   the boast on the live view).
+The launch-gate re-run (the built-deck ring, the last session before launch) comes after the builder answer.
 
 **Blocked:** nothing.
