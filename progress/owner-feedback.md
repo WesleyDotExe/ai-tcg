@@ -3923,7 +3923,7 @@ Next render-lane slice, as planned: the loadout picker in the Store, then the ma
 
 ---
 
-## 2026-11-02 — Owner: answers to game session 67 (the live ladder), measure all four first-seat fixes; keep 1-5; versioned replays first (HANDLED 2026-11-02, session 68, except call 6 — all four measured, test only, plus five doses and pairs, on the mirrors, the ladder split, the ring check (both modes) and the leaders through the built-deck ring: `progress/first-seat-002-fixes.txt`, at the [OWNER CHECK-IN] in notes-for-owner.md. No rule changed. Calls 1-5 kept, nothing changed. Call 6 (versioned replays) is NOT done yet: it is session 70's hardening pass, before any fix ships. The correction is noted)
+## 2026-11-02 — Owner: answers to game session 67 (the live ladder), measure all four first-seat fixes; keep 1-5; versioned replays first (HANDLED 2026-11-02, session 68, except call 6 — all four measured, test only, plus five doses and pairs, on the mirrors, the ladder split, the ring check (both modes) and the leaders through the built-deck ring: `progress/first-seat-002-fixes.txt`, at the [OWNER CHECK-IN] in notes-for-owner.md. No rule changed. Calls 1-5 kept, nothing changed. Call 6 (versioned replays) is NOT done yet: it is session 70's hardening pass, before any fix ships. The correction is noted) (call 6 HANDLED 2026-11-02, session 70 — replays are versioned: `ai-tcg-replay/2` carries the rules version (`rules-1`), the card version (`cards-1`, with a digest) and every deck card in full, so it plays its own cards and rules, never today's; `/1` files read the frozen `cards-1` snapshot and still rebuild. Golden replays of both formats rebuilt byte for byte in the tests, also against a registry where every unit changed. Evidence `progress/replay-versions-001.txt`; `server/OWNER_API.md`. The 24-health rule can now ship: session 71)
 
 Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #117, `progress/first-seat-001.txt`, `progress/ladder-demo-002-live.txt`).
 
@@ -4065,7 +4065,7 @@ Next render-lane slice, as planned: the big live board (the arena fed from the l
 
 ---
 
-## 2026-11-03 — Owner: answers to game session 69 (coin skins, the game half), keep all 6
+## 2026-11-03 — Owner: answers to game session 69 (coin skins, the game half), keep all 6 (HANDLED 2026-11-02, session 70 — all 6 kept, nothing changed. Note on 5: the replay format is now versioned (`ai-tcg-replay/2`, session 70) and the coins stay an optional field in it, written whenever the match has them)
 
 Answers the six calls in `progress/notes-for-owner.md` (PR #121, `progress/owner-api-demo-007-coins.txt`).
 1. **Keep:** the tier coins belong to a season (`coin-s0-platinum`, `coin-s0-diamond`, `coin-s0-mythic`); each season adds its own three. Whether Season 1's are a new look or the same look with a season mark is the render lane's call.
@@ -4077,7 +4077,7 @@ Answers the six calls in `progress/notes-for-owner.md` (PR #121, `progress/owner
 
 ---
 
-## 2026-11-03 — Owner: answers to render session 51 (the big live board), keep all 6; three live-feed asks; show hands live
+## 2026-11-03 — Owner: answers to render session 51 (the big live board), keep all 6; three live-feed asks; show hands live (game-lane part QUEUED 2026-11-02, session 70 — session 70 was the hardening pass (versioned replays), so the three live-feed asks (the signature card in `PublicSide.signature`, `LiveSideView.faction`, the boast once the last move is out) are on the Season 0 checklist (game item 2c) with the 2x vote, featured picks and viewer counts, after the 24-health ship. Hands live: nothing for the game lane to build now (every ladder match is decided before it is shown, and draw events already name the card); the safety rule for real-time network agents is on the checklist with network agents joining the ladder. Calls 1-6 are the render lane's)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #122).
 1. **Keep:** the arena opens full screen from "Watch on the arena" on Agent match and each Watch live card; the scoreboard, compact board and play-by-play stay on the pages and widgets.

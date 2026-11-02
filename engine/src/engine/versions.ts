@@ -37,7 +37,15 @@ export interface RulesVersion {
 }
 
 /** Every published rules version, oldest first. Never edit or remove one:
- * replays name them. */
+ * replays name them.
+ *
+ * rules-1's `{}` means the engine's base rules (20 and 20). Shipping the
+ * next version (the 24-health rule, owner 2026-11-02) has two ways: add
+ * rules-2 with its `MatchRules` and have the ladder play
+ * `rulesOfVersion(CURRENT_RULES_VERSION)` (the base stays 20/20), or change
+ * the engine's base, in which case rules-1 must FIRST get explicit fields
+ * that keep 20/20, because `{}` would then mean the new rule. The golden
+ * replays fail if this is got wrong. */
 export const RULES_VERSIONS: readonly RulesVersion[] = [
   {
     id: "rules-1",
