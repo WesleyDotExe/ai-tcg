@@ -209,7 +209,16 @@ say();
 {
   const zdCopy = zdPack.cards[4]!;
   const deckCopies = store.collection(owner).filter((c) => c.origin === "starter").map((c) => c.copyId);
-  refusal("a deck holding the Zero-Day card before it is designed", () => store.saveDeck(owner, "zd", [...deckCopies.slice(0, 29), zdCopy.copyId]));
+  // Session 39 refused this while the Zero-Day cards weren't designed yet.
+  // They went live in session 42 (owner 2026-10-18): a deck may hold one
+  // now, so the line checks that instead (corrected in session 70's
+  // hardening pass, when this demo was found printing a stale "bug").
+  try {
+    store.saveDeck(owner, "zd", [...deckCopies.slice(0, 29), zdCopy.copyId]);
+    say(`    a deck holding the Zero-Day card (live since session 42): saved, as it should be`);
+  } catch (err) {
+    say(`    a deck holding the Zero-Day card (live since session 42): REFUSED (this is a bug: ${err instanceof Error ? err.message : String(err)})`);
+  }
   refusal("salvaging the Zero-Day copy (raw SQL)", () => store.unsafeExec(`UPDATE card_copies SET disposed_at = 'x', disposed_reason = 'salvaged' WHERE copy_id = '${zdCopy.copyId}'`));
   refusal("changing a copy's secret code (raw SQL)", () => store.unsafeExec(`UPDATE card_copies SET secret_code = 'S0-SR01' WHERE copy_id = '${zdCopy.copyId}'`));
   refusal("a secret copy with no secret code (raw SQL)", () =>
