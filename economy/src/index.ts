@@ -58,6 +58,8 @@ export {
   type RecentPull,
   type CollectionSummary,
   type LiveMatch,
+  type AutoPlayStatus,
+  type AutoPlayStopReason,
   type LiveSide,
   type HouseOwnerRow,
   type OwnerStats,

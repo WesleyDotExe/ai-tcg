@@ -21,14 +21,24 @@
 // rule), and a loss on the rating for the side that walked out. An error
 // that is nobody's seat (the engine itself) records the match as cancelled:
 // no credits, not rated.
+//
+// Session 67 split a match in two, so the long-lived ladder (liveLadder.ts)
+// can show it at watch speed before it counts: `playPair` plays it in the
+// engine (keeping its move-by-move timeline), `recordPlayed` records it.
+// `runRound` still does both at once (the CLI, the demos, the tests). Also
+// session 67: who queues (house owners always; a player owner only while
+// its auto-play is on, which the store turns off once the day's rewards are
+// maxed), the house owners' pack policy (owner 2026-11-02, option (a)), and
+// a replay file beside each match log.
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { formatLog, LookaheadAgent, runMatch, type Agent, type DeckBuildOptions, type Move, type PlayerId, type PlayStyleId } from "@ai-tcg/engine";
-import { EconomyError, type DeckChooser, type EconomyStore, type LiveMatch, type MatchRecord, type RecordedOutcome } from "@ai-tcg/economy";
+import { formatLog, getCard, LookaheadAgent, runMatch, type Agent, type UnitCard, type DeckBuildOptions, type DeckSpec, type Move, type PlayerId, type PlayStyleId } from "@ai-tcg/engine";
+import { EconomyError, PACK_PRICE_CREDITS, type DeckChooser, type EconomyStore, type LiveMatch, type MatchRecord, type RecordedOutcome } from "@ai-tcg/economy";
 import { deepEqual } from "../deepEqual.js";
 import { pairRound, seededRandom, type Pairing, type QueueEntry, type Random } from "./pairing.js";
+import { timelineRecorder, type Timeline } from "./timeline.js";
 
 export interface SeatInput {
   matchId: string;
@@ -80,6 +90,8 @@ function guarded(agent: Agent, seat: PlayerId): Agent {
 }
 
 export type LadderEvent =
+  | { kind: "housePacks"; ownerId: string; bought: number; opened: number; cards: number; newCards: number }
+  | { kind: "autoPlayStopped"; ownerId: string }
   | { kind: "rebuilt"; ownerId: string; reasons: string[]; faction: string; cards: number }
   | { kind: "excluded"; ownerId: string; reason: string }
   | { kind: "paired"; pairing: Pairing }
@@ -91,10 +103,57 @@ export interface LadderMatch {
   note: string | null;
   /** Where its log was written, if a log directory is set. */
   logPath: string | null;
+  /** Where its replay was written (`<matchId>.replay.json`), likewise. */
+  replayPath: string | null;
+  /** Owners whose auto-play the store switched off after this match (the
+   * day's rewards maxed). */
+  autoPlayStopped: string[];
+}
+
+/** A replay file (`ai-tcg-replay/1`): enough to rebuild the match exactly
+ * with the engine's `replayMatch` (the decks, the agents' names, the seed,
+ * every move in order), with the result as recorded. */
+export interface ReplayFile {
+  format: "ai-tcg-replay/1";
+  matchId: string;
+  seed: number;
+  names: { p1: string; p2: string };
+  decks: { p1: ReplayDeck; p2: ReplayDeck };
+  moves: Move[];
+  result: { outcome: string; winner: PlayerId | "draw" | null; turns: number; moves: number; finalHealth: { p1: number; p2: number } };
+}
+
+/** A deck as the replay keeps it: card ids, one per copy, in list order
+ * (each one a card of the engine's registry), and the signature card in
+ * full (it is the agent's own, generated card, in no registry). */
+export interface ReplayDeck {
+  name: string;
+  cardIds: string[];
+  signature: UnitCard | null;
+}
+
+/** A match the engine has played but the store hasn't recorded yet. */
+export interface PlayedMatch {
+  matchId: string;
+  pairing: Pairing;
+  live: LiveMatch;
+  seed: number;
+  outcome: RecordedOutcome;
+  note: string | null;
+  turns: number | null;
+  moves: number | null;
+  finalHealth: { p1: number; p2: number } | null;
+  /** The formatted match log; null when no move was played. */
+  log: string | null;
+  /** The match move by move; null when it never started (a seat that
+   * couldn't be seated, an engine error before the first move). */
+  timeline: Timeline | null;
+  replay: ReplayFile | null;
 }
 
 export interface RoundReport {
   round: number;
+  housePacks: { ownerId: string; bought: number; opened: number; cards: number; newCards: number }[];
   rebuilt: { ownerId: string; reasons: string[]; faction: string; cards: number }[];
   excluded: { ownerId: string; reason: string }[];
   pairs: Pairing[];
@@ -118,6 +177,13 @@ export interface LadderOptions {
   matchId?: () => string;
   /** Each match's formatted log is written here as `<matchId>.txt`. */
   logDir?: string;
+  /** The house owners' pack policy (owner 2026-11-02, option (a)): at the
+   * start of each round, each queued house owner spends its credits on
+   * packs of the season's set and opens every pack waiting, so its agent's
+   * deck rebuilds from what it earned. Real owners' credits are never
+   * touched. On by default; `false` turns it off (tests of the rest).
+   * `packSeed` fixes each opened pack's seed (the demos). */
+  housePacks?: false | { packSeed?: () => number };
   /** Called after each match is recorded (the demo moves its clock here). */
   afterMatch?: (m: LadderMatch) => void | Promise<void>;
   onEvent?: (e: LadderEvent) => void;
@@ -139,12 +205,35 @@ export class Ladder {
     if (opts.logDir) mkdirSync(opts.logDir, { recursive: true });
   }
 
-  /** Owners who can queue: a connected agent, not in a live match. */
+  /** Owners who queue: house owners always; a player owner only while its
+   * auto-play is on (owner app spec 2026-10-05 E). Either way with a
+   * connected agent and not already in a live match. */
   eligibleOwners(): string[] {
+    const autoPlay = new Set(this.store.autoPlayOwners());
     return this.store
       .listOwners()
-      .filter((o) => o.connectedAgentId !== null && this.store.liveMatchOf(o.ownerId) === null)
+      .filter((o) => (o.kind === "house" || autoPlay.has(o.ownerId)) && o.connectedAgentId !== null && this.store.liveMatchOf(o.ownerId) === null)
       .map((o) => o.ownerId);
+  }
+
+  /** The house pack policy for one owner (see `housePacks`): buy with every
+   * whole pack's worth of credits, then open every pack waiting. Null when
+   * there was nothing to buy or open. */
+  private houseShopping(ownerId: string): Extract<LadderEvent, { kind: "housePacks" }> | null {
+    const policy = this.opts.housePacks ?? {};
+    if (policy === false || this.store.getOwner(ownerId).kind !== "house") return null;
+    const afford = Math.floor(this.store.balance(ownerId) / PACK_PRICE_CREDITS);
+    if (afford > 0) this.store.buyPacks(ownerId, this.store.season, afford);
+    const waiting = this.store.unopenedPacks(ownerId);
+    if (afford === 0 && waiting.length === 0) return null;
+    let cards = 0;
+    let newCards = 0;
+    for (const pack of waiting) {
+      const opening = this.store.openPack(ownerId, pack.packId, { seed: policy.packSeed?.() });
+      cards += opening.cards.length;
+      newCards += opening.cards.filter((c) => c.isNew).length;
+    }
+    return { kind: "housePacks", ownerId, bought: afford, opened: waiting.length, cards, newCards };
   }
 
   /** Last opponents of an owner, most recent first, from match history
@@ -164,7 +253,28 @@ export class Ladder {
   /** One round: rebuild what needs it, pair, play and record every pair.
    * `queue` defaults to every eligible owner. */
   async runRound(queue: readonly string[] = this.eligibleOwners()): Promise<RoundReport> {
-    const report: RoundReport = { round: ++this.rounds, rebuilt: [], excluded: [], pairs: [], sitOut: [], matches: [] };
+    const { report, pairs } = await this.startRound(queue);
+    for (const p of pairs) {
+      const played = await this.playPair(p);
+      if (played === null) continue;
+      const m = this.recordPlayed(played);
+      report.matches.push(m);
+      await this.opts.afterMatch?.(m);
+    }
+    return report;
+  }
+
+  /** A round up to the matches: the house owners shop, what needs it
+   * rebuilds, the queue is paired. The pairs are returned to play (the
+   * report's `matches` stay empty for the caller to fill). */
+  async startRound(queue: readonly string[] = this.eligibleOwners()): Promise<{ report: RoundReport; pairs: Pairing[] }> {
+    const report: RoundReport = { round: ++this.rounds, housePacks: [], rebuilt: [], excluded: [], pairs: [], sitOut: [], matches: [] };
+    for (const ownerId of queue) {
+      const shopped = this.houseShopping(ownerId);
+      if (shopped === null) continue;
+      report.housePacks.push(shopped);
+      this.emit(shopped);
+    }
     // Rebuilds run side by side (on the worker chooser's threads, when the
     // server passes it); results are reported in queue order.
     const prepared = await Promise.all(queue.map((ownerId) => this.prepare(ownerId)));
@@ -195,13 +305,8 @@ export class Ladder {
       this.satOut.delete(p.p1);
       this.satOut.delete(p.p2);
       this.emit({ kind: "paired", pairing: p });
-      const m = await this.playPair(p);
-      if (m === null) continue;
-      report.matches.push(m);
-      this.emit({ kind: "match", result: m });
-      await this.opts.afterMatch?.(m);
     }
-    return report;
+    return { report, pairs: round.pairs };
   }
 
   /** Readies an owner for a match: rebuilds its agent's deck when the store
@@ -228,7 +333,10 @@ export class Ladder {
     return { rebuilt, reason: null };
   }
 
-  private async playPair(p: Pairing): Promise<LadderMatch | null> {
+  /** Starts a pair's match in the store and plays it in the engine,
+   * keeping its timeline. The store's live match stays open until
+   * `recordPlayed`. Null when the store refused to start it. */
+  async playPair(p: Pairing): Promise<PlayedMatch | null> {
     const matchId = this.opts.matchId?.() ?? `m-${randomUUID()}`;
     let live: LiveMatch;
     try {
@@ -270,9 +378,28 @@ export class Ladder {
     let moves: number | null = null;
     let finalHealth: { p1: number; p2: number } | null = null;
     let log: string | null = null;
+    let timeline: Timeline | null = null;
+    let replay: ReplayFile | null = null;
+    const specs = { p1: { ...live.p1.deck.spec, id: "p1" as const }, p2: { ...live.p2.deck.spec, id: "p2" as const } };
     try {
       const [a1, a2] = [await seat("p1"), await seat("p2")];
-      const { state, movesPlayed } = await runMatch({ ...live.p1.deck.spec, id: "p1" }, { ...live.p2.deck.spec, id: "p2" }, a1, a2, seed);
+      const recorder = timelineRecorder();
+      timeline = recorder.timeline;
+      const { state, movesPlayed } = await runMatch(specs.p1, specs.p2, a1, a2, seed, recorder.hooks);
+      replay = makeReplay({
+        format: "ai-tcg-replay/1",
+        matchId,
+        seed,
+        names: { p1: a1.name, p2: a2.name },
+        moves: timeline.steps.map((s) => s.move),
+        result: {
+          outcome: state.winner ? (state.winner === "draw" ? "draw" : "win") : "cancelled",
+          winner: state.winner ?? null,
+          turns: state.turnNumber,
+          moves: movesPlayed,
+          finalHealth: { p1: state.players.p1.health, p2: state.players.p2.health },
+        },
+      }, specs);
       turns = state.turnNumber;
       moves = movesPlayed;
       finalHealth = { p1: state.players.p1.health, p2: state.players.p2.health };
@@ -292,7 +419,19 @@ export class Ladder {
         outcome = { kind: "cancelled" };
         note = `engine error: ${err instanceof Error ? err.message : String(err)}`;
       }
+      // What was played before the fault stays watchable (it ends where the
+      // seat walked out); a replay file is only for a match that resolved.
+      if (timeline !== null && timeline.steps.length === 0 && timeline.start === undefined) timeline = null;
+      replay = null;
     }
+    return { matchId, pairing: p, live, seed, outcome, note, turns, moves, finalHealth, log, timeline, replay };
+  }
+
+  /** Records a played match in the store (credits, ratings, the end of the
+   * live match), writes its log and replay, and turns off the auto-play of
+   * an owner whose day's rewards it maxed. */
+  recordPlayed(played: PlayedMatch): LadderMatch {
+    const { matchId, live, seed, outcome, turns, moves, finalHealth, log, replay, note } = played;
     const record = this.store.recordMatch({
       matchId,
       seed,
@@ -306,10 +445,59 @@ export class Ladder {
       finalHealth,
     });
     let logPath: string | null = null;
+    let replayPath: string | null = null;
     if (this.opts.logDir && log !== null) {
       logPath = join(this.opts.logDir, `${matchId}.txt`);
-      writeFileSync(logPath, `${log}\n`);
+      writeAtomic(logPath, `${log}\n`);
     }
-    return { record, note, logPath };
+    if (this.opts.logDir && replay !== null) {
+      replayPath = join(this.opts.logDir, `${matchId}.replay.json`);
+      writeAtomic(replayPath, `${JSON.stringify(replay)}\n`);
+    }
+    const autoPlayStopped = [record.p1OwnerId, record.p2OwnerId].filter((o) => this.store.stopAutoPlayIfMaxed(o));
+    const m: LadderMatch = { record, note, logPath, replayPath, autoPlayStopped };
+    this.emit({ kind: "match", result: m });
+    for (const ownerId of autoPlayStopped) this.emit({ kind: "autoPlayStopped", ownerId });
+    return m;
   }
+}
+
+/** The replay file for a resolved match, or null (with a warning) when a
+ * deck holds a card the registry can't give back: the match still counts,
+ * it just can't be replayed. */
+function makeReplay(rest: Omit<ReplayFile, "decks">, specs: { p1: DeckSpec; p2: DeckSpec }): ReplayFile | null {
+  try {
+    return { ...rest, decks: { p1: replayDeck(specs.p1), p2: replayDeck(specs.p2) } };
+  } catch (err) {
+    console.warn(`[ladder] ${rest.matchId}: no replay: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
+}
+
+function replayDeck(spec: DeckSpec): ReplayDeck {
+  for (const c of spec.cards) {
+    if (!deepEqual(getCard(c.id), c)) throw new Error(`deck card "${c.id}" isn't the registry's card; a replay couldn't rebuild it`);
+  }
+  return { name: spec.name, cardIds: spec.cards.map((c) => c.id), signature: spec.signature ? structuredClone(spec.signature) : null };
+}
+
+/** The deck a replay file names, as the engine takes it. */
+export function replayDeckSpec(deck: ReplayDeck, id: PlayerId): DeckSpec {
+  return {
+    id,
+    name: deck.name,
+    cards: deck.cardIds.map((cardId) => {
+      const card = getCard(cardId);
+      if (!card) throw new Error(`the replay names a card this engine doesn't have: "${cardId}"`);
+      return card;
+    }),
+    ...(deck.signature ? { signature: deck.signature } : {}),
+  };
+}
+
+/** Writes a file whole or not at all (a crash mid-write leaves no half log). */
+function writeAtomic(path: string, text: string): void {
+  const tmp = `${path}.tmp`;
+  writeFileSync(tmp, text);
+  renameSync(tmp, path);
 }

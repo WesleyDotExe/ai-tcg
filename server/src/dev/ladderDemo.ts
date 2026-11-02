@@ -61,7 +61,7 @@ const agentOf = new Map<string, string>();
 const short = (ownerId: string) => ownerName.get(ownerId) ?? ownerId;
 const fmt = (r: Glicko2Rating) => `${r.rating.toFixed(0)}±${r.rd.toFixed(0)}`;
 
-say("# Match running and the ladder (session 66)");
+say("# Match running and the ladder (session 66; the house pack policy moved into the server, session 67)");
 say();
 say(`Eight house owners, two per faction; every deck is built by the owner's agent (search: ${JSON.stringify(BUILD)}).`);
 say(`${DAYS} Sydney days x ${ROUNDS_PER_DAY} rounds; ${MINUTES_PER_MATCH} minutes of clock per match. Ratings start at ${fmt(RATING_START)}.`);
@@ -83,29 +83,7 @@ for (const c of CAST) {
 }
 say();
 
-// ---- the demo's house policy: open what's waiting, then buy with what's earned ----
 let packSeed = 66_000;
-function houseShopping(): string[] {
-  const lines: string[] = [];
-  for (const o of store.listOwners()) {
-    let bought = 0;
-    while (store.balance(o.ownerId) >= PACK_PRICE_CREDITS) {
-      store.buyPack(o.ownerId, store.season);
-      bought++;
-    }
-    const waiting = store.unopenedPacks(o.ownerId).length;
-    if (waiting === 0) continue;
-    let fresh = 0;
-    let cards = 0;
-    for (let i = 0; i < waiting; i++) {
-      const opening = store.openPack(o.ownerId, undefined, { seed: ++packSeed });
-      cards += opening.cards.length;
-      fresh += opening.cards.filter((c) => c.isNew).length;
-    }
-    lines.push(`  ${short(o.ownerId).padEnd(19)} ${bought ? `bought ${bought}, ` : ""}opened ${waiting} pack${waiting === 1 ? "" : "s"}: ${cards} cards, ${fresh} new to the collection`);
-  }
-  return lines;
-}
 
 // ---- the run ----
 let matchNo = 0;
@@ -136,6 +114,7 @@ function ladder(): Ladder {
     build: BUILD,
     matchId: () => `s0-${String(++matchNo).padStart(3, "0")}`,
     logDir,
+    housePacks: { packSeed: () => ++packSeed },
     afterMatch: advance,
   });
 }
@@ -143,6 +122,9 @@ function ladder(): Ladder {
 const all: LadderMatch[] = [];
 function printRound(day: number, round: number, r: RoundReport, startedAt: Date): void {
   say(`### Day ${day}, round ${round} (from ${sydney.format(startedAt)} Sydney)`);
+  for (const h of r.housePacks) {
+    say(`  ${short(h.ownerId).padEnd(19)} ${h.bought ? `bought ${h.bought}, ` : ""}opened ${h.opened} pack${h.opened === 1 ? "" : "s"}: ${h.cards} cards, ${h.newCards} new to the collection`);
+  }
   for (const b of r.rebuilt) say(`  rebuilt ${short(b.ownerId)}'s deck: ${b.faction}, ${b.cards} cards (${b.reasons.join("; ")})`);
   for (const x of r.excluded) say(`  ${short(x.ownerId)} sits this round out: ${x.reason}`);
   if (r.sitOut.length) say(`  unpaired (odd queue): ${r.sitOut.map(short).join(", ")}`);
@@ -191,8 +173,7 @@ const track = (r: RoundReport) => {
 
 say("## The run");
 say();
-say("Before round 1 each house owner opens its 3 starter packs:");
-for (const l of houseShopping()) say(l);
+say("Round 1 starts with each house owner opening its 3 starter packs (the house policy).");
 say();
 
 let lad = ladder();
@@ -210,11 +191,6 @@ for (let day = 1; day <= DAYS; day++) {
     track(r);
     printRound(day, round, r, startedAt);
     brokenSeat = null;
-    const shop = houseShopping();
-    if (shop.length) {
-      say("  after the round:");
-      for (const l of shop) say(l);
-    }
     say();
     if (day === 2 && round === 3) {
       say("[restart: the ladder and the store are closed and reopened on the same file]");

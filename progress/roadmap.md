@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-01, game session 66 (match running and the ladder).
+Updated 2026-11-02, game session 67 (the long-lived ladder, Watch live, auto-play, match history).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -32,9 +32,11 @@ Updated 2026-11-01, game session 66 (match running and the ladder).
    (server-assigned opponents), plays and records each match with final health (the close-win boast), the store
    pays credits on the daily win schedule and rates both sides (schema v17); agent decks rebuild between matches
    when the rebuild reasons say so; seat faults abandon, engine errors cancel. Evidence
-   `progress/ladder-demo-001.txt` (72 matches, 8 house owners, 3 Sydney days, a restart, the packs-to-rebuild
-   loop). Left: a long-lived scheduler paced to watch speed (with live state for Watch live), auto-play for
-   player owners, network agents in the ladder.
+   `progress/ladder-demo-001.txt`. Session 67: the long-lived ladder in the server (`npm run season`): rounds on
+   the clock, each match released at watch speed and recorded after its last move (live state for Watch live);
+   auto-play for player owners (schema v18); the house pack policy; a replay per match. Evidence
+   `progress/ladder-demo-002-live.txt`. Left: the 2x vote, network agents in the ladder. Found: the first seat
+   wins ~65% (`progress/first-seat-001.txt`, owner check-in).
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
    and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
    economy endpoints (session 64). What's left waits on match running:
@@ -44,8 +46,10 @@ Updated 2026-11-01, game session 66 (match running and the ladder).
    - [x] the cosmetics store and loadouts (session 64)
    - [x] daily earnings for the Daily rewards widget (session 64); the owner's daily pack: status and claim
      (`GET /api/packs/daily`, `POST /api/packs/daily/claim`, session 65)
-   - [ ] match history with replays
-   - [ ] live and featured matches; the match feed and live state (Watch live, the Live match widget)
+   - [x] match history with replays (session 67: `GET /api/matches`, `/:id`, `/:id/log`, `/:id/replay`)
+   - [~] live and featured matches; the match feed and live state (Watch live, the Live match widget):
+     `GET /api/live`, `GET /api/live/:id` (session 67); who is featured / "Top rated" not yet
+   - [x] auto-play (session 67: `PUT /api/play/auto-play`, `autoPlay` in `GET /api/play`)
    - [~] ladder standings and stats: `GET /api/ladder` and `GET /api/rating` (session 66); the Stats page's
      endpoint not yet
    - [ ] notifications

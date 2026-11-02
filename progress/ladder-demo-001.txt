@@ -1,4 +1,4 @@
-# Match running and the ladder (session 66)
+# Match running and the ladder (session 66; the house pack policy moved into the server, session 67)
 
 Eight house owners, two per faction; every deck is built by the owner's agent (search: {"games":4,"trials":8,"confirmGames":8}).
 3 Sydney days x 6 rounds; 7 minutes of clock per match. Ratings start at 1500±350.
@@ -16,7 +16,9 @@ Dead Channel        House Null B    starter Null   Tempo      40 starter copies,
 
 ## The run
 
-Before round 1 each house owner opens its 3 starter packs:
+Round 1 starts with each house owner opening its 3 starter packs (the house policy).
+
+### Day 1, round 1 (from Mon, 2 Nov, 09:00 Sydney)
   Chrome Bastion      opened 3 packs: 15 cards, 10 new to the collection
   Mirror Sentry       opened 3 packs: 15 cards, 12 new to the collection
   Lattice Warden      opened 3 packs: 15 cards, 11 new to the collection
@@ -25,8 +27,6 @@ Before round 1 each house owner opens its 3 starter packs:
   Dead Channel        opened 3 packs: 15 cards, 8 new to the collection
   Hive Courier        opened 3 packs: 15 cards, 11 new to the collection
   Brood Cartographer  opened 3 packs: 15 cards, 14 new to the collection
-
-### Day 1, round 1 (from Mon, 2 Nov, 09:00 Sydney)
   rebuilt Chrome Bastion's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
   rebuilt Mirror Sentry's deck: Aegis, 40 cards (the agent hasn't built a deck yet)
   rebuilt Lattice Warden's deck: Cortex, 40 cards (the agent hasn't built a deck yet)
@@ -95,10 +95,9 @@ rank  agent               faction rating  RD   tier       W-L-D   credits  today
   s0-030 T13 Mirror Sentry [1681±152 -> 1731] vs Dead Channel [1665±156 -> 1613] p(p1)=0.52: Mirror Sentry wins, +10/+2 boast:boast
   s0-031 T11 Hive Courier [1344±153 -> 1414] vs Chrome Bastion [1470±152 -> 1400] p(p1)=0.35: Hive Courier wins, +10/+2 boast:boast
   s0-032 T16 Lattice Warden [1181±155 -> 1131] vs Static Widow [1208±156 -> 1259] p(p1)=0.47: Static Widow wins, +2/+30 boast:boast
-  after the round:
-  Brood Cartographer  bought 1, opened 1 pack: 5 cards, 2 new to the collection
 
 ### Day 2, round 3 (from Tue, 3 Nov, 09:56 Sydney)
+  Brood Cartographer  bought 1, opened 1 pack: 5 cards, 2 new to the collection
   rebuilt Brood Cartographer's deck: Swarm, 40 cards (the cards held changed)
   s0-033 T15 Brood Cartographer [1917±150 -> 1946] vs Mirror Sentry [1731±142 -> 1705] p(p1)=0.71: Brood Cartographer wins, +10/+2 boast:closeWinBoast
   s0-034 T11 Quiet Theorem [1540±144 -> 1597] vs Dead Channel [1613±145 -> 1555] p(p1)=0.41: Quiet Theorem wins, +30/+2 boast:boast
@@ -112,12 +111,11 @@ rank  agent               faction rating  RD   tier       W-L-D   credits  today
   s0-038 T13 Quiet Theorem [1597±136 -> 1653] vs Mirror Sentry [1705±135 -> 1650] p(p1)=0.37: Quiet Theorem wins, +10/+2 boast:closeWinBoast
   s0-039 T14 Hive Courier [1444±136 -> 1374] vs Lattice Warden [1212±138 -> 1283] p(p1)=0.76: Lattice Warden wins, +2/+10 boast:closeWinBoast
   s0-040 T13 Static Widow [1228±137 -> 1284] vs Chrome Bastion [1321±137 -> 1266] p(p1)=0.39: Static Widow wins, +10/+2 boast:boast
-  after the round:
+
+### Day 2, round 5 (from Tue, 3 Nov, 10:52 Sydney)
   Mirror Sentry       bought 1, opened 1 pack: 5 cards, 1 new to the collection
   Quiet Theorem       bought 1, opened 1 pack: 5 cards, 4 new to the collection
   Hive Courier        bought 1, opened 1 pack: 5 cards, 3 new to the collection
-
-### Day 2, round 5 (from Tue, 3 Nov, 10:52 Sydney)
   rebuilt Mirror Sentry's deck: Aegis, 40 cards (the cards held changed)
   rebuilt Quiet Theorem's deck: Cortex, 40 cards (the cards held changed)
   rebuilt Hive Courier's deck: Swarm, 40 cards (the cards held changed)
@@ -125,12 +123,11 @@ rank  agent               faction rating  RD   tier       W-L-D   credits  today
   s0-042 T17 Dead Channel [1545±133 -> 1599] vs Mirror Sentry [1650±128 -> 1600] p(p1)=0.37: Dead Channel wins, +30/+2 boast:boast
   s0-043 T16 Hive Courier [1374±131 -> 1322] vs Chrome Bastion [1266±130 -> 1318] p(p1)=0.63: Chrome Bastion wins, +2/+10 boast:boast
   s0-044 T13 Lattice Warden [1283±133 -> 1325] vs Static Widow [1284±130 -> 1243] p(p1)=0.50: Lattice Warden wins, +10/+2 boast:boast
-  after the round:
+
+### Day 2, round 6 (from Tue, 3 Nov, 11:20 Sydney)
   Chrome Bastion      bought 1, opened 1 pack: 5 cards, 5 new to the collection
   Lattice Warden      bought 1, opened 1 pack: 5 cards, 4 new to the collection
   Dead Channel        bought 1, opened 1 pack: 5 cards, 3 new to the collection
-
-### Day 2, round 6 (from Tue, 3 Nov, 11:20 Sydney)
   rebuilt Chrome Bastion's deck: Aegis, 40 cards (the cards held changed)
   rebuilt Lattice Warden's deck: Cortex, 40 cards (the cards held changed)
   rebuilt Dead Channel's deck: Null, 40 cards (the cards held changed)
@@ -158,10 +155,9 @@ rank  agent               faction rating  RD   tier       W-L-D   credits  today
   s0-050 T13 Mirror Sentry [1660±119 -> 1687] vs Dead Channel [1572±121 -> 1545] p(p1)=0.61: Mirror Sentry wins, +30/+2 boast:boast
   s0-051 T16 Chrome Bastion [1356±118 -> 1308] vs Static Widow [1214±118 -> 1261] p(p1)=0.67: Static Widow wins, +2/+30 boast:boast
   s0-052 T13 Lattice Warden [1286±119 -> 1328] vs Hive Courier [1351±119 -> 1311] p(p1)=0.42: Lattice Warden wins, +30/+2 boast:closeWinBoast
-  after the round:
-  Static Widow        bought 1, opened 1 pack: 5 cards, 3 new to the collection
 
 ### Day 3, round 2 (from Wed, 4 Nov, 09:28 Sydney)
+  Static Widow        bought 1, opened 1 pack: 5 cards, 3 new to the collection
   rebuilt Static Widow's deck: Null, 40 cards (the cards held changed)
   s0-053 T15 Mirror Sentry [1687±114 -> 1728] vs Quiet Theorem [1788±114 -> 1746] p(p1)=0.37: Mirror Sentry wins, +10/+2 boast:boast
   s0-054 T12 Dead Channel [1545±115 -> 1528] vs Brood Cartographer [1758±123 -> 1776] p(p1)=0.25: Brood Cartographer wins, +2/+30 boast:boast

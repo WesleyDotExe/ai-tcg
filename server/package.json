@@ -11,7 +11,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "ladder": "tsx src/ladderCli.ts",
-    "demo:ladder": "tsx src/dev/ladderDemo.ts"
+    "demo:ladder": "tsx src/dev/ladderDemo.ts",
+    "season": "tsx src/seasonCli.ts",
+    "demo:live-ladder": "tsx src/dev/liveLadderDemo.ts",
+    "measure:first-seat": "tsx src/dev/firstSeatMeasure.ts"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",
