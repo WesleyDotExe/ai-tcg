@@ -7,8 +7,10 @@ import { Ladder } from "./ladder/ladderRunner.js";
 // (Season 0: the house agents), rebuilding agent decks on worker threads at
 // the store's full search, and prints one line per match.
 //   npm run ladder -- <database file> [rounds] [match log directory]
-// Rounds default to 1. Auto-play for player owners (queue only while it is
-// on) is not built yet: every owner with a connected agent is queued.
+// Rounds default to 1. House owners are queued always, player owners while
+// their auto-play is on (session 67), and the house owners spend their
+// credits on packs before each round. Matches here count at once; the
+// watch-speed ladder with Watch live is `npm run season`.
 const DB_PATH = process.argv[2];
 if (!DB_PATH) {
   console.error("usage: npm run ladder -- <database file> [rounds] [match log directory]");
@@ -27,6 +29,7 @@ const ladder = new Ladder({
   chooser: chooser.choose,
   logDir: process.argv[4],
   onEvent: (e) => {
+    if (e.kind === "housePacks") console.log(`[ladder] ${name(e.ownerId)} bought ${e.bought}, opened ${e.opened} packs (${e.newCards} new cards)`);
     if (e.kind === "rebuilt") console.log(`[ladder] rebuilt ${name(e.ownerId)}'s deck: ${e.faction}, ${e.cards} cards (${e.reasons.join("; ")})`);
     if (e.kind === "excluded") console.log(`[ladder] ${name(e.ownerId)} sits out: ${e.reason}`);
     if (e.kind === "match") {

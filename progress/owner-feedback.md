@@ -3875,7 +3875,7 @@ Next game session, as planned: 66, Season 0 game item 1 (match running and the l
 
 ---
 
-## 2026-11-02 — Owner: answers to game session 66 (match running and the ladder), keep 1-4; house owners buy and open packs (a)
+## 2026-11-02 — Owner: answers to game session 66 (match running and the ladder), keep 1-4; house owners buy and open packs (a) (HANDLED 2026-11-02, session 67 — 1, 2 and 4 kept, nothing changed. 3: kept, and the first seat measured over 2,400 ladder matches: 64.8% (95% interval 62.8-66.7%), outside noise, and the game's own edge (65.4% in shipped-deck mirrors without the ladder), `progress/first-seat-001.txt`; reported at a new owner check-in with four fix options, nothing changed in the rules. 5 (a): built as the server's policy, `Ladder`'s `housePacks` (on by default): each round starts with every queued house owner buying packs with its credits and opening every waiting pack; player owners untouched; the session 66 demo re-run on it plays the same 72 matches. Session 67's planned work also built: the long-lived ladder at watch speed with Watch live, auto-play, match history with replays)
 
 Answers the [OWNER CHECK-IN] "Match running and the ladder: the calls I made (defaults built)" in `progress/notes-for-owner.md` (PR #115, `progress/ladder-demo-001.txt`).
 1. **Keep:** the tiers (Bronze < 1350, Silver 1350, Gold 1500 start, Platinum 1650, Diamond 1800, Mythic 1950+; 150 points each), and "Placement" (not ranked) until 5 rated matches.

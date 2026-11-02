@@ -277,16 +277,20 @@ async function runPolicy(label: string, makeAgent: (name: string, seed: number) 
     results.push(r);
     console.log(formatMatchup(r));
   }
-  console.log(`  --- mirror matches (first-player-advantage baseline) ---`);
+  // Corrected session 67: these alternate who goes first like every other
+  // matchup, so they measure one copy of the deck against an identical
+  // copy (about 50% by construction), NOT the first player's edge, which
+  // this line used to claim. The first seat is measured directly in
+  // server/src/dev/firstSeatMeasure.ts (progress/first-seat-001.txt).
+  console.log(`  --- mirror matches (seats alternate: a sanity check near 50%, not a first-player measure) ---`);
   for (const faction of FACTIONS) {
     const r = await runMatchup(faction, faction, makeAgent, SEEDS_PER_MATCHUP, cardStats);
-    // In a mirror match "aWins"/"bWins" are both the same faction; report
-    // as first-player vs second-player instead, which is the only real
-    // signal a mirror match can carry.
-    const firstRate = ((r.aWins / r.gamesPlayed) * 100).toFixed(1);
+    // In a mirror match "aWins"/"bWins" are both the same faction: deck
+    // A's copy against deck B's, each first on half the seeds.
+    const aRate = ((r.aWins / r.gamesPlayed) * 100).toFixed(1);
     console.log(
-      `  ${faction} mirror: first-player ${r.aWins}-${r.bWins} second-player ` +
-        `(first-player win rate ${firstRate}%, ${r.draws} draws, avg ${(r.totalTurns / r.gamesPlayed).toFixed(1)} turns)`,
+      `  ${faction} mirror: copy A ${r.aWins}-${r.bWins} copy B ` +
+        `(copy A win rate ${aRate}%, ${r.draws} draws, avg ${(r.totalTurns / r.gamesPlayed).toFixed(1)} turns)`,
     );
   }
   console.log(`  --- per-card win-rate instrumentation (drawn vs. played), accumulated across all of the above ---`);

@@ -8,12 +8,16 @@
 // who am I, the account settings, and the wallet. Session 64 added the saved
 // Home board and the economy endpoints (owner 2026-11-01): the collection
 // and binder, salvage and crafting, the ledger, buying and opening packs,
-// the store and cosmetics, loadouts, and today's earnings.
+// the store and cosmetics, loadouts, and today's earnings. Session 67 added
+// the match pages' data: Watch live (from the long-lived ladder), match
+// history with each match's log and replay, and the auto-play switch.
 // Every rule stays in the store (`@ai-tcg/economy`); this layer reads the
 // request, checks the caller may touch what it names, calls the store and
 // answers. The endpoint list and error codes are in server/OWNER_API.md.
 
+import { existsSync, readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { join } from "node:path";
 import type { AddressInfo } from "node:net";
 import { PLAY_STYLES, type DeckBuildOptions, type DeckFaction } from "@ai-tcg/engine";
 import {
@@ -40,8 +44,10 @@ import {
   type DeckStatus,
   type EconomyStore,
   type LoadoutSlot,
+  type MatchRecord,
   type Widget,
 } from "@ai-tcg/economy";
+import type { LiveSource } from "./ladder/liveLadder.js";
 
 /** The longest request body read (the API's bodies are a few fields). */
 const MAX_BODY_BYTES = 16 * 1024;
@@ -60,6 +66,12 @@ export interface OwnerApiOptions {
    * and tests only (a reproducible run); left out, the store draws a fresh
    * random seed per pack, as it must in play. */
   packSeed?: () => number;
+  /** The long-lived ladder, for Watch live (`/api/live`). Left out, nothing
+   * is live. */
+  live?: LiveSource;
+  /** Where the ladder writes each match's log and replay
+   * (`<matchId>.txt`, `<matchId>.replay.json`), for match history. */
+  matchFiles?: string;
 }
 
 export type RebuildState = "running" | "done" | "failed";
@@ -114,6 +126,10 @@ function statusOf(err: EconomyError): number {
   return 409;
 }
 
+/** The longest match history page, and the default. */
+const MATCH_PAGE_MAX = 100;
+const MATCH_PAGE_DEFAULT = 20;
+
 /** The longest ledger page, and the default. */
 const LEDGER_PAGE_MAX = 500;
 const LEDGER_PAGE_DEFAULT = 50;
@@ -161,6 +177,7 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       playStyles: Object.values(PLAY_STYLES).map((s) => ({ id: s.id, name: s.name, summary: s.summary })),
       decks,
       liveMatch: live,
+      autoPlay: autoPlayStatus(ownerId),
     };
   };
 
@@ -249,12 +266,79 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
     };
   };
 
+  /** A match file (log or replay) when the ladder wrote one. */
+  const matchFile = (matchId: string, ext: ".txt" | ".replay.json"): string | null => {
+    if (!options.matchFiles || !/^[A-Za-z0-9_-]+$/.test(matchId)) return null;
+    const path = join(options.matchFiles, `${matchId}${ext}`);
+    return existsSync(path) ? path : null;
+  };
+
+  const sideOf = (ownerId: string, agentId: string) => {
+    const owner = store.getOwner(ownerId);
+    return { ownerId, ownerName: owner.name, ownerKind: owner.kind, agentId, agentName: store.getAgent(agentId).name };
+  };
+
+  /** One match as the match pages show it. */
+  const matchView = (m: MatchRecord) => ({
+    matchId: m.matchId,
+    endedAt: m.endedAt,
+    outcome: m.outcome,
+    p1: { ...sideOf(m.p1OwnerId, m.p1AgentId), credits: m.p1Credits, rating: m.ratings?.p1 ?? null, playStyle: m.playStyles?.p1 ?? null },
+    p2: { ...sideOf(m.p2OwnerId, m.p2AgentId), credits: m.p2Credits, rating: m.ratings?.p2 ?? null, playStyle: m.playStyles?.p2 ?? null },
+    winnerOwnerId: m.winnerOwnerId,
+    abandonedByOwnerId: m.abandonedByOwnerId,
+    turns: m.turns,
+    moves: m.moves,
+    boast: m.boast,
+    hasLog: matchFile(m.matchId, ".txt") !== null,
+    hasReplay: matchFile(m.matchId, ".replay.json") !== null,
+  });
+
+  /** The same, from one owner's side: you, the opponent, your result. */
+  const historyRow = (m: MatchRecord, ownerId: string) => {
+    const view = matchView(m);
+    const seat = m.p1OwnerId === ownerId ? "p1" : "p2";
+    const you = view[seat];
+    const opponent = view[seat === "p1" ? "p2" : "p1"];
+    const result =
+      m.outcome === "win"
+        ? m.winnerOwnerId === ownerId
+          ? "win"
+          : "loss"
+        : m.outcome === "abandoned"
+          ? m.abandonedByOwnerId === ownerId
+            ? "abandonedByYou"
+            : "abandonedByOpponent"
+          : m.outcome;
+    return {
+      matchId: m.matchId,
+      endedAt: m.endedAt,
+      seat,
+      result,
+      credits: you.credits,
+      rating: you.rating === null ? null : { before: you.rating.before.rating, after: you.rating.after.rating, change: you.rating.after.rating - you.rating.before.rating },
+      opponent: { ownerId: opponent.ownerId, ownerName: opponent.ownerName, agentName: opponent.agentName },
+      agentName: you.agentName,
+      turns: m.turns,
+      hasLog: view.hasLog,
+      hasReplay: view.hasReplay,
+    };
+  };
+
+  const recordedMatch = (matchId: string): MatchRecord => {
+    const m = store.matchById(matchId);
+    if (m === null) throw new HttpError(404, `no recorded match "${matchId}"`);
+    return m;
+  };
+
+  const autoPlayStatus = (ownerId: string) => (store.getOwner(ownerId).kind === "house" ? { ...store.autoPlay(ownerId), house: true } : { ...store.autoPlay(ownerId), house: false });
+
   type Handler = (
     req: IncomingMessage,
     body: Record<string, unknown>,
     params: string[],
     query: URLSearchParams,
-  ) => { status?: number; body?: unknown };
+  ) => { status?: number; body?: unknown; text?: string };
   const routes: { method: string; path: RegExp; handler: Handler }[] = [
     {
       method: "POST",
@@ -521,6 +605,86 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
         return { body: loadoutOf(ownerId, agentId!) };
       },
     },
+    {
+      method: "PUT",
+      path: /^\/api\/play\/auto-play$/,
+      handler: (req, body) => {
+        const ownerId = ownerOf(req);
+        if (typeof body.on !== "boolean") throw new HttpError(400, `"on" must be true or false`);
+        store.setAutoPlay(ownerId, body.on);
+        return { body: { autoPlay: autoPlayStatus(ownerId) } };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/live$/,
+      handler: (req) => {
+        const ownerId = ownerOf(req);
+        return { body: { running: options.live !== undefined, matches: options.live?.liveMatches() ?? [], mine: options.live?.liveMatchOf(ownerId) ?? null } };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/live\/([^/]+)$/,
+      handler: (req, _body, [matchId], query) => {
+        ownerOf(req);
+        const from = intParam(query, "from", 0, 0, Number.MAX_SAFE_INTEGER);
+        const feed = options.live?.liveMatch(matchId!, from) ?? null;
+        if (feed !== null) return { body: feed };
+        // Ended since: say so, so the page can go to the result.
+        if (store.matchById(matchId!) !== null) throw new HttpError(404, `match "${matchId}" has ended; see /api/matches/${matchId}`);
+        throw new HttpError(404, `no live match "${matchId}"`);
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/matches$/,
+      handler: (req, _body, _params, query) => {
+        const ownerId = ownerOf(req);
+        const limit = intParam(query, "limit", MATCH_PAGE_DEFAULT, 1, MATCH_PAGE_MAX);
+        const before = query.get("before");
+        // Newest first; `before` pages back from a match id.
+        const all = store.matchHistory({ ownerId }).reverse();
+        let start = 0;
+        if (before !== null) {
+          const i = all.findIndex((m) => m.matchId === before);
+          if (i < 0) throw new HttpError(400, `"before" must be one of your matches`);
+          start = i + 1;
+        }
+        const page = all.slice(start, start + limit);
+        return { body: { matches: page.map((m) => historyRow(m, ownerId)), total: all.length, more: start + limit < all.length } };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/matches\/([^/]+)$/,
+      handler: (req, _body, [matchId]) => {
+        ownerOf(req);
+        return { body: matchView(recordedMatch(matchId!)) };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/matches\/([^/]+)\/log$/,
+      handler: (req, _body, [matchId]) => {
+        ownerOf(req);
+        recordedMatch(matchId!);
+        const path = matchFile(matchId!, ".txt");
+        if (path === null) throw new HttpError(404, `match "${matchId}" has no log (it ended before a move was played)`);
+        return { text: readFileSync(path, "utf8") };
+      },
+    },
+    {
+      method: "GET",
+      path: /^\/api\/matches\/([^/]+)\/replay$/,
+      handler: (req, _body, [matchId]) => {
+        ownerOf(req);
+        recordedMatch(matchId!);
+        const path = matchFile(matchId!, ".replay.json");
+        if (path === null) throw new HttpError(404, `match "${matchId}" has no replay (only a match that resolved has one)`);
+        return { body: JSON.parse(readFileSync(path, "utf8")) as unknown };
+      },
+    },
     { method: "GET", path: /^\/api\/play$/, handler: (req) => ({ body: playSettings(ownerOf(req)) }) },
     {
       method: "PUT",
@@ -603,7 +767,9 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       const body = await readJson(req);
       const params = route.path.exec(path)!.slice(1).map(decodeURIComponent);
       const out = route.handler(req, body, params, url.searchParams);
-      send(res, out.status ?? 200, out.body);
+      if (out.text !== undefined) {
+        res.writeHead(out.status ?? 200, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }).end(out.text);
+      } else send(res, out.status ?? 200, out.body);
     } catch (err) {
       if (err instanceof HttpError) send(res, err.status, { error: err.message });
       else if (err instanceof SalvageNeedsConfirmation) send(res, 409, { error: err.message, affectedDecks: err.affectedDecks, needsConfirmation: true });

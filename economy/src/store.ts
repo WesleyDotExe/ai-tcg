@@ -742,6 +742,22 @@ export interface LiveSide {
   playStyle: PlayStyleId;
 }
 
+/** Why the server turned an owner's auto-play off. */
+export type AutoPlayStopReason = "dailyRewardsMaxed";
+
+/** The auto-play switch as the website shows it (schema v18). */
+export interface AutoPlayStatus {
+  on: boolean;
+  /** When the switch last changed; null if it never has. */
+  changedAt: string | null;
+  /** Set when the server turned it off today: why, and the Sydney day. */
+  stopped: { reason: AutoPlayStopReason; day: string } | null;
+  /** Today's rewards are maxed (the next win would pay nothing). */
+  dailyRewardsMaxed: boolean;
+  /** Whether the owner may turn it on now (not while maxed). */
+  canTurnOn: boolean;
+}
+
 export interface LiveMatch {
   matchId: string;
   startedAt: string;
@@ -1362,6 +1378,68 @@ export class EconomyStore {
         );
       return this.accountSettings(ownerId);
     });
+  }
+
+  // ---- auto-play (schema v18; owner app spec 2026-10-05 E) ----
+
+  /** The owner's auto-play switch. Off until the owner turns it on. When
+   * the server turned it off (the day's rewards maxed), `stopped` says why
+   * and on which Sydney day; `canTurnOn` is false for the rest of that day. */
+  autoPlay(ownerId: string, at: string = this.stamp()): AutoPlayStatus {
+    this.getOwner(ownerId);
+    const row = this.db.prepare("SELECT * FROM auto_play WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    const today = this.resetDay(at).day;
+    const maxed = this.dailyEarnings(ownerId, at).nextWinPays === 0;
+    if (!row) return { on: false, changedAt: null, stopped: null, dailyRewardsMaxed: maxed, canTurnOn: !maxed };
+    const stopped = row.stopped_reason == null ? null : { reason: str(row.stopped_reason) as AutoPlayStopReason, day: str(row.stopped_day) };
+    return {
+      on: num(row.is_on) === 1,
+      changedAt: str(row.changed_at),
+      // The message stands only on the day it happened.
+      stopped: stopped !== null && stopped.day === today ? stopped : null,
+      dailyRewardsMaxed: maxed,
+      canTurnOn: !maxed,
+    };
+  }
+
+  /** Turns the owner's auto-play on or off. Turning it on is refused while
+   * today's rewards are maxed (the switch would go off again at once; the
+   * owner turns it back on another day). Turning it off never stops a
+   * match already running: it only keeps the owner out of the next round. */
+  setAutoPlay(ownerId: string, on: boolean): AutoPlayStatus {
+    const at = this.stamp();
+    const owner = this.getOwner(ownerId);
+    if (owner.kind === "house") throw new EconomyError("house owners always play; auto-play is for player owners");
+    if (on && this.dailyEarnings(ownerId, at).nextWinPays === 0) {
+      throw new EconomyError("today's rewards are maxed; auto-play can go back on after midnight Sydney");
+    }
+    this.db
+      .prepare(
+        `INSERT INTO auto_play (owner_id, is_on, changed_at, stopped_reason, stopped_day) VALUES (?, ?, ?, NULL, NULL)
+         ON CONFLICT (owner_id) DO UPDATE SET is_on = excluded.is_on, changed_at = excluded.changed_at, stopped_reason = NULL, stopped_day = NULL`,
+      )
+      .run(ownerId, on ? 1 : 0, at);
+    return this.autoPlay(ownerId, at);
+  }
+
+  /** The server's check after each of the owner's matches: when auto-play
+   * is on and today's rewards are maxed, it goes off with the reason.
+   * True when it was switched off by this call. */
+  stopAutoPlayIfMaxed(ownerId: string): boolean {
+    const at = this.stamp();
+    const status = this.autoPlay(ownerId, at);
+    if (!status.on || !status.dailyRewardsMaxed) return false;
+    this.db
+      .prepare("UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'dailyRewardsMaxed', stopped_day = ? WHERE owner_id = ?")
+      .run(at, this.resetDay(at).day, ownerId);
+    return true;
+  }
+
+  /** Owners whose auto-play is on, oldest owner first. */
+  autoPlayOwners(): string[] {
+    return (this.db.prepare("SELECT a.owner_id FROM auto_play a JOIN owners o ON o.owner_id = a.owner_id WHERE a.is_on = 1 ORDER BY o.created_at, o.rowid").all() as Row[]).map((r) =>
+      str(r.owner_id),
+    );
   }
 
   // ---- the Home widget board (schema v16; owner 2026-11-01) ----
@@ -3555,11 +3633,20 @@ export class EconomyStore {
     });
   }
 
+  /** One recorded match, or null. */
+  matchById(matchId: string): MatchRecord | null {
+    return this.matchHistory({ matchId })[0] ?? null;
+  }
+
   /** Match history, oldest first: everything, one owner's, or (with an
    * agent) only the matches that agent played. */
-  matchHistory(filter: { ownerId?: string; agentId?: string } = {}): MatchRecord[] {
+  matchHistory(filter: { ownerId?: string; agentId?: string; matchId?: string } = {}): MatchRecord[] {
     const where: string[] = [];
     const params: Record<string, string> = {};
+    if (filter.matchId !== undefined) {
+      where.push("match_id = :m");
+      params.m = filter.matchId;
+    }
     if (filter.ownerId !== undefined) {
       where.push("(p1_owner = :o OR p2_owner = :o)");
       params.o = filter.ownerId;

@@ -1163,4 +1163,21 @@ export const MIGRATIONS: readonly string[] = [
   )
   BEGIN SELECT RAISE(ABORT, 'a rating belongs to a rated match side: its own owner, in a win, draw or abandon'); END;
   `,
+  // 18: auto-play (session 67; owner app spec 2026-10-05 E: "one easy
+  // switch ... when on, the agent queues ranked matches back to back ... it
+  // switches itself off once the day's rewards are maxed, with a message").
+  // One row per owner, written the first time the switch is touched; no row
+  // reads as off. `stopped_reason` says why the server last turned it off
+  // (only while it is off), for the message; `stopped_day` is the reset day
+  // (midnight Sydney) it happened, so the owner can turn it on again the
+  // next day.
+  `
+  CREATE TABLE auto_play (
+    owner_id        TEXT PRIMARY KEY REFERENCES owners(owner_id),
+    is_on           INTEGER NOT NULL CHECK (is_on IN (0, 1)),
+    changed_at      TEXT NOT NULL,
+    stopped_reason  TEXT CHECK (stopped_reason IS NULL OR (is_on = 0 AND stopped_reason IN ('dailyRewardsMaxed'))),
+    stopped_day     TEXT CHECK ((stopped_day IS NULL) = (stopped_reason IS NULL) AND (stopped_day IS NULL OR stopped_day GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'))
+  );
+  `,
 ];

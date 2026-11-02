@@ -18,14 +18,14 @@ export type {
 export { otherPlayer } from "./state/types.js";
 export type { DeckSpec } from "./state/init.js";
 export { createInitialState, MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP, BOARD_SLOTS, SIGNATURE_REPLAY_SURCHARGE } from "./state/init.js";
-export { signatureCost } from "./state/queries.js";
+export { signatureCost, currentAttack, currentHealth, currentMaxHealth } from "./state/queries.js";
 export { Rng } from "./state/rng.js";
 
 export type { TargetRef } from "./effects/targeting.js";
 export type { Move } from "./engine/moves.js";
 export { getLegalMoves } from "./engine/moves.js";
 export { applyMove, beginTurn } from "./engine/engine.js";
-export { runMatch, type MatchResult, type MatchHooks } from "./engine/match.js";
+export { runMatch, replayMatch, type MatchResult, type MatchHooks } from "./engine/match.js";
 
 export type { Agent, PlayerView } from "./agents/agent.js";
 export { buildPlayerView } from "./agents/agent.js";

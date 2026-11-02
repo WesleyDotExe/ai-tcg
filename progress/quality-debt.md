@@ -75,18 +75,57 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 67 (the long-lived ladder, Watch live, auto-play, match history): what is still thin
+
+- **The first seat wins about 65% (serious, balance; the fix waits on the owner's pick, then gets measured).** Measured this session at the owner's
+  ask: 1,554 of 2,400 ladder matches (95% interval 62.8-66.7%), stable over time, in every faction pairing but
+  one, and 58-72% in shipped-deck mirrors with the same agent both sides (`progress/first-seat-001.txt`). It is
+  the game's, not the ladder's. Every balance number so far alternated seats, so it was averaged away; the
+  balance report's "first-player-advantage baseline" mirror lines alternated seats too and never measured it
+  (relabelled this session). A 65/35 seat is a coin flip deciding a third of a match's edge, on screen, every
+  match. Not changed here: a fix is a rules change (what the second player gets) and goes to the owner first
+  (notes-for-owner.md), then measure-then-fix like every balance change.
+- **Watch speed is one fixed pace per move kind** (6 s an action, 1 s a pass, 3 s a new turn, 8 s the result).
+  It isn't the render's animation time: a big turn of many moves and a quiet one get the same seconds per move,
+  and the render lane hasn't timed its animations against it. The median lands at 5.9 minutes, but the
+  10th-90th spread is 4.2-8.3 and the longest 10.5 (19 of 61 outside 4-7 minutes). Pacing by event (an attack
+  that kills holds longer than a pass that resolves nothing) would be better; needs the render lane's timings.
+- **No 2x vote.** The spec's "2x only when both owners agree" isn't built: every match shows at 1x.
+- **A round waits for its slowest match.** Owners whose match ended sit idle until the round's last match ends
+  plus 60 s. Simple and fair, but with a 10-minute match in a round the others wait several minutes. A rolling
+  queue (pair whoever is free) would keep owners busier; it changes the matchmaker's round model.
+- **Live state is in memory only.** A restart cancels the matches being shown (no credits, no rating), by
+  design (notes-for-owner.md); an owner whose agent was winning loses that match's pay. Rebuilding them from
+  the seed works for in-process agents only.
+- **The engine plays the whole match before the first move is shown.** Right for in-process agents (and it is
+  why watching can never feed back into a match). A network agent can't play a match in under a second: when
+  network agents join the ladder, their matches will have to be shown as they are played, with the pace as a
+  floor, not a replay. Not designed yet.
+- **`GET /api/matches` pages the owner's whole history in memory**, and `GET /api/live/:id` copies every
+  released step from `from` on. Fine for Season 0's handful of owners; both need SQL paging / a size cap before
+  launch scale.
+- **Logs and replays live in a directory beside the database**, not in it: a backup of the `.db` alone loses
+  them, and nothing cleans them up. Each replay is about 20-40 KB.
+- **A replay needs this engine's cards.** It names cards by id, so a card change after a match makes its
+  replay throw (`replayMatch` refuses an illegal move). Versioned card data (or the full deck in the file) is
+  needed before the first card change in a live season.
+- **Abandoned matches have a log but no replay**, and the live feed of an abandoned match ends where the seat
+  walked out without saying so in the snapshot (the record's note says it). The render will need a line for it.
+- **`owner-api-demo-002.txt` no longer matches a fresh run** (its fresh-seed win rates differ); the same
+  difference shows on the commit before this session, so it predates it. Not regenerated; worth a look in the
+  next hardening pass (session 70).
+- **Session 66's items stand**, less the three this session closed (auto-play, the timer, the house policy):
+  no network agents on the ladder, the season reset, raw-SQL deletable `ratings`, rebuilds inside a round.
+
 ## Session 66 (match running and the ladder): what is still thin
 
 - **Only in-process house agents play on the ladder.** The `AgentSeater` seam exists, but nothing seats a
   network agent (`RemoteAgent`) yet: the WebSocket server (`server/src/server.ts`) is still the stage-2
   one-match server on fixed test decks. Wiring connected agents into the ladder (who is connected, a timeout for
   a seat that never answers, reconnects) is real work, not done.
-- **No auto-play.** Every owner with a connected agent is queued every round (fine for Season 0's house agents).
-  The owner's spec (2026-10-05 E: queue back to back while the switch is on, switch off once the day's rewards are
-  maxed, "turning it off lets the current match finish") isn't built, so a player owner can't opt in or out.
-- **Nothing runs the ladder on a timer.** `npm run ladder -- <db> <rounds>` runs rounds and stops; a long-lived
-  scheduler (rounds paced to the 5-6 minute watch time, the 2x vote, live state for Watch live) is the next
-  slice. Matches run at engine speed (about 10 ms each), not at watch speed.
+- ~~**No auto-play.**~~ Built session 67 (schema v18).
+- ~~**Nothing runs the ladder on a timer.**~~ Built session 67 (`liveLadder.ts`, `npm run season`); the 2x vote
+  is still out.
 - **An abandoned or cancelled match has no log.** The runner writes a log only for a match the engine finished;
   when a seat faults mid-match the partial game is lost (`runMatch` throws away its state). Replays of
   abandons need `runMatch` to hand back the state on a throw (an engine change) or a log hook.
@@ -100,9 +139,8 @@ real, but here is where it's thin.
   will rewrite it from `match_ratings`.
 - **`ratings` rows can be deleted with raw SQL** (only `match_ratings` is write-once). The table is current
   state, replayable from `match_ratings`; no replay tool exists yet beyond the demo's check.
-- **The house's pack buying is the demo's policy, not the server's.** In the demo each house owner spends every
-  100 credits on a pack and opens it at once, so its agent rebuilds. Whether house owners do that in Season 0 is
-  an owner question (notes-for-owner.md); the ladder itself never buys or opens packs.
+- ~~**The house's pack buying is the demo's policy, not the server's.**~~ The server's policy since session 67
+  (owner option (a)).
 - **Rebuilds use the store's full search (minutes per owner on a real collection) and happen inside a round**,
   side by side on worker threads in the CLI. A round waits for the slowest rebuild. The demo uses a small search.
 - **Session 65's items stand** (demos drift silently, `grantPack("ownerDaily")`, the daily-pack bank read, the

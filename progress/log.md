@@ -4218,3 +4218,62 @@ speed, no log for an abandoned match; the matchmaker is tuned on 8 agents only. 
 **Evidence:** `progress/ladder-demo-001.txt`. `npm test` all six workspaces pass; typecheck clean.
 
 **Blocked:** nothing. Owner check-in open (tiers, matchmaker, abandon rating, the house buying packs).
+
+## 2026-11-02 — Session 67 (the long-lived ladder, Watch live, auto-play, match history)
+
+**Read first:** `progress/owner-feedback.md`. One unhandled game-lane entry (answers to session 66): keep 1-4;
+measure the first seat over a larger run (call 3); option (a) for call 5, the house owners buy and open packs as
+the server's policy. Both done; marked handled. The render-lane entries (render 47, 48) put three small asks
+after this session's match work: left for session 68. The last merged PR (#116) was the render lane's, so this
+is the game lane.
+
+**Built:**
+- Engine: `runMatch`'s `onMove` hook, and `replayMatch` (same setup as `runMatch`, then the recorded moves,
+  each checked legal). The derived-stat queries (`currentAttack`, `currentHealth`, `currentMaxHealth`) joined the
+  public barrel.
+- Economy: schema v18 `auto_play`; store `autoPlay`, `setAutoPlay` (refused for house owners and while maxed),
+  `stopAutoPlayIfMaxed`, `autoPlayOwners`, `matchById`.
+- Server: `ladder/timeline.ts` (public snapshots, counts only; the watch pace); `Ladder` split into
+  `startRound` / `playPair` / `recordPlayed`, the queue (house always, players on auto-play), the house pack
+  policy, `<matchId>.replay.json` beside each log (atomic writes); `ladder/liveLadder.ts` (rounds on an injected
+  clock, release at watch speed, record after the last move, orphan cancel on start); `seasonCli.ts`
+  (`npm run season`); seven endpoints in `ownerApi.ts` and `OWNER_API.md`.
+- Measurement: `server/src/dev/firstSeatMeasure.ts`. The balance report's mirror lines relabelled (they never
+  measured the first seat).
+
+**Ran it:**
+- `progress/ladder-demo-002-live.txt` (`npm run demo:live-ladder -w server`): six owners on a real file, the API
+  on a real port, a fixed clock. Round 1 on Watch live; one match followed through `GET /api/live/:id?from=`
+  every 5 s of clock: the lines fetched equal the match log exactly, and it is in the history only after its
+  last move (4.5 min). The ladder runs on to 12:56 Sydney, when Player One's 10th rewarded win turns its
+  auto-play off (409 on turning it back on); Player Two (off) never plays. A restart mid-match cancels the live
+  match (+0/+0, unrated) and the next process carries on. History over the API, the log, and the replay rebuilt
+  in the engine equal to the served log. 61 matches shown: median 5.9 min, 10th-90th 4.2-8.3. All 9 checks PASS;
+  byte-identical across two runs.
+- `progress/first-seat-001.txt`: 2,400 ladder matches, first seat 64.8% (62.8-66.7%), stable by quarter;
+  shipped-deck mirrors without the ladder 58-72% (65.4% all four). The game's own edge.
+- `progress/ladder-demo-001.txt` re-run on the server's house policy: the same 72 matches; only where the
+  shopping lines print moved. Economy demos 005/006/008/012: schema line only. Owner-API demos 003-005
+  byte-identical; 002 differs in its fresh-seed win rates, and differs the same way on the commit before this
+  session (pre-existing; left for the hardening pass).
+- `npm run season` on a fresh 4-house file, real clock: the API answered `GET /api/live` 100 s in with two matches
+  at move 22, turn 5.
+- `npm test`: engine 351, protocol 7, server 84, agents 17, economy 202, render 779, all pass; typecheck clean in
+  all six. Mutation checks: recording at once, no result hold, the house policy for players, never stopping
+  auto-play, queueing everyone, no orphan recovery, leaking the hand into the snapshot, and allowing auto-play
+  on while maxed each fail a test.
+
+**Found on the way:** the first seat's edge (above), and that the balance instrument's "first-player baseline"
+never measured it. The live demo's own client first re-appended the opening lines on every fetch from 0 (the API
+sends them with each `from=0`); the client keeps them once now, and OWNER_API.md says to fetch from `released`.
+
+**Worked:** the whole match is played before it is shown, so the result can't leak and watching can't feed back
+into play; the release, the record time and the replay all derive from one timeline, and the demo re-derives each
+match's watch length from its replay file alone and matches the recorded time.
+**Didn't / honest limits:** no 2x vote; a fixed pace per move kind; a round waits for its slowest match; live
+state in memory (a restart cancels); network agents would need matches shown as played, not designed; replays
+name cards by id. All in quality-debt.md.
+
+**Evidence:** `progress/ladder-demo-002-live.txt`, `progress/first-seat-001.txt`, `progress/ladder-demo-001.txt`.
+
+**Blocked:** nothing. Owner check-ins open: the first seat (pick fixes to measure) and six live-ladder calls.

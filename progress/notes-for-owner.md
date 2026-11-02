@@ -1,9 +1,73 @@
 # Notes for the owner
 
-**Updated 2026-11-01, session 66 (match running and the ladder).** Nothing is blocking; the calls below are
-built with defaults.
+**Updated 2026-11-02, session 67 (the long-lived ladder, Watch live, auto-play, match history).** Nothing is
+blocking. One finding needs your decision (the first seat); the other calls are built with defaults.
 
-### [OWNER CHECK-IN] Match running and the ladder: the calls I made (defaults built)
+### [OWNER CHECK-IN] The first seat wins about 65% of matches: pick a fix to measure
+
+You asked me to measure the first seat over a larger run (`progress/first-seat-001.txt`, `npm run
+measure:first-seat -w server`). Over 2,400 ladder matches (8 house agents, 12 Sydney days, decks rebuilt as
+packs were opened) **the first seat won 1,554 of 2,400: 64.8%** (95% interval 62.8-66.7%). That is not noise:
+it is the same in every quarter of the run (63-66%), in 15 of 16 faction pairings, and for every play style.
+
+It is the game, not the ladder: each faction's shipped deck against itself, the same agent in both seats, no
+ladder at all, gives the first seat 58% (Aegis) to 72% (Swarm). The 56% in session 66's demo was the same edge
+seen through 71 matches.
+
+Why nobody saw it: every balance measurement so far alternated seats, so the edge was averaged out of the
+faction numbers. The balance report's lines called "first-player-advantage baseline" alternated seats too, so
+they measured one copy of a deck against an identical copy (about 50% by construction). I relabelled those
+lines; they never measured the first seat.
+
+The first player already skips its first draw. That isn't enough. I haven't changed the rules (a balance change
+goes to you first). Options to measure (each a small engine change, quick to test on mirrors, then the full ring
+and the built-deck ring):
+- (a) **The second player draws one extra card** in its opening hand.
+- (b) **The second player gets +1 energy on its first turn only** (a one-time head start on the curve).
+- (c) **The second player starts with more health** (for example 22 instead of 20).
+- (d) **The first player can't attack on its first turn** (on top of not drawing).
+My suggestion: measure (a), (b) and (c) on the mirrors in the next game session, bring you the numbers, and
+ship the one you pick through the ring and the built-deck ring. This touches every matchup number, so it should
+land before the launch-gate re-run, not after. Tell me if you'd rather it wait behind the small asks
+(the craft price, promos, "Watch again").
+
+### [OWNER CHECK-IN] Watch live, auto-play and match history: the calls I made (defaults built)
+
+The ladder now runs inside the server (`npm run season -- <db> [port]`: the owner API and the ladder in one
+process). The engine plays each match at once, then the server releases it a move at a time at watch speed;
+the match is recorded (credits, rating, history) only after its last move has been shown, so no result shows
+anywhere early. The website can read Watch live (`GET /api/live`), follow one match move by move
+(`GET /api/live/:id`), read match history with each match's log and replay (`GET /api/matches...`), and switch
+auto-play (`PUT /api/play/auto-play`). The run is `progress/ladder-demo-002-live.txt` (62 matches over a
+Sydney morning, a restart, auto-play turning itself off; every check passes). Six calls; tell me if any is wrong:
+1. **The watch pace:** before each move is released, the board holds 6 s after an action, 1 s after a pass, 3 s
+   more for a new turn; the result holds 8 s. In the demo, matches ran 5.9 minutes at the median, 4.2 to 8.3
+   for most (shortest 3.4, longest 10.5). The render lane may want different holds once it times its
+   animations against them.
+2. **A restart mid-match cancels the matches being shown:** nobody's fault, so no credits and no rating, as for
+   any cancel. Replaying them from the seed would work for the house agents but not for network agents later.
+3. **A round waits for its slowest match**, then 60 s, then the next round. Owners whose match ended early sit
+   idle until then. The other way is a rolling queue (pair whoever is free); it changes the matchmaker.
+4. **Auto-play goes off after the match that maxes the day** (the 10th rewarded win), with "today's rewards are
+   maxed" until midnight Sydney, and it can't be turned on again that day. House owners have no switch: they
+   always play.
+5. **Any signed-in owner can watch any live match and open any recorded match** (its result, log and replay),
+   so a featured match can be watched again. Match history (`GET /api/matches`) lists only your own matches.
+6. **A replay is the decks, the seed and every move** (`ai-tcg-replay/1`); the engine rebuilds the match
+   exactly from it (checked against the log in the tests and the demo). It names cards by id, so a card change
+   later makes old replays fail to rebuild; before the first card change in a live season they need versioned
+   cards.
+
+**Your 2026-11-02 call 5, done:** the house owners now spend their earned credits on Season 0 packs and open
+them at the start of each round. It is the server's policy, not only the demo's. Real owners' credits and packs
+are never touched. The session 66 demo, re-run with the server's policy, plays the same 72 matches.
+
+Next game session (68): the small asks you approved for after this one (the craft price and copy limit in the
+card viewer, signature cards and promos in the collection API, `GET /api/packs/:packId/opening` as the
+`PackOpening` shape for "Watch again"), and the first-seat measurements if you agree. Session 70 is the next
+hardening pass.
+
+### [OWNER CHECK-IN] Match running and the ladder: the calls I made (answered 2026-11-02: keep 1-4, (a) for 5; built session 67)
 
 The ladder runs: agents are paired by a Glicko-2 rating, play, and are paid and rated, and each agent's deck is
 rebuilt between matches when its owner's cards change. The run is `progress/ladder-demo-001.txt` (8 house

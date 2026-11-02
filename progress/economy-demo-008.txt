@@ -1,5 +1,5 @@
 # Owners name their agents (session 37; session 38: first rename free, typed names may repeat a word)
-database: <temp>/season-0.db  schema v17  season S0
+database: <temp>/season-0.db  schema v18  season S0
 rules: 3-32 characters; letters, digits, spaces and ' . - _; unique without case; old names reserved;
        no staff or game impersonation; never another owner's username; the blocked-word list;
        the first rename is free, every later one costs 100 pack points
@@ -49,7 +49,7 @@ rules: 3-32 characters; letters, digits, spaces and ' . - _; unique without case
   Ada's ledger has no forced-rename charge: 0 rename entries
 
 ## 5. Reopen the file; the schema refuses what the store would never do
-  reopened at schema v17: Echosquid of the Junkyard | Dusk Owl (formerly Day Owl, Night Owl) | Macrorider's Magnetic Minion
+  reopened at schema v18: Echosquid of the Junkyard | Dusk Owl (formerly Day Owl, Night Owl) | Macrorider's Magnetic Minion
   raw SQL, rename without a log entry: refused — an agent is renamed only through its logged name entry
   raw SQL, edit the log: refused — an agent name entry is never changed
   raw SQL, delete the log: refused — an agent name entry is never deleted

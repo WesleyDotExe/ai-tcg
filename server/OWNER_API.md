@@ -1,6 +1,6 @@
 # Owner API
 
-The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Matches, the ladder, stats and notifications come in later sessions, on the same server.
+The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Stats and notifications come in later sessions, on the same server.
 
 - Code: `server/src/ownerApi.ts` (`startOwnerApi`); run it with `npm run owner-api -w server -- <season database file> [port]` (default port 8081).
 - Every rule lives in the economy store (`economy/src/store.ts`). The API reads the request, checks the caller may touch what it names, calls the store and answers. It never writes SQL.
@@ -63,6 +63,13 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `PUT /api/agents/:agentId/play-style` | `{ style }` (a play style id) | the play settings |
 | `POST /api/play/rebuild` | none | 202 `{ job }`: the agent starts building its deck |
 | `GET /api/play/rebuild` | none | `{ job }`, the owner's latest rebuild (404 if none) |
+| `PUT /api/play/auto-play` | `{ on: boolean }` | `{ autoPlay }` (below); 409 for a house owner, or turning it on while today's rewards are maxed |
+| `GET /api/live` | none | `{ running, matches: LiveMatchView[], mine }`: every match being shown, and the caller's (below) |
+| `GET /api/live/:matchId?from=0` | none | `LiveMatchFeed`: the match now, and the moves released from `from` on (below); 404 once it ended |
+| `GET /api/matches?limit=20&before=<matchId>` | none | `{ matches: HistoryRow[], total, more }`: the caller's matches, newest first (below) |
+| `GET /api/matches/:matchId` | none | `MatchView`: one recorded match, any owner's (below) |
+| `GET /api/matches/:matchId/log` | none | the match log, as text (`text/plain`) |
+| `GET /api/matches/:matchId/replay` | none | the replay file, `ai-tcg-replay/1` (below) |
 
 ### Who am I
 
@@ -324,9 +331,122 @@ RebuildJob {
 - The build is the store's `buildAgentDeck` at the store's settings (minutes of games). The server runs its games on a worker thread (`server/src/deckBuild/`), so every other request is still answered while it runs. The worker runs the engine's own `chooseDeck`, so it builds the same deck the engine would. At most one build per core but one runs at once (`workerChooser`'s `maxWorkers`, at least 1); further builds wait in line, first come first served, and their job reads `running` while they wait.
 - If the owner's cards change while the agent builds (a salvage), the store refuses to save a list it can no longer fill, and the job fails with that reason; build again.
 
+### Auto-play (session 67)
+
+The switch on the My agent card, the match screen and Settings -> Play (owner app spec 2026-10-05 E). `GET /api/play` carries it as `autoPlay`, and `PUT /api/play/auto-play` answers `{ autoPlay }`:
+
+```
+{
+  on: boolean,
+  changedAt: string | null,      // when the switch last changed
+  stopped: { reason: "dailyRewardsMaxed", day: "2026-11-02" } | null,   // the server turned it off today: show the message
+  dailyRewardsMaxed: boolean,    // the next win would pay nothing today
+  canTurnOn: boolean,            // false while maxed: the owner turns it on again another day
+  house: boolean                 // a house owner: always plays, no switch
+}
+```
+
+- While it is on, the ladder queues the owner's connected agent every round. House owners are always queued.
+- The server turns it off after the match that maxes the day's rewards (the 10th rewarded win), with the reason; the message shows until midnight Sydney.
+- Turning it off lets a match already live finish; the owner is just not queued for the next round.
+
+### Watch live and the Live match widget (session 67)
+
+Matches are played by the long-lived ladder (`npm run season`; ECONOMY.md "Match running and the ladder"): the engine plays each match at once, then the server releases it a move at a time at watch speed, and records it (credits, ratings, history) only once the last move has been shown. So a live match's result is nowhere until the viewers see it.
+
+`GET /api/live`: `{ running, matches, mine }`. `running` is false when the server runs without the ladder; `mine` is the caller's live match id or null.
+
+```
+LiveMatchView {
+  matchId, startedAt,
+  released,                      // moves released so far
+  nextAt: string | null,         // when the next move comes out (null: the last is out, the result holds, then it is recorded)
+  p1: LiveSideView, p2: LiveSideView,
+  now: PublicSnapshot,           // the board after the last released move
+  recentLines: string[]          // the last 6 log lines released, oldest first
+}
+LiveSideView { ownerId, ownerName, agentId, agentName, playStyle, rating, tier }   // as the match started
+PublicSnapshot {
+  turn, activePlayer: "p1" | "p2", priority: "p1" | "p2", stack: number,
+  winner: "p1" | "p2" | "draw" | null,
+  p1: PublicSide, p2: PublicSide
+}
+PublicSide {
+  name, health, maxHealth, energy, maxEnergy,
+  hand, deck, graveyard,         // counts only: no hand or deck contents
+  board: [{ instanceId, cardId, name, attack, health, maxHealth, pending, tools: string[] }],
+  directives: [{ instanceId, cardId, name }],
+  signature: { name, played } | null
+}
+```
+
+`GET /api/live/:matchId?from=N` is the feed for the match page: `LiveMatchView` plus `{ from, steps, start, startLines }`. Fetch with `from=0` first (that answer also has `start`, the board before the first move, and `startLines`, the opening draws), then with `from=<released>` each time to get only what is new; `from` past `released` is treated as `released`. Each step:
+
+```
+TimelineStep {
+  n,                             // 1 for the first move
+  by: "p1" | "p2",
+  move: Move,                    // the engine's move
+  events: GameEvent[],           // the engine's own events this move caused (with instance ids, for the animations)
+  lines: string[],               // the same events as the log prints them
+  after: PublicSnapshot
+}
+```
+
+Once the match has been recorded the feed answers 404 with `match "<id>" has ended; see /api/matches/<id>`.
+
+Watch speed (proposed session 67, an owner check-in item): before each move is released the board holds 6 s after an action, 1 s after a pass, 3 s more when the move starts a new turn; the last move holds 8 s. A median match runs about 5.9 minutes (`progress/ladder-demo-002-live.txt`). The 2x vote isn't built yet.
+
+### Match history (session 67)
+
+`GET /api/matches` (`limit` 1-100, default 20; `before` a match id from the previous page): the caller's matches, newest first.
+
+```
+{
+  matches: [HistoryRow], total, more,
+}
+HistoryRow {
+  matchId, endedAt, seat: "p1" | "p2",
+  result: "win" | "loss" | "draw" | "cancelled" | "abandonedByYou" | "abandonedByOpponent",
+  credits,                       // what it paid you
+  rating: { before, after, change } | null,   // null for a cancel
+  opponent: { ownerId, ownerName, agentName },
+  agentName,                     // your agent that played
+  turns, hasLog, hasReplay
+}
+```
+
+`GET /api/matches/:matchId` (any recorded match, so a featured match can be watched again):
+
+```
+MatchView {
+  matchId, endedAt, outcome: "win" | "draw" | "cancelled" | "abandoned",
+  p1: { ownerId, ownerName, ownerKind, agentId, agentName, credits, rating: RatingChange | null, playStyle },
+  p2: { ...the same },
+  winnerOwnerId, abandonedByOwnerId, turns, moves, boast, hasLog, hasReplay
+}
+```
+
+`GET /api/matches/:matchId/log` answers the match log as plain text. `GET /api/matches/:matchId/replay` answers the replay file:
+
+```
+{
+  format: "ai-tcg-replay/1",
+  matchId, seed,
+  names: { p1, p2 },             // the agents' names, as the engine had them
+  decks: { p1: ReplayDeck, p2: ReplayDeck },
+  moves: Move[],                 // every move, in order
+  result: { outcome, winner, turns, moves, finalHealth: { p1, p2 } }
+}
+ReplayDeck { name, cardIds: string[] /* one per copy, in list order */, signature: UnitCard | null /* the agent's own card, in full */ }
+```
+
+The engine rebuilds the match exactly from it: `replayMatch(replayDeckSpec(decks.p1, "p1"), replayDeckSpec(decks.p2, "p2"), names, seed, moves)` gives every state and log event, the same as the match (`server/src/ladder/ladderRunner.ts` has `replayDeckSpec`; a test checks the rebuilt log against the served one). A match that ended before a move (a seat never seated) has neither file; an abandoned one has a log but no replay (only a match that resolved has one). Logs and replays live in the ladder's match directory, not the database.
+
 ## Not built yet
 
-- The other match-dependent endpoints: live and featured matches (the match feed and live state), match history with replays, stats, notifications, auto-play. Match running and the ladder exist since session 66 (`server/src/ladder/`, `npm run ladder`); these come next. Tournament endpoints wait until after Season 0.
+- The rest of the match-dependent endpoints: featured matches (who is "Top rated" in Watch live), the 2x vote, stats, notifications. Tournament endpoints wait until after Season 0.
+- `GET /api/matches` reads the owner's whole history and pages it in memory (fine for a season of in-house play; to move into SQL before launch scale).
 - The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).
 - Jobs are kept in memory: a server restart forgets the latest job (the deck itself is saved).

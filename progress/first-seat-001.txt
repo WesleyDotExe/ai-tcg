@@ -1,0 +1,65 @@
+# The first seat's win rate over a large ladder run (session 67)
+
+Eight house owners (two per faction, six play styles), the server's ladder with the house pack policy on;
+600 rounds of 4 matches, 7 minutes of clock each (12 Sydney days); 108 deck builds and rebuilds.
+Seats are a coin flip, so the first seat's share of decided matches is the first-seat edge.
+
+## Overall
+
+matches 2400; decided 2400; draws 0; cancelled 0; abandoned 0
+first seat won 1554 of 2400 = 64.8% (95% interval 62.8-66.7%); two-sided p = 0.0000 against 50%
+verdict: OUTSIDE noise: the first seat has a real edge at this sample size
+for scale: session 66's demo had 40 of 71 decided (56.3%); at 71 matches the 95% interval is about +/-11.6 points.
+
+## By time (is it stable?)
+
+matches 1-600: 380/600 = 63.3%
+matches 601-1200: 391/600 = 65.2%
+matches 1201-1800: 394/600 = 65.7%
+matches 1801-2400: 389/600 = 64.8%
+
+## By the factions the two agents built (first seat's faction first)
+
+Cortex first vs Aegis       178/260   68.5%
+Aegis first vs Cortex       151/241   62.7%
+Cortex first vs Cortex      118/200   59.0%
+Swarm first vs Aegis        134/189   70.9%
+Aegis first vs Null          90/188   47.9%
+Cortex first vs Null        104/183   56.8%
+Null first vs Swarm         121/177   68.4%
+Aegis first vs Swarm        110/173   63.6%
+Swarm first vs Null         120/166   72.3%
+Null first vs Aegis         126/164   76.8%
+Null first vs Cortex        105/154   68.2%
+Swarm first vs Swarm         88/138   63.8%
+Aegis first vs Aegis         47/76    61.8%
+Swarm first vs Cortex        23/37    62.2%
+Cortex first vs Swarm        29/37    78.4%
+Null first vs Null           10/17    58.8%
+
+## Mirror pairings only (the same faction on both sides: the deck can't explain the edge)
+
+first seat won 263 of 431 = 61.0% (95% interval 56.4-65.6%; p = 0.0000)
+
+## By the first seat's play style
+
+Calculator    365/604   60.4%
+Rusher        187/288   64.9%
+Controller    212/323   65.6%
+Tempo         428/614   69.7%
+Fortress      173/294   58.8%
+Gambler       189/277   68.2%
+
+## The engine alone: the shipped decks in mirror, the same agent both sides, no ladder
+
+To tell whether the edge is the ladder's or the game's: each faction's shipped deck against itself, the
+LookaheadAgent (default style) in both seats, 400 games each, p1 always first. Nothing here touches the ladder.
+(The balance report's 'mirror matches (first-player-advantage baseline)' lines alternate who goes first
+within the mirror, so they measure deck A against an identical deck B, about 50% by construction, not the
+first seat. This is the first direct measurement.)
+
+Cortex  mirror: first seat 256/400 = 64.0% (95% interval 59.3-68.7%)
+Swarm   mirror: first seat 289/400 = 72.3% (95% interval 67.9-76.6%)
+Aegis   mirror: first seat 233/400 = 58.3% (95% interval 53.4-63.1%)
+Null    mirror: first seat 269/400 = 67.3% (95% interval 62.7-71.8%)
+all four: 1047/1600 = 65.4% (95% interval 63.1-67.8%); p = 0.0000

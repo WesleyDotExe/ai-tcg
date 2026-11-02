@@ -8,9 +8,9 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getCard, LookaheadAgent, SHIPPED_DECK_LISTS, type DeckFaction } from "@ai-tcg/engine";
+import { formatLog, getCard, LookaheadAgent, replayMatch, SHIPPED_DECK_LISTS, type DeckFaction } from "@ai-tcg/engine";
 import { EconomyStore, RATING_START } from "@ai-tcg/economy";
-import { houseSeater, Ladder, type AgentSeater } from "../src/ladder/ladderRunner.js";
+import { houseSeater, Ladder, replayDeckSpec, type AgentSeater, type ReplayFile } from "../src/ladder/ladderRunner.js";
 
 const engineState = vi.hoisted(() => ({ explode: false }));
 vi.mock("@ai-tcg/engine", async (importOriginal) => {
@@ -31,11 +31,11 @@ afterEach(() => {
   for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true });
 });
 
-function setup(factions: DeckFaction[] = ["Cortex", "Swarm", "Aegis", "Null"]) {
+function setup(factions: DeckFaction[] = ["Cortex", "Swarm", "Aegis", "Null"], kinds: ("house" | "player")[] = []) {
   let clock = new Date("2026-11-01T22:00:00.000Z"); // 09:00 Mon in Sydney
   const store = EconomyStore.open(":memory:", { now: () => clock });
   const owners = factions.map((f, i) => {
-    const o = store.createOwner({ name: `house-${i}`, kind: "house" });
+    const o = store.createOwner({ name: `${kinds[i] ?? "house"}-${i}`, kind: kinds[i] ?? "house" });
     store.grantStarterCollection(o.ownerId, f);
     const a = store.createAgent({ ownerId: o.ownerId, name: `Agent ${i}` });
     store.connectAgent(o.ownerId, a.agentId);
@@ -49,12 +49,16 @@ function setup(factions: DeckFaction[] = ["Cortex", "Swarm", "Aegis", "Null"]) {
       seed: 66,
       build: BUILD,
       matchId: () => `t-${++n}`,
+      housePacks: false,
       afterMatch: () => {
         clock = new Date(clock.getTime() + 600_000);
       },
       ...extra,
     });
-  return { store, owners, ladder };
+  const advance = (ms: number) => {
+    clock = new Date(clock.getTime() + ms);
+  };
+  return { store, owners, ladder, advance };
 }
 
 describe("the ladder", () => {
@@ -215,5 +219,115 @@ describe("the ladder", () => {
     expect(m.logPath).toBe(join(dir, `${m.record.matchId}.txt`));
     expect(existsSync(m.logPath!)).toBe(true);
     expect(readFileSync(m.logPath!, "utf8")).toMatch(/Agent 0|Agent 1/);
+  });
+
+  it("writes a replay beside the log that rebuilds the match exactly with the engine's replayMatch", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "ladder-replay-"));
+    dirs.push(dir);
+    const { store, owners, ladder } = setup(["Aegis", "Null"]);
+    // Owner 0 plays a generated agent, which brings its own signature card.
+    const draft = store.startAgentDraft(owners[0]!.ownerId, { seed: 3 });
+    store.pickDraftAgent(owners[0]!.ownerId, draft.draftId, 0, { seed: 4 });
+    const { agent } = store.confirmAgentDraft(owners[0]!.ownerId, draft.draftId, 0, { artSlot: 1 });
+    store.connectAgent(owners[0]!.ownerId, agent.agentId);
+    const m = (await ladder(houseSeater, { logDir: dir }).runRound()).matches[0]!;
+    expect(m.replayPath).toBe(join(dir, `${m.record.matchId}.replay.json`));
+    const replay = JSON.parse(readFileSync(m.replayPath!, "utf8")) as ReplayFile;
+    expect(replay.format).toBe("ai-tcg-replay/1");
+    expect(replay.moves).toHaveLength(m.record.moves!);
+    // The generated agent's own signature card travels in full.
+    const seatOf0 = m.record.p1OwnerId === owners[0]!.ownerId ? "p1" : "p2";
+    expect(replay.decks[seatOf0].signature?.id).toBe(store.signatureCard(agent.agentId)!.card.id);
+    const { state } = replayMatch(replayDeckSpec(replay.decks.p1, "p1"), replayDeckSpec(replay.decks.p2, "p2"), replay.names, replay.seed, replay.moves);
+    expect(`${formatLog(state.log)}\n`).toBe(readFileSync(m.logPath!, "utf8"));
+    expect(state.turnNumber).toBe(m.record.turns);
+    expect(replay.result.winner === "p1" ? m.record.p1OwnerId : m.record.p2OwnerId).toBe(m.record.winnerOwnerId);
+  });
+
+  it("keeps a move-by-move timeline: one step per move, public counts only, ending on the result", async () => {
+    const { ladder } = setup(["Cortex", "Swarm"]);
+    const lad = ladder();
+    const { pairs } = await lad.startRound();
+    const played = (await lad.playPair(pairs[0]!))!;
+    const t = played.timeline!;
+    expect(t.steps).toHaveLength(played.moves!);
+    expect(t.start.turn).toBe(1);
+    expect(t.start.p1.hand).toBeGreaterThan(0);
+    expect(t.steps.at(-1)!.after.winner).not.toBeNull();
+    expect(t.steps.at(-1)!.after.turn).toBe(played.turns);
+    expect(t.steps.flatMap((s) => s.lines).join("\n")).toBe(played.log!.split("\n").slice(t.startLines.length).join("\n"));
+    // Nothing about a hand or deck but its size.
+    expect(Object.keys(t.start.p1).sort()).toEqual(["board", "deck", "directives", "energy", "graveyard", "hand", "health", "maxEnergy", "maxHealth", "name", "signature"]);
+    expect(typeof t.start.p1.hand).toBe("number");
+    lad.recordPlayed(played);
+  });
+});
+
+describe("who queues, and the house pack policy (session 67)", () => {
+  it("house owners always queue; a player owner only while its auto-play is on", () => {
+    const { store, owners, ladder } = setup(["Cortex", "Swarm", "Aegis"], ["house", "player", "player"]);
+    const lad = ladder();
+    expect(lad.eligibleOwners()).toEqual([owners[0]!.ownerId]);
+    store.setAutoPlay(owners[2]!.ownerId, true);
+    expect(lad.eligibleOwners()).toEqual([owners[0]!.ownerId, owners[2]!.ownerId]);
+    store.setAutoPlay(owners[2]!.ownerId, false);
+    expect(lad.eligibleOwners()).toEqual([owners[0]!.ownerId]);
+  });
+
+  it("auto-play goes off by itself after the match that maxes the day's rewards", async () => {
+    const { store, owners, ladder, advance } = setup(["Cortex", "Swarm"], ["player", "player"]);
+    for (const o of owners) store.setAutoPlay(o.ownerId, true);
+    const lad = ladder();
+    let stopped: string[] = [];
+    for (let i = 0; i < 25 && stopped.length === 0; i++) {
+      const r = await lad.runRound();
+      stopped = r.matches.flatMap((m) => m.autoPlayStopped);
+    }
+    expect(stopped).toHaveLength(1);
+    const winner = stopped[0]!;
+    expect(store.dailyEarnings(winner).rewardedWins).toHaveLength(10);
+    expect(store.autoPlay(winner)).toMatchObject({ on: false, stopped: { reason: "dailyRewardsMaxed" } });
+    // The other owner is still on, but alone: no one to pair with.
+    expect(lad.eligibleOwners()).toEqual(owners.map((o) => o.ownerId).filter((o) => o !== winner));
+    expect((await lad.runRound()).pairs).toEqual([]);
+    advance(24 * 3600_000);
+    expect(store.autoPlay(winner).canTurnOn).toBe(true);
+  });
+
+  it("house owners spend what they earn on packs and open them before the round, so their agents rebuild; player owners' credits are left alone", async () => {
+    const { store, owners, ladder } = setup(["Cortex", "Swarm", "Aegis", "Null"], ["house", "house", "house", "player"]);
+    store.setAutoPlay(owners[3]!.ownerId, true);
+    const player = owners[3]!.ownerId;
+    const playerPacks = store.unopenedPacks(player).length;
+    expect(playerPacks).toBeGreaterThan(0);
+    // Each earns 270 credits in nine earlier days' first wins (30 each)
+    // against a sparring owner who never queues.
+    const spar = store.createOwner({ name: "sparring" });
+    const sparAgent = store.createAgent({ ownerId: spar.ownerId, name: "Sparring" });
+    let m = 0;
+    for (const o of [owners[0]!, owners[3]!]) {
+      for (let d = 1; d <= 9; d++) {
+        const endedAt = new Date(Date.parse("2026-10-01T01:00:00Z") + d * 86_400_000).toISOString();
+        store.recordMatch({ matchId: `earn-${++m}`, seed: m, p1AgentId: o.agentId, p2AgentId: sparAgent.agentId, outcome: { kind: "win", winnerAgentId: o.agentId }, endedAt });
+      }
+    }
+    expect(store.balance(owners[0]!.ownerId)).toBe(270);
+    const waiting = store.unopenedPacks(owners[0]!.ownerId).length;
+    let n = 0;
+    const lad = ladder(houseSeater, { housePacks: { packSeed: () => ++n } });
+    const r = await lad.runRound();
+    const mine = r.housePacks.find((h) => h.ownerId === owners[0]!.ownerId)!;
+    // 270 credits buy 2 packs (100 each); 70 stay.
+    expect(mine).toMatchObject({ bought: 2, opened: waiting + 2 });
+    expect(mine.newCards).toBeGreaterThan(0);
+    expect(r.housePacks.map((h) => h.ownerId)).not.toContain(player);
+    expect(store.unopenedPacks(owners[0]!.ownerId)).toEqual([]);
+    expect(store.unopenedPacks(player)).toHaveLength(playerPacks);
+    // The player's own 270 and its match pay stay; the house's 70 left plus pay.
+    expect(store.balance(player)).toBeGreaterThanOrEqual(270);
+    expect(store.balance(owners[0]!.ownerId)).toBeLessThanOrEqual(70 + 30);
+    // Opened packs changed every house owner's holdings: the first build
+    // came after them, so nothing rebuilds for that reason yet.
+    expect(r.rebuilt).toHaveLength(4);
   });
 });
