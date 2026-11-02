@@ -4035,3 +4035,30 @@ Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #1
 - **Owners watching their own agent's match** keep their own agent's view (their own coin and arena), as decided.
 - Victory boasts are unchanged: everyone sees the winner's boast.
 - **Render lane, propose at a checkpoint before building:** where the toggle sits (Watch live, the Live match widget, replays); whether the chosen player also moves to the near side of the board; whether a switch mid-match re-shows anything or just swaps the coin and arena from then on; the tie rule for the default (equal ratings, or both in Placement); and whether the choice is remembered (per match, or on the account).
+
+---
+
+## 2026-11-02 — Owner: answers to render session 50 (the match pages), keep all 6; the spectator point of view approved; live endpoints queued
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #120).
+1. **Keep:** match history lives on Agent match; the Match history widget's arrow opens it.
+2. **Keep:** the owner's own agent is always on the near side (spectators: see the point-of-view section below).
+3. **Keep:** the live view is a scoreboard and compact board this slice; the arena fed from the live feed is the next slice.
+4. **Keep:** the play-by-play drops the log's bookkeeping; the full log is one tap away.
+5. **Keep:** replays are built on demand by the site host with the owner's token (pages kept 10 minutes); a file that can't rebuild says so.
+6. **Keep:** Escape inside a playing replay belongs to the arena; Close leaves.
+
+### The spectator point of view: approved as proposed (notes item 2)
+- **Where:** on every view of a match the viewer doesn't own: each Watch live card, the Watch live widget at M and L, and the replay's top bar. Not on the Live match widget or Agent match (always the owner's own view). One two-button switch with the agents' names ("Watch as: <A> | <B>").
+- **The chosen player moves to the near side:** on the arena the board flips so the chosen player's units, hand and health bar are at the bottom.
+- **A switch mid-match re-shows nothing:** the coin, arena and near side swap from then on; a coin flip already played isn't played again; a replay scrubbed back to the start shows the chosen player's coin.
+- **Tie rule for the default** (equal ratings, or both in Placement): the player who goes first (p1).
+- **Remembered per match, in the browser tab only** (not on the account); the next match starts from the higher-rated agent again.
+
+### Game lane: queue these endpoints (written into `server/OWNER_API.md` with tests)
+- **Both agents' ratings at the start of the match on the match record** (`GET /api/matches/:id`), so a replay picks the same default view later.
+- **The Season 0 live features with no endpoint yet:** the **2× vote** (both owners must agree, as in the 2026-10-05 spec), **featured picks** ("Top rated", per the open rules in the spec; propose the rule at a check-in) and **viewer counts**.
+- **Any small additions the render lane's live-board slice names** for unit badges (statuses, tool bonuses) in the public board.
+Queue them after the coin skins build, and keep session 70's versioned replays ahead of the 24-health rule as already set.
+
+Next render-lane slice, as planned: the big live board (the arena fed from the live feed) on Agent match and Watch live. The point-of-view toggle follows once the coin slot and the ratings-at-start field exist.
