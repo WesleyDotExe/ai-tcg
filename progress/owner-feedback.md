@@ -3967,3 +3967,33 @@ New owner feature. **Who goes first is a coin flip for every match** (`server/sr
 2. **Then build it**, game lane first (the slot and catalogue), then the render lane (the flip, the coins, and the coin line in the loadout picker and the Store).
 
 Update the Season 0 checklist in `progress/roadmap.md` to include coin skins.
+
+---
+
+## 2026-11-02 — Owner: answers to render session 49 (the loadout picker in the Store), keep all 6; the deck's faction ask; the coin plan's render half approved
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #118).
+1. **Keep:** the picker opens full screen over the website from a row per agent on the Store.
+2. **Keep:** Buy inside the picker, with the website's confirm, then Equip as its own tap.
+3. **Keep:** when the deck's faction isn't known, the picker says "No deck built yet" rather than guess.
+4. **Keep:** Equip waits for the server and the page shows the server's whole loadout from the answer.
+5. **Keep:** Esc closes the picker at any point.
+6. **Keep:** the picker keeps its dark terminal look inside the glass website.
+
+### Game lane: one more small ask, approved
+Add **the faction the agent's deck plays (and its card ids)** to `DeckStatus` in `GET /api/play` (`activeDeck` and `decks`), written into `server/OWNER_API.md` with tests. Queue it with the other small asks (craft price and copy limit, signature cards and promos, "Watch again"), after session 68's work.
+
+### Coin skins: the render lane's half of the plan, approved as proposed (notes item 3)
+- **Where and when:** inside the Match Boot intro, on the centre line between HANDSHAKE OK and the saying. The intro goes from about 2.6 s to about 3.4 s: the coin flicks up at 1.5 s and spins, lands at 2.1 s, the result line types at 2.2 s, the saying slams in at 2.4 s, everything is gone by 3.4 s. Skip skips it with the rest.
+- **How the result reads:** the viewer's coin has two faces, the viewer's own agent's portrait and the coin's design. Portrait up means "you go first". The line reads **YOU GO FIRST** or **THEY GO FIRST**; for a spectator who owns neither agent, **<NAME> GOES FIRST**.
+- **The edge pulse: yes.** After the landing, a short edge pulse runs into the first player's half. Write this one exception to the intro's "favours neither side" grammar into EFFECTS.md.
+- **Sound:** a flick, a spin whir and a landing clink, all dead centre on the audio clock; Skip cuts them.
+- **Reduced motion:** the coin shown already landed, with the line, in the still (about 1.0 s to 1.3 s).
+- **Coin looks** (code-drawn placeholders until the art pass): the free starter **Chrome Token** (a silver hex); Season 0 store coins **Dial-Up Dime** (a green CRT-phosphor rim) and **Neon Nickel** (a magenta and cyan neon edge); tier coins **Gold** (gold foil), **Diamond** (prismatic facets) and **Mythic** (the Mythic ward's moving sheen). Names and prices remain the game lane's half of the plan.
+- **The free starter coin is confirmed:** Chrome Token for every owner.
+- **Spectators** who own neither agent see the house's neutral **Chrome Token**.
+- **The arena's open spectator question is settled the same way:** a spectator who owns neither agent sees a neutral default arena (amends the 2026-10-21 arena entry's "not decided yet").
+- **What the render lane needs from the game lane:** the coin slot in `GET /api/agents/:id/loadout` (the picker's sixth slot, "Coin", with the same tiles and Buy), and each agent's equipped coin on the match record and the replay, like the boasts.
+- **Order:** the game lane's half first (its [OWNER CHECK-IN] with the slot, catalogue, prices and tier rules, then the build); then two render slices: (1) the flip in Match Boot, the starter coin, reduced motion and sound; (2) the store and tier coins' looks, and the coin line in the picker and the Store.
+
+Next render-lane slice, as planned: the match pages (Watch live, the Live match widget, Match history, auto-play) on the game lane's session 67 endpoints.
