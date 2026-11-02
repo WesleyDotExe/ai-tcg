@@ -116,7 +116,8 @@ try {
   const pulls = await page.locator('.wg[data-type="collection"] .mc').count();
   check(pulls === 5, `B. ... and the last 5 pulls as placeholder card faces (${pulls})`);
   const waiting = await page.$$eval('.wg', (els) => els.filter((e) => /Waits on the server for/.test(e.textContent)).map((e) => e.dataset.type));
-  check(JSON.stringify(waiting.sort()) === JSON.stringify(['form', 'ladder', 'live', 'watch']), `B. the widgets with no data yet say what they wait on, and draw nothing made up: ${waiting.join(', ')}`);
+  // Render session 50: Live match and Watch live draw the server's live matches now (no longer waiting).
+  check(JSON.stringify(waiting.sort()) === JSON.stringify(['form', 'ladder']), `B. the widgets with no data yet say what they wait on, and draw nothing made up: ${waiting.join(', ')}`);
   await page.click('.wg[data-type="packs"] .wopen');
   await page.waitForFunction(() => window.__site.state().page === 'store', null, { timeout: 3000 }).catch(() => {});
   check((await S(page)).page === 'store', 'B. a widget\'s open button opens its page (Packs -> Store)');
@@ -201,8 +202,11 @@ try {
   check((await apiPut(page, '/api/board', { widgets: live3 })).status === 200, 'D. (a board with three live widgets at L, saved over the API)');
   await page.reload();
   await page.waitForSelector('#wgrid');
-  const boards = await page.$$eval('.wg', (els) => els.map((e) => ({ t: e.dataset.type, board: !!e.querySelector('.lboard'), capped: /Scoreboard only/.test(e.textContent) })));
-  check(boards.filter((x) => x.board).length === 2 && boards[2].capped && !boards[2].board, `D. at most two live boards draw; the third live widget drops to the scoreboard with the note (${boards.map((x) => `${x.t}:${x.board ? 'board' : x.capped ? 'capped' : '-'}`).join(' ')})`);
+  // Render session 50: the striped placeholder board is gone; a board draws only for a real live match
+  // (the compact board), and this demo runs no ladder, so none draws here. The two-board limit with real
+  // live matches is checked in site-check-s50.mjs (I); here: no placeholder, and the third still says it.
+  const boards = await page.$$eval('.wg', (els) => els.map((e) => ({ t: e.dataset.type, board: !!e.querySelector('.lboard, .cboard'), capped: /Scoreboard only/.test(e.textContent) })));
+  check(boards.filter((x) => x.board).length === 0 && boards[2].capped, `D. no live match, no board; the third live widget still says it would be a scoreboard only (${boards.map((x) => `${x.t}:${x.board ? 'board' : x.capped ? 'capped' : '-'}`).join(' ')})`);
   await shot(page, 'live-cap');
 
   // ---- E. a refused save keeps Customise mode and the edits ----

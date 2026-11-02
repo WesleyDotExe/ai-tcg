@@ -38,7 +38,7 @@ import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
 import { startLiquid, type Liquid } from "./liquid.js";
-import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
+import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
 import {
   WIDGET_INFO,
@@ -62,6 +62,7 @@ import {
 import { DEFAULT_FILTERS, binderBlocks, craftView, copiesByCard, neighbours, salvageConfirmText, salvageView, type BinderSlot, type CollectionFilters, type FactionFilter, type ShowFilter, type CollectionTab, type SiteBinder } from "./siteCollection.js";
 import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRenderer, type ViewerState } from "./siteCollectionHtml.js";
 import { miniCard, packArt, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
+import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, recordOf, scoreboardHtml, scoreboardOf, tidyLines } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
   FACTION_HEX,
@@ -119,7 +120,7 @@ const state: {
   draft: SiteWidget[] | null;
   saving: boolean;
   /** What the widgets read, each fetched only when a widget on the board needs it. */
-  home: { packs: SitePacks | null; collection: SiteCollection | null; daily: SiteDaily | null; store: SiteStore | null; errors: Partial<Record<WidgetSource, string>> };
+  home: { packs: SitePacks | null; collection: SiteCollection | null; daily: SiteDaily | null; store: SiteStore | null; live: SiteLive | null; history: SiteHistory | null; errors: Partial<Record<WidgetSource, string>> };
   colFilter: string;
   /** The Store page's own reads: the packs (with the daily pack), the store,
    * and the collection's recent openings. */
@@ -133,11 +134,23 @@ const state: {
   /** The Collection page (session 48): the set's binder, the collection
    * (every copy), the tab and filters, and the card viewer when open. */
   col: { binder: SiteBinder | null; collection: SiteCollection | null; error: string | null; filters: CollectionFilters; viewer: ViewerState | null };
+  /** The match pages (session 50): the history read so far (pages of
+   * `GET /api/matches`, newest first), whether older ones remain, and an
+   * auto-play change in flight. */
+  hist: { rows: SiteHistoryRow[]; total: number; more: boolean; error: string | null; loading: boolean };
+  autoBusy: boolean;
+  /** The replay on screen (its match id), or null. */
+  replay: string | null;
+  /** The agent's live match followed move by move on Agent match
+   * (`GET /api/live/:id?from=N`): the next move to ask for and every line
+   * released so far, tidied. */
+  follow: { matchId: string; next: number; started: boolean; lines: string[] } | null;
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
-  board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, errors: {} }, colFilter: "All",
+  board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, errors: {} }, colFilter: "All",
   shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null }, buyCount: 1, opening: false,
   col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
+  hist: { rows: [], total: 0, more: false, error: null, loading: false }, autoBusy: false, replay: null, follow: null,
 };
 
 let liquid: Liquid | null = null;
@@ -163,7 +176,11 @@ let liquid: Liquid | null = null;
     opening: state.opening,
     dress: dressAgent,
     col: { filters: state.col.filters, viewer: state.col.viewer, binder: state.col.binder, error: state.col.error, loaded: !!state.col.binder },
+    hist: state.hist,
+    replay: state.replay,
   }),
+  /** The replay frame's own hook (the arena's), or null. */
+  arena: () => (replayFrame?.contentWindow as unknown as { __replay?: unknown } | null)?.__replay ?? null,
   /** The pack-opening frame's own state (its log of every beat), or null. */
   pack: () => (frame?.contentWindow as unknown as { __pack?: unknown } | null)?.__pack ?? null,
   /** The loadout frame's own hook (its state and stats), or null. */
@@ -312,7 +329,10 @@ function signedOut(message: string): void {
   state.board = null;
   state.boardError = null;
   state.draft = null;
-  state.home = { packs: null, collection: null, daily: null, store: null, errors: {} };
+  state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, errors: {} };
+  state.hist = { rows: [], total: 0, more: false, error: null, loading: false };
+  closeReplay();
+  clearTimeout(livePoll);
   state.shop = { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null };
   closeOpening();
   closeDress();
@@ -413,6 +433,8 @@ async function loadHome(only?: WidgetSource[]): Promise<void> {
     collection: () => api.collection(token, 3),
     daily: () => api.daily(token),
     store: () => api.store(token),
+    live: () => api.live(token),
+    history: () => api.matches(token, 20),
   };
   let signedOutNow = false;
   await Promise.all(
@@ -429,6 +451,11 @@ async function loadHome(only?: WidgetSource[]): Promise<void> {
   );
   if (signedOutNow) return signedOut("Your session ended. Sign in again.");
   if (state.page === "home" && !dragging) drawPage();
+  // The live widgets keep following the matches (session 50).
+  if (need.includes("live") && state.page === "home") {
+    clearTimeout(livePoll);
+    livePoll = window.setTimeout(() => void loadLive(), 3000);
+  }
 }
 
 /** Keeps the agent's status current (a match starting or ending, a rebuild
@@ -551,6 +578,8 @@ function route(): void {
   drawPage();
   ($("#page") as HTMLElement).scrollTop = 0;
   if (page === "store") void loadShop();
+  if (page === "match") void loadHistory(true);
+  if (page === "match" || page === "live") void loadLive();
   if (page === "collection") void loadCollection();
   else closeViewer(false);
 }
@@ -564,13 +593,33 @@ function drawPage(): void {
   if (!p) return;
   const el = $("#page");
   const page = state.page;
+  // A redraw (the 15 s poll, an answer) keeps focus on the same control
+  // (session 50: the history's Replay buttons are redrawn while a replay
+  // is open, and Close gives focus back to the row's).
+  const keep = focusKey(el);
   if (page === "home") el.innerHTML = homePage(p);
   else if (page === "settings") el.innerHTML = settingsPage(p);
   else if (page === "connect") el.innerHTML = connectPage(p);
   else if (page === "store") el.innerHTML = storePage();
   else if (page === "collection") el.innerHTML = collectionPage();
+  else if (page === "match") el.innerHTML = matchPage(p);
+  else if (page === "live") el.innerHTML = livePage();
   else el.innerHTML = waitsPage(page);
   applyTheme();
+  if (keep) el.querySelector<HTMLElement>(keep)?.focus();
+}
+
+/** A selector for the focused control inside `root` (its id, or its action
+ * and the match or item it acts on), to find its redrawn twin; null when
+ * focus is elsewhere. */
+function focusKey(root: HTMLElement): string | null {
+  const a = document.activeElement as HTMLElement | null;
+  if (!a || !root.contains(a) || a === root) return null;
+  if (a.id) return `#${CSS.escape(a.id)}`;
+  const act = a.dataset.act;
+  if (!act) return null;
+  const extra = ["match", "item", "agent", "pack", "set", "count", "v"].map((k) => (a.dataset[k] !== undefined ? `[data-${k}="${CSS.escape(a.dataset[k]!)}"]` : "")).join("");
+  return `[data-act="${CSS.escape(act)}"]${extra}`;
 }
 
 // ---- Home: the widget board ------------------------------------------------
@@ -590,7 +639,7 @@ function homePage(p: SitePlay): string {
   if (!widgets.length) {
     return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
   }
-  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, now: Date.now(), colFilter: state.colFilter };
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, now: Date.now(), colFilter: state.colFilter };
   const { views, capped } = liveViews(widgets);
   const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id) })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -1598,6 +1647,273 @@ function closeDress(): void {
   });
 }
 
+// ---- the match pages (render session 50) -------------------------------------
+// Agent match: the auto-play switch, the agent's live match (scoreboard,
+// compact board, play-by-play) and the whole match history with replays.
+// Watch live: every live match. A replay plays full screen in the existing
+// arena replay page, rebuilt by the site host from the server's replay file.
+
+const HISTORY_PAGE = 20;
+let livePoll = 0;
+let replayFrame: HTMLIFrameElement | null = null;
+let replayFrom: HTMLElement | null = null;
+
+/** Reads the history: the first page again (`fresh`), or the next older one. */
+async function loadHistory(fresh: boolean): Promise<void> {
+  if (!state.session || state.hist.loading) return;
+  state.hist.loading = true;
+  try {
+    const before = fresh ? undefined : state.hist.rows[state.hist.rows.length - 1]?.matchId;
+    const h = await api.matches(state.session.token, HISTORY_PAGE, before);
+    // A fresh read starts the list again from the newest page.
+    state.hist.rows = fresh ? h.matches : [...state.hist.rows, ...h.matches.filter((x) => !state.hist.rows.some((r) => r.matchId === x.matchId))];
+    state.hist.more = h.more;
+    if (fresh) state.home.history = h;
+    state.hist.total = h.total;
+    state.hist.error = null;
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    state.hist.error = err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong.";
+  } finally {
+    state.hist.loading = false;
+  }
+  if (state.page === "match") redrawPart("#m-hist", histHtml());
+}
+
+/** Reads what is live, then redraws only the live parts on screen (the
+ * page's live panel, or Home's live widgets), and polls again while any is
+ * on screen: every 3 s (a move is released every 1 to 9 s). */
+async function loadLive(): Promise<void> {
+  clearTimeout(livePoll);
+  if (!state.session) return;
+  const wasMine = state.home.live?.mine ?? null;
+  try {
+    state.home.live = await api.live(state.session.token);
+    delete state.home.errors.live;
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    state.home.errors.live = err instanceof SiteApiError ? errorText(err.status, err.message) : "something went wrong";
+  }
+  const nowMine = state.home.live?.mine ?? null;
+  if (state.page === "match" && nowMine) await followFeed(nowMine);
+  // The agent's match just ended: it is recorded (or about to be): read the history and the status.
+  if (wasMine && wasMine !== nowMine) {
+    window.setTimeout(() => {
+      void loadHistory(true);
+      if (state.page === "home") void loadHome(["history", "daily"]);
+      void refresh();
+    }, 1500);
+  }
+  drawLive();
+  if (liveOnScreen()) livePoll = window.setTimeout(() => void loadLive(), document.hidden ? 15000 : 3000);
+}
+
+/** Reads the moves released since the last read of the agent's match. */
+async function followFeed(matchId: string): Promise<void> {
+  if (!state.session) return;
+  if (state.follow?.matchId !== matchId) state.follow = { matchId, next: 0, started: false, lines: [] };
+  const f = state.follow;
+  try {
+    const feed = await api.liveFeed(state.session.token, matchId, f.next);
+    if (state.follow !== f) return;
+    const names = { p1: feed.p1.agentName, p2: feed.p2.agentName };
+    // Every read from 0 carries the opening lines until the first move is
+    // out (the board holds a few seconds first): they are taken once.
+    const raw = [...(feed.from === 0 && !f.started ? (feed.startLines ?? []) : []), ...feed.steps.flatMap((x) => x.lines)];
+    f.started = true;
+    f.lines.push(...tidyLines(raw, names));
+    if (f.lines.length > 400) f.lines.splice(0, f.lines.length - 400);
+    f.next = feed.from + feed.steps.length;
+    // The feed's own view is newer than the list's.
+    const live = state.home.live;
+    if (live) live.matches = live.matches.map((m) => (m.matchId === matchId ? { ...m, released: feed.released, nextAt: feed.nextAt, now: feed.now, recentLines: feed.recentLines } : m));
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return;
+    // 404: the match has ended and been recorded; the next list read says so.
+  }
+}
+
+function liveOnScreen(): boolean {
+  if (state.page === "match" || state.page === "live") return true;
+  if (state.page !== "home") return false;
+  return (state.draft ?? state.board?.widgets ?? []).some((w) => w.type === "live" || w.type === "watch");
+}
+
+/** Replaces one part of the page, keeping focus if it was inside it. */
+function redrawPart(sel: string, html: string): void {
+  const el = document.querySelector<HTMLElement>(sel);
+  if (!el) return;
+  const focused = document.activeElement as HTMLElement | null;
+  const id = focused && el.contains(focused) ? focused.id : "";
+  el.innerHTML = html;
+  if (id) document.getElementById(id)?.focus();
+}
+
+function drawLive(): void {
+  if (state.page === "match" && state.play) {
+    redrawPart("#m-live", mLiveHtml(state.play));
+    // The play-by-play follows its newest line.
+    const pbp = document.getElementById("m-pbp");
+    if (pbp) pbp.scrollTop = pbp.scrollHeight;
+  }
+  else if (state.page === "live") redrawPart("#live-list", liveListHtml());
+  else if (state.page === "home" && state.board && !state.draft && !dragging) {
+    const p = state.play;
+    if (!p) return;
+    const widgets = state.board.widgets;
+    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, now: Date.now(), colFilter: state.colFilter };
+    const { views, capped } = liveViews(widgets);
+    for (const w of widgets) {
+      if (w.type !== "live" && w.type !== "watch") continue;
+      const tile = document.querySelector<HTMLElement>(`#wgrid .wg[data-id="${CSS.escape(w.id)}"]`);
+      if (!tile || tile.contains(document.activeElement)) continue;
+      tile.outerHTML = widgetHtml(w, data, { editing: false, live: views.get(w.id), capped: capped.has(w.id) });
+    }
+  }
+}
+
+function matchPage(p: SitePlay): string {
+  const a = p.connectedAgent;
+  const ap = autoPlayView(p.autoPlay, !!a);
+  const st = agentStatus(p);
+  const head = a
+    ? `<div class="row nowrap">${avatar(a.name, agentFaction(p), 52)}<div class="wcol"><div class="mya-n">${esc(a.name)}</div><div class="small muted">${esc(styleName(p, a.playStyle))} play style · ${esc(deckLine(p))}</div><div class="row"><span class="status ${st.tone}"><i></i>${esc(st.label)}</span></div></div><span class="sp"></span><div class="wcol right">${autoPlaySwitch(ap, "auto-play", state.autoBusy)}<small class="muted">${esc(ap.note)}</small></div></div>`
+    : `<b>No agent connected</b><p class="muted small">Connect an agent to play matches.</p><a class="btn pri sm" href="#/connect">Connect agent</a>`;
+  const stopped = ap.stopped ? `<div class="banner warn" role="status">${esc(ap.stopped)}</div>` : "";
+  return `<div class="pg-wide">${stopped}<section class="panel glass m-agent">${head}</section>
+  <h3>Live now</h3><section class="panel dark m-live" id="m-live" aria-live="off">${mLiveHtml(p)}</section>
+  <h3>Match history</h3><section class="panel glass" id="m-hist">${histHtml()}</section></div>`;
+}
+
+function mLiveHtml(p: SitePlay): string {
+  if (!p.connectedAgent) return `<p class="muted small">No agent connected, so no match.</p>`;
+  const live = state.home.live;
+  if (!live) return state.home.errors.live ? `<p class="muted small">Couldn't read the live matches: ${esc(state.home.errors.live)}</p>` : `<p class="muted small">Loading…</p>`;
+  if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so no match is live.</p>`;
+  const m = myLiveMatch(live);
+  if (!m) {
+    const ap = autoPlayView(p.autoPlay, true);
+    return `<p class="small">${esc(p.liveMatch ? "Your agent's match is starting." : ap.on || !ap.shown ? "No match right now. Your agent joins the next ladder round." : "No match right now: auto-play is off, so your agent sits out.")}</p>${live.matches.length ? `<p class="muted small">${live.matches.length} other match${live.matches.length === 1 ? " is" : "es are"} live. <a href="#/live">Watch live</a></p>` : ""}`;
+  }
+  const sb = scoreboardOf(m, state.me?.ownerId ?? null);
+  const names = { p1: m.p1.agentName, p2: m.p2.agentName };
+  const lines = state.follow?.matchId === m.matchId ? state.follow.lines.slice(-60) : tidyLines(m.recentLines, names);
+  const feed = lines.map((x) => `<li>${esc(x)}</li>`).join("");
+  return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${compactBoard(m, sb.mine)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
+}
+
+function histHtml(): string {
+  const h = state.hist;
+  if (!h.rows.length) {
+    if (h.error) return `<p class="muted small">Couldn't read your matches: ${esc(h.error)}</p><button type="button" class="btn sm" data-act="retry-hist">Try again</button>`;
+    return h.loading || !state.home.history ? `<p class="muted small">Loading…</p>` : `<p class="muted small">No matches yet. Your agent's results and their replays show here.</p>`;
+  }
+  const now = Date.now();
+  const rec = recordOf(h.rows);
+  const more = h.more ? `<button type="button" class="btn sm" data-act="more-hist"${h.loading ? " disabled" : ""}>${h.loading ? "Loading…" : "Show older"}</button>` : "";
+  return `<div class="row between"><span class="small">${h.rows.length} of ${h.total} matches · ${esc(rec.line)}</span>${h.error ? `<span class="warn-t small">${esc(h.error)}</span>` : ""}</div><ul class="hlist">${h.rows.map((r) => historyRowHtml(historyRowView(r, now))).join("")}</ul>${more}`;
+}
+
+function livePage(): string {
+  return `<div class="pg-wide"><p class="muted small">Every match the ladder is showing now. Featured picks ("Top rated") and viewer counts come with their endpoint.</p><div id="live-list">${liveListHtml()}</div></div>`;
+}
+
+function liveListHtml(): string {
+  const live = state.home.live;
+  if (!live) return state.home.errors.live ? `<section class="panel glass"><p class="muted small">Couldn't read the live matches: ${esc(state.home.errors.live)}</p></section>` : `<section class="panel glass"><p class="muted small">Loading…</p></section>`;
+  if (!live.running) return `<section class="panel glass"><p class="muted small">The ladder isn't running on this server, so nothing is live.</p></section>`;
+  if (!live.matches.length) return `<section class="panel glass"><p class="muted small">No match is live right now. The next ladder round starts soon.</p></section>`;
+  const me = state.me?.ownerId ?? null;
+  return live.matches
+    .map((m) => {
+      const sb = scoreboardOf(m, me);
+      const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
+      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : ""}${scoreboardHtml(sb)}${compactBoard(m, sb.mine)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol></section>`;
+    })
+    .join("");
+}
+
+async function setAutoPlay(on: boolean): Promise<void> {
+  if (!state.session || !state.play || state.autoBusy) return;
+  state.autoBusy = true;
+  const focusId = (document.activeElement as HTMLElement | null)?.id ?? "";
+  try {
+    const r = await api.setAutoPlay(state.session.token, on);
+    state.play = { ...state.play, autoPlay: r.autoPlay };
+    toast(r.autoPlay.on ? "Auto-play is on: your agent joins the next ladder round." : "Auto-play is off. A match already live finishes.");
+  } catch (err) {
+    fail(err);
+  } finally {
+    state.autoBusy = false;
+  }
+  drawAgentCard();
+  if (!dragging) drawPage();
+  if (focusId) document.getElementById(focusId)?.focus();
+}
+
+async function showLog(matchId: string): Promise<void> {
+  if (!state.session) return;
+  try {
+    const text = await api.matchLog(state.session.token, matchId);
+    sheet(`<h3 id="dlg-t">Match log</h3><pre class="mlog" tabindex="0">${esc(text)}</pre><div class="row end"><button type="button" class="btn" data-a="close">Close</button></div>`, () => false, "wide");
+  } catch (err) {
+    fail(err);
+  }
+}
+
+/** A replay full screen: the host rebuilds the match from the server's
+ * replay file and the arena replay page plays it in a frame. */
+async function openReplay(matchId: string, from: HTMLElement | null): Promise<void> {
+  if (!state.session || state.replay) return;
+  state.replay = matchId;
+  replayFrom = from;
+  const el = $("#replay");
+  el.innerHTML = `<div class="op-wait">Rebuilding the match…</div><button type="button" class="rp-close" data-act="close-replay">Close replay</button>`;
+  el.hidden = false;
+  liquid?.refresh();
+  (el.querySelector(".rp-close") as HTMLElement).focus();
+  try {
+    const page = await api.replayPage(state.session.token, matchId);
+    if (state.replay !== matchId) return;
+    replayFrame = document.createElement("iframe");
+    replayFrame.title = "Match replay";
+    replayFrame.addEventListener("load", () => {
+      // Escape inside the replay is the arena's own (it skips the intro and
+      // the boast), so it doesn't close the replay: Close does, and Escape
+      // while focus is on the website (the Close button).
+      el.querySelector(".op-wait")?.remove();
+      replayFrame?.focus();
+    }, { once: true });
+    replayFrame.src = page.url;
+    el.insertBefore(replayFrame, el.firstChild);
+  } catch (err) {
+    closeReplay();
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    fail(err);
+  }
+}
+
+function closeReplay(): void {
+  const el = $("#replay");
+  if (el.hidden) return;
+  el.hidden = true;
+  el.innerHTML = "";
+  replayFrame = null;
+  state.replay = null;
+  liquid?.refresh();
+  // The row may have been redrawn while the replay played: its twin.
+  const id = replayFrom?.dataset.match;
+  const back = replayFrom && replayFrom.isConnected ? replayFrom : id ? document.querySelector<HTMLElement>(`#page [data-act="replay"][data-match="${CSS.escape(id)}"]`) : null;
+  back?.focus();
+  replayFrom = null;
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && state.replay) {
+    e.preventDefault();
+    closeReplay();
+  }
+});
+
 // ---- actions ----------------------------------------------------------------
 async function act(fn: (token: string) => Promise<SitePlay>, ok?: string): Promise<void> {
   if (!state.session || state.busy) return;
@@ -1670,6 +1986,12 @@ document.addEventListener("click", (e) => {
     if (act === "open-packs") return void openPacks(actEl.dataset.pack ? { packId: actEl.dataset.pack } : { count: Number(actEl.dataset.count) === 10 ? 10 : 1 }, actEl);
     if (act === "claim-daily") return void claimDaily();
     if (act === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
+    if (act === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
+    if (act === "replay" && actEl.dataset.match) return void openReplay(actEl.dataset.match, actEl);
+    if (act === "close-replay") return closeReplay();
+    if (act === "match-log" && actEl.dataset.match) return void showLog(actEl.dataset.match);
+    if (act === "more-hist") return void loadHistory(false);
+    if (act === "retry-hist") return void loadHistory(true);
     if (act === "buy-step") {
       state.buyCount = Math.max(1, Math.min(BUY_MAX, state.buyCount + Number(actEl.dataset.d)));
       drawPage();
@@ -1787,7 +2109,7 @@ liquid = startLiquid($("#liquid") as HTMLCanvasElement, {
   dark: () => document.body.dataset.theme === "dark",
   // The sign-in screen is opaque and covers the whole background.
   // So does a pack opening (full screen, session 47).
-  covered: () => $("#signin").hidden !== true || $("#shell").hidden === true || $("#opening").hidden !== true,
+  covered: () => $("#signin").hidden !== true || $("#shell").hidden === true || $("#opening").hidden !== true || $("#replay").hidden !== true,
   reduceMotion: () => !!motionQuery?.matches,
 });
 applyTheme();

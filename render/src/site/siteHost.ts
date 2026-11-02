@@ -14,7 +14,12 @@ import { createServer, request, type IncomingMessage, type ServerResponse } from
 import type { AddressInfo } from "node:net";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { randomBytes } from "node:crypto";
 import { renderSiteLoadoutPage, renderSitePackPage, renderSitePage } from "./sitePage.js";
+import { renderMatchHtml } from "../renderHtml.js";
+import { replayOfFile } from "./siteReplay.js";
+import type { SiteMatchView } from "./siteApi.js";
+import type { ReplayFile } from "../../../server/src/ladder/ladderRunner.js";
 
 export interface SiteHostOptions {
   /** The owner API's origin, e.g. "http://localhost:8081". */
@@ -29,7 +34,12 @@ export interface SiteHostOptions {
   packPage?: string;
   /** The full-screen loadout picker's page (defaults to renderSiteLoadoutPage()). */
   loadoutPage?: string;
+  /** How many built replay pages are kept (default 6; each is about 2 MB). */
+  replayPages?: number;
 }
+
+/** A built replay page lives this long after it was built (10 min). */
+export const REPLAY_PAGE_TTL_MS = 10 * 60_000;
 
 export interface RunningSiteHost {
   readonly port: number;
@@ -66,6 +76,63 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
   const loadoutPage = options.loadoutPage ?? renderSiteLoadoutPage();
   const api = new URL(options.api);
 
+  // Render session 50: a recorded match's full arena replay. The website
+  // asks with the owner's token (`POST /replay-page/:matchId`); the host
+  // reads the record and the replay file over the API with that same
+  // token (so the API's own rules decide who may see it), rebuilds the
+  // match in the engine, and keeps the page under a random key for a few
+  // minutes. The website frames `/replay/<key>`. Nothing is kept on
+  // disk, and a key opens one page, not the API.
+  const built = new Map<string, { html: string; at: number }>();
+  const keep = options.replayPages ?? 6;
+  const json = (res: ServerResponse, status: number, body: unknown) => {
+    res.writeHead(status, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(JSON.stringify(body));
+  };
+  const buildReplay = async (req: IncomingMessage, res: ServerResponse, matchId: string) => {
+    const auth = req.headers.authorization;
+    const get = async (path: string): Promise<{ status: number; body: unknown }> => {
+      const r = await fetch(new URL(path, api), { headers: auth ? { authorization: auth } : {} });
+      const text = await r.text();
+      let body: unknown = null;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        body = { error: `the owner API's answer wasn't JSON (HTTP ${r.status})` };
+      }
+      return { status: r.status, body };
+    };
+    let view: { status: number; body: unknown };
+    let file: { status: number; body: unknown };
+    try {
+      const id = encodeURIComponent(matchId);
+      view = await get(`/api/matches/${id}`);
+      if (view.status !== 200) return json(res, view.status, view.body);
+      file = await get(`/api/matches/${id}/replay`);
+      if (file.status !== 200) return json(res, file.status, file.body);
+    } catch {
+      return json(res, 502, { error: "the owner API can't be reached" });
+    }
+    let html: string;
+    let frames: number;
+    let turns: number;
+    try {
+      const replay = await replayOfFile(file.body as ReplayFile, view.body as SiteMatchView);
+      html = renderMatchHtml(replay);
+      frames = replay.movesPlayed;
+      turns = replay.frames[replay.frames.length - 1]!.turnNumber;
+    } catch (err) {
+      // The file doesn't rebuild in this engine: say so, never show another match.
+      return json(res, 422, { error: `this replay can't be rebuilt: ${err instanceof Error ? err.message : String(err)}` });
+    }
+    const now = Date.now();
+    for (const [k, v] of built) if (now - v.at > REPLAY_PAGE_TTL_MS) built.delete(k);
+    while (built.size >= keep) built.delete(built.keys().next().value!);
+    const key = randomBytes(18).toString("base64url");
+    built.set(key, { html, at: now });
+    return json(res, 201, { url: `/replay/${key}`, moves: frames, turns });
+  };
+
   const proxy = (req: IncomingMessage, res: ServerResponse) => {
     const headers: Record<string, string> = {};
     for (const h of FORWARD) {
@@ -93,6 +160,30 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
   const server = createServer((req, res) => {
     const path = new URL(req.url ?? "/", "http://site").pathname;
     if (path === "/api" || path.startsWith("/api/")) return proxy(req, res);
+    const ask = /^\/replay-page\/([A-Za-z0-9_-]{1,128})$/.exec(path);
+    if (ask) {
+      if (req.method !== "POST") {
+        res.writeHead(405, { Allow: "POST" });
+        return res.end();
+      }
+      req.resume();
+      void buildReplay(req, res, ask[1]!);
+      return;
+    }
+    const shown = /^\/replay\/([A-Za-z0-9_-]{24})$/.exec(path);
+    if (shown) {
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        res.writeHead(405, { Allow: "GET, HEAD" });
+        return res.end();
+      }
+      const page = built.get(shown[1]!);
+      if (!page || Date.now() - page.at > REPLAY_PAGE_TTL_MS) {
+        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" });
+        return res.end("This replay page has expired. Open the replay again from Match history.");
+      }
+      res.writeHead(200, PACK_PAGE_HEADERS);
+      return res.end(req.method === "HEAD" ? undefined : page.html);
+    }
     const served = path === "/" || path === "/index.html" ? { body: page, headers: PAGE_HEADERS } : path === "/pack-opening" ? { body: packPage, headers: PACK_PAGE_HEADERS } : path === "/loadout" ? { body: loadoutPage, headers: PACK_PAGE_HEADERS } : null;
     if (served) {
       if (req.method !== "GET" && req.method !== "HEAD") {

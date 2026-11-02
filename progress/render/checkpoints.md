@@ -7,6 +7,47 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-02 — The match pages: Agent match, Watch live, match history with full replays, auto-play — AWAITING FEEDBACK
+
+The slice you named after session 49. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder`, open
+http://127.0.0.1:8080/#/match, sign in as `nova` / `a long demo password`. The demo runs the game lane's
+real ladder (two house agents join Nova and Rook); `--speed 8` plays a match in under a minute.
+- **Agent match:** your agent with the **auto-play switch**; **Live now**: your agent's match as a
+  scoreboard (health, energy, hand and units, whose turn), its board by unit name and stats, and the
+  **play-by-play** as moves come out, in agent names; **Match history**: every match with result, opponent,
+  credits, rating change, turns, and **Replay** and **Log**.
+- **Replay plays the real arena, full screen:** the same replay page as every sample replay (the board,
+  the hand, the feed, the effects, the boast the match record says played), rebuilt move for move from the
+  server's replay file. Close (or Esc on the website) goes back.
+- **Watch live:** every match on show, each with its scoreboard, board and last plays.
+- **Home:** Live match, Watch live and Match history widgets at S/M/L, and the switch on My agent.
+
+**Evidence:** `progress/render/evidence/site-check-s50.txt` (40 browser checks with the ladder playing,
+ALL PASS) and stills `v2-s50-match-*.jpg` (the arena replay of a real ladder match: `v2-s50-match-replay-end.jpg`);
+render tests 802 (+10, over the real owner API and the live ladder: the play-by-play adds up to the match
+log; the replay is the same match, every move).
+
+**Decisions you may want to overrule:**
+1. **Match history lives on Agent match** (under your agent and its live match), and the Match history
+   widget's arrow opens it. It was pointed at Stats, which isn't built. Alternative: its own page, or Stats.
+2. **Your agent is always on the near (left) side** of the scoreboard and board; a spectator sees the first
+   player on the left. (The arena replay itself keeps the engine's sides for now; see notes item 2.)
+3. **The live view is a scoreboard and a compact board, not the arena, this slice.** The arena needs whole
+   frames (hands included); the live feed sends the public board and the engine's events. Making the arena
+   play from the live feed is the next slice. Recorded matches already play in the arena.
+4. **The play-by-play drops the log's bookkeeping** (priority passes, turn ends, instance ids) and says
+   "X's ability triggers" where the log names an ability by its id. The full log is one tap away (Log).
+5. **Replays are built on demand by the site host** with your token (nothing stored on disk, pages kept 10
+   minutes); a replay file this engine can't rebuild says so instead of showing another match. This
+   matters once cards change: your call 6 (versioned replays) is the game lane's next hardening pass.
+6. **Escape inside a playing replay belongs to the arena** (it skips the intro and the boast, as everywhere
+   else); Close leaves.
+
+**Next render-lane slice:** the big live board (the arena fed from the live feed) on Agent match and Watch
+live. The spectator point-of-view toggle waits on your answer to the proposal in notes-for-owner.
+
+---
+
 ## 2026-11-02 — The loadout picker in the Store — AWAITING FEEDBACK
 
 The slice you named after session 48. Try it: `npm run site-demo -w @ai-tcg/render`, open

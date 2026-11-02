@@ -1,0 +1,62 @@
+
+[A] Home: Live match, Watch live, Match history, My agent
+      the board: agent, live, packs, daily, store, watch, collection, ladder, form; 2 live, mine demo-live-009
+PASS  A. the recommended board has Live match and Watch live
+PASS  A. Live match: Nova's agent first (Vector Halcyon vs Static Widow)
+PASS  A. Watch live: the live matches' agents (Vector Halcyon, Static Widow, Rook's agent, Hive Courier)
+PASS  A. My agent: the auto-play switch, on (the server says on)
+PASS  A. Match history widget: the latest is the server's (vs Rook's agent, win)
+
+[B] the auto-play switch
+PASS  B. off: the server says off
+PASS  B. off: the switch shows off
+PASS  B. on again: the server says on
+PASS  B. on: the switch shows on
+
+[C] Agent match: the live match
+PASS  C. a match of Nova's goes live (the ladder runs on)
+PASS  C. Nova's agent is on the near side (seat p2)
+      play-by-play: 26 lines, then 51 six seconds later; latest: "Firewall Sentinel deals 2 damage to Static Widow"
+PASS  C. the play-by-play grows as moves are released
+PASS  C. in agent names, without the log's bookkeeping
+PASS  C. the scoreboard's health is the server's answer (18-18, the answer 18-18)
+PASS  C. ... and no newer than the server (41 moves drawn, 41 out now)
+PASS  C. the match ends (recorded after its last move)
+PASS  C. it tops Match history (demo-live-009)
+
+[D] Match history
+PASS  D. the first page is the server's (20 of 24)
+PASS  D. its row: "LLoss vs Static Widow (House Null)just now · 15 turns+2 credits−46 ratingReplayLog"
+PASS  D. Show older reads the rest: 24 of 24, no more button
+PASS  D. rows without a replay say so (19, the server: 19)
+
+[E] a replay, full screen
+PASS  E. the replay opens full screen
+PASS  E. the same agents (Static Widow vs Vector Halcyon)
+PASS  E. every move: 120 (the record: 120)
+PASS  E. the record's boast (boast-null-void-collapse)
+PASS  E. the same winner (p1)
+PASS  E. played to its end: GAME OVER
+PASS  E. Close: gone
+PASS  E. focus back on the row's Replay
+PASS  E. Escape (on the website): gone
+
+[F] the log
+PASS  F. the log, whole (245 lines)
+
+[G] Watch live
+PASS  G. one card per live match (2)
+
+[I] at most two live boards
+PASS  I. (a board with three live widgets at L, saved over the API)
+PASS  I. the first two draw the live board, the third drops to the scoreboard with the note (live:board watch:board watch:capped history:-)
+
+[H] narrow, headers, a refused replay
+PASS  H. 720 px: no sideways scroll on Agent match
+PASS  H. /replay/<key>: framed by the site only, fetches nothing
+PASS  H. a replay after the session ended: back to sign-in
+PASS  H. ... and no replay on screen
+PASS  no external requests
+PASS  no page errors
+
+40 pass, 0 fail — ALL PASS

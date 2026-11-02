@@ -65,7 +65,8 @@ describe("the widget catalogue", () => {
   });
   it("every widget with a page opens it; the waiting widgets each say what they wait on", () => {
     for (const t of WIDGET_TYPES) if (t !== "notif") expect(WIDGET_INFO[t].page, t).not.toBeNull();
-    expect(Object.keys(WIDGET_WAITS).sort()).toEqual(["form", "history", "ladder", "live", "notif", "watch"]);
+    // Session 50: Live match, Watch live and Match history draw the server's matches.
+    expect(Object.keys(WIDGET_WAITS).sort()).toEqual(["form", "ladder", "notif"]);
   });
 });
 
@@ -266,6 +267,15 @@ describe("what the widgets show", () => {
     deckChoice: "agent", factionLock: "Null", lockableFactions: [], activeDeck: null, agentDeck: null, rebuild: { reasons: [], job: null },
     connectedAgent: { agentId: "a1", name: "Vector <Halcyon>", playStyle: "calculator" }, agents: [], playStyles: [{ id: "calculator", name: "Calculator", summary: "" }], decks: [],
     liveMatch: null,
+    autoPlay: { on: true, changedAt: null, stopped: null, dailyRewardsMaxed: false, canTurnOn: true, house: false },
+  };
+  const SIDE = (name: string, health: number) => ({ name, health, maxHealth: 20, energy: 3, maxEnergy: 5, hand: 4, deck: 20, graveyard: 2, board: [{ instanceId: "u1", cardId: "c1", name: `${name} Unit`, attack: 2, health: 3, maxHealth: 3, pending: false, tools: [] }], directives: [], signature: null });
+  const LIVE_MATCH = {
+    matchId: "m-1", startedAt: "2026-11-01T08:55:00.000Z", released: 12, nextAt: "2026-11-01T09:00:05.000Z",
+    p1: { ownerId: "o-me", ownerName: "Nova", agentId: "a1", agentName: "Vector <Halcyon>", playStyle: "calculator", rating: 1523.6, tier: "Gold" },
+    p2: { ownerId: "o-2", ownerName: "House Swarm", agentId: "a2", agentName: "Hive Courier", playStyle: "rusher", rating: 1488.2, tier: "Placement" },
+    now: { turn: 5, activePlayer: "p2" as const, priority: "p2" as const, stack: 0, winner: null, p1: SIDE("Vector <Halcyon>", 14), p2: SIDE("Hive Courier", 9) },
+    recentLines: ["Turn 5 begins", "Hive Courier plays Brute <Force>"],
   };
   const DATA: WidgetData = {
     play: PLAY,
@@ -274,6 +284,9 @@ describe("what the widgets show", () => {
     collection: COLLECTION,
     daily: DAILY,
     store: { packs: [], cosmetics: [{ itemId: "boast.s0", kind: "boast", name: "Overclock", faction: "Cortex", priceCredits: 300, owned: false }], wallet: { credits: 250, packPoints: 40, unopenedPacks: [] } },
+    live: { running: true, matches: [LIVE_MATCH], mine: "m-1" },
+    history: { total: 1, more: false, matches: [{ matchId: "m-0", endedAt: "2026-11-01T08:30:00.000Z", seat: "p1", result: "win", credits: 30, rating: { before: 1500, after: 1523.6, change: 23.6 }, opponent: { ownerId: "o-2", ownerName: "House Swarm", agentName: "Hive Courier" }, agentName: "Vector <Halcyon>", turns: 14, hasLog: true, hasReplay: true }] },
+    ownerId: "o-me",
     errors: {},
     now: Date.parse("2026-11-01T09:00:00.000Z"),
     colFilter: "All",
@@ -319,14 +332,18 @@ describe("what the widgets show", () => {
   });
   it("a live widget past the two-board limit says it's a scoreboard only; with no agent, Connect", () => {
     expect(widgetHtml(W("w", "watch", "L"), DATA, { editing: false, live: "scoreboard", capped: true })).toContain("Scoreboard only: two live boards are already showing.");
-    expect(widgetHtml(W("w", "live", "M"), DATA, { editing: false, live: "board" })).toContain('class="lboard"');
+    // Session 50: the compact board is the released units, not the striped placeholder.
+    expect(widgetHtml(W("w", "live", "M"), DATA, { editing: false, live: "board" })).toContain('class="cboard"');
+    expect(widgetHtml(W("w", "live", "M"), DATA, { editing: false, live: "scoreboard" })).not.toContain('class="cboard"');
     const none = { ...DATA, play: { ...PLAY, connectedAgent: null } };
     expect(widgetHtml(W("w", "live", "M"), none, { editing: false })).toContain('href="#/connect"');
     expect(widgetHtml(W("w", "agent", "M"), none, { editing: false })).toContain("No agent connected");
   });
   it("the page reads only what the board's widgets need at their sizes", () => {
     expect(sourcesFor([])).toEqual([]);
-    expect(sourcesFor(recommendedWidgets(RULES))).toEqual(["collection", "daily", "packs"]);
+    expect(sourcesFor(recommendedWidgets(RULES))).toEqual(["collection", "daily", "live", "packs"]);
+    expect(sourcesOf(W("w", "history", "S"))).toEqual(["history"]);
+    expect(sourcesOf(W("w", "watch", "S"))).toEqual(["live"]);
     expect(sourcesOf(W("w", "store", "L"))).toEqual(["packs", "store"]);
     expect(sourcesOf(W("w", "packs", "L"))).toContain("collection");
     expect(sourcesFor([W("a", "ladder"), W("b", "notif")])).toEqual([]);

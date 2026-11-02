@@ -68,7 +68,7 @@ export const WIDGET_INFO: Record<WidgetType, WidgetInfo> = {
   showcase: { name: "Showcase", desc: "Your best cards", icon: "spark", grad: "linear-gradient(135deg,#c95cff,#ff5d9e)", large: "wide", page: "collection" },
   ladder: { name: "Ladder", desc: "Your rank and the Season 0 ladder", icon: "stats", grad: "linear-gradient(135deg,#2fb6ff,#3d7bff)", large: "tall", page: "stats" },
   form: { name: "Rating & form", desc: "Rating, trend and recent results", icon: "stats", grad: "linear-gradient(135deg,#2fb6ff,#3cc47c)", large: "wide", page: "stats" },
-  history: { name: "Match history", desc: "Recent results and replays", icon: "list", grad: "linear-gradient(135deg,#6b778c,#1b2333)", large: "tall", page: "stats" },
+  history: { name: "Match history", desc: "Recent results and replays", icon: "list", grad: "linear-gradient(135deg,#6b778c,#1b2333)", large: "tall", page: "match" },
   notif: { name: "Notifications", desc: "Your alerts and updates", icon: "bell", grad: "linear-gradient(135deg,#ff4d6d,#ff8a5c)", large: "tall", page: null },
   store: { name: "Store", desc: "Packs to buy, and the cosmetics on sale", icon: "store", grad: "linear-gradient(135deg,#f6c445,#e0902a)", large: "wide", page: "store" },
 };
@@ -430,10 +430,7 @@ export function packsView(p: SitePacks, credits: number): PacksView {
 /** What a waiting widget says it waits on (the game lane's "Not built yet"
  * list in OWNER_API.md), and what it will show. */
 export const WIDGET_WAITS: Partial<Record<WidgetType, { needs: string; will: string }>> = {
-  live: { needs: "live matches", will: "Your agent's match: the scoreboard, then the board and its last play." },
-  watch: { needs: "featured matches", will: "The featured matches, with viewers and Watch." },
   ladder: { needs: "the ladder", will: "Your rank and rating, and the top 8 around you." },
   form: { needs: "ratings and stats", will: "Your rating, its weekly trend and your recent results." },
-  history: { needs: "match history", will: "Your last results, with replays." },
   notif: { needs: "notifications", will: "Your alerts: matches, packs and the season." },
 };

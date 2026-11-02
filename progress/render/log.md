@@ -4488,3 +4488,90 @@ notes-for-owner, nothing built); the match pages; "Watch again" (game lane).
 **Next render-lane slice:** the match pages on the game lane's session 67 endpoints (Watch live, the Live
 match widget, Match history, the auto-play switch), unless the owner's answer on the coin plan comes first
 and the game lane has built the coin slot.
+
+## 2026-11-02 — Session 50: the match pages (Agent match, Watch live, match history with full replays, auto-play)
+
+Owner feedback read: the answers to render session 49 keep all 6 calls and name this slice ("the match pages
+(Watch live, the Live match widget, Match history, auto-play) on the game lane's session 67 endpoints"); the
+answers to game session 68 add the spectator point-of-view toggle, to be **proposed at a checkpoint before
+building** (done: notes-for-owner, session 50 item 2; nothing built); the coin plan's game half isn't built
+yet, so no coin work. No CRITICAL item in the render debt list. Not a hardening pass: the owner set the slice.
+Alternation: the last merged PR (#119) was the game lane's (session 68).
+
+**Built:**
+- **Replays of recorded matches in the existing arena** (`site/siteReplay.ts`): the server's replay file
+  (`ai-tcg-replay/1`) rebuilt through `captureMatch` with two scripted seats that hand back the file's moves
+  in order (each checked legal where the file puts it), the decks read by the game lane's own
+  `replayDeckSpec`; the end checked against the file (winner, final health) and the record's boast attached
+  and checked as `attachRecord` does. A file that doesn't rebuild throws: the site shows the reason, never a
+  different match. The owner's 2026-10-05 spec: "use the existing match renderer for the real board".
+- **The site host builds it** (`siteHost.ts`): `POST /replay-page/:matchId` with the owner's token reads
+  `GET /api/matches/:id` and `/replay` over the API with that same token (the API's rules decide who sees
+  what), rebuilds, and keeps the page in memory under a random 24-character key for 10 minutes (at most 6);
+  `GET /replay/<key>` serves it with the pack page's headers (framed by the site only, fetches nothing).
+  401/404 pass through; a file that won't rebuild is 422 with the reason.
+- **Agent match** (`#/match`): the agent, its status and the **auto-play switch** (a real `role="switch"`;
+  the server's answer is what shows; the "maxed" message when the server turned it off); **Live now**: the
+  agent's live match as a scoreboard (names, owner, rating and tier, health bar, energy, hand and unit
+  counts, whose turn), the compact board (each side's units by name and stats, arming ones dashed), and the
+  **play-by-play** followed through `GET /api/live/:id?from=N` (only the new moves each read), tidied from the
+  engine's log lines (agent names for seats, no instance ids, no priority passes or turn ends); **Match
+  history**: every match, newest first, with the result, opponent, when, turns, credits, rating change,
+  **Replay** and **Log**, and Show older (20 a page). When the agent's match is recorded it tops the history.
+- **Watch live** (`#/live`): every match the ladder is showing, each a dark card with its scoreboard, compact
+  board and last three plays. Featured picks and viewers wait on their endpoint (said on the page).
+- **The widgets** (`siteWidgets.ts`, `siteMatches.ts`): Live match (S the scoreboard; M + the compact board;
+  L + the play-by-play and the switch), Watch live (S the first live match; M + the others one line each; L
+  the first on the compact board, the list alongside), Match history (S the last result; M the last 6; L the
+  first page with Replay and Log), and the auto-play switch on My agent at every size. Live parts redraw
+  every 3 s from `GET /api/live` (15 s in a hidden tab), only the live tiles, never a tile with focus.
+- **The viewer's own agent is always on the near (left) side** of a scoreboard and compact board (owners
+  keep their own view, owner 2026-11-02); a spectator sees p1 on the left.
+- `siteApi.ts`: `setAutoPlay`, `live`, `liveFeed`, `matches`, `match`, `matchLog` (text), `replayPage`, and
+  the types from OWNER_API.md. `siteDemo.ts --ladder [--speed N]`: the game lane's `LiveLadder` in the demo
+  (two house owners join; both players on auto-play; four of Nova's matches played on a clock two hours
+  behind, moved in jumps, then real time). Off by default, so sessions 46-49's checks see their demo.
+- Redraws keep focus on the same control (`focusKey`): the 15 s poll redraws the history while a replay is
+  open, and Close gives focus back to the row's Replay.
+
+**Tests (+10, render 802):** `render/test/siteMatches.test.ts`: every result in words; signs, times and the
+record; the switch in every state; the log tidying; then over the real owner API with the `LiveLadder` on a
+clock the test moves: the scoreboard equals the server's board now, the viewer's side first for each owner;
+the play-by-play read a feed at a time adds up to the match log line for line; the history row; the replay
+page built by the host is the same match (every move, every event line the feed released, the same winner,
+the record's boast); refusals (no token 401, no such match 404, no file 404, a file with another seed or cut
+short 422, an unknown key 404, wrong methods 405); `replayOfFile` refuses a record that isn't the file's;
+auto-play off and on over the API; every match widget at every size from the real answers. Updated: the
+waits lists (Agent match and Watch live are pages now; Live match, Watch live and Match history widgets
+draw), the Match history widget's page (Agent match), the recommended board's reads (+live).
+
+**Ran it:** `progress/render/evidence/site-check-s50.mjs` -> `site-check-s50.txt`: 40 browser checks
+against the real owner API with the ladder playing at 8x, ALL PASS (stills `v2-s50-match-*.jpg`): Home's
+Live match (Nova's agent first), Watch live and Match history widgets equal the server's; the switch off and
+on, each checked on the server; Agent match: a match of Nova's goes live, her side near, the play-by-play
+grows, in names, the scoreboard's health is the answer the page read; the match is recorded and tops the
+history; the history equals the server's, Show older reads the rest, rows without a replay say so; the
+replay full screen: the same agents, all 120 moves, the record's boast, the same winner, played to GAME
+OVER; Close and Escape with focus back; the log; Watch live's cards; 720 px; the replay page's headers; a
+replay after the session ended signs out; at most two live boards on Home with real live matches (moved
+here from session 46's check); no external requests, no page errors. Re-run on this branch: session 46's
+check 38 ALL PASS (two expectations updated to this slice's contract: Live match and Watch live no longer
+"wait", and no striped placeholder board), session 47's 50 ALL PASS (its pack-log reader updated: game
+session 68 made `GET /api/packs/:id/opening` answer the `PackOpening`; it crashed on main too), 48's 40 and
+49's 40 ALL PASS, the CI browser check 61 ALL PASS.
+
+**Found on the way (fixed):** while no move is out yet, every feed read from 0 carries the opening lines
+again, and the play-by-play doubled them (a test caught it: taken once now). The arena owns Escape (it skips
+the intro and the boast), so Escape inside the replay frame doesn't close it; Close does, and Escape on the
+website. The Close button first sat over the arena's seed (moved to the bottom corner). The Watch live tile at
+M overflowed with two scoreboards (the others are one line each now). The first check run lost focus after
+Close (the history had been redrawn under the replay: fixed with `focusKey`); its health check raced the
+page's 3 s poll (it now compares the drawn numbers with the answer the page read).
+
+**Not done (named):** the big live board (the arena playing a live match as it is released: the arena needs
+whole frames, the live feed sends public snapshots and engine events with no hands; next slice, see notes);
+the 2x vote, featured picks and viewer counts (no endpoints); the spectator point-of-view toggle (proposal
+only); coin skins (the game half comes first).
+
+**Next render-lane slice:** the big live board on Agent match and Watch live (the arena fed from the live
+feed), unless the owner's answers on the POV proposal or the coin plan come first.

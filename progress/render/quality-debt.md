@@ -7,17 +7,37 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The owner website (sessions 44-49)
+## The owner website (sessions 44-50)
 
 - **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
   tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
   tiles' `backdrop-filter` is the whole cost. Session 45's check fails its 20 fps bar on this branch
   (`site-check-s45-rerun-s46.txt`). Never measured on a GPU; options with the owner (notes, session 46).
-- **Six of the twelve widgets only say what they wait on:** Live match, Watch live, Ladder, Rating & form,
-  Match history, Notifications (all after match running). My agent has no rating, record, Start/Watch,
-  persona or signature card; no auto-play switch anywhere.
-- **Pages are still missing:** Agent match, Watch live, Stats, Admin. The Store has no "Watch again" (the
-  logged opening lacks the reveal's fields; raised with the game lane).
+- **The live view isn't the arena yet (session 50):** Agent match, Watch live and the live widgets show a
+  scoreboard, a compact board (unit names and stats as chips) and the play-by-play. The owner's spec says
+  "use the existing match renderer for the real board": recorded matches do (the full arena replay), live
+  ones don't. Next slice.
+- **The play-by-play is the engine's log text tidied by regexes** (`tidyLine`), not the arena's own feed
+  (`feed.ts`, built from frames): an ability shows as "X's ability triggers" with no rules text, and a new
+  log line shape from the engine would pass through untidied (a test pins today's shapes).
+- **Replays are rebuilt per request** by the site host (about 40 ms and 2 MB each, kept 10 minutes, at most
+  6): fine for one house; no cache across restarts. A replay file from before a card or rule change will
+  fail to rebuild (422, said plainly) until the game lane versions replays (owner call 6).
+- **Match history pages are 20 at a time and read again from the top** after the agent's match ends
+  (the older pages already shown are dropped and read again with Show older). The 15 s poll redraws the
+  whole Agent match page (focus kept by `focusKey`, the play-by-play's scroll reset to the newest line).
+- **The live parts poll every 3 s** (15 s in a hidden tab), not a push: a move can show up to 3 s late
+  against the server's watch clock. Never measured with many live tiles open at once.
+- **The arena replay inside the site keeps its own dark terminal look** and its own controls; the site's
+  sound and music settings aren't handed to it (it uses its own toggles). Its sides are the engine's (p1
+  top), not the viewer's.
+- **The demo's ladder is opt-in** (`--ladder`), so sessions 46-49's checks don't see live matches; nothing
+  re-checks the Store's loadout lock against a live match in the browser yet.
+- **Three of the twelve widgets only say what they wait on:** Ladder, Rating & form, Notifications. My agent
+  has no rating, record, persona or signature card (the Stats endpoint).
+- **Pages are still missing:** Stats, Admin. Featured picks, viewer counts and the 2× vote have no endpoint.
+  The Store has no "Watch again", and the Collection no craft price from the API or Promos, though the game
+  lane serves all three since its session 68 (render work not done yet).
 - **The loadout picker on the site (session 49):** the deck's faction is unknown to the site unless a
   faction is locked or the latest build is the deck being played (asked of the game lane); until then an
   empty victory-boast slot can't be previewed, and the preview row is the owner's units of its starting
