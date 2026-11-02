@@ -117,7 +117,8 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
 // The copies the server logged for that pack (GET /api/packs/:id/opening), as cardId|finish.
 async function loggedCards(page, packId) {
   const o = await apiGet(page, `/api/packs/${packId}/opening`);
-  return o.copies.map((c) => c.cardId + '|' + c.finish).sort();
+  // Game session 68: the endpoint answers the PackOpening itself (its cards), no longer the logged copies.
+  return (o.cards ?? o.copies).map((c) => c.cardId + '|' + c.finish).sort();
 }
 const same = (shown, logged) => !!shown && shown.ordered && JSON.stringify(shown.ids) === JSON.stringify(logged);
 const summaryButtons = (page) => frameOf(page).$$eval('.summary .btns button', (bs) => bs.map((b) => ({ act: b.dataset.site, text: b.textContent, disabled: b.disabled, pri: b.classList.contains('pri') })));

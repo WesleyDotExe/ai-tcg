@@ -22,7 +22,7 @@ real ladder (two house agents join Nova and Rook); `--speed 8` plays a match in 
 - **Watch live:** every match on show, each with its scoreboard, board and last plays.
 - **Home:** Live match, Watch live and Match history widgets at S/M/L, and the switch on My agent.
 
-**Evidence:** `progress/render/evidence/site-check-s50.txt` (38 browser checks with the ladder playing,
+**Evidence:** `progress/render/evidence/site-check-s50.txt` (40 browser checks with the ladder playing,
 ALL PASS) and stills `v2-s50-match-*.jpg` (the arena replay of a real ladder match: `v2-s50-match-replay-end.jpg`);
 render tests 802 (+10, over the real owner API and the live ladder: the play-by-play adds up to the match
 log; the replay is the same match, every move).

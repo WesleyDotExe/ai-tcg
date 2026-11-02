@@ -17,6 +17,7 @@
 //      to its end; Close and Escape go back, focus on the row's Replay.
 //   F  A match's log in a dialog.
 //   G  Watch live: every live match, each the server's.
+//   I  At most two live boards on Home, with real live matches.
 //   H  A narrow window; the replay page's headers; a refused replay after
 //      the session ended signs the site out; no external requests; no page
 //      errors.
@@ -247,6 +248,23 @@ console.log('\n[G] Watch live');
   const cards = await page.$$eval('#live-list .live-card', (els) => els.map((e) => e.dataset.match));
   check(cards.length === live.matches.length && cards.every((c) => live.matches.some((m) => m.matchId === c)), `G. one card per live match (${cards.length})`);
   await shot(page, 'watch-live', true);
+}
+
+// ---- I: at most two live boards, with real live matches (moved here from session 46's check) ----
+console.log('\n[I] at most two live boards');
+{
+  const t = await page.evaluate(() => JSON.parse(sessionStorage.getItem('aitcg.site.session')).token);
+  const live3 = [{ id: 'w1', type: 'live', size: 'L' }, { id: 'w2', type: 'watch', size: 'L' }, { id: 'w3', type: 'watch', size: 'L' }, { id: 'w4', type: 'history', size: 'S' }];
+  const saved = await page.evaluate(async ([w, t]) => (await fetch('/api/board', { method: 'PUT', headers: { Authorization: `Bearer ${t}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ widgets: w }) })).status, [live3, t]);
+  check(saved === 200, 'I. (a board with three live widgets at L, saved over the API)');
+  await page.goto(url + '#/');
+  await until(async () => (await apiGet(page, '/api/live')).mine !== null, 90000, 500);
+  await page.reload();
+  await page.waitForSelector('#wgrid');
+  await until(async () => (await page.$$('.wg .cboard')).length >= 2, 15000);
+  const boards = await page.$$eval('.wg', (els) => els.map((e) => ({ t: e.dataset.type, board: !!e.querySelector('.cboard'), capped: /Scoreboard only/.test(e.textContent) })));
+  check(boards[0].board && boards[1].board && !boards[2].board && boards[2].capped, `I. the first two draw the live board, the third drops to the scoreboard with the note (${boards.map((x) => `${x.t}:${x.board ? 'board' : x.capped ? 'capped' : '-'}`).join(' ')})`);
+  await shot(page, 'live-cap', true);
 }
 
 // ---- H: narrow, headers, refusal ------------------------------------------------------

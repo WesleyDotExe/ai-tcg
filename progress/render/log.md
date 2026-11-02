@@ -4545,7 +4545,7 @@ auto-play off and on over the API; every match widget at every size from the rea
 waits lists (Agent match and Watch live are pages now; Live match, Watch live and Match history widgets
 draw), the Match history widget's page (Agent match), the recommended board's reads (+live).
 
-**Ran it:** `progress/render/evidence/site-check-s50.mjs` -> `site-check-s50.txt`: 38 browser checks
+**Ran it:** `progress/render/evidence/site-check-s50.mjs` -> `site-check-s50.txt`: 40 browser checks
 against the real owner API with the ladder playing at 8x, ALL PASS (stills `v2-s50-match-*.jpg`): Home's
 Live match (Nova's agent first), Watch live and Match history widgets equal the server's; the switch off and
 on, each checked on the server; Agent match: a match of Nova's goes live, her side near, the play-by-play
@@ -4553,7 +4553,12 @@ grows, in names, the scoreboard's health is the answer the page read; the match 
 history; the history equals the server's, Show older reads the rest, rows without a replay say so; the
 replay full screen: the same agents, all 120 moves, the record's boast, the same winner, played to GAME
 OVER; Close and Escape with focus back; the log; Watch live's cards; 720 px; the replay page's headers; a
-replay after the session ended signs out; no external requests, no page errors.
+replay after the session ended signs out; at most two live boards on Home with real live matches (moved
+here from session 46's check); no external requests, no page errors. Re-run on this branch: session 46's
+check 38 ALL PASS (two expectations updated to this slice's contract: Live match and Watch live no longer
+"wait", and no striped placeholder board), session 47's 50 ALL PASS (its pack-log reader updated: game
+session 68 made `GET /api/packs/:id/opening` answer the `PackOpening`; it crashed on main too), 48's 40 and
+49's 40 ALL PASS, the CI browser check 61 ALL PASS.
 
 **Found on the way (fixed):** while no move is out yet, every feed read from 0 carries the opening lines
 again, and the play-by-play doubled them (a test caught it: taken once now). The arena owns Escape (it skips

@@ -16,11 +16,11 @@ PASS  B. on: the switch shows on
 [C] Agent match: the live match
 PASS  C. a match of Nova's goes live (the ladder runs on)
 PASS  C. Nova's agent is on the near side (seat p2)
-      play-by-play: 27 lines, then 52 six seconds later; latest: "Vector Halcyon plays Cortex Engineer"
+      play-by-play: 26 lines, then 51 six seconds later; latest: "Firewall Sentinel deals 2 damage to Static Widow"
 PASS  C. the play-by-play grows as moves are released
 PASS  C. in agent names, without the log's bookkeeping
 PASS  C. the scoreboard's health is the server's answer (18-18, the answer 18-18)
-PASS  C. ... and no newer than the server (42 moves drawn, 42 out now)
+PASS  C. ... and no newer than the server (41 moves drawn, 41 out now)
 PASS  C. the match ends (recorded after its last move)
 PASS  C. it tops Match history (demo-live-009)
 
@@ -47,6 +47,10 @@ PASS  F. the log, whole (245 lines)
 [G] Watch live
 PASS  G. one card per live match (2)
 
+[I] at most two live boards
+PASS  I. (a board with three live widgets at L, saved over the API)
+PASS  I. the first two draw the live board, the third drops to the scoreboard with the note (live:board watch:board watch:capped history:-)
+
 [H] narrow, headers, a refused replay
 PASS  H. 720 px: no sideways scroll on Agent match
 PASS  H. /replay/<key>: framed by the site only, fetches nothing
@@ -55,4 +59,4 @@ PASS  H. ... and no replay on screen
 PASS  no external requests
 PASS  no page errors
 
-38 pass, 0 fail — ALL PASS
+40 pass, 0 fail — ALL PASS
