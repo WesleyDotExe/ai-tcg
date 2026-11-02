@@ -1043,3 +1043,52 @@ for its next session.)
    and the binder's cards are opaque faces, so it's lighter than Home's nine tiles.
 5. **No shared files changed** (no workflow, no root package files, no server or economy code). The site
    reads `economy/src/config.ts` (the craft prices) read-only.
+
+## 2026-11-02 — Session 49 (the loadout picker in the Store)
+
+1. **Built: the loadout picker in the Store,** full screen, with Equip and Buy against the real server.
+   Calls are in `progress/render/checkpoints.md` (newest entry).
+2. **A small ask for the game lane (the picker works without it):** the API never says **which faction the
+   agent's deck plays**, or **its cards**. That faction decides what an empty victory-boast slot plays (the
+   store's `chooseBoast`). The site knows it only when you lock a faction, or when the latest build is the
+   deck being played. Otherwise the picker says "No deck built yet" rather than guess. One field would
+   settle it: a `faction` (and ideally the card ids) on `DeckStatus` in `GET /api/play`'s `activeDeck` and
+   `decks`. The preview board would then show the deck's own units, too.
+3. **[OWNER CHECK-IN] Coin skins: the render lane's half of the plan** (your 2026-11-02 entry: plan
+   first, nothing built; the game lane builds its half first). My proposal:
+   - **Where:** inside the Match Boot intro, on the centre line, between HANDSHAKE OK and the saying. The
+     intro goes from 2.6 s to about **3.4 s**: at 1.5 s the coin flicks up from the centre and spins, it
+     lands at 2.1 s, the result line types at 2.2 s, the saying slams in at 2.4 s, everything is gone by
+     3.4 s. Skip skips it with the rest.
+   - **How the result reads:** each viewer's coin has two faces: **your agent's face** (its generated
+     portrait, the avatar the site already draws) and **the coin's own design**. Landing portrait-up
+     means you go first. The line under it says **YOU GO FIRST** or **THEY GO FIRST**. For a spectator who
+     owns neither agent it says **<NAME> GOES FIRST**.
+   - **One exception to the intro's grammar** (it favours neither side today): after landing, a short edge
+     pulse runs into the first player's half. I'd write that exception into EFFECTS.md. Alternative: no
+     pulse, the text alone.
+   - **Sound:** a flick, a spin whir and a landing clink, all dead centre on the audio clock. Skip cuts them.
+   - **Reduced motion:** the coin shown already landed, with the line, in the still. The still goes from
+     1.0 s to about 1.3 s.
+   - **Coin designs** (code-drawn like the boasts, placeholder until the art pass):
+     - the free starter: **Chrome Token**, a silver hex;
+     - two Season 0 store coins: **Dial-Up Dime**, a green CRT-phosphor rim, and **Neon Nickel**, a
+       magenta and cyan neon edge;
+     - the tier coins: **Gold** (gold foil), **Diamond** (prismatic facets) and **Mythic** (the Mythic
+       ward's moving sheen). They climb like the card finishes, so a Mythic coin is plain at a glance.
+     Names and prices are the game lane's call; these are the looks.
+   - **The spectator view** (left open in your entry): a spectator who owns neither agent sees the house's
+     neutral Chrome Token. I'd give the arena's open spectator question the same answer (a neutral
+     default), so the two match.
+   - **What the render needs from the game lane:** the coin slot in `GET /api/agents/:id/loadout` (the
+     picker gets a sixth slot, "Coin", with the same tiles and Buy), and **each agent's equipped coin on
+     the match record and the replay**, like the boasts. That keeps a replay's flip showing the coin worn
+     then. Who went first is already there: the server's flip decides the seats, and p1 always moves first.
+   - **Order:** once the game lane has the slot and the catalogue, two render slices: (1) the flip in
+     Match Boot, the starter coin, reduced motion and sound; (2) the store and tier coins' looks, and the
+     coin line in the picker and the Store.
+4. **Found, not fixed:** session 36's standalone picker check (`loadout-check-s36.mjs`) fails 5 of 48
+   checks, on main's committed page too. It was written before render 37 changed the win message, so the
+   script is stale; the page isn't broken. In the debt list.
+5. **No shared files changed** (no workflow, no root package files, no server or economy code). The site's
+   bundle now also reads `economy/src/cosmetics.ts` (the slot list and the close-win health), read-only.

@@ -34,6 +34,9 @@
 // The reveal's sound is the account's sound setting.
 
 import { avatarSvg } from "../avatar.js";
+import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
+import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
+import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
@@ -120,7 +123,9 @@ const state: {
   colFilter: string;
   /** The Store page's own reads: the packs (with the daily pack), the store,
    * and the collection's recent openings. */
-  shop: { packs: (SitePacks & { wallet: SiteWallet }) | null; store: SiteStore | null; recent: SiteCollection | null; error: string | null };
+  shop: { packs: (SitePacks & { wallet: SiteWallet }) | null; store: SiteStore | null; recent: SiteCollection | null; error: string | null;
+    /** Session 49: what each agent wears (by agent id) and the owned cosmetics, for "Your agents". */
+    loadouts: Record<string, SiteLoadout>; owned: SiteOwnedCosmetic[] | null };
   /** How many packs the Store's Buy button buys (1 to 10). */
   buyCount: number;
   /** A pack opening is on screen (or its request is out). */
@@ -131,7 +136,7 @@ const state: {
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
   board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, errors: {} }, colFilter: "All",
-  shop: { packs: null, store: null, recent: null, error: null }, buyCount: 1, opening: false,
+  shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null }, buyCount: 1, opening: false,
   col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
 };
 
@@ -156,10 +161,13 @@ let liquid: Liquid | null = null;
     home: state.home,
     shop: state.shop,
     opening: state.opening,
+    dress: dressAgent,
     col: { filters: state.col.filters, viewer: state.col.viewer, binder: state.col.binder, error: state.col.error, loaded: !!state.col.binder },
   }),
   /** The pack-opening frame's own state (its log of every beat), or null. */
   pack: () => (frame?.contentWindow as unknown as { __pack?: unknown } | null)?.__pack ?? null,
+  /** The loadout frame's own hook (its state and stats), or null. */
+  loadout: () => (dressFrame?.contentWindow as unknown as { __loadout?: unknown } | null)?.__loadout ?? null,
   liquid: () => liquid?.stats() ?? null,
 };
 
@@ -305,8 +313,9 @@ function signedOut(message: string): void {
   state.boardError = null;
   state.draft = null;
   state.home = { packs: null, collection: null, daily: null, store: null, errors: {} };
-  state.shop = { packs: null, store: null, recent: null, error: null };
+  state.shop = { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null };
   closeOpening();
+  closeDress();
   saveSession(null);
   clearTimeout(state.poll);
   showSignIn(message);
@@ -895,8 +904,15 @@ async function loadShop(): Promise<void> {
   if (!state.session) return;
   const token = state.session.token;
   try {
-    const [packs, store, recent] = await Promise.all([api.packs(token), api.store(token), api.collection(token, 6)]);
-    state.shop = { packs, store, recent, error: null };
+    const play = state.play ?? (state.play = await api.play(token));
+    const [packs, store, recent, owned, ...loadouts] = await Promise.all([
+      api.packs(token),
+      api.store(token),
+      api.collection(token, 6),
+      api.cosmetics(token),
+      ...play.agents.map((a) => api.loadout(token, a.agentId)),
+    ]);
+    state.shop = { packs, store, recent, error: null, owned: owned.owned, loadouts: Object.fromEntries(loadouts.map((l) => [l.agentId, l])) };
     state.wallet = packs.wallet;
     drawWallet();
   } catch (err) {
@@ -965,8 +981,29 @@ function storePage(): string {
   const items = cos.length
     ? `<div class="shop">${cos.map((c) => `<div class="si"><span class="si-pv" style="--c:${(c.faction && FACTION_HEX[c.faction]) || "#8f8cff"}"></span><b class="small">${esc(c.name)}</b><span class="muted small">${esc(cosmeticKind(c.kind))}${c.faction ? ` · ${esc(c.faction)}` : ""}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${credits >= c.priceCredits ? "" : " disabled"}>Buy · ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>`
     : '<p class="muted small">No cosmetics on sale right now.</p>';
-  const cosmetics = `<section class="panel glass st-cos"><h3>Cosmetics</h3>${items}<p class="muted small">Equipping what you own (the loadout picker) comes to this page next.</p></section>`;
-  return `<div class="pg-wide"><div class="st-grid">${packsHead}${daily}${waiting}${recent}${cosmetics}</div></div>`;
+  const cosmetics = `<section class="panel glass st-cos"><h3>Cosmetics</h3>${items}<p class="muted small">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p></section>`;
+  return `<div class="pg-wide"><div class="st-grid">${packsHead}${daily}<div class="st-col">${waiting}${agentsPanel()}</div>${recent}${cosmetics}</div></div>`;
+}
+
+/** "Your agents" (session 49): what each agent wears, and Change to open
+ * the loadout picker over the website. */
+function agentsPanel(): string {
+  const play = state.play;
+  if (!play) return "";
+  const names: Record<string, string> = {};
+  for (const o of state.shop.owned ?? []) names[o.itemId] = o.item.name;
+  for (const c of state.shop.store?.cosmetics ?? []) names[c.itemId] ??= c.name;
+  const rows = agentLoadoutRows(play, state.shop.loadouts, names);
+  const locked = !!play.liveMatch;
+  const body = rows.length
+    ? rows
+        .map(
+          (r) =>
+            `<div class="st-agent">${avatar(r.name, null, 30)}<div class="dn"><b>${esc(r.name)}${r.connected ? ' <span class="pill on">Connected</span>' : ""}</b><small>Victory boast: ${esc(r.boast)}</small><small>Close win: ${esc(r.closeWin)}</small></div><button type="button" class="btn sm" data-act="dress" data-agent="${esc(r.agentId)}" aria-label="Change ${esc(r.name)}'s loadout">Change</button></div>`,
+        )
+        .join("")
+    : '<p class="muted small">No agents yet.</p>';
+  return `<section class="panel glass st-agents"><h3>Your agents' loadouts</h3><p class="muted small">Each agent wears its own: its victory boast, its close-win boast (a win on ${CLOSE_WIN_HEALTH} health or less), and later a card back, an avatar and an arena.</p>${locked ? '<p class="small warn-t">A match is live: loadouts can\'t change until it ends.</p>' : ""}<div class="st-rows">${body}</div></section>`;
 }
 
 function pityText(p: SitePacks): string {
@@ -1417,6 +1454,150 @@ function closeOpening(): void {
   if (state.session) void afterChange();
 }
 
+// ---- the loadout picker, full screen (session 49) -----------------------------
+// The standalone loadout picker in its site mode (loadoutPicker.ts), served
+// by the site host at /loadout and framed here, same origin, like the pack
+// opening. The website reads the agent's loadout and the cosmetics, hands
+// the page what to draw (siteLoadout.loadoutPayload), and answers its
+// Equip and Buy through window.LOADOUT_SITE_HOST with the server's own
+// answers. Nothing is applied that the server didn't answer.
+interface LoadoutApi {
+  show(p: PickerSitePayload, keep?: unknown): void;
+  close(): void;
+}
+let dressFrame: HTMLIFrameElement | null = null;
+let dressReady: Promise<LoadoutApi> | null = null;
+let dressFrom: { el: HTMLElement; sel: string | null } | null = null;
+/** The agent the picker is open for (null: closed). */
+let dressAgent: string | null = null;
+
+async function dressPayload(token: string, agentId: string): Promise<PickerSitePayload> {
+  const [play, loadout, owned, store, collection] = await Promise.all([api.play(token), api.loadout(token, agentId), api.cosmetics(token), api.store(token), api.collection(token)]);
+  state.play = play;
+  state.wallet = store.wallet;
+  drawWallet();
+  const agent = play.agents.find((a) => a.agentId === agentId);
+  if (!agent) throw new SiteApiError(404, "that agent isn't one of yours");
+  return loadoutPayload({ agent, loadout, owned: owned.owned, onSale: store.cosmetics, play, collection, credits: store.wallet.credits });
+}
+
+/** The page's answer to a refused or failed call: the server's words. */
+function answerOf(err: unknown): { ok: false; error: string } {
+  if (err instanceof SiteApiError && err.signedOut) {
+    window.setTimeout(() => signedOut("Your session ended. Sign in again."), 0);
+    return { ok: false, error: "your session ended" };
+  }
+  return { ok: false, error: err instanceof SiteApiError ? err.message : "something went wrong" };
+}
+
+(window as unknown as { LOADOUT_SITE_HOST: unknown }).LOADOUT_SITE_HOST = {
+  // The account's sound, the same store the pack opening uses.
+  sound: (window as unknown as { PACK_SITE_HOST: { sound: unknown } }).PACK_SITE_HOST.sound,
+  equip: async (slot: string, itemId: string | null): Promise<PickerAnswer> => {
+    if (!state.session || !dressAgent) return { ok: false, error: "not signed in" };
+    try {
+      const l = await api.setLoadout(state.session.token, dressAgent, slot, itemId);
+      state.shop.loadouts = { ...state.shop.loadouts, [l.agentId]: l };
+      return { ok: true, loadout: l.loadout };
+    } catch (err) {
+      return answerOf(err);
+    }
+  },
+  // Buy from inside the picker: the Store's own confirm, then the server's
+  // buy, then the page is handed the agent's state read again.
+  buy: async (itemId: string): Promise<{ ok: true; payload: PickerSitePayload } | { ok: true; cancelled: true } | { ok: false; error: string }> => {
+    if (!state.session || !dressAgent) return { ok: false, error: "not signed in" };
+    const c = state.shop.store?.cosmetics.find((x) => x.itemId === itemId);
+    const name = c?.name ?? "this";
+    const price = c?.priceCredits ?? 0;
+    const yes = await confirmDialog(`Buy ${name}?`, `${amount(price)} credits. You have ${amount(state.wallet?.credits ?? 0)}. It's yours on every agent.`, `Buy · ${amount(price)}`);
+    // Back into the picker for the keyboard.
+    dressFrame?.focus();
+    if (!yes) return { ok: true, cancelled: true };
+    try {
+      const r = await api.buyCosmetic(state.session.token, itemId);
+      state.wallet = r.wallet;
+      drawWallet();
+      return { ok: true, payload: await dressPayload(state.session.token, dressAgent) };
+    } catch (err) {
+      return answerOf(err);
+    }
+  },
+  close: () => closeDress(),
+};
+
+function loadoutFrame(): Promise<LoadoutApi> {
+  if (dressReady) return dressReady;
+  dressFrame = document.createElement("iframe");
+  dressFrame.title = "Agent loadout";
+  dressReady = new Promise<LoadoutApi>((resolve, reject) => {
+    dressFrame!.addEventListener(
+      "load",
+      () => {
+        const L = (dressFrame!.contentWindow as unknown as { LOADOUT?: LoadoutApi } | null)?.LOADOUT;
+        if (L) resolve(L);
+        else reject(new Error("the loadout picker didn't load"));
+      },
+      { once: true },
+    );
+  });
+  dressReady.catch(() => {
+    dressFrame?.remove();
+    dressFrame = null;
+    dressReady = null;
+  });
+  dressFrame.src = "/loadout";
+  $("#dress").appendChild(dressFrame);
+  return dressReady;
+}
+
+async function openDress(agentId: string, from?: HTMLElement): Promise<void> {
+  if (!state.session || dressAgent) return;
+  dressAgent = agentId;
+  if (from) dressFrom = { el: from, sel: from.dataset.agent ? `[data-act="dress"][data-agent="${CSS.escape(from.dataset.agent)}"]` : null };
+  const el = $("#dress");
+  el.querySelector(".op-wait")?.remove();
+  el.insertAdjacentHTML("beforeend", '<div class="op-wait">Reading the loadout…</div>');
+  el.hidden = false;
+  liquid?.refresh();
+  try {
+    const [payload, L] = await Promise.all([dressPayload(state.session.token, agentId), loadoutFrame()]);
+    if (dressAgent !== agentId) return;
+    el.querySelector(".op-wait")?.remove();
+    L.show(payload);
+    dressFrame?.focus();
+    dressFrame?.contentWindow?.focus();
+  } catch (err) {
+    closeDress();
+    fail(err);
+  }
+}
+
+/** Back to the Store (Close, Esc). Everything equipped is already saved;
+ * the Store's reads run again. */
+function closeDress(): void {
+  const el = document.getElementById("dress");
+  if (!el || el.hidden) {
+    dressAgent = null;
+    return;
+  }
+  el.hidden = true;
+  el.querySelector(".op-wait")?.remove();
+  dressAgent = null;
+  liquid?.refresh();
+  const sel = dressFrom?.sel ?? null;
+  const back = dressFrom?.el.isConnected ? dressFrom.el : sel ? document.querySelector<HTMLElement>(sel) : null;
+  (back ?? ($("#page") as HTMLElement)).focus();
+  dressFrom = null;
+  if (!state.session) return;
+  // The Store reads again and redraws (the rows show what was saved): the
+  // keyboard stays on the same agent's Change button.
+  void afterChange().then(() => {
+    const a = document.activeElement as HTMLElement | null;
+    if (sel && (!a || a === document.body || !a.isConnected)) document.querySelector<HTMLElement>(sel)?.focus();
+  });
+}
+
 // ---- actions ----------------------------------------------------------------
 async function act(fn: (token: string) => Promise<SitePlay>, ok?: string): Promise<void> {
   if (!state.session || state.busy) return;
@@ -1488,6 +1669,7 @@ document.addEventListener("click", (e) => {
     if (act === "buy-cosmetic") return void buyCosmetic(actEl.dataset.item!, actEl.dataset.name ?? "this", Number(actEl.dataset.price));
     if (act === "open-packs") return void openPacks(actEl.dataset.pack ? { packId: actEl.dataset.pack } : { count: Number(actEl.dataset.count) === 10 ? 10 : 1 }, actEl);
     if (act === "claim-daily") return void claimDaily();
+    if (act === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
     if (act === "buy-step") {
       state.buyCount = Math.max(1, Math.min(BUY_MAX, state.buyCount + Number(actEl.dataset.d)));
       drawPage();

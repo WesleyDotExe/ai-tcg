@@ -792,6 +792,12 @@ body { padding: 12px 16px 40px; }
 /* The preview loops: a Skip button would only interrupt a loop. Escape and
  * a tap still end the current pass (it starts again). */
 .boast-skip, .skip-hint { display: none !important; }
+/* The website's full-screen picker (site mode): a Close button at the end of the top line. */
+.pk-close { margin-left: auto; font: inherit; font-size: 0.78rem; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 5px 14px; cursor: pointer; }
+.pk-close:hover, .pk-close:focus-visible { border-color: var(--ink); }
+.t-buy { border-color: color-mix(in srgb, var(--good) 60%, var(--line)); }
+.t-equip[disabled] { opacity: 0.55; cursor: progress; }
+.t-act .t-short { margin-top: 3px; }
 @media (max-width: 1180px) {
   .pk-grid { grid-template-columns: minmax(0, 1fr); }
   .stage { max-width: 800px; }
@@ -817,7 +823,7 @@ body { padding: 12px 16px 40px; }
 <body>
 <main id="picker">
 <div class="pk-top"><span class="pk-brand">AI·TCG // AGENT LOADOUT</span><div class="sc-tabs" id="sc-tabs" aria-label="Store states"></div></div>
-<header class="agent-head"><h1 id="ag-name"></h1><span class="faction-tag" id="ag-faction"></span><span class="credits">Owner's balance: <b id="ag-credits"></b></span><div class="sc-note" id="sc-note"></div></header>
+<header class="agent-head"><h1 id="ag-name"></h1><span class="faction-tag" id="ag-faction"></span><span class="credits" id="ag-balance">Owner's balance: <b id="ag-credits"></b></span><div class="sc-note" id="sc-note"></div></header>
 <div class="livelock" id="livelock" hidden></div>
 <div class="pk-grid">
 <section class="stage" id="stage" aria-label="Preview"><div class="stage-board" id="stage-board"></div>
@@ -3389,12 +3395,21 @@ body { padding: 12px 16px 40px; }
     next[slot] = o.value;
     return { ok: true, state: next, error: null };
   }
+  // Applies the server's answer to an Equip on the website: the loadout it
+  // now has, slot for slot (the server's word, not the page's guess), or
+  // the old state with the refusal.
+  function loadoutAnswerApply(state, answer) {
+    if (!answer || !answer.ok || !answer.loadout) return { ok: false, state: state, error: (answer && answer.error) || 'no answer from the server' };
+    var next = {};
+    for (var i = 0; i < LOADOUT_SLOTS_ORDER.length; i++) { var k = LOADOUT_SLOTS_ORDER[i]; next[k] = answer.loadout[k] == null ? null : answer.loadout[k]; }
+    return { ok: true, state: next, error: null };
+  }
   // The boast a win would play, by the store's rule: for the close-win slot
   // its item (the CLOSE CALL plate), or with it empty the main boast; for the
   // main slot its item, or with it empty the starter boast of the deck's
   // faction. Null when nothing is known.
   function loadoutPreview(state, slot, deckFaction, starters) {
-    var main = state.boast != null ? state.boast : (starters[deckFaction] || null);
+    var main = state.boast != null ? state.boast : ((deckFaction && starters[deckFaction]) || null);
     if (slot === 'closeWinBoast' && state.closeWinBoast != null) return { id: state.closeWinBoast, close: true };
     return main ? { id: main, close: false } : null;
   }
@@ -3409,7 +3424,7 @@ body { padding: 12px 16px 40px; }
   function loadoutSlotLine(state, slot, deckFaction, starters, names) {
     var v = state[slot];
     if (v != null) return names[v] || v;
-    if (slot === 'boast') return 'Empty: plays ' + (names[starters[deckFaction]] || 'the starter');
+    if (slot === 'boast') return 'Empty: plays ' + ((deckFaction && names[starters[deckFaction]]) || 'the deck\'s starter');
     if (slot === 'closeWinBoast') return 'Empty: plays the main boast';
     return 'Empty';
   }
@@ -3428,13 +3443,26 @@ body { padding: 12px 16px 40px; }
     var g = itemId != null && LOADOUT_GLYPHS[itemId];
     return g ? '<svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">' + g + '</svg>' : null;
   }
+  // The locked tile's action on the website: Buy when the owner can pay,
+  // else the price and what the owner has (standalone: always the plate).
+  function loadoutLockAction(site, price, credits) {
+    if (price == null) return { kind: 'none' };
+    if (site && credits >= price) return { kind: 'buy', price: price };
+    return { kind: 'plate', price: price, short: credits < price };
+  }
   // The message after an equip, in the page's words around the store's.
   function loadoutSavedLine(slotLabel, itemId, names) {
     if (itemId == null) return 'Saved: the ' + slotLabel.toLowerCase() + ' slot is empty.';
     return 'Saved: ' + (names[itemId] || itemId) + ' is this agent\'s ' + slotLabel.toLowerCase() + '.';
   }
 
-  SND.mount(document.getElementById('snd'), document.getElementById('sndvol'));
+  // On the owner website the sound setting is the account's (the host's
+  // { read, write } store, as the pack opening's); standalone, the browser's.
+  var LOADOUT_SITE_SOUND = (function () {
+    try { var h = window.parent && window.parent !== window && window.parent.LOADOUT_SITE_HOST; if (h && h.sound) return h.sound; } catch (e) { /* another origin */ }
+    return undefined;
+  })();
+  SND.mount(document.getElementById('snd'), document.getElementById('sndvol'), undefined);
   // The preview's stings sound only on a pass the viewer asked for (a tap
   // on an item, a slot or Replay), never on the loop's repeats. A pass's
   // sounds are one sequence on the audio clock (render session 39), so the
@@ -3833,22 +3861,33 @@ body { padding: 12px 16px 40px; }
   var app = document.getElementById('picker');
   var stats = { previews: 0, loops: 0, equips: 0, refused: 0, restarts: 0, last: null };
   var S = null; // the open scenario: { sc, state, slot, preview: {slot, itemId, explicit} }
+  // Site mode (render session 49): the website's hooks, same origin, set on
+  // the parent before the page loads. Standalone: none.
+  function siteHost() {
+    try { if (window.parent && window.parent !== window && window.parent.LOADOUT_SITE_HOST) return window.parent.LOADOUT_SITE_HOST; } catch (e) { /* another origin */ }
+    return null;
+  }
+  var SITE = !!DATA.site;
+  // A request to the server is out (site mode): Equip and Buy wait for it.
+  var busy = false;
+  stats.site = { equips: 0, buys: 0, answers: [] };
   var gen = 0, loopTimer = null, scrollTimer = null;
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function el(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
   function slotView(slot) { return S.sc.slots.filter(function (v) { return v.slot === slot; })[0]; }
   function factionClass(f) { return 'faction-' + (f || 'Neutral'); }
+  function rowFaction(sc) { return sc.agent.rowFaction || sc.agent.deckFaction || null; }
 
   // ---- the preview board ----
   function stageHtml(sc) {
     var cards = sc.cards.map(function (c) {
       var stats = c.attack != null ? '<div class="stats"><span class="atk">' + c.attack + '</span><span class="hp">' + c.health + '</span></div>' : '';
-      return '<div class="card pickcard ' + factionClass(sc.agent.deckFaction) + '"><div class="head"><span class="cost">' + c.cost + '</span></div><div class="art"></div><div class="name">' + esc(c.name) + '</div>' + stats + '</div>';
+      return '<div class="card pickcard ' + factionClass(rowFaction(sc)) + '"><div class="head"><span class="cost">' + c.cost + '</span></div><div class="art"></div><div class="name">' + esc(c.name) + '</div>' + stats + '</div>';
     });
     while (cards.length < 6) cards.push('<div class="slot empty"></div>');
     return '<div class="side st-foe" id="st-side-l"><div class="hud ' + factionClass(sc.foeFaction) + '" id="st-hud-l"><div class="name"><span style="color:var(--fc)">The other agent</span><span class="faction-tag">' + esc(sc.foeFaction) + '</span></div><div class="meta">HP 0 / 30</div></div></div>' +
-      '<div class="side" id="st-side-w"><div class="board-row ' + factionClass(sc.agent.deckFaction) + '" id="st-row-w">' + cards.join('') + '</div></div>' +
-      '<div class="hud ' + factionClass(sc.agent.deckFaction) + '" id="st-hud-w"><div class="name"><span style="color:var(--fc)">' + esc(sc.agent.name) + '</span><span class="faction-tag">' + esc(sc.agent.deckFaction) + '</span></div><div class="meta" id="st-hp">HP 18 / 30</div></div>';
+      '<div class="side" id="st-side-w"><div class="board-row ' + factionClass(rowFaction(sc)) + '" id="st-row-w">' + cards.join('') + '</div></div>' +
+      '<div class="hud ' + factionClass(rowFaction(sc)) + '" id="st-hud-w"><div class="name"><span style="color:var(--fc)">' + esc(sc.agent.name) + '</span><span class="faction-tag">' + esc(rowFaction(sc) || 'Neutral') + '</span></div><div class="meta" id="st-hp">HP 18 / 30</div></div>';
   }
   function stageEls() {
     return {
@@ -3868,7 +3907,10 @@ body { padding: 12px 16px 40px; }
   }
   function caption(cp, note) {
     var c = document.getElementById('st-cap');
-    if (!cp.plan) { c.innerHTML = 'Nothing to preview.'; return; }
+    if (!cp.plan) {
+      c.innerHTML = S.sc.agent.deckFaction ? 'Nothing to preview.' : 'A win plays the starter boast of the faction this agent\'s deck plays. <span class="cap-note">No deck is built yet, so it can\'t be shown.</span>';
+      return;
+    }
     var nm = DATA.names[cp.plan.id] || cp.plan.id;
     var tile = S.preview, owned = true;
     if (tile) { var t = slotView(tile.slot).tiles.filter(function (x) { return loadoutKey(x.itemId) === loadoutKey(tile.itemId); })[0]; owned = !t || t.owned || t.itemId == null; }
@@ -3892,7 +3934,7 @@ body { padding: 12px 16px 40px; }
     stats.previews++;
     if (!explicit) stats.loops++;
     var plan = BOAST.play(cp.plan.id, stageEls(), {
-      who: S.sc.agent.name, faction: S.sc.agent.deckFaction, close: cp.plan.close, seed: 7,
+      who: S.sc.agent.name, faction: rowFaction(S.sc) || 'Cortex', close: cp.plan.close, seed: 7,
       onEnd: function (reason) {
         if (my !== gen) return;
         stats.last = { id: cp.plan.id, reason: reason };
@@ -3917,10 +3959,11 @@ body { padding: 12px 16px 40px; }
     var src = t.owned && t.source === 'purchase' ? '<span class="t-src">Bought</span>' : '';
     var action;
     if (!t.owned && t.itemId != null) {
-      var short = t.priceCredits != null && S.sc.credits < t.priceCredits;
-      action = '<div class="t-lock"><span class="t-price"><span class="lock-ico" aria-hidden="true"></span>In the store · ' + t.priceCredits + ' credits</span>' + (short ? '<span class="t-short">you have ' + S.sc.credits + '</span>' : '') + '</div>';
+      var la = loadoutLockAction(SITE, t.priceCredits, S.sc.credits);
+      if (la.kind === 'buy') action = '<button type="button" class="t-equip t-buy" data-buy="' + esc(key) + '"' + (busy ? ' disabled' : '') + '>Buy · ' + la.price + '</button><div class="t-short">you have ' + S.sc.credits + '</div>';
+      else action = '<div class="t-lock"><span class="t-price"><span class="lock-ico" aria-hidden="true"></span>In the store · ' + t.priceCredits + ' credits</span>' + (la.short ? '<span class="t-short">you have ' + S.sc.credits + '</span>' : '') + '</div>';
     } else if (equipped) action = '<div class="t-on">Equipped</div>';
-    else action = '<button type="button" class="t-equip" data-equip="' + esc(key) + '">Equip</button>';
+    else action = '<button type="button" class="t-equip" data-equip="' + esc(key) + '"' + (busy ? ' disabled' : '') + '>Equip</button>';
     var isBoast = v.slot === 'boast' || v.slot === 'closeWinBoast';
     return '<div class="tile ' + factionClass(t.faction) + (t.owned || t.itemId == null ? '' : ' locked') + (equipped ? ' equipped' : '') + (previewing ? ' previewing' : '') + (t.itemId == null ? ' empty' : '') + '" data-tile="' + esc(key) + '"' + (isBoast ? ' tabindex="0" role="button" aria-label="Preview ' + esc(t.name) + '"' : '') + '>' +
       '<div class="t-swatch" aria-hidden="true">' + (loadoutGlyph(t.itemId) || '<span></span>') + '</div>' +
@@ -3945,7 +3988,45 @@ body { padding: 12px 16px 40px; }
     t.textContent = msg; t.className = 'toast ' + (ok ? 'ok' : 'no') + ' show';
     clearTimeout(t._h); t._h = setTimeout(function () { t.className = 'toast ' + (ok ? 'ok' : 'no'); }, 3200);
   }
+  // Keeps keyboard focus on the same button (or its tile) across a redraw.
+  function refocus(attr, key) {
+    var k = window.CSS && CSS.escape ? CSS.escape(key) : key;
+    var b = document.querySelector('[' + attr + '="' + k + '"]') || document.querySelector('.tile[data-tile="' + k + '"]');
+    // A tile that isn't focusable (card back, avatar, arena): the slot's rail button.
+    if (b && b.tagName !== 'BUTTON' && !b.hasAttribute('tabindex')) b = document.querySelector('.rail-slot.on');
+    if (b && b.focus) b.focus({ preventScroll: true });
+  }
+  function siteEquip(key) {
+    var h = siteHost(); if (!h || busy) return;
+    var v = slotView(S.slot), slot = S.slot, itemId = key === '' ? null : key, my = S;
+    busy = true; stats.equips++; stats.site.equips++; redraw();
+    Promise.resolve(h.equip(slot, itemId)).then(function (answer) { return answer; }, function (err) { return { ok: false, error: (err && err.message) || 'the server could not be reached' }; }).then(function (answer) {
+      busy = false;
+      stats.site.answers.push({ slot: slot, itemId: itemId, ok: !!(answer && answer.ok), error: answer && !answer.ok ? answer.error : null });
+      if (S !== my) return;
+      var r = loadoutAnswerApply(S.state, answer);
+      if (!r.ok) { stats.refused++; toast('Not saved: ' + r.error, false); redraw(); refocus('data-equip', key); return; }
+      S.state = r.state; S.preview = null;
+      toast(loadoutSavedLine(v.label, itemId, DATA.names), true);
+      redraw(); refocus('data-equip', key); playPreview(true);
+    });
+  }
+  function siteBuy(key) {
+    var h = siteHost(); if (!h || busy || !h.buy) return;
+    var my = S, slot = S.slot, name = DATA.names[key] || key;
+    busy = true; stats.site.buys++; redraw();
+    Promise.resolve(h.buy(key)).then(function (a) { return a; }, function (err) { return { ok: false, error: (err && err.message) || 'the server could not be reached' }; }).then(function (a) {
+      busy = false;
+      if (S !== my) return;
+      if (!a || !a.ok) { toast('Not bought: ' + ((a && a.error) || 'no answer'), false); redraw(); return; }
+      if (a.cancelled) { redraw(); refocus('data-buy', key); return; }
+      show(a.payload, { slot: slot, preview: { slot: slot, itemId: key } });
+      toast(name + ' is yours. Equip saves it to this agent.', true);
+      refocus('data-equip', key);
+    });
+  }
   function equip(key) {
+    if (SITE) return siteEquip(key);
     var v = slotView(S.slot), itemId = key === '' ? null : key;
     var r = loadoutApply(S.state, S.slot, itemId, S.sc.outcomes);
     stats.equips++;
@@ -3957,23 +4038,41 @@ body { padding: 12px 16px 40px; }
 
   // ---- scenarios ----
   function open(key) {
-    stopPreview();
     var sc = DATA.scenarios.filter(function (s) { return s.key === key; })[0] || DATA.scenarios[0];
+    openScenario(sc, null);
+  }
+  // keep: { slot, preview } to stay where the owner was (after a purchase).
+  function openScenario(sc, keep) {
+    stopPreview();
     var state = {}; LOADOUT_SLOTS_ORDER.forEach(function (k) { state[k] = sc.loadout[k]; });
-    S = { sc: sc, state: state, slot: 'boast', preview: null };
+    S = { sc: sc, state: state, slot: keep && keep.slot ? keep.slot : 'boast', preview: keep && keep.preview ? keep.preview : null };
     document.querySelectorAll('.sc-tab').forEach(function (b) { var on = b.getAttribute('data-sc') === sc.key; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
     document.getElementById('ag-name').textContent = sc.agent.name;
-    var tag = document.getElementById('ag-faction'); tag.textContent = sc.agent.deckFaction + ' deck'; tag.className = 'faction-tag ' + factionClass(sc.agent.deckFaction);
+    var tag = document.getElementById('ag-faction'); tag.textContent = sc.agent.deckFaction ? sc.agent.deckFaction + ' deck' : 'No deck built yet'; tag.className = 'faction-tag ' + factionClass(sc.agent.deckFaction);
     document.getElementById('ag-credits').textContent = sc.credits + ' credits';
+    document.getElementById('ag-balance').firstChild.textContent = SITE ? 'Your balance: ' : 'Owner\'s balance: ';
     document.getElementById('sc-note').textContent = sc.note;
     var lock = document.getElementById('livelock');
-    if (sc.live) { lock.hidden = false; lock.innerHTML = '<b>In a live match</b> (' + esc(sc.live.matchId) + ', since ' + esc(sc.live.startedAt.slice(11, 16)) + ' UTC). The store refuses loadout changes until it ends: the match keeps the loadout it started with.'; }
+    if (sc.live) { lock.hidden = false; lock.innerHTML = '<b>In a live match</b>' + (sc.live.matchId ? ' (' + esc(sc.live.matchId) + (sc.live.startedAt ? ', since ' + esc(sc.live.startedAt.slice(11, 16)) + ' UTC' : '') + ')' : '') + '. The store refuses loadout changes until it ends: the match keeps the loadout it started with.'; }
     else lock.hidden = true;
     app.classList.toggle('is-live', !!sc.live);
     document.getElementById('stage-board').innerHTML = stageHtml(sc);
     redraw();
     // Let the board lay out before measuring it.
     requestAnimationFrame(function () { requestAnimationFrame(function () { playPreview(false); }); });
+  }
+  // The website hands the page one agent's state (site mode).
+  function show(payload, keep) {
+    if (!payload || !payload.scenario) return;
+    DATA.starters = payload.starters || {}; DATA.names = payload.names || {};
+    DATA.scenarios = [payload.scenario];
+    busy = false;
+    document.getElementById('picker').hidden = false;
+    openScenario(payload.scenario, keep || null);
+  }
+  function siteClose() {
+    stopPreview(); busy = false; S = null;
+    var h = siteHost(); if (h && h.close) h.close();
   }
   document.getElementById('sc-tabs').innerHTML = DATA.scenarios.map(function (s) { return '<button type="button" class="sc-tab" data-sc="' + esc(s.key) + '">' + esc(s.label) + '</button>'; }).join('');
   document.getElementById('sc-tabs').addEventListener('click', function (e) { var b = e.target.closest('.sc-tab'); if (b) open(b.getAttribute('data-sc')); });
@@ -3983,7 +4082,10 @@ body { padding: 12px 16px 40px; }
   });
   var panel = document.getElementById('slotpanel');
   panel.addEventListener('click', function (e) {
+    var by = e.target.closest('[data-buy]');
+    if (by) { if (!by.disabled) siteBuy(by.getAttribute('data-buy')); return; }
     var eq = e.target.closest('[data-equip]');
+    if (eq && eq.disabled) return;
     if (eq) { equip(eq.getAttribute('data-equip')); return; }
     var t = e.target.closest('.tile[tabindex]');
     if (t) { var k = t.getAttribute('data-tile'); S.preview = { slot: S.slot, itemId: k === '' ? null : k }; redraw(); playPreview(true); }
@@ -4006,8 +4108,13 @@ body { padding: 12px 16px 40px; }
   }, { passive: true });
   window.addEventListener('resize', function () { if (S) { clearTimeout(scrollTimer); scrollTimer = setTimeout(function () { playPreview(false); }, LOADOUT_SCROLL_SETTLE_MS); } });
   document.addEventListener('visibilitychange', function () { if (document.hidden) stopPreview(); else if (S) playPreview(false); });
-  window.__loadout = { snd: SND, open: open, state: function () { return S ? { scenario: S.sc.key, slot: S.slot, loadout: S.state, preview: S.preview } : null; }, stats: function () { return stats; }, boast: BOAST };
-  open(DATA.scenarios[0].key);
+  window.__loadout = { snd: SND, open: open, state: function () { return S ? { scenario: S.sc.key, slot: S.slot, loadout: S.state, preview: S.preview, busy: busy, credits: S.sc.credits } : null; }, stats: function () { return stats; }, boast: BOAST };
+  if (SITE) {
+    // Waits, empty, for the website's first show().
+    document.getElementById('close').addEventListener('click', siteClose);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S) { e.preventDefault(); siteClose(); } });
+    window.LOADOUT = { show: show, close: siteClose, ready: true };
+  } else open(DATA.scenarios[0].key);
 
 })();
 </script>

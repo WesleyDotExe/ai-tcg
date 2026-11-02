@@ -4414,3 +4414,77 @@ signature cards or earned promos in the collection API); "Watch again" (game lan
 **Next render-lane slice:** the loadout picker in the Store (equip what you own: `GET`/`PUT
 /api/agents/:agentId/loadout`), then the match pages once the game lane's session 67 serves live state and
 match history.
+
+## 2026-11-02 — Session 49: the loadout picker in the Store
+
+Owner feedback read: the answers to render session 48 keep all 6 calls and name this slice ("the loadout
+picker in the Store, then the match pages"); the answers to game session 67 and the coin-skin entry put coin
+skins on the render list after this slice, plan first at an owner check-in, game lane first to build. No
+CRITICAL item in the render debt list. Not a hardening pass: the owner set the slice. Alternation: the last
+merged PR (#117) was the game lane's (session 67).
+
+**Built:**
+- **The picker's site mode** (`loadoutPicker.ts`, `site: true`): the standalone picker (render session 36,
+  owner-approved) starts empty and hidden; the website hands it one agent's state (`window.LOADOUT.show`).
+  Equip calls `LOADOUT_SITE_HOST.equip(slot, itemId)` on the website, which sends `PUT
+  /api/agents/:id/loadout/:slot`; the page applies the loadout the server answers with
+  (`loadoutAnswerApply`, slot for slot) or shows the refusal. Equip and Buy are disabled while a call is
+  out. A locked tile has **Buy** when the owner can pay (`loadoutLockAction`): the website's own confirm
+  (shown above the picker), the Store's buy, then the page is handed the agent's state read again and stays
+  on the slot, previewing what was bought. Close and Escape go back; the sound is the account's (the pack
+  opening's store). The standalone page is unchanged in behaviour (its transcript is byte-identical).
+- **`site/siteLoadout.ts`** (pure): `loadoutPayload` builds the page's data from the API's answers (the
+  agent's loadout, `GET /api/cosmetics`, `GET /api/store`, `GET /api/play`, `GET /api/collection`): owned
+  tiles are exactly the server's choices for the slot, items on sale the owner lacks are locked, then the
+  empty tile. `deckFactionOf` (the latest build's faction when it is the deck being played, else the
+  faction lock, else null: said, not guessed), `previewCards` (the owner's units of the row's faction),
+  `agentLoadoutRows` (the Store's rows). The slot words moved to `loadoutText.ts` (no imports) so the
+  bundle can share them.
+- **The Store:** a new panel, "Your agents' loadouts", stacked under "Waiting to be opened": each agent
+  (connected first) with its victory and close-win boasts and **Change**, which opens the picker full screen
+  (`#dress`, framed from the host's new `/loadout`, the pack page's headers: framed only by the site, no
+  `connect-src`). After Close the Store reads again and focus goes back to the agent's Change. The Cosmetics
+  panel no longer says the picker is coming.
+- `siteApi.ts`: `cosmetics`, `loadout`, `setLoadout`. `siteDemo.ts`: six earlier winning days for Nova
+  (real `recordMatch` calls), so one Season 0 boast (300) can be bought in the demo.
+- Tests (+13, render 792): `render/test/siteLoadout.test.ts`, over the real owner API: the tiles against the
+  server's choices and what's on sale; the deck's faction unknown, then set by a lock (and an empty boast's
+  preview follows it); `deckFactionOf`'s rule; the preview row; a walk of Equips and empties where the
+  page's state after each answer equals a fresh read; refusals (not owned, wrong kind, no such slot, another
+  owner's agent) leave the page and the server unchanged; a live match locks it (409, the banner's data);
+  Buy only when affordable, then owned on every agent and equippable, each agent's loadout its own; the
+  Store's rows; the site page and `/loadout`'s headers; the bundle.
+
+**Ran it:** `progress/render/evidence/site-check-s49.mjs` -> `site-check-s49.txt`: 40 browser checks
+against the real owner API, ALL PASS (stills `v2-s49-loadout-*.jpg`): the rows equal the server's
+loadouts; the picker's tiles equal the server's choices and the store's sale; Equip, the close-win slot, and
+emptying it, each checked on the server; Buy (Cancel buys nothing; then 422 -> 122 credits, the top bar and
+the picker both show it), then Equip; Escape and Close with focus back; the second agent's own loadout; a
+refused Equip after the session ended (nothing saved, the site signs out); 720 px; reduce motion plays the
+still; headers; no external requests, no page errors. Re-run on this branch: session 46's board check 38
+ALL PASS, session 47's Store check 50 ALL PASS (its panel count updated: six panels now), session 48's
+Collection check 40 ALL PASS, the CI browser check 61 ALL PASS. `npm test -w @ai-tcg/render` 792 pass;
+typecheck clean.
+
+**Mutants:** Buy offered without the credits; any build's faction taken as the deck's; the page keeping its
+own state instead of the server's answer; owned items shown locked; a guessed faction when none is known:
+each fails a test.
+
+**Found on the way (fixed):** the client bundle pulled Node-only code through the picker module (the slot
+words moved to `loadoutText.ts`); the Store's redraw after Close dropped focus (it now goes back to the
+agent's Change after the reads); the new rows first shared the pack rows' class, which session 47's check
+read as pack groups (own class now); the panel first sat below the long Recent openings (moved under the
+packs waiting). Once, the check clicked Change while the Store was still redrawing after a Close and the
+click missed (a race in the check; it now waits and fails loudly if the picker doesn't open). Two clean
+runs before the fix, one after.
+
+**Found, not mine to fix (raised):** the API doesn't say which faction the agent's deck plays, or its cards
+(game-lane ask in notes-for-owner). Session 36's standalone picker check (`loadout-check-s36.mjs`) fails 5
+of 48 on main's committed page too: it predates render 37's win message (stale script, in the debt list).
+
+**Not done (named):** the coin skins (plan only: the render half is at an [OWNER CHECK-IN] in
+notes-for-owner, nothing built); the match pages; "Watch again" (game lane).
+
+**Next render-lane slice:** the match pages on the game lane's session 67 endpoints (Watch live, the Live
+match widget, Match history, the auto-play switch), unless the owner's answer on the coin plan comes first
+and the game lane has built the coin slot.

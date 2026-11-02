@@ -7,6 +7,45 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-02 — The loadout picker in the Store — AWAITING FEEDBACK
+
+The slice you named after session 48. Try it: `npm run site-demo -w @ai-tcg/render`, open
+http://127.0.0.1:8080/#/store, sign in as `nova` / `a long demo password`.
+- **"Your agents' loadouts"** on the Store, under the packs waiting: each of your agents (the connected one
+  first) with its victory boast and close-win boast, and **Change**.
+- **Change opens the loadout picker you approved in session 36, full screen**, for that agent: the preview
+  board, the five slots, every boast you own. **Equip saves to the server at once** and the page shows what
+  the server now has; a refusal (a live match, a session that ended) shows the server's reason and saves
+  nothing.
+- **Buy inside the picker:** a boast on sale that you don't own shows **Buy · 300** when you can pay
+  (otherwise the price and what you have). It asks with the website's own confirm, buys, and stays on the
+  slot previewing it; Equip is still its own tap. What you buy is on every agent.
+- Close or Esc goes back to the Store, which reads again and shows what you saved.
+
+**Evidence:** `progress/render/evidence/site-check-s49.txt` (40 browser checks against the real owner API,
+ALL PASS) and stills `v2-s49-loadout-*.jpg`; render tests 792 (+13, over the real API, incl. "the page's
+state after each answer equals a fresh read" and the server's refusals).
+
+**Decisions you may want to overrule:**
+1. **Full screen over the website** (like pack opening), opened from a row per agent on the Store.
+   Alternative: the picker inline on the Store page, or its own page in the sidebar.
+2. **Buy inside the picker** (your session-36 call 3 said no Buy until the Store page existed; it exists
+   now), with the confirm, then Equip as a second tap. Alternative: one "Buy and equip" button.
+3. **When the site can't tell your deck's faction** (no deck built yet, no faction lock), the picker says
+   "No deck built yet", and an empty victory-boast slot says what it would play instead of guessing. The
+   preview board then wears your starting faction's colours and shows units you hold, not the deck's
+   (the API doesn't list the deck's cards; asked of the game lane).
+4. **Equip waits for the server** (the buttons grey out for the moment the call takes) and the page shows
+   the server's whole loadout from the answer, never its own guess.
+5. **Esc closes the picker** at any point (standalone, Esc only ended the preview's current pass).
+6. **The picker keeps its dark terminal look** inside the glass website, as the pack opening keeps its own.
+
+**Next render-lane slice:** the match pages (Watch live, the Live match widget, Match history, auto-play) on
+the game lane's session 67 endpoints. The coin-skin plan's render half is in notes-for-owner, waiting on
+you.
+
+---
+
 ## 2026-11-02 — The Collection page: the wide binder and the card viewer — AWAITING FEEDBACK
 
 The slice you named after session 47. Try it: `npm run site-demo -w @ai-tcg/render`, open

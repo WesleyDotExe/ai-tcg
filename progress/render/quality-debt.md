@@ -7,7 +7,7 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The owner website (sessions 44-48)
+## The owner website (sessions 44-49)
 
 - **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
   tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
@@ -16,9 +16,18 @@ items are removed, with the fix in `log.md`.
 - **Six of the twelve widgets only say what they wait on:** Live match, Watch live, Ladder, Rating & form,
   Match history, Notifications (all after match running). My agent has no rating, record, Start/Watch,
   persona or signature card; no auto-play switch anywhere.
-- **Pages are still missing:** Agent match, Watch live, Stats, Admin. The Store (session 47) has no
-  loadout picker (cosmetics can be bought, not equipped, in the site) and no "Watch again" (the logged
-  opening lacks the reveal's fields; raised with the game lane).
+- **Pages are still missing:** Agent match, Watch live, Stats, Admin. The Store has no "Watch again" (the
+  logged opening lacks the reveal's fields; raised with the game lane).
+- **The loadout picker on the site (session 49):** the deck's faction is unknown to the site unless a
+  faction is locked or the latest build is the deck being played (asked of the game lane); until then an
+  empty victory-boast slot can't be previewed, and the preview row is the owner's units of its starting
+  faction, never the deck's actual cards. It is a third frame-around-a-standalone-page (after the pack
+  opening): two documents, the frame kept once loaded. The picker's own look is the old dark terminal
+  page, not the glass website. The live-match lock is tested over the API, never seen in the browser (the
+  demo can't start a live match from the page). Buy refreshes the picker by reading five endpoints again.
+  Clicking Change during the Store's redraw after a Close can miss (seen once, in the check).
+- **Session 36's standalone picker check is stale** (`loadout-check-s36.mjs`: 5 of 48 fail on main's page
+  too; written before render 37's win message changed the plate).
 - **The Collection page (session 48):** Promos only says what it waits on (no signature cards or promos in
   the collection API). Craft prices come from the economy's config file, not the API (asked for). The
   binder draws every place's face at once (96 on the Set tab, 152 on Secrets): fine in Chromium here, never

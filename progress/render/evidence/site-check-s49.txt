@@ -1,0 +1,42 @@
+PASS  A  "Your agents' loadouts": 2 rows, the connected agent first (Vector Halcyon)
+PASS  A  each row says what the server has equipped (Vector Halcyon: Data Cascade; Quill Static: Data Cascade)
+PASS  A  the Cosmetics panel no longer says the picker is coming
+PASS  A  the agents panel sits in the left column, under the packs waiting
+PASS  B  Change opens the picker over the website (the frame's page: /loadout)
+PASS  B  the picker is this agent's: Vector Halcyon, the five slots, no scenario tabs
+PASS  B  the agent has no deck yet and the page says so ("No deck built yet"), not a guessed faction
+PASS  B  the owned tiles are the server's choices for the slot (4)
+PASS  B  the items on sale the owner lacks are locked tiles (2), plus the empty tile
+PASS  B  a locked tile has Buy when the owner can pay (2 buyable on 422 credits)
+PASS  B  the equipped tile is the server's (Data Cascade)
+PASS  B  the preview plays the equipped boast on the board (boast-cortex-data-cascade)
+PASS  C  Equip Shield Slam: the server has it, and the page shows the server's loadout
+PASS  C  the page says it is saved ("Saved: Shield Slam is this agent's victory boast.")
+PASS  C  focus stays in the slot panel after the redraw
+PASS  D  close-win set to Data Cascade; the victory boast stays Shield Slam
+PASS  D  the slot rail reads it (Data Cascade)
+PASS  D  Equip on the empty tile empties the slot on the server
+PASS  D  the rail says what an empty close-win slot plays
+PASS  E  Buy asks first, in the website's dialog, shown above the picker ("Buy Boot Sequence?300 credits. You have 422. It's yours on every agent…")
+PASS  E  Cancel buys nothing (credits unchanged)
+PASS  E  bought: the server owns Boot Sequence, credits 422 -> 122, and the picker shows the new balance
+PASS  E  the website's top bar shows the new balance too
+PASS  E  the picker stays on the slot, previewing what was bought
+PASS  E  then Equip: Boot Sequence is the server's victory boast for Vector Halcyon
+PASS  F  Escape closes the picker
+PASS  F  the row reads the server again (Boot Sequence) and focus is back on its Change button
+PASS  F  the Cosmetics panel shows the bought item as Owned
+PASS  G  Quill Static's picker shows its own loadout (Data Cascade), not Vector Halcyon's
+PASS  G  what the owner bought is offered to every agent (Boot Sequence has Equip here)
+PASS  G  Close goes back to the Store, focus on that agent's button
+PASS  H  a refused Equip shows the refusal and saves nothing ("Not saved: your session ended")
+PASS  H  the site then signs out (the picker is closed)
+PASS  H  the server still has Boot Sequence (the refused change didn't land)
+PASS  I  720 px: the picker fits the window (no sideways scroll)
+PASS  J  under reduce motion the preview is the boast's still (still: true)
+PASS  K  /loadout: may be framed only by the site, no connect-src ("default-src 'none'; script-src 'unsafe-inline'; style-src 'u…")
+PASS  K  the website may frame its own pages (frame-src 'self')
+PASS  L  no request left the site (0)
+PASS  L  no page errors
+
+40 passed, 0 failed
