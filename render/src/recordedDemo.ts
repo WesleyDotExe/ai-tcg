@@ -28,7 +28,10 @@ export const RECORDED_SCENARIOS: (RecordedScenario & { about: string })[] = [
   {
     id: "recorded-close-win",
     about: `the close-win slot: the Swarm winner ends on ${CLOSE_WIN_HEALTH} health or less, so its close-win boast (Dial-Up Fireworks, bought) plays instead of its main boast (Hive Burst)`,
-    seed: 3,
+    // 3 until game session 71: with the second seat on 24 health (rules-2),
+    // seed 3 ends in a Null win. Seed 1 is the first a Swarm win on
+    // CLOSE_WIN_HEALTH or less (1 health), so this stays a close win.
+    seed: 1,
     p1: { faction: "Swarm", agent: "Moth Protocol", buy: [DIALUP], loadout: { closeWinBoast: DIALUP } },
     p2: { faction: "Null", agent: "Quiet Lattice" },
   },

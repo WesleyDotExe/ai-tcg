@@ -6,7 +6,8 @@
 // 1. The versions the game is on: the rules and card versions, and today's
 //    registry digest against the newest card version.
 // 2. Every golden replay (server/test/fixtures/replays/, real files the
-//    ladder wrote: two in /1 from the session-69 writer, two in /2) rebuilt
+//    ladder wrote: two in /1 from the session-69 writer, two in /2, and from session 71 two
+//    played under rules-2) rebuilt
 //    and its log compared with the one the ladder wrote.
 // 3. A later set, simulated in this process only: two cards rebalanced in
 //    the registry. The registry no longer matches cards-1, so a match played
@@ -15,6 +16,9 @@
 //    read against the changed cards are refused, not shown as a different
 //    match.
 // 4. A file naming a rules version this engine doesn't know is refused.
+// 5. (session 71) rules-2 shipped: a match played now names rules-2 and
+//    starts the second seat on 24; the rules-1 golden files still rebuild on
+//    20 and 20; the same moves read as the other version don't rebuild.
 // Deterministic: byte-identical across runs.
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -159,12 +163,38 @@ say();
 say("4. A rules version this engine doesn't know");
 let rulesRefusal = "";
 try {
-  replaySetup({ ...v2, versions: { ...v2.versions, rules: "rules-2" } });
+  replaySetup({ ...v2, versions: { ...v2.versions, rules: "rules-3" } });
 } catch (err) {
   rulesRefusal = err instanceof Error ? err.message : String(err);
 }
-say(`  a file naming rules-2: ${rulesRefusal || "(read)"}`);
-check("an unknown rules version is refused with the reason", /rules-2/.test(rulesRefusal));
+say(`  a file naming rules-3: ${rulesRefusal || "(read)"}`);
+check("an unknown rules version is refused with the reason", /rules-3/.test(rulesRefusal));
+say();
+
+say("5. rules-2 shipped (session 71): the second seat starts on 24");
+const today = rebuildReplay(JSON.parse(JSON.stringify(fresh)) as ReplayFile);
+say(`  the match played now: rules ${fresh.versions.rules}; starts ${today.setup.decks.p1.name} 20, ${today.setup.decks.p2.name} ${played.state.players.p2.maxHealth}`);
+check("a match the game plays today names rules-2, the second seat on 24", fresh.versions.rules === "rules-2" && played.state.players.p2.maxHealth === 24 && played.state.players.p1.maxHealth === 20);
+const olds = golden.map((g) => ({ name: g.name, r: rebuildReplay(g.file) }));
+for (const o of olds) say(`  ${o.name}: rules ${o.r.setup.rulesVersion}, second seat's maximum health ${o.r.state.players.p2.maxHealth}`);
+check(
+  "every rules-1 golden file (v1, v2) still rebuilds on 20 and 20; the rules-2 ones (r2, session 71) on 20 and 24",
+  olds.every((o) => (o.name.startsWith("r2-") ? o.r.setup.rulesVersion === "rules-2" && o.r.state.players.p2.maxHealth === 24 : o.r.setup.rulesVersion === "rules-1" && o.r.state.players.p2.maxHealth === 20)),
+);
+const swapped = (f: ReplayFile, rules: string): string => {
+  try {
+    rebuildReplay({ ...(f as ReplayFileV2), versions: { ...(f as ReplayFileV2).versions, rules } } as ReplayFile);
+    return "rebuilt (wrong)";
+  } catch (err) {
+    return err instanceof Error ? err.message : String(err);
+  }
+};
+const g2 = golden.find((g) => g.name === "v2-1")!;
+const asNew = swapped(g2.file, "rules-2");
+const asOld = swapped(fresh, "rules-1");
+say(`  ${g2.name} read as rules-2: ${asNew}`);
+say(`  the new match read as rules-1: ${asOld}`);
+check("the same moves under the other rules version are refused, not shown as another match", /doesn't rebuild/.test(asNew) && /doesn't rebuild/.test(asOld));
 say();
 
 const failed = checks.filter((c) => !c.ok);

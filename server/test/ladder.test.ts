@@ -236,7 +236,7 @@ describe("the ladder", () => {
     // (session 70) Versioned: the rules and card versions, every deck card in full.
     expect(replay.format).toBe("ai-tcg-replay/2");
     if (replay.format !== "ai-tcg-replay/2") throw new Error("unreachable");
-    expect(replay.versions.rules).toBe("rules-1");
+    expect(replay.versions.rules).toBe("rules-2");
     expect(replay.versions.cards).toBe("cards-1");
     for (const id of [...replay.decks.p1.cardIds, ...replay.decks.p2.cardIds]) expect(replay.cards.find((c) => c.id === id)).toEqual(getCard(id));
     expect(replay.moves).toHaveLength(m.record.moves!);

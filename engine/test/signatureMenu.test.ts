@@ -263,7 +263,7 @@ describe("the engine pieces the menu needed", () => {
     const hunter = state.players.p1.board[0]!;
     applyMove(state, { type: "attack", attackerInstanceId: hunter.instanceId, target: { kind: "player", playerId: "p2" } }, rng);
     drainStack(state, rng);
-    expect(state.players.p2.health).toBeLessThan(state.players.p1.health);
+    expect(state.players.p2.health).toBeLessThan(state.players.p2.maxHealth);
   });
 
   it("Bulwark takes the first attack aimed at one of its side's units each turn, and only the first", () => {
@@ -280,7 +280,7 @@ describe("the engine pieces the menu needed", () => {
     expect(state.log.some((e) => e.type === "attackRedirected" && e.attacker === "A1")).toBe(true);
     attack(state, a2.instanceId, { kind: "player", playerId: "p2" }, rng);
     expect(currentHealth(state, bulwark)).toBe(5); // second attack goes through
-    expect(state.players.p2.health).toBe(state.players.p1.health - 1);
+    expect(state.players.p2.health).toBe(state.players.p2.maxHealth - 1);
 
     // The limit resets when the turn ends.
     applyMove(state, { type: "passPriority" }, rng);
@@ -360,7 +360,7 @@ describe("the engine pieces the menu needed", () => {
     readyToAttack(state);
     attack(state, a1.instanceId, { kind: "player", playerId: "p2" }, rng); // aimed at the player: not taken
     expect(currentHealth(state, bulwark)).toBe(6);
-    expect(state.players.p2.health).toBe(state.players.p1.health - 1);
+    expect(state.players.p2.health).toBe(state.players.p2.maxHealth - 1);
     expect(bulwark.usedThisTurn).toBeUndefined();
     attack(state, a2.instanceId, { kind: "unit", instanceId: other.instanceId }, rng); // aimed at a unit: taken
     expect(currentHealth(state, bulwark)).toBe(5);
@@ -379,7 +379,7 @@ describe("the engine pieces the menu needed", () => {
     expect(offered()).toHaveLength(1);
     applyMove(state, offered()[0]!, rng);
     drainStack(state, rng);
-    expect(state.players.p2.health).toBe(state.players.p1.health - 1);
+    expect(state.players.p2.health).toBe(state.players.p2.maxHealth - 1);
     expect(offered()).toHaveLength(0);
   });
 
@@ -398,7 +398,7 @@ describe("the engine pieces the menu needed", () => {
     expect(state.priority).toBe("p1"); // the actor keeps priority, so a second activation would be its own move
     expect(offered()).toHaveLength(0);
     drainStack(state, rng);
-    expect(state.players.p2.health).toBe(state.players.p1.health - 1);
+    expect(state.players.p2.health).toBe(state.players.p2.maxHealth - 1);
     expect(state.players.p1.energy).toBe(4); // paid once, used once
   });
 

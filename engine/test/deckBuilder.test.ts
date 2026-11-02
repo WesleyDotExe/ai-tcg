@@ -224,7 +224,7 @@ describe("chooseDeck (the deck-building agent)", () => {
     expect(rusher.results).not.toEqual(plain.results);
     expect(await playGauntlet(list, 21, 6, "rusher")).toEqual(rusher);
 
-    const opts = { games: 3, trials: 2, confirmGames: 3, seed: 5 };
+    const opts = { games: 3, trials: 2, confirmGames: 6, seed: 5 };
     const c = await chooseDeck(shippedList("Swarm"), opts);
     const r = await chooseDeck(shippedList("Swarm"), { ...opts, style: "rusher" });
     expect(c.style).toBe("calculator");

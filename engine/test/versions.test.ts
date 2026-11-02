@@ -16,6 +16,10 @@ import {
   RULES_VERSIONS,
 } from "../src/engine/versions.js";
 import { CARD_REGISTRY } from "../src/data/registry.js";
+import { buildCortexDeck, buildSwarmDeck } from "../src/data/decks.js";
+import { createInitialState } from "../src/state/init.js";
+import { Rng } from "../src/state/rng.js";
+import { isShippedRules, MATCH_RULES_FIELDS, type MatchRules } from "../src/state/types.js";
 
 describe("card versions", () => {
   it("today's registry is the newest published card version (a card change needs a new CARDS_VERSIONS entry)", () => {
@@ -51,9 +55,36 @@ describe("card versions", () => {
 });
 
 describe("rules versions", () => {
-  it("rules-1 is the base rules; an unknown version is refused, never guessed", () => {
-    expect(CURRENT_RULES_VERSION).toBe("rules-1");
-    expect(rulesOfVersion("rules-1")).toEqual({});
+  it("rules-2 is the rules the game plays today: 24 for the second seat, 20 for the first", () => {
+    expect(CURRENT_RULES_VERSION).toBe("rules-2");
+    expect(rulesOfVersion("rules-2")).toEqual({ secondSeatExtraHealth: 4 });
+    expect(isShippedRules(rulesOfVersion(CURRENT_RULES_VERSION))).toBe(true);
+    const s = createInitialState(buildCortexDeck("p1", "A"), buildSwarmDeck("p2", "B"), new Rng(1));
+    expect([s.players.p1.health, s.players.p1.maxHealth, s.players.p2.health, s.players.p2.maxHealth]).toEqual([20, 20, 24, 24]);
+    expect("rules" in s).toBe(false);
+  });
+
+  it("rules-1 names its 20 and 20 explicitly, so the new base can't change what it means", () => {
+    expect(rulesOfVersion("rules-1")).toEqual({ secondSeatExtraHealth: 0 });
+    const s = createInitialState(buildCortexDeck("p1", "A"), buildSwarmDeck("p2", "B"), new Rng(1), rulesOfVersion("rules-1"));
+    expect([s.players.p1.health, s.players.p2.health, s.players.p2.maxHealth]).toEqual([20, 20, 20]);
+    expect(s.rules).toEqual({ secondSeatExtraHealth: 0 });
+  });
+
+  it("every version names every MatchRules field (none leans on today's default)", () => {
+    for (const v of RULES_VERSIONS) expect(Object.keys(v.rules).sort(), v.id).toEqual([...MATCH_RULES_FIELDS].sort());
+  });
+
+  it("the rules change takes nothing from the RNG: the same seed deals the same hands and decks under both", () => {
+    const deal = (rules?: MatchRules) => {
+      const s = createInitialState(buildCortexDeck("p1", "A"), buildSwarmDeck("p2", "B"), new Rng(7), rules);
+      return (["p1", "p2"] as const).map((p) => [s.players[p].hand.map((c) => c.id), s.players[p].deck.map((c) => c.id)]);
+    };
+    expect(deal(rulesOfVersion("rules-1"))).toEqual(deal());
+  });
+
+  it("an unknown version is refused, never guessed", () => {
     expect(() => rulesOfVersion("rules-0")).toThrow(/isn't one this engine knows/);
+    expect(() => rulesOfVersion("rules-3")).toThrow(/isn't one this engine knows/);
   });
 });

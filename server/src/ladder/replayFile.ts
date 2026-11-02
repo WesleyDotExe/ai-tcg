@@ -16,6 +16,11 @@
 // Everything that reads a replay (the owner API's tests and demos, the
 // render's match pages) goes through `replaySetup` / `rebuildReplay`, so
 // both formats read the same way everywhere.
+//
+// Rules: an /1 file and every /2 file written before session 71 name
+// rules-1 (both on 20); from session 71 the ladder writes rules-2 (the
+// second seat on 24). Each version's rules are explicit in the engine, so
+// both keep rebuilding as they were played.
 
 import {
   canonicalJson,
@@ -23,10 +28,12 @@ import {
   cardSetDigest,
   CURRENT_RULES_VERSION,
   getCard,
-  isShippedRules,
+  MATCH_RULES_FIELDS,
   publishedCardsVersion,
+  secondSeatExtraHealth,
   replayMatch,
   rulesOfVersion,
+  rulesVersionOf,
   type Card,
   type DeckSpec,
   type MatchHooks,
@@ -149,11 +156,15 @@ export function makeReplayFile(
       const reg = getCard(c.id);
       return reg !== undefined && canonicalJson(reg) === canonicalJson(c);
     });
-  const measuring = !isShippedRules(rules);
+  // A match played under an older published version (a tool replaying
+  // rules-1) names that version; only a variant that is no version is
+  // "measure" and carries its rules.
+  const rulesId = rulesVersionOf(rules);
+  const measuring = rulesId === null;
   return {
     format: REPLAY_FORMAT,
     versions: {
-      rules: measuring ? "measure" : CURRENT_RULES_VERSION,
+      rules: rulesId ?? "measure",
       cards: published ? version : null,
       cardsDigest: cardSetDigest(list),
     },
@@ -165,8 +176,27 @@ export function makeReplayFile(
     moves: rest.moves,
     result: rest.result,
     ...(rest.coins ? { coins: rest.coins } : {}),
-    ...(measuring ? { rules: structuredClone(rules!) } : {}),
+    ...(measuring ? { rules: explicitRules(rules!) } : {}),
   };
+}
+
+/** A measuring file's rules with every field named, so a later change to
+ * today's rules can't change what the file plays (a field left out means
+ * "today's", which moves). */
+function explicitRules(rules: MatchRules): MatchRules {
+  return { secondSeatExtraHealth: secondSeatExtraHealth(rules) };
+}
+
+/** A measuring file's rules, refused unless every field is named and none is
+ * a field this engine no longer plays (session 68's opening-card, energy and
+ * first-attack variants left in session 71). Never guesses. */
+function measuringRules(rules: MatchRules | undefined): MatchRules {
+  if (!rules) throw new Error(`a measuring replay without its seat rules`);
+  const unknown = Object.keys(rules).filter((k) => !(MATCH_RULES_FIELDS as readonly string[]).includes(k));
+  if (unknown.length) throw new Error(`a measuring replay naming seat rules this engine no longer plays: ${unknown.join(", ")}`);
+  const missing = MATCH_RULES_FIELDS.filter((k) => rules[k] === undefined);
+  if (missing.length) throw new Error(`a measuring replay that leaves out ${missing.join(", ")}: written before rules-2, it can't say which value it played`);
+  return structuredClone(rules);
 }
 
 function replayDeck(spec: DeckSpec): ReplayDeck {
@@ -204,7 +234,7 @@ export function replaySetup(file: ReplayFile): ReplaySetup {
       names: f.names,
       seed: f.seed,
       moves: f.moves,
-      rules: undefined, // rules-1: the base rules
+      rules: rulesOfVersion("rules-1"), // 20 and 20, named explicitly (today's base is rules-2)
       rulesVersion: "rules-1",
       cardsVersion: "cards-1",
     };
@@ -216,11 +246,10 @@ export function replaySetup(file: ReplayFile): ReplaySetup {
     if (got !== f.versions.cardsDigest) throw new Error(`the file's cards hash to ${got}, it says ${f.versions.cardsDigest}: they were changed after it was written`);
     let rules: MatchRules | undefined;
     if (f.versions.rules === "measure") {
-      if (!f.rules) throw new Error(`a measuring replay without its seat rules`);
-      rules = structuredClone(f.rules);
+      rules = measuringRules(f.rules);
     } else {
       rules = rulesOfVersion(f.versions.rules); // throws for a version this engine doesn't know
-      if (isShippedRules(rules)) rules = undefined;
+      if (f.versions.rules === CURRENT_RULES_VERSION) rules = undefined; // today's rules: the match keeps no rules field
     }
     const cards = new Map(f.cards.map((c) => [c.id, c] as const));
     return {

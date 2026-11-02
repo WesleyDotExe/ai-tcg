@@ -13,7 +13,8 @@
 // house owners, one per faction, one of them a generated agent with its own
 // signature card. Session 70 ran it once with the session-69 writer in
 // place (prefix v1: genuine ai-tcg-replay/1 files) and once with today's
-// (prefix v2). Never re-run it over existing files: they are the record.
+// (prefix v2), and session 71 once under rules-2 (prefix r2: the second
+// seat on 24). Never re-run it over existing files: they are the record.
 
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

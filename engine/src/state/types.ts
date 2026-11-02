@@ -302,37 +302,47 @@ export interface GameState {
    * any), or, if the stack is empty, the active player's turn ends. Reset
    * to 0 by any non-pass action. */
   passes: number;
-  /** Seat-rule variants under measurement (session 68, the first-seat
-   * fixes). Absent in every match the game ships: the rules as printed. Only
-   * the measuring instruments set it, until the owner picks a fix. */
+  /** The start-of-match rules when they aren't the rules the game plays
+   * today: an older rules version a replay was played under (rules-1), or a
+   * measuring instrument's variant. Absent in every match the game plays. */
   rules?: MatchRules;
 }
 
-/** Test-only seat rules (owner 2026-11-02: "measure all four first-seat
- * fixes, test only ... no rule change ships without the owner's OK"). p1 is
- * always the first seat (match.ts), so "the second seat" is p2. Every field
- * left out is the rule as shipped. */
+/** Health the second seat starts with on top of STARTING_HEALTH, as the game
+ * plays today (rules-2, owner 2026-11-02: "The player going second starts
+ * with 24 health; the player going first starts with 20 and skips its first
+ * draw."). rules-1 (every match before session 71) was 0. */
+export const SECOND_SEAT_EXTRA_HEALTH = 4;
+
+/** The start-of-match rules a match is played under, where they differ from
+ * today's. p1 is always the first seat (match.ts), so "the second seat" is
+ * p2. A field left out is the rule as the game plays it today. Older rules
+ * versions name their values explicitly (engine/src/engine/versions.ts), so
+ * a later change to today's rule never changes what an old version means.
+ *
+ * Session 68 measured four first-seat fixes as fields here; the owner picked
+ * the health one (2026-11-02) and the other three were removed in session
+ * 71. A measuring replay that names one of them is refused, not guessed. */
 export interface MatchRules {
-  /** (a) Cards the second seat draws into its opening hand on top of the
-   * usual four. */
-  secondSeatExtraOpeningCards?: number;
-  /** (b) Energy the second seat gets on its first turn only (this turn's
-   * pool, not its maximum). */
-  secondSeatFirstTurnEnergy?: number;
-  /** (c) Health the second seat starts with on top of the usual 20 (its
-   * maximum too). */
+  /** Health the second seat starts with on top of STARTING_HEALTH (its
+   * maximum too). Left out: SECOND_SEAT_EXTRA_HEALTH. */
   secondSeatExtraHealth?: number;
-  /** (d) The first seat can't attack on its first turn. */
-  firstSeatNoFirstTurnAttack?: boolean;
 }
 
-/** True when `rules` changes nothing (absent, or every field at the shipped
- * value), so a match keeps no `rules` field and plays byte-identically. */
+/** The field names MatchRules has, for readers that must refuse a rules
+ * object naming anything else (an old measuring file). */
+export const MATCH_RULES_FIELDS: readonly (keyof MatchRules)[] = ["secondSeatExtraHealth"];
+
+/** The second seat's extra starting health under `rules`. */
+export function secondSeatExtraHealth(rules: MatchRules | undefined): number {
+  return rules?.secondSeatExtraHealth ?? SECOND_SEAT_EXTRA_HEALTH;
+}
+
+/** True when `rules` changes nothing from the rules the game plays today
+ * (absent, or every field at today's value), so a match keeps no `rules`
+ * field and plays byte-identically. */
 export function isShippedRules(rules: MatchRules | undefined): boolean {
-  return (
-    !rules ||
-    (!rules.secondSeatExtraOpeningCards && !rules.secondSeatFirstTurnEnergy && !rules.secondSeatExtraHealth && !rules.firstSeatNoFirstTurnAttack)
-  );
+  return secondSeatExtraHealth(rules) === SECOND_SEAT_EXTRA_HEALTH;
 }
 
 export function otherPlayer(id: PlayerId): PlayerId {
