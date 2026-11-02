@@ -4109,3 +4109,20 @@ Answers the five calls in `progress/notes-for-owner.md` (PR #123, `progress/repl
 5. **Keep:** the small change in the render lane's replay reader (both formats through the server's reader; the file's rules passed through).
 
 Next game session, as planned: 71, the 24-health rule as `rules-2`, with new ring baselines, a new built-deck ring and the live ladder's watch length re-checked; the shipped numbers to the owner before the launch-gate re-run. Then the queued small asks in order: the 2× vote, featured picks (the "Top rated" rule to a check-in), viewer counts, and the three live-feed asks from render 51.
+
+---
+
+## 2026-11-03 — Owner: answers to render session 52 (the spectator point of view), keep all 6; a hardening pass after the hands-and-coins slice
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #124).
+1. **Keep:** a switch during the Match Boot intro or a boast waits for it to end, then flips.
+2. **Keep:** a tap on "Watch as" doesn't skip the intro.
+3. **Keep:** the momentum gauge mirrors with the view (the existing convention: the near player ahead fills to the right of centre), so it reads the same as on the owner's own matches.
+4. **Keep:** the Watch live widget shows the switch for its first match only (M and L); S has no switch.
+5. **Keep:** a standalone replay page shows the switch and starts at p1 (no ratings in the file); the choice is kept for the tab.
+6. **Keep:** the replay's switch is built and tested for when a featured match can be watched again; not reachable from the site yet.
+
+**Render-lane order, as set:**
+1. Next slice: hands live, face up (the owner's render-51 answer, rebuilt from the feed's draw events), together with the first coin slice (the flip in Match Boot, the Chrome Token, reduced motion and sound).
+2. **Then a render hardening pass** (the last was session 40): no new features; work the quality-debt list, re-run and fix the stale checks named there (for example the session-25 ten-pack check and the session-36 loadout check), and the check-E flake.
+3. Then the second coin slice (the store and tier coins' looks, the coin line in the picker and the Store), and the rest of the Season 0 list.
