@@ -132,7 +132,9 @@ try {
   let packs = await apiGet(page, '/api/packs');
   const store = await apiGet(page, '/api/store');
   const txt = await page.textContent('#page');
-  check(await page.$$eval('.st-grid > section', (s) => s.length) === 5 && txt.includes('Waiting to be opened') && txt.includes('Free daily pack') && txt.includes('Recent openings') && txt.includes('Cosmetics'), 'A  the Store page has its five panels: packs and buying, the daily pack, waiting, recent openings, cosmetics');
+  // Session 49 added a sixth panel, "Your agents' loadouts", stacked under
+  // the packs waiting (site-check-s49.mjs checks it).
+  check(await page.$$eval('.st-grid section.panel', (s) => s.length) === 6 && txt.includes('Waiting to be opened') && txt.includes('Free daily pack') && txt.includes('Recent openings') && txt.includes('Cosmetics') && txt.includes("Your agents' loadouts"), 'A  the Store page has its six panels: packs and buying, the daily pack, waiting, your agents\' loadouts, recent openings, cosmetics');
   const big = Number(await page.textContent('.st-open .big-n'));
   check(big === packs.unopened.length && big === 11, `A  "Waiting to be opened" is the server's count (${big}; the server: ${packs.unopened.length})`);
   const rowsTxt = await page.$$eval('.st-row', (rs) => rs.map((r) => r.querySelector('b').textContent + ':' + r.querySelector('small').textContent.split(' ')[0]));

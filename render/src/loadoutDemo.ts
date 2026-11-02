@@ -31,36 +31,14 @@ import { runMatch } from "@ai-tcg/engine";
 import type { DeckSpec } from "@ai-tcg/engine";
 import { CLOSE_WIN_HEALTH, EconomyError, EconomyStore, LOADOUT_SLOTS, SLOT_KIND, STARTER_BOASTS, type LoadoutSlot } from "@ai-tcg/economy";
 import { LookaheadAgent, type DeckFaction } from "./engineInternal.js";
-import { renderLoadoutHtml, type LoadoutPageData, type PickerCard, type PickerOutcome, type PickerScenario, type PickerSlotView, type PickerTile } from "./loadoutPicker.js";
+import { loadoutSlotText, renderLoadoutHtml, type LoadoutPageData, type PickerCard, type PickerOutcome, type PickerScenario, type PickerSlotView, type PickerTile } from "./loadoutPicker.js";
 
 const START = Date.parse("2026-10-20T09:00:00.000Z");
 const DAY_MS = 86_400_000;
 const MATCHES_PER_DAY = 10;
 const FACTION_ORDER: DeckFaction[] = ["Aegis", "Swarm", "Null", "Cortex"];
 
-const SLOT_TEXT: Record<LoadoutSlot, { label: string; explainer: string; emptyText: string }> = {
-  boast: { label: "Victory boast", explainer: "Plays when this agent wins, after the lethal hit and before the result line.", emptyText: "" },
-  closeWinBoast: {
-    label: "Close-win boast",
-    explainer: `Plays instead of the victory boast when this agent wins on ${CLOSE_WIN_HEALTH} health or less (a turn-cap win counts too). The store picks which one plays; the agent never chooses.`,
-    emptyText: "",
-  },
-  cardBack: {
-    label: "Card back",
-    explainer: "The back of this agent's cards: its deck and the cards in its hand.",
-    emptyText: "No card backs exist yet: Season 0 sells none, and the render can't draw one yet. The slot is kept, so one can be equipped the day the first ships.",
-  },
-  avatar: {
-    label: "Avatar",
-    explainer: "The picture on this agent's panel.",
-    emptyText: "No avatars exist yet: Season 0 sells none. Until one ships, the panel keeps the agent's generated portrait.",
-  },
-  arena: {
-    label: "Arena",
-    explainer: "The background behind the board in this agent's matches.",
-    emptyText: "No arena backgrounds exist yet: Season 0 sells none. Until one ships, every match plays on the standard grid.",
-  },
-};
+const SLOT_TEXT = loadoutSlotText(CLOSE_WIN_HEALTH);
 
 export interface LoadoutScenarioSpec {
   key: string;

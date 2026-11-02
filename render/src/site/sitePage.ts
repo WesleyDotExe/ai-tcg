@@ -16,6 +16,8 @@
 import { FACE_CSS, FACE_SCRIPT, faceSymbols } from "./siteFaces.js";
 import { buildSync } from "esbuild";
 import { renderPackOpeningHtml } from "../packPage.js";
+import { renderLoadoutHtml } from "../loadoutPicker.js";
+import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -236,14 +238,14 @@ body[data-theme="dark"] .topbar { background: rgba(10,12,30,.15); }
 /* The Store page (session 47): packs and buying, the daily pack, the packs waiting, recent openings, cosmetics. */
 .st-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: start; }
 .st-grid > .panel { margin: 0; }
-.st-packs { grid-column: span 8; } .st-daily { grid-column: span 4; } .st-open { grid-column: span 5; } .st-recent { grid-column: span 7; } .st-cos { grid-column: span 12; }
+.st-packs { grid-column: span 8; } .st-daily { grid-column: span 4; } .st-open { grid-column: span 5; } .st-col .st-open { grid-column: auto; } .st-recent { grid-column: span 7; } .st-cos { grid-column: span 12; }
 .st-grid h3 { margin: 0 0 6px; font-size: 17px; } .st-grid p { margin: 6px 0; }
 .st-buy { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
 .stepper { display: inline-flex; align-items: center; gap: 6px; } .stepper output { min-width: 2ch; text-align: center; font: 700 18px ui-rounded, system-ui; }
 .big-n { font: 800 30px ui-rounded, "SF Pro Rounded", system-ui; }
 .st-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-.st-row, .st-rec { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; background: var(--soft); box-shadow: var(--soft-edge); }
-.st-row .dn, .st-rec .dn { flex: 1; min-width: 0; display: flex; flex-direction: column; } .st-row small, .st-rec small { color: var(--muted); }
+.st-row, .st-rec, .st-agent { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; background: var(--soft); box-shadow: var(--soft-edge); }
+.st-row .dn, .st-rec .dn, .st-agent .dn { flex: 1; min-width: 0; display: flex; flex-direction: column; } .st-row small, .st-rec small, .st-agent small { color: var(--muted); }
 .st-rec { flex-wrap: wrap; } .st-rec .dn { flex: 0 0 150px; } .st-rec .mrow { flex: 1; min-width: 0; }
 .st-recent { display: flex; flex-direction: column; gap: 8px; }
 .pk-dot { width: 14px; height: 20px; border-radius: 3px; background: linear-gradient(135deg, #ffd36b, #c7871e); box-shadow: 0 1px 4px rgba(0,0,0,.2); flex: none; }
@@ -343,6 +345,12 @@ body[data-theme="dark"] .dlg { background: rgba(20,24,56,.8); }
 /* Pack opening is full screen (2026-10-05 B, session 47): the pack-opening page in a frame over everything. */
 .opening { position: fixed; inset: 0; z-index: 40; background: #05060d; }
 .opening iframe { display: block; width: 100%; height: 100%; border: 0; }
+/* The loadout picker (session 49) is the same kind of overlay; its Buy asks with the website's own confirm, and the website's toasts show, above it. */
+body:has(#dress:not([hidden])) #dialog { z-index: 45; }
+body:has(#dress:not([hidden])) .toast { z-index: 46; }
+.st-col { grid-column: span 5; display: flex; flex-direction: column; gap: 16px; min-width: 0; } .st-col > .panel { margin: 0; }
+@media (max-width: 1100px) { .st-col { grid-column: span 12; } }
+.st-agent .dn small { display: block; }
 .opening .op-wait { position: absolute; inset: 0; display: grid; place-items: center; color: #a3acd0; font: 600 14px system-ui; letter-spacing: .04em; }
 .toast.on { opacity: 1; transform: translate(-50%, 0); } .toast.error { background: rgba(150,24,52,.95); }
 
@@ -472,6 +480,7 @@ export function renderSitePage(): string {
 <div id="viewer" hidden></div>
 <div id="dialog" class="dim"></div>
 <div id="opening" class="opening" hidden role="dialog" aria-modal="true" aria-label="Pack opening"></div>
+<div id="dress" class="opening" hidden role="dialog" aria-modal="true" aria-label="Agent loadout"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 ${faceSymbols()}
 <script>${FACE_SCRIPT}</script>
@@ -479,6 +488,13 @@ ${faceSymbols()}
 </body>
 </html>
 `;
+}
+
+/** The full-screen loadout picker's page (session 49): the standalone
+ * picker in its site mode, empty until the website hands it one agent's
+ * state. Served by the site host at /loadout, framed by the website. */
+export function renderSiteLoadoutPage(): string {
+  return renderLoadoutHtml({ site: true, title: "Agent loadout · AI·TCG", closeWinHealth: CLOSE_WIN_HEALTH, starters: {}, names: {}, scenarios: [] });
 }
 
 /** The full-screen pack opening's page (session 47): the standalone

@@ -18,6 +18,7 @@
 
 import type { SiteBinder, SiteCopy, SiteDeckShortfall, SiteHoldings, SiteSalvagePlan } from "./siteCollection.js";
 import type { BulkOpening, PackOpening } from "@ai-tcg/economy";
+import type { SiteCosmeticItem, SiteLoadout, SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { SiteBoard, SiteCollection, SiteDaily, SitePacks, SiteWidget } from "./siteBoard.js";
 
 /** A faction the owner can lock the agent to (OWNER_API.md, the play settings). */
@@ -112,13 +113,8 @@ export interface SiteWallet {
   unopenedPacks: { packId: string; ownerId: string; setCode: string; source: string; acquiredAt: string; openedAt: null }[];
 }
 
-/** A cosmetic on sale (`GET /api/store`). */
-export interface SiteCosmetic {
-  itemId: string;
-  kind: string;
-  name: string;
-  faction: string | null;
-  priceCredits: number | null;
+/** A cosmetic on sale (`GET /api/store`): the catalogue item and `owned`. */
+export interface SiteCosmetic extends SiteCosmeticItem {
   owned: boolean;
 }
 
@@ -216,6 +212,10 @@ export interface SiteApi {
   salvage(token: string, cardId: string, quantity: number, confirmDeckImpact: boolean): Promise<{ packPoints: number; incompleteDecks: SiteDeckShortfall[]; holdings: SiteHoldings; wallet: SiteWallet }>;
   craftCard(token: string, cardId: string): Promise<{ copy: SiteCopy; holdings: SiteHoldings; wallet: SiteWallet }>;
   craftSecret(token: string, code: string): Promise<{ copy: SiteCopy; wallet: SiteWallet }>;
+  // The loadout picker in the Store (session 49).
+  cosmetics(token: string): Promise<{ owned: SiteOwnedCosmetic[] }>;
+  loadout(token: string, agentId: string): Promise<SiteLoadout>;
+  setLoadout(token: string, agentId: string, slot: string, itemId: string | null): Promise<SiteLoadout>;
 }
 
 /** Salvage's refusal when it would leave saved decks short (409): the
@@ -289,5 +289,8 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
       call("POST", `/api/collection/cards/${encodeURIComponent(cardId)}/salvage`, { token, body: confirmDeckImpact ? { quantity, confirmDeckImpact: true } : { quantity } }),
     craftCard: (token, cardId) => call("POST", `/api/collection/cards/${encodeURIComponent(cardId)}/craft`, { token }),
     craftSecret: (token, code) => call("POST", `/api/collection/secrets/${encodeURIComponent(code)}/craft`, { token }),
+    cosmetics: (token) => call("GET", "/api/cosmetics", { token }),
+    loadout: (token, agentId) => call("GET", `/api/agents/${encodeURIComponent(agentId)}/loadout`, { token }),
+    setLoadout: (token, agentId, slot, itemId) => call("PUT", `/api/agents/${encodeURIComponent(agentId)}/loadout/${encodeURIComponent(slot)}`, { token, body: { itemId } }),
   };
 }

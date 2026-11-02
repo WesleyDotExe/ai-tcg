@@ -80,6 +80,13 @@ export async function startSiteDemo(options: { port?: number; full?: boolean } =
     const endedAt = new Date(Date.parse("2026-10-20T10:00:00.000Z") + i * 86_400_000).toISOString();
     store.recordMatch({ matchId: `demo-${i}`, seed: i, p1AgentId: first.agentId, p2AgentId: rookAgent.agentId, outcome: { kind: "win", winnerAgentId: first.agentId }, endedAt });
   }
+  // Session 49: six earlier days of one win each, recorded the same way, so
+  // Nova can buy one Season 0 boast (300 credits) from inside the loadout
+  // picker and still have credits left.
+  for (let i = 0; i < 6; i++) {
+    const endedAt = new Date(Date.parse("2026-10-12T10:00:00.000Z") + i * 86_400_000).toISOString();
+    store.recordMatch({ matchId: `demo-early-${i}`, seed: 50 + i, p1AgentId: first.agentId, p2AgentId: rookAgent.agentId, outcome: { kind: "win", winnerAgentId: first.agentId }, endedAt });
+  }
   // Ten waiting (session 47; three before), so "Open 10" can be tried.
   for (let i = 0; i < 10; i++) store.grantPack(nova.ownerId, "S0", "weeklyChallenge");
   // One bought with those credits (the Store lists it as "Bought").
