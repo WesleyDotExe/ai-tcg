@@ -202,6 +202,9 @@ function pushAttackMoves(state: GameState, pid: PlayerId, moves: Move[]): void {
           { kind: "player", playerId: enemyId },
         ];
 
+  // Seat variant (d), measured only (types.ts MatchRules): no attacks on the
+  // first seat's first turn (turn 1 is always p1's).
+  if (state.turnNumber === 1 && state.rules?.firstSeatNoFirstTurnAttack) return;
   for (const unit of state.players[pid].board) {
     if (unit.pending) continue; // dormant — cannot attack until it arms
     if (unit.hasAttackedThisTurn) continue;

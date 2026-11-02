@@ -302,6 +302,37 @@ export interface GameState {
    * any), or, if the stack is empty, the active player's turn ends. Reset
    * to 0 by any non-pass action. */
   passes: number;
+  /** Seat-rule variants under measurement (session 68, the first-seat
+   * fixes). Absent in every match the game ships: the rules as printed. Only
+   * the measuring instruments set it, until the owner picks a fix. */
+  rules?: MatchRules;
+}
+
+/** Test-only seat rules (owner 2026-11-02: "measure all four first-seat
+ * fixes, test only ... no rule change ships without the owner's OK"). p1 is
+ * always the first seat (match.ts), so "the second seat" is p2. Every field
+ * left out is the rule as shipped. */
+export interface MatchRules {
+  /** (a) Cards the second seat draws into its opening hand on top of the
+   * usual four. */
+  secondSeatExtraOpeningCards?: number;
+  /** (b) Energy the second seat gets on its first turn only (this turn's
+   * pool, not its maximum). */
+  secondSeatFirstTurnEnergy?: number;
+  /** (c) Health the second seat starts with on top of the usual 20 (its
+   * maximum too). */
+  secondSeatExtraHealth?: number;
+  /** (d) The first seat can't attack on its first turn. */
+  firstSeatNoFirstTurnAttack?: boolean;
+}
+
+/** True when `rules` changes nothing (absent, or every field at the shipped
+ * value), so a match keeps no `rules` field and plays byte-identically. */
+export function isShippedRules(rules: MatchRules | undefined): boolean {
+  return (
+    !rules ||
+    (!rules.secondSeatExtraOpeningCards && !rules.secondSeatFirstTurnEnergy && !rules.secondSeatExtraHealth && !rules.firstSeatNoFirstTurnAttack)
+  );
 }
 
 export function otherPlayer(id: PlayerId): PlayerId {

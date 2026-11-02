@@ -552,6 +552,8 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       method: "GET",
       path: /^\/api\/packs\/([^/]+)\/opening$/,
       handler: (req, _body, [packId]) => {
+        // The opening exactly as POST /api/packs/open answered it (schema
+        // v19; owner 2026-11-02, "Watch again").
         const ownerId = ownerOf(req);
         let opening;
         try {
@@ -562,7 +564,9 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
         }
         // Another owner's pack reads as missing.
         if (opening.ownerId !== ownerId) throw new HttpError(404, `no opened pack "${packId}"`);
-        return { body: opening };
+        const reveal = store.packReveal(packId!);
+        if (reveal === null) throw new HttpError(410, `pack "${packId}" was opened before reveals were kept (schema v19); it can't be watched again`);
+        return { body: reveal };
       },
     },
     {

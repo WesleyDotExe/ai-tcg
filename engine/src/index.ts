@@ -14,8 +14,9 @@ export type {
   GameEvent,
   GameOverCause,
   SignatureZone,
+  MatchRules,
 } from "./state/types.js";
-export { otherPlayer } from "./state/types.js";
+export { otherPlayer, isShippedRules } from "./state/types.js";
 export type { DeckSpec } from "./state/init.js";
 export { createInitialState, MAX_ENERGY_CAP, STARTING_HEALTH, TURN_CAP, BOARD_SLOTS, SIGNATURE_REPLAY_SURCHARGE } from "./state/init.js";
 export { signatureCost, currentAttack, currentHealth, currentMaxHealth } from "./state/queries.js";
@@ -26,6 +27,9 @@ export type { Move } from "./engine/moves.js";
 export { getLegalMoves } from "./engine/moves.js";
 export { applyMove, beginTurn } from "./engine/engine.js";
 export { runMatch, replayMatch, type MatchResult, type MatchHooks } from "./engine/match.js";
+// The first-seat fixes under measurement (session 68): for the measuring
+// instruments (the server's ladder split), not for any match the game plays.
+export { SEAT_VARIANTS, seatVariant, type SeatVariant } from "./dev/seatVariants.js";
 
 export type { Agent, PlayerView } from "./agents/agent.js";
 export { buildPlayerView } from "./agents/agent.js";
@@ -53,6 +57,7 @@ export {
   deckFaction,
   MAX_NEUTRAL_COPIES,
   COPY_LIMITS,
+  TOP_TIER_COPY_LIMIT,
   withSetMythicSignature,
 } from "./data/decks.js";
 export { CARD_REGISTRY, SHIPPED_DECK_LISTS, getCard } from "./data/registry.js";

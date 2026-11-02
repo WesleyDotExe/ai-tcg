@@ -1,0 +1,64 @@
+Owner API demo 006 — session 68's collection and deck asks over HTTP
+========================================================================
+> POST /api/session  -> 201
+
+1. The starter collection and two packs opened (one alone, then the rest)
+------------------------------------------------------------------------
+> POST /api/packs/open  -> 200
+> POST /api/packs/open  -> 200
+  pack <id 1>: starterHit false, pity {"fullArt":false,"mythic":false}, +5 pack points
+    Common   Zombie Process             standard  NEW  x1 owned
+    Common   Corruption Patch           standard  NEW  x1 owned
+    Uncommon Fork Bomb                  standard  NEW  x1 owned
+    Rare     Entropy Harvester          standard  NEW  x1 owned
+    shine    Firewall Sentinel          standard  NEW  x1 owned
+  pack <id 2>: starterHit false, pity {"fullArt":false,"mythic":false}, +5 pack points
+    Common   Relay Courier              standard  NEW  x1 owned
+    Common   Spare Cycles               standard  NEW  x1 owned
+    Uncommon Fork Bomb                  standard       x2 owned
+    Rare     Barrier Shim               standard       x2 owned
+    shine    Colony Broodling           foil      NEW  x1 owned
+
+2. Watch again: the opening read back, after a restart on the same file
+------------------------------------------------------------------------
+> POST /api/session  -> 201
+  schema v19
+> GET /api/packs/<id 1>/opening  -> 200
+  the same PackOpening POST /api/packs/open answered: IDENTICAL
+> GET /api/packs/<id 2>/opening  -> 200
+  the same PackOpening POST /api/packs/open answered: IDENTICAL
+> GET /api/packs/not-a-pack/opening  -> 404
+
+3. The card viewer: copy limit and craft price, from the API
+------------------------------------------------------------------------
+> GET /api/collection/cards/AG-001  -> 200
+  Aegis Cadet (Common): owned 3, copyLimit 3, craft {"packPoints":40,"available":false,"reason":"you already hold 3 of \"Aegis Cadet\"; crafting stops at its playable limit of 3"}
+> GET /api/collection/cards/AG-007  -> 200
+  Aegis Sentinel (Uncommon): owned 3, copyLimit 3, craft {"packPoints":80,"available":false,"reason":"you already hold 3 of \"Aegis Sentinel\"; crafting stops at its playable limit of 3"}
+> GET /api/collection/cards/AG-013  -> 200
+  Aegis Warden (Rare): owned 2, copyLimit 2, craft {"packPoints":250,"available":false,"reason":"you already hold 2 of \"Aegis Warden\"; crafting stops at its playable limit of 2"}
+> GET /api/collection/cards/AG-014  -> 200
+  Prime Aegis (Mythic): owned 1, copyLimit 1, craft {"packPoints":800,"available":false,"reason":"you already hold 1 of \"Prime Aegis\"; crafting stops at its playable limit of 1"}
+
+4. The Promos tab: two generated agents, the second connected, and one earned promo
+------------------------------------------------------------------------
+> GET /api/collection  -> 200
+  signature PR-001 Novamink's Prime-Time Ghost (agent Diodemink's Challenger), copy held, art placeholder:signature-pool/S0/<slot, drawn at random>
+  signature PR-002 Cathode Satellite v2 (agent Logicstag's Coin-Op Engine, connected), copy held, art placeholder:signature-pool/S0/<slot, drawn at random>
+  earned   PR-900 Aegis Cadet (Common, promo, stamp "DEMO STAMP")
+> GET /api/collection/cards/sig-PR-001  -> 200
+  a signature card in the card viewer: copyLimit null, craft null
+
+5. The deck's faction and list in GET /api/play
+------------------------------------------------------------------------
+> GET /api/play  -> 200
+  active deck "Aegis starter": faction Aegis, 40 cards, 23 distinct
+  list: AG-001 x3, AG-002 x2, AG-003 x3, AG-004 x1, AG-005 x3, AG-006 x3, AG-007 x3, AG-008 x1, AG-009 x2, AG-010 x1, AG-011 x1, AG-012 x1, AG-013 x2, AG-014 x1, AG-015 x1, AG-016 x1, AG-017 x1, AG-018 x1, AG-019 x3, AG-020 x2, AG-021 x1, AG-022 x2, NT-008 x1
+
+Checks
+------------------------------------------------------------------------
+  PASS  reveal 1 identical after restart
+  PASS  reveal 2 identical after restart
+  PASS  one connected signature card
+  PASS  the list adds up to the deck
+  PASS  the starter deck plays Aegis

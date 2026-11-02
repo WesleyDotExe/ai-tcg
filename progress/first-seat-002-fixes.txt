@@ -1,0 +1,166 @@
+# The four first-seat fixes, measured (session 68)
+
+Owner 2026-11-02: measure (a)-(d) on the shipped-deck mirrors and the ladder's seat split, the leaders through
+the ring check and the built-deck ring, test only. No rule changed: each variant is a `rules` option the
+measuring instruments pass to runMatch (engine/src/state/types.ts MatchRules); no match the game plays sets it.
+The second seat is always p2. Extras (doses and pairs) are marked; the four asked are (a)-(d).
+50% is a fair seat. The aim is the variant whose first-seat share is closest to 50% without moving the ring.
+
+## 1. Shipped-deck mirrors (same deck, same agent both seats; p1 always first)
+
+1000 seeds per faction (seeds 50,001-51,000; the first 400 are session 67's), the same deals for every variant.
+First-seat share of decided games, % [95% Wilson interval]; median turns over all four.
+
+variant                                              all four            Cortex  Swarm   Aegis   Null    turns
+the rules as shipped                                 64.4 [62.9-65.9]    63.0    72.3    59.5    62.9    14.5
+(a) second seat +1 card in the opening hand          59.6 [58.1-61.1]    55.6    72.4    53.8    56.7    14.5
+(b) second seat +1 energy on its first turn          55.7 [54.1-57.2]    54.9    60.9    54.2    52.7    14.5
+(c) second seat starts on 22 health                  59.4 [57.8-60.9]    58.2    65.7    57.1    56.4    14.5
+(d) first seat can't attack on its first turn        64.4 [62.9-65.9]    63.0    72.3    59.5    62.9    14.5
+extra: second seat starts on 24 health               54.4 [52.9-55.9]    52.4    58.7    55.2    51.3    15.5
+extra: second seat +2 cards in the opening hand      54.3 [52.8-55.9]    47.0    72.2    47.1    51.0    14.5
+extra: second seat +2 energy on its first turn       43.8 [42.3-45.4]    42.2    41.2    49.7    42.2    14.5
+extra: (a) and (b) together                          49.1 [47.5-50.6]    45.4    56.7    47.7    46.4    14.5
+extra: (a) and (c) together                          54.4 [52.9-55.9]    50.0    66.3    50.6    50.7    14.5
+extra: (b) and (c) together                          50.7 [49.1-52.2]    49.4    53.4    52.2    47.7    14.5
+
+## 2. The ladder's seat split (session 67's 2,400-match run: 8 house owners, decks rebuilt as packs open)
+
+Seats are a coin flip, so the first seat's share of decided matches is the edge itself. Same ladder seed for
+every variant; the pairings and builds drift apart as results differ, so rows are not paired like the mirrors.
+
+variant                                              all matches                faction mirrors   Cortex 1st Swarm 1st  Aegis 1st  Null 1st  
+the rules as shipped                                 64.8 [62.8-66.6] n=2400    61.0 n=431        63.1       68.9       58.7       70.7      
+(a) second seat +1 card in the opening hand          59.1 [57.1-61.1] n=2400    59.5 n=486        64.0       61.7       51.3       61.5      
+(b) second seat +1 energy on its first turn          55.1 [53.1-57.1] n=2400    54.6 n=412        59.5       49.3       56.5       56.0      
+(c) second seat starts on 22 health                  58.5 [56.5-60.4] n=2400    60.5 n=395        59.6       60.3       53.0       59.6      
+(d) first seat can't attack on its first turn        65.6 [63.7-67.5] n=2400    65.3 n=574        64.8       71.3       60.4       65.9      
+extra: second seat starts on 24 health               52.3 [50.3-54.3] n=2400    48.3 n=362        55.3       53.5       49.4       51.9      
+extra: second seat +2 cards in the opening hand      55.0 [53.0-57.0] n=2400    58.3 n=396        53.6       63.2       45.5       58.9      
+extra: second seat +2 energy on its first turn       42.3 [40.3-44.2] n=2400    42.7 n=769        39.3       45.1       42.7       42.2      
+extra: (a) and (b) together                          48.5 [46.5-50.5] n=2400    45.9 n=538        52.8       45.3       48.7       46.0      
+extra: (a) and (c) together                          53.9 [51.9-55.9] n=2400    59.6 n=371        56.8       53.5       47.8       56.6      
+extra: (b) and (c) together                          47.8 [45.8-49.8] n=2400    48.5 n=482        50.4       42.9       48.8       47.7      
+
+By the first seat's play style (all matches):
+variant                                              Calculator  Rusher      Controller  Tempo       Fortress    Gambler    
+the rules as shipped                                 60.4        64.9        65.6        69.7        58.8        68.2       
+(a) second seat +1 card in the opening hand          58.2        67.2        55.7        61.8        51.9        58.4       
+(b) second seat +1 energy on its first turn          56.3        46.8        60.6        53.3        57.4        57.2       
+(c) second seat starts on 22 health                  60.4        61.7        58.1        58.1        53.7        57.2       
+(d) first seat can't attack on its first turn        62.3        72.1        67.4        69.4        62.8        59.4       
+extra: second seat starts on 24 health               58.3        54.5        47.2        49.7        47.0        53.8       
+extra: second seat +2 cards in the opening hand      51.9        62.9        49.3        64.1        41.0        54.6       
+extra: second seat +2 energy on its first turn       38.9        44.7        41.4        47.8        41.6        37.0       
+extra: (a) and (b) together                          54.1        46.1        56.0        46.8        43.7        40.8       
+extra: (a) and (c) together                          56.8        53.4        50.9        54.6        44.7        59.0       
+extra: (b) and (c) together                          50.8        48.4        53.0        40.1        49.7        50.5       
+
+## 3. The ring check (the six edges, shipped decks, ring seeds; judged against the shipped baselines)
+
+Each edge: the first-named side's win rate, its band verdict, and the ring check's PASS/FAIL against the
+shipped baseline (FAIL = the verdict got worse, or an OUT edge moved further out by a real amount).
+The ring alternates seats, so a seat rule should move it little; this checks it doesn't.
+
+### gate (decks only, CI's `ring`)
+variant                                              Null > Aegis           Aegis > Cortex         Cortex > Swarm         Swarm > Null           Null ~ Cortex          Aegis ~ Swarm          result
+the rules as shipped                                 56.6 unres pass        48.5 OUT pass          61.6 unres pass        53.4 unres pass        51.3 IN pass           52.4 unres pass        PASS
+(a) second seat +1 card in the opening hand          55.4 unres pass        48.9 OUT pass          63.4 OUT FAIL          52.6 OUT FAIL          51.7 IN pass           51.7 IN pass           FAIL (2)
+(b) second seat +1 energy on its first turn          55.8 unres pass        47.4 OUT pass          63.8 OUT FAIL          51.8 OUT FAIL          51.9 unres FAIL        52.4 unres pass        FAIL (3)
+(c) second seat starts on 22 health                  57.2 IN pass           48.2 OUT pass          61.8 unres pass        54.2 unres pass        51.0 IN pass           51.3 IN pass           PASS
+(d) first seat can't attack on its first turn        56.6 unres pass        48.4 OUT pass          61.6 unres pass        53.4 unres pass        50.9 IN pass           52.4 unres pass        PASS
+extra: second seat starts on 24 health               57.8 IN pass           48.2 OUT pass          61.9 unres pass        54.4 unres pass        50.9 IN pass           51.4 IN pass           PASS
+extra: second seat +2 cards in the opening hand      54.5 unres pass        51.1 OUT pass          63.2 OUT FAIL          50.6 OUT FAIL          53.4 unres FAIL        53.6 unres pass        FAIL (3)
+extra: second seat +2 energy on its first turn       58.9 unres pass        46.3 OUT pass          63.7 OUT FAIL          49.6 OUT FAIL          50.8 IN pass           51.0 IN pass           FAIL (2)
+extra: (a) and (b) together                          54.9 unres pass        50.5 OUT pass          64.4 OUT FAIL          50.6 OUT FAIL          50.0 IN pass           53.3 unres pass        FAIL (2)
+extra: (a) and (c) together                          56.1 unres pass        48.8 OUT pass          62.4 OUT FAIL          52.4 OUT FAIL          52.6 unres FAIL        50.6 IN pass           FAIL (3)
+extra: (b) and (c) together                          56.0 unres pass        47.1 OUT pass          64.4 OUT FAIL          52.1 OUT FAIL          51.0 IN pass           51.8 unres pass        FAIL (2)
+
+### real (an approved signature card a side, CI's `ring:real`)
+variant                                              Null > Aegis           Aegis > Cortex         Cortex > Swarm         Swarm > Null           Null ~ Cortex          Aegis ~ Swarm          result
+the rules as shipped                                 51.2 OUT pass          56.2 unres pass        55.2 unres pass        53.7 unres pass        57.1 unres pass        56.2 unres pass        PASS
+(a) second seat +1 card in the opening hand          48.3 OUT FAIL          56.8 unres pass        56.5 unres pass        52.7 OUT FAIL          57.2 unres pass        56.2 unres pass        FAIL (2)
+(b) second seat +1 energy on its first turn          50.5 OUT pass          56.8 unres pass        56.8 unres pass        52.2 OUT FAIL          57.1 unres pass        56.1 unres pass        FAIL (1)
+(c) second seat starts on 22 health                  51.9 OUT pass          56.4 unres pass        55.0 unres pass        54.2 unres pass        57.9 unres pass        56.6 unres pass        PASS
+(d) first seat can't attack on its first turn        51.2 OUT pass          56.1 unres pass        55.0 unres pass        53.7 unres pass        57.4 unres pass        56.2 unres pass        PASS
+extra: second seat starts on 24 health               52.1 OUT pass          56.1 unres pass        55.5 unres pass        53.7 unres pass        58.0 unres pass        55.7 unres pass        PASS
+extra: second seat +2 cards in the opening hand      48.6 OUT pass          57.4 IN pass           56.7 unres pass        52.2 OUT FAIL          58.0 unres pass        57.6 unres pass        FAIL (1)
+extra: second seat +2 energy on its first turn       53.8 unres pass        53.3 unres pass        57.4 IN pass           48.8 OUT FAIL          57.9 unres pass        53.4 unres pass        FAIL (1)
+extra: (a) and (b) together                          48.6 OUT pass          57.2 IN pass           57.2 IN pass           52.1 OUT FAIL          58.3 OUT FAIL          55.2 unres pass        FAIL (2)
+extra: (a) and (c) together                          49.2 OUT pass          56.3 unres pass        55.7 unres pass        53.0 OUT FAIL          56.0 unres pass        55.8 unres pass        FAIL (1)
+extra: (b) and (c) together                          51.7 OUT pass          56.6 unres pass        57.8 IN pass           51.5 OUT FAIL          57.1 unres pass        55.6 unres pass        FAIL (1)
+
+## 4. The built-deck ring (session 62's builds: the store's decks at full, 37, 17 and 3 packs)
+
+Each edge's move from the same ring under the shipped rules (progress/built-deck-ring-004), points, and how
+many of the 24 edge-levels per mode stay in or reach their band. Same seeds and decks; only the rule differs.
+
+### real
+shipped rules: 5 in / 14 unres. / 5 out
+(b) second seat +1 energy on its first turn: 3 in / 15 unres. / 6 out
+  Null > Aegis     full +0.0   37 -1.4   17 -0.1   3 -0.3
+  Aegis > Cortex   full -0.4   37 +0.5   17 +0.2   3 +0.6
+  Cortex > Swarm   full +2.0   37 +2.0   17 +3.5   3 +2.4
+  Swarm > Null     full -2.2   37 -1.3   17 -1.5   3 +0.2
+  Null ~ Cortex    full +0.6   37 +2.8   17 +0.0   3 +0.1
+  Aegis ~ Swarm    full -0.7   37 +0.9   17 +1.0   3 +3.6
+  largest move: 3.6 points
+(c) second seat starts on 22 health: 2 in / 18 unres. / 4 out
+  Null > Aegis     full +0.8   37 +0.3   17 +0.6   3 +0.6
+  Aegis > Cortex   full +1.0   37 -0.5   17 +0.0   3 -0.2
+  Cortex > Swarm   full +0.7   37 -0.6   17 +1.1   3 +1.1
+  Swarm > Null     full +0.0   37 +0.6   17 +0.2   3 +0.7
+  Null ~ Cortex    full +1.1   37 +1.7   17 +1.1   3 +2.9
+  Aegis ~ Swarm    full +1.0   37 -0.6   17 -0.2   3 +1.1
+  largest move: 2.9 points
+extra: second seat starts on 24 health: 2 in / 17 unres. / 5 out
+  Null > Aegis     full +0.6   37 +1.2   17 +1.4   3 +1.4
+  Aegis > Cortex   full +1.4   37 -0.1   17 +0.3   3 -0.5
+  Cortex > Swarm   full +1.4   37 +1.1   17 +2.2   3 +3.0
+  Swarm > Null     full -0.3   37 +0.2   17 -0.2   3 -0.0
+  Null ~ Cortex    full +1.2   37 +2.0   17 +0.6   3 +3.3
+  Aegis ~ Swarm    full +0.8   37 -1.0   17 -0.4   3 +0.1
+  largest move: 3.3 points
+extra: (b) and (c) together: 3 in / 15 unres. / 6 out
+  Null > Aegis     full -0.2   37 -0.3   17 +0.8   3 +0.5
+  Aegis > Cortex   full +0.2   37 +0.8   17 +0.8   3 -0.2
+  Cortex > Swarm   full +3.3   37 +2.0   17 +4.3   3 +2.6
+  Swarm > Null     full -1.9   37 -1.7   17 -1.9   3 -0.7
+  Null ~ Cortex    full +1.1   37 +3.0   17 +0.2   3 +0.6
+  Aegis ~ Swarm    full -0.8   37 +0.8   17 +0.8   3 +2.8
+  largest move: 4.3 points
+
+### gate
+shipped rules: 3 in / 14 unres. / 7 out
+(b) second seat +1 energy on its first turn: 1 in / 13 unres. / 10 out
+  Null > Aegis     full -1.9   37 -0.5   17 -0.3   3 -1.0
+  Aegis > Cortex   full -0.3   37 +1.0   17 -0.5   3 -0.8
+  Cortex > Swarm   full +1.1   37 +1.3   17 +1.9   3 +1.0
+  Swarm > Null     full -0.7   37 -0.4   17 -1.1   3 -1.8
+  Null ~ Cortex    full -0.6   37 -0.7   17 -0.9   3 +0.0
+  Aegis ~ Swarm    full -2.1   37 +0.9   17 +0.2   3 +2.3
+  largest move: 2.3 points
+(c) second seat starts on 22 health: 2 in / 14 unres. / 8 out
+  Null > Aegis     full +0.8   37 +1.2   17 +1.3   3 +0.8
+  Aegis > Cortex   full +0.4   37 +0.1   17 -0.5   3 -0.0
+  Cortex > Swarm   full +0.2   37 +0.9   17 +0.7   3 +0.1
+  Swarm > Null     full +0.1   37 +0.8   17 +0.4   3 +0.3
+  Null ~ Cortex    full -0.2   37 -0.1   17 -0.4   3 +0.1
+  Aegis ~ Swarm    full -1.0   37 -1.3   17 +0.1   3 +0.0
+  largest move: 1.3 points
+extra: second seat starts on 24 health: 3 in / 14 unres. / 7 out
+  Null > Aegis     full +0.7   37 +1.6   17 +1.8   3 +1.6
+  Aegis > Cortex   full +0.8   37 +0.2   17 -0.1   3 +0.3
+  Cortex > Swarm   full +0.4   37 +1.3   17 +0.9   3 +0.1
+  Swarm > Null     full +0.2   37 +1.2   17 +0.8   3 -0.4
+  Null ~ Cortex    full +0.0   37 +0.9   17 -0.4   3 +0.3
+  Aegis ~ Swarm    full +0.4   37 -0.8   17 -1.3   3 +0.6
+  largest move: 1.8 points
+extra: (b) and (c) together: 1 in / 14 unres. / 9 out
+  Null > Aegis     full -1.1   37 +0.6   17 +1.1   3 -0.3
+  Aegis > Cortex   full +0.1   37 +1.5   17 +0.0   3 -0.3
+  Cortex > Swarm   full +1.7   37 +2.2   17 +2.5   3 +0.9
+  Swarm > Null     full -0.7   37 -0.0   17 -0.9   3 -1.3
+  Null ~ Cortex    full -0.1   37 -0.4   17 -0.1   3 +0.9
+  Aegis ~ Swarm    full -1.4   37 +1.3   17 +0.3   3 +2.3
+  largest move: 2.5 points

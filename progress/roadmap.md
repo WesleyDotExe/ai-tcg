@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-02, game session 67 (the long-lived ladder, Watch live, auto-play, match history).
+Updated 2026-11-02, game session 68 (the four first-seat fixes measured; the small collection and deck asks).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -36,7 +36,13 @@ Updated 2026-11-02, game session 67 (the long-lived ladder, Watch live, auto-pla
    the clock, each match released at watch speed and recorded after its last move (live state for Watch live);
    auto-play for player owners (schema v18); the house pack policy; a replay per match. Evidence
    `progress/ladder-demo-002-live.txt`. Left: the 2x vote, network agents in the ladder. Found: the first seat
-   wins ~65% (`progress/first-seat-001.txt`, owner check-in).
+   wins ~65% (`progress/first-seat-001.txt`). Session 68: all four fixes the owner named measured, test only
+   (`progress/first-seat-002-fixes.txt`, owner check-in); no rule changed.
+1b. [ ] Versioned replays (owner 2026-11-02 call 6): replays carry the card and rule versions they were played
+   under, old ones stay rebuildable. Session 70's hardening pass, BEFORE the first-seat fix (or any card or
+   rule change) ships.
+1c. [ ] Ship the first-seat fix the owner picks (after 1b), re-record the ring baselines, regenerate the
+   built-deck ring, before the launch-gate re-run.
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
    and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
    economy endpoints (session 64). What's left waits on match running:
@@ -55,6 +61,11 @@ Updated 2026-11-02, game session 67 (the long-lived ladder, Watch live, auto-pla
    - [ ] notifications
    - [x] the saved board layout (session 64) and background choice (in the account settings, session 63)
    - [ ] the 2× vote (both owners agree) for live play
+   - [x] the small asks (session 68): "Watch again" (`GET /api/packs/:packId/opening` answers the
+     `PackOpening`, schema v19), the craft price and copy limit in the card viewer, signature cards and earned
+     promos in the collection (`promos`), the deck's faction and list in `DeckStatus`
+2b. [~] Coin skins (owner 2026-11-02): the plan's game half is at an owner check-in (session 68): the coin slot,
+   the Chrome Token, store coins and prices, tier coins, the coin on the match record. Build it after the answer.
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.
 
@@ -70,6 +81,9 @@ Updated 2026-11-02, game session 67 (the long-lived ladder, Watch live, auto-pla
    Packs, Collection, Showcase, Ladder, Rating & form, Match history, Notifications, Store, Daily rewards).
 4. [ ] Live play: auto-play, the 2× vote, Watch live, as pages and widgets.
 5. [ ] The ladder page.
+6. [ ] Coin skins (owner 2026-11-02, render half approved): (1) the flip in Match Boot, the starter coin,
+   reduced motion and sound; (2) the store and tier coins' looks, the coin line in the picker and the Store.
+   After the game lane's slot and catalogue.
 
 **After Season 0:** launch-scale storage and its load test (hard gate for Season 1), payments, the art pass,
 AI commentators, tournaments, quests, the published-odds page, the next set, 3D pack opening, the title screen,

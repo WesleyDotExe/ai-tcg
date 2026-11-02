@@ -48,7 +48,7 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `GET /api/packs` | none | the packs page (below) |
 | `POST /api/packs/buy` | `{ setCode, count?: 1..10 }` (count 1 by default) | 201 `{ bought: PackRecord[], wallet }` |
 | `POST /api/packs/open` | `{ count?: 1 \| 10 }` or `{ packId }` | `{ packs: PackOpening[], summary, wallet }` (below) |
-| `GET /api/packs/:packId/opening` | none | the logged opening, seed and all (the caller's packs only) |
+| `GET /api/packs/:packId/opening` | none | the opening exactly as `POST /api/packs/open` answered it, a `PackOpening` (the caller's packs only; 410 for a pack opened before schema v19) |
 | `GET /api/packs/daily` | none | the owner's daily pack: how many wait, when the next comes in (below) |
 | `POST /api/packs/daily/claim` | none | 201 `{ pack: PackRecord, dailyPack, wallet }`; 409 when none waits |
 | `GET /api/store` | none | `{ packs, dailyPack, cosmetics, wallet }`: what's on sale |
@@ -213,14 +213,23 @@ The tiers, the placement count and the matchmaker are session 66's proposals, at
   sets: [{ setCode, base: { held, total }, secrets: {...}, glitch: {...}, gold: {...},
            prototypes: { runsHeld, runs, copiesHeld } }],
   recentPulls: [{ packId, setCode, openedAt, jackpot,
-                  cards: [{ copyId, cardId, name, rarity, finish, secretCode, serial, held }] }]   // newest first
+                  cards: [{ copyId, cardId, name, rarity, finish, secretCode, serial, held }] }],  // newest first
+  promos: {                                                                                   // session 68
+    signatureCards: [{ agentId, agentName, connected, cardId, name, collectorNumber, rarity,
+                       faction, flavor, art, copyId, createdAt }],                            // by PR- number
+    earned: [{ copyId, cardId, name, rarity, finish, origin, seriesCode, stamp, acquiredAt }]   // newest first
+  }
 }
 ```
+
+- `promos` is the Promos tab (session 68): every signature card of the owner's agents, `connected: true` on the agent playing now (the page greys out the rest), and every `promo` or `prize` copy earned other than a signature card, with its stamp ("10-WIN STREAK") and series code. Season 0 issues no earned promos yet (milestones, quests and tournaments come later), so `earned` is empty until they do.
 
 - Every copy is its own item (origin `pack`, `starter`, `crafted`, `promo`, ...; `accountBound` copies play but never sell or salvage). A secret copy's `secretCode` names the secret card it is; its `cardId` is the card it plays as.
 - `recentPacks` (1 to 50, default 3) is how many openings `recentPulls` lists; a pulled copy since salvaged shows `held: false`.
 - `GET /api/collection/binder/:setCode` is the store's binder: `{ setCode, base, secrets, glitch, gold, prototypes }`, each section `{ title, held, total, entries: [{ number, kind, cardId, secretCode, name, rarity, owned }] }`, and the Prototype runs with the serials held.
-- `GET /api/collection/cards/:cardId` is the card viewer: `{ cardId, rarity, owned, salvageable, packPointsEach, notSalvageable: [{ reason, count }], decks: [{ deckId, name, uses, active }] }`.
+- `GET /api/collection/cards/:cardId` is the card viewer: `{ cardId, rarity, owned, salvageable, packPointsEach, notSalvageable: [{ reason, count }], decks: [{ deckId, name, uses, active }], copyLimit, craft }`.
+  - `copyLimit` (session 68): copies a deck can play, 3 / 3 / 2 / 1 by rarity, 1 for a Zero-Day card; `null` for a signature card (it plays from its own zone, outside the limits).
+  - `craft` (session 68): `{ packPoints, available, reason }` for crafting one standard copy with `POST .../craft`: the price, whether it can be crafted now, and if not, why, in the craft's own refusal words ("you already hold 3 of ...", "crafting ... costs 40 pack points; you have 15"). `null` for a card never crafted this way: a signature card, and a Zero-Day card (crafted as a secret card, `POST /api/collection/secrets/:code/craft`). The website reads these instead of the economy's config.
 
 ### Salvage and crafting
 
@@ -247,7 +256,8 @@ The tiers, the placement count and the matchmaker are session 66's proposals, at
 - `POST /api/packs/open` opens the oldest pack (`{}` or `{ count: 1 }`), the ten oldest (`{ count: 10 }`; 409 unless ten are waiting), or a chosen one (`{ packId }`; 404 if it isn't one of the caller's unopened packs). The answer is `{ packs, summary, wallet }`: `packs` is one `PackOpening` per pack, `summary` is the ten-pack summary (null for one pack).
 - `PackOpening` is the store's: `{ packId, ownerId, setCode, oddsVersion, seed, openedAt, jackpot, pity: { fullArt, mythic }, prototypeFallbackGold, starterHit, packPoints, fullReveal, cards: [{ copyId, cardId, name, rarity, slot, finish, collectorNumber, prototype, secret, isNew, ownedAfter }] }`. `isNew` is the NEW badge, `ownedAfter` the "x N owned", `fullReveal` says the pack keeps its full reveal in a ten-pack open. Every pack also pays 5 pack points.
 - The summary: `{ cards, newCards, packPoints, byRarity, byFinish, fullReveals: [packId] }`.
-- Each pack's seed is drawn by the server when it opens and is shown only after (`GET /api/packs/:packId/opening` reads the logged opening back).
+- Each pack's seed is drawn by the server when it opens and is shown only after (`GET /api/packs/:packId/opening` reads the opening back).
+- **"Watch again"** (session 68, schema v19): each opening is kept as `POST /api/packs/open` answered it, in the open's own transaction, never changed. `GET /api/packs/:packId/opening` answers that same `PackOpening` (each card's slot, NEW, "x N owned", the pity, the starter guarantee, the pack points, `fullReveal`), as of the opening, not now, so the reveal can be replayed, or picked up again after a reload mid-reveal. A pack opened before v19 has no kept reveal: 410. Another owner's pack, or one not opened, is 404.
 
 ### The owner's daily pack (session 65)
 
@@ -310,7 +320,7 @@ The rule is the owner's (2026-10-04): one free pack a day that only the owner ca
 }
 ```
 
-`DeckStatus` is the store's: `{ deckId, name, ownerId, active, complete, missing, cards }`. `rebuild.reasons` is the store's `agentDeckRebuildReasons`: empty when the agent's deck is up to date or a deck is forced.
+`DeckStatus` is the store's: `{ deckId, name, ownerId, active, complete, missing, cards, faction, list }`. `faction` (session 68) is the faction the deck plays (its one non-Neutral faction; `null` only for a deck with none or several, which no legal deck is); `list` is `[{ cardId, copies }]`, each card once, in the order first listed. `rebuild.reasons` is the store's `agentDeckRebuildReasons`: empty when the agent's deck is up to date or a deck is forced.
 
 ### Rebuild now
 

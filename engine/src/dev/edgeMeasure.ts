@@ -24,7 +24,7 @@ import { LookaheadAgent } from "../agents/lookaheadAgent.js";
 import { runMatch } from "../engine/match.js";
 import type { DeckSpec } from "../state/init.js";
 import type { Card, DeckFaction as Faction, UnitCard } from "../cards/types.js";
-import type { GameState, PlayerId } from "../state/types.js";
+import type { GameState, MatchRules, PlayerId } from "../state/types.js";
 
 export const FACTIONS: Faction[] = ["Cortex", "Swarm", "Aegis", "Null"];
 
@@ -137,6 +137,8 @@ export async function measurePairing(
     signature?: boolean | SignatureMode;
     /** Sees every finished game, for reports that need more than the win count. */
     onGame?: (state: GameState, selfPid: PlayerId) => void;
+    /** A seat-rule variant under measurement (session 68); the shipped rules otherwise. */
+    rules?: MatchRules;
   } = {},
 ): Promise<EdgeResult> {
   const base = opts.builders ?? defaultBuilders;
@@ -159,8 +161,8 @@ export async function measurePairing(
     const agentA = new LookaheadAgent(`Lookahead-${factionA}`, seed * 104729 + 31);
     const agentB = new LookaheadAgent(`Lookahead-${factionB}`, seed * 104729 + 31);
     const { state } = aGoesFirst
-      ? await runMatch(deckA, deckB, agentA, agentB, seed)
-      : await runMatch(deckB, deckA, agentB, agentA, seed);
+      ? await runMatch(deckA, deckB, agentA, agentB, seed, {}, opts.rules)
+      : await runMatch(deckB, deckA, agentB, agentA, seed, {}, opts.rules);
     const selfPid: PlayerId = aGoesFirst === aIsSelf ? "p1" : "p2";
     if (opts.trackCard && playedCard(state, selfPid, opts.trackCard)) r.trackedPlays++;
     opts.onGame?.(state, selfPid);

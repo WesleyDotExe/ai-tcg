@@ -17,6 +17,7 @@ import {
   generateSignatureCandidates,
   getCard,
   COPY_LIMITS,
+  TOP_TIER_COPY_LIMIT,
   SHIPPED_DECK_LISTS,
   signatureCardFor,
   signatureFingerprint,
@@ -598,6 +599,16 @@ export interface CardHoldings {
   /** Every copy that can't be salvaged, grouped by the reason shown. */
   notSalvageable: { reason: string; count: number }[];
   decks: { deckId: string; name: string; uses: number; active: boolean }[];
+  /** How many copies a deck can play (3 / 3 / 2 / 1 by rarity; a Zero-Day
+   * card 1). Null for a signature card: it sits outside the deck and its
+   * limits (owner 2026-11-02: the API is the one source, not config.ts). */
+  copyLimit: number | null;
+  /** Crafting one standard copy with pack points (craftCard): its price,
+   * whether it can be crafted now, and if not, why (craftCard's own refusal
+   * words). Null for a card never crafted this way: a signature card, and a
+   * Zero-Day card (crafted as a secret card, `POST
+   * /api/collection/secrets/:code/craft`). */
+  craft: { packPoints: number; available: boolean; reason: string | null } | null;
 }
 
 export interface SalvagePlan {
@@ -631,6 +642,13 @@ export interface DeckStatus {
   complete: boolean;
   missing: { cardId: string; uses: number; owned: number }[];
   cards: number;
+  /** The faction the deck plays (owner 2026-11-02, for the loadout
+   * picker): its one non-Neutral faction, or null when it has none or more
+   * than one (no legal deck does). */
+  faction: DeckFaction | null;
+  /** The deck's list: each card id with its copies, in the order first
+   * listed. */
+  list: { cardId: string; copies: number }[];
 }
 
 /** A Season 0 sign-in session. The token is only ever returned here, once;
@@ -696,6 +714,30 @@ export interface CollectionSummary {
     prototypes: { runsHeld: number; runs: number; copiesHeld: number };
   }[];
   recentPulls: RecentPull[];
+  /** The Promos tab (owner 2026-11-02): every signature card the owner's
+   * agents hold, the connected agent's marked (the page greys out the rest,
+   * owner app spec B), and every promo or prize copy earned. */
+  promos: {
+    signatureCards: {
+      agentId: string;
+      agentName: string;
+      /** The agent playing now: its card is the one in the signature zone. */
+      connected: boolean;
+      cardId: string;
+      name: string;
+      collectorNumber: string;
+      rarity: Rarity;
+      faction: string | null;
+      flavor: string | null;
+      /** The card's art reference (a slot of the season's pool until the art pass). */
+      art: string;
+      /** The bound copy held; null only if it isn't in the collection. */
+      copyId: string | null;
+      createdAt: string;
+    }[];
+    /** Promo and prize copies other than signature cards, newest first. */
+    earned: { copyId: string; cardId: string; name: string; rarity: Rarity; finish: Finish; origin: CopyOrigin; seriesCode: string | null; stamp: string | null; acquiredAt: string }[];
+  };
 }
 
 /** Today's match earnings (owner 2026-11-01, the Daily rewards widget). */
@@ -2380,6 +2422,23 @@ export class EconomyStore {
     }
     const activeDeckId = this.getOwner(ownerId).activeDeckId;
     const decks = this.deckUses(ownerId, cardId).map((d) => ({ ...d, active: d.deckId === activeDeckId }));
+    const setCard = getCard(cardId);
+    const zeroDay = zeroDayEntry(cardId) !== undefined;
+    const copyLimit = !setCard && !zeroDay ? null : setCard?.topTier || zeroDay ? TOP_TIER_COPY_LIMIT : COPY_LIMITS[card.rarity];
+    let craft: CardHoldings["craft"] = null;
+    if (setCard && !zeroDay) {
+      // The same checks as craftCard, in its words.
+      const cost = CRAFT_PACK_POINTS[setCard.rarity];
+      const limit = COPY_LIMITS[setCard.rarity];
+      const have = this.balance(ownerId, "packPoints");
+      const reason =
+        copies.length >= limit
+          ? `you already hold ${copies.length} of "${setCard.name}"; crafting stops at its playable limit of ${limit}`
+          : have < cost
+            ? `crafting "${setCard.name}" costs ${cost} pack points; you have ${have}`
+            : null;
+      craft = { packPoints: cost, available: reason === null, reason };
+    }
     return {
       cardId,
       rarity: card.rarity,
@@ -2388,6 +2447,8 @@ export class EconomyStore {
       packPointsEach: SALVAGE_PACK_POINTS[card.rarity],
       notSalvageable: [...reasons].map(([reason, count]) => ({ reason, count })),
       decks,
+      copyLimit,
+      craft,
     };
   }
 
@@ -2804,6 +2865,14 @@ export class EconomyStore {
   /** Whether a saved deck can be played with what the owner holds now. */
   deckStatus(deckId: string): DeckStatus {
     const { name, ownerId, slots, missing } = this.resolveDeck(deckId);
+    const { listed } = this.deckListing(deckId);
+    const counts = new Map<string, number>();
+    for (const l of listed) counts.set(l.cardId, (counts.get(l.cardId) ?? 0) + 1);
+    const factions = new Set<string>();
+    for (const cardId of counts.keys()) {
+      const f = getCard(cardId)?.faction;
+      if (f && f !== "Neutral") factions.add(f);
+    }
     return {
       deckId,
       name,
@@ -2812,6 +2881,8 @@ export class EconomyStore {
       complete: missing.size === 0,
       missing: [...missing].map(([cardId, m]) => ({ cardId, ...m })),
       cards: slots.length,
+      faction: factions.size === 1 ? ([...factions][0] as DeckFaction) : null,
+      list: [...counts].map(([cardId, copies]) => ({ cardId, copies })),
     };
   }
 
@@ -3027,7 +3098,7 @@ export class EconomyStore {
           ownedAfter: (heldBefore.get(p.cardId) ?? 0) + found.get(p.cardId)!,
         };
       });
-      return {
+      const opening: PackOpening = {
         packId: pack.packId,
         ownerId,
         setCode: set.code,
@@ -3042,7 +3113,24 @@ export class EconomyStore {
         packPoints: PACK_POINTS_PER_PACK,
         fullReveal: roll.jackpot || roll.pulls.some((p) => FULL_REVEAL_FINISHES.includes(p.finish)),
       };
+      // Kept as answered, for "Watch again" (schema v19; a file a migration
+      // test holds at an older version has no table for it).
+      if (this.schemaVersion >= 19) this.db.prepare("INSERT INTO pack_reveals (pack_id, reveal_json) VALUES (?, ?)").run(pack.packId, JSON.stringify(opening));
+      return opening;
     });
+  }
+
+  /** An opening exactly as openPack answered it (schema v19; owner
+   * 2026-11-02, "Watch again"): every card's slot, NEW badge and "x N
+   * owned" as of the opening, the pity, the starter guarantee, the pack
+   * points. Null for a pack opened before v19 (no reveal was kept). Throws
+   * for a pack that hasn't been opened. */
+  packReveal(packId: string): PackOpening | null {
+    const opened = this.db.prepare("SELECT 1 FROM pack_openings WHERE pack_id = ?").get(packId);
+    if (!opened) throw new EconomyError(`pack "${packId}" hasn't been opened`);
+    if (this.schemaVersion < 19) return null;
+    const row = this.db.prepare("SELECT reveal_json FROM pack_reveals WHERE pack_id = ?").get(packId) as Row | undefined;
+    return row ? (JSON.parse(str(row.reveal_json)) as PackOpening) : null;
   }
 
   /** Opens 1 pack, or BULK_OPEN_COUNT (10) at once (owner 2026-10-05): the
@@ -3166,7 +3254,42 @@ export class EconomyStore {
         prototypes: { runsHeld: b.prototypes.filter((r) => r.serialsHeld.length > 0).length, runs: b.prototypes.length, copiesHeld: b.prototypes.reduce((t, r) => t + r.serialsHeld.length, 0) },
       };
     });
-    return { copies: copies.length, distinctCards: cards.length, cards, sets, recentPulls: this.recentPulls(ownerId, options.recentPacks ?? 3) };
+    return { copies: copies.length, distinctCards: cards.length, cards, sets, recentPulls: this.recentPulls(ownerId, options.recentPacks ?? 3), promos: this.promos(ownerId, copies) };
+  }
+
+  /** The Promos tab's data (collectionSummary's `promos`). */
+  private promos(ownerId: string, copies: CardCopy[]): CollectionSummary["promos"] {
+    const connected = this.getOwner(ownerId).connectedAgentId;
+    const signatureCards = this.listAgents(ownerId).flatMap((agent) => {
+      const sig = this.signatureCard(agent.agentId);
+      if (!sig) return [];
+      const copy = copies.find((c) => c.originRef === `${SIGNATURE_ORIGIN_REF_PREFIX}${agent.agentId}`);
+      return [
+        {
+          agentId: agent.agentId,
+          agentName: agent.name,
+          connected: agent.agentId === connected,
+          cardId: sig.cardId,
+          name: sig.card.name,
+          collectorNumber: sig.collectorNumber,
+          rarity: sig.card.rarity,
+          faction: sig.card.faction,
+          flavor: sig.card.flavor || null,
+          art: sig.card.art,
+          copyId: copy?.copyId ?? null,
+          createdAt: sig.createdAt,
+        },
+      ];
+    });
+    signatureCards.sort((a, b) => a.collectorNumber.localeCompare(b.collectorNumber));
+    const earned = copies
+      .filter((c) => (c.origin === "promo" || c.origin === "prize") && !isSignatureRef(c.originRef))
+      .map((c) => {
+        const info = this.cardInfo(c.cardId, c.secretCode);
+        return { copyId: c.copyId, cardId: c.cardId, name: info.name, rarity: info.rarity, finish: c.finish, origin: c.origin, seriesCode: c.seriesCode, stamp: c.stamp, acquiredAt: c.acquiredAt };
+      })
+      .sort((a, b) => b.acquiredAt.localeCompare(a.acquiredAt) || a.copyId.localeCompare(b.copyId));
+    return { signatureCards, earned };
   }
 
   /** The owner's pity timers, from opening history: packs in a row (most
