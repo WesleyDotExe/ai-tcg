@@ -37,6 +37,7 @@ import { randomUUID } from "node:crypto";
 import { formatLog, getCard, isShippedRules, LookaheadAgent, runMatch, type Agent, type UnitCard, type DeckBuildOptions, type DeckSpec, type Move, type PlayerId, type PlayStyleId, type MatchRules } from "@ai-tcg/engine";
 import { coinOf, EconomyError, PACK_PRICE_CREDITS, type DeckChooser, type EconomyStore, type LiveMatch, type MatchRecord, type RecordedOutcome } from "@ai-tcg/economy";
 import { deepEqual } from "../deepEqual.js";
+import { makeReplayFile, type ReplayFile } from "./replayFile.js";
 import { pairRound, seededRandom, type Pairing, type QueueEntry, type Random } from "./pairing.js";
 import { timelineRecorder, type Timeline } from "./timeline.js";
 
@@ -110,32 +111,10 @@ export interface LadderMatch {
   autoPlayStopped: string[];
 }
 
-/** A replay file (`ai-tcg-replay/1`): enough to rebuild the match exactly
- * with the engine's `replayMatch` (the decks, the agents' names, the seed,
- * every move in order), with the result as recorded. */
-export interface ReplayFile {
-  format: "ai-tcg-replay/1";
-  matchId: string;
-  seed: number;
-  names: { p1: string; p2: string };
-  decks: { p1: ReplayDeck; p2: ReplayDeck };
-  moves: Move[];
-  result: { outcome: string; winner: PlayerId | "draw" | null; turns: number; moves: number; finalHealth: { p1: number; p2: number } };
-  /** (v20) The coin each side flipped (owner 2026-11-02: "each side's
-   * equipped coin on the match record and in the replay"), so a replay
-   * shows the coins the match was played with. Cosmetic only: who went
-   * first is the server's coin flip. Absent in replays written before. */
-  coins?: { p1: string; p2: string };
-}
-
-/** A deck as the replay keeps it: card ids, one per copy, in list order
- * (each one a card of the engine's registry), and the signature card in
- * full (it is the agent's own, generated card, in no registry). */
-export interface ReplayDeck {
-  name: string;
-  cardIds: string[];
-  signature: UnitCard | null;
-}
+// The replay file's format (versioned, session 70) lives in replayFile.ts;
+// re-exported here for the readers that import it from the ladder.
+export { REPLAY_FORMAT, READABLE_REPLAY_FORMATS, replayDeckSpec, replaySetup, rebuildReplay, makeReplayFile } from "./replayFile.js";
+export type { ReplayFile, ReplayFileV1, ReplayFileV2, ReplayDeck, ReplaySetup, ReplayResult, ReplayFormat } from "./replayFile.js";
 
 /** A match the engine has played but the store hasn't recorded yet. */
 export interface PlayedMatch {
@@ -397,7 +376,6 @@ export class Ladder {
       timeline = recorder.timeline;
       const { state, movesPlayed } = await runMatch(specs.p1, specs.p2, a1, a2, seed, recorder.hooks, this.opts.seatRules);
       replay = makeReplay({
-        format: "ai-tcg-replay/1",
         matchId,
         seed,
         names: { p1: a1.name, p2: a2.name },
@@ -412,7 +390,7 @@ export class Ladder {
         // The loadouts can't change during a live match: these are the
         // coins the record keeps too.
         coins: { p1: coinOf(live.p1.loadout), p2: coinOf(live.p2.loadout) },
-      }, specs);
+      }, specs, this.opts.seatRules);
       turns = state.turnNumber;
       moves = movesPlayed;
       finalHealth = { p1: state.players.p1.health, p2: state.players.p2.health };
@@ -475,37 +453,17 @@ export class Ladder {
   }
 }
 
-/** The replay file for a resolved match, or null (with a warning) when a
- * deck holds a card the registry can't give back: the match still counts,
- * it just can't be replayed. */
-function makeReplay(rest: Omit<ReplayFile, "decks">, specs: { p1: DeckSpec; p2: DeckSpec }): ReplayFile | null {
+/** The replay file for a resolved match (`ai-tcg-replay/2`, replayFile.ts),
+ * or null (with a warning) when it can't be written: the match still counts,
+ * it just can't be replayed. Since session 70 the file carries every card in
+ * full, so a deck card that isn't the registry's no longer stops it. */
+function makeReplay(rest: Parameters<typeof makeReplayFile>[0], specs: { p1: DeckSpec; p2: DeckSpec }, rules?: MatchRules): ReplayFile | null {
   try {
-    return { ...rest, decks: { p1: replayDeck(specs.p1), p2: replayDeck(specs.p2) } };
+    return makeReplayFile(rest, specs, rules);
   } catch (err) {
     console.warn(`[ladder] ${rest.matchId}: no replay: ${err instanceof Error ? err.message : String(err)}`);
     return null;
   }
-}
-
-function replayDeck(spec: DeckSpec): ReplayDeck {
-  for (const c of spec.cards) {
-    if (!deepEqual(getCard(c.id), c)) throw new Error(`deck card "${c.id}" isn't the registry's card; a replay couldn't rebuild it`);
-  }
-  return { name: spec.name, cardIds: spec.cards.map((c) => c.id), signature: spec.signature ? structuredClone(spec.signature) : null };
-}
-
-/** The deck a replay file names, as the engine takes it. */
-export function replayDeckSpec(deck: ReplayDeck, id: PlayerId): DeckSpec {
-  return {
-    id,
-    name: deck.name,
-    cards: deck.cardIds.map((cardId) => {
-      const card = getCard(cardId);
-      if (!card) throw new Error(`the replay names a card this engine doesn't have: "${cardId}"`);
-      return card;
-    }),
-    ...(deck.signature ? { signature: deck.signature } : {}),
-  };
 }
 
 /** Writes a file whole or not at all (a crash mid-write leaves no half log). */

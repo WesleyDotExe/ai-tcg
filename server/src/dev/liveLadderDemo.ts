@@ -25,11 +25,11 @@
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { formatLog, PLAY_STYLES, replayMatch, type DeckFaction, type PlayStyleId } from "@ai-tcg/engine";
+import { formatLog, PLAY_STYLES, type DeckFaction, type PlayStyleId } from "@ai-tcg/engine";
 import { EconomyStore } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
 import { LiveLadder } from "../ladder/liveLadder.js";
-import { replayDeckSpec, type LadderMatch, type ReplayFile } from "../ladder/ladderRunner.js";
+import { rebuildReplay, type LadderMatch, type ReplayFile } from "../ladder/ladderRunner.js";
 import { timelineRecorder, WATCH_PACE_MS, watchLengthMs } from "../ladder/timeline.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "live-ladder-demo-"));
@@ -236,7 +236,7 @@ const logRes = await call("GET", `/api/matches/${followed}/log`, token);
 say(`GET /api/matches/${followed}/log -> ${logRes.status}, ${(logRes.body as string).split("\n").length - 1} lines; the first:`);
 say(`  ${(logRes.body as string).split("\n")[0]}`);
 const replay = (await call("GET", `/api/matches/${followed}/replay`, token)).body as ReplayFile;
-const rebuilt = replayMatch(replayDeckSpec(replay.decks.p1, "p1"), replayDeckSpec(replay.decks.p2, "p2"), replay.names, replay.seed, replay.moves);
+const rebuilt = rebuildReplay(replay);
 say(`GET /api/matches/${followed}/replay -> ${replay.format}, ${replay.moves.length} moves; rebuilt in the engine, its log equals the served log: ${`${formatLog(rebuilt.state.log)}\n` === logRes.body ? "yes" : "NO"}`);
 say();
 
@@ -266,7 +266,7 @@ ok("no owner left in a live match after the last tick but the ones on screen", s
 function watchLength(m: LadderMatch): number {
   const r = JSON.parse(readFileSync(m.replayPath!, "utf8")) as ReplayFile;
   const rec = timelineRecorder();
-  replayMatch(replayDeckSpec(r.decks.p1, "p1"), replayDeckSpec(r.decks.p2, "p2"), r.names, r.seed, r.moves, rec.hooks);
+  rebuildReplay(r, rec.hooks);
   return watchLengthMs(rec.timeline);
 }
 

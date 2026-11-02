@@ -10,9 +10,11 @@
 // draw), so two scripted seats that hand back the recorded moves in order
 // give every frame of the match as it was played. A recorded move that
 // isn't legal where the file puts it throws: the file doesn't belong to
-// this engine (the owner's 2026-11-02 call 6, versioned replays, is the
-// game lane's next hardening pass; until then an old file after a card
-// change fails here loudly instead of showing a different match).
+// this engine. Since game session 70 replays are versioned (the owner's
+// 2026-11-02 call 6): an `ai-tcg-replay/2` file carries its rules version
+// and every card in full, an `/1` file reads the frozen `cards-1`; the
+// server's replaySetup reads either, so an old file after a card or rule
+// change still shows the match it was.
 //
 // The boast is the match record's (`GET /api/matches/:id`'s `boast`), never
 // one the render picks, checked against the rebuilt match the same way
@@ -21,12 +23,13 @@
 import { BOARD_SLOTS, type Agent, type Move, type PlayerId } from "@ai-tcg/engine";
 // The game lane's server, read-only (RENDER.md: a fixed upstream): its own
 // reading of a replay file's decks, so both rebuild the same match.
-import { replayDeckSpec, type ReplayFile } from "../../../server/src/ladder/ladderRunner.js";
+import { READABLE_REPLAY_FORMATS, replaySetup, type ReplayFile } from "../../../server/src/ladder/ladderRunner.js";
 import { captureMatch } from "../capture.js";
 import type { MatchReplay, ReplayRecord } from "../types.js";
 import type { SiteMatchView } from "./siteApi.js";
 
-export const REPLAY_FORMAT = "ai-tcg-replay/1";
+/** The replay formats this site reads (the server's own list). */
+export const REPLAY_FORMATS: readonly string[] = READABLE_REPLAY_FORMATS;
 
 /** Hands back the file's moves in order, from whichever seat has priority
  * (both seats share one cursor: the file is one sequence). */
@@ -67,17 +70,19 @@ export function recordOf(replay: MatchReplay, view: SiteMatchView): ReplayRecord
 
 /** The replay file and the match's record, as the arena replay. */
 export async function replayOfFile(file: ReplayFile, view: SiteMatchView): Promise<MatchReplay> {
-  if (file.format !== REPLAY_FORMAT) throw new Error(`a replay file in format "${String(file.format)}"; this site reads "${REPLAY_FORMAT}"`);
+  if (!REPLAY_FORMATS.includes(file.format)) throw new Error(`a replay file in format "${String(file.format)}"; this site reads ${REPLAY_FORMATS.join(" and ")}`);
   if (file.matchId !== view.matchId) throw new Error(`the replay file is match "${file.matchId}", the record "${view.matchId}"`);
-  const seats = scriptedSeats(file.names, file.moves);
+  const setup = replaySetup(file);
+  const seats = scriptedSeats(setup.names, setup.moves);
   const replay = await captureMatch({
     title: `${file.names.p1} vs ${file.names.p2}`,
-    seed: file.seed,
-    deckA: replayDeckSpec(file.decks.p1, "p1"),
-    deckB: replayDeckSpec(file.decks.p2, "p2"),
+    seed: setup.seed,
+    deckA: setup.decks.p1,
+    deckB: setup.decks.p2,
     agentA: seats.p1,
     agentB: seats.p2,
     boardSlots: BOARD_SLOTS,
+    ...(setup.rules ? { rules: setup.rules } : {}),
   });
   if (seats.played() !== file.moves.length) throw new Error(`the match ended after ${seats.played()} of the file's ${file.moves.length} moves`);
   const last = replay.frames[replay.frames.length - 1]!;

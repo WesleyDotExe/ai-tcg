@@ -300,7 +300,7 @@ describe("the match pages over the real owner API, with the ladder playing", () 
     const file = JSON.parse(readFileSync(join(dir, `${id}.replay.json`), "utf8")) as ReplayFile;
     const view = await client.match(ada, id);
     await expect(replayOfFile({ ...file, matchId: "other" }, view)).rejects.toThrow(/is match "other"/);
-    await expect(replayOfFile({ ...file, format: "ai-tcg-replay/2" as never }, view)).rejects.toThrow(/format/);
+    await expect(replayOfFile({ ...file, format: "ai-tcg-replay/9" as never }, view)).rejects.toThrow(/format/);
     const flipped = view.outcome === "win" ? { ...view, winnerOwnerId: view.winnerOwnerId === view.p1.ownerId ? view.p2.ownerId : view.p1.ownerId } : { ...view, outcome: "cancelled" as const };
     await expect(replayOfFile(file, flipped)).rejects.toThrow(/the record says/);
     const r = await replayOfFile(file, view);

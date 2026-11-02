@@ -1,0 +1,148 @@
+--- Turn 1 (p1) ---
+  p1 passes priority
+  p2 passes priority
+[end of turn 1 for p1]
+p2 draws Dangling Pointer
+--- Turn 2 (p2) ---
+  p2 passes priority
+  p1 passes priority
+[end of turn 2 for p2]
+p1 draws Warren Guardian
+--- Turn 3 (p1) ---
+p1 plays Carapace Grunt (u1)
+  p1 passes priority
+  p2 passes priority
+[end of turn 3 for p1]
+p2 draws Segmentation Fault
+--- Turn 4 (p2) ---
+p2 plays Zombie Process (u2)
+  p2 passes priority
+  p1 passes priority
+[end of turn 4 for p2]
+p1 draws Hive Mother
+--- Turn 5 (p1) ---
+Carapace Grunt attacks Golden Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Carapace Grunt's attack
+  Carapace Grunt deals 2 damage to Golden Null
+p1 plays Warren Guardian (u4)
+  p1 passes priority
+  p2 passes priority
+[end of turn 5 for p1]
+p2 draws Segfault Handler
+--- Turn 6 (p2) ---
+p2 casts Segfault Handler [Sorcery] (goes on the stack)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Segfault Handler
+  ability: Segfault Handler — segfault-handler-cast (onPlay)
+  Segfault Handler deals 3 damage to Warren Guardian (unit)
+  Warren Guardian (p1) dies
+Zombie Process attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Zombie Process's attack
+  Zombie Process deals 2 damage to Golden Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 6 for p2]
+p1 draws Rally Cry
+--- Turn 7 (p1) ---
+Carapace Grunt attacks Golden Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Carapace Grunt's attack
+  Carapace Grunt deals 2 damage to Golden Null
+p1 casts Brood Reserves [Sorcery] (goes on the stack)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Brood Reserves
+  ability: Brood Reserves — brood-reserves-cast (onPlay)
+  Brood Reserves summons Swarm Larva for p1 (u9)
+  Brood Reserves summons Swarm Larva for p1 (u10)
+  p1 passes priority
+  p2 passes priority
+[end of turn 7 for p1]
+p2 draws Glitch Seed
+--- Turn 8 (p2) ---
+Zombie Process attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Zombie Process's attack
+  Zombie Process deals 2 damage to Golden Swarm
+p2 plays Glitch Seed (u12)
+p2 plays Dangling Pointer (u13)
+Dangling Pointer attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Dangling Pointer's attack
+  Dangling Pointer deals 2 damage to Golden Swarm
+  p2 passes priority
+  p1 passes priority
+[end of turn 8 for p2]
+p1 draws Carapace Grunt
+--- Turn 9 (p1) ---
+p1 plays Hive Mother (u15)
+Carapace Grunt attacks Golden Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Carapace Grunt's attack
+  Carapace Grunt deals 3 damage to Golden Null
+Swarm Larva attacks Golden Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 2 damage to Golden Null
+Swarm Larva attacks Golden Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 2 damage to Golden Null
+  p1 passes priority
+  p2 passes priority
+[end of turn 9 for p1]
+p2 draws Null Singularity
+--- Turn 10 (p2) ---
+Zombie Process attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Zombie Process's attack
+  Zombie Process deals 2 damage to Golden Swarm
+Dangling Pointer attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Dangling Pointer's attack
+  Dangling Pointer deals 2 damage to Golden Swarm
+  Glitch Seed evolves into Corrupted Process
+  ability: Corrupted Process — corrupted-process-evolve (onPlay)
+p2 draws Null Shell
+Corrupted Process attacks Golden Swarm (face)
+  p2 passes priority
+  p1 passes priority
+>>> resolving: Corrupted Process's attack
+  Corrupted Process deals 2 damage to Golden Swarm
+  Null Shell attaches to Corrupted Process
+  p2 passes priority
+  p1 passes priority
+[end of turn 10 for p2]
+p1 draws Colony Broodling
+--- Turn 11 (p1) ---
+Hive Mother attacks Golden Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Hive Mother's attack
+  Hive Mother deals 4 damage to Golden Null
+Carapace Grunt attacks Golden Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Carapace Grunt's attack
+  Carapace Grunt deals 3 damage to Golden Null
+p1 plays Carapace Grunt (u24)
+p1 plays Colony Broodling (u25)
+Swarm Larva attacks Golden Null (face)
+  p1 passes priority
+  p2 passes priority
+>>> resolving: Swarm Larva's attack
+  Swarm Larva deals 2 damage to Golden Null
+=== GAME OVER: p1 wins (p2's health reached 0) ===

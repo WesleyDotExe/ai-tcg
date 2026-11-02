@@ -55,7 +55,7 @@ Owner API demo 007 — coin skins, the game lane's half (session 69)
   ratingAtStart p1 1712.4 / p2 1337.7; rating now p1 1468.0 / p2 1582.1
   defaultView p1
 > GET /api/matches/live-1/replay  -> 200
-  replay ai-tcg-replay/1: coins {"p1":"coin-chrome-token","p2":"coin-s0-neon-nickel"}
+  replay ai-tcg-replay/2: coins {"p1":"coin-chrome-token","p2":"coin-s0-neon-nickel"}
 > GET /api/matches/live-1/log  -> 200
   the replay rebuilt in the engine equals the served log: IDENTICAL
 

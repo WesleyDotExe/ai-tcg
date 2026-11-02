@@ -19,9 +19,9 @@ import { renderSiteLoadoutPage, renderSitePackPage, renderSitePage } from "./sit
 import { renderMatchHtml } from "../renderHtml.js";
 import { replayOfFile, recordOf } from "./siteReplay.js";
 import { LiveFrameBuilder, type PublicSnapshot, type TimelineStep } from "./liveFrames.js";
-import { BOARD_SLOTS, MAX_ENERGY_CAP, TURN_CAP, replayMatch } from "@ai-tcg/engine";
+import { BOARD_SLOTS, MAX_ENERGY_CAP, TURN_CAP } from "@ai-tcg/engine";
 import { timelineRecorder } from "../../../server/src/ladder/timeline.js";
-import { replayDeckSpec } from "../../../server/src/ladder/ladderRunner.js";
+import { rebuildReplay } from "../../../server/src/ladder/ladderRunner.js";
 import type { SiteMatchView } from "./siteApi.js";
 import type { ReplayFile } from "../../../server/src/ladder/ladderRunner.js";
 
@@ -200,7 +200,7 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
           const f = file.body as ReplayFile;
           if (f.matchId === page.matchId && f.moves.length > page.builder.released) {
             const rec = timelineRecorder();
-            replayMatch(replayDeckSpec(f.decks.p1, "p1"), replayDeckSpec(f.decks.p2, "p2"), f.names, f.seed, f.moves, rec.hooks);
+            rebuildReplay(f, rec.hooks);
             for (const step of rec.timeline.steps.slice(page.builder.released)) page.builder.push(step);
           }
         }

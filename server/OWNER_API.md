@@ -1,6 +1,6 @@
 # Owner API
 
-The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Stats and notifications come in later sessions, on the same server.
+The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Session 70 versioned the replay files (`ai-tcg-replay/2`: the rules and card versions, every card in full; `/1` files still rebuild). Stats and notifications come in later sessions, on the same server.
 
 - Code: `server/src/ownerApi.ts` (`startOwnerApi`); run it with `npm run owner-api -w server -- <season database file> [port]` (default port 8081).
 - Every rule lives in the economy store (`economy/src/store.ts`). The API reads the request, checks the caller may touch what it names, calls the store and answers. It never writes SQL.
@@ -69,7 +69,7 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `GET /api/matches?limit=20&before=<matchId>` | none | `{ matches: HistoryRow[], total, more }`: the caller's matches, newest first (below) |
 | `GET /api/matches/:matchId` | none | `MatchView`: one recorded match, any owner's (below) |
 | `GET /api/matches/:matchId/log` | none | the match log, as text (`text/plain`) |
-| `GET /api/matches/:matchId/replay` | none | the replay file, `ai-tcg-replay/1` (below) |
+| `GET /api/matches/:matchId/replay` | none | the replay file, `ai-tcg-replay/2` (versioned, session 70; older matches answer `/1`) (below) |
 
 ### Who am I
 
@@ -463,9 +463,15 @@ MatchView {
 
 ```
 {
-  format: "ai-tcg-replay/1",
+  format: "ai-tcg-replay/2",     // (session 70) versioned; files written before answer "ai-tcg-replay/1"
+  versions: {
+    rules: "rules-1",            // the rules version it was played under (engine RULES_VERSIONS)
+    cards: "cards-1" | null,     // the published card version the game was on; null if a deck card wasn't that version's
+    cardsDigest                  // the hash of `cards` below, so a reader can check them
+  },
   matchId, seed,
   names: { p1, p2 },             // the agents' names, as the engine had them
+  cards: Card[],                 // (/2 only) every distinct deck card in full, sorted by id (signatures stay in their decks)
   decks: { p1: ReplayDeck, p2: ReplayDeck },
   moves: Move[],                 // every move, in order
   result: { outcome, winner, turns, moves, finalHealth: { p1, p2 } },
@@ -474,7 +480,9 @@ MatchView {
 ReplayDeck { name, cardIds: string[] /* one per copy, in list order */, signature: UnitCard | null /* the agent's own card, in full */ }
 ```
 
-The engine rebuilds the match exactly from it: `replayMatch(replayDeckSpec(decks.p1, "p1"), replayDeckSpec(decks.p2, "p2"), names, seed, moves)` gives every state and log event, the same as the match (`server/src/ladder/ladderRunner.ts` has `replayDeckSpec`; a test checks the rebuilt log against the served one). A match that ended before a move (a seat never seated) has neither file; an abandoned one has a log but no replay (only a match that resolved has one). Logs and replays live in the ladder's match directory, not the database.
+**Versions** (owner 2026-11-02 call 6: "replays carry the card and rule versions they were played under, old ones stay rebuildable"). An `/2` file is self-contained: it plays its own `cards` and its own rules version, never today's registry, so a card rebalanced in a later set or a new rule can't change an old match. An `/1` file (sessions 67-69) names card ids only: those ids mean the frozen `cards-1` (`engine/src/data/cardSnapshots/cards1.ts`, the cards as they stood for every `/1` file) and the rules `rules-1`. A file naming a rules version the engine doesn't know, cards that don't match their digest, or another format is refused with the reason, never guessed at. The versions themselves live in `engine/src/engine/versions.ts`: a card change needs a new `CARDS_VERSIONS` entry (a test fails until it has one), and a change to how matches play needs a new `RULES_VERSIONS` entry with the old behaviour kept for the old version.
+
+The engine rebuilds the match exactly from either format: `rebuildReplay(file, hooks?)` (`server/src/ladder/replayFile.ts`) reads it (`replaySetup`: the decks, names, seed, moves and rules) and replays it with the engine's `replayMatch`, giving every state and log event, and checks it ends as `result` says (winner, turns, moves, final health). Golden replays of both formats (`server/test/fixtures/replays/`, real files the ladder wrote) are rebuilt byte for byte by the tests, also against a registry where every unit has changed. A match that ended before a move (a seat never seated) has neither file; an abandoned one has a log but no replay (only a match that resolved has one). Logs and replays live in the ladder's match directory, not the database.
 
 ## Not built yet
 
