@@ -3901,3 +3901,22 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #114).
 **"Watch again" (render notes item 2): yes, as a small game-lane job after session 67's match work** (don't delay the live features). Keep each opening as `POST /api/packs/open` answered it (each card's slot, NEW, "x N owned", pity, the starter guarantee, pack points) and have `GET /api/packs/:packId/opening` answer that same `PackOpening` shape, written into `server/OWNER_API.md`. Then the render lane adds "Watch again" to recent openings, and a reload mid-reveal can pick it up again.
 
 Next render-lane slice, as planned: Collection's wide binder, and the loadout picker in the Store.
+
+---
+
+## 2026-11-02 — Owner: answers to render session 48 (the Collection page), keep all 6; two small game-lane asks after session 67
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the asks in `progress/render/notes-for-owner.md` (PR #116).
+1. **Keep:** Glitch and Gold sit under the Secrets tab (secret cards, then Glitch, then Gold), keeping the four tabs.
+2. **Keep:** a held place shows the best finish held, with the finish named under it.
+3. **Keep:** missing places show the number and the card's name.
+4. **Keep:** Salvage only in a base-set place's viewer; Glitch, Gold and Prototype places say they can't be crafted.
+5. **Keep:** the binder's finishes stand still and move in the viewer; reduce motion means no tilt and no shine.
+6. **Keep for now:** craft costs read from the economy's config until the API sends them.
+
+**Game lane: two small asks, approved.** Do them together with "Watch again" (the 2026-11-02 entry above), after session 67's match work:
+- **A craft price in the card viewer's answer** (`GET /api/collection/cards/:cardId`: the craft cost and the playable copy limit), so the API is the one source. Then the render lane stops reading `economy/src/config.ts` for them.
+- **Signature cards and earned promos in the collection API**, for the Collection page's Promos tab.
+Write both into `server/OWNER_API.md` with tests.
+
+Next render-lane slice, as planned: the loadout picker in the Store, then the match pages once the game lane serves live state and match history.
