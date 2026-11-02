@@ -3997,3 +3997,15 @@ Add **the faction the agent's deck plays (and its card ids)** to `DeckStatus` in
 - **Order:** the game lane's half first (its [OWNER CHECK-IN] with the slot, catalogue, prices and tier rules, then the build); then two render slices: (1) the flip in Match Boot, the starter coin, reduced motion and sound; (2) the store and tier coins' looks, and the coin line in the picker and the Store.
 
 Next render-lane slice, as planned: the match pages (Watch live, the Live match widget, Match history, auto-play) on the game lane's session 67 endpoints.
+
+---
+
+## 2026-11-02 — Owner: spectators see the higher-rated agent's cosmetics (amends the entry above)
+
+This replaces the entry above's spectator answers (the neutral Chrome Token, and a neutral default arena).
+- **A spectator who owns neither agent sees the cosmetics of the higher-rated agent** in that match: its coin for the coin flip and its arena background. The owners themselves still each see their own agent's coin and arena, as decided.
+- **Higher-rated** means the higher Glicko-2 rating at the start of the match, as recorded on the match, so a replay shows the same cosmetics later.
+- **On the coin flip:** the spectator's coin shows that agent's portrait on one face, and the line reads **<NAME> GOES FIRST** as already planned.
+- **Not decided, propose at the coin plan check-in:** the tie rule (equal ratings, or both owners still in Placement) and whether the spectator view is the same for featured matches and the Watch live widgets.
+- Victory boasts are unchanged: everyone sees the winner's boast.
+- This also settles the arena's open spectator question from the 2026-10-21 entry: the higher-rated agent's arena.
