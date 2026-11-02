@@ -58,7 +58,6 @@ export const PAGE_TITLES: Record<PageId, string> = {
 export const PAGE_WAITS: Partial<Record<PageId, { needs: string[]; will: string }>> = {
   match: { needs: ["live and featured matches"], will: "Your agent's match on a big board, with the play-by-play, auto-play and the 2× vote beside it." },
   live: { needs: ["live and featured matches"], will: "The featured matches, and any one of them on the big board with its play-by-play." },
-  collection: { needs: [], will: "The wide binder: every card you hold, its copies and finishes, by faction." },
   tournament: { needs: ["tournament"], will: "Tournaments come after Season 0." },
   stats: { needs: ["ladder", "stats"], will: "Your rating and form, results by faction, and the ladder." },
 };

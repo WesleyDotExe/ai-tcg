@@ -35,7 +35,7 @@
 
 import { avatarSvg } from "../avatar.js";
 import { startLiquid, type Liquid } from "./liquid.js";
-import { SiteApiError, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
+import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
 import {
   WIDGET_INFO,
@@ -56,6 +56,8 @@ import {
   type WidgetSize,
   type WidgetType,
 } from "./siteBoard.js";
+import { DEFAULT_FILTERS, binderBlocks, craftView, copiesByCard, neighbours, salvageConfirmText, salvageView, type BinderSlot, type CollectionFilters, type FactionFilter, type ShowFilter, type CollectionTab, type SiteBinder } from "./siteCollection.js";
+import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRenderer, type ViewerState } from "./siteCollectionHtml.js";
 import { miniCard, packArt, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
@@ -123,10 +125,14 @@ const state: {
   buyCount: number;
   /** A pack opening is on screen (or its request is out). */
   opening: boolean;
+  /** The Collection page (session 48): the set's binder, the collection
+   * (every copy), the tab and filters, and the card viewer when open. */
+  col: { binder: SiteBinder | null; collection: SiteCollection | null; error: string | null; filters: CollectionFilters; viewer: ViewerState | null };
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
   board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, errors: {} }, colFilter: "All",
   shop: { packs: null, store: null, recent: null, error: null }, buyCount: 1, opening: false,
+  col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
 };
 
 let liquid: Liquid | null = null;
@@ -150,6 +156,7 @@ let liquid: Liquid | null = null;
     home: state.home,
     shop: state.shop,
     opening: state.opening,
+    col: { filters: state.col.filters, viewer: state.col.viewer, binder: state.col.binder, error: state.col.error, loaded: !!state.col.binder },
   }),
   /** The pack-opening frame's own state (its log of every beat), or null. */
   pack: () => (frame?.contentWindow as unknown as { __pack?: unknown } | null)?.__pack ?? null,
@@ -535,6 +542,8 @@ function route(): void {
   drawPage();
   ($("#page") as HTMLElement).scrollTop = 0;
   if (page === "store") void loadShop();
+  if (page === "collection") void loadCollection();
+  else closeViewer(false);
 }
 window.addEventListener("hashchange", () => {
   if (state.session && state.play) route();
@@ -550,6 +559,7 @@ function drawPage(): void {
   else if (page === "settings") el.innerHTML = settingsPage(p);
   else if (page === "connect") el.innerHTML = connectPage(p);
   else if (page === "store") el.innerHTML = storePage();
+  else if (page === "collection") el.innerHTML = collectionPage();
   else el.innerHTML = waitsPage(page);
   applyTheme();
 }
@@ -903,6 +913,8 @@ async function afterChange(): Promise<void> {
   // The Store's reads too, once it has been read: so coming back to it
   // never shows packs that were opened elsewhere (Home's Open, the top bar).
   if (state.page === "store" || state.shop.packs) reads.push(loadShop());
+  // And the Collection's, once read (an opening adds cards to it).
+  if (state.page === "collection" || state.col.binder) reads.push(loadCollection());
   else if (state.session)
     reads.push(
       api.wallet(state.session.token).then(
@@ -978,6 +990,235 @@ async function claimDaily(): Promise<void> {
   }
   await afterChange();
 }
+
+// ---- the Collection page (session 48) ------------------------------------------
+// The wide binder: every collection entry of the set in its numbered place
+// (GET /api/collection/binder/:setCode), drawn with the pack page's own card
+// face (window.SITE_FACE, siteFaces.ts); the copies behind each from GET
+// /api/collection. A slot opens the card viewer: the card, which tilts under
+// the pointer, what you hold (finish, origin, Account-bound), the saved
+// decks that use it, craft and salvage, each sent to the server and redrawn
+// from its answer.
+let faceFn: FaceRenderer | null = null;
+function face(): FaceRenderer {
+  if (!faceFn) faceFn = faceRenderer((window as unknown as { SITE_FACE: FaceFns }).SITE_FACE);
+  return faceFn;
+}
+const siteFace = () => (window as unknown as { SITE_FACE: { packFitText(el: Element): number; packTiltAngles(x: number, y: number, max: number): { rx: number; ry: number } } }).SITE_FACE;
+
+/** Reads the collection, then the binder of its set (the current season's). */
+async function loadCollection(): Promise<void> {
+  if (!state.session) return;
+  const token = state.session.token;
+  try {
+    const collection = await api.collection(token, 1);
+    const setCode = collection.sets[0]?.setCode ?? state.col.binder?.setCode ?? "S0";
+    const binder = await api.binder(token, setCode);
+    state.col = { ...state.col, binder, collection, error: null };
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    state.col = { ...state.col, error: err instanceof SiteApiError ? errorText(err.status, err.message) : "Something went wrong." };
+  }
+  if (state.page === "collection" && !state.busy) {
+    const y = ($("#page") as HTMLElement).scrollTop;
+    drawPage();
+    ($("#page") as HTMLElement).scrollTop = y;
+    if (state.col.viewer) drawViewer();
+  }
+}
+
+function collectionPage(): string {
+  const c = state.col;
+  if (!c.binder || !c.collection) {
+    return `<div class="pg-wide"><div class="wempty glass"><h3>${c.error ? "The collection couldn't be read" : "Loading your collection…"}</h3>${c.error ? `<p class="muted">${esc(c.error)}</p><button type="button" class="btn pri" data-act="retry-col">Try again</button>` : ""}</div></div>`;
+  }
+  return collectionPageHtml(c.binder, c.collection, c.filters, state.wallet?.packPoints ?? 0, face());
+}
+
+/** Every slot on the binder (unfiltered), by key. */
+function slotByKey(key: string): BinderSlot | null {
+  const c = state.col;
+  if (!c.binder || !c.collection) return null;
+  for (const tab of ["set", "secrets", "prototypes"] as const) {
+    for (const b of binderBlocks(c.binder, c.collection, { tab, faction: "All", show: "all" })) {
+      const s = b.slots.find((x) => x.key === key);
+      if (s) return s;
+    }
+  }
+  return null;
+}
+
+let viewerOpener: { el: HTMLElement; key: string } | null = null;
+async function openViewer(key: string, from: HTMLElement | null): Promise<void> {
+  const s = slotByKey(key);
+  if (!s || !state.session) return;
+  if (from) viewerOpener = { el: from, key };
+  state.col.viewer = { key, holdings: null, holdingsError: null, quantity: 1, busy: false };
+  drawViewer();
+  await readHoldings(s);
+}
+async function readHoldings(s: BinderSlot): Promise<void> {
+  if (!state.session) return;
+  try {
+    const h = await api.cardHoldings(state.session.token, s.cardId);
+    const v = state.col.viewer;
+    if (!v || v.key !== s.key) return;
+    v.holdings = h;
+    v.holdingsError = null;
+    v.quantity = salvageView(h, v.quantity).quantity;
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    const v = state.col.viewer;
+    if (v && v.key === s.key) v.holdingsError = err instanceof SiteApiError ? errorText(err.status, err.message) : "something went wrong";
+  }
+  drawViewer();
+}
+
+function drawViewer(): void {
+  const el = $("#viewer");
+  const v = state.col.viewer;
+  const s = v ? slotByKey(v.key) : null;
+  const c = state.col;
+  if (!v || !s || !c.binder || !c.collection) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+  const hadFocus = document.activeElement && el.contains(document.activeElement) ? (document.activeElement as HTMLElement).id || (document.activeElement as HTMLElement).dataset.act || null : null;
+  const blocks = binderBlocks(c.binder, c.collection, { ...c.filters, tab: c.filters.tab === "promos" ? "set" : c.filters.tab });
+  el.innerHTML = `<div class="cvdlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t">${viewerHtml(s, c.binder, c.collection, v, state.wallet?.packPoints ?? 0, neighbours(blocks, s.key), face())}</div>`;
+  const wasHidden = el.hidden;
+  el.hidden = false;
+  const faceEl = el.querySelector(".cv-card .face");
+  if (faceEl) siteFace().packFitText(faceEl);
+  // Focus: Close on opening; after a redraw, the control that had it (or
+  // its twin, when greyed now), else Close.
+  const closeBtn = el.querySelector<HTMLElement>('[data-act="close-viewer"]');
+  const again = !wasHidden && hadFocus ? el.querySelector<HTMLButtonElement>(`#${CSS.escape(hadFocus)}`) ?? el.querySelector<HTMLButtonElement>(`[data-act="${CSS.escape(hadFocus)}"]:not([disabled])`) : null;
+  (again && !again.disabled ? again : closeBtn)?.focus();
+}
+
+function closeViewer(giveFocusBack: boolean): void {
+  if (!state.col.viewer) return;
+  const key = state.col.viewer.key;
+  state.col.viewer = null;
+  drawViewer();
+  if (!giveFocusBack) return;
+  // Focus goes back to the slot the viewer was opened from (or the one it ended on).
+  const el = document.querySelector(`#page [data-slot="${CSS.escape(key)}"]`) ?? (viewerOpener && document.querySelector(`#page [data-slot="${CSS.escape(viewerOpener.key)}"]`));
+  (el as HTMLElement | null)?.focus();
+}
+
+async function craftSlot(): Promise<void> {
+  const v = state.col.viewer;
+  const s = v ? slotByKey(v.key) : null;
+  if (!v || !s || !state.session || !state.col.collection) return;
+  const cv = craftView(s, { cardCopies: copiesByCard(state.col.collection).get(s.cardId)?.length ?? 0 }, state.wallet?.packPoints ?? 0);
+  if (!cv.call || cv.cost === null) return;
+  if (!(await confirmDialog(`Craft ${s.name}?`, `${amount(cv.cost)} pack points. You have ${amount(state.wallet?.packPoints ?? 0)}. Crafted copies are account-bound: they play, but never sell or salvage.`, `Craft · ${amount(cv.cost)} pp`))) return;
+  v.busy = true;
+  drawViewer();
+  try {
+    const call = cv.call;
+    const r = call.kind === "card" ? await api.craftCard(state.session.token, call.cardId) : await api.craftSecret(state.session.token, call.code);
+    state.wallet = r.wallet;
+    drawWallet();
+    toast(`${s.name} crafted. It's in your collection.`);
+  } catch (err) {
+    fail(err);
+  }
+  v.busy = false;
+  await loadCollection();
+  const now = slotByKey(v.key);
+  if (now && state.col.viewer === v) await readHoldings(now);
+  void loadHome(["collection"]);
+}
+
+async function salvageSlot(): Promise<void> {
+  const v = state.col.viewer;
+  const s = v ? slotByKey(v.key) : null;
+  if (!v || !s || !v.holdings || !state.session) return;
+  const token = state.session.token;
+  const q = salvageView(v.holdings, v.quantity).quantity;
+  if (!q) return;
+  v.busy = true;
+  drawViewer();
+  try {
+    // The plan first (what it would do), then the owner's confirm; if the
+    // server still finds decks it would leave short (409), they're put to
+    // the owner and it's sent again confirmed.
+    const plan = await api.salvagePlan(token, s.cardId, q);
+    let ok = await confirmDialog(`Salvage ${q === 1 ? "a copy" : `${q} copies`}?`, salvageConfirmText(s.name, plan, plan.affectedDecks), `Salvage · +${amount(plan.packPoints)} pp`);
+    if (ok) {
+      try {
+        const r = await api.salvage(token, s.cardId, q, plan.affectedDecks.length > 0);
+        state.wallet = r.wallet;
+      } catch (err) {
+        const decks = salvageNeedsConfirmation(err);
+        if (!decks) throw err;
+        ok = await confirmDialog("Leave decks short?", salvageConfirmText(s.name, plan, decks), "Salvage anyway");
+        if (ok) state.wallet = (await api.salvage(token, s.cardId, q, true)).wallet;
+      }
+      if (ok) {
+        drawWallet();
+        toast(`Salvaged ${q === 1 ? "a copy" : `${q} copies`} of ${s.name}: +${amount(plan.packPoints)} pack points.`);
+      }
+    }
+  } catch (err) {
+    fail(err);
+  }
+  v.busy = false;
+  v.quantity = 1;
+  await loadCollection();
+  const now = slotByKey(v.key);
+  if (now && state.col.viewer === v) await readHoldings(now);
+  void loadHome(["collection"]);
+}
+
+// The viewer's card tilts under the pointer (the pack page's own angles);
+// still with reduce motion. Arrow keys move to the previous and next card;
+// Escape closes (a confirm dialog on top takes Escape first).
+document.addEventListener("pointermove", (e) => {
+  const card = (e.target as HTMLElement).closest?.("#cv-card") as HTMLElement | null;
+  if (!card || motionQuery?.matches) return;
+  const r = card.getBoundingClientRect();
+  const a = siteFace().packTiltAngles((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height, 12);
+  card.style.transform = `rotateX(${a.rx}deg) rotateY(${a.ry}deg)`;
+  card.style.setProperty("--gx", `${Math.round(((e.clientX - r.left) / r.width) * 100)}%`);
+  card.style.setProperty("--gy", `${Math.round(((e.clientY - r.top) / r.height) * 100)}%`);
+});
+document.addEventListener("pointerout", (e) => {
+  const card = (e.target as HTMLElement).closest?.("#cv-card") as HTMLElement | null;
+  if (card && !card.contains(e.relatedTarget as Node | null)) card.style.transform = "";
+});
+document.addEventListener("keydown", (e) => {
+  if (!state.col.viewer || $("#dialog").classList.contains("on")) return;
+  if (e.key === "Escape") {
+    e.preventDefault();
+    return closeViewer(true);
+  }
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    const btn = document.getElementById(e.key === "ArrowLeft" ? "cv-prev" : "cv-next") as HTMLButtonElement | null;
+    if (btn && !btn.disabled && btn.dataset.slot) {
+      e.preventDefault();
+      void openViewer(btn.dataset.slot, null);
+    }
+    return;
+  }
+  // Focus stays inside the viewer (a modal).
+  if (e.key === "Tab") {
+    const f = [...document.querySelectorAll<HTMLElement>("#viewer button:not([disabled])")];
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement as HTMLElement);
+    if (e.shiftKey && (i <= 0)) {
+      e.preventDefault();
+      f[f.length - 1]!.focus();
+    } else if (!e.shiftKey && i === f.length - 1) {
+      e.preventDefault();
+      f[0]!.focus();
+    }
+  }
+});
 
 // ---- pack opening, full screen (session 47) ---------------------------------
 // The standalone pack-opening page in its site mode (packPage.ts), served by
@@ -1254,7 +1495,27 @@ document.addEventListener("click", (e) => {
       return;
     }
     if (act === "retry-shop") return void loadShop();
+    if (act === "retry-col") return void loadCollection();
+    if (act === "col-tab" || act === "col-faction" || act === "col-show") {
+      const v = actEl.dataset.v ?? "";
+      const f = state.col.filters;
+      state.col.filters = act === "col-tab" ? { ...f, tab: v as CollectionTab } : act === "col-faction" ? { ...f, faction: v as FactionFilter } : { ...f, show: v as ShowFilter };
+      drawPage();
+      (document.querySelector(`[data-act="${act}"][data-v="${CSS.escape(v)}"]`) as HTMLElement | null)?.focus();
+      return;
+    }
+    if (act === "view-slot" && actEl.dataset.slot) return void openViewer(actEl.dataset.slot, actEl.closest("#viewer") ? null : actEl);
+    if (act === "close-viewer") return closeViewer(true);
+    if (act === "craft") return void craftSlot();
+    if (act === "salvage") return void salvageSlot();
+    if (act === "salv-step" && state.col.viewer?.holdings) {
+      const v = state.col.viewer;
+      v.quantity = salvageView(v.holdings!, v.quantity + Number(actEl.dataset.d)).quantity;
+      drawViewer();
+      return;
+    }
   }
+  if (e.target === document.getElementById("viewer")) return closeViewer(true);
   const segBtn = t.closest(".seg button") as HTMLElement | null;
   if (segBtn) {
     const group = segBtn.parentElement!.id;

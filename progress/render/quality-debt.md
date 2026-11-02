@@ -7,7 +7,7 @@ short of DESIGN.md's arena bar and principle 2 (a human must enjoy
 watching) right now. Most important first. Each session updates it; fixed
 items are removed, with the fix in `log.md`.
 
-## The owner website (sessions 44-46)
+## The owner website (sessions 44-48)
 
 - **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
   tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
@@ -16,9 +16,16 @@ items are removed, with the fix in `log.md`.
 - **Six of the twelve widgets only say what they wait on:** Live match, Watch live, Ladder, Rating & form,
   Match history, Notifications (all after match running). My agent has no rating, record, Start/Watch,
   persona or signature card; no auto-play switch anywhere.
-- **Pages are still missing:** Collection, Agent match, Watch live, Stats, Admin. The Store (session 47)
-  has no loadout picker (cosmetics can be bought, not equipped, in the site) and no "Watch again" (the
-  logged opening lacks the reveal's fields; raised with the game lane).
+- **Pages are still missing:** Agent match, Watch live, Stats, Admin. The Store (session 47) has no
+  loadout picker (cosmetics can be bought, not equipped, in the site) and no "Watch again" (the logged
+  opening lacks the reveal's fields; raised with the game lane).
+- **The Collection page (session 48):** Promos only says what it waits on (no signature cards or promos in
+  the collection API). Craft prices come from the economy's config file, not the API (asked for). The
+  binder draws every place's face at once (96 on the Set tab, 152 on Secrets): fine in Chromium here, never
+  measured on the Mac mini with the liquid behind it; no virtualisation. The binder's faces aren't
+  text-fitted (unreadable at 124 px anyway; the viewer fits). The viewer's tilt is the pointer's only (no
+  touch hold-to-tilt as the pack page has). Salvage's 409 after a plan that named no deck (a race) is
+  handled in code, tested over the API, never seen in the browser. The browser check is by hand, not in CI.
 - **The site's pack opening is a frame around the standalone page:** two documents, two sound players
   (the site has none of its own yet), and the frame is loaded once and kept. Proven in Chromium only. A
   reload mid-reveal loses the show (the cards are safe: they're in the collection).

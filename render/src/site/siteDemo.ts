@@ -51,6 +51,20 @@ export async function startSiteDemo(options: { port?: number; full?: boolean } =
   for (let i = 0; i < 10; i++) store.grantPack(nova.ownerId, "S0", "weeklyChallenge");
   let seed = 4400;
   while (store.unopenedPacks(nova.ownerId).length > 0) store.openPack(nova.ownerId, undefined, { seed: seed++ });
+  // Session 48: one deck saved by hand, so the Collection page's salvage can
+  // meet a saved deck it would leave short (the server's 409, confirmed by
+  // the owner): the starter with one copy swapped for a pulled pack copy,
+  // the first that makes a legal deck. Not the active deck: the agent still
+  // picks its own.
+  const starterCopies = store.collection(nova.ownerId).filter((c) => c.origin === "starter");
+  for (const p of store.collection(nova.ownerId).filter((c) => c.origin === "pack" && c.finish === "standard" && !c.accountBound)) {
+    try {
+      store.saveDeck(nova.ownerId, "Cortex, my tweak", [...starterCopies.slice(1).map((c) => c.copyId), p.copyId]);
+      break;
+    } catch {
+      /* not legal with this copy: the next */
+    }
+  }
   const first = store.createAgent({ ownerId: nova.ownerId, name: "Vector Halcyon" });
   store.createAgent({ ownerId: nova.ownerId, name: "Quill Static" });
   store.connectAgent(nova.ownerId, first.agentId);
