@@ -166,7 +166,7 @@ export async function buildScenario(spec: LoadoutScenarioSpec): Promise<BuiltSce
     const owned = new Map(store.ownedCosmetics(me.ownerId).map((c) => [c.itemId, c]));
     const onSale = new Map(store.cosmeticsOnSale(me.ownerId).map((i) => [i.itemId, i]));
     const catalogue = store.cosmeticsCatalogue();
-    const slots: PickerSlotView[] = LOADOUT_SLOTS.map((slot) => {
+    const slots: PickerSlotView[] = PICKER_SLOTS.map((slot) => {
       const kind = SLOT_KIND[slot];
       const items = catalogue
         .filter((i) => i.kind === kind && (owned.has(i.itemId) || onSale.has(i.itemId)))
@@ -240,11 +240,17 @@ export async function buildScenario(spec: LoadoutScenarioSpec): Promise<BuiltSce
 
 /** Puts every choice of every slot to the store, keeps each answer, and puts
  * the slot back. */
+// The picker draws the slots it has looks for. The coin slot (schema v20,
+// game session 69) joins with the render lane's second coin slice ("the
+// coin line in the picker and the Store"); until then it is left out here,
+// and its Equip goes through the same endpoint when it comes.
+const PICKER_SLOTS = LOADOUT_SLOTS.filter((s) => s !== "coin");
+
 export function outcomesFor(store: EconomyStore, ownerId: string, agentId: string): PickerScenario["outcomes"] {
   const base = store.loadout(agentId);
   const catalogue = store.cosmeticsCatalogue();
   const out = {} as PickerScenario["outcomes"];
-  for (const slot of LOADOUT_SLOTS) {
+  for (const slot of PICKER_SLOTS) {
     out[slot] = {};
     const choices: (string | null)[] = [null, ...catalogue.filter((i) => i.kind === SLOT_KIND[slot]).map((i) => i.itemId)];
     for (const choice of choices) {

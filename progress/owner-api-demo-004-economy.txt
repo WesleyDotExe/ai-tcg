@@ -138,6 +138,7 @@ The database is a real file; the store's clock starts at 2026-11-01T09:00:00.000
   slot cardBack (cardBack): empty; owned choices: none
   slot avatar (avatar): empty; owned choices: none
   slot arena (arena): empty; owned choices: none
+  slot coin (coin): coin-chrome-token; owned choices: coin-chrome-token
 > PUT /api/agents/<agent Vector Halcyon>/loadout/boast {"itemId":"boast-s0-dial-up-fireworks"}  -> 200
   boast slot now boast-s0-dial-up-fireworks
 > PUT /api/agents/<agent Vector Halcyon>/loadout/cardBack {"itemId":"boast-s0-dial-up-fireworks"}  -> 409

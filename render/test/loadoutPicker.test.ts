@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { COSMETICS, EconomyError, EconomyStore, LOADOUT_SLOTS, SLOT_KIND, STARTER_BOASTS, type LoadoutSlot } from "@ai-tcg/economy";
+import { COSMETICS, EconomyError, EconomyStore, SLOT_KIND, STARTER_BOASTS, type LoadoutSlot } from "@ai-tcg/economy";
 import { BOAST_SPECS } from "../src/boastFx.js";
 import {
   LOADOUT_GLYPHS,
@@ -12,6 +12,9 @@ import {
   type LoadoutPageData,
   type PickerSlot,
 } from "../src/loadoutPicker.js";
+// The slots the picker draws: the coin slot (schema v20) joins with the
+// render lane's second coin slice.
+import { LOADOUT_SLOTS_ORDER as LOADOUT_SLOTS } from "../src/loadoutPicker.js";
 import { buildLoadoutPage, LOADOUT_SCENARIOS, openScenarioStore, outcomesFor, type BuiltScenario } from "../src/loadoutDemo.js";
 
 const starters = Object.fromEntries(Object.entries(STARTER_BOASTS).map(([f, b]) => [f, b.itemId]));

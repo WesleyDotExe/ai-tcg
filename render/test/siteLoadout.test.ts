@@ -3,9 +3,12 @@
 // the server's refusals, and the page's site mode.
 
 import { afterEach, describe, expect, it } from "vitest";
-import { EconomyStore, LOADOUT_SLOTS, SEASON_0_BOASTS, STARTER_BOASTS } from "@ai-tcg/economy";
+import { EconomyStore, SEASON_0_BOASTS, STARTER_BOASTS } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../../server/src/ownerApi.js";
 import { loadoutAnswerApply, loadoutLockAction, loadoutPreview, loadoutSlotText, renderLoadoutHtml } from "../src/loadoutPicker.js";
+// The slots the picker draws: the coin slot (schema v20) joins with the
+// render lane's second coin slice.
+import { LOADOUT_SLOTS_ORDER as LOADOUT_SLOTS } from "../src/loadoutPicker.js";
 import { SiteApiError, siteApi, type SitePlay } from "../src/site/siteApi.js";
 import { startSiteHost, type RunningSiteHost } from "../src/site/siteHost.js";
 import { agentLoadoutRows, deckFactionOf, loadoutPayload, previewCards, starterFactionOf } from "../src/site/siteLoadout.js";
@@ -133,7 +136,8 @@ describe("Equip and Buy through the real server", () => {
       const r = loadoutAnswerApply(state, { ok: true, loadout: l.loadout });
       expect(r.ok).toBe(true);
       state = r.state;
-      expect(state).toEqual((await client.loadout(token, a1.agentId)).loadout);
+      const fresh = (await client.loadout(token, a1.agentId)).loadout;
+      expect(state).toEqual(Object.fromEntries(LOADOUT_SLOTS.map((k) => [k, fresh[k]])));
       expect(state[slot as "boast"]).toBe(itemId);
     }
   });

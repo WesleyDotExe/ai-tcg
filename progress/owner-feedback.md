@@ -3944,7 +3944,7 @@ That entry's call 3 said the owner who sits out "goes first next round". Per `se
 
 ---
 
-## 2026-11-02 — Owner: coin skins for the first-player coin flip (new cosmetic, inside Season 0) (game-lane plan WRITTEN 2026-11-02, session 68 — the [OWNER CHECK-IN] in notes-for-owner.md: the coin slot, Chrome Token, store coins and prices, tier coins, the coin on the match record. Not built: it waits for your answer, as asked. Season 0 checklist updated)
+## 2026-11-02 — Owner: coin skins for the first-player coin flip (new cosmetic, inside Season 0) (game-lane plan WRITTEN 2026-11-02, session 68 — the [OWNER CHECK-IN] in notes-for-owner.md: the coin slot, Chrome Token, store coins and prices, tier coins, the coin on the match record. Not built: it waits for your answer, as asked. Season 0 checklist updated) (game-lane half BUILT 2026-11-02, session 69, as answered in the session 68 entry below; the render lane's two slices are next on its side)
 
 New owner feature. **Who goes first is a coin flip for every match** (`server/src/ladder/pairing.ts`), so make that flip something owners see, and make the coin a cosmetic, the same way as victory boasts, arena backgrounds, card backs and avatars.
 
@@ -4000,7 +4000,7 @@ Next render-lane slice, as planned: the match pages (Watch live, the Live match 
 
 ---
 
-## 2026-11-02 — Owner: spectators see the higher-rated agent's cosmetics (amends the entry above)
+## 2026-11-02 — Owner: spectators see the higher-rated agent's cosmetics (amends the entry above) (game-lane part HANDLED 2026-11-02, session 69 — schema v20 keeps each side's rating at the start of the match on `live_matches` and `matches`; `GET /api/live`, `/api/live/:id` and `/api/matches/:id` send both coins, both arenas, `ratingAtStart` and `defaultView` (the higher-rated side, p1 on a tie, per the render 50 answer). Replaced by the point-of-view entry below for what the website shows)
 
 This replaces the entry above's spectator answers (the neutral Chrome Token, and a neutral default arena).
 - **A spectator who owns neither agent sees the cosmetics of the higher-rated agent** in that match: its coin for the coin flip and its arena background. The owners themselves still each see their own agent's coin and arena, as decided.
@@ -4012,7 +4012,7 @@ This replaces the entry above's spectator answers (the neutral Chrome Token, and
 
 ---
 
-## 2026-11-02 — Owner: answers to game session 68 (the first-seat fixes; the coin plan's game half); spectators pick a point of view
+## 2026-11-02 — Owner: answers to game session 68 (the first-seat fixes; the coin plan's game half); spectators pick a point of view (game-lane part HANDLED 2026-11-02, session 69 — coin skins built, calls 1-6 as answered: the `coin` slot; Chrome Token granted and equipped, existing owners and agents in the v20 migration; Dial-Up Dime and Neon Nickel at 300 credits for Season 0 (on sale once the render lane draws them); change 4: the tier coins are Platinum, Diamond and Mythic, a higher tier gets the lower ones, bound, never sold, granted at season end (`grantSeasonTierCoins`, called by the season-end work); each side's coin on the match record and in the replay (`coins: { p1, p2 }`); change 6: both coins and both arenas sent, with `defaultView`. Tests `economy/test/coins.test.ts`, server tests; `server/OWNER_API.md`; evidence `progress/owner-api-demo-007-coins.txt`. The 24-health rule is NOT shipped: it waits for session 70's versioned replays, as set. The render half is the render lane's)
 
 Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #119, `progress/first-seat-002-fixes.txt`).
 
@@ -4038,7 +4038,7 @@ Answers the two [OWNER CHECK-IN] entries in `progress/notes-for-owner.md` (PR #1
 
 ---
 
-## 2026-11-02 — Owner: answers to render session 50 (the match pages), keep all 6; the spectator point of view approved; live endpoints queued
+## 2026-11-02 — Owner: answers to render session 50 (the match pages), keep all 6; the spectator point of view approved; live endpoints queued (game-lane part PARTLY HANDLED 2026-11-02, session 69 — built after the coin skins as told: both sides' ratings at the start of the match on the match record (`ratingAtStart` on each side of `GET /api/matches/:id`, kept for a cancel too) and on the live view, with `defaultView` by the tie rule here (p1). Still queued: the 2x vote, featured picks (rule to a check-in), viewer counts, the live board's unit badges. Session 70's versioned replays stay ahead of the 24-health rule)
 
 Owner decisions on the 6 calls in `progress/render/checkpoints.md` and the notes in `progress/render/notes-for-owner.md` (PR #120).
 1. **Keep:** match history lives on Agent match; the Match history widget's arrow opens it.

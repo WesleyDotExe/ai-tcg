@@ -53,7 +53,7 @@ say();
 say("## 1. The shipped catalogue");
 say();
 for (const i of COSMETICS) {
-  const price = i.priceCredits === null ? "free (starter)" : `${i.priceCredits} credits`;
+  const price = i.tierReward ? `reward (${i.tierReward}+)` : i.priceCredits === null ? "free (starter)" : `${i.priceCredits} credits`;
   say(`${i.itemId.padEnd(28)} ${i.name.padEnd(18)} ${i.season.padEnd(8)} ${(i.faction ?? "neutral").padEnd(7)} ${price.padEnd(15)} drawn: ${i.drawn ? "yes" : "no "}  on sale in S0 now: ${onSale(i, "S0", clock.toISOString()) ? "yes" : "no"}`);
 }
 say();

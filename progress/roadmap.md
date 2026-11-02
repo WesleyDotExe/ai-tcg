@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-02, game session 68 (the four first-seat fixes measured; the small collection and deck asks).
+Updated 2026-11-02, game session 69 (coin skins, the game lane's half; starting ratings on the match record).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -64,10 +64,23 @@ Updated 2026-11-02, game session 68 (the four first-seat fixes measured; the sma
    - [x] the small asks (session 68): "Watch again" (`GET /api/packs/:packId/opening` answers the
      `PackOpening`, schema v19), the craft price and copy limit in the card viewer, signature cards and earned
      promos in the collection (`promos`), the deck's faction and list in `DeckStatus`
-2b. [~] Coin skins (owner 2026-11-02): the plan's game half is at an owner check-in (session 68): the coin slot,
-   the Chrome Token, store coins and prices, tier coins, the coin on the match record. Build it after the answer.
+2b. [x] Coin skins, the game lane's half (owner 2026-11-02, built session 69 as approved with two changes;
+   schema v20): the `coin` slot (the loadout's sixth), the Chrome Token granted and equipped (existing owners in
+   the migration), Dial-Up Dime and Neon Nickel at 300 credits (on sale once drawn), the Platinum, Diamond and
+   Mythic tier coins (granted by `grantSeasonTierCoins` at season end), each side's coin on the match record,
+   the live view and the replay (`coins: { p1, p2 }`), both arenas. Evidence `progress/owner-api-demo-007-coins.txt`.
+   The render lane's two coin slices are next on its side.
+2c. [~] The live endpoints the render lane queued (owner 2026-11-02, render 50), in `server/OWNER_API.md`:
+   - [x] both sides' ratings at the start of the match on the record (`ratingAtStart`, `defaultView`), and on the
+     live view (session 69, schema v20)
+   - [ ] the 2x vote (both owners must agree)
+   - [ ] featured picks ("Top rated"; propose the rule at a check-in)
+   - [ ] viewer counts
+   - [ ] any small additions the render lane's live-board slice names (unit badges: statuses, tool bonuses)
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.
+   Grant the tier coins FIRST (`store.grantSeasonTierCoins()`, built session 69), before the reset clears the
+   ratings.
 
 **Render lane, in order** (the 2026-10-05 desktop spec, trimmed; `render/reference/owner-web-mockup.html`)
 1. [ ] Site layout and the full pages: glass sidebar and top bar; full-screen pack opening; Agent match and Watch

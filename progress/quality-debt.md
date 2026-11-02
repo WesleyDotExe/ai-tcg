@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -75,6 +75,43 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 69 (coin skins, the game lane's half; starting ratings on the match): what is still thin
+
+- **No coin can be seen yet.** Every coin is `drawn: false`: the flip in Match Boot and the coin looks are the
+  render lane's two coin slices. Until the first one, the Chrome Token is equipped everywhere and shows nowhere,
+  and the two store coins are not on sale (by the "not on sale until drawn" rule). The economy test that ties
+  `drawn` to the render's specs only knows boast specs (`BOAST_SPECS`); the render lane's coin slice should add
+  its coin specs to that check, or a drawn coin with no spec (or the reverse) will go unnoticed.
+- **The tier coins are granted by nothing.** `grantSeasonTierCoins` is built and tested, but the season end it
+  belongs to (roadmap item 3) isn't, so in real use no owner holds a tier coin. It reads the tier from the
+  rating at the moment it runs (RD growth for idle days doesn't move the rating, so a quiet last week doesn't
+  cost a tier), and it must run BEFORE the reset clears the ratings: the season-end work has to call it first.
+- **Tier coins are per season by id** (`coin-s0-platinum` ...). The owner said "a coin for each tier reached by
+  the end of the season", which I read as each season having its own; Season 1's coins aren't in the catalogue,
+  so a Season 1 season end would grant nothing (tested). Flagged at the check-in.
+- **The game lane touched the render lane's picker** (`render/src/site/siteLoadout.ts`, `render/src/loadoutDemo.ts`,
+  two render tests, and a type in `loadoutPicker.ts`): the picker built its slots from the economy's
+  `LOADOUT_SLOTS`, which now has six, and had no label for "coin". It now leaves the coin slot out until the
+  render lane's second coin slice adds the "Coin" line. A small guard, not the coin line itself; flagged in the
+  log for the render lane.
+- **An owner without a starter collection has no Chrome Token** (as with the starter boasts). Every real owner
+  gets the starter collection at sign-up, so this only shows in tests, but an empty coin slot is a legal state
+  that the website must draw as the Chrome Token (`coinOf`), not as "no coin".
+- **`ratingsAtStart` is the rating as the match started; a cancel keeps it too, but matches recorded before v20
+  have none.** The match view falls back to the ratings' "before" (the same number, since a rating only moves
+  when a match ends) and to null for an older cancel, so `defaultView` is p1 there. The live view's `rating`
+  now reads the stored starting rating (the same number it computed before).
+- **Replays carry `coins` inside format `ai-tcg-replay/1`** as an optional field (absent in older files). That's
+  additive, but it is exactly the kind of change versioned replays (session 70) should put on a proper footing.
+- **The coin doesn't reach the engine at all** (tested: one seed, two coins, the same match, credits and
+  rating). The flip's result the render shows must come from the record's p1 (who went first); nothing in the
+  API says "won the flip" separately, since the seat is the flip.
+- **`economy-demo-009.txt` is stale (pre-existing):** re-run, it prints "a deck holding the Zero-Day card before
+  it is designed: ALLOWED (this is a bug)" because the Zero-Day cards are designed and live now; the demo's
+  check, not the store, is out of date. Left committed as it was; fix the demo in session 70.
+- **Still queued from the owner's render-50 entry, not built:** the 2x vote, featured picks ("Top rated", a rule
+  to propose at a check-in) and viewer counts. Only the starting ratings were built this session.
+
 ## Session 68 (the first-seat fixes measured; the small collection and deck asks): what is still thin
 
 - **The first seat still wins about 65% in every match the game plays (serious, balance).** Session 68 measured
@@ -103,7 +140,7 @@ real, but here is where it's thin.
   promos yet, so `promos.earned` is always empty in real use; only the test grants one by hand.
 - **`DeckStatus.faction` is worked out from the card ids on every call**, and `list` reads the deck's listing a
   second time (`deckStatus` already resolves it once). Fine at Season 0 size.
-- **The coin skins are only planned** (owner check-in); nothing is built.
+- ~~**The coin skins are only planned** (owner check-in); nothing is built.~~ Built, session 69 (game half).
 
 ## Session 67 (the long-lived ladder, Watch live, auto-play, match history): what is still thin
 
