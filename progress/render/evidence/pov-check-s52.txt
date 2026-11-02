@@ -1,0 +1,77 @@
+
+[A] the arena opened plain
+PASS  A. p1 near, the switch shown ({"near":"p1","want":null,"canSwitch":true})
+PASS  A. "Watch as" Lookahead-Cortex | Lookahead-Swarm, pov-p1 pressed
+PASS  A. as before: p1's row at the bottom, its HUD and hand left, its name first ("Lookahead-Cortex [Cortex]")
+PASS  A. each row holds its own player's cards (4 / 4 units)
+
+[B] "Watch as" p2
+PASS  B. p2 near, its button pressed
+PASS  B. p2's row at the bottom, its HUD and hand on the left, its name first ("Lookahead-Swarm [Swarm]")
+PASS  B. the same move (40), each row still its own player's cards
+PASS  B. the momentum gauge mirrors (score 11: left 50% width 5.5% -> left 44.5% width 5.5%)
+PASS  B. nothing re-played on the switch (fx layer: 0)
+PASS  B. and back to p1: as it was
+
+[C] switching while it plays, and during Match Boot
+PASS  C. Play from move 0: Match Boot plays
+PASS  C. a switch during the intro waits (near p1, waiting for p2)
+PASS  C. the intro ends by itself
+PASS  C. then the board flips to p2
+PASS  C. playback goes on after the flip (move 1 -> 6)
+PASS  C. a switch mid-playback flips at once and play goes on (move 6 -> 11)
+PASS  C. the intro isn't played again (saying ENGAGE, played 1)
+
+[D] the end, watched from each side
+PASS  D. as p1: the winner's boast plays (Lookahead-Cortex, its side at the bottom)
+PASS  D. as p1: nothing lit past the winner's side once the clear has run (45 samples, 0 lit outside)
+PASS  D. as p1: the loser's side, panel and hand dimmed (0.7, 0.7, 0.7), the winner's panel lit, Skip on the winner's side
+PASS  D. as p1: GAME OVER lands as the boast ends (0 ms after)
+PASS  D. as p2: the winner's boast plays (Lookahead-Cortex, its side on top)
+PASS  D. as p2: nothing lit past the winner's side once the clear has run (46 samples, 0 lit outside)
+PASS  D. as p2: the loser's side, panel and hand dimmed (0.7, 0.7, 0.7), the winner's panel lit, Skip on the winner's side
+PASS  D. as p2: GAME OVER lands as the boast ends (0 ms after)
+
+[E] kept for the tab
+PASS  E. a reload keeps p2 (near p2)
+PASS  E. a new tab starts at p1
+
+[F] the website's hash
+PASS  F. view=p2&switch=0: p2 at the bottom, no switch
+PASS  F. view=p2&switch=1: p2 at the bottom, the switch shown
+
+[G] a phone
+PASS  G. a tap flips it on a phone
+PASS  G. the switch fits (right edge 378 of 390 px, buttons 28 px tall), no sideways scroll
+
+[H] Watch live: the switch on each card
+PASS  H. two or more matches are live
+PASS  H. every match Nova doesn't play (1) has the switch, its defaultView pressed and near (1547/1298 -> p2)
+PASS  H. Nova's own match: no switch, Nova's side near (p2)
+
+[I] a tap flips the card
+PASS  I. its scoreboard and compact board flip to Rook's agent (p1)
+PASS  I. focus stays on the button (watch-as:p1)
+PASS  I. the 3 s redraw keeps the choice
+PASS  I. a reload keeps it (this tab)
+
+[J] the arena from a switched card
+PASS  J. it opens with Rook's agent (p1) at the bottom, the switch shown
+PASS  J. switching inside the arena flips it
+PASS  J. on Close the card shows the arena's choice (p2)
+
+[K] Nova's own views
+PASS  K. Agent match has no switch
+PASS  K. its arena: Nova's side (p2) at the bottom, no switch
+PASS  K. Nova has a recorded match with a replay
+PASS  K. a replay from the history: Nova's seat (p2) at the bottom, no switch
+
+[L] Home's Watch live widget
+      Watch live tiles: [{"id":"w6","size":"M","sw":false}]
+PASS  L. its first match is Nova's: no switch
+
+[M] errors and requests
+PASS  M. no page errors
+PASS  M. no external requests
+
+48 PASS, 0 FAIL — ALL PASS

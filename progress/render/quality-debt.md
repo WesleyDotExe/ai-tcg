@@ -9,7 +9,7 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
-- **A render hardening pass is overdue:** the last was session 40; sessions 41-51 each built the slice the
+- **A render hardening pass is overdue:** the last was session 40; sessions 41-52 each built the slice the
   owner named. Sessions 36's and 45's browser checks are stale or fail on main (below). The next session
   the owner leaves unnamed should be one.
 - **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
@@ -18,7 +18,7 @@ items are removed, with the fix in `log.md`.
   (`site-check-s45-rerun-s46.txt`). Never measured on a GPU; options with the owner (notes, session 46).
 - **The live arena draws less than a replay (session 51):** no signature zone (the feed has the card's name
   only), a signature unit's printed Barrier and ability text unknown, each side Neutral until it shows a
-  faction card, hands as card backs, no Command flight from the hand (there's no card in the hand to fly).
+  faction card, hands as card backs (the owner chose to show them face up after render 51: not built yet), no Command flight from the hand (there's no card in the hand to fly).
   Each is a small game-lane addition (notes, session 51) or the owner's hands call. Statuses and this-turn
   buffs take their duration from the source card's abilities: exact in every tested match, but a future
   card with two different durations for the same status or buff would leave it out (listed in
@@ -42,8 +42,14 @@ items are removed, with the fix in `log.md`.
   the click for 30 s, on this branch; the re-run passed 40 of 40). Watch for it.
 - **The live arena's own match feed shows each draw** ("draws Watchtower Relay"): the feed is built from the
   engine's events, which name the card (notes, session 51, item 3), while the hands show card backs.
-- **The Home widgets don't open the arena** (only Agent match and Watch live do); the arena's sides are the
-  engine's (p1 at the bottom), not the viewer's, live as in replays: the point-of-view slice.
+- **The Home widgets don't open the arena** (only Agent match and Watch live do).
+- **The point of view (session 52) has untested corners:** a switch during Match Boot or a boast waits by
+  polling every 120 ms (fine, but a timer, not an event); a switch drops effects still in flight on the move
+  shown (the end state is drawn, the flourish is lost). The momentum gauge keeps its old convention (p1 ahead
+  fills right of centre, away from p1's HUD on the left) and mirrors with the view: it was never checked
+  that viewers read it the intended way (owner call 3). A replay of a match the viewer doesn't own can't be
+  opened from the site yet, so the replay page's switch and the record's `defaultView` aren't used there.
+  Standalone replays start at p1 (no ratings in the file).
 - **The play-by-play is the engine's log text tidied by regexes** (`tidyLine`), not the arena's own feed
   (`feed.ts`, built from frames): an ability shows as "X's ability triggers" with no rules text, and a new
   log line shape from the engine would pass through untidied (a test pins today's shapes).
@@ -56,8 +62,7 @@ items are removed, with the fix in `log.md`.
 - **The live parts poll every 3 s** (15 s in a hidden tab), not a push: a move can show up to 3 s late
   against the server's watch clock. Never measured with many live tiles open at once.
 - **The arena replay inside the site keeps its own dark terminal look** and its own controls; the site's
-  sound and music settings aren't handed to it (it uses its own toggles). Its sides are the engine's (p1
-  top), not the viewer's.
+  sound and music settings aren't handed to it (it uses its own toggles).
 - **The demo's ladder is opt-in** (`--ladder`), so sessions 46-49's checks don't see live matches; nothing
   re-checks the Store's loadout lock against a live match in the browser yet.
 - **Three of the twelve widgets only say what they wait on:** Ladder, Rating & form, Notifications. My agent

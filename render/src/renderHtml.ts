@@ -51,6 +51,7 @@ export function renderMatchHtml(replay: MatchReplay, opts: MatchPageOptions = {}
 <header class="matchbar">
   <div class="brand">AI·TCG // ${live ? "SPECTATOR LIVE" : "SPECTATOR REPLAY"}</div>
   <div class="matchup" id="matchup"></div>
+  <div class="pov" id="pov" role="group" aria-label="Watch as" hidden><span class="pov-l">Watch as</span><button type="button" class="pov-b" id="pov-p1" data-v="p1"></button><button type="button" class="pov-b" id="pov-p2" data-v="p2"></button></div>
   ${live ? `<button type="button" class="live-badge" id="btn-live" title="Follow the newest move">LIVE</button>` : `<div class="seed">seed ${replay.seed}</div>`}
 </header>
 
@@ -168,6 +169,19 @@ html, body {
 .matchup { font-weight: bold; letter-spacing: 0.12em; }
 .matchup .vs { color: var(--ink-dim); margin: 0 0.5em; }
 .seed { color: var(--ink-dim); font-size: 0.75rem; }
+/* The spectator point of view (render session 52, owner 2026-11-02): one
+ * two-button switch with the agents' names; the chosen player sits at the
+ * bottom (the near side). */
+.pov { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 4px; padding: 2px; background: #070a14; }
+.pov[hidden] { display: none; }
+.pov-l { color: var(--ink-dim); font-size: 0.66rem; padding: 0 6px; white-space: nowrap; }
+.pov-b { background: none; border: 1px solid transparent; color: var(--ink-dim); font: inherit; font-size: 0.74rem; letter-spacing: 0.03em; text-transform: none; padding: 4px 9px; min-height: 28px; border-radius: 3px; cursor: pointer; max-width: 24ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) { .pov-b { max-width: 15ch; } }
+.pov-b[aria-pressed="true"] { color: var(--fc, var(--ink)); border-color: var(--fc, var(--ink)); background: rgba(255,255,255,0.05); box-shadow: 0 0 8px -3px var(--fc, var(--ink)); }
+.pov-b:not([aria-pressed="true"]):hover { color: var(--ink); }
+.pov-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.pov.waiting .pov-b { cursor: progress; }
+@media (max-width: 720px) { .matchbar { flex-wrap: wrap; gap: 6px 10px; } .pov { order: 3; } }
 #app { max-width: 1180px; margin: 0 auto; padding: 14px 12px 24px; position: relative; z-index: 1; }
 /* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under
  * the board (the background grid impacts warp, then ground marks and
@@ -471,6 +485,9 @@ html, body {
 
 .board-row#board-p1 .card.fx-attack { animation: fx-lunge-up 380ms ease; }
 .board-row#board-p2 .card.fx-attack { animation: fx-lunge-down 380ms ease; }
+/* Watching as p2, p2 is the near side: its cards lunge up. */
+body.pov-p2 .board-row#board-p1 .card.fx-attack { animation-name: fx-lunge-down; }
+body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
 @keyframes fx-lunge-up { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-14px) scale(1.05); } }
 @keyframes fx-lunge-down { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(14px) scale(1.05); } }
 
@@ -821,6 +838,46 @@ const JS = `
   let i = 0;
   let playing = false;
   let timer = null;
+
+  // ---- the spectator point of view (render session 52) --------------------
+  // near: the player at the bottom of the board (their units, hand and
+  // health bar on the near side; their HUD, hand and name first, on the
+  // left). The website says which in the page's hash (view=p1|p2) and
+  // whether the viewer may switch (switch=1: a match they don't own; their
+  // own agent's side otherwise). Opened on its own (a committed replay)
+  // the switch shows, and the choice is kept for this tab.
+  const VIEW_KEY = 'ai-tcg.arena.view.' + ((replay.record && replay.record.matchId) || ('seed-' + replay.seed + '-' + replay.title));
+  const FRAMED = window.parent !== window;
+  const viewHash = (function () {
+    const out = {};
+    String(location.hash || '').replace(/^#/, '').split('&').forEach(function (kv) {
+      const p = kv.split('='); if (p[0]) out[p[0]] = p[1] || '';
+    });
+    return out;
+  })();
+  const CAN_SWITCH = viewHash['switch'] !== '0';
+  let near = viewHash.view === 'p2' ? 'p2' : 'p1';
+  if (!FRAMED && !viewHash.view) {
+    try { const v = sessionStorage.getItem(VIEW_KEY); if (v === 'p1' || v === 'p2') near = v; } catch (err) {}
+  }
+  function far() { return near === 'p1' ? 'p2' : 'p1'; }
+  // The sides' places follow near: the bottom row, the left HUD and the
+  // left hand are the near player's. The elements keep their ids (board-p1
+  // is always p1's), so everything that finds a player's row by id still
+  // finds it; only what assumed "p1 is at the bottom" asks near() now.
+  function placeSides() {
+    const area = document.getElementById('board-area'), stack = document.getElementById('stackzone');
+    area.insertBefore(document.getElementById('side-' + far()), stack);
+    area.insertBefore(document.getElementById('side-' + near), stack.nextSibling);
+    const hudRow = document.getElementById('hud-' + near).parentNode, mom = document.getElementById('momentum');
+    hudRow.insertBefore(document.getElementById('hud-' + near), mom);
+    hudRow.insertBefore(document.getElementById('hud-' + far()), mom.nextSibling);
+    const log = document.getElementById('eventlog'), lower = log.parentNode;
+    lower.insertBefore(document.getElementById('hand-' + near), log);
+    lower.insertBefore(document.getElementById('hand-' + far()), log.nextSibling);
+    document.body.classList.toggle('pov-p2', near === 'p2');
+    document.body.setAttribute('data-near', near);
+  }
   // True only while goTo steps one move forward (slice 6: wards arrive and
   // shatter on cue then; a jump just places them).
   let stepping = false;
@@ -843,11 +900,27 @@ const JS = `
   }
 
   function renderMatchup() {
+    const a = near, b = far();
     document.getElementById('matchup').innerHTML =
-      '<span class="faction-' + replay.factions.p1 + '" style="color:var(--fc)">' + avatarHtml('p1') + escapeHtml(replay.identities.p1.username) + ' [' + replay.factions.p1 + ']</span>' +
+      '<span class="faction-' + replay.factions[a] + '" style="color:var(--fc)">' + avatarHtml(a) + escapeHtml(replay.identities[a].username) + ' [' + replay.factions[a] + ']</span>' +
       '<span class="vs">vs</span>' +
-      '<span class="faction-' + replay.factions.p2 + '" style="color:var(--fc)">' + avatarHtml('p2') + escapeHtml(replay.identities.p2.username) + ' [' + replay.factions.p2 + ']</span>';
+      '<span class="faction-' + replay.factions[b] + '" style="color:var(--fc)">' + avatarHtml(b) + escapeHtml(replay.identities[b].username) + ' [' + replay.factions[b] + ']</span>';
+    renderPov();
   }
+  // The switch: both names, the one watched as pressed, in its faction colour.
+  function renderPov() {
+    const el = document.getElementById('pov');
+    el.hidden = !CAN_SWITCH;
+    if (!CAN_SWITCH) return;
+    ['p1', 'p2'].forEach(function (pid) {
+      const b = document.getElementById('pov-' + pid);
+      b.textContent = pname(pid);
+      b.className = 'pov-b faction-' + replay.factions[pid];
+      b.setAttribute('aria-pressed', String(pid === near));
+      b.title = pid === near ? 'Watching as ' + pname(pid) : 'Watch as ' + pname(pid) + ': their side at the bottom';
+    });
+  }
+  placeSides();
   renderMatchup();
 
   const scrubber = document.getElementById('scrubber');
@@ -1239,10 +1312,12 @@ ${SIG_ZONE_SOURCE}
 
   function renderMomentum(m) {
     ensureMomentum();
-    const pct = (m.score + 100) / 2;
+    // Watching as p2 the gauge mirrors, as the HUDs do: the near side's
+    // lead fills the way p1's did with p1 near.
+    const pct = ((near === 'p2' ? -m.score : m.score) + 100) / 2;
     const color = m.leader === 'even' ? 'var(--neutral)' : 'var(--' + replay.factions[m.leader].toLowerCase() + ')';
     let fillLeft, fillWidth;
-    if (m.score >= 0) { fillLeft = 50; fillWidth = pct - 50; } else { fillLeft = pct; fillWidth = 50 - pct; }
+    if (pct >= 50) { fillLeft = 50; fillWidth = pct - 50; } else { fillLeft = pct; fillWidth = 50 - pct; }
     const fillEl = document.getElementById('momentum-fill');
     fillEl.style.left = fillLeft + '%';
     fillEl.style.width = fillWidth + '%';
@@ -1628,7 +1703,7 @@ ${SIG_ZONE_SOURCE}
     }
     const row = fx.owner ? document.getElementById('board-' + fx.owner) : document.getElementById('stackzone');
     const r = row.getBoundingClientRect();
-    return { left: r.left + r.width / 2 - 40, top: fx.owner === 'p2' ? r.bottom - 30 : r.top + (fx.owner ? 10 : 0), width: 80, height: 20 };
+    return { left: r.left + r.width / 2 - 40, top: fx.owner === far() ? r.bottom - 30 : r.top + (fx.owner ? 10 : 0), width: 80, height: 20 };
   }
   function spawnCast(fx, prevRects, prevStackRects, stackIndex) {
     const rect = castAnchorRect(fx, prevRects, prevStackRects);
@@ -1673,13 +1748,13 @@ ${SIG_ZONE_SOURCE}
     // number (top) and buff/penalty labels (upper-middle); stacked downward
     // when one card fires several powers in one move. Stack (a Command):
     // the sigil plays on the Command's stack entry, and the tag sits in the
-    // same lane on the caster's side (p1 left, p2 right, matching the HUD
-    // panels) so it never covers the entry it is labelling.
+    // same lane on the caster's side (the near player left, the far one
+    // right, matching the HUD panels) so it never covers the entry it is labelling.
     let tagX = cx, baseTop = fx.anchor === 'card' ? rect.top + rect.height * 0.62 : rect.top;
     if (fx.anchor === 'stack') {
-      const row = document.getElementById('board-p1').getBoundingClientRect();
+      const row = document.getElementById('board-' + near).getBoundingClientRect();
       const lane = document.getElementById('stackzone').getBoundingClientRect();
-      tagX = fx.owner === 'p1' ? row.left + row.width * 0.14 : row.right - row.width * 0.14;
+      tagX = fx.owner === near ? row.left + row.width * 0.14 : row.right - row.width * 0.14;
       baseTop = lane.top + 1;
     }
     // On a card in a zoomed row the tag shrinks with the card, and so does
@@ -2406,7 +2481,7 @@ ${SIG_ZONE_SOURCE}
     // The loser's side, reaching out from the board (smoke rises), never in
     // toward the winner's.
     const lr = document.getElementById('side-' + l).getBoundingClientRect(), sx = window.scrollX, sy = window.scrollY;
-    CFX.fadeOutIn({ l: lr.left + sx - 40, r: lr.right + sx + 40, t: lr.top + sy - (l === 'p2' ? 160 : 0), b: lr.bottom + sy + (l === 'p1' ? 160 : 0) }, BOAST_CLEAR_MS);
+    CFX.fadeOutIn({ l: lr.left + sx - 40, r: lr.right + sx + 40, t: lr.top + sy - (l === far() ? 160 : 0), b: lr.bottom + sy + (l === near ? 160 : 0) }, BOAST_CLEAR_MS);
     BOAST.play(pick.id, {
       band: document.getElementById('side-' + w), panel: document.getElementById('hud-' + w),
       row: document.getElementById('board-' + w),
@@ -2508,8 +2583,9 @@ ${SIG_ZONE_SOURCE}
   // match's seed, so every viewer and every replay sees the same one.
   function startBoot() {
     if (frames.length < 2) return false;
-    const plan = BOOT.play({ top: document.getElementById('side-p2'), bot: document.getElementById('side-p1'), area: document.getElementById('board-area') }, {
-      who: { top: { name: pname('p2'), faction: replay.factions.p2 }, bot: { name: pname('p1'), faction: replay.factions.p1 } },
+    const top = far(), bot = near;
+    const plan = BOOT.play({ top: document.getElementById('side-' + top), bot: document.getElementById('side-' + bot), area: document.getElementById('board-area') }, {
+      who: { top: { name: pname(top), faction: replay.factions[top] }, bot: { name: pname(bot), faction: replay.factions[bot] } },
       seed: replay.seed,
       onEnd: function () {
         if (!playing || i !== 0) return;
@@ -2605,6 +2681,52 @@ ${SIG_ZONE_SOURCE}
   // The rows refit first, so the lines aim at the cards' new size.
   window.addEventListener('resize', function () { fitBoards(); drawAimLines(frames[i], {}); });
   window.addEventListener('scroll', function () { drawAimLines(frames[i], {}); }, { passive: true });
+
+  // ---- switching the point of view -----------------------------------------
+  // A switch re-shows nothing (owner 2026-11-02): the board flips on the
+  // move shown, playback goes on, the coin and arena swap from then on.
+  // Match Boot and the boast are drawn on the sides where they started, so
+  // a switch while either plays waits for it to end (the button shows it
+  // is waiting), then flips.
+  let wantView = null, viewWait = 0;
+  function setView(v) {
+    if (v !== 'p1' && v !== 'p2') return;
+    if (BOOT.active() || BOAST.active()) {
+      wantView = v === near ? null : v;
+      document.getElementById('pov').classList.toggle('waiting', !!wantView);
+      clearInterval(viewWait);
+      if (wantView) viewWait = setInterval(function () {
+        if (BOOT.active() || BOAST.active()) return;
+        clearInterval(viewWait); viewWait = 0;
+        const w = wantView; wantView = null;
+        document.getElementById('pov').classList.remove('waiting');
+        if (w) flipTo(w);
+      }, 120);
+      return;
+    }
+    flipTo(v);
+  }
+  function flipTo(v) {
+    if (v === near) return;
+    near = v;
+    // Whatever is still in flight was aimed at the old places: dropped
+    // (the move's end state is what renderFrame draws, so nothing is lost).
+    cancelFx();
+    while (aimLayer.firstChild) aimLayer.removeChild(aimLayer.firstChild);
+    while (fxLayer.firstChild) fxLayer.removeChild(fxLayer.firstChild);
+    placeSides();
+    renderMatchup();
+    fitBoards();
+    renderFrame();
+    if (!FRAMED) { try { sessionStorage.setItem(VIEW_KEY, near); } catch (err) {} }
+    // The website keeps the choice per match for the tab (siteClient.ts).
+    else { try { window.parent.postMessage({ type: 'ai-tcg-view', view: near }, location.origin); } catch (err) {} }
+  }
+  ['p1', 'p2'].forEach(function (pid) {
+    document.getElementById('pov-' + pid).addEventListener('click', function () { setView(pid); });
+  });
+  // For the browser checks: where each player sits now.
+  window.__pov = function () { return { near: near, want: wantView, canSwitch: CAN_SWITCH }; };
 
   fitBoards();
   renderFrame();

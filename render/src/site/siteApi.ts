@@ -130,6 +130,9 @@ export interface SiteLiveMatch {
   nextAt: string | null;
   p1: SiteLiveSide;
   p2: SiteLiveSide;
+  /** (v20) The spectator's starting point of view: the higher rating at the
+   * start, p1 on a tie. Optional: a server from before v20 leaves it out. */
+  defaultView?: "p1" | "p2";
   now: SitePublicSnapshot;
   recentLines: string[];
 }
