@@ -84,9 +84,11 @@ Updated 2026-11-02, game session 71 (the 24-health rule shipped as rules-2).
    - [ ] featured picks ("Top rated"; propose the rule at a check-in)
    - [ ] viewer counts
    - [ ] any small additions the render lane's live-board slice names (unit badges: statuses, tool bonuses)
-   - [ ] (owner 2026-11-03, render 51) the signature card on the live view (`PublicSide.signature`: the card,
+   - [x] (owner 2026-11-03, render 51) the signature card on the live view (`PublicSide.signature`: the card,
      `timesPlayed`, `inZone`, `nextCost`), each side's deck faction (`LiveSideView.faction`), the boast on the live
-     view once the last move is out
+     view once the last move is out (session 72; `progress/live-feed-asks-001.txt`)
+   - [x] (owner 2026-11-03, render 53) the opening hands on the live view's start (`openingHands: { p1, p2 }`,
+     by card id in hand order, beside `start`) (session 72)
    - [ ] (owner 2026-11-03) hands hidden live (counts only, no card in draw events) for any match with a real-time
      network agent seat, until it ends: built when network agents join the ladder
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.

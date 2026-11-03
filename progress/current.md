@@ -1,40 +1,45 @@
 # Current status
 
 **Build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
-`progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP). Session 71 (game lane) shipped the 24-health rule
-as `rules-2`. Nothing is blocking. One [OWNER CHECK-IN] is open (the shipped numbers, before the launch-gate
-re-run; seven calls with recommendations at the top of notes-for-owner.md); nothing waits on it.**
+`progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP). Session 72 (game lane) shipped the live-feed asks
+(the opening hands, the signature card in full, each side's faction, the boast on the live view). Nothing is
+blocking. No [OWNER CHECK-IN] is open (the session-71 one was answered 2026-11-03); three small keep-or-change calls
+are at the top of notes-for-owner.md, and nothing waits on them.**
 
-- **The rule** (owner 2026-11-02): "The player going second starts with 24 health; the player going first starts
-  with 20 and skips its first draw." It is the engine's base (`SECOND_SEAT_EXTRA_HEALTH`, `engine/src/state/
-  types.ts`), so every match anywhere plays it. `RULES_VERSIONS` (`engine/src/engine/versions.ts`): `rules-1`
-  names its 20 and 20 explicitly; `rules-2` is current. Every rules-1 replay (the four golden files) rebuilds byte
-  for byte; two rules-2 golden files added (`server/test/fixtures/replays/r2-*`).
-- **Session 68's other seat variants are gone** from the engine; `seatVariants.ts` is `shipped` and `rules-1`.
-  Measuring replays name every rule field or are refused.
-- **The numbers** (owner check-in): first seat 53.6% on the ladder (was 63.8%), 54.4% in mirrors (was 64.4%),
-  `progress/first-seat-003-rules-2.txt`. Ring and ring:real PASS; new baselines in all three modes. Built-deck
-  ring `progress/built-deck-ring-005.txt`: real mode 3 in / 7 out (was 5 / 5), nearly all from the
-  full-collection Null deck the builder now picks (noise check `progress/rules-2-ship/null-noise/README.txt`:
-  every search seed's pick is worse than the designed list). Watch time median 6.7 min (was 5.9).
+- **What `GET /api/live` and `GET /api/live/:id` now send** (`server/OWNER_API.md`, Watch live):
+  - `openingHands: { p1, p2 }` beside `start` (from=0 only): each side's opening hand by card id in hand order.
+    Recorded by the timeline (`Timeline.openingHands`, `server/src/ladder/timeline.ts`), sent by `LiveLadder`
+    because every match it shows is decided in the engine first. The safety rule for real-time network agents
+    (no hands, no card in draws until the end) is still to build when they join the ladder.
+  - `PublicSide.signature` is the card in full (`PublicSignature`: cardId, name, cost, attack, health, keywords,
+    rulesText, art, flavor, timesPlayed, inZone, nextCost, played), on every snapshot.
+  - `LiveSideView.faction`: the faction of the deck the side plays (`deckFaction` on the dealt deck).
+  - `LiveMatchView.boast`: null until the last move is out, then the store's own `matchBoast` (made public from
+    `chooseBoast`) on the match's starting loadout and deck: the boast the record keeps.
+- **Evidence:** `progress/live-feed-asks-001.txt` (`npm run demo:live-feed-asks -w server`): six matches over three
+  rounds watched through the HTTP feed alone; 67 PASS. Hands rebuilt from the feed match the count after every move;
+  every signature play cost the feed's `nextCost` (5, then 7 and 9 on replays); every live boast equals the
+  recorded match's. Tests: `server/test/liveFeedAsks.test.ts` (6), plus the HTTP check in `ownerApiMatches.test.ts`.
+- **Watch time:** the owner accepted a 6-7 minute median (2026-11-03). `WATCH_PACE_MS` stays. Report at a check-in
+  if the median moves well past 7 minutes.
 
 ## Concrete next step
 
-Check the alternation first: this was the game lane (the last merged PR, #124, was the render lane's). If this
-PR is the last merged, the next session is **render** (its next slice per its own plan: hands live with the first
-coin slice, then its hardening pass).
+Check the alternation first: this was the game lane (the last merged PR, #126, was the render lane's). If this
+PR is the last merged, the next session is **render** (its hardening pass, then the second coin slice, as the owner
+set on 2026-11-03).
 
-The next **game-lane** session is **72**. First read the owner's answers to the session-71 check-in. Unless they
-say otherwise:
-1. If the owner takes call 1's recommendation (or hasn't answered): a test-only builder session for the
-   full-collection Null deck: keep the designed list unless a start or search beats it by more than noise on
-   the confirm step (say a Wilson interval on the difference), measured on `builtDeckRing.ts` at every level in
-   both modes, against built-deck-ring-005. Ship only with the owner's OK.
-2. If the owner takes call 2: `WATCH_PACE_MS.action` 6000 -> about 5400 (`server/src/ladder/timeline.ts`), re-run
-   `npm run demo:live-ladder -w server` and check the median is back near 6 minutes.
-3. Then the queued small asks in order: the 2x vote, featured picks (the "Top rated" rule to a check-in), viewer
-   counts, the three render-51 live-feed asks (the signature card in `PublicSide.signature`, `LiveSideView.faction`,
-   the boast on the live view).
-The launch-gate re-run (the built-deck ring, the last session before launch) comes after the builder answer.
+The next **game-lane** session is **73**. Read owner-feedback.md first. Unless it says otherwise, the owner's
+order (2026-11-03, "Game-lane order from here"):
+1. The Season 0 live features: the 2x vote (both owners agree, for live play), featured picks (bring the "Top
+   rated" rule to a check-in) and viewer counts, in `server/OWNER_API.md` with tests. The 2x vote first: it is
+   the one with a rule (both owners must agree; speed changes only the pace, never the match, `stepHoldMs`).
+2. The test-only Null deck-builder session (owner-approved item 1): keep the designed list unless a start or
+   search beats it by more than noise on the confirm step, measured on `builtDeckRing.ts` at every level in both
+   modes against built-deck-ring-005; results to an owner check-in; ship nothing without the owner's OK. It must
+   land before the launch-gate re-run.
+3. When the render lane's second coin slice lands: `economy/test/cosmetics.test.ts` checks coins against the
+   render's `COIN_SPECS`.
+Session 75 is the next hardening pass (the last was 70).
 
 **Blocked:** nothing.

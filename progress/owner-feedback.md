@@ -4129,7 +4129,7 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #124).
 
 ---
 
-## 2026-11-03 — Owner: answers to game session 71 (the 24-health rule shipped) and render session 53 (live hands face up; the coin flip)
+## 2026-11-03 — Owner: answers to game session 71 (the 24-health rule shipped) and render session 53 (live hands face up; the coin flip) (game-lane part PARTLY HANDLED 2026-11-03, session 72 — game items 2-7 kept, nothing changed; item 2 taken: `WATCH_PACE_MS` left as it is, 6-7 minutes is the target now (current.md). The game-lane order's step 1 built: the opening hands (`openingHands: { p1, p2 }` beside `start` on `GET /api/live/:id`, by card id in hand order) and the three render-51 asks (the signature card in full in `PublicSide.signature`, `LiveSideView.faction`, the boast on the live view once the last move is out), in `server/OWNER_API.md`, tests `server/test/liveFeedAsks.test.ts`, evidence `progress/live-feed-asks-001.txt`. Still open: step 2 (the 2x vote, featured picks, viewer counts), step 3 (the Null builder session, item 1, before the launch-gate re-run), and the `cosmetics.test.ts` check against `COIN_SPECS` when the render's second coin slice lands. Render calls 1-7 are the render lane's)
 
 ### Game session 71 (PR #125, `progress/first-seat-003-rules-2.txt`, `progress/built-deck-ring-005.txt`)
 1. **The full-collection Null deck: yes, a test-only builder session before the launch-gate re-run.** The builder keeps the designed deck unless another deck beats it by more than noise; then re-run the built-deck ring and bring the results to an owner check-in. No card, deck or rule change without the owner's OK. It doesn't have to come before the Season 0 items below, but it must land before the launch-gate re-run.
