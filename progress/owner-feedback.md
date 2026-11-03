@@ -4160,7 +4160,7 @@ Render lane, as set: the hardening pass next, then the second coin slice.
 
 ---
 
-## 2026-11-03 — Owner: answers to game session 72 (the live-feed asks), keep all 3; enforce the hands rule before network agents join
+## 2026-11-03 — Owner: answers to game session 72 (the live-feed asks), keep all 3; enforce the hands rule before network agents join (HANDLED 2026-11-03, session 73 — all 3 kept, nothing changed; the hands rule stays on the roadmap's network-agents item and in quality-debt.md as the first step of that work. Session 73 built the next item in the order: the 2× vote)
 
 Answers the three calls in `progress/notes-for-owner.md` (PR #127, `progress/live-feed-asks-001.txt`).
 1. **Keep:** the signature card in the live feed also carries its art reference and flavour text.

@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-02, game session 71 (the 24-health rule shipped as rules-2).
+Updated 2026-11-03, game session 73 (the 2× vote).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -35,7 +35,7 @@ Updated 2026-11-02, game session 71 (the 24-health rule shipped as rules-2).
    `progress/ladder-demo-001.txt`. Session 67: the long-lived ladder in the server (`npm run season`): rounds on
    the clock, each match released at watch speed and recorded after its last move (live state for Watch live);
    auto-play for player owners (schema v18); the house pack policy; a replay per match. Evidence
-   `progress/ladder-demo-002-live.txt`. Left: the 2x vote, network agents in the ladder. Found: the first seat
+   `progress/ladder-demo-002-live.txt`. Left: network agents in the ladder (the 2x vote: session 73). Found: the first seat
    wins ~65% (`progress/first-seat-001.txt`). Session 68: all four fixes the owner named measured, test only
    (`progress/first-seat-002-fixes.txt`, owner check-in); no rule changed.
 1b. [x] Versioned replays (owner 2026-11-02 call 6), session 70: `ai-tcg-replay/2` carries its rules version,
@@ -67,7 +67,7 @@ Updated 2026-11-02, game session 71 (the 24-health rule shipped as rules-2).
      endpoint not yet
    - [ ] notifications
    - [x] the saved board layout (session 64) and background choice (in the account settings, session 63)
-   - [ ] the 2× vote (both owners agree) for live play
+   - [x] the 2× vote (both owners agree) for live play (session 73: `PUT /api/live/:id/speed`, `ask2xEveryMatch`, schema v21)
    - [x] the small asks (session 68): "Watch again" (`GET /api/packs/:packId/opening` answers the
      `PackOpening`, schema v19), the craft price and copy limit in the card viewer, signature cards and earned
      promos in the collection (`promos`), the deck's faction and list in `DeckStatus`
@@ -80,7 +80,7 @@ Updated 2026-11-02, game session 71 (the 24-health rule shipped as rules-2).
 2c. [~] The live endpoints the render lane queued (owner 2026-11-02, render 50), in `server/OWNER_API.md`:
    - [x] both sides' ratings at the start of the match on the record (`ratingAtStart`, `defaultView`), and on the
      live view (session 69, schema v20)
-   - [ ] the 2x vote (both owners must agree)
+   - [x] the 2x vote (both owners must agree): session 73, `LiveMatchView.speed`; `progress/speed-vote-001.txt`
    - [ ] featured picks ("Top rated"; propose the rule at a check-in)
    - [ ] viewer counts
    - [ ] any small additions the render lane's live-board slice names (unit badges: statuses, tool bonuses)

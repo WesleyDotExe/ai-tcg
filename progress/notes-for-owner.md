@@ -1,5 +1,31 @@
 # Notes for the owner
 
+**Updated 2026-11-03, session 73 (the 2× vote).** Nothing is blocking. No check-in is open. Session 72's three
+calls are answered (2026-11-03, keep all 3) and kept below for the record.
+
+The 2× vote is built, as your 2026-10-05 spec set it: a live match starts at 1× and runs at 2× only while both
+owners agree. An owner taps "Ask for 2×" (`PUT /api/live/:id/speed`) or turns on "Ask for 2× in every match" in
+Settings -> Play (saved on the account, schema v21). The live view says who asks and who is being waited on. The vote
+resets every match, and only the pace changes: `progress/speed-vote-001.txt` plays eleven matches at 2× and the same
+seeds at 1×, and each has the same result, log, replay, credits and ratings, shown in half the time (median 3.3 min
+against 6.6 min). 20 checks pass.
+
+**Four calls (I recommend keeping each; nothing waits on them):**
+1. **A house side agrees to what its player opponent asks.** A house agent has no owner watching, so it can't
+   ask. If it never agreed, a player against the house (most Season 0 matches) could never run at 2×. So against
+   the house one ask is enough, and house against house is always 1× (it's what spectators watch). Keep, or have
+   house sides never agree (2× only between two players).
+2. **An owner can take an ask back** (`{ "ask": false }`), and the match returns to 1×. Your spec only said "tap
+   to ask". Keep, or make an ask final for the match.
+3. **A change part-way through a wait changes only what is left of it.** Half of a 6 s wait gone at 1×, then 2×
+   is agreed: 1.5 s left. Keep.
+4. **2× doesn't get anyone more matches.** A ladder round still waits for its slowest match, so an owner whose
+   match ran at 2× waits for the others before the next round. The vote shortens the watching, not the day.
+   Keep for Season 0 (simple and fair), or later move the ladder to a rolling queue (pair whoever is free) so a
+   faster match means the next one starts sooner.
+
+---
+
 **Updated 2026-11-03, session 72 (the live-feed asks).** Nothing is blocking. No check-in is open. Session 71's
 check-in below is answered (2026-11-03) and kept for the record.
 

@@ -4530,3 +4530,46 @@ signature card sends empty `rulesText`; the render lane's API types are the old 
 in quality-debt.md.
 
 **Blocked:** nothing. Three small keep-or-change calls in notes-for-owner.md; nothing waits on them.
+
+## 2026-11-03 — Session 73 (the 2× vote)
+
+**Read first:** `progress/owner-feedback.md`. Unhandled game-lane entry: the answers to session 72 (keep all 3;
+enforce the hands rule before network agents join). Nothing to change: marked handled; the hands rule stays on the
+roadmap's network-agents item and in quality-debt.md. The render-54 entry is the render lane's. The last merged PR
+(#128) was the render lane's, so this is the game lane. Not a hardening session (70 was; 75 is next). The owner's
+game-lane order puts the Season 0 live features next, the 2× vote first.
+
+**Built:**
+- `server/src/ladder/speedVote.ts`: the rule as pure functions (`rateOf`, `agrees`, `speedView`, `startingVote`,
+  `rescaleRemaining`). 2× only while both sides agree; a house side agrees to what a player opponent asks (proposed);
+  house against house is 1×; `waitingOn` names the player owner being waited on.
+- `LiveLadder`: each shown match carries its vote and rate. Holds are divided by the rate as moves are released;
+  `askForSpeed(matchId, ownerId, ask)` first releases what is due at the old pace, then changes the vote and rescales
+  only what is left of the current hold (the result's hold too). Each match's vote starts from both owners'
+  "Ask for 2× in every match" setting and is gone when the match is recorded. `LiveMatchView.speed`.
+- Owner API: `PUT /api/live/:matchId/speed { ask }` (400 bad body, 403 not your match, 409 a house account, 404 not
+  live / ended). `ask2xEveryMatch` in `GET`/`PATCH /api/account/settings`.
+- Economy: schema v21 (`account_settings.ask_2x_every_match`, off for every existing row); a store held below v21
+  reads it off and refuses to set it.
+- Docs: `server/OWNER_API.md` (the vote, `SpeedView`, the setting), ECONOMY.md, roadmap ticks;
+  `npm run demo:speed-vote -w server`.
+
+**Ran it:**
+- `progress/speed-vote-001.txt`, over HTTP on a real port, fake clock: 20 PASS, 0 FAIL. Ada asks 2 s into the first
+  hold (still 1×, waiting on Bea; the release time doesn't move); Bea agrees (2×, the 4 s left becomes 2 s); the next
+  20 holds are each exactly half the timeline's 1× hold; Ada takes it back 1 s before a release (1×, 2 s left). That
+  match showed in 3.08 min against 6.13 min for the same seed at 1×, with the same record, log and replay. The next
+  match starts at 1× with nobody asking. Against the house one ask is enough and the house account gets 409. Four
+  owners with the setting on: ten matches at 2× from the first move, each shown in half the time of the same seed at
+  1× (median 3.30 against 6.58 min) with the same record and log. House against house: 1×, the house setting ignored.
+- `server/test/speedVote.test.ts` (13 tests): the rule, the live pace against `stepHoldMs`, "never the match" byte
+  for byte (ids renamed), the reset, house sides, refusals, the halved result hold, and the HTTP endpoint end to end.
+  `economy/test/accountSettings.test.ts`: two new tests (the setting, the v20 -> v21 migration and its CHECK).
+- `npm test`: engine 365, server 129, economy 222, render 844, agents 17, protocol 7, all pass; typecheck clean.
+
+**Worked:** every match is decided before it is shown, so speed really is only a release clock and the tests can
+prove "never the match" directly. **Didn't / honest limits:** 2× shortens the watching, not the ladder (a round
+still waits for its slowest match); the house-side rule and the take-back are proposals; no notification of an
+ask; the render doesn't read `speed` yet. All in quality-debt.md; four calls in notes-for-owner.md.
+
+**Blocked:** nothing.

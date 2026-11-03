@@ -57,6 +57,8 @@
 //  - (v20) a cosmetic may be a coin and may be a season reward, which
 //    names its reward; a match's starting ratings are written once.
 //
+//  - (v21) the account settings add "Ask for 2× in every match", on or off.
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -1301,5 +1303,12 @@ export const MIGRATIONS: readonly string[] = [
     FROM agents a JOIN owners o ON o.owner_id = a.owner_id
     WHERE o.starter_granted_at IS NOT NULL
     ORDER BY a.created_at, a.agent_id;
+  `,
+  // 21: "Ask for 2× in every match" (session 73; owner app spec 2026-10-05
+  // D, Settings -> Play). Off for every existing row, as for a new account.
+  // The vote itself is per live match and kept in memory with the match
+  // (server/src/ladder/speedVote.ts); only the standing setting is saved.
+  `
+  ALTER TABLE account_settings ADD COLUMN ask_2x_every_match INTEGER NOT NULL DEFAULT 0 CHECK (ask_2x_every_match IN (0, 1));
   `,
 ];
