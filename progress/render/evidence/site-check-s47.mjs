@@ -87,6 +87,10 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
   await until(async () => (await P(page))?.phase === 'pack');
   // The frame's log runs across openings: only this one's beats count.
   const from = await f.evaluate(() => window.__pack.log.length);
+  // Where each press lands, in the frame and in the page (the stall probe below).
+  const tgt = (e) => { const t = e.target; return t ? (t.tagName || '?') + (t.id ? '#' + t.id : '') + '.' + String(t.className && t.className.baseVal !== undefined ? t.className.baseVal : t.className).split(' ')[0] : '?'; };
+  await f.evaluate((src) => { const tg = (0, eval)(src); window.__downs = []; if (!window.__downsOn) { window.__downsOn = true; document.addEventListener('pointerdown', (e) => window.__downs.push(tg(e) + '@' + Math.round(performance.now())), true); } }, String(tgt)).catch(() => {});
+  await page.evaluate((src) => { const tg = (0, eval)(src); window.__downs = []; if (!window.__downsOn) { window.__downsOn = true; document.addEventListener('pointerdown', (e) => window.__downs.push(tg(e) + '@' + Math.round(performance.now())), true); } }, String(tgt)).catch(() => {});
   const pk = await f.locator('#pack').boundingBox();
   await page.mouse.click(pk.x + pk.width / 2, pk.y + pk.height / 2);
   await until(async () => (await P(page))?.phase === 'cards');
@@ -118,6 +122,8 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
   if (late) note(`${late} tap(s) came after the page's hold timer (a stalled main thread) and still counted as taps`);
   if ((await P(page))?.phase !== 'summary' && !(await until(async () => (await P(page))?.phase === 'summary'))) {
     note(`the reveal stopped short of its summary: ${JSON.stringify(await f.evaluate(() => ({ phase: window.__pack.phase, i: window.__pack.i, busy: Math.round(window.__pack.busyUntil - performance.now()), last: window.__pack.log.slice(-4).map((e) => e.kind + (e.idx ?? '')) })))}`);
+    const fd = await f.evaluate(() => window.__downs || null).catch(() => null), pd = await page.evaluate(() => window.__downs || null).catch(() => null);
+    note(`presses during the reveal: frame ${fd ? fd.length + ' ' + JSON.stringify(fd.slice(0, 4)) : 'n/a'}; page ${pd ? pd.length + ' ' + JSON.stringify(pd.slice(0, 4)) : 'n/a'}`);
     // What a tap at the top card lands on, in the page and in the frame.
     const k = await f.evaluate(() => window.__pack.i);
     const b = await f.locator(`.cslot[data-k="${k}"]`).boundingBox().catch(() => null);
