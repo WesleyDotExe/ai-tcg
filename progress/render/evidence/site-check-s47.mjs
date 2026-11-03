@@ -127,6 +127,12 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
       const fr = await page.$eval('#opening iframe', (el) => { const r = el.getBoundingClientRect(); return [r.x, r.y]; });
       const inner = await f.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? e.tagName + '.' + String(e.className).slice(0, 60) + ' in ' + (e.closest('.cslot') ? 'cslot ' + e.closest('.cslot').getAttribute('data-k') : e.closest('#stack') ? 'stack' : 'no stack') : null; }, [cx - fr[0], cy - fr[1]]);
       note(`a tap at the top card (${Math.round(cx)},${Math.round(cy)}) lands on ${top} in the page; in the frame on ${inner}; frame at ${fr.join(',')}`);
+      // One more tap, watched: which pointer events arrive, and what the page does.
+      await f.evaluate(() => { window.__probe = []; for (const t of ['pointerdown', 'pointerup', 'pointercancel', 'click']) document.addEventListener(t, (e) => window.__probe.push(t + '@' + Math.round(e.timeStamp)), true); window.__probeFrom = window.__pack.log.length; });
+      await page.mouse.click(cx, cy);
+      await wait(1500);
+      const probe = await f.evaluate(() => ({ events: window.__probe, page: window.__pack.log.slice(window.__probeFrom).map((e) => e.kind + (e.idx ?? '')), tilt: window.__pack.tilt, i: window.__pack.i, busy: Math.round(window.__pack.busyUntil - performance.now()), drag: document.querySelector('.cslot.dragging') ? 'dragging' : 'none' }));
+      note(`one more tap, watched: ${JSON.stringify(probe)}`);
     } else note(`the top card ${k} has no box`);
   }
   await until(async () => (await P(page))?.phase === 'summary');
