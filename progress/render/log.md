@@ -4791,3 +4791,70 @@ the boast specs; a game-lane test change, notes); the committed `render/output` 
 (none since session 50; the site builds its pages on demand), so they still show the old 2.6 s intro.
 
 **Next render-lane slice:** the render hardening pass, as the owner set it.
+
+## 2026-11-03 — Session 54: hardening pass (stale checks rewritten, the check-E flake found, pages rebuilt, live hands whole)
+
+Render session per the alternation (the last merged PR, #127, was the game lane's session 72). Owner feedback
+read: the 2026-11-03 answers set the render order as "the hardening pass, then the second coin slice", naming
+the stale session-25 ten-pack check, the session-36 loadout check and the check-E flake, and allowing the
+site's live types to move to the game lane's new live-feed fields along the way. No CRITICAL debt item. No new
+features.
+
+**Raised to bar:**
+- **The ten-pack check, rewritten** (`progress/render/evidence/pack-bulk-check-s54.mjs`, replacing session
+  25's `pack-bulk-check.mjs`, now marked superseded). The old one was written for the first ten-pack design
+  (an automatic sequence with speeds); the owner's 2026-10-18 feel notes made the open tap-driven with Auto off
+  by default and the speeds only in Auto, so it timed out on hidden speed buttons. The new one drives four runs
+  at 1280 x 800 and 390 x 844: T by tap (the default), A Auto 4x hands off, B Auto 1x through a big pull, C Auto
+  2x with Skip at once and after the big pull; it checks pack order, the honest tell (sparks iff a hit), every
+  face-down card turned by the right hand (tap or Auto), each big pull's reveals by finish, Auto never leaving a
+  reveal under 700 ms, the controls (speeds only in Auto, nothing during a big pull), the summary against the
+  store's plan, no scroll, no errors, and both choices remembered across a reload.
+  Result: `pack-bulk-check-s54.txt`, **12 PASS**. Sabotage: Auto's row step changed to leave a pack's last
+  face-down card unturned fails A and B on both screens, T stays green (it taps):
+  `pack-bulk-check-s54-sabotage.txt`. Its own first run had one false FAIL (a Skip pressed while a pack sat
+  sealed cuts it short on purpose; the old check had the same exemption for "never dealt"): fixed in the check.
+- **The loadout check, brought up to date** (`loadout-check-s54.mjs`, from `loadout-check-s36.mjs`, marked
+  superseded). Its 5 failures were all stale expectations: render 37 made the plate "<AGENT> WINS" over the
+  boast's name (a close win opens on CLOSE CALL, then swaps), and the "bought" owner's balance is earned in real
+  matches, so it moved with the rules (now read from the scenario). It also finds playwright wherever it is.
+  Result: `loadout-check-s54.txt`, **49 PASS** (two new checks: the close plate's swap, and no close line on a
+  plain win).
+- **The check-E flake (session 47), found and fixed: it was the check script, not the page.** Clean, it passed
+  every time (4 runs here, 5 in session 47). With eight busy loops beside the browser it stalled in 6 of 9 runs,
+  always the same way: the second pack sat on its first card, free to leave, with nothing tapped. Probes added
+  to the check showed the frame received exactly one press during that reveal (the tear) and the page none, and
+  a tap sent by hand afterwards worked at once. Cause: after the tear the script waited 15 s for the `cards`
+  phase; under load the tear and the cards rising took longer, so its tap loop saw no `cards` phase and never
+  ran. Also found: after the last card left, the loop asked for a box for a card past the end and blocked 30 s.
+  Fixed in `site-check-s47.mjs`: the tear gets 60 s, no lookup past the last card, each tap waits for the card to
+  be free, a reveal tap is checked against this pack's log (the old wait matched any earlier Zero-Day arrival)
+  and re-sent if dropped, and a stall now prints where it stopped and what a tap there lands on. Verified under
+  the same load: see "Ran it".
+  A wrong turn, named: I first suspected the pack page's hold-to-tilt timer was eating taps on a stalled main
+  thread and changed the page to judge taps by event timestamps; a loaded run failed the same way with that
+  change in, and the probes then showed no press reached the page at all. The page change was reverted (no
+  page behaviour changed this session); the timer race stays in the debt list as an unobserved risk.
+- **Every committed page rebuilt** (`npm run outputs -w @ai-tcg/render`, new: `render/tools/regen-output.sh`).
+  The pages hadn't been rebuilt since session 50 and still played the 2.6 s intro with no coin. The 16 replay
+  pages are played again through the engine, so they now show `rules-2` matches (owner call in notes); the four
+  recorded pages still show the boast each was built to show (Boot Sequence in the main slot, a close win on 1
+  health, another faction's starter, an empty slot). The loadout demo's transcript
+  (`loadout-picker-s36.txt`) moved with the rules too (the bought owner now earned 302 credits, not 308).
+- **The live arena reads the game lane's session-72 fields** (owner: "along the way"): the site host passes
+  the feed's `openingHands` and each side's `faction` to the frame builder (`LiveStart.factions`, new), so every
+  live hand is whole and face up from move 0 and each side wears its deck's faction from the first frame. A
+  feed without them falls back as before. Tests: `siteLiveArena.test.ts` over the real owner API now requires
+  no back in any hand in any frame, every card the replay's, and the feed's faction on every frame (sabotage:
+  dropping either pass-through fails it); `liveFrames.test.ts` +1 (a given faction holds from frame 0; without
+  it, Neutral first). The signature card in full and the live boast are not read yet (a slice of their own).
+
+**Ran it:** the three browser checks above; `npm test` and the CI browser check (below).
+
+**Not done (named):** the older by-hand checks (session 38's boot check expects the 2.6 s intro; the pre-41
+boast, hardening, feed and pack checks) were not re-run; the other site checks' fixed 15 s waits were not
+audited; the liquid's 20 fps bar (session 45) is still an owner question; nothing rebuilds `render/output`
+automatically.
+
+**Next render-lane slice:** the second coin slice, as the owner set it (the store and tier coins' looks, the
+coin line in the picker and the Store), then reading `PublicSide.signature` and the live boast on the arena.

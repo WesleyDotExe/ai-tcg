@@ -1201,8 +1201,10 @@ for its next session.)
 ## 2026-11-03 — Session 54 (render hardening pass)
 
 1. **The pass you set: no new features.** The two stale browser checks you named are rewritten and pass
-   (the ten-pack open, 12 of 12; the loadout picker, 49 of 49), each shown to fail on a broken page. The
-   check-E flake: see `log.md` (session 54) for what was found. Every committed page under `render/output/`
+   (the ten-pack open, 12 of 12; the loadout picker, 49 of 49), the ten-pack one shown to fail on a broken
+   page. **The check-E flake was the test script, not the website:** under CPU load the script gave up waiting
+   for the pack to tear after 15 s and then tapped nothing. Fixed in the script; the pack opening itself is
+   unchanged and was never at fault. Every committed page under `render/output/`
    is rebuilt and now plays the coin flip.
 2. **A call you may want to overrule: the committed replay pages follow the engine.** The new
    `npm run outputs -w @ai-tcg/render` rebuilds every page by playing its match again, so the 16 replay pages

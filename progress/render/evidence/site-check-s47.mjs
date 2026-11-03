@@ -87,27 +87,27 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
   await until(async () => (await P(page))?.phase === 'pack');
   // The frame's log runs across openings: only this one's beats count.
   const from = await f.evaluate(() => window.__pack.log.length);
-  // Where each press lands, in the frame and in the page (the stall probe below).
-  const tgt = (e) => { const t = e.target; return t ? (t.tagName || '?') + (t.id ? '#' + t.id : '') + '.' + String(t.className && t.className.baseVal !== undefined ? t.className.baseVal : t.className).split(' ')[0] : '?'; };
-  await f.evaluate((src) => { const tg = (0, eval)(src); window.__downs = []; if (!window.__downsOn) { window.__downsOn = true; document.addEventListener('pointerdown', (e) => window.__downs.push(tg(e) + '@' + Math.round(performance.now())), true); } }, String(tgt)).catch(() => {});
-  await page.evaluate((src) => { const tg = (0, eval)(src); window.__downs = []; if (!window.__downsOn) { window.__downsOn = true; document.addEventListener('pointerdown', (e) => window.__downs.push(tg(e) + '@' + Math.round(performance.now())), true); } }, String(tgt)).catch(() => {});
   const pk = await f.locator('#pack').boundingBox();
   await page.mouse.click(pk.x + pk.width / 2, pk.y + pk.height / 2);
-  await until(async () => (await P(page))?.phase === 'cards');
-  // Render session 54 (the check-E flake): the page drops a tap while the
-  // top card is still busy (rising, flying off, or mid-reveal), on purpose.
-  // The loop used to tap blind and, on a dropped reveal tap, wait 9 s for a
-  // landing that never came (and its Zero-Day wait matched any earlier
-  // pack's arrival). Now every tap waits for the card to be free, a reveal
-  // tap is checked to have started (this pack's log only) and re-sent if
-  // not, and a stall says where it stopped.
+  // Render session 54, the check-E flake, found: under load the tear and the
+  // cards rising took longer than this wait's old 15 s, the loop below saw
+  // no 'cards' phase and never ran, and the reveal was left untouched (the
+  // page received the tear and no other press; it stalled in 6 of 9 runs
+  // with eight busy loops beside the browser, none of 4 without). The page was
+  // never at fault. Now: the tear gets a minute; the loop never asks for a card past
+  // the last (it used to block 30 s on a box that can't exist while the
+  // summary comes in); every tap waits for the card to be free; a reveal tap
+  // is checked to have started (this pack's log only) and re-sent if not;
+  // and a stall says where it stopped.
+  if (!(await until(async () => (await P(page))?.phase === 'cards', 60000))) note(`the tear never reached the cards in 60 s (phase ${(await P(page))?.phase})`);
   let guard = 0, taps = 0, noBox = 0;
   while ((await P(page))?.phase === 'cards' && guard++ < 60) {
     if (taps >= stopAfter) return null;
     await until(async () => f.evaluate(() => window.__pack.busyUntil - performance.now() <= 0), 30000);
-    const st = await f.evaluate(() => ({ i: window.__pack.i, down: window.__pack.cur.cards[window.__pack.i]?.faceDown, rev: !!window.__pack.revealed[window.__pack.i], zd: window.__pack.cur.cards[window.__pack.i]?.reveal === 'zeroDay' }));
+    const st = await f.evaluate(() => ({ n: window.__pack.cur.cards.length, i: window.__pack.i, down: window.__pack.cur.cards[window.__pack.i]?.faceDown, rev: !!window.__pack.revealed[window.__pack.i], zd: window.__pack.cur.cards[window.__pack.i]?.reveal === 'zeroDay' }));
+    if (st.i >= st.n) { await wait(150); continue; }
     let boxErr = null;
-    const box = await f.locator(`.cslot[data-k="${st.i}"]`).boundingBox().catch((e) => { boxErr = String(e.message || e).split('\n')[0]; return null; });
+    const box = await f.locator(`.cslot[data-k="${st.i}"]`).boundingBox({ timeout: 5000 }).catch((e) => { boxErr = String(e.message || e).split('\n')[0]; return null; });
     if (!box) { if (!noBox++) note(`no box for card ${st.i}: ${boxErr ?? 'null'} (count ${await f.locator(`.cslot[data-k="${st.i}"]`).count().catch(() => '?')})`); await wait(100); continue; }
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     taps++;
@@ -119,10 +119,8 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
     }
     await wait(150);
   }
-  if ((await P(page))?.phase !== 'summary' && !(await until(async () => (await P(page))?.phase === 'summary'))) {
+  if ((await P(page))?.phase !== 'summary' && !(await until(async () => (await P(page))?.phase === 'summary', 30000))) {
     note(`the reveal stopped short of its summary: ${JSON.stringify(await f.evaluate(() => ({ phase: window.__pack.phase, i: window.__pack.i, busy: Math.round(window.__pack.busyUntil - performance.now()), last: window.__pack.log.slice(-4).map((e) => e.kind + (e.idx ?? '')) })))}`);
-    const fd = await f.evaluate(() => window.__downs || null).catch(() => null), pd = await page.evaluate(() => window.__downs || null).catch(() => null);
-    note(`presses during the reveal: frame ${fd ? fd.length + ' ' + JSON.stringify(fd.slice(0, 4)) : 'n/a'}; page ${pd ? pd.length + ' ' + JSON.stringify(pd.slice(0, 4)) : 'n/a'}`);
     // What a tap at the top card lands on, in the page and in the frame.
     const k = await f.evaluate(() => window.__pack.i);
     const b = await f.locator(`.cslot[data-k="${k}"]`).boundingBox().catch(() => null);
@@ -132,12 +130,6 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
       const fr = await page.$eval('#opening iframe', (el) => { const r = el.getBoundingClientRect(); return [r.x, r.y]; });
       const inner = await f.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? e.tagName + '.' + String(e.className).slice(0, 60) + ' in ' + (e.closest('.cslot') ? 'cslot ' + e.closest('.cslot').getAttribute('data-k') : e.closest('#stack') ? 'stack' : 'no stack') : null; }, [cx - fr[0], cy - fr[1]]);
       note(`a tap at the top card (${Math.round(cx)},${Math.round(cy)}) lands on ${top} in the page; in the frame on ${inner}; frame at ${fr.join(',')}`);
-      // One more tap, watched: which pointer events arrive, and what the page does.
-      await f.evaluate(() => { window.__probe = []; for (const t of ['pointerdown', 'pointerup', 'pointercancel', 'click']) document.addEventListener(t, (e) => window.__probe.push(t + '@' + Math.round(e.timeStamp)), true); window.__probeFrom = window.__pack.log.length; });
-      await page.mouse.click(cx, cy);
-      await wait(1500);
-      const probe = await f.evaluate(() => ({ events: window.__probe, page: window.__pack.log.slice(window.__probeFrom).map((e) => e.kind + (e.idx ?? '')), tilt: window.__pack.tilt, i: window.__pack.i, busy: Math.round(window.__pack.busyUntil - performance.now()), drag: document.querySelector('.cslot.dragging') ? 'dragging' : 'none' }));
-      note(`one more tap, watched: ${JSON.stringify(probe)}`);
     } else note(`the top card ${k} has no box`);
   }
   await until(async () => (await P(page))?.phase === 'summary');
