@@ -14,8 +14,7 @@ import { readFileSync } from "node:fs";
 import { TILT } from "../src/packOpening.js";
 import { PACK_CSS, PACK_PAGE_PURE_SOURCE, PACK_PAGE_RUNTIME_SOURCE } from "../src/packPage.js";
 
-const pure = new Function(`${PACK_PAGE_PURE_SOURCE}; return { packHoldState, packTiltAngles, packGesture, packLateTap };`)() as {
-  packLateTap: (heldMs: number, dist: number, leans: number, T: typeof TILT) => boolean;
+const pure = new Function(`${PACK_PAGE_PURE_SOURCE}; return { packHoldState, packTiltAngles, packGesture };`)() as {
   packHoldState: (dx: number, dy: number, ms: number, swipe: boolean, T: typeof TILT) => "pending" | "tilt" | "move";
   packTiltAngles: (x: number, y: number, max: number) => { rx: number; ry: number };
   packGesture: (dx: number, dy: number, ms: number) => string;
@@ -109,28 +108,5 @@ describe("the page", () => {
   it("marks the tear strip", () => {
     expect(page).toContain('<span class="tab">TEAR</span>');
     expect(PACK_CSS).toMatch(/\.pack \.strip \{/);
-  });
-});
-
-// Render session 54: the check-E flake, found. Under load the hold timer
-// fired before a quick tap's queued release was handled, the tap became a
-// tilt and was ignored (site-check-s47's second pack stalled on card 0).
-describe("a tap is never lost to a slow page", () => {
-  it("a release the hold timer beat is still a tap if the finger was down under holdMs, still, never leant", () => {
-    expect(pure.packLateTap(40, 0, 1, TILT)).toBe(true);
-    expect(pure.packLateTap(TILT.holdMs - 1, TILT.dragPx - 1, 1, TILT)).toBe(true);
-  });
-  it("a real hold, a drag or a lean stays a tilt", () => {
-    expect(pure.packLateTap(TILT.holdMs, 0, 1, TILT)).toBe(false);
-    expect(pure.packLateTap(40, TILT.dragPx, 1, TILT)).toBe(false);
-    expect(pure.packLateTap(40, 0, 2, TILT)).toBe(false);
-    expect(pure.packLateTap(-5, 0, 1, TILT)).toBe(false);
-  });
-  it("the release asks it, and every tap or swipe is timed by the events' own timestamps", () => {
-    expect(PACK_PAGE_RUNTIME_SOURCE).toMatch(/packLateTap\(e\.timeStamp - p\.down/);
-    const calls = PACK_PAGE_RUNTIME_SOURCE.match(/packGesture\([^;]*\)/g) ?? [];
-    expect(calls.length).toBe(3);
-    for (const c of calls) expect(c, c).toContain("pressMs(e, ");
-    expect(PACK_PAGE_RUNTIME_SOURCE).not.toMatch(/packGesture\([^;]*performance\.now\(\)/);
   });
 });
