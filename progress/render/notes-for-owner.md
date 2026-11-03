@@ -1197,3 +1197,23 @@ for its next session.)
    ask for the signature card in `PublicSide.signature` (render 51) would make them exact too.
 5. **No shared files changed** (no workflow, no root package files, no server or economy code). The site's
    bundle reads nothing new.
+
+## 2026-11-03 — Session 54 (render hardening pass)
+
+1. **The pass you set: no new features.** The two stale browser checks you named are rewritten and pass
+   (the ten-pack open, 12 of 12; the loadout picker, 49 of 49), the ten-pack one shown to fail on a broken
+   page. **The check-E flake was the test script, not the website:** under CPU load the script gave up waiting
+   for the pack to tear after 15 s and then tapped nothing. Fixed in the script; the pack opening itself is
+   unchanged and was never at fault. Every committed page under `render/output/`
+   is rebuilt and now plays the coin flip.
+2. **A call you may want to overrule: the committed replay pages follow the engine.** The new
+   `npm run outputs -w @ai-tcg/render` rebuilds every page by playing its match again, so the 16 replay pages
+   now show `rules-2` matches (24 health), not the matches they showed before; same factions and seeds,
+   different games. The alternative is to rebuild them from frozen replay files (`ai-tcg-replay/2`), so a
+   page only changes when the render changes. Kept as built unless you say otherwise.
+3. **The live arena now reads two of the game lane's session-72 fields** (as you allowed "along the way"):
+   the opening hands (every live hand is whole from move 0, no backs) and each side's deck faction (from the
+   first frame, not Neutral until a faction card shows). The signature card in full and the live boast are
+   not read yet: they change what the arena draws, so they are a slice of their own (next to the second coin
+   slice). Nothing more is needed from the game lane for them.
+4. **No shared files changed** (no workflow, no root package files, no server or economy code).

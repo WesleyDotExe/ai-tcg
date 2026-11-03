@@ -87,12 +87,22 @@ describe("the live arena over the real owner API, with the ladder playing", () =
     const start = dataOf(html);
     expect(start.frames).toHaveLength(page.released + 1);
     expect(page.released).toBeGreaterThan(0);
-    // Hands (render session 53): face up wherever the feed named the card,
-    // backs only for the opening hand's cards (checked against the replay below).
-    expect(start.frames[0]!.players.p1.hand.every((c) => c.hidden === true)).toBe(true);
     // The coins each side flips, from the live view (Match Boot's coin flip).
-    const view = (await client.liveFeed(ada, id, 0)) as unknown as { p1: { coin: string }; p2: { coin: string } };
+    const view = (await client.liveFeed(ada, id, 0)) as unknown as { p1: { coin: string; faction: string }; p2: { coin: string; faction: string }; openingHands: { p1: string[]; p2: string[] } | null };
     expect(start.coins).toEqual({ p1: view.p1.coin, p2: view.p2.coin });
+    // Hands (render session 53; whole from move 0 since render 54): the live
+    // view sends the opening hands (game session 72), so no card is a back,
+    // from the first frame (checked card for card against the replay below).
+    expect(view.openingHands).not.toBeNull();
+    for (const pid of ["p1", "p2"] as const) {
+      const h = start.frames[0]!.players[pid].hand;
+      expect(h.length, pid).toBe(view.openingHands![pid].length);
+      expect(h.some((c) => c.hidden), pid).toBe(false);
+      // The deck's faction from the live view (game session 72), not Neutral
+      // until the side shows a faction card: from the first frame.
+      expect(start.frames[0]!.players[pid].faction, pid).toBe(view[pid].faction);
+      expect(view[pid].faction).not.toBe("Neutral");
+    }
 
     const frames: Frame[] = [...start.frames];
     let ended = false;
@@ -122,8 +132,8 @@ describe("the live arena over the real owner API, with the ladder playing", () =
     let faceUp = 0;
     frames.forEach((f, k) => {
       for (const pid of ["p1", "p2"] as const) {
-        const opening = replay.frames[0]!.players[pid].hand.length;
-        expect(f.players[pid].hand.filter((c) => c.hidden).length, `frame ${k} ${pid}`).toBeLessThanOrEqual(opening);
+        expect(f.players[pid].hand.filter((c) => c.hidden).length, `frame ${k} ${pid}: a back in the hand`).toBe(0);
+        expect(f.players[pid].faction, `frame ${k} ${pid}`).toBe(view[pid].faction);
         f.players[pid].hand.forEach((c, j) => {
           if (c.hidden) return;
           faceUp++;
@@ -132,7 +142,8 @@ describe("the live arena over the real owner API, with the ladder playing", () =
         });
       }
     });
-    expect(faceUp).toBeGreaterThan(frames.length);
+    // Every card of every hand in every frame, face up.
+    expect(faceUp).toBe(frames.reduce((n, f) => n + f.players.p1.hand.length + f.players.p2.hand.length, 0));
     // The boast the live page plays is the record's, as the replay's is.
     expect(record).toEqual(replay.record);
     // And the replay page flips the same coins (the match record's).

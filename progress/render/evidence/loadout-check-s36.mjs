@@ -1,3 +1,5 @@
+// SUPERSEDED (render session 54): stale since render 37 changed the name
+// plate; see loadout-check-s54.mjs. Kept as the record of what session 36 checked.
 // Render session 36: the loadout picker (victory boasts, slice 4), driven in
 // a real (headless) Chromium. Not a repo dependency: run with node and
 // playwright-core against the preinstalled Chromium:

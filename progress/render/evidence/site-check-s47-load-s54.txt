@@ -1,0 +1,63 @@
+site-check-s47 under CPU load (render session 54): eight busy shell loops beside the browser and the demo, the fixed script.
+Before the fix the same load stalled check E in 6 of 9 runs (the reveal untouched after the tear).
+
+loaded run 20: 50 passed, 0 failed
+loaded run 21: 50 passed, 0 failed
+loaded run 22: 50 passed, 0 failed
+loaded run 23: 50 passed, 0 failed
+loaded run 24: 50 passed, 0 failed
+loaded run 25: 50 passed, 0 failed
+
+== the last loaded run in full
+PASS  A  the Store page has its six panels: packs and buying, the daily pack, waiting, your agents' loadouts, recent openings, cosmetics
+PASS  A  "Waiting to be opened" is the server's count (11; the server: 11)
+PASS  A  the waiting packs grouped by where they came from: Weekly challenge:10, Bought:1
+PASS  A  the price is the server's (100 credits) and the Buy button says it
+PASS  A  one free daily pack waits (a new owner's first day counts) and the claim is live
+PASS  A  the cosmetics on sale: 2, as the server lists them
+PASS  A  six recent openings, each with its cards (6)
+PASS  B  claimed: the server holds 0 waiting and a 12th pack, source ownerDaily
+PASS  B  the line says when the next comes in: "Claimed today. The next comes in 5 h 40 min (midnight Sydney)."
+PASS  B  the top bar's Open count went to 12
+PASS  B  a second claim the same day is refused by the server (409)
+PASS  C  the stepper makes it 2: "Buy 2 packs · 200"
+PASS  C  the stepper stops at 10 (the server's most at once)
+PASS  C  10 packs are more than the credits: greyed, and how many credits short
+PASS  C  a centred confirmation names the count and the total
+PASS  C  bought: 200 credits taken (422 -> 222), 14 waiting
+PASS  D  the top bar's Open opens one pack full screen (pack bcceee1c, 5 cards)
+PASS  D  the server opened the oldest pack before the reveal (13 waiting; the cards are already in the collection)
+PASS  D  the liquid behind is paused while the opening covers it (covered)
+PASS  D  the opening fills the window (1440x1000)
+PASS  D  Esc during the reveal does not close it
+PASS  D  the reveal showed every card, in slot order (shine last), and exactly the copies the server logged for the pack: AG-003|standard, CX-007|standard, CX-018|standard, SW-015|standard, SW-019|foil
+PASS  D  the summary has the website's buttons: "Open another" (13 wait) and "Done"
+PASS  E  "Open another" opened the next pack (606a5e77)
+PASS  E  and its reveal matches its logged copies too
+PASS  F  Esc on the summary closes it; the Store and the top bar read 12 waiting
+PASS  F  the newest recent opening is the pack just opened, its cards drawn
+PASS  F  focus went back to what opened it (#open-btn)
+PASS  G  "Open 10" plays a ten-pack open (the fan of ten)
+PASS  G  the ten-pack summary shows
+PASS  G  it opens at its top, the cards first (scrolled 0 px)
+PASS  G  its buttons: "Open 10 more" greyed (Opening 10 at once needs 10 packs waiting; you have 2.), "Open one pack", "Done"
+PASS  G  the server holds 2 waiting after the ten
+PASS  G  "Done" closes it
+PASS  H  the frame's sound follows the account (on: on)
+PASS  H  muting in the opening saves to the account (sound {"on":false,"volume":80})
+PASS  H  the Packs widget's Open opens one; Close mid-reveal goes back, and the pack stays opened (1 waiting)
+PASS  H  the top bar reads 1 waiting after the close
+PASS  J  a row's "Open one" opens that pack (POST { packId })
+PASS  J  the next opening reads the saved setting (muted)
+PASS  J  with none left, "Open another" is greyed with the reason ("No packs waiting. Buy more in the Store, or claim your free daily pack.") and Done is the main button
+PASS  J  no packs: the top bar's Open and the Store's Open are greyed
+PASS  J  a refused open shows the server's words and no overlay ("Only 0 unopened pack(s); can't open 1.")
+PASS  K  CSP: the site may frame only itself; the opening may be framed only by the site and fetches nothing
+PASS  L  at 900 px the Store's panels stack in one column (1)
+PASS  L  nothing runs off the side (0 px)
+PASS  M  under reduce motion the opening plays to its summary (another owner, 3 starter packs; 4.9 s)
+PASS  M  and shows that owner's logged copies
+PASS  N  no request left the site (0)
+PASS  N  no page errors
+
+50 passed, 0 failed

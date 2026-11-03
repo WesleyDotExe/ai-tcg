@@ -89,21 +89,48 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
   const from = await f.evaluate(() => window.__pack.log.length);
   const pk = await f.locator('#pack').boundingBox();
   await page.mouse.click(pk.x + pk.width / 2, pk.y + pk.height / 2);
-  await until(async () => (await P(page))?.phase === 'cards');
-  let guard = 0, taps = 0;
+  // Render session 54, the check-E flake, found: under load the tear and the
+  // cards rising took longer than this wait's old 15 s, the loop below saw
+  // no 'cards' phase and never ran, and the reveal was left untouched (the
+  // page received the tear and no other press; it stalled in 6 of 9 runs
+  // with eight busy loops beside the browser, none of 4 without). The page was
+  // never at fault. Now: the tear gets a minute; the loop never asks for a card past
+  // the last (it used to block 30 s on a box that can't exist while the
+  // summary comes in); every tap waits for the card to be free; a reveal tap
+  // is checked to have started (this pack's log only) and re-sent if not;
+  // and a stall says where it stopped.
+  if (!(await until(async () => (await P(page))?.phase === 'cards', 60000))) note(`the tear never reached the cards in 60 s (phase ${(await P(page))?.phase})`);
+  let guard = 0, taps = 0, noBox = 0;
   while ((await P(page))?.phase === 'cards' && guard++ < 60) {
     if (taps >= stopAfter) return null;
-    const st = await f.evaluate(() => ({ i: window.__pack.i, down: window.__pack.cur.cards[window.__pack.i]?.faceDown }));
-    const box = await f.locator(`.cslot[data-k="${st.i}"]`).boundingBox().catch(() => null);
-    if (!box) { await wait(100); continue; }
+    await until(async () => f.evaluate(() => window.__pack.busyUntil - performance.now() <= 0), 30000);
+    const st = await f.evaluate(() => ({ n: window.__pack.cur.cards.length, i: window.__pack.i, down: window.__pack.cur.cards[window.__pack.i]?.faceDown, rev: !!window.__pack.revealed[window.__pack.i], zd: window.__pack.cur.cards[window.__pack.i]?.reveal === 'zeroDay' }));
+    if (st.i >= st.n) { await wait(150); continue; }
+    let boxErr = null;
+    const box = await f.locator(`.cslot[data-k="${st.i}"]`).boundingBox({ timeout: 5000 }).catch((e) => { boxErr = String(e.message || e).split('\n')[0]; return null; });
+    if (!box) { if (!noBox++) note(`no box for card ${st.i}: ${boxErr ?? 'null'} (count ${await f.locator(`.cslot[data-k="${st.i}"]`).count().catch(() => '?')})`); await wait(100); continue; }
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     taps++;
-    if (st.down) {
-      await until(async () => f.evaluate((k) => window.__pack.log.some((e) => (e.kind === 'landed' || e.kind === 'zeroDayArrive') && (e.idx === k || e.kind === 'zeroDayArrive')), st.i), 9000);
-      await until(async () => f.evaluate(() => window.__pack.busyUntil - performance.now() <= 0), 9000);
-      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    if (st.down && !st.rev) {
+      const began = await until(async () => f.evaluate(([from, k]) => window.__pack.log.slice(from).some((e) => e.kind === 'reveal' && e.idx === k), [from, st.i]), 2000);
+      if (!began) { note(`a reveal tap on card ${st.i} was dropped; tapping again`); continue; }
+      await until(async () => f.evaluate(([from, a]) => window.__pack.log.slice(from).some((e) => (a.zd ? e.kind === 'zeroDayArrive' : e.kind === 'landed') && e.idx === a.i), [from, st]), 20000);
+      continue;
     }
-    await wait(300);
+    await wait(150);
+  }
+  if ((await P(page))?.phase !== 'summary' && !(await until(async () => (await P(page))?.phase === 'summary', 30000))) {
+    note(`the reveal stopped short of its summary: ${JSON.stringify(await f.evaluate(() => ({ phase: window.__pack.phase, i: window.__pack.i, busy: Math.round(window.__pack.busyUntil - performance.now()), last: window.__pack.log.slice(-4).map((e) => e.kind + (e.idx ?? '')) })))}`);
+    // What a tap at the top card lands on, in the page and in the frame.
+    const k = await f.evaluate(() => window.__pack.i);
+    const b = await f.locator(`.cslot[data-k="${k}"]`).boundingBox().catch(() => null);
+    if (b) {
+      const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+      const top = await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? e.tagName + '#' + e.id + '.' + e.className : null; }, [cx, cy]);
+      const fr = await page.$eval('#opening iframe', (el) => { const r = el.getBoundingClientRect(); return [r.x, r.y]; });
+      const inner = await f.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? e.tagName + '.' + String(e.className).slice(0, 60) + ' in ' + (e.closest('.cslot') ? 'cslot ' + e.closest('.cslot').getAttribute('data-k') : e.closest('#stack') ? 'stack' : 'no stack') : null; }, [cx - fr[0], cy - fr[1]]);
+      note(`a tap at the top card (${Math.round(cx)},${Math.round(cy)}) lands on ${top} in the page; in the frame on ${inner}; frame at ${fr.join(',')}`);
+    } else note(`the top card ${k} has no box`);
   }
   await until(async () => (await P(page))?.phase === 'summary');
   return f.evaluate((from) => {

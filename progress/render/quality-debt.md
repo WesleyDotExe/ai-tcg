@@ -9,24 +9,29 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
-- **A render hardening pass is overdue:** the last was session 40; sessions 41-52 each built the slice the
-  owner named. Sessions 36's and 45's browser checks are stale or fail on main (below). The next session
-  the owner leaves unnamed should be one.
+- **Most by-hand browser checks are never re-run.** Session 54 (a hardening pass) brought the stale ten-pack
+  and loadout checks up to date (`pack-bulk-check-s54.mjs`, `loadout-check-s54.mjs`) and found the older
+  ones break the same way: written against the page as it was that session, and against one machine's
+  Chromium path. Session 38's boot check still expects the 2.6 s intro (render 53 made it 3.4 s), and other
+  pre-41 checks (`boast-check-s3x`, `hardening-check-s40`, `feed-check`, `pack-*-check`) were not re-run
+  this pass: assume any of them may be stale until run. Only `render/ci/browser-check.mjs` runs on every PR.
 - **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
   tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
   tiles' `backdrop-filter` is the whole cost. Session 45's check fails its 20 fps bar on this branch
   (`site-check-s45-rerun-s46.txt`). Never measured on a GPU; options with the owner (notes, session 46).
-- **The live arena draws less than a replay (session 51):** no signature zone (the feed has the card's name
-  only), a signature unit's printed Barrier and ability text unknown, each side Neutral until it shows a
-  faction card. Hands are face up since session 53, except the opening hands (dealt before the engine's log
-  starts, so in no event): those cards are backs until played, and a Command played from one has no card to
-  fly from. A hand cost is marked "?" while a signature unit is in play (its abilities aren't public).
-  Each is a small game-lane addition (notes, session 51) or the owner's hands call. Statuses and this-turn
+- **The live arena draws less than a replay (session 51):** no signature zone, a signature unit's printed
+  Barrier and ability text unknown, a hand cost marked "?" while a signature unit is in play. The game lane
+  sends the signature card in full since its session 72 (`PublicSide.signature`), but the site doesn't read
+  it yet: the next live-arena work. Since session 54 the hands are whole from move 0 (the feed's
+  `openingHands`) and each side shows its deck's faction from the first frame (`LiveSideView.faction`); a
+  feed without them (the real-time safety rule, when network agents join) falls back to backs and Neutral,
+  as before (tested in `liveFrames.test.ts`). Statuses and this-turn
   buffs take their duration from the source card's abilities: exact in every tested match, but a future
   card with two different durations for the same status or buff would leave it out (listed in
   `LiveFrameBuilder.unknown`, never shown wrong; nothing reports it outside the tests).
 - **Live, the boast plays after GAME OVER** (the record comes ~8 s after the last move), the reverse of the
-  replay's order; and the live page's Match Boot saying is seeded by the match id, so the replay of the same
+  replay's order; the game lane sends the boast on the live view once the last move is out since its session
+  72 (`LiveMatchView.boast`), not read by the site yet; and the live page's Match Boot saying is seeded by the match id, so the replay of the same
   match may show a different saying.
 - **The live arena is fed by polling** (the website reads `/live-frames` every 3 s, the host reads the API's
   feed only for new moves): up to 3 s behind the server's watch clock, plus the arena's own step pace.
@@ -49,7 +54,8 @@ items are removed, with the fix in `log.md`.
   is drawn as given). The flick, whir and clink were checked as queued on the audio clock and their recipes
   tested, never listened to by a person. The coin's size is set by the gap between the agent lines (about
   30 px radius on the desktop replay): it reads, but is small on a wide board. The committed `render/output`
-  pages (not regenerated since session 50) still play the old 2.6 s intro with no coin.
+  pages are rebuilt (session 54, `npm run outputs -w @ai-tcg/render`) and play the coin; nothing rebuilds
+  them automatically, so they go stale again whenever a session forgets.
 - **Live hands are rebuilt, not sent (session 53):** exact in every tested match (card for card against the
   engine, and over the real API against the recorded replay), but a future engine change that moves a card in
   or out of a hand without a `playCard` move or a `draw` event (a discard, a bounce) would trip the count
@@ -90,8 +96,6 @@ items are removed, with the fix in `log.md`.
   page, not the glass website. The live-match lock is tested over the API, never seen in the browser (the
   demo can't start a live match from the page). Buy refreshes the picker by reading five endpoints again.
   Clicking Change during the Store's redraw after a Close can miss (seen once, in the check).
-- **Session 36's standalone picker check is stale** (`loadout-check-s36.mjs`: 5 of 48 fail on main's page
-  too; written before render 37's win message changed the plate).
 - **The Collection page (session 48):** Promos only says what it waits on (no signature cards or promos in
   the collection API). Craft prices come from the economy's config file, not the API (asked for). The
   binder draws every place's face at once (96 on the Set tab, 152 on Secrets): fine in Chromium here, never
@@ -104,12 +108,12 @@ items are removed, with the fix in `log.md`.
   reload mid-reveal loses the show (the cards are safe: they're in the collection).
 - **The site's bundle grew from about 150 KB to 300 KB:** it now carries the engine's card registry, so
   the planner can draw card faces. Fine on home Wi-Fi; never measured on a slow link.
-- **Session 25's ten-pack check script is stale** (`pack-bulk-check.mjs` times out on the speed buttons,
-  on main's page too); session 47's site check plays a ten-pack open instead, but not every speed or the
-  auto mode.
-- **Check E of `site-check-s47` failed once in four runs** (a second pack's reveal against its logged
-  copies), five clean runs since; cause unproven (likely the script's own taps). It now prints what it
-  saw when it fails.
+- **By-hand browser checks use fixed waits that a slow machine can outrun.** The check-E flake (session 47)
+  was the script's: a 15 s wait for the tear to reach the cards, beaten under load, after which the check
+  tapped nothing (session 54 found it with probes and fixed `site-check-s47.mjs`). The other site checks
+  (s44-s53) use the same `until(..., 15000)` pattern and were not audited. Not seen on the page side, but
+  unproven either way: the pack page's 200 ms hold-to-tilt is a timer, so on a badly stalled main thread a
+  quick tap's release could in principle be handled after it and read as a tilt (never observed).
 - **The board's drag is HTML5 drag and drop:** proven with a real mouse in Chromium; not tried in Safari
   or with a trackpad. No drop-position preview beyond the outlined target; the mockup has none either.
 - **Wide windows pack densely**, so a Small can sit ahead of its place in the owner's order (narrow ones

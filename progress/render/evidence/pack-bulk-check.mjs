@@ -1,3 +1,6 @@
+// SUPERSEDED (render session 54): stale since the owner made the ten-pack open
+// tap-driven (2026-10-18); see pack-bulk-check-s54.mjs. Kept as the record of
+// what session 25 checked.
 // Render session 25: the ten-pack opening, driven like an owner would in a
 // real (headless) Chromium. Not a repo dependency: run from a scratch
 // folder with playwright-core installed, against the preinstalled Chromium:

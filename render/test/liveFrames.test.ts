@@ -218,6 +218,23 @@ describe("LiveFrameBuilder (the live feed as arena frames)", () => {
     expect(live.factions).toEqual(captured.factions);
   }, 60_000);
 
+  it("the faction the feed sends (game session 72) holds from the first frame, before any card shows", async () => {
+    const rec = timelineRecorder();
+    const moves: Move[] = [];
+    await captureMatch({ title: "t", seed: 7, deckA: buildCortexDeck("p1", "Cortex"), deckB: buildSwarmDeck("p2", "Swarm"), agentA: recording(new AggressiveAgent("A", 1), moves), agentB: recording(new AggressiveAgent("B", 2), moves), boardSlots: BOARD_SLOTS });
+    replayMatch(buildCortexDeck("p1", "Cortex"), buildSwarmDeck("p2", "Swarm"), { p1: "A", p2: "B" }, 7, moves, rec.hooks);
+    const start = { matchId: "x", names: { p1: "A", p2: "B" }, start: rec.timeline.start, startLines: rec.timeline.startLines, boardSlots: BOARD_SLOTS, turnCap: 30, energyCap: MAX_ENERGY_CAP };
+    const given = new LiveFrameBuilder({ ...start, factions: { p1: "Cortex", p2: "Swarm" } });
+    const guessed = new LiveFrameBuilder(start);
+    for (const s of rec.timeline.steps) { given.push(s); guessed.push(s); }
+    const gf = given.allFrames(), uf = guessed.allFrames();
+    // Without it, a side is Neutral until it shows a faction card.
+    expect(uf[0]!.players.p1.faction).toBe("Neutral");
+    for (const f of gf) expect([f.players.p1.faction, f.players.p2.faction], `frame ${f.index}`).toEqual(["Cortex", "Swarm"]);
+    // The two agree once both sides have shown a faction card.
+    expect([uf.at(-1)!.players.p1.faction, uf.at(-1)!.players.p2.faction]).toEqual(["Cortex", "Swarm"]);
+  }, 60_000);
+
   it("a frame never changes once given (slots and feed worked out from the first frame)", async () => {
     const { builder } = await both(41, "Cortex", "Null", "aggressive");
     const all = builder.allFrames();
