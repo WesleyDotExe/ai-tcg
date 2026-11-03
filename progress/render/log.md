@@ -4731,3 +4731,63 @@ session 40).
 slice (the flip in Match Boot, the Chrome Token, reduced motion and sound), both on the near side the point
 of view now gives.
 
+
+## 2026-11-03 — Session 53: live hands face up; the coin flip in Match Boot (the first coin slice)
+
+Owner feedback read: the answers to render session 52 keep all 6 calls and set the order: this slice (hands
+live, face up, with the first coin slice), then a render hardening pass, then the second coin slice. The game
+lane's half of coins is built (session 69: the `coin` slot, Chrome Token, `coins` on the record, the replay
+file and the live view). Alternation: the last merged PR (#125) was the game lane's (session 71). No CRITICAL
+item in the render debt list.
+
+**Built:**
+- **Live hands** (`site/liveFrames.ts`): each hand kept in the engine's order. A `playCard` step removes the
+  card at its `handIndex` before anything else (the engine's splice comes first in `playCard`); each `draw`
+  event appends its card. The hand count is checked against the snapshot after every step; on a mismatch that
+  hand becomes backs for good (`handLost`). Each card's cost is the engine's `effectiveCardCost` worked out
+  from the public board (non-dormant units' and Directives' `cardCostModifier` statics, a modal card's mode
+  from its `play`/`evolve` event); while a signature unit is active its abilities are unknown, so the cost is
+  marked `costUnsure`. The opening hands are in no event (dealt before the log starts): those cards are backs
+  in place until played. `LiveStart.openingHands` takes them by card id if the feed ever sends them.
+- **The arena's hand row** (`renderHtml.ts`): named cards face up in place, backs among them, "N from the
+  opening hand, face down" (or "N cards, face down" when all are), a "?" on an unsure cost. A Command played
+  from a named hand card should now fly from it live (the cast flight finds the chip by name; not checked
+  in the browser).
+- **The coin flip** (`coinFx.ts`, new; `matchBootFx.ts`; EFFECTS.md "The coin flip as built"): the plan as
+  approved. `BOOT_MS` 2600 -> 3400, the still 1000 -> 1300; HANDSHAKE OK goes at 1.5 s; the coin (centre
+  block with its result line, clear of both agent lines even at its 1.3x peak) spins 8 or 9 half turns,
+  easing out, lands at 2.1 s on the face that says who goes first, settles, rings; the edge pulse into the
+  first player's half (2.12-2.54 s) is the grammar's one exception, checked as such in `bootPlanProblem`; the
+  line types at 2.2 s; the saying at 2.4 s; out from 3.0 s. The still: coin and line, then the saying at
+  0.6 s. Sounds `coinFlick`, `coinWhir`, `coinClink` (`soundFx.ts`), dead centre, Skip cuts them.
+- **Whose coin** (`renderHtml.ts` `coinOpts`): the near player's coin, portrait and faction ring; p1 always
+  first; YOU / THEY GO FIRST when the page has no switch (the viewer's own match), else <P1 NAME> GOES FIRST.
+  The portrait is the avatar SVG with its `currentColor` cells written in the faction colour (an `<img>` can't
+  inherit it: the first still showed a dark square, fixed). `MatchReplay.coins`: from the match record or the
+  replay file (`siteReplay.ts`), from the live view's per-side `coin` (`siteHost.ts`).
+- **The Chrome Token** look (code-drawn hex, engraved node and traces, a glint, its edge as a band near edge
+  on). Every other coin id flips the Chrome Token, flagged `fallback` (none can be owned yet).
+
+**Tests (+14, render 843):** `liveFrames.test.ts`: every face-up card equals the engine's at that position and
+cost in all 8 matches and the 3 signature matches; with the opening hands given, every hand is whole and
+equal from move 0 (4 matches); backs never come back; a dropped draw turns that hand to backs, never a wrong
+card. Sabotage check: without the cost aura, 6 of those tests fail. `siteLiveArena.test.ts` over the real
+owner API: every face-up card equals the recorded replay's; the live page and the replay page flip the same
+coins as the live view. `matchBoot.test.ts`: the new timings; the grammar with the coin on every layout, both
+first players, animated and still, long names; seven new broken-plan cases caught (pulse in the wrong half,
+toward the centre, before the landing; wrong face; off centre; too big for the gap; still up as the saying
+lands); the line rules; the faces; the fallback; the sounds the same in every faction, the clink inharmonic,
+the whir slowing.
+
+**Ran it:** `progress/render/evidence/coin-hands-check-s53.mjs` -> `coin-hands-check-s53.txt`: 29 browser checks,
+ALL PASS (stills `v2-s53-*.jpg`). The first run had 1 FAIL, the check's own (it sampled the coin's pixels once,
+when the coin happened to be nearly edge on: 723 of 6400 lit; it now takes the most over the spin: 5914 of
+6400). The stills showed the portrait face as a dark square (above, fixed). CI browser check 61 ALL PASS
+(`ci-check-s53.txt`). `npm test`: all six workspaces pass.
+
+**Not done (named):** the opening hands live (a game-lane ask, notes); the store and tier coins' looks (the
+second coin slice); the economy's `drawn` flag for the Chrome Token stays false (its test checks coins against
+the boast specs; a game-lane test change, notes); the committed `render/output` pages were not regenerated
+(none since session 50; the site builds its pages on demand), so they still show the old 2.6 s intro.
+
+**Next render-lane slice:** the render hardening pass, as the owner set it.

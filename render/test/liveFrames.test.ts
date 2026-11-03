@@ -40,7 +40,7 @@ function recording(agent: Agent, moves: Move[]): Agent {
   return { name: agent.name, decideMove: async (view, legal) => { const m = await agent.decideMove(view, legal); moves.push(structuredClone(m)); return m; } };
 }
 
-async function both(seed: number, a: F, b: F, kind: "random" | "aggressive" | "lookahead", signatures = false) {
+async function both(seed: number, a: F, b: F, kind: "random" | "aggressive" | "lookahead", signatures = false, opening = false) {
   const seats = generatedSeats(seed);
   const deckA: DeckSpec = { ...BUILDERS[a]("p1", a), ...(signatures ? { signature: seats[0].card } : {}) };
   const deckB: DeckSpec = { ...BUILDERS[b]("p2", b), ...(signatures ? { signature: seats[1].card } : {}) };
@@ -49,7 +49,8 @@ async function both(seed: number, a: F, b: F, kind: "random" | "aggressive" | "l
   const captured = await captureMatch({ title: "t", seed, deckA, deckB, agentA: recording(make("Alpha", seed + 1), moves), agentB: recording(make("Beta", seed + 2), moves), boardSlots: BOARD_SLOTS });
   const rec = timelineRecorder();
   replayMatch(deckA, deckB, { p1: "Alpha", p2: "Beta" }, seed, moves, rec.hooks);
-  const builder = new LiveFrameBuilder({ matchId: `m-${seed}`, names: { p1: "Alpha", p2: "Beta" }, start: rec.timeline.start, startLines: rec.timeline.startLines, boardSlots: BOARD_SLOTS, turnCap: captured.turnCap, energyCap: MAX_ENERGY_CAP });
+  const openingHands = { p1: captured.frames[0]!.players.p1.hand.map((c) => c.cardId), p2: captured.frames[0]!.players.p2.hand.map((c) => c.cardId) };
+  const builder = new LiveFrameBuilder({ matchId: `m-${seed}`, names: { p1: "Alpha", p2: "Beta" }, start: rec.timeline.start, startLines: rec.timeline.startLines, boardSlots: BOARD_SLOTS, turnCap: captured.turnCap, energyCap: MAX_ENERGY_CAP, ...(opening ? { openingHands } : {}) });
   // Released in uneven batches, as the page reads them.
   const steps = rec.timeline.steps;
   for (let k = 0; k < steps.length; k++) builder.push(steps[k]!);
@@ -62,8 +63,12 @@ function comparableUnit(u: UnitSnapshot) {
   return rest;
 }
 
-function compare(captured: MatchReplay, live: MatchReplay, signatures: boolean): string[] {
+/** Hand positions shown face up / as backs, over every frame compared. */
+export const HAND_TALLY = { faceUp: 0, backs: 0, unsure: 0 };
+
+function compare(captured: MatchReplay, live: MatchReplay, signatures: boolean, wholeHands = false): string[] {
   const out: string[] = [];
+  const opening = { p1: captured.frames[0]!.players.p1.hand.length, p2: captured.frames[0]!.players.p2.hand.length };
   expect(live.frames.length).toBe(captured.frames.length);
   captured.frames.forEach((c: Frame, i) => {
     const l = live.frames[i]!;
@@ -81,7 +86,29 @@ function compare(captured: MatchReplay, live: MatchReplay, signatures: boolean):
         if (cp[k] !== lp[k]) out.push(at(`${pid}.${k} ${String(lp[k])} vs ${String(cp[k])}`));
       }
       if (JSON.stringify(cp.slots) !== JSON.stringify(lp.slots)) out.push(at(`${pid}.slots`));
-      if (lp.hand.length !== cp.hand.length || lp.hand.some((h) => h.hidden !== true)) out.push(at(`${pid}.hand`));
+      // Hands (render session 53): every position the feed has named is the
+      // engine's card at that position, at the engine's cost; the rest are
+      // backs, and only ever cards of the opening hand (so no more of them
+      // than it held). A cost marked unsure is the one thing allowed to
+      // differ (a signature card's aura). With the opening hands given,
+      // every position is named.
+      if (lp.hand.length !== cp.hand.length) out.push(at(`${pid}.hand length ${lp.hand.length} vs ${cp.hand.length}`));
+      else {
+        const backs = lp.hand.filter((h) => h.hidden).length;
+        if (backs > opening[pid] || (wholeHands && backs > 0)) out.push(at(`${pid}.hand has ${backs} backs`));
+        lp.hand.forEach((h, k) => {
+          if (h.hidden) {
+            HAND_TALLY.backs++;
+            return;
+          }
+          HAND_TALLY.faceUp++;
+          const { costUnsure, ...rest } = h;
+          if (costUnsure) HAND_TALLY.unsure++;
+          const want = cp.hand[k]!;
+          const got = costUnsure ? { ...rest, cost: want.cost } : rest;
+          if (JSON.stringify(got) !== JSON.stringify(want)) out.push(at(`${pid}.hand[${k}] ${JSON.stringify(h)} vs ${JSON.stringify(want)}`));
+        });
+      }
       if (lp.signature !== null) out.push(at(`${pid}.signature drawn`));
       if (lp.faction !== "Neutral" && lp.faction !== cp.faction) out.push(at(`${pid}.faction ${lp.faction} vs ${cp.faction}`));
       if (JSON.stringify(lp.directives.map((d) => ({ ...d, flavor: "" }))) !== JSON.stringify(cp.directives.map((d) => ({ ...d, flavor: "" })))) out.push(at(`${pid}.directives`));
@@ -147,6 +174,42 @@ describe("LiveFrameBuilder (the live feed as arena frames)", () => {
     }, 60_000);
   }
 
+  for (const [seed, a, b, kind] of PAIRS.slice(0, 4)) {
+    it(`hands: with the opening hands given (seed ${seed}), every hand is the engine's, card for card, from move 0`, async () => {
+      const { captured, live, builder } = await both(seed, a, b, kind, false, true);
+      expect(compare(captured, live, false, true)).toEqual([]);
+      expect(builder.handLost).toEqual({ p1: false, p2: false });
+    }, 60_000);
+  }
+
+  it("hands: a card the feed named stays face up until played; the opening backs are only ever played away", async () => {
+    const { live, builder } = await both(13, "Swarm", "Aegis", "aggressive");
+    expect(builder.handLost).toEqual({ p1: false, p2: false });
+    for (const pid of ["p1", "p2"] as const) {
+      const backs = live.frames.map((f) => f.players[pid].hand.filter((h) => h.hidden).length);
+      // Backs never come back: each frame has no more than the one before.
+      for (let k = 1; k < backs.length; k++) expect(backs[k]!).toBeLessThanOrEqual(backs[k - 1]!);
+      expect(backs[0]).toBe(live.frames[0]!.players[pid].hand.length);
+    }
+  }, 60_000);
+
+  it("hands: a feed whose count disagrees turns that hand to backs for good, never a wrong card", async () => {
+    const rec = timelineRecorder();
+    const moves: Move[] = [];
+    await captureMatch({ title: "t", seed: 7, deckA: buildCortexDeck("p1", "Cortex"), deckB: buildSwarmDeck("p2", "Swarm"), agentA: recording(new AggressiveAgent("A", 1), moves), agentB: recording(new AggressiveAgent("B", 2), moves), boardSlots: BOARD_SLOTS });
+    replayMatch(buildCortexDeck("p1", "Cortex"), buildSwarmDeck("p2", "Swarm"), { p1: "A", p2: "B" }, 7, moves, rec.hooks);
+    const b = new LiveFrameBuilder({ matchId: "x", names: { p1: "A", p2: "B" }, start: rec.timeline.start, startLines: rec.timeline.startLines, boardSlots: BOARD_SLOTS, turnCap: 30, energyCap: MAX_ENERGY_CAP });
+    const steps = structuredClone(rec.timeline.steps);
+    // A draw the feed lost: p2's first draw event dropped.
+    const k = steps.findIndex((s) => s.events.some((e) => e.type === "draw" && e.player === "p2"));
+    steps[k]!.events = steps[k]!.events.filter((e) => !(e.type === "draw" && e.player === "p2"));
+    for (const s of steps) b.push(s);
+    expect(b.handLost).toEqual({ p1: false, p2: true });
+    const frames = b.allFrames();
+    for (const f of frames.slice(k + 1)) expect(f.players.p2.hand.every((h) => h.hidden)).toBe(true);
+    expect(frames.at(-1)!.players.p1.hand.some((h) => !h.hidden) || frames.at(-1)!.players.p1.hand.length === 0).toBe(true);
+  }, 60_000);
+
   it("the faction is the deck's once a card shows, Neutral before, never another", async () => {
     const { captured, live } = await both(31, "Swarm", "Aegis", "aggressive");
     const last = live.frames[live.frames.length - 1]!;
@@ -203,3 +266,4 @@ describe("LiveFrameBuilder (the live feed as arena frames)", () => {
     expect(replayPage).not.toContain('id="btn-live"');
   }, 60_000);
 });
+

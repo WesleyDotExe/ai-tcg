@@ -1,0 +1,50 @@
+
+[A] Play from move 0: the coin flip, p1 near (a spectator on a standalone page)
+PASS  A. Match Boot plays
+PASS  A. the coin is the Chrome Token ({"id":"coin-chrome-token","fallback":false})
+PASS  A. the line reads "LOOKAHEAD-CORTEX GOES FIRST"
+PASS  A. p1 near goes first: lands portrait up, the pulse in the bottom half (bot)
+PASS  A. both faces show during the spin (design, portrait)
+PASS  A. the coin is drawn: up to 5439 of 6400 pixels lit at its place during the spin (t 1745 ms)
+PASS  A. the intro ends by itself
+PASS  A. at about 3.4 s (3412 ms)
+      sounds queued: bootOn x1, type x24, handshake x1, coinFlick x1, coinWhir x1, coinClink x1, bootHit x1
+PASS  A. the flick, the whir and the clink each queued once, on the audio clock
+PASS  A. no intro sound late (0)
+PASS  A. then move 1
+
+[B] "Watch as" p2, then Play from move 0
+PASS  B. p2's coin lands design up, the pulse in the top half, p1's ({"portraitUp":false,"first":"top"})
+PASS  B. the line still names the first player: "LOOKAHEAD-CORTEX GOES FIRST"
+
+[C] the viewer's own match (switch=0)
+PASS  C. own agent as p1: "YOU GO FIRST", portrait up
+PASS  C. own agent as p2: "THEY GO FIRST", portrait down
+
+[D] reduced motion: the still
+PASS  D. the intro plays as the still
+PASS  D. the coin already landed from the first frame (face portrait)
+PASS  D. about 1.3 s (1312 ms)
+
+[E] Skip during the spin
+PASS  E. it ends at once, before the landing (skip at 1741 ms)
+PASS  E. no coin left drawn
+
+[F] a phone
+PASS  F. the plan passes the grammar on the phone (problem null)
+PASS  F. no sideways scroll
+
+[G] live hands, face up
+PASS  G. a match is live
+      hands now: p1 1 up + 1 backs ("1 from the opening hand, face down"); p2 1 up + 3 backs ("3 from the opening hand, face down")
+PASS  G. named cards show face up in the live arena
+PASS  G. backs only for opening cards (p1 1 <= 4, p2 3 <= 4)
+PASS  G. the backs are labelled
+      15 s later: p1 1 up + 1 backs; p2 1 up + 3 backs
+PASS  G. a back never comes back (opening cards only leave by being played)
+
+[H] errors and requests
+PASS  H. no page errors
+PASS  H. no external requests
+
+29 PASS, 0 FAIL — ALL PASS

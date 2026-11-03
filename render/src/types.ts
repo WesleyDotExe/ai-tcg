@@ -108,10 +108,13 @@ export interface CardRef {
   flavor: string;
   visualSeed: number;
   visualPattern: number;
-  /** A card the viewer can't see (a live match's hand: the public feed
-   * sends the count only). The page draws a card back; the other fields
+  /** A card the viewer can't see (a live match's opening hand: the public
+   * feed never names it). The page draws a card back; the other fields
    * are blanks. */
   hidden?: true;
+  /** A live hand's cost that a signature card in play may change (its
+   * abilities aren't public): the page marks the number as unsure. */
+  costUnsure?: true;
 }
 
 export interface PlayerSnapshot {
@@ -258,4 +261,9 @@ export interface MatchReplay {
    * and on any match recorded before the store kept loadouts: those play
    * the winner's faction starter boast. */
   record?: ReplayRecord;
+  /** (render session 53) The coin each side flipped, by the economy's item
+   * id: the match record's `coins` (or the live view's `coin` per side, or
+   * the replay file's). Absent on the sample replays and on matches from
+   * before coins: both sides flip the Chrome Token. */
+  coins?: Record<PlayerId, string>;
 }

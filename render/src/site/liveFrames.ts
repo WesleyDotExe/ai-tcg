@@ -29,9 +29,27 @@
 //    it is used (a Stasis for 1 turn, a buff until end of turn); when they
 //    don't, it is left out rather than guessed (see `unknown` below).
 //
+//  - hands (render session 53; the owner's render-51 answer: spectators see
+//    both hands live, face up, as replays do): the snapshot has the count
+//    only, but each step carries the engine's move and its events, so the
+//    hand is rebuilt in the engine's own order. A `playCard` move names the
+//    hand position it took (`handIndex`: the engine splices that card out
+//    before anything else the move does); every `draw` event names the card
+//    it appends. Each card's cost is worked out as the engine's
+//    effectiveCardCost does, from the public board (every cost aura is a
+//    static on a unit or a Directive, and a modal card's mode is on its
+//    `play` event). The rebuilt count is checked against the snapshot's
+//    after every move; if they ever disagree, that hand goes back to card
+//    backs for the rest of the match (`handLost`, never a wrong card).
+//
 // What the public feed doesn't carry, and this doesn't invent:
-//  - hands: the snapshot has the count only (OWNER_API.md: "no hand or deck
-//    contents"), so each hand is that many card backs (`hidden: true`);
+//  - the opening hands: they are dealt before the engine's log starts, so
+//    they are in no event. Those cards show as backs, each in its place,
+//    until it is played (`LiveStart.openingHands` takes them, by card id,
+//    should the feed ever send them: then every hand is whole from move 0);
+//  - a signature card's abilities: while one is in play (not dormant), a
+//    cost on the hand may be off by its aura, if it has one, so those costs
+//    are marked unsure (`costUnsure`) rather than shown as exact;
 //  - the signature zone: the snapshot has the card's name and whether it has
 //    been played, not the card, so the zone isn't drawn; a signature unit on
 //    the board (its card isn't in the registry) shows its live stats with
@@ -67,6 +85,10 @@ export interface LiveStart {
   boardSlots: number;
   turnCap: number;
   energyCap: number;
+  /** The opening hands by card id, in hand order, if the feed sends them
+   * (it doesn't today: notes-for-owner, render session 53). Without them
+   * the opening cards are backs until played. */
+  openingHands?: Record<PlayerId, string[]>;
 }
 
 type Status = UnitSnapshot["statuses"][number];
@@ -136,8 +158,17 @@ function hiddenCard(): CardRef {
   return { cardId: "", name: "", faction: "Neutral", rarity: "Common", type: "Unit", cost: 0, flavor: "", visualSeed: 0, visualPattern: 0, hidden: true };
 }
 
+/** One hand position: a card id once the feed has named the card, else null (a back). */
+type HandSlot = string | null;
+
 export class LiveFrameBuilder {
   readonly matchId: string;
+  /** Each hand in the engine's order (render session 53). */
+  private readonly hands: Record<PlayerId, HandSlot[]> = { p1: [], p2: [] };
+  /** A hand whose rebuilt count ever disagreed with the snapshot's: backs from then on. */
+  readonly handLost: Record<PlayerId, boolean> = { p1: false, p2: false };
+  /** A modal card's chosen mode, by board instance (from `play` and `evolve`). */
+  private readonly modeOf = new Map<string, string>();
   private readonly start: LiveStart;
   private readonly frames: Frame[] = [];
   private readonly tracked = new Map<string, Tracked>();
@@ -154,6 +185,10 @@ export class LiveFrameBuilder {
     this.turn = start.start.turn;
     this.lastSnap = start.start;
     for (const pid of PIDS) for (const u of start.start[pid].board) this.track(u.instanceId);
+    for (const pid of PIDS) {
+      const given = start.openingHands?.[pid];
+      this.hands[pid] = given && given.length === start.start[pid].hand ? given.map((id) => (cardOf(id) ? id : null)) : Array.from({ length: start.start[pid].hand }, () => null);
+    }
     this.frames.push(this.frame(0, start.start, openingEvents(start)));
   }
 
@@ -195,7 +230,15 @@ export class LiveFrameBuilder {
     if (step.n !== this.frames.length) throw new Error(`the live feed sent move ${step.n}, the board is at move ${this.frames.length - 1}`);
     const before = this.lastSnap;
     const after = step.after;
+    // The engine takes the played card out of the hand first (playCard's
+    // splice), then everything the move causes follows, draws included.
+    if (step.move.type === "playCard" && !this.handLost[step.by]) {
+      const hand = this.hands[step.by];
+      if (step.move.handIndex >= 0 && step.move.handIndex < hand.length) hand.splice(step.move.handIndex, 1);
+      else this.loseHand(step.by);
+    }
     for (const ev of step.events) this.apply(ev, before, after);
+    for (const pid of PIDS) if (!this.handLost[pid] && this.hands[pid].length !== after[pid].hand) this.loseHand(pid);
     this.turn = after.turn;
     this.lastSnap = after;
     const frame = this.frame(step.n, after, step.events);
@@ -203,8 +246,19 @@ export class LiveFrameBuilder {
     return frame;
   }
 
+  private loseHand(pid: PlayerId): void {
+    this.handLost[pid] = true;
+    this.hands[pid] = [];
+  }
+
   private apply(ev: GameEvent, before: PublicSnapshot, after: PublicSnapshot): void {
     switch (ev.type) {
+      case "draw": {
+        if (this.handLost[ev.player]) break;
+        const card = BY_NAME.get(ev.card);
+        this.hands[ev.player].push(card && CARD_REGISTRY.has(card.id) ? card.id : null);
+        break;
+      }
       case "turnStart":
         this.turn = ev.turn;
         // The engine clears "has attacked" for the player whose turn begins.
@@ -226,7 +280,10 @@ export class LiveFrameBuilder {
         const unit = after.p1.board.concat(after.p2.board).find((u) => u.instanceId === ev.instanceId);
         const card = unit ? cardOf(unit.cardId) : null;
         if (card && card.type === "Unit" && card.keywords.includes("Barrier") && !t.statuses.some((s) => s.kind === "Barrier")) t.statuses.push({ kind: "Barrier", duration: "untilConsumed" });
-        if (ev.type === "play") this.reveal(ev.player, card ?? BY_NAME.get(ev.card) ?? null);
+        if (ev.type === "play") {
+          this.reveal(ev.player, card ?? BY_NAME.get(ev.card) ?? null);
+          if (ev.mode !== undefined) this.modeOf.set(ev.instanceId, ev.mode);
+        }
         break;
       }
       case "cast": {
@@ -296,6 +353,10 @@ export class LiveFrameBuilder {
         break;
       case "evolve": {
         this.reveal(ev.player, BY_NAME.get(ev.to) ?? null);
+        if (ev.instanceId) {
+          if (ev.mode !== undefined) this.modeOf.set(ev.instanceId, ev.mode);
+          else this.modeOf.delete(ev.instanceId);
+        }
         break;
       }
       default:
@@ -351,7 +412,69 @@ export class LiveFrameBuilder {
     };
   }
 
-  private side(pid: PlayerId, s: PublicSide, slotsMax: number): PlayerSnapshot {
+  /** The abilities in play on `owner`'s side that can change a cost: every
+   * active (not dormant) unit's and every Directive's, a modal card's mode
+   * included. `unsure` when one of them is a card the registry lacks (a
+   * signature unit: its abilities aren't public). */
+  private costSources(snap: PublicSnapshot, owner: PlayerId): { abilities: Card["abilities"]; unsure: boolean } {
+    const out: Card["abilities"][number][] = [];
+    let unsure = false;
+    const add = (iid: string, cardId: string) => {
+      const card = cardOf(cardId);
+      if (!card) {
+        unsure = true;
+        return;
+      }
+      out.push(...card.abilities);
+      const mode = this.modeOf.get(iid);
+      const m = mode === undefined ? undefined : card.modes?.find((x) => x.id === mode);
+      if (m) out.push(...m.abilities);
+    };
+    for (const u of snap[owner].board) if (!u.pending) add(u.instanceId, u.cardId);
+    for (const d of snap[owner].directives) add(d.instanceId, d.cardId);
+    return { abilities: out, unsure };
+  }
+
+  /** The engine's effectiveCardCost, read off the public board. */
+  private costOf(snap: PublicSnapshot, pid: PlayerId, card: Card): { cost: number; unsure: boolean } {
+    let modifier = 0;
+    let unsure = false;
+    for (const owner of PIDS) {
+      const src = this.costSources(snap, owner);
+      unsure ||= src.unsure;
+      for (const ability of src.abilities) {
+        if (ability.trigger !== "static" || ability.staticEffect?.kind !== "cardCostModifier") continue;
+        const se = ability.staticEffect;
+        if (se.cardType && se.cardType !== card.type) continue;
+        const applies = se.side === "any" || (se.side === "controller" ? owner === pid : owner !== pid);
+        if (applies) modifier += se.amount;
+      }
+    }
+    return { cost: Math.max(0, card.cost + modifier), unsure };
+  }
+
+  private handRefs(pid: PlayerId, snap: PublicSnapshot, count: number): CardRef[] {
+    if (this.handLost[pid]) return Array.from({ length: count }, hiddenCard);
+    return this.hands[pid].map((id) => {
+      const card = id ? cardOf(id) : null;
+      if (!card) return hiddenCard();
+      const { cost, unsure } = this.costOf(snap, pid, card);
+      return {
+        cardId: card.id,
+        name: card.name,
+        faction: card.faction,
+        rarity: card.rarity,
+        type: card.type,
+        cost,
+        flavor: card.flavor,
+        visualSeed: visualSeedFor(card.id),
+        visualPattern: visualPatternFor(card.id),
+        ...(unsure ? { costUnsure: true as const } : {}),
+      };
+    });
+  }
+
+  private side(pid: PlayerId, s: PublicSide, slotsMax: number, snap: PublicSnapshot): PlayerSnapshot {
     const directives: DirectiveSnapshot[] = s.directives.map((d) => {
       const card = cardOf(d.cardId);
       return {
@@ -374,7 +497,7 @@ export class LiveFrameBuilder {
       maxHealth: s.maxHealth,
       energy: s.energy,
       maxEnergy: s.maxEnergy,
-      hand: Array.from({ length: s.hand }, hiddenCard),
+      hand: this.handRefs(pid, snap, s.hand),
       deckSize: s.deck,
       graveyardSize: s.graveyard,
       board: s.board.map((u) => this.unit(pid, u, s.signature?.name ?? null)),
@@ -388,7 +511,7 @@ export class LiveFrameBuilder {
   private frame(index: number, snap: PublicSnapshot, events: GameEvent[]): Frame {
     for (const pid of PIDS) for (const u of snap[pid].board) this.reveal(pid, cardOf(u.cardId));
     for (const pid of PIDS) for (const d of snap[pid].directives) this.reveal(pid, cardOf(d.cardId));
-    const players = { p1: this.side("p1", snap.p1, this.start.boardSlots), p2: this.side("p2", snap.p2, this.start.boardSlots) };
+    const players = { p1: this.side("p1", snap.p1, this.start.boardSlots, snap), p2: this.side("p2", snap.p2, this.start.boardSlots, snap) };
     // Statuses and buffs of units that left the board are no longer anyone's.
     const onBoard = new Set(PIDS.flatMap((pid) => snap[pid].board.map((u) => u.instanceId)));
     for (const iid of [...this.tracked.keys()]) if (!onBoard.has(iid)) this.tracked.delete(iid);

@@ -200,6 +200,8 @@ export interface SiteMatchView {
   turns: number | null;
   moves: number | null;
   boast: { agentId: string; itemId: string; slot: "boast" | "closeWinBoast" | "factionStarter"; winnerHealth: number | null } | null;
+  /** (v20) The coin each side flipped (OWNER_API.md "Coin skins"). */
+  coins?: { p1: string; p2: string };
   hasLog: boolean;
   hasReplay: boolean;
 }

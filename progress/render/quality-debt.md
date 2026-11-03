@@ -18,7 +18,9 @@ items are removed, with the fix in `log.md`.
   (`site-check-s45-rerun-s46.txt`). Never measured on a GPU; options with the owner (notes, session 46).
 - **The live arena draws less than a replay (session 51):** no signature zone (the feed has the card's name
   only), a signature unit's printed Barrier and ability text unknown, each side Neutral until it shows a
-  faction card, hands as card backs (the owner chose to show them face up after render 51: not built yet), no Command flight from the hand (there's no card in the hand to fly).
+  faction card. Hands are face up since session 53, except the opening hands (dealt before the engine's log
+  starts, so in no event): those cards are backs until played, and a Command played from one has no card to
+  fly from. A hand cost is marked "?" while a signature unit is in play (its abilities aren't public).
   Each is a small game-lane addition (notes, session 51) or the owner's hands call. Statuses and this-turn
   buffs take their duration from the source card's abilities: exact in every tested match, but a future
   card with two different durations for the same status or buff would leave it out (listed in
@@ -40,9 +42,19 @@ items are removed, with the fix in `log.md`.
   now; no change). Never seen on a GPU; needs a profile.
 - **Session 50's browser check flaked once** (check 37: the 720 px history's Replay button "not visible" to
   the click for 30 s, on this branch; the re-run passed 40 of 40). Watch for it.
-- **The live arena's own match feed shows each draw** ("draws Watchtower Relay"): the feed is built from the
-  engine's events, which name the card (notes, session 51, item 3), while the hands show card backs.
 - **The Home widgets don't open the arena** (only Agent match and Watch live do).
+- **The coin flip (session 53) is the first slice only:** the Chrome Token is the one look drawn; every other
+  coin flips it (`fallback`), including the tier coins once granted, until the second coin slice. The coin's
+  edge is a flat dark band, not a real rim; the portrait is the generated avatar (a real image, `avatarUrl`,
+  is drawn as given). The flick, whir and clink were checked as queued on the audio clock and their recipes
+  tested, never listened to by a person. The coin's size is set by the gap between the agent lines (about
+  30 px radius on the desktop replay): it reads, but is small on a wide board. The committed `render/output`
+  pages (not regenerated since session 50) still play the old 2.6 s intro with no coin.
+- **Live hands are rebuilt, not sent (session 53):** exact in every tested match (card for card against the
+  engine, and over the real API against the recorded replay), but a future engine change that moves a card in
+  or out of a hand without a `playCard` move or a `draw` event (a discard, a bounce) would trip the count
+  check and turn that hand to backs for the rest of the match (never a wrong card; nothing reports it outside
+  the tests).
 - **The point of view (session 52) has untested corners:** a switch during Match Boot or a boast waits by
   polling every 120 ms (fine, but a timer, not an event); a switch drops effects still in flight on the move
   shown (the end state is drawn, the flourish is lost). The momentum gauge keeps its old convention (p1 ahead

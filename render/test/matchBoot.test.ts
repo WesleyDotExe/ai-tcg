@@ -11,6 +11,7 @@ import {
   BOOT_RARE,
   BOOT_SAYINGS,
   BOOT_STILL_MS,
+  BOOT_STILL_SAY_AT,
   BOOT_CH,
   BOOT_FS_MAX,
   BOOT_FS2_MAX,
@@ -25,6 +26,8 @@ import {
   type BootPlan,
 } from "../src/matchBootFx.js";
 import { BOAST_FONT } from "../src/boastFx.js";
+import { COIN_DEFAULT, COIN_PEAK, COIN_SPECS, coinFaceAt, coinFlight, coinHalfTurns, coinResult, coinSpecOf } from "../src/coinFx.js";
+import { SEASON_0_COINS, SEASON_0_TIER_COINS, STARTER_COIN } from "@ai-tcg/economy";
 import { sfxRecipe } from "../src/soundFx.js";
 import { renderMatchHtml } from "../src/renderHtml.js";
 import { captureReplay } from "../src/replaySetup.js";
@@ -102,18 +105,19 @@ describe("the intro grammar: symmetric and centre-out", () => {
     }
   });
 
-  it("runs about 2.6 s: power on, both lines at once, HANDSHAKE OK, the saying at 1.6 s, the board after", () => {
+  it("runs about 3.4 s: power on, both lines at once, HANDSHAKE OK, the coin from 1.5 s, the saying at 2.4 s, the board after", () => {
     const p = bootPlan(DESKTOP, { top: { name: "A", faction: "Null" }, bot: { name: "B", faction: "Cortex" } }, 3);
     expect(p.ms).toBe(BOOT_MS);
-    expect(BOOT_MS).toBeGreaterThanOrEqual(2000);
-    expect(BOOT_MS).toBeLessThanOrEqual(3000);
+    // Owner-approved 2026-11-02: from about 2.6 s to about 3.4 s with the coin.
+    expect(BOOT_MS).toBe(3400);
     const [t, b] = p.halves;
     expect(t!.on).toEqual(b!.on);
     expect(t!.line.t0).toBe(b!.line.t0);
     expect(t!.line.t0 + t!.line.ms).toBeLessThan(p.handshake!.t0);
     expect(p.handshake!.t0 + p.handshake!.ms).toBeLessThan(p.say.t);
-    expect(p.say.t).toBe(1600);
-    expect(p.handshake!.gone).toBe(p.say.t);
+    expect(p.say.t).toBe(2400);
+    expect(p.handshake!.gone).toBe(p.coin.t0);
+    expect([p.coin.t0, p.coin.land, p.result.t0, p.coin.gone]).toEqual([1500, 2100, 2200, 2400]);
     expect(t!.line.clear!.t).toBe(p.say.t);
     expect(p.say.out[1]).toBe(p.ms);
     expect(p.marks.at(-1)).toEqual({ k: "end", t: BOOT_MS });
@@ -137,7 +141,9 @@ describe("the intro grammar: symmetric and centre-out", () => {
     const p = bootPlan(DESKTOP, { top: { name: "A", faction: "Aegis" }, bot: { name: "B", faction: "Swarm" } }, 9);
     const sounds = p.marks.filter((m) => m.k === "sound");
     // Its own power-on (session 38), not Boot Sequence's 'crt'.
-    expect(new Set(sounds.map((m) => m.kind))).toEqual(new Set(["bootOn", "type", "handshake", "bootHit"]));
+    expect(new Set(sounds.map((m) => m.kind))).toEqual(new Set(["bootOn", "type", "handshake", "coinFlick", "coinWhir", "coinClink", "bootHit"]));
+    expect(sounds.find((m) => m.kind === "coinFlick")!.t).toBe(p.coin.t0);
+    expect(sounds.find((m) => m.kind === "coinClink")!.t).toBe(p.coin.land);
     for (const m of sounds) expect(m.x).toBe(p.cx);
     expect(p.marks.filter((m) => m.k === "music")).toEqual([{ k: "music", t: 0, ms: BOOT_MS }]);
     expect(p.marks.some((m) => (m.k as string) === "duck")).toBe(false);
@@ -202,7 +208,14 @@ describe("the intro grammar: symmetric and centre-out", () => {
       ["a sound panned to one side", (p) => { (p.marks.find((m) => m.k === "sound")!).x = 100; }, /panned off centre/],
       ["a saying off the list", (p) => { p.saying = "JACK IN"; }, /not on list 1/],
       ["a screen in the other half", (p) => { p.halves[0]!.screen.b = p.mid + 20; }, /leaves its half/],
-      ["too long", (p) => { p.ms = 4000; }, /2-3 s/],
+      ["too long", (p) => { p.ms = 4000; }, /2-3.5 s/],
+      ["the pulse in the other half", (p) => { p.pulse.side = "top"; }, /half of the player who goes first/],
+      ["the pulse toward the centre", (p) => { const f = p.pulse.from; p.pulse.from = p.pulse.to; p.pulse.to = f; }, /toward the centre/],
+      ["the pulse before the landing", (p) => { p.pulse.t = p.coin.land - 100; }, /before the coin lands/],
+      ["the coin on the wrong face", (p) => { p.coin.halfTurns += 1; }, /wrong face/],
+      ["the coin off the centre line", (p) => { p.coin.y -= 12; }, /not centred on the centre line/],
+      ["a coin too big for the gap", (p) => { const d = 90 - p.coin.r; p.coin.r = 90; p.result.y += d; }, /agent line|leaves the board/],
+      ["the coin still up as the saying lands", (p) => { p.coin.gone = p.say.t + 200; }, /out of order/],
       ["the music back before the end", (p) => { p.marks.find((m) => m.k === "music")!.ms = 1000; }, /music does not wait/],
       ["one line on two rows, the other on one", (p) => { p.halves[0]!.line.rows = ["LOADING AGENT: ", "A [AEGIS]      "]; }, /two rows and the other does not/],
     ];
@@ -216,17 +229,20 @@ describe("the intro grammar: symmetric and centre-out", () => {
 });
 
 describe("the reduced-motion still", () => {
-  it("is everything lit and still for about 1 s, with only the thump and the hit", () => {
+  it("is everything lit and still for about 1.3 s: the landed coin with its line, then the saying; only the thump, the clink and the hit", () => {
     const s = bootStill(bootPlan(DESKTOP, { top: { name: "A", faction: "Cortex" }, bot: { name: "B", faction: "Null" } }, 5));
+    expect(BOOT_STILL_MS).toBe(1300);
+    expect([s.coin.t0, s.coin.land, s.result.t0, s.result.ms]).toEqual([0, 0, 0, 0]);
+    expect(s.coin.gone).toBe(BOOT_STILL_SAY_AT);
+    expect(s.pulse.ms).toBe(0);
     expect(s.still).toBe(true);
     expect(s.ms).toBe(BOOT_STILL_MS);
     for (const h of s.halves) { expect(h.on.ms).toBe(0); expect(h.line.ms).toBe(0); expect(h.line.clear).toBeNull(); }
-    expect(s.say.t).toBe(0);
+    expect(s.say.t).toBe(BOOT_STILL_SAY_AT);
     expect(s.say.slam).toBe(0);
     expect(s.handshake!.y).toBeGreaterThan(s.mid + s.say.h / 2);
-    expect(s.marks.filter((m) => m.k === "sound").map((m) => m.kind).sort()).toEqual(["bootHit", "bootOn"]);
+    expect(s.marks.filter((m) => m.k === "sound").map((m) => `${m.kind}@${m.t}`).sort()).toEqual([`bootHit@${BOOT_STILL_SAY_AT}`, "bootOn@0", "coinClink@0"]);
     expect(s.marks.filter((m) => m.k === "music")).toEqual([{ k: "music", t: 0, ms: BOOT_STILL_MS }]);
-    expect(s.marks.every((m) => m.t === 0 || m.k === "end")).toBe(true);
   });
 
   it("drops HANDSHAKE OK when it would run into the bottom agent's line", () => {
@@ -281,4 +297,104 @@ describe("the replay page", () => {
     expect(html).toMatch(/function goTo\(n\) \{\s+const target[^\n]+\n\s+BOOT\.cancel\(\);/);
     expect(html).toMatch(/function stop\(\) \{[^\n]*BOOT\.cancel\(\);/);
   });
+});
+
+describe("the coin flip (render session 53)", () => {
+  const WHO = { top: { name: "Hive Courier", faction: "Swarm" }, bot: { name: "Static Widow", faction: "Null" } };
+
+  it("the line: YOU / THEY GO FIRST on the viewer's own match, <NAME> GOES FIRST for a spectator", () => {
+    const names = { p1: "Static Widow", p2: "Hive Courier" };
+    expect(coinResult({ near: "p1", own: true, names })).toBe("YOU GO FIRST");
+    expect(coinResult({ near: "p2", own: true, names })).toBe("THEY GO FIRST");
+    expect(coinResult({ near: "p1", own: false, names })).toBe("STATIC WIDOW GOES FIRST");
+    // A spectator watching as the second player still reads the first player's name.
+    expect(coinResult({ near: "p2", own: false, names })).toBe("STATIC WIDOW GOES FIRST");
+  });
+
+  it("lands portrait up exactly when the near player goes first, and spins at least four turns either way", () => {
+    for (const portraitUp of [true, false]) {
+      const turns = coinHalfTurns(portraitUp);
+      expect(turns).toBeGreaterThanOrEqual(8);
+      expect(coinFaceAt(coinFlight(1, turns).angle)).toBe(portraitUp ? "portrait" : "design");
+      // It starts design up, and both faces show on the way.
+      expect(coinFaceAt(coinFlight(0, turns).angle)).toBe("design");
+      const faces = new Set(Array.from({ length: 200 }, (_, k) => coinFaceAt(coinFlight(k / 199, turns).angle)));
+      expect(faces).toEqual(new Set(["design", "portrait"]));
+      // It rises toward the viewer and comes back: never smaller, at most COIN_PEAK.
+      for (let k = 0; k <= 50; k++) {
+        const f = coinFlight(k / 50, turns);
+        expect(f.scale).toBeGreaterThanOrEqual(1);
+        expect(f.scale).toBeLessThanOrEqual(COIN_PEAK + 1e-9);
+      }
+      expect(coinFlight(0, turns).scale).toBe(1);
+      expect(coinFlight(1, turns).scale).toBeCloseTo(1, 9);
+    }
+  });
+
+  it("the first player's half gets the pulse, on every layout, whichever side the viewer is on, animated and still", () => {
+    for (const [name, g] of LAYOUTS) {
+      for (const first of ["top", "bot"] as const) {
+        const p = bootPlan(g, WHO, 7, { coin: { first, portraitUp: first === "bot", line: "YOU GO FIRST" } });
+        expect(bootPlanProblem(p, g), `${name} ${first}`).toBeNull();
+        expect(bootPlanProblem(bootStill(p), g), `${name} ${first} (still)`).toBeNull();
+        expect(p.pulse.side).toBe(first);
+        expect(p.first).toBe(first);
+        expect(p.pulse.dir).toBe(first === "top" ? -1 : 1);
+      }
+    }
+  });
+
+  it("a long name's line shrinks to fit the board, never off it", () => {
+    for (const [name, g] of LAYOUTS) {
+      const p = bootPlan(g, WHO, 7, { coin: { first: "top", portraitUp: false, line: `${LONG.toUpperCase()} GOES FIRST` } });
+      expect(bootPlanProblem(p, g), name).toBeNull();
+      expect(p.result.txt).toBe(`${LONG.toUpperCase()} GOES FIRST`);
+    }
+  });
+
+  it("without a coin given, the bottom player goes first on the house coin", () => {
+    const p = bootPlan(DESKTOP, WHO, 1);
+    expect(p.coin.id).toBe(COIN_DEFAULT);
+    expect(p.coin.portraitUp).toBe(true);
+    expect(p.first).toBe("bot");
+    expect(p.result.txt).toBe("STATIC WIDOW GOES FIRST");
+  });
+
+  it("draws the Chrome Token; a coin not drawn yet flips the Chrome Token and says so", () => {
+    expect(Object.keys(COIN_SPECS)).toEqual(["coin-chrome-token"]);
+    expect(COIN_SPECS["coin-chrome-token"]!.name).toBe(STARTER_COIN.name);
+    expect(STARTER_COIN.itemId).toBe(COIN_DEFAULT);
+    expect(coinSpecOf("coin-chrome-token")).toMatchObject({ id: "coin-chrome-token", fallback: false });
+    for (const item of [...SEASON_0_COINS, ...Object.values(SEASON_0_TIER_COINS)]) {
+      expect(coinSpecOf(item.itemId)).toMatchObject({ id: COIN_DEFAULT, fallback: true });
+      expect(bootPlan(DESKTOP, WHO, 1, { coin: { id: item.itemId } }).coin).toMatchObject({ id: COIN_DEFAULT, fallback: true });
+    }
+    expect(coinSpecOf(undefined)).toMatchObject({ id: COIN_DEFAULT, fallback: false });
+  });
+
+  it("the coin's sounds sound the same whichever factions are playing, and ring like metal", () => {
+    for (const kind of ["coinFlick", "coinWhir", "coinClink"]) {
+      const a = sfxRecipe(kind, "Cortex", "normal", () => 0.5, {}), b = sfxRecipe(kind, "Swarm", "normal", () => 0.5, {});
+      expect(a.length, kind).toBeGreaterThan(0);
+      expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+    }
+    // The clink's partials are inharmonic (a bell's ratios), not a chord.
+    const clink = sfxRecipe("coinClink", "Neutral", "normal", () => 0.5, {}) as { f0?: number }[];
+    const fs = clink.map((x) => x.f0).filter((f): f is number => typeof f === "number" && f > 1000);
+    expect(fs.some((f) => Math.abs(f / 2350 - 2.76) < 0.01)).toBe(true);
+    // The whir slows down: each tick later than the last by more.
+    const whir = sfxRecipe("coinWhir", "Neutral", "normal", () => 0.5, {}) as { delay?: number; type?: string }[];
+    const d = whir.filter((x) => x.type === "triangle").map((x) => x.delay ?? 0);
+    for (let k = 2; k < d.length; k++) expect(d[k]! - d[k - 1]!).toBeGreaterThan(d[k - 1]! - d[k - 2]!);
+  });
+
+  it("the arena passes the near player's coin, portrait and line to Match Boot", async () => {
+    const { replay } = await captureReplay("Cortex", "Swarm", 3, false);
+    const page = renderMatchHtml({ ...replay, coins: { p1: "coin-chrome-token", p2: "coin-s0-neon-nickel" } });
+    expect(page).toContain("function coinDraw(ctx, c)");
+    expect(page).toContain("coin: coinOpts(),");
+    expect(page).toContain("id: coins[near] || COIN_DEFAULT,");
+    expect(page).toContain("own: !CAN_SWITCH");
+    expect(page).toContain('"coins":{"p1":"coin-chrome-token","p2":"coin-s0-neon-nickel"}');
+  }, 60_000);
 });

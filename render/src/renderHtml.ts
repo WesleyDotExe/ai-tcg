@@ -13,6 +13,7 @@ import { SIG_ZONE_SOURCE } from "./sigZoneFx.js";
 import { BOARD_FIT_SOURCE } from "./boardFit.js";
 import { BOAST_CSS, BOAST_PURE_SOURCE, BOAST_RUNTIME_SOURCE } from "./boastFx.js";
 import { MATCH_BOOT_CSS, MATCH_BOOT_PURE_SOURCE, MATCH_BOOT_RUNTIME_SOURCE } from "./matchBootFx.js";
+import { COIN_PURE_SOURCE, COIN_RUNTIME_SOURCE } from "./coinFx.js";
 
 /** Builds the self-contained HTML replay page (RENDER.md's suggested first
  * slice): a single file, no external network dependency (no CDN fonts/JS —
@@ -402,6 +403,7 @@ html, body {
 .hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }
 .hand .minicard { font-size: 0.62rem; padding: 3px 6px; border-radius: 3px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); }
 .hand .minicard b { color: var(--fc, var(--ink)); }
+.hand .minicard b .unsure { font-style: normal; opacity: 0.7; margin-left: 1px; }
 .hand .minicard.back { width: 20px; height: 28px; padding: 0; border-color: var(--line); background: repeating-linear-gradient(135deg, var(--panel-2) 0 4px, var(--panel) 4px 8px); box-shadow: inset 0 0 0 2px var(--panel); }
 .hand-count { font-size: 0.6rem; color: var(--ink-dim); align-self: center; margin-left: 4px; }
 .live-badge { font: inherit; font-size: 0.7rem; letter-spacing: 0.14em; padding: 3px 10px; border-radius: 4px; border: 1px solid #ff4d6d; color: #ff4d6d; background: transparent; cursor: pointer; }
@@ -1066,6 +1068,8 @@ ${BOAST_RUNTIME_SOURCE}
   window.__boast = BOAST; // read by the browser checks (progress/render/evidence/boast-check.mjs)
   // Match Boot (render/src/matchBootFx.ts, embedded verbatim): the intro
   // when playback starts from the first move.
+${COIN_PURE_SOURCE}
+${COIN_RUNTIME_SOURCE}
 ${MATCH_BOOT_PURE_SOURCE}
 ${MATCH_BOOT_RUNTIME_SOURCE}
   window.__boot = BOOT; // read by the browser checks (progress/render/evidence/boot-check-s35.mjs)
@@ -1246,23 +1250,34 @@ ${SIG_ZONE_SOURCE}
   function renderHand(elId, snapshot, label) {
     const el = document.getElementById(elId);
     el.innerHTML = '<div class="hand-label">' + label + '</div>';
-    // A live match's hand is the count only (the public feed): card backs.
-    const hidden = snapshot.hand.filter(function (c) { return c.hidden; }).length;
-    if (hidden) {
-      snapshot.hand.forEach(function () { const b = document.createElement('div'); b.className = 'minicard back'; b.setAttribute('aria-hidden', 'true'); el.appendChild(b); });
-      const n = document.createElement('span');
-      n.className = 'hand-count';
-      n.textContent = hidden + (hidden === 1 ? ' card' : ' cards') + ', face down';
-      el.appendChild(n);
-      return;
-    }
+    // A live match's hand (render session 53): every card the feed has
+    // named, face up in its place; the opening cards it never named are
+    // backs until they are played (liveFrames.ts), counted at the end.
+    let hidden = 0;
     snapshot.hand.forEach(function (c) {
+      if (c.hidden) {
+        hidden++;
+        const b = document.createElement('div'); b.className = 'minicard back'; b.setAttribute('aria-hidden', 'true'); el.appendChild(b);
+        return;
+      }
       const chip = document.createElement('div');
       chip.className = 'minicard faction-' + c.faction;
       chip.setAttribute('data-name', c.name);
-      chip.innerHTML = '<b>' + c.cost + '</b> ' + escapeHtml(c.name);
+      // A cost a signature card in play may change (its abilities aren't
+      // public live): the number with a mark, never shown as exact.
+      chip.innerHTML = c.costUnsure
+        ? '<b title="A signature card in play may change this cost">' + c.cost + '<i class="unsure">?</i></b> ' + escapeHtml(c.name)
+        : '<b>' + c.cost + '</b> ' + escapeHtml(c.name);
       el.appendChild(chip);
     });
+    if (hidden) {
+      const n = document.createElement('span');
+      n.className = 'hand-count';
+      n.textContent = hidden === snapshot.hand.length
+        ? hidden + (hidden === 1 ? ' card' : ' cards') + ', face down'
+        : hidden + ' from the opening hand, face down';
+      el.appendChild(n);
+    }
   }
 
   // The signature zone: the waiting card (at its next cost), or an empty
@@ -2581,12 +2596,46 @@ ${SIG_ZONE_SOURCE}
   // resume; any of those (and pause) cancels it. Standard for every match,
   // so the "Cosmetics" switch doesn't touch it. The saying comes from the
   // match's seed, so every viewer and every replay sees the same one.
+  // The coin flip inside it (render session 53, coinFx.ts): the viewer
+  // sees the near player's coin (their own agent's on their own match, the
+  // player they watch as otherwise), its faces that player's portrait and
+  // the coin's design; it lands portrait up when the near player goes
+  // first. p1 always moves first (the server's coin flip set the seats).
+  // The line: YOU / THEY GO FIRST on the viewer's own match (no switch),
+  // <NAME> GOES FIRST for a spectator.
+  // The portrait: the avatar the HUD draws. Its cells are currentColor
+  // (avatar.ts), which an <img> can't inherit, so the player's faction
+  // colour is written in (one image per player and faction: a live side
+  // shows Neutral until it plays a faction card).
+  const coinImgs = {};
+  function coinImg(pid) {
+    const faction = replay.factions[pid], key = pid + ':' + faction;
+    if (coinImgs[key]) return coinImgs[key];
+    const id = replay.identities[pid], img = new Image(), c = fxRgbOf(faction);
+    img.decoding = 'async';
+    img.src = id.avatarUrl ? id.avatarUrl : 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(String(id.avatarSvg).split('currentColor').join('rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')'));
+    coinImgs[key] = img;
+    return img;
+  }
+  coinImg('p1'); coinImg('p2');
+  function coinOpts() {
+    const first = 'p1', coins = replay.coins || {};
+    return {
+      id: coins[near] || COIN_DEFAULT,
+      first: near === first ? 'bot' : 'top',
+      portraitUp: near === first,
+      line: coinResult({ near: near, own: !CAN_SWITCH, first: first, names: { p1: pname('p1'), p2: pname('p2') } }),
+      img: coinImg(near),
+      faction: replay.factions[near],
+    };
+  }
   function startBoot() {
     if (frames.length < 2) return false;
     const top = far(), bot = near;
     const plan = BOOT.play({ top: document.getElementById('side-' + top), bot: document.getElementById('side-' + bot), area: document.getElementById('board-area') }, {
       who: { top: { name: pname(top), faction: replay.factions[top] }, bot: { name: pname(bot), faction: replay.factions[bot] } },
       seed: replay.seed,
+      coin: coinOpts(),
       onEnd: function () {
         if (!playing || i !== 0) return;
         goTo(1);
