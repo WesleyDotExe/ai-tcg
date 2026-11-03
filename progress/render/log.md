@@ -4849,7 +4849,10 @@ features.
   dropping either pass-through fails it); `liveFrames.test.ts` +1 (a given faction holds from frame 0; without
   it, Neutral first). The signature card in full and the live boast are not read yet (a slice of their own).
 
-**Ran it:** the three browser checks above; `npm test` and the CI browser check (below).
+**Ran it:** `pack-bulk-check-s54.txt` 12 PASS (stills `v2-s54-fan-*`, `-big-pull-*`, `-auto-hit-*`,
+`-summary-*`); `loadout-check-s54.txt` 49 PASS (stills `v2-s54-loadout-*`); `site-check-s47` 50 PASS clean and
+6 of 6 runs under the load that stalled it 6 times in 9 before (`site-check-s47-load-s54.txt`); the CI browser
+check 61 PASS (`ci-browser-check-s54.txt`); `npm test`: all six workspaces pass (render 844); typecheck clean.
 
 **Not done (named):** the older by-hand checks (session 38's boot check expects the 2.6 s intro; the pre-41
 boast, hardening, feed and pack checks) were not re-run; the other site checks' fixed 15 s waits were not
