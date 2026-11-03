@@ -118,6 +118,16 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
   if (late) note(`${late} tap(s) came after the page's hold timer (a stalled main thread) and still counted as taps`);
   if ((await P(page))?.phase !== 'summary' && !(await until(async () => (await P(page))?.phase === 'summary'))) {
     note(`the reveal stopped short of its summary: ${JSON.stringify(await f.evaluate(() => ({ phase: window.__pack.phase, i: window.__pack.i, busy: Math.round(window.__pack.busyUntil - performance.now()), last: window.__pack.log.slice(-4).map((e) => e.kind + (e.idx ?? '')) })))}`);
+    // What a tap at the top card lands on, in the page and in the frame.
+    const k = await f.evaluate(() => window.__pack.i);
+    const b = await f.locator(`.cslot[data-k="${k}"]`).boundingBox().catch(() => null);
+    if (b) {
+      const cx = b.x + b.width / 2, cy = b.y + b.height / 2;
+      const top = await page.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? e.tagName + '#' + e.id + '.' + e.className : null; }, [cx, cy]);
+      const fr = await page.$eval('#opening iframe', (el) => { const r = el.getBoundingClientRect(); return [r.x, r.y]; });
+      const inner = await f.evaluate(([x, y]) => { const e = document.elementFromPoint(x, y); return e ? e.tagName + '.' + String(e.className).slice(0, 60) + ' in ' + (e.closest('.cslot') ? 'cslot ' + e.closest('.cslot').getAttribute('data-k') : e.closest('#stack') ? 'stack' : 'no stack') : null; }, [cx - fr[0], cy - fr[1]]);
+      note(`a tap at the top card (${Math.round(cx)},${Math.round(cy)}) lands on ${top} in the page; in the frame on ${inner}; frame at ${fr.join(',')}`);
+    } else note(`the top card ${k} has no box`);
   }
   await until(async () => (await P(page))?.phase === 'summary');
   return f.evaluate((from) => {
