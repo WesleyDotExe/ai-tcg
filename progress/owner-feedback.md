@@ -4170,3 +4170,15 @@ Answers the three calls in `progress/notes-for-owner.md` (PR #127, `progress/liv
 **Note: the hands safety rule must be enforced in code before any network agent plays on the ladder in real time.** Today it is only a comment and a doc (listed in `progress/quality-debt.md`), which is fine while every ladder match is decided before it is shown. When network agents start joining the ladder, the first step of that work is to enforce it: for a match with a real-time seat, the live feed sends hand counts only, no `openingHands`, and no card in `draw` events until the match ends, with a test that fails if any of them leak. Keep it on the roadmap's network-agents item and in the quality-debt list until it is built.
 
 Next game session, as planned: the Season 0 live features (the 2× vote, featured picks with the "Top rated" rule brought to a check-in, and viewer counts). Render lane, as set: the hardening pass, then the second coin slice; the site's live types can move to the new live-feed fields along the way.
+
+---
+
+## 2026-11-03 — Owner: answers to render session 54 (the render hardening pass), keep; the next two render slices
+
+Owner decision on the call in `progress/render/notes-for-owner.md` (PR #128).
+- **Keep:** the committed replay pages follow the engine. `npm run outputs -w @ai-tcg/render` rebuilds every page by playing its match again under today's rules, so the sample pages always show the game as it plays now (the 16 replay pages now show `rules-2` matches). Not rebuilt from frozen replay files.
+
+**Render-lane order, as set:**
+1. **Next: the second coin slice:** the looks of Dial-Up Dime, Neon Nickel and the Platinum, Diamond and Mythic coins (the approved Gold look becomes Platinum), and the Coin line in the loadout picker and the Store, so the store coins can go on sale. Mark them drawn so the game lane's sale window opens (and the cosmetics test checks coins against `COIN_SPECS`, as already asked of the game lane).
+2. **Then: the live arena reads the signature card in full and the live boast** from the session-72 live feed (the signature zone and exact costs live, and boast-then-result as in replays).
+3. Then the rest of the Season 0 list.
