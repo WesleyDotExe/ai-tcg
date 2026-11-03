@@ -19,6 +19,7 @@
     "demo:coins": "tsx src/dev/coinSkinsApiDemo.ts",
     "demo:replay-versions": "tsx src/dev/replayVersionsDemo.ts",
     "demo:live-feed-asks": "tsx src/dev/liveFeedAsksDemo.ts",
+    "demo:speed-vote": "tsx src/dev/speedVoteDemo.ts",
     "measure:first-seat-ladder": "tsx src/dev/firstSeatLadder.ts"
   },
   "dependencies": {

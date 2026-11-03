@@ -1,0 +1,100 @@
+Speed vote demo 001 — the 2× vote: both owners must agree (session 73)
+========================================================================
+Rule (owner app spec 2026-10-05 D): matches start at 1×; 2× only while both owners agree;
+an owner taps "Ask for 2×" (PUT /api/live/:id/speed { ask }) or turns on "Ask for 2× in every
+match" (PATCH /api/account/settings { ask2xEveryMatch }); the vote resets every match; speed
+changes only the pace moves are released at. Proposed here: a house side agrees to what its
+player opponent asks; house against house stays 1×.
+
+1. Ada and Bea (both player owners): ask, agree, take it back
+------------------------------------------------------------------------
+  match demo-1: p1 Bea vs p2 Ada
+  at the start:          rate 1×  asks p1 false p2 false  house p1 false p2 false  waitingOn -
+  [PASS] a match starts at 1× with nobody asking
+  +2.0 s, Ada asks:      rate 1×  asks p1 false p2 true  house p1 false p2 false  waitingOn p1   next move in 4.0 s
+  [PASS] one owner asking: still 1×, waiting on the other owner
+  [PASS] one ask alone doesn't move the next release
+  +2.0 s, Bea agrees:    rate 2×  asks p1 true p2 true  house p1 false p2 false  waitingOn -   next move in 2.0 s (was 4.0 s)
+  [PASS] both asking: 2×, and what was left of the hold is halved
+  [PASS] a spectator's GET shows the same vote and next release
+
+  the next 20 moves at 2× (hold = the wait before the move came out):
+    move   2 p1 pass             turn  1  hold  0.5 s  (1×: 1.0 s)
+    move   3 p2 pass             turn  2  hold  2.0 s  (1×: 4.0 s)
+    move   4 p2 playCard         turn  2  hold  3.0 s  (1×: 6.0 s)
+    move   5 p2 pass             turn  2  hold  0.5 s  (1×: 1.0 s)
+    move   6 p1 pass             turn  3  hold  2.0 s  (1×: 4.0 s)
+    move   7 p1 playCard         turn  3  hold  3.0 s  (1×: 6.0 s)
+    move   8 p1 attack           turn  3  hold  3.0 s  (1×: 6.0 s)
+    move   9 p1 pass             turn  3  hold  0.5 s  (1×: 1.0 s)
+    move  10 p2 pass             turn  3  hold  0.5 s  (1×: 1.0 s)
+    move  11 p1 pass             turn  3  hold  0.5 s  (1×: 1.0 s)
+    move  12 p2 pass             turn  4  hold  2.0 s  (1×: 4.0 s)
+    move  13 p2 playCard         turn  4  hold  3.0 s  (1×: 6.0 s)
+    move  14 p2 attack           turn  4  hold  3.0 s  (1×: 6.0 s)
+    move  15 p2 pass             turn  4  hold  0.5 s  (1×: 1.0 s)
+    move  16 p1 pass             turn  4  hold  0.5 s  (1×: 1.0 s)
+    move  17 p2 pass             turn  4  hold  0.5 s  (1×: 1.0 s)
+    move  18 p1 pass             turn  5  hold  2.0 s  (1×: 4.0 s)
+    move  19 p1 playCard         turn  5  hold  3.0 s  (1×: 6.0 s)
+    move  20 p1 playCard         turn  5  hold  3.0 s  (1×: 6.0 s)
+    move  21 p1 attack           turn  5  hold  3.0 s  (1×: 6.0 s)
+  [PASS] every one of the 20 holds is exactly half its 1× hold
+
+  1.0 s before a release, Ada takes it back: rate 1×  asks p1 true p2 false  house p1 false p2 false  waitingOn p2   next move in 2.0 s
+  [PASS] taking it back: 1× again, waiting on Ada, what is left doubled
+  Ada asks again:        rate 2×  asks p1 true p2 true  house p1 false p2 false  waitingOn -
+  PUT { ask: "yes" } -> 400 "ask" must be true or false
+  [PASS] a bad body is 400
+  the spectator asks -> 403 your agent doesn't play in match "demo-1"; only its two owners vote on its speed
+  [PASS] an owner whose agent isn't in the match can't vote (403)
+  after it is recorded, Ada's PUT -> 404 match "demo-1" has ended; see /api/matches/demo-1
+  [PASS] an ended match answers 404 pointing at its record
+
+  shown in 3.08 min with the vote; the same match at 1× all through: 6.13 min (timeline at 1×: 6.13 min)
+  record: win, 14 turns, 121 moves, credits 2/30
+  [PASS] the record is the 1× match's (outcome, moves, credits, ratings, boast)
+  [PASS] the match log is the 1× match's, line for line
+  [PASS] the replay file is the 1× match's, byte for byte (ids aside)
+
+2. The next match: the vote resets
+------------------------------------------------------------------------
+  match demo-2: rate 1×  asks p1 false p2 false  house p1 false p2 false  waitingOn -
+  [PASS] the next match starts at 1× with nobody asking
+
+3. Ada against the house: one ask is enough; the house can't ask
+------------------------------------------------------------------------
+  match demo-1: p1 Hal vs p2 Ada; rate 1×  asks p1 false p2 false  house p1 true p2 false  waitingOn -
+  Hal (the house account) asks -> 409 a house side doesn't ask for 2×; it agrees to whatever its opponent's owner asks
+  [PASS] a house account's ask is refused (409)
+  Ada asks:              rate 2×  asks p1 false p2 true  house p1 true p2 false  waitingOn -
+  [PASS] against a house side, one player ask makes it 2×
+
+4. "Ask for 2× in every match" on for four owners: ten matches at 2× against the same ten at 1×
+------------------------------------------------------------------------
+  GET /api/account/settings (Ada): ask2xEveryMatch true
+  [PASS] every match of the four 'every match' owners started at 2×
+
+  match      result               turns moves  shown at 2×   at 1×      ratio
+  demo-1     win Ada                 13    84    2.32 min    4.63 min  0.500
+  demo-2     win Dot                 11   115    2.95 min    5.88 min  0.501
+  demo-4     win Cyd                 13    93    2.52 min    5.03 min  0.500
+  demo-3     win Dot                 16   127    3.30 min    6.58 min  0.501
+  demo-5     win Dot                 16   119    3.02 min    6.03 min  0.500
+  demo-6     win Ada                 16   124    3.32 min    6.62 min  0.501
+  demo-8     win Cyd                 14    98    2.63 min    5.25 min  0.502
+  demo-7     win Dot                 17   144    3.75 min    7.50 min  0.500
+  demo-9     win Dot                 16   139    3.57 min    7.12 min  0.501
+  demo-10    win Ada                 17   196    4.90 min    9.78 min  0.501
+  median shown: 3.30 min at 2×, 6.58 min at 1×
+  [PASS] all ten matches: the same record and log at 2× as at 1×
+  [PASS] each shown in half the time, to within one 1 s tick
+
+5. House against house: always 1×
+------------------------------------------------------------------------
+  match demo-1: rate 1×  asks p1 false p2 false  house p1 true p2 true  waitingOn -
+  Hux asks -> 409 a house side doesn't ask for 2×; it agrees to whatever its opponent's owner asks
+  [PASS] house against house: 1×, with the house setting ignored, and no ask taken
+
+========================================================================
+20 PASS, 0 FAIL

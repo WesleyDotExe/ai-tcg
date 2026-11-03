@@ -75,6 +75,28 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 73 (the 2× vote): what is still thin
+
+- **2× makes the watching faster, not the ladder.** A round still waits for its slowest match plus 60 s, so an
+  owner whose 2× match ends early sits idle until the round's other matches end. A 2× vote doesn't get an owner
+  more matches in a day; it only shortens the wait to see the result. A rolling queue (pair whoever is free)
+  would turn the vote into more play; it changes the matchmaker's round model. Raised as a call to the owner.
+- **The house side's agreement is a proposal, not a decision.** A house side agrees to whatever its player
+  opponent asks; house against house is always 1×. Without that, player-against-house (most Season 0 matches)
+  could never run at 2×. Owner call in notes-for-owner.md.
+- **Nobody is told an ask happened.** The other owner learns of it only from the next poll of the live feed
+  (`speed.waitingOn`). Notifications aren't built; fine while the site polls every second, thin for a widget.
+- **The vote lives in memory with the live match.** A restart cancels the match anyway, so nothing is lost
+  that would matter, but no record says a match was shown at 2× (the match record, log and replay are the
+  same at any pace, by design and by test).
+- **No rate limit on the PUT.** An owner flipping the ask many times a second only rescales the hold each time
+  (harmless, tested to round to the millisecond), but nothing stops the traffic.
+- **The render lane doesn't read `speed` yet:** its animations still run at 1× even when the feed releases at
+  2×, and its site types have no `speed` or `ask2xEveryMatch`; the Live match widget still says "The 2× vote
+  comes with its endpoint." The render lane's side to pick up.
+- **Still open from session 72:** the hands safety rule (enforced in code before any real-time network seat),
+  draw events naming cards by name; from session 71: the Null builder session before the launch-gate re-run.
+
 ## Session 72 (the live-feed asks: opening hands, the signature card, the faction, the boast): what is still thin
 
 - **The hands safety rule isn't enforced by anything yet.** `openingHands` is sent for every match the
@@ -194,8 +216,8 @@ real, but here is where it's thin.
   rating). The flip's result the render shows must come from the record's p1 (who went first); nothing in the
   API says "won the flip" separately, since the seat is the flip.
 - ~~**`economy-demo-009.txt` is stale**~~ Fixed in session 70.
-- **Still queued from the owner's render-50 entry, not built:** the 2x vote, featured picks ("Top rated", a rule
-  to propose at a check-in) and viewer counts. Only the starting ratings were built this session.
+- **Still queued from the owner's render-50 entry, not built:** featured picks ("Top rated", a rule
+  to propose at a check-in) and viewer counts (the 2x vote: session 73). Only the starting ratings were built this session.
 
 ## Session 68 (the first-seat fixes measured; the small collection and deck asks): what is still thin
 
@@ -241,7 +263,7 @@ real, but here is where it's thin.
   and the render lane hasn't timed its animations against it. The median lands at 5.9 minutes, but the
   10th-90th spread is 4.2-8.3 and the longest 10.5 (19 of 61 outside 4-7 minutes). Pacing by event (an attack
   that kills holds longer than a pass that resolves nothing) would be better; needs the render lane's timings.
-- **No 2x vote.** The spec's "2x only when both owners agree" isn't built: every match shows at 1x.
+- ~~**No 2x vote.**~~ Built session 73 (`speedVote.ts`, `PUT /api/live/:id/speed`).
 - **A round waits for its slowest match.** Owners whose match ended sit idle until the round's last match ends
   plus 60 s. Simple and fair, but with a 10-minute match in a round the others wait several minutes. A rolling
   queue (pair whoever is free) would keep owners busier; it changes the matchmaker's round model.

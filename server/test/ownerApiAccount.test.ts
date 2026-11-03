@@ -77,7 +77,7 @@ describe("owner API: who am I", () => {
 });
 
 describe("owner API: account settings", () => {
-  const DEFAULTS = { theme: "system", background: "glacier", sound: { on: true, volume: 80 }, music: { on: true, volume: 60 }, skipHintSeen: false, updatedAt: null };
+  const DEFAULTS = { theme: "system", background: "glacier", sound: { on: true, volume: 80 }, music: { on: true, volume: 60 }, skipHintSeen: false, ask2xEveryMatch: false, updatedAt: null };
 
   it("reads the defaults, saves a partial change on the owner's account, and keeps owners apart", async () => {
     const { call, signIn } = await setup();

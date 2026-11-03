@@ -96,6 +96,7 @@ Saved on the owner's account (schema v15, `account_settings`), so every browser 
   sound: { on: boolean, volume: 0..100 },                     // default { on: true, volume: 80 }
   music: { on: boolean, volume: 0..100 },                     // default { on: true, volume: 60 }
   skipHintSeen: boolean,      // default false; set true at the owner's first skip, then the hint isn't shown again
+  ask2xEveryMatch: boolean,   // (v21) default false; Settings -> Play "Ask for 2× in every match": asks as each live match starts
   updatedAt: string | null    // when a setting was last changed; null: never
 }
 ```
@@ -385,7 +386,14 @@ LiveMatchView {
   defaultView: "p1" | "p2",      // (v20) the spectator's starting point of view: the higher rating at the start, p1 on a tie
   now: PublicSnapshot,           // the board after the last released move
   recentLines: string[],         // the last 6 log lines released, oldest first
-  boast: MatchBoast | null       // (session 72) null until the last move is out; then the boast the record keeps (below)
+  boast: MatchBoast | null,      // (session 72) null until the last move is out; then the boast the record keeps (below)
+  speed: SpeedView               // (session 73) the 2× vote; `nextAt` is already at this pace (below)
+}
+SpeedView {
+  rate: 1 | 2,                   // 2 while both sides agree, else 1
+  asks: { p1: boolean, p2: boolean },    // whether each side's owner asks for 2× now (always false for a house side)
+  house: { p1: boolean, p2: boolean },   // a house side agrees to what a player opponent asks
+  waitingOn: "p1" | "p2" | null  // one player owner asks and this side's player owner hasn't: "waiting on the other owner"
 }
 LiveSideView {
   ownerId, ownerName, agentId, agentName, playStyle,
@@ -437,7 +445,16 @@ TimelineStep {
 
 Once the match has been recorded the feed answers 404 with `match "<id>" has ended; see /api/matches/<id>`.
 
-Watch speed (proposed session 67, an owner check-in item): before each move is released the board holds 6 s after an action, 1 s after a pass, 3 s more when the move starts a new turn; the last move holds 8 s. A median match runs about 5.9 minutes (`progress/ladder-demo-002-live.txt`). The 2x vote isn't built yet.
+Watch speed (proposed session 67, an owner check-in item): before each move is released the board holds 6 s after an action, 1 s after a pass, 3 s more when the move starts a new turn; the last move holds 8 s. A median match runs about 6-7 minutes at 1× (the owner's target since 2026-11-03; `progress/first-seat-003-rules-2.txt`).
+
+**The 2× vote (session 73; owner app spec 2026-10-05 D).** `PUT /api/live/:matchId/speed` with `{ "ask": true }` is "Ask for 2×"; `{ "ask": false }` takes it back. Only the two owners whose agents play the match vote. Answer: `{ matchId, speed: SpeedView, nextAt }`.
+
+- A match starts at 1×. It runs at 2× only while both sides agree; every hold is then half as long (3 s an action, 0.5 s a pass, 1.5 s more for a new turn, 4 s for the result). A change part-way through a hold changes only what is left of it: half a 6 s hold waited at 1×, then 2×, leaves 1.5 s. Taking an ask back returns to 1× the same way.
+- "Ask for 2× in every match" (`ask2xEveryMatch` in the account settings) asks for the owner as each of its matches starts. A match with both owners' setting on is 2× from its first move.
+- The vote resets every match: it is kept with the live match, in memory, and gone when it is recorded (a restart cancels the match anyway).
+- **A house side** (proposed session 73, an owner call): nobody watches a house agent, so a house side never asks by itself; it agrees to whatever its player opponent asks. Against the house, one ask is enough. House against house is always 1× (the house accounts' own setting is ignored). A house account's `PUT` answers 409.
+- Speed changes only the pace moves are released at, never the match: every match is decided in the engine before its first move is shown, so its moves, log, replay, result, credits and ratings are the same at 1× or 2× (`progress/speed-vote-001.txt` checks eleven matches against the same seeds at 1×).
+- 400 for an `ask` that isn't true or false; 403 for an owner whose agent isn't in the match; 404 when it isn't live (`match "<id>" has ended; see /api/matches/<id>` once recorded).
 
 ### Match history (session 67)
 
@@ -504,7 +521,7 @@ The engine rebuilds the match exactly from either format: `rebuildReplay(file, h
 
 ## Not built yet
 
-- The rest of the match-dependent endpoints: featured matches (who is "Top rated" in Watch live), the 2x vote, viewer counts, stats, notifications. Tournament endpoints wait until after Season 0.
+- The rest of the match-dependent endpoints: featured matches (who is "Top rated" in Watch live), viewer counts, stats, notifications. Tournament endpoints wait until after Season 0.
 - `GET /api/matches` reads the owner's whole history and pages it in memory (fine for a season of in-house play; to move into SQL before launch scale).
 - The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).

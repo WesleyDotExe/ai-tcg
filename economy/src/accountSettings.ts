@@ -29,6 +29,11 @@ export interface AccountSettings {
    * owner has skipped one in the website, it isn't shown again (owner
    * 2026-11-01, render session 43 call 2). */
   skipHintSeen: boolean;
+  /** (v21) Settings -> Play, "Ask for 2× in every match" (owner app spec
+   * 2026-10-05 D): when on, the owner's side asks for 2× as each of its
+   * live matches starts, as if the owner had tapped "Ask for 2×" at once.
+   * The match still runs at 1× until the other side agrees too. */
+  ask2xEveryMatch: boolean;
   /** When the owner last changed a setting; null while every one is the
    * default and nothing was ever saved. */
   updatedAt: string | null;
@@ -43,6 +48,7 @@ export const DEFAULT_ACCOUNT_SETTINGS: Readonly<Omit<AccountSettings, "updatedAt
   sound: Object.freeze({ on: true, volume: 80 }),
   music: Object.freeze({ on: true, volume: 60 }),
   skipHintSeen: false,
+  ask2xEveryMatch: false,
 });
 
 /** A change to the settings: any of the fields, each audio one in part. */
@@ -52,9 +58,10 @@ export interface AccountSettingsPatch {
   sound?: Partial<AudioSetting>;
   music?: Partial<AudioSetting>;
   skipHintSeen?: boolean;
+  ask2xEveryMatch?: boolean;
 }
 
-const PATCH_FIELDS = ["theme", "background", "sound", "music", "skipHintSeen"] as const;
+const PATCH_FIELDS = ["theme", "background", "sound", "music", "skipHintSeen", "ask2xEveryMatch"] as const;
 const AUDIO_FIELDS = ["on", "volume"] as const;
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -85,6 +92,7 @@ export function accountSettingsProblem(patch: unknown): string | undefined {
     }
   }
   if ("skipHintSeen" in patch && typeof patch.skipHintSeen !== "boolean") return `"skipHintSeen" must be true or false`;
+  if ("ask2xEveryMatch" in patch && typeof patch.ask2xEveryMatch !== "boolean") return `"ask2xEveryMatch" must be true or false`;
   return undefined;
 }
 
@@ -96,5 +104,6 @@ export function applyAccountSettingsPatch(current: Omit<AccountSettings, "update
     sound: { ...current.sound, ...patch.sound },
     music: { ...current.music, ...patch.music },
     skipHintSeen: patch.skipHintSeen ?? current.skipHintSeen,
+    ask2xEveryMatch: patch.ask2xEveryMatch ?? current.ask2xEveryMatch,
   };
 }

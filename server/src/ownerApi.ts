@@ -651,6 +651,22 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       },
     },
     {
+      // The 2× vote (session 73): "Ask for 2×" in a live match the caller's
+      // agent plays in; `ask: false` takes it back.
+      method: "PUT",
+      path: /^\/api\/live\/([^/]+)\/speed$/,
+      handler: (req, body, [matchId]) => {
+        const ownerId = ownerOf(req);
+        if (typeof body.ask !== "boolean") throw new HttpError(400, `"ask" must be true or false`);
+        const result = options.live?.askForSpeed(matchId!, ownerId, body.ask) ?? { ok: false as const, reason: "notLive" as const };
+        if (result.ok) return { body: { matchId, speed: result.speed, nextAt: result.nextAt } };
+        if (result.reason === "notYourMatch") throw new HttpError(403, `your agent doesn't play in match "${matchId}"; only its two owners vote on its speed`);
+        if (result.reason === "house") throw new HttpError(409, "a house side doesn't ask for 2×; it agrees to whatever its opponent's owner asks");
+        if (store.matchById(matchId!) !== null) throw new HttpError(404, `match "${matchId}" has ended; see /api/matches/${matchId}`);
+        throw new HttpError(404, `no live match "${matchId}"`);
+      },
+    },
+    {
       method: "GET",
       path: /^\/api\/matches$/,
       handler: (req, _body, _params, query) => {

@@ -1391,7 +1391,7 @@ export class EconomyStore {
     const row = this.db.prepare("SELECT * FROM account_settings WHERE owner_id = ?").get(ownerId) as Row | undefined;
     if (!row) {
       const d = DEFAULT_ACCOUNT_SETTINGS;
-      return { theme: d.theme, background: d.background, sound: { ...d.sound }, music: { ...d.music }, skipHintSeen: d.skipHintSeen, updatedAt: null };
+      return { theme: d.theme, background: d.background, sound: { ...d.sound }, music: { ...d.music }, skipHintSeen: d.skipHintSeen, ask2xEveryMatch: d.ask2xEveryMatch, updatedAt: null };
     }
     return {
       theme: str(row.theme) as Theme,
@@ -1399,6 +1399,8 @@ export class EconomyStore {
       sound: { on: num(row.sound_on) === 1, volume: num(row.sound_volume) },
       music: { on: num(row.music_on) === 1, volume: num(row.music_volume) },
       skipHintSeen: num(row.skip_hint_seen) === 1,
+      // Read before v21 (a store opened with migrateTo below 21) as off.
+      ask2xEveryMatch: row.ask_2x_every_match === undefined ? false : num(row.ask_2x_every_match) === 1,
       updatedAt: str(row.updated_at),
     };
   }
@@ -1414,13 +1416,17 @@ export class EconomyStore {
     return this.transaction(() => {
       const { updatedAt: _, ...current } = this.accountSettings(ownerId);
       const next = applyAccountSettingsPatch(current, patch);
+      // A store held below v21 (migrateTo) has no 2× column: the setting reads off there.
+      const v21 = this.schemaVersion >= 21;
+      if (!v21 && patch.ask2xEveryMatch !== undefined) throw new EconomyError('"ask2xEveryMatch" needs schema v21');
       this.db
         .prepare(
-          `INSERT INTO account_settings (owner_id, theme, background, sound_on, sound_volume, music_on, music_volume, skip_hint_seen, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `INSERT INTO account_settings (owner_id, theme, background, sound_on, sound_volume, music_on, music_volume, skip_hint_seen, ${v21 ? "ask_2x_every_match, " : ""}updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ${v21 ? "?, " : ""}?)
            ON CONFLICT (owner_id) DO UPDATE SET theme = excluded.theme, background = excluded.background,
              sound_on = excluded.sound_on, sound_volume = excluded.sound_volume, music_on = excluded.music_on,
-             music_volume = excluded.music_volume, skip_hint_seen = excluded.skip_hint_seen, updated_at = excluded.updated_at`,
+             music_volume = excluded.music_volume, skip_hint_seen = excluded.skip_hint_seen,
+             ${v21 ? "ask_2x_every_match = excluded.ask_2x_every_match, " : ""}updated_at = excluded.updated_at`,
         )
         .run(
           ownerId,
@@ -1431,6 +1437,7 @@ export class EconomyStore {
           next.music.on ? 1 : 0,
           next.music.volume,
           next.skipHintSeen ? 1 : 0,
+          ...(v21 ? [next.ask2xEveryMatch ? 1 : 0] : []),
           this.stamp(),
         );
       return this.accountSettings(ownerId);

@@ -31,7 +31,7 @@ afterEach(() => {
 });
 const PW = "correct horse battery";
 
-const DEFAULTS = { theme: "system", background: "glacier", sound: { on: true, volume: 80 }, music: { on: true, volume: 60 }, skipHintSeen: false };
+const DEFAULTS = { theme: "system", background: "glacier", sound: { on: true, volume: 80 }, music: { on: true, volume: 60 }, skipHintSeen: false, ask2xEveryMatch: false };
 
 describe("who am I", () => {
   it("names the owner (display name, not login), its login, kind and whether it is the admin", () => {
@@ -71,6 +71,7 @@ describe("account settings (schema v15)", () => {
       sound: { on: true, volume: 80 },
       music: { on: true, volume: 0 },
       skipHintSeen: true,
+      ask2xEveryMatch: false,
       updatedAt: "2026-11-01T11:00:00.000Z",
     });
     s.updateAccountSettings(o.ownerId, { sound: { volume: 30 } });
@@ -142,6 +143,43 @@ describe("account settings (schema v15)", () => {
     // Saved settings survive a reopen.
     const again = open(path);
     expect(again.accountSettings(o.ownerId).theme).toBe("dark");
+    again.close();
+  });
+});
+
+describe('"Ask for 2× in every match" (schema v21, session 73)', () => {
+  it("is off by default, switches on and off alone, and is refused when not true or false", () => {
+    const s = open();
+    const o = s.createOwner({ name: "a" });
+    expect(s.accountSettings(o.ownerId).ask2xEveryMatch).toBe(false);
+    s.updateAccountSettings(o.ownerId, { theme: "dark" });
+    const on = s.updateAccountSettings(o.ownerId, { ask2xEveryMatch: true });
+    expect(on).toMatchObject({ ...DEFAULTS, theme: "dark", ask2xEveryMatch: true });
+    expect(s.updateAccountSettings(o.ownerId, { music: { on: false } }).ask2xEveryMatch).toBe(true);
+    expect(s.updateAccountSettings(o.ownerId, { ask2xEveryMatch: false }).ask2xEveryMatch).toBe(false);
+    for (const bad of [1, "yes", null]) {
+      expect(accountSettingsProblem({ ask2xEveryMatch: bad })).toMatch(/"ask2xEveryMatch" must be true or false/);
+    }
+  });
+
+  it("a v20 file migrates with the setting off for saved rows and new ones; the column is guarded; a store held at v20 can't set it", () => {
+    const path = tmpFile();
+    const v20 = open(path, 20);
+    const saved = v20.createOwner({ name: "saved" });
+    const fresh = v20.createOwner({ name: "fresh" });
+    v20.updateAccountSettings(saved.ownerId, { theme: "light", skipHintSeen: true });
+    expect(v20.accountSettings(saved.ownerId).ask2xEveryMatch).toBe(false);
+    expect(() => v20.updateAccountSettings(saved.ownerId, { ask2xEveryMatch: true })).toThrow(/needs schema v21/);
+    v20.close();
+    const v21 = open(path);
+    expect(v21.schemaVersion).toBeGreaterThanOrEqual(21);
+    expect(v21.accountSettings(saved.ownerId)).toMatchObject({ theme: "light", skipHintSeen: true, ask2xEveryMatch: false });
+    expect(v21.accountSettings(fresh.ownerId)).toEqual({ ...DEFAULTS, updatedAt: null });
+    v21.updateAccountSettings(saved.ownerId, { ask2xEveryMatch: true });
+    expect(() => v21.unsafeExec(`UPDATE account_settings SET ask_2x_every_match = 2 WHERE owner_id = '${saved.ownerId}'`)).toThrow(/CHECK/);
+    v21.close();
+    const again = open(path);
+    expect(again.accountSettings(saved.ownerId)).toMatchObject({ theme: "light", ask2xEveryMatch: true });
     again.close();
   });
 });

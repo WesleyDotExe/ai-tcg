@@ -347,7 +347,7 @@ describe("coins: migration v19 -> v20", () => {
 
     clock = new Date("2026-11-03T09:00:00.000Z");
     const v20 = open(path, { cosmetics: DRAWN_COINS });
-    expect(v20.schemaVersion).toBe(20);
+    expect(v20.schemaVersion).toBe(21);
     for (const o of [a, b]) {
       const owned = v20.ownedCosmetics(o.ownerId);
       const token = owned.find((c) => c.itemId === STARTER_COIN.itemId)!;
