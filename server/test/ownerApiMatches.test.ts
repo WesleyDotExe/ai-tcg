@@ -104,13 +104,21 @@ describe("the match endpoints", () => {
     const f0 = (await call("GET", `/api/live/${id}?from=0`, { token: t })).body;
     expect(f0).toMatchObject({ from: 0, released: 0, steps: [] });
     expect(f0.start.turn).toBe(1);
+    // (session 72) The live-feed asks over HTTP: the opening hands beside the
+    // start, each side's faction, and no boast before the last move is out.
+    expect(f0.openingHands.p1).toHaveLength(f0.start.p1.hand);
+    expect(f0.openingHands.p2).toHaveLength(f0.start.p2.hand);
+    const factionOf = { [ada]: "Cortex", [house]: "Null" };
+    expect(f0.p1.faction).toBe(factionOf[f0.p1.ownerId]);
+    expect(f0.p2.faction).toBe(factionOf[f0.p2.ownerId]);
+    expect(f0.boast).toBeNull();
     clock.t += 30_000;
     await live.tick();
     const f1 = (await call("GET", `/api/live/${id}?from=0`, { token: t })).body;
     expect(f1.released).toBeGreaterThan(0);
     expect(f1.steps).toHaveLength(f1.released);
     const f2 = (await call("GET", `/api/live/${id}?from=${f1.released}`, { token: t })).body;
-    expect(f2).toMatchObject({ from: f1.released, steps: [], start: null });
+    expect(f2).toMatchObject({ from: f1.released, steps: [], start: null, openingHands: null });
     expect((await call("GET", `/api/live/${id}?from=-1`, { token: t })).status).toBe(400);
     expect((await call("GET", "/api/live/nope", { token: t })).status).toBe(404);
     // Nothing recorded yet.

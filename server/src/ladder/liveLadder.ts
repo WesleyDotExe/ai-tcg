@@ -30,7 +30,8 @@
 // moment, so tests and the demo run hours of ladder in milliseconds. The
 // real server calls `start()`, which ticks on a timer.
 
-import { coinOf, defaultPointOfView, type EconomyStore } from "@ai-tcg/economy";
+import { coinOf, defaultPointOfView, type EconomyStore, type MatchBoast } from "@ai-tcg/economy";
+import { deckFaction, type DeckFaction } from "@ai-tcg/engine";
 import { Ladder, type LadderMatch, type LadderOptions, type PlayedMatch, type RoundReport } from "./ladderRunner.js";
 import type { Pairing } from "./pairing.js";
 import { stepHoldMs, WATCH_PACE_MS, watchLengthMs, type PublicSnapshot, type TimelineStep } from "./timeline.js";
@@ -67,6 +68,9 @@ export interface LiveSideView {
    * a spectator can switch point of view (owner 2026-11-02). */
   coin: string;
   arena: string | null;
+  /** (session 72) The faction of the deck this side plays (one faction
+   * plus neutral cards), known from the start. */
+  faction: DeckFaction;
 }
 
 /** A live match as Watch live and the Live match widget read it. */
@@ -87,6 +91,11 @@ export interface LiveMatchView {
   now: PublicSnapshot;
   /** The last few log lines released, oldest first. */
   recentLines: string[];
+  /** (session 72) The boast that plays, once the last move is out (while
+   * the result holds, before the match is recorded): the one the record
+   * will keep, by the same rule (the store's matchBoast). Null before
+   * then, and for a match that ends without a winner. */
+  boast: MatchBoast | null;
 }
 
 /** A live match with the released moves from `from` on (the render's feed:
@@ -95,6 +104,13 @@ export interface LiveMatchFeed extends LiveMatchView {
   /** The board before the first move; only when `from` is 0. */
   start: PublicSnapshot | null;
   startLines: string[] | null;
+  /** (session 72) Each side's opening hand, by card id in hand order; only
+   * when `from` is 0, beside `start`. Sent because every match this ladder
+   * shows was decided in the engine before its first move was released
+   * (owner 2026-11-03: spectators see hands live, face up, as replays do).
+   * A seat played by a network agent in real time must not get this (the
+   * owner's safety rule; built when network agents join the ladder). */
+  openingHands: { p1: string[]; p2: string[] } | null;
   from: number;
   steps: TimelineStep[];
 }
@@ -110,6 +126,10 @@ interface Shown {
   played: PlayedMatch;
   startedAt: number;
   sides: { p1: LiveSideView; p2: LiveSideView };
+  /** The boast the record will keep, worked out when the match is first
+   * shown (the loadouts and decks can't change while it is live), sent
+   * only once the last move is out. */
+  boast: MatchBoast | null;
   /** Moves released so far. */
   released: number;
   /** When the next move is released; after the last, when the match is
@@ -203,6 +223,7 @@ export class LiveLadder implements LiveSource {
         played,
         startedAt: at,
         sides: { p1: this.side(played, "p1"), p2: this.side(played, "p2") },
+        boast: this.boastOf(played),
         released: 0,
         nextAt: at + stepHoldMs(played.timeline, 0),
       });
@@ -225,7 +246,17 @@ export class LiveLadder implements LiveSource {
       tier: r.tier,
       coin: coinOf(live.loadout),
       arena: live.loadout.arena,
+      faction: deckFaction(live.deck.spec.cards),
     };
+  }
+
+  /** The boast a played match's record will keep: the store's own rule on
+   * the winner's loadout, deck and final health. */
+  private boastOf(played: PlayedMatch): MatchBoast | null {
+    if (played.outcome.kind !== "win") return null;
+    const seat = played.live.p1.agentId === played.outcome.winnerAgentId ? "p1" : "p2";
+    const side = played.live[seat];
+    return this.store.matchBoast(side.agentId, side.loadout, side.deck.deckId, played.finalHealth?.[seat] ?? null);
   }
 
   private view(s: Shown): LiveMatchView {
@@ -242,6 +273,7 @@ export class LiveLadder implements LiveSource {
       defaultView: defaultPointOfView({ p1: s.sides.p1.rating, p2: s.sides.p2.rating }),
       now: s.released === 0 ? t.start : t.steps[s.released - 1]!.after,
       recentLines: lines.slice(-RECENT_LINES),
+      boast: s.released >= t.steps.length ? s.boast : null,
     };
   }
 
@@ -258,6 +290,7 @@ export class LiveLadder implements LiveSource {
       ...this.view(s),
       start: start === 0 ? t.start : null,
       startLines: start === 0 ? t.startLines : null,
+      openingHands: start === 0 ? t.openingHands : null,
       from: start,
       steps: t.steps.slice(start, s.released),
     };

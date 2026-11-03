@@ -1,6 +1,6 @@
 # Owner API
 
-The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Session 70 versioned the replay files (`ai-tcg-replay/2`: the rules and card versions, every card in full; `/1` files still rebuild). Stats and notifications come in later sessions, on the same server.
+The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Session 70 versioned the replay files (`ai-tcg-replay/2`: the rules and card versions, every card in full; `/1` files still rebuild). Session 72 added the live-feed asks: the opening hands, the signature card in full, each side's faction and the boast on the live view. Stats and notifications come in later sessions, on the same server.
 
 - Code: `server/src/ownerApi.ts` (`startOwnerApi`); run it with `npm run owner-api -w server -- <season database file> [port]` (default port 8081).
 - Every rule lives in the economy store (`economy/src/store.ts`). The API reads the request, checks the caller may touch what it names, calls the store and answers. It never writes SQL.
@@ -384,13 +384,15 @@ LiveMatchView {
   p1: LiveSideView, p2: LiveSideView,
   defaultView: "p1" | "p2",      // (v20) the spectator's starting point of view: the higher rating at the start, p1 on a tie
   now: PublicSnapshot,           // the board after the last released move
-  recentLines: string[]          // the last 6 log lines released, oldest first
+  recentLines: string[],         // the last 6 log lines released, oldest first
+  boast: MatchBoast | null       // (session 72) null until the last move is out; then the boast the record keeps (below)
 }
 LiveSideView {
   ownerId, ownerName, agentId, agentName, playStyle,
   rating, tier,                  // as the match started
   coin: string,                  // (v20) the coin this side flips: its equipped coin, else "coin-chrome-token"
-  arena: string | null           // (v20) its arena background, null when none is equipped
+  arena: string | null,          // (v20) its arena background, null when none is equipped
+  faction: "Cortex" | "Swarm" | "Aegis" | "Null"   // (session 72) the faction of the deck this side plays, from the start
 }
 PublicSnapshot {
   turn, activePlayer: "p1" | "p2", priority: "p1" | "p2", stack: number,
@@ -402,11 +404,23 @@ PublicSide {
   hand, deck, graveyard,         // counts only: no hand or deck contents
   board: [{ instanceId, cardId, name, attack, health, maxHealth, pending, tools: string[] }],
   directives: [{ instanceId, cardId, name }],
-  signature: { name, played } | null
+  signature: PublicSignature | null
 }
+PublicSignature {                // (session 72) the signature card in full, as the engine's signature zone has it
+  cardId, name,
+  cost, attack, health,          // printed (a played signature card's live stats are its board entry's)
+  keywords: string[],
+  rulesText: string[],           // one line per ability, as printed (none for a keyword-only card: draw its keywords)
+  art: string, flavor: string,   // its art reference (the generated art slot) and flavour
+  timesPlayed: number,
+  inZone: boolean,               // true while it waits in the zone; false while on the board
+  nextCost: number,              // what playing it costs now: its cost with modifiers in play, plus 2 for every earlier play
+  played: boolean                // timesPlayed > 0 (kept from before session 72)
+}
+MatchBoast { agentId, itemId, slot: "boast" | "closeWinBoast" | "factionStarter", winnerHealth }
 ```
 
-`GET /api/live/:matchId?from=N` is the feed for the match page: `LiveMatchView` plus `{ from, steps, start, startLines }`. Fetch with `from=0` first (that answer also has `start`, the board before the first move, and `startLines`, the opening draws), then with `from=<released>` each time to get only what is new; `from` past `released` is treated as `released`. Each step:
+`GET /api/live/:matchId?from=N` is the feed for the match page: `LiveMatchView` plus `{ from, steps, start, startLines, openingHands }`. Fetch with `from=0` first (that answer also has `start`, the board before the first move, `startLines`, the opening draws, and `openingHands`, `{ p1: string[], p2: string[] }`: each side's opening hand by card id in hand order; all three are null on any later fetch), then with `from=<released>` each time to get only what is new; `from` past `released` is treated as `released`. Each step:
 
 ```
 TimelineStep {
@@ -418,6 +432,8 @@ TimelineStep {
   after: PublicSnapshot
 }
 ```
+
+**Hands, the signature card, the faction and the boast (session 72; owner 2026-11-03, the render-51 and render-53 asks).** A spectator sees both hands face up live, as in a replay: start from `openingHands`, add each `draw` event's card (draw events name the card), and take away each card that leaves the hand (a `play` not `fromSignatureZone`, a `cast` without a `sourceId` (a Command), an `evolve`'s `to`, a `toolAttached`'s `tool`); the result matches each snapshot's `hand` count after every move (`progress/live-feed-asks-001.txt` checks it over six matches). `openingHands` is sent because every match the ladder shows was decided in the engine before its first move was released. **Safety rule (owner 2026-11-03):** a match where a seat is a network agent playing in real time gets no `openingHands` and no card in its draw events until it ends; that is built when network agents join the ladder. A signature card's `nextCost` before a move is what the engine charges if it is played on that move, and after it dies it is the `signatureReturn` event's `nextCost`. The `boast` is worked out by the store's own rule (`matchBoast`: the close-win boast at 5 health or less if one is equipped, else the main boast, else the deck faction's starter boast) on the loadouts and deck the match started with, which can't change while it is live, so it is the one `GET /api/matches/:id` then shows; null for a draw, a cancel or an abandon.
 
 Once the match has been recorded the feed answers 404 with `match "<id>" has ended; see /api/matches/<id>`.
 

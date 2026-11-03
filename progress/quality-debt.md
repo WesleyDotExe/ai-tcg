@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -74,6 +74,32 @@ real, but here is where it's thin.
   passing, not by a dedicated test of a modal response.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
+
+## Session 72 (the live-feed asks: opening hands, the signature card, the faction, the boast): what is still thin
+
+- **The hands safety rule isn't enforced by anything yet.** `openingHands` is sent for every match the
+  `LiveLadder` shows, which is right today (it plays each match to the end in the engine before releasing the
+  first move). But no flag marks a match as "decided before it is shown": the rule lives in a comment and in
+  OWNER_API.md. When network agents join the ladder in real time, that path must leave `openingHands` out and
+  strip the card from draw events until the match ends, and a test must prove it. Don't add a real-time seat
+  without building it.
+- **Draw events name the card by name, the opening hands by card id.** A spectator rebuilding a hand maps one to
+  the other (the demo and the test use the deck's cards). Two cards with the same name in one deck would be
+  ambiguous; none exist today (names are unique in the registry, and a signature card never goes to the hand),
+  but nothing checks it for a live feed. Adding `cardId` to the `draw` event would remove the mapping; it is an
+  engine event change, so it needs the replay goldens checked. Not done; ask the render lane if it wants it.
+- **`rulesText` is ability text only.** A keyword-only signature card (Tapemancer's Radio Tower: Barrier) sends
+  `rulesText: []`; the render must draw its keywords. Documented, not "fixed".
+- **The live boast is worked out once, when the match is first shown,** from the loadouts and deck the match
+  started with. The store refuses loadout changes during a live match, so it can't drift from the record's,
+  and a test and the demo compare them over every match. A catalogue change or a season reset mid-match isn't
+  covered (neither happens mid-match today).
+- **The render lane's types (`render/src/site/siteApi.ts`) still describe the old `signature: { name, played }`**
+  and have no `faction`, `openingHands` or live `boast`. That is the render lane's side to pick up; the fields are
+  additive, so nothing it reads broke.
+- **Still open from session 71:** the full-collection Null deck pick (the test-only builder session the owner
+  approved, before the launch-gate re-run); the economy demos, older owner-API demos and the render's committed
+  samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
 ## Session 71 (the 24-health rule shipped as rules-2): what is still thin
 

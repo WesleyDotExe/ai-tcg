@@ -12,7 +12,39 @@
 // and no agent, can see a step before its time: the match is already over
 // in the engine, which is also why watching it can never feed back into it.
 
-import { currentAttack, currentHealth, currentMaxHealth, formatEvent, type GameEvent, type GameState, type Move, type PlayerId } from "@ai-tcg/engine";
+import { currentAttack, currentHealth, currentMaxHealth, formatEvent, signatureCost, type GameEvent, type GameState, type Move, type PlayerId } from "@ai-tcg/engine";
+
+/** A side's signature card as anyone watching may see it (session 72, the
+ * owner's render-51 ask): the card itself and its zone, as the engine's
+ * SignatureZone has them. The signature card is public information in the
+ * engine (both players always know it), so this hides nothing. */
+export interface PublicSignature {
+  cardId: string;
+  name: string;
+  /** The printed cost, attack and health (the card, not a unit in play:
+   * a played signature card's live stats are its board entry's). */
+  cost: number;
+  attack: number;
+  health: number;
+  keywords: string[];
+  /** The card's rules text, one line per ability, as printed (a card whose
+   * only text is a keyword has none: draw its keywords). */
+  rulesText: string[];
+  /** The card's art reference (its generated art slot) and flavour. */
+  art: string;
+  flavor: string;
+  /** How many times it has been played this match. */
+  timesPlayed: number;
+  /** True while it waits in the signature zone; false while on the board. */
+  inZone: boolean;
+  /** What playing it would cost now: its effective cost (cost modifiers in
+   * play apply) plus the replay surcharge for every earlier play. Read it
+   * while `inZone`; on the board it is what the next replay would cost if
+   * it came back now. */
+  nextCost: number;
+  /** timesPlayed > 0 (the field before session 72, kept). */
+  played: boolean;
+}
 
 /** One side of the board, as anyone watching may see it (no hand or deck
  * contents: counts only). */
@@ -27,9 +59,8 @@ export interface PublicSide {
   graveyard: number;
   board: { instanceId: string; cardId: string; name: string; attack: number; health: number; maxHealth: number; pending: boolean; tools: string[] }[];
   directives: { instanceId: string; cardId: string; name: string }[];
-  /** The signature card's name and whether it has been played yet; null
-   * without one. */
-  signature: { name: string; played: boolean } | null;
+  /** The signature card in full (session 72); null without one. */
+  signature: PublicSignature | null;
 }
 
 export interface PublicSnapshot {
@@ -60,6 +91,11 @@ export interface TimelineStep {
 export interface Timeline {
   /** The board before the first move (opening hands drawn, turn 1 begun). */
   start: PublicSnapshot;
+  /** (session 72) Each side's opening hand, by card id in hand order, as it
+   * stood before the first move. The timeline always keeps it; whether a
+   * live feed may send it is the feed's call (liveLadder.ts: only for a
+   * match decided before it is shown). */
+  openingHands: { p1: string[]; p2: string[] };
   /** Lines logged before the first move (the opening draws). */
   startLines: string[];
   steps: TimelineStep[];
@@ -88,7 +124,7 @@ export function publicSnapshot(state: GameState): PublicSnapshot {
         tools: u.tools.map((t) => t.name),
       })),
       directives: p.directives.map((d) => ({ instanceId: d.instanceId, cardId: d.card.id, name: d.card.name })),
-      signature: p.signature === null ? null : { name: p.signature.card.name, played: p.signature.timesPlayed > 0 },
+      signature: p.signature === null ? null : publicSignature(state, pid),
     };
   };
   return {
@@ -102,13 +138,33 @@ export function publicSnapshot(state: GameState): PublicSnapshot {
   };
 }
 
+function publicSignature(state: GameState, pid: PlayerId): PublicSignature {
+  const zone = state.players[pid].signature!;
+  const card = zone.card;
+  return {
+    cardId: card.id,
+    name: card.name,
+    cost: card.cost,
+    attack: card.attack,
+    health: card.health,
+    keywords: [...card.keywords],
+    rulesText: card.abilities.map((a) => a.text),
+    art: card.art,
+    flavor: card.flavor,
+    timesPlayed: zone.timesPlayed,
+    inZone: zone.inZone,
+    nextCost: signatureCost(state, pid)!,
+    played: zone.timesPlayed > 0,
+  };
+}
+
 /** Keeps a timeline from runMatch's hooks: pass `hooks` to runMatch (or
  * replayMatch) and read `timeline` after. */
 export function timelineRecorder(): {
   hooks: { onMatchStart(state: GameState): void; onMove(state: GameState, move: Move, n: number): void };
   timeline: Timeline;
 } {
-  const timeline: Timeline = { start: undefined as unknown as PublicSnapshot, startLines: [], steps: [] };
+  const timeline: Timeline = { start: undefined as unknown as PublicSnapshot, openingHands: { p1: [], p2: [] }, startLines: [], steps: [] };
   let logged = 0;
   // Who holds priority is who moves next: read it before the move applies.
   let mover: PlayerId = "p1";
@@ -117,6 +173,7 @@ export function timelineRecorder(): {
     hooks: {
       onMatchStart(state) {
         timeline.start = publicSnapshot(state);
+        timeline.openingHands = { p1: state.players.p1.hand.map((c) => c.id), p2: state.players.p2.hand.map((c) => c.id) };
         timeline.startLines = state.log.map(formatEvent);
         logged = state.log.length;
         mover = state.priority;

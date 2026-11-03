@@ -4483,3 +4483,50 @@ no dynamic imports on that path), and their numbers match the expected shape, so
 
 **Blocked:** nothing. One [OWNER CHECK-IN] (the shipped numbers; seven calls, recommendations given) in
 notes-for-owner.md.
+
+## 2026-11-03 — Session 72 (the live-feed asks: the opening hands, the signature card, the faction, the boast)
+
+**Read first:** `progress/owner-feedback.md`. Unhandled game-lane entry: the answers to session 71 and render 53.
+Items 2-7 kept, nothing changed (item 2: the 6.7-minute watch time is accepted, `WATCH_PACE_MS` stays; 6-7 minutes
+is the target now). Item 1 (the test-only Null builder session) is queued third, before the launch-gate re-run, as
+the owner allowed. The owner's game-lane order puts the live-feed asks first, so this session built them. The
+last merged PR (#126) was the render lane's, so this is the game lane. Not a hardening session (70 was; 75 is next).
+
+**Built:**
+- The opening hands: `Timeline.openingHands` (each side's hand by card id in hand order, as it stood before the
+  first move) recorded by `timelineRecorder`; `LiveMatchFeed.openingHands` sent beside `start`, only with from=0
+  (null on later fetches, like `start`). Sent because every match the `LiveLadder` shows is decided in the
+  engine before its first move is released. The real-time network-agent rule (no hands live) is documented, not
+  built: there is no real-time path yet.
+- The signature card in full: `PublicSide.signature` is now a `PublicSignature` (cardId, name, cost, attack,
+  health, keywords, rulesText (each ability's printed text), art, flavor, timesPlayed, inZone, nextCost (the
+  engine's `signatureCost`: modifiers plus the replay surcharge), and `played` kept). On every snapshot.
+- `LiveSideView.faction`: `deckFaction` on the deck the store dealt the side.
+- `LiveMatchView.boast`: null until the last move is out, then the boast the record will keep. The store's
+  private `chooseBoast` became public `matchBoast`, and the live ladder calls it with the match's starting
+  loadout, deck and the winner's final health, so there is one rule, not a copy.
+- `server/OWNER_API.md` (the types, how a spectator rebuilds a hand from the feed, the safety rule), the
+  roadmap's 2c items ticked, `npm run demo:live-feed-asks -w server`.
+
+**Ran it:**
+- `progress/live-feed-asks-001.txt`: three ladder rounds (six matches) between four generated agents, each with
+  its own signature card, watched over HTTP through the feed alone (from=0, then from=released every second).
+  67 PASS, 0 FAIL, byte-identical across two runs. Factions match each owner's starter deck; the hands rebuilt from
+  the opening hand plus the named draws minus the cards played match the feed's count after every move; every
+  signature play cost the feed's `nextCost` before the move (demo-3: Cassette of the Night Rain at 5, back to the
+  zone with the engine's next cost 7, replayed at 7, back at 9, replayed at 9); every live boast is the recorded
+  match's, and none showed before the last move.
+- `server/test/liveFeedAsks.test.ts` (6 tests): the same properties on other seeds, plus a close-win boast seed
+  where both the main and the close-win boast show up live and each matches the 5-health rule. Mutation checks:
+  `nextCost` set to the printed cost fails the signature test; the boast sent before the last move fails the boast
+  test; the two seats' hands swapped fails two tests. The HTTP test in `ownerApiMatches.test.ts` checks the hands,
+  factions and the null boast over a real port.
+- `npm test`: engine 365, server 116, economy 220, render 843, agents 17, protocol 7, all pass; typecheck clean.
+
+**Worked:** the timeline already kept everything needed, so every ask was additive (no replay or golden file
+moved). **Didn't / honest limits:** the safety rule isn't enforced by any flag yet; draw events name cards by name
+while the opening hands use ids (names are unique in the registry, checked: 99 cards, no repeats); a keyword-only
+signature card sends empty `rulesText`; the render lane's API types are the old shape until it picks this up. All
+in quality-debt.md.
+
+**Blocked:** nothing. Three small keep-or-change calls in notes-for-owner.md; nothing waits on them.

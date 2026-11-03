@@ -2206,8 +2206,11 @@ export class EconomyStore {
    * close-win boast when the winner ended on CLOSE_WIN_HEALTH or less and
    * has one, else the main boast, else the starter boast of the faction its
    * deck played (render session 30 call 6). Null when none of those is
-   * known. The agent never chooses. */
-  private chooseBoast(agentId: string, loadout: Loadout, deckId: string | null, winnerHealth: number | null): MatchBoast | null {
+   * known. The agent never chooses. Public since session 72: the live
+   * ladder calls it once a live match's last move is out, with the same
+   * loadout and deck the record will use (neither can change while the
+   * match is live), so the live view shows the boast the record keeps. */
+  matchBoast(agentId: string, loadout: Loadout, deckId: string | null, winnerHealth: number | null): MatchBoast | null {
     if (winnerHealth !== null && winnerHealth <= CLOSE_WIN_HEALTH && loadout.closeWinBoast !== null) {
       return { agentId, itemId: loadout.closeWinBoast, slot: "closeWinBoast", winnerHealth };
     }
@@ -3811,7 +3814,7 @@ export class EconomyStore {
         );
         if (outcome.kind === "win") {
           const seat = outcome.winnerAgentId === p1 ? "p1" : "p2";
-          record.boast = this.chooseBoast(outcome.winnerAgentId, record.loadouts[seat], seat === "p1" ? record.p1DeckId : record.p2DeckId, health?.[seat] ?? null);
+          record.boast = this.matchBoast(outcome.winnerAgentId, record.loadouts[seat], seat === "p1" ? record.p1DeckId : record.p2DeckId, health?.[seat] ?? null);
         }
         try {
           for (const seat of ["p1", "p2"] as const) {

@@ -1,0 +1,165 @@
+Live-feed asks demo 001 — the opening hands, the signature card, the faction, the boast (session 72)
+========================================================================
+> GET /api/live  -> 200
+> GET /api/live/demo-1?from=0  -> 200
+> GET /api/live/demo-2?from=0  -> 200
+
+1. GET /api/live: each side's deck faction, known from the start
+------------------------------------------------------------------------
+  demo-1: p1 Logicstag's Coin-Op Engine (house-aegis) Aegis  vs  p2 Pixelgator's Rerun Gamer (house-null) Null;  boast null
+  demo-2: p1 Diskhare's Lieutenant (house-cortex) Cortex  vs  p2 Diodemink's Challenger (house-swarm) Swarm;  boast null
+  demo-3: p1 Logicstag's Coin-Op Engine (house-aegis) Aegis  vs  p2 Diodemink's Challenger (house-swarm) Swarm;  boast null
+  demo-4: p1 Pixelgator's Rerun Gamer (house-null) Null  vs  p2 Diskhare's Lieutenant (house-cortex) Cortex;  boast null
+  demo-5: p1 Logicstag's Coin-Op Engine (house-aegis) Aegis  vs  p2 Pixelgator's Rerun Gamer (house-null) Null;  boast null
+  demo-6: p1 Diskhare's Lieutenant (house-cortex) Cortex  vs  p2 Diodemink's Challenger (house-swarm) Swarm;  boast null
+
+2. GET /api/live/:id?from=0: the opening hands beside the start; the signature cards
+------------------------------------------------------------------------
+  demo-1 p1 opening hand (4, start shows 4): AG-019 "Bulwark Chassis", AG-003 "Plating Module", AG-019 "Bulwark Chassis", AG-013 "Aegis Warden"
+  demo-1 p1 signature: {"cardId":"sig-PR-003","name":"Cassette of the Night Rain","cost":5,"attack":3,"health":5,"keywords":[],"rulesText":["When it dies, draw 3 cards."],"art":"placeholder:signature-pool/S0/001","flavor":"Logicstag's Coin-Op Engine keeps nothing it can't use twice.","timesPlayed":0,"inZone":true,"nextCost":5,"played":false}
+  demo-1 p2 opening hand (4, start shows 4): NL-017 "Dangling Pointer", NL-002 "Stray Fragment", NL-011 "Entropy Harvester", NL-002 "Stray Fragment"
+  demo-1 p2 signature: {"cardId":"sig-PR-004","name":"Android of the Loading Screen","cost":5,"attack":3,"health":6,"keywords":[],"rulesText":["At the end of your turn, restore 1 health to a random unit of yours."],"art":"placeholder:signature-pool/S0/001","flavor":"Pixelgator's Rerun Gamer rolls the damage back, one unit at a time.","timesPlayed":0,"inZone":true,"nextCost":5,"played":false}
+  demo-2 p1 opening hand (4, start shows 4): CX-009 "Cortex Engineer", CX-015 "Init Daemon", CX-005 "Cascade Purge", CX-024 "Quorum Arbiter"
+  demo-2 p1 signature: {"cardId":"sig-PR-001","name":"Blazepuma's Neoprene Firmware","cost":5,"attack":3,"health":6,"keywords":[],"rulesText":["At the end of your turn, restore 1 health to a random unit of yours."],"art":"placeholder:signature-pool/S0/001","flavor":"Every scratch on Diskhare's Lieutenant's side gets a ticket and a fix.","timesPlayed":0,"inZone":true,"nextCost":5,"played":false}
+  demo-2 p2 opening hand (4, start shows 4): SW-001 "Swarm Larva", SW-002 "Broodcaller", SW-005 "Corrosive Spitter", SW-005 "Corrosive Spitter"
+  demo-2 p2 signature: {"cardId":"sig-PR-002","name":"Tapemancer's Radio Tower","cost":5,"attack":3,"health":4,"keywords":["Barrier"],"rulesText":[],"art":"placeholder:signature-pool/S0/001","flavor":"Diodemink's Challenger shrugs off what would end lesser machines.","timesPlayed":0,"inZone":true,"nextCost":5,"played":false}
+  demo-3 p1 opening hand (4, start shows 4): AG-007 "Aegis Sentinel", AG-002 "Barrier Drone", AG-003 "Plating Module", AG-015 "Intercept Routine"
+  demo-3 p2 opening hand (4, start shows 4): SW-010 "Dormant Egg Sac", SW-017 "Brood Skitterer", SW-016 "Overgrown Carapace", SW-002 "Broodcaller"
+  demo-4 p1 opening hand (4, start shows 4): NL-003 "Corruption Patch", NT-004 "Rollback Point", NL-011 "Entropy Harvester", NL-004 "Segfault Handler"
+  demo-4 p2 opening hand (4, start shows 4): CX-019 "Force Quit", CX-009 "Cortex Engineer", CX-013 "Retaliation Node", CX-007 "Mainframe Core"
+  demo-5 p1 opening hand (4, start shows 4): AG-007 "Aegis Sentinel", AG-012 "Lockdown Field", AG-019 "Bulwark Chassis", AG-004 "Diagnostic Ward"
+  demo-5 p2 opening hand (4, start shows 4): NL-009 "Deprecated Routine", NL-006 "Corrupted Process", NL-011 "Entropy Harvester", NL-020 "Garbage Collector"
+  demo-6 p1 opening hand (4, start shows 4): CX-014 "Interrupt Handler", CX-023 "Deadlock Detector", CX-008 "Fail-safe Unit", CX-015 "Init Daemon"
+  demo-6 p2 opening hand (4, start shows 4): SW-004 "Overclock Beast", SW-007 "Spore Cluster", SW-016 "Overgrown Carapace", SW-012 "Chitin Plating"
+
+3. The signature card through each match, as the feed showed it
+------------------------------------------------------------------------
+  demo-1 move 50: p1 plays Cassette of the Night Rain for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-1 move 59: p2 plays Android of the Loading Screen for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-2 move 75: p2 plays Tapemancer's Radio Tower for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-2 move 81: p1 plays Blazepuma's Neoprene Firmware for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-3 move 46: p1 plays Cassette of the Night Rain for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-3 move 55: p2 plays Tapemancer's Radio Tower for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-3 move 98: p1's Cassette of the Night Rain returns to its zone; the engine's next cost 7, the feed's nextCost 7, inZone true
+  demo-3 move 105: p1 plays Cassette of the Night Rain for 7 (the feed's nextCost before the move: 7); timesPlayed 1 -> 2, inZone false
+  demo-3 move 157: p1's Cassette of the Night Rain returns to its zone; the engine's next cost 9, the feed's nextCost 9, inZone true
+  demo-3 move 173: p1 plays Cassette of the Night Rain for 9 (the feed's nextCost before the move: 9); timesPlayed 2 -> 3, inZone false
+  demo-3 move 176: p2's Tapemancer's Radio Tower returns to its zone; the engine's next cost 7, the feed's nextCost 7, inZone true
+  demo-3 move 191: p2 plays Tapemancer's Radio Tower for 7 (the feed's nextCost before the move: 7); timesPlayed 1 -> 2, inZone false
+  demo-4 move 34: p1 plays Android of the Loading Screen for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-4 move 40: p2 plays Blazepuma's Neoprene Firmware for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-5 move 34: p1 plays Cassette of the Night Rain for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-5 move 43: p2 plays Android of the Loading Screen for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+  demo-6 move 49: p1 plays Blazepuma's Neoprene Firmware for 5 (the feed's nextCost before the move: 5); timesPlayed 0 -> 1, inZone false
+
+4. The hands a spectator rebuilds from the feed: the opening hand, the named draws, the cards played
+------------------------------------------------------------------------
+  demo-1 p1: 9 cards left the hand over 122 moves; at the end it holds 2 (the feed's count 2): Aegis Warden, Perimeter Turret
+  demo-1 p2: 10 cards left the hand over 122 moves; at the end it holds 2 (the feed's count 2): Corrupted Process, Fork Bomb
+  demo-2 p1: 6 cards left the hand over 107 moves; at the end it holds 3 (the feed's count 3): Cascade Purge, Watchtower Relay, Firewall Sentinel
+  demo-2 p2: 4 cards left the hand over 107 moves; at the end it holds 6 (the feed's count 6): Corrosive Spitter, Corrosive Spitter, Corrosive Spitter, Chitin Plating, Brood Skitterer, Barrier Node
+  demo-3 p1: 13 cards left the hand over 206 moves; at the end it holds 8 (the feed's count 8): Aegis Sentinel, Perimeter Turret, Aegis Sentinel, Reinforced Bastion, Perimeter Turret, Aegis Warden, Guard Directive Chip, Static Ward Beacon
+  demo-3 p2: 14 cards left the hand over 206 moves; at the end it holds 1 (the feed's count 1): Bore Swarm
+  demo-4 p1: 7 cards left the hand over 109 moves; at the end it holds 4 (the feed's count 4): Kernel Panic, Corrupted Process, Watchdog Timer, Dangling Pointer
+  demo-4 p2: 8 cards left the hand over 109 moves; at the end it holds 4 (the feed's count 4): Retaliation Node, Cascade Purge, Watchtower Relay, Firewall Sentinel
+  demo-5 p1: 8 cards left the hand over 130 moves; at the end it holds 3 (the feed's count 3): Aegis Sentinel, Aegis Warden, Aegis Sentinel
+  demo-5 p2: 7 cards left the hand over 130 moves; at the end it holds 5 (the feed's count 5): Deprecated Routine, Corrupted Process, Watchdog Timer, Propagating Exploit, Null Pointer
+  demo-6 p1: 6 cards left the hand over 108 moves; at the end it holds 4 (the feed's count 4): Fail-safe Unit, Backup Protocol, Load Balancer, Diagnostic Loop
+  demo-6 p2: 10 cards left the hand over 108 moves; at the end it holds 0 (the feed's count 0): (empty)
+
+5. The boast: null while moves remain, then the record's, once the last move is out
+------------------------------------------------------------------------
+> GET /api/matches/demo-1  -> 200
+  demo-1: win, final move 122; boast while moves remained: null (378 polls)
+  demo-1: live boast once the last move was out: {"agentId":"<agent Logicstag's Coin-Op Engine>","itemId":"boast-aegis-shield-slam","slot":"boast","winnerHealth":9}
+  demo-1: the recorded match's boast:          {"agentId":"<agent Logicstag's Coin-Op Engine>","itemId":"boast-aegis-shield-slam","slot":"boast","winnerHealth":9}
+> GET /api/matches/demo-2  -> 200
+  demo-2: win, final move 107; boast while moves remained: null (314 polls)
+  demo-2: live boast once the last move was out: {"agentId":"<agent Diodemink's Challenger>","itemId":"boast-swarm-hive-burst","slot":"boast","winnerHealth":8}
+  demo-2: the recorded match's boast:          {"agentId":"<agent Diodemink's Challenger>","itemId":"boast-swarm-hive-burst","slot":"boast","winnerHealth":8}
+> GET /api/matches/demo-3  -> 200
+  demo-3: win, final move 206; boast while moves remained: null (640 polls)
+  demo-3: live boast once the last move was out: {"agentId":"<agent Logicstag's Coin-Op Engine>","itemId":"boast-aegis-shield-slam","slot":"boast","winnerHealth":8}
+  demo-3: the recorded match's boast:          {"agentId":"<agent Logicstag's Coin-Op Engine>","itemId":"boast-aegis-shield-slam","slot":"boast","winnerHealth":8}
+> GET /api/matches/demo-4  -> 200
+  demo-4: win, final move 109; boast while moves remained: null (325 polls)
+  demo-4: live boast once the last move was out: {"agentId":"<agent Pixelgator's Rerun Gamer>","itemId":"boast-null-void-collapse","slot":"boast","winnerHealth":3}
+  demo-4: the recorded match's boast:          {"agentId":"<agent Pixelgator's Rerun Gamer>","itemId":"boast-null-void-collapse","slot":"boast","winnerHealth":3}
+> GET /api/matches/demo-5  -> 200
+  demo-5: win, final move 130; boast while moves remained: null (384 polls)
+  demo-5: live boast once the last move was out: {"agentId":"<agent Pixelgator's Rerun Gamer>","itemId":"boast-null-void-collapse","slot":"boast","winnerHealth":2}
+  demo-5: the recorded match's boast:          {"agentId":"<agent Pixelgator's Rerun Gamer>","itemId":"boast-null-void-collapse","slot":"boast","winnerHealth":2}
+> GET /api/matches/demo-6  -> 200
+  demo-6: win, final move 108; boast while moves remained: null (333 polls)
+  demo-6: live boast once the last move was out: {"agentId":"<agent Diskhare's Lieutenant>","itemId":"boast-cortex-data-cascade","slot":"boast","winnerHealth":15}
+  demo-6: the recorded match's boast:          {"agentId":"<agent Diskhare's Lieutenant>","itemId":"boast-cortex-data-cascade","slot":"boast","winnerHealth":15}
+
+Checks
+------------------------------------------------------------------------
+  PASS  demo-1: house-aegis's faction is its starter deck's
+  PASS  demo-1: house-null's faction is its starter deck's
+  PASS  demo-2: house-cortex's faction is its starter deck's
+  PASS  demo-2: house-swarm's faction is its starter deck's
+  PASS  demo-3: house-aegis's faction is its starter deck's
+  PASS  demo-3: house-swarm's faction is its starter deck's
+  PASS  demo-4: house-null's faction is its starter deck's
+  PASS  demo-4: house-cortex's faction is its starter deck's
+  PASS  demo-5: house-aegis's faction is its starter deck's
+  PASS  demo-5: house-null's faction is its starter deck's
+  PASS  demo-6: house-cortex's faction is its starter deck's
+  PASS  demo-6: house-swarm's faction is its starter deck's
+  PASS  demo-1 p1: opening hand length matches the start's hand count
+  PASS  demo-1 p1: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-1 p2: opening hand length matches the start's hand count
+  PASS  demo-1 p2: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-2 p1: opening hand length matches the start's hand count
+  PASS  demo-2 p1: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-2 p2: opening hand length matches the start's hand count
+  PASS  demo-2 p2: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-3 p1: opening hand length matches the start's hand count
+  PASS  demo-3 p1: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-3 p2: opening hand length matches the start's hand count
+  PASS  demo-3 p2: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-4 p1: opening hand length matches the start's hand count
+  PASS  demo-4 p1: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-4 p2: opening hand length matches the start's hand count
+  PASS  demo-4 p2: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-5 p1: opening hand length matches the start's hand count
+  PASS  demo-5 p1: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-5 p2: opening hand length matches the start's hand count
+  PASS  demo-5 p2: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-6 p1: opening hand length matches the start's hand count
+  PASS  demo-6 p1: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-6 p2: opening hand length matches the start's hand count
+  PASS  demo-6 p2: the signature card is in its zone, unplayed, at its printed cost
+  PASS  demo-1: every signature play cost what the feed's nextCost said, every return matches the engine's next cost
+  PASS  demo-2: every signature play cost what the feed's nextCost said, every return matches the engine's next cost
+  PASS  demo-3: every signature play cost what the feed's nextCost said, every return matches the engine's next cost
+  PASS  demo-4: every signature play cost what the feed's nextCost said, every return matches the engine's next cost
+  PASS  demo-5: every signature play cost what the feed's nextCost said, every return matches the engine's next cost
+  PASS  demo-6: every signature play cost what the feed's nextCost said, every return matches the engine's next cost
+  PASS  demo-1 p1: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-1 p2: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-2 p1: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-2 p2: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-3 p1: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-3 p2: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-4 p1: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-4 p2: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-5 p1: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-5 p2: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-6 p1: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-6 p2: every card played was in the rebuilt hand, and its size matched the feed's count after every move
+  PASS  demo-1: no boast before the last move
+  PASS  demo-1: the live boast is the recorded one
+  PASS  demo-2: no boast before the last move
+  PASS  demo-2: the live boast is the recorded one
+  PASS  demo-3: no boast before the last move
+  PASS  demo-3: the live boast is the recorded one
+  PASS  demo-4: no boast before the last move
+  PASS  demo-4: the live boast is the recorded one
+  PASS  demo-5: no boast before the last move
+  PASS  demo-5: the live boast is the recorded one
+  PASS  demo-6: no boast before the last move
+  PASS  demo-6: the live boast is the recorded one
+  PASS  the feed answers 404 once a match is recorded

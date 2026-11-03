@@ -1,6 +1,27 @@
 # Notes for the owner
 
-**Updated 2026-11-02, session 71 (the 24-health rule shipped). [OWNER CHECK-IN] (the shipped numbers, before the
+**Updated 2026-11-03, session 72 (the live-feed asks).** Nothing is blocking. No check-in is open. Session 71's
+check-in below is answered (2026-11-03) and kept for the record.
+
+The live view now sends what the render lane asked for and you approved: each side's opening hand (by card id,
+with the start), the signature card in full (its stats, keywords, text, art, times played, whether it is waiting,
+and what it would cost now), each side's deck faction, and the boast once the last move is out (the same one the
+match record then keeps). `progress/live-feed-asks-001.txt` watches six matches through the feed alone and checks
+each one against the engine and the record: 67 checks pass.
+
+**Three small calls (I recommend keeping each; nothing waits on them):**
+1. **I added the signature card's art reference and flavour text** to what you listed (cost, attack, health,
+   keywords, rules text), since the signature card's own art is its headline feature. Keep, or drop them.
+2. **"Rules text" is each ability's printed text, one line each.** A signature card whose only text is a keyword
+   (one in the demo has just Barrier) sends no lines: the render draws its keywords. Keep, or have the server
+   write a line for each keyword too.
+3. **The live boast is worked out when the match starts being shown** from the loadouts and deck it started with
+   (they can't change during a live match), by the store's own rule, and only sent once the last move is out.
+   Keep.
+
+---
+
+**Updated 2026-11-02, session 71 (the 24-health rule shipped). [OWNER CHECK-IN, ANSWERED 2026-11-03] (the shipped numbers, before the
 launch-gate re-run, as you asked).** Nothing is blocking; the next sessions go on as planned whatever you answer.
 
 Every match the game plays now runs your rule: "The player going second starts with 24 health; the player going
