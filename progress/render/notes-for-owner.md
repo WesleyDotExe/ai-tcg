@@ -1176,3 +1176,24 @@ for its next session.)
    history row's `seat` were enough. The match record's `defaultView` (`GET /api/matches/:id`) will be read
    when the site can open a replay of a match you don't own (a featured match), which it can't yet.
 4. **No shared files changed** (no workflow, no root package files, no server or economy code).
+
+## 2026-11-03 — Session 53 (live hands face up; the coin flip)
+
+1. **Built: live hands face up, and the coin flip in Match Boot** (the first coin slice, as approved). Seven
+   calls in `progress/render/checkpoints.md` (newest entry); the ones most worth a look are 1 (the coin rises
+   toward you rather than up the screen) and 5 (opening cards as backs until played).
+2. **A small ask for the game lane: the opening hands in the live view.** The render rebuilds each live hand
+   from the moves and `draw` events, exactly, but the opening hands are dealt before the engine's log starts,
+   so no event names them; those cards show as backs until played. One field would make every hand whole from
+   move 0: the opening hands, by card id in hand order, on the live view's start (for example
+   `openingHands: { p1: string[], p2: string[] }` beside `start` in `GET /api/live/:id`), sent while the match
+   is decided before it is shown (your safety rule for real-time network agents would leave it out). The render
+   already takes it (`LiveStart.openingHands`, tested).
+3. **For the game lane, when the coin looks land:** `economy/test/cosmetics.test.ts` checks each item's `drawn`
+   against the boast specs only, so the Chrome Token can't be marked drawn from the render side. The render's
+   coin looks are in `render/src/coinFx.ts`'s `COIN_SPECS` (by item id); the test could check coins against
+   that. Not urgent: the Chrome Token is never sold, and the store coins come with the second coin slice.
+4. **Live costs with a signature card in play** are marked "?" (its abilities aren't in the feed). The queued
+   ask for the signature card in `PublicSide.signature` (render 51) would make them exact too.
+5. **No shared files changed** (no workflow, no root package files, no server or economy code). The site's
+   bundle reads nothing new.

@@ -87,8 +87,12 @@ describe("the live arena over the real owner API, with the ladder playing", () =
     const start = dataOf(html);
     expect(start.frames).toHaveLength(page.released + 1);
     expect(page.released).toBeGreaterThan(0);
-    // Hands are card backs: the count only.
-    expect(start.frames.at(-1)!.players.p1.hand.every((c) => c.hidden === true)).toBe(true);
+    // Hands (render session 53): face up wherever the feed named the card,
+    // backs only for the opening hand's cards (checked against the replay below).
+    expect(start.frames[0]!.players.p1.hand.every((c) => c.hidden === true)).toBe(true);
+    // The coins each side flips, from the live view (Match Boot's coin flip).
+    const view = (await client.liveFeed(ada, id, 0)) as unknown as { p1: { coin: string }; p2: { coin: string } };
+    expect(start.coins).toEqual({ p1: view.p1.coin, p2: view.p2.coin });
 
     const frames: Frame[] = [...start.frames];
     let ended = false;
@@ -114,8 +118,25 @@ describe("the live arena over the real owner API, with the ladder playing", () =
     const replay = dataOf(await (await fetch(base + rp.url)).text());
     expect(frames).toHaveLength(replay.frames.length);
     frames.forEach((f, k) => expect(publicOf(f), `frame ${k}`).toEqual(publicOf(replay.frames[k]!)));
+    // Every hand card the live page shows face up is the replay's card at that place.
+    let faceUp = 0;
+    frames.forEach((f, k) => {
+      for (const pid of ["p1", "p2"] as const) {
+        const opening = replay.frames[0]!.players[pid].hand.length;
+        expect(f.players[pid].hand.filter((c) => c.hidden).length, `frame ${k} ${pid}`).toBeLessThanOrEqual(opening);
+        f.players[pid].hand.forEach((c, j) => {
+          if (c.hidden) return;
+          faceUp++;
+          const want = replay.frames[k]!.players[pid].hand[j]!;
+          expect({ name: c.name, cost: c.costUnsure ? want.cost : c.cost }, `frame ${k} ${pid} hand ${j}`).toEqual({ name: want.name, cost: want.cost });
+        });
+      }
+    });
+    expect(faceUp).toBeGreaterThan(frames.length);
     // The boast the live page plays is the record's, as the replay's is.
     expect(record).toEqual(replay.record);
+    // And the replay page flips the same coins (the match record's).
+    expect(replay.coins).toEqual(start.coins);
   }, 120_000);
 
   it("a match recorded between two reads still ends on the last move: the moves the feed no longer has come from the replay file", async () => {

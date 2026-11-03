@@ -7,6 +7,69 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-03 — Live hands face up, and the coin flip in Match Boot (the first coin slice) — AWAITING FEEDBACK
+
+Both halves of the slice you set after render 52. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder
+--speed 4`, sign in as `nova` / `a long demo password`, open Watch live, "Watch on the arena"; and for the
+coin, open any replay and press Play from move 0.
+
+**Live hands, face up** (your render-51 answer, option b):
+- Each live hand is rebuilt in the engine's own order from the feed: a played card leaves at the position the
+  move names (`handIndex`), every drawn card is added from its `draw` event. Each card shows at the cost the
+  engine would charge (cost auras on the board included, worked out from the public board).
+- **The opening hands can't be rebuilt from the feed:** they are dealt before the engine's log starts, so no
+  event names them. Those cards show as card backs **in their places**, labelled "N from the opening hand,
+  face down", until each is played (then it appears in the feed as played). Typically all are gone within the
+  first few turns. A small game-lane ask would make every hand whole from move 0 (notes).
+- If the rebuilt count ever disagreed with the server's count, that hand would go back to backs for the rest
+  of the match rather than show a wrong card (tested by dropping a draw).
+
+**The coin flip, as you approved it** (EFFECTS.md "The coin flip as built"):
+- Match Boot now runs 3.4 s: HANDSHAKE OK goes at 1.5 s and the coin flicks up there, spinning; it lands at
+  2.1 s with a clink and a chrome ring; a short pulse runs into the first player's half; the result line types
+  under the coin at 2.2 s; at 2.4 s the coin goes and the saying slams in.
+- The coin you see is the near player's: on your own match your agent's (**YOU GO FIRST** / **THEY GO
+  FIRST**); as a spectator, the player you watch as (**<NAME> GOES FIRST**, the first player's name). Its faces
+  are that player's portrait (their avatar in a ring of their faction colour) and the coin's design; portrait
+  up means the near player goes first. "Watch as" changes the coin from the next intro.
+- The **Chrome Token**: a polished silver hex, its design face an engraved inner hex with three traces from a
+  centre node. Sounds: a flick, a slowing whir of metal ticks, a bell-like clink, dead centre; Skip cuts them.
+- Reduced motion: the coin already landed with its line, then the saying (cuts, no motion), 1.3 s.
+
+**Evidence:** `progress/render/evidence/coin-hands-check-s53.txt`: 29 browser checks, ALL PASS (coin drawn and
+both faces seen mid-spin, the right face and line for p1 near, p2 near, your own match as p1 and p2; flick,
+whir and clink queued once each, none late; ends at 3.4 s; the still at 1.3 s; Skip mid-spin; a phone; live
+hands face up over the real ladder, backs only for opening cards and never coming back). Stills
+`v2-s53-coin-spin.jpg`, `v2-s53-coin-landed.jpg`, `v2-s53-coin-you-go-first.jpg`, `v2-s53-coin-as-p2-pulse.jpg`,
+`v2-s53-coin-still.jpg`, `v2-s53-coin-phone.jpg`, `v2-s53-coin-saying.jpg`, `v2-s53-live-hands.jpg`. CI
+browser check 61/61 ALL PASS (`ci-check-s53.txt`). Render tests 843 (+14): every live hand equals the
+engine's card for card in 8 real matches when the opening hands are given, and every face-up card equals it
+without them (also over the real owner API against the recorded replay).
+
+**Decisions you may want to overrule:**
+1. **The coin "flicks up" toward you, not up the screen:** it grows to 1.3x and back while it spins, so it
+   stays on the centre line and favours neither half (the intro's grammar). Alternative: a real upward arc
+   into the top half and back.
+2. **The result line sits under the coin**, the two as one block on the centre line; both go as the saying
+   slams in at 2.4 s.
+3. **The edge pulse** is a band of the first player's faction colour running from the centre edge of their
+   half to its far edge (0.42 s), the half's own edge flaring as it leaves.
+4. **Reduced motion is two cuts**: coin and line (0-0.6 s), then the saying (0.6-1.3 s), since both sit on
+   the centre line. Alternative: both at once, the saying moved up.
+5. **Live opening cards are backs in place**, labelled, until played, rather than waiting on the game lane.
+   With the ask in the notes they would be face up from move 0.
+6. **A live cost a signature card may change is marked "?"** (its abilities aren't in the live feed); only while
+   a signature unit is in play on either side. With the signature-card ask already queued for the game lane it
+   would be exact.
+7. **A coin not drawn yet flips the Chrome Token** (the store and tier coins are the next coin slice); nobody
+   can own one yet.
+
+**Next render-lane slice:** the render hardening pass you set (no new features: the quality-debt list, the stale
+session-25 and session-36 checks, the check-E flake). Then the second coin slice (the store and tier coins'
+looks, the coin line in the picker and the Store).
+
+---
+
 ## 2026-11-02 — The spectator point of view: "Watch as" on the website and the arena — AWAITING FEEDBACK
 
 The point of view you approved after session 50, built as specified. Try it: `npm run site-demo -w

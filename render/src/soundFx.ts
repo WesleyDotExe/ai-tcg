@@ -264,6 +264,28 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
       N({ type: 'lowpass', f0: 2600, f1: 300, dur: 0.16, g: 0.24 });
       [261.6, 329.6, 392, 523.3].forEach(function (n, i) { T({ type: 'triangle', f0: n, dur: 0.62 - i * 0.07, g: 0.05, att: 0.01, delay: 0.06 + i * 0.07, filt: 'lowpass', ff: 3000 }); });
       T({ type: 'sine', f0: 1046.5, dur: 0.5, g: 0.02, att: 0.05, delay: 0.3 });
+    } else if (kind === 'coinFlick') {
+      // Match Boot's coin flip (render session 53), like 'bootHit' not a
+      // match-event sound, one voice whatever the factions: the thumb's
+      // flick, a dry click, and the coin's first ring as it leaves.
+      N({ type: 'bandpass', f0: 3800, q: 5, dur: 0.03, g: 0.22 });
+      T({ type: 'triangle', f0: 2650, dur: 0.18, g: 0.05, att: 0.003 });
+      T({ type: 'sine', f0: 2650 * SFX_BELL[1], dur: 0.14, g: 0.02, att: 0.003 });
+    } else if (kind === 'coinWhir') {
+      // The coin spinning: a run of faint metal ticks, each turn a little
+      // slower (the spin eases out), over a soft airy whir.
+      var wt0 = 0;
+      for (var wi2 = 0; wi2 < 9; wi2++) { T({ type: 'triangle', f0: 3100 - wi2 * 60, dur: 0.035, g: 0.022, att: 0.002, delay: wt0 }); wt0 += 0.03 + wi2 * 0.009; }
+      N({ type: 'bandpass', f0: 1800, f1: 900, q: 2, dur: 0.5, g: 0.05, att: 0.05 });
+    } else if (kind === 'coinClink') {
+      // The coin lands: a bright clink (two inharmonic partials, a second
+      // smaller bounce), over a small low tap.
+      T({ type: 'sine', f0: 140, f1: 70, dur: 0.12, g: 0.18 });
+      T({ type: 'triangle', f0: 2350, dur: 0.4, g: 0.07, att: 0.002 });
+      T({ type: 'sine', f0: 2350 * SFX_BELL[1], dur: 0.3, g: 0.035, att: 0.002 });
+      T({ type: 'sine', f0: 2350 * SFX_BELL[2], dur: 0.22, g: 0.02, att: 0.002 });
+      T({ type: 'triangle', f0: 2350, dur: 0.2, g: 0.03, att: 0.002, delay: 0.09 });
+      N({ type: 'highpass', f0: 4500, dur: 0.04, g: 0.08 });
     } else if (kind === 'whistle') {
       // A rocket going up: a rising whistle over a hiss.
       T({ type: 'sine', f0: 900, f1: 2600, dur: 0.32, g: 0.04, att: 0.05 });

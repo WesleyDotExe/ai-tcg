@@ -10,7 +10,14 @@
 // favours neither side, and it is the opposite of a victory boast, which
 // rises from the winner's side alone.
 //
-// The beats (about 2.6 s):
+// The one exception (render session 53, the coin flip, owner-approved
+// 2026-11-02): after the coin lands, a short edge pulse runs from the centre
+// line into the FIRST player's half alone. The coin itself and its result
+// line are centre pieces like HANDSHAKE OK (coinFx.ts has the coin).
+//
+// The beats (about 2.6 s before the coin; 3.4 s with it since session 53:
+// the coin flicks up at 1.5 s, lands at 2.1 s, its line types at 2.2 s and
+// the saying moves from 1.6 s to 2.4 s):
 //   0-0.52 s  both halves power on like CRTs at the same instant, each in
 //             its own faction's colour (a dot, a line, the picture opening
 //             from it, a flicker), with one tube thump;
@@ -50,10 +57,14 @@
 // (it reuses the dot font) and Node evaluates the same text for the tests.
 
 import { BOAST_PURE_SOURCE } from "./boastFx.js";
+import { COIN_PURE_SOURCE } from "./coinFx.js";
 
 export const MATCH_BOOT_PURE_SOURCE = String.raw`
   // The intro's length, the reduced-motion still's, and when the outro starts.
-  var BOOT_MS = 2600, BOOT_STILL_MS = 1000, BOOT_OUT_AT = 2200;
+  // Render session 53: 2.6 s -> 3.4 s with the coin flip (the saying lands
+  // at COIN_GONE_AT, 2.4 s); the still 1.0 s -> 1.3 s (the landed coin, then
+  // the saying from BOOT_STILL_SAY_AT).
+  var BOOT_MS = 3400, BOOT_STILL_MS = 1300, BOOT_OUT_AT = 3000, BOOT_STILL_SAY_AT = 600;
   // The sayings, list 1 (owner 2026-10-19; frozen: render session 34's plan,
   // call 9). Never a card name; not JACK IN. Old replays show the saying the
   // seed picks from this list, so changing it (adding, removing, reordering)
@@ -96,6 +107,11 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
   //     area the intro covers (both halves and the gap between them).
   //   who: { top: { name, faction }, bot: { name, faction } }.
   //   opts.saying: shows this saying instead of the seed's (the sheet only).
+  //   opts.coin: the coin flip (render session 53): { id (the coin's item
+  //     id), first ('top' | 'bot': the half of the player who goes first),
+  //     portraitUp (it lands on the portrait: the bottom player, whose coin
+  //     it is, goes first), line (the result line, coinResult) }. Without
+  //     it, the bottom player goes first on the house coin.
   // The halves are laid out from distances to the centre line (mid), never
   // from one half's own box, so they come out mirror images even when the
   // page gives one half a pixel more.
@@ -129,7 +145,7 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
       var line = { txt: pad(lines[side], two ? 0 : n), len: lines[side].length, x0: x0, w: lineW, y: mid + s * dLine, fs: fs, t0: typeAt, ms: typeMs,
         // The readouts clear as the saying lands: each lifts AWAY from the
         // centre line and fades.
-        clear: { t: 1600, ms: 260, dy: s * fs * 1.2 } };
+        clear: { t: COIN_GONE_AT, ms: 260, dy: s * fs * 1.2 } };
       // Two rows type one after the other, as one line of n characters;
       // y is the middle of the pair, the rows BOOT_LH type sizes apart.
       if (two) line.rows = [pad(BOOT_HEAD.replace(/ $/, ''), BOOT_HEAD.length), pad(tails[side], nTail)];
@@ -142,14 +158,32 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     }
     var halves = [half('top'), half('bot')];
     var hsFs = Math.max(8, Math.min(fs * 1.1, 16));
-    var handshake = { txt: 'HANDSHAKE OK', x: cx, y: mid, fs: hsFs, t0: 1340, ms: 140, gone: 1600 };
+    var handshake = { txt: 'HANDSHAKE OK', x: cx, y: mid, fs: hsFs, t0: 1340, ms: 140, gone: COIN_FLICK_AT };
     // The saying: the dot font as large as fits across the board and about
     // two thirds of the way into each half; it breaks onto two lines when
     // that makes it bigger (a phone).
     var sayH = Math.max(14, Math.min(150, (dNear + H * 0.66) * 2));
     var fit = boastBitsFit(saying, W * 0.86, sayH, 12);
     var say = { text: saying, rare: saying === BOOT_RARE, bits: fit.bits, cell: fit.cell, x: cx, y: mid,
-      w: fit.bits.cols * fit.cell, h: fit.bits.rows * fit.cell, t: 1600, slam: 140, out: [BOOT_OUT_AT, BOOT_MS], grow: 0.08 };
+      w: fit.bits.cols * fit.cell, h: fit.bits.rows * fit.cell, t: COIN_GONE_AT, slam: 140, out: [BOOT_OUT_AT, BOOT_MS], grow: 0.08 };
+    // The coin and its result line: one block centred on the centre line,
+    // the coin above the line, clear of both agent lines even at the top of
+    // its rise (COIN_PEAK).
+    var co = opts.coin || {};
+    var first = co.first === 'top' ? 'top' : 'bot';
+    var portraitUp = co.portraitUp != null ? !!co.portraitUp : first === 'bot';
+    var resTxt = String(co.line || ((who[first] && who[first].name ? String(who[first].name).toUpperCase() : 'AGENT') + ' GOES FIRST'));
+    var rfs = Math.max(7, Math.min(14, (W * 0.8) / (BOOT_CH * (resTxt.length + 1))));
+    var gap = rfs * 0.5, lineHalf = fs * 0.6 + (two ? fs * BOOT_LH / 2 : 0), avail = dLine - lineHalf - 4;
+    var cr = Math.max(5, Math.min(40, (avail - (gap + rfs) / 2) / COIN_PEAK, avail - gap / 2 - rfs * 0.6));
+    var coinSpec = coinSpecOf(co.id);
+    var coin = { id: coinSpec.id, fallback: coinSpec.fallback, x: cx, y: mid - (gap + rfs) / 2, r: cr, t0: COIN_FLICK_AT, land: COIN_LAND_AT, gone: COIN_GONE_AT,
+      halfTurns: coinHalfTurns(portraitUp), portraitUp: portraitUp };
+    var result = { txt: resTxt, x: cx, y: mid + cr + gap / 2, fs: rfs, t0: COIN_LINE_AT, ms: Math.min(220, resTxt.length * 12), gone: COIN_GONE_AT };
+    // The edge pulse: a band of the first player's colour runs from the
+    // centre edge of their half's screen to its far edge, and fades.
+    var fh = halves[first === 'top' ? 0 : 1].screen, fsgn = first === 'top' ? -1 : 1;
+    var pulse = { side: first, t: COIN_PULSE_AT, ms: COIN_PULSE_MS, l: fh.l, r: fh.r, from: first === 'top' ? fh.b : fh.t, to: first === 'top' ? fh.t : fh.b, dir: fsgn };
     var marks = [];
     // Every sound sits on the centre: its pan favours neither side (x is
     // the board's centre line; the runtime plays them at pan 0, dead centre
@@ -162,6 +196,11 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     for (var q = 0; q < n; q += 2) snd(typeAt + typeMs * q / n, 'type', 'subtle');
     snd(handshake.t0, 'handshake');
     for (var q2 = 0; q2 < 4; q2++) snd(handshake.t0 + q2 * 30, 'type', 'subtle');
+    // The coin: the flick off the thumb, its whir as it spins, the clink as
+    // it lands; dead centre like every intro sound.
+    snd(coin.t0, 'coinFlick');
+    snd(coin.t0 + 40, 'coinWhir');
+    snd(coin.land, 'coinClink');
     snd(say.t, 'bootHit', 'spectacle');
     // The rare saying is heard too: root access granted, over the hit.
     if (say.rare) snd(say.t + 60, 'bootRoot', 'normal');
@@ -171,23 +210,32 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     marks.push({ k: 'end', t: BOOT_MS });
     marks.sort(function (u, v) { return u.t - v.t; });
     return { ms: BOOT_MS, out: BOOT_OUT_AT, list: BOOT_LIST_VERSION, saying: saying, mid: mid, cx: cx, area: { l: area.l, t: area.t, r: area.r, b: area.b },
-      halves: halves, handshake: handshake, say: say, marks: marks };
+      halves: halves, handshake: handshake, say: say, marks: marks, first: first, coin: coin, result: result, pulse: pulse };
   }
 
   // The reduced-motion still: both halves lit, both agent lines whole, the
+  // coin already landed with its result line and the first player's half
+  // lit at its edge (render session 53), then at BOOT_STILL_SAY_AT the
   // saying on the centre line and HANDSHAKE OK under it (when it fits above
-  // the bottom line), held for BOOT_STILL_MS. No flash, no swell; the
-  // tube's thump and the saying's hit still sound.
+  // the bottom line), held to BOOT_STILL_MS. Cuts, no motion: no spin, no
+  // flash, no swell; the tube's thump, the coin's clink and the saying's hit
+  // still sound.
   function bootStill(plan) {
     var out = JSON.parse(JSON.stringify(plan));
     out.still = true; out.ms = BOOT_STILL_MS; out.out = BOOT_STILL_MS - 200;
     out.halves.forEach(function (h) { h.on = { t: 0, ms: 0, flick: 0 }; h.line.t0 = 0; h.line.ms = 0; h.line.clear = null; });
     var hs = out.handshake, bl = out.halves[1].line;
-    hs.y = plan.mid + out.say.h / 2 + out.say.cell * 1.5 + hs.fs * 0.9; hs.t0 = 0; hs.ms = 0; hs.gone = Infinity;
+    hs.y = plan.mid + out.say.h / 2 + out.say.cell * 1.5 + hs.fs * 0.9; hs.t0 = BOOT_STILL_SAY_AT; hs.ms = 0; hs.gone = Infinity;
     if (hs.y + hs.fs / 2 > bl.y - bl.fs * 0.7) out.handshake = null;
-    out.say.t = 0; out.say.slam = 0; out.say.grow = 0; out.say.out = [out.out, out.ms];
-    out.marks = out.marks.filter(function (m) { return m.k === 'music' || (m.k === 'sound' && (m.kind === 'bootOn' || m.kind === 'bootHit' || m.kind === 'bootRoot')); })
-      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'music') c.ms = BOOT_STILL_MS; return c; });
+    out.say.t = BOOT_STILL_SAY_AT; out.say.slam = 0; out.say.grow = 0; out.say.out = [out.out, out.ms];
+    out.coin.t0 = 0; out.coin.land = 0; out.coin.gone = BOOT_STILL_SAY_AT;
+    out.result.t0 = 0; out.result.ms = 0; out.result.gone = BOOT_STILL_SAY_AT;
+    // The pulse becomes the first player's half lit at its edge, still.
+    out.pulse.t = 0; out.pulse.ms = 0; out.pulse.gone = BOOT_STILL_SAY_AT;
+    var AT = { bootOn: 0, coinClink: 0, bootHit: BOOT_STILL_SAY_AT, bootRoot: BOOT_STILL_SAY_AT };
+    out.marks = out.marks.filter(function (m) { return m.k === 'music' || (m.k === 'sound' && m.kind in AT); })
+      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = c.k === 'sound' ? AT[c.kind] : 0; if (c.k === 'music') c.ms = BOOT_STILL_MS; return c; });
+    out.marks.sort(function (u, v) { return u.t - v.t; });
     out.marks.push({ k: 'end', t: BOOT_STILL_MS });
     return out;
   }
@@ -198,7 +246,7 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     var tol = 1.5, mid = plan.mid, cx = plan.cx;
     function inBox(a, o) { return a.l >= o.l - tol && a.r <= o.r + tol && a.t >= o.t - tol && a.b <= o.b + tol; }
     function near(a, b) { return Math.abs(a - b) <= tol; }
-    if (!plan.still && !(plan.ms >= 2000 && plan.ms <= 3000)) return 'the intro runs 2-3 s';
+    if (!plan.still && !(plan.ms >= 2000 && plan.ms <= 3500)) return 'the intro runs 2-3.5 s';
     if (BOOT_SAYINGS.indexOf(plan.saying) < 0 && plan.saying !== BOOT_RARE) return 'the saying is not on list ' + BOOT_LIST_VERSION;
     if (!(plan.halves && plan.halves.length === 2)) return 'two halves';
     var T = plan.halves[0], B = plan.halves[1];
@@ -243,6 +291,41 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
       var hw = BOOT_CH * hs.fs * hs.txt.length;
       if (!inBox({ l: hs.x - hw / 2, r: hs.x + hw / 2, t: hs.y - hs.fs * 0.6, b: hs.y + hs.fs * 0.6 }, plan.area)) return 'HANDSHAKE OK leaves the board';
     }
+    // The coin and its result line (render session 53): one block centred
+    // on the centre line, inside the board at the top of the rise, clear of
+    // both agent lines while they show, gone as the saying lands; it lands
+    // on the face it says.
+    var co = plan.coin, rs = plan.result;
+    if (!co || !rs) return 'no coin flip';
+    if (!near(co.x, cx) || !near(rs.x, cx)) return 'the coin is off centre';
+    if (!near(((co.y - co.r) + (rs.y + rs.fs / 2)) / 2, mid)) return 'the coin and its line are not centred on the centre line';
+    var peak = plan.still ? 1 : COIN_PEAK, pr = co.r * peak;
+    var coinBox = { l: co.x - pr, r: co.x + pr, t: co.y - pr, b: co.y + pr };
+    var rw = BOOT_CH * rs.fs * (rs.txt.length + 1);
+    var resBox = { l: rs.x - rw / 2, r: rs.x + rw / 2, t: rs.y - rs.fs * 0.6, b: rs.y + rs.fs * 0.6 };
+    if (!inBox(coinBox, plan.area)) return 'the coin leaves the board';
+    if (!inBox(resBox, plan.area)) return 'the result line leaves the board';
+    function hit(a, o) { return a.l < o.r - tol && a.r > o.l + tol && a.t < o.b - tol && a.b > o.t + tol; }
+    for (i = 0; i < 2; i++) {
+      var L = plan.halves[i].line, lh = L.fs * 0.6 + (L.rows ? L.fs * BOOT_LH / 2 : 0);
+      var box = { l: L.x0, r: L.x0 + L.w, t: L.y - lh, b: L.y + lh };
+      var shownTo = L.clear ? L.clear.t + L.clear.ms : Infinity;
+      if (co.t0 < shownTo && (hit(coinBox, box) || hit(resBox, box))) return 'the coin runs into the ' + plan.halves[i].side + ' agent line';
+    }
+    if (plan.handshake && plan.handshake.gone > co.t0) {
+      var hs2 = plan.handshake, hw2 = BOOT_CH * hs2.fs * hs2.txt.length;
+      if (hit(coinBox, { l: hs2.x - hw2 / 2, r: hs2.x + hw2 / 2, t: hs2.y - hs2.fs * 0.6, b: hs2.y + hs2.fs * 0.6 })) return 'the coin shows over HANDSHAKE OK';
+    }
+    if (!(co.land >= co.t0 && rs.t0 >= co.land && co.gone <= s.t && rs.gone <= s.t)) return 'the coin is out of order: flick, land, its line, gone as the saying lands';
+    if (coinFaceAt(coinFlight(1, co.halfTurns).angle) !== (co.portraitUp ? 'portrait' : 'design')) return 'the coin lands on the wrong face';
+    // The one exception to the grammar: the edge pulse, in the first
+    // player's half only, moving away from the centre, after the landing.
+    var pu = plan.pulse;
+    if (!pu || pu.side !== plan.first) return 'the edge pulse is not in the half of the player who goes first';
+    var ph = plan.halves[pu.side === 'top' ? 0 : 1].screen;
+    if (!(pu.l >= ph.l - tol && pu.r <= ph.r + tol && Math.min(pu.from, pu.to) >= ph.t - tol && Math.max(pu.from, pu.to) <= ph.b + tol)) return 'the edge pulse leaves its half';
+    if (!(Math.abs(pu.to - mid) > Math.abs(pu.from - mid))) return 'the edge pulse moves toward the centre';
+    if (pu.t < co.land) return 'the edge pulse runs before the coin lands';
     for (i = 0; i < plan.marks.length; i++) {
       var m = plan.marks[i];
       if (m.t > plan.ms + 1) return m.k + ' after the intro ends';
@@ -395,6 +478,58 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
         ctx.fillRect(x0 + d[0] * cell + ins, y0 + d[1] * cell + ins, cell - ins * 2, cell - ins * 2);
       }
     }
+    // The coin flip (render session 53, coinFx.ts draws the coin).
+    function drawCoinFlip(ctx, p, t, fade) {
+      var co = p.coin, rs = p.result;
+      if (!co || t < co.t0 || t >= co.gone + 140) return;
+      var a = fade * (t < co.gone ? 1 : 1 - (t - co.gone) / 140);
+      var fl = co.land > co.t0 ? coinFlight((t - co.t0) / (co.land - co.t0), co.halfTurns) : coinFlight(1, co.halfTurns);
+      // A small settle on the landing: it bounces once, a tenth of its size.
+      var since = t - co.land, settle = since >= 0 && since < 160 && !p.still ? 1 + 0.06 * Math.sin(Math.PI * since / 160) : 1;
+      ctx.globalCompositeOperation = 'source-over';
+      coinDraw(ctx, { spec: COIN_SPECS[co.id] || COIN_SPECS[COIN_DEFAULT], x: co.x, y: co.y, r: co.r, angle: fl.angle, scale: fl.scale * settle, img: cur.coinImg, faceRgb: cur.coinRgb, a: a });
+      // The landing's ring: a chrome circle widening from the coin and fading.
+      if (since >= 0 && since < 300 && !p.still) {
+        var u = since / 300;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = css(BOOT_CHROME, 0.5 * (1 - u) * a); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(co.x, co.y, co.r * (1.05 + 0.6 * ease(u)), 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.globalCompositeOperation = 'lighter';
+      if (rs && t >= rs.t0 && t < rs.gone + 140) {
+        var k = rs.ms > 0 ? Math.min(rs.txt.length, Math.ceil(rs.txt.length * (t - rs.t0) / rs.ms)) : rs.txt.length;
+        var w = BOOT_CH * rs.fs * (rs.txt.length + 1), ra = fade * (t < rs.gone ? 1 : 1 - (t - rs.gone) / 140);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(3,5,10,' + (0.85 * ra).toFixed(3) + ')';
+        ctx.fillRect(rs.x - w / 2 - 6, rs.y - rs.fs * 0.75, w + 12, rs.fs * 1.5);
+        ctx.globalCompositeOperation = 'lighter';
+        drawType(ctx, rs.txt, rs.txt.slice(0, k), rs.x - w / 2, rs.y, rs.fs, w, BOOT_CHROME, ra, k < rs.txt.length);
+      }
+    }
+    // The edge pulse into the first player's half: a band of their colour
+    // from the centre edge of their screen to its far edge. In the still,
+    // that edge is lit and holds.
+    function drawPulse(ctx, p, t, fade) {
+      var pu = p.pulse;
+      if (!pu) return;
+      var h = p.halves[pu.side === 'top' ? 0 : 1], c = h.rgb;
+      ctx.globalCompositeOperation = 'lighter';
+      if (pu.ms === 0) {
+        if (t >= (pu.gone == null ? Infinity : pu.gone)) return;
+        ctx.fillStyle = css(c, 0.5 * fade); ctx.fillRect(pu.l, pu.from - (pu.dir > 0 ? 0 : 3), pu.r - pu.l, 3);
+        return;
+      }
+      var u = (t - pu.t) / pu.ms;
+      if (u < 0 || u >= 1) return;
+      var y = pu.from + (pu.to - pu.from) * ease(u), a = (1 - u) * fade, bandH = Math.max(6, Math.abs(pu.to - pu.from) * 0.12);
+      var g = ctx.createLinearGradient(0, y - pu.dir * bandH, 0, y);
+      g.addColorStop(0, css(c, 0)); g.addColorStop(1, css(c, 0.55 * a));
+      ctx.fillStyle = g;
+      ctx.fillRect(pu.l, Math.min(y, y - pu.dir * bandH), pu.r - pu.l, bandH);
+      ctx.fillStyle = css(mix(c, [255, 255, 255], 0.5), 0.9 * a); ctx.fillRect(pu.l, y - 1, pu.r - pu.l, 2);
+      // The half's own edge flares as the pulse leaves it.
+      ctx.fillStyle = css(c, 0.6 * (1 - u) * fade); ctx.fillRect(pu.l, pu.from - (pu.dir > 0 ? 0 : 3), pu.r - pu.l, 3);
+    }
     function draw() {
       if (!cur) return;
       var p = cur.plan, t = cur.t, ctx = cur.ctx, fade = outFade(t), dpr = cur.dpr;
@@ -409,6 +544,8 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       p.halves.forEach(function (h) { drawScreen(ctx, h, t, fade); });
       p.halves.forEach(function (h) { drawLine(ctx, h, t, fade); });
       drawHandshake(ctx, p.handshake, t, fade);
+      drawPulse(ctx, p, t, fade);
+      drawCoinFlip(ctx, p, t, fade);
       drawFlash(ctx, p, t);
       drawSaying(ctx, p, t);
       ctx.globalCompositeOperation = 'source-over';
@@ -478,7 +615,9 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
     //   els: { top, bot, area } (elements: seat 2's side, seat 1's side,
     //     the board area holding both).
     //   opts: { who: { top: { name, faction }, bot: { ... } }, seed,
-    //     onEnd(reason: 'end' | 'skip'), reduced, saying (the sheet only) }.
+    //     onEnd(reason: 'end' | 'skip'), reduced, saying (the sheet only),
+    //     coin: { id, first, portraitUp, line, img (the bottom player's
+    //     portrait, an Image), faction (its ring's colour) } }.
     // A cancel (a jump, a pause) ends it without onEnd.
     function play(els, opts) {
       opts = opts || {};
@@ -491,7 +630,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       }
       var geom = { top: rect(els.top), bot: rect(els.bot), area: rect(els.area) };
       if (!geom.top || !geom.bot || !geom.area || geom.top.b > geom.bot.t || geom.top.r - geom.top.l < 40) return null;
-      var plan = bootPlan(geom, opts.who, opts.seed, { saying: opts.saying });
+      var plan = bootPlan(geom, opts.who, opts.seed, { saying: opts.saying, coin: opts.coin });
       var problem = bootPlanProblem(plan, geom);
       if (problem || reduced) plan = bootStill(plan);
       var still = bootPlanProblem(plan, geom);
@@ -507,7 +646,7 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       stats.played++; if (plan.still) stats.still++;
       stats.problem = problem || null; stats.fired = {}; stats.drawn = 0;
       cur = { plan: plan, cv: cv, ctx: cv.getContext('2d'), dpr: dpr, ox: A.l, oy: A.t, t0: performance.now(), t: 0, next: 0, raf: 0, dom: [], onEnd: opts.onEnd || null,
-        seq: null, music: false };
+        seq: null, music: false, coinImg: (opts.coin && opts.coin.img) || null, coinRgb: fxRgbOf((opts.coin && opts.coin.faction) || (opts.who && opts.who.bot && opts.who.bot.faction) || 'Neutral') };
       var sk = document.createElement('button');
       sk.type = 'button'; sk.className = 'boast-skip boot-skip'; sk.textContent = 'Skip ▸▸';
       sk.addEventListener('click', function (e) { e.stopPropagation(); skip(); });
@@ -534,10 +673,11 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       cur.raf = requestAnimationFrame(frame);
       return plan;
     }
-    return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; },
+    return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; }, plan: function () { return cur ? cur.plan : null; },
       stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur, t: cur ? Math.round(cur.t) : null, saying: cur ? cur.plan.saying : null, still: cur ? !!cur.plan.still : null,
         lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, hint: cur ? cur.hint : null, hintSeen: SKIP_HINT_STATE.seen,
         cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last,
+        coin: cur && cur.plan.coin ? { id: cur.plan.coin.id, fallback: cur.plan.coin.fallback, portraitUp: cur.plan.coin.portraitUp, line: cur.plan.result.txt, first: cur.plan.first, face: coinFaceAt(coinFlight(cur.plan.coin.land > cur.plan.coin.t0 ? (cur.t - cur.plan.coin.t0) / (cur.plan.coin.land - cur.plan.coin.t0) : 1, cur.plan.coin.halfTurns).angle) } : null,
         sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null, rows: cur ? !!cur.plan.halves[0].line.rows : null, fs: cur ? cur.plan.halves[0].line.fs : null }; } };
   })();
 `;
@@ -560,9 +700,15 @@ export interface BootPlan {
   handshake: { txt: string; x: number; y: number; fs: number; t0: number; ms: number; gone: number } | null;
   say: { text: string; rare: boolean; bits: { cols: number; rows: number; chars: number; dots: [number, number, number][] }; cell: number; x: number; y: number; w: number; h: number; t: number; slam: number; out: [number, number]; grow: number };
   marks: { k: "sound" | "music" | "end"; t: number; kind?: string; tier?: string; x?: number; ms?: number }[];
+  first: "top" | "bot";
+  coin: { id: string; fallback: boolean; x: number; y: number; r: number; t0: number; land: number; gone: number; halfTurns: number; portraitUp: boolean };
+  result: { txt: string; x: number; y: number; fs: number; t0: number; ms: number; gone: number };
+  pulse: { side: "top" | "bot"; t: number; ms: number; l: number; r: number; from: number; to: number; dir: number; gone?: number };
 }
+export interface BootCoin { id?: string; first?: "top" | "bot"; portraitUp?: boolean; line?: string }
 
-const impl = new Function(`${BOAST_PURE_SOURCE}${MATCH_BOOT_PURE_SOURCE}; return { BOOT_MS: BOOT_MS, BOOT_STILL_MS: BOOT_STILL_MS, BOOT_OUT_AT: BOOT_OUT_AT, BOOT_LIST_VERSION: BOOT_LIST_VERSION, BOOT_SAYINGS: BOOT_SAYINGS, BOOT_RARE: BOOT_RARE, BOOT_CH: BOOT_CH, BOOT_FS_MAX: BOOT_FS_MAX, BOOT_FS2_MAX: BOOT_FS2_MAX, BOOT_LH: BOOT_LH, BOOT_HEAD: BOOT_HEAD, bootHash: bootHash, bootSaying: bootSaying, bootLine: bootLine, bootPlan: bootPlan, bootStill: bootStill, bootPlanProblem: bootPlanProblem };`)() as {
+const impl = new Function(`${BOAST_PURE_SOURCE}${COIN_PURE_SOURCE}${MATCH_BOOT_PURE_SOURCE}; return { BOOT_STILL_SAY_AT: BOOT_STILL_SAY_AT, BOOT_MS: BOOT_MS, BOOT_STILL_MS: BOOT_STILL_MS, BOOT_OUT_AT: BOOT_OUT_AT, BOOT_LIST_VERSION: BOOT_LIST_VERSION, BOOT_SAYINGS: BOOT_SAYINGS, BOOT_RARE: BOOT_RARE, BOOT_CH: BOOT_CH, BOOT_FS_MAX: BOOT_FS_MAX, BOOT_FS2_MAX: BOOT_FS2_MAX, BOOT_LH: BOOT_LH, BOOT_HEAD: BOOT_HEAD, bootHash: bootHash, bootSaying: bootSaying, bootLine: bootLine, bootPlan: bootPlan, bootStill: bootStill, bootPlanProblem: bootPlanProblem };`)() as {
+  BOOT_STILL_SAY_AT: number;
   BOOT_MS: number;
   BOOT_STILL_MS: number;
   BOOT_OUT_AT: number;
@@ -577,11 +723,12 @@ const impl = new Function(`${BOAST_PURE_SOURCE}${MATCH_BOOT_PURE_SOURCE}; return
   bootHash: (seed: number) => number;
   bootSaying: (seed: number) => string;
   bootLine: (name: string, faction: string) => string;
-  bootPlan: (geom: BootGeom, who: BootWho, seed: number, opts?: { saying?: string }) => BootPlan;
+  bootPlan: (geom: BootGeom, who: BootWho, seed: number, opts?: { saying?: string; coin?: BootCoin }) => BootPlan;
   bootStill: (plan: BootPlan) => BootPlan;
   bootPlanProblem: (plan: BootPlan, geom: BootGeom) => string | null;
 };
 
+export const BOOT_STILL_SAY_AT = impl.BOOT_STILL_SAY_AT;
 export const BOOT_MS = impl.BOOT_MS;
 export const BOOT_STILL_MS = impl.BOOT_STILL_MS;
 export const BOOT_OUT_AT = impl.BOOT_OUT_AT;

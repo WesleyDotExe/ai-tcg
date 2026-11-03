@@ -13,6 +13,7 @@ import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { MUSIC_PURE_SOURCE, MUSIC_RUNTIME_SOURCE } from "./musicFx.js";
 import { BOAST_CSS, BOAST_PURE_SOURCE } from "./boastFx.js";
 import { BOOT_RARE, BOOT_SAYINGS, MATCH_BOOT_CSS, MATCH_BOOT_PURE_SOURCE, MATCH_BOOT_RUNTIME_SOURCE } from "./matchBootFx.js";
+import { COIN_PURE_SOURCE, COIN_RUNTIME_SOURCE } from "./coinFx.js";
 import { CSS } from "./renderHtml.js";
 
 /** One scene: the saying, who sits on top (seat 2) and below (seat 1), the layout. */
@@ -105,6 +106,8 @@ ${SOUND_FX_RUNTIME_SOURCE}
 ${MUSIC_PURE_SOURCE}
 ${MUSIC_RUNTIME_SOURCE}
 ${BOAST_PURE_SOURCE}
+${COIN_PURE_SOURCE}
+${COIN_RUNTIME_SOURCE}
 ${MATCH_BOOT_PURE_SOURCE}
 ${MATCH_BOOT_RUNTIME_SOURCE}
   window.__boot = BOOT; // read by the browser check (progress/render/evidence/boot-check-s35.mjs)

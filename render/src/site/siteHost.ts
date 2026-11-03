@@ -152,7 +152,7 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
   interface LivePage { html: string; at: number; builder: LiveFrameBuilder; matchId: string; ended: boolean; record: unknown; busy: Promise<void> }
   const livePages = new Map<string, LivePage>();
   const LIVE_KEEP = 8;
-  type LiveFeedBody = { start: PublicSnapshot | null; startLines: string[] | null; steps: TimelineStep[]; from: number; p1: { agentName: string }; p2: { agentName: string } };
+  type LiveFeedBody = { start: PublicSnapshot | null; startLines: string[] | null; steps: TimelineStep[]; from: number; p1: { agentName: string; coin?: string }; p2: { agentName: string; coin?: string } };
   const buildLive = async (req: IncomingMessage, res: ServerResponse, matchId: string) => {
     const get = getWith(req.headers.authorization);
     let feed: { status: number; body: unknown };
@@ -169,7 +169,9 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
     try {
       builder = new LiveFrameBuilder({ matchId, names: { p1: f.p1.agentName, p2: f.p2.agentName }, start: f.start, startLines: f.startLines ?? [], boardSlots: BOARD_SLOTS, turnCap: TURN_CAP, energyCap: MAX_ENERGY_CAP });
       for (const step of f.steps) builder.push(step);
-      html = renderMatchHtml(builder.replay(), { live: true });
+      // The coins each side flips (v20, the live view's `coin`), for Match Boot's coin flip.
+      const coins = f.p1.coin && f.p2.coin ? { coins: { p1: f.p1.coin, p2: f.p2.coin } } : {};
+      html = renderMatchHtml({ ...builder.replay(), ...coins }, { live: true });
     } catch (err) {
       return json(res, 422, { error: `this match can't be drawn: ${err instanceof Error ? err.message : String(err)}` });
     }

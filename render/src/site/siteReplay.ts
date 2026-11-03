@@ -93,5 +93,8 @@ export async function replayOfFile(file: ReplayFile, view: SiteMatchView): Promi
   if (fh.p1 !== last.players.p1.health || fh.p2 !== last.players.p2.health) {
     throw new Error(`the file ends on ${file.result.finalHealth.p1}-${file.result.finalHealth.p2} health, the rebuilt match on ${last.players.p1.health}-${last.players.p2.health}`);
   }
-  return { ...replay, record: recordOf(replay, view) };
+  // The coins (render session 53): the record's, else the file's; neither
+  // on a match from before coins (both flip the Chrome Token).
+  const coins = view.coins ?? file.coins;
+  return { ...replay, record: recordOf(replay, view), ...(coins ? { coins: { p1: coins.p1, p2: coins.p2 } } : {}) };
 }
