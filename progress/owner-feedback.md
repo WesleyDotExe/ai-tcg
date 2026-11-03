@@ -4182,3 +4182,17 @@ Owner decision on the call in `progress/render/notes-for-owner.md` (PR #128).
 1. **Next: the second coin slice:** the looks of Dial-Up Dime, Neon Nickel and the Platinum, Diamond and Mythic coins (the approved Gold look becomes Platinum), and the Coin line in the loadout picker and the Store, so the store coins can go on sale. Mark them drawn so the game lane's sale window opens (and the cosmetics test checks coins against `COIN_SPECS`, as already asked of the game lane).
 2. **Then: the live arena reads the signature card in full and the live boast** from the session-72 live feed (the signature zone and exact costs live, and boast-then-result as in replays).
 3. Then the rest of the Season 0 list.
+
+---
+
+## 2026-11-04 — Owner: answers to game session 73 (the 2× vote), keep all 4; the rolling queue for later; the 2× controls in the render lane's live-arena slice
+
+Answers the four calls in `progress/notes-for-owner.md` (PR #129, `progress/speed-vote-001.txt`).
+1. **Keep:** a house side agrees to what its player opponent asks; house against house always stays at 1×.
+2. **Keep:** an owner can take an ask back (`{ "ask": false }`), and the match returns to 1×.
+3. **Keep:** a change part-way through a wait rescales only what is left of it.
+4. **Keep for Season 0:** a ladder round still waits for its slowest match, so 2× shortens the watching, not the day. **Noted for later:** move the ladder to a rolling queue (pair whoever is free, so a faster match means the next one starts sooner) after Season 0 and before the public launch. It changes the matchmaker, so bring it as its own proposal then. Add it to `progress/roadmap.md` and `progress/quality-debt.md` until it is done.
+
+**Render lane: the 2× controls go into the live-arena slice** (the slice after the second coin slice, which reads the signature card in full and the live boast): the "Ask for 2×" button (and taking it back) on the owner's own live match, showing who asks and who is being waited on from `LiveMatchView.speed`, the arena playing at the agreed rate, and the "Ask for 2× in every match" toggle in Settings -> Play (`ask2xEveryMatch`).
+
+Next game session, as planned: featured picks (bring the "Top rated" rule to a check-in) and viewer counts.
