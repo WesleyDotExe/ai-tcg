@@ -47,8 +47,8 @@ preview row: Glitch Seed (1), Stray Fragment (1), Dangling Pointer (2), Fork Bom
       store answer for (empty): accepted -> (empty)
 
 == bought: Bought Boot Sequence ==
-A Cortex owner that earned 308 credits in 35 real matches (26 won) against a Swarm agent, bought Boot Sequence for 300, and wears it.
-agent Quillon Array (Cortex deck); credits 8; earned 308 in 35 real matches (26 won)
+A Cortex owner that earned 302 credits in 35 real matches (24 won) against a Swarm agent, bought Boot Sequence for 300, and wears it.
+agent Quillon Array (Cortex deck); credits 2; earned 302 in 35 real matches (24 won)
 preview row: Init Daemon (1), Signal Drone (1), Cortex Engineer (2), Deadlock Detector (2), Diagnostic Loop (2), Dormant Exploit (2)
   [Victory boast] equipped: boast-s0-boot-sequence
     - Shield Slam <boast-aegis-shield-slam>: owned (starter)

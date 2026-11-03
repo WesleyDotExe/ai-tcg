@@ -29,6 +29,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .sound-ctl { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 .sound-ctl button { border: 1px solid var(--line); background: #0d1324; border-radius: 6px; padding: 4px 9px; }
 .sound-ctl input { width: 70px; }
+/* The website's full-screen opening: no picker, a Close button at the end of the bar. */
+.site .picker { visibility: hidden; }
+.close { border: 1px solid #6a8cff; background: #17204a; border-radius: 7px; padding: 4px 14px; font-weight: 700; }
+.summary .btns button[disabled] { opacity: 0.45; cursor: default; }
+.summary .why { color: var(--dim); font-size: 12px; margin-top: 8px; }
 
 .stage { position: relative; flex: 1; min-height: calc(100dvh - 120px); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
   background: radial-gradient(ellipse at 50% 38%, #1d2350 0%, #0b0e24 48%, #05060d 100%); }
@@ -420,6 +425,21 @@ h2 { font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform:
   <figcaption><span class="fin hit">PROTOTYPE</span> Recursive Construct<br>Prototype pack, seed 551</figcaption>
 </figure></div>
 <script>
+  // The owner website's hooks, when the page runs inside it (site mode): the
+  // website (same origin, the page's parent) sets window.PACK_SITE_HOST =
+  // { sound: { read, write }, close() } before it loads the page. Anything
+  // else (a standalone page, a parent on another origin) is no host.
+  function packSiteHost() {
+    try { if (window.parent && window.parent !== window && window.parent.PACK_SITE_HOST) return window.parent.PACK_SITE_HOST; } catch (e) { /* another origin */ }
+    return null;
+  }
+  // The sound store the site mode mounts: the account's setting through the
+  // host; without one, nothing remembered (sound on, the default volume).
+  function packSiteSoundStore() {
+    var h = packSiteHost();
+    if (h && h.sound) return h.sound;
+    return { read: function () { return null; }, write: function () {} };
+  }
   // How far a drag across the pack's top has torn it, 0-1: the horizontal
   // distance over 70% of the pack's width. Dragging back doesn't un-tear.
   function packTearProgress(prev, x0, x, width) {

@@ -47,6 +47,19 @@ html, body {
 .matchup { font-weight: bold; letter-spacing: 0.12em; }
 .matchup .vs { color: var(--ink-dim); margin: 0 0.5em; }
 .seed { color: var(--ink-dim); font-size: 0.75rem; }
+/* The spectator point of view (render session 52, owner 2026-11-02): one
+ * two-button switch with the agents' names; the chosen player sits at the
+ * bottom (the near side). */
+.pov { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 4px; padding: 2px; background: #070a14; }
+.pov[hidden] { display: none; }
+.pov-l { color: var(--ink-dim); font-size: 0.66rem; padding: 0 6px; white-space: nowrap; }
+.pov-b { background: none; border: 1px solid transparent; color: var(--ink-dim); font: inherit; font-size: 0.74rem; letter-spacing: 0.03em; text-transform: none; padding: 4px 9px; min-height: 28px; border-radius: 3px; cursor: pointer; max-width: 24ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) { .pov-b { max-width: 15ch; } }
+.pov-b[aria-pressed="true"] { color: var(--fc, var(--ink)); border-color: var(--fc, var(--ink)); background: rgba(255,255,255,0.05); box-shadow: 0 0 8px -3px var(--fc, var(--ink)); }
+.pov-b:not([aria-pressed="true"]):hover { color: var(--ink); }
+.pov-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.pov.waiting .pov-b { cursor: progress; }
+@media (max-width: 720px) { .matchbar { flex-wrap: wrap; gap: 6px 10px; } .pov { order: 3; } }
 #app { max-width: 1180px; margin: 0 auto; padding: 14px 12px 24px; position: relative; z-index: 1; }
 /* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under
  * the board (the background grid impacts warp, then ground marks and
@@ -267,6 +280,17 @@ html, body {
 .hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }
 .hand .minicard { font-size: 0.62rem; padding: 3px 6px; border-radius: 3px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); }
 .hand .minicard b { color: var(--fc, var(--ink)); }
+.hand .minicard b .unsure { font-style: normal; opacity: 0.7; margin-left: 1px; }
+.hand .minicard.back { width: 20px; height: 28px; padding: 0; border-color: var(--line); background: repeating-linear-gradient(135deg, var(--panel-2) 0 4px, var(--panel) 4px 8px); box-shadow: inset 0 0 0 2px var(--panel); }
+.hand-count { font-size: 0.6rem; color: var(--ink-dim); align-self: center; margin-left: 4px; }
+.live-badge { font: inherit; font-size: 0.7rem; letter-spacing: 0.14em; padding: 3px 10px; border-radius: 4px; border: 1px solid #ff4d6d; color: #ff4d6d; background: transparent; cursor: pointer; }
+.live-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
+.live-badge.on::before { animation: live-dot 1.4s ease-in-out infinite; }
+.live-badge.behind { color: var(--ink-dim); border-color: var(--line); }
+.live-badge.ended { color: var(--ink-dim); border-color: var(--line); cursor: default; }
+.live-badge.ended::before { display: none; }
+@keyframes live-dot { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .live-badge.on::before { animation: none; } }
 .hand-label { width: 100%; font-size: 0.6rem; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 2px; }
 
 .eventlog { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 0.72rem; max-height: 260px; display: flex; flex-direction: column; min-width: 0; }
@@ -340,6 +364,9 @@ html, body {
 
 .board-row#board-p1 .card.fx-attack { animation: fx-lunge-up 380ms ease; }
 .board-row#board-p2 .card.fx-attack { animation: fx-lunge-down 380ms ease; }
+/* Watching as p2, p2 is the near side: its cards lunge up. */
+body.pov-p2 .board-row#board-p1 .card.fx-attack { animation-name: fx-lunge-down; }
+body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
 @keyframes fx-lunge-up { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-14px) scale(1.05); } }
 @keyframes fx-lunge-down { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(14px) scale(1.05); } }
 
@@ -2086,6 +2113,28 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
       N({ type: 'lowpass', f0: 2600, f1: 300, dur: 0.16, g: 0.24 });
       [261.6, 329.6, 392, 523.3].forEach(function (n, i) { T({ type: 'triangle', f0: n, dur: 0.62 - i * 0.07, g: 0.05, att: 0.01, delay: 0.06 + i * 0.07, filt: 'lowpass', ff: 3000 }); });
       T({ type: 'sine', f0: 1046.5, dur: 0.5, g: 0.02, att: 0.05, delay: 0.3 });
+    } else if (kind === 'coinFlick') {
+      // Match Boot's coin flip (render session 53), like 'bootHit' not a
+      // match-event sound, one voice whatever the factions: the thumb's
+      // flick, a dry click, and the coin's first ring as it leaves.
+      N({ type: 'bandpass', f0: 3800, q: 5, dur: 0.03, g: 0.22 });
+      T({ type: 'triangle', f0: 2650, dur: 0.18, g: 0.05, att: 0.003 });
+      T({ type: 'sine', f0: 2650 * SFX_BELL[1], dur: 0.14, g: 0.02, att: 0.003 });
+    } else if (kind === 'coinWhir') {
+      // The coin spinning: a run of faint metal ticks, each turn a little
+      // slower (the spin eases out), over a soft airy whir.
+      var wt0 = 0;
+      for (var wi2 = 0; wi2 < 9; wi2++) { T({ type: 'triangle', f0: 3100 - wi2 * 60, dur: 0.035, g: 0.022, att: 0.002, delay: wt0 }); wt0 += 0.03 + wi2 * 0.009; }
+      N({ type: 'bandpass', f0: 1800, f1: 900, q: 2, dur: 0.5, g: 0.05, att: 0.05 });
+    } else if (kind === 'coinClink') {
+      // The coin lands: a bright clink (two inharmonic partials, a second
+      // smaller bounce), over a small low tap.
+      T({ type: 'sine', f0: 140, f1: 70, dur: 0.12, g: 0.18 });
+      T({ type: 'triangle', f0: 2350, dur: 0.4, g: 0.07, att: 0.002 });
+      T({ type: 'sine', f0: 2350 * SFX_BELL[1], dur: 0.3, g: 0.035, att: 0.002 });
+      T({ type: 'sine', f0: 2350 * SFX_BELL[2], dur: 0.22, g: 0.02, att: 0.002 });
+      T({ type: 'triangle', f0: 2350, dur: 0.2, g: 0.03, att: 0.002, delay: 0.09 });
+      N({ type: 'highpass', f0: 4500, dur: 0.04, g: 0.08 });
     } else if (kind === 'whistle') {
       // A rocket going up: a rising whistle over a hiss.
       T({ type: 'sine', f0: 900, f1: 2600, dur: 0.32, g: 0.04, att: 0.05 });
@@ -3800,8 +3849,154 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
   function skipHintSeen() { SKIP_HINT_STATE.seen = true; }
 
 
+  // The beats, in ms from the start of Match Boot.
+  var COIN_FLICK_AT = 1500, COIN_LAND_AT = 2100, COIN_LINE_AT = 2200, COIN_GONE_AT = 2400;
+  // The edge pulse into the first player's half, from the landing.
+  var COIN_PULSE_AT = 2120, COIN_PULSE_MS = 420;
+  // How far the coin rises toward the viewer at the top of the flick (its
+  // size there, as a share of its landed size).
+  var COIN_PEAK = 1.3;
+  // The house coin: every owner's starter, an empty slot's, every match
+  // recorded before coins (OWNER_API.md "Coin skins").
+  var COIN_DEFAULT = 'coin-chrome-token';
+  // The looks, by the economy's item id (economy/src/cosmetics.ts). Colours
+  // are RGB. sides: the outline's corners (6: a hex token).
+  var COIN_SPECS = {
+    'coin-chrome-token': {
+      name: 'Chrome Token',
+      sides: 6,
+      // The metal, light to dark: a polished silver with cool steel shadows.
+      metal: [[252, 253, 255], [214, 221, 232], [150, 160, 178], [84, 92, 110]],
+      rim: [236, 241, 250],
+      engrave: [92, 102, 124],
+      glow: [205, 222, 255]
+    }
+  };
+  // The look a coin id flips: its own, or the Chrome Token's (fallback) for
+  // one this render doesn't draw yet.
+  function coinSpecOf(itemId) {
+    var id = String(itemId || '');
+    if (Object.prototype.hasOwnProperty.call(COIN_SPECS, id)) return { id: id, spec: COIN_SPECS[id], fallback: false };
+    return { id: COIN_DEFAULT, spec: COIN_SPECS[COIN_DEFAULT], fallback: id !== '' && id !== COIN_DEFAULT };
+  }
+  // The result line. view: { near, own, first, names: { p1, p2 } }: own is
+  // true on the viewer's own agent's match (near is their agent).
+  function coinResult(view) {
+    view = view || {};
+    var first = view.first === 'p2' ? 'p2' : 'p1';
+    if (view.own) return view.near === first ? 'YOU GO FIRST' : 'THEY GO FIRST';
+    var names = view.names || {};
+    return String(names[first] || 'AGENT').toUpperCase() + ' GOES FIRST';
+  }
+  // The flip: the coin starts design up and turns end over end. An even
+  // number of half turns lands it design up, an odd number portrait up.
+  function coinHalfTurns(portraitUp) { return portraitUp ? 9 : 8; }
+  // u in [0, 1] over the flight (flick to landing) -> { angle, scale }. The
+  // spin eases out (fast off the thumb, settling); the rise is a smooth hump
+  // (1 at both ends, COIN_PEAK at the top).
+  function coinFlight(u, halfTurns) {
+    u = Math.max(0, Math.min(1, u));
+    var spin = 1 - Math.pow(1 - u, 2.2);
+    return { angle: Math.PI * halfTurns * spin, scale: 1 + (COIN_PEAK - 1) * Math.sin(Math.PI * u) };
+  }
+  // Which face shows at an angle: the design while the coin's front faces
+  // the viewer (cos >= 0), the portrait while its back does.
+  function coinFaceAt(angle) { return Math.cos(angle) >= -1e-9 ? 'design' : 'portrait'; }
+
+
+  // Draws one coin. c: { spec, x, y, r, angle, scale, img (the portrait, an
+  // Image or null), faceRgb (the portrait's faction colour), a (alpha) }.
+  // The coin turns about its horizontal axis: its height is |cos(angle)|,
+  // and its edge shows as a band when it is nearly edge on.
+  function coinDraw(ctx, c) {
+    var s = c.spec, R = c.r * c.scale, k = Math.cos(c.angle), h = Math.abs(k), a = c.a == null ? 1 : c.a;
+    if (a <= 0.003) return;
+    function rgba(col, al) { return 'rgba(' + (col[0] | 0) + ',' + (col[1] | 0) + ',' + (col[2] | 0) + ',' + Math.max(0, Math.min(1, al)).toFixed(3) + ')'; }
+    function outline(rad, sy) {
+      ctx.beginPath();
+      for (var i = 0; i < s.sides; i++) {
+        var th = -Math.PI / 2 + i * 2 * Math.PI / s.sides;
+        var px = c.x + Math.cos(th) * rad, py = c.y + Math.sin(th) * rad * sy;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+    }
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.globalCompositeOperation = 'source-over';
+    // Its shadow on the board, wider and softer the higher it rises.
+    var lift = Math.max(0, c.scale - 1) / 0.3;
+    ctx.fillStyle = 'rgba(0,0,0,' + (0.35 * (1 - 0.5 * lift)).toFixed(3) + ')';
+    ctx.beginPath(); ctx.ellipse(c.x, c.y + c.r * (0.9 + 0.5 * lift), c.r * (0.9 + 0.3 * lift), c.r * 0.18, 0, 0, Math.PI * 2); ctx.fill();
+    // The edge: a dark band under the face, thickest edge on.
+    var th = Math.max(1.5, R * 0.14) * Math.sqrt(1 - h * h);
+    if (th > 0.5) {
+      ctx.fillStyle = rgba(s.metal[3], 1);
+      outline(R, Math.max(0.02, h)); ctx.save(); ctx.translate(0, th); ctx.fill(); ctx.restore();
+      ctx.fillRect(c.x - R * 0.866, c.y, R * 1.732, th);
+    }
+    var sy = Math.max(0.02, h);
+    // The face's metal: light bands sweeping as it turns.
+    var g = ctx.createLinearGradient(c.x - R, c.y - R * sy, c.x + R, c.y + R * sy);
+    var sweep = (Math.sin(c.angle * 1.7) + 1) / 2;
+    g.addColorStop(0, rgba(s.metal[2], 1));
+    g.addColorStop(Math.max(0.01, Math.min(0.98, sweep * 0.8)), rgba(s.metal[0], 1));
+    g.addColorStop(Math.min(0.99, sweep * 0.8 + 0.18), rgba(s.metal[1], 1));
+    g.addColorStop(1, rgba(s.metal[3], 1));
+    outline(R, sy); ctx.fillStyle = g; ctx.fill();
+    // The rim: a bright bevel just inside the outline.
+    ctx.lineWidth = Math.max(1, R * 0.07); ctx.strokeStyle = rgba(s.rim, 0.95); outline(R * 0.94, sy); ctx.stroke();
+    ctx.lineWidth = Math.max(0.6, R * 0.025); ctx.strokeStyle = rgba(s.metal[3], 0.8); outline(R * 0.86, sy); ctx.stroke();
+    var face = coinFaceAt(c.angle);
+    if (face === 'design') {
+      // The Chrome Token's own face: an engraved inner hex, three traces
+      // from its centre to alternate corners, a node at each end.
+      ctx.strokeStyle = rgba(s.engrave, 0.9); ctx.lineWidth = Math.max(0.8, R * 0.05);
+      outline(R * 0.56, sy); ctx.stroke();
+      ctx.beginPath();
+      for (var j = 0; j < 3; j++) {
+        var tj = -Math.PI / 2 + j * 2 * Math.PI / 3;
+        ctx.moveTo(c.x, c.y); ctx.lineTo(c.x + Math.cos(tj) * R * 0.56, c.y + Math.sin(tj) * R * 0.56 * sy);
+      }
+      ctx.stroke();
+      ctx.fillStyle = rgba(s.engrave, 0.95);
+      ctx.beginPath(); ctx.ellipse(c.x, c.y, R * 0.11, R * 0.11 * sy, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = rgba(s.metal[0], 0.9);
+      ctx.beginPath(); ctx.ellipse(c.x - R * 0.03, c.y - R * 0.03 * sy, R * 0.04, R * 0.04 * sy, 0, 0, Math.PI * 2); ctx.fill();
+    } else {
+      // The portrait face: the player's avatar inside the inner hex, in a
+      // ring of their faction colour (the avatar is drawn the right way up,
+      // squashed with the turn).
+      var ir = R * 0.74;
+      ctx.save();
+      outline(ir, sy); ctx.clip();
+      ctx.fillStyle = rgba([10, 14, 22], 1); ctx.fillRect(c.x - ir, c.y - ir, ir * 2, ir * 2);
+      if (c.img && c.img.complete && c.img.naturalWidth) {
+        ctx.drawImage(c.img, c.x - ir * 0.92, c.y - ir * 0.92 * sy, ir * 1.84, ir * 1.84 * sy);
+      } else {
+        // No portrait yet (still loading): a head and shoulders in the
+        // faction colour, never an empty face.
+        ctx.fillStyle = rgba(c.faceRgb || s.glow, 0.85);
+        ctx.beginPath(); ctx.ellipse(c.x, c.y - ir * 0.18 * sy, ir * 0.3, ir * 0.3 * sy, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(c.x, c.y + ir * 0.62 * sy, ir * 0.55, ir * 0.42 * sy, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+      ctx.lineWidth = Math.max(1, R * 0.06); ctx.strokeStyle = rgba(c.faceRgb || s.glow, 0.95); outline(ir, sy); ctx.stroke();
+    }
+    // A glint that runs across the face as it turns.
+    ctx.globalCompositeOperation = 'lighter';
+    var gl = ctx.createRadialGradient(c.x - R * 0.35, c.y - R * 0.4 * sy, 0, c.x - R * 0.35, c.y - R * 0.4 * sy, R * 0.9);
+    gl.addColorStop(0, rgba(s.glow, 0.35 * (0.4 + 0.6 * h))); gl.addColorStop(1, rgba(s.glow, 0));
+    outline(R, sy); ctx.fillStyle = gl; ctx.fill();
+    ctx.restore();
+  }
+
+
   // The intro's length, the reduced-motion still's, and when the outro starts.
-  var BOOT_MS = 2600, BOOT_STILL_MS = 1000, BOOT_OUT_AT = 2200;
+  // Render session 53: 2.6 s -> 3.4 s with the coin flip (the saying lands
+  // at COIN_GONE_AT, 2.4 s); the still 1.0 s -> 1.3 s (the landed coin, then
+  // the saying from BOOT_STILL_SAY_AT).
+  var BOOT_MS = 3400, BOOT_STILL_MS = 1300, BOOT_OUT_AT = 3000, BOOT_STILL_SAY_AT = 600;
   // The sayings, list 1 (owner 2026-10-19; frozen: render session 34's plan,
   // call 9). Never a card name; not JACK IN. Old replays show the saying the
   // seed picks from this list, so changing it (adding, removing, reordering)
@@ -3844,6 +4039,11 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
   //     area the intro covers (both halves and the gap between them).
   //   who: { top: { name, faction }, bot: { name, faction } }.
   //   opts.saying: shows this saying instead of the seed's (the sheet only).
+  //   opts.coin: the coin flip (render session 53): { id (the coin's item
+  //     id), first ('top' | 'bot': the half of the player who goes first),
+  //     portraitUp (it lands on the portrait: the bottom player, whose coin
+  //     it is, goes first), line (the result line, coinResult) }. Without
+  //     it, the bottom player goes first on the house coin.
   // The halves are laid out from distances to the centre line (mid), never
   // from one half's own box, so they come out mirror images even when the
   // page gives one half a pixel more.
@@ -3877,7 +4077,7 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
       var line = { txt: pad(lines[side], two ? 0 : n), len: lines[side].length, x0: x0, w: lineW, y: mid + s * dLine, fs: fs, t0: typeAt, ms: typeMs,
         // The readouts clear as the saying lands: each lifts AWAY from the
         // centre line and fades.
-        clear: { t: 1600, ms: 260, dy: s * fs * 1.2 } };
+        clear: { t: COIN_GONE_AT, ms: 260, dy: s * fs * 1.2 } };
       // Two rows type one after the other, as one line of n characters;
       // y is the middle of the pair, the rows BOOT_LH type sizes apart.
       if (two) line.rows = [pad(BOOT_HEAD.replace(/ $/, ''), BOOT_HEAD.length), pad(tails[side], nTail)];
@@ -3890,14 +4090,32 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
     }
     var halves = [half('top'), half('bot')];
     var hsFs = Math.max(8, Math.min(fs * 1.1, 16));
-    var handshake = { txt: 'HANDSHAKE OK', x: cx, y: mid, fs: hsFs, t0: 1340, ms: 140, gone: 1600 };
+    var handshake = { txt: 'HANDSHAKE OK', x: cx, y: mid, fs: hsFs, t0: 1340, ms: 140, gone: COIN_FLICK_AT };
     // The saying: the dot font as large as fits across the board and about
     // two thirds of the way into each half; it breaks onto two lines when
     // that makes it bigger (a phone).
     var sayH = Math.max(14, Math.min(150, (dNear + H * 0.66) * 2));
     var fit = boastBitsFit(saying, W * 0.86, sayH, 12);
     var say = { text: saying, rare: saying === BOOT_RARE, bits: fit.bits, cell: fit.cell, x: cx, y: mid,
-      w: fit.bits.cols * fit.cell, h: fit.bits.rows * fit.cell, t: 1600, slam: 140, out: [BOOT_OUT_AT, BOOT_MS], grow: 0.08 };
+      w: fit.bits.cols * fit.cell, h: fit.bits.rows * fit.cell, t: COIN_GONE_AT, slam: 140, out: [BOOT_OUT_AT, BOOT_MS], grow: 0.08 };
+    // The coin and its result line: one block centred on the centre line,
+    // the coin above the line, clear of both agent lines even at the top of
+    // its rise (COIN_PEAK).
+    var co = opts.coin || {};
+    var first = co.first === 'top' ? 'top' : 'bot';
+    var portraitUp = co.portraitUp != null ? !!co.portraitUp : first === 'bot';
+    var resTxt = String(co.line || ((who[first] && who[first].name ? String(who[first].name).toUpperCase() : 'AGENT') + ' GOES FIRST'));
+    var rfs = Math.max(7, Math.min(14, (W * 0.8) / (BOOT_CH * (resTxt.length + 1))));
+    var gap = rfs * 0.5, lineHalf = fs * 0.6 + (two ? fs * BOOT_LH / 2 : 0), avail = dLine - lineHalf - 4;
+    var cr = Math.max(5, Math.min(40, (avail - (gap + rfs) / 2) / COIN_PEAK, avail - gap / 2 - rfs * 0.6));
+    var coinSpec = coinSpecOf(co.id);
+    var coin = { id: coinSpec.id, fallback: coinSpec.fallback, x: cx, y: mid - (gap + rfs) / 2, r: cr, t0: COIN_FLICK_AT, land: COIN_LAND_AT, gone: COIN_GONE_AT,
+      halfTurns: coinHalfTurns(portraitUp), portraitUp: portraitUp };
+    var result = { txt: resTxt, x: cx, y: mid + cr + gap / 2, fs: rfs, t0: COIN_LINE_AT, ms: Math.min(220, resTxt.length * 12), gone: COIN_GONE_AT };
+    // The edge pulse: a band of the first player's colour runs from the
+    // centre edge of their half's screen to its far edge, and fades.
+    var fh = halves[first === 'top' ? 0 : 1].screen, fsgn = first === 'top' ? -1 : 1;
+    var pulse = { side: first, t: COIN_PULSE_AT, ms: COIN_PULSE_MS, l: fh.l, r: fh.r, from: first === 'top' ? fh.b : fh.t, to: first === 'top' ? fh.t : fh.b, dir: fsgn };
     var marks = [];
     // Every sound sits on the centre: its pan favours neither side (x is
     // the board's centre line; the runtime plays them at pan 0, dead centre
@@ -3910,6 +4128,11 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
     for (var q = 0; q < n; q += 2) snd(typeAt + typeMs * q / n, 'type', 'subtle');
     snd(handshake.t0, 'handshake');
     for (var q2 = 0; q2 < 4; q2++) snd(handshake.t0 + q2 * 30, 'type', 'subtle');
+    // The coin: the flick off the thumb, its whir as it spins, the clink as
+    // it lands; dead centre like every intro sound.
+    snd(coin.t0, 'coinFlick');
+    snd(coin.t0 + 40, 'coinWhir');
+    snd(coin.land, 'coinClink');
     snd(say.t, 'bootHit', 'spectacle');
     // The rare saying is heard too: root access granted, over the hit.
     if (say.rare) snd(say.t + 60, 'bootRoot', 'normal');
@@ -3919,23 +4142,32 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
     marks.push({ k: 'end', t: BOOT_MS });
     marks.sort(function (u, v) { return u.t - v.t; });
     return { ms: BOOT_MS, out: BOOT_OUT_AT, list: BOOT_LIST_VERSION, saying: saying, mid: mid, cx: cx, area: { l: area.l, t: area.t, r: area.r, b: area.b },
-      halves: halves, handshake: handshake, say: say, marks: marks };
+      halves: halves, handshake: handshake, say: say, marks: marks, first: first, coin: coin, result: result, pulse: pulse };
   }
 
   // The reduced-motion still: both halves lit, both agent lines whole, the
+  // coin already landed with its result line and the first player's half
+  // lit at its edge (render session 53), then at BOOT_STILL_SAY_AT the
   // saying on the centre line and HANDSHAKE OK under it (when it fits above
-  // the bottom line), held for BOOT_STILL_MS. No flash, no swell; the
-  // tube's thump and the saying's hit still sound.
+  // the bottom line), held to BOOT_STILL_MS. Cuts, no motion: no spin, no
+  // flash, no swell; the tube's thump, the coin's clink and the saying's hit
+  // still sound.
   function bootStill(plan) {
     var out = JSON.parse(JSON.stringify(plan));
     out.still = true; out.ms = BOOT_STILL_MS; out.out = BOOT_STILL_MS - 200;
     out.halves.forEach(function (h) { h.on = { t: 0, ms: 0, flick: 0 }; h.line.t0 = 0; h.line.ms = 0; h.line.clear = null; });
     var hs = out.handshake, bl = out.halves[1].line;
-    hs.y = plan.mid + out.say.h / 2 + out.say.cell * 1.5 + hs.fs * 0.9; hs.t0 = 0; hs.ms = 0; hs.gone = Infinity;
+    hs.y = plan.mid + out.say.h / 2 + out.say.cell * 1.5 + hs.fs * 0.9; hs.t0 = BOOT_STILL_SAY_AT; hs.ms = 0; hs.gone = Infinity;
     if (hs.y + hs.fs / 2 > bl.y - bl.fs * 0.7) out.handshake = null;
-    out.say.t = 0; out.say.slam = 0; out.say.grow = 0; out.say.out = [out.out, out.ms];
-    out.marks = out.marks.filter(function (m) { return m.k === 'music' || (m.k === 'sound' && (m.kind === 'bootOn' || m.kind === 'bootHit' || m.kind === 'bootRoot')); })
-      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = 0; if (c.k === 'music') c.ms = BOOT_STILL_MS; return c; });
+    out.say.t = BOOT_STILL_SAY_AT; out.say.slam = 0; out.say.grow = 0; out.say.out = [out.out, out.ms];
+    out.coin.t0 = 0; out.coin.land = 0; out.coin.gone = BOOT_STILL_SAY_AT;
+    out.result.t0 = 0; out.result.ms = 0; out.result.gone = BOOT_STILL_SAY_AT;
+    // The pulse becomes the first player's half lit at its edge, still.
+    out.pulse.t = 0; out.pulse.ms = 0; out.pulse.gone = BOOT_STILL_SAY_AT;
+    var AT = { bootOn: 0, coinClink: 0, bootHit: BOOT_STILL_SAY_AT, bootRoot: BOOT_STILL_SAY_AT };
+    out.marks = out.marks.filter(function (m) { return m.k === 'music' || (m.k === 'sound' && m.kind in AT); })
+      .map(function (m) { var c = {}; for (var k in m) c[k] = m[k]; c.t = c.k === 'sound' ? AT[c.kind] : 0; if (c.k === 'music') c.ms = BOOT_STILL_MS; return c; });
+    out.marks.sort(function (u, v) { return u.t - v.t; });
     out.marks.push({ k: 'end', t: BOOT_STILL_MS });
     return out;
   }
@@ -3946,7 +4178,7 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
     var tol = 1.5, mid = plan.mid, cx = plan.cx;
     function inBox(a, o) { return a.l >= o.l - tol && a.r <= o.r + tol && a.t >= o.t - tol && a.b <= o.b + tol; }
     function near(a, b) { return Math.abs(a - b) <= tol; }
-    if (!plan.still && !(plan.ms >= 2000 && plan.ms <= 3000)) return 'the intro runs 2-3 s';
+    if (!plan.still && !(plan.ms >= 2000 && plan.ms <= 3500)) return 'the intro runs 2-3.5 s';
     if (BOOT_SAYINGS.indexOf(plan.saying) < 0 && plan.saying !== BOOT_RARE) return 'the saying is not on list ' + BOOT_LIST_VERSION;
     if (!(plan.halves && plan.halves.length === 2)) return 'two halves';
     var T = plan.halves[0], B = plan.halves[1];
@@ -3991,6 +4223,41 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
       var hw = BOOT_CH * hs.fs * hs.txt.length;
       if (!inBox({ l: hs.x - hw / 2, r: hs.x + hw / 2, t: hs.y - hs.fs * 0.6, b: hs.y + hs.fs * 0.6 }, plan.area)) return 'HANDSHAKE OK leaves the board';
     }
+    // The coin and its result line (render session 53): one block centred
+    // on the centre line, inside the board at the top of the rise, clear of
+    // both agent lines while they show, gone as the saying lands; it lands
+    // on the face it says.
+    var co = plan.coin, rs = plan.result;
+    if (!co || !rs) return 'no coin flip';
+    if (!near(co.x, cx) || !near(rs.x, cx)) return 'the coin is off centre';
+    if (!near(((co.y - co.r) + (rs.y + rs.fs / 2)) / 2, mid)) return 'the coin and its line are not centred on the centre line';
+    var peak = plan.still ? 1 : COIN_PEAK, pr = co.r * peak;
+    var coinBox = { l: co.x - pr, r: co.x + pr, t: co.y - pr, b: co.y + pr };
+    var rw = BOOT_CH * rs.fs * (rs.txt.length + 1);
+    var resBox = { l: rs.x - rw / 2, r: rs.x + rw / 2, t: rs.y - rs.fs * 0.6, b: rs.y + rs.fs * 0.6 };
+    if (!inBox(coinBox, plan.area)) return 'the coin leaves the board';
+    if (!inBox(resBox, plan.area)) return 'the result line leaves the board';
+    function hit(a, o) { return a.l < o.r - tol && a.r > o.l + tol && a.t < o.b - tol && a.b > o.t + tol; }
+    for (i = 0; i < 2; i++) {
+      var L = plan.halves[i].line, lh = L.fs * 0.6 + (L.rows ? L.fs * BOOT_LH / 2 : 0);
+      var box = { l: L.x0, r: L.x0 + L.w, t: L.y - lh, b: L.y + lh };
+      var shownTo = L.clear ? L.clear.t + L.clear.ms : Infinity;
+      if (co.t0 < shownTo && (hit(coinBox, box) || hit(resBox, box))) return 'the coin runs into the ' + plan.halves[i].side + ' agent line';
+    }
+    if (plan.handshake && plan.handshake.gone > co.t0) {
+      var hs2 = plan.handshake, hw2 = BOOT_CH * hs2.fs * hs2.txt.length;
+      if (hit(coinBox, { l: hs2.x - hw2 / 2, r: hs2.x + hw2 / 2, t: hs2.y - hs2.fs * 0.6, b: hs2.y + hs2.fs * 0.6 })) return 'the coin shows over HANDSHAKE OK';
+    }
+    if (!(co.land >= co.t0 && rs.t0 >= co.land && co.gone <= s.t && rs.gone <= s.t)) return 'the coin is out of order: flick, land, its line, gone as the saying lands';
+    if (coinFaceAt(coinFlight(1, co.halfTurns).angle) !== (co.portraitUp ? 'portrait' : 'design')) return 'the coin lands on the wrong face';
+    // The one exception to the grammar: the edge pulse, in the first
+    // player's half only, moving away from the centre, after the landing.
+    var pu = plan.pulse;
+    if (!pu || pu.side !== plan.first) return 'the edge pulse is not in the half of the player who goes first';
+    var ph = plan.halves[pu.side === 'top' ? 0 : 1].screen;
+    if (!(pu.l >= ph.l - tol && pu.r <= ph.r + tol && Math.min(pu.from, pu.to) >= ph.t - tol && Math.max(pu.from, pu.to) <= ph.b + tol)) return 'the edge pulse leaves its half';
+    if (!(Math.abs(pu.to - mid) > Math.abs(pu.from - mid))) return 'the edge pulse moves toward the centre';
+    if (pu.t < co.land) return 'the edge pulse runs before the coin lands';
     for (i = 0; i < plan.marks.length; i++) {
       var m = plan.marks[i];
       if (m.t > plan.ms + 1) return m.k + ' after the intro ends';
@@ -4142,6 +4409,58 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
         ctx.fillRect(x0 + d[0] * cell + ins, y0 + d[1] * cell + ins, cell - ins * 2, cell - ins * 2);
       }
     }
+    // The coin flip (render session 53, coinFx.ts draws the coin).
+    function drawCoinFlip(ctx, p, t, fade) {
+      var co = p.coin, rs = p.result;
+      if (!co || t < co.t0 || t >= co.gone + 140) return;
+      var a = fade * (t < co.gone ? 1 : 1 - (t - co.gone) / 140);
+      var fl = co.land > co.t0 ? coinFlight((t - co.t0) / (co.land - co.t0), co.halfTurns) : coinFlight(1, co.halfTurns);
+      // A small settle on the landing: it bounces once, a tenth of its size.
+      var since = t - co.land, settle = since >= 0 && since < 160 && !p.still ? 1 + 0.06 * Math.sin(Math.PI * since / 160) : 1;
+      ctx.globalCompositeOperation = 'source-over';
+      coinDraw(ctx, { spec: COIN_SPECS[co.id] || COIN_SPECS[COIN_DEFAULT], x: co.x, y: co.y, r: co.r, angle: fl.angle, scale: fl.scale * settle, img: cur.coinImg, faceRgb: cur.coinRgb, a: a });
+      // The landing's ring: a chrome circle widening from the coin and fading.
+      if (since >= 0 && since < 300 && !p.still) {
+        var u = since / 300;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = css(BOOT_CHROME, 0.5 * (1 - u) * a); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(co.x, co.y, co.r * (1.05 + 0.6 * ease(u)), 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.globalCompositeOperation = 'lighter';
+      if (rs && t >= rs.t0 && t < rs.gone + 140) {
+        var k = rs.ms > 0 ? Math.min(rs.txt.length, Math.ceil(rs.txt.length * (t - rs.t0) / rs.ms)) : rs.txt.length;
+        var w = BOOT_CH * rs.fs * (rs.txt.length + 1), ra = fade * (t < rs.gone ? 1 : 1 - (t - rs.gone) / 140);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(3,5,10,' + (0.85 * ra).toFixed(3) + ')';
+        ctx.fillRect(rs.x - w / 2 - 6, rs.y - rs.fs * 0.75, w + 12, rs.fs * 1.5);
+        ctx.globalCompositeOperation = 'lighter';
+        drawType(ctx, rs.txt, rs.txt.slice(0, k), rs.x - w / 2, rs.y, rs.fs, w, BOOT_CHROME, ra, k < rs.txt.length);
+      }
+    }
+    // The edge pulse into the first player's half: a band of their colour
+    // from the centre edge of their screen to its far edge. In the still,
+    // that edge is lit and holds.
+    function drawPulse(ctx, p, t, fade) {
+      var pu = p.pulse;
+      if (!pu) return;
+      var h = p.halves[pu.side === 'top' ? 0 : 1], c = h.rgb;
+      ctx.globalCompositeOperation = 'lighter';
+      if (pu.ms === 0) {
+        if (t >= (pu.gone == null ? Infinity : pu.gone)) return;
+        ctx.fillStyle = css(c, 0.5 * fade); ctx.fillRect(pu.l, pu.from - (pu.dir > 0 ? 0 : 3), pu.r - pu.l, 3);
+        return;
+      }
+      var u = (t - pu.t) / pu.ms;
+      if (u < 0 || u >= 1) return;
+      var y = pu.from + (pu.to - pu.from) * ease(u), a = (1 - u) * fade, bandH = Math.max(6, Math.abs(pu.to - pu.from) * 0.12);
+      var g = ctx.createLinearGradient(0, y - pu.dir * bandH, 0, y);
+      g.addColorStop(0, css(c, 0)); g.addColorStop(1, css(c, 0.55 * a));
+      ctx.fillStyle = g;
+      ctx.fillRect(pu.l, Math.min(y, y - pu.dir * bandH), pu.r - pu.l, bandH);
+      ctx.fillStyle = css(mix(c, [255, 255, 255], 0.5), 0.9 * a); ctx.fillRect(pu.l, y - 1, pu.r - pu.l, 2);
+      // The half's own edge flares as the pulse leaves it.
+      ctx.fillStyle = css(c, 0.6 * (1 - u) * fade); ctx.fillRect(pu.l, pu.from - (pu.dir > 0 ? 0 : 3), pu.r - pu.l, 3);
+    }
     function draw() {
       if (!cur) return;
       var p = cur.plan, t = cur.t, ctx = cur.ctx, fade = outFade(t), dpr = cur.dpr;
@@ -4156,6 +4475,8 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
       p.halves.forEach(function (h) { drawScreen(ctx, h, t, fade); });
       p.halves.forEach(function (h) { drawLine(ctx, h, t, fade); });
       drawHandshake(ctx, p.handshake, t, fade);
+      drawPulse(ctx, p, t, fade);
+      drawCoinFlip(ctx, p, t, fade);
       drawFlash(ctx, p, t);
       drawSaying(ctx, p, t);
       ctx.globalCompositeOperation = 'source-over';
@@ -4189,7 +4510,9 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
     function onKey(e) { if (e.key === 'Escape' && cur) { e.preventDefault(); e.stopPropagation(); skip(); } }
     // A tap anywhere skips it, except on the playback controls: there the
     // control does its own job (pause stops the intro; a step jumps past it).
-    function onDown(e) { if (cur && !(e.target && e.target.closest && e.target.closest('.controls'))) skip(); }
+    // The same for the "Watch as" switch (render session 52): it waits for
+    // the intro to end, then flips the board.
+    function onDown(e) { if (cur && !(e.target && e.target.closest && e.target.closest('.controls, .pov'))) skip(); }
     function teardown(c) {
       document.removeEventListener('keydown', onKey, true);
       document.removeEventListener('pointerdown', onDown, true);
@@ -4223,7 +4546,9 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
     //   els: { top, bot, area } (elements: seat 2's side, seat 1's side,
     //     the board area holding both).
     //   opts: { who: { top: { name, faction }, bot: { ... } }, seed,
-    //     onEnd(reason: 'end' | 'skip'), reduced, saying (the sheet only) }.
+    //     onEnd(reason: 'end' | 'skip'), reduced, saying (the sheet only),
+    //     coin: { id, first, portraitUp, line, img (the bottom player's
+    //     portrait, an Image), faction (its ring's colour) } }.
     // A cancel (a jump, a pause) ends it without onEnd.
     function play(els, opts) {
       opts = opts || {};
@@ -4236,7 +4561,7 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
       }
       var geom = { top: rect(els.top), bot: rect(els.bot), area: rect(els.area) };
       if (!geom.top || !geom.bot || !geom.area || geom.top.b > geom.bot.t || geom.top.r - geom.top.l < 40) return null;
-      var plan = bootPlan(geom, opts.who, opts.seed, { saying: opts.saying });
+      var plan = bootPlan(geom, opts.who, opts.seed, { saying: opts.saying, coin: opts.coin });
       var problem = bootPlanProblem(plan, geom);
       if (problem || reduced) plan = bootStill(plan);
       var still = bootPlanProblem(plan, geom);
@@ -4252,7 +4577,7 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
       stats.played++; if (plan.still) stats.still++;
       stats.problem = problem || null; stats.fired = {}; stats.drawn = 0;
       cur = { plan: plan, cv: cv, ctx: cv.getContext('2d'), dpr: dpr, ox: A.l, oy: A.t, t0: performance.now(), t: 0, next: 0, raf: 0, dom: [], onEnd: opts.onEnd || null,
-        seq: null, music: false };
+        seq: null, music: false, coinImg: (opts.coin && opts.coin.img) || null, coinRgb: fxRgbOf((opts.coin && opts.coin.faction) || (opts.who && opts.who.bot && opts.who.bot.faction) || 'Neutral') };
       var sk = document.createElement('button');
       sk.type = 'button'; sk.className = 'boast-skip boot-skip'; sk.textContent = 'Skip ▸▸';
       sk.addEventListener('click', function (e) { e.stopPropagation(); skip(); });
@@ -4279,10 +4604,11 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
       cur.raf = requestAnimationFrame(frame);
       return plan;
     }
-    return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; },
+    return { play: play, skip: skip, cancel: cancel, active: function () { return !!cur; }, plan: function () { return cur ? cur.plan : null; },
       stats: function () { var q = stats.seq ? stats.seq.stats() : null; return { active: !!cur, t: cur ? Math.round(cur.t) : null, saying: cur ? cur.plan.saying : null, still: cur ? !!cur.plan.still : null,
         lines: cur ? cur.plan.halves.map(function (h) { return h.line.txt.replace(/\s+$/, ''); }) : null, played: stats.played, skipped: stats.skipped, stillCount: stats.still, hint: cur ? cur.hint : null, hintSeen: SKIP_HINT_STATE.seen,
         cancelled: stats.cancelled, ended: stats.ended, problem: stats.problem || null, fired: stats.fired || {}, drawn: stats.drawn || 0, last: stats.last,
+        coin: cur && cur.plan.coin ? { id: cur.plan.coin.id, fallback: cur.plan.coin.fallback, portraitUp: cur.plan.coin.portraitUp, line: cur.plan.result.txt, first: cur.plan.first, face: coinFaceAt(coinFlight(cur.plan.coin.land > cur.plan.coin.t0 ? (cur.t - cur.plan.coin.t0) / (cur.plan.coin.land - cur.plan.coin.t0) : 1, cur.plan.coin.halfTurns).angle) } : null,
         sched: q ? q.sched : [], late: q ? q.late : 0, planned: stats.planned == null ? null : stats.planned, audioBase: q && q.base != null ? q.base : null, rows: cur ? !!cur.plan.halves[0].line.rows : null, fs: cur ? cur.plan.halves[0].line.fs : null }; } };
   })();
 

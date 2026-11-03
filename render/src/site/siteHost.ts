@@ -20,6 +20,7 @@ import { renderMatchHtml } from "../renderHtml.js";
 import { replayOfFile, recordOf } from "./siteReplay.js";
 import { LiveFrameBuilder, type PublicSnapshot, type TimelineStep } from "./liveFrames.js";
 import { BOARD_SLOTS, MAX_ENERGY_CAP, TURN_CAP } from "@ai-tcg/engine";
+import type { Faction } from "../engineInternal.js";
 import { timelineRecorder } from "../../../server/src/ladder/timeline.js";
 import { rebuildReplay } from "../../../server/src/ladder/ladderRunner.js";
 import type { SiteMatchView } from "./siteApi.js";
@@ -152,7 +153,10 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
   interface LivePage { html: string; at: number; builder: LiveFrameBuilder; matchId: string; ended: boolean; record: unknown; busy: Promise<void> }
   const livePages = new Map<string, LivePage>();
   const LIVE_KEEP = 8;
-  type LiveFeedBody = { start: PublicSnapshot | null; startLines: string[] | null; steps: TimelineStep[]; from: number; p1: { agentName: string; coin?: string }; p2: { agentName: string; coin?: string } };
+  // `openingHands` and each side's `faction`: game session 72 (from=0 only for
+  // the hands; a match with a real-time seat will leave the hands out).
+  type LiveFeedSide = { agentName: string; coin?: string; faction?: Faction };
+  type LiveFeedBody = { start: PublicSnapshot | null; startLines: string[] | null; steps: TimelineStep[]; from: number; p1: LiveFeedSide; p2: LiveFeedSide; openingHands?: { p1: string[]; p2: string[] } | null };
   const buildLive = async (req: IncomingMessage, res: ServerResponse, matchId: string) => {
     const get = getWith(req.headers.authorization);
     let feed: { status: number; body: unknown };
@@ -167,7 +171,9 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
     let builder: LiveFrameBuilder;
     let html: string;
     try {
-      builder = new LiveFrameBuilder({ matchId, names: { p1: f.p1.agentName, p2: f.p2.agentName }, start: f.start, startLines: f.startLines ?? [], boardSlots: BOARD_SLOTS, turnCap: TURN_CAP, energyCap: MAX_ENERGY_CAP });
+      const factions = f.p1.faction && f.p2.faction ? { factions: { p1: f.p1.faction, p2: f.p2.faction } } : {};
+      const openingHands = f.openingHands ? { openingHands: f.openingHands } : {};
+      builder = new LiveFrameBuilder({ matchId, names: { p1: f.p1.agentName, p2: f.p2.agentName }, start: f.start, startLines: f.startLines ?? [], boardSlots: BOARD_SLOTS, turnCap: TURN_CAP, energyCap: MAX_ENERGY_CAP, ...openingHands, ...factions });
       for (const step of f.steps) builder.push(step);
       // The coins each side flips (v20, the live view's `coin`), for Match Boot's coin flip.
       const coins = f.p1.coin && f.p2.coin ? { coins: { p1: f.p1.coin, p2: f.p2.coin } } : {};

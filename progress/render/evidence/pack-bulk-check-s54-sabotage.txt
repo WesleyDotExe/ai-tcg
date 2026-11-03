@@ -1,0 +1,27 @@
+Sabotage run (render session 54): the pack page built with Auto's row step changed from 'if (d.length)' to 'if (d.length > 1)', so Auto leaves a pack's last face-down card unturned. The tap run T is unaffected (by design); every Auto run with a face-down card fails.
+
+PASS  desktop run T (10 packs, big pull, by tap): 52.8 s to the summary; big pulls at pack 6; 0 packs skipped; 2 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+FAIL  desktop run A (10 packs, Auto 4x): 13.6 s to the summary; big pulls at pack none; 0 packs skipped; 0 cards turned in the row; 39 tiles for 50 cards, 38 NEW
+      pack 1: turned [], want [4]
+      pack 5: turned [], want [4]
+      pack 8: turned [], want [4]
+FAIL  desktop run B (10 packs, big pull, Auto 1x): 48.1 s to the summary; big pulls at pack 6; 0 packs skipped; 0 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+      pack 1: turned [], want [4]
+      pack 10: turned [], want [4]
+      skip pressed at pack 1, pack 7
+PASS  desktop run C (10 packs, big pull, Auto 2x, skip): 34.8 s to the summary; big pulls at pack 6; 7 packs skipped; 0 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+PASS  desktop: speed and Auto remembered across a reload (2x, Auto on; want 2x, on)
+PASS  desktop: Auto off is remembered and hides the speeds (Auto false, speeds hidden)
+PASS  phone run T (10 packs, big pull, by tap): 27.4 s to the summary; big pulls at pack 6; 0 packs skipped; 2 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+FAIL  phone run A (10 packs, Auto 4x): 4.7 s to the summary; big pulls at pack none; 0 packs skipped; 0 cards turned in the row; 39 tiles for 50 cards, 38 NEW
+      pack 1: turned [], want [4]
+      pack 5: turned [], want [4]
+      pack 8: turned [], want [4]
+FAIL  phone run B (10 packs, big pull, Auto 1x): 47.2 s to the summary; big pulls at pack 6; 0 packs skipped; 0 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+      pack 1: turned [], want [4]
+      pack 10: turned [], want [4]
+      skip pressed at pack 1, pack 7
+PASS  phone run C (10 packs, big pull, Auto 2x, skip): 36.3 s to the summary; big pulls at pack 6; 7 packs skipped; 0 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+PASS  phone: speed and Auto remembered across a reload (2x, Auto on; want 2x, on)
+PASS  phone: Auto off is remembered and hides the speeds (Auto false, speeds hidden)
+8 PASS, 4 FAIL

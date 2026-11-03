@@ -47,6 +47,19 @@ html, body {
 .matchup { font-weight: bold; letter-spacing: 0.12em; }
 .matchup .vs { color: var(--ink-dim); margin: 0 0.5em; }
 .seed { color: var(--ink-dim); font-size: 0.75rem; }
+/* The spectator point of view (render session 52, owner 2026-11-02): one
+ * two-button switch with the agents' names; the chosen player sits at the
+ * bottom (the near side). */
+.pov { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 4px; padding: 2px; background: #070a14; }
+.pov[hidden] { display: none; }
+.pov-l { color: var(--ink-dim); font-size: 0.66rem; padding: 0 6px; white-space: nowrap; }
+.pov-b { background: none; border: 1px solid transparent; color: var(--ink-dim); font: inherit; font-size: 0.74rem; letter-spacing: 0.03em; text-transform: none; padding: 4px 9px; min-height: 28px; border-radius: 3px; cursor: pointer; max-width: 24ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) { .pov-b { max-width: 15ch; } }
+.pov-b[aria-pressed="true"] { color: var(--fc, var(--ink)); border-color: var(--fc, var(--ink)); background: rgba(255,255,255,0.05); box-shadow: 0 0 8px -3px var(--fc, var(--ink)); }
+.pov-b:not([aria-pressed="true"]):hover { color: var(--ink); }
+.pov-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.pov.waiting .pov-b { cursor: progress; }
+@media (max-width: 720px) { .matchbar { flex-wrap: wrap; gap: 6px 10px; } .pov { order: 3; } }
 #app { max-width: 1180px; margin: 0 auto; padding: 14px 12px 24px; position: relative; z-index: 1; }
 /* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under
  * the board (the background grid impacts warp, then ground marks and
@@ -267,6 +280,17 @@ html, body {
 .hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }
 .hand .minicard { font-size: 0.62rem; padding: 3px 6px; border-radius: 3px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); }
 .hand .minicard b { color: var(--fc, var(--ink)); }
+.hand .minicard b .unsure { font-style: normal; opacity: 0.7; margin-left: 1px; }
+.hand .minicard.back { width: 20px; height: 28px; padding: 0; border-color: var(--line); background: repeating-linear-gradient(135deg, var(--panel-2) 0 4px, var(--panel) 4px 8px); box-shadow: inset 0 0 0 2px var(--panel); }
+.hand-count { font-size: 0.6rem; color: var(--ink-dim); align-self: center; margin-left: 4px; }
+.live-badge { font: inherit; font-size: 0.7rem; letter-spacing: 0.14em; padding: 3px 10px; border-radius: 4px; border: 1px solid #ff4d6d; color: #ff4d6d; background: transparent; cursor: pointer; }
+.live-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
+.live-badge.on::before { animation: live-dot 1.4s ease-in-out infinite; }
+.live-badge.behind { color: var(--ink-dim); border-color: var(--line); }
+.live-badge.ended { color: var(--ink-dim); border-color: var(--line); cursor: default; }
+.live-badge.ended::before { display: none; }
+@keyframes live-dot { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .live-badge.on::before { animation: none; } }
 .hand-label { width: 100%; font-size: 0.6rem; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 2px; }
 
 .eventlog { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 0.72rem; max-height: 260px; display: flex; flex-direction: column; min-width: 0; }
@@ -340,6 +364,9 @@ html, body {
 
 .board-row#board-p1 .card.fx-attack { animation: fx-lunge-up 380ms ease; }
 .board-row#board-p2 .card.fx-attack { animation: fx-lunge-down 380ms ease; }
+/* Watching as p2, p2 is the near side: its cards lunge up. */
+body.pov-p2 .board-row#board-p1 .card.fx-attack { animation-name: fx-lunge-down; }
+body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
 @keyframes fx-lunge-up { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-14px) scale(1.05); } }
 @keyframes fx-lunge-down { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(14px) scale(1.05); } }
 
@@ -2022,6 +2049,28 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       N({ type: 'lowpass', f0: 2600, f1: 300, dur: 0.16, g: 0.24 });
       [261.6, 329.6, 392, 523.3].forEach(function (n, i) { T({ type: 'triangle', f0: n, dur: 0.62 - i * 0.07, g: 0.05, att: 0.01, delay: 0.06 + i * 0.07, filt: 'lowpass', ff: 3000 }); });
       T({ type: 'sine', f0: 1046.5, dur: 0.5, g: 0.02, att: 0.05, delay: 0.3 });
+    } else if (kind === 'coinFlick') {
+      // Match Boot's coin flip (render session 53), like 'bootHit' not a
+      // match-event sound, one voice whatever the factions: the thumb's
+      // flick, a dry click, and the coin's first ring as it leaves.
+      N({ type: 'bandpass', f0: 3800, q: 5, dur: 0.03, g: 0.22 });
+      T({ type: 'triangle', f0: 2650, dur: 0.18, g: 0.05, att: 0.003 });
+      T({ type: 'sine', f0: 2650 * SFX_BELL[1], dur: 0.14, g: 0.02, att: 0.003 });
+    } else if (kind === 'coinWhir') {
+      // The coin spinning: a run of faint metal ticks, each turn a little
+      // slower (the spin eases out), over a soft airy whir.
+      var wt0 = 0;
+      for (var wi2 = 0; wi2 < 9; wi2++) { T({ type: 'triangle', f0: 3100 - wi2 * 60, dur: 0.035, g: 0.022, att: 0.002, delay: wt0 }); wt0 += 0.03 + wi2 * 0.009; }
+      N({ type: 'bandpass', f0: 1800, f1: 900, q: 2, dur: 0.5, g: 0.05, att: 0.05 });
+    } else if (kind === 'coinClink') {
+      // The coin lands: a bright clink (two inharmonic partials, a second
+      // smaller bounce), over a small low tap.
+      T({ type: 'sine', f0: 140, f1: 70, dur: 0.12, g: 0.18 });
+      T({ type: 'triangle', f0: 2350, dur: 0.4, g: 0.07, att: 0.002 });
+      T({ type: 'sine', f0: 2350 * SFX_BELL[1], dur: 0.3, g: 0.035, att: 0.002 });
+      T({ type: 'sine', f0: 2350 * SFX_BELL[2], dur: 0.22, g: 0.02, att: 0.002 });
+      T({ type: 'triangle', f0: 2350, dur: 0.2, g: 0.03, att: 0.002, delay: 0.09 });
+      N({ type: 'highpass', f0: 4500, dur: 0.04, g: 0.08 });
     } else if (kind === 'whistle') {
       // A rocket going up: a rising whistle over a hiss.
       T({ type: 'sine', f0: 900, f1: 2600, dur: 0.32, g: 0.04, att: 0.05 });

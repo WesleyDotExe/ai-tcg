@@ -23,7 +23,8 @@
     "browser-check": "node ci/browser-check.mjs",
     "site": "tsx src/site/siteHost.ts",
     "site-page": "tsx src/site/sitePage.ts",
-    "site-demo": "tsx src/site/siteDemo.ts"
+    "site-demo": "tsx src/site/siteDemo.ts",
+    "outputs": "bash tools/regen-output.sh"
   },
   "dependencies": {
     "@ai-tcg/economy": "*",

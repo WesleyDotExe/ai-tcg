@@ -44,9 +44,11 @@
 //
 // What the public feed doesn't carry, and this doesn't invent:
 //  - the opening hands: they are dealt before the engine's log starts, so
-//    they are in no event. Those cards show as backs, each in its place,
-//    until it is played (`LiveStart.openingHands` takes them, by card id,
-//    should the feed ever send them: then every hand is whole from move 0);
+//    they are in no event. The live view sends them on its start since game
+//    session 72 (`openingHands`, by card id), and `LiveStart.openingHands`
+//    takes them: then every hand is whole from move 0. A feed without them
+//    (the safety rule for real-time network agents) leaves those cards as
+//    backs, each in its place, until it is played;
 //  - a signature card's abilities: while one is in play (not dormant), a
 //    cost on the hand may be off by its aura, if it has one, so those costs
 //    are marked unsure (`costUnsure`) rather than shown as exact;
@@ -54,8 +56,10 @@
 //    been played, not the card, so the zone isn't drawn; a signature unit on
 //    the board (its card isn't in the registry) shows its live stats with
 //    the side's faction and no rules text;
-//  - the deck's faction: read from the first non-Neutral card the side
-//    reveals; Neutral until then.
+//  - the deck's faction: the live view sends it per side since game session
+//    72 (`LiveSideView.faction`, taken by `LiveStart.factions`); without it,
+//    read from the first non-Neutral card the side reveals, Neutral until
+//    then.
 // Each is named for the game lane in progress/render/notes-for-owner.md.
 
 import { CARD_REGISTRY, formatEvent, type Card, type GameEvent, type PlayerId, type ToolCard } from "@ai-tcg/engine";
@@ -86,9 +90,12 @@ export interface LiveStart {
   turnCap: number;
   energyCap: number;
   /** The opening hands by card id, in hand order, if the feed sends them
-   * (it doesn't today: notes-for-owner, render session 53). Without them
-   * the opening cards are backs until played. */
+   * (the live view's `openingHands` on its start, game session 72). Without
+   * them the opening cards are backs until played. */
   openingHands?: Record<PlayerId, string[]>;
+  /** Each side's deck faction, if the feed sends it (`LiveSideView.faction`,
+   * game session 72). Without it, the first non-Neutral card a side shows. */
+  factions?: Record<PlayerId, Faction>;
 }
 
 type Status = UnitSnapshot["statuses"][number];
@@ -185,6 +192,7 @@ export class LiveFrameBuilder {
     this.turn = start.start.turn;
     this.lastSnap = start.start;
     for (const pid of PIDS) for (const u of start.start[pid].board) this.track(u.instanceId);
+    for (const pid of PIDS) if (start.factions?.[pid]) this.faction[pid] = start.factions[pid];
     for (const pid of PIDS) {
       const given = start.openingHands?.[pid];
       this.hands[pid] = given && given.length === start.start[pid].hand ? given.map((id) => (cardOf(id) ? id : null)) : Array.from({ length: start.start[pid].hand }, () => null);
