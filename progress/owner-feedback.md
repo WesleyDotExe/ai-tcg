@@ -4157,3 +4157,16 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #124).
 3. The test-only Null deck-builder session (item 1 above), before the launch-gate re-run.
 
 Render lane, as set: the hardening pass next, then the second coin slice.
+
+---
+
+## 2026-11-03 — Owner: answers to game session 72 (the live-feed asks), keep all 3; enforce the hands rule before network agents join
+
+Answers the three calls in `progress/notes-for-owner.md` (PR #127, `progress/live-feed-asks-001.txt`).
+1. **Keep:** the signature card in the live feed also carries its art reference and flavour text.
+2. **Keep:** "rules text" is each ability's printed text, one line each; a keyword-only card sends no lines and the render draws its keywords.
+3. **Keep:** the live boast is worked out when the match starts being shown (from the loadouts and deck it started with, by the store's rule) and only sent once the last move is out.
+
+**Note: the hands safety rule must be enforced in code before any network agent plays on the ladder in real time.** Today it is only a comment and a doc (listed in `progress/quality-debt.md`), which is fine while every ladder match is decided before it is shown. When network agents start joining the ladder, the first step of that work is to enforce it: for a match with a real-time seat, the live feed sends hand counts only, no `openingHands`, and no card in `draw` events until the match ends, with a test that fails if any of them leak. Keep it on the roadmap's network-agents item and in the quality-debt list until it is built.
+
+Next game session, as planned: the Season 0 live features (the 2× vote, featured picks with the "Top rated" rule brought to a check-in, and viewer counts). Render lane, as set: the hardening pass, then the second coin slice; the site's live types can move to the new live-feed fields along the way.
