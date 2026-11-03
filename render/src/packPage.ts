@@ -508,6 +508,16 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     if (dist >= T.dragPx) return swipe ? 'move' : 'tilt';
     return ms >= T.holdMs ? 'tilt' : 'pending';
   }
+  // Was a release that came after the hold timer fired really a tap?
+  // (Render session 54.) The timer runs on the page's clock: when the main
+  // thread stalls (a slow phone, a busy shader), it can fire before a quick
+  // tap's queued release is handled, and the tap was lost as a tilt. The
+  // events' own timestamps say when the finger went down and up: held for
+  // less than T.holdMs, not moved T.dragPx, and never leant by a later move,
+  // it was a tap.
+  function packLateTap(heldMs, dist, leans, T) {
+    return heldMs >= 0 && heldMs < T.holdMs && dist < T.dragPx && leans <= 1;
+  }
   // The lean for a finger at (x, y) over the card (0-1 each, may run off
   // the card): the side under the finger dips away, up to max degrees
   // each way, reached at the card's edge.
@@ -923,7 +933,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       // A drag tears only along the top (the strip above the cut line and a
       // little below it); a press anywhere else can still be a tap.
       var prc = pack.getBoundingClientRect();
-      drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), top: (e.clientY - prc.top) / prc.height < 0.32 };
+      drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), ts: e.timeStamp, top: (e.clientY - prc.top) / prc.height < 0.32 };
       pack.classList.add('held');
       // Below the strip, a hold or a drag tilts the pack (owner 2026-10-18).
       // Nothing about the tilt reads what the pack holds: a pack with a hit
@@ -935,7 +945,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     pack.addEventListener('pointerup', function (e) {
       if (!drag) return;
       if (upWasTilt) { drag = null; pack.classList.remove('held'); return; }
-      var g = packGesture(e.clientX - drag.x0, e.clientY - drag.y0, performance.now() - drag.at);
+      var g = packGesture(e.clientX - drag.x0, e.clientY - drag.y0, pressMs(e, drag));
       drag = null;
       if (S.phase !== 'pack') return;
       if (g === 'tap') autoTear(cutp, 'tap');
@@ -1064,7 +1074,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       if (S.phase !== 'cards') return;
       var el = slotEl(S.i); if (!el) return;
       stack.setPointerCapture && stack.setPointerCapture(e.pointerId);
-      drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), el: el };
+      drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), ts: e.timeStamp, el: el };
       // Hold to tilt, once the card has landed face up. A quick sideways
       // move is still the swipe; only a hold starts the tilt here.
       var k = S.i;
@@ -1087,7 +1097,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       var d = drag; drag = null;
       d.el.classList.remove('dragging');
       if (upWasTilt) return;
-      var g = packGesture(e.clientX - d.x0, e.clientY - d.y0, performance.now() - d.at);
+      var g = packGesture(e.clientX - d.x0, e.clientY - d.y0, pressMs(e, d));
       act(g === 'swipeRight' ? 'r' : g === 'swipeLeft' ? 'l' : g === 'tap' ? 'tap' : 'none');
     });
     stack.addEventListener('pointerleave', function () { if (!tilting()) setLight(0.5, 0.4, false); });
@@ -1165,7 +1175,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // log, can(): whether it may lean now }.
   function pressTilt(e, o) {
     if (press) clearTimeout(press.timer);
-    var p = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, at: performance.now(), o: o, state: 'pending' };
+    var p = { x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, at: performance.now(), down: e.timeStamp, o: o, state: 'pending' };
     p.timer = setTimeout(function () { if (press === p && p.state === 'pending') holdNow(p); }, TT.holdMs);
     press = p;
   }
@@ -1205,16 +1215,30 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       if (st === 'tilt') holdNow(p); else if (st === 'move') { p.state = 'move'; clearTimeout(p.timer); }
     } else if (p.state === 'tilt' && held) leanTo(p.x, p.y);
   }, true);
-  function endPress() {
+  // How long a press lasted, by the events' own timestamps (when the finger
+  // went down and up), not by when the page got round to them: a stalled
+  // main thread must not turn a tap into a long press (render session 54).
+  function pressMs(e, d) {
+    var ms = e && typeof e.timeStamp === 'number' && typeof d.ts === 'number' ? e.timeStamp - d.ts : NaN;
+    return isFinite(ms) && ms >= 0 ? ms : performance.now() - d.at;
+  }
+  function endPress(e) {
     var p = press; press = null; upWasTilt = false;
     if (!p) return;
     clearTimeout(p.timer);
-    if (p.state === 'tilt' && held) { upWasTilt = true; swallowUntil = performance.now() + 400; letGo(); }
+    if (p.state === 'tilt' && held) {
+      var dx = p.x - p.x0, dy = p.y - p.y0;
+      var late = e && typeof e.timeStamp === 'number' && packLateTap(e.timeStamp - p.down, Math.sqrt(dx * dx + dy * dy), held.moves, TT);
+      letGo();
+      // A tap the page was too slow to see in time: it still counts.
+      if (late) { log('lateTap', { what: p.o.what, heldMs: Math.round(e.timeStamp - p.down) }); return; }
+      upWasTilt = true; swallowUntil = performance.now() + 400;
+    }
   }
   // A new press is never part of the last tilt: its click goes through.
   document.addEventListener('pointerdown', function () { swallowUntil = 0; }, true);
   document.addEventListener('pointerup', endPress, true);
-  document.addEventListener('pointercancel', function () { endPress(); upWasTilt = false; }, true);
+  document.addEventListener('pointercancel', function () { endPress(null); upWasTilt = false; }, true);
   // A click straight after a tilt (the fan's, the viewer backdrop's) is
   // part of the tilt, not a tap.
   document.addEventListener('click', function (e) { if (performance.now() < swallowUntil) { swallowUntil = 0; e.stopPropagation(); e.preventDefault(); } }, true);
@@ -1534,10 +1558,10 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // A tap or a swipe on the row; a tap knows which card it landed on.
   function bindRow(row) {
     var down = null;
-    row.addEventListener('pointerdown', function (e) { down = { x: e.clientX, y: e.clientY, at: performance.now() }; });
+    row.addEventListener('pointerdown', function (e) { down = { x: e.clientX, y: e.clientY, at: performance.now(), ts: e.timeStamp }; });
     row.addEventListener('pointerup', function (e) {
       if (!down) return;
-      var g = packGesture(e.clientX - down.x, e.clientY - down.y, performance.now() - down.at);
+      var g = packGesture(e.clientX - down.x, e.clientY - down.y, pressMs(e, down));
       down = null;
       if (g === 'none') return;
       var card = g === 'tap' && e.target.closest ? e.target.closest('.bcard') : null;

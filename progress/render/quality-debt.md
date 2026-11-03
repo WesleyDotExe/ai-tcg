@@ -108,9 +108,12 @@ items are removed, with the fix in `log.md`.
   reload mid-reveal loses the show (the cards are safe: they're in the collection).
 - **The site's bundle grew from about 150 KB to 300 KB:** it now carries the engine's card registry, so
   the planner can draw card faces. Fine on home Wi-Fi; never measured on a slow link.
-- **Check E of `site-check-s47` failed once in four runs** (a second pack's reveal against its logged
-  copies), five clean runs since; cause unproven (likely the script's own taps). It now prints what it
-  saw when it fails.
+- **Tap timing under load was only fixed in the pack opening (session 54).** The check-E flake was a real
+  bug: on a stalled main thread the 200 ms hold timer ran before a quick tap's release, so the tap became a
+  tilt and was ignored. The pack page now judges press length by the events' own timestamps
+  (`packLateTap`, `pressMs`). Other surfaces with hold or gesture timing were not audited for the same
+  pattern (the website's board drag, the card viewer outside the pack page, the arena's controls). The
+  fix was proven under artificial CPU load in headless software WebGL, never on a slow phone.
 - **The board's drag is HTML5 drag and drop:** proven with a real mouse in Chromium; not tried in Safari
   or with a trackpad. No drop-position preview beyond the outlined target; the mockup has none either.
 - **Wide windows pack densely**, so a Small can sit ahead of its place in the owner's order (narrow ones

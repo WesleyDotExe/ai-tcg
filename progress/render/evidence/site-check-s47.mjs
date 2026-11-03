@@ -90,20 +90,34 @@ async function playSingle(page, { stopAfter = Infinity } = {}) {
   const pk = await f.locator('#pack').boundingBox();
   await page.mouse.click(pk.x + pk.width / 2, pk.y + pk.height / 2);
   await until(async () => (await P(page))?.phase === 'cards');
+  // Render session 54 (the check-E flake): the page drops a tap while the
+  // top card is still busy (rising, flying off, or mid-reveal), on purpose.
+  // The loop used to tap blind and, on a dropped reveal tap, wait 9 s for a
+  // landing that never came (and its Zero-Day wait matched any earlier
+  // pack's arrival). Now every tap waits for the card to be free, a reveal
+  // tap is checked to have started (this pack's log only) and re-sent if
+  // not, and a stall says where it stopped.
   let guard = 0, taps = 0;
   while ((await P(page))?.phase === 'cards' && guard++ < 60) {
     if (taps >= stopAfter) return null;
-    const st = await f.evaluate(() => ({ i: window.__pack.i, down: window.__pack.cur.cards[window.__pack.i]?.faceDown }));
+    await until(async () => f.evaluate(() => window.__pack.busyUntil - performance.now() <= 0), 30000);
+    const st = await f.evaluate(() => ({ i: window.__pack.i, down: window.__pack.cur.cards[window.__pack.i]?.faceDown, rev: !!window.__pack.revealed[window.__pack.i], zd: window.__pack.cur.cards[window.__pack.i]?.reveal === 'zeroDay' }));
     const box = await f.locator(`.cslot[data-k="${st.i}"]`).boundingBox().catch(() => null);
     if (!box) { await wait(100); continue; }
     await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
     taps++;
-    if (st.down) {
-      await until(async () => f.evaluate((k) => window.__pack.log.some((e) => (e.kind === 'landed' || e.kind === 'zeroDayArrive') && (e.idx === k || e.kind === 'zeroDayArrive')), st.i), 9000);
-      await until(async () => f.evaluate(() => window.__pack.busyUntil - performance.now() <= 0), 9000);
-      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    if (st.down && !st.rev) {
+      const began = await until(async () => f.evaluate(([from, k]) => window.__pack.log.slice(from).some((e) => e.kind === 'reveal' && e.idx === k), [from, st.i]), 2000);
+      if (!began) { note(`a reveal tap on card ${st.i} was dropped; tapping again`); continue; }
+      await until(async () => f.evaluate(([from, a]) => window.__pack.log.slice(from).some((e) => (a.zd ? e.kind === 'zeroDayArrive' : e.kind === 'landed') && e.idx === a.i), [from, st]), 20000);
+      continue;
     }
-    await wait(300);
+    await wait(150);
+  }
+  const late = await f.evaluate((from) => window.__pack.log.slice(from).filter((e) => e.kind === 'lateTap').length, from);
+  if (late) note(`${late} tap(s) came after the page's hold timer (a stalled main thread) and still counted as taps`);
+  if ((await P(page))?.phase !== 'summary' && !(await until(async () => (await P(page))?.phase === 'summary'))) {
+    note(`the reveal stopped short of its summary: ${JSON.stringify(await f.evaluate(() => ({ phase: window.__pack.phase, i: window.__pack.i, busy: Math.round(window.__pack.busyUntil - performance.now()), last: window.__pack.log.slice(-4).map((e) => e.kind + (e.idx ?? '')) })))}`);
   }
   await until(async () => (await P(page))?.phase === 'summary');
   return f.evaluate((from) => {
