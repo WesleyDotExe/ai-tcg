@@ -4126,3 +4126,34 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #124).
 1. Next slice: hands live, face up (the owner's render-51 answer, rebuilt from the feed's draw events), together with the first coin slice (the flip in Match Boot, the Chrome Token, reduced motion and sound).
 2. **Then a render hardening pass** (the last was session 40): no new features; work the quality-debt list, re-run and fix the stale checks named there (for example the session-25 ten-pack check and the session-36 loadout check), and the check-E flake.
 3. Then the second coin slice (the store and tier coins' looks, the coin line in the picker and the Store), and the rest of the Season 0 list.
+
+---
+
+## 2026-11-03 — Owner: answers to game session 71 (the 24-health rule shipped) and render session 53 (live hands face up; the coin flip)
+
+### Game session 71 (PR #125, `progress/first-seat-003-rules-2.txt`, `progress/built-deck-ring-005.txt`)
+1. **The full-collection Null deck: yes, a test-only builder session before the launch-gate re-run.** The builder keeps the designed deck unless another deck beats it by more than noise; then re-run the built-deck ring and bring the results to an owner check-in. No card, deck or rule change without the owner's OK. It doesn't have to come before the Season 0 items below, but it must land before the launch-gate re-run.
+2. **Watch time: accept it, no pace change.** A median of about 6.7 minutes per match is fine: 6-7 minutes is reasonable even though it is over the old 5-6 minute target. Leave `WATCH_PACE_MS` as it is; treat 6-7 minutes as the target from now on. Report it at a check-in if the median moves well past 7 minutes.
+3. **Keep:** the rule is the engine's default, so every match anywhere plays it; `rules-1` lists its 20 and 20 explicitly.
+4. **Keep:** the other three first-seat variants are removed from the engine; their numbers stay in `progress/first-seat-002-fixes.txt`.
+5. **Keep:** a replay played under an older rules version names that version (`rules-1`); only an unpublished variant is "measure".
+6. **Keep:** the close-win boast still triggers at 5 health or less for both seats.
+7. **Noted:** the signature-mode report's Aegis > Cortex move (72.4% to 75.8%), report only.
+
+### Render session 53 (PR #126), keep all 7
+1. **Keep:** the coin "flicks up" toward the viewer (grows and shrinks on the centre line), favouring neither half.
+2. **Keep:** the result line sits under the coin, both going as the saying slams in.
+3. **Keep:** the edge pulse as a band of the first player's faction colour.
+4. **Keep:** reduced motion as two cuts (coin and line, then the saying), 1.3 s.
+5. **Keep:** live opening-hand cards show as labelled backs in place until played (until the ask below lands).
+6. **Keep:** a live cost a signature card may change is marked "?" until the signature-card ask lands.
+7. **Keep:** a coin not drawn yet flips the Chrome Token.
+
+**Game lane: the opening-hands ask, approved.** Send the opening hands, by card id in hand order, on the live view's start (`openingHands: { p1, p2 }` beside `start` in `GET /api/live/:id`), only while the match is decided before it is shown (the safety rule for real-time network agents leaves it out). Also, when the second coin slice lands, let `economy/test/cosmetics.test.ts` check coins against the render's `COIN_SPECS` (render notes item 3).
+
+### Game-lane order from here
+1. The live-feed asks: the opening hands, plus the three from render 51 (the signature card in `PublicSide.signature`, each side's faction, the boast on the live view once the last move is out).
+2. The Season 0 live features: the 2× vote, featured picks (bring the "Top rated" rule to a check-in) and viewer counts.
+3. The test-only Null deck-builder session (item 1 above), before the launch-gate re-run.
+
+Render lane, as set: the hardening pass next, then the second coin slice.
