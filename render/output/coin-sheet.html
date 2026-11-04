@@ -1,0 +1,1214 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coin sheet</title>
+<style>
+:root {
+  --bg: #070912;
+  --panel: #0d1220;
+  --panel-2: #121a2e;
+  --ink: #d7e6ff;
+  --ink-dim: #8ea3c9;
+  --line: #24314f;
+  --good: #35e6a0;
+  --bad: #ff4d6d;
+  /* Neutral is white-gold (owner 2026-10-05): the old gold #ffcf5c nearly
+   * merged with Aegis orange under deuteranopia. */
+  --neutral: #fff0c2;
+  --cortex: #35c9ff;
+  --aegis: #ff7d24;
+  --swarm: #8bff5c;
+  --null: #d565ff;
+  --shield: #6fe3ff;
+  --armor: #9fb4c9;
+  --penalty: #b3bbd6;
+  --cast: #d9c8ff;
+  font-size: 15px;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+  font-family: "Courier New", "Consolas", ui-monospace, monospace;
+  min-height: 100vh;
+}
+.crt-overlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 50; mix-blend-mode: overlay;
+  background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 2px, transparent 3px);
+}
+.matchbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 18px; background: linear-gradient(180deg, #0b0f1c, #090c16);
+  border-bottom: 1px solid var(--line);
+  text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.85rem;
+}
+.brand { color: var(--ink-dim); }
+.matchup { font-weight: bold; letter-spacing: 0.12em; }
+.matchup .vs { color: var(--ink-dim); margin: 0 0.5em; }
+.seed { color: var(--ink-dim); font-size: 0.75rem; }
+/* The spectator point of view (render session 52, owner 2026-11-02): one
+ * two-button switch with the agents' names; the chosen player sits at the
+ * bottom (the near side). */
+.pov { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--line); border-radius: 4px; padding: 2px; background: #070a14; }
+.pov[hidden] { display: none; }
+.pov-l { color: var(--ink-dim); font-size: 0.66rem; padding: 0 6px; white-space: nowrap; }
+.pov-b { background: none; border: 1px solid transparent; color: var(--ink-dim); font: inherit; font-size: 0.74rem; letter-spacing: 0.03em; text-transform: none; padding: 4px 9px; min-height: 28px; border-radius: 3px; cursor: pointer; max-width: 24ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) { .pov-b { max-width: 15ch; } }
+.pov-b[aria-pressed="true"] { color: var(--fc, var(--ink)); border-color: var(--fc, var(--ink)); background: rgba(255,255,255,0.05); box-shadow: 0 0 8px -3px var(--fc, var(--ink)); }
+.pov-b:not([aria-pressed="true"]):hover { color: var(--ink); }
+.pov-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.pov.waiting .pov-b { cursor: progress; }
+@media (max-width: 720px) { .matchbar { flex-wrap: wrap; gap: 6px 10px; } .pov { order: 3; } }
+#app { max-width: 1180px; margin: 0 auto; padding: 14px 12px 24px; position: relative; z-index: 1; }
+/* EFFECTS.md v2 canvases (render/src/canvasFx.ts): the floor sits under
+ * the board (the background grid impacts warp, then ground marks and
+ * settled debris), the FX canvas over the cards but under the floating
+ * numbers and tags in .fx-layer. */
+.fx-canvas { position: fixed; left: 0; top: 0; pointer-events: none; }
+.fx-canvas.fx-floor { z-index: 0; }
+/* The camera beats (canvasFx.ts: punch, shake, colour split) transform
+ * #app for a fraction of a second, and only then: no will-change, which
+ * would keep the whole board on its own layer for the entire replay. */
+.fx-canvas.fx-top { z-index: 89; }
+
+.hud-row { display: grid; grid-template-columns: 1fr 220px 1fr; gap: 10px; align-items: stretch; margin-bottom: 8px; }
+.hud { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; }
+.hud .name { font-weight: bold; letter-spacing: 0.05em; display: flex; justify-content: space-between; }
+.hud .ident { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.hud .ident .uname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Player identity (owner-feedback 2026-09-26): name + avatar + faction
+ * colour together. The avatar box takes a real image (identity.avatarUrl)
+ * when one exists; until then a username-seeded SVG placeholder whose body
+ * paints in the faction colour (currentColor). */
+.avatar { width: 38px; height: 38px; flex-shrink: 0; border-radius: 8px; color: var(--fc); box-shadow: 0 0 0 1px var(--fc), 0 0 10px -2px var(--fc); overflow: hidden; display: block; }
+.avatar svg, .avatar img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.matchup .avatar { width: 20px; height: 20px; border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.hud .name { align-items: center; }
+.hud .faction-tag { font-size: 0.7rem; padding: 1px 6px; border-radius: 3px; border: 1px solid currentColor; }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 0.78rem; }
+.bar-track { flex: 1; height: 9px; background: #050810; border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; transition: width 420ms ease; }
+.bar-fill.health { background: linear-gradient(90deg, #ff4d6d, #ff8a5c); }
+.bar-fill.energy { background: linear-gradient(90deg, #35c9ff, #7de3ff); }
+.hud .meta { display: flex; gap: 10px; margin-top: 6px; font-size: 0.72rem; color: var(--ink-dim); }
+
+.momentum { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+.momentum .label { font-size: 0.62rem; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 5px; }
+.momentum .gauge { width: 100%; height: 10px; background: #050810; border: 1px solid var(--line); border-radius: 5px; position: relative; overflow: hidden; }
+.momentum .gauge .mid { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--line); }
+.momentum .gauge .fill { position: absolute; top: 0; bottom: 0; background: var(--neutral); transition: left 420ms ease, width 420ms ease, background 420ms ease; }
+.momentum .why { font-size: 0.66rem; color: var(--ink-dim); margin-top: 6px; min-height: 2.4em; }
+
+/* Slice 7: the turn line sits on its own backing. A ward behind a top-row
+ * card (two signature cards make that common) reaches up past the card,
+ * and the turn and phase must always read (legibility wins). */
+.turnbar { text-align: center; padding: 6px; font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink-dim); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 10px;
+  background: color-mix(in srgb, var(--bg) 90%, transparent); position: relative; }
+.turnbar b { color: var(--ink); }
+.turnbar .win { color: var(--neutral); font-weight: bold; }
+
+.board-area { position: relative; }
+.board-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 8px 0; min-height: 168px; }
+/* A row of six slots fits the screen (render/src/boardFit.ts): the page
+ * zooms the row so all six stay on one line down to about 600 px. Below
+ * that the row splits into two lines of three, and the side's two lines
+ * sit in one faint frame in its faction colour, so they still read as one
+ * side's board and never interleave with the opponent's. */
+.board-row.two-line { margin: 2px auto; padding: 6px; border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--fc, var(--line)) 40%, transparent);
+  background: color-mix(in srgb, var(--fc, var(--line)) 5%, transparent); }
+.stackzone { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-height: 22px; margin: 2px 0; }
+.stackitem { font-size: 0.68rem; background: var(--panel-2); border: 1px dashed var(--neutral); color: var(--neutral); padding: 2px 8px; border-radius: 3px; }
+
+.slot { width: 118px; height: 158px; border-radius: 6px; position: relative; flex-shrink: 0; }
+.slot.empty { border: 1px dashed var(--line); background: repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0 6px, transparent 6px 12px); }
+
+/* The signature zone (render/src/sigZoneFx.ts): each agent's signature card
+ * waits here, off the board, in a white-gold socket left of its own row.
+ * Out on the board, the socket stays and says so; the cost shows the climb
+ * (+2 per replay) and the glow says when the card is within reach. */
+.side { position: relative; }
+.sigzone { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 112px; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 0.58rem; letter-spacing: 0.1em; color: var(--neutral); }
+.sigzone[hidden] { display: none; }
+.sigzone .sz-head { display: flex; gap: 6px; align-items: baseline; }
+.sigzone .sz-no { color: var(--ink-dim); letter-spacing: 0.04em; }
+.sigzone .sz-socket { width: 102px; height: 137px; border-radius: 7px; position: relative; flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--neutral) 55%, transparent);
+  background: radial-gradient(ellipse at 50% 42%, color-mix(in srgb, var(--neutral) 12%, transparent), transparent 70%),
+    repeating-linear-gradient(135deg, rgba(255,240,194,0.045) 0 5px, transparent 5px 10px), #05060b;
+  box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 14px -4px var(--neutral) inset; }
+.sigzone .sz-socket .card { position: absolute; left: 0; top: 0; transform: scale(0.864); transform-origin: top left; animation: none; }
+.sigzone .sz-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 5px; padding: 8px; text-align: center; color: var(--ink-dim); letter-spacing: 0.06em; line-height: 1.3; }
+.sigzone .sz-empty b { color: var(--neutral); font-size: 0.64rem; letter-spacing: 0.14em; }
+.sigzone .sz-empty .sz-name { color: var(--ink); letter-spacing: 0.02em; }
+.sigzone .sz-foot { display: flex; gap: 5px; align-items: center; }
+.sigzone .sz-cost { border: 1px solid var(--neutral); border-radius: 3px; padding: 0 5px; font-weight: bold; }
+.sigzone .sz-climb { color: #ff8a5c; font-weight: bold; }
+.sigzone .sz-plays { color: var(--ink-dim); letter-spacing: 0.04em; }
+.sigzone .sz-reach { min-height: 1.2em; color: var(--ink-dim); }
+.sigzone.reach-next .sz-cost { border-style: dashed; }
+.sigzone.reach-next .sz-reach { color: var(--neutral); opacity: 0.75; }
+.sigzone.reach-now .sz-cost { background: var(--neutral); color: #05060d; }
+.sigzone.reach-now .sz-reach { color: var(--neutral); font-weight: bold; }
+.sigzone.reach-now .sz-socket { animation: sz-ready 1.6s ease-in-out infinite; }
+@keyframes sz-ready {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 12px 1px var(--neutral); }
+  50% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 26px 6px var(--neutral); }
+}
+/* A dead signature card is on its way home: the socket waits empty until
+ * the mote lands, then flares. */
+.sigzone.sz-awaiting .sz-socket .card { opacity: 0; }
+.sigzone.sz-landing .sz-socket { animation: sz-land 480ms ease-out; }
+@keyframes sz-land {
+  0% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 44px 14px var(--neutral); transform: scale(1.07); }
+  100% { box-shadow: 0 0 0 3px rgba(5,8,16,0.85), 0 0 14px -4px var(--neutral) inset; transform: scale(1); }
+}
+.card.fx-sigfly { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
+  box-shadow: 0 0 22px var(--neutral), 0 0 0 2px var(--neutral); }
+.fx-sigmote { position: fixed; left: 0; top: 0; width: 34px; height: 46px; border-radius: 4px; pointer-events: none; z-index: 1;
+  border: 2px solid var(--neutral); background: rgba(255,240,194,0.28); box-shadow: 0 0 18px 4px var(--neutral), 0 0 0 1px #05060d; }
+.fx-sigmote.trail { background: transparent; box-shadow: 0 0 12px 2px var(--neutral); }
+@media (max-width: 1040px) {
+  .sigzone { position: static; transform: none; width: auto; flex-direction: row; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+  .sigzone .sz-socket { width: 51px; height: 69px; }
+  .sigzone .sz-socket .card { transform: scale(0.432); }
+  .sigzone .sz-empty { font-size: 0; gap: 0; }
+  .sigzone .sz-empty b { font-size: 0.5rem; }
+}
+@media (prefers-reduced-motion: reduce) { .sigzone.reach-now .sz-socket, .sigzone.sz-landing .sz-socket { animation: none; } }
+/* Narrow screens: nothing may push the page sideways. The HUD columns
+ * shrink (minmax(0, 1fr): a plain 1fr won't go below its content), the
+ * gauge drops under the two players, and below 560 px everything stacks.
+ * The board rows already wrap. */
+@media (max-width: 900px) {
+  .hud-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .hud-row .momentum { grid-column: 1 / -1; order: 3; }
+  .hud { padding: 8px 10px; min-width: 0; }
+  .matchbar { flex-wrap: wrap; gap: 4px 10px; padding: 8px 12px; }
+  .controls #scrubber { width: 100%; max-width: 320px; }
+  .controls .sound-ctl { flex-wrap: wrap; justify-content: center; max-width: 100%; }
+  .lower { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .hud-row { grid-template-columns: minmax(0, 1fr); }
+  .board-row { gap: 6px; }
+  .lower { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .lower .eventlog { grid-column: 1 / -1; order: 3; }
+}
+
+.card { width: 118px; height: 158px; border-radius: 6px; position: relative; overflow: hidden;
+  border: 1px solid var(--line); display: flex; flex-direction: column; color: #0a0e18; }
+.card .art { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; padding: 4px; }
+.card .art .glyph { font-size: 1.6rem; opacity: 0.85; }
+.card .head { display: flex; justify-content: space-between; align-items: center; padding: 2px 4px; font-size: 0.6rem; background: rgba(0,0,0,0.28); }
+.card .cost { background: rgba(0,0,0,0.55); color: #fff; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; }
+.card .name { font-size: 0.62rem; font-weight: bold; line-height: 1.05; padding: 2px 5px; background: rgba(0,0,0,0.35); color: #fff; }
+.card .stats { display: flex; justify-content: space-between; padding: 3px 5px; font-size: 0.72rem; font-weight: bold; background: rgba(0,0,0,0.42); color: #fff; }
+.card .stats .atk::before { content: "\2694 "; }
+.card .stats .hp::before { content: "\2665 "; }
+/* Persistent buff/penalty state (EFFECTS.md slice 2): the rise/sink
+ * animation says "it just changed"; these keep saying "it is still above /
+ * below its printed stat" for as long as that's true. Health compares MAX
+ * health to printed, so ordinary damage never reads as a debuff. */
+.card .stats .up { color: #ffd76a; text-shadow: 0 0 6px rgba(255,215,106,0.55); }
+.card .stats .down { color: var(--penalty); }
+.card .stats .up::after { content: "\25B2"; font-size: 0.5rem; vertical-align: 2px; margin-left: 1px; }
+.card .stats .down::after { content: "\25BC"; font-size: 0.5rem; vertical-align: 1px; margin-left: 1px; }
+.card .tags { position: absolute; top: 2px; left: 2px; display: flex; flex-direction: column; gap: 2px; z-index: 2; }
+.card .tag { font-size: 0.52rem; padding: 1px 3px; border-radius: 2px; background: rgba(0,0,0,0.55); color: #fff; letter-spacing: 0.03em; }
+
+/* Defence/shield primitives (EFFECTS.md slice 1, render-lane session 4):
+ * persistent badges for the two defensive traits that are true of a unit
+ * for as long as it holds them, not just for one animated instant — Guard
+ * (always true while the keyword's held) and an active Barrier (true only
+ * until it's consumed; driven by the live barrierActive snapshot field,
+ * not the static keywords list, so the badge correctly disappears the
+ * moment the shield breaks instead of lying about a spent shield). */
+.card .shields { position: absolute; top: 22px; right: 3px; display: flex; flex-direction: column; gap: 2px; z-index: 2; }
+.shield-badge { font-size: 0.6rem; font-weight: bold; line-height: 1; width: 13px; height: 13px; display: flex; align-items: center; justify-content: center; border-radius: 3px; background: rgba(0,0,0,0.55); }
+.shield-badge.shield-guard { color: #cfd8e3; box-shadow: 0 0 0 1px rgba(207,216,227,0.7) inset; }
+.shield-badge.shield-barrier { color: var(--shield); box-shadow: 0 0 5px var(--shield), 0 0 0 1px var(--shield) inset; animation: shield-idle-pulse 1.8s ease-in-out infinite; }
+@keyframes shield-idle-pulse { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+/* Penalty statuses share the badge column with the shields but read as the
+ * opposite: dim, desaturated, dashed — "something is wrong with this unit". */
+.shield-badge.status-penalty { color: var(--penalty); background: rgba(20,20,28,0.8); box-shadow: 0 0 0 1px var(--penalty) inset; border: 1px dashed transparent; }
+.card.has-stasis .art { filter: grayscale(0.7); }
+.card.pending { filter: grayscale(0.55) brightness(0.75); }
+.card.pending::after { content: "ARMING"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; letter-spacing: 0.15em; color: var(--neutral); background: repeating-linear-gradient(45deg, rgba(0,0,0,0.55) 0 6px, rgba(0,0,0,0.7) 6px 12px); z-index: 1; }
+.card .arm-count { position: absolute; bottom: 2px; right: 2px; font-size: 0.55rem; color: var(--neutral); background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 3px; z-index: 2; }
+.card .tools { flex-shrink: 0; display: flex; gap: 2px; flex-wrap: wrap; padding: 1px 4px 2px; background: rgba(0,0,0,0.32); }
+.card .tool-chip { font-size: 0.5rem; background: rgba(0,0,0,0.6); color: #fff; padding: 1px 3px; border-radius: 2px; }
+
+.rarity-Common { box-shadow: none; }
+.rarity-Uncommon { box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset; }
+.rarity-Rare { box-shadow: 0 0 8px 1px var(--rc), 0 0 0 1px var(--rc) inset; }
+.rarity-Mythic { box-shadow: 0 0 14px 3px var(--rc), 0 0 0 1px var(--rc) inset; animation: pulse 2.2s ease-in-out infinite; }
+/* Slice 6: the Mythic card's foil, a slow light sweep across the card (the
+ * lab's .card.mythic::after). Its ward lives on the floor canvas behind it. */
+.card.rarity-Mythic:not(.pending)::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.2) 45%, transparent 60%) 0 0 / 250% 100%;
+  animation: mythic-foil 4.5s linear infinite; }
+@keyframes mythic-foil { from { background-position: 150% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .card.rarity-Mythic::after { animation: none; } }
+@keyframes pulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.18); } }
+
+.faction-Cortex { --fc: var(--cortex); --rc: #35c9ff; }
+.faction-Aegis { --fc: var(--aegis); --rc: #ffc29a; }
+.faction-Swarm { --fc: var(--swarm); --rc: #b6ff8f; }
+.faction-Null { --fc: var(--null); --rc: #e79bff; }
+/* Neutral cards (engine data/neutralCards.ts) take the white-gold, so the
+ * frame matches the fx tints, which read var(--<faction>) = var(--neutral).
+ * White text on a white-gold frame needs darker strips under it to stay
+ * readable (owner 2026-10-05: dark on light, or white-gold on dark). */
+.faction-Neutral { --fc: var(--neutral); --rc: #fff8e2; }
+.card.faction-Neutral .name, .card.faction-Neutral .stats { background: rgba(0,0,0,0.66); }
+.card.faction-Cortex, .card.faction-Aegis, .card.faction-Swarm, .card.faction-Null, .card.faction-Neutral { background: var(--fc); }
+/* Slice 6: the Mythic card is obsidian + foil (EFFECTS.md "Mythic unique
+ * wards", the lab's .card.mythic): near-black with a faint glow of its
+ * faction, rimmed in its colour, so its ward reads around it. */
+.card.rarity-Mythic { background: #05060b; background: radial-gradient(ellipse at 50% 45%, color-mix(in srgb, var(--fc) 18%, #05060b), #05060b 75%);
+  border-color: var(--rc); color: #fff; }
+.card.rarity-Mythic .art { background-image: none !important; color: var(--rc); text-shadow: 0 0 8px var(--rc); }
+.card.rarity-Mythic .head { background: color-mix(in srgb, var(--rc) 70%, #fff); color: #05060d; }
+
+.lower { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-top: 12px; }
+.hand { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; min-height: 90px; }
+.hand .minicard { font-size: 0.62rem; padding: 3px 6px; border-radius: 3px; border: 1px solid var(--line); background: var(--panel-2); color: var(--ink); }
+.hand .minicard b { color: var(--fc, var(--ink)); }
+.hand .minicard b .unsure { font-style: normal; opacity: 0.7; margin-left: 1px; }
+.hand .minicard.back { width: 20px; height: 28px; padding: 0; border-color: var(--line); background: repeating-linear-gradient(135deg, var(--panel-2) 0 4px, var(--panel) 4px 8px); box-shadow: inset 0 0 0 2px var(--panel); }
+.hand-count { font-size: 0.6rem; color: var(--ink-dim); align-self: center; margin-left: 4px; }
+.live-badge { font: inherit; font-size: 0.7rem; letter-spacing: 0.14em; padding: 3px 10px; border-radius: 4px; border: 1px solid #ff4d6d; color: #ff4d6d; background: transparent; cursor: pointer; }
+.live-badge::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: currentColor; vertical-align: 1px; }
+.live-badge.on::before { animation: live-dot 1.4s ease-in-out infinite; }
+.live-badge.behind { color: var(--ink-dim); border-color: var(--line); }
+.live-badge.ended { color: var(--ink-dim); border-color: var(--line); cursor: default; }
+.live-badge.ended::before { display: none; }
+@keyframes live-dot { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) { .live-badge.on::before { animation: none; } }
+.hand-label { width: 100%; font-size: 0.6rem; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 2px; }
+
+.eventlog { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 0.72rem; max-height: 260px; display: flex; flex-direction: column; min-width: 0; }
+.eventlog .feed-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 5px 10px; font-size: 0.6rem; letter-spacing: 0.12em; color: var(--ink-dim); border-bottom: 1px solid var(--line); }
+.eventlog .feed-head label { letter-spacing: 0.04em; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.eventlog .feed-head input { margin: 0; accent-color: var(--ink-dim); }
+.eventlog-body { overflow-y: auto; padding: 4px 8px 8px; flex: 1; min-height: 0; }
+/* The match feed (render/src/feed.ts): one entry per thing that happened.
+ * The left rule takes the faction colour of whoever the entry belongs to;
+ * names take their own faction colour. */
+.fe { color: var(--ink-dim); border-left: 2px solid transparent; padding: 1px 0 1px 8px; line-height: 1.4; overflow-wrap: anywhere; }
+.fe .fc { color: color-mix(in srgb, var(--fc, var(--ink)) 80%, var(--ink)); }
+.fe .fp { color: var(--fc, var(--ink)); font-weight: bold; }
+.fe.now { color: var(--ink); background: color-mix(in srgb, var(--fc, var(--ink)) 8%, transparent); }
+.fe-turn { margin-top: 8px; padding: 3px 8px; border-left-color: var(--fc, var(--line)); color: var(--ink); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase;
+  background: color-mix(in srgb, var(--fc, var(--line)) 10%, transparent); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fe-turn:first-child { margin-top: 2px; }
+.fe-turn .avatar { width: 16px; height: 16px; border-radius: 4px; box-shadow: 0 0 0 1px var(--fc); }
+.fe-turn .fe-detail { text-transform: none; letter-spacing: 0; flex-basis: 100%; margin: 0; }
+.fe-action, .fe-response, .fe-resolve, .fe-trigger { border-left-color: color-mix(in srgb, var(--fc, var(--line)) 55%, transparent); margin-top: 2px; }
+.fe-trigger, .fe-resolve { font-style: italic; }
+.fe-result { padding-left: 22px; position: relative; }
+.fe-result::before { content: "›"; position: absolute; left: 12px; color: var(--line); }
+.fe-detail { font-size: 0.64rem; color: var(--ink-dim); font-style: normal; margin-top: 1px; }
+.fe-tag { font-size: 0.56rem; padding: 0 4px; margin-right: 6px; border: 1px solid currentColor; border-radius: 3px; letter-spacing: 0.08em; font-style: normal; vertical-align: 1px; }
+.fe-response { background: color-mix(in srgb, var(--cast) 7%, transparent); }
+.fe-response .fe-tag { color: var(--cast); }
+.fe-tag-SIGNATURE { color: var(--neutral); }
+.fe-end { margin-top: 8px; padding: 4px 8px; border-left-color: var(--good); color: var(--good); font-weight: bold; }
+.eventlog .ev { color: var(--ink-dim); white-space: pre-wrap; }
+.eventlog .ev.now { color: var(--ink); }
+.eventlog .ev.gameover { color: var(--good); font-weight: bold; }
+
+.controls { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+.controls button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 5px 10px; cursor: pointer; font-family: inherit; }
+.controls button:hover { border-color: var(--cortex); }
+.controls #scrubber { width: 320px; }
+.controls #btn-sound.on, .controls #btn-music.on { border-color: var(--good); color: var(--good); }
+/* Armed: on, waiting for the viewer's first click or key press to start. */
+.controls #btn-sound.armed, .controls #btn-music.armed { border-style: dashed; }
+.sound-ctl { display: inline-flex; align-items: center; gap: 6px; }
+.cosmetics-ctl[aria-pressed=false] { color: var(--ink-dim); }
+.sound-ctl input[type=range] { width: 80px; accent-color: var(--good); }
+.sound-ctl input[type=range]:disabled { opacity: 0.4; }
+.music-meter { font-size: 0.7rem; color: var(--ink-dim); min-width: 92px; letter-spacing: 1px; }
+.framecount { font-size: 0.75rem; color: var(--ink-dim); min-width: 90px; }
+.speedlabel { font-size: 0.72rem; color: var(--ink-dim); display: flex; gap: 4px; align-items: center; }
+.speedlabel select, .sound-ctl select { background: var(--panel-2); color: var(--ink); border: 1px solid var(--line); }
+.sound-ctl select { font-size: 0.7rem; }
+
+/* Per-move transitions (RENDER.md render-lane session 2): the board no
+ * longer just snaps to the next frame — plays, deaths, attacks, damage/heal,
+ * telegraph arming, evolution, and stat buffs each get a distinct, brief,
+ * readable animation. Driven entirely off frame-to-frame diffs keyed by
+ * instanceId (see the JS's runFx), not by parsing event text, so it stays
+ * correct even in a mirror match where both players run the same card/agent
+ * name. */
+.fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+
+.fx-ghost { animation: fx-exit 650ms ease forwards; }
+@keyframes fx-exit {
+  0% { opacity: 1; transform: translateY(0) scale(1); filter: none; }
+  100% { opacity: 0; transform: translateY(18px) scale(0.7); filter: grayscale(1) brightness(0.55); }
+}
+
+.card.fx-enter { animation: fx-enter 480ms cubic-bezier(.22,.9,.32,1.1); }
+@keyframes fx-enter {
+  0% { opacity: 0; transform: translateY(24px) scale(0.85); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.board-row#board-p1 .card.fx-attack { animation: fx-lunge-up 380ms ease; }
+.board-row#board-p2 .card.fx-attack { animation: fx-lunge-down 380ms ease; }
+/* Watching as p2, p2 is the near side: its cards lunge up. */
+body.pov-p2 .board-row#board-p1 .card.fx-attack { animation-name: fx-lunge-down; }
+body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
+@keyframes fx-lunge-up { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-14px) scale(1.05); } }
+@keyframes fx-lunge-down { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(14px) scale(1.05); } }
+
+.card.fx-hit, .hud.fx-hit { animation: fx-hit-flash 420ms ease; }
+@keyframes fx-hit-flash {
+  0% { box-shadow: 0 0 0 3px var(--bad) inset, 0 0 16px var(--bad); }
+  100% { box-shadow: none; }
+}
+.card.fx-heal, .hud.fx-heal { animation: fx-heal-flash 420ms ease; }
+@keyframes fx-heal-flash {
+  0% { box-shadow: 0 0 0 3px var(--good) inset, 0 0 16px var(--good); }
+  100% { box-shadow: none; }
+}
+.card.fx-armed { animation: fx-armed-flash 550ms ease; }
+@keyframes fx-armed-flash {
+  0% { box-shadow: 0 0 0 3px var(--neutral) inset, 0 0 18px var(--neutral); filter: brightness(1); }
+  50% { filter: brightness(1.55); }
+  100% { box-shadow: none; filter: brightness(1); }
+}
+.card.fx-evolve { animation: fx-evolve-pulse 650ms ease; }
+@keyframes fx-evolve-pulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  40% { transform: scale(1.12); filter: brightness(1.6) saturate(1.4); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* Barrier interpose + absorb + shatter (EFFECTS.md slice 1): the moment a
+ * unit's Barrier status is consumed. Distinct from fx-hit on purpose — a
+ * fully-absorbed hit does zero health damage, so without this the unit gets
+ * NO visual at all despite genuinely blocking something. Shield-cyan, not
+ * the hit-flash red, since this is a defensive event, not a damage one. */
+.card.fx-shatter { animation: fx-shatter-flash 500ms ease; }
+@keyframes fx-shatter-flash {
+  0% { box-shadow: 0 0 0 3px var(--shield) inset, 0 0 20px var(--shield); filter: brightness(1); }
+  40% { filter: brightness(1.6); }
+  100% { box-shadow: none; filter: brightness(1); }
+}
+.fx-number.shield { color: var(--shield); }
+
+/* Base-armor deflect (EFFECTS.md slice 1): a small, deliberately UN-scaled
+ * spark alongside the ordinary hit flash when a unit with baseArmor > 0
+ * takes damage — "small" is the point (per the spec's own wording), so this
+ * does not go through the magnitude-tier system the way fx-hit/fx-shatter
+ * do. Steel-grey, distinct from both the hit-red and the shield-cyan. */
+.fx-deflect-ring { position: fixed; width: 34px; height: 34px; margin-left: -17px; margin-top: -17px;
+  border-radius: 50%; border: 2px solid var(--armor); pointer-events: none;
+  animation: fx-deflect-ring 380ms ease-out forwards; }
+@keyframes fx-deflect-ring { 0% { opacity: 0.85; transform: scale(0.3); } 100% { opacity: 0; transform: scale(1.5); } }
+
+.fx-number { position: fixed; font-weight: bold; font-size: 0.95rem; letter-spacing: 0.02em; transform-origin: 50% 0;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; animation: fx-float 900ms ease forwards; }
+.fx-number.dmg { color: var(--bad); }
+.fx-number.heal { color: var(--good); }
+.fx-number.buff { color: var(--neutral); }
+.fx-number.penalty { color: var(--penalty); animation-name: fx-float-down; }
+.fx-number.expire { color: var(--ink-dim); font-size: 0.7rem; }
+@keyframes fx-float {
+  0% { opacity: 0; transform: translateY(0); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-38px); }
+}
+@keyframes fx-float-down {
+  0% { opacity: 0; transform: translateY(0); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(38px); }
+}
+
+/* Buff (rise) and penalty (sink) grammar — EFFECTS.md slice 2. The motion
+ * direction IS the meaning and never changes: a buff lifts the card, brightens
+ * it and sends motes UP; a penalty presses it down, drains its colour and
+ * sends motes DOWN. Faction only picks the tint (--fx-tint, set per effect
+ * from the source card's faction), and the fx-mag-* tier only scales it.
+ * A temporary buff wearing off gets a deliberately quiet "settle" instead —
+ * it is not a penalty and must not read like one. */
+.card.fx-rise { animation: fx-rise 520ms ease-out; }
+@keyframes fx-rise {
+  0%, 100% { transform: translateY(0); filter: none; }
+  40% { transform: translateY(-7px); filter: brightness(1.45) saturate(1.35); box-shadow: 0 0 14px 2px var(--fx-tint), 0 0 0 2px var(--fx-tint) inset; }
+}
+.card.fx-sink { animation: fx-sink 560ms ease-in-out; }
+@keyframes fx-sink {
+  0%, 100% { transform: translateY(0); filter: none; }
+  45% { transform: translateY(7px) scale(0.97); filter: grayscale(0.85) brightness(0.6); box-shadow: inset 0 0 20px 6px rgba(0,0,0,0.65), 0 0 9px 1px var(--fx-tint); }
+}
+.card.fx-settle { animation: fx-settle 300ms ease; }
+@keyframes fx-settle { 50% { filter: brightness(0.88); } }
+.fx-mag-spectacle.fx-rise { animation-name: fx-rise-big; }
+@keyframes fx-rise-big {
+  0%, 100% { transform: translateY(0) scale(1); filter: none; }
+  35% { transform: translateY(-15px) scale(1.07); filter: brightness(1.7) saturate(1.5); box-shadow: 0 0 26px 7px var(--fx-tint), 0 0 0 3px var(--fx-tint) inset; }
+  70% { transform: translateY(-9px) scale(1.04); filter: brightness(1.3); }
+}
+.fx-mag-spectacle.fx-sink { animation-name: fx-sink-big; }
+@keyframes fx-sink-big {
+  0%, 100% { transform: translateY(0) scale(1); filter: none; }
+  35% { transform: translateY(15px) scale(0.92); filter: grayscale(1) brightness(0.45); box-shadow: inset 0 0 30px 10px rgba(0,0,0,0.75), 0 0 16px 3px var(--fx-tint); }
+  70% { transform: translateY(10px) scale(0.95); filter: grayscale(0.8) brightness(0.6); }
+}
+/* Motes move along paths laid out by render/src/factionSkin.ts
+ * (moteLayout) and animated from JS. The direction is the meaning and is
+ * the caller's; the skin classes below only change what the particle looks
+ * like. The desaturate on .down is meaning (a penalty drains colour), so it
+ * applies to every skin. */
+.fx-mote { position: fixed; width: var(--mote-size, 7px); height: var(--mote-size, 7px); margin-left: calc(var(--mote-size, 7px) / -2); background: var(--fx-tint); opacity: 0; }
+.fx-mote.down { filter: saturate(0.3) brightness(0.8); }
+.fx-mote.skin-neutral.up { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.fx-mote.skin-neutral.down { clip-path: polygon(0 0, 100% 0, 50% 100%); }
+
+/* ---- Faction skins (EFFECTS.md slice 5) --------------------------------
+ * Axis 2: faction = HOW it looks. One rule set per skin, shared by every
+ * primitive (mote, bolt, cast ring/sigil/rays, burst); never meaning.
+ *   Cortex  packets: squares, circuit lines, dashed rounded-square rings
+ *   Swarm   spores: small round cells, dotted rings, a scattering cloud
+ *   Aegis   chrome: bright-edged metal plates, heavy solid rings, a slug
+ *   Null    glitch: torn bars with an RGB split, stepped flicker
+ *   Neutral plain: the original arrow motes, round bolt, diamond sigil */
+.fx-mote.skin-cortex { border-radius: 1px; box-shadow: 0 0 4px var(--fx-tint); background: linear-gradient(var(--fx-tint), var(--fx-tint)) center / 45% 45% no-repeat, rgba(10,14,24,0.85); outline: 1.5px solid var(--fx-tint); outline-offset: -1.5px; }
+.fx-mote.skin-swarm { border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 0 18%, var(--fx-tint) 45%, transparent 75%); }
+.fx-mote.skin-aegis { clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: linear-gradient(135deg, #ffffff 0%, var(--fx-tint) 45%, #4d5d6b 100%); }
+.fx-mote.skin-null { height: 3px; width: calc(var(--mote-size, 7px) * 2); margin-left: calc(var(--mote-size, 7px) * -1); box-shadow: -3px 0 0 rgba(255,46,110,0.85), 3px 0 0 rgba(46,240,255,0.85); }
+
+.fx-bolt.skin-cortex { border-radius: 2px; background: radial-gradient(circle, #fff 0 25%, var(--fx-tint) 30%); outline: 1px solid rgba(255,255,255,0.6); outline-offset: 1px; }
+.fx-bolt.skin-cortex.trail { opacity: 0.6; background: var(--fx-tint); outline: none; box-shadow: 0 0 4px var(--fx-tint); }
+.fx-bolt.skin-swarm { background: radial-gradient(circle at 40% 40%, #fff 0 15%, var(--fx-tint) 40%, transparent 72%); box-shadow: 0 0 8px var(--fx-tint); }
+.fx-bolt.skin-swarm.cloud { opacity: 0.8; box-shadow: none; }
+.fx-bolt.skin-aegis { border-radius: 50% / 50%; background: linear-gradient(to bottom, #ffffff 0%, var(--fx-tint) 38%, #3f4d59 100%); box-shadow: 0 0 6px #fff, 0 0 16px var(--fx-tint); }
+.fx-bolt.skin-null { border-radius: 1px; background: var(--fx-tint); box-shadow: 4px 0 0 rgba(255,46,110,0.85), -4px 0 0 rgba(46,240,255,0.85), 0 0 10px var(--fx-tint); }
+.fx-bolt.skin-null.trail { opacity: 0.45; box-shadow: 3px 0 0 rgba(255,46,110,0.6), -3px 0 0 rgba(46,240,255,0.6); }
+
+.fx-cast-ring.skin-cortex, .fx-burst.skin-cortex { border-style: dashed; border-radius: 22%; }
+.fx-cast-ring.skin-swarm, .fx-burst.skin-swarm { border-style: dotted; border-width: 4px; }
+.fx-cast-ring.skin-aegis, .fx-burst.skin-aegis { border-width: 4px; box-shadow: 0 0 0 2px rgba(255,255,255,0.55) inset, 0 0 14px var(--fx-tint, var(--burst-color)); }
+.fx-cast-ring.skin-null, .fx-burst.skin-null { border-radius: 2px; box-shadow: 4px 0 0 rgba(255,46,110,0.7), -4px 0 0 rgba(46,240,255,0.7); animation-timing-function: steps(5, end); }
+.fx-cast-sigil.skin-cortex { outline: 1px solid var(--fx-tint); outline-offset: 3px; }
+.fx-cast-sigil.skin-swarm { border-radius: 50%; border-style: dotted; border-width: 3px; }
+.fx-cast-sigil.skin-aegis { border: none; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: linear-gradient(135deg, #ffffff 0%, var(--fx-tint) 50%, #3f4d59 100%); }
+.fx-cast-sigil.skin-null { clip-path: polygon(0 0, 55% 0, 55% 30%, 100% 30%, 100% 100%, 40% 100%, 40% 70%, 0 70%); background: var(--fx-tint); animation-timing-function: steps(6, end); }
+.fx-cast-ray.skin-cortex { width: 2px; background: var(--fx-tint); border-radius: 0; }
+.fx-cast-ray.skin-swarm { width: 5px; height: 5px; margin-left: -2.5px; margin-top: -2.5px; border-radius: 50%; background: var(--fx-tint); }
+.fx-cast-ray.skin-aegis { width: 6px; height: 14px; margin-left: -3px; border-radius: 1px; background: linear-gradient(to right, #ffffff, var(--fx-tint) 50%, #3f4d59); }
+.fx-cast-ray.skin-null { background: repeating-linear-gradient(to top, var(--fx-tint) 0 3px, transparent 3px 6px); animation-timing-function: steps(4, end); }
+
+/* Magnitude scaling (RENDER.md render-lane session 3, per owner feedback
+ * 2026-09-25 "scale animation magnitude to event magnitude"): every FX class
+ * above is the NORMAL tier. Subtle/spectacle modifier classes retune the
+ * same animation's duration/size/glow rather than invent new motion, so a
+ * 1-damage ping and a lethal blow use the same visual language at very
+ * different volumes. Applied together with the base class, e.g.
+ * class="card fx-hit fx-mag-spectacle". Tier is computed in JS (magnitudeOf
+ * section below) from the effect's own weight (rarity, amount, AOE count,
+ * unconditional-destroy) and/or the momentum swing — never from event text
+ * identity (that stays the instanceId diff, per session 2's own guardrail
+ * reasoning). */
+.fx-mag-subtle { animation-duration: 260ms !important; }
+.fx-mag-subtle.fx-hit, .fx-mag-subtle.fx-heal, .fx-mag-subtle.fx-rise, .fx-mag-subtle.fx-shatter { box-shadow: none !important; filter: brightness(1.12); }
+.fx-mag-spectacle { animation-duration: 900ms !important; }
+
+.fx-number.mag-subtle { font-size: 0.7rem; opacity: 0.85; animation-duration: 550ms; }
+.fx-number.mag-spectacle { font-size: 1.55rem; animation-duration: 1300ms; text-shadow: 0 0 10px currentColor, 0 1px 3px rgba(0,0,0,0.9); }
+
+.fx-mag-spectacle.fx-hit, .fx-mag-spectacle.hud.fx-hit { animation-name: fx-hit-flash-big; }
+@keyframes fx-hit-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--bad) inset, 0 0 34px 6px var(--bad); transform: scale(1); }
+  30% { transform: scale(1.06); }
+  100% { box-shadow: none; transform: scale(1); }
+}
+.fx-mag-spectacle.fx-heal, .fx-mag-spectacle.hud.fx-heal { animation-name: fx-heal-flash-big; }
+/* A player's HP bar reacts when a hit or heal aimed at them lands mid-board
+ * (owner 2026-10-05): the bar flashes, by tier (subtle: a brightening,
+ * normal: a glow, spectacle: a bigger glow and a jolt; the whole panel also
+ * flashes then). */
+.bar-row.fx-hit .bar-track { animation: fx-hp-hit 500ms ease; }
+.bar-row.fx-heal .bar-track { animation: fx-hp-heal 500ms ease; }
+@keyframes fx-hp-hit { 0% { box-shadow: 0 0 0 1px var(--bad), 0 0 12px 2px var(--bad); filter: brightness(1.9); } 100% { box-shadow: none; filter: brightness(1); } }
+@keyframes fx-hp-heal { 0% { box-shadow: 0 0 0 1px var(--good), 0 0 12px 2px var(--good); filter: brightness(1.6); } 100% { box-shadow: none; filter: brightness(1); } }
+.bar-row.fx-mag-subtle .bar-track { animation-duration: 300ms; box-shadow: none; }
+.bar-row.fx-mag-spectacle.fx-hit .bar-track { animation: fx-hp-hit-big 900ms ease; }
+@keyframes fx-hp-hit-big {
+  0% { box-shadow: 0 0 0 2px var(--bad), 0 0 26px 6px var(--bad); filter: brightness(2.3); transform: translateX(0); }
+  12% { transform: translateX(-4px); } 24% { transform: translateX(4px); } 36% { transform: translateX(-2px); } 48% { transform: translateX(0); }
+  100% { box-shadow: none; filter: brightness(1); }
+}
+@keyframes fx-heal-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--good) inset, 0 0 34px 6px var(--good); }
+  100% { box-shadow: none; }
+}
+.fx-mag-spectacle.fx-shatter { animation-name: fx-shatter-flash-big; }
+@keyframes fx-shatter-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--shield) inset, 0 0 36px 6px var(--shield); transform: scale(1); filter: brightness(1); }
+  35% { transform: scale(1.1); filter: brightness(1.9); }
+  100% { box-shadow: none; transform: scale(1); filter: brightness(1); }
+}
+.fx-mag-spectacle.fx-enter { animation: fx-enter-big 900ms cubic-bezier(.22,.9,.32,1.1); }
+@keyframes fx-enter-big {
+  0% { opacity: 0; transform: translateY(30px) scale(0.6) rotate(-4deg); filter: brightness(2); }
+  60% { opacity: 1; transform: translateY(-6px) scale(1.08) rotate(1deg); filter: brightness(1.5); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); filter: brightness(1); }
+}
+.fx-mag-spectacle.fx-armed { animation: fx-armed-flash-big 900ms ease; }
+@keyframes fx-armed-flash-big {
+  0% { box-shadow: 0 0 0 5px var(--neutral) inset, 0 0 30px var(--neutral); filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(1.9); transform: scale(1.1); }
+  100% { box-shadow: none; filter: brightness(1); transform: scale(1); }
+}
+.fx-mag-spectacle.fx-evolve { animation: fx-evolve-pulse-big 900ms ease; }
+@keyframes fx-evolve-pulse-big {
+  0% { transform: scale(1); filter: brightness(1); }
+  45% { transform: scale(1.28); filter: brightness(2) saturate(1.7); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.fx-ghost.fx-mag-subtle { animation: fx-exit-subtle 300ms ease forwards; }
+@keyframes fx-exit-subtle { 0% { opacity: 1; } 100% { opacity: 0; transform: translateY(8px) scale(0.9); } }
+.fx-ghost.fx-mag-spectacle { animation: fx-exit-big 900ms ease forwards; }
+@keyframes fx-exit-big {
+  0% { opacity: 1; transform: translateY(0) scale(1) rotate(0); filter: none; }
+  35% { opacity: 1; transform: translateY(-6px) scale(1.15) rotate(-3deg); filter: brightness(2.2) saturate(0); }
+  100% { opacity: 0; transform: translateY(30px) scale(0.35) rotate(10deg); filter: grayscale(1) brightness(0.3); }
+}
+
+/* A brief expanding ring, spawned only for spectacle-tier moments (a Mythic
+ * entering, an evolution, an effect-killed Rare/Mythic) — the "unmistakable
+ * spectacle, not just bigger" cue the routine-vs-pivotal moments need. */
+.fx-burst { position: fixed; width: 64px; height: 64px; margin-left: -32px; margin-top: -32px;
+  border-radius: 50%; border: 3px solid var(--burst-color, var(--neutral)); pointer-events: none;
+  animation: fx-burst-ring 700ms ease-out forwards; }
+@keyframes fx-burst-ring {
+  0% { opacity: 0.9; transform: scale(0.2); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+
+/* The lethal blow — game-ending damage — gets a full-screen beat, not just
+ * a bigger card-level flash, since it is the single most significant event
+ * any match has. */
+.fx-lethal-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 95;
+  background: radial-gradient(circle, rgba(255,77,109,0.35) 0%, rgba(255,77,109,0) 70%);
+  animation: fx-lethal-flash 1200ms ease-out forwards; }
+@keyframes fx-lethal-flash {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Power / ability cast flourish — EFFECTS.md slice 3, cast(source). Plays
+ * FROM the card whose ability fired (or, for a Command, which never sits on
+ * the board, from its own stack entry — where its card just flew to). One primitive, three inputs:
+ *   meaning (constant): an expanding ring + a spinning diamond sigil + rays
+ *     thrown outward, and a trigger tag in the fixed "power" colour
+ *     (--cast) saying WHICH kind of power it was: ON PLAY, ON DEATH,
+ *     ACTIVATE, TURN END, CAST, RESPONSE...;
+ *   faction (skin): ring/sigil/rays wear the SOURCE card's faction colour
+ *     (--fx-tint), same "who did this" rule as slice 2's motes;
+ *   tier (size): --cast-ms / --cast-scale / ray count.
+ * The tag's colour never follows the faction (slice 2's label/particle split,
+ * owner-approved 2026-09-26): a first-time viewer learns "lilac tag = a card
+ * used a power" once. */
+.fx-cast-ring, .fx-cast-sigil, .fx-cast-ray { position: fixed; pointer-events: none; opacity: 0; }
+.fx-cast-ring { width: 72px; height: 72px; margin-left: -36px; margin-top: -36px; border-radius: 50%;
+  border: 2px solid var(--fx-tint); box-shadow: 0 0 12px var(--fx-tint), 0 0 6px var(--fx-tint) inset;
+  animation: fx-cast-ring var(--cast-ms) ease-out forwards; }
+@keyframes fx-cast-ring { 0% { opacity: 0.95; transform: scale(0.15); } 100% { opacity: 0; transform: scale(var(--cast-scale)); } }
+.fx-cast-sigil { width: 30px; height: 30px; margin-left: -15px; margin-top: -15px;
+  border: 2px solid var(--fx-tint); box-shadow: 0 0 8px var(--fx-tint);
+  animation: fx-cast-sigil var(--cast-ms) ease-out forwards; }
+@keyframes fx-cast-sigil {
+  0% { opacity: 0; transform: rotate(45deg) scale(0.3); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(225deg) scale(calc(var(--cast-scale) * 0.8)); }
+}
+.fx-cast-ray { width: 3px; height: 16px; margin-left: -1.5px; margin-top: -8px; border-radius: 2px;
+  background: linear-gradient(to top, transparent, var(--fx-tint));
+  animation: fx-cast-ray var(--cast-ms) ease-out forwards; }
+@keyframes fx-cast-ray {
+  0% { opacity: 0; transform: rotate(var(--ray-a)) translateY(-10px); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(var(--ray-a)) translateY(calc(-26px * var(--cast-scale))); }
+}
+.fx-cast-tag { position: fixed; pointer-events: none; white-space: nowrap; translate: -50% 0; transform-origin: 50% 0;
+  font-size: 0.6rem; font-weight: bold; letter-spacing: 0.12em; color: var(--cast);
+  background: rgba(10,8,24,0.88); border: 1px solid var(--cast); border-radius: 3px; padding: 1px 6px;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.6), -3px 0 0 0 var(--fx-tint);
+  animation: fx-cast-tag var(--cast-tag-ms) ease forwards; }
+.fx-cast-tag .src { color: #fff; letter-spacing: 0.04em; margin-right: 6px; }
+.fx-cast-tag.mag-subtle { font-size: 0.52rem; opacity: 0.85; }
+.fx-cast-tag.mag-spectacle { font-size: 0.78rem; padding: 2px 8px; box-shadow: 0 0 12px var(--cast), -4px 0 0 0 var(--fx-tint); }
+/* A RESPONSE (an Instant cast on the opponent's turn) is the reactive play
+ * DESIGN names as a core pillar; it keeps the power colour but gets a
+ * double rule so it can't be mistaken for an ordinary on-turn cast. */
+.fx-cast-tag.response { border-style: double; border-width: 3px; }
+@keyframes fx-cast-tag { 0% { opacity: 0; transform: translateY(4px); } 12% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+/* Attack travel + impact — EFFECTS.md slice 4. Three pieces, one grammar:
+ *   aim (declare -> resolve): while an attack waits on the stack, a dashed,
+ *     marching line runs from the exact attacker to its exact target, with
+ *     a lock-on reticle on the target. This is the response window made
+ *     visible: a viewer sees what a RESPONSE is responding to.
+ *   travel (resolve): a bolt flies along the same arc...
+ *   impact (landing): ...and the hit (flash, number, burst) lands when the
+ *     bolt does, not before. A defender with attack strikes back with a
+ *     smaller return bolt.
+ * Faction (skin) = the attacker's colour on line, reticle and bolt; tier
+ * (size) = bolt size, trail and burst, from the same hitScore/playerHitScore
+ * as the damage itself. A redirect (Intercept Routine) leaves a fading
+ * shield-coloured ghost of the old line. */
+.fx-aim-layer { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 88; overflow: visible; }
+.fx-aim-line { fill: none; stroke: var(--fx-tint); stroke-width: 2.2; stroke-dasharray: 8 6; stroke-linecap: round;
+  filter: drop-shadow(0 0 3px var(--fx-tint)); opacity: 0.9; animation: fx-aim-march 650ms linear infinite; }
+.fx-aim-head { fill: var(--fx-tint); filter: drop-shadow(0 0 3px var(--fx-tint)); }
+.fx-aim-reticle { fill: none; stroke: var(--fx-tint); stroke-width: 2; stroke-dasharray: 10 6; opacity: 0.95;
+  transform-box: fill-box; transform-origin: center; animation: fx-aim-spin 2.4s linear infinite; }
+.fx-aim.fresh { animation: fx-aim-in 360ms ease-out; }
+.fx-aim.fading { animation: fx-aim-out 650ms ease-in forwards; }
+.fx-aim.fading .fx-aim-line { stroke: var(--shield); }
+@keyframes fx-aim-march { to { stroke-dashoffset: -28; } }
+@keyframes fx-aim-spin { to { transform: rotate(360deg); } }
+@keyframes fx-aim-in { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes fx-aim-out { 0% { opacity: 1; } 100% { opacity: 0; } }
+.fx-bolt { position: fixed; left: 0; top: 0; pointer-events: none; border-radius: 50%;
+  width: var(--bolt-size); height: var(--bolt-size); margin-left: calc(var(--bolt-size) / -2); margin-top: calc(var(--bolt-size) / -2);
+  background: radial-gradient(circle, #fff 0 22%, var(--fx-tint) 50%, transparent 72%);
+  box-shadow: 0 0 10px var(--fx-tint), 0 0 22px var(--fx-tint); }
+.fx-bolt.trail { opacity: 0.4; box-shadow: 0 0 6px var(--fx-tint); }
+.fx-number.fizzle { color: var(--ink-dim); font-size: 0.72rem; letter-spacing: 0.12em; }
+.fx-number.redirect { color: var(--shield); font-size: 0.72rem; letter-spacing: 0.12em; }
+/* A Command flying from its caster's hand onto the stack (owner taste call
+ * 4, 2026-09-26): the viewer sees the actual card, not just a sigil. */
+.card.fx-flycard { position: fixed; left: 0; top: 0; margin: 0; pointer-events: none; z-index: 1;
+  box-shadow: 0 0 18px var(--fx-tint), 0 0 0 2px var(--fx-tint); }
+/* Victory boasts (render/src/boastFx.ts). */
+
+.boast-dim { opacity: 0.7; transition: opacity 300ms ease; }
+.hud.boast-panel { box-shadow: 0 0 0 1px var(--fc, #fff), 0 0 22px var(--fc, #fff); transition: box-shadow 250ms ease; }
+.boast-name { position: absolute; z-index: 96; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; color: var(--fc); border-radius: 6px;
+  background: linear-gradient(90deg, rgba(4,6,12,0), rgba(4,6,12,0.78) 14%, rgba(4,6,12,0.78) 86%, rgba(4,6,12,0)); animation: boast-rise 420ms cubic-bezier(.2,.9,.3,1.2) both; transition: opacity 320ms ease; }
+.boast-name .boast-who { font-weight: bold; font-size: 28px; letter-spacing: 0.12em; white-space: nowrap; line-height: 1.1;
+  text-shadow: 0 0 10px var(--fc), 0 0 2px #000, 0 2px 4px #000; }
+.boast-name .boast-wins { white-space: pre; color: #f4f7ff; text-shadow: 0 0 10px rgba(220,232,255,0.75), 0 0 2px #000, 0 2px 4px #000; }
+.boast-name:not(.mono) .boast-wins { display: inline-block; animation: boast-wins 300ms 160ms cubic-bezier(.2,.9,.3,1.4) both; }
+@keyframes boast-wins { from { opacity: 0; transform: scale(1.5); } to { opacity: 1; transform: none; } }
+.boast-name .boast-close { font-weight: bold; font-size: 26px; letter-spacing: 0.24em; white-space: nowrap; line-height: 1.1; color: #ffcf4a;
+  text-shadow: 0 0 12px rgba(255,190,40,0.8), 0 0 2px #000, 0 2px 4px #000; animation: boast-close 260ms cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes boast-close { from { opacity: 0; transform: scale(1.35); } to { opacity: 1; transform: none; } }
+.boast-name.swapped .boast-who { animation: boast-rise 320ms cubic-bezier(.2,.9,.3,1.2) both; }
+.boast-name .boast-tag { font-size: 10px; letter-spacing: 0.3em; color: var(--ink, #dfe7ff); opacity: 0.85; margin-top: 2px; text-shadow: 0 1px 3px #000; }
+.boast-name.gone, .boast-skip.gone { opacity: 0; }
+@keyframes boast-rise { from { opacity: 0; transform: translateY(10px) scale(0.92); } to { opacity: 1; transform: none; } }
+.boast-skip { position: absolute; z-index: 97; font: inherit; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--ink, #dfe7ff);
+  background: rgba(10,12,22,0.82); border: 1px solid var(--line, #334); border-radius: 4px; padding: 4px 9px; cursor: pointer; transition: opacity 320ms ease; }
+.boast-skip:hover, .boast-skip:focus-visible { border-color: var(--ink, #dfe7ff); }
+/* A finger-sized Skip on a touch screen: the intro's (render session 38) and
+   every boast's (render session 40) are the same button. */
+@media (pointer: coarse) { .boast-skip { min-height: 44px; min-width: 88px; font-size: 14px; } }
+
+.skip-hint { position: absolute; z-index: 97; pointer-events: none; white-space: nowrap; font-size: 11px; letter-spacing: 0.05em; line-height: 1.25;
+  color: var(--ink, #dfe7ff); opacity: 0.88; padding: 1px 6px; border-radius: 3px; background: rgba(10,12,22,0.86);
+  text-shadow: 0 1px 2px #000; transition: opacity 320ms ease; }
+.skip-hint.gone { opacity: 0; }
+@media (pointer: coarse) { .skip-hint { font-size: 12px; } }
+
+.turnbar .win.land { display: inline-block; animation: boast-land 520ms cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes boast-land { from { opacity: 0; transform: translateY(6px) scale(1.25); } to { opacity: 1; transform: none; } }
+/* Boot Sequence's plate: the name in the BIOS's type, behind a block cursor. */
+.boast-name.mono .boast-who { font-family: ui-monospace, Menlo, Consolas, "DejaVu Sans Mono", monospace; letter-spacing: 0.04em; text-align: left; }
+.boast-name .boast-cur { display: inline-block; width: 0.55em; height: 0.85em; margin-left: 0.1em; vertical-align: -0.06em; background: var(--fc); box-shadow: 0 0 8px var(--fc); animation: boast-blink 0.52s steps(1) infinite; }
+@keyframes boast-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .boast-name, .turnbar .win.land, .boast-name .boast-cur, .boast-name .boast-wins, .boast-name .boast-close, .boast-name.swapped .boast-who { animation: none; } }
+
+/* Match Boot (render/src/matchBootFx.ts). */
+
+.boot-canvas { position: absolute; z-index: 92; pointer-events: none; }
+/* Its Skip is a .boast-skip: finger-sized on a touch screen by BOAST_CSS. */
+
+
+body { padding: 14px 16px 40px; }
+h1 { font-size: 1rem; letter-spacing: 0.12em; margin: 0 0 4px; }
+.sub { font-size: 0.72rem; color: var(--ink-dim); margin: 0 0 12px; max-width: 980px; line-height: 1.45; }
+.coinrow { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 0 0 10px; max-width: 1000px; }
+.cr-head { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 0.78rem; }
+.cr-head b { letter-spacing: 0.08em; }
+.cr-how { color: var(--ink-dim); font-size: 0.68rem; }
+.cr-desc { width: 100%; font-size: 0.68rem; color: var(--ink); opacity: 0.8; }
+.cr-body { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+canvas { background: #05070e; border-radius: 6px; max-width: 100%; }
+.labels { display: flex; gap: 0; font-size: 0.6rem; color: var(--ink-dim); max-width: 1000px; margin: 0 0 6px; }
+</style>
+</head>
+<body>
+<h1>AI·TCG // SEASON 0 COINS</h1>
+<p class="sub">Each row: the design face landed; three moments of the spin (the last nearly edge on); the portrait face landed (a sample agent's generated portrait); the tile size the loadout picker uses; then, on the right, the flip on a loop (lands design up, then portrait up). Drawn by the page's own coinDraw, the code Match Boot runs. Placeholders until the art pass.</p>
+<section class="coinrow" data-coin="coin-chrome-token"><div class="cr-head"><b>Chrome Token</b><span class="cr-how">Free starter (every owner)</span><span class="cr-desc">A silver hex token, polished to a mirror: the house coin every owner starts with.</span></div>
+<div class="cr-body"><canvas class="stills" width="760" height="150" data-coin="coin-chrome-token"></canvas><canvas class="live" width="200" height="150" data-coin="coin-chrome-token"></canvas></div></section>
+<section class="coinrow" data-coin="coin-s0-dial-up-dime"><div class="cr-head"><b>Dial-Up Dime</b><span class="cr-how">Store, 300 credits (Season 0)</span><span class="cr-desc">A dark coin with a green CRT-phosphor rim that hums like a modem as it spins.</span></div>
+<div class="cr-body"><canvas class="stills" width="760" height="150" data-coin="coin-s0-dial-up-dime"></canvas><canvas class="live" width="200" height="150" data-coin="coin-s0-dial-up-dime"></canvas></div></section>
+<section class="coinrow" data-coin="coin-s0-neon-nickel"><div class="cr-head"><b>Neon Nickel</b><span class="cr-how">Store, 300 credits (Season 0)</span><span class="cr-desc">A chrome coin edged in magenta and cyan neon, trailing light through the flip.</span></div>
+<div class="cr-body"><canvas class="stills" width="760" height="150" data-coin="coin-s0-neon-nickel"></canvas><canvas class="live" width="200" height="150" data-coin="coin-s0-neon-nickel"></canvas></div></section>
+<section class="coinrow" data-coin="coin-s0-platinum"><div class="cr-head"><b>Platinum Coin</b><span class="cr-how">Season 0 reward: Platinum or higher</span><span class="cr-desc">Season 0's Platinum finish: a brushed platinum coin for owners who ended the season Platinum or higher.</span></div>
+<div class="cr-body"><canvas class="stills" width="760" height="150" data-coin="coin-s0-platinum"></canvas><canvas class="live" width="200" height="150" data-coin="coin-s0-platinum"></canvas></div></section>
+<section class="coinrow" data-coin="coin-s0-diamond"><div class="cr-head"><b>Diamond Coin</b><span class="cr-how">Season 0 reward: Diamond or higher</span><span class="cr-desc">Season 0's Diamond finish: prismatic facets that split the light as it turns.</span></div>
+<div class="cr-body"><canvas class="stills" width="760" height="150" data-coin="coin-s0-diamond"></canvas><canvas class="live" width="200" height="150" data-coin="coin-s0-diamond"></canvas></div></section>
+<section class="coinrow" data-coin="coin-s0-mythic"><div class="cr-head"><b>Mythic Coin</b><span class="cr-how">Season 0 reward: Mythic or higher</span><span class="cr-desc">Season 0's Mythic finish: the Mythic ward's moving sheen, for the season's very top.</span></div>
+<div class="cr-body"><canvas class="stills" width="760" height="150" data-coin="coin-s0-mythic"></canvas><canvas class="live" width="200" height="150" data-coin="coin-s0-mythic"></canvas></div></section>
+<script>
+(function () {
+
+  // The beats, in ms from the start of Match Boot.
+  var COIN_FLICK_AT = 1500, COIN_LAND_AT = 2100, COIN_LINE_AT = 2200, COIN_GONE_AT = 2400;
+  // The edge pulse into the first player's half, from the landing.
+  var COIN_PULSE_AT = 2120, COIN_PULSE_MS = 420;
+  // How far the coin rises toward the viewer at the top of the flick (its
+  // size there, as a share of its landed size).
+  var COIN_PEAK = 1.3;
+  // How far a neon or phosphor rim's halo reaches past the rim (coinDraw:
+  // the outer tube at the rim, its halo half of 0.16 of the size wider).
+  var COIN_NEON_REACH = 1.1;
+  // The house coin: every owner's starter, an empty slot's, every match
+  // recorded before coins (OWNER_API.md "Coin skins").
+  var COIN_DEFAULT = 'coin-chrome-token';
+  // The looks, by the economy's item id (economy/src/cosmetics.ts). Colours
+  // are RGB. sides: the outline's corners (6: a hex token).
+  var COIN_SPECS = {
+    'coin-chrome-token': {
+      name: 'Chrome Token',
+      // sides: the outline's corners (6: a hex token; 0: round).
+      sides: 6,
+      // The face's design (coinDraw draws each): engraved traces.
+      face: 'traces',
+      // The metal, light to dark: a polished silver with cool steel shadows.
+      metal: [[252, 253, 255], [214, 221, 232], [150, 160, 178], [84, 92, 110]],
+      rim: [236, 241, 250],
+      engrave: [92, 102, 124],
+      glow: [205, 222, 255]
+    },
+    // The two Season 0 store coins (render session 55, the second coin
+    // slice; looks as approved 2026-11-02).
+    'coin-s0-dial-up-dime': {
+      name: 'Dial-Up Dime',
+      // A dark round coin; a green CRT-phosphor rim that glows; on its face
+      // a little screen with scanlines and the handshake's waveform.
+      sides: 0,
+      face: 'phosphor',
+      metal: [[96, 108, 104], [52, 60, 58], [30, 36, 35], [12, 16, 15]],
+      rim: [120, 255, 150],
+      engrave: [70, 230, 120],
+      glow: [90, 255, 140],
+      // A ring of light just outside the rim, in these colours (lighter).
+      neon: [[90, 255, 140]],
+      // Its spin: a modem's warble under the ticks (soundFx.ts).
+      whir: 'coinWhirModem'
+    },
+    'coin-s0-neon-nickel': {
+      name: 'Neon Nickel',
+      // A chrome octagon edged in two neon tubes, magenta outside and cyan
+      // inside, a neon bolt on its face; it trails light through the flip.
+      sides: 8,
+      face: 'neon',
+      metal: [[238, 240, 248], [190, 196, 214], [120, 126, 150], [52, 54, 72]],
+      rim: [255, 92, 214],
+      engrave: [80, 236, 255],
+      glow: [255, 140, 230],
+      neon: [[255, 70, 210], [70, 230, 255]],
+      trail: true,
+      whir: 'coinWhirNeon'
+    },
+    // The Season 0 tier coins, granted at season end (render session 55).
+    // Each carries its season's mark ("S0") on its face, so a later
+    // season's coin of the same tier can keep the look with its own mark.
+    'coin-s0-platinum': {
+      name: 'Platinum Coin',
+      // Brushed platinum: a round coin with a milled edge, fine circular
+      // brushing, a four-point star and the season mark.
+      sides: 0,
+      face: 'platinum',
+      metal: [[250, 250, 246], [222, 224, 222], [168, 172, 176], [98, 102, 110]],
+      rim: [246, 247, 244],
+      engrave: [118, 122, 130],
+      glow: [240, 244, 255],
+      mark: 'S0',
+      milled: true
+    },
+    'coin-s0-diamond': {
+      name: 'Diamond Coin',
+      // Prismatic facets: an octagonal cut, its face a brilliant's facets,
+      // each catching a different colour of the light as it turns.
+      sides: 8,
+      face: 'prism',
+      metal: [[246, 252, 255], [196, 226, 246], [128, 168, 206], [52, 74, 112]],
+      rim: [232, 248, 255],
+      engrave: [120, 170, 220],
+      glow: [190, 230, 255],
+      mark: 'S0',
+      whir: 'coinWhirShimmer'
+    },
+    'coin-s0-mythic': {
+      name: 'Mythic Coin',
+      // The Mythic ward's moving sheen: a dark violet coin, a gold rim, a
+      // ring of ward ticks, and a bright band that sweeps across it over
+      // time, landed or spinning.
+      sides: 0,
+      face: 'mythic',
+      metal: [[118, 84, 188], [72, 44, 136], [40, 22, 86], [16, 8, 38]],
+      rim: [255, 214, 120],
+      engrave: [255, 200, 110],
+      glow: [255, 220, 150],
+      neon: [[255, 196, 96]],
+      // Its rim's light, softer than a store coin's neon: a gold glow.
+      neonGain: 0.45,
+      mark: 'S0',
+      sheen: true,
+      whir: 'coinWhirShimmer'
+    }
+  };
+  // The spin's sound for a coin (Match Boot): its own, else the plain whir.
+  function coinWhirOf(itemId) { var s = coinSpecOf(itemId).spec; return s.whir || 'coinWhir'; }
+  // The look a coin id flips: its own, or the Chrome Token's (fallback) for
+  // one this render doesn't draw yet.
+  function coinSpecOf(itemId) {
+    var id = String(itemId || '');
+    if (Object.prototype.hasOwnProperty.call(COIN_SPECS, id)) return { id: id, spec: COIN_SPECS[id], fallback: false };
+    return { id: COIN_DEFAULT, spec: COIN_SPECS[COIN_DEFAULT], fallback: id !== '' && id !== COIN_DEFAULT };
+  }
+  // The result line. view: { near, own, first, names: { p1, p2 } }: own is
+  // true on the viewer's own agent's match (near is their agent).
+  function coinResult(view) {
+    view = view || {};
+    var first = view.first === 'p2' ? 'p2' : 'p1';
+    if (view.own) return view.near === first ? 'YOU GO FIRST' : 'THEY GO FIRST';
+    var names = view.names || {};
+    return String(names[first] || 'AGENT').toUpperCase() + ' GOES FIRST';
+  }
+  // The flip: the coin starts design up and turns end over end. An even
+  // number of half turns lands it design up, an odd number portrait up.
+  function coinHalfTurns(portraitUp) { return portraitUp ? 9 : 8; }
+  // u in [0, 1] over the flight (flick to landing) -> { angle, scale }. The
+  // spin eases out (fast off the thumb, settling); the rise is a smooth hump
+  // (1 at both ends, COIN_PEAK at the top).
+  function coinFlight(u, halfTurns) {
+    u = Math.max(0, Math.min(1, u));
+    var spin = 1 - Math.pow(1 - u, 2.2);
+    return { angle: Math.PI * halfTurns * spin, scale: 1 + (COIN_PEAK - 1) * Math.sin(Math.PI * u) };
+  }
+  // Which face shows at an angle: the design while the coin's front faces
+  // the viewer (cos >= 0), the portrait while its back does.
+  function coinFaceAt(angle) { return Math.cos(angle) >= -1e-9 ? 'design' : 'portrait'; }
+
+
+  // Draws one coin. c: { spec, x, y, r, angle, scale, img (the portrait, an
+  // Image or null), faceRgb (the portrait's faction colour), a (alpha), t
+  // (ms on the page's clock, for a coin whose look moves: the Mythic
+  // sheen), trail (earlier [angle, scale] samples of this flip, newest
+  // first, for a coin that trails light) }.
+  // The coin turns about its horizontal axis: its height is |cos(angle)|,
+  // and its edge shows as a band when it is nearly edge on.
+  function coinDraw(ctx, c) {
+    var s = c.spec, R = c.r * c.scale, k = Math.cos(c.angle), h = Math.abs(k), a = c.a == null ? 1 : c.a, t = c.t || 0;
+    if (a <= 0.003) return;
+    function rgba(col, al) { return 'rgba(' + (col[0] | 0) + ',' + (col[1] | 0) + ',' + (col[2] | 0) + ',' + Math.max(0, Math.min(1, al)).toFixed(3) + ')'; }
+    function mixc(p, q, u) { return [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u, p[2] + (q[2] - p[2]) * u]; }
+    // The outline: a polygon with a corner at the top, or a circle.
+    function outline(rad, sy, x, y) {
+      x = x == null ? c.x : x; y = y == null ? c.y : y;
+      ctx.beginPath();
+      if (!s.sides) { ctx.ellipse(x, y, rad, Math.max(0.01, rad * sy), 0, 0, Math.PI * 2); return; }
+      for (var i = 0; i < s.sides; i++) {
+        var th = -Math.PI / 2 + i * 2 * Math.PI / s.sides;
+        var px = x + Math.cos(th) * rad, py = y + Math.sin(th) * rad * sy;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+    }
+    // Half the outline's width on its middle line (where the edge band
+    // shows): 1 for a circle, the widest corner for a polygon.
+    var halfW = 1;
+    if (s.sides) { halfW = 0; for (var hi = 0; hi < s.sides; hi++) halfW = Math.max(halfW, Math.abs(Math.cos(-Math.PI / 2 + hi * 2 * Math.PI / s.sides))); }
+    var sy = Math.max(0.02, h);
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.globalCompositeOperation = 'source-over';
+    // Its shadow on the board, wider and softer the higher it rises.
+    var lift = Math.max(0, c.scale - 1) / 0.3;
+    ctx.fillStyle = 'rgba(0,0,0,' + (0.35 * (1 - 0.5 * lift)).toFixed(3) + ')';
+    ctx.beginPath(); ctx.ellipse(c.x, c.y + c.r * (0.9 + 0.5 * lift), c.r * (0.9 + 0.3 * lift), c.r * 0.18, 0, 0, Math.PI * 2); ctx.fill();
+    // A trailing coin's afterimages: its neon outline where it was a moment
+    // ago, fading (drawn under the coin).
+    if (s.trail && c.trail && s.neon) {
+      ctx.globalCompositeOperation = 'lighter';
+      for (var ti = 0; ti < c.trail.length; ti++) {
+        var tr = c.trail[ti], tsy = Math.max(0.02, Math.abs(Math.cos(tr[0]))), tal = 0.34 * (1 - (ti + 1) / (c.trail.length + 1));
+        ctx.lineWidth = Math.max(1, c.r * tr[1] * 0.07);
+        ctx.strokeStyle = rgba(s.neon[ti % s.neon.length], tal); outline(c.r * tr[1] * 1.0, tsy); ctx.stroke();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+    }
+    // The edge: a dark band under the face, thickest edge on.
+    var th = Math.max(1.5, R * 0.14) * Math.sqrt(1 - h * h);
+    if (th > 0.5) {
+      ctx.fillStyle = rgba(s.metal[3], 1);
+      outline(R, sy); ctx.save(); ctx.translate(0, th); ctx.fill(); ctx.restore();
+      ctx.fillRect(c.x - R * halfW, c.y, R * halfW * 2, th);
+      // A milled edge shows its ridges on the band.
+      if (s.milled && th > 1.5) {
+        ctx.fillStyle = rgba(s.metal[1], 0.7);
+        for (var mi = -12; mi <= 12; mi++) { var mx = c.x + R * halfW * Math.sin(mi / 12 * Math.PI / 2); ctx.fillRect(mx - 0.5, c.y, 1, th); }
+      }
+      // A neon rim lights its edge too.
+      if (s.neon) { ctx.fillStyle = rgba(s.neon[0], 0.55); ctx.fillRect(c.x - R * halfW, c.y + th * 0.4, R * halfW * 2, Math.max(1, th * 0.25)); }
+    }
+    // The face's metal: light bands sweeping as it turns.
+    var g = ctx.createLinearGradient(c.x - R, c.y - R * sy, c.x + R, c.y + R * sy);
+    var sweep = (Math.sin(c.angle * 1.7) + 1) / 2;
+    g.addColorStop(0, rgba(s.metal[2], 1));
+    g.addColorStop(Math.max(0.01, Math.min(0.98, sweep * 0.8)), rgba(s.metal[0], 1));
+    g.addColorStop(Math.min(0.99, sweep * 0.8 + 0.18), rgba(s.metal[1], 1));
+    g.addColorStop(1, rgba(s.metal[3], 1));
+    outline(R, sy); ctx.fillStyle = g; ctx.fill();
+    // The rim: a bright bevel just inside the outline.
+    ctx.lineWidth = Math.max(1, R * 0.07); ctx.strokeStyle = rgba(s.rim, 0.95); outline(R * 0.94, sy); ctx.stroke();
+    ctx.lineWidth = Math.max(0.6, R * 0.025); ctx.strokeStyle = rgba(s.metal[3], 0.8); outline(R * 0.86, sy); ctx.stroke();
+    // A milled rim: fine ridges all round, between the bevel and the edge.
+    if (s.milled) {
+      ctx.strokeStyle = rgba(s.engrave, 0.55); ctx.lineWidth = Math.max(0.5, R * 0.012);
+      ctx.beginPath();
+      for (var ri = 0; ri < 72; ri++) {
+        var ra = ri * Math.PI * 2 / 72, ca = Math.cos(ra), sa = Math.sin(ra);
+        ctx.moveTo(c.x + ca * R * 0.88, c.y + sa * R * 0.88 * sy); ctx.lineTo(c.x + ca * R * 0.985, c.y + sa * R * 0.985 * sy);
+      }
+      ctx.stroke();
+    }
+    var face = coinFaceAt(c.angle);
+    if (face === 'design') coinFace(ctx, c, s, R, sy, t, outline, rgba, mixc);
+    else {
+      // The portrait face: the player's avatar inside the inner outline, in
+      // a ring of their faction colour (the avatar is drawn the right way
+      // up, squashed with the turn).
+      var ir = R * 0.74;
+      ctx.save();
+      outline(ir, sy); ctx.clip();
+      ctx.fillStyle = rgba([10, 14, 22], 1); ctx.fillRect(c.x - ir, c.y - ir, ir * 2, ir * 2);
+      if (c.img && c.img.complete && c.img.naturalWidth) {
+        ctx.drawImage(c.img, c.x - ir * 0.92, c.y - ir * 0.92 * sy, ir * 1.84, ir * 1.84 * sy);
+      } else {
+        // No portrait yet (still loading): a head and shoulders in the
+        // faction colour, never an empty face.
+        ctx.fillStyle = rgba(c.faceRgb || s.glow, 0.85);
+        ctx.beginPath(); ctx.ellipse(c.x, c.y - ir * 0.18 * sy, ir * 0.3, ir * 0.3 * sy, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(c.x, c.y + ir * 0.62 * sy, ir * 0.55, ir * 0.42 * sy, 0, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+      ctx.lineWidth = Math.max(1, R * 0.06); ctx.strokeStyle = rgba(c.faceRgb || s.glow, 0.95); outline(ir, sy); ctx.stroke();
+    }
+    ctx.globalCompositeOperation = 'lighter';
+    // A neon or phosphor rim: tubes of light just outside the bevel, on
+    // both faces, with a soft halo (the halo breathes a little).
+    if (s.neon) {
+      var breath = 0.85 + 0.15 * Math.sin(t / 260);
+      for (var ni = 0; ni < s.neon.length; ni++) {
+        var nr = R * (1.0 - ni * 0.1);
+        var gain = s.neonGain == null ? 1 : s.neonGain;
+        ctx.lineWidth = Math.max(2, R * 0.16); ctx.strokeStyle = rgba(s.neon[ni], 0.16 * breath * gain); outline(nr, sy); ctx.stroke();
+        ctx.lineWidth = Math.max(1, R * 0.05); ctx.strokeStyle = rgba(mixc(s.neon[ni], [255, 255, 255], 0.35 * gain), 0.9 * gain); outline(nr, sy); ctx.stroke();
+      }
+    }
+    // The Mythic sheen: a bright band sweeping across the face over time
+    // (one pass every 2.4 s), clipped to the coin; brighter face on.
+    if (s.sheen) {
+      ctx.save(); outline(R * 0.94, sy); ctx.clip();
+      var ph = ((t % 2400) / 2400) * 3 - 1.5, bx = c.x + ph * R * 1.6;
+      var sg = ctx.createLinearGradient(bx - R * 0.5, c.y - R * sy, bx + R * 0.5, c.y + R * sy);
+      sg.addColorStop(0, rgba(s.glow, 0)); sg.addColorStop(0.5, rgba([255, 246, 220], 0.55 * (0.35 + 0.65 * h))); sg.addColorStop(1, rgba(s.glow, 0));
+      ctx.fillStyle = sg; ctx.fillRect(c.x - R, c.y - R, R * 2, R * 2);
+      ctx.restore();
+    }
+    // A glint that runs across the face as it turns.
+    var gl = ctx.createRadialGradient(c.x - R * 0.35, c.y - R * 0.4 * sy, 0, c.x - R * 0.35, c.y - R * 0.4 * sy, R * 0.9);
+    gl.addColorStop(0, rgba(s.glow, 0.35 * (0.4 + 0.6 * h))); gl.addColorStop(1, rgba(s.glow, 0));
+    outline(R, sy); ctx.fillStyle = gl; ctx.fill();
+    ctx.restore();
+  }
+  // The coin's own face (its design side), by spec.face.
+  function coinFace(ctx, c, s, R, sy, t, outline, rgba, mixc) {
+    var x = c.x, y = c.y;
+    function dot(dx, dy, r, col, al) { ctx.fillStyle = rgba(col, al); ctx.beginPath(); ctx.ellipse(x + dx * R, y + dy * R * sy, r * R, Math.max(0.01, r * R * sy), 0, 0, Math.PI * 2); ctx.fill(); }
+    // The season mark, small, under the emblem (a tier coin's).
+    function mark(col, dy) {
+      if (!s.mark || R < 9) return;
+      ctx.save();
+      ctx.translate(x, y + (dy == null ? 0.56 : dy) * R * sy); ctx.scale(1, sy);
+      ctx.fillStyle = rgba(col, 0.9); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = 'bold ' + Math.max(5, R * 0.2).toFixed(1) + 'px ui-monospace, Menlo, Consolas, monospace';
+      ctx.fillText(s.mark, 0, 0);
+      ctx.restore();
+    }
+    if (s.face === 'phosphor') {
+      // A small CRT screen: dark glass, scanlines, the handshake's waveform
+      // in phosphor green, and a cursor that blinks.
+      var sw = R * 0.62, sh = R * 0.44;
+      ctx.fillStyle = rgba([4, 12, 8], 1);
+      ctx.beginPath(); ctx.rect(x - sw, y - sh * sy, sw * 2, sh * 2 * sy); ctx.fill();
+      ctx.strokeStyle = rgba(s.engrave, 0.8); ctx.lineWidth = Math.max(0.8, R * 0.035); ctx.stroke();
+      ctx.save(); ctx.beginPath(); ctx.rect(x - sw, y - sh * sy, sw * 2, sh * 2 * sy); ctx.clip();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = rgba(s.glow, 0.08);
+      for (var li = 0; li < 9; li++) ctx.fillRect(x - sw, y + (-sh + li * sh * 2 / 9) * sy, sw * 2, Math.max(0.5, sh * 0.08 * sy));
+      ctx.strokeStyle = rgba(s.glow, 0.95); ctx.lineWidth = Math.max(0.8, R * 0.045);
+      ctx.beginPath();
+      for (var wi = 0; wi <= 32; wi++) {
+        var u = wi / 32, wx = x - sw * 0.86 + u * sw * 1.72;
+        // A carrier that turns to noise toward the right: the handshake.
+        var wy = Math.sin(u * Math.PI * 6) * 0.45 * (1 - u) + Math.sin(u * 71 + 1.3) * Math.sin(u * 23) * 0.5 * u;
+        if (wi === 0) ctx.moveTo(wx, y + wy * sh * 0.75 * sy - sh * 0.12 * sy); else ctx.lineTo(wx, y + wy * sh * 0.75 * sy - sh * 0.12 * sy);
+      }
+      ctx.stroke();
+      if (Math.floor(t / 400) % 2 === 0) { ctx.fillStyle = rgba(s.glow, 0.95); ctx.fillRect(x + sw * 0.5, y + sh * 0.45 * sy, sw * 0.22, Math.max(0.8, sh * 0.22 * sy)); }
+      ctx.restore();
+      // Two status lamps under the screen.
+      dot(-0.18, 0.62, 0.05, s.glow, 0.9); dot(0.0, 0.62, 0.05, s.engrave, 0.5); dot(0.18, 0.62, 0.05, s.glow, Math.floor(t / 300) % 2 ? 0.9 : 0.3);
+    } else if (s.face === 'neon') {
+      // A neon bolt: a cyan tube with a magenta halo, a node at each end.
+      var pts = [[-0.14, -0.5], [0.16, -0.08], [-0.08, -0.02], [0.14, 0.5]];
+      function path() { ctx.beginPath(); for (var pi = 0; pi < pts.length; pi++) { var px = x + pts[pi][0] * R, py = y + pts[pi][1] * R * sy; if (pi === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py); } }
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.strokeStyle = rgba([40, 30, 60], 0.9); ctx.lineWidth = Math.max(2, R * 0.17); path(); ctx.stroke();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = rgba(s.neon[0], 0.5); ctx.lineWidth = Math.max(2, R * 0.2); path(); ctx.stroke();
+      ctx.strokeStyle = rgba(s.neon[1], 0.95); ctx.lineWidth = Math.max(1, R * 0.07); path(); ctx.stroke();
+      ctx.strokeStyle = rgba([235, 255, 255], 0.9); ctx.lineWidth = Math.max(0.5, R * 0.025); path(); ctx.stroke();
+      ctx.globalCompositeOperation = 'source-over';
+      dot(pts[0][0], pts[0][1], 0.06, s.neon[0], 1); dot(pts[3][0], pts[3][1], 0.06, s.neon[0], 1);
+    } else if (s.face === 'platinum') {
+      // Fine circular brushing, a four-point star, the season mark.
+      ctx.lineWidth = Math.max(0.4, R * 0.008);
+      for (var bi = 1; bi < 14; bi++) { ctx.strokeStyle = rgba(bi % 2 ? s.metal[0] : s.metal[2], 0.22); outline(R * 0.06 * bi, sy); ctx.stroke(); }
+      var star = function (rad, inner) {
+        ctx.beginPath();
+        for (var si = 0; si < 8; si++) {
+          var sa = -Math.PI / 2 + si * Math.PI / 4, rr = si % 2 ? inner : rad;
+          var sx = x + Math.cos(sa) * rr * R, ssy = y - R * 0.06 * sy + Math.sin(sa) * rr * R * sy;
+          if (si === 0) ctx.moveTo(sx, ssy); else ctx.lineTo(sx, ssy);
+        }
+        ctx.closePath();
+      };
+      star(0.42, 0.11); ctx.fillStyle = rgba(s.metal[0], 1); ctx.fill();
+      ctx.strokeStyle = rgba(s.engrave, 0.9); ctx.lineWidth = Math.max(0.6, R * 0.03); ctx.stroke();
+      star(0.2, 0.05); ctx.fillStyle = rgba(s.engrave, 0.55); ctx.fill();
+      mark(s.engrave, 0.6);
+    } else if (s.face === 'prism') {
+      // A brilliant's facets: an octagonal table, eight kites and eight
+      // triangles round it, each a colour of the spectrum that moves with
+      // the turn (so the colours run as it spins and settle as it lands).
+      var tab = 0.36, mid = 0.66, n = 8;
+      function P(rad, i) { var an = -Math.PI / 2 + i * 2 * Math.PI / n; return [x + Math.cos(an) * rad * R, y + Math.sin(an) * rad * R * sy]; }
+      function hue(hh, l, al) {
+        hh = ((hh % 1) + 1) % 1;
+        var r6 = [Math.abs(hh * 6 - 3) - 1, 2 - Math.abs(hh * 6 - 2), 2 - Math.abs(hh * 6 - 4)].map(function (v) { return Math.max(0, Math.min(1, v)); });
+        return rgba(mixc([r6[0] * 255, r6[1] * 255, r6[2] * 255], [255, 255, 255], l), al);
+      }
+      var turn = c.angle / Math.PI * 0.35 + t / 9000;
+      for (var fi = 0; fi < n; fi++) {
+        var a0 = P(tab, fi), a1 = P(tab, fi + 1), b0 = P(mid, fi + 0.5), o0 = P(0.94, fi), o1 = P(0.94, fi + 1);
+        // The star facet (table edge to the middle ring).
+        ctx.beginPath(); ctx.moveTo(a0[0], a0[1]); ctx.lineTo(b0[0], b0[1]); ctx.lineTo(a1[0], a1[1]); ctx.closePath();
+        ctx.fillStyle = hue(turn + fi / n, 0.3, 0.75); ctx.fill();
+        // The girdle facets (the middle ring to the rim).
+        ctx.beginPath(); ctx.moveTo(a0[0], a0[1]); ctx.lineTo(o0[0], o0[1]); ctx.lineTo(b0[0], b0[1]); ctx.closePath();
+        ctx.fillStyle = hue(turn + fi / n + 0.4, 0.38, 0.62); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(b0[0], b0[1]); ctx.lineTo(o0[0], o0[1]); ctx.lineTo(o1[0], o1[1]); ctx.closePath();
+        ctx.fillStyle = hue(turn + fi / n + 0.15, 0.45, 0.5); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(b0[0], b0[1]); ctx.lineTo(o1[0], o1[1]); ctx.lineTo(a1[0], a1[1]); ctx.closePath();
+        ctx.fillStyle = hue(turn + fi / n + 0.6, 0.38, 0.56); ctx.fill();
+      }
+      // The table: bright, a touch of the colour under it.
+      ctx.beginPath(); for (var ti2 = 0; ti2 < n; ti2++) { var q = P(tab, ti2); if (ti2 === 0) ctx.moveTo(q[0], q[1]); else ctx.lineTo(q[0], q[1]); } ctx.closePath();
+      ctx.fillStyle = rgba(s.metal[0], 0.9); ctx.fill();
+      ctx.strokeStyle = rgba(s.engrave, 0.8); ctx.lineWidth = Math.max(0.5, R * 0.02); ctx.stroke();
+      // The facet edges, fine and white.
+      ctx.strokeStyle = rgba([255, 255, 255], 0.5); ctx.lineWidth = Math.max(0.4, R * 0.012);
+      ctx.beginPath();
+      for (var ei = 0; ei < n; ei++) { var e0 = P(tab, ei), e1 = P(mid, ei + 0.5), e2 = P(0.94, ei), e3 = P(0.94, ei + 1); ctx.moveTo(e0[0], e0[1]); ctx.lineTo(e1[0], e1[1]); ctx.lineTo(P(tab, ei + 1)[0], P(tab, ei + 1)[1]); ctx.moveTo(e0[0], e0[1]); ctx.lineTo(e2[0], e2[1]); ctx.lineTo(e1[0], e1[1]); ctx.lineTo(e3[0], e3[1]); }
+      ctx.stroke();
+      mark(s.metal[3], 0.0);
+    } else if (s.face === 'mythic') {
+      // A ring of ward ticks that turns slowly, a gold diamond seal with a
+      // dark core, the season mark.
+      var spin = t / 6000 * Math.PI * 2;
+      ctx.strokeStyle = rgba(s.engrave, 0.75); ctx.lineWidth = Math.max(0.6, R * 0.03);
+      outline(R * 0.72, sy); ctx.stroke();
+      ctx.beginPath();
+      for (var mi = 0; mi < 24; mi++) {
+        var ma = spin + mi * Math.PI * 2 / 24, l0 = mi % 3 === 0 ? 0.58 : 0.64;
+        ctx.moveTo(x + Math.cos(ma) * R * l0, y + Math.sin(ma) * R * l0 * sy); ctx.lineTo(x + Math.cos(ma) * R * 0.7, y + Math.sin(ma) * R * 0.7 * sy);
+      }
+      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y - R * 0.42 * sy); ctx.lineTo(x + R * 0.3, y - R * 0.04 * sy); ctx.lineTo(x, y + R * 0.34 * sy); ctx.lineTo(x - R * 0.3, y - R * 0.04 * sy); ctx.closePath();
+      var mg = ctx.createLinearGradient(x - R * 0.3, y - R * 0.4 * sy, x + R * 0.3, y + R * 0.3 * sy);
+      mg.addColorStop(0, rgba([255, 240, 190], 1)); mg.addColorStop(0.5, rgba(s.rim, 1)); mg.addColorStop(1, rgba([160, 100, 30], 1));
+      ctx.fillStyle = mg; ctx.fill();
+      dot(0, -0.04, 0.09, s.metal[3], 1); dot(0, -0.04, 0.04, s.metal[0], 0.9);
+      mark(s.engrave, 0.5);
+    } else {
+      // The Chrome Token's own face: an engraved inner hex, three traces
+      // from its centre to alternate corners, a node at each end.
+      ctx.strokeStyle = rgba(s.engrave, 0.9); ctx.lineWidth = Math.max(0.8, R * 0.05);
+      outline(R * 0.56, sy); ctx.stroke();
+      ctx.beginPath();
+      for (var j = 0; j < 3; j++) {
+        var tj = -Math.PI / 2 + j * 2 * Math.PI / 3;
+        ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(tj) * R * 0.56, y + Math.sin(tj) * R * 0.56 * sy);
+      }
+      ctx.stroke();
+      dot(0, 0, 0.11, s.engrave, 0.95);
+      dot(-0.03, -0.03, 0.04, s.metal[0], 0.9);
+    }
+  }
+
+  var img = new Image(); img.src = "data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%20role%3D%22img%22%20aria-label%3D%22avatar%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2210%22%20fill%3D%22%230a0f1c%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22hsl(314%2C85%25%2C64%25)%22%20stroke-width%3D%222.5%22%20opacity%3D%220.9%22%3E%3Cpolygon%20points%3D%2232%2C4%2056%2C18%2056%2C46%2032%2C60%208%2C46%208%2C18%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22rgb(64%2C196%2C255)%22%3E%3Crect%20x%3D%2222%22%20y%3D%2215%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%2215%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2236%22%20y%3D%2215%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2222%22%20y%3D%2222%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%2222%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2236%22%20y%3D%2222%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2215%22%20y%3D%2229%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%2229%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2229%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2215%22%20y%3D%2236%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2222%22%20y%3D%2236%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2229%22%20y%3D%2236%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2236%22%20y%3D%2236%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2236%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2215%22%20y%3D%2243%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3Crect%20x%3D%2243%22%20y%3D%2243%22%20width%3D%226%22%20height%3D%226%22%20rx%3D%221.2%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+  var FACE = [64, 196, 255];
+  function stills(cv) {
+    var spec = COIN_SPECS[cv.getAttribute('data-coin')], ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    var shots = [[0, 1], [0.45, 1.12], [1.2, 1.2], [1.5, 1.05], [Math.PI, 1]];
+    shots.forEach(function (s, i) { coinDraw(ctx, { spec: spec, x: 80 + i * 136, y: 70, r: 44, angle: s[0], scale: s[1], img: img, faceRgb: FACE, t: 900 }); });
+    coinDraw(ctx, { spec: spec, x: 730, y: 70, r: 18, angle: 0, scale: 1, t: 900 });
+  }
+  var lives = Array.prototype.slice.call(document.querySelectorAll('canvas.live'));
+  var t0 = null, FLIGHT = COIN_LAND_AT - COIN_FLICK_AT, HOLD = 900;
+  function frame(now) {
+    if (t0 == null) t0 = now;
+    var t = now - t0, cycle = FLIGHT + HOLD, n = Math.floor(t / cycle), u = (t % cycle) / FLIGHT, portraitUp = n % 2 === 1;
+    var half = coinHalfTurns(portraitUp);
+    lives.forEach(function (cv) {
+      var spec = COIN_SPECS[cv.getAttribute('data-coin')], ctx = cv.getContext('2d');
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      var fl = coinFlight(Math.min(1, u), half), trail = null;
+      if (spec.trail && u < 1) { trail = []; for (var k = 1; k <= 3; k++) { var uk = u - k * 20 / FLIGHT; if (uk > 0) { var f2 = coinFlight(uk, half); trail.push([f2.angle, f2.scale]); } } }
+      coinDraw(ctx, { spec: spec, x: 100, y: 70, r: 40, angle: fl.angle, scale: fl.scale, img: img, faceRgb: FACE, t: t, trail: trail });
+    });
+    requestAnimationFrame(frame);
+  }
+  function redrawStills() { document.querySelectorAll('canvas.stills').forEach(stills); }
+  img.onload = redrawStills; redrawStills();
+  window.__coinSheet = { at: function (ms) { t0 = performance.now() - ms; }, ready: function () { return img.complete; } };
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

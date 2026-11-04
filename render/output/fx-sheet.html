@@ -2062,6 +2062,27 @@ h1 { font-size: 0.95rem; letter-spacing: 0.1em; color: var(--ink-dim); font-weig
       var wt0 = 0;
       for (var wi2 = 0; wi2 < 9; wi2++) { T({ type: 'triangle', f0: 3100 - wi2 * 60, dur: 0.035, g: 0.022, att: 0.002, delay: wt0 }); wt0 += 0.03 + wi2 * 0.009; }
       N({ type: 'bandpass', f0: 1800, f1: 900, q: 2, dur: 0.5, g: 0.05, att: 0.05 });
+    } else if (kind === 'coinWhirModem') {
+      // Dial-Up Dime's spin (render session 55): the same slowing ticks,
+      // under a modem's warble (two square tones trading places, then a
+      // short burst of hiss), softly, so the clink still lands on top.
+      var mt0 = 0;
+      for (var mi2 = 0; mi2 < 9; mi2++) { T({ type: 'triangle', f0: 3100 - mi2 * 60, dur: 0.035, g: 0.018, att: 0.002, delay: mt0 }); mt0 += 0.03 + mi2 * 0.009; }
+      [1200, 2100, 1200, 2100, 980].forEach(function (f, i) { T({ type: 'square', f0: f, dur: 0.06, g: 0.012, att: 0.004, delay: i * 0.065, filt: 'lowpass', ff: 3200 }); });
+      N({ type: 'bandpass', f0: 2400, f1: 1500, q: 3, dur: 0.18, g: 0.03, att: 0.02, delay: 0.34 });
+    } else if (kind === 'coinWhirNeon') {
+      // Neon Nickel's spin: the ticks over a neon tube's mains buzz, a low
+      // sawtooth that swells and fades as it turns.
+      var nt0 = 0;
+      for (var ni2 = 0; ni2 < 9; ni2++) { T({ type: 'triangle', f0: 3100 - ni2 * 60, dur: 0.035, g: 0.018, att: 0.002, delay: nt0 }); nt0 += 0.03 + ni2 * 0.009; }
+      T({ type: 'sawtooth', f0: 120, dur: 0.5, g: 0.02, att: 0.12, filt: 'lowpass', ff: 900 });
+      T({ type: 'sawtooth', f0: 240, dur: 0.42, g: 0.01, att: 0.1, filt: 'lowpass', ff: 1400 });
+    } else if (kind === 'coinWhirShimmer') {
+      // The Diamond and Mythic coins' spin: the ticks over a high shimmer,
+      // bell partials climbing as it turns.
+      var st0 = 0;
+      for (var si2 = 0; si2 < 9; si2++) { T({ type: 'triangle', f0: 3100 - si2 * 60, dur: 0.035, g: 0.018, att: 0.002, delay: st0 }); st0 += 0.03 + si2 * 0.009; }
+      [1568, 2093, 2637, 3136].forEach(function (f, i) { T({ type: 'sine', f0: f, dur: 0.22, g: 0.012, att: 0.01, delay: 0.05 + i * 0.09 }); T({ type: 'sine', f0: f * SFX_BELL[1], dur: 0.16, g: 0.006, att: 0.01, delay: 0.05 + i * 0.09 }); });
     } else if (kind === 'coinClink') {
       // The coin lands: a bright clink (two inharmonic partials, a second
       // smaller bounce), over a small low tap.

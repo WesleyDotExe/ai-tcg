@@ -4861,3 +4861,55 @@ automatically.
 
 **Next render-lane slice:** the second coin slice, as the owner set it (the store and tier coins' looks, the
 coin line in the picker and the Store), then reading `PublicSide.signature` and the live boast on the arena.
+
+## 2026-11-04 — Render session 55: the second coin slice (every Season 0 coin drawn; the Coin line in the picker and the Store)
+
+The owner's order after render 54 (owner-feedback 2026-11-03, "the next two render slices", item 1); the
+2026-11-04 entry adds the 2× controls to the slice after this one, not this one.
+
+- **The five new coin looks** (`render/src/coinFx.ts`). `coinDraw` generalised: round, hex or octagon
+  outlines (the edge band's width follows the outline), a face design per spec (`traces`, `phosphor`, `neon`,
+  `platinum`, `prism`, `mythic`), and optional neon/phosphor rim tubes with a breathing halo (`neon`,
+  `neonGain`), a milled edge (`milled`), an in-air trail (`trail`), a time-driven sheen (`sheen`, `c.t`), a
+  season mark (`mark`) and the spin's own sound (`whir`). Dial-Up Dime, Neon Nickel, Platinum (the approved
+  Gold look as platinum), Diamond and Mythic, as approved. Tuned once by eye on the coin sheet (the Diamond's
+  facets were washed out, the Mythic's rim blown out).
+- **Match Boot** passes the clock and Neon Nickel's trail to `coinDraw`, plays the coin's own whir
+  (`coinWhirModem`, `coinWhirNeon`, `coinWhirShimmer` in `soundFx.ts`, each keeping the nine slowing ticks),
+  and draws a glowing-rim coin `COIN_NEON_REACH` (1.1) smaller, the checker counting the halo against the
+  agent lines.
+- **The coin sheet** (`src/coinSheet.ts`, `npm run coin-sheet`, in `npm run outputs`): six rows, each the
+  design face, three moments of the spin, the portrait face, the tile size and a live loop; `--boot <dir>`
+  also writes one replay page per coin for the browser check.
+- **The Coin line in the picker** (`loadoutPicker.ts`, `loadoutText.ts`, `loadoutDemo.ts`,
+  `site/siteLoadout.ts`): the sixth slot. Coin tiles show the coin drawn (`canvas.t-coin`); the preview
+  (`COINPV`) flips the tile's coin (else the equipped one, else the Chrome Token an empty slot flips) over the
+  dimmed preview board, alternating design up / portrait up with THEY / YOU GO FIRST, the agent's generated
+  avatar as the portrait (`agent.avatarSvg`, new on the scenario), sound only on a pass the viewer asked for;
+  reduced motion draws both landings still (and once more when the portrait image arrives, a defect the
+  first check run showed: the still had been drawn on the placeholder silhouette). A fourth demo tab: an
+  Aegis owner who earned 316 credits in 41 real matches and bought Neon Nickel.
+- **The Store** (`site/siteClient.ts`, `siteWidgets.ts`, `sitePage.ts`, new `siteCoins.ts`,
+  `siteCoinSwatch.ts`): each agent row says "Coin: …"; a coin on sale shows the coin drawn by
+  `COIN_SCRIPT` (coinFx's own sources, inline, painting `canvas[data-coin]`). The swatch markup lives in an
+  import-free file so the client bundle never loads `coinFx.ts`, whose module evaluates with `new Function`
+  (the site's CSP has no `unsafe-eval`); a test checks the bundle has no `new Function`.
+- **On sale:** `drawn: true` on all six coins in `economy/src/cosmetics.ts`; the catalogue test checks coins
+  against `COIN_SPECS`; `economy/test/coins.test.ts` and `server/test/ownerApiEconomy.test.ts` moved with it
+  (notes-for-owner, for the game lane).
+
+**Ran it:** `coin-check-s55.txt` **60 PASS** (stills `v2-s55-*`); sabotage (every coin forced to the
+fallback) 10 FAIL (`coin-check-s55-sabotage.txt`); `loadout-check-s54` re-run against the new page: 49 PASS
+(not committed: unchanged result); CI browser check 61 PASS (`ci-browser-check-s55.txt`); `npm test`: all six
+workspaces pass (render 852, +8; economy 222; server 365); typecheck clean. Every committed page rebuilt
+(`npm run outputs`).
+
+**Not done (named):** nobody has listened to the new whirs; `site-check-s49.mjs` expects five rail slots and
+is stale; `server/OWNER_API.md` still says no coin is drawn (the game lane's doc); the "six landed coins
+differ" browser check is weak (mean colour, portrait-dominated).
+
+**Next render-lane slice:** the live arena reads the signature card in full and the live boast from the
+session-72 feed, with the 2× controls (Ask for 2× and taking it back, who asks and who is waited on from
+`LiveMatchView.speed`, the arena at the agreed rate, the "Ask for 2× in every match" toggle in Settings →
+Play).
+

@@ -45,6 +45,18 @@ preview row: Glitch Seed (1), Stray Fragment (1), Dangling Pointer (2), Fork Bom
   [Arena] equipped: (empty)
     - Empty: empty tile
       store answer for (empty): accepted -> (empty)
+  [Coin] equipped: coin-chrome-token
+    - Chrome Token <coin-chrome-token>: owned (starter)
+    - Dial-Up Dime <coin-s0-dial-up-dime>: locked: in the store, 300 credits
+    - Neon Nickel <coin-s0-neon-nickel>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for coin-chrome-token: accepted -> coin-chrome-token
+      store answer for coin-s0-dial-up-dime: refused: the owner doesn't own "Dial-Up Dime"
+      store answer for coin-s0-neon-nickel: refused: the owner doesn't own "Neon Nickel"
+      store answer for coin-s0-platinum: refused: the owner doesn't own "Platinum Coin"
+      store answer for coin-s0-diamond: refused: the owner doesn't own "Diamond Coin"
+      store answer for coin-s0-mythic: refused: the owner doesn't own "Mythic Coin"
 
 == bought: Bought Boot Sequence ==
 A Cortex owner that earned 302 credits in 35 real matches (24 won) against a Swarm agent, bought Boot Sequence for 300, and wears it.
@@ -89,6 +101,18 @@ preview row: Init Daemon (1), Signal Drone (1), Cortex Engineer (2), Deadlock De
   [Arena] equipped: (empty)
     - Empty: empty tile
       store answer for (empty): accepted -> (empty)
+  [Coin] equipped: coin-chrome-token
+    - Chrome Token <coin-chrome-token>: owned (starter)
+    - Dial-Up Dime <coin-s0-dial-up-dime>: locked: in the store, 300 credits
+    - Neon Nickel <coin-s0-neon-nickel>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for coin-chrome-token: accepted -> coin-chrome-token
+      store answer for coin-s0-dial-up-dime: refused: the owner doesn't own "Dial-Up Dime"
+      store answer for coin-s0-neon-nickel: refused: the owner doesn't own "Neon Nickel"
+      store answer for coin-s0-platinum: refused: the owner doesn't own "Platinum Coin"
+      store answer for coin-s0-diamond: refused: the owner doesn't own "Diamond Coin"
+      store answer for coin-s0-mythic: refused: the owner doesn't own "Mythic Coin"
 
 == live: In a live match ==
 A Swarm owner with the starter collection, its close-win slot set to Aegis's free Shield Slam, now in a live match against a Cortex agent.
@@ -134,4 +158,72 @@ preview row: Brood Skitterer (1), Colony Broodling (1), Spore Cluster (1), Swarm
   [Arena] equipped: (empty)
     - Empty: empty tile
       store answer for (empty): refused: no loadout changes during a live match
+  [Coin] equipped: coin-chrome-token
+    - Chrome Token <coin-chrome-token>: owned (starter)
+    - Dial-Up Dime <coin-s0-dial-up-dime>: locked: in the store, 300 credits
+    - Neon Nickel <coin-s0-neon-nickel>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): refused: no loadout changes during a live match
+      store answer for coin-chrome-token: refused: no loadout changes during a live match
+      store answer for coin-s0-dial-up-dime: refused: no loadout changes during a live match
+      store answer for coin-s0-neon-nickel: refused: no loadout changes during a live match
+      store answer for coin-s0-platinum: refused: no loadout changes during a live match
+      store answer for coin-s0-diamond: refused: no loadout changes during a live match
+      store answer for coin-s0-mythic: refused: no loadout changes during a live match
+
+== coin: Bought Neon Nickel ==
+An Aegis owner that earned 316 credits in 41 real matches (18 won) against a Null agent, bought Neon Nickel for 300, and wears it.
+agent Chrome Halcyon (Aegis deck); credits 16; earned 316 in 41 real matches (18 won)
+preview row: Aegis Cadet (1), Aegis Line Trooper (1), Barrier Drone (1), Bulwark Chassis (2), Failover Custodian (2), Feedback Plating (2)
+  [Victory boast] equipped: boast-aegis-shield-slam
+    - Shield Slam <boast-aegis-shield-slam>: owned (starter)
+    - Hive Burst <boast-swarm-hive-burst>: owned (starter)
+    - Void Collapse <boast-null-void-collapse>: owned (starter)
+    - Data Cascade <boast-cortex-data-cascade>: owned (starter)
+    - Boot Sequence <boast-s0-boot-sequence>: locked: in the store, 300 credits
+    - Dial-Up Fireworks <boast-s0-dial-up-fireworks>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for boast-aegis-shield-slam: accepted -> boast-aegis-shield-slam
+      store answer for boast-swarm-hive-burst: accepted -> boast-swarm-hive-burst
+      store answer for boast-null-void-collapse: accepted -> boast-null-void-collapse
+      store answer for boast-cortex-data-cascade: accepted -> boast-cortex-data-cascade
+      store answer for boast-s0-boot-sequence: refused: the owner doesn't own "Boot Sequence"
+      store answer for boast-s0-dial-up-fireworks: refused: the owner doesn't own "Dial-Up Fireworks"
+  [Close-win boast] equipped: (empty)
+    - Shield Slam <boast-aegis-shield-slam>: owned (starter)
+    - Hive Burst <boast-swarm-hive-burst>: owned (starter)
+    - Void Collapse <boast-null-void-collapse>: owned (starter)
+    - Data Cascade <boast-cortex-data-cascade>: owned (starter)
+    - Boot Sequence <boast-s0-boot-sequence>: locked: in the store, 300 credits
+    - Dial-Up Fireworks <boast-s0-dial-up-fireworks>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for boast-aegis-shield-slam: accepted -> boast-aegis-shield-slam
+      store answer for boast-swarm-hive-burst: accepted -> boast-swarm-hive-burst
+      store answer for boast-null-void-collapse: accepted -> boast-null-void-collapse
+      store answer for boast-cortex-data-cascade: accepted -> boast-cortex-data-cascade
+      store answer for boast-s0-boot-sequence: refused: the owner doesn't own "Boot Sequence"
+      store answer for boast-s0-dial-up-fireworks: refused: the owner doesn't own "Dial-Up Fireworks"
+  [Card back] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+  [Avatar] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+  [Arena] equipped: (empty)
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+  [Coin] equipped: coin-s0-neon-nickel
+    - Chrome Token <coin-chrome-token>: owned (starter)
+    - Neon Nickel <coin-s0-neon-nickel>: owned (purchase)
+    - Dial-Up Dime <coin-s0-dial-up-dime>: locked: in the store, 300 credits
+    - Empty: empty tile
+      store answer for (empty): accepted -> (empty)
+      store answer for coin-chrome-token: accepted -> coin-chrome-token
+      store answer for coin-s0-dial-up-dime: refused: the owner doesn't own "Dial-Up Dime"
+      store answer for coin-s0-neon-nickel: accepted -> coin-s0-neon-nickel
+      store answer for coin-s0-platinum: refused: the owner doesn't own "Platinum Coin"
+      store answer for coin-s0-diamond: refused: the owner doesn't own "Diamond Coin"
+      store answer for coin-s0-mythic: refused: the owner doesn't own "Mythic Coin"
 

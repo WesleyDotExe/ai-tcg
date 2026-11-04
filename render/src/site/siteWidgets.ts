@@ -8,6 +8,7 @@
 // data waits on match running says what it waits on (siteBoard.WIDGET_WAITS)
 // and draws nothing made up.
 
+import { coinSwatchHtml } from "./siteCoinSwatch.js";
 import { avatarSvg } from "../avatar.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
 import type { SiteHistory, SiteLive, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
@@ -288,7 +289,7 @@ function storeBody(w: SiteWidget, d: WidgetData): string {
   if (w.size === "M") return m;
   const cos = d.store!.cosmetics;
   const items = cos.length
-    ? `<div class="shop">${cos.map((c) => `<div class="si"><span class="si-pv" style="--c:${(c.faction && FACTION_HEX[c.faction]) || "#8f8cff"}"></span><b class="small">${esc(c.name)}</b><span class="muted small">${esc(c.kind)}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${(d.wallet?.credits ?? 0) >= c.priceCredits ? "" : " disabled"}>Buy · ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>`
+    ? `<div class="shop">${cos.map((c) => `<div class="si">${c.kind === "coin" ? coinSwatchHtml(c.itemId) : `<span class="si-pv" style="--c:${(c.faction && FACTION_HEX[c.faction]) || "#8f8cff"}"></span>`}<b class="small">${esc(c.name)}</b><span class="muted small">${esc(c.kind)}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${(d.wallet?.credits ?? 0) >= c.priceCredits ? "" : " disabled"}>Buy · ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>`
     : `<p class="muted small">No cosmetics on sale right now.</p>`;
   return m + `<h4>Cosmetics on sale</h4>${items}`;
 }

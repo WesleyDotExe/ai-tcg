@@ -26,6 +26,7 @@ import {
   type CosmeticItem,
 } from "../src/index.js";
 import { BOAST_SPECS } from "../../render/src/boastFx.js";
+import { COIN_SPECS } from "../../render/src/coinFx.js";
 
 const DAY1 = "2026-10-19T10:00:00.000Z";
 let clock = new Date(DAY1);
@@ -113,12 +114,17 @@ describe("cosmetics: the catalogue", () => {
     // The render's specs are keyed by item id. A boast the render draws but
     // the catalogue still marks undrawn (or the other way round) fails here:
     // flip `drawn` in economy/src/cosmetics.ts in the change that adds the spec.
+    // Boasts against the render's BOAST_SPECS; coins (render session 55, the
+    // second coin slice) against its COIN_SPECS.
+    const specsOf = (kind: string): Record<string, { name: string }> => (kind === "coin" ? COIN_SPECS : kind === "boast" ? BOAST_SPECS : {});
     for (const item of COSMETICS) {
-      expect({ itemId: item.itemId, drawn: item.drawn }).toEqual({ itemId: item.itemId, drawn: item.itemId in BOAST_SPECS });
-      const spec = BOAST_SPECS[item.itemId];
+      const specs = specsOf(item.kind);
+      expect({ itemId: item.itemId, drawn: item.drawn }).toEqual({ itemId: item.itemId, drawn: item.itemId in specs });
+      const spec = specs[item.itemId];
       if (spec) expect(spec.name).toBe(item.name);
     }
-    for (const id of Object.keys(BOAST_SPECS)) expect(COSMETICS.map((c) => c.itemId)).toContain(id);
+    for (const id of Object.keys(BOAST_SPECS)) expect(COSMETICS.filter((c) => c.kind === "boast").map((c) => c.itemId)).toContain(id);
+    for (const id of Object.keys(COIN_SPECS)) expect(COSMETICS.filter((c) => c.kind === "coin").map((c) => c.itemId)).toContain(id);
   });
 
   it("sells the Season 0 boasts only once drawn: for the whole season, never in another", () => {

@@ -4,7 +4,7 @@
 
 /** Each slot's label and lines, shared by the standalone page's builder
  * (loadoutDemo.ts) and the website (site/siteLoadout.ts). */
-export function loadoutSlotText(closeWinHealth: number): Record<"boast" | "closeWinBoast" | "cardBack" | "avatar" | "arena", { label: string; explainer: string; emptyText: string }> {
+export function loadoutSlotText(closeWinHealth: number): Record<"boast" | "closeWinBoast" | "cardBack" | "avatar" | "arena" | "coin", { label: string; explainer: string; emptyText: string }> {
   return {
     boast: { label: "Victory boast", explainer: "Plays when this agent wins, after the lethal hit and before the result line.", emptyText: "" },
     closeWinBoast: {
@@ -26,6 +26,11 @@ export function loadoutSlotText(closeWinHealth: number): Record<"boast" | "close
       label: "Arena",
       explainer: "The background behind the board in this agent's matches.",
       emptyText: "No arena backgrounds exist yet: Season 0 sells none. Until one ships, every match plays on the standard grid.",
+    },
+    coin: {
+      label: "Coin",
+      explainer: "The coin in the first-player flip at the start of this agent's matches: your view of its matches, and a spectator's when they watch from its side. Only the look: the server's flip decides who goes first.",
+      emptyText: "",
     },
   };
 }

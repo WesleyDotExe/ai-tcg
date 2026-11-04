@@ -14,6 +14,7 @@
 //   npm run site-page -w @ai-tcg/render [-- <out file>]   (default render/output/site/index.html)
 
 import { FACE_CSS, FACE_SCRIPT, faceSymbols } from "./siteFaces.js";
+import { COIN_SCRIPT } from "./siteCoins.js";
 import { buildSync } from "esbuild";
 import { renderPackOpeningHtml } from "../packPage.js";
 import { renderLoadoutHtml } from "../loadoutPicker.js";
@@ -253,6 +254,9 @@ body[data-theme="dark"] .topbar { background: rgba(10,12,30,.15); }
 .shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .si { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; padding: 10px; border-radius: 16px; background: var(--soft); box-shadow: var(--soft-edge); }
 .si-pv { width: 100%; height: 54px; border-radius: 10px; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 70%, #fff), color-mix(in srgb, var(--c) 60%, #11152e)); }
+/* A coin's swatch (render session 55): the coin drawn on a dark plate. */
+.si-pv.si-coin { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 40%, #1d2340, #05070e 75%); }
+.si-pv.si-coin canvas { display: block; }
 /* Customise mode (iOS edit style): the tiles jiggle, "−" top left, S/M/L in the head, drag to move. */
 .wgrid.editing .wg { animation: jig .26s ease-in-out infinite alternate; cursor: grab; }
 .wgrid.editing .wg:nth-child(2n) { animation-delay: -.13s; animation-duration: .3s; }
@@ -543,6 +547,7 @@ export function renderSitePage(): string {
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 ${faceSymbols()}
 <script>${FACE_SCRIPT}</script>
+<script>${COIN_SCRIPT}</script>
 <script>${siteScript()}</script>
 </body>
 </html>

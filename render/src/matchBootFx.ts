@@ -175,10 +175,13 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     var resTxt = String(co.line || ((who[first] && who[first].name ? String(who[first].name).toUpperCase() : 'AGENT') + ' GOES FIRST'));
     var rfs = Math.max(7, Math.min(14, (W * 0.8) / (BOOT_CH * (resTxt.length + 1))));
     var gap = rfs * 0.5, lineHalf = fs * 0.6 + (two ? fs * BOOT_LH / 2 : 0), avail = dLine - lineHalf - 4;
-    var cr = Math.max(5, Math.min(40, (avail - (gap + rfs) / 2) / COIN_PEAK, avail - gap / 2 - rfs * 0.6));
-    var coinSpec = coinSpecOf(co.id);
-    var coin = { id: coinSpec.id, fallback: coinSpec.fallback, x: cx, y: mid - (gap + rfs) / 2, r: cr, t0: COIN_FLICK_AT, land: COIN_LAND_AT, gone: COIN_GONE_AT,
-      halfTurns: coinHalfTurns(portraitUp), portraitUp: portraitUp };
+    // reach: how far the coin's light goes past its rim (a neon or phosphor
+    // rim's halo, render session 55), as a share of its size; the block
+    // keeps that clear of the agent lines too.
+    var coinSpec = coinSpecOf(co.id), reach = coinSpec.spec.neon ? COIN_NEON_REACH : 1;
+    var cr = Math.max(5, Math.min(40, (avail - (gap + rfs) / 2) / (COIN_PEAK * reach), avail - gap / 2 - rfs * 0.6));
+    var coin = { id: coinSpec.id, fallback: coinSpec.fallback, x: cx, y: mid - (gap + rfs) / 2, r: cr, reach: reach, t0: COIN_FLICK_AT, land: COIN_LAND_AT, gone: COIN_GONE_AT,
+      halfTurns: coinHalfTurns(portraitUp), portraitUp: portraitUp, whir: coinSpec.spec.whir || 'coinWhir' };
     var result = { txt: resTxt, x: cx, y: mid + cr + gap / 2, fs: rfs, t0: COIN_LINE_AT, ms: Math.min(220, resTxt.length * 12), gone: COIN_GONE_AT };
     // The edge pulse: a band of the first player's colour runs from the
     // centre edge of their half's screen to its far edge, and fades.
@@ -199,7 +202,7 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     // The coin: the flick off the thumb, its whir as it spins, the clink as
     // it lands; dead centre like every intro sound.
     snd(coin.t0, 'coinFlick');
-    snd(coin.t0 + 40, 'coinWhir');
+    snd(coin.t0 + 40, coin.whir);
     snd(coin.land, 'coinClink');
     snd(say.t, 'bootHit', 'spectacle');
     // The rare saying is heard too: root access granted, over the hit.
@@ -299,7 +302,7 @@ export const MATCH_BOOT_PURE_SOURCE = String.raw`
     if (!co || !rs) return 'no coin flip';
     if (!near(co.x, cx) || !near(rs.x, cx)) return 'the coin is off centre';
     if (!near(((co.y - co.r) + (rs.y + rs.fs / 2)) / 2, mid)) return 'the coin and its line are not centred on the centre line';
-    var peak = plan.still ? 1 : COIN_PEAK, pr = co.r * peak;
+    var peak = plan.still ? 1 : COIN_PEAK, pr = co.r * peak * (co.reach || 1);
     var coinBox = { l: co.x - pr, r: co.x + pr, t: co.y - pr, b: co.y + pr };
     var rw = BOOT_CH * rs.fs * (rs.txt.length + 1);
     var resBox = { l: rs.x - rw / 2, r: rs.x + rw / 2, t: rs.y - rs.fs * 0.6, b: rs.y + rs.fs * 0.6 };
@@ -487,7 +490,14 @@ export const MATCH_BOOT_RUNTIME_SOURCE = String.raw`
       // A small settle on the landing: it bounces once, a tenth of its size.
       var since = t - co.land, settle = since >= 0 && since < 160 && !p.still ? 1 + 0.06 * Math.sin(Math.PI * since / 160) : 1;
       ctx.globalCompositeOperation = 'source-over';
-      coinDraw(ctx, { spec: COIN_SPECS[co.id] || COIN_SPECS[COIN_DEFAULT], x: co.x, y: co.y, r: co.r, angle: fl.angle, scale: fl.scale * settle, img: cur.coinImg, faceRgb: cur.coinRgb, a: a });
+      var spec = COIN_SPECS[co.id] || COIN_SPECS[COIN_DEFAULT], trail = null;
+      // A trailing coin (Neon Nickel): where it was 20, 40 and 60 ms ago, in
+      // the air only.
+      if (spec.trail && !p.still && t < co.land && co.land > co.t0) {
+        trail = [];
+        for (var tk = 1; tk <= 3; tk++) { var tt = t - tk * 20; if (tt > co.t0) { var fk = coinFlight((tt - co.t0) / (co.land - co.t0), co.halfTurns); trail.push([fk.angle, fk.scale]); } }
+      }
+      coinDraw(ctx, { spec: spec, x: co.x, y: co.y, r: co.r, angle: fl.angle, scale: fl.scale * settle, img: cur.coinImg, faceRgb: cur.coinRgb, a: a, t: t, trail: trail });
       // The landing's ring: a chrome circle widening from the coin and fading.
       if (since >= 0 && since < 300 && !p.still) {
         var u = since / 300;
@@ -701,7 +711,7 @@ export interface BootPlan {
   say: { text: string; rare: boolean; bits: { cols: number; rows: number; chars: number; dots: [number, number, number][] }; cell: number; x: number; y: number; w: number; h: number; t: number; slam: number; out: [number, number]; grow: number };
   marks: { k: "sound" | "music" | "end"; t: number; kind?: string; tier?: string; x?: number; ms?: number }[];
   first: "top" | "bot";
-  coin: { id: string; fallback: boolean; x: number; y: number; r: number; t0: number; land: number; gone: number; halfTurns: number; portraitUp: boolean };
+  coin: { id: string; fallback: boolean; x: number; y: number; r: number; t0: number; land: number; gone: number; halfTurns: number; portraitUp: boolean; reach: number; whir: string };
   result: { txt: string; x: number; y: number; fs: number; t0: number; ms: number; gone: number };
   pulse: { side: "top" | "bot"; t: number; ms: number; l: number; r: number; from: number; to: number; dir: number; gone?: number };
 }

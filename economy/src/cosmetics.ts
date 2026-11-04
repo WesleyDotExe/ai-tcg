@@ -74,9 +74,9 @@ export interface CosmeticItem {
    * ladder tier that earns it. Granted, never sold; absent otherwise. */
   tierReward?: SeasonRewardTier;
   /** Whether the render lane has drawn it (for a boast, a spec under its
-   * item id in render/src/boastFx.ts's BOAST_SPECS; a coin isn't drawn by
-   * any spec yet, so every coin is undrawn until the render lane's coin
-   * slices). An item that isn't
+   * item id in render/src/boastFx.ts's BOAST_SPECS; for a coin, a spec
+   * under its item id in render/src/coinFx.ts's COIN_SPECS: all six Season 0
+   * coins since render session 55, the second coin slice). An item that isn't
    * drawn is never on sale, whatever its window (owner 2026-10-19: "neither
    * goes on sale until the render lane has drawn it"). The render lane
    * flips this in the same change that adds the spec; a test in
@@ -203,7 +203,7 @@ export const STARTER_COIN: CosmeticItem = {
   sale: null,
   artRef: "code:coin/chrome-token",
   description: "A silver hex token, polished to a mirror: the house coin every owner starts with.",
-  drawn: false,
+  drawn: true,
 };
 
 /** The two Season 0 store coins (owner 2026-11-02): 300 credits each, sold
@@ -219,7 +219,7 @@ export const SEASON_0_COINS: readonly CosmeticItem[] = [
     sale: null,
     artRef: "code:coin/s0-dial-up-dime",
     description: "A dark coin with a green CRT-phosphor rim that hums like a modem as it spins.",
-    drawn: false,
+    drawn: true,
   },
   {
     itemId: "coin-s0-neon-nickel",
@@ -231,7 +231,7 @@ export const SEASON_0_COINS: readonly CosmeticItem[] = [
     sale: null,
     artRef: "code:coin/s0-neon-nickel",
     description: "A chrome coin edged in magenta and cyan neon, trailing light through the flip.",
-    drawn: false,
+    drawn: true,
   },
 ];
 
@@ -251,7 +251,7 @@ export const SEASON_0_TIER_COINS: Readonly<Record<SeasonRewardTier, CosmeticItem
     artRef: "code:coin/s0-platinum",
     description: "Season 0's Platinum finish: a brushed platinum coin for owners who ended the season Platinum or higher.",
     tierReward: "Platinum",
-    drawn: false,
+    drawn: true,
   },
   Diamond: {
     itemId: "coin-s0-diamond",
@@ -264,7 +264,7 @@ export const SEASON_0_TIER_COINS: Readonly<Record<SeasonRewardTier, CosmeticItem
     artRef: "code:coin/s0-diamond",
     description: "Season 0's Diamond finish: prismatic facets that split the light as it turns.",
     tierReward: "Diamond",
-    drawn: false,
+    drawn: true,
   },
   Mythic: {
     itemId: "coin-s0-mythic",
@@ -277,7 +277,7 @@ export const SEASON_0_TIER_COINS: Readonly<Record<SeasonRewardTier, CosmeticItem
     artRef: "code:coin/s0-mythic",
     description: "Season 0's Mythic finish: the Mythic ward's moving sheen, for the season's very top.",
     tierReward: "Mythic",
-    drawn: false,
+    drawn: true,
   },
 };
 

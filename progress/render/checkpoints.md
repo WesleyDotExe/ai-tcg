@@ -7,6 +7,68 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-04 — The second coin slice: every Season 0 coin drawn, and the Coin line in the picker and the Store — AWAITING FEEDBACK
+
+The slice you set after render 54. Try it: open `render/output/coin-sheet.html` (all six coins, still and
+flipping), `render/output/loadout-picker.html` (the "Bought Neon Nickel" tab, then the Coin slot), or the site
+demo (`npm run site-demo -w @ai-tcg/render`, `nova` / `a long demo password`, Store).
+
+**The looks, as you approved them** (EFFECTS.md "The rest of Season 0's coins"; code-drawn placeholders):
+- **Dial-Up Dime:** a dark round coin, a glowing green CRT-phosphor rim; its face a little screen with
+  scanlines, the handshake's waveform turning to noise, a blinking cursor. Its spin warbles like a modem.
+- **Neon Nickel:** a chrome octagon in two neon tubes (magenta outside, cyan inside), a neon bolt on its face;
+  in the air it trails its neon outline. Its spin buzzes like a neon tube.
+- **Platinum Coin** (your Gold look, as platinum): brushed platinum, a milled edge, a four-point star, "S0".
+- **Diamond Coin:** an octagonal cut, a brilliant's facets each catching a different colour that runs as it
+  spins and settles as it lands; "S0". A shimmering whir.
+- **Mythic Coin:** dark violet with a gold rim, a slowly turning ring of ward ticks, a gold seal, "S0", and a
+  bright sheen that sweeps across it every 2.4 s, landed or spinning. A shimmering whir.
+- All six flip in Match Boot by the same grammar (centre piece, rises toward you, lands on the face it says);
+  the coins with a glowing rim are drawn a little smaller so the glow stays clear of the agent lines.
+
+**The Coin line** (the picker's sixth slot, on the website and the standalone page): each coin tile shows the
+coin drawn; tapping one flips it over the preview board, landing design up (THEY GO FIRST) then on the agent's
+portrait (YOU GO FIRST), in a loop, with its own sounds on a tap. An empty slot says (and previews) "flips
+Chrome Token". Buy and Equip work as for boasts; a live match refuses a change. **The Store:** each agent's row
+has "Coin: …", and the Cosmetics panel shows Dial-Up Dime and Neon Nickel drawn, at 300.
+
+**On sale now:** the six coins are marked drawn in `economy/src/cosmetics.ts` (as session 33 did for the
+boasts), so the game lane's Season 0 sale window opened: both store coins are on sale at 300. The tier coins
+stay unsold (season rewards). `economy/test/cosmetics.test.ts` now checks every coin against the render's
+`COIN_SPECS` (the check you asked of the game lane; done here because the drawn flag and the check must move
+together, notes).
+
+**Evidence:** `progress/render/evidence/coin-check-s55.txt`: 60 browser checks, ALL PASS (each coin flipped in
+Match Boot by its own look with its own whir, drawn mid-spin and landed; the coin sheet; the picker's Coin
+line on desktop, phone and reduced motion; the website's Store and picker over the real owner API; no errors,
+no external requests). Sabotage (every coin forced to the fallback): 10 FAIL
+(`coin-check-s55-sabotage.txt`). Stills `v2-s55-coin-sheet.jpg`, `v2-s55-boot-*.jpg` (six),
+`v2-s55-picker-coin-slot.jpg`, `v2-s55-picker-dime-preview.jpg`, `v2-s55-picker-reduced.jpg`,
+`v2-s55-picker-phone-*.jpg`, `v2-s55-site-store-coins.jpg`, `v2-s55-site-picker-coin.jpg`. CI browser check
+61/61 (`ci-browser-check-s55.txt`). `npm test`: all six workspaces pass (render 852, +8); typecheck clean.
+Every committed page rebuilt.
+
+**Decisions you may want to overrule:**
+1. **The tier coins carry a season mark ("S0") on their face.** You left Season 1's tier coins (a new look, or
+   the same look with a season mark) to this lane: I propose the same look with the season's mark, so a
+   Platinum coin always reads as Platinum and the seasons tell apart by the mark.
+2. **Each coin has its own whir** (Dime: modem warble; Nickel: neon buzz; Diamond and Mythic: a shimmer;
+   Chrome and Platinum: the plain metal whir). The flick and the clink are shared.
+3. **Glowing rims are drawn about 10% smaller** in Match Boot so their glow keeps the same room from the agent
+   lines as the Chrome Token's rim.
+4. **The picker's coin preview alternates landings** (design up, then portrait up, each with its line) so an
+   owner sees both faces; it flips over a dimmed preview board rather than a full Match Boot.
+5. **The Store's agent rows say "Coin: <name>"**, and an empty slot "Empty: flips Chrome Token".
+6. **Neon Nickel's trail** is three afterimages of its neon outline, 20 ms apart, only in the air.
+7. **The demo picker gained a fourth tab** ("Bought Neon Nickel": an Aegis owner who earned 316 credits in 41
+   real matches, bought it for 300 and wears it).
+
+**Next render-lane slice:** the live arena reads the signature card in full and the live boast from the
+session-72 feed, with the 2× controls you added to it (Ask for 2× and taking it back, who asks and who is
+waited on, the arena at the agreed rate, the "Ask for 2× in every match" toggle in Settings → Play).
+
+---
+
 ## 2026-11-03 — Live hands face up, and the coin flip in Match Boot (the first coin slice) — AWAITING FEEDBACK
 
 Both halves of the slice you set after render 52. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder

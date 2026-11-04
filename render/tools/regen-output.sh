@@ -23,6 +23,7 @@ done
 run src/recordedDemo.ts
 run src/boastSheet.ts
 run src/bootSheet.ts
+run src/coinSheet.ts
 run src/skinSheet.ts
 run src/fxSheet.ts
 run src/faceSheet.ts

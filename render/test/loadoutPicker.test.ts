@@ -8,18 +8,22 @@ import {
   loadoutSavedLine,
   loadoutSlotLine,
   loadoutTilePreview,
+  loadoutCoinPass,
+  loadoutCoinPreview,
+  LOADOUT_COIN_FLIGHT_MS,
   renderLoadoutHtml,
   type LoadoutPageData,
   type PickerSlot,
 } from "../src/loadoutPicker.js";
-// The slots the picker draws: the coin slot (schema v20) joins with the
-// render lane's second coin slice.
+// The slots the picker draws: all six, the coin too since the render lane's
+// second coin slice (render session 55).
 import { LOADOUT_SLOTS_ORDER as LOADOUT_SLOTS } from "../src/loadoutPicker.js";
+import { COIN_FLICK_AT, COIN_LAND_AT, COIN_SPECS, coinFaceAt, coinFlight, coinHalfTurns, coinResult } from "../src/coinFx.js";
 import { buildLoadoutPage, LOADOUT_SCENARIOS, openScenarioStore, outcomesFor, type BuiltScenario } from "../src/loadoutDemo.js";
 
 const starters = Object.fromEntries(Object.entries(STARTER_BOASTS).map(([f, b]) => [f, b.itemId]));
 const names = Object.fromEntries(COSMETICS.map((i) => [i.itemId, i.name]));
-const empty = (): Record<PickerSlot, string | null> => ({ boast: null, closeWinBoast: null, cardBack: null, avatar: null, arena: null });
+const empty = (): Record<PickerSlot, string | null> => ({ boast: null, closeWinBoast: null, cardBack: null, avatar: null, arena: null, coin: null });
 const BOOT = "boast-s0-boot-sequence";
 
 // One small deterministic generator for the random sequences.
@@ -121,7 +125,7 @@ describe("the loadout picker's model", () => {
 });
 
 describe("the page's data, from real store states", () => {
-  it("has the three scenarios, each with all five slots and an answer for every choice", () => {
+  it("has the four scenarios, each with all six slots and an answer for every choice", () => {
     const { data } = page;
     expect(data.scenarios.map((s) => s.key)).toEqual(LOADOUT_SCENARIOS.map((s) => s.key));
     for (const sc of data.scenarios) {
@@ -146,7 +150,20 @@ describe("the page's data, from real store states", () => {
     expect(bought!.credits).toBeLessThan(300);
     expect(page.built[1]!.earned.matches).toBeGreaterThan(0);
     // No card backs, avatars or arenas exist: just the empty tile.
-    for (const sc of [fresh, bought, live]) for (const v of sc!.slots.slice(2)) expect(v.tiles.map((t) => t.itemId)).toEqual([null]);
+    for (const sc of [fresh, bought, live]) for (const v of sc!.slots.slice(2, 5)) expect(v.tiles.map((t) => t.itemId)).toEqual([null]);
+    // The coin slot (render session 55): the free Chrome Token owned, the two
+    // store coins locked at 300 (on sale since drawn), the tier coins never
+    // shown to an owner who doesn't hold one (they aren't sold), then empty.
+    for (const sc of [fresh, bought, live]) {
+      const coin = sc!.slots.find((v) => v.slot === "coin")!;
+      expect(coin.tiles.map((t) => [t.itemId, t.owned, t.priceCredits])).toEqual([
+        ["coin-chrome-token", true, null],
+        ["coin-s0-dial-up-dime", false, 300],
+        ["coin-s0-neon-nickel", false, 300],
+        [null, true, null],
+      ]);
+      expect(sc!.loadout.coin).toBe("coin-chrome-token");
+    }
     // The store's own loadouts.
     expect(fresh!.loadout.boast).toBe(STARTER_BOASTS.Null.itemId);
     expect(bought!.loadout).toMatchObject({ boast: BOOT, closeWinBoast: STARTER_BOASTS.Cortex.itemId });
@@ -185,7 +202,10 @@ describe("the page's data, from real store states", () => {
     expect(html).not.toMatch(/<script[^>]+src=/);
     expect(html).not.toMatch(/https?:\/\/(?!www\.w3\.org)/);
     const json = html.match(/<script type="application\/json" id="loadout-data">([\s\S]*?)<\/script>/)![1]!;
-    expect(JSON.parse(json).scenarios.length).toBe(3);
+    expect(JSON.parse(json).scenarios.length).toBe(4);
+    // The coin's own sources, so the coin slot draws and flips the coins Match Boot does.
+    expect(html).toContain("function coinDraw(ctx, c)");
+    expect(html).toContain("var COINPV = (function () {");
   });
 
   it("the preview's sound proxy: a pass the viewer asked for gets its sequence on the audio clock; a loop's repeat gets none (render session 39)", () => {
@@ -245,4 +265,46 @@ describe("the page's answers compose like the real store", () => {
       if (spec.key !== "bought") expect(refused).toBeGreaterThan(0);
     }, 180_000);
   }
+});
+
+describe("the coin slot (render session 55, the second coin slice)", () => {
+  it("previews the tile's coin, else the equipped one, else the Chrome Token an empty slot flips", () => {
+    const st = { ...empty(), coin: "coin-s0-neon-nickel" };
+    expect(loadoutCoinPreview(st, "coin-s0-dial-up-dime", true, "coin-chrome-token")).toEqual({ id: "coin-s0-dial-up-dime", empty: false });
+    expect(loadoutCoinPreview(st, null, false, "coin-chrome-token")).toEqual({ id: "coin-s0-neon-nickel", empty: false });
+    // The empty tile, previewed: what an empty slot flips.
+    expect(loadoutCoinPreview(st, null, true, "coin-chrome-token")).toEqual({ id: "coin-chrome-token", empty: true });
+    expect(loadoutCoinPreview(empty(), null, false, "coin-chrome-token")).toEqual({ id: "coin-chrome-token", empty: true });
+  });
+
+  it("alternates the landing: design up (they go first), then the portrait (you go first), by Match Boot's own flight", () => {
+    for (let n = 0; n < 6; n++) {
+      const p = loadoutCoinPass(n);
+      expect(p.portraitUp).toBe(n % 2 === 1);
+      expect(coinFaceAt(coinFlight(1, p.halfTurns).angle)).toBe(p.portraitUp ? "portrait" : "design");
+      expect(p.halfTurns).toBe(coinHalfTurns(p.portraitUp));
+      expect(p.line).toBe(coinResult({ near: "p1", own: true, first: p.portraitUp ? "p1" : "p2", names: { p1: "A", p2: "B" } }));
+    }
+    // The flight is Match Boot's (flick to landing).
+    expect(LOADOUT_COIN_FLIGHT_MS).toBe(COIN_LAND_AT - COIN_FLICK_AT);
+  });
+
+  it("the rail's line names the coin, or says an empty slot flips the Chrome Token", () => {
+    expect(loadoutSlotLine({ ...empty(), coin: "coin-s0-mythic" }, "coin", null, starters, names)).toBe("Mythic Coin");
+    expect(loadoutSlotLine(empty(), "coin", null, starters, names)).toBe("Empty: flips Chrome Token");
+  });
+
+  it("a coin scenario bought Neon Nickel with credits earned in real matches and wears it; every coin offered has a look", () => {
+    const sc = page.data.scenarios.find((x) => x.key === "coin")!;
+    expect(sc.loadout.coin).toBe("coin-s0-neon-nickel");
+    const coin = sc.slots.find((v) => v.slot === "coin")!;
+    expect(coin.tiles.map((t) => [t.itemId, t.owned, t.source])).toEqual([
+      ["coin-chrome-token", true, "starter"],
+      ["coin-s0-neon-nickel", true, "purchase"],
+      ["coin-s0-dial-up-dime", false, null],
+      [null, true, null],
+    ]);
+    expect(page.built.find((b) => b.scenario.key === "coin")!.earned.matches).toBeGreaterThan(0);
+    for (const s2 of page.data.scenarios) for (const t of s2.slots.find((v) => v.slot === "coin")!.tiles) if (t.itemId) expect(COIN_SPECS[t.itemId], t.itemId).toBeDefined();
+  });
 });

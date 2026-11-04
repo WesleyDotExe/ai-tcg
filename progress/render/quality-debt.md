@@ -48,14 +48,23 @@ items are removed, with the fix in `log.md`.
 - **Session 50's browser check flaked once** (check 37: the 720 px history's Replay button "not visible" to
   the click for 30 s, on this branch; the re-run passed 40 of 40). Watch for it.
 - **The Home widgets don't open the arena** (only Agent match and Watch live do).
-- **The coin flip (session 53) is the first slice only:** the Chrome Token is the one look drawn; every other
-  coin flips it (`fallback`), including the tier coins once granted, until the second coin slice. The coin's
-  edge is a flat dark band, not a real rim; the portrait is the generated avatar (a real image, `avatarUrl`,
-  is drawn as given). The flick, whir and clink were checked as queued on the audio clock and their recipes
-  tested, never listened to by a person. The coin's size is set by the gap between the agent lines (about
-  30 px radius on the desktop replay): it reads, but is small on a wide board. The committed `render/output`
-  pages are rebuilt (session 54, `npm run outputs -w @ai-tcg/render`) and play the coin; nothing rebuilds
-  them automatically, so they go stale again whenever a session forgets.
+- **The coins (sessions 53 and 55) are code-drawn placeholders, judged by their author only:** all six
+  Season 0 coins are drawn (`coin-sheet.html`), but nobody but this lane has looked at them. Known soft
+  spots: the Diamond's facets read pastel rather than brilliant at small sizes; the Mythic's face washes
+  out under the shared metal sweep; the coin's edge is a flat band, not a real rim; at a tile's size (about
+  30 px across) the faces' detail (the Dime's waveform, the season mark) is mostly lost. The check that
+  "the six landed coins differ" measures mean colour and is weak (closest pair 7.7 apart, because landing
+  portrait up the faces share the portrait); the sheet's pixel hashes are the real distinctness check.
+  The flick, the four whirs and the clink were checked as queued and their recipes tested, never listened to
+  by a person (the modem warble especially). The coin's size is set by the gap between the agent lines
+  (about 30 px radius on the desktop replay), small on a wide board. A real `avatarUrl` portrait is drawn
+  as given. The committed `render/output` pages are rebuilt (session 55, `npm run outputs`), but nothing
+  rebuilds them automatically, so they go stale whenever a session forgets.
+- **The loadout picker's coin preview is its own small player, not Match Boot:** it reuses `coinDraw`,
+  `coinFlight` and the flight's length, but the dimmed board, the result line's type and the landing ring
+  are drawn by the picker (`COINPV`), so a later change to Match Boot's landing has to be made twice. The
+  site-check of session 49 (`site-check-s49.mjs`) still expects five rail slots, so it is stale (the coin is
+  the sixth); `coin-check-s55.mjs` covers the site's picker with six.
 - **Live hands are rebuilt, not sent (session 53):** exact in every tested match (card for card against the
   engine, and over the real API against the recorded replay), but a future engine change that moves a card in
   or out of a hand without a `playCard` move or a `draw` event (a discard, a bounce) would trip the count

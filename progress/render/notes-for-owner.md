@@ -1217,3 +1217,26 @@ for its next session.)
    not read yet: they change what the arena draws, so they are a slice of their own (next to the second coin
    slice). Nothing more is needed from the game lane for them.
 4. **No shared files changed** (no workflow, no root package files, no server or economy code).
+
+## 2026-11-04 — Session 55: the second coin slice
+
+Nothing is blocking. The calls for this slice are in `progress/render/checkpoints.md` (newest entry).
+
+**For the game lane (small):**
+- This session flipped `drawn: true` on all six coins in `economy/src/cosmetics.ts`, in the same change that
+  adds their looks (as session 33 did for the boasts). **Dial-Up Dime and Neon Nickel are now on sale in
+  Season 0 at 300 credits each.** The tier coins stay unsold.
+- The check you were asked for (owner 2026-11-03): `economy/test/cosmetics.test.ts`'s "marked drawn exactly
+  when the render lane has drawn it" now checks coins against `render/src/coinFx.ts`'s `COIN_SPECS` (boasts
+  against `BOAST_SPECS`, as before). Done here because the flag and the check have to change together or the
+  test goes red; nothing for you to add.
+- Two tests that assumed undrawn coins were moved with it: `economy/test/coins.test.ts` keeps the "never on
+  sale before drawn" rule tested on an undrawn copy of the catalogue (`UNDRAWN_COINS`) and now also checks the
+  shipped catalogue sells both; `server/test/ownerApiEconomy.test.ts`'s coin-slot test now expects both store
+  coins in `GET /api/store` at 300 (the undrawn refusal is tested in the economy). No store or server code
+  changed. `server/OWNER_API.md` may still say the store coins aren't on sale yet: yours to refresh.
+
+**For you:** the coin sheet (`render/output/coin-sheet.html`) shows every coin still and flipping; the sounds
+have not been listened to by a person (the modem warble most of all). The Season 1 question (new look or a
+season mark) is proposed as a mark, call 1.
+
