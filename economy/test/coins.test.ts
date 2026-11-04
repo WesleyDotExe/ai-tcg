@@ -42,9 +42,13 @@ const tmpFile = () => {
   return join(dir, "season.db");
 };
 
-/** The shipped catalogue with the two store coins marked drawn, as the
- * render lane will mark them in its coin slice. */
+/** The shipped catalogue with the two store coins marked drawn (as the
+ * render lane marked them in render session 55, so this is the shipped
+ * catalogue; kept by name for the tests that need the coins on sale). */
 const DRAWN_COINS: readonly CosmeticItem[] = COSMETICS.map((c) => (SEASON_0_COINS.some((s) => s.itemId === c.itemId) ? { ...c, drawn: true } : c));
+/** The catalogue as it was before render session 55: the store coins
+ * undrawn, so the "never on sale before drawn" rule stays tested. */
+const UNDRAWN_COINS: readonly CosmeticItem[] = COSMETICS.map((c) => (SEASON_0_COINS.some((s) => s.itemId === c.itemId) ? { ...c, drawn: false } : c));
 
 const open = (path = ":memory:", opts: { migrateTo?: number; cosmetics?: readonly CosmeticItem[]; season?: string } = {}) =>
   EconomyStore.open(path, { now: () => clock, ...opts });
@@ -90,8 +94,9 @@ describe("coins: the catalogue", () => {
     ]);
     for (const c of COSMETICS.filter((i) => i.kind === "coin")) {
       expect(c.artRef).toBe(`code:coin/${c.itemId.replace(/^coin-/, "")}`);
-      // No coin is drawn yet: the render lane's two coin slices draw them.
-      expect(c.drawn).toBe(false);
+      // Every Season 0 coin is drawn since render session 55 (the second
+      // coin slice; cosmetics.test.ts checks each against the render's COIN_SPECS).
+      expect(c.drawn).toBe(true);
     }
     expect(LOADOUT_SLOTS).toContain("coin");
     expect(SLOT_KIND.coin).toBe("coin");
@@ -163,11 +168,16 @@ describe("coins: the Chrome Token and the coin slot", () => {
 
 describe("coins: the store", () => {
   it("doesn't sell a store coin until the render lane draws it; then 300 credits, Season 0 only", () => {
+    const undrawn = open(":memory:", { cosmetics: UNDRAWN_COINS });
+    const o = undrawn.createOwner({ name: "o" });
+    credit(undrawn, o.ownerId, 1000);
+    expect(undrawn.cosmeticsOnSale(o.ownerId).filter((i) => i.kind === "coin")).toEqual([]);
+    expect(() => undrawn.buyCosmetic(o.ownerId, "coin-s0-dial-up-dime")).toThrow(/render lane hasn't drawn it/);
+    undrawn.close();
+    // The shipped catalogue (render session 55 drew them) sells both.
     const shipped = open();
-    const o = shipped.createOwner({ name: "o" });
-    credit(shipped, o.ownerId, 1000);
-    expect(shipped.cosmeticsOnSale(o.ownerId).filter((i) => i.kind === "coin")).toEqual([]);
-    expect(() => shipped.buyCosmetic(o.ownerId, "coin-s0-dial-up-dime")).toThrow(/render lane hasn't drawn it/);
+    const o2 = shipped.createOwner({ name: "o2" });
+    expect(shipped.cosmeticsOnSale(o2.ownerId).filter((i) => i.kind === "coin").map((i) => i.itemId)).toEqual(["coin-s0-dial-up-dime", "coin-s0-neon-nickel"]);
     shipped.close();
 
     const s = open(":memory:", { cosmetics: DRAWN_COINS });

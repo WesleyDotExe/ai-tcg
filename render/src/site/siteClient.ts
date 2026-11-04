@@ -33,6 +33,7 @@
 // revealOf). Its summary's buttons open the next pack or ten more, or close.
 // The reveal's sound is the account's sound setting.
 
+import { coinSwatchHtml } from "./siteCoinSwatch.js";
 import { avatarSvg } from "../avatar.js";
 import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
@@ -1057,7 +1058,7 @@ function storePage(): string {
   // Cosmetics on sale.
   const cos = sh.store.cosmetics;
   const items = cos.length
-    ? `<div class="shop">${cos.map((c) => `<div class="si"><span class="si-pv" style="--c:${(c.faction && FACTION_HEX[c.faction]) || "#8f8cff"}"></span><b class="small">${esc(c.name)}</b><span class="muted small">${esc(cosmeticKind(c.kind))}${c.faction ? ` · ${esc(c.faction)}` : ""}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${credits >= c.priceCredits ? "" : " disabled"}>Buy · ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>`
+    ? `<div class="shop">${cos.map((c) => `<div class="si">${c.kind === "coin" ? coinSwatchHtml(c.itemId) : `<span class="si-pv" style="--c:${(c.faction && FACTION_HEX[c.faction]) || "#8f8cff"}"></span>`}<b class="small">${esc(c.name)}</b><span class="muted small">${esc(cosmeticKind(c.kind))}${c.faction ? ` · ${esc(c.faction)}` : ""}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${credits >= c.priceCredits ? "" : " disabled"}>Buy · ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>`
     : '<p class="muted small">No cosmetics on sale right now.</p>';
   const cosmetics = `<section class="panel glass st-cos"><h3>Cosmetics</h3>${items}<p class="muted small">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p></section>`;
   return `<div class="pg-wide"><div class="st-grid">${packsHead}${daily}<div class="st-col">${waiting}${agentsPanel()}</div>${recent}${cosmetics}</div></div>`;
@@ -1077,11 +1078,11 @@ function agentsPanel(): string {
     ? rows
         .map(
           (r) =>
-            `<div class="st-agent">${avatar(r.name, null, 30)}<div class="dn"><b>${esc(r.name)}${r.connected ? ' <span class="pill on">Connected</span>' : ""}</b><small>Victory boast: ${esc(r.boast)}</small><small>Close win: ${esc(r.closeWin)}</small></div><button type="button" class="btn sm" data-act="dress" data-agent="${esc(r.agentId)}" aria-label="Change ${esc(r.name)}'s loadout">Change</button></div>`,
+            `<div class="st-agent">${avatar(r.name, null, 30)}<div class="dn"><b>${esc(r.name)}${r.connected ? ' <span class="pill on">Connected</span>' : ""}</b><small>Victory boast: ${esc(r.boast)}</small><small>Close win: ${esc(r.closeWin)}</small><small>Coin: ${esc(r.coin)}</small></div><button type="button" class="btn sm" data-act="dress" data-agent="${esc(r.agentId)}" aria-label="Change ${esc(r.name)}'s loadout">Change</button></div>`,
         )
         .join("")
     : '<p class="muted small">No agents yet.</p>';
-  return `<section class="panel glass st-agents"><h3>Your agents' loadouts</h3><p class="muted small">Each agent wears its own: its victory boast, its close-win boast (a win on ${CLOSE_WIN_HEALTH} health or less), and later a card back, an avatar and an arena.</p>${locked ? '<p class="small warn-t">A match is live: loadouts can\'t change until it ends.</p>' : ""}<div class="st-rows">${body}</div></section>`;
+  return `<section class="panel glass st-agents"><h3>Your agents' loadouts</h3><p class="muted small">Each agent wears its own: its victory boast, its close-win boast (a win on ${CLOSE_WIN_HEALTH} health or less), the coin its first-player flip shows, and later a card back, an avatar and an arena.</p>${locked ? '<p class="small warn-t">A match is live: loadouts can\'t change until it ends.</p>' : ""}<div class="st-rows">${body}</div></section>`;
 }
 
 function pityText(p: SitePacks): string {

@@ -12,6 +12,10 @@
 //           stays locked, with what the owner has left.
 //   live    a Swarm owner in a live match (startMatch, not yet recorded):
 //           the store refuses every change, and the page shows its answer.
+//   coin    an Aegis owner that earned 300 credits in real matches and
+//           bought Neon Nickel (render session 55: the store coins went on
+//           sale once drawn), its coin slot set to it; Dial-Up Dime stays
+//           locked "in the store".
 //
 // For every choice the page offers in every slot (each catalogue item of
 // the slot's kind, and the empty slot) the real store's setLoadout is
@@ -31,6 +35,7 @@ import { runMatch } from "@ai-tcg/engine";
 import type { DeckSpec } from "@ai-tcg/engine";
 import { CLOSE_WIN_HEALTH, EconomyError, EconomyStore, LOADOUT_SLOTS, SLOT_KIND, STARTER_BOASTS, type LoadoutSlot } from "@ai-tcg/economy";
 import { LookaheadAgent, type DeckFaction } from "./engineInternal.js";
+import { avatarSvg } from "./avatar.js";
 import { loadoutSlotText, renderLoadoutHtml, type LoadoutPageData, type PickerCard, type PickerOutcome, type PickerScenario, type PickerSlotView, type PickerTile } from "./loadoutPicker.js";
 
 const START = Date.parse("2026-10-20T09:00:00.000Z");
@@ -65,6 +70,7 @@ export const LOADOUT_SCENARIOS: readonly LoadoutScenarioSpec[] = [
     loadout: { boast: "boast-s0-boot-sequence", closeWinBoast: STARTER_BOASTS.Cortex.itemId },
   },
   { key: "live", label: "In a live match", faction: "Swarm", agent: "Brood Signal", foe: "Cortex", loadout: { closeWinBoast: STARTER_BOASTS.Aegis.itemId }, live: true },
+  { key: "coin", label: "Bought Neon Nickel", faction: "Aegis", agent: "Chrome Halcyon", foe: "Null", buy: ["coin-s0-neon-nickel"], loadout: { coin: "coin-s0-neon-nickel" } },
 ];
 
 export interface BuiltScenario {
@@ -198,6 +204,8 @@ export async function buildScenario(spec: LoadoutScenarioSpec): Promise<BuiltSce
           priceCredits: null,
           description: slot === "boast" ? `A win plays the starter boast of the faction the deck plays (${spec.faction}: ${starter.name}).` : "A close win plays the victory boast.",
         });
+      } else if (kind === "coin") {
+        tiles.push({ itemId: null, name: "Empty", faction: null, season: null, owned: true, source: null, priceCredits: null, description: "An empty coin slot flips the Chrome Token." });
       } else {
         tiles.push({ itemId: null, name: "Empty", faction: null, season: null, owned: true, source: null, priceCredits: null, description: "Nothing equipped." });
       }
@@ -212,17 +220,18 @@ export async function buildScenario(spec: LoadoutScenarioSpec): Promise<BuiltSce
       .slice(0, 6)
       .map((c) => ({ name: c.name, cost: c.cost, attack: c.type === "Unit" ? c.attack : null, health: c.type === "Unit" ? c.health : null }));
 
+    const an = /^[AEIOU]/.test(spec.faction) ? "An" : "A";
     const note = spec.live
-      ? `A ${spec.faction} owner with the starter collection, its close-win slot set to Aegis's free Shield Slam, now in a live match against a ${spec.foe} agent.`
+      ? `${an} ${spec.faction} owner with the starter collection, its close-win slot set to Aegis's free Shield Slam, now in a live match against a ${spec.foe} agent.`
       : spec.buy?.length
-        ? `A ${spec.faction} owner that earned ${earnedCredits} credits in ${matches} real matches (${wins} won) against a ${spec.foe} agent, bought ${spec.buy.map((id) => catalogue.find((i) => i.itemId === id)!.name).join(" and ")} for ${cost}, and wears it.`
-        : `A ${spec.faction} owner with only the starter collection: the four free starter boasts, its faction's equipped by the store.`;
+        ? `${an} ${spec.faction} owner that earned ${earnedCredits} credits in ${matches} real matches (${wins} won) against a ${spec.foe} agent, bought ${spec.buy.map((id) => catalogue.find((i) => i.itemId === id)!.name).join(" and ")} for ${cost}, and wears it.`
+        : `${an} ${spec.faction} owner with only the starter collection: the four free starter boasts, its faction's equipped by the store.`;
     return {
       scenario: {
         key: spec.key,
         label: spec.label,
         note,
-        agent: { name: store.getAgent(me.agentId).name, deckFaction: spec.faction },
+        agent: { name: store.getAgent(me.agentId).name, deckFaction: spec.faction, avatarSvg: avatarSvg(store.getAgent(me.agentId).name) },
         credits: store.balance(me.ownerId),
         live,
         loadout,
@@ -240,11 +249,8 @@ export async function buildScenario(spec: LoadoutScenarioSpec): Promise<BuiltSce
 
 /** Puts every choice of every slot to the store, keeps each answer, and puts
  * the slot back. */
-// The picker draws the slots it has looks for. The coin slot (schema v20,
-// game session 69) joins with the render lane's second coin slice ("the
-// coin line in the picker and the Store"); until then it is left out here,
-// and its Equip goes through the same endpoint when it comes.
-const PICKER_SLOTS = LOADOUT_SLOTS.filter((s) => s !== "coin");
+// Every loadout slot, the coin too (render session 55, the second coin slice).
+const PICKER_SLOTS = LOADOUT_SLOTS;
 
 export function outcomesFor(store: EconomyStore, ownerId: string, agentId: string): PickerScenario["outcomes"] {
   const base = store.loadout(agentId);

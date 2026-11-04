@@ -26,7 +26,7 @@ import {
   type BootPlan,
 } from "../src/matchBootFx.js";
 import { BOAST_FONT } from "../src/boastFx.js";
-import { COIN_DEFAULT, COIN_PEAK, COIN_SPECS, coinFaceAt, coinFlight, coinHalfTurns, coinResult, coinSpecOf } from "../src/coinFx.js";
+import { COIN_DEFAULT, COIN_NEON_REACH, COIN_PEAK, COIN_SPECS, coinFaceAt, coinFlight, coinHalfTurns, coinResult, coinSpecOf, coinWhirOf } from "../src/coinFx.js";
 import { SEASON_0_COINS, SEASON_0_TIER_COINS, STARTER_COIN } from "@ai-tcg/economy";
 import { sfxRecipe } from "../src/soundFx.js";
 import { renderMatchHtml } from "../src/renderHtml.js";
@@ -360,16 +360,77 @@ describe("the coin flip (render session 53)", () => {
     expect(p.result.txt).toBe("STATIC WIDOW GOES FIRST");
   });
 
-  it("draws the Chrome Token; a coin not drawn yet flips the Chrome Token and says so", () => {
-    expect(Object.keys(COIN_SPECS)).toEqual(["coin-chrome-token"]);
-    expect(COIN_SPECS["coin-chrome-token"]!.name).toBe(STARTER_COIN.name);
-    expect(STARTER_COIN.itemId).toBe(COIN_DEFAULT);
-    expect(coinSpecOf("coin-chrome-token")).toMatchObject({ id: "coin-chrome-token", fallback: false });
-    for (const item of [...SEASON_0_COINS, ...Object.values(SEASON_0_TIER_COINS)]) {
-      expect(coinSpecOf(item.itemId)).toMatchObject({ id: COIN_DEFAULT, fallback: true });
-      expect(bootPlan(DESKTOP, WHO, 1, { coin: { id: item.itemId } }).coin).toMatchObject({ id: COIN_DEFAULT, fallback: true });
+  it("draws every Season 0 coin by its own look (render session 55); a coin it doesn't know flips the Chrome Token and says so", () => {
+    const shipped = [STARTER_COIN, ...SEASON_0_COINS, ...Object.values(SEASON_0_TIER_COINS)];
+    expect(Object.keys(COIN_SPECS).sort()).toEqual(shipped.map((c) => c.itemId).sort());
+    for (const item of shipped) {
+      expect(COIN_SPECS[item.itemId]!.name, item.itemId).toBe(item.name);
+      expect(coinSpecOf(item.itemId)).toMatchObject({ id: item.itemId, fallback: false });
+      expect(bootPlan(DESKTOP, WHO, 1, { coin: { id: item.itemId } }).coin).toMatchObject({ id: item.itemId, fallback: false });
     }
+    expect(STARTER_COIN.itemId).toBe(COIN_DEFAULT);
+    // Six different looks: no two share a face design and an outline.
+    const looks = shipped.map((c) => `${COIN_SPECS[c.itemId]!.face}/${COIN_SPECS[c.itemId]!.sides}`);
+    expect(new Set(looks).size).toBe(6);
+    // The tier coins carry the season mark; the others don't.
+    for (const c of Object.values(SEASON_0_TIER_COINS)) expect(COIN_SPECS[c.itemId]!.mark).toBe("S0");
+    for (const c of [STARTER_COIN, ...SEASON_0_COINS]) expect(COIN_SPECS[c.itemId]!.mark).toBeUndefined();
+    // Neon Nickel trails light; only it.
+    expect(Object.entries(COIN_SPECS).filter(([, s]) => s.trail).map(([id]) => id)).toEqual(["coin-s0-neon-nickel"]);
+    expect(coinSpecOf("coin-s1-platinum")).toMatchObject({ id: COIN_DEFAULT, fallback: true });
     expect(coinSpecOf(undefined)).toMatchObject({ id: COIN_DEFAULT, fallback: false });
+  });
+
+  it("every coin keeps the grammar on every layout, animated and still, its halo clear of the agent lines", () => {
+    for (const id of Object.keys(COIN_SPECS)) {
+      for (const [name, g] of LAYOUTS) {
+        for (const first of ["top", "bot"] as const) {
+          const p = bootPlan(g, WHO, 7, { coin: { id, first, portraitUp: first === "bot", line: "THEY GO FIRST" } });
+          expect(bootPlanProblem(p, g), `${id} ${name} ${first}`).toBeNull();
+          expect(bootPlanProblem(bootStill(p), g), `${id} ${name} ${first} (still)`).toBeNull();
+          expect(p.coin.reach, id).toBe(COIN_SPECS[id]!.neon ? COIN_NEON_REACH : 1);
+        }
+      }
+    }
+    // A halo coin is drawn a little smaller, so its light fits where the
+    // Chrome Token's rim does (on a layout where the room decides).
+    let squeezed = 0;
+    const SHORT: BootGeom = { top: { l: 0, t: 0, r: 800, b: 110 }, bot: { l: 0, t: 120, r: 800, b: 230 }, area: { l: 0, t: 0, r: 800, b: 230 } };
+    for (const [, g] of [...LAYOUTS, ["short", SHORT] as [string, BootGeom]]) {
+      const chrome = bootPlan(g, WHO, 7, { coin: { id: "coin-chrome-token" } }).coin, nickel = bootPlan(g, WHO, 7, { coin: { id: "coin-s0-neon-nickel" } }).coin;
+      if (chrome.r >= 40) continue; // the size cap decides here, not the room
+      squeezed++;
+      expect(nickel.r * nickel.reach).toBeLessThanOrEqual(chrome.r + 1e-9);
+    }
+    expect(squeezed).toBeGreaterThan(0);
+  });
+
+  it("each coin's spin plays its own whir (the plain one without), dead centre, and the still drops it", () => {
+    const want: Record<string, string> = {
+      "coin-chrome-token": "coinWhir",
+      "coin-s0-dial-up-dime": "coinWhirModem",
+      "coin-s0-neon-nickel": "coinWhirNeon",
+      "coin-s0-platinum": "coinWhir",
+      "coin-s0-diamond": "coinWhirShimmer",
+      "coin-s0-mythic": "coinWhirShimmer",
+    };
+    for (const [id, kind] of Object.entries(want)) {
+      expect(coinWhirOf(id), id).toBe(kind);
+      const p = bootPlan(DESKTOP, WHO, 3, { coin: { id } });
+      const whirs = p.marks.filter((m) => m.k === "sound" && String(m.kind).startsWith("coinWhir"));
+      expect(whirs.map((m) => [m.kind, m.t]), id).toEqual([[kind, p.coin.t0 + 40]]);
+      expect(bootStill(p).marks.some((m) => m.k === "sound" && String(m.kind).startsWith("coinWhir")), id).toBe(false);
+    }
+    expect(coinWhirOf("coin-unknown")).toBe("coinWhir");
+    for (const kind of ["coinWhirModem", "coinWhirNeon", "coinWhirShimmer"]) {
+      const a = sfxRecipe(kind, "Cortex", "normal", () => 0.5, {}), b = sfxRecipe(kind, "Swarm", "normal", () => 0.5, {});
+      expect(a.length, kind).toBeGreaterThan(9);
+      expect(JSON.stringify(a), kind).toBe(JSON.stringify(b));
+      // Every variant keeps the spin's slowing ticks, so a coin still sounds like it's spinning.
+      const ticks = (a as { type?: string; f0?: number; delay?: number }[]).filter((x) => x.type === "triangle" && (x.f0 ?? 0) > 2500).map((x) => x.delay ?? 0);
+      expect(ticks.length, kind).toBe(9);
+      for (let k = 2; k < ticks.length; k++) expect(ticks[k]! - ticks[k - 1]!).toBeGreaterThan(ticks[k - 1]! - ticks[k - 2]!);
+    }
   });
 
   it("the coin's sounds sound the same whichever factions are playing, and ring like metal", () => {

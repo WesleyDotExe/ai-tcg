@@ -6,13 +6,14 @@ import { afterEach, describe, expect, it } from "vitest";
 import { EconomyStore, SEASON_0_BOASTS, STARTER_BOASTS } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../../server/src/ownerApi.js";
 import { loadoutAnswerApply, loadoutLockAction, loadoutPreview, loadoutSlotText, renderLoadoutHtml } from "../src/loadoutPicker.js";
-// The slots the picker draws: the coin slot (schema v20) joins with the
-// render lane's second coin slice.
+// The slots the picker draws: all six, the coin too since the render lane's
+// second coin slice (render session 55).
 import { LOADOUT_SLOTS_ORDER as LOADOUT_SLOTS } from "../src/loadoutPicker.js";
 import { SiteApiError, siteApi, type SitePlay } from "../src/site/siteApi.js";
 import { startSiteHost, type RunningSiteHost } from "../src/site/siteHost.js";
 import { agentLoadoutRows, deckFactionOf, loadoutPayload, previewCards, starterFactionOf } from "../src/site/siteLoadout.js";
 import { renderSiteLoadoutPage, renderSitePage, siteScript } from "../src/site/sitePage.js";
+import { coinSwatchHtml } from "../src/site/siteCoinSwatch.js";
 
 const PW = "a long test password";
 const running: (RunningOwnerApi | RunningSiteHost)[] = [];
@@ -82,7 +83,20 @@ describe("the picker's data, from the real owner API", () => {
     expect(locked.every((t) => t.description.length > 0 && t.season === "S0")).toBe(true);
     expect(boast.tiles.filter((t) => t.owned && t.itemId).every((t) => t.source === "starter")).toBe(true);
     // Card back, avatar, arena: nothing exists yet, so only the empty tile.
-    for (const v of sc.slots.slice(2)) expect(v.tiles).toHaveLength(1);
+    for (const v of sc.slots.slice(2, 5)) expect(v.tiles).toHaveLength(1);
+    // The coin (render session 55): the Chrome Token owned and equipped, the
+    // two store coins locked at 300, the empty tile (which flips the Chrome Token).
+    const coin = sc.slots.find((v) => v.slot === "coin")!;
+    expect(coin.tiles.map((t) => [t.itemId, t.owned, t.priceCredits])).toEqual([
+      ["coin-chrome-token", true, null],
+      ["coin-s0-dial-up-dime", false, 300],
+      ["coin-s0-neon-nickel", false, 300],
+      [null, true, null],
+    ]);
+    expect(coin.tiles.at(-1)!.description).toBe("An empty coin slot flips the Chrome Token.");
+    expect(sc.loadout.coin).toBe("coin-chrome-token");
+    // The portrait the coin's other face shows: the agent's generated avatar.
+    expect(sc.agent.avatarSvg).toContain("<svg");
     expect(payload.starters).toEqual(Object.fromEntries(Object.entries(STARTER_BOASTS).map(([f, b]) => [f, b.itemId])));
     expect(sc.live).toBeNull();
   });
@@ -203,10 +217,11 @@ describe("Equip and Buy through the real server", () => {
     expect((await rich.client.loadout(rich.token, rich.a1.agentId)).loadout.boast).toBe(STARTER_BOASTS.Swarm.itemId);
   });
 
-  it("the Store's rows: the connected agent first, each with what its two boast slots play", async () => {
+  it("the Store's rows: the connected agent first, each with what its two boast slots play and the coin it flips", async () => {
     const { a1, a2, client, token } = await stack();
     await client.setLoadout(token, a2.agentId, "closeWinBoast", STARTER_BOASTS.Null.itemId);
     await client.setLoadout(token, a2.agentId, "boast", null);
+    await client.setLoadout(token, a2.agentId, "coin", null);
     const play = await client.play(token);
     // Put the unconnected agent first in the list: the rows still lead with the connected one.
     const flipped = { ...play, agents: [...play.agents].reverse() };
@@ -214,8 +229,8 @@ describe("Equip and Buy through the real server", () => {
     const names = Object.fromEntries((await client.cosmetics(token)).owned.map((o) => [o.itemId, o.item.name]));
     const rows = agentLoadoutRows(flipped, loadouts, names);
     expect(rows.map((r) => r.agentId)).toEqual([a1.agentId, a2.agentId]);
-    expect(rows[0]).toMatchObject({ connected: true, boast: STARTER_BOASTS.Swarm.name, closeWin: "Empty: plays the victory boast", others: 0 });
-    expect(rows[1]).toMatchObject({ connected: false, boast: "Empty: plays the deck's starter", closeWin: STARTER_BOASTS.Null.name });
+    expect(rows[0]).toMatchObject({ connected: true, boast: STARTER_BOASTS.Swarm.name, closeWin: "Empty: plays the victory boast", coin: "Chrome Token", others: 0 });
+    expect(rows[1]).toMatchObject({ connected: false, boast: "Empty: plays the deck's starter", closeWin: STARTER_BOASTS.Null.name, coin: "Empty: flips Chrome Token" });
     // Not yet read: an ellipsis, never a made-up name.
     expect(agentLoadoutRows(play, {}, names).every((r) => r.boast === "…")).toBe(true);
   });
@@ -255,10 +270,23 @@ describe("the page's site mode, and the host", () => {
   });
 
   it("loadoutAnswerApply takes the server's whole loadout, slot for slot, and nothing else", () => {
-    const state = { boast: "a", closeWinBoast: null, cardBack: null, avatar: null, arena: null };
-    const r = loadoutAnswerApply(state, { ok: true, loadout: { boast: "b", closeWinBoast: "c", cardBack: null, avatar: null, arena: null, extra: "x" } as never });
-    expect(r.state).toEqual({ boast: "b", closeWinBoast: "c", cardBack: null, avatar: null, arena: null });
+    const state = { boast: "a", closeWinBoast: null, cardBack: null, avatar: null, arena: null, coin: "coin-chrome-token" };
+    const r = loadoutAnswerApply(state, { ok: true, loadout: { boast: "b", closeWinBoast: "c", cardBack: null, avatar: null, arena: null, coin: "coin-s0-neon-nickel", extra: "x" } as never });
+    expect(r.state).toEqual({ boast: "b", closeWinBoast: "c", cardBack: null, avatar: null, arena: null, coin: "coin-s0-neon-nickel" });
     expect(loadoutAnswerApply(state, null).ok).toBe(false);
     expect(loadoutAnswerApply(state, { ok: true } as never).state).toBe(state);
+  });
+});
+
+describe("the coins on the website (render session 55)", () => {
+  it("the Store draws a coin with the coin's own code, outside the client bundle (the site's CSP has no unsafe-eval)", () => {
+    const page = renderSitePage();
+    expect(page).toContain("window.SITE_COIN = (function () {");
+    expect(page).toContain("function coinDraw(ctx, c)");
+    // The bundle never loads coinFx.ts (its module evaluates with new Function).
+    expect(siteScript()).not.toContain("new Function");
+    expect(siteScript()).not.toContain("function coinDraw");
+    expect(coinSwatchHtml("coin-s0-neon-nickel")).toBe('<span class="si-pv si-coin"><canvas data-coin="coin-s0-neon-nickel" width="120" height="54" aria-hidden="true"></canvas></span>');
+    expect(coinSwatchHtml('x" onload="y')).not.toContain('"y');
   });
 });

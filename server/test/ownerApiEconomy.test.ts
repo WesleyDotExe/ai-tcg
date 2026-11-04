@@ -376,19 +376,21 @@ describe("owner API: the store, cosmetics and loadouts", () => {
     expect((await call("PUT", `/api/agents/${bobAgent.agentId}/loadout/boast`, { token, body: { itemId: null } })).status).toBe(404);
     expect(store.ownedCosmetics(ada.ownerId).length).toBeGreaterThan(0);
   });
-  it("(v20) the loadout's sixth slot is the coin: the Chrome Token on by default; no coin sold until drawn; a tier coin never", async () => {
+  it("(v20) the loadout's sixth slot is the coin: the Chrome Token on by default; the store coins on sale once drawn (render 55); a tier coin never", async () => {
     const { call, signIn, earn, adaAgent } = await setup();
     const token = await signIn("ada");
     const lo = (await call("GET", `/api/agents/${adaAgent.agentId}/loadout`, { token })).body;
     expect(lo.slots.map((x: { slot: string }) => x.slot)).toEqual(["boast", "closeWinBoast", "cardBack", "avatar", "arena", "coin"]);
     expect(lo.slots.at(-1)).toEqual({ slot: "coin", kind: "coin", itemId: "coin-chrome-token", choices: ["coin-chrome-token"] });
     expect(lo.loadout.coin).toBe("coin-chrome-token");
-    // The store coins aren't drawn yet, so they aren't on sale.
+    // The store coins are drawn (render session 55), so both are on sale at 300;
+    // the undrawn rule is tested in economy/test/coins.test.ts.
     const shop = (await call("GET", "/api/store", { token })).body;
-    expect(shop.cosmetics.filter((c: { kind: string }) => c.kind === "coin")).toEqual([]);
+    expect(shop.cosmetics.filter((c: { kind: string }) => c.kind === "coin").map((c: { itemId: string; priceCredits: number; owned: boolean }) => [c.itemId, c.priceCredits, c.owned])).toEqual([
+      ["coin-s0-dial-up-dime", 300, false],
+      ["coin-s0-neon-nickel", 300, false],
+    ]);
     earn(40);
-    const early = await call("POST", "/api/store/cosmetics/coin-s0-neon-nickel/buy", { token });
-    expect([early.status, early.body.error]).toEqual([409, `"Neon Nickel" isn't on sale yet: the render lane hasn't drawn it`]);
     const tier = await call("POST", "/api/store/cosmetics/coin-s0-diamond/buy", { token });
     expect([tier.status, tier.body.error]).toEqual([409, `"Diamond Coin" is a season reward for finishing Diamond or higher; it isn't sold`]);
     // A boast in the coin slot, a coin in the boast slot: refused. Emptying it is fine.

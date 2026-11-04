@@ -28,6 +28,7 @@ import { getCard } from "@ai-tcg/engine";
 // siteCollection.ts imports the craft prices).
 import { CLOSE_WIN_HEALTH, LOADOUT_SLOTS, SLOT_KIND, type LoadoutSlot } from "../../../economy/src/cosmetics.js";
 import { loadoutSlotText } from "../loadoutText.js";
+import { avatarSvg } from "../avatar.js";
 import type { PickerCard, PickerScenario, PickerSitePayload, PickerSlotView, PickerTile } from "../loadoutPicker.js";
 import type { SiteCollection } from "./siteBoard.js";
 import type { SitePlay } from "./siteApi.js";
@@ -131,11 +132,9 @@ export interface LoadoutInputs {
  * slot: the owned items the server lists as its choices (the starters by
  * faction, then the rest), the items on sale the owner doesn't have
  * (locked, with Buy), and the empty tile. */
-// The picker draws the slots it has looks for. The coin slot (schema v20,
-// game session 69) joins with the render lane's second coin slice ("the
-// coin line in the picker and the Store"); until then it is left out here,
-// and its Equip goes through the same endpoint when it comes.
-const PICKER_SLOTS = LOADOUT_SLOTS.filter((s) => s !== "coin");
+// Every loadout slot, the coin too (render session 55, the second coin
+// slice: "the coin line in the picker and the Store").
+const PICKER_SLOTS = LOADOUT_SLOTS;
 
 export function loadoutPayload(x: LoadoutInputs): PickerSitePayload {
   const text = loadoutSlotText(CLOSE_WIN_HEALTH);
@@ -185,7 +184,9 @@ export function loadoutPayload(x: LoadoutInputs): PickerSitePayload {
             : "A win plays the starter boast of the faction the deck plays (no deck is built yet)."
           : slot === "closeWinBoast"
             ? "A close win plays the victory boast."
-            : "Nothing equipped.",
+            : slot === "coin"
+              ? "An empty coin slot flips the Chrome Token."
+              : "Nothing equipped.",
     });
     return { slot, ...text[slot], tiles };
   });
@@ -201,7 +202,7 @@ export function loadoutPayload(x: LoadoutInputs): PickerSitePayload {
     key: x.agent.agentId,
     label: x.agent.name,
     note,
-    agent: { name: x.agent.name, deckFaction, ...(rowFaction ? { rowFaction } : {}) },
+    agent: { name: x.agent.name, deckFaction, ...(rowFaction ? { rowFaction } : {}), avatarSvg: avatarSvg(x.agent.name) },
     credits: x.credits,
     live,
     loadout: { ...x.loadout.loadout },
@@ -221,6 +222,9 @@ export interface AgentLoadoutRow {
   connected: boolean;
   boast: string;
   closeWin: string;
+  /** The coin it flips (render session 55): the equipped coin's name, or
+   * what an empty slot flips. */
+  coin: string;
   /** The other slots that hold something (none can yet in Season 0). */
   others: number;
 }
@@ -235,7 +239,8 @@ export function agentLoadoutRows(play: SitePlay, loadouts: Record<string, SiteLo
       const l = loadouts[a.agentId]?.loadout;
       const boast = l ? (nm(l.boast) ?? `Empty: plays ${deckFaction ? `${deckFaction}'s starter` : "the deck's starter"}`) : "…";
       const closeWin = l ? (nm(l.closeWinBoast) ?? "Empty: plays the victory boast") : "…";
+      const coin = l ? (nm(l.coin) ?? `Empty: flips ${names["coin-chrome-token"] ?? "the Chrome Token"}`) : "…";
       const others = l ? (["cardBack", "avatar", "arena"] as const).filter((k) => l[k] !== null).length : 0;
-      return { agentId: a.agentId, name: a.name, connected: a.agentId === connected, boast, closeWin, others };
+      return { agentId: a.agentId, name: a.name, connected: a.agentId === connected, boast, closeWin, coin, others };
     });
 }

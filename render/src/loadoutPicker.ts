@@ -27,13 +27,21 @@
 // deck plays; the close-win slot's item with the CLOSE CALL plate, or with
 // that slot empty the main boast (the store's own rule, `chooseBoast`, which
 // a test checks this against through real recorded matches).
+//
+// The sixth slot, the coin (render session 55, the second coin slice): its
+// tiles show each coin drawn by the same coinDraw Match Boot runs, and its
+// preview is the flip itself over the preview board: the coin flicks up,
+// spins and lands, once on its design and once on the agent's portrait,
+// with the line each landing means (THEY GO FIRST / YOU GO FIRST), the coin's
+// own whir and clink on a pass the viewer asked for.
 
 import { CANVAS_FX_PURE_SOURCE, CANVAS_FX_RUNTIME_SOURCE, fxAtlasDataUris } from "./canvasFx.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { BOAST_PURE_SOURCE, BOAST_RUNTIME_SOURCE } from "./boastFx.js";
+import { COIN_PURE_SOURCE, COIN_RUNTIME_SOURCE } from "./coinFx.js";
 import { CSS } from "./renderHtml.js";
 
-export type PickerSlot = "boast" | "closeWinBoast" | "cardBack" | "avatar" | "arena";
+export type PickerSlot = "boast" | "closeWinBoast" | "cardBack" | "avatar" | "arena" | "coin";
 
 /** One choice in a slot: an item, or the empty slot (itemId null). */
 export interface PickerTile {
@@ -82,7 +90,7 @@ export interface PickerScenario {
    * empty boast slot plays; null when the site can't tell (no built deck,
    * no faction lock). rowFaction: the preview row's colours (the deck's
    * faction, else the owner's starting faction). */
-  agent: { name: string; deckFaction: string | null; rowFaction?: string };
+  agent: { name: string; deckFaction: string | null; rowFaction?: string; avatarSvg?: string };
   credits: number;
   /** The live match the owner is in, if any (the store refuses changes). */
   live: { matchId: string; startedAt: string } | null;
@@ -128,7 +136,24 @@ export interface LoadoutPageData {
 
 // The page's model, shared by the page and the Node tests (no DOM).
 export const LOADOUT_PURE_SOURCE = String.raw`
-  var LOADOUT_SLOTS_ORDER = ['boast', 'closeWinBoast', 'cardBack', 'avatar', 'arena'];
+  var LOADOUT_SLOTS_ORDER = ['boast', 'closeWinBoast', 'cardBack', 'avatar', 'arena', 'coin'];
+  // The coin preview's loop (render session 55): the flight (Match Boot's,
+  // flick to landing), the landed coin with its line, then the next flip,
+  // which lands on the other face.
+  var LOADOUT_COIN_FLIGHT_MS = 600, LOADOUT_COIN_HOLD_MS = 1500;
+  // Which face a pass lands on, and the line it means: the coin's design
+  // first (the other agent goes first), then the agent's portrait (this
+  // agent goes first), by Match Boot's rule (coinResult, own match).
+  function loadoutCoinPass(n) {
+    var portraitUp = n % 2 === 1;
+    return { portraitUp: portraitUp, halfTurns: portraitUp ? 9 : 8, line: portraitUp ? 'YOU GO FIRST' : 'THEY GO FIRST' };
+  }
+  // What the coin slot previews: the tile's coin, else the equipped one,
+  // else (an empty slot) the Chrome Token, which an empty slot flips.
+  function loadoutCoinPreview(state, itemId, explicitTile, fallbackId) {
+    var id = explicitTile ? itemId : state.coin;
+    return { id: id == null ? fallbackId : id, empty: id == null };
+  }
   // How long the preview waits between loops, and after a skip.
   var LOADOUT_LOOP_GAP_MS = 1100;
   var LOADOUT_SCROLL_SETTLE_MS = 380;
@@ -175,6 +200,7 @@ export const LOADOUT_PURE_SOURCE = String.raw`
     if (v != null) return names[v] || v;
     if (slot === 'boast') return 'Empty: plays ' + ((deckFaction && names[starters[deckFaction]]) || 'the deck\'s starter');
     if (slot === 'closeWinBoast') return 'Empty: plays the main boast';
+    if (slot === 'coin') return 'Empty: flips ' + (names['coin-chrome-token'] || 'the Chrome Token');
     return 'Empty';
   }
   // Each boast's emblem on its tile: a small drawing of how it ends (the
@@ -206,11 +232,15 @@ export const LOADOUT_PURE_SOURCE = String.raw`
   }
 `;
 
-const pure = new Function(`${LOADOUT_PURE_SOURCE}; return { LOADOUT_GLYPHS, loadoutGlyph, LOADOUT_SLOTS_ORDER, LOADOUT_LOOP_GAP_MS, loadoutKey, loadoutApply, loadoutAnswerApply, loadoutPreview, loadoutTilePreview, loadoutSlotLine, loadoutLockAction, loadoutSavedLine };`)() as {
+const pure = new Function(`${LOADOUT_PURE_SOURCE}; return { LOADOUT_GLYPHS, loadoutGlyph, LOADOUT_SLOTS_ORDER, LOADOUT_LOOP_GAP_MS, LOADOUT_COIN_FLIGHT_MS, LOADOUT_COIN_HOLD_MS, loadoutCoinPass, loadoutCoinPreview, loadoutKey, loadoutApply, loadoutAnswerApply, loadoutPreview, loadoutTilePreview, loadoutSlotLine, loadoutLockAction, loadoutSavedLine };`)() as {
   LOADOUT_GLYPHS: Record<string, string>;
   loadoutGlyph: (itemId: string | null) => string | null;
   LOADOUT_SLOTS_ORDER: PickerSlot[];
   LOADOUT_LOOP_GAP_MS: number;
+  LOADOUT_COIN_FLIGHT_MS: number;
+  LOADOUT_COIN_HOLD_MS: number;
+  loadoutCoinPass: (n: number) => { portraitUp: boolean; halfTurns: number; line: string };
+  loadoutCoinPreview: (state: Record<PickerSlot, string | null>, itemId: string | null, explicitTile: boolean, fallbackId: string) => { id: string; empty: boolean };
   loadoutKey: (itemId: string | null) => string;
   loadoutApply: (
     state: Record<PickerSlot, string | null>,
@@ -229,6 +259,10 @@ export const LOADOUT_GLYPHS = pure.LOADOUT_GLYPHS;
 export const loadoutGlyph = pure.loadoutGlyph;
 export const LOADOUT_SLOTS_ORDER = pure.LOADOUT_SLOTS_ORDER;
 export const LOADOUT_LOOP_GAP_MS = pure.LOADOUT_LOOP_GAP_MS;
+export const LOADOUT_COIN_FLIGHT_MS = pure.LOADOUT_COIN_FLIGHT_MS;
+export const LOADOUT_COIN_HOLD_MS = pure.LOADOUT_COIN_HOLD_MS;
+export const loadoutCoinPass = pure.loadoutCoinPass;
+export const loadoutCoinPreview = pure.loadoutCoinPreview;
 export const loadoutKey = pure.loadoutKey;
 export const loadoutApply = pure.loadoutApply;
 export const loadoutAnswerApply = pure.loadoutAnswerApply;
@@ -261,6 +295,125 @@ export const LOADOUT_RUNTIME_SOURCE = String.raw`
   function factionClass(f) { return 'faction-' + (f || 'Neutral'); }
   function rowFaction(sc) { return sc.agent.rowFaction || sc.agent.deckFaction || null; }
 
+  // ---- the coin preview (render session 55) ----
+  // The flip over the preview board, on its own canvas: the board dims,
+  // the coin flicks up from the board's centre, spins and lands (Match
+  // Boot's flight and draw), and its line types under it; it holds, then
+  // flips again onto the other face. Reduced motion: both landings side by
+  // side, still, each with its line. Loops while the board is in view.
+  var COINPV = (function () {
+    var cv = null, raf = 0, run = null, imgs = {};
+    stats.coin = { passes: 0, landed: [], lines: [], frames: 0, still: 0, sounds: 0 };
+    function canvas() {
+      if (cv && cv.isConnected) return cv;
+      cv = document.getElementById('coin-cv');
+      return cv;
+    }
+    function portrait() {
+      var sc = S && S.sc, f = sc ? (rowFaction(sc) || 'Neutral') : 'Neutral', key = (sc ? sc.agent.name : '') + ':' + f;
+      if (imgs[key]) return imgs[key];
+      var svg = sc && sc.agent.avatarSvg, c = fxRgbOf(f), img = null;
+      if (svg) { img = new Image(); img.decoding = 'async'; img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(String(svg).split('currentColor').join('rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')')); }
+      imgs[key] = { img: img, rgb: c };
+      return imgs[key];
+    }
+    function stop() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      if (run && run.seq && run.seq.cut) run.seq.cut();
+      run = null;
+      var c = canvas(); if (c) { c.hidden = true; var x = c.getContext('2d'); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, c.width, c.height); }
+    }
+    function size(c) {
+      var board = document.getElementById('stage-board'), r = board.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
+      c.style.left = board.offsetLeft + 'px'; c.style.top = board.offsetTop + 'px';
+      c.style.width = r.width + 'px'; c.style.height = r.height + 'px';
+      var w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+      if (c.width !== w) c.width = w;
+      if (c.height !== h) c.height = h;
+      return { w: r.width, h: r.height, dpr: dpr };
+    }
+    function typeLine(ctx, txt, k, x, y, fs, a) {
+      ctx.font = 'bold ' + fs.toFixed(1) + 'px ui-monospace, Menlo, Consolas, monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      var w = ctx.measureText(txt).width;
+      ctx.fillStyle = 'rgba(3,5,10,' + (0.85 * a).toFixed(3) + ')';
+      ctx.fillRect(x - w / 2 - 8, y - fs * 0.8, w + 16, fs * 1.6);
+      ctx.fillStyle = 'rgba(232,240,255,' + a.toFixed(3) + ')';
+      var shown = txt.slice(0, k), sw = ctx.measureText(shown).width;
+      ctx.textAlign = 'left'; ctx.fillText(shown, x - w / 2, y);
+      if (k < txt.length) ctx.fillRect(x - w / 2 + sw + 1, y - fs * 0.45, fs * 0.5, fs * 0.9);
+    }
+    // One frame. tt: ms since the run started.
+    function frame(now) {
+      if (!run) return;
+      var c = canvas(); if (!c) return;
+      var g = size(c), ctx = c.getContext('2d'), spec = COIN_SPECS[run.id] || COIN_SPECS[COIN_DEFAULT], P = portrait();
+      ctx.setTransform(g.dpr, 0, 0, g.dpr, 0, 0); ctx.clearRect(0, 0, g.w, g.h);
+      ctx.fillStyle = 'rgba(3,5,10,0.72)'; ctx.fillRect(0, 0, g.w, g.h);
+      var cx = g.w / 2, r = Math.max(16, Math.min(46, g.h * 0.2)), fs = Math.max(10, Math.min(15, g.w / 30));
+      var tt = now - run.t0;
+      if (REDUCED_PICK) {
+        // Both landings, still, each with its line.
+        [0, 1].forEach(function (n) {
+          var ps = loadoutCoinPass(n), x = g.w * (n ? 0.68 : 0.32);
+          coinDraw(ctx, { spec: spec, x: x, y: g.h * 0.44, r: r, angle: coinFlight(1, ps.halfTurns).angle, scale: 1, img: P.img, faceRgb: P.rgb, t: 900 });
+          typeLine(ctx, ps.line, ps.line.length, x, g.h * 0.44 + r * (spec.neon ? COIN_NEON_REACH : 1) + fs * 1.3, fs, 1);
+        });
+        stats.coin.still++; stats.coin.frames++;
+        stats.coin.portrait = !!(P.img && P.img.complete && P.img.naturalWidth);
+        raf = 0;
+        // The portrait may still be loading: draw the still once more when
+        // it arrives (never a loop), so the portrait face isn't left on the
+        // placeholder.
+        if (P.img && !(P.img.complete && P.img.naturalWidth) && !run.waitImg) {
+          var mine = run; run.waitImg = true;
+          P.img.addEventListener('load', function () { if (run === mine) raf = requestAnimationFrame(frame); }, { once: true });
+        }
+        return;
+      }
+      var cycle = LOADOUT_COIN_FLIGHT_MS + LOADOUT_COIN_HOLD_MS, n = Math.floor(tt / cycle), within = tt - n * cycle, ps = loadoutCoinPass(n);
+      if (n !== run.n) {
+        run.n = n; stats.coin.passes++;
+        // The landed face is known as the pass starts (it is the flight's end).
+        stats.coin.landed.push(coinFaceAt(coinFlight(1, ps.halfTurns).angle)); stats.coin.lines.push(ps.line);
+        if (stats.coin.landed.length > 12) { stats.coin.landed.shift(); stats.coin.lines.shift(); }
+        // Sound on the first pass the viewer asked for, never on the loop.
+        if (run.sound && n === 0 && typeof SND !== 'undefined' && SND.sequence) {
+          run.seq = SND.sequence([{ t: 0, kind: 'coinFlick' }, { t: 40, kind: spec.whir || 'coinWhir' }, { t: LOADOUT_COIN_FLIGHT_MS, kind: 'coinClink' }], { pan: 0 });
+          stats.coin.sounds++;
+        }
+      }
+      var u = Math.min(1, within / LOADOUT_COIN_FLIGHT_MS), fl = coinFlight(u, ps.halfTurns), since = within - LOADOUT_COIN_FLIGHT_MS;
+      var settle = since >= 0 && since < 160 ? 1 + 0.06 * Math.sin(Math.PI * since / 160) : 1;
+      var trail = null;
+      if (spec.trail && u < 1) { trail = []; for (var k = 1; k <= 3; k++) { var uk = (within - k * 20) / LOADOUT_COIN_FLIGHT_MS; if (uk > 0) { var fk = coinFlight(uk, ps.halfTurns); trail.push([fk.angle, fk.scale]); } } }
+      var cy = g.h * 0.44, fade = within > cycle - 200 ? Math.max(0, (cycle - within) / 200) : 1;
+      coinDraw(ctx, { spec: spec, x: cx, y: cy, r: r, angle: fl.angle, scale: fl.scale * settle, img: P.img, faceRgb: P.rgb, a: fade, t: tt, trail: trail });
+      if (since >= 0 && since < 300) {
+        var uu = since / 300;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = 'rgba(220,232,255,' + (0.5 * (1 - uu)).toFixed(3) + ')'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(cx, cy, r * (1.05 + 0.6 * uu), 0, Math.PI * 2); ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      if (since >= 100) {
+        var kk = Math.min(ps.line.length, Math.ceil(ps.line.length * (since - 100) / 220));
+        typeLine(ctx, ps.line, kk, cx, cy + r * (spec.neon ? COIN_NEON_REACH : 1) + fs * 1.3, fs, fade);
+      }
+      stats.coin.frames++;
+      raf = requestAnimationFrame(frame);
+    }
+    function play(id, explicit) {
+      stop();
+      var c = canvas(); if (!c) return;
+      c.hidden = false;
+      run = { id: id, t0: performance.now(), n: -1, sound: !!explicit, seq: null };
+      raf = requestAnimationFrame(frame);
+    }
+    return { play: play, stop: stop, active: function () { return !!run; }, id: function () { return run ? run.id : null; } };
+  })();
+
   // ---- the preview board ----
   function stageHtml(sc) {
     var cards = sc.cards.map(function (c) {
@@ -283,6 +436,7 @@ export const LOADOUT_RUNTIME_SOURCE = String.raw`
   // equipped choice.
   function currentPreview() {
     var p = S.preview, slot = p ? p.slot : S.slot, isBoast = slot === 'boast' || slot === 'closeWinBoast';
+    if (slot === 'coin') return { slot: 'coin', coin: loadoutCoinPreview(S.state, p ? p.itemId : null, !!p, COIN_DEFAULT) };
     if (!isBoast) slot = 'boast';
     var plan = p && isBoast ? loadoutTilePreview(S.state, slot, p.itemId, S.sc.agent.deckFaction, DATA.starters)
       : loadoutPreview(S.state, slot, S.sc.agent.deckFaction, DATA.starters);
@@ -300,12 +454,20 @@ export const LOADOUT_RUNTIME_SOURCE = String.raw`
     c.innerHTML = '<span class="cap-k">' + (cp.plan.close ? 'A close win (' + DATA.closeWinHealth + ' health or less) plays' : 'A win plays') + '</span> <b>' + esc(nm) + '</b>' +
       (owned ? '' : ' <span class="cap-lock">not owned: preview only</span>') + (note ? ' <span class="cap-note">' + esc(note) + '</span>' : '');
   }
-  function stopPreview() { gen++; if (loopTimer) { clearTimeout(loopTimer); loopTimer = null; } if (BOAST.active()) BOAST.cancel(); }
+  function coinCaption(pc) {
+    var c = document.getElementById('st-cap'), nm = DATA.names[pc.id] || (COIN_SPECS[pc.id] ? COIN_SPECS[pc.id].name : pc.id);
+    var tile = S.preview, owned = true;
+    if (tile && tile.itemId != null) { var t = slotView('coin').tiles.filter(function (x) { return loadoutKey(x.itemId) === loadoutKey(tile.itemId); })[0]; owned = !t || t.owned; }
+    c.innerHTML = '<span class="cap-k">' + (pc.empty ? 'An empty slot flips' : 'Who goes first flips') + '</span> <b>' + esc(nm) + '</b> <span class="cap-k">· portrait up: this agent goes first</span>' +
+      (owned ? '' : ' <span class="cap-lock">not owned: preview only</span>');
+  }
+  function stopPreview() { gen++; if (loopTimer) { clearTimeout(loopTimer); loopTimer = null; } if (BOAST.active()) BOAST.cancel(); COINPV.stop(); }
   // Plays the preview once; loops while the board stays in view (not in
   // reduced motion: the still shows once per choice).
   function playPreview(explicit) {
     stopPreview();
     var my = gen, cp = currentPreview();
+    if (cp.slot === 'coin') { coinCaption(cp.coin); COINPV.play(cp.coin.id, !!explicit); stats.previews++; stats.current = { coin: cp.coin.id, empty: cp.coin.empty }; return; }
     var hp = document.getElementById('st-hp');
     if (hp) hp.textContent = cp.plan && cp.plan.close ? 'HP 3 / 30' : 'HP 18 / 30';
     caption(cp, null);
@@ -347,24 +509,37 @@ export const LOADOUT_RUNTIME_SOURCE = String.raw`
       else action = '<div class="t-lock"><span class="t-price"><span class="lock-ico" aria-hidden="true"></span>In the store · ' + t.priceCredits + ' credits</span>' + (la.short ? '<span class="t-short">you have ' + S.sc.credits + '</span>' : '') + '</div>';
     } else if (equipped) action = '<div class="t-on">Equipped</div>';
     else action = '<button type="button" class="t-equip" data-equip="' + esc(key) + '"' + (busy ? ' disabled' : '') + '>Equip</button>';
-    var isBoast = v.slot === 'boast' || v.slot === 'closeWinBoast';
+    var isBoast = v.slot === 'boast' || v.slot === 'closeWinBoast' || v.slot === 'coin';
+    var swatch = v.slot === 'coin' && t.itemId != null ? '<canvas class="t-coin" width="92" height="92" data-coin="' + esc(t.itemId) + '"></canvas>' : (loadoutGlyph(t.itemId) || '<span></span>');
     return '<div class="tile ' + factionClass(t.faction) + (t.owned || t.itemId == null ? '' : ' locked') + (equipped ? ' equipped' : '') + (previewing ? ' previewing' : '') + (t.itemId == null ? ' empty' : '') + '" data-tile="' + esc(key) + '"' + (isBoast ? ' tabindex="0" role="button" aria-label="Preview ' + esc(t.name) + '"' : '') + '>' +
-      '<div class="t-swatch" aria-hidden="true">' + (loadoutGlyph(t.itemId) || '<span></span>') + '</div>' +
+      '<div class="t-swatch' + (v.slot === 'coin' && t.itemId != null ? ' coin' : '') + '" aria-hidden="true">' + swatch + '</div>' +
       '<div class="t-body"><div class="t-name">' + esc(t.name) + src + '</div><div class="t-tag">' + tag + '</div><div class="t-desc">' + esc(t.description) + '</div></div>' +
       '<div class="t-act">' + action + '</div></div>';
   }
   function panelHtml() {
-    var v = slotView(S.slot), isBoast = v.slot === 'boast' || v.slot === 'closeWinBoast';
+    var v = slotView(S.slot), isBoast = v.slot === 'boast' || v.slot === 'closeWinBoast', isCoin = v.slot === 'coin';
     var tiles = v.tiles.map(function (t) { return tileHtml(v, t); }).join('');
     var none = v.tiles.filter(function (t) { return t.itemId != null; }).length === 0;
     return '<div class="slot-head"><div class="sh-label">' + esc(v.label) + '</div><div class="sh-exp">' + esc(v.explainer) + '</div></div>' +
       '<div class="tiles">' + tiles + '</div>' +
       (none ? '<div class="none-yet">' + esc(v.emptyText) + '</div>' : '') +
-      (isBoast ? '<div class="hint">Tap an item to preview it on the board; Equip saves it to this agent.</div>' : '');
+      (isBoast ? '<div class="hint">Tap an item to preview it on the board; Equip saves it to this agent.</div>' : '') +
+      (isCoin ? '<div class="hint">Tap a coin to see it flip over the board; Equip saves it to this agent. The coin is only how the flip looks: the server\'s flip decides who goes first.</div>' : '');
   }
   function redraw() {
     document.getElementById('rail').innerHTML = railHtml();
     document.getElementById('slotpanel').innerHTML = panelHtml();
+    drawCoinSwatches();
+  }
+  // Each coin tile's swatch: the coin, landed design up, drawn by coinDraw.
+  function drawCoinSwatches() {
+    document.querySelectorAll('canvas.t-coin').forEach(function (cv) {
+      var spec = COIN_SPECS[cv.getAttribute('data-coin')];
+      var ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
+      if (!spec) return;
+      coinDraw(ctx, { spec: spec, x: 46, y: 44, r: 30, angle: 0, scale: 1, t: 900 });
+    });
+    stats.swatches = document.querySelectorAll('canvas.t-coin').length;
   }
   function toast(msg, ok) {
     var t = document.getElementById('toast');
@@ -491,7 +666,7 @@ export const LOADOUT_RUNTIME_SOURCE = String.raw`
   }, { passive: true });
   window.addEventListener('resize', function () { if (S) { clearTimeout(scrollTimer); scrollTimer = setTimeout(function () { playPreview(false); }, LOADOUT_SCROLL_SETTLE_MS); } });
   document.addEventListener('visibilitychange', function () { if (document.hidden) stopPreview(); else if (S) playPreview(false); });
-  window.__loadout = { snd: SND, open: open, state: function () { return S ? { scenario: S.sc.key, slot: S.slot, loadout: S.state, preview: S.preview, busy: busy, credits: S.sc.credits } : null; }, stats: function () { return stats; }, boast: BOAST };
+  window.__loadout = { snd: SND, coin: COINPV, open: open, state: function () { return S ? { scenario: S.sc.key, slot: S.slot, loadout: S.state, preview: S.preview, busy: busy, credits: S.sc.credits } : null; }, stats: function () { return stats; }, boast: BOAST };
   if (SITE) {
     // Waits, empty, for the website's first show().
     document.getElementById('close').addEventListener('click', siteClose);
@@ -579,6 +754,11 @@ body { padding: 12px 16px 40px; }
 /* The preview loops: a Skip button would only interrupt a loop. Escape and
  * a tap still end the current pass (it starts again). */
 .boast-skip, .skip-hint { display: none !important; }
+/* The coin preview (render session 55): its canvas over the preview board
+ * (the stage is sticky, so it holds the canvas's absolute box). */
+.coin-cv { position: absolute; z-index: 3; pointer-events: none; border-radius: 6px; }
+.t-swatch.coin { background: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.08), transparent 70%), #05070e; box-shadow: 0 0 0 1px var(--line) inset; }
+.t-swatch canvas.t-coin { width: 100%; height: 100%; display: block; }
 /* The website's full-screen picker (site mode): a Close button at the end of the top line. */
 .pk-close { margin-left: auto; font: inherit; font-size: 0.78rem; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 5px 14px; cursor: pointer; }
 .pk-close:hover, .pk-close:focus-visible { border-color: var(--ink); }
@@ -624,7 +804,7 @@ ${LOADOUT_CSS}</style>
 <header class="agent-head"><h1 id="ag-name"></h1><span class="faction-tag" id="ag-faction"></span><span class="credits" id="ag-balance">Owner's balance: <b id="ag-credits"></b></span><div class="sc-note" id="sc-note"></div></header>
 <div class="livelock" id="livelock" hidden></div>
 <div class="pk-grid">
-<section class="stage" id="stage" aria-label="Preview"><div class="stage-board" id="stage-board"></div>
+<section class="stage" id="stage" aria-label="Preview"><div class="stage-board" id="stage-board"></div><canvas class="coin-cv" id="coin-cv" hidden aria-hidden="true"></canvas>
 <div class="st-capbar"><span id="st-cap"></span><span data-audio-ctl><button type="button" id="snd">Sound on</button> <input type="range" id="sndvol" min="0" max="100" value="80" aria-label="Effects volume"></span><button type="button" id="replay">Replay</button></div></section>
 <section class="side-col"><nav class="rail" id="rail" aria-label="Loadout slots"></nav><div class="slotpanel" id="slotpanel"></div></section>
 </div>
@@ -639,6 +819,8 @@ ${CANVAS_FX_RUNTIME_SOURCE}
 ${SOUND_FX_PURE_SOURCE}
 ${SOUND_FX_RUNTIME_SOURCE}
 ${BOAST_PURE_SOURCE}
+${COIN_PURE_SOURCE}
+${COIN_RUNTIME_SOURCE}
 ${LOADOUT_PURE_SOURCE}
   // On the owner website the sound setting is the account's (the host's
   // { read, write } store, as the pack opening's); standalone, the browser's.

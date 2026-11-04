@@ -18,6 +18,7 @@
     "boast-sheet": "tsx src/boastSheet.ts",
     "recorded": "tsx src/recordedDemo.ts",
     "boot-sheet": "tsx src/bootSheet.ts",
+    "coin-sheet": "tsx src/coinSheet.ts",
     "loadout": "tsx src/loadoutDemo.ts",
     "ci-pages": "tsx src/ciPages.ts",
     "browser-check": "node ci/browser-check.mjs",

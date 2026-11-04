@@ -1,0 +1,74 @@
+
+[A] Match Boot flips each coin by its own look
+PASS  A. coin-chrome-token: the intro flips it by its own look ({"id":"coin-chrome-token","fallback":false})
+PASS  A. coin-chrome-token: p1 near goes first, so it lands portrait up
+PASS  A. coin-chrome-token: drawn mid-spin (2272 lit px at t=1703 ms)
+PASS  A. coin-chrome-token: drawn landed (4004 lit px, mean [125,161,187])
+PASS  A. coin-chrome-token: its spin's sound is coinWhir (want coinWhir); halo reach 1
+FAIL  A. coin-s0-dial-up-dime: the intro flips it by its own look ({"id":"coin-chrome-token","fallback":true})
+PASS  A. coin-s0-dial-up-dime: p1 near goes first, so it lands portrait up
+PASS  A. coin-s0-dial-up-dime: drawn mid-spin (1219 lit px at t=1707 ms)
+PASS  A. coin-s0-dial-up-dime: drawn landed (3986 lit px, mean [124,160,186])
+FAIL  A. coin-s0-dial-up-dime: its spin's sound is coinWhir (want coinWhirModem); halo reach 1
+FAIL  A. coin-s0-neon-nickel: the intro flips it by its own look ({"id":"coin-chrome-token","fallback":true})
+PASS  A. coin-s0-neon-nickel: p1 near goes first, so it lands portrait up
+PASS  A. coin-s0-neon-nickel: drawn mid-spin (1355 lit px at t=1707 ms)
+PASS  A. coin-s0-neon-nickel: drawn landed (3987 lit px, mean [124,161,186])
+FAIL  A. coin-s0-neon-nickel: its spin's sound is coinWhir (want coinWhirNeon); halo reach 1
+FAIL  A. coin-s0-platinum: the intro flips it by its own look ({"id":"coin-chrome-token","fallback":true})
+PASS  A. coin-s0-platinum: p1 near goes first, so it lands portrait up
+PASS  A. coin-s0-platinum: drawn mid-spin (3012 lit px at t=1701 ms)
+PASS  A. coin-s0-platinum: drawn landed (3999 lit px, mean [124,161,186])
+PASS  A. coin-s0-platinum: its spin's sound is coinWhir (want coinWhir); halo reach 1
+FAIL  A. coin-s0-diamond: the intro flips it by its own look ({"id":"coin-chrome-token","fallback":true})
+PASS  A. coin-s0-diamond: p1 near goes first, so it lands portrait up
+PASS  A. coin-s0-diamond: drawn mid-spin (1151 lit px at t=1708 ms)
+PASS  A. coin-s0-diamond: drawn landed (3986 lit px, mean [124,160,186])
+FAIL  A. coin-s0-diamond: its spin's sound is coinWhir (want coinWhirShimmer); halo reach 1
+FAIL  A. coin-s0-mythic: the intro flips it by its own look ({"id":"coin-chrome-token","fallback":true})
+PASS  A. coin-s0-mythic: p1 near goes first, so it lands portrait up
+PASS  A. coin-s0-mythic: drawn mid-spin (2963 lit px at t=1701 ms)
+PASS  A. coin-s0-mythic: drawn landed (3998 lit px, mean [124,160,186])
+FAIL  A. coin-s0-mythic: its spin's sound is coinWhir (want coinWhirShimmer); halo reach 1
+FAIL  A. the six landed coins differ (closest pair coin-s0-dial-up-dime / coin-s0-diamond: 0.0 apart in mean colour)
+
+[B] The coin sheet
+PASS  B. six rows, in the catalogue's order (coin-chrome-token, coin-s0-dial-up-dime, coin-s0-neon-nickel, coin-s0-platinum, coin-s0-diamond, coin-s0-mythic)
+PASS  B. every still drawn (fewest lit px: 760)
+PASS  B. no two coins' design faces alike (pixel hashes)
+PASS  B. the live loops run
+
+[C] The loadout picker: the Coin line
+PASS  C. six slots on the rail, the Coin last (boast, closeWinBoast, cardBack, avatar, arena, coin)
+PASS  C. the coin scenario's rail says "Neon Nickel"
+PASS  C. the tiles: coin-chrome-token, coin-s0-neon-nickel, coin-s0-dial-up-dime, (empty)
+PASS  C. Neon Nickel equipped and Bought; Dial-Up Dime locked, "In the store · 300 credits", no Equip
+PASS  C. each coin tile shows the coin drawn (chrome-token: 2363 px, s0-neon-nickel: 2794 px, s0-dial-up-dime: 3074 px)
+PASS  C. the preview flips the equipped coin (coin-s0-neon-nickel)
+PASS  C. it lands design up then portrait up: THEY GO FIRST / YOU GO FIRST
+PASS  C. the flip plays on its canvas, laid exactly over the preview board
+PASS  C. sound only on the pass the viewer asked for (the slot tap): 1 sequence over 2 passes
+PASS  C. a tap on the locked Dial-Up Dime previews it: "Who goes first flips Dial-Up Dime · portrait up: this agent goes first not owned: preview only"
+PASS  C. ...with its sound (a pass the viewer asked for): 2
+PASS  C. Equip the Chrome Token: the store's answer applied, the rail "Chrome Token", the preview flips it
+PASS  C. Equip Empty: the rail "Empty: flips Chrome Token", the preview flips the Chrome Token an empty slot flips
+PASS  C. the Victory boast slot hides the coin and plays the boast again
+PASS  C. in a live match the store refuses a coin change: "Not saved: no loadout changes during a live match"
+
+[D] Reduced motion; a phone
+PASS  D. reduced motion: both landings, still, no loop (stills 2: once, and once more if the portrait arrived after; unchanged over 1.5 s)
+PASS  D. ...the last still has the agent's portrait on its portrait face, not the placeholder
+PASS  D. a phone: no sideways scroll (390 <= 390); the coin's canvas covers the board
+
+[E] The website: the Store
+PASS  E. the Store's Cosmetics sells the two store coins (Dial-Up Dime, Neon Nickel)
+PASS  E. each with a drawn coin (1023, 936 px) and "Buy · 300"
+PASS  E. every agent row has its Coin line (2 rows: "Coin: Chrome Token")
+PASS  E. the picker opened from Change has the Coin slot (boast, closeWinBoast, cardBack, avatar, arena, coin)
+PASS  E. on the website the coin slot flips the Chrome Token and draws its 3 coin tiles ({"current":{"coin":"coin-chrome-token","empty":false},"passes":1,"swatches":3})
+
+[F] Errors and requests
+PASS  F. no page errors
+PASS  F. no external requests
+
+50 PASS, 10 FAIL
