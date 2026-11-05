@@ -1,41 +1,41 @@
 # Current status
 
 **Build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
-`progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP). Session 73 (game lane) shipped the 2× vote. Nothing
-is blocking. No [OWNER CHECK-IN] is open; four small keep-or-change calls are at the top of notes-for-owner.md, and
-nothing waits on them.**
+`progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP). Session 74 (game lane) shipped featured picks and
+viewer counts. Nothing is blocking. One [OWNER CHECK-IN] is open (the "Top rated" rule, three calls, top of
+notes-for-owner.md); nothing waits on it.**
 
-- **The 2× vote** (owner app spec 2026-10-05 D; `server/OWNER_API.md`, Watch live):
-  - `PUT /api/live/:matchId/speed { ask: true | false }`: "Ask for 2×", or take it back. Only the match's two owners
-    vote (403 otherwise; 409 for a house account; 404 when not live).
-  - `LiveMatchView.speed: { rate, asks, house, waitingOn }`; `nextAt` is at the current pace.
-  - `ask2xEveryMatch` in the account settings (schema v21) asks as each match starts.
-  - 2× only while both sides agree; a house side agrees to its player opponent; house against house stays 1×. The
-    vote resets every match. A change mid-hold rescales only what is left of it.
-  - Logic in `server/src/ladder/speedVote.ts`, pacing in `LiveLadder` (`release`, `askForSpeed`).
-- **Evidence:** `progress/speed-vote-001.txt` (`npm run demo:speed-vote -w server`): 20 PASS; eleven matches at 2×
-  against the same seeds at 1×: the same record, log and replay, half the watch time. Tests:
-  `server/test/speedVote.test.ts` (13), `economy/test/accountSettings.test.ts` (2 new).
+- **Featured picks** (owner app spec 2026-10-05 C.4; `server/OWNER_API.md`, Watch live):
+  - `GET /api/live` sends `featured: { tournament: [], topRated: [matchId...] }`.
+  - Top rated (proposed): both sides out of placement; ranked by the weaker side's starting rating; ties by the
+    stronger side, the earlier start, the id; at most 3; no floor (`featured.minRating` option built, off).
+    Tournament is always empty in Season 0.
+  - Logic in `server/src/ladder/featured.ts`; `LiveLadder.featured()`.
+- **Viewer counts:** `LiveMatchView.viewers` = signed-in owners who read the match's feed (`GET /api/live/:id`) in
+  the last 30 s, once each, players' owners included; reading the list doesn't count. In memory, dropped when the
+  match is recorded. `server/src/ladder/viewers.ts`.
+- **Evidence:** `progress/featured-viewers-001.txt` (`npm run demo:featured-viewers -w server`): 12 PASS, six real
+  ladder rounds, the picks checked against the rule worked by hand, the counts checked every 10 s against who read.
+  Tests: `server/test/featuredViewers.test.ts` (10).
+- **Also:** OWNER_API.md says the two store coins are on sale (300 credits); notifications and the Stats data queued
+  (roadmap 2d, 2e); the rolling queue on the roadmap for after Season 0.
 
 ## Concrete next step
 
-Check the alternation first: this was the game lane (the last merged PR, #128, was the render lane's). If this
-PR is the last merged, the next session is **render** (the second coin slice, then the live arena reading the
-signature card and the live boast, as the owner set on 2026-11-03; it can also read `speed.rate` to run its
-animations at 2× and wire "Ask for 2×").
+Check the alternation first: this was the game lane (the last merged PR, #130, was the render lane's). If this
+PR is the last merged, the next session is **render** (the live arena reads the signature card in full and the live
+boast, with the 2× controls, as the owner set; it can also show `featured` and `viewers` in Watch live).
 
-The next **game-lane** session is **74**. Read owner-feedback.md first (the four 2× calls may be answered). Unless it
-says otherwise, the owner's order (2026-11-03, "Game-lane order from here"):
-1. The rest of the Season 0 live features: **featured picks** (who is "Top rated" in Watch live: propose the rule
-   at an [OWNER CHECK-IN]; the 2026-10-05 spec's open rules) and **viewer counts** (how many are watching each live
-   match: needs a notion of "watching", e.g. a feed fetched in the last N seconds per signed-in owner), in
-   `server/OWNER_API.md` with tests.
-2. The test-only Null deck-builder session (owner-approved): keep the designed list unless a start or search beats
-   it by more than noise on the confirm step, measured on `builtDeckRing.ts` at every level in both modes against
-   built-deck-ring-005; results to an owner check-in; ship nothing without the owner's OK. It must land before the
-   launch-gate re-run.
-3. When the render lane's second coin slice lands: `economy/test/cosmetics.test.ts` checks coins against the
-   render's `COIN_SPECS`.
-Session 75 is the next hardening pass (the last was 70).
+The next **game-lane** session is **75, a HARDENING pass** (the last was 70). No new features: work down
+`progress/quality-debt.md` (stale demos re-run, thin spots raised). Read owner-feedback.md first: the "Top rated"
+calls may be answered (if so, apply them; a change is a few lines in `featured.ts` plus its tests and the demo).
+After 75, the owner's order (2026-11-05):
+1. **Notifications** (roadmap 2d): what produces one in Season 0 and how it is read and cleared; propose the list at
+   a check-in if the 2026-10-05 spec doesn't settle it.
+2. **The Stats page's data** (roadmap 2e).
+3. The test-only Null deck-builder session (owner-approved, before the launch-gate re-run; see roadmap 2f and the
+   2026-11-03 order: keep the designed list unless a start or search beats it by more than noise on the confirm step,
+   measured on `builtDeckRing.ts` at every level in both modes against built-deck-ring-005; results to an owner
+   check-in; ship nothing without the owner's OK).
 
 **Blocked:** nothing.

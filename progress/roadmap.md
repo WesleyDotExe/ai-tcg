@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-03, game session 73 (the 2× vote).
+Updated 2026-11-05, game session 74 (featured picks and viewer counts).
 
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
@@ -60,12 +60,12 @@ Updated 2026-11-03, game session 73 (the 2× vote).
    - [x] daily earnings for the Daily rewards widget (session 64); the owner's daily pack: status and claim
      (`GET /api/packs/daily`, `POST /api/packs/daily/claim`, session 65)
    - [x] match history with replays (session 67: `GET /api/matches`, `/:id`, `/:id/log`, `/:id/replay`)
-   - [~] live and featured matches; the match feed and live state (Watch live, the Live match widget):
-     `GET /api/live`, `GET /api/live/:id` (session 67); who is featured / "Top rated" not yet
+   - [x] live and featured matches; the match feed and live state (Watch live, the Live match widget):
+     `GET /api/live`, `GET /api/live/:id` (session 67); `featured` (Top rated) and `viewers` (session 74)
    - [x] auto-play (session 67: `PUT /api/play/auto-play`, `autoPlay` in `GET /api/play`)
    - [~] ladder standings and stats: `GET /api/ladder` and `GET /api/rating` (session 66); the Stats page's
-     endpoint not yet
-   - [ ] notifications
+     endpoint not yet (item 2e)
+   - [ ] notifications (item 2d)
    - [x] the saved board layout (session 64) and background choice (in the account settings, session 63)
    - [x] the 2× vote (both owners agree) for live play (session 73: `PUT /api/live/:id/speed`, `ask2xEveryMatch`, schema v21)
    - [x] the small asks (session 68): "Watch again" (`GET /api/packs/:packId/opening` answers the
@@ -81,8 +81,10 @@ Updated 2026-11-03, game session 73 (the 2× vote).
    - [x] both sides' ratings at the start of the match on the record (`ratingAtStart`, `defaultView`), and on the
      live view (session 69, schema v20)
    - [x] the 2x vote (both owners must agree): session 73, `LiveMatchView.speed`; `progress/speed-vote-001.txt`
-   - [ ] featured picks ("Top rated"; propose the rule at a check-in)
-   - [ ] viewer counts
+   - [x] featured picks ("Top rated"): session 74, `featured: { tournament, topRated }` on `GET /api/live`; the rule
+     at an [OWNER CHECK-IN] (notes-for-owner.md); `progress/featured-viewers-001.txt`
+   - [x] viewer counts: session 74, `LiveMatchView.viewers` (owners reading the feed in the last 30 s; the rule at
+     the same check-in)
    - [ ] any small additions the render lane's live-board slice names (unit badges: statuses, tool bonuses)
    - [x] (owner 2026-11-03, render 51) the signature card on the live view (`PublicSide.signature`: the card,
      `timesPlayed`, `inZone`, `nextCost`), each side's deck faction (`LiveSideView.faction`), the boast on the live
@@ -91,6 +93,15 @@ Updated 2026-11-03, game session 73 (the 2× vote).
      by card id in hand order, beside `start`) (session 72)
    - [ ] (owner 2026-11-03) hands hidden live (counts only, no card in draw events) for any match with a real-time
      network agent seat, until it ends: built when network agents join the ladder
+2d. [ ] NEXT. Notifications (owner 2026-11-05; the top bar's bell and the Notifications widget), in
+   `server/OWNER_API.md` with tests: what produces one in Season 0 (for example match results, big pulls, the daily
+   pack ready, auto-play switched off at the day's cap) and how they are read and cleared. Propose the list at a
+   check-in if the 2026-10-05 spec doesn't settle it (Settings -> Notifications names big pulls, match results and
+   the free daily pack).
+2e. [ ] The Stats page's data (owner 2026-11-05): what the Stats page and the Rating & form widget at L need beyond
+   `GET /api/ladder` and `GET /api/rating` (for example win rate by faction and by opponent, recent form, a rating
+   chart), in `server/OWNER_API.md` with tests; propose the shape at a check-in if needed.
+2f. [ ] The test-only Null deck-builder session (owner-approved; before the launch-gate re-run): see current.md.
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.
    Grant the tier coins FIRST (`store.grantSeasonTierCoins()`, built session 69), before the reset clears the
@@ -111,6 +122,10 @@ Updated 2026-11-03, game session 73 (the 2× vote).
 6. [ ] Coin skins (owner 2026-11-02, render half approved): (1) the flip in Match Boot, the starter coin,
    reduced motion and sound; (2) the store and tier coins' looks, the coin line in the picker and the Store.
    After the game lane's slot and catalogue.
+
+**After Season 0, before the public launch:** the rolling queue (owner 2026-11-04): pair whoever is free instead
+of waiting for a round's slowest match, so a faster (2×) match means the next one starts sooner. It changes the
+matchmaker, so it comes as its own proposal then.
 
 **After Season 0:** launch-scale storage and its load test (hard gate for Season 1), payments, the art pass,
 AI commentators, tournaments, quests, the published-odds page, the next set, 3D pack opening, the title screen,

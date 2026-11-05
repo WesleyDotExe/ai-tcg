@@ -32,6 +32,12 @@
 // of it. The pace is all it changes: the match was decided before its first
 // move was released.
 //
+// Featured picks and viewer counts (session 74, featured.ts, viewers.ts):
+// the Top rated group is worked out from the live matches' starting
+// ratings and tiers on every read; a viewer is an owner reading the match's
+// feed in the last 30 s, kept in memory and dropped when the match is
+// recorded.
+//
 // The clock is injected (`now`), and `tick()` does all the work for one
 // moment, so tests and the demo run hours of ladder in milliseconds. The
 // real server calls `start()`, which ticks on a timer.
@@ -42,6 +48,8 @@ import { Ladder, type LadderMatch, type LadderOptions, type PlayedMatch, type Ro
 import type { Pairing } from "./pairing.js";
 import { rateOf, rescaleRemaining, speedView, startingVote, type SpeedRate, type SpeedView, type SpeedVote } from "./speedVote.js";
 import { stepHoldMs, WATCH_PACE_MS, watchLengthMs, type PublicSnapshot, type TimelineStep } from "./timeline.js";
+import { featuredPicks, type FeaturedOptions, type FeaturedPicks } from "./featured.js";
+import { ViewerCounter } from "./viewers.js";
 
 export interface LiveLadderOptions extends LadderOptions {
   /** The clock, in ms since the epoch. Default `Date.now`. */
@@ -58,6 +66,12 @@ export interface LiveLadderOptions extends LadderOptions {
   onRound?: (r: RoundReport) => void;
   /** Called after each shown match is recorded. */
   onRecorded?: (m: LadderMatch, shown: { startedAt: number; endedAt: number }) => void;
+  /** The Top rated rule's options (featured.ts; default: 3 matches, no
+   * rating floor). */
+  featured?: FeaturedOptions;
+  /** How long after its last feed read an owner counts as watching
+   * (default VIEWER_WINDOW_MS, 30 s). */
+  viewerWindowMs?: number;
 }
 
 /** One side of a live match, for the Watch live list. */
@@ -106,6 +120,10 @@ export interface LiveMatchView {
   /** (session 73) The 2× vote: the pace now and who asks. `nextAt` is
    * already at this pace. */
   speed: SpeedView;
+  /** (session 74) How many signed-in owners are watching: each owner that
+   * read this match's feed in the last 30 s, once however many tabs, the
+   * two players' owners included (viewers.ts). */
+  viewers: number;
 }
 
 /** A live match with the released moves from `from` on (the render's feed:
@@ -128,7 +146,11 @@ export interface LiveMatchFeed extends LiveMatchView {
 /** Read access to what is live, for the owner API. */
 export interface LiveSource {
   liveMatches(): LiveMatchView[];
-  liveMatch(matchId: string, from?: number): LiveMatchFeed | null;
+  /** The feed from `from` on. `viewer`, when given, is the owner reading
+   * it: it counts as watching (and is in the answer's `viewers`). */
+  liveMatch(matchId: string, from?: number, viewer?: string): LiveMatchFeed | null;
+  /** (session 74) Watch live's featured groups, as match ids in order. */
+  featured(): FeaturedPicks;
   liveMatchOf(ownerId: string): string | null;
   /** (session 73) The owner's "Ask for 2×" in a live match it plays in:
    * `ask` true asks, false takes the ask back. */
@@ -166,6 +188,7 @@ export class LiveLadder implements LiveSource {
   private readonly opts: LiveLadderOptions;
   private readonly now: () => number;
   private readonly shown = new Map<string, Shown>();
+  private readonly viewers: ViewerCounter;
   private nextRoundAt: number;
   private busy: Promise<void> | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
@@ -176,6 +199,7 @@ export class LiveLadder implements LiveSource {
     this.store = opts.store;
     this.now = opts.now ?? Date.now;
     this.ladder = new Ladder(opts);
+    this.viewers = new ViewerCounter(opts.viewerWindowMs);
     this.nextRoundAt = this.now();
   }
 
@@ -213,6 +237,7 @@ export class LiveLadder implements LiveSource {
       const steps = this.release(s, now);
       if (s.released >= steps && now >= s.nextAt) {
         this.shown.delete(id);
+        this.viewers.forget(id);
         const m = this.ladder.recordPlayed(s.played);
         this.opts.onRecorded?.(m, { startedAt: s.startedAt, endedAt: now });
         if (this.shown.size === 0) this.nextRoundAt = now + (this.opts.roundGapMs ?? 60_000);
@@ -299,7 +324,7 @@ export class LiveLadder implements LiveSource {
     return this.store.matchBoast(side.agentId, side.loadout, side.deck.deckId, played.finalHealth?.[seat] ?? null);
   }
 
-  private view(s: Shown): LiveMatchView {
+  private view(s: Shown, at: number = this.now()): LiveMatchView {
     const t = s.played.timeline!;
     const released = t.steps.slice(0, s.released);
     const lines = [...t.startLines, ...released.flatMap((x) => x.lines)];
@@ -315,6 +340,7 @@ export class LiveLadder implements LiveSource {
       recentLines: lines.slice(-RECENT_LINES),
       boast: s.released >= t.steps.length ? s.boast : null,
       speed: speedView(s.vote),
+      viewers: this.viewers.count(s.played.matchId, at),
     };
   }
 
@@ -322,19 +348,25 @@ export class LiveLadder implements LiveSource {
     return [...this.shown.values()].sort((a, b) => a.startedAt - b.startedAt).map((s) => this.view(s));
   }
 
-  liveMatch(matchId: string, from = 0): LiveMatchFeed | null {
+  liveMatch(matchId: string, from = 0, viewer?: string): LiveMatchFeed | null {
     const s = this.shown.get(matchId);
     if (!s) return null;
+    const at = this.now();
+    if (viewer !== undefined) this.viewers.saw(matchId, viewer, at);
     const t = s.played.timeline!;
     const start = Math.min(Math.max(0, from), s.released);
     return {
-      ...this.view(s),
+      ...this.view(s, at),
       start: start === 0 ? t.start : null,
       startLines: start === 0 ? t.startLines : null,
       openingHands: start === 0 ? t.openingHands : null,
       from: start,
       steps: t.steps.slice(start, s.released),
     };
+  }
+
+  featured(): FeaturedPicks {
+    return featuredPicks(this.liveMatches(), this.opts.featured);
   }
 
   liveMatchOf(ownerId: string): string | null {

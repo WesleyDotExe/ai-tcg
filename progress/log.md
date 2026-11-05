@@ -4573,3 +4573,48 @@ still waits for its slowest match); the house-side rule and the take-back are pr
 ask; the render doesn't read `speed` yet. All in quality-debt.md; four calls in notes-for-owner.md.
 
 **Blocked:** nothing.
+
+
+## 2026-11-05 — Session 74 (featured picks and viewer counts)
+
+**Read first:** `progress/owner-feedback.md`. Two unhandled game-lane entries: the answers to session 73 (keep all 4;
+the rolling queue for later) and the answers to render session 55 (keep all 7; OWNER_API.md to say the store coins
+are on sale; notifications and the Stats data queued). Both acted on and marked handled: the rolling queue went on
+the roadmap (after Season 0, before launch) and stays in quality-debt.md; OWNER_API.md now says both coins are on sale
+at 300 credits (checked: the store lists them); `economy/test/cosmetics.test.ts` already checks every coin against the
+render's `COIN_SPECS` (render 55 landed it) and passes; notifications and the Stats data are roadmap items 2d and 2e.
+The last merged PR (#130) was the render lane's, so this is the game lane. Not a hardening session (75 is). The
+owner's order put featured picks (the "Top rated" rule to a check-in) and viewer counts next.
+
+**Built:**
+- `server/src/ladder/featured.ts`: the proposed Top rated rule as pure functions (`topRatedEligible`,
+  `compareTopRated`, `featuredPicks`): both sides out of placement, ranked by the weaker side's starting rating, ties
+  by the stronger side, the earlier start and the id, at most 3, an optional rating floor (off). Tournament is `[]`.
+- `server/src/ladder/viewers.ts`: `ViewerCounter`, an owner counted for 30 s after its last feed read, once per
+  match however many reads; pruned on read; forgotten when the match is recorded.
+- `LiveLadder`: `featured()` (on `LiveSource`), `viewers` on every `LiveMatchView`, `liveMatch(id, from, viewer)`
+  records the reader. Owner API: `GET /api/live` adds `featured`; `GET /api/live/:id` counts the caller.
+- Docs: `server/OWNER_API.md` (both rules, the coins on sale, "Not built yet" updated); roadmap, quality-debt;
+  `npm run demo:featured-viewers -w server`.
+
+**Ran it:**
+- `progress/featured-viewers-001.txt`, over HTTP on a real port, fake clock: 12 PASS, 0 FAIL, the same output every
+  run. Eight house owners play five ladder rounds and all finish placement on real results (1167 to 1819). Two new
+  owners join; round 6 has five live matches: the two with a new owner aren't featured, the other three are, in the
+  order the rule gives by hand (m21 Diamond v Platinum; m25 Silver v Bronze; m24 Bronze v Silver), and each side's
+  rating is the store's `ratingsAtStart`. Viewers on m21 on the site's cadence: 2, 3, 4 (two tabs counted once), down
+  to 0 after everyone leaves, every 10 s reading equal to who read in the last 30 s; a hidden tab's 15 s reads keep
+  its owner counted. Recorded: the feed is 404, the next round's matches start at 0.
+- `server/test/featuredViewers.test.ts` (10 tests): the rule (placement, weaker side, ties, the cap and floor,
+  tournament), the counter (window, tabs, out-of-order reads, forget), and both over HTTP on a ladder whose ratings
+  come from recorded matches. `ownerApiMatches.test.ts` updated for the new `featured` field.
+- `npm test`: engine 365, server 139, economy 222, render 852, agents 17, protocol 7, all pass; typecheck clean.
+
+**Worked:** the starting ratings and tiers were already on each live side (session 69), so the rule needed no new
+state, and the site host already forwards the owner's token on its feed reads, so a viewer is a real owner.
+**Didn't / honest limits:** in a league this small "Top rated" isn't selective (two Bronze-side picks in the demo),
+and it is empty for a fresh season's first five rounds; the Tournament group is a fixed empty list; viewers are
+signed-in owners only, kept in memory, with no peak kept on the record; the render doesn't read either yet. All in
+quality-debt.md; three calls at the check-in in notes-for-owner.md.
+
+**Blocked:** nothing.
