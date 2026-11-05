@@ -1271,3 +1271,12 @@ season mark) is proposed as a mark, call 1.
    `render/src/site/siteAgent.ts`). Any field names are fine: the render lane writes the adapter from whatever
    `GET /api/play` sends and wires the 15 / 30 / 60 and +15 / +30 buttons to its endpoint in a short follow-up.
 3. **The seven calls** are in `progress/render/checkpoints.md` (the newest checkpoint).
+
+## 2026-11-05 — Render session 58 (the pack ceremony, part 1; the time ring live)
+
+1. **For the game lane's roadmap upkeep** (this lane doesn't write `progress/roadmap.md`): render item 2 (My agent
+   and Agent controls) is now complete: the time ring and the 15 / 30 / 60 and +15 / +30 buttons run on game
+   session 76's allowance. Render item 3 (the pack ceremony, part 1) is built; parts 2 and 3 are next.
+2. **The seven calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The one most worth a look:
+   call 1 (the backdrop hints, which your 2026-10-18 note had ruled out for the pack itself).
+3. **Nothing needed from the game lane.**

@@ -9,12 +9,25 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
-- **Agent controls' time ring has no live data yet (session 57).** The ring, its states ("42 min left", amber
-  under 20%, "Finishing match", "Done for today") and the 15 / 30 / 60 and +15 / +30 buttons are drawn and
-  unit-tested, but the server has no play-time allowance until game session 76: today the ring only shows
-  auto-play on (full, "no time limit set") or off, and the buttons are disabled. No adapter from `GET /api/play`
-  exists and the buttons have no click handler; both are the follow-up once 2g lands. The brief's done-check (the
-  ring counts down, the agent finishes its match, the reset at midnight Sydney) is **not** met yet.
+- **The pack opening ceremony is part-built (session 58: part 1 of 3).** Built: the bigger pack with its
+  code-drawn plate, the backdrop tell (a rung per best card, one rung low on about 1 pack in 4 above plain, never
+  high), the mouse lean, the tear that follows the cursor and holds when let go, the rip scrubbed to drag speed,
+  foil scraps, the burst in the best card's colour. **Not yet:** the reveal escalation, the room dimming, the card
+  back's glow stages, the faction ward flare (part 2); the Prototype takeover, the afterglow, NEW stamps, the set
+  bar, Open 10 stopping on every hit, the debug panel (part 3). The brief's done-check (every reveal kind run
+  through with the debug panel) is not met. **Thin in part 1:** the ten-pack open's mini packs keep the old tear
+  (no backdrop tell, no burst); the site's own Packs and Store widgets still draw the small pack art, not this
+  plate; the burst and backdrop were looked at in headless software rendering only (the drag ran at 14-16 fps
+  there at 1280 x 800, 33-35 at phone size; the backdrop's 1.4 s colour ease took 2.8 s; never measured on a GPU,
+  so the brief's 60 fps bar is unproven); the rip sound was checked by its level (the scrub voice's gain), not by
+  ear; the under-promise rate (23.5% of 469 packs above plain over 1,000 real openings) means a Foil pack shows the
+  plain backdrop about a quarter of the time, which may read as "no tell" rather than "a tell that lied low".
+- **Agent controls' time ring now runs on the server's allowance (session 58)**, tested over the real API (15
+  minutes, the drain, +15, time up mid-match "Finishing match", "Done for today", midnight Sydney clean) and in the
+  browser (`site-check-s58.txt`). **Thin:** the ring only updates on the page's 15 s poll (counted down from the
+  window's end on the page's clock at each draw, no per-second tick); a preset pressed while time runs replaces the
+  time left (the server's rule) with no confirm; the "Finishing match" and "Done for today" states were seen in the
+  Node test with the real ladder, not in the browser (the demo's matches take minutes at 4×).
 - **My agent and Agent controls, thin spots (session 57):** the rating trend is drawn from `GET /api/rating`'s last
   20 rated matches, not the Stats data (game item 2e) the brief names; the dial's notches are buttons in tab order,
   not a radio group with arrow keys; the dial and deck switcher were only clicked with a mouse in the browser

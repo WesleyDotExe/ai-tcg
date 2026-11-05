@@ -87,6 +87,22 @@ export interface SiteAutoPlay {
   dailyRewardsMaxed: boolean;
   canTurnOn: boolean;
   house: boolean;
+  /** The play-time allowance (game session 76, schema v22); null with no
+   * time limit or off. Absent on an older server. */
+  allowance?: SiteAllowance | null;
+  /** "+15 / +30" can be pressed now (session 76). */
+  canAddTime?: boolean;
+}
+
+/** `autoPlay.allowance` (OWNER_API.md "The play-time allowance"). */
+export interface SiteAllowance {
+  state: "running" | "finishing" | "done";
+  startedAt: string;
+  endsAt: string;
+  totalMinutes: number;
+  secondsLeft: number;
+  minutesLeft: number;
+  endsAtReset: boolean;
 }
 
 /** One side of a live match, as it started (OWNER_API.md LiveSideView). */
@@ -371,7 +387,10 @@ export interface SiteApi {
   loadout(token: string, agentId: string): Promise<SiteLoadout>;
   setLoadout(token: string, agentId: string, slot: string, itemId: string | null): Promise<SiteLoadout>;
   // The match pages (render session 50).
-  setAutoPlay(token: string, on: boolean): Promise<{ autoPlay: SiteAutoPlay }>;
+  /** `minutes` (15 / 30 / 60, session 76) starts a play-time allowance. */
+  setAutoPlay(token: string, on: boolean, minutes?: number): Promise<{ autoPlay: SiteAutoPlay }>;
+  /** `POST /api/play/auto-play/time`: "+15 / +30" on a running allowance. */
+  addPlayTime(token: string, minutes: number): Promise<{ autoPlay: SiteAutoPlay }>;
   /** `GET /api/rating?recent=N` (game session 66): the caller's rating and
    * its recent changes, newest first (render session 57: My agent). */
   rating(token: string, recent?: number): Promise<SiteRating>;
@@ -497,7 +516,8 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     cosmetics: (token) => call("GET", "/api/cosmetics", { token }),
     loadout: (token, agentId) => call("GET", `/api/agents/${encodeURIComponent(agentId)}/loadout`, { token }),
     setLoadout: (token, agentId, slot, itemId) => call("PUT", `/api/agents/${encodeURIComponent(agentId)}/loadout/${encodeURIComponent(slot)}`, { token, body: { itemId } }),
-    setAutoPlay: (token, on) => call("PUT", "/api/play/auto-play", { token, body: { on } }),
+    setAutoPlay: (token, on, minutes) => call("PUT", "/api/play/auto-play", { token, body: minutes ? { on, minutes } : { on } }),
+    addPlayTime: (token, minutes) => call("POST", "/api/play/auto-play/time", { token, body: { minutes } }),
     rating: (token, recent) => call("GET", `/api/rating${recent ? `?recent=${recent}` : ""}`, { token }),
     live: (token) => call("GET", "/api/live", { token }),
     liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
