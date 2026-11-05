@@ -4650,7 +4650,7 @@ passes keep their rhythm; the last game-lane pass was session 70, so this one is
   71: economy-demo-003 (last run session 30, schema v3, a 36-card Null), 012 and 013 (boasts; winners now on 24 as the
   second seat), 014 and 016 (built decks: win rates moved 1-3 points, Cortex now keeps a searched deck), 015 (play
   styles), owner-api-demo-002 (builder win rates). Every diff read; each is explained by v21 or rules-2. owner-api-demo-002
-  run twice: identical apart from the timing lines. All 16 regenerated; `npm run demos -- --all` then reports 24 same.
+  run twice: identical apart from the timing lines. All 16 regenerated; `npm run demos -- --all` then reports 24 same (`progress/demo-check-001.txt`), so every listed demo is also deterministic.
 - `npm test` across every workspace and the typecheck: see the PR; all pass.
 
 **Worked:** the demos already marked their wall-clock lines, so the comparison needed one rule. **Didn't / honest
