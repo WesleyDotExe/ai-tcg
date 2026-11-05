@@ -151,6 +151,9 @@ export interface PackReveal {
   /** In reveal order: the four plain slots as rolled, then the shine slot,
    * then a Prototype's bonus 6th card. */
   cards: RevealCard[];
+  /** The sealed pack's tells (render session 58, the ceremony part 1):
+   * the backdrop's colour and the burst at the end of the tear. */
+  tell: PackTell;
 }
 
 /** Reveal order: Common, Common, Uncommon, Rare as rolled, the shine slot
@@ -177,6 +180,7 @@ export function planReveal(opening: PackOpening): PackReveal {
     starterHit: opening.starterHit,
     packPoints: opening.packPoints,
     cards,
+    tell: packTellOf(cards, opening.seed),
   };
 }
 
@@ -309,6 +313,12 @@ export const TILT = {
   maxDeg: 15,
   /** With reduced motion: a smaller lean, and no spring. */
   reducedMaxDeg: 6,
+  /** The sealed pack leans this much towards a mouse moving over it, not
+   * held (render session 58; the brief's "the pack tilts with the mouse");
+   * holding it still leans it fully. None on touch (a finger over it is a
+   * press), none with reduced motion. */
+  hoverDeg: 5,
+  reducedHoverDeg: 0,
   /** How fast the card catches up with the finger while held. */
   followMs: 70,
   /** The spring back to flat on release (it overshoots a little). */
@@ -397,4 +407,137 @@ export function planBulkReveal(bulk: BulkOpening): BulkReveal {
   const order = new Map(tiles.map((t, i) => [t, i]));
   tiles.sort((a, b) => FINISH_RANK[a.finish] - FINISH_RANK[b.finish] || RARITY_RANK[a.face.rarity]! - RARITY_RANK[b.face.rarity]! || order.get(a)! - order.get(b)!);
   return { packs, summary: bulk.summary, tiles };
+}
+
+// ---- the sealed pack's tells (render session 58; the owner's 2026-11-06
+// Season 0 brief, section 3, beats 1 and 2) ---------------------------------
+//
+// "Layered tells: hints stack gradually so the owner starts suspecting a hit
+// before they know. Occasionally a tell under-promises, so it never becomes
+// fully predictable." Three layers, each honest about the pack in hand:
+//  1. the backdrop behind the sealed pack: its colour and pulse are a rung on
+//     the ladder below, the best card's rung or, on about one pack in four
+//     that holds more than a plain card, one rung LOWER. It never shows a
+//     rung above the best card (an over-promise is a fake-out, and the
+//     2026-10-18 rule against fake-outs stands);
+//  2. the light leaking through the tear as it opens: the backdrop's rung;
+//  3. the burst when the tear finishes: the best card's own rung and colour,
+//     never lowered. The sparks (iff the pack holds a hit) stay as they were.
+// The pack itself, and its tilt, look the same whatever is inside.
+//
+// Nothing here is random: the under-promise is read from the opening's own
+// seed (the store's roll), so a pack shows the same tells every time it is
+// replayed, and the plan stays a pure function of the opening.
+
+/** The rungs, lowest first. Each reveal kind sits on one (the finishes in
+ * the summary's best-first order, grouped). */
+export const TELL_RUNGS = ["calm", "shimmer", "charged", "radiant", "overload"] as const;
+export type TellRung = (typeof TELL_RUNGS)[number];
+
+export const RUNG_OF: Record<RevealKind, TellRung> = {
+  plain: "calm",
+  foil: "shimmer",
+  fullArt: "charged",
+  altArt: "charged",
+  glitch: "charged",
+  secret: "radiant",
+  gold: "radiant",
+  prototype: "overload",
+  zeroDay: "overload",
+};
+
+/** The best first, as the summary orders finishes (packPage's
+ * packFinishOrder); a tournament copy reveals as a Prototype. */
+const BEST_FINISH: readonly Finish[] = ["zeroDay", "prototype", "tournament", "secret", "gold", "glitch", "altArt", "fullArt", "foil", "standard"];
+const RARITY_RANK_TELL: Record<string, number> = { Mythic: 3, Rare: 2, Uncommon: 1, Common: 0 };
+
+/** The backdrop at each rung: three gradient stops (core, middle, rim), the
+ * glow over it, and the pulse's period and strength. Proposed (an owner
+ * check-in): each rung warmer and faster than the one below. */
+export const TELL_BACKDROPS: Record<TellRung, { core: string; mid: string; rim: string; glow: string; pulseMs: number; pulse: number }> = {
+  calm: { core: "#1d2350", mid: "#0b0e24", rim: "#05060d", glow: "#6a8cff", pulseMs: 7000, pulse: 0.12 },
+  shimmer: { core: "#0f4a72", mid: "#0a1f3e", rim: "#04070f", glow: "#7fe3ff", pulseMs: 5600, pulse: 0.2 },
+  charged: { core: "#43207a", mid: "#1a0d3c", rim: "#06040f", glow: "#c48bff", pulseMs: 4300, pulse: 0.3 },
+  radiant: { core: "#6a4310", mid: "#2a170a", rim: "#080502", glow: "#ffcf6a", pulseMs: 3200, pulse: 0.42 },
+  overload: { core: "#7a2a4a", mid: "#2e0a1e", rim: "#07020a", glow: "#fff1b8", pulseMs: 2200, pulse: 0.55 },
+};
+
+/** The burst's colour per reveal kind (a plain pack's takes the best card's
+ * faction). */
+const BURST_HEX: Record<Exclude<RevealKind, "plain">, string> = {
+  foil: "#9fe0ff",
+  fullArt: "#c9a2ff",
+  altArt: "#ffa2e0",
+  glitch: "#6dffb0",
+  secret: "#ff6a9a",
+  gold: "#f6d77a",
+  prototype: "#fff1b8",
+  zeroDay: "#ff3b3b",
+};
+export const FACTION_TELL_HEX: Record<string, string> = { Cortex: "#35c9ff", Aegis: "#ff7d24", Swarm: "#8bff5c", Null: "#d565ff", Neutral: "#fff0c2" };
+
+/** One in this many packs whose best card is above plain shows its backdrop
+ * a rung low. */
+export const UNDER_PROMISE_ONE_IN = 4;
+
+export interface PackTell {
+  /** The best card: its place in reveal order and how it reveals. */
+  bestIndex: number;
+  best: RevealKind;
+  bestFaction: string;
+  /** The best card's rung (0 calm .. 4 overload). */
+  rung: number;
+  /** The backdrop's rung: `rung`, or one lower when `underPromise`. */
+  backdropRung: number;
+  underPromise: boolean;
+  backdrop: TellRung;
+  /** The burst at the end of the tear: the best card's own colour, its
+   * faction's as the second colour, and its size (0-1) by the best rung. */
+  burst: { colour: string; faction: string; size: number; rung: TellRung };
+}
+
+/** The best card of a pack: the best finish (the summary's order), then the
+ * higher rarity, then the later card (the shine slot and the bonus card
+ * come last, as they're revealed). */
+export function bestCardIndex(cards: readonly Pick<RevealCard, "finish" | "face">[]): number {
+  let best = 0;
+  const score = (c: Pick<RevealCard, "finish" | "face">) => [BEST_FINISH.length - BEST_FINISH.indexOf(c.finish), RARITY_RANK_TELL[c.face.rarity] ?? 0];
+  for (let i = 1; i < cards.length; i++) {
+    const [f, r] = score(cards[i]!);
+    const [bf, br] = score(cards[best]!);
+    if (f! > bf! || (f === bf && r! >= br!)) best = i;
+  }
+  return best;
+}
+
+/** Whether the opening's seed puts this pack among the under-promised ones:
+ * a 32-bit mix of the seed, one in UNDER_PROMISE_ONE_IN. */
+export function underPromises(seed: number): boolean {
+  let h = (Math.floor(seed) ^ 0x9e3779b9) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35) >>> 0;
+  h = (h ^ (h >>> 16)) >>> 0;
+  return h % UNDER_PROMISE_ONE_IN === 0;
+}
+
+export function packTellOf(cards: readonly RevealCard[], seed: number): PackTell {
+  if (!cards.length) {
+    return { bestIndex: -1, best: "plain", bestFaction: "Neutral", rung: 0, backdropRung: 0, underPromise: false, backdrop: "calm", burst: { colour: FACTION_TELL_HEX.Neutral!, faction: FACTION_TELL_HEX.Neutral!, size: 0.35, rung: "calm" } };
+  }
+  const bestIndex = bestCardIndex(cards);
+  const c = cards[bestIndex]!;
+  const rung = TELL_RUNGS.indexOf(RUNG_OF[c.reveal]);
+  const underPromise = rung > 0 && underPromises(seed);
+  const backdropRung = underPromise ? rung - 1 : rung;
+  const faction = FACTION_TELL_HEX[c.face.faction] ?? FACTION_TELL_HEX.Neutral!;
+  return {
+    bestIndex,
+    best: c.reveal,
+    bestFaction: c.face.faction,
+    rung,
+    backdropRung,
+    underPromise,
+    backdrop: TELL_RUNGS[backdropRung]!,
+    burst: { colour: c.reveal === "plain" ? faction : BURST_HEX[c.reveal], faction, size: [0.35, 0.5, 0.7, 0.85, 1][rung]!, rung: TELL_RUNGS[rung]! },
+  };
 }

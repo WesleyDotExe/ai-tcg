@@ -7,6 +7,57 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-05 — The pack opening ceremony, part 1 (the backdrop tell, the tear, the burst); the time ring live — AWAITING FEEDBACK
+
+Item 3 of your 2026-11-06 render order, plus the time ring wired to game session 76's allowance. Try it: open
+`render/output/pack-opening.html` (or `npm run pack-opening -w @ai-tcg/render`), pick a pack and drag along the TEAR
+strip; let go half way, then carry on.
+
+**What you'll see:**
+- **The pack:** bigger (up to 300 px wide, was 230), with a code-drawn foil plate behind the logo (a circuit field
+  and the four faction marks around the emblem). The mouse over it leans it a little (5°) and the shine follows;
+  holding it still tilts it fully, as before.
+- **The backdrop:** a deep gradient behind the pack that slowly drifts and pulses. Its colour is the tell, one of
+  five rungs: calm blue (plain), teal (Foil), violet (Full Art, Alt Art, Glitch), amber (Secret, Gold), rose-gold
+  (Prototype, Zero-Day), each pulsing faster than the one below. On about one pack in four that holds more than a
+  plain card it shows one rung **lower** (measured: 110 of 469 over 1,000 real openings). It never shows higher.
+- **The tear:** the strip peels back from the cut and follows the cursor, a jagged foil head under it, light in the
+  backdrop's colour leaking through the cut, foil scraps flying off. The rip sound is scrubbed to the drag's speed
+  (silent when still, louder and brighter when fast). Let go part way and the tear holds ("The tear holds at 40%");
+  pick it up anywhere on the strip and it carries on from there. A tap still tears the whole pack.
+- **The burst:** when the tear finishes, light bursts from the cut in the **best card's own colour** (never lowered,
+  so this is the truer, second tell), its faction's colour in the rim, a ring from Foil up, a screen flash, motes and
+  a procedural whoomp, all bigger with the rung. The sparks still come only with a hit.
+- **The time ring (Agent controls):** 15 / 30 / 60 start auto-play with that many minutes; +15 / +30 add while it
+  runs; the ring drains, then "Finishing match", then "Done for today". Each refused button says why.
+
+**Evidence:** `progress/render/evidence/pack-ceremony-check-s58.txt` (127 PASS: six packs, desktop and phone),
+`site-check-s58.txt` (18 PASS, the time buttons on the real server), stills `v2-s58-*.jpg`; tests
+`render/test/packTell.test.ts` (1,000 real openings), `render/test/siteTime.test.ts` (the ladder playing).
+
+**Calls you may want to overrule:**
+1. **The backdrop now hints at what's inside.** Your 2026-10-18 note said a pack "looks and behaves exactly the
+   same whether or not it holds a hit"; the 2026-11-06 brief asks for a backdrop that hints. I read the brief as
+   changing that rule for the backdrop only: the pack, its art, its tilt and its lean are still the same for every
+   pack; only the backdrop and the light through the cut tell.
+2. **Under-promise:** one rung lower on 1 pack in 4 above plain, never more than one rung, never over. Read from
+   the opening's seed (so a replayed opening shows the same tell; nothing new is rolled).
+3. **The five rungs and their colours** (above). Secret shares amber with Gold, Prototype shares with Zero-Day.
+4. **The burst is never lowered** (only the backdrop under-promises), so the burst is where a hit is confirmed
+   before the cards rise. Alternative: let the burst under-promise too, leaving the card back's glow (part 2) as
+   the only honest tell.
+5. **The wrapper always says "5 CARDS".** It used to print "6 CARDS" on a pack with a Prototype bonus card, which
+   gave the bonus away before the tear. Fixed as a bug.
+6. **Hover lean 5°**, desktop only (none on touch, none with reduced motion).
+7. **A time preset pressed while time runs replaces the time left** (the server's rule), with no confirm; the
+   button's tooltip says so.
+
+**Next:** part 2: the reveal escalation across the reveal kinds (the room dims, the card back glows through stages
+with pauses, the slow flip, flash, shake, bass hit and faction-colour particles), the faction ward flare, the
+procedural sound per tier.
+
+---
+
 ## 2026-11-05 — My agent and Agent controls (the Season 0 brief, section 1) — AWAITING FEEDBACK
 
 Item 2 of your 2026-11-06 render order. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder --speed 4`, sign

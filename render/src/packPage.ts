@@ -23,7 +23,7 @@
 // plans it was given (packOpening.ts), each one a real opening.
 
 import { PACK_FX_RUNTIME_SOURCE, PACK_FX_SHADERS } from "./packFx.js";
-import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, TILT, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
+import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, TELL_BACKDROPS, TILT, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { FLOW_TIMINGS, MINT_TIMINGS, type FirstTimeData } from "./firstTime.js";
 import { FIRST_TIME_CSS, FIRST_TIME_PURE_SOURCE, FIRST_TIME_RUNTIME_SOURCE, FIRST_TIME_WARD_SOURCE } from "./firstTimePage.js";
@@ -51,7 +51,7 @@ export interface PackPageData {
 
 export function renderPackOpeningHtml(data: PackPageData): string {
   const embed = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
-  const timings = { pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT, mint: MINT_TIMINGS, flow: FLOW_TIMINGS };
+  const timings = { backdrops: TELL_BACKDROPS, pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT, mint: MINT_TIMINGS, flow: FLOW_TIMINGS };
   data = { ...data, bulks: data.bulks ?? [] };
   const flow = !!data.flow;
   const site = !!data.site;
@@ -81,9 +81,11 @@ export function renderPackOpeningHtml(data: PackPageData): string {
   </span>${site ? '\n  <button class="close" id="close" title="Back to the website. Your cards are already in your collection.">Close</button>' : ""}
 </header>
 <main class="stage" id="stage">
+  <div class="bd" id="bd" aria-hidden="true"></div>
   <div class="dim" id="dim"></div>
   <div class="scene" id="scene"></div>
   <canvas class="sparks" id="sparks" aria-hidden="true"></canvas>
+  <div class="flash" id="flash" aria-hidden="true"></div>
   <div class="hint" id="hint" aria-live="polite"></div>
   <div class="counter" id="counter"></div>${flow ? '\n  <div class="ftbadge" id="ftbadge"></div>' : ""}
   <button class="skip" id="skip" hidden>Skip to summary</button>
@@ -147,6 +149,37 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .stage::before { content: ""; position: absolute; inset: -20%; background: radial-gradient(circle at 30% 20%, rgba(122,92,255,0.25), transparent 40%), radial-gradient(circle at 75% 70%, rgba(47,182,255,0.18), transparent 45%); animation: drift 16s ease-in-out infinite alternate; pointer-events: none; }
 @keyframes drift { to { transform: translate(6%, -4%) scale(1.1); } }
 .dim { position: absolute; inset: 0; background: #000; opacity: 0; transition: opacity 0.6s; pointer-events: none; z-index: 1; }
+/* The backdrop (render 58, the ceremony's beat 1): a deep gradient behind
+   the sealed pack that slowly shifts and pulses. Its colours are the
+   pack's tell (packOpening.ts PackTell: the best card's rung, sometimes one
+   lower, never higher); they ease from one pack's to the next. */
+@property --tp { syntax: "<number>"; inherits: true; initial-value: 0; }
+@property --b1 { syntax: "<color>"; inherits: true; initial-value: #1d2350; }
+@property --b2 { syntax: "<color>"; inherits: true; initial-value: #0b0e24; }
+@property --b3 { syntax: "<color>"; inherits: true; initial-value: #05060d; }
+@property --bg2 { syntax: "<color>"; inherits: true; initial-value: #6a8cff; }
+.bd { position: absolute; inset: 0; pointer-events: none; z-index: 0; --pm: 7000ms; --pa: 0.12;
+  background: radial-gradient(ellipse 80% 70% at 50% 40%, var(--b1) 0%, var(--b2) 52%, var(--b3) 100%);
+  transition: --b1 1.4s ease, --b2 1.4s ease, --b3 1.4s ease, --bg2 1.4s ease; }
+.bd::before { content: ""; position: absolute; inset: -25%; background: radial-gradient(circle at 28% 22%, color-mix(in srgb, var(--bg2) 34%, transparent), transparent 42%), radial-gradient(circle at 76% 72%, color-mix(in srgb, var(--bg2) 22%, transparent), transparent 46%);
+  animation: bdshift 18s ease-in-out infinite alternate; will-change: transform; }
+.bd::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 42%, var(--bg2), transparent 46%); opacity: calc(var(--pa) * 0.35);
+  animation: bdpulse var(--pm) ease-in-out infinite; will-change: opacity, transform; mix-blend-mode: screen; }
+@keyframes bdshift { 0% { transform: translate(-4%, 3%) rotate(-4deg) scale(1); } 100% { transform: translate(5%, -4%) rotate(5deg) scale(1.12); } }
+@keyframes bdpulse { 50% { opacity: var(--pa); transform: scale(1.08); } }
+.stage.has-bd::before { opacity: 0; }
+/* The burst when the tear finishes: light in the best card's colour. */
+.flash { position: absolute; inset: 0; pointer-events: none; z-index: 7; opacity: 0; background: radial-gradient(circle at var(--fx, 50%) var(--fy, 30%), var(--fc1, #fff), transparent 60%); mix-blend-mode: screen; }
+.flash.go { animation: flash var(--fd, 700ms) ease-out forwards; }
+@keyframes flash { 0% { opacity: var(--fo, 0.5); } 100% { opacity: 0; } }
+.burst { position: absolute; width: var(--D, 400px); height: var(--D, 400px); margin: calc(var(--D, 400px) / -2) 0 0 calc(var(--D, 400px) / -2); border-radius: 50%; pointer-events: none; z-index: 7; will-change: transform, opacity;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, var(--c1) 7%, color-mix(in srgb, var(--c1) 55%, transparent) 17%, color-mix(in srgb, var(--c1) 24%, transparent) 30%, color-mix(in srgb, var(--c2) 12%, transparent) 44%, transparent 64%); mix-blend-mode: screen;
+  animation: burst var(--d, 900ms) cubic-bezier(.15,.8,.3,1) forwards; }
+@keyframes burst { 0% { transform: scale(0.03); opacity: 1; } 55% { opacity: 0.85; } 100% { transform: scale(1); opacity: 0; } }
+/* The ring: drawn at its full size and grown into it, so its line stays thin. */
+.shock { position: absolute; width: var(--D, 400px); height: var(--D, 400px); margin: calc(var(--D, 400px) / -2) 0 0 calc(var(--D, 400px) / -2); border-radius: 50%; pointer-events: none; z-index: 7; border: 2px solid var(--c1); box-shadow: 0 0 14px var(--c1), inset 0 0 12px color-mix(in srgb, var(--c2) 60%, transparent);
+  animation: shock var(--d, 900ms) cubic-bezier(.2,.7,.3,1) forwards; will-change: transform, opacity; }
+@keyframes shock { 0% { transform: scale(0.04); opacity: 0.95; } 100% { transform: scale(1); opacity: 0; } }
 .scene { position: absolute; inset: 0; display: grid; place-items: center; z-index: 2; perspective: 1100px; }
 .sparks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; }
 .hint { position: absolute; left: 16px; right: 16px; bottom: 18px; text-align: center; color: var(--dim); font-size: 13px; z-index: 5; min-height: 2.6em; }
@@ -158,14 +191,20 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .foot b { color: var(--ink); font-weight: 600; }
 
 /* ---------- the pack ---------- */
-.pack { --pw: min(56vw, 230px, calc((100dvh - 230px) * 0.62)); width: var(--pw); height: calc(var(--pw) * 1.6); position: relative; transform-style: preserve-3d; cursor: grab; animation: bob 3.4s ease-in-out infinite; }
+.pack { --pw: min(66vw, 300px, calc((100dvh - 190px) * 0.6)); --tp: 0; --leak: #bfe3ff; width: var(--pw); height: calc(var(--pw) * 1.6); position: relative; transform-style: preserve-3d; cursor: grab; animation: bob 3.4s ease-in-out infinite; }
 .pack.held { animation: none; }
 .pack:focus { outline: none; }
 .pack:focus-visible { outline: 2px solid #6a8cff; outline-offset: 8px; border-radius: 12px; }
 @keyframes bob { 50% { transform: translateY(-8px) rotateZ(-0.6deg); } }
+.pack .lean { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.35s cubic-bezier(.2,.8,.3,1); }
 .pack .tilt { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 0.12s; }
 .pack .half { position: absolute; left: 0; right: 0; overflow: hidden; }
-.pack .half.top { top: 0; height: 16%; z-index: 2; }
+.pack .half.top { top: 0; height: 16%; z-index: 2; clip-path: polygon(calc(var(--tp) * 100%) 0, 100% 0, 100% 100%, calc(var(--tp) * 100%) 100%); }
+/* The torn part of the strip (render 58): it peels up and back from the
+   cut as the tear runs along, hinged at the tear's head. */
+.pack .half.flap { top: 0; height: 16%; z-index: 3; clip-path: polygon(0 0, calc(var(--tp) * 100% + 1px) 0, calc(var(--tp) * 100% + 1px) 100%, 0 100%); transform-origin: calc(var(--tp) * 100%) 100%;
+  transform: translateY(calc(var(--tp) * var(--pw) * -0.05)) rotate(calc(var(--tp) * -7deg)); filter: brightness(1.15); }
+.pack .half.flap .wrap { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12), inset 0 -6px 10px rgba(0,0,0,0.5); }
 .pack .half.body { top: 16%; bottom: 0; }
 .pack .wrap { position: absolute; left: 0; right: 0; height: calc(var(--pw) * 1.6); border-radius: 10px;
   background: linear-gradient(135deg, #1b2a6b 0%, #3a1f7a 32%, #11163a 55%, #2a1150 78%, #0f2a5e 100%);
@@ -180,7 +219,19 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pack .set { position: absolute; top: 72%; left: 0; right: 0; text-align: center; font-weight: 800; letter-spacing: 0.3em; font-size: calc(var(--pw) * 0.06); color: #dfe8ff; }
 .pack .meta { position: absolute; top: 79%; left: 0; right: 0; text-align: center; font-size: calc(var(--pw) * 0.05); color: #9fb1dd; letter-spacing: 0.08em; }
 .pack .cutline { position: absolute; left: 6%; right: 6%; top: 16%; height: 0; border-top: 1px dashed rgba(255,255,255,0.35); z-index: 3; }
-.pack .cutline i { position: absolute; left: 0; top: -2px; height: 3px; width: 0; background: linear-gradient(90deg, #fff, #bfe3ff); box-shadow: 0 0 10px #bfe3ff, 0 0 22px #6a8cff; border-radius: 2px; }
+.pack .cutline i { position: absolute; left: 0; top: -2px; height: 3px; width: 0; background: linear-gradient(90deg, #fff, var(--leak)); box-shadow: 0 0 10px var(--leak), 0 0 calc(12px + var(--tp) * 26px) var(--leak); border-radius: 2px; }
+/* The light leaking out of the open cut: the backdrop's tell colour,
+   brighter the further the tear has run. */
+.pack .leak { position: absolute; left: 0; top: 16%; height: calc(var(--pw) * 0.09); width: calc(var(--tp) * 100%); transform: translateY(-50%); z-index: 2; pointer-events: none; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 50%, var(--leak), transparent 70%); opacity: calc(var(--tp) * 0.9); mix-blend-mode: screen; filter: blur(3px); }
+/* The tear's head: a jagged notch of foil that sits under the cursor. */
+.pack .rip { position: absolute; top: 16%; left: calc(var(--tp) * 100%); width: calc(var(--pw) * 0.07); height: calc(var(--pw) * 0.07); transform: translate(-50%, -50%); z-index: 4; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+.pack .rip svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 4px var(--leak)) drop-shadow(0 0 10px var(--leak)); }
+.pack.tearing .rip, .pack.held-tear .rip { opacity: 1; }
+/* The pack's art (render 58): a code-drawn foil plate behind the logo: a
+   circuit field and the season's four faction marks around the emblem. */
+.pack .pa { position: absolute; inset: 0; pointer-events: none; opacity: 0.9; }
+.pack .pa svg { width: 100%; height: 100%; display: block; }
 .pack .grip { position: absolute; left: 0; right: 0; top: 0; height: 26%; z-index: 4; }
 /* The tear strip, marked so it reads as the place to drag (a drag anywhere
    else on the pack tilts it instead): a lit band over the strip and a TEAR
@@ -191,7 +242,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pack.torn .tab, .pack.torn .strip { opacity: 0; transition: opacity 0.15s; }
 .pack .fxgl { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; mix-blend-mode: screen; pointer-events: none; z-index: 2; }
 .pack.fx-css-pack .half.body::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.35) 50%, transparent 65%); background-size: 250% 100%; animation: sheen 3.6s linear infinite; mix-blend-mode: screen; }
-.pack.torn .half.top { animation: stripoff 0.65s cubic-bezier(.3,.7,.4,1) forwards; }
+.pack.torn .half.top, .pack.torn .half.flap { animation: stripoff 0.65s cubic-bezier(.3,.7,.4,1) forwards; }
+.pack.torn .rip, .pack.torn .leak { opacity: 0; transition: opacity 0.2s; }
 @keyframes stripoff { to { transform: translate(28%, -140%) rotate(16deg); opacity: 0; } }
 .pack.torn .half.body { animation: packdown 0.7s 0.35s cubic-bezier(.5,0,.8,.4) forwards; }
 @keyframes packdown { to { transform: translateY(70%); opacity: 0; } }
@@ -456,7 +508,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .bulk { padding-top: 76px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .pack, .stage::before, .back, .cslot.reach::before, .face.zdface .art, .fan .mpack { animation: none !important; }
+  .pack, .stage::before, .back, .cslot.reach::before, .face.zdface .art, .fan .mpack, .bd::before, .bd::after { animation: none !important; }
+  .burst, .shock { animation-duration: 1ms !important; }
+  .pack .lean { transition: none; }
 }
 @media (max-width: 520px) {
   .brand span { display: none; }
@@ -487,6 +541,52 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
   function packTearProgress(prev, x0, x, width) {
     var p = (x - x0) / Math.max(1, width * 0.7);
     return Math.max(prev, Math.min(1, Math.max(0, p)));
+  }
+  // The tear that follows the cursor (render session 58): each move along
+  // the strip advances the tear's head by exactly the distance moved to the
+  // right (over the cut's length, 88% of the pack's width), from wherever
+  // it was held; moving back, or letting go, holds it where it is.
+  function packTearStep(prev, dx, width) {
+    return Math.max(0, Math.min(1, prev + Math.max(0, dx) / Math.max(1, width * 0.88)));
+  }
+  // The drag's speed for the rip sound, px per ms, smoothed over the last
+  // moves so one jittery event doesn't spike it.
+  function packDragSpeed(prev, dx, ms) {
+    var v = Math.abs(dx) / Math.max(4, ms);
+    return Math.round((prev * 0.55 + v * 0.45) * 1000) / 1000;
+  }
+  // Foil scraps thrown off the tear's head for a move of dx px: about one
+  // per 7 px, at most 6 a move.
+  function packScrapCount(dx) {
+    return Math.max(0, Math.min(6, Math.floor(Math.max(0, dx) / 7)));
+  }
+  // The burst at the end of the tear for a pack's tell: how far it spreads
+  // (in multiples of a 10 px seed), how long, how many motes, how strong
+  // the screen flash. Grows with the best card's rung (0-4).
+  function packBurstPlan(size, rung) {
+    var r = Math.max(0, Math.min(4, rung | 0));
+    return { scale: Math.round(18 + 52 * size), ms: 620 + r * 170, motes: 24 + r * 34, flash: Math.round((0.22 + r * 0.12) * 100) / 100, ring: r >= 1 };
+  }
+  // The pack's own art plate (render 58): a circuit field and the four
+  // faction marks around the emblem, code-drawn, the same on every pack
+  // of a set (the pack never hints at what it holds).
+  function packPlateSvg(setCode) {
+    var seed = 0; for (var i = 0; i < setCode.length; i++) seed = (seed * 31 + setCode.charCodeAt(i)) >>> 0;
+    var a = seed || 1; function rnd() { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; }
+    var W = 100, H = 160, out = ['<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true">'];
+    for (var t = 0; t < 22; t++) {
+      var x = rnd() * W, y = 18 + rnd() * (H - 30), pts = [x.toFixed(1) + ',' + y.toFixed(1)];
+      for (var k = 0; k < 4; k++) { if (k % 2 === 0) x += (rnd() - 0.5) * 34; else y += (rnd() - 0.5) * 26; pts.push(x.toFixed(1) + ',' + y.toFixed(1)); }
+      out.push('<polyline points="' + pts.join(' ') + '" fill="none" stroke="rgba(160,200,255,0.16)" stroke-width="0.6"/><circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="0.9" fill="rgba(200,225,255,0.4)"/>');
+    }
+    var cols = ['#35c9ff', '#ff7d24', '#8bff5c', '#d565ff'];
+    for (var f = 0; f < 4; f++) {
+      var ang = -Math.PI / 2 + f * Math.PI / 2 + Math.PI / 4, cx = 50 + Math.cos(ang) * 30, cy = 77 + Math.sin(ang) * 30;
+      out.push('<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="4.2" fill="none" stroke="' + cols[f] + '" stroke-opacity="0.7" stroke-width="0.8"/><circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="1.5" fill="' + cols[f] + '" fill-opacity="0.8"/>');
+    }
+    out.push('<circle cx="50" cy="77" r="30" fill="none" stroke="rgba(191,227,255,0.22)" stroke-width="0.6" stroke-dasharray="2 3"/><circle cx="50" cy="77" r="38" fill="none" stroke="rgba(191,227,255,0.12)" stroke-width="0.5"/>');
+    out.push('</svg>');
+    return out.join('');
   }
   // What a release on the top card means: a tap (barely moved), a swipe
   // (moved far enough sideways) or neither (let go mid-drag: snap back).
@@ -807,7 +907,17 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   var counter = document.getElementById('counter'), skipBtn = document.getElementById('skip'), dim = document.getElementById('dim');
   var zd = document.getElementById('zd'), zdTerm = document.getElementById('zd-term'), announce = document.getElementById('announce');
   var sparksCanvas = document.getElementById('sparks');
+  var bd = document.getElementById('bd'), flashEl = document.getElementById('flash');
+  stage.classList.add('has-bd');
   var t0 = performance.now();
+  // The backdrop's rung (render 58): the sealed pack's tell, eased in.
+  function setBackdrop(rung) {
+    var b = TM.backdrops[rung] || TM.backdrops.calm;
+    bd.style.setProperty('--b1', b.core); bd.style.setProperty('--b2', b.mid); bd.style.setProperty('--b3', b.rim);
+    bd.style.setProperty('--bg2', b.glow); bd.style.setProperty('--pm', b.pulseMs + 'ms'); bd.style.setProperty('--pa', String(b.pulse));
+    bd.setAttribute('data-rung', rung);
+    return b;
+  }
   // The page's state, and a log of every beat, for the headless check.
   // tilt: the card that follows the light (only once it has landed, so a
   // flip is never pulled off course).
@@ -872,7 +982,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
 
   // ---------- the shelf ----------
   function shelf() {
-    clearTimers(); stopLayers(); S.phase = 'shelf'; markPicker();
+    clearTimers(); stopLayers(); S.phase = 'shelf'; markPicker(); setBackdrop('calm');
     skipBtn.hidden = true; counter.textContent = ''; dim.style.opacity = 0;
     hint.innerHTML = 'Pick a pack to open. Each one is a real opening.';
     bulkControls(false);
@@ -897,70 +1007,132 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     markPicker(); footer();
     var r = S.cur;
     skipBtn.hidden = true; counter.textContent = ''; dim.style.opacity = 0;
-    var wrap = '<div class="wrap"><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div><div class="meta">' + r.cards.length + ' CARDS · ' + esc(r.setCode) + '</div><div class="crimp b"></div></div>';
-    scene.innerHTML = '<div class="pack" id="pack" tabindex="0" role="button" aria-label="Sealed Season Zero pack. Drag across the top to tear it open, or tap."><div class="tilt"><div class="half top">' + wrap + '</div><div class="half body">' + wrap + '</div><div class="strip"></div><div class="cutline"><i id="cutp"></i></div><span class="tab">TEAR</span><div class="grip"></div><div class="finger"></div></div></div>';
+    // The tell (render 58): the backdrop takes the pack's rung; the light
+    // leaking through the cut is its glow.
+    var tell = r.tell || { backdrop: 'calm', backdropRung: 0, rung: 0, underPromise: false, best: 'plain', burst: { colour: '#bfe3ff', faction: '#bfe3ff', size: 0.35, rung: 'calm' } };
+    var bdl = setBackdrop(tell.backdrop);
+    log('tells', { backdrop: tell.backdrop, backdropRung: tell.backdropRung, rung: tell.rung, underPromise: tell.underPromise, best: tell.best });
+    // The printed count is always the pack's five: a Prototype's bonus 6th
+    // card is a surprise, never printed on the wrapper (render 58 fixed the
+    // sealed pack reading "6 CARDS" for one).
+    var wrap = '<div class="wrap"><div class="pa">' + packPlateSvg(r.setCode) + '</div><div class="crimp t"></div><div class="logo">AI·TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div><div class="meta">5 CARDS · ' + esc(r.setCode) + '</div><div class="crimp b"></div></div>';
+    var ripSvg = '<svg viewBox="-10 -10 20 20"><path d="M-6 -7 L-1 -3 L-5 0 L-1 3 L-6 7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="bevel"/><circle r="2.4" fill="#fff"/></svg>';
+    scene.innerHTML = '<div class="pack" id="pack" tabindex="0" role="button" aria-label="Sealed Season Zero pack. Drag across the top to tear it open, or tap."><div class="lean"><div class="tilt"><div class="half top">' + wrap + '</div><div class="half body">' + wrap + '</div><div class="half flap">' + wrap + '</div><div class="strip"></div><div class="leak"></div><div class="cutline"><i id="cutp"></i></div><div class="rip">' + ripSvg + '</div><span class="tab">TEAR</span><div class="grip"></div><div class="finger"></div></div></div></div>';
     hint.innerHTML = 'Drag along the TEAR strip to open it, or tap<br>Hold and drag the pack to tilt it';
-    var pack = document.getElementById('pack'), tilt = pack.querySelector('.tilt'), cutp = document.getElementById('cutp');
+    var pack = document.getElementById('pack'), lean = pack.querySelector('.lean'), tilt = pack.querySelector('.tilt'), cutp = document.getElementById('cutp');
+    pack.style.setProperty('--leak', bdl.glow);
     var shimmer = FXGL.layer(tilt, 'pack', { amt: 1, seed: S.pack + S.bp + 2 });
     if (shimmer) S.layers.push(shimmer); else pack.classList.add('fx-css-pack');
-    var drag = null, progress = 0;
-    // Hovering only moves the light; the pack leans only while held (hold
-    // to tilt, below), and a held tilt drives the shimmer itself.
+    var drag = null, progress = 0, speed = 0, rip = null, quiet = 0, scraps = 0, scrapCarry = 0;
+    S.tear = { progress: 0, peakSpeed: 0, scraps: 0, rip: false, ripPeak: 0, holds: 0 };
+    function setTp(p) { progress = p; S.tear.progress = Math.round(p * 1000) / 1000; pack.style.setProperty('--tp', String(p)); cutp.style.width = (p * 100) + '%'; }
+    function ripStop() { clearTimeout(quiet); if (rip) { S.tear.ripPeak = Math.max(S.tear.ripPeak, rip.peak ? rip.peak() : 0); rip.stop(); rip = null; } }
+    // The mouse leans the pack a little as it moves over it (the brief's
+    // beat 1), the foil catching the light; holding it leans it fully (hold
+    // to tilt). A pack leans the same whatever it holds.
+    var LEAN = REDUCE ? (TM.tilt.reducedHoverDeg || 0) : (TM.tilt.hoverDeg || 0);
     pack.addEventListener('pointermove', function (e) {
-      if (tilting()) return;
       var rc = pack.getBoundingClientRect();
       var x = (e.clientX - rc.left) / rc.width, y = (e.clientY - rc.top) / rc.height;
-      if (shimmer) shimmer.ptr(x, y);
-      if (drag && drag.top) {
-        progress = packTearProgress(progress, drag.x0, e.clientX, rc.width);
-        cutp.style.width = (progress * 100) + '%';
-        if (progress >= 1) { drag = null; tear('drag'); }
+      if (!tilting() && shimmer) shimmer.ptr(x, y);
+      if (!tilting() && !drag && LEAN && S.phase === 'pack' && e.pointerType !== 'touch') {
+        var a = packTiltAngles(x, y, LEAN);
+        lean.style.transform = 'rotateX(' + a.rx + 'deg) rotateY(' + a.ry + 'deg)';
+      }
+      if (drag && drag.top && S.phase === 'pack') {
+        var now = performance.now(), dx = e.clientX - drag.lx, dt = now - drag.lt;
+        drag.lx = e.clientX; drag.lt = now;
+        speed = packDragSpeed(speed, dx, dt);
+        S.tear.peakSpeed = Math.max(S.tear.peakSpeed, speed);
+        var was = progress;
+        setTp(packTearStep(progress, dx, rc.width));
+        if (progress > was) {
+          pack.classList.add('tearing'); pack.classList.remove('held-tear');
+          // The rip, scrubbed to the drag's speed; still is silent.
+          if (!rip && window.SND && SND.scrub) { rip = SND.scrub('Neutral'); if (rip) S.tear.rip = true; }
+          if (rip) rip.set(speed);
+          clearTimeout(quiet); quiet = setTimeout(function () { if (rip) rip.set(0); speed = 0; }, 70);
+          // Scraps by the distance torn, carried over between small moves.
+          scrapCarry += Math.max(0, dx);
+          var n = packScrapCount(scrapCarry);
+          scrapCarry -= n * 7;
+          if (n) {
+            var sr = stage.getBoundingClientRect();
+            var hx = rc.left - sr.left + rc.width * progress, hy = rc.top - sr.top + rc.height * 0.16;
+            PFX.scraps(hx, hy, n, bdl.glow);
+            scraps += n; S.tear.scraps = scraps;
+          }
+        }
+        if (progress >= 1) { drag = null; ripStop(); tear('drag'); }
       }
     });
+    pack.addEventListener('pointerleave', function () { if (!drag && !tilting()) lean.style.transform = ''; });
     pack.addEventListener('pointerdown', function (e) {
       if (S.phase !== 'pack') return;
       pack.setPointerCapture && pack.setPointerCapture(e.pointerId);
       // A drag tears only along the top (the strip above the cut line and a
       // little below it); a press anywhere else can still be a tap.
       var prc = pack.getBoundingClientRect();
-      drag = { x0: e.clientX, y0: e.clientY, at: performance.now(), top: (e.clientY - prc.top) / prc.height < 0.32 };
+      drag = { x0: e.clientX, y0: e.clientY, lx: e.clientX, lt: performance.now(), at: performance.now(), top: (e.clientY - prc.top) / prc.height < 0.32 };
       pack.classList.add('held');
+      lean.style.transform = '';
       // Below the strip, a hold or a drag tilts the pack (owner 2026-10-18).
       // Nothing about the tilt reads what the pack holds: a pack with a hit
-      // leans exactly like one without (the only tell is the tear's sparks).
+      // leans exactly like one without.
       if (!drag.top) pressTilt(e, { el: tilt, box: pack, layers: function () { return shimmer ? [shimmer] : []; }, swipe: false, what: 'pack', can: function () { return S.phase === 'pack'; } });
       var f = pack.querySelector('.finger'); if (f) f.remove();
-      log('tearStart', {});
+      log('tearStart', { from: S.tear.progress });
     });
     pack.addEventListener('pointerup', function (e) {
       if (!drag) return;
       if (upWasTilt) { drag = null; pack.classList.remove('held'); return; }
       var g = packGesture(e.clientX - drag.x0, e.clientY - drag.y0, performance.now() - drag.at);
       drag = null;
+      ripStop();
       if (S.phase !== 'pack') return;
       if (g === 'tap') autoTear(cutp, 'tap');
-      else if (progress < 1) { pack.classList.remove('held'); }
+      else if (progress < 1) {
+        pack.classList.remove('held');
+        // Let go part way: the tear holds where it is, and the hint says so.
+        if (progress > 0) {
+          pack.classList.remove('tearing'); pack.classList.add('held-tear'); S.tear.holds++;
+          hint.innerHTML = 'The tear holds at ' + Math.round(progress * 100) + '%. Pull the rest of the strip to open it';
+          log('tearHeld', { at: S.tear.progress });
+        }
+      }
     });
+    pack.addEventListener('pointercancel', function () { drag = null; ripStop(); });
     pack.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); autoTear(cutp, 'key'); } });
     pack.focus({ preventScroll: true, focusVisible: false });
     log('packShown', { label: label });
   }
+  // A tap (or Enter / Space) finishes the tear from wherever it stands.
   function autoTear(cutp, via) {
     if (S.phase !== 'pack') return;
     S.phase = 'tearing';
-    cutp.style.transition = 'width ' + TM.pack.autoTear + 'ms ease-in';
+    var pack = document.getElementById('pack');
+    var from = S.tear ? S.tear.progress : 0, ms = Math.max(160, TM.pack.autoTear * (1 - from));
+    cutp.style.transition = 'width ' + ms + 'ms ease-in';
     cutp.style.width = '100%';
-    later(function () { S.phase = 'pack'; tear(via); }, TM.pack.autoTear);
+    if (pack) {
+      pack.classList.add('tearing');
+      pack.style.transition = '--tp ' + ms + 'ms ease-in';
+      pack.style.setProperty('--tp', '1');
+    }
+    sfx('tear');
+    later(function () { S.phase = 'pack'; tear(via); }, ms);
   }
   function tear(via) {
     if (S.phase !== 'pack') return;
     S.phase = 'torn';
     var r = S.cur, pack = document.getElementById('pack');
     pack.classList.add('torn');
+    pack.style.setProperty('--tp', '1');
     stopLayers();
-    sfx('tear');
+    if (via === 'drag') sfx('tear');
     hint.innerHTML = '';
     log('tear', { via: via, sparks: r.sparks, jackpot: r.jackpot });
+    burst(pack, r.tell);
     // The honest tell: sparks iff the pack holds a hit.
     if (r.sparks) {
       var rc = pack.getBoundingClientRect(), sr = stage.getBoundingClientRect();
@@ -980,32 +1152,110 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     later(dealStack, wait);
   }
 
-  // ---------- sparks ----------
-  var sparkRun = null;
-  function sparks(x, y, w, n) {
-    var ctx = sparksCanvas.getContext('2d');
-    var dpr = Math.min(2, window.devicePixelRatio || 1);
-    sparksCanvas.width = sparksCanvas.clientWidth * dpr; sparksCanvas.height = sparksCanvas.clientHeight * dpr;
-    var ps = [], cols = ['#ffffff', '#fff1b8', '#f6d77a', '#9fe0ff', '#ffb3ec'];
-    for (var i = 0; i < n; i++) ps.push({ x: x + Math.random() * w, y: y, vx: (Math.random() - 0.5) * 7, vy: -2 - Math.random() * 7, life: 0.6 + Math.random() * 0.7, c: cols[i % cols.length], s: 1 + Math.random() * 2.2 });
-    var start = performance.now(), last = start;
-    if (sparkRun) cancelAnimationFrame(sparkRun);
+  // ---------- particles (one canvas, one frame loop) ----------
+  // Render session 58: the sparks, the tear's foil scraps and the burst's
+  // motes share one loop on the sparks canvas (it runs only while there is
+  // something alive), so a scrap thrown during the tear and the burst at
+  // its end never wipe each other. Each kind: a spark is a streak, a scrap
+  // a spinning sliver of foil catching the light, a mote a soft glow.
+  var PFX = (function () {
+    var ps = [], run = null, last = 0, dpr = 1, ctx = null;
+    function size() {
+      ctx = sparksCanvas.getContext('2d');
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      var w = Math.round(sparksCanvas.clientWidth * dpr), h = Math.round(sparksCanvas.clientHeight * dpr);
+      if (sparksCanvas.width !== w || sparksCanvas.height !== h) { sparksCanvas.width = w; sparksCanvas.height = h; }
+    }
+    function go() { if (!ctx) size(); if (!run) { last = performance.now(); run = requestAnimationFrame(step); } }
     function step(now) {
       var dt = Math.min(0.05, (now - last) / 1000); last = now;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, sparksCanvas.width, sparksCanvas.height);
       ctx.globalCompositeOperation = 'lighter';
-      var alive = 0;
-      ps.forEach(function (p) {
-        p.life -= dt; if (p.life <= 0) return; alive++;
-        p.vy += 14 * dt; p.x += p.vx * 60 * dt; p.y += p.vy * 60 * dt;
-        ctx.globalAlpha = Math.min(1, p.life * 1.6);
-        ctx.strokeStyle = p.c; ctx.lineWidth = p.s; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 1.6, p.y - p.vy * 1.6); ctx.stroke();
-      });
-      if (alive && now - start < TM.pack.sparks + 800) sparkRun = requestAnimationFrame(step);
-      else { ctx.clearRect(0, 0, sparksCanvas.width, sparksCanvas.height); sparkRun = null; }
+      var keep = [];
+      for (var i = 0; i < ps.length; i++) {
+        var p = ps[i];
+        p.life -= dt; if (p.life <= 0) continue; keep.push(p);
+        p.vy += p.g * dt; p.vx *= p.drag; p.vy *= p.drag; p.x += p.vx * 60 * dt; p.y += p.vy * 60 * dt;
+        var al = Math.min(1, p.life * 1.6);
+        if (p.k === 'spark') {
+          ctx.globalAlpha = al; ctx.strokeStyle = p.c; ctx.lineWidth = p.s; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 1.6, p.y - p.vy * 1.6); ctx.stroke();
+        } else if (p.k === 'scrap') {
+          p.rot += p.spin * dt;
+          var flip = Math.abs(Math.cos(p.rot * 1.7));
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          ctx.globalAlpha = al * (0.35 + 0.65 * flip);
+          ctx.fillStyle = flip > 0.75 ? '#ffffff' : p.c;
+          ctx.fillRect(-p.s, -p.s * 0.35 * (0.3 + flip), p.s * 2, p.s * 0.7 * (0.3 + flip));
+          ctx.restore();
+        } else {
+          ctx.globalAlpha = al * 0.8;
+          var gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.s * 3);
+          gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.3, p.c); gr.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(p.x, p.y, p.s * 3, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ps = keep;
+      if (ps.length) run = requestAnimationFrame(step);
+      else { ctx.clearRect(0, 0, sparksCanvas.width, sparksCanvas.height); run = null; }
     }
-    sparkRun = requestAnimationFrame(step);
+    function add(p) { ps.push(p); }
+    return {
+      sparks: function (x, y, w, n) {
+        size();
+        var cols = ['#ffffff', '#fff1b8', '#f6d77a', '#9fe0ff', '#ffb3ec'];
+        for (var i = 0; i < n; i++) add({ k: 'spark', x: x + Math.random() * w, y: y, vx: (Math.random() - 0.5) * 7, vy: -2 - Math.random() * 7, g: 14, drag: 1, life: 0.6 + Math.random() * 0.7, c: cols[i % cols.length], s: 1 + Math.random() * 2.2 });
+        go();
+      },
+      scraps: function (x, y, n, tint) {
+        if (REDUCE) n = Math.min(n, 1);
+        var cols = ['#d8ecff', tint, '#ffd6f6', '#c8fff1', tint];
+        for (var i = 0; i < n; i++) add({ k: 'scrap', x: x + (Math.random() - 0.5) * 6, y: y + (Math.random() - 0.5) * 4, vx: 0.6 + Math.random() * 2.4, vy: -1.5 - Math.random() * 3.2, g: 9, drag: 0.985, life: 0.7 + Math.random() * 0.6, c: cols[i % cols.length], s: 2 + Math.random() * 2.6, rot: Math.random() * 6.3, spin: (Math.random() - 0.5) * 18 });
+        go();
+      },
+      motes: function (x, y, n, c1, c2, reach) {
+        if (REDUCE) n = Math.min(n, 12);
+        for (var i = 0; i < n; i++) {
+          var a = Math.random() * Math.PI * 2, v = (0.25 + Math.random()) * reach;
+          add({ k: 'mote', x: x, y: y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 0.6, g: 1.5, drag: 0.955, life: 0.5 + Math.random() * 0.8, c: i % 3 === 2 ? c2 : c1, s: 1.2 + Math.random() * 2.4 });
+        }
+        go();
+      },
+      alive: function () { return ps.length; },
+    };
+  })();
+  function sparks(x, y, w, n) { PFX.sparks(x, y, w, n); }
+
+  // ---------- the burst (render 58, the ceremony's beat 2) ----------
+  // The tear finished: light bursts out of the cut in the best card's own
+  // colour (the tell's burst, honest: never lowered, never raised), with
+  // its faction's colour in the rim, a ring for anything above plain, a
+  // screen flash and motes, all bigger with the best card's rung. Only
+  // transforms and opacity animate (the GPU's), the motes on the canvas.
+  function burst(pack, tell) {
+    var b = (tell && tell.burst) || { colour: '#bfe3ff', faction: '#bfe3ff', size: 0.35, rung: 'calm' };
+    var rung = tell ? tell.rung : 0;
+    var plan = packBurstPlan(b.size, rung);
+    var rc = pack.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    var x = rc.left - sr.left + rc.width / 2, y = rc.top - sr.top + rc.height * 0.16;
+    function blob(cls, scale) {
+      var e = document.createElement('div'); e.className = cls;
+      e.style.left = x + 'px'; e.style.top = y + 'px';
+      e.style.setProperty('--c1', b.colour); e.style.setProperty('--c2', b.faction);
+      e.style.setProperty('--D', (scale * 10) + 'px'); e.style.setProperty('--d', plan.ms + 'ms');
+      stage.appendChild(e);
+      later(function () { e.remove(); }, plan.ms + 60);
+      return e;
+    }
+    blob('burst', plan.scale);
+    if (plan.ring) blob('shock', plan.scale * 1.25);
+    flashEl.classList.remove('go'); void flashEl.offsetWidth;
+    flashEl.style.setProperty('--fc1', b.colour); flashEl.style.setProperty('--fo', String(plan.flash)); flashEl.style.setProperty('--fd', plan.ms + 'ms');
+    flashEl.style.setProperty('--fx', (x / Math.max(1, sr.width) * 100) + '%'); flashEl.style.setProperty('--fy', (y / Math.max(1, sr.height) * 100) + '%');
+    flashEl.classList.add('go');
+    PFX.motes(x, y, plan.motes, b.colour, b.faction, 2.4 + rung * 0.9);
+    sfx('burst', tell ? tell.bestFaction : 'Neutral', rung >= 3 ? 'spectacle' : rung >= 1 ? 'normal' : 'subtle');
+    log('burst', { colour: b.colour, faction: b.faction, rung: rung, scale: plan.scale, motes: plan.motes, flash: plan.flash, ring: plan.ring });
   }
 
   // ---------- the stack ----------
@@ -1494,6 +1744,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     clearTimers(); stopLayers(); zd.hidden = true; zd.className = 'zd'; dim.style.opacity = 0;
     var B = DATA.bulks[b].reveal;
     S.mode = 'bulk'; S.bulk = b; S.bp = -1; S.cur = B.packs[0]; S.phase = 'fan'; S.skipping = false; S.row = null;
+    setBackdrop('calm');
     markPicker(); footer(); bulkControls(true); skipBtn.hidden = true;
     counter.textContent = B.packs.length + ' packs';
     var fan = '';

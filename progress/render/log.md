@@ -5067,3 +5067,68 @@ browser (keyboard: each notch is a button in tab order, not a radio group with a
 **Next render-lane slice (the owner's 2026-11-06 order, item 3):** the pack opening ceremony, part 1: the bigger pack
 art, the gradient backdrop with its tells, the tear and the burst. When game session 76 lands the allowance, a small
 follow-up wires the ring and the time buttons (the adapter and `data-act="play-time"`).
+
+## 2026-11-05 — Render session 58: the pack opening ceremony, part 1 (the backdrop tell, the tear, the burst); the time ring on the server's allowance
+
+**Read first:** owner-feedback.md (the 2026-11-06 order: render item 3 is the ceremony part 1; nothing new for this
+lane since session 57), `progress/season0-final-brief.md` section 3, the 2026-10-18 pack notes (hold to tilt, the
+honest tell), game session 76's allowance in `server/OWNER_API.md`. Not a hardening pass (54 was; 59 is next).
+
+**1. The time ring, live (the follow-up session 57 named):** `SiteAutoPlay` carries `allowance` and `canAddTime`;
+`siteApi` sends `minutes` on `PUT /api/play/auto-play` and has `addPlayTime` (`POST /api/play/auto-play/time`).
+`allowanceOf` (siteAgent.ts) turns the server's allowance into the ring's, counting down from `endsAt` on the
+page's clock between reads (never above the server's own count); the arc is drawn from the seconds left.
+`timeButtonsView` decides each button: 15 / 30 / 60 live unless the day's rewards are maxed (a preset while time
+runs replaces it, its tooltip says so); +15 / +30 only when the server says `canAddTime`; each refusal says why (no
+allowance, no time limit, done for today, the window already runs to midnight). The stop reason is worded by what
+stopped it (`timeUp` is no longer called "rewards maxed"). The client's `setAutoPlay` takes the minutes, the
+`play-time` buttons call it.
+
+**2. The ceremony, part 1 (the brief's beats 1 and 2):**
+- `packOpening.ts`: `PackTell` on every `PackReveal` (`planReveal`, so the site, the first-time flow and the demo all
+  get it): the best card (best finish, then rarity, then the later card), its rung on a five-rung ladder (calm,
+  shimmer, charged, radiant, overload), the backdrop's rung (one lower on about 1 pack in 4 above plain, from a
+  32-bit mix of the opening's seed: nothing rolled), the burst (the best card's colour, its faction's, a size).
+  `TELL_BACKDROPS` (colours, pulse period and strength per rung) ship in the page's timings.
+- `packPage.ts`: the backdrop (`.bd`, registered colour properties so the colours ease from pack to pack, a drift
+  layer and a pulse); the pack bigger (`--pw` up to 300 px) with a code-drawn plate (`packPlateSvg`, the same for
+  every pack of a set); a hover lean (`.lean`, 5°, mouse only); the tear as a `--tp` property: the strip's torn
+  part is a flap that peels up from the head, the rest clipped, a jagged head under the cursor, light in the
+  backdrop's glow leaking through; the head moves 1:1 with the cursor from wherever it was held
+  (`packTearStep`); letting go holds it with a hint; a tap finishes it from where it is. One particle loop
+  (`PFX`) now draws the sparks, the scraps and the burst's motes. `burst()`: a light bloom and a ring drawn at
+  full size and grown into (so the ring's line stays thin), a screen flash, motes, sized by `packBurstPlan`.
+  Fixed on the way: the wrapper printed "6 CARDS" on a pack holding a Prototype bonus card (a giveaway); it now
+  always says 5.
+- `soundFx.ts`: `scrub()`, a continuous rip (a band-passed rasp and a high-passed crackle) whose level and pitch
+  follow `sfxScrubLevel(speed)`, smoothed; a `burst` recipe per tier (a whoomp, a swell, a voice-tinted tail).
+
+**Tests (+17, render 899):** `packTell.test.ts` (over 1,000 real store openings: the best card is the best finish,
+the backdrop never above it, an under-promise exactly one rung low, the rate within 7 points of 1 in 4, both
+"itself" and "an under-promise of the rung above" seen on a rung; the tells pure and from the seed; the rungs in
+order; the tear, speed, scraps, burst plan and plate helpers; the rip's level and the burst sound by tier; the page
+ships the backdrops and the sealed pack's markup reads nothing from the tell or the card count), `siteTime.test.ts`
+(the adapter and buttons pure; then over the real owner API with the ladder: 15 minutes, 9 left after 6, +15 to
+24, time up mid-match "Finishing match" with "Go to match", the match finished and "Done for today", nothing
+paired after, midnight Sydney clean and "Off"). Two older pins updated (the pack sound list, the committed pages).
+
+**Ran it:** `pack-ceremony-check-s58.mjs` -> **127 PASS, 0 FAIL** (six packs at 1280 x 800 and 390 x 844: the
+backdrop on the tell's rung with its colour computed on the page, the pack bigger, the lean the same for every
+pack, a real mouse drag to 40% holding at 40% with the flap at the same place, scraps, the rip's scrub voice
+running and its level rising, picked up mid-strip carrying on from 40%, the burst in the tell's colour and growing
+with the rung, the cards rising; a tap still tearing; no requests, no errors, no sideways scroll). The first runs
+found: the scraps never flew on a phone (each move was under 7 px; fixed by carrying the distance over), the
+burst's ring drawn as a scaled 10 px circle grew a 130 px-thick line (fixed: drawn at full size, scaled up into),
+and the bloom read as a hard disc (softer stops), plus "6 CARDS". `site-check-s58.mjs` -> **18 PASS** (the time
+buttons on the real server: 30 min, +15 to 45, the ring draining across a reload, S and M, Stop). CI browser check
+61 PASS. `npm test` (render) 899 pass; typecheck clean. Every page under `render/output/` rebuilt (the replays
+change only by the sound source they embed).
+
+**Not done (named):** parts 2 and 3 of the ceremony; the ten-pack's mini packs keep the old tear; the site's
+Packs and Store widgets still draw the small pack; 60 fps unmeasured (software rendering only: 14-16 fps at
+desktop size during the drag); the rip judged by its level, not by ear.
+
+**Next render-lane slice (the owner's order, item 4):** the ceremony part 2: the reveal escalation across the
+reveal kinds (dim, the card back's glow stages with pauses, the slow flip, flash, shake, bass hit, faction-colour
+particles), the faction ward flare as a card lands, the sound per tier. Session 59 is the render lane's hardening
+pass by the every-5th rhythm (54 was the last): do it first if it falls due, then part 2.

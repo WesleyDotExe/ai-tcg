@@ -38,7 +38,7 @@ import { avatarSvg } from "../avatar.js";
 import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
-import type { SiteRating } from "./siteAgent.js";
+import { allowanceOf, type SiteRating } from "./siteAgent.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
@@ -673,7 +673,7 @@ function homePage(p: SitePlay): string {
   if (!widgets.length) {
     return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
   }
-  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: null, busy: state.busy };
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy };
   const { views, capped } = liveViews(widgets);
   const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id) })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -1832,7 +1832,7 @@ function drawLive(): void {
     const p = state.play;
     if (!p) return;
     const widgets = state.board.widgets;
-    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: null, busy: state.busy };
+    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy };
     const { views, capped } = liveViews(widgets);
     for (const w of widgets) {
       if (w.type !== "live" && w.type !== "watch") continue;
@@ -1907,14 +1907,22 @@ function liveListHtml(): string {
     .join("");
 }
 
-async function setAutoPlay(on: boolean): Promise<void> {
+/** Auto-play on or off; `minutes` (15 / 30 / 60) turns it on with a
+ * play-time allowance and `add` puts +15 / +30 on a running one (render 58,
+ * on game session 76's allowance). */
+async function setAutoPlay(on: boolean, time?: { minutes: number; add: boolean }): Promise<void> {
   if (!state.session || !state.play || state.autoBusy) return;
   state.autoBusy = true;
   const focusId = (document.activeElement as HTMLElement | null)?.id ?? "";
   try {
-    const r = await api.setAutoPlay(state.session.token, on);
+    const r = time?.add
+      ? await api.addPlayTime(state.session.token, time.minutes)
+      : await api.setAutoPlay(state.session.token, on, time?.minutes);
     state.play = { ...state.play, autoPlay: r.autoPlay };
-    toast(r.autoPlay.on ? "Auto-play is on: your agent joins the next ladder round." : "Auto-play is off. A match already live finishes.");
+    const al = r.autoPlay.allowance;
+    toast(time?.add ? `+${time.minutes} min: ${al ? `${al.minutesLeft} min left today` : "added"}.`
+      : time ? `Your agent plays for ${al ? al.minutesLeft : time.minutes} min${al?.endsAtReset ? " (to midnight, Sydney)" : ""}, then finishes its match and stops.`
+      : r.autoPlay.on ? "Auto-play is on: your agent joins the next ladder round." : "Auto-play is off. A match already live finishes.");
   } catch (err) {
     fail(err);
   } finally {
@@ -2205,6 +2213,7 @@ document.addEventListener("click", (e) => {
     if (act === "claim-daily") return void claimDaily();
     if (act === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
     if (act === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
+    if (act === "play-time" && actEl.dataset.min) return void setAutoPlay(true, { minutes: Number(actEl.dataset.min), add: actEl.dataset.add === "1" });
     // Render session 57: Agent controls' personality dial and deck switcher.
     if (act === "play-style" && actEl.dataset.agent && actEl.dataset.style) {
       if (actEl.getAttribute("aria-pressed") === "true") return;

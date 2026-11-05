@@ -1,0 +1,33 @@
+
+[T1] before any time is given
+PASS  T1. 15 / 30 / 60 can be pressed
+PASS  T1. +15 / +30 disabled: "Start with 15, 30 or 60 minutes first."
+PASS  T1. no "waits for the server" note any more
+
+[T2] 30 minutes
+PASS  T2. the server runs a 30-minute allowance
+PASS  T2. the ring shows 30
+PASS  T2. lit 100%, "Vector Halcyon: 30 min left"
+PASS  T2. "30 min left today"
+
+[T3] +15
+PASS  T3. the server's window is 45 minutes
+PASS  T3. the ring shows the server's 45 min left
+      lit 100% of the ring
+PASS  T3. the ring drains as time runs (100% -> 99%)
+
+[T4] S and M
+PASS  T4. S: the ring's centre is 45 min
+PASS  T4. M: the ring's centre is 45 min
+PASS  T4. M: "45 min left today"
+
+[T5] Stop
+PASS  T5. auto-play off, the allowance gone (the server)
+PASS  T5. the ring is Off
+PASS  T5. +15 disabled again
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+18 PASS, 0 FAIL

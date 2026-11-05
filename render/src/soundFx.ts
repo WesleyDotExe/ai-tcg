@@ -56,7 +56,18 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
   // The pack opening's sounds (render session 24, owner 2026-10-18: "a tear
   // sound, flip ticks and a rising tone on hits"). Same player, same
   // settings; the voice is the card's faction where there is one.
-  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp'];
+  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp', 'burst'];
+  // The rip scrubbed to the drag (render session 58, the pack ceremony part
+  // 1): how loud and how bright the tearing foil sounds at a drag speed (px
+  // per ms along the strip). Still is silent; a slow pull is a low, quiet
+  // rasp; a fast one a loud bright rip with crackle on top. The level
+  // saturates at SFX_SCRUB_FULL px/ms.
+  var SFX_SCRUB_FULL = 1.4;
+  function sfxScrubLevel(speed) {
+    var v = Math.max(0, Math.min(1, (speed || 0) / SFX_SCRUB_FULL));
+    var lvl = Math.pow(v, 0.8);
+    return { gain: Math.round(lvl * 0.3 * 1000) / 1000, freq: Math.round(1400 + 4600 * v), crackle: Math.round(lvl * lvl * 0.14 * 1000) / 1000 };
+  }
   var SFX_KINDS = ['launch', 'impact', 'bolt', 'heal', 'buff', 'debuff', 'lock', 'beam', 'kill', 'block', 'cast', 'ward', 'wardPulse', 'wardBreak'];
   // Ward moments (slice 6, the lab's wardIn / wardPulse / wardBreak): each
   // faction's chord, low to high. Neutral has no ward; it gets Cortex's.
@@ -330,6 +341,17 @@ export const SOUND_FX_PURE_SOURCE = String.raw`
       N({ type: 'bandpass', f0: 5200, f1: 1400, q: 1.4, dur: 0.32, g: 0.28 });
       for (var ti = 0; ti < 7; ti++) N({ type: 'highpass', f0: r(3500, 7000), q: 2, dur: 0.02, g: 0.12, delay: ti * 0.04 });
       T({ type: 'sine', f0: 220, f1: 90, dur: 0.18, g: 0.18, delay: 0.3 });
+    } else if (kind === 'burst') {
+      // The tear finishing (render session 58): a soft whoomp of light, a
+      // noise swell under it; the tier is the best card's (a plain pack's is
+      // small, a Prototype's a deep boom with a bright tail). The voice tints
+      // the tail.
+      var bt = tier === 'spectacle' ? 2 : tier === 'subtle' ? 0 : 1;
+      T({ type: 'sine', f0: [140, 120, 96][bt], f1: [70, 52, 38][bt], dur: [0.28, 0.45, 0.8][bt], g: [0.12, 0.2, 0.28][bt], att: 0.01 });
+      N({ type: 'lowpass', f0: 600, f1: [1800, 3200, 5200][bt], q: 0.8, dur: [0.3, 0.5, 0.9][bt], g: [0.08, 0.14, 0.2][bt], att: [0.04, 0.06, 0.1][bt] });
+      var tailF = v === 'cortex' ? 1760 : v === 'aegis' ? 880 : v === 'swarm' ? 2093 : v === 'null' ? 1245 : 1568;
+      if (bt > 0) T({ type: 'triangle', f0: tailF, f1: tailF * (bt === 2 ? 1.5 : 1.25), dur: bt === 2 ? 0.9 : 0.4, g: 0.035, delay: 0.06, att: 0.05 });
+      if (bt === 2) T({ type: 'sine', f0: tailF * 2, dur: 0.7, g: 0.025, delay: 0.18, att: 0.08 });
     } else if (kind === 'flip') {
       // One card moving: a short dry tick; the voice tints it.
       N({ type: 'bandpass', f0: v === 'aegis' ? 1700 : v === 'swarm' ? 2600 : 3200, q: 6, dur: 0.035, g: 0.2 });
@@ -498,6 +520,45 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
     // use (only ever from a gesture), or null without WebAudio.
     function core() { return init() ? { ctx: AU.ctx, comp: AU.comp, noise: AU.noise } : null; }
     function hold(name, on) { holds[name] = !!on; refresh(); }
+    // scrub() -> { set(speed), stop() }, or null while sound is off: a
+    // continuous voice that follows a drag (the pack's rip, render session
+    // 58). Two looped noises, a band (the rasp) and a high pass (the
+    // crackle), their levels and the band's pitch following set(speed)
+    // (sfxScrubLevel), smoothed so a jittery pointer doesn't zipper. stop()
+    // fades it out in 60 ms and frees it.
+    function scrub(faction) {
+      if (!AU.on || !AU.ctx) return null;
+      var C = AU.ctx, t = C.currentTime, out = bus(0, null);
+      var band = C.createBiquadFilter(); band.type = 'bandpass'; band.Q.value = 1.3; band.frequency.value = 1400;
+      var hi = C.createBiquadFilter(); hi.type = 'highpass'; hi.Q.value = 2; hi.frequency.value = sfxVoiceOf(faction) === 'aegis' ? 3600 : 5200;
+      var g1 = C.createGain(), g2 = C.createGain(); g1.gain.value = 0; g2.gain.value = 0;
+      var s1 = C.createBufferSource(), s2 = C.createBufferSource();
+      s1.buffer = AU.noise; s2.buffer = AU.noise; s1.loop = true; s2.loop = true;
+      s1.connect(band); band.connect(g1); g1.connect(out);
+      s2.connect(hi); hi.connect(g2); g2.connect(out);
+      s1.start(t, Math.random() * 0.5); s2.start(t, Math.random() * 0.5);
+      AU.active += 2; counts.played++; byKind.scrub = (byKind.scrub || 0) + 1;
+      var done2 = false, peak = 0;
+      return {
+        set: function (speed) {
+          if (done2) return;
+          var L = sfxScrubLevel(speed), n = C.currentTime;
+          peak = Math.max(peak, L.gain);
+          g1.gain.setTargetAtTime(L.gain, n, 0.025);
+          g2.gain.setTargetAtTime(L.crackle, n, 0.015);
+          band.frequency.setTargetAtTime(L.freq, n, 0.04);
+        },
+        stop: function () {
+          if (done2) return;
+          done2 = true;
+          var n = C.currentTime;
+          g1.gain.setTargetAtTime(0, n, 0.02); g2.gain.setTargetAtTime(0, n, 0.02);
+          s1.stop(n + 0.08); s2.stop(n + 0.08);
+          s1.onended = done; s2.onended = done;
+        },
+        peak: function () { return peak; },
+      };
+    }
     // group() -> { node, ctx, cut() }, or null while sound is off: a bus on
     // the master that a run of scheduled sounds goes through (Match Boot's),
     // so a skip can cut every one of them at once, the ones already ringing
@@ -649,7 +710,7 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
     }
     var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
-      core: core, hold: hold, listen: listen, group: group, sequence: sequence,
+      core: core, hold: hold, listen: listen, group: group, sequence: sequence, scrub: scrub,
       stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, scheduled: counts.scheduled, cuts: counts.cuts, byKind: k }; } };
     window.__sfx = api;
     return api;
@@ -657,7 +718,7 @@ export const SOUND_FX_RUNTIME_SOURCE = String.raw`
 `;
 
 export type SfxKind = "launch" | "impact" | "bolt" | "heal" | "buff" | "debuff" | "lock" | "beam" | "kill" | "block" | "cast" | "ward" | "wardPulse" | "wardBreak";
-export type SfxPackKind = "tear" | "flip" | "rise" | "sparkle" | "type" | "breach" | "glitch" | "stamp";
+export type SfxPackKind = "tear" | "flip" | "rise" | "sparkle" | "type" | "breach" | "glitch" | "stamp" | "burst";
 export interface SfxVoice {
   k: "tone" | "noise";
   type: string;
@@ -675,7 +736,7 @@ export interface SfxVoice {
 }
 
 const pure = new Function(
-  `${SOUND_FX_PURE_SOURCE}; return { SFX_PACK_KINDS: SFX_PACK_KINDS, SFX_TIER_GAIN: SFX_TIER_GAIN, SFX_VOICE_CAP: SFX_VOICE_CAP, SFX_REPEAT_GAP_MS: SFX_REPEAT_GAP_MS, SFX_KINDS: SFX_KINDS, SFX_BELL: SFX_BELL, SFX_PREF_KEY: SFX_PREF_KEY, SFX_DEFAULT_VOLUME: SFX_DEFAULT_VOLUME, sfxVoiceOf: sfxVoiceOf, sfxTierGain: sfxTierGain, sfxPan: sfxPan, sfxRecipe: sfxRecipe, sfxClampVolume: sfxClampVolume, sfxPrefParse: sfxPrefParse, sfxPrefSerialize: sfxPrefSerialize };`,
+  `${SOUND_FX_PURE_SOURCE}; return { SFX_PACK_KINDS: SFX_PACK_KINDS, SFX_TIER_GAIN: SFX_TIER_GAIN, SFX_VOICE_CAP: SFX_VOICE_CAP, SFX_REPEAT_GAP_MS: SFX_REPEAT_GAP_MS, SFX_KINDS: SFX_KINDS, SFX_BELL: SFX_BELL, SFX_PREF_KEY: SFX_PREF_KEY, SFX_DEFAULT_VOLUME: SFX_DEFAULT_VOLUME, sfxVoiceOf: sfxVoiceOf, sfxTierGain: sfxTierGain, sfxPan: sfxPan, sfxRecipe: sfxRecipe, sfxClampVolume: sfxClampVolume, sfxPrefParse: sfxPrefParse, sfxPrefSerialize: sfxPrefSerialize, sfxScrubLevel: sfxScrubLevel, SFX_SCRUB_FULL: SFX_SCRUB_FULL };`,
 )() as {
   SFX_PACK_KINDS: SfxPackKind[];
   SFX_TIER_GAIN: Record<FxTier, number>;
@@ -691,6 +752,8 @@ const pure = new Function(
   sfxVoiceOf: (faction: string | undefined) => string;
   sfxTierGain: (tier: FxTier) => number;
   sfxPan: (x: number, width: number) => number;
+  sfxScrubLevel: (speed: number) => { gain: number; freq: number; crackle: number };
+  SFX_SCRUB_FULL: number;
   sfxRecipe: (kind: SfxKind | SfxPackKind, faction: string | undefined, tier: FxTier, rand: () => number, o?: { targetKind?: "unit" | "player"; victim?: string }) => SfxVoice[];
 };
 
@@ -699,4 +762,4 @@ export interface SfxPref {
   volume: number;
 }
 
-export const { SFX_PACK_KINDS, SFX_TIER_GAIN, SFX_VOICE_CAP, SFX_REPEAT_GAP_MS, SFX_KINDS, SFX_BELL, SFX_PREF_KEY, SFX_DEFAULT_VOLUME, sfxVoiceOf, sfxTierGain, sfxPan, sfxRecipe, sfxClampVolume, sfxPrefParse, sfxPrefSerialize } = pure;
+export const { SFX_PACK_KINDS, SFX_TIER_GAIN, SFX_VOICE_CAP, SFX_REPEAT_GAP_MS, SFX_KINDS, SFX_BELL, SFX_PREF_KEY, SFX_DEFAULT_VOLUME, sfxVoiceOf, sfxTierGain, sfxPan, sfxRecipe, sfxClampVolume, sfxPrefParse, sfxPrefSerialize, sfxScrubLevel, SFX_SCRUB_FULL } = pure;
