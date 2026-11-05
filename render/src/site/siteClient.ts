@@ -63,7 +63,7 @@ import {
 import { DEFAULT_FILTERS, binderBlocks, craftView, copiesByCard, neighbours, salvageConfirmText, salvageView, type BinderSlot, type CollectionFilters, type FactionFilter, type ShowFilter, type CollectionTab, type SiteBinder } from "./siteCollection.js";
 import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRenderer, type ViewerState } from "./siteCollectionHtml.js";
 import { miniCard, packArt, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
-import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, tidyLines, watchAsHtml } from "./siteMatches.js";
+import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
   FACTION_HEX,
@@ -140,6 +140,8 @@ const state: {
    * auto-play change in flight. */
   hist: { rows: SiteHistoryRow[]; total: number; more: boolean; error: string | null; loading: boolean };
   autoBusy: boolean;
+  /** A 2× vote on its way to the server (render session 56). */
+  speedBusy: boolean;
   /** The replay on screen (its match id), or null. */
   replay: string | null;
   /** The agent's live match followed move by move on Agent match
@@ -151,7 +153,7 @@ const state: {
   board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, errors: {} }, colFilter: "All",
   shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null }, buyCount: 1, opening: false,
   col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
-  hist: { rows: [], total: 0, more: false, error: null, loading: false }, autoBusy: false, replay: null, follow: null,
+  hist: { rows: [], total: 0, more: false, error: null, loading: false }, autoBusy: false, speedBusy: false, replay: null, follow: null,
 };
 
 let liquid: Liquid | null = null;
@@ -914,6 +916,7 @@ function settingsPage(p: SitePlay): string {
     <div class="field"><div><b>Who picks the deck</b><small>Your agent builds and picks its own deck, or you choose one of your saved decks.</small></div>${seg("deck-choice", [["agent", "Agent picks"], ["forced", "I choose"]], p.deckChoice, "Who picks the deck")}</div>
     <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${seg("faction-lock", lockOpts, p.factionLock ?? "", "Faction lock")}</div>
     <div class="field col"><div><b>Deck now</b><small>${esc(deckLine(p))}</small></div></div>
+    ${ask2xField()}
   </section>
   <h3>Saved decks</h3>
   <section class="panel glass decks"><p class="muted small">Pick one to play it yourself (the choice becomes "I choose").</p>${decks}</section>
@@ -928,6 +931,36 @@ function settingsPage(p: SitePlay): string {
   </section>
   ${state.me?.isAdmin ? `<h3>Admin</h3>${waitsBox(["the house agents' admin endpoints"], "The admin view: the house agents, their decks and their matches. You see this because your account is the house admin.")}` : ""}
   </div>`;
+}
+
+/** Settings -> Play "Ask for 2× in every match" (render session 56; the
+ * account setting `ask2xEveryMatch`, game session 73): asks for the owner as
+ * each of its live matches starts. A match runs at 2× only once the other
+ * owner agrees too (the house always does). Hidden for a house account
+ * (its setting is ignored) and when the server doesn't send the setting. */
+function ask2xField(): string {
+  const st = state.settings;
+  if (!st || typeof st.ask2xEveryMatch !== "boolean" || state.play?.autoPlay.house) return "";
+  const on = st.ask2xEveryMatch;
+  return `<div class="field"><div><b>Ask for 2× in every match</b><small>Asks for 2× as each of your agent's matches starts. It plays at 2× once the other owner agrees (against the house, at once). You can take it back in the match.</small></div><button type="button" class="switch${on ? " on" : ""}" id="ask-2x-every" role="switch" aria-checked="${on}" data-act="ask-2x-every" data-on="${on ? "0" : "1"}"${state.speedBusy ? " disabled" : ""}><i aria-hidden="true"></i><span>${on ? "On" : "Off"}</span></button></div>`;
+}
+
+async function setAsk2xEvery(on: boolean): Promise<void> {
+  if (!state.session || !state.settings || state.speedBusy) return;
+  state.speedBusy = true;
+  try {
+    state.settings = await api.updateAccountSettings(state.session.token, { ask2xEveryMatch: on });
+    toast(on ? "Your agent's next matches start with your ask for 2×." : "No more automatic asks for 2×. A match already asked keeps its ask.");
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    fail(err);
+  } finally {
+    state.speedBusy = false;
+  }
+  if (state.page === "settings") {
+    drawPage();
+    document.getElementById("ask-2x-every")?.focus();
+  }
 }
 
 /** The background picker: one swatch per background, in the account
@@ -1784,7 +1817,8 @@ function drawLive(): void {
   // each redraw beneath it costs the arena frames (render session 51: opened
   // from Watch live, the arena took 28 s to start in software WebGL while the
   // cards redrew every 3 s; 5 s from Agent match). Closing it redraws them.
-  if (state.replay) return;
+  // The live arena's own 2× control (over the arena, beside Close) is tiny: it follows.
+  if (state.replay) return drawArenaSpeed();
   if (state.page === "match" && state.play) {
     redrawPart("#m-live", mLiveHtml(state.play));
     // The play-by-play follows its newest line.
@@ -1834,7 +1868,8 @@ function mLiveHtml(p: SitePlay): string {
   const names = { p1: m.p1.agentName, p2: m.p2.agentName };
   const lines = state.follow?.matchId === m.matchId ? state.follow.lines.slice(-60) : tidyLines(m.recentLines, names);
   const feed = lines.map((x) => `<li>${esc(x)}</li>`).join("");
-  return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${compactBoard(m, sb.near)}${arenaButton(m.matchId)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
+  const speed = speedControlHtml(speedControlView(m, state.me?.ownerId ?? null), "m-speed", m.matchId, state.speedBusy);
+  return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${speed}${compactBoard(m, sb.near)}${arenaButton(m.matchId)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
 }
 
 function histHtml(): string {
@@ -1863,7 +1898,9 @@ function liveListHtml(): string {
     .map((m) => {
       const sb = scoreboardOf(m, me, viewOf(m.matchId));
       const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
-      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : watchAsHtml(sb, "wa-live")}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
+      const sv = speedControlView(m, me);
+      const fast = sv?.pill ? `<span class="pill fast" title="${esc(sv.line || "Playing at 2×")}">${esc(sv.pill)}</span>` : "";
+      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : watchAsHtml(sb, "wa-live")}${fast}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
     })
     .join("");
 }
@@ -1884,6 +1921,44 @@ async function setAutoPlay(on: boolean): Promise<void> {
   drawAgentCard();
   if (!dragging) drawPage();
   if (focusId) document.getElementById(focusId)?.focus();
+}
+
+/** "Ask for 2×" / take it back / agree (render session 56): sent, then the
+ * live view's answer drawn wherever the match shows. The server's refusal
+ * (409 for a house account, 404 once it has ended) is said in its words. */
+async function setLiveSpeed(matchId: string, ask: boolean): Promise<void> {
+  if (!state.session || state.speedBusy) return;
+  state.speedBusy = true;
+  const focusId = (document.activeElement as HTMLElement | null)?.id ?? "";
+  drawLive();
+  try {
+    const r = await api.setLiveSpeed(state.session.token, matchId, ask);
+    const live = state.home.live;
+    if (live) live.matches = live.matches.map((m) => (m.matchId === matchId ? { ...m, speed: r.speed, nextAt: r.nextAt } : m));
+    toast(r.speed.rate === 2 ? "Playing at 2×." : ask ? "Asked for 2×: it starts when the other owner agrees." : "Back to 1×.");
+    // The arena hears the new pace at once, not at its next read.
+    if (arenaLive && state.replay === matchId) replayFrame?.contentWindow?.postMessage({ type: "ai-tcg-live", frames: [], ended: false, record: null, rate: r.speed.rate }, location.origin);
+  } catch (err) {
+    if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+    fail(err);
+  } finally {
+    state.speedBusy = false;
+  }
+  drawLive();
+  if (focusId) document.getElementById(focusId)?.focus();
+}
+
+/** The 2× control over the live arena, on the viewer's own match only. */
+function drawArenaSpeed(): void {
+  const box = document.getElementById("rp-speed");
+  if (!box || !arenaLive || !state.replay) return;
+  const m = state.home.live?.matches.find((x) => x.matchId === state.replay) ?? null;
+  const v = m ? speedControlView(m, state.me?.ownerId ?? null) : null;
+  const html = v && v.canVote ? speedControlHtml(v, "rp-speed-btn", m!.matchId, state.speedBusy) : "";
+  if (box.contains(document.activeElement) && box.innerHTML === html) return;
+  const focused = box.contains(document.activeElement);
+  box.innerHTML = html;
+  if (focused) document.getElementById("rp-speed-btn")?.focus();
 }
 
 async function showLog(matchId: string): Promise<void> {
@@ -1941,7 +2016,7 @@ async function openLiveArena(matchId: string, from: HTMLElement | null): Promise
   state.replay = matchId;
   replayFrom = from;
   const el = $("#replay");
-  el.innerHTML = `<div class="op-wait">Joining the match…</div><button type="button" class="rp-close" data-act="close-replay">Close</button>`;
+  el.innerHTML = `<div class="op-wait">Joining the match…</div><div class="rp-speed" id="rp-speed"></div><button type="button" class="rp-close" data-act="close-replay">Close</button>`;
   el.hidden = false;
   liquid?.refresh();
   (el.querySelector(".rp-close") as HTMLElement).focus();
@@ -1949,6 +2024,7 @@ async function openLiveArena(matchId: string, from: HTMLElement | null): Promise
     const page = await api.livePage(state.session.token, matchId);
     if (state.replay !== matchId) return;
     arenaLive = { key: page.key, have: page.released + 1, poll: 0, ended: false };
+    drawArenaSpeed();
     replayFrame = document.createElement("iframe");
     replayFrame.title = "Live match on the arena";
     replayFrame.addEventListener("load", () => {
@@ -1976,7 +2052,9 @@ async function feedArena(): Promise<void> {
     if (arenaLive !== live || !replayFrame?.contentWindow) return;
     live.have += r.frames.length;
     live.ended = r.ended;
-    if (r.frames.length || r.ended) replayFrame.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record }, location.origin);
+    // `rate` (render session 56): the pace the server releases at now (the 2× vote).
+    if (r.frames.length || r.ended || r.record || r.rate) replayFrame.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record, rate: r.rate ?? 1 }, location.origin);
+    if (r.ended) document.getElementById("rp-speed")?.replaceChildren();
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
     if (err instanceof SiteApiError && err.status === 404) return; // the page expired: Close and open it again
@@ -2114,6 +2192,8 @@ document.addEventListener("click", (e) => {
     if (act === "claim-daily") return void claimDaily();
     if (act === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
     if (act === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
+    if (act === "live-speed" && actEl.dataset.match) return void setLiveSpeed(actEl.dataset.match, actEl.dataset.ask === "1");
+    if (act === "ask-2x-every") return void setAsk2xEvery(actEl.dataset.on === "1");
     if (act === "replay" && actEl.dataset.match) return void openReplay(actEl.dataset.match, actEl);
     if (act === "watch-arena" && actEl.dataset.match) return void openLiveArena(actEl.dataset.match, actEl);
     if (act === "watch-as" && actEl.dataset.match && (actEl.dataset.seat === "p1" || actEl.dataset.seat === "p2")) {

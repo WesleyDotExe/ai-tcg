@@ -480,6 +480,15 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .mlog { max-height: 60vh; overflow: auto; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; background: rgba(0,0,0,.06); padding: 12px; border-radius: 12px; }
 .rp-close { position: absolute; bottom: 14px; right: 16px; z-index: 2; border: 1px solid rgba(255,255,255,.3); background: rgba(10,12,30,.82); color: #fff; font: 700 13px system-ui; padding: 8px 14px; border-radius: 99px; cursor: pointer; }
 .rp-close:focus-visible { outline: 2px solid #8f8cff; outline-offset: 2px; }
+/* The 2× vote (render session 56): on Agent match, over the live arena beside Close, a pill on Watch live. */
+.speed-ctl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
+.speed-ctl .speed-rate { font: 800 15px ui-monospace, monospace; min-width: 2.2em; text-align: center; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,.1); }
+.speed-ctl.fast .speed-rate { background: #ffb43c; color: #1a1205; box-shadow: 0 0 12px rgba(255,180,60,.55); }
+.speed-ctl .speed-line { flex: 1 1 12em; min-width: 0; }
+.rp-speed { position: absolute; bottom: 10px; right: 96px; z-index: 2; max-width: min(460px, calc(100vw - 120px)); }
+.rp-speed .speed-ctl { margin: 0; background: rgba(10,12,30,.86); color: #fff; }
+@media (max-width: 560px) { .rp-speed { right: 12px; left: 12px; bottom: 58px; max-width: none; } }
+.pill.fast { background: #ffb43c; color: #1a1205; margin-left: 6px; }
 @media (max-width: 760px) { .m-live-grid { grid-template-columns: 1fr; } .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .hrow .hr-act { grid-column: 2 / 4; } .sb-meta { display: none; } }
 
 `;

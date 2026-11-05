@@ -49,13 +49,20 @@
 //    takes them: then every hand is whole from move 0. A feed without them
 //    (the safety rule for real-time network agents) leaves those cards as
 //    backs, each in its place, until it is played;
-//  - a signature card's abilities: while one is in play (not dormant), a
-//    cost on the hand may be off by its aura, if it has one, so those costs
-//    are marked unsure (`costUnsure`) rather than shown as exact;
-//  - the signature zone: the snapshot has the card's name and whether it has
-//    been played, not the card, so the zone isn't drawn; a signature unit on
-//    the board (its card isn't in the registry) shows its live stats with
-//    the side's faction and no rules text;
+//  - the signature card (render session 56): the live view sends it in
+//    full since game session 72 (`PublicSide.signature`: printed cost and
+//    body, keywords, one rules line per ability, flavour, the zone's
+//    `timesPlayed` / `inZone` / `nextCost`). The signature zone is drawn
+//    from it as a replay draws it. Its abilities as data (what a cost aura,
+//    a status's duration or the feed's rules text need) are rebuilt from the
+//    engine's signature menu, where every signature ability comes from: each
+//    rules line must name exactly one menu ability, or the card is left
+//    unknown (`signatureCardOf`). Rebuilt, a signature unit is drawn exactly
+//    as a replay draws it (printed Barrier, base stats, its rules text) and
+//    the hand's costs are exact while it is in play. Unknown (a feed from
+//    before session 72, or a line the menu doesn't have), it falls back to
+//    the session-51 drawing: live stats only, hand costs marked unsure
+//    (`costUnsure`) while it is in play;
 //  - the deck's faction: the live view sends it per side since game session
 //    72 (`LiveSideView.faction`, taken by `LiveStart.factions`); without it,
 //    read from the first non-Neutral card the side reveals, Neutral until
@@ -64,14 +71,15 @@
 
 import { CARD_REGISTRY, formatEvent, type Card, type GameEvent, type PlayerId, type ToolCard } from "@ai-tcg/engine";
 import type { PublicSide, PublicSnapshot, TimelineStep } from "../../../server/src/ladder/timeline.js";
-import { allAbilities, type Faction, type Keyword, type Rarity } from "../engineInternal.js";
+import { allAbilities, SIGNATURE_MENU, type Faction, type Keyword, type Rarity } from "../engineInternal.js";
+import type { PublicSignature } from "../../../server/src/ladder/timeline.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
 import { computeMomentum } from "../momentum.js";
 import { avatarSvg } from "../avatar.js";
 import { assignSlots } from "../slotLayout.js";
 import { buildFeedWithQuiet } from "../feed.js";
 import { abilityTextFor } from "../capture.js";
-import type { CardRef, DirectiveSnapshot, Frame, MatchReplay, PlayerSnapshot, StackItemSnapshot, UnitSnapshot } from "../types.js";
+import type { CardRef, DirectiveSnapshot, Frame, MatchReplay, PlayerSnapshot, SignatureSnapshot, StackItemSnapshot, UnitSnapshot } from "../types.js";
 
 export type { PublicSnapshot, TimelineStep };
 
@@ -165,6 +173,37 @@ function hiddenCard(): CardRef {
   return { cardId: "", name: "", faction: "Neutral", rarity: "Common", type: "Unit", cost: 0, flavor: "", visualSeed: 0, visualPattern: 0, hidden: true };
 }
 
+type Ability = Card["abilities"][number];
+
+/** Every signature menu ability (every option at every size), by its rules
+ * text. A text two different abilities share is kept as null: a line that
+ * reads like either can't say which it is. */
+const SIG_ABILITY_BY_TEXT = new Map<string, Ability | null>();
+for (const option of SIGNATURE_MENU) {
+  for (const a of [...option.abilities, ...option.sizes.flatMap((z) => z.abilities)]) {
+    const had = SIG_ABILITY_BY_TEXT.get(a.text);
+    if (had === undefined) SIG_ABILITY_BY_TEXT.set(a.text, a);
+    else if (had !== null && JSON.stringify(had) !== JSON.stringify(a)) SIG_ABILITY_BY_TEXT.set(a.text, null);
+  }
+}
+
+/** The signature card the live view describes, as the engine built it
+ * (engine signatureMenu.ts buildSignatureCard: a Neutral Mythic Unit whose
+ * abilities are menu abilities), or null when a rules line doesn't name
+ * exactly one menu ability. Never a guess: the rebuilt card's rules text
+ * is the feed's, line for line. */
+export function signatureCardOf(sig: PublicSignature): Card | null {
+  const abilities: Ability[] = [];
+  for (const line of sig.rulesText) {
+    const a = SIG_ABILITY_BY_TEXT.get(line);
+    if (!a) return null;
+    abilities.push(a);
+  }
+  const keywords = sig.keywords.filter((k): k is Keyword => (KEYWORDS as string[]).includes(k));
+  if (keywords.length !== sig.keywords.length) return null;
+  return { id: sig.cardId, name: sig.name, faction: "Neutral", rarity: "Mythic", cost: sig.cost, type: "Unit", attack: sig.attack, health: sig.health, keywords, art: sig.art, flavor: sig.flavor, abilities } as Card;
+}
+
 /** One hand position: a card id once the feed has named the card, else null (a back). */
 type HandSlot = string | null;
 
@@ -185,19 +224,53 @@ export class LiveFrameBuilder {
   readonly unknown: { kind: "status" | "buff"; source: string; detail: string }[] = [];
   private turn: number;
   private lastSnap: PublicSnapshot;
+  /** Each side's signature card, rebuilt from the feed (null: none, or not rebuilt). */
+  private readonly sigCard: Record<PlayerId, Card | null> = { p1: null, p2: null };
+  /** A side whose feed names a signature card this page couldn't rebuild. */
+  readonly signatureUnknown: Record<PlayerId, boolean> = { p1: false, p2: false };
 
   constructor(start: LiveStart) {
     this.matchId = start.matchId;
     this.start = start;
     this.turn = start.start.turn;
     this.lastSnap = start.start;
+    this.learnSignatures(start.start);
     for (const pid of PIDS) for (const u of start.start[pid].board) this.track(u.instanceId);
     for (const pid of PIDS) if (start.factions?.[pid]) this.faction[pid] = start.factions[pid];
     for (const pid of PIDS) {
       const given = start.openingHands?.[pid];
-      this.hands[pid] = given && given.length === start.start[pid].hand ? given.map((id) => (cardOf(id) ? id : null)) : Array.from({ length: start.start[pid].hand }, () => null);
+      this.hands[pid] = given && given.length === start.start[pid].hand ? given.map((id) => (this.card(id) ? id : null)) : Array.from({ length: start.start[pid].hand }, () => null);
     }
     this.frames.push(this.frame(0, start.start, openingEvents(start)));
+  }
+
+  /** A card by registry id, a token, or a side's rebuilt signature card. */
+  private card(cardId: string): Card | null {
+    const c = cardOf(cardId);
+    if (c) return c;
+    for (const pid of PIDS) if (this.sigCard[pid]?.id === cardId) return this.sigCard[pid];
+    return null;
+  }
+
+  /** A card by name: the registry's, else a rebuilt signature card's. */
+  private named(name: string): Card | null {
+    const c = BY_NAME.get(name);
+    if (c) return c;
+    for (const pid of PIDS) if (this.sigCard[pid]?.name === name) return this.sigCard[pid];
+    return null;
+  }
+
+  /** Each side's signature card, from the snapshot (the card itself never
+   * changes in a match: only its zone does). */
+  private learnSignatures(snap: PublicSnapshot): void {
+    for (const pid of PIDS) {
+      const sig = snap[pid].signature;
+      if (!sig || typeof sig !== "object" || !("rulesText" in sig)) continue;
+      if (this.sigCard[pid]?.id === sig.cardId || this.signatureUnknown[pid]) continue;
+      const card = signatureCardOf(sig);
+      if (card) this.sigCard[pid] = card;
+      else this.signatureUnknown[pid] = true;
+    }
   }
 
   /** Moves turned into frames so far (frame 0 is the board before the first). */
@@ -217,9 +290,9 @@ export class LiveFrameBuilder {
   private unitCard(iid: string, snap: PublicSnapshot): Card | null {
     for (const pid of PIDS) {
       const u = snap[pid].board.find((x) => x.instanceId === iid);
-      if (u) return cardOf(u.cardId);
+      if (u) return this.card(u.cardId);
       const d = snap[pid].directives.find((x) => x.instanceId === iid);
-      if (d) return cardOf(d.cardId);
+      if (d) return this.card(d.cardId);
     }
     return null;
   }
@@ -230,7 +303,7 @@ export class LiveFrameBuilder {
       const c = this.unitCard(sourceId, before) ?? this.unitCard(sourceId, after);
       if (c) return c;
     }
-    return BY_NAME.get(source) ?? null;
+    return this.named(source);
   }
 
   /** Adds the next released step; returns its frame. */
@@ -238,6 +311,7 @@ export class LiveFrameBuilder {
     if (step.n !== this.frames.length) throw new Error(`the live feed sent move ${step.n}, the board is at move ${this.frames.length - 1}`);
     const before = this.lastSnap;
     const after = step.after;
+    this.learnSignatures(after);
     // The engine takes the played card out of the hand first (playCard's
     // splice), then everything the move causes follows, draws included.
     if (step.move.type === "playCard" && !this.handLost[step.by]) {
@@ -286,7 +360,7 @@ export class LiveFrameBuilder {
         if (!ev.instanceId) break;
         const t = this.track(ev.instanceId);
         const unit = after.p1.board.concat(after.p2.board).find((u) => u.instanceId === ev.instanceId);
-        const card = unit ? cardOf(unit.cardId) : null;
+        const card = unit ? this.card(unit.cardId) : null;
         if (card && card.type === "Unit" && card.keywords.includes("Barrier") && !t.statuses.some((s) => s.kind === "Barrier")) t.statuses.push({ kind: "Barrier", duration: "untilConsumed" });
         if (ev.type === "play") {
           this.reveal(ev.player, card ?? BY_NAME.get(ev.card) ?? null);
@@ -377,8 +451,8 @@ export class LiveFrameBuilder {
     if (this.faction[pid] === "Neutral" && card && card.faction !== "Neutral") this.faction[pid] = card.faction;
   }
 
-  private unit(pid: PlayerId, u: PublicSide["board"][number], signatureName: string | null): UnitSnapshot {
-    const card = cardOf(u.cardId);
+  private unit(pid: PlayerId, u: PublicSide["board"][number], sig: { name: string; cardId?: string } | null): UnitSnapshot {
+    const card = this.card(u.cardId);
     const t = this.track(u.instanceId);
     const tools = u.tools.map((name) => {
       const tc = BY_NAME.get(name);
@@ -386,7 +460,9 @@ export class LiveFrameBuilder {
       return { name, attackBonus: tool?.attackBonus ?? 0, healthBonus: tool?.healthBonus ?? 0, grantedKeywords: tool ? [...tool.grantedKeywords] : [] };
     });
     const printed = card && card.type === "Unit" ? card : null;
-    const isSignature = !card && signatureName !== null && u.name === signatureName;
+    // The side's signature card: by its id once rebuilt (or once the feed
+    // names it in full), else (an older feed) by name on a card the registry lacks.
+    const isSignature = sig !== null && ("cardId" in sig && sig.cardId ? u.cardId === sig.cardId : !card && u.name === sig.name);
     const keywords = KEYWORDS.filter((k) => (printed?.keywords.includes(k) ?? false) || tools.some((x) => x.grantedKeywords.includes(k)));
     return {
       instanceId: u.instanceId,
@@ -428,7 +504,7 @@ export class LiveFrameBuilder {
     const out: Card["abilities"][number][] = [];
     let unsure = false;
     const add = (iid: string, cardId: string) => {
-      const card = cardOf(cardId);
+      const card = this.card(cardId);
       if (!card) {
         unsure = true;
         return;
@@ -464,7 +540,7 @@ export class LiveFrameBuilder {
   private handRefs(pid: PlayerId, snap: PublicSnapshot, count: number): CardRef[] {
     if (this.handLost[pid]) return Array.from({ length: count }, hiddenCard);
     return this.hands[pid].map((id) => {
-      const card = id ? cardOf(id) : null;
+      const card = id ? this.card(id) : null;
       if (!card) return hiddenCard();
       const { cost, unsure } = this.costOf(snap, pid, card);
       return {
@@ -482,9 +558,34 @@ export class LiveFrameBuilder {
     });
   }
 
+  /** The signature zone as a replay draws it (capture.ts toSignatureSnapshot),
+   * from the feed's card in full; null without one, or from a feed that
+   * names the card only (before game session 72). */
+  private zone(pid: PlayerId, s: PublicSide): SignatureSnapshot | null {
+    const sig = s.signature;
+    if (!sig || typeof sig !== "object" || !("rulesText" in sig)) return null;
+    return {
+      cardId: sig.cardId,
+      name: sig.name,
+      faction: "Neutral",
+      rarity: "Mythic",
+      flavor: sig.flavor,
+      attack: sig.attack,
+      health: sig.health,
+      keywords: sig.keywords.filter((k): k is Keyword => (KEYWORDS as string[]).includes(k)),
+      text: [...sig.rulesText],
+      nextCost: sig.nextCost,
+      baseCost: sig.cost,
+      timesPlayed: sig.timesPlayed,
+      inZone: sig.inZone,
+      visualSeed: visualSeedFor(sig.cardId),
+      visualPattern: visualPatternFor(sig.cardId),
+    };
+  }
+
   private side(pid: PlayerId, s: PublicSide, slotsMax: number, snap: PublicSnapshot): PlayerSnapshot {
     const directives: DirectiveSnapshot[] = s.directives.map((d) => {
-      const card = cardOf(d.cardId);
+      const card = this.card(d.cardId);
       return {
         instanceId: d.instanceId,
         cardId: d.cardId,
@@ -508,17 +609,17 @@ export class LiveFrameBuilder {
       hand: this.handRefs(pid, snap, s.hand),
       deckSize: s.deck,
       graveyardSize: s.graveyard,
-      board: s.board.map((u) => this.unit(pid, u, s.signature?.name ?? null)),
+      board: s.board.map((u) => this.unit(pid, u, s.signature ?? null)),
       directives,
       slotsUsed: s.board.length + s.directives.length,
       slotsMax,
-      signature: null,
+      signature: this.zone(pid, s),
     };
   }
 
   private frame(index: number, snap: PublicSnapshot, events: GameEvent[]): Frame {
-    for (const pid of PIDS) for (const u of snap[pid].board) this.reveal(pid, cardOf(u.cardId));
-    for (const pid of PIDS) for (const d of snap[pid].directives) this.reveal(pid, cardOf(d.cardId));
+    for (const pid of PIDS) for (const u of snap[pid].board) this.reveal(pid, this.card(u.cardId));
+    for (const pid of PIDS) for (const d of snap[pid].directives) this.reveal(pid, this.card(d.cardId));
     const players = { p1: this.side("p1", snap.p1, this.start.boardSlots, snap), p2: this.side("p2", snap.p2, this.start.boardSlots, snap) };
     // Statuses and buffs of units that left the board are no longer anyone's.
     const onBoard = new Set(PIDS.flatMap((pid) => snap[pid].board.map((u) => u.instanceId)));
@@ -540,7 +641,11 @@ export class LiveFrameBuilder {
    * worked out from the first frame on, so a frame never changes once given). */
   allFrames(): Frame[] {
     const frames = assignSlots(this.frames.map((f) => ({ ...f, players: { p1: { ...f.players.p1 }, p2: { ...f.players.p2 } } })));
-    const feed = buildFeedWithQuiet(frames, { names: this.start.names, abilityText: abilityTextFor([]) });
+    // The rules text of every ability a trigger line may name: the set's,
+    // and each rebuilt signature card's (its ids are the menu's, sized).
+    const abilityText = abilityTextFor([]);
+    for (const pid of PIDS) for (const a of this.sigCard[pid]?.abilities ?? []) abilityText[a.id] ??= a.text;
+    const feed = buildFeedWithQuiet(frames, { names: this.start.names, abilityText });
     return frames.map((frame, i) => ({ ...frame, feed: feed.entries[i]!, quietTriggers: feed.quiet[i]! }));
   }
 

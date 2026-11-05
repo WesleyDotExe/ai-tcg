@@ -27,12 +27,13 @@ import {
 import { timelineRecorder } from "../../server/src/ladder/timeline.js";
 import { abilityTextFor, captureMatch } from "../src/capture.js";
 import { generatedSeats } from "../src/generatedSignatures.js";
-import { LiveFrameBuilder, seedOf } from "../src/site/liveFrames.js";
+import { LiveFrameBuilder, seedOf, signatureCardOf } from "../src/site/liveFrames.js";
+import { SIGNATURE_MENU, buildSignatureCard } from "../src/engineInternal.js";
+import { allSignatureSpecs } from "../../engine/src/data/signatureMenu.js";
 import { renderMatchHtml } from "../src/renderHtml.js";
 import { mythicSpecs } from "../src/wardFx.js";
 import type { Frame, MatchReplay, UnitSnapshot } from "../src/types.js";
 
-const KNOWN_TEXT = abilityTextFor([]);
 const BUILDERS = { Cortex: buildCortexDeck, Swarm: buildSwarmDeck, Aegis: buildAegisDeck, Null: buildNullDeck } as const;
 type F = keyof typeof BUILDERS;
 
@@ -76,9 +77,9 @@ function compare(captured: MatchReplay, live: MatchReplay, signatures: boolean, 
     if (l.turnNumber !== c.turnNumber || l.activePlayer !== c.activePlayer || l.priority !== c.priority || (l.winner ?? null) !== (c.winner ?? null)) out.push(at("turn/priority/winner"));
     if (JSON.stringify(l.stack) !== JSON.stringify(c.stack)) out.push(at(`stack ${JSON.stringify(l.stack)} vs ${JSON.stringify(c.stack)}`));
     if (JSON.stringify(l.newEvents) !== JSON.stringify(c.newEvents)) out.push(at("events"));
-    // A signature card's ability text isn't in the public feed: its trigger line keeps the label alone.
-    const sigTrigger = signatures && c.newEvents.some((e) => e.event.type === "abilityTrigger" && !(e.event.ability in KNOWN_TEXT));
-    if (JSON.stringify(l.feed) !== JSON.stringify(c.feed) && !sigTrigger) out.push(at("feed"));
+    // Render session 56: the signature card's rules text is rebuilt from the
+    // feed's card in full, so its trigger lines are the replay's too.
+    if (JSON.stringify(l.feed) !== JSON.stringify(c.feed)) out.push(at("feed"));
     if (JSON.stringify(l.quietTriggers) !== JSON.stringify(c.quietTriggers)) out.push(at("quiet triggers"));
     for (const pid of ["p1", "p2"] as const) {
       const cp = c.players[pid], lp = l.players[pid];
@@ -109,7 +110,8 @@ function compare(captured: MatchReplay, live: MatchReplay, signatures: boolean, 
           if (JSON.stringify(got) !== JSON.stringify(want)) out.push(at(`${pid}.hand[${k}] ${JSON.stringify(h)} vs ${JSON.stringify(want)}`));
         });
       }
-      if (lp.signature !== null) out.push(at(`${pid}.signature drawn`));
+      // The signature zone (render session 56): the replay's, field for field.
+      if (JSON.stringify(lp.signature ?? null) !== JSON.stringify(cp.signature ?? null)) out.push(at(`${pid}.signature ${JSON.stringify(lp.signature)} vs ${JSON.stringify(cp.signature)}`));
       if (lp.faction !== "Neutral" && lp.faction !== cp.faction) out.push(at(`${pid}.faction ${lp.faction} vs ${cp.faction}`));
       if (JSON.stringify(lp.directives.map((d) => ({ ...d, flavor: "" }))) !== JSON.stringify(cp.directives.map((d) => ({ ...d, flavor: "" })))) out.push(at(`${pid}.directives`));
       if (lp.board.length !== cp.board.length) {
@@ -118,14 +120,7 @@ function compare(captured: MatchReplay, live: MatchReplay, signatures: boolean, 
       }
       cp.board.forEach((cu, k) => {
         const lu = lp.board[k]!;
-        if (signatures && cu.isSignature) {
-          // The signature card isn't in the registry: its live numbers and identity only.
-          // Barrier from the card's own keyword isn't known (the card isn't public): see the next test.
-          for (const key of ["instanceId", "cardId", "name", "attack", "health", "maxHealth", "pending", "isSignature", "canAttackThisTurn", "armTurn", "tools", "faction", "rarity"] as const) {
-            if (JSON.stringify(cu[key]) !== JSON.stringify(lu[key])) out.push(at(`${pid} signature ${cu.name}.${key} ${JSON.stringify(lu[key])} vs ${JSON.stringify(cu[key])}`));
-          }
-          return;
-        }
+        // A signature unit too (render session 56): its card is rebuilt from the feed.
         const a = comparableUnit(cu), b = comparableUnit(lu);
         for (const key of Object.keys(a) as (keyof typeof a)[]) {
           if (JSON.stringify(a[key]) !== JSON.stringify(b[key])) out.push(at(`${pid} ${cu.name}.${key} ${JSON.stringify(b[key])} vs ${JSON.stringify(a[key])}`));
@@ -148,6 +143,7 @@ const PAIRS: [number, F, F, "random" | "aggressive" | "lookahead"][] = [
 ];
 
 const SEEN = new Set<string>();
+const SIG_PLAYED = new Set<boolean>();
 
 describe("LiveFrameBuilder (the live feed as arena frames)", () => {
   for (const [seed, a, b, kind] of PAIRS) {
@@ -167,12 +163,67 @@ describe("LiveFrameBuilder (the live feed as arena frames)", () => {
     }
   });
 
-  for (const seed of [21, 22, 23]) {
-    it(`with signature cards (seed ${seed}): equal but for the signature card's printed text`, async () => {
-      const { captured, live } = await both(seed, (["Cortex", "Aegis", "Null"] as F[])[seed % 3]!, (["Swarm", "Null", "Cortex"] as F[])[seed % 3]!, "aggressive", true);
-      expect(compare(captured, live, true)).toEqual([]);
+  // Render session 56: the signature card in full (game session 72's
+  // `PublicSide.signature`), rebuilt from the menu. With the opening hands
+  // too, every frame is the replay's: the zone, the signature unit, its
+  // trigger lines, and the hand's exact costs while it is in play.
+  for (const seed of [21, 22, 23, 24, 25, 26]) {
+    it(`with signature cards (seed ${seed}): every frame equals the captured one, the signature zone and unit included`, async () => {
+      const kind = seed < 24 ? "aggressive" : "lookahead";
+      const { captured, live, builder } = await both(seed, (["Cortex", "Aegis", "Null"] as F[])[seed % 3]!, (["Swarm", "Null", "Cortex"] as F[])[seed % 3]!, kind, true, true);
+      const before = HAND_TALLY.unsure;
+      expect(compare(captured, live, true, true)).toEqual([]);
+      expect(builder.signatureUnknown).toEqual({ p1: false, p2: false });
+      expect(HAND_TALLY.unsure).toBe(before);
+      // The zone is drawn from the first frame, and the card is played in these matches.
+      expect(live.frames[0]!.players.p1.signature?.inZone).toBe(true);
+      SIG_PLAYED.add(live.frames.some((f) => f.players.p1.board.concat(f.players.p2.board).some((u) => u.isSignature)));
     }, 60_000);
   }
+
+  it("those signature matches play a signature card onto the board", () => {
+    expect(SIG_PLAYED).toContain(true);
+  });
+
+  it("signatureCardOf rebuilds every signature card the menu can make, at every size, ability for ability", () => {
+    let n = 0;
+    for (const spec of allSignatureSpecs()) {
+      const option = SIGNATURE_MENU.find((o) => o.key === spec.ability)!;
+      for (const size of [undefined, ...option.sizes.map((z) => z.key)]) {
+        const card = buildSignatureCard(size ? { ...spec, size } : spec, { id: "sig-x", name: "Test Card", flavor: "f" });
+        const pub = { cardId: card.id, name: card.name, cost: card.cost, attack: card.attack, health: card.health, keywords: [...card.keywords], rulesText: card.abilities.map((a) => a.text), art: card.art, flavor: card.flavor, timesPlayed: 0, inZone: true, nextCost: card.cost, played: false };
+        expect(signatureCardOf(pub), `${spec.ability}${size ? "." + size : ""}`).toEqual(card);
+        n++;
+      }
+    }
+    expect(n).toBeGreaterThan(600);
+  });
+
+  it("a signature card it can't rebuild (a line the menu lacks) falls back: zone drawn from the feed, unit by live numbers, hand costs unsure", async () => {
+    const { builder: _b, moves } = await both(22, "Aegis", "Null", "aggressive", true, true);
+    const seats = generatedSeats(22);
+    const deckA: DeckSpec = { ...buildAegisDeck("p1", "Aegis"), signature: seats[0].card };
+    const deckB: DeckSpec = { ...buildNullDeck("p2", "Null"), signature: seats[1].card };
+    const rec = timelineRecorder();
+    replayMatch(deckA, deckB, { p1: "Alpha", p2: "Beta" }, 22, moves, rec.hooks);
+    const garble = <T,>(x: T): T => {
+      const c = structuredClone(x) as { p1: { signature: { rulesText: string[] } | null } };
+      if (c.p1.signature) c.p1.signature.rulesText = ["Does something no menu option does."];
+      return c as T;
+    };
+    const b = new LiveFrameBuilder({ matchId: "x", names: { p1: "Alpha", p2: "Beta" }, start: garble(rec.timeline.start), startLines: rec.timeline.startLines, boardSlots: BOARD_SLOTS, turnCap: 30, energyCap: MAX_ENERGY_CAP });
+    for (const st of rec.timeline.steps) b.push({ ...st, after: garble(st.after) });
+    expect(b.signatureUnknown).toEqual({ p1: true, p2: false });
+    const frames = b.allFrames();
+    expect(frames[0]!.players.p1.signature?.text).toEqual(["Does something no menu option does."]);
+    const onBoard = frames.flatMap((f) => f.players.p1.board.filter((u) => u.isSignature));
+    for (const u of onBoard) expect([u.faction, u.rarity, u.baseArmor]).toEqual(["Neutral", "Mythic", 0]);
+    // While it is in play (armed), p1's hand costs say they may be off.
+    const inPlay = frames.filter((f) => f.players.p1.board.some((u) => u.isSignature && !u.pending) && f.players.p1.hand.length);
+    const shown = inPlay.flatMap((f) => f.players.p1.hand.filter((h) => !h.hidden));
+    expect(shown.length).toBeGreaterThan(0);
+    for (const h of shown) expect(h.costUnsure).toBe(true);
+  }, 60_000);
 
   for (const [seed, a, b, kind] of PAIRS.slice(0, 4)) {
     it(`hands: with the opening hands given (seed ${seed}), every hand is the engine's, card for card, from move 0`, async () => {

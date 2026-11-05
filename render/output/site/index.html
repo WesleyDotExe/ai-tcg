@@ -430,6 +430,15 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .mlog { max-height: 60vh; overflow: auto; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; background: rgba(0,0,0,.06); padding: 12px; border-radius: 12px; }
 .rp-close { position: absolute; bottom: 14px; right: 16px; z-index: 2; border: 1px solid rgba(255,255,255,.3); background: rgba(10,12,30,.82); color: #fff; font: 700 13px system-ui; padding: 8px 14px; border-radius: 99px; cursor: pointer; }
 .rp-close:focus-visible { outline: 2px solid #8f8cff; outline-offset: 2px; }
+/* The 2× vote (render session 56): on Agent match, over the live arena beside Close, a pill on Watch live. */
+.speed-ctl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; margin: 8px 0; border-radius: 10px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
+.speed-ctl .speed-rate { font: 800 15px ui-monospace, monospace; min-width: 2.2em; text-align: center; padding: 2px 6px; border-radius: 6px; background: rgba(255,255,255,.1); }
+.speed-ctl.fast .speed-rate { background: #ffb43c; color: #1a1205; box-shadow: 0 0 12px rgba(255,180,60,.55); }
+.speed-ctl .speed-line { flex: 1 1 12em; min-width: 0; }
+.rp-speed { position: absolute; bottom: 10px; right: 96px; z-index: 2; max-width: min(460px, calc(100vw - 120px)); }
+.rp-speed .speed-ctl { margin: 0; background: rgba(10,12,30,.86); color: #fff; }
+@media (max-width: 560px) { .rp-speed { right: 12px; left: 12px; bottom: 58px; max-width: none; } }
+.pill.fast { background: #ffb43c; color: #1a1205; margin-left: 6px; }
 @media (max-width: 760px) { .m-live-grid { grid-template-columns: 1fr; } .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .hrow .hr-act { grid-column: 2 / 4; } .sb-meta { display: none; } }
 
 </style>
@@ -6079,6 +6088,7 @@ gl_FragColor=vec4(col,1.);}`;
       setAutoPlay: (token, on) => call("PUT", "/api/play/auto-play", { token, body: { on } }),
       live: (token) => call("GET", "/api/live", { token }),
       liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
+      setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),
       matches: (token, limit, before) => {
         const q = [limit ? `limit=${limit}` : "", before ? `before=${encodeURIComponent(before)}` : ""].filter(Boolean).join("&");
         return call("GET", `/api/matches${q ? `?${q}` : ""}`, { token });
@@ -7386,6 +7396,35 @@ gl_FragColor=vec4(col,1.);}`;
     const [a, b] = nearFirst(sb.near);
     return `<li class="lline"><span class="live-dot" aria-hidden="true"></span><b>${esc(sb[a].agentName)}</b> <span class="lhp">${sb[a].health}\u2013${sb[b].health}</span> <b>${esc(sb[b].agentName)}</b> <small class="muted">${esc(sb.status)}</small></li>`;
   }
+  function speedControlView(m, viewerOwnerId) {
+    const sp = m.speed;
+    if (!sp) return null;
+    const mine = viewerOwnerId === null ? null : m.p1.ownerId === viewerOwnerId ? "p1" : m.p2.ownerId === viewerOwnerId ? "p2" : null;
+    const ended = m.nextAt === null || m.now.winner !== null;
+    const pill = sp.rate === 2 && !ended ? "2\xD7" : null;
+    if (!mine || ended) {
+      const line = ended ? "" : sp.rate === 2 ? sp.house.p1 || sp.house.p2 ? "2\xD7: the player's owner asked, the house agrees" : "2\xD7: both owners agreed" : "";
+      return { canVote: false, rate: sp.rate, line, button: null, pill };
+    }
+    const other = mine === "p1" ? "p2" : "p1";
+    const otherName = m[other].ownerName;
+    const vsHouse = sp.house[other];
+    if (sp.rate === 2) {
+      return { canVote: true, rate: 2, line: vsHouse ? "Playing at 2\xD7: the house agrees to what you ask." : `Playing at 2\xD7: you and ${otherName} agreed.`, button: { label: "Back to 1\xD7", ask: false }, pill };
+    }
+    if (sp.asks[mine]) {
+      return { canVote: true, rate: 1, line: `You asked for 2\xD7. Waiting on ${otherName}.`, button: { label: "Take back", ask: false }, pill };
+    }
+    if (sp.asks[other] && sp.waitingOn === mine) {
+      return { canVote: true, rate: 1, line: `${otherName} asks for 2\xD7. It starts when you agree.`, button: { label: "Agree to 2\xD7", ask: true }, pill };
+    }
+    return { canVote: true, rate: 1, line: vsHouse ? "Against the house, your ask alone makes it 2\xD7." : `2\xD7 needs you and ${otherName} to agree.`, button: { label: "Ask for 2\xD7", ask: true }, pill };
+  }
+  function speedControlHtml(v, id, matchId, busy = false) {
+    if (!v || !v.canVote && !v.line) return "";
+    const btn = v.button ? `<button type="button" class="btn sm${v.button.ask ? " pri" : ""}" id="${id}" data-act="live-speed" data-match="${esc(matchId)}" data-ask="${v.button.ask ? "1" : "0"}"${busy ? " disabled" : ""}>${esc(v.button.label)}</button>` : "";
+    return `<div class="speed-ctl${v.rate === 2 ? " fast" : ""}" role="status"><span class="speed-rate" aria-hidden="true">${v.rate}\xD7</span><span class="speed-line small">${esc(v.line)}</span>${btn}</div>`;
+  }
 
   // src/site/siteWidgets.ts
   function sourcesOf(w2) {
@@ -7664,6 +7703,7 @@ gl_FragColor=vec4(col,1.);}`;
     col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
     hist: { rows: [], total: 0, more: false, error: null, loading: false },
     autoBusy: false,
+    speedBusy: false,
     replay: null,
     follow: null
   };
@@ -8352,6 +8392,7 @@ gl_FragColor=vec4(col,1.);}`;
     <div class="field"><div><b>Who picks the deck</b><small>Your agent builds and picks its own deck, or you choose one of your saved decks.</small></div>${seg("deck-choice", [["agent", "Agent picks"], ["forced", "I choose"]], p.deckChoice, "Who picks the deck")}</div>
     <div class="field"><div><b>Faction lock</b><small>Keep your agent to one faction, or let it play any.</small></div>${seg("faction-lock", lockOpts, (_a3 = p.factionLock) != null ? _a3 : "", "Faction lock")}</div>
     <div class="field col"><div><b>Deck now</b><small>${esc(deckLine(p))}</small></div></div>
+    ${ask2xField()}
   </section>
   <h3>Saved decks</h3>
   <section class="panel glass decks"><p class="muted small">Pick one to play it yourself (the choice becomes "I choose").</p>${decks}</section>
@@ -8366,6 +8407,31 @@ gl_FragColor=vec4(col,1.);}`;
   </section>
   ${((_b = state.me) == null ? void 0 : _b.isAdmin) ? `<h3>Admin</h3>${waitsBox(["the house agents' admin endpoints"], "The admin view: the house agents, their decks and their matches. You see this because your account is the house admin.")}` : ""}
   </div>`;
+  }
+  function ask2xField() {
+    var _a3;
+    const st = state.settings;
+    if (!st || typeof st.ask2xEveryMatch !== "boolean" || ((_a3 = state.play) == null ? void 0 : _a3.autoPlay.house)) return "";
+    const on = st.ask2xEveryMatch;
+    return `<div class="field"><div><b>Ask for 2\xD7 in every match</b><small>Asks for 2\xD7 as each of your agent's matches starts. It plays at 2\xD7 once the other owner agrees (against the house, at once). You can take it back in the match.</small></div><button type="button" class="switch${on ? " on" : ""}" id="ask-2x-every" role="switch" aria-checked="${on}" data-act="ask-2x-every" data-on="${on ? "0" : "1"}"${state.speedBusy ? " disabled" : ""}><i aria-hidden="true"></i><span>${on ? "On" : "Off"}</span></button></div>`;
+  }
+  async function setAsk2xEvery(on) {
+    var _a3;
+    if (!state.session || !state.settings || state.speedBusy) return;
+    state.speedBusy = true;
+    try {
+      state.settings = await api.updateAccountSettings(state.session.token, { ask2xEveryMatch: on });
+      toast(on ? "Your agent's next matches start with your ask for 2\xD7." : "No more automatic asks for 2\xD7. A match already asked keeps its ask.");
+    } catch (err) {
+      if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+      fail(err);
+    } finally {
+      state.speedBusy = false;
+    }
+    if (state.page === "settings") {
+      drawPage();
+      (_a3 = document.getElementById("ask-2x-every")) == null ? void 0 : _a3.focus();
+    }
   }
   function bgPicker() {
     const dark = document.body.dataset.theme === "dark";
@@ -9082,7 +9148,7 @@ gl_FragColor=vec4(col,1.);}`;
   }
   function drawLive() {
     var _a3, _b;
-    if (state.replay) return;
+    if (state.replay) return drawArenaSpeed();
     if (state.page === "match" && state.play) {
       redrawPart("#m-live", mLiveHtml(state.play));
       const pbp = document.getElementById("m-pbp");
@@ -9113,7 +9179,7 @@ gl_FragColor=vec4(col,1.);}`;
   <h3>Match history</h3><section class="panel glass" id="m-hist">${histHtml()}</section></div>`;
   }
   function mLiveHtml(p) {
-    var _a3, _b, _c;
+    var _a3, _b, _c, _d, _e;
     if (!p.connectedAgent) return `<p class="muted small">No agent connected, so no match.</p>`;
     const live = state.home.live;
     if (!live) return state.home.errors.live ? `<p class="muted small">Couldn't read the live matches: ${esc(state.home.errors.live)}</p>` : `<p class="muted small">Loading\u2026</p>`;
@@ -9127,7 +9193,8 @@ gl_FragColor=vec4(col,1.);}`;
     const names = { p1: m.p1.agentName, p2: m.p2.agentName };
     const lines = ((_c = state.follow) == null ? void 0 : _c.matchId) === m.matchId ? state.follow.lines.slice(-60) : tidyLines(m.recentLines, names);
     const feed = lines.map((x) => `<li>${esc(x)}</li>`).join("");
-    return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${compactBoard(m, sb.near)}${arenaButton(m.matchId)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
+    const speed = speedControlHtml(speedControlView(m, (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null), "m-speed", m.matchId, state.speedBusy);
+    return `<div class="m-live-grid"><div class="wcol">${scoreboardHtml(sb)}${speed}${compactBoard(m, sb.near)}${arenaButton(m.matchId)}<p class="muted small">${sb.moves} moves shown. The result counts once the last move has been shown; then the match is in your history below, with its replay on the full board.</p></div><div class="wcol"><h4>Play-by-play</h4><ol class="pbp small" id="m-pbp">${feed}</ol></div></div>`;
   }
   function histHtml() {
     const h = state.hist;
@@ -9153,7 +9220,9 @@ gl_FragColor=vec4(col,1.);}`;
     return live.matches.map((m) => {
       const sb = scoreboardOf(m, me, viewOf(m.matchId));
       const lines = tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).slice(-3);
-      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : watchAsHtml(sb, "wa-live")}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
+      const sv = speedControlView(m, me);
+      const fast = (sv == null ? void 0 : sv.pill) ? `<span class="pill fast" title="${esc(sv.line || "Playing at 2\xD7")}">${esc(sv.pill)}</span>` : "";
+      return `<section class="panel dark live-card" data-match="${esc(m.matchId)}">${sb.mine ? '<span class="pill on">Your agent</span>' : watchAsHtml(sb, "wa-live")}${fast}${scoreboardHtml(sb)}${compactBoard(m, sb.near)}<ol class="pbp small">${lines.map((x) => `<li>${esc(x)}</li>`).join("")}</ol>${arenaButton(m.matchId)}</section>`;
     }).join("");
   }
   async function setAutoPlay(on) {
@@ -9173,6 +9242,39 @@ gl_FragColor=vec4(col,1.);}`;
     drawAgentCard();
     if (!dragging) drawPage();
     if (focusId) (_c = document.getElementById(focusId)) == null ? void 0 : _c.focus();
+  }
+  async function setLiveSpeed(matchId, ask) {
+    var _a3, _b, _c, _d;
+    if (!state.session || state.speedBusy) return;
+    state.speedBusy = true;
+    const focusId = (_b = (_a3 = document.activeElement) == null ? void 0 : _a3.id) != null ? _b : "";
+    drawLive();
+    try {
+      const r = await api.setLiveSpeed(state.session.token, matchId, ask);
+      const live = state.home.live;
+      if (live) live.matches = live.matches.map((m) => m.matchId === matchId ? { ...m, speed: r.speed, nextAt: r.nextAt } : m);
+      toast(r.speed.rate === 2 ? "Playing at 2\xD7." : ask ? "Asked for 2\xD7: it starts when the other owner agrees." : "Back to 1\xD7.");
+      if (arenaLive && state.replay === matchId) (_c = replayFrame == null ? void 0 : replayFrame.contentWindow) == null ? void 0 : _c.postMessage({ type: "ai-tcg-live", frames: [], ended: false, record: null, rate: r.speed.rate }, location.origin);
+    } catch (err) {
+      if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
+      fail(err);
+    } finally {
+      state.speedBusy = false;
+    }
+    drawLive();
+    if (focusId) (_d = document.getElementById(focusId)) == null ? void 0 : _d.focus();
+  }
+  function drawArenaSpeed() {
+    var _a3, _b, _c, _d, _e;
+    const box = document.getElementById("rp-speed");
+    if (!box || !arenaLive || !state.replay) return;
+    const m = (_b = (_a3 = state.home.live) == null ? void 0 : _a3.matches.find((x) => x.matchId === state.replay)) != null ? _b : null;
+    const v = m ? speedControlView(m, (_d = (_c = state.me) == null ? void 0 : _c.ownerId) != null ? _d : null) : null;
+    const html = v && v.canVote ? speedControlHtml(v, "rp-speed-btn", m.matchId, state.speedBusy) : "";
+    if (box.contains(document.activeElement) && box.innerHTML === html) return;
+    const focused = box.contains(document.activeElement);
+    box.innerHTML = html;
+    if (focused) (_e = document.getElementById("rp-speed-btn")) == null ? void 0 : _e.focus();
   }
   async function showLog(matchId) {
     if (!state.session) return;
@@ -9214,7 +9316,7 @@ gl_FragColor=vec4(col,1.);}`;
     state.replay = matchId;
     replayFrom = from;
     const el = $("#replay");
-    el.innerHTML = `<div class="op-wait">Joining the match\u2026</div><button type="button" class="rp-close" data-act="close-replay">Close</button>`;
+    el.innerHTML = `<div class="op-wait">Joining the match\u2026</div><div class="rp-speed" id="rp-speed"></div><button type="button" class="rp-close" data-act="close-replay">Close</button>`;
     el.hidden = false;
     liquid == null ? void 0 : liquid.refresh();
     el.querySelector(".rp-close").focus();
@@ -9222,6 +9324,7 @@ gl_FragColor=vec4(col,1.);}`;
       const page = await api.livePage(state.session.token, matchId);
       if (state.replay !== matchId) return;
       arenaLive = { key: page.key, have: page.released + 1, poll: 0, ended: false };
+      drawArenaSpeed();
       replayFrame = document.createElement("iframe");
       replayFrame.title = "Live match on the arena";
       replayFrame.addEventListener("load", () => {
@@ -9240,6 +9343,7 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   async function feedArena() {
+    var _a3, _b;
     const live = arenaLive;
     if (!live || !state.session || !replayFrame) return;
     clearTimeout(live.poll);
@@ -9248,7 +9352,8 @@ gl_FragColor=vec4(col,1.);}`;
       if (arenaLive !== live || !(replayFrame == null ? void 0 : replayFrame.contentWindow)) return;
       live.have += r.frames.length;
       live.ended = r.ended;
-      if (r.frames.length || r.ended) replayFrame.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record }, location.origin);
+      if (r.frames.length || r.ended || r.record || r.rate) replayFrame.contentWindow.postMessage({ type: "ai-tcg-live", frames: r.frames, ended: r.ended, record: r.record, rate: (_a3 = r.rate) != null ? _a3 : 1 }, location.origin);
+      if (r.ended) (_b = document.getElementById("rp-speed")) == null ? void 0 : _b.replaceChildren();
     } catch (err) {
       if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
       if (err instanceof SiteApiError && err.status === 404) return;
@@ -9376,6 +9481,8 @@ gl_FragColor=vec4(col,1.);}`;
       if (act2 === "claim-daily") return void claimDaily();
       if (act2 === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
       if (act2 === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
+      if (act2 === "live-speed" && actEl.dataset.match) return void setLiveSpeed(actEl.dataset.match, actEl.dataset.ask === "1");
+      if (act2 === "ask-2x-every") return void setAsk2xEvery(actEl.dataset.on === "1");
       if (act2 === "replay" && actEl.dataset.match) return void openReplay(actEl.dataset.match, actEl);
       if (act2 === "watch-arena" && actEl.dataset.match) return void openLiveArena(actEl.dataset.match, actEl);
       if (act2 === "watch-as" && actEl.dataset.match && (actEl.dataset.seat === "p1" || actEl.dataset.seat === "p2")) {
