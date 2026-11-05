@@ -1,0 +1,43 @@
+
+[A] "15 min" at M
+      before: on true, allowance null
+PASS  A. no allowance to start with (auto-play on with no time limit)
+PASS  A. the ring shows auto-play with no limit ("On")
+PASS  A. the server started an allowance
+PASS  A. of 15 minutes (totalMinutes 15, ends 2026-11-06T00:05:01.066Z)
+PASS  A. the ring is lit (100%), "Vector Halcyon: 15 min left"
+PASS  A. the caption says the minutes left today
+      toast: "Your agent plays for 15 min, then finishes its match and stops."
+
+[B] the ring drains
+      server: running, 10 min (541 s) left; ring "Vector Halcyon: 10 min left", lit 61%
+PASS  B. the ring's minutes are the server's (10min vs 10)
+PASS  B. the lit share is the server's secondsLeft / total, within the read gap
+PASS  B. less is lit than at the start
+
+[C] "+15 min" at L
+PASS  C. +15 is pressable (the server's canAddTime)
+PASS  C. the server moved the end 15 minutes on
+PASS  C. the ring fills up again ("Vector Halcyon: 24 min left", 79%)
+      toast: "Added 15 min: 24 min left today."
+
+[D] time runs out
+      finishing at 2026-11-05T23:49:58.500Z
+      page: Agent controlsFinishing matchVector HalcyonIn a matchTime's up: your agent is finishing its last match.StopGo to matchPersonalityCalculatorWeighs every move on 
+PASS  D. while Nova's last match played, the ring said "Finishing match"
+PASS  D. the server: auto-play off, stopped "timeUp", allowance done
+PASS  D. the ring says "Done for today" (within one read)
+PASS  D. the stop is explained as time up, not the rewards cap
+PASS  D. +15 can't be pressed when done
+PASS  D. 30 min can start it again
+PASS  D. Nova isn't paired again (20 s of rounds at 20x)
+
+[E] S, then started again
+PASS  E. at S the minutes sit in the ring's centre ("60min")
+PASS  E. no time buttons at S (the brief: from M)
+
+[F] the page
+PASS  F. no external requests
+PASS  F. no page errors
+
+23 PASS, 0 FAIL

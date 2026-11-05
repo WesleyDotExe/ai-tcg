@@ -311,7 +311,7 @@ describe("the match pages over the real owner API, with the ladder playing", () 
     const { client, ada, owners, clock, live } = await stack();
     const off = await client.setAutoPlay(ada, false);
     expect(off.autoPlay.on).toBe(false);
-    expect((await client.play(ada)).autoPlay).toEqual(off.autoPlay);
+    expect({ ...(await client.play(ada)).autoPlay, readAt: 0 }).toEqual({ ...off.autoPlay, readAt: 0 }); // readAt: the client's own stamp
     expect(autoPlayView(off.autoPlay, true).note).toMatch(/^Off/);
     const on = await client.setAutoPlay(ada, true);
     expect(on.autoPlay.on).toBe(true);

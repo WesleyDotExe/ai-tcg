@@ -30,7 +30,7 @@ import {
   type WidgetSize,
   type WidgetType,
 } from "./siteBoard.js";
-import { agentControlsHtml, myAgentHtml, type SiteRating, type TimeAllowance } from "./siteAgent.js";
+import { agentControlsHtml, myAgentHtml, type SiteRating } from "./siteAgent.js";
 import { amount } from "./siteLook.js";
 import { dailyPackView } from "./siteStore.js";
 import { FACTION_HEX, PAGE_TITLES, esc, hashOf, icon } from "./siteModel.js";
@@ -83,9 +83,6 @@ export interface WidgetData {
   history: SiteHistory | null;
   /** `GET /api/rating` (render session 57: My agent). Absent: not read. */
   rating?: SiteRating | null;
-  /** The play-time allowance (Agent controls' ring); null until the server
-   * has one (game session 76). */
-  allowance?: TimeAllowance | null;
   /** A play setting being saved (the dial, the deck switcher). */
   busy?: boolean;
   /** The viewer (to mark their own side on a scoreboard). */
@@ -285,7 +282,7 @@ function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
 
 function agentData(d: WidgetData): Parameters<typeof myAgentHtml>[1] {
   const { rating, daily, history, live } = d.errors;
-  return { play: d.play, rating: d.rating ?? null, daily: d.daily, history: d.history, live: d.live, allowance: d.allowance ?? null, errors: { rating, daily, history, live }, now: d.now, busy: d.busy };
+  return { play: d.play, rating: d.rating ?? null, daily: d.daily, history: d.history, live: d.live, errors: { rating, daily, history, live }, now: d.now, busy: d.busy };
 }
 
 /** One widget: the glass tile, its icon and title, the open button (or in

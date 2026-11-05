@@ -83,10 +83,32 @@ export interface SitePlay {
 export interface SiteAutoPlay {
   on: boolean;
   changedAt: string | null;
-  stopped: { reason: string; day: string } | null;
+  /** Why the server turned it off today: the day's rewards maxed, or the
+   * play-time allowance ran out (`timeUp`, game session 76). */
+  stopped: { reason: "dailyRewardsMaxed" | "timeUp" | string; day: string } | null;
   dailyRewardsMaxed: boolean;
   canTurnOn: boolean;
   house: boolean;
+  /** The play-time allowance (schema v22, game session 76); null with no
+   * time limit or off. Absent from an older server. */
+  allowance?: SiteAllowance | null;
+  /** "+15 / +30" can be pressed now (session 76). */
+  canAddTime?: boolean;
+  /** Not the server's: when this answer was read (the client's
+   * `Date.now()`, stamped by `siteApi`), so the ring can drain between
+   * reads from the server's own `secondsLeft`, whatever the two clocks say. */
+  readAt?: number;
+}
+
+/** `autoPlay.allowance` (OWNER_API.md "The play-time allowance"). */
+export interface SiteAllowance {
+  state: "running" | "finishing" | "done";
+  startedAt: string;
+  endsAt: string;
+  totalMinutes: number;
+  secondsLeft: number;
+  minutesLeft: number;
+  endsAtReset: boolean;
 }
 
 /** One side of a live match, as it started (OWNER_API.md LiveSideView). */
@@ -371,7 +393,11 @@ export interface SiteApi {
   loadout(token: string, agentId: string): Promise<SiteLoadout>;
   setLoadout(token: string, agentId: string, slot: string, itemId: string | null): Promise<SiteLoadout>;
   // The match pages (render session 50).
-  setAutoPlay(token: string, on: boolean): Promise<{ autoPlay: SiteAutoPlay }>;
+  /** `minutes` (15 / 30 / 60) starts a play-time allowance (game session
+   * 76); left out, auto-play has no time limit. */
+  setAutoPlay(token: string, on: boolean, minutes?: number): Promise<{ autoPlay: SiteAutoPlay }>;
+  /** "+15 / +30" on a running allowance (`POST /api/play/auto-play/time`). */
+  addAutoPlayTime(token: string, minutes: number): Promise<{ autoPlay: SiteAutoPlay }>;
   /** `GET /api/rating?recent=N` (game session 66): the caller's rating and
    * its recent changes, newest first (render session 57: My agent). */
   rating(token: string, recent?: number): Promise<SiteRating>;
@@ -412,6 +438,14 @@ export function salvageNeedsConfirmation(err: unknown): SiteDeckShortfall[] | nu
 
 /** The API at `base` ("" for the page's own origin; the site is served
  * from the same origin as the API, OWNER_API.md "no CORS"). */
+/** Stamps when an answer carrying `autoPlay` was read (`SiteAutoPlay.readAt`). */
+async function stampPlay<T>(p: Promise<T>): Promise<T> {
+  const r = await p;
+  const ap = (r as { autoPlay?: SiteAutoPlay } | null)?.autoPlay;
+  if (ap && typeof ap === "object") ap.readAt = Date.now();
+  return r;
+}
+
 export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
   async function call<T>(method: string, path: string, opts: { token?: string; body?: unknown } = {}): Promise<T> {
     const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -467,11 +501,11 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     accountSettings: (token) => call("GET", "/api/account/settings", { token }),
     updateAccountSettings: (token, patch) => call("PATCH", "/api/account/settings", { token, body: patch }),
     wallet: (token) => call("GET", "/api/wallet", { token }),
-    play: (token) => call("GET", "/api/play", { token }),
-    setDeckChoice: (token, choice) => call("PUT", "/api/play/deck-choice", { token, body: { choice } }),
-    setFactionLock: (token, faction) => call("PUT", "/api/play/faction-lock", { token, body: { faction } }),
-    setActiveDeck: (token, deckId) => call("PUT", "/api/play/active-deck", { token, body: { deckId } }),
-    setPlayStyle: (token, agentId, style) => call("PUT", `/api/agents/${encodeURIComponent(agentId)}/play-style`, { token, body: { style } }),
+    play: (token) => stampPlay(call("GET", "/api/play", { token })),
+    setDeckChoice: (token, choice) => stampPlay(call("PUT", "/api/play/deck-choice", { token, body: { choice } })),
+    setFactionLock: (token, faction) => stampPlay(call("PUT", "/api/play/faction-lock", { token, body: { faction } })),
+    setActiveDeck: (token, deckId) => stampPlay(call("PUT", "/api/play/active-deck", { token, body: { deckId } })),
+    setPlayStyle: (token, agentId, style) => stampPlay(call("PUT", `/api/agents/${encodeURIComponent(agentId)}/play-style`, { token, body: { style } })),
     rebuild: async (token) => (await call<{ job: SiteRebuildJob }>("POST", "/api/play/rebuild", { token })).job,
     rebuildJob: async (token) => (await call<{ job: SiteRebuildJob }>("GET", "/api/play/rebuild", { token })).job,
     board: (token) => call("GET", "/api/board", { token }),
@@ -497,7 +531,8 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     cosmetics: (token) => call("GET", "/api/cosmetics", { token }),
     loadout: (token, agentId) => call("GET", `/api/agents/${encodeURIComponent(agentId)}/loadout`, { token }),
     setLoadout: (token, agentId, slot, itemId) => call("PUT", `/api/agents/${encodeURIComponent(agentId)}/loadout/${encodeURIComponent(slot)}`, { token, body: { itemId } }),
-    setAutoPlay: (token, on) => call("PUT", "/api/play/auto-play", { token, body: { on } }),
+    setAutoPlay: (token, on, minutes) => stampPlay(call("PUT", "/api/play/auto-play", { token, body: minutes === undefined ? { on } : { on, minutes } })),
+    addAutoPlayTime: (token, minutes) => stampPlay(call("POST", "/api/play/auto-play/time", { token, body: { minutes } })),
     rating: (token, recent) => call("GET", `/api/rating${recent ? `?recent=${recent}` : ""}`, { token }),
     live: (token) => call("GET", "/api/live", { token }),
     liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),

@@ -1271,3 +1271,19 @@ season mark) is proposed as a mark, call 1.
    `render/src/site/siteAgent.ts`). Any field names are fine: the render lane writes the adapter from whatever
    `GET /api/play` sends and wires the 15 / 30 / 60 and +15 / +30 buttons to its endpoint in a short follow-up.
 3. **The seven calls** are in `progress/render/checkpoints.md` (the newest checkpoint).
+
+## 2026-11-05 — Render session 58 (the time ring on the server's allowance)
+
+1. **For the game lane's roadmap upkeep** (this lane doesn't write `progress/roadmap.md`): render item 2 (My agent
+   and Agent controls) is now done whole: the time ring and the 15 / 30 / 60 and +15 / +30 buttons run on game
+   session 76's allowance (`progress/render/evidence/site-check-s58.txt`, 23/23 over the real ladder). The brief's
+   done-check "the ring counts down correctly, the agent finishes its current match" is met in the browser; "the
+   allowance resets at midnight Sydney" is the game lane's test, still to be watched in the widget at the clean-up
+   dry run.
+2. **Two small calls (kept unless you say otherwise):**
+   - Pressing 15 / 30 / 60 while time is running **starts over** with that many minutes from now (the server's rule:
+     turning on again replaces the allowance). The buttons stay pressable and their tooltip says so. The
+     alternative is to disable 15 / 30 / 60 while an allowance runs, leaving only +15 / +30.
+   - Once "Done for today", **Start** turns auto-play on with no time limit, as it did before the allowance; 15 / 30 /
+     60 start a new timed run. The alternative is for Start to reuse the last minutes chosen.
+3. Next: render session 59 is the hardening pass, then the pack opening ceremony part 1.

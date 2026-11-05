@@ -38,7 +38,7 @@ import { avatarSvg } from "../avatar.js";
 import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
-import type { SiteRating } from "./siteAgent.js";
+import { allowanceOf, type SiteRating } from "./siteAgent.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
@@ -499,7 +499,12 @@ function schedulePoll(): void {
   clearTimeout(state.poll);
   if (!state.session) return;
   const running = state.play?.rebuild.job?.state === "running";
-  state.poll = window.setTimeout(refresh, running ? 1500 : 15000);
+  // Render session 58: near the end of a play-time allowance, or while the
+  // agent finishes its last match, read every 5 s, so "Finishing match" and
+  // "Done for today" are the server's word within seconds.
+  const a = state.play ? allowanceOf(state.play.autoPlay, Date.now()) : null;
+  const ending = !!a && (a.state === "finishing" || (a.state === "running" && a.secondsLeft < 30));
+  state.poll = window.setTimeout(refresh, running ? 1500 : ending ? 5000 : 15000);
 }
 async function refresh(): Promise<void> {
   if (!state.session || document.hidden) return schedulePoll();
@@ -673,7 +678,7 @@ function homePage(p: SitePlay): string {
   if (!widgets.length) {
     return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
   }
-  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: null, busy: state.busy };
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, busy: state.busy };
   const { views, capped } = liveViews(widgets);
   const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id) })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -1832,7 +1837,7 @@ function drawLive(): void {
     const p = state.play;
     if (!p) return;
     const widgets = state.board.widgets;
-    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: null, busy: state.busy };
+    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, busy: state.busy };
     const { views, capped } = liveViews(widgets);
     for (const w of widgets) {
       if (w.type !== "live" && w.type !== "watch") continue;
@@ -1923,6 +1928,33 @@ async function setAutoPlay(on: boolean): Promise<void> {
   drawAgentCard();
   if (!dragging) drawPage();
   if (focusId) document.getElementById(focusId)?.focus();
+}
+
+/** Agent controls' time buttons (render session 58, on game session 76's
+ * play-time allowance): 15 / 30 / 60 start auto-play for that long (over a
+ * running allowance the server starts it over); +15 / +30 add to it. The
+ * server's refusal (409: no allowance, done, or already to midnight) is
+ * said in its words. */
+async function setPlayTime(minutes: number, add: boolean): Promise<void> {
+  if (!state.session || !state.play || state.autoBusy) return;
+  state.autoBusy = true;
+  state.busy = true;
+  try {
+    const r = add ? await api.addAutoPlayTime(state.session.token, minutes) : await api.setAutoPlay(state.session.token, true, minutes);
+    state.play = { ...state.play, autoPlay: r.autoPlay };
+    const a = r.autoPlay.allowance;
+    const left = a ? `${a.minutesLeft} min left today${a.endsAtReset ? " (it stops at midnight, Sydney)" : ""}` : "";
+    toast(add ? `Added ${minutes} min: ${left}.` : `Your agent plays for ${a ? a.minutesLeft : minutes} min${a?.endsAtReset ? ", until midnight (Sydney)" : ""}, then finishes its match and stops.`);
+  } catch (err) {
+    fail(err);
+  } finally {
+    state.autoBusy = false;
+    state.busy = false;
+  }
+  drawAgentCard();
+  if (!dragging) drawPage();
+  schedulePoll();
+  (document.querySelector(`[data-act="play-time"][data-min="${minutes}"][data-add="${add ? 1 : 0}"]`) as HTMLElement | null)?.focus();
 }
 
 /** "Ask for 2×" / take it back / agree (render session 56): sent, then the
@@ -2205,6 +2237,7 @@ document.addEventListener("click", (e) => {
     if (act === "claim-daily") return void claimDaily();
     if (act === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
     if (act === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
+    if (act === "play-time" && actEl.dataset.min) return void setPlayTime(Number(actEl.dataset.min), actEl.dataset.add === "1");
     // Render session 57: Agent controls' personality dial and deck switcher.
     if (act === "play-style" && actEl.dataset.agent && actEl.dataset.style) {
       if (actEl.getAttribute("aria-pressed") === "true") return;

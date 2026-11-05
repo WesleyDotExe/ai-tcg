@@ -9,12 +9,14 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
-- **Agent controls' time ring has no live data yet (session 57).** The ring, its states ("42 min left", amber
-  under 20%, "Finishing match", "Done for today") and the 15 / 30 / 60 and +15 / +30 buttons are drawn and
-  unit-tested, but the server has no play-time allowance until game session 76: today the ring only shows
-  auto-play on (full, "no time limit set") or off, and the buttons are disabled. No adapter from `GET /api/play`
-  exists and the buttons have no click handler; both are the follow-up once 2g lands. The brief's done-check (the
-  ring counts down, the agent finishes its match, the reset at midnight Sydney) is **not** met yet.
+- **Agent controls' time ring (session 57, wired to the server in session 58).** The ring, the 15 / 30 / 60 and
+  +15 / +30 buttons read and drive the server's play-time allowance (game session 76); browser-checked over the real
+  ladder through running, +15, finishing and done (`site-check-s58.txt`). **Thin:** between reads the ring drains at
+  the client's pace, so at a demo speed above 1x it lags the server by up to one read (15 s; 5 s near the end);
+  pressing 15 / 30 / 60 over a running allowance starts it over (the server's rule), said only in the button's
+  title; the Agent match page still shows on/off, not the time left; the midnight reset was tested by the game lane
+  (`play-time-001.txt`), not through the widget in a browser (the brief's clean-up dry run should cross midnight
+  with the widget on screen).
 - **My agent and Agent controls, thin spots (session 57):** the rating trend is drawn from `GET /api/rating`'s last
   20 rated matches, not the Stats data (game item 2e) the brief names; the dial's notches are buttons in tab order,
   not a radio group with arrow keys; the dial and deck switcher were only clicked with a mouse in the browser

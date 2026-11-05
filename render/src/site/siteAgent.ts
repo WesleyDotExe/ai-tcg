@@ -11,14 +11,15 @@
 //                   M + the personality dial, the time buttons, the deck, "Go to match"
 //                   L + the deck switcher, the match history, +15 / +30
 //
-// The time ring reads a `TimeAllowance`. The server's play-time allowance is
-// the game lane's next item (session 76), not built yet, so the widgets are
-// handed null today: the ring then shows auto-play as it is now (on, with no
-// time limit, or stopped) and the time buttons say what they wait on. Only
-// the adapter from `GET /api/play` is left to write when the server has it.
+// The time ring reads a `TimeAllowance`, made by `allowanceOf` from
+// `GET /api/play`'s `autoPlay.allowance` (the server's play-time allowance,
+// game session 76; wired in render session 58). With no allowance (no time
+// limit, or off, or an older server) the ring shows auto-play as it is: on
+// with no time limit, or stopped. The 15 / 30 / 60 buttons start auto-play
+// with that many minutes; +15 / +30 add to a running allowance.
 
 import { avatarSvg } from "../avatar.js";
-import type { SiteHistory, SiteHistoryRow, SiteLive, SitePlay } from "./siteApi.js";
+import type { SiteAutoPlay, SiteHistory, SiteHistoryRow, SiteLive, SitePlay } from "./siteApi.js";
 import type { SiteDaily } from "./siteBoard.js";
 import { autoPlayView, historyRowHtml, historyRowView, myLiveMatch, type AutoPlayView } from "./siteMatches.js";
 import { FACTION_HEX, agentStatus, deckLine, esc, styleName } from "./siteModel.js";
@@ -130,14 +131,36 @@ export function streakOf(rows: readonly SiteHistoryRow[]): Streak | null {
 
 // ---- the time ring --------------------------------------------------------------
 
-/** The server's play-time allowance, once it has one (game session 76):
- * the minutes given today, the minutes left, and what the agent is doing. */
+/** The play-time allowance as the ring draws it, read from the server's
+ * `autoPlay.allowance` by `allowanceOf`. */
 export interface TimeAllowance {
-  minutesTotal: number;
-  minutesLeft: number;
+  /** The window's length and what is left of it, in seconds. */
+  secondsTotal: number;
+  secondsLeft: number;
   /** running: time left, playing or queued; finishing: time is up, the
    * current match plays out; done: stopped for today. */
   state: "running" | "finishing" | "done";
+  /** The window ends at midnight Sydney: no more time can go on today. */
+  endsAtReset: boolean;
+  /** "+15 / +30" can be pressed now (the server's `canAddTime`). */
+  canAddTime: boolean;
+}
+
+/** The ring's allowance from `GET /api/play`'s `autoPlay`, `now` the
+ * client's clock. A running allowance drains from the server's own
+ * `secondsLeft` by the time since it was read (`readAt`), so the ring moves
+ * between reads without trusting the client's clock against the server's;
+ * each read sets it right again. It never drains past zero, and never
+ * changes state on its own: "Finishing match" and "Done for today" are the
+ * server's word, on the next read. Null with no allowance (no time limit,
+ * off, or a server before v22). */
+export function allowanceOf(ap: SiteAutoPlay, now: number): TimeAllowance | null {
+  const a = ap.allowance;
+  if (!a) return null;
+  const total = Math.max(1, Math.round(a.totalMinutes * 60));
+  const since = ap.readAt === undefined ? 0 : Math.max(0, (now - ap.readAt) / 1000);
+  const left = a.state === "running" ? Math.max(0, a.secondsLeft - since) : 0;
+  return { secondsTotal: total, secondsLeft: Math.min(total, left), state: a.state, endsAtReset: a.endsAtReset, canAddTime: !!ap.canAddTime };
 }
 
 export interface TimeRingView {
@@ -151,20 +174,24 @@ export interface TimeRingView {
   tone: "run" | "low" | "finish" | "done" | "open" | "off";
 }
 
-/** The ring's state. `inMatch`: the agent has a match live now. */
+/** The ring's state. `inMatch`: the agent has a match live now. Minutes
+ * round up, as the server's do ("1 min left" until the last second); the
+ * ring itself drains by the second. */
 export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, inMatch: boolean): TimeRingView {
   if (allowance) {
-    const total = Math.max(1, allowance.minutesTotal);
-    const left = Math.max(0, Math.min(total, Math.round(allowance.minutesLeft)));
+    const total = Math.max(1, allowance.secondsTotal);
+    const left = Math.max(0, Math.min(total, allowance.secondsLeft));
     if (allowance.state === "done") return { pct: 0, centre: "Done for today", unit: null, caption: "Done for today. The time resets at midnight (Sydney).", tone: "done" };
-    if (allowance.state === "finishing" || left === 0)
+    if (allowance.state === "finishing" || left <= 0)
       return { pct: 0, centre: "Finishing match", unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
-    return { pct: Math.round((left / total) * 100), centre: String(left), unit: "min", caption: `${left} min left today`, tone: left / total <= 0.2 ? "low" : "run" };
+    const mins = Math.ceil(left / 60);
+    const pct = Math.max(1, Math.round((left / total) * 100));
+    return { pct, centre: String(mins), unit: "min", caption: `${mins} min left today${allowance.endsAtReset ? " · stops at midnight" : ""}`, tone: left / total <= 0.2 ? "low" : "run" };
   }
   // No allowance: auto-play as it is today.
   if (!ap.shown) return { pct: 100, centre: "Always", unit: null, caption: "A house agent always plays.", tone: "open" };
   if (ap.on) return { pct: 100, centre: "On", unit: null, caption: inMatch ? "Playing · no time limit set" : "Auto-play on · no time limit set", tone: "open" };
-  return { pct: 0, centre: "Off", unit: null, caption: ap.stopped ? "Stopped: today's rewards are maxed" : inMatch ? "Stopped · the match live finishes" : "Stopped", tone: "off" };
+  return { pct: 0, centre: "Off", unit: null, caption: ap.stopped ? (ap.stoppedWhy === "timeUp" ? "Done for today: the time you gave ran out" : "Stopped: today's rewards are maxed") : inMatch ? "Stopped · the match live finishes" : "Stopped", tone: "off" };
 }
 
 /** The agent's portrait inside the ring. The ring is an SVG arc (a stroke
@@ -287,8 +314,6 @@ export interface AgentWidgetData {
   daily: SiteDaily | null;
   history: SiteHistory | null;
   live: SiteLive | null;
-  /** The play-time allowance; null until the server has one. */
-  allowance: TimeAllowance | null;
   errors: Partial<Record<"rating" | "daily" | "history" | "live", string>>;
   now: number;
   busy?: boolean;
@@ -358,10 +383,39 @@ export function myAgentHtml(size: "S" | "M" | "L", d: AgentWidgetData): string {
 
 const TIME_PRESETS = [15, 30, 60] as const;
 const TIME_ADDS = [15, 30] as const;
-const TIME_WAITS = "Time limits arrive with the server's play-time allowance.";
+export interface TimeButtonsView {
+  /** 15 / 30 / 60: start auto-play with that many minutes. */
+  start: { enabled: boolean; title: string };
+  /** +15 / +30: add to the running allowance. */
+  add: { enabled: boolean; title: string };
+}
 
-function timeButtons(mins: readonly number[], plus: boolean, enabled: boolean): string {
-  return `<div class="tbtns" role="group" aria-label="${plus ? "Add time" : "Give the agent time"}">${mins.map((m) => `<button type="button" class="btn sm" data-act="play-time" data-min="${m}" data-add="${plus ? 1 : 0}"${enabled ? "" : ` disabled title="${esc(TIME_WAITS)}"`}>${plus ? "+" : ""}${m} min</button>`).join("")}</div>`;
+/** When the time buttons can be pressed, and what each says when it can't
+ * (or, for 15 / 30 / 60 over a running allowance, what pressing it does:
+ * the server replaces the allowance, it never adds to it). */
+export function timeButtonsView(ap: AutoPlayView, a: TimeAllowance | null, busy: boolean): TimeButtonsView {
+  const canStart = ap.shown && (ap.on || ap.enabled);
+  const start = !ap.shown
+    ? { enabled: false, title: "A house agent always plays." }
+    : !canStart
+      ? { enabled: false, title: ap.note }
+      : a && a.state !== "done"
+        ? { enabled: !busy, title: "Starts over: that many minutes from now (the time left is dropped)." }
+        : { enabled: !busy, title: "Auto-play for that many minutes, then the agent finishes its match and stops." };
+  const add = !ap.shown
+    ? { enabled: false, title: "A house agent always plays." }
+    : a === null
+      ? { enabled: false, title: ap.on ? "No time limit is set: start with 15, 30 or 60 minutes to add time." : "Start with 15, 30 or 60 minutes first." }
+      : a.state === "done"
+        ? { enabled: false, title: "Done for today: start again with 15, 30 or 60 minutes." }
+        : !a.canAddTime
+          ? { enabled: false, title: a.endsAtReset ? "Today's time already runs to midnight (Sydney)." : "Time can't be added now." }
+          : { enabled: !busy, title: a.state === "finishing" ? "Plays on: the agent is paired again next round." : "Adds to the time left." };
+  return { start, add };
+}
+
+function timeButtons(mins: readonly number[], plus: boolean, st: { enabled: boolean; title: string }): string {
+  return `<div class="tbtns" role="group" aria-label="${plus ? "Add time" : "Give the agent time"}">${mins.map((m) => `<button type="button" class="btn sm" data-act="play-time" data-min="${m}" data-add="${plus ? 1 : 0}" title="${esc(st.title)}"${st.enabled ? "" : " disabled"}>${plus ? "+" : ""}${m} min</button>`).join("")}</div>`;
 }
 
 /** Start / Stop: the auto-play switch as one big button (auto-play is how
@@ -382,7 +436,9 @@ export function agentControlsHtml(size: "S" | "M" | "L", d: AgentWidgetData): st
   const fac = factionOf(p);
   const ap = autoPlayView(p.autoPlay, true);
   const inMatch = !!p.liveMatch;
-  const ring = timeRingView(d.allowance, ap, inMatch);
+  const allowance = allowanceOf(p.autoPlay, d.now);
+  const ring = timeRingView(allowance, ap, inMatch);
+  const tb = timeButtonsView(ap, allowance, !!d.busy);
   // "Go to match" sits beside Start / Stop from M up (S has no room).
   const go = inMatch ? `<a class="btn pri sm" href="#/match">Go to match</a>` : "";
   const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? "" : `<span class="small">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
@@ -395,15 +451,14 @@ export function agentControlsHtml(size: "S" | "M" | "L", d: AgentWidgetData): st
   const deck = `<div class="small">${ftag(fac)} ${esc(deckLine(p))}</div>`;
   const idle = inMatch ? "" : `<span class="muted small">No match live${ap.on ? ": joins the next ladder round" : ""}</span>`;
   const stopped = ap.stopped ? `<p class="muted small">${esc(ap.stopped)}</p>` : "";
-  const waits = d.allowance ? "" : `<span class="muted small">${esc(TIME_WAITS)}</span>`;
-  const time = `<div class="wcol tight tgrp"><span class="muted small">Give your agent</span>${timeButtons(TIME_PRESETS, false, false)}</div>`;
-  if (size === "M") return top + `<div class="ac-mid">${dial}<div class="wcol tight">${deck}${idle}${time}</div></div>${waits}` + stopped;
+  const time = `<div class="wcol tight tgrp"><span class="muted small">Give your agent</span>${timeButtons(TIME_PRESETS, false, tb.start)}</div>`;
+  if (size === "M") return top + `<div class="ac-mid">${dial}<div class="wcol tight">${deck}${idle}${time}</div></div>` + stopped;
   const hist = d.history
     ? d.history.matches.length
       ? `<ul class="hlist">${d.history.matches.slice(0, 5).map((r) => historyRowHtml(historyRowView(r, d.now), { compact: true })).join("")}</ul>`
       : `<p class="muted small">No matches yet.</p>`
     : pending(d, "history", "Match history");
-  const adds = `<div class="wcol tight tgrp"><span class="muted small">Add time while it runs</span>${timeButtons(TIME_ADDS, true, false)}</div>`;
-  return `<div class="wsplit wide-l"><div class="wcol">${top}${dial}${idle}${stopped}<div class="row top">${time}${adds}</div>${waits}</div>`
+  const adds = `<div class="wcol tight tgrp"><span class="muted small">Add time while it runs</span>${timeButtons(TIME_ADDS, true, tb.add)}</div>`;
+  return `<div class="wsplit wide-l"><div class="wcol">${top}${dial}${idle}${stopped}<div class="row top">${time}${adds}</div></div>`
     + `<div class="wcol"><h4>Deck</h4>${deckSwitcherHtml(deckOptions(p), !!d.busy)}<span class="muted small">A deck change applies from the next match.</span><h4>Match history</h4>${hist}</div></div>`;
 }

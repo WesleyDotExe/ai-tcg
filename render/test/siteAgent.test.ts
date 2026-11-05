@@ -20,8 +20,10 @@ import {
   myAgentHtml,
   ratingLine,
   ratingTrend,
+  allowanceOf,
   ringPortraitHtml,
   streakOf,
+  timeButtonsView,
   timeRingView,
   todayLine,
   trendSvg,
@@ -62,7 +64,7 @@ const ROW = (result: SiteHistoryRow["result"], i = 0): SiteHistoryRow => ({
 const DAILY = { wins: [{ nth: 1, matchId: "a", endedAt: "", credits: 20 }, { nth: 2, matchId: "b", endedAt: "", credits: 20 }], losses: 1 } as unknown as SiteDaily;
 const DATA: AgentWidgetData = {
   play: PLAY, rating: RATING, daily: DAILY, history: { total: 3, more: false, matches: [ROW("win", 1), ROW("cancelled", 2), ROW("abandonedByOpponent", 3), ROW("loss", 4)] }, live: null,
-  allowance: null, errors: {}, now: Date.parse("2026-11-05T09:00:00.000Z"),
+  errors: {}, now: Date.parse("2026-11-05T09:00:00.000Z"),
 };
 
 describe("My agent and Agent controls: the views (pure)", () => {
@@ -95,23 +97,77 @@ describe("My agent and Agent controls: the views (pure)", () => {
 
   it("the time ring: every state the brief names, and auto-play as it is today when the server has no allowance", () => {
     const on = autoPlayView(AUTO, true);
-    expect(timeRingView({ minutesTotal: 60, minutesLeft: 42, state: "running" }, on, true)).toEqual({ pct: 70, centre: "42", unit: "min", caption: "42 min left today", tone: "run" });
-    expect(timeRingView({ minutesTotal: 60, minutesLeft: 9, state: "running" }, on, false).tone).toBe("low");
+    const A = (secondsTotal: number, secondsLeft: number, state: "running" | "finishing" | "done" = "running", endsAtReset = false) => ({ secondsTotal, secondsLeft, state, endsAtReset, canAddTime: true });
+    expect(timeRingView(A(3600, 42 * 60), on, true)).toEqual({ pct: 70, centre: "42", unit: "min", caption: "42 min left today", tone: "run" });
+    expect(timeRingView(A(3600, 9 * 60), on, false).tone).toBe("low");
+    // Minutes round up, as the server's do: "1 min left" until the last second.
+    expect(timeRingView(A(900, 61), on, false).centre).toBe("2");
+    expect(timeRingView(A(900, 1), on, false)).toMatchObject({ centre: "1", pct: 1 });
+    // A window cut at midnight Sydney says so.
+    expect(timeRingView(A(1800, 1200, "running", true), on, false).caption).toBe("20 min left today · stops at midnight");
     // At zero: "Finishing match", then "Done for today".
-    expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, state: "finishing" }, on, true)).toMatchObject({ pct: 0, centre: "Finishing match", caption: "Time's up: your agent is finishing its last match." });
-    expect(timeRingView({ minutesTotal: 30, minutesLeft: 0, state: "done" }, on, false)).toMatchObject({ pct: 0, centre: "Done for today", tone: "done" });
-    // Minutes never run past the ring.
-    expect(timeRingView({ minutesTotal: 15, minutesLeft: 99, state: "running" }, on, false).pct).toBe(100);
-    // No allowance: on with no limit, off, stopped at the day's cap, a house agent.
+    expect(timeRingView(A(1800, 0, "finishing"), on, true)).toMatchObject({ pct: 0, centre: "Finishing match", caption: "Time's up: your agent is finishing its last match." });
+    expect(timeRingView(A(1800, 0, "done"), on, false)).toMatchObject({ pct: 0, centre: "Done for today", tone: "done" });
+    // Drained to zero on the client before the server's next read: already "Finishing match".
+    expect(timeRingView(A(900, 0), on, true).centre).toBe("Finishing match");
+    // Time never runs past the ring.
+    expect(timeRingView(A(900, 99 * 60), on, false).pct).toBe(100);
+    // No allowance: on with no limit, off, stopped at the day's cap or at time up, a house agent.
     expect(timeRingView(null, on, false)).toMatchObject({ pct: 100, centre: "On", caption: "Auto-play on · no time limit set", tone: "open" });
     expect(timeRingView(null, autoPlayView({ ...AUTO, on: false }, true), true)).toMatchObject({ pct: 0, centre: "Off", caption: "Stopped · the match live finishes" });
     expect(timeRingView(null, autoPlayView({ ...AUTO, on: false, canTurnOn: false, stopped: { reason: "dailyRewardsMaxed", day: "d" } }, true), false).caption).toBe("Stopped: today's rewards are maxed");
+    expect(timeRingView(null, autoPlayView({ ...AUTO, on: false, stopped: { reason: "timeUp", day: "d" } }, true), false).caption).toBe("Done for today: the time you gave ran out");
     expect(timeRingView(null, autoPlayView({ ...AUTO, house: true }, true), false).centre).toBe("Always");
     // The arc's lit length is the share of the time left.
-    const h = ringPortraitHtml("Nova", "Cortex", timeRingView({ minutesTotal: 60, minutesLeft: 30, state: "running" }, on, false), 80);
+    const h = ringPortraitHtml("Nova", "Cortex", timeRingView(A(3600, 1800), on, false), 80);
     const [lit, circ] = /stroke-dasharray="([\d.]+) ([\d.]+)"/.exec(h)!.slice(1).map(Number);
     expect(lit! / circ!).toBeCloseTo(0.5, 2);
     expect(h).toContain('aria-label="Nova: 30 min left"');
+  });
+
+  it("the allowance from GET /api/play: drains from the server's secondsLeft by the time since the read, never past zero, never changing state on its own", () => {
+    const allowance = { state: "running" as const, startedAt: "", endsAt: "", totalMinutes: 30, secondsLeft: 600, minutesLeft: 10, endsAtReset: false };
+    const ap: SiteAutoPlay = { ...AUTO, allowance, canAddTime: true, readAt: 1_000_000 };
+    expect(allowanceOf(ap, 1_000_000)).toEqual({ secondsTotal: 1800, secondsLeft: 600, state: "running", endsAtReset: false, canAddTime: true });
+    expect(allowanceOf(ap, 1_000_000 + 90_000)!.secondsLeft).toBe(510);
+    expect(allowanceOf(ap, 1_000_000 + 900_000)).toMatchObject({ secondsLeft: 0, state: "running" });
+    // A clock behind the read (another tab, a test) never adds time.
+    expect(allowanceOf(ap, 999_000)!.secondsLeft).toBe(600);
+    // Finishing and done hold at zero; an answer never stamped is read as is.
+    expect(allowanceOf({ ...ap, allowance: { ...allowance, state: "finishing", secondsLeft: 0 } }, 5e6)).toMatchObject({ secondsLeft: 0, state: "finishing" });
+    expect(allowanceOf({ ...ap, readAt: undefined }, 5e6)!.secondsLeft).toBe(600);
+    // A window cut at midnight (25 min of 60 chosen) is its own length.
+    expect(allowanceOf({ ...ap, allowance: { ...allowance, totalMinutes: 25, secondsLeft: 1500 } }, 1_000_000)).toMatchObject({ secondsTotal: 1500, secondsLeft: 1500 });
+    // None: no time limit, off, an older server.
+    expect(allowanceOf(AUTO, 0)).toBeNull();
+    expect(allowanceOf({ ...AUTO, allowance: null }, 0)).toBeNull();
+  });
+
+  it("the time buttons: 15 / 30 / 60 start (or start over), +15 / +30 only while the server says time can be added", () => {
+    const on = autoPlayView(AUTO, true);
+    const run = { secondsTotal: 1800, secondsLeft: 900, state: "running" as const, endsAtReset: false, canAddTime: true };
+    // No limit: start enabled, add refused with the reason.
+    let v = timeButtonsView(on, null, false);
+    expect(v.start.enabled).toBe(true);
+    expect(v.add).toEqual({ enabled: false, title: "No time limit is set: start with 15, 30 or 60 minutes to add time." });
+    v = timeButtonsView(autoPlayView({ ...AUTO, on: false }, true), null, false);
+    expect(v.start).toEqual({ enabled: true, title: "Auto-play for that many minutes, then the agent finishes its match and stops." });
+    expect(v.add.title).toBe("Start with 15, 30 or 60 minutes first.");
+    // Running: both; a preset says it starts over.
+    v = timeButtonsView(on, run, false);
+    expect(v.start.title).toMatch(/^Starts over/);
+    expect(v.add).toEqual({ enabled: true, title: "Adds to the time left." });
+    // To midnight already: no adding. Finishing: adding plays on. Done: start again.
+    expect(timeButtonsView(on, { ...run, canAddTime: false, endsAtReset: true }, false).add).toEqual({ enabled: false, title: "Today's time already runs to midnight (Sydney)." });
+    expect(timeButtonsView(on, { ...run, state: "finishing", secondsLeft: 0 }, false).add).toEqual({ enabled: true, title: "Plays on: the agent is paired again next round." });
+    const done = timeButtonsView(autoPlayView({ ...AUTO, on: false, stopped: { reason: "timeUp", day: "d" } }, true), { ...run, state: "done", secondsLeft: 0, canAddTime: false }, false);
+    expect(done.start.enabled).toBe(true);
+    expect(done.add.enabled).toBe(false);
+    // Rewards maxed: nothing starts. A house agent: nothing at all. Busy: nothing pressable.
+    expect(timeButtonsView(autoPlayView({ ...AUTO, on: false, canTurnOn: false }, true), null, false).start.enabled).toBe(false);
+    expect(timeButtonsView(autoPlayView({ ...AUTO, house: true }, true), null, false).start.enabled).toBe(false);
+    v = timeButtonsView(on, run, true);
+    expect([v.start.enabled, v.add.enabled]).toEqual([false, false]);
   });
 
   it("the dial: one notch per play style, the pointer on the agent's, and a change applies from the next match", () => {
@@ -164,12 +220,12 @@ describe("My agent and Agent controls: the views (pure)", () => {
     expect(cs).toContain('data-act="auto-play" data-on="0"');
     expect(cs).not.toContain("data-act=\"play-style\"");
     expect(cm.match(/data-act="play-style"/g)).toHaveLength(6);
-    expect(cm).toMatch(/data-min="15" data-add="0" disabled/);
+    expect(cm).toMatch(/data-min="15" data-add="0" title="[^"]*">15 min/); // on, no limit: a preset can start a timed run
     expect(cm).toContain("No match live: joins the next ladder round");
     expect(cm).not.toContain('data-act="ctl-deck"');
     expect(cm).not.toContain('data-add="1"');
     expect(cl.match(/data-act="ctl-deck"/g)).toHaveLength(3);
-    expect(cl).toMatch(/data-min="30" data-add="1" disabled/);
+    expect(cl).toMatch(/data-min="30" data-add="1" title="No time limit is set[^"]*" disabled/);
     expect(cl).toContain("Match history");
     // A match live: "Go to match"; stopped: Start.
     expect(agentControlsHtml("M", { ...DATA, play: { ...PLAY, liveMatch: { matchId: "m", startedAt: "" } } })).toContain('href="#/match">Go to match');
@@ -259,7 +315,7 @@ describe("My agent and Agent controls over the real owner API, with the ladder p
     const was = mine[side].playStyle;
     const next = was === "rusher" ? "fortress" : "rusher";
     let play = await client.setPlayStyle(ada, adaAgent, next); // what the dial's notch sends
-    const html = agentControlsHtml("M", { play, rating, daily, history, live: l, allowance: null, errors: {}, now: clock.t });
+    const html = agentControlsHtml("M", { play, rating, daily, history, live: l, errors: {}, now: clock.t });
     expect(html).toContain(`data-style="${next}" aria-pressed="true"`);
     const styleName = (id: string) => play.playStyles.find((s) => s.id === id)!.name;
     expect(html).toContain(`This match: ${styleName(was)}. ${styleName(next)} from the next match.`);
@@ -280,8 +336,119 @@ describe("My agent and Agent controls over the real owner API, with the ladder p
     play = await client.setActiveDeck(ada, starter);
     expect(deckOptions(play).find((o) => o.on)!.value).toBe(starter);
     expect((await client.play(ada)).deckChoice).toBe("forced");
-    const htmlL = agentControlsHtml("L", { play, rating, daily, history, live: l, allowance: null, errors: {}, now: clock.t });
+    const htmlL = agentControlsHtml("L", { play, rating, daily, history, live: l, errors: {}, now: clock.t });
     expect(htmlL).toContain(`data-deck="${starter}" aria-pressed="true"`);
     expect(htmlL).not.toMatch(/undefined|NaN|>null</);
   }, 60_000);
+});
+
+describe("Agent controls' time ring over the real owner API (render session 58, on game session 76's allowance)", () => {
+  it("15 minutes from the button: the ring drains, shows Finishing match in the last match, +15 plays on, then Done for today; the agent isn't paired again", async () => {
+    const clock = { t: Date.parse("2026-11-05T00:00:00.000Z") }; // 11:00 Sydney
+    const store = EconomyStore.open(":memory:", { now: () => new Date(clock.t) });
+    const owners = [
+      { name: "Ada", login: "ada", agent: "Lattice Wren", faction: "Swarm" as const },
+      { name: "Boris", login: "boris", agent: "Mote Engine", faction: "Aegis" as const },
+      { name: "Cyra", login: "cyra", agent: "Quiet Relay", faction: "Cortex" as const },
+    ].map((c) => {
+      const o = store.createAccount({ name: c.name, username: c.login, password: PW });
+      const { copies } = store.grantStarterCollection(o.ownerId, c.faction);
+      const a = store.createAgent({ ownerId: o.ownerId, name: c.agent });
+      const d = store.saveDeck(o.ownerId, `${c.faction} starter`, copies.map((x) => x.copyId));
+      store.setActiveDeck(o.ownerId, d.deckId);
+      store.connectAgent(o.ownerId, a.agentId);
+      if (c.login !== "ada") store.setAutoPlay(o.ownerId, true);
+      return { ...o, agent: a };
+    });
+    const dir = mkdtempSync(join(tmpdir(), "site-time-"));
+    let n = 0;
+    const live = new LiveLadder({ store, seed: 58, build: { games: 0 }, matchId: () => `t-${++n}`, logDir: dir, housePacks: false, now: () => clock.t, roundGapMs: 60_000 });
+    const api = await startOwnerApi({ store, port: 0, build: { games: 0 }, live, matchFiles: dir });
+    running.push({ close: async () => rmSync(dir, { recursive: true, force: true }) });
+    running.push(api);
+    const client = siteApi((u, i) => fetch(u, i), `http://127.0.0.1:${api.port}`);
+    const ada = (await client.signIn("ada", PW)).token;
+    const adaAgent = owners[0]!.agent.agentId;
+    const adaOwner = owners[0]!.ownerId;
+    const inAdasMatch = () => live.showing().some((m) => m.pairing.p1 === adaOwner || m.pairing.p2 === adaOwner);
+    const ctl = async (size: "S" | "M" | "L") => {
+      const play = await client.play(ada);
+      const l = await client.live(ada);
+      return { play, html: agentControlsHtml(size, { play, rating: null, daily: null, history: null, live: l, errors: {}, now: Date.now() }) };
+    };
+
+    // The "15 min" button sends PUT /api/play/auto-play { on: true, minutes: 15 }.
+    const started = await client.setAutoPlay(ada, true, 15);
+    expect(started.autoPlay.allowance).toMatchObject({ state: "running", totalMinutes: 15, secondsLeft: 900 });
+    expect(started.autoPlay.readAt).toBeTypeOf("number");
+    let { play, html } = await ctl("S");
+    expect(allowanceOf(play.autoPlay, Date.now())).toMatchObject({ secondsTotal: 900, state: "running" });
+    expect(html).toContain('class="tring t-run"');
+    expect(html).toContain('aria-label="Lattice Wren: 15 min left"');
+
+    // Five minutes on the server's clock: the ring is two thirds lit.
+    const advance = async (ms: number) => {
+      for (let t = 0; t < ms; t += 1000) {
+        clock.t += 1000;
+        await live.tick();
+      }
+    };
+    await advance(5 * 60_000);
+    ({ play, html } = await ctl("M"));
+    expect(play.autoPlay.allowance!.minutesLeft).toBe(10);
+    expect(html).toContain("10 min left today");
+    const lit = (h: string) => { const [a, c] = /class="tr-fg"[^>]*stroke-dasharray="([\d.]+) ([\d.]+)"/.exec(h)!.slice(1).map(Number); return a! / c!; };
+    expect(lit(html)).toBeCloseTo(10 / 15, 1);
+
+    // Run the clock until time is up while Ada is in a match: Finishing match.
+    let guard = 0;
+    while (guard++ < 3600 && !(play.autoPlay.allowance?.state === "finishing")) {
+      await advance(1000);
+      if (play.autoPlay.allowance && play.autoPlay.allowance.secondsLeft === 0 && !inAdasMatch()) break;
+      play = await client.play(ada);
+    }
+    const seenFinishing = play.autoPlay.allowance?.state === "finishing";
+    // Seed 58 runs out mid-match (the path the ring must show); the
+    // between-rounds path (straight to done) is game session 76's test.
+    expect(seenFinishing).toBe(true);
+    if (seenFinishing) {
+      ({ play, html } = await ctl("L"));
+      expect(html).toContain("Finishing match");
+      expect(html).toContain("Time&#39;s up: your agent is finishing its last match.");
+      expect(play.autoPlay.on).toBe(true);
+      // +15 while finishing opens a new window: running again, paired again next round.
+      expect(html).toMatch(/data-min="15" data-add="1" title="Plays on[^"]*">\+15 min/);
+      const more = await client.addAutoPlayTime(ada, 15);
+      expect(more.autoPlay.allowance).toMatchObject({ state: "running", totalMinutes: 15 });
+      // Then let it run out for good.
+      guard = 0;
+      while (guard++ < 3600) {
+        await advance(1000);
+        play = await client.play(ada);
+        if (play.autoPlay.allowance?.state === "done") break;
+      }
+    } else {
+      // Time ran out between rounds: straight to done (a real path, game session 76).
+      play = await client.play(ada);
+    }
+    // Play out whatever match is left, then read: Done for today.
+    for (let i = 0; i < 4000 && inAdasMatch(); i++) await advance(1000);
+    ({ play, html } = await ctl("L"));
+    expect(play.autoPlay.on).toBe(false);
+    expect(play.autoPlay.stopped?.reason).toBe("timeUp");
+    expect(play.autoPlay.allowance?.state).toBe("done");
+    expect(html).toContain('class="tring t-done"');
+    expect(html).toContain("Done for today");
+    expect(html).toContain("the time you gave your agent ran out");
+    expect(html).toMatch(/data-min="15" data-add="1" title="Done for today[^"]*" disabled/);
+    expect(html).toMatch(/data-min="30" data-add="0" title="Auto-play for that many minutes[^"]*">30 min/);
+    expect(html).not.toMatch(/undefined|NaN|>null</);
+    // Not paired again: ten more minutes of rounds without Ada.
+    for (let i = 0; i < 600; i++) {
+      await advance(1000);
+      expect(inAdasMatch()).toBe(false);
+    }
+    // +15 on a done allowance is refused in the server's words.
+    await expect(client.addAutoPlayTime(ada, 15)).rejects.toMatchObject({ status: 409 });
+  }, 120_000);
 });

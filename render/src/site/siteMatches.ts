@@ -110,15 +110,24 @@ export interface AutoPlayView {
   note: string;
   /** The server turned it off today: the message to show until midnight. */
   stopped: string | null;
+  /** Why (the server's reason): the day's rewards maxed, or the play-time
+   * allowance ran out (render session 58). */
+  stoppedWhy?: "dailyRewardsMaxed" | "timeUp" | null;
 }
 
 export function autoPlayView(a: SiteAutoPlay, hasAgent: boolean): AutoPlayView {
-  if (a.house) return { shown: false, on: true, enabled: false, label: "Always plays", note: "A house agent always plays.", stopped: null };
-  const stopped = a.stopped ? "Auto-play turned off: today's rewards are maxed. Turn it on again after midnight (Sydney)." : null;
-  if (!hasAgent) return { shown: true, on: a.on, enabled: false, label: "Auto-play", note: "Connect an agent to play matches.", stopped };
-  if (a.on) return { shown: true, on: true, enabled: true, label: "Auto-play", note: "Your agent joins every ladder round. A match already live finishes if you turn it off.", stopped };
-  if (!a.canTurnOn) return { shown: true, on: false, enabled: false, label: "Auto-play", note: "Today's rewards are maxed; auto-play can go on again after midnight (Sydney).", stopped };
-  return { shown: true, on: false, enabled: true, label: "Auto-play", note: "Off: your agent sits out the ladder rounds.", stopped };
+  if (a.house) return { shown: false, on: true, enabled: false, label: "Always plays", note: "A house agent always plays.", stopped: null, stoppedWhy: null };
+  const stoppedWhy = !a.stopped ? null : a.stopped.reason === "timeUp" ? "timeUp" : "dailyRewardsMaxed";
+  const stopped = !a.stopped
+    ? null
+    : stoppedWhy === "timeUp"
+      ? "Auto-play stopped: the time you gave your agent ran out. Give it more time, or start it with no limit."
+      : "Auto-play turned off: today's rewards are maxed. Turn it on again after midnight (Sydney).";
+  const base = { shown: true, label: "Auto-play", stopped, stoppedWhy } as const;
+  if (!hasAgent) return { ...base, on: a.on, enabled: false, note: "Connect an agent to play matches." };
+  if (a.on) return { ...base, on: true, enabled: true, note: "Your agent joins every ladder round. A match already live finishes if you turn it off." };
+  if (!a.canTurnOn) return { ...base, on: false, enabled: false, note: "Today's rewards are maxed; auto-play can go on again after midnight (Sydney)." };
+  return { ...base, on: false, enabled: true, note: "Off: your agent sits out the ladder rounds." };
 }
 
 /** The switch as HTML (a real checkbox-role button, so a screen reader

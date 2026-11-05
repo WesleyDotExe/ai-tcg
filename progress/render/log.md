@@ -5067,3 +5067,56 @@ browser (keyboard: each notch is a button in tab order, not a radio group with a
 **Next render-lane slice (the owner's 2026-11-06 order, item 3):** the pack opening ceremony, part 1: the bigger pack
 art, the gradient backdrop with its tells, the tear and the burst. When game session 76 lands the allowance, a small
 follow-up wires the ring and the time buttons (the adapter and `data-act="play-time"`).
+
+## 2026-11-05 — Render session 58: Agent controls' time ring on the server's play-time allowance
+
+Read first: owner-feedback.md (the 2026-11-06 entry sets the order; no render entry is unhandled), RENDER.md, the
+Season 0 brief, this lane's log, notes and debt. The last merged PR (#135) was the game lane's (session 76), so this
+is the render lane. Not a hardening pass (the next is 59). Game session 76 shipped the play-time allowance, which
+render item 2 (Agent controls) waited on, so this session finished item 2 whole before starting item 3 (the pack
+ceremony part 1): the brief's done-check "the time-remaining ring counts down correctly, the agent finishes its
+current match" was not met until now.
+
+**Built:**
+- `siteApi.ts`: `SiteAutoPlay` carries `allowance` (`SiteAllowance`, the server's shape) and `canAddTime`;
+  `setAutoPlay(token, on, minutes?)` and `addAutoPlayTime(token, minutes)` (`POST /api/play/auto-play/time`). Every
+  answer carrying `autoPlay` is stamped with `readAt` (the client's clock at the read), so the ring can drain
+  between reads from the server's own `secondsLeft` without comparing the two clocks.
+- `siteAgent.ts`: `allowanceOf(autoPlay, now)` (the adapter; drains a running allowance by the time since the read,
+  never past zero, never changes state itself: "Finishing match" and "Done for today" are the server's word);
+  `TimeAllowance` is now seconds (the ring drains by the second; minutes round up as the server's do); a window
+  cut at midnight says "· stops at midnight". `timeButtonsView`: 15 / 30 / 60 start auto-play with that many
+  minutes (over a running allowance the title says it starts over, which is what the server does); +15 / +30 only
+  when the server's `canAddTime` says so, each refusal with its reason (no limit set, done for today, already to
+  midnight). The "Time limits arrive…" placeholder is gone. The widgets compute the allowance from
+  `GET /api/play` themselves (the `allowance: null` field the client passed is removed).
+- `siteMatches.ts`: `autoPlayView` tells the two stop reasons apart: `timeUp` reads "the time you gave your agent
+  ran out", not the rewards cap.
+- `siteClient.ts`: the `play-time` buttons' handler (toasts in the server's numbers; 409s in its words); the status
+  poll reads every 5 s while the agent finishes its last match or in the last 30 s of its time (else 15 s).
+
+**Ran it:** `progress/render/evidence/site-check-s58.mjs` -> `site-check-s58.txt`: **23 PASS, 0 FAIL** against the
+real owner API with the ladder at 20x (15 server minutes in 45 s): A, "15 min" clicked at M starts a 15-minute
+allowance, the ring lit, "15 min left today"; B, 16 s later the ring reads 10 min, 63% lit, the server 554 s left
+(the same within the read gap); C, "+15 min" at L moves the server's end 15 minutes, the ring fills to 24 min;
+D, Nova's time ran out mid-match: the ring said "Finishing match" while the match played, then the server stopped
+auto-play (`timeUp`, allowance done) and the ring said "Done for today" within one read, +15 disabled, 30 min
+pressable, and Nova was not paired again over 20 s of rounds; E, at S the minutes sit in the ring's centre and no
+time buttons show; F, no external requests, no page errors. Passed on its first run. Stills `v2-s58-ring-M-started.jpg`,
+`-ring-L-added.jpg`, `-ring-L-finishing.jpg`, `-ring-L-done.jpg`, `-ring-S.jpg`.
+
+**Tests (+3, render 885):** `siteAgent.test.ts`: the ring's states in seconds (rounding up, the midnight cut, a ring
+drained to zero before the next read), `allowanceOf` (the drain, a clock behind the read, finishing and done held
+at zero, an unstamped answer), `timeButtonsView` (every reason), and over the real owner API with the ladder on a
+moved clock: 15 minutes from the button, the ring two thirds lit after 5 minutes, "Finishing match" in the last
+match (seed 58 runs out mid-match; asserted), +15 while finishing plays on, then "Done for today", +15 refused
+(409), not paired again for 10 minutes. `siteMatches.test.ts`: one comparison ignores the client's `readAt`.
+`npm test -w @ai-tcg/render` 885 pass; typecheck clean.
+
+**Not done (named):** the pack opening ceremony (item 3) is next, not started. The Agent match page's switch still
+shows only on/off, not the time left (the brief puts the ring on the widget; the page links to it from Home only).
+At a demo speed above 1x the ring drains between reads at the real pace, so it lags the server until the next read
+(at most 15 s; exact at 1x).
+
+**Next render-lane slice:** session 59 is the render hardening pass (the rhythm: 54, 59). Then item 3, the pack
+opening ceremony part 1: the bigger pack art, the gradient backdrop with its tells, the tear and the burst.
