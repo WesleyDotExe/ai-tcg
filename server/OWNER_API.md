@@ -1,6 +1,6 @@
 # Owner API
 
-The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Session 70 versioned the replay files (`ai-tcg-replay/2`: the rules and card versions, every card in full; `/1` files still rebuild). Session 72 added the live-feed asks: the opening hands, the signature card in full, each side's faction and the boast on the live view. Session 73 added the 2× vote. Session 74 added Watch live's featured groups ("Top rated") and viewer counts. Notifications and the Stats page's data come in later sessions, on the same server.
+The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Session 70 versioned the replay files (`ai-tcg-replay/2`: the rules and card versions, every card in full; `/1` files still rebuild). Session 72 added the live-feed asks: the opening hands, the signature card in full, each side's faction and the boast on the live view. Session 73 added the 2× vote. Session 74 added Watch live's featured groups ("Top rated") and viewer counts. Session 76 added the play-time allowance on auto-play ("give the agent X minutes"). Notifications and the Stats page's data come in later sessions, on the same server.
 
 - Code: `server/src/ownerApi.ts` (`startOwnerApi`); run it with `npm run owner-api -w server -- <season database file> [port]` (default port 8081).
 - Every rule lives in the economy store (`economy/src/store.ts`). The API reads the request, checks the caller may touch what it names, calls the store and answers. It never writes SQL.
@@ -63,7 +63,8 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `PUT /api/agents/:agentId/play-style` | `{ style }` (a play style id) | the play settings |
 | `POST /api/play/rebuild` | none | 202 `{ job }`: the agent starts building its deck |
 | `GET /api/play/rebuild` | none | `{ job }`, the owner's latest rebuild (404 if none) |
-| `PUT /api/play/auto-play` | `{ on: boolean }` | `{ autoPlay }` (below); 409 for a house owner, or turning it on while today's rewards are maxed |
+| `PUT /api/play/auto-play` | `{ on: boolean, minutes?: 15 \| 30 \| 60 }` | `{ autoPlay }` (below); `minutes` starts a play-time allowance (session 76), left out for no time limit; 400 for other minutes or minutes with `on: false`; 409 for a house owner, or turning it on while today's rewards are maxed |
+| `POST /api/play/auto-play/time` | `{ minutes: 15 \| 30 }` | `{ autoPlay }`: "+15 / +30" on a running allowance (session 76); 400 for other minutes; 409 with no allowance (off, done for today, or no time limit) or when it already runs to midnight Sydney |
 | `GET /api/live` | none | `{ running, matches: LiveMatchView[], mine, featured }`: every match being shown, the caller's, and Watch live's groups (below) |
 | `GET /api/live/:matchId?from=0` | none | `LiveMatchFeed`: the match now, and the moves released from `from` on (below); 404 once it ended. Reading it counts the caller as watching (`viewers`) |
 | `GET /api/matches?limit=20&before=<matchId>` | none | `{ matches: HistoryRow[], total, more }`: the caller's matches, newest first (below) |
@@ -370,6 +371,30 @@ The switch on the My agent card, the match screen and Settings -> Play (owner ap
 - While it is on, the ladder queues the owner's connected agent every round. House owners are always queued.
 - The server turns it off after the match that maxes the day's rewards (the 10th rewarded win), with the reason; the message shows until midnight Sydney.
 - Turning it off lets a match already live finish; the owner is just not queued for the next round.
+
+#### The play-time allowance (schema v22, session 76)
+
+"Give the agent X minutes" on the Agent controls widget (owner 2026-11-06; `progress/season0-final-brief.md` section 1). `PUT /api/play/auto-play` with `{ on: true, minutes: 15 | 30 | 60 }` turns auto-play on for that long from now; `{ on: true }` with no minutes is auto-play with no time limit, as before. `autoPlay` carries two more fields:
+
+```
+  allowance: {
+    state: "running" | "finishing" | "done",
+    startedAt: string, endsAt: string,   // the window the agent may be paired in
+    totalMinutes: number,                // its length (the ring: secondsLeft / (totalMinutes * 60))
+    secondsLeft: number,                 // 0 once time is up
+    minutesLeft: number,                 // rounded up: "1 min left" until the last second
+    endsAtReset: boolean                 // the window ends at midnight Sydney: no more time can go on today
+  } | null,                              // null: no time limit, or off
+  canAddTime: boolean                    // "+15 / +30" can be pressed now
+```
+
+- **running**: time is left; the ladder queues the agent each round. The clock runs on wall time from the start, whether or not the agent is in a match (rounds wait for every match in them to end, so some of the time is spent waiting for the next round).
+- **finishing**: time is up while the agent is in a live match. It is not queued again; the match plays to the end and counts as normal. `on` is still true. The widget shows "Finishing match".
+- **done**: time is up and no match is left. `on` reads false and `stopped` is `{ reason: "timeUp", day }` from the moment time is up (the server writes the stop after the match, or before the next round, and the ladder's `autoPlayStopped` event carries `reason: "timeUp"`). The widget shows "Done for today". It shows until midnight Sydney; the owner can start again with new minutes at any time (there is no daily cap on time, only on rewards).
+- **+15 / +30** (`POST /api/play/auto-play/time`): while running, adds to the end; while finishing, opens a new window of that many minutes from now, so the agent is paired again next round. Refused when done (start again with minutes instead) and with no time limit.
+- **No carry-over**: every window is cut at the next midnight Sydney (60 minutes started at 23:30 give 30, with `endsAtReset: true`, and nothing can be added). A match still running at midnight finishes; its "done" belongs to the day the time ran out, so the new day reads clean (`allowance: null`, `stopped: null`).
+- Turning auto-play off, or on again (with or without minutes), drops the current allowance. Maxing the day's rewards turns auto-play off with `dailyRewardsMaxed` and drops the allowance too.
+- A personality (play style) change still applies from the next match; the allowance doesn't touch it.
 
 ### Watch live and the Live match widget (session 67)
 

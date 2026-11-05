@@ -1,6 +1,31 @@
 # Notes for the owner
 
-**Updated 2026-11-05, session 75 (hardening pass).** Nothing is blocking. One small call below; session 74's
+**Updated 2026-11-05, session 76 (the play-time allowance).** Nothing is blocking. It is built as you approved;
+five small calls below that I made to build it, all easy to change. Session 75's call (the demo check in CI) is
+still open, below.
+
+"Give the agent X minutes" works over HTTP: `PUT /api/play/auto-play` with `{ on: true, minutes: 15 | 30 | 60 }`,
+`POST /api/play/auto-play/time` with `{ minutes: 15 | 30 }`, and `GET /api/play` reports minutes and seconds left,
+the window's length (for the ring), and running / finishing / done. `progress/play-time-001.txt` runs the real
+ladder at watch speed: Ada with 30 minutes, Bram with 15 then +30, Cyra with no limit. Both allowance agents ran
+out of time mid-match, finished it (it counted), and weren't paired again. Cyra played on. 13 checks pass.
+
+**Calls I made (your call on each):**
+1. **The clock runs on wall time from the start**, including while the agent waits for the next round. Rounds wait
+   for every match in them to end, so some minutes are spent idle (about 4 of Ada's 30). The other option is to
+   count only time in matches, but then "42 min left" would not count down steadily. Keep wall time?
+2. **Midnight cuts the window.** 60 minutes started at 23:30 gives 30, and +15 is refused then. That is how I read
+   "no carry-over, resets at midnight". A match running at midnight still finishes.
+3. **Stopping drops the time left.** There is no pause. Turning auto-play back on starts a new allowance (or no
+   limit).
+4. **+15 / +30 during "Finishing match"** gives that many minutes from now, so the agent is paired again next
+   round. When "Done for today", start again with 15 / 30 / 60 instead.
+5. **No daily cap on time.** After "Done for today" the owner can start again the same day. Only the rewards are
+   capped, as before. If "Done for today" should mean done until midnight, that is one line to change.
+
+---
+
+**Updated 2026-11-05, session 75 (hardening pass).** Nothing is blocking. One small call below (still open); session 74's
 calls are answered (2026-11-06, keep all) and kept below for the record.
 
 - **The auto-merge retry fix is in**, as you OK'd: the "Wait for checks to pass" step retries a GitHub 5xx or a rate

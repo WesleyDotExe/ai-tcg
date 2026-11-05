@@ -60,6 +60,8 @@ export {
   type LiveMatch,
   type AutoPlayStatus,
   type AutoPlayStopReason,
+  type AutoPlayAllowance,
+  type AutoPlayAllowanceState,
   type LiveSide,
   type HouseOwnerRow,
   type OwnerStats,
@@ -142,6 +144,8 @@ export {
   SESSION_DAYS,
   SIGN_IN_LOCKOUT,
   DAILY_RESET_TIME_ZONE,
+  AUTO_PLAY_START_MINUTES,
+  AUTO_PLAY_ADD_MINUTES,
 } from "./config.js";
 export {
   CARD_SETS,

@@ -35,7 +35,7 @@ import { mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { formatLog, getCard, isShippedRules, LookaheadAgent, runMatch, type Agent, type UnitCard, type DeckBuildOptions, type DeckSpec, type Move, type PlayerId, type PlayStyleId, type MatchRules } from "@ai-tcg/engine";
-import { coinOf, EconomyError, PACK_PRICE_CREDITS, type DeckChooser, type EconomyStore, type LiveMatch, type MatchRecord, type RecordedOutcome } from "@ai-tcg/economy";
+import { coinOf, EconomyError, PACK_PRICE_CREDITS, type AutoPlayStopReason, type DeckChooser, type EconomyStore, type LiveMatch, type MatchRecord, type RecordedOutcome } from "@ai-tcg/economy";
 import { deepEqual } from "../deepEqual.js";
 import { makeReplayFile, type ReplayFile } from "./replayFile.js";
 import { pairRound, seededRandom, type Pairing, type QueueEntry, type Random } from "./pairing.js";
@@ -92,7 +92,7 @@ function guarded(agent: Agent, seat: PlayerId): Agent {
 
 export type LadderEvent =
   | { kind: "housePacks"; ownerId: string; bought: number; opened: number; cards: number; newCards: number }
-  | { kind: "autoPlayStopped"; ownerId: string }
+  | { kind: "autoPlayStopped"; ownerId: string; reason: AutoPlayStopReason }
   | { kind: "rebuilt"; ownerId: string; reasons: string[]; faction: string; cards: number }
   | { kind: "excluded"; ownerId: string; reason: string }
   | { kind: "paired"; pairing: Pairing }
@@ -107,7 +107,8 @@ export interface LadderMatch {
   /** Where its replay was written (`<matchId>.replay.json`), likewise. */
   replayPath: string | null;
   /** Owners whose auto-play the store switched off after this match (the
-   * day's rewards maxed). */
+   * day's rewards maxed, or (session 76) the play-time allowance's time up
+   * with this match finished). */
   autoPlayStopped: string[];
 }
 
@@ -256,7 +257,12 @@ export class Ladder {
   /** A round up to the matches: the house owners shop, what needs it
    * rebuilds, the queue is paired. The pairs are returned to play (the
    * report's `matches` stay empty for the caller to fill). */
-  async startRound(queue: readonly string[] = this.eligibleOwners()): Promise<{ report: RoundReport; pairs: Pairing[] }> {
+  async startRound(queue?: readonly string[]): Promise<{ report: RoundReport; pairs: Pairing[] }> {
+    // (session 76) An allowance whose time ran out between rounds, with no
+    // match to finish, is switched off here, so its owner hears of it; the
+    // queue never held it either way (autoPlayOwners).
+    for (const ownerId of this.store.stopAutoPlayTimeUp()) this.emit({ kind: "autoPlayStopped", ownerId, reason: "timeUp" });
+    queue ??= this.eligibleOwners();
     const report: RoundReport = { round: ++this.rounds, housePacks: [], rebuilt: [], excluded: [], pairs: [], sitOut: [], matches: [] };
     for (const ownerId of queue) {
       const shopped = this.houseShopping(ownerId);
@@ -445,10 +451,15 @@ export class Ladder {
       replayPath = join(this.opts.logDir, `${matchId}.replay.json`);
       writeAtomic(replayPath, `${JSON.stringify(replay)}\n`);
     }
-    const autoPlayStopped = [record.p1OwnerId, record.p2OwnerId].filter((o) => this.store.stopAutoPlayIfMaxed(o));
-    const m: LadderMatch = { record, note, logPath, replayPath, autoPlayStopped };
+    // The rewards first: maxing them drops any allowance with the switch.
+    const stops: { ownerId: string; reason: AutoPlayStopReason }[] = [];
+    for (const ownerId of [record.p1OwnerId, record.p2OwnerId]) {
+      if (this.store.stopAutoPlayIfMaxed(ownerId)) stops.push({ ownerId, reason: "dailyRewardsMaxed" });
+      else if (this.store.stopAutoPlayIfTimeUp(ownerId)) stops.push({ ownerId, reason: "timeUp" });
+    }
+    const m: LadderMatch = { record, note, logPath, replayPath, autoPlayStopped: stops.map((x) => x.ownerId) };
     this.emit({ kind: "match", result: m });
-    for (const ownerId of autoPlayStopped) this.emit({ kind: "autoPlayStopped", ownerId });
+    for (const stop of stops) this.emit({ kind: "autoPlayStopped", ...stop });
     return m;
   }
 }

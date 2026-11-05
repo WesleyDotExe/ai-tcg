@@ -37,7 +37,7 @@ describe("auto-play (schema v18)", () => {
     const s = open();
     const a = owner(s, "ada");
     const b = owner(s, "bo");
-    expect(s.autoPlay(a.ownerId)).toEqual({ on: false, changedAt: null, stopped: null, dailyRewardsMaxed: false, canTurnOn: true });
+    expect(s.autoPlay(a.ownerId)).toEqual({ on: false, changedAt: null, stopped: null, dailyRewardsMaxed: false, canTurnOn: true, allowance: null, canAddTime: false });
     expect(s.setAutoPlay(a.ownerId, true)).toMatchObject({ on: true, changedAt: clock.toISOString(), stopped: null });
     s.setAutoPlay(b.ownerId, true);
     expect(s.autoPlayOwners()).toEqual([a.ownerId, b.ownerId]);
@@ -93,7 +93,7 @@ describe("auto-play (schema v18)", () => {
     const o = v17.createOwner({ name: "old" });
     v17.close();
     const v18 = open(path);
-    expect(v18.schemaVersion).toBe(21);
+    expect(v18.schemaVersion).toBe(22);
     expect(v18.autoPlay(o.ownerId).on).toBe(false);
     v18.setAutoPlay(o.ownerId, true);
     const exec = (sql: string) => () => v18.unsafeExec(sql);

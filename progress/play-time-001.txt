@@ -1,0 +1,127 @@
+Play-time demo 001 — "give the agent X minutes" on auto-play (session 76)
+========================================================================
+Owner 2026-11-06: auto-play on with 15 / 30 / 60 minutes, +15 / +30 while it runs; when time runs out
+the agent finishes its current match and isn't paired again; no carry-over, resets at midnight Sydney;
+no time chosen is auto-play as before. Times below are Sydney wall-clock.
+
+1. Turning it on (PUT /api/play/auto-play)
+------------------------------------------------------------------------
+  Ada { on, minutes: 30 }    200  on=true  running, 30 of 30 min, ends 10:30:00  canAddTime=true
+  Bram { on, minutes: 15 }   200  on=true  running, 15 of 15 min, ends 10:15:00  canAddTime=true
+  Cyra { on }                200  on=true  no time limit  canAddTime=false
+  Cyra { on, minutes: 45 }    400  "minutes" must be 15, 30, 60, or left out for no time limit
+  Cyra POST time +15         409  auto-play isn't running on a time allowance; start it with 15, 30 or 60 minutes
+  [PASS] no time chosen is auto-play as before (no allowance, nothing to add to)
+
+2. The ladder at watch speed; each owner's widget read every 30 s (changes only)
+------------------------------------------------------------------------
+  10:00:00  * paired Kiln v Ada
+  10:00:00  * paired Cyra v Bram
+  10:00:00  Ada   running 30 min [in m1]
+  10:00:00  Bram  running 15 min [in m2]
+  10:00:00  Cyra  on, no limit [in m2]
+  10:05:00  Ada   running 25 min [in m1]
+  10:05:00  Bram  running 10 min [in m2]
+  10:06:00  * m1 recorded (win): Kiln v Ada
+  10:06:00  Ada   running 24 min
+  10:06:30  * m2 recorded (win): Cyra v Bram
+  10:06:30  Bram  running 9 min
+  10:06:30  Cyra  on, no limit
+  10:07:00  * paired Cyra v Hub
+  10:07:00  * paired Bram v Ada
+  10:07:00  Ada   running 23 min [in m4]
+  10:07:00  Bram  running 8 min [in m4]
+  10:07:00  Cyra  on, no limit [in m3]
+  10:10:00  * Bram adds +30 (POST /api/play/auto-play/time): 200, now ends 10:45:00
+  10:10:00  Ada   running 20 min [in m4]
+  10:10:00  Bram  running 35 min [in m4]
+  10:12:00  * m4 recorded (win): Bram v Ada
+  10:12:00  Ada   running 18 min
+  10:12:00  Bram  running 33 min
+  10:14:30  * m3 recorded (win): Cyra v Hub
+  10:14:30  Cyra  on, no limit
+  10:15:00  * paired Cyra v Kiln
+  10:15:00  * paired Hub v Bram
+  10:15:00  Ada   running 15 min
+  10:15:00  Bram  running 30 min [in m6]
+  10:15:00  Cyra  on, no limit [in m5]
+  10:20:00  Ada   running 10 min
+  10:20:00  Bram  running 25 min [in m6]
+  10:22:00  * m6 recorded (win): Hub v Bram
+  10:22:00  Bram  running 23 min
+  10:23:30  * m5 recorded (win): Cyra v Kiln
+  10:23:30  Cyra  on, no limit
+  10:24:00  * paired Cyra v Ada
+  10:24:00  * paired Hub v Bram
+  10:24:00  Ada   running 6 min [in m7]
+  10:24:00  Bram  running 21 min [in m8]
+  10:24:00  Cyra  on, no limit [in m7]
+  10:25:00  Ada   running 5 min [in m7]
+  10:25:00  Bram  running 20 min [in m8]
+  10:29:00  * m8 recorded (win): Hub v Bram
+  10:29:00  Bram  running 16 min
+  10:30:00  Ada   finishing 0 min [in m7]
+  10:30:00  Bram  running 15 min
+  10:35:00  Bram  running 10 min
+  10:35:30  * auto-play off for Ada: timeUp
+  10:35:30  * m7 recorded (win): Cyra v Ada
+  10:35:30  Ada   done stopped=timeUp
+  10:35:30  Cyra  on, no limit
+  10:36:00  * paired Cyra v Kiln
+  10:36:00  * paired Hub v Bram
+  10:36:00  Bram  running 9 min [in m10]
+  10:36:00  Cyra  on, no limit [in m9]
+  10:40:00  Bram  running 5 min [in m10]
+  10:40:30  * m10 recorded (win): Hub v Bram
+  10:40:30  Bram  running 5 min
+  10:42:00  * m9 recorded (win): Cyra v Kiln
+  10:42:00  Cyra  on, no limit
+  10:42:30  * paired Cyra v Hub
+  10:42:30  * paired Kiln v Bram
+  10:42:30  Bram  running 3 min [in m12]
+  10:42:30  Cyra  on, no limit [in m11]
+  10:45:00  Bram  finishing 0 min [in m12]
+  10:47:30  * m11 recorded (win): Cyra v Hub
+  10:47:30  Cyra  on, no limit
+  10:49:30  * auto-play off for Bram: timeUp
+  10:49:30  * m12 recorded (win): Kiln v Bram
+  10:49:30  Bram  done stopped=timeUp
+  10:55:30  * paired Hub v Kiln
+  10:55:30  * m13 recorded (win): Hub v Kiln
+  10:55:30  * paired Kiln v Cyra
+  10:55:30  Cyra  on, no limit [in m14]
+  11:02:00  * m14 recorded (win): Kiln v Cyra
+  11:02:00  Cyra  on, no limit
+  11:02:30  * paired Cyra v Hub
+  11:02:30  Cyra  on, no limit [in m15]
+  11:06:30  * m15 recorded (win): Cyra v Hub
+  11:06:30  Cyra  on, no limit
+  11:07:00  * paired Kiln v Cyra
+  11:07:00  Cyra  on, no limit [in m16]
+
+3. Checks
+------------------------------------------------------------------------
+  Ada (30 min): 3 matches, m1 10:00:00-10:05:35, m4 10:06:40-10:12:00, m7 10:23:45-10:35:20; time up 10:30:00
+  [PASS] Ada (30 min): widget states went running -> finishing -> done
+  [PASS] Ada (30 min): every match started inside the window
+  [PASS] Ada (30 min): the match live as time ran out finished and counted ("finishing" read while it was live)
+  [PASS] Ada (30 min): then off with "timeUp", never paired again
+  Bram (15 + 30 min): 6 matches, m2 10:00:00-10:06:10, m4 10:06:40-10:12:00, m6 10:15:00-10:21:35, m8 10:23:45-10:28:45, m10 10:35:50-10:40:05, m12 10:42:25-10:49:25; time up 10:45:00
+  [PASS] Bram (15 + 30 min): widget states went running -> finishing -> done
+  [PASS] Bram (15 + 30 min): every match started inside the window
+  [PASS] Bram (15 + 30 min): the match live as time ran out finished and counted ("finishing" read while it was live)
+  [PASS] Bram (15 + 30 min): then off with "timeUp", never paired again
+  [PASS] Bram's +30 moved the end 30 minutes
+  [PASS] Cyra (no time limit) played on throughout: 8 matches, the last ending 11:06:10, still on
+
+4. Midnight Sydney: no carry-over
+------------------------------------------------------------------------
+  Ada at 23:30 { minutes: 60 } 200  on=true  running, 30 of 30 min, ends 00:00:00 (midnight)  canAddTime=false
+  Ada at 23:30 POST time +15  409  the time already runs to midnight Sydney, when it resets; no more can go on today
+  [PASS] 60 minutes at 23:30 run to midnight only (30 min), and nothing more can go on
+  Ada at 23:59:30            200  on=true  running, 1 of 30 min, ends 00:00:00 (midnight)  canAddTime=false
+  Ada at 00:00 Tue           200  on=false  no time limit  canAddTime=false
+  [PASS] at midnight the unused time is gone and Tuesday reads clean (off, no message, no allowance)
+  Ada at 00:00 { minutes: 15 } 200  on=true  running, 15 of 15 min, ends 00:15:00  canAddTime=true
+
+13 PASS, 0 FAIL

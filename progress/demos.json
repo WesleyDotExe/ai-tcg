@@ -20,6 +20,7 @@
     { "file": "owner-api-demo-006-collection-asks.txt", "workspace": "server", "script": "src/dev/collectionAsksApiDemo.ts", "plays": false },
     { "file": "owner-api-demo-007-coins.txt", "workspace": "server", "script": "src/dev/coinSkinsApiDemo.ts", "plays": true },
     { "file": "featured-viewers-001.txt", "workspace": "server", "script": "src/dev/featuredViewersDemo.ts", "plays": true },
+    { "file": "play-time-001.txt", "workspace": "server", "script": "src/dev/playTimeApiDemo.ts", "plays": true },
     { "file": "ladder-demo-001.txt", "workspace": "server", "script": "src/dev/ladderDemo.ts", "plays": true },
     { "file": "ladder-demo-002-live.txt", "workspace": "server", "script": "src/dev/liveLadderDemo.ts", "plays": true },
     { "file": "live-feed-asks-001.txt", "workspace": "server", "script": "src/dev/liveFeedAsksDemo.ts", "plays": true },

@@ -35,7 +35,7 @@ const live = new LiveLadder({
     if (e.kind === "housePacks") console.log(`[ladder] ${name(e.ownerId)} bought ${e.bought}, opened ${e.opened} packs (${e.newCards} new cards)`);
     if (e.kind === "rebuilt") console.log(`[ladder] rebuilt ${name(e.ownerId)}'s deck: ${e.faction}, ${e.cards} cards (${e.reasons.join("; ")})`);
     if (e.kind === "excluded") console.log(`[ladder] ${name(e.ownerId)} sits out: ${e.reason}`);
-    if (e.kind === "autoPlayStopped") console.log(`[ladder] ${name(e.ownerId)}'s auto-play is off: today's rewards are maxed`);
+    if (e.kind === "autoPlayStopped") console.log(`[ladder] ${name(e.ownerId)}'s auto-play is off: ${e.reason === "timeUp" ? "its play time is up" : "today's rewards are maxed"}`);
     if (e.kind === "match") {
       const r = e.result.record;
       const who = r.outcome === "win" ? `${name(r.winnerOwnerId!)} wins` : r.outcome;

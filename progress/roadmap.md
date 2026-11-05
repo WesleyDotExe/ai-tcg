@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-05, game session 75 (hardening: the auto-merge retry fix; the demo drift check).
+Updated 2026-11-05, game session 76 (the play-time allowance).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -98,11 +98,12 @@ new ideas go to `progress/season-1-ideas.md`.
      by card id in hand order, beside `start`) (session 72)
    - [ ] (owner 2026-11-03) hands hidden live (counts only, no card in draw events) for any match with a real-time
      network agent seat, until it ends: built when network agents join the ladder
-2d. [ ] After 2g. Notifications (owner 2026-11-05; the top bar's bell and the Notifications widget), in
+2d. [ ] NEXT (session 77). Notifications (owner 2026-11-05; the top bar's bell and the Notifications widget), in
    `server/OWNER_API.md` with tests: what produces one in Season 0 (for example match results, big pulls, the daily
    pack ready, auto-play switched off at the day's cap) and how they are read and cleared. Propose the list at a
    check-in if the 2026-10-05 spec doesn't settle it (Settings -> Notifications names big pulls, match results and
-   the free daily pack).
+   the free daily pack). Add "your agent's time is up" (owner 2026-11-06): the ladder's `autoPlayStopped` event with
+   `reason: "timeUp"` (session 76) is the source.
 2e. [ ] The Stats page's data (owner 2026-11-05): what the Stats page and the Rating & form widget at L need beyond
    `GET /api/ladder` and `GET /api/rating` (for example win rate by faction and by opponent, recent form, a rating
    chart), in `server/OWNER_API.md` with tests; propose the shape at a check-in if needed.
@@ -110,10 +111,11 @@ new ideas go to `progress/season-1-ideas.md`.
 2-0. [x] (owner 2026-11-06, first) The auto-merge retry fix (session 75): "Wait for checks to pass" retries a
    GitHub 5xx or rate limit 4 times (5/10/20/40 s); any other error or a failed check still stops the merge.
    Tested on the shipped script text (`server/test/autoMergeWorkflow.test.ts`).
-2g. [ ] NEXT (session 76). (owner 2026-11-06, do right after the auto-merge retry fix) The play-time allowance on auto-play: 15 / 30 /
-   60 minutes, +15 / +30 while running, finish the current match then stop, resets at midnight Sydney, no
-   carry-over; minutes left and running / finishing / done in `GET /api/play`; `server/OWNER_API.md`, tests, a demo.
-   Spec: `progress/season0-final-brief.md` section 1.
+2g. [x] (owner 2026-11-06) The play-time allowance on auto-play (session 76, schema v22): 15 / 30 / 60 minutes
+   (`PUT /api/play/auto-play` `minutes`), +15 / +30 while running or finishing (`POST /api/play/auto-play/time`);
+   time up: not queued, the live match finishes, then off with `timeUp`; windows cut at midnight Sydney; no minutes is
+   no time limit. `GET /api/play`'s `autoPlay.allowance` (running / finishing / done, seconds and minutes left, the
+   window's length). `server/OWNER_API.md`, tests, `progress/play-time-001.txt`. Five calls at notes-for-owner.md.
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.
    Grant the tier coins FIRST (`store.grantSeasonTierCoins()`, built session 69), before the reset clears the

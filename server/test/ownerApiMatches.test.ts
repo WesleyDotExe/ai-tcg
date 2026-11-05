@@ -55,6 +55,7 @@ async function setup() {
 
 const ENDPOINTS: [string, string, unknown?][] = [
   ["PUT", "/api/play/auto-play", { on: true }],
+  ["POST", "/api/play/auto-play/time", { minutes: 15 }],
   ["GET", "/api/live"],
   ["GET", "/api/live/x"],
   ["GET", "/api/matches"],

@@ -10,6 +10,13 @@ import type { Rarity } from "@ai-tcg/engine";
  * dailyReset.ts turns it into each day's start and end. */
 export const DAILY_RESET_TIME_ZONE = "Australia/Sydney";
 
+/** The play-time allowance on auto-play (owner 2026-11-06, the Agent
+ * controls widget): the minutes an owner may start auto-play with, and the
+ * minutes that can be added while it runs. Auto-play with no minutes chosen
+ * has no time limit, as before. */
+export const AUTO_PLAY_START_MINUTES = [15, 30, 60] as const;
+export const AUTO_PLAY_ADD_MINUTES = [15, 30] as const;
+
 /** Credits for the 1st win of a reset day, wins 2-4, wins 5-10, and after the
  * 10th (owner 2026-10-05, trimmed from 40/15/5). */
 export const WIN_CREDITS = { first: 30, secondToFourth: 10, fifthToTenth: 5, afterTenth: 0 } as const;
