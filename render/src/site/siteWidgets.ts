@@ -9,10 +9,9 @@
 // and draws nothing made up.
 
 import { coinSwatchHtml } from "./siteCoinSwatch.js";
-import { avatarSvg } from "../avatar.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
 import type { SiteHistory, SiteLive, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
-import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, liveLineHtml, myLiveMatch, recordOf, scoreboardHtml, scoreboardOf, tidyLines, watchAsHtml } from "./siteMatches.js";
+import { compactBoard, historyRowHtml, historyRowView, liveLineHtml, recordOf, scoreboardHtml, scoreboardOf, watchAsHtml } from "./siteMatches.js";
 import {
   FINISH_NAMES,
   WIDGET_INFO,
@@ -31,18 +30,22 @@ import {
   type WidgetSize,
   type WidgetType,
 } from "./siteBoard.js";
+import { agentControlsHtml, myAgentHtml, type SiteRating, type TimeAllowance } from "./siteAgent.js";
 import { amount } from "./siteLook.js";
 import { dailyPackView } from "./siteStore.js";
-import { FACTION_HEX, PAGE_TITLES, agentStatus, deckLine, esc, hashOf, icon, rebuildView, styleName } from "./siteModel.js";
+import { FACTION_HEX, PAGE_TITLES, esc, hashOf, icon } from "./siteModel.js";
 
-export type WidgetSource = "packs" | "collection" | "daily" | "store" | "live" | "history";
+export type WidgetSource = "packs" | "collection" | "daily" | "store" | "live" | "history" | "rating";
 
 /** Which server reads a widget needs at its size (the page fetches only
  * what the board shows). */
 export function sourcesOf(w: Pick<SiteWidget, "type" | "size">): WidgetSource[] {
   switch (w.type) {
+    // Render session 57: My agent and Agent controls (the Season 0 brief).
     case "agent":
-      return w.size === "L" ? ["daily"] : [];
+      return w.size === "S" ? ["rating"] : ["daily", "history", "rating"];
+    case "live":
+      return w.size === "S" ? [] : w.size === "M" ? ["live"] : ["history", "live"];
     case "packs":
       return w.size === "L" ? ["collection", "packs"] : ["packs"];
     case "daily":
@@ -53,7 +56,6 @@ export function sourcesOf(w: Pick<SiteWidget, "type" | "size">): WidgetSource[] 
     case "store":
       return w.size === "L" ? ["packs", "store"] : ["packs"];
     // Render session 50: the match widgets read the live matches and the history.
-    case "live":
     case "watch":
       return ["live"];
     case "history":
@@ -79,6 +81,13 @@ export interface WidgetData {
   /** `GET /api/live` and the first page of `GET /api/matches` (session 50). */
   live: SiteLive | null;
   history: SiteHistory | null;
+  /** `GET /api/rating` (render session 57: My agent). Absent: not read. */
+  rating?: SiteRating | null;
+  /** The play-time allowance (Agent controls' ring); null until the server
+   * has one (game session 76). */
+  allowance?: TimeAllowance | null;
+  /** A play setting being saved (the dial, the deck switcher). */
+  busy?: boolean;
   /** The viewer (to mark their own side on a scoreboard). */
   ownerId: string | null;
   /** The side the viewer chose to watch a match as (render session 52; kept
@@ -97,13 +106,9 @@ export interface WidgetOpts {
   capped?: boolean;
 }
 
-function avatar(name: string, faction: string | null, size: number): string {
-  const c = (faction && FACTION_HEX[faction]) || "#8f8cff";
-  return `<span class="av" style="--c:${c};width:${size}px;height:${size}px">${avatarSvg(name)}</span>`;
-}
 
 function agentFaction(p: SitePlay): string | null {
-  return p.factionLock ?? p.rebuild.job?.result?.faction ?? null;
+  return p.activeDeck?.faction ?? p.factionLock ?? p.rebuild.job?.result?.faction ?? null;
 }
 
 /** A card as a widget draws it: the placeholder face (faction palette, the
@@ -138,36 +143,12 @@ function loading(data: WidgetData, src: WidgetSource): string | null {
   return data[src] ? null : `<p class="muted small wload">Loading…</p>`;
 }
 
-function agentBody(w: SiteWidget, d: WidgetData): string {
-  const p = d.play;
-  const a = p.connectedAgent;
-  if (!a) return `<b>No agent connected</b><p class="muted small">Connect an agent to play matches.</p><a class="btn pri sm" href="#/connect">Connect agent</a>`;
-  const fac = agentFaction(p);
-  const st = agentStatus(p);
-  const top = `<div class="mya">${avatar(a.name, fac, w.size === "S" ? 40 : 60)}<div class="mya-t"><div class="mya-n">${esc(a.name)}${fac ? `<span class="ftag" style="--c:${FACTION_HEX[fac]}">${esc(fac.toUpperCase())}</span>` : ""}</div>${w.size === "S" ? "" : `<div class="muted small">${esc(styleName(p, a.playStyle))} play style</div>`}</div></div>`;
-  const status = `<span class="status ${st.tone}"><i></i>${esc(st.label)}</span>`;
-  // Session 50: the auto-play switch (spec C: S has it), and Watch when live.
-  const ap = autoPlayView(p.autoPlay, true);
-  const sw = autoPlaySwitch(ap, `ap-${w.id}`);
-  const watch = p.liveMatch ? `<a class="btn sm" href="#/match">Watch</a>` : "";
-  if (w.size === "S") return top + `<div class="row">${status}${sw}</div>`;
-  const deck = `<div class="small">${esc(deckLine(p))}</div>`;
-  const apNote = `<p class="muted small">${esc(ap.stopped ?? ap.note)}</p>`;
-  const later = `<p class="muted small">Rating and record: the Stats page's endpoint comes next.</p>`;
-  if (w.size === "M") return top + `<div class="row">${status}${sw}${watch}</div>` + deck + apNote;
-  const rv = rebuildView(p);
-  const dv = d.daily ? dailyView(d.daily, d.now) : null;
-  const today = dv ? `Today: ${dv.fromWins}/${dv.winCap} credits from wins` : d.errors.daily ? "Today's earnings couldn't be read" : "Today: loading…";
-  return `<div class="wsplit"><div class="wcol">${top}<div class="row">${status}${sw}${watch}</div>${apNote}${deck}<div class="small">${p.factionLock ? `Faction locked to ${esc(p.factionLock)}` : `Faction chosen by ${esc(a.name)}`}</div><div class="small">${esc(today)}</div>${later}</div>`
-    + `<div class="wcol"><div class="rb-note ${rv.kind} small">${esc(rv.kind === "wanted" ? `${rv.text} ${rv.reasons[0]}` : rv.text)}</div><a class="btn sm" href="#/settings">Deck settings</a><p class="muted small">The signature card shows here once agents carry one (generating an agent comes with sign-up).</p></div></div>`;
-}
-
 function liveBody(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
   const view = o.live ?? "scoreboard";
   const note = o.capped ? `<p class="muted small wcap">Scoreboard only: two live boards are already showing.</p>` : "";
   const l = loading(d, "live");
-  if (w.type === "watch") {
-    if (l) return l + note;
+  if (l) return l + note;
+  {
     const live = d.live!;
     if (!live.running) return `<p class="muted small">The ladder isn't running on this server, so nothing is live.</p>${note}`;
     if (!live.matches.length) return `<p class="muted small">No match is live right now. The next ladder round starts soon.</p>${note}`;
@@ -182,23 +163,6 @@ function liveBody(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
     const boards = w.size === "L" ? `<div class="wsplit wide-l"><div class="wcol">${first}</div><div class="wcol"><h4>Also live</h4>${list || '<p class="muted small">No other match is live.</p>'}</div></div>` : first + list;
     return `${boards}<div class="row"><a class="btn sm" href="#/live">Watch live</a><span class="muted small">${live.matches.length} live · featured picks come later</span></div>${note}`;
   }
-  const p = d.play;
-  const a = p.connectedAgent;
-  if (!a) return `<b>No agent connected</b><p class="muted small">Connect an agent to play.</p><a class="btn pri sm" href="#/connect">Connect agent</a>`;
-  if (l) return l;
-  const m = myLiveMatch(d.live);
-  const ap = autoPlayView(p.autoPlay, true);
-  if (!m) {
-    const st = agentStatus(p);
-    const why = p.liveMatch ? "Your agent's match is starting." : ap.on || !ap.shown ? "No match right now. Your agent joins the next ladder round." : "No match right now. Auto-play is off.";
-    return `<div class="row">${avatar(a.name, agentFaction(p), w.size === "S" ? 30 : 40)}<div><b>${esc(a.name)}</b><div class="small"><span class="status ${st.tone}"><i></i>${esc(st.label)}</span></div></div></div><p class="muted small">${esc(why)}</p>${w.size === "S" ? "" : `<div class="row">${autoPlaySwitch(ap, `ap-${w.id}`)}</div>`}`;
-  }
-  const sb = scoreboardOf(m, d.ownerId);
-  if (w.size === "S") return scoreboardHtml(sb, { small: true });
-  const board = view === "board" ? compactBoard(m, sb.near) : "";
-  if (w.size === "M") return scoreboardHtml(sb) + board + note;
-  const feed = `<ol class="pbp small">${tidyLines(m.recentLines, { p1: m.p1.agentName, p2: m.p2.agentName }).map((x) => `<li>${esc(x)}</li>`).join("")}</ol>`;
-  return `<div class="wsplit wide-l"><div class="wcol">${scoreboardHtml(sb, { small: true })}${board}${note}</div><div class="wcol"><h4>Play-by-play</h4>${feed}<div class="row">${autoPlaySwitch(ap, `ap-${w.id}`)}<a class="btn sm" href="#/match">Open</a></div><p class="muted small">The 2× vote comes with its endpoint.</p></div></div>`;
 }
 
 function historyBody(w: SiteWidget, d: WidgetData): string {
@@ -297,8 +261,9 @@ function storeBody(w: SiteWidget, d: WidgetData): string {
 function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
   switch (w.type) {
     case "agent":
-      return agentBody(w, d);
+      return myAgentHtml(w.size, agentData(d));
     case "live":
+      return agentControlsHtml(w.size, agentData(d));
     case "watch":
       return liveBody(w, d, o);
     case "packs":
@@ -318,12 +283,17 @@ function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
   }
 }
 
+function agentData(d: WidgetData): Parameters<typeof myAgentHtml>[1] {
+  const { rating, daily, history, live } = d.errors;
+  return { play: d.play, rating: d.rating ?? null, daily: d.daily, history: d.history, live: d.live, allowance: d.allowance ?? null, errors: { rating, daily, history, live }, now: d.now, busy: d.busy };
+}
+
 /** One widget: the glass tile, its icon and title, the open button (or in
  * Customise mode the S/M/L picker and "−"), and its body. */
 export function widgetHtml(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
   const info = WIDGET_INFO[w.type];
   const dark = info.live ? " wg-dark" : "";
-  const hero = w.type === "agent" && d.play.connectedAgent ? " hero" : "";
+  const hero = (w.type === "agent" || w.type === "live") && d.play.connectedAgent ? " hero" : "";
   const fac = hero ? agentFaction(d.play) : null;
   const style = hero ? ` style="--c:${(fac && FACTION_HEX[fac]) || "#8f8cff"}"` : "";
   const head = o.editing

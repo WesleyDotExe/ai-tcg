@@ -1257,3 +1257,17 @@ season mark) is proposed as a mark, call 1.
 3. **Nothing needed from the game lane for this slice.** One small thing it could add someday: a notification
    when the other owner asks for 2× (the notifications item already queued); today the ask shows within the
    site's 3 s read.
+
+---
+
+## 2026-11-05 — Render session 57 (My agent and Agent controls)
+
+1. **For the game lane's roadmap upkeep** (this lane doesn't write `progress/roadmap.md`): "My agent and Agent
+   controls" (render item 2) is built except the time ring's live data. The S/M/L split and the personality dial
+   are in; the ring and the time buttons are drawn and tested against every state in the brief, waiting on game
+   item 2g (the play-time allowance).
+2. **For game session 76 (the play-time allowance):** the render side expects, per agent or owner, the minutes
+   given today, the minutes left, and running / finishing / done (`TimeAllowance` in
+   `render/src/site/siteAgent.ts`). Any field names are fine: the render lane writes the adapter from whatever
+   `GET /api/play` sends and wires the 15 / 30 / 60 and +15 / +30 buttons to its endpoint in a short follow-up.
+3. **The seven calls** are in `progress/render/checkpoints.md` (the newest checkpoint).

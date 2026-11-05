@@ -4999,3 +4999,71 @@ the wording of the buttons is this lane's (a check-in call).
 replaces the Live match widget): the S/M/L split in `progress/season0-final-brief.md`, the personality dial (play
 styles exist: `PUT /api/agents/:id/play-style`), and the time ring once the game lane's play-time allowance is in
 (build the dial first if it isn't).
+
+## 2026-11-05 — Render session 57: My agent and Agent controls (the Season 0 brief, section 1)
+
+Owner feedback read first: no new entry since render session 56's PR; the 2026-11-06 order (the Season 0 scope
+lock) puts My agent and Agent controls second in the render lane, after the live-arena slice (#132, merged).
+Alternation: the last merged PR (#133) was the game lane's (session 75), so this is the render lane. Not a
+hardening pass (the last was 54; the next is 59). The play-time allowance (game item 2g, session 76) isn't on the
+server yet, so, as the order says, the dial and the rest are built first and the time ring is ready for it.
+
+**Built (`render/src/site/siteAgent.ts`, new; pure views + HTML, wired into the widget board):**
+- **My agent** at three sizes that differ in content (the brief's table): S the portrait, name, status and rating
+  (`GET /api/rating`, newly read by the site: `SiteApi.rating`); M + today's W/L (`GET /api/daily`'s wins and
+  losses), the streak (from the history: an opponent's abandon counts as a win and your own as a loss, as the
+  rating does; cancels skipped; a draw ends it; a streak of one isn't shown) and the deck's faction; L + the rating
+  trend (an inline SVG line from `GET /api/rating`'s recent list, oldest first, ending at the rating now, with the
+  change over those matches) and the last four matches with Replay.
+- **Agent controls** (replaces Live match; the server's widget id stays `live`, so saved boards keep it): S the
+  portrait inside the time ring, status, Start / Stop (the auto-play switch as one button; a house agent "Always
+  plays"); M + the personality dial, the 15 / 30 / 60 buttons, the deck line, "Go to match" beside Stop while a
+  match is live; L + the deck switcher ("Your agent picks", then each deck; an incomplete deck can't be picked),
+  the match history, +15 / +30, and the style's summary.
+- **The personality dial:** a knob with one notch per play style the server lists (six, 60° apart), each a real
+  button named for its style, the pointer turning to the chosen one. A click is `PUT /api/agents/:id/play-style`.
+  The note says "Applies from the next match"; with a match live in another style, "This match: Calculator. Rusher
+  from the next match." (the ladder seats each agent with its style at the match's start, so it never changes
+  mid-match; tested over the real ladder).
+- **The time ring:** `timeRingView` covers every state the brief names: minutes left as the lit share of the ring
+  (amber under 20%), "Finishing match" and "Done for today" at zero. With no allowance from the server (today) it
+  shows auto-play as it is: a full ring "On" ("no time limit set"), an empty grey "Off", or "Always" for a house
+  agent. The 15 / 30 / 60 and +15 / +30 buttons are drawn disabled with "Time limits arrive with the server's
+  play-time allowance." Only the adapter from `GET /api/play` and the buttons' click remain once the game lane
+  ships 2g.
+- Live match's old body (scoreboard, compact board, play-by-play) is gone from Home: Agent controls takes no live
+  board (Watch live's two-board cap now counts only Watch live), and "Go to match" opens the match page.
+- The site reloads the rating with the history and today's earnings when the agent's match ends.
+
+**Tests (+7, render 882):** `test/siteAgent.test.ts`: the rating line (placed and in placement), the trend (points,
+change, a flat line still draws), the streak's rules, every ring state and the arc's lit length, the dial (angles,
+one pressed, the next-match note, busy), the deck switcher (the agent's own deck not listed twice, an incomplete
+deck blocked), each size showing more than the one below; and over the real owner API with the ladder playing:
+the rating equals `GET /api/ladder`'s `you`, the trend ends at the rating now, today's W/L adds up with the day's
+history, and the dial's change made during a live match leaves that match's style alone and the next match plays
+the new one; the deck switcher's two choices saved and read back. Four older tests updated (the "live" widget no
+longer draws a board or a switch).
+
+**Ran it:** `progress/render/evidence/site-check-s57.mjs` -> `site-check-s57.txt`: **37 PASS, 0 FAIL** against the
+real owner API and the game lane's ladder (the demo at 4×): A, both widgets at S, M and L on Nova's saved board,
+the rating the server's (1526, Gold), today's "3W 4L" `GET /api/daily`'s, the content per size as the brief's table;
+B, the Rusher notch clicked during Nova's live match: saved, the pointer at 60°, "This match: Calculator. Rusher
+from the next match.", the live view still Calculator; C, Stop (auto-play off, the ring Off), Start (on again); D,
+"Cortex, my tweak" picked (forced) then "Your agent picks" back; no external requests, no page errors. The first
+two runs found three faults: the avatar's own SVG was caught by the ring's `svg` rule and hid the ring (fixed:
+`.tring > svg`), Agent controls overflowed at M and L (fixed: the summary only at L, a smaller dial at M, "Go to
+match" beside Stop), and the 60 / +15 buttons overlapped at L (fixed); and one fault in the check itself (it tried
+to pick the agent's own deck, which the "Your agent picks" row stands for). Stills `v2-s57-size-S.jpg`,
+`-size-M.jpg`, `-size-L.jpg`, `-dial-live.jpg`, `-stopped.jpg`, `-deck-forced.jpg`, `-deck-agent.jpg`. CI browser
+check 61 PASS (`ci-browser-check-s57.txt`). `npm test`: engine 365, protocol 7, server 151, agents 17, economy 222,
+render 882, all pass; typecheck clean.
+
+**Not done (named):** the time allowance itself (waits on game session 76; the ring and buttons are ready, the
+adapter isn't written, so nothing guesses the server's field names); no 2× control on Agent controls ("Go to
+match" leads to it); the trend reads `GET /api/rating`'s recent list (up to 20 matches), not the Stats data (game
+item 2e) the brief names, so it may move to that when it lands; the dial was only clicked with a mouse in the
+browser (keyboard: each notch is a button in tab order, not a radio group with arrow keys).
+
+**Next render-lane slice (the owner's 2026-11-06 order, item 3):** the pack opening ceremony, part 1: the bigger pack
+art, the gradient backdrop with its tells, the tear and the burst. When game session 76 lands the allowance, a small
+follow-up wires the ring and the time buttons (the adapter and `data-act="play-time"`).

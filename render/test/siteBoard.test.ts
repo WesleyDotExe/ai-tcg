@@ -160,11 +160,12 @@ describe("the grid", () => {
 
 describe("live boards (at most two at once)", () => {
   it("the first two widgets that want a board get one, in board order; the rest drop to the scoreboard with the note", () => {
-    const b = [W("a", "live", "M"), W("b", "watch", "M"), W("c", "watch", "L"), W("d", "live", "S")];
+    // Render session 57: Agent controls (the "live" id) draws no live board, so it never takes one.
+    const b = [W("a", "live", "M"), W("b", "watch", "M"), W("c", "watch", "L"), W("d", "watch", "S")];
     const { views, capped } = liveViews(b);
-    expect(Object.fromEntries(views)).toEqual({ a: "board", b: "list", c: "board", d: "scoreboard" });
+    expect(Object.fromEntries(views)).toEqual({ b: "list", c: "board", d: "scoreboard" });
     expect([...capped]).toEqual([]);
-    const three = [W("a", "live", "L"), W("b", "watch", "L"), W("c", "watch", "L")];
+    const three = [W("a", "watch", "L"), W("b", "watch", "L"), W("c", "watch", "L")];
     const r = liveViews(three);
     expect(Object.fromEntries(r.views)).toEqual({ a: "board", b: "board", c: "scoreboard" });
     expect([...r.capped]).toEqual(["c"]);
@@ -309,8 +310,10 @@ describe("what the widgets show", () => {
   it("the widgets draw the server's numbers (and escape names)", () => {
     const at = (type: WidgetType, size: WidgetSize, d = DATA) => widgetHtml({ id: "w", type, size }, d, { editing: false });
     expect(at("agent", "S")).toContain("Vector &lt;Halcyon&gt;");
-    expect(at("agent", "L")).toContain("Today: 40/90 credits from wins");
-    expect(at("agent", "L")).toContain("Faction locked to Null");
+    // Render session 57: My agent at M has today's W/L and the deck's faction; at L the recent matches.
+    expect(at("agent", "M")).toMatch(/<b class="w">\d+W<\/b> <b class="l">1L<\/b> <small>today/);
+    expect(at("agent", "M")).toContain("NULL");
+    expect(at("agent", "L")).toContain("Recent matches");
     expect(at("daily", "S")).toContain("40/90");
     expect(at("daily", "S")).toContain("Rewarded wins 2/10");
     expect(at("daily", "L")).toContain("Losses and draws today: 1 · +2 credits");
@@ -332,16 +335,20 @@ describe("what the widgets show", () => {
   });
   it("a live widget past the two-board limit says it's a scoreboard only; with no agent, Connect", () => {
     expect(widgetHtml(W("w", "watch", "L"), DATA, { editing: false, live: "scoreboard", capped: true })).toContain("Scoreboard only: two live boards are already showing.");
-    // Session 50: the compact board is the released units, not the striped placeholder.
-    expect(widgetHtml(W("w", "live", "M"), DATA, { editing: false, live: "board" })).toContain('class="cboard"');
-    expect(widgetHtml(W("w", "live", "M"), DATA, { editing: false, live: "scoreboard" })).not.toContain('class="cboard"');
+    // Render session 57: Agent controls never draws the board (Watch live and the match page do).
+    expect(widgetHtml(W("w", "live", "M"), DATA, { editing: false, live: "board" })).not.toContain('class="cboard"');
+    expect(widgetHtml(W("w", "watch", "L"), DATA, { editing: false, live: "board" })).toContain('class="cboard"');
     const none = { ...DATA, play: { ...PLAY, connectedAgent: null } };
     expect(widgetHtml(W("w", "live", "M"), none, { editing: false })).toContain('href="#/connect"');
     expect(widgetHtml(W("w", "agent", "M"), none, { editing: false })).toContain("No agent connected");
   });
   it("the page reads only what the board's widgets need at their sizes", () => {
     expect(sourcesFor([])).toEqual([]);
-    expect(sourcesFor(recommendedWidgets(RULES))).toEqual(["collection", "daily", "live", "packs"]);
+    // Render session 57: My agent at M reads the rating and the history too.
+    expect(sourcesFor(recommendedWidgets(RULES))).toEqual(["collection", "daily", "history", "live", "packs", "rating"]);
+    expect(sourcesOf(W("w", "agent", "S"))).toEqual(["rating"]);
+    expect(sourcesOf(W("w", "live", "S"))).toEqual([]);
+    expect(sourcesOf(W("w", "live", "L"))).toEqual(["history", "live"]);
     expect(sourcesOf(W("w", "history", "S"))).toEqual(["history"]);
     expect(sourcesOf(W("w", "watch", "S"))).toEqual(["live"]);
     expect(sourcesOf(W("w", "store", "L"))).toEqual(["packs", "store"]);

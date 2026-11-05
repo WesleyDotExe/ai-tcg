@@ -1,0 +1,78 @@
+Wrote /tmp/render-ci-taY2Sf/boast-sheet.html
+Wrote /tmp/render-ci-taY2Sf/cortex-vs-swarm-seed6.html
+browser: chromium 153.0.8010.12
+[A] the six boasts: nothing lit past the winner's side (winner below, then above)
+  PASS A. boast-aegis-shield-slam-full: 34 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-aegis-shield-slam-top: 35 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-swarm-hive-burst-full: 33 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-swarm-hive-burst-top: 52 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-null-void-collapse-full: 51 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-null-void-collapse-top: 50 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-cortex-data-cascade-full: 51 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-cortex-data-cascade-top: 53 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-s0-boot-sequence-full: 44 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-s0-boot-sequence-top: 46 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-s0-dial-up-fireworks-full: 50 samples, 0 lit past the side (0 on the loser's)
+  PASS A. boast-s0-dial-up-fireworks-top: 48 samples, 0 lit past the side (0 on the loser's)
+
+[B] the Skip sizes (phone: 390 x 844, coarse pointer)
+  PASS B. a boast's Skip on a phone: 88.0 x 44.0 px (at least 88 x 44)
+  PASS B. the intro's Skip on a phone: 88.0 x 44.0 px (at least 88 x 44)
+  PASS B. a boast's Skip on a desktop stays small: 69.9 x 23.0 px
+
+[C] cortex-vs-swarm-seed6.html: the intro
+  PASS C. desktop: plays from Play at move 0, laid out with no problem, saying "ENGAGE"
+  PASS C. desktop: the agent lines on one row at 15.0 px
+  PASS C. desktop: the music waits under the intro (0 steps at 1.5 s)
+  PASS C. desktop: the intro ends by itself (1916 ms after 1.5 s)
+  PASS C. Escape skips it and the music starts (active false, skipped 1, music waiting false)
+  PASS C. phone: the agent lines on two rows at 20.0 px, no problem
+  PASS C. phone: no sideways scroll (390 <= 390)
+  PASS C. reduced motion: the still
+
+[D] cortex-vs-swarm-seed6.html: the end (the lethal beat, then the boast)
+  PASS D. desktop: the replay ends in a win (p1, Lookahead-Cortex, Cortex) and has no record
+  desktop: lethal beat 386 ms, boast 1310 ms, its end 4313 ms, the result 4313 ms after the step
+  PASS D. desktop: the lethal beat, then the boast at least 450 ms later (924 ms; the lead is 900)
+  PASS D. desktop: the winner's faction starter plays in full, laid out with no problem (boast-cortex-data-cascade, "Lookahead-Cortex", problem null)
+  PASS D. desktop: the plate says "Lookahead-Cortex WINS"
+  PASS D. desktop: the loser's side, panel and hand dimmed (0.7, 0.7, 0.7), the winner's panel lit, Skip on the winner's side
+  PASS D. desktop: the lethal attack's leftovers cleared (8236 lit off the winner's side before the clear), then 25 samples, 0 lit past the winner's side
+  PASS D. desktop: the loser's side unchanged through the boast
+  PASS D. desktop: the result held through the boast, then "GAME OVER: Lookahead-Cortex WINS" lands as it ends (0 ms after)
+  PASS D. phone: the replay ends in a win (p1, Lookahead-Cortex, Cortex) and has no record
+  phone: lethal beat 509 ms, boast 1402 ms, its end 4400 ms, the result 4400 ms after the step
+  PASS D. phone: the lethal beat, then the boast at least 450 ms later (893 ms; the lead is 900)
+  PASS D. phone: the winner's faction starter plays in full, laid out with no problem (boast-cortex-data-cascade, "Lookahead-Cortex", problem null)
+  PASS D. phone: the plate says "Lookahead-Cortex WINS"
+  PASS D. phone: the loser's side, panel and hand dimmed (0.7, 0.7, 0.7), the winner's panel lit, Skip on the winner's side
+  PASS D. phone: the lethal attack's leftovers cleared (7891 lit off the winner's side before the clear), then 30 samples, 0 lit past the winner's side
+  PASS D. phone: the loser's side unchanged through the boast
+  PASS D. phone: the result held through the boast, then "GAME OVER: Lookahead-Cortex WINS" lands as it ends (0 ms after)
+  PASS D. Escape at 1 s ends the boast and the result lands at once (0 ms after)
+  PASS D. a jump to the end shows the result at once, no boast (boasts played 0)
+
+[E] the "tap to skip" hint
+  PASS E. the sheet: all 30 scenes show the hint under Skip, inside the winner's side, the desktop words
+  PASS E. the sheet: a cancel is not a skip (the hint stays on for the next boast)
+  PASS E. boast-aegis-shield-slam-full: "or click anywhere · Esc" under Skip, inside the winner's side, 11 px, the button labelled "Skip, or click anywhere · Esc"
+  PASS E. boast-aegis-shield-slam-full: clear of the name plate (hint {"l":682.9375,"t":519,"r":859.421875,"b":534.75}, plate {"l":126,"t":603.578125,"r":766,"b":648.8125})
+  PASS E. boast-aegis-shield-slam-full: gone with Skip at the boast's end
+  PASS E. boast-s0-boot-sequence-top: "or click anywhere · Esc" under Skip, inside the winner's side, 11 px, the button labelled "Skip, or click anywhere · Esc"
+  PASS E. boast-s0-boot-sequence-top: clear of the name plate (hint {"l":682.9375,"t":330.53125,"r":859.421875,"b":346.28125}, plate {"l":126,"t":415.109375,"r":766,"b":460.34375})
+  PASS E. boast-s0-boot-sequence-top: gone with Skip at the boast's end
+  PASS E. boast-swarm-hive-burst-phone (phone): "or tap anywhere" under Skip, inside the winner's side, 12 px, the button labelled "Skip, or tap anywhere"
+  PASS E. boast-swarm-hive-burst-phone: clear of the name plate (hint {"l":228,"t":531.3125,"r":357.03125,"b":548.3125}, plate {"l":48.796875,"t":649.953125,"r":341.1875,"b":695.953125})
+  PASS E. boast-swarm-hive-burst-phone: gone with Skip at the boast's end
+  PASS E. boast-null-void-collapse-phone (phone): "or tap anywhere" under Skip, inside the winner's side, 12 px, the button labelled "Skip, or tap anywhere"
+  PASS E. boast-null-void-collapse-phone: clear of the name plate (hint {"l":228,"t":531.921875,"r":357.03125,"b":548.921875}, plate {"l":48.796875,"t":650.5625,"r":341.1875,"b":696.5625})
+  PASS E. boast-null-void-collapse-phone: gone with Skip at the boast's end
+  PASS E. cortex-vs-swarm-seed6.html intro, desktop: "or click the board · Esc" under Skip, inside the board
+  PASS E. cortex-vs-swarm-seed6.html intro, desktop: Escape skips it, the hint goes, the page remembers
+  PASS E. cortex-vs-swarm-seed6.html end, desktop: after that skip the boast shows Skip and no hint
+  PASS E. cortex-vs-swarm-seed6.html intro, phone: "or tap the board" under Skip, inside the board
+  PASS E. cortex-vs-swarm-seed6.html intro, phone: a tap skips it, the hint goes, the page remembers
+  PASS E. cortex-vs-swarm-seed6.html end, phone: after that skip the boast shows Skip and no hint
+
+61 passed, 0 failed (pages 1.1 s, browser 38.0 s)
+ALL PASS

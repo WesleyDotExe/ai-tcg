@@ -19,6 +19,7 @@
 import type { SiteBinder, SiteCopy, SiteDeckShortfall, SiteHoldings, SiteSalvagePlan } from "./siteCollection.js";
 import type { BulkOpening, PackOpening } from "@ai-tcg/economy";
 import type { SiteCosmeticItem, SiteLoadout, SiteOwnedCosmetic } from "./siteLoadout.js";
+import type { SiteRating } from "./siteAgent.js";
 import type { SiteBoard, SiteCollection, SiteDaily, SitePacks, SiteWidget } from "./siteBoard.js";
 
 /** A faction the owner can lock the agent to (OWNER_API.md, the play settings). */
@@ -32,6 +33,9 @@ export interface SiteDeck {
   complete: boolean;
   missing: { cardId: string; uses: number; owned: number }[];
   cards: number;
+  /** The faction the deck plays (game session 68); null for a deck with
+   * none or several. */
+  faction?: SiteFaction | null;
 }
 
 export interface SiteAgent {
@@ -368,6 +372,9 @@ export interface SiteApi {
   setLoadout(token: string, agentId: string, slot: string, itemId: string | null): Promise<SiteLoadout>;
   // The match pages (render session 50).
   setAutoPlay(token: string, on: boolean): Promise<{ autoPlay: SiteAutoPlay }>;
+  /** `GET /api/rating?recent=N` (game session 66): the caller's rating and
+   * its recent changes, newest first (render session 57: My agent). */
+  rating(token: string, recent?: number): Promise<SiteRating>;
   live(token: string): Promise<SiteLive>;
   /** `GET /api/live/:matchId?from=N`: the match now and the moves released from N on. */
   liveFeed(token: string, matchId: string, from: number): Promise<SiteLiveFeed>;
@@ -491,6 +498,7 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     loadout: (token, agentId) => call("GET", `/api/agents/${encodeURIComponent(agentId)}/loadout`, { token }),
     setLoadout: (token, agentId, slot, itemId) => call("PUT", `/api/agents/${encodeURIComponent(agentId)}/loadout/${encodeURIComponent(slot)}`, { token, body: { itemId } }),
     setAutoPlay: (token, on) => call("PUT", "/api/play/auto-play", { token, body: { on } }),
+    rating: (token, recent) => call("GET", `/api/rating${recent ? `?recent=${recent}` : ""}`, { token }),
     live: (token) => call("GET", "/api/live", { token }),
     liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
     setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),
