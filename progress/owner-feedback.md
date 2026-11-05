@@ -4226,7 +4226,7 @@ Next render-lane slice, as planned: the live arena reads the signature card in f
 
 ---
 
-## 2026-11-06 — Owner: answers to game session 74 (featured picks and viewer counts), keep all; the auto-merge retry fix queued
+## 2026-11-06 — Owner: answers to game session 74 (featured picks and viewer counts), keep all; the auto-merge retry fix queued (HANDLED 2026-11-05, session 75 — calls 1, 3 and 4 kept, nothing changed; call 2: no floor now, and the Gold floor (1500) at the public launch is on the launch items in `progress/roadmap.md` (the option `featured.minRating` is built, off). The retry fix built first: the "Wait for checks to pass" step in `.github/workflows/auto-merge.yml` retries a GitHub 5xx, a 429 or a 403 with no requests left, 4 times 5/10/20/40 s apart, then fails; any other error, or a failed check, still stops the merge at once. Nothing else in the workflow changed. Tested on the shipped script text against a fake GitHub (`server/test/autoMergeWorkflow.test.ts`, 9 tests; 5 of them fail on the old workflow))
 
 Answers the [OWNER CHECK-IN] on the "Top rated" rule and the viewer-count proposal in `progress/notes-for-owner.md` (PR #131, `progress/featured-viewers-001.txt`).
 1. **Keep:** "Top rated" ranks matches by the **weaker side's** rating at the start (ties: the stronger side's rating, then the earlier start), only matches where both sides are out of placement, at most 3.
@@ -4239,7 +4239,7 @@ PR #131's auto-merge job failed after 2 s on a GitHub API server error (HTTP 500
 
 ---
 
-## 2026-11-06 — Owner: the Home dashboard feedback; the Season 0 scope is LOCKED; feature freeze from 9 November; both lanes' order to 5 December
+## 2026-11-06 — Owner: the Home dashboard feedback; the Season 0 scope is LOCKED; feature freeze from 9 November; both lanes' order to 5 December (game-lane part IN PROGRESS — session 75: item 1, the auto-merge retry fix, done; session 75 was also the game lane's hardening pass (the rhythm kept, as set: the demo drift check). Item 2, the play-time allowance, is session 76. The roadmap's Season 0 checklist follows the order)
 
 This is the dashboard feedback the 2026-11-05 entry waited on. **The full spec is `progress/season0-final-brief.md`. Read it in full before working.** This entry sets the order. Both lanes act on it.
 

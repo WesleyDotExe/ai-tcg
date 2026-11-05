@@ -12,13 +12,13 @@ AI-TCG economy demo 015: play styles in the store (schema v13)
    ada picks Rusher, bo picks Fortress. A made-up style is refused: "berserker" is not a play style
 
 3. Matches started and recorded through the store, each side played with the style it started with:
-  m1: ada (Rusher) vs bo (Fortress): ada wins in 15 turns, health 15 to -1; ada 11/14 attacks at health, bo 3/4 attacks at health
-  m2: bo (Fortress) vs ada (Rusher): bo wins in 13 turns, health 18 to 0; bo 11/14 attacks at health, ada 2/6 attacks at health
-  m3: ada (Rusher) vs bo (Fortress): ada wins in 11 turns, health 20 to 0; ada 12/13 attacks at health, bo 0/0 attacks at health
+  m1: ada (Rusher) vs bo (Fortress): ada wins in 15 turns, health 15 to -1; ada 13/16 attacks at health, bo 3/4 attacks at health
+  m2: bo (Fortress) vs ada (Rusher): bo wins in 15 turns, health 6 to 0; bo 13/16 attacks at health, ada 8/12 attacks at health
+  m3: ada (Rusher) vs bo (Fortress): ada wins in 13 turns, health 20 to -1; ada 14/15 attacks at health, bo 0/0 attacks at health
 
 4. ada switches to Controller while m4 is live: m4 still plays Rusher, m5 plays Controller.
-  m4: ada (Rusher) vs bo (Fortress): ada wins in 15 turns, health 3 to -3; ada 8/12 attacks at health, bo 8/10 attacks at health
-  m5: bo (Fortress) vs ada (Controller): bo wins in 11 turns, health 13 to -2; bo 7/7 attacks at health, ada 4/4 attacks at health
+  m4: ada (Rusher) vs bo (Fortress): ada wins in 15 turns, health 3 to -3; ada 9/13 attacks at health, bo 8/10 attacks at health
+  m5: bo (Fortress) vs ada (Controller): ada wins in 12 turns, health -1 to 2; bo 7/7 attacks at health, ada 8/8 attacks at health
 
 5. The match history keeps each side's style:
    m1: p1 rusher, p2 fortress

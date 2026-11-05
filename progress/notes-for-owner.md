@@ -1,5 +1,23 @@
 # Notes for the owner
 
+**Updated 2026-11-05, session 75 (hardening pass).** Nothing is blocking. One small call below; session 74's
+calls are answered (2026-11-06, keep all) and kept below for the record.
+
+- **The auto-merge retry fix is in**, as you OK'd: the "Wait for checks to pass" step retries a GitHub 5xx or a rate
+  limit 4 times (5, 10, 20, 40 s apart), then fails; any other error or a failed check stops the merge as before. Only
+  that step changed. Tested on the workflow's own script (9 tests).
+- **Found in the hardening pass: 16 of the 24 committed demo files no longer matched what their scripts print.**
+  Seven were just the schema number; seven were matches still played under the old 20-health rule; nothing was
+  broken. All regenerated. `npm run demos` now re-runs them and lists any that drift, and a test makes sure a new
+  demo can't be left off the list.
+
+**One call: put the demo check in CI?** (a) **Yes, the fast set** (recommended): one step in `.github/workflows/test.yml`
+running `npm run demos`, about 1.5 minutes. A rule, card or schema change then fails the PR until its demos are
+regenerated, so they can't go stale again. (b) **No**: each session runs it by hand (the way they did not, before).
+I won't touch `test.yml` until you say.
+
+---
+
 **Updated 2026-11-05, session 74 (featured picks and viewer counts). [OWNER CHECK-IN] (the "Top rated" rule, as
 you asked).** Nothing is blocking: both are built on the rules below and the next sessions go on whatever you answer.
 Session 73's four calls are answered (2026-11-04, keep all 4) and kept below for the record.

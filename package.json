@@ -15,6 +15,7 @@
     "render"
   ],
   "scripts": {
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "demos": "node scripts/demos.mjs"
   }
 }

@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -74,6 +74,32 @@ real, but here is where it's thin.
   passing, not by a dedicated test of a modal response.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
+
+## Session 75 (hardening: the auto-merge retry; the demo drift check): what was raised, and what is still thin
+
+- **Raised: the auto-merge job no longer fails on one GitHub server error** (owner 2026-11-06). The wait step
+  retries 5xx, 429 and a rate-limit 403 four times (5/10/20/40 s, about 75 s at worst), then fails. Still thin:
+  only the check-runs listing retries; the Merge step itself (`pulls.merge`) fails on its first 5xx, as before
+  (the owner OK'd the wait step only). A real 403 for another reason (permissions) is not retried, by design. The
+  test runs the script text out of the YAML with a fake client; it can't catch a change in `actions/github-script`
+  itself (the error's `status`/`response.headers` shape is Octokit's, read from its docs, not from a live 500).
+- **Raised: demos drift silently (sessions 64, 65, 70, 71).** `progress/demos.json` lists the 24 committed demo
+  outputs that their scripts are meant to reproduce (and the 4 measurement records that aren't); `npm run demos`
+  re-runs the fast ones (`-- --all` the slow ones, `-- --write` rewrites) and diffs each, leaving out the
+  `[timing, varies per run]` lines; `server/test/demoManifest.test.ts` fails if a dev script names a committed
+  output that is on neither list. Found on its first run: **16 of 24 were stale**: 7 only in the schema line
+  (v20 -> v21, the 2x vote's migration, session 73); 2 in what session 73-74 added (the settings list now names
+  `ask2xEveryMatch`; the store lists the two coins on sale); and 7 played matches under rules-1 and were never
+  re-run after session 71 (economy-demo-003 (last run in session 30: schema v3, a 36-card Null), 012, 013, 014,
+  015, 016, and owner-api-demo-002's builder win rates). All regenerated and read; no crash, no FAIL line, every change explained by v21 or rules-2.
+  owner-api-demo-002 was run twice to confirm it is deterministic apart from its timing lines.
+- **Still thin: the check isn't in CI.** It takes about 1.5 minutes for the fast set on 4 cores (the slow three:
+  011 about 2 min, 014 under 1, 016 about 7). Adding it to `test.yml` is an owner call (notes-for-owner.md); until
+  then a session that changes rules, cards or the schema must run `npm run demos` itself.
+- **Still thin: only economy and server demos are listed.** The engine's sample matches, balance reports and
+  rings, and the render lane's evidence, are records by design (the ring has its own CI check). Every schema bump
+  still rewrites ~10 files for one line; a `<schema>` placeholder like `<temp>` would cut that noise, not done.
+- **Two style tests with tiny samples (session 71)** and **the hands safety rule (session 72)** stand, untouched.
 
 ## Session 74 (featured picks and viewer counts): what is still thin
 
@@ -374,10 +400,8 @@ real, but here is where it's thin.
 
 ## Session 65 (hardening; the owner's daily pack): what is still thin
 
-- **Demos drift silently.** Session 64 found six stale demo files by chance; this session found a second crash
-  (006) only by re-running. Nothing runs the committed demos in CI or compares them to their files. The fast
-  ones (all but 014 and 016, which take 0.5 and 7 minutes) could be a test that re-runs and diffs them;
-  not built.
+- ~~**Demos drift silently.**~~ Raised session 75: `npm run demos` re-runs and diffs every listed demo, and a
+  test keeps the list whole. Still not in CI (an owner call); see session 75's section.
 - **`grantPack(..., "ownerDaily")` is still open.** Demos and tests grant daily packs directly; those count as
   claims (they empty the bank, never owe). Nothing but the claim should make one in production; the store doesn't
   enforce that.

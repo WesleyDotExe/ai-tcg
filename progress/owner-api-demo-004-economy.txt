@@ -126,6 +126,8 @@ The database is a real file; the store's clock starts at 2026-11-01T09:00:00.000
 > GET /api/store  -> 200
   on sale: Boot Sequence (boast) 300 credits
   on sale: Dial-Up Fireworks (boast) 300 credits
+  on sale: Dial-Up Dime (coin) 300 credits
+  on sale: Neon Nickel (coin) 300 credits
   wallet: credits 350, pack points 30, 1 pack(s) to open
 > POST /api/store/cosmetics/boast-s0-dial-up-fireworks/buy  -> 201
   bought Dial-Up Fireworks (purchase)
