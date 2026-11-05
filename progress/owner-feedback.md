@@ -4236,3 +4236,47 @@ Answers the [OWNER CHECK-IN] on the "Top rated" rule and the viewer-count propos
 
 ### Game lane: the auto-merge retry fix, approved
 PR #131's auto-merge job failed after 2 s on a GitHub API server error (HTTP 500 when listing the commit's check runs) while every test had passed; a re-run merged it. **Make the "Wait for checks to pass" step retry on GitHub server errors (5xx) and rate limits** (a few tries with a short backoff) instead of failing on the first one; any other error, or a check that really failed, still stops the merge. The owner OKs this change to `.github/workflows/auto-merge.yml` for this purpose only. Do it at the start of the next game session (it is small), then notifications, then the Stats page's data, as queued.
+
+---
+
+## 2026-11-06 — Owner: the Home dashboard feedback; the Season 0 scope is LOCKED; feature freeze from 9 November; both lanes' order to 5 December
+
+This is the dashboard feedback the 2026-11-05 entry waited on. **The full spec is `progress/season0-final-brief.md`. Read it in full before working.** This entry sets the order. Both lanes act on it.
+
+### The lock
+- **The Season 0 scope is locked.** It is: everything already open on the Season 0 checklist in `progress/roadmap.md` (nothing there is dropped), plus the brief's three items: the dashboard's S/M/L rework, the store layout, and the pack opening ceremony upgrade, plus the play-time allowance below.
+- **Feature freeze from Monday 9 November 2026.** After that, only: the items above, bug fixes, and finishing what exists so Season 0 works end to end. **Any new idea, from the owner or from a run, goes into `progress/season-1-ideas.md`**, not into the build. A run that thinks something outside the scope is truly needed for Season 0 writes it in notes-for-owner and doesn't build it.
+- **All feature work done by Tuesday 1 December.** **2-4 December: clean-up only** (no features; the full Season 0 dry run in the brief). **Season 0 starts Saturday 5 December.**
+- **Midpoint check around Sunday 22 November:** each lane writes a short on-track note at the top of its notes-for-owner file (items left, sessions left at the current rate, anything at risk). If the render lane is behind, cut in the brief's order, each item moving whole to `progress/season-1-ideas.md`, never half-built.
+- Hardening passes keep their usual rhythm (every 5th session per lane). Don't skip one to go faster.
+
+### Checked against the code (no guessing needed)
+- **Personality dial:** play styles already exist (`playStyles` in `GET /api/play`, `PUT /api/agents/:agentId/play-style`). The dial is render work only. A change applies from the next match.
+- **Play-time allowance:** doesn't exist yet. **Approved as a small server addition to auto-play** (game lane): turn auto-play on with 15 / 30 / 60 minutes, add +15 / +30 while running; when time runs out the agent finishes its current match and is not paired again; unused time doesn't carry over and resets at midnight Sydney; auto-play with no time chosen behaves as today (the existing rewards cap still applies). `GET /api/play` reports minutes left and whether the agent is running, finishing its last match, or done for today. Written into `server/OWNER_API.md` with tests and a demo.
+- **Music:** background music exists (`render/src/musicFx.ts`), so a small play/pause widget is allowed, first on the cut list. The music tools are Season 1.
+- **Pack opening:** upgrade the existing ceremony (`render/src/packOpening.ts`, `packFx.ts`, the ten-pack slice); keep every existing reveal kind and its order, and the 2026-10-18 feel notes.
+- **Showcase:** keep the existing widget; draw its cards larger. No new customisation.
+
+### Game lane, in order
+1. The auto-merge retry fix (already queued on 2026-11-06; small; first).
+2. **The play-time allowance** (above). The render lane's Agent controls widget waits on it, so do it early.
+3. Notifications (roadmap 2d), as queued. Add "your agent's time is up" to the proposed list.
+4. The Stats page's data (roadmap 2e), as queued. The My agent widget's rating trend at L uses it.
+5. The test-only Null deck-builder session (roadmap 2f), as already set, results to an owner check-in, before the launch-gate re-run.
+6. The rest of the game lane's open Season 0 items (season end near the end, as the roadmap says).
+7. Spare sessions before 1 December: hardening and the quality-debt list, and any small additions the render lane asks for to finish its widgets. No new features.
+
+### Render lane, in order
+1. The live-arena slice already queued (the signature card in full, the live boast, the 2× controls).
+2. **My agent and Agent controls** (Agent controls replaces the Live match widget): the S/M/L split in the brief, the personality dial, and the time ring once the game lane's play-time allowance is in (build the dial first if it isn't).
+3. **The pack opening ceremony, part 1:** the bigger pack art, the gradient backdrop with its tells, the tear and the burst.
+4. **Part 2:** the reveal escalation across the reveal kinds, the faction ward flare, the procedural sound.
+5. **Part 3:** the Prototype takeover, the afterglow, NEW stamps and the set bar, Open 10 stopping on every hit, the debug panel.
+6. **The store layout** (layout only, the current look), with the Store and Packs widgets (real pack art).
+7. **The rest of the widgets' S/M/L pass:** Daily rewards, Watch live (the live match embedded at L), Showcase (larger cards), Collection, Ladder and any others, using data they already have.
+8. The rest of the render lane's open Season 0 items on the roadmap.
+
+### Done means
+The brief's "Checks before marking this brief done", then the clean-up days, then Season 0's definition of done: 7 consecutive days unattended.
+
+Update `progress/roadmap.md`'s Season 0 checklist to match as you go (the owner has added this entry's items to it).

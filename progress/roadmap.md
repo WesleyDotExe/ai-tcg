@@ -12,6 +12,11 @@ In-house only (the owner and the house's agents), on the owner's Mac mini, no ex
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
 Updated 2026-11-05, game session 74 (featured picks and viewer counts).
 
+**SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
+`progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
+only 2-4 Dec; **Season 0 starts Sat 5 Dec 2026**. Midpoint on-track check ~Sun 22 Nov. Nothing below is dropped;
+new ideas go to `progress/season-1-ideas.md`.
+
 **Set before Season 0 work**
 - [x] Game: ship NA12 and CS7 (session 62).
 - [x] Render: the "tap to skip" hint (render session 43). Follow-ups (remembered on the account; "or click the
@@ -102,6 +107,10 @@ Updated 2026-11-05, game session 74 (featured picks and viewer counts).
    `GET /api/ladder` and `GET /api/rating` (for example win rate by faction and by opponent, recent form, a rating
    chart), in `server/OWNER_API.md` with tests; propose the shape at a check-in if needed.
 2f. [ ] The test-only Null deck-builder session (owner-approved; before the launch-gate re-run): see current.md.
+2g. [ ] (owner 2026-11-06, do right after the auto-merge retry fix) The play-time allowance on auto-play: 15 / 30 /
+   60 minutes, +15 / +30 while running, finish the current match then stop, resets at midnight Sydney, no
+   carry-over; minutes left and running / finishing / done in `GET /api/play`; `server/OWNER_API.md`, tests, a demo.
+   Spec: `progress/season0-final-brief.md` section 1.
 3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.
    Grant the tier coins FIRST (`store.grantSeasonTierCoins()`, built session 69), before the reset clears the
@@ -122,6 +131,20 @@ Updated 2026-11-05, game session 74 (featured picks and viewer counts).
 6. [ ] Coin skins (owner 2026-11-02, render half approved): (1) the flip in Match Boot, the starter coin,
    reduced motion and sound; (2) the store and tier coins' looks, the coin line in the picker and the Store.
    After the game lane's slot and catalogue.
+7. [ ] (owner 2026-11-06, after the live-arena slice) The dashboard rework, the store layout and the pack
+   opening ceremony, in the order of the 2026-11-06 owner-feedback entry. Spec: `progress/season0-final-brief.md`.
+   - [ ] My agent and Agent controls (replaces Live match): S/M/L split, personality dial, time ring (after 2g)
+   - [ ] Pack opening part 1: bigger pack art, gradient backdrop and tells, the tear and burst
+   - [ ] Pack opening part 2: reveal escalation across the reveal kinds, ward flare, procedural sound
+   - [ ] Pack opening part 3: Prototype takeover, afterglow, NEW stamps, set bar, Open 10 stops on hits, debug panel
+   - [ ] Store layout (Fortnite-style placement, current look) with the Store and Packs widgets
+   - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger
+     cards), Collection, Ladder, the others
+   - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause
+     widget; last-pulls strip at L; Watch live embedded at L; rating trend at L.
+
+**Clean-up, both lanes (2-4 Dec 2026):** no features; quality-debt lists and stale checks; the full Season 0 dry
+run in the brief; fix what breaks. Then Season 0 starts (5 Dec) and must run 7 consecutive days unattended.
 
 **After Season 0, before the public launch:** the rolling queue (owner 2026-11-04): pair whoever is free instead
 of waiting for a round's slowest match, so a faster (2×) match means the next one starts sooner. It changes the
