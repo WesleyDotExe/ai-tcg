@@ -7,20 +7,20 @@ The built deck is played in the connected agent's style; the shipped opponents a
   ada opens 33 packs; holds 205 copies; agent style: calculator
   rebuild reasons: the agent hasn't built a deck yet
   built in Calculator's style:
-    Cortex: 58.8% on fresh seeds (rating start 58.8%, designed start 57.5%); keeps the rating deck
-    Swarm: 46.3% on fresh seeds (rating start 39.3%, designed start 46.3%); keeps the designed deck
-    Aegis: 48.5% on fresh seeds (rating start 48.5%, designed start 42.5%); keeps the rating deck
-    Null: 43.8% on fresh seeds (rating start 41.5%, designed start 43.8%); keeps the designed deck
+    Cortex: 59.3% on fresh seeds (rating start 59.3%, designed start 59.3%); keeps the rating deck
+    Swarm: 47.3% on fresh seeds (rating start 38.8%, designed start 47.3%); keeps the designed deck
+    Aegis: 49.8% on fresh seeds (rating start 49.8%, designed start 44.5%); keeps the rating deck
+    Null: 43.8% on fresh seeds (rating start 40.8%, designed start 41.0%); keeps the searched deck; changes: -1 Surge Protector +1 Burst Credit: 38 -> 45 of 160; -1 Surge Protector +1 Rollback Point: 45 -> 50 of 160; -1 Relay Courier +1 Commodity Rack: 50 -> 56 of 160
   -> ada's agent plays Cortex (40 cards); recorded as built from: style calculator, lock none, holdings p:c9f64c10adb6ffba
   rebuild reasons now: none (up to date); rebuildAgentDeckIfNeeded -> nothing to do
 
 ## 2. The owner switches the agent to Rusher
   rebuild reasons: the play style changed (Calculator -> Rusher)
   built in Rusher's style:
-    Cortex: 59.8% on fresh seeds (rating start 59.8%, designed start 56.8%); keeps the rating deck
-    Swarm: 45.0% on fresh seeds (rating start 39.8%, designed start 45.0%); keeps the designed deck
-    Aegis: 53.3% on fresh seeds (rating start 53.3%, designed start 47.8%); keeps the rating deck
-    Null: 44.5% on fresh seeds (rating start 44.5%, designed start 44.0%); keeps the rating deck
+    Cortex: 59.0% on fresh seeds (rating start 59.0%, designed start 57.3%); keeps the rating deck
+    Swarm: 46.8% on fresh seeds (rating start 38.3%, designed start 46.8%); keeps the designed deck
+    Aegis: 52.8% on fresh seeds (rating start 52.8%, designed start 49.8%); keeps the rating deck
+    Null: 43.3% on fresh seeds (rating start 41.3%, designed start 41.8%); keeps the searched deck; changes: -1 Surge Protector +1 Burst Credit: 38 -> 45 of 160; -1 Surge Protector +1 Rollback Point: 45 -> 50 of 160; -1 Relay Courier +1 Commodity Rack: 50 -> 56 of 160
   -> ada's agent plays Cortex (40 cards); recorded as built from: style rusher, lock none, holdings p:c9f64c10adb6ffba
   Rusher's deck against Calculator's: (no change)
   same deck id: true; rebuild reasons now: none (up to date)
@@ -28,17 +28,17 @@ The built deck is played in the connected agent's style; the shipped opponents a
 ## 3. The owner connects a second agent, a Fortress
   rebuild reasons: the play style changed (Rusher -> Fortress)
   built in Fortress's style:
-    Cortex: 59.3% on fresh seeds (rating start 59.3%, designed start 56.3%); keeps the rating deck
-    Swarm: 42.3% on fresh seeds (rating start 36.3%, designed start 42.3%); keeps the designed deck
-    Aegis: 44.3% on fresh seeds (rating start 44.3%, designed start 43.0%); keeps the rating deck
-    Null: 40.3% on fresh seeds (rating start 37.5%, designed start 40.3%); keeps the designed deck
+    Cortex: 59.3% on fresh seeds (rating start 59.3%, designed start 57.8%); keeps the rating deck
+    Swarm: 42.5% on fresh seeds (rating start 35.0%, designed start 42.5%); keeps the designed deck
+    Aegis: 43.8% on fresh seeds (rating start 43.8%, designed start 43.5%); keeps the rating deck
+    Null: 41.8% on fresh seeds (rating start 37.0%, designed start 36.5%); keeps the searched deck; changes: -1 Surge Protector +1 Burst Credit: 38 -> 45 of 160; -1 Surge Protector +1 Rollback Point: 45 -> 50 of 160; -1 Relay Courier +1 Commodity Rack: 50 -> 56 of 160
   -> ada's agent plays Cortex (40 cards); recorded as built from: style fortress, lock none, holdings p:c9f64c10adb6ffba
   Fortress's deck against Calculator's: (no change)
 
 ## 4. Back to the Rusher agent, 5 more packs, and an Aegis lock: one rebuild for all three
   rebuild reasons: the cards held changed; the faction lock changed (none -> Aegis); the play style changed (Fortress -> Rusher)
   built in Rusher's style:
-    Aegis: 56.0% on fresh seeds (rating start 55.0%, designed start 46.5%); keeps the searched deck; changes: -1 Static Ward Beacon +1 Lockdown Field: 54 -> 58 of 160; -1 Aegis Warden +1 Static Ward Beacon: 58 -> 65 of 160; -1 Barrier Drone +1 Barrier Shim: 65 -> 71 of 160
+    Aegis: 58.5% on fresh seeds (rating start 57.0%, designed start 48.3%); keeps the searched deck; changes: -1 Static Ward Beacon +1 Lockdown Field: 60 -> 67 of 160
   -> ada's agent plays Aegis (40 cards); recorded as built from: style rusher, lock Aegis, holdings p:cd054f761973bbd5
   rebuild reasons now: none (up to date)
   lock lifted: the faction lock changed (Aegis -> none); rebuilt in Rusher's style, plays Cortex
@@ -47,16 +47,16 @@ The built deck is played in the connected agent's style; the shipped opponents a
   bo forces "bo's own", agent style controller; rebuild reasons: none (up to date)
   bo hands the deck back to the agent; rebuild reasons: the agent hasn't built a deck yet
   built in Controller's style:
-    Null: 54.0% on fresh seeds (rating start 54.0%); keeps the rating deck
+    Null: 53.5% on fresh seeds (rating start 53.5%); keeps the rating deck
   -> bo's agent plays Null (40 cards); recorded as built from: style controller, lock none, holdings p:6c7bb967fbd9a8e2
 
 ## 6. Real matches: each side's built deck, played in its style (startMatch -> runMatch -> recordMatch)
-  s0-y001  ada (rusher) vs bo (controller)  T19  ada wins
+  s0-y001  ada (rusher) vs bo (controller)  T20  bo wins
   s0-y002  bo (controller) vs ada (rusher)  T15  bo wins
   s0-y003  ada (rusher) vs bo (controller)  T14  bo wins
   s0-y004  bo (controller) vs ada (rusher)  T11  bo wins
-  s0-y005  ada (rusher) vs bo (controller)  T15  ada wins
-  s0-y006  bo (controller) vs ada (rusher)  T15  bo wins
+  s0-y005  ada (rusher) vs bo (controller)  T17  ada wins
+  s0-y006  bo (controller) vs ada (rusher)  T16  ada wins
   s0-y007  ada (rusher) vs bo (controller)  T12  bo wins
   s0-y008  bo (controller) vs ada (rusher)  T15  bo wins
   wins: ada 2, bo 6 (8 matches; a showcase, not a measurement)
