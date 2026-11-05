@@ -314,3 +314,57 @@ export function liveLineHtml(sb: Scoreboard): string {
   return `<li class="lline"><span class="live-dot" aria-hidden="true"></span><b>${esc(sb[a].agentName)}</b> <span class="lhp">${sb[a].health}–${sb[b].health}</span> <b>${esc(sb[b].agentName)}</b> <small class="muted">${esc(sb.status)}</small></li>`;
 }
 
+
+// ---- the 2× vote (render session 56; game session 73) -----------------------
+//
+// The owner's 2026-11-04 order: on the owner's own live match, "Ask for 2×"
+// (and taking it back), who asks and who is being waited on, from the live
+// view's `speed` (OWNER_API.md SpeedView). The rule is the server's: a match
+// runs at 2× only while both sides agree; a house side agrees to whatever its
+// player opponent asks. This only words what the server sent.
+
+export interface SpeedControlView {
+  /** The viewer's own match, still releasing moves: the button shows. */
+  canVote: boolean;
+  rate: 1 | 2;
+  /** The status line: "2× · both owners agreed", "You asked for 2×. Waiting on Boris.", ... */
+  line: string;
+  /** The button's words and what it sends (`ask`), or null for no button. */
+  button: { label: string; ask: boolean } | null;
+  /** A short pill for a spectator's card ("2×"), or null at 1×. */
+  pill: string | null;
+}
+
+export function speedControlView(m: SiteLiveMatch, viewerOwnerId: string | null): SpeedControlView | null {
+  const sp = m.speed;
+  if (!sp) return null;
+  const mine = viewerOwnerId === null ? null : m.p1.ownerId === viewerOwnerId ? "p1" : m.p2.ownerId === viewerOwnerId ? "p2" : null;
+  const ended = m.nextAt === null || m.now.winner !== null;
+  const pill = sp.rate === 2 && !ended ? "2×" : null;
+  if (!mine || ended) {
+    const line = ended ? "" : sp.rate === 2 ? (sp.house.p1 || sp.house.p2 ? "2×: the player's owner asked, the house agrees" : "2×: both owners agreed") : "";
+    return { canVote: false, rate: sp.rate, line, button: null, pill };
+  }
+  const other = mine === "p1" ? "p2" : "p1";
+  const otherName = m[other].ownerName;
+  const vsHouse = sp.house[other];
+  if (sp.rate === 2) {
+    return { canVote: true, rate: 2, line: vsHouse ? "Playing at 2×: the house agrees to what you ask." : `Playing at 2×: you and ${otherName} agreed.`, button: { label: "Back to 1×", ask: false }, pill };
+  }
+  if (sp.asks[mine]) {
+    // Asked, still 1×: the other owner hasn't agreed yet.
+    return { canVote: true, rate: 1, line: `You asked for 2×. Waiting on ${otherName}.`, button: { label: "Take back", ask: false }, pill };
+  }
+  if (sp.asks[other] && sp.waitingOn === mine) {
+    return { canVote: true, rate: 1, line: `${otherName} asks for 2×. It starts when you agree.`, button: { label: "Agree to 2×", ask: true }, pill };
+  }
+  return { canVote: true, rate: 1, line: vsHouse ? "Against the house, your ask alone makes it 2×." : `2× needs you and ${otherName} to agree.`, button: { label: "Ask for 2×", ask: true }, pill };
+}
+
+/** The control as HTML: the status line and its button. `id` names the
+ * button (focus is kept across redraws by id). */
+export function speedControlHtml(v: SpeedControlView | null, id: string, matchId: string, busy = false): string {
+  if (!v || (!v.canVote && !v.line)) return "";
+  const btn = v.button ? `<button type="button" class="btn sm${v.button.ask ? " pri" : ""}" id="${id}" data-act="live-speed" data-match="${esc(matchId)}" data-ask="${v.button.ask ? "1" : "0"}"${busy ? " disabled" : ""}>${esc(v.button.label)}</button>` : "";
+  return `<div class="speed-ctl${v.rate === 2 ? " fast" : ""}" role="status"><span class="speed-rate" aria-hidden="true">${v.rate}×</span><span class="speed-line small">${esc(v.line)}</span>${btn}</div>`;
+}

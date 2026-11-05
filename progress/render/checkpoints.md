@@ -7,6 +7,55 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-05 — The live arena slice: the signature card in full, the boast before the result, the 2× controls — AWAITING FEEDBACK
+
+The slice you set after the second coin slice, with the 2× controls you added to it (2026-11-04). Try it: `npm
+run site-demo -w @ai-tcg/render -- --ladder --speed 2`, sign in as `nova` / `a long demo password` (Rook is `rook`,
+same password). Agent match shows the 2× control on Nova's live match; "Watch on the arena" opens it; Watch live
+has the match with Static Widow, whose signature card now sits in its zone on the live board.
+
+**What you'll see:**
+- **The signature card live, as in a replay:** its zone (the card, "5 unplayed", how far it is out of reach), the
+  signature unit with its printed keywords and rules text once played, its trigger lines in the feed, and exact
+  hand costs while it is on the board (no more "?").
+- **The boast before the result, live:** the winner's boast plays as the last move lands, then GAME OVER, the
+  same order as a replay (before, live showed GAME OVER first and the boast about 8 s later, once the match was
+  recorded).
+- **The 2× vote:** on your own live match, under the scoreboard on Agent match and over the arena beside Close:
+  - nobody asks: "2× needs you and Rook to agree." [Ask for 2×] (against the house: "Against the house, your ask
+    alone makes it 2×.")
+  - you asked: "You asked for 2×. Waiting on Rook." [Take back]
+  - Rook asked: "Rook asks for 2×. It starts when you agree." [Agree to 2×]
+  - both: "Playing at 2×: you and Rook agreed." [Back to 1×]; the arena's badge reads "LIVE · 2×" and it steps
+    twice as fast while following live, so it keeps up instead of hurrying.
+  - Watch live shows a small 2× pill on any match playing at 2×. Settings -> Play has "Ask for 2× in every match".
+
+**Evidence:** `progress/render/evidence/site-check-s56.txt`: 26 browser checks over the real ladder, ALL PASS
+(stills `v2-s56-signature.jpg`, `v2-s56-agent-match-2x.jpg`, `v2-s56-arena-2x.jpg`, `v2-s56-ended.jpg`). CI
+browser check 61/61. Tests: every frame of six real matches with signature cards equals the replay's; every
+signature card the menu can make (over 600) is rebuilt exactly; the vote's states over the real owner API; the
+boast arrives with the last move, before the match is recorded. `npm test` all pass (render 875).
+
+**Decisions you may want to overrule:**
+1. **The buttons' words:** "Ask for 2×", "Take back", "Agree to 2×", "Back to 1×". "Agree to 2×" is the same
+   request as "Ask for 2×" (the server counts both as an ask); it is worded for the owner being waited on.
+2. **Where the control sits:** under the scoreboard on Agent match, and over the arena beside Close (owner's own
+   match only). Spectators get a 2× pill, never a button. The Home Live match widget has none (Agent controls
+   replaces it next).
+3. **The arena steps twice as fast while following at 2×** (all its animations' holds halved, as the server
+   halves its holds). Paused or scrubbing, your own speed setting applies.
+4. **A signature card is rebuilt from the engine's menu by its rules text.** If a card ever has a line the menu
+   doesn't (a wording change on the game lane), the live board falls back to the old drawing for that card (its
+   numbers, hand costs marked "?") rather than guess. The zone itself is always drawn from the feed.
+5. **Settings -> Play's switch is hidden for a house account** (the server ignores the house's setting).
+6. **The demo's House Null agent is now generated with a signature card** (named Static Widow as before), so the
+   demo shows a signature card live.
+
+**Next:** My agent and Agent controls (your 2026-11-06 order, item 2): the S/M/L split, the personality dial, the
+time ring once the play-time allowance is in.
+
+---
+
 ## 2026-11-04 — The second coin slice: every Season 0 coin drawn, and the Coin line in the picker and the Store — AWAITING FEEDBACK
 
 The slice you set after render 54. Try it: open `render/output/coin-sheet.html` (all six coins, still and

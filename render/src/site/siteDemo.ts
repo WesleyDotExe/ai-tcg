@@ -164,7 +164,18 @@ export async function startSiteDemo(options: DemoOptions = {}): Promise<RunningD
     ]) {
       const o = store.createOwner({ name: h.name, kind: "house" });
       store.grantStarterCollection(o.ownerId, h.faction);
-      const a = store.createAgent({ ownerId: o.ownerId, name: h.agent });
+      // Render session 56: House Null's agent is made the way an owner's is
+      // ("Generate a new agent": the draft, then its signature card), so the
+      // live arena has a signature zone and a signature unit to draw, from
+      // the live view's card in full. The typed name keeps it "Static Widow".
+      const a =
+        h.faction === "Null"
+          ? (() => {
+              const d = store.startAgentDraft(o.ownerId, { seed: 4242 });
+              const picked = store.pickDraftAgent(o.ownerId, d.draftId, 0, { seed: 4243 });
+              return store.confirmAgentDraft(o.ownerId, picked.draftId, 0, { name: h.agent }).agent;
+            })()
+          : store.createAgent({ ownerId: o.ownerId, name: h.agent });
       store.setPlayStyle(o.ownerId, a.agentId, h.style);
       store.connectAgent(o.ownerId, a.agentId);
     }

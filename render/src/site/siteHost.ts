@@ -17,13 +17,14 @@ import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
 import { renderSiteLoadoutPage, renderSitePackPage, renderSitePage } from "./sitePage.js";
 import { renderMatchHtml } from "../renderHtml.js";
-import { replayOfFile, recordOf } from "./siteReplay.js";
+import { liveRecordOf, replayOfFile, recordOf } from "./siteReplay.js";
 import { LiveFrameBuilder, type PublicSnapshot, type TimelineStep } from "./liveFrames.js";
 import { BOARD_SLOTS, MAX_ENERGY_CAP, TURN_CAP } from "@ai-tcg/engine";
 import type { Faction } from "../engineInternal.js";
 import { timelineRecorder } from "../../../server/src/ladder/timeline.js";
 import { rebuildReplay } from "../../../server/src/ladder/ladderRunner.js";
 import type { SiteMatchView } from "./siteApi.js";
+import type { ReplayRecord } from "../types.js";
 import type { ReplayFile } from "../../../server/src/ladder/ladderRunner.js";
 
 export interface SiteHostOptions {
@@ -150,13 +151,31 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
   // frames from N on. When the feed says the match has ended (404), the host
   // reads the record (`GET /api/matches/:id`, with the caller's token) for
   // the boast, checked against the last frame as a replay's is.
-  interface LivePage { html: string; at: number; builder: LiveFrameBuilder; matchId: string; ended: boolean; record: unknown; busy: Promise<void> }
+  interface LivePage { html: string; at: number; builder: LiveFrameBuilder; matchId: string; ended: boolean; record: unknown; rate: 1 | 2; busy: Promise<void> }
   const livePages = new Map<string, LivePage>();
   const LIVE_KEEP = 8;
   // `openingHands` and each side's `faction`: game session 72 (from=0 only for
   // the hands; a match with a real-time seat will leave the hands out).
-  type LiveFeedSide = { agentName: string; coin?: string; faction?: Faction };
-  type LiveFeedBody = { start: PublicSnapshot | null; startLines: string[] | null; steps: TimelineStep[]; from: number; p1: LiveFeedSide; p2: LiveFeedSide; openingHands?: { p1: string[]; p2: string[] } | null };
+  // `boast` once the last move is out (game session 72) and `speed`, the 2×
+  // vote (game session 73): render session 56.
+  type LiveFeedSide = { agentId: string; agentName: string; coin?: string; faction?: Faction };
+  type LiveSpeed = { rate: 1 | 2; asks: { p1: boolean; p2: boolean }; house: { p1: boolean; p2: boolean }; waitingOn: "p1" | "p2" | null };
+  type LiveFeedBody = {
+    matchId: string; released: number; nextAt: string | null;
+    start: PublicSnapshot | null; startLines: string[] | null; steps: TimelineStep[]; from: number; p1: LiveFeedSide; p2: LiveFeedSide;
+    openingHands?: { p1: string[]; p2: string[] } | null;
+    boast?: SiteMatchView["boast"]; speed?: LiveSpeed;
+  };
+  /** The live view's record once the last move is out (siteReplay.ts
+   * liveRecordOf): the boast plays before the result, as in a replay. A
+   * boast that doesn't fit the board shows none, never a wrong one. */
+  const liveRecord = (builder: LiveFrameBuilder, f: LiveFeedBody, matchId: string): unknown => {
+    try {
+      return liveRecordOf(builder.replay(), { ...f, matchId });
+    } catch {
+      return null;
+    }
+  };
   const buildLive = async (req: IncomingMessage, res: ServerResponse, matchId: string) => {
     const get = getWith(req.headers.authorization);
     let feed: { status: number; body: unknown };
@@ -170,6 +189,7 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
     if (!f.start) return json(res, 409, { error: "this match hasn't started yet" });
     let builder: LiveFrameBuilder;
     let html: string;
+    let record: ReplayRecord | null = null;
     try {
       const factions = f.p1.faction && f.p2.faction ? { factions: { p1: f.p1.faction, p2: f.p2.faction } } : {};
       const openingHands = f.openingHands ? { openingHands: f.openingHands } : {};
@@ -177,7 +197,9 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
       for (const step of f.steps) builder.push(step);
       // The coins each side flips (v20, the live view's `coin`), for Match Boot's coin flip.
       const coins = f.p1.coin && f.p2.coin ? { coins: { p1: f.p1.coin, p2: f.p2.coin } } : {};
-      html = renderMatchHtml({ ...builder.replay(), ...coins }, { live: true });
+      // Opened in the result's hold: the boast is already known.
+      record = liveRecord(builder, f, matchId) as ReplayRecord | null;
+      html = renderMatchHtml({ ...builder.replay(), ...coins, ...(record ? { record } : {}) }, { live: true, rate: f.speed?.rate ?? 1 });
     } catch (err) {
       return json(res, 422, { error: `this match can't be drawn: ${err instanceof Error ? err.message : String(err)}` });
     }
@@ -185,7 +207,7 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
     for (const [k, v] of livePages) if (now - v.at > LIVE_PAGE_TTL_MS) livePages.delete(k);
     while (livePages.size >= LIVE_KEEP) livePages.delete(livePages.keys().next().value!);
     const key = randomBytes(18).toString("base64url");
-    livePages.set(key, { html, at: now, builder, matchId, ended: false, record: null, busy: Promise.resolve() });
+    livePages.set(key, { html, at: now, builder, matchId, ended: false, record, rate: f.speed?.rate ?? 1, busy: Promise.resolve() });
     return json(res, 201, { url: `/live/${key}`, key, released: builder.released });
   };
   const liveFrames = async (req: IncomingMessage, res: ServerResponse, key: string, from: number) => {
@@ -212,7 +234,10 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
             for (const step of rec.timeline.steps.slice(page.builder.released)) page.builder.push(step);
           }
         }
-        const view = await get(`/api/matches/${encodeURIComponent(page.matchId)}`);
+        // The rate is 1× once nothing more is released.
+        page.rate = 1;
+        // The live view's boast already came (the usual case): the record's is the same one.
+        const view = page.record ? { status: 0, body: null } : await get(`/api/matches/${encodeURIComponent(page.matchId)}`);
         if (view.status === 200) {
           try {
             page.record = recordOf(page.builder.replay(), view.body as SiteMatchView);
@@ -223,7 +248,10 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
         return;
       }
       if (feed.status !== 200) throw new Error(`the live feed answered HTTP ${feed.status}`);
-      for (const step of (feed.body as LiveFeedBody).steps) if (step.n === page.builder.released + 1) page.builder.push(step);
+      const body = feed.body as LiveFeedBody;
+      for (const step of body.steps) if (step.n === page.builder.released + 1) page.builder.push(step);
+      page.rate = body.speed?.rate ?? 1;
+      if (!page.record) page.record = liveRecord(page.builder, body, page.matchId);
     });
     page.busy = run.catch(() => {});
     try {
@@ -232,7 +260,7 @@ export function startSiteHost(options: SiteHostOptions): Promise<RunningSiteHost
       return json(res, 502, { error: err instanceof Error ? err.message : "the owner API can't be reached" });
     }
     const start = Math.max(0, Math.min(from, page.builder.released + 1));
-    return json(res, 200, { frames: page.builder.framesFrom(start), released: page.builder.released, ended: page.ended, record: page.record });
+    return json(res, 200, { frames: page.builder.framesFrom(start), released: page.builder.released, ended: page.ended, record: page.record, rate: page.rate });
   };
 
   const proxy = (req: IncomingMessage, res: ServerResponse) => {

@@ -1240,3 +1240,20 @@ Nothing is blocking. The calls for this slice are in `progress/render/checkpoint
 have not been listened to by a person (the modem warble most of all). The Season 1 question (new look or a
 season mark) is proposed as a mark, call 1.
 
+
+---
+
+## 2026-11-05 — Render session 56 (the live arena slice)
+
+1. **For the game lane's roadmap upkeep** (this lane doesn't write `progress/roadmap.md`): the render half of the
+   2× vote is built (Agent match, over the live arena, Watch live's pill, Settings -> Play), and the live arena
+   now reads the signature card in full and the live boast. The six calls are in `progress/render/checkpoints.md`.
+2. **A wording change to a signature menu ability needs this lane too.** The live board rebuilds a signature
+   card's abilities from the engine's menu by rules text (`render/src/site/liveFrames.ts` `signatureCardOf`).
+   Change a menu ability's text and an existing card's old text (if the server ever sends it) won't match: the
+   board falls back safely (no wrong data, costs marked "?"), and `render/test/liveFrames.test.ts` catches any
+   card the current menu can make that doesn't rebuild. Nothing to do now; flagged so a wording change isn't a
+   surprise.
+3. **Nothing needed from the game lane for this slice.** One small thing it could add someday: a notification
+   when the other owner asks for 2× (the notifications item already queued); today the ask shows within the
+   site's 3 s read.

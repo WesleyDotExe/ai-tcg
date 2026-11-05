@@ -19,20 +19,41 @@ items are removed, with the fix in `log.md`.
   tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
   tiles' `backdrop-filter` is the whole cost. Session 45's check fails its 20 fps bar on this branch
   (`site-check-s45-rerun-s46.txt`). Never measured on a GPU; options with the owner (notes, session 46).
-- **The live arena draws less than a replay (session 51):** no signature zone, a signature unit's printed
-  Barrier and ability text unknown, a hand cost marked "?" while a signature unit is in play. The game lane
-  sends the signature card in full since its session 72 (`PublicSide.signature`), but the site doesn't read
-  it yet: the next live-arena work. Since session 54 the hands are whole from move 0 (the feed's
-  `openingHands`) and each side shows its deck's faction from the first frame (`LiveSideView.faction`); a
-  feed without them (the real-time safety rule, when network agents join) falls back to backs and Neutral,
-  as before (tested in `liveFrames.test.ts`). Statuses and this-turn
-  buffs take their duration from the source card's abilities: exact in every tested match, but a future
+- **The live arena draws what a replay draws (session 56), with one fallback:** the signature zone and a signature
+  unit come from the live view's card in full (`PublicSide.signature`, game session 72); its abilities as data are
+  rebuilt from the engine's signature menu by rules text (`signatureCardOf`), tested against every card the menu
+  can make at every size (more than 600) and, in six real matches with signature cards, every frame equals the
+  captured one, zone, unit, trigger lines and hand costs included. **Thin:** a signature line the menu doesn't have
+  (a menu wording change on the game lane without a matching render, or a future non-menu signature) leaves that
+  card unknown: the zone is still drawn from the feed, but the unit falls back to live numbers only and the hand's
+  costs say "?" while it is in play (`signatureUnknown`, tested; nothing reports it outside the tests). The rebuild
+  matches by text, so two menu abilities with the same words but different data would be refused, never guessed
+  (none today). Since session 54 the hands are whole from move 0 (`openingHands`) and each side shows its deck's
+  faction from the first frame (`LiveSideView.faction`); a feed without them (the real-time safety rule, when
+  network agents join) falls back to backs and Neutral, as before (tested in `liveFrames.test.ts`). Statuses and
+  this-turn buffs take their duration from the source card's abilities: exact in every tested match, but a future
   card with two different durations for the same status or buff would leave it out (listed in
   `LiveFrameBuilder.unknown`, never shown wrong; nothing reports it outside the tests).
-- **Live, the boast plays after GAME OVER** (the record comes ~8 s after the last move), the reverse of the
-  replay's order; the game lane sends the boast on the live view once the last move is out since its session
-  72 (`LiveMatchView.boast`), not read by the site yet; and the live page's Match Boot saying is seeded by the match id, so the replay of the same
-  match may show a different saying.
+- **The live boast now plays before the result (session 56)**, from the live view's `boast` once the last move is
+  out, checked against the board's end as a replay's record is. A host that reads the last move but not the boast
+  (an older server) still shows the result first and plays the boast when the record comes (~8 s later). The live
+  page's Match Boot saying is seeded by the match id, so the replay of the same match may show a different saying
+  (unchanged).
+- **The 2× controls (session 56) are words over the server's vote, nothing more:** Agent match, over the live
+  arena beside Close, a 2× pill on Watch live's cards, and Settings -> Play's "Ask for 2× in every match". The
+  arena steps at half its delay while following live at 2×, so it keeps its distance from the newest move; paused
+  or stepped back it plays at the viewer's own speed. Not done: no notification when the other owner asks (the
+  game lane's notifications are queued); the Home Live match widget has no control (the brief replaces it with
+  Agent controls, render item 2); the vote wording ("Agree to 2×", "Back to 1×") was picked by this lane (a check-in
+  call); a house account sees no Settings switch (its setting is ignored by the server). The control's state is the
+  last `GET /api/live` read (every 3 s), so the other owner's ask can take up to 3 s to show.
+- **Session 51's browser check can no longer find its live frame (found session 56):** it looks for a frame URL
+  ending in the page key, and since session 52 the arena's URL carries `#view=…`. `site-check-s56.mjs` matches
+  either; `site-check-s51.mjs` is left stale (re-run it with the same one-line fix in the next hardening pass).
+- **The boast is slow in software WebGL (measured session 56):** in the headless check a ~3 s boast took 33-35 s
+  to give way to GAME OVER on the live arena (three runs). The order is right (boast, then the result); the time is
+  the canvas in software rendering (session 51's stills of the boast timed out the same way). Never measured on a
+  GPU.
 - **The live arena is fed by polling** (the website reads `/live-frames` every 3 s, the host reads the API's
   feed only for new moves): up to 3 s behind the server's watch clock, plus the arena's own step pace.
   Each read rebuilds the slots and the spectator feed over the whole match so far (about 120 frames: fine;

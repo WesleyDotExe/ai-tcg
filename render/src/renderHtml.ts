@@ -27,6 +27,10 @@ export interface MatchPageOptions {
    * with the moves released so far and takes the rest from the page that
    * frames it (the website), following the newest move as it comes. */
   live?: boolean;
+  /** (render session 56) A live match's pace when the page is built: 2
+   * while both owners agree to 2× (the live view's `speed.rate`, game
+   * session 73). The website sends each change with the frames. */
+  rate?: 1 | 2;
 }
 
 export function renderMatchHtml(replay: MatchReplay, opts: MatchPageOptions = {}): string {
@@ -114,6 +118,7 @@ export function renderMatchHtml(replay: MatchReplay, opts: MatchPageOptions = {}
 
 <script type="application/json" id="match-data">${dataJson}</script>
 <script type="application/json" id="live-data">${live ? "true" : "false"}</script>
+<script type="application/json" id="live-rate">${live && opts.rate === 2 ? 2 : 1}</script>
 <script type="application/json" id="fx-atlases">${atlasJson}</script>
 <script type="application/json" id="ward-data">${wardJson}</script>
 <script type="application/json" id="sigward-data">${sigWardJson}</script>
@@ -837,6 +842,12 @@ const JS = `
   // LIVE_CATCH_UP_MS; more than LIVE_JUMP behind, it jumps to just before
   // the newest and plays on from there.
   const LIVE_CATCH_UP = 3, LIVE_CATCH_UP_MS = 160, LIVE_JUMP = 12;
+  // The 2× vote (render session 56; game session 73): while both owners
+  // agree, the server releases moves twice as fast, and a page following
+  // live steps at the same rate, so it keeps its distance from the newest
+  // move instead of falling behind and hurrying. Paused, stepped back or
+  // ended, the viewer's own speed setting is used as it is.
+  let liveRate = JSON.parse(document.getElementById('live-rate').textContent || '1') === 2 ? 2 : 1;
   let i = 0;
   let playing = false;
   let timer = null;
@@ -2476,8 +2487,12 @@ ${SIG_ZONE_SOURCE}
   function boastOf(frame) {
     if (!frame.winner || frame.winner === 'draw') return null;
     if (!boastCosmeticsShown(null, frame.winner, cosmeticsOn)) return null;
-    // Live, the boast is the record's, and the record comes after the last
-    // move: the result lands first, the boast plays when the record does.
+    // Live, the boast is the record's. Since render session 56 the website
+    // hands it over with the last move (the live view's \`boast\`, sent once
+    // the last move is out), so it plays before the result, as in a replay.
+    // A page that has the last move but not the record yet (a host that
+    // couldn't check it) shows the result, and plays the boast when the
+    // record does arrive, over the final board.
     if (LIVE && !replay.record) return null;
     return boastFromRecord(replay.record ? replay.record.boast : null, frame.winner, frame.players[frame.winner].faction);
   }
@@ -2562,6 +2577,7 @@ ${SIG_ZONE_SOURCE}
     let delay = nextDelay(speed);
     // Live and more than a few moves behind the newest (a burst of passes,
     // or a tab that was hidden): catch up at a quick step until close again.
+    if (LIVE && following && !liveEnded && liveRate === 2) delay = Math.round(delay / 2);
     if (LIVE && following && frames.length - 1 - i > LIVE_CATCH_UP) delay = Math.min(delay, LIVE_CATCH_UP_MS);
     timer = setTimeout(function () {
       if (i >= frames.length - 1) {
@@ -2659,9 +2675,10 @@ ${SIG_ZONE_SOURCE}
     const b = document.getElementById('btn-live');
     const behind = frames.length - 1 - i;
     b.className = 'live-badge ' + (liveEnded ? 'ended' : following ? 'on' : 'behind');
-    b.textContent = liveEnded ? 'ENDED' : following ? 'LIVE' : 'LIVE \\u00b7 ' + behind + ' behind';
+    const fast = !liveEnded && liveRate === 2 ? ' \\u00b7 2\\u00d7' : '';
+    b.textContent = liveEnded ? 'ENDED' : following ? 'LIVE' + fast : 'LIVE \\u00b7 ' + behind + ' behind' + fast;
     b.disabled = liveEnded;
-    b.setAttribute('aria-label', liveEnded ? 'The match has ended' : following ? 'Live: following the newest move' : behind + ' moves behind live. Go live');
+    b.setAttribute('aria-label', (liveEnded ? 'The match has ended' : following ? 'Live: following the newest move' : behind + ' moves behind live. Go live') + (fast ? '. Playing at 2\\u00d7: both owners agreed' : ''));
   }
   function goLive() {
     if (!LIVE || liveEnded) return;
@@ -2694,6 +2711,7 @@ ${SIG_ZONE_SOURCE}
         document.getElementById('framecount').textContent = 'move ' + i + ' / ' + (frames.length - 1);
       }
       if (d.ended) liveEnded = true;
+      if (d.rate === 1 || d.rate === 2) liveRate = d.rate;
       if (d.record && !replay.record) {
         replay.record = d.record;
         // At the end already: the winner's boast plays now, over the final board.

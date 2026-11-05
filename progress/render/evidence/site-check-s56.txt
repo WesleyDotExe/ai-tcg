@@ -1,0 +1,44 @@
+
+[A] the signature card, live
+PASS  A. a live match with a signature card (Static Widow)
+      Hive Courier vs Static Widow; Static Widow's card: Encore of the Laser Tag Arena (On arrival, your units get +0/+1 this turn.)
+PASS  A. p2's signature zone is drawn on the live arena
+      sampled at moves 5, 6, 7, 12, 14, 18, 19, 22, 32, 37, 45, 47, 48, 56, 57
+PASS  A. the zone is the feed's at the move shown, 15 of 15 samples (name; the cost playing it costs, or ON BOARD)
+PASS  A. no hand cost marked unsure (0): the signature card's abilities are rebuilt, so every cost is exact
+
+[B] the 2× vote
+PASS  B. a match of Nova's goes live (early in it)
+      Vector Halcyon vs Static Widow; the other side: House Null (house)
+PASS  B. Agent match shows the 2× control on her match
+PASS  B. at 1×: "1×Against the house, your ask alone makes it 2×.Ask for 2×"
+PASS  B. against the house, her ask alone: the server says 2×
+PASS  B. her panel: "Playing at 2×", Back to 1×
+PASS  B. the arena's badge: "LIVE · 2×"
+PASS  B. the control over the arena, beside Close
+      over the arena: "2×Playing at 2×: the house agrees to what you ask.Back to 1×"
+PASS  B. it keeps up at 2× (11 moves in 6 s, at most 4 behind)
+PASS  B. Back to 1× over the arena: the server says 1×
+PASS  B. the badge drops the 2× at once ("LIVE")
+
+[C] the boast before the result
+      seconds from the end of B: boast 164.047, GAME OVER 168.093, ENDED 165.082
+PASS  C. the boast starts before GAME OVER lands (164.047 s, then 168.093 s), as in a replay
+PASS  C. the read that brought the last move brought the boast with it ({"t":1793908960023,"n":24,"lastWinner":"p2","ended":false,"record":true,"rate":1}; before the match was recorded)
+      ENDED at 165.082 s
+PASS  C. the record handed to the arena is the replay's (boast boast-null-void-collapse)
+      (the still "ended" timed out three times)
+
+[D] Settings -> Play: Ask for 2× in every match
+PASS  D. the switch is in Settings -> Play
+PASS  D. off by default
+PASS  D. on: saved to the account
+PASS  D. read back in another browser, signed in again: on
+      (the settings still timed out)
+PASS  D. Nova's next match goes live (one that started after the switch)
+PASS  D. it starts with her ask (asks {"p1":true,"p2":false}, rate 2)
+PASS  D. off again: saved
+PASS  no external requests
+PASS  no page errors
+
+26 pass, 0 fail — ALL PASS

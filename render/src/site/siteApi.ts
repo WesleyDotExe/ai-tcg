@@ -135,6 +135,20 @@ export interface SiteLiveMatch {
   defaultView?: "p1" | "p2";
   now: SitePublicSnapshot;
   recentLines: string[];
+  /** (game session 73) The 2× vote. Optional: an older server leaves it out. */
+  speed?: SiteSpeed;
+}
+
+/** The 2× vote on a live match (OWNER_API.md SpeedView, game session 73). */
+export interface SiteSpeed {
+  /** 2 while both sides agree, else 1. */
+  rate: 1 | 2;
+  /** Whether each side's owner asks for 2× now (always false for a house side). */
+  asks: { p1: boolean; p2: boolean };
+  /** A house side agrees to whatever its player opponent asks. */
+  house: { p1: boolean; p2: boolean };
+  /** One player owner asks and this side's player owner hasn't. */
+  waitingOn: "p1" | "p2" | null;
 }
 
 /** `GET /api/live/:matchId?from=N` (OWNER_API.md LiveMatchFeed). Each
@@ -230,11 +244,14 @@ export interface SiteAccountSettings {
   sound: SiteAudio;
   music: SiteAudio;
   skipHintSeen: boolean;
+  /** (v21, game session 73) Settings -> Play "Ask for 2× in every match".
+   * Optional: a server from before v21 leaves it out. */
+  ask2xEveryMatch?: boolean;
   updatedAt: string | null;
 }
 
 /** A `PATCH`: only the fields it names change; sound and music in part. */
-export type SiteSettingsPatch = Partial<Pick<SiteAccountSettings, "theme" | "background" | "skipHintSeen">> & {
+export type SiteSettingsPatch = Partial<Pick<SiteAccountSettings, "theme" | "background" | "skipHintSeen" | "ask2xEveryMatch">> & {
   sound?: Partial<SiteAudio>;
   music?: Partial<SiteAudio>;
 };
@@ -354,6 +371,9 @@ export interface SiteApi {
   live(token: string): Promise<SiteLive>;
   /** `GET /api/live/:matchId?from=N`: the match now and the moves released from N on. */
   liveFeed(token: string, matchId: string, from: number): Promise<SiteLiveFeed>;
+  /** `PUT /api/live/:matchId/speed` (game session 73): "Ask for 2×" (`ask`
+   * true) or take the ask back (false). Only the two players' owners vote. */
+  setLiveSpeed(token: string, matchId: string, ask: boolean): Promise<{ matchId: string; speed: SiteSpeed; nextAt: string | null }>;
   matches(token: string, limit?: number, before?: string): Promise<SiteHistory>;
   match(token: string, matchId: string): Promise<SiteMatchView>;
   matchLog(token: string, matchId: string): Promise<string>;
@@ -368,9 +388,11 @@ export interface SiteApi {
   livePage(token: string, matchId: string): Promise<{ url: string; key: string; released: number }>;
   /** `GET /live-frames/<key>?from=N`: the arena frames from N on (the host
    * reads only the moves released since its last read); `ended` once the
-   * match is recorded, with the record's boast for the arena (`record`, or
-   * null when there is none to show). */
-  liveFrames(token: string, key: string, from: number): Promise<{ frames: unknown[]; released: number; ended: boolean; record: unknown }>;
+   * match is recorded; the record's boast for the arena (`record`, or null
+   * when there is none to show), handed over with the last move since render
+   * session 56 (the live view's boast); `rate`, the pace the server releases
+   * moves at now (the 2× vote). */
+  liveFrames(token: string, key: string, from: number): Promise<{ frames: unknown[]; released: number; ended: boolean; record: unknown; rate?: 1 | 2 }>;
 }
 
 /** Salvage's refusal when it would leave saved decks short (409): the
@@ -471,6 +493,7 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     setAutoPlay: (token, on) => call("PUT", "/api/play/auto-play", { token, body: { on } }),
     live: (token) => call("GET", "/api/live", { token }),
     liveFeed: (token, matchId, from) => call("GET", `/api/live/${encodeURIComponent(matchId)}?from=${from}`, { token }),
+    setLiveSpeed: (token, matchId, ask) => call("PUT", `/api/live/${encodeURIComponent(matchId)}/speed`, { token, body: { ask } }),
     matches: (token, limit, before) => {
       const q = [limit ? `limit=${limit}` : "", before ? `before=${encodeURIComponent(before)}` : ""].filter(Boolean).join("&");
       return call("GET", `/api/matches${q ? `?${q}` : ""}`, { token });

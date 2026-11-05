@@ -56,16 +56,39 @@ export function recordOf(replay: MatchReplay, view: SiteMatchView): ReplayRecord
   const replayWinner = last.winner ?? "draw";
   const viewWinner = view.outcome === "win" ? (view.winnerOwnerId === view.p1.ownerId ? "p1" : view.winnerOwnerId === view.p2.ownerId ? "p2" : null) : view.outcome === "draw" ? "draw" : null;
   if (viewWinner !== replayWinner) throw new Error(`the record says ${viewWinner ?? view.outcome}, the rebuilt match ends ${replayWinner}`);
-  let boast: ReplayRecord["boast"] = null;
-  if (view.boast) {
-    const side: PlayerId | null = view.boast.agentId === view.p1.agentId ? "p1" : view.boast.agentId === view.p2.agentId ? "p2" : null;
-    if (!side || side !== replayWinner) throw new Error(`the record's boast is not the winner's`);
-    if (view.boast.winnerHealth !== null && view.boast.winnerHealth !== last.players[side].health) {
-      throw new Error(`the record has the winner on ${view.boast.winnerHealth} health, the rebuilt match on ${last.players[side].health}`);
-    }
-    boast = { side, itemId: view.boast.itemId, slot: view.boast.slot, winnerHealth: view.boast.winnerHealth };
+  return { matchId: view.matchId, loadouts: null, boast: seatedBoast(replay, view, view.boast) };
+}
+
+/** A boast (`MatchBoast`) on its seat, checked against the board's end: it
+ * must be the winner's, on the winner's health. */
+function seatedBoast(replay: MatchReplay, sides: { p1: { agentId: string }; p2: { agentId: string } }, boast: SiteMatchView["boast"]): ReplayRecord["boast"] {
+  if (!boast) return null;
+  const last = replay.frames[replay.frames.length - 1]!;
+  const winner = last.winner ?? "draw";
+  const side: PlayerId | null = boast.agentId === sides.p1.agentId ? "p1" : boast.agentId === sides.p2.agentId ? "p2" : null;
+  if (!side || side !== winner) throw new Error(`the record's boast is not the winner's`);
+  if (boast.winnerHealth !== null && boast.winnerHealth !== last.players[side].health) {
+    throw new Error(`the record has the winner on ${boast.winnerHealth} health, the rebuilt match on ${last.players[side].health}`);
   }
-  return { matchId: view.matchId, loadouts: null, boast };
+  return { side, itemId: boast.itemId, slot: boast.slot, winnerHealth: boast.winnerHealth };
+}
+
+/** The live view as a match record for the arena (render session 56), once
+ * the last move is out: the live view then carries the boast the record
+ * will keep (`LiveMatchView.boast`, game session 72), so live, as in a
+ * replay, the boast plays before the result lands, not ~8 s after it when
+ * the match is recorded. Null while moves are still to come (`nextAt` set,
+ * or the board short of `released`), or when the board hasn't ended. Throws
+ * on a boast that doesn't fit the board's end (the caller shows none). */
+export function liveRecordOf(
+  replay: MatchReplay,
+  view: { matchId: string; released: number; nextAt: string | null; p1: { agentId: string }; p2: { agentId: string }; boast?: SiteMatchView["boast"] },
+): ReplayRecord | null {
+  if (view.nextAt !== null || view.boast === undefined) return null;
+  if (replay.frames.length - 1 !== view.released) return null;
+  const last = replay.frames[replay.frames.length - 1]!;
+  if (!last.winner) return null;
+  return { matchId: view.matchId, loadouts: null, boast: seatedBoast(replay, view, view.boast) };
 }
 
 /** The replay file and the match's record, as the arena replay. */

@@ -4913,3 +4913,89 @@ session-72 feed, with the 2× controls (Ask for 2× and taking it back, who asks
 `LiveMatchView.speed`, the arena at the agreed rate, the "Ask for 2× in every match" toggle in Settings →
 Play).
 
+
+## 2026-11-05 — Render session 56: the live arena slice (the signature card in full, the boast before the result, the 2× controls)
+
+Owner feedback read first. The 2026-11-03 order (render 54's answers) set this slice after the second coin slice;
+the 2026-11-04 entry put the 2× controls into it; the 2026-11-06 entry (the Season 0 scope lock, freeze from 9
+November) keeps it first in the render lane's order. Nothing in the slice is outside the locked scope.
+Alternation: the last merged PR (#131) was the game lane's (session 74), so this is the render lane. Not a
+hardening pass (the last was 54; the next is 59).
+
+**Built:**
+- **The signature card live** (`site/liveFrames.ts`). The live view sends the signature card in full since game
+  session 72 (`PublicSide.signature`). The signature zone is drawn from it exactly as `capture.ts` draws a
+  replay's (name, body, keywords, rules lines, `nextCost`, `timesPlayed`, `inZone`). Its abilities as data
+  are rebuilt from the engine's signature menu (`signatureCardOf`): each rules line must name exactly one menu
+  ability (every option at every size, indexed by text; a text two different abilities shared would be refused),
+  else the card is left unknown and the session-51 fallback stays (live numbers, hand costs "?"). Rebuilt, the
+  builder treats it as a card it knows: printed Barrier on arrival, the unit's printed stats, statuses' durations
+  from its abilities, its trigger lines' rules text in the feed, and the hands' exact costs while it is in play
+  (a Tax aura counts). `engineInternal.ts` re-exports `SIGNATURE_MENU`, read only.
+- **The boast before the result** (`siteReplay.ts` `liveRecordOf`, `siteHost.ts`). The host turns the live view's
+  `boast` into the arena's record as soon as the last move is out (`nextAt` null, the board at `released`, a
+  winner on it), checked as a recorded match's is (the winner's boast, on the winner's health; a mismatch shows no
+  boast, never a wrong one), and hands it over with the last move. The arena then plays the boast as it steps into
+  the win, before GAME OVER, as a replay does. A page opened during the result's hold carries it from the start.
+  When the live view already gave the boast, the host no longer reads `GET /api/matches/:id` at the end.
+- **The 2× controls** (the owner's 2026-11-04 list):
+  - `siteMatches.ts` `speedControlView` / `speedControlHtml`: the words for every state the server's `SpeedView`
+    can be in: "Ask for 2×" (with "2× needs you and Rook to agree", or against the house "your ask alone makes it
+    2×"); "You asked for 2×. Waiting on Rook." with Take back; "Nova asks for 2×. It starts when you agree." with
+    Agree to 2×; "Playing at 2×: you and Rook agreed" (or "the house agrees to what you ask") with Back to 1×;
+    nothing once the last move is out. A spectator sees a 2× pill and no button.
+  - Agent match: the control under the scoreboard. The live arena opened on the owner's own match: the same
+    control over the arena beside Close (`#rp-speed`). Watch live: a 2× pill on a card playing at 2×.
+  - `siteApi.ts` `setLiveSpeed` (`PUT /api/live/:id/speed`), `SiteSpeed`, `ask2xEveryMatch` on the settings.
+  - The arena at the agreed rate (`renderHtml.ts`): `live-rate` on the page, `rate` in every `/live-frames`
+    answer and sent at once when the owner votes; following live at 2× the arena halves its step delay, so it
+    keeps its distance from the newest move; the badge reads "LIVE · 2×". Paused or stepped back it uses the
+    viewer's own speed.
+  - Settings -> Play: "Ask for 2× in every match", a switch saved to the account (`PATCH /api/account/settings`);
+    hidden for a house account (the server ignores the house's setting).
+- **The demo** (`siteDemo.ts --ladder`): House Null's agent, Static Widow, is made by the real "Generate a new
+  agent" draft (`startAgentDraft`, `pickDraftAgent`, `confirmAgentDraft` with the typed name), so the ladder has a
+  signature card to show live (Encore of the Laser Tag Arena).
+
+**Tests (+23, render 875):** `liveFrames.test.ts`: the three signature matches now compare everything (zone, unit,
+feed lines, hand costs; before, the zone was required to be absent and the signature unit compared by its live
+numbers only), plus three more with lookahead agents, all with the opening hands: every frame equals the captured
+one, no cost unsure, a signature card played onto the board; `signatureCardOf` rebuilds every card the menu can
+make at every size (over 600), equal to `buildSignatureCard`'s; a card it can't rebuild falls back (zone from the
+feed, hand costs unsure while in play). `siteSpeed.test.ts` (17): every vote state's words, the HTML, the page's
+rate, `liveRecordOf`'s rules (not before the last move, a draw, never a wrong boast), and over the real owner API
+with the ladder on a moved clock: ask, waiting, agree (the arena's frames at rate 2, a page opened then starts at
+2), take back, a refusal; the Settings switch saved and read back; the read that brings the last move brings the
+boast, before the match is recorded, equal to the replay's record.
+
+**Ran it:** `progress/render/evidence/site-check-s56.mjs` -> `site-check-s56.txt`: **26 PASS, 0 FAIL** against the
+real owner API and the game lane's ladder (the demo at 2x): A, Static Widow's zone drawn on the live arena and equal
+to the feed's at the move shown in 15 of 15 samples, no hand cost unsure; B, Nova's own match against the house:
+the control, her ask makes it 2× (the server's rate), "Playing at 2×", the arena's badge "LIVE · 2×" with the
+control beside Close, the arena keeping within 4 moves of the newest, Back to 1× over the arena (the server's rate
+1, the badge back to LIVE at once); C, the boast started 33 s before GAME OVER landed (the boast's canvas in
+software WebGL, quality-debt), and the read that brought the last move brought the boast, before the match was
+recorded, equal to the replay's record; D, the Settings switch saved, read back in a second browser, and Nova's
+next match started with her ask (rate 2 against the house); no external requests, no page errors. Earlier runs of
+the same check found five faults in the check itself, each fixed and re-run (the frame lookup, too few zone
+samples, the 2× test starting too late in a short match, the reload, a match already live before the switch):
+the Rook path ("Waiting on Rook", Rook's "Agree to 2×", 2×) passed in full in the second run, when Nova's match was
+against Rook. Stills `v2-s56-signature.jpg`, `v2-s56-agent-match-2x.jpg`, `v2-s56-arena-2x.jpg`,
+`v2-s56-ended.jpg` (the settings still timed out). CI browser check 61 PASS (`ci-browser-check-s56.txt`).
+`npm test`: engine 365, protocol 7, server 139, agents 17, economy 222, render 875, all pass; typecheck clean.
+Every committed page rebuilt (`npm run outputs`: the new `live-rate` tag and code only).
+
+**Found on the way:** session 51's check finds the live frame by a URL ending in the key; since session 52 the
+arena's URL carries `#view=…`, so that check (and any copy of it) no longer finds the frame: fixed in the new
+check, `site-check-s51.mjs` left as it was (stale: quality-debt). In software WebGL the boast took about 35 s to
+give way to GAME OVER (a 3 s boast): the boast's canvas is slow there (as session 51's stills timing out showed);
+never measured on a GPU.
+
+**Not done (named):** no notification of the other owner's ask (the game lane's notifications are queued); the
+vote's state is the last 3 s read; the Home Live match widget has no control (replaced by Agent controls next);
+the wording of the buttons is this lane's (a check-in call).
+
+**Next render-lane slice (the owner's 2026-11-06 order, item 2):** My agent and Agent controls (Agent controls
+replaces the Live match widget): the S/M/L split in `progress/season0-final-brief.md`, the personality dial (play
+styles exist: `PUT /api/agents/:id/play-style`), and the time ring once the game lane's play-time allowance is in
+(build the dial first if it isn't).
