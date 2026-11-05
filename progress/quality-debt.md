@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -74,6 +74,28 @@ real, but here is where it's thin.
   passing, not by a dedicated test of a modal response.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
+
+## Session 76 (the play-time allowance, schema v22): what is still thin
+
+- **Time spent waiting for a round counts against the allowance.** The clock runs on wall time from the start.
+  Rounds wait for every match in them to end (plus a 60 s gap on the real server), so an agent that finished early
+  sits idle on its own minutes: in `progress/play-time-001.txt` Ada's 30 minutes held 3 matches, with about 4
+  minutes spent waiting between them. The rolling queue (roadmap, after Season 0) would fix this. Until then, a
+  15-minute allowance can hold as few as 1-2 matches. Raised at the check-in in notes-for-owner.md; not measured
+  across seeds.
+- **"Finishing" depends on where the clock falls.** If time runs out between rounds, the state goes straight from
+  running to done, with no finishing. This is correct, and the demo's first draft (15 / 30 + 15) showed exactly
+  that for both owners, but it means the render's "Finishing match" ring only shows when time runs out mid-match.
+  Both paths are tested (`server/test/playTimeAllowance.test.ts`); the demo now uses minutes that show finishing.
+- **Reads that change state with the clock.** `autoPlay()` works out "done" (and `on: false`) from the clock
+  before the server writes the stop, so the row and the read can disagree for up to a round. They agree by test,
+  but a hand-run `sqlite3` read of `auto_play` would show `is_on = 1` for a done owner until the next round.
+- **No push when time is up.** The ladder emits `autoPlayStopped { reason: "timeUp" }` and `seasonCli` logs it;
+  nothing reaches the owner until notifications (roadmap 2d, next game items) send "your agent's time is up".
+- **The house is untouched** (house owners always play, no allowance), and a network agent's time works the same
+  way as an in-process one's. Only in-process agents have been run on it.
+- **Schema bumps still rewrite demo files for one line:** 8 this time (`npm run demos -- --write`, every diff read:
+  schema line only).
 
 ## Session 75 (hardening: the auto-merge retry; the demo drift check): what was raised, and what is still thin
 

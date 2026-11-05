@@ -221,7 +221,7 @@ describe("the saved board layout (schema v16)", () => {
     v15.updateAccountSettings(o.ownerId, { theme: "dark" });
     v15.close();
     const v16 = open(path);
-    expect(v16.schemaVersion).toBe(21);
+    expect(v16.schemaVersion).toBe(22);
     expect(v16.boardLayout(o.ownerId)).toMatchObject({ recommended: true, updatedAt: null });
     expect(v16.accountSettings(o.ownerId).theme).toBe("dark");
     v16.saveBoardLayout(o.ownerId, { widgets: [{ id: "w1", type: "packs", size: "L" }] });

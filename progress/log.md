@@ -4658,3 +4658,49 @@ limits:** the check isn't in CI (an owner call, notes-for-owner.md); only the wa
 every schema bump still rewrites ~7 files for one line. In quality-debt.md.
 
 **Blocked:** nothing. Next: session 76, the play-time allowance (roadmap 2g).
+
+## 2026-11-05 — Session 76 (game lane): the play-time allowance on auto-play (schema v22)
+
+Read first: owner-feedback.md. The 2026-11-06 entry (the scope lock) sets the game lane's order; item 1 (the retry
+fix) was session 75, item 2 is the play-time allowance, which the render lane's Agent controls widget waits on. No
+other entry is unhandled. The last merged PR (#134) was the render lane's, so this is the game lane. Not a hardening
+session (that was 75; next is 80). The freeze starts 9 Nov; this item is inside the locked scope.
+
+**Built:**
+- Schema v22: `auto_play` rebuilt (SQLite can't change a CHECK) with `allowance_started_at` / `allowance_ends_at` and
+  a new stop reason `timeUp`. The schema guards it: both or neither, end after start, an allowance on a switched-off
+  row only with `timeUp`, `timeUp` only with an allowance. Existing rows keep their switch and get no allowance.
+- The store (`economy/src/store.ts`): `setAutoPlay(owner, on, minutes?)` (15 / 30 / 60, `AUTO_PLAY_START_MINUTES` in
+  config.ts); `addAutoPlayTime` (+15 / +30: adds to the end while running; while finishing, a new window from now);
+  `stopAutoPlayIfTimeUp` / `stopAutoPlayTimeUp`; `autoPlayOwners()` leaves out owners whose time is up. `autoPlay()`
+  reports `allowance` (running / finishing / done, seconds and minutes left, `totalMinutes` for the ring,
+  `endsAtReset`) and `canAddTime`. "Done" reads `on: false` with `stopped: timeUp` as soon as the time is up and no
+  match is live, before the server writes it. Every window is cut at the next midnight Sydney; a done stop belongs
+  to the day the time ran out, so the next day reads clean. Turning off, turning on again, or maxing the rewards drops
+  the allowance.
+- The ladder (`server/src/ladder/ladderRunner.ts`): after each match, the rewards check first, then the time check;
+  at each round's start, owners whose time ran out between rounds are switched off. `autoPlayStopped` carries a
+  `reason`; `seasonCli` logs which one.
+- The owner API: `PUT /api/play/auto-play` takes `minutes`; `POST /api/play/auto-play/time`. In `server/OWNER_API.md`
+  and ECONOMY.md.
+
+**Ran it:**
+- `progress/play-time-001.txt` (`npm run demo:play-time -w server`): over HTTP, the live ladder at watch speed on a
+  fake clock, three player owners and two house owners, each widget read every 30 s. The first draft (Ada 15, Bram 30
+  then +15) had **4 FAILs**: both owners' time ran out *between* rounds, so they went running -> done with no
+  finishing. That is correct behaviour, and the checks were wrong to require finishing. It is now covered by its own
+  server test, and the demo uses minutes that do show it: Ada 30, Bram 15 then +30. Both ran out mid-match (Ada at
+  10:30 in m7, Bram at 10:45 in m12), showed "finishing" while the match was live, the match counted, and auto-play
+  went off with `timeUp` once it was recorded. Neither was paired again. Cyra (no limit) played 8 matches and is
+  still on. Midnight: 60 minutes at 23:30 give 30 and +15 is refused (409); at 00:00 the day reads clean. 13 PASS,
+  0 FAIL; deterministic (`npm run demos` reports it the same).
+- `npm run demos`: 8 stale, every diff only the schema line (v21 -> v22), rewritten; then 22 the same.
+- `npm test`: engine 365, server 155 (+4 new, +1 endpoint in the 401 list), economy 231 (+9 new), render 882,
+  agents 17, protocol 7, all pass; typecheck clean in every workspace.
+
+**Worked:** the store's clock and the live ladder's clock are the same fake clock in tests, so hours of auto-play run
+in seconds and the states can be read exactly. **Didn't / honest limits:** time spent waiting for a round counts
+against the allowance (about 4 of Ada's 30 minutes); nothing tells the owner the time is up until notifications
+exist; only in-process agents ran on it. In quality-debt.md; five calls at notes-for-owner.md.
+
+**Blocked:** nothing. Next: session 77, notifications (roadmap 2d), with "your agent's time is up" on the list.

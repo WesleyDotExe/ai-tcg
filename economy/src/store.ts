@@ -52,6 +52,8 @@ import {
   LADDER_LIST_SIZE,
   LADDER_TIERS,
   PLACEMENT_MATCHES,
+  AUTO_PLAY_START_MINUTES,
+  AUTO_PLAY_ADD_MINUTES,
 } from "./config.js";
 import { idle, rateMatch, RATING_START, type Glicko2Rating } from "./glicko2.js";
 
@@ -796,11 +798,38 @@ export interface LiveSide {
   playStyle: PlayStyleId;
 }
 
-/** Why the server turned an owner's auto-play off. */
-export type AutoPlayStopReason = "dailyRewardsMaxed";
+/** Why the server turned an owner's auto-play off: the day's rewards
+ * maxed (v18), or its play-time allowance ran out (v22). */
+export type AutoPlayStopReason = "dailyRewardsMaxed" | "timeUp";
 
-/** The auto-play switch as the website shows it (schema v18). */
+/** Where a play-time allowance stands (owner 2026-11-06): time left; time
+ * up while the agent finishes the match it is in; or done for today (time
+ * up and no match left to finish: the agent isn't paired again). */
+export type AutoPlayAllowanceState = "running" | "finishing" | "done";
+
+/** The play-time allowance (schema v22): "give the agent X minutes". */
+export interface AutoPlayAllowance {
+  state: AutoPlayAllowanceState;
+  /** The window the agent may be paired in: [startedAt, endsAt). */
+  startedAt: string;
+  endsAt: string;
+  /** The window's length in minutes (for the ring: left / total). Shorter
+   * than the minutes chosen when the next midnight Sydney cut it. */
+  totalMinutes: number;
+  /** Time left, 0 once it is up. `minutesLeft` rounds up ("1 min left"
+   * until the last second). */
+  secondsLeft: number;
+  minutesLeft: number;
+  /** The window ends at midnight Sydney, where unused time is dropped: no
+   * more time can be added today. */
+  endsAtReset: boolean;
+}
+
+/** The auto-play switch as the website shows it (schema v18; the
+ * allowance v22). */
 export interface AutoPlayStatus {
+  /** Whether the agent is queued round after round. False once an
+   * allowance is done, even before the server has written the stop. */
   on: boolean;
   /** When the switch last changed; null if it never has. */
   changedAt: string | null;
@@ -810,6 +839,12 @@ export interface AutoPlayStatus {
   dailyRewardsMaxed: boolean;
   /** Whether the owner may turn it on now (not while maxed). */
   canTurnOn: boolean;
+  /** The play-time allowance, or null: auto-play with no time limit (or
+   * off). Shown until midnight Sydney once done. */
+  allowance: AutoPlayAllowance | null;
+  /** Whether +15 / +30 can be added now: an allowance running (and not
+   * already ending at midnight) or finishing its last match. */
+  canAddTime: boolean;
 }
 
 export interface LiveMatch {
@@ -1445,65 +1480,197 @@ export class EconomyStore {
   }
 
   // ---- auto-play (schema v18; owner app spec 2026-10-05 E) ----
+  // ---- the play-time allowance (schema v22; owner 2026-11-06) ----
 
   /** The owner's auto-play switch. Off until the owner turns it on. When
-   * the server turned it off (the day's rewards maxed), `stopped` says why
-   * and on which Sydney day; `canTurnOn` is false for the rest of that day. */
+   * the server turned it off (the day's rewards maxed, or the allowance's
+   * time up), `stopped` says why and on which Sydney day; for the rewards,
+   * `canTurnOn` is false for the rest of that day.
+   *
+   * The allowance is worked out from the clock on every read: once its
+   * time is up the owner is no longer queued (`autoPlayOwners`), the state
+   * is "finishing" while a match is still live and "done" after, and the
+   * switch reads off from then, whether or not the server has written the
+   * stop yet (`stopAutoPlayIfTimeUp`). */
   autoPlay(ownerId: string, at: string = this.stamp()): AutoPlayStatus {
     this.getOwner(ownerId);
     const row = this.db.prepare("SELECT * FROM auto_play WHERE owner_id = ?").get(ownerId) as Row | undefined;
     const today = this.resetDay(at).day;
     const maxed = this.dailyEarnings(ownerId, at).nextWinPays === 0;
-    if (!row) return { on: false, changedAt: null, stopped: null, dailyRewardsMaxed: maxed, canTurnOn: !maxed };
-    const stopped = row.stopped_reason == null ? null : { reason: str(row.stopped_reason) as AutoPlayStopReason, day: str(row.stopped_day) };
+    if (!row) return { on: false, changedAt: null, stopped: null, dailyRewardsMaxed: maxed, canTurnOn: !maxed, allowance: null, canAddTime: false };
+    let on = num(row.is_on) === 1;
+    let stopped = row.stopped_reason == null ? null : { reason: str(row.stopped_reason) as AutoPlayStopReason, day: str(row.stopped_day) };
+    let allowance: AutoPlayAllowance | null = null;
+    // Read before v22 (a store opened with migrateTo below 22) as none.
+    if (row.allowance_ends_at != null) {
+      const startedAt = str(row.allowance_started_at);
+      const endsAt = str(row.allowance_ends_at);
+      const endsMs = Date.parse(endsAt);
+      const leftMs = Math.max(0, endsMs - Date.parse(at));
+      const endDay = this.allowanceDay(endsAt);
+      let state: AutoPlayAllowanceState;
+      if (!on) state = "done";
+      else if (leftMs > 0) state = "running";
+      else if (this.liveMatchOf(ownerId) !== null) state = "finishing";
+      else {
+        // Time up and nothing to finish: off, as the server will write it.
+        state = "done";
+        on = false;
+        stopped = { reason: "timeUp", day: endDay.day };
+      }
+      // "Done for today" stands only on the day the time ran out; an
+      // allowance still finishing its match past midnight shows until then.
+      if (state !== "done" || endDay.day === today) {
+        allowance = {
+          state,
+          startedAt,
+          endsAt,
+          totalMinutes: (endsMs - Date.parse(startedAt)) / 60_000,
+          secondsLeft: Math.ceil(leftMs / 1000),
+          minutesLeft: Math.ceil(leftMs / 60_000),
+          endsAtReset: endsAt === endDay.endsAt,
+        };
+      }
+    }
+    const canAddTime = allowance !== null && (allowance.state === "finishing" || (allowance.state === "running" && allowance.endsAt < this.resetDay(at).endsAt));
     return {
-      on: num(row.is_on) === 1,
+      on,
       changedAt: str(row.changed_at),
       // The message stands only on the day it happened.
       stopped: stopped !== null && stopped.day === today ? stopped : null,
       dailyRewardsMaxed: maxed,
       canTurnOn: !maxed,
+      allowance,
+      canAddTime,
     };
+  }
+
+  /** The reset day an allowance's time ran out in: the day of its last
+   * instant, so one ending at midnight belongs to the day before. */
+  private allowanceDay(endsAt: string) {
+    return this.resetDay(new Date(Date.parse(endsAt) - 1).toISOString());
+  }
+
+  /** The end of a window of `minutes` from `from`, cut at the next midnight
+   * Sydney: unused time doesn't carry over. */
+  private allowanceEnd(from: string, minutes: number): string {
+    const end = new Date(Date.parse(from) + minutes * 60_000).toISOString();
+    const reset = this.resetDay(from).endsAt;
+    return end < reset ? end : reset;
   }
 
   /** Turns the owner's auto-play on or off. Turning it on is refused while
    * today's rewards are maxed (the switch would go off again at once; the
    * owner turns it back on another day). Turning it off never stops a
-   * match already running: it only keeps the owner out of the next round. */
-  setAutoPlay(ownerId: string, on: boolean): AutoPlayStatus {
+   * match already running: it only keeps the owner out of the next round.
+   *
+   * (v22) `minutes` (15, 30 or 60) turns it on with a play-time allowance
+   * from now, cut at the next midnight Sydney; without it, auto-play has no
+   * time limit, as before. Either way any earlier allowance is replaced, and
+   * turning it off drops it. */
+  setAutoPlay(ownerId: string, on: boolean, minutes?: number): AutoPlayStatus {
     const at = this.stamp();
     const owner = this.getOwner(ownerId);
     if (owner.kind === "house") throw new EconomyError("house owners always play; auto-play is for player owners");
+    const v22 = this.schemaVersion >= 22;
+    if (minutes !== undefined) {
+      if (!on) throw new EconomyError("minutes go with turning auto-play on");
+      if (!(AUTO_PLAY_START_MINUTES as readonly number[]).includes(minutes)) throw new EconomyError(`auto-play starts with ${AUTO_PLAY_START_MINUTES.join(", ")} minutes, or no time limit`);
+      if (!v22) throw new EconomyError("the play-time allowance needs schema v22");
+    }
     if (on && this.dailyEarnings(ownerId, at).nextWinPays === 0) {
       throw new EconomyError("today's rewards are maxed; auto-play can go back on after midnight Sydney");
     }
+    const window = minutes === undefined ? [null, null] : [at, this.allowanceEnd(at, minutes)];
     this.db
       .prepare(
-        `INSERT INTO auto_play (owner_id, is_on, changed_at, stopped_reason, stopped_day) VALUES (?, ?, ?, NULL, NULL)
-         ON CONFLICT (owner_id) DO UPDATE SET is_on = excluded.is_on, changed_at = excluded.changed_at, stopped_reason = NULL, stopped_day = NULL`,
+        v22
+          ? `INSERT INTO auto_play (owner_id, is_on, changed_at, stopped_reason, stopped_day, allowance_started_at, allowance_ends_at) VALUES (?, ?, ?, NULL, NULL, ?, ?)
+             ON CONFLICT (owner_id) DO UPDATE SET is_on = excluded.is_on, changed_at = excluded.changed_at, stopped_reason = NULL, stopped_day = NULL,
+               allowance_started_at = excluded.allowance_started_at, allowance_ends_at = excluded.allowance_ends_at`
+          : `INSERT INTO auto_play (owner_id, is_on, changed_at, stopped_reason, stopped_day) VALUES (?, ?, ?, NULL, NULL)
+             ON CONFLICT (owner_id) DO UPDATE SET is_on = excluded.is_on, changed_at = excluded.changed_at, stopped_reason = NULL, stopped_day = NULL`,
       )
-      .run(ownerId, on ? 1 : 0, at);
+      .run(ownerId, on ? 1 : 0, at, ...(v22 ? window : []));
+    return this.autoPlay(ownerId, at);
+  }
+
+  /** "+15 / +30" (v22): adds minutes to a running allowance, still cut at
+   * the next midnight Sydney. While the agent finishes its last match
+   * (time up), it opens a new window of that many minutes from now, so the
+   * agent is paired again. Refused with no allowance (auto-play off, done
+   * for today, or on with no time limit), and when the allowance already
+   * runs to midnight. */
+  addAutoPlayTime(ownerId: string, minutes: number): AutoPlayStatus {
+    const at = this.stamp();
+    const owner = this.getOwner(ownerId);
+    if (owner.kind === "house") throw new EconomyError("house owners always play; auto-play is for player owners");
+    if (!(AUTO_PLAY_ADD_MINUTES as readonly number[]).includes(minutes)) throw new EconomyError(`time is added ${AUTO_PLAY_ADD_MINUTES.join(" or ")} minutes at a time`);
+    if (this.schemaVersion < 22) throw new EconomyError("the play-time allowance needs schema v22");
+    const status = this.autoPlay(ownerId, at);
+    const a = status.allowance;
+    if (a === null || a.state === "done") throw new EconomyError("auto-play isn't running on a time allowance; start it with 15, 30 or 60 minutes");
+    if (!status.canAddTime) throw new EconomyError("the time already runs to midnight Sydney, when it resets; no more can go on today");
+    const [startedAt, endsAt] = a.state === "running" ? [a.startedAt, this.allowanceEnd(a.endsAt, minutes)] : [at, this.allowanceEnd(at, minutes)];
+    this.db.prepare("UPDATE auto_play SET allowance_started_at = ?, allowance_ends_at = ? WHERE owner_id = ?").run(startedAt, endsAt, ownerId);
     return this.autoPlay(ownerId, at);
   }
 
   /** The server's check after each of the owner's matches: when auto-play
-   * is on and today's rewards are maxed, it goes off with the reason.
-   * True when it was switched off by this call. */
+   * is on and today's rewards are maxed, it goes off with the reason (and
+   * any allowance with it). True when it was switched off by this call. */
   stopAutoPlayIfMaxed(ownerId: string): boolean {
     const at = this.stamp();
     const status = this.autoPlay(ownerId, at);
     if (!status.on || !status.dailyRewardsMaxed) return false;
     this.db
-      .prepare("UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'dailyRewardsMaxed', stopped_day = ? WHERE owner_id = ?")
+      .prepare(
+        `UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'dailyRewardsMaxed', stopped_day = ?${this.schemaVersion >= 22 ? ", allowance_started_at = NULL, allowance_ends_at = NULL" : ""} WHERE owner_id = ?`,
+      )
       .run(at, this.resetDay(at).day, ownerId);
     return true;
   }
 
-  /** Owners whose auto-play is on, oldest owner first. */
+  /** (v22) The server's check after each match and before each round: when
+   * auto-play is on, its allowance's time is up and the owner has no live
+   * match left to finish, it goes off with the reason "timeUp" on the day
+   * the time ran out (the allowance is kept for "Done for today"). True when
+   * it was switched off by this call. */
+  stopAutoPlayIfTimeUp(ownerId: string): boolean {
+    if (this.schemaVersion < 22) return false;
+    const at = this.stamp();
+    const row = this.db.prepare("SELECT is_on, allowance_ends_at FROM auto_play WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    if (!row || num(row.is_on) !== 1 || row.allowance_ends_at == null) return false;
+    const endsAt = str(row.allowance_ends_at);
+    if (endsAt > at || this.liveMatchOf(ownerId) !== null) return false;
+    this.db
+      .prepare("UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'timeUp', stopped_day = ? WHERE owner_id = ?")
+      .run(at, this.allowanceDay(endsAt).day, ownerId);
+    return true;
+  }
+
+  /** (v22) `stopAutoPlayIfTimeUp` for every owner whose time is up, oldest
+   * owner first: the owners it switched off. */
+  stopAutoPlayTimeUp(): string[] {
+    if (this.schemaVersion < 22) return [];
+    const rows = this.db
+      .prepare("SELECT a.owner_id FROM auto_play a JOIN owners o ON o.owner_id = a.owner_id WHERE a.is_on = 1 AND a.allowance_ends_at <= ? ORDER BY o.created_at, o.rowid")
+      .all(this.stamp()) as Row[];
+    return rows.map((r) => str(r.owner_id)).filter((o) => this.stopAutoPlayIfTimeUp(o));
+  }
+
+  /** Owners whose auto-play is on, oldest owner first: the ones the ladder
+   * queues. (v22) Not an owner whose allowance's time is up, even while it
+   * finishes its last match. */
   autoPlayOwners(): string[] {
-    return (this.db.prepare("SELECT a.owner_id FROM auto_play a JOIN owners o ON o.owner_id = a.owner_id WHERE a.is_on = 1 ORDER BY o.created_at, o.rowid").all() as Row[]).map((r) =>
-      str(r.owner_id),
-    );
+    const v22 = this.schemaVersion >= 22;
+    return (
+      this.db
+        .prepare(
+          `SELECT a.owner_id FROM auto_play a JOIN owners o ON o.owner_id = a.owner_id WHERE a.is_on = 1${v22 ? " AND (a.allowance_ends_at IS NULL OR a.allowance_ends_at > ?)" : ""} ORDER BY o.created_at, o.rowid`,
+        )
+        .all(...(v22 ? [this.stamp()] : [])) as Row[]
+    ).map((r) => str(r.owner_id));
   }
 
   // ---- the Home widget board (schema v16; owner 2026-11-01) ----

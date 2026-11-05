@@ -59,6 +59,10 @@
 //
 //  - (v21) the account settings add "Ask for 2× in every match", on or off.
 //
+//  - (v22) auto-play may run on a time allowance: a start and an end, the
+//    end after the start, both or neither; an allowance stays on a switched-
+//    off row only when its time ran out (the "Done for today" message).
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -1310,5 +1314,34 @@ export const MIGRATIONS: readonly string[] = [
   // (server/src/ladder/speedVote.ts); only the standing setting is saved.
   `
   ALTER TABLE account_settings ADD COLUMN ask_2x_every_match INTEGER NOT NULL DEFAULT 0 CHECK (ask_2x_every_match IN (0, 1));
+  `,
+  // 22: the play-time allowance on auto-play (session 76; owner
+  // 2026-11-06, progress/season0-final-brief.md section 1: "turn auto-play
+  // on with 15 / 30 / 60 minutes, add +15 / +30 while running; when time
+  // runs out the agent finishes its current match and is not paired again;
+  // unused time doesn't carry over and resets at midnight Sydney"). The
+  // allowance is the window [allowance_started_at, allowance_ends_at); the
+  // end is never past the next midnight Sydney (the store cuts it there).
+  // A new stop reason, 'timeUp', so the table is rebuilt (SQLite can't
+  // change a CHECK); every existing row keeps its switch and has no
+  // allowance, which is auto-play as it was.
+  `
+  CREATE TABLE auto_play_v22 (
+    owner_id              TEXT PRIMARY KEY REFERENCES owners(owner_id),
+    is_on                 INTEGER NOT NULL CHECK (is_on IN (0, 1)),
+    changed_at            TEXT NOT NULL,
+    stopped_reason        TEXT CHECK (stopped_reason IS NULL OR (is_on = 0 AND stopped_reason IN ('dailyRewardsMaxed', 'timeUp'))),
+    stopped_day           TEXT CHECK ((stopped_day IS NULL) = (stopped_reason IS NULL) AND (stopped_day IS NULL OR stopped_day GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]')),
+    allowance_started_at  TEXT,
+    allowance_ends_at     TEXT,
+    CHECK ((allowance_started_at IS NULL) = (allowance_ends_at IS NULL)),
+    CHECK (allowance_ends_at IS NULL OR allowance_ends_at > allowance_started_at),
+    CHECK (allowance_ends_at IS NULL OR is_on = 1 OR stopped_reason IS 'timeUp'),
+    CHECK (stopped_reason IS NOT 'timeUp' OR allowance_ends_at IS NOT NULL)
+  );
+  INSERT INTO auto_play_v22 (owner_id, is_on, changed_at, stopped_reason, stopped_day)
+    SELECT owner_id, is_on, changed_at, stopped_reason, stopped_day FROM auto_play ORDER BY rowid;
+  DROP TABLE auto_play;
+  ALTER TABLE auto_play_v22 RENAME TO auto_play;
   `,
 ];

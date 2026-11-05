@@ -22,6 +22,8 @@ import type { AddressInfo } from "node:net";
 import { PLAY_STYLES, type DeckBuildOptions, type DeckFaction } from "@ai-tcg/engine";
 import {
   accountSettingsProblem,
+  AUTO_PLAY_ADD_MINUTES,
+  AUTO_PLAY_START_MINUTES,
   boardLayoutProblem,
   BULK_OPEN_COUNT,
   CARD_SETS,
@@ -625,7 +627,22 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       handler: (req, body) => {
         const ownerId = ownerOf(req);
         if (typeof body.on !== "boolean") throw new HttpError(400, `"on" must be true or false`);
-        store.setAutoPlay(ownerId, body.on);
+        // (session 76) The play-time allowance: 15, 30 or 60, with on only.
+        if (body.minutes !== undefined && body.minutes !== null) {
+          if (!body.on) throw new HttpError(400, `"minutes" goes with "on": true`);
+          if (!(AUTO_PLAY_START_MINUTES as readonly unknown[]).includes(body.minutes)) throw new HttpError(400, `"minutes" must be ${AUTO_PLAY_START_MINUTES.join(", ")}, or left out for no time limit`);
+        }
+        store.setAutoPlay(ownerId, body.on, (body.minutes ?? undefined) as number | undefined);
+        return { body: { autoPlay: autoPlayStatus(ownerId) } };
+      },
+    },
+    {
+      method: "POST",
+      path: /^\/api\/play\/auto-play\/time$/,
+      handler: (req, body) => {
+        const ownerId = ownerOf(req);
+        if (!(AUTO_PLAY_ADD_MINUTES as readonly unknown[]).includes(body.minutes)) throw new HttpError(400, `"minutes" must be ${AUTO_PLAY_ADD_MINUTES.join(" or ")}`);
+        store.addAutoPlayTime(ownerId, body.minutes as number);
         return { body: { autoPlay: autoPlayStatus(ownerId) } };
       },
     },

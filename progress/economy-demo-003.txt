@@ -1,5 +1,5 @@
 # Economy demo (session 30): owner accounts, connected agents, manual salvage
-database: <temp>/season-0.db  schema v21  season S0
+database: <temp>/season-0.db  schema v22  season S0
 
 ## Season 0 sign-in
 accounts: "Season admin" (admin), "Ada" (player)
