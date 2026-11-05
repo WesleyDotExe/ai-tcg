@@ -4618,3 +4618,43 @@ signed-in owners only, kept in memory, with no peak kept on the record; the rend
 quality-debt.md; three calls at the check-in in notes-for-owner.md.
 
 **Blocked:** nothing.
+
+## 2026-11-05 — Session 75 (game lane, HARDENING pass): the auto-merge retry fix; the demo drift check
+
+Read first: owner-feedback.md's two 2026-11-06 entries. Answers to session 74: all kept; the Gold floor (1500) goes on
+the launch items (added to `progress/roadmap.md`); the auto-merge retry fix approved and set first. The Home dashboard
+feedback locks the Season 0 scope (freeze 9 Nov, features done 1 Dec, start 5 Dec) and sets the game lane's order: the
+retry fix, the play-time allowance, notifications, the Stats data, the Null builder session. It also says hardening
+passes keep their rhythm; the last game-lane pass was session 70, so this one is a hardening pass, and the retry fix
+(a fix, not a feature) went in first, as asked. The last merged PR (#132) was the render lane's, so this is the game lane.
+
+**Built:**
+- `.github/workflows/auto-merge.yml`: the "Wait for checks to pass" step lists check runs through `listRuns()`, which
+  retries a GitHub 5xx, a 429, or a 403 with `x-ratelimit-remaining: 0`, 4 times, 5/10/20/40 s apart, with a warning
+  each time; then it throws and the step fails. Any other error throws at once; a failed check still `setFailed`s with
+  no retry. Nothing else in the workflow changed (the owner OK'd this step only).
+- `server/test/autoMergeWorkflow.test.ts` (9 tests): reads the step's script out of the YAML and runs it with a fake
+  GitHub client and a fake `setTimeout`: the PR #131 case (one 500 then green), 502/503/429 backoff, rate-limit 403
+  retried, other 403 and 404 not, a lasting outage gives up after 5 calls, a failed check stops with no retry, a 500
+  between polls, the 72-poll timeout. Against the old workflow 5 of the 9 fail (checked by stashing the change).
+- The demo drift check (quality debt since session 64): `progress/demos.json` lists the 24 committed demo outputs whose
+  scripts are meant to reproduce them, and 4 measurement records that aren't; `npm run demos` (`scripts/demos.mjs`)
+  re-runs the fast ones 4 at a time and diffs each against its file, leaving out `[timing, varies per run]` lines;
+  `-- --all` adds the slow three, `-- --write` rewrites. `server/test/demoManifest.test.ts` (3 tests) keeps the list
+  whole: every economy/server dev script that names a committed output must be on one of the two lists.
+
+**Ran it:**
+- All 24 demos re-run: 8 the same, **16 stale**, none crashed. 7 differed only in the schema line (v20 -> v21, session
+  73's migration, never re-run since); owner-api-demo-003 (the settings list now names `ask2xEveryMatch`) and -004 (the
+  store lists the two coins on sale); and 7 played matches under rules-1 or older and were never re-run after session
+  71: economy-demo-003 (last run session 30, schema v3, a 36-card Null), 012 and 013 (boasts; winners now on 24 as the
+  second seat), 014 and 016 (built decks: win rates moved 1-3 points, Cortex now keeps a searched deck), 015 (play
+  styles), owner-api-demo-002 (builder win rates). Every diff read; each is explained by v21 or rules-2. owner-api-demo-002
+  run twice: identical apart from the timing lines. All 16 regenerated; `npm run demos -- --all` then reports 24 same (`progress/demo-check-001.txt`), so every listed demo is also deterministic.
+- `npm test` across every workspace and the typecheck: see the PR; all pass.
+
+**Worked:** the demos already marked their wall-clock lines, so the comparison needed one rule. **Didn't / honest
+limits:** the check isn't in CI (an owner call, notes-for-owner.md); only the wait step retries, not the merge call;
+every schema bump still rewrites ~7 files for one line. In quality-debt.md.
+
+**Blocked:** nothing. Next: session 76, the play-time allowance (roadmap 2g).

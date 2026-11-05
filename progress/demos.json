@@ -1,0 +1,38 @@
+{
+  "about": "Every committed demo output that its script is meant to reproduce today, and the script that prints it. `npm run demos` re-runs the fast ones and diffs each against its file; `npm run demos -- --all` adds the slow ones; `-- --write` rewrites the files that differ. Lines containing \"[timing, varies per run]\" are left out of the comparison. Files not listed here (sample matches, balance reports, rings, older economy demos) are records of what ran at the time and are not expected to reproduce. `plays` says whether the demo plays engine matches: any rules or card change can move those.",
+  "demos": [
+    { "file": "economy-demo-003.txt", "workspace": "economy", "script": "src/dev/economyDemo.ts", "plays": true },
+    { "file": "economy-demo-005.txt", "workspace": "economy", "script": "src/dev/generateAgentDemo.ts", "plays": true },
+    { "file": "economy-demo-006.txt", "workspace": "economy", "script": "src/dev/packOpeningDemo.ts", "plays": false },
+    { "file": "economy-demo-008.txt", "workspace": "economy", "script": "src/dev/agentNamingDemo.ts", "plays": false },
+    { "file": "economy-demo-009.txt", "workspace": "economy", "script": "src/dev/chaseLiveDemo.ts", "plays": false },
+    { "file": "economy-demo-010.txt", "workspace": "economy", "script": "src/dev/zeroDayLiveDemo.ts", "plays": true },
+    { "file": "economy-demo-011.txt", "workspace": "economy", "script": "src/dev/starterGuaranteeDemo.ts", "plays": false, "slow": true },
+    { "file": "economy-demo-012.txt", "workspace": "economy", "script": "src/dev/boastDemo.ts", "plays": true },
+    { "file": "economy-demo-013.txt", "workspace": "economy", "script": "src/dev/season0BoastsDemo.ts", "plays": true },
+    { "file": "economy-demo-014.txt", "workspace": "economy", "script": "src/dev/agentDeckDemo.ts", "plays": true, "slow": true },
+    { "file": "economy-demo-015.txt", "workspace": "economy", "script": "src/dev/playStyleDemo.ts", "plays": true },
+    { "file": "economy-demo-016.txt", "workspace": "economy", "script": "src/dev/agentDeckStyleDemo.ts", "plays": true, "slow": true },
+    { "file": "owner-api-demo-002.txt", "workspace": "server", "script": "src/dev/ownerApiDemo.ts", "plays": true },
+    { "file": "owner-api-demo-003-account.txt", "workspace": "server", "script": "src/dev/accountApiDemo.ts", "plays": false },
+    { "file": "owner-api-demo-004-economy.txt", "workspace": "server", "script": "src/dev/economyApiDemo.ts", "plays": false },
+    { "file": "owner-api-demo-005-daily-pack.txt", "workspace": "server", "script": "src/dev/dailyPackApiDemo.ts", "plays": false },
+    { "file": "owner-api-demo-006-collection-asks.txt", "workspace": "server", "script": "src/dev/collectionAsksApiDemo.ts", "plays": false },
+    { "file": "owner-api-demo-007-coins.txt", "workspace": "server", "script": "src/dev/coinSkinsApiDemo.ts", "plays": true },
+    { "file": "featured-viewers-001.txt", "workspace": "server", "script": "src/dev/featuredViewersDemo.ts", "plays": true },
+    { "file": "ladder-demo-001.txt", "workspace": "server", "script": "src/dev/ladderDemo.ts", "plays": true },
+    { "file": "ladder-demo-002-live.txt", "workspace": "server", "script": "src/dev/liveLadderDemo.ts", "plays": true },
+    { "file": "live-feed-asks-001.txt", "workspace": "server", "script": "src/dev/liveFeedAsksDemo.ts", "plays": true },
+    { "file": "replay-versions-001.txt", "workspace": "server", "script": "src/dev/replayVersionsDemo.ts", "plays": true },
+    { "file": "speed-vote-001.txt", "workspace": "server", "script": "src/dev/speedVoteDemo.ts", "plays": true }
+  ],
+  "records": {
+    "about": "Files a dev script names that are measurements (long, sampled), kept as records rather than reproduced by `npm run demos`.",
+    "files": [
+      "pack-sim-001.txt",
+      "pack-sim-002.txt",
+      "pack-sim-003-starter.txt",
+      "first-seat-001.txt"
+    ]
+  }
+}

@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-05, game session 74 (featured picks and viewer counts).
+Updated 2026-11-05, game session 75 (hardening: the auto-merge retry fix; the demo drift check).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -98,7 +98,7 @@ new ideas go to `progress/season-1-ideas.md`.
      by card id in hand order, beside `start`) (session 72)
    - [ ] (owner 2026-11-03) hands hidden live (counts only, no card in draw events) for any match with a real-time
      network agent seat, until it ends: built when network agents join the ladder
-2d. [ ] NEXT. Notifications (owner 2026-11-05; the top bar's bell and the Notifications widget), in
+2d. [ ] After 2g. Notifications (owner 2026-11-05; the top bar's bell and the Notifications widget), in
    `server/OWNER_API.md` with tests: what produces one in Season 0 (for example match results, big pulls, the daily
    pack ready, auto-play switched off at the day's cap) and how they are read and cleared. Propose the list at a
    check-in if the 2026-10-05 spec doesn't settle it (Settings -> Notifications names big pulls, match results and
@@ -107,7 +107,10 @@ new ideas go to `progress/season-1-ideas.md`.
    `GET /api/ladder` and `GET /api/rating` (for example win rate by faction and by opponent, recent form, a rating
    chart), in `server/OWNER_API.md` with tests; propose the shape at a check-in if needed.
 2f. [ ] The test-only Null deck-builder session (owner-approved; before the launch-gate re-run): see current.md.
-2g. [ ] (owner 2026-11-06, do right after the auto-merge retry fix) The play-time allowance on auto-play: 15 / 30 /
+2-0. [x] (owner 2026-11-06, first) The auto-merge retry fix (session 75): "Wait for checks to pass" retries a
+   GitHub 5xx or rate limit 4 times (5/10/20/40 s); any other error or a failed check still stops the merge.
+   Tested on the shipped script text (`server/test/autoMergeWorkflow.test.ts`).
+2g. [ ] NEXT (session 76). (owner 2026-11-06, do right after the auto-merge retry fix) The play-time allowance on auto-play: 15 / 30 /
    60 minutes, +15 / +30 while running, finish the current match then stop, resets at midnight Sydney, no
    carry-over; minutes left and running / finishing / done in `GET /api/play`; `server/OWNER_API.md`, tests, a demo.
    Spec: `progress/season0-final-brief.md` section 1.
@@ -148,7 +151,8 @@ run in the brief; fix what breaks. Then Season 0 starts (5 Dec) and must run 7 c
 
 **After Season 0, before the public launch:** the rolling queue (owner 2026-11-04): pair whoever is free instead
 of waiting for a round's slowest match, so a faster (2×) match means the next one starts sooner. It changes the
-matchmaker, so it comes as its own proposal then.
+matchmaker, so it comes as its own proposal then. **At the public launch, switch on the Gold floor (1500) for
+"Top rated"** (owner 2026-11-06, call 2): the option is built and off (`featured.minRating`); it's one setting.
 
 **After Season 0:** launch-scale storage and its load test (hard gate for Season 1), payments, the art pass,
 AI commentators, tournaments, quests, the published-odds page, the next set, 3D pack opening, the title screen,

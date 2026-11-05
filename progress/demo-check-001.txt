@@ -1,0 +1,29 @@
+# npm run demos -- --all (session 75), after regenerating the 16 stale files: a second, independent run of every demo
+
+same  economy-demo-003.txt  (3 s)
+same  economy-demo-005.txt  (1 s)
+same  economy-demo-006.txt  (1 s)
+same  economy-demo-008.txt  (1 s)
+same  economy-demo-009.txt  (19 s)
+same  economy-demo-010.txt  (7 s)
+same  economy-demo-011.txt  (115 s)
+same  economy-demo-012.txt  (1 s)
+same  economy-demo-013.txt  (1 s)
+same  economy-demo-014.txt  (40 s)
+same  economy-demo-015.txt  (1 s)
+same  economy-demo-016.txt  (507 s)
+same  owner-api-demo-002.txt  (30 s)
+same  owner-api-demo-003-account.txt  (1 s)
+same  owner-api-demo-004-economy.txt  (1 s)
+same  owner-api-demo-005-daily-pack.txt  (1 s)
+same  owner-api-demo-006-collection-asks.txt  (1 s)
+same  owner-api-demo-007-coins.txt  (3 s)
+same  featured-viewers-001.txt  (4 s)
+same  ladder-demo-001.txt  (11 s)
+same  ladder-demo-002-live.txt  (8 s)
+same  live-feed-asks-001.txt  (4 s)
+same  replay-versions-001.txt  (1 s)
+same  speed-vote-001.txt  (5 s)
+
+24 demos, 0 stale or failed
+

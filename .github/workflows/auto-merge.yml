@@ -30,12 +30,38 @@ jobs:
             // Up to 12 minutes (72 polls, 10 s apart). It was 5, which timed
             // out once with tests green (PR #88); the render's browser check
             // (owner 2026-10-29) adds about a minute to the test run.
+            //
+            // A GitHub server error (5xx) or a rate limit (429, or 403 with
+            // no requests left) is retried up to 4 times, 5/10/20/40 s apart,
+            // before the step gives up (owner 2026-11-06: PR #131 failed on
+            // one HTTP 500 while every test had passed). Any other error, or
+            // a check that really failed, still stops the merge.
+            const RETRY_DELAYS_MS = [5000, 10000, 20000, 40000];
+            const sleep = ms => new Promise(r => setTimeout(r, ms));
+            const retryable = e => {
+              const s = e && e.status;
+              if (typeof s !== 'number') return false;
+              if (s >= 500 || s === 429) return true;
+              const left = e.response && e.response.headers && e.response.headers['x-ratelimit-remaining'];
+              return s === 403 && String(left) === '0';
+            };
+            async function listRuns() {
+              for (let attempt = 0; ; attempt++) {
+                try {
+                  return await github.rest.checks.listForRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: sha,
+                  });
+                } catch (e) {
+                  if (!retryable(e) || attempt >= RETRY_DELAYS_MS.length) throw e;
+                  core.warning(`Listing check runs failed (HTTP ${e.status}); retry ${attempt + 1} of ${RETRY_DELAYS_MS.length} in ${RETRY_DELAYS_MS[attempt] / 1000} s.`);
+                  await sleep(RETRY_DELAYS_MS[attempt]);
+                }
+              }
+            }
             for (let i = 0; i < 72; i++) {
-              const { data } = await github.rest.checks.listForRef({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: sha,
-              });
+              const { data } = await listRuns();
               const runs = data.check_runs.filter(r => r.name !== 'auto-merge');
               const relevant = runs.filter(r => r.name.toLowerCase().includes('deploy') || r.name.toLowerCase().includes('build') || r.name.toLowerCase().includes('test'));
               if (relevant.length === 0) return;
@@ -43,7 +69,7 @@ jobs:
               const anyFail = relevant.some(r => ['failure','cancelled','timed_out'].includes(r.conclusion));
               if (anyFail) { core.setFailed('A required check failed; not merging.'); return; }
               if (allDone) return;
-              await new Promise(r => setTimeout(r, 10000));
+              await sleep(10000);
             }
             core.setFailed('Timed out waiting for checks.');
       - name: Merge
