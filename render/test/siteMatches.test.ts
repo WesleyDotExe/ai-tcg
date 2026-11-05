@@ -325,16 +325,16 @@ describe("the match pages over the real owner API, with the ladder playing", () 
       for (const size of ["S", "M", "L"] as const) {
         const html = widgetHtml({ id: "w", type, size }, data, { editing: false, live: "board" });
         expect(html, `${type} ${size}`).not.toMatch(/undefined|NaN|\[object|>null</);
-        if (type === "live" || type === "watch") expect(html).toContain(l.matches[0]!.p1.agentName.replace(/'/g, "&#39;"));
-        if (type === "agent" && size !== "L") expect(html).toContain('role="switch" aria-checked="true"');
+        if (type === "watch") expect(html).toContain(l.matches[0]!.p1.agentName.replace(/'/g, "&#39;"));
+        // Render session 57: Agent controls' Start / Stop is the auto-play switch (on: Stop).
+        if (type === "live") expect(html).toContain('data-act="auto-play" data-on="0"');
       }
     }
     expect(widgetHtml({ id: "w", type: "history", size: "S" }, data, { editing: false })).toContain("Win");
-    // Nothing live: the Live match widget says the agent joins the next round.
+    // Nothing live: Agent controls says the agent joins the next round; with a match live, "Go to match".
     const none = { ...data, play: { ...play, liveMatch: null }, live: { running: true, matches: [], mine: null } };
-    expect(widgetHtml({ id: "w", type: "live", size: "M" }, none, { editing: false })).toContain("Your agent joins the next ladder round");
-    // The store holds the match as live before the list shows it: "starting".
-    expect(widgetHtml({ id: "w", type: "live", size: "M" }, { ...none, play }, { editing: false })).toContain(play.liveMatch ? "match is starting." : "Your agent joins");
+    expect(widgetHtml({ id: "w", type: "live", size: "M" }, none, { editing: false })).toContain("No match live: joins the next ladder round");
+    expect(widgetHtml({ id: "w", type: "live", size: "M" }, { ...none, play }, { editing: false })).toContain(play.liveMatch ? "Go to match" : "No match live");
     expect(widgetHtml({ id: "w", type: "watch", size: "M" }, { ...none, live: { running: false, matches: [], mine: null } }, { editing: false })).toContain("The ladder isn't running");
   });
 });

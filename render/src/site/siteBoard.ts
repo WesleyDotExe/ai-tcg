@@ -59,8 +59,11 @@ export interface WidgetInfo {
 
 /** The twelve Season 0 widgets, in the gallery's order (the mockup's). */
 export const WIDGET_INFO: Record<WidgetType, WidgetInfo> = {
-  agent: { name: "My agent", desc: "Your agent, its status and its deck", icon: "link", grad: "linear-gradient(135deg,#7a5cff,#3d7bff)", large: "wide", page: "connect" },
-  live: { name: "Live match", desc: "Your agent's match, from scoreboard to board", icon: "match", grad: "linear-gradient(135deg,#ff5d73,#ff9f43)", large: "wide", page: "match", live: true },
+  agent: { name: "My agent", desc: "Your agent, its rating, today and its streak", icon: "link", grad: "linear-gradient(135deg,#7a5cff,#3d7bff)", large: "wide", page: "connect" },
+  // Render session 57: Agent controls replaces Live match (owner 2026-11-06,
+  // the Season 0 brief). The server's widget id stays "live"; it no longer
+  // draws a live board (that is Watch live's and the match page's).
+  live: { name: "Agent controls", desc: "Start and stop your agent, its personality, time and deck", icon: "match", grad: "linear-gradient(135deg,#ff5d73,#ff9f43)", large: "wide", page: "match" },
   watch: { name: "Watch live", desc: "The featured matches (up to two on a board)", icon: "eye", grad: "linear-gradient(135deg,#ffcf5c,#ff7d24)", large: "wide", page: "live", live: true },
   packs: { name: "Packs", desc: "Your unopened packs, buy and open", icon: "store", grad: "linear-gradient(135deg,#f6c445,#e0902a)", large: "wide", page: "store" },
   daily: { name: "Daily rewards", desc: "Today's credits from wins, and the reset", icon: "trophy", grad: "linear-gradient(135deg,#3cc47c,#2fb6ff)", large: "tall", page: "stats" },

@@ -38,6 +38,7 @@ import { avatarSvg } from "../avatar.js";
 import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
+import type { SiteRating } from "./siteAgent.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
@@ -121,7 +122,7 @@ const state: {
   draft: SiteWidget[] | null;
   saving: boolean;
   /** What the widgets read, each fetched only when a widget on the board needs it. */
-  home: { packs: SitePacks | null; collection: SiteCollection | null; daily: SiteDaily | null; store: SiteStore | null; live: SiteLive | null; history: SiteHistory | null; errors: Partial<Record<WidgetSource, string>> };
+  home: { packs: SitePacks | null; collection: SiteCollection | null; daily: SiteDaily | null; store: SiteStore | null; live: SiteLive | null; history: SiteHistory | null; rating: SiteRating | null; errors: Partial<Record<WidgetSource, string>> };
   colFilter: string;
   /** The Store page's own reads: the packs (with the daily pack), the store,
    * and the collection's recent openings. */
@@ -150,7 +151,7 @@ const state: {
   follow: { matchId: string; next: number; started: boolean; lines: string[] } | null;
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
-  board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, errors: {} }, colFilter: "All",
+  board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, errors: {} }, colFilter: "All",
   shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null }, buyCount: 1, opening: false,
   col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
   hist: { rows: [], total: 0, more: false, error: null, loading: false }, autoBusy: false, speedBusy: false, replay: null, follow: null,
@@ -361,7 +362,7 @@ function signedOut(message: string): void {
   state.board = null;
   state.boardError = null;
   state.draft = null;
-  state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, errors: {} };
+  state.home = { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, errors: {} };
   state.hist = { rows: [], total: 0, more: false, error: null, loading: false };
   closeReplay();
   clearTimeout(livePoll);
@@ -467,6 +468,7 @@ async function loadHome(only?: WidgetSource[]): Promise<void> {
     store: () => api.store(token),
     live: () => api.live(token),
     history: () => api.matches(token, 20),
+    rating: () => api.rating(token, 20),
   };
   let signedOutNow = false;
   await Promise.all(
@@ -671,7 +673,7 @@ function homePage(p: SitePlay): string {
   if (!widgets.length) {
     return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
   }
-  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter };
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: null, busy: state.busy };
   const { views, capped } = liveViews(widgets);
   const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id) })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -1763,7 +1765,7 @@ async function loadLive(): Promise<void> {
   if (wasMine && wasMine !== nowMine) {
     window.setTimeout(() => {
       void loadHistory(true);
-      if (state.page === "home") void loadHome(["history", "daily"]);
+      if (state.page === "home") void loadHome(["history", "daily", "rating"]);
       void refresh();
     }, 1500);
   }
@@ -1830,7 +1832,7 @@ function drawLive(): void {
     const p = state.play;
     if (!p) return;
     const widgets = state.board.widgets;
-    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter };
+    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: null, busy: state.busy };
     const { views, capped } = liveViews(widgets);
     for (const w of widgets) {
       if (w.type !== "live" && w.type !== "watch") continue;
@@ -2120,6 +2122,17 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---- actions ----------------------------------------------------------------
+/** `act` under another name, for the click handler (where `act` is the
+ * clicked element's data-act). */
+function savePlay(fn: (token: string) => Promise<SitePlay>, ok?: string): Promise<void> {
+  return act(fn, ok);
+}
+
+/** Puts focus back on a widget's button after the board is redrawn. */
+function focusAct(act: string, key: string, value: string): void {
+  (document.querySelector(`[data-act="${act}"][data-${key}="${CSS.escape(value)}"]`) as HTMLElement | null)?.focus();
+}
+
 async function act(fn: (token: string) => Promise<SitePlay>, ok?: string): Promise<void> {
   if (!state.session || state.busy) return;
   state.busy = true;
@@ -2192,6 +2205,17 @@ document.addEventListener("click", (e) => {
     if (act === "claim-daily") return void claimDaily();
     if (act === "dress" && actEl.dataset.agent) return void openDress(actEl.dataset.agent, actEl);
     if (act === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
+    // Render session 57: Agent controls' personality dial and deck switcher.
+    if (act === "play-style" && actEl.dataset.agent && actEl.dataset.style) {
+      if (actEl.getAttribute("aria-pressed") === "true") return;
+      const name = state.play?.playStyles.find((x) => x.id === actEl.dataset.style)?.name ?? actEl.dataset.style;
+      return void savePlay((tok) => api.setPlayStyle(tok, actEl.dataset.agent!, actEl.dataset.style!), `${name} from the next match.`).then(() => focusAct("play-style", "style", actEl.dataset.style!));
+    }
+    if (act === "ctl-deck" && actEl.dataset.deck) {
+      if (actEl.getAttribute("aria-pressed") === "true") return;
+      const v = actEl.dataset.deck;
+      return void savePlay((tok) => (v === "agent" ? api.setDeckChoice(tok, "agent") : api.setActiveDeck(tok, v)), v === "agent" ? "Your agent picks its deck from the next match." : "That deck plays from the next match.").then(() => focusAct("ctl-deck", "deck", v));
+    }
     if (act === "live-speed" && actEl.dataset.match) return void setLiveSpeed(actEl.dataset.match, actEl.dataset.ask === "1");
     if (act === "ask-2x-every") return void setAsk2xEvery(actEl.dataset.on === "1");
     if (act === "replay" && actEl.dataset.match) return void openReplay(actEl.dataset.match, actEl);

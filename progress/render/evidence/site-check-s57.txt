@@ -1,0 +1,59 @@
+
+[A] both widgets at S, M and L
+PASS  A. the board saved with both widgets at S
+PASS  A. S: My agent's rating is the server's (1526, Gold)
+PASS  A. S: the tile is named Agent controls
+PASS  A. S: the portrait sits in the time ring
+      My agent S: My agentVector HalcyonIn a match1526Gold
+      Agent controls S: Agent controlsOnVector HalcyonIn a matchStop
+PASS  A. the board saved with both widgets at M
+PASS  A. M: My agent's rating is the server's (1526, Gold)
+PASS  A. M: the tile is named Agent controls
+PASS  A. M: the portrait sits in the time ring
+PASS  A. M: today's W/L is GET /api/daily's ("3W 4L today")
+PASS  A. M: the dial has a notch per play style (6) and names Calculator
+      My agent M: My agentVector HalcyonIn a match1526Gold3W 4L todayNo streakCORTEXdeckGold · 1526 ±149 · Calculator play style
+      Agent controls M: Agent controlsOnVector HalcyonIn a matchPlaying · no time limit setStopGo to matchPersonalityCalculatorA change applies from the next match.CORTEX Your agent picks: Agent's deck · 40 cardsGive your ag
+PASS  A. the board saved with both widgets at L
+PASS  A. L: My agent's rating is the server's (1526, Gold)
+PASS  A. L: the tile is named Agent controls
+PASS  A. L: the portrait sits in the time ring
+PASS  A. L: today's W/L is GET /api/daily's ("3W 4L today")
+PASS  A. L: the dial has a notch per play style (6) and names Calculator
+      My agent L: My agentVector HalcyonIn a match1526Gold3W 4L todayNo streakCORTEXdeckGold · 1526 ±149 · Calculator play styleRating trend−131 over the last 20 rated matchesRecent matche
+      Agent controls L: Agent controlsOnVector HalcyonIn a matchPlaying · no time limit setStopGo to matchPersonalityCalculatorWeighs every move on the board as it stands and takes the best. The balanced default.A change app
+PASS  A. My agent: today's W/L from M up, not at S
+PASS  A. My agent: the rating trend and recent matches (4) only at L
+PASS  A. Agent controls: the dial from M up, not at S
+PASS  A. Agent controls: 15/30/60 from M, +15/+30 only at L (waiting on the server's allowance)
+PASS  A. Agent controls: the deck switcher (2 choices) and the match history (5) only at L
+
+[B] the personality dial
+      Nova's match is live
+PASS  B. clicking the Rusher notch saved it (GET /api/play: rusher)
+PASS  B. the pressed notch moved to it (one pressed)
+PASS  B. the pointer turned to it (rotate(60deg), ~60°)
+      toast: "Rusher from the next match."
+PASS  B. with the match live, the note says "This match: Calculator. Rusher from the next match."
+PASS  B. the live match still plays the style it started with
+
+[C] Start / Stop
+PASS  C. Stop turned auto-play off (the server's answer)
+PASS  C. the ring shows Off
+PASS  C. Start turned it on again
+PASS  C. the ring is full again (on, no time limit)
+
+[D] the deck switcher (L)
+      deck choice agent, active Agent's deck
+PASS  D. a deck of Nova's own to pick (Cortex, my tweak)
+PASS  D. Cortex, my tweak saved (deckChoice forced, that deck active)
+PASS  D. it is the pressed choice
+PASS  D. "Your agent picks" saved back (deckChoice agent)
+PASS  D. it is the pressed choice again
+      0 incomplete deck(s) shown disabled
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+37 PASS, 0 FAIL

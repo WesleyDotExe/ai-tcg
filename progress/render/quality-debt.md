@@ -9,6 +9,18 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
+- **Agent controls' time ring has no live data yet (session 57).** The ring, its states ("42 min left", amber
+  under 20%, "Finishing match", "Done for today") and the 15 / 30 / 60 and +15 / +30 buttons are drawn and
+  unit-tested, but the server has no play-time allowance until game session 76: today the ring only shows
+  auto-play on (full, "no time limit set") or off, and the buttons are disabled. No adapter from `GET /api/play`
+  exists and the buttons have no click handler; both are the follow-up once 2g lands. The brief's done-check (the
+  ring counts down, the agent finishes its match, the reset at midnight Sydney) is **not** met yet.
+- **My agent and Agent controls, thin spots (session 57):** the rating trend is drawn from `GET /api/rating`'s last
+  20 rated matches, not the Stats data (game item 2e) the brief names; the dial's notches are buttons in tab order,
+  not a radio group with arrow keys; the dial and deck switcher were only clicked with a mouse in the browser
+  check; at narrow widths (the one-column board) the L layouts stack but were not looked at; the demo's history
+  is mostly `recordMatch` rows with no replay, so the trend's shape there comes from those made-up results, not
+  real play (the numbers are still the server's).
 - **Most by-hand browser checks are never re-run.** Session 54 (a hardening pass) brought the stale ten-pack
   and loadout checks up to date (`pack-bulk-check-s54.mjs`, `loadout-check-s54.mjs`) and found the older
   ones break the same way: written against the page as it was that session, and against one machine's
@@ -43,8 +55,8 @@ items are removed, with the fix in `log.md`.
   arena beside Close, a 2× pill on Watch live's cards, and Settings -> Play's "Ask for 2× in every match". The
   arena steps at half its delay while following live at 2×, so it keeps its distance from the newest move; paused
   or stepped back it plays at the viewer's own speed. Not done: no notification when the other owner asks (the
-  game lane's notifications are queued); the Home Live match widget has no control (the brief replaces it with
-  Agent controls, render item 2); the vote wording ("Agree to 2×", "Back to 1×") was picked by this lane (a check-in
+  game lane's notifications are queued); Agent controls (which replaced the Home Live match widget, session 57) has no
+  2× control either, only "Go to match"; the vote wording ("Agree to 2×", "Back to 1×") was picked by this lane (a check-in
   call); a house account sees no Settings switch (its setting is ignored by the server). The control's state is the
   last `GET /api/live` read (every 3 s), so the other owner's ask can take up to 3 s to show.
 - **Session 51's browser check can no longer find its live frame (found session 56):** it looks for a frame URL

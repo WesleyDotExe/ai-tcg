@@ -7,6 +7,52 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-05 — My agent and Agent controls (the Season 0 brief, section 1) — AWAITING FEEDBACK
+
+Item 2 of your 2026-11-06 render order. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder --speed 4`, sign
+in as `nova` / `a long demo password`, Customise, and set My agent and Agent controls ("Live match" is now Agent
+controls) to S, M and L.
+
+**What you'll see:**
+- **My agent:** S the portrait, name, status and the rating with its tier; M adds today's W/L, the streak ("3 wins
+  in a row") and the deck's faction; L adds the rating trend (a line over the last 20 rated matches, with the
+  change) and the last four matches with Replay.
+- **Agent controls:** S the portrait inside the time ring, status, and Start / Stop (auto-play); M adds the
+  personality dial, 15 / 30 / 60 minute buttons, the deck and "Go to match" (beside Stop while a match is live); L
+  adds the deck switcher, the match history and +15 / +30.
+- **The dial:** six notches, one per play style, the pointer turning to the chosen one; a click saves it. During a
+  match it says "This match: Calculator. Rusher from the next match.", and the match keeps its style.
+- **The time ring:** ready for every state in the brief (minutes left draining, "Finishing match", "Done for
+  today"), tested, but the server has no allowance yet (game session 76). Until then it shows auto-play: a full
+  ring "On", an empty grey "Off". The time buttons are drawn but disabled, with "Time limits arrive with the
+  server's play-time allowance."
+
+**Evidence:** `progress/render/evidence/site-check-s57.txt`: 37 browser checks over the real ladder, ALL PASS
+(stills `v2-s57-size-S.jpg`, `v2-s57-size-M.jpg`, `v2-s57-size-L.jpg`, `v2-s57-dial-live.jpg`,
+`v2-s57-stopped.jpg`). Tests +7 (render 882), including a real-ladder test that a dial change mid-match applies from
+the next match. CI browser check 61/61.
+
+**Decisions you may want to overrule:**
+1. **Start / Stop is the auto-play switch** drawn as one button (Stop when on, Start when off). Nothing else in
+   Season 0 starts an agent, so I didn't add a second control.
+2. **The rating trend comes from `GET /api/rating`'s recent list (20 matches)**, which exists now, not the Stats
+   data (game item 2e). It can switch when that lands. If you'd rather it wait for 2e, it's one line to hide.
+3. **The streak:** wins or losses in a row from the history; an opponent's abandon is a win and yours a loss (as
+   the rating counts them), cancels are skipped, a draw ends it, and a streak of one isn't shown ("No streak").
+4. **In placement the rating shows "—" and "Placement"** rather than a number (the ladder ranks no one in
+   placement either).
+5. **The dial at M** shows the style's name and the next-match note; its one-line summary is on the notches'
+   hover and shows in full at L (it didn't fit at M).
+6. **The time buttons are shown, disabled, before the server has the allowance**, so the layout is the final one.
+   I could hide them until then instead.
+7. **The widget's id stays `live`** (the server's), so boards saved with Live match now show Agent controls. It no
+   longer takes one of the two live boards.
+
+**Next:** the pack opening ceremony, part 1 (your order, item 3). When game session 76 ships the allowance, a small
+follow-up wires the ring and the time buttons.
+
+---
+
 ## 2026-11-05 — The live arena slice: the signature card in full, the boast before the result, the 2× controls — AWAITING FEEDBACK
 
 The slice you set after the second coin slice, with the 2× controls you added to it (2026-11-04). Try it: `npm
