@@ -4223,3 +4223,16 @@ Update the Season 0 checklist in `progress/roadmap.md` to match.
 The owner will give feedback on the Home dashboard (the widget board) next. **The Season 0 scope is not locked yet**; the owner locks it after that feedback.
 
 Next render-lane slice, as planned: the live arena reads the signature card in full and the live boast, with the 2× controls.
+
+---
+
+## 2026-11-06 — Owner: answers to game session 74 (featured picks and viewer counts), keep all; the auto-merge retry fix queued
+
+Answers the [OWNER CHECK-IN] on the "Top rated" rule and the viewer-count proposal in `progress/notes-for-owner.md` (PR #131, `progress/featured-viewers-001.txt`).
+1. **Keep:** "Top rated" ranks matches by the **weaker side's** rating at the start (ties: the stronger side's rating, then the earlier start), only matches where both sides are out of placement, at most 3.
+2. **Keep:** **no rating floor in Season 0.** **At the public launch, switch on a Gold floor (1500)** (the option already built). Add it to the launch items in `progress/roadmap.md`.
+3. **Keep:** when nothing qualifies, "Top rated" is left empty; the page still lists every live match.
+4. **Keep:** viewer counts as proposed: a signed-in owner who read that match's live feed in the last 30 seconds, counted once however many tabs; the two players' own owners count when they watch; reading the list alone doesn't count.
+
+### Game lane: the auto-merge retry fix, approved
+PR #131's auto-merge job failed after 2 s on a GitHub API server error (HTTP 500 when listing the commit's check runs) while every test had passed; a re-run merged it. **Make the "Wait for checks to pass" step retry on GitHub server errors (5xx) and rate limits** (a few tries with a short backoff) instead of failing on the first one; any other error, or a check that really failed, still stops the merge. The owner OKs this change to `.github/workflows/auto-merge.yml` for this purpose only. Do it at the start of the next game session (it is small), then notifications, then the Stats page's data, as queued.
