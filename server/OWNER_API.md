@@ -1,6 +1,6 @@
 # Owner API
 
-The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Session 70 versioned the replay files (`ai-tcg-replay/2`: the rules and card versions, every card in full; `/1` files still rebuild). Session 72 added the live-feed asks: the opening hands, the signature card in full, each side's faction and the boast on the live view. Stats and notifications come in later sessions, on the same server.
+The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build order, step 3). Session 56 built the first part: signing in and the deck settings of Settings -> Play (roadmap 2b step 3). Session 63 added what the website's shell waits on (owner 2026-11-01): who am I, the account settings and the wallet. Session 64 added the saved Home board and the economy endpoints (owner 2026-11-01): the collection and binder, salvage and crafting, the ledger, buying and opening packs, the store, cosmetics and loadouts, and today's earnings. Session 66 added the ladder and the rating. Session 67 added the match pages: Watch live (from the long-lived ladder), match history with each match's log and replay, and the auto-play switch. Session 69 added coin skins (the loadout's sixth slot and the coins on the live view, the match and the replay) and each side's rating at the start of a match, for a spectator's point of view. Session 70 versioned the replay files (`ai-tcg-replay/2`: the rules and card versions, every card in full; `/1` files still rebuild). Session 72 added the live-feed asks: the opening hands, the signature card in full, each side's faction and the boast on the live view. Session 73 added the 2× vote. Session 74 added Watch live's featured groups ("Top rated") and viewer counts. Notifications and the Stats page's data come in later sessions, on the same server.
 
 - Code: `server/src/ownerApi.ts` (`startOwnerApi`); run it with `npm run owner-api -w server -- <season database file> [port]` (default port 8081).
 - Every rule lives in the economy store (`economy/src/store.ts`). The API reads the request, checks the caller may touch what it names, calls the store and answers. It never writes SQL.
@@ -64,8 +64,8 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `POST /api/play/rebuild` | none | 202 `{ job }`: the agent starts building its deck |
 | `GET /api/play/rebuild` | none | `{ job }`, the owner's latest rebuild (404 if none) |
 | `PUT /api/play/auto-play` | `{ on: boolean }` | `{ autoPlay }` (below); 409 for a house owner, or turning it on while today's rewards are maxed |
-| `GET /api/live` | none | `{ running, matches: LiveMatchView[], mine }`: every match being shown, and the caller's (below) |
-| `GET /api/live/:matchId?from=0` | none | `LiveMatchFeed`: the match now, and the moves released from `from` on (below); 404 once it ended |
+| `GET /api/live` | none | `{ running, matches: LiveMatchView[], mine, featured }`: every match being shown, the caller's, and Watch live's groups (below) |
+| `GET /api/live/:matchId?from=0` | none | `LiveMatchFeed`: the match now, and the moves released from `from` on (below); 404 once it ended. Reading it counts the caller as watching (`viewers`) |
 | `GET /api/matches?limit=20&before=<matchId>` | none | `{ matches: HistoryRow[], total, more }`: the caller's matches, newest first (below) |
 | `GET /api/matches/:matchId` | none | `MatchView`: one recorded match, any owner's (below) |
 | `GET /api/matches/:matchId/log` | none | the match log, as text (`text/plain`) |
@@ -286,7 +286,7 @@ The rule is the owner's (2026-10-04): one free pack a day that only the owner ca
 
 ### The store and cosmetics
 
-- `GET /api/store`: `{ packs: <the pack offer>, dailyPack, cosmetics: [CosmeticItem & { owned }], wallet }`. Cosmetics listed are those on sale now (this season, inside their sale window, drawn by the render lane); Season 0 sells two boasts at 300 credits, and two coins at 300 credits each (Dial-Up Dime, Neon Nickel) once the render lane has drawn them (until then they aren't listed and buying one is 409).
+- `GET /api/store`: `{ packs: <the pack offer>, dailyPack, cosmetics: [CosmeticItem & { owned }], wallet }`. Cosmetics listed are those on sale now (this season, inside their sale window, drawn by the render lane); Season 0 sells two boasts at 300 credits and two coins at 300 credits each (Dial-Up Dime, Neon Nickel): both coins are on sale now that the render lane has drawn them (render session 55). An item not yet drawn is never listed, and buying one is 409.
 - `POST /api/store/cosmetics/:itemId/buy` pays credits and grants the item together, or refuses (409): not on sale, already owned, too few credits, a free starter item, a season reward (the tier coins are never sold).
 - `GET /api/cosmetics`: every item the owner owns (`{ ownerId, itemId, kind, source: "starter" | "purchase" | "seasonReward", ledgerEntryId, rewardRef, acquiredAt, item }`), the four starter boasts and the Chrome Token included. `rewardRef` names a season reward (`"S0:Platinum"`), else null.
 
@@ -375,7 +375,7 @@ The switch on the My agent card, the match screen and Settings -> Play (owner ap
 
 Matches are played by the long-lived ladder (`npm run season`; ECONOMY.md "Match running and the ladder"): the engine plays each match at once, then the server releases it a move at a time at watch speed, and records it (credits, ratings, history) only once the last move has been shown. So a live match's result is nowhere until the viewers see it.
 
-`GET /api/live`: `{ running, matches, mine }`. `running` is false when the server runs without the ladder; `mine` is the caller's live match id or null.
+`GET /api/live`: `{ running, matches, mine, featured }`. `running` is false when the server runs without the ladder; `mine` is the caller's live match id or null; `featured` is `{ tournament: string[], topRated: string[] }`, match ids in display order (session 74, below).
 
 ```
 LiveMatchView {
@@ -387,7 +387,8 @@ LiveMatchView {
   now: PublicSnapshot,           // the board after the last released move
   recentLines: string[],         // the last 6 log lines released, oldest first
   boast: MatchBoast | null,      // (session 72) null until the last move is out; then the boast the record keeps (below)
-  speed: SpeedView               // (session 73) the 2× vote; `nextAt` is already at this pace (below)
+  speed: SpeedView,              // (session 73) the 2× vote; `nextAt` is already at this pace (below)
+  viewers: number                // (session 74) signed-in owners who read this match's feed in the last 30 s (below)
 }
 SpeedView {
   rate: 1 | 2,                   // 2 while both sides agree, else 1
@@ -456,6 +457,13 @@ Watch speed (proposed session 67, an owner check-in item): before each move is r
 - Speed changes only the pace moves are released at, never the match: every match is decided in the engine before its first move is shown, so its moves, log, replay, result, credits and ratings are the same at 1× or 2× (`progress/speed-vote-001.txt` checks eleven matches against the same seeds at 1×).
 - 400 for an `ask` that isn't true or false; 403 for an owner whose agent isn't in the match; 404 when it isn't live (`match "<id>" has ended; see /api/matches/<id>` once recorded).
 
+**Featured and viewers (session 74; owner app spec 2026-10-05 C.4: "Featured live matches in two groups: Tournament (including the Season 0 finale when it runs) and Top rated (high-rating players). Shows viewer counts.")** Both rules are proposals at an owner check-in (`progress/notes-for-owner.md`); the evidence is `progress/featured-viewers-001.txt` (`npm run demo:featured-viewers -w server`).
+
+- `featured.topRated`: up to 3 live matches where **both sides are out of placement** (neither tier reads "Placement"), ranked by the **weaker side's rating** as the match started (a match is only as top as its weaker player), ties by the stronger side's rating, then the earlier start, then the match id. No rating floor in Season 0 (the server's `featured.minRating` option is there for launch scale). The ratings and tiers are each side's `rating` and `tier` on the list, so a page can show why a match is featured. Logic in `server/src/ladder/featured.ts`.
+- `featured.tournament`: always `[]` in Season 0 (tournaments come after it); sent so the shape is fixed.
+- A featured match is still in `matches`; the groups only name and order them. A match can be both featured and the caller's `mine`.
+- `viewers`: each signed-in owner that read the match's feed (`GET /api/live/:matchId`, any `from`) in the last 30 s, counted once however many tabs it has open. The two players' owners count when they watch. Reading the list (`GET /api/live`) is not watching, so a page that plays the match (the match page, the live arena, a Watch live widget at L) must read the feed; one that only shows the list doesn't count its reader. The website's 3 s on-screen read and 15 s hidden-tab read both keep a viewer counted; a closed page drops out within 30 s. Kept in memory with the live match and gone when it is recorded. Logic in `server/src/ladder/viewers.ts`.
+
 ### Match history (session 67)
 
 `GET /api/matches` (`limit` 1-100, default 20; `before` a match id from the previous page): the caller's matches, newest first.
@@ -521,7 +529,8 @@ The engine rebuilds the match exactly from either format: `rebuildReplay(file, h
 
 ## Not built yet
 
-- The rest of the match-dependent endpoints: featured matches (who is "Top rated" in Watch live), viewer counts, stats, notifications. Tournament endpoints wait until after Season 0.
+- The rest of the match-dependent endpoints: notifications, then the Stats page's data (owner 2026-11-05, in that order). Tournament endpoints (and so the `featured.tournament` group) wait until after Season 0.
+- Viewer counts are signed-in owners only: the site has no signed-out spectators in Season 0.
 - `GET /api/matches` reads the owner's whole history and pages it in memory (fine for a season of in-house play; to move into SQL before launch scale).
 - The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).

@@ -1,5 +1,56 @@
 # Notes for the owner
 
+**Updated 2026-11-05, session 74 (featured picks and viewer counts). [OWNER CHECK-IN] (the "Top rated" rule, as
+you asked).** Nothing is blocking: both are built on the rules below and the next sessions go on whatever you answer.
+Session 73's four calls are answered (2026-11-04, keep all 4) and kept below for the record.
+
+Watch live now has its two groups and viewer counts. `GET /api/live` sends `featured: { tournament, topRated }`
+(match ids in order) and every live match has `viewers`. `progress/featured-viewers-001.txt` plays six rounds on the
+real ladder, so every rating comes from real matches, and checks the picks and the counts over HTTP: 12 checks pass.
+
+**The "Top rated" rule (proposed; your call):**
+- Only a match where **both sides are out of placement** (5 rated matches each). A rating before that is a guess.
+- Ranked by the **weaker side's** rating at the start of the match. A match is only as good as its weaker player,
+  so a Mythic beating a newcomer doesn't rank above two Diamond owners. Ties go to the stronger side's rating, then
+  the earlier start.
+- **At most 3 matches. No rating floor** in Season 0.
+- **Tournament** is always empty in Season 0 (tournaments come after it). It is sent anyway, so the page layout
+  stays the same.
+
+**What it looks like in the demo's sixth round** (5 live matches):
+
+| Match | Sides at the start | Weaker side | Result |
+|---|---|---|---|
+| m21 | Dex 1819 Diamond v Flux 1786 Platinum | 1786 | Top rated #1 |
+| m25 | Grid 1371 Silver v Bit 1301 Bronze | 1301 | Top rated #2 |
+| m24 | Hex 1167 Bronze v Echo 1375 Silver | 1167 | Top rated #3 |
+| m22 | Arc 1663 Platinum v Jot (new) Placement | - | not featured |
+| m23 | Ion (new) Placement v Cog 1538 Gold | - | not featured |
+
+**The honest catch:** with only a handful of in-house owners, "Top rated" isn't selective: two of the three picks
+have a Bronze side. Also, for the first five rounds of a fresh season (about 35 minutes) everyone is in placement,
+so the group is empty while matches are live.
+
+**Three calls:**
+1. **The ranking: the weaker side's rating** (recommended), or the average of the two, or the stronger side's.
+2. **A rating floor?** I recommend **none for Season 0** (the league is too small), and a **Gold floor (1500)** for
+   launch. With a Gold floor, the round above would feature only m21. It is built as an option, switched off.
+3. **When nothing qualifies** (a fresh season, or every live match has a side in placement): leave "Top rated"
+   empty (as built; the page still lists every live match), or fill it with the best placement matches.
+
+**Viewer counts (proposed; keep or change):** a viewer is a signed-in owner who read that match's live feed in the
+last 30 seconds. Each owner counts once, however many tabs it has open. The website reads the feed every 3 s while
+the match is on screen and every 15 s in a hidden tab, so an open page counts and a closed one drops out within
+30 s. **The two players' own owners count** when they watch, like any live stream. **Just seeing the list isn't
+watching:** every page with a live widget reads the list, so counting it would count everyone online. Keep, or
+leave the two players' owners out of the count.
+
+**Also done:** `server/OWNER_API.md` says Dial-Up Dime and Neon Nickel are on sale at 300 credits (the store lists
+both). The cosmetics test checks every coin against the render's coin looks and passes. Notifications and then the
+Stats data are queued in that order. The rolling queue is on the roadmap for after Season 0.
+
+---
+
 **Updated 2026-11-03, session 73 (the 2× vote).** Nothing is blocking. No check-in is open. Session 72's three
 calls are answered (2026-11-03, keep all 3) and kept below for the record.
 

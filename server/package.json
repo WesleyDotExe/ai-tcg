@@ -20,6 +20,7 @@
     "demo:replay-versions": "tsx src/dev/replayVersionsDemo.ts",
     "demo:live-feed-asks": "tsx src/dev/liveFeedAsksDemo.ts",
     "demo:speed-vote": "tsx src/dev/speedVoteDemo.ts",
+    "demo:featured-viewers": "tsx src/dev/featuredViewersDemo.ts",
     "measure:first-seat-ladder": "tsx src/dev/firstSeatLadder.ts"
   },
   "dependencies": {

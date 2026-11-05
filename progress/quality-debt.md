@@ -75,12 +75,37 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 74 (featured picks and viewer counts): what is still thin
+
+- **"Top rated" isn't selective in a small league.** With no rating floor, a round of five matches features three
+  of them; in `progress/featured-viewers-001.txt` two of the three picks have a Bronze side (1167, 1301). With a
+  handful of in-house owners nearly every placed match is "top". A Gold floor (`featured.minRating: 1500`, built,
+  off) would feature one match that round. Owner call in notes-for-owner.md; the right answer probably changes
+  with league size, and nothing measures how often the group is empty under either rule.
+- **The first rounds of a season feature nothing.** Every owner starts in placement (5 rated matches), so for
+  the first five rounds (about 35 minutes of a fresh season) "Top rated" is empty while matches are live. The
+  page has `matches` to show; the group alone is empty. Part of the same owner call.
+- **The Tournament group is a fixed empty list.** No tournaments in Season 0, so it is never filled; when
+  tournaments come it needs its own rule (the finale, the bracket), not just a list.
+- **A viewer is a signed-in owner reading the feed.** Nothing counts a signed-out spectator (there are none in
+  Season 0), an owner glancing at the list, or a widget that only shows the list. If the render lane's Watch live
+  widget at L plays the match from the list rather than the feed, its viewers aren't counted (OWNER_API.md says
+  to read the feed). The site host's arena page reads the feed with the owner's token, so it counts.
+- **The count lives in memory and is computed on read.** No history of viewers per match (no peak, no average)
+  is kept on the match record; a restart loses it (and cancels the match anyway). Pruning happens on read, so a
+  match nobody lists keeps its last readers until it is recorded (bounded by the match, not a leak).
+- **House accounts can sign in and watch, and count.** The demo has a house owner watching its own match; a real
+  house account has nobody behind it, so it won't in practice, but nothing stops an admin signed in as one.
+- **The render doesn't read `featured` or `viewers` yet** (the render lane's Watch live and ticker slices).
+
 ## Session 73 (the 2× vote): what is still thin
 
 - **2× makes the watching faster, not the ladder.** A round still waits for its slowest match plus 60 s, so an
   owner whose 2× match ends early sits idle until the round's other matches end. A 2× vote doesn't get an owner
   more matches in a day; it only shortens the wait to see the result. A rolling queue (pair whoever is free)
   would turn the vote into more play; it changes the matchmaker's round model. Raised as a call to the owner.
+  **Owner 2026-11-04: keep for Season 0; the rolling queue comes after Season 0 and before the public launch, as
+  its own proposal (on the roadmap). Stays here until it is done.**
 - **The house side's agreement is a proposal, not a decision.** A house side agrees to whatever its player
   opponent asks; house against house is always 1×. Without that, player-against-house (most Season 0 matches)
   could never run at 2×. Owner call in notes-for-owner.md.
@@ -216,8 +241,8 @@ real, but here is where it's thin.
   rating). The flip's result the render shows must come from the record's p1 (who went first); nothing in the
   API says "won the flip" separately, since the seat is the flip.
 - ~~**`economy-demo-009.txt` is stale**~~ Fixed in session 70.
-- **Still queued from the owner's render-50 entry, not built:** featured picks ("Top rated", a rule
-  to propose at a check-in) and viewer counts (the 2x vote: session 73). Only the starting ratings were built this session.
+- ~~**Still queued from the owner's render-50 entry, not built:** featured picks and viewer counts~~ Built
+  session 74 (the 2x vote: session 73).
 
 ## Session 68 (the first-seat fixes measured; the small collection and deck asks): what is still thin
 

@@ -4185,7 +4185,7 @@ Owner decision on the call in `progress/render/notes-for-owner.md` (PR #128).
 
 ---
 
-## 2026-11-04 — Owner: answers to game session 73 (the 2× vote), keep all 4; the rolling queue for later; the 2× controls in the render lane's live-arena slice
+## 2026-11-04 — Owner: answers to game session 73 (the 2× vote), keep all 4; the rolling queue for later; the 2× controls in the render lane's live-arena slice (game-lane part HANDLED 2026-11-05, session 74 — all 4 kept, nothing changed; the rolling queue is on `progress/roadmap.md` (after Season 0, before the public launch, as its own proposal) and in `progress/quality-debt.md` until done. Session 74 built the next items: featured picks, with the "Top rated" rule at an [OWNER CHECK-IN], and viewer counts. The 2× controls are the render lane's)
 
 Answers the four calls in `progress/notes-for-owner.md` (PR #129, `progress/speed-vote-001.txt`).
 1. **Keep:** a house side agrees to what its player opponent asks; house against house always stays at 1×.
@@ -4199,7 +4199,7 @@ Next game session, as planned: featured picks (bring the "Top rated" rule to a c
 
 ---
 
-## 2026-11-05 — Owner: answers to render session 55 (the second coin slice), keep all 7; notifications and Stats data queued for the game lane
+## 2026-11-05 — Owner: answers to render session 55 (the second coin slice), keep all 7; notifications and Stats data queued for the game lane (game-lane part HANDLED 2026-11-05, session 74 — `server/OWNER_API.md` now says Dial-Up Dime and Neon Nickel are on sale at 300 credits (checked: the store lists both); `economy/test/cosmetics.test.ts` already checks every coin's `drawn` against the render's `COIN_SPECS` and passes; notifications, then the Stats page's data, are queued in that order on the Season 0 checklist in `progress/roadmap.md` (game items 2d, 2e), after featured picks and viewer counts, which session 74 built. Calls 1-7 and the next slice are the render lane's)
 
 Owner decisions on the 7 calls in `progress/render/checkpoints.md` (PR #130).
 1. **Keep:** the tier coins carry a season mark ("S0"); Season 1's tier coins keep the same looks with their own mark.

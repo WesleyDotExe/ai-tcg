@@ -91,7 +91,7 @@ describe("the match endpoints", () => {
   it("Watch live lists the live match and feeds its moves as they are released; then history, the log and the replay", async () => {
     const { clock, live, ada, house, call, signIn } = await setup();
     const t = await signIn("ada");
-    expect((await call("GET", "/api/live", { token: t })).body).toEqual({ running: true, matches: [], mine: null });
+    expect((await call("GET", "/api/live", { token: t })).body).toEqual({ running: true, matches: [], mine: null, featured: { tournament: [], topRated: [] } });
     await call("PUT", "/api/play/auto-play", { token: t, body: { on: true } });
     await live.tick();
     const list = (await call("GET", "/api/live", { token: t })).body;

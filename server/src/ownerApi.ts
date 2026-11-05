@@ -634,16 +634,27 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       path: /^\/api\/live$/,
       handler: (req) => {
         const ownerId = ownerOf(req);
-        return { body: { running: options.live !== undefined, matches: options.live?.liveMatches() ?? [], mine: options.live?.liveMatchOf(ownerId) ?? null } };
+        const live = options.live;
+        return {
+          body: {
+            running: live !== undefined,
+            matches: live?.liveMatches() ?? [],
+            mine: live?.liveMatchOf(ownerId) ?? null,
+            // (session 74) Watch live's groups, as match ids in order.
+            featured: live?.featured() ?? { tournament: [], topRated: [] },
+          },
+        };
       },
     },
     {
       method: "GET",
       path: /^\/api\/live\/([^/]+)$/,
       handler: (req, _body, [matchId], query) => {
-        ownerOf(req);
+        const ownerId = ownerOf(req);
         const from = intParam(query, "from", 0, 0, Number.MAX_SAFE_INTEGER);
-        const feed = options.live?.liveMatch(matchId!, from) ?? null;
+        // (session 74) Reading the feed is watching: the caller counts in
+        // the match's viewers for 30 s.
+        const feed = options.live?.liveMatch(matchId!, from, ownerId) ?? null;
         if (feed !== null) return { body: feed };
         // Ended since: say so, so the page can go to the result.
         if (store.matchById(matchId!) !== null) throw new HttpError(404, `match "${matchId}" has ended; see /api/matches/${matchId}`);
