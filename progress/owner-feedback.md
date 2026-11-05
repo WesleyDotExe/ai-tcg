@@ -4196,3 +4196,30 @@ Answers the four calls in `progress/notes-for-owner.md` (PR #129, `progress/spee
 **Render lane: the 2× controls go into the live-arena slice** (the slice after the second coin slice, which reads the signature card in full and the live boast): the "Ask for 2×" button (and taking it back) on the owner's own live match, showing who asks and who is being waited on from `LiveMatchView.speed`, the arena playing at the agreed rate, and the "Ask for 2× in every match" toggle in Settings -> Play (`ask2xEveryMatch`).
 
 Next game session, as planned: featured picks (bring the "Top rated" rule to a check-in) and viewer counts.
+
+---
+
+## 2026-11-05 — Owner: answers to render session 55 (the second coin slice), keep all 7; notifications and Stats data queued for the game lane
+
+Owner decisions on the 7 calls in `progress/render/checkpoints.md` (PR #130).
+1. **Keep:** the tier coins carry a season mark ("S0"); Season 1's tier coins keep the same looks with their own mark.
+2. **Keep:** each coin has its own whir (Dime: modem warble; Nickel: neon buzz; Diamond and Mythic: a shimmer; Chrome and Platinum: the plain metal whir); the flick and clink are shared.
+3. **Keep:** coins with a glowing rim are drawn about 10% smaller in Match Boot.
+4. **Keep:** the picker's coin preview alternates landings (design up, then portrait up) over a dimmed preview board.
+5. **Keep:** the Store's agent rows say "Coin: <name>", and an empty slot "Empty: flips Chrome Token".
+6. **Keep:** Neon Nickel's trail is three afterimages of its outline, only in the air.
+7. **Keep:** the demo picker's fourth tab ("Bought Neon Nickel").
+
+Also noted: Dial-Up Dime and Neon Nickel are on sale at 300 credits; `server/OWNER_API.md` should say so (the game lane's to refresh).
+
+### Game lane: two more items in the queue
+After featured picks and viewer counts, in this order, each written into `server/OWNER_API.md` with tests:
+1. **Notifications** (the Season 0 checklist's open item; the top bar's notifications and the Notifications widget need it): what produces a notification in Season 0 (for example match results, big pulls, the daily pack ready, auto-play switched off at the day's cap) and how they are read and cleared. Propose the list at a check-in if it isn't obvious from the 2026-10-05 spec.
+2. **The Stats page's data:** what the Stats page and the Rating & form widget at L need beyond `GET /api/ladder` and `GET /api/rating` (for example win rate by faction and by opponent, recent form, a rating chart). Propose the shape at a check-in if needed.
+
+Update the Season 0 checklist in `progress/roadmap.md` to match.
+
+### Scope
+The owner will give feedback on the Home dashboard (the widget board) next. **The Season 0 scope is not locked yet**; the owner locks it after that feedback.
+
+Next render-lane slice, as planned: the live arena reads the signature card in full and the live boast, with the 2× controls.
