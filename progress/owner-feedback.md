@@ -4280,3 +4280,18 @@ This is the dashboard feedback the 2026-11-05 entry waited on. **The full spec i
 The brief's "Checks before marking this brief done", then the clean-up days, then Season 0's definition of done: 7 consecutive days unattended.
 
 Update `progress/roadmap.md`'s Season 0 checklist to match as you go (the owner has added this entry's items to it).
+
+---
+
+## 2026-11-06 — Owner: two guards after PR #137's merge conflict (auto-merge needs a real test run; one session per lane at a time)
+
+**What happened:** two render sessions ran at the same time and both called themselves "render session 58". Both built Agent controls' time ring on the play-time allowance. PR #136 (pack ceremony part 1 and the time ring live) merged first; PR #137 (the time ring on the allowance) then had merge conflicts, and its auto-merge failed ("Pull Request has merge conflicts"). **The owner closed #137 without merging** (its branch is kept). The time ring is in main through #136.
+
+### 1. Game lane: the auto-merge must require a real, passing test run (owner OKs this change to `.github/workflows/auto-merge.yml` for this purpose only)
+On #137 the "Wait for checks to pass" step passed in about a second although the `test` workflow never ran (GitHub doesn't run `pull_request` workflows on a PR with conflicts). Only the conflict stopped the merge. **Change the wait step so it merges only when the `test` check run exists for the PR's head commit and has concluded successfully;** if it is missing, keep waiting until the existing timeout, then fail with a clear message ("no test run for this commit"). Keep session 75's retries on GitHub server errors. Add a test or a dry-run note showing the missing-check case fails. Do it at the start of the next game session (small), then continue the 2026-11-06 order.
+
+### 2. Both lanes: one session per lane at a time
+At the start of every session, before any work: **check for an open PR from your own lane** (a game-lane or render-lane PR that hasn't merged or been closed). If there is one, don't start new work: write a short note in your notes-for-owner file (which PR, its state) and stop, or, if that PR has failed checks or conflicts, fix that PR instead of starting a new one. Also check `main`'s latest merged PR for your lane before choosing the next item, so a slice that just merged isn't built twice.
+
+### 3. Render lane: #137 is closed
+Next render session: compare closed PR #137 (its branch is kept and named on the PR) with main. If anything it had is genuinely missing from #136's time ring (for example its faster status reads near the end of the allowance), carry it over in that session; otherwise nothing to do. Then continue the 2026-11-06 order (pack ceremony part 2).
