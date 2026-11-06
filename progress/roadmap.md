@@ -70,7 +70,7 @@ new ideas go to `progress/season-1-ideas.md`.
    - [x] auto-play (session 67: `PUT /api/play/auto-play`, `autoPlay` in `GET /api/play`)
    - [~] ladder standings and stats: `GET /api/ladder` and `GET /api/rating` (session 66); the Stats page's
      endpoint not yet (item 2e)
-   - [ ] notifications (item 2d)
+   - [x] notifications (item 2d, session 77: `GET /api/notifications`, `POST /api/notifications/read`, `/clear`, schema v23)
    - [x] the saved board layout (session 64) and background choice (in the account settings, session 63)
    - [x] the 2× vote (both owners agree) for live play (session 73: `PUT /api/live/:id/speed`, `ask2xEveryMatch`, schema v21)
    - [x] the small asks (session 68): "Watch again" (`GET /api/packs/:packId/opening` answers the
@@ -98,19 +98,22 @@ new ideas go to `progress/season-1-ideas.md`.
      by card id in hand order, beside `start`) (session 72)
    - [ ] (owner 2026-11-03) hands hidden live (counts only, no card in draw events) for any match with a real-time
      network agent seat, until it ends: built when network agents join the ladder
-2d. [ ] NEXT (session 77). Notifications (owner 2026-11-05; the top bar's bell and the Notifications widget), in
-   `server/OWNER_API.md` with tests: what produces one in Season 0 (for example match results, big pulls, the daily
-   pack ready, auto-play switched off at the day's cap) and how they are read and cleared. Propose the list at a
-   check-in if the 2026-10-05 spec doesn't settle it (Settings -> Notifications names big pulls, match results and
-   the free daily pack). Add "your agent's time is up" (owner 2026-11-06): the ladder's `autoPlayStopped` event with
-   `reason: "timeUp"` (session 76) is the source.
-2e. [ ] The Stats page's data (owner 2026-11-05): what the Stats page and the Rating & form widget at L need beyond
+2d. [x] Notifications (owner 2026-11-05; the top bar's bell and the Notifications widget), session 77, schema v23:
+   match results (every outcome), big pulls (a `fullReveal` pack), the free daily pack ready, and auto-play switched
+   off (`dailyRewardsMaxed`, or `timeUp`: "your agent's time is up"); player owners only; the three Settings ->
+   Notifications switches in the account settings. `GET /api/notifications` (pages, `kind` filter, unread counts),
+   `POST /api/notifications/read` and `/clear` (`{ ids }` or `{ all: true }`). `server/OWNER_API.md`, tests,
+   `progress/notifications-001.txt`. Five calls at notes-for-owner.md.
+2e. [ ] NEXT (session 78). The Stats page's data (owner 2026-11-05): what the Stats page and the Rating & form widget at L need beyond
    `GET /api/ladder` and `GET /api/rating` (for example win rate by faction and by opponent, recent form, a rating
    chart), in `server/OWNER_API.md` with tests; propose the shape at a check-in if needed.
 2f. [ ] The test-only Null deck-builder session (owner-approved; before the launch-gate re-run): see current.md.
 2-0. [x] (owner 2026-11-06, first) The auto-merge retry fix (session 75): "Wait for checks to pass" retries a
    GitHub 5xx or rate limit 4 times (5/10/20/40 s); any other error or a failed check still stops the merge.
    Tested on the shipped script text (`server/test/autoMergeWorkflow.test.ts`).
+2-1. [x] (owner 2026-11-06, after PR #137) The auto-merge needs a real test run (session 77): it merges only when
+   the `test` check run exists for the head commit and concluded success; missing, it waits the 12 minutes, then
+   fails "no test run for this commit"; skipped or neutral is not a pass. 6 new tests (all fail on the old workflow).
 2g. [x] (owner 2026-11-06) The play-time allowance on auto-play (session 76, schema v22): 15 / 30 / 60 minutes
    (`PUT /api/play/auto-play` `minutes`), +15 / +30 while running or finishing (`POST /api/play/auto-play/time`);
    time up: not queued, the live match finishes, then off with `timeUp`; windows cut at midnight Sydney; no minutes is

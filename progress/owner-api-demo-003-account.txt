@@ -47,7 +47,7 @@ Owner "The House" (login house) is the house admin. The database is a real file;
 > PATCH /api/account/settings {"sound":{"on":"yes"}}  -> 400
   error: "sound.on" must be true or false
 > PATCH /api/account/settings {"colour":"red"}  -> 400
-  error: unknown setting "colour" (settings: theme, background, sound, music, skipHintSeen, ask2xEveryMatch)
+  error: unknown setting "colour" (settings: theme, background, sound, music, skipHintSeen, ask2xEveryMatch, notifications)
 > GET /api/account/settings  -> 200
   theme dark, background aurora, sound off 80, music on 25, skip hint seen: yes, saved: 2026-11-01T09:07:00.000Z
 > GET /api/account/settings  -> 200

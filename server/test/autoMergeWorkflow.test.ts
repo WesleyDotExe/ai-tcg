@@ -1,7 +1,8 @@
 // The auto-merge workflow's "Wait for checks to pass" step, run for real
 // against a fake GitHub client (owner 2026-11-06: retry GitHub server errors
 // and rate limits; any other error, or a check that really failed, still
-// stops the merge). The script is read straight out of
+// stops the merge; and, after PR #137, nothing merges unless the `test` check
+// run exists for the head commit and concluded success). The script is read straight out of
 // .github/workflows/auto-merge.yml, so this tests the shipped text, not a copy.
 
 import { readFileSync } from "node:fs";
@@ -34,6 +35,7 @@ const httpError = (status: number, headers?: Record<string, string>): Reply => (
 
 async function runWaitStep(replies: Reply[]) {
   const calls: number[] = [];
+  const params: unknown[] = [];
   const sleeps: number[] = [];
   const warnings: string[] = [];
   const failures: string[] = [];
@@ -41,8 +43,9 @@ async function runWaitStep(replies: Reply[]) {
   const github = {
     rest: {
       checks: {
-        listForRef: async () => {
+        listForRef: async (p: unknown) => {
           calls.push(i);
+          params.push(p);
           const reply = replies[Math.min(i, replies.length - 1)];
           i++;
           if ("error" in reply) {
@@ -77,7 +80,7 @@ async function runWaitStep(replies: Reply[]) {
   } catch (e) {
     thrown = e;
   }
-  return { calls: calls.length, sleeps, warnings, failures, thrown };
+  return { calls: calls.length, params, sleeps, warnings, failures, thrown };
 }
 
 describe("auto-merge: wait for checks", () => {
@@ -143,5 +146,48 @@ describe("auto-merge: wait for checks", () => {
     const r = await runWaitStep([{ runs: [{ name: "test", status: "in_progress", conclusion: null }] }]);
     expect(r.failures).toEqual(["Timed out waiting for checks."]);
     expect(r.calls).toBe(72);
+  });
+
+  it("no check runs at all (the PR #137 case): waits the full timeout, then fails, no merge", async () => {
+    const r = await runWaitStep([{ runs: [] }]);
+    expect(r.thrown).toBeNull();
+    expect(r.calls).toBe(72);
+    expect(r.failures).toHaveLength(1);
+    expect(r.failures[0]).toContain("no test run for this commit");
+    expect(r.failures[0]).toContain("abc123");
+  });
+
+  it("other checks green but no test run: still fails as missing", async () => {
+    const r = await runWaitStep([{ runs: [{ name: "build", status: "completed", conclusion: "success" }, { name: "lint", status: "completed", conclusion: "success" }] }]);
+    expect(r.calls).toBe(72);
+    expect(r.failures[0]).toContain("no test run for this commit");
+  });
+
+  it("a test run that appears late is waited for, then merges", async () => {
+    const running = { runs: [{ name: "test", status: "queued", conclusion: null }] };
+    const r = await runWaitStep([{ runs: [] }, { runs: [] }, running, green]);
+    expect(r.thrown).toBeNull();
+    expect(r.failures).toEqual([]);
+    expect(r.calls).toBe(4);
+  });
+
+  it("a skipped or neutral test run is not a pass", async () => {
+    for (const conclusion of ["skipped", "neutral"]) {
+      const r = await runWaitStep([{ runs: [{ name: "test", status: "completed", conclusion }] }]);
+      expect(r.calls).toBe(1);
+      expect(r.failures).toHaveLength(1);
+      expect(r.failures[0]).toContain(`"${conclusion}"`);
+    }
+  });
+
+  it("a check whose name only contains 'test' does not stand in for the test run", async () => {
+    const r = await runWaitStep([{ runs: [{ name: "render browser test", status: "completed", conclusion: "success" }] }]);
+    expect(r.calls).toBe(72);
+    expect(r.failures[0]).toContain("no test run for this commit");
+  });
+
+  it("asks GitHub for the latest run per name on the head commit", async () => {
+    const r = await runWaitStep([green]);
+    expect(r.params[0]).toMatchObject({ ref: "abc123", filter: "latest" });
   });
 });

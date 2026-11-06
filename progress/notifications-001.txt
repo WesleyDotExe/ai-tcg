@@ -1,0 +1,84 @@
+Notifications demo 001 — the bell and the Notifications widget (session 77)
+========================================================================
+Owner 2026-11-05 / 2026-11-06: what produces a notification in Season 0, and how it is read and cleared.
+The list: match results, big pulls, the free daily pack ready (the 2026-10-05 spec's Settings ->
+Notifications, each with its switch), and auto-play switched off: at the day's rewards cap, or with the
+play-time allowance's time up (no switch). Player owners only. Times below are Sydney wall-clock.
+
+1. The free daily pack (GET /api/notifications, POST /api/packs/daily/claim)
+------------------------------------------------------------------------
+  Ada's bell: 1 unread; latest: # 1 10:00:00 UNREAD dailyPack       free daily pack ready for 2026-11-09 (since 10:00:00), 1 of 2 waiting
+  [PASS] a new owner's first daily pack is waiting, so the first read tells her
+  claim: 201; bell after: 0 unread (read at 10:00:00)
+  [PASS] claiming the last waiting pack marks its notification read
+  [PASS] reading again the same day writes no second one
+
+2. A big pull (a pack the ceremony gives its full reveal)
+------------------------------------------------------------------------
+  Ada opens her daily pack (seed 26): Stray Fragment [standard], Barrier Drone [standard], Backup Protocol [standard], Latent Ward [standard], Entropy Harvester [secret]
+  bell: 1 unread; latest: # 2 10:00:00 UNREAD bigPull         Entropy Harvester (Rare, secret, NEW)
+  [PASS] the full-reveal pack is one bigPull naming its big card(s)
+
+3. The ladder at watch speed; Ada's bell read every 30 s (changes only)
+------------------------------------------------------------------------
+  Ada: auto-play on, 30 minutes (ends 10:30:00). Bram: on, no time limit, match results switched off.
+  10:05:45  ladder: m2 recorded (win): Kiln v Bram
+  10:07:20  ladder: m1 recorded (win): Ada v Hub
+  10:07:30  Ada's bell: 2 unread — # 3 10:07:20 UNREAD matchResult     m1: Ada-agent loss v Hub-agent (Hub), 2 credits, -162.3 rating, 16 turns
+  10:15:25  ladder: m3 recorded (win): Hub v Bram
+  10:15:35  ladder: m4 recorded (win): Kiln v Ada
+  10:16:00  Ada's bell: 3 unread — # 4 10:15:35 UNREAD matchResult     m4: Ada-agent loss v Kiln-agent (Kiln), 2 credits, -129.6 rating, 17 turns
+  10:22:05  ladder: m5 recorded (win): Kiln v Hub
+  10:22:40  ladder: m6 recorded (win): Bram v Ada
+  10:23:00  Ada's bell: 4 unread — # 5 10:22:40 UNREAD matchResult     m6: Ada-agent win v Bram-agent (Bram), 30 credits, +189.6 rating, 18 turns
+  10:31:00  ladder: m7 recorded (win): Kiln v Bram
+  10:31:05  ladder: auto-play off for Ada: timeUp
+  10:31:05  ladder: m8 recorded (win): Ada v Hub
+  10:31:30  Ada's bell: 6 unread — # 7 10:31:05 UNREAD autoPlayStopped auto-play off: your agent's 30 minutes are up (2026-11-09)
+  10:39:00  ladder: m9 recorded (win): Hub v Kiln
+  10:45:40  ladder: m10 recorded (win): Hub v Bram
+  Ada played 4 match(es); Bram 5 (switched off by hand at 10:50:05).
+
+4. Ada's feed (GET /api/notifications), newest first
+------------------------------------------------------------------------
+  # 7 10:31:05 UNREAD autoPlayStopped auto-play off: your agent's 30 minutes are up (2026-11-09)
+  # 6 10:31:05 UNREAD matchResult     m8: Ada-agent win v Hub-agent (Hub), 10 credits, +142.1 rating, 19 turns
+  # 5 10:22:40 UNREAD matchResult     m6: Ada-agent win v Bram-agent (Bram), 30 credits, +189.6 rating, 18 turns
+  # 4 10:15:35 UNREAD matchResult     m4: Ada-agent loss v Kiln-agent (Kiln), 2 credits, -129.6 rating, 17 turns
+  # 3 10:07:20 UNREAD matchResult     m1: Ada-agent loss v Hub-agent (Hub), 2 credits, -162.3 rating, 16 turns
+  # 2 10:00:00 UNREAD bigPull         Entropy Harvester (Rare, secret, NEW)
+  # 1 10:00:00 read   dailyPack       free daily pack ready for 2026-11-09 (since 10:00:00), 1 of 2 waiting
+  unread 6; by kind {"matchResult":4,"bigPull":1,"dailyPack":0,"autoPlayStopped":1}; more=false
+  [PASS] one match result per match Ada played, in order, each matching the recorded match
+  [PASS] each result's credits and rating change are the match's own
+  [PASS] the time up comes after the last match, once, with the allowance's 30 minutes
+  Bram's feed: dailyPack
+  [PASS] Bram, with match results off, got none of his matches
+  [PASS] house owners got none
+  ?kind=bigPull: 1 shown, unread still 6 (the badge counts every kind)
+  [PASS] a kind filter narrows the list but not the badge
+
+5. The day's rewards cap (Cyra; 10 wins recorded straight into the store)
+------------------------------------------------------------------------
+  # 9 11:00:05 UNREAD autoPlayStopped auto-play off: today's rewards are maxed (2026-11-09)
+  [PASS] the cap switches auto-play off and tells her once, though her other switches are off
+
+6. Reading and clearing (POST /api/notifications/read, /clear)
+------------------------------------------------------------------------
+  read, no body                          400  send { "ids": [notification ids, 1 to 100] } or { "all": true }
+  read { ids: [] }                       400  send { "ids": [notification ids, 1 to 100] } or { "all": true }
+  clear { all: false }                   400  send { "ids": [notification ids, 1 to 100] } or { "all": true }
+  read { ids: [7, 8] } (Bram's)          404  no notification 8
+  [PASS] bad requests changed nothing
+  read { ids: [7, 6] }                   200  {"marked":2,"unread":4}
+  clear { ids: [1] }                     200  {"cleared":1,"unread":4}
+  read { all: true }                     200  {"marked":4,"unread":0}
+  [PASS] read by ids, cleared one (gone from the feed), then all read
+
+7. The next Sydney day
+------------------------------------------------------------------------
+  Ada's bell: 1 unread; latest: #10 06:30:00 UNREAD dailyPack       free daily pack ready for 2026-11-10 (since 00:00:00), 1 of 2 waiting
+  [PASS] a new day's pack is a new notification, ready since midnight Sydney
+  clear { all: true } 200 {"cleared":7,"unread":0}; feed now 0 item(s)
+
+Schema v23. 14 PASS, 0 FAIL.

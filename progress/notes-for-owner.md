@@ -1,5 +1,44 @@
 # Notes for the owner
 
+**Updated 2026-11-06, session 77 (the auto-merge guard; notifications). [OWNER CHECK-IN] (the notification list,
+as roadmap 2d asked).** Nothing is blocking: both are built and the next session goes on whatever you answer.
+Session 76's five calls (the play-time allowance) and session 75's call (the demo check in CI) are still open, below.
+
+**1. The auto-merge guard is in, as you OK'd.** The "Wait for checks to pass" step now merges only when the `test`
+check run exists for the PR's head commit and passed. If it's missing (the PR #137 case: no test run at all), it
+waits the usual 12 minutes, then fails with "no test run for this commit". A skipped or neutral test run is not a
+pass. Session 75's retries are kept, and nothing else in the workflow changed. 6 new tests; all 6 fail on the old
+workflow. At the start of the session I checked for an open PR from either lane: there were none.
+
+**2. Notifications.** The bell and the Notifications widget have their data: `GET /api/notifications` (newest
+first, in pages, filter by kind, the unread count for the badge), `POST /api/notifications/read` and `/clear`
+(`{ ids }` or `{ all: true }`). `progress/notifications-001.txt` runs it on the real ladder at watch speed: Ada's
+daily pack, a big pull, her 4 matches and "your agent's 30 minutes are up" after the last one, then the rewards cap
+for another owner, reading and clearing. 14 checks pass.
+
+**The list (proposed; your call):**
+
+| Notification | When | Switch |
+|---|---|---|
+| Match result | every match the agent plays, with win/loss, credits and rating change | Match results |
+| Big pull | a pack the ceremony gives its full reveal (Gold, Prototype, secret, Zero-Day, Jackpot) | Big pulls |
+| Free daily pack | a daily pack is waiting (once a day) | Free daily pack ready |
+| Auto-play off | today's rewards are maxed, or the agent's time is up | none: always on |
+
+**Calls I made (your call on each):**
+1. **Auto-play off has no switch.** It changes what the agent does, so it is always told. Give it a fourth switch?
+2. **A cancelled match is still a match result** (it pays nothing and isn't rated, but the owner sees why). Or only
+   wins, losses and draws?
+3. **"Big pull" is the ceremony's own rule** (the packs that get the full reveal), not every Mythic: about 1 Mythic
+   in 8 packs would ring the bell too often. In Season 0 only the owner opens their own packs, so this records what
+   they just watched. Keep it, or drop big pulls until agents open packs?
+4. **A switch turned off writes nothing, and turning it back on fills nothing in.** The other option is to always
+   write and let the switch hide them, so turning it on shows the history.
+5. **House owners get none**, and nothing is ever deleted (cleared ones are hidden). About 60 a day for an owner on
+   auto-play all day; a clean-up rule can come before launch.
+
+---
+
 **Updated 2026-11-05, session 76 (the play-time allowance).** Nothing is blocking. It is built as you approved;
 five small calls below that I made to build it, all easy to change. Session 75's call (the demo check in CI) is
 still open, below.

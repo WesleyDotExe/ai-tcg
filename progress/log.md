@@ -4704,3 +4704,51 @@ against the allowance (about 4 of Ada's 30 minutes); nothing tells the owner the
 exist; only in-process agents ran on it. In quality-debt.md; five calls at notes-for-owner.md.
 
 **Blocked:** nothing. Next: session 77, notifications (roadmap 2d), with "your agent's time is up" on the list.
+
+## 2026-11-06 — Session 77 (game lane): the auto-merge test-run guard; notifications (schema v23)
+
+**Read first:** owner-feedback.md's two 2026-11-06 entries. Checked for an open PR from either lane before any work
+(owner's new rule): none. The last merged was #136 (render), so this was the game lane's turn and nothing built here
+had just merged. Not a hardening session (that was 75; next is 80). Inside the locked scope.
+
+**Built:**
+- **The auto-merge guard** (first, as asked): the wait step requires a check run named exactly `test` (test.yml's
+  job) on the head commit, concluded `success`. With none it keeps polling to the 12-minute timeout, then fails
+  "Timed out: no test run for this commit (<sha>); not merging." A completed `test` that is skipped or neutral fails
+  at once. `action_required` and `stale` join the failing conclusions. It lists with `filter: latest`, `per_page:
+  100`. Session 75's retry code is untouched.
+- **Notifications, schema v23:** the `notifications` table (kind CHECK, unique (owner, kind, ref), body JSON object,
+  triggers: text/owner/time never change, read once, cleared once, no delete, player owners only), plus three
+  switch columns on `account_settings`. The store (`economy/src/notifications.ts`, the "notifications" section in
+  `store.ts`): `notify` writes inside the caller's transaction (skipped for house owners, a switch that's off, or a
+  store below v23; `ON CONFLICT DO NOTHING` on the source). The hooks: `recordMatch` (each side, its own view:
+  result, credits, rating change, opponent), `openPack` (a `fullReveal` pack: the big cards), `stopAutoPlayIfMaxed`
+  and `stopAutoPlayIfTimeUp` (both now one transaction with their notification; time up carries the allowance's
+  minutes). The daily pack's is written on read (`noteDailyPack`) and marked read by `claimDailyPack` once none is
+  left. `notifications()` (pages, `before`, `kind`, `unread`, `unreadByKind`), `markNotificationsRead`,
+  `clearNotifications` (ids or "all"; an id not the caller's or already cleared is refused, changing nothing).
+- **The owner API:** `GET /api/notifications`, `POST /api/notifications/read`, `POST /api/notifications/clear`;
+  `notifications` in the account settings (patched in part, validated). `server/OWNER_API.md` (the list as a table,
+  the shapes, the rules), ECONOMY.md's tables.
+
+**Ran it:**
+- `progress/notifications-001.txt` (`npm run demo:notifications -w server`): over HTTP on the live ladder at watch
+  speed. Ada: daily pack (claimed, so read), a seeded big pull (a secret Entropy Harvester), 30 minutes of auto-play:
+  4 matches told as they were recorded, then "your agent's 30 minutes are up" after m8 finished past the end. Bram
+  (match results off): none of his 5 matches. House owners: nothing. Cyra: 10 wins straight into the store, then the
+  cap stop, told once though her other switches were off. Bad bodies 400, Bram's id 404, nothing changed; read by
+  ids, clear one, read all; the next Sydney day a new daily pack, ready since 00:00. **14 PASS, 0 FAIL**, and
+  `npm run demos` reproduces it.
+- `npm run demos`: 9 stale, every diff read: the schema line (v22 -> v23), and in owner-api-demo-003 the settings'
+  unknown-field message now lists `notifications`. Rewritten; then 23 the same.
+- `npm test`: engine 365, server 165 (+6 auto-merge, +4 notifications), economy 244 (+13), render 899, agents 17,
+  protocol 7, all pass. Typecheck clean in every workspace.
+
+**Worked:** writing each notification in the same transaction as its event means one exists exactly when its match,
+pack or stop does, and the unique source keeps a retried stop from telling twice. The economy tests caught nothing
+new in the code; one wrong test regex and a too-short demo username were mine.
+**Thin / honest limits:** the daily pack's is written on read (no midnight job); no push (polling); no retention;
+big pulls record the owner's own openings in Season 0; the auto-merge missing-check path has only run against a fake
+GitHub. All in quality-debt.md. Five calls at the [OWNER CHECK-IN] in notes-for-owner.md.
+
+**Blocked:** nothing. Next: session 78, the Stats page's data (roadmap 2e).

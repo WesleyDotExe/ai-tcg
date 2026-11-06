@@ -31,7 +31,7 @@ afterEach(() => {
 });
 const PW = "correct horse battery";
 
-const DEFAULTS = { theme: "system", background: "glacier", sound: { on: true, volume: 80 }, music: { on: true, volume: 60 }, skipHintSeen: false, ask2xEveryMatch: false };
+const DEFAULTS = { theme: "system", background: "glacier", sound: { on: true, volume: 80 }, music: { on: true, volume: 60 }, skipHintSeen: false, ask2xEveryMatch: false, notifications: { bigPulls: true, matchResults: true, dailyPack: true } };
 
 describe("who am I", () => {
   it("names the owner (display name, not login), its login, kind and whether it is the admin", () => {
@@ -72,6 +72,7 @@ describe("account settings (schema v15)", () => {
       music: { on: true, volume: 0 },
       skipHintSeen: true,
       ask2xEveryMatch: false,
+      notifications: { bigPulls: true, matchResults: true, dailyPack: true },
       updatedAt: "2026-11-01T11:00:00.000Z",
     });
     s.updateAccountSettings(o.ownerId, { sound: { volume: 30 } });

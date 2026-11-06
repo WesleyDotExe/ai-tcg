@@ -82,6 +82,7 @@ Schema changes are numbered migrations tracked by `PRAGMA user_version`. A shipp
 | `owned_cosmetics` | (v11) One row per owner and cosmetic: kind, source (`starter`, `purchase`, or (v20) `seasonReward` with its `reward_ref`, e.g. `S0:Platinum`), the credits ledger row that paid for a bought one, time. Account-bound: never changed, moved or deleted |
 | `agent_loadouts` | (v11) One item per agent and slot (boast, close-win boast, card back, avatar, arena, (v20) coin); only an item the agent's owner owns, of the slot's kind |
 | `match_loadouts` / `match_boasts` | (v11) Each side's loadout at match time (v20: with its coin), and the boast a won match played (item, slot: `boast`, `closeWinBoast` or `factionStarter`, the winner's final health). Written once |
+| `notifications` | (v23) The bell and the Notifications widget, player owners only: kind (`matchResult`, `bigPull`, `dailyPack`, `autoPlayStopped`), the source it names (match, pack, day, stop; one per owner, kind and source), when, what it says (JSON), read at, cleared at (each set once; never deleted). Account settings (v23) add the three Settings -> Notifications switches. `server/OWNER_API.md` has the list |
 
 Pity timers (no Full Art in 10 packs, no Mythic in 40) are worked out from pack and copy history when they are needed (built session 36: `pityStatus`). They are not stored as counters, so they can't drift out of step with the history.
 

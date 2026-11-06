@@ -32,6 +32,9 @@ import {
   coinOf,
   defaultPointOfView,
   LADDER_LIST_SIZE,
+  NOTIFICATION_KINDS,
+  NOTIFICATION_PAGE_DEFAULT,
+  NOTIFICATION_PAGE_MAX,
   LADDER_TIERS,
   LOCKABLE_FACTIONS,
   PLACEMENT_MATCHES,
@@ -50,6 +53,7 @@ import {
   type LoadoutSlot,
   type MatchRecord,
   type Widget,
+  type NotificationKind,
 } from "@ai-tcg/economy";
 import type { LiveSource } from "./ladder/liveLadder.js";
 
@@ -126,7 +130,7 @@ class HttpError extends Error {
 function statusOf(err: EconomyError): number {
   if (/^not signed in$|^wrong login or password$/.test(err.message)) return 401;
   if (/^too many failed sign-ins/.test(err.message)) return 429;
-  if (/^no ownable card with id |^no card set "|^no cosmetic "|^no secret card "|^no loadout slot "/.test(err.message)) return 404;
+  if (/^no ownable card with id |^no card set "|^no cosmetic "|^no secret card "|^no loadout slot "|^no notification \d+$/.test(err.message)) return 404;
   return 409;
 }
 
@@ -399,6 +403,38 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       },
     },
     { method: "GET", path: /^\/api\/daily$/, handler: (req) => ({ body: store.dailyEarnings(ownerOf(req)) }) },
+    {
+      // (v23) The bell and the Notifications widget: newest first, cleared
+      // ones left out, with the unread counts (whole, whatever the filter).
+      method: "GET",
+      path: /^\/api\/notifications$/,
+      handler: (req, _body, _params, query) => {
+        const ownerId = ownerOf(req);
+        const limit = intParam(query, "limit", NOTIFICATION_PAGE_DEFAULT, 1, NOTIFICATION_PAGE_MAX);
+        const before = query.has("before") ? intParam(query, "before", 0, 1, Number.MAX_SAFE_INTEGER) : null;
+        const kind = query.get("kind");
+        if (kind !== null && !(NOTIFICATION_KINDS as readonly string[]).includes(kind)) {
+          throw new HttpError(400, `"kind" must be one of ${NOTIFICATION_KINDS.join(", ")}`);
+        }
+        return { body: store.notifications(ownerId, { limit, before, kind: kind as NotificationKind | null }) };
+      },
+    },
+    {
+      method: "POST",
+      path: /^\/api\/notifications\/read$/,
+      handler: (req, body) => {
+        const ownerId = ownerOf(req);
+        return { body: store.markNotificationsRead(ownerId, notificationTargets(body)) };
+      },
+    },
+    {
+      method: "POST",
+      path: /^\/api\/notifications\/clear$/,
+      handler: (req, body) => {
+        const ownerId = ownerOf(req);
+        return { body: store.clearNotifications(ownerId, notificationTargets(body)) };
+      },
+    },
     {
       method: "GET",
       path: /^\/api\/ladder$/,
@@ -884,6 +920,18 @@ async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> 
   }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) throw new HttpError(400, "the body must be a JSON object");
   return parsed as Record<string, unknown>;
+}
+
+/** The body of a read or clear: `{ ids: [...] }` (1 to 100 notification
+ * ids) or `{ all: true }`, exactly one. */
+function notificationTargets(body: Record<string, unknown>): number[] | "all" {
+  const keys = Object.keys(body);
+  if (keys.length === 1 && keys[0] === "all" && body.all === true) return "all";
+  if (keys.length === 1 && keys[0] === "ids") {
+    const ids = body.ids;
+    if (Array.isArray(ids) && ids.length >= 1 && ids.length <= 100 && ids.every((x) => Number.isSafeInteger(x) && (x as number) >= 1)) return ids as number[];
+  }
+  throw new HttpError(400, 'send { "ids": [notification ids, 1 to 100] } or { "all": true }');
 }
 
 function field(body: Record<string, unknown>, name: string, type: "string"): string {
