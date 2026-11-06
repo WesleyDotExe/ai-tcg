@@ -4319,3 +4319,16 @@ The list is approved as proposed: match result (every match: win/loss, credits, 
 Add one step to `.github/workflows/test.yml` running the fast set (`npm run demos`, about 1.5 minutes), so a rule, card or schema change fails the PR until its demos are regenerated. The owner OKs this change to `test.yml` for this purpose only. Report the new test-run time on that PR's own CI run; it must stay well inside the 12-minute auto-merge wait.
 
 Order: the demo-check step and the "Time's up" rename at the start of the next game session (both small), then the Stats page's data as queued. Render lane: use "Time's up" in Agent controls when it next touches them.
+
+---
+
+## 2026-11-06 — Owner: answers to game session 78 (the Stats page's data), keep all 5
+
+Answers the five calls in `progress/notes-for-owner.md` (PR #139, `progress/stats-001.txt`).
+1. **Keep:** the rating chart and weekly trend are the owner's under every agent filter (one rating per owner); everything else follows the filter.
+2. **Keep:** cancelled and abandoned matches are "void" in every count (a match, never a win or a loss, never breaks a streak); an abandon is still rated and moves the chart; a draw breaks a streak.
+3. **Keep:** the chart is one point per Sydney day (the rating at the end of the day, idle days carried over), 30 days by default, 7 to 90 on request; the weekly trend is now minus the end of the day 7 days ago.
+4. **Keep:** matches from before schema v24 show their faction as "not recorded", not guessed.
+5. **Keep:** quests and achievements are left off the Stats page until after Season 0.
+
+Next game session, as planned: 79 reads PR #139's CI run and writes the demo step's and the job's times into notes-for-owner, then the test-only Null deck-builder session (roadmap 2f).
