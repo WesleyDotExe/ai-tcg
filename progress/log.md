@@ -4834,3 +4834,49 @@ the full level rests on one deck each.
 
 **Blocked:** nothing. Next: the owner's two calls; otherwise the remaining Season 0 items. Session 80 is hardening.
 
+
+## 2026-11-06 — Session 80 (game lane): the auto-merge pins the tested commit; the builder rule on at 1 SD; the launch-gate re-run
+
+**Owner feedback:** two answers to session 79, both handled in the order given. Checked first: no open PR from
+either lane; the last merged was #140 (this lane's session 79).
+
+**1. Auto-merge (owner OK for this purpose only).** The Merge step passes `sha` (the job's head commit, whose `test`
+the wait step checked) to `pulls.merge`. GitHub's 409 for a moved head ends the job green: "Not merging <sha>: a
+newer commit was pushed; its own auto-merge job merges it." Any other refusal still throws. A job-level
+`concurrency` group per PR, cancel-in-progress. Nothing else in the workflow changed. 5 new tests on the shipped
+script, including the #139 case end to end (commit B pushed while A's job waits: A doesn't merge and ends green; B
+waits on its own `test`, then merges) and a failed `test` on B. On the old workflow 4 of the 5 fail (the 405 test
+passes on both, as it should). 20 pass.
+
+**2. The builder rule (owner: on at 1 SD).** `DEFAULT_BUILD.keepDesigned: 1`; `keepDesigned: null` is the plain
+rule. `builderRule()` / `describeBuilderRule()`; `chooseDeck` returns `rule`. Schema v25 adds `decks.built_rule`,
+written with the build and cleared with the others by an edit by hand. A pre-v25 deck reads as "plain". A rule
+other than the store's is a rebuild reason. `GET /api/play`'s `builtFrom` and the rebuild job's result carry `rule`
+(`server/OWNER_API.md`). The ring tool builds at the store's rule by default (`--keep-designed z|off`). Tests:
+engine +2 (and the existing keepDesigned tests now ask for the plain rule explicitly where they compare against
+it), economy +6 (`builderRule.test.ts`, incl. a real v24 -> v25 migration), server: the rule asserted in two
+existing tests; 10 schema-version assertions 24 -> 25.
+
+**Ran it:**
+- `npm test`: engine 372, economy 260, server 173, render 899, agents 17, protocol 7, all pass. Typecheck clean in
+  every workspace.
+- `npm run demos -- --all`: 15 stale; every diff read. 10 were the schema line only. The rest were picks: in
+  014, Swarm keeps its starter list (45.5%, not the rating deck's 47.8%) and Cortex its designed list (59.3%, not the
+  searched deck's 59.5%); in 016, four builds keep the designed deck; in owner-api-002, Cortex 61.0 -> 59.3. The
+  ladder demos' house decks change too, so every later match plays differently (all 19 checks pass). New
+  `progress/builder-rule-001.txt`: a v24 file with four agents, decks unchanged by the migration, one rebuild each
+  for the rule, Aegis and Null moving to their designed lists, 25 PASS; added to the CI demo check (25 fast demos,
+  all the same after the rewrite).
+- The launch-gate re-run: `progress/launch-gate-s80/run-built-deck-ring.sh` -> `progress/built-deck-ring-007.txt`,
+  3 minutes on 4 cores. It is identical to session 79's z = 1 test run: 16 builds with the same decks, 8 ring files
+  byte for byte, only the report's header line different. Both ring checks (`ringRegression.ts`, gate and `--real`)
+  PASS and match their baselines exactly (they play shipped decks).
+
+**Worked:** making the rule a recorded id let the existing rebuild-reasons machinery carry the switch-over: no
+separate migration job, and the ladder picks it up between rounds. The byte-for-byte match between 007 and 006-z1
+shows that what session 79 measured is what shipped.
+**Thin:** the auto-merge fix has only met a fake GitHub; the v25 deploy rebuilds every agent deck at once; at 17
+packs the real-mode ring loses its two IN verdicts (both still near or inside their bands). All in quality-debt.md.
+This was due to be the hardening pass; the owner's items went first, and the hardening pass is session 81.
+
+**Blocked:** nothing. Next: session 81, the hardening pass (unless the owner's launch-gate answer asks for changes).

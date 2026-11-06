@@ -1,5 +1,78 @@
 # Notes for the owner
 
+**Updated 2026-11-06, session 80 (the auto-merge pin; the builder rule switched on at 1 SD; the launch-gate
+re-run). [OWNER CHECK-IN] (the launch-gate re-run, as your 2026-11-06 answer asked).** Nothing is blocking: both of
+your answers are built, and the next session goes on without waiting. Checked first: no open PR from either lane,
+and the last one merged was #140 (session 79).
+
+**1. The auto-merge fix is in, as you OK'd (all three parts), and nothing else in the workflow changed.**
+- The Merge step passes the job's own head commit as `sha`. That is the commit whose `test` run the job waited on,
+  so GitHub refuses the merge if a newer commit has been pushed.
+- When GitHub refuses because the head moved (409), the job ends green with "Not merging <sha>: a newer commit was
+  pushed; its own auto-merge job merges it." Any other refusal still fails.
+- A `concurrency` group per PR (`auto-merge-pr-<number>`, cancel-in-progress) cancels the older commit's waiting
+  job. A cancelled job shows grey, not red.
+- 5 new tests on the shipped script, in `server/test/autoMergeWorkflow.test.ts`. They include the #139 case
+  (commit B is pushed while A's job waits: A's job doesn't merge and ends green, and B merges only after B's own
+  `test` passes) and a real failed `test` on B stopping the merge. 4 of the 5 fail on the old workflow; the fifth
+  (a 405 still fails) passes on both, as it should. Sessions 75 and 77's 15 tests still pass.
+
+**2. The builder rule is on at 1 SD, as you said.**
+- The store's deck builder now keeps the designed deck unless another deck beats it by more than 1 standard
+  deviation, paired, on the builder's confirm games (`DEFAULT_BUILD.keepDesigned: 1`).
+- Every agent deck records the rule that built it (schema v25, `"keep-designed:1"`). `GET /api/play`'s
+  `agentDeck.builtFrom` and the rebuild job's result show it.
+- A deck built under another rule (every deck before today) gets a new rebuild reason, "the builder's rule
+  changed", so it is rebuilt through the normal path, once. `progress/builder-rule-001.txt` shows this on a real v24
+  file: four agents' decks survive the migration unchanged, each asks for one rebuild, and the rebuilt Aegis and
+  Null decks change to their designed lists (25 PASS).
+- 15 demos regenerated, and I read every diff. Most are the schema line. The rest are agent decks that now keep
+  the designed list where the old pick led by less than 1 SD (e.g. demo 014: Swarm 47.8% -> its starter list at
+  45.5%; Cortex 59.5% searched -> designed 59.3%). Then the showcase matches after them play differently.
+
+**3. The launch-gate re-run on the shipped builder: `progress/built-deck-ring-007.txt`. Both ring checks PASS**
+(`progress/launch-gate-s80/ring-gate.txt`, `ring-real.txt`; they play the shipped decks, so they match their
+baselines exactly, as they should). Same collections and seeds as 005 and 006. The run uses the store's own
+builder, with no test flag.
+- **It is identical to session 79's 1-SD test run** (`built-deck-ring-006-z1.txt`): all 16 builds have the same
+  decks, all 8 ring files match byte for byte, and only the report's header line differs. What the test measured
+  is what shipped.
+- Against 005 (the plain rule), each faction's mean over its three edges (50 = even):
+
+| | full | 37 packs | 17 packs | 3 packs |
+|---|---|---|---|---|
+| real mode, 005: furthest from 50 | **Null 39.2** | Null 47.9 | Null 46.3 | Swarm 46.5 |
+| real mode, 007: furthest from 50 | Aegis 53.3 | Aegis 52.4 | Swarm 47.2 | Swarm 46.2 |
+| real mode, in / unresolved / out: 005 -> 007 | 0/4/2 -> 0/4/2 | 0/5/1 -> 0/5/1 | 2/2/2 -> 0/4/2 | 1/3/2 -> 1/3/2 |
+| gate mode, 005: furthest from 50 | Null 40.2 | Cortex 56.4 | Cortex 58.6 | Cortex 55.8 |
+| gate mode, 007: furthest from 50 | Null 46.5 | Cortex 55.4 | Cortex 57.2 | Cortex 54.4 |
+| gate mode, in / unresolved / out: 005 -> 007 | 1/3/2 -> 1/4/1 | 1/3/2 -> 1/3/2 | 2/2/2 -> 1/3/2 | 1/3/2 -> 3/1/2 |
+
+- **Better:** the full-collection Null problem is gone (real 39.2 -> 50.0, Swarm > Null 69.4 -> 53.0). In real
+  mode every faction now sits within 3.8 points of even at every level (005: up to 10.8).
+- **Not better:** at 17 packs, real mode loses its two IN verdicts. Cortex > Swarm moves 57.8 -> 58.4, still
+  inside its band, but its interval now crosses 60, so it reads "unresolved". Swarm > Null drops 58.0 -> 53.6,
+  unresolved, with its interval reaching just into the band. That second move comes from stronger Null decks (Null's
+  17-pack mean goes 46.3 -> 50.5), the change this rule was for. Null > Aegis
+  stays under its band at every level (49.5-53.0 real), as it already was with the shipped decks; that is the
+  next set's job, as agreed. Cortex > Swarm in gate mode still overshoots at the pack levels (62.7-64.2), the
+  overshoot you accepted.
+- **My read:** this passes the bar you passed 001 on, and it is better balanced than 005. It is your call; nothing
+  else waits on it.
+
+**Calls I made (your call on each):**
+1. **A deck built before today is treated as "built with the plain rule"** and rebuilt once. Every one was built
+   that way, so the rebuild reason is true for each. Owners who force a deck are untouched.
+2. **The rule is recorded as an id** (`keep-designed:1`, `plain`), with a sentence for it in the rebuild reason. A
+   later margin change (say 1.5) would rebuild every agent deck once, the same way.
+3. **The house agents' decks in the ladder demos changed** with the rule (the demo's 8 owners), and so did every
+   match after the first rebuild. Every check in both ladder demos still passes (10 and 9). Those demos are a showcase, not a
+   measurement.
+4. **The builder can still be run on the plain rule** for measurement (`keepDesigned: null`, or
+   `builtDeckRing.ts build --keep-designed off`). The store never does.
+
+---
+
 **Updated 2026-11-06, session 79 (the test-only Null deck-builder session). [OWNER CHECK-IN] (the builder rule, as
 your 2026-11-03 answer asked, before the launch-gate re-run).** Nothing is blocking: the store's builder is
 unchanged until you answer. Your answers to session 78 (the Stats page) are done: all 5 kept, nothing changed.

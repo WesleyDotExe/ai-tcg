@@ -48,6 +48,8 @@ real, but here is where it's thin.
 
 ## Launch gate (owner 2026-10-19, firm): built-deck balance
 
+- **Re-run session 80 on the shipped builder (keep-designed at 1 SD): `progress/built-deck-ring-007.txt`**, both ring
+  checks PASS; at an owner check-in. The full-collection Null deck is fixed (real 39.2 -> 50.0).
 - **PASSED (owner 2026-10-22)** on `progress/built-deck-ring-001.txt`. It stays a standing re-run: any
   card change, and the last session before launch, re-runs `builtDeckRing.ts`. Nothing runs it
   automatically (about 25 minutes on 4 cores, too slow for CI).
@@ -259,13 +261,39 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 80 (the auto-merge pins the tested commit; the builder rule on at 1 SD, schema v25; the launch-gate re-run): what is still thin
+
+- **The auto-merge fix is tested against a fake GitHub, not GitHub.** The 409 on a moved head is GitHub's
+  documented answer to `sha`, and the test's fake gives exactly that. A real two-commit PR has not run through it
+  yet. This session's own PR is opened once, with no later push, so it won't show the case either. The first real
+  check is the next PR that gets a second commit; read its two auto-merge jobs then. The `concurrency` group is
+  checked as text in the YAML, not executed.
+- **A cancel during the Merge step itself** (the newer job arriving at the very moment the older one merges) is
+  covered only by the `sha` pin: a cancel can't make a wrong merge, but it can't stop a right one either. Not tested
+  beyond that reasoning.
+- **The rule-change rebuild is all at once.** When v25 reaches a live store, every agent deck asks for a rebuild
+  together. The ladder rebuilds between rounds and the server's worker pool caps parallel builds, so it queues
+  rather than stalls, but a large population's first round after the deploy will wait on minutes of builds. Fine
+  before Season 0 (house owners plus test players); worth knowing for any later margin change.
+- **The current rule is the store's default, not the caller's.** `agentDeckRebuildReasons` compares against
+  `builderRule()` (the default). A caller that always builds with another `keepDesigned` (only tests and measurement
+  scripts do) would be told to rebuild forever. Documented on the function; no production path passes one.
+- **keepDesigned is still a workaround** (session 79's note stands): the confirm step scores only against the
+  shipped decks. At 17 packs the real-mode ring loses its two IN verdicts (Cortex > Swarm 57.8 -> 58.4, now
+  unresolved at the edge; Swarm > Null 58.0 -> 53.6). Null > Aegis stays under its band at every level, as with
+  the shipped decks.
+- **The ladder demos' matches all changed** with the house decks. That was expected, and all 19 checks pass (10 and 9), but
+  nobody reviewed the 72 new match lines one by one. Only the summary and the checks were read.
+- **This was not the scheduled hardening pass.** Session 80 was due to be one, but the owner ordered these two items
+  first. Both deepen existing work and add no new width. The dedicated hardening pass moves to session 81.
+
 ## Session 79 (the test-only Null builder rule; PR #139's CI): what is still thin
 
-- **The auto-merge can merge an untested head (serious, process).** The Merge step's `pulls.merge` names no `sha`,
+- ~~**The auto-merge can merge an untested head (serious, process).**~~ Fixed session 80 (`sha` pinned; see below). The Merge step's `pulls.merge` names no `sha`,
   so a job started for an older commit merges whatever the head is once *its* commit's `test` passes. It happened
   on #139: the merged head's `test` was still running, and passed later. Fix proposed (one line); waits on the
   owner's OK for `auto-merge.yml`. Until then, runs should not push to a PR after opening it.
-- **The store's builder still picks the bad full-collection Null deck.** `keepDesigned` fixes it in the ring
+- ~~**The store's builder still picks the bad full-collection Null deck.**~~ Fixed session 80 (on at 1 SD; 007). `keepDesigned` fixes it in the ring
   (39.2 -> 50-51.5) but is off until the owner picks a margin. `built-deck-ring-005` stays the store's real state.
 - **keepDesigned works around the root cause; it doesn't fix it.** The confirm step scores only against the shipped
   decks, so a deck tuned to that field can beat the designed list there and still lose to built decks. Scoring

@@ -53,7 +53,7 @@ new ideas go to `progress/season-1-ideas.md`.
    ring rebuilt (`progress/built-deck-ring-005.txt`); the first seat 53.6% on the ladder, 54.4% in mirrors
    (`progress/first-seat-003-rules-2.txt`); watch time median 6.7 min. Numbers at an [OWNER CHECK-IN] before the
    launch-gate re-run.
-1d. [~] (the same item as 2f below; measured session 79, at an owner check-in). The full-collection Null deck the builder picks under rules-2
+1d. [x] (the same item as 2f below; measured session 79; switched on at 1 SD and re-run session 80). The full-collection Null deck the builder picks under rules-2
    (test only, then the built-deck ring re-run); the watch pace if the owner wants it back near 6 minutes.
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
    and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
@@ -108,11 +108,17 @@ new ideas go to `progress/season-1-ideas.md`.
    `GET /api/stats` (`agent`, `days` 7-90, `recent` 1-50): totals with the best and current streak, win rate by
    faction and by the opponent's faction, recent results, the daily rating chart and weekly trend, today's earnings.
    `server/OWNER_API.md`, tests, `progress/stats-001.txt`. Five calls at notes-for-owner.md.
-2f. [~] The test-only Null deck-builder session (owner-approved; before the launch-gate re-run). Session 79: `keepDesigned`
+2f. [x] The test-only Null deck-builder session (owner-approved; before the launch-gate re-run). Session 79: `keepDesigned`
    built in the builder, OFF by default; the built-deck ring re-run with it at 2 SD and 1 SD
    (`progress/built-deck-ring-006.txt`, `-006-z1.txt`, `progress/null-builder/README.txt`): the full-collection Null
    mean 39.2 -> 51.5 / 50.0. At an [OWNER CHECK-IN] (notes-for-owner.md): switch it on for the store, and at which
-   margin. Left: whatever the owner picks (one default and the demos it moves), then the launch-gate re-run.
+   margin. Session 80 (owner 2026-11-06: on at 1 SD): `DEFAULT_BUILD.keepDesigned: 1`; schema v25 records the rule
+   on each agent deck and a rule change is a rebuild reason (`progress/builder-rule-001.txt`); 15 demos regenerated.
+   The launch-gate re-run on the shipped builder: `progress/built-deck-ring-007.txt` (= 006-z1), both ring checks
+   PASS (`progress/launch-gate-s80/`); at an [OWNER CHECK-IN] (notes-for-owner.md).
+2-4. [x] (owner 2026-11-06, after PR #139) The auto-merge merges only the tested commit (session 80): `sha` on the
+   merge; a moved head (409) ends the job green with a notice; one job per PR (`concurrency`, cancel-in-progress).
+   5 new tests on the shipped script (`server/test/autoMergeWorkflow.test.ts`).
 2-0. [x] (owner 2026-11-06, first) The auto-merge retry fix (session 75): "Wait for checks to pass" retries a
    GitHub 5xx or rate limit 4 times (5/10/20/40 s); any other error or a failed check still stops the merge.
    Tested on the shipped script text (`server/test/autoMergeWorkflow.test.ts`).
