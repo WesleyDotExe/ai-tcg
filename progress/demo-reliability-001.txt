@@ -1,0 +1,101 @@
+# Demo reliability 001: ladder-demo-002-live in CI (session 81, hardening)
+
+Owner 2026-11-06: PR #141's `test` run failed at "demo drift check (fast demos)": ladder-demo-002-live
+exited 1 after 8 s, and the printed tail ended in `syscall: 'read'`. This file is the record of the cause,
+the fix, and the before/after runs. Machine: 4 CPUs, Node v22.23.4.
+
+## The cause (a race, not a game bug)
+
+The demo runs the owner API and the LiveLadder in one process. Its first `live.tick()` builds decks and plays
+the round's matches synchronously, which blocks the shared event loop. On an idle machine the longest gap
+between two of the demo's requests is about 2.7 s. Pinned to one core beside three busy loops it is about 11 s,
+past the server's keep-alive timeout (Node's default, 5 s).
+
+When the loop frees up, the demo's next request (GET /api/live, line 135) is written on the idle keep-alive
+socket. The server's overdue timeout then destroys that socket. The NODE_DEBUG=net trace shows `_onTimeout` ->
+`destroy` on the server's sockets just before the client's error:
+
+  TypeError: fetch failed
+    at async call (server/src/dev/liveLadderDemo.ts:96:15)
+    at async <anonymous> (server/src/dev/liveLadderDemo.ts:135:15) {
+    [cause]: Error: read ECONNRESET  { errno: -104, code: 'ECONNRESET', syscall: 'read' }
+
+Reproduced 3 of 3 times this way (taskset -c 0 with three busy loops). With the loop blocked in a minimal
+script, plain fetch did NOT always fail: which timer fires first after the block (undici's idle check or the
+server's) decides it. That is why the failure is flaky, and why it passed locally and in PR #139's run.
+
+The server's own wait for `listen` was already right (`startOwnerApi` resolves only once listening). The
+production server builds decks on worker threads (`seasonCli.ts`), and a browser retries a reset on a reused
+connection. So this race is the demo's, not the site's. How long the real server stalls is measured
+separately in progress/ladder-stall-001.txt.
+
+## The fix
+
+- `server/src/dev/demoFetch.ts`: retries a request whose connection was reset or closed before any response
+  (ECONNRESET, EPIPE, ECONNABORTED, UND_ERR_SOCKET, UND_ERR_CLOSED), on a fresh connection, up to 3 times. This
+  is what a browser does. HTTP error statuses and other errors are returned or thrown as before. Each retry is
+  noted on stderr only, so stdout (what the demo check compares) is unchanged.
+- All 13 server demos that call their own API use it. `server/test/demoFetch.test.ts` (6 tests) covers: the
+  reset on a real server (plain fetch fails; demoFetch gets the answer, handled once), no retry on an HTTP 500
+  or a refused connection, giving up after 3 retries, and no bare `fetch(` left in `server/src/dev`.
+- `scripts/demos.mjs`: a failed demo prints its name, script, exit code (or signal), the last 60 lines of
+  stderr and the last 10 lines of stdout.
+
+## Before and after: the fast demos (`node scripts/demos.mjs`, 25 demos), several runs in a row
+
+"before" is PR #141's head (d6b065a) in a separate worktree; "after" is the fix. "load" pins the run and four
+busy loops to two cores (taskset -c 0,1).
+
+  before-idle run 1: exit 0, 37 s, 25 demos, 0 stale or failed
+  before-idle run 2: exit 0, 37 s, 25 demos, 0 stale or failed
+  before-idle run 3: exit 0, 36 s, 25 demos, 0 stale or failed
+  after-idle run 1: exit 0, 37 s, 25 demos, 0 stale or failed
+  after-idle run 2: exit 0, 37 s, 25 demos, 0 stale or failed
+  after-idle run 3: exit 0, 35 s, 25 demos, 0 stale or failed
+  before-load run 1: exit 1, 124 s, 25 demos, 1 stale or failed; failed: ladder-demo-002-live.txt 
+  before-load run 2: exit 1, 129 s, 25 demos, 1 stale or failed; failed: ladder-demo-002-live.txt 
+  before-load run 3: exit 1, 129 s, 25 demos, 1 stale or failed; failed: ladder-demo-002-live.txt 
+  after-load run 1: exit 0, 132 s, 25 demos, 0 stale or failed
+  after-load run 2: exit 0, 129 s, 25 demos, 0 stale or failed
+  after-load run 3: exit 0, 133 s, 25 demos, 0 stale or failed
+
+  idle:  before 3 of 3 pass, after 3 of 3 pass
+  load:  before 0 of 3 pass (ladder-demo-002-live, read ECONNRESET, every time), after 3 of 3 pass
+
+## The new failure report (the old demo, under load, with the new runner)
+
+FAIL  ladder-demo-002-live.txt  (exit 1, 11 s)
+      ladder-demo-002-live.txt: server/src/dev/liveLadderDemo.ts ended with exit code 1
+      stderr (all 19 lines):
+      | (node:<pid>) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+      | (Use `node --trace-warnings ...` to show where the warning was created)
+      | node:internal/deps/undici/undici:15456
+      |       Error.captureStackTrace(err);
+      |             ^
+      | 
+      | TypeError: fetch failed
+      |     at node:internal/deps/undici/undici:15456:13
+      |     at async call (server/src/dev/liveLadderDemo.ts:96:15)
+      |     at async <anonymous> (server/src/dev/liveLadderDemo.ts:135:15) {
+      |   [cause]: Error: read ECONNRESET
+      |       at TCP.onStreamRead (node:internal/stream_base_commons:216:20) {
+      |     errno: -104,
+      |     code: 'ECONNRESET',
+      |     syscall: 'read'
+      |   }
+      | }
+      | 
+      | Node.js v22.23.4
+      stdout, the last 10 lines before it stopped:
+      | Chrome Bastion  House Aegis  house  Aegis  Fortress
+      | Static Widow    House Null   house  Null   Gambler
+      | Night Relay     Player One   player Swarm  Tempo
+      | Soft Reboot     Player Two   player Aegis  Controller
+      | 
+      | ## 1. Auto-play and the first round
+      | 
+      | PUT /api/play/auto-play {on: true} as Player One -> 200, on=true
+      | Player Two leaves it off: GET /api/play -> autoPlay.on=false
+      | queued: Chrome Bastion, Lattice Warden, Static Widow, Hive Courier, Night Relay
+
+1 demos, 1 stale or failed

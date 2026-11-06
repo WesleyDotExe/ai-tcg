@@ -261,6 +261,30 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 81 (hardening: the CI demo flake; whole demo errors; the rebuild burst measured): what was raised, and what is still thin
+
+- **Raised:** the `ladder-demo-002-live` CI flake is fixed at its cause class (a reused keep-alive socket reset under
+  a blocked loop) for all 13 API demos, not just the one that failed. 0/3 -> 3/3 under load. The demo runner prints
+  whole errors. The rebuild burst is measured (`progress/ladder-stall-001.txt`): it queues and the API stays
+  responsive.
+- **The retry hides the stall it works around.** demoFetch logs each retry on stderr, but the runner shows stderr
+  only for a failed demo, so a demo that starts needing retries every run would go unnoticed. Counting retries in
+  the runner's summary would make that visible.
+- **The demos' blocked loop is the demos' own setup** (deck builds on the main thread for determinism). Production
+  builds on workers, so the site doesn't see an 11 s stall. Its only main-thread block is playing a round's
+  matches: about 17 ms per match, measured with house agents only, up to 48 owners. Hundreds of owners, or slower
+  play styles, are not measured. It reaches 1 s near 120 matches per round: re-check before the public launch.
+- **The stall column misses one-block phases** (the timer reports after the block ends). The matches phase is
+  bounded by its wall time instead (0.4 s at 48). A real event-loop histogram (`monitorEventLoopDelay`) would be
+  more exact.
+- **The burst's wait is real:** 172 s for 48 decks on 3 workers before the first round after a rule change pairs.
+  Fine for Season 0 (house owners plus test players). Spreading rebuilds across rounds (rebuild a few, play the
+  rest on their old decks) would cap it if a later margin change meets a big population.
+- **The `sha` pin still has no live two-commit run.** #141 had several commits, but `pull_request_target` runs
+  main's workflow, which didn't have the pin yet. The next PR that gets a second push is the first real test.
+- **The owner's re-run order matters, and nothing says so:** re-running the auto-merge job before `test` (as on
+  #141) fails it on the stale result. Re-run `test` first, then the auto-merge.
+
 ## Session 80 (the auto-merge pins the tested commit; the builder rule on at 1 SD, schema v25; the launch-gate re-run): what is still thin
 
 - **The auto-merge fix is tested against a fake GitHub, not GitHub.** The 409 on a moved head is GitHub's
@@ -271,7 +295,7 @@ real, but here is where it's thin.
 - **A cancel during the Merge step itself** (the newer job arriving at the very moment the older one merges) is
   covered only by the `sha` pin: a cancel can't make a wrong merge, but it can't stop a right one either. Not tested
   beyond that reasoning.
-- **The rule-change rebuild is all at once.** When v25 reaches a live store, every agent deck asks for a rebuild
+- ~~**The rule-change rebuild is all at once.**~~ Measured session 81 (`progress/ladder-stall-001.txt`: 3.6 s per deck on 3 workers, API responsive). When v25 reaches a live store, every agent deck asks for a rebuild
   together. The ladder rebuilds between rounds and the server's worker pool caps parallel builds, so it queues
   rather than stalls, but a large population's first round after the deploy will wait on minutes of builds. Fine
   before Season 0 (house owners plus test players); worth knowing for any later margin change.

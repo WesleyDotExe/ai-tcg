@@ -1,0 +1,54 @@
+# The ladder's round start vs the owner API, in one process (session 81)
+
+machine: 4 CPUs; the worker chooser runs 3 builds at once
+the store's build settings (each rebuild): games 40, trials 24, confirm games 100, keepDesigned 1
+
+## 8 house owners (8 agent decks built under the plain rule, so they ask to rebuild)
+
+round  phase      wall     longest stall   API answers   API time p50 / p99 / max
+1      rebuilds    30.5 s         18 ms          300   1 / 10 / 23 ms
+1      matches      0.1 s          0 ms            0   none answered
+2      rebuilds     0.0 s          0 ms            0   none answered
+2      matches      0.1 s          0 ms            0   none answered
+round 1: 8 decks rebuilt, 4 matches played, then shown
+round 2: 0 decks rebuilt, 4 matches played, then shown
+
+## 24 house owners (24 agent decks built under the plain rule, so they ask to rebuild)
+
+round  phase      wall     longest stall   API answers   API time p50 / p99 / max
+1      rebuilds    90.8 s         32 ms          890   1 / 6 / 43 ms
+1      matches      0.2 s          0 ms            0   none answered
+2      rebuilds     0.1 s          0 ms            0   none answered
+2      matches      0.2 s          0 ms            0   none answered
+round 1: 24 decks rebuilt, 12 matches played, then shown
+round 2: 0 decks rebuilt, 12 matches played, then shown
+
+## 48 house owners (48 agent decks built under the plain rule, so they ask to rebuild)
+
+round  phase      wall     longest stall   API answers   API time p50 / p99 / max
+1      rebuilds   171.8 s         56 ms         1688   1 / 6 / 67 ms
+1      matches      0.4 s          0 ms            0   none answered
+2      rebuilds     0.1 s          0 ms            0   none answered
+2      matches      0.4 s          0 ms            0   none answered
+round 1: 48 decks rebuilt, 24 matches played, then shown
+round 2: 0 decks rebuilt, 24 matches played, then shown
+
+connection resets retried by the viewer: 0
+
+## Reading it (session 81)
+
+- The rule-change rebuild burst (quality-debt, session 80) queues; it doesn't stall. Every agent deck asking at
+  once costs about 3.6 s of wall time per deck on 3 worker threads: 31 s for 8 decks, 91 s for 24, 172 s for 48.
+  It grows linearly; the first round after a rule change waits that long before pairing. Throughout, the owner
+  API kept answering: p99 6-10 ms, worst 67 ms, with no connection resets.
+- Playing a round's matches happens on the main thread, before they are shown: 0.1 s for 4 matches, 0.4 s for
+  24 (about 17 ms per match, house agents). That is the one synchronous block the API sees.
+- What the stall column can't show: the 10 ms timer reports a stall when it next fires. A stall shorter than the
+  phase it falls in is counted there, but a phase that is one synchronous block (the matches) ends before its
+  timer fires, so its stall lands in the next phase or nowhere. Its upper bound is the phase's wall time: at most
+  0.4 s at 48 owners.
+- Not measured: a production-sized population (hundreds of owners), player owners' 2x votes, network agents
+  (seated over WebSocket, not in-thread). At about 17 ms per match, the in-thread block would reach 1 s near 120
+  matches per round. That is a number to re-check before the public launch, not a Season 0 problem.
+- Machine: 4 CPUs (3 build workers). CI and production differ; re-run with
+  `npm run measure:ladder-stall -w server -- <owners ...>`.
