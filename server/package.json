@@ -15,6 +15,7 @@
     "season": "tsx src/seasonCli.ts",
     "demo:live-ladder": "tsx src/dev/liveLadderDemo.ts",
     "measure:first-seat": "tsx src/dev/firstSeatMeasure.ts",
+    "measure:ladder-stall": "tsx src/dev/ladderStallMeasure.ts",
     "demo:collection-asks": "tsx src/dev/collectionAsksApiDemo.ts",
     "demo:coins": "tsx src/dev/coinSkinsApiDemo.ts",
     "demo:replay-versions": "tsx src/dev/replayVersionsDemo.ts",
