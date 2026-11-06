@@ -24,7 +24,9 @@ calls); nothing waits on them.**
 
 At the start: check for an open PR from your own lane (owner 2026-11-06); if one is open, note it and stop, or fix
 it if it has failed checks or conflicts. Check the last merged PR so a slice isn't built twice. CI now runs the
-demos: if a change of yours moves a demo, regenerate it (`npm run demos -- --write`) and read the diff before the PR.
+demos: if a change of yours moves a demo, regenerate it (`npm run demos -- --write`) and read the diff before the PR. **First, small:** read PR #139's `test` run on GitHub (the step "demo drift check (fast
+demos)" and the whole job) and write both times at the top of notes-for-owner.md (the owner asked for the new run
+time; session 78 couldn't wait for it to finish).
 
 The next **game-lane** session is **79: the test-only Null deck-builder session** (roadmap 2f, = 1d; owner-approved,
 the recommendation in notes-for-owner.md's session 71 check-in, call 1): the store's deck builder keeps the designed

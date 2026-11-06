@@ -94,8 +94,8 @@ real, but here is where it's thin.
   page says so, but an owner switching agents can't see "this agent's rating". Call 1 at the check-in.
 - **Quests and achievements** (on the 2026-10-05 Stats page) are not built: they are after Season 0 with the weekly
   challenge and daily quests.
-- **The demo check in CI runs on 2 cores** there, not the 4 measured locally (35 s). The CI run time on this PR is
-  the real number; reported in the PR and notes-for-owner.md once that run finished.
+- **The demo check in CI runs on 2 cores** there, not the 4 measured locally (35 s). The CI run time on PR #139 is
+  the real number; session 78 couldn't wait for that run to finish, so session 79 reads it and writes it down.
 - **"Time's up" is a label beside the wire value, not a rename of it.** `allowance.state` is still `"done"` (the render
   lane's ring reads it); `allowance.label` is the owner-facing text. The render lane's own strings ("Done for today"
   in `siteAgent.ts` and its tests) are the render lane's to change, as the owner said.

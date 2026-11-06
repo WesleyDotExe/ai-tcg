@@ -4792,6 +4792,6 @@ test checks the new tallies against `ownerStats` and the history from real engin
 itself before it merged: this session's own schema bump is exactly what it catches.
 **Thin / honest limits:** older matches have no faction; the page counts the whole history per read; the chart is
 daily; the rating ignores the agent filter (one rating per owner). All in quality-debt.md; five calls at the
-[OWNER CHECK-IN] in notes-for-owner.md. The CI time of the new step is on this session's PR.
+[OWNER CHECK-IN] in notes-for-owner.md. The new step's CI time isn't recorded: this session couldn't wait for PR #139's run to finish. Session 79 reads it first.
 
 **Blocked:** nothing. Next: session 79, the test-only Null deck-builder session (roadmap 2f).
