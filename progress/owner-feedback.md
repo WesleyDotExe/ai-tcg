@@ -4386,3 +4386,22 @@ Next game session, as planned: 81, the hardening pass.
 4. If PR #141 still hasn't merged when session 81 starts (a second failure), fix it on #141's branch first, per the one-session-per-lane rule.
 
 Then continue the hardening pass as planned.
+
+---
+
+## 2026-11-07 — Owner: answers to game session 82 (season end, part 1; the next season's file), keep all 7 proposals and both small calls
+
+Answers the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (PR #143, `progress/season-end-001.txt`). Build part 2 (the store call that creates the next season's file from the ended one) on these answers.
+1. **Cosmetics carry over:** all owned cosmetics and every agent's loadout (boasts, coins including the tier coins, anything bought). This settles the earlier "undecided" note.
+2. **What carries:** accounts and logins, account settings, the Home board, agents and their names, signature cards with their bound copies, cosmetics and loadouts. **Starts empty:** collection, decks, credits, pack points, ratings, match history, notifications, the daily pack bank. Old matches stay readable in the ended season's archive.
+3. **Unopened packs are cleared** at the reset, like credits and pack points. **The website warns about unopened packs before the season ends** (render lane, with the season-end screen), so the owner can open them first.
+4. **The soft rating reset:** new rating = 1500 + (final - 1500) / 2, RD 250, volatility kept, and every owner places again (5 matches). The final standings stay in the archive.
+5. **The starter grant again:** every owner in the new file gets the same starter grant a new owner gets today (their faction's starter deck, bound, plus the starter packs).
+6. **An ended file is frozen completely:** packs, salvage, crafting and shopping are refused too, not only matches and ratings.
+7. **The owner presses "end season"** (as built: `POST /api/admin/season/end`); no scheduled end. Season 0 runs about 6 weeks from 5 December, so about mid-January 2027.
+
+**Small calls in part 1, kept:**
+- The final standings list only owners with at least one rated match.
+- If the server restarts while the ladder is draining, the request is forgotten; the admin asks again, and the matches on screen are cancelled as on any restart.
+
+Next game session: season end part 2 on these answers, proved on `season-end-001`'s file.
