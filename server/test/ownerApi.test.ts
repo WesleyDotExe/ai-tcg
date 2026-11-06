@@ -108,12 +108,12 @@ describe("owner API: Settings -> Play", () => {
 
     const job = await waitForJob(token);
     expect(job.state).toBe("done");
-    expect(job.result).toMatchObject({ faction: "Swarm", style: "calculator" });
+    expect(job.result).toMatchObject({ faction: "Swarm", style: "calculator", rule: "keep-designed:1" });
 
     const play = (await call("GET", "/api/play", { token })).body;
     expect(play.rebuild.reasons).toEqual([]);
     expect(play.agentDeck.deckId).toBe(job.result.deckId);
-    expect(play.agentDeck.builtFrom).toEqual({ style: "calculator", factionLock: null });
+    expect(play.agentDeck.builtFrom).toEqual({ style: "calculator", factionLock: null, rule: "keep-designed:1" });
     expect(play.activeDeck.deckId).toBe(job.result.deckId);
     expect(play.activeDeck.complete).toBe(true);
   });

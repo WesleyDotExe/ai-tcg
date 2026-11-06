@@ -71,6 +71,7 @@ describe("the agent's deck in the agent's style", () => {
       style: "fortress",
       factionLock: null,
       holdings: playableHoldingsFingerprint(s.collection(ownerId).map((c) => c.cardId), null),
+      rule: "keep-designed:1",
     });
     expect(s.agentDeckRebuildReasons(ownerId)).toEqual([]);
     expect(await s.rebuildAgentDeckIfNeeded(ownerId, FAST)).toBeNull();

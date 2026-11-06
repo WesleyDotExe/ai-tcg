@@ -105,14 +105,17 @@ export interface DeckBuildOptions {
    * default, whatever `style` is (see the header). */
   searchStyle?: PlayStyleId;
   /** Keep the designed start unless another deck beats it by more than
-   * noise on the confirm step (owner 2026-11-03, session 71's call 1; TEST
-   * ONLY until the owner approves it for the store, so off by default). The
-   * number is the margin in standard deviations of a paired sign test on
-   * the confirm seeds: a challenger must win `keepDesigned` x sqrt(d) more
-   * of the d seeds where the two decks' games came out differently than the
-   * designed start does, and at least 2 more. Without a designed start (it
-   * can't be built, or it is the rating start's list) nothing changes. */
-  keepDesigned?: number;
+   * noise on the confirm step (owner 2026-11-03, session 71's call 1; test
+   * only in session 79; the store's rule at 1 SD since session 80, owner
+   * 2026-11-06). The number is the margin in standard deviations of a
+   * paired sign test on the confirm seeds: a challenger must win
+   * `keepDesigned` x sqrt(d) more of the d seeds where the two decks' games
+   * came out differently than the designed start does, and at least 2 more.
+   * Without a designed start (it can't be built, or it is the rating
+   * start's list) nothing changes. Left out: `DEFAULT_BUILD.keepDesigned`
+   * (1). `null`: the plain rule (the most confirm wins), the store's before
+   * session 80. */
+  keepDesigned?: number | null;
   /** Narrates the build, one line per step. */
   log?: (line: string) => void;
 }
@@ -143,10 +146,10 @@ export interface FactionBuild {
   chosen?: StartKind | "searched";
   /** Fresh-seed result of `deck` (the confirm step), when games ran. */
   score?: GauntletScore;
-  /** With `keepDesigned`: the deck the plain rule (the most confirm wins)
-   * would have kept, and the paired test against the designed start that
-   * decided it. Absent when the option is off or the plain rule already
-   * kept the designed start. */
+  /** With `keepDesigned` (the default): the deck the plain rule (the most
+   * confirm wins) would have kept, and the paired test against the designed
+   * start that decided it. Absent with the plain rule (`keepDesigned: null`)
+   * or when the plain rule already kept the designed start. */
   keepDesigned?: { plain: StartKind | "searched"; plainWins: number; designedWins: number; gained: number; lost: number; margin: number; kept: "designed" | "plain" };
   /** The changes the search kept, in order ("-1 X +1 Y: 52 -> 61 of 160"). */
   kept: string[];
@@ -159,6 +162,8 @@ export interface BuiltDeck {
   style: PlayStyleId;
   list: DeckList;
   spec: DeckSpec;
+  /** The pick rule the build used (`builderRule`). */
+  rule: string;
   /** Every faction considered, the picked one included. */
   factions: FactionBuild[];
 }
@@ -540,7 +545,24 @@ function* proposals(faction: DeckFaction, holdings: Holdings, rng: Rng, current:
 
 /** The build's sizes when the options leave them out: what the store's
  * agent deck is built with. */
-export const DEFAULT_BUILD = { games: 40, trials: 24, confirmGames: 100, seed: 1 } as const;
+export const DEFAULT_BUILD = { games: 40, trials: 24, confirmGames: 100, seed: 1, keepDesigned: 1 } as const;
+
+/** The pick rule a build with these options uses, as recorded with every
+ * agent deck (owner 2026-11-06: "a build says which rule and margin made
+ * it"): "plain" (the most confirm wins; every deck before session 80) or
+ * "keep-designed:<z>" (the designed start is kept unless beaten by more than
+ * z SD). */
+export function builderRule(options: Pick<DeckBuildOptions, "keepDesigned"> = {}): string {
+  const z = options.keepDesigned === undefined ? DEFAULT_BUILD.keepDesigned : options.keepDesigned;
+  return z === null ? "plain" : `keep-designed:${z}`;
+}
+
+/** A rule id from `builderRule` in words. */
+export function describeBuilderRule(rule: string): string {
+  if (rule === "plain") return "the plain rule (the most confirm wins)";
+  const m = /^keep-designed:(.+)$/.exec(rule);
+  return m ? `keep the designed deck unless beaten by more than ${m[1]} SD` : rule;
+}
 
 /** Builds, searches and confirms one faction's deck. */
 export async function buildFaction(faction: DeckFaction, holdings: Holdings, options: DeckBuildOptions = {}): Promise<FactionBuild> {
@@ -551,6 +573,7 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
   const seed = options.seed ?? DEFAULT_BUILD.seed;
   const style = options.style ?? DEFAULT_PLAY_STYLE;
   const searchStyle = options.searchStyle ?? DEFAULT_PLAY_STYLE;
+  const keepDesigned = options.keepDesigned === undefined ? DEFAULT_BUILD.keepDesigned : options.keepDesigned;
   // Either start alone is enough: one that can't be built is left out.
   const built = constructDeck(faction, holdings);
   const designed = constructDeck(faction, holdings, shippedList(faction));
@@ -626,7 +649,7 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
   // by a few games can't push the set's designed deck out.
   let keepDesignedNote: FactionBuild["keepDesigned"];
   const designedStart = starts.find((st) => st.from === "designed");
-  if (options.keepDesigned !== undefined && designedStart && best.chosen !== "designed") {
+  if (keepDesigned !== null && designedStart && best.chosen !== "designed") {
     const d = confirmResults.get(designedStart)!;
     let gained = 0;
     let lost = 0;
@@ -634,7 +657,7 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
       if (w && !d[i]) gained++;
       if (!w && d[i]) lost++;
     });
-    const margin = Math.max(2, options.keepDesigned * Math.sqrt(gained + lost));
+    const margin = Math.max(2, keepDesigned * Math.sqrt(gained + lost));
     const beats = gained - lost >= margin;
     keepDesignedNote = { plain: best.chosen, plainWins: best.score.wins, designedWins: designedStart.score!.wins, gained, lost, margin: Math.round(margin * 10) / 10, kept: beats ? "plain" : "designed" };
     log(`${faction}: ${best.chosen} vs designed on the confirm seeds: +${gained} -${lost} (needs +${keepDesignedNote.margin} net): ${beats ? `${best.chosen} beats it` : "designed deck kept"}`);
@@ -685,7 +708,7 @@ export async function chooseDeck(holdings: Holdings, options: DeckBuildOptions =
   }
   const value = (b: FactionBuild) => (b.score ? b.score.wins / b.score.games : meanRating(b.deck!));
   const best = feasible.reduce((a, b) => (value(b) > value(a) ? b : a));
-  return { faction: best.faction, style: options.style ?? DEFAULT_PLAY_STYLE, list: best.deck!, spec: deckSpec(best.deck!, "p1", `${best.faction} (built)`), factions: builds };
+  return { faction: best.faction, style: options.style ?? DEFAULT_PLAY_STYLE, list: best.deck!, spec: deckSpec(best.deck!, "p1", `${best.faction} (built)`), rule: builderRule(options), factions: builds };
 }
 
 /** Holdings as copies per card id, from any list of owned card ids (one

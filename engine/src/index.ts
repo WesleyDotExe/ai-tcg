@@ -73,6 +73,8 @@ export {
   playableHoldings,
   DECK_FACTIONS,
   DEFAULT_BUILD,
+  builderRule,
+  describeBuilderRule,
   type BuiltDeck,
   type DeckBuildOptions,
   type DeckList,

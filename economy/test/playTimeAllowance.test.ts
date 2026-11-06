@@ -199,7 +199,7 @@ describe("the play-time allowance (schema v22)", () => {
     expect(v21.autoPlay(x.ownerId)).toMatchObject({ on: true, allowance: null });
     v21.close();
     const v22 = open(path);
-    expect(v22.schemaVersion).toBe(24);
+    expect(v22.schemaVersion).toBe(25);
     expect(v22.autoPlay(x.ownerId)).toMatchObject({ on: true, allowance: null, changedAt: START });
     expect(v22.autoPlay(y.ownerId)).toMatchObject({ on: false, allowance: null });
     expect(v22.autoPlayOwners()).toEqual([x.ownerId]);

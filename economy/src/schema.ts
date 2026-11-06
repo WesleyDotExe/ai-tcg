@@ -1408,4 +1408,13 @@ export const MIGRATIONS: readonly string[] = [
   WHEN OLD.p1_faction IS NOT NULL OR OLD.p2_faction IS NOT NULL
   BEGIN SELECT RAISE(ABORT, 'a match''s factions are written once'); END;
   `,
+  // 25: the pick rule the agent's deck was built with (session 80; owner
+  // 2026-11-06: the builder keeps the designed deck unless beaten by more
+  // than 1 SD, and "a build says which rule and margin made it"). The
+  // engine's `builderRule` id ("plain", "keep-designed:1"). Null on a deck
+  // built before v25 (every one of them was built with the plain rule) and
+  // on one the agent didn't build or the owner edited (as built_style).
+  `
+  ALTER TABLE decks ADD COLUMN built_rule TEXT CHECK (built_rule IS NULL OR built_style IS NOT NULL);
+  `,
 ];
