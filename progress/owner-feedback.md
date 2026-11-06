@@ -4332,3 +4332,16 @@ Answers the five calls in `progress/notes-for-owner.md` (PR #139, `progress/stat
 5. **Keep:** quests and achievements are left off the Stats page until after Season 0.
 
 Next game session, as planned: 79 reads PR #139's CI run and writes the demo step's and the job's times into notes-for-owner, then the test-only Null deck-builder session (roadmap 2f).
+
+---
+
+## 2026-11-06 — Owner: answer to game session 79's item 2 (the auto-merge can merge a commit whose tests haven't finished): yes, fix it
+
+PR #139's first commit's auto-merge job merged the PR after a second commit was pushed, while that second commit's `test` was still running (it passed later). The owner OKs these changes to `.github/workflows/auto-merge.yml` for this purpose only. **Do them first in the next game session:**
+1. **Pin the merge to the tested commit:** the Merge step passes `sha:` (the head commit of the event that started this job, the commit whose `test` run the job waited on) to the merge call, so GitHub refuses the merge if the PR's head has moved.
+2. **A moved head is not a failure:** when GitHub refuses because the head changed (the "head branch was modified" / 409 answer), the job ends successfully with a clear message ("a newer commit was pushed; its own auto-merge job merges it"), so a PR with several commits doesn't leave a red ✗ on the older job. Any other refusal still fails as before.
+3. **One auto-merge job per PR:** add a `concurrency` group keyed on the PR number with `cancel-in-progress: true`, so a newer commit cancels the older commit's waiting job. Parts 1 and 2 still hold if a cancel arrives late.
+
+**Test it** on the workflow's script as sessions 75 and 77 did: a second commit pushed while the first commit's job waits must not merge until the second commit's own `test` passes; the older job ends green with the message; a real failed `test` still stops the merge. Keep sessions 75 and 77's retries and the real-test-run rule.
+
+Decision 3 of session 79 (the Null builder rule) is still open; the owner answers it separately.
