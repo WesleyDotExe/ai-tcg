@@ -3,7 +3,8 @@ name: Auto-merge build PRs
 # Automatically merges pull requests opened by the scheduled build runs.
 # Safety: only acts on PRs whose head branch lives in THIS repo and is named
 # claude/* (external contributors come from forks and cannot push such branches),
-# and only after any build/deploy checks pass. It never merges forked or human PRs.
+# and only after the `test` check run for the head commit has passed (and
+# any other build/deploy/test checks with it). It never merges forked or human PRs.
 
 on:
   pull_request_target:
@@ -52,6 +53,8 @@ jobs:
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     ref: sha,
+                    filter: 'latest',
+                    per_page: 100,
                   });
                 } catch (e) {
                   if (!retryable(e) || attempt >= RETRY_DELAYS_MS.length) throw e;
@@ -60,18 +63,32 @@ jobs:
                 }
               }
             }
+            // The `test` check run (test.yml's job) must exist for this exact
+            // head commit and have concluded `success` before anything merges
+            // (owner 2026-11-06, after PR #137: GitHub runs no `pull_request`
+            // workflow on a PR with conflicts, so there was no check at all
+            // and the old "nothing relevant, merge" rule passed in 1 s). A
+            // missing run is waited for until the timeout, then fails.
+            const REQUIRED = 'test';
+            let sawRequired = false;
             for (let i = 0; i < 72; i++) {
               const { data } = await listRuns();
               const runs = data.check_runs.filter(r => r.name !== 'auto-merge');
               const relevant = runs.filter(r => r.name.toLowerCase().includes('deploy') || r.name.toLowerCase().includes('build') || r.name.toLowerCase().includes('test'));
-              if (relevant.length === 0) return;
-              const allDone = relevant.every(r => r.status === 'completed');
-              const anyFail = relevant.some(r => ['failure','cancelled','timed_out'].includes(r.conclusion));
+              const anyFail = relevant.some(r => ['failure','cancelled','timed_out','action_required','stale'].includes(r.conclusion));
               if (anyFail) { core.setFailed('A required check failed; not merging.'); return; }
-              if (allDone) return;
+              const required = runs.filter(r => r.name === REQUIRED);
+              sawRequired = sawRequired || required.length > 0;
+              const allDone = relevant.every(r => r.status === 'completed');
+              const requiredGreen = required.length > 0 && required.every(r => r.status === 'completed' && r.conclusion === 'success');
+              if (allDone && requiredGreen) return;
+              if (allDone && required.length > 0 && !requiredGreen) {
+                core.setFailed(`The ${REQUIRED} check run concluded "${required.map(r => r.conclusion).join(', ')}", not success; not merging.`);
+                return;
+              }
               await sleep(10000);
             }
-            core.setFailed('Timed out waiting for checks.');
+            core.setFailed(sawRequired ? 'Timed out waiting for checks.' : `Timed out: no ${REQUIRED} run for this commit (${sha}); not merging.`);
       - name: Merge
         uses: actions/github-script@v7
         with:
