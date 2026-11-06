@@ -7,10 +7,10 @@ done: notifications, the play-time allowance and the demo check, all kept as you
 
 **1. The demo check is in CI**, as you OK'd (option a), and only that step was added to `test.yml`: `npm run
 demos`, the 24 fast demos. It caught its first case in this very session: the schema bump to v24 left 9 demos
-stale (the schema line only), and they are regenerated. Locally it takes about 35 s on 4 cores. **The CI time:**
-not measured yet. This session couldn't wait for PR #139's GitHub run to finish. The next game session reads that
-run's step times and writes them here. Locally the step adds ~35 s to a run that already took a few minutes, so it
-should stay well inside the 12-minute auto-merge wait.
+stale (the schema line only), and they are regenerated. Locally it takes about 35 s on 4 cores. **The CI time**
+(PR #139's first `test` run on GitHub): the demo step took **1 min 33 s**, and the whole job **7 min 01 s** (the
+engine suite 3:47, the browser check 0:49, the two ring checks 0:17 each). That is about 5 minutes inside the
+12-minute auto-merge wait.
 
 **2. "Done for today" now reads "Time's up".** `GET /api/play`'s `autoPlay.allowance` has a new `label`:
 "Running", "Finishing match" or "Time's up". I kept the state value `done` as it is, because the website's ring
