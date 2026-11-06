@@ -26,6 +26,7 @@ import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
 import { LiveLadder } from "../ladder/liveLadder.js";
 import type { LadderMatch } from "../ladder/ladderRunner.js";
 import { stepHoldMs, watchLengthMs, type Timeline } from "../ladder/timeline.js";
+import { demoFetch } from "./demoFetch.js";
 
 const say = (line = "") => console.log(line);
 const PASSWORD = "a long demo password";
@@ -98,10 +99,10 @@ async function ladder(owners: Who[], seed: number) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const call = async (method: string, path: string, who: string, body?: unknown): Promise<{ status: number; body: any }> => {
     if (!tokens.has(who)) {
-      const res = await fetch(`http://localhost:${api.port}/api/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login: who.toLowerCase(), password: PASSWORD }) });
+      const res = await demoFetch(`http://localhost:${api.port}/api/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login: who.toLowerCase(), password: PASSWORD }) });
       tokens.set(who, ((await res.json()) as { token: string }).token);
     }
-    const res = await fetch(`http://localhost:${api.port}${path}`, {
+    const res = await demoFetch(`http://localhost:${api.port}${path}`, {
       method,
       headers: { Authorization: `Bearer ${tokens.get(who)}`, "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),

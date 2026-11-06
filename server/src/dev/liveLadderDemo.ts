@@ -31,6 +31,7 @@ import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
 import { LiveLadder } from "../ladder/liveLadder.js";
 import { rebuildReplay, type LadderMatch, type ReplayFile } from "../ladder/ladderRunner.js";
 import { timelineRecorder, WATCH_PACE_MS, watchLengthMs } from "../ladder/timeline.js";
+import { demoFetch } from "./demoFetch.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "live-ladder-demo-"));
 const dbFile = join(tempDir, "season-0.db");
@@ -93,7 +94,7 @@ function boot(): { closed: string[] } {
 }
 
 const call = async (method: string, path: string, token?: string, body?: unknown) => {
-  const res = await fetch(`http://localhost:${api.port}${path}`, {
+  const res = await demoFetch(`http://localhost:${api.port}${path}`, {
     method,
     headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),

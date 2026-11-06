@@ -33,6 +33,7 @@
   "records": {
     "about": "Files a dev script names that are measurements (long, sampled), kept as records rather than reproduced by `npm run demos`.",
     "files": [
+      "demo-reliability-001.txt",
       "pack-sim-001.txt",
       "pack-sim-002.txt",
       "pack-sim-003-starter.txt",

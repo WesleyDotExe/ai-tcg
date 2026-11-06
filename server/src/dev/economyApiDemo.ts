@@ -20,6 +20,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EconomyStore } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
+import { demoFetch } from "./demoFetch.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "economy-api-demo-"));
 const dbFile = join(tempDir, "season-0.db");
@@ -58,7 +59,7 @@ const packName = (id: string) => nameOf(id, "pack");
 let api: RunningOwnerApi = await startOwnerApi({ store, port: 0, packSeed });
 let token = "";
 async function call(method: string, path: string, body?: unknown, auth = token) {
-  const res = await fetch(`http://localhost:${api.port}${path}`, {
+  const res = await demoFetch(`http://localhost:${api.port}${path}`, {
     method,
     headers: { "Content-Type": "application/json", ...(auth ? { Authorization: `Bearer ${auth}` } : {}) },
     body: body === undefined ? undefined : JSON.stringify(body),

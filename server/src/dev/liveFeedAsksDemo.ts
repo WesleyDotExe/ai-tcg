@@ -18,6 +18,7 @@ import { getCard, type GameEvent } from "@ai-tcg/engine";
 import { EconomyStore } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
 import { LiveLadder } from "../ladder/liveLadder.js";
+import { demoFetch } from "./demoFetch.js";
 
 const say = (line = "") => console.log(line);
 const PASSWORD = "a long demo password";
@@ -40,7 +41,7 @@ let api: RunningOwnerApi | null = null;
 let token = "";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function get(path: string, loud = false): Promise<any> {
-  const res = await fetch(`http://localhost:${api!.port}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  const res = await demoFetch(`http://localhost:${api!.port}${path}`, { headers: { Authorization: `Bearer ${token}` } });
   if (loud) say(redact(`> GET ${path}  -> ${res.status}`));
   return res.status === 200 ? res.json() : { status: res.status, ...(await res.json()) };
 }
@@ -70,7 +71,7 @@ try {
   api = await startOwnerApi({ store, port: 0, live });
   // A spectator: a player account with no agent, so it is never paired.
   store.createAccount({ name: "Viewer", username: "viewer", password: PASSWORD, kind: "player" });
-  const signIn = await fetch(`http://localhost:${api.port}/api/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login: "viewer", password: PASSWORD }) });
+  const signIn = await demoFetch(`http://localhost:${api.port}/api/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login: "viewer", password: PASSWORD }) });
   token = ((await signIn.json()) as { token: string }).token;
 
   // Three rounds (two matches each). Every match is watched through its
