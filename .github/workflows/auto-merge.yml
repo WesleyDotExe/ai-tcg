@@ -21,6 +21,12 @@ jobs:
     if: >
       github.event.pull_request.head.repo.full_name == github.repository &&
       startsWith(github.event.pull_request.head.ref, 'claude/')
+    # One auto-merge job per PR (owner 2026-11-06, after PR #139): a newer
+    # commit's job cancels the older commit's job while it waits. The Merge
+    # step's `sha` pin still holds if a cancel arrives late.
+    concurrency:
+      group: auto-merge-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Wait for checks to pass
         uses: actions/github-script@v7
@@ -93,9 +99,24 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.pulls.merge({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.payload.pull_request.number,
-              merge_method: 'squash',
-            });
+            // Merge only the commit whose `test` run the wait step checked
+            // (owner 2026-11-06, after PR #139: without `sha`, GitHub merged
+            // whatever the head was, a newer commit whose tests were still
+            // running). If the head has moved, GitHub refuses with 409; that
+            // is not a failure: the newer commit's own job merges it.
+            const sha = context.payload.pull_request.head.sha;
+            try {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                merge_method: 'squash',
+                sha,
+              });
+            } catch (e) {
+              if (e && e.status === 409) {
+                core.notice(`Not merging ${sha}: a newer commit was pushed; its own auto-merge job merges it.`);
+                return;
+              }
+              throw e;
+            }

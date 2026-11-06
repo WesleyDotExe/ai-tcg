@@ -22,7 +22,7 @@ Owner API demo 006 — session 68's collection and deck asks over HTTP
 2. Watch again: the opening read back, after a restart on the same file
 ------------------------------------------------------------------------
 > POST /api/session  -> 201
-  schema v24
+  schema v25
 > GET /api/packs/<id 1>/opening  -> 200
   the same PackOpening POST /api/packs/open answered: IDENTICAL
 > GET /api/packs/<id 2>/opening  -> 200

@@ -16,6 +16,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EconomyStore } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
+import { demoFetch } from "./demoFetch.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "collection-asks-demo-"));
 const dbFile = join(tempDir, "season-0.db");
@@ -36,7 +37,7 @@ let api: RunningOwnerApi = await startOwnerApi({ store, port: 0, packSeed: () =>
 let token = "";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function call(method: string, path: string, body?: unknown): Promise<{ status: number; body: any }> {
-  const res = await fetch(`http://localhost:${api.port}${path}`, {
+  const res = await demoFetch(`http://localhost:${api.port}${path}`, {
     method,
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),

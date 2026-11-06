@@ -26,6 +26,7 @@ import { type DeckFaction } from "@ai-tcg/engine";
 import { EconomyStore, LIVE_PACK_ODDS, cardSet, rollPack } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
 import { LiveLadder } from "../ladder/liveLadder.js";
+import { demoFetch } from "./demoFetch.js";
 
 const say = (line = "") => console.log(line);
 const PASSWORD = "a long demo password";
@@ -111,7 +112,7 @@ try {
   const api = await startOwnerApi({ store, port: 0, live });
   apis.push(api);
   const call = async (method: string, path: string, opts: { token?: string; body?: unknown } = {}) => {
-    const res = await fetch(`http://localhost:${api.port}${path}`, {
+    const res = await demoFetch(`http://localhost:${api.port}${path}`, {
       method,
       headers: { ...(opts.token ? { Authorization: `Bearer ${opts.token}` } : {}), "Content-Type": "application/json" },
       body: opts.body === undefined ? undefined : JSON.stringify(opts.body),

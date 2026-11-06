@@ -21,6 +21,7 @@ import { COSMETICS, EconomyStore, SEASON_0_COINS, type CosmeticItem } from "@ai-
 import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
 import { LiveLadder } from "../ladder/liveLadder.js";
 import { Ladder, rebuildReplay, type ReplayFile } from "../ladder/ladderRunner.js";
+import { demoFetch } from "./demoFetch.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "coin-skins-demo-"));
 const say = (line = "") => console.log(line);
@@ -48,7 +49,7 @@ let api: RunningOwnerApi | null = null;
 let token = "";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function call(method: string, path: string, body?: unknown): Promise<{ status: number; body: any }> {
-  const res = await fetch(`http://localhost:${api!.port}${path}`, {
+  const res = await demoFetch(`http://localhost:${api!.port}${path}`, {
     method,
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),

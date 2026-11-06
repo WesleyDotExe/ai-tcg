@@ -17,6 +17,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { EconomyStore, type DailyPackStatus } from "@ai-tcg/economy";
 import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
+import { demoFetch } from "./demoFetch.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "daily-pack-demo-"));
 const dbFile = join(tempDir, "season-0.db");
@@ -47,7 +48,7 @@ const redact = (text: string) =>
 
 let api: RunningOwnerApi = await startOwnerApi({ store, port: 0, packSeed: () => 6501 });
 async function call(method: string, path: string, token: string) {
-  const res = await fetch(`http://localhost:${api.port}${path}`, {
+  const res = await demoFetch(`http://localhost:${api.port}${path}`, {
     method,
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
   });
@@ -58,7 +59,7 @@ async function call(method: string, path: string, token: string) {
   return { status: res.status, body };
 }
 const signIn = async (login: string) => {
-  const res = await fetch(`http://localhost:${api.port}/api/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login, password: PASSWORD }) });
+  const res = await demoFetch(`http://localhost:${api.port}/api/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login, password: PASSWORD }) });
   return ((await res.json()) as { token: string }).token;
 };
 const statusLine = (who: string, s: DailyPackStatus) =>
@@ -133,7 +134,7 @@ try {
   }
 
   section("8. A claimed daily pack opens like any other");
-  const opened = await fetch(`http://localhost:${api.port}/api/packs/open`, {
+  const opened = await demoFetch(`http://localhost:${api.port}/api/packs/open`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${novaToken}` },
     body: JSON.stringify({ packId: claim1.body.pack.packId }),

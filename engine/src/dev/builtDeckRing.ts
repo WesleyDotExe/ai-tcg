@@ -38,7 +38,8 @@
 //
 // (`--games`/`--trials`/`--confirm` on build and `--seeds` on ring shrink a
 // run for the smoke test; `--search-seed` on build changes the builder's
-// search seed for a noise check; the files record what ran.)
+// search seed for a noise check; `--keep-designed z|off` changes the pick
+// rule, the store's 1 SD since session 80; the files record what ran.)
 //
 // Nothing here changes a card, a deck or a rule; it only measures.
 
@@ -47,7 +48,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { DeckFaction } from "../cards/types.js";
 import { getCard } from "../data/registry.js";
-import { DECK_FACTIONS, DEFAULT_BUILD, buildFaction, deckSpec, fullHoldings, playGauntlet, shippedList, type DeckList, type GauntletScore } from "../deckbuilder/deckBuilder.js";
+import { DECK_FACTIONS, DEFAULT_BUILD, buildFaction, builderRule, describeBuilderRule, deckSpec, fullHoldings, playGauntlet, shippedList, type DeckList, type GauntletScore } from "../deckbuilder/deckBuilder.js";
 import { bandVerdict, measurePairing, ringBand, wilson, type DeckBuilder, type SignatureMode } from "./edgeMeasure.js";
 import { DECK_MODES, RING_EDGES, edgeName } from "./ringRegression.js";
 import { seatVariant, type SeatVariant } from "./seatVariants.js";
@@ -62,7 +63,7 @@ const STORE_BUILD = DEFAULT_BUILD;
 export interface BuiltDeckFile {
   level: string;
   faction: DeckFaction;
-  settings: { games: number; trials: number; confirmGames: number; searchSeed?: number; keepDesigned?: number };
+  settings: { games: number; trials: number; confirmGames: number; searchSeed?: number; keepDesigned?: number | null };
   decks: {
     owner: number;
     /** Copies the owner held (all factions). */
@@ -74,7 +75,7 @@ export interface BuiltDeckFile {
     score: GauntletScore;
     /** The shipped list's result on the same confirm seeds (Calculator). */
     shipped?: GauntletScore;
-    /** With `--keep-designed`: what the plain rule would have kept and the test that decided (deckBuilder's `keepDesigned`). */
+    /** Under the keep-designed rule: what the plain rule would have kept and the test that decided (deckBuilder's `keepDesigned`). */
     keepDesigned?: { plain: string; plainWins: number; designedWins: number; gained: number; lost: number; margin: number; kept: "designed" | "plain" };
   }[];
 }
@@ -108,10 +109,10 @@ function factionArg(x: string | undefined): DeckFaction {
  * noise check asks for another search seed (`--search-seed`, session 60:
  * how much one full-collection build swings by its seed alone; the confirm
  * seeds stay the same). */
-function buildSettings(): { games: number; trials: number; confirmGames: number; seed: number; keepDesigned?: number } {
+function buildSettings(): { games: number; trials: number; confirmGames: number; seed: number; keepDesigned: number | null } {
   const keep = arg("keep-designed");
   return {
-    ...(keep !== undefined ? { keepDesigned: Number(keep) } : {}),
+    keepDesigned: keep === undefined ? STORE_BUILD.keepDesigned : keep === "off" ? null : Number(keep),
     games: Number(arg("games") ?? STORE_BUILD.games),
     trials: Number(arg("trials") ?? STORE_BUILD.trials),
     confirmGames: Number(arg("confirm") ?? STORE_BUILD.confirmGames),
@@ -147,7 +148,7 @@ async function build(level: string, faction: DeckFaction, collectionsPath: strin
     for (const c of file.collections) if (c.faction === faction && c.packs === packs) owners.push({ owner: c.owner, copies: c.copies, holdings: new Map(c.holdings) });
     if (owners.length === 0) throw new Error(`no ${faction} collections at ${packs} packs in ${collectionsPath}`);
   }
-  const out: BuiltDeckFile = { level, faction, settings: { games: settings.games, trials: settings.trials, confirmGames: settings.confirmGames, ...(settings.seed !== STORE_BUILD.seed ? { searchSeed: settings.seed } : {}), ...(settings.keepDesigned !== undefined ? { keepDesigned: settings.keepDesigned } : {}) }, decks: [] };
+  const out: BuiltDeckFile = { level, faction, settings: { games: settings.games, trials: settings.trials, confirmGames: settings.confirmGames, ...(settings.seed !== STORE_BUILD.seed ? { searchSeed: settings.seed } : {}), keepDesigned: settings.keepDesigned }, decks: [] };
   for (const o of owners) {
     const b = await buildFaction(faction, o.holdings, { ...settings, log: (l) => console.error(`[${level} ${faction} #${o.owner}] ${l}`) });
     if (!b.deck) throw new Error(`${faction} owner ${o.owner} at ${level}: ${b.infeasible}`);
@@ -247,8 +248,9 @@ function report(builds: BuiltDeckFile[], rings: RingFile[]): void {
   console.log("Realistic owners: 8 per faction, each the faction's starter collection plus packs from the live roller (economy/src/dev/realisticCollections.ts);");
   console.log("at a pack level each seed seats one owner per side, every owner equally often and on both seats.");
   console.log("Bands: predator 55-60%, prey 40-45%, even 45-55%. Verdicts on the 95% Wilson interval: IN only when it sits inside the band, OUT only when it misses it.");
-  const keep = [...new Set(builds.map((b) => b.settings.keepDesigned).filter((x): x is number => x !== undefined))];
-  if (keep.length > 0) console.log(`TEST ONLY: built with keepDesigned ${keep.join(", ")} (the designed start is kept unless another deck beats it by more than ${keep.join(", ")} standard deviations, paired, on the confirm seeds); the store builds without it.`);
+  // A build file from before session 80 has no keepDesigned: the plain rule.
+  const rules = [...new Set(builds.map((b) => builderRule({ keepDesigned: b.settings.keepDesigned ?? null })))];
+  console.log(`Pick rule: ${rules.map(describeBuilderRule).join("; ")} (${rules.join(", ")}; the store's is ${builderRule()} since session 80${rules.length === 1 && rules[0] === builderRule() ? ", as here" : ""}).`);
   console.log("No card, deck or rule changed: this only measures.");
   console.log("");
 
@@ -333,7 +335,7 @@ function report(builds: BuiltDeckFile[], rings: RingFile[]): void {
       console.log(`  ${f.padEnd(7)}built ${pct(mean)}${rates.length > 1 ? ` (owners ${pct(Math.min(...rates))}-${pct(Math.max(...rates))})` : ""}  shipped ${pct(shipped.wins / shipped.games)}  lift ${signed(mean - shipped.wins / shipped.games)}  kept: ${chosen}  sizes: ${size}`);
     }
   }
-  if (builds.some((b) => b.settings.keepDesigned !== undefined)) {
+  if (builds.some((b) => b.settings.keepDesigned !== undefined && b.settings.keepDesigned !== null)) {
     console.log("");
     console.log("keepDesigned: every deck where the plain rule (the most confirm wins) would have kept another deck than the designed start,");
     console.log("with the paired test on the confirm seeds (challenger's wins the designed start lost, and the reverse; the net it needed):");

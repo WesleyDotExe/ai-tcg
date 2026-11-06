@@ -33,6 +33,8 @@ import {
   type SignatureCandidate,
   type SignatureSpec,
   type UnitCard,
+  builderRule,
+  describeBuilderRule,
 } from "@ai-tcg/engine";
 import {
   AGENT_RENAME_PACK_POINTS,
@@ -222,6 +224,10 @@ export interface AgentDeckBuiltFrom {
   /** `playableHoldingsFingerprint` of the cards held under that lock
    * (`holdingsFingerprint` for a deck built before session 55). */
   holdings: string;
+  /** (v25) The builder's pick rule (the engine's `builderRule`: "plain" or
+   * "keep-designed:<z>"); "plain" for a deck built before v25, when every
+   * build used it. */
+  rule: string;
 }
 
 function fingerprint(counts: Iterable<[string, number]>): string {
@@ -263,6 +269,8 @@ export interface AgentDeckBuild {
   /** (v14) The play style every measuring game was played in: the
    * connected agent's, Calculator with none connected. */
   style: PlayStyleId;
+  /** (v25) The builder's pick rule (the engine's `builderRule`). */
+  rule: string;
   factions: {
     faction: DeckFaction;
     infeasible?: string;
@@ -3115,7 +3123,7 @@ export class EconomyStore {
         this.writeDeckCopies(deckId, copyIds);
         // An edit forgets what the agent built it from (buildAgentDeck sets
         // it again right after its own edit).
-        if (this.schemaVersion >= 14) this.db.prepare("UPDATE decks SET built_style = NULL, built_lock = NULL, built_holdings = NULL WHERE deck_id = ?").run(deckId);
+        if (this.schemaVersion >= 14) this.db.prepare(`UPDATE decks SET built_style = NULL, built_lock = NULL, built_holdings = NULL${this.schemaVersion >= 25 ? ", built_rule = NULL" : ""} WHERE deck_id = ?`).run(deckId);
       } catch (err) {
         refused(err);
       }
@@ -3211,10 +3219,12 @@ export class EconomyStore {
    * doesn't know (no agent deck, built before v14, or edited by hand). */
   agentDeckBuiltFrom(ownerId: string): AgentDeckBuiltFrom | null {
     if (this.schemaVersion < 14) return null;
-    const row = this.db.prepare("SELECT built_style, built_lock, built_holdings FROM decks WHERE owner_id = ? AND built_by_agent = 1").get(ownerId) as Row | undefined;
+    const v25 = this.schemaVersion >= 25;
+    const row = this.db.prepare(`SELECT built_style, built_lock, built_holdings${v25 ? ", built_rule" : ""} FROM decks WHERE owner_id = ? AND built_by_agent = 1`).get(ownerId) as Row | undefined;
     if (!row || row.built_style === null) return null;
     const lock = str(row.built_lock);
-    return { style: str(row.built_style) as PlayStyleId, factionLock: lock === "none" ? null : (lock as DeckFaction), holdings: str(row.built_holdings) };
+    const rule = v25 && row.built_rule !== null && row.built_rule !== undefined ? str(row.built_rule) : "plain";
+    return { style: str(row.built_style) as PlayStyleId, factionLock: lock === "none" ? null : (lock as DeckFaction), holdings: str(row.built_holdings), rule };
   }
 
   /** What the agent would build from now: the connected agent's style
@@ -3223,7 +3233,8 @@ export class EconomyStore {
     const owner = this.getOwner(ownerId);
     const held = this.collection(ownerId);
     const style = owner.connectedAgentId === null ? DEFAULT_PLAY_STYLE : this.getAgent(owner.connectedAgentId).playStyle;
-    return { style, factionLock: owner.factionLock, holdings: playableHoldingsFingerprint(held.map((c) => c.cardId), owner.factionLock), held };
+    // The rule is the store's (the builder's default): what a rebuild uses.
+    return { style, factionLock: owner.factionLock, holdings: playableHoldingsFingerprint(held.map((c) => c.cardId), owner.factionLock), rule: builderRule(), held };
   }
 
   /**
@@ -3251,6 +3262,10 @@ export class EconomyStore {
     if (was.holdings !== held) reasons.push("the cards held changed");
     if (was.factionLock !== now.factionLock) reasons.push(`the faction lock changed (${was.factionLock ?? "none"} -> ${now.factionLock ?? "none"})`);
     if (was.style !== now.style) reasons.push(`the play style changed (${PLAY_STYLES[was.style].name} -> ${PLAY_STYLES[now.style].name})`);
+    // (v25) A deck built under another pick rule (owner 2026-11-06: the
+    // builder's 1-SD rule reaches existing agent decks through the normal
+    // rebuild reasons; a deck built before v25 used the plain rule).
+    if (this.schemaVersion >= 25 && was.rule !== now.rule) reasons.push(`the builder's rule changed (${describeBuilderRule(was.rule)} -> ${describeBuilderRule(now.rule)})`);
     // A deck built before option B (owner 2026-10-26) may be shorter than
     // the cards held allow; the builder now never cuts one short. Read
     // only when nothing else already asks (any other reason rebuilds it).
@@ -3314,6 +3329,9 @@ export class EconomyStore {
     // owner holds 40 usable ones, else every usable card. The engine's
     // builder builds to that; the store checks it, since `choose` may be a
     // stand-in (the server's worker).
+    // The rule the build used: the engine's answer, or (a stand-in chooser
+    // that doesn't say) the one these options select.
+    const rule = built.rule ?? builderRule(options);
     const want = largestDeck(built.faction, holdings);
     const got = [...built.list.values()].reduce((s, n) => s + n, 0);
     if (got !== want) throw new EconomyError(`the agent built ${got} cards; the cards held allow ${want}, and the agent's deck uses that many`);
@@ -3345,6 +3363,7 @@ export class EconomyStore {
           .prepare("UPDATE decks SET built_style = ?, built_lock = ?, built_holdings = ? WHERE deck_id = ?")
           .run(style, owner.factionLock ?? "none", inputs.holdings, saved.deckId);
       }
+      if (this.schemaVersion >= 25) this.db.prepare("UPDATE decks SET built_rule = ? WHERE deck_id = ?").run(rule, saved.deckId);
       // The owner may have switched to a forced deck while the agent built.
       if (this.getOwner(ownerId).deckChoice === "agent") this.activateDeck(ownerId, saved.deckId);
       return saved;
@@ -3353,6 +3372,7 @@ export class EconomyStore {
       deck,
       faction: built.faction,
       style,
+      rule,
       factions: built.factions.map((b) => ({
         faction: b.faction,
         ...(b.infeasible ? { infeasible: b.infeasible } : {}),

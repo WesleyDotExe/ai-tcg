@@ -4335,7 +4335,7 @@ Next game session, as planned: 79 reads PR #139's CI run and writes the demo ste
 
 ---
 
-## 2026-11-06 — Owner: answer to game session 79's item 2 (the auto-merge can merge a commit whose tests haven't finished): yes, fix it
+## 2026-11-06 — Owner: answer to game session 79's item 2 (the auto-merge can merge a commit whose tests haven't finished): yes, fix it (HANDLED 2026-11-06, session 80 — done first, all three parts, nothing else in the workflow changed: 1. the Merge step passes `sha: context.payload.pull_request.head.sha` (the commit the wait step checked); 2. GitHub's 409 for a moved head ends the job green with "Not merging <sha>: a newer commit was pushed; its own auto-merge job merges it."; any other refusal still throws; 3. a job-level `concurrency` group `auto-merge-pr-<number>` with `cancel-in-progress: true`. 5 new tests in `server/test/autoMergeWorkflow.test.ts` on the shipped script (the #139 case end to end, a failed `test` on the newer commit, a 405 still failing, the sha passed, the concurrency group), 4 failing on the old workflow; sessions 75 and 77's 15 tests kept and passing)
 
 PR #139's first commit's auto-merge job merged the PR after a second commit was pushed, while that second commit's `test` was still running (it passed later). The owner OKs these changes to `.github/workflows/auto-merge.yml` for this purpose only. **Do them first in the next game session:**
 1. **Pin the merge to the tested commit:** the Merge step passes `sha:` (the head commit of the event that started this job, the commit whose `test` run the job waited on) to the merge call, so GitHub refuses the merge if the PR's head has moved.
@@ -4348,7 +4348,7 @@ Decision 3 of session 79 (the Null builder rule) is still open; the owner answer
 
 ---
 
-## 2026-11-06 — Owner: answer to game session 79's item 3 (the Null builder rule): switch it on at 1 SD
+## 2026-11-06 — Owner: answer to game session 79's item 3 (the Null builder rule): switch it on at 1 SD (HANDLED 2026-11-06, session 80 — `DEFAULT_BUILD.keepDesigned: 1`, the store's rule (`null` is the plain rule, for measurement only); schema v25 records it on every agent deck (`decks.built_rule`, the engine's `builderRule` id `keep-designed:1`), and a deck built under another rule (every pre-v25 deck: the plain rule) names "the builder's rule changed" as a rebuild reason, so it rebuilds once through the normal path; `GET /api/play`'s `builtFrom` and the rebuild job carry `rule`. Evidence `progress/builder-rule-001.txt` (25 PASS). 15 demos regenerated, every diff read. The launch-gate re-run on the shipped builder: `progress/built-deck-ring-007.txt` (identical to session 79's z = 1 test run: 16 builds, 8 rings byte for byte), both ring checks PASS (`progress/launch-gate-s80/`). Results at the [OWNER CHECK-IN] at the top of notes-for-owner.md)
 
 Answers the [OWNER CHECK-IN] "The Null builder rule (your call)" in `progress/notes-for-owner.md` (PR #140, `progress/built-deck-ring-006-z1.txt`, `progress/null-builder/README.txt`).
 - **Switch `keepDesigned` on for the store's deck builder at a margin of 1 SD** (z = 1): the designed deck is the incumbent, and another deck replaces it only when it wins by more than 1 standard deviation on the builder's confirm games (the same paired test the search already uses). Not 2 SD (it drops the genuinely better full-collection Cortex deck and pushes Aegis > Cortex out of band).

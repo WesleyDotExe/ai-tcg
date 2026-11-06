@@ -23,6 +23,7 @@
     { "file": "play-time-001.txt", "workspace": "server", "script": "src/dev/playTimeApiDemo.ts", "plays": true },
     { "file": "notifications-001.txt", "workspace": "server", "script": "src/dev/notificationsApiDemo.ts", "plays": true },
     { "file": "stats-001.txt", "workspace": "server", "script": "src/dev/statsApiDemo.ts", "plays": true },
+    { "file": "builder-rule-001.txt", "workspace": "economy", "script": "src/dev/builderRuleDemo.ts", "plays": true },
     { "file": "ladder-demo-001.txt", "workspace": "server", "script": "src/dev/ladderDemo.ts", "plays": true },
     { "file": "ladder-demo-002-live.txt", "workspace": "server", "script": "src/dev/liveLadderDemo.ts", "plays": true },
     { "file": "live-feed-asks-001.txt", "workspace": "server", "script": "src/dev/liveFeedAsksDemo.ts", "plays": true },
@@ -32,6 +33,7 @@
   "records": {
     "about": "Files a dev script names that are measurements (long, sampled), kept as records rather than reproduced by `npm run demos`.",
     "files": [
+      "demo-reliability-001.txt",
       "pack-sim-001.txt",
       "pack-sim-002.txt",
       "pack-sim-003-starter.txt",

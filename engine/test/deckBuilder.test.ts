@@ -10,6 +10,9 @@ import { cardRating } from "../src/deckbuilder/cardRating.js";
 import { allAbilities } from "../src/cards/modes.js";
 import {
   DECK_FACTIONS,
+  DEFAULT_BUILD,
+  builderRule,
+  describeBuilderRule,
   buildFaction,
   chooseDeck,
   constructDeck,
@@ -241,7 +244,8 @@ describe("chooseDeck (the deck-building agent)", () => {
     const rusher = await buildFaction("Swarm", holdings, { ...opts, style: "rusher", log: (l) => lines.rusher.push(l) });
     // The same search: the same start searched from, at the same score, and
     // the same changes kept (the log's search lines carry the search's wins).
-    const search = (ls: string[]) => ls.filter((l) => !l.includes("fresh seeds"));
+    // (The confirm step's lines, "fresh seeds" and the keep-designed test "on the confirm seeds", differ by style.)
+    const search = (ls: string[]) => ls.filter((l) => !l.includes("fresh seeds") && !l.includes("on the confirm seeds"));
     expect(search(lines.rusher)).toEqual(search(lines.calc));
     expect(search(lines.calc).some((l) => /searching from the \w+ start \(\d+ of 12\)/.test(l))).toBe(true);
     expect(rusher.searchedFrom).toBe(calc.searchedFrom);
@@ -250,18 +254,41 @@ describe("chooseDeck (the deck-building agent)", () => {
   });
 });
 
-describe("keepDesigned: the designed start is kept unless beaten by more than noise (session 79, test only)", () => {
-  it("is off by default: the builder keeps the most confirm wins, as the store's always has", async () => {
-    const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11 };
+describe("keepDesigned: the designed start is kept unless beaten by more than noise (session 79; the store's rule at 1 SD since session 80)", () => {
+  it("null is the plain rule: the builder keeps the most confirm wins, as the store's did before session 80", async () => {
+    const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11, keepDesigned: null };
     const plain = await buildFaction("Swarm", fullHoldings(), opts);
     expect(plain.keepDesigned).toBeUndefined();
     for (const st of plain.starts) expect(plain.score!.wins).toBeGreaterThanOrEqual(st.score!.wins);
   });
 
+  it("is on at 1 SD by default (owner 2026-11-06): leaving it out builds what keepDesigned 1 builds", async () => {
+    expect(DEFAULT_BUILD.keepDesigned).toBe(1);
+    const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11 };
+    for (const f of DECK_FACTIONS) {
+      const byDefault = await buildFaction(f, fullHoldings(), opts);
+      const one = await buildFaction(f, fullHoldings(), { ...opts, keepDesigned: 1 });
+      expect(byDefault.chosen).toBe(one.chosen);
+      expect([...byDefault.deck!]).toEqual([...one.deck!]);
+      expect(byDefault.keepDesigned).toEqual(one.keepDesigned);
+    }
+  });
+
+  it("names its rule, as the store records it with every agent deck", async () => {
+    expect(builderRule()).toBe("keep-designed:1");
+    expect(builderRule({ keepDesigned: 2 })).toBe("keep-designed:2");
+    expect(builderRule({ keepDesigned: null })).toBe("plain");
+    expect(describeBuilderRule("plain")).toBe("the plain rule (the most confirm wins)");
+    expect(describeBuilderRule("keep-designed:1")).toBe("keep the designed deck unless beaten by more than 1 SD");
+    const built = await chooseDeck(fullHoldings(), { faction: "Swarm", games: 0 });
+    expect(built.rule).toBe("keep-designed:1");
+    expect((await chooseDeck(fullHoldings(), { faction: "Swarm", games: 0, keepDesigned: null })).rule).toBe("plain");
+  });
+
   it("keeps the designed start under a margin nothing can reach, and says what the plain rule would have kept", async () => {
     const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11 };
     for (const f of DECK_FACTIONS) {
-      const plain = await buildFaction(f, fullHoldings(), opts);
+      const plain = await buildFaction(f, fullHoldings(), { ...opts, keepDesigned: null });
       const lines: string[] = [];
       const kept = await buildFaction(f, fullHoldings(), { ...opts, keepDesigned: 1000, log: (l) => lines.push(l) });
       expect(kept.chosen).toBe("designed");
@@ -280,7 +307,7 @@ describe("keepDesigned: the designed start is kept unless beaten by more than no
   it("lets a challenger through when it clears the margin (the minimum, 2 net seeds, at margin 0)", async () => {
     const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11 };
     for (const f of DECK_FACTIONS) {
-      const plain = await buildFaction(f, fullHoldings(), opts);
+      const plain = await buildFaction(f, fullHoldings(), { ...opts, keepDesigned: null });
       const zero = await buildFaction(f, fullHoldings(), { ...opts, keepDesigned: 0 });
       if (!zero.keepDesigned) {
         expect(zero.chosen).toBe(plain.chosen);
@@ -300,7 +327,7 @@ describe("keepDesigned: the designed start is kept unless beaten by more than no
   });
 
   it("keeps the designed Null deck from a full collection at the store's settings (session 71's case: rating 214 vs designed 212 of 400)", async () => {
-    const plain = await buildFaction("Null", fullHoldings());
+    const plain = await buildFaction("Null", fullHoldings(), { keepDesigned: null });
     expect(plain.chosen).toBe("rating");
     expect(plain.score!.wins).toBe(214);
     const kept = await buildFaction("Null", fullHoldings(), { keepDesigned: 2 });
@@ -308,7 +335,11 @@ describe("keepDesigned: the designed start is kept unless beaten by more than no
     expect([...kept.deck!]).toEqual([...shippedList("Null")]);
     expect(kept.score!.wins).toBe(212);
     expect(kept.keepDesigned).toEqual({ plain: "rating", plainWins: 214, designedWins: 212, gained: 68, lost: 66, margin: 23.2, kept: "designed" });
-  }, 60_000);
+    // The store's own build (1 SD, the default) keeps it too.
+    const store = await buildFaction("Null", fullHoldings());
+    expect(store.chosen).toBe("designed");
+    expect(store.keepDesigned).toEqual({ plain: "rating", plainWins: 214, designedWins: 212, gained: 68, lost: 66, margin: 11.6, kept: "designed" });
+  }, 90_000);
 });
 
 describe("a collection that runs out short of 40 cards (session 54)", () => {

@@ -44,7 +44,7 @@ function run(demo) {
     let err = "";
     child.stdout.on("data", (b) => (out += b));
     child.stderr.on("data", (b) => (err += b));
-    child.on("close", (code) => done({ demo, code, out, err, seconds: (Date.now() - started) / 1000 }));
+    child.on("close", (code, signal) => done({ demo, code, signal, out, err, seconds: (Date.now() - started) / 1000 }));
   });
 }
 
@@ -61,6 +61,26 @@ function sketch(was, now) {
   return lines.join("\n");
 }
 
+/** A failed demo, readable without re-running it (owner 2026-11-06, after
+ * PR #141: the old five-line tail ended mid-error): its name, script and exit
+ * code (or the signal that killed it), the last 60 lines of its stderr, and
+ * the last 10 lines it printed before failing. */
+const ERR_LINES = 60;
+const OUT_LINES = 10;
+function failureReport(demo, code, out, err, signal = null) {
+  const indent = (lines) => lines.map((l) => `      | ${l}`).join("\n");
+  const errLines = err.replace(/\s+$/, "").split("\n");
+  const outLines = out.replace(/\s+$/, "").split("\n");
+  const parts = [`      ${demo.file}: ${demo.workspace}/${demo.script} ended with ${signal ? `signal ${signal}` : `exit code ${code}`}`];
+  if (err.trim() === "") parts.push("      stderr: (empty)");
+  else {
+    const cut = errLines.length > ERR_LINES ? ` (the last ${ERR_LINES} of ${errLines.length} lines)` : ` (all ${errLines.length} lines)`;
+    parts.push(`      stderr${cut}:`, indent(errLines.slice(-ERR_LINES)));
+  }
+  if (out.trim() !== "") parts.push(`      stdout, the last ${Math.min(OUT_LINES, outLines.length)} lines before it stopped:`, indent(outLines.slice(-OUT_LINES)));
+  return parts.join("\n");
+}
+
 const width = Math.max(1, Math.min(4, cpus().length));
 const queue = [...chosen];
 const results = [];
@@ -72,7 +92,7 @@ await Promise.all(
 results.sort((x, y) => manifest.demos.indexOf(x.demo) - manifest.demos.indexOf(y.demo));
 
 let bad = 0;
-for (const { demo, code, out, err, seconds } of results) {
+for (const { demo, code, signal, out, err, seconds } of results) {
   const path = join(root, "progress", demo.file);
   let committed = "";
   try {
@@ -83,8 +103,8 @@ for (const { demo, code, out, err, seconds } of results) {
   const time = `${seconds.toFixed(0)} s`;
   if (code !== 0) {
     bad++;
-    console.log(`FAIL  ${demo.file}  (exit ${code}, ${time})`);
-    console.log(err.trim().split("\n").slice(-5).map((l) => `      ${l}`).join("\n"));
+    console.log(`FAIL  ${demo.file}  (${signal ? `signal ${signal}` : `exit ${code}`}, ${time})`);
+    console.log(failureReport(demo, code, out, err, signal));
     continue;
   }
   if (comparable(committed) === comparable(out)) {

@@ -19,6 +19,7 @@ import { DEFAULT_BUILD } from "@ai-tcg/engine";
 import { EconomyStore } from "@ai-tcg/economy";
 import { workerChooser } from "../deckBuild/workerChooser.js";
 import { startOwnerApi } from "../ownerApi.js";
+import { demoFetch } from "./demoFetch.js";
 
 const tempDir = mkdtempSync(join(tmpdir(), "owner-api-demo-"));
 const store = EconomyStore.open(join(tempDir, "season-0.db"), { now: () => new Date("2026-10-23T09:00:00.000Z") });
@@ -55,7 +56,7 @@ const api = await startOwnerApi({ store, port: 0, chooser: chooser.choose });
 const base = `http://localhost:${api.port}`;
 let token = "";
 async function call(method: string, path: string, body?: unknown, auth = token) {
-  const res = await fetch(`${base}${path}`, {
+  const res = await demoFetch(`${base}${path}`, {
     method,
     headers: { "Content-Type": "application/json", ...(auth ? { Authorization: `Bearer ${auth}` } : {}) },
     body: body === undefined ? undefined : JSON.stringify(body),

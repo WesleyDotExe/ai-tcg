@@ -26,6 +26,7 @@ import { startOwnerApi, type RunningOwnerApi } from "../ownerApi.js";
 import { LiveLadder, type LiveMatchView } from "../ladder/liveLadder.js";
 import { TOP_RATED_MAX } from "../ladder/featured.js";
 import { VIEWER_WINDOW_MS } from "../ladder/viewers.js";
+import { demoFetch } from "./demoFetch.js";
 
 const say = (line = "") => console.log(line);
 const PASSWORD = "a long demo password";
@@ -101,10 +102,10 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const call = async (path: string, who: string): Promise<{ status: number; body: any }> => {
     if (!tokens.has(who)) {
-      const res = await fetch(`http://localhost:${api.port}/api/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login: who.toLowerCase(), password: PASSWORD }) });
+      const res = await demoFetch(`http://localhost:${api.port}/api/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ login: who.toLowerCase(), password: PASSWORD }) });
       tokens.set(who, ((await res.json()) as { token: string }).token);
     }
-    const res = await fetch(`http://localhost:${api.port}${path}`, { headers: { Authorization: `Bearer ${tokens.get(who)}` } });
+    const res = await demoFetch(`http://localhost:${api.port}${path}`, { headers: { Authorization: `Bearer ${tokens.get(who)}` } });
     return { status: res.status, body: await res.json() };
   };
   /** Ticks a second at a time until every live match is recorded. */

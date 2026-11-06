@@ -1,0 +1,50 @@
+# The builder's rule on the agent's deck (schema v25, session 80)
+The store's rule now: keep-designed:1 (keep the designed deck unless beaten by more than 1 SD); DEFAULT_BUILD {"games":40,"trials":24,"confirmGames":100,"seed":1,"keepDesigned":1}.
+Builds here: {"games":10,"trials":6,"confirmGames":60} (smaller than the store's, so the demo runs in seconds), forced to each owner's starting faction by its lock.
+
+## 1. A v24 file: four agents build with the plain rule, as every deck before session 80 was built
+  schema v24
+  cortex-house  55 copies; built Cortex (Cortex rating 62.9%), rule plain
+  swarm-house   55 copies; built Swarm (Swarm rating 45.8%), rule plain
+  aegis-house   55 copies; built Aegis (Aegis rating 51.7%), rule plain
+  null-house    55 copies; built Null (Null rating 55.4%), rule plain
+
+## 2. Reopened at the current schema
+  schema v25
+  cortex-house  recorded rule: plain; rebuild reasons: the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)
+  swarm-house   recorded rule: plain; rebuild reasons: the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)
+  aegis-house   recorded rule: plain; rebuild reasons: the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)
+  null-house    recorded rule: plain; rebuild reasons: the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)
+
+## 3. The normal rebuild path (rebuildAgentDeckIfNeeded, what the ladder calls between rounds)
+  cortex-house  rebuilt: Cortex keeps the rating deck (62.9%); rule keep-designed:1; list unchanged; reasons now: none
+  swarm-house   rebuilt: Swarm keeps the rating deck (45.8%); rule keep-designed:1; list unchanged; reasons now: none
+  aegis-house   rebuilt: Aegis keeps the designed deck (49.2%); rule keep-designed:1; list changed; reasons now: none
+  null-house    rebuilt: Null keeps the designed deck (54.2%); rule keep-designed:1; list changed; reasons now: none
+
+PASS  cortex-house: the v24 store reports no rebuild reason (it keeps no rule)
+PASS  swarm-house: the v24 store reports no rebuild reason (it keeps no rule)
+PASS  aegis-house: the v24 store reports no rebuild reason (it keeps no rule)
+PASS  null-house: the v24 store reports no rebuild reason (it keeps no rule)
+PASS  the file migrates to v25 or later
+PASS  cortex-house: the deck survives the migration unchanged
+PASS  cortex-house: a pre-v25 deck reads as the plain rule and asks for one rebuild, for the rule
+PASS  swarm-house: the deck survives the migration unchanged
+PASS  swarm-house: a pre-v25 deck reads as the plain rule and asks for one rebuild, for the rule
+PASS  aegis-house: the deck survives the migration unchanged
+PASS  aegis-house: a pre-v25 deck reads as the plain rule and asks for one rebuild, for the rule
+PASS  null-house: the deck survives the migration unchanged
+PASS  null-house: a pre-v25 deck reads as the plain rule and asks for one rebuild, for the rule
+PASS  cortex-house: rebuilt under the store's rule and recorded
+PASS  cortex-house: up to date after one rebuild
+PASS  cortex-house: a second call has nothing to do
+PASS  swarm-house: rebuilt under the store's rule and recorded
+PASS  swarm-house: up to date after one rebuild
+PASS  swarm-house: a second call has nothing to do
+PASS  aegis-house: rebuilt under the store's rule and recorded
+PASS  aegis-house: up to date after one rebuild
+PASS  aegis-house: a second call has nothing to do
+PASS  null-house: rebuilt under the store's rule and recorded
+PASS  null-house: up to date after one rebuild
+PASS  null-house: a second call has nothing to do
+25 PASS, 0 FAIL

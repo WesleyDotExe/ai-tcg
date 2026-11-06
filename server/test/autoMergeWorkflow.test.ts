@@ -13,11 +13,12 @@ import { describe, expect, it } from "vitest";
 const here = dirname(fileURLToPath(import.meta.url));
 const workflowPath = resolve(here, "../../.github/workflows/auto-merge.yml");
 
-/** The body of the first `script: |` block (the wait step), de-indented. */
-function waitStepScript(): string {
+/** The body of the n-th `script: |` block (0: the wait step, 1: the merge step), de-indented. */
+function scriptBlock(n: number): string {
   const lines = readFileSync(workflowPath, "utf8").split("\n");
-  const start = lines.findIndex((l) => l.trim() === "script: |");
-  if (start < 0) throw new Error("no script block in auto-merge.yml");
+  const starts = lines.flatMap((l, i) => (l.trim() === "script: |" ? [i] : []));
+  const start = starts[n] ?? -1;
+  if (start < 0) throw new Error(`no script block ${n} in auto-merge.yml`);
   const keyIndent = lines[start].search(/\S/);
   const body: string[] = [];
   for (const line of lines.slice(start + 1)) {
@@ -27,13 +28,15 @@ function waitStepScript(): string {
   const indent = Math.min(...body.filter((l) => l.trim()).map((l) => l.search(/\S/)));
   return body.map((l) => l.slice(indent)).join("\n");
 }
+const waitStepScript = () => scriptBlock(0);
+const mergeStepScript = () => scriptBlock(1);
 
 type Reply = { error: { status: number; headers?: Record<string, string> } } | { runs: Array<{ name: string; status: string; conclusion: string | null }> };
 
 const green = { runs: [{ name: "test", status: "completed", conclusion: "success" }] };
 const httpError = (status: number, headers?: Record<string, string>): Reply => ({ error: { status, headers } });
 
-async function runWaitStep(replies: Reply[]) {
+async function runWaitStep(replies: Reply[], sha = "abc123") {
   const calls: number[] = [];
   const params: unknown[] = [];
   const sleeps: number[] = [];
@@ -61,7 +64,7 @@ async function runWaitStep(replies: Reply[]) {
     },
   };
   const context = {
-    payload: { pull_request: { head: { sha: "abc123" } } },
+    payload: { pull_request: { head: { sha } } },
     repo: { owner: "o", repo: "r" },
   };
   const core = {
@@ -189,5 +192,107 @@ describe("auto-merge: wait for checks", () => {
   it("asks GitHub for the latest run per name on the head commit", async () => {
     const r = await runWaitStep([green]);
     expect(r.params[0]).toMatchObject({ ref: "abc123", filter: "latest" });
+  });
+});
+
+/** A fake PR on GitHub: its head moves when a commit is pushed, and the merge
+ * call behaves as GitHub's does with `sha` (409 when the head has moved). */
+class FakePr {
+  head: string;
+  merged: string | null = null;
+  mergeCalls: Array<Record<string, unknown>> = [];
+  constructor(head: string) {
+    this.head = head;
+  }
+  push(sha: string) {
+    this.head = sha;
+  }
+  async merge(p: Record<string, unknown>) {
+    this.mergeCalls.push(p);
+    if (p.sha !== undefined && p.sha !== this.head) {
+      throw Object.assign(new Error("Head branch was modified. Review and try the merge again."), { status: 409 });
+    }
+    this.merged = String(p.sha ?? this.head);
+  }
+}
+
+async function runMergeStep(pr: FakePr, jobSha: string, override?: (p: Record<string, unknown>) => Promise<void>) {
+  const notices: string[] = [];
+  const failures: string[] = [];
+  const github = { rest: { pulls: { merge: override ?? ((p: Record<string, unknown>) => pr.merge(p)) } } };
+  const context = { payload: { pull_request: { number: 7, head: { sha: jobSha } } }, repo: { owner: "o", repo: "r" } };
+  const core = { notice: (m: string) => notices.push(m), warning: () => {}, setFailed: (m: string) => failures.push(m) };
+  const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
+  const step = new AsyncFunction("github", "context", "core", mergeStepScript());
+  let thrown: unknown = null;
+  try {
+    await step(github, context, core);
+  } catch (e) {
+    thrown = e;
+  }
+  return { notices, failures, thrown };
+}
+
+/** One auto-merge job: the wait step then (if it passed) the merge step, as Actions runs them. */
+async function runJob(pr: FakePr, jobSha: string, replies: Reply[]) {
+  const wait = await runWaitStep(replies, jobSha);
+  if (wait.thrown || wait.failures.length) return { wait, merge: null, ok: false };
+  const merge = await runMergeStep(pr, jobSha);
+  return { wait, merge, ok: !merge.thrown && merge.failures.length === 0 };
+}
+
+describe("auto-merge: merge only the tested commit (owner 2026-11-06, after PR #139)", () => {
+  it("passes the job's own head sha to the merge call", async () => {
+    const pr = new FakePr("aaa111");
+    const r = await runMergeStep(pr, "aaa111");
+    expect(r.thrown).toBeNull();
+    expect(pr.mergeCalls[0]).toMatchObject({ pull_number: 7, merge_method: "squash", sha: "aaa111" });
+    expect(pr.merged).toBe("aaa111");
+  });
+
+  it("the PR #139 case: a second commit pushed while the first job waits is not merged until its own test passes", async () => {
+    const pr = new FakePr("aaa111");
+    // Commit A's job starts waiting; commit B is pushed; A's test passes.
+    pr.push("bbb222");
+    const jobA = await runJob(pr, "aaa111", [green]);
+    // A's job asked for A's checks, not B's, and GitHub refused the merge.
+    expect(jobA.wait.params[0]).toMatchObject({ ref: "aaa111" });
+    expect(pr.merged).toBeNull();
+    expect(pr.mergeCalls[0]).toMatchObject({ sha: "aaa111" });
+    // The older job ends green with the message, not a red cross.
+    expect(jobA.ok).toBe(true);
+    expect(jobA.merge!.notices).toEqual(["Not merging aaa111: a newer commit was pushed; its own auto-merge job merges it."]);
+    // B's job waits on B's own test (still running, then green), then merges B.
+    const running = { runs: [{ name: "test", status: "in_progress", conclusion: null }] };
+    const jobB = await runJob(pr, "bbb222", [running, running, green]);
+    expect(jobB.wait.params.every((p) => (p as { ref: string }).ref === "bbb222")).toBe(true);
+    expect(jobB.wait.calls).toBe(3);
+    expect(jobB.ok).toBe(true);
+    expect(pr.merged).toBe("bbb222");
+  });
+
+  it("a real failed test on the newer commit still stops the merge", async () => {
+    const pr = new FakePr("aaa111");
+    pr.push("bbb222");
+    await runJob(pr, "aaa111", [green]);
+    const jobB = await runJob(pr, "bbb222", [{ runs: [{ name: "test", status: "completed", conclusion: "failure" }] }]);
+    expect(jobB.ok).toBe(false);
+    expect(jobB.wait.failures).toEqual(["A required check failed; not merging."]);
+    expect(pr.merged).toBeNull();
+    expect(pr.mergeCalls).toHaveLength(1); // only A's refused try
+  });
+
+  it("any other refusal still fails the job (405 not mergeable)", async () => {
+    const pr = new FakePr("aaa111");
+    const r = await runMergeStep(pr, "aaa111", async () => {
+      throw Object.assign(new Error("Pull Request is not mergeable"), { status: 405 });
+    });
+    expect((r.thrown as { status: number }).status).toBe(405);
+    expect(r.notices).toEqual([]);
+  });
+
+  it("the job has one concurrency group per PR, cancelling the older job", () => {
+    const text = readFileSync(workflowPath, "utf8");
+    expect(text).toMatch(/\n    concurrency:\n      group: auto-merge-pr-\$\{\{ github\.event\.pull_request\.number \}\}\n      cancel-in-progress: true\n/);
   });
 });

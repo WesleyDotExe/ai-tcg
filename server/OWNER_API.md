@@ -406,7 +406,7 @@ Who goes first is the server's coin flip for every match; the coin is only how t
   factionLock: faction | null,
   lockableFactions: ["Cortex", "Swarm", "Aegis", "Null"],
   activeDeck: DeckStatus | null,          // the deck the connected agent plays
-  agentDeck: (DeckStatus & { builtFrom: { style, factionLock } | null }) | null,
+  agentDeck: (DeckStatus & { builtFrom: { style, factionLock, rule } | null }) | null,
   rebuild: { reasons: string[], job: RebuildJob | null },
   connectedAgent: { agentId, name, playStyle } | null,
   agents: [{ agentId, name, playStyle }],
@@ -427,12 +427,13 @@ RebuildJob {
   jobId, state: "running" | "done" | "failed",
   startedAt, finishedAt,
   reasons,                                // why a rebuild was wanted when it started ([]: rebuilt anyway)
-  result: { deckId, faction, style, cards,
+  result: { deckId, faction, style, rule, cards,
             factions: [{ faction, winRate, infeasible }] } | null,
   error: string | null
 }
 ```
 
+- `rule` (schema v25, session 80) is the builder's pick rule: `"keep-designed:1"`, the store's (owner 2026-11-06): the faction's designed deck is kept unless another deck beats it by more than 1 standard deviation, paired, on the build's confirm games. The store records it with the deck; an agent deck built under another rule (every deck built before v25 used the plain rule, "the most confirm wins") lists `"the builder's rule changed (the plain rule (the most confirm wins) -> keep the designed deck unless beaten by more than 1 SD)"` in `rebuild.reasons`, and is rebuilt like any other reason.
 - One build at a time per owner; refused while the owner forces a deck.
 - The build is the store's `buildAgentDeck` at the store's settings (minutes of games). The server runs its games on a worker thread (`server/src/deckBuild/`), so every other request is still answered while it runs. The worker runs the engine's own `chooseDeck`, so it builds the same deck the engine would. At most one build per core but one runs at once (`workerChooser`'s `maxWorkers`, at least 1); further builds wait in line, first come first served, and their job reads `running` while they wait.
 - If the owner's cards change while the agent builds (a salvage), the store refuses to save a list it can no longer fill, and the job fails with that reason; build again.

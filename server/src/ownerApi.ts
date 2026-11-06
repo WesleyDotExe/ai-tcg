@@ -104,6 +104,9 @@ export interface RebuildJob {
     deckId: string;
     faction: DeckFaction;
     style: string;
+    /** The builder's pick rule (schema v25, session 80): "keep-designed:1"
+     * (the store's), or "plain" for a build that asked for it. */
+    rule: string;
     cards: number;
     factions: { faction: DeckFaction; winRate: number | null; infeasible: string | null }[];
   } | null;
@@ -181,7 +184,7 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
           ? null
           : {
               ...(decks.find((d) => d.deckId === agentDeckId) as DeckStatus),
-              builtFrom: builtFrom === null ? null : { style: builtFrom.style, factionLock: builtFrom.factionLock },
+              builtFrom: builtFrom === null ? null : { style: builtFrom.style, factionLock: builtFrom.factionLock, rule: builtFrom.rule },
             },
       rebuild: { reasons: store.agentDeckRebuildReasons(ownerId), job: jobs.get(ownerId) ?? null },
       connectedAgent: connected === null ? null : agent(connected),
@@ -217,6 +220,7 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
             deckId: built.deck.deckId,
             faction: built.faction,
             style: built.style,
+            rule: built.rule,
             cards: built.deck.copyIds.length,
             factions: built.factions.map((f) => ({ faction: f.faction, winRate: f.winRate ?? null, infeasible: f.infeasible ?? null })),
           };
