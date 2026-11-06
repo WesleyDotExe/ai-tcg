@@ -93,7 +93,7 @@ describe("auto-play (schema v18)", () => {
     const o = v17.createOwner({ name: "old" });
     v17.close();
     const v18 = open(path);
-    expect(v18.schemaVersion).toBe(25);
+    expect(v18.schemaVersion).toBe(26);
     expect(v18.autoPlay(o.ownerId).on).toBe(false);
     v18.setAutoPlay(o.ownerId, true);
     const exec = (sql: string) => () => v18.unsafeExec(sql);

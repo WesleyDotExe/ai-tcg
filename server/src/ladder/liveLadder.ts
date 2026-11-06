@@ -152,10 +152,21 @@ export interface LiveSource {
   /** (session 74) Watch live's featured groups, as match ids in order. */
   featured(): FeaturedPicks;
   liveMatchOf(ownerId: string): string | null;
+  /** (session 82) Open, ending or ended. */
+  seasonState(): SeasonState;
+  /** (session 82) Ends the season: no new round starts; once the matches
+   * being shown are recorded, the store ends it (endSeason). At once when
+   * nothing is live. */
+  endSeason(): Promise<SeasonState>;
   /** (session 73) The owner's "Ask for 2×" in a live match it plays in:
    * `ask` true asks, false takes the ask back. */
   askForSpeed(matchId: string, ownerId: string, ask: boolean): SpeedAskResult;
 }
+
+/** (session 82) Where the season stands, as the live ladder sees it:
+ * open; ending (no new round starts, the matches being shown finish, then
+ * the season ends); or ended. */
+export type SeasonState = "open" | "ending" | "ended";
 
 /** Why an ask wasn't taken, or the vote after it. */
 export type SpeedAskResult =
@@ -193,6 +204,7 @@ export class LiveLadder implements LiveSource {
   private busy: Promise<void> | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private recovered = false;
+  private ending = false;
 
   constructor(opts: LiveLadderOptions) {
     this.opts = opts;
@@ -243,7 +255,39 @@ export class LiveLadder implements LiveSource {
         if (this.shown.size === 0) this.nextRoundAt = now + (this.opts.roundGapMs ?? 60_000);
       }
     }
-    if (this.shown.size === 0 && now >= this.nextRoundAt) await this.startRound(now);
+    if (this.ending && this.shown.size === 0) {
+      this.finishSeason();
+      return;
+    }
+    if (this.shown.size === 0 && now >= this.nextRoundAt && !this.store.seasonEnded()) await this.startRound(now);
+  }
+
+  /** The store ends the season now that nothing is live. */
+  private finishSeason(): void {
+    this.ending = false;
+    if (this.store.seasonEnded()) return;
+    const end = this.store.endSeason(new Date(this.now()).toISOString());
+    this.opts.onEvent?.({
+      kind: "seasonEnded",
+      season: end.season,
+      endedAt: end.endedAt,
+      standings: end.standings.length,
+      retiredCopies: end.retiredPrototypes.reduce((n, r) => n + r.retired, 0),
+    });
+  }
+
+  seasonState(): SeasonState {
+    if (this.store.seasonEnded()) return "ended";
+    return this.ending ? "ending" : "open";
+  }
+
+  async endSeason(): Promise<SeasonState> {
+    if (this.store.seasonEnded()) return "ended";
+    this.ending = true;
+    // A tick ends it at once when nothing is shown; otherwise the tick that
+    // records the last shown match does.
+    await this.tick();
+    return this.seasonState();
   }
 
   /** Releases every move due by `now`, each hold at the match's pace.

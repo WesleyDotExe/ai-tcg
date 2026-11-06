@@ -163,6 +163,32 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
     return store.authenticate(match[1]!).ownerId;
   };
 
+  /** The signed-in owner, who must be the house admin (403 otherwise). */
+  const adminOf = (req: IncomingMessage): string => {
+    const ownerId = ownerOf(req);
+    if (!store.authenticate(tokenOf(req)!).isAdmin) throw new HttpError(403, "only the house admin can do this");
+    return ownerId;
+  };
+
+  /** (session 82) The season as everyone sees it: open, ending or ended;
+   * once ended, the final standings and the retired Prototype runs. */
+  const seasonView = (ownerId: string) => {
+    const end = store.seasonEnd();
+    const state = options.live?.seasonState() ?? (end !== null ? "ended" : "open");
+    return {
+      season: store.season,
+      state,
+      endedAt: end?.endedAt ?? null,
+      liveMatches: store.liveMatches().length,
+      // While the season is open: the tier coins the caller's tier would
+      // earn if it ended now. Once it has ended: the caller's final line.
+      tierCoinsNow: end === null ? store.seasonTierCoins(ownerId) : null,
+      you: end?.standings.find((r) => r.ownerId === ownerId) ?? null,
+      standings: end?.standings ?? null,
+      retiredPrototypes: end?.retiredPrototypes ?? null,
+    };
+  };
+
   const tokenOf = (req: IncomingMessage): string | null => /^Bearer (\S+)$/.exec(req.headers.authorization ?? "")?.[1] ?? null;
 
   /** Settings -> Play, everything the page shows. */
@@ -706,6 +732,30 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
         if (!(AUTO_PLAY_ADD_MINUTES as readonly unknown[]).includes(body.minutes)) throw new HttpError(400, `"minutes" must be ${AUTO_PLAY_ADD_MINUTES.join(" or ")}`);
         store.addAutoPlayTime(ownerId, body.minutes as number);
         return { body: { autoPlay: autoPlayStatus(ownerId) } };
+      },
+    },
+    { method: "GET", path: /^\/api\/season$/, handler: (req) => ({ body: seasonView(ownerOf(req)) }) },
+    {
+      // (session 82) The house admin ends the season. The body names the
+      // season being ended, so a stray call can't end the wrong one. With
+      // the ladder running: no new round starts, the matches being shown
+      // finish and are recorded, then the season ends (202, state
+      // "ending"; GET /api/season says when it has). With nothing live it
+      // ends at once (200).
+      method: "POST",
+      path: /^\/api\/admin\/season\/end$/,
+      handler: (req, body) => {
+        const ownerId = adminOf(req);
+        if (body.season !== store.season) throw new HttpError(400, `"season" must name the season being ended ("${store.season}")`);
+        if (store.seasonEnded()) throw new HttpError(409, `season ${store.season} has already ended`);
+        const live = options.live;
+        if (live === undefined) {
+          store.endSeason();
+          return { body: seasonView(ownerId) };
+        }
+        live.endSeason().catch((err) => console.error("[season] ending the season failed:", err));
+        const view = seasonView(ownerId);
+        return { status: view.state === "ended" ? 200 : 202, body: view };
       },
     },
     {

@@ -4922,3 +4922,45 @@ passed 4/4 alone); typecheck clean; `npm run demos` same on all 25; #141's CI gr
 ruled out in a minute, and the trace showed the real mechanism.
 
 **Blocked:** nothing. Next: the remaining Season 0 items; read both auto-merge jobs on the first two-commit PR.
+
+## 2026-11-06 — Session 82 (game lane): season end, part 1 — ending a season (schema v26)
+
+**Start checks:** no open PR from either lane; the last merged was #142 (session 81). No unhandled owner feedback.
+Of the open game items, the unit badges wait on the render lane naming them, and hiding hands waits on network
+agents joining (not in Season 0). So season end (roadmap game item 3) was next, as the 2026-11-06 order puts it.
+
+**Built:** part 1, ending a season, from what ECONOMY.md already decides: tier coins first, Prototypes never pulled
+retired forever, the file kept as the archive. Schema v26 adds `season_end`, `season_standings` and
+`retired_prototype_runs`, all write-once. Triggers refuse a live match, a rated match, a rating insert or update,
+and a Prototype copy of a retired run once the season has ended. `CardSet.season` names the set's season, and
+`seasonSets()` lists a season's sets. In the store: `endSeason(at)` is one transaction: `grantSeasonTierCoins(at)`,
+then the standings from `ladder({ at })` with volatility and names, then the retired runs with `found`. It is
+refused while a match is live and once ended. Also `seasonEnd()` and `seasonEnded()`. `startMatch` and
+`recordMatch` refuse after the end, and `prototypesLeft` gives 0 for a retired run, so the roller's existing
+fallback Gold applies. In the server: `Ladder` pairs nobody once ended. `LiveLadder.endSeason()` sets "ending":
+no new round starts, the shown matches finish and are recorded, then the store ends the season and a `seasonEnded`
+event fires (printed by `npm run season`). `POST /api/admin/season/end` (admin only; body names the season; 202
+ending / 200 ended / 400 / 403 / 409) and `GET /api/season`. Written into `server/OWNER_API.md` and ECONOMY.md.
+
+**Ran it:**
+- New tests: `economy/test/seasonEnd.test.ts` (7: the coins, standings and runs in one call; after the end, the
+  refusals and the schema's; refused while live, then through; nobody rated; v25 -> v26 on disk; a v25 store)
+  and `server/test/seasonEnd.test.ts` (4: the ladder drains and ends with no extra match; ending with nothing live;
+  the plain ladder pairs nobody after; the API over HTTP, incl. 202 -> ended and every refusal). 10 schema-version
+  assertions 25 -> 26.
+- `npm test`: engine 372, economy 267, server 183, render 899, agents 17, protocol 7, all pass. Typecheck clean.
+- `npm run demos -- --all --write`: 10 stale, all the schema line (v25 -> v26) and nothing else (checked by diff).
+  New `progress/season-end-001.txt` (`npm run demo:season-end -w server`), 11 PASS, added to the CI demo set, the
+  same on a re-run. It shows: a v25 file opened at v26; 3 h of ladder (61 matches, Kit placed Diamond); a Prototype
+  found (S0-P12 #1); the admin's ask at 202 with m62 and m63 on screen; the end 3 minutes later with both recorded
+  (Kit gets the Platinum and Diamond coins); 1,515 of 1,516 copies retired; 3 h more with no match and no rating
+  change; the same pack seed now a Gold; the end kept on disk.
+
+**Worked:** the roller already had "every run used up -> a Gold", so retiring a run needed no change in the pack
+code. Putting the guards in the schema as well as the store makes the archive hold against a hand edit.
+**Thin:** no Season 1 file yet (part 2), and the retired list isn't carried anywhere. The archive still allows
+packs and crafting. Ending is manual, and the "ending" flag is in memory. All in quality-debt.md.
+
+**Blocked:** nothing. Part 2 waits on the [OWNER CHECK-IN] in notes-for-owner.md (7 calls: cosmetics, what carries,
+unopened packs, the soft reset, the new starter grant, freezing the archive, when it ends).
+

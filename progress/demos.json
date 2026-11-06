@@ -28,7 +28,8 @@
     { "file": "ladder-demo-002-live.txt", "workspace": "server", "script": "src/dev/liveLadderDemo.ts", "plays": true },
     { "file": "live-feed-asks-001.txt", "workspace": "server", "script": "src/dev/liveFeedAsksDemo.ts", "plays": true },
     { "file": "replay-versions-001.txt", "workspace": "server", "script": "src/dev/replayVersionsDemo.ts", "plays": true },
-    { "file": "speed-vote-001.txt", "workspace": "server", "script": "src/dev/speedVoteDemo.ts", "plays": true }
+    { "file": "speed-vote-001.txt", "workspace": "server", "script": "src/dev/speedVoteDemo.ts", "plays": true },
+    { "file": "season-end-001.txt", "workspace": "server", "script": "src/dev/seasonEndApiDemo.ts", "plays": true }
   ],
   "records": {
     "about": "Files a dev script names that are measurements (long, sampled), kept as records rather than reproduced by `npm run demos`.",

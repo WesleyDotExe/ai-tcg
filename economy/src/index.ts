@@ -22,6 +22,9 @@ export {
   type OwnerRating,
   type RatingChange,
   type LadderRow,
+  type SeasonStanding,
+  type RetiredPrototypeRun,
+  type SeasonEnd,
   SalvageNeedsConfirmation,
   salvageBlockReason,
   DEFAULT_SEASON,
@@ -171,6 +174,7 @@ export {
 export {
   CARD_SETS,
   cardSet,
+  seasonSets,
   rollPack,
   pityDue,
   nextPity,
