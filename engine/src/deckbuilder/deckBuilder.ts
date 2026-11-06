@@ -104,6 +104,15 @@ export interface DeckBuildOptions {
   /** The play style the search (step 2) plays the deck in. Calculator by
    * default, whatever `style` is (see the header). */
   searchStyle?: PlayStyleId;
+  /** Keep the designed start unless another deck beats it by more than
+   * noise on the confirm step (owner 2026-11-03, session 71's call 1; TEST
+   * ONLY until the owner approves it for the store, so off by default). The
+   * number is the margin in standard deviations of a paired sign test on
+   * the confirm seeds: a challenger must win `keepDesigned` x sqrt(d) more
+   * of the d seeds where the two decks' games came out differently than the
+   * designed start does, and at least 2 more. Without a designed start (it
+   * can't be built, or it is the rating start's list) nothing changes. */
+  keepDesigned?: number;
   /** Narrates the build, one line per step. */
   log?: (line: string) => void;
 }
@@ -134,6 +143,11 @@ export interface FactionBuild {
   chosen?: StartKind | "searched";
   /** Fresh-seed result of `deck` (the confirm step), when games ran. */
   score?: GauntletScore;
+  /** With `keepDesigned`: the deck the plain rule (the most confirm wins)
+   * would have kept, and the paired test against the designed start that
+   * decided it. Absent when the option is off or the plain rule already
+   * kept the designed start. */
+  keepDesigned?: { plain: StartKind | "searched"; plainWins: number; designedWins: number; gained: number; lost: number; margin: number; kept: "designed" | "plain" };
   /** The changes the search kept, in order ("-1 X +1 Y: 52 -> 61 of 160"). */
   kept: string[];
   tried: number;
@@ -595,10 +609,37 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
   // Confirm on seeds the search never played: the searched deck and every
   // start; the best wins (the searched deck on a tie, then the earlier start).
   const fresh = seed + 1_000_000;
-  for (const st of starts) st.score = (await playGauntlet(st.list, fresh, confirmGames, style)).score;
-  const searched = kept.length === 0 ? from.score! : (await playGauntlet(list, fresh, confirmGames, style)).score;
-  let best: { chosen: StartKind | "searched"; list: DeckList; score: GauntletScore } = { chosen: kept.length === 0 ? from.from : "searched", list, score: searched };
-  for (const st of starts) if (st.score!.wins > best.score.wins) best = { chosen: st.from, list: st.list, score: st.score! };
+  const confirmResults = new Map<FactionBuild["starts"][number], boolean[]>();
+  for (const st of starts) {
+    const g = await playGauntlet(st.list, fresh, confirmGames, style);
+    st.score = g.score;
+    confirmResults.set(st, g.results);
+  }
+  const searchedGame = kept.length === 0 ? undefined : await playGauntlet(list, fresh, confirmGames, style);
+  const searched = searchedGame ? searchedGame.score : from.score!;
+  const searchedResults = searchedGame ? searchedGame.results : confirmResults.get(from)!;
+  let best: { chosen: StartKind | "searched"; list: DeckList; score: GauntletScore; results: boolean[] } = { chosen: kept.length === 0 ? from.from : "searched", list, score: searched, results: searchedResults };
+  for (const st of starts) if (st.score!.wins > best.score.wins) best = { chosen: st.from, list: st.list, score: st.score!, results: confirmResults.get(st)! };
+  // The designed start is the incumbent: a challenger replaces it only by
+  // more than noise (the same paired sign test as the search, at the
+  // option's margin), so a deck that only fits the shipped field's seeds
+  // by a few games can't push the set's designed deck out.
+  let keepDesignedNote: FactionBuild["keepDesigned"];
+  const designedStart = starts.find((st) => st.from === "designed");
+  if (options.keepDesigned !== undefined && designedStart && best.chosen !== "designed") {
+    const d = confirmResults.get(designedStart)!;
+    let gained = 0;
+    let lost = 0;
+    best.results.forEach((w, i) => {
+      if (w && !d[i]) gained++;
+      if (!w && d[i]) lost++;
+    });
+    const margin = Math.max(2, options.keepDesigned * Math.sqrt(gained + lost));
+    const beats = gained - lost >= margin;
+    keepDesignedNote = { plain: best.chosen, plainWins: best.score.wins, designedWins: designedStart.score!.wins, gained, lost, margin: Math.round(margin * 10) / 10, kept: beats ? "plain" : "designed" };
+    log(`${faction}: ${best.chosen} vs designed on the confirm seeds: +${gained} -${lost} (needs +${keepDesignedNote.margin} net): ${beats ? `${best.chosen} beats it` : "designed deck kept"}`);
+    if (!beats) best = { chosen: "designed", list: designedStart.list, score: designedStart.score!, results: d };
+  }
   log(
     `${faction}: fresh seeds, ${starts.map((st) => `${st.from} ${st.score!.wins}`).join(", ")}, searched ${searched.wins} (of ${searched.games}): ${best.chosen} deck kept`,
   );
@@ -611,6 +652,7 @@ export async function buildFaction(faction: DeckFaction, holdings: Holdings, opt
     score: best.score,
     kept: best.chosen === "searched" ? kept : [],
     tried,
+    ...(keepDesignedNote ? { keepDesigned: keepDesignedNote } : {}),
   };
 }
 

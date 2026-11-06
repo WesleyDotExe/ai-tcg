@@ -53,7 +53,7 @@ new ideas go to `progress/season-1-ideas.md`.
    ring rebuilt (`progress/built-deck-ring-005.txt`); the first seat 53.6% on the ladder, 54.4% in mirrors
    (`progress/first-seat-003-rules-2.txt`); watch time median 6.7 min. Numbers at an [OWNER CHECK-IN] before the
    launch-gate re-run.
-1d. [ ] (the same item as 2f below, session 79; it moved behind the website endpoints). The full-collection Null deck the builder picks under rules-2
+1d. [~] (the same item as 2f below; measured session 79, at an owner check-in). The full-collection Null deck the builder picks under rules-2
    (test only, then the built-deck ring re-run); the watch pace if the owner wants it back near 6 minutes.
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
    and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
@@ -108,7 +108,11 @@ new ideas go to `progress/season-1-ideas.md`.
    `GET /api/stats` (`agent`, `days` 7-90, `recent` 1-50): totals with the best and current streak, win rate by
    faction and by the opponent's faction, recent results, the daily rating chart and weekly trend, today's earnings.
    `server/OWNER_API.md`, tests, `progress/stats-001.txt`. Five calls at notes-for-owner.md.
-2f. [ ] NEXT (session 79). The test-only Null deck-builder session (owner-approved; before the launch-gate re-run): see current.md.
+2f. [~] The test-only Null deck-builder session (owner-approved; before the launch-gate re-run). Session 79: `keepDesigned`
+   built in the builder, OFF by default; the built-deck ring re-run with it at 2 SD and 1 SD
+   (`progress/built-deck-ring-006.txt`, `-006-z1.txt`, `progress/null-builder/README.txt`): the full-collection Null
+   mean 39.2 -> 51.5 / 50.0. At an [OWNER CHECK-IN] (notes-for-owner.md): switch it on for the store, and at which
+   margin. Left: whatever the owner picks (one default and the demos it moves), then the launch-gate re-run.
 2-0. [x] (owner 2026-11-06, first) The auto-merge retry fix (session 75): "Wait for checks to pass" retries a
    GitHub 5xx or rate limit 4 times (5/10/20/40 s); any other error or a failed check still stops the merge.
    Tested on the shipped script text (`server/test/autoMergeWorkflow.test.ts`).

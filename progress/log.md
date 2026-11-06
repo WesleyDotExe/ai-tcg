@@ -4795,3 +4795,42 @@ daily; the rating ignores the agent filter (one rating per owner). All in qualit
 [OWNER CHECK-IN] in notes-for-owner.md. The new step's CI time isn't recorded: this session couldn't wait for PR #139's run to finish. Session 79 reads it first.
 
 **Blocked:** nothing. Next: session 79, the test-only Null deck-builder session (roadmap 2f).
+
+## 2026-11-06 — Session 79 (game lane): PR #139's CI times; the test-only Null deck-builder session
+
+**Owner feedback:** the session-78 answers (Stats page, keep all 5) marked handled; nothing to change. Checked
+first: no open PR from either lane. The last merged was #139 (this lane's session 78).
+
+**PR #139's CI:** read on GitHub. The demo drift check took 1:31 and the `test` job 6:59 on the final commit (1:33
+and 7:01 on the first). Engine suite 3:49, browser check 0:48. **Found while reading it:** the auto-merge job for the
+PR's *first* commit merged the PR at 02:44:33, 4 s after that commit's `test` passed. By then the head was the
+second commit, whose `test` was still running (it passed at 02:46:16). The Merge step calls `pulls.merge` without a
+`sha`, so GitHub merged whatever the head was. A third commit (02:44:57, the CI-time note) never reached main.
+Proposed to the owner as a one-line fix; not changed, since `auto-merge.yml` changes need the owner's OK per purpose.
+
+**Built (test only):** `keepDesigned` in `engine/src/deckbuilder/deckBuilder.ts`, off by default. With it on, the
+confirm step keeps the designed start unless the best other deck beats it, paired on the confirm seeds, by
+max(2, z x sqrt(discordant)). The build reports what the plain rule would have kept and the test numbers
+(`FactionBuild.keepDesigned`). The confirm step now keeps each deck's per-game results; with the option off,
+every pick is the same as before (tested; also the full Null build still gives 214, as in 005). In
+`builtDeckRing.ts`: `--keep-designed z` on build, recorded in the file, a TEST ONLY header line, and a table of
+every overruled pick with the 1-SD answer beside it. 5 tests in `engine/test/deckBuilder.test.ts`, including
+session 71's real case at the store's settings (rating 214 vs designed 212: +68 -66, designed kept).
+
+**Ran it:** `progress/null-builder/run-built-deck-ring.sh` on built-deck-ring-005's collections and seeds, z = 2
+(`progress/built-deck-ring-006.txt`; run twice, identical apart from a report column fixed in between) and z = 1
+(`-006-z1.txt`). 4 minutes each on 4 cores. Real mode, full collection: Null 39.2 -> 51.5 (z = 2) / 50.0 (z = 1),
+Swarm > Null 69.4 -> 53.0. At z = 2 the full Cortex rating deck (net +19 over designed, 1.6 SD) is also dropped:
+Cortex 51.3 -> 43.6 and Aegis > Cortex 62.6, out. z = 1 keeps it. At the pack levels both margins are close to 005.
+Tests: engine 370 (+5), economy 254, both pass; typecheck clean in engine, economy, server, agents and protocol;
+`npm run demos` 24 the same (nothing the store builds changed).
+
+**Worked:** making the margin a parameter let one cheap extra run separate "Null is fixed" from "Cortex is harmed".
+At z = 2 alone, the result would have looked like the fix moved the problem to Cortex.
+**Thin:** the margin is picked on one set of collections and one search seed; the confirm step still scores only
+against shipped decks (the root cause session 71 named), and keepDesigned works around it rather than fixing it.
+The ring's own noise on a single full-collection deck is several points (session 60), so 1 SD vs 2 SD at
+the full level rests on one deck each.
+
+**Blocked:** nothing. Next: the owner's two calls; otherwise the remaining Season 0 items. Session 80 is hardening.
+

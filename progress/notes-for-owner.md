@@ -1,5 +1,59 @@
 # Notes for the owner
 
+**Updated 2026-11-06, session 79 (the test-only Null deck-builder session). [OWNER CHECK-IN] (the builder rule, as
+your 2026-11-03 answer asked, before the launch-gate re-run).** Nothing is blocking: the store's builder is
+unchanged until you answer. Your answers to session 78 (the Stats page) are done: all 5 kept, nothing changed.
+
+**1. PR #139's CI times.** The demo drift check took **1 min 31 s** on the PR's final commit (1 min 33 s on its
+first), and the whole `test` job **6 min 59 s** (7 min 01 s on the first). The engine suite is the biggest part
+(3:49), then the browser check (0:48), the two ring checks (0:17 each), the type check (0:04). About 5 minutes of
+room left inside the 12-minute auto-merge wait.
+
+**2. Found while reading that run: the auto-merge can merge a commit whose tests haven't finished. Proposal only,
+not changed** (you OK `auto-merge.yml` changes one purpose at a time). On #139, session 78 pushed a second commit
+2 minutes after opening the PR. The first commit's auto-merge job was still waiting; when *that commit's* `test`
+passed (02:44:29 UTC) it merged the PR (02:44:33), and by then the PR's head was the second commit, whose `test` was
+still running (it passed at 02:46:16, so nothing bad landed this time). The "Merge" step calls the merge without
+naming a commit, so GitHub merges whatever the head is. A third commit pushed at 02:44:57 never reached main (it
+only held the CI times; they are in point 1 now). **The fix:** pass `sha: pr.head.sha` in the Merge step. GitHub
+then refuses the merge if the head has moved, and the newer commit's own auto-merge job merges it after its own
+tests pass. One line, plus a test on the workflow's script like sessions 75 and 77. Say yes and the next game
+session does it first.
+
+**3. The Null builder rule (your call).** Built as you asked, **test only**: `keepDesigned` in the deck builder,
+off by default. With it on, the designed deck is the incumbent. Another deck (the builder's rating deck or its
+searched deck) replaces it only when, on the builder's 400 confirm games, it wins more than noise more of the
+games where the two decks' results differ (the same paired test the search already uses, at a margin in standard
+deviations). I re-ran the built-deck ring on session 71's collections and seeds at two margins: 2 SD
+(`progress/built-deck-ring-006.txt`) and 1 SD (`-006-z1.txt`). The summary is in
+`progress/null-builder/README.txt`.
+
+| real-match mode | today (005) | 2 SD (006) | 1 SD (006-z1) |
+|---|---|---|---|
+| full collection: in / unresolved / out | 0 / 4 / 2 | 0 / 2 / 4 | 0 / 4 / 2 |
+| full: Null's mean (50 = even) | **39.2** | 51.5 | 50.0 |
+| full: Swarm > Null (band 55-60) | **69.4** | 53.0 | 53.0 |
+| full: the faction furthest from 50 | Null 39.2 | Cortex 43.6 | Aegis 53.3 |
+| 37 / 17 / 3 packs: furthest from 50 | 47.9 / 46.3 / 46.5 | 52.0 / 47.7 / 46.3 | 52.4 / 47.2 / 46.2 |
+
+- **Both margins fix the full-collection Null deck.** From a full collection the builder now keeps the designed
+  Null list. The rating deck it used to pick wins only 2 games more out of 400, and that isn't a real difference.
+- **They differ on Cortex.** From a full collection the builder's Cortex rating deck beats the designed list by 19
+  games (1.6 SD). At 2 SD the builder throws that deck away. Full-collection Cortex then falls to 43.6, and
+  Aegis > Cortex goes out of band at 62.6. At 1 SD it keeps the deck, and Cortex stays at 48.3. At the pack
+  levels the two margins differ only by noise, and both are close to today.
+- **Recommend: switch it on for the store at 1 SD.** That fixes Null and leaves the Cortex deck alone. At 1 SD
+  "more than noise" is a weak bar, but it is the same bar the search already uses for every change it keeps.
+  Other options: 2 SD (stricter, costs Cortex as above), or leave it off.
+- **What switching it on changes:** every owner's agent deck where today's builder picked a deck that wasn't
+  clearly better than the designed list. In the ring's collections that is 30 of 100 decks at 1 SD (the full Null deck and 29 of the 96 realistic owners' decks), and 45 at 2 SD.
+  The economy demos that print builder decks will need regenerating; the demo check in CI will list them. Then
+  the launch-gate re-run.
+- Not touched: the edges that were already off with the shipped decks (Null > Aegis 52.1 under its band, and Null
+  ~ Cortex 58.0). The builder rule doesn't affect them.
+
+---
+
 **Updated 2026-11-06, session 78 (the demo check in CI; "Time's up"; the Stats page's data). [OWNER CHECK-IN]
 (the Stats page's shape, as roadmap 2e asked).** Nothing is blocking: it is built on the proposal below and the
 next session (the Null builder session, 2f) doesn't depend on your answers. Your answers to sessions 75-77 are

@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23), and session 78 (the demo check in CI, "Time's up", the Stats page's data, schema v24).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23), and session 78 (the demo check in CI, "Time's up", the Stats page's data, schema v24), and session 79 (the test-only Null builder rule; an auto-merge race found).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -255,9 +255,24 @@ real, but here is where it's thin.
 - **The render lane's types (`render/src/site/siteApi.ts`) still describe the old `signature: { name, played }`**
   and have no `faction`, `openingHands` or live `boast`. That is the render lane's side to pick up; the fields are
   additive, so nothing it reads broke.
-- **Still open from session 71:** the full-collection Null deck pick (the test-only builder session the owner
-  approved, before the launch-gate re-run); the economy demos, older owner-API demos and the render's committed
+- **Still open from session 71:** the full-collection Null deck pick (measured session 79 with `keepDesigned`, test
+  only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
+
+## Session 79 (the test-only Null builder rule; PR #139's CI): what is still thin
+
+- **The auto-merge can merge an untested head (serious, process).** The Merge step's `pulls.merge` names no `sha`,
+  so a job started for an older commit merges whatever the head is once *its* commit's `test` passes. It happened
+  on #139: the merged head's `test` was still running, and passed later. Fix proposed (one line); waits on the
+  owner's OK for `auto-merge.yml`. Until then, runs should not push to a PR after opening it.
+- **The store's builder still picks the bad full-collection Null deck.** `keepDesigned` fixes it in the ring
+  (39.2 -> 50-51.5) but is off until the owner picks a margin. `built-deck-ring-005` stays the store's real state.
+- **keepDesigned works around the root cause; it doesn't fix it.** The confirm step scores only against the shipped
+  decks, so a deck tuned to that field can beat the designed list there and still lose to built decks. Scoring
+  against built decks as well would be the real fix: a bigger change, and slower builds.
+- **The margin rests on thin evidence.** One collection set, one search seed. The 1 SD vs 2 SD difference at the
+  full level is one Cortex deck (net +19 of 143 discordant games), and one full deck's ring swing is several
+  points by its seed alone.
 
 ## Session 71 (the 24-health rule shipped as rules-2): what is still thin
 
