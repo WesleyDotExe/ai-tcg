@@ -62,7 +62,7 @@ const STORE_BUILD = DEFAULT_BUILD;
 export interface BuiltDeckFile {
   level: string;
   faction: DeckFaction;
-  settings: { games: number; trials: number; confirmGames: number; searchSeed?: number };
+  settings: { games: number; trials: number; confirmGames: number; searchSeed?: number; keepDesigned?: number };
   decks: {
     owner: number;
     /** Copies the owner held (all factions). */
@@ -74,6 +74,8 @@ export interface BuiltDeckFile {
     score: GauntletScore;
     /** The shipped list's result on the same confirm seeds (Calculator). */
     shipped?: GauntletScore;
+    /** With `--keep-designed`: what the plain rule would have kept and the test that decided (deckBuilder's `keepDesigned`). */
+    keepDesigned?: { plain: string; plainWins: number; designedWins: number; gained: number; lost: number; margin: number; kept: "designed" | "plain" };
   }[];
 }
 
@@ -106,8 +108,10 @@ function factionArg(x: string | undefined): DeckFaction {
  * noise check asks for another search seed (`--search-seed`, session 60:
  * how much one full-collection build swings by its seed alone; the confirm
  * seeds stay the same). */
-function buildSettings(): { games: number; trials: number; confirmGames: number; seed: number } {
+function buildSettings(): { games: number; trials: number; confirmGames: number; seed: number; keepDesigned?: number } {
+  const keep = arg("keep-designed");
   return {
+    ...(keep !== undefined ? { keepDesigned: Number(keep) } : {}),
     games: Number(arg("games") ?? STORE_BUILD.games),
     trials: Number(arg("trials") ?? STORE_BUILD.trials),
     confirmGames: Number(arg("confirm") ?? STORE_BUILD.confirmGames),
@@ -143,11 +147,11 @@ async function build(level: string, faction: DeckFaction, collectionsPath: strin
     for (const c of file.collections) if (c.faction === faction && c.packs === packs) owners.push({ owner: c.owner, copies: c.copies, holdings: new Map(c.holdings) });
     if (owners.length === 0) throw new Error(`no ${faction} collections at ${packs} packs in ${collectionsPath}`);
   }
-  const out: BuiltDeckFile = { level, faction, settings: { games: settings.games, trials: settings.trials, confirmGames: settings.confirmGames, ...(settings.seed !== STORE_BUILD.seed ? { searchSeed: settings.seed } : {}) }, decks: [] };
+  const out: BuiltDeckFile = { level, faction, settings: { games: settings.games, trials: settings.trials, confirmGames: settings.confirmGames, ...(settings.seed !== STORE_BUILD.seed ? { searchSeed: settings.seed } : {}), ...(settings.keepDesigned !== undefined ? { keepDesigned: settings.keepDesigned } : {}) }, decks: [] };
   for (const o of owners) {
     const b = await buildFaction(faction, o.holdings, { ...settings, log: (l) => console.error(`[${level} ${faction} #${o.owner}] ${l}`) });
     if (!b.deck) throw new Error(`${faction} owner ${o.owner} at ${level}: ${b.infeasible}`);
-    out.decks.push({ owner: o.owner, copies: o.copies, list: sorted(b.deck), chosen: b.chosen!, kept: b.kept, score: b.score!, shipped });
+    out.decks.push({ owner: o.owner, copies: o.copies, list: sorted(b.deck), chosen: b.chosen!, kept: b.kept, score: b.score!, shipped, ...(b.keepDesigned ? { keepDesigned: b.keepDesigned } : {}) });
   }
   return out;
 }
@@ -243,6 +247,8 @@ function report(builds: BuiltDeckFile[], rings: RingFile[]): void {
   console.log("Realistic owners: 8 per faction, each the faction's starter collection plus packs from the live roller (economy/src/dev/realisticCollections.ts);");
   console.log("at a pack level each seed seats one owner per side, every owner equally often and on both seats.");
   console.log("Bands: predator 55-60%, prey 40-45%, even 45-55%. Verdicts on the 95% Wilson interval: IN only when it sits inside the band, OUT only when it misses it.");
+  const keep = [...new Set(builds.map((b) => b.settings.keepDesigned).filter((x): x is number => x !== undefined))];
+  if (keep.length > 0) console.log(`TEST ONLY: built with keepDesigned ${keep.join(", ")} (the designed start is kept unless another deck beats it by more than ${keep.join(", ")} standard deviations, paired, on the confirm seeds); the store builds without it.`);
   console.log("No card, deck or rule changed: this only measures.");
   console.log("");
 
@@ -326,6 +332,25 @@ function report(builds: BuiltDeckFile[], rings: RingFile[]): void {
       const size = b.decks.map((d) => d.list.reduce((s, [, n]) => s + n, 0)).join(" ");
       console.log(`  ${f.padEnd(7)}built ${pct(mean)}${rates.length > 1 ? ` (owners ${pct(Math.min(...rates))}-${pct(Math.max(...rates))})` : ""}  shipped ${pct(shipped.wins / shipped.games)}  lift ${signed(mean - shipped.wins / shipped.games)}  kept: ${chosen}  sizes: ${size}`);
     }
+  }
+  if (builds.some((b) => b.settings.keepDesigned !== undefined)) {
+    console.log("");
+    console.log("keepDesigned: every deck where the plain rule (the most confirm wins) would have kept another deck than the designed start,");
+    console.log("with the paired test on the confirm seeds (challenger's wins the designed start lost, and the reverse; the net it needed):");
+    let n = 0;
+    for (const l of LEVEL_ORDER) {
+      for (const f of DECK_FACTIONS) {
+        const b = builds.find((x) => x.level === l && x.faction === f);
+        if (!b) continue;
+        for (const d of b.decks) {
+          const k = d.keepDesigned;
+          if (!k) continue;
+          n++;
+          console.log(`  ${l.padEnd(5)}${f.padEnd(7)}#${d.owner}  ${k.plain} ${k.plainWins} vs designed ${k.designedWins}: +${k.gained} -${k.lost}, net ${k.gained - k.lost >= 0 ? "+" : ""}${k.gained - k.lost} (needs +${k.margin}): ${k.kept === "designed" ? "designed kept" : `${k.plain} kept`}; at 1 SD (needs +${Math.max(2, Math.sqrt(k.gained + k.lost)).toFixed(1)}): ${k.gained - k.lost >= Math.max(2, Math.sqrt(k.gained + k.lost)) ? k.plain : "designed"}`);
+        }
+      }
+    }
+    if (n === 0) console.log("  (none: the plain rule kept the designed start wherever there was one)");
   }
   console.log("");
   console.log("How each full-collection deck differs from its shipped list:");

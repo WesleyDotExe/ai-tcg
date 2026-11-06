@@ -4322,7 +4322,7 @@ Order: the demo-check step and the "Time's up" rename at the start of the next g
 
 ---
 
-## 2026-11-06 — Owner: answers to game session 78 (the Stats page's data), keep all 5
+## 2026-11-06 — Owner: answers to game session 78 (the Stats page's data), keep all 5 (HANDLED 2026-11-06, session 79 — all 5 kept, nothing changed. PR #139's CI times read and written at the top of notes-for-owner.md; then the test-only Null deck-builder session, as planned)
 
 Answers the five calls in `progress/notes-for-owner.md` (PR #139, `progress/stats-001.txt`).
 1. **Keep:** the rating chart and weekly trend are the owner's under every agent filter (one rating per owner); everything else follows the filter.

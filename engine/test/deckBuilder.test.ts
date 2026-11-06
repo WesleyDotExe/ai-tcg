@@ -250,6 +250,67 @@ describe("chooseDeck (the deck-building agent)", () => {
   });
 });
 
+describe("keepDesigned: the designed start is kept unless beaten by more than noise (session 79, test only)", () => {
+  it("is off by default: the builder keeps the most confirm wins, as the store's always has", async () => {
+    const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11 };
+    const plain = await buildFaction("Swarm", fullHoldings(), opts);
+    expect(plain.keepDesigned).toBeUndefined();
+    for (const st of plain.starts) expect(plain.score!.wins).toBeGreaterThanOrEqual(st.score!.wins);
+  });
+
+  it("keeps the designed start under a margin nothing can reach, and says what the plain rule would have kept", async () => {
+    const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11 };
+    for (const f of DECK_FACTIONS) {
+      const plain = await buildFaction(f, fullHoldings(), opts);
+      const lines: string[] = [];
+      const kept = await buildFaction(f, fullHoldings(), { ...opts, keepDesigned: 1000, log: (l) => lines.push(l) });
+      expect(kept.chosen).toBe("designed");
+      expect([...kept.deck!]).toEqual([...shippedList(f)]);
+      // The search and the confirm games are the plain build's: only the pick differs.
+      expect(kept.starts.map((st) => st.score)).toEqual(plain.starts.map((st) => st.score));
+      if (plain.chosen === "designed") {
+        expect(kept.keepDesigned).toBeUndefined();
+      } else {
+        expect(kept.keepDesigned).toMatchObject({ plain: plain.chosen, plainWins: plain.score!.wins, kept: "designed" });
+        expect(lines.some((l) => l.includes("designed deck kept"))).toBe(true);
+      }
+    }
+  });
+
+  it("lets a challenger through when it clears the margin (the minimum, 2 net seeds, at margin 0)", async () => {
+    const opts = { games: 3, trials: 4, confirmGames: 3, seed: 11 };
+    for (const f of DECK_FACTIONS) {
+      const plain = await buildFaction(f, fullHoldings(), opts);
+      const zero = await buildFaction(f, fullHoldings(), { ...opts, keepDesigned: 0 });
+      if (!zero.keepDesigned) {
+        expect(zero.chosen).toBe(plain.chosen);
+        continue;
+      }
+      const k = zero.keepDesigned;
+      expect(k.margin).toBe(2);
+      expect(zero.chosen).toBe(k.gained - k.lost >= 2 ? plain.chosen : "designed");
+    }
+  });
+
+  it("changes nothing without a designed start (the owner holds only the designed list: one start)", async () => {
+    const opts = { games: 2, trials: 2, confirmGames: 2, seed: 3, keepDesigned: 1000 };
+    const b = await buildFaction("Swarm", shippedList("Swarm"), opts);
+    expect(b.starts.map((st) => st.from)).toEqual(["rating"]);
+    expect(b.keepDesigned).toBeUndefined();
+  });
+
+  it("keeps the designed Null deck from a full collection at the store's settings (session 71's case: rating 214 vs designed 212 of 400)", async () => {
+    const plain = await buildFaction("Null", fullHoldings());
+    expect(plain.chosen).toBe("rating");
+    expect(plain.score!.wins).toBe(214);
+    const kept = await buildFaction("Null", fullHoldings(), { keepDesigned: 2 });
+    expect(kept.chosen).toBe("designed");
+    expect([...kept.deck!]).toEqual([...shippedList("Null")]);
+    expect(kept.score!.wins).toBe(212);
+    expect(kept.keepDesigned).toEqual({ plain: "rating", plainWins: 214, designedWins: 212, gained: 68, lost: 66, margin: 23.2, kept: "designed" });
+  }, 60_000);
+});
+
 describe("a collection that runs out short of 40 cards (session 54)", () => {
   // A Null owner on day one (the starter deck plus its 3 starter packs,
   // progress/built-deck-ring/collections.json): the owned cards stop at 37,

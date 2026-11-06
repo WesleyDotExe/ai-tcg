@@ -2,38 +2,36 @@
 
 **Build-order stage: Stage 4+ (the living system), now driven by the Season 0 checklist at the top of
 `progress/roadmap.md` (owner 2026-11-01: Season 0 is the MVP; scope LOCKED 2026-11-06: freeze 9 Nov, features done
-1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec). Session 78 (game lane) did the owner's three small answers (the
-demo check in CI, "Time's up", the notification clean-up rule on the launch list) and the Stats page's data.
-Nothing is blocking. The Stats page's shape is at an [OWNER CHECK-IN] at the top of notes-for-owner.md (five
-calls); nothing waits on them.**
+1 Dec, clean-up 2-4 Dec, Season 0 starts 5 Dec). Session 79 (game lane) read PR #139's CI times and did the
+test-only Null deck-builder session (roadmap 2f). Nothing is blocking. Two owner calls are at the top of
+notes-for-owner.md: the builder rule (on, and at which margin) and a one-line auto-merge fix (proposed, not made).**
 
-- **The demo check in CI:** `.github/workflows/test.yml` runs `npm run demos` (the fast set) after the ring check.
-  A rule, card or schema change now fails the PR until its demos are regenerated (`npm run demos -- --write`, then
-  read the diff). The slow three (`--all`) are still local only.
-- **"Time's up":** `autoPlay.allowance.label` ("Running" / "Finishing match" / "Time's up",
-  `AUTO_PLAY_ALLOWANCE_LABELS`); `state` stays `done` on the wire.
-- **The Stats page (roadmap 2e; schema v24):** each side's deck faction is kept on the match (`p1_faction` /
-  `p2_faction`, written once by `recordMatch`; null before v24). `store.stats(ownerId, { agentId, days, recent })`,
-  counting in `economy/src/stats.ts` (pure: `tallyMatches`, `ratingChart`). `GET /api/stats?agent&days&recent`.
-  Tests `economy/test/stats.test.ts` (10), `server/test/stats.test.ts` (3); evidence `progress/stats-001.txt`
-  (13 PASS) on `progress/demos.json`.
-- The render lane can now build the Stats page and the Rating & form widget (S: `rating.now` and `weekChange`; M:
-  `rating.chart` and `recent`; L: + `totals` and `byFaction`), and My agent's rating trend at L.
+- **PR #139's CI:** the demo step 1:31, the `test` job 6:59 (final commit).
+- **Found: the auto-merge's Merge step merges the PR's current head, not the commit it tested.** #139 merged while
+  its second commit's `test` was still running. Fix proposed (`sha: pr.head.sha` on `pulls.merge`), NOT made: the
+  owner OKs `auto-merge.yml` changes per purpose. Until then: **don't push to a PR after opening it** unless you
+  must; if you do, check that the merged commit's `test` passed.
+- **`keepDesigned` (deckBuilder.ts, test only, OFF by default):** the designed start is kept unless a challenger
+  beats it on the confirm seeds by more than z SD (paired sign test). `builtDeckRing.ts build --keep-designed z`.
+  5 tests. `progress/built-deck-ring-006.txt` (z = 2), `-006-z1.txt` (z = 1), `progress/null-builder/` (script,
+  README). Full-collection Null 39.2 -> 51.5 / 50.0; z = 2 also drops the full Cortex rating deck (Cortex 43.6),
+  z = 1 doesn't. Recommended z = 1.
 
 ## Concrete next step
 
 At the start: check for an open PR from your own lane (owner 2026-11-06); if one is open, note it and stop, or fix
-it if it has failed checks or conflicts. Check the last merged PR so a slice isn't built twice. CI now runs the
-demos: if a change of yours moves a demo, regenerate it (`npm run demos -- --write`) and read the diff before the PR. **First, small:** read PR #139's `test` run on GitHub (the step "demo drift check (fast
-demos)" and the whole job) and write both times at the top of notes-for-owner.md (the owner asked for the new run
-time; session 78 couldn't wait for it to finish).
+it if it has failed checks or conflicts. Check the last merged PR so a slice isn't built twice. Read
+owner-feedback.md for answers to session 79.
 
-The next **game-lane** session is **79: the test-only Null deck-builder session** (roadmap 2f, = 1d; owner-approved,
-the recommendation in notes-for-owner.md's session 71 check-in, call 1): the store's deck builder keeps the designed
-Null deck unless another deck beats it by more than noise; then re-run the built-deck ring
-(`progress/built-deck-ring-005.txt` is the one to beat; `progress/rules-2-ship/null-noise/README.txt` has the three
-builder decks measured so far). Test only; results to an owner check-in, before the launch-gate re-run. Then the
-rest of the game lane's open Season 0 items (2-0 onward; season end near the end). The next game-lane hardening
-pass is session 80. Feature freeze from 9 Nov: only the locked scope.
+- **If the owner OKs the auto-merge fix:** do it first. Pass `sha: context.payload.pull_request.head.sha` to
+  `pulls.merge` in `.github/workflows/auto-merge.yml`'s Merge step, and add a test in
+  `server/test/autoMergeWorkflow.test.ts` where the head moved, so GitHub's 409 fails the job.
+- **If the owner picks a margin for the builder:** make it the store's default (`DEFAULT_BUILD` or the
+  `keepDesigned` default in `buildFaction`). Regenerate the demos that move (`npm run demos -- --write` and the slow
+  three with `--all`), and read every diff. Re-run `progress/null-builder/run-built-deck-ring.sh` (or
+  `rules-2-ship`'s script) as the launch-gate re-run with the default on. Bring it to the owner.
+- **Otherwise:** the rest of the game lane's open Season 0 items (roadmap 2-0 onward: the live board's unit badges
+  if the render lane names them, season end near the end). **Session 80 is the game lane's hardening pass.** Feature
+  freeze from 9 Nov: only the locked scope.
 
-**Blocked:** nothing.
+**Blocked:** nothing (both calls are the owner's; work continues without them).
