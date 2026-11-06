@@ -50,7 +50,7 @@ describe("the play-time allowance (schema v22)", () => {
       on: true,
       stopped: null,
       canAddTime: true,
-      allowance: { state: "running", startedAt: START, endsAt: "2026-11-01T23:30:00.000Z", totalMinutes: 30, secondsLeft: 1800, minutesLeft: 30, endsAtReset: false },
+      allowance: { state: "running", label: "Running", startedAt: START, endsAt: "2026-11-01T23:30:00.000Z", totalMinutes: 30, secondsLeft: 1800, minutesLeft: 30, endsAtReset: false },
     });
     expect(s.autoPlayOwners()).toEqual([a.ownerId]);
     later(17.5);
@@ -78,7 +78,7 @@ describe("the play-time allowance (schema v22)", () => {
     later(15);
     expect(s.autoPlayOwners()).toEqual([]);
     const read = s.autoPlay(a.ownerId);
-    expect(read).toMatchObject({ on: false, stopped: { reason: "timeUp", day: "2026-11-02" }, canTurnOn: true, canAddTime: false, allowance: { state: "done", secondsLeft: 0, minutesLeft: 0 } });
+    expect(read).toMatchObject({ on: false, stopped: { reason: "timeUp", day: "2026-11-02" }, canTurnOn: true, canAddTime: false, allowance: { state: "done", label: "Time's up", secondsLeft: 0, minutesLeft: 0 } });
     expect(s.stopAutoPlayTimeUp()).toEqual([a.ownerId]);
     expect(s.stopAutoPlayIfTimeUp(a.ownerId)).toBe(false); // already off
     expect(s.autoPlay(a.ownerId)).toEqual({ ...read, changedAt: clock.toISOString() });
@@ -95,7 +95,7 @@ describe("the play-time allowance (schema v22)", () => {
     later(10);
     const m = startLive(s, a, b);
     later(6);
-    expect(s.autoPlay(a.ownerId)).toMatchObject({ on: true, stopped: null, canAddTime: true, allowance: { state: "finishing", secondsLeft: 0 } });
+    expect(s.autoPlay(a.ownerId)).toMatchObject({ on: true, stopped: null, canAddTime: true, allowance: { state: "finishing", label: "Finishing match", secondsLeft: 0 } });
     expect(s.autoPlayOwners()).toEqual([]);
     expect(s.stopAutoPlayTimeUp()).toEqual([]); // the match is still live
     later(3);
@@ -199,7 +199,7 @@ describe("the play-time allowance (schema v22)", () => {
     expect(v21.autoPlay(x.ownerId)).toMatchObject({ on: true, allowance: null });
     v21.close();
     const v22 = open(path);
-    expect(v22.schemaVersion).toBe(23);
+    expect(v22.schemaVersion).toBe(24);
     expect(v22.autoPlay(x.ownerId)).toMatchObject({ on: true, allowance: null, changedAt: START });
     expect(v22.autoPlay(y.ownerId)).toMatchObject({ on: false, allowance: null });
     expect(v22.autoPlayOwners()).toEqual([x.ownerId]);

@@ -1,0 +1,78 @@
+Stats demo 001 — the Stats page and the Rating & form widget (session 78)
+========================================================================
+Owner 2026-11-05 (roadmap 2e), the 2026-10-05 spec's Stats page: rating chart; matches, wins, win rate
+and best streak; recent results; win rate by faction; today's earnings; the "All agents" / one-agent
+filter. Quests and achievements are after Season 0 (not built). Cancelled and abandoned matches are void
+in every count (as the economy pays them nothing); an abandon is still rated. The rating is the owner's.
+
+1-2. The ladder: Mon 2 Nov 45 min; Wed 4 Nov 45 min, Ada on a second agent
+------------------------------------------------------------------------
+  Mon 2 Nov: Ada played 6 match(es) with Ada-agent.
+  Wed 4 Nov: Ada played 6 more with Ada-two.
+  [PASS] a live match's deck faction is kept on every record (schema v24)
+
+3. Tue 10 Nov: GET /api/stats?days=14 (All agents)
+------------------------------------------------------------------------
+  200; filter choices: Ada-agent (6 matches), Ada-two (6 matches)
+  totals: 12 matches, 10 W / 2 L / 0 D / 0 void, win rate 83.3%, best streak 9, now 9 wins, 134 credits from matches
+  win rate by Ada's faction / by the opponent's faction (W-L-D, void apart):
+    Cortex  played 10-2-0 (0 void) 83.3%  against —
+    Swarm   played —                      against 3-1-0 (0 void) 75.0%
+    Aegis   played —                      against 4-0-0 (0 void) 100.0%
+    Null    played —                      against 3-1-0 (0 void) 75.0%
+    not recorded (before v24): 0 / 0
+  [PASS] totals agree with the match history (and with ownerStats, the older count)
+  [PASS] every opponent-faction row is the matches against that faction in the history
+  [PASS] Ada's own faction is Cortex in every match
+  recent results (newest first):
+    m23  2026-11-03T23:50Z Ada-two   win       v Bram-agent (Bram, Aegis), 5 credits, +8.1 rating, 15 turns
+    m21  2026-11-03T23:40Z Ada-two   win       v Cyra-agent (Cyra, Swarm), 5 credits, +10.4 rating, 13 turns
+    m19  2026-11-03T23:34Z Ada-two   win       v Hub-agent (Hub, Null), 10 credits, +28.4 rating, 14 turns
+    m17  2026-11-03T23:28Z Ada-two   win       v Bram-agent (Bram, Aegis), 10 credits, +11.7 rating, 15 turns
+    m15  2026-11-03T23:19Z Ada-two   win       v Hub-agent (Hub, Null), 10 credits, +41.2 rating, 12 turns
+    m13  2026-11-03T23:05Z Ada-two   win       v Cyra-agent (Cyra, Swarm), 30 credits, +41.0 rating, 13 turns
+    m12  2026-11-01T23:45Z Ada-agent win       v Bram-agent (Bram, Aegis), 10 credits, +21.2 rating, 15 turns
+    m9   2026-11-01T23:35Z Ada-agent win       v Hub-agent (Hub, Null), 10 credits, +146.3 rating, 17 turns
+    m8   2026-11-01T23:26Z Ada-agent win       v Cyra-agent (Cyra, Swarm), 10 credits, +77.1 rating, 12 turns
+    m5   2026-11-01T23:21Z Ada-agent loss      v Hub-agent (Hub, Null), 2 credits, -43.6 rating, 14 turns
+  [PASS] recent results are the newest 10, newest first
+  rating chart (14 Sydney days, ending today):
+    2026-10-28   1500.0
+    2026-10-29   1500.0
+    2026-10-30   1500.0
+    2026-10-31   1500.0
+    2026-11-01   1500.0
+    2026-11-02   1668.3  6 rated: 4-2-0
+    2026-11-03   1668.3
+    2026-11-04   1809.1  6 rated: 6-0-0
+    2026-11-05   1809.1
+    2026-11-06   1809.1
+    2026-11-07   1809.1
+    2026-11-08   1809.1
+    2026-11-09   1809.1
+    2026-11-10   1809.1
+  now 1809.1 (RD 141.0, Diamond); a week ago (end of Tue 3 Nov) 1668.3; weekly trend +140.8
+  [PASS] Mon 2 Nov closes on the rating after that day's last rated match
+  [PASS] idle days carry the rating over; the chart ends today at the rating now
+  [PASS] the weekly trend is now minus the end of Tue 3 Nov, so it holds Wed 4 Nov's matches
+  today's earnings (as GET /api/daily): 2026-11-10, 0 credits, next win pays 30
+  [PASS] today's earnings are GET /api/daily's
+
+4. The agent filter (GET /api/stats?agent=...)
+------------------------------------------------------------------------
+  Ada-agent 6 matches, 4 W / 2 L / 0 D / 0 void, 66.7%, best streak 3; recent: m12 m9 m8 m5 m4 m1
+  Ada-two   6 matches, 6 W / 0 L / 0 D / 0 void, 100.0%, best streak 6; recent: m23 m21 m19 m17 m15 m13
+  [PASS] the two agents' counts add up to All agents
+  [PASS] each agent's recent results are only that agent's
+  [PASS] the rating is the owner's: the same chart under every filter
+
+5. Bad requests
+------------------------------------------------------------------------
+  ?days=6: 400 "days" must be a whole number from 7 to 90
+  ?days=91: 400 "days" must be a whole number from 7 to 90
+  ?recent=0: 400 "recent" must be a whole number from 1 to 50
+  ?recent=51: 400 "recent" must be a whole number from 1 to 50
+  ?agent=<Bram's agent>: 404 no agent "<Bram's agent>" of yours
+  [PASS] 400 for days or recent out of range; 404 for another owner's agent
+
+13 PASS, 0 FAIL

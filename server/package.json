@@ -23,6 +23,7 @@
     "demo:featured-viewers": "tsx src/dev/featuredViewersDemo.ts",
     "demo:play-time": "tsx src/dev/playTimeApiDemo.ts",
     "demo:notifications": "tsx src/dev/notificationsApiDemo.ts",
+    "demo:stats": "tsx src/dev/statsApiDemo.ts",
     "measure:first-seat-ladder": "tsx src/dev/firstSeatLadder.ts"
   },
   "dependencies": {

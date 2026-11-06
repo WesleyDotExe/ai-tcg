@@ -50,6 +50,10 @@ import {
   SECRET_CRAFT_PACK_POINTS,
   STARTER_PACKS,
   LADDER_LIST_SIZE,
+  STATS_CHART_DAYS_DEFAULT,
+  STATS_CHART_DAYS_MAX,
+  STATS_RECENT_DEFAULT,
+  STATS_RECENT_MAX,
   LADDER_TIERS,
   PLACEMENT_MATCHES,
   AUTO_PLAY_START_MINUTES,
@@ -89,6 +93,7 @@ import {
 } from "./cosmetics.js";
 import { matchCredits, MAX_PAID_LOSSES_PER_DAY, WIN_SCHEDULE, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 import { resetDayOf } from "./dailyReset.js";
+import { ratingChart, tallyMatches, type RatedPoint, type RatingChartDay, type StatsMatchRow, type StatsResult, type StatsTallies } from "./stats.js";
 import { dailyPacksWaiting } from "./dailyPack.js";
 import {
   NOTIFICATION_KINDS,
@@ -580,6 +585,9 @@ export interface MatchRecord {
    * kept for every outcome, a cancel too; null for a match recorded before
    * v20. */
   ratingsAtStart: { p1: number; p2: number } | null;
+  /** (v24) The faction each side's deck played; null on a side recorded
+   * before v24 or without a deck. */
+  factions: { p1: DeckFaction | null; p2: DeckFaction | null };
 }
 
 export interface PlayableDeck {
@@ -813,13 +821,26 @@ export interface LiveSide {
 export type AutoPlayStopReason = "dailyRewardsMaxed" | "timeUp";
 
 /** Where a play-time allowance stands (owner 2026-11-06): time left; time
- * up while the agent finishes the match it is in; or done for today (time
- * up and no match left to finish: the agent isn't paired again). */
+ * up while the agent finishes the match it is in; or time's up (no match
+ * left to finish: the agent isn't paired again). The wire value stays
+ * "done"; what the owner reads is `AUTO_PLAY_ALLOWANCE_LABELS`. */
 export type AutoPlayAllowanceState = "running" | "finishing" | "done";
+
+/** What each allowance state reads as on the website (owner 2026-11-06,
+ * on session 76: "Done for today" became "Time's up", since the owner can
+ * start again the same day). Sent as `allowance.label`. */
+export const AUTO_PLAY_ALLOWANCE_LABELS: Readonly<Record<AutoPlayAllowanceState, string>> = {
+  running: "Running",
+  finishing: "Finishing match",
+  done: "Time's up",
+};
 
 /** The play-time allowance (schema v22): "give the agent X minutes". */
 export interface AutoPlayAllowance {
   state: AutoPlayAllowanceState;
+  /** The state as the owner reads it: "Running", "Finishing match" or
+   * "Time's up". */
+  label: string;
   /** The window the agent may be paired in: [startedAt, endsAt). */
   startedAt: string;
   endsAt: string;
@@ -905,6 +926,47 @@ export interface OwnerStats {
   winRate: number;
   bestWinStreak: number;
   creditsFromMatches: number;
+}
+
+/** One recent result on the Stats page and the Rating & form widget, in
+ * the words of GET /api/matches' rows (the same `result` and `rating`), plus
+ * both sides' factions. */
+export interface StatsRecentResult {
+  matchId: string;
+  endedAt: string;
+  result: "win" | "loss" | "draw" | "cancelled" | "abandonedByYou" | "abandonedByOpponent";
+  /** The owner's agent that played, and the faction its deck played. */
+  agentId: string;
+  agentName: string;
+  faction: DeckFaction | null;
+  opponent: { ownerId: string; ownerName: string; agentId: string; agentName: string; faction: DeckFaction | null };
+  credits: number;
+  /** The owner's rating before and after; null when unrated (a cancel). */
+  rating: { before: number; after: number; change: number } | null;
+  turns: number | null;
+}
+
+/** The Stats page (session 78; see stats.ts for the counting rules). */
+export interface StatsPage extends StatsTallies {
+  ownerId: string;
+  /** The agent filter: null is "All agents". */
+  agentId: string | null;
+  /** The filter's choices: every agent the owner has, oldest first, with
+   * how many matches each has played (all time). */
+  agents: { agentId: string; name: string; matches: number }[];
+  recent: StatsRecentResult[];
+  /** The owner's rating (not filtered by agent: the rating is the owner's). */
+  rating: {
+    now: OwnerRating;
+    /** The rating at the end of the reset day 7 days before today; the
+     * weekly trend is `now.rating - weekAgo`. */
+    weekAgo: number;
+    weekChange: number;
+    /** One row per reset day, oldest first, ending today. */
+    chart: RatingChartDay[];
+  };
+  /** Today's earnings, as GET /api/daily (the owner's, not filtered). */
+  today: DailyEarnings;
 }
 
 export class EconomyError extends Error {}
@@ -1720,11 +1782,12 @@ export class EconomyStore {
         on = false;
         stopped = { reason: "timeUp", day: endDay.day };
       }
-      // "Done for today" stands only on the day the time ran out; an
+      // "Time's up" stands only on the day the time ran out; an
       // allowance still finishing its match past midnight shows until then.
       if (state !== "done" || endDay.day === today) {
         allowance = {
           state,
+          label: AUTO_PLAY_ALLOWANCE_LABELS[state],
           startedAt,
           endsAt,
           totalMinutes: (endsMs - Date.parse(startedAt)) / 60_000,
@@ -1840,7 +1903,7 @@ export class EconomyStore {
   /** (v22) The server's check after each match and before each round: when
    * auto-play is on, its allowance's time is up and the owner has no live
    * match left to finish, it goes off with the reason "timeUp" on the day
-   * the time ran out (the allowance is kept for "Done for today"). True when
+   * the time ran out (the allowance is kept for "Time's up"). True when
    * it was switched off by this call. */
   stopAutoPlayIfTimeUp(ownerId: string): boolean {
     if (this.schemaVersion < 22) return false;
@@ -3301,6 +3364,17 @@ export class EconomyStore {
     };
   }
 
+  /** The faction a recorded match's deck played, or null without a deck (or
+   * one that names no single faction, which a played deck never does). */
+  private playedFaction(deckId: string | null): DeckFaction | null {
+    if (deckId === null) return null;
+    try {
+      return this.deckFactionOf(deckId);
+    } catch {
+      return null;
+    }
+  }
+
   private deckFactionOf(deckId: string): DeckFaction {
     const cards = this.deckListing(deckId).listed.map((l) => getCard(l.cardId)).filter((c): c is Card => c !== undefined);
     return deckFaction(cards);
@@ -4159,6 +4233,7 @@ export class EconomyStore {
         playStyles: null,
         ratings: null,
         ratingsAtStart: null,
+        factions: { p1: null, p2: null },
       };
       // The styles the match started with (v13): kept from the live row.
       const p1Style = strOrNull(live?.p1_style ?? null);
@@ -4203,6 +4278,14 @@ export class EconomyStore {
           this.db
             .prepare("UPDATE matches SET p1_rating_start = ?, p2_rating_start = ? WHERE match_id = ?")
             .run(record.ratingsAtStart.p1, record.ratingsAtStart.p2, record.matchId);
+        }
+        if (this.schemaVersion >= 24) {
+          // The decks as they played: a live match's deck can't change, so
+          // reading it now reads what was played (as the boast does).
+          record.factions = { p1: this.playedFaction(record.p1DeckId), p2: this.playedFaction(record.p2DeckId) };
+          this.db
+            .prepare("UPDATE matches SET p1_faction = ?, p2_faction = ? WHERE match_id = ?")
+            .run(record.factions.p1, record.factions.p2, record.matchId);
         }
       } catch (err) {
         refused(err);
@@ -4376,6 +4459,7 @@ export class EconomyStore {
         ratings: ratings.get(str(r.match_id)) ?? null,
         ratingsAtStart:
           r.p1_rating_start != null && r.p2_rating_start != null ? { p1: num(r.p1_rating_start), p2: num(r.p2_rating_start) } : null,
+        factions: { p1: (strOrNull(r.p1_faction ?? null) as DeckFaction | null), p2: (strOrNull(r.p2_faction ?? null) as DeckFaction | null) },
       };
     });
   }
@@ -4503,6 +4587,128 @@ export class EconomyStore {
     const decided = stats.wins + stats.losses + stats.draws;
     stats.winRate = decided === 0 ? 0 : stats.wins / decided;
     return stats;
+  }
+
+  /** The Stats page's data (session 78): the owner's matches counted (all
+   * agents, or the one that played), by faction and by the opponent's
+   * faction, the newest `recent` results, the rating chart over the last
+   * `days` reset days (ending today) with the weekly trend, and today's
+   * earnings. */
+  stats(ownerId: string, options: { agentId?: string | null; days?: number; recent?: number; at?: string } = {}): StatsPage {
+    if (this.schemaVersion < 17) throw new EconomyError("stats need schema v17");
+    const at = options.at ?? this.stamp();
+    const days = options.days ?? STATS_CHART_DAYS_DEFAULT;
+    const recentCount = options.recent ?? STATS_RECENT_DEFAULT;
+    if (!Number.isInteger(days) || days < 7 || days > STATS_CHART_DAYS_MAX) {
+      throw new EconomyError(`the chart covers 7 to ${STATS_CHART_DAYS_MAX} days, got ${days}`);
+    }
+    if (!Number.isInteger(recentCount) || recentCount < 1 || recentCount > STATS_RECENT_MAX) {
+      throw new EconomyError(`recent results are 1 to ${STATS_RECENT_MAX}, got ${recentCount}`);
+    }
+    this.getOwner(ownerId);
+    const agentId = options.agentId ?? null;
+    const agents = this.listAgents(ownerId);
+    if (agentId !== null && !agents.some((a) => a.agentId === agentId)) {
+      throw new EconomyError(`agent "${agentId}" isn't one of this owner's agents`);
+    }
+    const v24 = this.schemaVersion >= 24;
+    const rows = this.db
+      .prepare(
+        `SELECT m.match_id, m.ended_at, m.outcome, m.winner_owner, m.abandoned_by_owner, m.turns,
+           CASE WHEN m.p1_owner = :o THEN m.p1_agent ELSE m.p2_agent END AS agent,
+           CASE WHEN m.p1_owner = :o THEN m.p2_owner ELSE m.p1_owner END AS opp_owner,
+           CASE WHEN m.p1_owner = :o THEN m.p2_agent ELSE m.p1_agent END AS opp_agent,
+           CASE WHEN m.p1_owner = :o THEN m.p1_credits ELSE m.p2_credits END AS credits,
+           ${v24 ? "CASE WHEN m.p1_owner = :o THEN m.p1_faction ELSE m.p2_faction END" : "NULL"} AS faction,
+           ${v24 ? "CASE WHEN m.p1_owner = :o THEN m.p2_faction ELSE m.p1_faction END" : "NULL"} AS opp_faction,
+           r.rating_before, r.rating_after
+         FROM matches m LEFT JOIN match_ratings r ON r.match_id = m.match_id AND r.owner_id = :o
+         WHERE (m.p1_owner = :o OR m.p2_owner = :o) AND m.ended_at <= :at
+         ORDER BY m.ended_at, m.rowid`,
+      )
+      .all({ o: ownerId, at }) as Row[];
+    const all: StatsMatchRow[] = rows.map((r) => {
+      const outcome = str(r.outcome) as MatchOutcomeKind;
+      const result: StatsResult = outcome === "win" ? (str(r.winner_owner) === ownerId ? "win" : "loss") : outcome;
+      return {
+        matchId: str(r.match_id),
+        endedAt: str(r.ended_at),
+        result,
+        abandonedByYou: outcome === "abandoned" && str(r.abandoned_by_owner) === ownerId,
+        agentId: str(r.agent),
+        faction: strOrNull(r.faction) as DeckFaction | null,
+        opponentOwnerId: str(r.opp_owner),
+        opponentAgentId: str(r.opp_agent),
+        opponentFaction: strOrNull(r.opp_faction) as DeckFaction | null,
+        credits: num(r.credits),
+        ratingBefore: numOrNull(r.rating_before),
+        ratingAfter: numOrNull(r.rating_after),
+        turns: numOrNull(r.turns),
+      };
+    });
+    const played = agentId === null ? all : all.filter((m) => m.agentId === agentId);
+    const perAgent = new Map<string, number>();
+    for (const m of all) perAgent.set(m.agentId, (perAgent.get(m.agentId) ?? 0) + 1);
+
+    const names = new Map<string, string>();
+    const agentName = (id: string) => names.get(id) ?? names.set(id, this.getAgent(id).name).get(id)!;
+    const ownerNames = new Map<string, string>();
+    const ownerName = (id: string) => ownerNames.get(id) ?? ownerNames.set(id, this.getOwner(id).name).get(id)!;
+    const recent: StatsRecentResult[] = played
+      .slice(-recentCount)
+      .reverse()
+      .map((m) => ({
+        matchId: m.matchId,
+        endedAt: m.endedAt,
+        result: m.result === "abandoned" ? (m.abandonedByYou ? "abandonedByYou" : "abandonedByOpponent") : m.result,
+        agentId: m.agentId,
+        agentName: agentName(m.agentId),
+        faction: m.faction,
+        opponent: {
+          ownerId: m.opponentOwnerId,
+          ownerName: ownerName(m.opponentOwnerId),
+          agentId: m.opponentAgentId,
+          agentName: agentName(m.opponentAgentId),
+          faction: m.opponentFaction,
+        },
+        credits: m.credits,
+        rating: m.ratingBefore === null || m.ratingAfter === null ? null : { before: m.ratingBefore, after: m.ratingAfter, change: m.ratingAfter - m.ratingBefore },
+        turns: m.turns,
+      }));
+
+    // The chart: the last `days` reset days, oldest first, ending today.
+    const windows: { day: string; startsAt: string; endsAt: string }[] = [];
+    let d = this.resetDay(at);
+    for (let k = 0; k < days; k++) {
+      windows.unshift({ day: d.day, startsAt: d.startsAt, endsAt: d.endsAt });
+      d = this.resetDay(new Date(Date.parse(d.startsAt) - 1).toISOString());
+    }
+    const scored = this.db
+      .prepare(
+        `SELECT r.score, r.rating_after, m.ended_at FROM match_ratings r JOIN matches m ON m.match_id = r.match_id
+         WHERE r.owner_id = ? AND m.ended_at <= ? ORDER BY m.ended_at, m.rowid`,
+      )
+      .all(ownerId, at) as Row[];
+    const points: RatedPoint[] = scored.map((r) => ({ endedAt: str(r.ended_at), ratingAfter: num(r.rating_after), score: num(r.score) as 0 | 0.5 | 1 }));
+    const before = points.filter((p) => p.endedAt < windows[0]!.startsAt);
+    const startRating = before.length > 0 ? before[before.length - 1]!.ratingAfter : RATING_START.rating;
+    const chart = ratingChart(windows, points, startRating);
+    const now = this.rating(ownerId, at);
+    // A week ago: the end of the reset day 7 days before today, i.e. just
+    // before the day 6 days back starts (the chart has at least 7 days).
+    const weekCut = windows[windows.length - 7]!.startsAt;
+    let weekAgo: number = RATING_START.rating;
+    for (const p of points) if (p.endedAt < weekCut) weekAgo = p.ratingAfter;
+
+    return {
+      ownerId,
+      agentId,
+      agents: agents.map((a) => ({ agentId: a.agentId, name: a.name, matches: perAgent.get(a.agentId) ?? 0 })),
+      ...tallyMatches(played),
+      recent,
+      rating: { now, weekAgo, weekChange: now.rating - weekAgo, chart },
+      today: this.dailyEarnings(ownerId, at),
+    };
   }
 
   /** Raw SQL access for tests that prove the schema's own guards (e.g. that

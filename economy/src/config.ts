@@ -189,3 +189,10 @@ export const PLACEMENT_MATCHES = 5;
 /** How many owners the ladder's public list shows (owner 2026-10-05: "a
  * top-100 list"). */
 export const LADDER_LIST_SIZE = 100;
+
+/** The Stats page (session 78): the rating chart's reset days (default and
+ * most), and the recent results (default and most). */
+export const STATS_CHART_DAYS_DEFAULT = 30;
+export const STATS_CHART_DAYS_MAX = 90;
+export const STATS_RECENT_DEFAULT = 10;
+export const STATS_RECENT_MAX = 50;

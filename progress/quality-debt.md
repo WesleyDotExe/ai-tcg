@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23), and session 78 (the demo check in CI, "Time's up", the Stats page's data, schema v24).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -74,6 +74,34 @@ real, but here is where it's thin.
   passing, not by a dedicated test of a modal response.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
+
+## Session 78 (the demo check in CI; "Time's up"; the Stats page's data, schema v24): what is still thin
+
+- **Matches recorded before v24 have no faction, for good.** Decks are rebuilt in place (same deck id, new cards),
+  so today's deck can't say what an old match played, and I didn't guess. They count as `factionNotRecorded`. Season
+  0 hasn't started, so the only such matches are the house's test data, but the field stays on the API forever. The
+  versioned replay files (`ai-tcg-replay/2`) do carry every deck card, so a one-off repair could backfill from them
+  (the write-once trigger allows null -> value); not built.
+- **`GET /api/stats` counts the whole history on every read.** One SQL query per call (plus one for the rated
+  points), then counted in memory. An owner on auto-play all day is ~60 matches a day, so a season is a few
+  thousand rows: fine for Season 0, not for launch. Before launch: running tallies, or a per-owner cache until its
+  next match. Written in `server/OWNER_API.md`'s "Not built yet".
+- **The chart is one point per Sydney day.** It shows the end-of-day rating, not every match; a day with 60 matches
+  is one dot. `GET /api/rating?recent=100` still has per-match points if the render wants an intraday line. RD isn't
+  on the chart's days (only `now.rd`): drawing a confidence band per day would need the idle-day RD growth worked
+  out per day; not asked for.
+- **The rating is the owner's under every agent filter.** That is the data model (one rating per owner), and the
+  page says so, but an owner switching agents can't see "this agent's rating". Call 1 at the check-in.
+- **Quests and achievements** (on the 2026-10-05 Stats page) are not built: they are after Season 0 with the weekly
+  challenge and daily quests.
+- **The demo check in CI runs on 2 cores** there, not the 4 measured locally (35 s). The CI run time on this PR is
+  the real number; reported in the PR and notes-for-owner.md once that run finished.
+- **"Time's up" is a label beside the wire value, not a rename of it.** `allowance.state` is still `"done"` (the render
+  lane's ring reads it); `allowance.label` is the owner-facing text. The render lane's own strings ("Done for today"
+  in `siteAgent.ts` and its tests) are the render lane's to change, as the owner said.
+- **Schema bumps still rewrite demo files for one line:** 9 this time, plus `economy-demo-011` (slow, already stale
+  at "v21", i.e. since session 73: the slow set isn't in CI and no session since ran it). Every diff
+  read: the schema line only. The slow three were run this session: 014 and 016 reproduce; 011 only had that line.
 
 ## Session 77 (the auto-merge test-run guard; notifications, schema v23): what is still thin
 
