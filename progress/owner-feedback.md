@@ -4345,3 +4345,14 @@ PR #139's first commit's auto-merge job merged the PR after a second commit was 
 **Test it** on the workflow's script as sessions 75 and 77 did: a second commit pushed while the first commit's job waits must not merge until the second commit's own `test` passes; the older job ends green with the message; a real failed `test` still stops the merge. Keep sessions 75 and 77's retries and the real-test-run rule.
 
 Decision 3 of session 79 (the Null builder rule) is still open; the owner answers it separately.
+
+---
+
+## 2026-11-06 — Owner: answer to game session 79's item 3 (the Null builder rule): switch it on at 1 SD
+
+Answers the [OWNER CHECK-IN] "The Null builder rule (your call)" in `progress/notes-for-owner.md` (PR #140, `progress/built-deck-ring-006-z1.txt`, `progress/null-builder/README.txt`).
+- **Switch `keepDesigned` on for the store's deck builder at a margin of 1 SD** (z = 1): the designed deck is the incumbent, and another deck replaces it only when it wins by more than 1 standard deviation on the builder's confirm games (the same paired test the search already uses). Not 2 SD (it drops the genuinely better full-collection Cortex deck and pushes Aegis > Cortex out of band).
+- **Accepted:** about 30 of 100 decks in the ring's collections change to the designed list where the builder's pick wasn't clearly better. Regenerate the economy demos that print builder decks (the CI demo check lists them), rebuild agent decks through the normal rebuild reasons, and record it with the builder's settings so a build says which rule and margin made it.
+- **Then the launch-gate re-run:** the built-deck ring on the shipped builder (and both ring checks), with the results at an owner check-in.
+
+Order in the next game session: the auto-merge fix (the entry above) first, then this.
