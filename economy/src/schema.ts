@@ -63,6 +63,12 @@
 //    end after the start, both or neither; an allowance stays on a switched-
 //    off row only when its time ran out (the "Done for today" message).
 //
+//  - (v23) notifications: one row per owner, kind and ref (so a source
+//    that fires twice writes one), of a known kind; what a notification
+//    says, whose it is and when it came are never changed; it is read once
+//    and cleared once (neither is undone), and never deleted. The account
+//    settings add the three switches of Settings -> Notifications.
+//
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
 // and match stats. An agent owns nothing but (later) its signature card; it
@@ -1343,5 +1349,46 @@ export const MIGRATIONS: readonly string[] = [
     SELECT owner_id, is_on, changed_at, stopped_reason, stopped_day FROM auto_play ORDER BY rowid;
   DROP TABLE auto_play;
   ALTER TABLE auto_play_v22 RENAME TO auto_play;
+  `,
+  // 23: notifications (session 77; owner 2026-11-05 and 2026-11-06, the
+  // top bar's bell and the Notifications widget; the 2026-10-05 spec's
+  // Settings -> Notifications: big pulls, match results, the free daily
+  // pack ready; plus auto-play switched off, at the day's cap or with the
+  // time up). Each one is written by the store in the same transaction as
+  // what caused it (the daily pack when the owner next reads them: nothing
+  // happens at midnight). `ref` names the source (a match, a pack, a day, a
+  // stop), and (owner, kind, ref) is unique, so writing it twice writes
+  // one. Read and cleared are each set once; nothing is deleted. Player
+  // owners only: a house owner has no person to tell.
+  `
+  CREATE TABLE notifications (
+    notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_id        TEXT NOT NULL REFERENCES owners(owner_id),
+    kind            TEXT NOT NULL CHECK (kind IN ('matchResult', 'bigPull', 'dailyPack', 'autoPlayStopped')),
+    ref             TEXT NOT NULL CHECK (length(ref) > 0),
+    created_at      TEXT NOT NULL,
+    body_json       TEXT NOT NULL CHECK (json_valid(body_json) AND json_type(body_json) = 'object'),
+    read_at         TEXT CHECK (read_at IS NULL OR read_at >= created_at),
+    cleared_at      TEXT CHECK (cleared_at IS NULL OR cleared_at >= created_at),
+    UNIQUE (owner_id, kind, ref)
+  );
+  CREATE INDEX notifications_by_owner ON notifications (owner_id, notification_id);
+  CREATE TRIGGER notification_kept BEFORE UPDATE OF notification_id, owner_id, kind, ref, created_at, body_json ON notifications
+  BEGIN SELECT RAISE(ABORT, 'a notification''s owner, kind, source, time and text never change'); END;
+  CREATE TRIGGER notification_read_once BEFORE UPDATE OF read_at ON notifications
+  WHEN OLD.read_at IS NOT NULL AND NEW.read_at IS NOT OLD.read_at
+  BEGIN SELECT RAISE(ABORT, 'a notification is read once; it is never marked unread'); END;
+  CREATE TRIGGER notification_cleared_once BEFORE UPDATE OF cleared_at ON notifications
+  WHEN OLD.cleared_at IS NOT NULL AND NEW.cleared_at IS NOT OLD.cleared_at
+  BEGIN SELECT RAISE(ABORT, 'a notification is cleared once; it never comes back'); END;
+  CREATE TRIGGER notification_no_delete BEFORE DELETE ON notifications
+  BEGIN SELECT RAISE(ABORT, 'a notification is cleared, never deleted'); END;
+  CREATE TRIGGER notification_player_only BEFORE INSERT ON notifications
+  WHEN (SELECT kind FROM owners WHERE owner_id = NEW.owner_id) IS NOT 'player'
+  BEGIN SELECT RAISE(ABORT, 'only a player owner gets notifications'); END;
+
+  ALTER TABLE account_settings ADD COLUMN notify_big_pulls INTEGER NOT NULL DEFAULT 1 CHECK (notify_big_pulls IN (0, 1));
+  ALTER TABLE account_settings ADD COLUMN notify_match_results INTEGER NOT NULL DEFAULT 1 CHECK (notify_match_results IN (0, 1));
+  ALTER TABLE account_settings ADD COLUMN notify_daily_pack INTEGER NOT NULL DEFAULT 1 CHECK (notify_daily_pack IN (0, 1));
   `,
 ];

@@ -179,6 +179,8 @@ export {
   BACKGROUNDS,
   DEFAULT_ACCOUNT_SETTINGS,
   accountSettingsProblem,
+  NOTIFICATION_SETTINGS,
+  type NotificationSettings,
   type Theme,
   type Background,
   type AudioSetting,
@@ -205,4 +207,18 @@ export {
 } from "./schema.js";
 export { customAgentNameProblem, tidyAgentName, nameKey, AGENT_NAME_MIN_LENGTH } from "./agentNames.js";
 export { dailyPacksWaiting } from "./dailyPack.js";
+export {
+  NOTIFICATION_KINDS,
+  NOTIFICATION_SWITCH,
+  NOTIFICATION_PAGE_MAX,
+  NOTIFICATION_PAGE_DEFAULT,
+  type NotificationKind,
+  type Notification,
+  type NotificationBody,
+  type NotificationPage,
+  type MatchResultNotice,
+  type BigPullNotice,
+  type DailyPackNotice,
+  type AutoPlayStoppedNotice,
+} from "./notifications.js";
 export { GLICKO_SCALE, GLICKO_TAU, RATING_START, idle, ratePeriod, rateMatch, winProbability, type Glicko2Game, type Glicko2Rating } from "./glicko2.js";

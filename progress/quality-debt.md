@@ -42,7 +42,7 @@ Aegis vs Cortex investigation), and session 43 (the signature-mode ring investig
 Aegis late-deck trials; full signature ability wording), and session 46 (the starter guarantee; the
 victory-boast plan), and session 47 (victory boasts: the cosmetics backend, schema v11), and session 48
 (the Season 0 boasts; a hardening pass), and session 49 (the approved list from today's agent; Guardian 3/4), and session 50
-(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22).
+(hardening: result provenance, the seeded-bounds audit), and session 51 (the deck-building agent, schema v12), and session 52 (play styles, schema v13), and session 53 (the deck builder in the agent's style, schema v14), and session 54 (the built-deck ring; two builder fixes), and session 55 (hardening: rebuilds only for usable cards, the builder's rule constants, the deck-builder reports re-run), and session 56 (the owner API: the deck settings over HTTP), and session 57 (the deck-size check, test only), and session 58 (option B: the builder builds to the size the cards allow), and session 59 (the balance session, job 1: Null's 4 added cards, test only), and session 60 (hardening; set A shipped), and session 62 (NA12 and CS7 shipped; the Season 0 checklist), and session 63 (who am I, account settings, the wallet; Null Out's text), and session 64 (the Home board and the economy endpoints; the daily reset moved to midnight Sydney), and session 65 (hardening: the stale demos; the owner's daily pack), and sessions 66-68 (match running, the live ladder, the first seat measured), and session 69 (coin skins, the game half; starting ratings, schema v20), and session 70 (hardening: versioned replays; two drifted demos), and session 71 (the 24-health rule shipped as rules-2), and session 72 (the live-feed asks), and session 75 (hardening: the auto-merge retry, the demo drift check), and session 76 (the play-time allowance, schema v22), and session 77 (the auto-merge test-run guard; notifications, schema v23).
 This is not "no debt, all good" — the product is real and the evidence is
 real, but here is where it's thin.
 
@@ -75,6 +75,41 @@ real, but here is where it's thin.
 - **Kill All is castable into an empty board** (scope "all" needs no target). The lookahead agent passes on
   it (tested), but a weaker agent can waste 2 energy; same as every other board-wide card, not a new rule.
 
+## Session 77 (the auto-merge test-run guard; notifications, schema v23): what is still thin
+
+- **The auto-merge guard is tested against a fake GitHub, not a real missing check.** `server/test/autoMergeWorkflow.test.ts`
+  runs the shipped script text: no check runs at all (the PR #137 case), other checks green but no `test`, a check
+  whose name only contains "test", a skipped or neutral `test` run: each waits the full 12 minutes, then fails
+  (6 new tests, all failing on the old workflow). This PR's own merge exercises the green path for real; the
+  missing-check path has only run in the test. **The guard names the check `test` exactly** (test.yml's job id): if
+  that job is renamed, every PR waits 12 minutes and fails with "no test run for this commit". Said in the
+  workflow's comment.
+- **The daily pack notification is written when the owner looks, not at midnight.** Nothing runs at midnight, so
+  the first `GET /api/notifications` of the day with a pack waiting writes it (its `readySince` is still midnight).
+  The bell polls, so in practice the owner sees it at once; but a GET that writes is unusual, and an owner who never
+  opens the site has no row for that day. Fine for the bell; would matter for email/push, which Season 0 hasn't got.
+- **No push, no retention.** The website polls `GET /api/notifications?limit=1`. Nothing is ever pruned: an owner on
+  auto-play all day gets about 60 match results a day (10 rewarded wins plus losses at watch speed). A retention
+  rule (e.g. drop cleared ones past 30 days) is needed before launch scale; not now.
+- **Big pulls are the owner's own openings.** In Season 0 only the owner opens a player owner's packs (house owners
+  open their own and are told nothing), so a big pull notification records what the owner just watched in the
+  ceremony. It is useful as the feed's record and across devices, but adds little in the moment. A call at
+  notes-for-owner.md.
+- **Every outcome is a match result, a cancel included.** A cancel pays nothing and isn't rated; the owner is told
+  anyway. A call at notes-for-owner.md (the alternative: wins, losses and draws only).
+- **Turning a switch back on fills nothing in.** Off means not written, so the feed has a gap for that time. The
+  alternative (always write, filter on read) would let the switch hide and show history. A call.
+- **The notification text is data, not words.** Each kind carries the fields (result, credits, rating change, the
+  big cards, the allowance's minutes); the wording is the render lane's. `progress/notifications-001.txt` shows
+  one wording.
+- **The demo's ladder log prints Ada's "auto-play off" before her last match's "recorded" line** (10:31:05): the
+  ladder's event callback runs before `onRecorded`. The notifications themselves are in the right order (the match
+  #6, then the stop #7). Only the demo's printing.
+- **The render lane has no bell yet.** `render/src/site/siteApi.ts` doesn't know the endpoints; the bell, the
+  Notifications widget and the three switches in Settings are render work.
+- **Schema bumps still rewrite demo files for one line:** 9 this time (`npm run demos -- --write`, every diff read:
+  the schema line, and the account settings' unknown-field message now listing `notifications`).
+
 ## Session 76 (the play-time allowance, schema v22): what is still thin
 
 - **Time spent waiting for a round counts against the allowance.** The clock runs on wall time from the start.
@@ -90,8 +125,8 @@ real, but here is where it's thin.
 - **Reads that change state with the clock.** `autoPlay()` works out "done" (and `on: false`) from the clock
   before the server writes the stop, so the row and the read can disagree for up to a round. They agree by test,
   but a hand-run `sqlite3` read of `auto_play` would show `is_on = 1` for a done owner until the next round.
-- **No push when time is up.** The ladder emits `autoPlayStopped { reason: "timeUp" }` and `seasonCli` logs it;
-  nothing reaches the owner until notifications (roadmap 2d, next game items) send "your agent's time is up".
+- ~~**No push when time is up.**~~ Done session 77: the time up is an `autoPlayStopped` notification with
+  `reason: "timeUp"` (polled, not pushed).
 - **The house is untouched** (house owners always play, no allowance), and a network agent's time works the same
   way as an in-process one's. Only in-process agents have been run on it.
 - **Schema bumps still rewrite demo files for one line:** 8 this time (`npm run demos -- --write`, every diff read:

@@ -90,6 +90,16 @@ import {
 import { matchCredits, MAX_PAID_LOSSES_PER_DAY, WIN_SCHEDULE, type DailyTally, type MatchResultForAgent } from "./payouts.js";
 import { resetDayOf } from "./dailyReset.js";
 import { dailyPacksWaiting } from "./dailyPack.js";
+import {
+  NOTIFICATION_KINDS,
+  NOTIFICATION_PAGE_MAX,
+  NOTIFICATION_SWITCH,
+  type MatchResultNotice,
+  type Notification,
+  type NotificationBody,
+  type NotificationKind,
+  type NotificationPage,
+} from "./notifications.js";
 import { boardLayoutProblem, boardWidgets, RECOMMENDED_LAYOUT, type BoardLayout, type Widget } from "./boardLayout.js";
 import {
   BOUND_ORIGINS,
@@ -1426,7 +1436,16 @@ export class EconomyStore {
     const row = this.db.prepare("SELECT * FROM account_settings WHERE owner_id = ?").get(ownerId) as Row | undefined;
     if (!row) {
       const d = DEFAULT_ACCOUNT_SETTINGS;
-      return { theme: d.theme, background: d.background, sound: { ...d.sound }, music: { ...d.music }, skipHintSeen: d.skipHintSeen, ask2xEveryMatch: d.ask2xEveryMatch, updatedAt: null };
+      return {
+        theme: d.theme,
+        background: d.background,
+        sound: { ...d.sound },
+        music: { ...d.music },
+        skipHintSeen: d.skipHintSeen,
+        ask2xEveryMatch: d.ask2xEveryMatch,
+        notifications: { ...d.notifications },
+        updatedAt: null,
+      };
     }
     return {
       theme: str(row.theme) as Theme,
@@ -1436,6 +1455,12 @@ export class EconomyStore {
       skipHintSeen: num(row.skip_hint_seen) === 1,
       // Read before v21 (a store opened with migrateTo below 21) as off.
       ask2xEveryMatch: row.ask_2x_every_match === undefined ? false : num(row.ask_2x_every_match) === 1,
+      // Read before v23 as all on (the default).
+      notifications: {
+        bigPulls: row.notify_big_pulls === undefined ? true : num(row.notify_big_pulls) === 1,
+        matchResults: row.notify_match_results === undefined ? true : num(row.notify_match_results) === 1,
+        dailyPack: row.notify_daily_pack === undefined ? true : num(row.notify_daily_pack) === 1,
+      },
       updatedAt: str(row.updated_at),
     };
   }
@@ -1451,32 +1476,209 @@ export class EconomyStore {
     return this.transaction(() => {
       const { updatedAt: _, ...current } = this.accountSettings(ownerId);
       const next = applyAccountSettingsPatch(current, patch);
-      // A store held below v21 (migrateTo) has no 2× column: the setting reads off there.
+      // A store held below v21 (migrateTo) has no 2× column, below v23 no
+      // notification switches: those settings read as their defaults there.
       const v21 = this.schemaVersion >= 21;
+      const v23 = this.schemaVersion >= 23;
       if (!v21 && patch.ask2xEveryMatch !== undefined) throw new EconomyError('"ask2xEveryMatch" needs schema v21');
+      if (!v23 && patch.notifications !== undefined) throw new EconomyError('"notifications" needs schema v23');
+      const cols: [string, number | string][] = [
+        ["theme", next.theme],
+        ["background", next.background],
+        ["sound_on", next.sound.on ? 1 : 0],
+        ["sound_volume", next.sound.volume],
+        ["music_on", next.music.on ? 1 : 0],
+        ["music_volume", next.music.volume],
+        ["skip_hint_seen", next.skipHintSeen ? 1 : 0],
+        ...(v21 ? ([["ask_2x_every_match", next.ask2xEveryMatch ? 1 : 0]] as [string, number][]) : []),
+        ...(v23
+          ? ([
+              ["notify_big_pulls", next.notifications.bigPulls ? 1 : 0],
+              ["notify_match_results", next.notifications.matchResults ? 1 : 0],
+              ["notify_daily_pack", next.notifications.dailyPack ? 1 : 0],
+            ] as [string, number][])
+          : []),
+        ["updated_at", this.stamp()],
+      ];
       this.db
         .prepare(
-          `INSERT INTO account_settings (owner_id, theme, background, sound_on, sound_volume, music_on, music_volume, skip_hint_seen, ${v21 ? "ask_2x_every_match, " : ""}updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ${v21 ? "?, " : ""}?)
-           ON CONFLICT (owner_id) DO UPDATE SET theme = excluded.theme, background = excluded.background,
-             sound_on = excluded.sound_on, sound_volume = excluded.sound_volume, music_on = excluded.music_on,
-             music_volume = excluded.music_volume, skip_hint_seen = excluded.skip_hint_seen,
-             ${v21 ? "ask_2x_every_match = excluded.ask_2x_every_match, " : ""}updated_at = excluded.updated_at`,
+          `INSERT INTO account_settings (owner_id, ${cols.map(([c]) => c).join(", ")}) VALUES (?, ${cols.map(() => "?").join(", ")})
+           ON CONFLICT (owner_id) DO UPDATE SET ${cols.map(([c]) => `${c} = excluded.${c}`).join(", ")}`,
         )
-        .run(
-          ownerId,
-          next.theme,
-          next.background,
-          next.sound.on ? 1 : 0,
-          next.sound.volume,
-          next.music.on ? 1 : 0,
-          next.music.volume,
-          next.skipHintSeen ? 1 : 0,
-          ...(v21 ? [next.ask2xEveryMatch ? 1 : 0] : []),
-          this.stamp(),
-        );
+        .run(ownerId, ...cols.map(([, v]) => v));
       return this.accountSettings(ownerId);
     });
+  }
+
+  // ---- notifications (schema v23; owner 2026-11-05 and 2026-11-06) ----
+
+  /** Writes one notification for a player owner, in the caller's
+   * transaction: nothing below v23, for a house owner, or when the owner's
+   * switch for that kind is off. Writing the same (kind, ref) again does
+   * nothing, so a source that fires twice tells the owner once. */
+  private notify(ownerId: string, ref: string, body: NotificationBody, at: string): void {
+    if (this.schemaVersion < 23) return;
+    if (this.getOwner(ownerId).kind !== "player") return;
+    const switchName = NOTIFICATION_SWITCH[body.kind];
+    if (switchName !== null && !this.accountSettings(ownerId).notifications[switchName]) return;
+    const { kind, ...rest } = body;
+    this.db
+      .prepare(
+        `INSERT INTO notifications (owner_id, kind, ref, created_at, body_json) VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT (owner_id, kind, ref) DO NOTHING`,
+      )
+      .run(ownerId, kind, ref, at, JSON.stringify(rest));
+  }
+
+  /** The daily pack's notification for today, when a pack is waiting and
+   * none was written today (nothing happens at midnight, so it is written
+   * when the owner next looks). */
+  private noteDailyPack(ownerId: string, at: string): void {
+    if (this.schemaVersion < 23 || this.getOwner(ownerId).kind !== "player") return;
+    const status = this.dailyPackStatus(ownerId, at);
+    if (status.waiting < 1) return;
+    const day = this.resetDay(at);
+    const createdAt = this.getOwner(ownerId).createdAt;
+    this.notify(
+      ownerId,
+      status.day,
+      { kind: "dailyPack", dailyPack: { day: status.day, readySince: createdAt > day.startsAt ? createdAt : day.startsAt, waiting: status.waiting, cap: status.cap } },
+      at,
+    );
+  }
+
+  private notificationFromRow(r: Row): Notification {
+    const kind = str(r.kind) as NotificationKind;
+    return {
+      notificationId: num(r.notification_id),
+      kind,
+      ...(JSON.parse(str(r.body_json)) as object),
+      createdAt: str(r.created_at),
+      readAt: strOrNull(r.read_at),
+    } as Notification;
+  }
+
+  /** The owner's notifications, newest first, cleared ones left out: a page
+   * of `limit`, older than `before` (a notificationId) when given, of one
+   * `kind` when given. Also the unread counts (the bell's badge; per kind
+   * for the feed's filters). Reading the page doesn't mark anything read.
+   * A house owner, or a store below v23, has none. */
+  notifications(ownerId: string, options: { limit?: number; before?: number | null; kind?: NotificationKind | null; at?: string } = {}): NotificationPage {
+    this.getOwner(ownerId);
+    const limit = options.limit ?? 20;
+    if (!Number.isInteger(limit) || limit < 1 || limit > NOTIFICATION_PAGE_MAX) throw new EconomyError(`a notifications page is 1 to ${NOTIFICATION_PAGE_MAX}`);
+    const kind = options.kind ?? null;
+    if (kind !== null && !(NOTIFICATION_KINDS as readonly string[]).includes(kind)) throw new EconomyError(`no notification kind "${kind}" (kinds: ${NOTIFICATION_KINDS.join(", ")})`);
+    const unreadByKind = Object.fromEntries(NOTIFICATION_KINDS.map((k) => [k, 0])) as Record<NotificationKind, number>;
+    if (this.schemaVersion < 23) return { notifications: [], more: false, unread: 0, unreadByKind };
+    return this.transaction(() => {
+      this.noteDailyPack(ownerId, options.at ?? this.stamp());
+      const where = ["owner_id = ?", "cleared_at IS NULL"];
+      const args: (string | number)[] = [ownerId];
+      if (options.before != null) {
+        where.push("notification_id < ?");
+        args.push(options.before);
+      }
+      if (kind !== null) {
+        where.push("kind = ?");
+        args.push(kind);
+      }
+      const rows = this.db
+        .prepare(`SELECT * FROM notifications WHERE ${where.join(" AND ")} ORDER BY notification_id DESC LIMIT ?`)
+        .all(...args, limit + 1) as Row[];
+      for (const r of this.db
+        .prepare("SELECT kind, COUNT(*) AS n FROM notifications WHERE owner_id = ? AND cleared_at IS NULL AND read_at IS NULL GROUP BY kind")
+        .all(ownerId) as Row[]) {
+        unreadByKind[str(r.kind) as NotificationKind] = num(r.n);
+      }
+      return {
+        notifications: rows.slice(0, limit).map((r) => this.notificationFromRow(r)),
+        more: rows.length > limit,
+        unread: Object.values(unreadByKind).reduce((a, b) => a + b, 0),
+        unreadByKind,
+      };
+    });
+  }
+
+  /** The ids among `ids` that are this owner's and not cleared; refused,
+   * changing nothing, when any isn't (another owner's reads as missing). */
+  private ownNotifications(ownerId: string, ids: readonly number[]): number[] {
+    for (const id of ids) {
+      const row = this.db.prepare("SELECT owner_id, cleared_at FROM notifications WHERE notification_id = ?").get(id) as Row | undefined;
+      if (!row || str(row.owner_id) !== ownerId || row.cleared_at != null) throw new EconomyError(`no notification ${id}`);
+    }
+    return [...new Set(ids)];
+  }
+
+  /** Marks notifications read: the ones named, or (with "all") every unread
+   * one up to now. Already read ones stay as they were. Returns how many
+   * were marked and the unread count after. */
+  markNotificationsRead(ownerId: string, ids: readonly number[] | "all"): { marked: number; unread: number } {
+    this.getOwner(ownerId);
+    if (this.schemaVersion < 23) throw new EconomyError("notifications need schema v23");
+    const at = this.stamp();
+    return this.transaction(() => {
+      let marked = 0;
+      if (ids === "all") {
+        marked = Number(this.db.prepare("UPDATE notifications SET read_at = ? WHERE owner_id = ? AND read_at IS NULL AND cleared_at IS NULL").run(at, ownerId).changes);
+      } else {
+        const mark = this.db.prepare("UPDATE notifications SET read_at = ? WHERE notification_id = ? AND read_at IS NULL");
+        for (const id of this.ownNotifications(ownerId, ids)) marked += Number(mark.run(at, id).changes);
+      }
+      return { marked, unread: this.unreadNotifications(ownerId) };
+    });
+  }
+
+  /** Clears notifications (they leave the feed for good, read if they
+   * weren't): the ones named, or every one with "all". Returns how many
+   * were cleared and the unread count after. */
+  clearNotifications(ownerId: string, ids: readonly number[] | "all"): { cleared: number; unread: number } {
+    this.getOwner(ownerId);
+    if (this.schemaVersion < 23) throw new EconomyError("notifications need schema v23");
+    const at = this.stamp();
+    return this.transaction(() => {
+      let cleared = 0;
+      const clear = this.db.prepare("UPDATE notifications SET read_at = COALESCE(read_at, ?), cleared_at = ? WHERE notification_id = ? AND cleared_at IS NULL");
+      const targets =
+        ids === "all"
+          ? (this.db.prepare("SELECT notification_id FROM notifications WHERE owner_id = ? AND cleared_at IS NULL").all(ownerId) as Row[]).map((r) => num(r.notification_id))
+          : this.ownNotifications(ownerId, ids);
+      for (const id of targets) cleared += Number(clear.run(at, at, id).changes);
+      return { cleared, unread: this.unreadNotifications(ownerId) };
+    });
+  }
+
+  private unreadNotifications(ownerId: string): number {
+    return num((this.db.prepare("SELECT COUNT(*) AS n FROM notifications WHERE owner_id = ? AND read_at IS NULL AND cleared_at IS NULL").get(ownerId) as Row).n);
+  }
+
+  /** A match's result from one owner's side, as its notification says it. */
+  private matchResultNotice(record: MatchRecord, ownerId: string): MatchResultNotice {
+    const seat = record.p1OwnerId === ownerId ? "p1" : "p2";
+    const other = seat === "p1" ? "p2" : "p1";
+    const result: MatchResultNotice["result"] =
+      record.outcome === "win"
+        ? record.winnerOwnerId === ownerId
+          ? "win"
+          : "loss"
+        : record.outcome === "abandoned"
+          ? record.abandonedByOwnerId === ownerId
+            ? "abandonedByYou"
+            : "abandonedByOpponent"
+          : record.outcome;
+    const change = record.ratings?.[seat] ?? null;
+    const opponentOwner = this.getOwner(seat === "p1" ? record.p2OwnerId : record.p1OwnerId);
+    const agentId = seat === "p1" ? record.p1AgentId : record.p2AgentId;
+    return {
+      matchId: record.matchId,
+      result,
+      agentId,
+      agentName: this.getAgent(agentId).name,
+      opponent: { ownerId: opponentOwner.ownerId, ownerName: opponentOwner.name, agentName: this.getAgent(other === "p1" ? record.p1AgentId : record.p2AgentId).name },
+      credits: seat === "p1" ? record.p1Credits : record.p2Credits,
+      rating: change === null ? null : { before: change.before.rating, after: change.after.rating, change: change.after.rating - change.before.rating },
+      turns: record.turns,
+    };
   }
 
   // ---- auto-play (schema v18; owner app spec 2026-10-05 E) ----
@@ -1623,11 +1825,15 @@ export class EconomyStore {
     const at = this.stamp();
     const status = this.autoPlay(ownerId, at);
     if (!status.on || !status.dailyRewardsMaxed) return false;
-    this.db
-      .prepare(
-        `UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'dailyRewardsMaxed', stopped_day = ?${this.schemaVersion >= 22 ? ", allowance_started_at = NULL, allowance_ends_at = NULL" : ""} WHERE owner_id = ?`,
-      )
-      .run(at, this.resetDay(at).day, ownerId);
+    const day = this.resetDay(at).day;
+    this.transaction(() => {
+      this.db
+        .prepare(
+          `UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'dailyRewardsMaxed', stopped_day = ?${this.schemaVersion >= 22 ? ", allowance_started_at = NULL, allowance_ends_at = NULL" : ""} WHERE owner_id = ?`,
+        )
+        .run(at, day, ownerId);
+      this.notify(ownerId, `dailyRewardsMaxed:${at}`, { kind: "autoPlayStopped", autoPlayStopped: { reason: "dailyRewardsMaxed", day, allowanceMinutes: null } }, at);
+    });
     return true;
   }
 
@@ -1639,13 +1845,16 @@ export class EconomyStore {
   stopAutoPlayIfTimeUp(ownerId: string): boolean {
     if (this.schemaVersion < 22) return false;
     const at = this.stamp();
-    const row = this.db.prepare("SELECT is_on, allowance_ends_at FROM auto_play WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    const row = this.db.prepare("SELECT is_on, allowance_started_at, allowance_ends_at FROM auto_play WHERE owner_id = ?").get(ownerId) as Row | undefined;
     if (!row || num(row.is_on) !== 1 || row.allowance_ends_at == null) return false;
     const endsAt = str(row.allowance_ends_at);
     if (endsAt > at || this.liveMatchOf(ownerId) !== null) return false;
-    this.db
-      .prepare("UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'timeUp', stopped_day = ? WHERE owner_id = ?")
-      .run(at, this.allowanceDay(endsAt).day, ownerId);
+    const day = this.allowanceDay(endsAt).day;
+    this.transaction(() => {
+      this.db.prepare("UPDATE auto_play SET is_on = 0, changed_at = ?, stopped_reason = 'timeUp', stopped_day = ? WHERE owner_id = ?").run(at, day, ownerId);
+      const minutes = (Date.parse(endsAt) - Date.parse(str(row.allowance_started_at))) / 60_000;
+      this.notify(ownerId, `timeUp:${endsAt}`, { kind: "autoPlayStopped", autoPlayStopped: { reason: "timeUp", day, allowanceMinutes: minutes } }, at);
+    });
     return true;
   }
 
@@ -3265,7 +3474,12 @@ export class EconomyStore {
         throw new EconomyError(`no daily pack to claim; the next one comes in at ${before.resetsAt}`);
       }
       const pack = this.grantPack(ownerId, before.setCode, "ownerDaily");
-      return { pack, status: this.dailyPackStatus(ownerId) };
+      const status = this.dailyPackStatus(ownerId);
+      // (v23) Nothing left to claim: the daily pack's notifications are read.
+      if (status.waiting === 0 && this.schemaVersion >= 23) {
+        this.db.prepare("UPDATE notifications SET read_at = ? WHERE owner_id = ? AND kind = 'dailyPack' AND read_at IS NULL").run(this.stamp(), ownerId);
+      }
+      return { pack, status };
     });
   }
 
@@ -3396,6 +3610,24 @@ export class EconomyStore {
       // Kept as answered, for "Watch again" (schema v19; a file a migration
       // test holds at an older version has no table for it).
       if (this.schemaVersion >= 19) this.db.prepare("INSERT INTO pack_reveals (pack_id, reveal_json) VALUES (?, ?)").run(pack.packId, JSON.stringify(opening));
+      // (v23) A big pull: the same rule as the ceremony's full reveal.
+      if (opening.fullReveal) {
+        const hits = cards.filter((c) => FULL_REVEAL_FINISHES.includes(c.finish));
+        this.notify(
+          ownerId,
+          pack.packId,
+          {
+            kind: "bigPull",
+            bigPull: {
+              packId: pack.packId,
+              setCode: set.code,
+              jackpot: roll.jackpot,
+              cards: (hits.length > 0 ? hits : cards).map((c) => ({ copyId: c.copyId, cardId: c.cardId, name: c.name, rarity: c.rarity, finish: c.finish, isNew: c.isNew, prototype: c.prototype })),
+            },
+          },
+          at,
+        );
+      }
       return opening;
     });
   }
@@ -4047,6 +4279,8 @@ export class EconomyStore {
       const reason = (r: MatchResultForAgent) => (r === "win" ? "matchWin" : r === "draw" ? "matchDraw" : "matchLoss");
       if (p1Credits > 0) this.appendLedger(owner1, p1, "credits", p1Credits, reason(resultFor(owner1)), input.matchId, endedAt);
       if (p2Credits > 0) this.appendLedger(owner2, p2, "credits", p2Credits, reason(resultFor(owner2)), input.matchId, endedAt);
+      // (v23) Each player owner is told, from its own side.
+      for (const ownerId of [owner1, owner2]) this.notify(ownerId, input.matchId, { kind: "matchResult", matchResult: this.matchResultNotice(record, ownerId) }, endedAt);
       return record;
     });
   }

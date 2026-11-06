@@ -35,6 +35,9 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `GET /api/board` | none | the Home board (below) |
 | `PUT /api/board` | `{ widgets: [{ id, type, size }] }`, the whole board in order | the Home board |
 | `GET /api/daily` | none | today's earnings (below) |
+| `GET /api/notifications?limit=20&before=<notificationId>&kind=<kind>` | none | `{ notifications, more, unread, unreadByKind }`: the bell and the Notifications widget, newest first (below; schema v23, session 77) |
+| `POST /api/notifications/read` | `{ ids: [1..100 ids] }` or `{ all: true }` | `{ marked, unread }`; 400 for any other body; 404 for an id that isn't the caller's (or was cleared), and nothing is marked |
+| `POST /api/notifications/clear` | `{ ids: [1..100 ids] }` or `{ all: true }` | `{ cleared, unread }`: they leave the feed for good (read, if they weren't); 400 / 404 as for read |
 | `GET /api/ladder?limit=100` | none | the ladder: `{ standings, you, owners, tiers, placementMatches }` (below) |
 | `GET /api/rating?recent=10` | none | `{ rating, recent }`: the owner's Glicko-2 rating and its last rated matches (below) |
 | `GET /api/ledger?limit=50&before=<entryId>` | none | `{ entries, more, wallet }`: ledger entries newest first, a page at a time (below) |
@@ -98,6 +101,11 @@ Saved on the owner's account (schema v15, `account_settings`), so every browser 
   music: { on: boolean, volume: 0..100 },                     // default { on: true, volume: 60 }
   skipHintSeen: boolean,      // default false; set true at the owner's first skip, then the hint isn't shown again
   ask2xEveryMatch: boolean,   // (v21) default false; Settings -> Play "Ask for 2× in every match": asks as each live match starts
+  notifications: {            // (v23) Settings -> Notifications; each default true; patched in part like sound and music
+    bigPulls: boolean,        //   a pack with a full reveal was opened
+    matchResults: boolean,    //   one of the owner's matches ended
+    dailyPack: boolean        //   a free daily pack is waiting
+  },
   updatedAt: string | null    // when a setting was last changed; null: never
 }
 ```
@@ -105,6 +113,34 @@ Saved on the owner's account (schema v15, `account_settings`), so every browser 
 - `PATCH` changes only the fields it names; `{ "music": { "volume": 25 } }` leaves music's `on` and every other setting as they were. An empty body changes nothing.
 - Volumes are whole numbers from 0 to 100. An unknown field (at the top or inside `sound`/`music`), a theme or background not on the list, or a wrong type is refused with 400 and the reason, and nothing is saved (the patch is all or nothing).
 - The lists are the website's (`render/reference/owner-web-mockup.html`; the owner's 2026-11-01 Season 0 spec). The background names are ids; the website shows "Glacier", "Plain black" and so on.
+
+### Notifications (schema v23, session 77)
+
+The top bar's bell and the Notifications widget (owner 2026-11-05 and 2026-11-06). **What produces one in Season 0:**
+
+| `kind` | When | Switch (account settings) | Says |
+|---|---|---|---|
+| `matchResult` | one of the owner's matches is recorded, every outcome (a cancel too: it pays nothing, and the owner should know) | `notifications.matchResults` | `matchResult: { matchId, result, agentId, agentName, opponent: { ownerId, ownerName, agentName }, credits, rating: { before, after, change } \| null, turns }`; `result` as in match history (`win`, `loss`, `draw`, `cancelled`, `abandonedByYou`, `abandonedByOpponent`); `rating` null for a cancel |
+| `bigPull` | a pack the store marks `fullReveal` is opened: Gold, a Prototype, a secret card, a Zero-Day card, or a Jackpot pack (the pack ceremony's own "big pull" rule, so the bell and the reveal agree) | `notifications.bigPulls` | `bigPull: { packId, setCode, jackpot, cards: [{ copyId, cardId, name, rarity, finish, isNew, prototype }] }`: the cards that made it big (every card, for a Jackpot pack without one) |
+| `dailyPack` | a free daily pack is waiting: one per Sydney day, written the first time the owner's notifications are read that day with a pack waiting (nothing runs at midnight). Claiming the last waiting pack marks it read | `notifications.dailyPack` | `dailyPack: { day, readySince, waiting, cap }`; `readySince` is that day's midnight Sydney (or when the account was made) |
+| `autoPlayStopped` | the server switched auto-play off: today's rewards maxed, or the play-time allowance's time up once the last match finished ("your agent's time is up") | none: always told | `autoPlayStopped: { reason: "dailyRewardsMaxed" \| "timeUp", day, allowanceMinutes }`; `allowanceMinutes` for `timeUp` only |
+
+```
+GET /api/notifications ->
+{
+  notifications: [{ notificationId, kind, createdAt, readAt: string | null, <kind>: {...} }],  // newest first
+  more: boolean,                      // older ones past this page: ask again with before=<the last notificationId>
+  unread: number,                     // the bell's badge: every unread one, whatever the filter
+  unreadByKind: { matchResult, bigPull, dailyPack, autoPlayStopped }
+}
+```
+
+- `limit` 1 to 100 (default 20), `before` a notificationId, `kind` one of the four; anything else is 400. Reading a page marks nothing read; the website marks what it showed with `POST /api/notifications/read`.
+- Each notification is written by the store in the same transaction as what caused it (the match record, the pack opening, the auto-play stop), and once: the database keeps one per owner, kind and source, so a source that fires twice tells the owner once.
+- A switch turned off writes none of that kind from then on; the ones already written stay. Turned back on, the next one is written; nothing missed is filled in.
+- Read and cleared are each set once and never undone; a cleared notification is gone from every page and its id reads as missing (404). Nothing is deleted.
+- **Player owners only.** A house owner has no person to tell, so it has none (the schema refuses one).
+- A file migrated to v23 starts empty: matches and packs from before aren't told.
 
 ### The wallet
 
@@ -554,10 +590,11 @@ The engine rebuilds the match exactly from either format: `rebuildReplay(file, h
 
 ## Not built yet
 
-- The rest of the match-dependent endpoints: notifications, then the Stats page's data (owner 2026-11-05, in that order). Tournament endpoints (and so the `featured.tournament` group) wait until after Season 0.
+- The rest of the match-dependent endpoints: the Stats page's data (owner 2026-11-05; notifications came in session 77). Tournament endpoints (and so the `featured.tournament` group) wait until after Season 0.
 - Viewer counts are signed-in owners only: the site has no signed-out spectators in Season 0.
 - `GET /api/matches` reads the owner's whole history and pages it in memory (fine for a season of in-house play; to move into SQL before launch scale).
 - The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).
+- Notifications are never pruned: about 60 a day for an owner on auto-play all day. Fine for Season 0; a retention rule (e.g. cleared ones past 30 days) before launch scale. No push: the website polls `GET /api/notifications?limit=1` for the bell.
 - Jobs are kept in memory: a server restart forgets the latest job (the deck itself is saved).
 - No HTTPS of its own (meant to sit behind the host's proxy), no CORS (the website is served from the same origin), no rate limit beyond the sign-in lockout.

@@ -20,6 +20,18 @@ export interface AudioSetting {
   volume: number;
 }
 
+/** (v23) Settings -> Notifications (owner app spec 2026-10-05 D): which
+ * kinds the owner is told about. Off means none of that kind is written
+ * from then on; the ones already written stay. Auto-play switching itself
+ * off has no switch: it is always told (it changes what the agent does). */
+export interface NotificationSettings {
+  bigPulls: boolean;
+  matchResults: boolean;
+  dailyPack: boolean;
+}
+
+export const NOTIFICATION_SETTINGS = ["bigPulls", "matchResults", "dailyPack"] as const;
+
 export interface AccountSettings {
   theme: Theme;
   background: Background;
@@ -34,6 +46,8 @@ export interface AccountSettings {
    * live matches starts, as if the owner had tapped "Ask for 2×" at once.
    * The match still runs at 1× until the other side agrees too. */
   ask2xEveryMatch: boolean;
+  /** (v23) Settings -> Notifications. */
+  notifications: NotificationSettings;
   /** When the owner last changed a setting; null while every one is the
    * default and nothing was ever saved. */
   updatedAt: string | null;
@@ -49,6 +63,7 @@ export const DEFAULT_ACCOUNT_SETTINGS: Readonly<Omit<AccountSettings, "updatedAt
   music: Object.freeze({ on: true, volume: 60 }),
   skipHintSeen: false,
   ask2xEveryMatch: false,
+  notifications: Object.freeze({ bigPulls: true, matchResults: true, dailyPack: true }),
 });
 
 /** A change to the settings: any of the fields, each audio one in part. */
@@ -59,9 +74,10 @@ export interface AccountSettingsPatch {
   music?: Partial<AudioSetting>;
   skipHintSeen?: boolean;
   ask2xEveryMatch?: boolean;
+  notifications?: Partial<NotificationSettings>;
 }
 
-const PATCH_FIELDS = ["theme", "background", "sound", "music", "skipHintSeen", "ask2xEveryMatch"] as const;
+const PATCH_FIELDS = ["theme", "background", "sound", "music", "skipHintSeen", "ask2xEveryMatch", "notifications"] as const;
 const AUDIO_FIELDS = ["on", "volume"] as const;
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -93,6 +109,14 @@ export function accountSettingsProblem(patch: unknown): string | undefined {
   }
   if ("skipHintSeen" in patch && typeof patch.skipHintSeen !== "boolean") return `"skipHintSeen" must be true or false`;
   if ("ask2xEveryMatch" in patch && typeof patch.ask2xEveryMatch !== "boolean") return `"ask2xEveryMatch" must be true or false`;
+  if ("notifications" in patch) {
+    const n = patch.notifications;
+    if (!isObject(n)) return `"notifications" must be an object ({ ${NOTIFICATION_SETTINGS.join(", ")} }, any of them)`;
+    for (const key of Object.keys(n)) {
+      if (!(NOTIFICATION_SETTINGS as readonly string[]).includes(key)) return `unknown field "notifications.${key}" (fields: ${NOTIFICATION_SETTINGS.join(", ")})`;
+      if (typeof n[key] !== "boolean") return `"notifications.${key}" must be true or false`;
+    }
+  }
   return undefined;
 }
 
@@ -105,5 +129,6 @@ export function applyAccountSettingsPatch(current: Omit<AccountSettings, "update
     music: { ...current.music, ...patch.music },
     skipHintSeen: patch.skipHintSeen ?? current.skipHintSeen,
     ask2xEveryMatch: patch.ask2xEveryMatch ?? current.ask2xEveryMatch,
+    notifications: { ...current.notifications, ...patch.notifications },
   };
 }
