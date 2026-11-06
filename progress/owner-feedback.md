@@ -4356,3 +4356,19 @@ Answers the [OWNER CHECK-IN] "The Null builder rule (your call)" in `progress/no
 - **Then the launch-gate re-run:** the built-deck ring on the shipped builder (and both ring checks), with the results at an owner check-in.
 
 Order in the next game session: the auto-merge fix (the entry above) first, then this.
+
+---
+
+## 2026-11-06 — Owner: answers to game session 80 (the launch-gate re-run on the 1-SD builder), accepted; keep all 4 calls
+
+Answers the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (PR #141, `progress/built-deck-ring-007.txt`, `progress/launch-gate-s80/`).
+- **The launch-gate re-run is accepted.** The built-deck ring on the shipped builder (`keep-designed:1`) passes the gate: the full-collection Null problem is fixed (real 39.2 -> 50.0; Swarm > Null 69.4 -> 53.0), every faction sits within about 4 points of even in real mode at every level, and both ring checks pass. Accepted costs: at 17 packs, Cortex > Swarm (58.4, interval crossing 60) and Swarm > Null (53.6) read "unresolved" instead of in band. Null > Aegis under its band stays the next set's job, and the gate-mode Cortex > Swarm overshoot stays accepted, as before.
+- **It stays a standing check:** re-run the built-deck ring before the public launch and after any card, rule or builder change, as the 2026-10-19 gate says.
+
+**Calls, all kept:**
+1. **Keep:** decks built before v25 are treated as built with the plain rule and rebuild once through the normal rebuild reason; forced decks are untouched.
+2. **Keep:** the rule is recorded as an id (`keep-designed:1`, `plain`); a later margin change rebuilds every agent deck once the same way.
+3. **Keep:** the house agents' decks in the ladder demos changed with the rule; those demos are a showcase, not a measurement.
+4. **Keep:** the plain rule stays available for measurement only (`keepDesigned: null`, `--keep-designed off`); the store never uses it.
+
+Next game session, as planned: 81, the hardening pass.
