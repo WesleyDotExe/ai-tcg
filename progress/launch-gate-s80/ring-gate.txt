@@ -1,0 +1,8 @@
+Ring regression (set Mythic in the deck) vs baseline recorded 2026-11-02 (Lookahead vs Lookahead, seeds from 1)
+  Null > Aegis      2500 seeds  57.8% (CI 55.9-59.8) IN BAND     | baseline 57.8% IN BAND     change +0.0 [-2.7, 2.7]  PASS (verdict held or improved)
+  Aegis > Cortex    2500 seeds  48.2% (CI 46.3-50.2) OUT OF BAND | baseline 48.2% OUT OF BAND change +0.0 [-2.8, 2.8]  PASS (accepted OUT; did not move further out)
+  Cortex > Swarm    2500 seeds  61.9% (CI 60.0-63.8) UNRESOLVED  | baseline 61.9% UNRESOLVED  change +0.0 [-2.7, 2.7]  PASS (verdict held or improved)
+  Swarm > Null      2500 seeds  54.4% (CI 52.4-56.3) UNRESOLVED  | baseline 54.4% UNRESOLVED  change +0.0 [-2.8, 2.8]  PASS (verdict held or improved)
+  Null ~ Cortex      900 seeds  50.9% (CI 47.6-54.1) IN BAND     | baseline 50.9% IN BAND     change +0.0 [-4.6, 4.6]  PASS (verdict held or improved)
+  Aegis ~ Swarm      900 seeds  51.4% (CI 48.2-54.7) IN BAND     | baseline 51.4% IN BAND     change +0.0 [-4.6, 4.6]  PASS (verdict held or improved)
+RING REGRESSION: PASS

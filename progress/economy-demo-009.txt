@@ -3,7 +3,7 @@
 ## 1. A Season 0 file made at schema v9 upgrades to v10
 
     v9: 45 copies held, deck "Aegis starter" complete: true
-    v24: 45 copies held, every copy unchanged: true, secret codes: 0, deck complete: true
+    v25: 45 copies held, every copy unchanged: true, secret codes: 0, deck complete: true
 
 ## 2. Packs open under S0-odds-2: a secret illustration, a Glitch card and a Zero-Day card
 

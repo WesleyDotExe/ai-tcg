@@ -2,7 +2,7 @@ Owner API demo 002 — the deck settings over HTTP (session 56; re-run session 5
 ================================================================
 Owner "Nova": the Cortex starter and 10 packs opened (105 cards held), agents
 Vector Halcyon (connected) and Quill Static. Owner "Rook" holds the Aegis starter.
-Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":24,"confirmGames":100,"seed":1}) on a worker thread.
+Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":24,"confirmGames":100,"seed":1,"keepDesigned":1}) on a worker thread.
 
 1. Signing in
 ----------------------------------------------------------------
@@ -27,10 +27,10 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
 ----------------------------------------------------------------
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the agent hasn't built a deck yet
-  [timing, varies per run] build took 19.5 s; GET /api/play answered 94 times while it ran, slowest 14 ms
+  [timing, varies per run] build took 9.6 s; GET /api/play answered 47 times while it ran, slowest 15 ms
   job: done
   saved <deck 1>: Cortex, 40 cards, played as calculator
-    Cortex  61.0% against the shipped decks (fresh seeds)
+    Cortex  59.3% against the shipped decks (fresh seeds)
     Swarm   can't build: no owned faction card that draws (the pool lint needs one)
     Aegis   12.3% against the shipped decks (fresh seeds)
     Null    55.0% against the shipped decks (fresh seeds)
@@ -81,7 +81,7 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
   active deck fits the lock: false
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the faction lock changed (none -> Swarm); the play style changed (Calculator -> Controller)
-  [timing, varies per run] build took 0.7 s; GET /api/play answered 3 times while it ran, slowest 18 ms
+  [timing, varies per run] build took 0.4 s; GET /api/play answered 2 times while it ran, slowest 7 ms
   job: failed: no deck can be built: Swarm: no owned faction card that draws (the pool lint needs one)
 > PUT /api/play/faction-lock {"faction":"Chrome"}  -> 409
   error: can't lock to "Chrome"
@@ -99,7 +99,7 @@ Builds run at the store's settings (engine DEFAULT_BUILD: {"games":40,"trials":2
   active deck fits the lock: false
 > POST /api/play/rebuild  -> 202
   job: running; reasons when it started: the faction lock changed (none -> Null); the play style changed (Calculator -> Controller)
-  [timing, varies per run] build took 2.9 s; GET /api/play answered 14 times while it ran, slowest 16 ms
+  [timing, varies per run] build took 1.7 s; GET /api/play answered 8 times while it ran, slowest 8 ms
   job: done
   saved <deck 1>: Null, 27 cards, played as controller
     Null    54.8% against the shipped decks (fresh seeds)

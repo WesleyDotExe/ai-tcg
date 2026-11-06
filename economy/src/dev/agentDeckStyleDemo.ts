@@ -66,7 +66,7 @@ function report(name: string, build: AgentDeckBuild): void {
     say(`    ${f.faction}: ${(f.winRate! * 100).toFixed(1)}% on fresh seeds (${starts}); keeps the ${f.chosen} deck${f.kept.length ? `; changes: ${f.kept.join("; ")}` : ""}`);
   }
   const from = store.agentDeckBuiltFrom(store.deckStatus(build.deck.deckId).ownerId)!;
-  say(`  -> ${name}'s agent plays ${build.faction} (${store.loadDeck(build.deck.deckId).spec.cards.length} cards); recorded as built from: style ${from.style}, lock ${from.factionLock ?? "none"}, holdings ${from.holdings}`);
+  say(`  -> ${name}'s agent plays ${build.faction} (${store.loadDeck(build.deck.deckId).spec.cards.length} cards); recorded as built from: style ${from.style}, lock ${from.factionLock ?? "none"}, holdings ${from.holdings}, rule ${from.rule}`);
 }
 
 function reasons(ownerId: string): string {
