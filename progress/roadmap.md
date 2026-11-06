@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-05, game session 76 (the play-time allowance).
+Updated 2026-11-06, game session 78 (the demo check in CI; "Time's up"; the Stats page's data).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -53,7 +53,7 @@ new ideas go to `progress/season-1-ideas.md`.
    ring rebuilt (`progress/built-deck-ring-005.txt`); the first seat 53.6% on the ladder, 54.4% in mirrors
    (`progress/first-seat-003-rules-2.txt`); watch time median 6.7 min. Numbers at an [OWNER CHECK-IN] before the
    launch-gate re-run.
-1d. [ ] NEXT (session 72, per the owner's answer). The full-collection Null deck the builder picks under rules-2
+1d. [ ] (the same item as 2f below, session 79; it moved behind the website endpoints). The full-collection Null deck the builder picks under rules-2
    (test only, then the built-deck ring re-run); the watch pace if the owner wants it back near 6 minutes.
 2. [~] The rest of the server endpoints (item 3 below), each written into `server/OWNER_API.md`. Built: sign-in
    and the deck settings (session 56); who am I, account settings, the wallet (session 63); the board and the
@@ -104,16 +104,22 @@ new ideas go to `progress/season-1-ideas.md`.
    Notifications switches in the account settings. `GET /api/notifications` (pages, `kind` filter, unread counts),
    `POST /api/notifications/read` and `/clear` (`{ ids }` or `{ all: true }`). `server/OWNER_API.md`, tests,
    `progress/notifications-001.txt`. Five calls at notes-for-owner.md.
-2e. [ ] NEXT (session 78). The Stats page's data (owner 2026-11-05): what the Stats page and the Rating & form widget at L need beyond
-   `GET /api/ladder` and `GET /api/rating` (for example win rate by faction and by opponent, recent form, a rating
-   chart), in `server/OWNER_API.md` with tests; propose the shape at a check-in if needed.
-2f. [ ] The test-only Null deck-builder session (owner-approved; before the launch-gate re-run): see current.md.
+2e. [x] The Stats page's data (owner 2026-11-05), session 78, schema v24 (each side's deck faction on the match):
+   `GET /api/stats` (`agent`, `days` 7-90, `recent` 1-50): totals with the best and current streak, win rate by
+   faction and by the opponent's faction, recent results, the daily rating chart and weekly trend, today's earnings.
+   `server/OWNER_API.md`, tests, `progress/stats-001.txt`. Five calls at notes-for-owner.md.
+2f. [ ] NEXT (session 79). The test-only Null deck-builder session (owner-approved; before the launch-gate re-run): see current.md.
 2-0. [x] (owner 2026-11-06, first) The auto-merge retry fix (session 75): "Wait for checks to pass" retries a
    GitHub 5xx or rate limit 4 times (5/10/20/40 s); any other error or a failed check still stops the merge.
    Tested on the shipped script text (`server/test/autoMergeWorkflow.test.ts`).
 2-1. [x] (owner 2026-11-06, after PR #137) The auto-merge needs a real test run (session 77): it merges only when
    the `test` check run exists for the head commit and concluded success; missing, it waits the 12 minutes, then
    fails "no test run for this commit"; skipped or neutral is not a pass. 6 new tests (all fail on the old workflow).
+2-2. [x] (owner 2026-11-06, on session 75) The demo check in CI (session 78): `npm run demos` (the fast set) is a
+   step in `.github/workflows/test.yml`; a rule, card or schema change fails the PR until its demos are regenerated.
+2-3. [x] (owner 2026-11-06, on session 76) "Done for today" reads "Time's up" (session 78): `allowance.label` in
+   `GET /api/play` ("Running" / "Finishing match" / "Time's up"); the state value stays `done`. The render lane's
+   Agent controls take the words when it next touches them.
 2g. [x] (owner 2026-11-06) The play-time allowance on auto-play (session 76, schema v22): 15 / 30 / 60 minutes
    (`PUT /api/play/auto-play` `minutes`), +15 / +30 while running or finishing (`POST /api/play/auto-play/time`);
    time up: not queued, the live match finishes, then off with `timeUp`; windows cut at midnight Sydney; no minutes is
@@ -158,6 +164,9 @@ run in the brief; fix what breaks. Then Season 0 starts (5 Dec) and must run 7 c
 of waiting for a round's slowest match, so a faster (2×) match means the next one starts sooner. It changes the
 matchmaker, so it comes as its own proposal then. **At the public launch, switch on the Gold floor (1500) for
 "Top rated"** (owner 2026-11-06, call 2): the option is built and off (`featured.minRating`); it's one setting.
+**Before the public launch, a notification clean-up rule** (owner 2026-11-06, on session 77's call 5): cleared
+notifications are hidden, never deleted, in Season 0; at launch scale an age or count rule removes old ones (to
+propose then: e.g. cleared ones older than N days, or keep the newest M per owner).
 
 **After Season 0:** launch-scale storage and its load test (hard gate for Season 1), payments, the art pass,
 AI commentators, tournaments, quests, the published-odds page, the next set, 3D pack opening, the title screen,

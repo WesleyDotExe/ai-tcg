@@ -4298,7 +4298,7 @@ Next render session: compare closed PR #137 (its branch is kept and named on the
 
 ---
 
-## 2026-11-06 — Owner: answers to game sessions 77 (notifications), 76 (the play-time allowance) and 75 (the demo check in CI)
+## 2026-11-06 — Owner: answers to game sessions 77 (notifications), 76 (the play-time allowance) and 75 (the demo check in CI) (game-lane part HANDLED 2026-11-06, session 78 — S77: all 5 kept, nothing changed; the notification clean-up rule (age or count) is on the launch items in `progress/roadmap.md`, before the public launch. S76: all 5 kept, nothing changed; the label: `GET /api/play`'s `autoPlay.allowance` carries `label` ("Running" / "Finishing match" / "Time's up"); the state value stays `done` so the render's ring keeps working until it takes the new words; `server/OWNER_API.md` says "Time's up". S75: the step "demo drift check (fast demos)" (`npm run demos`) added to `.github/workflows/test.yml`, nothing else in it changed; the CI run time is on this session's PR. Then the Stats page's data, as ordered)
 
 ### Session 77: notifications (PR #138, `progress/notifications-001.txt`), keep the list and all 5 calls
 The list is approved as proposed: match result (every match: win/loss, credits, rating change; switch "Match results"), big pull (a pack the ceremony gives its full reveal; switch "Big pulls"), free daily pack ready (once a day; switch "Free daily pack ready"), and auto-play off (rewards maxed, or the agent's time is up; always on).

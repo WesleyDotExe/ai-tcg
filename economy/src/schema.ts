@@ -61,13 +61,17 @@
 //
 //  - (v22) auto-play may run on a time allowance: a start and an end, the
 //    end after the start, both or neither; an allowance stays on a switched-
-//    off row only when its time ran out (the "Done for today" message).
+//    off row only when its time ran out (the "Time's up" message).
 //
 //  - (v23) notifications: one row per owner, kind and ref (so a source
 //    that fires twice writes one), of a known kind; what a notification
 //    says, whose it is and when it came are never changed; it is read once
 //    and cleared once (neither is undone), and never deleted. The account
 //    settings add the three switches of Settings -> Notifications.
+//
+//  - (v24) a match keeps the faction each side's deck played, written once
+//    (the Stats page's win rate by faction). Null for a match recorded
+//    before v24, or without a deck.
 //
 // Since v2 (session 29, owner app spec 2026-10-05 section A) the OWNER, the
 // human account, owns everything: copies, credits, pack points, packs, decks
@@ -1390,5 +1394,18 @@ export const MIGRATIONS: readonly string[] = [
   ALTER TABLE account_settings ADD COLUMN notify_big_pulls INTEGER NOT NULL DEFAULT 1 CHECK (notify_big_pulls IN (0, 1));
   ALTER TABLE account_settings ADD COLUMN notify_match_results INTEGER NOT NULL DEFAULT 1 CHECK (notify_match_results IN (0, 1));
   ALTER TABLE account_settings ADD COLUMN notify_daily_pack INTEGER NOT NULL DEFAULT 1 CHECK (notify_daily_pack IN (0, 1));
+  `,
+  // 24: each side's deck faction on the match (session 78; owner 2026-11-05,
+  // the Stats page's "win rate by faction"). Written by recordMatch from the
+  // deck the match played (a live match's deck can't change), never after.
+  // Decks are rebuilt in place, so today's deck can't say what an older
+  // match played: matches recorded before v24 keep null, and the Stats page
+  // counts them as "faction not recorded" rather than guess.
+  `
+  ALTER TABLE matches ADD COLUMN p1_faction TEXT CHECK (p1_faction IS NULL OR p1_faction IN ${inList(V3_DECK_FACTIONS)});
+  ALTER TABLE matches ADD COLUMN p2_faction TEXT CHECK (p2_faction IS NULL OR p2_faction IN ${inList(V3_DECK_FACTIONS)});
+  CREATE TRIGGER match_faction_kept BEFORE UPDATE OF p1_faction, p2_faction ON matches
+  WHEN OLD.p1_faction IS NOT NULL OR OLD.p2_faction IS NOT NULL
+  BEGIN SELECT RAISE(ABORT, 'a match''s factions are written once'); END;
   `,
 ];

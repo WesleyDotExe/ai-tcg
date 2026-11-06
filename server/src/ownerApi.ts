@@ -43,6 +43,10 @@ import {
   RECOMMENDED_LAYOUT,
   SalvageNeedsConfirmation,
   SLOT_KIND,
+  STATS_CHART_DAYS_DEFAULT,
+  STATS_CHART_DAYS_MAX,
+  STATS_RECENT_DEFAULT,
+  STATS_RECENT_MAX,
   WIDGET_LIMITS,
   WIDGET_SIZES,
   WIDGET_TYPES,
@@ -483,6 +487,24 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
         const ownerId = ownerOf(req);
         const recent = intParam(query, "recent", 10, 1, 100);
         return { body: { rating: store.rating(ownerId), recent: store.ratingHistory(ownerId, recent) } };
+      },
+    },
+    {
+      // The Stats page and the Rating & form widget (session 78): the
+      // owner's matches counted (all agents, or `agent`), by faction and by
+      // the opponent's faction, the newest `recent` results, the rating
+      // chart over `days` reset days with the weekly trend, today's earnings.
+      method: "GET",
+      path: /^\/api\/stats$/,
+      handler: (req, _body, _params, query) => {
+        const ownerId = ownerOf(req);
+        const agentId = query.get("agent");
+        if (agentId !== null && !store.listAgents(ownerId).some((a) => a.agentId === agentId)) {
+          throw new HttpError(404, `no agent "${agentId}" of yours`);
+        }
+        const days = intParam(query, "days", STATS_CHART_DAYS_DEFAULT, 7, STATS_CHART_DAYS_MAX);
+        const recent = intParam(query, "recent", STATS_RECENT_DEFAULT, 1, STATS_RECENT_MAX);
+        return { body: store.stats(ownerId, { agentId, days, recent }) };
       },
     },
     {

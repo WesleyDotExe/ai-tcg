@@ -40,6 +40,7 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `POST /api/notifications/clear` | `{ ids: [1..100 ids] }` or `{ all: true }` | `{ cleared, unread }`: they leave the feed for good (read, if they weren't); 400 / 404 as for read |
 | `GET /api/ladder?limit=100` | none | the ladder: `{ standings, you, owners, tiers, placementMatches }` (below) |
 | `GET /api/rating?recent=10` | none | `{ rating, recent }`: the owner's Glicko-2 rating and its last rated matches (below) |
+| `GET /api/stats?agent=<agentId>&days=30&recent=10` | none | the Stats page and the Rating & form widget: totals, win rate by faction and by the opponent's faction, recent results, the rating chart and weekly trend, today's earnings (below; schema v24, session 78); 400 for `days` outside 7-90 or `recent` outside 1-50, 404 for an agent that isn't the caller's |
 | `GET /api/ledger?limit=50&before=<entryId>` | none | `{ entries, more, wallet }`: ledger entries newest first, a page at a time (below) |
 | `GET /api/collection?recentPacks=3` | none | the collection (below) |
 | `GET /api/collection/binder/:setCode` | none | the set's binder (below) |
@@ -67,7 +68,7 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `POST /api/play/rebuild` | none | 202 `{ job }`: the agent starts building its deck |
 | `GET /api/play/rebuild` | none | `{ job }`, the owner's latest rebuild (404 if none) |
 | `PUT /api/play/auto-play` | `{ on: boolean, minutes?: 15 \| 30 \| 60 }` | `{ autoPlay }` (below); `minutes` starts a play-time allowance (session 76), left out for no time limit; 400 for other minutes or minutes with `on: false`; 409 for a house owner, or turning it on while today's rewards are maxed |
-| `POST /api/play/auto-play/time` | `{ minutes: 15 \| 30 }` | `{ autoPlay }`: "+15 / +30" on a running allowance (session 76); 400 for other minutes; 409 with no allowance (off, done for today, or no time limit) or when it already runs to midnight Sydney |
+| `POST /api/play/auto-play/time` | `{ minutes: 15 \| 30 }` | `{ autoPlay }`: "+15 / +30" on a running allowance (session 76); 400 for other minutes; 409 with no allowance (off, time's up, or no time limit) or when it already runs to midnight Sydney |
 | `GET /api/live` | none | `{ running, matches: LiveMatchView[], mine, featured }`: every match being shown, the caller's, and Watch live's groups (below) |
 | `GET /api/live/:matchId?from=0` | none | `LiveMatchFeed`: the match now, and the moves released from `from` on (below); 404 once it ended. Reading it counts the caller as watching (`viewers`) |
 | `GET /api/matches?limit=20&before=<matchId>` | none | `{ matches: HistoryRow[], total, more }`: the caller's matches, newest first (below) |
@@ -235,6 +236,53 @@ LadderRow = {
 ```
 
 The tiers, the placement count and the matchmaker are session 66's proposals, at an owner check-in in `progress/notes-for-owner.md`.
+
+### The Stats page and the Rating & form widget (session 78)
+
+`GET /api/stats` (the 2026-10-05 spec's Stats page: rating chart; matches, wins, win rate and best streak; recent results; win rate by faction; today's earnings; the "All agents" / one-agent filter). Query: `agent` (one of the caller's agents; omitted is "All agents"), `days` (the chart, 7-90 reset days, default 30), `recent` (1-50, default 10).
+
+```
+{
+  ownerId, agentId,                      // agentId null: "All agents"
+  agents: [{ agentId, name, matches }],  // the filter's choices: every agent the owner has, oldest first, matches all time
+  totals: {
+    matches, wins, losses, draws, void,  // void: cancelled and abandoned (they pay nothing and count for nobody)
+    winRate,                             // wins / (wins + losses + draws); 0 before any decided match
+    bestWinStreak,
+    currentStreak: { kind: "win" | "loss", length } | null,   // null before any decided match, or right after a draw
+    creditsFromMatches
+  },
+  byFaction: [FactionRow],               // the faction the owner's deck played: Cortex, Swarm, Aegis, Null, always all four, zeros included
+  factionNotRecorded: Tally,             // matches recorded before schema v24 (no faction kept)
+  byOpponentFaction: [FactionRow],       // the faction the opponent's deck played, same order
+  opponentFactionNotRecorded: Tally,
+  recent: [RecentResult],                // newest first
+  rating: {
+    now: { ownerId, rating, rd, volatility, ratedMatches, tier, lastDay },   // as GET /api/rating
+    weekAgo,                             // the rating at the end of the Sydney day 7 days before today
+    weekChange,                          // now.rating - weekAgo: the S widget's weekly trend
+    chart: [{ day: "2026-11-02", rating, rated, wins, losses, draws }]      // one row per Sydney day, oldest first, ending today
+  },
+  today: DailyEarnings                   // the same as GET /api/daily
+}
+Tally = { matches, wins, losses, draws, void, winRate }
+FactionRow = Tally & { faction }
+RecentResult = {
+  matchId, endedAt,
+  result: "win" | "loss" | "draw" | "cancelled" | "abandonedByYou" | "abandonedByOpponent",   // as GET /api/matches
+  agentId, agentName, faction,           // the owner's agent and the faction its deck played (null before v24)
+  opponent: { ownerId, ownerName, agentId, agentName, faction },
+  credits,
+  rating: { before, after, change } | null,   // null when unrated (a cancel)
+  turns
+}
+```
+
+- **Void** is the economy's rule: a cancelled or abandoned match counts in `matches` and `void` only; it neither wins, loses, nor breaks or extends a streak. An abandon is still rated (a loss for the side that walked out), so it moves the chart and has a `rating` in `recent`. A draw breaks a streak.
+- **The faction** is the one each side's deck played, kept on the match when it is recorded (schema v24, written once). Decks are rebuilt in place, so an older match's faction can't be read back from today's deck: matches recorded before v24 count under `factionNotRecorded` instead of being guessed.
+- **The rating is the owner's** (one rating per owner), so `rating` is the same under every `agent` filter; every other figure follows the filter.
+- **The chart's** day is the reset day (midnight to midnight Sydney). A day's `rating` is the rating after its last rated match; a day without one carries the day before's (a Glicko-2 rating doesn't move while idle; only its RD grows, which `now.rd` shows). Before the first rated match it is the start, 1500.
+- Quests and achievements, also on the 2026-10-05 Stats page, come after Season 0 (with the weekly challenge and daily quests).
 
 ### The ledger
 
@@ -415,6 +463,7 @@ The switch on the My agent card, the match screen and Settings -> Play (owner ap
 ```
   allowance: {
     state: "running" | "finishing" | "done",
+    label: "Running" | "Finishing match" | "Time's up",   // the state as the owner reads it (owner 2026-11-06)
     startedAt: string, endsAt: string,   // the window the agent may be paired in
     totalMinutes: number,                // its length (the ring: secondsLeft / (totalMinutes * 60))
     secondsLeft: number,                 // 0 once time is up
@@ -426,7 +475,7 @@ The switch on the My agent card, the match screen and Settings -> Play (owner ap
 
 - **running**: time is left; the ladder queues the agent each round. The clock runs on wall time from the start, whether or not the agent is in a match (rounds wait for every match in them to end, so some of the time is spent waiting for the next round).
 - **finishing**: time is up while the agent is in a live match. It is not queued again; the match plays to the end and counts as normal. `on` is still true. The widget shows "Finishing match".
-- **done**: time is up and no match is left. `on` reads false and `stopped` is `{ reason: "timeUp", day }` from the moment time is up (the server writes the stop after the match, or before the next round, and the ladder's `autoPlayStopped` event carries `reason: "timeUp"`). The widget shows "Done for today". It shows until midnight Sydney; the owner can start again with new minutes at any time (there is no daily cap on time, only on rewards).
+- **done**: time is up and no match is left. `on` reads false and `stopped` is `{ reason: "timeUp", day }` from the moment time is up (the server writes the stop after the match, or before the next round, and the ladder's `autoPlayStopped` event carries `reason: "timeUp"`). The widget shows `label`, "Time's up" (owner 2026-11-06: renamed from "Done for today", since the owner can start again the same day; the wire value stays `done`). It shows until midnight Sydney; the owner can start again with new minutes at any time (there is no daily cap on time, only on rewards).
 - **+15 / +30** (`POST /api/play/auto-play/time`): while running, adds to the end; while finishing, opens a new window of that many minutes from now, so the agent is paired again next round. Refused when done (start again with minutes instead) and with no time limit.
 - **No carry-over**: every window is cut at the next midnight Sydney (60 minutes started at 23:30 give 30, with `endsAtReset: true`, and nothing can be added). A match still running at midnight finishes; its "done" belongs to the day the time ran out, so the new day reads clean (`allowance: null`, `stopped: null`).
 - Turning auto-play off, or on again (with or without minutes), drops the current allowance. Maxing the day's rewards turns auto-play off with `dailyRewardsMaxed` and drops the allowance too.
@@ -590,9 +639,10 @@ The engine rebuilds the match exactly from either format: `rebuildReplay(file, h
 
 ## Not built yet
 
-- The rest of the match-dependent endpoints: the Stats page's data (owner 2026-11-05; notifications came in session 77). Tournament endpoints (and so the `featured.tournament` group) wait until after Season 0.
+- Tournament endpoints (and so the `featured.tournament` group) wait until after Season 0.
 - Viewer counts are signed-in owners only: the site has no signed-out spectators in Season 0.
 - `GET /api/matches` reads the owner's whole history and pages it in memory (fine for a season of in-house play; to move into SQL before launch scale).
+- `GET /api/stats` likewise counts the owner's whole history on every read (one SQL query, counted in memory; a season of in-house play is a few thousand rows). Before launch scale: keep running tallies, or cache per owner until its next match.
 - The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).
 - Notifications are never pruned: about 60 a day for an owner on auto-play all day. Fine for Season 0; a retention rule (e.g. cleared ones past 30 days) before launch scale. No push: the website polls `GET /api/notifications?limit=1` for the bell.

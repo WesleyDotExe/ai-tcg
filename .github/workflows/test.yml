@@ -33,6 +33,14 @@ jobs:
       # accepted-OUT edge moves further out. About 15 seconds.
       - name: balance ring regression
         run: npm run ring -w @ai-tcg/engine
+      # The demo drift check in CI (owner 2026-11-06, session 75's option a):
+      # re-runs the fast demos in progress/demos.json and fails if any
+      # differs from its committed file, so a rule, card or schema change
+      # fails the PR until its demos are regenerated (npm run demos --
+      # --write, then read the diff). The slow ones (--all) stay local.
+      # About 35 seconds locally on 4 cores.
+      - name: demo drift check (fast demos)
+        run: npm run demos
       # The same six edges the way a real match plays (owner 2026-10-18,
       # option A): set Mythic in the deck, each side an approved menu line
       # as its signature card, against ringBaselineReal.json. The set-Mythic

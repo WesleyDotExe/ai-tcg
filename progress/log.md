@@ -4752,3 +4752,46 @@ big pulls record the owner's own openings in Season 0; the auto-merge missing-ch
 GitHub. All in quality-debt.md. Five calls at the [OWNER CHECK-IN] in notes-for-owner.md.
 
 **Blocked:** nothing. Next: session 78, the Stats page's data (roadmap 2e).
+
+## 2026-11-06 — Session 78 (game lane): the demo check in CI; "Time's up"; the Stats page's data (schema v24)
+
+**Read first:** owner-feedback.md's newest entry (answers to sessions 75-77) and the 2026-11-06 order. Checked for an
+open PR from either lane before any work: none. The last merged was #138 (game session 77), so nothing here had
+just merged. Not a hardening session (75 was; the next is 80). Inside the locked scope.
+
+**Built (the owner's order: the two small items first, then the Stats page's data):**
+- **The demo check in CI:** one step, "demo drift check (fast demos)", `npm run demos`, in
+  `.github/workflows/test.yml`, after the ring check. Nothing else in the workflow changed.
+- **"Time's up":** `AutoPlayAllowance.label` (`AUTO_PLAY_ALLOWANCE_LABELS`: "Running", "Finishing match", "Time's
+  up"); the state value stays `done` so the render's ring keeps working; `server/OWNER_API.md` and the comments say
+  "Time's up". **The notification clean-up rule** is on the launch items in `progress/roadmap.md`.
+- **Schema v24:** `matches.p1_faction` / `p2_faction` (a deck faction or null), written once (trigger), by
+  `recordMatch` from the deck the match played (a live match's deck can't change; the boast already reads it the
+  same way). `MatchRecord.factions`. Older matches stay null: decks are rebuilt in place, so they can't be read
+  back honestly.
+- **The Stats page's data:** `economy/src/stats.ts` (pure counting: `tallyMatches` with void / streak / draw rules,
+  every faction listed; `ratingChart`, one row per Sydney day carrying the rating over idle days);
+  `store.stats(ownerId, { agentId, days, recent })` (one SQL query from the owner's side, the agent filter, recent
+  results in `GET /api/matches`' words, the chart and the weekly trend, today's earnings); `GET /api/stats`
+  (`agent` 404 if not yours, `days` 7-90, `recent` 1-50, 400 otherwise). `server/OWNER_API.md`.
+
+**Ran it:**
+- `progress/stats-001.txt` (`npx tsx src/dev/statsApiDemo.ts`, server): over HTTP on the live ladder at watch
+  speed. Ada (Cortex) plays 6 matches on Mon 2 Nov, connects a second agent and plays 6 more on Wed 4 Nov; read on
+  Tue 10 Nov: 12 matches, 10-2, best streak 9, against Swarm 3-1, Aegis 4-0, Null 3-1; the 14-day chart (1500 ->
+  1668.3 on 2 Nov -> 1809.1 on 4 Nov, carried over); weekly trend +140.8 (end of 3 Nov to now); per agent 4-2 and
+  6-0, adding up; bad requests 400 / 404. **13 PASS, 0 FAIL**, reproduced by `npm run demos`.
+- `npm run demos`: 9 stale after the bump, every diff the schema line (v23 -> v24); rewritten; then 24 the same
+  (with stats-001). The slow three run too (`--all`, 8 min): 014 and 016 reproduce; 011 was already stale at "v21"
+  (since session 73: nobody runs the slow set), its only diff that line; fixed.
+- `npm test`: engine 365, server 168 (+3), economy 254 (+10), render 899, agents 17, protocol 7, all pass.
+  Typecheck clean in every workspace (one implicit-any in the demo caught by it and fixed).
+
+**Worked:** keeping the counting pure (stats.ts) made the rules testable without a database, and the live-ladder
+test checks the new tallies against `ownerStats` and the history from real engine matches. The new CI step proved
+itself before it merged: this session's own schema bump is exactly what it catches.
+**Thin / honest limits:** older matches have no faction; the page counts the whole history per read; the chart is
+daily; the rating ignores the agent filter (one rating per owner). All in quality-debt.md; five calls at the
+[OWNER CHECK-IN] in notes-for-owner.md. The new step's CI time isn't recorded: this session couldn't wait for PR #139's run to finish. Session 79 reads it first.
+
+**Blocked:** nothing. Next: session 79, the test-only Null deck-builder session (roadmap 2f).

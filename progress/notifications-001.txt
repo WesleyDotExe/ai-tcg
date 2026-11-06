@@ -81,4 +81,4 @@ play-time allowance's time up (no switch). Player owners only. Times below are S
   [PASS] a new day's pack is a new notification, ready since midnight Sydney
   clear { all: true } 200 {"cleared":7,"unread":0}; feed now 0 item(s)
 
-Schema v23. 14 PASS, 0 FAIL.
+Schema v24. 14 PASS, 0 FAIL.

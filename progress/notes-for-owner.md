@@ -1,5 +1,50 @@
 # Notes for the owner
 
+**Updated 2026-11-06, session 78 (the demo check in CI; "Time's up"; the Stats page's data). [OWNER CHECK-IN]
+(the Stats page's shape, as roadmap 2e asked).** Nothing is blocking: it is built on the proposal below and the
+next session (the Null builder session, 2f) doesn't depend on your answers. Your answers to sessions 75-77 are
+done: notifications, the play-time allowance and the demo check, all kept as you said.
+
+**1. The demo check is in CI**, as you OK'd (option a), and only that step was added to `test.yml`: `npm run
+demos`, the 24 fast demos. It caught its first case in this very session: the schema bump to v24 left 9 demos
+stale (the schema line only), and they are regenerated. Locally it takes about 35 s on 4 cores. **The CI time:**
+not measured yet. This session couldn't wait for PR #139's GitHub run to finish. The next game session reads that
+run's step times and writes them here. Locally the step adds ~35 s to a run that already took a few minutes, so it
+should stay well inside the 12-minute auto-merge wait.
+
+**2. "Done for today" now reads "Time's up".** `GET /api/play`'s `autoPlay.allowance` has a new `label`:
+"Running", "Finishing match" or "Time's up". I kept the state value `done` as it is, because the website's ring
+already reads it and renaming it would break the render lane's page until it changes too; the label is the text to
+show. The render lane uses "Time's up" when it next touches Agent controls, as you said.
+
+**3. The notification clean-up rule** is on the launch items in `progress/roadmap.md`, before the public launch.
+
+**4. The Stats page's data: `GET /api/stats`.** One call gives the Stats page and the Rating & form widget at S, M
+and L: totals (matches, wins, losses, draws, void, win rate, best streak, the current streak, credits from
+matches), win rate by your faction and by the opponent's faction, the recent results, the rating chart with the
+weekly trend, and today's earnings. `?agent=` is the "All agents" / one-agent filter. To count factions, each
+match now keeps the faction both decks played (schema v24). `progress/stats-001.txt` runs it on the real ladder:
+Ada plays 12 matches on two agents across two days, then reads her stats a week later; 13 checks pass, each figure
+checked against the match history.
+
+**Calls I made (your call on each):**
+1. **The rating doesn't change with the agent filter.** There is one rating per owner, so the chart and the weekly
+   trend are the owner's under every filter; everything else follows the filter. A per-agent rating would be a
+   second rating system. Keep it?
+2. **Cancelled and abandoned matches are "void" in every count**, as the economy pays them nothing: they count as
+   a match but are never a win or a loss, and never break a streak. An abandon is still rated (a loss for the side
+   that walked out), so it moves the chart. A draw breaks a streak. Keep these?
+3. **The chart is one point per Sydney day** (the rating at the end of the day; idle days carry it over), 30 days by
+   default, 7 to 90 on request. The "weekly trend" is now minus the rating at the end of the day 7 days ago. Or
+   one point per match?
+4. **Matches from before today's change have no faction**, and I didn't guess one (decks are rebuilt in place, so
+   today's deck can't say what an old match played). They show as "not recorded". Season 0 hasn't started, so
+   only test matches are affected.
+5. **Quests and achievements are left out**: the Stats page lists them, but they come after Season 0 with daily
+   quests and the weekly challenge.
+
+---
+
 **Updated 2026-11-06, session 77 (the auto-merge guard; notifications). [OWNER CHECK-IN] (the notification list,
 as roadmap 2d asked).** Nothing is blocking: both are built and the next session goes on whatever you answer.
 Session 76's five calls (the play-time allowance) and session 75's call (the demo check in CI) are still open, below.
