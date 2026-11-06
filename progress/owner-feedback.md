@@ -4372,3 +4372,17 @@ Answers the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (PR #141, `progres
 4. **Keep:** the plain rule stays available for measurement only (`keepDesigned: null`, `--keep-designed off`); the store never uses it.
 
 Next game session, as planned: 81, the hardening pass.
+
+---
+
+## 2026-11-06 — Owner: for game session 81 (the hardening pass): make `ladder-demo-002-live` reliable in CI
+
+**What happened:** PR #141's `test` run failed at the new step "demo drift check (fast demos)": 24 of 25 demos were the same, and `ladder-demo-002-live.txt` crashed after 8 s (`exit 1`; the printed tail ends in an error with `syscall: 'read'`, a socket read on the demo's own local connection). Everything before it passed (typecheck, the engine suite, the ring check); the real-match ring and the render browser check were skipped. The auto-merge correctly refused to merge. The same demo passed locally in session 80 and in PR #139's CI run, so it looks like a flaky connection on GitHub's runner, not a game bug; the owner re-runs the job.
+
+**In session 81, first:**
+1. **Find the cause** from the failed run's log (PR #141, `test`, the demo drift check step), and make `ladder-demo-002-live` reliable on GitHub's runners: for example, wait until its server is listening before the first request, and handle a reset or closed connection the way a real client would (retry the read or the poll), without changing what the demo checks or prints. If the cause turns out to be a real bug, fix that instead and say so.
+2. **Make the demo runner print the whole error** when a demo fails (`scripts/demos.mjs`): the demo's name, its exit code and its full stderr (or the last 60 lines), not just the last few lines, so a failure in CI can be read without re-running it.
+3. **Prove it:** run the fast demos several times in a row (and, if possible, under CPU load, as render session 54 did for the check-E flake) and report how many runs pass before and after.
+4. If PR #141 still hasn't merged when session 81 starts (a second failure), fix it on #141's branch first, per the one-session-per-lane rule.
+
+Then continue the hardening pass as planned.
