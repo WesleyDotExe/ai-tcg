@@ -4880,3 +4880,45 @@ packs the real-mode ring loses its two IN verdicts (both still near or inside th
 This was due to be the hardening pass; the owner's items went first, and the hardening pass is session 81.
 
 **Blocked:** nothing. Next: session 81, the hardening pass (unless the owner's launch-gate answer asks for changes).
+
+## 2026-11-06 — Session 81 (game lane, HARDENING pass): the CI demo flake; whole demo errors; the rebuild burst measured
+
+**Owner feedback:** the session 81 entry, handled in its order. #141 was still open at the start: the owner's
+re-run of `test` had passed, but the auto-merge had been re-run before it and had seen the first failure. So the fix
+went on #141's branch first (item 4), as one commit. Its `test` passed (demo step 1:22, job 6:35) and the
+auto-merge merged it.
+
+**1. The cause.** The CI log only had the last five lines of the error. Reproduced it by pinning the demo and three
+busy loops to one core: the first `live.tick()` (deck builds and the round's matches, synchronous here) left an
+11 s gap between two requests, then `read ECONNRESET` at line 135, the same signature, 3 of 3 runs. NODE_DEBUG=net
+shows the server's keep-alive `_onTimeout` -> `destroy` on the idle sockets just before the client's error. The
+next request had already been written on one of them. A minimal blocked-loop script didn't always fail: which timer
+fires first decides it, hence the flake. Not a game bug, and the server already waited for `listen`. Fix:
+`server/src/dev/demoFetch.ts` retries a request whose connection was reset or closed before any response, on a
+fresh connection, up to 3 times, as a browser does. All 13 server demos that call their own API use it.
+`server/test/demoFetch.test.ts`, 6 tests: plain fetch fails on a real server that drops the reused socket;
+demoFetch gets the answer, and it is answered once; no retry on an HTTP 500 or a refused connection; it gives up
+after 3; no bare `fetch(` in `server/src/dev`.
+
+**2. Whole errors.** `scripts/demos.mjs`: a failed demo prints its script, exit code or signal, the last 60
+lines of stderr and the last 10 lines of stdout. Shown on the old demo under load in the evidence file.
+
+**3. Proof.** Fast demos, 3 runs in a row each, PR #141's head in a worktree vs the fix: idle 3/3 and 3/3; under
+load (two cores, four busy loops) 0/3 before (ladder-demo-002-live every time), 3/3 after.
+`progress/demo-reliability-001.txt`.
+
+**Then the hardening pass (session 80's debt): the rule-change rebuild burst, measured.**
+`server/src/dev/ladderStallMeasure.ts` (`npm run measure:ladder-stall -w server`) sets up the server as
+`seasonCli.ts` runs it (owner API + LiveLadder, worker-thread builds). N house owners have decks built under the
+plain rule, so all of them ask to rebuild. A viewer polls GET /api/live every 100 ms. On 4 CPUs (3 workers):
+8 / 24 / 48 decks take 31 / 91 / 172 s before round 1 pairs, linear at about 3.6 s per deck. The API answered
+throughout (p99 6-10 ms, worst 67 ms). A round's matches play on the main thread in 0.1 / 0.2 / 0.4 s.
+`progress/ladder-stall-001.txt`, with what its stall column can't see.
+
+**Ran it:** server suite 179 tests, all pass (one timed out at 5.0 s while the load benchmark was running, then
+passed 4/4 alone); typecheck clean; `npm run demos` same on all 25; #141's CI green with the fix.
+
+**Worked:** reproducing under load before changing anything. The idea that "the server isn't listening yet" was
+ruled out in a minute, and the trace showed the real mechanism.
+
+**Blocked:** nothing. Next: the remaining Season 0 items; read both auto-merge jobs on the first two-commit PR.

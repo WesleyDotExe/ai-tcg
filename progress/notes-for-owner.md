@@ -1,5 +1,32 @@
 # Notes for the owner
 
+**Updated 2026-11-06, session 81 (the hardening pass; your CI-demo entry).** No check-in this time, and
+nothing is blocking. #141 was still open at the start, so the fix went on its branch first. Its `test` passed and
+it merged.
+
+**1. Why `ladder-demo-002-live` failed in CI: a race, not a game bug.** The demo runs the server and its client in
+one process. The ladder's first round (deck builds and matches, run on the main thread in the demo) froze that
+process for longer than the server's 5 s keep-alive timeout. The demo's next request then went out on an idle
+connection just as the server closed it: `read ECONNRESET`. I made it fail every time by running it on one busy
+CPU core. The fix is a small `fetch` for the demos that retries a connection reset before any answer, as a browser
+does. All 13 API demos use it, and nothing they print changed. Under load it went from 0 of 3 runs passing to 3 of
+3 (`progress/demo-reliability-001.txt`).
+
+**2. A failed demo now shows its whole error** in CI: the script, the exit code, the last 60 lines of stderr and
+the last 10 lines it printed.
+
+**3. The rule-change rebuild burst (session 80's open question) is measured** (`progress/ladder-stall-001.txt`).
+When every agent deck must rebuild at once, the first round waits about 3.6 s per deck on 3 worker threads (48 decks:
+about 3 minutes). The owner API kept answering the whole time (worst 67 ms).
+
+**Two small things you may want to overrule:**
+- I fixed the demos' side (retry) rather than the stall. The real server builds decks on worker threads, so the
+  site doesn't freeze like the demo did. Its one main-thread pause is playing a round's matches (0.4 s for 24).
+- A tip for re-running a failed PR: re-run `test` first, then the auto-merge job. On #141 the auto-merge was re-run
+  first, saw the old failure and stopped.
+
+---
+
 **Updated 2026-11-06, session 80 (the auto-merge pin; the builder rule switched on at 1 SD; the launch-gate
 re-run). [OWNER CHECK-IN] (the launch-gate re-run, as your 2026-11-06 answer asked).** Nothing is blocking: both of
 your answers are built, and the next session goes on without waiting. Checked first: no open PR from either lane,
