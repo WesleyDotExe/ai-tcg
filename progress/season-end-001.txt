@@ -1,0 +1,87 @@
+Season end demo 001 — ending a season (session 82; Season 0 game item 3, part 1)
+========================================================================
+ECONOMY.md: each season is its own file, kept as the season's archive; Prototypes never pulled are
+retired at season end, forever; the tier coins are granted when the season ends, first (roadmap item 3).
+Not in this part: the Season 1 file (what carries over, the ratings' soft reset): an owner check-in.
+
+1. A v25 season file opens at v26, the season open
+------------------------------------------------------------------------
+  written at schema v25: 6 owners
+  reopened: schema v26, season S0
+  [PASS] the migrated file's season is open
+
+2. Three hours of ladder; one Prototype found
+------------------------------------------------------------------------
+  61 matches recorded, 2 being shown now
+   #1 Kit   1814 (RD 106) Diamond   17-4-0
+   #2 Bram  1595 (RD 101) Gold      10-9-0
+   #3 Hub   1583 (RD 97) Gold      10-11-0
+   #4 Lux   1542 (RD 99) Gold      9-12-0
+   #5 Mox   1273 (RD 93) Bronze    9-11-0
+   #6 Ada   1152 (RD 94) Bronze    6-14-0
+  Ada opens a pack (seed 551): bonus card CX-003, prototype, run S0-P12 #1
+
+3. GET /api/season while the season is open
+------------------------------------------------------------------------
+  200: season S0, state open, 2 match(es) live
+  Hub: tier now Gold; would earn: no coin
+  Ada: tier now Bronze; would earn: no coin
+  Bram: tier now Gold; would earn: no coin
+  [PASS] open: no standings, no retired runs yet
+
+4. The admin ends the season
+------------------------------------------------------------------------
+  Hub, season "S1": 400 "season" must name the season being ended ("S0")
+  Ada, season "S0": 403 only the house admin can do this
+  [PASS] refused for the wrong season (400) and for a non-admin (403)
+  Hub, season "S0": 202, state ending, 2 match(es) being shown: m62, m63
+  ended 2026-12-14T02:02:30.000Z, 3 min after the ask; 2 match(es) recorded meanwhile
+  m62: Ada wins; m63: Kit wins
+  [PASS] the shown matches finished and counted (none cancelled), and no other match started
+  ladder event: {"kind":"seasonEnded","season":"S0","endedAt":"2026-12-14T02:02:30.000Z","standings":6,"retiredCopies":1515}
+
+5. GET /api/season after the end
+------------------------------------------------------------------------
+  state ended, ended 2026-12-14T02:02:30.000Z, 0 live
+  final standings (rating, RD, tier, W-L-D, tier coins):
+   #1 Kit   Kit-agent   1827.4 103.7 Diamond   18-4-0   coin-s0-platinum, coin-s0-diamond
+   #2 Bram  Bram-agent  1594.8 101.0 Gold      10-9-0   -
+   #3 Hub   Hub-agent   1572.5  95.5 Gold      10-12-0  -
+   #4 Lux   Lux-agent   1541.9  98.6 Gold      9-12-0   -
+   #5 Mox   Mox-agent   1242.7  90.5 Bronze    9-12-0   -
+   #6 Ada   Ada-agent   1182.4  91.5 Bronze    7-14-0   -
+  Ada's own line: #6, Bronze
+  [PASS] the standings are the ladder as it stood at the end
+  [PASS] each owner holds exactly the tier coins its final tier earns
+  retired Prototype runs (found / retired of the run):
+    S0-P01 NL-014  /1    found 0, retired 1
+    S0-P02 AG-014  /5    found 0, retired 5
+    S0-P03 CX-024  /10   found 0, retired 10
+    S0-P04 SW-006  /25   found 0, retired 25
+    S0-P05 NL-013  /25   found 0, retired 25
+    S0-P06 SW-004  /50   found 0, retired 50
+    S0-P07 AG-013  /50   found 0, retired 50
+    S0-P08 CX-007  /50   found 0, retired 50
+    S0-P09 SW-020  /100  found 0, retired 100
+    S0-P10 NL-011  /100  found 0, retired 100
+    S0-P11 NT-008  /100  found 0, retired 100
+    S0-P12 CX-003  /250  found 1, retired 249
+    S0-P13 AG-011  /250  found 0, retired 250
+    S0-P14 SW-010  /250  found 0, retired 250
+    S0-P15 NL-019  /250  found 0, retired 250
+  1515 of 1516 copies retired, 1 found
+  [PASS] every run is retired, and the one find is counted
+
+6. After the end
+------------------------------------------------------------------------
+  three more hours of ladder: 0 matches, 0 shown, auto-play still on for Ada: true
+  [PASS] no round pairs anyone after the end, and no rating moved
+  Ada opens a pack with the same seed 551: bonus card SW-004, gold (the runs are retired)
+  [PASS] the Prototype bonus is a Gold now
+  Hub asks again: 409 season S0 has already ended
+  a hand-run edit of the ratings: the season has ended: ratings are final
+  [PASS] a second end is refused (409) and the ratings are final in the schema
+  reopened the file: season S0 ended 2026-12-14T02:02:30.000Z, 6 standings, 15 retired runs
+  [PASS] the end is kept on disk
+
+Schema v26. 11 PASS, 0 FAIL.

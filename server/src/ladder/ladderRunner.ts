@@ -96,7 +96,8 @@ export type LadderEvent =
   | { kind: "rebuilt"; ownerId: string; reasons: string[]; faction: string; cards: number }
   | { kind: "excluded"; ownerId: string; reason: string }
   | { kind: "paired"; pairing: Pairing }
-  | { kind: "match"; result: LadderMatch };
+  | { kind: "match"; result: LadderMatch }
+  | { kind: "seasonEnded"; season: string; endedAt: string; standings: number; retiredCopies: number };
 
 export interface LadderMatch {
   record: MatchRecord;
@@ -199,6 +200,8 @@ export class Ladder {
    * auto-play is on (owner app spec 2026-10-05 E). Either way with a
    * connected agent and not already in a live match. */
   eligibleOwners(): string[] {
+    // (session 82) An ended season pairs nobody: its file is the archive.
+    if (this.store.seasonEnded()) return [];
     const autoPlay = new Set(this.store.autoPlayOwners());
     return this.store
       .listOwners()
@@ -263,6 +266,7 @@ export class Ladder {
     // queue never held it either way (autoPlayOwners).
     for (const ownerId of this.store.stopAutoPlayTimeUp()) this.emit({ kind: "autoPlayStopped", ownerId, reason: "timeUp" });
     queue ??= this.eligibleOwners();
+    if (this.store.seasonEnded()) queue = [];
     const report: RoundReport = { round: ++this.rounds, housePacks: [], rebuilt: [], excluded: [], pairs: [], sitOut: [], matches: [] };
     for (const ownerId of queue) {
       const shopped = this.houseShopping(ownerId);

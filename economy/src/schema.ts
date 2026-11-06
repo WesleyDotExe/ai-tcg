@@ -1417,4 +1417,70 @@ export const MIGRATIONS: readonly string[] = [
   `
   ALTER TABLE decks ADD COLUMN built_rule TEXT CHECK (built_rule IS NULL OR built_style IS NOT NULL);
   `,
+  // 26: the season's end (session 82; Season 0 game item 3, part 1;
+  // ECONOMY.md "Seasons" and "Prototypes"). Ending a season is one store
+  // transaction (endSeason): the tier coins first, then the final
+  // standings frozen, then every Prototype run of the season's set
+  // retired with what it found. After it the file is the season's
+  // archive: no match starts, no rating moves and no Prototype copy is
+  // minted from a retired run, and the schema itself refuses each, so a
+  // hand-run edit can't undo the end. All three tables are write-once.
+  `
+  CREATE TABLE season_end (
+    season    TEXT PRIMARY KEY,
+    ended_at  TEXT NOT NULL
+  );
+  CREATE TABLE season_standings (
+    owner_id       TEXT PRIMARY KEY REFERENCES owners(owner_id),
+    rank           INTEGER CHECK (rank IS NULL OR (typeof(rank) = 'integer' AND rank >= 1)),
+    owner_name     TEXT NOT NULL,
+    agent_name     TEXT,
+    rating         REAL NOT NULL,
+    rd             REAL NOT NULL CHECK (rd > 0 AND rd <= 350),
+    volatility     REAL NOT NULL CHECK (volatility > 0 AND volatility < 1),
+    rated_matches  INTEGER NOT NULL CHECK (typeof(rated_matches) = 'integer' AND rated_matches >= 1),
+    tier           TEXT NOT NULL,
+    wins           INTEGER NOT NULL CHECK (wins >= 0),
+    losses         INTEGER NOT NULL CHECK (losses >= 0),
+    draws          INTEGER NOT NULL CHECK (draws >= 0)
+  );
+  CREATE UNIQUE INDEX season_standings_rank ON season_standings (rank) WHERE rank IS NOT NULL;
+  CREATE TABLE retired_prototype_runs (
+    run_code    TEXT PRIMARY KEY,
+    set_code    TEXT NOT NULL,
+    card_id     TEXT NOT NULL,
+    run_size    INTEGER NOT NULL CHECK (typeof(run_size) = 'integer' AND run_size >= 1),
+    found       INTEGER NOT NULL CHECK (typeof(found) = 'integer' AND found >= 0),
+    retired     INTEGER NOT NULL CHECK (typeof(retired) = 'integer' AND retired >= 0),
+    retired_at  TEXT NOT NULL,
+    CHECK (found + retired = run_size)
+  );
+  CREATE TRIGGER season_end_kept BEFORE UPDATE ON season_end
+  BEGIN SELECT RAISE(ABORT, 'a season''s end is written once'); END;
+  CREATE TRIGGER season_end_no_delete BEFORE DELETE ON season_end
+  BEGIN SELECT RAISE(ABORT, 'a season''s end is written once'); END;
+  CREATE TRIGGER season_standings_kept BEFORE UPDATE ON season_standings
+  BEGIN SELECT RAISE(ABORT, 'the final standings are written once'); END;
+  CREATE TRIGGER season_standings_no_delete BEFORE DELETE ON season_standings
+  BEGIN SELECT RAISE(ABORT, 'the final standings are written once'); END;
+  CREATE TRIGGER retired_runs_kept BEFORE UPDATE ON retired_prototype_runs
+  BEGIN SELECT RAISE(ABORT, 'a retired Prototype run is retired forever'); END;
+  CREATE TRIGGER retired_runs_no_delete BEFORE DELETE ON retired_prototype_runs
+  BEGIN SELECT RAISE(ABORT, 'a retired Prototype run is retired forever'); END;
+  CREATE TRIGGER no_live_match_after_season_end BEFORE INSERT ON live_matches
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: no match starts'); END;
+  CREATE TRIGGER no_rated_match_after_season_end BEFORE INSERT ON match_ratings
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: ratings are final'); END;
+  CREATE TRIGGER no_rating_insert_after_season_end BEFORE INSERT ON ratings
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: ratings are final'); END;
+  CREATE TRIGGER no_rating_update_after_season_end BEFORE UPDATE ON ratings
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: ratings are final'); END;
+  CREATE TRIGGER no_prototype_from_retired_run BEFORE INSERT ON card_copies
+  WHEN NEW.series_kind = 'prototype' AND EXISTS (SELECT 1 FROM retired_prototype_runs WHERE run_code = NEW.series_code)
+  BEGIN SELECT RAISE(ABORT, 'that Prototype run is retired'); END;
+  `,
 ];

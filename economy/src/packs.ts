@@ -41,6 +41,9 @@ export interface PrototypeRun {
 export interface CardSet {
   code: string;
   name: string;
+  /** (session 82) The season the set belongs to: its Prototype runs are
+   * retired when that season ends (the store's endSeason). */
+  season: string;
   /** The set symbol, drawn by the render beside the collector number. */
   symbol: string;
   cards: readonly SetCard[];
@@ -72,6 +75,7 @@ function seasonZeroSet(): CardSet {
   const set = {
     code: "S0",
     name: "Season Zero",
+    season: "S0",
     symbol: "S0-boot",
     cards: cards.map((c, i) => ({
       cardId: c.id,
@@ -118,6 +122,11 @@ function glitchList(set: Pick<CardSet, "code" | "cards">, ids: readonly string[]
 }
 
 export const CARD_SETS: ReadonlyMap<string, CardSet> = new Map([["S0", seasonZeroSet()]]);
+
+/** The sets of a season (the ones whose Prototype runs its end retires). */
+export function seasonSets(season: string): CardSet[] {
+  return [...CARD_SETS.values()].filter((s) => s.season === season);
+}
 
 export function cardSet(code: string): CardSet {
   const set = CARD_SETS.get(code);

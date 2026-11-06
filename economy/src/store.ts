@@ -74,7 +74,7 @@ import {
   type Theme,
 } from "./accountSettings.js";
 import { dummyHash, hashPassword, needsRehash, verifyPassword } from "./passwords.js";
-import { CARD_SETS, FULL_ART_OR_BETTER, nextPity, rollPack, secretCardOf, type PackSlot, type PityState } from "./packs.js";
+import { CARD_SETS, FULL_ART_OR_BETTER, nextPity, rollPack, seasonSets, secretCardOf, type PackSlot, type PityState } from "./packs.js";
 import type { SecretCard } from "./chase.js";
 import {
   CLOSE_WIN_HEALTH,
@@ -1001,6 +1001,49 @@ export interface OwnerRating extends Glicko2Rating {
   tier: LadderTier;
   /** The reset day of the last rated match, or null before one. */
   lastDay: string | null;
+}
+
+/** (v26) One owner's line in a season's final standings, frozen when the
+ * season ended: the ladder as it stood then, names included (an owner or
+ * agent renamed later keeps its season name here). */
+export interface SeasonStanding {
+  /** 1-based among placed owners; null for an owner still in placement. */
+  rank: number | null;
+  ownerId: string;
+  ownerName: string;
+  /** The connected agent's name at the end, or null with none connected. */
+  agentName: string | null;
+  rating: number;
+  rd: number;
+  volatility: number;
+  ratedMatches: number;
+  tier: LadderTier;
+  wins: number;
+  losses: number;
+  draws: number;
+  /** The tier coins this season gave the owner (item ids, lowest first). */
+  tierCoins: string[];
+}
+
+/** (v26) A Prototype run as its season ended: how many copies were found,
+ * and how many were never pulled and are retired forever. */
+export interface RetiredPrototypeRun {
+  runCode: string;
+  setCode: string;
+  cardId: string;
+  runSize: number;
+  found: number;
+  retired: number;
+  retiredAt: string;
+}
+
+/** (v26) A season's end, as `endSeason` wrote it. */
+export interface SeasonEnd {
+  season: string;
+  endedAt: string;
+  /** Placed owners by rank, then owners still in placement. */
+  standings: SeasonStanding[];
+  retiredPrototypes: RetiredPrototypeRun[];
 }
 
 /** One side's rating change in a rated match (schema v17). */
@@ -2602,6 +2645,98 @@ export class EconomyStore {
     });
   }
 
+  // ---- the season's end (v26; Season 0 game item 3, part 1) ----
+
+  /** Whether the season has ended (v26). */
+  seasonEnded(): boolean {
+    return this.schemaVersion >= 26 && this.db.prepare("SELECT 1 FROM season_end").get() !== undefined;
+  }
+
+  /** The season's end, or null while the season is open. */
+  seasonEnd(): SeasonEnd | null {
+    if (!this.seasonEnded()) return null;
+    const row = this.db.prepare("SELECT season, ended_at FROM season_end").get() as Row | undefined;
+    if (!row) return null;
+    const season = str(row.season);
+    const coins = new Map<string, string[]>();
+    for (const r of this.db
+      .prepare("SELECT owner_id, item_id FROM owned_cosmetics WHERE source = 'seasonReward' AND reward_ref LIKE ? ORDER BY acquired_at, rowid")
+      .all(`${season}:%`) as Row[]) {
+      coins.set(str(r.owner_id), [...(coins.get(str(r.owner_id)) ?? []), str(r.item_id)]);
+    }
+    const order = (item: string) => SEASON_REWARD_TIERS.indexOf(this.catalogue.get(item)?.tierReward ?? SEASON_REWARD_TIERS[0]!);
+    const standings = (this.db.prepare("SELECT * FROM season_standings ORDER BY rank IS NULL, rank, rating DESC, rd, owner_name").all() as Row[]).map(
+      (r): SeasonStanding => ({
+        rank: r.rank === null ? null : num(r.rank),
+        ownerId: str(r.owner_id),
+        ownerName: str(r.owner_name),
+        agentName: r.agent_name === null ? null : str(r.agent_name),
+        rating: num(r.rating),
+        rd: num(r.rd),
+        volatility: num(r.volatility),
+        ratedMatches: num(r.rated_matches),
+        tier: str(r.tier) as LadderTier,
+        wins: num(r.wins),
+        losses: num(r.losses),
+        draws: num(r.draws),
+        tierCoins: [...(coins.get(str(r.owner_id)) ?? [])].sort((a, b) => order(a) - order(b)),
+      }),
+    );
+    const retiredPrototypes = (this.db.prepare("SELECT * FROM retired_prototype_runs ORDER BY run_code").all() as Row[]).map(
+      (r): RetiredPrototypeRun => ({
+        runCode: str(r.run_code),
+        setCode: str(r.set_code),
+        cardId: str(r.card_id),
+        runSize: num(r.run_size),
+        found: num(r.found),
+        retired: num(r.retired),
+        retiredAt: str(r.retired_at),
+      }),
+    );
+    return { season, endedAt: str(row.ended_at), standings, retiredPrototypes };
+  }
+
+  /** Ends the season, in one transaction (ECONOMY.md "Seasons"; roadmap
+   * game item 3): first the tier coins each owner's tier earns at `at`
+   * (grantSeasonTierCoins), then the final standings frozen as the ladder
+   * stands at `at`, then every Prototype run of the season's set retired
+   * with what it found (the copies never pulled are gone forever). After
+   * it no match starts, no rating moves and no Prototype copy is minted
+   * from a retired run (an opened pack's Prototype bonus is a Gold, as when
+   * every run is used up); the schema refuses each too. Refused while any
+   * match is live (the ladder lets its matches finish first) and once the
+   * season has ended. */
+  endSeason(at: string = this.stamp()): SeasonEnd {
+    if (this.schemaVersion < 26) throw new EconomyError("ending a season needs schema v26");
+    return this.transaction(() => {
+      if (this.seasonEnd() !== null) throw new EconomyError(`season ${this.season} has already ended`);
+      const live = this.liveMatches().length;
+      if (live > 0) throw new EconomyError(`${live} match${live === 1 ? " is" : "es are"} still live: end the season once ${live === 1 ? "it is" : "they are"} recorded`);
+      const season = this.season;
+      this.grantSeasonTierCoins(at);
+      const insertStanding = this.db.prepare(
+        `INSERT INTO season_standings (owner_id, rank, owner_name, agent_name, rating, rd, volatility, rated_matches, tier, wins, losses, draws)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      );
+      const everyone = num((this.db.prepare("SELECT COUNT(*) AS n FROM ratings").get() as Row).n);
+      for (const r of everyone === 0 ? [] : this.ladder({ at, limit: everyone })) {
+        const { volatility } = this.rating(r.ownerId, at);
+        insertStanding.run(r.ownerId, r.rank, r.ownerName, r.agent?.name ?? null, r.rating, r.rd, volatility, r.ratedMatches, r.tier, r.wins, r.losses, r.draws);
+      }
+      const insertRun = this.db.prepare(
+        "INSERT INTO retired_prototype_runs (run_code, set_code, card_id, run_size, found, retired, retired_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      );
+      for (const set of seasonSets(season)) {
+        for (const run of set.prototypes) {
+          const found = this.prototypesFound(run.code);
+          insertRun.run(run.code, set.code, run.cardId, run.runSize, found, run.runSize - found, at);
+        }
+      }
+      this.db.prepare("INSERT INTO season_end (season, ended_at) VALUES (?, ?)").run(season, at);
+      return this.seasonEnd()!;
+    });
+  }
+
   /** A new agent's boast slot: the starter boast of the owner's faction
    * lock, else its starting faction, if the owner has it. An agent that
    * already wears a boast keeps it. */
@@ -2686,6 +2821,7 @@ export class EconomyStore {
   startMatch(input: { matchId: string; p1OwnerId: string; p2OwnerId: string }): LiveMatch {
     if (input.p1OwnerId === input.p2OwnerId) throw new EconomyError("an owner's own agents never play each other in rewarded play");
     return this.transaction(() => {
+      if (this.seasonEnded()) throw new EconomyError(`season ${this.season} has ended: no match starts`);
       if (this.db.prepare("SELECT 1 FROM live_matches WHERE match_id = ?").get(input.matchId)) {
         throw new EconomyError(`match "${input.matchId}" is already live`);
       }
@@ -3951,9 +4087,16 @@ export class EconomyStore {
     return num((this.db.prepare("SELECT COUNT(*) AS n FROM card_copies WHERE series_kind = 'prototype' AND series_code = ?").get(runCode) as Row).n);
   }
 
-  /** Copies each of a set's Prototype runs still has. */
+  /** Copies each of a set's Prototype runs still has: none for a run its
+   * season's end retired (v26). */
   private prototypesLeft(setCode: string): Map<string, number> {
-    return new Map(knownSet(setCode).prototypes.map((r) => [r.code, r.runSize - this.prototypesFound(r.code)]));
+    const retired = new Set(this.retiredRunCodes());
+    return new Map(knownSet(setCode).prototypes.map((r) => [r.code, retired.has(r.code) ? 0 : r.runSize - this.prototypesFound(r.code)]));
+  }
+
+  private retiredRunCodes(): string[] {
+    if (this.schemaVersion < 26) return [];
+    return (this.db.prepare("SELECT run_code FROM retired_prototype_runs").all() as Row[]).map((r) => str(r.run_code));
   }
 
   // ---- crafting with pack points (ECONOMY.md "Packs") ----
@@ -4185,6 +4328,7 @@ export class EconomyStore {
     this.resetDay(raw);
     const endedAt = new Date(raw).toISOString();
     const { p1AgentId: p1, p2AgentId: p2, outcome } = input;
+    if (this.seasonEnded()) throw new EconomyError(`season ${this.season} has ended: no match is recorded`);
     if (p1 === p2) throw new EconomyError("an agent cannot play itself");
     const owner1 = this.getAgent(p1).ownerId;
     const owner2 = this.getAgent(p2).ownerId;

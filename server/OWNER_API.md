@@ -41,6 +41,8 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `GET /api/ladder?limit=100` | none | the ladder: `{ standings, you, owners, tiers, placementMatches }` (below) |
 | `GET /api/rating?recent=10` | none | `{ rating, recent }`: the owner's Glicko-2 rating and its last rated matches (below) |
 | `GET /api/stats?agent=<agentId>&days=30&recent=10` | none | the Stats page and the Rating & form widget: totals, win rate by faction and by the opponent's faction, recent results, the rating chart and weekly trend, today's earnings (below; schema v24, session 78); 400 for `days` outside 7-90 or `recent` outside 1-50, 404 for an agent that isn't the caller's |
+| `GET /api/season` | none | the season: `{ season, state, endedAt, liveMatches, tierCoinsNow, you, standings, retiredPrototypes }` (below; schema v26, session 82) |
+| `POST /api/admin/season/end` | `{ season: "S0" }` | the house admin ends the season (below): 202 `state: "ending"` while the ladder's shown matches finish, 200 once ended; 400 for a body that doesn't name the current season, 403 for a non-admin, 409 once ended (or, with no ladder in this process, while a match is live) |
 | `GET /api/ledger?limit=50&before=<entryId>` | none | `{ entries, more, wallet }`: ledger entries newest first, a page at a time (below) |
 | `GET /api/collection?recentPacks=3` | none | the collection (below) |
 | `GET /api/collection/binder/:setCode` | none | the set's binder (below) |
@@ -236,6 +238,31 @@ LadderRow = {
 ```
 
 The tiers, the placement count and the matchmaker are session 66's proposals, at an owner check-in in `progress/notes-for-owner.md`.
+
+### The season's end (schema v26, session 82)
+
+Season 0 game item 3, part 1 (ECONOMY.md "Seasons"). Ending a season is one store transaction, in this order: every owner's tier coins for its tier at that moment (the Platinum, Diamond and Mythic coins, as `grantSeasonTierCoins`); the final standings, frozen as the ladder stands then; every Prototype run of the season's set retired, with how many copies it found. After it the season's file is its archive: no match starts or is recorded, no rating moves, and a pack's Prototype bonus is a Gold (as when every run is used up). The schema refuses each of these too.
+
+`POST /api/admin/season/end` with `{ "season": "S0" }` (the body must name the season being ended, so a stray call can't end the wrong one). Only the house admin (`isAdmin` in `GET /api/me`). With the ladder running in this process (`npm run season`): no new round starts; the matches being shown finish at their own pace and are recorded (they pay and rate as usual), then the season ends. The answer is 202 with `state: "ending"` while that happens, or 200 with `state: "ended"` when nothing was live. The server prints `[season] season S0 ended ...` when it does. Without a ladder in the process, it ends at once, or 409 while any match is live.
+
+`GET /api/season`, any signed-in owner:
+
+```
+{
+  "season": "S0",
+  "state": "open",                 // "open" | "ending" | "ended"
+  "endedAt": null,                 // ISO time once ended
+  "liveMatches": 2,
+  "tierCoinsNow": { "tier": "Gold", "coins": [] },   // while open: what the caller's tier would earn now; null once ended
+  "you": null,                     // once ended: the caller's line in the standings (null if never rated)
+  "standings": null,               // once ended: every rated owner, placed owners by rank, then placement (rank null)
+  "retiredPrototypes": null        // once ended: the 15 runs
+}
+```
+
+A standing: `{ rank, ownerId, ownerName, agentName, rating, rd, volatility, ratedMatches, tier, wins, losses, draws, tierCoins }`. Names are as they were at the end (a later rename doesn't change the archive); `tierCoins` are the item ids the season gave, lowest tier first. A retired run: `{ runCode, setCode, cardId, runSize, found, retired, retiredAt }` (`found + retired = runSize`).
+
+Not in this part (an owner check-in, `progress/notes-for-owner.md`): the next season's file, what carries into it, and the ratings' soft reset.
 
 ### The Stats page and the Rating & form widget (session 78)
 

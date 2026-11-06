@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-06, game session 78 (the demo check in CI; "Time's up"; the Stats page's data).
+Updated 2026-11-06, game session 82 (season end, part 1: ending a season).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -135,10 +135,18 @@ new ideas go to `progress/season-1-ideas.md`.
    time up: not queued, the live match finishes, then off with `timeUp`; windows cut at midnight Sydney; no minutes is
    no time limit. `GET /api/play`'s `autoPlay.allowance` (running / finishing / done, seconds and minutes left, the
    window's length). `server/OWNER_API.md`, tests, `progress/play-time-001.txt`. Five calls at notes-for-owner.md.
-3. [ ] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
+3. [~] Season end (near the end, not before): retire unpulled Prototype runs; the Season 0 -> Season 1 reset.
    Cosmetics over a reset: raise at an owner check-in when this starts.
    Grant the tier coins FIRST (`store.grantSeasonTierCoins()`, built session 69), before the reset clears the
    ratings.
+   - [x] Part 1, ending a season (session 82, schema v26): `endSeason()` grants the tier coins first, freezes the
+     final standings, retires every Prototype run with what it found; the file becomes the archive (no match, no
+     rating change, no Prototype from a retired run, held by the schema too). The live ladder drains its shown
+     matches first; `POST /api/admin/season/end`, `GET /api/season` (`server/OWNER_API.md`).
+     Evidence `progress/season-end-001.txt`.
+   - [ ] Part 2, the next season's file: what carries over (accounts, agents, signature cards, cosmetics), the
+     ratings' soft reset, the retired runs carried, the new starter grant. At an [OWNER CHECK-IN]
+     (notes-for-owner.md, session 82); built once answered.
 
 **Render lane, in order** (the 2026-10-05 desktop spec, trimmed; `render/reference/owner-web-mockup.html`)
 1. [ ] Site layout and the full pages: glass sidebar and top bar; full-screen pack opening; Agent match and Watch

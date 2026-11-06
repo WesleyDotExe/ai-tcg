@@ -261,6 +261,29 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 82 (the season's end, part 1: tier coins, final standings, retired Prototype runs; schema v26): what is still thin
+
+- **Only half of season end exists.** A season can end, and its file becomes a sealed archive. There is no next
+  season yet: nothing creates the Season 1 file, carries accounts, agents, signature cards and cosmetics into it,
+  or soft-resets ratings. Ending Season 0 today would leave the ladder stopped with nowhere to go. Part 2 waits on
+  the owner check-in in notes-for-owner.md.
+- **The retired list lives only in the ended file.** An S0 pack opened in a Season 1 file would see full S0 runs
+  (its own `card_copies` has none of them) and could mint S0 Prototypes again, with serials that clash with the
+  archive's. Part 2 must copy `retired_prototype_runs` into the new file (or treat every run of an earlier season's
+  set as retired). Not reachable today: nothing makes a Season 1 file yet.
+- **Only matches and ratings are frozen.** After the end, packs still open, salvage and crafting still work, and
+  credits can still be spent in the archive. The collection and currencies reset with the new file anyway, so this
+  matters only between the end and the new file. Whether the archive should refuse everything is call 6 at the
+  check-in.
+- **Ending is manual.** The admin's POST (or a script calling `endSeason`) ends it; nothing ends Season 0 on a
+  date. The website has no button yet (the render lane's admin view); today it is a `curl` with an admin token.
+- **"Ending" is held in memory.** If the server restarts while the ladder drains, the flag is lost: on restart the
+  shown matches are cancelled (as for any restart) and the ladder starts pairing again. The admin has to ask again.
+- **The standings keep owners with rated matches only.** An owner who never played isn't in the archive's list
+  (they had no tier and earned no coin). Abandons count in `ratedMatches` but not in W-L-D, as on the live ladder.
+- **The tier is read with RD grown to the end's moment** (the same `rating(at)` the live ladder uses). An owner idle
+  for weeks still has their mean, so their tier and coins are unaffected; only RD differs from their last match.
+
 ## Session 81 (hardening: the CI demo flake; whole demo errors; the rebuild burst measured): what was raised, and what is still thin
 
 - **Raised:** the `ladder-demo-002-live` CI flake is fixed at its cause class (a reused keep-alive socket reset under

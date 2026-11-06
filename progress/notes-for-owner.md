@@ -1,5 +1,55 @@
 # Notes for the owner
 
+**Updated 2026-11-06, session 82 (season end, part 1). [OWNER CHECK-IN] (the next season's file, before part 2 is
+built).** Nothing is blocking. Checked first: no open PR from either lane; the last merged was #142 (session 81).
+The other open game items wait on things outside this lane: the unit badges wait on the render lane naming them,
+and hiding hands waits on network agents joining. So season end was next, as the order says.
+
+**1. Built: ending a season.** You ask for it with `POST /api/admin/season/end` (house admin only, the body names
+the season: `{ "season": "S0" }`). The ladder stops starting rounds, lets the matches on screen finish (they pay
+and rate as normal), then ends the season in one step:
+- the tier coins first (Platinum, Diamond, Mythic, by each owner's tier at that moment);
+- then the final standings, frozen: rank, rating, tier, W-L-D, and the owner and agent names at that moment;
+- then every Prototype run retired, with how many copies it found. The unpulled copies are gone forever.
+
+After that the Season 0 file is a sealed archive: no match starts, no rating moves, no Prototype can be minted.
+The database itself refuses these, so a hand edit can't undo the end. `GET /api/season` shows the state to
+everyone, then the standings, your line and the retired runs. In the demo (`progress/season-end-001.txt`, 11 PASS),
+the season ended 3 minutes after the ask, once both matches on screen had finished. Three more hours of ladder then
+played nothing. The pack seed that gave a Prototype before the end gave a Gold after it.
+
+**2. Not built: the Season 1 file (part 2).** ECONOMY.md already says each season is its own file. Collections,
+credits, pack points and ranks reset; the signature card carries over, and so does anything you exempt. The
+following is still open, or was written two ways. My proposals, for you to keep or change:
+1. **Cosmetics:** your 2026-10-19 boast answer said cosmetics carry over a reset. Your 2026-11-01 list called it
+   undecided. Proposal: **all owned cosmetics and every agent's loadout carry over** (boasts, coins incl. the tier
+   coins, anything bought). They are account-bound and were never pay-to-win.
+2. **What else carries:** accounts and logins, account settings, the Home board, agents and their names, signature
+   cards with their bound copies, cosmetics. **Starts empty:** collection, decks, credits, pack points, ratings,
+   match history, notifications, the daily pack bank. Old matches stay readable in the Season 0 archive.
+3. **Unopened packs:** proposal: **cleared**, like credits and pack points (the same hoarding reason as your
+   2026-10-05 rule 4). The alternative is carrying them, since an S0 pack stays openable (your 6A). If they're
+   cleared, the site should warn about unopened packs before the end.
+4. **The ratings' soft reset:** proposal: **new rating = 1500 + (final - 1500) / 2, RD 250, volatility kept, and
+   every owner places again (5 matches)**. Example: a 1827 finisher starts at 1663 (Platinum once placed); a 1182
+   starts at 1341. The final standings stay in the archive.
+5. **Cards to start with:** collections reset, so every owner needs a deck again. Proposal: **the same starter
+   grant a new owner gets today** (their faction's starter deck, bound, plus the starter packs), for every owner
+   in the new file.
+6. **The archive between the end and the new file:** proposal: **freeze everything** in an ended file (packs,
+   salvage, crafting and shopping refused too, not only matches). Today only matches and ratings are frozen, since
+   the rest resets anyway.
+7. **When Season 0 ends:** it runs 6 weeks from 5 Dec, so about 16 Jan 2027. Proposal: **you press it** (as built)
+   rather than the server ending it on a date. Part 2 can add a scheduled end if you'd like one.
+
+**Small calls in part 1 you may want to overrule:**
+- The standings list owners who have at least one rated match. An owner who never played isn't in it (they had no
+  tier and no coin).
+- If the server restarts while the ladder is draining, the request is forgotten. The admin asks again; the shown
+  matches are cancelled, as on any restart.
+
+---
+
 **Updated 2026-11-06, session 81 (the hardening pass; your CI-demo entry).** No check-in this time, and
 nothing is blocking. #141 was still open at the start, so the fix went on its branch first. Its `test` passed and
 it merged.

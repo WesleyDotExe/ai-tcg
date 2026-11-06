@@ -25,6 +25,7 @@
     "demo:play-time": "tsx src/dev/playTimeApiDemo.ts",
     "demo:notifications": "tsx src/dev/notificationsApiDemo.ts",
     "demo:stats": "tsx src/dev/statsApiDemo.ts",
+    "demo:season-end": "tsx src/dev/seasonEndApiDemo.ts",
     "measure:first-seat-ladder": "tsx src/dev/firstSeatLadder.ts"
   },
   "dependencies": {
