@@ -4295,3 +4295,27 @@ At the start of every session, before any work: **check for an open PR from your
 
 ### 3. Render lane: #137 is closed
 Next render session: compare closed PR #137 (its branch is kept and named on the PR) with main. If anything it had is genuinely missing from #136's time ring (for example its faster status reads near the end of the allowance), carry it over in that session; otherwise nothing to do. Then continue the 2026-11-06 order (pack ceremony part 2).
+
+---
+
+## 2026-11-06 — Owner: answers to game sessions 77 (notifications), 76 (the play-time allowance) and 75 (the demo check in CI)
+
+### Session 77: notifications (PR #138, `progress/notifications-001.txt`), keep the list and all 5 calls
+The list is approved as proposed: match result (every match: win/loss, credits, rating change; switch "Match results"), big pull (a pack the ceremony gives its full reveal; switch "Big pulls"), free daily pack ready (once a day; switch "Free daily pack ready"), and auto-play off (rewards maxed, or the agent's time is up; always on).
+1. **Keep:** auto-play off has no switch.
+2. **Keep:** a cancelled match is still a match result.
+3. **Keep:** "big pull" is the ceremony's own full-reveal rule, not every Mythic.
+4. **Keep:** a switch turned off writes nothing; turning it back on fills nothing in.
+5. **Keep:** house owners get none; cleared notifications are hidden, never deleted. **Add a notification clean-up rule (age or count) to the launch items in `progress/roadmap.md`**, before the public launch, not Season 0.
+
+### Session 76: the play-time allowance (`progress/play-time-001.txt`), keep all 5, one label change
+1. **Keep:** the clock runs on wall time from the start, including waits between rounds.
+2. **Keep:** midnight Sydney cuts the window; a match running at midnight still finishes.
+3. **Keep:** stopping drops the time left; no pause in Season 0.
+4. **Keep:** +15 / +30 during "Finishing match" gives that many minutes from now.
+5. **Keep:** no daily cap on time (only the rewards are capped). **Change the label:** the state now called "Done for today" reads **"Time's up"** (in `GET /api/play`'s state name or display text, and in the render lane's Agent controls), since the owner can start again the same day.
+
+### Session 75: the demo check in CI: yes, option (a)
+Add one step to `.github/workflows/test.yml` running the fast set (`npm run demos`, about 1.5 minutes), so a rule, card or schema change fails the PR until its demos are regenerated. The owner OKs this change to `test.yml` for this purpose only. Report the new test-run time on that PR's own CI run; it must stay well inside the 12-minute auto-merge wait.
+
+Order: the demo-check step and the "Time's up" rename at the start of the next game session (both small), then the Stats page's data as queued. Render lane: use "Time's up" in Agent controls when it next touches them.
