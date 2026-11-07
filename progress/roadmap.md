@@ -148,30 +148,35 @@ new ideas go to `progress/season-1-ideas.md`.
      ratings' soft reset, the retired runs carried, the new starter grant. At an [OWNER CHECK-IN]
      (notes-for-owner.md, session 82); built once answered.
 
-**Render lane, in order** (the 2026-10-05 desktop spec, trimmed; `render/reference/owner-web-mockup.html`)
-1. [ ] Site layout and the full pages: glass sidebar and top bar; full-screen pack opening; Agent match and Watch
-   live; Collection (wide binder); Store (packs, cosmetics, the loadout picker); Stats; Settings; Connect agent;
-   the admin view; dark mode. (Standalone pages exist to reuse: pack opening, first-time, loadout picker,
-   the replays.)
-2. [ ] The look: frosted glass; the liquid WebGL backgrounds and picker (Glacier default; Ocean, Aurora,
-   Sunset, Lavender, Graphite; Plain black, Plain purple); the accessibility and performance rules.
-3. [ ] Home as the widget board: 12-column grid, S/M/L, Customise mode, empty state, layout saved to the
-   account, widget limits, narrow-window stacking; the Season 0 widgets (My agent, Live match, Watch live,
-   Packs, Collection, Showcase, Ladder, Rating & form, Match history, Notifications, Store, Daily rewards).
-4. [ ] Live play: auto-play, the 2× vote, Watch live, as pages and widgets.
-5. [ ] The ladder page.
-6. [ ] Coin skins (owner 2026-11-02, render half approved): (1) the flip in Match Boot, the starter coin,
-   reduced motion and sound; (2) the store and tier coins' looks, the coin line in the picker and the Store.
-   After the game lane's slot and catalogue.
-7. [ ] (owner 2026-11-06, after the live-arena slice) The dashboard rework, the store layout and the pack
-   opening ceremony, in the order of the 2026-11-06 owner-feedback entry. Spec: `progress/season0-final-brief.md`.
-   - [ ] My agent and Agent controls (replaces Live match): S/M/L split, personality dial, time ring (after 2g)
-   - [ ] Pack opening part 1: bigger pack art, gradient backdrop and tells, the tear and burst
+**Render lane, in order** (the 2026-10-05 desktop spec, trimmed; `render/reference/owner-web-mockup.html`).
+Status corrected by the owner 2026-11-08 from `progress/render/log.md` (sessions 44-58). **Every render session
+now ticks this list itself** (TASKS.md, end of session), exactly as the game lane does with its own.
+1. [~] Site layout and the full pages: glass sidebar and top bar, Settings, Connect agent, the admin view (Settings
+   -> Admin), dark mode (session 44); Store and full-screen pack opening (47); Collection, the wide binder (48);
+   the loadout picker (49); Agent match, Watch live, match history, auto-play (50). **Left: the Stats page** (still
+   "waiting on the server"; its data is served since game session 78) and **the notifications bell** in the top bar
+   (served since game session 77).
+2. [x] The look: the liquid WebGL backgrounds and picker, saved to the account (session 45); reduce motion and
+   transparency rules (44).
+3. [~] Home as the widget board (session 46: 12-column grid, S/M/L, Customise, saved to the account, the twelve
+   Season 0 widgets). **Left: three widgets still say "waiting on the server" though the data is served:** Ladder
+   (`GET /api/ladder`, game 66), Rating & form (Stats data, game 78), Notifications (game 77). Their S/M/L goes in
+   item 7's widget pass.
+4. [x] Live play: auto-play, Watch live (50), the big live board (51), "Watch as" (52), the 2× controls (56).
+5. [ ] The ladder page (or the ladder inside the Stats page, the render lane's call at a checkpoint).
+6. [x] Coin skins: the flip in Match Boot (53); every Season 0 coin drawn, the Coin line in the picker and the
+   Store (55).
+7. [~] (owner 2026-11-06) The dashboard rework, the store layout and the pack opening ceremony, in the order of the
+   2026-11-06 owner-feedback entry. Spec: `progress/season0-final-brief.md`.
+   - [x] My agent and Agent controls (replaces Live match): S/M/L split, personality dial (57), time ring (58)
+   - [x] Pack opening part 1: bigger pack art, gradient backdrop and tells, the tear and burst (58)
+   - [ ] Render hardening pass, session 59 (with the closed-#137 comparison), before part 2
    - [ ] Pack opening part 2: reveal escalation across the reveal kinds, ward flare, procedural sound
    - [ ] Pack opening part 3: Prototype takeover, afterglow, NEW stamps, set bar, Open 10 stops on hits, debug panel
    - [ ] Store layout (Fortnite-style placement, current look) with the Store and Packs widgets
    - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger
-     cards), Collection, Ladder, the others
+     cards), Collection, and Ladder, Rating & form and Notifications on their real data
+   - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)
    - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause
      widget; last-pulls strip at L; Watch live embedded at L; rating trend at L.
 

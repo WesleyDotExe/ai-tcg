@@ -4423,3 +4423,13 @@ Next game session: season end part 2 on these answers, proved on `season-end-001
 **Game lane:** unchanged, when its turn comes: the session-82 answers (season end, part 2) first.
 
 **Midpoint check (~22 November) stands:** the render lane's note must count the sessions lost here when it says whether it is on track.
+
+---
+
+## 2026-11-08 — Owner: the render lane keeps the Season 0 checklist current (render lane)
+
+The render lane wrote its progress only into `progress/render/log.md`, so every render item on the Season 0 checklist in `progress/roadmap.md` still read "not started" (coin skins, My agent, pack part 1 and more). The owner has corrected the render section from the log (sessions 44-58).
+
+1. **From now on every render session ticks its items on the checklist** (`[x]` / `[~]` with the session number), as the game lane does. Now in TASKS.md's end-of-session list for both lanes.
+2. **Now explicit on the render list, part of the locked scope:** the Ladder, Rating & form and Notifications widgets still say "waiting on the server" though the game lane serves all three (sessions 66, 78, 77). So do the Stats page and the notifications bell. They are on the list after the widget pass; build them on the real data.
+3. The 22 November midpoint check reads this checklist, so it must be current by then.

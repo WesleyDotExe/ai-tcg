@@ -27,6 +27,7 @@ This repo is built by a scheduled Claude run, one session at a time. Unlike the 
 ## End of session (not optional)
 
 - Update progress/current.md: current build stage, what stands, the concrete next step.
+- **Both lanes: tick your own lane's items on the Season 0 checklist in progress/roadmap.md** (`[x]` done, `[~]` started, with the session number), every session. The render lane keeps its own log too, but the checklist is what the owner and the midpoint check read; a render session that leaves it stale hasn't finished.
 - Append a dated paragraph to progress/log.md: what you built, whether you ran it and what it produced, what worked, what's blocked.
 - Self-audit: update progress/quality-debt.md with an honest, specific list of where the product currently falls short of DESIGN.md and its quality bars — shallow spots, hardcoded hacks, untested paths, things claimed-done that aren't really. Writing "no debt" on a visibly rough product is a failed audit.
 - If this session COMPLETED a build-order stage, write a checkpoint into progress/checkpoints.md (newest at top, marked AWAITING FEEDBACK): what the stage delivered with evidence, where it's strong and thin, decisions the owner might overrule, and what's next. Then continue — never wait for a response.
