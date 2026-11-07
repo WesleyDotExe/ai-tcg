@@ -4405,3 +4405,21 @@ Answers the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (PR #143, `progres
 - If the server restarts while the ladder is draining, the request is forgotten; the admin asks again, and the matches on screen are cancelled as on any restart.
 
 Next game session: season end part 2 on these answers, proved on `season-end-001`'s file.
+
+---
+
+## 2026-11-08 — Owner: the render lane stopped running; alternation restored, with a two-session render catch-up (both lanes)
+
+**What happened:** the alternation rule (2026-09-24 entry: the last merged PR decides the lane; "Render:" means this session is game, anything else means render) lived as the first line of `progress/current.md`'s next step. Game session 77 rewrote that section around the 2026-11-06 "one session per lane at a time" guard and dropped the alternation line. Every session since read a handover that described only game work, so sessions 77–82 were all game lane, and no render PR has merged since #136. Meanwhile the game lane reached its spare-session work while the render lane, the tight one for 1 December, sat untouched.
+
+**The rule, now permanent:**
+1. **The alternation rule stands and is now step 0 of `TASKS.md`**, which runs don't rewrite. Every session chooses its lane there first. The 2026-11-06 guard still applies after that, per lane.
+2. **Catch-up: until two "Render:" PRs have merged after #143, every session is render.** Then plain alternation again.
+3. **Keep the one-line lane reminder at the top of `progress/current.md`'s next step** whenever any session rewrites it. A session that rewrites that section without it has broken the procedure.
+4. Each PR's description states its lane and why (e.g. "render lane: the last merged PR, #143, was game; catch-up 1 of 2").
+
+**Render lane, next:** as its last log entry says: session 59, the hardening pass (with the #137 comparison the 2026-11-06 entry asks for), then pack ceremony part 2, then the rest of the 2026-11-06 order.
+
+**Game lane:** unchanged, when its turn comes: the session-82 answers (season end, part 2) first.
+
+**Midpoint check (~22 November) stands:** the render lane's note must count the sessions lost here when it says whether it is on track.
