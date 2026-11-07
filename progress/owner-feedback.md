@@ -4433,3 +4433,9 @@ The render lane wrote its progress only into `progress/render/log.md`, so every 
 1. **From now on every render session ticks its items on the checklist** (`[x]` / `[~]` with the session number), as the game lane does. Now in TASKS.md's end-of-session list for both lanes.
 2. **Now explicit on the render list, part of the locked scope:** the Ladder, Rating & form and Notifications widgets still say "waiting on the server" though the game lane serves all three (sessions 66, 78, 77). So do the Stats page and the notifications bell. They are on the list after the widget pass; build them on the real data.
 3. The 22 November midpoint check reads this checklist, so it must be current by then.
+
+---
+
+## 2026-11-08 — Owner: unopened packs at season end (confirms the 2026-11-07 answer 3)
+
+**Unopened packs are lost when the season ends.** The website warns the owner beforehand that any packs not opened by the end of the season will be lost for good (the warning says so plainly, with the count of unopened packs). Packs still unopened when the season ends are not carried over, refunded or opened automatically. Build it this way: game lane in season end part 2; the warning in the render lane.
