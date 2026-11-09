@@ -2529,7 +2529,7 @@ body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
   // The pack opening's sounds (render session 24, owner 2026-10-18: "a tear
   // sound, flip ticks and a rising tone on hits"). Same player, same
   // settings; the voice is the card's faction where there is one.
-  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp', 'burst'];
+  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp', 'burst', 'riser', 'bass'];
   // The rip scrubbed to the drag (render session 58, the pack ceremony part
   // 1): how loud and how bright the tearing foil sounds at a drag speed (px
   // per ms along the strip). Still is silent; a slow pull is a low, quiet
@@ -2826,9 +2826,32 @@ body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
       if (bt > 0) T({ type: 'triangle', f0: tailF, f1: tailF * (bt === 2 ? 1.5 : 1.25), dur: bt === 2 ? 0.9 : 0.4, g: 0.035, delay: 0.06, att: 0.05 });
       if (bt === 2) T({ type: 'sine', f0: tailF * 2, dur: 0.7, g: 0.025, delay: 0.18, att: 0.08 });
     } else if (kind === 'flip') {
-      // One card moving: a short dry tick; the voice tints it.
-      N({ type: 'bandpass', f0: v === 'aegis' ? 1700 : v === 'swarm' ? 2600 : 3200, q: 6, dur: 0.035, g: 0.2 });
-      T({ type: v === 'cortex' || v === 'null' ? 'square' : 'triangle', f0: v === 'null' ? r(700, 1400) : 1100, dur: 0.03, g: 0.025 });
+      // One card moving: a short dry tick; the voice tints it. o.pitch
+      // (render session 60) raises the whole tick: each plain card of a pack
+      // snaps a little higher than the last.
+      var fp = o.pitch > 0 ? o.pitch : 1;
+      N({ type: 'bandpass', f0: (v === 'aegis' ? 1700 : v === 'swarm' ? 2600 : 3200) * fp, q: 6, dur: 0.035, g: 0.2 });
+      T({ type: v === 'cortex' || v === 'null' ? 'square' : 'triangle', f0: (v === 'null' ? r(700, 1400) : 1100) * fp, dur: 0.03, g: 0.025 });
+    } else if (kind === 'riser') {
+      // One glow stage of a held card climbing in (render session 60): a
+      // short swell that always rises, each stage (o.stage, 1-4) starting a
+      // fourth above the last, so the climb is heard as well as seen. The
+      // voice picks the wave; a breathy noise swell under it.
+      var st = Math.max(1, Math.min(4, o.stage || 1)), rb = 220 * Math.pow(4 / 3, st - 1), rd = o.dur > 0 ? o.dur : 0.4;
+      T({ type: v === 'cortex' || v === 'null' ? 'square' : v === 'aegis' ? 'sawtooth' : 'triangle', f0: rb, f1: rb * 1.5, dur: rd, g: 0.035 + st * 0.008, att: rd * 0.7, filt: 'lowpass', ff: 1800 + st * 600 });
+      T({ type: 'sine', f0: rb * 2, f1: rb * 3, dur: rd, g: 0.03, att: rd * 0.8 });
+      N({ type: 'bandpass', f0: 600 + st * 300, f1: 2400 + st * 900, q: 2, dur: rd, g: 0.05 + st * 0.012, att: rd * 0.8 });
+    } else if (kind === 'bass') {
+      // The hit as a held card lands (render session 60): a sub drop and a
+      // thump; o.weight (0-1, the card's step on the reveal ladder) makes it
+      // deeper and longer. Same in every voice (meaning): only a short
+      // bright tail takes the faction's colour.
+      var bw = Math.max(0, Math.min(1, o.weight || 0));
+      T({ type: 'sine', f0: 92 - 40 * bw, f1: 30, dur: 0.45 + 0.9 * bw, g: 0.42, att: 0.006 });
+      T({ type: 'triangle', f0: 184 - 80 * bw, f1: 60, dur: 0.25 + 0.4 * bw, g: 0.12, att: 0.004 });
+      N({ type: 'lowpass', f0: 2200 + 2600 * bw, f1: 160, dur: 0.22 + 0.4 * bw, g: 0.26 });
+      var tf = v === 'cortex' ? 1760 : v === 'aegis' ? 880 : v === 'swarm' ? 2093 : v === 'null' ? 1245 : 1568;
+      T({ type: 'triangle', f0: tf, f1: tf * (1 + 0.5 * bw), dur: 0.3 + 0.6 * bw, g: 0.02 + 0.03 * bw, delay: 0.04, att: 0.03 });
     } else if (kind === 'rise') {
       // A hit: a rising tone. Always rises (meaning); the tier sets how far
       // and how long (a Foil is a small lift, a Gold or a secret a long climb).
@@ -2864,7 +2887,7 @@ body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
   var SND = (function () {
     // want: the viewer wants sound (armed, or playing). on: the context is
     // running and play() makes sound. vol: the effects volume, 0-1.
-    var AU = { ctx: null, on: false, want: false, vol: SFX_DEFAULT_VOLUME, hidden: false, master: null, comp: null, noise: null, active: 0 };
+    var AU = { ctx: null, on: false, want: false, vol: SFX_DEFAULT_VOLUME, hidden: false, master: null, comp: null, noise: null, active: 0, lift: null, duckTo: 1 };
     // The master bus level at full volume (the lab's 0.6); the effects
     // volume scales it.
     var MASTER = 0.6;
@@ -2881,9 +2904,16 @@ body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
       // The limiter: the lab's hard compressor on the master bus.
       var comp = C.createDynamicsCompressor();
       comp.threshold.value = -16; comp.knee.value = 10; comp.ratio.value = 10; comp.attack.value = 0.002; comp.release.value = 0.18;
-      var m = C.createGain(); m.gain.value = MASTER * AU.vol;
+      var m = C.createGain(); m.gain.value = MASTER * AU.vol * AU.duckTo;
       m.connect(comp); comp.connect(C.destination);
       AU.master = m; AU.comp = comp;
+      // The lift bus (render session 60): the master's level without its
+      // duck. duck() drops the master (every other sound) to near silence
+      // while a held pack card builds; the build's own risers and hit ask to
+      // be lifted (o.lift) and come through here, on top.
+      var lift = C.createGain(); lift.gain.value = MASTER * AU.vol;
+      lift.connect(comp);
+      AU.lift = lift;
       // One second of white noise, shared by every noise voice.
       var len = C.sampleRate, buf = C.createBuffer(1, len, C.sampleRate), d = buf.getChannelData(0);
       for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
@@ -2961,7 +2991,7 @@ body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
       }
       var x = rect ? rect.left + rect.width / 2 : (window.innerWidth || 1) / 2;
       var pan = o && typeof o.pan === 'number' ? o.pan : sfxPan(x, window.innerWidth || 1);
-      var dest = o && o.group && o.group.node ? o.group.node : null;
+      var dest = o && o.group && o.group.node ? o.group.node : o && o.lift && AU.lift ? AU.lift : null;
       var voices = sfxRecipe(kind, faction, tier, Math.random, o);
       counts.played++; byKind[kind] = (byKind[kind] || 0) + 1;
       if (at !== null) counts.scheduled++;
@@ -3101,6 +3131,20 @@ body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
         stats: function () { return { planned: list.length, queued: q.next, sched: q.sched.slice(), late: q.late, base: q.base, stopped: q.stopped }; } };
     }
     function listen(fn) { listeners.push(fn); }
+    // duck(level, ms): every sound not lifted eases to level (0-1) of its
+    // volume over ms; duck(1, ms) brings it back. Remembered while sound is
+    // off, so a context made later starts at the right level.
+    function duck(level, ms) {
+      AU.duckTo = Math.max(0, Math.min(1, Number(level)));
+      if (AU.master && AU.ctx) {
+        var t = AU.ctx.currentTime, g = AU.master.gain, to = MASTER * AU.vol * AU.duckTo;
+        if (g.cancelScheduledValues) g.cancelScheduledValues(t);
+        if (g.setTargetAtTime) g.setTargetAtTime(to, t, Math.max(0.005, (ms || 0) / 3000));
+        else g.value = to;
+      }
+      counts.ducks = (counts.ducks || 0) + 1;
+      return AU.duckTo;
+    }
     // arm(pref): at page load, before any gesture. Remembers what the viewer
     // wants without making a context (browsers refuse audio until a gesture).
     function arm(pref) {
@@ -3117,7 +3161,8 @@ body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
     }
     function setVolume(v) {
       AU.vol = sfxClampVolume(v);
-      if (AU.master) AU.master.gain.value = MASTER * AU.vol;
+      if (AU.master) AU.master.gain.value = MASTER * AU.vol * AU.duckTo;
+      if (AU.lift) AU.lift.gain.value = MASTER * AU.vol;
       return AU.vol;
     }
     // A hidden tab goes quiet (the context is suspended) and picks up again
@@ -3182,7 +3227,7 @@ body.pov-p2 .board-row#board-p2 .card.fx-attack { animation-name: fx-lunge-up; }
     }
     var api = { play: play, setOn: setOn, isOn: function () { return AU.on; }, arm: arm, unlock: unlock, setVolume: setVolume,
       volume: function () { return AU.vol; }, setHidden: setHidden, state: state, localStore: localStore, mount: mount,
-      core: core, hold: hold, listen: listen, group: group, sequence: sequence, scrub: scrub,
+      core: core, hold: hold, listen: listen, group: group, sequence: sequence, scrub: scrub, duck: duck, ducked: function () { return AU.duckTo; },
       stats: function () { var k = {}; for (var n in byKind) k[n] = byKind[n]; return { on: AU.on, state: state(), volume: AU.vol, ctx: !!AU.ctx, ctxState: AU.ctx ? AU.ctx.state : null, active: AU.active, played: counts.played, voices: counts.voices, capped: counts.capped, repeats: counts.repeats, scheduled: counts.scheduled, cuts: counts.cuts, byKind: k }; } };
     window.__sfx = api;
     return api;

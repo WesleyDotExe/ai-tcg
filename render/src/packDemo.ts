@@ -27,6 +27,7 @@ import { fileURLToPath } from "node:url";
 import { BULK_OPEN_COUNT, cardSet, EconomyStore, FULL_ART_OR_BETTER, LIVE_PACK_ODDS, rollPack, type BulkOpening, type PackRoll, type PityState } from "@ai-tcg/economy";
 import { planBulkReveal, planReveal, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { renderPackOpeningHtml } from "./packPage.js";
+import { packWardRings } from "./packWards.js";
 
 /** One showcase pack: what the picker calls it, and what its roll must have. */
 export interface ShowcaseWant {
@@ -176,7 +177,7 @@ if (isMain) {
   const bulks = openBulkShowcase();
   const out = join(here, "..", "output", "pack-opening.html");
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, renderPackOpeningHtml({ title: "Season Zero pack opening", packs: showcase, bulks }));
+  writeFileSync(out, renderPackOpeningHtml({ title: "Season Zero pack opening", packs: showcase, bulks, wards: packWardRings() }));
   process.stdout.write(transcript(showcase) + "\n" + bulkTranscript(bulks));
   process.stderr.write(`wrote ${out}\n`);
 }

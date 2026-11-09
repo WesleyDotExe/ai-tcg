@@ -481,3 +481,42 @@ describe("sound on by default, armed until a gesture", () => {
     expect(SND.stats().ctxState).toBe("running");
   });
 });
+
+// Render session 60 (the pack ceremony, part 2): while a held pack card
+// builds, the room's sound drops to near silence (SND.duck), and the
+// build's own risers and hit come through on top (o.lift).
+describe("the duck and the lift bus (the pack reveal's build)", () => {
+  it("duck() drops the master to that share of its volume; a lifted sound goes past it, straight to the limiter at full volume", () => {
+    const { SND, made } = bootRuntime(1000);
+    const snd = SND as unknown as typeof SND & { duck: (l: number, ms: number) => number; ducked: () => number };
+    // Asked before there is a context: remembered, and the master starts there.
+    expect(snd.duck(0.5, 0)).toBe(0.5);
+    SND.setOn(true);
+    const comp = made.find((n) => n.kind === "compressor")!;
+    const toComp = made.filter((n) => n.kind === "gain" && n.to.includes(comp)) as (FakeNode & { gain: { value: number; setTargetAtTime: (v: number, t: number, k: number) => void } })[];
+    expect(toComp).toHaveLength(2);
+    const [master, lift] = toComp as [typeof toComp[0], typeof toComp[0]];
+    expect(master.gain.value).toBeCloseTo(0.6 * 0.8 * 0.5);
+    expect(lift.gain.value).toBeCloseTo(0.6 * 0.8);
+    const targets: number[] = [];
+    master.gain.setTargetAtTime = (v: number) => { targets.push(v); };
+    snd.duck(0.06, 280);
+    snd.duck(1, 600);
+    expect(targets.map((v) => Math.round(v * 1000) / 1000)).toEqual([Math.round(0.6 * 0.8 * 0.06 * 1000) / 1000, Math.round(0.6 * 0.8 * 1000) / 1000]);
+    expect(snd.ducked()).toBe(1);
+    // A plain sound pans into the master; a lifted one into the lift bus.
+    const pansBefore = made.filter((n) => n.kind === "panner").length;
+    SND.play("flip", "Aegis", "normal", null);
+    SND.play("bass", "Aegis", "spectacle", null, { lift: true, weight: 1 });
+    const pans = made.filter((n) => n.kind === "panner").slice(pansBefore);
+    const plain = recipe("flip", "Aegis").length;
+    expect(pans.slice(0, plain).every((p) => p.to[0] === master)).toBe(true);
+    expect(pans.slice(plain).length).toBeGreaterThan(0);
+    expect(pans.slice(plain).every((p) => p.to[0] === lift)).toBe(true);
+    // The volume moves both, the master keeping its duck.
+    snd.duck(0.25, 0);
+    SND.setVolume(0.5);
+    expect(master.gain.value).toBeCloseTo(0.6 * 0.5 * 0.25);
+    expect(lift.gain.value).toBeCloseTo(0.6 * 0.5);
+  });
+});

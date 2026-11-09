@@ -11,6 +11,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { firstTimeData, firstTimeTranscript } from "./firstTime.js";
 import { renderPackOpeningHtml } from "./packPage.js";
+import { packWardRings } from "./packWards.js";
 
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
@@ -18,7 +19,7 @@ if (isMain) {
   const flow = firstTimeData();
   const out = join(here, "..", "output", "first-time.html");
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, renderPackOpeningHtml({ title: "Season Zero sign-up", packs: [], flow }));
+  writeFileSync(out, renderPackOpeningHtml({ title: "Season Zero sign-up", packs: [], flow, wards: packWardRings() }));
   process.stdout.write(firstTimeTranscript(flow));
   process.stderr.write(`wrote ${out}\n`);
 }

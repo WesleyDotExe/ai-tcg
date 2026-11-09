@@ -17,6 +17,7 @@ import { FACE_CSS, FACE_SCRIPT, faceSymbols } from "./siteFaces.js";
 import { COIN_SCRIPT } from "./siteCoins.js";
 import { buildSync } from "esbuild";
 import { renderPackOpeningHtml } from "../packPage.js";
+import { packWardRings } from "../packWards.js";
 import { renderLoadoutHtml } from "../loadoutPicker.js";
 import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -608,7 +609,7 @@ export function renderSiteLoadoutPage(): string {
  * real opening. Served by the site host at /pack-opening, framed by the
  * website (same origin). */
 export function renderSitePackPage(): string {
-  return renderPackOpeningHtml({ title: "Pack opening · AI·TCG", packs: [], site: true });
+  return renderPackOpeningHtml({ title: "Pack opening · AI·TCG", packs: [], site: true, wards: packWardRings() });
 }
 
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);

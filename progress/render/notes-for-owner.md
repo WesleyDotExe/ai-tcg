@@ -1280,3 +1280,12 @@ season mark) is proposed as a mark, call 1.
 2. **The seven calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The one most worth a look:
    call 1 (the backdrop hints, which your 2026-10-18 note had ruled out for the pack itself).
 3. **Nothing needed from the game lane.**
+
+## 2026-11-09 — Render session 60 (the pack ceremony, part 2)
+
+1. **Six calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The two most worth a look: call 1
+   (plain Rares and Mythics sit below Foil on the ladder) and call 2 (every pack now ends on at least one short
+   build, because every pack has a Rare slot).
+2. **Lane:** this was the catch-up's second render session. Once its PR merges, plain alternation resumes: the next
+   session is game (season end, part 2).
+3. **Nothing needed from the game lane.**

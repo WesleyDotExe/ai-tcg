@@ -5190,3 +5190,72 @@ boot check, s3x boasts, s40, feed, pack checks, s45 liquid) are still not re-run
 across the reveal kinds (dim, the card back's glow stages with pauses, the slow flip, flash, shake, bass hit,
 faction-colour particles), the faction ward flare as a card lands, the sound per tier. That session is render too
 (catch-up 2 of 2), then plain alternation.
+
+## 2026-11-09 — Render session 60: the pack opening ceremony, part 2 (the reveal escalation, the ward flare, the sound per step)
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #144, is "Render:", but the owner's 2026-11-08 catch-up holds
+until two "Render:" PRs have merged after #143; #144 was the first, so this is catch-up 2 of 2). No render PR was
+open. **Read first:** owner-feedback.md (nothing new for this lane since the 2026-11-08 entries; the season-end
+warning is queued as render item 7), DESIGN.md, `progress/season0-final-brief.md` section 3, this lane's log, debt
+and notes. Not a hardening pass (59 was).
+
+**1. The ladder (`packOpening.ts`, pure, travels with each card as `RevealCard.build`).** `REVEAL_LADDER`: snap,
+plain Rare, plain Mythic, Foil, Full Art, Alt Art, Glitch, Gold, Secret, Prototype, Zero-Day. `revealBuildOf(reveal,
+rarity, faction)` turns a card's step into its whole build: held or not, glow stages (the tell's rungs: 1, 2, 3 or
+4, never above the card's own), stage, pause and last-pause times, the flip, the room's dim, the sound's duck, the
+flash, the shake (px, ms), the bass tier, motes and their reach, the ward (none / ring / double) and its size, the
+hold, and `timeline` (`buildTimeline`: when each stage, the flip and the hit play). Every number is a function of
+the step (a Mythic in a finish half a step up), so the escalation is monotone by construction; the tests check every
+adjacent pair. `planReveal` sets each snap's pitch (+2 semitones per snap in the pack). The site's client plans its
+openings with the same code, so the website gets the builds too.
+
+**2. The page (`packPage.ts`).** Every card rises face down. A snap flips by itself in 150 ms at the top with its
+pitched tick, and never blocks a tap. A held card waits: on a tap `roomDown` (the dim layer to the build's level,
+`SND.duck`), the stages play from the timeline (`--gc`/`--gn` on the card: an aura behind it, the back's rim and
+logo in the stage colour, a tremble growing per stage; a `riser` sound per stage), then `flip`, then `hit`: the
+flash in the top stage's colour, `bshake` on the stage, the `bass` hit, `PFX.motes` in the faction's colour, and
+`wardFlare`: the faction's ring (tinted once per faction at load on a canvas, drawn with `screen`), doubled and
+counter-rotating for a Mythic, behind the card, removed when the card leaves. The Zero-Day takeover ends on the same
+hit. Only transforms and opacity animate (the back's rim is the one box-shadow). Reduced motion: no shake, the
+ward fades in without turning.
+
+**3. Sound (`soundFx.ts`).** `riser` (always rises; each stage a fourth higher), `bass` (a sub drop, deeper and
+longer with the step's weight; only its tail takes the faction), `flip` takes `o.pitch`. `SND.duck(level, ms)`
+drops the master bus; a sound with `o.lift` goes through a new lift bus straight to the limiter at full volume, so
+the build's own risers and hit stay up while the room goes quiet. (The first try put a "bed" gain in front of the
+master; the music tests find their duck node by graph shape and broke, so the master itself ducks now.)
+
+**4. The ward rings.** `tools/pack-wards.mjs` crops cell 3 (the single ring) of each faction sheet in headless
+Chromium (the machine's PIL is broken) to 320 px WebP: `render/assets/wards/pack/*-ring.webp`, 11-19 KB each.
+`packWards.ts` reads them Node-side; the three page builders pass them in, because `packPage.ts` is also bundled
+into the website's client and must not touch the file system. Without them the flare is a drawn ring.
+
+**Tests (+15, render 918):** `packBuild.test.ts` (14: the ladder's order; every adjacent pair builds longer and hits
+at least as big in every measure and bigger in one, darker and quieter; the snap; the timeline's arithmetic; the
+glow's colours; over 1,000 real openings: snaps exactly the plain Commons and Uncommons, every pack holds a build,
+the glow exactly the card's rung, the ward by rarity and faction, the snap pitches, purity; the riser, bass and
+pitch recipes; the page's data and that the new keyframes animate only transform and opacity), and the duck/lift
+test in `soundFx.test.ts`. Pins updated: the pack sound list.
+
+**Ran it:** `pack-ceremony-check-s60.mjs` -> **370 PASS, 0 FAIL** (ten packs on desktop, three on a phone, every
+card). It found three real bugs on the way: (a) a card's "room back up" timer, still pending, lit the room halfway
+through the next card's build (now `roomUp(k)` only lifts the room card k dimmed); (b) a tap within a snap's 150 ms
+flip was swallowed (snaps no longer set `busyUntil`); (c) after the Glitch flip the dim's opacity was set to 0 but
+never faded (clearing the inline transition left it stuck; now an explicit transition). Two things it records as
+software-rendering only: with a foil or glitch shader running the page drops to 0.8-10 fps and the room's fade
+takes 2-5 s of wall time (logged with the measured fps); the Glitch's hit lands up to ~0.9 s late (its ghost layers
+cost frames; a named allowance). It also tears by tap when a pack sits in "torn" past 8 s (seen on two packs; the
+tear's timers are starved the same way; the tear code is unchanged this session). Session 58's check re-run: 127
+PASS (`pack-ceremony-check-s58-rerun-s60.txt`). The ten-pack check s54 needed one model change (inside a big pull a
+card is held by its build, not `faceDown`) and then passed 12/12 (`pack-bulk-check-s54-rerun-s60.txt`). CI browser
+check 61 passed. `npm test` (render) 918 pass; typecheck clean. Every page under `render/output/` rebuilt (the
+replays change only by the sound source they embed).
+
+**Not done (named):** part 3 (the Prototype takeover, the afterglow, NEW stamps, the set bar, Open 10 stopping on
+hits, the debug panel); the Mythics' own unique wards are not used in the flare; nothing measured on a GPU; the
+sounds judged by their recipes and counts, not by ear; `pack-opening-check`, `pack-tap-check` and
+`pack-tilt-check` don't even start on this machine (they import Playwright by a path that isn't here).
+
+**Next render-lane slice:** after this PR the catch-up is done and plain alternation resumes, so the next session
+is game. The next render session: the pack opening ceremony, part 3 (the brief's beat 3 Prototype takeover and beat
+4 afterglow, Open 10's stops, the debug panel), then the store layout.

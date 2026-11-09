@@ -127,6 +127,10 @@ export interface RevealCard {
   ownedAfter: number;
   prototype: OpenedCard["prototype"];
   secret: OpenedCard["secret"];
+  /** How the one-pack stack reveals it (render session 60, the ceremony
+   * part 2): a snap flip, or a build-up and a hit sized by its step on the
+   * reveal ladder. */
+  build: RevealBuild;
 }
 
 export interface PackReveal {
@@ -168,6 +172,10 @@ export function planReveal(opening: PackOpening): PackReveal {
     .map((c, i) => ({ c, i }))
     .sort((a, b) => SLOT_ORDER[a.c.slot] - SLOT_ORDER[b.c.slot] || a.i - b.i)
     .map(({ c }) => revealCard(c));
+  // Each snap in the pack a little higher than the last (the brief's
+  // "rising pitch on each").
+  let snaps = 0;
+  for (const c of cards) if (c.build.step === "snap") c.build.pitch = Math.round(Math.pow(2, (snaps++ * SNAP.semitones) / 12) * 1000) / 1000;
   return {
     packId: opening.packId,
     setCode: opening.setCode,
@@ -199,6 +207,7 @@ function revealCard(c: OpenedCard): RevealCard {
     ownedAfter: c.ownedAfter,
     prototype: c.prototype,
     secret: c.secret,
+    build: revealBuildOf(revealKindOf(c.finish), c.rarity, getCard(c.cardId)?.faction ?? "Neutral"),
   };
 }
 
@@ -540,4 +549,166 @@ export function packTellOf(cards: readonly RevealCard[], seed: number): PackTell
     backdrop: TELL_RUNGS[backdropRung]!,
     burst: { colour: c.reveal === "plain" ? faction : BURST_HEX[c.reveal], faction, size: [0.35, 0.5, 0.7, 0.85, 1][rung]!, rung: TELL_RUNGS[rung]! },
   };
+}
+
+// ---- the reveal escalation (render session 60; the owner's 2026-11-06
+// Season 0 brief, section 3, beat 3: the ceremony part 2) --------------------
+//
+// "Keep every existing reveal kind and its order; each step up the order gets
+// a longer build-up and a bigger hit than the one below it." And: "Plain
+// Commons and Uncommons: quick, snappy flips with rising pitch on each. Rares
+// and Mythics, and the special finishes: the room dims and the audio drops to
+// near silence. The card back glows through stages, each with a small pause
+// where it might stop. Then a slow flip, a flash, a screen shake, a bass hit
+// and particles in the faction colour. The card's faction ward sigil flares
+// as it lands."
+//
+// One ladder, lowest first: plain Commons and Uncommons snap; a plain Rare
+// and a plain Mythic are the first two steps of the build (the brief puts
+// them with the special finishes); then the finishes in the summary's order.
+// Every number of a build is a function of the step alone, so the escalation
+// can't drift card by card: a later step never waits less or hits softer
+// (the tests check every adjacent pair). A Mythic in a finish sits half a
+// step above the same finish at a lower rarity, never as high as the next
+// finish.
+//
+// The glow is honest like the backdrop: it climbs the tell's rungs (shimmer,
+// charged, radiant, overload) and stops on the card's own, never above it.
+// Each pause is a place it might stop. The ward is about the card, not the
+// step: a Rare flares its faction's ring, a Mythic the ring doubled; a
+// Common or Uncommon in a finish, and every Neutral card (Neutral has no
+// ward, as on the board), flare none.
+//
+// Proposed numbers (an owner check-in), in milliseconds unless named.
+
+/** The reveal ladder, lowest first. */
+export const REVEAL_LADDER = ["snap", "rare", "mythic", "foil", "fullArt", "altArt", "glitch", "gold", "secret", "prototype", "zeroDay"] as const;
+export type RevealStep = (typeof REVEAL_LADDER)[number];
+
+export function revealStepOf(reveal: RevealKind, rarity: string): RevealStep {
+  if (reveal === "plain") return rarity === "Mythic" ? "mythic" : rarity === "Rare" ? "rare" : "snap";
+  return reveal;
+}
+
+/** The glow's colour at each stage: the tell's rungs above calm, so the
+ * card back speaks the same colours the backdrop did. */
+export const GLOW_STAGES: readonly string[] = [TELL_BACKDROPS.shimmer.glow, TELL_BACKDROPS.charged.glow, TELL_BACKDROPS.radiant.glow, TELL_BACKDROPS.overload.glow];
+
+/** A plain Common or Uncommon's flip, and how much higher each next one in
+ * the pack sounds (semitones). */
+export const SNAP = { flipMs: 150, hold: 120, semitones: 2 } as const;
+
+export type WardFlare = "none" | "ring" | "double";
+
+export interface RevealBuild {
+  step: RevealStep;
+  /** The step's place on the ladder (0 = snap), plus 0.5 for a Mythic in a
+   * finish. */
+  level: number;
+  /** 0-1: the level as a share of the top of the ladder. */
+  weight: number;
+  /** Waits face down for a tap (everything but a snap). */
+  held: boolean;
+  /** Glow stages before the flip (0-4), each in GLOW_STAGES' colour. */
+  stages: number;
+  /** One stage's glow climbing in. */
+  stageMs: number;
+  /** The pause after each stage but the last... */
+  pauseMs: number;
+  /** ...and the longest one, after the last stage, before the flip. */
+  lastPauseMs: number;
+  /** The flip itself (a snap's is SNAP.flipMs). */
+  flipMs: number;
+  /** The room's dim (the dim layer's opacity, 0-1) while it builds. */
+  dim: number;
+  /** The rest of the sound while it builds (the effects' level, 0-1). */
+  duck: number;
+  /** The hit as it lands: the flash's strength (0-1), the shake (px, ms),
+   * the bass hit's tier, the faction-colour particles (count, reach). */
+  flash: number;
+  shakePx: number;
+  shakeMs: number;
+  bass: "subtle" | "normal" | "spectacle" | null;
+  motes: number;
+  moteReach: number;
+  ward: WardFlare;
+  /** The ward's size, as a share of the card's height. */
+  wardScale: number;
+  /** After it lands, before the viewer may move on. */
+  hold: number;
+  /** A snap's pitch: 2^(n * SNAP.semitones / 12) for the n-th snap in its
+   * pack (planReveal sets it); 1 on every other card. */
+  pitch: number;
+  /** When each beat plays, from the tap (buildTimeline): the page reads
+   * this, so it never works the build-up out a second way. */
+  timeline: BuildTimeline;
+}
+
+export interface BuildTimeline {
+  stages: { at: number; colour: string }[];
+  flipAt: number;
+  landAt: number;
+}
+
+const STEP_STAGES: Record<RevealStep, number> = { snap: 0, rare: 1, mythic: 1, foil: 1, fullArt: 2, altArt: 2, glitch: 2, gold: 3, secret: 3, prototype: 4, zeroDay: 4 };
+const TOP_LEVEL = REVEAL_LADDER.length - 1;
+const r2 = (v: number) => Math.round(v * 100) / 100;
+
+export function revealBuildOf(reveal: RevealKind, rarity: string, faction?: string): RevealBuild {
+  const step = revealStepOf(reveal, rarity);
+  const base = REVEAL_LADDER.indexOf(step);
+  if (step === "snap") {
+    return { step, level: 0, weight: 0, held: false, stages: 0, stageMs: 0, pauseMs: 0, lastPauseMs: 0, flipMs: SNAP.flipMs, dim: 0, duck: 1, flash: 0, shakePx: 0, shakeMs: 0, bass: null, motes: 0, moteReach: 0, ward: "none", wardScale: 0, hold: SNAP.hold, pitch: 1, timeline: { stages: [], flipAt: 0, landAt: SNAP.flipMs } };
+  }
+  const mythicBump = rarity === "Mythic" && step !== "mythic" ? 0.5 : 0;
+  const level = base + mythicBump;
+  const w = level / TOP_LEVEL;
+  const pauseMs = Math.round(240 + 520 * w);
+  const ward: WardFlare = faction === "Neutral" ? "none" : rarity === "Mythic" ? "double" : rarity === "Rare" ? "ring" : "none";
+  const b: RevealBuild = {
+    step,
+    level,
+    weight: r2(w),
+    held: true,
+    stages: STEP_STAGES[step],
+    stageMs: Math.round(260 + 240 * w),
+    pauseMs,
+    lastPauseMs: pauseMs + Math.round(220 * w),
+    flipMs: Math.round(380 + 1150 * w),
+    dim: r2(0.28 + 0.5 * w),
+    duck: r2(Math.max(0.06, 0.45 - 0.4 * w)),
+    flash: r2(0.22 + 0.78 * w),
+    shakePx: Math.round((1 + 11 * w) * 10) / 10,
+    shakeMs: Math.round(200 + 420 * w),
+    bass: w < 0.35 ? "subtle" : w < 0.7 ? "normal" : "spectacle",
+    motes: Math.round(16 + 170 * w),
+    moteReach: r2(1.6 + 2.6 * w),
+    ward,
+    wardScale: ward === "none" ? 0 : r2(1.05 + 0.5 * w),
+    hold: step === "rare" ? 260 : step === "mythic" ? 420 : REVEAL_TIMINGS[reveal].hold,
+    pitch: 1,
+    timeline: { stages: [], flipAt: 0, landAt: 0 },
+  };
+  b.timeline = buildTimeline(b);
+  return b;
+}
+
+/** The build-up's length, from the tap to the card face up: every stage
+ * climbing in, the pauses between them and the long one before the flip,
+ * then the flip. */
+export function buildUpMs(b: Omit<RevealBuild, "timeline">): number {
+  if (!b.held) return b.flipMs;
+  return b.stages * b.stageMs + Math.max(0, b.stages - 1) * b.pauseMs + b.lastPauseMs + b.flipMs;
+}
+
+/** The build-up as the page plays it: when each stage starts (ms after the
+ * tap, with its colour), when the flip starts, and when the card lands. */
+export function buildTimeline(b: Omit<RevealBuild, "timeline">): BuildTimeline {
+  const stages: { at: number; colour: string }[] = [];
+  let t = 0;
+  for (let s = 0; s < b.stages; s++) {
+    stages.push({ at: t, colour: GLOW_STAGES[s]! });
+    t += b.stageMs + (s < b.stages - 1 ? b.pauseMs : b.lastPauseMs);
+  }
+  return { stages, flipAt: t, landAt: t + b.flipMs };
 }
