@@ -4457,3 +4457,19 @@ will every session; the widgets on real data, the Stats page and the bell are on
 
 **Render lane: queued 2026-11-09 (render session 59):** the warning is now its own item on the render list in
 `progress/roadmap.md` (item 7, after the Stats page), so it isn't lost; not built yet.
+
+---
+
+## 2026-11-10 — Owner: answers to render session 60 (the pack opening ceremony, part 2), keep all 6; calls 2 and 5 open to a feel check
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #145, `progress/render/evidence/pack-ceremony-check-s60.txt`).
+1. **Keep:** plain Rares and Mythics sit at the bottom of the build ladder, below Foil (snap < Rare < Mythic < Foil < Full Art < Alt Art < Glitch < Gold < Secret < Prototype < Zero-Day).
+2. **Keep for now:** every pack has one build (its Rare slot; a no-hit pack ends on the short 1.1 s build). **Open to change after the owner tries it:** if it wears thin over many packs, start the build at Mythic or let a plain Rare snap with only a ward flare.
+3. **Keep:** the glow stages are the tell's rungs (1 for a plain Rare or Mythic or a Foil, 2 for Full Art, Alt Art and Glitch, 3 for Gold and Secret, 4 for Prototype and Zero-Day).
+4. **Keep:** the ward follows the card (a Rare's faction ring, a Mythic's doubled; none for Foil Commons/Uncommons or Neutral cards).
+5. **Keep for now:** the numbers as proposed (dim, duck, flash, shake, motes, flip times as a function of the step). **Open to change after the owner tries it:** a Gold Mythic's doubled ward reaching the screen's edges is the first thing to shrink if it reads as too much.
+6. **Keep:** the ladder's timings replace the old per-finish flip times, so no finish builds shorter than one below it.
+
+The owner will try the ceremony on the Mac mini (with sound and a GPU) once it merges and report on calls 2 and 5. Until then, nothing changes.
+
+Next render slice, as planned: the pack opening ceremony, part 3. Next session by alternation: game (season end, part 2).
