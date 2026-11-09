@@ -38,6 +38,11 @@ import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
+// Render session 60: inside a big pull's stack a card is held face down by
+// its build (the ceremony part 2: every finish AND every plain Rare and
+// Mythic), not by `faceDown`, which still decides the fast row's flips.
+const heldInStack = (c) => (c.build ? c.build.held : c.faceDown);
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const shotDir = resolve(process.argv[2] ?? resolve(ROOT, 'progress/render/evidence'));
 const file = resolve(process.argv[3] ?? resolve(ROOT, 'render/output/pack-opening.html'));
@@ -78,7 +83,7 @@ async function tapStack(p, plan, h, w, problems, shotTag) {
     if (box.y < 0 || box.y + box.height > h + 2 || box.x < 0 || box.x + box.width > w) problems.push(`big pull card ${st} off screen`);
     const revealed = await p.evaluate((k) => !!window.__pack.revealed[k], st);
     await p.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
-    if (c.faceDown && !revealed) {
+    if (heldInStack(c) && !revealed) {
       if (c.reveal === 'zeroDay') await waitFor(p, () => window.__pack.log.some((e) => e.kind === 'zeroDayArrive'), null, 15000);
       else await waitFor(p, (k) => window.__pack.log.some((e) => e.kind === 'landed' && e.idx === k), st);
       if (shotTag && c.hit) { await p.waitForTimeout(400); await shot(p, `big-pull-${c.reveal}-${shotTag}`); }
@@ -126,8 +131,8 @@ function checkRun(log, data, bi, problems, run) {
     if (plan.fullReveal) {
       for (const [ci, c] of plan.cards.entries()) {
         const rv = log.find((x) => x.kind === 'reveal' && x.bp === k && x.idx === ci);
-        if (c.faceDown && (!rv || rv.as !== c.reveal)) problems.push(`pack ${k + 1} card ${ci}: reveal ${rv ? rv.as : 'none'}, want ${c.reveal}`);
-        if (!c.faceDown && rv) problems.push(`pack ${k + 1} card ${ci}: a face-up card was "revealed"`);
+        if (heldInStack(c) && (!rv || rv.as !== c.reveal)) problems.push(`pack ${k + 1} card ${ci}: reveal ${rv ? rv.as : 'none'}, want ${c.reveal}`);
+        if (!heldInStack(c) && rv) problems.push(`pack ${k + 1} card ${ci}: a face-up card was "revealed"`);
       }
       if (!log.some((x) => x.kind === 'bulkFullDone' && x.bp === k)) problems.push(`pack ${k + 1}: big pull never finished`);
       if (log.some((x) => x.kind === 'skip' && x.bp === k)) problems.push(`pack ${k + 1}: the big pull's own Skip was pressed`);
@@ -147,7 +152,7 @@ function checkRun(log, data, bi, problems, run) {
     for (const e of log.filter((x) => x.kind === 'cardLeft')) {
       const rv = log.filter((x) => x.kind === 'reveal' && x.bp === e.bp && x.idx === e.idx && x.t <= e.t).pop();
       const plan = B.packs[e.bp]?.cards[e.idx];
-      if (plan?.faceDown && rv && e.t - rv.t < 700) problems.push(`pack ${e.bp + 1} card ${e.idx}: left ${e.t - rv.t} ms after its reveal began`);
+      if (plan && heldInStack(plan) && rv && e.t - rv.t < 700) problems.push(`pack ${e.bp + 1} card ${e.idx}: left ${e.t - rv.t} ms after its reveal began`);
     }
   }
   const sum = log.find((e) => e.kind === 'bulkSummary');

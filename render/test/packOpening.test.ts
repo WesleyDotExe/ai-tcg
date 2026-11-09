@@ -220,7 +220,7 @@ describe("the page's pure helpers", () => {
 describe("the pack sounds (the game's own sound system)", () => {
   const voices = ["Cortex", "Aegis", "Swarm", "Null", "Neutral"];
   it("every pack sound is made of sane voices in every faction voice", () => {
-    expect(SFX_PACK_KINDS).toEqual(["tear", "flip", "rise", "sparkle", "type", "breach", "glitch", "stamp", "burst"]);
+    expect(SFX_PACK_KINDS).toEqual(["tear", "flip", "rise", "sparkle", "type", "breach", "glitch", "stamp", "burst", "riser", "bass"]);
     for (const k of SFX_PACK_KINDS) for (const f of voices) {
       const vs = sfxRecipe(k, f, "normal", () => 0.5);
       expect(vs.length).toBeGreaterThan(0);

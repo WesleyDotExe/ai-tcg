@@ -23,8 +23,10 @@ item 3): ending a season. Part 2 (the next season's file) is at an [OWNER CHECK-
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
 with "Render:", this is a game session; otherwise render. **Catch-up (owner 2026-11-08): until two "Render:" PRs have
-merged after #143, every session is render.** Render session 59 (catch-up 1 of 2) did the hardening pass
-and the #137 comparison; render's next move is in `progress/render/log.md`'s last entry: pack ceremony part 2. The game-lane steps below wait for a game session.
+merged after #143, every session is render.** Render session 59 (#144, catch-up 1 of 2) did the hardening pass and
+the #137 comparison; render session 60 (catch-up 2 of 2) built pack ceremony part 2. **Once session 60's "Render:"
+PR merges, the catch-up is done and plain alternation resumes: the next session is game** (the steps below).
+Render's next move, when its turn comes, is in `progress/render/log.md`'s last entry: pack ceremony part 3.
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else note it and stop. Check the last merged PR so a slice isn't built twice. Read owner-feedback.md.

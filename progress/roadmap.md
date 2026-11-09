@@ -173,7 +173,9 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
    - [x] Render hardening pass, session 59 (with the closed-#137 comparison), before part 2: #137's faster status
      reads near the allowance's end carried over; the ring ticks every second; the dial is a keyboard radio group;
      stale checks s49 and s51 fixed and re-run
-   - [ ] Pack opening part 2: reveal escalation across the reveal kinds, ward flare, procedural sound
+   - [x] Pack opening part 2: reveal escalation across the reveal kinds, ward flare, procedural sound (60): every
+     card face down, plain Commons/Uncommons snap with rising pitch, everything else builds on one monotone ladder
+     (dim, duck, glow stages with pauses, slow flip, flash, shake, bass, faction motes, the faction ward flare)
    - [ ] Pack opening part 3: Prototype takeover, afterglow, NEW stamps, set bar, Open 10 stops on hits, debug panel
    - [ ] Store layout (Fortnite-style placement, current look) with the Store and Packs widgets
    - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger

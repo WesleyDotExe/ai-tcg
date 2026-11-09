@@ -7,6 +7,62 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-09 — The pack opening ceremony, part 2 (the reveal escalation, the ward flare, the sound per step) — AWAITING FEEDBACK
+
+Item 4 of your 2026-11-06 render order (the brief's section 3, beat 3). Try it: open
+`render/output/pack-opening.html` (or `npm run pack-opening -w @ai-tcg/render`), sound on, open "No hit", then
+"Gold", then "Prototype", and tap through every card.
+
+**What you'll see:**
+- **Plain Commons and Uncommons snap.** Every card now rises face down. A plain Common or Uncommon flips over by
+  itself in 150 ms as it reaches the top, with a tick that sounds two semitones higher for each one in the pack.
+  A tap is never blocked by a snap.
+- **Everything else waits face down: every finish, and every plain Rare and Mythic.** On a tap the room dims, the
+  rest of the sound drops (the build's own sounds stay up), and the card back climbs its **glow stages** in the
+  tell's colours (teal, violet, amber, white-gold), an aura growing behind it and the back trembling harder each
+  stage, a rising tone per stage, with a pause after each where it might stop (the last pause the longest). Then the
+  flip (slower up the ladder), then the **hit**: a flash in the last stage's colour, the screen shakes, a bass hit,
+  motes in the card's faction colour, and the **faction ward flares** behind the card as it lands (the Rare ward
+  ring the board already uses; a Mythic gets it doubled, counter-rotating). Then the room comes back.
+- **One ladder, each step longer and bigger:** snap < plain Rare < plain Mythic < Foil < Full Art < Alt Art < Glitch
+  < Gold < Secret < Prototype < Zero-Day. Measured on the page, tap to hit: Rare 1.1 s, Mythic 1.3 s, Foil 1.5 s,
+  Full Art 2.5 s, Glitch 3.1 s, Secret 4.8 s, Prototype 6.4 s. The glow stops on the card's own rung and never above
+  it, so the back is honest like the backdrop. Each finish keeps its own reveal on top (the Glitch corruption, the
+  Gold stars and sparks, the Secret callout, the Prototype stamp, the Zero-Day takeover, which now ends on the hit).
+
+**Evidence:** `progress/render/evidence/pack-ceremony-check-s60.txt` (370 PASS, 0 FAIL: all ten showcase packs on
+desktop, three on a phone, every card: snaps, dims, ducks, stages and their colours on the timeline, flash,
+shake, motes, ward, risers and bass, the room coming back), stills `v2-s60-*.jpg` (a Secret's back at stage 3, the
+Rare, Mythic, Gold and Prototype hits); tests `render/test/packBuild.test.ts` (the ladder pairwise, the timeline,
+1,000 real openings, the sounds, the page) and the duck test in `soundFx.test.ts`; session 58's check re-run (127
+PASS) and the ten-pack check (12 PASS) still pass.
+
+**Calls you may want to overrule:**
+1. **Where plain Rares and Mythics sit: below Foil.** The brief groups them with the special finishes; I put them at
+   the bottom of the build (Rare, then Mythic, then Foil). So a plain Mythic builds a little less than a Foil
+   Common. The alternative is rarity first (a plain Mythic above Foil); say if you want that.
+2. **Every pack now has one build**, because every pack has a Rare slot. A No-hit pack ends on a short one (1.1 s:
+   one teal stage, a small flash, a 2 px shake, a light bass). If that wears thin over many packs, the fix is to
+   start the build at Mythic, or to let a plain Rare snap with only a ward flare.
+3. **The glow stages are the tell's rungs**: 1 stage for a plain Rare or Mythic or a Foil, 2 for Full Art, Alt Art
+   and Glitch, 3 for Gold and Secret, 4 for Prototype and Zero-Day. A Mythic in a finish builds half a step longer
+   than the same finish at a lower rarity, never as long as the next finish.
+4. **The ward follows the card, not the step:** a Rare flares its faction ring, a Mythic the ring doubled; a Foil
+   Common or Uncommon and every Neutral card flare none (Neutral has no ward, as on the board). The Mythics' own
+   unique wards (four exist) aren't used here yet; the doubled ring stands in for all Mythics.
+5. **The numbers** (all proposed; every one is a function of the step): dim 0.28 to 0.78; the rest of the sound
+   ducks to 45% at a Rare, 6% at the top; flash 0.22 to 1; shake 1 to 12 px; 16 to 186 motes; flips 0.38 to 1.5 s.
+   A Gold Mythic's doubled ward is very large (it reaches the screen's edges at 1280 x 800); I liked it as the top
+   end, but it is the first thing to shrink if it reads as too much.
+6. **Old timings replaced:** the per-finish flip times from session 24 (Glitch 950 ms was longer than Gold 650 ms)
+   gave way to the ladder's, so no finish ever builds shorter than one below it.
+
+**Next:** part 3: the Prototype full-screen takeover with the serial and "PROTOTYPE · S1" stamped live, the
+afterglow (the hit card tiltable, the fanned summary, NEW stamps slamming down, the set bar ticking up), Open 10
+stopping on every Rare, Mythic, special finish and Prototype, and the owner-only debug panel.
+
+---
+
 ## 2026-11-05 — The pack opening ceremony, part 1 (the backdrop tell, the tear, the burst); the time ring live — AWAITING FEEDBACK
 
 Item 3 of your 2026-11-06 render order, plus the time ring wired to game session 76's allowance. Try it: open

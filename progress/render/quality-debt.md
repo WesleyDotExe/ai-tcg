@@ -9,19 +9,23 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
-- **The pack opening ceremony is part-built (session 58: part 1 of 3).** Built: the bigger pack with its
-  code-drawn plate, the backdrop tell (a rung per best card, one rung low on about 1 pack in 4 above plain, never
-  high), the mouse lean, the tear that follows the cursor and holds when let go, the rip scrubbed to drag speed,
-  foil scraps, the burst in the best card's colour. **Not yet:** the reveal escalation, the room dimming, the card
-  back's glow stages, the faction ward flare (part 2); the Prototype takeover, the afterglow, NEW stamps, the set
-  bar, Open 10 stopping on every hit, the debug panel (part 3). The brief's done-check (every reveal kind run
-  through with the debug panel) is not met. **Thin in part 1:** the ten-pack open's mini packs keep the old tear
-  (no backdrop tell, no burst); the site's own Packs and Store widgets still draw the small pack art, not this
-  plate; the burst and backdrop were looked at in headless software rendering only (the drag ran at 14-16 fps
-  there at 1280 x 800, 33-35 at phone size; the backdrop's 1.4 s colour ease took 2.8 s; never measured on a GPU,
-  so the brief's 60 fps bar is unproven); the rip sound was checked by its level (the scrub voice's gain), not by
-  ear; the under-promise rate (23.5% of 469 packs above plain over 1,000 real openings) means a Foil pack shows the
-  plain backdrop about a quarter of the time, which may read as "no tell" rather than "a tell that lied low".
+- **The pack opening ceremony is part-built (sessions 58 and 60: parts 1 and 2 of 3).** Built: the bigger pack and
+  its plate, the backdrop tell, the lean, the tear that follows the cursor and holds, the rip scrubbed to drag speed,
+  scraps, the burst (part 1); every card face down, plain Commons and Uncommons snapping with rising pitch, every
+  other card's build on one monotone ladder (the room dimmed and ducked, the glow stages with their pauses, the slow
+  flip, flash, shake, bass, faction motes, the faction ward flare) (part 2). **Not yet (part 3):** the Prototype
+  full-screen takeover with the serial stamped live, the afterglow (tilt the hit, the fanned summary, NEW stamps, the
+  set bar), Open 10 stopping on every Rare, Mythic, special finish and Prototype, the debug panel. The brief's
+  done-check (every reveal kind through the debug panel) is not met. **Thin:** everything was looked at in headless
+  software rendering only, never on a GPU, so the brief's 60 fps bar is unproven; there, with a foil or glitch shader
+  running, the page falls to 0.8-10 fps and the room's 0.6 s fade back takes 2-5 s, the Glitch's hit lands up to
+  ~0.9 s late, and the tear's deal was twice starved past 8 s; the sounds (rip, risers, bass, the duck) were checked
+  by recipe, level and count, never by ear; every pack now ends on at least one build (the Rare slot), which may
+  wear thin over many packs (owner call 2); the Mythics' own unique wards are not used in the flare (a doubled
+  faction ring stands in); a Gold Mythic's doubled ward reaches the screen's edges at 1280 x 800 (maybe too big);
+  the ten-pack's mini packs keep the old tear and the site's Packs and Store widgets the small pack art; the
+  under-promise rate (about 1 in 4 above plain) means a Foil pack shows the plain backdrop about a quarter of the
+  time.
 - **Agent controls' time ring runs on the server's allowance (session 58) and ticks once a second (session 59).**
   Since 59 the arc, minutes, label and caption are patched in place every second from the last read on the page's
   clock (the arc to a tenth of a percent; whole percents had stepped a 15-minute ring only every 9 s), and the
@@ -45,7 +49,10 @@ items are removed, with the fix in `log.md`.
   two more: `site-check-s49.mjs` (it expected five rail slots and counted coins as buyable boasts; 40 passed) and
   `site-check-s51.mjs` (its frame URL pattern missed `#view=`, twice, and it expected face-down live hands, which
   session 54 made whole; 28 passed). Each took 5-10 minutes in software WebGL; still not re-run: s38's boot check,
-  `boast-check-s3x`, `hardening-check-s40`, `feed-check`, the `pack-*-check`s, s45's liquid check.
+  `boast-check-s3x`, `hardening-check-s40`, `feed-check`, s45's liquid check. Session 60 re-ran
+  `pack-ceremony-check-s58` (127 PASS) and `pack-bulk-check-s54` (12 PASS after one model change); `pack-opening-check`,
+  `pack-tap-check` and `pack-tilt-check` don't start here at all (they import Playwright by a path this machine
+  doesn't have) and still expect plain Rares to arrive face up.
 - **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
   tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
   tiles' `backdrop-filter` is the whole cost. Session 45's check fails its 20 fps bar on this branch

@@ -23,7 +23,7 @@
 // plans it was given (packOpening.ts), each one a real opening.
 
 import { PACK_FX_RUNTIME_SOURCE, PACK_FX_SHADERS } from "./packFx.js";
-import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, PACK_TIMINGS, REVEAL_TIMINGS, TELL_BACKDROPS, TILT, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
+import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, FACTION_TELL_HEX, GLOW_STAGES, PACK_TIMINGS, REVEAL_TIMINGS, SNAP, TELL_BACKDROPS, TILT, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { FLOW_TIMINGS, MINT_TIMINGS, type FirstTimeData } from "./firstTime.js";
 import { FIRST_TIME_CSS, FIRST_TIME_PURE_SOURCE, FIRST_TIME_RUNTIME_SOURCE, FIRST_TIME_WARD_SOURCE } from "./firstTimePage.js";
@@ -47,11 +47,17 @@ export interface PackPageData {
    * account, through `window.PACK_SITE_HOST` on the website (the page's
    * same-origin parent; packSiteHost). */
   site?: boolean;
+  /** The faction ward rings the reveal's ward flare draws (render session
+   * 60): faction -> a data URL of the ring (packWards.ts reads them; this
+   * module stays free of the file system because the website's client
+   * bundles it). Without them the flare is a drawn ring in the faction's
+   * colour. */
+  wards?: Record<string, string>;
 }
 
 export function renderPackOpeningHtml(data: PackPageData): string {
   const embed = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
-  const timings = { backdrops: TELL_BACKDROPS, pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT, mint: MINT_TIMINGS, flow: FLOW_TIMINGS };
+  const timings = { build: { glow: GLOW_STAGES, factions: FACTION_TELL_HEX, snap: SNAP }, backdrops: TELL_BACKDROPS, pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT, mint: MINT_TIMINGS, flow: FLOW_TIMINGS };
   data = { ...data, bulks: data.bulks ?? [] };
   const flow = !!data.flow;
   const site = !!data.site;
@@ -273,6 +279,34 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .back .bl { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 900; letter-spacing: 0.12em; font-size: calc(var(--cw) * 0.12); color: #cfe0ff; text-shadow: 0 0 16px #6a8cff; }
 .back .bs { position: absolute; left: 50%; top: 64%; width: 18%; transform: translateX(-50%); color: #9fb6ff; }
 .cslot.down.glow .back { animation: glow 1.4s ease-in-out infinite; }
+/* The reveal escalation (render session 60): a held card's back climbs the
+   glow stages (--gn, in --gc), an aura behind it growing with each, the back
+   trembling a little harder each stage; the room dims and the stage shakes
+   on the hit; the faction ward flares behind the card as it lands. Only
+   opacity and transforms animate, apart from the back's own rim. */
+@property --gc { syntax: "<color>"; inherits: true; initial-value: #7fe3ff; }
+.cslot { --gn: 0; --gms: 400ms; }
+.cslot .aura { position: absolute; inset: -16%; border-radius: 24%; pointer-events: none; opacity: 0; transform: scale(0.9); filter: blur(12px);
+  background: radial-gradient(closest-side, var(--gc) 0%, color-mix(in srgb, var(--gc) 40%, transparent) 58%, transparent 100%);
+  transition: opacity var(--gms) ease-in, transform var(--gms) cubic-bezier(.2,.8,.3,1.25), --gc var(--gms); will-change: opacity, transform; }
+.cslot.charging .aura { opacity: calc(0.28 + var(--gn) * 0.17); transform: scale(calc(0.94 + var(--gn) * 0.055)); }
+.cslot.charging.flipping .aura { opacity: 0; transform: scale(1.25); transition: opacity 0.35s ease-out, transform 0.35s ease-out; }
+.cslot.charging .back { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) var(--gc), 0 0 calc(10px + var(--gn) * 9px) calc(var(--gn) * 2px) var(--gc);
+  transition: box-shadow var(--gms), --gc var(--gms); animation: tremble calc(280ms - var(--gn) * 45ms) linear infinite; }
+.cslot.charging .back .bl { text-shadow: 0 0 calc(10px + var(--gn) * 7px) var(--gc); color: #fff; }
+@keyframes tremble { 0%, 100% { transform: rotateY(180deg) translate(0, 0); } 25% { transform: rotateY(180deg) translate(calc(var(--gn) * 0.7px), calc(var(--gn) * -0.45px)); } 75% { transform: rotateY(180deg) translate(calc(var(--gn) * -0.7px), calc(var(--gn) * 0.45px)); } }
+.stage.bshake { animation: bshake var(--skd, 400ms) cubic-bezier(.36,.07,.19,.97); }
+@keyframes bshake { 12% { transform: translate(calc(var(--sk) * -1), calc(var(--sk) * 0.5)); } 28% { transform: translate(var(--sk), calc(var(--sk) * -0.45)); } 44% { transform: translate(calc(var(--sk) * -0.6), calc(var(--sk) * 0.3)); } 62% { transform: translate(calc(var(--sk) * 0.35), calc(var(--sk) * -0.2)); } 80% { transform: translate(calc(var(--sk) * -0.12), 0); } }
+.wflare { position: absolute; width: var(--ws); height: var(--ws); margin: calc(var(--ws) / -2) 0 0 calc(var(--ws) / -2); pointer-events: none; z-index: 2; mix-blend-mode: screen; }
+.wflare i { position: absolute; inset: 0; border-radius: 50%; background: center / contain no-repeat; will-change: transform, opacity;
+  animation: wflare 1.1s cubic-bezier(.2,.8,.3,1) both, wspin 26s linear 1.1s infinite; }
+.wflare.plain i { border: 2px solid var(--wc); box-shadow: 0 0 18px var(--wc), inset 0 0 18px var(--wc); }
+.wflare i.r2 { inset: -16%; animation: wflare2 1.35s 0.08s cubic-bezier(.2,.8,.3,1) both, wspinr 34s linear 1.45s infinite; }
+.wflare.out { opacity: 0; transition: opacity 0.3s; }
+@keyframes wflare { 0% { transform: scale(0.45) rotate(-50deg); opacity: 0; } 28% { opacity: 1; } 55% { transform: scale(1.12) rotate(-8deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 0.6; } }
+@keyframes wflare2 { 0% { transform: scale(0.4) rotate(60deg); opacity: 0; } 30% { opacity: 0.9; } 60% { transform: scale(1.1) rotate(8deg); } 100% { transform: scale(1) rotate(0deg); opacity: 0.45; } }
+@keyframes wspin { to { transform: rotate(360deg); } }
+@keyframes wspinr { to { transform: rotate(-360deg); } }
 @keyframes glow { 50% { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) #1c2350, 0 0 26px 6px rgba(150,190,255,0.75), 0 0 60px 12px rgba(122,92,255,0.45); } }
 .cslot.dragging { transition: none; }
 .cslot.gone-l { transform: translateX(-140%) rotate(-18deg) !important; opacity: 0; }
@@ -510,6 +544,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .pack, .stage::before, .back, .cslot.reach::before, .face.zdface .art, .fan .mpack, .bd::before, .bd::after { animation: none !important; }
   .burst, .shock { animation-duration: 1ms !important; }
+  .stage.bshake { animation: none !important; }
+  .wflare i, .wflare i.r2 { animation: wfade 0.3s both !important; }
+  @keyframes wfade { from { opacity: 0; } to { opacity: 0.55; } }
   .pack .lean { transition: none; }
 }
 @media (max-width: 520px) {
@@ -923,7 +960,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // flip is never pulled off course).
   // mode: 'single' (one pack) or 'bulk' (a ten-pack open: bulk is which
   // one, bp the pack in it). cur is the pack being revealed either way.
-  var S = { mode: 'single', pack: 0, bulk: -1, bp: -1, cur: null, phase: 'shelf', i: 0, busyUntil: 0, revealed: {}, tilt: -1, layers: [], log: [], timers: [], speed: 1, skipping: false };
+  var S = { mode: 'single', pack: 0, bulk: -1, bp: -1, cur: null, phase: 'shelf', i: 0, busyUntil: 0, revealed: {}, tilt: -1, layers: [], flares: [], room: 0, log: [], timers: [], speed: 1, skipping: false };
   window.__pack = S;
   function log(kind, o) { var e = { kind: kind, t: Math.round(performance.now() - t0), mode: S.mode, pack: S.pack, bulk: S.bulk, bp: S.bp }; for (var k in o) e[k] = o[k]; S.log.push(e); }
   function later(fn, ms) { var id = setTimeout(fn, REDUCE ? Math.min(ms, 120) : ms); S.timers.push(id); return id; }
@@ -932,8 +969,13 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // the stage, so they go here too.
   function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; stage.querySelectorAll('.wash, .callout, .banner').forEach(function (e) { e.remove(); }); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function stopLayers() { S.layers.forEach(function (l) { l.stop(); }); S.layers = []; }
-  function sfx(kind, faction, tier) { if (window.SND) SND.play(kind, faction || 'Neutral', tier || 'normal', null); }
+  function stopLayers() {
+    S.layers.forEach(function (l) { l.stop(); }); S.layers = [];
+    S.flares.forEach(function (e) { e.classList.add('out'); setTimeout(function () { e.remove(); }, 320); }); S.flares = [];
+  }
+  // o: the recipe's options (pitch, stage, weight), and lift: true for a
+  // sound that stays up while the room is ducked (the build's own).
+  function sfx(kind, faction, tier, o) { if (window.SND) SND.play(kind, faction || 'Neutral', tier || 'normal', null, o); }
 
   packFitWatch(document.body);
 
@@ -1268,10 +1310,13 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     for (var k = r.cards.length - 1; k >= 0; k--) {
       var c = r.cards[k];
       var el = document.createElement('div');
-      el.className = 'cslot rise' + (c.faceDown ? ' down glow' : '');
+      // Every card rises face down (render 60): a plain Common or Uncommon
+      // snaps over as it reaches the top; a held card waits for a tap.
+      var held = heldCard(c);
+      el.className = 'cslot rise down' + (held ? ' glow held' : ' snap');
       el.setAttribute('data-k', k);
       el.style.animationDelay = (k * 40) + 'ms';
-      el.innerHTML = '<div class="flipper"><div class="front">' + faceHtml(c, { settled: !c.faceDown }) + '</div>' + backHtml() + '</div>';
+      el.innerHTML = (held ? '<div class="aura"></div>' : '') + '<div class="flipper"><div class="front">' + faceHtml(c, { settled: !held }) + '</div>' + backHtml() + '</div>';
       stack.appendChild(el);
     }
     layoutStack();
@@ -1295,11 +1340,120 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     var r = S.cur, c = r.cards[S.i];
     counter.textContent = (S.mode === 'bulk' ? 'Pack ' + (S.bp + 1) + ' · ' : '') + (S.i + 1) + ' / ' + r.cards.length;
     var slot = c.slot === 'shine' ? '<span class="slot">SHINE SLOT</span><br>' : c.slot === 'bonus' ? '<span class="slot bonus">BONUS 6TH CARD</span><br>' : '';
-    if (c.faceDown && !S.revealed[S.i]) hint.innerHTML = slot + 'Something special… tap to reveal';
+    var held = heldCard(c);
+    if (held && !S.revealed[S.i]) hint.innerHTML = slot + 'Something special… tap to reveal';
     else hint.innerHTML = slot + nextCardHint(S.i);
-    if (!c.faceDown) { announce.textContent = c.face.name; settleFx(S.i, c); S.tilt = S.i; }
-    log('cardShown', { idx: S.i, faceDown: c.faceDown, finish: c.finish, slot: c.slot, name: c.face.name });
-    sfx('flip', c.face.faction);
+    log('cardShown', { idx: S.i, faceDown: held, finish: c.finish, slot: c.slot, name: c.face.name, step: buildOf(c).step });
+    if (!held) { snapFlip(S.i, c); announce.textContent = c.face.name; settleFx(S.i, c); S.tilt = S.i; }
+    else sfx('flip', c.face.faction);
+  }
+  // ---------- the reveal escalation (render 60, the ceremony part 2) ----------
+  // Each card carries its build (packOpening.ts revealBuildOf): a snap, or
+  // the glow stages, the pauses, the slow flip and the hit, all sized by its
+  // step on the reveal ladder. Old data without one (none is made any more)
+  // falls back to the finish's flip.
+  function buildOf(c) {
+    if (c.build) return c.build;
+    var t = TM.reveal[c.reveal] || { flip: 0, hold: 120 }, f = Math.max(150, t.flip);
+    return { step: c.faceDown ? c.reveal : 'snap', weight: 0, held: !!c.faceDown, stages: 0, flipMs: f, dim: 0, duck: 1, flash: 0, shakePx: 0, shakeMs: 0, bass: null, motes: 0, moteReach: 0, ward: 'none', wardScale: 0, hold: t.hold, pitch: 1, timeline: { stages: [], flipAt: 0, landAt: f } };
+  }
+  function heldCard(c) { return !!buildOf(c).held; }
+  function slotLabel(c) { return c.slot === 'shine' ? '<span class="slot">SHINE SLOT</span><br>' : c.slot === 'bonus' ? '<span class="slot bonus">BONUS 6TH CARD</span><br>' : ''; }
+  // A plain Common or Uncommon: a quick flip as it reaches the top, each in
+  // the pack a little higher than the last.
+  function snapFlip(k, c) {
+    var el = slotEl(k), b = buildOf(c);
+    if (!el || !el.classList.contains('down')) return;
+    el.querySelector('.flipper').style.transition = 'transform ' + b.flipMs + 'ms cubic-bezier(.2,.9,.35,1.15)';
+    requestAnimationFrame(function () { el.classList.remove('down'); });
+    // Never blocks a tap: quick taps through the plain cards fly them off
+    // mid-flip (the s60 check caught a tap swallowed inside the 150 ms).
+    sfx('flip', c.face.faction, 'normal', { pitch: b.pitch });
+    log('snap', { idx: k, pitch: b.pitch, flipMs: b.flipMs });
+  }
+  // The room: dimmed and ducked while a held card builds, back after it.
+  // roomUp(k) only lifts the room card k dimmed: a card's own "back up"
+  // timer can still be pending when the next card has already started its
+  // build (found by the s60 browser check: a plain Rare's 700 ms timer lit
+  // the room halfway through the next card's glow).
+  function roomDown(b, k) {
+    S.roomFor = k;
+    dim.style.transition = 'opacity ' + Math.max(250, Math.min(700, b.stageMs || 400)) + 'ms';
+    dim.style.opacity = String(b.dim);
+    S.room = b.dim || 0.001;
+    if (window.SND && SND.duck) SND.duck(b.duck, 280);
+  }
+  function roomUp(k) {
+    if (!S.room || (k !== undefined && k !== S.roomFor)) return;
+    S.room = 0;
+    dim.style.transition = 'opacity 600ms ease-out'; dim.style.opacity = '0';
+    if (window.SND && SND.duck) SND.duck(1, 600);
+    log('roomUp', {});
+  }
+  function glowStage(el, c, b, n, colour) {
+    el.style.setProperty('--gc', colour);
+    el.style.setProperty('--gn', String(n));
+    el.style.setProperty('--gms', b.stageMs + 'ms');
+    el.setAttribute('data-stage', String(n));
+    sfx('riser', c.face.faction, 'normal', { stage: n, dur: b.stageMs / 1000 + 0.15, lift: true });
+    log('glowStage', { idx: Number(el.getAttribute('data-k')), stage: n, colour: colour });
+  }
+  // The ward rings, tinted once per faction at load (the sheet is grey on
+  // black: multiplied by the faction's colour, a little of the white kept
+  // as the core), drawn additively.
+  var WARD_TINT = {};
+  Object.keys(DATA.wards || {}).forEach(function (f) {
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var n = img.naturalWidth, cv = document.createElement('canvas'); cv.width = n; cv.height = n;
+        var g = cv.getContext('2d');
+        g.drawImage(img, 0, 0);
+        g.globalCompositeOperation = 'multiply'; g.fillStyle = TM.build.factions[f] || '#ffffff'; g.fillRect(0, 0, n, n);
+        g.globalCompositeOperation = 'screen'; g.globalAlpha = 0.3; g.drawImage(img, 0, 0);
+        WARD_TINT[f] = cv.toDataURL('image/png');
+      } catch (e) { /* the drawn ring stands in */ }
+    };
+    img.src = DATA.wards[f];
+  });
+  function wardFlare(c, b, x, y, h, colour) {
+    if (b.ward === 'none') return null;
+    var src = WARD_TINT[c.face.faction] || null, size = Math.round(h * b.wardScale);
+    var w = document.createElement('div');
+    w.className = 'wflare ' + b.ward + (src ? '' : ' plain');
+    w.style.left = x + 'px'; w.style.top = y + 'px';
+    w.style.setProperty('--ws', size + 'px'); w.style.setProperty('--wc', colour);
+    w.innerHTML = '<i></i>' + (b.ward === 'double' ? '<i class="r2"></i>' : '');
+    if (src) Array.prototype.forEach.call(w.children, function (i) { i.style.backgroundImage = 'url(' + src + ')'; });
+    stage.insertBefore(w, scene);
+    S.flares.push(w);
+    return { kind: b.ward, image: !!src, size: size };
+  }
+  // The hit as a held card lands: a flash in the top glow stage's colour,
+  // the stage shaking, the bass, motes in the faction's colour, the ward.
+  function hit(k, c, el, b) {
+    el.classList.remove('charging', 'flipping');
+    var rc = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    var x = rc.left - sr.left + rc.width / 2, y = rc.top - sr.top + rc.height / 2;
+    var fc = TM.build.factions[c.face.faction] || TM.build.factions.Neutral;
+    var st = b.timeline.stages, top = st.length ? st[st.length - 1].colour : fc;
+    if (b.flash > 0) {
+      flashEl.classList.remove('go'); void flashEl.offsetWidth;
+      flashEl.style.setProperty('--fc1', top); flashEl.style.setProperty('--fo', String(b.flash)); flashEl.style.setProperty('--fd', Math.round(300 + 500 * b.weight) + 'ms');
+      flashEl.style.setProperty('--fx', (x / Math.max(1, sr.width) * 100) + '%'); flashEl.style.setProperty('--fy', (y / Math.max(1, sr.height) * 100) + '%');
+      flashEl.classList.add('go');
+    }
+    var shook = b.shakePx > 0 && !REDUCE;
+    if (shook) {
+      stage.style.setProperty('--sk', b.shakePx + 'px'); stage.style.setProperty('--skd', b.shakeMs + 'ms');
+      stage.classList.remove('bshake'); void stage.offsetWidth; stage.classList.add('bshake');
+      var shakeAnim = getComputedStyle(stage).animationName;
+      later(function () { stage.classList.remove('bshake'); }, b.shakeMs + 40);
+    }
+    if (b.bass) sfx('bass', c.face.faction, b.bass, { weight: b.weight, lift: true });
+    if (b.motes) PFX.motes(x, y, b.motes, fc, top, b.moteReach);
+    var wf = wardFlare(c, b, x, y, rc.height, fc);
+    log('hit', { idx: k, step: b.step, flash: b.flash, shakePx: shook ? b.shakePx : 0, shakeAnim: shook ? shakeAnim : '', bass: b.bass, motes: b.motes, moteColour: fc, flashColour: top, ward: wf });
   }
   // What a tap does after card k of the stack. A big pull inside a
   // ten-pack open goes back to the packs, not to a summary.
@@ -1327,7 +1481,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       if (tilting()) return;
       setLight(x, y, false);
       var top = S.cur.cards[S.i];
-      if (drag && (!top.faceDown || S.revealed[S.i])) {
+      if (drag && (!heldCard(top) || S.revealed[S.i])) {
         var dx = e.clientX - drag.x0;
         if (Math.abs(dx) > 10 && canLeave()) { el.classList.add('dragging'); el.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx * 0.05) + 'deg)'; }
       }
@@ -1349,7 +1503,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     if (S.phase !== 'cards') return;
     var r = S.cur, c = r.cards[S.i], el = slotEl(S.i);
     if (!el) return;
-    if (c.faceDown && !S.revealed[S.i]) { if (how !== 'none' && canLeave()) reveal(S.i); else layoutStack(); return; }
+    if (heldCard(c) && !S.revealed[S.i]) { if (how !== 'none' && canLeave()) reveal(S.i); else layoutStack(); return; }
     if (how === 'none' || !canLeave()) { layoutStack(); return; }
     leave(how === 'r' ? 'r' : 'l');
   }
@@ -1358,7 +1512,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     S.tilt = -1;
     el.classList.add(dir === 'r' ? 'gone-r' : 'gone-l');
     log('cardLeft', { idx: S.i, dir: dir });
-    stopLayers();
+    stopLayers(); roomUp();
     var gone = el; later(function () { gone.remove(); }, 400);
     S.i++;
     if (S.i >= r.cards.length) { later(summary, TM.pack.fly + 120); return; }
@@ -1493,32 +1647,47 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     var name = packFinishLayerName(c.reveal);
     return name ? addLayer(face, name, packFinishLayerAmt(c.reveal), seed) : null;
   }
+  // A tap on a held card: the room drops, the back climbs its glow stages
+  // with a pause after each (the last the longest), then it flips.
   function reveal(k) {
-    var r = S.cur, c = r.cards[k], el = slotEl(k);
+    var c = S.cur.cards[k], el = slotEl(k), b = buildOf(c);
     S.revealed[k] = true;
-    var t = TM.reveal[c.reveal];
     el.classList.remove('glow');
     if (c.reveal === 'zeroDay') { zeroDay(k); return; }
+    S.busyUntil = Infinity;
+    var tl = b.timeline;
+    log('build', { idx: k, step: b.step, stages: b.stages, flipAt: tl.flipAt, landAt: tl.landAt, dim: b.dim, duck: b.duck });
+    roomDown(b, k);
+    if (b.stages) el.classList.add('charging');
+    hint.innerHTML = slotLabel(c) + '…';
+    tl.stages.forEach(function (s, i) { later(function () { glowStage(el, c, b, i + 1, s.colour); }, s.at); });
+    later(function () { flip(k, c, el, b); }, tl.flipAt);
+  }
+  function flip(k, c, el, b) {
+    var t = { flip: b.flipMs, hold: b.hold };
+    el.classList.add('flipping');
     var front = el.querySelector('.front');
     // The card turns over showing its plain face first; the finish arrives
     // as part of the reveal, not before it.
     front.innerHTML = faceHtml(c, { settled: false });
     var flipper = el.querySelector('.flipper');
-    flipper.style.transition = 'transform ' + t.flip + 'ms ' + (c.reveal === 'secret' ? 'cubic-bezier(.45,0,.2,1)' : 'cubic-bezier(.3,.6,.3,1)');
-    S.busyUntil = performance.now() + t.flip + t.hold;
-    log('reveal', { idx: k, as: c.reveal, finish: c.finish });
+    flipper.style.transition = 'transform ' + t.flip + 'ms ' + (b.weight >= 0.6 ? 'cubic-bezier(.45,0,.2,1)' : 'cubic-bezier(.3,.6,.3,1)');
+    log('reveal', { idx: k, as: c.reveal, finish: c.finish, step: b.step, flipMs: t.flip });
     announce.textContent = c.face.name + (packFinishLabel(c.finish) ? ', ' + packFinishLabel(c.finish) : '');
     var face = front.querySelector('.face');
     if (c.reveal === 'glitch') glitchFlip(el, face, t.flip);
-    if (c.reveal === 'secret') { dim.style.opacity = 0.55; el.style.transition = 'transform ' + t.flip + 'ms cubic-bezier(.45,0,.2,1)'; el.style.transform = 'translateY(-10px) scale(1.06)'; }
-    sfx('flip', c.face.faction);
+    if (c.reveal === 'secret') { el.style.transition = 'transform ' + t.flip + 'ms cubic-bezier(.45,0,.2,1)'; el.style.transform = 'translateY(-10px) scale(1.06)'; }
+    sfx('flip', c.face.faction, 'normal', { lift: true });
     requestAnimationFrame(function () { el.classList.remove('down'); });
-    later(function () { landed(k, c, el, face, t); }, t.flip);
-    hint.innerHTML = (c.slot === 'shine' ? '<span class="slot">SHINE SLOT</span><br>' : c.slot === 'bonus' ? '<span class="slot bonus">BONUS 6TH CARD</span><br>' : '') + packFinishLabel(c.finish);
+    later(function () { landed(k, c, el, face, t, b); }, t.flip);
+    hint.innerHTML = slotLabel(c) + (packFinishLabel(c.finish) || PACK_RARITY_LABEL[c.face.rarity]);
   }
-  function landed(k, c, el, face, t) {
+  function landed(k, c, el, face, t, b) {
+    hit(k, c, el, b);
+    S.busyUntil = performance.now() + t.hold;
+    later(function () { roomUp(k); }, Math.max(700, t.hold));
     var tier = packRiseTier(c.reveal);
-    if (c.reveal !== 'glitch') sfx('rise', c.face.faction, tier);
+    if (c.reveal !== 'glitch' && c.reveal !== 'plain') sfx('rise', c.face.faction, tier, { lift: true });
     if (c.reveal === 'foil') { ramp(addLayer(face, 'foil', 0, k + 1), 0, 1, 500); wash('#bfe3ff'); }
     if (c.reveal === 'fullArt' || c.reveal === 'altArt') { face.classList.add('full'); ramp(addLayer(face, 'foil', 0, k + 1), 0, 0.55, 900); wash(c.reveal === 'altArt' ? '#ffb3ec' : '#bfe3ff'); }
     if (c.reveal === 'gold') {
@@ -1535,7 +1704,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       var above = crc.top - stg.top - co.offsetHeight - 10;
       co.style.top = (above >= 6 ? above : crc.top - stg.top + crc.height * 0.24) + 'px';
       log('callout', { text: c.collectorNumber, above: above >= 6 });
-      later(function () { co.classList.add('out'); dim.style.opacity = 0; el.style.transform = ''; later(function () { co.remove(); }, 500); }, t.hold);
+      later(function () { co.classList.add('out'); el.style.transform = ''; later(function () { co.remove(); }, 500); }, t.hold);
     }
     if (c.reveal === 'prototype') {
       face.classList.add('full');
@@ -1633,6 +1802,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
         stage.classList.add('shake');
         sfx('rise', 'Null', 'spectacle');
         settleFx(k, c);
+        hit(k, c, el, buildOf(c));
         later(function () { zd.hidden = true; zd.className = 'zd'; stage.classList.remove('shake'); if (bg) { bg.stop(); } }, 800);
         S.busyUntil = performance.now() + Z.arrive + TM.reveal.zeroDay.hold;
         later(function () { el.style.transition = ''; S.tilt = k; }, Z.arrive);
@@ -1644,7 +1814,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
 
   // ---------- the summary ----------
   function summary() {
-    clearTimers(); stopLayers(); dim.style.opacity = 0;
+    clearTimers(); stopLayers(); roomUp(); dim.style.opacity = 0;
     // A big pull inside a ten-pack open: back to the fast sequence.
     if (S.mode === 'bulk') { skipBtn.hidden = true; log('bulkFullDone', { cards: S.i }); bulkResume(); return; }
     S.phase = 'summary'; skipBtn.hidden = true; counter.textContent = ''; hint.innerHTML = '';
