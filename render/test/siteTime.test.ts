@@ -31,7 +31,7 @@ describe("the time ring's allowance and the time buttons (pure)", () => {
     const later = allowanceOf(a, T0 + 750_000)!;
     expect(later).toMatchObject({ secondsLeft: 1050, minutesLeft: 18 });
     const ring = timeRingView(later, autoPlayView(a, true), false);
-    expect(ring).toMatchObject({ centre: "18", unit: "min", caption: "18 min left today", tone: "run", pct: 58 });
+    expect(ring).toMatchObject({ centre: "18", unit: "min", caption: "18 min left today", tone: "run", pct: 58.3 });
     // The local count reaching zero shows "Finishing match" until the server says more.
     expect(timeRingView(allowanceOf(a, T0 + 31 * 60_000), autoPlayView(a, true), true).centre).toBe("Finishing match");
     // A clock behind the server's never adds time.

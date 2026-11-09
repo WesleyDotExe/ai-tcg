@@ -5132,3 +5132,61 @@ desktop size during the drag); the rip judged by its level, not by ear.
 reveal kinds (dim, the card back's glow stages with pauses, the slow flip, flash, shake, bass hit, faction-colour
 particles), the faction ward flare as a card lands, the sound per tier. Session 59 is the render lane's hardening
 pass by the every-5th rhythm (54 was the last): do it first if it falls due, then part 2.
+
+## 2026-11-09 — Render session 59: the render hardening pass (the closed-#137 comparison, the ring's tick, the dial by keyboard, two stale checks)
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #143, was game; the owner's 2026-11-08 catch-up, render 1 of
+2). No render PR was open. **Read first:** owner-feedback.md (2026-11-06 item 3, 2026-11-08's three entries),
+DESIGN.md, this lane's log, debt and notes. A hardening pass by the every-5th rhythm (54, 59), so no new features.
+
+**1. Closed PR #137 against main (the 2026-11-06 owner entry, item 3).** #137's branch is one commit on the base
+#136 also started from. Everything it built is in main through #136 (the allowance adapter, the time buttons and
+their handler, the `timeUp` wording, the dropped `allowance: null` placeholder), with one exception: its faster
+status reads near the end of the allowance. Carried over as `statusPollMs` (`siteAgent.ts`, pure): 1.5 s while a
+rebuild runs, **5 s in the allowance's last 30 s and while the agent finishes its match**, else 15 s, used by the
+client's `schedulePoll`. Nothing else from #137 was missing.
+
+**2. The ring ticks once a second (debt: "the ring only updates on the page's 15 s poll").** `ringParts` (the
+arc's lit length, the label, the centre) is shared by the drawn ring and a once-a-second `tickRings` in the client,
+which patches the ring and its caption (`.ac-cap`) in place from the last read on the page's clock (`ringOfPlay`),
+only while an allowance runs (`ringTicks`), so nothing the viewer is focused on is redrawn and the two can't
+disagree. **Found by the browser check:** the first run showed the arc moving once in 6 s: `timeRingView` rounded
+the lit share to whole percents, so a 15-minute ring stepped only every 9 s. Now to a tenth of a percent (one older
+pin, 58 -> 58.3, updated).
+
+**3. The personality dial is a radio group (debt: "buttons in tab order, not a radio group with arrow keys").** The
+knob is `role="radiogroup"`, each notch `role="radio"` with `aria-checked`, one tab stop (the checked notch).
+Right/Down go clockwise, Left/Up back, wrapping, Home/End to the first/last (`dialKeyTarget`, pure); the style it
+lands on is chosen and saved like a click (applies from the next match), focus follows.
+
+**4. Two stale browser checks fixed and re-run (debt: "most by-hand checks are never re-run").**
+`site-check-s49.mjs` expected five rail slots (the Coin is the sixth since 55) and counted coins as buyable boasts:
+**40 passed, 0 failed** (`site-check-s49-rerun-s59.txt`). `site-check-s51.mjs` missed the arena's `#view=` URL (in
+two places) and expected face-down live hands (whole since session 54): **28 pass, 0 fail**
+(`site-check-s51-rerun-s59.txt`). Both are slow in software WebGL (5-10 minutes each).
+
+**Tests (+4, render 903):** `siteAgent.test.ts`: the tick patches exactly what the widget draws at 9 moments from
+0 to past the end, the arc's share, the drain to "Finishing match"; when the tick runs; the status cadence (every
+case, including a 31 s read that crosses 30 s on the page's clock); the dial's keys; the dial's radio markup (one
+checked, one tab stop). `npm test -w @ai-tcg/render` 903 pass; typecheck clean.
+
+**Ran it:** `site-check-s59.mjs` -> `site-check-s59.txt`: **25 PASS, 0 FAIL** on the real owner API with the ladder
+at 1×: T1, 15 min given, over 6 s with no status read the arc shortened 6 times (247.3 -> 245.8 of 251.3) and
+only ever shortened, the minutes the server's, reads 15 s apart; T2, with `GET /api/play`'s allowance rewritten in
+the browser to 20 s left (everything else the server's), the ring counted to "Finishing match" on the page's
+clock, reads came every 5, 5, 5, 5 s, then 15 s again once the rewrite stopped; T3, by keyboard only: one tab stop,
+ArrowRight, ArrowLeft, End, Home each saved on the server with focus, `aria-checked` and the tab stop following,
+Enter on the checked notch changing nothing; no external requests, no page errors. The first run's 1 FAIL was the
+whole-percent finding above. Stills `v2-s59-tick-running.jpg`, `-tick-last-seconds.jpg`, `-tick-finishing.jpg`,
+`-dial-keyboard.jpg`. CI browser check **61 passed, 0 failed** (`ci-browser-check-s59.txt`).
+`render/output/site/index.html` rebuilt (it bundles the client).
+
+**Not done (named):** "Finishing match" and the 5 s cadence were seen in the browser on a rewritten response, not on
+a real allowance run out (the Node test of session 58 covers that path on the real server); an arrow on the dial
+saves at once, so arrowing across three styles makes three saves and three toasts; the other stale checks (s38's
+boot check, s3x boasts, s40, feed, pack checks, s45 liquid) are still not re-run.
+
+**Next render-lane slice (the owner's order, item 4):** the pack opening ceremony, part 2: the reveal escalation
+across the reveal kinds (dim, the card back's glow stages with pauses, the slow flip, flash, shake, bass hit,
+faction-colour particles), the faction ward flare as a card lands, the sound per tier. That session is render too
+(catch-up 2 of 2), then plain alternation.

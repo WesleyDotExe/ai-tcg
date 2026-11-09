@@ -14,13 +14,19 @@ import { LiveLadder } from "../../server/src/ladder/liveLadder.js";
 import { siteApi, type SiteAutoPlay, type SiteHistoryRow, type SitePlay } from "../src/site/siteApi.js";
 import {
   agentControlsHtml,
+  allowanceOf,
   deckOptions,
   dialHtml,
   dialView,
   myAgentHtml,
   ratingLine,
   ratingTrend,
+  dialKeyTarget,
+  ringOfPlay,
+  ringParts,
   ringPortraitHtml,
+  ringTicks,
+  statusPollMs,
   streakOf,
   timeRingView,
   todayLine,
@@ -29,6 +35,7 @@ import {
   type SiteRating,
 } from "../src/site/siteAgent.js";
 import { autoPlayView, myLiveMatch } from "../src/site/siteMatches.js";
+import { esc } from "../src/site/siteModel.js";
 import { widgetHtml, type WidgetData } from "../src/site/siteWidgets.js";
 import type { SiteDaily } from "../src/site/siteBoard.js";
 
@@ -125,8 +132,13 @@ describe("My agent and Agent controls: the views (pure)", () => {
     expect(dialView({ ...PLAY, connectedAgent: null }, null)).toBeNull();
     const h = dialHtml(v);
     expect(h.match(/data-act="play-style"/g)).toHaveLength(6);
-    expect(h.match(/aria-pressed="true"/g)).toHaveLength(1);
-    expect(h).toContain('data-style="tempo" aria-pressed="true"');
+    // A radio group (render session 59): one notch checked, one tab stop.
+    expect(h).toContain('role="radiogroup" aria-label="Personality dial"');
+    expect(h.match(/role="radio"/g)).toHaveLength(6);
+    expect(h.match(/aria-checked="true"/g)).toHaveLength(1);
+    expect(h).toContain('data-style="tempo" role="radio" aria-checked="true" tabindex="0"');
+    expect(h.match(/tabindex="0"/g)).toHaveLength(1);
+    expect(h.match(/tabindex="-1"/g)).toHaveLength(5);
     expect(h).toContain("rotate(180deg)");
     expect(dialHtml(v, { busy: true }).match(/ disabled/g)).toHaveLength(6);
   });
@@ -260,7 +272,7 @@ describe("My agent and Agent controls over the real owner API, with the ladder p
     const next = was === "rusher" ? "fortress" : "rusher";
     let play = await client.setPlayStyle(ada, adaAgent, next); // what the dial's notch sends
     const html = agentControlsHtml("M", { play, rating, daily, history, live: l, allowance: null, errors: {}, now: clock.t });
-    expect(html).toContain(`data-style="${next}" aria-pressed="true"`);
+    expect(html).toContain(`data-style="${next}" role="radio" aria-checked="true"`);
     const styleName = (id: string) => play.playStyles.find((s) => s.id === id)!.name;
     expect(html).toContain(`This match: ${styleName(was)}. ${styleName(next)} from the next match.`);
     expect(html).toContain('href="#/match">Go to match');
@@ -284,4 +296,76 @@ describe("My agent and Agent controls over the real owner API, with the ladder p
     expect(htmlL).toContain(`data-deck="${starter}" aria-pressed="true"`);
     expect(htmlL).not.toMatch(/undefined|NaN|>null</);
   }, 60_000);
+});
+
+// Render session 59 (hardening): the ring's once-a-second tick, the status
+// read's cadence carried over from closed PR #137, and the dial's keys.
+describe("the ring's tick, the status cadence, the dial's keys (render session 59)", () => {
+  const T0 = Date.parse("2026-11-09T10:00:00.000Z");
+  const running = (secondsLeft: number, total = 15): SiteAutoPlay => ({
+    ...AUTO,
+    allowance: { state: "running", startedAt: new Date(T0 - (total * 60 - secondsLeft) * 1000).toISOString(), endsAt: new Date(T0 + secondsLeft * 1000).toISOString(), totalMinutes: total, secondsLeft, minutesLeft: Math.ceil(secondsLeft / 60), endsAtReset: false },
+    canAddTime: true,
+  });
+
+  it("the tick patches exactly what the drawn ring shows, at every second", () => {
+    const p: SitePlay = { ...PLAY, autoPlay: running(600) };
+    for (const dt of [0, 1, 59, 60, 61, 300, 599, 600, 700]) {
+      const now = T0 + dt * 1000;
+      const v = ringOfPlay(p, now);
+      // The widget's own drawing at the same moment.
+      const w = agentControlsHtml("M", { ...DATA, play: p, now, allowance: allowanceOf(p.autoPlay, now) });
+      const g = ringParts(p.connectedAgent!.name, v, 88);
+      expect(w).toContain(`stroke-dasharray="${g.dash}"`);
+      expect(w).toContain(`class="tring t-${g.tone}" data-size="88"`);
+      expect(w).toContain(`<b class="tr-c${g.word ? " word" : ""}">${g.centreHtml}</b>`);
+      expect(w).toContain(`<span class="small ac-cap">${esc(v.caption)}</span>`);
+    }
+    // It drains: 10 min, 9 min after 61 s, "Finishing match" at zero.
+    expect(ringOfPlay(p, T0).centre).toBe("10");
+    expect(ringOfPlay(p, T0 + 61_000).centre).toBe("9");
+    expect(ringOfPlay(p, T0 + 600_000)).toMatchObject({ centre: "Finishing match", tone: "finish" });
+    const a = ringParts("Nova", ringOfPlay(p, T0 + 150_000), 80);
+    const [lit, circ] = a.dash.split(" ").map(Number);
+    expect(lit! / circ!).toBeCloseTo(450 / 900, 2);
+  });
+
+  it("the tick runs only while time runs down", () => {
+    expect(ringTicks({ ...PLAY, autoPlay: running(600) })).toBe(true);
+    expect(ringTicks({ ...PLAY, autoPlay: AUTO })).toBe(false);
+    const fin = running(0);
+    expect(ringTicks({ ...PLAY, autoPlay: { ...fin, allowance: { ...fin.allowance!, state: "finishing" } } })).toBe(false);
+    expect(ringTicks({ ...PLAY, connectedAgent: null, autoPlay: running(600) })).toBe(false);
+    expect(ringTicks(null)).toBe(false);
+  });
+
+  it("the status read: 1.5 s in a rebuild, 5 s near the end or finishing, else 15 s", () => {
+    expect(statusPollMs(null, T0)).toBe(15000);
+    expect(statusPollMs(PLAY, T0)).toBe(15000);
+    expect(statusPollMs({ ...PLAY, autoPlay: running(600) }, T0)).toBe(15000);
+    // 31 s left at the read; 2 s later the page's clock says 29.
+    expect(statusPollMs({ ...PLAY, autoPlay: running(31) }, T0)).toBe(15000);
+    expect(statusPollMs({ ...PLAY, autoPlay: running(31) }, T0 + 2000)).toBe(5000);
+    expect(statusPollMs({ ...PLAY, autoPlay: running(10) }, T0)).toBe(5000);
+    const fin = running(0);
+    expect(statusPollMs({ ...PLAY, autoPlay: { ...fin, allowance: { ...fin.allowance!, state: "finishing" } } }, T0)).toBe(5000);
+    expect(statusPollMs({ ...PLAY, autoPlay: { ...fin, allowance: { ...fin.allowance!, state: "done" } } }, T0)).toBe(15000);
+    expect(statusPollMs({ ...PLAY, autoPlay: running(10), rebuild: { reasons: [], job: { jobId: "j", state: "running" } as never } }, T0)).toBe(1500);
+  });
+
+  it("the dial's keys: clockwise and back, wrapping; Home and End; nothing else", () => {
+    const ids = STYLES.map((s) => s.id);
+    expect(dialKeyTarget(ids, "tempo", "ArrowRight")).toBe("fortress");
+    expect(dialKeyTarget(ids, "tempo", "ArrowDown")).toBe("fortress");
+    expect(dialKeyTarget(ids, "tempo", "ArrowLeft")).toBe("controller");
+    expect(dialKeyTarget(ids, "tempo", "ArrowUp")).toBe("controller");
+    expect(dialKeyTarget(ids, "gambler", "ArrowRight")).toBe("calculator");
+    expect(dialKeyTarget(ids, "calculator", "ArrowLeft")).toBe("gambler");
+    expect(dialKeyTarget(ids, "tempo", "Home")).toBe("calculator");
+    expect(dialKeyTarget(ids, "tempo", "End")).toBe("gambler");
+    expect(dialKeyTarget(ids, "calculator", "Home")).toBeNull();
+    expect(dialKeyTarget(ids, "tempo", "Enter")).toBeNull();
+    expect(dialKeyTarget(ids, "tempo", "a")).toBeNull();
+    expect(dialKeyTarget(["only"], "only", "ArrowRight")).toBeNull();
+  });
 });

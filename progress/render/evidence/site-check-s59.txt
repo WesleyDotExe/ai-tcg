@@ -1,0 +1,37 @@
+
+[T1] the ring ticks between reads
+PASS  T1. the server runs a 15-minute allowance
+PASS  T1. the ring is running
+      arc: 247.3 251.3 | 247.1 251.3 | 246.8 251.3 | 246.6 251.3 | 246.3 251.3 | 246.0 251.3 | 245.8 251.3
+PASS  T1. no status read during the 6 s (0)
+PASS  T1. the arc shortened 6 times in 6 s with no read
+PASS  T1. it only ever shortens
+PASS  T1. the ring's minutes are the server's (15min vs 15), "15 min left today"
+PASS  T1. reads 15 s apart far from the end: 15 s
+
+[T2] near the end
+PASS  T2. the ring shows the last minute
+PASS  T2. at zero on the page's clock: "Finishing match"
+PASS  T2. tone finish, "Time's up: your agent is finishing its last match."
+      read gaps from the first rewritten read: 5, 5, 5, 5 s
+PASS  T2. near the end and finishing, reads every 5 s
+PASS  T2. the rewrite stopped: the server's running allowance is back
+PASS  T2. reads 15 s apart again: 15 s
+
+[T3] the dial by keyboard
+PASS  T3. a radio group, one checked and one tab stop: calculator
+PASS  T3. ArrowRight: the server's style is rusher
+PASS  T3. ArrowRight: checked rusher, focus rusher, tab stop rusher
+PASS  T3. ArrowLeft: the server's style is calculator
+PASS  T3. ArrowLeft: checked calculator, focus calculator, tab stop calculator
+PASS  T3. End: the server's style is gambler
+PASS  T3. End: checked gambler, focus gambler, tab stop gambler
+PASS  T3. Home: the server's style is calculator
+PASS  T3. Home: checked calculator, focus calculator, tab stop calculator
+PASS  T3. Enter on the checked notch changes nothing
+
+[E] the page
+PASS  E. no external requests
+PASS  E. no page errors
+
+25 PASS, 0 FAIL

@@ -4296,6 +4296,13 @@ At the start of every session, before any work: **check for an open PR from your
 ### 3. Render lane: #137 is closed
 Next render session: compare closed PR #137 (its branch is kept and named on the PR) with main. If anything it had is genuinely missing from #136's time ring (for example its faster status reads near the end of the allowance), carry it over in that session; otherwise nothing to do. Then continue the 2026-11-06 order (pack ceremony part 2).
 
+**Item 3, render lane: HANDLED 2026-11-09, render session 59 (the hardening pass).** Closed #137's branch compared
+with main: everything it built is in main through #136 (the adapter, the time buttons and their handler, the
+`timeUp` wording), except its faster status reads near the end of the allowance. Carried over as
+`statusPollMs` (`render/src/site/siteAgent.ts`): every 5 s in the last 30 s and while the agent finishes its last
+match, 1.5 s in a rebuild, else 15 s; tested, and seen in the browser (`progress/render/evidence/site-check-s59.txt`:
+5, 5, 5, 5 s near the end, back to 15 s after). Nothing else from #137 was missing.
+
 ---
 
 ## 2026-11-06 — Owner: answers to game sessions 77 (notifications), 76 (the play-time allowance) and 75 (the demo check in CI) (game-lane part HANDLED 2026-11-06, session 78 — S77: all 5 kept, nothing changed; the notification clean-up rule (age or count) is on the launch items in `progress/roadmap.md`, before the public launch. S76: all 5 kept, nothing changed; the label: `GET /api/play`'s `autoPlay.allowance` carries `label` ("Running" / "Finishing match" / "Time's up"); the state value stays `done` so the render's ring keeps working until it takes the new words; `server/OWNER_API.md` says "Time's up". S75: the step "demo drift check (fast demos)" (`npm run demos`) added to `.github/workflows/test.yml`, nothing else in it changed; the CI run time is on this session's PR. Then the Stats page's data, as ordered)
@@ -4424,6 +4431,10 @@ Next game session: season end part 2 on these answers, proved on `season-end-001
 
 **Midpoint check (~22 November) stands:** the render lane's note must count the sessions lost here when it says whether it is on track.
 
+**Render lane: in hand, 2026-11-09, render session 59:** chose the render lane by step 0 (the last merged PR, #143,
+was game; catch-up 1 of 2), did the hardening pass with the #137 comparison, and kept the lane line in
+`progress/current.md`.
+
 ---
 
 ## 2026-11-08 — Owner: the render lane keeps the Season 0 checklist current (render lane)
@@ -4434,8 +4445,14 @@ The render lane wrote its progress only into `progress/render/log.md`, so every 
 2. **Now explicit on the render list, part of the locked scope:** the Ladder, Rating & form and Notifications widgets still say "waiting on the server" though the game lane serves all three (sessions 66, 78, 77). So do the Stats page and the notifications bell. They are on the list after the widget pass; build them on the real data.
 3. The 22 November midpoint check reads this checklist, so it must be current by then.
 
+**Render lane: HANDLED from render session 59 (2026-11-09):** the session ticked its item on the checklist and
+will every session; the widgets on real data, the Stats page and the bell are on the list as written.
+
 ---
 
 ## 2026-11-08 — Owner: unopened packs at season end (confirms the 2026-11-07 answer 3)
 
 **Unopened packs are lost when the season ends.** The website warns the owner beforehand that any packs not opened by the end of the season will be lost for good (the warning says so plainly, with the count of unopened packs). Packs still unopened when the season ends are not carried over, refunded or opened automatically. Build it this way: game lane in season end part 2; the warning in the render lane.
+
+**Render lane: queued 2026-11-09 (render session 59):** the warning is now its own item on the render list in
+`progress/roadmap.md` (item 7, after the Stats page), so it isn't lost; not built yet.

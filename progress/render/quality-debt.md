@@ -22,16 +22,18 @@ items are removed, with the fix in `log.md`.
   so the brief's 60 fps bar is unproven); the rip sound was checked by its level (the scrub voice's gain), not by
   ear; the under-promise rate (23.5% of 469 packs above plain over 1,000 real openings) means a Foil pack shows the
   plain backdrop about a quarter of the time, which may read as "no tell" rather than "a tell that lied low".
-- **Agent controls' time ring now runs on the server's allowance (session 58)**, tested over the real API (15
-  minutes, the drain, +15, time up mid-match "Finishing match", "Done for today", midnight Sydney clean) and in the
-  browser (`site-check-s58.txt`). **Thin:** the ring only updates on the page's 15 s poll (counted down from the
-  window's end on the page's clock at each draw, no per-second tick); a preset pressed while time runs replaces the
-  time left (the server's rule) with no confirm; the "Finishing match" and "Done for today" states were seen in the
-  Node test with the real ladder, not in the browser (the demo's matches take minutes at 4×).
+- **Agent controls' time ring runs on the server's allowance (session 58) and ticks once a second (session 59).**
+  Since 59 the arc, minutes, label and caption are patched in place every second from the last read on the page's
+  clock (the arc to a tenth of a percent; whole percents had stepped a 15-minute ring only every 9 s), and the
+  status read comes every 5 s in the allowance's last 30 s and while the agent finishes (carried over from closed
+  PR #137); both seen in the browser (`site-check-s59.txt`). **Thin:** the 5 s cadence and "Finishing match" were
+  seen in the browser on a rewritten `GET /api/play` (20 s left), not on a real 15-minute run to the end; "Done
+  for today" in the browser only in the Node test; a preset pressed while time runs replaces the time left (the
+  server's rule) with no confirm; the tick runs only on Home (the Agent match page shows on/off, not the ring).
 - **My agent and Agent controls, thin spots (session 57):** the rating trend is drawn from `GET /api/rating`'s last
-  20 rated matches, not the Stats data (game item 2e) the brief names; the dial's notches are buttons in tab order,
-  not a radio group with arrow keys; the dial and deck switcher were only clicked with a mouse in the browser
-  check; at narrow widths (the one-column board) the L layouts stack but were not looked at; the demo's history
+  20 rated matches, not the Stats data (game item 2e) the brief names; the dial is a radio group with arrow keys since
+  session 59 (checked by keyboard in the browser), but an arrow saves at once (a radio group's rule), so arrowing
+  across three styles makes three saves and three toasts; the deck switcher is still mouse-checked only; at narrow widths (the one-column board) the L layouts stack but were not looked at; the demo's history
   is mostly `recordMatch` rows with no replay, so the trend's shape there comes from those made-up results, not
   real play (the numbers are still the server's).
 - **Most by-hand browser checks are never re-run.** Session 54 (a hardening pass) brought the stale ten-pack
@@ -39,7 +41,11 @@ items are removed, with the fix in `log.md`.
   ones break the same way: written against the page as it was that session, and against one machine's
   Chromium path. Session 38's boot check still expects the 2.6 s intro (render 53 made it 3.4 s), and other
   pre-41 checks (`boast-check-s3x`, `hardening-check-s40`, `feed-check`, `pack-*-check`) were not re-run
-  this pass: assume any of them may be stale until run. Only `render/ci/browser-check.mjs` runs on every PR.
+  this pass: assume any of them may be stale until run. Only `render/ci/browser-check.mjs` runs on every PR. Session 59 (a hardening pass) fixed and re-ran
+  two more: `site-check-s49.mjs` (it expected five rail slots and counted coins as buyable boasts; 40 passed) and
+  `site-check-s51.mjs` (its frame URL pattern missed `#view=`, twice, and it expected face-down live hands, which
+  session 54 made whole; 28 passed). Each took 5-10 minutes in software WebGL; still not re-run: s38's boot check,
+  `boast-check-s3x`, `hardening-check-s40`, `feed-check`, the `pack-*-check`s, s45's liquid check.
 - **The liquid slows under a full board (measured, unresolved):** with the widget board's nine glass
   tiles the liquid draws 16 fps in software WebGL at its lowest resolution (25 with two panels); the
   tiles' `backdrop-filter` is the whole cost. Session 45's check fails its 20 fps bar on this branch
@@ -72,9 +78,6 @@ items are removed, with the fix in `log.md`.
   2× control either, only "Go to match"; the vote wording ("Agree to 2×", "Back to 1×") was picked by this lane (a check-in
   call); a house account sees no Settings switch (its setting is ignored by the server). The control's state is the
   last `GET /api/live` read (every 3 s), so the other owner's ask can take up to 3 s to show.
-- **Session 51's browser check can no longer find its live frame (found session 56):** it looks for a frame URL
-  ending in the page key, and since session 52 the arena's URL carries `#view=…`. `site-check-s56.mjs` matches
-  either; `site-check-s51.mjs` is left stale (re-run it with the same one-line fix in the next hardening pass).
 - **The boast is slow in software WebGL (measured session 56):** in the headless check a ~3 s boast took 33-35 s
   to give way to GAME OVER on the live arena (three runs). The order is right (boast, then the result); the time is
   the canvas in software rendering (session 51's stills of the boast timed out the same way). Never measured on a
@@ -108,9 +111,8 @@ items are removed, with the fix in `log.md`.
   rebuilds them automatically, so they go stale whenever a session forgets.
 - **The loadout picker's coin preview is its own small player, not Match Boot:** it reuses `coinDraw`,
   `coinFlight` and the flight's length, but the dimmed board, the result line's type and the landing ring
-  are drawn by the picker (`COINPV`), so a later change to Match Boot's landing has to be made twice. The
-  site-check of session 49 (`site-check-s49.mjs`) still expects five rail slots, so it is stale (the coin is
-  the sixth); `coin-check-s55.mjs` covers the site's picker with six.
+  are drawn by the picker (`COINPV`), so a later change to Match Boot's landing has to be made twice. `site-check-s49.mjs` was
+  brought up to six slots in session 59 and passes.
 - **Live hands are rebuilt, not sent (session 53):** exact in every tested match (card for card against the
   engine, and over the real API against the recorded replay), but a future engine change that moves a card in
   or out of a hand without a `playCard` move or a `draw` event (a discard, a bounce) would trip the count
