@@ -170,13 +170,17 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
    2026-11-06 owner-feedback entry. Spec: `progress/season0-final-brief.md`.
    - [x] My agent and Agent controls (replaces Live match): S/M/L split, personality dial (57), time ring (58)
    - [x] Pack opening part 1: bigger pack art, gradient backdrop and tells, the tear and burst (58)
-   - [ ] Render hardening pass, session 59 (with the closed-#137 comparison), before part 2
+   - [x] Render hardening pass, session 59 (with the closed-#137 comparison), before part 2: #137's faster status
+     reads near the allowance's end carried over; the ring ticks every second; the dial is a keyboard radio group;
+     stale checks s49 and s51 fixed and re-run
    - [ ] Pack opening part 2: reveal escalation across the reveal kinds, ward flare, procedural sound
    - [ ] Pack opening part 3: Prototype takeover, afterglow, NEW stamps, set bar, Open 10 stops on hits, debug panel
    - [ ] Store layout (Fortnite-style placement, current look) with the Store and Packs widgets
    - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger
      cards), Collection, and Ladder, Rating & form and Notifications on their real data
    - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)
+   - [ ] The season-end warning (owner 2026-11-07 answer 3, confirmed 2026-11-08): before the season ends, the
+     website tells the owner plainly that unopened packs will be lost for good, with the count
    - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause
      widget; last-pulls strip at L; Watch live embedded at L; rating trend at L.
 

@@ -23,9 +23,8 @@ item 3): ending a season. Part 2 (the next season's file) is at an [OWNER CHECK-
 
 **Lane first (TASKS.md step 0; keep this line whenever you rewrite this file):** if the last merged PR's title starts
 with "Render:", this is a game session; otherwise render. **Catch-up (owner 2026-11-08): until two "Render:" PRs have
-merged after #143, every session is render.** Render's next move is in `progress/render/log.md`'s last entry:
-session 59, the render hardening pass (also compare closed PR #137 with main, as the 2026-11-06 owner entry asks),
-then pack ceremony part 2. The game-lane steps below wait for a game session.
+merged after #143, every session is render.** Render session 59 (catch-up 1 of 2) did the hardening pass
+and the #137 comparison; render's next move is in `progress/render/log.md`'s last entry: pack ceremony part 2. The game-lane steps below wait for a game session.
 
 At the start: check for an open PR from your own lane; if one is open, fix it if it has failed checks or conflicts,
 else note it and stop. Check the last merged PR so a slice isn't built twice. Read owner-feedback.md.

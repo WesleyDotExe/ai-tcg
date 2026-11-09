@@ -162,7 +162,7 @@ export function allowanceOf(a: SiteAutoPlay, now: number): TimeAllowance | null 
 }
 
 export interface TimeRingView {
-  /** 0-100: how much of the ring is lit. */
+  /** 0-100, to one decimal: how much of the ring is lit. */
   pct: number;
   /** The ring's centre, short: "42" (with `unit` "min"), "Finishing match". */
   centre: string;
@@ -182,7 +182,9 @@ export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, 
       return { pct: 0, centre: "Finishing match", unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
     const share = allowance.secondsLeft !== undefined ? Math.min(1, allowance.secondsLeft / (total * 60)) : left / total;
     const tail = allowance.endsAtReset ? " · runs to midnight (Sydney)" : "";
-    return { pct: Math.max(1, Math.round(share * 100)), centre: String(left), unit: "min", caption: `${left} min left today${tail}`, tone: share <= 0.2 ? "low" : "run" };
+    // One decimal (render session 59): whole percents stepped a 15-minute ring
+    // only every 9 s, so the once-a-second tick had nothing to draw between.
+    return { pct: Math.max(1, Math.round(share * 1000) / 10), centre: String(left), unit: "min", caption: `${left} min left today${tail}`, tone: share <= 0.2 ? "low" : "run" };
   }
   // No allowance: auto-play as it is today.
   if (!ap.shown) return { pct: 100, centre: "Always", unit: null, caption: "A house agent always plays.", tone: "open" };
@@ -196,15 +198,50 @@ export function timeRingView(allowance: TimeAllowance | null, ap: AutoPlayView, 
 export function ringPortraitHtml(name: string, faction: string | null, v: TimeRingView, size: number): string {
   const c = (faction && FACTION_HEX[faction]) || "#8f8cff";
   const r = size / 2 - 4;
+  const g = ringParts(name, v, size);
+  const inner = size - 22;
+  return `<div class="tring t-${v.tone}" data-size="${size}" style="--c:${c};width:${size}px;height:${size}px" role="img" aria-label="${esc(g.label)}">`
+    + `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle class="tr-bg" cx="${size / 2}" cy="${size / 2}" r="${r.toFixed(1)}"/>`
+    + `<circle class="tr-fg" cx="${size / 2}" cy="${size / 2}" r="${r.toFixed(1)}" stroke-dasharray="${g.dash}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`
+    + `<span class="av" style="--c:${c};width:${inner}px;height:${inner}px">${avatarSvg(name)}</span>`
+    + `<b class="tr-c${g.word ? " word" : ""}">${g.centreHtml}</b></div>`;
+}
+
+/** The parts of the ring that change as the time runs down: the arc's lit
+ * length, the label, the centre. Shared by the drawn ring and the page's
+ * once-a-second tick (render session 59), so the two can never disagree. */
+export function ringParts(name: string, v: TimeRingView, size: number): { dash: string; label: string; centreHtml: string; word: boolean; tone: string } {
+  const r = size / 2 - 4;
   const circ = 2 * Math.PI * r;
   const lit = (circ * v.pct) / 100;
-  const inner = size - 22;
-  const label = v.unit ? `${v.centre} ${v.unit} left` : v.centre;
-  return `<div class="tring t-${v.tone}" style="--c:${c};width:${size}px;height:${size}px" role="img" aria-label="${esc(`${name}: ${label}`)}">`
-    + `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle class="tr-bg" cx="${size / 2}" cy="${size / 2}" r="${r.toFixed(1)}"/>`
-    + `<circle class="tr-fg" cx="${size / 2}" cy="${size / 2}" r="${r.toFixed(1)}" stroke-dasharray="${lit.toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`
-    + `<span class="av" style="--c:${c};width:${inner}px;height:${inner}px">${avatarSvg(name)}</span>`
-    + `<b class="tr-c${v.unit ? "" : " word"}">${esc(v.centre)}${v.unit ? `<small>${esc(v.unit)}</small>` : ""}</b></div>`;
+  const label = `${name}: ${v.unit ? `${v.centre} ${v.unit} left` : v.centre}`;
+  return { dash: `${lit.toFixed(1)} ${circ.toFixed(1)}`, label, centreHtml: `${esc(v.centre)}${v.unit ? `<small>${esc(v.unit)}</small>` : ""}`, word: !v.unit, tone: v.tone };
+}
+
+/** Agent controls' ring from `GET /api/play` alone at the page's clock: what
+ * the widget draws, and what the once-a-second tick redraws in place. */
+export function ringOfPlay(p: SitePlay, now: number): TimeRingView {
+  return timeRingView(allowanceOf(p.autoPlay, now), autoPlayView(p.autoPlay, !!p.connectedAgent), !!p.liveMatch);
+}
+
+/** Whether the ring needs the once-a-second tick: only while time runs
+ * down (a number of minutes on the page's clock). Finishing, done, no limit
+ * and off change only on the server's word, at its next read. */
+export function ringTicks(p: SitePlay | null): boolean {
+  return !!p?.connectedAgent && p.autoPlay.allowance?.state === "running";
+}
+
+/** How long until the page reads the agent's status again (carried over
+ * from closed PR #137 in render session 59): 1.5 s while a rebuild runs;
+ * 5 s while the agent finishes its last match or in the last 30 s of its
+ * time, so "Finishing match" and "Done for today" are the server's word
+ * within seconds; else 15 s. */
+export function statusPollMs(p: SitePlay | null, now: number): number {
+  if (!p) return 15000;
+  if (p.rebuild.job?.state === "running") return 1500;
+  const a = allowanceOf(p.autoPlay, now);
+  if (a && (a.state === "finishing" || (a.state === "running" && a.secondsLeft !== undefined && a.secondsLeft < 30))) return 5000;
+  return 15000;
 }
 
 // ---- the personality dial ------------------------------------------------------
@@ -252,11 +289,29 @@ export function dialHtml(v: DialView, opts: { busy?: boolean; size?: number; sum
       const rad = (s.angle * Math.PI) / 180;
       const x = size / 2 + r * Math.sin(rad);
       const y = size / 2 - r * Math.cos(rad);
-      return `<button type="button" class="dn-stop${s.on ? " on" : ""}" style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px" data-act="play-style" data-agent="${esc(v.agentId)}" data-style="${esc(s.id)}" aria-pressed="${s.on}" aria-label="${esc(`${s.name} play style`)}" title="${esc(s.summary ? `${s.name}: ${s.summary}` : s.name)}"${opts.busy ? " disabled" : ""}></button>`;
+      return `<button type="button" class="dn-stop${s.on ? " on" : ""}" style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px" data-act="play-style" data-agent="${esc(v.agentId)}" data-style="${esc(s.id)}" role="radio" aria-checked="${s.on}" tabindex="${s.id === v.current.id ? 0 : -1}" aria-label="${esc(`${s.name} play style`)}" title="${esc(s.summary ? `${s.name}: ${s.summary}` : s.name)}"${opts.busy ? " disabled" : ""}></button>`;
     })
     .join("");
-  return `<div class="dial"><div class="dn-knob" style="width:${size}px;height:${size}px" role="group" aria-label="Personality dial">${notches}<span class="dn-face" aria-hidden="true"><i style="transform:rotate(${v.angle}deg)"></i></span></div>`
+  return `<div class="dial"><div class="dn-knob" style="width:${size}px;height:${size}px" role="radiogroup" aria-label="Personality dial">${notches}<span class="dn-face" aria-hidden="true"><i style="transform:rotate(${v.angle}deg)"></i></span></div>`
     + `<div class="dn-txt"><span class="muted small">Personality</span><b>${esc(v.current.name)}</b>${v.current.summary && opts.summary !== false ? `<span class="small">${esc(v.current.summary)}</span>` : ""}<span class="muted small">${esc(v.note)}</span></div></div>`;
+}
+
+/** The dial's arrow keys (render session 59: the notches are a radio
+ * group, one tab stop, as a screen reader and a keyboard expect). Right and
+ * Down go clockwise, Left and Up back, wrapping; Home and End go to the first
+ * and last style. The style it lands on is chosen (a radio group's rule), so
+ * the change applies from the next match like a click. Null: not a dial key,
+ * or nowhere to move. */
+export function dialKeyTarget(styleIds: readonly string[], current: string, key: string): string | null {
+  const n = styleIds.length;
+  if (n < 2) return null;
+  const i = Math.max(0, styleIds.indexOf(current));
+  const j = key === "ArrowRight" || key === "ArrowDown" ? (i + 1) % n
+    : key === "ArrowLeft" || key === "ArrowUp" ? (i - 1 + n) % n
+      : key === "Home" ? 0
+        : key === "End" ? n - 1
+          : -1;
+  return j < 0 || j === i ? null : (styleIds[j] ?? null);
 }
 
 // ---- the deck switcher ------------------------------------------------------------
@@ -433,7 +488,7 @@ export function agentControlsHtml(size: "S" | "M" | "L", d: AgentWidgetData): st
   const ring = timeRingView(d.allowance, ap, inMatch);
   // "Go to match" sits beside Start / Stop from M up (S has no room).
   const go = inMatch ? `<a class="btn pri sm" href="#/match">Go to match</a>` : "";
-  const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? "" : `<span class="small">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
+  const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? "" : `<span class="small ac-cap">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
   if (size === "S") return top;
   const mine = myLiveMatch(d.live);
   const liveStyle = mine ? (mine.p1.agentId === a.agentId ? mine.p1.playStyle : mine.p2.agentId === a.agentId ? mine.p2.playStyle : null) : null;

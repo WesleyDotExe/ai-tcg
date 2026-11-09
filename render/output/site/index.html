@@ -6192,7 +6192,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
         return { pct: 0, centre: "Finishing match", unit: null, caption: inMatch ? "Time's up: your agent is finishing its last match." : "Time's up: no new match starts today.", tone: "finish" };
       const share = allowance.secondsLeft !== void 0 ? Math.min(1, allowance.secondsLeft / (total * 60)) : left / total;
       const tail = allowance.endsAtReset ? " \xB7 runs to midnight (Sydney)" : "";
-      return { pct: Math.max(1, Math.round(share * 100)), centre: String(left), unit: "min", caption: `${left} min left today${tail}`, tone: share <= 0.2 ? "low" : "run" };
+      return { pct: Math.max(1, Math.round(share * 1e3) / 10), centre: String(left), unit: "min", caption: `${left} min left today${tail}`, tone: share <= 0.2 ? "low" : "run" };
     }
     if (!ap.shown) return { pct: 100, centre: "Always", unit: null, caption: "A house agent always plays.", tone: "open" };
     if (ap.on) return { pct: 100, centre: "On", unit: null, caption: inMatch ? "Playing \xB7 no time limit set" : "Auto-play on \xB7 no time limit set", tone: "open" };
@@ -6201,11 +6201,31 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   function ringPortraitHtml(name, faction, v, size) {
     const c = faction && FACTION_HEX[faction] || "#8f8cff";
     const r = size / 2 - 4;
+    const g = ringParts(name, v, size);
+    const inner = size - 22;
+    return `<div class="tring t-${v.tone}" data-size="${size}" style="--c:${c};width:${size}px;height:${size}px" role="img" aria-label="${esc(g.label)}"><svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle class="tr-bg" cx="${size / 2}" cy="${size / 2}" r="${r.toFixed(1)}"/><circle class="tr-fg" cx="${size / 2}" cy="${size / 2}" r="${r.toFixed(1)}" stroke-dasharray="${g.dash}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg><span class="av" style="--c:${c};width:${inner}px;height:${inner}px">${avatarSvg(name)}</span><b class="tr-c${g.word ? " word" : ""}">${g.centreHtml}</b></div>`;
+  }
+  function ringParts(name, v, size) {
+    const r = size / 2 - 4;
     const circ = 2 * Math.PI * r;
     const lit = circ * v.pct / 100;
-    const inner = size - 22;
-    const label = v.unit ? `${v.centre} ${v.unit} left` : v.centre;
-    return `<div class="tring t-${v.tone}" style="--c:${c};width:${size}px;height:${size}px" role="img" aria-label="${esc(`${name}: ${label}`)}"><svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-hidden="true"><circle class="tr-bg" cx="${size / 2}" cy="${size / 2}" r="${r.toFixed(1)}"/><circle class="tr-fg" cx="${size / 2}" cy="${size / 2}" r="${r.toFixed(1)}" stroke-dasharray="${lit.toFixed(1)} ${circ.toFixed(1)}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg><span class="av" style="--c:${c};width:${inner}px;height:${inner}px">${avatarSvg(name)}</span><b class="tr-c${v.unit ? "" : " word"}">${esc(v.centre)}${v.unit ? `<small>${esc(v.unit)}</small>` : ""}</b></div>`;
+    const label = `${name}: ${v.unit ? `${v.centre} ${v.unit} left` : v.centre}`;
+    return { dash: `${lit.toFixed(1)} ${circ.toFixed(1)}`, label, centreHtml: `${esc(v.centre)}${v.unit ? `<small>${esc(v.unit)}</small>` : ""}`, word: !v.unit, tone: v.tone };
+  }
+  function ringOfPlay(p, now) {
+    return timeRingView(allowanceOf(p.autoPlay, now), autoPlayView(p.autoPlay, !!p.connectedAgent), !!p.liveMatch);
+  }
+  function ringTicks(p) {
+    var _a3;
+    return !!(p == null ? void 0 : p.connectedAgent) && ((_a3 = p.autoPlay.allowance) == null ? void 0 : _a3.state) === "running";
+  }
+  function statusPollMs(p, now) {
+    var _a3;
+    if (!p) return 15e3;
+    if (((_a3 = p.rebuild.job) == null ? void 0 : _a3.state) === "running") return 1500;
+    const a = allowanceOf(p.autoPlay, now);
+    if (a && (a.state === "finishing" || a.state === "running" && a.secondsLeft !== void 0 && a.secondsLeft < 30)) return 5e3;
+    return 15e3;
   }
   function dialView(p, liveStyle) {
     var _a3;
@@ -6225,9 +6245,17 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
       const rad = s.angle * Math.PI / 180;
       const x = size / 2 + r * Math.sin(rad);
       const y = size / 2 - r * Math.cos(rad);
-      return `<button type="button" class="dn-stop${s.on ? " on" : ""}" style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px" data-act="play-style" data-agent="${esc(v.agentId)}" data-style="${esc(s.id)}" aria-pressed="${s.on}" aria-label="${esc(`${s.name} play style`)}" title="${esc(s.summary ? `${s.name}: ${s.summary}` : s.name)}"${opts.busy ? " disabled" : ""}></button>`;
+      return `<button type="button" class="dn-stop${s.on ? " on" : ""}" style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px" data-act="play-style" data-agent="${esc(v.agentId)}" data-style="${esc(s.id)}" role="radio" aria-checked="${s.on}" tabindex="${s.id === v.current.id ? 0 : -1}" aria-label="${esc(`${s.name} play style`)}" title="${esc(s.summary ? `${s.name}: ${s.summary}` : s.name)}"${opts.busy ? " disabled" : ""}></button>`;
     }).join("");
-    return `<div class="dial"><div class="dn-knob" style="width:${size}px;height:${size}px" role="group" aria-label="Personality dial">${notches}<span class="dn-face" aria-hidden="true"><i style="transform:rotate(${v.angle}deg)"></i></span></div><div class="dn-txt"><span class="muted small">Personality</span><b>${esc(v.current.name)}</b>${v.current.summary && opts.summary !== false ? `<span class="small">${esc(v.current.summary)}</span>` : ""}<span class="muted small">${esc(v.note)}</span></div></div>`;
+    return `<div class="dial"><div class="dn-knob" style="width:${size}px;height:${size}px" role="radiogroup" aria-label="Personality dial">${notches}<span class="dn-face" aria-hidden="true"><i style="transform:rotate(${v.angle}deg)"></i></span></div><div class="dn-txt"><span class="muted small">Personality</span><b>${esc(v.current.name)}</b>${v.current.summary && opts.summary !== false ? `<span class="small">${esc(v.current.summary)}</span>` : ""}<span class="muted small">${esc(v.note)}</span></div></div>`;
+  }
+  function dialKeyTarget(styleIds, current, key) {
+    var _a3;
+    const n = styleIds.length;
+    if (n < 2) return null;
+    const i = Math.max(0, styleIds.indexOf(current));
+    const j = key === "ArrowRight" || key === "ArrowDown" ? (i + 1) % n : key === "ArrowLeft" || key === "ArrowUp" ? (i - 1 + n) % n : key === "Home" ? 0 : key === "End" ? n - 1 : -1;
+    return j < 0 || j === i ? null : (_a3 = styleIds[j]) != null ? _a3 : null;
   }
   function deckOptions(p) {
     var _a3, _b, _c;
@@ -6325,7 +6353,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const inMatch = !!p.liveMatch;
     const ring = timeRingView(d.allowance, ap, inMatch);
     const go = inMatch ? `<a class="btn pri sm" href="#/match">Go to match</a>` : "";
-    const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? "" : `<span class="small">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
+    const top = `<div class="ac-top">${ringPortraitHtml(a.name, fac, ring, size === "S" ? 76 : 88)}<div class="wcol"><b class="ac-n">${esc(a.name)}</b>${statusPill(p)}${size === "S" ? "" : `<span class="small ac-cap">${esc(ring.caption)}</span>`}<div class="row">${startStop(ap, !!d.busy)}${size === "S" ? "" : go}</div></div></div>`;
     if (size === "S") return top;
     const mine = myLiveMatch(d.live);
     const liveStyle = mine ? mine.p1.agentId === a.agentId ? mine.p1.playStyle : mine.p2.agentId === a.agentId ? mine.p2.playStyle : null : null;
@@ -6895,6 +6923,7 @@ gl_FragColor=vec4(col,1.);}`;
     const set = {
       code: "S0",
       name: "Season Zero",
+      season: "S0",
       symbol: "S0-boot",
       cards: cards.map((c, i) => ({
         cardId: c.id,
@@ -8357,12 +8386,35 @@ gl_FragColor=vec4(col,1.);}`;
     }
   }
   function schedulePoll() {
-    var _a3, _b;
     clearTimeout(state.poll);
     if (!state.session) return;
-    const running = ((_b = (_a3 = state.play) == null ? void 0 : _a3.rebuild.job) == null ? void 0 : _b.state) === "running";
-    state.poll = window.setTimeout(refresh, running ? 1500 : 15e3);
+    state.poll = window.setTimeout(refresh, statusPollMs(state.play, Date.now()));
   }
+  function tickRings() {
+    const p = state.play;
+    if (document.hidden || state.page !== "home" || !ringTicks(p) || !(p == null ? void 0 : p.connectedAgent)) return;
+    const rings = document.querySelectorAll("#wgrid .tring");
+    if (!rings.length) return;
+    const v = ringOfPlay(p, Date.now());
+    const name = p.connectedAgent.name;
+    rings.forEach((el) => {
+      var _a3, _b;
+      const size = Number(el.dataset.size);
+      if (!size) return;
+      const g = ringParts(name, v, size);
+      el.className = `tring t-${g.tone}`;
+      el.setAttribute("aria-label", g.label);
+      (_a3 = el.querySelector(".tr-fg")) == null ? void 0 : _a3.setAttribute("stroke-dasharray", g.dash);
+      const c = el.querySelector(".tr-c");
+      if (c && c.innerHTML !== g.centreHtml) {
+        c.innerHTML = g.centreHtml;
+        c.classList.toggle("word", g.word);
+      }
+      const cap = (_b = el.closest(".wg")) == null ? void 0 : _b.querySelector(".ac-cap");
+      if (cap && cap.textContent !== v.caption) cap.textContent = v.caption;
+    });
+  }
+  window.setInterval(tickRings, 1e3);
   async function refresh() {
     var _a3, _b;
     if (!state.session || document.hidden) return schedulePoll();
@@ -9746,6 +9798,19 @@ gl_FragColor=vec4(col,1.);}`;
       closeReplay();
     }
   });
+  document.addEventListener("keydown", (e) => {
+    var _a3, _b, _c, _d;
+    const stop = (_b = (_a3 = e.target).closest) == null ? void 0 : _b.call(_a3, '[data-act="play-style"]');
+    if (!stop || !state.play || e.altKey || e.ctrlKey || e.metaKey) return;
+    const ids = state.play.playStyles.map((x) => x.id);
+    const next = dialKeyTarget(ids, (_c = stop.dataset.style) != null ? _c : "", e.key);
+    if (!next) return;
+    e.preventDefault();
+    if (state.busy) return;
+    const target = (_d = stop.closest(".dn-knob")) == null ? void 0 : _d.querySelector(`[data-act="play-style"][data-style="${CSS.escape(next)}"]`);
+    target == null ? void 0 : target.focus();
+    target == null ? void 0 : target.click();
+  });
   function savePlay(fn, ok) {
     return act(fn, ok);
   }
@@ -9825,7 +9890,7 @@ gl_FragColor=vec4(col,1.);}`;
       if (act2 === "auto-play") return void setAutoPlay(actEl.dataset.on === "1");
       if (act2 === "play-time" && actEl.dataset.min) return void setAutoPlay(true, { minutes: Number(actEl.dataset.min), add: actEl.dataset.add === "1" });
       if (act2 === "play-style" && actEl.dataset.agent && actEl.dataset.style) {
-        if (actEl.getAttribute("aria-pressed") === "true") return;
+        if (actEl.getAttribute("aria-checked") === "true") return;
         const name = (_e = (_d = (_c = state.play) == null ? void 0 : _c.playStyles.find((x) => x.id === actEl.dataset.style)) == null ? void 0 : _d.name) != null ? _e : actEl.dataset.style;
         return void savePlay((tok) => api.setPlayStyle(tok, actEl.dataset.agent, actEl.dataset.style), `${name} from the next match.`).then(() => focusAct("play-style", "style", actEl.dataset.style));
       }

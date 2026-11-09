@@ -89,7 +89,7 @@ const apiGet = (page, path) => page.evaluate(async (path) => {
   return { status: r.status, body: await r.json() };
 }, path);
 const navTiming = (f) => f.evaluate(() => { const n = performance.getEntriesByType('navigation')[0]; return n ? `request ${Math.round(n.requestStart)} ms, response done ${Math.round(n.responseEnd)} ms, DOM interactive ${Math.round(n.domInteractive)} ms, loaded ${Math.round(n.loadEventEnd)} ms` : '?'; });
-const liveFrame = (page) => page.frames().find((x) => /\/live\/[A-Za-z0-9_-]{24}$/.test(x.url()));
+const liveFrame = (page) => page.frames().find((x) => /\/live\/[A-Za-z0-9_-]{24}(#|$)/.test(x.url()));
 /** What the arena shows now: the move, the badge, both HUDs, the hands. */
 const arenaNow = (frame) => frame.evaluate(() => {
   const m = /move (\d+) \/ (\d+)/.exec(document.getElementById('framecount').textContent) || [];
@@ -130,9 +130,11 @@ let frame = null;
   const s2 = feed.steps[at.at - 1];
   const want2 = (p) => ({ hp: `${Math.max(0, s2.after[p].health)}/${s2.after[p].maxHealth}`, en: `${s2.after[p].energy}/${s2.after[p].maxEnergy}`, backs: s2.after[p].hand, units: s2.after[p].board.length });
   for (const p of ['p1', 'p2']) {
-    const got = { hp: at[p].hp, en: at[p].en, backs: at[p].backs, units: at[p].units };
+    // Session 59 fix: since render session 54 the live hands are whole from move 0
+    // (the feed's openingHands), so the hand is faces, not backs; count both.
+    const got = { hp: at[p].hp, en: at[p].en, backs: at[p].backs + at[p].faces, units: at[p].units };
     check(JSON.stringify(got) === JSON.stringify(want2(p)), `A. ${p} at move ${at.at}: health ${got.hp}, energy ${got.en}, ${got.backs} cards in hand, ${got.units} units: the server's (${JSON.stringify(want2(p))})`);
-    check(at[p].faces === 0, `A. ${p}'s hand: card backs only (${at[p].backs} backs, no faces)`);
+    check(at[p].backs === 0 && at[p].faces === s2.after[p].hand, `A. ${p}'s hand: shown face up, whole (${at[p].faces} faces, ${at[p].backs} backs)`);
   }
   await shot(page, 'joined');
 }
@@ -171,7 +173,7 @@ console.log('\n[C] the match ends on the arena');
   check(end.at === end.of && /GAME OVER/.test(end.turnbar), `C. at the last move (${end.at}), GAME OVER: ${end.turnbar.replace(/.*GAME OVER: /, '')}`);
   const rec = (await apiGet(page, `/api/matches/${matchId}`)).body;
   // What the host handed the page at the end (its own frames endpoint, the same key as the page).
-  const key = /\/live\/([A-Za-z0-9_-]{24})$/.exec(frame.url())[1];
+  const key = /\/live\/([A-Za-z0-9_-]{24})(#|$)/.exec(frame.url())[1];
   const handed = await page.evaluate(async (k) => { const t = JSON.parse(sessionStorage.getItem('aitcg.site.session')).token; return (await fetch(`/live-frames/${k}?from=100000`, { headers: { Authorization: `Bearer ${t}` } })).json(); }, key);
   // The replay of the same match, rebuilt by the host from the server's file.
   const rp = await page.evaluate(async (id) => { const t = JSON.parse(sessionStorage.getItem('aitcg.site.session')).token; return (await fetch(`/replay-page/${id}`, { method: 'POST', headers: { Authorization: `Bearer ${t}` } })).json(); }, matchId);

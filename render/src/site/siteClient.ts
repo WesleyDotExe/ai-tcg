@@ -38,7 +38,7 @@ import { avatarSvg } from "../avatar.js";
 import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
 import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
-import { allowanceOf, type SiteRating } from "./siteAgent.js";
+import { allowanceOf, dialKeyTarget, ringOfPlay, ringParts, ringTicks, statusPollMs, type SiteRating } from "./siteAgent.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
 import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
@@ -498,9 +498,38 @@ async function loadHome(only?: WidgetSource[]): Promise<void> {
 function schedulePoll(): void {
   clearTimeout(state.poll);
   if (!state.session) return;
-  const running = state.play?.rebuild.job?.state === "running";
-  state.poll = window.setTimeout(refresh, running ? 1500 : 15000);
+  state.poll = window.setTimeout(refresh, statusPollMs(state.play, Date.now()));
 }
+
+/** Agent controls' ring, once a second while time runs down (render session
+ * 59): the arc, the minutes, the label and the caption are patched in place
+ * from the last read and the page's clock, so the ring drains smoothly and
+ * nothing the viewer is focused on is redrawn. The server's reads still
+ * decide finishing and done. */
+function tickRings(): void {
+  const p = state.play;
+  if (document.hidden || state.page !== "home" || !ringTicks(p) || !p?.connectedAgent) return;
+  const rings = document.querySelectorAll<HTMLElement>("#wgrid .tring");
+  if (!rings.length) return;
+  const v = ringOfPlay(p, Date.now());
+  const name = p.connectedAgent.name;
+  rings.forEach((el) => {
+    const size = Number(el.dataset.size);
+    if (!size) return;
+    const g = ringParts(name, v, size);
+    el.className = `tring t-${g.tone}`;
+    el.setAttribute("aria-label", g.label);
+    el.querySelector(".tr-fg")?.setAttribute("stroke-dasharray", g.dash);
+    const c = el.querySelector<HTMLElement>(".tr-c");
+    if (c && c.innerHTML !== g.centreHtml) {
+      c.innerHTML = g.centreHtml;
+      c.classList.toggle("word", g.word);
+    }
+    const cap = el.closest(".wg")?.querySelector<HTMLElement>(".ac-cap");
+    if (cap && cap.textContent !== v.caption) cap.textContent = v.caption;
+  });
+}
+window.setInterval(tickRings, 1000);
 async function refresh(): Promise<void> {
   if (!state.session || document.hidden) return schedulePoll();
   try {
@@ -2129,6 +2158,22 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
+// The personality dial's arrow keys (render session 59): the notches are a
+// radio group with one tab stop; an arrow chooses the next style, as a
+// click on it would (saved, applies from the next match).
+document.addEventListener("keydown", (e) => {
+  const stop = (e.target as HTMLElement).closest?.('[data-act="play-style"]') as HTMLElement | null;
+  if (!stop || !state.play || e.altKey || e.ctrlKey || e.metaKey) return;
+  const ids = state.play.playStyles.map((x) => x.id);
+  const next = dialKeyTarget(ids, stop.dataset.style ?? "", e.key);
+  if (!next) return;
+  e.preventDefault();
+  if (state.busy) return;
+  const target = stop.closest(".dn-knob")?.querySelector<HTMLElement>(`[data-act="play-style"][data-style="${CSS.escape(next)}"]`);
+  target?.focus();
+  target?.click();
+});
+
 // ---- actions ----------------------------------------------------------------
 /** `act` under another name, for the click handler (where `act` is the
  * clicked element's data-act). */
@@ -2216,7 +2261,7 @@ document.addEventListener("click", (e) => {
     if (act === "play-time" && actEl.dataset.min) return void setAutoPlay(true, { minutes: Number(actEl.dataset.min), add: actEl.dataset.add === "1" });
     // Render session 57: Agent controls' personality dial and deck switcher.
     if (act === "play-style" && actEl.dataset.agent && actEl.dataset.style) {
-      if (actEl.getAttribute("aria-pressed") === "true") return;
+      if (actEl.getAttribute("aria-checked") === "true") return;
       const name = state.play?.playStyles.find((x) => x.id === actEl.dataset.style)?.name ?? actEl.dataset.style;
       return void savePlay((tok) => api.setPlayStyle(tok, actEl.dataset.agent!, actEl.dataset.style!), `${name} from the next match.`).then(() => focusAct("play-style", "style", actEl.dataset.style!));
     }

@@ -1,0 +1,52 @@
+
+[A] Agent match: Watch on the arena
+PASS  A. a match of Nova's goes live
+PASS  A. the arena opens full screen
+      the first live page: request 2 ms, response done 12 ms, DOM interactive 3865 ms, loaded 3866 ms
+      joined at move 11 of 11; badge "LIVE"
+PASS  A. starts at (or within a few moves of) the newest move released (11 / 11), not from the first
+PASS  A. SPECTATOR LIVE, the badge LIVE
+PASS  A. p1 at move 11: health 20/20, energy 0/3, 5 cards in hand, 2 units: the server's ({"hp":"20/20","en":"0/3","backs":5,"units":2})
+PASS  A. p1's hand: shown face up, whole (5 faces, 0 backs)
+PASS  A. p2 at move 11: health 24/24, energy 0/2, 5 cards in hand, 1 units: the server's ({"hp":"24/24","en":"0/2","backs":5,"units":1})
+PASS  A. p2's hand: shown face up, whole (5 faces, 0 backs)
+
+[B] following the newest move; pause; go live
+PASS  B. paused: the arena stays put, the badge says how far behind
+      badge "LIVE · 6 behind"
+PASS  B. a tap on the badge: back to the newest, LIVE
+PASS  B. new moves come in and play (from move 17)
+PASS  B. it keeps up with the newest at 4x (at most 11 moves behind over 10 s: one 3 s read's worth; it hurries past 3 behind and skips ahead past 12)
+PASS  B. the header's factions follow the board (Vector Halcyon [Swarm]vsStatic Widow [Null]; HUDs Swarm, Null)
+
+[C] the match ends on the arena
+PASS  C. the badge says ENDED once the match is recorded
+PASS  C. at the last move (126), GAME OVER: Static Widow WINS
+PASS  C. the record handed to the arena is the replay's (boast boast-null-void-collapse)
+PASS  C. the arena showed every move of the recorded match (126; the replay file: 126)
+      (the still "ended" timed out three times)
+
+[D] Close
+PASS  D. Close: gone
+      focus after Close: the page (the match ended, its live panel was redrawn)
+PASS  D. no page errors so far
+
+[E] Watch live
+PASS  E. a match is live on Watch live
+PASS  E. every live card has "Watch on the arena" (2)
+      opening Vector Halcyon vs Static Widow at move 0
+      the second live page answered after 31.0 s (204.0s click | 207.5s 201 /live-page/demo-live-013 | 207.5s 200 /live/Ug0Xwz1la6J8mFnLrb42bJzd; attached 238.5s)
+      the second live page: request 3 ms, response done 21 ms, DOM interactive 30281 ms, loaded 30281 ms
+      badge 66x20, frame 1440x1000
+PASS  E. the arena fills the window, the badge on it
+PASS  E. the arena is that match (Vector Halcyon vs Static Widow)
+PASS  E. Escape on the website: gone
+PASS  E. focus back on that card's button (BUTTON watch-arena)
+
+[F] the live page's headers
+PASS  F. /live/<key>: framed by the site only, fetches nothing (the website hands it the moves)
+PASS  no external requests
+PASS  no page errors
+
+28 pass, 0 fail — ALL PASS
+exit 0

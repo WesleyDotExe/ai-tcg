@@ -133,7 +133,7 @@ try {
   let s = await S(page);
   check(s.dress === first.agentId && await page.isVisible('#dress') && !(await page.isVisible('#opening')), `B  Change opens the picker over the website (the frame's page: ${f.url().replace(url, '/')})`);
   const head = await f.evaluate(() => ({ name: document.getElementById('ag-name').textContent, tag: document.getElementById('ag-faction').textContent, tabs: document.getElementById('sc-tabs').hidden, rail: [...document.querySelectorAll('.rail-slot')].map((b) => b.dataset.slot) }));
-  check(head.name === first.name && head.tabs && head.rail.join(',') === 'boast,closeWinBoast,cardBack,avatar,arena', `B  the picker is this agent's: ${head.name}, the five slots, no scenario tabs`);
+  check(head.name === first.name && head.tabs && head.rail.join(',') === 'boast,closeWinBoast,cardBack,avatar,arena,coin', `B  the picker is this agent's: ${head.name}, the six slots (the Coin since session 55; fixed in the session 59 hardening pass), no scenario tabs`);
   check(head.tag === 'No deck built yet', `B  the agent has no deck yet and the page says so ("${head.tag}"), not a guessed faction`);
   const tiles = await f.$$eval('.tile', (ts) => ts.map((t) => ({ key: t.dataset.tile, locked: t.classList.contains('locked'), equipped: t.classList.contains('equipped'), buy: !!t.querySelector('[data-buy]'), equip: !!t.querySelector('[data-equip]') })));
   const store = await apiGet(page, '/api/store');
@@ -142,7 +142,8 @@ try {
   check(tiles.filter((t) => !t.locked && t.key !== '').map((t) => t.key).sort().join() === [...choices].sort().join(), `B  the owned tiles are the server's choices for the slot (${choices.length})`);
   check(tiles.filter((t) => t.locked).map((t) => t.key).sort().join() === [...forSale].sort().join() && tiles.some((t) => t.key === ''), `B  the items on sale the owner lacks are locked tiles (${forSale.length}), plus the empty tile`);
   const credits = store.wallet.credits;
-  const buyable = store.cosmetics.filter((c) => !c.owned && c.priceCredits <= credits).length;
+  // Boasts only (session 59 fix: coins have been on sale since session 55, and the boast slot's tiles are boasts).
+  const buyable = store.cosmetics.filter((c) => c.kind === 'boast' && !c.owned && c.priceCredits <= credits).length;
   check(tiles.filter((t) => t.buy).length === buyable, `B  a locked tile has Buy when the owner can pay (${buyable} buyable on ${credits} credits)`);
   check(tiles.find((t) => t.key === lo1.loadout.boast)?.equipped, `B  the equipped tile is the server's (${names[lo1.loadout.boast]})`);
   await until(async () => ((await L(page)).stats.previews > 0));
@@ -175,7 +176,7 @@ try {
 
   // E. Buy from inside the picker: the website's confirm above it, then Equip.
   await railSlot(f, 'boast');
-  const want = store.cosmetics.find((c) => !c.owned && c.priceCredits <= credits);
+  const want = store.cosmetics.find((c) => c.kind === 'boast' && !c.owned && c.priceCredits <= credits);
   await f.click(`[data-buy="${want.itemId}"]`);
   await page.waitForSelector('#dialog.on .dlg');
   const dlg = await page.textContent('#dialog .dlg');
