@@ -4518,3 +4518,10 @@ Next session by alternation: render (the pack opening ceremony, part 3).
 - This replaces the "Still reset as built" line in the 2026-11-10 entry above (session 83's calls) and the matching part of the 2026-11-07 answer 2. It also replaces small call 4 (the daily pack bank fills from the season's start): the bank keeps filling as before.
 - **Still as decided:** the soft rating reset (2026-11-07 answer 4) and placement, the final standings frozen in the ended season's archive, the tier coins, the starter grant for new owners only, and the shop selling the newest set.
 - **Game lane:** build this with the rest of the next-season changes above: after the Season 0 launch (5 December) and before Season 0 ends (about mid-January 2027). No change to Season 0 itself. Update ECONOMY.md to match when it is built.
+
+---
+
+## 2026-11-10 — Owner: the newcomer gap is accepted; a marketplace later (not specced)
+
+- **Accepted:** with cards, packs, decks and credits carrying over, new owners start behind veterans and miss earlier seasons' cards. That is how it is meant to work.
+- **Later, not specced yet:** a marketplace where owners can complete their collections, including cards from earlier seasons. Add it to `progress/season-1-ideas.md`. It is not Season 0 work and nothing should be built for it now.
