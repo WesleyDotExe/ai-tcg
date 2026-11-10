@@ -190,3 +190,47 @@ describe("the season's end: the owner API", () => {
     expect(done.body.standings).toHaveLength(4);
   });
 });
+
+describe("the next season's file over HTTP (v27)", () => {
+  it("the archive refuses packs over the API; the new file's GET /api/season names where it came from and the caller's seed", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "season-next-"));
+    dirs.push(dir);
+    const clock = { t: Date.parse("2026-12-13T22:00:00.000Z") };
+    const now = () => new Date(clock.t);
+    const s0Path = join(dir, "s0.db");
+    const s0 = EconomyStore.open(s0Path, { now });
+    const [a, b] = ["Cortex", "Swarm"].map((f, i) => {
+      const acct = s0.createAccount({ name: `Owner ${i}`, username: `owner${i}`, password: PW, isAdmin: i === 0 });
+      const { copies } = s0.grantStarterCollection(acct.ownerId, f as DeckFaction);
+      const agent = s0.createAgent({ ownerId: acct.ownerId, name: `Agent ${i}` });
+      s0.connectAgent(acct.ownerId, agent.agentId);
+      s0.setActiveDeck(acct.ownerId, s0.saveDeck(acct.ownerId, "starter", copies.map((c) => c.copyId)).deckId);
+      return { ownerId: acct.ownerId, agentId: agent.agentId };
+    });
+    s0.recordMatch({ matchId: "m1", seed: 1, p1AgentId: a!.agentId, p2AgentId: b!.agentId, outcome: { kind: "win", winnerAgentId: a!.agentId } });
+    s0.unsafeExec(`INSERT INTO ledger (owner_id, currency, delta, reason, created_at) VALUES ('${a!.ownerId}', 'credits', 1000, 'testGrant', '2026-12-13T22:00:00.000Z')`);
+    const old = await api(s0);
+    const t0 = await old.signIn("owner0");
+    expect((await old.call("POST", "/api/admin/season/end", { token: t0, body: { season: "S0" } })).status).toBe(200);
+    const buy = await old.call("POST", "/api/packs/buy", { token: t0, body: { setCode: "S0", count: 1 } });
+    expect(buy.status).toBeGreaterThanOrEqual(400);
+    expect(buy.body.error).toMatch(/season S0 has ended: no pack is bought/);
+    expect((await old.call("GET", "/api/season", { token: t0 })).body).toMatchObject({ state: "ended", startedFrom: null, yourSeed: null });
+    const final = s0.seasonEnd()!.standings.find((r) => r.ownerId === a!.ownerId)!;
+    s0.close();
+
+    clock.t = Date.parse("2027-01-17T23:00:00.000Z");
+    EconomyStore.startNextSeason(s0Path, join(dir, "s1.db"), { season: "S1", now });
+    const s1 = EconomyStore.open(join(dir, "s1.db"), { now });
+    const next = await api(s1);
+    const t1 = await next.signIn("owner0");
+    const view = (await next.call("GET", "/api/season", { token: t1 })).body;
+    expect(view).toMatchObject({ season: "S1", state: "open", endedAt: null, standings: null });
+    expect(view.startedFrom).toEqual({ season: "S1", fromSeason: "S0", fromEndedAt: "2026-12-13T22:00:00.000Z", startedAt: "2027-01-17T23:00:00.000Z" });
+    expect(view.yourSeed).toMatchObject({ rating: 1500 + (final.rating - 1500) / 2, rd: 250, finalRating: final.rating, finalTier: final.tier });
+    expect((await next.call("GET", "/api/wallet", { token: t1 })).body).toMatchObject({ credits: 0, packPoints: 0 });
+    expect((await next.call("GET", "/api/me", { token: t1 })).body.isAdmin).toBe(true);
+    for (const api of running.splice(0)) await api.close();
+    s1.close();
+  });
+});

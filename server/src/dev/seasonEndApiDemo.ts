@@ -11,15 +11,20 @@
 //      shown matches finish and count; no new round starts; the season ends.
 //   5. GET /api/season after: the final standings, each owner's tier coins,
 //      the 15 retired Prototype runs with what each found.
-//   6. After the end: hours of ladder pair nobody; a pack whose seed rolled
-//      a Prototype before rolls a Gold now; ratings don't move; a second
-//      POST is refused; the end is kept on disk.
+//   6. After the end: hours of ladder pair nobody; (v27) the file is
+//      frozen, so no pack is granted or opened (the seed that rolled a
+//      Prototype rolls a Gold in the next season's file:
+//      progress/season-next-001.txt); ratings don't move; a second POST is
+//      refused; the end is kept on disk.
+//
+// With SEASON_END_DEMO_KEEP=<path> the ended file is copied there at the
+// end (the next-season demo builds on it).
 //
 //   npx tsx src/dev/seasonEndApiDemo.ts > ../progress/season-end-001.txt
 //
 // Ids are match numbers and names, so the output is the same every run.
 
-import { mkdtempSync, rmSync } from "node:fs";
+import { copyFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { type DeckFaction } from "@ai-tcg/engine";
@@ -49,7 +54,7 @@ try {
   say("=".repeat(72));
   say("ECONOMY.md: each season is its own file, kept as the season's archive; Prototypes never pulled are");
   say("retired at season end, forever; the tier coins are granted when the season ends, first (roadmap item 3).");
-  say("Not in this part: the Season 1 file (what carries over, the ratings' soft reset): an owner check-in.");
+  say("The Season 1 file made from this one (part 2, session 83): progress/season-next-001.txt.");
 
   const clock = { t: Date.parse("2026-12-13T23:00:00.000Z") }; // 10:00 Mon 14 Dec in Sydney
   const path = join(dir, "season-0.db");
@@ -196,10 +201,19 @@ try {
   await tick(3 * 3600);
   say(`  three more hours of ladder: ${store.matchHistory().length - recordedAtEnd} matches, ${live.showing().length} shown, auto-play still on for Ada: ${store.autoPlay(adaId).on}`);
   check("no round pairs anyone after the end, and no rating moved", store.matchHistory().length === recordedAtEnd && store.liveMatches().length === 0 && ratingsNow() === ratingsBefore);
-  store.grantPack(adaId, "S0", "weeklyChallenge");
-  const gold = store.openPack(adaId, undefined, { seed: protoSeed }).cards[5]!;
-  say(`  Ada opens a pack with the same seed ${protoSeed}: bonus card ${gold.cardId}, ${gold.finish} (the runs are retired)`);
-  check("the Prototype bonus is a Gold now", gold.finish === "gold" && gold.prototype === null);
+  const refusedWith = (fn: () => unknown) => {
+    try {
+      fn();
+      return "";
+    } catch (err) {
+      return (err as Error).message;
+    }
+  };
+  const noGrant = refusedWith(() => store.grantPack(adaId, "S0", "weeklyChallenge"));
+  const noOpen = refusedWith(() => store.openPack(adaId, undefined, { seed: protoSeed }));
+  say(`  a pack for Ada: ${noGrant}`);
+  say(`  Ada opens a pack (seed ${protoSeed}): ${noOpen}`);
+  check("(v27) the ended file is frozen: no pack is granted or opened", /no pack is granted/.test(noGrant) && /no pack is opened|no unopened pack/.test(noOpen));
   const again = await call("POST", "/api/admin/season/end", { token: tHub, body: { season: "S0" } });
   say(`  Hub asks again: ${again.status} ${again.body.error}`);
   let refusal = "";
@@ -217,9 +231,10 @@ try {
   say(`  reopened the file: season ${kept?.season} ended ${kept?.endedAt}, ${kept?.standings.length} standings, ${kept?.retiredPrototypes.length} retired runs`);
   check("the end is kept on disk", kept !== null && kept.endedAt === end.endedAt && JSON.stringify(kept) === JSON.stringify(end));
   reopened.close();
+  if (process.env.SEASON_END_DEMO_KEEP) copyFileSync(path, process.env.SEASON_END_DEMO_KEEP);
 
   say();
-  say(`Schema v26. ${checks.filter(([, ok]) => ok).length} PASS, ${checks.filter(([, ok]) => !ok).length} FAIL.`);
+  say(`Schema v${EconomyStore.open(":memory:").schemaVersion}. ${checks.filter(([, ok]) => ok).length} PASS, ${checks.filter(([, ok]) => !ok).length} FAIL.`);
   if (checks.some(([, ok]) => !ok)) process.exitCode = 1;
 } finally {
   for (const a of apis) await a.close();

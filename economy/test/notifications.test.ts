@@ -357,7 +357,7 @@ describe("notifications: the schema", () => {
     expect(() => v22.markNotificationsRead(a.ownerId, "all")).toThrow(/notifications need schema v23/);
     v22.close();
     const v23 = open(path);
-    expect(v23.schemaVersion).toBe(26);
+    expect(v23.schemaVersion).toBe(27);
     expect(v23.accountSettings(a.ownerId)).toMatchObject({ theme: "dark", notifications: { bigPulls: true, matchResults: true, dailyPack: true } });
     // The match before the migration isn't told; today's daily pack is (it waits now).
     expect(kinds(feed(v23, a.ownerId))).toEqual(["dailyPack"]);

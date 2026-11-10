@@ -261,17 +261,47 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 83 (the season's end, part 2: the next season's file; schema v27): what is still thin
+
+- **Switching to the new season needs a restart.** `startNextSeason` is a store call and a CLI
+  (`npm run season:next`); the running server keeps its file. The admin stops `npm run season`, runs the CLI, and
+  starts it on the new file. No endpoint, no website button, no "next season" step after `POST
+  /api/admin/season/end`. Fine in-house; a one-command flow (end, drain, make, restart) would be safer.
+- **No Prototype can be found in Season 1 until a Season 1 set exists.** S1 sells the newest set (S0), and every
+  S0 run is retired, so the pack's 1-in-1,000 Prototype slot is always the fallback Gold. Correct by the rules
+  ("retired forever"), but nobody has decided it. Flagged in notes-for-owner.md.
+- **Season 1 has no tier coins** in the catalogue, so ending Season 1 grants none (unchanged from session 69's
+  note; it waits for Season 1's catalogue).
+- **The demo's archive has no generated agents.** season-end-001 makes agents plainly (no signature card), so
+  `season-next-001` shows 0 signature copies carried; the carry of a generated agent's card and bound copy is
+  proved only in `economy/test/nextSeason.test.ts`.
+- **Sessions carry.** A signed-in owner stays signed in across the switch (until the session expires, 30 days
+  from sign-in). In the demo every session had expired by then (0 carried). A call in notes-for-owner.md.
+- **Auto-play starts off** in the new file (it isn't on the "carries" list, and its allowance window belongs to
+  the old season's days). Player owners must switch it on again; house agents play regardless. A call.
+- **A seed doesn't age.** An owner's seed keeps RD 250 until its first rated match however long it waits; the
+  `idle` RD growth starts only from a stored rating. Owners with no rated match last season start at 1500 / RD 350.
+- **The archive still allows non-economy writes:** saving decks, free renames, settings, the board and generating
+  an agent (its signature copy is the one copy the schema still allows). None of them reach the new file once it
+  is made; an agent made in the archive after the new file is made is simply not in the new season.
+- **No "a new season has started" notification** (the notification kinds are a fixed list; the website can read
+  `GET /api/season`'s `startedFrom`).
+- **Integrity of the read:** the ended file is attached read-only (`mode=ro`) and the demo checks its bytes are
+  unchanged, but `startNextSeason` first opens it through `EconomyStore.open`, which would migrate an older
+  archive (v26 -> v27) in place. That is a schema write to the archive (no row changes); a pure read-only path
+  would need the migration to run on a copy.
+
 ## Session 82 (the season's end, part 1: tier coins, final standings, retired Prototype runs; schema v26): what is still thin
 
-- **Only half of season end exists.** A season can end, and its file becomes a sealed archive. There is no next
+- ~~**Only half of season end exists.**~~ Part 2 built session 83 (`startNextSeason`, v27). A season can end, and its file becomes a sealed archive. There is no next
   season yet: nothing creates the Season 1 file, carries accounts, agents, signature cards and cosmetics into it,
   or soft-resets ratings. Ending Season 0 today would leave the ladder stopped with nowhere to go. Part 2 waits on
   the owner check-in in notes-for-owner.md.
-- **The retired list lives only in the ended file.** An S0 pack opened in a Season 1 file would see full S0 runs
+- ~~**The retired list lives only in the ended file.**~~ Carried into the new file since session 83 (tested: the S0 Prototype seed rolls a Gold in S1). An S0 pack opened in a Season 1 file would see full S0 runs
   (its own `card_copies` has none of them) and could mint S0 Prototypes again, with serials that clash with the
   archive's. Part 2 must copy `retired_prototype_runs` into the new file (or treat every run of an earlier season's
   set as retired). Not reachable today: nothing makes a Season 1 file yet.
-- **Only matches and ratings are frozen.** After the end, packs still open, salvage and crafting still work, and
+- ~~**Only matches and ratings are frozen.**~~ The whole economy is frozen since session 83 (owner answer 6). After the end, packs still open, salvage and crafting still work, and
   credits can still be spent in the archive. The collection and currencies reset with the new file anyway, so this
   matters only between the end and the new file. Whether the archive should refuse everything is call 6 at the
   check-in.
@@ -532,8 +562,7 @@ real, but here is where it's thin.
   O(n^2) per round; fine for Season 0, not measured at scale.
 - **The first seat wins more**: 40 of 71 decided in the demo (56%), seats a coin flip. Known from the balance
   work; not the ladder's to fix, but it now lands on ratings.
-- **The season soft reset isn't built** (Season end, game item 3). `ratings` has no season column; the reset
-  will rewrite it from `match_ratings`.
+- ~~**The season soft reset isn't built**~~ Built session 83: a new file per season, with `rating_seeds`.
 - **`ratings` rows can be deleted with raw SQL** (only `match_ratings` is write-once). The table is current
   state, replayable from `match_ratings`; no replay tool exists yet beyond the demo's check.
 - ~~**The house's pack buying is the demo's policy, not the server's.**~~ The server's policy since session 67

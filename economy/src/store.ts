@@ -1,4 +1,5 @@
 import { createHash, randomBytes, randomInt, randomUUID } from "node:crypto";
+import { existsSync, rmSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import {
   buildDeck,
@@ -58,6 +59,8 @@ import {
   STATS_RECENT_MAX,
   LADDER_TIERS,
   PLACEMENT_MATCHES,
+  SEASON_RESET_PULL,
+  SEASON_RESET_RD,
   AUTO_PLAY_START_MINUTES,
   AUTO_PLAY_ADD_MINUTES,
 } from "./config.js";
@@ -537,6 +540,9 @@ export interface OwnedCosmetic {
    * "S0:Platinum"; null otherwise. */
   rewardRef: string | null;
   acquiredAt: string;
+  /** (v27) The season file it was carried over from, first; null for one
+   * acquired in this file. */
+  carriedFrom: string | null;
   /** The catalogue entry (null only if a later catalogue dropped it). */
   item: CosmeticItem | null;
 }
@@ -1046,6 +1052,41 @@ export interface SeasonEnd {
   retiredPrototypes: RetiredPrototypeRun[];
 }
 
+/** (v27) Where a season's file came from, as `startNextSeason` wrote it:
+ * null for a first season's file. */
+export interface SeasonStart {
+  season: string;
+  fromSeason: string;
+  fromEndedAt: string;
+  startedAt: string;
+}
+
+/** (v27) What `startNextSeason` carried into the new file, by count. */
+export interface NextSeasonReport extends SeasonStart {
+  owners: number;
+  logins: number;
+  sessions: number;
+  agents: number;
+  signatureCopies: number;
+  cosmetics: number;
+  loadoutSlots: number;
+  retiredPrototypeRuns: number;
+  ratingSeeds: number;
+  starterGrants: { ownerId: string; faction: DeckFaction; copies: number; packs: number }[];
+  /** What the ended file held that starts empty, so it can be read off. */
+  leftBehind: { cardCopies: number; unopenedPacks: number; decks: number; credits: number; packPoints: number; matches: number; notifications: number };
+}
+
+/** (v27) An owner's soft-reset rating in a new season's file. */
+export interface RatingSeed {
+  ownerId: string;
+  rating: number;
+  rd: number;
+  volatility: number;
+  finalRating: number;
+  finalTier: string;
+}
+
 /** One side's rating change in a rated match (schema v17). */
 export interface RatingChange {
   ownerId: string;
@@ -1290,6 +1331,15 @@ export class EconomyStore {
     return str((this.db.prepare("SELECT value FROM meta WHERE key = 'season'").get() as Row).value);
   }
 
+  /** (v27) The set a season's packs come from (daily packs, starter packs,
+   * the house agents' shopping): the season's own set, or the newest set
+   * while the season has none of its own yet (a Season 1 file before the
+   * Season 1 set ships keeps selling the newest one; owner 6A: every set's
+   * packs stay openable). */
+  get currentSetCode(): string {
+    return seasonSets(this.season)[0]?.code ?? [...CARD_SETS.keys()].at(-1)!;
+  }
+
   private stamp(): string {
     return this.now().toISOString();
   }
@@ -1372,6 +1422,7 @@ export class EconomyStore {
    * account-bound copies, plus 3 packs. Refused, with nothing granted, if
    * the owner already had it. A new agent gets nothing from this. */
   grantStarterCollection(ownerId: string, faction: DeckFaction, setCode = DEFAULT_SEASON): StarterGrant {
+    this.refuseIfEnded("no starter collection is granted");
     const list = SHIPPED_DECK_LISTS[faction];
     if (!list) throw new EconomyError(`no starter deck for faction "${faction}"`);
     return this.transaction(() => {
@@ -2518,6 +2569,7 @@ export class EconomyStore {
       ledgerEntryId: numOrNull(r.ledger_entry_id),
       rewardRef: this.schemaVersion >= 20 ? strOrNull(r.reward_ref) : null,
       acquiredAt: str(r.acquired_at),
+      carriedFrom: this.schemaVersion >= 27 ? strOrNull(r.carried_from) : null,
       item: this.catalogue.get(str(r.item_id)) ?? null,
     }));
   }
@@ -2533,6 +2585,7 @@ export class EconomyStore {
    * 2), one the render lane hasn't drawn yet, one the owner already has,
    * and too few credits. */
   buyCosmetic(ownerId: string, itemId: string): OwnedCosmetic {
+    this.refuseIfEnded("no cosmetic is bought");
     const item = this.catalogue.get(itemId);
     if (!item) throw new EconomyError(`no cosmetic "${itemId}"`);
     const at = this.stamp();
@@ -2567,7 +2620,9 @@ export class EconomyStore {
    * start wearing the faction's boast and the Chrome Token. */
   private grantStarterCosmetics(ownerId: string, at: string): OwnedCosmetic[] {
     if (this.schemaVersion < 11) return [];
-    const insert = this.db.prepare("INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, acquired_at) VALUES (?, ?, ?, 'starter', ?)");
+    // ON CONFLICT: a new season's file already holds the owner's carried
+    // cosmetics (v27), the starter ones among them.
+    const insert = this.db.prepare("INSERT INTO owned_cosmetics (owner_id, item_id, kind, source, acquired_at) VALUES (?, ?, ?, 'starter', ?) ON CONFLICT DO NOTHING");
     const starters: { itemId: string; kind: CosmeticKind }[] = Object.values(STARTER_BOASTS);
     if (this.schemaVersion >= 20) starters.push(STARTER_COIN);
     for (const item of starters) {
@@ -2735,6 +2790,176 @@ export class EconomyStore {
       this.db.prepare("INSERT INTO season_end (season, ended_at) VALUES (?, ?)").run(season, at);
       return this.seasonEnd()!;
     });
+  }
+
+  /** (v27) Refuses `what` once the season has ended (owner 2026-11-07,
+   * answer 6: an ended file is frozen completely). The schema refuses the
+   * same writes; this gives the plain reason first. */
+  private refuseIfEnded(what: string): void {
+    if (this.seasonEnded()) throw new EconomyError(`season ${this.season} has ended: ${what}; the file is the season's archive`);
+  }
+
+  // ---- the next season's file (v27; Season 0 game item 3, part 2) ----
+
+  /** Which ended season this file was made from, or null (a first
+   * season's file, or one made before v27). */
+  seasonStart(): SeasonStart | null {
+    if (this.schemaVersion < 27) return null;
+    const row = this.db.prepare("SELECT * FROM season_start").get() as Row | undefined;
+    if (!row) return null;
+    return { season: str(row.season), fromSeason: str(row.from_season), fromEndedAt: str(row.from_ended_at), startedAt: str(row.started_at) };
+  }
+
+  /** The owner's soft-reset rating in a new season's file (null when the
+   * owner had no rated match last season, or in a first season's file). It
+   * is the owner's rating until the first rated match of this season. */
+  ratingSeed(ownerId: string): RatingSeed | null {
+    if (this.schemaVersion < 27) return null;
+    const r = this.db.prepare("SELECT * FROM rating_seeds WHERE owner_id = ?").get(ownerId) as Row | undefined;
+    if (!r) return null;
+    return { ownerId, rating: num(r.rating), rd: num(r.rd), volatility: num(r.volatility), finalRating: num(r.final_rating), finalTier: str(r.final_tier) };
+  }
+
+  /** Makes the next season's file at `newPath` from the ended season's file
+   * at `endedPath` (owner 2026-11-07, answers 1-5; 2026-11-08 on unopened
+   * packs), in one transaction; the ended file is only read, and stays the
+   * season's archive.
+   *
+   * Carried: every owner (its name, kind, starting faction and faction
+   * lock), logins (password hashes as they are) and live sessions, account
+   * settings, the Home board, agents with their names and name history,
+   * agent drafts, signature cards with their bound copies (same copy ids),
+   * every owned cosmetic (`carried_from` names the season) and every
+   * agent's loadout, which agent is connected, and the retired Prototype
+   * runs (so a run retired once never mints again in any later file).
+   * Starts empty: the collection, decks, credits, pack points, packs
+   * (unopened ones are lost), ratings, match history, notifications,
+   * auto-play and the daily pack bank. Each ranked owner gets a soft-reset
+   * seed, 1500 + (final - 1500) / 2 with RD 250 and its volatility, and
+   * places again. Then every owner who had a starter collection gets the
+   * starter grant again (its starting faction's deck, bound, and the
+   * starter packs, of the new season's set, or the newest set while the
+   * new season has none of its own yet).
+   *
+   * Refused: a season that hasn't ended, a new season code equal to the
+   * ended one, and a `newPath` that already exists. On any failure the new
+   * file is removed, so a half-made season never stays on disk. */
+  static startNextSeason(endedPath: string, newPath: string, options: { season: string; now?: () => Date; cosmetics?: readonly CosmeticItem[] }): NextSeasonReport {
+    const season = options.season.trim();
+    if (season === "") throw new EconomyError("name the new season (e.g. \"S1\")");
+    if (newPath === ":memory:" || endedPath === ":memory:") throw new EconomyError("the next season is made from a season file into a new file");
+    if (existsSync(newPath)) throw new EconomyError(`"${newPath}" already exists: the next season's file is always a new file`);
+    const prev = EconomyStore.open(endedPath, { now: options.now, cosmetics: options.cosmetics });
+    let end: SeasonEnd;
+    let leftBehind: NextSeasonReport["leftBehind"];
+    try {
+      const ended = prev.seasonEnd();
+      if (ended === null) throw new EconomyError(`season ${prev.season} hasn't ended: end it first (POST /api/admin/season/end)`);
+      if (season === ended.season) throw new EconomyError(`the new season must have a new name, not "${season}"`);
+      end = ended;
+      leftBehind = prev.archiveCounts();
+    } finally {
+      prev.close();
+    }
+    const next = EconomyStore.open(newPath, { now: options.now, season, cosmetics: options.cosmetics });
+    try {
+      const report = next.carryFrom(endedPath, end, leftBehind);
+      next.close();
+      return report;
+    } catch (err) {
+      next.close();
+      for (const f of [newPath, `${newPath}-wal`, `${newPath}-shm`]) rmSync(f, { force: true });
+      throw err;
+    }
+  }
+
+  /** What an ended file holds that the next season's file starts without. */
+  private archiveCounts(): NextSeasonReport["leftBehind"] {
+    const count = (sql: string) => num((this.db.prepare(sql).get() as Row).n);
+    return {
+      cardCopies: count("SELECT COUNT(*) AS n FROM card_copies WHERE disposed_at IS NULL AND (origin_ref IS NULL OR origin_ref NOT LIKE 'signature:%')"),
+      unopenedPacks: count("SELECT COUNT(*) AS n FROM packs WHERE opened_at IS NULL"),
+      decks: count("SELECT COUNT(*) AS n FROM decks"),
+      credits: count("SELECT COALESCE(SUM(delta), 0) AS n FROM ledger WHERE currency = 'credits'"),
+      packPoints: count("SELECT COALESCE(SUM(delta), 0) AS n FROM ledger WHERE currency = 'packPoints'"),
+      matches: count("SELECT COUNT(*) AS n FROM matches"),
+      notifications: count("SELECT COUNT(*) AS n FROM notifications WHERE cleared_at IS NULL"),
+    };
+  }
+
+  /** The new file's half of startNextSeason: this store is the new, empty
+   * file; the ended one is attached read-only as `prev`. */
+  private carryFrom(endedPath: string, end: SeasonEnd, leftBehind: NextSeasonReport["leftBehind"]): NextSeasonReport {
+    if (this.listOwners().length > 0 || this.seasonStart() !== null) throw new EconomyError("the next season's file must start empty");
+    const at = this.stamp();
+    if (at < end.endedAt) throw new EconomyError(`season ${end.season} ended at ${end.endedAt}: the next season can't start before that (now ${at})`);
+    const season = this.season;
+    this.db.prepare("ATTACH DATABASE ? AS prev").run(`file:${endedPath}?mode=ro`);
+    try {
+      return this.transaction(() => {
+        const cols = (table: string) => (this.db.prepare(`PRAGMA main.table_info(${table})`).all() as Row[]).map((c) => str(c.name)).join(", ");
+        const copyAll = (table: string, where = "", order = "rowid", params: (string | number)[] = []) =>
+          num(this.db.prepare(`INSERT INTO main.${table} (${cols(table)}) SELECT ${cols(table)} FROM prev.${table} ${where} ORDER BY ${order}`).run(...params).changes);
+        const owners = num(
+          this.db
+            .prepare(
+              `INSERT INTO main.owners (owner_id, name, kind, starting_faction, starter_granted_at, active_deck_id, created_at, connected_agent_id, faction_lock, deck_choice)
+               SELECT owner_id, name, kind, starting_faction, NULL, NULL, created_at, NULL, faction_lock, 'agent' FROM prev.owners ORDER BY rowid`,
+            )
+            .run().changes,
+        );
+        const logins = copyAll("logins");
+        const sessions = copyAll("sessions", "WHERE revoked_at IS NULL AND expires_at > ?", "rowid", [at]);
+        copyAll("account_settings");
+        copyAll("board_layouts");
+        const agents = copyAll("agents");
+        copyAll("agent_names", "", "entry_no");
+        copyAll("agent_drafts");
+        copyAll("signature_cards");
+        const signatureCopies = copyAll("card_copies", "WHERE origin_ref LIKE 'signature:%' AND disposed_at IS NULL");
+        const cosmetics = num(
+          this.db
+            .prepare(
+              `INSERT INTO main.owned_cosmetics (owner_id, item_id, kind, source, ledger_entry_id, reward_ref, acquired_at, carried_from)
+               SELECT owner_id, item_id, kind, source, NULL, reward_ref, acquired_at, COALESCE(carried_from, ?) FROM prev.owned_cosmetics ORDER BY rowid`,
+            )
+            .run(end.season).changes,
+        );
+        const loadoutSlots = copyAll("agent_loadouts");
+        this.db.prepare("UPDATE main.owners SET connected_agent_id = (SELECT p.connected_agent_id FROM prev.owners p WHERE p.owner_id = owners.owner_id)").run();
+        const retiredPrototypeRuns = copyAll("retired_prototype_runs");
+        const insertSeed = this.db.prepare("INSERT INTO rating_seeds (owner_id, rating, rd, volatility, final_rating, final_tier) VALUES (?, ?, ?, ?, ?, ?)");
+        for (const r of end.standings) {
+          insertSeed.run(r.ownerId, RATING_START.rating + (r.rating - RATING_START.rating) * SEASON_RESET_PULL, SEASON_RESET_RD, r.volatility, r.rating, r.tier);
+        }
+        this.db.prepare("INSERT INTO season_start (season, from_season, from_ended_at, started_at) VALUES (?, ?, ?, ?)").run(season, end.season, end.endedAt, at);
+        const setCode = this.currentSetCode;
+        const starterGrants: NextSeasonReport["starterGrants"] = [];
+        for (const o of this.db.prepare("SELECT owner_id, starting_faction FROM prev.owners WHERE starter_granted_at IS NOT NULL ORDER BY rowid").all() as Row[]) {
+          const faction = str(o.starting_faction) as DeckFaction;
+          const grant = this.grantStarterCollection(str(o.owner_id), faction, setCode);
+          starterGrants.push({ ownerId: str(o.owner_id), faction, copies: grant.copies.length, packs: grant.packs.length });
+        }
+        const dangling = this.db.prepare("PRAGMA main.foreign_key_check").all() as Row[];
+        if (dangling.length > 0) throw new EconomyError(`the new season's file would have ${dangling.length} dangling reference(s), e.g. in ${String(dangling[0]!.table)}`);
+        return {
+          ...this.seasonStart()!,
+          owners,
+          logins,
+          sessions,
+          agents,
+          signatureCopies,
+          cosmetics,
+          loadoutSlots,
+          retiredPrototypeRuns,
+          ratingSeeds: end.standings.length,
+          starterGrants,
+          leftBehind,
+        };
+      });
+    } finally {
+      this.db.exec("DETACH DATABASE prev");
+    }
   }
 
   /** A new agent's boast slot: the starter boast of the owner's faction
@@ -3206,6 +3431,7 @@ export class EconomyStore {
    * a deck is never edited, it is reported incomplete until fixed. The
    * schema refuses salvaging a bound copy or a finish even by raw SQL. */
   salvage(ownerId: string, cardId: string, quantity: number, options: { confirmDeckImpact?: boolean } = {}): SalvageResult {
+    this.refuseIfEnded("no card is salvaged");
     return this.transaction(() => {
       const plan = this.salvagePlan(ownerId, cardId, quantity);
       if (plan.affectedDecks.length > 0 && options.confirmDeckImpact !== true) throw new SalvageNeedsConfirmation(plan.affectedDecks);
@@ -3633,6 +3859,7 @@ export class EconomyStore {
    * happen together or not at all, and the schema refuses a purchase the
    * balance can't cover. */
   buyPack(ownerId: string, setCode: string): PackRecord {
+    this.refuseIfEnded("no pack is bought");
     knownSet(setCode);
     const pack: PackRecord = { packId: randomUUID(), ownerId, setCode, source: "purchase", acquiredAt: this.stamp(), openedAt: null };
     this.transaction(() => {
@@ -3645,6 +3872,7 @@ export class EconomyStore {
   /** Buys `count` packs of a set (1 to BULK_OPEN_COUNT) in one go: all of
    * them or none, so a 10-pack buy never stops at 6 for want of credits. */
   buyPacks(ownerId: string, setCode: string, count: number): PackRecord[] {
+    this.refuseIfEnded("no pack is bought");
     if (!Number.isInteger(count) || count < 1 || count > BULK_OPEN_COUNT) {
       throw new EconomyError(`buy 1 to ${BULK_OPEN_COUNT} packs at once, not ${count}`);
     }
@@ -3661,6 +3889,7 @@ export class EconomyStore {
 
   /** A pack that costs nothing (starter, weekly challenge, owner's daily). */
   grantPack(ownerId: string, setCode: string, source: Exclude<PackSource, "purchase">): PackRecord {
+    this.refuseIfEnded("no pack is granted");
     if (!PACK_SOURCES.includes(source) || (source as PackSource) === "purchase") throw new EconomyError(`not a free pack source: "${source}"`);
     knownSet(setCode);
     const pack: PackRecord = { packId: randomUUID(), ownerId, setCode, source, acquiredAt: this.stamp(), openedAt: null };
@@ -3681,9 +3910,13 @@ export class EconomyStore {
       this.db.prepare("SELECT acquired_at FROM packs WHERE owner_id = ? AND source = 'ownerDaily' ORDER BY acquired_at, rowid").all(ownerId) as Row[]
     ).map((r) => str(r.acquired_at));
     const claimDays = claimed.map((t) => this.resetDay(t).day);
-    const waiting = dailyPacksWaiting(this.resetDay(owner.createdAt).day, claimDays, today.day, OWNER_DAILY_PACK_CAP);
+    // (v27) In a new season's file the bank starts empty: it fills from the
+    // season's start, not from when the owner first signed up.
+    const start = this.seasonStart();
+    const firstDay = this.resetDay(start !== null && start.startedAt > owner.createdAt ? start.startedAt : owner.createdAt).day;
+    const waiting = dailyPacksWaiting(firstDay, claimDays, today.day, OWNER_DAILY_PACK_CAP);
     return {
-      setCode: this.season,
+      setCode: this.currentSetCode,
       waiting,
       cap: OWNER_DAILY_PACK_CAP,
       day: today.day,
@@ -3698,6 +3931,7 @@ export class EconomyStore {
   /** The owner claims one daily pack of the current set: it joins the
    * unopened packs (source "ownerDaily"). Refused when none is waiting. */
   claimDailyPack(ownerId: string): { pack: PackRecord; status: DailyPackStatus } {
+    this.refuseIfEnded("no daily pack is claimed");
     return this.transaction(() => {
       const before = this.dailyPackStatus(ownerId);
       if (before.waiting < 1) {
@@ -3748,6 +3982,7 @@ export class EconomyStore {
   /** Opens one of the owner's unopened packs (`packId`, or the oldest).
    * `seed` is for tests and the demo only. */
   openPack(ownerId: string, packId?: string, options: { seed?: number } = {}): PackOpening {
+    this.refuseIfEnded("no pack is opened");
     return this.transaction(() => {
       const pack = packId === undefined ? this.unopenedPacks(ownerId)[0] : this.unopenedPacks(ownerId).find((p) => p.packId === packId);
       if (!pack) {
@@ -3880,6 +4115,7 @@ export class EconomyStore {
    * oldest first, each its own opening, all in one transaction (all open or
    * none). `seeds` is for tests and the demo only. */
   openPacks(ownerId: string, count: number, options: { seeds?: readonly number[] } = {}): BulkOpening {
+    this.refuseIfEnded("no pack is opened");
     if (count !== 1 && count !== BULK_OPEN_COUNT) throw new EconomyError(`open 1 pack or ${BULK_OPEN_COUNT} at once, not ${count}`);
     return this.transaction(() => {
       const unopened = this.unopenedPacks(ownerId);
@@ -4107,6 +4343,7 @@ export class EconomyStore {
    * (3 / 3 / 2 / 1), counting every copy held, and refused without the
    * points (the schema refuses an overdraw too). */
   craftCard(ownerId: string, cardId: string): CardCopy {
+    this.refuseIfEnded("no card is crafted");
     if (zeroDayEntry(cardId)) throw new EconomyError(`"${cardId}" is a Zero-Day card: craft it with craftSecret`);
     const card = getCard(cardId);
     if (!card) throw new EconomyError(`"${cardId}" is not a set card; only set cards can be crafted`);
@@ -4132,6 +4369,7 @@ export class EconomyStore {
    * it is designed and live (Season 0's three since session 42); an entry
    * not designed yet can only be pulled. */
   craftSecret(ownerId: string, secretCode: string): CardCopy {
+    this.refuseIfEnded("no card is crafted");
     const secret = secretCardOf(secretCode);
     if (!secret) throw new EconomyError(`no secret card "${secretCode}"`);
     if (secret.kind === "zeroDay" && !getCard(secret.cardId)) {
@@ -4649,7 +4887,11 @@ export class EconomyStore {
     this.getOwner(ownerId);
     const stored = this.storedRating(ownerId);
     if (stored === null) {
-      return { ownerId, ...RATING_START, ratedMatches: 0, tier: tierOf(RATING_START.rating, 0), lastDay: null };
+      // (v27) In a new season's file, the soft-reset seed until the first
+      // rated match of the season.
+      const seed = this.ratingSeed(ownerId);
+      const start = seed === null ? RATING_START : { rating: seed.rating, rd: seed.rd, volatility: seed.volatility };
+      return { ownerId, ...start, ratedMatches: 0, tier: tierOf(start.rating, 0), lastDay: null };
     }
     const today = this.resetDay(at).day;
     const gap = Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${stored.lastDay}T00:00:00Z`)) / 86_400_000);

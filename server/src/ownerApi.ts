@@ -186,6 +186,11 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
       you: end?.standings.find((r) => r.ownerId === ownerId) ?? null,
       standings: end?.standings ?? null,
       retiredPrototypes: end?.retiredPrototypes ?? null,
+      // (v27) Which ended season this file was made from (null for a first
+      // season), and the caller's soft-reset seed from it (null if the
+      // caller had no rated match then).
+      startedFrom: store.seasonStart(),
+      yourSeed: store.ratingSeed(ownerId),
     };
   };
 

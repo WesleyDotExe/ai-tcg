@@ -2,12 +2,12 @@ Season end demo 001 — ending a season (session 82; Season 0 game item 3, part 
 ========================================================================
 ECONOMY.md: each season is its own file, kept as the season's archive; Prototypes never pulled are
 retired at season end, forever; the tier coins are granted when the season ends, first (roadmap item 3).
-Not in this part: the Season 1 file (what carries over, the ratings' soft reset): an owner check-in.
+The Season 1 file made from this one (part 2, session 83): progress/season-next-001.txt.
 
 1. A v25 season file opens at v26, the season open
 ------------------------------------------------------------------------
   written at schema v25: 6 owners
-  reopened: schema v26, season S0
+  reopened: schema v27, season S0
   [PASS] the migrated file's season is open
 
 2. Three hours of ladder; one Prototype found
@@ -76,12 +76,13 @@ Not in this part: the Season 1 file (what carries over, the ratings' soft reset)
 ------------------------------------------------------------------------
   three more hours of ladder: 0 matches, 0 shown, auto-play still on for Ada: true
   [PASS] no round pairs anyone after the end, and no rating moved
-  Ada opens a pack with the same seed 551: bonus card SW-004, gold (the runs are retired)
-  [PASS] the Prototype bonus is a Gold now
+  a pack for Ada: season S0 has ended: no pack is granted; the file is the season's archive
+  Ada opens a pack (seed 551): season S0 has ended: no pack is opened; the file is the season's archive
+  [PASS] (v27) the ended file is frozen: no pack is granted or opened
   Hub asks again: 409 season S0 has already ended
   a hand-run edit of the ratings: the season has ended: ratings are final
   [PASS] a second end is refused (409) and the ratings are final in the schema
   reopened the file: season S0 ended 2026-12-14T02:02:30.000Z, 6 standings, 15 retired runs
   [PASS] the end is kept on disk
 
-Schema v26. 11 PASS, 0 FAIL.
+Schema v27. 11 PASS, 0 FAIL.
