@@ -4473,3 +4473,30 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #145, `pr
 The owner will try the ceremony on the Mac mini (with sound and a GPU) once it merges and report on calls 2 and 5. Until then, nothing changes.
 
 Next render slice, as planned: the pack opening ceremony, part 3. Next session by alternation: game (season end, part 2).
+
+---
+
+## 2026-11-10 — Owner: answers to game session 83 (season end, part 2): the six small calls, and a change to the next season's file (the collection and decks carry over)
+
+Answers the six small calls in PR #146's description and `progress/log.md` (session 83 said they were at the top of `progress/notes-for-owner.md`, but that file wasn't updated; sessions should put their check-ins and calls there).
+
+**The six small calls:**
+1. **Keep:** sessions carry over, so a signed-in owner stays signed in across the switch (until the session expires).
+2. **Keep:** auto-play starts off in the new season. Add to `progress/season-1-ideas.md`: a prompt that asks owners to switch auto-play back on.
+3. **Keep:** no Prototypes in Season 1 until a Season 1 set exists (the Season 0 runs stay retired forever).
+4. **Keep:** the daily pack bank fills from the season's start.
+5. **Keep:** an owner with no rated match last season starts at 1500 / RD 350.
+6. **Replaced** by the change below (decks carry over, so deck choice doesn't need resetting).
+
+**Change to the next season's file. This replaces the 2026-11-07 answer 2 for the collection and decks, and answer 5 (the starter grant again):**
+- **The whole card collection and all decks carry over** into the next season. Each new season adds a new set on top of the old ones, and decks may mix cards from any set.
+- **Still reset as built:** credits and pack points, match history, notifications and the daily pack bank. The soft rating reset (answer 4) stays.
+- **The starter grant goes to new owners only.** Existing owners keep their cards.
+- **The shop sells the newest set's packs.** Later seasons may offer more than one set at a time; for now, one set at a time.
+- **Unopened packs: no change.** The 2026-11-08 rule stands (lost at season end, with the warning beforehand).
+- Add to `progress/season-1-ideas.md`: a "newest sets only" mode, since new owners start further behind veterans' collections each season.
+- **Timing:** this does not change Season 0. Build it after the Season 0 launch (5 December) and before Season 0 ends (about mid-January 2027). It is not feature work inside the freeze. Update ECONOMY.md's "collections reset" rule to match when it is built.
+
+**The restart gap:** switching seasons needs a server restart. During clean-up (2–4 December), write the steps in the owner docs: press end, wait for the matches to finish, run `npm run season:next`, restart on the new file. A one-command flow goes in `progress/season-1-ideas.md`.
+
+Next session by alternation: render (the pack opening ceremony, part 3).
