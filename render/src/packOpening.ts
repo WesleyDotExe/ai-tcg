@@ -933,3 +933,65 @@ export function afterglowPlanOf(reveal: Pick<PackReveal, "cards"> & { setBar?: S
   const doneAt = ticks.length ? ticks[ticks.length - 1]!.at : bar ? barAt : stampsDone;
   return { deal, stamps, ticks, barAt, doneAt };
 }
+
+// ---- Open 10's stops and the debug panel (render session 62, the ceremony
+// part 3b; the brief's supporting requirements: "Open 10: fast-forwards
+// through plain cards but still stops for every Rare, Mythic, special finish
+// and Prototype", and "Debug panel (owner-only, demo pages): force the best
+// card of the next pack to any reveal kind, including Prototype") ----------
+//
+// A stop is a card above a snap on the reveal ladder: exactly the cards whose
+// build is `held` (a plain Rare or Mythic, every finish above Standard, a
+// Prototype, a Zero-Day). Inside a ten-pack open such a card deals face down
+// and the sequence halts on it, Auto included, until the owner taps; then it
+// plays its own build from the ladder (the glow stages, the room, the flip,
+// the hit) at its full length, whatever the Auto speed. A plain Common or
+// Uncommon never stops anything. A pack the store marks `fullReveal` still
+// goes to the one-pack stack, where its held cards stop the same way.
+
+/** A card Open 10 stops on. */
+export function isBulkStop(c: Pick<RevealCard, "build">): boolean {
+  return c.build.held;
+}
+
+export interface BulkStop {
+  /** The pack (0-based, in opening order) and the card's reveal index in it. */
+  pack: number;
+  idx: number;
+  step: RevealStep;
+  /** Plays in the one-pack stack (the pack is a big pull), not in the row. */
+  big: boolean;
+  /** Tap to hit, and the hold after it, at 1x: a stop's own length. */
+  hitAt: number;
+  hold: number;
+}
+
+/** Every stop of a ten-pack open, in the order the owner meets them. */
+export function bulkStopsOf(b: Pick<BulkReveal, "packs">): BulkStop[] {
+  const out: BulkStop[] = [];
+  b.packs.forEach((p, pack) => p.cards.forEach((c, idx) => {
+    if (isBulkStop(c)) out.push({ pack, idx, step: c.build.step, big: p.fullReveal, hitAt: c.build.hitAt, hold: c.build.hold });
+  }));
+  return out;
+}
+
+/** The step of a pull, read off the store's roll (its finish and rarity). */
+export function pullStepOf(p: { finish: Finish; rarity: string }): RevealStep {
+  return revealStepOf(revealKindOf(p.finish), p.rarity);
+}
+
+/** A roll's best card's step: the highest on the ladder among its pulls. */
+export function bestStepOf(pulls: readonly { finish: Finish; rarity: string }[]): RevealStep {
+  let best = 0;
+  for (const p of pulls) best = Math.max(best, REVEAL_LADDER.indexOf(pullStepOf(p)));
+  return REVEAL_LADDER[best]!;
+}
+
+/** The kinds the debug panel can force: every step above a snap. A snap
+ * can't be a pack's best card (every pack's Rare slot is a Rare or better). */
+export const DEBUG_STEPS = REVEAL_LADDER.filter((s) => s !== "snap") as Exclude<RevealStep, "snap">[];
+
+export const DEBUG_STEP_LABEL: Record<Exclude<RevealStep, "snap">, string> = {
+  rare: "Rare", mythic: "Mythic", foil: "Foil", fullArt: "Full Art", altArt: "Alt Art", glitch: "Glitch",
+  gold: "Gold", secret: "Secret", prototype: "Prototype", zeroDay: "Zero-Day",
+};

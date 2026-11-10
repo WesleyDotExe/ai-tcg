@@ -1299,3 +1299,14 @@ season mark) is proposed as a mark, call 1.
    over). The Season 0 checklist line says so. If a season-end screen is built later and mentions packs, it will say
    they carry over and open as the new season's packs.
 3. **Nothing needed from the game lane.** The set bar reads the existing binder endpoint.
+
+## 2026-11-10 — Render session 62 (the pack ceremony, part 3b)
+
+1. **Six calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The two most worth a look: call 1
+   (Open 10 waits for your tap at every stop, Auto included) and call 2 (a plain Rare is a stop, so every pack in a
+   ten stops at least once; the cut if it drags is one rule).
+2. **The brief's pack done-check is met in the headless browser:** every reveal kind, one pack and ten, through the
+   debug panel (90 PASS). For your 11 November feel check, the panel is the quickest way to each kind: DEBUG, pick,
+   Open one now / Open ten now.
+3. **A bug fixed that the website had too:** a second big pull in one Open 10 skipped its reveals.
+4. **Nothing needed from the game lane.**

@@ -4569,3 +4569,5 @@ The Season 0 scope lock and freeze otherwise stand.
 **The owner's feel check on the Mac mini** (with sound and a GPU), planned for 11 November: session 60's calls 2 (a build on every pack) and 5 (the Gold Mythic's doubled ward), and session 61's call 3 (the Prototype's length). Until the owner reports, nothing changes.
 
 Next session by alternation: render (the pack opening ceremony, part 3b).
+
+**Render part handled (render session 62):** the 8 calls stand as kept; part 3b built (Open 10's stops, the debug panel; `progress/render/checkpoints.md`). The feel check items (s60 calls 2 and 5, s61 call 3) are unchanged, waiting on the owner's try.

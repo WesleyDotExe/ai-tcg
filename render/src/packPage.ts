@@ -53,6 +53,11 @@ export interface PackPageData {
    * bundles it). Without them the flare is a drawn ring in the faction's
    * colour. */
   wards?: Record<string, string>;
+  /** The owner-only debug panel (render session 62), on the demo pages only
+   * (packDemo.ts openDebugPacks): for each kind it can force, that kind's
+   * own real opening, one pack and ten. The website never passes it, so its
+   * page has no panel. */
+  debug?: { single: { step: string; label: string; reveal: PackReveal }[]; bulk: { step: string; label: string; reveal: BulkReveal }[] };
 }
 
 export function renderPackOpeningHtml(data: PackPageData): string {
@@ -96,12 +101,12 @@ export function renderPackOpeningHtml(data: PackPageData): string {
   <div class="hint" id="hint" aria-live="polite"></div>
   <div class="counter" id="counter"></div>${flow ? '\n  <div class="ftbadge" id="ftbadge"></div>' : ""}
   <button class="skip" id="skip" hidden>Skip to summary</button>
-  <div class="bctl"><button class="bauto" id="bauto" role="switch" aria-checked="false" hidden title="Plays the packs by themselves, as fast as the speed says">Auto</button><span class="speed" id="speed" role="group" aria-label="Auto speed" hidden></span><button class="bskip" id="bskip" hidden title="Runs ahead to the next big pull, which still gets its full reveal; with none left, to the summary">Skip to summary</button></div>
+  <div class="bctl"><button class="bauto" id="bauto" role="switch" aria-checked="false" hidden title="Plays the packs by themselves, as fast as the speed says">Auto</button><span class="speed" id="speed" role="group" aria-label="Auto speed" hidden></span><button class="bskip" id="bskip" hidden title="Runs ahead past packs of plain cards to the next stop: every Rare, Mythic, special finish and Prototype still waits for its reveal; with none left, to the summary">Skip ahead</button></div>
 </main>
 <div class="zd" id="zd" hidden><div class="zd-term" id="zd-term"></div></div>${flow ? '\n<div class="mint" id="mint" hidden></div>' : ""}
 <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Card viewer"><div class="vcard" id="vcard"></div><div class="vcap" id="vcap"></div><button class="vclose" id="vclose">Close</button></div>
 <p class="sr" id="announce" aria-live="assertive"></p>
-<footer class="foot" id="foot"></footer>
+<footer class="foot" id="foot"></footer>${data.debug && !site ? `\n<aside class="dbg" id="dbg" aria-label="Debug panel"><button id="dbg-tog" aria-expanded="false" title="Owner-only, demo pages: force the next pack's best card">DEBUG</button><div class="dpan" id="dbg-pan" hidden><h4>FORCE THE NEXT PACK</h4><p>The best card of the next pack you open (one, or pack 1 of ten) becomes the kind you pick. Each is a real opening, found by seed; nothing is made up.</p><div class="dk" id="dbg-kinds" role="group" aria-label="Best card kind"></div><div class="dst" id="dbg-st"></div><div class="dgo"><button id="dbg-one">Open one now</button><button id="dbg-ten">Open ten now</button><button id="dbg-off">Disarm</button></div></div></aside>` : ""}
 <script type="application/json" id="pack-data">${embed(data)}</script>
 <script type="application/json" id="pack-timings">${embed(timings)}</script>
 <script type="application/json" id="pack-shaders">${embed(PACK_FX_SHADERS)}</script>
@@ -286,15 +291,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
    on the hit; the faction ward flares behind the card as it lands. Only
    opacity and transforms animate, apart from the back's own rim. */
 @property --gc { syntax: "<color>"; inherits: true; initial-value: #7fe3ff; }
-.cslot { --gn: 0; --gms: 400ms; }
-.cslot .aura { position: absolute; inset: -16%; border-radius: 24%; pointer-events: none; opacity: 0; transform: scale(0.9); filter: blur(12px);
+:is(.cslot, .bcard) { --gn: 0; --gms: 400ms; }
+:is(.cslot, .bcard) .aura { position: absolute; inset: -16%; border-radius: 24%; pointer-events: none; opacity: 0; transform: scale(0.9); filter: blur(12px);
   background: radial-gradient(closest-side, var(--gc) 0%, color-mix(in srgb, var(--gc) 40%, transparent) 58%, transparent 100%);
   transition: opacity var(--gms) ease-in, transform var(--gms) cubic-bezier(.2,.8,.3,1.25), --gc var(--gms); will-change: opacity, transform; }
-.cslot.charging .aura { opacity: calc(0.28 + var(--gn) * 0.17); transform: scale(calc(0.94 + var(--gn) * 0.055)); }
-.cslot.charging.flipping .aura { opacity: 0; transform: scale(1.25); transition: opacity 0.35s ease-out, transform 0.35s ease-out; }
-.cslot.charging .back { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) var(--gc), 0 0 calc(10px + var(--gn) * 9px) calc(var(--gn) * 2px) var(--gc);
+:is(.cslot, .bcard).charging .aura { opacity: calc(0.28 + var(--gn) * 0.17); transform: scale(calc(0.94 + var(--gn) * 0.055)); }
+:is(.cslot, .bcard).charging.flipping .aura { opacity: 0; transform: scale(1.25); transition: opacity 0.35s ease-out, transform 0.35s ease-out; }
+:is(.cslot, .bcard).charging .back { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) var(--gc), 0 0 calc(10px + var(--gn) * 9px) calc(var(--gn) * 2px) var(--gc);
   transition: box-shadow var(--gms), --gc var(--gms); animation: tremble calc(280ms - var(--gn) * 45ms) linear infinite; }
-.cslot.charging .back .bl { text-shadow: 0 0 calc(10px + var(--gn) * 7px) var(--gc); color: #fff; }
+:is(.cslot, .bcard).charging .back .bl { text-shadow: 0 0 calc(10px + var(--gn) * 7px) var(--gc); color: #fff; }
 @keyframes tremble { 0%, 100% { transform: rotateY(180deg) translate(0, 0); } 25% { transform: rotateY(180deg) translate(calc(var(--gn) * 0.7px), calc(var(--gn) * -0.45px)); } 75% { transform: rotateY(180deg) translate(calc(var(--gn) * -0.7px), calc(var(--gn) * 0.45px)); } }
 .stage.bshake { animation: bshake var(--skd, 400ms) cubic-bezier(.36,.07,.19,.97); }
 @keyframes bshake { 12% { transform: translate(calc(var(--sk) * -1), calc(var(--sk) * 0.5)); } 28% { transform: translate(var(--sk), calc(var(--sk) * -0.45)); } 44% { transform: translate(calc(var(--sk) * -0.6), calc(var(--sk) * 0.3)); } 62% { transform: translate(calc(var(--sk) * 0.35), calc(var(--sk) * -0.2)); } 80% { transform: translate(calc(var(--sk) * -0.12), 0); } }
@@ -586,6 +591,28 @@ body.takeover .bar { opacity: 0.18; transition: opacity 0.45s; }
 .bcard .blab.hit { color: #ffb3ec; text-shadow: 0 0 8px rgba(255,92,200,0.8); }
 .bcard .new { position: absolute; top: -6px; right: -6px; z-index: 9; background: #ff3d7f; color: #fff; font-weight: 900; font-size: 9px; letter-spacing: 0.1em; padding: 1px 5px; border-radius: 3px; opacity: 0; transition: opacity 0.2s; }
 .bcard:not(.down) .new { opacity: 1; }
+/* Open 10's stops (render session 62): a held card in the row plays its
+   build where it lies, raised over its neighbours; the rest of the row
+   steps back while it does. A press on "Skip" at a stop nudges it. */
+.bcard.building { z-index: 6; }
+.bcards.wait .bcard.charging .back { animation: tremble calc(280ms - var(--gn) * 45ms) linear infinite; }
+.bcards:has(.bcard.building) .bcard:not(.building) { opacity: 0.45; transition: opacity 0.3s; }
+.bcards.nudge .bcard.down { animation: nudge 0.42s cubic-bezier(.3,.7,.3,1.4); }
+@keyframes nudge { 40% { transform: translateY(-8px) scale(1.04); } }
+/* The debug panel (render session 62): demo pages only, never the website. */
+.dbg { position: fixed; left: 10px; bottom: 34px; z-index: 40; font-size: 12px; color: var(--ink); }
+.dbg > button { border: 1px dashed #ffb02e; background: rgba(40,24,0,0.85); color: #ffcf7a; border-radius: 6px; padding: 3px 9px; font-weight: 800; letter-spacing: 0.1em; font-size: 11px; }
+.dbg .dpan { margin-top: 6px; width: min(340px, calc(100vw - 20px)); background: rgba(10,14,28,0.96); border: 1px dashed #ffb02e; border-radius: 10px; padding: 10px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.dbg .dpan[hidden] { display: none; }
+.dbg h4 { margin: 0 0 4px; font-size: 11px; letter-spacing: 0.14em; color: #ffcf7a; }
+.dbg p { margin: 0 0 8px; color: var(--dim); font-size: 11px; line-height: 1.4; }
+.dbg .dk { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.dbg .dk button { border: 1px solid var(--line); background: #121a33; color: #cfe0ff; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 700; }
+.dbg .dk button[aria-pressed="true"] { background: #ffb02e; border-color: #ffb02e; color: #1a1000; }
+.dbg .dst { font-size: 11px; color: #ffcf7a; margin-bottom: 8px; min-height: 1.4em; }
+.dbg .dgo { display: flex; gap: 6px; flex-wrap: wrap; }
+.dbg .dgo button { border: 1px solid var(--line); background: rgba(13,19,36,0.9); color: var(--ink); border-radius: 7px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
+.dbg .dgo button:disabled { opacity: 0.4; }
 .bulk-sum h3 { margin: 18px 0 10px; font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform: uppercase; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .chip { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; background: #121a33; border: 1px solid var(--line); color: #cfe0ff; }
@@ -753,10 +780,18 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
   // How long a fast (not full-reveal) pack of a ten-pack open takes at a
   // speed: sealed, torn, dealt, each face-down card turned in turn, held.
   // Mirrors Auto's own beats (tearMini, dealRow, autoRow).
+  // Render 62: each stop plays its own build at 1x (tap to hit, then its
+  // hold), whatever the speed; a card without a build (old data) still
+  // turns over in T.flip at the speed.
   function packFastDuration(cards, sparks, T, speed) {
-    var downs = cards.filter(function (c) { return c.faceDown; }).length;
-    return (T.sealed + T.tear + cards.length * T.deal + 160 + downs * T.flip + (sparks ? T.hitHold : T.hold)) / speed;
+    var stops = 0;
+    cards.forEach(function (c) { if (packRowHeld(c)) stops += c.build ? c.build.hitAt + c.build.hold : T.flip / speed; });
+    return (T.sealed + T.tear + cards.length * T.deal + 160 + (sparks ? T.hitHold : T.hold)) / speed + stops;
   }
+  // A card Open 10 stops on (render 62, packOpening.ts isBulkStop): every
+  // card above a snap on the reveal ladder (its build is held). Old data
+  // without a build: the face-down ones.
+  function packRowHeld(c) { return c.build ? !!c.build.held : !!c.faceDown; }
   var PACK_RARITY_LABEL = { Common: '● Common', Uncommon: '◆ Uncommon', Rare: '★ Rare', Mythic: '✦ Mythic' };
   function packEsc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   // Which finishes show their art across the whole card. Owner 2026-10-18:
@@ -1071,11 +1106,52 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   function footer() {
     var r = S.cur, foot = document.getElementById('foot');
     if (S.mode === 'bulk') {
-      var B = DATA.bulks[S.bulk].reveal;
-      foot.innerHTML = 'A real ten-pack open from the economy store (openPacks, 10 at once): seeds <b>' + B.packs[0].seed + '-' + B.packs[B.packs.length - 1].seed + '</b>, odds <b>' + esc(B.packs[0].oddsVersion) + '</b>. Each pack is its own opening; the reveal only shows what was rolled. Placeholder card art until the art pass.';
+      var B = S.B;
+      foot.innerHTML = (S.forced ? '<b>DEBUG</b>: pack 1 forced to its best card being a ' + esc(S.forced) + ' (a real open, found by seed). ' : '') + 'A real ten-pack open from the economy store (openPacks, 10 at once): seeds <b>' + B.packs[0].seed + '-' + B.packs[B.packs.length - 1].seed + '</b>, odds <b>' + esc(B.packs[0].oddsVersion) + '</b>. Each pack is its own opening; the reveal only shows what was rolled. Placeholder card art until the art pass.';
       return;
     }
-    foot.innerHTML = 'A real opening from the economy store: seed <b>' + r.seed + '</b>, odds <b>' + esc(r.oddsVersion) + '</b>. The reveal only shows what was rolled; nothing on this page rolls anything. Placeholder card art until the art pass.';
+    foot.innerHTML = (S.forced ? '<b>DEBUG</b>: forced to its best card being a ' + esc(S.forced) + ' (a real opening, found by seed). ' : '') + 'A real opening from the economy store: seed <b>' + r.seed + '</b>, odds <b>' + esc(r.oddsVersion) + '</b>. The reveal only shows what was rolled; nothing on this page rolls anything. Placeholder card art until the art pass.';
+  }
+
+  // ---------- the debug panel (render 62; demo pages only) ----------
+  // Arm a kind, and the next pack opened (from the picker, the shelf, the
+  // summary's buttons or the panel's own) is that kind's real opening: a
+  // single pack, or a ten-pack open whose pack 1 has it as its best card.
+  // It disarms once used, so every other open is the showcase's own.
+  S.force = null;
+  var dbgEl = document.getElementById('dbg');
+  function takeForced(kind) {
+    if (!S.force || !DATA.debug) return null;
+    var list = kind === 'bulk' ? DATA.debug.bulk : DATA.debug.single, step = S.force;
+    var f = list.filter(function (x) { return x.step === step; })[0] || null;
+    S.force = null; dbgMark();
+    if (f) log('debugForced', { step: step, as: kind, seed: kind === 'bulk' ? f.reveal.packs[0].seed : f.reveal.seed });
+    return f;
+  }
+  function dbgMark() {
+    if (!dbgEl) return;
+    Array.prototype.forEach.call(document.getElementById('dbg-kinds').children, function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-step') === S.force)); });
+    var f = S.force && DATA.debug.single.filter(function (x) { return x.step === S.force; })[0];
+    document.getElementById('dbg-st').textContent = f ? 'Armed: ' + f.label + ' · the next pack you open' : 'Not armed · packs open as the showcase rolled them';
+    document.getElementById('dbg-one').disabled = document.getElementById('dbg-ten').disabled = !f;
+    document.getElementById('dbg-off').disabled = !f;
+  }
+  if (dbgEl && DATA.debug) {
+    var dk = document.getElementById('dbg-kinds'), dp = document.getElementById('dbg-pan'), dt = document.getElementById('dbg-tog');
+    DATA.debug.single.forEach(function (x) {
+      var b = document.createElement('button');
+      b.textContent = x.label; b.setAttribute('data-step', x.step);
+      b.addEventListener('click', function (e) { e.stopPropagation(); S.force = S.force === x.step ? null : x.step; log('debugArm', { step: S.force }); dbgMark(); });
+      dk.appendChild(b);
+    });
+    dt.addEventListener('click', function (e) { e.stopPropagation(); dp.hidden = !dp.hidden; dt.setAttribute('aria-expanded', String(!dp.hidden)); });
+    document.getElementById('dbg-one').addEventListener('click', function (e) { e.stopPropagation(); openPack(Math.max(0, S.mode === 'single' ? S.pack : 0)); });
+    document.getElementById('dbg-ten').addEventListener('click', function (e) { e.stopPropagation(); openBulk(Math.max(0, S.bulk)); });
+    document.getElementById('dbg-off').addEventListener('click', function (e) { e.stopPropagation(); S.force = null; log('debugArm', { step: null }); dbgMark(); });
+    // ?debug=<step> arms a kind at load (the browser check uses it).
+    var dq = /[?&]debug=(\w+)/.exec(location.search);
+    if (dq && DATA.debug.single.some(function (x) { return x.step === dq[1]; })) S.force = dq[1];
+    dbgMark();
   }
 
   // ---------- card faces ----------
@@ -1099,9 +1175,12 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // ---------- the sealed pack and the tear ----------
   function openPack(i) {
     clearTimers(); stopLayers(); zd.hidden = true; zd.className = 'zd';
-    S.mode = 'single'; S.pack = i; S.bulk = -1; S.bp = -1; S.cur = DATA.packs[i].reveal;
+    // The debug panel (demo pages only): an armed kind replaces the next
+    // pack with that kind's own real opening (packDemo.ts openDebugPacks).
+    var forced = takeForced('single');
+    S.mode = 'single'; S.pack = i; S.bulk = -1; S.bp = -1; S.cur = forced ? forced.reveal : DATA.packs[i].reveal; S.forced = forced ? forced.step : null;
     bulkControls(false);
-    sealed(DATA.packs[i].label);
+    sealed(forced ? 'DEBUG · ' + forced.label : DATA.packs[i].label);
   }
   // The sealed pack S.cur, waiting to be torn: a single pack, or a big pull
   // inside a ten-pack open.
@@ -1364,7 +1443,11 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // ---------- the stack ----------
   function dealStack() {
     var r = S.cur;
-    S.phase = 'cards'; S.i = 0;
+    // A fresh stack, fresh reveals: a big pull inside a ten-pack open comes
+    // here without sealed(), and the last stack's reveals used to carry over,
+    // so the next big pull's held cards at the same places left unrevealed
+    // (found by the s62 check: a second big pull skipped its builds).
+    S.phase = 'cards'; S.i = 0; S.revealed = {};
     scene.innerHTML = '<div class="stack" id="stack"></div>';
     var stack = document.getElementById('stack');
     // Last card at the bottom, first on top.
@@ -1381,8 +1464,9 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       stack.appendChild(el);
     }
     layoutStack();
-    skipBtn.hidden = false;
-    skipBtn.textContent = S.mode === 'bulk' ? 'Skip this pack' : 'Skip to summary';
+    // Inside Open 10 a big pull's stops can't be skipped (render 62).
+    skipBtn.hidden = S.mode === 'bulk';
+    skipBtn.textContent = 'Skip to summary';
     S.busyUntil = performance.now() + TM.pack.rise;
     later(function () { stack.querySelectorAll('.cslot').forEach(function (e) { e.classList.remove('rise'); }); showTop(); }, TM.pack.rise);
     bindStack(stack);
@@ -1521,7 +1605,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   function nextCardHint(k) {
     if (k < S.cur.cards.length - 1) return 'Swipe or tap for the next card';
     if (S.mode !== 'bulk') return 'Tap for the summary';
-    return S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1 ? 'Tap for the summary' : 'Tap to carry on with the packs';
+    return S.bp >= S.B.packs.length - 1 ? 'Tap for the summary' : 'Tap to carry on with the packs';
   }
   // The afterglow's tilt (render session 61; the brief's beat 4: "the hit
   // card is mouse-tilt interactive so the owner can admire the foil"): once a
@@ -2151,13 +2235,18 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     if (S.mode !== 'bulk' || (S.phase !== 'bulk' && S.phase !== 'fan')) return;
     // Runs ahead to the next big pull, which still gets its full reveal;
     // with none left, to the summary.
+    // Never past a stop (render 62): with one still face down in the row,
+    // the button only points at it.
+    if (S.phase === 'bulk' && rowDowns().length) { log('bulkSkip', { from: S.bp, held: rowDowns().length }); bulkHint(true); return; }
+    if (S.phase === 'bulk' && S.row && S.row.building) return;
     log('bulkSkip', { from: S.bp });
     clearTimers(); S.skipping = true; S.row = null; bulkNext();
   });
   function openBulk(b) {
     clearTimers(); stopLayers(); zd.hidden = true; zd.className = 'zd'; dim.style.opacity = 0;
-    var B = DATA.bulks[b].reveal;
-    S.mode = 'bulk'; S.bulk = b; S.bp = -1; S.cur = B.packs[0]; S.phase = 'fan'; S.skipping = false; S.row = null;
+    var forced = takeForced('bulk');
+    var B = forced ? forced.reveal : DATA.bulks[b].reveal;
+    S.mode = 'bulk'; S.bulk = b; S.B = B; S.forced = forced ? forced.step : null; S.bp = -1; S.cur = B.packs[0]; S.phase = 'fan'; S.skipping = false; S.row = null;
     setBackdrop('calm');
     markPicker(); footer(); bulkControls(true); skipBtn.hidden = true;
     counter.textContent = B.packs.length + ' packs';
@@ -2178,13 +2267,13 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     });
     f.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
     f.focus({ preventScroll: true, focusVisible: false });
-    log('bulkStart', { packs: B.packs.length, label: DATA.bulks[b].label, auto: S.auto });
+    log('bulkStart', { packs: B.packs.length, label: forced ? 'DEBUG · ' + forced.label : DATA.bulks[b].label, auto: S.auto, forced: S.forced, stops: B.packs.reduce(function (n, p) { return n + p.cards.filter(packRowHeld).length; }, 0) });
   }
   function miniPackHtml() {
     return '<div class="mtop"></div><div class="mbody"><span>AI·TCG</span><svg><use href="#setsym"/></svg></div>';
   }
   function bulkFrame() {
-    var B = DATA.bulks[S.bulk].reveal;
+    var B = S.B;
     if (!document.getElementById('brow')) {
       scene.innerHTML = '<div class="bulk"><div class="pips" id="pips">' + B.packs.map(function (_, k) { return '<i data-p="' + k + '"></i>'; }).join('') + '</div><div class="brow" id="brow"></div></div>';
       bindRow(document.getElementById('brow'));
@@ -2210,13 +2299,16 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     });
   }
   function bulkNext() {
-    var B = DATA.bulks[S.bulk].reveal;
+    var B = S.B;
     S.row = null;
+    stopLayers(); roomUp();
     S.bp++;
     if (S.bp >= B.packs.length) { S.skipping = false; bulkSummary(); return; }
     var r = B.packs[S.bp];
     S.cur = r;
-    if (S.skipping && !r.fullReveal) { log('bulkPack', { fast: true, skipped: true, sparks: r.sparks }); bulkNext(); return; }
+    // Skipping runs ahead past packs of plain cards only: a pack with a stop
+    // in it (render 62) is still torn and its stops still wait.
+    if (S.skipping && !r.fullReveal && !r.cards.some(packRowHeld)) { log('bulkPack', { fast: true, skipped: true, sparks: r.sparks }); bulkNext(); return; }
     S.skipping = false;
     log('bulkPack', { fast: !r.fullReveal, sparks: r.sparks, auto: S.auto });
     S.phase = 'bulk';
@@ -2227,7 +2319,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // whatever the speed), the rest deal into the row.
   function tearMini(r) {
     var T = TM.bulk, row = bulkFrame();
-    counter.textContent = 'Pack ' + (S.bp + 1) + ' / ' + DATA.bulks[S.bulk].reveal.packs.length;
+    counter.textContent = 'Pack ' + (S.bp + 1) + ' / ' + S.B.packs.length;
     hint.innerHTML = '';
     row.innerHTML = '<div class="mpack solo" id="mpack">' + miniPackHtml() + '</div>';
     later(function () {
@@ -2263,6 +2355,9 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     later(function () {
       if (!(S.mode === 'bulk' && S.auto && S.phase === 'cards')) return;
       if (performance.now() < S.busyUntil) { autoStack(); return; }
+      // A stop (render 62): a held card waits for the owner, Auto or not.
+      var c = S.cur.cards[S.i];
+      if (c && heldCard(c) && !S.revealed[S.i]) { if (S.stopAt !== S.bp + ':' + S.i) { S.stopAt = S.bp + ':' + S.i; log('stop', { idx: S.i, step: buildOf(c).step, where: 'stack' }); hint.innerHTML = slotLabel(c) + 'Stop · tap to reveal'; } autoStack(); return; }
       act('tap'); autoStack();
     }, S.busyUntil === Infinity ? 200 : Math.max(0, left) + TM.tap.autoStackBeat);
   }
@@ -2272,7 +2367,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     S.phase = 'bulk'; bulkControls(true);
     scene.innerHTML = '';
     var row = bulkFrame();
-    if (S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1) { bulkNext(); return; }
+    if (S.bp >= S.B.packs.length - 1) { bulkNext(); return; }
     S.row = { waiting: true };
     row.innerHTML = '<div class="mpack" style="opacity:0.85">' + miniPackHtml() + '</div>';
     bulkHint();
@@ -2281,25 +2376,34 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   function rowDowns() {
     var R = S.row, out = [];
     if (!R || !R.r) return out;
-    R.r.cards.forEach(function (c, k) { if (c.faceDown && !R.flipped[k]) out.push(k); });
+    R.r.cards.forEach(function (c, k) { if (packRowHeld(c) && !R.flipped[k]) out.push(k); });
     return out;
   }
-  function bulkHint() {
-    var R = S.row, last = S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1;
+  function bulkHint(nudge) {
+    var R = S.row, last = S.bp >= S.B.packs.length - 1;
     if (!R) { hint.innerHTML = ''; return; }
-    if (S.auto) { hint.innerHTML = 'Auto · tap to move on'; return; }
     var downs = rowDowns().length;
-    hint.innerHTML = downs ? 'Tap to flip' + (downs > 1 ? ' · ' + downs + ' face down' : '') : last ? 'Tap for the summary' : 'Tap or swipe for pack ' + (S.bp + 2);
     var bc = document.querySelector('.bcards'); if (bc) bc.classList.toggle('wait', downs > 0);
+    if (R.building) { hint.innerHTML = '…'; return; }
+    // A stop: the sequence waits for the owner, Auto or not (render 62).
+    if (downs) {
+      hint.innerHTML = 'Stop · tap to reveal' + (downs > 1 ? ' · ' + downs + ' to go' : '');
+      if (nudge && bc) { bc.classList.remove('nudge'); void bc.offsetWidth; bc.classList.add('nudge'); }
+      if (R.stopAt !== rowDowns()[0]) { R.stopAt = rowDowns()[0]; var c = R.r.cards[R.stopAt]; log('stop', { idx: R.stopAt, step: buildOf(c).step, where: 'row', auto: S.auto }); }
+      return;
+    }
+    if (S.auto) { hint.innerHTML = 'Auto · tap to move on'; return; }
+    hint.innerHTML = last ? 'Tap for the summary' : 'Tap or swipe for pack ' + (S.bp + 2);
   }
   // A tap (k: the card under it, or -1) or a swipe on the row.
   function bulkTap(k, how) {
     if (S.phase !== 'bulk' || !S.row) return;
     var now = performance.now();
-    if (S.auto) { log('bulkTap', { idx: k, how: how || 'key', auto: true }); clearTimers(); bulkNext(); return; }
+    if (S.row.building) return;
+    if (S.auto && !rowDowns().length) { log('bulkTap', { idx: k, how: how || 'key', auto: true }); clearTimers(); bulkNext(); return; }
     if (S.row.waiting) { log('bulkTap', { idx: k, how: how || 'key' }); bulkNext(); return; }
     if (now < S.busyUntil) return;
-    var step = packRowTap(rowDowns(), k, S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1);
+    var step = packRowTap(rowDowns(), k, S.bp >= S.B.packs.length - 1);
     if (step.next && now < S.nextAt) return;
     log('bulkTap', { idx: k, how: how || 'key', step: step.next || 'flip' });
     if (step.next) { log('bulkPackDone', {}); bulkNext(); return; }
@@ -2308,6 +2412,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   function flipCard(k, via) {
     var R = S.row, c = R.r.cards[k], el = document.querySelector('.bcard[data-k="' + k + '"]');
     if (!el || R.flipped[k]) return;
+    if (c.build && c.build.held) { rowBuild(k, via); return; }
     R.flipped[k] = true;
     el.classList.remove('down'); el.classList.add('shown');
     sfx('flip', c.face.faction);
@@ -2318,12 +2423,54 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     log('bulkFlip', { idx: k, finish: c.finish, hit: c.hit, via: via });
     bulkHint();
   }
+  // A stop in the row (render 62): the held card plays its own build from
+  // the ladder where it lies, at its full length whatever the Auto speed:
+  // the room dims, the back climbs its glow stages with their pauses, the
+  // card turns over slowly, and the hit lands (the flash, the shake, the
+  // bass, the faction's motes, the ward). Then the row carries on.
+  function rowBuild(k, via) {
+    var R = S.row, r = R.r, c = r.cards[k], el = document.querySelector('.bcard[data-k="' + k + '"]'), b = buildOf(c), tl = b.timeline;
+    var key = 'row' + S.bp + ':' + k, bp = S.bp;
+    function live() { return S.mode === 'bulk' && S.phase === 'bulk' && S.row === R && S.bp === bp; }
+    R.flipped[k] = true; R.building = true;
+    S.busyUntil = Infinity;
+    el.classList.add('charging', 'building');
+    log('build', { idx: k, step: b.step, stages: b.stages, flipAt: tl.flipAt, landAt: tl.landAt, hitAt: b.hitAt, where: 'row', via: via });
+    roomDown(b, key);
+    bulkHint();
+    tl.stages.forEach(function (s, i) { later(function () { if (live()) glowStage(el, c, b, i + 1, s.colour); }, s.at); });
+    later(function () {
+      if (!live()) return;
+      el.classList.add('flipping');
+      var fl = el.querySelector('.flipper');
+      fl.style.transition = 'transform ' + b.flipMs + 'ms ' + (b.weight >= 0.6 ? 'cubic-bezier(.45,0,.2,1)' : 'cubic-bezier(.3,.6,.3,1)');
+      sfx('flip', c.face.faction, 'normal', { lift: true });
+      log('reveal', { idx: k, as: c.reveal, finish: c.finish, step: b.step, flipMs: b.flipMs, where: 'row' });
+      requestAnimationFrame(function () { el.classList.remove('down'); el.classList.add('shown'); });
+      announce.textContent = c.face.name + (packFinishLabel(c.finish) ? ', ' + packFinishLabel(c.finish) : '');
+      later(function () {
+        if (!live()) return;
+        hit(k, c, el, b);
+        el.classList.remove('building');
+        if (c.hit) el.classList.add('pop');
+        if (c.reveal !== 'plain' && c.reveal !== 'glitch') sfx('rise', c.face.faction, packRiseTier(c.reveal), { lift: true });
+        var now = performance.now();
+        R.building = false;
+        S.busyUntil = now + b.hold; S.nextAt = now + Math.max(b.hold, c.hit ? TM.tap.hitPop : 0);
+        later(function () { roomUp(key); }, Math.max(700, b.hold));
+        log('landed', { idx: k, as: c.reveal, step: b.step, where: 'row' });
+        bulkHint();
+        if (S.auto) autoRow(r, b.hold);
+      }, b.flipMs);
+    }, tl.flipAt);
+  }
   function dealRow(r, row) {
     var T = TM.bulk;
     row.innerHTML = '<div class="bcards n' + r.cards.length + '">' + r.cards.map(function (c, k) {
-      return '<div class="bcard' + (c.faceDown ? ' down' : '') + '" data-k="' + k + '" style="--d:' + k + '"><div class="flipper"><div class="front">' + settledFaceHtml(c) + '</div>' + backHtml() + '</div><span class="blab' + (c.hit ? ' hit' : '') + '">' + (c.slot === 'bonus' ? 'BONUS · ' : '') + packFinishLabel(c.finish) + '</span>' + (c.isNew ? '<span class="new">NEW</span>' : '') + '</div>';
+      var held = packRowHeld(c);
+      return '<div class="bcard' + (held ? ' down stop' : '') + '" data-k="' + k + '" style="--d:' + k + '">' + (held ? '<div class="aura"></div>' : '') + '<div class="flipper"><div class="front">' + settledFaceHtml(c) + '</div>' + backHtml() + '</div><span class="blab' + (c.hit ? ' hit' : '') + '">' + (c.slot === 'bonus' ? 'BONUS · ' : '') + packFinishLabel(c.finish) + '</span>' + (c.isNew ? '<span class="new">NEW</span>' : '') + '</div>';
     }).join('') + '</div>';
-    log('bulkDealt', { cards: r.cards.map(function (c) { return { finish: c.finish, faceDown: c.faceDown, slot: c.slot }; }) });
+    log('bulkDealt', { cards: r.cards.map(function (c) { return { finish: c.finish, faceDown: packRowHeld(c), step: buildOf(c).step, slot: c.slot }; }) });
     // Taps wait for the deal to land (the last card's deal ends then).
     var dealt = r.cards.length * T.deal + 160;
     S.row = { r: r, flipped: {} };
@@ -2337,16 +2484,17 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     var T = TM.bulk;
     function live() { return S.auto && S.phase === 'bulk' && S.row && S.row.r === r; }
     fast(function step() {
-      if (!live()) return;
-      var d = rowDowns();
-      if (d.length) { flipCard(d[0], 'auto'); fast(step, T.flip); return; }
+      if (!live() || S.row.building) return;
+      // A stop waits for the owner's tap (render 62); rowBuild carries
+      // Auto on once it has landed.
+      if (rowDowns().length) { bulkHint(); return; }
       fast(function () { if (!live()) return; log('bulkPackDone', {}); bulkNext(); }, r.sparks ? T.hitHold : T.hold);
     }, first);
   }
   function bulkSummary() {
     clearTimers(); stopLayers(); dim.style.opacity = 0;
     S.phase = 'summary'; S.mode = 'bulk'; bulkControls(false); skipBtn.hidden = true; counter.textContent = ''; hint.innerHTML = '';
-    var B = DATA.bulks[S.bulk].reveal, sm = B.summary;
+    var B = S.B, sm = B.summary;
     var best = B.tiles.filter(function (t) { return t.hit; }), rest = B.tiles.filter(function (t) { return !t.hit; });
     var chips = packFinishOrder().filter(function (f) { return sm.byFinish[f]; }).map(function (f) { return '<span class="chip f-' + f + '">' + (packFinishLabel(f) || 'STANDARD') + ' <b>' + sm.byFinish[f] + '</b></span>'; }).join('') +
       ['Mythic', 'Rare', 'Uncommon', 'Common'].filter(function (q) { return sm.byRarity[q]; }).map(function (q) { return '<span class="chip r">' + RAR[q] + ' <b>' + sm.byRarity[q] + '</b></span>'; }).join('');

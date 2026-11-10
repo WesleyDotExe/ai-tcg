@@ -5335,3 +5335,67 @@ field fades; the log proves the beat); nothing measured on a GPU; sounds judged 
 ceremony, part 3b (Open 10 stops on every Rare, Mythic, special finish and Prototype; the owner-only debug panel
 on the demo pages forcing the next pack's best card to any reveal kind, including Prototype), then the store
 layout.
+
+## 2026-11-10 — Render session 62: the pack opening ceremony, part 3b (Open 10's stops, the debug panel)
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #148 "Marketplace groundwork", is not "Render:"; the catch-up
+after #143 is long done). No PR from either lane was open. **Read first:** owner-feedback.md (the 2026-11-10 answers:
+all eight s61 calls kept, part 3b next; the feel check on 11 Nov is the owner's, nothing changes until then),
+DESIGN.md, RENDER.md, `progress/season0-final-brief.md` section 3, this lane's log, debt and notes. Not a hardening
+pass (59 was; the next is 64).
+
+**1. The stops (`packOpening.ts`, pure).** `isBulkStop(card)` = the card's build is held: every card above a snap on
+the ladder (a plain Rare or Mythic, every finish above Standard, a Prototype, a Zero-Day). `bulkStopsOf(bulk)` lists
+them in the order the owner meets them, each with its step, its 1x tap-to-hit and hold, and `big` (its pack is a
+store full reveal, so it plays in the one-pack stack). Every pack has at least one (its Rare slot): a ten has 13-17.
+
+**2. Open 10 on the page (`packPage.ts`).** A held card now deals face down in the row (before, only a non-Standard
+finish did; a plain Rare or Mythic dealt face up) with an aura, and the row's tap on it plays its own build where
+it lies (`rowBuild`): the room dims and ducks, the back climbs its glow stages with their pauses, the slow flip, the
+hit (flash, shake, bass, faction motes, ward), the rest of the row stepping back while it builds. At its full 1x
+length whatever the Auto speed. **Auto** still tears, deals and moves between packs by itself at its speed, but at
+a stop it waits for the owner's tap ("Stop · tap to reveal"), in the row and in a big pull's stack (before, Auto
+flipped the row and stepped through a big pull's reveals by itself). **Skip** ("Skip ahead", was "Skip to summary")
+runs past packs of plain cards only; at a stop still face down it only nudges it. A big pull inside Open 10 no longer
+offers "Skip this pack". The pure `packFastDuration` adds each stop at its 1x time; `packRowHeld` is the page's copy
+of the stop rule.
+
+**3. The debug panel.** Demo pages only (`PackPageData.debug`; the website never passes it, and `site: true` never
+renders it even with the data): a dashed DEBUG tab bottom left; opened, "FORCE THE NEXT PACK" with the ten kinds
+(Rare ... Zero-Day), the armed state, "Open one now", "Open ten now", "Disarm". An armed kind replaces the next
+pack opened from anywhere (picker, shelf, summary buttons, the panel), then disarms; `?debug=<step>` arms one at
+load. **Nothing is made up:** `packDemo.ts openDebugPacks()` finds, per kind, the first seed from 1 whose roll for a
+fresh owner has that kind as its best card (`bestStepOf`, no Jackpot, no bonus but the Prototype's), opens it for real
+(`openPack`, with its set bar), and opens the same seed as pack 1 of a real `openPacks(owner, 10)` with the next nine
+seeds. Seeds: Rare 2, Mythic 4, Foil 1, Full Art 8, Alt Art 81, Glitch 15, Gold 65, Secret 26, Prototype 551,
+Zero-Day 624. The page grows from 515 KB to 1.28 MB (twenty real openings embedded); the footer names a forced pack.
+
+**4. A bug the check found (pre-existing):** `dealStack` didn't reset `S.revealed`, so a big pull in a ten-pack open
+inherited the last stack's reveals: its held cards at the same places left without a build (a second big pull in
+one ten, or the first after another ten; also on the website). The first full run caught it (87 PASS, 3 FAIL,
+kept as `pack-ceremony-check-s62-before-fix.txt`); now reset, and pinned in the Node test.
+
+**Tests (+14, render 944):** `packStops.test.ts`: over 40 real ten-pack opens the stops are exactly the cards above a
+snap, every pack has one, `big` iff full reveal, the build's own times; a roll's best step equals the plan's over 300
+real openings; the debug packs: every kind, best card that kind, the first such seed, the Prototype's bonus with its
+serial and takeover, the ten's pack 1 the same roll, Gold and above big pulls, the same every run; the page: the panel
+on the demo only, one-shot arming, the row/Auto/Skip rules, the fresh stack, a stop's time not shrinking with speed,
+the nudge keyframe transform-only.
+
+**Ran it:** `pack-ceremony-check-s62.mjs` -> **90 PASS, 0 FAIL** (the panel; one pack and one ten of every kind
+through it on desktop, every stop built and hit in order and none on a snap; Auto at 4x waiting untouched 1.5 s at
+all 15 and 16 stops of two tens, big-pull stops included, each stop's hit no sooner than its 1x time; Skip at a
+stop; a phone with a forced Prototype pack and a forced Gold ten). Measured by tap: a ten in 36-45 s without a big
+pull, 50-62 s with one. The first run was 87/3 (the `S.revealed` bug above; kept). Re-runs: session 61's check
+**456 PASS** (`pack-ceremony-check-s61-rerun-s62.txt`); the CI browser check 61 PASS; `npm test` (render) 944 pass;
+typecheck clean; every page under `render/output/` rebuilt. **Session 54's ten-pack check now fails by design**
+(`pack-bulk-check-s54-rerun-s62.txt`): it models the old row (only finishes face down, `bulkFlip` events, Auto
+flipping by itself), which the brief replaced; a pointer-tap spot check confirmed taps on the row reveal each stop
+and move on. It should be retired or rewritten on the next hardening pass (named in the debt).
+
+**Not done (named):** nothing on a GPU or by ear (the owner's 11 Nov feel check); a row stop is a smaller moment than
+a single pack's (row-card size, no finish shader or Glitch corruption in the row); the s62 stills were taken before
+the Skip button's rename; the ten-pack summary still has no fan or set bar; a fanfare per tier.
+
+**Next render-lane slice:** after this PR the next session is game. The next render session: the store layout
+(Fortnite-style placement, the current look) with the Store and Packs widgets. Render hardening pass due at 64.
