@@ -194,7 +194,7 @@ describe("the season's end (v26)", () => {
     rate(v25, a.ownerId, 1700);
     v25.close();
     const v26 = open(path);
-    expect(v26.schemaVersion).toBe(27);
+    expect(v26.schemaVersion).toBe(28);
     expect(v26.seasonEnded()).toBe(false);
     expect(v26.rating(a.ownerId).rating).toBe(1700);
     v26.endSeason();

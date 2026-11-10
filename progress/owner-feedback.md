@@ -4528,7 +4528,7 @@ Next session by alternation: render (the pack opening ceremony, part 3).
 
 ---
 
-## 2026-11-10 — Owner: marketplace groundwork now (audit first; build only what can't be added later)
+## 2026-11-10 — Owner: marketplace groundwork now (audit first; build only what can't be added later) (HANDLED 2026-11-10, session 84 — the audit is the [OWNER CHECK-IN] at the top of `progress/notes-for-owner.md`: 1, 3 and 5 already existed (every copy its own row and id; the bound flag, cosmetics bound too; the owner holds everything); 4 needs no change (a sale is two ledger rows sharing a ref); 2's chain of owners was the gap, built small as schema v28: the append-only `copy_transfers` record, owner_id changes only by its latest transfer, a copy row never deleted, its id and provenance fixed, `copyProvenance(copyId)`. Evidence `progress/copy-provenance-001.txt` (17 PASS), tests `economy/test/copyProvenance.test.ts`. Everything else is on the list for the marketplace spec after launch)
 
 The marketplace itself is not being built (see the entry above). But the data and back-end pieces a marketplace would need from today's systems are considered now, because anything not recorded from the first day of Season 0 can't be recreated later.
 
