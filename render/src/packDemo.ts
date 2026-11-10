@@ -25,7 +25,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BULK_OPEN_COUNT, cardSet, EconomyStore, FULL_ART_OR_BETTER, LIVE_PACK_ODDS, rollPack, type BulkOpening, type PackRoll, type PityState } from "@ai-tcg/economy";
-import { planBulkReveal, planReveal, withSetBar, type BulkReveal, type PackReveal } from "./packOpening.js";
+import { bestStepOf, DEBUG_STEP_LABEL, DEBUG_STEPS, planBulkReveal, planReveal, withSetBar, type BulkReveal, type PackReveal, type RevealStep } from "./packOpening.js";
 import { renderPackOpeningHtml } from "./packPage.js";
 import { packWardRings } from "./packWards.js";
 
@@ -133,6 +133,107 @@ export function openBulkShowcase(wants: readonly BulkWant[] = BULK_SHOWCASE): Bu
   });
 }
 
+// ---- the debug panel's packs (render session 62; the brief: "Debug panel
+// (owner-only, demo pages): force the best card of the next pack to any
+// reveal kind, including Prototype, to tune each sequence without opening
+// 1,000 packs") ---------------------------------------------------------
+//
+// "Force" here never makes a card up. For each kind the panel offers, the
+// search below finds the first seed from 1 whose roll, for a fresh owner,
+// has that kind as its best card (no Jackpot; no bonus card except for the
+// Prototype, whose best card IS the bonus), and the store then opens that
+// pack for real. The panel just picks which of these real openings the next
+// pack is. The ten-pack version opens that seed as pack 1 of a real
+// ten-at-once open (the next nine seeds after it), so Open 10's stops and
+// its big-pull path can be tuned per kind too.
+
+export interface DebugPack {
+  step: Exclude<RevealStep, "snap">;
+  label: string;
+  reveal: PackReveal;
+}
+export interface DebugBulk {
+  step: Exclude<RevealStep, "snap">;
+  label: string;
+  reveal: BulkReveal;
+}
+export interface DebugPacks {
+  single: DebugPack[];
+  bulk: DebugBulk[];
+}
+
+const DEBUG_CLOCK = "2026-11-10T12:00:00.000Z";
+
+/** The first seed from 1 whose roll, for a fresh owner, has `step` as its
+ * best card. */
+export function debugSeedFor(step: Exclude<RevealStep, "snap">, limit = 2_000_000): number {
+  const set = cardSet("S0");
+  const runs = new Map(set.prototypes.map((r) => [r.code, r.runSize]));
+  const store = EconomyStore.open(":memory:", { now: () => new Date(DEBUG_CLOCK) });
+  let pity: PityState;
+  try {
+    const owner = store.createOwner({ name: "pack-debug" }).ownerId;
+    pity = store.pityStatus(owner);
+  } finally {
+    store.close();
+  }
+  for (let seed = 1; seed <= limit; seed++) {
+    const r = rollPack(seed, set, pity, runs, LIVE_PACK_ODDS);
+    if (r.jackpot) continue;
+    if (step !== "prototype" && r.pulls.some((p) => p.slot === "bonus")) continue;
+    if (bestStepOf(r.pulls) === step) return seed;
+  }
+  throw new Error(`no seed up to ${limit} has a ${step} as its best card`);
+}
+
+export function openDebugPacks(steps: readonly Exclude<RevealStep, "snap">[] = DEBUG_STEPS): DebugPacks {
+  const single: DebugPack[] = [], bulk: DebugBulk[] = [];
+  for (const step of steps) {
+    const seed = debugSeedFor(step);
+    const label = DEBUG_STEP_LABEL[step];
+    {
+      const store = EconomyStore.open(":memory:", { now: () => new Date(DEBUG_CLOCK) });
+      try {
+        const owner = store.createOwner({ name: "pack-debug" }).ownerId;
+        store.grantPack(owner, "S0", "weeklyChallenge");
+        const opening = store.openPack(owner, undefined, { seed });
+        if (bestStepOf(opening.cards) !== step) throw new Error(`seed ${seed} opened without its ${step}`);
+        single.push({ step, label, reveal: withSetBar(planReveal(opening), store.binder(owner, "S0").base) });
+      } finally {
+        store.close();
+      }
+    }
+    {
+      const store = EconomyStore.open(":memory:", { now: () => new Date(DEBUG_CLOCK) });
+      try {
+        const owner = store.createOwner({ name: "pack-debug" }).ownerId;
+        for (let i = 0; i < BULK_OPEN_COUNT; i++) store.grantPack(owner, "S0", "weeklyChallenge");
+        const open = store.openPacks(owner, BULK_OPEN_COUNT, { seeds: Array.from({ length: BULK_OPEN_COUNT }, (_, k) => seed + k) });
+        if (bestStepOf(open.packs[0]!.cards) !== step) throw new Error(`seed ${seed} opened as pack 1 without its ${step}`);
+        bulk.push({ step, label, reveal: planBulkReveal(open) });
+      } finally {
+        store.close();
+      }
+    }
+  }
+  return { single, bulk };
+}
+
+export function debugTranscript(d: DebugPacks): string {
+  const lines = [
+    "Debug panel packs (render session 62): for each kind, the first seed from 1 whose roll for a fresh owner",
+    `has that kind as its best card, opened for real (EconomyStore.openPack; and as pack 1 of openPacks(owner, 10)), odds ${LIVE_PACK_ODDS.version}.`,
+    "",
+  ];
+  d.single.forEach((s, i) => {
+    const r = s.reveal, b = d.bulk[i]!.reveal;
+    const best = r.cards.reduce((a, c) => (c.build.level >= a.build.level ? c : a));
+    lines.push(`${s.label.padEnd(9)} seed ${String(r.seed).padStart(6)}  best: ${best.face.name} (${best.face.rarity}, ${best.finish})  tap to hit ${best.build.hitAt} ms` +
+      `  | ten: pack 1 ${b.packs[0]!.fullReveal ? "big pull" : "row"}, ${b.packs.flatMap((p) => p.cards).filter((c) => c.build.held).length} stops in 10 packs`);
+  });
+  return lines.join("\n") + "\n";
+}
+
 export function bulkTranscript(bulks: readonly BulkShowcase[]): string {
   const lines = [
     "Ten-pack showcase (render session 25): real opens through EconomyStore.openPacks(owner, 10),",
@@ -176,9 +277,10 @@ if (isMain) {
   const here = dirname(fileURLToPath(import.meta.url));
   const showcase = openShowcase();
   const bulks = openBulkShowcase();
+  const debug = openDebugPacks();
   const out = join(here, "..", "output", "pack-opening.html");
   mkdirSync(dirname(out), { recursive: true });
-  writeFileSync(out, renderPackOpeningHtml({ title: "Season Zero pack opening", packs: showcase, bulks, wards: packWardRings() }));
-  process.stdout.write(transcript(showcase) + "\n" + bulkTranscript(bulks));
+  writeFileSync(out, renderPackOpeningHtml({ title: "Season Zero pack opening", packs: showcase, bulks, wards: packWardRings(), debug }));
+  process.stdout.write(transcript(showcase) + "\n" + bulkTranscript(bulks) + "\n" + debugTranscript(debug));
   process.stderr.write(`wrote ${out}\n`);
 }

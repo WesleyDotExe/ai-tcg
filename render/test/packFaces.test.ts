@@ -132,7 +132,7 @@ describe("the tap-driven ten-pack opening (owner 2026-10-18 feel notes)", () => 
     expect(timings.tap).toEqual(BULK_TAP_TIMINGS);
     expect(timings.bulk).toEqual(BULK_TIMINGS);
     expect(html).toMatch(/<button class="bauto" id="bauto" role="switch" aria-checked="false" hidden/);
-    expect(html).toContain(">Skip to summary</button></div>");
+    expect(html).toContain(">Skip ahead</button></div>");
     expect(html).not.toContain("BIG PULL");
   });
 

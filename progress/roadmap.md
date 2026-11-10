@@ -10,8 +10,8 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-10, game session 84 (marketplace groundwork, schema v28) and render session 61 (the pack
-ceremony, part 3a).
+Updated 2026-11-10, game session 84 (marketplace groundwork, schema v28) and render session 62 (the pack
+ceremony, part 3b).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -190,9 +190,10 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
    - [x] Pack opening part 2: reveal escalation across the reveal kinds, ward flare, procedural sound (60): every
      card face down, plain Commons/Uncommons snap with rising pitch, everything else builds on one monotone ladder
      (dim, duck, glow stages with pauses, slow flip, flash, shake, bass, faction motes, the faction ward flare)
-   - [~] Pack opening part 3: (61, part 3a) the Prototype takeover with the marker and serial stamped live and a
-     fanfare, the Zero-Day building before its terminal (the ladder monotone to the top), the hover tilt, the fanned
-     summary with NEW stamps and the set bar ticking up. **Left (3b):** Open 10 stops on hits, the debug panel
+   - [x] Pack opening part 3: (61, part 3a) the Prototype takeover with the marker and serial stamped live and a
+     fanfare, the Zero-Day building before its terminal, the hover tilt, the fanned summary with NEW stamps and the
+     set bar ticking up; (62, part 3b) Open 10 stops on every Rare, Mythic, special finish and Prototype (Auto waits
+     too), the owner-only debug panel forcing each kind by real seeded openings; the brief's done-check run headless
    - [ ] Store layout (Fortnite-style placement, current look) with the Store and Packs widgets
    - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger
      cards), Collection, and Ladder, Rating & form and Notifications on their real data

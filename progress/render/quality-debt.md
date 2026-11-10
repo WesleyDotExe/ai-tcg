@@ -9,27 +9,23 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
-- **The pack opening ceremony is part-built (sessions 58, 60 and 61: parts 1, 2 and 3a).** Built: the bigger pack and
-  its plate, the backdrop tell, the lean, the tear that follows the cursor and holds, the rip scrubbed to drag speed,
-  scraps, the burst (part 1); every card face down, plain Commons and Uncommons snapping with rising pitch, every
-  other card's build on one monotone ladder (part 2); the Prototype's full-screen takeover with the marker and serial
-  stamped live and a fanfare, the Zero-Day building before its terminal, the hover tilt on a landed card, the fanned
-  summary with NEW stamps and the set bar ticking up (part 3a). **Not yet (part 3b):** Open 10 stopping on every
-  Rare, Mythic, special finish and Prototype; the debug panel. The brief's done-check (every reveal kind through the
-  debug panel) is not met. **Thin:** everything was looked at in headless software rendering only, never on a GPU,
-  so the brief's 60 fps bar is unproven; there the Zero-Day's full-screen shader runs the page at 3-4 fps, a foil
-  or glitch shader at 1-10 fps, the room's fade back takes 3-6 s of wall time, the Glitch's hit lands up to 1.3 s
-  late (allowance raised to 1.5 s), and the tear still often needs a tap after Enter (its timers starved); the
-  screenshots of the Prototype's slam come out after the field has faded (a software screenshot takes longer than
-  the field's 1.1 s hold), so the slam itself is evidenced by the log, not a still; the sounds (rip, risers, bass,
-  stamps, ticks, the new fanfare) were checked by recipe, level and count, never by ear; the fanfare plays only for a
-  Prototype (the brief asks one per tier); the ten-pack summary has no fan or set bar; the first-time flow's summary
-  has no set bar (its demo has no binder); the set bar counts the base set only; a phone fan of six cards is small
-  (66 px cards); every pack still ends on at least one build (owner call 2 of s60, open to change); the Mythics' own
-  unique wards are not used in the flare; a Gold Mythic's doubled ward reaches the screen's edges at 1280 x 800; the
-  ten-pack's mini packs keep the old tear and the site's Packs and Store widgets the small pack art; the
-  under-promise rate (about 1 in 4 above plain) means a Foil pack shows the plain backdrop about a quarter of the
-  time.
+- **The pack opening ceremony is built per the brief (sessions 58, 60, 61, 62: parts 1, 2, 3a, 3b), but proven only
+  headless.** Open 10 stops on every held card (Auto waits too; Skip never passes one); the debug panel forces each
+  kind through real seeded openings; the brief's done-check ran in the headless browser (90 PASS). **Thin:**
+  everything was looked at in software rendering only, never on a GPU, so the brief's 60 fps bar is unproven; there
+  the Zero-Day's full-screen shader runs the page at 3-4 fps, a foil or glitch shader at 1-10 fps, the room's fade
+  back takes 3-6 s of wall time, the Glitch's hit lands up to 1.3 s late (allowance 1.5 s), and the tear still often
+  needs a tap after Enter; the Prototype's slam is evidenced by the log, not a still; the sounds were checked by
+  recipe, level and count, never by ear; the fanfare plays only for a Prototype (the brief asks one per tier); a row
+  stop builds at the row card's size, so a Glitch or Full Art in Open 10 is a smaller moment than in one pack, and
+  the Glitch's own corruption, the Full Art expansion and the finish shaders are not played in the row (CSS
+  stand-ins only); Open 10 takes 36-62 s by tap (13-17 stops); the ten-pack summary has no fan or set bar; the
+  first-time flow's summary has no set bar; the debug panel always forces the same pack per kind and adds 760 KB to
+  the demo page; the s62 stills were taken before the Skip button's rename (they read "Skip to summary"); the
+  session-54 ten-pack check's Auto runs encode the old Auto (flipping by itself) and fail by design now (see the
+  s62 log; superseded by the s62 check); the Mythics' own unique wards are not used in the flare; a Gold Mythic's
+  doubled ward reaches the screen's edges at 1280 x 800; the ten-pack's mini packs keep the old tear and the site's
+  Packs and Store widgets the small pack art.
 - **Agent controls' time ring runs on the server's allowance (session 58) and ticks once a second (session 59).**
   Since 59 the arc, minutes, label and caption are patched in place every second from the last read on the page's
   clock (the arc to a tenth of a percent; whole percents had stepped a 15-minute ring only every 9 s), and the

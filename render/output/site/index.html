@@ -755,10 +755,18 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
   // How long a fast (not full-reveal) pack of a ten-pack open takes at a
   // speed: sealed, torn, dealt, each face-down card turned in turn, held.
   // Mirrors Auto's own beats (tearMini, dealRow, autoRow).
+  // Render 62: each stop plays its own build at 1x (tap to hit, then its
+  // hold), whatever the speed; a card without a build (old data) still
+  // turns over in T.flip at the speed.
   function packFastDuration(cards, sparks, T, speed) {
-    var downs = cards.filter(function (c) { return c.faceDown; }).length;
-    return (T.sealed + T.tear + cards.length * T.deal + 160 + downs * T.flip + (sparks ? T.hitHold : T.hold)) / speed;
+    var stops = 0;
+    cards.forEach(function (c) { if (packRowHeld(c)) stops += c.build ? c.build.hitAt + c.build.hold : T.flip / speed; });
+    return (T.sealed + T.tear + cards.length * T.deal + 160 + (sparks ? T.hitHold : T.hold)) / speed + stops;
   }
+  // A card Open 10 stops on (render 62, packOpening.ts isBulkStop): every
+  // card above a snap on the reveal ladder (its build is held). Old data
+  // without a build: the face-down ones.
+  function packRowHeld(c) { return c.build ? !!c.build.held : !!c.faceDown; }
   var PACK_RARITY_LABEL = { Common: '● Common', Uncommon: '◆ Uncommon', Rare: '★ Rare', Mythic: '✦ Mythic' };
   function packEsc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   // Which finishes show their art across the whole card. Owner 2026-10-18:
@@ -7430,6 +7438,7 @@ gl_FragColor=vec4(col,1.);}`;
     const doneAt = ticks.length ? ticks[ticks.length - 1].at : bar2 ? barAt : stampsDone;
     return { deal, stamps, ticks, barAt, doneAt };
   }
+  var DEBUG_STEPS = REVEAL_LADDER.filter((s) => s !== "snap");
 
   // src/site/siteBoard.ts
   var WIDGET_INFO = {

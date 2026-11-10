@@ -7,6 +7,66 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-10 — The pack opening ceremony, part 3b (Open 10's stops, the debug panel) — AWAITING FEEDBACK
+
+The brief's section 3, supporting requirements, and its done-check ("the pack ceremony has been run through every
+reveal kind using the debug panel, including Prototype and Open 10"): **met, in the headless browser** (on a GPU and
+by ear it is still your feel check). Try it: open `render/output/pack-opening.html`, click **DEBUG** (bottom left),
+pick a kind, then **Open one now** or **Open ten now**.
+
+**What you'll see:**
+- **The debug panel** (demo pages only; never on the website): "FORCE THE NEXT PACK" with ten kinds, Rare, Mythic,
+  Foil, Full Art, Alt Art, Glitch, Gold, Secret, Prototype, Zero-Day. Arm one and the next pack you open, from
+  anywhere on the page, has that kind as its best card; then it disarms. "Open ten now" makes it pack 1 of a ten.
+  **Nothing is faked:** for each kind the demo found the first seed whose roll has that kind as its best card and
+  opened it for real through the store, so the pack, its set bar and the ten around it are all real openings. The
+  footer says "DEBUG: forced ..." on such a pack.
+- **Open 10 stops.** Plain Commons and Uncommons still deal straight into the row. Every other card (a plain Rare
+  or Mythic, every finish, a Prototype) now deals **face down with a glow** and the open waits on it: "Stop · tap to
+  reveal". A tap plays that card's own build from the ladder right there in the row (the room dims, the back climbs
+  its glow stages, the slow flip, the flash, shake, bass, motes and ward), the other cards stepping back while it
+  builds. A big pull (Gold and above) still plays in the full one-pack stack, where its held cards stop the same way.
+- **Auto** still tears, deals and moves on by itself at 1x/2x/4x, but **waits at every stop for your tap**, and
+  each stop's build plays at its full 1x length at any speed. **Skip ahead** (was "Skip to summary") skips packs of
+  plain cards only; pressed at a stop it just nudges the face-down card. A big pull inside Open 10 no longer has
+  "Skip this pack".
+- **A bug fixed:** a ten-pack open's second big pull (or the first big pull after another ten) skipped its builds:
+  the page remembered the last stack's revealed cards. It affected the website's Open 10 too.
+
+**Measured (headless, tapping as soon as the page allows):** a ten takes 36-45 s with no big pull, 50-62 s with one;
+13-17 stops per ten (every pack has its Rare slot, so at least ten).
+
+**Evidence:** `progress/render/evidence/pack-ceremony-check-s62.txt` (**90 PASS, 0 FAIL**: the panel; one pack of
+every kind and one ten of every kind through the panel on desktop, every stop built and hit in order and none on a
+snap; Auto at 4x waiting untouched 1.5 s at all 15 and 16 stops of two tens, big-pull stops included, and each
+stop's hit no sooner than its 1x time; Skip at a stop; a phone with a forced Prototype pack and a forced Gold ten;
+no requests, no errors, no sideways scroll). The first run, before the bug fix: `pack-ceremony-check-s62-before-fix.txt`
+(87 PASS, 3 FAIL). Stills `v2-s62-*.jpg` (the panel armed, a row stop building and landed, Auto waiting at a stop).
+Tests `render/test/packStops.test.ts` (14).
+
+**Calls you may want to overrule:**
+1. **What "stops" means:** the open halts on the card and waits for your tap, in Auto too; the reveal never plays by
+   itself. The alternative is that Auto plays each stop's full build by itself without waiting. I chose the tap
+   because the brief's principle is "nothing important auto-plays".
+2. **A plain Rare is a stop.** The brief lists "every Rare"; every pack has a Rare slot, so a ten has at least ten
+   stops (13-17 seen). If Open 10 feels slow, the cut is to stop from Mythic or Foil up and let a plain Rare deal
+   face up with only its ward flare (one rule change: `isBulkStop`).
+3. **Skip can't pass a stop.** It now skips only packs of plain cards, which in S0 never happens (every pack has a
+   Rare), so in practice it moves you to the next stop. Renamed "Skip ahead". Say if you want a true "skip to the
+   summary" for Open 10 anyway (it would break the brief's "still stops").
+4. **A row stop builds in place**, at the row card's size (about half a single pack's card), not lifted to the
+   centre. Only big pulls (Gold and above, the store's full reveals) get the full-size stack.
+5. **The debug panel forces by real seeds, not by editing a card.** The trade-off: the forced pack is always the
+   same pack per kind (e.g. the Prototype is always Recursive Construct, serial 1/250), and the page grows from
+   515 KB to 1.28 MB with the twenty openings embedded.
+6. **The panel is a small dashed tab, bottom left,** shown on the demo page only; there is no secret key or
+   password (the demo pages are the owner's; the website never renders it, even if handed the data).
+
+**Next:** the store layout (Fortnite-style placement, the current look) with the Store and Packs widgets. The pack
+ceremony is now complete per the brief; what's left on it is your feel check on the Mac mini.
+
+---
+
 ## 2026-11-10 — The pack opening ceremony, part 3a (the Prototype takeover, the afterglow, the set bar) — AWAITING FEEDBACK
 
 The brief's section 3, beats 3 and 4. Try it: open `render/output/pack-opening.html` (or

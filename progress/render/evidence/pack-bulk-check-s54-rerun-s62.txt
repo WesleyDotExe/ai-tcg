@@ -1,0 +1,59 @@
+# Re-run in render session 62, after Open 10's stops. FAILS BY DESIGN: this session-54 check models the old row
+# (only non-Standard finishes face down, flips logged as bulkFlip, Auto flipping and stepping big pulls by itself).
+# The owner's brief replaced that behaviour; pack-ceremony-check-s62.mjs covers Open 10 now (90 PASS). A pointer-tap
+# spot check in s62 confirmed taps on the row reveal each stop and move on.
+FAIL  desktop run T (10 packs, big pull, by tap): 139.2 s to the summary; big pulls at pack none; 0 packs skipped; 0 cards turned in the row; 0 tiles for 0 cards, 0 NEW
+      pack 1: still on screen after 30 taps
+      no summary after 139 s (phase bulk)
+      packs came up [0]
+      pack 1: turned [], want [4]
+      no summary
+      controls still showing on the summary
+      DOM tiles 0
+      DOM copies 0
+      DOM NEW badges 0
+      summary line "null" lacks the store's 39 new
+FAIL  desktop run A (10 packs, Auto 4x): 132.7 s to the summary; big pulls at pack none; 0 packs skipped; 0 cards turned in the row; 0 tiles for 0 cards, 0 NEW
+      no summary after 133 s (phase bulk)
+      packs came up [0]
+      pack 1: turned [], want [4]
+      no summary
+      controls still showing on the summary
+      DOM tiles 0
+      DOM copies 0
+      DOM NEW badges 0
+      summary line "null" lacks the store's 38 new
+FAIL  desktop run B (10 packs, big pull, Auto 1x): 132.5 s to the summary; big pulls at pack none; 0 packs skipped; 0 cards turned in the row; 0 tiles for 0 cards, 0 NEW
+      no summary after 132 s (phase bulk)
+      packs came up [0]
+      pack 1: turned [], want [4]
+      no summary
+      controls still showing on the summary
+      DOM tiles 0
+      DOM copies 0
+      DOM NEW badges 0
+      summary line "null" lacks the store's 39 new
+      skip pressed at the fan
+FAIL  desktop run C (10 packs, big pull, Auto 2x, skip): 132.4 s to the summary; big pulls at pack none; 0 packs skipped; 0 cards turned in the row; 0 tiles for 0 cards, 0 NEW
+      no summary after 132 s (phase bulk)
+      packs came up [0]
+      pack 1: turned [], want [4]
+      no summary
+      controls still showing on the summary
+      DOM tiles 0
+      DOM copies 0
+      DOM NEW badges 0
+      summary line "null" lacks the store's 39 new
+PASS  desktop: speed and Auto remembered across a reload (2x, Auto on; want 2x, on)
+PASS  desktop: Auto off is remembered and hides the speeds (Auto false, speeds hidden)
+FAIL  phone run T (10 packs, big pull, by tap): 137.6 s to the summary; big pulls at pack none; 0 packs skipped; 0 cards turned in the row; 0 tiles for 0 cards, 0 NEW
+      pack 1: still on screen after 30 taps
+      no summary after 138 s (phase bulk)
+      packs came up [0]
+      pack 1: turned [], want [4]
+      no summary
+      controls still showing on the summary
+      DOM tiles 0
+      DOM copies 0
+      DOM NEW badges 0
+      summary line "null" lacks the store's 39 new

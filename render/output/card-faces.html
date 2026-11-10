@@ -170,15 +170,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
    on the hit; the faction ward flares behind the card as it lands. Only
    opacity and transforms animate, apart from the back's own rim. */
 @property --gc { syntax: "<color>"; inherits: true; initial-value: #7fe3ff; }
-.cslot { --gn: 0; --gms: 400ms; }
-.cslot .aura { position: absolute; inset: -16%; border-radius: 24%; pointer-events: none; opacity: 0; transform: scale(0.9); filter: blur(12px);
+:is(.cslot, .bcard) { --gn: 0; --gms: 400ms; }
+:is(.cslot, .bcard) .aura { position: absolute; inset: -16%; border-radius: 24%; pointer-events: none; opacity: 0; transform: scale(0.9); filter: blur(12px);
   background: radial-gradient(closest-side, var(--gc) 0%, color-mix(in srgb, var(--gc) 40%, transparent) 58%, transparent 100%);
   transition: opacity var(--gms) ease-in, transform var(--gms) cubic-bezier(.2,.8,.3,1.25), --gc var(--gms); will-change: opacity, transform; }
-.cslot.charging .aura { opacity: calc(0.28 + var(--gn) * 0.17); transform: scale(calc(0.94 + var(--gn) * 0.055)); }
-.cslot.charging.flipping .aura { opacity: 0; transform: scale(1.25); transition: opacity 0.35s ease-out, transform 0.35s ease-out; }
-.cslot.charging .back { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) var(--gc), 0 0 calc(10px + var(--gn) * 9px) calc(var(--gn) * 2px) var(--gc);
+:is(.cslot, .bcard).charging .aura { opacity: calc(0.28 + var(--gn) * 0.17); transform: scale(calc(0.94 + var(--gn) * 0.055)); }
+:is(.cslot, .bcard).charging.flipping .aura { opacity: 0; transform: scale(1.25); transition: opacity 0.35s ease-out, transform 0.35s ease-out; }
+:is(.cslot, .bcard).charging .back { box-shadow: inset 0 0 0 calc(var(--cw) * 0.025) var(--gc), 0 0 calc(10px + var(--gn) * 9px) calc(var(--gn) * 2px) var(--gc);
   transition: box-shadow var(--gms), --gc var(--gms); animation: tremble calc(280ms - var(--gn) * 45ms) linear infinite; }
-.cslot.charging .back .bl { text-shadow: 0 0 calc(10px + var(--gn) * 7px) var(--gc); color: #fff; }
+:is(.cslot, .bcard).charging .back .bl { text-shadow: 0 0 calc(10px + var(--gn) * 7px) var(--gc); color: #fff; }
 @keyframes tremble { 0%, 100% { transform: rotateY(180deg) translate(0, 0); } 25% { transform: rotateY(180deg) translate(calc(var(--gn) * 0.7px), calc(var(--gn) * -0.45px)); } 75% { transform: rotateY(180deg) translate(calc(var(--gn) * -0.7px), calc(var(--gn) * 0.45px)); } }
 .stage.bshake { animation: bshake var(--skd, 400ms) cubic-bezier(.36,.07,.19,.97); }
 @keyframes bshake { 12% { transform: translate(calc(var(--sk) * -1), calc(var(--sk) * 0.5)); } 28% { transform: translate(var(--sk), calc(var(--sk) * -0.45)); } 44% { transform: translate(calc(var(--sk) * -0.6), calc(var(--sk) * 0.3)); } 62% { transform: translate(calc(var(--sk) * 0.35), calc(var(--sk) * -0.2)); } 80% { transform: translate(calc(var(--sk) * -0.12), 0); } }
@@ -470,6 +470,28 @@ body.takeover .bar { opacity: 0.18; transition: opacity 0.45s; }
 .bcard .blab.hit { color: #ffb3ec; text-shadow: 0 0 8px rgba(255,92,200,0.8); }
 .bcard .new { position: absolute; top: -6px; right: -6px; z-index: 9; background: #ff3d7f; color: #fff; font-weight: 900; font-size: 9px; letter-spacing: 0.1em; padding: 1px 5px; border-radius: 3px; opacity: 0; transition: opacity 0.2s; }
 .bcard:not(.down) .new { opacity: 1; }
+/* Open 10's stops (render session 62): a held card in the row plays its
+   build where it lies, raised over its neighbours; the rest of the row
+   steps back while it does. A press on "Skip" at a stop nudges it. */
+.bcard.building { z-index: 6; }
+.bcards.wait .bcard.charging .back { animation: tremble calc(280ms - var(--gn) * 45ms) linear infinite; }
+.bcards:has(.bcard.building) .bcard:not(.building) { opacity: 0.45; transition: opacity 0.3s; }
+.bcards.nudge .bcard.down { animation: nudge 0.42s cubic-bezier(.3,.7,.3,1.4); }
+@keyframes nudge { 40% { transform: translateY(-8px) scale(1.04); } }
+/* The debug panel (render session 62): demo pages only, never the website. */
+.dbg { position: fixed; left: 10px; bottom: 34px; z-index: 40; font-size: 12px; color: var(--ink); }
+.dbg > button { border: 1px dashed #ffb02e; background: rgba(40,24,0,0.85); color: #ffcf7a; border-radius: 6px; padding: 3px 9px; font-weight: 800; letter-spacing: 0.1em; font-size: 11px; }
+.dbg .dpan { margin-top: 6px; width: min(340px, calc(100vw - 20px)); background: rgba(10,14,28,0.96); border: 1px dashed #ffb02e; border-radius: 10px; padding: 10px 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+.dbg .dpan[hidden] { display: none; }
+.dbg h4 { margin: 0 0 4px; font-size: 11px; letter-spacing: 0.14em; color: #ffcf7a; }
+.dbg p { margin: 0 0 8px; color: var(--dim); font-size: 11px; line-height: 1.4; }
+.dbg .dk { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.dbg .dk button { border: 1px solid var(--line); background: #121a33; color: #cfe0ff; border-radius: 999px; padding: 3px 9px; font-size: 11px; font-weight: 700; }
+.dbg .dk button[aria-pressed="true"] { background: #ffb02e; border-color: #ffb02e; color: #1a1000; }
+.dbg .dst { font-size: 11px; color: #ffcf7a; margin-bottom: 8px; min-height: 1.4em; }
+.dbg .dgo { display: flex; gap: 6px; flex-wrap: wrap; }
+.dbg .dgo button { border: 1px solid var(--line); background: rgba(13,19,36,0.9); color: var(--ink); border-radius: 7px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
+.dbg .dgo button:disabled { opacity: 0.4; }
 .bulk-sum h3 { margin: 18px 0 10px; font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform: uppercase; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .chip { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; background: #121a33; border: 1px solid var(--line); color: #cfe0ff; }
@@ -702,10 +724,18 @@ h2 { font-size: 12px; letter-spacing: 0.16em; color: var(--dim); text-transform:
   // How long a fast (not full-reveal) pack of a ten-pack open takes at a
   // speed: sealed, torn, dealt, each face-down card turned in turn, held.
   // Mirrors Auto's own beats (tearMini, dealRow, autoRow).
+  // Render 62: each stop plays its own build at 1x (tap to hit, then its
+  // hold), whatever the speed; a card without a build (old data) still
+  // turns over in T.flip at the speed.
   function packFastDuration(cards, sparks, T, speed) {
-    var downs = cards.filter(function (c) { return c.faceDown; }).length;
-    return (T.sealed + T.tear + cards.length * T.deal + 160 + downs * T.flip + (sparks ? T.hitHold : T.hold)) / speed;
+    var stops = 0;
+    cards.forEach(function (c) { if (packRowHeld(c)) stops += c.build ? c.build.hitAt + c.build.hold : T.flip / speed; });
+    return (T.sealed + T.tear + cards.length * T.deal + 160 + (sparks ? T.hitHold : T.hold)) / speed + stops;
   }
+  // A card Open 10 stops on (render 62, packOpening.ts isBulkStop): every
+  // card above a snap on the reveal ladder (its build is held). Old data
+  // without a build: the face-down ones.
+  function packRowHeld(c) { return c.build ? !!c.build.held : !!c.faceDown; }
   var PACK_RARITY_LABEL = { Common: '● Common', Uncommon: '◆ Uncommon', Rare: '★ Rare', Mythic: '✦ Mythic' };
   function packEsc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   // Which finishes show their art across the whole card. Owner 2026-10-18:
