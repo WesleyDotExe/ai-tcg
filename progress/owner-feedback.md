@@ -4500,3 +4500,12 @@ Answers the six small calls in PR #146's description and `progress/log.md` (sess
 **The restart gap:** switching seasons needs a server restart. During clean-up (2–4 December), write the steps in the owner docs: press end, wait for the matches to finish, run `npm run season:next`, restart on the new file. A one-command flow goes in `progress/season-1-ideas.md`.
 
 Next session by alternation: render (the pack opening ceremony, part 3).
+
+---
+
+## 2026-11-10 — Owner: unopened packs carry over and become the new season's packs (replaces the 2026-11-07 answer 3 and the 2026-11-08 rule)
+
+- **Unopened packs from the previous season carry over** into the next season's file, and **each becomes the new season's pack**: when it is opened, it opens as the new season's set, not the old one.
+- This replaces the 2026-11-07 answer 3 ("cleared") and the 2026-11-08 rule ("lost when the season ends"), and the "Unopened packs: no change" line in the entry above.
+- **Render lane:** the "your packs will be lost" warning from the 2026-11-08 entry is no longer needed. Don't build it. If the season-end screen mentions packs, it says they carry over and open as the new season's packs.
+- **Game lane:** build this with the rest of the entry above (the collection and decks carry over): after the Season 0 launch (5 December) and before Season 0 ends (about mid-January 2027). No change to Season 0 itself.
