@@ -4542,3 +4542,30 @@ The marketplace itself is not being built (see the entry above). But the data an
 **Then build only the "must exist from day one" gaps** (mainly 1 and 2), and only if they are small, before the 1 December feature deadline. If a gap is not small, report it at the check-in and wait. Everything else (listings, prices, fees, trading screens, payments) goes on a list for the marketplace spec after the Season 0 launch.
 
 The Season 0 scope lock and freeze otherwise stand.
+
+---
+
+## 2026-11-10 — Owner: answers to game session 84 (marketplace groundwork) and render session 61 (the pack opening ceremony, part 3a), all kept
+
+**Game session 84** (PR #148, the [OWNER CHECK-IN] in `progress/notes-for-owner.md`, `progress/copy-provenance-001.txt`). The audit and the transfer record (schema v28) are accepted. **Keep all 3 small calls:**
+1. A transfer's kind is free text, so the marketplace spec can name its own kinds.
+2. A copy in a deck can't be transferred until it is taken out of the deck.
+3. Nothing writes a transfer in Season 0 and there is no endpoint; the rules are enforced by the database only, for now.
+
+**Standing notes the owner asked to keep:**
+- **When cards carry into Season 1, each copy keeps its id, its provenance and its full ownership (transfer) history.** This is on the checklist next to the carry-over work; it must not be lost in the next season's file.
+- **Once real-money purchases switch on, each pack (and so each copy from it) records whether it was bought with earned or purchased credits.** Not needed while purchasing is off in Season 0, but it becomes a day-one requirement on the day purchasing switches on, and must be in place before that.
+
+**Render session 61** (PR #147, `progress/render/checkpoints.md`, `progress/render/evidence/pack-ceremony-check-s61.txt`). **Keep all 8 calls:**
+1. **Keep:** part 3 is split; Open 10's stops and the debug panel are part 3b, the next render session.
+2. **Keep:** the Zero-Day builds through its glow stages before its terminal takeover.
+3. **Keep for now:** the Prototype's length (8.1 s tap to slam, plus 1.8 s of field). **Added to the owner's feel check;** the count and the bloom are the first things to trim if it feels too long.
+4. **Keep:** the marker reads the pack's own set code ("PROTOTYPE · S0"), and the field's label names the run.
+5. **Keep:** tournament copies have no takeover until prizes are granted in a reveal; then they use the same one.
+6. **Keep:** the set bar counts the base set only.
+7. **Keep:** the fan and set bar are for one pack only; the ten-pack summary keeps its grid. Add a set bar on the ten-pack summary to `progress/season-1-ideas.md`; not Season 0 work.
+8. **Keep:** the hover tilt is mouse only; touch keeps hold-to-tilt.
+
+**The owner's feel check on the Mac mini** (with sound and a GPU), planned for 11 November: session 60's calls 2 (a build on every pack) and 5 (the Gold Mythic's doubled ward), and session 61's call 3 (the Prototype's length). Until the owner reports, nothing changes.
+
+Next session by alternation: render (the pack opening ceremony, part 3b).
