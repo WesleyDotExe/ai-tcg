@@ -9,21 +9,25 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
-- **The pack opening ceremony is part-built (sessions 58 and 60: parts 1 and 2 of 3).** Built: the bigger pack and
+- **The pack opening ceremony is part-built (sessions 58, 60 and 61: parts 1, 2 and 3a).** Built: the bigger pack and
   its plate, the backdrop tell, the lean, the tear that follows the cursor and holds, the rip scrubbed to drag speed,
   scraps, the burst (part 1); every card face down, plain Commons and Uncommons snapping with rising pitch, every
-  other card's build on one monotone ladder (the room dimmed and ducked, the glow stages with their pauses, the slow
-  flip, flash, shake, bass, faction motes, the faction ward flare) (part 2). **Not yet (part 3):** the Prototype
-  full-screen takeover with the serial stamped live, the afterglow (tilt the hit, the fanned summary, NEW stamps, the
-  set bar), Open 10 stopping on every Rare, Mythic, special finish and Prototype, the debug panel. The brief's
-  done-check (every reveal kind through the debug panel) is not met. **Thin:** everything was looked at in headless
-  software rendering only, never on a GPU, so the brief's 60 fps bar is unproven; there, with a foil or glitch shader
-  running, the page falls to 0.8-10 fps and the room's 0.6 s fade back takes 2-5 s, the Glitch's hit lands up to
-  ~0.9 s late, and the tear's deal was twice starved past 8 s; the sounds (rip, risers, bass, the duck) were checked
-  by recipe, level and count, never by ear; every pack now ends on at least one build (the Rare slot), which may
-  wear thin over many packs (owner call 2); the Mythics' own unique wards are not used in the flare (a doubled
-  faction ring stands in); a Gold Mythic's doubled ward reaches the screen's edges at 1280 x 800 (maybe too big);
-  the ten-pack's mini packs keep the old tear and the site's Packs and Store widgets the small pack art; the
+  other card's build on one monotone ladder (part 2); the Prototype's full-screen takeover with the marker and serial
+  stamped live and a fanfare, the Zero-Day building before its terminal, the hover tilt on a landed card, the fanned
+  summary with NEW stamps and the set bar ticking up (part 3a). **Not yet (part 3b):** Open 10 stopping on every
+  Rare, Mythic, special finish and Prototype; the debug panel. The brief's done-check (every reveal kind through the
+  debug panel) is not met. **Thin:** everything was looked at in headless software rendering only, never on a GPU,
+  so the brief's 60 fps bar is unproven; there the Zero-Day's full-screen shader runs the page at 3-4 fps, a foil
+  or glitch shader at 1-10 fps, the room's fade back takes 3-6 s of wall time, the Glitch's hit lands up to 1.3 s
+  late (allowance raised to 1.5 s), and the tear still often needs a tap after Enter (its timers starved); the
+  screenshots of the Prototype's slam come out after the field has faded (a software screenshot takes longer than
+  the field's 1.1 s hold), so the slam itself is evidenced by the log, not a still; the sounds (rip, risers, bass,
+  stamps, ticks, the new fanfare) were checked by recipe, level and count, never by ear; the fanfare plays only for a
+  Prototype (the brief asks one per tier); the ten-pack summary has no fan or set bar; the first-time flow's summary
+  has no set bar (its demo has no binder); the set bar counts the base set only; a phone fan of six cards is small
+  (66 px cards); every pack still ends on at least one build (owner call 2 of s60, open to change); the Mythics' own
+  unique wards are not used in the flare; a Gold Mythic's doubled ward reaches the screen's edges at 1280 x 800; the
+  ten-pack's mini packs keep the old tear and the site's Packs and Store widgets the small pack art; the
   under-promise rate (about 1 in 4 above plain) means a Foil pack shows the plain backdrop about a quarter of the
   time.
 - **Agent controls' time ring runs on the server's allowance (session 58) and ticks once a second (session 59).**

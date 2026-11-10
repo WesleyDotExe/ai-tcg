@@ -1,0 +1,15 @@
+PASS  desktop run T (10 packs, big pull, by tap): 57.9 s to the summary; big pulls at pack 6; 0 packs skipped; 2 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+PASS  desktop run A (10 packs, Auto 4x): 13.3 s to the summary; big pulls at pack none; 0 packs skipped; 3 cards turned in the row; 39 tiles for 50 cards, 38 NEW
+PASS  desktop run B (10 packs, big pull, Auto 1x): 45.7 s to the summary; big pulls at pack 6; 0 packs skipped; 2 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+      skip pressed at the fan, pack 7
+PASS  desktop run C (10 packs, big pull, Auto 2x, skip): 29.7 s to the summary; big pulls at pack 6; 8 packs skipped; 0 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+PASS  desktop: speed and Auto remembered across a reload (2x, Auto on; want 2x, on)
+PASS  desktop: Auto off is remembered and hides the speeds (Auto false, speeds hidden)
+PASS  phone run T (10 packs, big pull, by tap): 35.8 s to the summary; big pulls at pack 6; 0 packs skipped; 2 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+PASS  phone run A (10 packs, Auto 4x): 6.0 s to the summary; big pulls at pack none; 0 packs skipped; 3 cards turned in the row; 39 tiles for 50 cards, 38 NEW
+PASS  phone run B (10 packs, big pull, Auto 1x): 38.1 s to the summary; big pulls at pack 6; 0 packs skipped; 2 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+      skip pressed at the fan, pack 7
+PASS  phone run C (10 packs, big pull, Auto 2x, skip): 21.4 s to the summary; big pulls at pack 6; 8 packs skipped; 0 cards turned in the row; 39 tiles for 50 cards, 39 NEW
+PASS  phone: speed and Auto remembered across a reload (2x, Auto on; want 2x, on)
+PASS  phone: Auto off is remembered and hides the speeds (Auto false, speeds hidden)
+12 PASS, 0 FAIL (ALL PASS)

@@ -10,7 +10,8 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-10, game session 83 (season end, part 2: the next season's file).
+Updated 2026-11-10, game session 83 (season end, part 2: the next season's file) and render session 61 (the pack
+ceremony, part 3a).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -179,13 +180,15 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
    - [x] Pack opening part 2: reveal escalation across the reveal kinds, ward flare, procedural sound (60): every
      card face down, plain Commons/Uncommons snap with rising pitch, everything else builds on one monotone ladder
      (dim, duck, glow stages with pauses, slow flip, flash, shake, bass, faction motes, the faction ward flare)
-   - [ ] Pack opening part 3: Prototype takeover, afterglow, NEW stamps, set bar, Open 10 stops on hits, debug panel
+   - [~] Pack opening part 3: (61, part 3a) the Prototype takeover with the marker and serial stamped live and a
+     fanfare, the Zero-Day building before its terminal (the ladder monotone to the top), the hover tilt, the fanned
+     summary with NEW stamps and the set bar ticking up. **Left (3b):** Open 10 stops on hits, the debug panel
    - [ ] Store layout (Fortnite-style placement, current look) with the Store and Packs widgets
    - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger
      cards), Collection, and Ladder, Rating & form and Notifications on their real data
    - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)
-   - [ ] The season-end warning (owner 2026-11-07 answer 3, confirmed 2026-11-08): before the season ends, the
-     website tells the owner plainly that unopened packs will be lost for good, with the count
+   - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
+     open as the new season's packs; a season-end screen, if one is built, says so
    - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause
      widget; last-pulls strip at L; Watch live embedded at L; rating trend at L.
 

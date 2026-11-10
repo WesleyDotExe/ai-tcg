@@ -5259,3 +5259,79 @@ sounds judged by their recipes and counts, not by ear; `pack-opening-check`, `pa
 **Next render-lane slice:** after this PR the catch-up is done and plain alternation resumes, so the next session
 is game. The next render session: the pack opening ceremony, part 3 (the brief's beat 3 Prototype takeover and beat
 4 afterglow, Open 10's stops, the debug panel), then the store layout.
+
+## 2026-11-10 — Render session 61: the pack opening ceremony, part 3a (the Prototype takeover, the afterglow, the set bar)
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #146 "Season end, part 2", is not "Render:"; the catch-up
+after #143 is done, #144 and #145 merged). No PR from either lane was open. **Read first:** owner-feedback.md (the
+2026-11-10 entries: the s60 calls kept, 2 and 5 waiting on the owner's try; the season-end pack warning no longer
+wanted, marked dropped on the checklist; the rest is game-lane), DESIGN.md, `progress/season0-final-brief.md`
+section 3, this lane's log, debt and notes. Not a hardening pass (59 was).
+
+**Scope:** part 3 of the brief's section 3 is four things; this session built two in full (the Prototype takeover,
+the afterglow with NEW stamps and the set bar) and leaves Open 10's stops and the debug panel to part 3b, rather
+than ship all four thin.
+
+**1. The takeovers (`packOpening.ts`, pure).** `RevealBuild` gains `takeover` (`prototypeTakeover()` /
+`zeroDayTakeover()`: the beats from the takeover's start, `hitAt`, `endAt`, and for a Prototype `count`, its
+serial's count up from `serialCountUp`, at most 14 ticks, ending on the serial) and `hitAt` (tap to hit:
+`timeline.landAt`, or `flipAt + takeover.hitAt`). Both top steps keep the four-stage build, and the takeover
+replaces the flip. The Zero-Day used to skip its build and hit at ~4.0 s, below a Gold (4.4-4.6 s), against the
+owner's 2026-11-10 call 6; now Prototype 8.1 s < Zero-Day 8.7 s, monotone to the top.
+
+**2. The Prototype takeover (`packPage.ts`, `protoTakeover`).** A `.pt` layer inside the stage (under the scene, so
+the card stays on top): black; the bloom (a turning conic ray field, masked radial, and a gold core; transforms and
+opacity only), "PROTOTYPE · RUN <run>", the top bar faded back (`body.takeover`); the card flips over at 1.22x with
+the gold layer ramping in; the marker "PROTOTYPE · <set>" stamped on its number line (`.mk`, a new `pendingMarker`
+face option); the plate counting up with a `tick` per number; the slam: `hit()` (flash, shake, bass, motes, ward),
+a `stamp`, the new `fanfare`, sparks, the core flaring; the field holds 1.1 s, fades, the card settles back. Every
+beat from the takeover's own times.
+
+**3. The Zero-Day (`zeroDay`).** Now called at the build's `flipAt`; every beat is scheduled from its start (the
+typing used to chain one timer per character). The browser check then showed its hit still 3-8 s late in software
+rendering, and the log showed why: `zeroDayArrive` was on time, but `settleFx` compiled the finish shader before
+`hit()` ran (3 s in SwiftShader). The hit now lands first: +25 ms. It also lifts the room the build dimmed.
+
+**4. The afterglow.** The hover tilt (`afterglowLean`/`afterglowRest`): a mouse over a landed held card leans it up
+to `AFTERGLOW.hoverDeg` (11) with no press; leaving or the card leaving springs it back and logs the peak. The
+summary (`summary`, `bindFan`, `afterglow`): the cards fly into a fan (`.pfan`, each tile placed by `--o` with
+`--fdeg` and `--fdrop`; the width formula covers the outer cards' swing, checked against the summary's clip box on a
+phone); the NEW stamps slam one after another (`newslam`, a `stamp` each) from `reveal.afterglow.stamps`; the set
+bar shows `before` and ticks per `afterglow.ticks` (a `tick` each, a semitone higher); the caption line follows the
+pointer or keyboard focus. Nothing blocks the buttons.
+
+**5. The set bar (`setBarOf`, `withSetBar`).** `before` = the binder's base count after the open minus the base
+places this pack filled; a place is filled when every copy of that card now held came out of this pack
+(`ownedAfter` = its count in the pack), and only for cards in the set (`cardSet`). The demo reads
+`store.binder(...).base` after each showcase open; the website reads `GET /api/collection/binder/:setCode` after
+an open (`withBinderBar` in `siteClient.ts`, `withSiteSetBar` in `siteStore.ts`), and plays without a bar if that
+read fails. `PackReveal.afterglow` is the plan (`afterglowPlanOf`), redone when the bar is added.
+
+**6. Sound (`soundFx.ts`).** `tick` (a short bright tick; `o.pitch` raises it) and `fanfare` (a major arpeggio onto
+a held chord of filtered saws, a bell in the voice's colour; the tier sets the climb). The pack sound list pin
+updated.
+
+**Tests (+12, render 930):** `packAfterglow.test.ts`: only the two top steps take over; the takeover starts at
+`flipAt` after four stages; tap-to-hit strictly rises up the whole ladder and the old Zero-Day was below a Gold; the
+Prototype's beat order; the serial count; over 300 real one-at-a-time openings, the bar's `before`/`after` equal
+the store's binder read before and after each open, one place per card filled, every filled card NEW; the afterglow
+plan over the same packs; the page reads the plan; the new keyframes animate only transform and opacity; the two
+new sounds.
+
+**Ran it:** `pack-ceremony-check-s61.mjs` (session 60's check, now on `hitAt`, plus the new beats) -> **456 PASS,
+0 FAIL**. It found, on the way: the `takeover` log entry's `kind` field overwrote the event's kind (renamed `as`);
+the Zero-Day's late hit (above); a six-card fan overflowing the summary's clip box on a phone (the check had
+compared with the viewport; now with the summary, and the width formula fixed); the field's fade-in was read
+before its 0.45 s transition ended (now waited for). The Glitch's hit came 1.28-1.30 s late in two runs (the s60
+allowance was 1.2 s; raised to 1.5 s, named). Re-runs: session 58's check 127 PASS
+(`pack-ceremony-check-s58-rerun-s61.txt`), the ten-pack check 12 PASS (`pack-bulk-check-s54-rerun-s61.txt`), the
+CI browser check 61 PASS. `npm test` (render) 930 pass; typecheck clean. Every page under `render/output/` rebuilt.
+
+**Not done (named):** part 3b (Open 10's stops, the debug panel); a fan and set bar on the ten-pack summary; a
+fanfare per tier (only the Prototype has one); a still of the Prototype's slam (software screenshots land after the
+field fades; the log proves the beat); nothing measured on a GPU; sounds judged by recipe, not by ear.
+
+**Next render-lane slice:** after this PR the next session is game. The next render session: the pack opening
+ceremony, part 3b (Open 10 stops on every Rare, Mythic, special finish and Prototype; the owner-only debug panel
+on the demo pages forcing the next pack's best card to any reveal kind, including Prototype), then the store
+layout.

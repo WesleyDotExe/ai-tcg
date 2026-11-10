@@ -1,0 +1,489 @@
+== desktop 1280x800
+  PASS sound on after the first gesture
+  PASS the page carries the four faction ward rings
+ No hit: snap · snap · snap · rare · snap
+  PASS No hit #1 Chitin Plating (snap): snaps face up by itself
+  PASS No hit #2 Broodcaller (snap): snaps face up by itself
+  PASS No hit #3 Breach Charge (snap): snaps face up by itself
+  PASS No hit #4 Tariff Field (rare): waits face down
+  PASS No hit #4 Tariff Field (rare): room dims to 0.33 (computed 0.31), sound ducks to 0.41 (0.41), the back charges
+  PASS No hit #4 Tariff Field (rare): the hit lands
+  PASS No hit #4 Tariff Field (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS No hit #4 Tariff Field (rare): on the timeline (stages +18 ms, hit +10 ms of 1093)
+  PASS No hit #4 Tariff Field (rare): the flash (0.3) in #7fe3ff
+  PASS No hit #4 Tariff Field (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS No hit #4 Tariff Field (rare): 33 motes in the faction's colour #ff7d24
+  PASS No hit #4 Tariff Field (rare): ward ring (1 ring(s), tinted image true)
+  PASS No hit #4 Tariff Field (rare): sound: 1 riser(s), 1 bass hit
+  PASS No hit #4 Tariff Field (rare): the mouse leans the landed card (rotateX(6.5deg) rotateY(7.5deg); peak 7.5 deg), leaving springs it back
+  PASS No hit #4 Tariff Field (rare): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS No hit #5 Zombie Process (snap): snaps face up by itself
+  PASS No hit: each snap higher than the last (1 1.122 1.26 1.414)
+  PASS No hit: summary: no flare left over, sound back
+  PASS No hit: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 189)
+  PASS No hit: summary: a NEW stamp slammed on each new card, in order (0,1,2,3,4)
+  PASS No hit: summary: the set bar 0 -> 5/96, 5 tick(s) heard 5 ("+5 new to the set")
+  PASS No hit: summary: the best card's caption shows ("Tariff Field065/096 · x1 owned")
+  PASS No hit: summary: the card under the pointer lifts and shows its caption
+      (Foil: still "torn" after Enter; tapping the pack instead)
+ Foil: snap · snap · snap · rare · foil
+  PASS Foil #1 Cortex Engineer (snap): snaps face up by itself
+  PASS Foil #2 Bulwark Chassis (snap): snaps face up by itself
+  PASS Foil #3 Power Reserve (snap): snaps face up by itself
+  PASS Foil #4 Retaliation Node (rare): waits face down
+  PASS Foil #4 Retaliation Node (rare): room dims to 0.33 (computed 0.30), sound ducks to 0.41 (0.41), the back charges
+  PASS Foil #4 Retaliation Node (rare): the hit lands
+  PASS Foil #4 Retaliation Node (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Foil #4 Retaliation Node (rare): on the timeline (stages +10 ms, hit +9 ms of 1093)
+  PASS Foil #4 Retaliation Node (rare): the flash (0.3) in #7fe3ff
+  PASS Foil #4 Retaliation Node (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Foil #4 Retaliation Node (rare): 33 motes in the faction's colour #35c9ff
+  PASS Foil #4 Retaliation Node (rare): ward ring (1 ring(s), tinted image true)
+  PASS Foil #4 Retaliation Node (rare): sound: 1 riser(s), 1 bass hit
+  PASS Foil #4 Retaliation Node (rare): the mouse leans the landed card (rotateX(6.6deg) rotateY(7.6deg); peak 7.6 deg), leaving springs it back
+  PASS Foil #4 Retaliation Node (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Foil #5 Reflex Spike (foil): waits face down
+  PASS Foil #5 Reflex Spike (foil): room dims to 0.43 (computed 0.43), sound ducks to 0.33 (0.33), the back charges
+  PASS Foil #5 Reflex Spike (foil): the hit lands
+  PASS Foil #5 Reflex Spike (foil): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Foil #5 Reflex Spike (foil): on the timeline (stages +19 ms, hit +3 ms of 1519)
+  PASS Foil #5 Reflex Spike (foil): the flash (0.45) in #7fe3ff
+  PASS Foil #5 Reflex Spike (foil): the stage shakes 4.3px (computed animation at the hit: bshake)
+  PASS Foil #5 Reflex Spike (foil): 67 motes in the faction's colour #8bff5c
+  PASS Foil #5 Reflex Spike (foil): ward none
+  PASS Foil #5 Reflex Spike (foil): sound: 1 riser(s), 1 bass hit
+  PASS Foil #5 Reflex Spike (foil): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Foil: each snap higher than the last (1 1.122 1.26)
+  PASS Foil: summary: no flare left over, sound back
+  PASS Foil: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 184)
+  PASS Foil: summary: a NEW stamp slammed on each new card, in order (0,1,2,3,4)
+  PASS Foil: summary: the set bar 5 -> 10/96, 5 tick(s) heard 5 ("+5 new to the set")
+  PASS Foil: summary: the best card's caption shows ("FOILReflex Spike038/096 · x1 owned")
+  PASS Foil: summary: the card under the pointer lifts and shows its caption
+      (Full Art: still "torn" after Enter; tapping the pack instead)
+ Full Art: snap · snap · snap · rare · fullArt
+  PASS Full Art #1 Corruption Patch (snap): snaps face up by itself
+  PASS Full Art #2 Carapace Grunt (snap): snaps face up by itself
+  PASS Full Art #3 Reinforced Bastion (snap): snaps face up by itself
+  PASS Full Art #4 Aegis Warden (rare): waits face down
+  PASS Full Art #4 Aegis Warden (rare): room dims to 0.33 (computed 0.31), sound ducks to 0.41 (0.41), the back charges
+  PASS Full Art #4 Aegis Warden (rare): the hit lands
+  PASS Full Art #4 Aegis Warden (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Full Art #4 Aegis Warden (rare): on the timeline (stages +18 ms, hit +11 ms of 1093)
+  PASS Full Art #4 Aegis Warden (rare): the flash (0.3) in #7fe3ff
+  PASS Full Art #4 Aegis Warden (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Full Art #4 Aegis Warden (rare): 33 motes in the faction's colour #ff7d24
+  PASS Full Art #4 Aegis Warden (rare): ward ring (1 ring(s), tinted image true)
+  PASS Full Art #4 Aegis Warden (rare): sound: 1 riser(s), 1 bass hit
+  PASS Full Art #4 Aegis Warden (rare): the mouse leans the landed card (rotateX(6.5deg) rotateY(7.5deg); peak 7.5 deg), leaving springs it back
+  PASS Full Art #4 Aegis Warden (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Full Art #5 Aegis Sentinel (fullArt): waits face down
+  PASS Full Art #5 Aegis Sentinel (fullArt): room dims to 0.48 (computed 0.45), sound ducks to 0.29 (0.29), the back charges
+  PASS Full Art #5 Aegis Sentinel (fullArt): the hit lands
+  PASS Full Art #5 Aegis Sentinel (fullArt): the back climbs exactly 2 glow stage(s) in the tell's colours (#7fe3ff #c48bff)
+  PASS Full Art #5 Aegis Sentinel (fullArt): on the timeline (stages +56 +1 ms, hit +10 ms of 2536)
+  PASS Full Art #5 Aegis Sentinel (fullArt): the flash (0.53) in #c48bff
+  PASS Full Art #5 Aegis Sentinel (fullArt): the stage shakes 5.4px (computed animation at the hit: bshake)
+  PASS Full Art #5 Aegis Sentinel (fullArt): 84 motes in the faction's colour #ff7d24
+  PASS Full Art #5 Aegis Sentinel (fullArt): ward none
+  PASS Full Art #5 Aegis Sentinel (fullArt): sound: 2 riser(s), 1 bass hit
+  PASS Full Art #5 Aegis Sentinel (fullArt): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Full Art: each snap higher than the last (1 1.122 1.26)
+  PASS Full Art: summary: no flare left over, sound back
+  PASS Full Art: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 184)
+  PASS Full Art: summary: a NEW stamp slammed on each new card, in order (0,1,2,3,4)
+  PASS Full Art: summary: the set bar 10 -> 15/96, 5 tick(s) heard 5 ("+5 new to the set")
+  PASS Full Art: summary: the best card's caption shows ("FULL ARTAegis Sentinel051/096 · x1 owned")
+  PASS Full Art: summary: the card under the pointer lifts and shows its caption
+      (Alt Art: still "torn" after Enter; tapping the pack instead)
+ Alt Art: snap · snap · snap · mythic · altArt
+  PASS Alt Art #1 Carapace Grunt (snap): snaps face up by itself
+  PASS Alt Art #2 Colony Broodling (snap): snaps face up by itself
+  PASS Alt Art #3 Failover Custodian (snap): snaps face up by itself
+  PASS Alt Art #4 Quorum Arbiter (mythic): waits face down
+  PASS Alt Art #4 Quorum Arbiter (mythic): room dims to 0.38 (computed 0.36), sound ducks to 0.37 (0.37), the back charges
+  PASS Alt Art #4 Quorum Arbiter (mythic): the hit lands
+  PASS Alt Art #4 Quorum Arbiter (mythic): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Alt Art #4 Quorum Arbiter (mythic): on the timeline (stages +5 ms, hit +9 ms of 1306)
+  PASS Alt Art #4 Quorum Arbiter (mythic): the flash (0.38) in #7fe3ff
+  PASS Alt Art #4 Quorum Arbiter (mythic): the stage shakes 3.2px (computed animation at the hit: bshake)
+  PASS Alt Art #4 Quorum Arbiter (mythic): 50 motes in the faction's colour #35c9ff
+  PASS Alt Art #4 Quorum Arbiter (mythic): ward double (2 ring(s), tinted image true)
+  PASS Alt Art #4 Quorum Arbiter (mythic): sound: 1 riser(s), 1 bass hit
+  PASS Alt Art #4 Quorum Arbiter (mythic): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Alt Art #5 Quorum Arbiter (altArt): waits face down
+  PASS Alt Art #5 Quorum Arbiter (altArt): room dims to 0.56 (computed 0.56), sound ducks to 0.23 (0.23), the back charges
+  PASS Alt Art #5 Quorum Arbiter (altArt): the hit lands
+  PASS Alt Art #5 Quorum Arbiter (altArt): the back climbs exactly 2 glow stage(s) in the tell's colours (#7fe3ff #c48bff)
+  PASS Alt Art #5 Quorum Arbiter (altArt): on the timeline (stages +51 +0 ms, hit +14 ms of 2970)
+  PASS Alt Art #5 Quorum Arbiter (altArt): the flash (0.65) in #c48bff
+  PASS Alt Art #5 Quorum Arbiter (altArt): the stage shakes 7.1px (computed animation at the hit: bshake)
+  PASS Alt Art #5 Quorum Arbiter (altArt): 110 motes in the faction's colour #35c9ff
+  PASS Alt Art #5 Quorum Arbiter (altArt): ward double (2 ring(s), tinted image true)
+  PASS Alt Art #5 Quorum Arbiter (altArt): sound: 2 riser(s), 1 bass hit
+  PASS Alt Art #5 Quorum Arbiter (altArt): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Alt Art: each snap higher than the last (1 1.122 1.26)
+  PASS Alt Art: summary: no flare left over, sound back
+  PASS Alt Art: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 184)
+  PASS Alt Art: summary: a NEW stamp slammed on each new card, in order (1,2,3,4)
+  PASS Alt Art: summary: the set bar 15 -> 18/96, 3 tick(s) heard 3 ("+3 new to the set")
+  PASS Alt Art: summary: the best card's caption shows ("ALT ARTQuorum Arbiter024/096 · x2 owned")
+  PASS Alt Art: summary: the card under the pointer lifts and shows its caption
+      (Glitch: still "torn" after Enter; tapping the pack instead)
+ Glitch: snap · snap · snap · rare · glitch
+  PASS Glitch #1 Swarm Larva (snap): snaps face up by itself
+  PASS Glitch #2 Swarm Larva (snap): snaps face up by itself
+  PASS Glitch #3 Reflex Spike (snap): snaps face up by itself
+  PASS Glitch #4 Tariff Field (rare): waits face down
+  PASS Glitch #4 Tariff Field (rare): room dims to 0.33 (computed 0.32), sound ducks to 0.41 (0.41), the back charges
+  PASS Glitch #4 Tariff Field (rare): the hit lands
+  PASS Glitch #4 Tariff Field (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Glitch #4 Tariff Field (rare): on the timeline (stages +13 ms, hit +13 ms of 1093)
+  PASS Glitch #4 Tariff Field (rare): the flash (0.3) in #7fe3ff
+  PASS Glitch #4 Tariff Field (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Glitch #4 Tariff Field (rare): 33 motes in the faction's colour #ff7d24
+  PASS Glitch #4 Tariff Field (rare): ward ring (1 ring(s), tinted image true)
+  PASS Glitch #4 Tariff Field (rare): sound: 1 riser(s), 1 bass hit
+  PASS Glitch #4 Tariff Field (rare): the mouse leans the landed card (rotateX(6.6deg) rotateY(7.8deg); peak 7.8 deg), leaving springs it back
+  PASS Glitch #4 Tariff Field (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Glitch #5 Corrosive Spitter (glitch): waits face down
+  PASS Glitch #5 Corrosive Spitter (glitch): room dims to 0.58 (computed 0.58), sound ducks to 0.21 (0.21), the back charges
+  PASS Glitch #5 Corrosive Spitter (glitch): the hit lands
+  PASS Glitch #5 Corrosive Spitter (glitch): the back climbs exactly 2 glow stage(s) in the tell's colours (#7fe3ff #c48bff)
+  PASS Glitch #5 Corrosive Spitter (glitch): on the timeline (stages +13 +1 ms, hit +1259 ms of 3114, glitch allowance 1500 ms)
+  PASS Glitch #5 Corrosive Spitter (glitch): the flash (0.69) in #c48bff
+  PASS Glitch #5 Corrosive Spitter (glitch): the stage shakes 7.6px (computed animation at the hit: bshake)
+  PASS Glitch #5 Corrosive Spitter (glitch): 118 motes in the faction's colour #8bff5c
+  PASS Glitch #5 Corrosive Spitter (glitch): ward none
+  PASS Glitch #5 Corrosive Spitter (glitch): sound: 2 riser(s), 1 bass hit
+      (room back after 2275 ms of wall time at 2.6 fps)
+  PASS Glitch #5 Corrosive Spitter (glitch): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Glitch: each snap higher than the last (1 1.122 1.26)
+  PASS Glitch: summary: no flare left over, sound back
+  PASS Glitch: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 184)
+  PASS Glitch: summary: a NEW stamp slammed on each new card, in order (0,1,4)
+  PASS Glitch: summary: the set bar 18 -> 20/96, 2 tick(s) heard 2 ("+2 new to the set")
+  PASS Glitch: summary: the best card's caption shows ("GLITCHCorrosive Spitter034/096 · x1 owned")
+  PASS Glitch: summary: the card under the pointer lifts and shows its caption
+      (Secret: still "torn" after Enter; tapping the pack instead)
+ Secret: snap · snap · snap · rare · secret
+  PASS Secret #1 Stray Fragment (snap): snaps face up by itself
+  PASS Secret #2 Barrier Drone (snap): snaps face up by itself
+  PASS Secret #3 Backup Protocol (snap): snaps face up by itself
+  PASS Secret #4 Latent Ward (rare): waits face down
+  PASS Secret #4 Latent Ward (rare): room dims to 0.33 (computed 0.30), sound ducks to 0.41 (0.41), the back charges
+  PASS Secret #4 Latent Ward (rare): the hit lands
+  PASS Secret #4 Latent Ward (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Secret #4 Latent Ward (rare): on the timeline (stages +12 ms, hit +9 ms of 1093)
+  PASS Secret #4 Latent Ward (rare): the flash (0.3) in #7fe3ff
+  PASS Secret #4 Latent Ward (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Secret #4 Latent Ward (rare): 33 motes in the faction's colour #ff7d24
+  PASS Secret #4 Latent Ward (rare): ward ring (1 ring(s), tinted image true)
+  PASS Secret #4 Latent Ward (rare): sound: 1 riser(s), 1 bass hit
+  PASS Secret #4 Latent Ward (rare): the mouse leans the landed card (rotateX(6.5deg) rotateY(7.5deg); peak 7.5 deg), leaving springs it back
+  PASS Secret #4 Latent Ward (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Secret #5 Entropy Harvester (secret): waits face down
+  PASS Secret #5 Entropy Harvester (secret): room dims to 0.68 (computed 0.66), sound ducks to 0.13 (0.13), the back charges
+  PASS Secret #5 Entropy Harvester (secret): the hit lands
+  PASS Secret #5 Entropy Harvester (secret): the back climbs exactly 3 glow stage(s) in the tell's colours (#7fe3ff #c48bff #ffcf6a)
+  PASS Secret #5 Entropy Harvester (secret): on the timeline (stages +55 +1 +1 ms, hit +13 ms of 4800)
+  PASS Secret #5 Entropy Harvester (secret): the flash (0.84) in #ffcf6a
+  PASS Secret #5 Entropy Harvester (secret): the stage shakes 9.8px (computed animation at the hit: bshake)
+  PASS Secret #5 Entropy Harvester (secret): 152 motes in the faction's colour #d565ff
+  PASS Secret #5 Entropy Harvester (secret): ward ring (1 ring(s), tinted image true)
+  PASS Secret #5 Entropy Harvester (secret): sound: 3 riser(s), 1 bass hit
+  PASS Secret #5 Entropy Harvester (secret): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Secret: each snap higher than the last (1 1.122 1.26)
+  PASS Secret: summary: no flare left over, sound back
+  PASS Secret: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 184)
+  PASS Secret: summary: a NEW stamp slammed on each new card, in order (0,1,2,3,4)
+  PASS Secret: summary: the set bar 20 -> 25/96, 5 tick(s) heard 5 ("+5 new to the set")
+  PASS Secret: summary: the best card's caption shows ("SECRETEntropy Harvester217/096 · x1 owned")
+  PASS Secret: summary: the card under the pointer lifts and shows its caption
+      (Gold: still "torn" after Enter; tapping the pack instead)
+ Gold: snap · snap · snap · rare · gold
+  PASS Gold #1 Colony Broodling (snap): snaps face up by itself
+  PASS Gold #2 Plating Module (snap): snaps face up by itself
+  PASS Gold #3 Static Ward Beacon (snap): snaps face up by itself
+  PASS Gold #4 Recursive Construct (rare): waits face down
+  PASS Gold #4 Recursive Construct (rare): room dims to 0.33 (computed 0.31), sound ducks to 0.41 (0.41), the back charges
+  PASS Gold #4 Recursive Construct (rare): the hit lands
+  PASS Gold #4 Recursive Construct (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Gold #4 Recursive Construct (rare): on the timeline (stages +7 ms, hit +6 ms of 1093)
+  PASS Gold #4 Recursive Construct (rare): the flash (0.3) in #7fe3ff
+  PASS Gold #4 Recursive Construct (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Gold #4 Recursive Construct (rare): 33 motes in the faction's colour #35c9ff
+  PASS Gold #4 Recursive Construct (rare): ward ring (1 ring(s), tinted image true)
+  PASS Gold #4 Recursive Construct (rare): sound: 1 riser(s), 1 bass hit
+  PASS Gold #4 Recursive Construct (rare): the mouse leans the landed card (rotateX(6.6deg) rotateY(7.8deg); peak 7.8 deg), leaving springs it back
+  PASS Gold #4 Recursive Construct (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Gold #5 Prime Aegis (gold): waits face down
+  PASS Gold #5 Prime Aegis (gold): room dims to 0.66 (computed 0.66), sound ducks to 0.15 (0.15), the back charges
+  PASS Gold #5 Prime Aegis (gold): the hit lands
+  PASS Gold #5 Prime Aegis (gold): the back climbs exactly 3 glow stage(s) in the tell's colours (#7fe3ff #c48bff #ffcf6a)
+  PASS Gold #5 Prime Aegis (gold): on the timeline (stages +7 +2 +1 ms, hit +10 ms of 4618)
+  PASS Gold #5 Prime Aegis (gold): the flash (0.81) in #ffcf6a
+  PASS Gold #5 Prime Aegis (gold): the stage shakes 9.3px (computed animation at the hit: bshake)
+  PASS Gold #5 Prime Aegis (gold): 144 motes in the faction's colour #ff7d24
+  PASS Gold #5 Prime Aegis (gold): ward double (2 ring(s), tinted image true)
+  PASS Gold #5 Prime Aegis (gold): sound: 3 riser(s), 1 bass hit
+  PASS Gold #5 Prime Aegis (gold): the mouse leans the landed card (rotateX(6.6deg) rotateY(7.7deg); peak 7.7 deg), leaving springs it back
+  PASS Gold #5 Prime Aegis (gold): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Gold: each snap higher than the last (1 1.122 1.26)
+  PASS Gold: summary: no flare left over, sound back
+  PASS Gold: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 184)
+  PASS Gold: summary: a NEW stamp slammed on each new card, in order (1,2,3,4)
+  PASS Gold: summary: the set bar 25 -> 29/96, 4 tick(s) heard 4 ("+4 new to the set")
+  PASS Gold: summary: the best card's caption shows ("GOLDPrime Aegis162/096 · x1 owned")
+  PASS Gold: summary: the card under the pointer lifts and shows its caption
+      (Prototype: still "torn" after Enter; tapping the pack instead)
+ Prototype: snap · snap · snap · rare · snap · prototype
+  PASS Prototype #1 Chitin Plating (snap): snaps face up by itself
+  PASS Prototype #2 Deadlock Detector (snap): snaps face up by itself
+  PASS Prototype #3 Rally Cry (snap): snaps face up by itself
+  PASS Prototype #4 Mainframe Core (rare): waits face down
+  PASS Prototype #4 Mainframe Core (rare): room dims to 0.33 (computed 0.31), sound ducks to 0.41 (0.41), the back charges
+  PASS Prototype #4 Mainframe Core (rare): the hit lands
+  PASS Prototype #4 Mainframe Core (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Prototype #4 Mainframe Core (rare): on the timeline (stages +10 ms, hit +5 ms of 1093)
+  PASS Prototype #4 Mainframe Core (rare): the flash (0.3) in #7fe3ff
+  PASS Prototype #4 Mainframe Core (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Prototype #4 Mainframe Core (rare): 33 motes in the faction's colour #35c9ff
+  PASS Prototype #4 Mainframe Core (rare): ward ring (1 ring(s), tinted image true)
+  PASS Prototype #4 Mainframe Core (rare): sound: 1 riser(s), 1 bass hit
+  PASS Prototype #4 Mainframe Core (rare): the mouse leans the landed card (rotateX(6.6deg) rotateY(7.6deg); peak 7.6 deg), leaving springs it back
+  PASS Prototype #4 Mainframe Core (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Prototype #5 Segfault Handler (snap): snaps face up by itself
+  PASS Prototype #6 Recursive Construct (prototype): waits face down
+  PASS Prototype #6 Recursive Construct (prototype): room dims to 0.73 (computed 0.73), sound ducks to 0.09 (0.09), the back charges
+  PASS Prototype #6 Recursive Construct (prototype): the gold field takes the stage (opacity 1.00, "PROTOTYPE · RUN S0-P12", the bar dimmed to 0.18)
+  PASS Prototype #6 Recursive Construct (prototype): face up large (scale(1.22)), the marker "PROTOTYPE · S0" stamped on
+  PASS Prototype #6 Recursive Construct (prototype): the hit lands
+  PASS Prototype #6 Recursive Construct (prototype): the back climbs exactly 4 glow stage(s) in the tell's colours (#7fe3ff #c48bff #ffcf6a #fff1b8)
+  PASS Prototype #6 Recursive Construct (prototype): on the timeline (stages +53 +1 +0 +1 ms, hit +6 ms of 8094, takeover allowance 3150 ms)
+  PASS Prototype #6 Recursive Construct (prototype): the flash (0.92) in #fff1b8
+  PASS Prototype #6 Recursive Construct (prototype): the stage shakes 10.9px (computed animation at the hit: bshake)
+  PASS Prototype #6 Recursive Construct (prototype): 169 motes in the faction's colour #35c9ff
+  PASS Prototype #6 Recursive Construct (prototype): ward ring (1 ring(s), tinted image true)
+  PASS Prototype #6 Recursive Construct (prototype): sound: 5 riser(s), 1 bass hit, 2 stamps, 1 count ticks, 1 fanfare
+  PASS Prototype #6 Recursive Construct (prototype): the serial counted 1 and the plate slammed on 1/250
+  PASS Prototype #6 Recursive Construct (prototype): the beats in order (0 / 452 / 2183 / 2196 / 2461 / 3166 ms)
+  PASS Prototype #6 Recursive Construct (prototype): the field fades and the card settles back (transform "")
+  PASS Prototype #6 Recursive Construct (prototype): the mouse leans the landed card (rotateX(6.6deg) rotateY(7.7deg); peak 7.7 deg), leaving springs it back
+  PASS Prototype #6 Recursive Construct (prototype): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Prototype: each snap higher than the last (1 1.122 1.26 1.414)
+  PASS Prototype: summary: no flare left over, sound back
+  PASS Prototype: summary: all 6 cards fanned, inside the summary (x 239..1041 of 150..1130, top 183)
+  PASS Prototype: summary: a NEW stamp slammed on each new card, in order (1,2,3,4)
+  PASS Prototype: summary: the set bar 30 -> 34/96, 4 tick(s) heard 4 ("+4 new to the set")
+  PASS Prototype: summary: the best card's caption shows ("PROTOTYPERecursive Constructserial 1 of 250 · x3 owned")
+  PASS Prototype: summary: the card under the pointer lifts and shows its caption
+      (Zero-Day: still "torn" after Enter; tapping the pack instead)
+ Zero-Day: snap · snap · snap · rare · zeroDay
+  PASS Zero-Day #1 Swarm Larva (snap): snaps face up by itself
+  PASS Zero-Day #2 Chitin Plating (snap): snaps face up by itself
+  PASS Zero-Day #3 Cache Warmup (snap): snaps face up by itself
+  PASS Zero-Day #4 Recursive Construct (rare): waits face down
+  PASS Zero-Day #4 Recursive Construct (rare): room dims to 0.33 (computed 0.31), sound ducks to 0.41 (0.41), the back charges
+  PASS Zero-Day #4 Recursive Construct (rare): the hit lands
+  PASS Zero-Day #4 Recursive Construct (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Zero-Day #4 Recursive Construct (rare): on the timeline (stages +7 ms, hit +13 ms of 1093)
+  PASS Zero-Day #4 Recursive Construct (rare): the flash (0.3) in #7fe3ff
+  PASS Zero-Day #4 Recursive Construct (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Zero-Day #4 Recursive Construct (rare): 33 motes in the faction's colour #35c9ff
+  PASS Zero-Day #4 Recursive Construct (rare): ward ring (1 ring(s), tinted image true)
+  PASS Zero-Day #4 Recursive Construct (rare): sound: 1 riser(s), 1 bass hit
+  PASS Zero-Day #4 Recursive Construct (rare): the mouse leans the landed card (rotateX(6.6deg) rotateY(7.6deg); peak 7.6 deg), leaving springs it back
+  PASS Zero-Day #4 Recursive Construct (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Zero-Day #5 Patient Zero (zeroDay): waits face down
+  PASS Zero-Day #5 Patient Zero (zeroDay): room dims to 0.81 (computed 0.81), sound ducks to 0.06 (0.06), the back charges
+  PASS Zero-Day #5 Patient Zero (zeroDay): the hit lands
+  PASS Zero-Day #5 Patient Zero (zeroDay): the back climbs exactly 4 glow stage(s) in the tell's colours (#7fe3ff #c48bff #ffcf6a #fff1b8)
+      (Zero-Day: 3.8 fps during the build and the takeover; the hit +19 ms is software rendering's)
+  PASS Zero-Day #5 Patient Zero (zeroDay): on the timeline (stages +17 +3 +1 +2 ms, hit +19 ms of 8708, takeover allowance 1800 ms)
+  PASS Zero-Day #5 Patient Zero (zeroDay): the flash (1.04) in #fff1b8
+  PASS Zero-Day #5 Patient Zero (zeroDay): the stage shakes 12.6px (computed animation at the hit: bshake)
+  PASS Zero-Day #5 Patient Zero (zeroDay): 195 motes in the faction's colour #fff0c2
+  PASS Zero-Day #5 Patient Zero (zeroDay): ward none
+  PASS Zero-Day #5 Patient Zero (zeroDay): sound: 4 riser(s), 1 bass hit
+  PASS Zero-Day #5 Patient Zero (zeroDay): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Zero-Day: each snap higher than the last (1 1.122 1.26)
+  PASS Zero-Day: summary: no flare left over, sound back
+  PASS Zero-Day: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 184)
+  PASS Zero-Day: summary: a NEW stamp slammed on each new card, in order (2,4)
+  PASS Zero-Day: summary: the set bar 29 -> 30/96, 1 tick(s) heard 1 ("+1 new to the set")
+  PASS Zero-Day: summary: the best card's caption shows ("ZERO-DAYPatient Zero226/096 · x1 owned")
+  PASS Zero-Day: summary: the card under the pointer lifts and shows its caption
+      (Jackpot: still "torn" after Enter; tapping the pack instead)
+ Jackpot: foil · foil · foil · foil · glitch
+  PASS Jackpot #1 Plating Module (foil): waits face down
+  PASS Jackpot #1 Plating Module (foil): room dims to 0.43 (computed 0.41), sound ducks to 0.33 (0.33), the back charges
+  PASS Jackpot #1 Plating Module (foil): the hit lands
+  PASS Jackpot #1 Plating Module (foil): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Jackpot #1 Plating Module (foil): on the timeline (stages +6 ms, hit +12 ms of 1519)
+  PASS Jackpot #1 Plating Module (foil): the flash (0.45) in #7fe3ff
+  PASS Jackpot #1 Plating Module (foil): the stage shakes 4.3px (computed animation at the hit: bshake)
+  PASS Jackpot #1 Plating Module (foil): 67 motes in the faction's colour #ff7d24
+  PASS Jackpot #1 Plating Module (foil): ward none
+  PASS Jackpot #1 Plating Module (foil): sound: 1 riser(s), 1 bass hit
+  PASS Jackpot #1 Plating Module (foil): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Jackpot #2 Rollback Point (foil): waits face down
+  PASS Jackpot #2 Rollback Point (foil): room dims to 0.43 (computed 0.39), sound ducks to 0.33 (0.33), the back charges
+  PASS Jackpot #2 Rollback Point (foil): the hit lands
+  PASS Jackpot #2 Rollback Point (foil): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Jackpot #2 Rollback Point (foil): on the timeline (stages +10 ms, hit +2 ms of 1519)
+  PASS Jackpot #2 Rollback Point (foil): the flash (0.45) in #7fe3ff
+  PASS Jackpot #2 Rollback Point (foil): the stage shakes 4.3px (computed animation at the hit: bshake)
+  PASS Jackpot #2 Rollback Point (foil): 67 motes in the faction's colour #fff0c2
+  PASS Jackpot #2 Rollback Point (foil): ward none
+  PASS Jackpot #2 Rollback Point (foil): sound: 1 riser(s), 1 bass hit
+      (room back after 4654 ms of wall time at 4.9 fps)
+  PASS Jackpot #2 Rollback Point (foil): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Jackpot #3 Cache Warmup (foil): waits face down
+  PASS Jackpot #3 Cache Warmup (foil): room dims to 0.43 (computed 0.39), sound ducks to 0.33 (0.33), the back charges
+  PASS Jackpot #3 Cache Warmup (foil): the hit lands
+  PASS Jackpot #3 Cache Warmup (foil): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Jackpot #3 Cache Warmup (foil): on the timeline (stages +4 ms, hit +3 ms of 1519)
+  PASS Jackpot #3 Cache Warmup (foil): the flash (0.45) in #7fe3ff
+  PASS Jackpot #3 Cache Warmup (foil): the stage shakes 4.3px (computed animation at the hit: bshake)
+  PASS Jackpot #3 Cache Warmup (foil): 67 motes in the faction's colour #fff0c2
+  PASS Jackpot #3 Cache Warmup (foil): ward none
+  PASS Jackpot #3 Cache Warmup (foil): sound: 1 riser(s), 1 bass hit
+      (room back after 5427 ms of wall time at 4.8 fps)
+  PASS Jackpot #3 Cache Warmup (foil): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Jackpot #4 Recursive Construct (foil): waits face down
+  PASS Jackpot #4 Recursive Construct (foil): room dims to 0.43 (computed 0.41), sound ducks to 0.33 (0.33), the back charges
+  PASS Jackpot #4 Recursive Construct (foil): the hit lands
+  PASS Jackpot #4 Recursive Construct (foil): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Jackpot #4 Recursive Construct (foil): on the timeline (stages +15 ms, hit +5 ms of 1519)
+  PASS Jackpot #4 Recursive Construct (foil): the flash (0.45) in #7fe3ff
+  PASS Jackpot #4 Recursive Construct (foil): the stage shakes 4.3px (computed animation at the hit: bshake)
+  PASS Jackpot #4 Recursive Construct (foil): 67 motes in the faction's colour #35c9ff
+  PASS Jackpot #4 Recursive Construct (foil): ward ring (1 ring(s), tinted image true)
+  PASS Jackpot #4 Recursive Construct (foil): sound: 1 riser(s), 1 bass hit
+      (room back after 3156 ms of wall time at 7.3 fps)
+  PASS Jackpot #4 Recursive Construct (foil): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Jackpot #5 Scrap Recycler (glitch): waits face down
+  PASS Jackpot #5 Scrap Recycler (glitch): room dims to 0.58 (computed 0.56), sound ducks to 0.21 (0.21), the back charges
+  PASS Jackpot #5 Scrap Recycler (glitch): the hit lands
+  PASS Jackpot #5 Scrap Recycler (glitch): the back climbs exactly 2 glow stage(s) in the tell's colours (#7fe3ff #c48bff)
+  PASS Jackpot #5 Scrap Recycler (glitch): on the timeline (stages +5 +1 ms, hit +15 ms of 3114, glitch allowance 1500 ms)
+  PASS Jackpot #5 Scrap Recycler (glitch): the flash (0.69) in #c48bff
+  PASS Jackpot #5 Scrap Recycler (glitch): the stage shakes 7.6px (computed animation at the hit: bshake)
+  PASS Jackpot #5 Scrap Recycler (glitch): 118 motes in the faction's colour #fff0c2
+  PASS Jackpot #5 Scrap Recycler (glitch): ward none
+  PASS Jackpot #5 Scrap Recycler (glitch): sound: 2 riser(s), 1 bass hit
+      (room back after 3203 ms of wall time at 1.6 fps)
+  PASS Jackpot #5 Scrap Recycler (glitch): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Jackpot: summary: no flare left over, sound back
+  PASS Jackpot: summary: all 5 cards fanned, inside the summary (x 303..977 of 150..1130, top 184)
+  PASS Jackpot: summary: a NEW stamp slammed on each new card, in order (1,4)
+  PASS Jackpot: summary: the set bar 34 -> 36/96, 2 tick(s) heard 2 ("+2 new to the set")
+  PASS Jackpot: summary: the best card's caption shows ("GLITCHScrap Recycler090/096 · x1 owned")
+  PASS Jackpot: summary: the card under the pointer lifts and shows its caption
+  PASS desktop: no horizontal scroll
+  PASS desktop: no network requests (0)
+  PASS desktop: no page errors
+== phone 390x844
+  PASS sound on after the first gesture
+  PASS the page carries the four faction ward rings
+ No hit: snap · snap · snap · rare · snap
+  PASS No hit #1 Chitin Plating (snap): snaps face up by itself
+  PASS No hit #2 Broodcaller (snap): snaps face up by itself
+  PASS No hit #3 Breach Charge (snap): snaps face up by itself
+  PASS No hit #4 Tariff Field (rare): waits face down
+  PASS No hit #4 Tariff Field (rare): room dims to 0.33 (computed 0.30), sound ducks to 0.41 (0.41), the back charges
+  PASS No hit #4 Tariff Field (rare): the hit lands
+  PASS No hit #4 Tariff Field (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS No hit #4 Tariff Field (rare): on the timeline (stages +11 ms, hit +12 ms of 1093)
+  PASS No hit #4 Tariff Field (rare): the flash (0.3) in #7fe3ff
+  PASS No hit #4 Tariff Field (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS No hit #4 Tariff Field (rare): 33 motes in the faction's colour #ff7d24
+  PASS No hit #4 Tariff Field (rare): ward ring (1 ring(s), tinted image true)
+  PASS No hit #4 Tariff Field (rare): sound: 1 riser(s), 1 bass hit
+  PASS No hit #4 Tariff Field (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS No hit #5 Zombie Process (snap): snaps face up by itself
+  PASS No hit: each snap higher than the last (1 1.122 1.26 1.414)
+  PASS No hit: summary: no flare left over, sound back
+  PASS No hit: summary: all 5 cards fanned, inside the summary (x 25..365 of 16..374, top 326)
+  PASS No hit: summary: a NEW stamp slammed on each new card, in order (0,1,2,3,4)
+  PASS No hit: summary: the set bar 0 -> 5/96, 5 tick(s) heard 5 ("+5 new to the set")
+  PASS No hit: summary: the best card's caption shows ("Tariff Field065/096 · x1 owned")
+ Prototype: snap · snap · snap · rare · snap · prototype
+  PASS Prototype #1 Chitin Plating (snap): snaps face up by itself
+  PASS Prototype #2 Deadlock Detector (snap): snaps face up by itself
+  PASS Prototype #3 Rally Cry (snap): snaps face up by itself
+  PASS Prototype #4 Mainframe Core (rare): waits face down
+  PASS Prototype #4 Mainframe Core (rare): room dims to 0.33 (computed 0.31), sound ducks to 0.41 (0.41), the back charges
+  PASS Prototype #4 Mainframe Core (rare): the hit lands
+  PASS Prototype #4 Mainframe Core (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Prototype #4 Mainframe Core (rare): on the timeline (stages +10 ms, hit +6 ms of 1093)
+  PASS Prototype #4 Mainframe Core (rare): the flash (0.3) in #7fe3ff
+  PASS Prototype #4 Mainframe Core (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Prototype #4 Mainframe Core (rare): 33 motes in the faction's colour #35c9ff
+  PASS Prototype #4 Mainframe Core (rare): ward ring (1 ring(s), tinted image true)
+  PASS Prototype #4 Mainframe Core (rare): sound: 1 riser(s), 1 bass hit
+  PASS Prototype #4 Mainframe Core (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Prototype #5 Segfault Handler (snap): snaps face up by itself
+  PASS Prototype #6 Recursive Construct (prototype): waits face down
+  PASS Prototype #6 Recursive Construct (prototype): room dims to 0.73 (computed 0.70), sound ducks to 0.09 (0.09), the back charges
+  PASS Prototype #6 Recursive Construct (prototype): the gold field takes the stage (opacity 1.00, "PROTOTYPE · RUN S0-P12", the bar dimmed to 0.18)
+  PASS Prototype #6 Recursive Construct (prototype): face up large (scale(1.22)), the marker "PROTOTYPE · S0" stamped on
+  PASS Prototype #6 Recursive Construct (prototype): the hit lands
+  PASS Prototype #6 Recursive Construct (prototype): the back climbs exactly 4 glow stage(s) in the tell's colours (#7fe3ff #c48bff #ffcf6a #fff1b8)
+  PASS Prototype #6 Recursive Construct (prototype): on the timeline (stages +19 +2 +5 +1 ms, hit +6 ms of 8094, takeover allowance 3150 ms)
+  PASS Prototype #6 Recursive Construct (prototype): the flash (0.92) in #fff1b8
+  PASS Prototype #6 Recursive Construct (prototype): the stage shakes 10.9px (computed animation at the hit: bshake)
+  PASS Prototype #6 Recursive Construct (prototype): 169 motes in the faction's colour #35c9ff
+  PASS Prototype #6 Recursive Construct (prototype): ward ring (1 ring(s), tinted image true)
+  PASS Prototype #6 Recursive Construct (prototype): sound: 5 riser(s), 1 bass hit, 2 stamps, 1 count ticks, 1 fanfare
+  PASS Prototype #6 Recursive Construct (prototype): the serial counted 1 and the plate slammed on 1/250
+  PASS Prototype #6 Recursive Construct (prototype): the beats in order (0 / 453 / 1491 / 1902 / 2461 / 3166 ms)
+  PASS Prototype #6 Recursive Construct (prototype): the field fades and the card settles back (transform "")
+  PASS Prototype #6 Recursive Construct (prototype): the room and the sound come back (dim 0.00, set to 0, sound 1)
+  PASS Prototype: each snap higher than the last (1 1.122 1.26 1.414)
+  PASS Prototype: summary: no flare left over, sound back
+  PASS Prototype: summary: all 6 cards fanned, inside the summary (x 18..372 of 16..374, top 329)
+  PASS Prototype: summary: a NEW stamp slammed on each new card, in order (1,2,3,4)
+  PASS Prototype: summary: the set bar 30 -> 34/96, 4 tick(s) heard 4 ("+4 new to the set")
+  PASS Prototype: summary: the best card's caption shows ("PROTOTYPERecursive Constructserial 1 of 250 · x3 owned")
+ Zero-Day: snap · snap · snap · rare · zeroDay
+  PASS Zero-Day #1 Swarm Larva (snap): snaps face up by itself
+  PASS Zero-Day #2 Chitin Plating (snap): snaps face up by itself
+  PASS Zero-Day #3 Cache Warmup (snap): snaps face up by itself
+  PASS Zero-Day #4 Recursive Construct (rare): waits face down
+  PASS Zero-Day #4 Recursive Construct (rare): room dims to 0.33 (computed 0.31), sound ducks to 0.41 (0.41), the back charges
+  PASS Zero-Day #4 Recursive Construct (rare): the hit lands
+  PASS Zero-Day #4 Recursive Construct (rare): the back climbs exactly 1 glow stage(s) in the tell's colours (#7fe3ff)
+  PASS Zero-Day #4 Recursive Construct (rare): on the timeline (stages +16 ms, hit +9 ms of 1093)
+  PASS Zero-Day #4 Recursive Construct (rare): the flash (0.3) in #7fe3ff
+  PASS Zero-Day #4 Recursive Construct (rare): the stage shakes 2.1px (computed animation at the hit: bshake)
+  PASS Zero-Day #4 Recursive Construct (rare): 33 motes in the faction's colour #35c9ff
+  PASS Zero-Day #4 Recursive Construct (rare): ward ring (1 ring(s), tinted image true)
+  PASS Zero-Day #4 Recursive Construct (rare): sound: 1 riser(s), 1 bass hit
+  PASS Zero-Day #4 Recursive Construct (rare): the room and the sound come back (dim 0.04, set to 0, sound 1)
+  PASS Zero-Day #5 Patient Zero (zeroDay): waits face down
+  PASS Zero-Day #5 Patient Zero (zeroDay): room dims to 0.81 (computed 0.78), sound ducks to 0.06 (0.06), the back charges
+  PASS Zero-Day #5 Patient Zero (zeroDay): the hit lands
+  PASS Zero-Day #5 Patient Zero (zeroDay): the back climbs exactly 4 glow stage(s) in the tell's colours (#7fe3ff #c48bff #ffcf6a #fff1b8)
+  PASS Zero-Day #5 Patient Zero (zeroDay): on the timeline (stages +18 +3 +6 +3 ms, hit +15 ms of 8708, takeover allowance 1800 ms)
+  PASS Zero-Day #5 Patient Zero (zeroDay): the flash (1.04) in #fff1b8
+  PASS Zero-Day #5 Patient Zero (zeroDay): the stage shakes 12.6px (computed animation at the hit: bshake)
+  PASS Zero-Day #5 Patient Zero (zeroDay): 195 motes in the faction's colour #fff0c2
+  PASS Zero-Day #5 Patient Zero (zeroDay): ward none
+  PASS Zero-Day #5 Patient Zero (zeroDay): sound: 4 riser(s), 1 bass hit
+  PASS Zero-Day #5 Patient Zero (zeroDay): the room and the sound come back (dim 0.05, set to 0, sound 1)
+  PASS Zero-Day: each snap higher than the last (1 1.122 1.26)
+  PASS Zero-Day: summary: no flare left over, sound back
+  PASS Zero-Day: summary: all 5 cards fanned, inside the summary (x 25..365 of 16..374, top 321)
+  PASS Zero-Day: summary: a NEW stamp slammed on each new card, in order (2,4)
+  PASS Zero-Day: summary: the set bar 29 -> 30/96, 1 tick(s) heard 1 ("+1 new to the set")
+  PASS Zero-Day: summary: the best card's caption shows ("ZERO-DAYPatient Zero226/096 · x1 owned")
+  PASS phone: no horizontal scroll
+  PASS phone: no network requests (0)
+  PASS phone: no page errors
+ladder as planned for the cards played (tap to hit, ms): rare 1093 < mythic 1306 < foil 1519 < fullArt 2536 < altArt 2970 < glitch 3114 < gold 4618 < secret 4800 < prototype 8094 < zeroDay 8708
+ladder as played (fastest seen, ms): rare 1098 < mythic 1315 < foil 1521 < fullArt 2546 < altArt 2984 < glitch 3129 < gold 4628 < secret 4813 < prototype 8100 < zeroDay 8723
+  PASS every step up the ladder is planned longer from tap to hit, the Zero-Day last
+  PASS every step up the ladder took longer from tap to hit, on the page
+456 PASS, 0 FAIL

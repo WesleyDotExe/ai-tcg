@@ -1931,7 +1931,7 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
   // The pack opening's sounds (render session 24, owner 2026-10-18: "a tear
   // sound, flip ticks and a rising tone on hits"). Same player, same
   // settings; the voice is the card's faction where there is one.
-  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp', 'burst', 'riser', 'bass'];
+  var SFX_PACK_KINDS = ['tear', 'flip', 'rise', 'sparkle', 'type', 'breach', 'glitch', 'stamp', 'burst', 'riser', 'bass', 'tick', 'fanfare'];
   // The rip scrubbed to the drag (render session 58, the pack ceremony part
   // 1): how loud and how bright the tearing foil sounds at a drag speed (px
   // per ms along the strip). Still is silent; a slow pull is a low, quiet
@@ -2276,6 +2276,25 @@ h2 { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--ink); font-weight: 
       // Corruption: broken pitch blips and a crunch.
       for (var gi = 0; gi < 6; gi++) T({ type: 'square', f0: r(150, 3200), dur: 0.03, g: 0.05, delay: gi * 0.05 });
       N({ type: 'bandpass', f0: 900, f1: 3000, q: 3, dur: 0.25, g: 0.18 });
+    } else if (kind === 'tick') {
+      // One step of a count (render session 61): the set bar's place filled,
+      // a Prototype serial's number. A bright, short wooden tick; o.pitch
+      // raises it, so a run of ticks climbs.
+      var kp = o.pitch > 0 ? o.pitch : 1;
+      T({ type: 'triangle', f0: 1568 * kp, dur: 0.05, g: 0.08, att: 0.002 });
+      N({ type: 'bandpass', f0: 4200 * kp, q: 9, dur: 0.02, g: 0.09 });
+    } else if (kind === 'fanfare') {
+      // A Prototype's hit (render session 61; the brief's "a fanfare per
+      // tier"): a rising major arpeggio landing on a held chord, brass-ish
+      // (filtered saws) over a bell. The tier sets how far it climbs; the
+      // voice only tints the bell on top.
+      var ft = tier === 'spectacle' ? 2 : tier === 'subtle' ? 0 : 1;
+      var root = 262, notes = [1, 1.26, 1.5, 2, 2.52].slice(0, 3 + ft);
+      notes.forEach(function (p, i) { T({ type: 'sawtooth', f0: root * p, dur: 0.22, g: 0.05, delay: i * 0.09, att: 0.01, filt: 'lowpass', ff: 2600 }); });
+      var land = notes.length * 0.09;
+      [1, 1.26, 1.5, 2].forEach(function (p) { T({ type: 'sawtooth', f0: root * p, dur: 0.9 + 0.3 * ft, g: 0.035, delay: land, att: 0.04, filt: 'lowpass', ff: 2200 }); });
+      var bf = v === 'cortex' ? 2093 : v === 'aegis' ? 1047 : v === 'swarm' ? 2349 : v === 'null' ? 1661 : 1568;
+      T({ type: 'sine', f0: bf, dur: 1.2, g: 0.03, delay: land, att: 0.02 });
     } else if (kind === 'stamp') {
       // A Prototype's serial plate pressing in: a heavy thunk and a ring.
       T({ type: 'sine', f0: 140, f1: 45, dur: 0.35, g: 0.4 });

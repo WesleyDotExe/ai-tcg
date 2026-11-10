@@ -41,7 +41,7 @@ import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
 import { allowanceOf, dialKeyTarget, ringOfPlay, ringParts, ringTicks, statusPollMs, type SiteRating } from "./siteAgent.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
-import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
+import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, withSiteSetBar, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
 import {
   WIDGET_INFO,
   addBlock,
@@ -1502,7 +1502,7 @@ async function openPacks(what: SiteOpenRequest, from?: HTMLElement): Promise<voi
     const [answer, P] = await Promise.all([api.openPacks(state.session.token, what), packFrame()]);
     state.wallet = answer.wallet;
     drawWallet();
-    play(P, revealOf(answer));
+    play(P, await withBinderBar(revealOf(answer)));
   } catch (err) {
     // Nothing was opened (or the page couldn't show it: the cards are in
     // the collection either way). Back to the website, with the reason.
@@ -1510,6 +1510,19 @@ async function openPacks(what: SiteOpenRequest, from?: HTMLElement): Promise<voi
     fail(err);
   } finally {
     inflight = false;
+  }
+}
+
+/** The set bar for a single pack: the binder read after the open (the
+ * cards are already in it). A failed read plays the opening without a bar
+ * rather than hold it up. */
+async function withBinderBar(r: SiteReveal): Promise<SiteReveal> {
+  if (r.kind !== "single" || !state.session) return r;
+  try {
+    const binder = await api.binder(state.session.token, r.reveal.setCode);
+    return withSiteSetBar(r, binder.base);
+  } catch {
+    return r;
   }
 }
 
