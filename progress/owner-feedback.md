@@ -4525,3 +4525,20 @@ Next session by alternation: render (the pack opening ceremony, part 3).
 
 - **Accepted:** with cards, packs, decks and credits carrying over, new owners start behind veterans and miss earlier seasons' cards. That is how it is meant to work.
 - **Later, not specced yet:** a marketplace where owners can complete their collections, including cards from earlier seasons. Add it to `progress/season-1-ideas.md`. It is not Season 0 work and nothing should be built for it now.
+
+---
+
+## 2026-11-10 — Owner: marketplace groundwork now (audit first; build only what can't be added later)
+
+The marketplace itself is not being built (see the entry above). But the data and back-end pieces a marketplace would need from today's systems are considered now, because anything not recorded from the first day of Season 0 can't be recreated later.
+
+**Next game session, first: an audit, reported as an [OWNER CHECK-IN] in `progress/notes-for-owner.md`.** Check these against what's built and say for each what exists and what's missing:
+1. **A permanent id for every card copy:** each pulled card is its own record, not a count per card (Prototype serials already exist; check every other card).
+2. **Where each copy came from and who has owned it:** pulled from which pack and when, crafted or granted, and every change of owner after that.
+3. **A clear "can never be traded" flag** on bound copies (starter decks, signature cards, anything else bound), and whether cosmetics are included.
+4. **A credits ledger that can record owner-to-owner transfers** later, not only purchases and grants.
+5. **Ownership sits with the owner's account, not the agent.** A copy listed for sale would later need to be unusable in decks; that part waits.
+
+**Then build only the "must exist from day one" gaps** (mainly 1 and 2), and only if they are small, before the 1 December feature deadline. If a gap is not small, report it at the check-in and wait. Everything else (listings, prices, fees, trading screens, payments) goes on a list for the marketplace spec after the Season 0 launch.
+
+The Season 0 scope lock and freeze otherwise stand.
