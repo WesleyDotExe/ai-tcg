@@ -186,6 +186,12 @@ export const LADDER_TIERS = [
  * then) and before it is ranked on the ladder's list. Proposed session 66. */
 export const PLACEMENT_MATCHES = 5;
 
+/** The ratings' soft reset when the next season's file is made (owner
+ * 2026-11-07, answer 4): new rating = 1500 + (final - 1500) / 2, RD 250,
+ * volatility kept, and every owner places again (PLACEMENT_MATCHES). */
+export const SEASON_RESET_PULL = 0.5;
+export const SEASON_RESET_RD = 250;
+
 /** How many owners the ladder's public list shows (owner 2026-10-05: "a
  * top-100 list"). */
 export const LADDER_LIST_SIZE = 100;

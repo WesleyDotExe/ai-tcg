@@ -1,0 +1,86 @@
+Season next demo 001 — the next season's file (session 83; Season 0 game item 3, part 2)
+========================================================================
+Owner 2026-11-07: cosmetics and loadouts carry; accounts, logins, settings, the Home board, agents and
+names, signature cards carry; the collection, decks, credits, pack points, ratings, history, notifications
+and the daily bank start empty; unopened packs are lost (2026-11-08); ratings soft-reset to
+1500 + (final - 1500) / 2, RD 250, and everyone places again; every owner gets the starter grant again;
+an ended file is frozen completely.
+
+1. Season 0, ended: season-end-001's own file
+------------------------------------------------------------------------
+  the season-end demo ran (exit 0); its last line: Schema v27. 11 PASS, 0 FAIL.
+  [PASS] it printed progress/season-end-001.txt exactly, so this is that file
+
+2. The archive, per owner, as Season 0 ended
+------------------------------------------------------------------------
+  season S0, schema v27, ended 2026-12-14T02:02:30.000Z
+  owner kind    rating   RD   tier       credits  pp  cards unopened decks cosmetics agent (coin)
+  Ada   player  1182.4  110  Bronze          95   5     46        3     1         5 Ada-agent (coin-chrome-token)
+  Bram  player  1594.8  118  Gold           108   0     40        3     1         5 Bram-agent (coin-chrome-token)
+  Hub   house   1572.5  113  Gold           110   0     40        3     1         5 Hub-agent (coin-chrome-token)
+  Kit   house   1827.4  120  Diamond         96   0     40        3     1         7 Kit-agent (coin-chrome-token)
+  Lux   house   1541.9  116  Gold           105   0     40        3     1         5 Lux-agent (coin-chrome-token)
+  Mox   house   1242.7  109  Bronze         105   0     40        3     1         5 Mox-agent (coin-chrome-token)
+
+3. startNextSeason: the Season 1 file
+------------------------------------------------------------------------
+  S1 made from S0 (ended 2026-12-14T02:02:30.000Z) at 2027-01-17T23:00:00.000Z
+  carried: 6 owners, 6 logins, 0 live sessions, 6 agents, 0 signature copies,
+           32 cosmetics, 12 loadout slots, 15 retired Prototype runs, 6 rating seeds
+  starter grants: Hub Null 40 cards + 3 packs; Kit Cortex 40 cards + 3 packs; Lux Swarm 40 cards + 3 packs; Mox Aegis 40 cards + 3 packs; Ada Cortex 40 cards + 3 packs; Bram Aegis 40 cards + 3 packs
+  left in the archive: 246 card copies, 18 unopened packs, 6 decks, 619 credits, 5 pack points, 63 matches, 42 notifications
+  [PASS] every owner, login and agent carried, and every one with a starter collection got it again
+
+4. The Season 1 file over HTTP
+------------------------------------------------------------------------
+  season S1, schema v27, packs from set S0 (no S1 set yet)
+  [PASS] every owner signs in with its Season 0 password
+  Hub: admin true
+  Kit  GET /api/season: S1 open, from S0; seed 1663.7 (RD 250) from final 1827.4 Diamond
+  Ada  GET /api/season: S1 open, from S0; seed 1341.2 (RD 250) from final 1182.4 Bronze
+  Bram GET /api/season: S1 open, from S0; seed 1547.4 (RD 250) from final 1594.8 Gold
+  owner kind    rating   RD   tier       credits  pp  cards unopened decks cosmetics agent (coin)
+  Ada   player  1341.2  250  Placement        0   0     40        3     0         5 Ada-agent (coin-chrome-token)
+  Bram  player  1547.4  250  Placement        0   0     40        3     0         5 Bram-agent (coin-chrome-token)
+  Hub   house   1536.2  250  Placement        0   0     40        3     0         5 Hub-agent (coin-chrome-token)
+  Kit   house   1663.7  250  Placement        0   0     40        3     0         7 Kit-agent (coin-chrome-token)
+  Lux   house   1521.0  250  Placement        0   0     40        3     0         5 Lux-agent (coin-chrome-token)
+  Mox   house   1371.3  250  Placement        0   0     40        3     0         5 Mox-agent (coin-chrome-token)
+  [PASS] names, kinds, factions and the connected agent carried
+  [PASS] every cosmetic carried (from S0), the loadouts too; the tier coins among them
+  signature copies: 0 in the archive (season-end-001's agents were made plainly, without the generator), 0 carried;
+  a generated agent's card and bound copy carrying over is in economy/test/nextSeason.test.ts
+  [PASS] every signature copy the archive holds carried, with its copy id
+  [PASS] credits, pack points, decks and history start empty; the S0 packs are gone; only the starter grant is held
+  [PASS] every seed is 1500 + (final - 1500) / 2 at RD 250, volatility kept, and everyone is in placement
+
+5. The retired Prototype runs carried
+------------------------------------------------------------------------
+  Ada opens a pack with seed 551 (a Prototype in Season 0): bonus card SW-004, gold
+  [PASS] the Prototype bonus is a Gold: no retired run mints again
+
+6. Two hours of Season 1 ladder
+------------------------------------------------------------------------
+  auto-play for Ada and Bram: off (it starts off; they switch it on)
+  42 matches recorded
+   #1 Kit   1695 (RD 103) Platinum  9-5-0    seed 1664
+   #2 Ada   1623 (RD 103) Gold      9-5-0    seed 1341
+   #3 Bram  1600 (RD 105) Gold      8-6-0    seed 1547
+   #4 Lux   1393 (RD 105) Silver    4-10-0   seed 1521
+   #5 Hub   1388 (RD 103) Silver    7-7-0    seed 1536
+   #6 Mox   1280 (RD 102) Bronze    5-9-0    seed 1371
+  Ada's agent deck: Cortex, 40 cards, built from the new starter grant
+  Bram's agent deck: Aegis, 40 cards, built from the new starter grant
+  s1-m1: Kit played from 1663.7 (RD 250)
+  [PASS] the season's first match rated from the seeds
+  [PASS] every owner placed again after 5 rated matches, not before
+
+7. The archive, and the refusals
+------------------------------------------------------------------------
+  Season 0 file: sha256 before and after the same
+  [PASS] the archive is byte for byte the file it was
+  Season 1 again onto its file: "<dir>/season-1.db" already exists: the next season's file is always a new file
+  Season 2 from the open Season 1: season S1 hasn't ended: end it first (POST /api/admin/season/end)
+  [PASS] both are refused
+
+Schema v27. 13 PASS, 0 FAIL.

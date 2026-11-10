@@ -1483,4 +1483,128 @@ export const MIGRATIONS: readonly string[] = [
   WHEN NEW.series_kind = 'prototype' AND EXISTS (SELECT 1 FROM retired_prototype_runs WHERE run_code = NEW.series_code)
   BEGIN SELECT RAISE(ABORT, 'that Prototype run is retired'); END;
   `,
+  // 27: the next season's file (session 83; Season 0 game item 3, part 2;
+  // owner 2026-11-07, answers 1-7). The store's startNextSeason makes a new
+  // file from an ended one: accounts and logins, settings, the Home board,
+  // agents and their names, signature cards with their bound copies, every
+  // cosmetic and loadout, and the retired Prototype runs carry over; the
+  // collection, decks, credits, pack points, packs (unopened ones too:
+  // owner 2026-11-08), ratings, match history and notifications start empty.
+  //  - owned_cosmetics gains `carried_from`: the season file a carried
+  //    cosmetic first came from. A bought one carried over has no payment
+  //    in the new file's (empty) ledger, so a purchase names its ledger row
+  //    only when it was bought in this file. SQLite can't change a CHECK,
+  //    so the table is rebuilt with its rows, the loadout triggers dropped
+  //    first and made again (as in migration 20).
+  //  - season_start (one row, write-once): which ended season this file
+  //    was made from, and when.
+  //  - rating_seeds (write-once): the soft reset, 1500 + (final - 1500) / 2,
+  //    RD 250, volatility kept, with the final rating it came from. An
+  //    owner plays from its seed until its first rated match of the season,
+  //    and places again (5 matches): `ratings` still counts only this
+  //    season's matches.
+  //  - Answer 6, an ended file is frozen completely: once season_end has its
+  //    row, the schema refuses every ledger row (credits and pack points
+  //    can't move: no payout, purchase, salvage or paid rename), every pack
+  //    bought or granted, every pack opened, every card copy but a new
+  //    agent's signature copy, and every salvage.
+  `
+  DROP TRIGGER loadout_owned;
+  DROP TRIGGER loadout_owned_on_change;
+  DROP TRIGGER cosmetic_purchase_paid;
+  DROP TRIGGER cosmetic_kept;
+  DROP TRIGGER cosmetic_no_delete;
+
+  CREATE TABLE owned_cosmetics_v27 (
+    owner_id        TEXT NOT NULL REFERENCES owners(owner_id),
+    item_id         TEXT NOT NULL,
+    kind            TEXT NOT NULL CHECK (kind IN ${inList(V20_COSMETIC_KINDS)}),
+    source          TEXT NOT NULL CHECK (source IN ('starter', 'purchase', 'seasonReward')),
+    ledger_entry_id INTEGER REFERENCES ledger(entry_id),
+    reward_ref      TEXT,
+    acquired_at     TEXT NOT NULL,
+    carried_from    TEXT CHECK (carried_from IS NULL OR length(carried_from) > 0),
+    PRIMARY KEY (owner_id, item_id),
+    CHECK ((source = 'purchase' AND carried_from IS NULL) = (ledger_entry_id IS NOT NULL)),
+    CHECK ((source = 'seasonReward') = (reward_ref IS NOT NULL)),
+    CHECK (reward_ref IS NULL OR reward_ref GLOB '?*:?*')
+  );
+  INSERT INTO owned_cosmetics_v27 (owner_id, item_id, kind, source, ledger_entry_id, reward_ref, acquired_at)
+    SELECT owner_id, item_id, kind, source, ledger_entry_id, reward_ref, acquired_at FROM owned_cosmetics ORDER BY rowid;
+  DROP TABLE owned_cosmetics;
+  ALTER TABLE owned_cosmetics_v27 RENAME TO owned_cosmetics;
+
+  CREATE TRIGGER cosmetic_purchase_paid BEFORE INSERT ON owned_cosmetics
+  WHEN NEW.source = 'purchase' AND NEW.carried_from IS NULL AND NOT EXISTS (
+    SELECT 1 FROM ledger l WHERE l.entry_id = NEW.ledger_entry_id AND l.owner_id = NEW.owner_id
+      AND l.currency = 'credits' AND l.delta < 0 AND l.reason = 'cosmeticPurchase' AND l.ref = NEW.item_id)
+  BEGIN SELECT RAISE(ABORT, 'a bought cosmetic names its owner''s credits payment for that item'); END;
+  CREATE TRIGGER cosmetic_carried_at_start BEFORE INSERT ON owned_cosmetics
+  WHEN NEW.carried_from IS NOT NULL AND EXISTS (SELECT 1 FROM season_start)
+  BEGIN SELECT RAISE(ABORT, 'a cosmetic is carried over only while the season''s file is being made'); END;
+  CREATE TRIGGER cosmetic_kept BEFORE UPDATE ON owned_cosmetics
+  BEGIN SELECT RAISE(ABORT, 'an owned cosmetic is account-bound: it never changes or moves'); END;
+  CREATE TRIGGER cosmetic_no_delete BEFORE DELETE ON owned_cosmetics
+  BEGIN SELECT RAISE(ABORT, 'an owned cosmetic is account-bound: it is never removed'); END;
+  CREATE TRIGGER loadout_owned BEFORE INSERT ON agent_loadouts
+  WHEN NOT EXISTS (
+    SELECT 1 FROM owned_cosmetics c JOIN agents a ON a.owner_id = c.owner_id
+    WHERE a.agent_id = NEW.agent_id AND c.item_id = NEW.item_id
+      AND c.kind = CASE NEW.slot WHEN 'closeWinBoast' THEN 'boast' ELSE NEW.slot END)
+  BEGIN SELECT RAISE(ABORT, 'an agent equips only a cosmetic its owner owns, in a slot of its kind'); END;
+  CREATE TRIGGER loadout_owned_on_change BEFORE UPDATE ON agent_loadouts
+  WHEN NEW.agent_id IS NOT OLD.agent_id OR NEW.slot IS NOT OLD.slot OR NOT EXISTS (
+    SELECT 1 FROM owned_cosmetics c JOIN agents a ON a.owner_id = c.owner_id
+    WHERE a.agent_id = NEW.agent_id AND c.item_id = NEW.item_id
+      AND c.kind = CASE NEW.slot WHEN 'closeWinBoast' THEN 'boast' ELSE NEW.slot END)
+  BEGIN SELECT RAISE(ABORT, 'an agent equips only a cosmetic its owner owns, in a slot of its kind'); END;
+
+  CREATE TABLE season_start (
+    season         TEXT PRIMARY KEY,
+    from_season    TEXT NOT NULL,
+    from_ended_at  TEXT NOT NULL,
+    started_at     TEXT NOT NULL,
+    CHECK (from_season <> season),
+    CHECK (started_at >= from_ended_at)
+  );
+  CREATE TRIGGER season_start_kept BEFORE UPDATE ON season_start
+  BEGIN SELECT RAISE(ABORT, 'a season''s start is written once'); END;
+  CREATE TRIGGER season_start_no_delete BEFORE DELETE ON season_start
+  BEGIN SELECT RAISE(ABORT, 'a season''s start is written once'); END;
+  CREATE TRIGGER season_start_once BEFORE INSERT ON season_start
+  WHEN EXISTS (SELECT 1 FROM season_start)
+  BEGIN SELECT RAISE(ABORT, 'a season''s start is written once'); END;
+
+  CREATE TABLE rating_seeds (
+    owner_id      TEXT PRIMARY KEY REFERENCES owners(owner_id),
+    rating        REAL NOT NULL CHECK (rating BETWEEN 0 AND 5000),
+    rd            REAL NOT NULL CHECK (rd > 0 AND rd <= 350),
+    volatility    REAL NOT NULL CHECK (volatility > 0 AND volatility < 1),
+    final_rating  REAL NOT NULL CHECK (final_rating BETWEEN 0 AND 5000),
+    final_tier    TEXT NOT NULL
+  );
+  CREATE TRIGGER rating_seeds_kept BEFORE UPDATE ON rating_seeds
+  BEGIN SELECT RAISE(ABORT, 'a rating seed is written once'); END;
+  CREATE TRIGGER rating_seeds_no_delete BEFORE DELETE ON rating_seeds
+  BEGIN SELECT RAISE(ABORT, 'a rating seed is written once'); END;
+  CREATE TRIGGER rating_seeds_at_start BEFORE INSERT ON rating_seeds
+  WHEN EXISTS (SELECT 1 FROM season_start)
+  BEGIN SELECT RAISE(ABORT, 'a rating seed is written only while the season''s file is being made'); END;
+
+  CREATE TRIGGER no_ledger_after_season_end BEFORE INSERT ON ledger
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: credits and pack points are frozen'); END;
+  CREATE TRIGGER no_pack_after_season_end BEFORE INSERT ON packs
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: no pack is bought or granted'); END;
+  CREATE TRIGGER no_opening_after_season_end BEFORE INSERT ON pack_openings
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: no pack is opened'); END;
+  CREATE TRIGGER no_copy_after_season_end BEFORE INSERT ON card_copies
+  WHEN EXISTS (SELECT 1 FROM season_end) AND (NEW.origin_ref IS NULL OR NEW.origin_ref NOT LIKE 'signature:%')
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: the collection is frozen'); END;
+  CREATE TRIGGER no_salvage_after_season_end BEFORE UPDATE OF disposed_at ON card_copies
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: the collection is frozen'); END;
+  `,
 ];

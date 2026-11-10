@@ -4964,3 +4964,46 @@ packs and crafting. Ending is manual, and the "ending" flag is in memory. All in
 **Blocked:** nothing. Part 2 waits on the [OWNER CHECK-IN] in notes-for-owner.md (7 calls: cosmetics, what carries,
 unopened packs, the soft reset, the new starter grant, freezing the archive, when it ends).
 
+
+## 2026-11-10 — Session 83 (game lane): season end, part 2 — the next season's file (schema v27)
+
+**Start checks:** lane by TASKS.md step 0: the last merged PR, #145, was "Render:" (the render catch-up's second
+PR), so this is game. No open PR. Owner feedback: the 2026-11-07 answers (all 7 proposals kept) and the 2026-11-08
+unopened-packs note were the open game items; both handled here.
+
+**Built:** `EconomyStore.startNextSeason(ended, new, { season })`, plus `npm run season:next -w server`. It opens the
+ended file, checks it has ended, opens a fresh file under the new season name, attaches the old one read-only, and
+copies in one transaction: owners (deck choice back to agent, no active deck, no starter yet), logins, unexpired
+sessions, settings, board, agents, the name log, drafts, signature cards, signature copies, every cosmetic
+(`carried_from`, no ledger row: a bought one has no payment in the new ledger), loadouts, the connected agent, and
+the retired runs. Then the soft-reset seeds (`rating_seeds`), `season_start`, and the starter grant again for
+every owner who had one. It refuses an open season, a reused name, an existing file, and a start time before the
+end. On failure the new file is deleted. Schema v27 rebuilds `owned_cosmetics` (a CHECK change) and adds
+`season_start`, `rating_seeds` and the archive freeze triggers. The store has `refuseIfEnded` on packs, opening,
+claiming, salvage, crafting, cosmetics and the starter grant. `rating()` reads the seed until the first rated
+match. `currentSetCode` (the season's set, or the newest one) replaces `store.season` as a set code in the daily
+pack and the house shopping. Without it, a Season 1 file would have asked for set "S1", which doesn't exist (the
+tests found this). The daily bank now fills from the season's start, not the S0 sign-up. `GET /api/season`
+gained `startedFrom` and `yourSeed`.
+
+**Ran it:**
+- `economy/test/nextSeason.test.ts` (6 tests: the refusals, all of answer 2 field by field, the soft reset and
+  first match from the seed, the retired runs giving a Gold, S1 -> S2, the freeze in the store and the schema) and
+  one server test over HTTP. `seasonEnd.test.ts` changed its pack-opening-after-the-end check to a refusal (answer
+  6). Schema asserts 26 -> 27.
+- `npm test`: engine 372, economy 273, server 184, render 918, agents 17, protocol 7, all pass. Typecheck clean.
+- `progress/season-next-001.txt` (13 PASS, the same on two runs). It reruns the season-end demo, which must print
+  season-end-001.txt exactly, and makes S1 from that file. Then: sign-in over HTTP with the old passwords, the
+  seeds (Kit 1827 -> 1664, Ada 1182 -> 1341), the S0 Prototype seed giving a Gold, two hours of S1 ladder (42
+  matches, everyone placed from their seeds, decks built from the new starter grant), the archive's bytes
+  unchanged, and the refusals. `season-end-001.txt` was regenerated: its step 6 now shows the pack refused (it
+  opened a Gold before). `npm run demos -- --all --write`: the other diffs are the schema line only.
+- The CLI was run on a real ended file: it made the file, and a second run was refused. A run with the real clock
+  before the demo's end date was refused too, and left no file.
+
+**Worked:** the tests found the missing S1 set before the demo did. Copying with `INSERT ... SELECT` over the
+table's own column list keeps the copy honest as columns are added.
+**Thin:** in quality-debt.md. The server must be restarted on the new file. There are no Prototypes in S1 until an
+S1 set exists. The demo's archive has no generated agents. Sessions carry over, and auto-play starts off (calls).
+
+**Blocked:** nothing. Six small calls are at the top of notes-for-owner.md.

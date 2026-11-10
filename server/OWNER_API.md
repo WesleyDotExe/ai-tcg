@@ -41,7 +41,7 @@ The website's server endpoints (roadmap item 3; the owner's 2026-10-05 build ord
 | `GET /api/ladder?limit=100` | none | the ladder: `{ standings, you, owners, tiers, placementMatches }` (below) |
 | `GET /api/rating?recent=10` | none | `{ rating, recent }`: the owner's Glicko-2 rating and its last rated matches (below) |
 | `GET /api/stats?agent=<agentId>&days=30&recent=10` | none | the Stats page and the Rating & form widget: totals, win rate by faction and by the opponent's faction, recent results, the rating chart and weekly trend, today's earnings (below; schema v24, session 78); 400 for `days` outside 7-90 or `recent` outside 1-50, 404 for an agent that isn't the caller's |
-| `GET /api/season` | none | the season: `{ season, state, endedAt, liveMatches, tierCoinsNow, you, standings, retiredPrototypes }` (below; schema v26, session 82) |
+| `GET /api/season` | none | the season: `{ season, state, endedAt, liveMatches, tierCoinsNow, you, standings, retiredPrototypes, startedFrom, yourSeed }` (below; schema v26, session 82; `startedFrom` and `yourSeed` v27, session 83) |
 | `POST /api/admin/season/end` | `{ season: "S0" }` | the house admin ends the season (below): 202 `state: "ending"` while the ladder's shown matches finish, 200 once ended; 400 for a body that doesn't name the current season, 403 for a non-admin, 409 once ended (or, with no ladder in this process, while a match is live) |
 | `GET /api/ledger?limit=50&before=<entryId>` | none | `{ entries, more, wallet }`: ledger entries newest first, a page at a time (below) |
 | `GET /api/collection?recentPacks=3` | none | the collection (below) |
@@ -256,13 +256,31 @@ Season 0 game item 3, part 1 (ECONOMY.md "Seasons"). Ending a season is one stor
   "tierCoinsNow": { "tier": "Gold", "coins": [] },   // while open: what the caller's tier would earn now; null once ended
   "you": null,                     // once ended: the caller's line in the standings (null if never rated)
   "standings": null,               // once ended: every rated owner, placed owners by rank, then placement (rank null)
-  "retiredPrototypes": null        // once ended: the 15 runs
+  "retiredPrototypes": null,       // once ended: the 15 runs
+  "startedFrom": null,             // (v27) in a season's file made from an ended one: { season, fromSeason, fromEndedAt, startedAt }
+  "yourSeed": null                 // (v27) the caller's soft-reset rating from last season: { ownerId, rating, rd, volatility, finalRating, finalTier }, null if unrated then
 }
 ```
 
 A standing: `{ rank, ownerId, ownerName, agentName, rating, rd, volatility, ratedMatches, tier, wins, losses, draws, tierCoins }`. Names are as they were at the end (a later rename doesn't change the archive); `tierCoins` are the item ids the season gave, lowest tier first. A retired run: `{ runCode, setCode, cardId, runSize, found, retired, retiredAt }` (`found + retired = runSize`).
 
-Not in this part (an owner check-in, `progress/notes-for-owner.md`): the next season's file, what carries into it, and the ratings' soft reset.
+**(v27, session 83) Once ended, the file is frozen completely** (owner 2026-11-07, answer 6): buying, granting, claiming or opening a pack, salvage, crafting and buying a cosmetic are all refused (`season S0 has ended: no pack is bought; the file is the season's archive`, and likewise), and the schema refuses every ledger row, pack, pack opening, card copy (but a new agent's signature copy) and salvage. Settings, the board, a free rename and reading everything still work.
+
+### The next season's file (schema v27, session 83)
+
+Season 0 game item 3, part 2, on the owner's 2026-11-07 answers. Not an endpoint: the admin stops the season server, makes the new file, and starts the server again over it:
+
+```
+npm run season:next -w server -- <ended season file> <new season file> S1
+npm run season -w server -- <new season file>
+```
+
+It refuses a season that hasn't ended, a new name equal to the old one, and a new file that already exists; on any failure no file is left behind. The ended file is only read (byte for byte the same afterwards) and stays the season's archive.
+
+- **Carried:** every owner (name, kind, starting faction, faction lock), logins with their passwords and admin flag, sessions that haven't expired (a signed-in owner stays signed in), account settings, the Home board, agents with their names and name history, signature cards with their bound copies (same copy ids), every owned cosmetic (`carriedFrom: "S0"` in `GET /api/cosmetics`; tier coins and bought ones too) and every agent's loadout, which agent is connected, and the retired Prototype runs (a retired run never mints again, in any later file).
+- **Starts empty:** the collection, decks (`deckChoice` is `agent` again: the agent builds from the new collection), credits, pack points, packs (**unopened packs are lost**; the website warns first), ratings, match history, notifications, auto-play (off until the owner switches it on) and the daily pack bank (it fills from the season's start).
+- **The soft reset:** an owner ranked in the final standings starts at `1500 + (final - 1500) / 2`, RD 250, its volatility, shown as `yourSeed` above; it plays from there and places again (5 rated matches; `Placement` until then). An owner with no rated match last season starts at 1500, RD 350.
+- **The starter grant again:** every owner who had one gets its starting faction's starter deck (bound) and the starter packs. Packs come from the new season's set, or from the newest set while the season has none of its own (Season 1 sells Season 0 packs until its set ships).
 
 ### The Stats page and the Rating & form widget (session 78)
 

@@ -4396,7 +4396,7 @@ Then continue the hardening pass as planned.
 
 ---
 
-## 2026-11-07 — Owner: answers to game session 82 (season end, part 1; the next season's file), keep all 7 proposals and both small calls
+## 2026-11-07 — Owner: answers to game session 82 (season end, part 1; the next season's file), keep all 7 proposals and both small calls (HANDLED 2026-11-10, session 83 — part 2 built on all 7 answers, schema v27: `EconomyStore.startNextSeason` (`npm run season:next -w server`) makes the new file in one transaction; 1: every cosmetic and loadout carries (`carried_from`); 2: accounts, logins, settings, the board, agents and names, signature cards and copies carry, the rest starts empty; 3: unopened packs are not carried (lost; the warning is the render lane's); 4: `rating_seeds`, 1500 + (final - 1500) / 2, RD 250, volatility kept, placement again; 5: the starter grant again for every owner who had one; 6: an ended file refuses packs, opening, salvage, crafting and shopping, in the store and the schema; 7: unchanged, the owner presses it. Both small calls kept. Proved on season-end-001's own file: `progress/season-next-001.txt`, 13 PASS. Small calls at the top of notes-for-owner.md)
 
 Answers the [OWNER CHECK-IN] in `progress/notes-for-owner.md` (PR #143, `progress/season-end-001.txt`). Build part 2 (the store call that creates the next season's file from the ended one) on these answers.
 1. **Cosmetics carry over:** all owned cosmetics and every agent's loadout (boasts, coins including the tier coins, anything bought). This settles the earlier "undecided" note.
@@ -4451,7 +4451,7 @@ will every session; the widgets on real data, the Stats page and the bell are on
 
 ---
 
-## 2026-11-08 — Owner: unopened packs at season end (confirms the 2026-11-07 answer 3)
+## 2026-11-08 — Owner: unopened packs at season end (confirms the 2026-11-07 answer 3) (game-lane part HANDLED 2026-11-10, session 83 — the new file carries no pack; the ended file keeps them unopened and refuses opening them; `startNextSeason` reports how many were left behind)
 
 **Unopened packs are lost when the season ends.** The website warns the owner beforehand that any packs not opened by the end of the season will be lost for good (the warning says so plainly, with the count of unopened packs). Packs still unopened when the season ends are not carried over, refunded or opened automatically. Build it this way: game lane in season end part 2; the warning in the render lane.
 

@@ -127,7 +127,7 @@ describe("the season's end (v26)", () => {
     expect(end.retiredPrototypes.reduce((n, r) => n + r.retired, 0)).toBe(1516 - 1);
   });
 
-  it("after the end: no match starts or is recorded, ratings are final, and a pack's Prototype bonus is a Gold", () => {
+  it("after the end: no match starts or is recorded, ratings are final, and (v27) the file is frozen", () => {
     const s = open();
     const a = seat(s, "a", "Cortex");
     const b = seat(s, "b", "Swarm");
@@ -142,11 +142,11 @@ describe("the season's end (v26)", () => {
     );
     expect(() => s.endSeason()).toThrow(/season S0 has already ended/);
 
-    // The same seed that rolls a Prototype on an open season rolls the
-    // fallback Gold now: the runs are retired.
-    const opened = s.openPack(o, undefined, { seed: prototypeSeed() });
-    expect(opened.cards[5]!.finish).toBe("gold");
-    expect(opened.cards[5]!.prototype).toBeNull();
+    // (v27, owner 2026-11-07 answer 6) The ended file is frozen: the pack
+    // granted before the end can't be opened in it (the same seed rolls the
+    // fallback Gold in the next season's file: nextSeason.test.ts).
+    expect(() => s.openPack(o, undefined, { seed: prototypeSeed() })).toThrow(/season S0 has ended: no pack is opened/);
+    expect(s.unopenedPacks(o)).toHaveLength(1);
 
     // The schema holds it too, whatever a hand-run edit tries.
     expect(() => s.unsafeExec(`UPDATE ratings SET rating = 2500 WHERE owner_id = '${a.ownerId}'`)).toThrow(/ratings are final/);
@@ -156,7 +156,7 @@ describe("the season's end (v26)", () => {
     ).toThrow(/no match starts/);
     expect(() =>
       s.grantCopy({ ownerId: o, cardId: S0.prototypes[3]!.cardId, origin: "pack", finish: "prototype", seriesKind: "prototype", seriesCode: S0.prototypes[3]!.code, serial: 1, runSize: S0.prototypes[3]!.runSize }),
-    ).toThrow(/retired/);
+    ).toThrow(/retired|the collection is frozen/);
     for (const table of ["season_end", "season_standings", "retired_prototype_runs"]) {
       expect(() => s.unsafeExec(`DELETE FROM ${table}`)).toThrow(/written once|retired forever/);
     }
@@ -194,7 +194,7 @@ describe("the season's end (v26)", () => {
     rate(v25, a.ownerId, 1700);
     v25.close();
     const v26 = open(path);
-    expect(v26.schemaVersion).toBe(26);
+    expect(v26.schemaVersion).toBe(27);
     expect(v26.seasonEnded()).toBe(false);
     expect(v26.rating(a.ownerId).rating).toBe(1700);
     v26.endSeason();

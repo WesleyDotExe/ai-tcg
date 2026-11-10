@@ -216,7 +216,7 @@ export class Ladder {
     const policy = this.opts.housePacks ?? {};
     if (policy === false || this.store.getOwner(ownerId).kind !== "house") return null;
     const afford = Math.floor(this.store.balance(ownerId) / PACK_PRICE_CREDITS);
-    if (afford > 0) this.store.buyPacks(ownerId, this.store.season, afford);
+    if (afford > 0) this.store.buyPacks(ownerId, this.store.currentSetCode, afford);
     const waiting = this.store.unopenedPacks(ownerId);
     if (afford === 0 && waiting.length === 0) return null;
     let cards = 0;
