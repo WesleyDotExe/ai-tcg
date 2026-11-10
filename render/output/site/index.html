@@ -550,6 +550,10 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .cface .face.proto .text { bottom: 21%; }
 .cface .face .plate.pending { opacity: 0; transform: scale(2.4) rotate(-8deg); }
 .cface .face .plate.stamp { animation: stamp 0.32s cubic-bezier(.5,0,.8,1.4) both; }
+.cface .face .mk { display: inline-block; }
+.cface .face .mk.pending { opacity: 0; transform: scale(2.6) rotate(-10deg); }
+.cface .face .mk.stamp { animation: stamp 0.34s cubic-bezier(.5,0,.8,1.4) both; }
+.cface .face .plate.counting { opacity: 1; transform: scale(1.18); }
 .cface .face.zdface { --ring: #35ff8a; box-shadow: 0 0 0 2px #ff1e3c, 0 0 34px rgba(255,30,60,0.7), inset 0 0 0 4px #35ff8a; }
 .cface .face.zdface .name { color: #8dffb8; font-family: ui-monospace, Menlo, Consolas, monospace; }
 .cface .face.zdface .art { animation: zdart 4s steps(40) infinite; }
@@ -789,7 +793,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
     var variant = c.reveal === 'altArt' ? 'alt' : c.reveal === 'secret' ? 'illustration' : sig ? 'signature' : '';
     var cls = 'face faction-' + f.faction + (settled && packFullBleed(c.reveal) ? ' full' : '') + (settled && c.reveal === 'gold' ? ' goldframe' : '') + (settled && c.reveal === 'glitch' ? ' corrupt' : '') + (settled && c.reveal === 'zeroDay' ? ' zdface' : '') + (settled && sig ? ' sigface' : '') + (c.prototype ? ' proto' : '') + (f.modes && f.modes.length ? ' modal' : '');
     var type = f.type === 'Reserved' ? 'Zero-Day · Reserved' : f.type + ' · ' + f.faction;
-    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + packEsc(setCode || 'S0') + '</span>' : packEsc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '') + (sig ? '<span class="oneof"> · 1 OF 1</span>' : '');
+    var number = c.prototype ? '<span class="foiltext mk' + (opts.pendingMarker ? ' pending' : '') + '">PROTOTYPE · ' + packEsc(setCode || 'S0') + '</span>' : packEsc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '') + (sig ? '<span class="oneof"> · 1 OF 1</span>' : '');
     var mark = c.reveal === 'altArt' ? 'ALT ART' : c.reveal === 'glitch' ? 'GL1TCH' : c.reveal === 'secret' ? 'SECRET' : c.reveal === 'zeroDay' ? 'ZERO-DAY' : sig ? 'SIGNATURE' : '';
     return '<div class="' + cls + '">' +
       '<div class="art">' + (c.artPending ? packArtPendingSvg() : packArtSvg(f, variant)) + '</div>' +
@@ -6967,6 +6971,11 @@ gl_FragColor=vec4(col,1.);}`;
     return ids;
   }
   var CARD_SETS = /* @__PURE__ */ new Map([["S0", seasonZeroSet()]]);
+  function cardSet(code) {
+    const set = CARD_SETS.get(code);
+    if (!set) throw new Error(`no card set "${code}"`);
+    return set;
+  }
   var FULL_ART_OR_BETTER = ["fullArt", "glitch", "altArt", "gold", "secret", "zeroDay", "prototype"];
 
   // src/cardVisual.ts
@@ -7015,6 +7024,25 @@ gl_FragColor=vec4(col,1.);}`;
     // The Zero-Day takeover runs before the card arrives; see ZERO_DAY_TIMINGS.
     zeroDay: { flip: 600, hold: 1400 }
   };
+  var ZERO_DAY_TIMINGS = {
+    black: 450,
+    typePerChar: 55,
+    breach: 1900,
+    arrive: 700
+  };
+  function withSetBar(reveal, base) {
+    if (!base) return reveal;
+    const ids = new Set(cardSetIds(reveal.setCode));
+    const setBar = setBarOf(reveal, base, (id) => ids.has(id));
+    return { ...reveal, setBar, afterglow: afterglowPlanOf({ cards: reveal.cards, setBar }) };
+  }
+  function cardSetIds(setCode) {
+    try {
+      return cardSet(setCode).cards.map((c) => c.cardId);
+    } catch {
+      return [];
+    }
+  }
   var SLOT_ORDER = { Common: 0, Uncommon: 1, Rare: 2, shine: 3, bonus: 4 };
   function planReveal(opening) {
     const cards = opening.cards.map((c, i) => ({ c, i })).sort((a, b) => SLOT_ORDER[a.c.slot] - SLOT_ORDER[b.c.slot] || a.i - b.i).map(({ c }) => revealCard(c));
@@ -7032,7 +7060,8 @@ gl_FragColor=vec4(col,1.);}`;
       starterHit: opening.starterHit,
       packPoints: opening.packPoints,
       cards,
-      tell: packTellOf(cards, opening.seed)
+      tell: packTellOf(cards, opening.seed),
+      afterglow: afterglowPlanOf({ cards })
     };
   }
   function revealCard(c) {
@@ -7051,8 +7080,13 @@ gl_FragColor=vec4(col,1.);}`;
       ownedAfter: c.ownedAfter,
       prototype: c.prototype,
       secret: c.secret,
-      build: revealBuildOf(revealKindOf(c.finish), c.rarity, (_b = (_a3 = getCard(c.cardId)) == null ? void 0 : _a3.faction) != null ? _b : "Neutral")
+      build: withSerialCount(revealBuildOf(revealKindOf(c.finish), c.rarity, (_b = (_a3 = getCard(c.cardId)) == null ? void 0 : _a3.faction) != null ? _b : "Neutral"), c.prototype)
     };
+  }
+  function withSerialCount(b, prototype) {
+    var _a3;
+    if (((_a3 = b.takeover) == null ? void 0 : _a3.kind) === "prototype" && prototype) b.takeover.count = serialCountUp(prototype.serial);
+    return b;
   }
   function cardFaceOf(c) {
     const card = getCard(c.cardId);
@@ -7246,7 +7280,7 @@ gl_FragColor=vec4(col,1.);}`;
     const step = revealStepOf(reveal, rarity);
     const base = REVEAL_LADDER.indexOf(step);
     if (step === "snap") {
-      return { step, level: 0, weight: 0, held: false, stages: 0, stageMs: 0, pauseMs: 0, lastPauseMs: 0, flipMs: SNAP.flipMs, dim: 0, duck: 1, flash: 0, shakePx: 0, shakeMs: 0, bass: null, motes: 0, moteReach: 0, ward: "none", wardScale: 0, hold: SNAP.hold, pitch: 1, timeline: { stages: [], flipAt: 0, landAt: SNAP.flipMs } };
+      return { step, level: 0, weight: 0, held: false, stages: 0, stageMs: 0, pauseMs: 0, lastPauseMs: 0, flipMs: SNAP.flipMs, dim: 0, duck: 1, flash: 0, shakePx: 0, shakeMs: 0, bass: null, motes: 0, moteReach: 0, ward: "none", wardScale: 0, hold: SNAP.hold, pitch: 1, timeline: { stages: [], flipAt: 0, landAt: SNAP.flipMs }, takeover: null, hitAt: SNAP.flipMs };
     }
     const mythicBump = rarity === "Mythic" && step !== "mythic" ? 0.5 : 0;
     const level = base + mythicBump;
@@ -7275,9 +7309,13 @@ gl_FragColor=vec4(col,1.);}`;
       wardScale: ward === "none" ? 0 : r2(1.05 + 0.5 * w2),
       hold: step === "rare" ? 260 : step === "mythic" ? 420 : REVEAL_TIMINGS[reveal].hold,
       pitch: 1,
-      timeline: { stages: [], flipAt: 0, landAt: 0 }
+      timeline: { stages: [], flipAt: 0, landAt: 0 },
+      takeover: null,
+      hitAt: 0
     };
     b.timeline = buildTimeline(b);
+    b.takeover = step === "prototype" ? prototypeTakeover() : step === "zeroDay" ? zeroDayTakeover() : null;
+    b.hitAt = b.takeover ? b.timeline.flipAt + b.takeover.hitAt : b.timeline.landAt;
     return b;
   }
   function buildTimeline(b) {
@@ -7288,6 +7326,109 @@ gl_FragColor=vec4(col,1.);}`;
       t += b.stageMs + (s < b.stages - 1 ? b.pauseMs : b.lastPauseMs);
     }
     return { stages, flipAt: t, landAt: t + b.flipMs };
+  }
+  var PROTOTYPE_TAKEOVER = {
+    black: 450,
+    bloom: 650,
+    flip: 800,
+    /** The marker stamp, and the beat after it before the count. */
+    marker: 340,
+    markerBeat: 220,
+    /** The serial's count up (one tick per number, up to `countMaxTicks`). */
+    count: 700,
+    countMaxTicks: 14,
+    /** The field holding after the hit, then fading. */
+    afterHold: 1100,
+    fade: 700,
+    /** The card's size in the middle of the field. */
+    scale: 1.22
+  };
+  function prototypeTakeover() {
+    const T = PROTOTYPE_TAKEOVER;
+    const beats = [];
+    let t = 0;
+    const at = (beat, ms) => {
+      beats.push({ beat, at: t });
+      t += ms;
+    };
+    at("black", T.black);
+    at("bloom", T.bloom);
+    at("flip", T.flip);
+    at("marker", T.marker + T.markerBeat);
+    at("count", T.count);
+    const hitAt = t;
+    at("hit", T.afterHold);
+    at("fade", T.fade);
+    return { kind: "prototype", beats, hitAt, endAt: t, count: [] };
+  }
+  var ZERO_DAY_TEXT = "ZERO-DAY DETECTED";
+  function zeroDayTakeover() {
+    const Z = ZERO_DAY_TIMINGS;
+    const type = ZERO_DAY_TEXT.length * Z.typePerChar;
+    const beats = [
+      { beat: "black", at: 0 },
+      { beat: "type", at: Z.black },
+      { beat: "breach", at: Z.black + type },
+      { beat: "arrive", at: Z.black + type + Z.breach }
+    ];
+    const hitAt = Z.black + type + Z.breach;
+    return { kind: "zeroDay", beats, hitAt, endAt: hitAt + 800, count: [] };
+  }
+  function serialCountUp(serial, maxTicks = PROTOTYPE_TAKEOVER.countMaxTicks) {
+    if (!(serial >= 1)) return [];
+    const n = Math.min(serial, Math.max(1, maxTicks));
+    const out = [];
+    for (let i = 1; i <= n; i++) out.push(Math.max(1, Math.round(serial * i / n)));
+    return out.filter((v, i) => i === 0 || v > out[i - 1]);
+  }
+  function setBarOf(reveal, base, inSet) {
+    var _a3;
+    const inPack = /* @__PURE__ */ new Map();
+    for (const c of reveal.cards) inPack.set(c.cardId, ((_a3 = inPack.get(c.cardId)) != null ? _a3 : 0) + 1);
+    const filled = [];
+    for (const c of reveal.cards) {
+      if (filled.includes(c.cardId) || !inSet(c.cardId)) continue;
+      if (c.ownedAfter === inPack.get(c.cardId)) filled.push(c.cardId);
+    }
+    return { setCode: reveal.setCode, total: base.total, after: base.held, before: Math.max(0, base.held - filled.length), filled };
+  }
+  var AFTERGLOW = {
+    /** The hit card leans towards a hovering mouse (no press needed), up to
+     * this many degrees; none with reduced motion. */
+    hoverDeg: 11,
+    reducedHoverDeg: 0,
+    /** The cards flying into the fan, one after another. */
+    dealGap: 90,
+    dealMs: 460,
+    /** The fan's spread: degrees between cards, and how far down the arc
+     * bends at the ends (a share of a card's height per step squared). */
+    fanDeg: 7,
+    fanDrop: 0.035,
+    /** The NEW stamps, one after another, once the fan is down. */
+    stampDelay: 240,
+    stampGap: 260,
+    stampMs: 260,
+    /** The set bar: it shows `before`, then ticks once per base place filled. */
+    barDelay: 320,
+    tickGap: 200,
+    /** Each tick a little higher than the last (semitones). */
+    tickSemitones: 1
+  };
+  function afterglowPlanOf(reveal) {
+    const A = AFTERGLOW;
+    const n = reveal.cards.length;
+    const deal = reveal.cards.map((_, idx) => ({ idx, at: idx * A.dealGap + A.dealMs }));
+    const fanDown = n ? deal[n - 1].at : 0;
+    const stamps = [];
+    reveal.cards.forEach((c, idx) => {
+      if (c.isNew) stamps.push({ idx, at: fanDown + A.stampDelay + stamps.length * A.stampGap });
+    });
+    const stampsDone = stamps.length ? stamps[stamps.length - 1].at + A.stampMs : fanDown;
+    const barAt = stampsDone + A.barDelay;
+    const bar2 = reveal.setBar;
+    const ticks = bar2 ? bar2.filled.map((_, i) => ({ at: barAt + (i + 1) * A.tickGap, held: bar2.before + i + 1, pitch: Math.round(Math.pow(2, i * A.tickSemitones / 12) * 1e3) / 1e3 })) : [];
+    const doneAt = ticks.length ? ticks[ticks.length - 1].at : bar2 ? barAt : stampsDone;
+    return { deal, stamps, ticks, barAt, doneAt };
   }
 
   // src/site/siteBoard.ts
@@ -7508,6 +7649,10 @@ gl_FragColor=vec4(col,1.);}`;
     if (n !== 1) throw new Error(`${n} packs came without their summary`);
     const p = answer.packs[0];
     return { kind: "single", label: `${p.setCode} pack`, reveal: planReveal(p) };
+  }
+  function withSiteSetBar(r, base) {
+    if (r.kind !== "single" || !base) return r;
+    return { ...r, reveal: withSetBar(r.reveal, base) };
   }
   function summaryButtons(kind, unopened, bulkCount) {
     const none = unopened === 0 ? "No packs waiting. Buy more in the Store, or claim your free daily pack." : null;
@@ -9324,12 +9469,21 @@ gl_FragColor=vec4(col,1.);}`;
       const [answer, P] = await Promise.all([api.openPacks(state.session.token, what), packFrame()]);
       state.wallet = answer.wallet;
       drawWallet();
-      play(P, revealOf(answer));
+      play(P, await withBinderBar(revealOf(answer)));
     } catch (err) {
       forceClose();
       fail(err);
     } finally {
       inflight = false;
+    }
+  }
+  async function withBinderBar(r) {
+    if (r.kind !== "single" || !state.session) return r;
+    try {
+      const binder = await api.binder(state.session.token, r.reveal.setCode);
+      return withSiteSetBar(r, binder.base);
+    } catch {
+      return r;
     }
   }
   function twinSelector(el) {

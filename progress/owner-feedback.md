@@ -4470,7 +4470,7 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #145, `pr
 5. **Keep for now:** the numbers as proposed (dim, duck, flash, shake, motes, flip times as a function of the step). **Open to change after the owner tries it:** a Gold Mythic's doubled ward reaching the screen's edges is the first thing to shrink if it reads as too much.
 6. **Keep:** the ladder's timings replace the old per-finish flip times, so no finish builds shorter than one below it.
 
-The owner will try the ceremony on the Mac mini (with sound and a GPU) once it merges and report on calls 2 and 5. Until then, nothing changes.
+The owner will try the ceremony on the Mac mini (with sound and a GPU) once it merges and report on calls 2 and 5. Until then, nothing changes. (Render lane: noted 2026-11-10, render session 61: calls 2 and 5 unchanged, waiting on the owner's try.)
 
 Next render slice, as planned: the pack opening ceremony, part 3. Next session by alternation: game (season end, part 2).
 
@@ -4507,7 +4507,7 @@ Next session by alternation: render (the pack opening ceremony, part 3).
 
 - **Unopened packs from the previous season carry over** into the next season's file, and **each becomes the new season's pack**: when it is opened, it opens as the new season's set, not the old one.
 - This replaces the 2026-11-07 answer 3 ("cleared") and the 2026-11-08 rule ("lost when the season ends"), and the "Unopened packs: no change" line in the entry above.
-- **Render lane:** the "your packs will be lost" warning from the 2026-11-08 entry is no longer needed. Don't build it. If the season-end screen mentions packs, it says they carry over and open as the new season's packs.
+- **Render lane:** the "your packs will be lost" warning from the 2026-11-08 entry is no longer needed. Don't build it. If the season-end screen mentions packs, it says they carry over and open as the new season's packs. (Render lane: HANDLED 2026-11-10, render session 61: the warning's item is marked dropped on the Season 0 checklist in `progress/roadmap.md`; nothing was built for it.)
 - **Game lane:** build this with the rest of the entry above (the collection and decks carry over): after the Season 0 launch (5 December) and before Season 0 ends (about mid-January 2027). No change to Season 0 itself.
 
 ---

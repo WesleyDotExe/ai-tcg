@@ -1289,3 +1289,13 @@ season mark) is proposed as a mark, call 1.
 2. **Lane:** this was the catch-up's second render session. Once its PR merges, plain alternation resumes: the next
    session is game (season end, part 2).
 3. **Nothing needed from the game lane.**
+
+## 2026-11-10 — Render session 61 (the pack ceremony, part 3a)
+
+1. **Eight calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The three most worth a look:
+   call 1 (part 3 split: Open 10's stops and the debug panel come next session), call 2 (the Zero-Day now builds
+   before its terminal, so it hits after the Prototype, not before a Gold) and call 3 (the Prototype's length).
+2. **The season-end pack warning (render list item) is dropped,** per your 2026-11-10 entry (unopened packs carry
+   over). The Season 0 checklist line says so. If a season-end screen is built later and mentions packs, it will say
+   they carry over and open as the new season's packs.
+3. **Nothing needed from the game lane.** The set bar reads the existing binder endpoint.

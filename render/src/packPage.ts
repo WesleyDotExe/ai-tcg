@@ -23,7 +23,7 @@
 // plans it was given (packOpening.ts), each one a real opening.
 
 import { PACK_FX_RUNTIME_SOURCE, PACK_FX_SHADERS } from "./packFx.js";
-import { BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, FACTION_TELL_HEX, GLOW_STAGES, PACK_TIMINGS, REVEAL_TIMINGS, SNAP, TELL_BACKDROPS, TILT, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
+import { AFTERGLOW, BULK_SPEEDS, BULK_TAP_TIMINGS, BULK_TIMINGS, FACTION_TELL_HEX, GLOW_STAGES, PACK_TIMINGS, PROTOTYPE_TAKEOVER, REVEAL_TIMINGS, SNAP, TELL_BACKDROPS, TILT, ZERO_DAY_TIMINGS, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { SOUND_FX_PURE_SOURCE, SOUND_FX_RUNTIME_SOURCE } from "./soundFx.js";
 import { FLOW_TIMINGS, MINT_TIMINGS, type FirstTimeData } from "./firstTime.js";
 import { FIRST_TIME_CSS, FIRST_TIME_PURE_SOURCE, FIRST_TIME_RUNTIME_SOURCE, FIRST_TIME_WARD_SOURCE } from "./firstTimePage.js";
@@ -57,7 +57,7 @@ export interface PackPageData {
 
 export function renderPackOpeningHtml(data: PackPageData): string {
   const embed = (v: unknown) => JSON.stringify(v).replace(/</g, "\\u003c");
-  const timings = { build: { glow: GLOW_STAGES, factions: FACTION_TELL_HEX, snap: SNAP }, backdrops: TELL_BACKDROPS, pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT, mint: MINT_TIMINGS, flow: FLOW_TIMINGS };
+  const timings = { build: { glow: GLOW_STAGES, factions: FACTION_TELL_HEX, snap: SNAP }, backdrops: TELL_BACKDROPS, pack: PACK_TIMINGS, reveal: REVEAL_TIMINGS, zeroDay: ZERO_DAY_TIMINGS, bulk: BULK_TIMINGS, tap: BULK_TAP_TIMINGS, speeds: BULK_SPEEDS, tilt: TILT, mint: MINT_TIMINGS, flow: FLOW_TIMINGS, afterglow: AFTERGLOW, proto: PROTOTYPE_TAKEOVER };
   data = { ...data, bulks: data.bulks ?? [] };
   const flow = !!data.flow;
   const site = !!data.site;
@@ -89,6 +89,7 @@ export function renderPackOpeningHtml(data: PackPageData): string {
 <main class="stage" id="stage">
   <div class="bd" id="bd" aria-hidden="true"></div>
   <div class="dim" id="dim"></div>
+  <div class="pt" id="pt" hidden aria-hidden="true"><div class="ptrays"></div><div class="ptcore"></div><div class="ptlabel" id="pt-label"></div></div>
   <div class="scene" id="scene"></div>
   <canvas class="sparks" id="sparks" aria-hidden="true"></canvas>
   <div class="flash" id="flash" aria-hidden="true"></div>
@@ -394,6 +395,32 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .face .plate.pending { opacity: 0; transform: scale(2.4) rotate(-8deg); }
 .face .plate.stamp { animation: stamp 0.32s cubic-bezier(.5,0,.8,1.4) both; }
 @keyframes stamp { from { opacity: 0; transform: scale(2.4) rotate(-8deg); } }
+/* The Prototype takeover (render 61): the marker on the number line and the
+   serial are stamped on live; the serial counts up first. */
+.face .mk { display: inline-block; }
+.face .mk.pending { opacity: 0; transform: scale(2.6) rotate(-10deg); }
+.face .mk.stamp { animation: stamp 0.34s cubic-bezier(.5,0,.8,1.4) both; }
+.face .plate.counting { opacity: 1; transform: scale(1.18); }
+.pt { position: absolute; inset: 0; z-index: 1; background: #000; opacity: 0; transition: opacity 0.45s; pointer-events: none; overflow: hidden; }
+.pt[hidden] { display: none; }
+.pt.on { opacity: 1; }
+.pt.fade { opacity: 0; transition: opacity 0.7s; }
+.pt .ptrays { position: absolute; left: 50%; top: 46%; width: 180vmax; height: 180vmax; margin: -90vmax 0 0 -90vmax; opacity: 0; will-change: transform, opacity;
+  background: repeating-conic-gradient(from 0deg, rgba(255,214,110,0.30) 0deg 5deg, rgba(255,214,110,0) 5deg 15deg); -webkit-mask-image: radial-gradient(circle, #000 8%, transparent 52%); mask-image: radial-gradient(circle, #000 8%, transparent 52%); }
+.pt .ptcore { position: absolute; left: 50%; top: 46%; width: 120vmin; height: 120vmin; margin: -60vmin 0 0 -60vmin; border-radius: 50%; opacity: 0; transform: scale(0.4); will-change: transform, opacity;
+  background: radial-gradient(circle, rgba(255,236,170,0.85), rgba(246,190,70,0.45) 26%, rgba(120,70,10,0.25) 48%, transparent 66%); }
+.pt.bloom .ptrays { animation: ptbloom 0.65s ease-out both, ptrays 26s linear infinite; }
+.pt.bloom .ptcore { opacity: 1; transform: scale(1); transition: opacity 0.65s ease-out, transform 0.9s cubic-bezier(.2,.9,.3,1); }
+.pt.hitflare .ptcore { animation: ptflare 0.7s ease-out both; }
+@keyframes ptbloom { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+@keyframes ptrays { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes ptflare { 0% { transform: scale(1); } 30% { transform: scale(1.35); } 100% { transform: scale(1.08); } }
+.pt .ptlabel { position: absolute; left: 16px; right: 16px; top: 7%; text-align: center; font-weight: 900; letter-spacing: 0.32em; font-size: clamp(12px, 2.4vw, 17px); color: var(--gold4); text-shadow: 0 0 14px rgba(255,200,90,0.8); opacity: 0; transition: opacity 0.5s; }
+.pt.bloom .ptlabel { opacity: 1; }
+body.takeover .bar { opacity: 0.18; transition: opacity 0.45s; }
+.cslot.ptcard { z-index: 20; }
+.cslot.ptjolt .flipper { animation: ptjolt 0.22s ease-out; }
+@keyframes ptjolt { 30% { transform: translateY(3%) scale(0.985); } }
 /* Zero-Day: the card moves, and reaches past its frame. */
 .cslot.reach::before { content: ""; position: absolute; inset: -9%; border-radius: 16px; pointer-events: none; z-index: -1;
   background: conic-gradient(from var(--zda, 0deg), rgba(255,30,60,0), rgba(255,30,60,0.75), rgba(60,255,140,0.6), rgba(255,30,60,0)); filter: blur(14px); animation: zdspin 3s linear infinite; }
@@ -458,6 +485,37 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tile .cap { margin-top: 5px; font-size: 11px; color: var(--dim); line-height: 1.3; }
 .tile .fin { display: inline-block; font-weight: 800; letter-spacing: 0.08em; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #1a2342; color: #cfe0ff; margin-bottom: 2px; }
 .tile .fin.hit { background: linear-gradient(110deg, #7a5cff, #ff5cc8); color: #fff; }
+/* The afterglow (render 61): the pack's cards fanned, NEW stamps slamming
+   down one after another, the set bar ticking up. */
+/* --fw: the fan's whole width is about ((n - 1) * 0.66 + 2.1) cards: the
+   spacing, plus the outer cards' turn about a point below them (which swings
+   them out) and their turned width. */
+.pfan { --fw: min(150px, calc(min(980px, 100vw - 32px) / ((var(--n) - 1) * 0.66 + 2.1))); position: relative; width: 100%; height: calc(var(--fw) * 1.4 + var(--fw) * 0.42); margin: 6px auto 0; }
+.pfan .tile { position: absolute; left: 50%; top: 4%; width: var(--fw); max-width: none; margin-left: calc(var(--fw) / -2); transform-origin: 50% 130%; z-index: var(--z);
+  transform: translateX(calc(var(--o) * var(--fw) * 0.66)) translateY(calc(var(--o) * var(--o) * var(--fw) * var(--fdrop))) rotate(calc(var(--o) * var(--fdeg)));
+  animation: fanin var(--dm) cubic-bezier(.2,.9,.3,1.05) both; animation-delay: var(--dd); outline: none; }
+.pfan .tile .mini { transition: transform 0.18s cubic-bezier(.2,.9,.3,1.2); }
+.pfan .tile.on { z-index: 30; }
+.pfan .tile.on .mini { transform: translateY(-12%) scale(1.07); }
+.pfan .tile:focus-visible .mini { outline: 2px solid #8fb0ff; outline-offset: 3px; border-radius: 8px; }
+.pfan .tile .cap { display: none; }
+.pfan .tile .new { top: 4%; right: -10%; font-size: calc(var(--fw) * 0.1); padding: 0.25em 0.6em; transform: rotate(12deg); }
+.pfan .tile .new.pend { opacity: 0; transform: scale(2.6) rotate(-14deg); }
+.pfan .tile .new.slam { animation: newslam var(--sm, 260ms) cubic-bezier(.5,0,.8,1.4) both; }
+@keyframes fanin { from { transform: translateY(70%) scale(0.6); opacity: 0; } }
+@keyframes newslam { from { opacity: 0; transform: scale(2.6) rotate(-14deg); } to { opacity: 1; transform: rotate(12deg); } }
+.fcap { min-height: 3.2em; font-size: 12px; color: var(--dim); line-height: 1.35; margin: 2px auto 6px; max-width: 420px; }
+.fcap .fin { display: inline-block; font-weight: 800; letter-spacing: 0.08em; font-size: 10px; padding: 1px 6px; border-radius: 3px; background: #1a2342; color: #cfe0ff; }
+.fcap .fin.hit { background: linear-gradient(110deg, #7a5cff, #ff5cc8); color: #fff; }
+.setbar { width: min(420px, 100%); margin: 8px auto 2px; padding: 0 3px; box-sizing: border-box; text-align: left; opacity: 0; transform: translateY(8px); transition: opacity 0.35s, transform 0.35s; }
+.setbar.on { opacity: 1; transform: none; }
+.setbar .sbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 5px; letter-spacing: 0.04em; }
+.setbar .sbl b { color: var(--ink); font-variant-numeric: tabular-nums; display: inline-block; }
+.setbar .sbl b.pulse { animation: barpulse 0.2s ease-out; }
+.setbar .sbt { position: relative; height: 8px; border-radius: 5px; background: rgba(106,140,255,0.16); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(106,140,255,0.3); }
+.setbar .sbt i { position: absolute; inset: 0; transform-origin: 0 50%; background: linear-gradient(90deg, #3d7bff, #7a5cff 60%, #ff5cc8); transition: transform 0.18s cubic-bezier(.2,.9,.3,1.2); }
+.setbar .sbnote { font-size: 11px; color: var(--dim); margin-top: 5px; min-height: 1.3em; }
+@keyframes barpulse { 40% { transform: scale(1.25); } }
 .points { margin: 16px 0 6px; font-size: 14px; }
 .points b { color: var(--gold2); }
 .btns { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
@@ -545,6 +603,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .pack, .stage::before, .back, .cslot.reach::before, .face.zdface .art, .fan .mpack, .bd::before, .bd::after { animation: none !important; }
   .burst, .shock { animation-duration: 1ms !important; }
   .stage.bshake { animation: none !important; }
+  .pt.bloom .ptrays { animation: ptbloom 0.3s ease-out both !important; }
+  .pfan .tile { animation-duration: 1ms !important; }
   .wflare i, .wflare i.r2 { animation: wfade 0.3s both !important; }
   @keyframes wfade { from { opacity: 0; } to { opacity: 0.55; } }
   .pack .lean { transition: none; }
@@ -731,7 +791,7 @@ export const PACK_PAGE_PURE_SOURCE = String.raw`
     var variant = c.reveal === 'altArt' ? 'alt' : c.reveal === 'secret' ? 'illustration' : sig ? 'signature' : '';
     var cls = 'face faction-' + f.faction + (settled && packFullBleed(c.reveal) ? ' full' : '') + (settled && c.reveal === 'gold' ? ' goldframe' : '') + (settled && c.reveal === 'glitch' ? ' corrupt' : '') + (settled && c.reveal === 'zeroDay' ? ' zdface' : '') + (settled && sig ? ' sigface' : '') + (c.prototype ? ' proto' : '') + (f.modes && f.modes.length ? ' modal' : '');
     var type = f.type === 'Reserved' ? 'Zero-Day · Reserved' : f.type + ' · ' + f.faction;
-    var number = c.prototype ? '<span class="foiltext">PROTOTYPE · ' + packEsc(setCode || 'S0') + '</span>' : packEsc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '') + (sig ? '<span class="oneof"> · 1 OF 1</span>' : '');
+    var number = c.prototype ? '<span class="foiltext mk' + (opts.pendingMarker ? ' pending' : '') + '">PROTOTYPE · ' + packEsc(setCode || 'S0') + '</span>' : packEsc(c.collectorNumber) + (c.finish === 'glitch' ? ' ░' : '') + (sig ? '<span class="oneof"> · 1 OF 1</span>' : '');
     var mark = c.reveal === 'altArt' ? 'ALT ART' : c.reveal === 'glitch' ? 'GL1TCH' : c.reveal === 'secret' ? 'SECRET' : c.reveal === 'zeroDay' ? 'ZERO-DAY' : sig ? 'SIGNATURE' : '';
     return '<div class="' + cls + '">' +
       '<div class="art">' + (c.artPending ? packArtPendingSvg() : packArtSvg(f, variant)) + '</div>' +
@@ -945,6 +1005,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   var zd = document.getElementById('zd'), zdTerm = document.getElementById('zd-term'), announce = document.getElementById('announce');
   var sparksCanvas = document.getElementById('sparks');
   var bd = document.getElementById('bd'), flashEl = document.getElementById('flash');
+  var pt = document.getElementById('pt'), ptLabel = document.getElementById('pt-label');
   stage.classList.add('has-bd');
   var t0 = performance.now();
   // The backdrop's rung (render 58): the sealed pack's tell, eased in.
@@ -967,7 +1028,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // Cancelling the timers also cancels the ones that would have taken a
   // reveal's overlays (the wash, the secret number, the Jackpot banner) off
   // the stage, so they go here too.
-  function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; stage.querySelectorAll('.wash, .callout, .banner').forEach(function (e) { e.remove(); }); }
+  function clearTimers() { S.timers.forEach(clearTimeout); S.timers = []; stage.querySelectorAll('.wash, .callout, .banner').forEach(function (e) { e.remove(); }); if (pt) { pt.hidden = true; pt.className = 'pt'; } document.body.classList.remove('takeover'); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function stopLayers() {
     S.layers.forEach(function (l) { l.stop(); }); S.layers = [];
@@ -1355,7 +1416,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   function buildOf(c) {
     if (c.build) return c.build;
     var t = TM.reveal[c.reveal] || { flip: 0, hold: 120 }, f = Math.max(150, t.flip);
-    return { step: c.faceDown ? c.reveal : 'snap', weight: 0, held: !!c.faceDown, stages: 0, flipMs: f, dim: 0, duck: 1, flash: 0, shakePx: 0, shakeMs: 0, bass: null, motes: 0, moteReach: 0, ward: 'none', wardScale: 0, hold: t.hold, pitch: 1, timeline: { stages: [], flipAt: 0, landAt: f } };
+    return { step: c.faceDown ? c.reveal : 'snap', weight: 0, held: !!c.faceDown, stages: 0, flipMs: f, dim: 0, duck: 1, flash: 0, shakePx: 0, shakeMs: 0, bass: null, motes: 0, moteReach: 0, ward: 'none', wardScale: 0, hold: t.hold, pitch: 1, timeline: { stages: [], flipAt: 0, landAt: f }, takeover: null, hitAt: f };
   }
   function heldCard(c) { return !!buildOf(c).held; }
   function slotLabel(c) { return c.slot === 'shine' ? '<span class="slot">SHINE SLOT</span><br>' : c.slot === 'bonus' ? '<span class="slot bonus">BONUS 6TH CARD</span><br>' : ''; }
@@ -1462,6 +1523,29 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     if (S.mode !== 'bulk') return 'Tap for the summary';
     return S.bp >= DATA.bulks[S.bulk].reveal.packs.length - 1 ? 'Tap for the summary' : 'Tap to carry on with the packs';
   }
+  // The afterglow's tilt (render session 61; the brief's beat 4: "the hit
+  // card is mouse-tilt interactive so the owner can admire the foil"): once a
+  // held card has landed, a mouse over it leans it (no press needed), the
+  // shine following; leaving springs it back. Touch keeps hold-to-tilt (a
+  // finger over a card is a press). None with reduced motion.
+  var AG = TM.afterglow;
+  S.glow = null;
+  function afterglowLean(el, c, x, y) {
+    var deg = REDUCE ? AG.reducedHoverDeg : AG.hoverDeg;
+    if (!deg || !el || S.tilt !== S.i || !heldCard(c) || !S.revealed[S.i] || el.classList.contains('dragging')) return;
+    var f = el.querySelector('.flipper'), a = packTiltAngles(x, y, deg);
+    if (!S.glow || S.glow.idx !== S.i) S.glow = { idx: S.i, el: f, peak: 0, moves: 0 };
+    f.style.transition = 'transform 90ms linear';
+    f.style.transform = 'rotateX(' + a.rx + 'deg) rotateY(' + a.ry + 'deg)';
+    S.glow.peak = Math.max(S.glow.peak, Math.abs(a.rx), Math.abs(a.ry)); S.glow.moves++;
+  }
+  function afterglowRest() {
+    var g = S.glow; if (!g) return;
+    S.glow = null;
+    g.el.style.transition = 'transform ' + TM.tilt.springMs + 'ms cubic-bezier(.3,1.7,.5,1)';
+    g.el.style.transform = '';
+    log('afterglowTilt', { idx: g.idx, peak: Math.round(g.peak * 10) / 10, moves: g.moves });
+  }
   function bindStack(stack) {
     var drag = null;
     stack.addEventListener('pointerdown', function (e) {
@@ -1481,6 +1565,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       if (tilting()) return;
       setLight(x, y, false);
       var top = S.cur.cards[S.i];
+      if (!drag && e.pointerType === 'mouse') afterglowLean(el, top, x, y);
       if (drag && (!heldCard(top) || S.revealed[S.i])) {
         var dx = e.clientX - drag.x0;
         if (Math.abs(dx) > 10 && canLeave()) { el.classList.add('dragging'); el.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx * 0.05) + 'deg)'; }
@@ -1494,7 +1579,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       var g = packGesture(e.clientX - d.x0, e.clientY - d.y0, performance.now() - d.at);
       act(g === 'swipeRight' ? 'r' : g === 'swipeLeft' ? 'l' : g === 'tap' ? 'tap' : 'none');
     });
-    stack.addEventListener('pointerleave', function () { if (!tilting()) setLight(0.5, 0.4, false); });
+    stack.addEventListener('pointerleave', function () { if (!tilting()) { setLight(0.5, 0.4, false); afterglowRest(); } });
   }
   function canLeave() { return performance.now() >= S.busyUntil; }
   // A tap or a swipe on the top card: reveal it if it waits face down,
@@ -1509,6 +1594,7 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   }
   function leave(dir) {
     var r = S.cur, el = slotEl(S.i);
+    afterglowRest();
     S.tilt = -1;
     el.classList.add(dir === 'r' ? 'gone-r' : 'gone-l');
     log('cardLeft', { idx: S.i, dir: dir });
@@ -1653,16 +1739,105 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     var c = S.cur.cards[k], el = slotEl(k), b = buildOf(c);
     S.revealed[k] = true;
     el.classList.remove('glow');
-    if (c.reveal === 'zeroDay') { zeroDay(k); return; }
     S.busyUntil = Infinity;
-    var tl = b.timeline;
-    log('build', { idx: k, step: b.step, stages: b.stages, flipAt: tl.flipAt, landAt: tl.landAt, dim: b.dim, duck: b.duck });
+    var tl = b.timeline, to = b.takeover;
+    log('build', { idx: k, step: b.step, stages: b.stages, flipAt: tl.flipAt, landAt: tl.landAt, hitAt: b.hitAt, takeover: to ? to.kind : null, dim: b.dim, duck: b.duck });
     roomDown(b, k);
     if (b.stages) el.classList.add('charging');
     hint.innerHTML = slotLabel(c) + '…';
     tl.stages.forEach(function (s, i) { later(function () { glowStage(el, c, b, i + 1, s.colour); }, s.at); });
-    later(function () { flip(k, c, el, b); }, tl.flipAt);
+    // The two top steps keep the build, then take the screen over in place
+    // of the flip (render session 61): a Zero-Day's terminal, a Prototype's
+    // gold field with its marker and serial stamped live.
+    later(function () {
+      if (to && to.kind === 'zeroDay') zeroDay(k);
+      else if (to && to.kind === 'prototype') protoTakeover(k, c, el, b);
+      else flip(k, c, el, b);
+    }, tl.flipAt);
   }
+  // The Prototype takeover: black, the gold field blooming, the card turning
+  // over large in the middle of it, PROTOTYPE · S0 stamped on its number
+  // line, the serial counting up to its number, the plate slamming down (the
+  // hit, with a fanfare), then the field fading and the card settling back.
+  // Every beat's time is the takeover's own (packOpening.ts prototypeTakeover).
+  function protoTakeover(k, c, el, b) {
+    var T = TM.proto, to = b.takeover, at = {};
+    to.beats.forEach(function (x) { at[x.beat] = x.at; });
+    var pack = S.pack, bp = S.bp;
+    function still() { return S.pack === pack && S.bp === bp && S.i === k && S.phase === 'cards'; }
+    log('takeover', { idx: k, as: 'prototype', beats: at, hitAt: to.hitAt, count: to.count });
+    pt.hidden = false; pt.className = 'pt'; ptLabel.textContent = '';
+    document.body.classList.add('takeover');
+    requestAnimationFrame(function () { pt.classList.add('on'); });
+    later(function () { el.classList.remove('charging'); }, at.black);
+    later(function () {
+      pt.classList.add('bloom');
+      ptLabel.textContent = 'PROTOTYPE' + (c.prototype ? ' · RUN ' + c.prototype.runCode : '');
+      sfx('riser', c.face.faction, 'normal', { stage: 4, dur: (T.bloom + T.flip) / 1000, lift: true });
+      sfx('sparkle', 'Neutral', 'spectacle', { lift: true });
+      log('ptBloom', { label: ptLabel.textContent });
+    }, at.bloom);
+    var face = null, plate = null, mk = null;
+    later(function () {
+      if (!still()) return;
+      el.classList.add('flipping', 'ptcard');
+      var front = el.querySelector('.front');
+      front.innerHTML = faceHtml(c, { settled: false, pendingMarker: true });
+      face = front.querySelector('.face'); plate = face.querySelector('.plate'); mk = face.querySelector('.mk');
+      face.classList.add('full');
+      var flipper = el.querySelector('.flipper');
+      flipper.style.transition = 'transform ' + T.flip + 'ms cubic-bezier(.45,0,.2,1)';
+      el.style.transition = 'transform ' + T.flip + 'ms cubic-bezier(.2,.9,.3,1.1)';
+      el.style.transform = 'scale(' + (REDUCE ? 1 : T.scale) + ')';
+      requestAnimationFrame(function () { el.classList.remove('down'); });
+      sfx('flip', c.face.faction, 'normal', { lift: true });
+      ramp(addLayer(face, 'gold', 0, k + 1), 0, 0.5, T.flip);
+      announce.textContent = c.face.name + ', Prototype' + (c.prototype ? ', serial ' + c.prototype.serial + ' of ' + c.prototype.runSize : '');
+      hint.innerHTML = slotLabel(c) + 'PROTOTYPE';
+      log('reveal', { idx: k, as: 'prototype', finish: c.finish, step: b.step, flipMs: T.flip, takeover: true });
+    }, at.flip);
+    later(function () {
+      if (!mk) return;
+      mk.classList.remove('pending'); mk.classList.add('stamp');
+      jolt(el); sfx('stamp', c.face.faction, 'normal', { lift: true });
+      log('ptMarker', { text: mk.textContent });
+    }, at.marker);
+    later(function () {
+      if (!plate || !c.prototype) return;
+      var seq = to.count && to.count.length ? to.count : [c.prototype.serial], gap = T.count / seq.length;
+      plate.classList.remove('pending'); plate.classList.add('counting');
+      seq.forEach(function (n, i) {
+        later(function () {
+          plate.textContent = n + '/' + c.prototype.runSize;
+          sfx('tick', 'Neutral', 'normal', { pitch: Math.pow(2, (i * 1) / 12), lift: true });
+        }, i * gap);
+      });
+      log('ptCount', { seq: seq });
+    }, at.count);
+    later(function () {
+      if (!still()) return;
+      if (plate) { plate.classList.remove('counting', 'pending'); void plate.offsetWidth; plate.classList.add('stamp'); }
+      pt.classList.add('hitflare');
+      hit(k, c, el, b);
+      sfx('stamp', c.face.faction, 'spectacle', { lift: true });
+      sfx('fanfare', c.face.faction, 'spectacle', { lift: true });
+      var rc = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+      sparks(rc.left - sr.left, rc.top - sr.top + rc.height * 0.1, rc.width, 140);
+      log('stamp', { serial: c.prototype && c.prototype.serial, plate: plate ? plate.textContent : null });
+      S.busyUntil = performance.now() + T.afterHold;
+    }, at.hit);
+    later(function () {
+      pt.classList.add('fade');
+      document.body.classList.remove('takeover');
+      el.style.transform = '';
+      roomUp(k);
+      S.tilt = k;
+      hint.innerHTML = slotLabel(c) + 'PROTOTYPE<br>' + nextCardHint(k);
+      log('landed', { idx: k, as: c.reveal, takeover: true });
+      later(function () { pt.hidden = true; pt.className = 'pt'; el.style.transition = ''; el.classList.remove('ptcard', 'ptjolt'); }, T.fade);
+    }, at.fade);
+  }
+  function jolt(el) { if (REDUCE) return; el.classList.remove('ptjolt'); void el.offsetWidth; el.classList.add('ptjolt'); }
   function flip(k, c, el, b) {
     var t = { flip: b.flipMs, hold: b.hold };
     el.classList.add('flipping');
@@ -1763,53 +1938,63 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
   // Zero-Day: a full-screen takeover. The screen drops to black, a terminal
   // types "ZERO-DAY DETECTED", a short breach sequence plays, then the
   // animated card arrives.
+  // Every beat is scheduled from the takeover's start (render session 61):
+  // the typing used to chain one timer per character, so under a starved
+  // frame rate the lateness added up (the s61 check saw the hit 3-8 s late in
+  // software rendering).
   function zeroDay(k) {
-    var r = S.cur, c = r.cards[k], el = slotEl(k), Z = TM.zeroDay;
+    var r = S.cur, c = r.cards[k], el = slotEl(k), Z = TM.zeroDay, b = buildOf(c);
+    var at = {}; ((b.takeover && b.takeover.beats) || []).forEach(function (x) { at[x.beat] = x.at; });
+    var text = 'ZERO-DAY DETECTED';
+    if (at.type === undefined) { at.type = Z.black; at.breach = Z.black + text.length * Z.typePerChar; at.arrive = at.breach + Z.breach; }
     S.busyUntil = Infinity;
-    log('reveal', { idx: k, as: 'zeroDay', finish: c.finish });
+    el.classList.remove('charging');
+    log('reveal', { idx: k, as: 'zeroDay', finish: c.finish, takeover: true });
     zd.hidden = false; zd.className = 'zd'; zdTerm.innerHTML = '';
     requestAnimationFrame(function () { zd.classList.add('on'); });
     sfx('breach', 'Null', 'spectacle');
-    var bg = null;
+    var bg = null, big = null, cur = null;
     later(function () {
       bg = FXGL.layer(zd, 'zeroDay', { amt: 0.15, seed: 3 });
       if (bg) S.layers.push(bg);
-      var text = 'ZERO-DAY DETECTED', n = 0;
-      var big = document.createElement('span'); big.className = 'big'; zdTerm.appendChild(big);
-      var cur = document.createElement('span'); cur.className = 'cur'; cur.innerHTML = '&nbsp;'; zdTerm.appendChild(cur);
-      (function type() {
-        if (n < text.length) { big.textContent = text.slice(0, ++n); sfx('type', 'Null', 'normal'); later(type, Z.typePerChar); return; }
-        log('zeroDayTyped', { text: big.textContent });
-        breach();
-      })();
-      function breach() {
-        var lines = ['> scanning ' + r.setCode + ' kernel ... ' + c.collectorNumber, '> privilege: ROOT', '> payload: ' + c.face.name.toUpperCase(), '> containment: FAILED'];
-        zd.classList.add('breach'); sfx('breach', 'Null', 'spectacle');
-        ramp(bg, 0.15, 1, Z.breach * 0.6);
-        lines.forEach(function (ln, i) { later(function () { zdTerm.insertBefore(document.createTextNode(ln + '\n'), cur); sfx('type', 'Null', 'normal'); }, i * (Z.breach / 5)); });
-        later(arrive, Z.breach);
-      }
-      function arrive() {
-        log('zeroDayArrive', { idx: k });
-        var front = el.querySelector('.front');
-        front.innerHTML = faceHtml(c, { settled: true });
-        el.classList.remove('down'); el.classList.add('reach');
-        el.style.zIndex = '200';
-        el.style.transition = 'transform ' + Z.arrive + 'ms cubic-bezier(.2,1.3,.4,1)';
-        el.style.transform = 'scale(1.5)';
-        requestAnimationFrame(function () { el.style.transform = 'scale(1)'; });
-        zd.classList.add('fade');
-        stage.classList.add('shake');
-        sfx('rise', 'Null', 'spectacle');
-        settleFx(k, c);
-        hit(k, c, el, buildOf(c));
-        later(function () { zd.hidden = true; zd.className = 'zd'; stage.classList.remove('shake'); if (bg) { bg.stop(); } }, 800);
-        S.busyUntil = performance.now() + Z.arrive + TM.reveal.zeroDay.hold;
-        later(function () { el.style.transition = ''; S.tilt = k; }, Z.arrive);
-        announce.textContent = c.face.name + ', Zero-Day';
-        hint.innerHTML = '<span class="slot">SHINE SLOT</span><br>ZERO-DAY<br>' + nextCardHint(k);
-      }
-    }, Z.black);
+      big = document.createElement('span'); big.className = 'big'; zdTerm.appendChild(big);
+      cur = document.createElement('span'); cur.className = 'cur'; cur.innerHTML = '&nbsp;'; zdTerm.appendChild(cur);
+    }, at.type);
+    for (var ci = 1; ci <= text.length; ci++) (function (n) {
+      later(function () { if (!big) return; big.textContent = text.slice(0, n); sfx('type', 'Null', 'normal'); if (n === text.length) log('zeroDayTyped', { text: big.textContent }); }, at.type + (n - 1) * Z.typePerChar);
+    })(ci);
+    later(function () {
+      var lines = ['> scanning ' + r.setCode + ' kernel ... ' + c.collectorNumber, '> privilege: ROOT', '> payload: ' + c.face.name.toUpperCase(), '> containment: FAILED'];
+      zd.classList.add('breach'); sfx('breach', 'Null', 'spectacle');
+      ramp(bg, 0.15, 1, Z.breach * 0.6);
+      lines.forEach(function (ln, i) { later(function () { if (cur) zdTerm.insertBefore(document.createTextNode(ln + '\n'), cur); sfx('type', 'Null', 'normal'); }, i * (Z.breach / 5)); });
+    }, at.breach);
+    later(arrive, at.arrive);
+    function arrive() {
+      log('zeroDayArrive', { idx: k });
+      var front = el.querySelector('.front');
+      front.innerHTML = faceHtml(c, { settled: true });
+      el.classList.remove('down'); el.classList.add('reach');
+      el.style.zIndex = '200';
+      el.style.transition = 'transform ' + Z.arrive + 'ms cubic-bezier(.2,1.3,.4,1)';
+      el.style.transform = 'scale(1.5)';
+      requestAnimationFrame(function () { el.style.transform = 'scale(1)'; });
+      zd.classList.add('fade');
+      stage.classList.add('shake');
+      sfx('rise', 'Null', 'spectacle');
+      // The hit first: the finish's shader compiles in settleFx, and on a
+      // slow GPU (3 s in software rendering, measured by the s61 check) that
+      // held the hit back.
+      hit(k, c, el, b);
+      settleFx(k, c);
+      later(function () { zd.hidden = true; zd.className = 'zd'; stage.classList.remove('shake'); if (bg) { bg.stop(); } }, 800);
+      // The room the build dimmed comes back once the card has arrived.
+      later(function () { roomUp(k); }, Math.max(700, TM.reveal.zeroDay.hold));
+      S.busyUntil = performance.now() + Z.arrive + TM.reveal.zeroDay.hold;
+      later(function () { el.style.transition = ''; S.tilt = k; }, Z.arrive);
+      announce.textContent = c.face.name + ', Zero-Day';
+      hint.innerHTML = '<span class="slot">SHINE SLOT</span><br>ZERO-DAY<br>' + nextCardHint(k);
+    }
   }
 
   // ---------- the summary ----------
@@ -1820,12 +2005,20 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     S.phase = 'summary'; skipBtn.hidden = true; counter.textContent = ''; hint.innerHTML = '';
     var r = S.cur;
     var hits = r.cards.filter(function (c) { return c.hit; }).length;
-    var tiles = r.cards.map(function (c, i) { return tileHtml(c, i, ''); }).join('');
+    var plan = r.afterglow || { deal: r.cards.map(function (c, i) { return { idx: i, at: 0 }; }), stamps: [], ticks: [], barAt: 0, doneAt: 0 };
+    var n = r.cards.length, best = 0;
+    r.cards.forEach(function (c, i) { if (buildOf(c).level >= buildOf(r.cards[best]).level) best = i; });
+    var tiles = r.cards.map(function (c, i) {
+      var o = i - (n - 1) / 2, d = plan.deal[i] ? plan.deal[i].at - AG.dealMs : i * AG.dealGap;
+      return tileHtml(c, i, ' ftile', '--o:' + o + ';--z:' + (i + 1) + ';--dd:' + d + 'ms;--dm:' + AG.dealMs + 'ms', true);
+    }).join('');
+    var bar = r.setBar || null;
+    var barHtml = bar ? '<div class="setbar" id="setbar"><div class="sbl"><span>' + esc(bar.setCode) + ' base set</span><b id="sbn">' + bar.before + '/' + bar.total + '</b></div><div class="sbt"><i id="sbf" style="transform:scaleX(' + (bar.total ? bar.before / bar.total : 0) + ')"></i></div><div class="sbnote" id="sbnote"></div></div>' : '';
     // After the reveal only, never before: the pack and the tear look the
     // same whether pity or the starter guarantee applied.
     var pity = r.pity.fullArt || r.pity.mythic || r.starterHit ? '<div class="sub">' + (r.pity.fullArt ? 'Pity: this pack was due a hit. ' : '') + (r.starterHit ? 'Starter guarantee: this pack was due a hit. ' : '') + (r.pity.mythic ? 'Pity: this pack was due a Mythic.' : '') + '</div>' : '';
     scene.innerHTML = '<div class="summary"><h2>PACK COMPLETE</h2><p class="sub">' + r.cards.length + ' cards · ' + (hits ? hits + ' hit' + (hits > 1 ? 's' : '') : 'no hits') + (r.jackpot ? ' · Jackpot pack' : '') + '</p>' + pity +
-      '<div class="grid">' + tiles + '</div><p class="points">+<b>' + r.packPoints + '</b> pack points</p>' +
+      '<div class="pfan" style="--n:' + n + ';--fdeg:' + AG.fanDeg + 'deg;--fdrop:' + AG.fanDrop + '">' + tiles + '</div><div class="fcap" id="fcap" aria-live="polite"></div>' + barHtml + '<p class="points">+<b>' + r.packPoints + '</b> pack points</p>' +
       '<div class="btns"><button class="pri" id="again">Open another</button><button id="done">Done</button></div></div>';
     // A flow around the packs (the first-time page) puts its own buttons
     // here; otherwise "Open another" and "Done".
@@ -1835,7 +2028,58 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
       document.getElementById('done').addEventListener('click', shelf);
     }
     bindViewer(r.cards);
-    log('summary', { cards: r.cards.map(function (c) { return { name: c.face.name, finish: c.finish, isNew: c.isNew }; }), packPoints: r.packPoints });
+    bindFan(r, best);
+    log('summary', { cards: r.cards.map(function (c) { return { name: c.face.name, finish: c.finish, isNew: c.isNew }; }), packPoints: r.packPoints, setBar: bar, plan: { stamps: plan.stamps.length, ticks: plan.ticks.length, doneAt: plan.doneAt } });
+    afterglow(r, plan, bar);
+  }
+  // The fan: the card under the pointer (or focused) lifts and its caption
+  // shows below; the best card's to begin with.
+  function bindFan(r, best) {
+    var fcap = document.getElementById('fcap'), tiles = scene.querySelectorAll('.pfan .tile');
+    function on(i) {
+      tiles.forEach(function (t) { t.classList.toggle('on', Number(t.getAttribute('data-ti')) === i); });
+      var t = scene.querySelector('.pfan .tile[data-ti="' + i + '"] .cap');
+      if (fcap && t) fcap.innerHTML = t.innerHTML;
+    }
+    tiles.forEach(function (t) {
+      var i = Number(t.getAttribute('data-ti'));
+      t.addEventListener('pointerenter', function () { on(i); });
+      t.addEventListener('focus', function () { on(i); });
+      t.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openViewer(r.cards[i]); } });
+    });
+    on(best);
+  }
+  // The afterglow's beats, from the plan: the NEW stamps slamming down one
+  // after another once the fan is down, then the set bar ticking up once per
+  // place this pack filled, each tick a little higher.
+  function afterglow(r, plan, bar) {
+    plan.stamps.forEach(function (st) {
+      later(function () {
+        var e = scene.querySelector('.pfan .tile[data-ti="' + st.idx + '"] .new');
+        if (!e) return;
+        e.style.setProperty('--sm', AG.stampMs + 'ms');
+        e.classList.remove('pend'); e.classList.add('slam');
+        sfx('stamp', r.cards[st.idx].face.faction, 'subtle');
+        log('newStamp', { idx: st.idx, name: r.cards[st.idx].face.name });
+      }, st.at);
+    });
+    if (!bar) { later(function () { log('afterglowDone', { bar: false }); }, plan.doneAt); return; }
+    var sb = document.getElementById('setbar'), sbn = document.getElementById('sbn'), sbf = document.getElementById('sbf'), note = document.getElementById('sbnote');
+    later(function () { if (sb) sb.classList.add('on'); log('setBar', { before: bar.before, total: bar.total }); }, plan.barAt);
+    plan.ticks.forEach(function (t, i) {
+      later(function () {
+        if (!sbn) return;
+        sbn.textContent = t.held + '/' + bar.total;
+        sbn.classList.remove('pulse'); void sbn.offsetWidth; sbn.classList.add('pulse');
+        sbf.style.transform = 'scaleX(' + (bar.total ? t.held / bar.total : 0) + ')';
+        sfx('tick', 'Neutral', 'normal', { pitch: t.pitch });
+        log('setTick', { held: t.held, pitch: t.pitch });
+      }, t.at);
+    });
+    later(function () {
+      if (note) note.textContent = bar.filled.length ? '+' + bar.filled.length + ' new to the set' + (bar.after >= bar.total ? ' · set complete' : '') : 'Nothing new for the set in this pack';
+      log('afterglowDone', { bar: true, shown: sbn ? sbn.textContent : null });
+    }, plan.doneAt + 60);
   }
 
   // A card face that is settled and wears its finish's CSS look (a summary
@@ -1845,11 +2089,11 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     return faceHtml(c, { settled: true }).replace('class="face ', 'class="face ' + (name ? 'fx-css-' + name + ' ' : ''));
   }
   // One summary tile: a revealed card, or a ten-pack tile (count, packs).
-  function tileHtml(c, i, extra) {
+  function tileHtml(c, i, extra, style, fan) {
     var lab = packFinishLabel(c.finish);
     var where = c.packs ? ' · ' + packListLabel(c.packs) : '';
     var cap = (lab ? '<span class="fin' + (c.hit ? ' hit' : '') + '">' + lab + '</span><br>' : '') + esc(c.face.name) + '<br>' + esc(c.prototype ? 'serial ' + c.prototype.serial + ' of ' + c.prototype.runSize : c.collectorNumber) + where + ' · x' + c.ownedAfter + ' owned';
-    return '<div class="tile' + extra + '" style="--i:' + Math.min(i, 14) + '" data-ti="' + i + '" data-finish="' + c.finish + '"' + (c.count ? ' data-count="' + c.count + '"' : '') + '>' + (c.isNew ? '<span class="new">NEW</span>' : '') + (c.count > 1 ? '<span class="cnt">×' + c.count + '</span>' : '') + '<div class="mini">' + settledFaceHtml(c) + '</div><div class="cap">' + cap + '</div></div>';
+    return '<div class="tile' + extra + '" style="--i:' + Math.min(i, 14) + (style ? ';' + style : '') + '" data-ti="' + i + '" data-finish="' + c.finish + '"' + (c.count ? ' data-count="' + c.count + '"' : '') + (fan ? ' tabindex="0"' : '') + '>' + (c.isNew ? '<span class="new' + (fan ? ' pend' : '') + '">NEW</span>' : '') + (c.count > 1 ? '<span class="cnt">×' + c.count + '</span>' : '') + '<div class="mini">' + settledFaceHtml(c) + '</div><div class="cap">' + cap + '</div></div>';
   }
 
   // ---------- ten packs at once ----------

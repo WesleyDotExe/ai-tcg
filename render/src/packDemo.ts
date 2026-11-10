@@ -25,7 +25,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BULK_OPEN_COUNT, cardSet, EconomyStore, FULL_ART_OR_BETTER, LIVE_PACK_ODDS, rollPack, type BulkOpening, type PackRoll, type PityState } from "@ai-tcg/economy";
-import { planBulkReveal, planReveal, type BulkReveal, type PackReveal } from "./packOpening.js";
+import { planBulkReveal, planReveal, withSetBar, type BulkReveal, type PackReveal } from "./packOpening.js";
 import { renderPackOpeningHtml } from "./packPage.js";
 import { packWardRings } from "./packWards.js";
 
@@ -80,7 +80,8 @@ export function openShowcase(wants: readonly ShowcaseWant[] = SHOWCASE): Showcas
       const opening = store.openPack(owner, undefined, { seed });
       // A Prototype run's copy is taken once opened: the next search sees it.
       for (const c of opening.cards) if (c.prototype) runs.set(c.prototype.runCode, runs.get(c.prototype.runCode)! - 1);
-      out.push({ label: w.label, reveal: planReveal(opening) });
+      // The set bar: the binder's base count after the open (render 61).
+      out.push({ label: w.label, reveal: withSetBar(planReveal(opening), store.binder(owner, "S0").base) });
     }
     return out;
   } finally {
@@ -161,7 +162,7 @@ export function transcript(showcase: readonly Showcase[]): string {
   for (const s of showcase) {
     const r = s.reveal;
     const tells = [r.sparks ? "SPARKS" : "no sparks", r.jackpot ? "JACKPOT" : "", r.pity.fullArt ? "pity: hit" : "", r.pity.mythic ? "pity: Mythic" : ""].filter(Boolean).join(", ");
-    lines.push(`${s.label}: seed ${r.seed}, +${r.packPoints} pack points, ${tells}`);
+    lines.push(`${s.label}: seed ${r.seed}, +${r.packPoints} pack points, ${tells}${r.setBar ? `, set ${r.setBar.before} -> ${r.setBar.after}/${r.setBar.total}` : ""}`);
     for (const c of r.cards) {
       const extra = [c.isNew ? "NEW" : "", c.prototype ? `serial ${c.prototype.serial}/${c.prototype.runSize} (${c.prototype.runCode})` : "", c.secret ? c.secret.code : ""].filter(Boolean).join(" ");
       lines.push(`  ${c.hit ? "*" : " "} ${c.slot.padEnd(8)} ${c.collectorNumber}  ${c.face.name.padEnd(30)} ${c.face.rarity.padEnd(9)} ${c.finish.padEnd(9)} ${c.faceDown ? "face down" : "face up  "}  ${extra}`);

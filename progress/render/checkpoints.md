@@ -7,6 +7,69 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-10 — The pack opening ceremony, part 3a (the Prototype takeover, the afterglow, the set bar) — AWAITING FEEDBACK
+
+The brief's section 3, beats 3 and 4. Try it: open `render/output/pack-opening.html` (or
+`npm run pack-opening -w @ai-tcg/render`), sound on, open "Prototype" and tap through every card, then "Zero-Day",
+then any other pack to see its summary.
+
+**What you'll see:**
+- **The Prototype takes the screen over.** The back climbs its four glow stages as before; then the stage goes
+  black, the top bar fades back, a gold field blooms with slowly turning rays and "PROTOTYPE · RUN S0-P12" above
+  it; the card turns over large in the middle; **"PROTOTYPE · S0" is stamped onto its number line**; the serial
+  plate **counts up to its number** (1/250 here: one tick; a serial of 25 counts 1, 3, 5 ... 25 in at most 14
+  ticks) and **slams down**: the flash, the shake, the bass, gold motes, the ward, sparks and a **brass fanfare**.
+  The field holds a second, fades, and the card settles back into the stack.
+- **The Zero-Day now builds first.** It climbs its four glow stages like every other held card, then its
+  terminal takeover plays as before. It used to go straight to the terminal and hit at 4.0 s, sooner than a Gold
+  (4.6 s); now the ladder is monotone all the way up. Tap to hit, measured on the page: Rare 1.1 s, Mythic 1.3 s,
+  Foil 1.5 s, Full Art 2.5 s, Alt Art 3.0 s, Glitch 3.1 s, Gold 4.6 s, Secret 4.8 s, **Prototype 8.1 s, Zero-Day
+  8.7 s**.
+- **The afterglow tilt:** once a held card has landed, a mouse over it leans it towards the pointer (up to 11
+  degrees, the shine following) with no press; moving off springs it back. Touch keeps hold-to-tilt.
+- **The summary is a fan:** the pack's cards fly in one after another and fan out in an arc; **NEW stamps slam
+  down** on each new card in turn (a stamp sound each); then the **set bar** appears at the count before the pack
+  ("S0 base set 30/96") and **ticks up once per card new to the set**, each tick a semitone higher, ending on the
+  binder's own count, with "+4 new to the set" (or "Nothing new for the set in this pack"). The card under the
+  pointer (or focused by keyboard) lifts and its caption shows below; the best card's caption shows first. A click
+  or Enter opens the full card as before. The buttons work at once: nothing in the afterglow blocks the owner.
+- **On the website** the set bar is read from the binder right after the open; if that read fails, the opening
+  plays without a bar.
+
+**Evidence:** `progress/render/evidence/pack-ceremony-check-s61.txt` (**456 PASS, 0 FAIL**: all ten showcase packs
+on desktop, three on a phone; session 60's checks on every card, now timed on each build's tap-to-hit, plus the
+Prototype's field, marker, count, plate, fanfare and beat order, the Zero-Day's stages, the hover tilt, and every
+summary's fan, stamps, ticks and bar), stills `v2-s61-proto-count-*.jpg` (the field, the card large, the marker
+and plate stamped), `v2-s61-summary-*.jpg`; tests `render/test/packAfterglow.test.ts` (12: the takeovers on the
+ladder, the beats, the serial count, the set bar over 300 real one-at-a-time openings against the store's binder
+read before and after each, the afterglow plan, the page, the two new sounds). Session 58's check re-run 127 PASS,
+the ten-pack check 12 PASS, CI browser check 61 PASS, `npm test` (render) 930 pass.
+
+**Calls you may want to overrule:**
+1. **Part 3 is split in two.** This is 3a (the takeover and the afterglow). **Open 10 stopping on every hit and
+   the debug panel** are part 3b, the next render session. The brief's done-check (every reveal kind through the
+   debug panel) waits on 3b.
+2. **The Zero-Day keeps the glow build before its terminal** (above). The alternative was to shorten the
+   Prototype's build so the Zero-Day's old 4 s still topped it, which would have put both under a Gold.
+3. **How long the Prototype is:** 8.1 s from the tap to the slam (the 4.9 s build, then 3.2 s of takeover), plus
+   1.8 s of field after. It's the longest moment in the game but the Zero-Day; say if it should be shorter (the
+   count and the bloom are the easiest to trim).
+4. **The marker reads the pack's own set code** ("PROTOTYPE · S0" now, "S1" next season), and the field's label
+   names the run ("RUN S0-P12"), not the card.
+5. **Tournament copies** never come out of a pack, so there is nothing to take over yet; a prize copy in the card
+   viewer keeps its look. When prizes are granted in a reveal, they'll use the same takeover.
+6. **The set bar counts the base set only** (the binder's "Base set", 96 places): secrets, Glitch and Gold have their
+   own binder sections and are not on the bar. A Glitch or secret copy of a card never held before fills its base
+   place too (the binder counts any finish), so it ticks the bar.
+7. **The fan is for one pack only.** The ten-pack summary keeps its grid ("Best pulls" / "Everything else") with
+   NEW badges, and has no set bar yet.
+8. **The tilt on hover is mouse only** (11 degrees); a finger over a card is a press, so touch keeps hold-to-tilt.
+
+**Next:** part 3b: Open 10 fast-forwards plain cards but stops for every Rare, Mythic, special finish and
+Prototype; the owner-only debug panel (force the next pack's best card to any reveal kind). Then the store layout.
+
+---
+
 ## 2026-11-09 — The pack opening ceremony, part 2 (the reveal escalation, the ward flare, the sound per step) — AWAITING FEEDBACK
 
 Item 4 of your 2026-11-06 render order (the brief's section 3, beat 3). Try it: open

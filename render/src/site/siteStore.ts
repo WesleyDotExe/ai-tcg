@@ -17,7 +17,7 @@
 // daily packs can wait and when the next comes in are all read from the
 // server's answers, never restated.
 
-import { planBulkReveal, planReveal, type BulkReveal, type PackReveal } from "../packOpening.js";
+import { planBulkReveal, planReveal, withSetBar, type BulkReveal, type PackReveal } from "../packOpening.js";
 import type { SiteAudio, SiteDailyPack, SiteOpenAnswer } from "./siteApi.js";
 import { untilText, type MiniCard, type SiteCollection, type SitePacks } from "./siteBoard.js";
 
@@ -37,6 +37,15 @@ export function revealOf(answer: Pick<SiteOpenAnswer, "packs" | "summary">): Sit
   if (n !== 1) throw new Error(`${n} packs came without their summary`);
   const p = answer.packs[0]!;
   return { kind: "single", label: `${p.setCode} pack`, reveal: planReveal(p) };
+}
+
+/** A single pack's reveal with the set-completion bar (render session 61):
+ * `base` is the set's base binder section read after the open (GET
+ * /api/collection/binder/:setCode). No binder (the read failed), no bar: the
+ * opening plays the same without it. A ten-pack open has no bar yet. */
+export function withSiteSetBar(r: SiteReveal, base: { held: number; total: number } | null | undefined): SiteReveal {
+  if (r.kind !== "single" || !base) return r;
+  return { ...r, reveal: withSetBar(r.reveal, base) };
 }
 
 export type SummaryAction = "one" | "ten" | "done";

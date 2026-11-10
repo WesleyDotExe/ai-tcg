@@ -16,7 +16,7 @@
 // it imports their public types and lookups, never changes them.
 
 import { getCard, type Card } from "@ai-tcg/engine";
-import { FULL_ART_OR_BETTER, type BulkOpening, type Finish, type OpenedCard, type PackOpening } from "@ai-tcg/economy";
+import { cardSet, FULL_ART_OR_BETTER, type BulkOpening, type Finish, type OpenedCard, type PackOpening } from "@ai-tcg/economy";
 import { visualPatternFor, visualSeedFor } from "./cardVisual.js";
 
 /** How a card is revealed. One per finish: the owner's 2026-10-18 list
@@ -158,6 +158,30 @@ export interface PackReveal {
   /** The sealed pack's tells (render session 58, the ceremony part 1):
    * the backdrop's colour and the burst at the end of the tear. */
   tell: PackTell;
+  /** The set-completion bar on the summary (render session 61): set by
+   * whoever knows the binder (withSetBar); absent, the summary has no bar. */
+  setBar?: SetBar | null;
+  /** The summary's beats (afterglowPlanOf), with the set bar's ticks once
+   * withSetBar adds it. */
+  afterglow: AfterglowPlan;
+}
+
+/** The reveal with its set bar: `base` is the set's base-binder section as
+ * the store counts it after the open (`EconomyStore.binder(...).base`, or
+ * GET /api/collection/binder/:setCode's `base`). */
+export function withSetBar(reveal: PackReveal, base: { held: number; total: number } | null | undefined): PackReveal {
+  if (!base) return reveal;
+  const ids = new Set(cardSetIds(reveal.setCode));
+  const setBar = setBarOf(reveal, base, (id) => ids.has(id));
+  return { ...reveal, setBar, afterglow: afterglowPlanOf({ cards: reveal.cards, setBar }) };
+}
+
+function cardSetIds(setCode: string): string[] {
+  try {
+    return cardSet(setCode).cards.map((c) => c.cardId);
+  } catch {
+    return [];
+  }
 }
 
 /** Reveal order: Common, Common, Uncommon, Rare as rolled, the shine slot
@@ -189,6 +213,7 @@ export function planReveal(opening: PackOpening): PackReveal {
     packPoints: opening.packPoints,
     cards,
     tell: packTellOf(cards, opening.seed),
+    afterglow: afterglowPlanOf({ cards }),
   };
 }
 
@@ -207,8 +232,13 @@ function revealCard(c: OpenedCard): RevealCard {
     ownedAfter: c.ownedAfter,
     prototype: c.prototype,
     secret: c.secret,
-    build: revealBuildOf(revealKindOf(c.finish), c.rarity, getCard(c.cardId)?.faction ?? "Neutral"),
+    build: withSerialCount(revealBuildOf(revealKindOf(c.finish), c.rarity, getCard(c.cardId)?.faction ?? "Neutral"), c.prototype),
   };
+}
+
+function withSerialCount(b: RevealBuild, prototype: OpenedCard["prototype"]): RevealBuild {
+  if (b.takeover?.kind === "prototype" && prototype) b.takeover.count = serialCountUp(prototype.serial);
+  return b;
 }
 
 /** The printed face of an opened card. A Zero-Day pull whose card isn't
@@ -642,6 +672,15 @@ export interface RevealBuild {
   /** When each beat plays, from the tap (buildTimeline): the page reads
    * this, so it never works the build-up out a second way. */
   timeline: BuildTimeline;
+  /** A Prototype's or a Zero-Day's full-screen takeover (render session
+   * 61, the ceremony part 3), which replaces the plain flip: it starts at
+   * `timeline.flipAt`, once the back has climbed its glow stages. Null on
+   * every other card. */
+  takeover: Takeover | null;
+  /** From the tap to the hit: `timeline.landAt`, or for a takeover
+   * `timeline.flipAt + takeover.hitAt`. The one number the escalation
+   * grows by. */
+  hitAt: number;
 }
 
 export interface BuildTimeline {
@@ -658,7 +697,7 @@ export function revealBuildOf(reveal: RevealKind, rarity: string, faction?: stri
   const step = revealStepOf(reveal, rarity);
   const base = REVEAL_LADDER.indexOf(step);
   if (step === "snap") {
-    return { step, level: 0, weight: 0, held: false, stages: 0, stageMs: 0, pauseMs: 0, lastPauseMs: 0, flipMs: SNAP.flipMs, dim: 0, duck: 1, flash: 0, shakePx: 0, shakeMs: 0, bass: null, motes: 0, moteReach: 0, ward: "none", wardScale: 0, hold: SNAP.hold, pitch: 1, timeline: { stages: [], flipAt: 0, landAt: SNAP.flipMs } };
+    return { step, level: 0, weight: 0, held: false, stages: 0, stageMs: 0, pauseMs: 0, lastPauseMs: 0, flipMs: SNAP.flipMs, dim: 0, duck: 1, flash: 0, shakePx: 0, shakeMs: 0, bass: null, motes: 0, moteReach: 0, ward: "none", wardScale: 0, hold: SNAP.hold, pitch: 1, timeline: { stages: [], flipAt: 0, landAt: SNAP.flipMs }, takeover: null, hitAt: SNAP.flipMs };
   }
   const mythicBump = rarity === "Mythic" && step !== "mythic" ? 0.5 : 0;
   const level = base + mythicBump;
@@ -688,8 +727,12 @@ export function revealBuildOf(reveal: RevealKind, rarity: string, faction?: stri
     hold: step === "rare" ? 260 : step === "mythic" ? 420 : REVEAL_TIMINGS[reveal].hold,
     pitch: 1,
     timeline: { stages: [], flipAt: 0, landAt: 0 },
+    takeover: null,
+    hitAt: 0,
   };
   b.timeline = buildTimeline(b);
+  b.takeover = step === "prototype" ? prototypeTakeover() : step === "zeroDay" ? zeroDayTakeover() : null;
+  b.hitAt = b.takeover ? b.timeline.flipAt + b.takeover.hitAt : b.timeline.landAt;
   return b;
 }
 
@@ -711,4 +754,182 @@ export function buildTimeline(b: Omit<RevealBuild, "timeline">): BuildTimeline {
     t += b.stageMs + (s < b.stages - 1 ? b.pauseMs : b.lastPauseMs);
   }
   return { stages, flipAt: t, landAt: t + b.flipMs };
+}
+
+// ---- the takeovers (render session 61; the brief's beat 3: "Prototype (the
+// bonus 6th card) and tournament copies: a full-screen takeover. The gold
+// serial number and PROTOTYPE · S1 marker are stamped on live. This must be
+// the biggest moment in the game.") ----------------------------------------
+//
+// Both top steps keep the build every held card has (the room dims, the back
+// climbs its four glow stages), and the takeover then replaces the plain
+// flip. Before this session the Zero-Day skipped its build and went straight
+// to its terminal, so it hit about 4.0 s after the tap: sooner than a Gold
+// (4.4 s) or a secret (4.8 s), against the owner's 2026-11-10 call 6 ("no
+// finish builds shorter than one below it"). Now the Prototype hits at
+// ~7.7 s and the Zero-Day at ~9.4 s, the top of the ladder.
+
+/** The Prototype's takeover, in milliseconds from its start: the screen
+ * goes to black; a gold field blooms with turning rays; the card turns over
+ * in the middle of it, large; "PROTOTYPE · S0" is stamped on its number
+ * line; the serial counts up to its number; the serial plate slams down
+ * (the hit); the field holds, then fades and the card settles. */
+export const PROTOTYPE_TAKEOVER = {
+  black: 450,
+  bloom: 650,
+  flip: 800,
+  /** The marker stamp, and the beat after it before the count. */
+  marker: 340,
+  markerBeat: 220,
+  /** The serial's count up (one tick per number, up to `countMaxTicks`). */
+  count: 700,
+  countMaxTicks: 14,
+  /** The field holding after the hit, then fading. */
+  afterHold: 1100,
+  fade: 700,
+  /** The card's size in the middle of the field. */
+  scale: 1.22,
+} as const;
+
+export interface TakeoverBeat {
+  beat: string;
+  at: number;
+}
+
+export interface Takeover {
+  kind: "prototype" | "zeroDay";
+  beats: TakeoverBeat[];
+  /** The hit, from the takeover's start. */
+  hitAt: number;
+  /** The takeover's layer gone, from its start. */
+  endAt: number;
+  /** A Prototype's serial count up (serialCountUp; planReveal sets it from
+   * the copy's serial). Empty until then, and on a Zero-Day. */
+  count: number[];
+}
+
+export function prototypeTakeover(): Takeover {
+  const T = PROTOTYPE_TAKEOVER;
+  const beats: TakeoverBeat[] = [];
+  let t = 0;
+  const at = (beat: string, ms: number) => { beats.push({ beat, at: t }); t += ms; };
+  at("black", T.black);
+  at("bloom", T.bloom);
+  at("flip", T.flip);
+  at("marker", T.marker + T.markerBeat);
+  at("count", T.count);
+  const hitAt = t;
+  at("hit", T.afterHold);
+  at("fade", T.fade);
+  return { kind: "prototype", beats, hitAt, endAt: t, count: [] };
+}
+
+/** The Zero-Day's takeover as it always played (ZERO_DAY_TIMINGS): black,
+ * the terminal typing ZERO-DAY DETECTED, the breach, the card arriving (the
+ * hit). */
+export const ZERO_DAY_TEXT = "ZERO-DAY DETECTED";
+export function zeroDayTakeover(): Takeover {
+  const Z = ZERO_DAY_TIMINGS;
+  const type = ZERO_DAY_TEXT.length * Z.typePerChar;
+  const beats: TakeoverBeat[] = [
+    { beat: "black", at: 0 },
+    { beat: "type", at: Z.black },
+    { beat: "breach", at: Z.black + type },
+    { beat: "arrive", at: Z.black + type + Z.breach },
+  ];
+  const hitAt = Z.black + type + Z.breach;
+  return { kind: "zeroDay", beats, hitAt, endAt: hitAt + 800, count: [] };
+}
+
+/** The serial's count up: the numbers shown, in order, ending on the serial
+ * itself. A low serial counts every number from 1; a high one skips evenly
+ * so the count never runs past `countMaxTicks` ticks. */
+export function serialCountUp(serial: number, maxTicks: number = PROTOTYPE_TAKEOVER.countMaxTicks): number[] {
+  if (!(serial >= 1)) return [];
+  const n = Math.min(serial, Math.max(1, maxTicks));
+  const out: number[] = [];
+  for (let i = 1; i <= n; i++) out.push(Math.max(1, Math.round((serial * i) / n)));
+  return out.filter((v, i) => i === 0 || v > out[i - 1]!);
+}
+
+// ---- the afterglow (render session 61; the brief's beat 4: "the hit card is
+// mouse-tilt interactive so the owner can admire the foil. Then a summary:
+// all cards fanned out, NEW stamps slamming down, and the set-completion bar
+// ticking up (e.g. 68/96) with a tick sound per new card.") -----------------
+
+/** The set's base-binder completion around one opening: `after` is the
+ * store's own count (the binder's base section, read after the open);
+ * `before` takes away the base places this pack filled. The store marks a
+ * plain card NEW when no copy of it in any finish was held, which is the
+ * base place the binder counts, so a base place is new exactly when every
+ * copy of that card held now came out of this pack. */
+export interface SetBar {
+  setCode: string;
+  total: number;
+  before: number;
+  after: number;
+  /** The cards (by id, in reveal order) whose base place this pack filled. */
+  filled: string[];
+}
+
+export function setBarOf(reveal: Pick<PackReveal, "setCode" | "cards">, base: { held: number; total: number }, inSet: (cardId: string) => boolean): SetBar {
+  const inPack = new Map<string, number>();
+  for (const c of reveal.cards) inPack.set(c.cardId, (inPack.get(c.cardId) ?? 0) + 1);
+  const filled: string[] = [];
+  for (const c of reveal.cards) {
+    if (filled.includes(c.cardId) || !inSet(c.cardId)) continue;
+    if (c.ownedAfter === inPack.get(c.cardId)) filled.push(c.cardId);
+  }
+  return { setCode: reveal.setCode, total: base.total, after: base.held, before: Math.max(0, base.held - filled.length), filled };
+}
+
+/** The summary's beats, in milliseconds from the summary appearing. */
+export const AFTERGLOW = {
+  /** The hit card leans towards a hovering mouse (no press needed), up to
+   * this many degrees; none with reduced motion. */
+  hoverDeg: 11,
+  reducedHoverDeg: 0,
+  /** The cards flying into the fan, one after another. */
+  dealGap: 90,
+  dealMs: 460,
+  /** The fan's spread: degrees between cards, and how far down the arc
+   * bends at the ends (a share of a card's height per step squared). */
+  fanDeg: 7,
+  fanDrop: 0.035,
+  /** The NEW stamps, one after another, once the fan is down. */
+  stampDelay: 240,
+  stampGap: 260,
+  stampMs: 260,
+  /** The set bar: it shows `before`, then ticks once per base place filled. */
+  barDelay: 320,
+  tickGap: 200,
+  /** Each tick a little higher than the last (semitones). */
+  tickSemitones: 1,
+} as const;
+
+export interface AfterglowPlan {
+  /** When each card lands in the fan (by reveal index). */
+  deal: { idx: number; at: number }[];
+  /** The NEW stamps, by reveal index, in reveal order. */
+  stamps: { idx: number; at: number }[];
+  /** The bar's ticks: the count it shows after each, and the tick's pitch. */
+  ticks: { at: number; held: number; pitch: number }[];
+  /** When the bar first shows (at `before`), and when everything is down. */
+  barAt: number;
+  doneAt: number;
+}
+
+export function afterglowPlanOf(reveal: Pick<PackReveal, "cards"> & { setBar?: SetBar | null }): AfterglowPlan {
+  const A = AFTERGLOW;
+  const n = reveal.cards.length;
+  const deal = reveal.cards.map((_, idx) => ({ idx, at: idx * A.dealGap + A.dealMs }));
+  const fanDown = n ? deal[n - 1]!.at : 0;
+  const stamps: { idx: number; at: number }[] = [];
+  reveal.cards.forEach((c, idx) => { if (c.isNew) stamps.push({ idx, at: fanDown + A.stampDelay + stamps.length * A.stampGap }); });
+  const stampsDone = stamps.length ? stamps[stamps.length - 1]!.at + A.stampMs : fanDown;
+  const barAt = stampsDone + A.barDelay;
+  const bar = reveal.setBar;
+  const ticks = bar ? bar.filled.map((_, i) => ({ at: barAt + (i + 1) * A.tickGap, held: bar.before + i + 1, pitch: Math.round(Math.pow(2, (i * A.tickSemitones) / 12) * 1000) / 1000 })) : [];
+  const doneAt = ticks.length ? ticks[ticks.length - 1]!.at : bar ? barAt : stampsDone;
+  return { deal, stamps, ticks, barAt, doneAt };
 }
