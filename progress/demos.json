@@ -24,6 +24,7 @@
     { "file": "notifications-001.txt", "workspace": "server", "script": "src/dev/notificationsApiDemo.ts", "plays": true },
     { "file": "stats-001.txt", "workspace": "server", "script": "src/dev/statsApiDemo.ts", "plays": true },
     { "file": "builder-rule-001.txt", "workspace": "economy", "script": "src/dev/builderRuleDemo.ts", "plays": true },
+    { "file": "copy-provenance-001.txt", "workspace": "economy", "script": "src/dev/copyProvenanceDemo.ts", "plays": false },
     { "file": "ladder-demo-001.txt", "workspace": "server", "script": "src/dev/ladderDemo.ts", "plays": true },
     { "file": "ladder-demo-002-live.txt", "workspace": "server", "script": "src/dev/liveLadderDemo.ts", "plays": true },
     { "file": "live-feed-asks-001.txt", "workspace": "server", "script": "src/dev/liveFeedAsksDemo.ts", "plays": true },

@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-10, game session 83 (season end, part 2: the next season's file) and render session 61 (the pack
+Updated 2026-11-10, game session 84 (marketplace groundwork, schema v28) and render session 61 (the pack
 ceremony, part 3a).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
@@ -151,6 +151,16 @@ new ideas go to `progress/season-1-ideas.md`.
      empty (unopened packs lost); soft reset 1500 + (final - 1500) / 2 at RD 250, placement again; the starter
      grant again. An ended file is frozen completely (store and schema). `GET /api/season` gains `startedFrom`
      and `yourSeed`. Evidence `progress/season-next-001.txt`, made from season-end-001's own file.
+   - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
+     decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
+     the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its
+     provenance and its transfer record (v28), so the chain of owners never breaks across files.
+4. [x] (owner 2026-11-10) Marketplace groundwork: the audit at an [OWNER CHECK-IN] (notes-for-owner.md, session
+   84) and the "day one" gaps, schema v28: every change of a copy's owner in an append-only `copy_transfers`
+   record (owner_id changes only by its latest transfer; bound, decked, disposed copies and ended files refuse);
+   a copy row is never deleted, its id and provenance never change, a disposed copy stays disposed;
+   `copyProvenance(copyId)` reads the source and every owner. Evidence `progress/copy-provenance-001.txt`
+   (17 PASS). Listings, prices, fees, the deck lock and trading screens: the marketplace spec, after launch.
 
 **Render lane, in order** (the 2026-10-05 desktop spec, trimmed; `render/reference/owner-web-mockup.html`).
 Status corrected by the owner 2026-11-08 from `progress/render/log.md` (sessions 44-58). **Every render session

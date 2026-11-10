@@ -38,7 +38,7 @@ describe("EconomyStore: schema and persistence", () => {
   it("creates the schema at the current version for Season 0, and survives close + reopen from its file", () => {
     const path = tmpFile();
     const a = open(path);
-    expect(a.schemaVersion).toBe(27);
+    expect(a.schemaVersion).toBe(28);
     expect(a.season).toBe("S0");
     const alpha = player(a, "alpha");
     const beta = player(a, "beta");
@@ -47,7 +47,7 @@ describe("EconomyStore: schema and persistence", () => {
     a.close();
 
     const b = open(path);
-    expect(b.schemaVersion).toBe(27);
+    expect(b.schemaVersion).toBe(28);
     expect(b.listOwners().map((x) => x.name)).toEqual(["alpha", "beta"]);
     expect(b.balance(alpha.ownerId)).toBe(30);
     expect(b.balance(beta.ownerId)).toBe(2);
@@ -509,9 +509,15 @@ describe("EconomyStore: copy origins, account-bound copies and salvage", () => {
     const promo = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-001", stamp: "FIRST WIN" });
     const prize = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "prize", finish: "tournament", seriesKind: "tournament", seriesCode: "S0F", serial: 3, runSize: 10 });
     expect([promo.accountBound, prize.accountBound]).toEqual([false, false]);
-    // Unbound means it can change owner (the future marketplace's sale).
+    // Unbound means it can change owner (the future marketplace's sale),
+    // and (v28) only through a transfer record, so its chain of owners is kept.
+    expect(() => s.unsafeExec(`UPDATE card_copies SET owner_id = '${b.ownerId}' WHERE copy_id = '${promo.copyId}'`)).toThrow(/latest transfer record/);
+    s.unsafeExec(
+      `INSERT INTO copy_transfers (copy_id, from_owner, to_owner, kind, at) VALUES ('${promo.copyId}', '${a.ownerId}', '${b.ownerId}', 'sale', '${promo.acquiredAt}')`,
+    );
     s.unsafeExec(`UPDATE card_copies SET owner_id = '${b.ownerId}' WHERE copy_id = '${promo.copyId}'`);
     expect(s.getCopy(promo.copyId).ownerId).toBe(b.ownerId);
+    expect(s.copyProvenance(promo.copyId).owners.map((o) => o.ownerId)).toEqual([a.ownerId, b.ownerId]);
     // A promo can still be granted bound on purpose (the signature card), and then it stays bound.
     const bound = s.grantCopy({ ownerId: a.ownerId, cardId: AEGIS_COMMON, origin: "promo", seriesKind: "promo", seriesCode: "PR-002", stamp: "SIGNATURE", accountBound: true });
     expect(bound.accountBound).toBe(true);

@@ -1,5 +1,68 @@
 # Notes for the owner
 
+**Updated 2026-11-10, session 84 (game lane; marketplace groundwork). [OWNER CHECK-IN] (the audit you asked for,
+then the one gap built).** Nothing is blocking. Lane: the last merged PR, #147, was "Render:", so this is a game
+session; no game PR was open.
+
+**The audit: your five points against what's built**
+
+1. **A permanent id for every card copy: it already existed, for every card.** Since session 28, every card is its
+   own row in `card_copies` with a random id. That covers starter, pack, crafted, promo, prize and signature copies,
+   not only Prototypes. There are no "count per card" rows anywhere. A pack's six cards are six rows. Prototypes and
+   tournament cards also have a serial that can exist only once. *Missing (now built):* nothing stopped a copy row
+   being deleted, or its id or provenance being edited by hand.
+2. **Where each copy came from: it existed. Who has owned it: missing, now built.** Each copy records its origin and
+   when it was acquired. A pack copy names its pack, and the pack records its source (bought, daily, starter or
+   challenge), when it was got, and its opening (time, seed, odds table). A crafted copy is named by its
+   pack-points payment. A starter copy names its faction, and a signature card names its agent. *The gap:* an unbound
+   copy's owner could be changed with no record of who held it before. In Season 0 nothing changes a copy's owner,
+   so no history has been lost so far. But nothing guaranteed it, and that is the part that can't be rebuilt later.
+   **Built (schema v28):**
+   - Every change of owner is written to an append-only transfer record: from whom, to whom, a kind ("sale",
+     "trade", ...) and a ref (the sale it belongs to).
+   - A copy's owner changes only by applying its latest transfer, so the chain of owners is always complete.
+   - The database refuses to transfer a bound copy, a copy in a deck, or a salvaged copy, and refuses any transfer
+     in an ended season's file.
+   - A copy row is never deleted, its id and provenance never change, and a salvaged copy stays salvaged.
+   - `copyProvenance(copyId)` reads all of it back.
+   - Evidence: `progress/copy-provenance-001.txt` (17 PASS). It fills a Season 0 file (148 copies), checks that every
+     copy resolves to its source with none unaccounted for, writes a trial sale and trade the way a marketplace
+     would, reopens the file, and shows the database refusing 12 kinds of tampering.
+3. **"Can never be traded": it exists.** Every copy has an account-bound flag, and the database won't let a bound
+   copy change owner, become unbound or (now) be transferred. Starter and crafted copies are always bound, and so is
+   every signature card. Promo and prize copies are not bound (your 2026-10-10 call), and neither are pack copies.
+   **Cosmetics are all bound:** an owned cosmetic can never be changed, moved or deleted. Cosmetics are one row per
+   owner and item, not per copy, so selling one later would need its own id per copy. They are bound today, so
+   nothing is lost by waiting.
+4. **A credits ledger that can record owner-to-owner transfers: it can, with no change.** The ledger is
+   append-only, never goes below zero, and allows any reason. A sale fits as two rows sharing the sale's ref (buyer
+   -N, seller +N less the fee) in one transaction. No counterparty column is needed, since the ref joins them. One
+   point for later: ECONOMY.md wants each pack copy to show whether it was bought with earned or purchased credits.
+   Purchasing is off in Season 0, so every credit is earned and this can be worked out afterwards. It becomes a
+   day-one gap the day purchased credits switch on.
+5. **Ownership sits with the owner's account: yes, since session 29 (schema v2).** Copies, credits, packs and decks
+   belong to the owner. An agent only "played" a match. A signature card is held by the owner's account and bound
+   to it. As a start on "a listed copy can't be in a deck", a copy in a deck can't be transferred at all. The
+   listing lock itself waits for the marketplace spec.
+
+**One thing for Season 1's carry-over (your 2026-11-10 entries):** when the collection carries into the next
+file, each copy must keep its id, its provenance and its transfer rows. Its pack's record stays in the archive. I
+put this on the checklist next to that work. Nothing else needs doing now.
+
+**For the marketplace spec after launch (not built):** listings and the deck lock, prices and currencies, the 10%
+fee, settlement in one transaction, payment and crypto records, wallets, wash-trading checks, per-copy cosmetic ids
+if cosmetics ever sell, and the earned/purchased funding of a copy.
+
+**Small calls you may want to overrule:**
+- A transfer's kind is free text, not a fixed list, so the marketplace spec can name its own kinds without a
+  database rebuild.
+- A copy in a deck can't be transferred. The owner takes it out of the deck first, so a seller's deck never holds a
+  card someone else now owns.
+- Nothing writes a transfer in Season 0, and there is no endpoint for one. The rules are enforced by the database
+  only, and tested.
+
+---
+
 **Updated 2026-11-06, session 82 (season end, part 1). [OWNER CHECK-IN] (the next season's file, before part 2 is
 built).** Nothing is blocking. Checked first: no open PR from either lane; the last merged was #142 (session 81).
 The other open game items wait on things outside this lane: the unit badges wait on the render lane naming them,

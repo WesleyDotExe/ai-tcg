@@ -1607,4 +1607,88 @@ export const MIGRATIONS: readonly string[] = [
   WHEN EXISTS (SELECT 1 FROM season_end)
   BEGIN SELECT RAISE(ABORT, 'the season has ended: the collection is frozen'); END;
   `,
+  // 28: marketplace groundwork (session 84; owner 2026-11-10, "audit first;
+  // build only what can't be added later"). Every copy was already its own
+  // row with a permanent random id, its origin and origin ref (the pack it
+  // came from, the starter faction, the agent of a signature card; a crafted
+  // copy is named by its pack-points ledger row) and when it was acquired.
+  // What could still be lost was the copy's chain of owners: an unbound
+  // copy's owner_id could be changed (by a future feature or a hand-run
+  // sqlite3 shell) with no record of who held it before, and a copy row
+  // could be deleted. From v28:
+  //  - copy_transfers (append-only): every change of owner, in order, with
+  //    who it went from and to, a kind ("sale", "trade", "gift", ...; free
+  //    text, so the marketplace spec can name its own kinds without a table
+  //    rebuild) and an optional ref (the sale or trade it belongs to). A
+  //    transfer starts from the copy's current holder, is of an unbound,
+  //    undisposed copy that is in no deck, follows the copy's previous
+  //    transfer (which must already have been applied), and never happens
+  //    in an ended season's file.
+  //  - a copy's owner_id changes only to apply its latest transfer, so the
+  //    chain of owners is complete: the first owner is the first transfer's
+  //    from_owner, or the current owner when there is none. (A bound copy
+  //    keeps v2's own refusal, and a signature origin ref v5's, so those
+  //    messages stay as they were.)
+  //  - a copy row is never deleted, its id never changes, its provenance
+  //    (origin ref, acquired time, series, serial, run size, stamp) never
+  //    changes, and a disposed copy stays disposed.
+  // Nothing in Season 0 transfers a copy; the table starts empty.
+  `
+  CREATE TABLE copy_transfers (
+    transfer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    copy_id     TEXT NOT NULL REFERENCES card_copies(copy_id),
+    from_owner  TEXT NOT NULL REFERENCES owners(owner_id),
+    to_owner    TEXT NOT NULL REFERENCES owners(owner_id),
+    kind        TEXT NOT NULL CHECK (length(kind) > 0),
+    ref         TEXT CHECK (ref IS NULL OR length(ref) > 0),
+    at          TEXT NOT NULL,
+    CHECK (from_owner <> to_owner)
+  );
+  CREATE INDEX transfers_by_copy ON copy_transfers(copy_id, transfer_id);
+  CREATE INDEX transfers_by_ref ON copy_transfers(ref) WHERE ref IS NOT NULL;
+
+  CREATE TRIGGER transfer_kept BEFORE UPDATE ON copy_transfers
+  BEGIN SELECT RAISE(ABORT, 'a copy''s transfer record is append-only'); END;
+  CREATE TRIGGER transfer_no_delete BEFORE DELETE ON copy_transfers
+  BEGIN SELECT RAISE(ABORT, 'a copy''s transfer record is append-only'); END;
+  CREATE TRIGGER no_transfer_after_season_end BEFORE INSERT ON copy_transfers
+  WHEN EXISTS (SELECT 1 FROM season_end)
+  BEGIN SELECT RAISE(ABORT, 'the season has ended: the collection is frozen'); END;
+  CREATE TRIGGER transfer_from_holder BEFORE INSERT ON copy_transfers
+  WHEN NOT EXISTS (
+    SELECT 1 FROM card_copies c
+    WHERE c.copy_id = NEW.copy_id AND c.owner_id = NEW.from_owner AND c.account_bound = 0 AND c.disposed_at IS NULL
+      AND NEW.at >= c.acquired_at)
+  BEGIN SELECT RAISE(ABORT, 'a transfer is of an unbound copy still held by its from_owner, after it was acquired'); END;
+  CREATE TRIGGER transfer_not_in_deck BEFORE INSERT ON copy_transfers
+  WHEN EXISTS (SELECT 1 FROM deck_copies WHERE copy_id = NEW.copy_id)
+  BEGIN SELECT RAISE(ABORT, 'a copy in a deck can''t change owner; take it out of the deck first'); END;
+  CREATE TRIGGER transfer_follows_last BEFORE INSERT ON copy_transfers
+  WHEN EXISTS (
+    SELECT 1 FROM copy_transfers t
+    WHERE t.copy_id = NEW.copy_id
+      AND t.transfer_id = (SELECT MAX(transfer_id) FROM copy_transfers WHERE copy_id = NEW.copy_id)
+      AND (t.to_owner <> NEW.from_owner OR NEW.at < t.at))
+  BEGIN SELECT RAISE(ABORT, 'a transfer follows the copy''s last transfer, once that is applied'); END;
+
+  CREATE TRIGGER copy_moves_by_transfer BEFORE UPDATE OF owner_id ON card_copies
+  WHEN NEW.owner_id IS NOT OLD.owner_id AND OLD.account_bound = 0 AND NOT EXISTS (
+    SELECT 1 FROM copy_transfers t
+    WHERE t.copy_id = OLD.copy_id AND t.from_owner = OLD.owner_id AND t.to_owner = NEW.owner_id
+      AND t.transfer_id = (SELECT MAX(transfer_id) FROM copy_transfers WHERE copy_id = OLD.copy_id))
+  BEGIN SELECT RAISE(ABORT, 'a copy changes owner only by its latest transfer record'); END;
+  CREATE TRIGGER copy_no_delete BEFORE DELETE ON card_copies
+  BEGIN SELECT RAISE(ABORT, 'a card copy is never deleted (a salvaged copy is marked disposed)'); END;
+  CREATE TRIGGER copy_provenance_fixed
+  BEFORE UPDATE OF copy_id, origin_ref, acquired_at, series_kind, series_code, serial, run_size, stamp ON card_copies
+  WHEN NEW.copy_id IS NOT OLD.copy_id
+    OR (NEW.origin_ref IS NOT OLD.origin_ref AND coalesce(OLD.origin_ref, '') NOT LIKE 'signature:%' AND coalesce(NEW.origin_ref, '') NOT LIKE 'signature:%')
+    OR NEW.acquired_at IS NOT OLD.acquired_at
+    OR NEW.series_kind IS NOT OLD.series_kind OR NEW.series_code IS NOT OLD.series_code OR NEW.serial IS NOT OLD.serial
+    OR NEW.run_size IS NOT OLD.run_size OR NEW.stamp IS NOT OLD.stamp
+  BEGIN SELECT RAISE(ABORT, 'a copy''s id and provenance never change'); END;
+  CREATE TRIGGER copy_disposal_final BEFORE UPDATE OF disposed_at, disposed_reason ON card_copies
+  WHEN OLD.disposed_at IS NOT NULL AND (NEW.disposed_at IS NOT OLD.disposed_at OR NEW.disposed_reason IS NOT OLD.disposed_reason)
+  BEGIN SELECT RAISE(ABORT, 'a disposed copy stays disposed'); END;
+  `,
 ];

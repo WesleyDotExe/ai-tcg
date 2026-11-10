@@ -403,6 +403,39 @@ export interface CardCopy {
   secretCode: string | null;
 }
 
+/** (v28) One change of a copy's owner, from copy_transfers. */
+export interface CopyTransfer {
+  transferId: number;
+  copyId: string;
+  fromOwnerId: string;
+  toOwnerId: string;
+  kind: string;
+  ref: string | null;
+  at: string;
+}
+
+/** (v28, marketplace groundwork) Where one copy came from and every owner
+ * it has had, read from the records the store keeps: the copy row, the pack
+ * and its opening, the pack-points ledger row of a craft, and the transfer
+ * record. */
+export interface CopyProvenance {
+  copy: CardCopy & { disposedAt: string | null; disposedReason: string | null };
+  source:
+    | { kind: "pack"; packId: string; packSource: PackSource; setCode: string; packAcquiredAt: string; openedAt: string; oddsVersion: string; seed: number }
+    | { kind: "crafted"; ledgerEntryId: number; reason: string; packPoints: number }
+    | { kind: "starter"; faction: string }
+    | { kind: "signature"; agentId: string }
+    | { kind: "other"; origin: CopyOrigin; originRef: string | null };
+  /** The first owner: the first transfer's from-owner, or the holder now. */
+  firstOwnerId: string;
+  /** Every owner in order, oldest first; the last is the holder now
+   * (`until` null). `via` is the transfer that brought the copy to that
+   * owner (null for the first). */
+  owners: { ownerId: string; from: string; until: string | null; via: CopyTransfer | null }[];
+  /** False for a bound copy: it never changes owner. */
+  transferable: boolean;
+}
+
 export interface GrantCopyInput {
   ownerId: string;
   cardId: string;
@@ -3300,6 +3333,72 @@ export class EconomyStore {
     const row = this.db.prepare("SELECT * FROM card_copies WHERE copy_id = ?").get(copyId) as Row | undefined;
     if (!row) throw new EconomyError(`no copy "${copyId}"`);
     return { ...this.copyFromRow(row), disposedAt: strOrNull(row.disposed_at), disposedReason: strOrNull(row.disposed_reason) };
+  }
+
+  /** (v28) A copy's transfers, oldest first (none before v28). */
+  copyTransfers(copyId: string): CopyTransfer[] {
+    if (this.schemaVersion < 28) return [];
+    return (this.db.prepare("SELECT * FROM copy_transfers WHERE copy_id = ? ORDER BY transfer_id").all(copyId) as Row[]).map((r) => ({
+      transferId: num(r.transfer_id),
+      copyId: str(r.copy_id),
+      fromOwnerId: str(r.from_owner),
+      toOwnerId: str(r.to_owner),
+      kind: str(r.kind),
+      ref: strOrNull(r.ref),
+      at: str(r.at),
+    }));
+  }
+
+  /** (v28, marketplace groundwork, owner 2026-11-10) Where a copy came from
+   * and every owner it has had. Throws if a record the copy names is
+   * missing, so a broken chain is found, not papered over. */
+  copyProvenance(copyId: string): CopyProvenance {
+    const copy = this.getCopy(copyId);
+    const ref = copy.originRef;
+    let source: CopyProvenance["source"];
+    if (copy.origin === "pack" && ref?.startsWith("pack:")) {
+      const packId = ref.slice("pack:".length);
+      const row = this.db
+        .prepare(
+          `SELECT p.source, p.set_code, p.acquired_at, o.opened_at, o.odds_version, o.seed
+           FROM packs p JOIN pack_openings o ON o.pack_id = p.pack_id WHERE p.pack_id = ?`,
+        )
+        .get(packId) as Row | undefined;
+      if (!row) throw new EconomyError(`copy "${copyId}" names pack "${packId}", which has no opening on record`);
+      source = {
+        kind: "pack",
+        packId,
+        packSource: str(row.source) as PackSource,
+        setCode: str(row.set_code),
+        packAcquiredAt: str(row.acquired_at),
+        openedAt: str(row.opened_at),
+        oddsVersion: str(row.odds_version),
+        seed: num(row.seed),
+      };
+    } else if (copy.origin === "crafted") {
+      const row = this.db
+        .prepare("SELECT entry_id, reason, delta FROM ledger WHERE owner_id = ? AND currency = 'packPoints' AND reason IN ('craft', 'craftSecret') AND ref = ?")
+        .get(copy.ownerId, copyId) as Row | undefined;
+      if (!row) throw new EconomyError(`crafted copy "${copyId}" has no pack-points payment on record`);
+      source = { kind: "crafted", ledgerEntryId: num(row.entry_id), reason: str(row.reason), packPoints: -num(row.delta) };
+    } else if (copy.origin === "starter" && ref?.startsWith("starter:")) {
+      source = { kind: "starter", faction: ref.slice("starter:".length) };
+    } else if (isSignatureRef(ref)) {
+      source = { kind: "signature", agentId: ref!.slice(SIGNATURE_ORIGIN_REF_PREFIX.length) };
+    } else {
+      source = { kind: "other", origin: copy.origin, originRef: ref };
+    }
+    const transfers = this.copyTransfers(copyId);
+    const firstOwnerId = transfers[0]?.fromOwnerId ?? copy.ownerId;
+    const owners: CopyProvenance["owners"] = [{ ownerId: firstOwnerId, from: copy.acquiredAt, until: null, via: null }];
+    for (const t of transfers) {
+      owners[owners.length - 1]!.until = t.at;
+      owners.push({ ownerId: t.toOwnerId, from: t.at, until: null, via: t });
+    }
+    if (owners[owners.length - 1]!.ownerId !== copy.ownerId) {
+      throw new EconomyError(`copy "${copyId}" is held by "${copy.ownerId}", but its transfer record ends with "${owners[owners.length - 1]!.ownerId}"`);
+    }
+    return { copy, source, firstOwnerId, owners, transferable: !copy.accountBound };
   }
 
   private copyFromRow(r: Row): CardCopy {

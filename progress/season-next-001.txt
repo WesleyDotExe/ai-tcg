@@ -8,12 +8,12 @@ an ended file is frozen completely.
 
 1. Season 0, ended: season-end-001's own file
 ------------------------------------------------------------------------
-  the season-end demo ran (exit 0); its last line: Schema v27. 11 PASS, 0 FAIL.
+  the season-end demo ran (exit 0); its last line: Schema v28. 11 PASS, 0 FAIL.
   [PASS] it printed progress/season-end-001.txt exactly, so this is that file
 
 2. The archive, per owner, as Season 0 ended
 ------------------------------------------------------------------------
-  season S0, schema v27, ended 2026-12-14T02:02:30.000Z
+  season S0, schema v28, ended 2026-12-14T02:02:30.000Z
   owner kind    rating   RD   tier       credits  pp  cards unopened decks cosmetics agent (coin)
   Ada   player  1182.4  110  Bronze          95   5     46        3     1         5 Ada-agent (coin-chrome-token)
   Bram  player  1594.8  118  Gold           108   0     40        3     1         5 Bram-agent (coin-chrome-token)
@@ -33,7 +33,7 @@ an ended file is frozen completely.
 
 4. The Season 1 file over HTTP
 ------------------------------------------------------------------------
-  season S1, schema v27, packs from set S0 (no S1 set yet)
+  season S1, schema v28, packs from set S0 (no S1 set yet)
   [PASS] every owner signs in with its Season 0 password
   Hub: admin true
   Kit  GET /api/season: S1 open, from S0; seed 1663.7 (RD 250) from final 1827.4 Diamond
@@ -83,4 +83,4 @@ an ended file is frozen completely.
   Season 2 from the open Season 1: season S1 hasn't ended: end it first (POST /api/admin/season/end)
   [PASS] both are refused
 
-Schema v27. 13 PASS, 0 FAIL.
+Schema v28. 13 PASS, 0 FAIL.

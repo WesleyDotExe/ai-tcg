@@ -75,6 +75,8 @@ export {
   type StatsRecentResult,
   type LedgerEntry,
   type CardCopy,
+  type CopyProvenance,
+  type CopyTransfer,
   type GrantCopyInput,
   type PackRecord,
   type RecordedOutcome,

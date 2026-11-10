@@ -261,6 +261,31 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 84 (marketplace groundwork: the transfer record, schema v28): what is still thin
+
+- **The rules are tested only by raw SQL.** No store method writes a transfer, by design (no marketplace yet), so
+  `copy_transfers` is exercised only by tests and the demo inserting rows by hand. The marketplace session must add
+  the store call (transfer + ledger rows + owner change in one transaction) and test it end to end.
+- **A transfer row and its owner change are two statements.** The schema requires the owner change to match the
+  latest transfer, and refuses a new transfer until the last one is applied. But a transfer row written with no
+  owner change after it leaves the copy "transfer pending" (stuck until someone applies it). The future store call
+  must do both in one transaction. A single trigger that applied the move itself was considered, but left out so
+  the owner change stays an explicit, checked write.
+- **Provenance across season files isn't built.** The Season 1 carry-over (owner 2026-11-10, after launch) must
+  copy each copy's row with the same id and its transfer rows. A pack copy's `pack:` ref will then point at a pack
+  that lives in the archive, not the new file, so `copyProvenance` there will need to read the archive (or the
+  carry must bring the pack and opening rows too). Noted on the checklist.
+- **Funding (earned vs purchased credits) isn't on the copy.** It can be worked out for Season 0 (purchasing is off,
+  so every credit is earned). It becomes a real day-one gap the day purchased credits switch on.
+- **Cosmetics have no per-item copy id** (one row per owner and item). They are bound and never sold, so nothing is
+  lost, but selling cosmetics would need a rebuild of `owned_cosmetics`.
+- **Message order of overlapping triggers.** Some raw edits break two rules at once. SQLite fires the newest
+  trigger first, so the newest message wins. v28 limits its triggers so the older v2/v5 messages stay for bound
+  copies and signature refs (the existing tests pin them). A test that asserts one message on an edit that breaks
+  two rules can still pick up the other; one assertion in the new tests accepts either.
+- **No endpoint shows a copy's history.** `copyProvenance` is a store call only. The card viewer doesn't show
+  "pulled from your daily pack on ..." (not in the locked scope).
+
 ## Session 83 (the season's end, part 2: the next season's file; schema v27): what is still thin
 
 - **Switching to the new season needs a restart.** `startNextSeason` is a store call and a CLI

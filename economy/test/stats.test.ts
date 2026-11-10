@@ -294,7 +294,7 @@ describe("store.stats: the Stats page", () => {
     expect(v23.stats(a.ownerId)).toMatchObject({ totals: { matches: 1, wins: 1 }, factionNotRecorded: { matches: 1, wins: 1 } });
     v23.close();
     const v24 = open(path);
-    expect(v24.schemaVersion).toBe(27);
+    expect(v24.schemaVersion).toBe(28);
     const old = v24.matchHistory({ ownerId: a.ownerId })[0]!;
     expect(old.factions).toEqual({ p1: null, p2: null });
     record(v24, a, b, "p2");

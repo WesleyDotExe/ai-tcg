@@ -5007,3 +5007,54 @@ table's own column list keeps the copy honest as columns are added.
 S1 set exists. The demo's archive has no generated agents. Sessions carry over, and auto-play starts off (calls).
 
 **Blocked:** nothing. Six small calls are at the top of notes-for-owner.md.
+
+## 2026-11-10 — Session 84 (game lane): marketplace groundwork — the audit, and the transfer record (schema v28)
+
+**Start checks:** lane by TASKS.md step 0: the last merged PR, #147, was "Render:", so this is game (the render
+catch-up after #143 is long done: #144, #145, #147). No open PR from either lane. Owner feedback: the 2026-11-10
+marketplace-groundwork entry asked for this session to audit first. The other 2026-11-10 entries (collection,
+packs, credits and the rest carry over) are timed for after the 5 Dec launch, so they were left for then and are on
+the checklist.
+
+**Audit** (the [OWNER CHECK-IN] at the top of notes-for-owner.md). Points 1, 3 and 5 already existed: every card copy
+is its own row with a random id; there is a bound flag and cosmetics are bound; the owner's account holds
+everything. Point 4 needs no change: the ledger can already record a sale as two rows sharing a ref. Point 2's "where
+it came from" existed. Its "who has owned it" was the gap: an unbound copy's owner_id could change with no record of
+the previous holder, and a copy row could be deleted.
+
+**Built (small, as asked):** migration 28. `copy_transfers` is append-only: copy, from, to, kind (free text), ref,
+time. The schema enforces:
+- a transfer starts from the holder, after the copy was acquired, of an unbound, undisposed copy in no deck;
+- a transfer follows the copy's last transfer, once that one is applied;
+- no transfer in an ended file;
+- `owner_id` changes only to match the latest transfer;
+- a copy row is never deleted, its id and provenance (origin ref, acquired time, series, serial, run size, stamp)
+  never change, and a disposed copy stays disposed.
+
+The owner-change and signature-ref triggers skip the cases the v2 and v5 triggers already refuse, so those messages
+stay the same. Store: `copyTransfers(copyId)` and `copyProvenance(copyId)`. The latter returns the source (the pack
+and its opening, the craft's ledger row, the starter faction or the signature agent), the first owner, every owner
+with dates and the transfer that brought it, and whether it is transferable. It throws if a record the copy names is
+missing. ECONOMY.md's marketplace-hooks line is marked built, and `copy_transfers` is in its table list.
+
+**Ran it:**
+- `economy/test/copyProvenance.test.ts`, 8 tests: every source named; ids permanent; a chain of two transfers; a
+  pending transfer blocking the next; bound, decked, disposed and self transfers refused; the signature card; the
+  ended file; a v27 file migrated with every copy kept.
+- One existing test changed: the promo "can be sold" test had moved a copy by raw UPDATE. It now writes the transfer
+  first and checks that the UPDATE alone is refused. Schema asserts 27 -> 28.
+- `npm test`: engine 372, economy 281, server 184, render 930, agents 17, protocol 7, all pass.
+- `progress/copy-provenance-001.txt`, new, in the CI demo set, 17 PASS, the same on two runs. It builds a Season 0
+  file of 148 copies (starter, signature, daily and bought packs, a Prototype #1/250, a craft), and all 148 resolve
+  to a named source. A trial sale then trade is written, the file reopened, and the chain reads Ada > Bram > Cy. Then
+  12 refusals.
+- The demo's first run caught its own bad check: "renumbering" the Prototype to #1 when it already was #1 is no
+  change. The check now renumbers to serial + 1.
+- `npm run demos -- --write`: 12 demos changed, and every diff is the schema number only (v27 -> v28). Read before
+  writing.
+
+**Worked:** the audit found most of the groundwork had been laid by sessions 28-39. The gap was one table and its
+guards.
+**Thin:** in quality-debt.md. No store call writes a transfer yet (by design). A transfer and its owner change are
+two statements. Provenance across season files is for the carry-over work. Funding isn't on the copy yet.
+**Blocked:** nothing.
