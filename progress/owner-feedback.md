@@ -4571,3 +4571,17 @@ The Season 0 scope lock and freeze otherwise stand.
 Next session by alternation: render (the pack opening ceremony, part 3b).
 
 **Render part handled (render session 62):** the 8 calls stand as kept; part 3b built (Open 10's stops, the debug panel; `progress/render/checkpoints.md`). The feel check items (s60 calls 2 and 5, s61 call 3) are unchanged, waiting on the owner's try.
+
+---
+
+## 2026-11-11 — Owner: answers to render session 62 (the pack opening ceremony, part 3b): calls 3–6 kept; calls 1 and 2 decided later
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #149, `progress/render/evidence/pack-ceremony-check-s62.txt`).
+1. **Not decided yet (decide later):** whether Open 10 waits for a tap at every stop, Auto included. Keep it as built until the owner decides.
+2. **Not decided yet (decide later):** whether a plain Rare counts as a stop. Keep it as built until the owner decides. If it changes, the cut is the one rule (`isBulkStop`): stop from Mythic or Foil up.
+3. **Keep, no change:** Skip ahead can't pass a stop.
+4. **Keep:** a row stop builds in place at the row card's size; only big pulls (Gold and above) get the full-size stack.
+5. **Keep:** the debug panel forces by real seeds (the same pack per kind), and the demo page's larger size is accepted.
+6. **Keep:** the panel is a small tab on the demo page only, with no key or password; the website never renders it.
+
+The pack ceremony is complete per the brief; what remains on it is the owner's feel check on the Mac mini. Next render slice, as planned: the store layout.
