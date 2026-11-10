@@ -4509,3 +4509,12 @@ Next session by alternation: render (the pack opening ceremony, part 3).
 - This replaces the 2026-11-07 answer 3 ("cleared") and the 2026-11-08 rule ("lost when the season ends"), and the "Unopened packs: no change" line in the entry above.
 - **Render lane:** the "your packs will be lost" warning from the 2026-11-08 entry is no longer needed. Don't build it. If the season-end screen mentions packs, it says they carry over and open as the new season's packs.
 - **Game lane:** build this with the rest of the entry above (the collection and decks carry over): after the Season 0 launch (5 December) and before Season 0 ends (about mid-January 2027). No change to Season 0 itself.
+
+---
+
+## 2026-11-10 — Owner: credits, pack points, match history, notifications and the daily pack bank continue into the next season (replaces the "Still reset as built" line above)
+
+- **These carry over and simply continue:** credits, pack points, match history, notifications and the daily pack bank. Nothing in this list resets at the season switch.
+- This replaces the "Still reset as built" line in the 2026-11-10 entry above (session 83's calls) and the matching part of the 2026-11-07 answer 2. It also replaces small call 4 (the daily pack bank fills from the season's start): the bank keeps filling as before.
+- **Still as decided:** the soft rating reset (2026-11-07 answer 4) and placement, the final standings frozen in the ended season's archive, the tier coins, the starter grant for new owners only, and the shop selling the newest set.
+- **Game lane:** build this with the rest of the next-season changes above: after the Season 0 launch (5 December) and before Season 0 ends (about mid-January 2027). No change to Season 0 itself. Update ECONOMY.md to match when it is built.
