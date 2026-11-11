@@ -4585,3 +4585,15 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #149, `pr
 6. **Keep:** the panel is a small tab on the demo page only, with no key or password; the website never renders it.
 
 The pack ceremony is complete per the brief; what remains on it is the owner's feel check on the Mac mini. Next render slice, as planned: the store layout.
+
+---
+
+## 2026-11-11 — Owner: answers to game session 85 (the season switch made safe), keep calls 1–3; build the lock file in the hardening pass
+
+Owner decisions on the 4 small calls in `progress/notes-for-owner.md` (PR #150, `progress/season-switch-001.txt`).
+1. **Keep:** the first start of a season file needs `--new`; without it a missing file is refused. Put it in the switch steps at clean-up, as planned.
+2. **Keep:** serving an ended season on purpose takes `--archive`; without it the server refuses the ended file.
+3. **Keep:** the same check is on `npm run owner-api` and `npm run ladder`.
+4. **Yes, build it in the next hardening pass (game session 86):** a lock file (or an equivalent check) so `npm run season:next` refuses to run while a server is still running on the old season's file. Keep it small, and prove it with the real commands as `season-switch-001` does.
+
+Next session by alternation: render (the store layout). Next game session: 86, the hardening pass, the lock file first.
