@@ -1,5 +1,7 @@
 import { createHash, randomBytes, randomInt, randomUUID } from "node:crypto";
-import { existsSync, rmSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import {
   buildDeck,
@@ -1324,6 +1326,77 @@ export class EconomyStore {
     store.migrate(options.season ?? DEFAULT_SEASON, options.migrateTo ?? MIGRATIONS.length);
     db.exec("PRAGMA foreign_keys = ON;");
     return store;
+  }
+
+  /** (session 85) Opens an existing file for reading only: no file is
+   * created, nothing is migrated, no pragma is written, and SQLite itself
+   * refuses any write. The file's schema must be this code's; an older
+   * file is read through `withCurrentSchemaCopy`. For an ended season's
+   * archive, which must stay byte for byte as it was. */
+  static openReadOnly(path: string, options: Pick<OpenOptions, "now" | "cosmetics"> = {}): EconomyStore {
+    if (path === ":memory:" || !existsSync(path)) throw new EconomyError(`no season file at "${path}"`);
+    const catalogue = options.cosmetics ?? COSMETICS;
+    const problem = catalogueProblem(catalogue);
+    if (problem) throw new EconomyError(`bad cosmetics catalogue: ${problem}`);
+    const db = new DatabaseSync(path, { readOnly: true });
+    const store = new EconomyStore(db, options.now ?? (() => new Date()), catalogue);
+    const version = store.schemaVersion;
+    if (version !== MIGRATIONS.length) {
+      db.close();
+      throw new EconomyError(`"${path}" is schema v${version}, this code reads v${MIGRATIONS.length} read-only`);
+    }
+    return store;
+  }
+
+  /** (session 85) What a season file is, read without opening it as a
+   * store (no file created, nothing migrated or written): null when there
+   * is no file at `path`. For a server deciding whether to start on it. */
+  static peekSeasonFile(path: string): { schemaVersion: number; season: string | null; endedAt: string | null; startedFrom: string | null } | null {
+    if (path === ":memory:" || !existsSync(path)) return null;
+    const db = new DatabaseSync(path, { readOnly: true });
+    try {
+      const has = (table: string) => db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(table) !== undefined;
+      const meta = (key: string) => (has("meta") ? ((db.prepare("SELECT value FROM meta WHERE key = ?").get(key) as Row | undefined)?.value ?? null) : null);
+      const end = has("season_end") ? (db.prepare("SELECT ended_at FROM season_end").get() as Row | undefined) : undefined;
+      const from = has("season_start") ? (db.prepare("SELECT from_season FROM season_start").get() as Row | undefined) : undefined;
+      return {
+        schemaVersion: num((db.prepare("PRAGMA user_version").get() as Row).user_version),
+        season: meta("season") === null ? null : str(meta("season")),
+        endedAt: end ? str(end.ended_at) : null,
+        startedFrom: from ? str(from.from_season) : null,
+      };
+    } finally {
+      db.close();
+    }
+  }
+
+  /** (session 85) Runs `read` on a path holding `path`'s contents at this
+   * code's schema, never writing to `path`. A file already at this schema
+   * is read where it is; an older one is copied (with its write-ahead log,
+   * if a server was stopped before it checkpointed) into a temporary
+   * directory, the copy is migrated, and the copy is removed afterwards. A
+   * newer file is refused. */
+  static withCurrentSchemaCopy<T>(path: string, read: (path: string) => T): T {
+    if (path === ":memory:" || !existsSync(path)) throw new EconomyError(`no season file at "${path}"`);
+    const probe = new DatabaseSync(path, { readOnly: true });
+    let version: number;
+    try {
+      version = num((probe.prepare("PRAGMA user_version").get() as Row).user_version);
+    } finally {
+      probe.close();
+    }
+    if (version > MIGRATIONS.length) throw new EconomyError(`database schema v${version} is newer than this code (v${MIGRATIONS.length})`);
+    if (version === MIGRATIONS.length) return read(path);
+    const dir = mkdtempSync(join(tmpdir(), "ai-tcg-archive-"));
+    try {
+      const copy = join(dir, "archive.db");
+      copyFileSync(path, copy);
+      if (existsSync(`${path}-wal`)) copyFileSync(`${path}-wal`, `${copy}-wal`);
+      EconomyStore.open(copy).close();
+      return read(copy);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   }
 
   close(): void {
@@ -2875,14 +2948,24 @@ export class EconomyStore {
    * new season has none of its own yet).
    *
    * Refused: a season that hasn't ended, a new season code equal to the
-   * ended one, and a `newPath` that already exists. On any failure the new
-   * file is removed, so a half-made season never stays on disk. */
+   * ended one, a missing ended file (none is created), and a `newPath` that
+   * already exists. On any failure the new file is removed, so a half-made
+   * season never stays on disk. The ended file is never written (session
+   * 85): it is opened read-only, and one at an older schema is migrated as a
+   * temporary copy. */
   static startNextSeason(endedPath: string, newPath: string, options: { season: string; now?: () => Date; cosmetics?: readonly CosmeticItem[] }): NextSeasonReport {
     const season = options.season.trim();
     if (season === "") throw new EconomyError("name the new season (e.g. \"S1\")");
     if (newPath === ":memory:" || endedPath === ":memory:") throw new EconomyError("the next season is made from a season file into a new file");
     if (existsSync(newPath)) throw new EconomyError(`"${newPath}" already exists: the next season's file is always a new file`);
-    const prev = EconomyStore.open(endedPath, { now: options.now, cosmetics: options.cosmetics });
+    if (!existsSync(endedPath)) throw new EconomyError(`no season file at "${endedPath}"`);
+    // (session 85) The archive is only ever read: opened read-only, and an
+    // older-schema archive is migrated as a temporary copy, never in place.
+    return EconomyStore.withCurrentSchemaCopy(endedPath, (source) => EconomyStore.nextSeasonFrom(source, newPath, season, options));
+  }
+
+  private static nextSeasonFrom(endedPath: string, newPath: string, season: string, options: { now?: () => Date; cosmetics?: readonly CosmeticItem[] }): NextSeasonReport {
+    const prev = EconomyStore.openReadOnly(endedPath, { now: options.now, cosmetics: options.cosmetics });
     let end: SeasonEnd;
     let leftBehind: NextSeasonReport["leftBehind"];
     try {

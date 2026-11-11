@@ -1,6 +1,7 @@
 import { EconomyStore } from "@ai-tcg/economy";
 import { workerChooser } from "./deckBuild/workerChooser.js";
 import { Ladder } from "./ladder/ladderRunner.js";
+import { seasonFileArgs, seasonFileProblem } from "./seasonFile.js";
 
 // Thin argv wrapper around the ladder: runs rounds of ranked matches between
 // every owner with a connected agent in one season's database file
@@ -11,14 +12,26 @@ import { Ladder } from "./ladder/ladderRunner.js";
 // their auto-play is on (session 67), and the house owners spend their
 // credits on packs before each round. Matches here count at once; the
 // watch-speed ladder with Watch live is `npm run season`.
-const DB_PATH = process.argv[2];
-if (!DB_PATH) {
-  console.error("usage: npm run ladder -- <database file> [rounds] [match log directory]");
+// (session 85) The same file check as `npm run season` (seasonFile.ts).
+const USAGE = "usage: npm run ladder -- <database file> [rounds] [match log directory] [--new | --archive]";
+const parsed = seasonFileArgs(process.argv.slice(2));
+if ("problem" in parsed) {
+  console.error(`[ladder] ${parsed.problem}\n${USAGE}`);
   process.exit(1);
 }
-const ROUNDS = Number(process.argv[3] ?? 1);
+const DB_PATH = parsed.args[0];
+if (!DB_PATH) {
+  console.error(USAGE);
+  process.exit(1);
+}
+const problem = seasonFileProblem(DB_PATH, parsed.flags);
+if (problem !== null) {
+  console.error(`[ladder] not starting: ${problem}`);
+  process.exit(1);
+}
+const ROUNDS = Number(parsed.args[1] ?? 1);
 if (!Number.isInteger(ROUNDS) || ROUNDS < 1) {
-  console.error(`rounds must be a whole number of at least 1 (got ${process.argv[3]})`);
+  console.error(`rounds must be a whole number of at least 1 (got ${parsed.args[1]})`);
   process.exit(1);
 }
 const store = EconomyStore.open(DB_PATH);
@@ -27,7 +40,7 @@ const name = (ownerId: string) => store.getOwner(ownerId).name;
 const ladder = new Ladder({
   store,
   chooser: chooser.choose,
-  logDir: process.argv[4],
+  logDir: parsed.args[2],
   onEvent: (e) => {
     if (e.kind === "housePacks") console.log(`[ladder] ${name(e.ownerId)} bought ${e.bought}, opened ${e.opened} packs (${e.newCards} new cards)`);
     if (e.kind === "rebuilt") console.log(`[ladder] rebuilt ${name(e.ownerId)}'s deck: ${e.faction}, ${e.cards} cards (${e.reasons.join("; ")})`);

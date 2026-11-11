@@ -8,7 +8,9 @@
 // ratings soft-reset; every owner gets the starter grant again. An ended
 // file is frozen completely (answer 6).
 
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -41,7 +43,7 @@ const tmpDir = () => {
 };
 const PASSWORD = "a long test password";
 const CATALOGUE: readonly CosmeticItem[] = COSMETICS.map((c) => (SEASON_0_COINS.some((s) => s.itemId === c.itemId) ? { ...c, drawn: true } : c));
-const open = (path: string, season?: string) => EconomyStore.open(path, { now: () => clock, cosmetics: CATALOGUE, season });
+const open = (path: string, season?: string, migrateTo?: number) => EconomyStore.open(path, { now: () => clock, cosmetics: CATALOGUE, season, migrateTo });
 const next = (from: string, to: string, season = "S1") => EconomyStore.startNextSeason(from, to, { season, now: () => clock, cosmetics: CATALOGUE });
 
 const S0 = cardSet("S0");
@@ -74,9 +76,9 @@ function player(s: EconomyStore, name: string, faction: DeckFaction, seed: numbe
 }
 
 /** A Season 0 file with three players, played, then ended. */
-function endedSeasonZero(dir: string) {
+function endedSeasonZero(dir: string, migrateTo?: number) {
   const path = join(dir, "season-0.db");
-  const s = open(path);
+  const s = open(path, undefined, migrateTo);
   const ada = player(s, "Ada", "Cortex", 11);
   const bram = player(s, "Bram", "Aegis", 22);
   const cy = player(s, "Cy", "Swarm", 33);
@@ -304,5 +306,81 @@ describe("the next season's file (v27)", () => {
     // A free rename and the settings still work: they're not the economy.
     expect(s.updateAccountSettings(ada.ownerId, { theme: "light" }).theme).toBe("light");
     s.close();
+  });
+});
+
+// (session 85) The archive is only ever read. Before this, startNextSeason
+// opened the ended file with EconomyStore.open: an older-schema archive was
+// migrated in place, and a mistyped path was created as a fresh empty file.
+describe("the next season's file never writes to the archive", () => {
+  const sha = (path: string) => (existsSync(path) ? createHash("sha256").update(readFileSync(path)).digest("hex") : "absent");
+  const LATEST = EconomyStore.open(":memory:").schemaVersion;
+
+  it("a mistyped ended file is refused and not created", () => {
+    const dir = tmpDir();
+    const typo = join(dir, "season-O.db");
+    expect(() => next(typo, join(dir, "s1.db"))).toThrow(`no season file at "${typo}"`);
+    expect(existsSync(typo)).toBe(false);
+    expect(existsSync(join(dir, "s1.db"))).toBe(false);
+    expect(readdirSync(dir)).toEqual([]);
+  });
+
+  it("an archive at an older schema stays at its schema, byte for byte; the new file is made from a migrated copy", () => {
+    const dir = tmpDir();
+    const older = LATEST - 1; // v27: ended before v28 existed
+    const { path, ada } = endedSeasonZero(dir, older);
+    const before = sha(path);
+    const r = next(path, join(dir, "s1.db"));
+    expect(sha(path)).toBe(before);
+    // A read-only reader of a WAL file may leave an empty log beside it; it
+    // holds nothing.
+    expect(existsSync(`${path}-wal`) ? readFileSync(`${path}-wal`).length : 0).toBe(0);
+    const probe = new DatabaseSync(path, { readOnly: true });
+    const archive = probe.prepare("PRAGMA user_version").get()?.user_version; // the old code migrated it in place
+    probe.close();
+    expect(archive).toBe(older);
+    expect(r.fromSeason).toBe("S0");
+    const s1 = open(join(dir, "s1.db"));
+    expect(s1.schemaVersion).toBe(LATEST);
+    expect(s1.getOwner(ada.ownerId).name).toBe("Ada");
+    expect(s1.listAgents().find((a) => a.agentId === ada.agentId)?.name).toBe("Ada Prime");
+    s1.close();
+  });
+
+  it("an archive whose server stopped before checkpointing: its log is read, and neither file changes", () => {
+    const dir = tmpDir();
+    const { path, ada } = endedSeasonZero(dir);
+    // A settings change after the end (allowed in the archive), copied while
+    // the store is still open: the copy's change lives only in its -wal file.
+    const s = open(path);
+    s.updateAccountSettings(ada.ownerId, { theme: "light" });
+    const crashed = join(dir, "crashed.db");
+    copyFileSync(path, crashed);
+    copyFileSync(`${path}-wal`, `${crashed}-wal`);
+    s.close();
+    const before = [sha(crashed), sha(`${crashed}-wal`)];
+    expect(before[1]).not.toBe("absent");
+    next(crashed, join(dir, "s1.db"));
+    expect([sha(crashed), sha(`${crashed}-wal`)]).toEqual(before);
+    const s1 = open(join(dir, "s1.db"));
+    expect(s1.accountSettings(ada.ownerId).theme).toBe("light");
+    s1.close();
+  });
+
+  it("openReadOnly refuses every write, a missing file, and a file at another schema", () => {
+    const dir = tmpDir();
+    const { path, ada } = endedSeasonZero(dir);
+    const before = sha(path);
+    const ro = EconomyStore.openReadOnly(path, { cosmetics: CATALOGUE });
+    expect(ro.seasonEnded()).toBe(true);
+    expect(ro.getOwner(ada.ownerId).name).toBe("Ada");
+    expect(() => ro.updateAccountSettings(ada.ownerId, { theme: "light" })).toThrow(/readonly/i);
+    ro.close();
+    expect(sha(path)).toBe(before);
+    expect(() => EconomyStore.openReadOnly(join(dir, "nope.db"))).toThrow(/no season file/);
+    expect(existsSync(join(dir, "nope.db"))).toBe(false);
+    const old = join(dir, "old.db");
+    EconomyStore.open(old, { migrateTo: LATEST - 1 }).close();
+    expect(() => EconomyStore.openReadOnly(old)).toThrow(`is schema v${LATEST - 1}, this code reads v${LATEST} read-only`);
   });
 });

@@ -1,5 +1,35 @@
 # Notes for the owner
 
+**Updated 2026-11-11, session 85 (game lane; the season switch made safe).** Nothing is blocking. Lane: the last
+merged PR, #149, was "Render:", so this is a game session; no game PR was open. Your answers to session 84 are all
+kept; nothing changed.
+
+**What I did (item 7, spare sessions: the top of the quality-debt list).** You kept the season switch by hand, so I
+made the by-hand steps safe rather than automating them:
+- **`npm run season:next` never writes to the old season's file.** Before, it opened it the normal way, which
+  upgrades an older file in place. Now it reads it read-only; an older file is upgraded as a temporary copy and the
+  copy deleted. A mistyped old-file name used to create an empty file; now it is refused.
+- **The server won't start on the wrong file.** Restarting on the old (ended) season's file now stops with a message
+  naming the next-season command; a mistyped file name now stops instead of creating an empty Season 0 and running
+  on it. On start it prints which season it is on.
+- Evidence: `progress/season-switch-001.txt` (16 PASS; it runs the real commands).
+
+**Small calls you may want to overrule:**
+1. **The very first start of a season file now needs `--new`:** `npm run season -w server -- <file> --new`. Without
+   it a missing file is refused (that is what catches a typo). Your Mac mini setup steps should say this; I'll put
+   it in the switch steps at clean-up.
+2. **Serving the old season on purpose takes `--archive`** (sign-in, history and the final standings work; no match
+   is ever paired). Without it, the server refuses the ended file.
+3. **The same check is on `npm run owner-api` and `npm run ladder`**, the older dev commands, so all three behave
+   the same.
+4. **Nothing stops `season:next` while a server is still running on the old file.** The steps say stop it first. A
+   lock file would catch it; not built (say if you want it in the next hardening pass).
+
+Also: five ideas your entries asked for in `progress/season-1-ideas.md` had never been written in (the auto-play
+prompt, "newest sets only", the one-command switch, the marketplace, the ten-pack set bar). They are there now.
+
+---
+
 **Updated 2026-11-10, session 84 (game lane; marketplace groundwork). [OWNER CHECK-IN] (the audit you asked for,
 then the one gap built).** Nothing is blocking. Lane: the last merged PR, #147, was "Render:", so this is a game
 session; no game PR was open.

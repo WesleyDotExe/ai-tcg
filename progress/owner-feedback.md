@@ -4545,7 +4545,7 @@ The Season 0 scope lock and freeze otherwise stand.
 
 ---
 
-## 2026-11-10 — Owner: answers to game session 84 (marketplace groundwork) and render session 61 (the pack opening ceremony, part 3a), all kept
+## 2026-11-10 — Owner: answers to game session 84 (marketplace groundwork) and render session 61 (the pack opening ceremony, part 3a), all kept (game-lane part HANDLED 2026-11-11, session 85 — the 3 calls kept, nothing changed; both standing notes are on the Season 0 checklist in `progress/roadmap.md` (part 3 of season end: each copy keeps its id, provenance and transfer history) and in `progress/quality-debt.md` (the earned/purchased funding, a day-one need the day purchasing switches on))
 
 **Game session 84** (PR #148, the [OWNER CHECK-IN] in `progress/notes-for-owner.md`, `progress/copy-provenance-001.txt`). The audit and the transfer record (schema v28) are accepted. **Keep all 3 small calls:**
 1. A transfer's kind is free text, so the marketplace spec can name its own kinds.

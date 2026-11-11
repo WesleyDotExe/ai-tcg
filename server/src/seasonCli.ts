@@ -3,6 +3,7 @@ import { EconomyStore } from "@ai-tcg/economy";
 import { workerChooser } from "./deckBuild/workerChooser.js";
 import { LiveLadder } from "./ladder/liveLadder.js";
 import { startOwnerApi } from "./ownerApi.js";
+import { seasonFileArgs, seasonFileLine, seasonFileProblem } from "./seasonFile.js";
 
 // The Season 0 server in one process (session 67): the owner API and the
 // long-lived ladder over one season's database file. The ladder plays round
@@ -14,16 +15,32 @@ import { startOwnerApi } from "./ownerApi.js";
 // The match directory defaults to `<database file>.matches`. Ctrl-C stops
 // it; a match being shown then is cancelled on the next start (nobody's
 // fault: no credits, no rating).
-const DB_PATH = process.argv[2];
-if (!DB_PATH) {
-  console.error("usage: npm run season -- <database file> [port] [match directory]");
+// (session 85) It starts only on an existing, open season's file: a missing
+// file needs --new (the first start), an ended season's file --archive
+// (seasonFile.ts), so a mistyped name or the old season's file after a
+// season switch is refused before anything is opened.
+const USAGE = "usage: npm run season -- <database file> [port] [match directory] [--new | --archive]";
+const parsed = seasonFileArgs(process.argv.slice(2));
+if ("problem" in parsed) {
+  console.error(`[season] ${parsed.problem}\n${USAGE}`);
   process.exit(1);
 }
-const PORT = Number(process.argv[3] ?? process.env.PORT ?? 8081);
-const MATCH_DIR = process.argv[4] ?? `${DB_PATH}.matches`;
+const DB_PATH = parsed.args[0];
+if (!DB_PATH) {
+  console.error(USAGE);
+  process.exit(1);
+}
+const problem = seasonFileProblem(DB_PATH, parsed.flags);
+if (problem !== null) {
+  console.error(`[season] not starting: ${problem}`);
+  process.exit(1);
+}
+const PORT = Number(parsed.args[1] ?? process.env.PORT ?? 8081);
+const MATCH_DIR = parsed.args[2] ?? `${DB_PATH}.matches`;
 mkdirSync(MATCH_DIR, { recursive: true });
 
 const store = EconomyStore.open(DB_PATH);
+console.log(seasonFileLine(store, DB_PATH));
 const chooser = workerChooser();
 const name = (ownerId: string) => store.getOwner(ownerId).name;
 const live = new LiveLadder({
@@ -48,7 +65,7 @@ const closed = live.recoverOrphans();
 if (closed.length) console.log(`[ladder] cancelled ${closed.length} match(es) left live by the last run: ${closed.join(", ")}`);
 const api = await startOwnerApi({ store, port: PORT, chooser: chooser.choose, live, matchFiles: MATCH_DIR });
 live.start();
-console.log(`[season] owner API on http://localhost:${api.port}, the ladder running over ${DB_PATH} (matches in ${MATCH_DIR})`);
+console.log(`[season] owner API on http://localhost:${api.port}, ${store.seasonEnded() ? "the archive (no ladder rounds)" : "the ladder running"} over ${DB_PATH} (matches in ${MATCH_DIR})`);
 
 let stopping = false;
 const shutdown = async () => {

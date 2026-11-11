@@ -5058,3 +5058,45 @@ guards.
 **Thin:** in quality-debt.md. No store call writes a transfer yet (by design). A transfer and its owner change are
 two statements. Provenance across season files is for the carry-over work. Funding isn't on the copy yet.
 **Blocked:** nothing.
+
+## 2026-11-11 — Session 85 (game lane): the season switch made safe (no schema change)
+
+**Lane:** the last merged PR, #149, was "Render:" (and the catch-up is long done: #144, #145, #147 and #149 merged
+after #143), so this is a game session. No game PR was open. Owner feedback: the answers to session 84 are all kept
+(nothing to change; marked handled); the newest entry (render session 62's calls) is the render lane's.
+
+**What:** game-lane item 7 (spare sessions: the quality-debt list), its top item. The owner kept the season switch by
+hand (stop the server, `npm run season:next`, start it on the new file; a one-command flow is a Season 1 idea), so
+this makes the by-hand switch safe rather than automating it. Three faults, each found by reading the code first:
+1. **`startNextSeason` wrote to the archive.** It opened the ended file with `EconomyStore.open`, which migrates: an
+   archive made by an older build was upgraded in place, and a server stopped before its last checkpoint had its
+   log folded into the main file. Now `EconomyStore.openReadOnly` (SQLite read-only, no migration, no pragma) reads
+   it; an older-schema archive goes through `withCurrentSchemaCopy` (copied with its `-wal` into a temp directory,
+   the copy migrated, read, deleted). A newer one is refused as before.
+2. **A mistyped ended file was created.** `npm run season:next -- season-O.db ...` made an empty `season-O.db`, then
+   said "season S0 hasn't ended". Now: `no season file at "..."`, nothing created.
+3. **The server started on any file.** A mistyped name made an empty Season 0 file and ran the ladder on it; the
+   ended file after the switch started an idle ladder with no word. `server/src/seasonFile.ts` checks the file
+   before it is opened (`EconomyStore.peekSeasonFile`, read-only): a missing file needs `--new`, an ended one
+   `--archive`, an unknown `--` option is refused. Applied to `npm run season`, `owner-api` and `ladder`. On start
+   the server prints which season it is on and whether the file was made from an archive.
+
+**Ran it:**
+- `economy/test/nextSeason.test.ts`: 4 new tests (the typo; a v27 archive stays v27 byte for byte while the new file
+  is v28; an archive with an unflushed `-wal` is read and neither file changes; `openReadOnly` refuses writes, a
+  missing file and another schema). **All 4 fail on the old store** (checked by swapping the old `store.ts` back).
+- `server/test/seasonFile.test.ts`: 10 new tests (args, each refusal, the check never migrating an older file,
+  `peekSeasonFile`, the start line).
+- `progress/season-switch-001.txt`, new, in the CI demo set: it drives the real CLIs as child processes. 16 PASS:
+  the refusals with their messages, the archive hashes unchanged (current and v27), no temp copy left, the server
+  on Season 1 answering `GET /api/season` for Ada with her Season 0 password, `--archive` and `--new`.
+- First draft of the demo printed the archive hashes as plain lines; they differ every run (random ids and times),
+  so `npm run demos` flagged them. Marked `[timing, varies per run]`; the before = after comparison is the check.
+- `npm run demos`: 29 demos, 0 stale. `npm test`: engine 372, economy 285, server 194, render 944, agents 17,
+  protocol 7, all pass. Typecheck clean.
+
+**Worked:** small, and every fault had a test that fails without the fix.
+**Thin:** in quality-debt.md. A read-only reader may leave an empty `-wal`/`-shm` beside the archive. `--new` is a
+change to the very first start (the owner's setup must now pass it). The switch is still four steps by hand.
+**Blocked:** nothing.
+

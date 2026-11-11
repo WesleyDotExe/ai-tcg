@@ -10,8 +10,8 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-10, game session 84 (marketplace groundwork, schema v28) and render session 62 (the pack
-ceremony, part 3b).
+Updated 2026-11-11, game session 85 (the season switch made safe) and render session 62 (the pack ceremony,
+part 3b).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -151,6 +151,10 @@ new ideas go to `progress/season-1-ideas.md`.
      empty (unopened packs lost); soft reset 1500 + (final - 1500) / 2 at RD 250, placement again; the starter
      grant again. An ended file is frozen completely (store and schema). `GET /api/season` gains `startedFrom`
      and `yourSeed`. Evidence `progress/season-next-001.txt`, made from season-end-001's own file.
+   - [x] The switch by hand made safe (session 85, spare-session item 7, no schema change): `season:next` only
+     reads the archive (read-only; an older archive migrated as a temp copy) and refuses a missing one; the servers
+     refuse a missing file without `--new` and an ended one without `--archive`. Evidence
+     `progress/season-switch-001.txt` (16 PASS, in the CI demo set). The owner-doc steps: clean-up, 2-4 Dec.
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its

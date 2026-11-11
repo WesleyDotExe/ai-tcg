@@ -261,6 +261,27 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 85 (the season switch made safe; no schema change): what was raised, and what is still thin
+
+- **Raised: the archive is never written by `startNextSeason`** (session 83's "integrity of the read"). Opened
+  read-only; an older-schema archive is migrated as a temporary copy. Tested on a v27 archive and on one with an
+  unflushed `-wal` (both fail on the old code).
+- **Raised: a mistyped name no longer makes a file**, in `season:next` (the ended file) or in the servers (needs `--new`).
+- **Raised: the server refuses the ended file after the switch** unless `--archive`.
+- **Still thin: a read-only reader can leave an empty `-wal` and `-shm` beside the archive.** SQLite makes them to read
+  a WAL file; they hold nothing (the test checks the `-wal` is 0 bytes) and the main file is unchanged. Deleting them
+  afterwards was left out: if a server were still running on the archive, deleting its log would corrupt it.
+- **Still thin: nothing stops `season:next` while a server still runs on the ended file.** The docs say stop it
+  first. A running server can still write settings, renames and sign-ins to the archive; those writes after the new
+  file is made don't reach it (same as session 83's note). A lock file per season file would catch it; not built.
+- **`--new` changes the very first start.** Any setup note that says `npm run season -- <file>` for a new file now
+  needs `--new`. Only `server/OWNER_API.md` describes the start; updated there. The owner's Mac mini steps (clean-up,
+  2-4 Dec) must say it.
+- **The switch is still four steps by hand** (end, wait, `season:next`, restart on the new file). As the owner set; a
+  one-command flow is in `progress/season-1-ideas.md`.
+- **The demo checks hashes printed as varying lines.** Each run builds new files (random ids, times), so the hash
+  lines are left out of the drift diff; the "before = after" check lines are what CI compares.
+
 ## Session 84 (marketplace groundwork: the transfer record, schema v28): what is still thin
 
 - **The rules are tested only by raw SQL.** No store method writes a transfer, by design (no marketplace yet), so
@@ -288,7 +309,8 @@ real, but here is where it's thin.
 
 ## Session 83 (the season's end, part 2: the next season's file; schema v27): what is still thin
 
-- **Switching to the new season needs a restart.** `startNextSeason` is a store call and a CLI
+- **Switching to the new season needs a restart.** (Session 85: the restart is now checked: the server refuses the
+  ended file without `--archive` and a missing file without `--new`.) `startNextSeason` is a store call and a CLI
   (`npm run season:next`); the running server keeps its file. The admin stops `npm run season`, runs the CLI, and
   starts it on the new file. No endpoint, no website button, no "next season" step after `POST
   /api/admin/season/end`. Fine in-house; a one-command flow (end, drain, make, restart) would be safer.
@@ -311,7 +333,7 @@ real, but here is where it's thin.
   is made; an agent made in the archive after the new file is made is simply not in the new season.
 - **No "a new season has started" notification** (the notification kinds are a fixed list; the website can read
   `GET /api/season`'s `startedFrom`).
-- **Integrity of the read:** the ended file is attached read-only (`mode=ro`) and the demo checks its bytes are
+- ~~**Integrity of the read:**~~ Fixed session 85 (read-only open; an older archive is migrated as a temp copy). the ended file is attached read-only (`mode=ro`) and the demo checks its bytes are
   unchanged, but `startNextSeason` first opens it through `EconomyStore.open`, which would migrate an older
   archive (v26 -> v27) in place. That is a schema write to the archive (no row changes); a pure read-only path
   would need the migration to run on a copy.

@@ -277,6 +277,15 @@ npm run season -w server -- <new season file>
 
 It refuses a season that hasn't ended, a new name equal to the old one, and a new file that already exists; on any failure no file is left behind. The ended file is only read (byte for byte the same afterwards) and stays the season's archive.
 
+**(session 85) Starting on the right file.** `npm run season` (and `npm run owner-api`, `npm run ladder`) check the file before opening it, and refuse:
+- **a file that doesn't exist** (a mistyped name used to create an empty Season 0 file and run the ladder on it): `not starting: no season file at "<file>". Check the name; to start a new season file there, pass --new.` The very first start of a season file is `npm run season -w server -- <file> --new`; `--new` on a file that exists is refused.
+- **an ended season's file** (the old file after the switch): `not starting: season S0 ended at <time>: "<file>" is its archive, and no match is ever paired on it. Start on the next season's file (made with: npm run season:next ...), or pass --archive to serve the archive anyway.` `--archive` serves it (sign-in, history, the final standings; no round is ever paired); `--archive` on an open season is refused.
+- an unknown `--` option (so `--archve` is never read as a file name).
+
+On start it prints which season it is on: `[season] season S1 (made from S0's archive) on <file>`, or `[season] serving season S0's archive (ended <time>) from <file>: no match will be paired`.
+
+`npm run season:next` never writes to the ended file: it opens it read-only, and an archive at an older schema than the code (made by an older build) is migrated as a temporary copy, which is deleted afterwards; the archive keeps its own schema. A mistyped ended file is refused, and not created. Evidence: `progress/season-switch-001.txt`.
+
 - **Carried:** every owner (name, kind, starting faction, faction lock), logins with their passwords and admin flag, sessions that haven't expired (a signed-in owner stays signed in), account settings, the Home board, agents with their names and name history, signature cards with their bound copies (same copy ids), every owned cosmetic (`carriedFrom: "S0"` in `GET /api/cosmetics`; tier coins and bought ones too) and every agent's loadout, which agent is connected, and the retired Prototype runs (a retired run never mints again, in any later file).
 - **Starts empty:** the collection, decks (`deckChoice` is `agent` again: the agent builds from the new collection), credits, pack points, packs (**unopened packs are lost**; the website warns first), ratings, match history, notifications, auto-play (off until the owner switches it on) and the daily pack bank (it fills from the season's start).
 - **The soft reset:** an owner ranked in the final standings starts at `1500 + (final - 1500) / 2`, RD 250, its volatility, shown as `yourSeed` above; it plays from there and places again (5 rated matches; `Placement` until then). An owner with no rated match last season starts at 1500, RD 350.
