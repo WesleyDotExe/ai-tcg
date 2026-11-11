@@ -4599,3 +4599,17 @@ Owner decisions on the 4 small calls in `progress/notes-for-owner.md` (PR #150, 
 4. **Yes, build it in the next hardening pass (game session 86):** a lock file (or an equivalent check) so `npm run season:next` refuses to run while a server is still running on the old season's file. Keep it small, and prove it with the real commands as `season-switch-001` does.
 
 Next session by alternation: render (the store layout). Next game session: 86, the hardening pass, the lock file first.
+
+---
+
+## 2026-11-12 — Owner: answers to render session 63 (the store layout, the Store and Packs widgets), keep all 6
+
+Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #151, `progress/render/evidence/store-check-s63.txt`).
+1. **Keep:** the featured tile is the free daily pack while one waits, else the 10 packs.
+2. **Keep:** the 1-to-10 stepper is gone; the products are 1 pack and 10 packs.
+3. **Keep:** 10 packs cost exactly ten times one pack (no bundle price). The tile's title stays "10 packs" (with the ×10 badge); "50 cards" is only its sub-line, as "5 cards" is for 1 pack.
+4. **Keep:** owned cosmetics stay on the shelf with an OWNED ribbon, moved after the ones still on sale.
+5. **Keep:** buying is the Store widget's, not the Packs widget's; the Packs widget's L shows the last two openings.
+6. **Keep:** the pity counters stay counts. Add pity progress bars (which would need the game lane to send the thresholds) to `progress/season-1-ideas.md`; not Season 0 work.
+
+Next session by alternation: game (session 86, the hardening pass, the lock file first). Next render session: as planned in `progress/render/log.md`.
