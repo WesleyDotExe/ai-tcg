@@ -31,7 +31,8 @@
     { "file": "replay-versions-001.txt", "workspace": "server", "script": "src/dev/replayVersionsDemo.ts", "plays": true },
     { "file": "speed-vote-001.txt", "workspace": "server", "script": "src/dev/speedVoteDemo.ts", "plays": true },
     { "file": "season-end-001.txt", "workspace": "server", "script": "src/dev/seasonEndApiDemo.ts", "plays": true },
-    { "file": "season-next-001.txt", "workspace": "server", "script": "src/dev/seasonNextApiDemo.ts", "plays": true }
+    { "file": "season-next-001.txt", "workspace": "server", "script": "src/dev/seasonNextApiDemo.ts", "plays": true },
+    { "file": "season-switch-001.txt", "workspace": "server", "script": "src/dev/seasonSwitchDemo.ts", "plays": false }
   ],
   "records": {
     "about": "Files a dev script names that are measurements (long, sampled), kept as records rather than reproduced by `npm run demos`.",

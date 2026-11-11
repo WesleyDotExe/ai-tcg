@@ -37,3 +37,20 @@ sells no items for either and the render can't draw them yet. The owner's design
   cards in hand, each side showing its own deck's back whatever the view. Safe: every card in a deck shares one
   back, so it reveals nothing.
 - **Add a visible draw pile with a card count** on each side of the mat (today's arena shows hand backs but no pile).
+
+### 2026-11-10 (owner, on game session 83's calls): three for the season switch
+Added by game session 85: the owner's entries asked for them here, and they hadn't been written in.
+- **A prompt asking owners to switch auto-play back on** at the start of a new season (auto-play starts off in the
+  new file; call 2).
+- **A "newest sets only" mode**, since new owners start further behind veterans' collections each season.
+- **A one-command season switch:** end, wait for the live matches to finish, make the next file, restart on it. In
+  Season 0 it stays by hand (the steps go in the owner docs during clean-up, 2-4 Dec). Session 85 made the by-hand
+  steps safe: the server refuses the ended file and a missing file unless told (`--archive`, `--new`).
+
+### 2026-11-10 (owner): a marketplace (not specced)
+Owners complete their collections, including earlier seasons' cards. The groundwork that had to exist from day one is
+built (session 84: every copy's id, provenance and chain of owners, schema v28); listings, prices, fees, the deck
+lock, trading screens and payments are for the spec after the Season 0 launch.
+
+### 2026-11-10 (owner, on render session 61's call 7): a set bar on the ten-pack summary
+The fan and set bar are for one pack only in Season 0; the ten-pack summary keeps its grid.
