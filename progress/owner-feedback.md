@@ -4613,3 +4613,16 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #151, `pr
 6. **Keep:** the pity counters stay counts. Add pity progress bars (which would need the game lane to send the thresholds) to `progress/season-1-ideas.md`; not Season 0 work.
 
 Next session by alternation: game (session 86, the hardening pass, the lock file first). Next render session: as planned in `progress/render/log.md`.
+
+---
+
+## 2026-11-12 — Owner: answers to game session 86 (the hardening pass: the season-file lock), keep all 3
+
+Owner decisions on the 3 small calls in `progress/notes-for-owner.md` (PR #152, `progress/season-lock-001.txt`).
+1. **Keep:** a second server on the same season file is refused too, not only `season:next`.
+2. **Keep:** a stale lock (a server killed outright, or the machine restarted) is taken over automatically on the next start, with a printed line. A lock written by another machine is always honoured.
+3. **Keep:** stop the server with Ctrl-C in its terminal; put this in the owner's switch steps at clean-up, as planned.
+
+**Not decided:** an early Season 0 dry run in a spare game session (including restarting the Mac mini and checking the server comes back, takes over its lock and carries on). Suggested to the owner; no decision yet, so don't act on it. The dry run stays in clean-up (2–4 December) as planned.
+
+Next session by alternation: render (session 64, the render hardening pass).
