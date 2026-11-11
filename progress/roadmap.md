@@ -10,8 +10,8 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-11, game session 85 (the season switch made safe) and render session 62 (the pack ceremony,
-part 3b).
+Updated 2026-11-11, game session 85 (the season switch made safe) and render session 63 (the store
+layout).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -198,7 +198,11 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      fanfare, the Zero-Day building before its terminal, the hover tilt, the fanned summary with NEW stamps and the
      set bar ticking up; (62, part 3b) Open 10 stops on every Rare, Mythic, special finish and Prototype (Auto waits
      too), the owner-only debug panel forcing each kind by real seeded openings; the brief's done-check run headless
-   - [ ] Store layout (Fortnite-style placement, current look) with the Store and Packs widgets
+   - [x] Store layout (Fortnite-style placement, current look) with the Store and Packs widgets (63): tiles of
+     three sizes, one featured (the free daily pack while it waits, else the 10 packs), the real pack art, prices on
+     the tiles with the credits icon, buttons underneath, the balance and a ticking countdown to the daily reset;
+     the Store widget S claim / M pack tiles / L the full layout, the Packs widget S pack + Open / M + Open 10 and
+     pity / L + last pulls
    - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger
      cards), Collection, and Ladder, Rating & form and Notifications on their real data
    - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)

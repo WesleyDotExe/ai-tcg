@@ -317,10 +317,14 @@ describe("what the widgets show", () => {
     expect(at("daily", "S")).toContain("40/90");
     expect(at("daily", "S")).toContain("Rewarded wins 2/10");
     expect(at("daily", "L")).toContain("Losses and draws today: 1 · +2 credits");
-    expect(at("packs", "M")).toContain("1 unopened pack<");
-    expect(at("packs", "M")).toMatch(/data-act="buy-packs" data-set="S0" data-count="1">Buy · 100/);
-    expect(at("store", "M")).toMatch(/data-count="10" disabled>Buy 10 · 1,000/);
-    expect(at("store", "L")).toMatch(/data-act="buy-cosmetic" data-item="boast.s0"[^>]*disabled>Buy · 300/);
+    expect(at("packs", "M")).toContain("1<small>unopened pack</small>");
+    // Render session 63: the Packs widget at M has the pity counters; buying is the Store widget's.
+    expect(at("packs", "M")).toContain("<b>2</b> since a Full Art");
+    expect(at("packs", "M")).not.toContain('data-act="buy-packs"');
+    expect(at("store", "M")).toMatch(/data-tile="pack-10"[\s\S]*?<b>1,000<\/b>[\s\S]*?data-act="buy-packs" data-set="S0" data-count="10" disabled/);
+    expect(at("store", "M")).toContain("750 credits short");
+    expect(at("store", "L")).toMatch(/data-act="buy-cosmetic" data-item="boast.s0"[^>]*disabled[^>]*>Buy</);
+    expect(at("store", "L")).toContain('class="sh-bal"');
     expect(at("collection", "S")).toContain("3/96");
     expect(at("collection", "L", { ...DATA, colFilter: "Swarm" })).toContain("Brute &lt;Force&gt;");
     expect(at("collection", "L", { ...DATA, colFilter: "Swarm" })).not.toContain("Alpha Node");

@@ -5399,3 +5399,65 @@ the Skip button's rename; the ten-pack summary still has no fan or set bar; a fa
 
 **Next render-lane slice:** after this PR the next session is game. The next render session: the store layout
 (Fortnite-style placement, the current look) with the Store and Packs widgets. Render hardening pass due at 64.
+
+## 2026-11-11 — Render session 63: the store layout, with the Store and Packs widgets at S, M and L
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #150 "The season switch made safe", is not "Render:"; the
+catch-up after #143 is long done). No PR from either lane was open. **Read first:** owner-feedback.md (the
+2026-11-11 answers to session 62: calls 3-6 kept, 1 and 2 decided later and kept as built; next, the store layout),
+DESIGN.md, RENDER.md, `progress/season0-final-brief.md` sections 1 and 2, this lane's log, debt and notes. Not a
+hardening pass (59 was; **64 is next**).
+
+**1. The pure tiles (`render/src/site/siteShop.ts`, new).** `packTiles` (the free daily pack, 1 pack, 10 packs:
+the server's price, ten times it for ten, Claim/Buy greyed with "N credits short" or "Claimed today"),
+`cosmeticTiles` (the cosmetics on sale, not-owned first, owned with an OWNED ribbon and no price), `featuredTileId`
+(the daily pack while one waits, else the 10 packs), `tileHtml` (art first with its ribbon and the price on it with
+the credits icon, the name and line, the button underneath), `clockLeft` / `resetCountdownHtml` (the clock to the
+server's `resetsAt`), `sealedPackHtml` / `packPileHtml`, `balanceHtml`. Nothing restated: every number from the
+answers; `cosmeticKind` moved here from the client.
+
+**2. The real pack on the website.** The opening's sealed pack, not a second copy: `siteFaces.ts` cuts the pack
+page's own wrapper rules out of `PACK_CSS` (`sealedPackRules`: `.pack .wrap|crimp|logo|emb|set|meta|pa` -> `.spk`)
+and hands the plate over through `window.SITE_FACE.packPlateSvg` (added to `FACE_EXPORTS`); the client passes it
+to the pure strings as `ShopArt` (the site's CSP has no `unsafe-eval`, so the strings can't evaluate the source
+themselves). Boast emblems are the loadout picker's `LOADOUT_GLYPHS`, put on the page as `<symbol id="lg-...">`
+(`boastGlyphSymbols`). Coins: the coin painter, on a larger canvas (`coinSwatchHtml` takes a size). The old CSS
+pack (`packArt`, `.pk*`) and the stepper's rules are gone.
+
+**3. The Store page (`siteClient.ts storePage`).** The head (balance, the countdown), Packs (the pity line, the
+three tiles: featured two columns wide, the others one, at 4 columns; 2 below 1100 px, 1 on a phone), Cosmetics
+(auto-fill tiles), then the packs waiting (now with the real pack and a big count), the agents' loadouts and recent
+openings as before. The 1-to-10 stepper is gone (call 2). `tickClocks` ticks every `[data-until]` each second and,
+once one passes, reads the store again (once per reset). Styles in `siteShopCss.ts` (transform/opacity motion only,
+still under reduce motion; solid under reduce transparency; light and dark).
+
+**4. The widgets (`siteWidgets.ts`).** Store: S the free pack, Claim and the clock; M the three pack tiles
+(compact); L the balance, the clock, the pack tiles and the cosmetics. Packs: S the pack with its count badge, the
+number, Open; M a bigger pile, Open, Open 10 and the pity chips (`pityChips`, gold when sure); L plus the last two
+openings. Buy and the daily line left the Packs widget (call 5).
+
+**Tests (+15, render 959):** `siteShop.test.ts`: the featured rule (exactly one, every combination), prices
+(including a non-100 price), the daily pack's states, cosmetics' order/owned/short, the real store's on-sale items
+(every boast has an emblem, every coin a canvas), the markup order (art, price, name, button), escaping, the plate
+being `packPlateSvg`'s and the CSS the pack page's own (the wrapper's gradient character for character, no tear
+rules), the emblems on the page, keyframes transform/opacity only, the clock (past 24 h, never negative, unreadable
+time), and both widgets at S/M/L. `siteBoard.test.ts`: three assertions moved to the new layout.
+
+**Ran it:** `store-check-s63.mjs` -> **36 PASS, 0 FAIL** against the real owner API (claim, buy a pack, buy a
+boast, the widgets at every size; numbers checked against the API). The first full run was 34/2: the Packs widget
+showed the count in a heading at M/L (made the same big number at every size) and the L widgets overflowed by 29 and
+5 px (the compact art made smaller; the Packs L shows two openings, not three); now 1 px and 0. Found by looking
+before that: the Packs pile stacked vertically (the back pack wasn't positioned), the Store L cosmetics' art kept
+its 150 px minimum, the ×10 badge covered the 10 packs' price, the claimed daily tile said FREE, CLAIMED TODAY and
+"comes back at the reset" at once. The CI browser check 61 PASS (`ci-browser-check-s63.txt`); `npm test` (render)
+959 pass; typecheck clean; `render/output/site/index.html` rebuilt (the other pages don't read anything changed).
+**Session 47's site check is now stale by design** (it drives `#buy-btn` and the stepper, both replaced); its pack
+opening parts are still valid. Retire or rewrite it in hardening pass 64 (named in the debt).
+
+**Not done (named):** the countdown reaching zero (the re-read) was not seen in the browser (no clock control in
+the demo; the clock itself is unit-tested to zero); the Store L widget fits with 1 px to spare at 1440 x 1000 (a
+different font could scroll it); nothing on a GPU; the phone layout looked at once.
+
+**Next render-lane slice:** after this PR the next session is game. The next render session is **64, a hardening
+pass** (the stale s47 and s54 checks first), then the rest of the widgets' S/M/L pass.
+

@@ -13,7 +13,8 @@
 //
 //   npm run site-page -w @ai-tcg/render [-- <out file>]   (default render/output/site/index.html)
 
-import { FACE_CSS, FACE_SCRIPT, faceSymbols } from "./siteFaces.js";
+import { FACE_CSS, FACE_SCRIPT, boastGlyphSymbols, faceSymbols } from "./siteFaces.js";
+import { SHOP_CSS } from "./siteShopCss.js";
 import { COIN_SCRIPT } from "./siteCoins.js";
 import { buildSync } from "esbuild";
 import { renderPackOpeningHtml } from "../packPage.js";
@@ -228,22 +229,12 @@ body[data-theme="dark"] .topbar { background: rgba(10,12,30,.15); }
 .mc.fin-foil, .mc.fin-fullArt, .mc.fin-altArt { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.7), 0 3px 12px rgba(120,160,255,.35); }
 .mc.fin-gold { box-shadow: inset 0 0 0 2px #f6c445, 0 3px 12px rgba(246,196,69,.4); } .mc.fin-gold .mc-fin { background: #f6c445; color: #3b2600; }
 .mc.fin-prototype, .mc.fin-secret, .mc.fin-zeroDay, .mc.fin-glitch { box-shadow: inset 0 0 0 2px #c95cff, 0 3px 14px rgba(201,92,255,.45); } .mc.fin-prototype .mc-fin { background: #c95cff; }
-/* The sealed pack, in CSS. */
-.pk { position: relative; flex: none; display: grid; place-content: center; text-align: center; color: #3b2600; border-radius: 8px; overflow: hidden;
-  background: linear-gradient(160deg, #ffe08a, #f0a92a 55%, #b8731a); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.5), 0 6px 16px rgba(160,100,10,.35); }
-.pk b { font: 900 18px system-ui; position: relative; } .pk small { font: 800 8px system-ui; letter-spacing: .2em; position: relative; }
-.pk-foil { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 45%, transparent 60%); }
-.pk::before, .pk::after { content: ""; position: absolute; left: 0; right: 0; height: 7px; background: repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 3px, transparent 3px 6px); }
-.pk::before { top: 0; } .pk::after { bottom: 0; }
-.pk-s { width: 52px; height: 78px; } .pk-m { width: 96px; height: 144px; } .pk-m b { font-size: 26px; }
-.pk-l { width: 132px; height: 198px; } .pk-l b { font-size: 34px; }
 /* The Store page (session 47): packs and buying, the daily pack, the packs waiting, recent openings, cosmetics. */
 .st-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: start; }
 .st-grid > .panel { margin: 0; }
 .st-packs { grid-column: span 8; } .st-daily { grid-column: span 4; } .st-open { grid-column: span 5; } .st-col .st-open { grid-column: auto; } .st-recent { grid-column: span 7; } .st-cos { grid-column: span 12; }
 .st-grid h3 { margin: 0 0 6px; font-size: 17px; } .st-grid p { margin: 6px 0; }
 .st-buy { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-.stepper { display: inline-flex; align-items: center; gap: 6px; } .stepper output { min-width: 2ch; text-align: center; font: 700 18px ui-rounded, system-ui; }
 .big-n { font: 800 30px ui-rounded, "SF Pro Rounded", system-ui; }
 .st-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .st-row, .st-rec, .st-agent { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; background: var(--soft); box-shadow: var(--soft-edge); }
@@ -536,6 +527,7 @@ export function renderSitePage(): string {
 <title>AI·TCG</title>
 <style>${SITE_CSS}</style>
 <style>${FACE_CSS}</style>
+<style>${SHOP_CSS}</style>
 </head>
 <body data-theme="light">
 <div id="bg" aria-hidden="true"></div>
@@ -589,6 +581,7 @@ export function renderSitePage(): string {
 <div id="replay" class="opening" hidden role="dialog" aria-modal="true" aria-label="Match replay"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 ${faceSymbols()}
+${boastGlyphSymbols()}
 <script>${FACE_SCRIPT}</script>
 <script>${COIN_SCRIPT}</script>
 <script>${siteScript()}</script>

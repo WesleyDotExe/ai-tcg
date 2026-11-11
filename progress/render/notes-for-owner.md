@@ -1310,3 +1310,13 @@ season mark) is proposed as a mark, call 1.
    Open one now / Open ten now.
 3. **A bug fixed that the website had too:** a second big pull in one Open 10 skipped its reveals.
 4. **Nothing needed from the game lane.**
+
+## 2026-11-11 — Render session 63 (the store layout, the Store and Packs widgets)
+
+1. **Six calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The two most worth a look: call 2
+   (the 1-to-10 stepper is gone; buying is 1 pack or 10 packs, as the brief lists) and call 1 (which tile is
+   featured).
+2. **To try it:** `npm run site-demo -w @ai-tcg/render`, sign in as nova, open Store; Customise on Home for the
+   widget sizes.
+3. **Nothing needed from the game lane.** (A bar to the pity guarantee would need the thresholds sent; not asked
+   for, see call 6.)

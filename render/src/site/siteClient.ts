@@ -33,7 +33,6 @@
 // revealOf). Its summary's buttons open the next pack or ten more, or close.
 // The reveal's sound is the account's sound setting.
 
-import { coinSwatchHtml } from "./siteCoinSwatch.js";
 import { avatarSvg } from "../avatar.js";
 import { CLOSE_WIN_HEALTH } from "../../../economy/src/cosmetics.js";
 import { agentLoadoutRows, loadoutPayload, type SiteLoadout, type SiteOwnedCosmetic } from "./siteLoadout.js";
@@ -41,7 +40,8 @@ import type { PickerAnswer, PickerSitePayload } from "../loadoutPicker.js";
 import { allowanceOf, dialKeyTarget, ringOfPlay, ringParts, ringTicks, statusPollMs, type SiteRating } from "./siteAgent.js";
 import { startLiquid, type Liquid } from "./liquid.js";
 import { SiteApiError, salvageNeedsConfirmation, siteApi, type SiteHistory, type SiteHistoryRow, type SiteLive, type SiteAccountSettings, type SiteFaction, type SiteMe, type SiteOpenRequest, type SitePlay, type SiteSettingsPatch, type SiteStore, type SiteWallet } from "./siteApi.js";
-import { BUY_MAX, buyView, dailyPackView, recentOpenings, revealOf, shortWhen, withSiteSetBar, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
+import { balanceHtml, cosmeticGridHtml, cosmeticTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, clockLeft, type ShopArt } from "./siteShop.js";
+import { recentOpenings, revealOf, shortWhen, withSiteSetBar, soundPatchOf, soundPrefOf, summaryButtons, summaryWhy, unopenedGroups, type SiteReveal, type SummaryAction } from "./siteStore.js";
 import {
   WIDGET_INFO,
   addBlock,
@@ -63,7 +63,7 @@ import {
 } from "./siteBoard.js";
 import { DEFAULT_FILTERS, binderBlocks, craftView, copiesByCard, neighbours, salvageConfirmText, salvageView, type BinderSlot, type CollectionFilters, type FactionFilter, type ShowFilter, type CollectionTab, type SiteBinder } from "./siteCollection.js";
 import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRenderer, type ViewerState } from "./siteCollectionHtml.js";
-import { miniCard, packArt, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
+import { miniCard, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
@@ -129,8 +129,6 @@ const state: {
   shop: { packs: (SitePacks & { wallet: SiteWallet }) | null; store: SiteStore | null; recent: SiteCollection | null; error: string | null;
     /** Session 49: what each agent wears (by agent id) and the owned cosmetics, for "Your agents". */
     loadouts: Record<string, SiteLoadout>; owned: SiteOwnedCosmetic[] | null };
-  /** How many packs the Store's Buy button buys (1 to 10). */
-  buyCount: number;
   /** A pack opening is on screen (or its request is out). */
   opening: boolean;
   /** The Collection page (session 48): the set's binder, the collection
@@ -152,7 +150,7 @@ const state: {
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
   board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, errors: {} }, colFilter: "All",
-  shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null }, buyCount: 1, opening: false,
+  shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null }, opening: false,
   col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
   hist: { rows: [], total: 0, more: false, error: null, loading: false }, autoBusy: false, speedBusy: false, replay: null, follow: null,
 };
@@ -530,6 +528,27 @@ function tickRings(): void {
   });
 }
 window.setInterval(tickRings, 1000);
+/** The store's countdowns to the daily reset (render session 63): each
+ * `[data-until]` clock ticks each second; once one reaches zero the store's
+ * reads run again (once per reset), so the new day's free pack shows. */
+let clockReloadFor: string | null = null;
+function tickClocks(): void {
+  if (document.hidden) return;
+  const now = Date.now();
+  let passed: string | null = null;
+  document.querySelectorAll<HTMLElement>("[data-until]").forEach((el) => {
+    const until = el.dataset.until!;
+    const t = clockLeft(now, until);
+    if (el.textContent !== t) el.textContent = t;
+    if (Date.parse(until) <= now) passed = until;
+  });
+  if (passed && clockReloadFor !== passed) {
+    clockReloadFor = passed;
+    if (state.page === "store" && !state.opening) void loadShop();
+    if (state.page === "home") void loadHome(["packs", "store"]);
+  }
+}
+window.setInterval(tickClocks, 1000);
 async function refresh(): Promise<void> {
   if (!state.session || document.hidden) return schedulePoll();
   try {
@@ -702,7 +721,7 @@ function homePage(p: SitePlay): string {
   if (!widgets.length) {
     return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
   }
-  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy };
+  const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
   const { views, capped } = liveViews(widgets);
   const tiles = widgets.map((w) => widgetHtml(w, data, { editing, live: views.get(w.id), capped: capped.has(w.id) })).join("");
   const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -1093,21 +1112,15 @@ function storePage(): string {
     return `<div class="pg-wide"><div class="wempty glass"><h3>${sh.error ? "The Store couldn't be read" : "Loading the Store…"}</h3>${sh.error ? `<p class="muted">${esc(sh.error)}</p><button type="button" class="btn pri" data-act="retry-shop">Try again</button>` : ""}</div></div>`;
   }
   const credits = state.wallet?.credits ?? sh.packs.wallet.credits;
-  const offer = sh.packs.offer[0];
   const now = Date.now();
-  // Buying: the set's pack, 1 to 10 at once (all or none).
-  let buy = '<p class="muted">No packs on sale right now.</p>';
-  if (offer) {
-    const b = buyView(offer, state.buyCount, credits);
-    state.buyCount = b.count;
-    buy = `<div class="st-buy"><div class="stepper" role="group" aria-label="How many packs"><button type="button" class="btn sm" data-act="buy-step" data-d="-1"${b.count <= 1 ? " disabled" : ""} aria-label="One fewer">−</button><output id="buy-n" aria-live="polite">${b.count}</output><button type="button" class="btn sm" data-act="buy-step" data-d="1"${b.count >= BUY_MAX ? " disabled" : ""} aria-label="One more">+</button></div>`
-      + `<button type="button" class="btn pri" id="buy-btn" data-act="buy-packs" data-set="${esc(offer.setCode)}" data-count="${b.count}"${b.canAfford ? "" : " disabled"}>Buy ${b.count === 1 ? "1 pack" : `${b.count} packs`} · ${amount(b.total)}</button></div>`
-      + `<p class="muted small">${b.canAfford ? `You have ${amount(credits)} credits.` : `${amount(b.short)} credits short: you have ${amount(credits)}.`} Win matches to earn more.</p>`;
-  }
-  const packsHead = `<section class="panel glass st-packs"><div class="row nowrap top">${packArt(offer?.setCode ?? "S0", "l")}<div class="wcol"><h3>${esc(offer?.name ?? "Packs")}</h3><p class="muted small">5 cards a pack${offer ? ` · ${amount(offer.priceCredits)} credits each` : ""} · every pack also pays 5 pack points</p><p class="muted small">${esc(pityText(sh.packs))}</p>${buy}</div></div></section>`;
-  // The free daily pack.
-  const dv = dailyPackView(sh.packs.dailyPack, now);
-  const daily = `<section class="panel glass st-daily"><h3>Free daily pack</h3><p>${esc(dv.line)}</p><p class="muted small">One a day, only you can claim it, up to ${dv.cap} can wait. The day turns at midnight ${esc(sh.packs.dailyPack.timeZone.split("/").pop() ?? "")} time.</p><button type="button" class="btn pri" id="claim-btn" data-act="claim-daily"${dv.canClaim ? "" : " disabled"}>${esc(dv.button)}</button></section>`;
+  const art = shopArt();
+  // Render session 63 (the store layout, the Season 0 brief section 2): the
+  // products as tiles of different sizes, the featured one larger, the art
+  // as the hero, the price on the tile, the button underneath; the balance
+  // and the countdown to the daily reset at the top.
+  const head = `<div class="sh-head">${balanceHtml(credits)}${resetCountdownHtml(sh.packs.dailyPack, now)}<span class="sp"></span><span class="muted small">Every pack also pays 5 pack points.</span></div>`;
+  const packs = `<section class="sh-sec" aria-labelledby="sh-packs"><h3 id="sh-packs">Packs</h3><p class="sh-sub">${esc(pityText(sh.packs))}</p>${packGridHtml(packTiles(sh.packs, credits, now), { art })}</section>`;
+  const cosmetics = `<section class="sh-sec" aria-labelledby="sh-cos"><h3 id="sh-cos">Cosmetics</h3><p class="sh-sub">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p>${cosmeticGridHtml(cosmeticTiles(sh.store.cosmetics, credits), { art })}</section>`;
   // The packs waiting, by where they came from.
   const n = sh.packs.unopened.length;
   const bulk = sh.packs.bulkOpenCount;
@@ -1115,17 +1128,24 @@ function storePage(): string {
   const rows = groups
     .map((g) => `<div class="st-row"><span class="pk-dot" aria-hidden="true"></span><div class="dn"><b>${esc(g.name)}</b><small>${g.count} waiting · ${esc(g.setCode)} · the oldest from ${esc(shortWhen(g.oldestAt))}</small></div><button type="button" class="btn sm" data-act="open-packs" data-pack="${esc(g.oldestPackId)}" aria-label="Open a ${esc(g.name.toLowerCase())}">Open one</button></div>`)
     .join("");
-  const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><p><b class="big-n">${n}</b> pack${n === 1 ? "" : "s"}</p><div class="row"><button type="button" class="btn pri" id="open1-btn" data-act="open-packs" data-count="1"${n ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk ? "" : " disabled"}>Open ${bulk}</button></div>${n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
+  const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><div class="pkw">${sealedPackHtml(sh.packs.offer[0]?.setCode ?? sh.packs.dailyPack.setCode, 58, art)}<div class="dn"><p class="pkw-n">${n}<small>pack${n === 1 ? "" : "s"}</small></p><div class="row"><button type="button" class="btn pri" id="open1-btn" data-act="open-packs" data-count="1"${n ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk ? "" : " disabled"}>Open ${bulk}</button></div></div></div>${n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
   // Recent openings: when, the best finish, the cards.
   const rec = sh.recent ? recentOpenings(sh.recent, 6) : [];
   const recent = `<section class="panel glass st-recent"><h3>Recent openings</h3>${rec.length ? rec.map((o) => `<div class="st-rec"><div class="dn"><b>${esc(shortWhen(o.openedAt))}</b><small>${esc(o.setCode)}${o.best ? ` · best: ${esc(o.best)}` : ""}${o.jackpot ? " · Jackpot pack" : ""}</small></div><div class="mrow">${o.cards.map((c) => miniCard(c)).join("")}</div></div>`).join("") : '<p class="muted small">No packs opened yet.</p>'}</section>`;
-  // Cosmetics on sale.
-  const cos = sh.store.cosmetics;
-  const items = cos.length
-    ? `<div class="shop">${cos.map((c) => `<div class="si">${c.kind === "coin" ? coinSwatchHtml(c.itemId) : `<span class="si-pv" style="--c:${(c.faction && FACTION_HEX[c.faction]) || "#8f8cff"}"></span>`}<b class="small">${esc(c.name)}</b><span class="muted small">${esc(cosmeticKind(c.kind))}${c.faction ? ` · ${esc(c.faction)}` : ""}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${credits >= c.priceCredits ? "" : " disabled"}>Buy · ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>`
-    : '<p class="muted small">No cosmetics on sale right now.</p>';
-  const cosmetics = `<section class="panel glass st-cos"><h3>Cosmetics</h3>${items}<p class="muted small">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p></section>`;
-  return `<div class="pg-wide"><div class="st-grid">${packsHead}${daily}<div class="st-col">${waiting}${agentsPanel()}</div>${recent}${cosmetics}</div></div>`;
+  return `<div class="pg-wide sh-pg">${head}${packs}${cosmetics}<div class="st-grid"><div class="st-col">${waiting}${agentsPanel()}</div>${recent}</div></div>`;
+}
+
+/** The store's art the pure strings can't draw (render session 63): the
+ * pack's plate from the pack page's own source (window.SITE_FACE). */
+let shopArtCache: ShopArt | null = null;
+function shopArt(): ShopArt | null {
+  if (shopArtCache) return shopArtCache;
+  const f = (window as unknown as { SITE_FACE?: { packPlateSvg?: (s: string) => string } }).SITE_FACE;
+  if (!f?.packPlateSvg) return null;
+  const plates = new Map<string, string>();
+  const fn = f.packPlateSvg;
+  shopArtCache = { plate: (s) => plates.get(s) ?? (plates.set(s, fn(s)), plates.get(s)!) };
+  return shopArtCache;
 }
 
 /** "Your agents" (session 49): what each agent wears, and Change to open
@@ -1153,9 +1173,6 @@ function pityText(p: SitePacks): string {
   const sure = [p.pity.next.fullArt ? "a Full Art or better" : "", p.pity.next.mythic ? "a Mythic" : ""].filter(Boolean);
   if (sure.length) return `Your next pack is sure to hold ${sure.join(" and ")}.`;
   return `${p.pity.packsSinceFullArt} pack${p.pity.packsSinceFullArt === 1 ? "" : "s"} since a Full Art · ${p.pity.packsSinceMythic} since a Mythic`;
-}
-function cosmeticKind(kind: string): string {
-  return kind === "boast" ? "Victory boast" : kind.charAt(0).toUpperCase() + kind.slice(1);
 }
 
 async function claimDaily(): Promise<void> {
@@ -1874,7 +1891,7 @@ function drawLive(): void {
     const p = state.play;
     if (!p) return;
     const widgets = state.board.widgets;
-    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy };
+    const data: WidgetData = { play: p, wallet: state.wallet, ...state.home, ownerId: state.me?.ownerId ?? null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
     const { views, capped } = liveViews(widgets);
     for (const w of widgets) {
       if (w.type !== "live" && w.type !== "watch") continue;
@@ -2300,12 +2317,6 @@ document.addEventListener("click", (e) => {
     if (act === "match-log" && actEl.dataset.match) return void showLog(actEl.dataset.match);
     if (act === "more-hist") return void loadHistory(false);
     if (act === "retry-hist") return void loadHistory(true);
-    if (act === "buy-step") {
-      state.buyCount = Math.max(1, Math.min(BUY_MAX, state.buyCount + Number(actEl.dataset.d)));
-      drawPage();
-      (document.querySelector(`[data-act="buy-step"][data-d="${actEl.dataset.d}"]`) as HTMLElement | null)?.focus();
-      return;
-    }
     if (act === "retry-shop") return void loadShop();
     if (act === "retry-col") return void loadCollection();
     if (act === "col-tab" || act === "col-faction" || act === "col-show") {

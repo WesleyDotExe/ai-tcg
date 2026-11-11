@@ -8,7 +8,7 @@
 // data waits on match running says what it waits on (siteBoard.WIDGET_WAITS)
 // and draws nothing made up.
 
-import { coinSwatchHtml } from "./siteCoinSwatch.js";
+import { balanceHtml, cosmeticGridHtml, cosmeticTiles, packGridHtml, packTiles, resetCountdownHtml, sealedPackHtml, type ShopArt } from "./siteShop.js";
 import { visualPatternFor, visualSeedFor } from "../cardVisual.js";
 import type { SiteHistory, SiteLive, SitePlay, SiteStore, SiteWallet } from "./siteApi.js";
 import { compactBoard, historyRowHtml, historyRowView, liveLineHtml, recordOf, scoreboardHtml, scoreboardOf, watchAsHtml } from "./siteMatches.js";
@@ -98,6 +98,9 @@ export interface WidgetData {
   now: number;
   /** The Large Collection widget's faction filter. */
   colFilter: string;
+  /** The sealed pack's plate (render session 63, siteShop.ShopArt); absent
+   * or null: the pack without its plate. */
+  art?: ShopArt | null;
 }
 
 export interface WidgetOpts {
@@ -121,11 +124,6 @@ export function miniCard(c: MiniCard, opts: { count?: number } = {}): string {
   return `<div class="mc fin-${esc(c.finish)} r-${esc(c.rarity)}" style="--c:${hex};--h:${visualSeedFor(c.cardId)}" title="${esc(`${c.name} · ${c.rarity}${fin ? ` · ${fin}` : ""}${serial}`)}">`
     + `<span class="mc-art p${visualPatternFor(c.cardId)}"></span><span class="mc-gem" aria-hidden="true"></span>`
     + `<b class="mc-n">${esc(c.name)}</b>${fin ? `<span class="mc-fin">${esc(fin + serial)}</span>` : ""}${opts.count && opts.count > 1 ? `<span class="mc-cnt">×${opts.count}</span>` : ""}</div>`;
-}
-
-/** The sealed pack, drawn in CSS (no image). */
-export function packArt(setCode: string | null, size: "s" | "m" | "l"): string {
-  return `<div class="pk pk-${size}" aria-hidden="true"><span class="pk-foil"></span><b>${esc(setCode ?? "S0")}</b><small>AI·TCG</small></div>`;
 }
 
 function bar(pct: number): string {
@@ -180,23 +178,44 @@ function historyBody(w: SiteWidget, d: WidgetData): string {
   return `<div class="muted small">Last ${shown.length} of ${h.total} · ${esc(rec.line)}</div><ul class="hlist">${shown.map((v) => historyRowHtml(v, { compact: w.size === "M" })).join("")}</ul>${w.size === "L" && h.more ? `<a class="btn sm" href="#/match">All matches</a>` : ""}`;
 }
 
+/** The pity counters as chips (render session 63): packs since each, or
+ * that the next is sure to hold one (the server's flags; the thresholds are
+ * the store's and not sent). */
+export function pityChips(pity: SitePacks["pity"]): string {
+  const chip = (sure: boolean, n: number, what: string) =>
+    sure ? `<span class="sure"><b>Next</b> sure to hold ${what === "Full Art" ? "a Full Art or better" : "a Mythic"}</span>` : `<span><b>${n}</b> since a ${what}</span>`;
+  return `<div class="pity" aria-label="Pity counters">${chip(pity.next.fullArt, pity.packsSinceFullArt, "Full Art")}${chip(pity.next.mythic, pity.packsSinceMythic, "Mythic")}</div>`;
+}
+
+/** The unopened packs as a little pile with the count on it (the Packs
+ * widget's art). */
+function packStackHtml(setCode: string, px: number, n: number, art: ShopArt | null | undefined): string {
+  const back = n > 1 ? `<div class="pkw-back">${sealedPackHtml(setCode, px, art, { meta: false })}</div>` : "";
+  return `<div class="pkw-pile${n ? "" : " none"}">${back}<div class="pkw-front">${sealedPackHtml(setCode, px, art)}</div>${n ? `<b class="pkw-c" aria-hidden="true">${n}</b>` : ""}</div>`;
+}
+
 function packsBody(w: SiteWidget, d: WidgetData): string {
   const l = loading(d, "packs");
   if (l) return l;
-  const v = packsView(d.packs!, d.wallet?.credits ?? 0);
+  const p = d.packs!;
+  const v = packsView(p, d.wallet?.credits ?? 0);
+  const set = v.setCode ?? p.dailyPack.setCode;
   // Session 47: Open opens the oldest pack, Open 10 the ten oldest, full screen.
+  // Render session 63 (the brief's table): S the pack, the count and Open;
+  // M a bigger pack, Open and Open 10, the pity counters; L the last pulls too.
   const open = `<button type="button" class="btn pri sm" data-act="open-packs" data-count="1"${v.canOpen ? "" : " disabled"}>Open</button>`;
-  if (w.size === "S") return `<div class="row nowrap">${packArt(v.setCode, "s")}<div><b>${esc(v.head)}</b><div class="row">${open}</div></div></div>`;
-  const buy = v.price !== null ? `<button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode!)}" data-count="1"${v.canBuy ? "" : " disabled"}>Buy · ${amount(v.price)}</button>` : "";
+  const count = `<p class="pkw-n">${v.unopened}<small>unopened</small></p>`;
+  if (w.size === "S") return `<div class="pkw">${packStackHtml(set, 44, v.unopened, d.art)}<div class="dn">${count}<div class="row">${open}</div></div></div><span class="vh">${esc(v.head)}</span>`;
   const open10 = `<button type="button" class="btn sm" data-act="open-packs" data-count="${v.bulk}"${v.canOpenBulk ? "" : ` disabled title="Needs ${v.bulk} packs waiting"`}>Open ${v.bulk}</button>`;
-  const daily = dailyPackView(d.packs!.dailyPack, d.now);
-  const m = `<div class="row nowrap top">${packArt(v.setCode, "m")}<div class="wcol"><h4>${esc(v.head)}</h4><div class="muted small">${esc(v.setName)} · 5 cards</div><div class="muted small">${esc(v.pity)}</div><div class="muted small">Free daily pack: ${esc(daily.line)}</div><div class="row">${open}${open10}${buy}</div></div></div>`;
+  const m = `<div class="pkw">${packStackHtml(set, 84, v.unopened, d.art)}<div class="dn"><p class="pkw-n">${v.unopened}<small>unopened pack${v.unopened === 1 ? "" : "s"}</small></p><div class="muted small">${esc(v.setName || set)} · 5 cards a pack</div>${pityChips(p.pity)}<div class="row">${open}${open10}</div>${v.unopened && !v.canOpenBulk ? `<div class="muted small">Open ${v.bulk} needs ${v.bulk} waiting.</div>` : ""}</div></div>`;
   if (w.size === "M") return m;
   const c = d.collection;
-  const last = c?.recentPulls[0];
   const factionOf = new Map((c?.cards ?? []).map((x) => [x.cardId, x.faction]));
-  const cards = last ? last.cards.map((k) => miniCard({ cardId: k.cardId, name: k.name, rarity: k.rarity, faction: factionOf.get(k.cardId) ?? null, finish: k.finish, serial: k.serial })).join("") : "";
-  return `<div class="wsplit wide-l">${m}<div class="wcol"><div class="muted small">${last ? `Your last opening · ${esc(clock(last.openedAt))}` : c ? "Your last opening appears here" : "Loading your last opening…"}</div><div class="mrow">${cards}</div></div></div>`;
+  const pulls = (c?.recentPulls ?? []).slice(0, 2);
+  const strip = pulls.length
+    ? pulls.map((o) => `<div class="muted small">${esc(clock(o.openedAt))} · ${esc(o.setCode)}${o.jackpot ? " · Jackpot pack" : ""}</div><div class="mrow">${o.cards.map((k) => miniCard({ cardId: k.cardId, name: k.name, rarity: k.rarity, faction: factionOf.get(k.cardId) ?? null, finish: k.finish, serial: k.serial })).join("")}</div>`).join("")
+    : `<div class="muted small">${c ? "Your last pulls appear here" : "Loading your last pulls…"}</div>`;
+  return `<div class="wsplit wide-l">${m}<div class="wcol pkw-pulls"><h4>Your last pulls</h4>${strip}</div></div>`;
 }
 
 function dailyBody(w: SiteWidget, d: WidgetData): string {
@@ -242,20 +261,20 @@ function showcaseBody(w: SiteWidget, d: WidgetData): string {
 function storeBody(w: SiteWidget, d: WidgetData): string {
   const l = loading(d, "packs") ?? (w.size === "L" ? loading(d, "store") : null);
   if (l) return l;
-  const v = packsView(d.packs!, d.wallet?.credits ?? 0);
-  const daily = dailyPackView(d.packs!.dailyPack, d.now);
-  const claim = `<button type="button" class="btn pri sm" data-act="claim-daily"${daily.canClaim ? "" : " disabled"}>${esc(daily.button)}</button>`;
-  if (w.size === "S") return `<div class="row">${claim}</div><div class="muted small">${esc(daily.line)}</div>`;
-  const buy = v.price !== null
-    ? `<button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode!)}" data-count="1"${v.canBuy ? "" : " disabled"}>Buy 1 pack · ${amount(v.price)}</button><button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode!)}" data-count="10"${v.canBuy10 ? "" : " disabled"}>Buy 10 · ${amount(v.price * 10)}</button>`
-    : "";
-  const m = `<div class="row">${claim}${buy}</div><div class="muted small">${esc(daily.line)}</div><div class="muted small">${v.unopened} unopened · ${amount(d.wallet?.credits ?? 0)} credits</div>`;
-  if (w.size === "M") return m;
-  const cos = d.store!.cosmetics;
-  const items = cos.length
-    ? `<div class="shop">${cos.map((c) => `<div class="si">${c.kind === "coin" ? coinSwatchHtml(c.itemId) : `<span class="si-pv" style="--c:${(c.faction && FACTION_HEX[c.faction]) || "#8f8cff"}"></span>`}<b class="small">${esc(c.name)}</b><span class="muted small">${esc(c.kind)}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${(d.wallet?.credits ?? 0) >= c.priceCredits ? "" : " disabled"}>Buy · ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>`
-    : `<p class="muted small">No cosmetics on sale right now.</p>`;
-  return m + `<h4>Cosmetics on sale</h4>${items}`;
+  const p = d.packs!;
+  const credits = d.wallet?.credits ?? 0;
+  // Render session 63 (the brief's table): S claims the free pack; M the
+  // product tiles with their buy buttons underneath; L the store's layout
+  // (packs and cosmetics) with the balance and the countdown.
+  if (w.size === "S") {
+    const daily = dailyPackView(p.dailyPack, d.now);
+    const claim = `<button type="button" class="btn pri sm" data-act="claim-daily"${daily.canClaim ? "" : " disabled"}>${esc(daily.canClaim ? (daily.waiting > 1 ? `Claim (${daily.waiting})` : "Claim free pack") : "Claimed today")}</button>`;
+    return `<div class="shw-s">${sealedPackHtml(p.dailyPack.setCode, 40, d.art)}<div class="dn"><b>${daily.canClaim ? "Free daily pack" : "Free pack claimed"}</b><div class="row">${claim}</div>${resetCountdownHtml(p.dailyPack, d.now, { short: true })}</div></div>`;
+  }
+  const tiles = packGridHtml(packTiles(p, credits, d.now), { art: d.art, compact: true });
+  if (w.size === "M") return `<div class="shw">${tiles}</div>`;
+  const cos = cosmeticGridHtml(cosmeticTiles(d.store!.cosmetics, credits), { art: d.art, compact: true });
+  return `<div class="shw"><div class="shw-head">${balanceHtml(credits)}${resetCountdownHtml(p.dailyPack, d.now)}</div>${tiles}<h4>Cosmetics</h4>${cos}</div>`;
 }
 
 function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {

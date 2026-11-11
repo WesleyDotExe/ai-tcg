@@ -177,22 +177,12 @@ body[data-theme="dark"] .topbar { background: rgba(10,12,30,.15); }
 .mc.fin-foil, .mc.fin-fullArt, .mc.fin-altArt { box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.7), 0 3px 12px rgba(120,160,255,.35); }
 .mc.fin-gold { box-shadow: inset 0 0 0 2px #f6c445, 0 3px 12px rgba(246,196,69,.4); } .mc.fin-gold .mc-fin { background: #f6c445; color: #3b2600; }
 .mc.fin-prototype, .mc.fin-secret, .mc.fin-zeroDay, .mc.fin-glitch { box-shadow: inset 0 0 0 2px #c95cff, 0 3px 14px rgba(201,92,255,.45); } .mc.fin-prototype .mc-fin { background: #c95cff; }
-/* The sealed pack, in CSS. */
-.pk { position: relative; flex: none; display: grid; place-content: center; text-align: center; color: #3b2600; border-radius: 8px; overflow: hidden;
-  background: linear-gradient(160deg, #ffe08a, #f0a92a 55%, #b8731a); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.5), 0 6px 16px rgba(160,100,10,.35); }
-.pk b { font: 900 18px system-ui; position: relative; } .pk small { font: 800 8px system-ui; letter-spacing: .2em; position: relative; }
-.pk-foil { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 45%, transparent 60%); }
-.pk::before, .pk::after { content: ""; position: absolute; left: 0; right: 0; height: 7px; background: repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 3px, transparent 3px 6px); }
-.pk::before { top: 0; } .pk::after { bottom: 0; }
-.pk-s { width: 52px; height: 78px; } .pk-m { width: 96px; height: 144px; } .pk-m b { font-size: 26px; }
-.pk-l { width: 132px; height: 198px; } .pk-l b { font-size: 34px; }
 /* The Store page (session 47): packs and buying, the daily pack, the packs waiting, recent openings, cosmetics. */
 .st-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 16px; align-items: start; }
 .st-grid > .panel { margin: 0; }
 .st-packs { grid-column: span 8; } .st-daily { grid-column: span 4; } .st-open { grid-column: span 5; } .st-col .st-open { grid-column: auto; } .st-recent { grid-column: span 7; } .st-cos { grid-column: span 12; }
 .st-grid h3 { margin: 0 0 6px; font-size: 17px; } .st-grid p { margin: 6px 0; }
 .st-buy { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
-.stepper { display: inline-flex; align-items: center; gap: 6px; } .stepper output { min-width: 2ch; text-align: center; font: 700 18px ui-rounded, system-ui; }
 .big-n { font: 800 30px ui-rounded, "SF Pro Rounded", system-ui; }
 .st-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 .st-row, .st-rec, .st-agent { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 14px; background: var(--soft); box-shadow: var(--soft-edge); }
@@ -565,6 +555,143 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 @keyframes sheen { from { background-position: 120% 0; } to { background-position: -120% 0; } }
 @keyframes stamp { from { opacity: 0; transform: scale(2.4) rotate(-8deg); } }
 @keyframes zdart { 50% { filter: hue-rotate(40deg) brightness(1.2); } }</style>
+<style>.spk { position: relative; flex: none; width: var(--pw); height: calc(var(--pw) * 1.6); border-radius: 10px; color: #e6eeff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.2; box-shadow: 0 12px 28px rgba(8,10,40,.45); }
+.spk .wrap { position: absolute; left: 0; right: 0; height: calc(var(--pw) * 1.6); border-radius: 10px;
+  background: linear-gradient(135deg, #1b2a6b 0%, #3a1f7a 32%, #11163a 55%, #2a1150 78%, #0f2a5e 100%);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08), inset 0 0 40px rgba(0,0,0,0.5); }
+.spk .crimp { position: absolute; left: 0; right: 0; height: 12px; background: repeating-linear-gradient(90deg, rgba(255,255,255,0.22) 0 4px, rgba(0,0,0,0.25) 4px 8px); }
+.spk .crimp.t { top: 0; }
+.spk .crimp.b { bottom: 0; }
+.spk .logo { position: absolute; top: 24%; left: 0; right: 0; text-align: center; font-weight: 900; letter-spacing: 0.12em; font-size: calc(var(--pw) * 0.15);
+  background: linear-gradient(180deg, #fff 0%, #bfe3ff 45%, #6a8cff 55%, #e6d2ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 6px rgba(80,120,255,0.6)); }
+.spk .emb { position: absolute; top: 42%; left: 50%; width: 42%; aspect-ratio: 1; transform: translateX(-50%); color: #bfe3ff; filter: drop-shadow(0 0 10px rgba(120,170,255,0.7)); }
+.spk .emb svg { width: 100%; height: 100%; }
+.spk .set { position: absolute; top: 72%; left: 0; right: 0; text-align: center; font-weight: 800; letter-spacing: 0.3em; font-size: calc(var(--pw) * 0.06); color: #dfe8ff; }
+.spk .meta { position: absolute; top: 79%; left: 0; right: 0; text-align: center; font-size: calc(var(--pw) * 0.05); color: #9fb1dd; letter-spacing: 0.08em; }
+.spk .pa { position: absolute; inset: 0; pointer-events: none; opacity: 0.9; }
+.spk .pa svg { width: 100%; height: 100%; display: block; }
+.spk .crimp { height: max(4px, calc(var(--pw) * 0.05)); }
+.spk .wrap { top: 0; overflow: hidden; }
+/* The sealed pack's foil sweep (transform only). */
+.spk { overflow: hidden; }
+.spk-foil { position: absolute; inset: -20% -60%; pointer-events: none; background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.28) 48%, rgba(190,220,255,.12) 52%, transparent 62%); transform: translateX(-40%); animation: spk-sweep 5.5s ease-in-out infinite; mix-blend-mode: screen; }
+@keyframes spk-sweep { 0%, 55% { transform: translateX(-45%); } 85%, 100% { transform: translateX(45%); } }
+.spile { position: relative; display: grid; place-items: center; }
+.spile > span { grid-area: 1 / 1; display: block; }
+.spile .sp-l { transform: translate(-34%, 4%) rotate(-11deg); filter: brightness(.72); }
+.spile .sp-r { transform: translate(34%, 4%) rotate(11deg); filter: brightness(.72); }
+.spile .sp-c { position: relative; z-index: 1; }
+.sp-n { position: absolute; z-index: 2; right: -20%; top: 2%; font: 900 22px/1 ui-rounded, system-ui; color: #fff; padding: 6px 9px; border-radius: 12px; background: linear-gradient(135deg, #4f6bff, #8b5cff); box-shadow: 0 6px 18px rgba(80,60,255,.5); }
+
+/* ---- the store page's head: the balance and the countdown ---- */
+.sh-pg { display: flex; flex-direction: column; gap: 18px; }
+.sh-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.sh-head .sp { flex: 1; }
+.sh-bal, .sh-reset { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 12px; border-radius: 99px; background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); font: 600 14px system-ui; white-space: nowrap; }
+.sh-bal b { font: 800 17px ui-rounded, system-ui; font-variant-numeric: tabular-nums; }
+.sh-clock { font: 800 17px ui-rounded, ui-monospace, system-ui; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+.sh-reset small { color: var(--muted); font-weight: 600; }
+.sh-clock-ic { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 2px currentColor; position: relative; opacity: .8; }
+.sh-clock-ic::after { content: ""; position: absolute; left: 7px; top: 3px; width: 2px; height: 6px; background: currentColor; border-radius: 1px; transform-origin: 1px 5px; transform: rotate(40deg); }
+.sh-sec h3 { margin: 0; font: 800 19px system-ui; letter-spacing: .01em; }
+.sh-sec .sh-sub { margin: 2px 0 12px; color: var(--muted); font-size: 13.5px; }
+
+/* ---- the tiles ---- */
+.sh-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.sh-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 16px; }
+.sh-t { --c: #6a8cff; position: relative; display: flex; flex-direction: column; min-width: 0; border-radius: 22px; overflow: hidden;
+  background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); backdrop-filter: blur(22px) saturate(1.4); -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  transition: transform .22s cubic-bezier(.2,.8,.3,1), box-shadow .22s; }
+.sh-t:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(50,40,140,.24), inset 0 1px 0 rgba(255,255,255,.4); }
+.sh-t.t-feature { grid-column: span 2; }
+.sh-t.t-tall, .sh-t.t-feature { min-height: 400px; }
+/* The art is the hero: a deep plate in the product's colour, the art centred on it. */
+.sh-art { position: relative; flex: 1; min-height: 150px; display: grid; place-items: center; overflow: hidden; isolation: isolate;
+  background: radial-gradient(120% 90% at 50% 38%, color-mix(in srgb, var(--c) 46%, #10123a) 0%, #0b0d2a 62%, #05061a 100%); }
+.sh-art::before { content: ""; position: absolute; inset: 0; z-index: -1; background: repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 22px); }
+.sh-art::after { content: ""; position: absolute; left: 50%; top: 46%; width: 70%; aspect-ratio: 1; z-index: -1; border-radius: 50%; transform: translate(-50%, -50%); background: radial-gradient(circle, color-mix(in srgb, var(--c) 60%, transparent), transparent 66%); opacity: .55; }
+.sh-t.t-item .sh-art { min-height: 150px; flex: none; height: 150px; }
+/* The pack tiles line up: the art a fixed height, the words take what's left, the buttons on one line. */
+.sh-t.t-tall .sh-art, .sh-t.t-feature .sh-art { flex: none; height: 270px; }
+.sh-info { flex: 1; }
+.sh-t .spk, .sh-t .spile { transition: transform .35s cubic-bezier(.2,.8,.3,1); }
+.sh-t:hover .spk, .sh-t:hover .spile { transform: translateY(-4px) rotate(-1.5deg); }
+.sh-t:hover .spile .spk { transform: none; }
+.tone-pack { --c: #6a5cff; } .tone-free { --c: #f6c445; } .tone-coin { --c: #6f7cb8; }
+.sh-t.t-feature .sh-art .spk { animation: sh-bob 4.2s ease-in-out infinite; }
+@keyframes sh-bob { 50% { transform: translateY(-7px) rotate(-.8deg); } }
+/* The price, on the art: the credits icon and the number. */
+.sh-price { position: absolute; right: 12px; bottom: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 7px; border-radius: 99px; color: #fff;
+  background: rgba(6,8,30,.62); border: 1px solid rgba(255,255,255,.2); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font: 800 16px ui-rounded, system-ui; font-variant-numeric: tabular-nums; }
+.sh-price.free { padding: 5px 12px; color: #1a1205; background: linear-gradient(135deg, #ffe08a, #f6c445); border-color: rgba(255,255,255,.6); letter-spacing: .06em; text-transform: uppercase; font-size: 13px; }
+.t-feature .sh-price { font-size: 20px; right: 16px; bottom: 16px; }
+.sh-badge { position: absolute; left: 12px; top: 12px; padding: 4px 10px; border-radius: 8px; font: 800 10.5px system-ui; letter-spacing: .1em; text-transform: uppercase; color: #fff; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.22); }
+.tone-free .sh-badge { color: #1a1205; background: #f6c445; border-color: #ffe08a; }
+.sh-t.owned .sh-badge { background: rgba(70,200,140,.85); border-color: rgba(255,255,255,.4); }
+.sh-info { padding: 12px 16px 2px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sh-n { font: 800 16px system-ui; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .t-feature .sh-n { font-size: 21px; }
+.sh-info small { color: var(--muted); font-size: 12.5px; }
+.sh-act { padding: 10px 16px 16px; display: flex; flex-direction: column; gap: 4px; }
+.sh-buy { width: 100%; justify-content: center; padding: 11px 16px; font-size: 15px; }
+.t-feature .sh-buy { padding: 13px 16px; font-size: 16px; }
+.sh-buy:disabled { opacity: .55; cursor: not-allowed; }
+.sh-why { color: var(--muted); font-size: 12px; text-align: center; }
+/* A boast's emblem (the loadout picker's), in the faction colour on a lit hex. */
+.sh-emb { width: 96px; height: 96px; color: var(--c); filter: drop-shadow(0 0 14px color-mix(in srgb, var(--c) 70%, transparent)); }
+.sh-emb svg { width: 100%; height: 100%; overflow: visible; }
+.sh-hex { fill: color-mix(in srgb, var(--c) 18%, #0b0d2a); stroke: currentColor; stroke-width: 1.1; }
+.sh-glyph { color: #fff; } .sh-glyph use { color: color-mix(in srgb, var(--c) 40%, #fff); }
+/* A coin: the site's coin painter on the tile's plate (no swatch box). */
+.sh-art .si-pv.si-coin { width: auto; height: auto; background: none; border-radius: 0; }
+/* In a widget (the Store and Packs widgets): the same tiles, smaller. */
+.sh-grid.compact, .sh-items.compact { gap: 10px; }
+.sh-grid.compact { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.sh-grid.compact .sh-t.t-tall, .sh-grid.compact .sh-t.t-feature { min-height: 0; }
+.compact .sh-t { border-radius: 16px; }
+.compact .sh-art { min-height: 0; height: 112px; flex: none; }
+.compact .sh-info { padding: 7px 10px 0; } .compact .sh-n { font-size: 13.5px; } .compact .t-feature .sh-n { font-size: 15px; } .compact .sh-info small { font-size: 11.5px; }
+.compact .sh-act { padding: 6px 10px 10px; } .compact .sh-buy { padding: 7px 10px; font-size: 13px; } .compact .sh-why { font-size: 11px; }
+.sh-items.compact .sh-info { padding: 5px 10px 0; } .sh-items.compact .sh-act { padding: 5px 10px 8px; } .sh-items.compact .sh-buy { padding: 5px 10px; }
+.compact .sh-price { right: 8px; bottom: 8px; font-size: 13px; padding: 3px 9px 3px 5px; } .compact .sh-price .coin { width: 14px; height: 14px; }
+.compact .sh-price.free { font-size: 11px; padding: 3px 9px; }
+.compact .sh-badge { left: 8px; top: 8px; font-size: 9px; padding: 3px 7px; }
+.compact .sh-emb { width: 64px; height: 64px; }
+.compact .sp-n { font-size: 15px; padding: 4px 7px; border-radius: 9px; }
+.sh-items.compact { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.sh-items.compact .sh-art { height: 60px; min-height: 0; } .sh-items.compact .sh-emb { width: 44px; height: 44px; }
+.sh-grid.compact .sh-t.t-tall .sh-art, .sh-grid.compact .sh-t.t-feature .sh-art { height: 100px; }
+/* The store widget's rows. */
+.shw { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.shw-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.shw-head .sh-bal, .shw-head .sh-reset { height: 32px; font-size: 12.5px; padding: 0 12px 0 9px; box-shadow: none; }
+.shw-head .sh-bal b, .shw-head .sh-clock { font-size: 14px; }
+.shw h4 { margin: 4px 0 0; }
+/* The Store widget at S: the free pack, claim and the clock. */
+.shw-s { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.shw-s .dn { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.shw-s .sh-reset { height: auto; padding: 0; background: none; border: 0; box-shadow: none; font-size: 12px; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.shw-s .sh-clock { font-size: 13px; }
+/* The Packs widget: the pack and its count, the pity counters as chips. */
+.pkw { display: flex; gap: 14px; align-items: center; min-width: 0; }
+.pkw .dn { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pkw-n { font: 800 30px/1 ui-rounded, system-ui; font-variant-numeric: tabular-nums; } .pkw-n small { font: 600 13px system-ui; color: var(--muted); margin-left: 4px; }
+.pity { display: flex; gap: 6px; flex-wrap: wrap; }
+.pity span { display: inline-flex; align-items: baseline; gap: 4px; padding: 4px 9px; border-radius: 99px; background: var(--soft); box-shadow: var(--soft-edge); font-size: 12px; }
+.pity b { font: 800 14px ui-rounded, system-ui; font-variant-numeric: tabular-nums; }
+.pity span.sure { background: linear-gradient(135deg, #ffe08a, #f6c445); color: #1a1205; }
+.pkw-pile { position: relative; flex: none; }
+.pkw-back { position: absolute; left: 0; top: 0; transform: translate(14%, -4%) rotate(7deg); filter: brightness(.66); }
+.pkw-front { position: relative; z-index: 1; }
+.pkw-pile { margin-right: 12px; }
+.pkw-pile.none { opacity: .55; filter: saturate(.5); }
+.pkw-c { position: absolute; right: -8px; top: -8px; z-index: 2; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 99px; display: grid; place-items: center; font: 800 13px ui-rounded, system-ui; color: #fff; background: linear-gradient(135deg, #4f6bff, #8b5cff); box-shadow: 0 3px 10px rgba(80,60,255,.45); }
+.wsplit > .pkw { align-self: start; }
+.pkw-pulls { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+@media (max-width: 1100px) { .sh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sh-t.t-feature { grid-column: span 2; } .sh-t.t-tall { min-height: 340px; } }
+@media (max-width: 560px) { .sh-reset small { display: none; } .sh-head .sp + .muted { flex-basis: 100%; } .sh-grid { grid-template-columns: minmax(0, 1fr); } .sh-t.t-feature { grid-column: span 1; } .sh-t.t-tall, .sh-t.t-feature { min-height: 330px; } .sh-items { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
+@media (prefers-reduced-motion: reduce) { .spk-foil, .sh-t.t-feature .sh-art .spk { animation: none; } .sh-t, .sh-t .spk, .sh-t .spile { transition: none; } .sh-t:hover, .sh-t:hover .spk, .sh-t:hover .spile { transform: none; } }
+@media (prefers-reduced-transparency: reduce) { .sh-t, .sh-bal, .sh-reset, .sh-price { backdrop-filter: none; -webkit-backdrop-filter: none; } .sh-t, .sh-bal, .sh-reset { background: var(--solid); } }
+</style>
 </head>
 <body data-theme="light">
 <div id="bg" aria-hidden="true"></div>
@@ -618,6 +745,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 <div id="replay" class="opening" hidden role="dialog" aria-modal="true" aria-label="Match replay"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="setsym" viewBox="0 0 16 16"><path d="M8 1 14 4.5v7L8 15 2 11.5v-7z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="8" r="2.3" fill="currentColor"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="lg-boast-aegis-shield-slam" viewBox="0 0 24 24"><path d="M12 3l7 4v8l-7 4-7-4V7z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 8l3.5 2v4L12 16l-3.5-2v-4z" fill="currentColor"/></symbol><symbol id="lg-boast-swarm-hive-burst" viewBox="0 0 24 24"><circle cx="12" cy="19" r="2.2" fill="currentColor"/><circle cx="9" cy="14" r="1.7" fill="currentColor"/><circle cx="14.5" cy="10" r="1.5" fill="currentColor"/><circle cx="10" cy="6" r="1.3" fill="currentColor"/><circle cx="13.5" cy="3" r="1.1" fill="currentColor"/></symbol><symbol id="lg-boast-null-void-collapse" viewBox="0 0 24 24"><rect x="3" y="5" width="7" height="2" fill="currentColor"/><rect x="14" y="17" width="7" height="2" fill="currentColor"/><rect x="2" y="17" width="4" height="2" fill="currentColor"/><rect x="18" y="5" width="4" height="2" fill="currentColor"/><circle cx="12" cy="12" r="3.6" fill="#05070e" stroke="currentColor" stroke-width="1.6"/></symbol><symbol id="lg-boast-cortex-data-cascade" viewBox="0 0 24 24"><rect x="5" y="15" width="6" height="5" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="13" y="15" width="6" height="5" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="8" width="6" height="5" fill="currentColor"/><rect x="11" y="2" width="2" height="2" fill="currentColor"/><rect x="11" y="5" width="2" height="1.5" fill="currentColor" opacity="0.6"/></symbol><symbol id="lg-boast-s0-boot-sequence" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 9l3 2.5L6 14" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="11" y="13" width="5" height="1.8" fill="currentColor"/></symbol><symbol id="lg-boast-s0-dial-up-fireworks" viewBox="0 0 24 24"><path d="M12 9V3M12 9l4.2-4.2M12 9l6 0M12 9L7.8 4.8M12 9H6" stroke="currentColor" stroke-width="1.5"/><rect x="3" y="15" width="4" height="6" fill="currentColor" opacity="0.8"/><rect x="8" y="12" width="4" height="9" fill="currentColor"/><rect x="13" y="16" width="3" height="5" fill="currentColor" opacity="0.8"/><rect x="17" y="13" width="4" height="8" fill="currentColor" opacity="0.9"/></symbol></svg>
 <script>window.SITE_FACE = (function () {
 
   // The owner website's hooks, when the page runs inside it (site mode): the
@@ -1004,7 +1132,7 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
     return out.join('');
   }
 
-return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: packTiltAngles, packFinishLayerName: packFinishLayerName, packFinishLabel: packFinishLabel, packFullBleed: packFullBleed };
+return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: packTiltAngles, packFinishLayerName: packFinishLayerName, packFinishLabel: packFinishLabel, packFullBleed: packFullBleed, packPlateSvg: packPlateSvg };
 })();</script>
 <script>window.SITE_COIN = (function () {
 
@@ -1442,11 +1570,6 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   var __defProp = Object.defineProperty;
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-
-  // src/site/siteCoinSwatch.ts
-  function coinSwatchHtml(itemId) {
-    return `<span class="si-pv si-coin"><canvas data-coin="${itemId.replace(/[^a-z0-9-]/gi, "")}" width="120" height="54" aria-hidden="true"></canvas></span>`;
-  }
 
   // src/avatar.ts
   function usernameHash(username) {
@@ -5001,10 +5124,10 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   var SUPPLY_LINE = { id: "sig-supply-line", trigger: "onPlay", text: "Draw a card.", effects: [{ kind: "drawCard", count: 1 }] };
   var ENERGY_SURGE = { id: "sig-energy-surge", trigger: "onPlay", text: "Gain 1 energy.", effects: [{ kind: "gainEnergy", amount: 1 }] };
   var signedStats = (a, h) => `+${a}/+${h}`;
-  function smite(amount2, maxHealth) {
+  function smite(amount3, maxHealth) {
     const filter = maxHealth === void 0 ? enemyUnits : { ...enemyUnits, maxHealth };
     const which = maxHealth === void 0 ? "an enemy unit" : `an enemy unit with ${maxHealth} or less health`;
-    return { id: "sig-smite", trigger: "onPlay", text: `Deal ${amount2} damage to ${which}.`, targeting: { scope: "chosen", filter }, effects: [{ kind: "damage", amount: { mode: "flat", value: amount2 } }] };
+    return { id: "sig-smite", trigger: "onPlay", text: `Deal ${amount3} damage to ${which}.`, targeting: { scope: "chosen", filter }, effects: [{ kind: "damage", amount: { mode: "flat", value: amount3 } }] };
   }
   var ifHealthAtMost15 = { kind: "healthAtMost", side: "controller", threshold: 15 };
   var whenBehind = (base) => ab(base, { condition: ifHealthAtMost15, text: `If you have 15 or less health, ${base.text[0].toLowerCase()}${base.text.slice(1)}` });
@@ -5014,9 +5137,9 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
   function hunter(attack, health) {
     return { id: "sig-hunter", trigger: "onKill", text: `Whenever this destroys a unit, it gets ${signedStats(attack, health)}.`, targeting: { scope: "self" }, effects: [{ kind: "buff", attack, health, duration: "permanent" }] };
   }
-  function restore(targeting, amount2) {
+  function restore(targeting, amount3) {
     const who = targeting.scope === "random" ? "a random unit of yours" : "each of your units";
-    return { id: "sig-restore", trigger: "onTurnEnd", text: `Restore ${amount2} health to ${who}.`, targeting, effects: [{ kind: "heal", amount: { mode: "flat", value: amount2 } }] };
+    return { id: "sig-restore", trigger: "onTurnEnd", text: `Restore ${amount3} health to ${who}.`, targeting, effects: [{ kind: "heal", amount: { mode: "flat", value: amount3 } }] };
   }
   function recycle(count) {
     return { id: "sig-recycle", trigger: "onDeath", text: count === 1 ? "Draw a card." : `Draw ${count} cards.`, effects: [{ kind: "drawCard", count }] };
@@ -5029,12 +5152,12 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const which = maxHealth === void 0 ? "an enemy unit" : `an enemy unit with ${maxHealth} or less health`;
     return { id: "sig-suppress", trigger: "onPlay", text: `Put ${which} in Stasis for ${turns} turn${turns === 1 ? "" : "s"}.`, targeting: { scope: "chosen", filter }, effects: [{ kind: "applyStatus", status: "Stasis", duration: turns }] };
   }
-  function tax(amount2) {
-    return { id: "sig-tax", trigger: "static", text: `Enemy Commands cost ${amount2} more.`, staticEffect: { kind: "cardCostModifier", side: "opponent", amount: amount2, cardType: "Command" } };
+  function tax(amount3) {
+    return { id: "sig-tax", trigger: "static", text: `Enemy Commands cost ${amount3} more.`, staticEffect: { kind: "cardCostModifier", side: "opponent", amount: amount3, cardType: "Command" } };
   }
-  function sweep(targeting, amount2) {
+  function sweep(targeting, amount3) {
     const who = targeting.scope === "random" ? targeting.count === 1 ? "a random enemy unit" : `${targeting.count} random enemy units` : "each enemy unit";
-    return { id: "sig-sweep", trigger: "onPlay", text: `Deal ${amount2} damage to ${who}.`, targeting, effects: [{ kind: "damage", amount: { mode: "flat", value: amount2 } }] };
+    return { id: "sig-sweep", trigger: "onPlay", text: `Deal ${amount3} damage to ${who}.`, targeting, effects: [{ kind: "damage", amount: { mode: "flat", value: amount3 } }] };
   }
   var MENU_AS_WRITTEN = [
     // Offence
@@ -6760,6 +6883,11 @@ gl_FragColor=vec4(col,1.);}`;
     };
   }
 
+  // src/site/siteCoinSwatch.ts
+  function coinSwatchHtml(itemId, size = { w: 120, h: 54 }) {
+    return `<span class="si-pv si-coin"><canvas data-coin="${itemId.replace(/[^a-z0-9-]/gi, "")}" width="${Math.round(size.w)}" height="${Math.round(size.h)}" aria-hidden="true"></canvas></span>`;
+  }
+
   // ../economy/src/config.ts
   var CRAFT_PACK_POINTS = { Common: 40, Uncommon: 80, Rare: 250, Mythic: 800 };
   var PACK_ODDS = {
@@ -7705,12 +7833,6 @@ gl_FragColor=vec4(col,1.);}`;
     var _a3;
     return ((_a3 = timeZone.split("/").pop()) != null ? _a3 : timeZone).replace(/_/g, " ");
   }
-  var BUY_MAX = 10;
-  function buyView(offer, count, credits) {
-    const c = Math.max(1, Math.min(BUY_MAX, Math.floor(count) || 1));
-    const total = offer.priceCredits * c;
-    return { count: c, price: offer.priceCredits, total, canAfford: credits >= total, short: Math.max(0, total - credits) };
-  }
   function unopenedGroups(unopened) {
     const out = [];
     for (const p of unopened) {
@@ -7751,6 +7873,149 @@ gl_FragColor=vec4(col,1.);}`;
     } catch {
       return null;
     }
+  }
+
+  // src/site/siteShop.ts
+  function amount2(n) {
+    const v = Math.max(0, Math.floor(Number.isFinite(n) ? n : 0));
+    return String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  function sealedPackHtml(setCode, px, art, opts = {}) {
+    const plate = art ? art.plate(setCode) : "";
+    const meta = opts.meta === false ? "" : `<div class="meta">${esc(setCode)}</div>`;
+    return `<div class="spk" style="--pw:${Math.round(px)}px" aria-hidden="true"><div class="wrap">${plate ? `<div class="pa">${plate}</div>` : ""}<div class="crimp t"></div><div class="logo">AI\xB7TCG</div><div class="emb"><svg><use href="#setsym"/></svg></div><div class="set">SEASON ZERO</div>${meta}<div class="crimp b"></div></div><span class="spk-foil"></span></div>`;
+  }
+  function packPileHtml(setCode, px, count, art) {
+    const one = sealedPackHtml(setCode, px, art, { meta: false });
+    return `<div class="spile" aria-hidden="true"><span class="sp-l">${one}</span><span class="sp-r">${one}</span><span class="sp-c">${sealedPackHtml(setCode, px, art)}</span><b class="sp-n">\xD7${count}</b></div>`;
+  }
+  function clockLeft(nowMs, iso) {
+    const t = Date.parse(iso);
+    const s = Number.isFinite(t) ? Math.max(0, Math.floor((t - nowMs) / 1e3)) : 0;
+    const p = (n) => String(n).padStart(2, "0");
+    return `${p(Math.floor(s / 3600))}:${p(Math.floor(s / 60) % 60)}:${p(s % 60)}`;
+  }
+  function resetCountdownHtml(dailyPack, nowMs, opts = {}) {
+    const city = zoneCity(dailyPack.timeZone);
+    return `<span class="sh-reset" title="The day turns at midnight ${esc(city)} time: a new free pack, and the daily rewards start again"><span class="sh-clock-ic" aria-hidden="true"></span>${opts.short ? "Resets in" : "Daily reset in"} <b class="sh-clock" data-until="${esc(dailyPack.resetsAt)}">${clockLeft(nowMs, dailyPack.resetsAt)}</b>${opts.short ? "" : `<small>midnight ${esc(city)}</small>`}</span>`;
+  }
+  function featuredTileId(p) {
+    if (p.dailyPack.waiting > 0) return "daily";
+    return p.offer.length ? "pack-10" : "daily";
+  }
+  function packTiles(p, credits, nowMs) {
+    const dv = dailyPackView(p.dailyPack, nowMs);
+    const featured = featuredTileId(p);
+    const daily = {
+      id: "daily",
+      size: featured === "daily" ? "feature" : "tall",
+      name: "Free daily pack",
+      sub: dv.canClaim ? dv.waiting > 1 ? `${dv.waiting} waiting to be claimed \xB7 one a day` : "One a day, yours to claim" : dv.line,
+      art: { kind: "daily", setCode: p.dailyPack.setCode, waiting: dv.waiting },
+      // Claimed: no price and no ribbon; the button and the line under the
+      // name say when the next one comes in.
+      price: dv.canClaim ? 0 : null,
+      badge: dv.waiting > 1 ? `\xD7${dv.waiting} waiting` : null,
+      owned: false,
+      button: { act: "claim-daily", label: dv.canClaim ? dv.waiting > 1 ? `Claim (${dv.waiting})` : "Claim" : "Claimed today", enabled: dv.canClaim, primary: true, data: {}, why: null }
+    };
+    const out = [daily];
+    const offer = p.offer[0];
+    if (offer) {
+      const tile = (count) => {
+        const total = offer.priceCredits * count;
+        const short = Math.max(0, total - credits);
+        return {
+          id: `pack-${count}`,
+          size: featured === `pack-${count}` ? "feature" : "tall",
+          name: count === 1 ? "1 pack" : `${count} packs`,
+          sub: count === 1 ? `${offer.name} \xB7 5 cards` : `${offer.name} \xB7 ${count * 5} cards`,
+          art: { kind: "pack", setCode: offer.setCode, count },
+          price: total,
+          badge: null,
+          owned: false,
+          button: { act: "buy-packs", label: "Buy", enabled: short === 0, primary: count !== 1, data: { set: offer.setCode, count: String(count) }, why: short ? `${amount2(short)} credits short` : null }
+        };
+      };
+      out.push(tile(1), tile(10));
+    }
+    return out.sort((a, b) => a.size === "feature" ? -1 : b.size === "feature" ? 1 : 0);
+  }
+  var KIND_WORDS = { boast: "Victory boast", coin: "Coin", cardBack: "Card back", avatar: "Avatar", arena: "Arena" };
+  function cosmeticKind(kind) {
+    var _a3;
+    return (_a3 = KIND_WORDS[kind]) != null ? _a3 : kind.charAt(0).toUpperCase() + kind.slice(1);
+  }
+  function cosmeticTiles(cosmetics, credits) {
+    const rows = cosmetics.map((c, i) => ({ c, i })).sort((a, b) => Number(a.c.owned) - Number(b.c.owned) || a.i - b.i);
+    return rows.map(({ c }) => {
+      const price = c.owned ? null : c.priceCredits;
+      const short = price === null ? 0 : Math.max(0, price - credits);
+      const none = {};
+      const art = c.kind === "coin" ? { kind: "coin", itemId: c.itemId } : c.kind === "boast" ? { kind: "boast", itemId: c.itemId, faction: c.faction } : { kind: "cosmetic", faction: c.faction };
+      return {
+        id: `cos-${c.itemId}`,
+        size: "item",
+        name: c.name,
+        sub: `${cosmeticKind(c.kind)}${c.faction ? ` \xB7 ${c.faction}` : ""}`,
+        art,
+        price,
+        badge: c.owned ? "Owned" : null,
+        owned: c.owned,
+        button: c.owned ? { act: "buy-cosmetic", label: "Owned", enabled: false, primary: false, data: none, why: "Equip it with Change, under Your agents' loadouts." } : price === null ? { act: "buy-cosmetic", label: "Not sold", enabled: false, primary: false, data: none, why: null } : { act: "buy-cosmetic", label: "Buy", enabled: short === 0, primary: false, data: { item: c.itemId, name: c.name, price: String(price) }, why: short ? `${amount2(short)} credits short` : null }
+      };
+    });
+  }
+  function packPx(size, compact) {
+    if (compact) return size === "feature" ? 56 : 52;
+    return size === "feature" ? 150 : 104;
+  }
+  function artHtml(t, art, compact) {
+    const a = t.art;
+    const px = packPx(t.size, compact);
+    switch (a.kind) {
+      case "daily":
+        return sealedPackHtml(a.setCode, px, art);
+      case "pack":
+        return a.count > 1 ? packPileHtml(a.setCode, px * 0.86, a.count, art) : sealedPackHtml(a.setCode, px, art);
+      case "coin":
+        return coinSwatchHtml(a.itemId, compact ? { w: 110, h: 60 } : { w: 168, h: 104 });
+      case "boast":
+        return `<span class="sh-emb" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="sh-hex" d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z"/><g class="sh-glyph" transform="translate(5.4 5.4) scale(.55)"><use href="#lg-${esc(a.itemId)}"/></g></svg></span>`;
+      case "cosmetic":
+        return `<span class="sh-emb" aria-hidden="true"><svg viewBox="0 0 24 24"><path class="sh-hex" d="M12 1.6 21 6.8v10.4L12 22.4 3 17.2V6.8z"/></svg></span>`;
+    }
+  }
+  function toneOf(t) {
+    const a = t.art;
+    if (a.kind === "daily") return { cls: "tone-free", hex: null };
+    if (a.kind === "pack") return { cls: "tone-pack", hex: null };
+    if (a.kind === "coin") return { cls: "tone-coin", hex: null };
+    return { cls: "tone-fac", hex: a.faction && FACTION_HEX[a.faction] || "#8f8cff" };
+  }
+  function priceHtml(price) {
+    if (price === null) return "";
+    return price === 0 ? `<span class="sh-price free">Free</span>` : `<span class="sh-price"><i class="coin" aria-hidden="true"></i><b>${amount2(price)}</b><span class="vh"> credits</span></span>`;
+  }
+  function tileHtml(t, opts = {}) {
+    const tone = toneOf(t);
+    const b = t.button;
+    const data = Object.entries(b.data).map(([k, v]) => ` data-${k}="${esc(v)}"`).join("");
+    const label = b.act === "buy-cosmetic" && b.enabled ? `Buy ${t.name}` : b.act === "buy-packs" && b.enabled ? `Buy ${t.name}` : b.label;
+    const btn = `<button type="button" class="btn${b.primary || t.size === "feature" ? " pri" : ""} sh-buy" data-act="${b.act}"${data}${b.enabled ? "" : " disabled"} aria-label="${esc(label)}${t.price ? `, ${amount2(t.price)} credits` : ""}">${esc(b.label)}</button>`;
+    const why = b.why && !b.enabled ? `<small class="sh-why">${esc(b.why)}</small>` : "";
+    const style = tone.hex ? ` style="--c:${tone.hex}"` : "";
+    return `<article class="sh-t t-${t.size} ${tone.cls}${t.owned ? " owned" : ""}" data-tile="${esc(t.id)}"${style}><div class="sh-art">${artHtml(t, opts.art, !!opts.compact)}${t.badge ? `<span class="sh-badge">${esc(t.badge)}</span>` : ""}${priceHtml(t.price)}</div><div class="sh-info"><b class="sh-n">${esc(t.name)}</b>${opts.compact && t.size !== "feature" ? "" : `<small>${esc(t.sub)}</small>`}</div><div class="sh-act">${btn}${why}</div></article>`;
+  }
+  function packGridHtml(tiles, opts = {}) {
+    return `<div class="sh-grid${opts.compact ? " compact" : ""}">${tiles.map((t) => tileHtml(t, opts)).join("")}</div>`;
+  }
+  function cosmeticGridHtml(tiles, opts = {}) {
+    if (!tiles.length) return `<p class="muted small">No cosmetics on sale right now.</p>`;
+    return `<div class="sh-items${opts.compact ? " compact" : ""}">${tiles.map((t) => tileHtml(t, opts)).join("")}</div>`;
+  }
+  function balanceHtml(credits) {
+    return `<span class="sh-bal"><i class="coin" aria-hidden="true"></i><b>${amount2(credits)}</b> credits</span>`;
   }
 
   // src/site/siteCollection.ts
@@ -8099,9 +8364,6 @@ gl_FragColor=vec4(col,1.);}`;
     const serial = c.serial !== null && c.finish === "prototype" ? ` #${c.serial}` : "";
     return `<div class="mc fin-${esc(c.finish)} r-${esc(c.rarity)}" style="--c:${hex};--h:${visualSeedFor(c.cardId)}" title="${esc(`${c.name} \xB7 ${c.rarity}${fin ? ` \xB7 ${fin}` : ""}${serial}`)}"><span class="mc-art p${visualPatternFor(c.cardId)}"></span><span class="mc-gem" aria-hidden="true"></span><b class="mc-n">${esc(c.name)}</b>${fin ? `<span class="mc-fin">${esc(fin + serial)}</span>` : ""}${opts.count && opts.count > 1 ? `<span class="mc-cnt">\xD7${opts.count}</span>` : ""}</div>`;
   }
-  function packArt(setCode, size) {
-    return `<div class="pk pk-${size}" aria-hidden="true"><span class="pk-foil"></span><b>${esc(setCode != null ? setCode : "S0")}</b><small>AI\xB7TCG</small></div>`;
-  }
   function bar(pct2) {
     return `<div class="bar" role="presentation"><i style="width:${Math.max(0, Math.min(100, pct2))}%"></i></div>`;
   }
@@ -8149,26 +8411,35 @@ gl_FragColor=vec4(col,1.);}`;
     const rec = recordOf(h.matches.slice(0, shown.length));
     return `<div class="muted small">Last ${shown.length} of ${h.total} \xB7 ${esc(rec.line)}</div><ul class="hlist">${shown.map((v) => historyRowHtml(v, { compact: w2.size === "M" })).join("")}</ul>${w2.size === "L" && h.more ? `<a class="btn sm" href="#/match">All matches</a>` : ""}`;
   }
+  function pityChips(pity) {
+    const chip = (sure, n, what) => sure ? `<span class="sure"><b>Next</b> sure to hold ${what === "Full Art" ? "a Full Art or better" : "a Mythic"}</span>` : `<span><b>${n}</b> since a ${what}</span>`;
+    return `<div class="pity" aria-label="Pity counters">${chip(pity.next.fullArt, pity.packsSinceFullArt, "Full Art")}${chip(pity.next.mythic, pity.packsSinceMythic, "Mythic")}</div>`;
+  }
+  function packStackHtml(setCode, px, n, art) {
+    const back = n > 1 ? `<div class="pkw-back">${sealedPackHtml(setCode, px, art, { meta: false })}</div>` : "";
+    return `<div class="pkw-pile${n ? "" : " none"}">${back}<div class="pkw-front">${sealedPackHtml(setCode, px, art)}</div>${n ? `<b class="pkw-c" aria-hidden="true">${n}</b>` : ""}</div>`;
+  }
   function packsBody(w2, d) {
-    var _a3, _b, _c;
+    var _a3, _b, _c, _d, _e;
     const l = loading(d, "packs");
     if (l) return l;
-    const v = packsView(d.packs, (_b = (_a3 = d.wallet) == null ? void 0 : _a3.credits) != null ? _b : 0);
+    const p = d.packs;
+    const v = packsView(p, (_b = (_a3 = d.wallet) == null ? void 0 : _a3.credits) != null ? _b : 0);
+    const set = (_c = v.setCode) != null ? _c : p.dailyPack.setCode;
     const open = `<button type="button" class="btn pri sm" data-act="open-packs" data-count="1"${v.canOpen ? "" : " disabled"}>Open</button>`;
-    if (w2.size === "S") return `<div class="row nowrap">${packArt(v.setCode, "s")}<div><b>${esc(v.head)}</b><div class="row">${open}</div></div></div>`;
-    const buy = v.price !== null ? `<button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode)}" data-count="1"${v.canBuy ? "" : " disabled"}>Buy \xB7 ${amount(v.price)}</button>` : "";
+    const count = `<p class="pkw-n">${v.unopened}<small>unopened</small></p>`;
+    if (w2.size === "S") return `<div class="pkw">${packStackHtml(set, 44, v.unopened, d.art)}<div class="dn">${count}<div class="row">${open}</div></div></div><span class="vh">${esc(v.head)}</span>`;
     const open10 = `<button type="button" class="btn sm" data-act="open-packs" data-count="${v.bulk}"${v.canOpenBulk ? "" : ` disabled title="Needs ${v.bulk} packs waiting"`}>Open ${v.bulk}</button>`;
-    const daily = dailyPackView(d.packs.dailyPack, d.now);
-    const m = `<div class="row nowrap top">${packArt(v.setCode, "m")}<div class="wcol"><h4>${esc(v.head)}</h4><div class="muted small">${esc(v.setName)} \xB7 5 cards</div><div class="muted small">${esc(v.pity)}</div><div class="muted small">Free daily pack: ${esc(daily.line)}</div><div class="row">${open}${open10}${buy}</div></div></div>`;
+    const m = `<div class="pkw">${packStackHtml(set, 84, v.unopened, d.art)}<div class="dn"><p class="pkw-n">${v.unopened}<small>unopened pack${v.unopened === 1 ? "" : "s"}</small></p><div class="muted small">${esc(v.setName || set)} \xB7 5 cards a pack</div>${pityChips(p.pity)}<div class="row">${open}${open10}</div>${v.unopened && !v.canOpenBulk ? `<div class="muted small">Open ${v.bulk} needs ${v.bulk} waiting.</div>` : ""}</div></div>`;
     if (w2.size === "M") return m;
     const c = d.collection;
-    const last = c == null ? void 0 : c.recentPulls[0];
-    const factionOf2 = new Map(((_c = c == null ? void 0 : c.cards) != null ? _c : []).map((x) => [x.cardId, x.faction]));
-    const cards = last ? last.cards.map((k) => {
+    const factionOf2 = new Map(((_d = c == null ? void 0 : c.cards) != null ? _d : []).map((x) => [x.cardId, x.faction]));
+    const pulls = ((_e = c == null ? void 0 : c.recentPulls) != null ? _e : []).slice(0, 2);
+    const strip = pulls.length ? pulls.map((o) => `<div class="muted small">${esc(clock(o.openedAt))} \xB7 ${esc(o.setCode)}${o.jackpot ? " \xB7 Jackpot pack" : ""}</div><div class="mrow">${o.cards.map((k) => {
       var _a4;
       return miniCard({ cardId: k.cardId, name: k.name, rarity: k.rarity, faction: (_a4 = factionOf2.get(k.cardId)) != null ? _a4 : null, finish: k.finish, serial: k.serial });
-    }).join("") : "";
-    return `<div class="wsplit wide-l">${m}<div class="wcol"><div class="muted small">${last ? `Your last opening \xB7 ${esc(clock(last.openedAt))}` : c ? "Your last opening appears here" : "Loading your last opening\u2026"}</div><div class="mrow">${cards}</div></div></div>`;
+    }).join("")}</div>`).join("") : `<div class="muted small">${c ? "Your last pulls appear here" : "Loading your last pulls\u2026"}</div>`;
+    return `<div class="wsplit wide-l">${m}<div class="wcol pkw-pulls"><h4>Your last pulls</h4>${strip}</div></div>`;
   }
   function dailyBody(w2, d) {
     const l = loading(d, "daily");
@@ -8209,22 +8480,20 @@ gl_FragColor=vec4(col,1.);}`;
     return `<div class="mrow${w2.size === "S" ? " center" : ""}">${cards.map((k) => miniCard(k)).join("")}</div>${w2.size === "L" ? `<p class="muted small">Your rarest finishes first. Pinning cards comes with the Collection page.</p>` : ""}`;
   }
   function storeBody(w2, d) {
-    var _a3, _b, _c, _d, _e;
+    var _a3, _b, _c;
     const l = (_a3 = loading(d, "packs")) != null ? _a3 : w2.size === "L" ? loading(d, "store") : null;
     if (l) return l;
-    const v = packsView(d.packs, (_c = (_b = d.wallet) == null ? void 0 : _b.credits) != null ? _c : 0);
-    const daily = dailyPackView(d.packs.dailyPack, d.now);
-    const claim = `<button type="button" class="btn pri sm" data-act="claim-daily"${daily.canClaim ? "" : " disabled"}>${esc(daily.button)}</button>`;
-    if (w2.size === "S") return `<div class="row">${claim}</div><div class="muted small">${esc(daily.line)}</div>`;
-    const buy = v.price !== null ? `<button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode)}" data-count="1"${v.canBuy ? "" : " disabled"}>Buy 1 pack \xB7 ${amount(v.price)}</button><button type="button" class="btn sm" data-act="buy-packs" data-set="${esc(v.setCode)}" data-count="10"${v.canBuy10 ? "" : " disabled"}>Buy 10 \xB7 ${amount(v.price * 10)}</button>` : "";
-    const m = `<div class="row">${claim}${buy}</div><div class="muted small">${esc(daily.line)}</div><div class="muted small">${v.unopened} unopened \xB7 ${amount((_e = (_d = d.wallet) == null ? void 0 : _d.credits) != null ? _e : 0)} credits</div>`;
-    if (w2.size === "M") return m;
-    const cos = d.store.cosmetics;
-    const items = cos.length ? `<div class="shop">${cos.map((c) => {
-      var _a4, _b2;
-      return `<div class="si">${c.kind === "coin" ? coinSwatchHtml(c.itemId) : `<span class="si-pv" style="--c:${c.faction && FACTION_HEX[c.faction] || "#8f8cff"}"></span>`}<b class="small">${esc(c.name)}</b><span class="muted small">${esc(c.kind)}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${((_b2 = (_a4 = d.wallet) == null ? void 0 : _a4.credits) != null ? _b2 : 0) >= c.priceCredits ? "" : " disabled"}>Buy \xB7 ${amount(c.priceCredits)}</button>`}</div>`;
-    }).join("")}</div>` : `<p class="muted small">No cosmetics on sale right now.</p>`;
-    return m + `<h4>Cosmetics on sale</h4>${items}`;
+    const p = d.packs;
+    const credits = (_c = (_b = d.wallet) == null ? void 0 : _b.credits) != null ? _c : 0;
+    if (w2.size === "S") {
+      const daily = dailyPackView(p.dailyPack, d.now);
+      const claim = `<button type="button" class="btn pri sm" data-act="claim-daily"${daily.canClaim ? "" : " disabled"}>${esc(daily.canClaim ? daily.waiting > 1 ? `Claim (${daily.waiting})` : "Claim free pack" : "Claimed today")}</button>`;
+      return `<div class="shw-s">${sealedPackHtml(p.dailyPack.setCode, 40, d.art)}<div class="dn"><b>${daily.canClaim ? "Free daily pack" : "Free pack claimed"}</b><div class="row">${claim}</div>${resetCountdownHtml(p.dailyPack, d.now, { short: true })}</div></div>`;
+    }
+    const tiles = packGridHtml(packTiles(p, credits, d.now), { art: d.art, compact: true });
+    if (w2.size === "M") return `<div class="shw">${tiles}</div>`;
+    const cos = cosmeticGridHtml(cosmeticTiles(d.store.cosmetics, credits), { art: d.art, compact: true });
+    return `<div class="shw"><div class="shw-head">${balanceHtml(credits)}${resetCountdownHtml(p.dailyPack, d.now)}</div>${tiles}<h4>Cosmetics</h4>${cos}</div>`;
   }
   function bodyOf(w2, d, o) {
     switch (w2.type) {
@@ -8294,7 +8563,6 @@ gl_FragColor=vec4(col,1.);}`;
     home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, errors: {} },
     colFilter: "All",
     shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null },
-    buyCount: 1,
     opening: false,
     col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
     hist: { rows: [], total: 0, more: false, error: null, loading: false },
@@ -8649,6 +8917,24 @@ gl_FragColor=vec4(col,1.);}`;
     });
   }
   window.setInterval(tickRings, 1e3);
+  var clockReloadFor = null;
+  function tickClocks() {
+    if (document.hidden) return;
+    const now = Date.now();
+    let passed = null;
+    document.querySelectorAll("[data-until]").forEach((el) => {
+      const until = el.dataset.until;
+      const t = clockLeft(now, until);
+      if (el.textContent !== t) el.textContent = t;
+      if (Date.parse(until) <= now) passed = until;
+    });
+    if (passed && clockReloadFor !== passed) {
+      clockReloadFor = passed;
+      if (state.page === "store" && !state.opening) void loadShop();
+      if (state.page === "home") void loadHome(["packs", "store"]);
+    }
+  }
+  window.setInterval(tickClocks, 1e3);
   async function refresh() {
     var _a3, _b;
     if (!state.session || document.hidden) return schedulePoll();
@@ -8796,7 +9082,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (!widgets.length) {
       return `<div class="pg-wide">${bar2}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
     }
-    const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy };
+    const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
     const { views, capped } = liveViews(widgets);
     const tiles = widgets.map((w2) => widgetHtml(w2, data, { editing, live: views.get(w2.id), capped: capped.has(w2.id) })).join("");
     const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
@@ -9131,34 +9417,38 @@ gl_FragColor=vec4(col,1.);}`;
     await Promise.all(reads);
   }
   function storePage() {
-    var _a3, _b, _c, _d, _e;
+    var _a3, _b, _c, _d;
     const sh = state.shop;
     if (!sh.packs || !sh.store) {
       return `<div class="pg-wide"><div class="wempty glass"><h3>${sh.error ? "The Store couldn't be read" : "Loading the Store\u2026"}</h3>${sh.error ? `<p class="muted">${esc(sh.error)}</p><button type="button" class="btn pri" data-act="retry-shop">Try again</button>` : ""}</div></div>`;
     }
     const credits = (_b = (_a3 = state.wallet) == null ? void 0 : _a3.credits) != null ? _b : sh.packs.wallet.credits;
-    const offer = sh.packs.offer[0];
     const now = Date.now();
-    let buy = '<p class="muted">No packs on sale right now.</p>';
-    if (offer) {
-      const b = buyView(offer, state.buyCount, credits);
-      state.buyCount = b.count;
-      buy = `<div class="st-buy"><div class="stepper" role="group" aria-label="How many packs"><button type="button" class="btn sm" data-act="buy-step" data-d="-1"${b.count <= 1 ? " disabled" : ""} aria-label="One fewer">\u2212</button><output id="buy-n" aria-live="polite">${b.count}</output><button type="button" class="btn sm" data-act="buy-step" data-d="1"${b.count >= BUY_MAX ? " disabled" : ""} aria-label="One more">+</button></div><button type="button" class="btn pri" id="buy-btn" data-act="buy-packs" data-set="${esc(offer.setCode)}" data-count="${b.count}"${b.canAfford ? "" : " disabled"}>Buy ${b.count === 1 ? "1 pack" : `${b.count} packs`} \xB7 ${amount(b.total)}</button></div><p class="muted small">${b.canAfford ? `You have ${amount(credits)} credits.` : `${amount(b.short)} credits short: you have ${amount(credits)}.`} Win matches to earn more.</p>`;
-    }
-    const packsHead = `<section class="panel glass st-packs"><div class="row nowrap top">${packArt((_c = offer == null ? void 0 : offer.setCode) != null ? _c : "S0", "l")}<div class="wcol"><h3>${esc((_d = offer == null ? void 0 : offer.name) != null ? _d : "Packs")}</h3><p class="muted small">5 cards a pack${offer ? ` \xB7 ${amount(offer.priceCredits)} credits each` : ""} \xB7 every pack also pays 5 pack points</p><p class="muted small">${esc(pityText(sh.packs))}</p>${buy}</div></div></section>`;
-    const dv = dailyPackView(sh.packs.dailyPack, now);
-    const daily = `<section class="panel glass st-daily"><h3>Free daily pack</h3><p>${esc(dv.line)}</p><p class="muted small">One a day, only you can claim it, up to ${dv.cap} can wait. The day turns at midnight ${esc((_e = sh.packs.dailyPack.timeZone.split("/").pop()) != null ? _e : "")} time.</p><button type="button" class="btn pri" id="claim-btn" data-act="claim-daily"${dv.canClaim ? "" : " disabled"}>${esc(dv.button)}</button></section>`;
+    const art = shopArt();
+    const head = `<div class="sh-head">${balanceHtml(credits)}${resetCountdownHtml(sh.packs.dailyPack, now)}<span class="sp"></span><span class="muted small">Every pack also pays 5 pack points.</span></div>`;
+    const packs = `<section class="sh-sec" aria-labelledby="sh-packs"><h3 id="sh-packs">Packs</h3><p class="sh-sub">${esc(pityText(sh.packs))}</p>${packGridHtml(packTiles(sh.packs, credits, now), { art })}</section>`;
+    const cosmetics = `<section class="sh-sec" aria-labelledby="sh-cos"><h3 id="sh-cos">Cosmetics</h3><p class="sh-sub">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p>${cosmeticGridHtml(cosmeticTiles(sh.store.cosmetics, credits), { art })}</section>`;
     const n = sh.packs.unopened.length;
     const bulk = sh.packs.bulkOpenCount;
     const groups = unopenedGroups(sh.packs.unopened);
     const rows = groups.map((g) => `<div class="st-row"><span class="pk-dot" aria-hidden="true"></span><div class="dn"><b>${esc(g.name)}</b><small>${g.count} waiting \xB7 ${esc(g.setCode)} \xB7 the oldest from ${esc(shortWhen(g.oldestAt))}</small></div><button type="button" class="btn sm" data-act="open-packs" data-pack="${esc(g.oldestPackId)}" aria-label="Open a ${esc(g.name.toLowerCase())}">Open one</button></div>`).join("");
-    const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><p><b class="big-n">${n}</b> pack${n === 1 ? "" : "s"}</p><div class="row"><button type="button" class="btn pri" id="open1-btn" data-act="open-packs" data-count="1"${n ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk ? "" : " disabled"}>Open ${bulk}</button></div>${n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
+    const waiting = `<section class="panel glass st-open"><h3>Waiting to be opened</h3><div class="pkw">${sealedPackHtml((_d = (_c = sh.packs.offer[0]) == null ? void 0 : _c.setCode) != null ? _d : sh.packs.dailyPack.setCode, 58, art)}<div class="dn"><p class="pkw-n">${n}<small>pack${n === 1 ? "" : "s"}</small></p><div class="row"><button type="button" class="btn pri" id="open1-btn" data-act="open-packs" data-count="1"${n ? "" : " disabled"}>Open</button><button type="button" class="btn" id="open10-btn" data-act="open-packs" data-count="${bulk}"${n >= bulk ? "" : " disabled"}>Open ${bulk}</button></div></div></div>${n && n < bulk ? `<p class="muted small">Opening ${bulk} at once needs ${bulk} waiting.</p>` : ""}${rows ? `<div class="st-rows">${rows}</div>` : '<p class="muted small">Buy a pack or claim your free daily pack, and it waits here.</p>'}</section>`;
     const rec = sh.recent ? recentOpenings(sh.recent, 6) : [];
     const recent = `<section class="panel glass st-recent"><h3>Recent openings</h3>${rec.length ? rec.map((o) => `<div class="st-rec"><div class="dn"><b>${esc(shortWhen(o.openedAt))}</b><small>${esc(o.setCode)}${o.best ? ` \xB7 best: ${esc(o.best)}` : ""}${o.jackpot ? " \xB7 Jackpot pack" : ""}</small></div><div class="mrow">${o.cards.map((c) => miniCard(c)).join("")}</div></div>`).join("") : '<p class="muted small">No packs opened yet.</p>'}</section>`;
-    const cos = sh.store.cosmetics;
-    const items = cos.length ? `<div class="shop">${cos.map((c) => `<div class="si">${c.kind === "coin" ? coinSwatchHtml(c.itemId) : `<span class="si-pv" style="--c:${c.faction && FACTION_HEX[c.faction] || "#8f8cff"}"></span>`}<b class="small">${esc(c.name)}</b><span class="muted small">${esc(cosmeticKind(c.kind))}${c.faction ? ` \xB7 ${esc(c.faction)}` : ""}</span>${c.owned ? '<span class="pill on">Owned</span>' : c.priceCredits === null ? "" : `<button type="button" class="btn sm" data-act="buy-cosmetic" data-item="${esc(c.itemId)}" data-name="${esc(c.name)}" data-price="${c.priceCredits}"${credits >= c.priceCredits ? "" : " disabled"}>Buy \xB7 ${amount(c.priceCredits)}</button>`}</div>`).join("")}</div>` : '<p class="muted small">No cosmetics on sale right now.</p>';
-    const cosmetics = `<section class="panel glass st-cos"><h3>Cosmetics</h3>${items}<p class="muted small">What you buy is yours on every agent: equip it with Change, under Your agents' loadouts.</p></section>`;
-    return `<div class="pg-wide"><div class="st-grid">${packsHead}${daily}<div class="st-col">${waiting}${agentsPanel()}</div>${recent}${cosmetics}</div></div>`;
+    return `<div class="pg-wide sh-pg">${head}${packs}${cosmetics}<div class="st-grid"><div class="st-col">${waiting}${agentsPanel()}</div>${recent}</div></div>`;
+  }
+  var shopArtCache = null;
+  function shopArt() {
+    if (shopArtCache) return shopArtCache;
+    const f = window.SITE_FACE;
+    if (!(f == null ? void 0 : f.packPlateSvg)) return null;
+    const plates = /* @__PURE__ */ new Map();
+    const fn = f.packPlateSvg;
+    shopArtCache = { plate: (s) => {
+      var _a3;
+      return (_a3 = plates.get(s)) != null ? _a3 : (plates.set(s, fn(s)), plates.get(s));
+    } };
+    return shopArtCache;
   }
   function agentsPanel() {
     var _a3, _b, _c, _d, _e;
@@ -9178,9 +9468,6 @@ gl_FragColor=vec4(col,1.);}`;
     const sure = [p.pity.next.fullArt ? "a Full Art or better" : "", p.pity.next.mythic ? "a Mythic" : ""].filter(Boolean);
     if (sure.length) return `Your next pack is sure to hold ${sure.join(" and ")}.`;
     return `${p.pity.packsSinceFullArt} pack${p.pity.packsSinceFullArt === 1 ? "" : "s"} since a Full Art \xB7 ${p.pity.packsSinceMythic} since a Mythic`;
-  }
-  function cosmeticKind(kind) {
-    return kind === "boast" ? "Victory boast" : kind.charAt(0).toUpperCase() + kind.slice(1);
   }
   async function claimDaily() {
     if (!state.session) return;
@@ -9787,7 +10074,7 @@ gl_FragColor=vec4(col,1.);}`;
       const p = state.play;
       if (!p) return;
       const widgets = state.board.widgets;
-      const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_b = (_a3 = state.me) == null ? void 0 : _a3.ownerId) != null ? _b : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy };
+      const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_b = (_a3 = state.me) == null ? void 0 : _a3.ownerId) != null ? _b : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
       const { views, capped } = liveViews(widgets);
       for (const w2 of widgets) {
         if (w2.type !== "live" && w2.type !== "watch") continue;
@@ -10092,7 +10379,7 @@ gl_FragColor=vec4(col,1.);}`;
     schedulePoll();
   }
   document.addEventListener("click", (e) => {
-    var _a3, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
+    var _a3, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k;
     const t = e.target;
     const off = t.closest('a[aria-disabled="true"]');
     if (off && !off.classList.contains("navb")) {
@@ -10158,27 +10445,21 @@ gl_FragColor=vec4(col,1.);}`;
       if (act2 === "match-log" && actEl.dataset.match) return void showLog(actEl.dataset.match);
       if (act2 === "more-hist") return void loadHistory(false);
       if (act2 === "retry-hist") return void loadHistory(true);
-      if (act2 === "buy-step") {
-        state.buyCount = Math.max(1, Math.min(BUY_MAX, state.buyCount + Number(actEl.dataset.d)));
-        drawPage();
-        (_g = document.querySelector(`[data-act="buy-step"][data-d="${actEl.dataset.d}"]`)) == null ? void 0 : _g.focus();
-        return;
-      }
       if (act2 === "retry-shop") return void loadShop();
       if (act2 === "retry-col") return void loadCollection();
       if (act2 === "col-tab" || act2 === "col-faction" || act2 === "col-show") {
-        const v = (_h = actEl.dataset.v) != null ? _h : "";
+        const v = (_g = actEl.dataset.v) != null ? _g : "";
         const f = state.col.filters;
         state.col.filters = act2 === "col-tab" ? { ...f, tab: v } : act2 === "col-faction" ? { ...f, faction: v } : { ...f, show: v };
         drawPage();
-        (_i = document.querySelector(`[data-act="${act2}"][data-v="${CSS.escape(v)}"]`)) == null ? void 0 : _i.focus();
+        (_h = document.querySelector(`[data-act="${act2}"][data-v="${CSS.escape(v)}"]`)) == null ? void 0 : _h.focus();
         return;
       }
       if (act2 === "view-slot" && actEl.dataset.slot) return void openViewer(actEl.dataset.slot, actEl.closest("#viewer") ? null : actEl);
       if (act2 === "close-viewer") return closeViewer(true);
       if (act2 === "craft") return void craftSlot();
       if (act2 === "salvage") return void salvageSlot();
-      if (act2 === "salv-step" && ((_j = state.col.viewer) == null ? void 0 : _j.holdings)) {
+      if (act2 === "salv-step" && ((_i = state.col.viewer) == null ? void 0 : _i.holdings)) {
         const v = state.col.viewer;
         v.quantity = salvageView(v.holdings, v.quantity + Number(actEl.dataset.d)).quantity;
         drawViewer();
@@ -10189,7 +10470,7 @@ gl_FragColor=vec4(col,1.);}`;
     const segBtn = t.closest(".seg button");
     if (segBtn) {
       const group = segBtn.parentElement.id;
-      const v = (_k = segBtn.dataset.v) != null ? _k : "";
+      const v = (_j = segBtn.dataset.v) != null ? _j : "";
       if (segBtn.getAttribute("aria-pressed") === "true") return;
       if (group === "deck-choice") void act((tok) => api.setDeckChoice(tok, v));
       else if (group === "faction-lock")
@@ -10209,7 +10490,7 @@ gl_FragColor=vec4(col,1.);}`;
     const deck = t.closest(".deckrow");
     if (deck) {
       if (deck.getAttribute("aria-disabled") === "true") return toast("That deck is incomplete: you don't hold every card it uses.", "error");
-      if (deck.classList.contains("on") && ((_l = state.play) == null ? void 0 : _l.deckChoice) === "forced") return;
+      if (deck.classList.contains("on") && ((_k = state.play) == null ? void 0 : _k.deckChoice) === "forced") return;
       void act((tok) => api.setActiveDeck(tok, deck.dataset.deck), "Your agent will play that deck.");
       return;
     }
