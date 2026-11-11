@@ -1,5 +1,32 @@
 # Notes for the owner
 
+**Updated 2026-11-11, session 86 (game lane; the hardening pass).** Nothing is blocking. Lane: the last merged PR,
+#151, was "Render:", so this is a game session; no game PR was open. Your answers to session 85: calls 1-3 stand;
+answer 4 (the lock file) is built.
+
+**What I did (the hardening pass, no new features):**
+- **The lock file you asked for.** Each server command holds `<season file>.lock` while it runs.
+  `npm run season:next` now refuses while a server is still running on the old season's file ("is in use by npm
+  run season (process ... since ...). Stop that first."), and makes nothing. Proved with the real commands:
+  `progress/season-lock-001.txt` (16 PASS: the server started, the season ended over HTTP with the server still
+  running, `season:next` refused, the server stopped with Ctrl-C, `season:next` made Season 1).
+- **Two slow reads moved into SQL, measured first** (`progress/stats-scale-001.txt`). At a season's history for one
+  owner (2,500 matches), the match history page took ~70 ms per page because it loaded the whole history; now ~2 ms.
+  The admin view's per-house-owner tally: ~70 ms each, now ~2 ms. The Stats page itself is ~15 ms; left as it is.
+
+**Small calls you may want to overrule:**
+1. **A second server on the same file is refused too**, not only `season:next` (e.g. `npm run ladder` while `npm
+   run season` runs). Two ladders on one file would pair the same owners twice.
+2. **A stale lock is taken over automatically, with a printed line.** If a server is killed outright (or the Mac
+   mini restarts) its lock is left behind; the next start sees that process is gone and takes over. The other
+   choice was to refuse until you delete the file by hand. A lock written by another machine is always honoured.
+3. **Stop the server with Ctrl-C in its terminal.** That always cleans up. Sending a stop signal to the `npm`
+   process from elsewhere goes through tsx, which can force-kill the server if it is slow to answer. The lock then
+   goes stale and is taken over on the next start, but the clean shutdown is skipped. I'll put "Ctrl-C" in the
+   switch steps at clean-up.
+
+---
+
 **Updated 2026-11-11, session 85 (game lane; the season switch made safe).** Nothing is blocking. Lane: the last
 merged PR, #149, was "Render:", so this is a game session; no game PR was open. Your answers to session 84 are all
 kept; nothing changed.

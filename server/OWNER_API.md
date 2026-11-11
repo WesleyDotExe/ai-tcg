@@ -284,6 +284,12 @@ It refuses a season that hasn't ended, a new name equal to the old one, and a ne
 
 On start it prints which season it is on: `[season] season S1 (made from S0's archive) on <file>`, or `[season] serving season S0's archive (ended <time>) from <file>: no match will be paired`.
 
+**(session 86) One process per season file: the lock.** Each of `npm run season`, `owner-api` and `ladder` holds `<file>.lock` while it runs (a small JSON file naming its process, machine, command and start time), and removes it when it stops (Ctrl-C, or the process exiting). `npm run season:next` takes the ended file's lock for as long as it reads it. So:
+- **`season:next` refuses while a server is still running on the old file:** `not made: "<file>" is in use by npm run season (process <pid> on <machine>, since <time>). Stop that first. If you are sure nothing is running on it, delete <file>.lock.` No new file is made. (The old server still writes sign-ins, settings and renames to its file; anything written after the new file was made would never reach it.)
+- **A second server on the same file is refused** with the same message (two ladders would pair the same owners).
+- **A lock left behind** by a server that was killed outright, or from before the machine last restarted, is taken over by the next start, which prints `[lock] took over a stale lock left by npm run season (process <pid> ...): process <pid> is no longer running`. A lock written on another machine can't be checked, so it is honoured.
+- Stop the server with Ctrl-C in its terminal. Evidence: `progress/season-lock-001.txt` (16 PASS; the real commands).
+
 `npm run season:next` never writes to the ended file: it opens it read-only, and an archive at an older schema than the code (made by an older build) is migrated as a temporary copy, which is deleted afterwards; the archive keeps its own schema. A mistyped ended file is refused, and not created. Evidence: `progress/season-switch-001.txt`.
 
 - **Carried:** every owner (name, kind, starting faction, faction lock), logins with their passwords and admin flag, sessions that haven't expired (a signed-in owner stays signed in), account settings, the Home board, agents with their names and name history, signature cards with their bound copies (same copy ids), every owned cosmetic (`carriedFrom: "S0"` in `GET /api/cosmetics`; tier coins and bought ones too) and every agent's loadout, which agent is connected, and the retired Prototype runs (a retired run never mints again, in any later file).
@@ -696,7 +702,8 @@ The engine rebuilds the match exactly from either format: `rebuildReplay(file, h
 
 - Tournament endpoints (and so the `featured.tournament` group) wait until after Season 0.
 - Viewer counts are signed-in owners only: the site has no signed-out spectators in Season 0.
-- `GET /api/matches` reads the owner's whole history and pages it in memory (fine for a season of in-house play; to move into SQL before launch scale).
+- ~~`GET /api/matches` reads the owner's whole history and pages it in memory.~~ Session 86: one page read by SQL (`matchHistoryPage`), the same rows and order; ~2 ms at a season's 2,500 matches, against ~70 ms before (`progress/stats-scale-001.txt`).
+- `GET /api/stats` still counts the owner's whole history on each read: ~15 ms at a season's 2,500 matches, ~30 ms at 5,000 (`progress/stats-scale-001.txt`). Fine for Season 0; running tallies if it grows.
 - `GET /api/stats` likewise counts the owner's whole history on every read (one SQL query, counted in memory; a season of in-house play is a few thousand rows). Before launch scale: keep running tallies, or cache per owner until its next match.
 - The weekly challenge pack (15 wins in a week) and daily quests: specced in ECONOMY.md, not built.
 - Creating an account and generating an agent over HTTP (the store has both; the endpoints come with the sign-up page).

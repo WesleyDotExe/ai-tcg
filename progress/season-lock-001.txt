@@ -1,0 +1,68 @@
+Season lock demo 001 — season:next refuses while a server runs on the old file (session 86, game lane)
+========================================================================
+Owner 2026-11-11 (answer 4 to session 85): a lock file so `npm run season:next` refuses to run while a
+server is still running on the old season's file. Every server CLI holds `<file>.lock` while it runs;
+season:next takes the same lock while it reads the ended file.
+
+Made: <dir>/season-0.db, an open Season 0 with the house admin (Hub) and one owner (Ada).
+
+1. The server on Season 0 holds the lock
+------------------------------------------------------------------------
+  $ npm run season -- <dir>/season-0.db 0
+    [season] season S0 on <dir>/season-0.db
+    [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-0.db (matches in <dir>/season-0.db.matches)
+  <dir>/season-0.db.lock: {"pid":"<pid>","host":"<host>","command":"npm run season","startedAt":"<time>"}
+  [PASS] the lock names the running server's process
+
+2. A second process on the same file is refused
+------------------------------------------------------------------------
+  $ npm run season -- <dir>/season-0.db 0
+    exit 1: [season] not starting: "<dir>/season-0.db" is in use by npm run season (process <pid> on <host>, since <time>). Stop that first. If you are sure nothing is running on it, delete <dir>/season-0.db.lock.
+  [PASS] a second `npm run season` is refused (exit 1), naming the one running
+  $ npm run ladder -- <dir>/season-0.db 1
+    exit 1: [ladder] not starting: "<dir>/season-0.db" is in use by npm run season (process <pid> on <host>, since <time>). Stop that first. If you are sure nothing is running on it, delete <dir>/season-0.db.lock.
+  [PASS] `npm run ladder` is refused too (two ladders would pair the same owners)
+  [PASS] the running server's lock is still its own
+
+3. The season ends with the server still running; season:next is refused
+------------------------------------------------------------------------
+  POST /api/admin/season/end { season: "S0" } (Hub): 200 ended
+  [PASS] Season 0 ends (nothing was live)
+  Ada signs in on the old server after the end: signed in (a new session row in the archive)
+  $ npm run season:next -- <dir>/season-0.db <dir>/season-1.db S1
+    exit 1: [season] not made: "<dir>/season-0.db" is in use by npm run season (process <pid> on <host>, since <time>). Stop that first. If you are sure nothing is running on it, delete <dir>/season-0.db.lock.
+  [PASS] refused (exit 1): the server is still running on the ended file
+  [PASS] no Season 1 file is made
+  [PASS] the archive is untouched by the refusal
+  [PASS] and the server's lock is still its own
+
+4. The server stopped (Ctrl-C); season:next makes Season 1
+------------------------------------------------------------------------
+  [PASS] the stopped server removed its lock
+  $ npm run season:next -- <dir>/season-0.db <dir>/season-1.db S1
+    [season] S1 made from S0 (ended <time>) at <time>: <dir>/season-1.db
+    [season] carried: 2 owners, 2 logins, 2 live sessions, 0 agents, 0 signature copies, 0 cosmetics, 0 loadout slots, 15 retired Prototype runs
+    [season] 0 soft-reset ratings; 0 starter grants
+    [season] left in the archive: 0 card copies, 0 unopened packs, 0 decks, 0 credits, 0 pack points, 0 matches, 0 notifications
+  [PASS] made (exit 0)
+  [PASS] season:next released its lock on the archive when done
+
+5. A server killed outright leaves its lock; the next start takes it over
+------------------------------------------------------------------------
+  $ npm run season -- <dir>/season-1.db 0
+    [season] season S1 (made from S0's archive) on <dir>/season-1.db
+    [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-1.db (matches in <dir>/season-1.db.matches)
+  kill -9 <pid> (the server, no clean-up)
+  [PASS] its lock is left behind
+  $ npm run season -- <dir>/season-1.db 0
+    [lock] took over a stale lock left by npm run season (process <pid> on <host>, since <time>): process <pid> is no longer running
+    [season] season S1 (made from S0's archive) on <dir>/season-1.db
+    [season] owner API on http://localhost:<port>, the ladder running over <dir>/season-1.db (matches in <dir>/season-1.db.matches)
+  [PASS] the next start takes the stale lock over and says whose it was
+  [PASS] the lock is now the new server's
+  [PASS] and it removes it on Ctrl-C
+
+  Files in <dir> at the end: season-0.db, season-1.db
+
+========================================================================
+16 PASS, 0 FAIL

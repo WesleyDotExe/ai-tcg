@@ -5100,3 +5100,44 @@ this makes the by-hand switch safe rather than automating it. Three faults, each
 change to the very first start (the owner's setup must now pass it). The switch is still four steps by hand.
 **Blocked:** nothing.
 
+
+## 2026-11-11 — Session 86 (game lane): the hardening pass — the season-file lock; two reads into SQL (no schema change)
+
+**Lane:** the last merged PR, #151, was "Render:", so this is a game session. No game PR was open. Owner feedback:
+the answers to session 85 (calls 1-3 kept; answer 4: build the lock file in this hardening pass, kept small, proved
+with the real commands). Marked handled. Every 5th game session is a hardening pass (81, 86): no new features.
+
+**What:**
+1. **The lock** (`server/src/seasonLock.ts`). `<file>.lock` is a JSON file (process id, machine, command, start
+   time) written to a temp file and hard-linked into place, so taking it is atomic and it is never half-written.
+   `npm run season`, `owner-api` and `ladder` take it after the session-85 file check and before opening the
+   file; `npm run season:next` takes the ended file's lock while it reads it (none for a missing file, so a typo
+   still makes nothing). A held lock refuses with who holds it and how to clear it; a stale one (its process gone,
+   or taken before the machine last started, or unreadable) is taken over and printed; another machine's is
+   honoured. Released on exit; `owner-api` and `ladder` now exit through `process.exit` on Ctrl-C so it runs.
+2. **A bug the demo found under load:** `npm run season` installed its SIGINT/SIGTERM handlers only after the
+   owner API had started. With six copies of the demo running at once, 3-4 of 6 left the lock behind: the server
+   died from the signal's default action (exit 130, no "stopping" line). Moved the handlers before the one wait
+   in startup; 0 of 18 since.
+3. **Measured before changing** (`economy/src/dev/statsScaleMeasure.ts`, `progress/stats-scale-001.txt`, a record):
+   one owner at 500 / 2,500 / 5,000 matches. `stats()` is 5 / 15 / 30 ms: left alone, debt updated with the
+   number. `matchHistory()` was 13 / 68 / 142 ms, and `GET /api/matches` read it for every page and `ownerStats`
+   (the admin view, per house owner) counted it. Now `store.matchHistoryPage` (keyset on `ended_at, rowid`, a
+   COUNT for the total) and a four-column `ownerStats`: ~2 ms each at a season.
+
+**Ran it:**
+- `progress/season-lock-001.txt`, new, in the CI demo set: 16 PASS through the real CLIs (the lock while the
+  server runs; a second `npm run season` and `npm run ladder` refused; the season ended over HTTP with the server
+  up and `season:next` refused, no file made, the archive's hash unchanged; Ctrl-C removes the lock; `season:next`
+  makes S1; `kill -9` leaves the lock and the next start takes it over). Ran 6 at once three times: all same.
+- `server/test/seasonLock.test.ts` (9): atomic write and release, no temp file left, held / dead process / before
+  boot / unreadable / other machine, release never removes another's lock, released on a plain exit.
+- `economy/test/matchHistoryPage.test.ts` (4): every page at limits 1, 7, 20, 100 equals the old in-memory slice
+  (ties in `ended_at` included); refusals; `ownerStats` equals the old count for every owner and agent.
+- `npm test`: engine 372, economy 289, server 203, render 959, agents 17, protocol 7, all pass. Typecheck clean in
+  every workspace. `npm run demos`: 30 demos, 0 stale.
+
+**Worked:** the lock is small, and the real-command demo earned its keep by finding the startup signal gap.
+**Thin:** in quality-debt.md: the process-id trust, tsx's force-kill on a relayed stop, `stats()` still linear,
+unfiltered `matchHistory()`.
+**Blocked:** nothing.

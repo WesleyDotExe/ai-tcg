@@ -10,8 +10,8 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-11, game session 85 (the season switch made safe) and render session 63 (the store
-layout).
+Updated 2026-11-11, game session 86 (the hardening pass: the season-file lock; two reads into SQL) and render
+session 63 (the store layout).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -155,6 +155,12 @@ new ideas go to `progress/season-1-ideas.md`.
      reads the archive (read-only; an older archive migrated as a temp copy) and refuses a missing one; the servers
      refuse a missing file without `--new` and an ended one without `--archive`. Evidence
      `progress/season-switch-001.txt` (16 PASS, in the CI demo set). The owner-doc steps: clean-up, 2-4 Dec.
+   - [x] The lock file (owner 2026-11-11, answer 4; game session 86, the hardening pass): every server CLI holds
+     `<file>.lock`; `season:next` takes the ended file's lock while reading it, so it refuses while a server is
+     still on the old file; a second server on one file is refused; a killed server's lock is taken over, said so
+     (`server/src/seasonLock.ts`). Evidence `progress/season-lock-001.txt` (16 PASS, real commands, CI demo set).
+     Same session: `GET /api/matches` pages by SQL and `ownerStats` counts four columns (~70 ms -> ~2 ms at a
+     season's 2,500 matches; `progress/stats-scale-001.txt`). The switch steps (clean-up) say: stop with Ctrl-C.
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its

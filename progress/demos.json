@@ -32,7 +32,8 @@
     { "file": "speed-vote-001.txt", "workspace": "server", "script": "src/dev/speedVoteDemo.ts", "plays": true },
     { "file": "season-end-001.txt", "workspace": "server", "script": "src/dev/seasonEndApiDemo.ts", "plays": true },
     { "file": "season-next-001.txt", "workspace": "server", "script": "src/dev/seasonNextApiDemo.ts", "plays": true },
-    { "file": "season-switch-001.txt", "workspace": "server", "script": "src/dev/seasonSwitchDemo.ts", "plays": false }
+    { "file": "season-switch-001.txt", "workspace": "server", "script": "src/dev/seasonSwitchDemo.ts", "plays": false },
+    { "file": "season-lock-001.txt", "workspace": "server", "script": "src/dev/seasonLockDemo.ts", "plays": false }
   ],
   "records": {
     "about": "Files a dev script names that are measurements (long, sampled), kept as records rather than reproduced by `npm run demos`.",
@@ -42,7 +43,8 @@
       "pack-sim-001.txt",
       "pack-sim-002.txt",
       "pack-sim-003-starter.txt",
-      "first-seat-001.txt"
+      "first-seat-001.txt",
+      "stats-scale-001.txt"
     ]
   }
 }

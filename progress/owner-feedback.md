@@ -4590,7 +4590,7 @@ The pack ceremony is complete per the brief; what remains on it is the owner's f
 
 ---
 
-## 2026-11-11 — Owner: answers to game session 85 (the season switch made safe), keep calls 1–3; build the lock file in the hardening pass
+## 2026-11-11 — Owner: answers to game session 85 (the season switch made safe), keep calls 1–3; build the lock file in the hardening pass (HANDLED 2026-11-11, game session 86 — calls 1-3 stand unchanged (call 1 goes in the clean-up switch steps). Answer 4 built: every server CLI holds `<file>.lock` while it runs and `npm run season:next` takes the ended file's lock while reading it, so it refuses while a server is still on the old file; a second server on one file is refused too; a lock left by a killed server is taken over and said so (`server/src/seasonLock.ts`). Proved with the real commands: `progress/season-lock-001.txt` (16 PASS, in the CI demo set); tests `server/test/seasonLock.test.ts` (9))
 
 Owner decisions on the 4 small calls in `progress/notes-for-owner.md` (PR #150, `progress/season-switch-001.txt`).
 1. **Keep:** the first start of a season file needs `--new`; without it a missing file is refused. Put it in the switch steps at clean-up, as planned.

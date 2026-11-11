@@ -84,7 +84,8 @@ real, but here is where it's thin.
   0 hasn't started, so the only such matches are the house's test data, but the field stays on the API forever. The
   versioned replay files (`ai-tcg-replay/2`) do carry every deck card, so a one-off repair could backfill from them
   (the write-once trigger allows null -> value); not built.
-- **`GET /api/stats` counts the whole history on every read.** One SQL query per call (plus one for the rated
+- **`GET /api/stats` counts the whole history on every read** (session 86 measured it: ~15 ms at a season's 2,500
+  matches for one owner, ~30 ms at 5,000; `progress/stats-scale-001.txt`; acceptable for Season 0). One SQL query per call (plus one for the rated
   points), then counted in memory. An owner on auto-play all day is ~60 matches a day, so a season is a few
   thousand rows: fine for Season 0, not for launch. Before launch: running tallies, or a per-owner cache until its
   next match. Written in `server/OWNER_API.md`'s "Not built yet".
@@ -261,6 +262,36 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 86 (the game lane's hardening pass; no schema change): what was raised, and what is still thin
+
+- **Raised: one process per season file** (owner 2026-11-11, answer 4). `<file>.lock` held by `npm run season`,
+  `owner-api`, `ladder`, and by `season:next` while it reads the ended file. `season:next` refuses while a server
+  runs on the old file; a second server on one file is refused. Proved by the real CLIs
+  (`progress/season-lock-001.txt`, 16 PASS) and 9 unit tests (`server/test/seasonLock.test.ts`).
+- **Raised (found by the demo under load): Ctrl-C at the start left the lock behind.** `npm run season` installed
+  its stop handlers only after the owner API was up; a Ctrl-C before that (or, as seen under load, just as it came
+  up) took the signal's default action, with no clean-up. The handlers are now installed before the one wait in
+  starting up. Six copies of the demo at once: 3 or 4 of 6 failed before, 0 of 18 (three rounds) after.
+- **Raised: `GET /api/matches` pages by SQL** (`matchHistoryPage`) and **`ownerStats` counts four columns**. Measured
+  first (`progress/stats-scale-001.txt`): ~70 ms -> ~2 ms each at a season's 2,500 matches for one owner. Both
+  tested against the old whole-history reads over a history with ties in `ended_at` and every outcome
+  (`economy/test/matchHistoryPage.test.ts`).
+- **Still thin: the lock trusts the process id.** A stale lock is detected by "is that process id running" and "was
+  it taken before this machine last started". A process id reused by an unrelated program between a crash and the
+  next start (without a restart) would make the lock look held; the message then says to delete the lock file.
+  Rare; not handled.
+- **Still thin: tsx can force-kill the server.** Read in tsx's code, not reproduced: when the `npm`/`tsx` parent gets
+  a stop signal, it relays it and, if the server hasn't answered within about 60 ms, kills it outright. Ctrl-C in
+  the terminal reaches the server directly and is fine; a stop sent to the parent process under heavy load could
+  skip the clean shutdown (the lock then goes stale and is taken over; the match being shown is cancelled on the
+  next start, as after any crash). Running the server with plain `node` instead of tsx would remove it; not changed.
+- **Still thin: a lock on a network drive or from another machine** is honoured but can't be checked, so a crashed
+  server on another machine needs its lock deleted by hand. Season 0 runs on one machine.
+- **Still thin: `matchHistory()` with no filter still loads every match**, with one `IN (...)` of every id for the
+  ratings and loadouts. Only the dev demos call it unfiltered; SQLite's variable limit (32,766) would refuse it past
+  that many matches. `GET /api/stats` is still linear in the history (above).
+- **The stats-scale measure is a record, not a CI demo**: its times vary per run and it takes ~20 s.
+
 ## Session 85 (the season switch made safe; no schema change): what was raised, and what is still thin
 
 - **Raised: the archive is never written by `startNextSeason`** (session 83's "integrity of the read"). Opened
@@ -271,7 +302,7 @@ real, but here is where it's thin.
 - **Still thin: a read-only reader can leave an empty `-wal` and `-shm` beside the archive.** SQLite makes them to read
   a WAL file; they hold nothing (the test checks the `-wal` is 0 bytes) and the main file is unchanged. Deleting them
   afterwards was left out: if a server were still running on the archive, deleting its log would corrupt it.
-- **Still thin: nothing stops `season:next` while a server still runs on the ended file.** The docs say stop it
+- ~~**Still thin: nothing stops `season:next` while a server still runs on the ended file.**~~ Built session 86 (the lock). The docs say stop it
   first. A running server can still write settings, renames and sign-ins to the archive; those writes after the new
   file is made don't reach it (same as session 83's note). A lock file per season file would catch it; not built.
 - **`--new` changes the very first start.** Any setup note that says `npm run season -- <file>` for a new file now
@@ -577,7 +608,8 @@ real, but here is where it's thin.
   why watching can never feed back into a match). A network agent can't play a match in under a second: when
   network agents join the ladder, their matches will have to be shown as they are played, with the pace as a
   floor, not a replay. Not designed yet.
-- **`GET /api/matches` pages the owner's whole history in memory**, and `GET /api/live/:id` copies every
+- ~~**`GET /api/matches` pages the owner's whole history in memory**~~ (session 86: one page by SQL, ~70 ms -> ~2 ms
+  at a season), and `GET /api/live/:id` copies every
   released step from `from` on. Fine for Season 0's handful of owners; both need SQL paging / a size cap before
   launch scale.
 - **Logs and replays live in a directory beside the database**, not in it: a backup of the `.db` alone loses

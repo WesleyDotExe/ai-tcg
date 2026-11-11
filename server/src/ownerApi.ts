@@ -818,16 +818,16 @@ export function startOwnerApi(options: OwnerApiOptions): Promise<RunningOwnerApi
         const ownerId = ownerOf(req);
         const limit = intParam(query, "limit", MATCH_PAGE_DEFAULT, 1, MATCH_PAGE_MAX);
         const before = query.get("before");
-        // Newest first; `before` pages back from a match id.
-        const all = store.matchHistory({ ownerId }).reverse();
-        let start = 0;
-        if (before !== null) {
-          const i = all.findIndex((m) => m.matchId === before);
-          if (i < 0) throw new HttpError(400, `"before" must be one of your matches`);
-          start = i + 1;
+        // Newest first; `before` pages back from a match id. (session 86)
+        // One page read by SQL, not the whole history sliced in memory.
+        let page;
+        try {
+          page = store.matchHistoryPage(ownerId, { limit, before });
+        } catch (err) {
+          if (err instanceof EconomyError) throw new HttpError(400, `"before" must be one of your matches`);
+          throw err;
         }
-        const page = all.slice(start, start + limit);
-        return { body: { matches: page.map((m) => historyRow(m, ownerId)), total: all.length, more: start + limit < all.length } };
+        return { body: { matches: page.matches.map((m) => historyRow(m, ownerId)), total: page.total, more: page.more } };
       },
     },
     {
