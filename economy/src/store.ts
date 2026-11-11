@@ -4975,7 +4975,38 @@ export class EconomyStore {
       params.a = filter.agentId;
     }
     const sql = `SELECT * FROM matches ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY ended_at, rowid`;
-    const rows = this.db.prepare(sql).all(params) as Row[];
+    return this.matchRecords(this.db.prepare(sql).all(params) as Row[]);
+  }
+
+  /**
+   * (session 86) One page of an owner's match history, newest first, read
+   * by SQL: GET /api/matches. `before` pages back from one of the owner's
+   * match ids. The same order as `matchHistory` reversed (ended_at, then
+   * the order recorded), without loading the whole history: at a season's
+   * ~2,500 matches the whole-history read took ~70 ms per page
+   * (progress/stats-scale-001.txt).
+   */
+  matchHistoryPage(ownerId: string, options: { limit: number; before?: string | null }): { matches: MatchRecord[]; total: number; more: boolean } {
+    const { limit } = options;
+    if (!Number.isInteger(limit) || limit < 1) throw new EconomyError(`a page is at least 1 match, got ${limit}`);
+    const mine = "(p1_owner = :o OR p2_owner = :o)";
+    const total = num((this.db.prepare(`SELECT COUNT(*) AS n FROM matches WHERE ${mine}`).get({ o: ownerId }) as Row).n);
+    let after = "";
+    const params: Record<string, string | number> = { o: ownerId, limit: limit + 1 };
+    if (options.before != null) {
+      const at = this.db.prepare(`SELECT ended_at, rowid AS rid FROM matches WHERE match_id = :m AND ${mine}`).get({ m: options.before, o: ownerId }) as Row | undefined;
+      if (!at) throw new EconomyError(`"${options.before}" isn't one of this owner's matches`);
+      after = "AND (ended_at < :e OR (ended_at = :e AND rowid < :r))";
+      params.e = str(at.ended_at);
+      params.r = num(at.rid);
+    }
+    const rows = this.db.prepare(`SELECT * FROM matches WHERE ${mine} ${after} ORDER BY ended_at DESC, rowid DESC LIMIT :limit`).all(params) as Row[];
+    const more = rows.length > limit;
+    return { matches: this.matchRecords(rows.slice(0, limit)), total, more };
+  }
+
+  /** Match rows (SELECT * FROM matches) as records, in the rows' order. */
+  private matchRecords(rows: Row[]): MatchRecord[] {
     const loadouts = new Map<string, { p1: Loadout; p2: Loadout }>();
     const boasts = new Map<string, MatchBoast>();
     const ratings = new Map<string, { p1: RatingChange; p2: RatingChange }>();
@@ -5153,17 +5184,27 @@ export class EconomyStore {
   /** The owner's match stats, all agents or one (owner app spec, Stats:
    * "All agents" or the agent that played). */
   ownerStats(ownerId: string, filter: { agentId?: string } = {}): OwnerStats {
+    // (session 86) Counted from four columns, not whole match records (the
+    // admin view reads this for every house owner on each load).
+    const where = filter.agentId === undefined ? "" : "AND (CASE WHEN p1_owner = :o THEN p1_agent ELSE p2_agent END) = :a";
+    const rows = this.db
+      .prepare(
+        `SELECT outcome, winner_owner, CASE WHEN p1_owner = :o THEN p1_credits ELSE p2_credits END AS credits
+         FROM matches WHERE (p1_owner = :o OR p2_owner = :o) ${where} ORDER BY ended_at, rowid`,
+      )
+      .all(filter.agentId === undefined ? { o: ownerId } : { o: ownerId, a: filter.agentId }) as Row[];
     const stats: OwnerStats = { matches: 0, wins: 0, losses: 0, draws: 0, void: 0, winRate: 0, bestWinStreak: 0, creditsFromMatches: 0 };
     let streak = 0;
-    for (const m of this.matchHistory({ ownerId, agentId: filter.agentId })) {
+    for (const m of rows) {
+      const outcome = str(m.outcome) as MatchOutcomeKind;
       stats.matches++;
-      stats.creditsFromMatches += m.p1OwnerId === ownerId ? m.p1Credits : m.p2Credits;
-      if (m.outcome === "cancelled" || m.outcome === "abandoned") {
+      stats.creditsFromMatches += num(m.credits);
+      if (outcome === "cancelled" || outcome === "abandoned") {
         stats.void++;
-      } else if (m.outcome === "draw") {
+      } else if (outcome === "draw") {
         stats.draws++;
         streak = 0;
-      } else if (m.winnerOwnerId === ownerId) {
+      } else if (strOrNull(m.winner_owner) === ownerId) {
         stats.wins++;
         streak++;
         stats.bestWinStreak = Math.max(stats.bestWinStreak, streak);

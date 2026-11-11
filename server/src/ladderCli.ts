@@ -2,6 +2,7 @@ import { EconomyStore } from "@ai-tcg/economy";
 import { workerChooser } from "./deckBuild/workerChooser.js";
 import { Ladder } from "./ladder/ladderRunner.js";
 import { seasonFileArgs, seasonFileProblem } from "./seasonFile.js";
+import { acquireSeasonLock, exitOnStopSignals, tookOverLine } from "./seasonLock.js";
 
 // Thin argv wrapper around the ladder: runs rounds of ranked matches between
 // every owner with a connected agent in one season's database file
@@ -13,6 +14,7 @@ import { seasonFileArgs, seasonFileProblem } from "./seasonFile.js";
 // credits on packs before each round. Matches here count at once; the
 // watch-speed ladder with Watch live is `npm run season`.
 // (session 85) The same file check as `npm run season` (seasonFile.ts).
+// (session 86) And the same lock (seasonLock.ts), released on Ctrl-C.
 const USAGE = "usage: npm run ladder -- <database file> [rounds] [match log directory] [--new | --archive]";
 const parsed = seasonFileArgs(process.argv.slice(2));
 if ("problem" in parsed) {
@@ -34,6 +36,14 @@ if (!Number.isInteger(ROUNDS) || ROUNDS < 1) {
   console.error(`rounds must be a whole number of at least 1 (got ${parsed.args[1]})`);
   process.exit(1);
 }
+const lock = acquireSeasonLock(DB_PATH, "npm run ladder");
+if ("problem" in lock) {
+  console.error(`[ladder] not starting: ${lock.problem}`);
+  process.exit(1);
+}
+const tookOver = tookOverLine(lock);
+if (tookOver) console.log(tookOver);
+exitOnStopSignals();
 const store = EconomyStore.open(DB_PATH);
 const chooser = workerChooser();
 const name = (ownerId: string) => store.getOwner(ownerId).name;
@@ -60,4 +70,5 @@ try {
 } finally {
   await chooser.terminateAll();
   store.close();
+  lock.release();
 }
