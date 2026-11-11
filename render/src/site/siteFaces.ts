@@ -17,9 +17,10 @@
 // FACE_SYMBOLS, the pack page's own symbol markup.
 
 import { PACK_CSS, PACK_PAGE_PURE_SOURCE, renderPackOpeningHtml } from "../packPage.js";
+import { LOADOUT_GLYPHS } from "../loadoutPicker.js";
 
 /** The names the website reads off window.SITE_FACE. */
-export const FACE_EXPORTS = ["packFaceHtml", "packFitText", "packTiltAngles", "packFinishLayerName", "packFinishLabel", "packFullBleed"] as const;
+export const FACE_EXPORTS = ["packFaceHtml", "packFitText", "packTiltAngles", "packFinishLayerName", "packFinishLabel", "packFullBleed", "packPlateSvg"] as const;
 
 export const FACE_SCRIPT = `window.SITE_FACE = (function () {\n${PACK_PAGE_PURE_SOURCE}\nreturn { ${FACE_EXPORTS.map((n) => `${n}: ${n}`).join(", ")} };\n})();`;
 
@@ -111,4 +112,44 @@ export function faceSymbols(): string {
   const m = /<symbol id="setsym"[\s\S]*?<\/symbol>/.exec(renderPackOpeningHtml({ title: "", packs: [], site: true }));
   if (!m) throw new Error("the pack page has no #setsym symbol");
   return `<svg width="0" height="0" style="position:absolute" aria-hidden="true">${m[0]}</svg>`;
+}
+
+// ---- the sealed pack on the website (render session 63, the store layout) ----
+// The store's tiles and the Packs widget draw the pack the opening tears:
+// the pack page's own wrapper rules (`.pack .wrap`, the crimps, the logo,
+// the emblem, SEASON ZERO, the set code, the plate), cut out of PACK_CSS and
+// scoped to `.spk` (siteShop.sealedPackHtml's markup), and its plate from
+// window.SITE_FACE.packPlateSvg. Nothing about the pack is restated here.
+
+const PACK_PART = /^\.pack \.(wrap|crimp|logo|emb|set|meta|pa)\b/;
+
+/** The sealed pack's rules from the pack page's CSS, `.pack ` turned into
+ * `.spk ` (the torn halves, the flap and the grip are the opening's alone). */
+export function sealedPackRules(css: string): string[] {
+  const out: string[] = [];
+  for (const r of cssRules(css)) {
+    if (r.prelude.startsWith("@")) continue;
+    const sels = r.prelude.split(",").map((s) => s.trim()).filter((s) => PACK_PART.test(s));
+    if (!sels.length) continue;
+    out.push(`${sels.map((s) => s.replace(/^\.pack /, ".spk ")).join(", ")} {${r.body}}`);
+  }
+  return out;
+}
+
+export const SEALED_PACK_CSS = [
+  // The pack's box: --pw wide, 1.6 times as tall (the opening's ratio).
+  ".spk { position: relative; flex: none; width: var(--pw); height: calc(var(--pw) * 1.6); border-radius: 10px; color: #e6eeff; font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif; line-height: 1.2; box-shadow: 0 12px 28px rgba(8,10,40,.45); }",
+  ...sealedPackRules(PACK_CSS),
+  // The crimps scale with the pack (the opening's 12 px is for a 300 px pack).
+  ".spk .crimp { height: max(4px, calc(var(--pw) * 0.05)); }",
+  ".spk .wrap { top: 0; overflow: hidden; }",
+].join("\n");
+
+/** The loadout picker's boast emblems as symbols (`#lg-<item id>`), so a
+ * store tile draws the same emblem the picker's tile does. */
+export function boastGlyphSymbols(): string {
+  const defs = Object.entries(LOADOUT_GLYPHS)
+    .map(([id, g]) => `<symbol id="lg-${id.replace(/[^a-z0-9-]/gi, "")}" viewBox="0 0 24 24">${g}</symbol>`)
+    .join("");
+  return `<svg width="0" height="0" style="position:absolute" aria-hidden="true">${defs}</svg>`;
 }

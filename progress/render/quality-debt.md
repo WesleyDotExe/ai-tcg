@@ -24,8 +24,16 @@ items are removed, with the fix in `log.md`.
   the demo page; the s62 stills were taken before the Skip button's rename (they read "Skip to summary"); the
   session-54 ten-pack check's Auto runs encode the old Auto (flipping by itself) and fail by design now (see the
   s62 log; superseded by the s62 check); the Mythics' own unique wards are not used in the flare; a Gold Mythic's
-  doubled ward reaches the screen's edges at 1280 x 800; the ten-pack's mini packs keep the old tear and the site's
-  Packs and Store widgets the small pack art.
+  doubled ward reaches the screen's edges at 1280 x 800; the ten-pack's mini packs keep the old tear.
+- **The store layout (session 63) is built and checked against the real API (36 PASS), with thin spots.** The
+  countdown's re-read at zero was never seen in the browser (only the clock, in Node); the Store widget at L fits
+  with 1 px to spare at 1440 x 1000 (other font metrics would scroll it inside the tile); the compact pack art in
+  the widgets is 52-56 px wide, so its logo is barely legible; the 10 packs tile draws three full plates (three
+  SVGs); a buy's confirm is still a dialog and focus is not put back on the tile's button after the redraw; the
+  daily tile's "next comes in" line is minutes (`nextPackAt`) while the head's clock is seconds (`resetsAt`), the
+  same moment twice; the stepper is gone (owner call 2), so buying 3 takes three confirms; the phone layout looked
+  at once. **Stale by design: `site-check-s47.mjs`** drives `#buy-btn` and the stepper, now replaced; retire or
+  rewrite it in hardening pass 64 together with the s54 ten-pack check.
 - **Agent controls' time ring runs on the server's allowance (session 58) and ticks once a second (session 59).**
   Since 59 the arc, minutes, label and caption are patched in place every second from the last read on the page's
   clock (the arc to a tenth of a percent; whole percents had stepped a 15-minute ring only every 9 s), and the

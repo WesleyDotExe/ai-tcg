@@ -4586,6 +4586,8 @@ Owner decisions on the 6 calls in `progress/render/checkpoints.md` (PR #149, `pr
 
 The pack ceremony is complete per the brief; what remains on it is the owner's feel check on the Mac mini. Next render slice, as planned: the store layout.
 
+**Render part handled (render session 63):** calls 1 and 2 left as built, undecided; calls 3-6 stand. The store layout built with the Store and Packs widgets (`progress/render/checkpoints.md`).
+
 ---
 
 ## 2026-11-11 — Owner: answers to game session 85 (the season switch made safe), keep calls 1–3; build the lock file in the hardening pass

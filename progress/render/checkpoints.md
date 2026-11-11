@@ -7,6 +7,61 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-11 — The store layout, with the Store and Packs widgets at S, M and L — AWAITING FEEDBACK
+
+The brief's section 2 (the store layout) and section 1's Store and Packs rows. Try it: `npm run site-demo -w
+@ai-tcg/render`, sign in as nova, open **Store**; then on Home, Customise, and set the Store and Packs widgets to S,
+M and L.
+
+**What you'll see:**
+- **The Store page as an item shop, in the current look.** At the top, your balance and **"Daily reset in
+  20:36:57 · midnight Sydney"**, a clock that ticks each second to the server's reset time (at zero the store reads
+  again, so the new day's free pack shows). Then **Packs**: three large tiles, **one featured** (two columns wide):
+  the **free daily pack while one waits**, else the **10 packs**. Then **Cosmetics**: one tile per item on sale.
+- **Every tile:** the art is the hero, on a deep plate in the product's colour: the **real pack** (the very pack the
+  opening tears: its wrapper, plate, logo and emblem, drawn from the opening's own code and CSS), three fanned for the
+  10 packs with a ×10 badge, the coin drawn by the coin painter, a boast's emblem (the loadout picker's) on a lit hex.
+  The **price sits on the art with the credits icon** ("Free" for the daily pack); the **button is underneath**
+  (Claim / Buy). Can't afford it: the button greys and says how many credits short. Owned: an OWNED ribbon, no
+  price, and the owned item moves after the ones still on sale. Claimed today: the daily tile greys, says when the
+  next comes in, and the 10 packs take the featured spot.
+- Below the shop, unchanged in content: the packs waiting (now with the real pack and a big count), your agents'
+  loadouts, recent openings.
+- **Store widget:** S = the free pack, Claim and the clock; M = the three pack tiles with their buttons; L = the
+  balance, the clock, the pack tiles and the cosmetics (the page's layout, smaller).
+- **Packs widget:** S = the real pack with the count on it, the number, Open; M = a bigger pile, Open and Open 10,
+  the pity counters as chips (gold when the next pack is sure to hold one); L = M plus your last two openings.
+
+**Evidence:** `progress/render/evidence/store-check-s63.txt` (**36 PASS, 0 FAIL**, against the real owner API over a
+real store: one featured tile and it's the daily pack; tiles of three sizes; every price equal to `GET /api/store`'s;
+the credits icon on each; a button under every tile's art; the plate on every pack; the countdown equal to the
+server's `resetsAt` and ticking; claim from the featured tile (the server counts it, the 10 packs become featured,
+no credits spent); buy 1 pack from its tile (422 -> 322, one more waiting) and a coin-priced boast (Owned); every
+unaffordable tile greyed with the exact shortfall; both widgets at S, M and L showing different things, the server's
+numbers, nothing overflowing; one column on a phone with no sideways scroll; no requests out, no errors). Stills
+`v2-s63-*.jpg` (the page light and dark, after the claim, after the buys, phone; the widgets at S, M, L). Tests
+`render/test/siteShop.test.ts` (15).
+
+**Calls you may want to overrule:**
+1. **The featured tile:** the free daily pack while one waits, else the 10 packs (your brief's two examples). An
+   alternative: always the 10 packs, with the daily pack a normal tile.
+2. **The 1-to-10 stepper is gone from the Store page.** The brief's products are "1 pack, 10 packs"; buying 3 now
+   takes three taps on 1 pack (the server still accepts 1 to 10 in one purchase). Say if you want the stepper back,
+   on the 1 pack tile.
+3. **10 packs costs exactly ten times one pack** (the store has no bundle price); the tile says "50 cards", not
+   "best value".
+4. **Owned cosmetics stay on the shelf** with an OWNED ribbon and move to the end, so you see everything on sale.
+   The alternative is hiding them.
+5. **The Packs widget no longer has Buy or the daily-pack line at M** (the brief's table: Open / Open 10 and the
+   pity counters); buying is the Store widget's. Its L shows the last **two** openings (three overflowed the tile).
+6. **The pity counters stay counts** ("7 since a Full Art"), not bars: the server sends the counts and whether the
+   next pack is sure to hold one, not the thresholds, so a bar to the guarantee would need the game lane to send them.
+
+**Next:** the rest of the widgets' S/M/L pass (Daily rewards, Watch live embedded at L, Showcase larger cards,
+Collection, and Ladder, Rating & form and Notifications on their real data).
+
+---
+
 ## 2026-11-10 — The pack opening ceremony, part 3b (Open 10's stops, the debug panel) — AWAITING FEEDBACK
 
 The brief's section 3, supporting requirements, and its done-check ("the pack ceremony has been run through every

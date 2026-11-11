@@ -1,0 +1,58 @@
+
+[A] the Store page
+      daily t-feature 558x413 price=Free btn="Claim"
+      pack-1 t-tall 271x413 price=100 btn="Buy"
+      pack-10 t-tall 271x413 price=1000 btn="Buy" (greyed)
+      cos-boast-s0-boot-sequence t-item 214x273 price=300 btn="Buy"
+      cos-boast-s0-dial-up-fireworks t-item 214x273 price=300 btn="Buy"
+      cos-coin-s0-dial-up-dime t-item 214x273 price=300 btn="Buy"
+      cos-coin-s0-neon-nickel t-item 214x273 price=300 btn="Buy"
+PASS  A. exactly one featured tile, the free daily pack (1 waiting)
+PASS  A. the featured tile is larger: 558x413 beside 271x413
+PASS  A. tiles of different sizes (558x413, 271x413, 214x273)
+PASS  A. the pack prices are the server's: 1 pack 100, 10 packs 1000 (GET /api/store: 100 each)
+PASS  A. every cosmetic's price on its tile is the server's (4 on sale)
+PASS  A. every price has the credits icon; the daily pack says Free
+PASS  A. a button under the art on all 7 tiles
+PASS  A. every pack tile draws the pack opening's plate (its circuit field)
+PASS  A. coins painted by the coin painter, boasts with the loadout picker's emblems
+PASS  A. the balance: 422 credits (GET /api/wallet: 422)
+PASS  A. the countdown 20:34:58 is the server's resetsAt (2026-11-12T13:00:00.000Z, 74098 s away)
+PASS  A. it ticks: 20:34:58 -> 20:34:56 in 2.2 s
+
+[B] claim the free daily pack
+PASS  B. the server: 12 waiting (was 11), 0 free packs left to claim
+PASS  B. the 10 packs are now the featured tile, first
+PASS  B. the daily tile greyed, no price on it: "Claimed today" (Claimed today. The next comes in 20 h 34 min (midnight Sydney).)
+PASS  B. claiming cost nothing
+
+[C] buy a pack and a cosmetic
+PASS  C. the confirm names the server's price: "Buy a pack?One pack for 100 credits. You have 422.CancelBuy · 100"
+PASS  C. bought: 422 -> 322 credits, 13 packs waiting
+PASS  C. the balance redrawn: 322 credits
+PASS  C. Boot Sequence bought: the server lists it owned, its tile says Owned, no price
+PASS  C. the owned item moved after the ones still on sale
+PASS  C. with 22 credits, 5 tiles greyed with how many credits short (pack-10: 978 credits short; pack-1: 78 credits short; cos-boast-s0-dial-up-fireworks: 278 credits short; cos-coin-s0-dial-up-dime: 278 credits short; cos-coin-s0-neon-nickel: 278 credits short)
+
+[D] the Store and Packs widgets at S, M and L
+PASS  D. the board saved with both widgets at S
+      S: store {"claim":true,"tiles":0,"cos":0,"bal":null,"clock":true,"plate":true,"over":0}; packs {"pw":"44px","n":"13unopened","open10":false,"pity":null,"pulls":0,"plate":true,"over":0}
+PASS  D. the board saved with both widgets at M
+      M: store {"claim":true,"tiles":3,"cos":0,"bal":null,"clock":false,"plate":true,"over":0}; packs {"pw":"84px","n":"13unopened packs","open10":true,"pity":"7 since a Full Art2 since a Mythic","pulls":0,"plate":true,"over":0}
+PASS  D. the board saved with both widgets at L
+      L: store {"claim":true,"tiles":7,"cos":4,"bal":"22 credits","clock":true,"plate":true,"over":1}; packs {"pw":"84px","n":"13unopened packs","open10":true,"pity":"7 since a Full Art2 since a Mythic","pulls":10,"plate":true,"over":0}
+PASS  D. Store S: claim the free pack and the clock, no tiles
+PASS  D. Store M: the three pack tiles with their buttons, no cosmetics or balance
+PASS  D. Store L: the pack tiles, the 4 cosmetics, the balance (22 credits) and the clock
+PASS  D. nothing overflows its widget (store 0/0/1, packs 0/0/0 px)
+PASS  D. Packs: the count is the server's (13 waiting) at every size
+PASS  D. Packs S: pack, count, Open; M: + Open 10 and the pity counters ("7 since a Full Art2 since a Mythic"); L: + the last pulls (10 cards)
+PASS  D. the pity counters are the server's
+PASS  D. the widgets draw the real pack (the plate) too
+
+[E] dark, phone
+PASS  E. on a phone: one column of tiles, no sideways scroll (390 <= 390)
+PASS  E. no external requests
+PASS  E. no page errors
+
+36 PASS, 0 FAIL
