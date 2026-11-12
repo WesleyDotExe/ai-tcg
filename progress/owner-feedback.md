@@ -4695,3 +4695,18 @@ Render session 66 noted (in `progress/render/notes-for-owner.md`) that `GET /api
 3. Tell the render lane in the notes once it's fixed, so it can drop its note.
 
 Then continue as planned.
+
+---
+
+## 2026-11-12 — Owner: answers to game session 89 (the day's wins numbered in payment order), plus a standing rule for every session's notes
+
+**Game session 89** (PR #158, `progress/daily-order-001.txt`, `progress/quality-debt.md` "Session 89").
+- **Accepted:** the fix. `GET /api/daily` numbers the day's wins in recording order, the order they are paid in; one rule for both. Paying by end time instead (which would change credits already paid) is not wanted.
+- **Accepted for Season 0:** a backward clock step pauses a running server for as long as the step (no matches, Watch live frozen). Not changed in the freeze. **The owner's clean-up steps (2–4 December) say to check the Mac mini's clock before a restart.**
+- **Noted, no action now:** recording order rests on SQLite's rowid; a future migration that rebuilds `matches` must keep row order, or add an explicit sequence column.
+
+**Render lane:** the daily-earnings mismatch from render session 66's notes (note 2) is fixed in the game lane (session 89). Drop that note. The site demo's warm-up still records wins out of end order; changing the demo is the render lane's call, not required.
+
+**Standing rule, both lanes (owner 2026-11-12):** before a session finishes, check that **every file its PR description says it updated is actually in the PR's changed files**, above all `progress/notes-for-owner.md` (game) and `progress/render/notes-for-owner.md` / `progress/render/checkpoints.md` (render). If a file is missing, add it before opening the PR, or correct the description. Sessions 83 and 89 both said they had written calls into notes-for-owner.md and hadn't. Session 89's PR says it listed "2 small calls" there; they are answered above.
+
+Next session by alternation: render (Watch live at L, completing the widgets' S/M/L pass).
