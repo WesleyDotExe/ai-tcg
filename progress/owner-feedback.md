@@ -4722,3 +4722,18 @@ Owner decisions on the 4 small calls in `progress/render/checkpoints.md` (PR #15
 4. **Keep:** Watch live at S is the score alone; the tile's arrow opens the page.
 
 The widgets' S/M/L pass is done. Next session by alternation: game. Next render slices, as planned: the Stats page, the ladder page and the notifications bell (render hardening pass due at 69).
+
+---
+
+## 2026-11-12 — Owner: answers to game session 90 (the site contract check), keep both calls; three render-lane items placed
+
+**Game session 90** (PR #160, `progress/site-contract-001.txt`). **Keep both small calls:**
+1. **Keep:** the site contract check runs in CI on every PR and can fail either lane's PR, but only on a real mismatch (a missing or wrong-shaped field, a missed control, or a stray compiler error). Untyped extra fields are listed, never a failure.
+2. **Keep:** the check loads the website's client from a server-side dev script, read-only; the server's own code doesn't depend on the website, and the two lanes' code stays apart otherwise.
+
+**Render lane: the three findings from session 90's notes (in `progress/notes-for-owner.md`), placed as follows:**
+1. **Top rated and viewer counts on Watch live** (`GET /api/live` `featured: { tournament, topRated }`, and each live match's `viewers`, served since game session 74 on the owner's approved rules): **a small render slice after the notifications bell**, inside the Season 0 scope and before the 1 December feature deadline. Show Top rated and the viewer count on Watch live (page and widget as fits). Add it to the render list in `progress/roadmap.md`. If the midpoint check (~22 November) finds render behind, it moves to `progress/season-1-ideas.md` instead.
+2. **`autoPlay.allowance.label`** ("Running" / "Finishing match" / "Time's up"): use the server's words in Agent controls **in the render hardening pass (session 69)**, as the owner's 2026-11-06 entry already said ("the render lane's Agent controls take the words when it next touches them").
+3. **The Stats page slice:** include `GET /api/stats`'s `today` (today's earnings), and add it to the site's types so the contract check covers it.
+
+Next session: once PR #160 has merged, render (the Stats page, per its plan).
