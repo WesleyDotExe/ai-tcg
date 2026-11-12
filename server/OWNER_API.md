@@ -191,7 +191,7 @@ The Daily rewards widget. The day runs from midnight to midnight Sydney time (`A
   timeZone: "Australia/Sydney",
   startedAt, resetsAt,               // UTC ISO; resetsAt is the next midnight in Sydney
   schedule: [{ fromWin, toWin, credits }],   // 1: 30; 2-4: 10; 5-10: 5; 11 and after (toWin null): 0
-  wins: [{ nth, matchId, endedAt, credits }],   // every win today, oldest first
+  wins: [{ nth, matchId, endedAt, credits }],   // every win today in the order it was recorded and paid
   rewardedWins: [...],               // the wins that paid something: what the widget lists
   losses, maxPaidLosses,             // losses and draws today; losses stop paying after maxPaidLosses
   creditsFromWins, creditsFromLosses, credits,
@@ -199,7 +199,7 @@ The Daily rewards widget. The day runs from midnight to midnight Sydney time (`A
 }
 ```
 
-Read from match history (cancelled and abandoned matches pay nothing and count for neither). The daily quests and the weekly challenge aren't in Season 0, so they aren't here.
+Read from match history (cancelled and abandoned matches pay nothing and count for neither). A win's `nth` is its place in the order the day's matches were recorded, the same order they were paid in, so `credits` is always the schedule's credits for `nth` (owner 2026-11-12). That is end order unless the server's clock stepped back between two matches; then a win's `endedAt` can read earlier than the one before it. The daily quests and the weekly challenge aren't in Season 0, so they aren't here.
 
 ### The ladder and the rating (session 66)
 

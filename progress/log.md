@@ -5208,3 +5208,40 @@ protocol 7, all pass; server typecheck clean; `npm run demos`: 31, 0 stale; the 
 **Worked:** measuring first again, and this time it showed there was nothing to fix, so I didn't change anything.
 **Thin:** in quality-debt.md (linear reads at launch scale; nothing prunes the log files).
 **Blocked:** nothing.
+
+## 2026-11-12 — Session 89 (game lane): the day's wins numbered in the order they were paid (owner bug fix; no schema change)
+
+**Lane:** the last merged PR, #157, was "Render:", so this is a game session. No PR from either lane was open.
+Owner feedback: the 2026-11-12 entry ("for the next game session, first: the daily-earnings order mismatch") done
+first and marked handled; the answer to session 88 (keep logs forever) needs nothing. A bug fix inside the freeze.
+
+**What:**
+1. **Found the cause.** `recordMatch` pays a win `winCredits(wins already recorded that day + 1)`;
+   `dailyEarnings` numbered the day's wins `ORDER BY ended_at, rowid`. They differ only when a match is recorded
+   with an earlier `ended_at` than one already recorded.
+2. **Whether real play can do it** (tried through the real `LiveLadder`, `progress/daily-order-001.txt` part 2):
+   one owner has one live match at a time and the ladder records at the store's clock, so it needs a backward
+   clock. While the server runs it can't: the next round is due at a time on the old clock (`nextRoundAt`), so the
+   ladder idles until the clock gets back there (90 minutes in the demo; a shown match's moves pause the same
+   way). On a restart with the clock behind it can: the new process plays at once, on the new time. The site
+   demo's case is its own setup (its "today" wins at the real time, its ladder two hours behind); part 1
+   reproduces render 66's numbers exactly under the old rule (+10, +10, +5, +30, +10).
+3. **The fix:** `dailyEarnings` numbers by `rowid` (recording order = payment order), one rule for both; doc
+   comments and `server/OWNER_API.md` say so. Paying by end time instead would have meant changing credits
+   already paid.
+4. **Test:** `economy/test/ownerEndpoints.test.ts` "numbers the day's wins in the order they were paid...": four
+   wins and a loss recorded out of end order, then twelve wins shuffled past the cap; fails on the old code
+   (`expected [ 'm4', 'm2', 'm3', 'm1' ] to deeply equal [ 'm1', 'm2', 'm3', 'm4' ]`), passes now.
+5. **Evidence demo:** `server/src/dev/dailyOrderDemo.ts` (`npm run demo:daily-order -w server`), both parts on a
+   real season file, the owner API on a real port and the live ladder; prints `GET /api/daily` beside the old
+   numbering; 10 PASS. On the old store code it FAILS "every win's credits are the schedule's credits for its
+   place" in both parts. Added to `progress/demos.json`. Its first version wasn't deterministic: the houses' pack
+   openings weren't seeded (`housePacks.packSeed`); fixed, three runs identical.
+
+**Ran it:** `npm test`: engine 372, protocol 7, server 203, agents 17, economy 293 (+1), render 983, all pass;
+typecheck clean in every workspace; `npm run demos`: 31 same before the new one was added (the old demos record in
+end order, so none changed); the new demo three times, identical.
+**Worked:** reproducing the render lane's exact numbers first, then trying the real-play case through the real
+ladder, which showed the running ladder can't do it and only a restart can.
+**Thin:** in quality-debt.md (a backward clock step pauses the ladder; recording order rests on the implicit rowid).
+**Blocked:** nothing.

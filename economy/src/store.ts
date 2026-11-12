@@ -832,7 +832,8 @@ export interface DailyEarnings {
   /** The daily win schedule: wins fromWin..toWin (null: and after) pay
    * `credits` each. */
   schedule: { fromWin: number; toWin: number | null; credits: number }[];
-  /** Every win today, oldest first, with what it paid (0 past the 10th). */
+  /** Every win today in the order it was recorded and paid (oldest first,
+   * unless a clock stepped back), with what it paid (0 past the 10th). */
   wins: { nth: number; matchId: string; endedAt: string; credits: number }[];
   /** The wins that paid something: what the widget lists. */
   rewardedWins: { nth: number; matchId: string; endedAt: string; credits: number }[];
@@ -4690,7 +4691,17 @@ export class EconomyStore {
    * schedule, each rewarded win with what it paid, the losses and what they
    * paid, and what the next win and the next loss would pay. Read from
    * match history, the same count `recordMatch` pays by; cancelled and
-   * abandoned matches pay nothing and count for neither. */
+   * abandoned matches pay nothing and count for neither.
+   *
+   * One order for the numbering and the payout (owner 2026-11-12): a win's
+   * place in the day (`nth`) is the order it was recorded in, because that
+   * is the order `recordMatch` paid it in (its tally is the day's matches
+   * already recorded). Numbering by end time instead disagreed whenever a
+   * match was recorded with an earlier end time than one already recorded
+   * (a clock that stepped back): the 30 then sat on a later win. Recording
+   * order is the table's rowid; nothing rewrites the season file's rows
+   * (no VACUUM runs on it), so it is stable. Each win still carries its own
+   * `endedAt`, which in that case reads out of order. */
   dailyEarnings(ownerId: string, at: string = this.stamp()): DailyEarnings {
     this.getOwner(ownerId);
     const day = this.resetDay(at);
@@ -4698,7 +4709,7 @@ export class EconomyStore {
       .prepare(
         `SELECT match_id, outcome, winner_owner, p1_owner, p1_credits, p2_credits, ended_at FROM matches
          WHERE (p1_owner = :o OR p2_owner = :o) AND ended_at >= :start AND ended_at < :end
-         ORDER BY ended_at, rowid`,
+         ORDER BY rowid`,
       )
       .all({ o: ownerId, start: day.startsAt, end: day.endsAt }) as Row[];
     const wins: DailyEarnings["wins"] = [];

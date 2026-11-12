@@ -28,6 +28,7 @@
     "demo:stats": "tsx src/dev/statsApiDemo.ts",
     "demo:season-end": "tsx src/dev/seasonEndApiDemo.ts",
     "demo:season-next": "tsx src/dev/seasonNextApiDemo.ts",
+    "demo:daily-order": "tsx src/dev/dailyOrderDemo.ts",
     "measure:first-seat-ladder": "tsx src/dev/firstSeatLadder.ts"
   },
   "dependencies": {

@@ -169,6 +169,10 @@ new ideas go to `progress/season-1-ideas.md`.
      (`progress/season-scale-001.txt`, a record): recording a real match ~5 ms, Stats ~60 ms, the ladder ~30 ms,
      the season end and next season's file under 0.2 s, at Season 0's end; disk ~150 MB over the 7 days. Nothing
      needed a fix for Season 0 (an owner index tried, no gain, not added); the slow demo set re-run.
+   - [x] Spare session 89 (owner 2026-11-12, a bug fix inside the freeze): `GET /api/daily` numbered the day's
+     wins by end time but they were paid in recording order. One rule now, recording order, for both; real play
+     hits it only on a restart with the clock behind. Test in `economy/test/ownerEndpoints.test.ts`; evidence
+     `progress/daily-order-001.txt` (10 PASS, CI demo set).
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its
