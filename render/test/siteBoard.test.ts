@@ -315,9 +315,11 @@ describe("what the widgets show", () => {
     expect(at("agent", "M")).toMatch(/<b class="w">\d+W<\/b> <b class="l">1L<\/b> <small>today/);
     expect(at("agent", "M")).toContain("NULL");
     expect(at("agent", "L")).toContain("Recent matches");
-    expect(at("daily", "S")).toContain("40/90");
-    expect(at("daily", "S")).toContain("Rewarded wins 2/10");
-    expect(at("daily", "L")).toContain("Losses and draws today: 1 · +2 credits");
+    // Render session 66: Daily rewards' S is the ring; M the reward row; L the rest.
+    expect(at("daily", "S")).toContain('aria-label="40 of 90 credits from wins today"');
+    expect(at("daily", "M")).toContain("2 of 10 wins paid");
+    expect(at("daily", "L")).toContain("<b>2</b>/10");
+    expect(at("daily", "L")).toContain("Losses and draws: <b>1</b> · 1 of");
     expect(at("packs", "M")).toContain("1<small>unopened pack</small>");
     // Render session 63: the Packs widget at M has the pity counters; buying is the Store widget's.
     expect(at("packs", "M")).toContain("<b>2</b> since a Full Art");
@@ -331,7 +333,8 @@ describe("what the widgets show", () => {
     expect(at("collection", "L", { ...DATA, colFilter: "Swarm" })).not.toContain("Alpha Node");
     expect(at("collection", "L", { ...DATA, colFilter: "Neutral" })).toContain("Crown");
     expect(at("showcase", "S").match(/class="mc /g)).toHaveLength(1);
-    expect(at("showcase", "M").match(/class="mc /g)).toHaveLength(5);
+    // Render session 66: the Showcase draws fewer, larger cards (S 1, M 3, L 6).
+    expect(at("showcase", "M").match(/class="mc /g)).toHaveLength(3);
   });
   it("a widget still loading says so; one whose read failed says why", () => {
     const at = (type: WidgetType, d: WidgetData) => widgetHtml({ id: "w", type, size: "M" }, d, { editing: false });

@@ -1328,3 +1328,16 @@ season mark) is proposed as a mark, call 1.
 2. **For the game lane's roadmap upkeep:** render item 3 is ticked (no widget waits on the server); item 7's widget
    pass is started (three of seven widgets done).
 3. **Nothing needed from the game lane.**
+
+## 2026-11-12 — Render session 66 (Daily rewards, Showcase and Collection)
+
+1. **Four small calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The one most worth a look:
+   call 2 (Showcase shows fewer cards so it can draw them larger: 1, 3 and 6 instead of 1, 5 and 10).
+2. **For the game lane (an observation, not a request; read-only, nothing changed):** `GET /api/daily` numbers a
+   day's wins by end time (`dailyEarnings`, `ORDER BY ended_at`), but each win's `credits` is what it was paid when
+   recorded. In the site demo's warm-up (the ladder on a clock moved in jumps) Nova's wins came back as Win 1 +10,
+   Win 2 +10, Win 3 +5, Win 4 +30, Win 5 +10, so the 30 sat on the 4th win. In live play one owner's matches never
+   overlap, so recording order is end order and this shouldn't happen; worth a glance at clean-up if a restart or
+   a clock change could record matches out of order. The widget now sizes each node by its place in the schedule
+   and labels it with what the server paid, so it reads honestly either way.
+3. **For the game lane's roadmap upkeep:** item 7's widget pass: six of seven widgets done; Watch live at L left.

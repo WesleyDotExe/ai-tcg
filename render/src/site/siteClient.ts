@@ -554,7 +554,8 @@ function tickClocks(): void {
   if (passed && clockReloadFor !== passed) {
     clockReloadFor = passed;
     if (state.page === "store" && !state.opening) void loadShop();
-    if (state.page === "home") void loadHome(["packs", "store"]);
+    // Render session 66: the Daily rewards widget's reset clock too (a new day).
+    if (state.page === "home") void loadHome(["packs", "store", "daily"]);
   }
 }
 window.setInterval(tickClocks, 1000);

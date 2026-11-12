@@ -165,6 +165,18 @@ items are removed, with the fix in `log.md`.
   rows by dropping the owner names at M; the widgets were looked at once on a phone; the ladder's "Around you" at L
   was never seen with the owner off the top 8 in the browser (four owners in the demo; unit-tested). My agent still
   has no persona or signature card.
+- **Daily rewards, Showcase and Collection at S, M and L (session 66), with thin spots.** Checked against the real
+  API with the ladder playing (`widgets-check-s66.txt`, 36 PASS). **Thin:** the reward row's win nodes have no
+  button because wins pay themselves; the free pack is the only claim (no quests in Season 0), so "a row of rewards
+  with claim buttons underneath" is one button; the ring's re-read at the reset (the clock reaching zero now
+  reloads the daily read too) was never seen at midnight in a browser; the ring's fill and the next node's pulse
+  were looked at only in stills; the phone layout hides the "no quests" footnote to fit; Showcase S draws its card
+  smaller (62 px, was 78) to fit beside its name, M and L larger (121 and 156 px); Showcase is still a placeholder
+  face (no stats or text, the pack page's full face needs fields the collection read doesn't send); Collection L
+  scrolls its binder inside the tile (420 px over at 61 cards held; it lists every card held, as before);
+  the demo pays wins out of order (see notes-for-owner, s66), so the stills' paid labels read +10 +10 +5 +30.
+- **Watch live at L doesn't embed the live arena yet** (the brief's L; cut order item 3 if the lane is behind at
+  the midpoint). Today L shows the compact board and the list.
 - **Pages are still missing:** Stats, Admin. Featured picks, viewer counts and the 2× vote have no endpoint.
   The Store has no "Watch again", and the Collection no craft price from the API or Promos, though the game
   lane serves all three since its session 68 (render work not done yet).
