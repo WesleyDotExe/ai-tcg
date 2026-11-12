@@ -5245,3 +5245,40 @@ end order, so none changed); the new demo three times, identical.
 ladder, which showed the running ladder can't do it and only a restart can.
 **Thin:** in quality-debt.md (a backward clock step pauses the ladder; recording order rests on the implicit rowid).
 **Blocked:** nothing.
+
+## 2026-11-12 — Session 90 (game lane): the site contract check (a spare session; no product code or schema change)
+
+**Lane:** the last merged PR, #159, was "Render:", so this is a game session. No PR from either lane was open.
+Owner feedback: the answers to session 89 (accepted, a standing rule on PR descriptions) and to render 67 (keep all
+4) needed nothing from this lane. Item 7 (spare sessions), the candidate current.md named: the render lane's site
+types against the served fields.
+
+**What:**
+1. **`server/src/dev/siteContractCheck.ts`** (`npm run check:site-contract -w server`). A real season file, five
+   owners (three houses, two players on auto-play, a drafted Null agent with a signature card), the real owner API
+   on a port and the real `LiveLadder` on a fixed clock; six earlier days' wins recorded by hand (history rows
+   with no log, credits for a pack). Then the render's own client (`siteApi()` from `render/src/site/siteApi.ts`,
+   unchanged, loaded by path at run time) makes 43 calls: every read the pages make, a live match mid-play (feed
+   from the start and from the last two moves), opening 1 and 10 packs, the daily claim, a purchase, the card
+   viewer, salvage and a craft, the play settings, auto-play on with minutes, +15, off, the 2x ask, the loadout
+   after the match ended, a rebuild to the end.
+2. **The type check:** every answer written as a TypeScript literal of `Awaited<ReturnType<SiteApi[method]>>`, one
+   key per line with its path, compiled with the render workspace's tsconfig (TypeScript 7). A missing or
+   wrong-shaped field is a MISMATCH; an excess field is UNTYPED. The compiler names one excess field per object, so
+   the check takes each out and compiles again until none is left (every untyped field listed). Three controls
+   (broken copies of real answers: a field taken out, a number sent as text, a field renamed) must be caught.
+3. **CI:** a step in `.github/workflows/test.yml` after the demo drift check; exit 1 only on a mismatch, a missed
+   control or a compiler error outside the answers. The file is a record in `progress/demos.json` (UNTYPED lines
+   move whenever either lane adds a field, so it isn't diffed).
+
+**Ran it:** `progress/site-contract-001.txt`: 43 calls, 37 of the client's 44 methods (3 are the site host's own,
+4 not reachable in the run: `buyCosmetic`, `craftSecret`, `matchLog`, `signOut`), **0 mismatches**, 172 untyped
+field lines, controls 3 of 3 caught. Two runs identical. Found on the way: `featured` (Top rated) and `viewers`,
+served since session 74, are read by no render code; `allowance.label` and Stats' `today` aren't typed (told to the
+render lane). The script's first drafts: the excess field's name came back quoted (the keys are JSON strings), and
+the card viewer and salvage were skipped (the spare card was picked before the packs were opened); both fixed.
+`npm test -w server` 203 pass; server typecheck clean; `npm run demos` 32 same.
+**Worked:** using the render's real client rather than re-typing its URLs, and proving the check can fail before
+trusting its zero.
+**Thin:** in quality-debt.md (the site host's own readers aren't checked; only the shapes this run reached).
+**Blocked:** nothing.

@@ -10,7 +10,7 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-12, game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
+Updated 2026-11-12, game session 90 (a spare session: the site contract check); before that game session 88 (a spare session: the season-scale reads measured, the slow demos re-run);
 before that render session 65 (Ladder, Rating & form and Notifications at S, M and L).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
@@ -173,6 +173,10 @@ new ideas go to `progress/season-1-ideas.md`.
      wins by end time but they were paid in recording order. One rule now, recording order, for both; real play
      hits it only on a restart with the clock behind. Test in `economy/test/ownerEndpoints.test.ts`; evidence
      `progress/daily-order-001.txt` (10 PASS, CI demo set).
+   - [x] Spare session 90 (item 7): the site contract check. The website's own client against the real owner API
+     with the live ladder playing, every answer type-checked as the type the site declares: 43 calls, 0 mismatches,
+     3 of 3 controls caught (`progress/site-contract-001.txt`, a record); a CI step (`npm run check:site-contract
+     -w server`) fails either lane's PR on a mismatch. Unread by the site: `featured`, `viewers` (render notes).
    - [ ] Part 3 (owner 2026-11-10, three entries; after the 5 Dec launch, before Season 0 ends): the collection,
      decks, unopened packs (opened as the new season's packs), credits, pack points, history, notifications and
      the daily bank carry over; the starter grant for new owners only. Carry each copy with its own id, its

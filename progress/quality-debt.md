@@ -262,6 +262,33 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 90 (a spare session: the site contract check; no product code or schema change): what was raised, and what is still thin
+
+Raised: nothing had ever checked the render lane's site types (`render/src/site/siteApi.ts`) against what the server
+actually sends; the render wrote them from `server/OWNER_API.md` and tested them on hand-made answers. Now
+`server/src/dev/siteContractCheck.ts` (`npm run check:site-contract -w server`) drives the site's own client against
+the real owner API with the live ladder playing, type-checks every answer as the type the client declares for it,
+and runs in CI (fails only on a mismatch or a missed control). Result: 43 calls, 37 of the client's methods,
+**0 mismatches**, 3 of 3 broken controls caught, 172 served fields the types don't name
+(`progress/site-contract-001.txt`). Still thin:
+- **Only the client in `siteApi.ts` is checked.** The site host reads the live feed and replays with its own types
+  (`render/src/site/siteHost.ts`, `liveFrames.ts`: the signature card in full, `openingHands`, `faction`); those
+  readers aren't in the check. Nor are the agent protocol's messages (the wire protocol has its own tests).
+- **One season's shapes, not every shape.** A field that is sometimes `null` and sometimes an object is checked only
+  in the state this run reached: e.g. a `boast` on a finished live match, `stopped` on auto-play, an `allowance` in
+  "finishing", a Prototype run in the binder, a cancelled or abandoned match in history. A union the run never hit
+  can still be wrong in the site's type. The run reaches: placement and rated owners, a live match mid-play with a
+  signature card, hand-recorded matches with no log, opened packs (1 and 10), a claimed daily pack, salvage and a
+  craft, a rebuild that finished.
+- **Not called: `buyCosmetic`, `craftSecret`, `matchLog` (text), `signOut` (no body).** The owner can't afford a
+  300-credit cosmetic in the run, and no secret code is known to it.
+- **Untyped fields are not a defect, but some are features the site doesn't use:** `featured` (Top rated) and
+  `viewers` on `GET /api/live` and the live feed, served since session 74, are read by no render code;
+  `allowance.label` ("Time's up", session 78) isn't read yet. Told to the render lane in notes-for-owner.md.
+- **The check reads render code from a server dev script** (loaded by path at run time, so the server's typecheck
+  doesn't pull in the render workspace). A seam crossing for a check only; nothing in the server's product code
+  imports the render.
+
 ## Session 89 (the owner's bug fix: the day's wins numbered in payment order; no schema change): what was raised, and what is still thin
 
 Raised: `GET /api/daily` numbered wins by end time while `recordMatch` paid them in recording order; now one rule
