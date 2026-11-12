@@ -18,7 +18,6 @@ import {
   WIDGET_WAITS,
   bestCards,
   collectionView,
-  dailyView,
   packsView,
   sizeClass,
   type LiveView,
@@ -34,6 +33,7 @@ import { agentControlsHtml, myAgentHtml, type SiteRating, type TimeAllowance } f
 import { amount } from "./siteLook.js";
 import { formBody, ladderBody, notifBody, type SiteLadder, type SiteNotifications, type SiteStats } from "./siteStanding.js";
 import { dailyPackView } from "./siteStore.js";
+import { dailyBody } from "./siteDaily.js";
 import { FACTION_HEX, PAGE_TITLES, esc, hashOf, icon } from "./siteModel.js";
 
 export type WidgetSource = "packs" | "collection" | "daily" | "store" | "live" | "history" | "rating" | "ladder" | "stats" | "notif";
@@ -50,7 +50,7 @@ export function sourcesOf(w: Pick<SiteWidget, "type" | "size">): WidgetSource[] 
     case "packs":
       return w.size === "L" ? ["collection", "packs"] : ["packs"];
     case "daily":
-      return ["daily"];
+      return w.size === "S" ? ["daily"] : ["daily", "packs"];
     case "collection":
     case "showcase":
       return ["collection"];
@@ -132,17 +132,29 @@ function agentFaction(p: SitePlay): string | null {
 /** A card as a widget draws it: the placeholder face (faction palette, the
  * card's own hue and pattern, a rarity gem, the finish named), never an
  * emoji or glyph (DESIGN.md's art section). */
-export function miniCard(c: MiniCard, opts: { count?: number } = {}): string {
+export function miniCard(c: MiniCard, opts: { count?: number; scale?: number } = {}): string {
   const fin = FINISH_NAMES[c.finish] ?? c.finish;
   const hex = (c.faction && FACTION_HEX[c.faction]) || FACTION_HEX.Neutral!;
   const serial = c.serial !== null && c.finish === "prototype" ? ` #${c.serial}` : "";
-  return `<div class="mc fin-${esc(c.finish)} r-${esc(c.rarity)}" style="--c:${hex};--h:${visualSeedFor(c.cardId)}" title="${esc(`${c.name} · ${c.rarity}${fin ? ` · ${fin}` : ""}${serial}`)}">`
+  // Render session 66: the Showcase draws the same face larger (--k scales
+  // every inset and type size with the card, so it is the face, not a zoom).
+  const lg = opts.scale && opts.scale !== 1 ? ` lg` : "";
+  const k = lg ? `;--k:${opts.scale}` : "";
+  return `<div class="mc fin-${esc(c.finish)} r-${esc(c.rarity)}${lg}" style="--c:${hex};--h:${visualSeedFor(c.cardId)}${k}" title="${esc(`${c.name} · ${c.rarity}${fin ? ` · ${fin}` : ""}${serial}`)}">`
     + `<span class="mc-art p${visualPatternFor(c.cardId)}"></span><span class="mc-gem" aria-hidden="true"></span>`
     + `<b class="mc-n">${esc(c.name)}</b>${fin ? `<span class="mc-fin">${esc(fin + serial)}</span>` : ""}${opts.count && opts.count > 1 ? `<span class="mc-cnt">×${opts.count}</span>` : ""}</div>`;
 }
 
-function bar(pct: number): string {
-  return `<div class="bar" role="presentation"><i style="width:${Math.max(0, Math.min(100, pct))}%"></i></div>`;
+/** The Showcase's sizes (render session 66; the brief: "keep what exists;
+ * cards drawn larger"): how many of the best cards, and how large. */
+export const SHOWCASE_SIZES = { S: { n: 1, scale: 0.8 }, M: { n: 3, scale: 1.55 }, L: { n: 6, scale: 2 } } as const;
+
+/** A showcased card: the face larger, its name and what makes it rare under it. */
+function showcaseCard(c: MiniCard, scale: number, caption: boolean): string {
+  const fin = FINISH_NAMES[c.finish] ?? c.finish;
+  const serial = c.serial !== null && c.finish === "prototype" ? ` #${c.serial}` : "";
+  const what = [c.rarity, fin ? fin + serial : ""].filter(Boolean).join(" · ");
+  return `<figure class="scw">${miniCard(c, { scale })}${caption ? `<figcaption><b>${esc(c.name)}</b><small>${esc(what)}</small></figcaption>` : ""}</figure>`;
 }
 
 function waitsBody(type: WidgetType, size: WidgetSize): string {
@@ -251,19 +263,10 @@ function packsBody(w: SiteWidget, d: WidgetData): string {
   return `<div class="wsplit wide-l">${m}<div class="wcol pkw-pulls"><h4>Your last pulls</h4>${strip}</div></div>`;
 }
 
-function dailyBody(w: SiteWidget, d: WidgetData): string {
-  const l = loading(d, "daily");
-  if (l) return l;
-  const v = dailyView(d.daily!, d.now);
-  const head = `<div class="row between"><b class="wbig-s">${v.fromWins}/${v.winCap}</b><span class="muted small">credits from wins today</span></div>${bar(v.barPct)}<div class="muted small">Rewarded wins ${v.rewarded}/${v.rewardedCap}</div>`;
-  if (w.size === "S") return head;
-  const mid = head + `<div class="small">${esc(v.nextWin)}</div><div class="muted small">${esc(v.resets)}</div>`;
-  if (w.size === "M") return mid + `<p class="muted small">No quests in Season 0.</p>`;
-  const dd = d.daily!;
-  const wins = dd.rewardedWins.length
-    ? `<ul class="wlist">${dd.rewardedWins.map((x) => `<li><span class="wl w">W</span><span>Win ${x.nth}</span><span class="muted">${esc(clock(x.endedAt))}</span><b>+${x.credits}</b></li>`).join("")}</ul>`
-    : `<p class="muted small">No rewarded wins yet today.</p>`;
-  return mid + `<h4>Today's rewarded wins</h4>${wins}<div class="small">Losses and draws today: ${dd.losses} · +${dd.creditsFromLosses} credits (the first ${dd.maxPaidLosses} pay)</div><div class="small">In all today: <b>${amount(dd.credits)}</b> credits</div><p class="muted small">No quests, weekly challenge or streak in Season 0.</p>`;
+function dailyWidget(w: SiteWidget, d: WidgetData): string {
+  // Render session 66: the free pack's node (M and L) is a garnish on the
+  // row: a packs read still out draws the node as loading, not the widget.
+  return loading(d, "daily") ?? dailyBody(w.size, d.daily!, d.packs?.dailyPack ?? null, d.now);
 }
 
 const FACTION_FILTERS = ["All", "Cortex", "Aegis", "Swarm", "Null", "Neutral"];
@@ -285,10 +288,16 @@ function collectionBody(w: SiteWidget, d: WidgetData): string {
 function showcaseBody(w: SiteWidget, d: WidgetData): string {
   const l = loading(d, "collection");
   if (l) return l;
-  const n = w.size === "S" ? 1 : w.size === "M" ? 5 : 10;
-  const cards = bestCards(d.collection!, n);
+  const z = SHOWCASE_SIZES[w.size];
+  const cards = bestCards(d.collection!, z.n);
   if (!cards.length) return `<p class="muted small">Your best cards show here once you hold some.</p>`;
-  return `<div class="mrow${w.size === "S" ? " center" : ""}">${cards.map((k) => miniCard(k)).join("")}</div>${w.size === "L" ? `<p class="muted small">Your rarest finishes first. Pinning cards comes with the Collection page.</p>` : ""}`;
+  if (w.size === "S") {
+    // S: the best card, with its name and finish beside it (no room under).
+    const c = cards[0]!;
+    const fin = FINISH_NAMES[c.finish] ?? c.finish;
+    return `<div class="sc-s">${showcaseCard(c, z.scale, false)}<div class="dn"><b>${esc(c.name)}</b><div class="muted small">${esc(c.rarity)}${fin ? ` · ${esc(fin)}` : ""}</div><div class="muted small">Your best card</div></div></div>`;
+  }
+  return `<div class="sc-row">${cards.map((k) => showcaseCard(k, z.scale, true)).join("")}</div>${w.size === "L" ? `<p class="muted small">Your rarest finishes first. Pinning cards comes with the Collection page.</p>` : ""}`;
 }
 
 function storeBody(w: SiteWidget, d: WidgetData): string {
@@ -321,7 +330,7 @@ function bodyOf(w: SiteWidget, d: WidgetData, o: WidgetOpts): string {
     case "packs":
       return packsBody(w, d);
     case "daily":
-      return dailyBody(w, d);
+      return dailyWidget(w, d);
     case "collection":
       return collectionBody(w, d);
     case "showcase":

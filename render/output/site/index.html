@@ -503,6 +503,52 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 .nk { display: grid; place-items: center; flex: none; border-radius: 30%; color: var(--k); background: color-mix(in srgb, var(--k) 20%, transparent); box-shadow: inset 0 0 0 1.2px color-mix(in srgb, var(--k) 55%, transparent); }
 .nk-row { display: flex; gap: 6px; flex-wrap: wrap; } .nk-c { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px 3px 3px; border-radius: 99px; background: var(--soft); font: 600 12px system-ui; } .nk-c b { font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { .tbar i, .fb-b i, .nbell .nbadge { animation: none; } }
+/* Render session 66: Daily rewards (siteDaily.ts) and the larger Showcase. */
+.dr-s, .dr-head { display: flex; align-items: center; gap: 14px; min-width: 0; } .dr-s .dn b { font-size: 13.5px; }
+.dr-ring { --s: 72px; position: relative; flex: none; width: var(--s); height: var(--s); display: grid; place-items: center; }
+.dr-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.dr-ring circle { fill: none; stroke-width: 9; } .dr-tr { stroke: var(--soft); }
+.dr-arc { stroke: #3cc47c; stroke-linecap: round; stroke-dasharray: var(--len); stroke-dashoffset: var(--off); animation: dr-fill .9s cubic-bezier(.2,.8,.2,1) both; }
+.dr-ring.full .dr-arc { stroke: #f6c445; filter: drop-shadow(0 0 4px rgba(246,196,69,.6)); }
+@keyframes dr-fill { from { stroke-dashoffset: var(--len); } }
+.dr-rv { position: relative; display: flex; flex-direction: column; align-items: center; line-height: 1; } .dr-rv b { font: 800 calc(var(--s) * .3) ui-rounded, system-ui; font-variant-numeric: tabular-nums; } .dr-rv small { font: 600 calc(var(--s) * .13) system-ui; color: var(--muted); margin-top: 2px; }
+.dr-next { font-size: 14px; } .dr-next b { font: 800 18px ui-rounded, system-ui; color: #2fae6a; }
+.dr-row { list-style: none; margin: 0; padding: 4px 0 0; display: flex; align-items: flex-end; gap: 5px; flex-wrap: wrap; }
+.dr-row li { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.dr-pk { margin-right: 8px; padding-right: 12px; border-right: 1px solid var(--line); } .dr-pk .btn { padding: 3px 10px; }
+.dr-pki { width: 30px; height: 40px; border-radius: 6px; position: relative; display: grid; place-items: center; background: linear-gradient(160deg, #7a5cff, #3d7bff); box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.35), 0 3px 8px rgba(61,123,255,.35); }
+.dr-pki::before { content: ""; position: absolute; left: 4px; right: 4px; top: 6px; height: 2px; background: rgba(255,255,255,.5); }
+.dr-pki b { font: 800 13px ui-rounded, system-ui; color: #fff; }
+.dr-pk.on .dr-pki { animation: wg-pop .45s cubic-bezier(.3,1.6,.5,1) both; } .dr-pk.done .dr-pki { filter: grayscale(.8); opacity: .5; } .dr-pk.wait .dr-pki { opacity: .35; }
+.dr-lb { font: 600 11px system-ui; color: var(--muted); } .dr-nx { font-size: 11px; color: var(--muted); } .dr-nx .sh-clock { font-size: 11px; }
+.dr-w.band { margin-left: 7px; }
+.dr-wn { display: grid; place-items: center; border-radius: 50%; font: 800 11px ui-rounded, system-ui; color: var(--muted); background: var(--soft); box-shadow: inset 0 0 0 1.5px var(--line); }
+.dr-w.t3 .dr-wn { width: 36px; height: 36px; font-size: 13px; } .dr-w.t2 .dr-wn { width: 28px; height: 28px; } .dr-w.t1 .dr-wn { width: 22px; height: 22px; font-size: 10px; }
+.dr-w.paid .dr-wn { color: #fff; background: linear-gradient(140deg, #3cc47c, #2fb6ff); box-shadow: none; }
+.dr-w.next .dr-wn { color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); animation: dr-next 1.6s ease-in-out infinite; }
+@keyframes dr-next { 50% { transform: scale(1.12); } }
+.dr-wc { font: 700 10.5px system-ui; color: var(--muted); font-variant-numeric: tabular-nums; } .dr-w.paid .dr-wc { color: #2fae6a; }
+.dr-reset { display: flex; align-items: baseline; gap: 8px; padding: 8px 12px; border-radius: 14px; background: var(--soft); } .dr-reset .sh-clock-ic { align-self: center; } .dr-reset .sh-clock { font-size: 20px; } .dr-reset small { color: var(--muted); margin-left: auto; }
+.dr-rw { display: flex; flex-direction: column; gap: 5px; } .dr-rwn b { font: 800 16px ui-rounded, system-ui; }
+.dr-rw .bar i { transform-origin: left; animation: wg-grow .7s cubic-bezier(.2,.8,.2,1) both; }
+.dr-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.dr-list li { display: grid; grid-template-columns: 22px 1fr auto auto; gap: 10px; align-items: center; font-size: 13px; } .dr-list .wl { width: 20px; height: 20px; font-size: 10px; }
+.dr-tot { display: flex; align-items: baseline; gap: 6px; } .dr-tot span { flex: 1; font-weight: 600; } .dr-tot b { font: 800 20px ui-rounded, system-ui; } .dr-tot small { color: var(--muted); }
+.mc.lg { width: calc(78px * var(--k)); border-radius: calc(9px * var(--k)); }
+.mc.lg .mc-art { left: calc(6px * var(--k)); right: calc(6px * var(--k)); top: calc(6px * var(--k)); border-radius: calc(6px * var(--k)); }
+.mc.lg .mc-gem { top: calc(9px * var(--k)); right: calc(9px * var(--k)); width: calc(8px * var(--k)); height: calc(8px * var(--k)); }
+.mc.lg .mc-n { left: calc(6px * var(--k)); right: calc(6px * var(--k)); font-size: calc(9.5px * var(--k)); }
+.mc.lg .mc-fin { left: calc(6px * var(--k)); bottom: calc(6px * var(--k)); font-size: calc(8px * var(--k)); padding: calc(2px * var(--k)) calc(5px * var(--k)); border-radius: calc(4px * var(--k)); }
+.scw { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.scw figcaption { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 100%; } .scw figcaption b { font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .scw figcaption small { font-size: 11.5px; color: var(--muted); }
+.sc-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; } .sc-row .scw { width: min-content; } .sc-s { display: flex; align-items: center; gap: 12px; min-width: 0; } .sc-s .dn b { font-size: 13.5px; }
+.sc-row .mc.lg { transition: transform .25s cubic-bezier(.2,.8,.2,1); } .sc-row .scw:hover .mc.lg { transform: translateY(-4px) rotate(-1deg); }
+@media (max-width: 720px) { .dr-row { display: grid; grid-template-columns: repeat(10, auto); justify-content: space-between; align-items: end; gap: 8px 2px; }
+  .dr-pk { grid-column: 1 / -1; flex-direction: row !important; flex-wrap: wrap; justify-content: flex-start; gap: 8px !important; margin: 0; padding: 0 0 8px; border-right: 0; border-bottom: 1px solid var(--line); } .dr-pk .dr-pki { width: 22px; height: 30px; }
+  .dr-w.band { margin-left: 0; } .dr-w.t3 .dr-wn { width: 28px; height: 28px; } .dr-w.t2 .dr-wn { width: 23px; height: 23px; } .dr-w.t1 .dr-wn { width: 19px; height: 19px; font-size: 9.5px; } .dr-wc { font-size: 9.5px; }
+  .dr-reset { flex-wrap: wrap; } .dr-head .dr-ring { --s: 84px !important; } .dr-nq { display: none; }
+  .sc-row { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; } .sc-row .scw { scroll-snap-align: start; } }
+@media (prefers-reduced-motion: reduce) { .dr-arc, .dr-pk.on .dr-pki, .dr-w.next .dr-wn, .dr-rw .bar i { animation: none; } .sc-row .mc.lg { transition: none; } }
 @media (max-width: 720px) { .ld-l { grid-template-columns: 1fr; } .tladder { flex-direction: row; flex-wrap: wrap; } .fm-l { grid-template-columns: 1fr; } }
 .btn.ghost { background: transparent; box-shadow: none; border: 1px solid var(--line); }
 .sz-M .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .sz-M .hrow .hr-act { grid-column: 2 / 4; justify-content: flex-start; } .sz-M .hlist { gap: 2px; }
@@ -7624,9 +7670,9 @@ gl_FragColor=vec4(col,1.);}`;
     });
     const stampsDone = stamps.length ? stamps[stamps.length - 1].at + A.stampMs : fanDown;
     const barAt = stampsDone + A.barDelay;
-    const bar2 = reveal.setBar;
-    const ticks = bar2 ? bar2.filled.map((_, i) => ({ at: barAt + (i + 1) * A.tickGap, held: bar2.before + i + 1, pitch: Math.round(Math.pow(2, i * A.tickSemitones / 12) * 1e3) / 1e3 })) : [];
-    const doneAt = ticks.length ? ticks[ticks.length - 1].at : bar2 ? barAt : stampsDone;
+    const bar = reveal.setBar;
+    const ticks = bar ? bar.filled.map((_, i) => ({ at: barAt + (i + 1) * A.tickGap, held: bar.before + i + 1, pitch: Math.round(Math.pow(2, i * A.tickSemitones / 12) * 1e3) / 1e3 })) : [];
+    const doneAt = ticks.length ? ticks[ticks.length - 1].at : bar ? barAt : stampsDone;
     return { deal, stamps, ticks, barAt, doneAt };
   }
   var DEBUG_STEPS = REVEAL_LADDER.filter((s) => s !== "snap");
@@ -8643,6 +8689,73 @@ gl_FragColor=vec4(col,1.);}`;
     return head + `<div class="nk-row" aria-label="Unread by kind">${kinds}</div><ul class="ntl">${views.slice(0, 8).map((v) => noticeHtml(v, { cards: true, miniCard: opts.miniCard })).join("")}</ul>${page.more || views.length > 8 ? `<p class="muted small">Showing the latest 8.</p>` : ""}`;
   }
 
+  // src/site/siteDaily.ts
+  function winSteps(d) {
+    const out = [];
+    const nextNth = d.wins.length + 1;
+    d.schedule.forEach((row, band) => {
+      var _a3, _b;
+      if (row.toWin === null || row.credits <= 0) return;
+      for (let n = row.fromWin; n <= row.toWin; n++) {
+        const win = (_a3 = d.wins.find((w2) => w2.nth === n)) != null ? _a3 : null;
+        out.push({ nth: n, credits: win ? win.credits : row.credits, slot: row.credits, state: win ? "paid" : n === nextNth && d.nextWinPays > 0 ? "next" : "ahead", band, endedAt: (_b = win == null ? void 0 : win.endedAt) != null ? _b : null });
+      }
+    });
+    return out;
+  }
+  function dailyRingSvg(fromWins, cap, px) {
+    const r = 42;
+    const len = 2 * Math.PI * r;
+    const pct2 = cap > 0 ? Math.max(0, Math.min(1, fromWins / cap)) : 0;
+    const full = pct2 >= 1 ? " full" : "";
+    return `<span class="dr-ring${full}" style="--s:${px}px" role="img" aria-label="${fromWins} of ${cap} credits from wins today"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="dr-tr" cx="50" cy="50" r="${r}"/><circle class="dr-arc" cx="50" cy="50" r="${r}" style="--len:${len.toFixed(1)};--off:${(len * (1 - pct2)).toFixed(1)}"/></svg><span class="dr-rv"><b>${fromWins}</b><small>of ${cap}</small></span></span>`;
+  }
+  function packNodeHtml(p, nowMs) {
+    if (!p) return `<li class="dr-pk wait"><span class="dr-pki" aria-hidden="true"></span><span class="dr-lb">Free pack</span><span class="muted small">Loading\u2026</span></li>`;
+    const n = p.waiting;
+    if (n > 0) {
+      return `<li class="dr-pk on"><span class="dr-pki" aria-hidden="true">${n > 1 ? `<b>${n}</b>` : ""}</span><span class="dr-lb">Free pack</span><button type="button" class="btn pri sm" data-act="claim-daily">${n > 1 ? `Claim (${n})` : "Claim"}</button></li>`;
+    }
+    const next = p.nextPackAt ? `<b class="sh-clock" data-until="${esc(p.nextPackAt)}">${clockLeft(nowMs, p.nextPackAt)}</b>` : "";
+    return `<li class="dr-pk done"><span class="dr-pki" aria-hidden="true"></span><span class="dr-lb">Free pack</span><button type="button" class="btn sm" disabled>Claimed</button>${next ? `<span class="dr-nx">next in ${next}</span>` : ""}</li>`;
+  }
+  function winNodeHtml(s, first) {
+    const tier = s.slot >= 30 ? "t3" : s.slot >= 10 ? "t2" : "t1";
+    const what = s.state === "paid" ? `paid ${s.credits}` : s.state === "next" ? `pays ${s.credits}, next` : `pays ${s.credits}`;
+    return `<li class="dr-w ${s.state} ${tier}${first ? " band" : ""}" title="Win ${s.nth}: ${what}"><span class="dr-wn" aria-hidden="true">${s.state === "paid" ? "\u2713" : s.nth}</span><span class="dr-wc">+${s.credits}</span><span class="vh">Win ${s.nth}, ${what}</span></li>`;
+  }
+  function rewardRowHtml(d, pack, nowMs) {
+    const steps = winSteps(d);
+    const wins = steps.map((s, i) => winNodeHtml(s, i > 0 && steps[i - 1].band !== s.band)).join("");
+    return `<ol class="dr-row" aria-label="Today's rewards">${packNodeHtml(pack, nowMs)}${wins}</ol>`;
+  }
+  function nextLine(d) {
+    return d.nextWinPays > 0 ? `Next win <b>+${d.nextWinPays}</b>` : "Wins pay nothing more today";
+  }
+  function clockTime(iso) {
+    const t = Date.parse(iso);
+    if (isNaN(t)) return iso;
+    const x = new Date(t);
+    return `${String(x.getHours()).padStart(2, "0")}:${String(x.getMinutes()).padStart(2, "0")}`;
+  }
+  function dailyBody(size, d, pack, nowMs) {
+    const v = dailyView(d, nowMs);
+    if (size === "S") {
+      return `<div class="dr-s">${dailyRingSvg(v.fromWins, v.winCap, 72)}<div class="dn"><b>Credits from wins</b><div class="small">${nextLine(d)}</div></div></div>`;
+    }
+    const head = `<div class="dr-head">${dailyRingSvg(v.fromWins, v.winCap, size === "L" ? 104 : 84)}<div class="dn"><b>Credits from wins today</b><div class="dr-next">${nextLine(d)}</div>` + (size === "M" ? `<div class="muted small">${v.rewarded} of ${v.rewardedCap} wins paid</div>` : "") + `</div></div>`;
+    const row = rewardRowHtml(d, pack, nowMs);
+    if (size === "M") return head + row;
+    const city = zoneCity(d.timeZone);
+    const reset = `<div class="dr-reset"><span class="sh-clock-ic" aria-hidden="true"></span><span>Resets in</span><b class="sh-clock" data-until="${esc(d.resetsAt)}">${clockLeft(nowMs, d.resetsAt)}</b><small>midnight ${esc(city)}</small></div>`;
+    const pct2 = v.rewardedCap > 0 ? Math.min(100, Math.round(v.rewarded / v.rewardedCap * 100)) : 0;
+    const rewarded = `<div class="dr-rw"><div class="row between"><b>Rewarded wins</b><span class="dr-rwn"><b>${v.rewarded}</b>/${v.rewardedCap}</span></div><div class="bar"><i style="width:${pct2}%"></i></div></div>`;
+    const wins = d.rewardedWins.length ? `<ul class="dr-list">${d.rewardedWins.map((x) => `<li><span class="wl w">W</span><span>Win ${x.nth}</span><span class="muted">${esc(clockTime(x.endedAt))}</span><b>+${x.credits}</b></li>`).join("")}</ul>` : `<p class="muted small">No rewarded wins yet today.</p>`;
+    const paidLosses = Math.min(d.losses, d.maxPaidLosses);
+    const losses = `<div class="small">Losses and draws: <b>${d.losses}</b> \xB7 ${paidLosses} of ${d.maxPaidLosses} paid \xB7 +${d.creditsFromLosses}${d.nextLossPays > 0 ? ` <span class="muted">(next pays ${d.nextLossPays})</span>` : ""}</div>`;
+    return head + row + reset + rewarded + `<h4>Today's wins</h4>${wins}${losses}<div class="dr-tot"><span>In all today</span><b>${amount(d.credits)}</b><small>credits</small></div><p class="muted small dr-nq">No quests, weekly challenge or streak in Season 0.</p>`;
+  }
+
   // src/site/siteWidgets.ts
   function sourcesOf(w2) {
     switch (w2.type) {
@@ -8654,7 +8767,7 @@ gl_FragColor=vec4(col,1.);}`;
       case "packs":
         return w2.size === "L" ? ["collection", "packs"] : ["packs"];
       case "daily":
-        return ["daily"];
+        return w2.size === "S" ? ["daily"] : ["daily", "packs"];
       case "collection":
       case "showcase":
         return ["collection"];
@@ -8692,10 +8805,17 @@ gl_FragColor=vec4(col,1.);}`;
     const fin = (_a3 = FINISH_NAMES[c.finish]) != null ? _a3 : c.finish;
     const hex = c.faction && FACTION_HEX[c.faction] || FACTION_HEX.Neutral;
     const serial = c.serial !== null && c.finish === "prototype" ? ` #${c.serial}` : "";
-    return `<div class="mc fin-${esc(c.finish)} r-${esc(c.rarity)}" style="--c:${hex};--h:${visualSeedFor(c.cardId)}" title="${esc(`${c.name} \xB7 ${c.rarity}${fin ? ` \xB7 ${fin}` : ""}${serial}`)}"><span class="mc-art p${visualPatternFor(c.cardId)}"></span><span class="mc-gem" aria-hidden="true"></span><b class="mc-n">${esc(c.name)}</b>${fin ? `<span class="mc-fin">${esc(fin + serial)}</span>` : ""}${opts.count && opts.count > 1 ? `<span class="mc-cnt">\xD7${opts.count}</span>` : ""}</div>`;
+    const lg = opts.scale && opts.scale !== 1 ? ` lg` : "";
+    const k = lg ? `;--k:${opts.scale}` : "";
+    return `<div class="mc fin-${esc(c.finish)} r-${esc(c.rarity)}${lg}" style="--c:${hex};--h:${visualSeedFor(c.cardId)}${k}" title="${esc(`${c.name} \xB7 ${c.rarity}${fin ? ` \xB7 ${fin}` : ""}${serial}`)}"><span class="mc-art p${visualPatternFor(c.cardId)}"></span><span class="mc-gem" aria-hidden="true"></span><b class="mc-n">${esc(c.name)}</b>${fin ? `<span class="mc-fin">${esc(fin + serial)}</span>` : ""}${opts.count && opts.count > 1 ? `<span class="mc-cnt">\xD7${opts.count}</span>` : ""}</div>`;
   }
-  function bar(pct2) {
-    return `<div class="bar" role="presentation"><i style="width:${Math.max(0, Math.min(100, pct2))}%"></i></div>`;
+  var SHOWCASE_SIZES = { S: { n: 1, scale: 0.8 }, M: { n: 3, scale: 1.55 }, L: { n: 6, scale: 2 } };
+  function showcaseCard(c, scale, caption) {
+    var _a3;
+    const fin = (_a3 = FINISH_NAMES[c.finish]) != null ? _a3 : c.finish;
+    const serial = c.serial !== null && c.finish === "prototype" ? ` #${c.serial}` : "";
+    const what = [c.rarity, fin ? fin + serial : ""].filter(Boolean).join(" \xB7 ");
+    return `<figure class="scw">${miniCard(c, { scale })}${caption ? `<figcaption><b>${esc(c.name)}</b><small>${esc(what)}</small></figcaption>` : ""}</figure>`;
   }
   function waitsBody(type, size) {
     const w2 = WIDGET_WAITS[type];
@@ -8790,17 +8910,9 @@ gl_FragColor=vec4(col,1.);}`;
     }).join("")}</div>`).join("") : `<div class="muted small">${c ? "Your last pulls appear here" : "Loading your last pulls\u2026"}</div>`;
     return `<div class="wsplit wide-l">${m}<div class="wcol pkw-pulls"><h4>Your last pulls</h4>${strip}</div></div>`;
   }
-  function dailyBody(w2, d) {
-    const l = loading(d, "daily");
-    if (l) return l;
-    const v = dailyView(d.daily, d.now);
-    const head = `<div class="row between"><b class="wbig-s">${v.fromWins}/${v.winCap}</b><span class="muted small">credits from wins today</span></div>${bar(v.barPct)}<div class="muted small">Rewarded wins ${v.rewarded}/${v.rewardedCap}</div>`;
-    if (w2.size === "S") return head;
-    const mid = head + `<div class="small">${esc(v.nextWin)}</div><div class="muted small">${esc(v.resets)}</div>`;
-    if (w2.size === "M") return mid + `<p class="muted small">No quests in Season 0.</p>`;
-    const dd = d.daily;
-    const wins = dd.rewardedWins.length ? `<ul class="wlist">${dd.rewardedWins.map((x) => `<li><span class="wl w">W</span><span>Win ${x.nth}</span><span class="muted">${esc(clock(x.endedAt))}</span><b>+${x.credits}</b></li>`).join("")}</ul>` : `<p class="muted small">No rewarded wins yet today.</p>`;
-    return mid + `<h4>Today's rewarded wins</h4>${wins}<div class="small">Losses and draws today: ${dd.losses} \xB7 +${dd.creditsFromLosses} credits (the first ${dd.maxPaidLosses} pay)</div><div class="small">In all today: <b>${amount(dd.credits)}</b> credits</div><p class="muted small">No quests, weekly challenge or streak in Season 0.</p>`;
+  function dailyWidget(w2, d) {
+    var _a3, _b, _c;
+    return (_c = loading(d, "daily")) != null ? _c : dailyBody(w2.size, d.daily, (_b = (_a3 = d.packs) == null ? void 0 : _a3.dailyPack) != null ? _b : null, d.now);
   }
   var FACTION_FILTERS2 = ["All", "Cortex", "Aegis", "Swarm", "Null", "Neutral"];
   function collectionBody(w2, d) {
@@ -8821,12 +8933,18 @@ gl_FragColor=vec4(col,1.);}`;
     return ring + pills2 + `<div class="mbinder">${held.map((x) => miniCard({ cardId: x.cardId, name: x.name, rarity: x.rarity, faction: x.faction, finish: "standard", serial: null }, { count: x.owned })).join("") || '<span class="muted small">No cards of this faction.</span>'}</div>`;
   }
   function showcaseBody(w2, d) {
+    var _a3;
     const l = loading(d, "collection");
     if (l) return l;
-    const n = w2.size === "S" ? 1 : w2.size === "M" ? 5 : 10;
-    const cards = bestCards(d.collection, n);
+    const z = SHOWCASE_SIZES[w2.size];
+    const cards = bestCards(d.collection, z.n);
     if (!cards.length) return `<p class="muted small">Your best cards show here once you hold some.</p>`;
-    return `<div class="mrow${w2.size === "S" ? " center" : ""}">${cards.map((k) => miniCard(k)).join("")}</div>${w2.size === "L" ? `<p class="muted small">Your rarest finishes first. Pinning cards comes with the Collection page.</p>` : ""}`;
+    if (w2.size === "S") {
+      const c = cards[0];
+      const fin = (_a3 = FINISH_NAMES[c.finish]) != null ? _a3 : c.finish;
+      return `<div class="sc-s">${showcaseCard(c, z.scale, false)}<div class="dn"><b>${esc(c.name)}</b><div class="muted small">${esc(c.rarity)}${fin ? ` \xB7 ${esc(fin)}` : ""}</div><div class="muted small">Your best card</div></div></div>`;
+    }
+    return `<div class="sc-row">${cards.map((k) => showcaseCard(k, z.scale, true)).join("")}</div>${w2.size === "L" ? `<p class="muted small">Your rarest finishes first. Pinning cards comes with the Collection page.</p>` : ""}`;
   }
   function storeBody(w2, d) {
     var _a3, _b, _c;
@@ -8855,7 +8973,7 @@ gl_FragColor=vec4(col,1.);}`;
       case "packs":
         return packsBody(w2, d);
       case "daily":
-        return dailyBody(w2, d);
+        return dailyWidget(w2, d);
       case "collection":
         return collectionBody(w2, d);
       case "showcase":
@@ -9292,7 +9410,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (passed && clockReloadFor !== passed) {
       clockReloadFor = passed;
       if (state.page === "store" && !state.opening) void loadShop();
-      if (state.page === "home") void loadHome(["packs", "store"]);
+      if (state.page === "home") void loadHome(["packs", "store", "daily"]);
     }
   }
   window.setInterval(tickClocks, 1e3);
@@ -9445,19 +9563,19 @@ gl_FragColor=vec4(col,1.);}`;
     var _a3, _b, _c, _d, _e;
     const editing = state.draft !== null;
     const widgets = (_c = (_b = state.draft) != null ? _b : (_a3 = state.board) == null ? void 0 : _a3.widgets) != null ? _c : [];
-    const bar2 = `<div class="boardbar"><h2>Your board</h2><span class="sp"></span>${!state.board ? "" : editing ? `<button type="button" class="btn" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="background">Background</button><button type="button" class="btn" data-act="recommended">Recommended layout</button><button type="button" class="btn pri" data-act="done"${state.saving ? " disabled" : ""}>${state.saving ? "Saving\u2026" : "Done"}</button>` : `<button type="button" class="btn" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="customise">Customise</button>`}</div>${editing ? '<p class="hint2">Drag a widget to move it, or click it and use the arrow keys. Pick S, M or L to resize; "\u2212" or Delete removes it. Done saves your board.</p>' : ""}`;
+    const bar = `<div class="boardbar"><h2>Your board</h2><span class="sp"></span>${!state.board ? "" : editing ? `<button type="button" class="btn" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="background">Background</button><button type="button" class="btn" data-act="recommended">Recommended layout</button><button type="button" class="btn pri" data-act="done"${state.saving ? " disabled" : ""}>${state.saving ? "Saving\u2026" : "Done"}</button>` : `<button type="button" class="btn" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="customise">Customise</button>`}</div>${editing ? '<p class="hint2">Drag a widget to move it, or click it and use the arrow keys. Pick S, M or L to resize; "\u2212" or Delete removes it. Done saves your board.</p>' : ""}`;
     if (!state.board) {
-      return `<div class="pg-wide">${bar2}<div class="wempty glass"><h3>${state.boardError ? "Your board couldn't be read" : "Loading your board\u2026"}</h3>${state.boardError ? `<p class="muted">${esc(state.boardError)}</p><button type="button" class="btn pri" data-act="retry-board">Try again</button>` : ""}</div></div>`;
+      return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>${state.boardError ? "Your board couldn't be read" : "Loading your board\u2026"}</h3>${state.boardError ? `<p class="muted">${esc(state.boardError)}</p><button type="button" class="btn pri" data-act="retry-board">Try again</button>` : ""}</div></div>`;
     }
     if (!widgets.length) {
-      return `<div class="pg-wide">${bar2}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
+      return `<div class="pg-wide">${bar}<div class="wempty glass"><h3>Your board is empty</h3><p class="muted">Add the widgets you want, or start from the recommended layout.</p><div class="row center"><button type="button" class="btn pri" data-act="add">${icon("plus", 15)}Add widget</button><button type="button" class="btn" data-act="use-recommended">Use recommended layout</button></div></div></div>`;
     }
     const data = { play: p, wallet: state.wallet, ...state.home, ownerId: (_e = (_d = state.me) == null ? void 0 : _d.ownerId) != null ? _e : null, viewOf, now: Date.now(), colFilter: state.colFilter, allowance: allowanceOf(p.autoPlay, Date.now()), busy: state.busy, art: shopArt() };
     const { views, capped } = liveViews(widgets);
     const tiles = widgets.map((w2) => widgetHtml(w2, data, { editing, live: views.get(w2.id), capped: capped.has(w2.id) })).join("");
     const addTile = editing && !addBlockAll(widgets) ? `<button type="button" class="addtile" data-act="add">${icon("plus", 18)}<span>Add widget</span></button>` : "";
     const note = !editing && state.board.recommended ? `<p class="muted small board-note">This is the recommended layout. Customise it and it's saved to your account.</p>` : "";
-    return `<div class="pg-wide">${bar2}<div class="wgrid${editing ? " editing" : ""}" id="wgrid">${tiles}${addTile}</div>${note}</div>`;
+    return `<div class="pg-wide">${bar}<div class="wgrid${editing ? " editing" : ""}" id="wgrid">${tiles}${addTile}</div>${note}</div>`;
   }
   function addBlockAll(widgets) {
     const rules = state.board.rules;

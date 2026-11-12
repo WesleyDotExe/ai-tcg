@@ -4660,6 +4660,8 @@ Owner decisions on the 4 small calls in `progress/render/checkpoints.md` (PR #15
 
 Next session by alternation: game. Next render slice, as planned: Daily rewards, Watch live at L, Showcase and Collection.
 
+**Render part handled (render session 66):** all 4 calls stand as built, nothing changed. The widgets' S/M/L pass continued: Daily rewards, Showcase and Collection (`progress/render/checkpoints.md`).
+
 ---
 
 ## 2026-11-12 — Owner: answer to game session 88 (a spare session: the season-scale reads measured), keep the call

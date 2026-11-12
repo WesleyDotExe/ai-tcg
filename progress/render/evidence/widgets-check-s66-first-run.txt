@@ -1,0 +1,15 @@
+widgets-check-s66.mjs, first full run (render session 66), before the fixes. 32 PASS, 4 FAIL.
+The failing lines, as printed:
+
+FAIL  M. Collection 63% (GET /api/collection: 61/96)
+FAIL  L. Collection 63% (GET /api/collection: 61/96)
+      (the check's own selector: it read the ring's "63%" instead of "61/96"; the widget drew 61/96. Fixed in the check.)
+FAIL  D. on a phone Daily rewards and Showcase don't overflow (82/1234 px)
+      (real: on a phone the reward row wrapped to two lines, 82 px past Daily rewards L; Showcase L's six
+       large cards wrapped to three rows, 1234 px past the tile. Fixed in sitePage.ts: smaller nodes and gaps
+       under 720 px; the Showcase row becomes one swipeable strip there.)
+
+Seen in the stills, not by a check: the L row's paid wins read +10 +10 +5 +30 +10 (Win 4 paid 30). The server's
+/api/daily numbers wins by end time but each paid what it paid at recording; the demo's clock-jump warm-up records
+out of end order. The node sizes followed the paid figure, so the 30 sat at place 4. Fixed in siteDaily.ts: a node's
+size is its schedule slot, its label what the server paid. (Noted for the game lane in progress/render/notes-for-owner.md.)

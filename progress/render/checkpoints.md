@@ -7,6 +7,44 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-12 — Daily rewards, Showcase and Collection at S, M and L (session 66) — AWAITING FEEDBACK (four small calls)
+
+Three more widgets on the brief's S/M/L table. Try it: `npm run site-demo -w @ai-tcg/render -- --ladder`, sign in
+as nova, Customise on Home, add the three and set each to S, M and L.
+
+**What you'll see:**
+- **Daily rewards.** S: a ring filling with today's credits from wins ("65 of 90"; gold when full) and what the next
+  win pays. M: + the row of today's rewards: the free daily pack with its **Claim** button underneath (or "Claimed"
+  and the clock to the next one), then one node per paying win, sized by what it pays (the big 30, three 10s, six
+  5s), ticked once won, the next one pulsing. L: + a ticking "Resets in 09:15:40 · midnight Sydney", rewarded wins
+  as a bar (5/10), today's wins with their times and credits, losses and draws (and how many of them paid), the
+  day's total.
+- **Showcase.** The same cards, larger: S your best card beside its name and finish; M your best three; L your best
+  six, each with its name and rarity · finish under it. A card lifts a little on hover.
+- **Collection.** Already S/M/L (the ring / + the last pulls / + faction filters and every card held); checked
+  against the server's numbers, nothing changed.
+
+**Evidence:** `progress/render/evidence/widgets-check-s66.txt` (**36 PASS, 0 FAIL**, the real owner API with the
+ladder playing: every number the server's; a claim from the widget; a ladder win reaching the ring without a
+reload). The first run's 4 fails are kept and explained in `widgets-check-s66-first-run.txt` (two real phone
+overflows, fixed; one wrong selector in the check). Stills `v2-s66-widgets-S/M/L.jpg`, `-L-dark`, `-phone`,
+`v2-s66-daily-claimed.jpg`, `v2-s66-daily-after-win.jpg`. Render tests 983 (+11); CI browser check 61 PASS.
+
+**Small calls (kept as built unless you say otherwise):**
+1. **The free pack is the only button in the reward row.** Wins pay themselves when the match is recorded, so their
+   nodes show progress, not a claim. Season 0 has no quests to claim (L says so once).
+2. **Showcase shows fewer cards so it can draw them larger:** 1, 3 and 6 (was 1, 5 and 10). At S the card is a
+   little smaller than before (it sits beside its name to fit the small tile); at M and L it's 1.5x and 2x.
+3. **A win node's size is its place in the schedule, its label what the server paid.** They agree in normal play;
+   see notes-for-owner (s66) for the one case in the demo where they didn't.
+4. **On a phone the reward row puts the free pack on its own line**, the ten wins in one row under it, and the
+   "no quests in Season 0" footnote is hidden to fit.
+
+**Next:** the game lane's turn; then Watch live at L (the live match embedded in the tile), which completes the
+widgets' S/M/L pass; then the Stats page, the ladder page and the bell. Render hardening pass due at 69.
+
+---
+
 ## 2026-11-12 — Ladder, Rating & form and Notifications at S, M and L (session 65) — AWAITING FEEDBACK (four small calls)
 
 The three widgets that still said "waits on the server" now draw the server's data, per the brief's rule for the

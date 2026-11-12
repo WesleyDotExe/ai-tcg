@@ -5590,3 +5590,67 @@ at L, Showcase and Collection.
 **Next render-lane slice:** after this PR the next session is game. The next render session: the rest of the
 widgets' S/M/L pass (Daily rewards: the ring, reward row, reset timer; Watch live embedded at L; Showcase larger
 cards; Collection), then the Stats page, the ladder page and the bell. Render hardening pass due at 69.
+
+## 2026-11-12 — Render session 66: the Daily rewards, Showcase and Collection widgets at S, M and L
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #156 "The season-scale reads measured, the slow demos re-run
+(spare session 88)", is not "Render:"; the catch-up after #143 is long done). No PR from either lane was open.
+**Read first:** owner-feedback.md (the 2026-11-12 answers to render 65, all four kept, nothing to change; game 88's
+answer), DESIGN.md, RENDER.md, `progress/season0-final-brief.md` section 1, this lane's log, debt and notes. Not a
+hardening pass (64 was; the next is 69).
+
+**The slice:** three more rows of the brief's S/M/L table: Daily rewards (S ring / M + the row of rewards with
+claim buttons underneath / L + reset timer, rewarded wins, next-win payout), Showcase ("cards drawn larger") and
+Collection (the S/M/L principle on the data it already shows). Watch live at L (the embedded arena) is left for the
+next render session.
+
+**1. Daily rewards (`render/src/site/siteDaily.ts`, new; pure strings from `GET /api/daily` and, at M and L, the
+free pack from `GET /api/packs`).** `winSteps` (one node per paying win from the server's schedule: paid / next /
+ahead, its band in the schedule; a paid node labelled with what the server paid, sized by its slot);
+`dailyRingSvg` (an SVG arc of credits from wins of the schedule's most, grows in, gold when full); `packNodeHtml`
+(Claim / Claim (n) on the page's existing `claim-daily` action, else "Claimed" and a ticking clock to the server's
+`nextPackAt`; loading while the packs read is out); `rewardRowHtml`; `dailyBody` per size (S the ring and the next
+win; M + "n of 10 wins paid" and the row; L + the ticking reset clock on `resetsAt`, rewarded wins as a bar,
+today's wins, losses and draws with how many paid and what the next pays, the day's total, the "no quests" line).
+Wins have no button: they pay themselves (ECONOMY.md).
+
+**2. Showcase (`siteWidgets.ts`).** `miniCard` takes a `scale`: `.mc.lg` scales the face's insets and type with
+`--k` (the same face, not a zoom). `SHOWCASE_SIZES`: S 1 card at 0.8 beside its name, rarity and finish; M 3 at
+1.55; L 6 at 2, each with a caption (name; rarity · finish). Lifts on hover; off under reduce motion.
+
+**3. Collection:** checked against the server (61/96, the last five pulls, the six pills); nothing changed.
+
+**4. Wiring.** `sourcesOf`: Daily rewards reads the packs at M and L too. `siteClient.ts`: a reset clock reaching
+zero now reloads the daily read as well as the packs and store. Styles in `sitePage.ts` (keyframes `dr-fill`,
+`dr-next`; stroke/transform only; off under reduce motion; under 720 px the pack on its own line, the wins a
+ten-column grid, the Showcase row a swipeable strip).
+
+**Tests (+11, render 983):** `siteDaily.test.ts`: the steps from the schedule (paid/next/ahead, bands, a paid
+figure the server's, out-of-order payouts keeping slot sizes), the ring's arc and its full state, the pack node's
+three states, the row (one button, bands, order), each size's differences, a maxed day and a fresh one, the widget
+path's sources and loading node, the reduce-motion rule; Showcase's counts, captions, growing scale and order; and
+one test on the **real owner API** (three wins and a loss recorded today: the ring, paid nodes, next win, losses,
+reset clock and total are the server's; claiming the free pack through the server turns the node to Claimed).
+`siteBoard.test.ts`: the old Daily and Showcase assertions rewritten for the new sizes.
+
+**Ran it:** `widgets-check-s66.mjs` against the real owner API with the ladder playing at 8x. The first full run was
+**32 PASS, 4 FAIL** (kept as `widgets-check-s66-first-run.txt`): two were the check's own selector (it read the
+Collection ring's "63%" for "61/96"); two were real: on a phone the reward row wrapped (Daily rewards L 82 px over)
+and Showcase L's six large cards wrapped to three rows (1234 px over). The stills showed one more: the demo's paid
+wins read +10 +10 +5 +30 +10 (the server numbers wins by end time, pays by recording order; the demo's clock-jump
+warm-up records out of order), so the big node sat at place 4: node size is now the slot, the label the payout.
+Fixed (phone grid, strip, hidden footnote), re-run: **36 PASS, 0 FAIL** (`widgets-check-s66.txt`): the ring 65 of
+90 (the server's 65 from 5 wins), 10 nodes 5 paid 1 next, Claim while the server had 1 waiting; the reset clock on
+`resetsAt` and ticking; Showcase 1/3/6 cards at 62/121/156 px with the rarest finish first; Collection 61/96; a
+claim from the widget (waiting 1 -> 0, unopened 11 -> 12, the node "Claimed"); a ladder win reaching the ring with
+no reload (65 -> 70); no overflow at S/M/L or on a phone for Daily rewards and Showcase; no external requests or
+page errors. CI browser check 61 PASS (`ci-browser-check-s66.txt`); `npm test` (render) 983 pass; typecheck clean;
+`render/output/site/index.html` rebuilt.
+
+**Not done (named):** Watch live at L; the reset's reload at midnight never seen in a browser; the ring's animation
+judged only in stills; Collection L still scrolls its binder in the tile (420 px at 61 cards); Showcase still the
+placeholder face.
+
+**Next render-lane slice:** after this PR the next session is game. The next render session: Watch live at L (the
+live match embedded in the tile, reusing the existing arena), which finishes the widgets' S/M/L pass; then the Stats
+page, the ladder page and the bell. Render hardening pass due at 69.

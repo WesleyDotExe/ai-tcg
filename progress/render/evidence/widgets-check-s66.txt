@@ -1,0 +1,50 @@
+
+[A] the three widgets at S, M and L
+PASS  S. the board saved with Daily rewards, Showcase and Collection at S
+      S: {"daily":{"ring":"65 of 90 credits from wins today","row":false,"wins":0,"paid":0,"next":0,"claim":null,"claimText":null,"reset":null,"clock":null,"rewarded":null,"list":0,"total":null,"nextLine":"Next win +5","over":0},"showcase":{"cards":1,"width":62,"first":"Prime Aegis · Mythic · Glitch","captions":0,"over":0},"collection":{"ring":"63%","held":"61/96","minis":0,"pills":0,"over":0}}
+PASS  S. Daily rewards ring "65 of 90 credits from wins today" (GET /api/daily: 65 from 5 wins, the schedule's most 90)
+PASS  S. the next win line "Next win +5" (server nextWinPays 5)
+PASS  S. Collection 61/96 (GET /api/collection: 61/96)
+PASS  S. Showcase's first card "Prime Aegis · Mythic · Glitch" holds the collection's rarest finish (glitch/secret/zeroDay)
+PASS  M. the board saved with Daily rewards, Showcase and Collection at M
+      M: {"daily":{"ring":"65 of 90 credits from wins today","row":true,"wins":10,"paid":5,"next":1,"claim":"claim","claimText":"Claim","reset":null,"clock":null,"rewarded":null,"list":0,"total":null,"nextLine":"Next win +5","over":0},"showcase":{"cards":3,"width":121,"first":"Prime Aegis · Mythic · Glitch","captions":3,"over":0},"collection":{"ring":"63%","held":"61/96","minis":5,"pills":0,"over":0}}
+PASS  M. Daily rewards ring "65 of 90 credits from wins today" (GET /api/daily: 65 from 5 wins, the schedule's most 90)
+PASS  M. the next win line "Next win +5" (server nextWinPays 5)
+PASS  M. the row: 10 win nodes (schedule 10), 5 paid (server 5 wins), 1 next
+PASS  M. the free pack's node: claim "Claim" (GET /api/packs: 1 waiting)
+PASS  M. Collection 61/96 (GET /api/collection: 61/96)
+PASS  M. Showcase's first card "Prime Aegis · Mythic · Glitch" holds the collection's rarest finish (glitch/secret/zeroDay)
+PASS  L. the board saved with Daily rewards, Showcase and Collection at L
+      L: {"daily":{"ring":"65 of 90 credits from wins today","row":true,"wins":10,"paid":5,"next":1,"claim":"claim","claimText":"Claim","reset":"2026-11-12T13:00:00.000Z","clock":"09:09:42","rewarded":"5/10","list":5,"total":"69","nextLine":"Next win +5","over":0},"showcase":{"cards":6,"width":156,"first":"Prime Aegis · Mythic · Glitch","captions":6,"over":0},"collection":{"ring":"63%","held":"61/96","minis":61,"pills":6,"over":420}}
+PASS  L. Daily rewards ring "65 of 90 credits from wins today" (GET /api/daily: 65 from 5 wins, the schedule's most 90)
+PASS  L. the next win line "Next win +5" (server nextWinPays 5)
+PASS  L. the row: 10 win nodes (schedule 10), 5 paid (server 5 wins), 1 next
+PASS  L. the free pack's node: claim "Claim" (GET /api/packs: 1 waiting)
+PASS  L. Collection 61/96 (GET /api/collection: 61/96)
+PASS  L. Showcase's first card "Prime Aegis · Mythic · Glitch" holds the collection's rarest finish (glitch/secret/zeroDay)
+PASS  A. Daily rewards S: the ring; M: + the row and its claim; L: + the reset clock (09:09:42 to 2026-11-12T13:00:00.000Z), rewarded 5/10, 5 wins listed, 69 credits in all (server 69)
+PASS  A. the reset clock ticks (09:09:42 -> 09:09:40)
+PASS  A. Showcase S/M/L: 1/3/6 cards, 62/121/156 px wide (the old face: 78), names under them at M and L
+PASS  A. Collection S: the ring; M: + 5 last pulls; L: + the 6 faction pills and 61 cards
+PASS  A. Daily rewards and Showcase never overflow (daily/showcase/collection px: S 0/0/0, M 0/0/0, L 0/0/420)
+      Collection L scrolls its binder by 420 px (it lists every card held; M 0, S 0)
+PASS  A. Collection S and M don't overflow (0/0 px)
+
+[B] Claim the free pack from the Daily rewards widget
+PASS  B. the server: waiting 1 -> 0, unopened 11 -> 12
+PASS  B. the node now: claimed "Claimed"
+
+[C] a win on the ladder reaches the widget without a reload
+PASS  C. Nova's win 6 (65 -> 70 credits) reached the ring without a reload: "70 of 90 credits from wins today"
+PASS  C. Daily rewards ring "70 of 90 credits from wins today" (GET /api/daily: 70 from 6 wins, the schedule's most 90)
+PASS  C. the next win line "Next win +5" (server nextWinPays 5)
+PASS  C. the row: 10 win nodes (schedule 10), 6 paid (server 6 wins), 1 next
+PASS  C. the free pack's node: claimed "Claimed" (GET /api/packs: 0 waiting)
+
+[D] dark, phone
+PASS  D. on a phone: no sideways scroll (390 <= 390)
+PASS  D. on a phone Daily rewards and Showcase don't overflow (0/0 px)
+PASS  D. no external requests
+PASS  D. no page errors
+
+36 PASS, 0 FAIL

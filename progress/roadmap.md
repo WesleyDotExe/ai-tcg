@@ -224,8 +224,11 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      bar and four rows around you / + the tier column and the top 8), Rating & form (rating and the week's change /
      + the 30-day chart with tier floors, form pips and streak / + win-rate ring, faction bars, recent) and
      Notifications (bell and latest / + four and Mark all read / + unread by kind, eight, big pulls' cards), on
-     the real API (`widgets-check-s65`). Left: Daily rewards, Watch live (embedded at L), Showcase (larger
-     cards), Collection
+     the real API (`widgets-check-s65`). Done (render 66): Daily rewards (the ring of credits from wins / + the
+     reward row: the free pack's Claim and one node per paying win / + the ticking reset clock, rewarded wins,
+     next-win payout, today's wins and losses), Showcase (larger cards: 1 beside its name / 3 / 6 with names),
+     Collection (checked: already S/M/L, nothing changed), on the real API (`widgets-check-s66` 36 PASS). Left:
+     Watch live (the live match embedded at L)
    - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)
    - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
      open as the new season's packs; a season-end screen, if one is built, says so
