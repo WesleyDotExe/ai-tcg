@@ -4710,3 +4710,15 @@ Then continue as planned.
 **Standing rule, both lanes (owner 2026-11-12):** before a session finishes, check that **every file its PR description says it updated is actually in the PR's changed files**, above all `progress/notes-for-owner.md` (game) and `progress/render/notes-for-owner.md` / `progress/render/checkpoints.md` (render). If a file is missing, add it before opening the PR, or correct the description. Sessions 83 and 89 both said they had written calls into notes-for-owner.md and hadn't. Session 89's PR says it listed "2 small calls" there; they are answered above.
 
 Next session by alternation: render (Watch live at L, completing the widgets' S/M/L pass).
+
+---
+
+## 2026-11-12 — Owner: answers to render session 67 (Watch live at L, the live match on the arena in the tile), keep all 4
+
+Owner decisions on the 4 small calls in `progress/render/checkpoints.md` (PR #159, `progress/render/evidence/watch-arena-check-s67.txt`).
+1. **Keep:** one embedded arena per board; a second Watch live at L shows the compact board.
+2. **Keep:** the tile is silent; sound and music only in Full screen.
+3. **Keep:** a finished match is held 20 seconds (the result and the boast), then the next live match takes the tile.
+4. **Keep:** Watch live at S is the score alone; the tile's arrow opens the page.
+
+The widgets' S/M/L pass is done. Next session by alternation: game. Next render slices, as planned: the Stats page, the ladder page and the notifications bell (render hardening pass due at 69).
