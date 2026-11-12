@@ -22,6 +22,11 @@
 //             excess property). Harmless to the page; listed so the render
 //             lane knows what it could read.
 //
+// Session 91 (the hardening pass): the run also sets up the shapes one plain
+// run never reaches (every history result, a live match's boast, the allowance
+// finishing and done, a Prototype, a secret craft, a cosmetic buy); a "Shapes
+// reached" list is printed and an unreached one fails the check.
+//
 // The game lane doesn't edit render files: what this finds goes to the render
 // lane in progress/notes-for-owner.md. Seeds and the clock are fixed, so the
 // output is the same every run.
@@ -33,7 +38,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { type DeckFaction, type PlayStyleId } from "@ai-tcg/engine";
-import { EconomyStore } from "@ai-tcg/economy";
+import { EconomyStore, cardSet } from "@ai-tcg/economy";
 import { startOwnerApi } from "../ownerApi.js";
 import { LiveLadder } from "../ladder/liveLadder.js";
 import { demoFetch } from "./demoFetch.js";
@@ -100,6 +105,26 @@ for (let i = 0; i < 6; i++) {
   const endedAt = new Date(Date.parse("2026-11-01T01:00:00.000Z") + i * 86_400_000).toISOString();
   store.recordMatch({ matchId: `earlier-${i}`, seed: 300 + i, p1AgentId: oneAgent, p2AgentId: twoAgent, outcome: { kind: "win", winnerAgentId: oneAgent }, endedAt });
 }
+// (session 91) The other history rows a page can be handed: a draw, a
+// cancelled match, and an abandon each way (by the owner and by the
+// opponent), on earlier days.
+const earlierDay = (i: number) => new Date(Date.parse("2026-11-07T03:00:00.000Z") + i * 3_600_000).toISOString();
+store.recordMatch({ matchId: "earlier-draw", seed: 400, p1AgentId: oneAgent, p2AgentId: twoAgent, outcome: { kind: "draw" }, endedAt: earlierDay(0) });
+store.recordMatch({ matchId: "earlier-cancelled", seed: 401, p1AgentId: oneAgent, p2AgentId: twoAgent, outcome: { kind: "cancelled" }, endedAt: earlierDay(1) });
+store.recordMatch({ matchId: "earlier-abandoned-by-two", seed: 402, p1AgentId: oneAgent, p2AgentId: twoAgent, outcome: { kind: "abandoned", byAgentId: twoAgent }, endedAt: earlierDay(2) });
+store.recordMatch({ matchId: "earlier-abandoned-by-one", seed: 403, p1AgentId: twoAgent, p2AgentId: oneAgent, outcome: { kind: "abandoned", byAgentId: oneAgent }, endedAt: earlierDay(3) });
+// (session 91) A Prototype copy (serial 1 of its run) for the binder's runs
+// and the card viewer's "found so far".
+const S0 = cardSet("S0");
+const run = S0.prototypes[0]!;
+store.grantCopy({ ownerId: one, cardId: run.cardId, origin: "pack", finish: "prototype", seriesKind: "prototype", seriesCode: run.code, serial: 1, runSize: run.runSize });
+// (session 91) Enough credits for a 300-credit cosmetic and pack points for
+// a secret illustration (750), so the two buys are answered. A ledger row
+// as the coin-skins demo writes one; no store rule pays these in the run.
+const grant = (ownerId: string, currency: "credits" | "packPoints", amount: number) =>
+  store.unsafeExec(`INSERT INTO ledger (owner_id, currency, delta, reason, created_at) VALUES ('${ownerId}', '${currency}', ${amount}, 'demoGrant', '${new Date(clock.t).toISOString()}')`);
+grant(one, "credits", 400);
+grant(one, "packPoints", 800);
 store.setAutoPlay(one, true);
 store.setAutoPlay(two, true);
 
@@ -127,6 +152,9 @@ const tick = async (ms: number) => {
 };
 
 const answers: Answer[] = [];
+/** (session 91) The shapes a field can take that a plain run doesn't reach,
+ * and whether this run reached each (the report lists them). */
+const shapes: Record<string, boolean> = {};
 const refusals: string[] = [];
 const client = siteApi((url: string, init?: RequestInit) => demoFetch(url, init), `http://localhost:${api.port}`);
 async function ask(method: string, call: string, ...args: unknown[]): Promise<unknown> {
@@ -179,8 +207,16 @@ try {
   const shown = liveNow?.matches[0];
   if (shown) await ask("liveFeed", "GET /api/live/:id?from=N (the last two moves)", t, shown.matchId, Math.max(0, shown.released - 2));
   if (shown) await ask("liveFeed", "GET /api/live/:id?from=0 (from the start)", t, shown.matchId, 0);
-  const hist = (await ask("matches", "GET /api/matches?limit=5", t, 5)) as { matches: { matchId: string }[] };
-  if (hist?.matches[0]) await ask("match", "GET /api/matches/:id", t, hist.matches[0].matchId);
+  const hist = (await ask("matches", "GET /api/matches?limit=50 (every result kind)", t, 50)) as { matches: { matchId: string; result: string; hasLog: boolean }[] };
+  // One record of every result kind the history holds, for the match view.
+  const seenKinds = new Set<string>();
+  for (const row of hist?.matches ?? []) {
+    if (seenKinds.has(row.result)) continue;
+    seenKinds.add(row.result);
+    await ask("match", `GET /api/matches/:id (${row.result})`, t, row.matchId);
+  }
+  const withLog = hist?.matches.find((m) => m.hasLog);
+  if (withLog) await ask("matchLog", "GET /api/matches/:id/log (text)", t, withLog.matchId);
 
   // The writes the pages make (their answers are read the same way).
   await ask("updateAccountSettings", "PATCH /api/account/settings", t, { theme: "dark", sound: { volume: 50 } });
@@ -208,6 +244,22 @@ try {
       /* this one can't be crafted: the next */
     }
   }
+  // (session 91) The Prototype copy in the card viewer, a secret illustration
+  // crafted, and a cosmetic bought (the first on sale the owner can afford).
+  await ask("cardHoldings", "GET /api/collection/cards/:id (a Prototype copy)", t, run.cardId);
+  const heldSecrets = new Set(store.collection(one).map((c) => c.secretCode));
+  const secret = S0.secrets.find((x) => x.kind === "illustration" && !heldSecrets.has(x.code));
+  if (secret) await ask("craftSecret", "POST /api/collection/secrets/:code/craft", t, secret.code);
+  const shop = (await client.store!(t)) as { cosmetics: { itemId: string; owned: boolean; priceCredits: number | null }[]; wallet: { credits: number } };
+  for (const c of shop.cosmetics.filter((x) => !x.owned && x.priceCredits !== null && x.priceCredits <= shop.wallet.credits)) {
+    try {
+      answers.push({ method: "buyCosmetic", call: `POST /api/store/cosmetics/:id/buy`, value: await client.buyCosmetic!(t, c.itemId) });
+      break;
+    } catch {
+      /* not on sale to this owner: the next */
+    }
+  }
+  await ask("collection", "GET /api/collection (after the Prototype and the secret)", t, 3);
   const board = (await client.board!(t)) as { widgets: unknown[] };
   await ask("saveBoard", "PUT /api/board", t, board.widgets);
   const play = (await client.play!(t)) as { decks: { deckId: string; complete: boolean }[] };
@@ -230,7 +282,48 @@ try {
   await new Promise((r) => setTimeout(r, 0));
   await api.idle();
   await ask("rebuildJob", "GET /api/play/rebuild (finished)", t);
-  void s2;
+
+  // (session 91) The allowance's other states and a finished live match.
+  // Player Two starts 15 minutes; the clock runs on until the time is up
+  // with its match still live ("finishing"), then until that match is
+  // recorded ("done", stopped "timeUp", the notification). On the way, the
+  // first live match seen with its last move out (nextAt null) is read with
+  // its boast, before the ladder records it.
+  const t2 = s2.token;
+  await ask("setAutoPlay", "PUT /api/play/auto-play {on, minutes:15} (two)", t2, true, 15);
+  let finishedRead = false;
+  let boastServed = false;
+  let finishingRead = false;
+  for (let i = 0; i < 720; i++) {
+    await tick(5000);
+    if (!finishedRead) {
+      const l = (await client.live!(t)) as { matches: { matchId: string; nextAt: string | null; released: number }[] };
+      const done = l.matches.find((m) => m.nextAt === null);
+      if (done) {
+        finishedRead = true;
+        await ask("live", "GET /api/live (a match with its last move out)", t);
+        const f = (await ask("liveFeed", "GET /api/live/:id?from=N (the last move out, the boast)", t, done.matchId, Math.max(0, done.released - 1))) as { boast?: unknown } | undefined;
+        boastServed = f?.boast !== null && f?.boast !== undefined;
+      }
+    }
+    const al = store.autoPlay(two, new Date(clock.t).toISOString()).allowance;
+    if (!finishingRead && al?.state === "finishing") {
+      finishingRead = true;
+      await ask("play", "GET /api/play (two: the allowance finishing)", t2);
+    }
+    if (finishingRead && store.liveMatchOf(two) === null && (finishedRead || i > 600)) break;
+  }
+  const doneAnswer = (await ask("play", "GET /api/play (two: the allowance done, stopped timeUp)", t2)) as { autoPlay: { allowance?: { state: string } | null; stopped: { reason: string } | null } } | undefined;
+  shapes["a live match with its last move out"] = finishedRead;
+  shapes["the live feed's boast, not null (the winner's)"] = boastServed;
+  shapes["autoPlay.allowance in \"finishing\""] = finishingRead;
+  shapes["autoPlay.allowance in \"done\""] = doneAnswer?.autoPlay.allowance?.state === "done";
+  shapes["autoPlay.stopped (\"timeUp\")"] = doneAnswer?.autoPlay.stopped?.reason === "timeUp";
+  for (const k of ["win", "loss", "draw", "cancelled", "abandonedByYou", "abandonedByOpponent"]) shapes[`a history row and match view: ${k}`] = seenKinds.has(k);
+  shapes["a Prototype copy (binder run, card viewer)"] = store.collection(one).some((c) => c.finish === "prototype");
+  shapes["a crafted secret illustration"] = answers.some((a) => a.method === "craftSecret");
+  shapes["a cosmetic bought"] = answers.some((a) => a.method === "buyCosmetic");
+  await ask("notifications", "GET /api/notifications (two: the time-up notice)", t2, 10);
 } finally {
   await api.close();
   await live.stop();
@@ -356,14 +449,23 @@ for (const row of historyRenamed.matches as Record<string, Json>[]) {
   row.outcome = row.result!;
   delete row.result;
 }
+// (session 91) Two more on the shapes this session reached: a union member
+// the site doesn't know (the allowance renamed "ending"), and the stop
+// reason's object sent as bare text.
+const finishing = structuredClone(items.find((x) => x.label.includes("allowance finishing"))?.value ?? null) as { autoPlay: { allowance: { state: string } } } | null;
+if (finishing) finishing.autoPlay.allowance.state = "ending";
+const stoppedText = structuredClone(items.find((x) => x.label.includes("stopped timeUp"))?.value ?? null) as { autoPlay: { stopped: Json } } | null;
+if (stoppedText) stoppedText.autoPlay.stopped = "timeUp";
 const controls: Checked[] = [
   { label: "control: GET /api/me with `kind` taken out", method: "me", value: meNoKind },
   { label: "control: GET /api/wallet with `credits` sent as text", method: "wallet", value: walletText },
   { label: "control: GET /api/matches with `result` renamed `outcome`", method: "matches", value: historyRenamed },
+  ...(finishing ? [{ label: "control: GET /api/play with the allowance's state \"ending\" (not a state the site knows)", method: "play", value: finishing as unknown as Json }] : []),
+  ...(stoppedText ? [{ label: "control: GET /api/play with `autoPlay.stopped` sent as text", method: "play", value: stoppedText as unknown as Json }] : []),
 ];
 const results = typeCheck([...items, ...controls]);
 
-say("# The site contract check: the render's site types against the served answers (game session 90)");
+say("# The site contract check: the render's site types against the served answers (game sessions 90-91)");
 say();
 say("The website's own client (render/src/site/siteApi.ts, unchanged) called the real owner API over a real");
 say("season file with the live ladder playing (5 owners, a fixed clock and seeds). Each answer it parsed was");
@@ -387,6 +489,9 @@ items.forEach((x, i) => {
   for (const m of r.mismatches) say(`    MISMATCH  ${m}`);
   for (const u of [...r.untyped].sort()) say(`    UNTYPED   ${u}`);
 });
+say();
+say("Shapes reached (unions and nullable fields a plain run leaves on one side; session 91):");
+for (const [k, v] of Object.entries(shapes)) say(`    ${v ? "reached" : "NOT REACHED"}  ${k}`);
 // Every method of the site's client this run didn't get an answer from.
 const HOST_ONLY = new Set(["replayPage", "livePage", "liveFrames"]);
 const asked = new Set(items.map((x) => x.method));
@@ -418,4 +523,9 @@ controls.forEach((c, i) => {
 say();
 say(`Totals: ${mismatchCalls} call(s) with a mismatch; ${untypedTotal} untyped field line(s); controls caught ${controlsCaught} of ${controls.length}.`);
 rmSync(dir, { recursive: true, force: true });
-if (mismatchCalls > 0 || controlsCaught < controls.length || stray.length > 0) process.exitCode = 1;
+// (session 91) The run is seeded and on a fixed clock, so a shape it stops
+// reaching means the run drifted (a rule or pace change): fail, so the
+// check never quietly loses what it covered.
+const unreached = Object.entries(shapes).filter(([, v]) => !v).length;
+if (unreached > 0) say(`${unreached} shape(s) NOT REACHED: the run no longer covers them; fix the run before trusting its zero.`);
+if (mismatchCalls > 0 || controlsCaught < controls.length || stray.length > 0 || unreached > 0) process.exitCode = 1;

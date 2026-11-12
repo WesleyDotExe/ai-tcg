@@ -262,6 +262,25 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 91 (the game lane's hardening pass: the site contract check's rarer shapes; no product code or schema change): what was raised, and what is still thin
+
+Raised: session 90's check type-checked only the shapes one plain run produced, so a nullable field or a union
+member the run never hit could be wrong in the site's types unseen. The run now reaches, and checks: history rows
+and match views for all six results (win, loss, draw, cancelled, abandoned by you and by the opponent), a live
+match with its last move out and the winner's boast served, `autoPlay.allowance` in "finishing" and "done",
+`autoPlay.stopped` with "timeUp" and its notification, a Prototype copy in the binder and card viewer, a crafted
+secret illustration, a bought cosmetic, and the text log. 62 calls, 0 mismatches. Two new controls on these shapes
+(an unknown allowance state; `stopped` sent as text) are caught: 5 of 5. A "Shapes reached" list is printed and the
+check fails if any goes unreached (the run is seeded, so that would be drift). Two runs identical. Still thin:
+- **Still not reached:** `stopped` with "dailyRewardsMaxed" (would need ten wins in one day for one owner), a
+  Zero-Day craft (3,000 points), a refused call's error body (the client throws; the check keeps only answers),
+  `signOut` (no body), `featured.tournament` non-null (no tournament exists in Season 0).
+- **The credits and pack points for the two buys are written as ledger rows by hand** (`demoGrant`), not earned. The
+  answers are the real ones; only how the balance got there is shortcut.
+- **The site host's own readers** (`render/src/site/siteHost.ts`, `liveFrames.ts`) still aren't checked (session 90's
+  entry, unchanged), nor the agent protocol's messages.
+- **The run plays ~15 more minutes of fake clock** (to run an allowance out); measured wall time ~12 s here.
+
 ## Session 90 (a spare session: the site contract check; no product code or schema change): what was raised, and what is still thin
 
 Raised: nothing had ever checked the render lane's site types (`render/src/site/siteApi.ts`) against what the server
