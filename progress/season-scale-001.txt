@@ -1,0 +1,65 @@
+Season scale 001 — recording a match, the Stats page, the standings and the season's end at a season's history
+(session 88, game lane)
+========================================================================
+Machine: 4 cores, Intel(R) Xeon(R) Processor @ 2.10GHz; node v22.23.4. Times in ms; median and max of 10 unless "once".
+Seven house owners and one player owner (Lattice Warden's, on auto-play), every one in every round, on a file on
+disk. History written by recordMatch (one match each a round, 9 minutes apart); then one real round played by the
+server's Ladder and each recordPlayed timed (the log and replay files written too). The season end and the next
+season's file are made from a copy of the file at each level.
+
+  150 matches per owner (600 in the file; 0.9 days at ~150 rounds a day)
+    (history written in 1.8 s) [timing, varies per run]
+    season file 1.4 MB (2.47 KB a match); the log and replay of a real match 37 KB (4 so far)
+    Ladder.recordPlayed (4 real matches)               4.3 ms (max     4.3) [timing, varies per run]
+    store.stats(), a house owner                       3.0 ms (max     4.9) [timing, varies per run]
+    store.stats(), the player owner, recent 50         3.1 ms (max     5.2) [timing, varies per run]
+    store.ladder() (GET /api/ladder)                   1.3 ms (max     1.5) [timing, varies per run]
+    store.rating(), one owner                          0.1 ms (max     0.1) [timing, varies per run]
+    store.ratingHistory(), 20 (GET /api/rating)        0.3 ms (max     0.4) [timing, varies per run]
+    store.notifications(), the player owner            1.2 ms (max     1.5) [timing, varies per run]
+    store.endSeason() (8 standings)                    6.3 ms (once) [timing, varies per run]
+    EconomyStore.startNextSeason()                   128.0 ms (once) [timing, varies per run]
+
+  2500 matches per owner (10000 in the file; 15.7 days at ~150 rounds a day)
+    (history written in 26.6 s) [timing, varies per run]
+    season file 14.7 MB (1.50 KB a match); the log and replay of a real match 36 KB (8 so far)
+    Ladder.recordPlayed (4 real matches)               4.1 ms (max     4.2) [timing, varies per run]
+    store.stats(), a house owner                      23.2 ms (max    25.1) [timing, varies per run]
+    store.stats(), the player owner, recent 50        25.2 ms (max    32.1) [timing, varies per run]
+    store.ladder() (GET /api/ladder)                   8.0 ms (max    12.5) [timing, varies per run]
+    store.rating(), one owner                          0.1 ms (max     0.1) [timing, varies per run]
+    store.ratingHistory(), 20 (GET /api/rating)        7.1 ms (max     7.3) [timing, varies per run]
+    store.notifications(), the player owner            2.4 ms (max     2.5) [timing, varies per run]
+    store.endSeason() (8 standings)                   21.7 ms (once) [timing, varies per run]
+    EconomyStore.startNextSeason()                   147.9 ms (once) [timing, varies per run]
+
+  6300 matches per owner (25200 in the file; 39.8 days at ~150 rounds a day)
+    (history written in 43.7 s) [timing, varies per run]
+    season file 36.4 MB (1.48 KB a match); the log and replay of a real match 37 KB (12 so far)
+    Ladder.recordPlayed (4 real matches)               4.8 ms (max     4.9) [timing, varies per run]
+    store.stats(), a house owner                      60.3 ms (max    72.6) [timing, varies per run]
+    store.stats(), the player owner, recent 50        59.9 ms (max    64.1) [timing, varies per run]
+    store.ladder() (GET /api/ladder)                  22.0 ms (max    25.5) [timing, varies per run]
+    store.rating(), one owner                          0.1 ms (max     0.1) [timing, varies per run]
+    store.ratingHistory(), 20 (GET /api/rating)       12.2 ms (max    15.5) [timing, varies per run]
+    store.notifications(), the player owner            3.1 ms (max     4.0) [timing, varies per run]
+    store.endSeason() (8 standings)                   28.8 ms (once) [timing, varies per run]
+    EconomyStore.startNextSeason()                   136.5 ms (once) [timing, varies per run]
+
+  12600 matches per owner (50400 in the file; 79.4 days at ~150 rounds a day)
+    (history written in 75.4 s) [timing, varies per run]
+    season file 72.4 MB (1.47 KB a match); the log and replay of a real match 34 KB (16 so far)
+    Ladder.recordPlayed (4 real matches)               6.8 ms (max     8.5) [timing, varies per run]
+    store.stats(), a house owner                     137.7 ms (max   157.9) [timing, varies per run]
+    store.stats(), the player owner, recent 50       134.5 ms (max   149.5) [timing, varies per run]
+    store.ladder() (GET /api/ladder)                  46.9 ms (max    48.9) [timing, varies per run]
+    store.rating(), one owner                          0.1 ms (max     0.1) [timing, varies per run]
+    store.ratingHistory(), 20 (GET /api/rating)       24.4 ms (max    24.8) [timing, varies per run]
+    store.notifications(), the player owner            5.3 ms (max     6.2) [timing, varies per run]
+    store.endSeason() (8 standings)                   59.1 ms (once) [timing, varies per run]
+    EconomyStore.startNextSeason()                   147.6 ms (once) [timing, varies per run]
+
+Tried at 6,300 matches each (one run, the same script with `CREATE INDEX ... ON match_ratings(owner_id)` added
+after open; not committed): stats() 64.6 ms, ratingHistory() 11.8 ms, ladder() 37.8 ms, endSeason() 44.1 ms: no
+gain (with eight owners each owner holds a quarter of the ratings rows; the cost is the owner's own rows joined and
+sorted). Not added. [timing, varies per run]

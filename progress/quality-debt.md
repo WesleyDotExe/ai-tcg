@@ -262,6 +262,31 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 88 (a spare session: the rest of session 87's scale gaps measured; no code or schema change): what is still thin
+
+- **Measured: the rest of the 7-day run's reads at a season's history** (`progress/season-scale-001.txt`, a record;
+  `server/src/dev/seasonScaleMeasure.ts`). Seven house owners and a player owner on auto-play, every one in every
+  round, up to 12,600 matches each (two seasons, the history carries). At Season 0's end (6,300 each, 25,200 in the
+  file): `Ladder.recordPlayed` on real matches (record, payouts, ratings, notifications, the log and replay files,
+  the auto-play checks) ~5 ms; `store.stats` (GET /api/stats) ~60 ms; `store.ladder` (GET /api/ladder) ~22-38 ms;
+  `ratingHistory` (GET /api/rating) ~12 ms; notifications ~3 ms; `endSeason` ~30-45 ms once; `startNextSeason`
+  ~140 ms once, flat. Nothing fixed: none of these is on the website's 15 s poll (it reads daily, packs and
+  notifications; the ladder and Stats only when Home or a page is opened), so they cost once per page view.
+- **Tried and dropped: an index on `match_ratings(owner_id)`.** Stats' rated-points read and `ratingHistory` scan
+  the whole table, but with eight owners each owner is a quarter of its rows; the index changed nothing measurable
+  (`stats` 60 -> 65 ms, `ratingHistory` 12 -> 12 ms, within the noise). Not added (it would have been schema v29).
+  At launch scale (hundreds of owners) it would matter: add it then, with the running tallies below.
+- **Still thin: `stats()`, `ladder()` and `ratingHistory()` are linear in the owner's (or the file's) history.**
+  ~135 ms / ~47 ms / ~24 ms at 12,600 matches each (the end of Season 1 if the history carries for the house
+  agents). Fine for Season 0; before launch: running tallies on the ratings row (wins / losses / draws) for the
+  ladder, a per-owner Stats cache until its next match, the owner index.
+- **Disk:** the season file grows ~1.5 KB a match from `recordMatch` rows (36 MB at Season 0's end; real matches
+  carry their moves and final health, so somewhat more), and each real match writes a log and replay of ~36 KB:
+  ~150 MB over the 7 unattended days, ~0.9 GB over a 42-day season, in one directory (~50,000 files). Fine on the
+  Mac mini; nothing prunes them.
+- **Still thin: the history in the measure is `recordMatch` rows, not real matches** (as session 87's); only one
+  real round per level is played (4 matches, so `recordPlayed`'s max is of 4).
+
 ## Session 87 (a spare session: the round's whole-history read; no schema change): what was raised, and what is still thin
 
 - **Raised: a ladder round no longer reads every owner's whole history.** `startRound` took each owner's last two

@@ -1,5 +1,5 @@
 # The starter guarantee (session 46)
-database: <temp>/season-0.db  schema v27  odds table S0-odds-2
+database: <temp>/season-0.db  schema v28  odds table S0-odds-2
 hit = Full Art or better: fullArt, glitch, altArt, gold, secret, zeroDay, prototype
 
 ## 1. Starter packs 1 and 2 have no hit: pack 3's shine slot is made a hit

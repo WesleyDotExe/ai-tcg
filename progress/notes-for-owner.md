@@ -1,5 +1,23 @@
 # Notes for the owner
 
+**Updated 2026-11-12, session 88 (game lane; a spare session).** Nothing is blocking. Lane: the last merged PR,
+#155, was "Render:", so this is a game session; no PR was open.
+
+**What I did (no new feature, no code change):**
+- **Checked that the server stays quick through a whole season.** On a test file the size of Season 0's end
+  (`progress/season-scale-001.txt`): recording each match ~5 ms, the Stats page ~0.06 s, the ladder ~0.03 s,
+  ending the season and making Season 1's file under 0.2 s together. The slower ones only run when a page is
+  opened, not on the site's regular refresh. Nothing needed fixing for Season 0.
+- **Disk use:** each match keeps a log and a replay (~37 KB): about 150 MB over the 7 unattended days, about
+  0.9 GB over a full season. Nothing deletes them.
+- **Re-ran the three slow demos:** one was out of date only on its schema number; regenerated.
+
+**Small call you may want to overrule:**
+1. **Match logs and replays are kept forever** (one folder, ~0.9 GB a season). Fine on the Mac mini for Season 0;
+   a clean-up rule (e.g. keep replays, drop text logs after N days) can come at launch scale.
+
+---
+
 **Updated 2026-11-12, session 87 (game lane; a spare session).** Nothing is blocking. Lane: the last merged PR,
 #153, was "Render:", so this is a game session; no PR was open. Your answers to session 86: all 3 stand; the early
 dry run stays in clean-up, as you left it undecided.
