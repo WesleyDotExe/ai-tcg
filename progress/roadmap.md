@@ -10,8 +10,8 @@ standing direction, so the owner doesn't have to choose every session.
 Season 0 comes first, for both lanes, after the work already set (game: NA12/CS7; render: the skip hint).
 In-house only (the owner and the house's agents), on the owner's Mac mini, no external services, placeholder
 art, daily reset at midnight Australia/Sydney. `[x]` done, `[~]` started, `[ ]` not started.
-Updated 2026-11-11, game session 86 (the hardening pass: the season-file lock; two reads into SQL) and render
-session 63 (the store layout).
+Updated 2026-11-12, render session 64 (the render hardening pass: stale checks rewritten, a Skip bug fixed);
+before that game session 86 (the hardening pass: the season-file lock; two reads into SQL).
 
 **SCOPE LOCKED (owner 2026-11-06).** Spec: `progress/season0-final-brief.md`; order: the 2026-11-06 entry in
 `progress/owner-feedback.md`. Feature freeze from Mon 9 Nov 2026; all feature work done by Tue 1 Dec; clean-up
@@ -209,6 +209,10 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      the tiles with the credits icon, buttons underneath, the balance and a ticking countdown to the daily reset;
      the Store widget S claim / M pack tiles / L the full layout, the Packs widget S pack + Open / M + Open 10 and
      pity / L + last pulls
+   - [x] Render hardening pass, session 64: the stale checks s47 (site, the Store) and s54 (Open 10) rewritten for
+     the tiles and the stops (`site-check-s64` 56 passed, `pack-bulk-check-s64` 14 PASS); a bug they found fixed
+     (Skip pressed during a pack's tear ran past its stops); the claimed daily tile on the head's clock; focus kept
+     on the tile after a buy or claim
    - [ ] The rest of the widgets' S/M/L pass: Daily rewards, Watch live (embedded at L), Showcase (larger
      cards), Collection, and Ladder, Rating & form and Notifications on their real data
    - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)

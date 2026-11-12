@@ -2239,6 +2239,12 @@ export const PACK_PAGE_RUNTIME_SOURCE = String.raw`
     // the button only points at it.
     if (S.phase === 'bulk' && rowDowns().length) { log('bulkSkip', { from: S.bp, held: rowDowns().length }); bulkHint(true); return; }
     if (S.phase === 'bulk' && S.row && S.row.building) return;
+    // Pressed while a pack with a stop (or a big pull) is still tearing, its
+    // row not dealt yet (render 64, found by the ten-pack check): it used to
+    // cut the deal and run on, passing that pack's stops unseen. Now the pack
+    // carries on, and only the plain packs after it are run past.
+    var tearing = S.phase === 'bulk' && !S.row && S.bp >= 0 ? S.B.packs[S.bp] : null;
+    if (tearing && (tearing.fullReveal || tearing.cards.some(packRowHeld))) { log('bulkSkip', { from: S.bp, pending: true }); S.skipping = true; return; }
     log('bulkSkip', { from: S.bp });
     clearTimers(); S.skipping = true; S.row = null; bulkNext();
   });

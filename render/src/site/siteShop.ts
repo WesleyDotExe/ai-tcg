@@ -107,6 +107,11 @@ export interface ShopTile {
   name: string;
   /** The line under the name. */
   sub: string;
+  /** A moment the line ends on, as the page's ticking clock (render session
+   * 64: the claimed daily tile counts down in the head's own hh:mm:ss, not a
+   * second "10 h 12 min" for the same moment): the server's ISO time and the
+   * clock's first text. */
+  until?: { iso: string; text: string } | null;
   art: TileArt;
   /** Credits, 0 for free; null when it isn't sold (an owned item shows no price). */
   price: number | null;
@@ -132,7 +137,8 @@ export function packTiles(p: Pick<SitePacks, "offer" | "dailyPack" | "bulkOpenCo
     id: "daily",
     size: featured === "daily" ? "feature" : "tall",
     name: "Free daily pack",
-    sub: dv.canClaim ? (dv.waiting > 1 ? `${dv.waiting} waiting to be claimed · one a day` : "One a day, yours to claim") : dv.line,
+    sub: dv.canClaim ? (dv.waiting > 1 ? `${dv.waiting} waiting to be claimed · one a day` : "One a day, yours to claim") : p.dailyPack.nextPackAt ? "Claimed today · the next in" : dv.line,
+    until: !dv.canClaim && p.dailyPack.nextPackAt ? { iso: p.dailyPack.nextPackAt, text: clockLeft(nowMs, p.dailyPack.nextPackAt) } : null,
     art: { kind: "daily", setCode: p.dailyPack.setCode, waiting: dv.waiting },
     // Claimed: no price and no ribbon; the button and the line under the
     // name say when the next one comes in.
@@ -247,7 +253,7 @@ export function tileHtml(t: ShopTile, opts: { art?: ShopArt | null; compact?: bo
   const style = tone.hex ? ` style="--c:${tone.hex}"` : "";
   return `<article class="sh-t t-${t.size} ${tone.cls}${t.owned ? " owned" : ""}" data-tile="${esc(t.id)}"${style}>`
     + `<div class="sh-art">${artHtml(t, opts.art, !!opts.compact)}${t.badge ? `<span class="sh-badge">${esc(t.badge)}</span>` : ""}${priceHtml(t.price)}</div>`
-    + `<div class="sh-info"><b class="sh-n">${esc(t.name)}</b>${opts.compact && t.size !== "feature" ? "" : `<small>${esc(t.sub)}</small>`}</div>`
+    + `<div class="sh-info"><b class="sh-n">${esc(t.name)}</b>${opts.compact && t.size !== "feature" ? "" : `<small>${esc(t.sub)}${t.until ? ` <b class="sh-clock" data-until="${esc(t.until.iso)}">${esc(t.until.text)}</b>` : ""}</small>`}</div>`
     + `<div class="sh-act">${btn}${why}</div></article>`;
 }
 
