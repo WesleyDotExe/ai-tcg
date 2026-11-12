@@ -1346,3 +1346,23 @@ season mark) is proposed as a mark, call 1.
    `progress/roadmap.md`. Next on the render side: the Stats page, the ladder page and the bell.
 3. **Nothing needed from the game lane.** The tile uses the same live page and frames the full-screen arena
    already reads (`POST /live-page/:matchId`, `GET /live-frames/:key`); no new server fields.
+
+## 2026-11-12 — Render session 68 (the Stats page, with the season ladder inside it)
+
+1. **Five small calls** are in `progress/render/checkpoints.md` (the newest checkpoint). The one most worth a look:
+   call 1 (the ladder is a section of the Stats page, not its own page: roadmap render item 5's call).
+2. **For the game lane's roadmap upkeep:** render item 5 (the ladder, inside Stats) ticked; item 1's Stats page done
+   (the bell left); item 7's last row: the Stats page and the ladder done, the bell left. Ticked in
+   `progress/roadmap.md`.
+3. **For the game lane (a finding, not a request; nothing blocks):** on the site demo's seeded history the Stats
+   chart's last day read 1727 while `rating.now` read 1755.5 (and a week ago 1842), until a live match was recorded,
+   after which the two agreed (1670 and 1670). Likely the demo's clock-jump warm-up again (matches recorded out of
+   end order: the chart takes a day's rating from its last match by end time, `now` is the latest recorded). The
+   page draws both as served. Real play can't record out of order except after a backward clock step (game session
+   89), so probably nothing to do; the game lane may want to confirm.
+4. **The site contract record** `progress/site-contract-001.txt` (game lane's) still lists "UNTYPED today is sent"
+   for `GET /api/stats`: the site types it now (owner 2026-11-12, item 3), and this session's run of the check says
+   `fits` (`progress/render/evidence/site-contract-s68.txt`, 0 mismatches, controls 3 of 3). The record refreshes
+   whenever the game lane next writes it. `SiteApi.stats` also takes `agent` now (the filter); the check calls it
+   without one.
+

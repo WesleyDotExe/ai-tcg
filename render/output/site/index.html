@@ -593,6 +593,64 @@ body[data-theme="dark"] .cvdlg { background: rgba(20,24,56,.86); }
 @media (max-width: 560px) { .rp-speed { right: 12px; left: 12px; bottom: 58px; max-width: none; } }
 .pill.fast { background: #ffb43c; color: #1a1205; margin-left: 6px; }
 @media (max-width: 760px) { .m-live-grid { grid-template-columns: 1fr; } .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .hrow .hr-act { grid-column: 2 / 4; } .sb-meta { display: none; } }
+/* ---- the Stats page (render session 68): the filter, the rating and its chart, the totals, today, factions, recent, the ladder ---- */
+.st-filter { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; } .st-filter .sp { flex: 1; }
+.st-agents .pill small { opacity: .7; font-weight: 600; } .st-busy { animation: st-blink 1.2s ease-in-out infinite; }
+@keyframes st-blink { 50% { opacity: .4; } }
+.st-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(320px, 1fr); gap: 20px; align-items: start; }
+.st-main, .st-side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.st-pg .panel { padding: 16px 20px; border-radius: 24px; display: flex; flex-direction: column; gap: 10px; }
+.st-pg h4 { margin: 0; font: 700 15px system-ui; }
+.st-rh { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.st-rv, .st-wk { display: flex; flex-direction: column; line-height: 1.05; min-width: 0; }
+.st-rv b { font: 800 44px ui-rounded, -apple-system, "SF Pro Rounded", system-ui; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.st-wk { margin-left: auto; align-items: flex-end; } .st-wk b { font: 800 26px ui-rounded, system-ui; font-variant-numeric: tabular-nums; } .st-wk small { font-size: 12px; opacity: .8; }
+.st-tier { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; } .st-tier .tbar { height: 10px; }
+.st-ch { margin-top: 4px; }
+.st-chart { display: flex; flex-direction: column; gap: 2px; }
+.dcols { display: block; width: 100%; height: auto; overflow: visible; }
+.dcols .dc-w { fill: #3cc47c; } .dcols .dc-l { fill: #ff5d73; } .dcols .dc-d { fill: #8f8cff; } .dcols .dc-z { fill: var(--muted); opacity: .5; }
+.dcols .dc-axis { stroke: var(--line); stroke-width: 1; } .dcols .rc-l { fill: var(--muted); font: 600 10px system-ui; }
+.dcols rect { transform-box: fill-box; transform-origin: center; animation: st-col .6s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes st-col { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.st-tot { flex-direction: row !important; flex-wrap: wrap; align-items: center; gap: 18px !important; }
+.st-wr { display: flex; align-items: center; gap: 12px; } .st-wr > div { display: flex; flex-direction: column; }
+.ring.st-ring { width: 86px; height: 86px; } .ring.st-ring b { width: 70px; height: 70px; font-size: 18px; }
+.st-tiles { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; min-width: 0; }
+.st-t { display: flex; flex-direction: column; padding: 9px 11px; border-radius: 14px; background: var(--soft); box-shadow: var(--soft-edge); min-width: 0; }
+.st-t b { font: 800 21px ui-rounded, system-ui; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .st-t span { font: 600 11.5px system-ui; color: var(--muted); }
+.st-t.w b { color: var(--ok); } .st-t.l b { color: var(--live); } .st-t.hot { background: color-mix(in srgb, #3cc47c 22%, transparent); } .st-t.cold { background: color-mix(in srgb, #ff5d73 18%, transparent); }
+.st-tot > p { flex-basis: 100%; margin: 0; }
+.st-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.st-fbars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.st-fbars li { display: grid; grid-template-columns: 64px minmax(0, 1fr) 42px auto; gap: 10px; align-items: center; } .st-fbars li.none { opacity: .55; }
+.st-fbars .ftag { text-align: center; } .st-fbars .fb-b { height: 10px; } .st-fp { font: 800 14px ui-rounded, system-ui; font-variant-numeric: tabular-nums; text-align: right; } .st-fr { white-space: nowrap; min-width: 52px; text-align: right; }
+.st-td { display: flex; align-items: center; gap: 16px; } .st-today .dr-tot { margin: 0; }
+.st-rec .hlist { margin: 0; } .st-rec .hrow { grid-template-columns: 22px minmax(0,1fr) auto auto; gap: 8px; } .st-rec .hr-vs { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.st-ladder { margin-top: 20px; }
+.st-spread { display: flex; flex-direction: column; gap: 6px; }
+.st-sb { display: flex; height: 12px; border-radius: 99px; overflow: hidden; gap: 2px; } .st-sb i { background: var(--t); min-width: 4px; transform-origin: left; animation: wg-grow .7s cubic-bezier(.2,.8,.2,1) both; }
+.st-sk { display: flex; flex-wrap: wrap; gap: 4px 14px; } .st-sk span { display: inline-flex; align-items: center; gap: 5px; } .st-sk i { width: 9px; height: 9px; transform: rotate(45deg); border-radius: 2px; background: var(--t); }
+.st-ll { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 18px; align-items: start; }
+.lt-wrap { max-height: 560px; overflow: auto; border-radius: 14px; scrollbar-width: thin; }
+.ltable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.ltable th { position: sticky; top: 0; z-index: 1; text-align: left; font: 700 11px system-ui; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; background: var(--solid); }
+.ltable td { padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ltable tr.you td { background: color-mix(in srgb, var(--accent) 20%, transparent); } .ltable tr.you td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.lt-k { font: 800 13.5px ui-rounded, system-ui; text-align: center; width: 36px; }
+.lt-n { max-width: 260px; } .lt-n b, .lt-n small { display: block; overflow: hidden; text-overflow: ellipsis; } .lt-n small { font-size: 11.5px; color: var(--muted); }
+.lt-t i { display: inline-block; width: 9px; height: 9px; margin-right: 6px; transform: rotate(45deg); border-radius: 2px; background: var(--t); }
+.lt-r { font: 800 14px ui-rounded, system-ui; } .lt-r small { font: 600 11px system-ui; color: var(--muted); }
+.lt-gap td { text-align: center; color: var(--muted); border-bottom: 0; padding: 2px; }
+@media (max-width: 1100px) { .st-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 720px) { .st-two, .st-ll { grid-template-columns: minmax(0, 1fr); } .st-rv b { font-size: 34px; } .st-rh .tbadge { --s: 48px !important; }
+  .st-filter { flex-direction: column; align-items: stretch; } .st-filter .sp { display: none; } .st-filter .seg { align-self: flex-start; }
+  .st-tot { flex-direction: column !important; align-items: stretch; } .st-tiles { flex: none; grid-template-columns: repeat(3, minmax(0, 1fr)); } .st-t b { font-size: 18px; } .st-td { flex-wrap: wrap; }
+  .st-filter .pills { min-width: 0; } .st-filter .pill { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .st-rec .hrow { grid-template-columns: 22px minmax(0,1fr) auto; } .st-rec .hr-act { grid-column: 2 / 4; }
+  .ltable .lt-m, .ltable .lt-d, .ltable .lt-w, .ltable th:nth-child(5), .ltable th:nth-child(6), .ltable th:nth-child(7), .lt-r small { display: none; }
+  .ltable td, .ltable th { padding: 6px 5px; } .lt-t { font-size: 0; } .lt-t i { margin: 0; } .lt-k { width: 26px; } .lt-n { max-width: 150px; } }
+@media (prefers-reduced-motion: reduce) { .dcols rect, .st-sb i, .st-busy { animation: none; } }
 
 </style>
 <style>.cface { --cortex: #35c9ff; --aegis: #ff7d24; --swarm: #8bff5c; --null: #d565ff; --neutral: #fff0c2; --gold1: #7a5a12; --gold2: #f6d77a; --gold3: #b8862a; --gold4: #fff1b8; --cw: 100%; position: relative; aspect-ratio: 5 / 7; color: #e6eeff; font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -4681,9 +4739,9 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     const totalCopies = pool.reduce((sum, p) => sum + p.copies, 0);
     const removalCopies = pool.filter((p) => isRemovalOrDebuffCard(p.card)).reduce((sum, p) => sum + p.copies, 0);
     if (totalCopies > 0 && removalCopies / totalCopies > REMOVAL_DEBUFF_MAX_SHARE) {
-      const pct2 = (removalCopies / totalCopies * 100).toFixed(1);
+      const pct3 = (removalCopies / totalCopies * 100).toFixed(1);
       violations.push(
-        `removal/debuff cards are ${pct2}% of the deck (${removalCopies}/${totalCopies} copies), over the ${REMOVAL_DEBUFF_MAX_SHARE * 100}% cap`
+        `removal/debuff cards are ${pct3}% of the deck (${removalCopies}/${totalCopies} copies), over the ${REMOVAL_DEBUFF_MAX_SHARE * 100}% cap`
       );
     }
     for (const { card } of pool) {
@@ -6096,8 +6154,7 @@ return { packFaceHtml: packFaceHtml, packFitText: packFitText, packTiltAngles: p
     connect: "Connect agent"
   };
   var PAGE_WAITS = {
-    tournament: { needs: ["tournament"], will: "Tournaments come after Season 0." },
-    stats: { needs: ["ladder", "stats"], will: "Your rating and form, results by faction, and the ladder." }
+    tournament: { needs: ["tournament"], will: "Tournaments come after Season 0." }
   };
   function waitsLine(needs) {
     return needs.length ? `Waiting on the server for: ${needs.join(", ")}.` : "The server serves this now; the page is being built next.";
@@ -7000,7 +7057,7 @@ gl_FragColor=vec4(col,1.);}`;
       rating: (token, recent) => call("GET", `/api/rating${recent ? `?recent=${recent}` : ""}`, { token }),
       ladder: (token, limit) => call("GET", `/api/ladder${limit ? `?limit=${limit}` : ""}`, { token }),
       stats: (token, opts = {}) => {
-        const q = [opts.days ? `days=${opts.days}` : "", opts.recent ? `recent=${opts.recent}` : ""].filter(Boolean).join("&");
+        const q = [opts.agent ? `agent=${encodeURIComponent(opts.agent)}` : "", opts.days ? `days=${opts.days}` : "", opts.recent ? `recent=${opts.recent}` : ""].filter(Boolean).join("&");
         return call("GET", `/api/stats${q ? `?${q}` : ""}`, { token });
       },
       notifications: (token, limit) => call("GET", `/api/notifications${limit ? `?limit=${limit}` : ""}`, { token }),
@@ -8411,9 +8468,9 @@ gl_FragColor=vec4(col,1.);}`;
     return `<button type="button" class="bslot held" data-act="view-slot" data-slot="${esc(s.key)}" data-faction="${esc(s.faction)}" aria-label="${esc(label)}"><span class="cface">${face2(faceOfSlot(s), setCode)}</span>${count}${chip}</button>`;
   }
   function blockHtml(b, face2, setCode) {
-    const pct2 = b.total ? Math.floor(b.held / b.total * 100) : 0;
+    const pct3 = b.total ? Math.floor(b.held / b.total * 100) : 0;
     const body = b.slots.length ? `<div class="binder">${b.slots.map((s) => slotHtml(s, face2, setCode)).join("")}</div>` : '<p class="muted small bempty">Nothing here with these filters.</p>';
-    return `<section class="col-block" data-block="${b.id}"><div class="bh"><h3>${esc(b.title)}</h3><span class="bheld"><b>${b.held}</b> / ${b.total}</span><span class="bbar" role="img" aria-label="${pct2}% held"><i style="width:${pct2}%"></i></span></div><p class="muted small">${esc(b.note)}</p>${body}</section>`;
+    return `<section class="col-block" data-block="${b.id}"><div class="bh"><h3>${esc(b.title)}</h3><span class="bheld"><b>${b.held}</b> / ${b.total}</span><span class="bbar" role="img" aria-label="${pct3}% held"><i style="width:${pct3}%"></i></span></div><p class="muted small">${esc(b.note)}</p>${body}</section>`;
   }
   function collectionPageHtml(b, c, f, packPoints, face2) {
     const sum = collectionSummary(b, c);
@@ -8491,9 +8548,9 @@ gl_FragColor=vec4(col,1.);}`;
     const next = i >= 0 && i + 1 < tiers.length ? tiers[i + 1] : null;
     if (i < 0 || !next || next.from === null) return { tier: you.tier, next: null, pct: 100, line: "Top tier" };
     const from = (_c = tiers[i].from) != null ? _c : next.from - (((_b = (_a4 = tiers[i + 2]) == null ? void 0 : _a4.from) != null ? _b : next.from + 150) - next.from);
-    const pct2 = Math.max(0, Math.min(100, Math.round((you.rating - from) / Math.max(1, next.from - from) * 100)));
+    const pct3 = Math.max(0, Math.min(100, Math.round((you.rating - from) / Math.max(1, next.from - from) * 100)));
     const gap = Math.max(1, Math.ceil(next.from - you.rating));
-    return { tier: you.tier, next: next.tier, pct: pct2, line: `${gap} to ${next.tier}` };
+    return { tier: you.tier, next: next.tier, pct: pct3, line: `${gap} to ${next.tier}` };
   }
   function tierBar(p) {
     var _a4;
@@ -8600,16 +8657,16 @@ gl_FragColor=vec4(col,1.);}`;
     return `${Number(m[2])} ${(_a4 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(m[1]) - 1]) != null ? _a4 : ""}`;
   }
   function winRing(t, px) {
-    const decided = t.wins + t.losses + t.draws;
-    const pct2 = decided ? Math.round(t.winRate * 100) : 0;
-    return `<div class="ring wr" style="--p:${pct2};width:${px}px;height:${px}px" role="img" aria-label="${decided ? `${pct2}% of ${decided} decided matches won` : "No decided match yet"}"><b style="width:${px - 14}px;height:${px - 14}px">${decided ? `${pct2}%` : "\u2014"}</b></div>`;
+    const decided2 = t.wins + t.losses + t.draws;
+    const pct3 = decided2 ? Math.round(t.winRate * 100) : 0;
+    return `<div class="ring wr" style="--p:${pct3};width:${px}px;height:${px}px" role="img" aria-label="${decided2 ? `${pct3}% of ${decided2} decided matches won` : "No decided match yet"}"><b style="width:${px - 14}px;height:${px - 14}px">${decided2 ? `${pct3}%` : "\u2014"}</b></div>`;
   }
   function factionBars(rows) {
     return `<ul class="fbars">${rows.map((f) => {
       var _a4;
-      const decided = f.wins + f.losses + f.draws;
-      const pct2 = decided ? Math.round(f.winRate * 100) : 0;
-      return `<li style="--c:${(_a4 = FACTION_HEX[f.faction]) != null ? _a4 : "#8f8cff"}"><span class="fb-n">${esc(f.faction)}</span><span class="fb-b"><i style="width:${decided ? Math.max(3, pct2) : 0}%"></i></span><span class="fb-v small">${decided ? `${pct2}% <span class="muted">of ${decided}</span>` : `<span class="muted">none</span>`}</span></li>`;
+      const decided2 = f.wins + f.losses + f.draws;
+      const pct3 = decided2 ? Math.round(f.winRate * 100) : 0;
+      return `<li style="--c:${(_a4 = FACTION_HEX[f.faction]) != null ? _a4 : "#8f8cff"}"><span class="fb-n">${esc(f.faction)}</span><span class="fb-b"><i style="width:${decided2 ? Math.max(3, pct3) : 0}%"></i></span><span class="fb-v small">${decided2 ? `${pct3}% <span class="muted">of ${decided2}</span>` : `<span class="muted">none</span>`}</span></li>`;
     }).join("")}</ul>`;
   }
   function streakChip(s) {
@@ -8737,9 +8794,9 @@ gl_FragColor=vec4(col,1.);}`;
   function dailyRingSvg(fromWins, cap, px) {
     const r = 42;
     const len = 2 * Math.PI * r;
-    const pct2 = cap > 0 ? Math.max(0, Math.min(1, fromWins / cap)) : 0;
-    const full = pct2 >= 1 ? " full" : "";
-    return `<span class="dr-ring${full}" style="--s:${px}px" role="img" aria-label="${fromWins} of ${cap} credits from wins today"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="dr-tr" cx="50" cy="50" r="${r}"/><circle class="dr-arc" cx="50" cy="50" r="${r}" style="--len:${len.toFixed(1)};--off:${(len * (1 - pct2)).toFixed(1)}"/></svg><span class="dr-rv"><b>${fromWins}</b><small>of ${cap}</small></span></span>`;
+    const pct3 = cap > 0 ? Math.max(0, Math.min(1, fromWins / cap)) : 0;
+    const full = pct3 >= 1 ? " full" : "";
+    return `<span class="dr-ring${full}" style="--s:${px}px" role="img" aria-label="${fromWins} of ${cap} credits from wins today"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="dr-tr" cx="50" cy="50" r="${r}"/><circle class="dr-arc" cx="50" cy="50" r="${r}" style="--len:${len.toFixed(1)};--off:${(len * (1 - pct3)).toFixed(1)}"/></svg><span class="dr-rv"><b>${fromWins}</b><small>of ${cap}</small></span></span>`;
   }
   function packNodeHtml(p, nowMs) {
     if (!p) return `<li class="dr-pk wait"><span class="dr-pki" aria-hidden="true"></span><span class="dr-lb">Free pack</span><span class="muted small">Loading\u2026</span></li>`;
@@ -8779,8 +8836,8 @@ gl_FragColor=vec4(col,1.);}`;
     if (size === "M") return head + row;
     const city = zoneCity(d.timeZone);
     const reset = `<div class="dr-reset"><span class="sh-clock-ic" aria-hidden="true"></span><span>Resets in</span><b class="sh-clock" data-until="${esc(d.resetsAt)}">${clockLeft(nowMs, d.resetsAt)}</b><small>midnight ${esc(city)}</small></div>`;
-    const pct2 = v.rewardedCap > 0 ? Math.min(100, Math.round(v.rewarded / v.rewardedCap * 100)) : 0;
-    const rewarded = `<div class="dr-rw"><div class="row between"><b>Rewarded wins</b><span class="dr-rwn"><b>${v.rewarded}</b>/${v.rewardedCap}</span></div><div class="bar"><i style="width:${pct2}%"></i></div></div>`;
+    const pct3 = v.rewardedCap > 0 ? Math.min(100, Math.round(v.rewarded / v.rewardedCap * 100)) : 0;
+    const rewarded = `<div class="dr-rw"><div class="row between"><b>Rewarded wins</b><span class="dr-rwn"><b>${v.rewarded}</b>/${v.rewardedCap}</span></div><div class="bar"><i style="width:${pct3}%"></i></div></div>`;
     const wins = d.rewardedWins.length ? `<ul class="dr-list">${d.rewardedWins.map((x) => `<li><span class="wl w">W</span><span>Win ${x.nth}</span><span class="muted">${esc(clockTime(x.endedAt))}</span><b>+${x.credits}</b></li>`).join("")}</ul>` : `<p class="muted small">No rewarded wins yet today.</p>`;
     const paidLosses = Math.min(d.losses, d.maxPaidLosses);
     const losses = `<div class="small">Losses and draws: <b>${d.losses}</b> \xB7 ${paidLosses} of ${d.maxPaidLosses} paid \xB7 +${d.creditsFromLosses}${d.nextLossPays > 0 ? ` <span class="muted">(next pays ${d.nextLossPays})</span>` : ""}</div>`;
@@ -9132,6 +9189,162 @@ gl_FragColor=vec4(col,1.);}`;
     return true;
   }
 
+  // src/site/siteStats.ts
+  var STATS_DAYS = [7, 30, 90];
+  var STATS_RECENT = 20;
+  function statsFilterHtml(s, st) {
+    var _a4;
+    const agents = (_a4 = s == null ? void 0 : s.agents) != null ? _a4 : [];
+    const pill = (id, label, n) => {
+      var _a5;
+      const on = ((_a5 = st.agent) != null ? _a5 : null) === id;
+      return `<button type="button" class="pill${on ? " on" : ""}" data-act="stats-agent" data-agent="${esc(id != null ? id : "")}" aria-pressed="${on}">${esc(label)}${n === null ? "" : ` <small>${n}</small>`}</button>`;
+    };
+    const all = agents.reduce((a, x) => a + x.matches, 0);
+    const pills2 = agents.length > 1 || st.agent !== null ? `<div class="pills st-agents" role="group" aria-label="Whose matches">${pill(null, "All agents", all)}${agents.map((a) => pill(a.agentId, a.name, a.matches)).join("")}</div>` : `<span class="small muted">${agents.length ? `${esc(agents[0].name)} \xB7 ${agents[0].matches} match${agents[0].matches === 1 ? "" : "es"}` : "No agent yet"}</span>`;
+    const days = `<div class="seg" id="stats-days" role="group" aria-label="The chart's days">${STATS_DAYS.map((d) => `<button type="button" data-v="${d}" aria-pressed="${st.days === d}">${d} days</button>`).join("")}</div>`;
+    return `<div class="st-filter">${pills2}<span class="sp"></span>${st.loading ? `<span class="small muted st-busy" role="status">Reading\u2026</span>` : ""}${days}</div>`;
+  }
+  function dayColumnsSvg(chart, w2, h) {
+    if (chart.length < 2) return "";
+    const padX = 30;
+    const mid = Math.round(h / 2);
+    const most = Math.max(1, ...chart.map((c) => Math.max(c.wins + c.draws, c.losses)));
+    const unit = (mid - 2) / most;
+    const step = (w2 - padX - 4) / (chart.length - 1);
+    const bw = Math.max(2, Math.min(14, step * 0.62));
+    const x = (i) => padX + i * step;
+    const cols = chart.map((c, i) => {
+      const cx = x(i);
+      const left = (cx - bw / 2).toFixed(1);
+      const tip = `${c.day}: ${c.wins}W ${c.losses}L${c.draws ? ` ${c.draws}D` : ""}`;
+      if (!c.wins && !c.losses && !c.draws) return `<circle class="dc-z" cx="${cx.toFixed(1)}" cy="${mid}" r="1.3"><title>${esc(`${c.day}: no rated match`)}</title></circle>`;
+      const win = c.wins ? `<rect class="dc-w" x="${left}" y="${(mid - c.wins * unit).toFixed(1)}" width="${bw.toFixed(1)}" height="${(c.wins * unit).toFixed(1)}" rx="1.5"/>` : "";
+      const draw = c.draws ? `<rect class="dc-d" x="${left}" y="${(mid - (c.wins + c.draws) * unit).toFixed(1)}" width="${bw.toFixed(1)}" height="${(c.draws * unit).toFixed(1)}" rx="1.5"/>` : "";
+      const loss = c.losses ? `<rect class="dc-l" x="${left}" y="${mid + 1}" width="${bw.toFixed(1)}" height="${(c.losses * unit).toFixed(1)}" rx="1.5"/>` : "";
+      return `<g><title>${esc(tip)}</title>${win}${draw}${loss}</g>`;
+    }).join("");
+    const days = chart.filter((c) => c.wins + c.losses + c.draws).length;
+    return `<svg class="dcols" viewBox="0 0 ${w2} ${h}" width="${w2}" height="${h}" role="img" aria-label="${esc(`Results by day: ${days} of ${chart.length} days with rated matches`)}"><line class="dc-axis" x1="${padX}" x2="${w2 - 4}" y1="${mid + 0.5}" y2="${mid + 0.5}"/>${cols}<text class="rc-l" x="${padX - 4}" y="${mid - 4}" text-anchor="end">W</text><text class="rc-l" x="${padX - 4}" y="${mid + 12}" text-anchor="end">L</text></svg>`;
+  }
+  function ratingHeroHtml(s, ladder, days) {
+    var _a4, _b, _c, _d, _e, _f;
+    const now = s.rating.now;
+    const placed = now.tier !== "Placement";
+    const t = weekTrend(s);
+    const you = ladder == null ? void 0 : ladder.you;
+    const rank = you ? you.rank === null ? now.ratedMatches ? "In placement" : "Unranked" : `#${you.rank} of ${ladder.owners}` : "";
+    const prog = ladder ? tierProgress({ tier: now.tier, rating: now.rating, ratedMatches: now.ratedMatches }, ladder.tiers, ladder.placementMatches) : null;
+    const bar = prog ? `<div class="st-tier"><div class="tbar" style="--t:${(_a4 = TIER_HEX[prog.tier]) != null ? _a4 : "#8f8cff"};--n:${(_c = TIER_HEX[(_b = prog.next) != null ? _b : prog.tier]) != null ? _c : "#8f8cff"}" role="img" aria-label="${esc(prog.line)}"><i style="width:${prog.pct}%"></i></div><span class="small">${esc(prog.line)}</span></div>` : "";
+    const head = `<div class="st-rh">${tierBadge(now.tier, 64)}<div class="st-rv"><b>${esc(placed ? t.value : "\u2014")}</b><small class="muted">${esc(now.tier)}${placed ? ` \xB7 \xB1${Math.round(now.rd)}` : ` \xB7 ${now.ratedMatches} rated`}${rank ? ` \xB7 ${esc(rank)}` : ""}</small></div><div class="st-wk rt ${t.tone}"><b>${esc(t.change)}</b><small>this week</small></div></div>`;
+    const first = s.rating.chart[0];
+    const span = first ? `${days} days \xB7 from ${Math.round(first.rating)}` : `${days} days`;
+    const filtered = s.agentId !== null ? `<p class="muted small">The rating is yours, one per owner, whichever agent played; everything else on this page is ${esc((_e = (_d = s.agents.find((a) => a.agentId === s.agentId)) == null ? void 0 : _d.name) != null ? _e : "this agent")}'s.</p>` : "";
+    return `<section class="panel glass st-hero">${head}${bar}<div class="row between nowrap st-ch"><h4>Rating</h4><span class="muted small">${esc(span)}</span></div><div class="st-chart">${ratingChartSvg(s.rating.chart, (_f = ladder == null ? void 0 : ladder.tiers) != null ? _f : null, 760, 190, { labels: true })}${dayColumnsSvg(s.rating.chart, 760, 56)}</div>${filtered}</section>`;
+  }
+  function decided(t) {
+    return t.wins + t.losses + t.draws;
+  }
+  function pct2(t) {
+    return decided(t) ? `${Math.round(t.winRate * 100)}%` : "\u2014";
+  }
+  function totalsHtml(s) {
+    const t = s.totals;
+    const cur = t.currentStreak && t.currentStreak.length >= 2 ? t.currentStreak.kind === "win" ? `${t.currentStreak.length} wins` : `${t.currentStreak.length} losses` : "None";
+    const curTone = t.currentStreak && t.currentStreak.length >= 2 ? t.currentStreak.kind === "win" ? " hot" : " cold" : "";
+    const n = decided(t);
+    const ring = `<div class="ring wr st-ring" style="--p:${n ? Math.round(t.winRate * 100) : 0}" role="img" aria-label="${n ? `${pct2(t)} of ${n} decided matches won` : "No decided match yet"}"><b>${pct2(t)}</b></div>`;
+    const tile = (v, label, cls = "") => `<div class="st-t${cls}"><b>${esc(v)}</b><span>${esc(label)}</span></div>`;
+    return `<section class="panel glass st-tot"><div class="st-wr">${ring}<div><b>Win rate</b><small class="muted">${n ? `of ${n} decided` : "no decided match yet"}</small></div></div><div class="st-tiles">${tile(String(t.matches), "matches")}${tile(String(t.wins), "wins", " w")}${tile(String(t.losses), "losses", " l")}${tile(String(t.draws), "draws")}${tile(String(t.bestWinStreak), "best streak")}${tile(cur, "streak now", curTone)}${tile(amount(t.creditsFromMatches), "credits from matches")}</div>${t.void ? `<p class="muted small">${t.void} void (cancelled or abandoned): they count for nobody and paid nothing.</p>` : ""}</section>`;
+  }
+  function todayHtml(d, nowMs) {
+    const v = dailyView(d, nowMs);
+    const paidLosses = Math.min(d.losses, d.maxPaidLosses);
+    const rw = v.rewardedCap > 0 ? Math.min(100, Math.round(v.rewarded / v.rewardedCap * 100)) : 0;
+    const reset = `<div class="dr-reset"><span class="sh-clock-ic" aria-hidden="true"></span><span>Resets in</span><b class="sh-clock" data-until="${esc(d.resetsAt)}">${clockLeft(nowMs, d.resetsAt)}</b><small>midnight ${esc(zoneCity(d.timeZone))}</small></div>`;
+    return `<section class="panel glass st-today"><div class="row between nowrap"><h4>Today</h4><span class="st-day muted small">${esc(d.day)}</span></div><div class="st-td">${dailyRingSvg(v.fromWins, v.winCap, 96)}<div class="wcol"><div class="dr-tot"><span>Earned today</span><b>${amount(d.credits)}</b><small>credits</small></div><div class="small">From wins <b>${d.creditsFromWins}</b> of ${v.winCap} \xB7 from losses and draws <b>${d.creditsFromLosses}</b></div><div class="small">${d.nextWinPays > 0 ? `Next win pays <b>+${d.nextWinPays}</b>` : "Wins pay nothing more today"}${d.nextLossPays > 0 ? ` \xB7 next loss <b>+${d.nextLossPays}</b>` : ""}</div></div></div><div class="dr-rw"><div class="row between"><b>Rewarded wins</b><span class="dr-rwn"><b>${v.rewarded}</b>/${v.rewardedCap}</span></div><div class="bar"><i style="width:${rw}%"></i></div></div><div class="small">Losses and draws today: <b>${d.losses}</b> \xB7 ${paidLosses} of ${d.maxPaidLosses} paid</div>${reset}</section>`;
+  }
+  function factionTableHtml(title, rows, notRecorded, what) {
+    const list = rows.map((f) => {
+      var _a4;
+      const n = decided(f);
+      const p = n ? Math.round(f.winRate * 100) : 0;
+      return `<li style="--c:${(_a4 = FACTION_HEX[f.faction]) != null ? _a4 : "#8f8cff"}"${n ? "" : ` class="none"`}><span class="ftag">${esc(f.faction.toUpperCase())}</span><span class="fb-b" role="img" aria-label="${esc(n ? `${f.faction}: ${p}% of ${n}` : `${f.faction}: none`)}"><i style="width:${n ? Math.max(3, p) : 0}%"></i></span><b class="st-fp">${n ? `${p}%` : "\u2014"}</b><span class="small muted st-fr">${n ? `${f.wins}-${f.losses}${f.draws ? `-${f.draws}` : ""}` : "none"}${f.void ? ` \xB7 ${f.void} void` : ""}</span></li>`;
+    }).join("");
+    const nr = notRecorded.matches ? `<p class="muted small">${notRecorded.matches} older match${notRecorded.matches === 1 ? "" : "es"} kept no ${what}${decided(notRecorded) ? ` (${notRecorded.wins}-${notRecorded.losses}${notRecorded.draws ? `-${notRecorded.draws}` : ""})` : ""}.</p>` : "";
+    return `<section class="panel glass st-fac"><h4>${esc(title)}</h4><ul class="st-fbars">${list}</ul>${nr}</section>`;
+  }
+  var RESULT = {
+    win: { letter: "W", tone: "w", word: "Won" },
+    loss: { letter: "L", tone: "l", word: "Lost" },
+    draw: { letter: "D", tone: "d", word: "Drew" },
+    cancelled: { letter: "\u2013", tone: "x", word: "Cancelled" },
+    abandonedByYou: { letter: "L", tone: "l", word: "You abandoned" },
+    abandonedByOpponent: { letter: "W", tone: "w", word: "Opponent abandoned" }
+  };
+  function ftag2(faction) {
+    var _a4;
+    return faction ? `<span class="ftag" style="--c:${(_a4 = FACTION_HEX[faction]) != null ? _a4 : "#8f8cff"}">${esc(faction.toUpperCase())}</span>` : "";
+  }
+  var RECENT_SHOWN = 8;
+  function recentHtml(s, nowMs, replays = null, all = false) {
+    if (!s.recent.length) return `<section class="panel glass st-rec"><h4>Recent results</h4><p class="muted small">No results yet. Your agent's matches show here once they are recorded.</p></section>`;
+    const rows = s.recent.slice(0, all ? s.recent.length : RECENT_SHOWN).map((r) => {
+      const p = RESULT[r.result];
+      const rt = r.rating ? `<small class="rt ${r.rating.change > 0 ? "up" : r.rating.change < 0 ? "down" : "flat"}">${esc(signed(r.rating.change))}</small>` : `<small class="rt none">unrated</small>`;
+      const has = r.result !== "cancelled" && (replays == null ? void 0 : replays[r.matchId]) === true;
+      const replay = has ? `<button type="button" class="btn sm" data-act="replay" data-match="${esc(r.matchId)}">Replay</button>` : `<span class="muted small" title="${replays === null ? "Reading your matches\u2026" : "This match has no replay"}">${replays === null ? "" : "No replay"}</span>`;
+      const own = s.agents.length > 1 && s.agentId === null ? `${esc(r.agentName)} ${ftag2(r.faction)} ` : r.faction ? `${ftag2(r.faction)} ` : "";
+      return `<li class="hrow" data-match="${esc(r.matchId)}"><span class="wl ${p.tone}" aria-hidden="true">${esc(p.letter)}</span><span class="hr-main"><b>${esc(p.word)}</b> <span class="hr-vs">${own}vs ${esc(r.opponent.agentName)} ${ftag2(r.opponent.faction)}</span><small class="muted">${esc(r.opponent.ownerName)} \xB7 ${esc(whenText(r.endedAt, nowMs))}${r.turns ? ` \xB7 ${r.turns} turns` : ""}</small></span><span class="hr-num"><b>${r.credits > 0 ? `+${r.credits}` : "0"}</b>${rt}</span><span class="hr-act">${replay}</span></li>`;
+    }).join("");
+    return `<section class="panel glass st-rec"><div class="row between nowrap"><h4>Recent results</h4><span class="muted small">last ${s.recent.length}</span></div>${formPips(s.recent, s.recent.length)}<ul class="hlist">${rows}</ul>${s.recent.length > RECENT_SHOWN ? `<button type="button" class="btn sm ghost" data-act="stats-recent">${all ? "Show fewer" : `Show all ${s.recent.length}`}</button>` : ""}<p class="muted small">All your matches, with their logs, are under <a href="#/match">Agent match</a>.</p></section>`;
+  }
+  function tierCounts(l) {
+    const names = [...l.tiers.map((t) => t.tier), "Placement"];
+    return names.map((tier) => ({ tier, n: l.standings.filter((r) => r.tier === tier).length }));
+  }
+  function tierSpreadHtml(l) {
+    const counts = tierCounts(l).filter((c) => c.n);
+    const total = counts.reduce((a, c) => a + c.n, 0);
+    if (!total) return "";
+    const segs = [...counts].reverse().map((c) => {
+      var _a4;
+      return `<i style="--t:${(_a4 = TIER_HEX[c.tier]) != null ? _a4 : "#8f8cff"};flex:${c.n}" title="${esc(`${c.tier}: ${c.n}`)}"></i>`;
+    }).join("");
+    const keys = [...counts].reverse().map((c) => {
+      var _a4;
+      return `<span style="--t:${(_a4 = TIER_HEX[c.tier]) != null ? _a4 : "#8f8cff"}"><i></i>${esc(c.tier)} <b>${c.n}</b></span>`;
+    }).join("");
+    return `<div class="st-spread" role="img" aria-label="${esc(counts.map((c) => `${c.tier} ${c.n}`).join(", "))}"><div class="st-sb">${segs}</div><div class="st-sk small">${keys}</div></div>`;
+  }
+  function ladderRow(r, youId, nowDay) {
+    var _a4, _b, _c;
+    const you = r.ownerId === youId;
+    const placed = r.tier !== "Placement";
+    const last = r.lastDay ? r.lastDay === nowDay ? "today" : r.lastDay : "\u2014";
+    return `<tr class="${you ? "you" : ""}" style="--t:${(_a4 = TIER_HEX[r.tier]) != null ? _a4 : "#8f8cff"}"${you ? ` aria-current="true"` : ""}><td class="lt-k">${r.rank === null ? "\u2014" : r.rank}</td><td class="lt-n"><b>${esc((_c = (_b = r.agent) == null ? void 0 : _b.name) != null ? _c : r.ownerName)}</b><small>${esc(r.ownerName)}${r.ownerKind === "house" ? " \xB7 house" : ""}${you ? " \xB7 you" : ""}</small></td><td class="lt-t"><i></i>${esc(r.tier)}</td><td class="lt-r">${placed ? Math.round(r.rating) : "\u2014"}<small> \xB1${Math.round(r.rd)}</small></td><td class="lt-w">${r.wins}-${r.losses}${r.draws ? `-${r.draws}` : ""}</td><td class="lt-m">${r.ratedMatches}</td><td class="lt-d small muted">${esc(last)}</td></tr>`;
+  }
+  function ladderSectionHtml(l, nowDay) {
+    const youIn = l.standings.some((r) => r.ownerId === l.you.ownerId);
+    const rows = l.standings.map((r) => ladderRow(r, l.you.ownerId, nowDay)).join("");
+    const foot = youIn ? "" : `<tbody class="lt-you"><tr class="lt-gap"><td colspan="7">\u22EF</td></tr>${ladderRow(l.you, l.you.ownerId, nowDay)}</tbody>`;
+    const placed = l.standings.filter((r) => r.rank !== null).length;
+    const table = l.standings.length ? `<div class="lt-wrap"><table class="ltable"><thead><tr><th>#</th><th>Agent</th><th>Tier</th><th>Rating</th><th title="Wins-losses-draws">Record</th><th>Rated</th><th>Last</th></tr></thead><tbody>${rows}</tbody>${foot}</table></div>` : `<p class="muted small">No one has a rated match yet. The ladder fills as the rounds are played.</p>`;
+    return `<section class="panel glass st-ladder"><div class="row between nowrap"><h4>Season ladder</h4><span class="muted small">${l.owners} owner${l.owners === 1 ? "" : "s"} rated \xB7 ${placed} placed</span></div>${tierSpreadHtml(l)}<div class="st-ll">${tierLadderHtml(l)}${table}</div><p class="muted small">Glicko-2, one rating per owner. A tier and a rank show after ${l.placementMatches} rated matches; \xB1 is how sure the rating is.</p></section>`;
+  }
+  function statsPageHtml(st, nowMs) {
+    var _a4, _b;
+    const s = st.stats;
+    const filter = statsFilterHtml(s, st);
+    if (!s) {
+      return `<div class="pg-wide st-pg">${filter}<div class="wempty glass"><h3>${st.error ? "Your stats couldn't be read" : "Loading your stats\u2026"}</h3>${st.error ? `<p class="muted">${esc(st.error)}</p><button type="button" class="btn pri" data-act="retry-stats">Try again</button>` : ""}</div></div>`;
+    }
+    const err = st.error ? `<div class="banner warn" role="status">Couldn't refresh: ${esc(st.error)}</div>` : "";
+    const today = (_b = (_a4 = s.rating.chart[s.rating.chart.length - 1]) == null ? void 0 : _a4.day) != null ? _b : null;
+    const ladder = st.ladder ? ladderSectionHtml(st.ladder, today) : `<section class="panel glass st-ladder"><h4>Season ladder</h4><p class="muted small">${st.ladderError ? `Couldn't read the ladder: ${esc(st.ladderError)}` : "Loading the ladder\u2026"}</p></section>`;
+    return `<div class="pg-wide st-pg">${err}${filter}<div class="st-grid"><div class="st-main">${ratingHeroHtml(s, st.ladder, st.days)}${totalsHtml(s)}<div class="st-two">${factionTableHtml("Win rate by your deck's faction", s.byFaction, s.factionNotRecorded, "faction")}${factionTableHtml("Against each faction", s.byOpponentFaction, s.opponentFactionNotRecorded, "opponent's faction")}</div></div><div class="st-side">${todayHtml(s.today, nowMs)}${recentHtml(s, nowMs, st.replays, st.allRecent)}</div></div>${ladder}</div>`;
+  }
+
   // src/site/siteClient.ts
   var api = siteApi((input, init) => fetch(input, init));
   var $ = (sel) => document.querySelector(sel);
@@ -9160,7 +9373,8 @@ gl_FragColor=vec4(col,1.);}`;
     autoBusy: false,
     speedBusy: false,
     replay: null,
-    follow: null
+    follow: null,
+    stats: { stats: null, ladder: null, replays: null, allRecent: false, agent: null, days: 30, loading: false, error: null, ladderError: null }
   };
   var liquid = null;
   window.__site = {
@@ -9529,14 +9743,16 @@ gl_FragColor=vec4(col,1.);}`;
       clockReloadFor = passed;
       if (state.page === "store" && !state.opening) void loadShop();
       if (state.page === "home") void loadHome(["packs", "store", "daily"]);
+      if (state.page === "stats") void loadStats();
     }
   }
   window.setInterval(tickClocks, 1e3);
   async function refresh() {
-    var _a4, _b;
+    var _a4, _b, _c, _d, _e, _f, _g;
     if (!state.session || document.hidden) return schedulePoll();
     try {
       const was = (_a4 = state.play) == null ? void 0 : _a4.rebuild.job;
+      const wasLive = (_d = (_c = (_b = state.play) == null ? void 0 : _b.liveMatch) == null ? void 0 : _c.matchId) != null ? _d : null;
       const token = state.session.token;
       const [play2, wallet] = await Promise.all([api.play(token), api.wallet(token).catch((err) => {
         if (err instanceof SiteApiError && err.signedOut) throw err;
@@ -9547,12 +9763,13 @@ gl_FragColor=vec4(col,1.);}`;
       drawWallet();
       const now = state.play.rebuild.job;
       if ((was == null ? void 0 : was.state) === "running" && now && now.jobId === was.jobId && now.state !== "running") {
-        toast(now.state === "done" ? "Your agent finished building its deck." : `The rebuild failed: ${(_b = now.error) != null ? _b : "no reason given"}`, now.state === "done" ? "info" : "error");
+        toast(now.state === "done" ? "Your agent finished building its deck." : `The rebuild failed: ${(_e = now.error) != null ? _e : "no reason given"}`, now.state === "done" ? "info" : "error");
       }
       drawAgentCard();
       if (!state.busy && !dragging) drawPage();
       if (state.page === "home") void loadHome(["daily", "packs", "notif"]);
       if (state.page === "store" && !state.opening) void loadShop();
+      if (state.page === "stats" && wasLive !== ((_g = (_f = play2.liveMatch) == null ? void 0 : _f.matchId) != null ? _g : null)) void loadStats();
     } catch (err) {
       if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
     }
@@ -9637,6 +9854,7 @@ gl_FragColor=vec4(col,1.);}`;
     if (page === "match" || page === "live") void loadLive();
     if (page === "collection") void loadCollection();
     else closeViewer(false);
+    if (page === "stats") void loadStats();
   }
   window.addEventListener("hashchange", () => {
     if (state.session && state.play) route();
@@ -9658,6 +9876,7 @@ gl_FragColor=vec4(col,1.);}`;
     else if (page === "collection") el.innerHTML = collectionPage();
     else if (page === "match") el.innerHTML = matchPage(p);
     else if (page === "live") el.innerHTML = livePage();
+    else if (page === "stats") el.innerHTML = statsPageHtml(state.stats, Date.now());
     else el.innerHTML = waitsPage(page);
     applyTheme();
     if (keep) restoreFocus(el, keep, keepTile);
@@ -10126,6 +10345,45 @@ gl_FragColor=vec4(col,1.);}`;
       $("#page").scrollTop = y;
       if (state.col.viewer) drawViewer();
     }
+  }
+  var statsAsk = 0;
+  async function loadStats() {
+    if (!state.session) return;
+    const token = state.session.token;
+    const st = state.stats;
+    const ask = ++statsAsk;
+    st.loading = true;
+    if (state.page === "stats") redrawStats();
+    const [s, l, h] = await Promise.allSettled([api.stats(token, { agent: st.agent, days: st.days, recent: STATS_RECENT }), api.ladder(token, 100), api.matches(token, 50)]);
+    if (ask !== statsAsk) return;
+    st.loading = false;
+    const why = (r) => r.reason instanceof SiteApiError ? errorText(r.reason.status, r.reason.message) : "Something went wrong.";
+    for (const r of [s, l]) if (r.status === "rejected" && r.reason instanceof SiteApiError && r.reason.signedOut) return signedOut("Your session ended. Sign in again.");
+    if (s.status === "fulfilled") {
+      st.stats = s.value;
+      st.error = null;
+      if (st.agent === null && st.days === 30) state.home.stats = s.value;
+    } else {
+      if (s.reason instanceof SiteApiError && s.reason.status === 404 && st.agent !== null) {
+        st.agent = null;
+        return loadStats();
+      }
+      st.error = why(s);
+    }
+    if (l.status === "fulfilled") {
+      st.ladder = l.value;
+      st.ladderError = null;
+      state.home.ladder = l.value;
+    } else st.ladderError = why(l);
+    if (h.status === "fulfilled") st.replays = Object.fromEntries(h.value.matches.map((m) => [m.matchId, m.hasReplay]));
+    if (state.page === "stats") redrawStats();
+  }
+  function redrawStats() {
+    if (state.page !== "stats" || state.replay) return;
+    const pageEl = $("#page");
+    const y = pageEl.scrollTop;
+    drawPage();
+    pageEl.scrollTop = y;
   }
   function collectionPage() {
     var _a4, _b;
@@ -10641,6 +10899,7 @@ gl_FragColor=vec4(col,1.);}`;
       window.setTimeout(() => {
         void loadHistory(true);
         if (state.page === "home") void loadHome(["history", "daily", "rating", "ladder", "stats", "notif"]);
+        if (state.page === "stats") void loadStats();
         void refresh();
       }, 1500);
     }
@@ -11211,6 +11470,17 @@ gl_FragColor=vec4(col,1.);}`;
       if (act2 === "retry-hist") return void loadHistory(true);
       if (act2 === "retry-shop") return void loadShop();
       if (act2 === "retry-col") return void loadCollection();
+      if (act2 === "retry-stats") return void loadStats();
+      if (act2 === "stats-recent") {
+        state.stats.allRecent = !state.stats.allRecent;
+        return redrawStats();
+      }
+      if (act2 === "stats-agent") {
+        const id2 = actEl.dataset.agent || null;
+        if (id2 === state.stats.agent) return;
+        state.stats.agent = id2;
+        return void loadStats();
+      }
       if (act2 === "col-tab" || act2 === "col-faction" || act2 === "col-show") {
         const v = (_g = actEl.dataset.v) != null ? _g : "";
         const f = state.col.filters;
@@ -11244,6 +11514,10 @@ gl_FragColor=vec4(col,1.);}`;
           return r;
         });
       else if (group === "theme-seg") void saveLook({ theme: v });
+      else if (group === "stats-days") {
+        state.stats.days = Number(v);
+        void loadStats();
+      }
       return;
     }
     const sw = t.closest("#bg-picker .sw");

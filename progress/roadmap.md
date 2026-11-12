@@ -193,16 +193,16 @@ Status corrected by the owner 2026-11-08 from `progress/render/log.md` (sessions
 now ticks this list itself** (TASKS.md, end of session), exactly as the game lane does with its own.
 1. [~] Site layout and the full pages: glass sidebar and top bar, Settings, Connect agent, the admin view (Settings
    -> Admin), dark mode (session 44); Store and full-screen pack opening (47); Collection, the wide binder (48);
-   the loadout picker (49); Agent match, Watch live, match history, auto-play (50). **Left: the Stats page** (still
-   "waiting on the server"; its data is served since game session 78) and **the notifications bell** in the top bar
-   (served since game session 77).
+   the loadout picker (49); Agent match, Watch live, match history, auto-play (50); the Stats page on the server's
+   data (68). **Left: the notifications bell** in the top bar (served since game session 77).
 2. [x] The look: the liquid WebGL backgrounds and picker, saved to the account (session 45); reduce motion and
    transparency rules (44).
 3. [x] Home as the widget board (session 46: 12-column grid, S/M/L, Customise, saved to the account, the twelve
    Season 0 widgets). Since render session 65 no widget waits on the server: Ladder (`GET /api/ladder`), Rating &
    form (`GET /api/stats`) and Notifications (`GET /api/notifications`, Mark all read) draw their data at S/M/L.
 4. [x] Live play: auto-play, Watch live (50), the big live board (51), "Watch as" (52), the 2× controls (56).
-5. [ ] The ladder page (or the ladder inside the Stats page, the render lane's call at a checkpoint).
+5. [x] The ladder inside the Stats page (render session 68, the call at a checkpoint): the tier spread, the tier
+   column and the public top-100 list with the owner's row lit.
 6. [x] Coin skins: the flip in Match Boot (53); every Season 0 coin drawn, the Coin line in the picker and the
    Store (55).
 7. [~] (owner 2026-11-06) The dashboard rework, the store layout and the pack opening ceremony, in the order of the
@@ -239,7 +239,14 @@ now ticks this list itself** (TASKS.md, end of session), exactly as the game lan
      (render 67): Watch live (the score / + health bars and "Watch as" / the live match on the real arena embedded
      in the tile, one per board, silent, kept across redraws, held for its result and boast, then the next match;
      the compact board on a phone), on the real API (`watch-arena-check-s67`)
-   - [ ] The Stats page, the ladder page (item 5) and the notifications bell (item 1)
+   - [~] The Stats page, the ladder page (item 5) and the notifications bell (item 1). Done (render 68): the Stats
+     page on `GET /api/stats` (the agent filter, 7/30/90 days, the rating chart with day columns, totals, factions,
+     today's earnings from `today`, recent results with Replay) with the season ladder inside it, on the real API
+     (`stats-check-s68` 44 PASS). Left: the bell
+   - [ ] (owner 2026-11-12) Top rated and the viewer count on Watch live (page and widget as fits), from
+     `GET /api/live`'s `featured.topRated` and each match's `viewers` (served since game session 74); a small slice
+     after the bell, before 1 December. If the midpoint check (~22 Nov) finds render behind, it moves to
+     `progress/season-1-ideas.md`
    - Dropped (owner 2026-11-10): the season-end "unopened packs will be lost" warning. Unopened packs carry over and
      open as the new season's packs; a season-end screen, if one is built, says so
    - Cut order if behind at the midpoint (each moves whole to `progress/season-1-ideas.md`): music play/pause

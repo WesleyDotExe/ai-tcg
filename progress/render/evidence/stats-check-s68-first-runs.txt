@@ -1,0 +1,63 @@
+# Render session 68: the first two runs of stats-check-s68.mjs (kept; the final run is stats-check-s68.txt)
+
+## Run 1 (before the fixes: no refresh on Stats; Replay offered without the history's hasReplay)
+27 PASS, 3 FAIL: C (the page stayed at 23 matches while the server reached 28), D (Replay of demo-today-2, a match with no replay, 404), and the run stopped on D's Close.
+
+## Run 2
+[A] the Stats page against GET /api/stats and GET /api/ladder
+PASS  A. the sidebar's Stats opens the page (no "waiting on the server")
+      server: 23 matches, 2 agents (Vector Halcyon 23, Quill Static 0), 4 owners rated
+PASS  A. totals 23 matches 21W 2L 0D (server 23 / 21W 2L 0D)
+PASS  A. best streak 18, credits from matches 549 (server 18, 549); streak now "None" (server {"kind":"win","length":1})
+PASS  A. win rate ring "91% of 23 decided matches won" (server 91%)
+PASS  A. rating 1756 (Platinum · ±147 · #1 of 4), week −86 (server 1755.5 Platinum, a week ago 1842.0)
+PASS  A. chart "Rating over 30 days: 1860 to 1727": 15 rated days, 15 day columns (15 with wins, 1 with losses) (server 30 days, 15 rated, 15 with results)
+PASS  A. factions: deck CORTEX —, SWARM 75%, AEGIS —, NULL —; against CORTEX —, SWARM 67%, AEGIS —, NULL 100%
+FAIL  A. recent: 20 rows, 4 Replay (server 20 recent)
+PASS  A. today: earned 69, ring "65 of 90 credits from wins today", rewarded 5/10, reset 2026-11-12T13:00:00.000Z (server today 69, 65 from 5 wins, resets 2026-11-12T13:00:00.000Z)
+PASS  A. ladder: 4 rows, the owner's lit at 1 (server 4 listed, you 1 Platinum); spread "Bronze 1, Platinum 1, Placement 2"
+PASS  A. the page asked /api/stats?days=30&recent=20
+
+[B] the filter
+PASS  B. 3 agent pills (server 2 agents + All), All pressed, 30 days pressed
+PASS  B. the pill asked /api/stats?agent=0bb171c9-0203-4539-8a51-148021365a3a&days=30&recent=20
+PASS  B Quill Static. totals 0 matches 0W 0L 0D (server 0 / 0W 0L 0D)
+PASS  B Quill Static. best streak 0, credits from matches 0 (server 0, 0); streak now "None" (server null)
+PASS  B Quill Static. win rate ring "No decided match yet" (server —)
+PASS  B Quill Static. rating 1756 (Platinum · ±147 · #1 of 4), week −86 (server 1755.5 Platinum, a week ago 1842.0)
+PASS  B Quill Static. chart "Rating over 30 days: 1860 to 1727": 15 rated days, 15 day columns (15 with wins, 1 with losses) (server 30 days, 15 rated, 15 with results)
+PASS  B Quill Static. factions: deck CORTEX —, SWARM —, AEGIS —, NULL —; against CORTEX —, SWARM —, AEGIS —, NULL —
+PASS  B Quill Static. recent: 0 rows, 0 Replay (server 0 recent)
+PASS  B Quill Static. today: earned 69, ring "65 of 90 credits from wins today", rewarded 5/10, reset 2026-11-12T13:00:00.000Z (server today 69, 65 from 5 wins, resets 2026-11-12T13:00:00.000Z)
+PASS  B Quill Static. ladder: 4 rows, the owner's lit at 1 (server 4 listed, you 1 Platinum); spread "Bronze 1, Platinum 1, Placement 2"
+PASS  B. the rating stays the owner's under the filter (1756 = 1756)
+PASS  B. the page says the rating is the owner's, the rest the agent's
+PASS  B. 7 days: "Rating over 7 days: 1842 to 1727", 1 day columns (server 7 days)
+PASS  B. 90 days: "Rating over 90 days: 1500 to 1727", 17 day columns (server 90 days)
+
+[E] the reset clock
+PASS  E. the reset clock ticks (03:25:41 -> 03:25:39)
+
+[C] the ladder keeps playing
+PASS  C. a match of Nova's ended and the page shows it with no reload (23 -> 24; server 24)
+PASS  C. totals 24 matches 21W 3L 0D (server 24 / 21W 3L 0D)
+PASS  C. best streak 18, credits from matches 551 (server 18, 551); streak now "None" (server {"kind":"loss","length":1})
+PASS  C. win rate ring "88% of 24 decided matches won" (server 88%)
+PASS  C. rating 1670 (Platinum · ±143 · #1 of 4), week −172 (server 1669.8 Platinum, a week ago 1842.0)
+PASS  C. chart "Rating over 30 days: 1860 to 1670": 15 rated days, 15 day columns (15 with wins, 1 with losses) (server 30 days, 15 rated, 15 with results)
+PASS  C. factions: deck CORTEX —, SWARM 60%, AEGIS —, NULL —; against CORTEX —, SWARM 67%, AEGIS —, NULL 50%
+FAIL  C. recent: 20 rows, 5 Replay (server 20 recent)
+PASS  C. today: earned 71, ring "65 of 90 credits from wins today", rewarded 5/10, reset 2026-11-12T13:00:00.000Z (server today 71, 65 from 5 wins, resets 2026-11-12T13:00:00.000Z)
+PASS  C. ladder: 4 rows, the owner's lit at 1 (server 4 listed, you 1 Platinum); spread "Bronze 1, Silver 1, Gold 1, Platinum 1"
+
+[D] Replay from a recent result
+PASS  D. Replay opens the replay of demo-live-009
+PASS  D. Close comes back to the Stats page
+
+[F] dark, phone
+PASS  F. desktop: no sideways scroll in the page (1192 <= 1192)
+FAIL  F. on a phone: no sideways scroll (390 <= 390; the page 315 <= 314); the ladder table 172 px past its box
+PASS  F. no external requests (0)
+PASS  F. no page errors (0)
+
+40 PASS, 3 FAIL

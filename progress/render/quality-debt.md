@@ -9,6 +9,17 @@ items are removed, with the fix in `log.md`.
 
 ## The owner website (sessions 44-51)
 
+- **The Stats page (session 68) is built and checked against the real API (44 PASS), with thin spots.** The
+  filter's second agent in the demo has no matches, so the check proved an empty agent and "All agents", never two
+  agents both with results (the Node test on the real API does: 3 matches of 8). The day columns under the chart are
+  thin bars at 30 days and hairlines at 90 (on the demo's one-match days they read as dashes); they carry rated
+  matches only. The chart's 7-day view on the demo is one rated day, so it's mostly flat. A Replay needs the match in
+  the history's newest 50 (`GET /api/matches?limit=50`): an agent-filtered recent row older than that shows "No
+  replay" even if it has one. The page refreshes on its own only when the owner's agent's match ends or starts (the
+  15 s status poll) and at the daily reset; another owner's match moving the ladder shows on the next of those or a
+  revisit. On a phone the ladder table drops four columns. The ladder shows the public top 100 only (the server's
+  limit). Quests and achievements are not on the page (after Season 0, owner 2026-11-06). The main column ends
+  shorter than the side column on a wide window when recent results are expanded.
 - **Watch live at L embeds the real live arena (session 67), checked against the real API, with thin spots.** The
   frame is laid out 1180 px wide and scaled to the tile (about 0.66 on a 1440 px window), so the arena's own small
   type (HUD numbers, hand chips, card names) is barely legible in the tile: the tile is for following the shape of
