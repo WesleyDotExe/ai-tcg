@@ -57,7 +57,6 @@ export const PAGE_TITLES: Record<PageId, string> = {
  * this list. */
 export const PAGE_WAITS: Partial<Record<PageId, { needs: string[]; will: string }>> = {
   tournament: { needs: ["tournament"], will: "Tournaments come after Season 0." },
-  stats: { needs: ["ladder", "stats"], will: "Your rating and form, results by faction, and the ladder." },
 };
 
 /** The waiting page's last line. */

@@ -7,6 +7,59 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-12 — The Stats page, with the season ladder inside it (session 68) — AWAITING FEEDBACK (five small calls)
+
+The sidebar's Stats no longer says "waiting on the server". Try it: `npm run site-demo -w @ai-tcg/render --
+--ladder`, sign in as nova, open Stats.
+
+**What you'll see (top to bottom; on a wide window the left column is your rating and record, the right one today
+and your recent results, the ladder across the foot):**
+- **The filter:** "All agents", then each of your agents with its match count; and 7 / 30 / 90 days for the chart.
+  Picking an agent asks the server for that agent's figures; the rating stays yours (one per owner) and the page
+  says so.
+- **The rating:** the tier badge, the rating with its ± and your rank ("#1 of 4"), the week's change, the bar to the
+  next tier ("131 to Diamond"), and the rating chart over the days with the tier floors crossing it. Under the
+  chart, one column per day on the same x: wins up in green, losses down in red, draws in violet on the wins.
+- **The totals:** a win-rate ring, then matches, wins, losses, draws, best streak, the streak now, credits from
+  matches, and the void ones (cancelled or abandoned) when there are any.
+- **Win rate by your deck's faction, and against each faction:** all four, each with its % and W-L-D; older matches
+  that kept no faction (before schema v24) counted apart, as the server counts them.
+- **Today** (`today` from `GET /api/stats`, owner 2026-11-12): what you've earned today, the ring of credits from
+  wins (65 of 90), the next win's and next loss's pay, rewarded wins (5/10), losses paid, the ticking reset clock.
+- **Recent results:** the last 20 as pips; the newest 8 as rows (who, which faction, when, turns, credits, the
+  rating change) with **Replay** where the match has one; "Show all 20".
+- **Season ladder:** how the listed owners spread over the tiers (a stacked bar), the tier column with yours lit,
+  and the whole public list (the top 100): rank, agent and owner, tier, rating ±, record, rated matches, last day
+  played. Your row is lit; in placement it is added at the foot.
+
+**Evidence:** `progress/render/evidence/stats-check-s68.txt` (**44 PASS, 0 FAIL**, the real owner API with the
+ladder playing: every figure against `GET /api/stats` and `GET /api/ladder` read beside the page, under both agents
+and 7 / 30 / 90 days; a match of Nova's ending shows on the open page with no reload; Replay opens and Close comes
+back; the reset clock ticks; no sideways scroll on a phone). The two earlier runs are kept in
+`stats-check-s68-first-runs.txt` (two real bugs found and fixed: the page never heard a match end; Replay was offered
+for matches with no replay). Stills `v2-s68-stats-L.jpg`, `-L-top`, `-L-dark`, `-90-days`, `-replay`, `-phone`.
+Render tests 1004 (+14); CI browser check 61 PASS; the site contract check: `GET /api/stats` now fits with `today`
+typed (`site-contract-s68.txt`).
+
+**Small calls (kept as built unless you say otherwise):**
+1. **The ladder lives inside the Stats page** (roadmap render item 5 said "the ladder page, or the ladder inside the
+   Stats page, the render lane's call at a checkpoint"): a section at the foot, not its own sidebar page. The
+   sidebar stays as it is; the Ladder widget's arrow opens Stats.
+2. **Recent results show the newest 8 rows** (all 20 as pips), with "Show all 20". At 20 rows the right column ran
+   twice as long as the left.
+3. **Replay only where the history says the match has one** (`hasReplay` from `GET /api/matches`, read beside the
+   stats). Older matches without a replay say "No replay"; their logs are on Agent match.
+4. **The day columns under the chart** count rated matches (the chart's own `wins`/`losses`/`draws`), so a cancel
+   doesn't show there; it shows in the totals' void count.
+5. **On a phone the ladder table drops** the record, rated matches, last day and the tier's name (the tier's colour
+   diamond stays), so it fits without scrolling sideways; the full table is on a wider window.
+
+**Next:** the game lane's turn; then render session 69, the render hardening pass (with Agent controls taking the
+server's "Time's up" words, owner 2026-11-12); then the notifications bell, then Top rated and viewer counts on
+Watch live.
+
+---
+
 ## 2026-11-12 — Watch live at L: the live match on the arena, in the tile (session 67) — AWAITING FEEDBACK (four small calls)
 
 The last widget on the brief's S/M/L table; the widgets' S/M/L pass is finished. Try it: `npm run site-demo -w

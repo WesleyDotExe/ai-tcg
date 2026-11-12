@@ -46,6 +46,15 @@ function ladderOf(n: number, youAt: number | null, you: Partial<SiteLadderRow> =
 const NOW = Date.parse("2026-11-12T09:00:00.000Z");
 const ago = (min: number) => new Date(NOW - min * 60_000).toISOString();
 
+/** Today's earnings as GET /api/daily answers them (Season 0's schedule: win 1 pays 30, 2-4 10, 5-10 5). */
+const TODAY: SiteStats["today"] = {
+  day: "2026-11-12", timeZone: "Australia/Sydney", startedAt: "2026-11-11T13:00:00.000Z", resetsAt: "2026-11-12T13:00:00.000Z",
+  schedule: [{ fromWin: 1, toWin: 1, credits: 30 }, { fromWin: 2, toWin: 4, credits: 10 }, { fromWin: 5, toWin: 10, credits: 5 }, { fromWin: 11, toWin: null, credits: 0 }],
+  wins: [1, 2, 3, 4].map((nth) => ({ nth, matchId: `w${nth}`, endedAt: "2026-11-12T08:00:00.000Z", credits: nth === 1 ? 30 : 10 })),
+  rewardedWins: [1, 2, 3, 4].map((nth) => ({ nth, matchId: `w${nth}`, endedAt: "2026-11-12T08:00:00.000Z", credits: nth === 1 ? 30 : 10 })),
+  losses: 2, maxPaidLosses: 5, creditsFromWins: 60, creditsFromLosses: 10, credits: 70, nextWinPays: 5, nextLossPays: 5,
+};
+
 function stats(over: Partial<SiteStats> = {}): SiteStats {
   // 30 reset days ending 12 Nov, 1480 rising 4 a day (so Gold's 1500 floor is crossed), rated every third day.
   const chart = Array.from({ length: 30 }, (_, i) => ({ day: new Date(Date.UTC(2026, 10, 12 - 29 + i)).toISOString().slice(0, 10), rating: 1480 + i * 4, rated: i % 3 === 0 ? 2 : 0, wins: i % 3 === 0 ? 2 : 0, losses: 0, draws: 0 }));
@@ -64,6 +73,7 @@ function stats(over: Partial<SiteStats> = {}): SiteStats {
       credits: result === "win" ? 30 : 0, rating: result === "cancelled" ? null : { before: 1600, after: 1612, change: result === "loss" ? -9 : 12 }, turns: 12,
     })),
     rating: { now: { ownerId: "o-me", rating: 1616.4, rd: 61.2, volatility: 0.06, ratedMatches: 19, tier: "Gold", lastDay: "2026-11-12" }, weekAgo: 1588.2, weekChange: 28.2, chart },
+    today: TODAY,
     ...over,
   };
 }

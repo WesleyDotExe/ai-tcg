@@ -399,7 +399,7 @@ export interface SiteApi {
    * `GET /api/ladder` (game 66), `GET /api/stats` (game 78),
    * `GET /api/notifications` and `POST /api/notifications/read` (game 77). */
   ladder(token: string, limit?: number): Promise<SiteLadder>;
-  stats(token: string, opts?: { days?: number; recent?: number }): Promise<SiteStats>;
+  stats(token: string, opts?: { agent?: string | null; days?: number; recent?: number }): Promise<SiteStats>;
   notifications(token: string, limit?: number): Promise<SiteNotifications>;
   markNotificationsRead(token: string, what: { all: true } | { ids: number[] }): Promise<unknown>;
   live(token: string): Promise<SiteLive>;
@@ -529,7 +529,7 @@ export function siteApi(fetchImpl: Fetch, base = ""): SiteApi {
     rating: (token, recent) => call("GET", `/api/rating${recent ? `?recent=${recent}` : ""}`, { token }),
     ladder: (token, limit) => call("GET", `/api/ladder${limit ? `?limit=${limit}` : ""}`, { token }),
     stats: (token, opts = {}) => {
-      const q = [opts.days ? `days=${opts.days}` : "", opts.recent ? `recent=${opts.recent}` : ""].filter(Boolean).join("&");
+      const q = [opts.agent ? `agent=${encodeURIComponent(opts.agent)}` : "", opts.days ? `days=${opts.days}` : "", opts.recent ? `recent=${opts.recent}` : ""].filter(Boolean).join("&");
       return call("GET", `/api/stats${q ? `?${q}` : ""}`, { token });
     },
     notifications: (token, limit) => call("GET", `/api/notifications${limit ? `?limit=${limit}` : ""}`, { token }),

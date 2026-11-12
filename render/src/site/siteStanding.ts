@@ -18,7 +18,7 @@ import type { Notification, NotificationKind, NotificationPage } from "@ai-tcg/e
 import type { SiteHistoryRow } from "./siteApi.js";
 import { FACTION_HEX, esc } from "./siteModel.js";
 import { signed, whenText } from "./siteMatches.js";
-import { FINISH_NAMES, type MiniCard } from "./siteBoard.js";
+import { FINISH_NAMES, type MiniCard, type SiteDaily } from "./siteBoard.js";
 
 // ---- the server's answers ----------------------------------------------------------
 
@@ -86,6 +86,8 @@ export interface SiteStats {
     weekChange: number;
     chart: { day: string; rating: number; rated: number; wins: number; losses: number; draws: number }[];
   };
+  /** Today's earnings, the same as `GET /api/daily` (the Stats page, render session 68). */
+  today: SiteDaily;
 }
 
 export type SiteNotifications = NotificationPage;
@@ -176,7 +178,7 @@ function ladderRowHtml(r: SiteLadderRow, youId: string, opts: { gap?: boolean } 
 }
 
 /** The tier column at L: every tier, the owner's lit, with each floor. */
-function tierLadderHtml(l: SiteLadder): string {
+export function tierLadderHtml(l: SiteLadder): string {
   const rows = [...l.tiers].reverse().map((t) => {
     const on = t.tier === l.you.tier;
     return `<li class="tl${on ? " on" : ""}" style="--t:${tierHex(t.tier)}"><i></i><span>${esc(t.tier)}</span><small>${t.from === null ? "below " + (l.tiers[1]?.from ?? "") : `${t.from}+`}</small></li>`;

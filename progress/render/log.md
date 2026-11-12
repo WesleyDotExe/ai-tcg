@@ -5727,3 +5727,69 @@ arena on Home unmeasured on a real GPU; `patchAround` has no Node unit test (no 
 
 **Next render-lane slice:** after this PR the next session is game. The next render session: the Stats page, the
 ladder page and the notifications bell (roadmap render item 7's last row). Render hardening pass due at 69.
+
+## 2026-11-12 — Render session 68: the Stats page, with the season ladder inside it
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #160 "The site contract check: the website's types against the
+served answers (session 90)", is not "Render:"). No PR from either lane was open. **Read first:** owner-feedback.md
+(the 2026-11-12 answers to render 67, all four kept; the answers to game 90 with three render items placed: the Stats
+page with `today` typed (this session), the bell then Top rated and viewer counts, the allowance label in the
+hardening pass 69), DESIGN.md, RENDER.md, this lane's log, debt and notes. Not a hardening pass (64 was; 69 is next).
+
+**The slice:** the Stats page (roadmap render item 1's last page but the bell; item 7's last row) on `GET /api/stats`
+(game 78) and `GET /api/ladder` (game 66), with the ladder inside it (item 5, the call at a checkpoint).
+
+**1. `render/src/site/siteStats.ts` (new, pure).** `statsFilterHtml` (All agents and each agent with its matches, as
+pressed pills; 7/30/90 days as a segmented control), `ratingHeroHtml` (badge, rating ± and rank, the week, the tier
+bar from `tierProgress`, the labelled `ratingChartSvg` at 760 x 190 and `dayColumnsSvg` under it on the same x),
+`totalsHtml` (win-rate ring and seven tiles, the void count), `todayHtml` (the stats' `today`: earned, the daily ring,
+next win and loss, rewarded wins, losses paid, the ticking reset clock), `factionTableHtml` (all four, % and W-L-D,
+the unrecorded apart), `recentHtml` (pips for all, the newest 8 rows, "Show all", Replay only where the history's
+`hasReplay` is true), `ladderSectionHtml` (the tier spread bar, `tierLadderHtml`, the top-100 table with the owner's
+row lit and added at the foot when off the list), `statsPageHtml` (loading, error with Try again, the ladder's own
+failure, a refresh error as a banner over drawn figures).
+
+**2. Types and the client.** `SiteStats.today: SiteDaily` (owner 2026-11-12); `SiteApi.stats` takes `agent`.
+`siteClient.ts`: `state.stats`; `loadStats` reads the stats, the ladder and the history's newest 50 at once (a later
+filter change wins; a 404 agent falls back to All agents; the all-agents 30-day answer and the ladder feed Home's
+widgets too); the route, the pills, the days control, Try again, Show all; a re-read when the agent's live match
+changes (the 15 s status poll) and at the daily reset. Stats leaves `PAGE_WAITS`. Styles in `sitePage.ts` (`st-*`,
+`dcols`, `ltable`; the columns grow in, transform only, off under reduce motion; one column under 1100 px; the phone
+rules).
+
+**Tests (+14, render 1004):** `siteStats.test.ts` (new): the filter's pills and days; the day columns' counts and x
+against the chart's; the hero (rank, week, tier bar, the agent note, placement); totals (streak tones, void, an
+empty record); today against Season 0's schedule; factions; recent (Replay by `hasReplay`, none before the history
+is read, Show all); the ladder (tier counts, the lit row, off the list, empty); the page's states; the motion rule;
+and one test on the **real owner API** (two agents of one owner, 8 matches over 7 days: every figure the server's
+under All agents and under one agent at 7 days, the rating unchanged by the filter, `today` equal to `GET
+/api/daily`). `site.test.ts`: Stats is served. `siteStanding.test.ts`: the fixture carries `today`.
+
+**Ran it:** `progress/render/evidence/stats-check-s68.mjs` against the real owner API with the ladder playing at 8x.
+Run 1 **27 PASS, 3 FAIL**: the page never heard Nova's match end (23 matches on the page, 28 on the server: only the
+live poll saw a match end, and it doesn't run on Stats), and Replay was offered for `demo-today-2`, which has no
+replay (404). Fixed (the status poll's live-match change; `hasReplay` from the history). Run 2 **40 PASS, 3 FAIL**:
+the check's own replay count (it still expected a Replay per non-cancelled row), and on a phone the totals squashed
+beside the ring and the ladder table ran 172 px past its box. Fixed (phone rules; 8 rows and Show all for the long
+side column). Both kept in `stats-check-s68-first-runs.txt`. Final run **44 PASS, 0 FAIL** (`stats-check-s68.txt`):
+every figure the server's (totals, streaks, credits, the ring, rating and week, 15 rated days and 15 day columns,
+both faction tables, 8 rows with the replays the history has, today's 69 credits / 65 of 90 / 5 of 10 / the reset,
+the 4-row ladder with Nova lit at #1); Quill Static's filter asked `agent=` and drew its empty record with the
+owner's rating; 7 and 90 days drew the server's days; the clock ticked; a match of Nova's ended and the open page
+went 23 -> 24 matches with no reload; Show all 20 / Show fewer; Replay opened `demo-live-009` and Close came back;
+no sideways scroll at 1440 or on a phone; no external requests; no page errors. Stills `v2-s68-stats-L.jpg`,
+`-L-top`, `-L-dark`, `-90-days`, `-replay`, `-phone`. CI browser check 61 PASS (`ci-browser-check-s68.txt`); the site
+contract check 0 mismatches, `GET /api/stats` now `fits` (`site-contract-s68.txt`); `npm test` (render) 1004 pass;
+typecheck clean; `render/output/site/index.html` rebuilt.
+
+**Seen, not this lane's:** on the demo's seeded history the chart's last day (1727) and `rating.now` (1755.5)
+disagreed until a live match was recorded (the demo's out-of-order warm-up, most likely); noted for the game lane.
+
+**Not done (named, in quality-debt):** two agents both with results never seen in the browser (Node test only); the
+day columns are hairlines at 90 days; Replay only within the history's newest 50; the bell.
+
+**Next render-lane slice:** after this PR the next session is game. The next render session (69) is the render
+hardening pass (every 5th: 59, 64, 69): work down `progress/render/quality-debt.md`, with Agent controls taking
+`autoPlay.allowance.label` ("Time's up", owner 2026-11-12, item 2). Then the notifications bell in the top bar, then
+Top rated and the viewer count on Watch live (owner 2026-11-12, item 1).
+

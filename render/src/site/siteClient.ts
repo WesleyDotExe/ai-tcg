@@ -66,6 +66,7 @@ import { collectionPageHtml, faceRenderer, viewerHtml, type FaceFns, type FaceRe
 import { miniCard, sourcesFor, widgetHtml, type WidgetData, type WidgetSource } from "./siteWidgets.js";
 import { arenaFit, arenaPick, patchAround, syncAttributes, TILE_ARENA_HOLD_END_MS, type HeldArena } from "./siteTileArena.js";
 import type { SiteLadder, SiteNotifications, SiteStats } from "./siteStanding.js";
+import { STATS_RECENT, statsPageHtml, type StatsDays, type StatsPageState } from "./siteStats.js";
 import { autoPlaySwitch, autoPlayView, compactBoard, historyRowHtml, historyRowView, myLiveMatch, nearSeat, recordOf, scoreboardHtml, scoreboardOf, speedControlHtml, speedControlView, tidyLines, watchAsHtml } from "./siteMatches.js";
 import { BACKGROUND_IDS, DEFAULT_BACKGROUND, amount, backgroundOf, drawnTheme, openButton, stillGradient } from "./siteLook.js";
 import {
@@ -149,12 +150,16 @@ const state: {
    * (`GET /api/live/:id?from=N`): the next move to ask for and every line
    * released so far, tidied. */
   follow: { matchId: string; next: number; started: boolean; lines: string[] } | null;
+  /** The Stats page (render session 68): `GET /api/stats` under its filter,
+   * and `GET /api/ladder` for the tiers and the season ladder. */
+  stats: StatsPageState;
 } = {
   session: null, play: null, me: null, settings: null, wallet: null, page: "home", theme: "system", background: DEFAULT_BACKGROUND, busy: false, poll: 0,
   board: null, boardError: null, draft: null, saving: false, home: { packs: null, collection: null, daily: null, store: null, live: null, history: null, rating: null, ladder: null, stats: null, notif: null, errors: {} }, colFilter: "All",
   shop: { packs: null, store: null, recent: null, error: null, loadouts: {}, owned: null }, opening: false,
   col: { binder: null, collection: null, error: null, filters: { ...DEFAULT_FILTERS }, viewer: null },
   hist: { rows: [], total: 0, more: false, error: null, loading: false }, autoBusy: false, speedBusy: false, replay: null, follow: null,
+  stats: { stats: null, ladder: null, replays: null, allRecent: false, agent: null, days: 30, loading: false, error: null, ladderError: null },
 };
 
 let liquid: Liquid | null = null;
@@ -557,6 +562,8 @@ function tickClocks(): void {
     if (state.page === "store" && !state.opening) void loadShop();
     // Render session 66: the Daily rewards widget's reset clock too (a new day).
     if (state.page === "home") void loadHome(["packs", "store", "daily"]);
+    // Render session 68: the Stats page's "Today" starts the new day.
+    if (state.page === "stats") void loadStats();
   }
 }
 window.setInterval(tickClocks, 1000);
@@ -564,6 +571,7 @@ async function refresh(): Promise<void> {
   if (!state.session || document.hidden) return schedulePoll();
   try {
     const was = state.play?.rebuild.job;
+    const wasLive = state.play?.liveMatch?.matchId ?? null;
     const token = state.session.token;
     const [play, wallet] = await Promise.all([api.play(token), api.wallet(token).catch((err: unknown) => {
       if (err instanceof SiteApiError && err.signedOut) throw err;
@@ -580,6 +588,9 @@ async function refresh(): Promise<void> {
     if (!state.busy && !dragging) drawPage();
     if (state.page === "home") void loadHome(["daily", "packs", "notif"]);
     if (state.page === "store" && !state.opening) void loadShop();
+    // Render session 68: the agent's match ended (or another began): it is
+    // recorded, so the Stats page reads again (its totals, today, the ladder).
+    if (state.page === "stats" && wasLive !== (play.liveMatch?.matchId ?? null)) void loadStats();
   } catch (err) {
     if (err instanceof SiteApiError && err.signedOut) return signedOut("Your session ended. Sign in again.");
   }
@@ -675,6 +686,7 @@ function route(): void {
   if (page === "match" || page === "live") void loadLive();
   if (page === "collection") void loadCollection();
   else closeViewer(false);
+  if (page === "stats") void loadStats();
 }
 window.addEventListener("hashchange", () => {
   if (state.session && state.play) route();
@@ -705,6 +717,7 @@ function drawPage(): void {
   else if (page === "collection") el.innerHTML = collectionPage();
   else if (page === "match") el.innerHTML = matchPage(p);
   else if (page === "live") el.innerHTML = livePage();
+  else if (page === "stats") el.innerHTML = statsPageHtml(state.stats, Date.now());
   else el.innerHTML = waitsPage(page);
   applyTheme();
   if (keep) restoreFocus(el, keep, keepTile);
@@ -1270,6 +1283,54 @@ async function loadCollection(): Promise<void> {
     ($("#page") as HTMLElement).scrollTop = y;
     if (state.col.viewer) drawViewer();
   }
+}
+
+/** Reads the Stats page: the stats under the page's filter and the ladder
+ * (both at once; one failing leaves the other drawn). A filter change
+ * while a read is out wins: the older answer is dropped. */
+let statsAsk = 0;
+async function loadStats(): Promise<void> {
+  if (!state.session) return;
+  const token = state.session.token;
+  const st = state.stats;
+  const ask = ++statsAsk;
+  st.loading = true;
+  if (state.page === "stats") redrawStats();
+  // The history's newest page says which matches have a replay (the stats' recent rows don't).
+  const [s, l, h] = await Promise.allSettled([api.stats(token, { agent: st.agent, days: st.days, recent: STATS_RECENT }), api.ladder(token, 100), api.matches(token, 50)]);
+  if (ask !== statsAsk) return;
+  st.loading = false;
+  const why = (r: PromiseRejectedResult) => (r.reason instanceof SiteApiError ? errorText(r.reason.status, r.reason.message) : "Something went wrong.");
+  for (const r of [s, l]) if (r.status === "rejected" && r.reason instanceof SiteApiError && r.reason.signedOut) return signedOut("Your session ended. Sign in again.");
+  if (s.status === "fulfilled") {
+    st.stats = s.value;
+    st.error = null;
+    // The Rating & form widget reads the same answer (its own filter is all agents, 30 days).
+    if (st.agent === null && st.days === 30) state.home.stats = s.value;
+  } else {
+    // An agent that is no longer the owner's (404): back to all agents.
+    if (s.reason instanceof SiteApiError && s.reason.status === 404 && st.agent !== null) {
+      st.agent = null;
+      return loadStats();
+    }
+    st.error = why(s);
+  }
+  if (l.status === "fulfilled") {
+    st.ladder = l.value;
+    st.ladderError = null;
+    state.home.ladder = l.value;
+  } else st.ladderError = why(l);
+  if (h.status === "fulfilled") st.replays = Object.fromEntries(h.value.matches.map((m) => [m.matchId, m.hasReplay]));
+  if (state.page === "stats") redrawStats();
+}
+
+/** Redraws the Stats page where it is (the scroll and focus kept). */
+function redrawStats(): void {
+  if (state.page !== "stats" || state.replay) return;
+  const pageEl = $("#page") as HTMLElement;
+  const y = pageEl.scrollTop;
+  drawPage();
+  pageEl.scrollTop = y;
 }
 
 function collectionPage(): string {
@@ -1873,6 +1934,7 @@ async function loadLive(): Promise<void> {
     window.setTimeout(() => {
       void loadHistory(true);
       if (state.page === "home") void loadHome(["history", "daily", "rating", "ladder", "stats", "notif"]);
+      if (state.page === "stats") void loadStats();
       void refresh();
     }, 1500);
   }
@@ -2543,6 +2605,17 @@ document.addEventListener("click", (e) => {
     if (act === "retry-hist") return void loadHistory(true);
     if (act === "retry-shop") return void loadShop();
     if (act === "retry-col") return void loadCollection();
+    if (act === "retry-stats") return void loadStats();
+    if (act === "stats-recent") {
+      state.stats.allRecent = !state.stats.allRecent;
+      return redrawStats();
+    }
+    if (act === "stats-agent") {
+      const id = actEl.dataset.agent || null;
+      if (id === state.stats.agent) return;
+      state.stats.agent = id;
+      return void loadStats();
+    }
     if (act === "col-tab" || act === "col-faction" || act === "col-show") {
       const v = actEl.dataset.v ?? "";
       const f = state.col.filters;
@@ -2577,6 +2650,10 @@ document.addEventListener("click", (e) => {
         return r;
       });
     else if (group === "theme-seg") void saveLook({ theme: v as ThemePref });
+    else if (group === "stats-days") {
+      state.stats.days = Number(v) as StatsDays;
+      void loadStats();
+    }
     return;
   }
   const sw = t.closest("#bg-picker .sw") as HTMLElement | null;
