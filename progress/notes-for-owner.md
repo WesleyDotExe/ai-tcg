@@ -1,5 +1,38 @@
 # Notes for the owner
 
+**Updated 2026-11-12, session 90 (game lane; a spare session).** Nothing is blocking. Lane: the last merged PR,
+#159, was "Render:", so this is a game session; no PR was open. Your answers to session 89 and render 67 needed
+nothing from this lane.
+
+**What I did (no new feature, no product code changed):**
+- **Checked that the website reads the server correctly.** The website's code says what shape each server answer
+  has; nothing had ever compared that with what the server really sends. A new check runs the website's own client
+  against the real server (with the ladder playing real matches), then has the TypeScript compiler test every
+  answer against the shape the website expects. 43 calls across 37 kinds of request: **every answer fits; nothing
+  the website reads is missing or the wrong shape.** To prove the check can fail, it also tests three deliberately
+  broken answers; it catches all three. Evidence `progress/site-contract-001.txt`.
+- **It now runs on every PR** (a step in the test workflow, ~10 s). It fails only when an answer doesn't fit what the
+  website expects, so it catches a server change that would break a page, or a website change that expects a field
+  the server doesn't send, before it merges. Extra fields the server sends are listed, never a failure.
+
+**For the render lane** (nothing is broken; things it may want):
+1. **Top rated and viewer counts are served but never shown.** `GET /api/live` has `featured: { tournament,
+   topRated }` and each live match has `viewers` (game session 74); no render code reads either. The Watch live
+   widget's "featured matches" are today just the live list.
+2. **`autoPlay.allowance.label`** ("Running" / "Finishing match" / "Time's up", session 78) isn't read yet; the
+   Agent controls still write their own words.
+3. **The Stats page slice:** `GET /api/stats` also sends `today` (today's earnings), not in `SiteStats` yet.
+4. The full list of served-but-unnamed fields is in `progress/site-contract-001.txt` (UNTYPED lines). If the render
+   lane adds a field to a type, the check will tell it at once whether the server really sends it.
+
+**Small calls you may want to overrule:**
+1. **The check runs in CI and can fail either lane's PR**, but only on a real mismatch. The alternative is to run it
+   by hand only.
+2. **The check uses the website's code from a server-side script** (read-only, loaded at run time; the server's own
+   code doesn't depend on the website). Keeping the two lanes' code apart otherwise.
+
+---
+
 **Updated 2026-11-12, session 88 (game lane; a spare session).** Nothing is blocking. Lane: the last merged PR,
 #155, was "Render:", so this is a game session; no PR was open.
 

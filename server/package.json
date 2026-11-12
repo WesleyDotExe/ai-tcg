@@ -29,6 +29,7 @@
     "demo:season-end": "tsx src/dev/seasonEndApiDemo.ts",
     "demo:season-next": "tsx src/dev/seasonNextApiDemo.ts",
     "demo:daily-order": "tsx src/dev/dailyOrderDemo.ts",
+    "check:site-contract": "tsx src/dev/siteContractCheck.ts",
     "measure:first-seat-ladder": "tsx src/dev/firstSeatLadder.ts"
   },
   "dependencies": {
