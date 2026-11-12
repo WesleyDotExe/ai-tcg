@@ -7,6 +7,31 @@ checkpoint process: this flags and continues, never blocks.
 
 ---
 
+## 2026-11-12 — Render hardening pass (session 64) — AWAITING FEEDBACK (two small calls)
+
+No new features. The two checks that had gone stale by design (the website's Store check from session 47 and the
+Open 10 check from session 54) are rewritten for the tiles and the stops, and pass against the real owner API and
+the real pack page (`site-check-s64.txt` 56 passed, `pack-bulk-check-s64.txt` 14 PASS).
+
+**A bug the rewrite found, fixed:** in Open 10, pressing **Skip ahead while a pack was still tearing** (in the
+moment before its cards were dealt) threw that pack away unseen, its Rares and better included, against your call
+that Skip can't pass a stop. Now Skip pressed then lets that pack deal and stop as usual, and runs past only the
+plain packs after it.
+
+**Two small store fixes:** the claimed free pack tile now counts down on the same ticking clock as the top of the
+Store ("Claimed today · the next in 12:15:14"), not a second "12 h 16 min" for the same moment; and after a buy or a
+claim, keyboard focus stays on that tile instead of jumping to the top of the page.
+
+**Small calls (kept as built unless you say otherwise):**
+1. Skip pressed during a pack's tear **carries on with that pack** (if it holds a stop), then skips the plain packs
+   after it. The alternative would be ignoring that press altogether.
+2. The claimed tile's line reads **"Claimed today · the next in hh:mm:ss"** (the head's clock format), dropping the
+   "(midnight Sydney)" it used to say, since the head says it once already.
+
+**Next:** the game lane's turn; then the rest of the widgets' S/M/L pass.
+
+---
+
 ## 2026-11-11 — The store layout, with the Store and Packs widgets at S, M and L — AWAITING FEEDBACK
 
 The brief's section 2 (the store layout) and section 1's Store and Packs rows. Try it: `npm run site-demo -w

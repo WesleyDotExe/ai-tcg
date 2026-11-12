@@ -5461,3 +5461,59 @@ different font could scroll it); nothing on a GPU; the phone layout looked at on
 **Next render-lane slice:** after this PR the next session is game. The next render session is **64, a hardening
 pass** (the stale s47 and s54 checks first), then the rest of the widgets' S/M/L pass.
 
+
+## 2026-11-12 — Render session 64: hardening pass (the stale s47 and s54 checks rewritten; a Skip bug found and fixed; two store fixes)
+
+**Lane:** render (TASKS.md step 0: the last merged PR, #152 "The season-file lock ...", is not "Render:"; the
+catch-up after #143 is long done). No PR from either lane was open. **Read first:** owner-feedback.md (the
+2026-11-12 answers to render 63, all 6 kept, nothing for this lane to act on; game 86's answers), DESIGN.md,
+RENDER.md, this lane's log, debt and notes. **A hardening pass** (every 5th: 59, 64): no new features.
+
+**1. The ten-pack check, rewritten (`pack-bulk-check-s64.mjs`, replaces `pack-bulk-check-s54.mjs`).** s54 modelled
+the row before session 62's stops and failed by design. The new one keeps what only s54 checked, on the stop model:
+every pack once and in order; big pulls exactly the store's `fullReveal` packs; the honest tell (sparks iff a hit);
+each fast pack dealt exactly its cards, the face-down ones exactly its held ones, each building, revealing as its
+own kind and landing in the row; every row stop logged; no plain card ever "flipped"; in Auto every stop (row and
+stack) holds still 1.2 s untouched; Auto never cuts a reveal short; no controls in a big pull or on the summary; the
+summary's tiles, copies, NEW badges and pack points the store's; the row and stack on screen; no sideways scroll,
+page errors or network requests; speed and Auto remembered across a reload. Four runs (by tap; Auto 4x; Auto 1x;
+Auto 2x with Skip) at 1280 x 800 and on a phone.
+
+**2. A real bug it found (fixed in `packPage.ts`).** Its first run failed run C: "pack 1: never dealt", 12 stops
+met of 14 (`pack-bulk-check-s64-before-fix.txt`). Skip pressed while a pack holding a stop was still tearing (its
+row not dealt yet; the 210 ms after the fan at 2x is enough) cleared the deal's timer and ran on to the next pack,
+so that pack's stops were never shown, breaking owner call 3 of render 62 ("Skip can't pass a stop"). s62's check
+pressed Skip only at a stop already showing, so it never saw this. Now Skip during such a tear lets the pack carry
+on and runs past only the plain packs after it (`bulkSkip` logged with `pending: true`). Run C now presses Skip
+during every tear of a pack with a stop, deliberately. Source test in `packStops.test.ts`.
+
+**3. The site check, rewritten (`site-check-s64.mjs`, replaces `site-check-s47.mjs`).** s47 drove the stepper and
+`#buy-btn` (gone since render 63). A, B, C and L now drive the tiles (the sections, the server's prices on the
+tiles, the claim from the featured tile, two buys from the 1 pack tile each with its confirm, the 10 packs tile
+greyed with how many credits short, the narrow layout); G taps the ten through every stop (no Skip past them) and
+checks each of the ten packs' cards against the server's logged copies. D-F, H-K, M, N are s47's unchanged (the
+single open, Open another, Close mid-reveal, Esc, sound saved to the account, CSP, reduce motion, another owner).
+
+**4. Two store debts paid (`siteShop.ts`, `siteClient.ts`).**
+- *The same moment twice:* the claimed daily tile said "The next comes in 10 h 12 min" under the head's ticking
+  "10:12:22". The tile now says "Claimed today · the next in" with the same ticking clock (`data-until` on the
+  server's `nextPackAt`), in the Store and the Store widgets. With no `nextPackAt` it keeps the old words.
+- *Focus after a buy:* the confirm dialog now gives focus back to what opened it, and a redraw that greys the
+  focused button ("Claimed today", "Owned") puts focus on its tile instead of dropping it to the page.
+
+**Ran it:** `pack-bulk-check-s64.mjs` -> **14 PASS, 0 FAIL** (`pack-bulk-check-s64.txt`; by tap 54-74 s, Auto 4x
+49-53 s, Auto 1x 81-103 s, 14-16 stops per ten); `site-check-s64.mjs` -> **56 passed, 0 failed** against the real
+owner API (`site-check-s64.txt`; the focus and clock checks included); the CI browser check 61 PASS
+(`ci-browser-check-s64.txt`); `npm test` (render) 959 pass (new assertions inside existing tests); typecheck
+clean; `render/output/pack-opening.html` and `render/output/site/index.html` rebuilt. A first `npm test` run beside
+two headless browsers timed out 4 tests at 5 s (CPU); alone, all pass. The site check's first run died on a
+screenshot timeout under the same load: its stills are now best-effort, as s63's were.
+
+**Not done (named):** the demo's tens hold a stop in every pack, so Skip never actually runs past a plain pack in
+any check (the rule is source-tested only); the focus fix was not run against the old code to see the check fail
+(only that it passes now); still not re-run: s38's boot check, `boast-check-s3x`, `hardening-check-s40`,
+`feed-check`, s45's liquid check, `pack-opening-check` / `pack-tap-check` / `pack-tilt-check`.
+
+**Next render-lane slice:** after this PR the next session is game. The next render session: the rest of the
+widgets' S/M/L pass (Daily rewards, Watch live embedded at L, Showcase, Collection, and Ladder, Rating & form and
+Notifications on their real data), checklist item 7.

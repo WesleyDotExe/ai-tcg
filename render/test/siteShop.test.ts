@@ -84,7 +84,20 @@ describe("the store's products as tiles", () => {
     expect(packTiles({ ...PACKS, dailyPack: { ...DAILY, waiting: 2, nextPackAt: null } }, 0, NOW)[0]).toMatchObject({ badge: "×2 waiting", button: { label: "Claim (2)", enabled: true } });
     const claimed = packTiles({ ...PACKS, dailyPack: { ...DAILY, waiting: 0 } }, 0, NOW).find((x) => x.id === "daily")!;
     expect(claimed).toMatchObject({ size: "tall", price: null, badge: null, button: { label: "Claimed today", enabled: false, why: null } });
-    expect(claimed.sub).toMatch(/^Claimed today\. The next comes in 10 h 12 min \(midnight Sydney\)\.$/);
+    // Render session 64: the same moment as the head's clock, in the same
+    // ticking hh:mm:ss (data-until), not a second "10 h 12 min".
+    expect(claimed.sub).toBe("Claimed today · the next in");
+    expect(claimed.until).toEqual({ iso: DAILY.nextPackAt, text: "10:12:22" });
+    const html = tileHtml(claimed);
+    expect(html).toContain(`<small>Claimed today · the next in <b class="sh-clock" data-until="${DAILY.nextPackAt}">10:12:22</b></small>`);
+    expect(html).not.toMatch(/h \d+ min/);
+    // No next time from the server: the old words, and no clock.
+    const noNext = packTiles({ ...PACKS, dailyPack: { ...DAILY, waiting: 0, nextPackAt: null } }, 0, NOW).find((x) => x.id === "daily")!;
+    expect(noNext.until).toBeNull();
+    expect(noNext.sub).toBe("Claimed today.");
+    expect(tileHtml(noNext)).not.toContain("data-until");
+    // A tile that can be claimed has no clock.
+    expect(packTiles(PACKS, 0, NOW)[0]!.until).toBeNull();
   });
   it("cosmetics: the not-owned first in the server's order; owned shows Owned with no price; greyed when short", () => {
     const tiles = cosmeticTiles([COS("a", "coin", 300, true), COS("b", "boast", 300, false, "Cortex"), COS("c", "coin", 300)], 250);

@@ -1,0 +1,28 @@
+FAIL  desktop run T (10 packs, big pull, by tap): 72.8 s to the summary; big pulls at pack 6; packs skipped none; 14 stops met (12 in the row); 39 tiles for 50 cards, 39 NEW
+      the driver met 14 stops, want 12
+PASS  desktop run A (10 packs, Auto 4x): 59.0 s to the summary; big pulls at pack none; packs skipped none; 16 stops met (16 in the row), each still 1200 ms; 39 tiles for 50 cards, 38 NEW
+      (still stack-desktop timed out)
+      (still summary-B-desktop timed out)
+PASS  desktop run B (10 packs, big pull, Auto 1x): 148.5 s to the summary; big pulls at pack 6; packs skipped none; 14 stops met (12 in the row), each still 1200 ms; 39 tiles for 50 cards, 39 NEW
+      (still row-stop-C-desktop timed out)
+FAIL  desktop run C (10 packs, big pull, Auto 2x, skip): 120.3 s to the summary; big pulls at pack 6; packs skipped none; 12 stops met (10 in the row), each still 1200 ms; 39 tiles for 50 cards, 39 NEW
+      pack 1: never dealt
+      the driver met 12 stops, want 14
+PASS  desktop: speed and Auto remembered across a reload (2x, Auto on; want 2x, on)
+PASS  desktop: Auto off is remembered and hides the speeds (Auto false, speeds hidden)
+PASS  desktop: no network requests (0)
+FAIL  phone run T (10 packs, big pull, by tap): 65.3 s to the summary; big pulls at pack 6; packs skipped none; 14 stops met (12 in the row); 39 tiles for 50 cards, 39 NEW
+      the driver met 14 stops, want 12
+PASS  phone run A (10 packs, Auto 4x): 52.2 s to the summary; big pulls at pack none; packs skipped none; 16 stops met (16 in the row), each still 1200 ms; 39 tiles for 50 cards, 38 NEW
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+page.waitForTimeout: Target page, context or browser has been closed
+    at waitFor (/home/user/ai-tcg/progress/render/evidence/pack-bulk-check-s64.mjs:64:85)
+    at async driveTen (/home/user/ai-tcg/progress/render/evidence/pack-bulk-check-s64.mjs:137:24)
+    at async file:///home/user/ai-tcg/progress/render/evidence/pack-bulk-check-s64.mjs:249:20 {
+  log: []
+}
+
+Node.js v22.23.4

@@ -1,3 +1,5 @@
+// RETIRED in render session 64 (hardening pass): stale by design, since it models the ten-pack row before render session 62's stops (only finishes face down, bulkFlip, Auto flipping by itself).
+// Kept as the record of what was checked then; run `pack-bulk-check-s64.mjs` instead.
 // Render session 54 (hardening pass): the ten-pack opening, driven like an
 // owner would in a real (headless) Chromium. This replaces session 25's
 // `pack-bulk-check.mjs`, which was written for the first ten-pack design

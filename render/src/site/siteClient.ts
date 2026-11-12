@@ -317,12 +317,16 @@ function fail(err: unknown): void {
 function confirmDialog(title: string, body: string, confirm: string): Promise<boolean> {
   return new Promise((resolve) => {
     const d = $("#dialog");
+    // Render session 64: focus goes back to what opened the dialog (a
+    // tile's Buy), so the redraw after the answer can keep it there.
+    const opener = document.activeElement as HTMLElement | null;
     d.innerHTML = `<div class="dlg glass" role="dialog" aria-modal="true" aria-labelledby="dlg-t"><h2 id="dlg-t">${esc(title)}</h2><p>${esc(body)}</p><div class="row end"><button class="btn" data-a="no">Cancel</button><button class="btn pri" data-a="yes">${esc(confirm)}</button></div></div>`;
     d.className = "dim on";
     const done = (v: boolean) => {
       d.className = "dim";
       d.innerHTML = "";
       document.removeEventListener("keydown", onKey, true);
+      if (opener?.isConnected && opener !== document.body) opener.focus({ preventScroll: true });
       resolve(v);
     };
     const onKey = (e: KeyboardEvent) => {
@@ -679,6 +683,10 @@ function drawPage(): void {
   // (session 50: the history's Replay buttons are redrawn while a replay
   // is open, and Close gives focus back to the row's).
   const keep = focusKey(el);
+  // The tile the focused control sits in (render session 64): a Buy that
+  // turns into a greyed "Owned" or "Claimed today" can't take focus back, so
+  // its tile does instead of focus dropping to the page.
+  const keepTile = keep ? ((document.activeElement as HTMLElement | null)?.closest<HTMLElement>("[data-tile]")?.dataset.tile ?? null) : null;
   if (page === "home") el.innerHTML = homePage(p);
   else if (page === "settings") el.innerHTML = settingsPage(p);
   else if (page === "connect") el.innerHTML = connectPage(p);
@@ -688,7 +696,18 @@ function drawPage(): void {
   else if (page === "live") el.innerHTML = livePage();
   else el.innerHTML = waitsPage(page);
   applyTheme();
-  if (keep) el.querySelector<HTMLElement>(keep)?.focus();
+  if (keep) restoreFocus(el, keep, keepTile);
+}
+
+/** Focus back on the redrawn twin of what had it; if that twin is gone or
+ * greyed, on the tile it sat in (focusable from a script only). */
+function restoreFocus(root: HTMLElement, key: string, tileId: string | null): void {
+  const twin = root.querySelector<HTMLElement>(key);
+  if (twin && !(twin as HTMLButtonElement).disabled) return twin.focus({ preventScroll: true });
+  const tile = tileId ? root.querySelector<HTMLElement>(`[data-tile="${CSS.escape(tileId)}"]`) : null;
+  if (!tile) return;
+  tile.tabIndex = -1;
+  tile.focus({ preventScroll: true });
 }
 
 /** A selector for the focused control inside `root` (its id, or its action

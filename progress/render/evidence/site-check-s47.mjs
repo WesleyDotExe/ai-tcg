@@ -1,3 +1,5 @@
+// RETIRED in render session 64 (hardening pass): stale by design, since the Store's stepper and #buy-btn it drives were replaced by tiles in render session 63.
+// Kept as the record of what was checked then; run `site-check-s64.mjs` instead.
 // Render session 47: the Store page and pack opening on the website, driven
 // in a headless browser against the real owner API (render/src/site/
 // siteDemo.ts: a fresh season database, the game lane's owner API

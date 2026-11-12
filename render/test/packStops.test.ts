@@ -180,6 +180,13 @@ describe("the page", () => {
     // Skip: points at a stop still face down, and skips only packs without one.
     expect(src).toMatch(/if \(S\.phase === 'bulk' && rowDowns\(\)\.length\) \{ log\('bulkSkip'/);
     expect(src).toMatch(/if \(S\.skipping && !r\.fullReveal && !r\.cards\.some\(packRowHeld\)\)/);
+    // Render 64: Skip while a pack with a stop is still tearing (no row yet)
+    // lets that pack carry on; it never clears the deal and runs past it.
+    const skip = /bskip\.addEventListener\('click', function \(e\) \{([\s\S]*?)\n  \}\);/.exec(src)![1]!;
+    const pending = skip.indexOf("pending: true }); S.skipping = true; return; }");
+    expect(pending).toBeGreaterThan(0);
+    expect(skip).toMatch(/var tearing = S\.phase === 'bulk' && !S\.row && S\.bp >= 0 \? S\.B\.packs\[S\.bp\] : null;/);
+    expect(pending).toBeLessThan(skip.indexOf("clearTimers()"));
     // Every stack starts with no card revealed (a second big pull used to
     // inherit the last one's reveals and skip its builds).
     expect(/function dealStack\(\) \{[\s\S]*?S\.revealed = \{\};/.test(src)).toBe(true);
