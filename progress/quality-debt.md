@@ -262,6 +262,25 @@ real, but here is where it's thin.
   only, at an owner check-in; the store still picks the old deck); the economy demos, older owner-API demos and the render's committed
   samples record rules-1 matches. Watch time 6.7 min is now accepted (owner 2026-11-03: 6-7 minutes is the target).
 
+## Session 89 (the owner's bug fix: the day's wins numbered in payment order; no schema change): what was raised, and what is still thin
+
+Raised: `GET /api/daily` numbered wins by end time while `recordMatch` paid them in recording order; now one rule
+(recording order). Test fails on the old code; `progress/daily-order-001.txt` proves both cases through the live
+ladder. Still thin:
+- **A backward clock step pauses a running server for as long as the step** (the next round waits for
+  `nextRoundAt` on the old clock, and a shown match's moves wait for their `nextAt`). Harmless, and macOS rarely
+  steps much, but a 1-hour correction would be an hour with no matches and a frozen Watch live, with no log line.
+  Not changed in the freeze. A fix would rebase `nextRoundAt` and every `nextAt` when `now` goes backwards.
+- **Recording order is the implicit SQLite rowid** (`matches` has a TEXT primary key). It is stable because nothing
+  rewrites a season file's rows (no VACUUM on it; `VACUUM INTO` only in a measure, on a copy). A table rebuild in a
+  future migration would have to keep row order, or the table should get an explicit sequence column.
+- **A restart with the clock behind still records end times out of order** (the fix makes the numbering honest;
+  it doesn't stop the clock being wrong). Other reads by `ended_at` (history, rating chart, streaks) then show those
+  matches in end-time order, not play order. Nothing pays by them, so it's display only. The clean-up steps should
+  say to check the clock before a restart.
+- **The site demo's warm-up still records out of order** (its "today" wins at the real time, its ladder two hours
+  behind). Now honest, but its daily widget shows end times out of order; the render lane's to change if it wants.
+
 ## Session 88 (a spare session: the rest of session 87's scale gaps measured; no code or schema change): what is still thin
 
 - **Measured: the rest of the 7-day run's reads at a season's history** (`progress/season-scale-001.txt`, a record;

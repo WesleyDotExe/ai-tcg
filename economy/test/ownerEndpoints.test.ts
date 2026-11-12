@@ -148,6 +148,48 @@ describe("today's earnings (the Daily rewards widget)", () => {
     expect(() => s.dailyEarnings("nobody")).toThrow(/no owner/);
     expect(() => s.dailyEarnings(a.ownerId, "yesterday")).toThrow(/not a valid time/);
   });
+
+  // Owner 2026-11-12 (render session 66's note): the day's wins were
+  // numbered by end time but paid in the order they were recorded, so a
+  // match recorded with an earlier end time than one already recorded (the
+  // site demo's ladder clock started behind its "today" matches; in real
+  // play, the server's clock stepped back) put the 30 on the wrong win. One
+  // rule now: a win's place in the day is the order it was recorded in,
+  // which is the order it was paid in.
+  it("numbers the day's wins in the order they were paid, even when recorded out of end-time order", () => {
+    const s = open();
+    const a = player(s, "a");
+    const b = player(s, "b");
+    // Recorded at 09:00, 08:00, 08:30, 07:00 UTC (all 1 Nov in Sydney):
+    // paid 30, 10, 10, 10 in that order.
+    const order = ["2026-11-01T09:00:00.000Z", "2026-11-01T08:00:00.000Z", "2026-11-01T08:30:00.000Z", "2026-11-01T07:00:00.000Z"];
+    const paid = order.map((t) => win(s, a.agentId, b.agentId, t));
+    expect(paid.map((m) => m.p1Credits)).toEqual([30, 10, 10, 10]);
+    // A loss recorded between them, out of order too: the 2 it was paid.
+    const loss = win(s, b.agentId, a.agentId, "2026-11-01T06:00:00.000Z");
+    expect(loss.p2Credits).toBe(2);
+    const e = s.dailyEarnings(a.ownerId);
+    expect(e.wins.map((w) => w.matchId)).toEqual(paid.map((m) => m.matchId));
+    expect(e.wins.map((w) => w.endedAt)).toEqual(order);
+    // Every win's credits are what the schedule pays for its place.
+    for (const w of e.wins) expect(w.credits).toBe(winCredits(w.nth));
+    expect(e.wins.map((w) => [w.nth, w.credits])).toEqual([[1, 30], [2, 10], [3, 10], [4, 10]]);
+    expect([e.creditsFromWins, e.losses, e.creditsFromLosses, e.nextWinPays]).toEqual([60, 1, 2, 5]);
+    // And the same over a whole day recorded in a shuffled end order, past
+    // the cap: the nth recorded win is paid the nth win's credits.
+    const s2 = open();
+    const c = player(s2, "c");
+    const d = player(s2, "d");
+    const times = Array.from({ length: 12 }, (_, i) => new Date(Date.parse("2026-10-31T14:00:00.000Z") + i * 600_000).toISOString());
+    const shuffled = [7, 2, 11, 0, 5, 9, 1, 10, 3, 8, 6, 4].map((i) => times[i]!);
+    for (const t of shuffled) win(s2, c.agentId, d.agentId, t);
+    const e2 = s2.dailyEarnings(c.ownerId);
+    expect(e2.wins.map((w) => w.endedAt)).toEqual(shuffled);
+    for (const w of e2.wins) expect(w.credits).toBe(winCredits(w.nth));
+    expect(e2.rewardedWins.map((w) => w.nth)).toEqual(Array.from({ length: 10 }, (_, i) => i + 1));
+    const ledgerPaid = s2.ledger(c.ownerId).filter((l) => l.reason.startsWith("match")).reduce((t, l) => t + l.delta, 0);
+    expect(ledgerPaid).toBe(e2.credits);
+  });
 });
 
 describe("the saved board layout (schema v16)", () => {

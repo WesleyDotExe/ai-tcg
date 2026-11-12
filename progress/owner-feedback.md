@@ -4685,7 +4685,7 @@ Next session by alternation: game. Next render slice, as planned: Watch live at 
 
 ---
 
-## 2026-11-12 — Owner: for the next game session, first: the daily-earnings order mismatch (render session 66's note)
+## 2026-11-12 — Owner: for the next game session, first: the daily-earnings order mismatch (render session 66's note) (HANDLED 2026-11-12, game session 89 — 1: it can happen in real play only after a restart while the server's clock is behind its last recorded match; a running ladder can't (its next round waits for the old time), said in `progress/notes-for-owner.md`. 2: one rule, recording order (the order wins are paid in), for the numbering too (`dailyEarnings`, `economy/src/store.ts`); test `economy/test/ownerEndpoints.test.ts` (fails on the old code); evidence `progress/daily-order-001.txt` (both ways, through the live ladder and `GET /api/daily`, 10 PASS, in the CI demo set); `npm run demos` 31 same. 3: the render lane told in `progress/notes-for-owner.md`)
 
 Render session 66 noted (in `progress/render/notes-for-owner.md`) that `GET /api/daily` numbers the day's wins by when each match ended, but pays them in the order they were recorded. In the demo's clock-jump warm-up the two disagreed. The owner wants it addressed even though it is small; it is a bug fix, so it fits the feature freeze.
 
